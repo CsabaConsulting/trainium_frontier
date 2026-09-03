@@ -1,0 +1,28 @@
+# Ignore the `build/` directory in the package root.
+/build
+
+# Generated training/eval output (regenerable checkpoints, ~228M each)
+out/
+out_*/
+
+# Python caches
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+
+# Runtime data/tokenizer caches (default ~/.cache/neuron_competition_r1, but if
+# NEURON_COMPETITION_R1_CACHE_DIR points inside the repo, keep these out of git)
+.cache/
+data/
+*.parquet
+
+# CDK
+infra/cdk.out/
+infra/.venv/
+infra/cdk.context.json
+infra/node_modules/
+
+# Editor / OS cruft
+.DS_Store
+*.swp

@@ -1,0 +1,26 @@
+# Python dependencies for the Neuron Competition R1 starter kit (prepare.py + train.py),
+# ON TOP OF a Trainium training DLAMI (e.g. aws_neuronx_venv_pytorch_2_9_nxd_training),
+# which already provides torch, torch_neuronx, and neuronx-cc.
+#
+# The DLAMI is missing the packages below. Install with:
+#   pip install -r requirements.txt
+# Versions are intentionally unpinned; any recent release works.
+
+# Parquet reader for the ClimbMix training/validation shards (prepare.py dataloaders).
+pyarrow
+
+# Tokenizer runtime: loads the fixed, shipped BPE artifact and encodes/decodes text.
+tiktoken
+
+# HTTP downloads of dataset shards (and, if configured, the tokenizer artifact).
+requests
+
+# --- optional ---------------------------------------------------------------
+# rustbpe: Rust BPE trainer (on PyPI, with prebuilt manylinux/macOS/Windows
+#   wheels — `pip install rustbpe` needs no Rust toolchain). Only needed to
+#   REBUILD the tokenizer via `prepare.py setup --build-tokenizer-if-missing`;
+#   the shipped SHA256-verified tokenizer artifact is used for normal train/eval,
+#   so the competition run does NOT require it. Imported lazily inside
+#   build_tokenizer_fallback() so its absence does not break `import prepare`.
+#   Uncomment to enable tokenizer rebuilds:
+# rustbpe
