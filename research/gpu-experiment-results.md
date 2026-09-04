@@ -174,6 +174,23 @@ Worth noting going in: now that the bin-size sweep found the optimum at `PACK_FA
 
 **Packing-area research arc, summary**: bin-size re-sweep found a large real win (`PACK_FACTOR=8→2`, -0.00694) that nobody had re-checked since Solution 6 first landed, three architecture additions earlier — the single best return from this whole follow-up effort. Document-boundary masking (item #2) was a clean, real negative result. Custom packer with remainder-requeue (item #3) is now lower priority than originally planned: it targets crop-loss specifically, but the smaller optimal bin already has less crop-loss than assumed, and the leakage-side fix (item #2) just failed — the evidence pattern doesn't strongly motivate the highest-risk item of the three. Leaving it as documented future work rather than pursuing it now, given diminishing returns and real implementation risk (a bug there could silently corrupt training data).
 
+**Checkpoint update**: ran a fresh longer confirmation (1450 steps) on this config, `public_val_bpb = 1.10682` (vs. v1's `1.111741` at the same step count) — improvement holds at the longer horizon. Saved as `checkpoints/final-confirmation-v2.pt`, supersedes v1 (kept for historical reference). See `checkpoints/README.md`.
+
+---
+
+## Further exploration (continuing past the packing-area plan, per explicit "don't cut it short" direction)
+
+### Decomposing Solution 8's bundle: `ROPE_BASE=200000` alone
+
+Solution 8 tested window-pattern + short-window + RoPE-base *together* and discarded the combo on a small real regression — but a single run of a 3-part bundle can't say which part (if any) was responsible. Testing `ROPE_BASE=200000` alone first (cheapest, most isolated piece), on top of the current best config (Sol 1-7, 9a, 10, `PACK_FACTOR=2`).
+
+| Config | public_val_bpb | Δ vs baseline | status |
+|---|---|---|---|
+| `ROPE_BASE=100000` (Sol 1-7,9a,10, `PACK_FACTOR=2`) | 1.165273 | — | — |
+| `ROPE_BASE=200000` alone | 1.192130 | **+0.02686** | **discard — huge regression** |
+
+**Striking result**: this single-component regression (+0.0269) is far bigger than the *entire 3-part bundle's* regression (+0.00129) from the original Solution 8 test. That's a strong signal, not just noise: it implies the windowing component in that bundle must have been offsetting a much larger RoPE-induced loss — i.e., windowing alone might be a real, substantial win, masked in the original test by a bad RoPE choice riding along with it. (Caveat: original bundle test ran at `PACK_FACTOR=8`, this ran at `PACK_FACTOR=2` — not perfectly apples-to-apples on magnitude, but the directional implication is strong enough to warrant testing directly.) `ROPE_BASE` reverted to `100000`. Testing `WINDOW_PATTERN=SSSSL, SHORT_WINDOW_FRAC=0.125` alone (RoPE base unchanged) next.
+
 ---
 
 ## Solution 7 — Value embeddings

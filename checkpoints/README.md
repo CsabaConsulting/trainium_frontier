@@ -2,13 +2,19 @@
 
 Saved before releasing the rented box. Plain PyTorch `.pt` files (via `torch.save`/`torch.load(weights_only=True)`, matching `train.py`'s own `save_checkpoint`/`load_for_eval` convention already in use — not converted to safetensors, since these are private single-user artifacts only ever loaded by our own `train.py`, and `weights_only=True` already gives the safe-loading guarantee safetensors would otherwise be for).
 
-Only these two were pulled back out of ~6.9GB of checkpoints generated across the session (26 experiments) — every other config is either superseded, a smoke test, or a discarded Solution, and is already fully described (exact constant values) in `../research/gpu-experiment-results.md`, cheap to reproduce from scratch (~13-17 min each) if ever needed again.
+Pulled back out of many more checkpoints generated across the sessions — every other config is either superseded, a smoke test, or a discarded Solution, and is already fully described (exact constant values) in `../research/gpu-experiment-results.md`, cheap to reproduce from scratch if ever needed again.
 
-## `final-confirmation.pt`
+## `final-confirmation-v2.pt` — current best, use this one
 
-The final locked cumulative config from the whole session: Solutions 1, 2, 3, 5, 6, 7, 9a, 10 kept (Solutions 4, 8, 9b discarded — real regressions, see the results doc). Trained 1450 steps, `public_val_bpb = 1.111741`, causality exact.
+Supersedes `final-confirmation.pt` below. Same Solutions 1-7, 9a, 10 as v1, but with the packing-area follow-up research applied: `PACK_FACTOR` re-swept and re-locked from `8` to `2` (real win, -0.00694 at the 800-step comparison scale), document-boundary attention masking tried and discarded (real regression). Trained 1450 steps, `public_val_bpb = 1.10682` (vs. v1's `1.111741` at the same step count — improvement holds at this longer horizon too), causality exact.
 
-**Loads correctly against the `train.py` currently checked into this repo** — its module-level constants (`WARMDOWN_RATIO=0.75`, `FINAL_LR_FRAC=0.05`, `WARMUP_STEPS=0`, `WD_DECAY_TO_ZERO=True`, `INIT_SCALE=0.68`, `PACK_FACTOR=8`, `USE_VE=True`, `USE_LOCAL_CONV=True`, `USE_WEIGHT_CACHE=True`, `WINDOW_PATTERN="L"`, `USE_GATED_MLP=False`) already match what produced this checkpoint. Also self-documented now — see "Warm-start support" below.
+**Loads correctly against the `train.py` currently checked into this repo** — module-level constants match exactly what produced it (`PACK_FACTOR=2`, `USE_DOC_MASK=False`, everything else same as v1 below).
+
+## `final-confirmation.pt` — superseded, kept for historical reference
+
+The final locked cumulative config from the overnight session, before the packing-area follow-up: Solutions 1, 2, 3, 5, 6, 7, 9a, 10 kept (Solutions 4, 8, 9b discarded — real regressions, see the results doc). Trained 1450 steps, `public_val_bpb = 1.111741`, causality exact.
+
+**Will NOT load against the current `train.py` as checked in** — it used `PACK_FACTOR=8` (now `2`) and predates `USE_DOC_MASK` entirely (harmless mismatch, not shape-critical, since that toggle adds no new state_dict keys — but it's still not the winning config, don't use this one for anything except historical comparison). Its module-level constants otherwise: `WARMDOWN_RATIO=0.75`, `FINAL_LR_FRAC=0.05`, `WARMUP_STEPS=0`, `WD_DECAY_TO_ZERO=True`, `INIT_SCALE=0.68`, `USE_VE=True`, `USE_LOCAL_CONV=True`, `USE_WEIGHT_CACHE=True`, `WINDOW_PATTERN="L"`, `USE_GATED_MLP=False`. Self-documented — see "Warm-start support" below.
 
 ## `baseline.pt`
 

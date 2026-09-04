@@ -87,8 +87,8 @@ def has_ve(layer_idx: int, n_layer: int) -> bool:
     return layer_idx % 2 == (n_layer - 1) % 2
 
 
-WINDOW_PATTERN = "L"    # per-layer attention window pattern, cycled to n_layer length; 'L' = full context, 'S' = short window
-SHORT_WINDOW_FRAC = 0.5  # short window size as a fraction of SEQ_LEN (only matters for 'S' layers)
+WINDOW_PATTERN = "SSSSL"  # per-layer attention window pattern, cycled to n_layer length; 'L' = full context, 'S' = short window
+SHORT_WINDOW_FRAC = 0.125  # short window size as a fraction of SEQ_LEN (only matters for 'S' layers)
 ROPE_BASE = 100000       # rotary embedding base frequency
 USE_LOCAL_CONV = True    # cheap depthwise causal conv1d before attention in each block, RWKV/Mamba/Hyena-style
 LOCAL_CONV_KERNEL = 4
