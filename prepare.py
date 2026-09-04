@@ -37,6 +37,12 @@ import torch.nn.functional as F
 
 TRAIN_TIME_BUDGET_SECONDS = 30 * 60
 EVAL_TIMEOUT_SECONDS = 20 * 60
+TRAIN_STARTUP_STEPS_EXCLUDED = 5
+TRAIN_STARTUP_ALLOWANCE_CAP_SECONDS = 900
+
+# Set by the official runner to an append-only file it watches. Unset during
+# local development, where record_step_boundary is a no-op.
+STEP_LOG_PATH = os.environ.get("NEURON_COMPETITION_R1_STEP_LOG", "")
 
 CACHE_DIR = Path(os.environ.get("NEURON_COMPETITION_R1_CACHE_DIR", Path.home() / ".cache" / "neuron_competition_r1"))
 DATA_DIR = CACHE_DIR / "data"
@@ -85,6 +91,25 @@ def get_dist_info() -> tuple[bool, int, int, int]:
     if all(k in os.environ for k in ("RANK", "LOCAL_RANK", "WORLD_SIZE")):
         return True, int(os.environ["RANK"]), int(os.environ["LOCAL_RANK"]), int(os.environ["WORLD_SIZE"])
     return False, 0, 0, 1
+
+
+def record_step_boundary(step: int) -> None:
+    """Report one completed optimizer step to the official runner (rank 0 only).
+
+    The runner watches the append-only step log and takes its own clock reading
+    when each line first appears; the line content is never used for timing.
+    The measured wall time from launch through the fifth reported boundary is
+    the excluded startup/compilation allowance — everything after it is charged
+    against the training budget. Call this exactly once per completed optimizer
+    step, immediately after the step (and any device synchronization) finishes.
+    A run that never reports five boundaries is not scorable.
+    """
+    if not STEP_LOG_PATH or int(os.environ.get("RANK", "0")) != 0:
+        return
+    with open(STEP_LOG_PATH, "a", encoding="utf-8") as fh:
+        fh.write(f"{int(step)}\n")
+        fh.flush()
+        os.fsync(fh.fileno())
 
 
 def sha256_file(path: Path) -> str:
@@ -678,7 +703,7 @@ FORBIDDEN_CALLS = {
 FORBIDDEN_NAMES = {"eval", "exec", "__import__", "compile"}
 
 
-def _launch_command_warnings(launch_command: str) -> list[str]:
+def _launch_command_warnings(launch_command: str, expected_entrypoint: str) -> list[str]:
     warnings: list[str] = []
     bad_tokens = ["|", ">", "<", "&&", "||", ";", "&", "`", "$("]
     for tok in bad_tokens:
@@ -719,19 +744,26 @@ def _launch_command_warnings(launch_command: str) -> list[str]:
                 nproc = args[i + 1]
         if nproc not in {"1", "4", "8"}:
             warnings.append("torchrun --nproc_per_node must be 1, 4, or 8")
-        if not any(Path(arg).name == "train.py" for arg in args):
-            warnings.append("torchrun launch command must target train.py")
+        if not any(Path(arg).name == expected_entrypoint for arg in args):
+            warnings.append(f"torchrun launch command must target {expected_entrypoint}")
     else:
         script_args = [arg for arg in args if not arg.startswith("-")]
-        if not script_args or Path(script_args[0]).name != "train.py":
-            warnings.append("python launch command must target train.py")
+        if not script_args or Path(script_args[0]).name != expected_entrypoint:
+            warnings.append(f"python launch command must target {expected_entrypoint}")
     return warnings
 
 
-def check_submission(train_py_path: str, launch_command: str | None = None) -> list[str]:
+def check_submission(
+    train_py_path: str,
+    launch_command: str | None = None,
+    *,
+    expected_entrypoint: str | None = None,
+) -> list[str]:
     warnings: list[str] = []
     path = Path(train_py_path)
+    target_name = expected_entrypoint or path.name
     tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    calls_step_boundary = False
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             for alias in node.names:
@@ -744,14 +776,25 @@ def check_submission(train_py_path: str, launch_command: str | None = None) -> l
                 warnings.append(f"forbidden import: {node.module}")
         elif isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
             value = node.func.value
+            if node.func.attr == "record_step_boundary":
+                calls_step_boundary = True
             if isinstance(value, ast.Name) and (value.id, node.func.attr) in FORBIDDEN_CALLS:
                 warnings.append(f"forbidden call: {value.id}.{node.func.attr}")
         elif isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+            if node.func.id == "record_step_boundary":
+                calls_step_boundary = True
             if node.func.id in FORBIDDEN_NAMES:
                 warnings.append(f"forbidden call: {node.func.id}()")
 
+    if not calls_step_boundary:
+        warnings.append(
+            "train.py never calls prepare.record_step_boundary(); the runner cannot "
+            "observe optimizer-step boundaries, so the startup/compilation allowance "
+            "cannot be applied and the run would not be scorable"
+        )
+
     if launch_command:
-        warnings.extend(_launch_command_warnings(launch_command))
+        warnings.extend(_launch_command_warnings(launch_command, target_name))
     return warnings
 
 

@@ -4,6 +4,8 @@ Running log for the overnight autonomous session. Machine-readable rows live in 
 
 **Hardware**: NVIDIA RTX PRO 6000 Blackwell Max-Q Workstation Edition, 96GB HBM, compute cap 12.0, torch 2.11.0+cu128, driver 595.80. Single GPU (`--nproc-per-node 1`), so this is the GPU-proxy phase per `experiment-rollout-plan.md` — **[GPU]**-tagged caveats apply throughout; nothing here is a final Trn2 number.
 
+**Upstream sync (post-session)**: merged [aws-neuron/trainium-frontier PR #6](https://github.com/aws-neuron/trainium-frontier/pull/6) — the official runner now excludes compilation time from the charged 30-min budget (first 5 optimizer steps = capped startup allowance) and requires every `train.py` to call `prepare.record_step_boundary(step)` per step or the submission checker rejects it outright. `prepare.py` replaced wholesale (never modified locally, so a clean drop-in); `train.py`'s budget-clock/predictive-stop logic hand-merged around all our Solutions (no shared git history with upstream — this fork was a manual copy, not a GitHub-native fork, so `git merge` wasn't applicable). Verified: syntax valid, `record_step_boundary` call present via the exact AST check the real submission checker runs, no change to any of the 26 logged results below (we always passed explicit `--num-steps`/`--max-train-seconds` calibrated so step-count was the true binding constraint in every real comparison, so none of PR #6's default-behavior changes touch them retroactively).
+
 **Standard unit for this session**: `--num-steps 800`, `--max-train-seconds` chosen per-Solution to match the schedule's intended horizon (see Solution 1 note — this matters specifically for LR-schedule-dependent Solutions since `progress` is computed against `max_train_seconds`, not a hardcoded budget). At ~1.24s/step observed on the unmodified baseline (single GPU), 800 steps ≈ 16-17 min of training + eval.
 
 **Convention**: each Solution's row(s) below record commit-equivalent description, `public_val_bpb`, and keep/discard. Cumulative — each Solution builds on the previous kept config, same as Karpathy's own `results.tsv`. Full detail (launch command, all summary fields) is in `experiment-log.jsonl`.
@@ -108,9 +110,69 @@ Cross-ref #9. Starting from Solutions 1-5's config (1.210940).
 | `PACK_FACTOR=1` (Sol 1-5 config) | 1.210940 | — | — |
 | `PACK_FACTOR=8` | 1.188680 | **-0.02226 (-1.84%)** | **keep** |
 
-**By far the largest single delta this session** — 30-90x the established noise floor, and a real 35% wall-clock speedup too (670.5s vs ~1025s for the same 800 steps, same total tokens/step). Sanity-checked the mechanism: batching itself should be gradient-neutral here (`F.cross_entropy` with `reduction="mean"` averages uniformly over all tokens in the batch regardless of micro-batch size — worked through the math, 8 micro-batches of 8192 tokens each averages to the exact same 65,536-token mean as 64 micro-batches of 1024 each). So the win isn't from batching mechanics — it's the packing-bin-size change itself: far fewer document-tail crop-and-discard events at bin size 8192 vs 1024. Strongly validates the enhancement doc's hypothesis about ClimbMix web-text documents routinely exceeding 1024 tokens and getting truncated at nearly every row fill. **Solution 6 locked: `PACK_FACTOR=8` → 1.188680.**
+**Second-largest delta this session after Solution 1's LR cooldown** (-0.0578 vs this item's -0.0223) — but still 30-90x the established noise floor, and a real 35% wall-clock speedup too (670.5s vs ~1025s for the same 800 steps, same total tokens/step). Sanity-checked the mechanism: batching itself should be gradient-neutral here (`F.cross_entropy` with `reduction="mean"` averages uniformly over all tokens in the batch regardless of micro-batch size — worked through the math, 8 micro-batches of 8192 tokens each averages to the exact same 65,536-token mean as 64 micro-batches of 1024 each). So the win isn't from batching mechanics — it's the packing-bin-size change itself: far fewer document-tail crop-and-discard events at bin size 8192 vs 1024. Strongly validates the enhancement doc's hypothesis about ClimbMix web-text documents routinely exceeding 1024 tokens and getting truncated at nearly every row fill. **Solution 6 locked: `PACK_FACTOR=8` → 1.188680.**
 
 **Cumulative after Solutions 1-6: 1.273797 → 1.188680 (-6.68% relative).**
+
+### Follow-up: bin-size sweep (post-session, packing-area research)
+
+Never actually tried a bin size other than 8x — `experiment-rollout-plan.md` originally called this "a binary change, no sub-sweep needed," untested against the alternative. Testing `PACK_FACTOR=16` next, same fresh-init cumulative methodology as every other Solution (not warm-started — this is a from-scratch architecture/dataloader question, same as all prior Solutions, kept separate from the warm-start capability which serves a different purpose).
+
+| Config | public_val_bpb | Δ | status |
+|---|---|---|---|
+| `PACK_FACTOR=8` (Sol 1-7,9a,10 config, matched to Solution 10's own row) | 1.172216 | — | — |
+| `PACK_FACTOR=16` | 1.174631 | +0.00241 | **discard — real regression** |
+
+Above the noise floor, not a fluke. Pushing the bin bigger *hurts* rather than helping — consistent with (not proof of) the doc-boundary-leakage hypothesis already flagged: bigger bins mean more distinct documents concatenated per row, and that leakage cost apparently starts outweighing the crop-reduction benefit somewhere between 8x and 16x. This reprioritizes the follow-up list: document-boundary masking (item #2) becomes more motivated (might be *required* to unlock any further bin-size gain, not just a nice-to-have), and the remainder-requeue custom packer (item #3) becomes less motivated (bigger bins aren't even helping right now, so a fix that only helps at bigger bins is premature).
+
+Testing `PACK_FACTOR=4` next — natural follow-up the original plan didn't cover: is 8 actually the local optimum, or was it already past it?
+
+| Config | public_val_bpb | Δ vs PACK_FACTOR=8 | status |
+|---|---|---|---|
+| `PACK_FACTOR=4` | 1.166012 | **-0.00620** | **real improvement, above noise** |
+
+**8 was not the local optimum.** Pattern across today's same-cumulative-level tests: `4 (1.166012) < 8 (1.172216) < 16 (1.174631)` — a sweet spot below 8, not a simple monotonic "bigger bin is always better" relationship (matches the leakage-cost-vs-crop-reduction-benefit tradeoff hypothesis: too small = crop loss dominates, too big = doc-boundary leakage dominates, somewhere in between wins). This is itself a real, actionable finding — the improvement from 8→4 is comparable in size to Solution 7's whole contribution. Testing `PACK_FACTOR=2` next to find out whether 4 is the actual optimum or whether smaller still wins.
+
+| Config | public_val_bpb | Δ vs PACK_FACTOR=4 | status |
+|---|---|---|---|
+| `PACK_FACTOR=2` | 1.165273 | -0.00074 (small, borderline noise floor) | **keep — continues the trend** |
+
+Diminishing returns as bin size shrinks further: `16→8` regression was `+0.0024`, `8→4` was `-0.0062` (big), `4→2` is only `-0.00074` (small). Consistent monotonic direction across 4 data points now (`2 < 4 < 8 < 16` in bpb) is a real trend, not noise, but shrinking fast — looks like a plateau. One more test to close this out cleanly: `PACK_FACTOR=1` (no packing multiplier — note this differs from the *original* Solution 6 baseline test of `PACK_FACTOR=1` at the Sol 1-5 level, before VE/local-conv/weight-cache existed; that earlier test found `PACK_FACTOR=8` a big win over `1`, seemingly in tension with today's opposite-direction trend — plausible explanation: VE/local-conv changed the model's sensitivity to the crop-loss-vs-leakage tradeoff, shifting the optimum down. Testing `1` at *today's* full config directly resolves whether the trend keeps going or reverses.)
+
+| Config | public_val_bpb | Δ vs PACK_FACTOR=2 | status |
+|---|---|---|---|
+| `PACK_FACTOR=1` (original, no packing multiplier) | 1.205512 | **+0.04024** | **huge regression** |
+
+**The trend reverses sharply — this is a genuine interior optimum, not "smaller is always better."** Full curve, same cumulative level (Sol 1-7,9a,10):
+
+| `PACK_FACTOR` | public_val_bpb | vs. optimum |
+|---|---|---|
+| 1 | 1.205512 | +0.04024 (crop-loss dominated — same regime the original packing fix targeted) |
+| 8 (previously locked) | 1.172216 | +0.00694 |
+| 16 | 1.174631 | +0.00936 (leakage-dominated) |
+| 4 | 1.166012 | +0.00074 |
+| **2 (new best)** | **1.165273** | **—** |
+
+Going all the way to 1 falls off a cliff — confirms the *shape* of the original Solution 6 finding (bigger bins reduce crop-loss) while showing it doesn't hold monotonically forever: somewhere past 8, doc-boundary leakage cost starts winning, and the real sweet spot sits at 2-4, not 8. **`PACK_FACTOR=8` was a real, validated win over `1` (that part of the original finding holds), but it was never re-optimized once VE/local-conv were added on top — turns out it wasn't the local optimum once they were.**
+
+**Re-locking: `PACK_FACTOR=2` replaces `PACK_FACTOR=8` as the winning value.** New cumulative bpb at the 800-step comparison level (Solutions 1-7, 9a, 10, with `PACK_FACTOR=2`): **1.165273** (vs. the previous `PACK_FACTOR=8`-based cumulative of 1.172216) — an additional **-0.59%** relative improvement discovered purely by re-sweeping a constant nobody had touched since it was first set, three architecture additions ago.
+
+### Follow-up: document-boundary attention masking (packing-area research, item #2)
+
+Reused Solution 8's additive-mask plumbing (`Block`/`CausalSelfAttention` signatures unchanged — combination happens once in `GPT.forward`, adding a dynamic per-batch document-id mask to the existing static window mask). New `doc_boundary_mask(idx)`: `is_bos = idx == BOS_TOKEN_ID`, `doc_id = cumsum(is_bos)`, mask out `i,j` pairs with different `doc_id`. `BOS_TOKEN_ID` threaded into both `main()` and `load_for_eval()` from the tokenizer (added to `ARCH_TOGGLE_NAMES` for checkpoint provenance too — `USE_DOC_MASK`, not shape-critical, silent-behavior category).
+
+Two-stage verification as usual: `USE_DOC_MASK=False` no-op smoke (`2.131932` vs the matching `PACK_FACTOR=2` smoke's `2.131734` — noise-range identical) confirmed the refactor doesn't change anything when off. `USE_DOC_MASK=True` smoke: no crash, **causality still exact** (`max_abs_diff=0.0` — important, confirms the new mask correctly preserves causal ordering rather than accidentally breaking it).
+
+Worth noting going in: now that the bin-size sweep found the optimum at `PACK_FACTOR=2` (2048-token bins) rather than the originally-assumed `8` (8192-token bins), this fixes a smaller leakage surface than originally estimated — fewer documents per packed row at the smaller bin size means less to gain here than when this was first flagged.
+
+| Config | public_val_bpb | Δ vs PACK_FACTOR=2 baseline | status |
+|---|---|---|---|
+| `USE_DOC_MASK=False` (Sol 1-7,9a,10, PACK_FACTOR=2) | 1.165273 | — | — |
+| `USE_DOC_MASK=True` | 1.171596 | +0.00632 | **discard — real regression** |
+
+**Negative result — masking hurts, doesn't help.** Above noise floor, not a fluke. Plausible explanation: at the now-optimal smaller bin (`PACK_FACTOR=2`, 2048-token rows), most rows likely contain only 1-2 documents, and fully blocking cross-document attention may remove some mild beneficial signal (broader context diversity acting as a soft regularizer) that outweighs whatever leakage cost it was meant to fix. This is exactly why the item was flagged "speculative, not validated by any real ablation run" — now it has been, and the answer is no. **Discarded, reverted to `USE_DOC_MASK=False`.** Cumulative unchanged at 1.165273.
+
+**Packing-area research arc, summary**: bin-size re-sweep found a large real win (`PACK_FACTOR=8→2`, -0.00694) that nobody had re-checked since Solution 6 first landed, three architecture additions earlier — the single best return from this whole follow-up effort. Document-boundary masking (item #2) was a clean, real negative result. Custom packer with remainder-requeue (item #3) is now lower priority than originally planned: it targets crop-loss specifically, but the smaller optimal bin already has less crop-loss than assumed, and the leakage-side fix (item #2) just failed — the evidence pattern doesn't strongly motivate the highest-risk item of the three. Leaving it as documented future work rather than pursuing it now, given diminishing returns and real implementation risk (a bug there could silently corrupt training data).
 
 ---
 
@@ -171,7 +233,9 @@ Per the earlier agreement: one longer run (~1400-1500 steps, closer to the real 
 
 **Result: `public_val_bpb = 1.111741` at 1450 steps (1409.7s training), causality exact, `num_params_M=85.9` matches the expected final config exactly (confirms all reverts/locks applied correctly — no stray leftover config from a discarded Solution).** Not directly comparable to the 800-step number (more steps naturally means lower loss) — this run's purpose was to confirm everything holds together, with no crash and no regression, at a horizon closer to the real 30-min-equivalent. Confirmed: clean, no crash, no issue.
 
-**GPU phase complete.** Final locked config: Solutions 1, 2, 3, 5, 6, 7, 9a, 10 kept; Solutions 4, 8, 9b discarded (real regressions, documented above with reasoning); Solutions 11-12 untouched (Trn2-only by design). Ready to hand off to Trn2 once allocated — see `experiment-rollout-plan.md` for the re-verification protocol per Solution.
+**GPU phase complete as of the overnight session.** Final locked config at that point: Solutions 1, 2, 3, 5, 6, 7, 9a, 10 kept; Solutions 4, 8, 9b discarded (real regressions, documented above with reasoning); Solutions 11-12 untouched (Trn2-only by design).
+
+**Update, post-session packing-area follow-up research**: re-swept `PACK_FACTOR` (never touched since Solution 6 first set it to 8, three architecture additions earlier) and found `PACK_FACTOR=2` beats `8` by -0.00694 (see "Follow-up: bin-size sweep" under Solution 6, above) — a bigger win than Solutions 5 or 9a individually. **`PACK_FACTOR=8` retired, `PACK_FACTOR=2` is now the locked value.** New cumulative at the 800-step comparison level: **1.165273** (previously 1.171962). Ready to hand off to Trn2 once allocated — see `experiment-rollout-plan.md` for the re-verification protocol per Solution.
 
 **Post-handoff addition, while the box was still up**: added `--init-from <checkpoint>` warm-start support to `train.py` and a `"toggles"` snapshot to the checkpoint payload (see `checkpoints/README.md` for full detail), so `final-confirmation.pt` can seed further research (manual or `autoresearch`-driven) instead of starting from random init. Verified end-to-end: step-0 loss `2.76` vs. a random init's ~9.0, causality exact. Deliberately a warm start, not a bit-exact resume (fresh optimizer/schedule/dataloader) — which is the right thing for this use case anyway, matching `autoresearch`'s own "advance the branch" convention. Never for a scored submission, which must be a fresh run from scratch per the rules.
 
@@ -179,7 +243,7 @@ Per the earlier agreement: one longer run (~1400-1500 steps, closer to the real 
 
 ## Session summary
 
-**Net result at 800-step comparison scale: `1.273797 → 1.171962`, a `-7.99%` relative improvement**, from 8 kept changes (Solutions 1, 2, 3, 5, 6, 7, 9a, 10) out of 12 attempted (Solutions 4 and 8 and 9b discarded — real regressions, not noise). Biggest single contributor by far: Solution 6 (packing-bin reshape, `-1.84%` alone, plus a genuine 35% wall-clock speedup) — validated the enhancement doc's document-tail-cropping hypothesis far more strongly than expected. Second: Solution 1 (LR cooldown+floor, `-4.5%` alone) — the highest-confidence prediction going in, and it delivered the largest single validated-from-literature win. Solution 5 (init scale) and Solution 7 (value embeddings) both landed clean, real wins matching Karpathy's log directly.
+**Net result at 800-step comparison scale: `1.273797 → 1.165273`, a `-8.53%` relative improvement**, from 8 kept changes (Solutions 1, 2, 3, 5, 6, 7, 9a, 10, with Solution 6's `PACK_FACTOR` re-tuned to `2` post-session) out of 12 attempted (Solutions 4 and 8 and 9b discarded — real regressions, not noise). Biggest single contributor: Solution 1 (LR cooldown+floor, `-4.5%` alone) — the highest-confidence prediction going in, and it delivered the largest single win. Second: Solution 6 (packing-bin reshape, `-1.84%` alone, plus a genuine 35% wall-clock speedup) — validated the enhancement doc's document-tail-cropping hypothesis far more strongly than expected, and the biggest surprise of the session relative to how it was originally sized up. Solution 5 (init scale) and Solution 7 (value embeddings) both landed clean, real wins matching Karpathy's log directly.
 
 **Two genuine divergences from Karpathy's findings**, both real signal (not noise), both informative: Solution 4 (Muon momentum-warmup steps, his 200 lost to our 300) and Solution 8 (windowed attention + RoPE base, combined regression here vs. his combined win) — concrete evidence that not everything transfers across setups, exactly the premise the whole exercise was testing. Solution 8 is a good `autoresearch` decomposition candidate later, since it bundled three sub-changes and a single run can't isolate which one hurt.
 

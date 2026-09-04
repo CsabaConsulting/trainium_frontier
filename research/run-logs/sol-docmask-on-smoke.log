@@ -1,0 +1,41 @@
+device=cuda:0 dtype=torch.bfloat16 world_size=1
+training target=15 steps max_seconds=300 official_budget=1800s
+model_config={
+  "sequence_len": 1024,
+  "vocab_size": 8192,
+  "n_layer": 10,
+  "n_head": 5,
+  "n_embd": 640
+}
+num_params=85,878,580 flops_per_token=5.624573e+08
+micro_tokens=2,048 grad_accum_steps=32 pack_factor=2
+step 00000 | loss 9.0112 | lrm 1.000 | dt 1.17s | tok/s 56,076 | remaining_steps 14 | remaining_time 299s | epoch 1
+step 00001 | loss 8.8021 | lrm 1.000 | dt 1.03s | tok/s 63,880 | remaining_steps 13 | remaining_time 298s | epoch 1
+step 00002 | loss 8.4616 | lrm 1.000 | dt 1.04s | tok/s 62,721 | remaining_steps 12 | remaining_time 297s | epoch 1
+step 00003 | loss 8.1968 | lrm 1.000 | dt 1.05s | tok/s 62,570 | remaining_steps 11 | remaining_time 296s | epoch 1
+step 00004 | loss 8.0710 | lrm 1.000 | dt 1.05s | tok/s 62,543 | remaining_steps 10 | remaining_time 300s | epoch 1
+step 00010 | loss 6.8629 | lrm 1.000 | dt 1.05s | tok/s 62,325 | remaining_steps 4 | remaining_time 294s | epoch 1
+---
+checkpoint_path:    out/sol-docmask-on-smoke/final.pt
+training_seconds:  10.5
+budget_seconds:    1800
+target_steps:      15
+max_train_seconds: 300
+startup_allowance_est: 6.8
+charged_seconds_est:   10.6
+over_budget:       False
+total_seconds:     16.5
+compiled:          False
+nki_relu2:         False
+num_steps:         15
+total_tokens_M:    1.0
+world_size:        1
+lnc:               1
+seq_len:           1024
+num_params_M:      85.9
+causality_passed:  True
+causality_max_abs: 0.000000
+public_val_bpb:    2.127730
+eval_seconds:      0.5
+eval_timeout:      1200
+eval_over_timeout: False

@@ -50,7 +50,8 @@ LOG_PATH = Path(__file__).resolve().parent / "experiment-log.jsonl"
 
 SUMMARY_KEYS = {
     "checkpoint_path", "training_seconds", "budget_seconds", "target_steps",
-    "max_train_seconds", "over_budget", "total_seconds", "compiled",
+    "max_train_seconds", "startup_allowance_est", "charged_seconds_est",
+    "over_budget", "total_seconds", "compiled",
     "nki_relu2", "num_steps", "total_tokens_M", "world_size", "lnc",
     "seq_len", "num_params_M", "causality_passed", "causality_max_abs",
     "public_val_bpb", "eval_seconds", "eval_timeout", "eval_over_timeout",
