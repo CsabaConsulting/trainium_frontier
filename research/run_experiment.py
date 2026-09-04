@@ -1,15 +1,24 @@
 #!/usr/bin/env python3
-"""H100 experiment-runner wrapper for train.py.
+"""Trn2 experiment-runner wrapper for train.py.
 
-Runs `train.py` with a fixed-step or fixed-wall-clock ceiling, captures the
-full log, parses train.py's own final `key: value` summary block, and appends
-one row to a persistent, git-tracked results log — same convention as
+Launches `train.py` via `torchrun` (matching the actual Phase 1 submission
+launch-command shape by default: nproc_per_node=8, NEURON_LOGICAL_NC_CONFIG=1
+— full single chip), with a fixed-step or fixed-wall-clock ceiling. Captures
+the full log, parses train.py's own final `key: value` summary block, and
+appends one row to a persistent, git-tracked results log — same convention as
 autoresearch's results.tsv (keep/discard/crash, one row per experiment).
 
 Usage:
-    python research/run_experiment.py --label "sol1-lr-cooldown" \
+    python research/run_experiment.py --label sol1-warmdown75 \
         --solution 1 --description "warmdown=0.75 final_lr_frac=0.05" \
         --num-steps 800 --max-train-seconds 900
+
+Quick single-core smoke test (correctness/crash check only — do not use this
+shape for a keep/discard decision, distributed batch math differs from the
+full-chip submission shape):
+    python research/run_experiment.py --label smoke --solution 0 \
+        --description "smoke test" --num-steps 20 --max-train-seconds 300 \
+        --nproc-per-node 1 --lnc 1
 
 Run from the repo root (same directory as train.py).
 """
@@ -17,6 +26,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -25,7 +35,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-LOG_PATH = Path(__file__).resolve().parent / "h100-experiment-log.jsonl"
+LOG_PATH = Path(__file__).resolve().parent / "experiment-log.jsonl"
 
 SUMMARY_KEYS = {
     "checkpoint_path", "training_seconds", "budget_seconds", "target_steps",
@@ -65,38 +75,46 @@ def parse_summary(log_text: str) -> dict:
 
 
 def main() -> None:
-    p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--label", required=True, help="short slug, e.g. sol1-lr-cooldown")
+    p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("--label", required=True, help="short slug, e.g. sol1-warmdown75")
     p.add_argument("--solution", required=True, help="experiment-rollout-plan.md Solution number, e.g. '1'")
     p.add_argument("--description", required=True, help="what changed this run, e.g. 'warmdown=0.75'")
     p.add_argument("--num-steps", type=int, required=True)
     p.add_argument("--max-train-seconds", type=int, required=True,
-                    help="safety ceiling for quality-axis runs; the actual control for time-axis runs")
+                    help="operational ceiling for quality-axis runs; the actual control for time-axis runs")
+    p.add_argument("--nproc-per-node", type=int, default=8, choices=[1, 4, 8],
+                    help="matches README's valid submission shapes; default=8 is the full-chip Phase 1 shape")
+    p.add_argument("--lnc", type=int, default=1, choices=[1, 2],
+                    help="NEURON_LOGICAL_NC_CONFIG; default=1 pairs with nproc_per_node=8 per README Quickstart")
     p.add_argument("--eval-tokens", type=int, default=None,
                     help="override train.py's --eval-tokens for faster early iteration")
     p.add_argument("--extra-args", nargs=argparse.REMAINDER, default=[],
-                    help="anything else to pass through to train.py, e.g. --device-type cuda")
+                    help="anything else to pass through to train.py")
     p.add_argument("--no-commit", action="store_true", help="skip git-committing the log row")
     args = p.parse_args()
 
-    cmd = [
-        sys.executable, "train.py",
+    launch_cmd = [
+        "torchrun", "--standalone", f"--nproc_per_node={args.nproc_per_node}", "train.py",
         "--num-steps", str(args.num_steps),
         "--max-train-seconds", str(args.max_train_seconds),
         "--out-dir", f"out/{args.label}",
     ]
     if args.eval_tokens is not None:
-        cmd += ["--eval-tokens", str(args.eval_tokens)]
-    cmd += args.extra_args
+        launch_cmd += ["--eval-tokens", str(args.eval_tokens)]
+    launch_cmd += args.extra_args
+
+    env = os.environ.copy()
+    env["NEURON_LOGICAL_NC_CONFIG"] = str(args.lnc)
+    launch_cmd_str = f"NEURON_LOGICAL_NC_CONFIG={args.lnc} " + " ".join(launch_cmd)
 
     run_log_path = Path(__file__).resolve().parent / f"run-logs/{args.label}.log"
     run_log_path.parent.mkdir(parents=True, exist_ok=True)
 
-    print(f"$ {' '.join(cmd)}", flush=True)
+    print(f"$ {launch_cmd_str}", flush=True)
     started = time.monotonic()
     status = "keep"  # default; overwritten below on crash/timeout
     try:
-        proc = subprocess.run(cmd, cwd=REPO_ROOT, capture_output=True, text=True)
+        proc = subprocess.run(launch_cmd, cwd=REPO_ROOT, env=env, capture_output=True, text=True)
         log_text = proc.stdout + proc.stderr
         crashed = proc.returncode != 0
     except Exception as e:  # e.g. subprocess-level failure, not train.py's own crash handling
@@ -115,6 +133,7 @@ def main() -> None:
         "label": args.label,
         "solution": args.solution,
         "description": args.description,
+        "launch_command": launch_cmd_str,
         "git_commit": git("rev-parse", "--short", "HEAD"),
         "git_dirty": bool(git("status", "--porcelain")),
         "status": status,
