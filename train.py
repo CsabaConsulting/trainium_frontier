@@ -634,14 +634,53 @@ def sync_gradients(model: nn.Module) -> None:
 # -----------------------------------------------------------------------------
 # Checkpoint / scoring hook
 
+ARCH_TOGGLE_NAMES = [
+    "PACK_FACTOR", "INIT_SCALE", "USE_VE", "WINDOW_PATTERN", "SHORT_WINDOW_FRAC",
+    "ROPE_BASE", "USE_LOCAL_CONV", "LOCAL_CONV_KERNEL", "USE_GATED_MLP",
+    "USE_WEIGHT_CACHE", "WARMDOWN_RATIO", "FINAL_LR_FRAC", "WARMUP_STEPS",
+    "WD_DECAY_TO_ZERO", "MUON_MOMENTUM_WARMUP_STEPS",
+]
+# Toggles whose mismatch corrupts the state_dict shape (load_state_dict(strict=True) will
+# error loudly). Everything else in ARCH_TOGGLE_NAMES lives in non-persistent buffers or
+# plain Python constants excluded from state_dict() entirely -- a mismatch there loads
+# silently with no crash and quietly wrong behavior, which is exactly why we snapshot and
+# check all of them, not just the shape-critical ones.
+SHAPE_CRITICAL_TOGGLES = {"USE_VE", "USE_LOCAL_CONV", "USE_GATED_MLP"}
+
+
+def current_toggles() -> dict:
+    g = globals()
+    return {name: g[name] for name in ARCH_TOGGLE_NAMES}
+
+
 def save_checkpoint(path: Path, model: GPT, meta: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
         "model_state": {k: v.detach().cpu() for k, v in model.state_dict().items()},
         "model_config": asdict(model.config),
+        "toggles": current_toggles(),
         "meta": meta,
     }
     torch.save(payload, path)
+
+
+def warm_start_from(path: str, model: GPT) -> dict:
+    """Load a checkpoint's weights into a freshly-built model (fresh optimizer, fresh step=0).
+    Not a bit-exact resume -- no optimizer/RNG/dataloader state. For dev-iteration only; never
+    for a scored submission (each submission must be a fresh run from scratch, per the rules).
+    """
+    payload = torch_load_weights(path, map_location="cpu")
+    saved_toggles = payload.get("toggles", {})
+    live_toggles = current_toggles()
+    mismatches = {k: (saved_toggles[k], live_toggles[k]) for k in saved_toggles if k in live_toggles and saved_toggles[k] != live_toggles[k]}
+    if mismatches:
+        for name, (saved, live) in mismatches.items():
+            tag = "SHAPE-CRITICAL" if name in SHAPE_CRITICAL_TOGGLES else "silent-behavior"
+            print0(f"WARNING [{tag}]: toggle {name} mismatch -- checkpoint={saved!r} current={live!r}")
+    model.load_state_dict(payload["model_state"], strict=True)
+    meta = payload.get("meta", {})
+    print0(f"warm-started from {path}: checkpoint step={meta.get('step')} total_train_tokens={meta.get('total_train_tokens')}")
+    return meta
 
 
 def torch_load_weights(path: str | Path, map_location):
@@ -693,6 +732,8 @@ def main() -> None:
                         help="enable torch.compile on the full model")
     parser.add_argument("--nki-relu2", action="store_true", default=os.environ.get("NEURON_COMPETITION_R1_NKI_RELU2", "0") != "0",
                         help="use the example fused NKI relu(x)**2 kernel in the MLP (Neuron only; illustration)")
+    parser.add_argument("--init-from", type=str, default="",
+                        help="warm-start model weights from a prior checkpoint (fresh optimizer/step/dataloader; dev-iteration only, never for a scored submission)")
     args = parser.parse_args()
 
     global USE_NKI_RELU2
@@ -712,6 +753,8 @@ def main() -> None:
     print0(f"model_config={json.dumps(asdict(config), indent=2)}")
     model = GPT(config)
     model.init_weights()
+    if args.init_from:
+        warm_start_from(args.init_from, model)
     model.to(device)
     num_params = sum(p.numel() for p in model.parameters())
     flops_per_token = model.estimate_flops()

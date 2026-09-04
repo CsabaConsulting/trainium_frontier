@@ -173,6 +173,8 @@ Per the earlier agreement: one longer run (~1400-1500 steps, closer to the real 
 
 **GPU phase complete.** Final locked config: Solutions 1, 2, 3, 5, 6, 7, 9a, 10 kept; Solutions 4, 8, 9b discarded (real regressions, documented above with reasoning); Solutions 11-12 untouched (Trn2-only by design). Ready to hand off to Trn2 once allocated — see `experiment-rollout-plan.md` for the re-verification protocol per Solution.
 
+**Post-handoff addition, while the box was still up**: added `--init-from <checkpoint>` warm-start support to `train.py` and a `"toggles"` snapshot to the checkpoint payload (see `checkpoints/README.md` for full detail), so `final-confirmation.pt` can seed further research (manual or `autoresearch`-driven) instead of starting from random init. Verified end-to-end: step-0 loss `2.76` vs. a random init's ~9.0, causality exact. Deliberately a warm start, not a bit-exact resume (fresh optimizer/schedule/dataloader) — which is the right thing for this use case anyway, matching `autoresearch`'s own "advance the branch" convention. Never for a scored submission, which must be a fresh run from scratch per the rules.
+
 ---
 
 ## Session summary
