@@ -1,24 +1,35 @@
 #!/usr/bin/env python3
-"""Trn2 experiment-runner wrapper for train.py.
+"""GPU-or-Trn2 experiment-runner wrapper for train.py.
+
+Device-agnostic: `detect_device_type` (train.py:73) already picks CUDA before
+Neuron, so this same script and the same train.py run unmodified on whichever
+hardware is currently allocated — a rented GPU box today, a real Trn2
+instance later. Only the launch *shape* differs (see --nproc-per-node/--lnc
+below); the code path is identical either way.
 
 Launches `train.py` via `torchrun` (matching the actual Phase 1 submission
-launch-command shape by default: nproc_per_node=8, NEURON_LOGICAL_NC_CONFIG=1
-— full single chip), with a fixed-step or fixed-wall-clock ceiling. Captures
-the full log, parses train.py's own final `key: value` summary block, and
-appends one row to a persistent, git-tracked results log — same convention as
-autoresearch's results.tsv (keep/discard/crash, one row per experiment).
+launch-command format: `NEURON_LOGICAL_NC_CONFIG=<lnc> torchrun --standalone
+--nproc_per_node=<n> train.py ...`), with a fixed-step or fixed-wall-clock
+ceiling. Captures the full log, parses train.py's own final `key: value`
+summary block, and appends one row to a persistent, git-tracked results log —
+same convention as autoresearch's results.tsv (keep/discard/crash, one row
+per experiment).
 
-Usage:
+Default shape (--nproc-per-node 1 --lnc 1) is a single-device run — right for
+a single-GPU rental box. `NEURON_LOGICAL_NC_CONFIG` is set regardless; it's a
+no-op on CUDA, read only by Neuron.
+
+Usage (single-GPU box, e.g. a rented RTX 6000 Pro):
     python research/run_experiment.py --label sol1-warmdown75 \
         --solution 1 --description "warmdown=0.75 final_lr_frac=0.05" \
         --num-steps 800 --max-train-seconds 900
 
-Quick single-core smoke test (correctness/crash check only — do not use this
-shape for a keep/discard decision, distributed batch math differs from the
-full-chip submission shape):
-    python research/run_experiment.py --label smoke --solution 0 \
-        --description "smoke test" --num-steps 20 --max-train-seconds 300 \
-        --nproc-per-node 1 --lnc 1
+Full-chip Trn2 shape, once allocated (matches README's default Phase 1
+submission command — use this shape for any keep/discard decision meant to
+carry over to the real submission, not the single-device default above):
+    python research/run_experiment.py --label sol1-warmdown75 \
+        --solution 1 --description "warmdown=0.75 final_lr_frac=0.05" \
+        --num-steps 800 --max-train-seconds 900 --nproc-per-node 8 --lnc 1
 
 Run from the repo root (same directory as train.py).
 """
@@ -82,10 +93,11 @@ def main() -> None:
     p.add_argument("--num-steps", type=int, required=True)
     p.add_argument("--max-train-seconds", type=int, required=True,
                     help="operational ceiling for quality-axis runs; the actual control for time-axis runs")
-    p.add_argument("--nproc-per-node", type=int, default=8, choices=[1, 4, 8],
-                    help="matches README's valid submission shapes; default=8 is the full-chip Phase 1 shape")
+    p.add_argument("--nproc-per-node", type=int, default=1, choices=[1, 4, 8],
+                    help="matches README's valid submission shapes; default=1 is a single-device run "
+                         "(right for a single-GPU box) — pass 8 for the full-chip Trn2 submission shape")
     p.add_argument("--lnc", type=int, default=1, choices=[1, 2],
-                    help="NEURON_LOGICAL_NC_CONFIG; default=1 pairs with nproc_per_node=8 per README Quickstart")
+                    help="NEURON_LOGICAL_NC_CONFIG; no-op on CUDA, read only by Neuron")
     p.add_argument("--eval-tokens", type=int, default=None,
                     help="override train.py's --eval-tokens for faster early iteration")
     p.add_argument("--extra-args", nargs=argparse.REMAINDER, default=[],
