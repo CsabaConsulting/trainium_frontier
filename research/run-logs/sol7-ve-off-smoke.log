@@ -1,0 +1,39 @@
+device=cuda:0 dtype=torch.bfloat16 world_size=1
+training target=15 steps max_seconds=300 official_budget=1800s
+model_config={
+  "sequence_len": 1024,
+  "vocab_size": 8192,
+  "n_layer": 10,
+  "n_head": 5,
+  "n_embd": 640
+}
+num_params=59,637,780 flops_per_token=4.050125e+08
+micro_tokens=8,192 grad_accum_steps=8 pack_factor=8
+step 00000 | loss 9.0103 | lrm 1.000 | dt 0.89s | tok/s 73,355 | remaining_steps 14 | remaining_time 298s | epoch 1
+step 00001 | loss 8.8531 | lrm 1.000 | dt 0.79s | tok/s 82,879 | remaining_steps 13 | remaining_time 297s | epoch 1
+step 00002 | loss 8.4339 | lrm 1.000 | dt 0.81s | tok/s 80,815 | remaining_steps 12 | remaining_time 297s | epoch 1
+step 00003 | loss 8.1371 | lrm 1.000 | dt 0.81s | tok/s 80,519 | remaining_steps 11 | remaining_time 296s | epoch 1
+step 00004 | loss 7.8126 | lrm 1.000 | dt 0.82s | tok/s 80,398 | remaining_steps 10 | remaining_time 295s | epoch 1
+step 00010 | loss 6.8045 | lrm 1.000 | dt 0.81s | tok/s 81,081 | remaining_steps 4 | remaining_time 290s | epoch 1
+---
+checkpoint_path:    out/sol7-ve-off-smoke/final.pt
+training_seconds:  13.1
+budget_seconds:    1800
+target_steps:      15
+max_train_seconds: 300
+over_budget:       False
+total_seconds:     13.2
+compiled:          False
+nki_relu2:         False
+num_steps:         15
+total_tokens_M:    1.0
+world_size:        1
+lnc:               1
+seq_len:           1024
+num_params_M:      59.6
+causality_passed:  True
+causality_max_abs: 0.000000
+public_val_bpb:    2.146382
+eval_seconds:      0.4
+eval_timeout:      1200
+eval_over_timeout: False

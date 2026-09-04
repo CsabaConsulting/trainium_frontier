@@ -55,8 +55,56 @@ UNEMBEDDING_LR = 0.006
 MATRIX_LR = 0.025
 SCALAR_LR = 0.20
 WEIGHT_DECAY = 0.10
-WARMUP_STEPS = 20
+WARMUP_STEPS = 0
 GRAD_CLIP = 0.0
+WARMDOWN_RATIO = 0.75   # fraction of max_train_seconds spent on LR cooldown (0 = old flat-after-warmup)
+FINAL_LR_FRAC = 0.05    # LR floor as a fraction of peak LR at the end of cooldown (1.0 = no floor effect)
+WD_DECAY_TO_ZERO = True  # decay Muon's weight_decay linearly to 0 over the run instead of holding it constant
+MUON_MOMENTUM_WARMUP_STEPS = 300  # steps to ramp Muon momentum 0.85 -> 0.95
+INIT_SCALE = 0.68  # multiplier on the attn/mlp uniform-init bound (1.0 = original baseline scale)
+PACK_FACTOR = 8  # dataloader packing-bin multiplier: fetch PACK_FACTOR*SEQ_LEN rows, reshape to PACK_FACTOR*batch rows of SEQ_LEN
+USE_VE = True  # value embeddings (ResFormer-style): alternating layers, input-gated mix into attention's V stream
+VE_GATE_CHANNELS = 32
+
+
+def has_ve(layer_idx: int, n_layer: int) -> bool:
+    """Alternating layers get a value embedding; the last layer always does."""
+    return layer_idx % 2 == (n_layer - 1) % 2
+
+
+WINDOW_PATTERN = "L"    # per-layer attention window pattern, cycled to n_layer length; 'L' = full context, 'S' = short window
+SHORT_WINDOW_FRAC = 0.5  # short window size as a fraction of SEQ_LEN (only matters for 'S' layers)
+ROPE_BASE = 100000       # rotary embedding base frequency
+USE_LOCAL_CONV = True    # cheap depthwise causal conv1d before attention in each block, RWKV/Mamba/Hyena-style
+LOCAL_CONV_KERNEL = 4
+USE_GATED_MLP = False    # SwiGLU-style: c_fc(x) * silu(c_gate(x)) instead of relu(c_fc(x))**2; adds one weight matrix
+USE_WEIGHT_CACHE = True  # cache each Linear's dtype-cast weight once per optimizer step instead of every forward call
+
+
+class CausalConv(nn.Module):
+    """Depthwise causal conv1d: zero-initialized, so the residual branch it's added into starts as a true no-op."""
+
+    def __init__(self, n_embd: int, kernel_size: int):
+        super().__init__()
+        self.n_embd = n_embd
+        self.kernel_size = kernel_size
+        self.weight = nn.Parameter(torch.zeros(n_embd, 1, kernel_size))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        xt = x.transpose(1, 2)
+        xt = F.pad(xt, (self.kernel_size - 1, 0))
+        y = F.conv1d(xt, self.weight.to(dtype=x.dtype), groups=self.n_embd)
+        return y.transpose(1, 2)
+
+
+def _build_window_mask(seq_len: int, window: int, dtype: torch.dtype) -> torch.Tensor:
+    """Additive attention mask: 0 where token j is visible to query i (causal + within window), -inf elsewhere."""
+    i = torch.arange(seq_len).unsqueeze(1)
+    j = torch.arange(seq_len).unsqueeze(0)
+    visible = (j <= i) & (j > i - window)
+    mask = torch.zeros(seq_len, seq_len, dtype=dtype)
+    mask.masked_fill_(~visible, float("-inf"))
+    return mask[None, None, :, :]
 
 
 # -----------------------------------------------------------------------------
@@ -237,9 +285,23 @@ def relu_squared(x: torch.Tensor) -> torch.Tensor:
 
 
 class Linear(nn.Linear):
-    """Linear without bias that casts weight to input dtype (allows bf16 input with f32 weight)."""
+    """Linear without bias that casts weight to input dtype (allows bf16 input with f32 weight).
+
+    When USE_WEIGHT_CACHE is on, the cast copy is refreshed once per optimizer step
+    (see refresh_weight_cache, called from the training loop) instead of being
+    recomputed on every forward call across the grad-accum inner loop.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._cached_weight: torch.Tensor | None = None
+
+    def refresh_weight_cache(self, dtype: torch.dtype) -> None:
+        self._cached_weight = self.weight.to(dtype=dtype)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        if USE_WEIGHT_CACHE and self._cached_weight is not None and self._cached_weight.dtype == x.dtype:
+            return F.linear(x, self._cached_weight, None)
         return F.linear(x, self.weight.to(dtype=x.dtype), None)
 
 
@@ -252,7 +314,7 @@ def apply_rotary_emb(x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor) -> t
 
 
 class CausalSelfAttention(nn.Module):
-    def __init__(self, config: GPTConfig):
+    def __init__(self, config: GPTConfig, layer_idx: int = 0):
         super().__init__()
         self.n_head = config.n_head
         self.n_embd = config.n_embd
@@ -262,18 +324,23 @@ class CausalSelfAttention(nn.Module):
         self.c_k = Linear(config.n_embd, config.n_embd, bias=False)
         self.c_v = Linear(config.n_embd, config.n_embd, bias=False)
         self.c_proj = Linear(config.n_embd, config.n_embd, bias=False)
+        self.ve_gate = Linear(VE_GATE_CHANNELS, self.n_head, bias=False) if USE_VE and has_ve(layer_idx, config.n_layer) else None
 
-    def forward(self, x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, attn_mask: torch.Tensor) -> torch.Tensor:
         b, t, c = x.shape
         q = self.c_q(x).view(b, t, self.n_head, self.head_dim)
         k = self.c_k(x).view(b, t, self.n_head, self.head_dim)
         v = self.c_v(x).view(b, t, self.n_head, self.head_dim)
+        if ve is not None:
+            ve = ve.view(b, t, self.n_head, self.head_dim)
+            gate = 2 * torch.sigmoid(self.ve_gate(x[..., :VE_GATE_CHANNELS]))
+            v = v + gate.unsqueeze(-1) * ve
         q = norm(apply_rotary_emb(q, cos, sin))
         k = norm(apply_rotary_emb(k, cos, sin))
         q = q.transpose(1, 2)
         k = k.transpose(1, 2)
         v = v.transpose(1, 2)
-        y = F.scaled_dot_product_attention(q, k, v, is_causal=True)
+        y = F.scaled_dot_product_attention(q, k, v, attn_mask=attn_mask[..., :t, :t])
         y = y.transpose(1, 2).contiguous().view(b, t, c)
         return self.c_proj(y)
 
@@ -282,24 +349,30 @@ class MLP(nn.Module):
     def __init__(self, config: GPTConfig):
         super().__init__()
         self.c_fc = Linear(config.n_embd, 4 * config.n_embd, bias=False)
+        self.c_gate = Linear(config.n_embd, 4 * config.n_embd, bias=False) if USE_GATED_MLP else None
         self.c_proj = Linear(4 * config.n_embd, config.n_embd, bias=False)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        if self.c_gate is not None:
+            return self.c_proj(self.c_fc(x) * F.silu(self.c_gate(x)))
         return self.c_proj(relu_squared(self.c_fc(x)))
 
 
 class Block(nn.Module):
-    def __init__(self, config: GPTConfig):
+    def __init__(self, config: GPTConfig, layer_idx: int = 0):
         super().__init__()
-        self.attn = CausalSelfAttention(config)
+        self.attn = CausalSelfAttention(config, layer_idx)
         self.mlp = MLP(config)
         self.resid_lambda = nn.Parameter(torch.ones(1))
         # x0 skip: mixes initial embedding into each layer's input (stabilizes deep nets)
         self.x0_lambda = nn.Parameter(torch.zeros(1))
+        self.local_conv = CausalConv(config.n_embd, LOCAL_CONV_KERNEL) if USE_LOCAL_CONV else None
 
-    def forward(self, x: torch.Tensor, x0: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, x0: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, attn_mask: torch.Tensor) -> torch.Tensor:
         x = self.resid_lambda * x + self.x0_lambda * x0
-        x = x + self.attn(norm(x), cos, sin)
+        if self.local_conv is not None:
+            x = x + self.local_conv(norm(x))
+        x = x + self.attn(norm(x), ve, cos, sin, attn_mask)
         x = x + self.mlp(norm(x))
         return x
 
@@ -311,32 +384,47 @@ class GPT(nn.Module):
         padded_vocab_size = ((config.vocab_size + 63) // 64) * 64
         self.transformer = nn.ModuleDict({
             "wte": nn.Embedding(padded_vocab_size, config.n_embd),
-            "h": nn.ModuleList([Block(config) for _ in range(config.n_layer)]),
+            "h": nn.ModuleList([Block(config, i) for i in range(config.n_layer)]),
         })
         self.lm_head = Linear(config.n_embd, padded_vocab_size, bias=False)
+        self.value_embeds = nn.ModuleDict({
+            str(i): nn.Embedding(padded_vocab_size, config.n_embd)
+            for i in range(config.n_layer) if USE_VE and has_ve(i, config.n_layer)
+        })
         cos, sin = self._precompute_rotary_embeddings(config.sequence_len, config.n_embd // config.n_head)
         self.register_buffer("cos", cos, persistent=False)
         self.register_buffer("sin", sin, persistent=False)
+        pattern = (WINDOW_PATTERN * (config.n_layer // max(1, len(WINDOW_PATTERN)) + 1))[:config.n_layer]
+        self.layer_is_short = [c == "S" for c in pattern]
+        short_window = max(1, int(config.sequence_len * SHORT_WINDOW_FRAC))
+        self.register_buffer("mask_full", _build_window_mask(config.sequence_len, config.sequence_len, torch.float32), persistent=False)
+        self.register_buffer("mask_short", _build_window_mask(config.sequence_len, short_window, torch.float32), persistent=False)
 
     @torch.no_grad()
     def init_weights(self) -> None:
         torch.nn.init.normal_(self.transformer.wte.weight, mean=0.0, std=0.8)
         torch.nn.init.normal_(self.lm_head.weight, mean=0.0, std=0.001)
-        s = math.sqrt(3.0) * self.config.n_embd**-0.5
+        s = INIT_SCALE * math.sqrt(3.0) * self.config.n_embd**-0.5
         for block in self.transformer.h:
             torch.nn.init.uniform_(block.attn.c_q.weight, -s, s)
             torch.nn.init.uniform_(block.attn.c_k.weight, -s, s)
             torch.nn.init.uniform_(block.attn.c_v.weight, -s, s)
             torch.nn.init.zeros_(block.attn.c_proj.weight)
             torch.nn.init.uniform_(block.mlp.c_fc.weight, -0.4 * s, 0.4 * s)
+            if block.mlp.c_gate is not None:
+                torch.nn.init.uniform_(block.mlp.c_gate.weight, -0.4 * s, 0.4 * s)
             torch.nn.init.zeros_(block.mlp.c_proj.weight)
             block.resid_lambda.fill_(1.0)
             block.x0_lambda.fill_(0.05)
+            if block.attn.ve_gate is not None:
+                torch.nn.init.zeros_(block.attn.ve_gate.weight)
+        for ve in self.value_embeds.values():
+            torch.nn.init.uniform_(ve.weight, -s, s)
         cos, sin = self._precompute_rotary_embeddings(self.config.sequence_len, self.config.n_embd // self.config.n_head)
         self.cos.copy_(cos)
         self.sin.copy_(sin)
 
-    def _precompute_rotary_embeddings(self, seq_len: int, head_dim: int, base: int = 100000):
+    def _precompute_rotary_embeddings(self, seq_len: int, head_dim: int, base: int = ROPE_BASE):
         device = self.transformer.wte.weight.device
         freqs = torch.arange(0, head_dim, 2, dtype=torch.float32, device=device)
         inv_freq = 1.0 / (base ** (freqs / head_dim))
@@ -369,12 +457,15 @@ class GPT(nn.Module):
             matrix_params.extend(block.mlp.parameters())
         embedding_params = list(self.transformer.wte.parameters())
         lm_head_params = list(self.lm_head.parameters())
+        value_embed_params = list(self.value_embeds.parameters())
         dmodel_lr_scale = (self.config.n_embd / 768) ** -0.5
         param_groups = [
             dict(kind="adamw", params=embedding_params, lr=EMBEDDING_LR * dmodel_lr_scale, betas=(0.8, 0.995), eps=1e-10, weight_decay=0.001),
             dict(kind="adamw", params=lm_head_params, lr=UNEMBEDDING_LR * dmodel_lr_scale, betas=(0.8, 0.96), eps=1e-10, weight_decay=0.01),
             dict(kind="adamw", params=scalar_params, lr=SCALAR_LR, betas=(0.9, 0.95), eps=1e-10, weight_decay=0.0),
         ]
+        if value_embed_params:
+            param_groups.append(dict(kind="adamw", params=value_embed_params, lr=EMBEDDING_LR * dmodel_lr_scale, betas=(0.8, 0.995), eps=1e-10, weight_decay=0.0))
         for shape in sorted({p.shape for p in matrix_params}):
             params = [p for p in matrix_params if p.shape == shape]
             param_groups.append(dict(kind="muon", params=params, lr=MATRIX_LR, momentum=0.95, beta2=0.90, ns_steps=5, weight_decay=WEIGHT_DECAY))
@@ -390,8 +481,10 @@ class GPT(nn.Module):
         x = self.transformer.wte(idx).to(COMPUTE_DTYPE)
         x = norm(x)
         x0 = x
-        for block in self.transformer.h:
-            x = block(x, x0, cos, sin)
+        for i, block in enumerate(self.transformer.h):
+            ve = self.value_embeds[str(i)](idx).to(COMPUTE_DTYPE) if str(i) in self.value_embeds else None
+            attn_mask = self.mask_short if self.layer_is_short[i] else self.mask_full
+            x = block(x, x0, ve, cos, sin, attn_mask)
         x = norm(x)
         logits = self.lm_head(x)[..., :self.config.vocab_size].float()
         logits = LOGIT_SOFTCAP * torch.tanh(logits / LOGIT_SOFTCAP)
@@ -571,14 +664,20 @@ def load_for_eval(checkpoint_path: str, device: torch.device) -> nn.Module:
 # -----------------------------------------------------------------------------
 # Training
 
-def lr_multiplier(step: int) -> float:
+def lr_multiplier(step: int, elapsed: float = 0.0, max_train_seconds: float = 1.0) -> float:
     if step < WARMUP_STEPS:
         return (step + 1) / max(1, WARMUP_STEPS)
-    return 1.0
+    if WARMDOWN_RATIO <= 0.0:
+        return 1.0
+    progress = min(1.0, elapsed / max(1e-6, max_train_seconds))
+    if progress < 1.0 - WARMDOWN_RATIO:
+        return 1.0
+    cooldown = (1.0 - progress) / WARMDOWN_RATIO
+    return cooldown * 1.0 + (1 - cooldown) * FINAL_LR_FRAC
 
 
 def muon_momentum(step: int) -> float:
-    frac = min(step / 300, 1.0)
+    frac = min(step / MUON_MOMENTUM_WARMUP_STEPS, 1.0)
     return (1 - frac) * 0.85 + frac * 0.95
 
 
@@ -624,14 +723,23 @@ def main() -> None:
         model = torch.compile(model, backend=compile_backend, dynamic=False)
         print0(f"torch.compile enabled (backend={compile_backend})")
 
-    world_tokens_per_micro = DEVICE_BATCH_SIZE * SEQ_LEN * world_size
+    world_tokens_per_micro = DEVICE_BATCH_SIZE * PACK_FACTOR * SEQ_LEN * world_size
     if TOTAL_BATCH_SIZE % world_tokens_per_micro != 0:
         raise ValueError(f"TOTAL_BATCH_SIZE={TOTAL_BATCH_SIZE} must divide micro tokens={world_tokens_per_micro}")
     grad_accum_steps = TOTAL_BATCH_SIZE // world_tokens_per_micro
-    print0(f"micro_tokens={world_tokens_per_micro:,} grad_accum_steps={grad_accum_steps}")
+    print0(f"micro_tokens={world_tokens_per_micro:,} grad_accum_steps={grad_accum_steps} pack_factor={PACK_FACTOR}")
 
-    train_loader = make_dataloader(tokenizer, DEVICE_BATCH_SIZE, SEQ_LEN, "train", device)
-    x, y, loader_state = next(train_loader)
+    loader_seq_len = PACK_FACTOR * SEQ_LEN
+    train_loader = make_dataloader(tokenizer, DEVICE_BATCH_SIZE, loader_seq_len, "train", device)
+
+    def fetch():
+        xb, yb, state = next(train_loader)
+        if PACK_FACTOR > 1:
+            xb = xb.reshape(DEVICE_BATCH_SIZE * PACK_FACTOR, SEQ_LEN)
+            yb = yb.reshape(DEVICE_BATCH_SIZE * PACK_FACTOR, SEQ_LEN)
+        return xb, yb, state
+
+    x, y, loader_state = fetch()
     optimizer = model.setup_optimizer()
 
     smooth_loss = 0.0
@@ -651,19 +759,24 @@ def main() -> None:
             loss = model(x, y)
             last_loss = loss.detach()
             (loss / grad_accum_steps).backward()
-            x, y, loader_state = next(train_loader)
+            x, y, loader_state = fetch()
 
         if GRAD_CLIP > 0:
             torch.nn.utils.clip_grad_norm_(model.parameters(), GRAD_CLIP)
         sync_gradients(model)
 
-        lrm = lr_multiplier(step)
+        lrm = lr_multiplier(step, elapsed=elapsed, max_train_seconds=args.max_train_seconds)
+        wd_progress = min(1.0, elapsed / max(1e-6, args.max_train_seconds))
         for group in optimizer.param_groups:
             group["lr"] = group["initial_lr"] * lrm
             if group["kind"] == "muon":
                 group["momentum"] = muon_momentum(step)
-                group["weight_decay"] = WEIGHT_DECAY
+                group["weight_decay"] = WEIGHT_DECAY * (1.0 - wd_progress) if WD_DECAY_TO_ZERO else WEIGHT_DECAY
         optimizer.step()
+        if USE_WEIGHT_CACHE:
+            for m in model.modules():
+                if isinstance(m, Linear):
+                    m.refresh_weight_cache(COMPUTE_DTYPE)
 
         synchronize(device)
         dt = time.monotonic() - t0
