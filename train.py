@@ -80,7 +80,7 @@ ASPECT_RATIO = 64
 HEAD_DIM = 128
 
 DEVICE_BATCH_SIZE = 1
-TOTAL_BATCH_SIZE = 65536
+TOTAL_BATCH_SIZE = 131072  # SOLUTION 11 BATCH SWEEP: testing 32768/65536/131072 at fixed DEPTH=6, revert to 65536 after
 NUM_STEPS = 1000
 # The official runner charges wall time only after the first five completed
 # optimizer steps (the startup/compilation allowance, capped). The baseline

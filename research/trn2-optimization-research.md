@@ -318,6 +318,73 @@ requirement, static-shape/AOT-compile discipline, NKI FlashAttention online-soft
 structure, hardware transpose acceleration as the mechanism the report claimed
 `--fast-relayout` used (moot — the flag doesn't exist on the installed SDK, see above).
 
+## Source 5 — second AI-assistant cross-check (`gemini_ai_mode_trainium.md`, Q&A transcript) + real-hardware cliff-mechanism diagnostic
+
+User provided a second AI-generated Q&A transcript with per-answer citations, plus explicit
+instruction to verify since it's AI-generated. Read in full and verified directly against
+the installed SDK on the Trn2 box before drawing any conclusion — same discipline as Source
+4.
+
+**Confirmed fabricated, do not use**: the doc's FlashAttention example calls
+`nisa.nc_reduce` and `nisa.nc_vector_math` — checked via direct Python import
+(`import neuronxcc.nki.isa as nisa; hasattr(nisa, ...)`), **neither exists** on the
+installed SDK (neuronx-cc 2.26.6360.0). Real, confirmed-present equivalents:
+`nisa.tensor_reduce`, `nisa.activation`, `nisa.activation_reduce` — matching Source 1
+exactly. Independent confirmation that Source 1's API names are the real ones; this doc's
+example code would not run as written.
+
+**Unverified, flag as suspicious**: "128 DMA engines" and "2,563 sparse TFLOPS" — neither
+figure appears in Sources 1-4, all of which cite HBM bandwidth/SBUF/PSUM/FP8 TFLOPS in
+detail. "128 DMA engines" is a plausible AI conflation with the unrelated 128-partition
+SBUF/ISA constant that appears throughout the NKI sources for a completely different
+reason (the partition-dimension hardware limit, not a DMA engine count).
+
+**Confirmed consistent, no new action** (independently arrived at things we already
+built/found — good corroboration, not new information): fused-QKV matches our shipped,
+tested `USE_FUSED_QKV`/Solution 13c exactly, including the slice-wise init detail; causal
+fast-path matches our shipped, tested `USE_CAUSAL_FASTPATH`/13d; stochastic rounding +
+AdamW β2=0.95 coupling matches the existing deferred-pending-Solution-11 item from Source
+4 + HLAT; the "reverse pruning" calibration framing (scale up if finishing too early, down
+if too few steps complete) matches our own empirical `DEPTH` sweep U-shape and the
+"400-600 stable steps" rule already written down in `experiment-rollout-plan.md`; the
+deleted-NKI-FlashAttention git-archaeology method is exactly what we already did ourselves
+this session, with real commit hashes (`8370e11`/`c4b806e`) rather than the doc's generic
+hypothetical example.
+
+**Genuinely new, low-risk**: `NEURON_RT_STOCHASTIC_ROUNDING_SEED` — an env var name for
+reproducible stochastic rounding, not previously known. Not independently verified (no
+risk-free way to check an env var's existence without running), cheap to try alongside
+`USE_STOCHASTIC_ROUNDING` whenever that gets tested.
+
+**The one genuinely new, high-value lead — tested, inconclusive due to a tooling
+limitation, not a data result.** The doc's Q6 answer raised an alternative to "thermal
+throttling" for the throughput cliff: an XLA/Neuron-runtime-side accumulating-state issue
+(distinct from the Python-level `gc.disable()` already ruled out via a real diagnostic
+run). Attempted to test this with `neuron-explorer inspect` (the tool discovered via the
+`neuron-nki-profile-querying` skill, now available in this session's agent/skill catalog)
+wrapping a real 8-way training run long enough to cross the cliff:
+
+- First attempt (`--max-train-seconds 700`, default `--num-trace-events`): the resulting
+  `SystemProfileMetadata` table showed the captured window spanned only **~5 seconds**
+  (21:00:30-21:00:35), the very tail of the run, not the pre/post-cliff transition.
+- Second attempt (`--max-train-seconds 400`, `--num-trace-events 50000000` — a 3-orders-
+  of-magnitude increase specifically to rule out ring-buffer eviction as the cause):
+  **still only ~5 seconds captured** (21:17:14-21:17:19), again right at the tail.
+- The identical failure mode across a 3-order-of-magnitude change in the one flag that
+  should control it means this isn't a count-based eviction limit — `inspect`'s
+  system-profile capture appears to retain only a short window near process exit
+  regardless of `--num-trace-events`, at least via this capture path. A proper device-level
+  Instruction-table capture (the `capture`/`view -n/-s` NEFF+NTFF workflow, with
+  `NEURON_RT_ENABLE_DGE_NOTIFICATIONS=1` etc., per the profile-querying skill's "Step 0")
+  was not attempted — bigger undertaking, out of scope for this specific side-investigation
+  given the remaining budget.
+- **Conclusion: inconclusive, by tooling limitation, not by evidence.** The
+  XLA-runtime-state-growth hypothesis is neither confirmed nor refuted. Thermal/power
+  throttling remains the leading explanation **by elimination only** (dmesg clean,
+  `gc.disable()` ruled out, not swap, not epoch rollover) — still not directly confirmed by
+  any chip telemetry. Stopping this specific avenue here per the pre-agreed criterion in
+  the approved plan; falling back to the Solution 11 width/batch resweep.
+
 ## What was checked and found empty (don't re-research)
 
 - No standalone softmax or cross-entropy NKI kernel anywhere in `nki-samples`, HEAD or
