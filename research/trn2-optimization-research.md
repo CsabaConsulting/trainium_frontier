@@ -247,12 +247,7 @@ covered.
 
 **Genuinely new, worth acting on:**
 
-- **`--internal-hlo2tensorizer-options='--fast-relayout=true'`** — a `neuronx-cc` flag not
-  in any of our other sources. Claim: implements tensor transpositions via TensorE
-  identity-matrix matmuls instead of software-emulated permutation loops, ~2x speedup.
-  Pair with `--distribution-strategy=llm-training --model-type=transformer --lnc=1`
-  (already in Solution 13a) in the same compile invocation. Verify on real hardware before
-  trusting the 2x figure — it's the report's claim, not something we've measured.
+- **`--internal-hlo2tensorizer-options='--fast-relayout=true'`** — **disproven on real Trn2 hardware, do not use.** Claimed a `neuronx-cc` flag implementing tensor transpositions via TensorE identity-matrix matmuls instead of software-emulated permutation loops, ~2x speedup. When actually tried (`trn2-experiment-results.md`, Solution 13a), it broke `neuronx-cc` compilation outright — `neuronx-cc compile --help` on the installed SDK (2.26.6360.0) confirms this flag and `--fast-relayout` **do not exist** on this version. Exactly the "verify on real hardware before trusting the claim" caveat this doc already carried, borne out. `--distribution-strategy=llm-training --model-type=transformer --lnc=1` are all confirmed present in `--help` and were verified crash-free and numerically clean in isolation and combined.
 - **`NEURON_COMPILE_CACHE_DIR=/tmp/neuron_cache`** — the exact env var for the "persistent
   cache on local NVMe, not network FS" advice already in the first-hour checklist (item 6)
   and in the EKS/HLAT sources; we had the *advice* but not the *variable name* until now.
@@ -320,7 +315,8 @@ softcap-into-CE kernel priority order and rationale, `NEURON_FUSE_SOFTMAX=1` /
 `NEURON_RT_ASYNC_EXEC_MAX_INFLIGHT_REQUESTS=3` / `--distribution-strategy=llm-training` /
 `--model-type=transformer` (all already in Solution 13a), `record_step_boundary` submission
 requirement, static-shape/AOT-compile discipline, NKI FlashAttention online-softmax
-structure, hardware transpose acceleration as the reason `--fast-relayout` helps.
+structure, hardware transpose acceleration as the mechanism the report claimed
+`--fast-relayout` used (moot — the flag doesn't exist on the installed SDK, see above).
 
 ## What was checked and found empty (don't re-research)
 

@@ -20,6 +20,35 @@ from pathlib import Path
 # align the self-managed budget clock with the runner's startup allowance.
 _PROCESS_STARTED = time.monotonic()
 
+# Trn2 compiler/runtime config wins (Solution 13a/13b) -- must be set before the
+# torch/torch_neuronx imports below to take effect. Both toggles default OFF and
+# must be smoke-tested individually before trusting them: two attempts at 13a
+# broke neuronx-cc compilation outright ("hlo2penguin: Did you mean
+# '--remat=true'?"), taking down dist.init_process_group's own RNG-state barrier
+# kernel. First attempt: a quoted --internal-hlo2tensorizer-options value (bad
+# env-var quoting). Second attempt, after fixing the quoting: still broke --
+# `neuronx-cc compile --help` on this installed SDK (2.26.6360.0) confirms
+# --internal-hlo2tensorizer-options/--fast-relayout do not exist as flags at
+# all here. That claim came from the Gemini Deep Research cross-check
+# (trn2-optimization-research.md Source 4) and did not hold on real hardware --
+# exactly the "verify before trusting" caution already flagged there. Dropped.
+# --model-type/--distribution-strategy/--lnc are confirmed present in --help.
+# NEURON_COMPILE_CACHE_DIR is left unconditional: a plain filesystem path, not
+# compiler-flag syntax, independently verified safe across every run so far.
+USE_TRN2_COMPILER_FLAGS = False  # gates NEURON_CC_FLAGS/FUSE_SOFTMAX/ASYNC_EXEC below; smoke-tested clean, see trn2-experiment-results.md
+USE_STOCHASTIC_ROUNDING = False  # off by default: coupled with AdamW beta2, see enhancement-opportunities.md #14
+os.environ.setdefault("NEURON_COMPILE_CACHE_DIR", "/tmp/neuron_cache")
+if USE_TRN2_COMPILER_FLAGS:
+    os.environ.setdefault("NEURON_FUSE_SOFTMAX", "1")
+    os.environ.setdefault("NEURON_RT_ASYNC_EXEC_MAX_INFLIGHT_REQUESTS", "3")
+    os.environ.setdefault(
+        "NEURON_CC_FLAGS",
+        f"--model-type=transformer --distribution-strategy=llm-training "
+        f"--lnc={os.environ.get('NEURON_LOGICAL_NC_CONFIG', '1')}",
+    )
+if USE_STOCHASTIC_ROUNDING:
+    os.environ.setdefault("NEURON_RT_STOCHASTIC_ROUNDING_EN", "1")
+
 import torch
 import torch.distributed as dist
 import torch.nn as nn
@@ -46,7 +75,7 @@ from prepare import (
 # Baseline hyperparameters. Model-related config lives here, not in prepare.py.
 
 SEQ_LEN = 1024
-DEPTH = 10
+DEPTH = 6  # Solution 11 (Trn2 real-hardware depth/width resweep): real interior optimum at fixed 900s wall-clock, real submission shape -- 6 beat 4/8/10/12 (U-shape, see trn2-experiment-results.md)
 ASPECT_RATIO = 64
 HEAD_DIM = 128
 
@@ -98,6 +127,8 @@ USE_WEIGHT_CACHE = True  # cache each Linear's dtype-cast weight once per optimi
 USE_DOC_MASK = False  # block attention across document boundaries within a packed row (BOS-derived, data-dependent)
 USE_SELECTIVE_GATE = False  # make resid_lambda/x0_lambda data-dependent (Mamba-style selectivity) instead of static scalars
 SELECTIVE_GATE_CHANNELS = 32
+USE_FUSED_QKV = False  # Solution 13c: one wider c_qkv Linear instead of separate c_q/c_k/c_v; pure throughput, no quality effect
+USE_CAUSAL_FASTPATH = False  # Solution 13d: is_causal=True (attn_mask=None) instead of the additive mask, when purely causal
 
 
 def doc_boundary_mask(idx: torch.Tensor) -> torch.Tensor:
@@ -353,17 +384,26 @@ class CausalSelfAttention(nn.Module):
         self.n_embd = config.n_embd
         self.head_dim = config.n_embd // config.n_head
         assert self.head_dim * self.n_head == self.n_embd
-        self.c_q = Linear(config.n_embd, config.n_embd, bias=False)
-        self.c_k = Linear(config.n_embd, config.n_embd, bias=False)
-        self.c_v = Linear(config.n_embd, config.n_embd, bias=False)
+        if USE_FUSED_QKV:
+            self.c_qkv = Linear(config.n_embd, 3 * config.n_embd, bias=False)
+        else:
+            self.c_q = Linear(config.n_embd, config.n_embd, bias=False)
+            self.c_k = Linear(config.n_embd, config.n_embd, bias=False)
+            self.c_v = Linear(config.n_embd, config.n_embd, bias=False)
         self.c_proj = Linear(config.n_embd, config.n_embd, bias=False)
         self.ve_gate = Linear(VE_GATE_CHANNELS, self.n_head, bias=False) if USE_VE and has_ve(layer_idx, config.n_layer) else None
 
-    def forward(self, x: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, attn_mask: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, attn_mask: torch.Tensor | None) -> torch.Tensor:
         b, t, c = x.shape
-        q = self.c_q(x).view(b, t, self.n_head, self.head_dim)
-        k = self.c_k(x).view(b, t, self.n_head, self.head_dim)
-        v = self.c_v(x).view(b, t, self.n_head, self.head_dim)
+        if USE_FUSED_QKV:
+            q, k, v = self.c_qkv(x).split(self.n_embd, dim=-1)
+            q = q.view(b, t, self.n_head, self.head_dim)
+            k = k.view(b, t, self.n_head, self.head_dim)
+            v = v.view(b, t, self.n_head, self.head_dim)
+        else:
+            q = self.c_q(x).view(b, t, self.n_head, self.head_dim)
+            k = self.c_k(x).view(b, t, self.n_head, self.head_dim)
+            v = self.c_v(x).view(b, t, self.n_head, self.head_dim)
         if ve is not None:
             ve = ve.view(b, t, self.n_head, self.head_dim)
             gate = 2 * torch.sigmoid(self.ve_gate(x[..., :VE_GATE_CHANNELS]))
@@ -373,7 +413,10 @@ class CausalSelfAttention(nn.Module):
         q = q.transpose(1, 2)
         k = k.transpose(1, 2)
         v = v.transpose(1, 2)
-        y = F.scaled_dot_product_attention(q, k, v, attn_mask=attn_mask[..., :t, :t])
+        if attn_mask is None:
+            y = F.scaled_dot_product_attention(q, k, v, is_causal=True)
+        else:
+            y = F.scaled_dot_product_attention(q, k, v, attn_mask=attn_mask[..., :t, :t])
         y = y.transpose(1, 2).contiguous().view(b, t, c)
         return self.c_proj(y)
 
@@ -402,7 +445,7 @@ class Block(nn.Module):
         self.local_conv = CausalConv(config.n_embd, LOCAL_CONV_KERNEL) if USE_LOCAL_CONV else None
         self.scalar_gate = Linear(SELECTIVE_GATE_CHANNELS, 2, bias=False) if USE_SELECTIVE_GATE else None
 
-    def forward(self, x: torch.Tensor, x0: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, attn_mask: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, x0: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, attn_mask: torch.Tensor | None) -> torch.Tensor:
         if self.scalar_gate is not None:
             g = self.scalar_gate(x[..., :SELECTIVE_GATE_CHANNELS])
             resid_lambda = self.resid_lambda * (1.0 + g[..., 0:1])
@@ -446,9 +489,18 @@ class GPT(nn.Module):
         torch.nn.init.normal_(self.lm_head.weight, mean=0.0, std=0.001)
         s = INIT_SCALE * math.sqrt(3.0) * self.config.n_embd**-0.5
         for block in self.transformer.h:
-            torch.nn.init.uniform_(block.attn.c_q.weight, -s, s)
-            torch.nn.init.uniform_(block.attn.c_k.weight, -s, s)
-            torch.nn.init.uniform_(block.attn.c_v.weight, -s, s)
+            if USE_FUSED_QKV:
+                # Slice-wise, not one uniform_ over the whole fused tensor: keeps each
+                # third's per-tensor distribution identical to the unfused baseline (RNG
+                # draw order differs -- expected, not a bug -- see Solution 13c).
+                n = self.config.n_embd
+                torch.nn.init.uniform_(block.attn.c_qkv.weight[:n], -s, s)
+                torch.nn.init.uniform_(block.attn.c_qkv.weight[n:2 * n], -s, s)
+                torch.nn.init.uniform_(block.attn.c_qkv.weight[2 * n:], -s, s)
+            else:
+                torch.nn.init.uniform_(block.attn.c_q.weight, -s, s)
+                torch.nn.init.uniform_(block.attn.c_k.weight, -s, s)
+                torch.nn.init.uniform_(block.attn.c_v.weight, -s, s)
             torch.nn.init.zeros_(block.attn.c_proj.weight)
             torch.nn.init.uniform_(block.mlp.c_fc.weight, -0.4 * s, 0.4 * s)
             if block.mlp.c_gate is not None:
@@ -526,8 +578,14 @@ class GPT(nn.Module):
         doc_mask = doc_boundary_mask(idx) if USE_DOC_MASK else None
         for i, block in enumerate(self.transformer.h):
             ve = self.value_embeds[str(i)](idx).to(COMPUTE_DTYPE) if str(i) in self.value_embeds else None
-            static_mask = (self.mask_short if self.layer_is_short[i] else self.mask_full)[..., :t, :t]
-            attn_mask = static_mask + doc_mask if doc_mask is not None else static_mask
+            if USE_CAUSAL_FASTPATH and doc_mask is None and not self.layer_is_short[i]:
+                # Solution 13d: this layer's static mask is purely causal (full context,
+                # no doc-boundary masking) -- let SDPA take its is_causal fast path
+                # instead of materializing the additive mask tensor.
+                attn_mask = None
+            else:
+                static_mask = (self.mask_short if self.layer_is_short[i] else self.mask_full)[..., :t, :t]
+                attn_mask = static_mask + doc_mask if doc_mask is not None else static_mask
             x = block(x, x0, ve, cos, sin, attn_mask)
         x = norm(x)
         logits = self.lm_head(x)[..., :self.config.vocab_size].float()
@@ -683,14 +741,15 @@ ARCH_TOGGLE_NAMES = [
     "ROPE_BASE", "USE_LOCAL_CONV", "LOCAL_CONV_KERNEL", "USE_GATED_MLP",
     "USE_WEIGHT_CACHE", "WARMDOWN_RATIO", "FINAL_LR_FRAC", "WARMUP_STEPS",
     "WD_DECAY_TO_ZERO", "MUON_MOMENTUM_WARMUP_STEPS", "USE_DOC_MASK", "VE_WD",
-    "USE_SELECTIVE_GATE", "SELECTIVE_GATE_CHANNELS",
+    "USE_SELECTIVE_GATE", "SELECTIVE_GATE_CHANNELS", "USE_FUSED_QKV",
+    "USE_CAUSAL_FASTPATH", "USE_STOCHASTIC_ROUNDING", "USE_TRN2_COMPILER_FLAGS",
 ]
 # Toggles whose mismatch corrupts the state_dict shape (load_state_dict(strict=True) will
 # error loudly). Everything else in ARCH_TOGGLE_NAMES lives in non-persistent buffers or
 # plain Python constants excluded from state_dict() entirely -- a mismatch there loads
 # silently with no crash and quietly wrong behavior, which is exactly why we snapshot and
 # check all of them, not just the shape-critical ones.
-SHAPE_CRITICAL_TOGGLES = {"USE_VE", "USE_LOCAL_CONV", "USE_GATED_MLP", "USE_SELECTIVE_GATE"}
+SHAPE_CRITICAL_TOGGLES = {"USE_VE", "USE_LOCAL_CONV", "USE_GATED_MLP", "USE_SELECTIVE_GATE", "USE_FUSED_QKV"}
 
 
 def current_toggles() -> dict:

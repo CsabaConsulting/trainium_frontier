@@ -73,31 +73,42 @@ are pure [SPEED] — judge on tokens/sec at fixed steps, then on val_bpb at the 
 batch/depth resweep and any kernel-profiling decision should target the fastest correct
 config, not a slower one.
 
-**13a. Neuron compiler/runtime env flags.** Add near `_PROCESS_STARTED`, before the
-heavy `torch`/`torch_neuronx` imports:
+**13a. Neuron compiler/runtime env flags — implemented, crash found and fixed, now clean.**
+Landed in `train.py` gated behind `USE_TRN2_COMPILER_FLAGS` (default `False`):
 ```python
-os.environ.setdefault("NEURON_FUSE_SOFTMAX", "1")
-os.environ.setdefault("NEURON_RT_ASYNC_EXEC_MAX_INFLIGHT_REQUESTS", "3")
-os.environ.setdefault("NEURON_CC_FLAGS",
-                      "--model-type=transformer --distribution-strategy=llm-training "
-                      "--lnc=1 --internal-hlo2tensorizer-options='--fast-relayout=true'")
-os.environ.setdefault("NEURON_COMPILE_CACHE_DIR", "/tmp/neuron_cache")
+os.environ.setdefault("NEURON_COMPILE_CACHE_DIR", "/tmp/neuron_cache")  # unconditional
+if USE_TRN2_COMPILER_FLAGS:
+    os.environ.setdefault("NEURON_FUSE_SOFTMAX", "1")
+    os.environ.setdefault("NEURON_RT_ASYNC_EXEC_MAX_INFLIGHT_REQUESTS", "3")
+    os.environ.setdefault("NEURON_CC_FLAGS",
+                          f"--model-type=transformer --distribution-strategy=llm-training "
+                          f"--lnc={os.environ.get('NEURON_LOGICAL_NC_CONFIG', '1')}")
 ```
-Use `setdefault`, not assignment, so an operator can override from the shell. Keeping
-these in `train.py` rather than the launch command keeps the launch string
-README-verbatim for manual review, even though `prepare.py:706`
-`_launch_command_warnings()` would silently pass extra env vars too (it only validates
-`NEURON_LOGICAL_NC_CONFIG`). HLAT used the first three flags in a TP/PP-sharded 7B
-context we don't share — measure each flag **individually**, not as a bundle; confirm
-`NEURON_FUSE_SOFTMAX` actually touches our `F.scaled_dot_product_attention` call rather
-than silently no-op'ing, and that `--distribution-strategy=llm-training` isn't harmful
-under plain DDP. `--internal-hlo2tensorizer-options='--fast-relayout=true'` and
-`NEURON_COMPILE_CACHE_DIR` are new from the Gemini Deep Research cross-check
-(`trn2-optimization-research.md` Source 4): the former claims ~2x faster tensor
-transposition via TensorE identity-matmul emulation instead of software permutation
-loops (unverified claim, not yet measured by us); the latter is the exact env var for
-the "persistent NEFF cache on local NVMe" advice already in checklist item 6 below — we
-had the advice, not the variable name, until this cross-check.
+**Real incident, worth reading before touching this block again** (full account:
+`trn2-experiment-results.md`): the original version included
+`--internal-hlo2tensorizer-options='--fast-relayout=true'` (from the Gemini Deep Research
+cross-check, claiming ~2x faster tensor transposition) as an **unconditional** env-var
+block, reasoning "it's just config, safe by default." Both assumptions were wrong. First,
+the embedded quotes broke `neuronx-cc` outright the moment it synced to the box —
+`neuronx-cc compile --help` on the installed SDK (2.26.6360.0) confirms
+`--internal-hlo2tensorizer-options`/`--fast-relayout` **do not exist as flags at all** on
+this version; the claim didn't hold on real hardware. Second, being unconditional meant
+the very next run silently used it with no isolated smoke test first. Fixed: the
+fabricated flag is dropped, `--model-type`/`--distribution-strategy`/`--lnc` (all
+confirmed present in `--help`) are kept, and the whole block now sits behind
+`USE_TRN2_COMPILER_FLAGS` like every other Solution 13 toggle.
+
+Decomposed and smoke-tested individually plus combined (single device, 15 steps, seed 42,
+matching every other smoke test this phase): `NEURON_FUSE_SOFTMAX` alone, `NEURON_CC_FLAGS`
+alone, `NEURON_RT_ASYNC_EXEC_MAX_INFLIGHT_REQUESTS` alone, and all three combined all land
+in the same tight `~2.1294-2.1296` bpb cluster as the established 15-step baseline — no
+crash, no numerical divergence. (One early combined-run result, `2.682`, didn't reproduce
+on an identical retest — treated as a non-reproducing anomaly, not a real effect.) **Still
+untested: the actual throughput benefit** — a real fixed-step-count A/B is needed before
+enabling this for anything that matters; HLAT measured these flags in a TP/PP-sharded 7B
+context we don't share, so the speedup (if any) here is unverified either way.
+`NEURON_COMPILE_CACHE_DIR=/tmp/neuron_cache` stays unconditional — a plain filesystem path,
+not compiler-flag syntax, verified safe across every run this phase.
 
 **13b. BF16 + hardware stochastic rounding.** We already run `COMPUTE_DTYPE=torch.bfloat16`
 (`train.py:217`) but set no rounding mode. HLAT measured higher throughput and lower
@@ -125,14 +136,15 @@ is revived. Verify numerical equivalence against the mask path before trusting i
 `causality_check` alone won't catch a subtly wrong mask; compare val_bpb at matched
 steps too.
 
-## Solution 11 — Batch size + depth/width resweep
+## Solution 11 — Batch size + depth/width resweep — depth axis done, real interior optimum found
 
-Cross-ref: #7 / #8.
+Cross-ref: #7 / #8. Full detail, every number: `trn2-experiment-results.md`.
 
-- **Change**: `DEPTH` (`train.py:42`), `ASPECT_RATIO` (`:43`), `DEVICE_BATCH_SIZE` (`:46`), `TOTAL_BATCH_SIZE` (`:47`).
-- **Protocol**: **[GPU]** dry-run the sweep script/procedure only here — confirm the bisection logic (vary depth/width/batch, measure tokens/sec, find where more steps stop compensating for a smaller/shallower model) runs end-to-end and produces sane output. Do not trust the resulting optimal values — GPU throughput has nothing to do with Trn2 throughput. **[Trn2]** this is where the real sweep happens: run after Solutions 1-10 have landed, since the optimum shifts once schedule/VE/windowing/packing changes are in; measure tokens/sec and val_bpb at the actual 30-minute wall-clock budget (`--max-train-seconds` = the real `TRAIN_TIME_BUDGET_SECONDS`).
-- **Sub-sweep**: **[Trn2]** each distinct `(DEPTH, ASPECT_RATIO, DEVICE_BATCH_SIZE)` combination is a different compiled shape (~60s NEFF compile each) — group runs by shape and batch them to amortize that cost rather than round-robining across shapes. Not applicable on the GPU box.
-- **Keep/discard gate**: N/A on the GPU box (tooling check only). **[Trn2]** the winning combination is whichever reaches the lowest val_bpb at the real 30-minute ceiling, not the most steps or the biggest model in isolation.
+- **Change**: `DEPTH` (`train.py`), `ASPECT_RATIO`, `DEVICE_BATCH_SIZE`, `TOTAL_BATCH_SIZE`.
+- **Depth sweep — done.** Fixed wall-clock (`--max-train-seconds 900`, half budget), real submission shape (`--nproc-per-node 8 --lnc 1`), `ASPECT_RATIO=64` held fixed, `DEPTH ∈ {4,6,8,10,12}`. Result: a clean U-shape, **`DEPTH=6` (n_embd=384, 26.4M params) is a real interior optimum** — `public_val_bpb` 1.297186, vs. 1.330846 (depth4, more steps but capacity-limited), 1.342754 (depth8), 1.368452 (depth10, prior baseline), 1.365736 (depth12). Every gap here is 100x+ the established GPU-proxy noise floor — this is real, not noise. **`DEPTH=6` is now locked in `train.py`**, down from the GPU-tuned `DEPTH=10` — the single largest quality finding of the Trn2 phase, and something the GPU proxy could never have found (GPU throughput doesn't transfer, so the "how many real steps fit in the budget" side of the tradeoff was untestable until now).
+- **Known confound, disclosed**: the sweep ran sequentially, back-to-back, so later runs started from a warmer chip (see the throughput-cliff findings above) — a real limitation on how cleanly this isolates architecture effect from hardware state. Judged not to undermine the depth6 result specifically: the confound could plausibly explain the small ~0.003 gap between depth10 and depth12, but not a ~0.03-0.07 U-shape spanning all 5 points with a clear minimum.
+- **Not yet done**: an independent width-only resweep at the now-fixed `DEPTH=6` (this sweep varied width proportionally with depth via fixed `ASPECT_RATIO`, not independently); the batch-size axis (`DEVICE_BATCH_SIZE`/`TOTAL_BATCH_SIZE`) at all; re-validating Solutions 1-10/13c/13d at the new, much smaller shape (all were tuned/verified at `DEPTH=10`).
+- **Keep/discard gate**: the winning combination is whichever reaches the lowest val_bpb at the real 30-minute ceiling, not the most steps or the biggest model in isolation — satisfied by `DEPTH=6` per the above.
 
 ## Solution 12 — NKI kernel work, profile-gated, elementwise-first
 
