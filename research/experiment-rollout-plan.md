@@ -1,6 +1,16 @@
-# Experiment Rollout Plan — GPU Proxy Now, Trn2 When Allocated
+# Experiment Rollout Plan — GPU Phase Complete, Trn2 Readiness Plan
 
 This is the execution companion to `enhancement-opportunities.md`. That doc establishes *what* to change and *why* (rationale, evidence, portability bucket A/B/C) — this doc only adds *sequencing and measurement protocol*. Rationale/evidence for each item lives in the source doc; follow the `#N` cross-references there, not here.
+
+> **Status as of this update**: Solutions 1-10 are **done and validated on two independent GPUs** (RTX 6000 Pro Blackwell, then NVIDIA L4 Ada — different vendor generation, different `torch`/CUDA build), not just planned. Full detail, every number, every keep/discard call: `gpu-experiment-results.md`. This section below is now a status summary, not a to-do list — jump to "Trn2 readiness plan" for what's actually left.
+
+## GPU phase — final status
+
+Locked config: Solutions 1, 2, 3, 5, 6 (with `PACK_FACTOR` re-swept to `2`, not the originally-locked `8`), 7, 9a, 10 kept. Solutions 4, 8, 9b discarded (real regressions). Post-lock exploration (RoPE-base-alone, windowing-alone, VE weight decay, selective per-token gating) — four further clean negative results, closing out low-effort GPU-testable options. Custom packer w/ remainder-requeue remains the one deliberately-untried candidate (weak motivation, high risk — see `gpu-experiment-results.md`).
+
+**Cross-hardware portability confirmed with real numbers**: `1.165273` (RTX 6000 Pro) vs `1.168849` (L4) for the identical config — 0.31% relative difference, both causality-exact. This is real, independent evidence the architecture/schedule findings are properties of the data/model, not an artifact of one specific card.
+
+**Solutions 11 (batch/depth resweep) and 12 (NKI kernels) were never GPU-testable** — both inherently need real Trn2 (throughput-dependent, or Neuron-only respectively). They're the actual remaining work, detailed below.
 
 > **Current hardware situation**: no Trn2 allocation yet, so experiments run on a rented CUDA GPU (RTX 6000 Pro Max-Q) in the meantime, and migrate to Trn2 the moment it's allocated. `detect_device_type` (`train.py:73`) already picks CUDA before Neuron, so **the same `train.py` and the same `research/run_experiment.py` run unmodified on either box** — nothing here is GPU-only or Trn2-only code, only the launch *shape* and a couple of measurement caveats differ. Those differences are called out inline below wherever they apply, tagged **[GPU]** or **[Trn2]**.
 
@@ -32,97 +42,26 @@ This is the execution companion to `enhancement-opportunities.md`. That doc esta
 
 ---
 
-## Solution 1 — LR cooldown + floor (time-based progress)
+## Solutions 1-10 — done, see `gpu-experiment-results.md` for full detail
 
-Cross-ref: `enhancement-opportunities.md` #1. Bucket **A**.
+| # | Item | Cross-ref | Final status |
+|---|---|---|---|
+| 1 | LR cooldown + floor | #1 | **Kept.** `WARMDOWN_RATIO=0.75, FINAL_LR_FRAC=0.05` — biggest single win of the session, -4.55% alone |
+| 2 | Remove warmup | #2 | **Kept.** `WARMUP_STEPS=0` — tied/marginal on its own, kept on Karpathy's independent replication + simplicity criterion |
+| 3 | WD decay-to-zero | #3 | **Kept.** `WD_DECAY_TO_ZERO=True` — small real win |
+| 4 | Muon momentum-warmup steps | #6 | **Discarded.** `200` regressed vs `300` here — real divergence from Karpathy's finding |
+| 5 | Init scale sweep | #11 | **Kept.** `INIT_SCALE=0.68` — matched Karpathy's monotonic trend exactly |
+| 6 | Packing-bin reshape | #9 | **Kept, re-tuned post-hoc.** `PACK_FACTOR=2` (not the originally-locked `8` — a full bin-size sweep `{1,2,4,8,16}` found a real interior optimum at `2`, -0.00694 vs `8`) — second-biggest win of the session |
+| 7 | Value embeddings | #4 | **Kept.** Alternating layers, matches Karpathy directly |
+| 8 | Sliding-window attention | #5 | **Discarded, decomposed.** Bundle regressed; later decomposition found *both* sub-components (`ROPE_BASE=200000` alone, `WINDOW_PATTERN="SSSSL"` alone) independently regress — fully closed, not just bundle-level |
+| 9a | Local causal conv | #13 | **Kept.** Novel finding, no Karpathy precedent, real win |
+| 9b | Gated MLP | #13 | **Discarded.** Worse quality, +72% params, +19% slower — clean discard on every axis |
+| 9c | Selective per-token gating | #13 | **Discarded** (tested post-session on L4). Real regression |
+| 10 | Weight-cast caching | #10 (non-kernel) | **Kept** (no-op in practice — Solution 6 already absorbed the benefit this targets, but harmless and free) |
 
-- **Change**: rewrite `lr_multiplier` (`train.py:574`, called at `:660`) to compute `progress = elapsed_wall_time / target_time_budget` and apply warmdown + a nonzero floor instead of the current flat-after-warmup shape.
-- **Protocol**: fixed step count (full-chip shape), compare final val_bpb against current baseline (flat LR).
-- **Sub-sweep**, in this order (Karpathy's own validated values first): `WARMDOWN_RATIO` ∈ {0.5, 0.7, 0.75} → `FINAL_LR_FRAC` ∈ {0.0, 0.05} once warmdown ratio is locked.
-- **Keep/discard gate**: lower val_bpb at equal steps → keep, advance to Solution 2. Any regression → revert before continuing (don't stack an unverified change under the next one).
+Also tested post-session, both discarded: `VE_WD=0.003` (Karpathy's validated value, flat/marginal-negative here), document-boundary attention masking (real regression). **Cross-hardware portability confirmed**: this exact locked config scores `1.165273` (RTX 6000 Pro) and `1.168849` (L4) — 0.31% relative difference, both causality-exact.
 
-## Solution 2 — Remove/shrink warmup
-
-Cross-ref: #2. Bucket **A**.
-
-- **Change**: `WARMUP_STEPS` (`train.py:58`), consumed in `lr_multiplier` (`:574-576`).
-- **Protocol**: same fixed step count, starting from Solution 1's winning schedule.
-- **Sub-sweep**: `WARMUP_STEPS` ∈ {0, 1-2 (numerical safety only), current default}.
-- **Keep/discard gate**: Karpathy's log found warmup hurts every time it was tried — expect 0 to win; if it doesn't, re-check for a numerics issue (first-step NaN/inf, or a NEFF-compile-step artifact) before assuming warmup is actually needed here.
-
-## Solution 3 — Weight-decay decay-to-zero schedule
-
-Cross-ref: #3. Bucket **A**.
-
-- **Change**: `WEIGHT_DECAY` (`train.py:57`) currently applied as a constant (`:664-665`) — make it a function of `progress` (linear decay to 0), same `progress` variable introduced in Solution 1.
-- **Protocol**: fixed step count, starting from Solutions 1-2's winning config.
-- **Sub-sweep**: linear decay-to-zero (Karpathy's validated shape) vs. current constant, as a straight A/B — no further sub-values needed unless linear wins and you want to try a sqrt schedule as a stretch goal (Karpathy tried this too and linear won).
-- **Keep/discard gate**: decaying WD should beat constant per Karpathy's log; if not, check the decay is actually reaching the optimizer's `weight_decay` group value (not just computed and discarded).
-
-## Solution 4 — Muon momentum-warmup step count
-
-Cross-ref: #6. Bucket **A**.
-
-- **Change**: `muon_momentum` (`train.py:580`, called `:664`) — currently ramps over a step count matching Karpathy's *original* baseline (300), not his validated-better value.
-- **Protocol**: fixed step count, starting from Solutions 1-3's winning config.
-- **Sub-sweep**: momentum-warmup length ∈ {300 (current), 200 (Karpathy's keep), 150 (Karpathy's discard — confirms the shape, don't go lower)}.
-- **Keep/discard gate**: expect 200 to win narrowly; this is a low-impact tune, don't over-invest time here.
-
-## Solution 5 — Init scale sweep
-
-Cross-ref: #11. Bucket **A**.
-
-- **Change**: `init_weights` (`train.py:322`) — scale down the uniform-init bounds on attention/MLP matrices.
-- **Protocol**: fixed step count, starting from Solutions 1-4's winning config. This one interacts with training dynamics more than the schedule tweaks, so run it after the schedule is locked, not before.
-- **Sub-sweep**: overall init scale multiplier ∈ {1.0 (current), 0.8, 0.7, 0.68} — Karpathy's own validated sequence, each confirmed better than the last down to 0.68.
-- **Keep/discard gate**: expect monotonic improvement down to ~0.68-0.7x, then flattening/reversal — stop at the first value that doesn't improve, don't assume smaller is always better (his log shows 0.66 lost to 0.68). Because the run is short (~500-1500 steps), this lever has outsized leverage relative to a normal-length pretrain — worth a slightly wider sweep than the others if time allows.
-
-## Solution 6 — Packing-bin reshape trick
-
-Cross-ref: #9. Bucket **A**.
-
-- **Change**: in `train.py`, change the `make_dataloader(` call (`:633`) to request `seq_len = 8 * SEQ_LEN` and reshape the returned `(inputs, targets)` to `(batch*8, SEQ_LEN)` before feeding the model. **`prepare.py` itself stays untouched** (`make_dataloader` def at `prepare.py:431` is read-only, per the competition's own rule).
-- **Protocol**: fixed step count (note: this changes effective batch size, so hold *total tokens processed* fixed across the comparison, not raw step count, to isolate the packing effect from a batch-size effect).
-- **Sub-sweep**: turned out this was wrong the first time — assumed binary (on/off) with no bin size worth sweeping. A post-session follow-up swept `PACK_FACTOR ∈ {1,2,4,8,16}` and found a real interior optimum at `2` (not `8`), beating it by -0.00694 — see `gpu-experiment-results.md`'s "Follow-up: bin-size sweep." Sweep the bin size, don't assume the first value tried is optimal, especially after other architecture changes land on top of it. Verify the reshape's target alignment holds (spot-check a few token positions across the chunk boundary) before trusting any bpb number.
-- **Keep/discard gate**: expect a small quality improvement (fewer document-tail crops) plus a step-time change from the effective `DEVICE_BATCH_SIZE` increase — this is a bucket-A change so the shape stays the same as long as `8*SEQ_LEN` doesn't itself trigger a different compile path than whatever else is running; check the compile-overhead note above if timing looks off on the first run.
-
-## Solution 7 — Value embeddings
-
-Cross-ref: #4. Bucket **A**.
-
-- **Change**: new module — a per-layer `nn.Embedding` + gating `Linear`, added into `CausalSelfAttention`'s V stream (`train.py:254`, wired through `Block.forward` `:300` and `GPT.__init__` `:307`). This is greenfield — no existing VE code in the baseline to anchor to; use Karpathy's `autoresearch/train.py` `value_embeds` ModuleDict as the reference implementation to adapt (already confirmed present there, absent here).
-- **Protocol**: fixed step count, starting from Solutions 1-6's winning config. First verify shape correctness and `causality_check` (`prepare.py:638`) still passes before trusting any bpb number.
-- **Sub-sweep**: VE coverage — all layers (Karpathy's winning config) vs. every-3rd-layer vs. last-3-layers-only (both confirmed *worse* in his log — include them anyway as a sanity check that the port reproduces the same ordering). Then VE's own LR/WD, starting from Karpathy's validated small values (tiny WD ~0.001→0.003 range).
-- **Keep/discard gate**: full-coverage VE should beat partial coverage; if partial coverage wins here, something is likely wrong in the implementation, not a genuine finding. Do a manual A/B before handing to `autoresearch` — see "Rollout plan" in the source doc for why (blind keep/discard can't distinguish "genuinely better" from "accidentally not broken").
-
-## Solution 8 — Sliding-window attention
-
-Cross-ref: #5. Bucket **B**.
-
-- **Change**: replace `is_causal=True` in `CausalSelfAttention.forward` (`train.py:266`) with an explicit static per-window-size attention mask, plus a `window_pattern` config string (e.g. `SSSSL`) controlling which layers get the short window. New code, no existing anchor for the mask builder itself.
-- **Protocol**: fixed step count, starting from Solutions 1-7's winning config. **[GPU]** explicitly disable flash-attn/mem-efficient SDPA backends (e.g. `torch.nn.attention.sdpa_kernel` context manager, or the older `torch.backends.cuda.sdp_kernel(enable_flash=False, enable_mem_efficient=False)`) so the measured bpb reflects the same masked-eager path Trainium will actually run — otherwise the GPU number is contaminated by a fused kernel Neuron doesn't have. **[Trn2]** no action needed — eager masked SDPA *is* the only path there, so the measurement is already exactly what will ship.
-- **Sub-sweep**: window pattern ∈ {current (full dense), `SSSL`, `SSSSL` (Karpathy's keep)}; short-window size ∈ {1/2 context (baseline-equivalent), 1/8 context = 256 tokens (Karpathy's keep)}; then RoPE base frequency ∈ {10K (current), 200K (Karpathy's keep)}.
-- **Keep/discard gate**: expect both quality and step-time improvement per Karpathy's log. If the step-time win is smaller than expected, that's the profiling signal Solution 12 (NKI kernel work) should act on — a custom windowed-attention kernel is the natural follow-up if eager masked SDPA turns out to be the bottleneck.
-
-## Solution 9 — SSM-inspired add-ons (three ordered sub-experiments)
-
-Cross-ref: #13. Bucket **A**.
-
-- **Change (sub-step 9a — local causal conv)**: add a small depthwise causal `conv1d` (kernel size ~4) ahead of attention in `Block.forward` (`train.py:300`). Purely additive, static-shape-safe.
-- **Change (sub-step 9b — gated MLP)**: restructure `MLP` (`train.py:281`) to a SwiGLU/GEGLU-style gate (`y * silu(gate(x))`) instead of the current plain ReLU² MLP. Adds one weight matrix — weigh against the model's simplicity criterion.
-- **Change (sub-step 9c — selective per-token gating)**: make `resid_lambda`/`x0_lambda` (currently static per-layer scalars in `Block`) a function of the hidden state via a small projection. Higher effort, lower priority — only attempt if 9a/9b both land and there's time left.
-- **Protocol**: fixed step count, run 9a → 9b → 9c in sequence, each cumulative on the previous sub-step's winning result (same convention as Solutions 1-4).
-- **Sub-sweep**: 9a — conv kernel size ∈ {2 (RWKV-style shift), 4}. 9b — none of Karpathy's log applies here (untested territory); just A/B gated vs. ungated. 9c — gate architecture is open-ended; treat as exploratory, not a fixed sweep.
-- **Keep/discard gate**: none of these three have ablation precedent — treat every result as a genuine new finding, not a confirmation. Real risk each one just doesn't help or actively hurts; discard freely. Good first candidates to hand to `autoresearch` specifically because they're untested and bounded.
-
-## Solution 10 — Weight-cast caching (free sub-fix under #10)
-
-Cross-ref: #10 (the non-kernel part). Bucket **A**.
-
-- **Change**: `Linear.forward` (`train.py:242`) currently casts `self.weight.to(dtype=x.dtype)` on every forward call, even though weights only change once per optimizer step. Cache the cast after `optimizer.step()`, reuse across the `grad_accum_steps` inner loop.
-- **Protocol**: fixed step count, measure step time before/after (this is a pure speed fix, bpb should be unchanged — use bpb-unchanged as a correctness check, not the target metric).
-- **Sub-sweep**: none — single change.
-- **Keep/discard gate**: step-time should improve or stay flat; any bpb change signals a caching bug (stale weights), not a real effect — investigate, don't keep. Land this one early/opportunistically — it's independent of everything else here and has zero interaction risk with the other Solutions.
+**Not pursued, deliberately**: custom packer with remainder-requeue (targets a smaller problem now than originally assumed, since the re-tuned `PACK_FACTOR=2` already has less crop-loss than `8` did, and the sibling leakage-fix idea already failed) — left as documented future work, not current work.
 
 ## Solution 11 — Batch size + depth/width resweep
 
@@ -137,10 +76,35 @@ Cross-ref: #7 / #8.
 
 Cross-ref: #10 (the kernel-writing part). Bucket **C**.
 
-- **Change**: candidates in priority order (per the source doc's call-frequency/tensor-size reasoning): fused RMSNorm (`norm()`, ~42 calls/forward), fused rotary embedding, fused logit softcap (ideally fused into cross-entropy), and — only if profiling shows it's warranted — a flash-attention-style kernel for `CausalSelfAttention` (see Solution 8's note on this). Template: `_relu_sq_fwd`/`_relu_sq_bwd`/`_ReluSquaredNKI` (`train.py:169-222`).
+- **Change**: candidates in priority order (per the source doc's call-frequency/tensor-size reasoning): fused RMSNorm (`norm()`, ~42 calls/forward), fused rotary embedding, fused logit softcap (ideally fused into cross-entropy), and — only if profiling shows it's warranted — a flash-attention-style kernel for `CausalSelfAttention` (see Solution 8's note on this — both its sub-components independently regressed on GPU, so a custom windowed kernel is *not* motivated by that finding; only pursue this specific one if profiling shows attention itself is the bottleneck for a different reason). Template: `_relu_sq_fwd`/`_relu_sq_bwd`/`_ReluSquaredNKI` (`train.py:169-222`).
 - **Process**: profile first with `neuron-nki-profiling`/`neuron-nki-profile-analysis-agent` (deployed this session) to confirm the actual bottleneck before writing anything — don't write a kernel based on source-reading assumptions alone. Author with `neuron-nki-writer-agent`, debug compile errors with `neuron-nki-debugger-agent`, validate numerical equivalence against the eager reference with `neuron-framework-equivalence` before trusting any kernel in a scored run.
 - **Keep/discard gate**: numerical equivalence check must pass before a bpb comparison means anything — a shape-correct but numerically-off kernel can still pass `causality_check` while quietly moving val_bpb the wrong way.
 - **Sequencing**: last Solution to attempt, after every other win (Solutions 1-11) is already banked, since kernel-writing effort should target whatever the *final* architecture's actual bottleneck is, not an intermediate one.
+
+---
+
+## Trn2 first-hour checklist — do this before spending any real budget
+
+Everything below is genuinely new — none of it could be tested on either GPU this session. Do it in this order.
+
+**1. Environment.** Launch from the README-specified DLAMI (`ami-0d5703e99c1589f8d`, venv `neurips-torchneuronx-native-beta-2.11.3-20260824`). `pip install -r requirements.txt`, `python prepare.py setup`. Sync `train.py`/`prepare.py` (checksummed against local before trusting), the checkpoints (`checkpoints/final-confirmation-v2.pt` at minimum), and `research/` (needed for `run_experiment.py`'s git calls — `.git` must come along too, same lesson learned twice this session with GPU rentals).
+
+**2. Real-hardware verification, same discipline as every GPU box this session.** Don't assume `torch_neuronx` works just because it imports — run an actual op:
+```python
+import torch
+x = torch.randn(4096, 4096, device="neuron", dtype=torch.bfloat16)
+y = x @ x
+torch.neuron.synchronize()
+```
+Then the same portability check already proven twice on GPU: `--init-from checkpoints/final-confirmation-v2.pt --num-steps 10`, confirm `causality_passed=True` and no `WARNING [SHAPE-CRITICAL]` toggle mismatch in the log (check the log, not just the number — a real self-inflicted mistake this session came from trusting the bpb number without checking for a printed mismatch warning first).
+
+**3. `record_step_boundary` — verified locally on L4 this session, but only in single-device mode.** Confirmed it correctly appends one line per completed step to `NEURON_COMPETITION_R1_STEP_LOG` when set (previously an unverified assumption from reading the PR #6 diff — now real). Re-confirm once on Trn2 too, cheap and quick (10-step run with the env var set), since Neuron's process/threading model could in principle behave differently than CUDA's.
+
+**4. The one thing that has never been tested at all, on any hardware, all session: multi-core (`nproc_per_node > 1`).** Every GPU experiment this whole session ran single-device (`--nproc-per-node 1`) — the combined bad-loss/predictive-stop `dist.all_reduce` logic (`train.py`, added as part of the PR #6 merge) has never been exercised with `world_size > 1`. Before trusting any multi-core result: run a short (~20-step) smoke test at the **real submission shape** (`--nproc-per-node 8 --lnc 1`), confirm it completes without a distributed-hang or mismatched-stop-decision issue (one rank deciding to stop while others continue would be exactly the bug this combined-tensor design was meant to prevent — verify it actually does, don't just trust the code read). This is squarely the "utilizes all NeuronCores" data-parallel behavior discussed earlier — same model per core, gradients synced once per step, per-core memory footprint independent of core count — but it's still a real code path that has literally never run.
+
+**5. Once 1-4 pass, re-run the locked config from scratch (fresh init, no warm-start) at the real submission shape and a real step count, and compare against the GPU numbers (`1.165273` / `1.168849`).** This is the third independent hardware confirmation, and the first one that's actually target-hardware, not a proxy — treat any large deviation as a real finding to investigate, not noise to explain away (same standard applied to every GPU→GPU and Karpathy→GPU comparison this whole session).
+
+**6. Then, and only then, the two genuinely Trn2-only Solutions**: 11 (batch/depth resweep, at the real 30-minute budget) and 12 (NKI kernel work, profiling-first). Both detailed above.
 
 ---
 
