@@ -1,0 +1,59 @@
+2026-Sep-05 14:20:23.757523 222492:222492  WARN   NRT:nrt_config_parse_init_config            NEURON_RT_ASYNC_EXEC_MAX_INFLIGHT_REQUESTS is no longer supported and will be ignored. Implicit async exec mode has been removed. Migrate to the Neuron Runtime explicit async APIs. https://awsdocs-neuron.readthedocs-hosted.com/en/latest/neuron-runtime/api/nrt-async-api-overview.html
+device=neuron dtype=torch.bfloat16 world_size=1
+training target=15 steps max_seconds=200 official_budget=1800s
+model_config={
+  "sequence_len": 1024,
+  "vocab_size": 8192,
+  "n_layer": 10,
+  "n_head": 5,
+  "n_embd": 640
+}
+num_params=85,878,580 flops_per_token=5.624573e+08
+micro_tokens=2,048 grad_accum_steps=32 pack_factor=2
+step 00000 | loss 9.0112 | lrm 1.000 | dt 116.53s | tok/s 562 | remaining_steps 14 | remaining_time 82s | epoch 1
+step 00001 | loss 8.7985 | lrm 0.571 | dt 7.57s | tok/s 8,659 | remaining_steps 13 | remaining_time 75s | epoch 1
+step 00002 | loss 8.5854 | lrm 0.523 | dt 7.50s | tok/s 8,743 | remaining_steps 12 | remaining_time 67s | epoch 1
+step 00003 | loss 8.4084 | lrm 0.475 | dt 7.62s | tok/s 8,602 | remaining_steps 11 | remaining_time 60s | epoch 1
+step 00004 | loss 8.1321 | lrm 0.427 | dt 7.46s | tok/s 8,783 | remaining_steps 10 | remaining_time 200s | epoch 1
+step 00010 | loss 9.4257 | lrm 1.000 | dt 6.04s | tok/s 10,856 | remaining_steps 4 | remaining_time 164s | epoch 1
+---
+checkpoint_path:    out/sol13a-compilerflags-smoke-v2/final.pt
+training_seconds:  61.5
+budget_seconds:    1800
+target_steps:      15
+max_train_seconds: 200
+startup_allowance_est: 157.9
+charged_seconds_est:   61.9
+over_budget:       False
+total_seconds:     245.6
+compiled:          False
+nki_relu2:         False
+num_steps:         15
+total_tokens_M:    1.0
+world_size:        1
+lnc:               1
+seq_len:           1024
+num_params_M:      85.9
+causality_passed:  True
+causality_max_abs: 0.000000
+public_val_bpb:    2.682047
+eval_seconds:      20.8
+eval_timeout:      1200
+eval_over_timeout: False
+[W905 14:20:21.876123215 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W905 14:20:23.921519262 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
