@@ -305,3 +305,94 @@ Clear discard on every axis — worse quality, more params, slower. Not close to
 Per the plan's own condition ("only attempt if 9a *and* 9b both land") — **9b didn't land, skipping 9c**, moving to Solution 10.
 
 ---
+
+---
+
+## Hardware transition: RTX 6000 Pro (Vast.ai) → NVIDIA L4 (AWS EC2 g6.xlarge)
+
+Vast.ai access lost mid-session (no longer usable). Moved to a rented AWS `g6.xlarge` (single L4, 23GB usable VRAM, Ada, compute cap 8.9), `ec2-user` login, AWS Deep Learning AMI with a preinstalled `/opt/pytorch` venv (`torch 2.13.0+cu130`).
+
+**Environment verified before trusting it**: same diligence as every prior box — real matmul + SDPA executed on `cuda`, not just `import torch` succeeding. Confirmed clean. Repo + `.git` synced (needed for `run_experiment.py`'s git calls), `requirements.txt` installed (`pyarrow`/`requests` already present on the DLAMI, only `tiktoken` needed), `prepare.py setup` run (526MB data, plenty of headroom on the 25GB root disk).
+
+**Self-inflicted mismatch caught by the toggle-warning system, first real catch**: synced `train.py` for the initial portability check without noticing it still had `WINDOW_PATTERN="SSSSL"` staged from the windowing-decomposition test that was interrupted when Vast.ai died — not the actual locked config. The `--init-from` mismatch check printed exactly the warning it was built for (`WARNING [silent-behavior]: toggle WINDOW_PATTERN mismatch -- checkpoint='L' current='SSSSL'`), which I only noticed on relog inspection, not from the number itself. Fixed and reran — turned out the windowing mismatch wasn't actually the dominant driver of the bpb drift I'd initially suspected it was (both runs landed within ~0.003 of each other); the real cause is just LR-peak-restart-shock variance over a very small step count, not a bug. Both runs had causality exact regardless. Lesson: check the log for warnings before trusting a number, don't infer causation from a single before/after delta.
+
+**Portability check (`--init-from checkpoints/final-confirmation-v2.pt`, 10 steps)**: causality exact both times, correct param count (85.9M), no shape errors — structurally confirms the checkpoint/architecture/eval pipeline all port correctly. The bpb-after-10-steps number itself (~1.157) isn't a meaningful portability metric on its own — too few steps, dominated by the LR-schedule restarting at peak, same caveat noted the first time this technique was used on Vast.ai.
+
+**Throughput**: ~2.2s/step at `PACK_FACTOR=2` (vs. RTX 6000 Pro's ~1.0-1.1s/step for the same config) — roughly 2x slower, consistent with L4 being a smaller/cheaper chip than the Blackwell workstation card, and within the range estimated before allocating it. Confirms the earlier reasoning: L4's 24GB was never the constraint (real usage ~7-8GB); the tradeoff is patience, not capability.
+
+**Real quality-transfer check, in progress**: fresh from-scratch run (no warm-start, avoids the LR-shock confound) of the full locked config (Sol 1-7, 9a, 10, `PACK_FACTOR=2`) at 800 steps — directly comparable to the RTX 6000 Pro's own clean number for this exact config, `1.165273`.
+
+Status: running (~1850s expected, ~2x the RTX 6000 Pro's own time for the same comparison).
+
+---
+
+**First real run hit a miscalibration**: `--max-train-seconds 1850` (estimated from the 10-step warm-start test's `22.2s/10 ≈ 2.2s/step`) cut the run short at `num_steps=406` instead of 800 — `public_val_bpb=1.263573` at that partial step count, not comparable to the RTX 6000 Pro's 800-step number at all (just less training, not a real signal). Root cause, found by checking the per-step log rather than guessing: `training_seconds` only counts time *after* the step-5 budget-clock reset (by design, per the PR #6 merge) — the warm-start test's `22.2s` covered steps 5-9 (5 steps), not all 10, so the real rate was `22.2/5 ≈ 4.44s/step` all along, not `2.2s/step`. Confirmed via the per-step log directly: flat `4.5-4.65s/step` from step 0 through step 200, no thermal-throttling signature (would show as *increasing* dt over time) — just a genuinely slower chip for this workload than estimated.
+
+**Real L4 throughput: ~4.5s/step at `PACK_FACTOR=2`** — about 4x slower than RTX 6000 Pro's ~1.0-1.1s/step for the same config (bigger gap than the 2-4x range estimated before allocating this instance). 800 steps takes ~60 min here, not ~15-17 min. Rerunning with a corrected, generous budget (`--max-train-seconds 3800`) to get the real 800-step comparison.
+
+
+**Corrected run, real 800-step result**: `num_steps=800` reached cleanly (`training_seconds=3646.2`, confirms ~4.56s/step sustained, matching the earlier per-step-log reading). **`public_val_bpb = 1.168849`** vs. RTX 6000 Pro's `1.165273` for the identical locked config — **Δ = +0.0036 (0.31% relative)**, causality exact.
+
+**Portability confirmed with real numbers, not just structural checks.** The delta is bigger than the same-hardware noise floor established earlier (~0.0001-0.00025) — expected, given a different GPU vendor/generation and a different `torch` build (`2.13.0+cu130` vs. `2.11.0+cu128`) offer no bit-exact reproducibility guarantee — but it's small in absolute terms and lands in the same direction. The core finding of the whole session (baseline `1.273797` → locked config `~1.165-1.169`) genuinely transfers to different hardware, not an artifact of the specific card/torch build this was originally found on.
+
+**Practical note going forward**: L4's ~4.5s/step (vs. RTX 6000 Pro's ~1.0-1.1s/step) makes an 800-step comparison a ~62-minute commitment here, vs. ~15-17 minutes before — a real velocity cost for the remaining exploration list. Recommending a smaller standard unit for new L4 experiments (e.g. 400 steps, ~30 min) rather than continuing at 800, trading a little noise-floor tightness for meaningfully faster iteration on this hardware.
+
+
+**Adopted 400-step standard unit for L4 going forward.** New reference: `l4-400step-baseline`, full locked config (`WINDOW_PATTERN="L"`), `public_val_bpb = 1.263103` at 400 steps (consistent with the earlier accidentally-truncated 406-step run's `1.263573` — same seed/code/hardware, expected near-determinism, a good self-consistency check).
+
+### Continuing the Sol8 decomposition: windowing alone, on L4
+
+Picking back up the test that was interrupted when Vast.ai went down. `WINDOW_PATTERN="SSSSL"`, `SHORT_WINDOW_FRAC=0.125`, `ROPE_BASE` unchanged at `100000` this time (isolating the windowing component only, after `ROPE_BASE=200000` alone was already found to be a huge standalone regression). Smoke-tested clean first: no crash, causality exact.
+
+Status: running real 400-step comparison against the new `l4-400step-baseline` (1.263103).
+
+
+| Config | public_val_bpb | Δ vs L4 400-step baseline | status |
+|---|---|---|---|
+| `WINDOW_PATTERN="L"` (baseline) | 1.263103 | — | — |
+| `WINDOW_PATTERN="SSSSL", SHORT_WINDOW_FRAC=0.125` alone | 1.295870 | **+0.03277** | **discard — real regression, bigger than RoPE alone** |
+
+**Overturns the earlier hypothesis.** Windowing alone regresses *more* than `ROPE_BASE=200000` alone did (+0.0328 vs +0.0269) — it was never a hidden win being masked by a bad RoPE choice; **both components are independently bad** on top of this architecture. Plausible explanation: VE and local-conv (Solutions 7, 9a) likely already provide whatever local-context benefit windowing would otherwise offer, so restricting most layers to a 128-token window just loses long-range context for no offsetting gain. **Solution 8's decomposition is now definitively closed** — not just "the bundle regressed," but "every piece of it regresses independently too." Reverted to `WINDOW_PATTERN="L"`.
+
+**Decomposition arc, summary**: `ROPE_BASE=200000` alone: real regression (+0.0269). `WINDOW_PATTERN="SSSSL"` alone: real regression (+0.0328), bigger than RoPE's. Original bundle regression (+0.00129, at the old `PACK_FACTOR=8` config): smaller than either individual component's regression at `PACK_FACTOR=2` — consistent with some cancellation between the two bad components, not evidence either one is secretly good. This whole avenue is closed for this architecture; no further work planned here.
+
+
+### VE's own hyperparameters — never tuned separately until now
+
+VE currently shares `EMBEDDING_LR` with the token embedding and has `weight_decay=0.0` (constant, no decay) — adopted wholesale when VE landed (Solution 7), never tuned on its own axis. Karpathy's log has a real validated sequence here (tiny WD 0.001→0.002→0.003, each confirmed better in his setup). Added a separate `VE_WD` constant (previously hardcoded `0.0` inline) to test this independently. Smoke-tested the refactor as a no-op first (`VE_WD=0.0`): `2.152395` vs the earlier VE-on smoke's `2.152977` — matches within noise, causality exact.
+
+Testing `VE_WD=0.003` directly (Karpathy's validated endpoint, skipping the intermediate 0.001/0.002 points given the cost per run here — a reasonable one-shot bet given low risk on this small a parameter; will probe intermediate values only if this doesn't land cleanly).
+
+Status: running real 400-step comparison against the `l4-400step-baseline` reference (1.263103).
+
+
+| Config | public_val_bpb | Δ vs L4 400-step baseline | status |
+|---|---|---|---|
+| `VE_WD=0.0` (baseline) | 1.263103 | — | — |
+| `VE_WD=0.003` (Karpathy's validated endpoint) | 1.264037 | +0.00093 | **discard — flat/marginal negative** |
+
+Not a real win — essentially flat, tiny regression. Karpathy's validated VE-WD finding doesn't transfer here either. **Reverted to `VE_WD=0.0`.**
+
+**Pattern worth naming**: this closes out three attempted transfers from Karpathy's log or the original decomposition hypothesis in a row that didn't hold (RoPE base, windowing pattern, VE weight decay) — all real, clean negative/flat results, not noise. Plausible explanation: our specific combination of kept Solutions (VE + local conv + re-tuned packing bin + independently-tuned schedule) has diverged enough from Karpathy's original setup that his *fine-grained* tuning values stop transferring reliably, even though the *big, structural* wins (LR cooldown shape, init scale, VE's presence, local conv) did transfer cleanly. The remaining small-tweak territory looks more idiosyncratic to this specific configuration than the major architectural/schedule decisions were.
+
+
+### Sub-step 9c — Selective per-token gating
+
+Pivoted here instead of depth/width sweep: depth/width is inherently a throughput question (bigger model = lower bpb at fixed steps almost by default, not informative; the actually-useful fixed-wall-clock version doesn't transfer L4→Trn2 anyway — already flagged "GPU dry-run only" in `experiment-rollout-plan.md`'s Solution 11 from early in the session). Selective gating is a fixed-architecture-shape quality question instead, same category as the Solutions that actually transferred (VE, local conv) — no throughput confound.
+
+`resid_lambda`/`x0_lambda` (static per-layer scalars) become data-dependent: a small per-token gate (`Linear(32, 2, bias=False)`, zero-init) modulates them around their static values — `resid_lambda * (1 + g[...,0])`, `x0_lambda * (1 + g[...,1])`. Zero-init means the gate starts as an exact no-op (matches the `local_conv`/`ve_gate` convention). Negligible param cost (+640 params total, rounds to the same 85.9M).
+
+Two-stage verification: no-op smoke (`2.152442` vs matching baseline smoke `2.152395`, within noise) confirmed the refactor is a true no-op when off. Real-feature smoke: no crash, causality exact, params unchanged at this precision.
+
+Status: running real 400-step comparison.
+
+
+| Config | public_val_bpb | Δ vs L4 400-step baseline | status |
+|---|---|---|---|
+| `USE_SELECTIVE_GATE=False` (baseline) | 1.263103 | — | — |
+| `USE_SELECTIVE_GATE=True` | 1.272345 | +0.00924 | **discard — real regression** |
+
+Real regression, well above noise. **Reverted to `USE_SELECTIVE_GATE=False`.**
+
+**This closes the "further exploration" round with four clean negative results in a row** (RoPE base alone, windowing alone, VE weight decay, selective gating) — none of them noise, all properly smoke-tested and verified. That consistency is itself informative: the current locked config (Solutions 1-7, 9a, 10, `PACK_FACTOR=2`) appears to sit near a real local optimum for this architecture/dataset/step-count regime, not just avoiding bad luck on individual tries. Further small architectural tweaks on top of it look like diminishing-to-negative returns. Custom packer w/ remainder-requeue remains the one untried candidate, still deprioritized on the same evidence pattern as before (targets a problem — crop-loss — that's smaller now than assumed, and the leakage-side sibling idea already failed twice).
+

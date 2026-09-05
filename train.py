@@ -70,6 +70,7 @@ UNEMBEDDING_LR = 0.006
 MATRIX_LR = 0.025
 SCALAR_LR = 0.20
 WEIGHT_DECAY = 0.10
+VE_WD = 0.0  # weight decay for the value_embeds AdamW group (separate from the shared embedding_params group)
 WARMUP_STEPS = 0
 GRAD_CLIP = 0.0
 WARMDOWN_RATIO = 0.75   # fraction of max_train_seconds spent on LR cooldown (0 = old flat-after-warmup)
@@ -87,14 +88,16 @@ def has_ve(layer_idx: int, n_layer: int) -> bool:
     return layer_idx % 2 == (n_layer - 1) % 2
 
 
-WINDOW_PATTERN = "SSSSL"  # per-layer attention window pattern, cycled to n_layer length; 'L' = full context, 'S' = short window
-SHORT_WINDOW_FRAC = 0.125  # short window size as a fraction of SEQ_LEN (only matters for 'S' layers)
+WINDOW_PATTERN = "L"    # per-layer attention window pattern, cycled to n_layer length; 'L' = full context, 'S' = short window
+SHORT_WINDOW_FRAC = 0.5  # short window size as a fraction of SEQ_LEN (only matters for 'S' layers)
 ROPE_BASE = 100000       # rotary embedding base frequency
 USE_LOCAL_CONV = True    # cheap depthwise causal conv1d before attention in each block, RWKV/Mamba/Hyena-style
 LOCAL_CONV_KERNEL = 4
 USE_GATED_MLP = False    # SwiGLU-style: c_fc(x) * silu(c_gate(x)) instead of relu(c_fc(x))**2; adds one weight matrix
 USE_WEIGHT_CACHE = True  # cache each Linear's dtype-cast weight once per optimizer step instead of every forward call
 USE_DOC_MASK = False  # block attention across document boundaries within a packed row (BOS-derived, data-dependent)
+USE_SELECTIVE_GATE = False  # make resid_lambda/x0_lambda data-dependent (Mamba-style selectivity) instead of static scalars
+SELECTIVE_GATE_CHANNELS = 32
 
 
 def doc_boundary_mask(idx: torch.Tensor) -> torch.Tensor:
@@ -397,9 +400,16 @@ class Block(nn.Module):
         # x0 skip: mixes initial embedding into each layer's input (stabilizes deep nets)
         self.x0_lambda = nn.Parameter(torch.zeros(1))
         self.local_conv = CausalConv(config.n_embd, LOCAL_CONV_KERNEL) if USE_LOCAL_CONV else None
+        self.scalar_gate = Linear(SELECTIVE_GATE_CHANNELS, 2, bias=False) if USE_SELECTIVE_GATE else None
 
     def forward(self, x: torch.Tensor, x0: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, attn_mask: torch.Tensor) -> torch.Tensor:
-        x = self.resid_lambda * x + self.x0_lambda * x0
+        if self.scalar_gate is not None:
+            g = self.scalar_gate(x[..., :SELECTIVE_GATE_CHANNELS])
+            resid_lambda = self.resid_lambda * (1.0 + g[..., 0:1])
+            x0_lambda = self.x0_lambda * (1.0 + g[..., 1:2])
+            x = resid_lambda * x + x0_lambda * x0
+        else:
+            x = self.resid_lambda * x + self.x0_lambda * x0
         if self.local_conv is not None:
             x = x + self.local_conv(norm(x))
         x = x + self.attn(norm(x), ve, cos, sin, attn_mask)
@@ -448,6 +458,8 @@ class GPT(nn.Module):
             block.x0_lambda.fill_(0.05)
             if block.attn.ve_gate is not None:
                 torch.nn.init.zeros_(block.attn.ve_gate.weight)
+            if block.scalar_gate is not None:
+                torch.nn.init.zeros_(block.scalar_gate.weight)
         for ve in self.value_embeds.values():
             torch.nn.init.uniform_(ve.weight, -s, s)
         cos, sin = self._precompute_rotary_embeddings(self.config.sequence_len, self.config.n_embd // self.config.n_head)
@@ -495,7 +507,7 @@ class GPT(nn.Module):
             dict(kind="adamw", params=scalar_params, lr=SCALAR_LR, betas=(0.9, 0.95), eps=1e-10, weight_decay=0.0),
         ]
         if value_embed_params:
-            param_groups.append(dict(kind="adamw", params=value_embed_params, lr=EMBEDDING_LR * dmodel_lr_scale, betas=(0.8, 0.995), eps=1e-10, weight_decay=0.0))
+            param_groups.append(dict(kind="adamw", params=value_embed_params, lr=EMBEDDING_LR * dmodel_lr_scale, betas=(0.8, 0.995), eps=1e-10, weight_decay=VE_WD))
         for shape in sorted({p.shape for p in matrix_params}):
             params = [p for p in matrix_params if p.shape == shape]
             param_groups.append(dict(kind="muon", params=params, lr=MATRIX_LR, momentum=0.95, beta2=0.90, ns_steps=5, weight_decay=WEIGHT_DECAY))
@@ -670,14 +682,15 @@ ARCH_TOGGLE_NAMES = [
     "PACK_FACTOR", "INIT_SCALE", "USE_VE", "WINDOW_PATTERN", "SHORT_WINDOW_FRAC",
     "ROPE_BASE", "USE_LOCAL_CONV", "LOCAL_CONV_KERNEL", "USE_GATED_MLP",
     "USE_WEIGHT_CACHE", "WARMDOWN_RATIO", "FINAL_LR_FRAC", "WARMUP_STEPS",
-    "WD_DECAY_TO_ZERO", "MUON_MOMENTUM_WARMUP_STEPS", "USE_DOC_MASK",
+    "WD_DECAY_TO_ZERO", "MUON_MOMENTUM_WARMUP_STEPS", "USE_DOC_MASK", "VE_WD",
+    "USE_SELECTIVE_GATE", "SELECTIVE_GATE_CHANNELS",
 ]
 # Toggles whose mismatch corrupts the state_dict shape (load_state_dict(strict=True) will
 # error loudly). Everything else in ARCH_TOGGLE_NAMES lives in non-persistent buffers or
 # plain Python constants excluded from state_dict() entirely -- a mismatch there loads
 # silently with no crash and quietly wrong behavior, which is exactly why we snapshot and
 # check all of them, not just the shape-critical ones.
-SHAPE_CRITICAL_TOGGLES = {"USE_VE", "USE_LOCAL_CONV", "USE_GATED_MLP"}
+SHAPE_CRITICAL_TOGGLES = {"USE_VE", "USE_LOCAL_CONV", "USE_GATED_MLP", "USE_SELECTIVE_GATE"}
 
 
 def current_toggles() -> dict:
