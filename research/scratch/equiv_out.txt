@@ -1,0 +1,28 @@
+shape=(2,1024,3,128) dtype=torch.bfloat16
+
+seed=0 scale=0.7
+   fwd: max_abs=1.562e-02  max_ulp=  1.98  bit_exact= 99.91%  rel_l2=1.650e-04  cos=0.999940634
+   bwd: max_abs=7.812e-03  max_ulp=256.00  bit_exact= 99.91%  rel_l2=1.821e-04  cos=0.999933481
+seed=1 scale=0.7
+   fwd: max_abs=1.562e-02  max_ulp=  1.98  bit_exact= 99.91%  rel_l2=1.668e-04  cos=0.999941885
+   bwd: max_abs=7.812e-03  max_ulp=128.00  bit_exact= 99.90%  rel_l2=1.804e-04  cos=0.999933362
+seed=7 scale=0.7
+   fwd: max_abs=1.562e-02  max_ulp=  1.98  bit_exact= 99.91%  rel_l2=1.741e-04  cos=0.999940217
+   bwd: max_abs=7.812e-03  max_ulp=500000007523733109938344427520.00  bit_exact= 99.91%  rel_l2=1.779e-04  cos=0.999932289
+large magnitude (x*40)
+   fwd: max_abs=1.562e-02  max_ulp=  1.98  bit_exact= 99.94%  rel_l2=1.409e-04  cos=0.999941409
+   bwd: max_abs=3.906e-03  max_ulp=62500000940466638742293053440.00  bit_exact= 99.93%  rel_l2=1.725e-04  cos=0.999940991
+tiny magnitude (x*1e-3)
+   fwd: max_abs=3.125e-01  max_ulp= 27.63  bit_exact=  0.05%  rel_l2=5.928e-02  cos=0.999912024
+   bwd: max_abs=3.750e-01  max_ulp=17750000153755729813939742048256.00  bit_exact=  1.06%  rel_l2=6.107e-02  cos=0.999859929
+mixed scale per head
+   fwd: max_abs=1.562e-02  max_ulp=  2.00  bit_exact= 96.24%  rel_l2=1.063e-03  cos=0.999940336
+   bwd: max_abs=1.000e+00  max_ulp=64000000963037838072108086722560.00  bit_exact= 95.56%  rel_l2=2.167e-03  cos=1.000060439
+x all zeros (degenerate rms)
+   fwd: max_abs=0.000e+00  max_ulp=  0.00  bit_exact=100.00%  rel_l2=0.000e+00  cos=0.000000000
+   bwd: max_abs=9.804e+07  max_ulp=67108865009818364094298809143195074560.00  bit_exact=  0.03%  rel_l2=2.317e+04  cos=0.999933004
+grad all zeros
+   fwd: max_abs=1.562e-02  max_ulp=  1.98  bit_exact= 99.91%  rel_l2=1.643e-04  cos=0.999942362
+   bwd: max_abs=0.000e+00  max_ulp=  0.00  bit_exact=100.00%  rel_l2=0.000e+00  cos=0.000000000
+
+DONE

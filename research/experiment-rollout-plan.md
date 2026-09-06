@@ -136,56 +136,86 @@ is revived. Verify numerical equivalence against the mask path before trusting i
 `causality_check` alone won't catch a subtly wrong mask; compare val_bpb at matched
 steps too.
 
-## Solution 11 — Batch size + depth/width resweep — both axes done, real interior optima found
+## Solution 11 — Batch size + depth/width resweep — both axes resolved (batch axis survived a data-integrity bug)
 
 Cross-ref: #7 / #8. Full detail, every number: `trn2-experiment-results.md`.
 
 - **Change**: `DEPTH` (`train.py`), `ASPECT_RATIO`, `DEVICE_BATCH_SIZE`, `TOTAL_BATCH_SIZE`.
-- **Depth sweep — done.** Fixed wall-clock (`--max-train-seconds 900`, half budget), real submission shape (`--nproc-per-node 8 --lnc 1`), `ASPECT_RATIO=64` held fixed, `DEPTH ∈ {4,6,8,10,12}`. Result: a clean U-shape, **`DEPTH=6` (n_embd=384, 26.4M params) is a real interior optimum** — `public_val_bpb` 1.297186, vs. 1.330846 (depth4, more steps but capacity-limited), 1.342754 (depth8), 1.368452 (depth10, prior baseline), 1.365736 (depth12). Every gap here is 100x+ the established GPU-proxy noise floor — this is real, not noise. **`DEPTH=6` is now locked in `train.py`**, down from the GPU-tuned `DEPTH=10` — the single largest quality finding of the Trn2 phase, and something the GPU proxy could never have found (GPU throughput doesn't transfer, so the "how many real steps fit in the budget" side of the tradeoff was untestable until now).
-- **Full-1800s confirmation at `DEPTH=6`, still old batch — done.** `809 steps, public_val_bpb=1.220658` at the real full budget — clear improvement over every `DEPTH=10` full-budget number (best was `1.242326`/478 steps). Also surfaced a refinement to the throughput-cliff model: on a long enough run the throttle deepens in *stages* (3 distinguishable plateaus), not one clean drop.
-- **Batch-size sweep at fixed `DEPTH=6` — done.** Same 900s protocol, `TOTAL_BATCH_SIZE ∈ {32768, 65536, 131072, 262144, 524288}`. Another clean U-shape: **`262144` is a real interior optimum** — `1.288261`, vs. `1.322478` (32768), `1.297186` (65536, prior default), `1.290674` (131072, close second), `1.403897` (524288, sharp reversal — same "too few steps for the extra capacity" mechanism as the depth axis, arriving abruptly rather than gradually). **`TOTAL_BATCH_SIZE=262144` now locked in `train.py`.**
-- **Known confound, disclosed**: both sweeps ran sequentially, back-to-back, so later runs started from a warmer chip (see the throughput-cliff findings above) — a real limitation on how cleanly this isolates architecture/batch effect from hardware state. Judged not to undermine either winner: the depth U-shape spans a wide, clear margin, and the batch axis's sharp 524288 reversal is far larger than the confound could plausibly produce — though the specific `131072` vs. `262144` gap (`0.0024`) is weaker evidence, given those two runs' near-identical step counts despite a 2x batch difference (a real sign of confound noise at that specific comparison).
-- **Combined config, both axes locked**: `DEPTH=6, TOTAL_BATCH_SIZE=262144` — a real, large improvement over the GPU-tuned `DEPTH=10, TOTAL_BATCH_SIZE=65536` baseline on both axes independently.
-- **Not yet done**: a fresh full-1800s confirmation at the *combined* final config (the existing full-budget confirmation used `DEPTH=6` with the *old* `TOTAL_BATCH_SIZE=65536`, not the now-locked `262144`); an independent width-only resweep at fixed `DEPTH=6` (this sweep varied width proportionally with depth via fixed `ASPECT_RATIO`, not independently); re-validating the Solutions 1-10/13c/13d toggle stack at the final combined shape (checked once against `DEPTH=6` with the old batch size, not since).
-- **Keep/discard gate**: the winning combination is whichever reaches the lowest val_bpb at the real 30-minute ceiling, not the most steps or the biggest model in isolation — satisfied by `DEPTH=6, TOTAL_BATCH_SIZE=262144` per the above.
+- **Depth sweep — done, solid.** Fixed wall-clock (`--max-train-seconds 900`, half budget), real submission shape (`--nproc-per-node 8 --lnc 1`), `ASPECT_RATIO=64` held fixed, `DEPTH ∈ {4,6,8,10,12}`. Result: a clean U-shape, **`DEPTH=6` (n_embd=384, 26.4M params) is a real interior optimum** — `public_val_bpb` 1.297186, vs. 1.330846 (depth4), 1.342754 (depth8), 1.368452 (depth10, prior baseline), 1.365736 (depth12). Every gap here is 100x+ the established GPU-proxy noise floor. **`DEPTH=6` locked in `train.py`** — the single largest quality finding of the Trn2 phase, something the GPU proxy could never have found. Independently re-verified clean against the data-integrity bug below (each run's own `grad_accum_steps × micro_tokens` matches its label).
+- **Batch-size sweep — a real data-integrity bug was found and corrected, converged to a consistent final answer.** Original sweep (`TOTAL_BATCH_SIZE ∈ {32768, 65536, 131072, 262144, 524288}`) reported `262144` winning. **Found later, while investigating an unrelated throughput anomaly in a Solution 12 kernel smoke test**: the `262144`-labeled run had actually executed with `grad_accum_steps=8` — i.e. `TOTAL_BATCH_SIZE=131072`, a duplicate of the row above it, not a real measurement. Verified via each run's own printed config (the only reliable method — git-history reconstruction doesn't work, since every sweep point deliberately ran from an uncommitted edit). The other four points re-verified genuinely correct. **Corrected re-run of the real `262144`: 172 steps, `1.310506` — worse than `131072` (`1.290674`).** The real 900s-sweep U-shape minimum is `131072`.
+- **Full-1800s head-to-head — decisive, and agrees with the corrected sweep.** `131072`: **560 steps, `1.199914`**. Genuine `262144`: **362 steps, `1.200143`**. Gap `0.000229` — a statistical tie at the established noise floor, not a real quality difference. `131072` completes 55% more steps for that tied result. **`TOTAL_BATCH_SIZE=131072` is the final locked value** — chosen for the step-count margin once quality is a wash, and reassuring that the 900s-sweep correction and the full-budget head-to-head landed on the same answer independently.
+- **Toggle-stack re-validation — corrected, conclusion unchanged.** Was compared against the mislabeled `262144` point; redone against the genuine one (`172 steps, 1.310506`). Full stack still beats raw baseline (`1.310506` vs. `1.321078`), margin corrected from a claimed `0.033` down to the real `0.0106`. Run at genuine `262144`, not the final `131072` — not considered urgent to redo, since the qualitative conclusion now holds at three distinct shapes this phase and `131072` sits between two tested points, not off in new territory.
+- **Not yet done**: an independent width-only resweep at fixed `DEPTH=6`. (Solution 12's kernel A/B has since been re-run at the final locked `TOTAL_BATCH_SIZE=131072` — see Solution 12 below — and kept.)
+- **Keep/discard gate**: the winning combination is whichever reaches the lowest val_bpb at the real 30-minute ceiling — settled here by the full-budget head-to-head, with the 900s sweep as a (now-verified-consistent) proxy, not a substitute.
 
-## Solution 12 — NKI kernel work, profile-gated, elementwise-first
+## Solution 12 — NKI kernel work — Step 2 (rope+QK-norm fusion) done, kept, defaulted ON
 
 Cross-ref: #10 (the kernel-writing part). Bucket **C**. Full evidence trail, exact
 `git show` recovery commands, and what was checked and found empty:
 `trn2-optimization-research.md`. Sequenced *after* Solution 13 — profile against the
 fastest correct config, not a slower one.
 
-**Step 1 — profile before writing anything.** Run `neuron-profile` on the locked config
-(post-Solution-13). Summary tab: `mbu_estimated_percent`/`mfu_estimated_percent`,
-per-engine `*_active_time_percent`, `dma_active_time_percent` — engine-active ≫
-DMA-active means compute-bound (fusion helps); DMA-active dominant means
-data-movement-bound (fusion helps *more*, different reason). For idle gaps, enable "Show
-unsampled data" and read the semaphore wait condition on the first instruction after the
-gap: `S[n] (Scalar)` = cross-engine stall, `q*` = waiting on `nl.load`,
-`qSyncSpillReload0` = SBUF spill traffic. Run `neuron-top` alongside to confirm all 8
-cores are actually busy. Red flag: `spill_save_bytes`/`spill_reload_bytes` above ~30% of
-`sbuf_read_bytes`/`sbuf_write_bytes` means the compiler is round-tripping through HBM
-between ops — exactly what a fused kernel fixes.
+**Result, up front**: the fused rope+QK-norm kernel below (`--nki-rope-norm`, now
+**default ON**) delivers a real, measured **~15-18% per-step speedup** at the final
+locked config (`DEPTH=6, TOTAL_BATCH_SIZE=131072`, world_size=8), verified to 1-bf16-ULP
+numerical equivalence against eager (forward and backward), causality exact. Full-1800s
+confirmation with the kernel ON at this config is done: **581 steps, `public_val_bpb =
+1.197595`** — vs. the old kernel-OFF number (560 steps, `1.199914`), both more steps and
+a lower bpb. **This is the new final headline number for the Trn2 phase.** Full detail,
+every number and the two real bugs caught while building it: `trn2-experiment-results.md`.
 
-**Step 2 — fused RMSNorm** (`norm()`, ~42 calls/forward — highest priority). Do not
-hand-roll from scratch: `nki-samples` deleted its reference library from HEAD (commits
-`8370e11`/`c4b806e`) but it's recoverable via `git show <commit>^:<path>`.
-`git show 8370e11^:contributed/neuron-team-kernels/rmsnorm_quant.py` is the production
-pattern — `nisa.activation_reduce(op=nl.square, ...)` fuses square+reduce into one
-instruction, `nisa.activation(op=nl.rsqrt)`, gamma broadcast via `nisa.nc_matmul`. Also
-try the builtin `nl.rms_norm(x, w, axis=-1, n=D, epsilon=...)` first — may make a
-hand-written kernel unnecessary. All recovered references are forward-only, so **the
-backward pass is ours to write** — simplified since our `norm()` is parameter-free (only
-`dx`, no `dgamma`). Template for the fwd/bwd + `torch.autograd.Function` structure: the
-shipped `_relu_sq_fwd`/`_relu_sq_bwd`/`_ReluSquaredNKI` (`train.py:169-222`).
+**Step 1 — profile before writing anything. Done, real data, changed the plan.**
+`neuron-explorer inspect` only gave coarse `SystemProfile*` event counts (no per-engine
+breakdown); a real `Instruction`/`DmaPacket`-level capture (via the
+`neuron-nki-profile-analysis-agent`, `torch_neuronx.profiling.NeuronConfig` externally
+driven, `train.py` never touched) found the real bottleneck is **launch/dispatch
+serialization, not any single engine** — 72.2% of the profiled window is the gap to
+`perfect_pipeline`; DMA/TensorE/GpSimd/Vector/Scalar are all within a 2.4x band of each
+other (28% down to 12%). Root cause: the native TorchNeuron eager backend compiles one
+NEFF per aten op, zero cross-op fusion — 689 NEFF launches in one micro fwd+bwd, only
+61.9% device busy. Full detail, every number: `trn2-experiment-results.md`.
 
-**Step 3 — fused rotary embedding.** `git show 8370e11^:contributed/neuron-team-kernels/RoPE.py`
-— four `nisa.tensor_tensor` ops for the rotate-half form. Layout warning: expects
-`[d_head, S]` (head-dim on partitions, `d_head ≤ 128` — our `HEAD_DIM=128` fits), which
-is transposed vs. our `[B,S,H,D]`; `transpose_and_RoPE(...)` in the same history's
-`llama3_transformer.py:44` shows the fused transpose+RoPE variant. Interacts with
-Solution 13c: if QKV is fused, this kernel has a cleaner single input to work from.
+**Step 2 — fused rope + QK-norm, forward and backward. Done, kept, defaulted ON.** The
+original call-frequency reasoning (RMSNorm ~42 calls/forward, highest priority) was wrong — it didn't account for the fact that `F.rms_norm` already lowers to
+a *single* fused NEFF per call, while `apply_rotary_emb` (`train.py:372`) has **no fused
+lowering at all** (15 separate NEFF launches per call: slice+mul+add+cat+neg). Rope
+costs 2.1x more than norm() in the real profile (12.63ms vs. 6.00ms of a 91.445ms
+window). Fusing exactly `q = norm(apply_rotary_emb(q, cos, sin))` /
+`k = norm(apply_rotary_emb(k, cos, sin))` (`train.py:411-412`) collapses 204 of 689
+launches, saving ~16% of the profiled window — **but honestly size this as ~8% of real
+step time**, since the profiled device window only covers ~50% of the real 2.90s/step
+(the rest is host-side dispatch/dataloader, out of scope for this pass). Also cuts fp32
+elementwise HBM traffic (`q`/`k` currently emerge fp32 post-`norm()` even though the
+model is bf16-compute) — a bf16 kernel roughly halves that further.
+
+References for the two halves, both still forward-only (backward is ours to write, same
+as before — simplified for the norm half since it's parameter-free, only `dx`):
+- RoPE: `git show 8370e11^:contributed/neuron-team-kernels/RoPE.py` — four
+  `nisa.tensor_tensor` ops for the rotate-half form. Layout warning: expects `[d_head, S]`
+  (head-dim on partitions, `d_head ≤ 128` — our `HEAD_DIM=128` fits), transposed vs. our
+  `[B,S,H,D]`; `transpose_and_RoPE(...)` in the same history's `llama3_transformer.py:44`
+  shows the fused transpose+RoPE variant — the natural place to also fold in the norm.
+- RMSNorm half: `git show 8370e11^:contributed/neuron-team-kernels/rmsnorm_quant.py` —
+  `nisa.activation_reduce(op=nl.square, ...)` fuses square+reduce into one instruction,
+  `nisa.activation(op=nl.rsqrt)`. Also try the builtin `nl.rms_norm(x, w, axis=-1, n=D,
+  epsilon=...)` first.
+- Template for the fwd/bwd + `torch.autograd.Function` structure: the shipped
+  `_relu_sq_fwd`/`_relu_sq_bwd`/`_ReluSquaredNKI` (`train.py:281-330`).
+- Interacts with Solution 13c: if QKV is fused, this kernel has a cleaner single input.
+
+**Step 2b — RMSNorm alone: demoted, not a separate kernel target.** Already lowers to
+one fused NEFF via `F.rms_norm` — no launch-count win from fusing it in isolation.
+Only relevant as the norm half of the combined rope+QK-norm kernel above.
+
+**Confirmed NOT targets, from the real profile**: `aten::linear`/`linear_backward` (the
+real compute, TensorE already hits 80.4% of peak FLOPS when active — nothing to fix via
+kernel work) and attention itself (`_scaled_dot_product_fused_attention_overrideable`,
+already fused, only ~12% of its FLOPs are transposes) — consistent with Solution 8's
+earlier finding that a custom windowed-attention kernel wasn't motivated either.
+
+**Second-priority candidate if rope+QK-norm doesn't fully pan out**:
+`aten::embedding_dense_backward` — 4 executions, 5.86ms (6.41% of the profiled window),
+GpSimd-dominated.
 
 **Step 4 — logit softcap fused into cross-entropy.** The `nl.multiply`+`nl.add`+`nl.exp`
 → single `nisa.activation(nl.exp, data, bias, scale)` combining trick applies directly

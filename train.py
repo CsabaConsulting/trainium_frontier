@@ -76,11 +76,11 @@ from prepare import (
 
 SEQ_LEN = 1024
 DEPTH = 6  # Solution 11 (Trn2 real-hardware depth/width resweep): real interior optimum at fixed 900s wall-clock, real submission shape -- 6 beat 4/8/10/12 (U-shape, see trn2-experiment-results.md)
-ASPECT_RATIO = 64
+ASPECT_RATIO = 32
 HEAD_DIM = 128
 
 DEVICE_BATCH_SIZE = 1
-TOTAL_BATCH_SIZE = 262144  # Solution 11 (Trn2 real-hardware batch resweep, fixed DEPTH=6): real interior optimum at fixed 900s wall-clock -- 262144 beat 32768/65536/131072/524288 (U-shape, see trn2-experiment-results.md)
+TOTAL_BATCH_SIZE = 131072  # Solution 11 (Trn2 real-hardware batch resweep, fixed DEPTH=6): corrected after a data-integrity bug (an earlier "262144" sweep point was mislabeled, actually 131072). Real full-1800s head-to-head: 131072 = 560 steps/bpb 1.199914 vs genuine 262144 = 362 steps/bpb 1.200143 -- a statistical tie at the noise floor, 131072 locked for the extra step-count margin. See trn2-experiment-results.md
 NUM_STEPS = 1000
 # The official runner charges wall time only after the first five completed
 # optimizer steps (the startup/compilation allowance, capped). The baseline
@@ -271,6 +271,10 @@ def norm(x: torch.Tensor) -> torch.Tensor:
 # derivative in `_relu_sq_bwd`), or fuse a different elementwise op.
 
 _NKI_PARTITION = 128  # NeuronCore SBUF partition limit (== nki.language.tile_size.pmax)
+# torch's F.rms_norm default eps: measured empirically to be float32 eps (the
+# accumulation dtype's epsilon), NOT double eps -- see research notes. Getting
+# this wrong is invisible for O(1) inputs and a 6% error for small ones.
+_RMS_EPS = 1.1920928955078125e-07
 
 try:
     import nki
@@ -329,6 +333,193 @@ try:
             flat_g = grad_out.reshape(-1, x.shape[-1]).contiguous()
             return _relu_sq_bwd(flat_x, flat_g).reshape(x.shape)
 
+    # -------------------------------------------------------------------------
+    # Fused rotary-embedding + QK-norm kernel (forward AND backward).
+    #
+    # Replaces `norm(apply_rotary_emb(x, cos, sin))`, which the eager backend
+    # lowers to ~30 separate one-op NEFFs per call (2 slices, 4 muls, 1 neg,
+    # 2 adds, 1 cat, 1 rms_norm forward, plus the whole backward chain). The
+    # device profile (research/trn2-experiment-results.md, Solution 12) showed
+    # rope at 12.63 ms and norm at 6.00 ms of a 91.4 ms window, essentially all
+    # of it launch/dispatch serialization rather than real compute. One NEFF for
+    # the whole fused chain removes that dispatch cost.
+    #
+    # Math (x: [.., D], cos/sin: [.., D/2], D even, no learnable gamma):
+    #   z1 = x1*cos + x2*sin ; z2 = x2*cos - x1*sin       (rope, an orthogonal
+    #                                                      rotation per (x1,x2))
+    #   r  = rsqrt(mean(z^2, -1) + eps) ; out = z * r      (parameter-free RMS)
+    # backward (derived here; no forward+backward reference exists upstream):
+    #   dz = r * (g - (<g,z> * r^2 / D) * z)
+    #   dx1 = dz1*cos - dz2*sin ; dx2 = dz1*sin + dz2*cos  (rope^T == rope^-1)
+    #
+    # Rounding is deliberately matched to the eager chain: the rope products and
+    # sums are rounded to x.dtype (bf16) exactly where the eager elementwise ops
+    # would round, and only the RMS statistic / scaling run in fp32 (which is
+    # what F.rms_norm does internally). Measured on-device against eager:
+    # 99.9% of elements bit-identical, worst case 1 bf16 ULP (see
+    # research/scratch/rope_norm_equiv.py).
+
+    @nki.jit
+    def _rope_norm_fwd(x, cos, sin):
+        """Fused rms_norm(rope(x)) for x [BT, H, D], cos/sin [T, D//2]."""
+        BT, H, D = x.shape
+        T = cos.shape[0]
+        Dh = D // 2
+        dt = x.dtype
+        P = _NKI_PARTITION
+        # [P,H,1] -> [P,H,D] broadcast: stride 0 over the last axis.
+        BC = [[H, P], [1, H], [0, D]]
+        CS = [[Dh, P], [0, H], [1, Dh]]  # [T,Dh] -> [P,H,Dh], broadcast over heads
+        out = nl.ndarray((BT, H, D), dtype=dt, buffer=nl.shared_hbm)
+
+        for i in nl.affine_range(BT // P):
+            r0 = i * P
+            t0 = (i * P) % T  # rows are (b,t)-major, T % P == 0, so t0 is exact
+
+            xb = nl.ndarray((P, H, D), dtype=dt, buffer=nl.sbuf)
+            nisa.dma_copy(dst=xb, src=x[r0:r0 + P])
+            cb = nl.ndarray((P, H, Dh), dtype=dt, buffer=nl.sbuf)
+            nisa.dma_copy(dst=cb, src=cos.ap(pattern=CS, offset=t0 * Dh))
+            sb = nl.ndarray((P, H, Dh), dtype=dt, buffer=nl.sbuf)
+            nisa.dma_copy(dst=sb, src=sin.ap(pattern=CS, offset=t0 * Dh))
+
+            x1, x2 = xb[0:P, 0:H, 0:Dh], xb[0:P, 0:H, Dh:D]
+            zb = nl.ndarray((P, H, D), dtype=dt, buffer=nl.sbuf)
+            tb = nl.ndarray((P, H, Dh), dtype=dt, buffer=nl.sbuf)
+            z1, z2 = zb[0:P, 0:H, 0:Dh], zb[0:P, 0:H, Dh:D]
+
+            nisa.tensor_tensor(dst=z1, data1=x1, data2=cb, op=nl.multiply)
+            nisa.tensor_tensor(dst=tb, data1=x2, data2=sb, op=nl.multiply)
+            nisa.tensor_tensor(dst=z1, data1=z1, data2=tb, op=nl.add)
+            nisa.tensor_tensor(dst=z2, data1=x2, data2=cb, op=nl.multiply)
+            nisa.tensor_tensor(dst=tb, data1=x1, data2=sb, op=nl.multiply)
+            nisa.tensor_tensor(dst=z2, data1=z2, data2=tb, op=nl.subtract)
+
+            zf = nl.ndarray((P, H, D), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.tensor_copy(dst=zf, src=zb)
+            sq = nl.ndarray((P, H, D), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.tensor_tensor(dst=sq, data1=zf, data2=zf, op=nl.multiply)
+            ss = nl.ndarray((P, H, 1), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.tensor_reduce(dst=ss, op=nl.add, data=sq, axis=(2,))
+            ms = nl.ndarray((P, H, 1), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.tensor_scalar(dst=ms, data=ss, op0=nl.multiply, operand0=1.0 / D,
+                               op1=nl.add, operand1=_RMS_EPS)
+            # sqrt(1/m) rather than activation(rsqrt): measured 5.8e-7 vs 4.3e-5
+            # relative error on this SDK (nki_probe3.py), i.e. ~75x tighter and
+            # well under a bf16 ULP, which minimises rounding-tie flips vs eager.
+            r2 = nl.ndarray((P, H, 1), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.reciprocal(dst=r2, data=ms)
+            rr = nl.ndarray((P, H, 1), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.activation(dst=rr, op=nl.sqrt, data=r2)
+
+            ob = nl.ndarray((P, H, D), dtype=dt, buffer=nl.sbuf)
+            nisa.tensor_tensor(dst=ob, data1=zf, data2=rr.ap(pattern=BC), op=nl.multiply)
+            nisa.dma_copy(dst=out[r0:r0 + P], src=ob)
+
+        return out
+
+    @nki.jit
+    def _rope_norm_bwd(x, g, cos, sin):
+        """Gradient of _rope_norm_fwd w.r.t. x (cos/sin are constants)."""
+        BT, H, D = x.shape
+        T = cos.shape[0]
+        Dh = D // 2
+        dt = x.dtype
+        P = _NKI_PARTITION
+        BC = [[H, P], [1, H], [0, D]]
+        CS = [[Dh, P], [0, H], [1, Dh]]
+        dx = nl.ndarray((BT, H, D), dtype=dt, buffer=nl.shared_hbm)
+
+        for i in nl.affine_range(BT // P):
+            r0 = i * P
+            t0 = (i * P) % T
+
+            xb = nl.ndarray((P, H, D), dtype=dt, buffer=nl.sbuf)
+            nisa.dma_copy(dst=xb, src=x[r0:r0 + P])
+            gf = nl.ndarray((P, H, D), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.dma_copy(dst=gf, src=g[r0:r0 + P])
+            cb = nl.ndarray((P, H, Dh), dtype=dt, buffer=nl.sbuf)
+            nisa.dma_copy(dst=cb, src=cos.ap(pattern=CS, offset=t0 * Dh))
+            sb = nl.ndarray((P, H, Dh), dtype=dt, buffer=nl.sbuf)
+            nisa.dma_copy(dst=sb, src=sin.ap(pattern=CS, offset=t0 * Dh))
+
+            # recompute z = rope(x) (cheaper than saving it for backward)
+            x1, x2 = xb[0:P, 0:H, 0:Dh], xb[0:P, 0:H, Dh:D]
+            zb = nl.ndarray((P, H, D), dtype=dt, buffer=nl.sbuf)
+            tb = nl.ndarray((P, H, Dh), dtype=dt, buffer=nl.sbuf)
+            z1, z2 = zb[0:P, 0:H, 0:Dh], zb[0:P, 0:H, Dh:D]
+            nisa.tensor_tensor(dst=z1, data1=x1, data2=cb, op=nl.multiply)
+            nisa.tensor_tensor(dst=tb, data1=x2, data2=sb, op=nl.multiply)
+            nisa.tensor_tensor(dst=z1, data1=z1, data2=tb, op=nl.add)
+            nisa.tensor_tensor(dst=z2, data1=x2, data2=cb, op=nl.multiply)
+            nisa.tensor_tensor(dst=tb, data1=x1, data2=sb, op=nl.multiply)
+            nisa.tensor_tensor(dst=z2, data1=z2, data2=tb, op=nl.subtract)
+
+            zf = nl.ndarray((P, H, D), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.tensor_copy(dst=zf, src=zb)
+            acc = nl.ndarray((P, H, D), dtype=nl.float32, buffer=nl.sbuf)
+
+            nisa.tensor_tensor(dst=acc, data1=zf, data2=zf, op=nl.multiply)
+            ss = nl.ndarray((P, H, 1), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.tensor_reduce(dst=ss, op=nl.add, data=acc, axis=(2,))
+            ms = nl.ndarray((P, H, 1), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.tensor_scalar(dst=ms, data=ss, op0=nl.multiply, operand0=1.0 / D,
+                               op1=nl.add, operand1=_RMS_EPS)
+            r2 = nl.ndarray((P, H, 1), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.reciprocal(dst=r2, data=ms)              # r^2 == 1/(mean+eps)
+            rr = nl.ndarray((P, H, 1), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.activation(dst=rr, op=nl.sqrt, data=r2)  # r, see fwd for why not rsqrt
+
+            # q = <g,z> * r^2 / D
+            nisa.tensor_tensor(dst=acc, data1=gf, data2=zf, op=nl.multiply)
+            pp = nl.ndarray((P, H, 1), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.tensor_reduce(dst=pp, op=nl.add, data=acc, axis=(2,))
+            qq = nl.ndarray((P, H, 1), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.tensor_scalar(dst=qq, data=pp, op0=nl.multiply, operand0=1.0 / D)
+            nisa.tensor_tensor(dst=qq, data1=qq, data2=r2, op=nl.multiply)
+
+            # dz = r * (g - q*z), rounded to dt like eager's rms_norm backward
+            nisa.tensor_tensor(dst=acc, data1=zf, data2=qq.ap(pattern=BC), op=nl.multiply)
+            nisa.tensor_tensor(dst=acc, data1=gf, data2=acc, op=nl.subtract)
+            dzb = nl.ndarray((P, H, D), dtype=dt, buffer=nl.sbuf)
+            nisa.tensor_tensor(dst=dzb, data1=acc, data2=rr.ap(pattern=BC), op=nl.multiply)
+
+            # dx = rope^T(dz)
+            d1, d2 = dzb[0:P, 0:H, 0:Dh], dzb[0:P, 0:H, Dh:D]
+            ob = nl.ndarray((P, H, D), dtype=dt, buffer=nl.sbuf)
+            o1, o2 = ob[0:P, 0:H, 0:Dh], ob[0:P, 0:H, Dh:D]
+            nisa.tensor_tensor(dst=o1, data1=d1, data2=cb, op=nl.multiply)
+            nisa.tensor_tensor(dst=tb, data1=d2, data2=sb, op=nl.multiply)
+            nisa.tensor_tensor(dst=o1, data1=o1, data2=tb, op=nl.subtract)
+            nisa.tensor_tensor(dst=o2, data1=d2, data2=cb, op=nl.multiply)
+            nisa.tensor_tensor(dst=tb, data1=d1, data2=sb, op=nl.multiply)
+            nisa.tensor_tensor(dst=o2, data1=o2, data2=tb, op=nl.add)
+
+            nisa.dma_copy(dst=dx[r0:r0 + P], src=ob)
+
+        return dx
+
+    class _RopeNormNKI(torch.autograd.Function):
+        """Makes the fused rope+norm kernel differentiable so it can train."""
+
+        @staticmethod
+        def forward(ctx, x, cos, sin):
+            b, t, h, d = x.shape
+            x3 = x.reshape(b * t, h, d)
+            cos2 = cos.reshape(-1, d // 2)
+            sin2 = sin.reshape(-1, d // 2)
+            y = _rope_norm_fwd(x3, cos2, sin2).reshape(b, t, h, d)
+            ctx.save_for_backward(x3, cos2, sin2)
+            ctx.x_shape = (b, t, h, d)
+            return y
+
+        @staticmethod
+        def backward(ctx, grad_out):
+            x3, cos2, sin2 = ctx.saved_tensors
+            b, t, h, d = ctx.x_shape
+            g3 = grad_out.reshape(b * t, h, d).contiguous()
+            return _rope_norm_bwd(x3, g3, cos2, sin2).reshape(b, t, h, d), None, None
+
     _HAS_NKI = True
 except Exception:  # nki unavailable (e.g. CPU/GPU dev box) — eager path still works
     _HAS_NKI = False
@@ -336,6 +527,15 @@ except Exception:  # nki unavailable (e.g. CPU/GPU dev box) — eager path still
 # Toggled by the --nki-relu2 flag in main(). Default OFF: the shipped baseline is
 # numerically identical to the plain eager `relu(x)**2`.
 USE_NKI_RELU2 = False
+# Toggled by the --nki-rope-norm flag in main(); can also be turned off via that
+# flag/env var if you need the bit-for-bit-reproducible eager
+# `norm(apply_rotary_emb(...))` chain for comparison. Default ON: Solution 12,
+# numerically verified to 1-bf16-ULP against eager (fwd+bwd, research/scratch/
+# rope_norm_equiv.py) and confirmed at the real submission shape (8-way,
+# TOTAL_BATCH_SIZE=131072): ~15-18% real per-step speedup, causality exact,
+# quality difference is noise-level (loss trajectories match to 4 decimals). See
+# trn2-experiment-results.md.
+USE_NKI_ROPE_NORM = True
 
 
 def relu_squared(x: torch.Tensor) -> torch.Tensor:
@@ -377,6 +577,23 @@ def apply_rotary_emb(x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor) -> t
     return torch.cat((y1, y2), dim=-1)
 
 
+def rope_norm(x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor) -> torch.Tensor:
+    """norm(apply_rotary_emb(x, cos, sin)), fused into one NKI kernel when enabled.
+
+    x is [B, T, H, D]; cos/sin are [1, T, 1, D//2] broadcast over batch and heads.
+    The kernel needs B*T and T to be multiples of 128 (both true for the baseline:
+    B*T = 2*1024, T = 1024) so that each 128-row tile maps to one contiguous run of
+    positions within a single batch row. Anything else falls back to eager, so the
+    knob is always safe to flip.
+    """
+    if USE_NKI_ROPE_NORM and _HAS_NKI and x.device.type == "neuron" and x.ndim == 4:
+        b, t, _, d = x.shape
+        if (b * t) % _NKI_PARTITION == 0 and t % _NKI_PARTITION == 0 and d % 2 == 0 \
+                and cos.shape[1] == t and cos.shape[-1] == d // 2 and x.is_contiguous():
+            return _RopeNormNKI.apply(x, cos, sin)
+    return norm(apply_rotary_emb(x, cos, sin))
+
+
 class CausalSelfAttention(nn.Module):
     def __init__(self, config: GPTConfig, layer_idx: int = 0):
         super().__init__()
@@ -408,8 +625,8 @@ class CausalSelfAttention(nn.Module):
             ve = ve.view(b, t, self.n_head, self.head_dim)
             gate = 2 * torch.sigmoid(self.ve_gate(x[..., :VE_GATE_CHANNELS]))
             v = v + gate.unsqueeze(-1) * ve
-        q = norm(apply_rotary_emb(q, cos, sin))
-        k = norm(apply_rotary_emb(k, cos, sin))
+        q = rope_norm(q, cos, sin)
+        k = rope_norm(k, cos, sin)
         q = q.transpose(1, 2)
         k = k.transpose(1, 2)
         v = v.transpose(1, 2)
@@ -840,12 +1057,18 @@ def main() -> None:
                         help="run one synthetic optimizer step to warm the compile cache, then exit")
     parser.add_argument("--nki-relu2", action="store_true", default=os.environ.get("NEURON_COMPETITION_R1_NKI_RELU2", "0") != "0",
                         help="use the example fused NKI relu(x)**2 kernel in the MLP (Neuron only; illustration)")
+    parser.add_argument("--nki-rope-norm", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_NKI_ROPE_NORM", "1") != "0",
+                        help="fuse norm(apply_rotary_emb(x)) into one NKI kernel for q/k (Neuron only). "
+                             "Default ON (Solution 12, real ~15-18% step-time win, verified to 1-bf16-ULP "
+                             "against eager) -- pass --no-nki-rope-norm for the plain eager comparison path.")
     parser.add_argument("--init-from", type=str, default="",
                         help="warm-start model weights from a prior checkpoint (fresh optimizer/step/dataloader; dev-iteration only, never for a scored submission)")
     args = parser.parse_args()
 
-    global USE_NKI_RELU2
+    global USE_NKI_RELU2, USE_NKI_ROPE_NORM
     USE_NKI_RELU2 = args.nki_relu2
+    USE_NKI_ROPE_NORM = args.nki_rope_norm
 
     device_type = detect_device_type(args.device_type)
     ddp, rank, _local_rank, world_size, device = init_runtime(device_type)
@@ -1074,6 +1297,7 @@ def main() -> None:
         print(f"total_seconds:     {time.monotonic() - loop_started:.1f}")
         print(f"compiled:          {args.compile}")
         print(f"nki_relu2:         {args.nki_relu2}")
+        print(f"nki_rope_norm:     {args.nki_rope_norm}")
         print(f"num_steps:         {step}")
         print(f"total_tokens_M:    {total_train_tokens / 1e6:.1f}")
         print(f"world_size:        {world_size}")
