@@ -76,7 +76,7 @@ from prepare import (
 
 SEQ_LEN = 1024
 DEPTH = 6  # Solution 11 (Trn2 real-hardware depth/width resweep): real interior optimum at fixed 900s wall-clock, real submission shape -- 6 beat 4/8/10/12 (U-shape, see trn2-experiment-results.md)
-ASPECT_RATIO = 32
+ASPECT_RATIO = 96  # Solution 11 (Trn2 real-hardware width-only resweep at fixed DEPTH=6): real interior optimum -- 640 beat 256/384/512/768 (U-shape, see trn2-experiment-results.md)
 HEAD_DIM = 128
 
 DEVICE_BATCH_SIZE = 1

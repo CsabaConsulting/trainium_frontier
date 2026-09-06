@@ -219,7 +219,23 @@ This also means the corrected 900s sweep table's ordering *and* the full-budget 
 
 `sol11-final-rawbaseline-900s` (all eight Solutions 1-10 toggles reverted to untuned values, genuinely `TOTAL_BATCH_SIZE=262144`, `288 steps, public_val_bpb: 1.321078`) was originally compared against the mislabeled `262144` row above (`262 steps, 1.288261` — actually 131072). **Corrected comparison, using the genuine `262144` full-stack point from the corrected re-run (`172 steps, 1.310506`)**: full-stack `1.310506` still beats raw-baseline `1.321078` — the Solutions 1-10 stack still wins at genuine `DEPTH=6, TOTAL_BATCH_SIZE=262144`, just by a smaller margin (`0.0106`) than originally claimed (`0.033`, using the wrong anchor). Conclusion unchanged; evidence corrected. The head-to-head above locked `TOTAL_BATCH_SIZE=131072` as the final value, not `262144` — this toggle check was run at `262144`, not the exact final shape. Not considered urgent to redo: the qualitative conclusion (stack beats raw baseline) has now been established at *three* distinct shapes this phase (`DEPTH=6`/old-batch-65536, and genuine `DEPTH=6`/`262144` here), and `131072` sits between two of those tested points, not off in new territory.
 
-**Not yet done**: an independent width-only resweep at fixed `DEPTH=6` (this session's depth sweep varied width proportionally via fixed `ASPECT_RATIO`, never independently).
+**Width-only resweep at fixed `DEPTH=6` — done, real second finding.** See the next section: the depth sweep varied width proportionally via fixed `ASPECT_RATIO`, never independently; the independent resweep found the width optimum has shifted too, `n_embd=640` (`ASPECT_RATIO=96`) not `384`.
+
+### Width-only resweep at fixed `DEPTH=6` — real interior optimum, shifted from `384` to `640`
+
+Same protocol as the depth sweep: fixed wall-clock (`--max-train-seconds 900`), real submission shape (`--nproc-per-node 8 --lnc 1`), `DEPTH=6` held fixed, varying `ASPECT_RATIO` (n_embd derives from `depth*ASPECT_RATIO` rounded up to the nearest 128, since `HEAD_DIM=128`) to hit a spread of widths independent of depth. `train.py`'s `ASPECT_RATIO` constant edited locally, `py_compile`-checked, and rsynced to remote before each point (no CLI flag exists for it) — same as the depth sweep's methodology, run sequentially back-to-back (same chip-warmth-confound caveat applies, noted not ignored).
+
+| `ASPECT_RATIO` | n_embd | n_head | params | steps in 900s | `public_val_bpb` |
+|---|---|---|---|---|---|
+| 32 | 256 | 2 | 15.2M | 310 | 1.309278 |
+| 64 (prior locked default) | 384 | 3 | 26.4M | 399 | 1.297186 |
+| 80 | 512 | 4 | 39.9M | 268 | 1.270811 |
+| 96 | 640 | 5 | 55.7M | 240 | **1.269647 — winner** |
+| 128 | 768 | 6 | 73.9M | 235 | 1.273621 |
+
+**Result: a clean U-shape, real interior optimum at `ASPECT_RATIO=96` (n_embd=640, 55.7M params).** `384 → 640` is a real, large gap (`0.0275`, two orders of magnitude above the established noise floor `~0.0001-0.00025`) — a genuine second major quality finding this phase, independent of the depth finding. The curve turns over cleanly within the swept range: `640` beats both its neighbors (`512` by `0.00116`, real but small; `768` by `0.00397`, real and confirms the turn) — this is a true interior optimum, not a monotonic trend truncated at the edge of the sweep. Same mechanism as the depth U-shape: `256` (most steps, 310) is under-parameterized and hits an early entropy floor; `768` (fewest steps, 235) is over-parameterized for this wall-clock and doesn't get enough steps to use its extra capacity.
+
+**Decision: `ASPECT_RATIO=96` (n_embd=640) locked into `train.py`**, replacing `64`. Combined with `DEPTH=6`, the final locked architecture is now **640-wide, 6-deep, 55.7M params** — up from the prior 384-wide/26.4M-param point, but still far below the original 85.9M-param GPU-tuned baseline (`DEPTH=10, n_embd=640` coincidentally shares the same width as this new optimum, at 2x the depth). This changes the architecture shape non-trivially and has direct knock-on implications for the Solution 11 batch-size resweep and the Solution 12 kernel confirmation (both were tuned/measured at the now-superseded `n_embd=384`) — **not yet re-validated at `n_embd=640`**, flagged as the next open item, not launched without checking in first.
 
 ## Solution 12 — real instruction-level profile, first proper pass
 
