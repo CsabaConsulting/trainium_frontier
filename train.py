@@ -80,7 +80,7 @@ ASPECT_RATIO = 96  # Solution 11 (Trn2 real-hardware width-only resweep at fixed
 HEAD_DIM = 128
 
 DEVICE_BATCH_SIZE = 1
-TOTAL_BATCH_SIZE = 131072  # Solution 11 (Trn2 real-hardware batch resweep, fixed DEPTH=6): corrected after a data-integrity bug (an earlier "262144" sweep point was mislabeled, actually 131072). Real full-1800s head-to-head: 131072 = 560 steps/bpb 1.199914 vs genuine 262144 = 362 steps/bpb 1.200143 -- a statistical tie at the noise floor, 131072 locked for the extra step-count margin. See trn2-experiment-results.md
+TOTAL_BATCH_SIZE = 131072  # Solution 11 (Trn2 real-hardware batch resweep, re-validated at n_embd=640): same winner as at n_embd=384 -- 131072 beat 65536/262144 at the new width too (900s: 1.269318 vs 1.279503/1.307378). See trn2-experiment-results.md
 NUM_STEPS = 1000
 # The official runner charges wall time only after the first five completed
 # optimizer steps (the startup/compilation allowance, capped). The baseline

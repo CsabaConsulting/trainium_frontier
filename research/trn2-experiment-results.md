@@ -235,7 +235,29 @@ Same protocol as the depth sweep: fixed wall-clock (`--max-train-seconds 900`), 
 
 **Result: a clean U-shape, real interior optimum at `ASPECT_RATIO=96` (n_embd=640, 55.7M params).** `384 → 640` is a real, large gap (`0.0275`, two orders of magnitude above the established noise floor `~0.0001-0.00025`) — a genuine second major quality finding this phase, independent of the depth finding. The curve turns over cleanly within the swept range: `640` beats both its neighbors (`512` by `0.00116`, real but small; `768` by `0.00397`, real and confirms the turn) — this is a true interior optimum, not a monotonic trend truncated at the edge of the sweep. Same mechanism as the depth U-shape: `256` (most steps, 310) is under-parameterized and hits an early entropy floor; `768` (fewest steps, 235) is over-parameterized for this wall-clock and doesn't get enough steps to use its extra capacity.
 
-**Decision: `ASPECT_RATIO=96` (n_embd=640) locked into `train.py`**, replacing `64`. Combined with `DEPTH=6`, the final locked architecture is now **640-wide, 6-deep, 55.7M params** — up from the prior 384-wide/26.4M-param point, but still far below the original 85.9M-param GPU-tuned baseline (`DEPTH=10, n_embd=640` coincidentally shares the same width as this new optimum, at 2x the depth). This changes the architecture shape non-trivially and has direct knock-on implications for the Solution 11 batch-size resweep and the Solution 12 kernel confirmation (both were tuned/measured at the now-superseded `n_embd=384`) — **not yet re-validated at `n_embd=640`**, flagged as the next open item, not launched without checking in first.
+**Decision: `ASPECT_RATIO=96` (n_embd=640) locked into `train.py`**, replacing `64`. Combined with `DEPTH=6`, the final locked architecture is now **640-wide, 6-deep, 55.7M params** — up from the prior 384-wide/26.4M-param point, but still far below the original 85.9M-param GPU-tuned baseline (`DEPTH=10, n_embd=640` coincidentally shares the same width as this new optimum, at 2x the depth). This changes the architecture shape non-trivially, with direct knock-on implications for the Solution 11 batch-size axis and the Solution 12 kernel — both re-validated at `n_embd=640` immediately below, rather than left as an open item.
+
+### Batch-size axis re-validated at the new `n_embd=640` — same winner, kernel ON throughout
+
+Same protocol as the original batch sweep, at the new locked width, with the rope+QK-norm kernel default ON throughout (this is the first batch sweep ever run with the kernel on — the original 384-width sweep predated the kernel's existence). A quick single-device smoke test first (`sol11-width640-kernel-smoke`, 15 steps) confirmed the kernel is architecture-invariant at the new width: no crash, `causality_passed: True`, `causality_max_abs: 0.0`, `num_params_M: 55.7` — the kernel operates per-head on `HEAD_DIM=128` (unchanged), independent of `n_head`, so this was expected but verified rather than assumed.
+
+| `TOTAL_BATCH_SIZE` | steps in 900s | `public_val_bpb` |
+|---|---|---|
+| 65536 | 375 | 1.279503 |
+| 131072 | 240 | **1.269318 — winner** |
+| 262144 | 160 | 1.307378 |
+
+**Result: `TOTAL_BATCH_SIZE=131072` wins again, same as the width=384 conclusion — the batch optimum did not shift with width.** Clean U-shape (`131072` beats `65536` by `0.0102` and `262144` by `0.0381`, both real, well above noise floor). `params_M=55.7` confirmed identical across all three points (no config drift). **No change to `train.py`'s `TOTAL_BATCH_SIZE=131072`** — the width resweep changed the architecture but not the batch-size answer.
+
+### Full 1800s confirmation at the complete final combo — `DEPTH=6, n_embd=640, TOTAL_BATCH_SIZE=131072`, kernel ON — new final headline for the Trn2 phase
+
+`sol11-final-combo-fullbudget`: fresh init, real submission shape, full `--max-train-seconds 1800`, every locked finding combined for the first time in one run.
+
+**Result: 500 steps, `public_val_bpb: 1.176151`, `causality_passed: True`, `causality_max_abs: 0.0`, `num_params_M: 55.7`** (matches the width resweep and batch resweep-at-640 exactly — no config drift).
+
+**Beats the old final headline decisively.** Old headline (`sol12-kernel-on-fullbudget`, `n_embd=384`, kernel ON): 581 steps, `public_val_bpb: 1.197595`. New combo: **500 steps (81 fewer, -14%) but `public_val_bpb: 1.176151` (`0.021444` lower/better — a real gap, two orders of magnitude above the noise floor)**. The wider model's per-step quality advantage more than compensates for completing fewer steps at the full 1800s budget: unlike the 900s-proxy sweep (where 640 already won outright, steps-vs-quality tradeoff already resolved at the shorter window), this was the genuine open question for the full budget — extra params vs. fewer possible steps could in principle have gone either way, and it resolved cleanly in favor of the wider model.
+
+**This is the new final headline number for the entire Trn2 phase: `public_val_bpb = 1.176151` at 500 steps**, with the complete locked architecture: `DEPTH=6, ASPECT_RATIO=96` (n_embd=640, n_head=5, 55.7M params), `TOTAL_BATCH_SIZE=131072`, rope+QK-norm NKI kernel default ON, real 8-way submission shape (`--nproc-per-node 8 --lnc 1`). Ready for competition submission: file `train.py`, launch command `NEURON_LOGICAL_NC_CONFIG=1 torchrun --standalone --nproc_per_node=8 train.py`.
 
 ## Solution 12 — real instruction-level profile, first proper pass
 
