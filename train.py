@@ -898,7 +898,6 @@ class GPT(nn.Module):
         loss = F.cross_entropy(
             logits.reshape(-1, logits.size(-1)),
             targets.reshape(-1),
-            ignore_index=-1,
             reduction=loss_reduction,
         )
         if loss_reduction == "none":
