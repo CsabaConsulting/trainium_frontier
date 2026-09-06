@@ -80,7 +80,7 @@ ASPECT_RATIO = 64
 HEAD_DIM = 128
 
 DEVICE_BATCH_SIZE = 1
-TOTAL_BATCH_SIZE = 131072  # SOLUTION 11 BATCH SWEEP: testing 32768/65536/131072 at fixed DEPTH=6, revert to 65536 after
+TOTAL_BATCH_SIZE = 262144  # Solution 11 (Trn2 real-hardware batch resweep, fixed DEPTH=6): real interior optimum at fixed 900s wall-clock -- 262144 beat 32768/65536/131072/524288 (U-shape, see trn2-experiment-results.md)
 NUM_STEPS = 1000
 # The official runner charges wall time only after the first five completed
 # optimizer steps (the startup/compilation allowance, capped). The baseline

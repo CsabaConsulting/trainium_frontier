@@ -186,3 +186,35 @@ Individual-toggle re-ablation at `DEPTH=6` (does each of the ten still help by t
 **Refinement to the throughput-cliff model, from this longer run**: per-step time held fast (`~0.72-0.80s/step`, `~85-90k tok/s`) all the way through **step ~590 (~450s elapsed)** — notably later than the back-to-back sweep runs' cliffs (~100-150s), consistent with the chip having had a several-minute idle gap plus a smaller/cooler-running model. But the degradation from there was **staged, not a single clean drop**: `~5.0-5.1s/step` (steps ~600-670) → `~5.6-6.1s/step` (steps ~680-770) → `~7-8s/step` (steps ~780-800) — three distinguishable plateaus getting progressively worse across the remaining ~350s of the run. This is new evidence beyond the earlier single-drop observations: **over a long enough sustained run, the throttle appears to deepen in multiple stages, not just trigger once and hold** — consistent with a real thermal system with more than one power/clock throttle threshold as the chip keeps heating. Doesn't change the practical planning conclusion (budget off sustained/degraded throughput), but sharpens the mechanism picture.
 
 Committed as the new reference point for any future comparison at this config.
+
+### Batch-size resweep at fixed `DEPTH=6` — second Solution 11 axis, resolved
+
+Same protocol as the depth sweep: fixed wall-clock (`--max-train-seconds 900`), real submission shape, `DEPTH=6` held fixed from the result above, varying `TOTAL_BATCH_SIZE` by powers of 2 around the prior default (`65536`).
+
+| `TOTAL_BATCH_SIZE` | steps in 900s | `public_val_bpb` |
+|---|---|---|
+| 32768 | 601 | 1.322478 |
+| 65536 (prior default) | 399 | 1.297186 |
+| 131072 | 257 | 1.290674 |
+| 262144 | 262 | **1.288261 — winner** |
+| 524288 | 115 | 1.403897 |
+
+**Result: another clean U-shape, real interior optimum at `TOTAL_BATCH_SIZE=262144`** — a real, if smaller, delta than the depth axis. Unlike depth (one big jump, 6 clearly separated from 8/10/12), the batch axis showed **diminishing returns approaching the optimum from below** (32768→65536: -0.025; 65536→131072: -0.006; 131072→262144: -0.003) before a **sharp reversal** at 524288 (+0.116) — the same "too few steps to compensate for the extra per-step capacity" mechanism seen in the depth sweep, just arriving abruptly rather than gradually on this side.
+
+**Honest caveat on 131072 vs. 262144**: the two are close (`1.290674` vs. `1.288261`, a `0.0024` gap) relative to the depth-axis swings, and every one of these runs carries the same chip-warmth confound as the depth sweep (sequential back-to-back runs, later ones starting warmer) — visible directly in the step counts: 131072 and 262144 completed almost the same number of steps (257 vs. 262) despite `262144` processing twice the tokens per step, which shouldn't happen if per-step wall-time scaled cleanly with batch size. `262144` is still the better number and is what's locked, but this specific pairwise gap is weaker evidence than the depth-axis result or the sharp 524288 reversal.
+
+**`TOTAL_BATCH_SIZE=262144` now locked into `train.py`.** Both Solution 11 axes are resolved: **`DEPTH=6`, `TOTAL_BATCH_SIZE=262144`** is the final config from this resweep, a real, large improvement over the GPU-tuned `DEPTH=10, TOTAL_BATCH_SIZE=65536` baseline on both axes.
+
+### Clean full 1800s confirmation at the combined final config — new headline number
+
+`sol11-final-combined-fullbudget`: fresh init, real submission shape, real full `--max-train-seconds 1800`, `DEPTH=6` + `TOTAL_BATCH_SIZE=262144` together for the first time at the real budget (the earlier full-budget confirmation used `DEPTH=6` with the *old* `TOTAL_BATCH_SIZE=65536`).
+
+**Result: 362 steps, `public_val_bpb: 1.200143`, `causality_passed: True`.** Better than the `DEPTH=6`/old-batch full-budget result (`1.220658`/809 steps) despite fewer than half the steps — confirms the batch-size win holds at the real 1800s budget too, not just in the 900s proxy. A real, large improvement over every `DEPTH=10` full-budget number (best was `1.242326`/478 steps) — roughly 3.4% relative. This is now the reference number for the locked config.
+
+### Toggle-stack re-validation, at the exact final combined shape — confirmed, still wins
+
+`sol11-final-rawbaseline-900s`: all eight Solutions 1-10 quality/schedule toggles reverted to their original untuned values (same set as the earlier bundle check: `WARMUP_STEPS=20, WARMDOWN_RATIO=0.0, FINAL_LR_FRAC=1.0, WD_DECAY_TO_ZERO=False, INIT_SCALE=1.0, PACK_FACTOR=1, USE_VE=False, USE_LOCAL_CONV=False`), same `DEPTH=6, TOTAL_BATCH_SIZE=262144, 900s` protocol as the full-stack anchor (`262144` batch-sweep point: 262 steps, `1.288261`).
+
+**Result: 288 steps, `public_val_bpb: 1.321078`** — worse than the full-stack anchor despite more steps. **The Solutions 1-10 stack is confirmed as a decisive net win at the final, fully-resolved shape** (`DEPTH=6, TOTAL_BATCH_SIZE=262144`), not just at the intermediate `DEPTH=6`/old-batch shape checked earlier. Toggles reverted back to locked values (via targeted `sed`, then verified byte-identical to the last-committed `train.py` via diff — same discipline as every prior revert this phase).
+
+**Not yet done**: an independent width-only resweep at fixed `DEPTH=6` (this session's depth sweep varied width proportionally via fixed `ASPECT_RATIO`, never independently).
