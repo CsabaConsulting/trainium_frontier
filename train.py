@@ -61,6 +61,7 @@ from prepare import (
     TRAIN_STARTUP_STEPS_EXCLUDED,
     TRAIN_TIME_BUDGET_SECONDS,
     Tokenizer,
+    _document_batches,
     causality_check,
     ensure_tokenizer,
     evaluate_bpb,
@@ -72,9 +73,93 @@ from prepare import (
 
 
 # -----------------------------------------------------------------------------
+# Bucket B (post-submission round): remainder-requeue packer. A "data sampling
+# strategy" change per README (train.py may freely change this; prepare.py itself
+# is untouched here -- reuses its private _document_batches generator and
+# get_dist_info). prepare.py's make_dataloader() permanently crops+discards a
+# document's remainder when it doesn't fit the current row's remaining space
+# (picks the globally-shortest buffered doc, takes doc[:remaining], drops
+# doc[remaining:] forever). This is a byte-for-byte copy of that function except
+# the crop branch requeues the leftover back into doc_buffer instead of dropping
+# it, so a long document gets spread losslessly across multiple rows over time
+# instead of losing everything past the first crop point. The requeued leftover
+# carries no new BOS token (it isn't a new document, just a continuation) --
+# correct, since BOS is only prepended once, at encode() time, before any
+# cropping ever happens. _document_batches_fn is an injectable seam purely for
+# the offline correctness harness (research/scratch/requeue_packer_equiv.py);
+# real runs always use the real prepare._document_batches default.
+def make_dataloader_requeue(
+    tokenizer: Tokenizer,
+    batch_size: int,
+    seq_len: int,
+    split: str,
+    device: torch.device | str,
+    tokenizer_threads: int = 4,
+    tokenizer_batch_size: int = 128,
+    shard_ids=None,
+    _document_batches_fn=_document_batches,
+):
+    assert batch_size > 0 and seq_len > 1
+    ddp, rank, _local_rank, world_size = get_dist_info()
+    batches = _document_batches_fn(split, rank, world_size, tokenizer_batch_size, shard_ids=shard_ids)
+    bos = tokenizer.get_bos_token_id()
+    row_capacity = seq_len + 1
+    doc_buffer: list[list[int]] = []
+    buffer_min = 512
+    epoch = 0
+
+    dev = torch.device(device)
+    pin_memory = dev.type == "cuda"
+    row_buffer = torch.empty((batch_size, row_capacity), dtype=torch.long)
+    cpu_inputs = torch.empty((batch_size, seq_len), dtype=torch.int32, pin_memory=pin_memory)
+    cpu_targets = torch.empty((batch_size, seq_len), dtype=torch.long, pin_memory=pin_memory)
+    inputs = torch.empty((batch_size, seq_len), dtype=torch.int32, device=dev)
+    targets = torch.empty((batch_size, seq_len), dtype=torch.long, device=dev)
+
+    def refill() -> None:
+        nonlocal epoch
+        docs, epoch = next(batches)
+        token_lists = tokenizer.encode(docs, prepend=bos, num_threads=tokenizer_threads)
+        doc_buffer.extend(token_lists)
+
+    while True:
+        for row_idx in range(batch_size):
+            pos = 0
+            while pos < row_capacity:
+                while len(doc_buffer) < buffer_min:
+                    refill()
+                remaining = row_capacity - pos
+                best_idx = -1
+                best_len = 0
+                for i, doc in enumerate(doc_buffer):
+                    n = len(doc)
+                    if n <= remaining and n > best_len:
+                        best_idx, best_len = i, n
+                if best_idx >= 0:
+                    doc = doc_buffer.pop(best_idx)
+                    n = len(doc)
+                    row_buffer[row_idx, pos:pos + n] = torch.tensor(doc, dtype=torch.long)
+                    pos += n
+                else:
+                    shortest_idx = min(range(len(doc_buffer)), key=lambda i: len(doc_buffer[i]))
+                    doc = doc_buffer.pop(shortest_idx)
+                    row_buffer[row_idx, pos:pos + remaining] = torch.tensor(doc[:remaining], dtype=torch.long)
+                    leftover = doc[remaining:]
+                    if leftover:
+                        doc_buffer.append(leftover)
+                    pos += remaining
+
+        cpu_inputs.copy_(row_buffer[:, :-1].to(dtype=torch.int32))
+        cpu_targets.copy_(row_buffer[:, 1:])
+        inputs.copy_(cpu_inputs, non_blocking=pin_memory)
+        targets.copy_(cpu_targets, non_blocking=pin_memory)
+        yield inputs, targets, {"epoch": epoch}
+
+
+# -----------------------------------------------------------------------------
 # Baseline hyperparameters. Model-related config lives here, not in prepare.py.
 
-SEQ_LEN = 1024
+SEQ_LEN = 2048  # Solution 11 (Trn2 real-hardware context-length resweep, fixed DEPTH=6/ASPECT_RATIO=96/TOTAL_BATCH_SIZE=131072): real interior optimum -- 2048 beat 512/1024/4096 (U-shape, see trn2-experiment-results.md). Not yet confirmed at full 1800s budget.
 DEPTH = 6  # Solution 11 (Trn2 real-hardware depth/width resweep): real interior optimum at fixed 900s wall-clock, real submission shape -- 6 beat 4/8/10/12 (U-shape, see trn2-experiment-results.md)
 ASPECT_RATIO = 96  # Solution 11 (Trn2 real-hardware width-only resweep at fixed DEPTH=6): real interior optimum -- 640 beat 256/384/512/768 (U-shape, see trn2-experiment-results.md)
 HEAD_DIM = 128
@@ -108,6 +193,7 @@ WD_DECAY_TO_ZERO = True  # decay Muon's weight_decay linearly to 0 over the run 
 MUON_MOMENTUM_WARMUP_STEPS = 300  # steps to ramp Muon momentum 0.85 -> 0.95
 INIT_SCALE = 0.68  # multiplier on the attn/mlp uniform-init bound (1.0 = original baseline scale)
 PACK_FACTOR = 2  # dataloader packing-bin multiplier: fetch PACK_FACTOR*SEQ_LEN rows, reshape to PACK_FACTOR*batch rows of SEQ_LEN
+USE_REQUEUE_PACKER = False  # Bucket B: implemented + verified correct (offline harness, research/scratch/requeue_packer_equiv.py, zero corruption over a 20k-doc synthetic corpus), but the real hardware A/B at the final locked shape was a small real negative (332 steps/1.235799 vs baseline 330/1.234514) -- not kept. See trn2-experiment-results.md
 USE_VE = True  # value embeddings (ResFormer-style): alternating layers, input-gated mix into attention's V stream
 VE_GATE_CHANNELS = 32
 
@@ -960,6 +1046,7 @@ ARCH_TOGGLE_NAMES = [
     "WD_DECAY_TO_ZERO", "MUON_MOMENTUM_WARMUP_STEPS", "USE_DOC_MASK", "VE_WD",
     "USE_SELECTIVE_GATE", "SELECTIVE_GATE_CHANNELS", "USE_FUSED_QKV",
     "USE_CAUSAL_FASTPATH", "USE_STOCHASTIC_ROUNDING", "USE_TRN2_COMPILER_FLAGS",
+    "USE_REQUEUE_PACKER",
 ]
 # Toggles whose mismatch corrupts the state_dict shape (load_state_dict(strict=True) will
 # error loudly). Everything else in ARCH_TOGGLE_NAMES lives in non-persistent buffers or
@@ -1122,7 +1209,8 @@ def main() -> None:
         return
 
     loader_seq_len = PACK_FACTOR * SEQ_LEN
-    train_loader = make_dataloader(tokenizer, DEVICE_BATCH_SIZE, loader_seq_len, "train", device)
+    _loader_fn = make_dataloader_requeue if USE_REQUEUE_PACKER else make_dataloader
+    train_loader = _loader_fn(tokenizer, DEVICE_BATCH_SIZE, loader_seq_len, "train", device)
 
     def fetch():
         xb, yb, state = next(train_loader)
