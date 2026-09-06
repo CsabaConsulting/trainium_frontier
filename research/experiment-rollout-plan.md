@@ -138,7 +138,9 @@ steps too.
 
 ## Solution 11 — Batch size + depth/width resweep — all axes resolved, final combo confirmed at full budget
 
-**Final locked architecture and result, up front**: `DEPTH=6, ASPECT_RATIO=96` (n_embd=640, n_head=5, 55.7M params), `TOTAL_BATCH_SIZE=131072`, rope+QK-norm NKI kernel default ON. Full-1800s confirmation (`sol11-final-combo-fullbudget`): **500 steps, `public_val_bpb = 1.176151`, `causality_passed: True`** — the final headline number for the entire Trn2 phase, beating the prior headline (`n_embd=384`, 581 steps, `1.197595`) by a real `0.021444` despite 81 fewer steps. Ready for competition submission: `train.py` + `NEURON_LOGICAL_NC_CONFIG=1 torchrun --standalone --nproc_per_node=8 train.py`. Full detail below and in `trn2-experiment-results.md`.
+**Final locked architecture and result, up front**: `DEPTH=6, ASPECT_RATIO=96` (n_embd=640, n_head=5, 55.7M params), `TOTAL_BATCH_SIZE=131072`, rope+QK-norm NKI kernel default ON. Full-1800s confirmation (`sol11-final-combo-fullbudget`): **500 steps, `public_val_bpb = 1.176151`, `causality_passed: True`** — this config **is what's currently submitted** to the real leaderboard.
+
+**Post-submission update (Bucket A, see `trn2-optimization-research.md`/plan `valiant-wandering-pascal.md`)**: found and confirmed a better combo — `USE_CAUSAL_FASTPATH=True` (locked) + `NEURON_LOGICAL_NC_CONFIG=2`/`--nproc-per-node 4` (LNC=2). Full-1800s confirmation (`sol13-lnc2-fullbudget`): **639 steps, `public_val_bpb = 1.15361`** — beats the submitted headline by a real `0.022541`, **not yet submitted**. Candidate launch command: `NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py`. Full detail below and in `trn2-experiment-results.md`.
 
 Cross-ref: #7 / #8. Full detail, every number: `trn2-experiment-results.md`.
 

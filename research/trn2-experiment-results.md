@@ -319,4 +319,14 @@ Never tried in the final combo before — `USE_CAUSAL_FASTPATH=True` locked abov
 
 **Result: 330 steps, `public_val_bpb: 1.234514`, `causality_passed: True`, `num_params_M: 55.7`** (matches — LNC only regroups cores, doesn't change the model). vs. the LNC=1 reference at this exact toggle state (265 steps, `1.252675`): **+65 steps (+24.5%) and `0.018161` better bpb** — a large, real win, bigger than any single Solution-13 toggle finding this round, both dimensions moving the same direction (more steps *and* better quality, not a step-count/quality tradeoff).
 
-**This changes the real submission launch command.** If this holds at the full 1800s budget, the actual submission should use `NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py`, not the `NEURON_LOGICAL_NC_CONFIG=1`/`--nproc_per_node=8` command used for the first submission. **Not yet confirmed at full budget** — this is a 900s-proxy result only; a full-1800s confirmation run is needed before trusting this enough to spend another real leaderboard submission on it (per the same discipline as every other config change this session — proxy sweep first, full-budget confirmation before submitting).
+**This changes the real submission launch command.** If this holds at the full 1800s budget, the actual submission should use `NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py`, not the `NEURON_LOGICAL_NC_CONFIG=1`/`--nproc_per_node=8` command used for the first submission.
+
+### Full-1800s confirmation, LNC=2 + `USE_CAUSAL_FASTPATH` combo — new best-known local config, NOT YET SUBMITTED
+
+`sol13-lnc2-fullbudget`: fresh init, full `--max-train-seconds 1800`, `NEURON_LOGICAL_NC_CONFIG=2 --nproc-per-node 4`, `USE_CAUSAL_FASTPATH=True` (locked), DEPTH=6/n_embd=640/TOTAL_BATCH_SIZE=131072/rope+QK-norm kernel ON — everything from Bucket A applied together at the real budget for the first time.
+
+**Result: 639 steps, `public_val_bpb: 1.15361`, `causality_passed: True`, `causality_max_abs: 0.0`, `num_params_M: 55.7`** (matches, no config drift).
+
+**Beats the currently-submitted headline decisively.** Submitted: 500 steps, `public_val_bpb: 1.176151` (LNC=1, no `USE_CAUSAL_FASTPATH`). New: **639 steps (+139, +27.8%) and `public_val_bpb: 1.15361` (`0.022541` lower/better)** — both dimensions improved simultaneously, confirming the 900s-proxy signal held at the real budget, same direction and similar-or-larger magnitude.
+
+**Important: this is a local finding only, NOT yet submitted to the real leaderboard.** The actual submission currently on the leaderboard is still the older `1.176151` config (`LNC=1, --nproc-per-node 8`, no `USE_CAUSAL_FASTPATH`). Candidate launch command for a future resubmission: `NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py`.
