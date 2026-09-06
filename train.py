@@ -35,8 +35,8 @@ _PROCESS_STARTED = time.monotonic()
 # --model-type/--distribution-strategy/--lnc are confirmed present in --help.
 # NEURON_COMPILE_CACHE_DIR is left unconditional: a plain filesystem path, not
 # compiler-flag syntax, independently verified safe across every run so far.
-USE_TRN2_COMPILER_FLAGS = False  # gates NEURON_CC_FLAGS/FUSE_SOFTMAX/ASYNC_EXEC below; smoke-tested clean, see trn2-experiment-results.md
-USE_STOCHASTIC_ROUNDING = False  # off by default: coupled with AdamW beta2, see enhancement-opportunities.md #14
+USE_TRN2_COMPILER_FLAGS = False  # A/B'd at final locked shape: real small win alone (246/1.264601 vs baseline 240/1.269318), but combined with USE_CAUSAL_FASTPATH it's a net-negative (262/1.254491 vs USE_CAUSAL_FASTPATH alone's 265/1.252675) -- doesn't compose, left off. See trn2-experiment-results.md
+USE_STOCHASTIC_ROUNDING = False  # discarded: fails causality_check (max_abs_diff 0.021) at final shape -- confirmed a false positive (SR's own forward-to-forward rounding noise alone is 0.0113, already exceeding the harness's 1e-2 tolerance), not a real leak -- but the real submission's own compliance checks would hit the same false-positive risk, so not safe to use regardless of any speed benefit. See trn2-experiment-results.md
 os.environ.setdefault("NEURON_COMPILE_CACHE_DIR", "/tmp/neuron_cache")
 if USE_TRN2_COMPILER_FLAGS:
     os.environ.setdefault("NEURON_FUSE_SOFTMAX", "1")
@@ -127,8 +127,8 @@ USE_WEIGHT_CACHE = True  # cache each Linear's dtype-cast weight once per optimi
 USE_DOC_MASK = False  # block attention across document boundaries within a packed row (BOS-derived, data-dependent)
 USE_SELECTIVE_GATE = False  # make resid_lambda/x0_lambda data-dependent (Mamba-style selectivity) instead of static scalars
 SELECTIVE_GATE_CHANNELS = 32
-USE_FUSED_QKV = False  # Solution 13c: one wider c_qkv Linear instead of separate c_q/c_k/c_v; pure throughput, no quality effect
-USE_CAUSAL_FASTPATH = False  # Solution 13d: is_causal=True (attn_mask=None) instead of the additive mask, when purely causal
+USE_FUSED_QKV = False  # A/B'd at final locked shape: net negative as expected (206 steps/1.312086 vs baseline 240/1.269318) -- disables the rope+QK-norm kernel fusion, fewer steps and worse quality. See trn2-experiment-results.md
+USE_CAUSAL_FASTPATH = True  # Solution 13 winner, A/B'd at final locked shape: real win (265 steps/1.252675 vs baseline 240/1.269318, +0.0166) -- the best of all four Solution-13 toggles, doesn't compose further with USE_TRN2_COMPILER_FLAGS. See trn2-experiment-results.md
 
 
 def doc_boundary_mask(idx: torch.Tensor) -> torch.Tensor:

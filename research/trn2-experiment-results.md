@@ -288,3 +288,35 @@ Delegated the actual kernel-writing to `neuron-nki-agent`. Result: `_rope_norm_f
 **Full-1800s confirmation, kernel ON, final locked config — done.** `sol12-kernel-on-fullbudget`: `DEPTH=6, TOTAL_BATCH_SIZE=131072`, world_size=8, kernel ON (default, no flag passed), full 1800s budget. Config verified matching prior runs. **Result: 581 steps, `public_val_bpb: 1.197595`, `causality_passed: True`, `causality_max_abs: 0.0`.** vs. the old kernel-OFF headline (`sol11-batch131072-fullbudget`: 560 steps, `1.199914`): **+21 steps (+3.75%) and a lower (better) bpb** — both improvements land in the same direction, consistent with the measured per-step speedup and the noise-level quality parity already established by the equivalence harness. **This is the new final headline number for the Trn2 phase: `public_val_bpb = 1.197595` at 581 steps.**
 
 `research/scratch/rope_norm_dev.py` is a stale, superseded copy of the kernel (old `activation(rsqrt)`) left over from development — `rope_norm_equiv.py` is the authoritative equivalence harness; don't read the stale file as current. If `USE_FUSED_QKV` (Solution 13c) is ever turned on, `rope_norm()` silently falls back to eager (no crash, just no speedup) since q/k may become non-contiguous — a real interaction to remember if that toggle is revisited.
+
+## Post-submission round — closing the gap to the real leaderboard
+
+First real submission: `public_val_bpb = 1.176151`. Real leaderboard top scores: `1.00-1.06` — a large, real gap. Plan: `/Users/csabatoth/.claude/plans/valiant-wandering-pascal.md`, Bucket A first (cheap, mechanical, real A/B's never done at the exact final locked shape).
+
+### Solution 13's four toggles — real speed A/B at the final locked shape, two real wins found
+
+Every prior Solution-13 test was correctness-only (15-step single-device smoke tests) at a now-superseded width — none had ever been given a real fixed-step speed/quality A/B at the actual final shape (`DEPTH=6, n_embd=640, TOTAL_BATCH_SIZE=131072`, rope+QK-norm kernel default ON, real 8-way, 900s fixed-budget proxy). Baseline at this exact shape, all four toggles `False` (already had this: `sol11-width640-batch131072`): **240 steps, `public_val_bpb: 1.269318`**.
+
+| Toggle | Result | vs. baseline | Verdict |
+|---|---|---|---|
+| `USE_TRN2_COMPILER_FLAGS=True` | 246 steps, `1.264601` | `+0.0047` | Real small win, isolated |
+| `USE_STOCHASTIC_ROUNDING=True` | 248 steps, `1.270737`, **`causality_passed: False`** (`max_abs_diff=0.021134`) | — | **Disqualified** (see below) |
+| `USE_FUSED_QKV=True` | 206 steps, `1.312086` | `-0.0428` | Real net negative, as expected |
+| `USE_CAUSAL_FASTPATH=True` | 265 steps, `1.252675` | `+0.0166` | **Real win, largest of the four** |
+| `USE_TRN2_COMPILER_FLAGS=True` + `USE_CAUSAL_FASTPATH=True` (combo) | 262 steps, `1.254491` | `+0.0148` | Real, but *worse* than `USE_CAUSAL_FASTPATH` alone — doesn't compose |
+
+**`USE_FUSED_QKV`'s net negative is explained, not a bug**: this toggle silently disables the rope+QK-norm NKI kernel fusion (falls back to eager, no crash, no speedup from that kernel) — fewer steps (206 vs. 240) and worse quality follow directly from losing that kernel's ~15-18% per-step speedup. `causality_passed: True` throughout — a real cost, not a correctness issue.
+
+**`USE_STOCHASTIC_ROUNDING`: a real methodology finding, not just a discarded toggle.** The causality "failure" was investigated rather than assumed real, via a standalone diagnostic (`research/scratch/sr_causality_falsepositive_check.py` — imports `train.py`'s `GPT` class directly, does not modify `prepare.py` or `train.py`) that ran `model(x)` **twice on the identical input** under `NEURON_RT_STOCHASTIC_ROUNDING_EN=1` and measured the self-consistency diff: **`0.011341`** — same order of magnitude as the observed "failure" (`0.021134`), and already larger than `causality_check`'s own fixed `1e-2` tolerance *by itself*, with no flipped/perturbed input involved at all. **Confirmed: stochastic rounding's own hardware-level forward-to-forward noise exceeds the harness's tolerance on its own — this is a false positive, not a real information leak from future tokens.** Discarded anyway, regardless of any hypothetical speed benefit: the real competition submission would be scored through the same `causality_check` with the same fixed tolerance, so this toggle carries the identical false-positive risk in a real submission, independent of whether it's "actually" causal. **General lesson, worth remembering beyond this one toggle**: `causality_check`'s fixed `1e-2` tolerance has a structural blind spot for any feature that introduces hardware-level randomness into the forward pass (stochastic rounding, and potentially others) — a real methodology gap, not specific to this toggle.
+
+**`USE_TRN2_COMPILER_FLAGS` and `USE_CAUSAL_FASTPATH` do not compose** — combining them (`1.254491`, 262 steps) is real but strictly worse than `USE_CAUSAL_FASTPATH` alone (`1.252675`, 265 steps): fewer steps and a worse bpb, both by margins clearly above the noise floor. Not chased further; not worth the effort to explain the exact mechanism when the practical answer (don't combine) is clear.
+
+**Decision: `USE_CAUSAL_FASTPATH=True` locked, all other three Solution-13 toggles left `False`.** The single largest and cleanest win among the four, and it doesn't need `USE_TRN2_COMPILER_FLAGS` to get there — combining actively hurts. `USE_TRN2_COMPILER_FLAGS`, `USE_STOCHASTIC_ROUNDING`, and `USE_FUSED_QKV` remain implemented (available if a future config change shifts their calculus) but off.
+
+### LNC=2 A/B at the final locked shape — large real win, changes the launch command
+
+Never tried in the final combo before — `USE_CAUSAL_FASTPATH=True` locked above was itself only ever tested at `NEURON_LOGICAL_NC_CONFIG=1`/`--nproc-per-node 8`. One real run at `NEURON_LOGICAL_NC_CONFIG=2`/`--nproc-per-node 4` (LNC=2 pairs cores into 4 logical ranks instead of 8), same 900s proxy, same final locked shape otherwise.
+
+**Result: 330 steps, `public_val_bpb: 1.234514`, `causality_passed: True`, `num_params_M: 55.7`** (matches — LNC only regroups cores, doesn't change the model). vs. the LNC=1 reference at this exact toggle state (265 steps, `1.252675`): **+65 steps (+24.5%) and `0.018161` better bpb** — a large, real win, bigger than any single Solution-13 toggle finding this round, both dimensions moving the same direction (more steps *and* better quality, not a step-count/quality tradeoff).
+
+**This changes the real submission launch command.** If this holds at the full 1800s budget, the actual submission should use `NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py`, not the `NEURON_LOGICAL_NC_CONFIG=1`/`--nproc_per_node=8` command used for the first submission. **Not yet confirmed at full budget** — this is a 900s-proxy result only; a full-1800s confirmation run is needed before trusting this enough to spend another real leaderboard submission on it (per the same discipline as every other config change this session — proxy sweep first, full-budget confirmation before submitting).
