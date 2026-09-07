@@ -628,5 +628,11 @@ compile. `N=25` distorts the multiplier by at most 0.02 (2% of peak LR).
 
 `dt` stays `0.89-0.91 s` right through the cooldown in the `N=25` arm, with an isolated
 `3.2 s` step each time the schedule crosses a level — exactly the predicted signature.
-2.1x the steps and −0.235 bpb at a 300s budget. Real-budget (900s/1800s) confirmation runs
-follow.
+2.1x the steps and −0.235 bpb at a 300s budget.
+
+**Real 900s budget confirmation (`lrmq25-900s`): 1004 steps, `public_val_bpb` 1.093785**
+(`training_seconds` 896.6, `startup_allowance_est` 44.1, `total_seconds` 928.5,
+`over_budget` false, `causality_passed` true / `causality_max_abs` 0.0, `num_params_M` 55.7
+unchanged), against the continuous schedule's 427 steps / 1.180633 at the same budget --
+2.35x the steps, −0.0868 bpb. It also beats the previous **full-1800s** best
+(`depth6-beta095-fullbudget`, 847 steps / 1.108697) while using half the wall clock.
