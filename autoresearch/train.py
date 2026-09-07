@@ -174,6 +174,11 @@ class GPT(nn.Module):
             torch.nn.init.zeros_(block.mlp.c_proj.weight)
         self.resid_lambdas.data.fill_(1.0)
         self.x0_lambdas.data.fill_(0.05)
+        # EXPERIMENT: on top of the confirmed (repeat-checked) value-residual keep --
+        # testing whether a small non-zero init lets the mechanism engage faster within
+        # this tool's very short 300s horizon, instead of the model having to learn the
+        # benefit from a zero-init cold start.
+        self.v_lambda.data.fill_(0.3)
 
     def setup_optimizer(self):
         matrix_params = list(self.transformer.h.parameters())
