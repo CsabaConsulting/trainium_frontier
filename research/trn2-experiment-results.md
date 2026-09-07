@@ -527,3 +527,45 @@ Found by the autonomous `autoresearch` loop's non-capacity structural exploratio
 **A new instance of the scale-transfer trap already seen with XSA and SLAY this competition, but via a different mechanism this time.** Autoresearch's own environment (eager, no `torch.compile`, no NKI kernels, a much simpler model file) doesn't share the same failure mode this hits here: keeping `v0` (a full `[B,T,H,D]` activation, the same size as any layer's own V) alive across the *entire* network depth, needed for both the forward injection and the backward pass through every later layer, is a real new memory-bandwidth/liveness cost that plausibly interacts badly with `torch.compile`'s own graph-level memory/fusion assumptions — consistent with the post-compile re-profile's own finding that TensorE matmul efficiency and memory traffic are already the tightest constraints in this compiled graph, not fusion opportunity. Not chased further with a fix-and-retry this round (e.g. avoiding the extra return-value plumbing for layers that discard it) — a real, measured negative at the shape that actually matters, and Occam's-razor mechanism (real cost, not an internal harness bug) is well-supported by the profile evidence already in hand.
 
 **Decision: `USE_VALUE_RESIDUAL=False`.** Real, correctly-implemented, verified-real published technique — doesn't transfer to this competition's actual hardware regime. Code remains in the file (off by default), matching this session's standing pattern for honest negative results.
+
+## FP8 training-path precision — Phase 1 (offline correctness harness), design research + real numbers
+
+Full FP8 delayed-scaling/current-scaling research pass (real, verified against NVIDIA
+Transformer Engine's own documentation and `modded-nanogpt` records #84/#89) landed on a
+concrete, de-risked design: **current-scaling** (each tensor's own amax, no
+delayed-scaling amax-history — sidesteps TE's own documented 50-200-step warmup
+instability, a bigger fraction of this competition's ~850-step budget than of a normal
+long pretrain), **forward-only fp8** (both operands cast to `float8_e4m3fn` for the
+matmul itself), **backward stays bf16/fp32** (de-risked — gradient quantization is a
+separate, unvalidated risk this pass doesn't take on yet). Real precedent found at a
+comparable step-count scale (`modded-nanogpt`'s own FP8-MLP records, ~700-1400-step runs)
+— unlike XSA/SLAY/value-residual, which only had big-scale evidence before failing here,
+this is the first "found via real research already at a scale that matches" candidate.
+
+**Offline equivalence harness** (`research/scratch/fp8_linear_equiv.py`, CPU-only,
+`torch.float8_e4m3fn` is CPU-constructible without a Neuron device, doesn't touch
+`train.py`): real MLP-shape weights (`n_embd=640`, `4×n_embd` hidden, real `INIT_SCALE`
+uniform init), swept activation magnitude `0.1`-`10.0`.
+
+- **Forward relative L2 error: `0.0364`-`0.0370`, flat across the entire activation-scale
+  sweep** (current-scaling correctly normalizes out the scale dependence — a real,
+  meaningful ~3.6% per-matmul quantization cost, not a small-perturbation "basically
+  free" result. Worth going into hardware testing with eyes open about this, not assuming
+  it's negligible.
+- **Backward gradients: exact (`0.0000` relative error), no NaN** — confirms the
+  de-risked-backward design is implemented as intended (gradients computed against the
+  original full-precision tensors, only the forward matmul actually experiences fp8
+  quantization).
+- **Numerical-stability sweep, 9 orders of magnitude of activation scale (`1e-3` to
+  `1e6`): zero NaN/Inf anywhere** — current-scaling's dynamic per-tensor normalization is
+  robust, as expected (unlike a fixed/static scale which could overflow at extreme
+  inputs).
+
+**Honest open question, not yet resolved**: whether a real ~3.6%-per-matmul forward noise,
+applied to both MLP matmuls in every one of `DEPTH=6` layers, compounds through the
+residual stream into something that hurts real training, or stays bounded/tolerable
+(transformer residual connections are additive, not multiplicative, so catastrophic
+compounding isn't the obvious default expectation — but this is exactly the kind of thing
+to verify with a real loss-trajectory smoke test, not settle by more offline reasoning).
+Real-hardware correctness smoke test (causality + loss-trajectory sanity) is next, once
+`local_conv` kernel work frees up the shared Trn2 device.
