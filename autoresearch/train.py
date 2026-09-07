@@ -5,7 +5,11 @@ Edit hyperparameters below, run `python train.py`, compare val_bpb.
 
 import os
 os.environ["NEURON_CC_FLAGS"] = "--model-type=transformer --optlevel=3 --enable-saturate-infinity --enable-fast-loading-neuron-binaries"
-os.environ["NEURON_RT_STOCHASTIC_ROUNDING_EN"] = "1"
+# Stochastic rounding turned OFF (was unconditionally on): the main train.py found this
+# permanently disqualified for a real submission -- causality_check's fixed tolerance has
+# a structural blind spot for SR's own hardware forward-noise, a false positive but a real
+# submission would hit the identical risk regardless of any speed benefit. Leaving it on
+# here would make any "improvement" this loop finds misleading (wouldn't transfer).
 
 import gc
 import time
@@ -26,13 +30,13 @@ from prepare import (
 # Hyperparameters
 # ---------------------------------------------------------------------------
 
-SEQ_LEN = 1024
-DEPTH = 8
-ASPECT_RATIO = 64
+SEQ_LEN = 2048  # locked, see ../research/trn2-experiment-results.md (real interior optimum, robust to torch.compile per the Tier-1 spot-check)
+DEPTH = 6  # locked, real interior optimum, robust to torch.compile (Tier-1 spot-check found DEPTH=5 wins at short budgets but loses at the real 30-min scale -- this 5-min tool's budget is even shorter, so DEPTH=6 may not be the true optimum for THIS tool's own budget; worth the loop re-checking on its own, not assumed)
+ASPECT_RATIO = 96  # locked, real interior optimum
 HEAD_DIM = 128
 
 DEVICE_BATCH_SIZE = 16
-TOTAL_BATCH_SIZE = 32768
+TOTAL_BATCH_SIZE = 131072  # locked, real optimum (re-validated at n_embd=640)
 TIME_BUDGET = 300
 
 LOGIT_SOFTCAP = 11.0
