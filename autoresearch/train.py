@@ -31,7 +31,7 @@ from prepare import (
 # ---------------------------------------------------------------------------
 
 SEQ_LEN = 2048  # locked, see ../research/trn2-experiment-results.md (real interior optimum, robust to torch.compile per the Tier-1 spot-check)
-DEPTH = 6  # locked, real interior optimum, robust to torch.compile (Tier-1 spot-check found DEPTH=5 wins at short budgets but loses at the real 30-min scale -- this 5-min tool's budget is even shorter, so DEPTH=6 may not be the true optimum for THIS tool's own budget; worth the loop re-checking on its own, not assumed)
+DEPTH = 5  # EXPERIMENT: re-checking whether the real 30-min-budget optimum (DEPTH=6) holds at this tool's own 6x-shorter 5-min single-core proxy budget. Real competition found DEPTH=5 wins decisively at short torch.compile proxies but loses at 30-min scale -- testing if that budget-dependent effect reproduces here (no compile, even shorter horizon).
 ASPECT_RATIO = 96  # locked, real interior optimum
 HEAD_DIM = 128
 
