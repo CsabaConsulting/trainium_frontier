@@ -637,5 +637,16 @@ unchanged), against the continuous schedule's 427 steps / 1.180633 at the same b
 2.35x the steps, −0.0868 bpb. It also beats the previous **full-1800s** best
 (`depth6-beta095-fullbudget`, 847 steps / 1.108697) while using half the wall clock.
 
-Grid-size sweep at 900s (`--lrm-quantum`): **25 -> 1004 / 1.093785**, 50 -> 936 / 1.099500.
-Fewer compiles beat a finer schedule, so the direction is coarser, not finer.
+Grid-size sweep at 900s (`--lrm-quantum`): 12 -> 982 / 1.095435, **25 -> 1004 / 1.093785**,
+50 -> 936 / 1.099500 -- shallow optimum around 25, and fewer compiles beat a finer schedule.
+
+**Root-cause fix, no quantisation needed** (`--tensor-lr-scalars`,
+`MuonAdamW._device_scalar`): hold the per-step `lr` in a persistent device tensor and drop
+the single `alpha=` in the file, and the *exact* continuous cooldown runs at `dt 0.90s` from
+step 10 to the last step, with `lrm` changing every step and no compile spikes at all --
+**995 steps / 1.094327 at 900s** (startup allowance 62.2s, i.e. 18s more than the Q=25 arm
+paid, so its steady throughput is if anything the better of the two). That is the direct
+confirmation of the mechanism: the Python-float `lr` was the sole trigger.
+
+All four arms are budget-clean (`over_budget` false) with `causality_passed` true and
+`causality_max_abs` 0.0.
