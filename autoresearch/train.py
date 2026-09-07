@@ -135,6 +135,13 @@ class GPT(nn.Module):
         self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
         self.resid_lambdas = nn.Parameter(torch.ones(config.n_layer))
         self.x0_lambdas = nn.Parameter(torch.zeros(config.n_layer))
+        # EXPERIMENT: Mamba-selective-inspired input-dependent per-token gating of the
+        # static resid_lambdas/x0_lambdas scalars. Each layer gets a cheap (n_embd -> 1)
+        # linear producing a per-token scalar gate in [0, 2] via sigmoid*2, initialized to
+        # gate==1 (zero weight, zero bias) so the model starts out IDENTICAL to the static
+        # baseline and only deviates as it learns which tokens want more/less residual mix.
+        self.resid_gate = nn.ModuleList([nn.Linear(config.n_embd, 1, bias=True) for _ in range(config.n_layer)])
+        self.x0_gate = nn.ModuleList([nn.Linear(config.n_embd, 1, bias=True) for _ in range(config.n_layer)])
         head_dim = config.n_embd // config.n_head
         cos, sin = self._precompute_rotary(config.sequence_len, head_dim)
         self.register_buffer("cos", cos, persistent=False)
@@ -166,17 +173,22 @@ class GPT(nn.Module):
             torch.nn.init.zeros_(block.mlp.c_proj.weight)
         self.resid_lambdas.data.fill_(1.0)
         self.x0_lambdas.data.fill_(0.05)
+        for gate in list(self.resid_gate) + list(self.x0_gate):
+            torch.nn.init.zeros_(gate.weight)
+            torch.nn.init.zeros_(gate.bias)
 
     def setup_optimizer(self):
         matrix_params = list(self.transformer.h.parameters())
         embedding_params = list(self.transformer.wte.parameters())
         lm_head_params = list(self.lm_head.parameters())
         scalar_params = [self.resid_lambdas, self.x0_lambdas]
+        gate_params = [p for gate in list(self.resid_gate) + list(self.x0_gate) for p in gate.parameters()]
         dmodel_lr_scale = (self.config.n_embd / 768) ** -0.5
         param_groups = [
             dict(kind='adamw', params=embedding_params, lr=EMBEDDING_LR * dmodel_lr_scale, betas=ADAM_BETAS, eps=1e-10, weight_decay=0.0),
             dict(kind='adamw', params=lm_head_params, lr=UNEMBEDDING_LR * dmodel_lr_scale, betas=ADAM_BETAS, eps=1e-10, weight_decay=0.0),
             dict(kind='adamw', params=scalar_params, lr=SCALAR_LR, betas=(0.9, 0.95), eps=1e-10, weight_decay=0.0),
+            dict(kind='adamw', params=gate_params, lr=MATRIX_LR, betas=ADAM_BETAS, eps=1e-10, weight_decay=0.0),
         ]
         for shape in sorted({p.shape for p in matrix_params}):
             group_params = [p for p in matrix_params if p.shape == shape]
@@ -195,7 +207,9 @@ class GPT(nn.Module):
         x = self.transformer.wte(idx)
         x0 = x
         for i, block in enumerate(self.transformer.h):
-            x = self.resid_lambdas[i] * x + self.x0_lambdas[i] * x0
+            resid_gate = torch.sigmoid(self.resid_gate[i](x)) * 2.0
+            x0_gate = torch.sigmoid(self.x0_gate[i](x)) * 2.0
+            x = resid_gate * self.resid_lambdas[i] * x + x0_gate * self.x0_lambdas[i] * x0
             x = block(x, cos, sin)
         x = norm(x)
         logits = self.lm_head(x)
