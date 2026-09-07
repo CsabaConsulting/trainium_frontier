@@ -53,6 +53,15 @@ WARMUP_RATIO = 0.0
 WARMDOWN_RATIO = 0.0
 FINAL_LR_FRAC = 0.02
 
+# EXPERIMENT: prefix-token-prediction auxiliary loss (modded-nanogpt record #88 inspired).
+# Best-effort interpretation given ambiguity in the technique name: deep supervision --
+# an auxiliary next-token cross-entropy loss computed from the "prefix" of the network
+# (an early/middle layer's hidden state), sharing lm_head (zero extra params), on the
+# theory that forcing the early layers to already be predictive is free signal that may
+# help more at a short training horizon. AUX_LOSS_WEIGHT=0 disables it entirely.
+AUX_LOSS_WEIGHT = 0.1
+AUX_LAYER_FRAC = 0.5  # attach the auxiliary head after this fraction of the depth
+
 # ---------------------------------------------------------------------------
 # Model
 # ---------------------------------------------------------------------------
@@ -194,15 +203,25 @@ class GPT(nn.Module):
         cos, sin = self.cos[:, :T], self.sin[:, :T]
         x = self.transformer.wte(idx)
         x0 = x
+        n_layer = len(self.transformer.h)
+        aux_layer_idx = min(n_layer - 2, max(0, round(n_layer * AUX_LAYER_FRAC) - 1))
+        aux_logits = None
         for i, block in enumerate(self.transformer.h):
             x = self.resid_lambdas[i] * x + self.x0_lambdas[i] * x0
             x = block(x, cos, sin)
+            if targets is not None and AUX_LOSS_WEIGHT > 0 and i == aux_layer_idx:
+                aux_logits = self.lm_head(norm(x))
+                aux_logits = LOGIT_SOFTCAP * torch.tanh(aux_logits / LOGIT_SOFTCAP)
         x = norm(x)
         logits = self.lm_head(x)
         logits = LOGIT_SOFTCAP * torch.tanh(logits / LOGIT_SOFTCAP)
         if targets is None:
             return logits
-        return F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1), ignore_index=-1)
+        loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1), ignore_index=-1)
+        if aux_logits is not None:
+            aux_loss = F.cross_entropy(aux_logits.view(-1, aux_logits.size(-1)), targets.view(-1), ignore_index=-1)
+            loss = loss + AUX_LOSS_WEIGHT * aux_loss
+        return loss
 
 
 # ---------------------------------------------------------------------------
