@@ -381,3 +381,132 @@ prototype's naive chunking).
 have real, hardware/research-confirmed "skip this round" verdicts. Returning focus to
 Bucket A-E work (torch.compile Bucket E, remaining Bucket C/D items) per the plan's own
 execution order.
+
+### Phase 3 — real NKI-kernel attempt, gated at the measurement step. Verdict: do not build.
+
+Re-opened at the user's explicit request: the Phase 2 negative measured a *naive PyTorch*
+implementation, whose 467-1338x gap was dominated by per-op dispatch overhead — not a
+verdict on a genuinely fused kernel. This phase asks the fair question: **could a real,
+well-optimized, fully-fused NKI kernel close that gap?** Per the instruction to
+"measure before you build anything elaborate," the gate ran first.
+
+`research/scratch/slay_nki_feasibility.py` — offline, CPU-only, numpy-only.
+**Zero hardware time used** (no device contention, nothing to schedule around).
+
+Three independent gates. Real Trn2 datasheet numbers throughout (NeuronCore-v3, from the
+NKI arch guide, not estimated): TensorE 79 BF16 dense TFLOPS = 3.95e13 MAC/s; VectorE 512
+BF16 elem/cycle @ 0.96 GHz = 4.92e11 elem/s; ScalarE 128 elem/cycle @ 1.2 GHz = 1.54e11
+elem/s. **The engine ratios are the headline hardware fact: TensorE:VectorE = 80:1,
+TensorE:ScalarE = 257:1.**
+
+**Gate A — cost model (engine-aware, perfect 100%-of-peak kernel, perfect overlap).**
+Modelled the *best case* SLAY, deliberately stronger than either prior prototype. Phase 1
+used exact `vec(uu^T)` (`d²`=16384 at d=128, unusable); Phase 2 used the tensor product
+`m = R·P·prf_dim` (4096 at modest settings). Both are more expensive than necessary: since
+`x²e^{ax} = d²/da² e^{ax}`, differentiating the PRF estimator twice in the quadrature
+parameter gives features for the *combined* `x²e^{ax}` kernel directly, so the polynomial
+and exponential factors need not be tensored — `m = c·R·prf_dim` with `c≈4` instead of
+`m = R·P·prf_dim`, roughly `P/c ≈ 8x` smaller, with the random projection shared across
+all R nodes. (Honest caveat: derivatives of a positive estimator are not positive, so this
+form sacrifices the strict-positivity that motivates SLAY's use of PRF. If the gate had
+passed we would owe it a real variance/stability study.)
+
+Results — and this is where the honest answer diverges from the expected one:
+
+- The model reproduces the measured baseline well. Causal flash SDPA at the locked shape:
+  best-overlap 0.238 ms fwd+bwd, worst-case 0.635 ms; **real measured 0.227 ms**. The
+  fused SDPA is running essentially at this hardware's ceiling — there is no
+  implementation slack to exploit. The model also independently reproduces
+  `trainium2_arch.md`'s own remark that self-attention on Trn2 is "ScalarE/VectorE
+  bound": ScalarE 0.068 ms ≈ TensorE 0.068 ms ≈ VectorE 0.064 ms per forward, i.e. the
+  op is balanced-to-elementwise-bound, not TensorE-bound.
+- **Gate A does NOT fail.** There is a real window: a perfect kernel at `m=256, C=128`
+  models at **0.50x SDPA** (2x faster); `m=512, C=128` at 0.84x. Above that it degrades
+  fast (`m=1024` → 1.62x slower; `m=4096`, Phase 2's setting → 6.3x slower, which is
+  what a perfectly-fused version of the Phase 2 measurement would have given, confirming
+  the 467x was indeed ~99% dispatch overhead).
+- Hard, formulation-independent ceiling: the two state matmuls cost `2·L·m·D` MACs and no
+  feature map can avoid them, vs causal SDPA's `L²·D`, so beating SDPA needs `m < L/2 =
+  1024`; adding the unavoidable intra-chunk `L·C·m` term tightens it to **m < 683 at
+  C=128** (512 at C=256, 341 at C=512).
+
+**Gate B — is the kernel representable at m ≤ 683? No.** This is what kills it.
+`E_sph(q,k) = f(q̂·k̂)` is a dot-product kernel on `S^{d-1}`, so its Mercer eigenspaces
+*are* the spherical harmonics, with multiplicity `N(d,n)`. At d=128: `N=1, 128, 8255,
+349504` for degrees 0,1,2,3. A feature map must spend `N(d,n)` dims to represent degree n.
+The `m ≤ 683` budget buys degrees 0-1 exactly (129 dims) and then only a ~554-dim slice of
+the **8255-dim degree-2 space (6.7%)** — and degree 2 is precisely the `x²` numerator that
+*is* the Yat kernel. Measured residuals of least-squares polynomial fits to `f` over the
+real `x` distribution at d=128:
+
+| poly degree | feature dims needed | residual rel err |
+|---|---|---|
+| 1 | 129 | 0.916 |
+| 2 | 8,384 | 0.445 |
+| 3 | 357,888 | 0.239 |
+
+Corroborating measurements:
+- **The initially-encouraging small Gram ranks are a sub-sampling artifact.** Numerical
+  rank at 95% energy climbs monotonically with sample size and never saturates: 96, 157,
+  243, 345, 448 at L=256…4096. The relevant object is the kernel *operator*, not one
+  `L×L` slice.
+- Even the **SVD-optimal, data-dependent oracle** — a ceiling no fixed feature map can
+  reach — has rel err **0.267 at m=256** and **0.166 at m=512** at the real L=2048, and
+  degrades further as L grows (0.294 / 0.207 at L=4096).
+- Real implementable maps in that window are far worse: Random Maclaurin (Phase 2's map)
+  approximating just the `(q̂·k̂)²` factor at d=128 has rel err **2.85 at P=700** and
+  **9.42 at P=64**; it needs P≈16384 to reach 0.589.
+- **The framework predicts the paper's own number**, which is real validation rather than
+  assertion: SLAY's best published config ("Anchor" features) reports `rel_l2 = 0.527`,
+  landing exactly between the degree-1 (0.916) and degree-2 (0.445) fits — where a map
+  capturing degrees 0-1 plus a partial degree-2 slice must land. **0.527 is not a tuning
+  failure by the authors; it is the harmonic budget at d=128.**
+- **This also retracts Phase 1's headline claim.** Phase 1's "every config beats the
+  paper's own accuracy (`rel_l2` 0.146 vs 0.527)" was an artifact of running at `d=8`,
+  where the exact degree-2 map costs `d(d+1)/2 = 36` dims and is therefore affordable.
+  That advantage does not exist at the real `d=128`. Phase 1 was not wrong about the math
+  being implementable — it was measuring a regime where the central obstruction is ~230x
+  weaker and thus invisible.
+
+**Conclusion: SLAY's affordable-m window and its accurate-m window do not overlap at
+d=128.** `m ≤ 683` to beat SDPA; `m ≥ 8384` to represent the kernel it is approximating.
+
+**Gate C — what a win would even be worth.** Independent of A and B, and on its own
+sufficient. Attention is 4.7% of the profiled step (Bucket C). Using the real
+step-count→bpb sensitivity from the DEPTH=5/6 A/B at the 900s proxy (+31% steps bought
+0.0045 bpb):
+
+| attention speedup | step time | extra steps | bpb gained |
+|---|---|---|---|
+| 1.5x | -1.57% | +1.59% | ~0.00023 |
+| 2.0x | -2.35% | +2.41% | ~0.00035 |
+| infinite | -4.70% | +4.93% | ~0.00072 |
+
+Against SLAY's own published quality cost vs standard softmax (val loss 4.6760 vs 4.6417
+= 0.74% relative → **~0.00926 bpb lost** at our 1.2527) — at 125M params / 2.5B tokens /
+full convergence, i.e. its most favourable published setting. **Even an infinitely fast
+attention gains ~13x less bpb than SLAY's best case costs**, and the best *modelled*
+kernel (2x) gains ~26x less. Our regime is far more under-trained than the paper's, with
+no reason the approximation gap would shrink.
+
+**Verdict: do not build the kernel.** Not because the fusion idea was wrong — Gate A
+confirms the user's instinct that the Phase 2 gap was almost entirely dispatch overhead,
+and that a perfect kernel really could be ~2x faster than SDPA in a narrow window. It
+fails because (B) that window is mathematically too narrow to hold the kernel SLAY is
+approximating at `head_dim=128`, and (C) even winning it would be worth ~26x less than
+the approximation's own quality cost. Both are first-principles results at the real shape,
+not scale-transfer guesses — a stronger and more specific basis for the negative than
+Phase 2's dispatch-overhead measurement.
+
+**What would change this verdict** (recorded so the track is deprioritized, not lost):
+- A much longer context. The obstruction is `m < L/2` versus `m ≥ 8384`, so the windows
+  only overlap at `L ≳ 17k`. That matches the SLAY paper's own scaling story (its wins
+  are demonstrated at 16K-128K tokens) — and directly explains why it does not transfer
+  here. Our own measured `SEQ_LEN` sweep found 2048 an interior optimum with 4096
+  *worse*, so this repo is moving away from that regime, not toward it.
+- A much smaller `head_dim`. The degree-2 cost is `d(d+1)/2`, so `d=32` needs 528 dims —
+  inside the budget. But `HEAD_DIM=128` is a separately-tuned locked choice, and shrinking
+  d also shrinks SDPA's cost proportionally, so this is a different experiment, not a fix.
+- Not fixable by a better kernel, a better random-feature scheme, or more quadrature
+  nodes. Gate B's bound holds for the paper's anchor features, Random Maclaurin, the
+  moment form derived here, and any map not yet invented.
