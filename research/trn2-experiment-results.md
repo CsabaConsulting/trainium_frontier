@@ -650,3 +650,12 @@ confirmation of the mechanism: the Python-float `lr` was the sole trigger.
 
 All four arms are budget-clean (`over_budget` false) with `causality_passed` true and
 `causality_max_abs` 0.0.
+
+**Full-1800s confirmation (`tensorlr-fullbudget`): 1995 steps, `public_val_bpb` 1.043489**
+(`training_seconds` 1794.4, `startup_allowance_est` 45.3, `charged_seconds_est` 1794.5,
+`over_budget` false, `total_seconds` 1826.2, `causality_passed` true / `causality_max_abs`
+0.0, `num_params_M` 55.7, 261.5M tokens, `dt 0.90s` all the way to step 1990) against the
+previous full-budget best `depth6-beta095-fullbudget` 847 steps / 1.108697 -- **2.36x the
+steps, -0.0652 bpb, new headline**. `USE_TENSOR_LR_SCALARS` is locked ON;
+`LRM_QUANTUM` stays 0 (the quantisation was only ever a workaround for the same problem and
+distorts the schedule).
