@@ -31,7 +31,7 @@ from prepare import (
 # ---------------------------------------------------------------------------
 
 SEQ_LEN = 2048  # locked, see ../research/trn2-experiment-results.md (real interior optimum, robust to torch.compile per the Tier-1 spot-check)
-DEPTH = 4  # EXPERIMENT: DEPTH=5 already beat DEPTH=6 decisively at this 5-min proxy budget (1.405->1.361). Pushing further to see if the budget-dependent-optimum trend continues to an even smaller model, or if DEPTH=5 was already the proxy-budget sweet spot.
+DEPTH = 6  # locked, real interior optimum, robust to torch.compile. Reverted back from an UNCONFIRMED DEPTH=4 5-min-proxy "keep" (see results.tsv) -- that capacity-affecting change was never rechecked at a longer budget before the session paused, so it should not be left in place confounding new (non-capacity) experiments.
 ASPECT_RATIO = 96  # locked, real interior optimum
 HEAD_DIM = 128
 
