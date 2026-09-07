@@ -190,6 +190,7 @@ WARMUP_STEPS = 0
 GRAD_CLIP = 0.0
 WARMDOWN_RATIO = 0.75   # fraction of max_train_seconds spent on LR cooldown (0 = old flat-after-warmup)
 FINAL_LR_FRAC = 0.05    # LR floor as a fraction of peak LR at the end of cooldown (1.0 = no floor effect)
+USE_TENSOR_LR_SCALARS = False  # carry the per-step lr in a device tensor instead of a Python float, so the optimizer graph is compiled once instead of once per lr value (see MuonAdamW._device_scalar)
 LRM_QUANTUM = 0         # >0: snap the LR multiplier onto a 1/LRM_QUANTUM grid, so the cooldown uses at most this many distinct lr values (see lr_multiplier); 0 = continuous, one new value per step
 WD_DECAY_TO_ZERO = True  # decay Muon's weight_decay linearly to 0 over the run instead of holding it constant
 MUON_MOMENTUM_WARMUP_STEPS = 300  # steps to ramp Muon momentum 0.85 -> 0.95
@@ -1224,10 +1225,32 @@ POLAR_EXPRESS_COEFFS = [
 class MuonAdamW(torch.optim.Optimizer):
     def __init__(self, param_groups):
         super().__init__(param_groups, defaults={})
+        self._scalar_cache: dict[int, dict[str, tuple[torch.Tensor, torch.Tensor]]] = {}
+
+    def _device_scalar(self, group, key: str, value: float, ref: torch.Tensor) -> torch.Tensor:
+        """Carry a per-step-changing hyperparameter in a persistent DEVICE tensor
+        instead of a Python float. Measured on Trn2: a Python-float lr is baked into
+        the Neuron graph as a constant, so a new value every step forces a fresh
+        neuronx-cc compile every step -- dt 0.90s -> 2.2-4.3s for the whole LR
+        cooldown, i.e. the last WARMDOWN_RATIO of every run. Writing the value into a
+        pre-allocated tensor keeps the graph shape-and-constant identical forever."""
+        cache = self._scalar_cache.setdefault(id(group), {})
+        entry = cache.get(key)
+        if entry is None:
+            entry = (torch.empty((), dtype=torch.float32),
+                     torch.zeros((), dtype=torch.float32, device=ref.device))
+            cache[key] = entry
+        host, dev = entry
+        host.fill_(float(value))
+        dev.copy_(host)
+        return dev
 
     @torch.no_grad()
     def _adamw_step(self, group):
         beta1, beta2 = group["betas"]
+        lr = group["lr"]
+        if USE_TENSOR_LR_SCALARS and group["params"]:
+            lr = self._device_scalar(group, "lr", lr, group["params"][0])
         for p in group["params"]:
             if p.grad is None:
                 continue
@@ -1240,13 +1263,18 @@ class MuonAdamW(torch.optim.Optimizer):
             state["step"] += 1
             exp_avg = state["exp_avg"]
             exp_avg_sq = state["exp_avg_sq"]
-            p.mul_(1 - group["lr"] * group["weight_decay"])
+            p.mul_(1 - lr * group["weight_decay"])
             exp_avg.lerp_(grad, 1 - beta1)
             exp_avg_sq.lerp_(grad.square(), 1 - beta2)
             bias1 = 1 - beta1 ** state["step"]
             bias2 = 1 - beta2 ** state["step"]
             update = exp_avg / bias1 / ((exp_avg_sq / bias2).sqrt() + group["eps"])
-            p.add_(update, alpha=-group["lr"])
+            if USE_TENSOR_LR_SCALARS:
+                # alpha= is the one place a Python float becomes a baked graph
+                # constant; as a tensor multiply it stays a runtime operand.
+                p.sub_(update * lr)
+            else:
+                p.add_(update, alpha=-lr)
 
     @torch.no_grad()
     def _muon_step(self, group):
@@ -1301,7 +1329,10 @@ class MuonAdamW(torch.optim.Optimizer):
         v_norm_new = scaled.sum(dim=(-2, -1), keepdim=True).sqrt()
         g = g * (step_size * (v_norm / v_norm_new.clamp_min(1e-10))).to(g.dtype)
 
-        lr = group["lr"] * max(1.0, shape[-2] / shape[-1]) ** 0.5
+        lr_base = group["lr"]
+        if USE_TENSOR_LR_SCALARS:
+            lr_base = self._device_scalar(group, "lr", lr_base, p0)
+        lr = lr_base * max(1.0, shape[-2] / shape[-1]) ** 0.5
         wd = group["weight_decay"]
         mask = (g * w) >= 0
         w.sub_(lr * g + lr * wd * w * mask)
@@ -1431,7 +1462,7 @@ def muon_momentum(step: int) -> float:
 
 
 def main() -> None:
-    global USE_LOCAL_CONV, LRM_QUANTUM        # the flags below default off the module constants
+    global USE_LOCAL_CONV, LRM_QUANTUM, USE_TENSOR_LR_SCALARS  # flags below default off these constants
     parser = argparse.ArgumentParser(description="Neuron Competition R1 baseline")
     parser.add_argument("--device-type", type=str, default="")
     parser.add_argument("--num-steps", type=int, default=int(os.environ.get("NEURON_COMPETITION_R1_NUM_STEPS", NUM_STEPS)))
@@ -1467,6 +1498,10 @@ def main() -> None:
                              "compute as wired (zero weight, in no optimizer group -- see the comment on "
                              "USE_LOCAL_CONV), so --no-local-conv is a bit-identical model; exposed as a "
                              "flag so the A/B runs from one identical binary.")
+    parser.add_argument("--tensor-lr-scalars", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_TENSOR_LR_SCALARS", "1" if USE_TENSOR_LR_SCALARS else "0") != "0",
+                        help="hold the per-step lr in a device tensor rather than a Python float, so a "
+                             "changing LR schedule stops forcing a fresh neuronx-cc compile every step")
     parser.add_argument("--lrm-quantum", type=int,
                         default=int(os.environ.get("NEURON_COMPETITION_R1_LRM_QUANTUM", LRM_QUANTUM)),
                         help="snap the LR multiplier onto a 1/N grid (0 = continuous). Each distinct "
@@ -1479,6 +1514,7 @@ def main() -> None:
     global USE_NKI_RELU2, USE_NKI_ROPE_NORM, USE_NKI_SOFTCAP_CE
     USE_LOCAL_CONV = args.local_conv          # read by Block.__init__, i.e. before GPT(config) below
     LRM_QUANTUM = args.lrm_quantum
+    USE_TENSOR_LR_SCALARS = args.tensor_lr_scalars
     USE_NKI_RELU2 = args.nki_relu2
     USE_NKI_ROPE_NORM = args.nki_rope_norm
     USE_NKI_SOFTCAP_CE = args.nki_softcap_ce

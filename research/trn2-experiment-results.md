@@ -636,3 +636,6 @@ compile. `N=25` distorts the multiplier by at most 0.02 (2% of peak LR).
 unchanged), against the continuous schedule's 427 steps / 1.180633 at the same budget --
 2.35x the steps, −0.0868 bpb. It also beats the previous **full-1800s** best
 (`depth6-beta095-fullbudget`, 847 steps / 1.108697) while using half the wall clock.
+
+Grid-size sweep at 900s (`--lrm-quantum`): **25 -> 1004 / 1.093785**, 50 -> 936 / 1.099500.
+Fewer compiles beat a finer schedule, so the direction is coarser, not finer.
