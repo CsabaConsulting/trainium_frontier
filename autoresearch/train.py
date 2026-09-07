@@ -141,11 +141,8 @@ class GPT(nn.Module):
         })
         self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
         self.resid_lambdas = nn.Parameter(torch.ones(config.n_layer))
+        self.x0_lambdas = nn.Parameter(torch.zeros(config.n_layer))
         self.v_lambda = nn.Parameter(torch.zeros(config.n_layer))  # value-residual learning, index 0 unused
-        # EXPERIMENT: simplicity-criterion ablation on top of the confirmed value-residual
-        # keep -- x0_lambdas (static embedding skip into every layer) removed entirely.
-        # Value-residual now gives the model a direct path back to early representations via
-        # V, so the old x0 skip may be redundant. If val_bpb ties or improves, simpler wins.
         head_dim = config.n_embd // config.n_head
         cos, sin = self._precompute_rotary(config.sequence_len, head_dim)
         self.register_buffer("cos", cos, persistent=False)
@@ -176,12 +173,13 @@ class GPT(nn.Module):
             torch.nn.init.uniform_(block.mlp.c_fc.weight, -s, s)
             torch.nn.init.zeros_(block.mlp.c_proj.weight)
         self.resid_lambdas.data.fill_(1.0)
+        self.x0_lambdas.data.fill_(0.05)
 
     def setup_optimizer(self):
         matrix_params = list(self.transformer.h.parameters())
         embedding_params = list(self.transformer.wte.parameters())
         lm_head_params = list(self.lm_head.parameters())
-        scalar_params = [self.resid_lambdas, self.v_lambda]
+        scalar_params = [self.resid_lambdas, self.x0_lambdas, self.v_lambda]
         dmodel_lr_scale = (self.config.n_embd / 768) ** -0.5
         param_groups = [
             dict(kind='adamw', params=embedding_params, lr=EMBEDDING_LR * dmodel_lr_scale, betas=ADAM_BETAS, eps=1e-10, weight_decay=0.0),
@@ -203,9 +201,10 @@ class GPT(nn.Module):
         B, T = idx.shape
         cos, sin = self.cos[:, :T], self.sin[:, :T]
         x = self.transformer.wte(idx)
+        x0 = x
         v0 = None
         for i, block in enumerate(self.transformer.h):
-            x = self.resid_lambdas[i] * x
+            x = self.resid_lambdas[i] * x + self.x0_lambdas[i] * x0
             x, v_raw = block(x, cos, sin, v0, self.v_lambda[i] if i > 0 else None)
             if v0 is None:
                 v0 = v_raw
