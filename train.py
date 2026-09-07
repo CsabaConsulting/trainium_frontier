@@ -185,6 +185,7 @@ MATRIX_LR = 0.025
 SCALAR_LR = 0.20
 WEIGHT_DECAY = 0.10
 VE_WD = 0.0  # weight decay for the value_embeds AdamW group (separate from the shared embedding_params group)
+EMBED_ADAMW_BETA2 = 0.95  # Tier-1 real win at final locked shape (900s: 427/1.180633 vs 0.995's 406/1.190086, both dimensions better) -- HLAT (7B/70B pretrain) used beta2=0.95, deferred pending Solution 11, now confirmed standalone. See trn2-experiment-results.md
 WARMUP_STEPS = 0
 GRAD_CLIP = 0.0
 WARMDOWN_RATIO = 0.75   # fraction of max_train_seconds spent on LR cooldown (0 = old flat-after-warmup)
@@ -1131,12 +1132,12 @@ class GPT(nn.Module):
         value_embed_params = list(self.value_embeds.parameters())
         dmodel_lr_scale = (self.config.n_embd / 768) ** -0.5
         param_groups = [
-            dict(kind="adamw", params=embedding_params, lr=EMBEDDING_LR * dmodel_lr_scale, betas=(0.8, 0.995), eps=1e-10, weight_decay=0.001),
+            dict(kind="adamw", params=embedding_params, lr=EMBEDDING_LR * dmodel_lr_scale, betas=(0.8, EMBED_ADAMW_BETA2), eps=1e-10, weight_decay=0.001),
             dict(kind="adamw", params=lm_head_params, lr=UNEMBEDDING_LR * dmodel_lr_scale, betas=(0.8, 0.96), eps=1e-10, weight_decay=0.01),
             dict(kind="adamw", params=scalar_params, lr=SCALAR_LR, betas=(0.9, 0.95), eps=1e-10, weight_decay=0.0),
         ]
         if value_embed_params:
-            param_groups.append(dict(kind="adamw", params=value_embed_params, lr=EMBEDDING_LR * dmodel_lr_scale, betas=(0.8, 0.995), eps=1e-10, weight_decay=VE_WD))
+            param_groups.append(dict(kind="adamw", params=value_embed_params, lr=EMBEDDING_LR * dmodel_lr_scale, betas=(0.8, EMBED_ADAMW_BETA2), eps=1e-10, weight_decay=VE_WD))
         for shape in sorted({p.shape for p in matrix_params}):
             params = [p for p in matrix_params if p.shape == shape]
             param_groups.append(dict(kind="muon", params=params, lr=MATRIX_LR, momentum=0.95, beta2=0.90, ns_steps=5, weight_decay=WEIGHT_DECAY))
