@@ -1,0 +1,172 @@
+diff --git a/train.py b/train.py
+index 8adc2b1..0e6ca99 100644
+--- a/train.py
++++ b/train.py
+@@ -848,2 +848,114 @@ except Exception:  # nki unavailable (e.g. CPU/GPU dev box) — eager path still
+ 
++# -----------------------------------------------------------------------------
++# Compile-traceable registration of the two NKI kernels (torch.library custom ops)
++#
++# WHY. The two `torch.autograd.Function`s above are opaque to Dynamo: `.apply` is
++# not traceable, so `torch.compile(backend="neuron")` graph-breaks around every
++# call and each kernel ends up as its own standalone NEFF that cannot fuse with
++# the surrounding compiled graph. The post-compile re-profile measured this as
++# rope+QK-norm 3.9% and softcap+CE 2.1% exposed time (both ~100% exposed) — a
++# real cost introduced *by* adopting compile, absent in eager mode.
++#
++# HOW. `torch_neuronx` ships a purpose-built integration for exactly this
++# (torch_neuronx/nki_hop.py, example in examples/compile/nki_integration.py):
++#   * `wrap_nki(kernel)` turns an `@nki.jit` kernel into a callable backed by the
++#     `nki_kernel_wrapper` HigherOrderOperator, which is `allow_in_graph`'d and
++#     has Meta / FakeTensorMode / ProxyTorchDispatchMode implementations. The
++#     fake/meta shape inference is derived automatically by tracing the kernel
++#     with meta tensors (`dump_config(...).return_types`) — so no hand-written
++#     Meta kernel is needed or wanted here; hand-writing one would be a second,
++#     drift-prone copy of the kernel's own shape logic.
++#   * `nki_op(name, mutates_args=...)` wraps that in a real
++#     `torch.library.custom_op` (it calls `torch._library.custom_ops.custom_op`
++#     + `register_fake` + a `FunctionalTensorMode` torch_dispatch rule so
++#     AOTAutograd inlines the body instead of treating it as opaque).
++# Autograd is then wired with `torch.library.register_autograd`, which replaces
++# the `torch.autograd.Function` entirely rather than nesting inside it.
++#
++# torch 2.11.0 / torch-neuronx 2.11.3.0.0 on the box: `torch.library.__all__`
++# contains `custom_op`, `register_fake`, `register_autograd` (verified by
++# introspection, not assumed), so the modern API is available and the older
++# `Library`/`impl_abstract` route is unnecessary.
++#
++# Registration failures are isolated: `_HAS_NKI_CUSTOM_OPS` goes False and the
++# `torch.autograd.Function` path above stays fully intact.
++_HAS_NKI_CUSTOM_OPS = False
++_NKI_CUSTOM_OPS_ERR = ""
++if _HAS_NKI:
++    try:
++        from torch_neuronx import nki_op as _nki_op, wrap_nki as _wrap_nki
++
++        def _hop(kernel):
++            """wrap_nki() defaults the HOP grid to [] (=> lnc 1); nki's own
++            auto-routing (nki.framework.kernel.wrap_nki_to_torch_hop) uses
++            [kernel.lnc]. Both are lnc=1 on this stack (checked: nki.jit's `lnc`
++            field is 1 and ignores NEURON_LOGICAL_NC_CONFIG), but pin it
++            explicitly so the two paths cannot diverge if that default changes.
++            """
++            return _wrap_nki(kernel)[kernel.lnc]
++
++        _hop_rope_norm_fwd = _hop(_rope_norm_fwd)
++        _hop_rope_norm_bwd = _hop(_rope_norm_bwd)
++        _hop_softcap_ce_fwd = _hop(_softcap_ce_fwd)
++        _hop_softcap_ce_bwd = _hop(_softcap_ce_bwd)
++
++        # --- rope + QK-norm -------------------------------------------------
++        # x is [N, H, D] (N = B*T), cos/sin are [T, D/2]. The [B,T,H,D] <-> [N,H,D]
++        # reshapes deliberately stay OUTSIDE the op (in `rope_norm` below) so the
++        # op is shape-pure and the compiler owns the views.
++        @_nki_op("tfc::rope_norm", mutates_args={})
++        def _rope_norm_op(x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor) -> torch.Tensor:
++            return _hop_rope_norm_fwd(x, cos, sin)
++
++        @_nki_op("tfc::rope_norm_bwd", mutates_args={})
++        def _rope_norm_bwd_op(x: torch.Tensor, grad: torch.Tensor, cos: torch.Tensor,
++                              sin: torch.Tensor) -> torch.Tensor:
++            return _hop_rope_norm_bwd(x, grad, cos, sin)
++
++        def _rope_norm_setup_ctx(ctx, inputs, output):
++            x, cos, sin = inputs
++            ctx.save_for_backward(x, cos, sin)
++
++        def _rope_norm_autograd_bwd(ctx, grad_out):
++            x, cos, sin = ctx.saved_tensors
++            # .contiguous() matches the autograd.Function path verbatim; a no-op
++            # (elided by the compiler) when the incoming grad is already dense.
++            return _rope_norm_bwd_op(x, grad_out.contiguous(), cos, sin), None, None
++
++        torch.library.register_autograd(
++            "tfc::rope_norm", _rope_norm_autograd_bwd, setup_context=_rope_norm_setup_ctx)
++
++        # --- softcap + cross-entropy ----------------------------------------
++        # z is [N, V] fp32, tgt is [N, 1] fp32. Returns (loss [N,1], lse [N,1]);
++        # lse is only carried to the backward, and the [N,1] -> [N] reshape of the
++        # loss stays outside the op for the same reason as above.
++        @_nki_op("tfc::softcap_ce", mutates_args={})
++        def _softcap_ce_op(z: torch.Tensor, tgt: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
++            return _hop_softcap_ce_fwd(z, tgt)
++
++        @_nki_op("tfc::softcap_ce_bwd", mutates_args={})
++        def _softcap_ce_bwd_op(z: torch.Tensor, tgt: torch.Tensor, lse: torch.Tensor,
++                               g: torch.Tensor) -> torch.Tensor:
++            return _hop_softcap_ce_bwd(z, tgt, lse, g)
++
++        def _softcap_ce_setup_ctx(ctx, inputs, output):
++            z, tgt = inputs
++            _loss, lse = output
++            ctx.save_for_backward(z, tgt, lse)
++            # lse is bookkeeping, not a differentiable output: marking it so keeps
++            # autograd from materialising a zero grad for it every step.
++            ctx.mark_non_differentiable(lse)
++
++        def _softcap_ce_autograd_bwd(ctx, grad_loss, _grad_lse):
++            z, tgt, lse = ctx.saved_tensors
++            g = grad_loss.reshape(-1, 1).float().contiguous()
++            return _softcap_ce_bwd_op(z, tgt, lse, g), None
++
++        torch.library.register_autograd(
++            "tfc::softcap_ce", _softcap_ce_autograd_bwd, setup_context=_softcap_ce_setup_ctx)
++
++        _HAS_NKI_CUSTOM_OPS = True
++    except Exception as _exc:  # torch_neuronx too old / API moved: keep the old path
++        _NKI_CUSTOM_OPS_ERR = f"{type(_exc).__name__}: {_exc}"
++
+ # Toggled by the --nki-relu2 flag in main(). Default OFF: the shipped baseline is
+@@ -868,2 +868,9 @@ USE_NKI_ROPE_NORM = True
+ USE_NKI_SOFTCAP_CE = True
++# Toggled by --nki-custom-ops. When ON, both NKI kernels are invoked through their
++# `torch.library` custom ops (tfc::rope_norm / tfc::softcap_ce, registered above)
++# instead of through `torch.autograd.Function.apply`, so Dynamo can trace them
++# into the compiled graph instead of graph-breaking around them. Pure plumbing:
++# the same kernels, the same arguments, the same backward math -- see the
++# registration block for why this should be bit-identical.
++USE_NKI_CUSTOM_OPS = False
+ 
+@@ -888,3 +888,6 @@ def softcap_cross_entropy(logits: torch.Tensor, targets: torch.Tensor,
+             tgt = targets.reshape(-1, 1).to(torch.float32)
+-            per_token = _SoftcapCrossEntropyNKI.apply(z, tgt)
++            if USE_NKI_CUSTOM_OPS and _HAS_NKI_CUSTOM_OPS:
++                per_token = _softcap_ce_op(z, tgt)[0].reshape(-1)
++            else:
++                per_token = _SoftcapCrossEntropyNKI.apply(z, tgt)
+             if loss_reduction == "none":
+@@ -955,2 +955,9 @@ def rope_norm(x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor) -> torch.Te
+                 and cos.shape[1] == t and cos.shape[-1] == d // 2 and x.is_contiguous():
++            if USE_NKI_CUSTOM_OPS and _HAS_NKI_CUSTOM_OPS:
++                # Same reshapes the autograd.Function did internally, hoisted out
++                # so the custom op itself is a plain [N,H,D] -> [N,H,D] map.
++                h = x.shape[2]
++                y = _rope_norm_op(x.reshape(b * t, h, d),
++                                  cos.reshape(-1, d // 2), sin.reshape(-1, d // 2))
++                return y.reshape(b, t, h, d)
+             return _RopeNormNKI.apply(x, cos, sin)
+@@ -1494,2 +1494,8 @@ def main() -> None:
+                              "plain eager comparison path.")
++    parser.add_argument("--nki-custom-ops", action=argparse.BooleanOptionalAction,
++                        default=os.environ.get("NEURON_COMPETITION_R1_NKI_CUSTOM_OPS", "0") != "0",
++                        help="invoke the two NKI kernels through torch.library custom ops "
++                             "(tfc::rope_norm / tfc::softcap_ce, via torch_neuronx's nki_op/wrap_nki) "
++                             "instead of torch.autograd.Function, so torch.compile can trace them into "
++                             "the graph rather than graph-breaking around them. Same kernels, same math.")
+     parser.add_argument("--local-conv", action=argparse.BooleanOptionalAction,
+@@ -1513,3 +1513,3 @@ def main() -> None:
+ 
+-    global USE_NKI_RELU2, USE_NKI_ROPE_NORM, USE_NKI_SOFTCAP_CE
++    global USE_NKI_RELU2, USE_NKI_ROPE_NORM, USE_NKI_SOFTCAP_CE, USE_NKI_CUSTOM_OPS
+     USE_LOCAL_CONV = args.local_conv          # read by Block.__init__, i.e. before GPT(config) below
+@@ -1520,2 +1520,6 @@ def main() -> None:
+     USE_NKI_SOFTCAP_CE = args.nki_softcap_ce
++    USE_NKI_CUSTOM_OPS = args.nki_custom_ops
++    if USE_NKI_CUSTOM_OPS and not _HAS_NKI_CUSTOM_OPS:
++        print0(f"WARNING: --nki-custom-ops requested but registration failed "
++               f"({_NKI_CUSTOM_OPS_ERR or 'nki unavailable'}); using autograd.Function path")
+ 
+@@ -1751,2 +1751,3 @@ def main() -> None:
+         print(f"nki_softcap_ce:    {args.nki_softcap_ce}")
++        print(f"nki_custom_ops:    {args.nki_custom_ops and _HAS_NKI_CUSTOM_OPS}")
+         print(f"num_steps:         {step}")
