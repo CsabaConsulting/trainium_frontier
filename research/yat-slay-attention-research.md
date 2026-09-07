@@ -328,6 +328,56 @@ flagged in the plan — it does not resolve the *value* questions (does this hel
 regime specifically, is a causal-cumsum implementation fast enough on Trainium) — those
 are Phase 2's job, gated on a real hardware smoke test, not yet run.
 
-**Next**: Phase 2 (small, clearly-separated real-hardware smoke test) is a real Trn2
-time spend, however small — checking in with the user before launching it, per the
-plan's own gate for this phase.
+### Phase 2 — done, real hardware, decisive negative
+
+`research/scratch/slay_trn2_smoke.py` (real Trn2 device, `~/workspace/native_venv`,
+`torch.device("neuron")`, native eager — no XLA). Throughput-only: not a training run,
+does not import `train.py`, does not touch the locked default config, ran with the
+device otherwise idle (verified via `neuron-ls`/`ps` before launch, no in-flight Bucket
+A-E job).
+
+**Back-of-envelope FLOP estimate done first (before spending any hardware time)**: causal
+SDPA ≈ `L²·d ≈ 5.37e8` flops/head at the real shape (`L=2048, d=128`). SLAY's
+chunked-linear cost is `O(L·C·m)` (`C`=chunk size, `m=R·P·prf_dim` the feature dim).
+Beating SDPA on FLOPs alone needs `C·m < L·d = 262144` — e.g. `C<64` at a modest
+`m=4096` (`R=4,P=32,prf_dim=32`). Low-rank poly feature swapped in for Phase 1's exact
+`vec(uu^T)` (unusable at real `head_dim=128`, `d²=16384`): **Random Maclaurin features**
+(Kar & Karnick 2012) — `phi(u)_j=(1/√P)(a_j^Tu)(b_j^Tu)`, unbiased estimator of
+`(u^Tv)²`, pure matmul+elementwise, no FFT/hashing. A separate, established technique
+from Phase 1's oracle — not re-verified for accuracy here, this script's only job is
+throughput.
+
+**Real measured result at the exact locked shape (`B=1,H=5,L=2048,D=128`, fwd+bwd)**:
+
+| Config | m | ms/iter | vs SDPA (`0.227ms`) |
+|---|---|---|---|
+| SDPA (fused kernel) | — | 0.227 | 1.0x |
+| SLAY R=4,P=32,prf_dim=32,chunk=64 | 4096 | 304.4 | **1338x slower** |
+| SLAY R=4,P=32,prf_dim=32,chunk=256 | 4096 | 106.3 | **467x slower** |
+| SLAY R=3,P=16,prf_dim=16,chunk=64 | 768 | 172.0 | **756x slower** |
+
+Worse than the FLOP-only estimate predicted, and for a diagnosable reason: bigger chunk
+(fewer sequential Python-loop iterations, fewer NEFF dispatches) is *faster* despite
+identical FLOPs — confirms per-op dispatch-gap serialization dominates, not raw compute.
+Same root cause already documented in Bucket E (native TorchNeuron eager backend, one
+NEFF per aten op, no cross-op fusion) — SLAY's op sequence has far more small ops per
+attention call than SDPA's one fused kernel, so it eats that overhead far harder.
+
+**Verdict: real, decisive negative. Do not pursue Phase 3 (full integration) this
+round.** Even a hypothetical NKI-fused SLAY kernel would need to close a ~500x-1300x gap
+through fusion alone — and attention is only 4.7% of the current profiled step, so even
+a 10x kernel win over this measurement would still leave SLAY ~50-130x slower than the
+existing fused SDPA on the one op it would replace. Not a close call, not scale-transfer
+ambiguity like XSA/Mamba2 — this is a direct, same-scale, real-hardware measurement.
+Deprioritizing, not discarding, per the standing preference: a from-scratch NKI kernel
+(chunked causal linear attention, engine-mapped per the design notes above) is the only
+path that could plausibly change this verdict, and it would need to close three orders
+of magnitude, not one — flag as very low priority, worth revisiting only if consulting
+Taha Bouhsine directly surfaces a materially different implementation strategy (e.g. a
+production SLAY kernel with real measured overhead, not this correctness-first
+prototype's naive chunking).
+
+**Track closed for this round.** Both YAT/SLAY and Mamba2/hybrid (separate doc) now
+have real, hardware/research-confirmed "skip this round" verdicts. Returning focus to
+Bucket A-E work (torch.compile Bucket E, remaining Bucket C/D items) per the plan's own
+execution order.
