@@ -89,24 +89,23 @@ class CausalSelfAttention(nn.Module):
         self.c_v = nn.Linear(config.n_embd, config.n_embd, bias=False)
         self.c_proj = nn.Linear(config.n_embd, config.n_embd, bias=False)
 
-    def forward(self, x, cos, sin, v0=None, v0_lambda=None, k0=None, k0_lambda=None):
+    def forward(self, x, cos, sin, v0=None, v0_lambda=None):
         B, T, C = x.size()
         q = self.c_q(x).view(B, T, self.n_head, self.head_dim)
-        k_raw = self.c_k(x).view(B, T, self.n_head, self.head_dim)
+        k = self.c_k(x).view(B, T, self.n_head, self.head_dim)
         v_raw = self.c_v(x).view(B, T, self.n_head, self.head_dim)
-        # EXPERIMENT: value-residual learning (Zhou et al.), confirmed as a keep (val_bpb
-        # 1.405->1.371) -- inject layer-0's raw V/K streams into every later layer's V/K via
-        # learned per-layer scalars, zero-init so the model starts identical to baseline.
-        # Cheap: elementwise adds of already-computed tensors, no extra matmuls. This step
-        # extends the same mechanism to K (key-residual), a natural cheap-shot extension.
+        # EXPERIMENT: value-residual learning (Zhou et al.) -- inject layer-0's raw value
+        # stream into every later layer's V via a learned per-layer scalar, zero-init so the
+        # model starts identical to baseline. Cheap: one elementwise add of an
+        # already-computed tensor, no extra matmuls, so unlike the other structural
+        # experiments this shouldn't cost step throughput in the fixed-time budget.
         v = v_raw if v0 is None else v_raw + v0_lambda * v0
-        k = k_raw if k0 is None else k_raw + k0_lambda * k0
         q, k = apply_rotary_emb(q, cos, sin), apply_rotary_emb(k, cos, sin)
         q, k = norm(q), norm(k)
         q, k, v = q.transpose(1, 2), k.transpose(1, 2), v.transpose(1, 2)
         y = F.scaled_dot_product_attention(q, k, v, is_causal=True)
         y = y.transpose(1, 2).contiguous().view(B, T, C)
-        return self.c_proj(y), v_raw, k_raw
+        return self.c_proj(y), v_raw
 
 
 class MLP(nn.Module):
@@ -125,11 +124,11 @@ class Block(nn.Module):
         self.attn = CausalSelfAttention(config)
         self.mlp = MLP(config)
 
-    def forward(self, x, cos, sin, v0=None, v0_lambda=None, k0=None, k0_lambda=None):
-        attn_out, v_raw, k_raw = self.attn(norm(x), cos, sin, v0, v0_lambda, k0, k0_lambda)
+    def forward(self, x, cos, sin, v0=None, v0_lambda=None):
+        attn_out, v_raw = self.attn(norm(x), cos, sin, v0, v0_lambda)
         x = x + attn_out
         x = x + self.mlp(norm(x))
-        return x, v_raw, k_raw
+        return x, v_raw
 
 
 class GPT(nn.Module):
@@ -144,7 +143,6 @@ class GPT(nn.Module):
         self.resid_lambdas = nn.Parameter(torch.ones(config.n_layer))
         self.x0_lambdas = nn.Parameter(torch.zeros(config.n_layer))
         self.v_lambda = nn.Parameter(torch.zeros(config.n_layer))  # value-residual learning, index 0 unused
-        self.k_lambda = nn.Parameter(torch.zeros(config.n_layer))  # key-residual extension, index 0 unused
         head_dim = config.n_embd // config.n_head
         cos, sin = self._precompute_rotary(config.sequence_len, head_dim)
         self.register_buffer("cos", cos, persistent=False)
@@ -181,7 +179,7 @@ class GPT(nn.Module):
         matrix_params = list(self.transformer.h.parameters())
         embedding_params = list(self.transformer.wte.parameters())
         lm_head_params = list(self.lm_head.parameters())
-        scalar_params = [self.resid_lambdas, self.x0_lambdas, self.v_lambda, self.k_lambda]
+        scalar_params = [self.resid_lambdas, self.x0_lambdas, self.v_lambda]
         dmodel_lr_scale = (self.config.n_embd / 768) ** -0.5
         param_groups = [
             dict(kind='adamw', params=embedding_params, lr=EMBEDDING_LR * dmodel_lr_scale, betas=ADAM_BETAS, eps=1e-10, weight_decay=0.0),
@@ -204,16 +202,12 @@ class GPT(nn.Module):
         cos, sin = self.cos[:, :T], self.sin[:, :T]
         x = self.transformer.wte(idx)
         x0 = x
-        v0, k0 = None, None
+        v0 = None
         for i, block in enumerate(self.transformer.h):
             x = self.resid_lambdas[i] * x + self.x0_lambdas[i] * x0
-            x, v_raw, k_raw = block(
-                x, cos, sin,
-                v0, self.v_lambda[i] if i > 0 else None,
-                k0, self.k_lambda[i] if i > 0 else None,
-            )
+            x, v_raw = block(x, cos, sin, v0, self.v_lambda[i] if i > 0 else None)
             if v0 is None:
-                v0, k0 = v_raw, k_raw
+                v0 = v_raw
         x = norm(x)
         logits = self.lm_head(x)
         logits = LOGIT_SOFTCAP * torch.tanh(logits / LOGIT_SOFTCAP)
