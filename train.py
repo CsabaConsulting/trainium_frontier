@@ -606,6 +606,229 @@ try:
             g3 = grad_out.reshape(b * t, h, d).contiguous()
             return _rope_norm_bwd(x3, g3, cos2, sin2).reshape(b, t, h, d), None, None
 
+    # -------------------------------------------------------------------------
+    # Fused logit-softcap + cross-entropy kernel (forward AND backward).
+    #
+    # Replaces `LOGIT_SOFTCAP*tanh(z/S)` followed by `F.cross_entropy(...)`. The
+    # eager backend lowers the softcap alone to 6 separate NEFFs over the full
+    # [B*T, V] logits tensor (div.out x2, tanh, mul.Tensor x2, tanh_backward),
+    # plus cross_entropy_loss / _backward_. A device profile at the locked shape
+    # ([4096, 8192] fp32) measured that whole span at 18.957 ms = 11.53% of the
+    # window, and an ablation that deleted just the softcap step measured a real
+    # -3.2 to -3.5% step time. This kernel collapses the span to two NEFFs whose
+    # only unavoidable cost is the HBM traffic (read z once in fwd, read z +
+    # write dz in bwd).
+    #
+    # Math (S = LOGIT_SOFTCAP, c = target class, derived and verified from
+    # scratch in research/scratch/softcap_ce_equiv.py, same discipline as the
+    # rope+norm backward above):
+    #   t = tanh(z/S) ; y = S*t                          (softcap; y in (-S, S))
+    #   loss = log sum_j exp(y_j - y_c)                  (== lse - y_c, see below)
+    #   dy_j/dz_j  = 1 - tanh(z_j/S)^2 = 1 - t_j^2       (== sech^2(z_j/S))
+    #   dloss/dz_j = g * (softmax(y)_j - [j == c]) * (1 - t_j^2)
+    # softmax(y)_j is recomputed in the backward as exp(y_j - lse) from the saved
+    # lse, so the only tensor carried between the passes is [N] wide, not [N, V].
+    #
+    # Three deliberate deviations from PyTorch's log_softmax algorithm:
+    #  * No row-max subtraction. y is bounded to (-S, S) = (-15, 15) by tanh's
+    #    range *by construction*, so shifting by y_c (also in (-S, S)) puts every
+    #    exponent in (-2S, 2S) = (-30, 30), i.e. every term in (9.4e-14, 1.1e13)
+    #    and sum_j in [1, 8.7e16] for V = 8192: fp32 can neither overflow nor
+    #    underflow here for any input z whatsoever, so the row-max reduction pass
+    #    is unnecessary rather than merely usually-unnecessary. Verified
+    #    empirically over input scales 1e-3..1e3 plus all-equal / confidently-
+    #    right / confidently-wrong logits, not just asserted.
+    #  * The shift is y_c, not a constant. Shifting by the target logit makes the
+    #    j == c term exactly exp(0) = 1, so d >= 1 and loss = log(d) is a single
+    #    log with no subtraction. Writing it as lse - y_c instead is catastrophic
+    #    on exactly the rows that get most confident during training: a token with
+    #    p_correct ~ 0.9975 has lse ~ y_c ~ 15 and a true loss of ~2.5e-3, so the
+    #    difference throws away 4 of fp32's 7 digits. Costs nothing: the gather
+    #    that produces y_c is needed anyway, only reordered before the exp.
+    #  * sum_j exp(...) rides along on the Activation-engine exp instructions via
+    #    reduce_op/reduce_res instead of a separate nisa.tensor_reduce (measured
+    #    bit-identical to the Vector-engine reduce, softcap_ce_diag2.py), but in
+    #    R chunks rather than one sweep -- see the d= comment in the forward.
+    #
+    # Accuracy, measured not assumed (softcap_ce_equiv.py, softcap_ce_diag3.py).
+    # Two Activation-engine LUT limits set the floor, the same class of finding as
+    # the rsqrt note in the rope+norm kernel above:
+    #   exp: ~1.1e-5 relative, flat in the argument, vs torch's 5.9e-8 (~190x).
+    #        Crucially it is *systematic* -- a deterministic function of the
+    #        argument -- so the V per-term errors add coherently instead of
+    #        averaging out, and d's relative error does not shrink with V.
+    #   log: a few ULPs of its own output, 3.4e-6 at log(d) ~ 9, 4.2e-5 at ~30.
+    # log(d) error == relative error of d, so both land 1:1 on the loss. Net, at
+    # the shape and logit distribution that actually ships ([4096, 8192], logits
+    # from a real lm_head): fwd 4.3e-5 absolute = 0.0012 bf16 ULP, bwd 2.4e-7 =
+    # 0.0015 bf16 ULP, i.e. ~1000x inside one bf16 ULP. Worst case over synthetic
+    # stress inputs (uniform-random logits at scale 6, y filling most of the tanh
+    # range): fwd 4.7e-4 = 0.0072 bf16 ULP, bwd 8.8e-6 = 0.22 bf16 ULP. The only
+    # input that exceeds one bf16 ULP is the confidently-correct token, at 2.4
+    # bf16 ULP of a 2.5e-3 loss -- and there the eager fp32 chain being replaced is
+    # equally far from an fp64 reference (2.641e-5 vs this kernel's 2.653e-5), so
+    # that case is an fp32 limit, not a regression introduced here. Gradients feed
+    # a bf16 matmul whose own resolution is 4e-3.
+
+    @nki.jit
+    def _softcap_ce_fwd(z, tgt):
+        """Per-token softcap+cross-entropy forward for z [N, V] fp32.
+
+        tgt is [N, 1] fp32 target class indices (exact for V < 2**24). Returns
+        (loss [N, 1], lse [N, 1]), both fp32; lse is saved for the backward.
+        """
+        N, V = z.shape
+        P = _NKI_PARTITION
+        S = LOGIT_SOFTCAP
+        loss = nl.ndarray((N, 1), dtype=nl.float32, buffer=nl.shared_hbm)
+        lse = nl.ndarray((N, 1), dtype=nl.float32, buffer=nl.shared_hbm)
+
+        # Vocab index ramp, identical on every partition and hoisted out of the row
+        # loop: the target one-hot then costs one compare per tile rather than a
+        # fresh iota, and gathering y_c by mask beats 128 single-element indirect
+        # DMAs per tile (which is what nkilib's cross_entropy_forward does).
+        idx = nl.ndarray((P, V), dtype=nl.float32, buffer=nl.sbuf)
+        nisa.iota(dst=idx, pattern=[[1, V]], offset=0, channel_multiplier=0)
+
+        # Chunk width for the exp reduction (see the d= comment below). Python-level
+        # constants, resolved at trace time.
+        C = 512 if (V > 512 and V % 512 == 0) else V
+        R = V // C
+
+        for i in nl.affine_range(N // P):
+            rows = nl.ds(i * P, P)
+            zb = nl.ndarray((P, V), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.dma_copy(dst=zb, src=z[rows])
+            cb = nl.ndarray((P, 1), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.dma_copy(dst=cb, src=tgt[rows])
+
+            tb = nl.ndarray((P, V), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.activation(dst=tb, op=nl.tanh, data=zb, scale=1.0 / S)
+
+            # t_c = sum_j t_j * [j == c]: exactly one nonzero term, so exact.
+            mb = nl.ndarray((P, V), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.tensor_scalar(dst=mb, data=idx, op0=nl.equal, operand0=cb)
+            nisa.tensor_tensor(dst=mb, data1=mb, data2=tb, op=nl.multiply)
+            tc = nl.ndarray((P, 1), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.tensor_reduce(dst=tc, op=nl.add, data=mb, axis=(1,))
+            yc = nl.ndarray((P, 1), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.tensor_scalar(dst=yc, data=tc, op0=nl.multiply, operand0=S)
+            nyc = nl.ndarray((P, 1), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.tensor_scalar(dst=nyc, data=tc, op0=nl.multiply, operand0=-S)
+
+            # d = sum_j exp(y_j - y_c), reduced for free on the exp instructions
+            # themselves (reduce_res). zb is dead once tb exists, so the exp output
+            # overwrites it.
+            #
+            # Reduced in R chunks of C rather than one sweep of V, because a single
+            # sequential fp32 accumulator over V = 8192 carries O(V * eps) = 4.9e-4
+            # rounding error, and that error lands directly on the loss (log(d) error
+            # == relative error of d). It is worst exactly where the accumulator is
+            # dominated by one term: a confidently-correct token has d = 1 + 3e-3, so
+            # 8191 tiny addends each round against a running value of 1.0 and the
+            # 2.5e-3 loss came out 16% wrong (4.2e-4 absolute). Summing R partials
+            # instead costs O((C + R) * eps) and took that case to 2.65e-5, which is
+            # parity with torch's own fp32 pairwise sum (2.64e-5) and leaves it
+            # limited by the exp/log LUTs rather than by the reduction. Cases whose
+            # d is dominated by a few large terms were never accumulator-limited and
+            # are unchanged. Cost is R instruction issues instead of 1 over the same
+            # total elements, plus one [P, R] reduce.
+            parts = nl.ndarray((P, R), dtype=nl.float32, buffer=nl.sbuf)
+            for k in nl.affine_range(R):
+                cols = nl.ds(k * C, C)
+                nisa.activation(dst=zb[:, cols], op=nl.exp, data=tb[:, cols],
+                                scale=S, bias=nyc, reduce_op=nl.add,
+                                reduce_res=parts[:, nl.ds(k, 1)],
+                                reduce_cmd=nisa.reduce_cmd.reset_reduce)
+            d = nl.ndarray((P, 1), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.tensor_reduce(dst=d, op=nl.add, data=parts, axis=(1,))
+
+            # loss = log(d) directly: shifting by y_c rather than by a constant makes
+            # the j == c term exactly exp(0) == 1, so d >= 1 and the loss is a single
+            # log instead of the difference lse - y_c, which is ill-conditioned for a
+            # confident token (lse ~ y_c ~ 15, loss ~ 2.5e-3).
+            lo = nl.ndarray((P, 1), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.activation(dst=lo, op=nl.log, data=d)
+            lb = nl.ndarray((P, 1), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.tensor_tensor(dst=lb, data1=yc, data2=lo, op=nl.add)  # lse = y_c + log d
+
+            nisa.dma_copy(dst=lse[rows], src=lb)
+            nisa.dma_copy(dst=loss[rows], src=lo)
+
+        return loss, lse
+
+    @nki.jit
+    def _softcap_ce_bwd(z, tgt, lse, g):
+        """Gradient of _softcap_ce_fwd w.r.t. the raw (pre-softcap) logits z.
+
+        g is the [N, 1] fp32 upstream gradient of the per-token loss vector, so
+        this implements the reduction="none" backward; mean/sum scaling is left
+        to autograd outside the kernel.
+        """
+        N, V = z.shape
+        P = _NKI_PARTITION
+        S = LOGIT_SOFTCAP
+        dz = nl.ndarray((N, V), dtype=nl.float32, buffer=nl.shared_hbm)
+
+        idx = nl.ndarray((P, V), dtype=nl.float32, buffer=nl.sbuf)
+        nisa.iota(dst=idx, pattern=[[1, V]], offset=0, channel_multiplier=0)
+
+        for i in nl.affine_range(N // P):
+            rows = nl.ds(i * P, P)
+            zb = nl.ndarray((P, V), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.dma_copy(dst=zb, src=z[rows])
+            cb = nl.ndarray((P, 1), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.dma_copy(dst=cb, src=tgt[rows])
+            gb = nl.ndarray((P, 1), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.dma_copy(dst=gb, src=g[rows])
+            nb = nl.ndarray((P, 1), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.dma_copy(dst=nb, src=lse[rows])
+            nisa.tensor_scalar(dst=nb, data=nb, op0=nl.multiply, operand0=-1.0)
+
+            # t = tanh(z/S), then p = softmax(y) = exp(S*t - lse) straight off the
+            # saved lse -- no second pass over the vocab to renormalise.
+            tb = nl.ndarray((P, V), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.activation(dst=tb, op=nl.tanh, data=zb, scale=1.0 / S)
+            nisa.activation(dst=zb, op=nl.exp, data=tb, scale=S, bias=nb)
+
+            # u = (p - onehot) * g, fused as (p*g) - ([j==c]*g): the one-hot and
+            # its g scaling ride on one tensor_scalar, the subtract and the p*g on
+            # one scalar_tensor_tensor.
+            mb = nl.ndarray((P, V), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.tensor_scalar(dst=mb, data=idx, op0=nl.equal, operand0=cb,
+                               op1=nl.multiply, operand1=gb)
+            nisa.scalar_tensor_tensor(dst=zb, data=zb, op0=nl.multiply, operand0=gb,
+                                      op1=nl.subtract, operand1=mb)
+
+            # dz = (1 - t^2) * u; reverse0 gives `operand0 - data` so the 1 - t^2
+            # and the multiply are a single Vector-engine instruction.
+            nisa.activation(dst=mb, op=nl.square, data=tb)
+            nisa.scalar_tensor_tensor(dst=tb, data=mb, op0=nl.subtract, operand0=1.0,
+                                      reverse0=True, op1=nl.multiply, operand1=zb)
+            nisa.dma_copy(dst=dz[rows], src=tb)
+
+        return dz
+
+    class _SoftcapCrossEntropyNKI(torch.autograd.Function):
+        """Makes the fused softcap+cross-entropy kernel differentiable.
+
+        Forward returns the UNREDUCED per-token loss, exactly like
+        F.cross_entropy(..., reduction="none"); mean/none handling stays in the
+        caller so this changes no reduction semantics.
+        """
+
+        @staticmethod
+        def forward(ctx, z, tgt):
+            loss, lse = _softcap_ce_fwd(z, tgt)
+            ctx.save_for_backward(z, tgt, lse)
+            return loss.reshape(-1)
+
+        @staticmethod
+        def backward(ctx, grad_out):
+            z, tgt, lse = ctx.saved_tensors
+            g = grad_out.reshape(-1, 1).float().contiguous()
+            return _softcap_ce_bwd(z, tgt, lse, g), None
+
     _HAS_NKI = True
 except Exception:  # nki unavailable (e.g. CPU/GPU dev box) — eager path still works
     _HAS_NKI = False
@@ -622,6 +845,47 @@ USE_NKI_RELU2 = False
 # quality difference is noise-level (loss trajectories match to 4 decimals). See
 # trn2-experiment-results.md.
 USE_NKI_ROPE_NORM = True
+# Toggled by the --nki-softcap-ce flag in main(); default ON (the rope+norm pattern):
+# verified numerically offline (research/scratch/softcap_ce_equiv.py, worst case 2.44
+# bf16 ULP fwd / 0.22 bf16 ULP bwd, an fp32-limited edge case -- realistic lm_head-scale
+# logits are ~0.001-0.002 bf16 ULP) and confirmed on real hardware at the final locked
+# shape: 384 steps/1.198478 vs the same-lineage baseline's 366/1.206231 (real win) and a
+# near-tie against an older baseline missing a separate free fix -- no comparison shows
+# it worse than the best number on record. See trn2-experiment-results.md.
+USE_NKI_SOFTCAP_CE = True
+
+
+def softcap_cross_entropy(logits: torch.Tensor, targets: torch.Tensor,
+                          loss_reduction: str) -> torch.Tensor:
+    """`LOGIT_SOFTCAP*tanh(z/S)` then cross-entropy, fused into one NKI kernel pair.
+
+    Replaces only the softcap+CE math. The kernel produces the unreduced per-token
+    loss, so the mean/none branching below is identical to what F.cross_entropy's
+    own `reduction` argument did -- reduction semantics are unchanged either way,
+    and the eager branch is the original chain verbatim so flipping the knob off
+    restores the previous numerics exactly.
+    """
+    if USE_NKI_SOFTCAP_CE and _HAS_NKI and logits.device.type == "neuron" \
+            and loss_reduction in ("mean", "none") and logits.dtype == torch.float32 \
+            and logits.is_contiguous():
+        z = logits.reshape(-1, logits.shape[-1])
+        # The kernel tiles rows in blocks of 128 (true for the locked shape:
+        # B*T = 4096); anything else falls back to eager so the knob is always safe.
+        if z.shape[0] % _NKI_PARTITION == 0:
+            tgt = targets.reshape(-1, 1).to(torch.float32)
+            per_token = _SoftcapCrossEntropyNKI.apply(z, tgt)
+            if loss_reduction == "none":
+                return per_token.view_as(targets)
+            return per_token.mean()
+    capped = LOGIT_SOFTCAP * torch.tanh(logits / LOGIT_SOFTCAP)
+    loss = F.cross_entropy(
+        capped.reshape(-1, capped.size(-1)),
+        targets.reshape(-1),
+        reduction=loss_reduction,
+    )
+    if loss_reduction == "none":
+        return loss.view_as(targets)
+    return loss
 
 
 def relu_squared(x: torch.Tensor) -> torch.Tensor:
@@ -892,17 +1156,9 @@ class GPT(nn.Module):
             x = block(x, x0, ve, cos, sin, attn_mask)
         x = norm(x)
         logits = self.lm_head(x)[..., :self.config.vocab_size].float()
-        logits = LOGIT_SOFTCAP * torch.tanh(logits / LOGIT_SOFTCAP)
         if targets is None:
-            return logits
-        loss = F.cross_entropy(
-            logits.reshape(-1, logits.size(-1)),
-            targets.reshape(-1),
-            reduction=loss_reduction,
-        )
-        if loss_reduction == "none":
-            return loss.view_as(targets)
-        return loss
+            return LOGIT_SOFTCAP * torch.tanh(logits / LOGIT_SOFTCAP)
+        return softcap_cross_entropy(logits, targets, loss_reduction)
 
 
 def build_config(depth: int = DEPTH) -> GPTConfig:
@@ -1148,13 +1404,21 @@ def main() -> None:
                         help="fuse norm(apply_rotary_emb(x)) into one NKI kernel for q/k (Neuron only). "
                              "Default ON (Solution 12, real ~15-18% step-time win, verified to 1-bf16-ULP "
                              "against eager) -- pass --no-nki-rope-norm for the plain eager comparison path.")
+    parser.add_argument("--nki-softcap-ce", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_NKI_SOFTCAP_CE", "1") != "0",
+                        help="fuse the logit softcap and cross-entropy (fwd+bwd) into one NKI kernel pair "
+                             "(Neuron only), collapsing ~8 full-[B*T,V] NEFF launches into 2. Default ON: "
+                             "verified numerically offline (research/scratch/softcap_ce_equiv.py) and confirmed "
+                             "on real hardware at the final locked shape -- pass --no-nki-softcap-ce for the "
+                             "plain eager comparison path.")
     parser.add_argument("--init-from", type=str, default="",
                         help="warm-start model weights from a prior checkpoint (fresh optimizer/step/dataloader; dev-iteration only, never for a scored submission)")
     args = parser.parse_args()
 
-    global USE_NKI_RELU2, USE_NKI_ROPE_NORM
+    global USE_NKI_RELU2, USE_NKI_ROPE_NORM, USE_NKI_SOFTCAP_CE
     USE_NKI_RELU2 = args.nki_relu2
     USE_NKI_ROPE_NORM = args.nki_rope_norm
+    USE_NKI_SOFTCAP_CE = args.nki_softcap_ce
 
     device_type = detect_device_type(args.device_type)
     ddp, rank, _local_rank, world_size, device = init_runtime(device_type)
@@ -1385,6 +1649,7 @@ def main() -> None:
         print(f"compiled:          {args.compile}")
         print(f"nki_relu2:         {args.nki_relu2}")
         print(f"nki_rope_norm:     {args.nki_rope_norm}")
+        print(f"nki_softcap_ce:    {args.nki_softcap_ce}")
         print(f"num_steps:         {step}")
         print(f"total_tokens_M:    {total_train_tokens / 1e6:.1f}")
         print(f"world_size:        {world_size}")
