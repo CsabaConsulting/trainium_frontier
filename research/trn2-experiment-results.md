@@ -495,3 +495,15 @@ Re-profiled the current locked+compiled config (`neuron-nki-profile-analysis-age
 ## Tier-1 deferred items — `--nki-relu2` matched back-to-back repeat, resolved
 
 Previously genuinely ambiguous (noise-comparable both ways). Real matched back-to-back repeat at the new locked shape (β2=0.95, compile ON), minimal idle gap between the two runs to control for the throughput-cliff confound: **ON** (`tier1-relu2-on-900s-v2`): 393 steps, `1.191908`. **OFF** (`tier1-relu2-off-900s-v3`): 407 steps, `1.187254`. Both `causality_passed: True`, config matches. **OFF wins clean this time — more steps (+14, +3.6%) and better bpb (0.004654)**, resolving the prior ambiguity. `--nki-relu2` stays default `False`; ambiguity closed, not revisited further.
+
+## Tier-1 architecture spot-check under compile — DEPTH stays 6, but a real budget-dependent-optimum lesson
+
+Fixed 400s proxy across `DEPTH ∈ {5,6,7}` (`ASPECT_RATIO=96` fixed, so `n_embd` = 512/640/768 respectively), current locked config (compile ON, β2=0.95): DEPTH=5 236 steps/`1.347282`, DEPTH=6 179 steps/`1.348617`, DEPTH=7 103 steps/`1.530831`. DEPTH=7 decisively worse; DEPTH=5 edges out DEPTH=6 at this short proxy.
+
+**Escalated DEPTH=5 to 900s** (`tier1-depth5-900s`): **560 steps, `1.176155`** — a real, decisive win over DEPTH=6's 900s number (`tier1-beta2-095-900s`: 427/`1.180633`), both throughput and quality better, well above noise floor.
+
+**Full-1800s confirmation told a different story — a real, honest budget-dependent-optimum finding, not cherry-picked.** DEPTH=5 at full budget (`tier1-depth5-fullbudget`): 1082 steps, `1.117264` — **worse** than DEPTH=6's full-budget number, despite completing 31% more steps at 900s and still far more steps at 1800s (1082 vs 847). Fair apples-to-apples check: re-ran DEPTH=6 (still locked) at full budget *with* the now-locked `β2=0.95` (`depth6-beta095-fullbudget`, since the existing full-budget DEPTH=6 number predated that win): **847 steps, `public_val_bpb: 1.108697`**, `causality_passed: True` — beats both the old pre-β2 DEPTH=6 number (`827/1.113006`, by `0.004309`) and DEPTH=5's full-budget number (by `0.008567`).
+
+**Mechanism, consistent with the original Solution-11 finding**: a smaller model (DEPTH=5, 36.7M params) completes more steps in any fixed window and can look ahead at a short proxy, but hits its capacity/entropy floor before the full 30-minute budget is up — exactly the "under-parameterized model hits an irreducible floor" pattern already documented. **DEPTH=6 stays locked.** Real, useful lesson reinforced: a 400-900s proxy is directionally useful but not sufilcient on its own for an architecture-capacity decision at this competition's real 1800s scoring window — always escalate to full budget before locking a capacity-affecting change, even when the proxy result looks clean and decisive.
+
+**New best confirmed number: `public_val_bpb = 1.108697`, 847 steps, full 1800s budget, causality exact.** Beats the currently-submitted real leaderboard entry (`1.1394`) by `0.030703`. Not yet submitted.

@@ -160,7 +160,7 @@ def make_dataloader_requeue(
 # Baseline hyperparameters. Model-related config lives here, not in prepare.py.
 
 SEQ_LEN = 2048  # Solution 11 (Trn2 real-hardware context-length resweep, fixed DEPTH=6/ASPECT_RATIO=96/TOTAL_BATCH_SIZE=131072): real interior optimum -- 2048 beat 512/1024/4096 (U-shape, see trn2-experiment-results.md). Not yet confirmed at full 1800s budget.
-DEPTH = 6  # Solution 11 (Trn2 real-hardware depth/width resweep): real interior optimum at fixed 900s wall-clock, real submission shape -- 6 beat 4/8/10/12 (U-shape, see trn2-experiment-results.md)
+DEPTH = 6  # Tier-1 spot-check under compile: DEPTH=5 won decisively at 900s (560/1.176155 vs 427/1.180633) but LOST at full 1800s (1082/1.117264 vs DEPTH=6's pre-beta2 827/1.113006) -- budget-dependent-optimum pattern, DEPTH=5 hits its capacity floor before 1800s is up. DEPTH=6 kept; see trn2-experiment-results.md. Confirming DEPTH=6+beta2=0.95 at full budget next for a fair apples-to-apples number.
 ASPECT_RATIO = 96  # Solution 11 (Trn2 real-hardware width-only resweep at fixed DEPTH=6): real interior optimum -- 640 beat 256/384/512/768 (U-shape, see trn2-experiment-results.md)
 HEAD_DIM = 128
 
