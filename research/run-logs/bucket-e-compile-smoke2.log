@@ -1,0 +1,63 @@
+device=neuron dtype=torch.bfloat16 world_size=1
+training target=20 steps max_seconds=600 official_budget=1800s
+model_config={
+  "sequence_len": 2048,
+  "vocab_size": 8192,
+  "n_layer": 6,
+  "n_head": 5,
+  "n_embd": 640
+}
+num_params=55,721,452 flops_per_token=3.972432e+08
+torch.compile enabled (backend=neuron)
+micro_tokens=4,096 grad_accum_steps=32 pack_factor=2
+step 00000 | loss 9.0116 | lrm 1.000 | dt 96.91s | tok/s 1,353 | remaining_steps 19 | remaining_time 503s | epoch 1
+step 00001 | loss 8.8212 | lrm 1.000 | dt 8.66s | tok/s 15,137 | remaining_steps 18 | remaining_time 494s | epoch 1
+step 00002 | loss 8.3711 | lrm 1.000 | dt 5.18s | tok/s 25,281 | remaining_steps 17 | remaining_time 489s | epoch 1
+step 00003 | loss 8.4332 | lrm 1.000 | dt 5.15s | tok/s 25,449 | remaining_steps 16 | remaining_time 484s | epoch 1
+step 00004 | loss 8.0049 | lrm 1.000 | dt 5.15s | tok/s 25,471 | remaining_steps 15 | remaining_time 600s | epoch 1
+step 00010 | loss 6.7757 | lrm 1.000 | dt 5.19s | tok/s 25,277 | remaining_steps 9 | remaining_time 569s | epoch 1
+---
+checkpoint_path:    out/bucket-e-compile-smoke2/final.pt
+training_seconds:  77.6
+budget_seconds:    1800
+target_steps:      20
+max_train_seconds: 600
+startup_allowance_est: 130.5
+charged_seconds_est:   77.8
+over_budget:       False
+total_seconds:     240.8
+compiled:          True
+nki_relu2:         False
+nki_rope_norm:     True
+nki_softcap_ce:    True
+num_steps:         20
+total_tokens_M:    2.6
+world_size:        1
+lnc:               1
+seq_len:           2048
+num_params_M:      55.7
+causality_passed:  True
+causality_max_abs: 0.000000
+public_val_bpb:    2.011375
+eval_seconds:      41.2
+eval_timeout:      1200
+eval_over_timeout: False
+[W907 04:09:50.435592190 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W907 04:09:52.442866312 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+WARNING:torch_neuronx.python_ops.dtype_autocast:Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.

@@ -1403,8 +1403,12 @@ def main() -> None:
     parser.add_argument("--out-dir", type=str, default=os.environ.get("NEURON_COMPETITION_R1_OUT_DIR", "out"))
     parser.add_argument("--eval-public", action=argparse.BooleanOptionalAction, default=os.environ.get("NEURON_COMPETITION_R1_EVAL_PUBLIC", "1") != "0")
     parser.add_argument("--eval-tokens", type=int, default=int(os.environ.get("NEURON_COMPETITION_R1_EVAL_TOKENS", str(4 * 524288))))
-    parser.add_argument("--compile", action="store_true", default=os.environ.get("NEURON_COMPETITION_R1_COMPILE", "0") != "0",
-                        help="enable torch.compile on the full model")
+    parser.add_argument("--compile", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_COMPILE", "1") != "0",
+                        help="enable torch.compile(backend='neuron') on the full model. Default ON "
+                             "(Bucket E, real full-1800s-confirmed win: 827 steps/1.113006 vs eager's "
+                             "746 steps/1.122271, causality exact) -- pass --no-compile for the plain "
+                             "eager comparison path.")
     parser.add_argument("--compile-only", action="store_true",
                         help="run one synthetic optimizer step to warm the compile cache, then exit")
     parser.add_argument("--nki-relu2", action="store_true", default=os.environ.get("NEURON_COMPETITION_R1_NKI_RELU2", "0") != "0",
