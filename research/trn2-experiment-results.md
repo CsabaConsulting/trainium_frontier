@@ -569,3 +569,64 @@ compounding isn't the obvious default expectation — but this is exactly the ki
 to verify with a real loss-trajectory smoke test, not settle by more offline reasoning).
 Real-hardware correctness smoke test (causality + loss-trajectory sanity) is next, once
 `local_conv` kernel work frees up the shared Trn2 device.
+
+---
+
+## `local_conv` NKI-kernel investigation → two real findings, neither of them a kernel
+
+The profile said the depthwise causal conv1d (`CausalConv`, `x = x + local_conv(norm(x))`)
+was the largest remaining non-GEMM exposed-time target under `torch.compile` (5.4% of the
+profiled window). Chasing it produced no kernel and two measured surprises.
+
+### 1. `local_conv` is provably DEAD COMPUTE — and removing it is 6.9x SLOWER
+
+`CausalConv.weight` is zero-initialised, `init_weights()` never touches it, and
+`setup_optimizer()` collects only attn/mlp/lambda params, so the conv weight is in **no
+optimizer group** and stays exactly zero for the whole run: `conv(norm(x))` is exactly
+`0.0` and `x + 0.0` is bit-exact `x`. `GRAD_CLIP == 0.0` closes the one remaining path
+(global grad-norm) by which its computed-then-discarded `dweight` could perturb training.
+Asserted in `research/scratch/local_conv_deadparam_check.py` (62 model params vs 56 in the
+optimizer; conv output exactly `0.0`). Corollary: the earlier `USE_LOCAL_CONV=True` "win"
+in `gpu-experiment-results.md` (1.171962 vs 1.174188) was noise — the two models are
+bit-identical.
+
+So switching it off should be free steps. It is not. Matched A/B, **one identical binary**
+(new `--local-conv` / `--no-local-conv` flag), both graphs pre-warmed with `--compile-only`
+so neither arm pays a cold `neuronx-cc` compile, box verified idle (`users=0`, no foreign
+processes, monitored every 15s), 300s budget:
+
+| arm | steady dt (at `lrm == 1.000`) | steps | `public_val_bpb` |
+|---|---|---|---|
+| `--local-conv` (default) | **0.90 s** | 135 | 1.553617 |
+| `--no-local-conv` | **6.21 s** | 38 | 1.978906 |
+
+Step-1 loss is identical to 4 decimals in both arms (8.7670), confirming the math really is
+bit-identical — the entire 6.9x is compiler scheduling. Reproduced 4 times across two
+sessions (6.20/6.21/6.21/6.21 s). Whatever the Neuron compiler does with the block, the
+dead conv's presence is load-bearing for it. **`USE_LOCAL_CONV` stays `True`.**
+
+### 2. The continuous LR cooldown recompiles the optimizer EVERY step (real 2.1x win)
+
+Chasing the dt numbers above exposed something much bigger. Step time is bimodal:
+`0.89-0.90 s` while `lrm == 1.000`, and `2.2-4.3 s` for **every** step after the cooldown
+starts, with `neuronx-cc` processes appearing and disappearing throughout (`cc=0` ↔ `cc=8`
+in the contention monitor). `WARMDOWN_RATIO = 0.75`, so this hits the last **75% of every
+run**. Cause: the optimizer's `lr` is a Python float that gets baked into the Neuron graph
+(`p.add_(update, alpha=-group["lr"])` is the only `alpha=` in the file), so a new `lr`
+value every step means a fresh compile every step. Changing `weight_decay` and `momentum`
+scalars do *not* trigger it (they only ever appear as `tensor * float`), which is why the
+first ~85 steps are fast.
+
+Fix: `LRM_QUANTUM` / `--lrm-quantum N` snaps the multiplier onto a `1/N` grid, so the
+cooldown uses at most `N` distinct `lr` values and only the first step at each level pays a
+compile. `N=25` distorts the multiplier by at most 0.02 (2% of peak LR).
+
+| arm | steps | `public_val_bpb` |
+|---|---|---|
+| `--lrm-quantum 0` (current, continuous) | 132 | 1.561450 |
+| `--lrm-quantum 25` | **277** | **1.326234** |
+
+`dt` stays `0.89-0.91 s` right through the cooldown in the `N=25` arm, with an isolated
+`3.2 s` step each time the schedule crosses a level — exactly the predicted signature.
+2.1x the steps and −0.235 bpb at a 300s budget. Real-budget (900s/1800s) confirmation runs
+follow.

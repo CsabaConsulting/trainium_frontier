@@ -190,6 +190,7 @@ WARMUP_STEPS = 0
 GRAD_CLIP = 0.0
 WARMDOWN_RATIO = 0.75   # fraction of max_train_seconds spent on LR cooldown (0 = old flat-after-warmup)
 FINAL_LR_FRAC = 0.05    # LR floor as a fraction of peak LR at the end of cooldown (1.0 = no floor effect)
+LRM_QUANTUM = 0         # >0: snap the LR multiplier onto a 1/LRM_QUANTUM grid, so the cooldown uses at most this many distinct lr values (see lr_multiplier); 0 = continuous, one new value per step
 WD_DECAY_TO_ZERO = True  # decay Muon's weight_decay linearly to 0 over the run instead of holding it constant
 MUON_MOMENTUM_WARMUP_STEPS = 300  # steps to ramp Muon momentum 0.85 -> 0.95
 INIT_SCALE = 0.68  # multiplier on the attn/mlp uniform-init bound (1.0 = original baseline scale)
@@ -207,7 +208,14 @@ def has_ve(layer_idx: int, n_layer: int) -> bool:
 WINDOW_PATTERN = "L"    # per-layer attention window pattern, cycled to n_layer length; 'L' = full context, 'S' = short window
 SHORT_WINDOW_FRAC = 0.5  # short window size as a fraction of SEQ_LEN (only matters for 'S' layers)
 ROPE_BASE = 100000       # rotary embedding base frequency
-USE_LOCAL_CONV = True    # cheap depthwise causal conv1d before attention in each block, RWKV/Mamba/Hyena-style
+USE_LOCAL_CONV = True    # depthwise causal conv1d before attention in each block, RWKV/Mamba/Hyena-style.
+# NOTE: as wired this is DEAD COMPUTE -- CausalConv.weight is zero-initialised, init_weights never
+# touches it, and setup_optimizer() collects only attn/mlp/lambda params, so it is in no optimizer
+# group and stays exactly zero for the whole run: conv(norm(x)) is exactly 0.0 and x + 0.0 is
+# bit-exact x (GRAD_CLIP == 0.0 closes the one path -- global grad-norm -- by which its
+# computed-then-discarded dweight could still perturb training). Asserted in
+# research/scratch/local_conv_deadparam_check.py. It is nevertheless left ON because turning it off
+# measured SLOWER on real hardware, not faster; drive the A/B with --local-conv / --no-local-conv.
 LOCAL_CONV_KERNEL = 4
 USE_GATED_MLP = False    # SwiGLU-style: c_fc(x) * silu(c_gate(x)) instead of relu(c_fc(x))**2; adds one weight matrix
 USE_WEIGHT_CACHE = True  # cache each Linear's dtype-cast weight once per optimizer step instead of every forward call
@@ -1404,7 +1412,17 @@ def lr_multiplier(step: int, elapsed: float = 0.0, max_train_seconds: float = 1.
     if progress < 1.0 - WARMDOWN_RATIO:
         return 1.0
     cooldown = (1.0 - progress) / WARMDOWN_RATIO
-    return cooldown * 1.0 + (1 - cooldown) * FINAL_LR_FRAC
+    lrm = cooldown * 1.0 + (1 - cooldown) * FINAL_LR_FRAC
+    if LRM_QUANTUM > 0:
+        # Snap the multiplier onto a coarse grid. Measured on real hardware: the
+        # optimizer's per-step Python-float lr becomes a baked constant in the
+        # Neuron graph, so a NEW lr value every step means a fresh neuronx-cc
+        # compile every step -- dt goes 0.90s -> 2.2-4.3s the moment the cooldown
+        # starts (i.e. for the last WARMDOWN_RATIO of every run). Quantising the
+        # schedule caps the number of distinct lr values, so only the first step
+        # at each level pays a compile and the rest reuse it.
+        lrm = round(lrm * LRM_QUANTUM) / LRM_QUANTUM
+    return lrm
 
 
 def muon_momentum(step: int) -> float:
@@ -1413,6 +1431,7 @@ def muon_momentum(step: int) -> float:
 
 
 def main() -> None:
+    global USE_LOCAL_CONV, LRM_QUANTUM        # the flags below default off the module constants
     parser = argparse.ArgumentParser(description="Neuron Competition R1 baseline")
     parser.add_argument("--device-type", type=str, default="")
     parser.add_argument("--num-steps", type=int, default=int(os.environ.get("NEURON_COMPETITION_R1_NUM_STEPS", NUM_STEPS)))
@@ -1442,11 +1461,24 @@ def main() -> None:
                              "verified numerically offline (research/scratch/softcap_ce_equiv.py) and confirmed "
                              "on real hardware at the final locked shape -- pass --no-nki-softcap-ce for the "
                              "plain eager comparison path.")
+    parser.add_argument("--local-conv", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_LOCAL_CONV", "1" if USE_LOCAL_CONV else "0") != "0",
+                        help="depthwise causal conv1d before attention in each block. Provably dead "
+                             "compute as wired (zero weight, in no optimizer group -- see the comment on "
+                             "USE_LOCAL_CONV), so --no-local-conv is a bit-identical model; exposed as a "
+                             "flag so the A/B runs from one identical binary.")
+    parser.add_argument("--lrm-quantum", type=int,
+                        default=int(os.environ.get("NEURON_COMPETITION_R1_LRM_QUANTUM", LRM_QUANTUM)),
+                        help="snap the LR multiplier onto a 1/N grid (0 = continuous). Each distinct "
+                             "lr value costs one neuronx-cc compile, so a continuous cooldown "
+                             "recompiles the optimizer every step.")
     parser.add_argument("--init-from", type=str, default="",
                         help="warm-start model weights from a prior checkpoint (fresh optimizer/step/dataloader; dev-iteration only, never for a scored submission)")
     args = parser.parse_args()
 
     global USE_NKI_RELU2, USE_NKI_ROPE_NORM, USE_NKI_SOFTCAP_CE
+    USE_LOCAL_CONV = args.local_conv          # read by Block.__init__, i.e. before GPT(config) below
+    LRM_QUANTUM = args.lrm_quantum
     USE_NKI_RELU2 = args.nki_relu2
     USE_NKI_ROPE_NORM = args.nki_rope_norm
     USE_NKI_SOFTCAP_CE = args.nki_softcap_ce
