@@ -135,6 +135,13 @@ class GPT(nn.Module):
         self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
         self.resid_lambdas = nn.Parameter(torch.ones(config.n_layer))
         self.x0_lambdas = nn.Parameter(torch.zeros(config.n_layer))
+        # EXPERIMENT: MUDD-style dense cross-layer skip connections. resid_lambdas/x0_lambdas
+        # already give each layer a learned mix of "previous layer" + "embedding"; this adds
+        # learned scalar connections from every OTHER earlier block output too (skip-more-
+        # than-one-hop), zero-initialized so the model starts identical to the baseline mixing.
+        # dense_lambdas[i, j] is only used for j in [0, i-2] (i.e. strictly earlier than the
+        # immediate previous layer, which resid_lambdas already covers).
+        self.dense_lambdas = nn.Parameter(torch.zeros(config.n_layer, config.n_layer))
         head_dim = config.n_embd // config.n_head
         cos, sin = self._precompute_rotary(config.sequence_len, head_dim)
         self.register_buffer("cos", cos, persistent=False)
@@ -171,7 +178,7 @@ class GPT(nn.Module):
         matrix_params = list(self.transformer.h.parameters())
         embedding_params = list(self.transformer.wte.parameters())
         lm_head_params = list(self.lm_head.parameters())
-        scalar_params = [self.resid_lambdas, self.x0_lambdas]
+        scalar_params = [self.resid_lambdas, self.x0_lambdas, self.dense_lambdas]
         dmodel_lr_scale = (self.config.n_embd / 768) ** -0.5
         param_groups = [
             dict(kind='adamw', params=embedding_params, lr=EMBEDDING_LR * dmodel_lr_scale, betas=ADAM_BETAS, eps=1e-10, weight_decay=0.0),
@@ -194,9 +201,13 @@ class GPT(nn.Module):
         cos, sin = self.cos[:, :T], self.sin[:, :T]
         x = self.transformer.wte(idx)
         x0 = x
+        outputs = [x0]
         for i, block in enumerate(self.transformer.h):
-            x = self.resid_lambdas[i] * x + self.x0_lambdas[i] * x0
-            x = block(x, cos, sin)
+            dense_in = self.resid_lambdas[i] * x + self.x0_lambdas[i] * x0
+            for j in range(0, i - 1):
+                dense_in = dense_in + self.dense_lambdas[i, j] * outputs[j + 1]
+            x = block(dense_in, cos, sin)
+            outputs.append(x)
         x = norm(x)
         logits = self.lm_head(x)
         logits = LOGIT_SOFTCAP * torch.tanh(logits / LOGIT_SOFTCAP)
