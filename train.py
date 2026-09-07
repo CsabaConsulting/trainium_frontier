@@ -213,6 +213,8 @@ USE_WEIGHT_CACHE = True  # cache each Linear's dtype-cast weight once per optimi
 USE_DOC_MASK = False  # block attention across document boundaries within a packed row (BOS-derived, data-dependent)
 USE_SELECTIVE_GATE = False  # make resid_lambda/x0_lambda data-dependent (Mamba-style selectivity) instead of static scalars
 SELECTIVE_GATE_CHANNELS = 32
+USE_XSA = False  # A/B'd at final locked shape: real net negative (368 steps/1.208657 vs baseline 384/1.198478, both dimensions worse) -- consistent with the paper's own scale-dependent results (their smallest tested model, 0.7B, got only a small gain; ours is ~13x smaller). Bucket D: Exclusive Self Attention (arXiv:2603.09078). See trn2-experiment-results.md
+_XSA_EPS = 1e-6  # numerical floor for the ||v_i||^2 denominator, avoids div-by-zero at init/degenerate v
 USE_FUSED_QKV = False  # A/B'd at final locked shape: net negative as expected (206 steps/1.312086 vs baseline 240/1.269318) -- disables the rope+QK-norm kernel fusion, fewer steps and worse quality. See trn2-experiment-results.md
 USE_CAUSAL_FASTPATH = True  # Solution 13 winner, A/B'd at final locked shape: real win (265 steps/1.252675 vs baseline 240/1.269318, +0.0166) -- the best of all four Solution-13 toggles, doesn't compose further with USE_TRN2_COMPILER_FLAGS. See trn2-experiment-results.md
 
@@ -984,6 +986,14 @@ class CausalSelfAttention(nn.Module):
             y = F.scaled_dot_product_attention(q, k, v, is_causal=True)
         else:
             y = F.scaled_dot_product_attention(q, k, v, attn_mask=attn_mask[..., :t, :t])
+        if USE_XSA:
+            # Exclusive Self Attention (arXiv:2603.09078, Zhai/Apple): project out the
+            # component of the attention output along the token's OWN value vector --
+            # z_i = y_i - (y_i . v_i / ||v_i||^2) * v_i. Causally safe by construction:
+            # z_i depends only on y_i and v_i, both already functions of x_1..i only.
+            # y, v are [B, H, T, D] here (post-transpose, pre-reshape).
+            proj_coef = (y * v).sum(dim=-1, keepdim=True) / (v.pow(2).sum(dim=-1, keepdim=True) + _XSA_EPS)
+            y = y - proj_coef * v
         y = y.transpose(1, 2).contiguous().view(b, t, c)
         return self.c_proj(y)
 
@@ -1301,7 +1311,7 @@ ARCH_TOGGLE_NAMES = [
     "WD_DECAY_TO_ZERO", "MUON_MOMENTUM_WARMUP_STEPS", "USE_DOC_MASK", "VE_WD",
     "USE_SELECTIVE_GATE", "SELECTIVE_GATE_CHANNELS", "USE_FUSED_QKV",
     "USE_CAUSAL_FASTPATH", "USE_STOCHASTIC_ROUNDING", "USE_TRN2_COMPILER_FLAGS",
-    "USE_REQUEUE_PACKER",
+    "USE_REQUEUE_PACKER", "USE_XSA",
 ]
 # Toggles whose mismatch corrupts the state_dict shape (load_state_dict(strict=True) will
 # error loudly). Everything else in ARCH_TOGGLE_NAMES lives in non-persistent buffers or
