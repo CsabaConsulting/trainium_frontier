@@ -216,6 +216,7 @@ USE_SELECTIVE_GATE = False  # make resid_lambda/x0_lambda data-dependent (Mamba-
 SELECTIVE_GATE_CHANNELS = 32
 USE_XSA = False  # A/B'd at final locked shape: real net negative (368 steps/1.208657 vs baseline 384/1.198478, both dimensions worse) -- consistent with the paper's own scale-dependent results (their smallest tested model, 0.7B, got only a small gain; ours is ~13x smaller). Bucket D: Exclusive Self Attention (arXiv:2603.09078). See trn2-experiment-results.md
 _XSA_EPS = 1e-6  # numerical floor for the ||v_i||^2 denominator, avoids div-by-zero at init/degenerate v
+USE_VALUE_RESIDUAL = False  # Value Residual Learning / ResFormer (arXiv:2410.17897, Zhou et al., ICLR 2025): inject layer-0's own value stream into every later layer's V via a learned per-layer scalar (zero-init). Real win at the autoresearch proxy scale (1.405->1.368 val_bpb, eager, no compile, no kernels) but a real, clean NEGATIVE at final locked shape (388/1.196654 vs baseline 427/1.180633, both dimensions worse) -- a new instance of the scale-transfer trap (matches XSA/SLAY), here likely from keeping an extra full-sized activation (v0) alive across the whole network depth for fwd+bwd, interacting badly with torch.compile's memory/fusion assumptions. See trn2-experiment-results.md
 USE_FUSED_QKV = False  # A/B'd at final locked shape: net negative as expected (206 steps/1.312086 vs baseline 240/1.269318) -- disables the rope+QK-norm kernel fusion, fewer steps and worse quality. See trn2-experiment-results.md
 USE_CAUSAL_FASTPATH = True  # Solution 13 winner, A/B'd at final locked shape: real win (265 steps/1.252675 vs baseline 240/1.269318, +0.0166) -- the best of all four Solution-13 toggles, doesn't compose further with USE_TRN2_COMPILER_FLAGS. See trn2-experiment-results.md
 
@@ -963,7 +964,7 @@ class CausalSelfAttention(nn.Module):
         self.c_proj = Linear(config.n_embd, config.n_embd, bias=False)
         self.ve_gate = Linear(VE_GATE_CHANNELS, self.n_head, bias=False) if USE_VE and has_ve(layer_idx, config.n_layer) else None
 
-    def forward(self, x: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, attn_mask: torch.Tensor | None) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, attn_mask: torch.Tensor | None, v0: torch.Tensor | None = None, v0_lambda: torch.Tensor | None = None) -> tuple[torch.Tensor, torch.Tensor]:
         b, t, c = x.shape
         if USE_FUSED_QKV:
             q, k, v = self.c_qkv(x).split(self.n_embd, dim=-1)
@@ -978,6 +979,12 @@ class CausalSelfAttention(nn.Module):
             ve = ve.view(b, t, self.n_head, self.head_dim)
             gate = 2 * torch.sigmoid(self.ve_gate(x[..., :VE_GATE_CHANNELS]))
             v = v + gate.unsqueeze(-1) * ve
+        v_raw = v
+        if v0 is not None:
+            # Value Residual Learning (arXiv:2410.17897): v0 is layer-0's own v_raw, same
+            # shape [b,t,n_head,head_dim], causally trivial (both are pure per-position
+            # functions of x, no cross-position mixing beyond what SDPA already does).
+            v = v + v0_lambda * v0
         q = rope_norm(q, cos, sin)
         k = rope_norm(k, cos, sin)
         q = q.transpose(1, 2)
@@ -996,7 +1003,7 @@ class CausalSelfAttention(nn.Module):
             proj_coef = (y * v).sum(dim=-1, keepdim=True) / (v.pow(2).sum(dim=-1, keepdim=True) + _XSA_EPS)
             y = y - proj_coef * v
         y = y.transpose(1, 2).contiguous().view(b, t, c)
-        return self.c_proj(y)
+        return self.c_proj(y), v_raw
 
 
 class MLP(nn.Module):
@@ -1022,8 +1029,11 @@ class Block(nn.Module):
         self.x0_lambda = nn.Parameter(torch.zeros(1))
         self.local_conv = CausalConv(config.n_embd, LOCAL_CONV_KERNEL) if USE_LOCAL_CONV else None
         self.scalar_gate = Linear(SELECTIVE_GATE_CHANNELS, 2, bias=False) if USE_SELECTIVE_GATE else None
+        # Value Residual Learning (arXiv:2410.17897): layer 0 has no v0 to consume yet (it
+        # produces the v0 every later layer will use), so it doesn't need its own lambda.
+        self.v_lambda = nn.Parameter(torch.zeros(1)) if USE_VALUE_RESIDUAL and layer_idx > 0 else None
 
-    def forward(self, x: torch.Tensor, x0: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, attn_mask: torch.Tensor | None) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, x0: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, attn_mask: torch.Tensor | None, v0: torch.Tensor | None = None) -> tuple[torch.Tensor, torch.Tensor]:
         if self.scalar_gate is not None:
             g = self.scalar_gate(x[..., :SELECTIVE_GATE_CHANNELS])
             resid_lambda = self.resid_lambda * (1.0 + g[..., 0:1])
@@ -1033,9 +1043,10 @@ class Block(nn.Module):
             x = self.resid_lambda * x + self.x0_lambda * x0
         if self.local_conv is not None:
             x = x + self.local_conv(norm(x))
-        x = x + self.attn(norm(x), ve, cos, sin, attn_mask)
+        attn_out, v_raw = self.attn(norm(x), ve, cos, sin, attn_mask, v0, self.v_lambda)
+        x = x + attn_out
         x = x + self.mlp(norm(x))
-        return x
+        return x, v_raw
 
 
 class GPT(nn.Module):
@@ -1125,6 +1136,8 @@ class GPT(nn.Module):
         matrix_params = []
         for block in self.transformer.h:
             scalar_params.extend([block.resid_lambda, block.x0_lambda])
+            if block.v_lambda is not None:
+                scalar_params.append(block.v_lambda)
             matrix_params.extend(block.attn.parameters())
             matrix_params.extend(block.mlp.parameters())
         embedding_params = list(self.transformer.wte.parameters())
@@ -1153,6 +1166,7 @@ class GPT(nn.Module):
         x = self.transformer.wte(idx).to(COMPUTE_DTYPE)
         x = norm(x)
         x0 = x
+        v0 = None
         doc_mask = doc_boundary_mask(idx) if USE_DOC_MASK else None
         for i, block in enumerate(self.transformer.h):
             ve = self.value_embeds[str(i)](idx).to(COMPUTE_DTYPE) if str(i) in self.value_embeds else None
@@ -1164,7 +1178,9 @@ class GPT(nn.Module):
             else:
                 static_mask = (self.mask_short if self.layer_is_short[i] else self.mask_full)[..., :t, :t]
                 attn_mask = static_mask + doc_mask if doc_mask is not None else static_mask
-            x = block(x, x0, ve, cos, sin, attn_mask)
+            x, v_raw = block(x, x0, ve, cos, sin, attn_mask, v0)
+            if USE_VALUE_RESIDUAL and v0 is None:
+                v0 = v_raw
         x = norm(x)
         logits = self.lm_head(x)[..., :self.config.vocab_size].float()
         if targets is None:
@@ -1312,14 +1328,14 @@ ARCH_TOGGLE_NAMES = [
     "WD_DECAY_TO_ZERO", "MUON_MOMENTUM_WARMUP_STEPS", "USE_DOC_MASK", "VE_WD",
     "USE_SELECTIVE_GATE", "SELECTIVE_GATE_CHANNELS", "USE_FUSED_QKV",
     "USE_CAUSAL_FASTPATH", "USE_STOCHASTIC_ROUNDING", "USE_TRN2_COMPILER_FLAGS",
-    "USE_REQUEUE_PACKER", "USE_XSA",
+    "USE_REQUEUE_PACKER", "USE_XSA", "USE_VALUE_RESIDUAL",
 ]
 # Toggles whose mismatch corrupts the state_dict shape (load_state_dict(strict=True) will
 # error loudly). Everything else in ARCH_TOGGLE_NAMES lives in non-persistent buffers or
 # plain Python constants excluded from state_dict() entirely -- a mismatch there loads
 # silently with no crash and quietly wrong behavior, which is exactly why we snapshot and
 # check all of them, not just the shape-critical ones.
-SHAPE_CRITICAL_TOGGLES = {"USE_VE", "USE_LOCAL_CONV", "USE_GATED_MLP", "USE_SELECTIVE_GATE", "USE_FUSED_QKV"}
+SHAPE_CRITICAL_TOGGLES = {"USE_VE", "USE_LOCAL_CONV", "USE_GATED_MLP", "USE_SELECTIVE_GATE", "USE_FUSED_QKV", "USE_VALUE_RESIDUAL"}
 
 
 def current_toggles() -> dict:
