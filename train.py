@@ -2746,6 +2746,7 @@ def muon_momentum(step: int) -> float:
 
 def main() -> None:
     global USE_LOCAL_CONV, LRM_QUANTUM, USE_TENSOR_LR_SCALARS, USE_MUDD, USE_DCMHA, USE_MAMBA2, MAMBA2_PATTERN, USE_NKI_SSD  # flags below default off these constants
+    global MAMBA2_EXPAND, MAMBA2_D_STATE, MAMBA2_HEAD_DIM, MAMBA2_CHUNK, MAMBA2_N_GROUPS, MAMBA2_CONV_KERNEL
     parser = argparse.ArgumentParser(description="Neuron Competition R1 baseline")
     parser.add_argument("--device-type", type=str, default="")
     parser.add_argument("--num-steps", type=int, default=int(os.environ.get("NEURON_COMPETITION_R1_NUM_STEPS", NUM_STEPS)))
@@ -2812,6 +2813,25 @@ def main() -> None:
                         help="per-layer mixer pattern cycled to n_layer, \"M\" = Mamba2 mixer and anything "
                              "else = attention (default MMAMMM: 5 Mamba2 layers + one full attention layer "
                              "at index 2). Only read when --mamba2 is on.")
+    parser.add_argument("--mamba2-expand", type=int, default=MAMBA2_EXPAND,
+                        help="d_inner = this x n_embd. The Mamba2 paper default is 2 (d_inner=1280 "
+                             "at the locked n_embd=640, H=10 heads); 1 halves every projection AND "
+                             "the scan's head count. Only read when --mamba2 is on.")
+    parser.add_argument("--mamba2-d-state", type=int, default=MAMBA2_D_STATE,
+                        help="N, the SSM state width per B/C group (paper default 128). Must satisfy "
+                             "N <= --mamba2-chunk for the NKI kernel. Only read when --mamba2 is on.")
+    parser.add_argument("--mamba2-head-dim", type=int, default=MAMBA2_HEAD_DIM,
+                        help="P, the per-head state width; must divide d_inner and be <= 512 (the "
+                             "PSUM free-dim limit). Only read when --mamba2 is on.")
+    parser.add_argument("--mamba2-chunk", type=int, default=MAMBA2_CHUNK,
+                        help="Q, the SSD chunk length; must divide sequence_len and satisfy "
+                             "N <= Q <= 128 for the NKI kernel. Only read when --mamba2 is on.")
+    parser.add_argument("--mamba2-n-groups", type=int, default=MAMBA2_N_GROUPS,
+                        help="G, the number of B/C groups (paper default 1 = all heads share one "
+                             "B/C). Must divide n_heads. Only read when --mamba2 is on.")
+    parser.add_argument("--mamba2-conv-kernel", type=int, default=MAMBA2_CONV_KERNEL,
+                        help="k for the depthwise causal conv1d (paper default 4). Costs k shifted "
+                             "mul-adds over [b,T,d_conv] per mixer. Only read when --mamba2 is on.")
     parser.add_argument("--nki-ssd", action=argparse.BooleanOptionalAction,
                         default=os.environ.get("NEURON_COMPETITION_R1_NKI_SSD", "1" if USE_NKI_SSD else "0") != "0",
                         help="run the Mamba2 chunked SSD scan through the hand-written NKI kernel pair "
@@ -2833,6 +2853,13 @@ def main() -> None:
     USE_NKI_SOFTCAP_CE = args.nki_softcap_ce
     USE_MAMBA2 = args.mamba2                  # read by Block.__init__, i.e. before GPT(config) below
     MAMBA2_PATTERN = args.mamba2_pattern      # ditto (mamba2_layer_flags reads it per block)
+    # Mixer geometry: all read by Mamba2Mixer.__init__, i.e. before GPT(config) below.
+    MAMBA2_EXPAND = args.mamba2_expand
+    MAMBA2_D_STATE = args.mamba2_d_state
+    MAMBA2_HEAD_DIM = args.mamba2_head_dim
+    MAMBA2_CHUNK = args.mamba2_chunk
+    MAMBA2_N_GROUPS = args.mamba2_n_groups
+    MAMBA2_CONV_KERNEL = args.mamba2_conv_kernel
     USE_NKI_SSD = args.nki_ssd
 
     device_type = detect_device_type(args.device_type)
