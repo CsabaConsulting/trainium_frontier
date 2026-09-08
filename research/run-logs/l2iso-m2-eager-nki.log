@@ -1,0 +1,95 @@
+[W908 03:55:24.787104684 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+W0908 03:55:24.330000 719765 torch/distributed/run.py:851] 
+W0908 03:55:24.330000 719765 torch/distributed/run.py:851] *****************************************
+W0908 03:55:24.330000 719765 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0908 03:55:24.330000 719765 torch/distributed/run.py:851] *****************************************
+[W908 03:55:26.936022808 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W908 03:55:26.936312776 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W908 03:55:26.937570740 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W908 03:55:26.937829382 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+device=neuron dtype=torch.bfloat16 world_size=4
+training target=40 steps max_seconds=600 official_budget=1800s
+model_config={
+  "sequence_len": 2048,
+  "vocab_size": 8192,
+  "n_layer": 6,
+  "n_head": 5,
+  "n_embd": 640
+}
+num_params=44,976,802 flops_per_token=3.327753e+08
+micro_tokens=16,384 grad_accum_steps=8 pack_factor=2
+step 00000 | loss 9.0106 | lrm 1.000 | dt 17.69s | tok/s 7,409 | remaining_steps 39 | remaining_time 582s | epoch 1
+step 00001 | loss 8.7740 | lrm 1.000 | dt 1.53s | tok/s 85,867 | remaining_steps 38 | remaining_time 581s | epoch 1
+step 00002 | loss 8.5291 | lrm 1.000 | dt 1.53s | tok/s 85,773 | remaining_steps 37 | remaining_time 579s | epoch 1
+step 00003 | loss 8.1253 | lrm 1.000 | dt 1.53s | tok/s 85,816 | remaining_steps 36 | remaining_time 578s | epoch 1
+step 00004 | loss 7.7727 | lrm 1.000 | dt 1.54s | tok/s 85,040 | remaining_steps 35 | remaining_time 600s | epoch 1
+step 00010 | loss 6.5452 | lrm 1.000 | dt 1.54s | tok/s 85,070 | remaining_steps 29 | remaining_time 591s | epoch 1
+step 00020 | loss 5.7964 | lrm 1.000 | dt 1.52s | tok/s 86,350 | remaining_steps 19 | remaining_time 575s | epoch 1
+step 00030 | loss 5.3101 | lrm 1.000 | dt 1.54s | tok/s 85,155 | remaining_steps 9 | remaining_time 560s | epoch 1
+Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
+Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
+Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
+Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
+---
+checkpoint_path:    out/l2iso-m2-eager-nki/final.pt
+training_seconds:  53.6
+budget_seconds:    1800
+target_steps:      40
+max_train_seconds: 600
+startup_allowance_est: 44.3
+charged_seconds_est:   53.8
+over_budget:       False
+total_seconds:     80.4
+compiled:          False
+nki_relu2:         False
+nki_rope_norm:     True
+nki_softcap_ce:    True
+mudd:              False
+dcmha:             False
+mamba2:            True
+mamba2_pattern:    MMAMMM
+nki_ssd:           True
+num_steps:         40
+total_tokens_M:    5.2
+world_size:        4
+lnc:               2
+seq_len:           2048
+num_params_M:      45.0
+causality_passed:  True
+causality_max_abs: 0.000000
+public_val_bpb:    1.805960
+eval_seconds:      0.5
+eval_timeout:      1200
+eval_over_timeout: False

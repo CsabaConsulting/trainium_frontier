@@ -1,0 +1,65 @@
+=== m2-compile-nki ===
+exit=0
+training_seconds:  1102.0
+compiled:          True
+num_steps:         5
+num_params_M:      45.0
+causality_passed:  True
+=== m2-compile-eagerscan ===
+exit=0
+step 00010 | loss 6.6411 | lrm 1.000 | dt 2.21s | tok/s 59,210 | remaining_steps 29 | remaining_time 587s | epoch 1
+step 00020 | loss 5.8407 | lrm 1.000 | dt 2.20s | tok/s 59,489 | remaining_steps 19 | remaining_time 565s | epoch 1
+step 00030 | loss 5.3386 | lrm 1.000 | dt 2.20s | tok/s 59,546 | remaining_steps 9 | remaining_time 542s | epoch 1
+training_seconds:  77.5
+compiled:          True
+num_steps:         40
+num_params_M:      45.0
+causality_passed:  True
+=== m2-eager-nki ===
+exit=0
+step 00010 | loss 6.5452 | lrm 1.000 | dt 1.54s | tok/s 85,070 | remaining_steps 29 | remaining_time 591s | epoch 1
+step 00020 | loss 5.7964 | lrm 1.000 | dt 1.52s | tok/s 86,350 | remaining_steps 19 | remaining_time 575s | epoch 1
+step 00030 | loss 5.3101 | lrm 1.000 | dt 1.54s | tok/s 85,155 | remaining_steps 9 | remaining_time 560s | epoch 1
+training_seconds:  53.6
+compiled:          False
+num_steps:         40
+num_params_M:      45.0
+causality_passed:  True
+=== m2-eager-eagerscan ===
+exit=0
+step 00010 | loss 6.5452 | lrm 1.000 | dt 1.99s | tok/s 65,850 | remaining_steps 29 | remaining_time 588s | epoch 1
+step 00020 | loss 5.7965 | lrm 1.000 | dt 1.98s | tok/s 66,196 | remaining_steps 19 | remaining_time 568s | epoch 1
+step 00030 | loss 5.3104 | lrm 1.000 | dt 2.01s | tok/s 65,291 | remaining_steps 9 | remaining_time 548s | epoch 1
+training_seconds:  69.8
+compiled:          False
+num_steps:         40
+num_params_M:      45.0
+causality_passed:  True
+=== xf-compile ===
+exit=0
+step 00010 | loss 6.8006 | lrm 1.000 | dt 0.91s | tok/s 143,748 | remaining_steps 29 | remaining_time 594s | epoch 1
+step 00020 | loss 6.0119 | lrm 1.000 | dt 0.92s | tok/s 142,100 | remaining_steps 19 | remaining_time 585s | epoch 1
+step 00030 | loss 5.6568 | lrm 1.000 | dt 0.92s | tok/s 142,521 | remaining_steps 9 | remaining_time 576s | epoch 1
+training_seconds:  32.2
+compiled:          True
+num_steps:         40
+num_params_M:      55.7
+causality_passed:  True
+=== xf-eager ===
+exit=0
+step 00010 | loss 7.2747 | lrm 1.000 | dt 0.97s | tok/s 134,754 | remaining_steps 29 | remaining_time 594s | epoch 1
+step 00020 | loss 6.2071 | lrm 1.000 | dt 0.97s | tok/s 134,697 | remaining_steps 19 | remaining_time 584s | epoch 1
+step 00030 | loss 5.7521 | lrm 1.000 | dt 0.97s | tok/s 135,461 | remaining_steps 9 | remaining_time 575s | epoch 1
+training_seconds:  34.1
+compiled:          False
+num_steps:         40
+num_params_M:      55.7
+causality_passed:  True
+
+======== steady-state dt summary ========
+m2-compile-eagerscan     last_dt: dt 2.21s dt 2.20s dt 2.20s   training_s=77.5     steps=40   
+m2-compile-nki           last_dt: dt 4.71s dt 4.71s dt 4.72s   training_s=1102.0   steps=5    
+m2-eager-eagerscan       last_dt: dt 1.99s dt 1.98s dt 2.01s   training_s=69.8     steps=40   
+m2-eager-nki             last_dt: dt 1.54s dt 1.52s dt 1.54s   training_s=53.6     steps=40   
+xf-compile               last_dt: dt 0.91s dt 0.92s dt 0.92s   training_s=32.2     steps=40   
+xf-eager                 last_dt: dt 0.97s dt 0.97s dt 0.97s   training_s=34.1     steps=40   

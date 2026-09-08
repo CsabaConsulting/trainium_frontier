@@ -1,0 +1,115 @@
+[W908 03:07:37.712391989 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+locked shape: n_embd=640 n_layer=6 SEQ_LEN=2048  per-rank micro batch b=2
+nki_ssd=True has_nki=True  REPS=8
+
+--- baseline e2 n128 p128 g1 k4
+    d_inner=1280 H=10 P=128 N=128 G=1 d_conv=1536 k=4 Q=128  params=2.635M
+    mixer fwd             6.097 ms
+    mixer fwd+bwd        20.515 ms
+      in_proj             0.461 ms
+      conv1d              1.755 ms
+      silu                0.114 ms
+      softplus_dt         0.167 ms
+      scan_nki            1.578 ms
+      scan_eager          5.814 ms
+      gated_rmsnorm       0.919 ms
+      out_proj            0.246 ms
+
+--- e1        n128 p128 g1 k4
+    d_inner=640 H=5 P=128 N=128 G=1 d_conv=896 k=4 Q=128  params=1.400M
+    mixer fwd             3.908 ms
+    mixer fwd+bwd        15.628 ms
+      in_proj             0.325 ms
+      conv1d              1.249 ms
+      silu                0.084 ms
+      softplus_dt         0.204 ms
+      scan_nki            0.886 ms
+      scan_eager          4.009 ms
+      gated_rmsnorm       0.759 ms
+      out_proj            0.145 ms
+
+--- e2         n64 p128 g1 k4
+    d_inner=1280 H=10 P=128 N=64 G=1 d_conv=1408 k=4 Q=128  params=2.553M
+    mixer fwd             5.587 ms
+    mixer fwd+bwd        19.794 ms
+      in_proj             0.552 ms
+      conv1d              1.641 ms
+      silu                0.103 ms
+      softplus_dt         0.237 ms
+      scan_nki            1.636 ms
+      scan_eager          4.881 ms
+      gated_rmsnorm       0.970 ms
+      out_proj            0.247 ms
+
+--- e1         n64 p128 g1 k4
+    d_inner=640 H=5 P=128 N=64 G=1 d_conv=768 k=4 Q=128  params=1.318M
+    mixer fwd             3.930 ms
+    mixer fwd+bwd        14.496 ms
+      in_proj             0.288 ms
+      conv1d              1.209 ms
+      silu                0.075 ms
+      softplus_dt         0.217 ms
+      scan_nki            0.922 ms
+      scan_eager          3.680 ms
+      gated_rmsnorm       0.799 ms
+      out_proj            0.145 ms
+
+--- e2         n32 p128 g1 k4
+    d_inner=1280 H=10 P=128 N=32 G=1 d_conv=1344 k=4 Q=128  params=2.512M
+    mixer fwd             5.227 ms
+    mixer fwd+bwd        20.674 ms
+      in_proj             0.557 ms
+      conv1d              1.488 ms
+      silu                0.099 ms
+      softplus_dt         0.205 ms
+      scan_nki            1.609 ms
+      scan_eager          4.624 ms
+      gated_rmsnorm       1.047 ms
+      out_proj            0.247 ms
+
+--- e1         n64 p128 g1 k2
+    d_inner=640 H=5 P=128 N=64 G=1 d_conv=768 k=2 Q=128  params=1.316M
+    mixer fwd             3.155 ms
+    mixer fwd+bwd        11.642 ms
+      in_proj             0.256 ms
+      conv1d              0.454 ms
+      silu                0.074 ms
+      softplus_dt         0.161 ms
+      scan_nki            0.913 ms
+      scan_eager          3.846 ms
+      gated_rmsnorm       0.818 ms
+      out_proj            0.143 ms
+
+--- e1        n128  p64 g1 k4
+    d_inner=640 H=10 P=64 N=128 G=1 d_conv=896 k=4 Q=128  params=1.403M
+    mixer fwd             4.670 ms
+    mixer fwd+bwd        17.558 ms
+      in_proj             0.321 ms
+      conv1d              1.231 ms
+      silu                0.086 ms
+      softplus_dt         0.219 ms
+      scan_nki            1.578 ms
+      scan_eager          4.955 ms
+      gated_rmsnorm       0.762 ms
+      out_proj            0.147 ms
+
+====================================================================================================
+# 5 Mamba2 layers x grad_accum=8 = 40 mixer fwd+bwd calls per optimizer step
+config                            params    fwd ms   fwd+bwd   ratio  mixer s/step  pred s/step
+baseline e2 n128 p128 g1 k4       2.635M     6.097    20.515   1.000        0.821s       1.950s
+e1        n128 p128 g1 k4         1.400M     3.908    15.628   0.762        0.625s       1.755s
+e2         n64 p128 g1 k4         2.553M     5.587    19.794   0.965        0.792s       1.921s
+e1         n64 p128 g1 k4         1.318M     3.930    14.496   0.707        0.580s       1.709s
+e2         n32 p128 g1 k4         2.512M     5.227    20.674   1.008        0.827s       1.956s
+e1         n64 p128 g1 k2         1.316M     3.155    11.642   0.567        0.466s       1.595s
+e1        n128  p64 g1 k4         1.403M     4.670    17.558   0.856        0.702s       1.832s
+
+Measured targets: mamba baseline 1.950 s/step, transformer 0.907 s/step (xf-fixed300).
+Caveat: this is a single-mixer microbenchmark on ONE core with no DDP all-reduce and no
+contention from 3 sibling ranks. Treat 'pred s/step' as a RANKING signal, not a forecast.
