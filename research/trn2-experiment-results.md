@@ -881,3 +881,17 @@ decisively at full budget long ago). Under the new tensor-lr-scalars regime: **D
 1995 steps, `1.043489`**. DEPTH=6 wins clearly — fewer steps AND worse bpb for DEPTH=8, not
 a close call. DEPTH=6 confirmed still correct; no further depth escalation warranted (7/9-12
 already lost more decisively at proxy scale previously).
+
+## Tier 0.4 — width-only full-1800s check at DEPTH=6: confirmed still correct, one close call
+
+Real full-1800s width sweep at fixed DEPTH=6 under the new tensor-lr-scalars regime, vs
+locked width=640 (`tensorlr-fullbudget`: 1995 steps/`1.043489`):
+- width=512 (`width512-fullbudget`, aspect80): 2433 steps/`1.05416` — more steps, clearly
+  worse bpb, same budget-dependent-optimum shape already seen with DEPTH=5.
+- width=768 (`width768-fullbudget`, aspect128): 1623 steps/`1.04415` — fewer steps, only
+  `0.000661` worse than 640 — the closest margin of any capacity-axis point tested this
+  round, near the established noise floor (`~0.0001-0.00025`). Still behind, not a reversal.
+
+`ASPECT_RATIO=96` (width=640) confirmed still correct. `DEPTH`×width joint resweep at full
+budget now complete: both axes independently re-confirmed under the new regime, one close
+call noted honestly rather than either ignored or over-interpreted as a tie.

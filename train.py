@@ -160,8 +160,8 @@ def make_dataloader_requeue(
 # Baseline hyperparameters. Model-related config lives here, not in prepare.py.
 
 SEQ_LEN = 2048  # Solution 11 (Trn2 real-hardware context-length resweep, fixed DEPTH=6/ASPECT_RATIO=96/TOTAL_BATCH_SIZE=131072): real interior optimum -- 2048 beat 512/1024/4096 (U-shape, see trn2-experiment-results.md). Not yet confirmed at full 1800s budget.
-DEPTH = 8  # Tier-0 resweep, full 1800s directly (per updated discipline for capacity-affecting axes): testing 8 (closest 900s-proxy runner-up, never confirmed at full budget) now that tensor-lr-scalars changed the step-count regime. DEPTH=6 is locked/current default; see trn2-experiment-results.md
-ASPECT_RATIO = 96  # Solution 11 (Trn2 real-hardware width-only resweep at fixed DEPTH=6): real interior optimum -- 640 beat 256/384/512/768 (U-shape, see trn2-experiment-results.md)
+DEPTH = 6  # Tier-0 resweep confirmed DEPTH=8 loses clearly at full 1800s (1217/1.052406 vs 1995/1.043489) -- DEPTH=6 stays locked. See trn2-experiment-results.md
+ASPECT_RATIO = 96  # Tier-0 resweep confirmed width=640 still correct at full 1800s: 512 (2433/1.05416) and 768 (1623/1.04415, close but still behind) both lose. See trn2-experiment-results.md
 HEAD_DIM = 128
 
 DEVICE_BATCH_SIZE = 1
