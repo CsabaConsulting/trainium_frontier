@@ -17,12 +17,17 @@ COMMON="--mamba2 --mamba2-pattern MMAMMM --nki-ssd --no-compile"
 go() {
   local label="$1"; local desc="$2"; shift 2
   echo "######## $label ########"
+  # A first attempt at this script lost 10 minutes of box time because the
+  # geometry flags were left off the g3 call, so "g3" silently ran the paper
+  # geometry. Echo the per-run flags on their own line so that is unmissable.
+  echo "geometry flags: [$*]"
   python research/run_experiment.py --label "$label" --solution Mamba2Lever1 \
     --description "$desc" --num-steps 5000 --max-train-seconds 900 \
     --nproc-per-node 4 --lnc 2 --no-commit --extra-args $COMMON "$@"
 }
 
-go m2-g3-e1n64k2-900s "Lever 1 at the real 900s budget: cheapest Mamba2 geometry (expand=1 d_state=64 conv_kernel=2, 1.110 s/step vs the paper geometry's 1.509), eager + NKI SSD kernel. Baseline to beat: tensorlr-900s 995 steps / 1.094327"
+go m2-g3-e1n64k2-900s "Lever 1 at the real 900s budget: cheapest Mamba2 geometry (expand=1 d_state=64 conv_kernel=2, 1.110 s/step vs the paper geometry's 1.509), eager + NKI SSD kernel. Baseline to beat: tensorlr-900s 995 steps / 1.094327" \
+  --mamba2-expand 1 --mamba2-d-state 64 --mamba2-conv-kernel 2
 
 go m2-g0-e2n128k4-900s "Lever 1 at the real 900s budget: paper Mamba2 geometry with the NKI scan VERIFIABLY active (1.509 s/step; the earlier m2hybrid-nki-* runs silently fell back to the 2.00 s/step eager scan). Best quality-per-step of the family. Baseline to beat: tensorlr-900s 995 steps / 1.094327"
 

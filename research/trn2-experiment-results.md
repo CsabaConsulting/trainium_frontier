@@ -659,3 +659,115 @@ previous full-budget best `depth6-beta095-fullbudget` 847 steps / 1.108697 -- **
 steps, -0.0652 bpb, new headline**. `USE_TENSOR_LR_SCALARS` is locked ON;
 `LRM_QUANTUM` stays 0 (the quantisation was only ever a workaround for the same problem and
 distorts the schedule).
+
+## Mamba2/SSD hybrid: closing out the wall-clock gap (negative, but a clean one)
+
+The hybrid (`--mamba2 --mamba2-pattern MMAMMM`, 5 Mamba2 mixers + 1 attention, with the
+from-scratch NKI SSD kernel) was kept alive on one specific hope: a fixed-300-step control
+showed a **dead heat on quality-per-step** (`m2hybrid-nki-fixed300` 1.270639 vs
+`xf-fixed300` 1.269458) at 19% fewer params, so the entire full-budget deficit
+(`m2hybrid-nki-fullbudget` 908 steps / 1.109065 vs `tensorlr-fullbudget` 1995 / 1.043489)
+looked like a pure speed problem. Two levers were pushed to the end. Both are now closed.
+
+### A measurement error found first: `nki_ssd: True` did not mean the kernel ran
+
+`ssd_scan` picks its branch behind a shape/device guard, but the run header line
+`nki_ssd: True` only echoes the *flag*. Both recorded `m2hybrid-nki-*` runs ran at
+`dt 1.97-2.00 s` -- exactly the independently measured `--no-nki-ssd` speed -- so the NKI
+scan was evidently inactive in both. The recorded Mamba2 throughput understated current
+code by ~1.31x, and the "2.15x slower per step" premise was really 1.66x. `ssd_scan` now
+prints, once per process, which branch the guard actually chose plus every shape, dtype and
+contiguity fact that feeds it, so this class of silent fallback cannot recur.
+
+### Lever 1 -- a cheaper mixer is a real speed win that does not pay for itself
+
+Mixer geometry is now on the CLI (`--mamba2-expand/-d-state/-head-dim/-chunk/-n-groups/
+-conv-kernel`). Fixed 300 steps, eager + NKI kernel, real 4-rank/lnc=2 shape:
+
+| config | s/step | params | `public_val_bpb` |
+|---|---|---|---|
+| `xf-fixed300` (reference) | **0.907** | 55.7M | **1.269458** |
+| g0 `expand=2 d_state=128 k=4` (paper) | 1.509 | 45.0M | 1.273513 |
+| g1 `expand=1` | 1.267 | 38.8M | 1.290404 |
+| g2 `expand=1 d_state=64` | 1.257 | 38.4M | 1.293135 |
+| g3 `expand=1 d_state=64 k=2` | **1.110** | 38.4M | 1.288748 |
+
+`expand=1` is the big lever (1.19x) and `conv_kernel 4->2` is the one *free* lever (a further
+1.13x at no quality cost -- 1.288748 is if anything better than g2's 1.293135). `d_state`
+128->64 is worth only 1.01x, so the state size is not where the time goes. A microbenchmark
+agrees on the mechanism: `ssd_causal_conv1d` at k=4 (1.755 ms) is the single largest forward
+component -- **larger than the NKI scan itself** (1.578 ms) -- because it is k shifted
+multiply-adds rather than one conv op.
+
+Real 900s A/B, against the verified current-code baseline (`lrmq25-900s` 1004 steps /
+1.093785; `tensorlr-900s` 995 / 1.094327 is the same family):
+
+| run | steps | `public_val_bpb` | vs baseline |
+|---|---|---|---|
+| transformer `lrmq25-900s` | **1004** | **1.093785** | -- |
+| `m2-g3-e1n64k2-900s` (cheapest) | 795 | 1.128185 | +0.0344 |
+| `m2-g0-e2n128k4-900s` (paper geom, kernel confirmed active) | 588 | 1.144603 | +0.0508 |
+
+Both budget-clean, `causality_passed` true. The speed lever genuinely paid *within* the
+Mamba2 family -- g3 converts its 1.36x throughput into 207 more steps and beats g0 by
+0.0164 bpb at equal wall clock -- it is just ~0.034 bpb short of the transformer.
+
+**Why no further speed work can close this.** Fitting `bpb ≈ a − k·ln(steps)` on current-code
+transformer runs gives `k ≈ 0.077` (936/1.099500, 995/1.094327, 1004/1.093785,
+1995/1.043489). Closing g3's 0.0344 bpb on step count alone needs `exp(0.0344/0.077)` =
+**1.57x more steps**, i.e. 795 -> ~1250, i.e. **0.72 s/step -- faster than the transformer
+itself at 0.907**. So even a *free* mixer does not get there. Worse, the free-mixer ceiling
+is a tie, not a win: at 300 steps the paper geometry is +0.004 bpb and the cheap geometry
+needed for the speed is +0.019, so the "dead heat" only ever held for the geometry that is
+too slow to use. The gap was never purely speed -- the cheap-enough configuration is also
+behind on quality-per-step. No 1800s escalation was run, because the 900s result is not a
+win.
+
+### Lever 2 -- the `torch.compile` anomaly: premise obsolete, mechanism confirmed, fix capped below eager
+
+The claimed premise (compile gives the transformer 2.37x, 2.18 -> 0.92 s/step, but Mamba2
+only 0.90x) came from two scratch docstrings and is in neither `experiment-log.jsonl` nor
+this file, so it was re-measured. The 2x3 isolate at the real shape, 40 steps each:
+
+| | eager | compile |
+|---|---|---|
+| transformer | 0.97 | **0.92** |
+| Mamba2 + eager scan | 2.00 | 2.20 |
+| Mamba2 + NKI kernel | **1.53** | 4.71 |
+
+Three real results. **(a)** The premise is obsolete: the 2.18 s/step eager transformer was a
+pre-`--tensor-lr-scalars` number inflated by the every-step optimizer recompile documented
+above. On current code compile is worth **1.05x**, not 2.37x -- there is no missing 2.37x to
+recover for anyone. **(b)** The anomaly is the NKI kernel's `torch.autograd.Function`
+boundary, exactly as hypothesised, and `torch._dynamo.explain` **on neuron tensors** shows
+it directly:
+
+| config | graphs | breaks | ops |
+|---|---|---|---|
+| transformer | 1 | 0 | 180 |
+| Mamba2 MMAMMM `--nki-ssd` | **11** | **10** | 174 |
+| Mamba2 MMAMMM `--no-nki-ssd` | 1 | 0 | 514 |
+
+Ten breaks = two per mixer x five mixers, shattering the forward into 11 serialized islands
+of `[3, 16, 74, 11, 20, 14, 121, 62, 3, 5, 11]` ops. Note this also **corrects the
+pre-existing `mamba2_dynamo_explain.py`**, which reported "one graph, zero breaks, 534 ops"
+for the Mamba2 path: it traces *CPU* tensors, so `ssd_scan`'s `x.device.type == "neuron"`
+guard is False and it measured `ssd_chunked`, not `_SSDNKI.apply` -- the bottom row of the
+table above, not the middle one. **(c)** The obvious fix (make the kernel traceable via
+`torch.library.custom_op`/`nki_op`, already prototyped in
+`research/scratch/nki_custom_ops_train_py.patch`) is nonetheless not worth building, because
+its ceiling is provably below a number we already have: compile is **1.10x worse than eager
+even on the fully-traceable Mamba2 graph** (2.20 vs 2.00, one graph, zero breaks), so
+collapsing 11 islands to 1 lands near `1.53 x 1.10 = 1.68`, worse than eager's 1.53.
+Independently disqualifying: compiling the Mamba2+NKI graph takes **~30 min and 43 GB RES**
+in `neuronx-cc`/`walrus` (the transformer compiles in ~45 s) -- one isolate cell burned its
+entire `--max-train-seconds 600` before reaching step 0. **Use `--no-compile` whenever
+`--mamba2 --nki-ssd` are on**, which is what the fastest configuration already does.
+
+### Verdict
+
+`USE_MAMBA2` stays **OFF**. The speed problem was real and half of it was closed (2.15x
+claimed -> 1.66x actual -> 1.22x with the cheap geometry), the compile anomaly is fully
+explained, and the residual gap is arithmetically out of reach of further speed work. The
+kernel, the geometry flags and the path diagnostic all stay in the file behind their
+defaults-off toggles.

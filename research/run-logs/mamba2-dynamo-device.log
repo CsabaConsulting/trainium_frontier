@@ -1,0 +1,34 @@
+[W908 05:30:25.832450522 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+has_nki=True
+
+===== transformer (compiled path) =====
+  graphs produced : 1
+  graph breaks    : 0
+  ops captured    : 180
+  ops per graph   : [406]
+ssd_scan path: NKI kernel  [USE_NKI_SSD=True _HAS_NKI=True]  b=2 T=2048 H=10 P=128 G=1 N=128 Q=128 dev=neuron dtypes=(torch.float32,torch.float32,torch.float32,torch.float32) contig=(True,True,True,True)
+
+===== mamba2 MMAMMM, --nki-ssd =====
+  graphs produced : 11
+  graph breaks    : 10
+  ops captured    : 174
+  ops per graph   : [3, 16, 74, 11, 20, 14, 121, 62, 3, 5, 11]
+      2x  Failed to trace builtin operator
+
+===== mamba2 MMAMMM, --no-nki-ssd =====
+  graphs produced : 1
+  graph breaks    : 0
+  ops captured    : 514
+  ops per graph   : [962]
+
+========================================================================================
+config                             graphs   breaks      ops
+transformer (compiled path)             1        0      180
+mamba2 MMAMMM, --nki-ssd               11       10      174
+mamba2 MMAMMM, --no-nki-ssd             1        0      514

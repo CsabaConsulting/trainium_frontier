@@ -1,0 +1,12 @@
+######## m2-g3-e1n64k2-900s ########
+geometry flags: [--mamba2-expand 1 --mamba2-d-state 64 --mamba2-conv-kernel 2]
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 900 --out-dir out/m2-g3-e1n64k2-900s --mamba2 --mamba2-pattern MMAMMM --nki-ssd --no-compile --mamba2-expand 1 --mamba2-d-state 64 --mamba2-conv-kernel 2
+--- logged: status=keep public_val_bpb=1.128185 num_steps=795 total_seconds=919.8 -> research/experiment-log.jsonl
+######## m2-g0-e2n128k4-900s ########
+geometry flags: []
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 900 --out-dir out/m2-g0-e2n128k4-900s --mamba2 --mamba2-pattern MMAMMM --nki-ssd --no-compile
+--- logged: status=keep public_val_bpb=1.144603 num_steps=588 total_seconds=930.0 -> research/experiment-log.jsonl
+
+===== summary =====
+m2-g3-e1n64k2-900s       steps=795 bpb=1.128185 params=38.4M train_s=894.5 status=keep
+m2-g0-e2n128k4-900s      steps=588 bpb=1.144603 params=45.0M train_s=893.7 status=keep
