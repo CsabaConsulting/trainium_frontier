@@ -764,10 +764,84 @@ in `neuronx-cc`/`walrus` (the transformer compiles in ~45 s) -- one isolate cell
 entire `--max-train-seconds 600` before reaching step 0. **Use `--no-compile` whenever
 `--mamba2 --nki-ssd` are on**, which is what the fastest configuration already does.
 
+### Lever 1, part 2 -- the axis nobody had measured: how many mixers?
+
+`MAMBA2_PATTERN`'s comment called `MMAMMM` "the measured best of the hybrid patterns tried",
+but **there was not one pattern-variant row in `experiment-log.jsonl`** -- every Mamba2 run
+ever recorded, including both headline ones, is `MMAMMM`. So mixer count was untested, and
+the geometry sweep above cannot speak to it: it shows 5-of-6 loses, and says nothing about
+1-of-6, which is the ratio the literature's hybrid claim is actually about. A low fraction is
+also the favourable regime for a second reason -- Mamba2 layers forfeit their value-embedding
+(no attention V to inject one into), so `MMAMMM` was throwing away 5 of 6 value-embedding
+tables.
+
+Fixed 300 steps. `M=0` is `xf-fixed300`; `M=5` rows are the geometry sweep above:
+
+| Mamba2 layers | pattern | geometry | s/step | params | `public_val_bpb` |
+|---|---|---|---|---|---|
+| 0 | -- | -- | **0.907** | 55.7M | 1.269458 |
+| 1 | `AMAAAA` | paper | 1.080 | 51.5M | **1.267050** |
+| 2 | `AAMAAM` | paper | 1.201 | 52.5M | 1.268748 |
+| 3 | `AMAMAM` | paper | 1.250 | 43.0M | 1.282111 |
+| 5 | `MMAMMM` | paper | 1.509 | 45.0M | 1.273513 |
+| 1 | `AMAAAA` | cheap | 0.992 | 50.2M | 1.270580 |
+| 2 | `AAMAAM` | cheap | 1.043 | 49.8M | 1.273451 |
+| 5 | `MMAMMM` | cheap | 1.110 | 38.4M | 1.288748 |
+
+So `MMAMMM` was simply the wrong point on this axis: a **single** mixer does beat pure
+attention on quality-per-step (1.267050 vs 1.269458). But it earns nowhere near its keep.
+Regressing `total = base + n_attn*a + n_m*m` across all eight rows prices one mixer, as
+s/step **over the attention layer it replaces**, at `+0.114..+0.173` (paper) and `+0.041`
+(cheap). The break-even price at this budget is `0.077*ln(1.080/0.907) = 0.0134` bpb, and the
+mixer earns `0.0024` -- **5.6x too little**. The cheap geometry duly delivers the speed
+(0.992 vs 1.080) and gives back exactly the quality that motivated it (1.270580 vs
+1.267050).
+
+### The final answer, measured, and why nothing further can move it
+
+Best configuration the whole search produced -- one cheap Mamba2 layer of six -- at the real
+900s budget, against the verified baseline `lrmq25-900s` (1004 steps / 1.093785):
+
+| run | steps | `public_val_bpb` | deficit | of which step-count | of which quality/step |
+|---|---|---|---|---|---|
+| `m2-g0-e2n128k4-900s` (M=5 paper) | 588 | 1.144603 | +0.0508 | +0.0412 | +0.0096 |
+| `m2-g3-e1n64k2-900s` (M=5 cheap) | 795 | 1.128185 | +0.0344 | +0.0180 | +0.0164 |
+| **`m2-pat1-cheap-900s` (M=1 cheap)** | **887** | **1.106694** | **+0.0129** | +0.0095 | +0.0034 |
+
+(`training_seconds` 894.5, `startup_allowance_est` 36.4, `over_budget` false,
+`causality_passed` true, 50.2M params, NKI scan confirmed active.) The 4x narrowing
+(+0.0508 -> +0.0129) is real progress and the projection method held throughout -- it
+predicted 1.1315/1.139/1.1032 against actual 1.128185/1.144603/1.106694, error <= 0.006.
+
+Two independent reasons this is the end of the line:
+
+1. **The decomposition kills the speed thesis.** Of the best config's +0.0129, only +0.0095
+   is step count; **+0.0034 is quality-per-step**. Make the mixer *free* -- 1004 steps, same
+   as the transformer -- and it is still behind. The gap was never purely speed, which was
+   the premise the whole line rested on.
+2. **The trajectory converges on the baseline from above, monotonically.** Every move toward
+   less Mamba2 improved the result (588 -> 795 -> 887 steps, +0.0508 -> +0.0344 -> +0.0129),
+   and the endpoint of that trajectory is `M=0`: the pure transformer. There is no interior
+   optimum that wins. An optimistic bound confirms it -- combine the *best measured*
+   quality-per-step in the family (M=1 paper, -0.0024) with the *best measured* mixer price
+   (cheap, +0.041 s/step) and that best-of-both config, which does not exist, still projects
+   943 steps / 1.09620 against 1.093785.
+
+Caveat stated honestly: quality-per-step across `M=0,1,2` spans only 1.267050-1.273451, a
+0.0064 band that single runs cannot reliably order (`torch.manual_seed(42)` is hardcoded with
+no `--seed`, and the log's duplicate labels are all crash+retry rather than repeats, so no
+noise estimate was available for free). The verdict does not depend on resolving it: the
+optimistic bound above already assumes the most favourable reading of that band and still
+loses.
+
 ### Verdict
 
-`USE_MAMBA2` stays **OFF**. The speed problem was real and half of it was closed (2.15x
-claimed -> 1.66x actual -> 1.22x with the cheap geometry), the compile anomaly is fully
-explained, and the residual gap is arithmetically out of reach of further speed work. The
-kernel, the geometry flags and the path diagnostic all stay in the file behind their
-defaults-off toggles.
+`USE_MAMBA2` stays **OFF**, and this line is closed rather than parked. The speed problem was
+real and most of it was closed (2.15x claimed -> 1.66x actual -> 1.11x at M=1 cheap), the
+compile anomaly is fully explained and its fix provably capped below a number already in
+hand, `MMAMMM` was shown to be the wrong point on an axis that had never been measured, and
+the residual +0.0129 is out of reach because a third of it survives even a zero-cost mixer.
+The kernel, the geometry and pattern flags and the path diagnostic all stay in the file
+behind their defaults-off toggles: the SSD kernel remains exactness-verified and the fastest
+Mamba2 configuration is documented, so the work is reusable if the surrounding model ever
+changes enough to reopen the question.

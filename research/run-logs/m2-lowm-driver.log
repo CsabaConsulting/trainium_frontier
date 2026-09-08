@@ -1,0 +1,12 @@
+######## m2-pat1-cheap-300 ########
+extra flags: [--mamba2-pattern AMAAAA]
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 300 --max-train-seconds 1500 --out-dir out/m2-pat1-cheap-300 --mamba2 --nki-ssd --no-compile --mamba2-expand 1 --mamba2-d-state 64 --mamba2-conv-kernel 2 --mamba2-pattern AMAAAA
+--- logged: status=keep public_val_bpb=1.27058 num_steps=300 total_seconds=361.0 -> research/experiment-log.jsonl
+######## m2-pat2-cheap-300 ########
+extra flags: [--mamba2-pattern AAMAAM]
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 300 --max-train-seconds 1500 --out-dir out/m2-pat2-cheap-300 --mamba2 --nki-ssd --no-compile --mamba2-expand 1 --mamba2-d-state 64 --mamba2-conv-kernel 2 --mamba2-pattern AAMAAM
+--- logged: status=keep public_val_bpb=1.273451 num_steps=300 total_seconds=368.3 -> research/experiment-log.jsonl
+
+===== summary (M=0 reference: xf-fixed300 300 / 1.269458 / 55.7M / 272.1s = 0.907 s/step) =====
+m2-pat1-cheap-300    steps=300 bpb=1.27058 params=50.2M s/step=0.992 -> 900s proj: 901 steps / 1.103250 (baseline 1.093785)
+m2-pat2-cheap-300    steps=300 bpb=1.273451 params=49.8M s/step=1.043 -> 900s proj: 857 steps / 1.109980 (baseline 1.093785)

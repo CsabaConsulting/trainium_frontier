@@ -1,0 +1,17 @@
+######## m2-pat1-AMAAAA-300 ########
+extra flags: [--mamba2-pattern AMAAAA]
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 300 --max-train-seconds 1500 --out-dir out/m2-pat1-AMAAAA-300 --mamba2 --nki-ssd --no-compile --mamba2-pattern AMAAAA
+--- logged: status=keep public_val_bpb=1.26705 num_steps=300 total_seconds=429.3 -> research/experiment-log.jsonl
+######## m2-pat2-AAMAAM-300 ########
+extra flags: [--mamba2-pattern AAMAAM]
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 300 --max-train-seconds 1500 --out-dir out/m2-pat2-AAMAAM-300 --mamba2 --nki-ssd --no-compile --mamba2-pattern AAMAAM
+--- logged: status=keep public_val_bpb=1.268748 num_steps=300 total_seconds=435.3 -> research/experiment-log.jsonl
+######## m2-pat3-AMAMAM-300 ########
+extra flags: [--mamba2-pattern AMAMAM]
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 300 --max-train-seconds 1500 --out-dir out/m2-pat3-AMAMAM-300 --mamba2 --nki-ssd --no-compile --mamba2-pattern AMAMAM
+--- logged: status=keep public_val_bpb=1.282111 num_steps=300 total_seconds=450.6 -> research/experiment-log.jsonl
+
+===== summary (M=0 reference: xf-fixed300 300 / 1.269458 / 55.7M / 272.1s) =====
+m2-pat1-AMAAAA-300     steps=300 bpb=1.26705 params=51.5M train_s=323.9 s/step=1.080
+m2-pat2-AAMAAM-300     steps=300 bpb=1.268748 params=52.5M train_s=360.3 s/step=1.201
+m2-pat3-AMAMAM-300     steps=300 bpb=1.282111 params=43.0M train_s=375.1 s/step=1.250
