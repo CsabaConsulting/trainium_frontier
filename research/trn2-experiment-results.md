@@ -915,3 +915,91 @@ behind), `TOTAL_BATCH_SIZE=131072` (beats both neighbors), `MUON_MOMENTUM_WARMUP
 default was already correct** — the 2.35x step-count jump changed how many steps complete,
 not which architecture/hyperparameters are optimal. Remaining Tier 0 items: re-profile
 (now that the optimizer no longer dominates the tail) and FP8 real-hardware validation.
+
+## RWKV "x051a" (`USE_RWKV`): eager port lands, real hardware says no — twice
+
+Ported from the nanoRWKV reference (`RWKV_TimeMix_x051a` + `RWKV_ChannelMix_x051a`) behind
+`USE_RWKV` / `RWKV_PATTERN` / `RWKV_HEAD_DIM` / `RWKV_CHUNK` / `RWKV_CMIX_EXPAND`, following
+the `USE_MAMBA2` discipline. x051a is the formulation designed to train in plain PyTorch with
+no custom kernel, so the eager port came first, deliberately, before any kernel work.
+
+`RWKV_CMIX_EXPAND=3` makes an RWKV layer `12*C²` — exactly the transformer layer it replaces
+(`4*C²` attention + `8*C²` MLP) — so the whole model is 55,752,232 params against the
+baseline's 55.7M and the A/B is genuinely mixer-vs-mixer, not a handicapped comparison. That
+was the explicit lesson taken from the Mamba2 negative.
+
+### Correctness, established offline before any box time
+
+- `research/scratch/rwkv_x051a_ref.py` — three independently written references (per-token
+  sequential recurrence, closed-form O(T²) decay matrix, and a **verbatim** transcription of
+  nanoRWKV's chunk loop including the `tile`/`flip`/`view` decay construction) agree to
+  float64 round-off (max_rel ≤ 9.9e-16), and perturbing position `t` moves nothing at
+  positions `< t` (deltas exactly `0.000e+00`).
+- `research/scratch/rwkv_train_integration_check.py` — 10-section CPU audit: `USE_RWKV=False`
+  bit-identical to the pre-change transformer (same loss `6.239416122436523`), every
+  parameter in exactly one optimizer group and receiving a nonzero gradient, both sublayers
+  exact identities at init, whole-model causality via embedding gradient exactly `0.0`,
+  `train.py`'s `rwkv_chunked` == all three references (max_rel ≤ 5.9e-15), `time_shift` ==
+  `nn.ZeroPad2d((0,0,1,-1))` bit-for-bit, `rwkv_group_norm` == `nn.GroupNorm(n_head, n_embd)`.
+- `research/scratch/rwkv_neuron_op_probe.py` — **20/20 ops verified numerically on the real
+  device**, CPU-vs-Neuron, not assumed: the `F.pad` time-shift, `exp(-exp(p)*grid + mask)`,
+  `.pow()`, all four 5-D batched matmul shapes, the 5-D reshape/permute plumbing, `F.silu`,
+  `sigmoid`, `relu²`, the mean/var/rsqrt group-norm tail, and on-device `eye`/`arange`/`clamp`
+  (max_rel ≤ 3.8e-06 throughout). Recorded for the record: the ops the port deliberately
+  rewrote — `nn.GroupNorm`, `torch.tile`, `Tensor.flip`, grouped `F.conv1d` — **also work
+  correctly on device**, so those rewrites were defensive, not forced.
+- Real hardware smoke and every A/B run: `causality_passed: True`, `causality_max_abs: 0.0`.
+- The chunk sweep is also a correctness signal: loss at step 2 is identical (`8.5273`) for
+  `RWKV_CHUNK` ∈ {64, 128, 256, 512}, i.e. the operator really is blocking-invariant on device.
+
+### The numbers (4 ranks, lnc=2, T=2048, eager unless noted)
+
+| run | steps | `public_val_bpb` | s/step |
+|---|---|---|---|
+| `tensorlr-900s` (transformer, compiled, 900s) | 995 | **1.094327** | 0.899 |
+| `rwkv-pure-900s` (pure RWKV, 900s) | 480 | 1.226041 | 1.863 |
+| `xf-fixed480` (transformer at RWKV's step count) | 480 | **1.205611** | 0.910 |
+| `rwkv-fixed995` (RWKV at the baseline's step count) | 995 | 1.144032 | 1.868 |
+
+1. **Speed: 2.05x slower per step, and not for a fixable reason.** `RWKV_CHUNK` ∈
+   {64, 128, 256, 512} all land within 1.86–1.98 s/step
+   (`research/scratch/rwkv_chunk_sweep.sh`) even though that varies intra-chunk work by 8x —
+   so the cost is per-op dispatch/elementwise overhead spread across the block, not the
+   chunked matmuls' FLOPs, and re-blocking cannot fix it. `torch.compile` does not either:
+   1.82 s/step behind a **505 s** compile that would consume half a 900 s budget.
+2. **Quality: worse at equal steps, and the gap widens.** +0.0204 bpb at 480 steps, +0.0497
+   at 995. This is what closes the line rather than parking it: even a from-scratch NKI
+   kernel that made the mixer *free* could at best buy the transformer's step rate, and RWKV
+   is still 0.0497 bpb behind there. So the kernel is not worth writing — which is precisely
+   what the cheap eager port was built to determine before paying for one.
+
+Hybrid `RWKV_PATTERN`s were not swept, deliberately: a mixer that is both slower *and* worse
+per step cannot be improved by using more of it, and the Mamba2 search already established
+that the best hybrid is the one with the fewest replaced layers (i.e. the baseline).
+
+### Verdict
+
+`USE_RWKV` stays **OFF**, closed. Same shape of result as `USE_MAMBA2`: at this scale and
+budget a linear-attention/decay mixer is both slower and worse than plain quadratic attention
+over 2048 tokens, and two independent architectures now agree on that. The code stays in-tree,
+fully wired and verified, because the finding is only reusable if the implementation is.
+
+### Environment finding worth keeping: a missing `PATH` looks exactly like a compiler bug
+
+Hours were lost to what appeared to be an infrastructure wall: **no new NEFF would ever
+compile**. Ranks sat forever in `_poll_until_acquired` under
+`_get_or_compile_hlo`'s `FileLock(..., timeout=1800)`, forked children sat in
+`futex_do_wait`, and `neuronx-cc` never appeared in `ps`. Reduced to a 2-op, 7x13-element
+repro, the hang was at `.item()` — the materialisation that triggers compilation.
+
+Root cause: the launch had no venv `bin` on `PATH`. `NeuronCompiler` invokes the compiler by
+bare name (`kNeuronxCCExecutable = "neuronx-cc"`) through a raw `fork()` + `execvp()`
+(`torch_neuronx/csrc/core/utils/ProcessExecutor.cpp`), and when that `execvp` cannot resolve
+the name the failure is never surfaced — the caller waits forever instead of erroring. With
+`PATH=/home/ubuntu/workspace/native_venv/bin:...` the same novel op compiles in **1.3 s**.
+
+Practical rules: (a) always launch on the box with the venv on `PATH` (activate it, or pass
+`PATH=` explicitly to `env`) — `run_experiment.py` calls `torchrun` by bare name, so an
+activated venv gets both right at once; (b) "compile hangs forever with no `neuronx-cc`
+process" means *check `PATH` first*, it is not a compiler bug; (c) killed runs leave stale
+`/tmp/local_cache/locks` entries that then cost 1200 s each on the next run — clear them.

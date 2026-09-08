@@ -1,0 +1,338 @@
+device=neuron dtype=torch.bfloat16 world_size=4
+training target=5000 steps max_seconds=1800 official_budget=1800s
+model_config={
+  "sequence_len": 2048,
+  "vocab_size": 8192,
+  "n_layer": 6,
+  "n_head": 4,
+  "n_embd": 512
+}
+num_params=39,858,572 flops_per_token=2.894830e+08
+torch.compile enabled (backend=neuron)
+micro_tokens=16,384 grad_accum_steps=8 pack_factor=2
+step 00000 | loss 9.0116 | lrm 1.000 | dt 123.07s | tok/s 1,065 | remaining_steps 4999 | remaining_time 1677s | epoch 1
+step 00001 | loss 8.7986 | lrm 1.000 | dt 4.55s | tok/s 28,785 | remaining_steps 4998 | remaining_time 1672s | epoch 1
+step 00002 | loss 8.5480 | lrm 1.000 | dt 0.73s | tok/s 178,435 | remaining_steps 4997 | remaining_time 1671s | epoch 1
+step 00003 | loss 8.1389 | lrm 1.000 | dt 0.73s | tok/s 178,544 | remaining_steps 4996 | remaining_time 1671s | epoch 1
+step 00004 | loss 8.0841 | lrm 1.000 | dt 0.73s | tok/s 179,790 | remaining_steps 4995 | remaining_time 1800s | epoch 1
+step 00010 | loss 6.7526 | lrm 1.000 | dt 0.73s | tok/s 178,778 | remaining_steps 4989 | remaining_time 1796s | epoch 1
+step 00020 | loss 5.9946 | lrm 1.000 | dt 0.73s | tok/s 179,181 | remaining_steps 4979 | remaining_time 1788s | epoch 1
+step 00030 | loss 5.6552 | lrm 1.000 | dt 0.74s | tok/s 175,988 | remaining_steps 4969 | remaining_time 1781s | epoch 1
+step 00040 | loss 5.4917 | lrm 1.000 | dt 0.74s | tok/s 176,037 | remaining_steps 4959 | remaining_time 1773s | epoch 1
+step 00050 | loss 5.3401 | lrm 1.000 | dt 0.74s | tok/s 178,048 | remaining_steps 4949 | remaining_time 1766s | epoch 1
+step 00060 | loss 5.1900 | lrm 1.000 | dt 0.73s | tok/s 179,178 | remaining_steps 4939 | remaining_time 1759s | epoch 1
+step 00070 | loss 5.0845 | lrm 1.000 | dt 0.74s | tok/s 177,686 | remaining_steps 4929 | remaining_time 1751s | epoch 1
+step 00080 | loss 4.9477 | lrm 1.000 | dt 0.74s | tok/s 177,790 | remaining_steps 4919 | remaining_time 1744s | epoch 1
+step 00090 | loss 4.7816 | lrm 1.000 | dt 0.74s | tok/s 177,686 | remaining_steps 4909 | remaining_time 1736s | epoch 1
+step 00100 | loss 4.7025 | lrm 1.000 | dt 0.73s | tok/s 179,773 | remaining_steps 4899 | remaining_time 1729s | epoch 1
+step 00110 | loss 4.5723 | lrm 1.000 | dt 0.73s | tok/s 178,797 | remaining_steps 4889 | remaining_time 1722s | epoch 1
+step 00120 | loss 4.4633 | lrm 1.000 | dt 0.74s | tok/s 178,296 | remaining_steps 4879 | remaining_time 1714s | epoch 1
+step 00130 | loss 4.3973 | lrm 1.000 | dt 0.73s | tok/s 179,192 | remaining_steps 4869 | remaining_time 1707s | epoch 1
+step 00140 | loss 4.2462 | lrm 1.000 | dt 0.73s | tok/s 178,573 | remaining_steps 4859 | remaining_time 1700s | epoch 1
+step 00150 | loss 4.1389 | lrm 1.000 | dt 0.73s | tok/s 178,541 | remaining_steps 4849 | remaining_time 1692s | epoch 1
+step 00160 | loss 4.0021 | lrm 1.000 | dt 0.73s | tok/s 178,370 | remaining_steps 4839 | remaining_time 1685s | epoch 1
+step 00170 | loss 3.9759 | lrm 1.000 | dt 0.74s | tok/s 177,911 | remaining_steps 4829 | remaining_time 1677s | epoch 1
+step 00180 | loss 3.9988 | lrm 1.000 | dt 0.73s | tok/s 178,744 | remaining_steps 4819 | remaining_time 1670s | epoch 1
+step 00190 | loss 3.8383 | lrm 1.000 | dt 0.73s | tok/s 178,519 | remaining_steps 4809 | remaining_time 1663s | epoch 1
+step 00200 | loss 3.7709 | lrm 1.000 | dt 0.74s | tok/s 177,438 | remaining_steps 4799 | remaining_time 1655s | epoch 1
+step 00210 | loss 3.8228 | lrm 1.000 | dt 0.73s | tok/s 179,696 | remaining_steps 4789 | remaining_time 1648s | epoch 1
+step 00220 | loss 3.7014 | lrm 1.000 | dt 0.73s | tok/s 178,507 | remaining_steps 4779 | remaining_time 1641s | epoch 1
+step 00230 | loss 3.6252 | lrm 1.000 | dt 0.74s | tok/s 177,816 | remaining_steps 4769 | remaining_time 1633s | epoch 1
+step 00240 | loss 3.6894 | lrm 1.000 | dt 0.73s | tok/s 179,843 | remaining_steps 4759 | remaining_time 1626s | epoch 1
+step 00250 | loss 3.5398 | lrm 1.000 | dt 0.74s | tok/s 177,440 | remaining_steps 4749 | remaining_time 1619s | epoch 1
+step 00260 | loss 3.5867 | lrm 1.000 | dt 0.74s | tok/s 178,202 | remaining_steps 4739 | remaining_time 1611s | epoch 1
+step 00270 | loss 3.4976 | lrm 1.000 | dt 0.73s | tok/s 178,472 | remaining_steps 4729 | remaining_time 1604s | epoch 1
+step 00280 | loss 3.6009 | lrm 1.000 | dt 0.73s | tok/s 178,399 | remaining_steps 4719 | remaining_time 1596s | epoch 1
+step 00290 | loss 3.5535 | lrm 1.000 | dt 0.74s | tok/s 178,218 | remaining_steps 4709 | remaining_time 1589s | epoch 1
+step 00300 | loss 3.5120 | lrm 1.000 | dt 0.73s | tok/s 178,937 | remaining_steps 4699 | remaining_time 1582s | epoch 1
+step 00310 | loss 3.5544 | lrm 1.000 | dt 0.73s | tok/s 179,548 | remaining_steps 4689 | remaining_time 1574s | epoch 1
+step 00320 | loss 3.4712 | lrm 1.000 | dt 0.73s | tok/s 178,644 | remaining_steps 4679 | remaining_time 1567s | epoch 1
+step 00330 | loss 3.5152 | lrm 1.000 | dt 0.73s | tok/s 179,106 | remaining_steps 4669 | remaining_time 1560s | epoch 1
+step 00340 | loss 3.5088 | lrm 1.000 | dt 0.74s | tok/s 177,663 | remaining_steps 4659 | remaining_time 1552s | epoch 1
+step 00350 | loss 3.5458 | lrm 1.000 | dt 0.73s | tok/s 179,043 | remaining_steps 4649 | remaining_time 1545s | epoch 1
+step 00360 | loss 3.4522 | lrm 1.000 | dt 0.74s | tok/s 177,710 | remaining_steps 4639 | remaining_time 1538s | epoch 1
+step 00370 | loss 3.3944 | lrm 1.000 | dt 0.74s | tok/s 177,840 | remaining_steps 4629 | remaining_time 1530s | epoch 1
+step 00380 | loss 3.4728 | lrm 1.000 | dt 0.74s | tok/s 178,037 | remaining_steps 4619 | remaining_time 1523s | epoch 1
+step 00390 | loss 3.4224 | lrm 1.000 | dt 0.73s | tok/s 179,057 | remaining_steps 4609 | remaining_time 1515s | epoch 1
+step 00400 | loss 3.4485 | lrm 1.000 | dt 0.73s | tok/s 179,005 | remaining_steps 4599 | remaining_time 1508s | epoch 1
+step 00410 | loss 3.4716 | lrm 1.000 | dt 0.74s | tok/s 178,148 | remaining_steps 4589 | remaining_time 1501s | epoch 1
+step 00420 | loss 3.4524 | lrm 1.000 | dt 0.73s | tok/s 179,235 | remaining_steps 4579 | remaining_time 1493s | epoch 1
+step 00430 | loss 3.3748 | lrm 1.000 | dt 0.73s | tok/s 179,383 | remaining_steps 4569 | remaining_time 1486s | epoch 1
+step 00440 | loss 3.3302 | lrm 1.000 | dt 0.74s | tok/s 177,671 | remaining_steps 4559 | remaining_time 1479s | epoch 1
+step 00450 | loss 3.4048 | lrm 1.000 | dt 0.73s | tok/s 180,197 | remaining_steps 4549 | remaining_time 1471s | epoch 1
+step 00460 | loss 3.3522 | lrm 1.000 | dt 0.73s | tok/s 178,869 | remaining_steps 4539 | remaining_time 1464s | epoch 1
+step 00470 | loss 3.3571 | lrm 1.000 | dt 0.74s | tok/s 178,138 | remaining_steps 4529 | remaining_time 1457s | epoch 1
+step 00480 | loss 3.2240 | lrm 1.000 | dt 0.74s | tok/s 177,406 | remaining_steps 4519 | remaining_time 1449s | epoch 1
+step 00490 | loss 3.2741 | lrm 1.000 | dt 0.74s | tok/s 177,795 | remaining_steps 4509 | remaining_time 1442s | epoch 1
+step 00500 | loss 3.3834 | lrm 1.000 | dt 0.74s | tok/s 178,290 | remaining_steps 4499 | remaining_time 1434s | epoch 1
+step 00510 | loss 3.3372 | lrm 1.000 | dt 0.73s | tok/s 179,436 | remaining_steps 4489 | remaining_time 1427s | epoch 1
+step 00520 | loss 3.3716 | lrm 1.000 | dt 0.73s | tok/s 179,486 | remaining_steps 4479 | remaining_time 1420s | epoch 1
+step 00530 | loss 3.3122 | lrm 1.000 | dt 0.73s | tok/s 178,644 | remaining_steps 4469 | remaining_time 1412s | epoch 1
+step 00540 | loss 3.3870 | lrm 1.000 | dt 0.73s | tok/s 178,405 | remaining_steps 4459 | remaining_time 1405s | epoch 1
+step 00550 | loss 3.4093 | lrm 1.000 | dt 0.74s | tok/s 178,322 | remaining_steps 4449 | remaining_time 1398s | epoch 1
+step 00560 | loss 3.3667 | lrm 1.000 | dt 0.74s | tok/s 177,792 | remaining_steps 4439 | remaining_time 1390s | epoch 1
+step 00570 | loss 3.4236 | lrm 1.000 | dt 0.74s | tok/s 177,872 | remaining_steps 4429 | remaining_time 1383s | epoch 1
+step 00580 | loss 3.4222 | lrm 1.000 | dt 0.74s | tok/s 178,046 | remaining_steps 4419 | remaining_time 1376s | epoch 1
+step 00590 | loss 3.4178 | lrm 1.000 | dt 0.73s | tok/s 178,363 | remaining_steps 4409 | remaining_time 1368s | epoch 1
+step 00600 | loss 3.3361 | lrm 1.000 | dt 0.73s | tok/s 178,441 | remaining_steps 4399 | remaining_time 1361s | epoch 1
+step 00610 | loss 3.2762 | lrm 1.000 | dt 0.74s | tok/s 177,866 | remaining_steps 4389 | remaining_time 1354s | epoch 1
+step 00620 | loss 3.2540 | lrm 0.998 | dt 0.73s | tok/s 178,610 | remaining_steps 4379 | remaining_time 1346s | epoch 1
+step 00630 | loss 3.2776 | lrm 0.993 | dt 0.74s | tok/s 178,037 | remaining_steps 4369 | remaining_time 1339s | epoch 1
+step 00640 | loss 3.2784 | lrm 0.987 | dt 0.73s | tok/s 179,656 | remaining_steps 4359 | remaining_time 1331s | epoch 1
+step 00650 | loss 3.2569 | lrm 0.982 | dt 0.74s | tok/s 177,145 | remaining_steps 4349 | remaining_time 1324s | epoch 1
+step 00660 | loss 3.3679 | lrm 0.977 | dt 0.74s | tok/s 178,136 | remaining_steps 4339 | remaining_time 1317s | epoch 1
+step 00670 | loss 3.3072 | lrm 0.972 | dt 0.75s | tok/s 175,857 | remaining_steps 4329 | remaining_time 1309s | epoch 1
+step 00680 | loss 3.2474 | lrm 0.967 | dt 0.73s | tok/s 178,352 | remaining_steps 4319 | remaining_time 1302s | epoch 1
+step 00690 | loss 3.2740 | lrm 0.961 | dt 0.74s | tok/s 177,498 | remaining_steps 4309 | remaining_time 1295s | epoch 1
+step 00700 | loss 3.2511 | lrm 0.956 | dt 0.74s | tok/s 176,444 | remaining_steps 4299 | remaining_time 1287s | epoch 1
+step 00710 | loss 3.2257 | lrm 0.951 | dt 0.74s | tok/s 176,071 | remaining_steps 4289 | remaining_time 1280s | epoch 1
+step 00720 | loss 3.1899 | lrm 0.946 | dt 0.74s | tok/s 176,886 | remaining_steps 4279 | remaining_time 1272s | epoch 1
+step 00730 | loss 3.3268 | lrm 0.941 | dt 0.73s | tok/s 178,497 | remaining_steps 4269 | remaining_time 1265s | epoch 1
+step 00740 | loss 3.3535 | lrm 0.935 | dt 0.75s | tok/s 175,749 | remaining_steps 4259 | remaining_time 1257s | epoch 1
+step 00750 | loss 3.3758 | lrm 0.930 | dt 0.75s | tok/s 175,543 | remaining_steps 4249 | remaining_time 1250s | epoch 1
+step 00760 | loss 3.3219 | lrm 0.925 | dt 0.74s | tok/s 176,772 | remaining_steps 4239 | remaining_time 1242s | epoch 1
+step 00770 | loss 3.3356 | lrm 0.920 | dt 0.74s | tok/s 176,368 | remaining_steps 4229 | remaining_time 1235s | epoch 1
+step 00780 | loss 3.1305 | lrm 0.914 | dt 0.74s | tok/s 177,035 | remaining_steps 4219 | remaining_time 1228s | epoch 1
+step 00790 | loss 3.1579 | lrm 0.909 | dt 0.74s | tok/s 177,889 | remaining_steps 4209 | remaining_time 1220s | epoch 1
+step 00800 | loss 3.1503 | lrm 0.904 | dt 0.74s | tok/s 177,791 | remaining_steps 4199 | remaining_time 1213s | epoch 1
+step 00810 | loss 3.2693 | lrm 0.899 | dt 0.74s | tok/s 176,316 | remaining_steps 4189 | remaining_time 1205s | epoch 1
+step 00820 | loss 3.2960 | lrm 0.894 | dt 0.74s | tok/s 177,879 | remaining_steps 4179 | remaining_time 1198s | epoch 1
+step 00830 | loss 3.3140 | lrm 0.888 | dt 0.74s | tok/s 177,159 | remaining_steps 4169 | remaining_time 1191s | epoch 1
+step 00840 | loss 3.2889 | lrm 0.883 | dt 0.74s | tok/s 177,530 | remaining_steps 4159 | remaining_time 1183s | epoch 1
+step 00850 | loss 3.1719 | lrm 0.878 | dt 0.74s | tok/s 178,308 | remaining_steps 4149 | remaining_time 1176s | epoch 1
+step 00860 | loss 3.1509 | lrm 0.873 | dt 0.74s | tok/s 178,145 | remaining_steps 4139 | remaining_time 1168s | epoch 1
+step 00870 | loss 3.2086 | lrm 0.867 | dt 0.74s | tok/s 177,739 | remaining_steps 4129 | remaining_time 1161s | epoch 1
+step 00880 | loss 3.2523 | lrm 0.862 | dt 0.75s | tok/s 175,400 | remaining_steps 4119 | remaining_time 1153s | epoch 1
+step 00890 | loss 3.1937 | lrm 0.857 | dt 0.74s | tok/s 176,462 | remaining_steps 4109 | remaining_time 1146s | epoch 1
+step 00900 | loss 3.2716 | lrm 0.852 | dt 0.74s | tok/s 177,139 | remaining_steps 4099 | remaining_time 1139s | epoch 1
+step 00910 | loss 3.2656 | lrm 0.847 | dt 0.75s | tok/s 175,400 | remaining_steps 4089 | remaining_time 1131s | epoch 1
+step 00920 | loss 3.1827 | lrm 0.841 | dt 0.74s | tok/s 177,511 | remaining_steps 4079 | remaining_time 1124s | epoch 1
+step 00930 | loss 3.1889 | lrm 0.836 | dt 0.74s | tok/s 176,304 | remaining_steps 4069 | remaining_time 1116s | epoch 1
+step 00940 | loss 3.2361 | lrm 0.831 | dt 0.74s | tok/s 176,348 | remaining_steps 4059 | remaining_time 1109s | epoch 1
+step 00950 | loss 3.0615 | lrm 0.826 | dt 0.74s | tok/s 177,427 | remaining_steps 4049 | remaining_time 1102s | epoch 1
+step 00960 | loss 3.1522 | lrm 0.820 | dt 0.74s | tok/s 177,291 | remaining_steps 4039 | remaining_time 1094s | epoch 1
+step 00970 | loss 2.9779 | lrm 0.815 | dt 0.74s | tok/s 176,661 | remaining_steps 4029 | remaining_time 1087s | epoch 1
+step 00980 | loss 3.0995 | lrm 0.810 | dt 0.73s | tok/s 178,590 | remaining_steps 4019 | remaining_time 1079s | epoch 1
+step 00990 | loss 3.1143 | lrm 0.805 | dt 0.75s | tok/s 175,910 | remaining_steps 4009 | remaining_time 1072s | epoch 1
+step 01000 | loss 3.2598 | lrm 0.800 | dt 0.74s | tok/s 176,757 | remaining_steps 3999 | remaining_time 1064s | epoch 1
+step 01010 | loss 3.2508 | lrm 0.794 | dt 0.74s | tok/s 177,221 | remaining_steps 3989 | remaining_time 1057s | epoch 1
+step 01020 | loss 3.1888 | lrm 0.789 | dt 0.74s | tok/s 177,119 | remaining_steps 3979 | remaining_time 1050s | epoch 1
+step 01030 | loss 3.0930 | lrm 0.784 | dt 0.74s | tok/s 176,792 | remaining_steps 3969 | remaining_time 1042s | epoch 1
+step 01040 | loss 3.1024 | lrm 0.779 | dt 0.74s | tok/s 176,851 | remaining_steps 3959 | remaining_time 1035s | epoch 1
+step 01050 | loss 3.0821 | lrm 0.774 | dt 0.74s | tok/s 177,483 | remaining_steps 3949 | remaining_time 1027s | epoch 1
+step 01060 | loss 3.1199 | lrm 0.768 | dt 0.75s | tok/s 175,641 | remaining_steps 3939 | remaining_time 1020s | epoch 1
+step 01070 | loss 3.2027 | lrm 0.763 | dt 0.74s | tok/s 176,819 | remaining_steps 3929 | remaining_time 1013s | epoch 1
+step 01080 | loss 3.1738 | lrm 0.758 | dt 0.74s | tok/s 178,066 | remaining_steps 3919 | remaining_time 1005s | epoch 1
+step 01090 | loss 3.1717 | lrm 0.753 | dt 0.74s | tok/s 177,082 | remaining_steps 3909 | remaining_time 998s | epoch 1
+step 01100 | loss 3.2482 | lrm 0.747 | dt 0.74s | tok/s 177,108 | remaining_steps 3899 | remaining_time 990s | epoch 1
+step 01110 | loss 3.1745 | lrm 0.742 | dt 0.74s | tok/s 177,485 | remaining_steps 3889 | remaining_time 983s | epoch 1
+step 01120 | loss 3.2367 | lrm 0.737 | dt 0.74s | tok/s 177,961 | remaining_steps 3879 | remaining_time 976s | epoch 1
+step 01130 | loss 3.1768 | lrm 0.732 | dt 0.74s | tok/s 177,790 | remaining_steps 3869 | remaining_time 968s | epoch 1
+step 01140 | loss 3.1850 | lrm 0.727 | dt 0.74s | tok/s 177,242 | remaining_steps 3859 | remaining_time 961s | epoch 1
+step 01150 | loss 3.1848 | lrm 0.721 | dt 0.75s | tok/s 175,870 | remaining_steps 3849 | remaining_time 953s | epoch 1
+step 01160 | loss 3.1192 | lrm 0.716 | dt 0.74s | tok/s 177,624 | remaining_steps 3839 | remaining_time 946s | epoch 1
+step 01170 | loss 3.1623 | lrm 0.711 | dt 0.74s | tok/s 177,866 | remaining_steps 3829 | remaining_time 938s | epoch 1
+step 01180 | loss 3.2430 | lrm 0.706 | dt 0.74s | tok/s 176,493 | remaining_steps 3819 | remaining_time 931s | epoch 1
+step 01190 | loss 3.2501 | lrm 0.700 | dt 0.74s | tok/s 177,225 | remaining_steps 3809 | remaining_time 924s | epoch 1
+step 01200 | loss 3.2356 | lrm 0.695 | dt 0.74s | tok/s 176,790 | remaining_steps 3799 | remaining_time 916s | epoch 1
+step 01210 | loss 3.1916 | lrm 0.690 | dt 0.74s | tok/s 176,917 | remaining_steps 3789 | remaining_time 909s | epoch 1
+step 01220 | loss 3.2189 | lrm 0.685 | dt 0.74s | tok/s 177,316 | remaining_steps 3779 | remaining_time 901s | epoch 1
+step 01230 | loss 3.1482 | lrm 0.680 | dt 0.73s | tok/s 179,707 | remaining_steps 3769 | remaining_time 894s | epoch 1
+step 01240 | loss 3.2129 | lrm 0.674 | dt 0.74s | tok/s 177,082 | remaining_steps 3759 | remaining_time 887s | epoch 1
+step 01250 | loss 3.0851 | lrm 0.669 | dt 0.74s | tok/s 178,090 | remaining_steps 3749 | remaining_time 879s | epoch 1
+step 01260 | loss 3.0077 | lrm 0.664 | dt 0.74s | tok/s 176,721 | remaining_steps 3739 | remaining_time 872s | epoch 1
+step 01270 | loss 2.9492 | lrm 0.659 | dt 0.74s | tok/s 177,474 | remaining_steps 3729 | remaining_time 864s | epoch 1
+step 01280 | loss 3.1223 | lrm 0.654 | dt 0.74s | tok/s 177,910 | remaining_steps 3719 | remaining_time 857s | epoch 1
+step 01290 | loss 3.0671 | lrm 0.648 | dt 0.73s | tok/s 178,746 | remaining_steps 3709 | remaining_time 850s | epoch 1
+step 01300 | loss 3.1573 | lrm 0.643 | dt 0.74s | tok/s 178,063 | remaining_steps 3699 | remaining_time 842s | epoch 1
+step 01310 | loss 3.1059 | lrm 0.638 | dt 0.73s | tok/s 178,585 | remaining_steps 3689 | remaining_time 835s | epoch 1
+step 01320 | loss 3.1301 | lrm 0.633 | dt 0.73s | tok/s 178,446 | remaining_steps 3679 | remaining_time 827s | epoch 1
+step 01330 | loss 3.0898 | lrm 0.628 | dt 0.73s | tok/s 178,670 | remaining_steps 3669 | remaining_time 820s | epoch 1
+step 01340 | loss 3.0454 | lrm 0.622 | dt 0.74s | tok/s 177,598 | remaining_steps 3659 | remaining_time 813s | epoch 1
+step 01350 | loss 3.1683 | lrm 0.617 | dt 0.76s | tok/s 173,588 | remaining_steps 3649 | remaining_time 805s | epoch 1
+step 01360 | loss 3.2268 | lrm 0.612 | dt 0.73s | tok/s 178,730 | remaining_steps 3639 | remaining_time 798s | epoch 1
+step 01370 | loss 3.2665 | lrm 0.607 | dt 0.74s | tok/s 177,659 | remaining_steps 3629 | remaining_time 791s | epoch 1
+step 01380 | loss 3.1694 | lrm 0.602 | dt 0.73s | tok/s 178,347 | remaining_steps 3619 | remaining_time 783s | epoch 1
+step 01390 | loss 3.0939 | lrm 0.596 | dt 0.74s | tok/s 178,006 | remaining_steps 3609 | remaining_time 776s | epoch 1
+step 01400 | loss 3.0094 | lrm 0.591 | dt 0.73s | tok/s 179,606 | remaining_steps 3599 | remaining_time 768s | epoch 1
+step 01410 | loss 3.0142 | lrm 0.586 | dt 0.74s | tok/s 178,180 | remaining_steps 3589 | remaining_time 761s | epoch 1
+step 01420 | loss 3.0019 | lrm 0.581 | dt 0.74s | tok/s 176,840 | remaining_steps 3579 | remaining_time 754s | epoch 1
+step 01430 | loss 3.0413 | lrm 0.576 | dt 0.73s | tok/s 178,476 | remaining_steps 3569 | remaining_time 746s | epoch 1
+step 01440 | loss 2.9724 | lrm 0.571 | dt 0.74s | tok/s 178,001 | remaining_steps 3559 | remaining_time 739s | epoch 1
+step 01450 | loss 3.0351 | lrm 0.565 | dt 0.73s | tok/s 178,341 | remaining_steps 3549 | remaining_time 732s | epoch 1
+step 01460 | loss 2.9982 | lrm 0.560 | dt 0.74s | tok/s 178,327 | remaining_steps 3539 | remaining_time 724s | epoch 1
+step 01470 | loss 2.9671 | lrm 0.555 | dt 0.73s | tok/s 178,801 | remaining_steps 3529 | remaining_time 717s | epoch 1
+step 01480 | loss 2.9727 | lrm 0.550 | dt 0.74s | tok/s 176,696 | remaining_steps 3519 | remaining_time 710s | epoch 1
+step 01490 | loss 2.9464 | lrm 0.545 | dt 0.73s | tok/s 178,852 | remaining_steps 3509 | remaining_time 702s | epoch 1
+step 01500 | loss 3.0298 | lrm 0.540 | dt 0.74s | tok/s 177,579 | remaining_steps 3499 | remaining_time 695s | epoch 1
+step 01510 | loss 3.1222 | lrm 0.534 | dt 0.73s | tok/s 178,687 | remaining_steps 3489 | remaining_time 688s | epoch 1
+step 01520 | loss 3.1276 | lrm 0.529 | dt 0.74s | tok/s 177,430 | remaining_steps 3479 | remaining_time 680s | epoch 1
+step 01530 | loss 3.0727 | lrm 0.524 | dt 0.73s | tok/s 178,835 | remaining_steps 3469 | remaining_time 673s | epoch 1
+step 01540 | loss 3.0305 | lrm 0.519 | dt 0.73s | tok/s 179,216 | remaining_steps 3459 | remaining_time 665s | epoch 1
+step 01550 | loss 2.9527 | lrm 0.514 | dt 0.74s | tok/s 177,187 | remaining_steps 3449 | remaining_time 658s | epoch 1
+step 01560 | loss 3.0575 | lrm 0.508 | dt 0.73s | tok/s 179,671 | remaining_steps 3439 | remaining_time 651s | epoch 1
+step 01570 | loss 3.0683 | lrm 0.503 | dt 0.74s | tok/s 177,768 | remaining_steps 3429 | remaining_time 643s | epoch 1
+step 01580 | loss 3.0473 | lrm 0.498 | dt 0.73s | tok/s 179,647 | remaining_steps 3419 | remaining_time 636s | epoch 1
+step 01590 | loss 2.9819 | lrm 0.493 | dt 0.74s | tok/s 177,554 | remaining_steps 3409 | remaining_time 629s | epoch 1
+step 01600 | loss 3.0488 | lrm 0.488 | dt 0.73s | tok/s 178,683 | remaining_steps 3399 | remaining_time 621s | epoch 1
+step 01610 | loss 3.0174 | lrm 0.482 | dt 0.74s | tok/s 177,013 | remaining_steps 3389 | remaining_time 614s | epoch 1
+step 01620 | loss 3.0119 | lrm 0.477 | dt 0.74s | tok/s 178,020 | remaining_steps 3379 | remaining_time 606s | epoch 1
+step 01630 | loss 2.9873 | lrm 0.472 | dt 0.74s | tok/s 178,147 | remaining_steps 3369 | remaining_time 599s | epoch 1
+step 01640 | loss 2.9127 | lrm 0.467 | dt 0.73s | tok/s 178,930 | remaining_steps 3359 | remaining_time 592s | epoch 1
+step 01650 | loss 2.9610 | lrm 0.462 | dt 0.74s | tok/s 177,767 | remaining_steps 3349 | remaining_time 584s | epoch 1
+step 01660 | loss 3.0046 | lrm 0.456 | dt 0.74s | tok/s 176,123 | remaining_steps 3339 | remaining_time 577s | epoch 1
+step 01670 | loss 3.0872 | lrm 0.451 | dt 0.73s | tok/s 178,735 | remaining_steps 3329 | remaining_time 569s | epoch 1
+step 01680 | loss 3.1487 | lrm 0.446 | dt 0.73s | tok/s 179,831 | remaining_steps 3319 | remaining_time 562s | epoch 1
+step 01690 | loss 3.0057 | lrm 0.441 | dt 0.73s | tok/s 178,817 | remaining_steps 3309 | remaining_time 555s | epoch 1
+step 01700 | loss 3.0058 | lrm 0.436 | dt 0.74s | tok/s 177,303 | remaining_steps 3299 | remaining_time 547s | epoch 1
+step 01710 | loss 2.9525 | lrm 0.430 | dt 0.74s | tok/s 176,821 | remaining_steps 3289 | remaining_time 540s | epoch 1
+step 01720 | loss 3.0014 | lrm 0.425 | dt 0.73s | tok/s 178,345 | remaining_steps 3279 | remaining_time 533s | epoch 1
+step 01730 | loss 3.0754 | lrm 0.420 | dt 0.73s | tok/s 179,198 | remaining_steps 3269 | remaining_time 525s | epoch 1
+step 01740 | loss 3.0675 | lrm 0.415 | dt 0.74s | tok/s 177,966 | remaining_steps 3259 | remaining_time 518s | epoch 1
+step 01750 | loss 2.9349 | lrm 0.410 | dt 0.74s | tok/s 177,516 | remaining_steps 3249 | remaining_time 510s | epoch 1
+step 01760 | loss 2.9994 | lrm 0.405 | dt 0.74s | tok/s 177,324 | remaining_steps 3239 | remaining_time 503s | epoch 1
+step 01770 | loss 2.8755 | lrm 0.399 | dt 0.74s | tok/s 177,647 | remaining_steps 3229 | remaining_time 496s | epoch 1
+step 01780 | loss 2.8920 | lrm 0.394 | dt 0.74s | tok/s 176,425 | remaining_steps 3219 | remaining_time 488s | epoch 1
+step 01790 | loss 2.9951 | lrm 0.389 | dt 0.74s | tok/s 177,214 | remaining_steps 3209 | remaining_time 481s | epoch 1
+step 01800 | loss 2.9844 | lrm 0.384 | dt 0.75s | tok/s 175,501 | remaining_steps 3199 | remaining_time 473s | epoch 1
+step 01810 | loss 3.0322 | lrm 0.378 | dt 0.74s | tok/s 177,285 | remaining_steps 3189 | remaining_time 466s | epoch 1
+step 01820 | loss 2.9663 | lrm 0.373 | dt 0.75s | tok/s 175,895 | remaining_steps 3179 | remaining_time 459s | epoch 1
+step 01830 | loss 3.0532 | lrm 0.368 | dt 0.74s | tok/s 177,892 | remaining_steps 3169 | remaining_time 451s | epoch 1
+step 01840 | loss 2.9637 | lrm 0.363 | dt 0.74s | tok/s 176,733 | remaining_steps 3159 | remaining_time 444s | epoch 1
+step 01850 | loss 2.9384 | lrm 0.358 | dt 0.74s | tok/s 177,943 | remaining_steps 3149 | remaining_time 436s | epoch 1
+step 01860 | loss 2.9796 | lrm 0.352 | dt 0.74s | tok/s 177,049 | remaining_steps 3139 | remaining_time 429s | epoch 1
+step 01870 | loss 3.0532 | lrm 0.347 | dt 0.75s | tok/s 175,761 | remaining_steps 3129 | remaining_time 421s | epoch 1
+step 01880 | loss 3.0506 | lrm 0.342 | dt 0.73s | tok/s 178,893 | remaining_steps 3119 | remaining_time 414s | epoch 1
+step 01890 | loss 3.1155 | lrm 0.337 | dt 0.74s | tok/s 176,438 | remaining_steps 3109 | remaining_time 407s | epoch 1
+step 01900 | loss 2.9659 | lrm 0.331 | dt 0.74s | tok/s 177,995 | remaining_steps 3099 | remaining_time 399s | epoch 1
+step 01910 | loss 2.9865 | lrm 0.326 | dt 0.74s | tok/s 176,181 | remaining_steps 3089 | remaining_time 392s | epoch 1
+step 01920 | loss 2.9595 | lrm 0.321 | dt 0.74s | tok/s 177,915 | remaining_steps 3079 | remaining_time 384s | epoch 1
+step 01930 | loss 3.0262 | lrm 0.316 | dt 0.74s | tok/s 176,084 | remaining_steps 3069 | remaining_time 377s | epoch 1
+step 01940 | loss 3.0812 | lrm 0.311 | dt 0.74s | tok/s 177,674 | remaining_steps 3059 | remaining_time 370s | epoch 1
+step 01950 | loss 3.0063 | lrm 0.305 | dt 0.74s | tok/s 177,661 | remaining_steps 3049 | remaining_time 362s | epoch 1
+step 01960 | loss 2.9981 | lrm 0.300 | dt 0.74s | tok/s 177,539 | remaining_steps 3039 | remaining_time 355s | epoch 1
+step 01970 | loss 2.9042 | lrm 0.295 | dt 0.74s | tok/s 177,733 | remaining_steps 3029 | remaining_time 347s | epoch 1
+step 01980 | loss 2.9055 | lrm 0.290 | dt 0.74s | tok/s 178,188 | remaining_steps 3019 | remaining_time 340s | epoch 1
+step 01990 | loss 2.9370 | lrm 0.285 | dt 0.75s | tok/s 175,873 | remaining_steps 3009 | remaining_time 333s | epoch 1
+step 02000 | loss 2.9530 | lrm 0.279 | dt 0.74s | tok/s 176,716 | remaining_steps 2999 | remaining_time 325s | epoch 1
+step 02010 | loss 2.8972 | lrm 0.274 | dt 0.74s | tok/s 177,495 | remaining_steps 2989 | remaining_time 318s | epoch 1
+step 02020 | loss 2.9052 | lrm 0.269 | dt 0.74s | tok/s 176,609 | remaining_steps 2979 | remaining_time 310s | epoch 1
+step 02030 | loss 3.0408 | lrm 0.264 | dt 0.73s | tok/s 178,820 | remaining_steps 2969 | remaining_time 303s | epoch 1
+step 02040 | loss 2.8259 | lrm 0.258 | dt 0.74s | tok/s 176,627 | remaining_steps 2959 | remaining_time 295s | epoch 1
+step 02050 | loss 2.8491 | lrm 0.253 | dt 0.74s | tok/s 177,077 | remaining_steps 2949 | remaining_time 288s | epoch 1
+step 02060 | loss 2.9081 | lrm 0.248 | dt 0.74s | tok/s 178,081 | remaining_steps 2939 | remaining_time 281s | epoch 1
+step 02070 | loss 2.9110 | lrm 0.243 | dt 0.73s | tok/s 178,691 | remaining_steps 2929 | remaining_time 273s | epoch 1
+step 02080 | loss 2.9620 | lrm 0.238 | dt 0.74s | tok/s 178,166 | remaining_steps 2919 | remaining_time 266s | epoch 1
+step 02090 | loss 2.9076 | lrm 0.232 | dt 0.74s | tok/s 176,729 | remaining_steps 2909 | remaining_time 258s | epoch 1
+step 02100 | loss 2.9446 | lrm 0.227 | dt 0.74s | tok/s 177,181 | remaining_steps 2899 | remaining_time 251s | epoch 2
+step 02110 | loss 3.0005 | lrm 0.222 | dt 0.74s | tok/s 178,229 | remaining_steps 2889 | remaining_time 244s | epoch 2
+step 02120 | loss 3.1290 | lrm 0.217 | dt 0.73s | tok/s 178,924 | remaining_steps 2879 | remaining_time 236s | epoch 2
+step 02130 | loss 3.0535 | lrm 0.211 | dt 0.73s | tok/s 178,702 | remaining_steps 2869 | remaining_time 229s | epoch 2
+step 02140 | loss 2.9829 | lrm 0.206 | dt 0.74s | tok/s 177,156 | remaining_steps 2859 | remaining_time 221s | epoch 2
+step 02150 | loss 2.8853 | lrm 0.201 | dt 0.75s | tok/s 175,552 | remaining_steps 2849 | remaining_time 214s | epoch 2
+step 02160 | loss 2.9201 | lrm 0.196 | dt 0.74s | tok/s 176,066 | remaining_steps 2839 | remaining_time 206s | epoch 2
+step 02170 | loss 2.9475 | lrm 0.191 | dt 0.74s | tok/s 176,495 | remaining_steps 2829 | remaining_time 199s | epoch 2
+step 02180 | loss 2.9044 | lrm 0.185 | dt 0.74s | tok/s 177,014 | remaining_steps 2819 | remaining_time 192s | epoch 2
+step 02190 | loss 2.9299 | lrm 0.180 | dt 0.74s | tok/s 176,048 | remaining_steps 2809 | remaining_time 184s | epoch 2
+step 02200 | loss 2.9229 | lrm 0.175 | dt 0.74s | tok/s 177,690 | remaining_steps 2799 | remaining_time 177s | epoch 2
+step 02210 | loss 2.8817 | lrm 0.170 | dt 0.74s | tok/s 177,140 | remaining_steps 2789 | remaining_time 169s | epoch 2
+step 02220 | loss 2.9507 | lrm 0.165 | dt 0.74s | tok/s 176,991 | remaining_steps 2779 | remaining_time 162s | epoch 2
+step 02230 | loss 2.9962 | lrm 0.159 | dt 0.74s | tok/s 177,194 | remaining_steps 2769 | remaining_time 155s | epoch 2
+step 02240 | loss 2.9355 | lrm 0.154 | dt 0.75s | tok/s 175,596 | remaining_steps 2759 | remaining_time 147s | epoch 2
+step 02250 | loss 2.8024 | lrm 0.149 | dt 0.74s | tok/s 177,751 | remaining_steps 2749 | remaining_time 140s | epoch 2
+step 02260 | loss 2.8989 | lrm 0.144 | dt 0.74s | tok/s 178,119 | remaining_steps 2739 | remaining_time 132s | epoch 2
+step 02270 | loss 2.8317 | lrm 0.138 | dt 0.75s | tok/s 175,788 | remaining_steps 2729 | remaining_time 125s | epoch 2
+step 02280 | loss 2.8134 | lrm 0.133 | dt 0.73s | tok/s 179,548 | remaining_steps 2719 | remaining_time 118s | epoch 2
+step 02290 | loss 2.9808 | lrm 0.128 | dt 0.73s | tok/s 178,972 | remaining_steps 2709 | remaining_time 110s | epoch 2
+step 02300 | loss 3.0723 | lrm 0.123 | dt 0.73s | tok/s 178,949 | remaining_steps 2699 | remaining_time 103s | epoch 2
+step 02310 | loss 2.9478 | lrm 0.118 | dt 0.74s | tok/s 176,763 | remaining_steps 2689 | remaining_time 95s | epoch 2
+step 02320 | loss 2.8321 | lrm 0.112 | dt 0.74s | tok/s 177,688 | remaining_steps 2679 | remaining_time 88s | epoch 2
+step 02330 | loss 2.7294 | lrm 0.107 | dt 0.73s | tok/s 179,122 | remaining_steps 2669 | remaining_time 81s | epoch 2
+step 02340 | loss 2.9177 | lrm 0.102 | dt 0.73s | tok/s 178,831 | remaining_steps 2659 | remaining_time 73s | epoch 2
+step 02350 | loss 2.8963 | lrm 0.097 | dt 0.73s | tok/s 179,454 | remaining_steps 2649 | remaining_time 66s | epoch 2
+step 02360 | loss 2.9836 | lrm 0.092 | dt 0.73s | tok/s 179,213 | remaining_steps 2639 | remaining_time 59s | epoch 2
+step 02370 | loss 2.9364 | lrm 0.087 | dt 0.73s | tok/s 178,756 | remaining_steps 2629 | remaining_time 51s | epoch 2
+step 02380 | loss 2.9084 | lrm 0.081 | dt 0.73s | tok/s 178,438 | remaining_steps 2619 | remaining_time 44s | epoch 2
+step 02390 | loss 2.8824 | lrm 0.076 | dt 0.74s | tok/s 177,683 | remaining_steps 2609 | remaining_time 36s | epoch 2
+step 02400 | loss 2.9058 | lrm 0.071 | dt 0.74s | tok/s 176,766 | remaining_steps 2599 | remaining_time 29s | epoch 2
+step 02410 | loss 2.9932 | lrm 0.066 | dt 0.74s | tok/s 176,571 | remaining_steps 2589 | remaining_time 22s | epoch 2
+step 02420 | loss 2.9131 | lrm 0.061 | dt 0.73s | tok/s 179,056 | remaining_steps 2579 | remaining_time 14s | epoch 2
+step 02430 | loss 2.9427 | lrm 0.055 | dt 0.73s | tok/s 179,222 | remaining_steps 2569 | remaining_time 7s | epoch 2
+---
+checkpoint_path:    out/width512-fullbudget/final.pt
+training_seconds:  1794.6
+budget_seconds:    1800
+target_steps:      5000
+max_train_seconds: 1800
+startup_allowance_est: 142.6
+charged_seconds_est:   1794.8
+over_budget:       False
+total_seconds:     1941.8
+compiled:          True
+nki_relu2:         False
+nki_rope_norm:     True
+nki_softcap_ce:    True
+mudd:              False
+dcmha:             False
+mamba2:            False
+mamba2_pattern:    MMAMMM
+nki_ssd:           True
+num_steps:         2433
+total_tokens_M:    318.9
+world_size:        4
+lnc:               2
+seq_len:           2048
+num_params_M:      39.9
+causality_passed:  True
+causality_max_abs: 0.000000
+public_val_bpb:    1.054160
+eval_seconds:      6.9
+eval_timeout:      1200
+eval_over_timeout: False
+[W908 08:40:28.943290732 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+W0908 08:40:28.486000 938691 torch/distributed/run.py:851] 
+W0908 08:40:28.486000 938691 torch/distributed/run.py:851] *****************************************
+W0908 08:40:28.486000 938691 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0908 08:40:28.486000 938691 torch/distributed/run.py:851] *****************************************
+[W908 08:40:30.002560341 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W908 08:40:30.002911793 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W908 08:40:30.005021557 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W908 08:40:30.006356750 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+WARNING:torch_neuronx.python_ops.dtype_autocast:Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
+WARNING:torch_neuronx.python_ops.dtype_autocast:Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
+WARNING:torch_neuronx.python_ops.dtype_autocast:Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
+WARNING:torch_neuronx.python_ops.dtype_autocast:Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
