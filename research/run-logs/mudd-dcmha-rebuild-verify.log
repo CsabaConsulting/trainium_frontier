@@ -1,0 +1,61 @@
+[W908 01:51:45.514911836 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W908 01:51:47.650933289 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+device=neuron dtype=torch.bfloat16 world_size=1
+training target=8 steps max_seconds=240 official_budget=1800s
+model_config={
+  "sequence_len": 2048,
+  "vocab_size": 8192,
+  "n_layer": 6,
+  "n_head": 5,
+  "n_embd": 640
+}
+num_params=56,169,248 flops_per_token=3.999300e+08
+micro_tokens=4,096 grad_accum_steps=32 pack_factor=2
+step 00000 | loss 9.0114 | lrm 1.000 | dt 211.47s | tok/s 620 | remaining_steps 7 | remaining_time 28s | epoch 1
+step 00001 | loss 8.8234 | lrm 0.200 | dt 118.74s | tok/s 1,104 | remaining_steps 6 | remaining_time 0s | epoch 1
+step 00002 | loss 8.6598 | lrm 0.050 | dt 118.55s | tok/s 1,106 | remaining_steps 5 | remaining_time 0s | epoch 1
+step 00003 | loss 8.5911 | lrm 0.050 | dt 118.57s | tok/s 1,105 | remaining_steps 4 | remaining_time 0s | epoch 1
+step 00004 | loss 8.5199 | lrm 0.050 | dt 118.61s | tok/s 1,105 | remaining_steps 3 | remaining_time 240s | epoch 1
+WARNING:torch_neuronx.python_ops.dtype_autocast:Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
+---
+checkpoint_path:    out/rebuild-verify/final.pt
+training_seconds:  118.6
+budget_seconds:    1800
+target_steps:      8
+max_train_seconds: 240
+startup_allowance_est: 694.1
+charged_seconds_est:   118.9
+over_budget:       False
+total_seconds:     823.4
+compiled:          False
+nki_relu2:         False
+nki_rope_norm:     True
+nki_softcap_ce:    True
+mudd:              True
+dcmha:             True
+num_steps:         6
+total_tokens_M:    0.8
+world_size:        1
+lnc:               1
+seq_len:           2048
+num_params_M:      56.2
+causality_passed:  True
+causality_max_abs: 0.000000
+public_val_bpb:    3.459203
+eval_seconds:      13.2
+eval_timeout:      1200
+eval_over_timeout: False
