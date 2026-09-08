@@ -1,0 +1,465 @@
+device=neuron dtype=torch.bfloat16 world_size=4
+training target=5000 steps max_seconds=900 official_budget=1800s
+model_config={
+  "sequence_len": 2048,
+  "vocab_size": 8192,
+  "n_layer": 6,
+  "n_head": 5,
+  "n_embd": 640
+}
+num_params=55,721,452 flops_per_token=3.972432e+08
+micro_tokens=16,384 grad_accum_steps=8 pack_factor=2
+[W907 21:58:56.235229960 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+W0907 21:58:56.779000 502033 torch/distributed/run.py:851] 
+W0907 21:58:56.779000 502033 torch/distributed/run.py:851] *****************************************
+W0907 21:58:56.779000 502033 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0907 21:58:56.779000 502033 torch/distributed/run.py:851] *****************************************
+[W907 21:58:58.422204626 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W907 21:58:58.422584021 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W907 21:58:58.423584678 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W907 21:58:58.423745454 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+/home/ubuntu/trainium_frontier/train.py:459:21: error: argument 'ctx' not supplied
+        def forward(ctx, x):
+                    ^
+[rank2]: Traceback (most recent call last):
+[rank2]:   File "/home/ubuntu/trainium_frontier/train.py", line 1771, in <module>
+[rank2]:     def _muon_step(self, group):
+[rank2]:     ^^^^^^
+[rank2]:   File "/home/ubuntu/trainium_frontier/train.py", line 1603, in main
+[rank2]:     torch.nn.init.zeros_(block.scalar_gate.weight)
+[rank2]:        ^^^^^^^^^^^
+[rank2]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+[rank2]:     return self._call_impl(*args, **kwargs)
+[rank2]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank2]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+[rank2]:     return forward_call(*args, **kwargs)
+[rank2]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank2]:   File "/home/ubuntu/trainium_frontier/train.py", line 1190, in forward
+[rank2]:     rank = max(1, n_head // _DCMHA_RANK_DIVISOR)
+[rank2]:                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank2]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+[rank2]:     return self._call_impl(*args, **kwargs)
+[rank2]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank2]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+[rank2]:     return forward_call(*args, **kwargs)
+[rank2]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank2]:   File "/home/ubuntu/trainium_frontier/train.py", line 1055, in forward
+[rank2]:     # The example kernel tiles rows in blocks of 128, so it needs a row count that
+[rank2]:                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank2]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+[rank2]:     return self._call_impl(*args, **kwargs)
+[rank2]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank2]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+[rank2]:     return forward_call(*args, **kwargs)
+[rank2]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank2]:   File "/home/ubuntu/trainium_frontier/train.py", line 997, in forward
+[rank2]:     # quality difference is noise-level (loss trajectories match to 4 decimals). See
+[rank2]:                 ^^^^^^^^^^^^^^^^^^^^^^
+[rank2]:   File "/home/ubuntu/trainium_frontier/train.py", line 956, in rope_norm
+[rank2]:     # z is [N, V] fp32, tgt is [N, 1] fp32. Returns (loss [N,1], lse [N,1]);
+[rank2]:                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank2]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/autograd/function.py", line 596, in apply
+[rank2]:     return super().apply(*args, **kwargs)  # type: ignore[misc]
+[rank2]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank2]:   File "/home/ubuntu/trainium_frontier/train.py", line 610, in forward
+[rank2]:     pp = nl.ndarray((P, H, 1), dtype=nl.float32, buffer=nl.sbuf)
+[rank2]:         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank2]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/kernel.py", line 239, in __call__
+[rank2]:     return torch_hop(*args, **kwargs)
+[rank2]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank2]:   File "/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_hop.py", line 515, in __call__
+[rank2]:     return _C._nki_dispatch_eager(
+[rank2]:            ^^^^^^^^^^^^^^^^^^^^^^^
+[rank2]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py", line 1263, in _fn
+[rank2]:     return fn(*args, **kwargs)
+[rank2]:            ^^^^^^^^^^^^^^^^^^^
+[rank2]: RuntimeError: [NkiDispatch] Python lower_func failed for cache_key=nki_call:21:():g1|[4096,5,128]:Float:S(C)|[2048,64]:BFloat16:S(C)|[2048,64]:BFloat16:S(C): RuntimeError: error: failed to compile NKI kernel:
+[rank2]: Collected 1 different diagnostics:
+[rank2]: - [x1] error: argument 'ctx' not supplied
+
+
+[rank2]: At:
+[rank2]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/compiler/frontend.py(300): _compile
+[rank2]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/compiler/frontend.py(171): compile
+[rank2]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/compiler/driver.py(47): compile_to_bir
+[rank2]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/compiled.py(42): compile_kernel_to_nir
+[rank2]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/compiled.py(197): _cached_compile_to_bir
+[rank2]:   /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_kernel.py(211): _compile_dump_config
+[rank2]:   /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_kernel.py(202): dump_config
+[rank2]:   /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_hop.py(198): get_dumped_config
+[rank2]:   /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/python_ops/neuron_nki_call_lowering.py(53): _lower_custom_nki
+[rank2]:   /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/python_ops/neuron_nki_call_lowering.py(36): nki_call_lower_func
+[rank2]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py(1267): _fn
+[rank2]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py(1263): _fn
+[rank2]:   /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_hop.py(515): __call__
+[rank2]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/kernel.py(239): __call__
+[rank2]:   /home/ubuntu/trainium_frontier/train.py(610): forward
+[rank2]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/autograd/function.py(596): apply
+[rank2]:   /home/ubuntu/trainium_frontier/train.py(956): rope_norm
+[rank2]:   /home/ubuntu/trainium_frontier/train.py(997): forward
+[rank2]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py(1790): _call_impl
+[rank2]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py(1779): _wrapped_call_impl
+[rank2]:   /home/ubuntu/trainium_frontier/train.py(1055): forward
+[rank2]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py(1790): _call_impl
+[rank2]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py(1779): _wrapped_call_impl
+[rank2]:   /home/ubuntu/trainium_frontier/train.py(1190): forward
+[rank2]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py(1790): _call_impl
+[rank2]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py(1779): _wrapped_call_impl
+[rank2]:   /home/ubuntu/trainium_frontier/train.py(1603): main
+[rank2]:   /home/ubuntu/trainium_frontier/train.py(1771): <module>
+
+/home/ubuntu/trainium_frontier/train.py:459:21: error: argument 'ctx' not supplied
+        def forward(ctx, x):
+                    ^
+/home/ubuntu/trainium_frontier/train.py:459:21: error: argument 'ctx' not supplied
+        def forward(ctx, x):
+                    ^
+/home/ubuntu/trainium_frontier/train.py:459:21: error: argument 'ctx' not supplied
+        def forward(ctx, x):
+                    ^
+[rank1]: Traceback (most recent call last):
+[rank1]:   File "/home/ubuntu/trainium_frontier/train.py", line 1771, in <module>
+[rank1]:     def _muon_step(self, group):
+[rank1]:     ^^^^^^
+[rank1]:   File "/home/ubuntu/trainium_frontier/train.py", line 1603, in main
+[rank1]:     torch.nn.init.zeros_(block.scalar_gate.weight)
+[rank1]:        ^^^^^^^^^^^
+[rank1]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+[rank1]:     return self._call_impl(*args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+[rank1]:     return forward_call(*args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/ubuntu/trainium_frontier/train.py", line 1190, in forward
+[rank1]:     rank = max(1, n_head // _DCMHA_RANK_DIVISOR)
+[rank1]:                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+[rank1]:     return self._call_impl(*args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+[rank1]:     return forward_call(*args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/ubuntu/trainium_frontier/train.py", line 1055, in forward
+[rank1]:     # The example kernel tiles rows in blocks of 128, so it needs a row count that
+[rank1]:                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+[rank1]:     return self._call_impl(*args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+[rank1]:     return forward_call(*args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/ubuntu/trainium_frontier/train.py", line 997, in forward
+[rank1]:     # quality difference is noise-level (loss trajectories match to 4 decimals). See
+[rank1]:                 ^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/ubuntu/trainium_frontier/train.py", line 956, in rope_norm
+[rank1]:     # z is [N, V] fp32, tgt is [N, 1] fp32. Returns (loss [N,1], lse [N,1]);
+[rank1]:                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/autograd/function.py", line 596, in apply
+[rank1]:     return super().apply(*args, **kwargs)  # type: ignore[misc]
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/ubuntu/trainium_frontier/train.py", line 610, in forward
+[rank1]:     pp = nl.ndarray((P, H, 1), dtype=nl.float32, buffer=nl.sbuf)
+[rank1]:         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/kernel.py", line 239, in __call__
+[rank1]:     return torch_hop(*args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_hop.py", line 515, in __call__
+[rank1]:     return _C._nki_dispatch_eager(
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py", line 1263, in _fn
+[rank1]:     return fn(*args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^
+[rank1]: RuntimeError: [NkiDispatch] Python lower_func failed for cache_key=nki_call:21:():g1|[4096,5,128]:Float:S(C)|[2048,64]:BFloat16:S(C)|[2048,64]:BFloat16:S(C): RuntimeError: error: failed to compile NKI kernel:
+[rank1]: Collected 1 different diagnostics:
+[rank1]: - [x1] error: argument 'ctx' not supplied
+
+
+[rank1]: At:
+[rank1]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/compiler/frontend.py(300): _compile
+[rank1]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/compiler/frontend.py(171): compile
+[rank1]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/compiler/driver.py(47): compile_to_bir
+[rank1]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/compiled.py(42): compile_kernel_to_nir
+[rank1]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/compiled.py(197): _cached_compile_to_bir
+[rank1]:   /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_kernel.py(211): _compile_dump_config
+[rank1]:   /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_kernel.py(202): dump_config
+[rank1]:   /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_hop.py(198): get_dumped_config
+[rank1]:   /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/python_ops/neuron_nki_call_lowering.py(53): _lower_custom_nki
+[rank1]:   /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/python_ops/neuron_nki_call_lowering.py(36): nki_call_lower_func
+[rank1]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py(1267): _fn
+[rank1]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py(1263): _fn
+[rank1]:   /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_hop.py(515): __call__
+[rank1]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/kernel.py(239): __call__
+[rank1]:   /home/ubuntu/trainium_frontier/train.py(610): forward
+[rank1]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/autograd/function.py(596): apply
+[rank1]:   /home/ubuntu/trainium_frontier/train.py(956): rope_norm
+[rank1]:   /home/ubuntu/trainium_frontier/train.py(997): forward
+[rank1]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py(1790): _call_impl
+[rank1]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py(1779): _wrapped_call_impl
+[rank1]:   /home/ubuntu/trainium_frontier/train.py(1055): forward
+[rank1]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py(1790): _call_impl
+[rank1]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py(1779): _wrapped_call_impl
+[rank1]:   /home/ubuntu/trainium_frontier/train.py(1190): forward
+[rank1]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py(1790): _call_impl
+[rank1]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py(1779): _wrapped_call_impl
+[rank1]:   /home/ubuntu/trainium_frontier/train.py(1603): main
+[rank1]:   /home/ubuntu/trainium_frontier/train.py(1771): <module>
+
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "/home/ubuntu/trainium_frontier/train.py", line 1771, in <module>
+[rank0]:     def _muon_step(self, group):
+[rank0]:     ^^^^^^
+[rank0]:   File "/home/ubuntu/trainium_frontier/train.py", line 1603, in main
+[rank0]:     torch.nn.init.zeros_(block.scalar_gate.weight)
+[rank0]:        ^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+[rank0]:     return self._call_impl(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+[rank0]:     return forward_call(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/trainium_frontier/train.py", line 1190, in forward
+[rank0]:     rank = max(1, n_head // _DCMHA_RANK_DIVISOR)
+[rank0]:                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+[rank0]:     return self._call_impl(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+[rank0]:     return forward_call(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/trainium_frontier/train.py", line 1055, in forward
+[rank0]:     # The example kernel tiles rows in blocks of 128, so it needs a row count that
+[rank0]:                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+[rank0]:     return self._call_impl(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+[rank0]:     return forward_call(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/trainium_frontier/train.py", line 997, in forward
+[rank0]:     # quality difference is noise-level (loss trajectories match to 4 decimals). See
+[rank0]:                 ^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/trainium_frontier/train.py", line 956, in rope_norm
+[rank0]:     # z is [N, V] fp32, tgt is [N, 1] fp32. Returns (loss [N,1], lse [N,1]);
+[rank0]:                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/autograd/function.py", line 596, in apply
+[rank0]:     return super().apply(*args, **kwargs)  # type: ignore[misc]
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/trainium_frontier/train.py", line 610, in forward
+[rank0]:     pp = nl.ndarray((P, H, 1), dtype=nl.float32, buffer=nl.sbuf)
+[rank0]:         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/kernel.py", line 239, in __call__
+[rank0]:     return torch_hop(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_hop.py", line 515, in __call__
+[rank0]:     return _C._nki_dispatch_eager(
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py", line 1263, in _fn
+[rank0]:     return fn(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^
+[rank0]: RuntimeError: [NkiDispatch] Python lower_func failed for cache_key=nki_call:21:():g1|[4096,5,128]:Float:S(C)|[2048,64]:BFloat16:S(C)|[2048,64]:BFloat16:S(C): RuntimeError: error: failed to compile NKI kernel:
+[rank0]: Collected 1 different diagnostics:
+[rank0]: - [x1] error: argument 'ctx' not supplied
+
+
+[rank0]: At:
+[rank0]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/compiler/frontend.py(300): _compile
+[rank0]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/compiler/frontend.py(171): compile
+[rank0]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/compiler/driver.py(47): compile_to_bir
+[rank0]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/compiled.py(42): compile_kernel_to_nir
+[rank0]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/compiled.py(197): _cached_compile_to_bir
+[rank0]:   /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_kernel.py(211): _compile_dump_config
+[rank0]:   /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_kernel.py(202): dump_config
+[rank0]:   /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_hop.py(198): get_dumped_config
+[rank0]:   /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/python_ops/neuron_nki_call_lowering.py(53): _lower_custom_nki
+[rank0]:   /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/python_ops/neuron_nki_call_lowering.py(36): nki_call_lower_func
+[rank0]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py(1267): _fn
+[rank0]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py(1263): _fn
+[rank0]:   /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_hop.py(515): __call__
+[rank0]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/kernel.py(239): __call__
+[rank0]:   /home/ubuntu/trainium_frontier/train.py(610): forward
+[rank0]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/autograd/function.py(596): apply
+[rank0]:   /home/ubuntu/trainium_frontier/train.py(956): rope_norm
+[rank0]:   /home/ubuntu/trainium_frontier/train.py(997): forward
+[rank0]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py(1790): _call_impl
+[rank0]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py(1779): _wrapped_call_impl
+[rank0]:   /home/ubuntu/trainium_frontier/train.py(1055): forward
+[rank0]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py(1790): _call_impl
+[rank0]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py(1779): _wrapped_call_impl
+[rank0]:   /home/ubuntu/trainium_frontier/train.py(1190): forward
+[rank0]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py(1790): _call_impl
+[rank0]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py(1779): _wrapped_call_impl
+[rank0]:   /home/ubuntu/trainium_frontier/train.py(1603): main
+[rank0]:   /home/ubuntu/trainium_frontier/train.py(1771): <module>
+
+[rank3]: Traceback (most recent call last):
+[rank3]:   File "/home/ubuntu/trainium_frontier/train.py", line 1771, in <module>
+[rank3]:     def _muon_step(self, group):
+[rank3]:     ^^^^^^
+[rank3]:   File "/home/ubuntu/trainium_frontier/train.py", line 1603, in main
+[rank3]:     torch.nn.init.zeros_(block.scalar_gate.weight)
+[rank3]:        ^^^^^^^^^^^
+[rank3]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+[rank3]:     return self._call_impl(*args, **kwargs)
+[rank3]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank3]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+[rank3]:     return forward_call(*args, **kwargs)
+[rank3]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank3]:   File "/home/ubuntu/trainium_frontier/train.py", line 1190, in forward
+[rank3]:     rank = max(1, n_head // _DCMHA_RANK_DIVISOR)
+[rank3]:                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank3]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+[rank3]:     return self._call_impl(*args, **kwargs)
+[rank3]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank3]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+[rank3]:     return forward_call(*args, **kwargs)
+[rank3]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank3]:   File "/home/ubuntu/trainium_frontier/train.py", line 1055, in forward
+[rank3]:     # The example kernel tiles rows in blocks of 128, so it needs a row count that
+[rank3]:                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank3]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+[rank3]:     return self._call_impl(*args, **kwargs)
+[rank3]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank3]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+[rank3]:     return forward_call(*args, **kwargs)
+[rank3]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank3]:   File "/home/ubuntu/trainium_frontier/train.py", line 997, in forward
+[rank3]:     # quality difference is noise-level (loss trajectories match to 4 decimals). See
+[rank3]:                 ^^^^^^^^^^^^^^^^^^^^^^
+[rank3]:   File "/home/ubuntu/trainium_frontier/train.py", line 956, in rope_norm
+[rank3]:     # z is [N, V] fp32, tgt is [N, 1] fp32. Returns (loss [N,1], lse [N,1]);
+[rank3]:                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank3]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/autograd/function.py", line 596, in apply
+[rank3]:     return super().apply(*args, **kwargs)  # type: ignore[misc]
+[rank3]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank3]:   File "/home/ubuntu/trainium_frontier/train.py", line 610, in forward
+[rank3]:     pp = nl.ndarray((P, H, 1), dtype=nl.float32, buffer=nl.sbuf)
+[rank3]:         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank3]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/kernel.py", line 239, in __call__
+[rank3]:     return torch_hop(*args, **kwargs)
+[rank3]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank3]:   File "/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_hop.py", line 515, in __call__
+[rank3]:     return _C._nki_dispatch_eager(
+[rank3]:            ^^^^^^^^^^^^^^^^^^^^^^^
+[rank3]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py", line 1263, in _fn
+[rank3]:     return fn(*args, **kwargs)
+[rank3]:            ^^^^^^^^^^^^^^^^^^^
+[rank3]: RuntimeError: [NkiDispatch] Python lower_func failed for cache_key=nki_call:21:():g1|[4096,5,128]:Float:S(C)|[2048,64]:BFloat16:S(C)|[2048,64]:BFloat16:S(C): RuntimeError: error: failed to compile NKI kernel:
+[rank3]: Collected 1 different diagnostics:
+[rank3]: - [x1] error: argument 'ctx' not supplied
+
+
+[rank3]: At:
+[rank3]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/compiler/frontend.py(300): _compile
+[rank3]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/compiler/frontend.py(171): compile
+[rank3]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/compiler/driver.py(47): compile_to_bir
+[rank3]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/compiled.py(42): compile_kernel_to_nir
+[rank3]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/compiled.py(197): _cached_compile_to_bir
+[rank3]:   /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_kernel.py(211): _compile_dump_config
+[rank3]:   /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_kernel.py(202): dump_config
+[rank3]:   /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_hop.py(198): get_dumped_config
+[rank3]:   /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/python_ops/neuron_nki_call_lowering.py(53): _lower_custom_nki
+[rank3]:   /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/python_ops/neuron_nki_call_lowering.py(36): nki_call_lower_func
+[rank3]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py(1267): _fn
+[rank3]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py(1263): _fn
+[rank3]:   /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_hop.py(515): __call__
+[rank3]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/kernel.py(239): __call__
+[rank3]:   /home/ubuntu/trainium_frontier/train.py(610): forward
+[rank3]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/autograd/function.py(596): apply
+[rank3]:   /home/ubuntu/trainium_frontier/train.py(956): rope_norm
+[rank3]:   /home/ubuntu/trainium_frontier/train.py(997): forward
+[rank3]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py(1790): _call_impl
+[rank3]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py(1779): _wrapped_call_impl
+[rank3]:   /home/ubuntu/trainium_frontier/train.py(1055): forward
+[rank3]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py(1790): _call_impl
+[rank3]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py(1779): _wrapped_call_impl
+[rank3]:   /home/ubuntu/trainium_frontier/train.py(1190): forward
+[rank3]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py(1790): _call_impl
+[rank3]:   /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py(1779): _wrapped_call_impl
+[rank3]:   /home/ubuntu/trainium_frontier/train.py(1603): main
+[rank3]:   /home/ubuntu/trainium_frontier/train.py(1771): <module>
+
+E0907 21:59:20.537000 502033 torch/distributed/elastic/multiprocessing/api.py:986] failed (exitcode: 1) local_rank: 0 (pid: 502048) of binary: /home/ubuntu/workspace/native_venv/bin/python3
+Traceback (most recent call last):
+  File "/home/ubuntu/workspace/native_venv/bin/torchrun", line 10, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 362, in wrapper
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/run.py", line 990, in main
+    run(args)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/run.py", line 981, in run
+    elastic_launch(
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 170, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 317, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+============================================================
+train.py FAILED
+------------------------------------------------------------
+Failures:
+[1]:
+  time      : 2026-09-07_21:59:20
+  host      : ip-172-31-38-93.ap-southeast-4.compute.internal
+  rank      : 1 (local_rank: 1)
+  exitcode  : 1 (pid: 502049)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+[2]:
+  time      : 2026-09-07_21:59:20
+  host      : ip-172-31-38-93.ap-southeast-4.compute.internal
+  rank      : 2 (local_rank: 2)
+  exitcode  : 1 (pid: 502050)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+[3]:
+  time      : 2026-09-07_21:59:20
+  host      : ip-172-31-38-93.ap-southeast-4.compute.internal
+  rank      : 3 (local_rank: 3)
+  exitcode  : 1 (pid: 502051)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+------------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2026-09-07_21:59:20
+  host      : ip-172-31-38-93.ap-southeast-4.compute.internal
+  rank      : 0 (local_rank: 0)
+  exitcode  : 1 (pid: 502048)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+============================================================
