@@ -871,3 +871,13 @@ Both directions worse than `300` — a real signal (not noise-symmetric), not a 
 Real 900s recheck against baseline (`tensorlr-900s`, β2=0.95: 995 steps/`1.094327`): β2=0.995
 (`beta2-0995-900s-v2`) 977 steps/`1.097342` — worse on both axes again. `EMBED_ADAMW_BETA2=0.95`
 confirmed still correct at the new ~2000-step regime, no change.
+
+## Tier 0.3 — DEPTH=8 real full-1800s test: DEPTH=6 confirmed still correct
+
+The one open question from earlier discussion: DEPTH=8 was the closest 900s-proxy runner-up
+to the locked DEPTH=6, but was never confirmed at full budget (unlike DEPTH=10, which lost
+decisively at full budget long ago). Under the new tensor-lr-scalars regime: **DEPTH=8 full
+1800s (`depth8-fullbudget`): 1217 steps, `1.052406`** vs **DEPTH=6 (`tensorlr-fullbudget`):
+1995 steps, `1.043489`**. DEPTH=6 wins clearly — fewer steps AND worse bpb for DEPTH=8, not
+a close call. DEPTH=6 confirmed still correct; no further depth escalation warranted (7/9-12
+already lost more decisively at proxy scale previously).
