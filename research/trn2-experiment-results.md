@@ -845,3 +845,15 @@ The kernel, the geometry and pattern flags and the path diagnostic all stay in t
 behind their defaults-off toggles: the SSD kernel remains exactness-verified and the fastest
 Mamba2 configuration is documented, so the work is reusable if the surrounding model ever
 changes enough to reopen the question.
+
+## Tier 0.1 — eager vs compile, both bug-free: compile still wins, real magnitude now known
+
+Completed the recompile-bug audit: confirmed eager mode also suffered the exact same
+`alpha=`-baked-python-float recompile cost during LR cooldown (identical bimodal
+`0.95s→2.3-4.3s` pattern, `eager-recompile-check-old`). With both sides fixed
+(`--tensor-lr-scalars`), real 900s A/B: **eager 918 steps/`1.103575`** vs **compiled 995
+steps/`1.094327`** (`tensorlr-900s`). Compile still wins — `+77` steps (`+8.4%`), `0.009248`
+better bpb — smaller than any earlier (confound-inflated) comparison suggested, but real
+and confirms `--compile` stays the right default. Every historical eager-vs-compile number
+from before the `tensor-lr-scalars` fix should be read as "both sides were slower than they
+should have been," not as evidence about the real relative gap.
