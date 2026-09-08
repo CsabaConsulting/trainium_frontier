@@ -857,3 +857,11 @@ better bpb — smaller than any earlier (confound-inflated) comparison suggested
 and confirms `--compile` stays the right default. Every historical eager-vs-compile number
 from before the `tensor-lr-scalars` fix should be read as "both sides were slower than they
 should have been," not as evidence about the real relative gap.
+
+## Tier 0.2 — MUON_MOMENTUM_WARMUP_STEPS resweep: confirmed still correct
+
+Flagged as stale-by-construction (was ~30-70% of a ~427-850-step run, now ~15% of ~2000).
+Real 900s resweep against baseline (`tensorlr-900s`, 300 steps: 995/`1.094327`): `700`
+(`momwarm700-900s`) 979 steps/`1.097288`; `100` (`momwarm100-900s`) 976 steps/`1.098676`.
+Both directions worse than `300` — a real signal (not noise-symmetric), not a stale value.
+`MUON_MOMENTUM_WARMUP_STEPS=300` confirmed still correct, no change.
