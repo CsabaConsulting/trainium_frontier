@@ -895,3 +895,23 @@ locked width=640 (`tensorlr-fullbudget`: 1995 steps/`1.043489`):
 `ASPECT_RATIO=96` (width=640) confirmed still correct. `DEPTH`×width joint resweep at full
 budget now complete: both axes independently re-confirmed under the new regime, one close
 call noted honestly rather than either ignored or over-interpreted as a tie.
+
+## Tier 0.5 — TOTAL_BATCH_SIZE resweep: confirmed still correct
+
+Real full-1800s resweep at locked DEPTH=6/width=640 under the new tensor-lr-scalars
+regime, vs `131072` (`tensorlr-fullbudget`: 1995 steps/`1.043489`):
+- `65536` (`batch65536-fullbudget`): 3544 steps/`1.048832` — more steps, worse bpb.
+- `262144` (`batch262144-fullbudget`): 1038 steps/`1.051031` — fewer steps, worse bpb.
+
+`TOTAL_BATCH_SIZE=131072` confirmed still correct against both neighbors, no change.
+
+## Tier 0 resweep — summary, closed
+
+Every architecture/hyperparameter axis flagged as stale-by-construction after the
+`tensor-lr-scalars` step-count jump has now been independently re-confirmed at full
+1800s: `DEPTH=6` (beats 8 clearly), width=640 (beats 512 clearly, 768 closely but still
+behind), `TOTAL_BATCH_SIZE=131072` (beats both neighbors), `MUON_MOMENTUM_WARMUP_STEPS=300`
+(beats both neighbors), `EMBED_ADAMW_BETA2=0.95` (beats 0.995 again). **Every locked
+default was already correct** — the 2.35x step-count jump changed how many steps complete,
+not which architecture/hyperparameters are optimal. Remaining Tier 0 items: re-profile
+(now that the optimizer no longer dominates the tail) and FP8 real-hardware validation.

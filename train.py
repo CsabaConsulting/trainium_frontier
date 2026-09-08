@@ -165,7 +165,7 @@ ASPECT_RATIO = 96  # Tier-0 resweep confirmed width=640 still correct at full 18
 HEAD_DIM = 128
 
 DEVICE_BATCH_SIZE = 1
-TOTAL_BATCH_SIZE = 131072  # Solution 11 (Trn2 real-hardware batch resweep, re-validated at n_embd=640): same winner as at n_embd=384 -- 131072 beat 65536/262144 at the new width too (900s: 1.269318 vs 1.279503/1.307378). See trn2-experiment-results.md
+TOTAL_BATCH_SIZE = 131072  # Tier-0 resweep confirmed still correct at full 1800s: 65536 (3544/1.048832) and 262144 (1038/1.051031) both lose. See trn2-experiment-results.md
 NUM_STEPS = 1000
 # The official runner charges wall time only after the first five completed
 # optimizer steps (the startup/compilation allowance, capped). The baseline
