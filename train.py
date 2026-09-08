@@ -185,7 +185,7 @@ MATRIX_LR = 0.025
 SCALAR_LR = 0.20
 WEIGHT_DECAY = 0.10
 VE_WD = 0.0  # weight decay for the value_embeds AdamW group (separate from the shared embedding_params group)
-EMBED_ADAMW_BETA2 = 0.95  # Tier-1 real win at final locked shape (900s: 427/1.180633 vs 0.995's 406/1.190086, both dimensions better) -- HLAT (7B/70B pretrain) used beta2=0.95, deferred pending Solution 11, now confirmed standalone. See trn2-experiment-results.md
+EMBED_ADAMW_BETA2 = 0.95  # Tier-0 resweep confirms still correct at the new ~2000-step regime: 0.95 (995/1.094327) beats 0.995 (977/1.097342) again. See trn2-experiment-results.md
 WARMUP_STEPS = 0
 GRAD_CLIP = 0.0
 WARMDOWN_RATIO = 0.75   # fraction of max_train_seconds spent on LR cooldown (0 = old flat-after-warmup)

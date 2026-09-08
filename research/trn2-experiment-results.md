@@ -865,3 +865,9 @@ Real 900s resweep against baseline (`tensorlr-900s`, 300 steps: 995/`1.094327`):
 (`momwarm700-900s`) 979 steps/`1.097288`; `100` (`momwarm100-900s`) 976 steps/`1.098676`.
 Both directions worse than `300` — a real signal (not noise-symmetric), not a stale value.
 `MUON_MOMENTUM_WARMUP_STEPS=300` confirmed still correct, no change.
+
+## Tier 0.2b — EMBED_ADAMW_BETA2 recheck: confirmed still correct
+
+Real 900s recheck against baseline (`tensorlr-900s`, β2=0.95: 995 steps/`1.094327`): β2=0.995
+(`beta2-0995-900s-v2`) 977 steps/`1.097342` — worse on both axes again. `EMBED_ADAMW_BETA2=0.95`
+confirmed still correct at the new ~2000-step regime, no change.
