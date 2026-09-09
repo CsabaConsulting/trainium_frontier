@@ -231,7 +231,24 @@ INIT_SCALE = 0.68  # multiplier on the attn/mlp uniform-init bound (1.0 = origin
 # 0.1 gives uniform(-0.1*s, 0.1*s), etc. mlp.c_proj is deliberately NOT covered -- the task scopes
 # this to attention only, so the two output projections can be separated if it wins.
 ATTN_CPROJ_INIT_SCALE = 0.0
-PACK_FACTOR = 2  # Scavenger hunt resweep confirmed still correct under the new regime: 4 lost decisively (776/1.113876 vs current baseline ~1000/1.094 territory). dataloader packing-bin multiplier: fetch PACK_FACTOR*SEQ_LEN rows, reshape to PACK_FACTOR*batch rows of SEQ_LEN
+# Dataloader packing-bin multiplier: fetch DEVICE_BATCH_SIZE rows of PACK_FACTOR*SEQ_LEN tokens and
+# reshape to DEVICE_BATCH_SIZE*PACK_FACTOR rows of SEQ_LEN, so this is the micro-batch ROW COUNT and
+# grad_accum_steps falls as it rises (TOTAL_BATCH_SIZE is held fixed either way).
+# T1.5 (Day 2): 4 is the winner, paired same-day same-commit A/B, 900s:
+#   PF=4  1077/1.083610 and 1080/1.083759  (mean 1.083685, 0.829-0.831 s/step)
+#   PF=2  1049/1.085529 and 1054/1.085307  (mean 1.085418, 0.849-0.853 s/step)
+# = -0.001734 bpb and +27 steps (+2.6%). Both PF=4 runs beat both PF=2 runs and the within-pair
+# spreads (0.000149 / 0.000222) are ~8x smaller than the between-group gap, so this clears the
+# "<0.003 needs a paired repeat" bar. The step-count half is corroborated mechanically by a
+# synthetic-data fwd+bwd microbenchmark on the real 4-rank/LNC=2 compiled shape: us/token by
+# micro-batch rows = 38.325 (1) / 22.322 (2) / 21.673 (4) / 23.800 (8), i.e. 4 rows is the
+# per-token optimum and 8 is already past it -- which is why PACK_FACTOR=8 is NOT worth an A/B.
+# HISTORY: the old comment here claimed "4 lost decisively (776 steps/1.113876)". That run
+# (`packfactor4-900s`, commit 9dc9873) is a STALE-COMMIT ARTIFACT, not a property of PACK_FACTOR:
+# re-run unchanged on current code it gives 1077 steps, not 776. Its logged launch_command carried
+# no --pack-factor flag (the constant had to be edited by hand back then), so it was not
+# reproducible from its own log -- hence the flag now exists. See trn2-experiment-results.md.
+PACK_FACTOR = 4
 USE_REQUEUE_PACKER = False  # Bucket B: implemented + verified correct (offline harness, research/scratch/requeue_packer_equiv.py, zero corruption over a 20k-doc synthetic corpus), but the real hardware A/B at the final locked shape was a small real negative (332 steps/1.235799 vs baseline 330/1.234514) -- not kept. See trn2-experiment-results.md
 USE_VE = True  # value embeddings (ResFormer-style): alternating layers, input-gated mix into attention's V stream
 VE_GATE_CHANNELS = 32
