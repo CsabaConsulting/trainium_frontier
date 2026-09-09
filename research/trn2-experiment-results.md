@@ -1567,24 +1567,83 @@ for this eval path, noted here in case anyone tries to speed up 1024-context eva
 brute-force batching.
 
 Because of this, the full public-val shard (~91.7MB parquet, comparable size to one
-63M-token train shard) is **feasible at seq_len=2048 (~25 min extrapolated, run for
-real below) but was extrapolated at ~2.7 hours at seq_len=1024/batch=1** — too expensive
-to run for real in this session; the 20M-token slice is used as seq_len=1024's
-highest-fidelity number instead, and is disclosed honestly as a substitution, not a full-shard result.
+63M-token train shard) is **feasible at seq_len=2048 (real run: 17.3 min) but the
+first two attempts at seq_len=1024/batch=1 both failed** (see below) — the 20M-token
+slice is used as seq_len=1024's highest-fidelity number instead, disclosed honestly as
+a substitution, not a full-shard result. This turned out to matter less than initially
+feared once the real numbers landed (see the closing analysis).
 
-Full results (device job launched 11:09 UTC, `/tmp/c1_eval/all.log` on the box):
+**Full results** (`out/nkimuon-fullbudget/final.pt`, i.e. the pre-T0.1 headline
+checkpoint; the training loop's own quick eval for this exact checkpoint/run reported
+`public_val_bpb: 1.041139` at its default 2M-token / SEQ_LEN=2048 setting — confirmed
+below to be the SAME code path, `evaluate_bpb` on the uncompiled model at
+`batch_size=1`, so the only real variable across all rows is token count and seq_len):
 
-[PENDING — see below, filled in once the background job completes]
+| seq_len | eval_tokens | val_bpb | eval_seconds | note |
+|---|---|---|---|---|
+| 2048 | 2,097,152 (train loop's own default) | **1.041139** | (from training run) | the number every decision this competition has been made against |
+| 2048 | 20,971,520 (20M) | 1.047077 | ~490 (est.) | |
+| 2048 | 63,373,010 (FULL public val shard) | **1.047358** | 1035.7 (17.3 min) | |
+| 1024 | 20,971,520 (20M) | 1.063264 | 552.9 (9.2 min) | |
+| 1024 | full shard | **NOT OBTAINED** | — | see below |
 
-**Reading so far**: at matched small token counts, `seq_len=2048` (`0.995348`) already
-scores noticeably BETTER than `seq_len=1024` (`1.010901`) on the same checkpoint, and
-`seq_len=1024` is the seq_len used by the ONE historical submission whose local-vs-board
-delta is known (local `1.15361` → board `1.1394`, i.e. board *better* than local by
-0.014). If the pattern holds through the full-token numbers below, that is independent
-evidence pointing toward the scorer evaluating at something closer to the *trained*
-`SEQ_LEN=2048` than at `prepare.py`'s CLI default of 1024 — consistent with the research
-plan's existing reasoning in §1.7, now with real numbers behind it rather than only the
-directional argument. Treat as provisional until the full-token rows land.
+**Two failed attempts at the seq_len=1024 full shard, both disclosed rather than
+retried a third time:** (1) first attempt used the CLI's default `--timeout-seconds`
+(`EVAL_TIMEOUT_SECONDS=1200s`) and hit `EvalTimeoutError` after 1200s — the earlier
+200k-token throughput probe (Section above) had badly under-estimated seq_len=1024's
+real large-sample rate (6,363 tok/s extrapolated vs the ~37,932 tok/s the 20M-token run
+actually achieved — small samples are dominated by fixed overhead and are not a safe
+basis for extrapolating a 30x-larger run). (2) Re-run with `--timeout-seconds 3600`: ran
+cleanly for ~49 minutes of CPU time, then **both it and a second, independently-started,
+identical `eval-public` invocation that appeared on the box mid-run (different PID,
+same exact command line, not launched by this session) went idle simultaneously** —
+CPU-time frozen across 6 consecutive 90s polls on both processes, consistent with a
+device/compile-cache lock contention between two concurrent eval processes rather than
+either one individually hanging the way `--grad-bucket` did (see T1.2 below) — that
+finding is itself worth keeping: **do not run two concurrent `eval-public`/`train.py`
+processes against the same Neuron device/`NEURON_COMPILE_CACHE_DIR`**. Killed this
+session's process; `train.py`'s md5 on the box was re-verified unchanged afterward (no
+edit conflict, just a resource contention on a read-only eval).
+
+**Closing analysis (supersedes the provisional read above):**
+1. **20M tokens ≈ full shard, at fixed seq_len**: `1.047077` (20M) vs `1.047358` (full
+   63.4M-token shard) at seq_len=2048 — **Δ=0.0003**, i.e. 20M tokens is already a
+   stable, representative statistic; the full-shard run buys almost nothing over it.
+   This retroactively justifies using `--eval-tokens 20971520` as the standard
+   confirmation size going forward (cheaper, same answer), exactly as the research plan
+   proposed, now confirmed rather than assumed.
+2. **seq_len matters far more than token count**: at the SAME 20M-token budget,
+   seq_len=2048 (`1.047077`) beats seq_len=1024 (`1.063264`) by **0.0162** — an order of
+   magnitude larger than the 20M-vs-full-shard gap. Whatever context length the real
+   scorer uses will dominate the answer far more than its exact token budget will.
+3. **The real, quantified, actionable finding: the competition's standard "quick" 2M-token
+   eval has a real, systematic optimistic bias.** At the identical seq_len=2048,
+   identical uncompiled `evaluate_bpb` code path, identical checkpoint: the training
+   loop's own default 2M-token eval reports `1.041139`, while the 20M/63M-token
+   estimates at the same seq_len report `~1.047` — **a ~0.006 bpb gap**, with the 2M
+   slice reading *easier* than the shard as a whole. Because `make_eval_dataloader`
+   reads sequentially from the start of the shard, this means the FIRST ~2M tokens of
+   the public val shard are measurably easier than the shard's later tokens — a property
+   of this specific shard's internal ordering, not a bug. **Every "current best" bpb
+   number quoted anywhere in this notebook prior to today was measured this way**, so
+   every ABSOLUTE number in the log likely understates the true bpb on the full public
+   val shard by roughly 0.005-0.006 at SEQ_LEN=2048. Paired A/B comparisons (same eval
+   size on both arms, which is every keep/discard decision this competition) are
+   NOT affected in direction, since the bias should cancel between the two arms of any
+   same-size-eval pair — but anyone quoting an absolute number against the leaderboard,
+   or comparing across eval-token settings, must now correct for roughly +0.006.
+4. **Does this settle the 1024-vs-2048 scorer question?** Not decisively. The one
+   historical local-vs-board data point (SEQ_LEN=1024 submission: local `1.15361` →
+   board `1.1394`, board *better* by 0.014) points the OPPOSITE direction from what a
+   "public val shard's later tokens are harder" story alone would predict for a
+   larger-sample scorer eval — which most likely means the organizers' private scoring
+   shard is simply different (easier) data from the public val shard, a separate effect
+   layered on top of the token-count bias found here, rather than evidence against a
+   1024-context scorer. The context-length question itself remains open; what this
+   session adds is the quantified 2M-vs-20M absolute-number correction (finding 3) and
+   the confirmation that 20M tokens is a safe, stable proxy for the full shard (finding
+   1) — both real, both load-bearing for how every future number this week should be
+   read.
 
 ### T1.2 — flat gradient buffer (`build_flat_grad_buffer`/`sync_gradients_flat`): all_reduce path is bit-exact, clip-norm fusion is NOT
 
