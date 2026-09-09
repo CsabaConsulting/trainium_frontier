@@ -192,6 +192,7 @@ WARMDOWN_RATIO = 0.75   # fraction of max_train_seconds spent on LR cooldown (0 
 FINAL_LR_FRAC = 0.05    # LR floor as a fraction of peak LR at the end of cooldown (1.0 = no floor effect)
 USE_TENSOR_LR_SCALARS = True   # LOCKED ON. Carry the per-step lr in a device tensor instead of a Python float so the optimizer graph is compiled once, not once per lr value (see MuonAdamW._device_scalar). Biggest single win measured on Trn2 so far: dt stays 0.90s through the whole cooldown instead of 2.2-4.3s, giving 1995 steps/1.043489 at 1800s vs 847/1.108697, and 995/1.094327 at 900s vs 427/1.180633. Model math unchanged; causality exact.
 LRM_QUANTUM = 0         # >0: snap the LR multiplier onto a 1/LRM_QUANTUM grid, so the cooldown uses at most this many distinct lr values (see lr_multiplier); 0 = continuous, one new value per step
+USE_FOREACH_OPTIM = True  # batch the optimizer's per-parameter work into torch._foreach_* calls instead of a Python loop of single-tensor ops (see MuonAdamW._adamw_step_foreach and the batched read-in in _muon_step). Pure dispatch-overhead change: the update math is BIT-IDENTICAL, not an approximation. Motivation: on this native-eager backend every aten op is its own NEFF, so the optimizer step ran 647 launches over 171 separate NEFFs with 73.9ms of the 123.8ms window being pure inter-launch gap -- 10.0% of step time, every engine idle for three quarters of it. MEASURED, all four checks: (1) EQUIVALENCE -- research/scratch/foreach_optim_equiv.py builds the real GPT at the locked config on CPU, runs 5 steps of loop-vs-foreach on identical deterministic grads and gets 0.000e+00 max abs diff (torch.equal True) on all 62 params AND all 42 optimizer-state tensors, for both USE_TENSOR_LR_SCALARS=True and False. (2) DISPATCH COUNT (CPU, TorchDispatchMode) 1023 -> 708 aten calls per step; the AdamW groups collapse 271 -> 54 (5.02x, they are 17 tiny tensors of which 12 are shape-(1,) scalars each costing ~8 launches for no compute) while Muon only gets 816 -> 652 (1.25x, its bulk is real batched Newton-Schulz matmul). (3) REAL PROFILE of the optimizer-step window (4 ranks, LNC=2, neuron-explorer): launches 647 -> 402 (-37.9%), inter-launch gap 73.9 -> 50.5ms (-31.6%), gap share of the window 59.8% -> 54.4%. (4) REAL TIMING at the submission shape (research/scratch/phase_timer.py, 4 ranks, LNC=2, compile on): opt_step_ms 90.05 -> 66.99 (-23.1ms, -25.6%, non-overlapping ranges over 4 measurements a side), step_total_ms 891.4 -> 876.3 (-1.7%). Smoke test single-device 15 steps: causality_passed True, causality_max_abs 0.0. END-TO-END, paired same-day 900s A/B at the locked shape (this is the number that decided the default, because the week's older 900s rows span 976-1004 steps across different knob settings and a cross-day absolute comparison is not trustworthy): ON 1002/1004/1003 steps (mean 1003.0) at 1.093909/1.093671/1.093991 bpb (mean 1.093857) vs OFF 974/968 (mean 971.0) at 1.096378/1.096809 (mean 1.096594) -- +32.0 steps (+3.3%) and -0.0027 bpb, with the two groups' step counts 28 apart and non-overlapping. Quality moves the right way for the mechanical reason (same update math, more steps in the same wall clock). CONFIRMED at the real full 1800s budget, also paired same-day: ON 1987 steps / 1.043651 bpb vs OFF 1934 / 1.045602 -- +53 steps (+2.7%) and -0.0020 bpb. See rows foreach-optim-900s{,-v2,-v3}, foreach-off-900s-v{1,2}, foreach-optim-fullbudget and foreach-off-fullbudget in research/experiment-log.jsonl and the "optimizer dispatch overhead" section of research/trn2-experiment-results.md. NOTE torch._foreach_* is EAGER-ONLY on this stack: torch.compile(backend="neuron") on the optimizer step dies with 'failed to legalize operation torch.operator' on _foreach_copy_, which is also why the pre-existing _foreach_copy_ write-back at the bottom of _muon_step makes compiling the optimizer step impossible either way.
 WD_DECAY_TO_ZERO = True  # decay Muon's weight_decay linearly to 0 over the run instead of holding it constant
 MUON_MOMENTUM_WARMUP_STEPS = 300  # Tier-0 resweep, confirmed still correct despite the step-count regime shift: 700 (979/1.097288) and 100 (976/1.098676) both worse than 300's baseline (995/1.094327) at 900s -- real signal both directions lose, not stale. See trn2-experiment-results.md
 INIT_SCALE = 0.68  # multiplier on the attn/mlp uniform-init bound (1.0 = original baseline scale)
@@ -3022,6 +3023,87 @@ class MuonAdamW(torch.optim.Optimizer):
         dev.copy_(host)
         return dev
 
+    def _adamw_state(self, group):
+        """Shared prologue for both AdamW paths: filter to params that actually have a
+        grad this step, lazily create their state, advance the per-parameter step
+        counter, and return the parallel lists the update needs.
+
+        The step counter is per-parameter and NOT per-group because a parameter whose
+        grad was None on some earlier step legitimately lags the rest of its group; the
+        bias corrections are therefore returned as per-parameter scalar lists.
+        """
+        beta1, beta2 = group["betas"]
+        params, grads, exp_avgs, exp_avg_sqs, bias1, bias2 = [], [], [], [], [], []
+        for p in group["params"]:
+            if p.grad is None:
+                continue
+            state = self.state[p]
+            if not state:
+                state["step"] = 0
+                state["exp_avg"] = torch.zeros_like(p)
+                state["exp_avg_sq"] = torch.zeros_like(p)
+            state["step"] += 1
+            params.append(p)
+            grads.append(p.grad)
+            exp_avgs.append(state["exp_avg"])
+            exp_avg_sqs.append(state["exp_avg_sq"])
+            bias1.append(1 - beta1 ** state["step"])
+            bias2.append(1 - beta2 ** state["step"])
+        return params, grads, exp_avgs, exp_avg_sqs, bias1, bias2
+
+    @torch.no_grad()
+    def _adamw_step_foreach(self, group):
+        """Batched-dispatch equivalent of _adamw_step. Same update math, restructured so
+        each stage is ONE torch._foreach_* call over the whole group instead of one aten
+        op per parameter.
+
+        Motivation is pure launch overhead, not arithmetic: the native TorchNeuron eager
+        backend compiles one NEFF per aten op, so a K-parameter group costs ~8*K tiny
+        launches in the loop form, each one paying a full host dispatch gap with every
+        engine idle. A profile of the locked config measured MuonAdamW.step() at 10% of
+        step time (89.6ms) across 647 launches / 171 un-fused NEFFs, 73.2% of which was
+        dispatch gap.
+
+        This is required to be BIT-IDENTICAL to _adamw_step, not merely close:
+          * grad.square() is emitted as _foreach_mul(g, g) -- verified bitwise identical
+            to .square() for both fp32 and bf16 (research/scratch/foreach_api_probe.py).
+          * bias1/bias2 go in as ScalarLists, one entry per parameter, preserving the
+            per-parameter step counter exactly (see _adamw_state).
+          * the weight-decay multiply is skipped when weight_decay == 0. That is exactly,
+            not approximately, a no-op: the original computes p.mul_(1 - lr*0) =
+            p.mul_(1.0), and multiplying a finite IEEE754 value by exactly 1.0 (fp32,
+            then rounded back to the parameter dtype) returns it unchanged. Four of the
+            locked config's AdamW groups have weight_decay=0.0, so this is also where a
+            good chunk of the saved launches come from.
+        foreach ops require same dtype/device but NOT the same shape, so the ragged
+        scalar group batches fine -- confirmed against this installed torch (2.11.0) in
+        research/scratch/foreach_api_probe.py rather than assumed from a newer API.
+        """
+        params, grads, exp_avgs, exp_avg_sqs, bias1, bias2 = self._adamw_state(group)
+        if not params:
+            return
+        lr = group["lr"]
+        if USE_TENSOR_LR_SCALARS:
+            lr = self._device_scalar(group, "lr", lr, params[0])
+        beta1, beta2 = group["betas"]
+        wd = group["weight_decay"]
+        if wd != 0:
+            torch._foreach_mul_(params, 1 - lr * wd)
+        torch._foreach_lerp_(exp_avgs, grads, 1 - beta1)
+        torch._foreach_lerp_(exp_avg_sqs, torch._foreach_mul(grads, grads), 1 - beta2)
+        denom = torch._foreach_div(exp_avg_sqs, bias2)
+        torch._foreach_sqrt_(denom)
+        torch._foreach_add_(denom, group["eps"])
+        update = torch._foreach_div(exp_avgs, bias1)
+        torch._foreach_div_(update, denom)
+        if USE_TENSOR_LR_SCALARS:
+            # Same reason as the loop path: alpha= would bake the lr into the graph as a
+            # constant, a tensor multiply keeps it a runtime operand.
+            torch._foreach_mul_(update, lr)
+            torch._foreach_sub_(params, update)
+        else:
+            torch._foreach_add_(params, update, alpha=-lr)
+
     @torch.no_grad()
     def _adamw_step(self, group):
         beta1, beta2 = group["betas"]
@@ -3073,12 +3155,32 @@ class MuonAdamW(torch.optim.Optimizer):
 
         g = state["stacked_grads"]
         w = state["stacked_params"]
-        for i, p in enumerate(params):
-            if p.grad is None:
-                g[i].zero_()
+        # Read-in into the stacked buffers. The loop form costs 2 launches per parameter
+        # (one grad copy, one param copy) purely to gather the group into the contiguous
+        # buffer the batched Newton-Schulz below already wants; _foreach_copy_ does each
+        # side in one. unbind(0) is a pure view op with no device work, and this is the
+        # same construct the write-back at the bottom of this method already relies on.
+        if USE_FOREACH_OPTIM:
+            g_rows = list(g.unbind(0))
+            grads = [p.grad for p in params]
+            if all(gr is not None for gr in grads):
+                torch._foreach_copy_(g_rows, grads)
             else:
-                g[i].copy_(p.grad)
-            w[i].copy_(p)
+                # Mixed case: keep the exact per-parameter semantics (zero the row for a
+                # missing grad) rather than batching something subtly different.
+                for i, gr in enumerate(grads):
+                    if gr is None:
+                        g_rows[i].zero_()
+                    else:
+                        g_rows[i].copy_(gr)
+            torch._foreach_copy_(list(w.unbind(0)), params)
+        else:
+            for i, p in enumerate(params):
+                if p.grad is None:
+                    g[i].zero_()
+                else:
+                    g[i].copy_(p.grad)
+                w[i].copy_(p)
         momentum_buffer = state["momentum_buffer"]
         second = state["second_momentum_buffer"]
 
@@ -3119,7 +3221,10 @@ class MuonAdamW(torch.optim.Optimizer):
     def step(self):
         for group in self.param_groups:
             if group["kind"] == "adamw":
-                self._adamw_step(group)
+                if USE_FOREACH_OPTIM:
+                    self._adamw_step_foreach(group)
+                else:
+                    self._adamw_step(group)
             elif group["kind"] == "muon":
                 self._muon_step(group)
             else:
@@ -3260,7 +3365,7 @@ def muon_momentum(step: int) -> float:
 
 
 def main() -> None:
-    global USE_LOCAL_CONV, LRM_QUANTUM, USE_TENSOR_LR_SCALARS, USE_MUDD, USE_DCMHA, USE_MAMBA2, MAMBA2_PATTERN, USE_NKI_SSD  # flags below default off these constants
+    global USE_LOCAL_CONV, LRM_QUANTUM, USE_TENSOR_LR_SCALARS, USE_FOREACH_OPTIM, USE_MUDD, USE_DCMHA, USE_MAMBA2, MAMBA2_PATTERN, USE_NKI_SSD  # flags below default off these constants
     global MAMBA2_EXPAND, MAMBA2_D_STATE, MAMBA2_HEAD_DIM, MAMBA2_CHUNK, MAMBA2_N_GROUPS, MAMBA2_CONV_KERNEL
     global USE_RWKV, RWKV_PATTERN, RWKV_HEAD_DIM, RWKV_CHUNK, RWKV_CMIX_EXPAND
     parser = argparse.ArgumentParser(description="Neuron Competition R1 baseline")
@@ -3302,6 +3407,11 @@ def main() -> None:
                         default=os.environ.get("NEURON_COMPETITION_R1_TENSOR_LR_SCALARS", "1" if USE_TENSOR_LR_SCALARS else "0") != "0",
                         help="hold the per-step lr in a device tensor rather than a Python float, so a "
                              "changing LR schedule stops forcing a fresh neuronx-cc compile every step")
+    parser.add_argument("--foreach-optim", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_FOREACH_OPTIM", "1" if USE_FOREACH_OPTIM else "0") != "0",
+                        help="batch the optimizer's per-parameter work into torch._foreach_* calls "
+                             "instead of a Python loop of single-tensor ops. Bit-identical update "
+                             "math; targets the optimizer step's launch/dispatch overhead only.")
     parser.add_argument("--lrm-quantum", type=int,
                         default=int(os.environ.get("NEURON_COMPETITION_R1_LRM_QUANTUM", LRM_QUANTUM)),
                         help="snap the LR multiplier onto a 1/N grid (0 = continuous). Each distinct "
@@ -3389,6 +3499,7 @@ def main() -> None:
     USE_LOCAL_CONV = args.local_conv         # read by Block.__init__, i.e. before GPT(config) below
     LRM_QUANTUM = args.lrm_quantum
     USE_TENSOR_LR_SCALARS = args.tensor_lr_scalars
+    USE_FOREACH_OPTIM = args.foreach_optim
     USE_MUDD = args.mudd                      # read by Block.__init__, i.e. before GPT(config) below
     USE_DCMHA = args.dcmha                    # read by CausalSelfAttention.__init__, i.e. before GPT(config) below
     USE_NKI_RELU2 = args.nki_relu2

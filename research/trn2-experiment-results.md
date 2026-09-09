@@ -1003,3 +1003,132 @@ Practical rules: (a) always launch on the box with the venv on `PATH` (activate 
 activated venv gets both right at once; (b) "compile hangs forever with no `neuronx-cc`
 process" means *check `PATH` first*, it is not a compiler bug; (c) killed runs leave stale
 `/tmp/local_cache/locks` entries that then cost 1200 s each on the next run — clear them.
+
+## Optimizer-step dispatch overhead (`USE_FOREACH_OPTIM`): real win, now default ON
+
+### The target
+
+The re-profile put `MuonAdamW.step()` at **89.6 ms of a 895 ms step (10.0%)**, spent as
+**647 NEFF launches across 171 separate NEFFs**, of which **73.9 ms of the 123.8 ms profiled
+window was inter-launch gap** — three quarters of the optimizer step with every hardware
+engine idle. That is the signature of this backend: native eager compiles *one NEFF per aten
+op* with no cross-op fusion, so a Python loop of single-tensor optimizer ops pays a full
+launch per op per parameter. It was invisible in earlier profiles only because the
+`USE_TENSOR_LR_SCALARS` recompile bug dwarfed everything.
+
+Two approaches were on the table. Both were measured; only one survives.
+
+### Approach 1 — `torch._foreach_*` (works)
+
+`_adamw_step_foreach` replaces the per-parameter loop with `_foreach_lerp_`/`_foreach_div`/
+`_foreach_sqrt_`/`_foreach_add_`/`_foreach_mul_`, and `_muon_step`'s read-in replaces its
+`for i, p in enumerate(params): g[i].copy_(p.grad); w[i].copy_(p)` with two
+`torch._foreach_copy_` calls over `unbind(0)` views. A shared `_adamw_state` prologue does the
+grad filtering, lazy state creation and step-counter bump for both paths, so the loop version
+stays in-tree as the reference.
+
+The API surface was probed on the installed torch (2.11.0), not assumed: foreach accepts
+**ragged shapes**, **0-dim Tensor scalars** (needed for the `--tensor-lr-scalars` path, where
+the lr must stay a runtime operand rather than a baked graph constant) and **ScalarLists**
+(needed because bias corrections are per-parameter — a parameter whose grad was `None` on an
+earlier step legitimately lags its group, so its `1 - beta**step` differs).
+
+Exactness, not tolerance. `research/scratch/foreach_optim_equiv.py` builds the real `GPT` at
+the locked config, deep-copies it, feeds identical deterministic grads for 5 steps through
+both paths including the real per-step lr write, and compares everything:
+
+| check | result |
+|---|---|
+| 62 params, `torch.equal` | **all True**, max abs diff **0.000e+00** |
+| 42 optimizer-state tensors (`exp_avg`, `exp_avg_sq`, both Muon momenta) | **all True**, **0.000e+00** |
+| both `USE_TENSOR_LR_SCALARS=True` and `False` | both bit-identical |
+
+Bit-identity is structural, not luck: `_foreach_mul(g, g)` is the same IEEE op as `g.square()`,
+the ScalarList bias corrections preserve the per-parameter step counters exactly, and the
+`weight_decay == 0` fast path skips a multiply by 1.0, which is an exact no-op.
+
+### What it actually bought — three independent measurements
+
+| measurement | OFF | ON | delta |
+|---|---|---|---|
+| aten dispatches per step (CPU, `TorchDispatchMode`) | 1023 | 708 | **-30.8%** |
+|  · AdamW groups only | 271 | 54 | **5.02x fewer** |
+|  · Muon group only | 816 | 652 | 1.25x fewer |
+| NEFF launches, optimizer-step window (real profile) | 647 | 402 | **-37.9%** |
+| inter-launch gap in that window | 73.9 ms | 50.5 ms | **-31.6%** |
+| gap share of window | 59.8% | 54.4% | -5.4 pp |
+| `opt_step_ms` at the real 4-rank LNC=2 shape | 90.05 | 66.99 | **-23.1 ms, -25.6%** |
+| `step_total_ms` | 891.4 | 876.3 | -1.7% |
+
+The `opt_step_ms` ranges do not overlap (OFF 87.3-91.2 over 4 samples, ON 66.2-67.9), and the
+OFF side independently reproduces the re-profile's 89.6 ms, which validates the driver.
+
+Where the win comes from is worth writing down, because it is counter-intuitive: the AdamW
+groups hold only 17 tensors, **12 of them shape `(1,)` scalars** that each cost ~8 launches for
+essentially zero compute. Batching them is nearly pure profit (5.02x). Muon, whose bulk is
+genuine batched Newton-Schulz matmul, only improves 1.25x — there was never much dispatch
+overhead there to remove.
+
+### End-to-end, paired same day
+
+The week's older 900s rows span 976-1004 steps across different knob settings, so a cross-day
+absolute comparison proves nothing. Both sides were therefore re-run today, same code, same
+command modulo the flag:
+
+| side | steps | bpb |
+|---|---|---|
+| ON (`foreach-optim-900s`, `-v2`, `-v3`) | 1002 / 1004 / 1003 → **mean 1003.0** | 1.093909 / 1.093671 / 1.093991 → **mean 1.093857** |
+| OFF (`foreach-off-900s-v1`, `-v2`) | 974 / 968 → **mean 971.0** | 1.096378 / 1.096809 → **mean 1.096594** |
+| delta | **+32.0 steps (+3.3%)** | **-0.002737 bpb** |
+
+The groups are 28 steps apart with no overlap, and the ON side is tight to ±1 step. Quality
+improves for the mechanical reason only — identical update math, more steps inside the same
+wall clock. `causality_passed: True, causality_max_abs: 0.0` on every run.
+
+Note the absolute step counts today (968-974 OFF) sit *below* the week-old `tensorlr-900s`
+row's 995. That is exactly why the paired control was run: judged against the stale row the
+change would have looked like +0.8% instead of its real +3.3%.
+
+Confirmed at the real **full 1800s budget**, again paired same day:
+
+| side | steps | bpb |
+|---|---|---|
+| ON (`foreach-optim-fullbudget`) | **1987** | **1.043651** |
+| OFF (`foreach-off-fullbudget`) | 1934 | 1.045602 |
+| delta | **+53 steps (+2.74%)** | **-0.001951 bpb** |
+
+Same direction and nearly the same magnitude as the 900s proxy, and the same cross-day caveat
+applies: the week-old `tensorlr-fullbudget` row (1995 / 1.043489) is *above* today's ON run in
+absolute terms while today's OFF control is 53 steps below it — the box is simply a few percent
+slower today than it was then, which is why only the paired delta is quoted.
+
+### Approach 2 — compiling the optimizer step (dead on this stack)
+
+`torch.compile(optimizer.step, backend="neuron", dynamic=False)` **fails to compile at all**,
+both with and without the foreach rewrite:
+
+```
+RuntimeError: Neuron backend NEFF execution setup failed with unexpected error:
+Failed Torch-MLIR Neuron partial lowering from TorchFX IR -> StableHLO IR:
+loc("train.py":3218:0): error: failed to legalize operation 'torch.operator'
+that was explicitly marked illegal
+```
+
+`torch._foreach_*` is **eager-only** here — there is no StableHLO lowering for it. And the
+blocker is not the new code: line 3218 is the **pre-existing** `_foreach_copy_` write-back at
+the bottom of `_muon_step`, which has been in `main` all along. So compiling the optimizer step
+was never possible without first un-batching that write-back, which is the opposite of the
+change that works. Approaches 1 and 2 are mutually exclusive, and 1 is the one that runs.
+
+Even had it lowered, the a-priori mechanism said to expect the *already-fixed* lr bug again:
+`bias1 = 1 - beta1 ** state["step"]` is a Python float derived from a counter that changes
+every step, i.e. a fresh graph constant and a fresh `neuronx-cc` compile per step. Not needed
+as an argument — the lowering failure is dispositive — but recorded so nobody retries it
+blind.
+
+### Verdict
+
+`USE_FOREACH_OPTIM` **defaults ON**, with `--no-foreach-optim` kept for A/B. Bit-identical
+math, -25.6% off the optimizer step, -37.9% launches, and a clean paired +3.3% steps /
+-0.0027 bpb at 900s reproduced as +2.7% / -0.0020 at the full 1800s budget. Compiling the
+optimizer step is closed as impossible on this backend, for a reason that predates this work.
