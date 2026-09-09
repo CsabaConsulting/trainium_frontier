@@ -2162,3 +2162,51 @@ the clip to *after* `sync_gradients` is a candidate quality change **at LNC=2 as
 since it would make GRAD_CLIP mean what it appears to mean regardless of world_size. Note
 that (b) implies the existing locked `GRAD_CLIP = 1.0` win may be partly a world-size
 artifact — worth knowing before anyone reuses that number at a different shape.
+
+### T1.4 — Adam-every-other-step: correct, 1.1% faster, and a small quality LOSS → discarded
+
+Implemented as `--adam-every-n N`: the AdamW parameter groups (wte, lm_head, value-embedding
+tables, scalars, and T0.1's `local_conv`) update only on the last step of each N-step window,
+their gradients **accumulate** in between (explicitly *not* zeroed on the intermediate steps),
+and their `all_reduce` is skipped on those steps. The Muon groups update every step as usual.
+`N = 1` is the historical path, bit-identical.
+
+Two correctness points worth recording, because one is exact and the other is not:
+
+- **The deferred collective is exact, not an approximation.** `ReduceOp.AVG` is linear, so
+  averaging the sum of K locally-accumulated steps equals summing K averaged steps. Skipping
+  the intermediate all_reduces changes nothing about the value that eventually reaches the
+  optimizer.
+- **The dynamics change is real.** Adam's update is scale-invariant in the gradient, so
+  handing it a 2-step accumulated (≈2x larger) gradient produces the *same size* step, taken
+  half as often — those tensors therefore travel roughly half as far over the run. Hence the
+  separate `--adam-every-n-lr-comp` knob. Also, `GRAD_CLIP` is applied over
+  `model.parameters()` every step, so an accumulating gradient can be scaled by the clip more
+  than once. `--adam-every-n > 1` is rejected at flag-parse time in combination with
+  `--grad-bucket`, which cannot leave one subset of gradients standing.
+
+Verified on the real run rather than assumed: the log confirms
+`adam_every_n=2 lr_comp=False: 23 AdamW params update every 2 steps`, and
+`causality_passed True` / `causality_max_abs 0.000000`.
+
+| run | steps | s/step | `public_val_bpb` |
+|---|---|---|---|
+| baseline (`t06-optlevel1-900s` + `-v2` mean) | 1097.5 | 0.815 | **1.082286** |
+| `t14-adam-every2-900s` | 1110 | 0.797 | **1.083173** |
+
+**+12.5 steps (+1.1% throughput) but +0.000887 bpb — worse.** The delta is inside the
+<0.001 noise band, so the honest reading is "no quality difference detectable, and the
+throughput gain did not convert into bpb." Judged on the normal keep/discard bpb threshold
+(as instructed, not on equivalence): **discarded**, `ADAM_EVERY_N` stays 1.
+
+The step-by-step log shows the mechanism cleanly and is the most interesting part of the
+result: step 0 → 9.0099, step 1 → **9.0096** (essentially unmoved, because the embedding and
+unembedding tables genuinely do not update on step 0), step 2 → **9.1645** (loss goes *up*,
+because the first AdamW update lands at step 1 carrying two steps of accumulated gradient
+and overshoots). The run recovers and tracks the baseline closely from there (step 1000:
+2.9816 vs 2.9719), which is why the final gap is small. The 1.1% saved is real — it is 23
+tensors' worth of `all_reduce` plus optimizer work on half the steps — it just is not free.
+
+`--adam-every-n-lr-comp` (multiply the AdamW groups' lr by N to compensate the "half as far"
+effect) is implemented and untested as of this section; it is the one variant that could
+plausibly convert the 1.1% into a win.
