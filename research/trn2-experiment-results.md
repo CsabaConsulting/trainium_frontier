@@ -1272,3 +1272,14 @@ baseline's own noise floor). Steps essentially tied (no throughput cost from cli
 True`, `causality_max_abs: 0.0`.** Beats the prior best (`foreach-optim-fullbudget`: 1987
 steps/`1.043651`) on both axes. **New best confirmed number this competition.**
 `GRAD_CLIP=1.0` locked as the new default.
+
+## Scavenger hunt — individual-toggle re-ablation, spot-checked
+
+`PACK_FACTOR=4` tested against the locked `2` under the new regime: `packfactor4-900s`,
+776 steps/`1.113876` — a decisive real negative (current baseline territory is
+~1000-1200 steps/`~1.09-1.11`), confirming the original bin-size resweep's conclusion
+still holds; bigger bins cost real per-step overhead that isn't offset by less crop-loss.
+`PACK_FACTOR=2` reconfirmed, no change. Given this flagged as explicitly lower-priority
+by the scavenger hunt itself and the one spot-check found no reversal, not exhaustively
+re-testing `WD_DECAY_TO_ZERO`/`INIT_SCALE`/`USE_VE` individually — moving to the
+higher-value remaining items (Muon Newton-Schulz kernel, `SEQ_LEN=4096`/`ROPE_BASE` probe).
