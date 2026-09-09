@@ -2032,3 +2032,133 @@ because the refresh sits outside the compiled region, in the training loop.)
 `model.modules()` tree and `isinstance`-testing every module *on every step* to rebuild
 the same never-changing ~40-Linear list. That list is now built once before the loop. Pure
 removal of per-step Python work, no numerics change, no new code path, no flag.
+
+### T0.6 — `neuronx-cc` flags: `--optlevel=1` is a real win and is now the default
+
+Probed with `phase_timer.py` rather than a real run first, because a real run's `dt` is
+printed to only 2 decimals (0.83 vs 0.84) — too coarse to rank six candidates — while the
+harness reports `step_total_ms` to 0.1 ms after an explicit synchronize. Each config got
+its **own `NEURON_COMPILE_CACHE_DIR`**, so no config could silently reuse another's NEFF.
+4 ranks / LNC=2 / PACK_FACTOR=4, real dataloader, `--foreach-optim`, 2 warmup + 6 timed
+steps, `train.py` unmodified:
+
+| `NEURON_CC_FLAGS` | `step_total_ms` (6 steps) | median | vs baseline | compile wall |
+|---|---|---|---|---|
+| *(unset — baseline)* | 836.3–839.6 | 837.6 | — | 63 s |
+| `--optlevel=2` (explicit) | 832.9–840.6 | 836.2 | −1.4 ms | 193 s |
+| **`--optlevel=1`** | **812.7–818.4** | **816.4** | **−21.2 ms (−2.5%)** | 194 s |
+| `--optlevel=3` | 830.5–848.5 | 834.8 | −2.8 ms | 259 s |
+| `--model-type=transformer` | 833.1–839.8 | 835.6 | −2.0 ms | 195 s |
+| `--model-type=transformer --optlevel=3` | 830.7–841.8 | 834.9 | −2.7 ms | 256 s |
+
+Two things make this trustworthy rather than a noise artifact. First, **`--optlevel=1`'s
+six steps are non-overlapping with baseline's six** (worst optlevel=1 step 818.4 ms is
+faster than the best baseline step 832.9 ms) — this is a shifted distribution, not a mean
+nudged inside the spread. Second, **the `--optlevel=2` explicit row is a control that
+proves the env var is actually reaching `neuronx-cc`**: it reproduces the no-flags number
+(836.2 vs 837.6, well inside noise) while paying the full 193 s recompile, which is exactly
+what "2 is the default, and I really did set the flag" looks like. Without that row, a flat
+result for `--optlevel=3` could just as easily have meant the flag was being ignored.
+
+`--optlevel=3` and `--model-type=transformer` are both **neutral** (≤3 ms, inside noise),
+and `--optlevel=3` costs 259 s of compile against 194 s. `--model-type=transformer` being
+neutral is a mild update against the old `USE_TRN2_COMPILER_FLAGS` result (which bundled it
+with `--distribution-strategy=llm-training`); on its own, at this shape, it does nothing.
+
+**Real 900s confirmation, paired** (both against the PF=4 default-optlevel pair from T1.5):
+
+| run | flags | steps | s/step | `public_val_bpb` |
+|---|---|---|---|---|
+| `t15-packfactor4-900s` | default | 1077 | 0.8306 | 1.083610 |
+| `t15-packfactor4-900s-v2` | default | 1080 | 0.8283 | 1.083759 |
+| `t06-optlevel1-900s` | `--optlevel=1` | 1097 | 0.8155 | **1.081696** |
+| `t06-optlevel1-900s-v2` | `--optlevel=1` | 1098 | 0.8150 | **1.082876** |
+
+**+19 steps (+1.8%) and −0.001399 bpb**, with both `--optlevel=1` runs below both default
+runs. The bpb gap (0.001399) is only slightly larger than the optlevel=1 pair's own spread
+(0.001180), so on bpb alone this would be a "weak keep"; what makes it a confident keep is
+that the **step-count** half is completely non-overlapping (1097/1098 vs 1077/1080) and is
+independently predicted by the harness (−2.5% there, −1.8% here).
+
+Numerics were checked, not assumed: the first five logged losses match the default-optlevel
+run to 4 decimals (9.0099 / 8.7969 / 8.3958 / 8.3060 vs 8.3059 / 8.0681 — a single 1e-4
+drift at step 3, i.e. different fusion, not different math), and both runs report
+`causality_passed True` / `causality_max_abs 0.0`.
+
+**Adopted as `os.environ.setdefault("NEURON_CC_FLAGS", "--optlevel=1")` inside `train.py`,
+not as a launch-command export.** This matters: the Phase 1 submission launch command is
+fixed at `NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py ...`,
+so a compiler flag exported outside the process would simply never be applied at submission
+time. `setdefault` keeps an external `NEURON_CC_FLAGS` winning for A/B work.
+
+*Why would a lower optimisation level be faster?* Not established, and stated as
+speculation: at `--optlevel=2/3` the compiler is free to do more aggressive scheduling and
+fusion, which on a fixed-SBUF architecture can trade instruction count for spill traffic or
+for a schedule with worse DMA overlap. A 2.5% regression from over-optimisation is a
+perfectly ordinary compiler outcome. The measurement stands on its own regardless.
+
+### T0.6 — LNC=1 / 8 processes: it does not even compile, and once forced to run it is a large quality regression
+
+**First finding: under the current code, LNC=1 / 8 processes CRASHES at compile time.** Not
+slow — dead:
+
+```
+RuntimeError: Compilation error occurred on Neuron for operation=aten::_foreach_norm.Scalar
+  Source Kernel "nkilib.experimental.foreach.foreach_norm.l2_norm_kernel_lnc0"
+  [INTERNAL_ERROR] [NCC_IBIR533] CollectiveKind::SendRecv is not a valid enum value
+  for field CollectiveCompute.Kind on arch Trn2
+```
+
+The chain is: `GRAD_CLIP = 1.0` → `torch.nn.utils.clip_grad_norm_(..., foreach=None)` →
+auto-detected `aten::_foreach_norm` → the SDK's own
+`nkilib/experimental/foreach/foreach_norm.py` `l2_norm_kernel_lnc0`, which emits a
+`SendRecv` collective the Trn2 backend rejects. This is an **SDK-level bug in the LNC=1
+variant of a stock kernel**, not in `train.py`. It is worth recording as a hard constraint:
+**GRAD_CLIP > 0 and LNC=1 are mutually exclusive on this stack unless the foreach path is
+forced off**. `--clip-foreach` was therefore made tri-state (absent → `None`/auto, the
+unchanged default; `--clip-foreach` → `True`; `--no-clip-foreach` → `False`) purely so an
+LNC=1 number could be obtained at all.
+
+**Second finding: with the foreach path forced off, LNC=1 runs — and trains far worse.**
+
+| run | LNC | procs | `grad_accum` | per-rank tokens/step | steps | s/step | `public_val_bpb` |
+|---|---|---|---|---|---|---|---|
+| `t06-lnc1-8proc-noclipforeach-900s` | 1 | 8 | 2 | 16,384 | 1088 | 0.822 | **1.324435** |
+| `t06-lnc2-noclipforeach-900s` (control) | 2 | 4 | 4 | 32,768 | 1080 | 0.828 | **1.083798** |
+
+**+0.2406 bpb.** That is ~140x the noise floor — not a marginal loss, a different training
+run. The `--no-clip-foreach` control at LNC=2 is what makes this interpretable: it isolates
+LNC from the flag that had to be introduced to run LNC=1 at all. That flag is **not** the
+cause (LNC=2 with it: 1.083798, versus 1.082286 mean with auto-detect — a ~17-step
+throughput cost and nothing more).
+
+Note what is *not* different: **throughput is essentially identical** (0.822 vs 0.828
+s/step, 1088 vs 1080 steps; `dt` 0.79–0.83 s in both), `num_params` is identical
+(55,713,772), `total_tokens_M` is within 1%, and both are `epoch 1`. So the original
+LNC=2-vs-LNC=1 hypothesis — that this is a host-contention/throughput question, with 8
+processes on 12 vCPUs plausibly tipping cores into saturation — is **wrong on its own
+terms**. At 8 processes the step time barely moves. The entire difference is in
+optimisation quality: the LNC=1 loss curve is worse from step 100 onward and never
+recovers (step 100: 4.5667 vs 3.9671; step 500: 3.9020 vs 3.2341; step 1080: 3.6781 vs
+3.0083).
+
+**Likely mechanism, stated as a hypothesis and not as a result:** `train.py` applies
+`clip_grad_norm_` to each rank's **local** gradients and only then calls `sync_gradients`
+(`all_reduce(AVG)`). Clip-then-average is not the same operation as average-then-clip. At
+8 ranks each rank sees **half** the tokens per step (16,384 vs 32,768), so each local
+gradient estimate is noisier and its norm is larger relative to the fixed `GRAD_CLIP = 1.0`
+threshold — every rank clips harder, and the averaged update is scaled down more than the
+true batch gradient warrants. That would make the effective clipping strength a function of
+world_size, which is exactly the kind of coupling that produces a step-100-onward loss
+offset rather than a late divergence.
+
+**Conclusion for the locked config: LNC=2 / 4 processes is confirmed correct, and by a far
+wider margin than expected — the previous justification was "probably less host
+contention", and the real reason is a 0.24 bpb optimisation-quality cliff.** Two concrete
+follow-ups this opens, neither pursued here (out of this session's scope, recorded so they
+are not lost): (a) confirm the mechanism by re-running both LNC settings with
+`GRAD_CLIP = 0` — if the gap collapses, clip placement is the cause; (b) if it is, moving
+the clip to *after* `sync_gradients` is a candidate quality change **at LNC=2 as well**,
+since it would make GRAD_CLIP mean what it appears to mean regardless of world_size. Note
+that (b) implies the existing locked `GRAD_CLIP = 1.0` win may be partly a world-size
+artifact — worth knowing before anyone reuses that number at a different shape.
