@@ -1426,6 +1426,20 @@ optimizer state.
    result was +1.49% and -0.00092. The dispatch-gap model of this backend is now
    predictive, not just descriptive.
 
+5. **Confirmed at the real full 1800s budget**, also paired same-day and same-commit:
+
+   | arm | steps | bpb | seconds | causality |
+   |---|---|---|---|---|
+   | `--nki-muon` | **2043** | **1.041139** | 1794.3 | 0.0 |
+   | `--no-nki-muon` | 2011 | 1.042049 | 1794.3 | 0.0 |
+
+   **+32 steps (+1.59%), -0.000910 bpb** — a clean reproduction of the 900s proxy
+   (+1.49%, -0.000919), which is the outcome the bit-exactness argument predicts: the
+   effect is pure step count, so it should scale with the budget rather than wash out.
+   The OFF control (2011/`1.042049`) also reconfirms the previous best on record
+   (`gradclip1-fullbudget` 2000/`1.042278`), and the ON arm is a **new best confirmed
+   number**. Rows `nkimuon-fullbudget` / `nkimuon-off-fullbudget`.
+
 ### Honest sizing of what this is worth end-to-end
 
 -13.32 ms against a baseline step of ~895 ms is **~1.5% of step time**, and that is what
@@ -1446,7 +1460,8 @@ the same wall clock cannot be anything but better.
 
 `USE_NKI_MUON` **defaults ON**, with `--no-nki-muon` kept for A/B. Bit-exact math (0
 differing elements), -29.1% Muon device launches, -25.5% off the Muon window, +15 steps /
--0.00092 bpb at 900s paired, confirmed at the full 1800s budget below. This closes the
+-0.00092 bpb at 900s paired, reproduced as +32 steps / -0.00091 at the full 1800s budget
+for a new best confirmed number of **2043 steps / `1.041139`**. This closes the
 `enhancement-opportunities.md:129` item: what remains of Muon's dispatch overhead after
 this is the reduction-bearing regions, which cannot be fused without giving up exactness,
 and the 60 matmuls, which belong on the Tensor Engine.

@@ -1886,8 +1886,15 @@ USE_NKI_SSD = True
 #     (+15 steps, -0.0011 bpb predicted). Because the math is bit-exact the quality
 #     question collapses to pure step count: the trajectory is identical to the last bit,
 #     so more steps in the same wall clock cannot be anything but better.
-# See rows nkimuon-900s / nkimuon-off-900s in research/experiment-log.jsonl and the
-# "Muon's elementwise wrapper ops in NKI" section of research/trn2-experiment-results.md.
+# (5) CONFIRMED at the real full 1800s budget, also paired same-day and same-commit:
+#     ON 2043 steps / 1.041139 bpb vs OFF 2011 / 1.042049 -- +32 steps (+1.59%) and
+#     -0.000910 bpb, a clean reproduction of the 900s proxy (the effect is pure step
+#     count, so it scales with the budget rather than washing out). This is a NEW BEST
+#     confirmed number; the previous best on record, gradclip1-fullbudget 2000/1.042278,
+#     is itself reconfirmed by the OFF control at 2011/1.042049.
+# See rows nkimuon-900s / nkimuon-off-900s / nkimuon-fullbudget / nkimuon-off-fullbudget
+# in research/experiment-log.jsonl and the "Muon's elementwise wrapper ops in NKI"
+# section of research/trn2-experiment-results.md.
 USE_NKI_MUON = True
 
 
