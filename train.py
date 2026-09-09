@@ -3999,7 +3999,7 @@ def main() -> None:
     global MATRIX_LR, EMBEDDING_LR, UNEMBEDDING_LR, SCALAR_LR, WEIGHT_DECAY, WD_DECAY_TO_ZERO
     global FINAL_LR_FRAC, WARMDOWN_RATIO, INIT_SCALE, ATTN_CPROJ_INIT_SCALE, LOGIT_SOFTCAP
     global MUON_NS_STEPS, MUON_MOMENTUM_COOLDOWN_FRAC, MUON_MOMENTUM_FINAL
-    global ADAM_EVERY_N, ADAM_EVERY_N_LR_COMP
+    global ADAM_EVERY_N, ADAM_EVERY_N_LR_COMP, PACK_FACTOR
     parser = argparse.ArgumentParser(description="Neuron Competition R1 baseline")
     parser.add_argument("--device-type", type=str, default="")
     parser.add_argument("--num-steps", type=int, default=int(os.environ.get("NEURON_COMPETITION_R1_NUM_STEPS", NUM_STEPS)))
@@ -4216,6 +4216,12 @@ def main() -> None:
                                                "1" if WD_DECAY_TO_ZERO else "0") != "0",
                         help="T0.4: decay Muon's weight_decay linearly to 0 over the run instead of "
                              "holding it constant. Currently ON.")
+    _hp("--pack-factor", PACK_FACTOR, int, "T1.5: dataloader packing-bin multiplier. The loader "
+        "fetches DEVICE_BATCH_SIZE rows of PACK_FACTOR*SEQ_LEN tokens and reshapes them to "
+        "DEVICE_BATCH_SIZE*PACK_FACTOR rows of SEQ_LEN, so this is the micro-batch ROW COUNT and "
+        "grad_accum_steps falls as it rises (TOTAL_BATCH_SIZE is held fixed). Only ever set by "
+        "editing this constant before; a flag so the T1.5 re-test is reproducible from the "
+        "launch command alone.")
     _hp("--adam-every-n", ADAM_EVERY_N, int, "T1.4: update the AdamW parameter groups (wte, lm_head, "
         "value-embedding tables, scalars, local_conv) only every Nth step, accumulating their "
         "gradients in between and skipping their all_reduce on the other steps. Muon groups still "
@@ -4246,6 +4252,7 @@ def main() -> None:
     # one of them is read.
     ADAM_EVERY_N = args.adam_every_n
     ADAM_EVERY_N_LR_COMP = args.adam_every_n_lr_comp
+    PACK_FACTOR = args.pack_factor
     MATRIX_LR = args.matrix_lr
     EMBEDDING_LR = args.embedding_lr
     UNEMBEDDING_LR = args.unembedding_lr
