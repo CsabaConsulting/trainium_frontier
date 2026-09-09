@@ -1283,3 +1283,16 @@ still holds; bigger bins cost real per-step overhead that isn't offset by less c
 by the scavenger hunt itself and the one spot-check found no reversal, not exhaustively
 re-testing `WD_DECAY_TO_ZERO`/`INIT_SCALE`/`USE_VE` individually — moving to the
 higher-value remaining items (Muon Newton-Schulz kernel, `SEQ_LEN=4096`/`ROPE_BASE` probe).
+
+## Scavenger hunt — SEQ_LEN=4096's quality drop-off: RoPE-extrapolation ruled out
+
+The previously-flagged open question (throughput kept improving to 4096, quality peaked
+at 2048, cause never isolated) — tested the RoPE-extrapolation hypothesis directly.
+Fresh baseline under the current regime, `SEQ_LEN=4096, ROPE_BASE=100000` (default):
+`seqlen4096-ropebase100k-900s`, 849 steps/`1.101243` (confirms the regression persists,
+worse than current `SEQ_LEN=2048` baseline territory). Scaled-up `ROPE_BASE=500000`,
+same shape: `seqlen4096-ropebase500k-900s`, 848 steps/`1.101979` — **essentially
+identical, no meaningful difference**. RoPE-extrapolation is ruled out as the cause.
+The remaining candidate explanation (signal-density/capacity dilution at this model's
+55.7M-param scale at longer context) is now the leading hypothesis by elimination, not
+independently confirmed. `SEQ_LEN=2048`/`ROPE_BASE=100000` unchanged, no action.
