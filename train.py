@@ -46,6 +46,28 @@ if USE_TRN2_COMPILER_FLAGS:
         f"--model-type=transformer --distribution-strategy=llm-training "
         f"--lnc={os.environ.get('NEURON_LOGICAL_NC_CONFIG', '1')}",
     )
+else:
+    # T0.6 (Day 2) WINNER: --optlevel=1 beats the compiler's default (2). Counter-intuitive but
+    # measured, and measured twice.
+    #   phase_timer, 4 ranks / LNC=2 / PACK_FACTOR=4 / real dataloader, median step_total of 6
+    #   steady-state steps: no flags 837.6ms | --optlevel=2 (explicit) 836.2 | --optlevel=1 816.4
+    #   | --optlevel=3 834.8 | --model-type=transformer 835.6 | transformer+optlevel=3 834.9.
+    #   All six --optlevel=1 steps (812.7-818.4ms) sit below all six baseline steps (832.9-839.6),
+    #   i.e. non-overlapping distributions, not a mean shifted inside the noise.
+    #   Real 900s runs, paired: optlevel=1 1097/1.081696 and 1098/1.082876 (0.8155/0.8150 s/step)
+    #   vs default 1077/1.083610 and 1080/1.083759 (0.8306/0.8283 s/step) = +19 steps (+1.8%) and
+    #   -0.001399 bpb, with both optlevel=1 runs below both default runs.
+    # Numerics are unchanged in any way that matters: the first five logged training losses match
+    # the default-optlevel run to 4 decimals (9.0099 / 8.7969 / 8.3958 / 8.3060 vs 8.3059 / 8.0681
+    # -- one 1e-4 drift at step 3 from different fusion), and causality_passed True /
+    # causality_max_abs 0.0 on both runs.
+    # Why it has to live HERE rather than in the launch command: the Phase 1 submission command is
+    # fixed at `NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py ...`,
+    # so a compiler flag exported outside the process would simply not be applied at submission
+    # time. setdefault, so an external NEURON_CC_FLAGS still wins for A/B work.
+    # --optlevel=2 explicit reproducing the no-flags number is the control that proves the env var
+    # is actually reaching neuronx-cc, i.e. that 2 really is the default being beaten.
+    os.environ.setdefault("NEURON_CC_FLAGS", "--optlevel=1")
 if USE_STOCHASTIC_ROUNDING:
     os.environ.setdefault("NEURON_RT_STOCHASTIC_ROUNDING_EN", "1")
 
@@ -4168,13 +4190,20 @@ def main() -> None:
                              "(T1.3). Verified bit-equal to the per-tensor path in "
                              "research/scratch/grad_bucket_equiv.py. Default OFF pending a real "
                              "hardware A/B (~1%% expected win).")
+    # Tri-state on purpose: absent -> None (let clip_grad_norm_ auto-detect, the historical
+    # default), --clip-foreach -> True, --no-clip-foreach -> False. The False leg is not cosmetic:
+    # at LNC=1 the auto-detected `_foreach_norm` path routes into the SDK's
+    # nkilib.experimental.foreach.foreach_norm l2_norm_kernel_lnc0, which fails to COMPILE on Trn2
+    # ("[NCC_IBIR533] CollectiveKind::SendRecv is not a valid enum value for field
+    # CollectiveCompute.Kind on arch Trn2"), so --no-clip-foreach is the only way to get any
+    # LNC=1 number at all with GRAD_CLIP > 0. See trn2-experiment-results.md T0.6.
     parser.add_argument("--clip-foreach", action=argparse.BooleanOptionalAction,
-                        default=os.environ.get("NEURON_COMPETITION_R1_CLIP_FOREACH", "0") != "0",
-                        help="T1.3: pass foreach=True explicitly to torch.nn.utils.clip_grad_norm_ "
-                             "instead of letting it auto-detect (which may fall back to a per-tensor "
-                             "Python loop on this device backend). Numerically identical; only "
-                             "matters when --grad-bucket is off. Default OFF pending a real "
-                             "hardware A/B.")
+                        default=(None if "NEURON_COMPETITION_R1_CLIP_FOREACH" not in os.environ
+                                 else os.environ["NEURON_COMPETITION_R1_CLIP_FOREACH"] != "0"),
+                        help="T1.3: force foreach=True/False on torch.nn.utils.clip_grad_norm_ "
+                             "instead of letting it auto-detect (the default when the flag is "
+                             "absent). Numerically identical; only matters when --grad-bucket is "
+                             "off. Measured NEUTRAL at LNC=2 (clip_ms 6.2-7.7 vs 5.5-7.7).")
     parser.add_argument("--seed", type=int, default=int(os.environ.get("NEURON_COMPETITION_R1_SEED", "42")),
                         help="torch.manual_seed value (init_runtime). Default 42, unchanged from the "
                              "long-standing hardcoded value -- exposed as a flag purely so noise/variance "
@@ -4356,7 +4385,8 @@ def main() -> None:
             loss = model(synthetic_x, synthetic_y)
             (loss / grad_accum_steps).backward()
         if GRAD_CLIP > 0:
-            torch.nn.utils.clip_grad_norm_(model.parameters(), GRAD_CLIP)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), GRAD_CLIP,
+                                           foreach=args.clip_foreach)
         sync_gradients(model)
         optimizer.step()
         synchronize(device)
@@ -4448,7 +4478,8 @@ def main() -> None:
             sync_gradients_flat(grad_flat_buffer)
         else:
             if GRAD_CLIP > 0:
-                torch.nn.utils.clip_grad_norm_(model.parameters(), GRAD_CLIP, foreach=True if args.clip_foreach else None)
+                torch.nn.utils.clip_grad_norm_(model.parameters(), GRAD_CLIP,
+                                               foreach=args.clip_foreach)
             sync_gradients(model, skip_param_ids=None if adam_step_now else adamw_skip_ids)
 
         lrm = lr_multiplier(step, elapsed=elapsed, max_train_seconds=args.max_train_seconds)
