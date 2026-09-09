@@ -97,7 +97,11 @@ time** before any rules question is asked (see §6).
      SEQ_LEN=2048. The official runner's `evaluate_bpb(...)` arguments are not published. Run
      `python prepare.py eval-public --train-py train.py --checkpoint <best> --seq-len 1024` and
      `--seq-len 2048` (and `--eval-tokens 0` for the full shard) on the best checkpoint and record
-     the gap. If the 1024 number is materially worse, (i) ask on the devpost forum which seq_len
+     the gap. **Official rules page (devpost, fetched 2026-09-09): scoring is "val_bpb on a pinned
+     validation shard, computed over ~20M tokens"** — ten times the local default of 2M
+     (`--eval-tokens 2097152`); run local confirmations with `--eval-tokens 20971520` so the
+     noise characteristics match the leaderboard. The context length is still not stated anywhere
+     public (all 17 forum threads were swept with `tvly extract`; none mention it). If the 1024 number is materially worse, (i) ask on the devpost forum which seq_len
      the scorer uses, (ii) compare the local-vs-leaderboard delta of the two past submissions
      (SEQ_LEN=1024 submission: local 1.15361 → board 1.1394; SEQ_LEN=2048 submission: local ? →
      board ?) — if the 2048 submission's board score sits *above* its local score while the 1024
@@ -679,3 +683,18 @@ paper: memory helps most when the backbone is small and undertrained — exactly
   documented way to make NKI kernels traceable under `torch.compile` (T1.8).
 - The two Tavily deep-research reports produced nothing beyond the above (generic guidance; one
   wrongly claimed `--model-type` does not exist — it is in the CLI reference and in `--help` on the box).
+
+### 11.4 Tavily CLI sweep (installed by the user after the addendum above)
+- `tvly map` + `tvly extract` over all 17 devpost forum threads: no ruling on the scorer's
+  sequence length or on n-gram/eval-time components; organizer confirmations only that custom
+  packing in `train.py` is admissible, compile time is excluded, SageMaker is not allowed, the
+  AMIs 0731/0824 are identical, and submissions go through the GitHub leaderboard. One
+  participant's platform failure surfaced as `USER_TRAINING_CRASHED (exit=1, status=no_run_meta)`
+  with no `train.log` — keep the first 5 steps cheap and deterministic so the runner always gets
+  its metadata.
+- Rules page: eval is ~20M tokens (see C1). Updates page is empty.
+- The autoresearch@home community-best page is JavaScript-only (unextractable); Aster's per-step
+  annotations live in an SVG chart (unextractable). The Neuron docs subtree map surfaced no
+  native-backend performance guide beyond the overview already read.
+- For the loop: use `tvly extract <urls> --json` for full-text page grabs, `tvly map/crawl` for
+  sweeping a site, and the REST search helper (`/tmp/research/tsearch.py`) for queries.
