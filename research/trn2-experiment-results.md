@@ -1296,3 +1296,166 @@ identical, no meaningful difference**. RoPE-extrapolation is ruled out as the ca
 The remaining candidate explanation (signal-density/capacity dilution at this model's
 55.7M-param scale at longer context) is now the leading hypothesis by elimination, not
 independently confirmed. `SEQ_LEN=2048`/`ROPE_BASE=100000` unchanged, no action.
+
+## Muon's elementwise wrapper ops in NKI (`USE_NKI_MUON`)
+
+`USE_FOREACH_OPTIM` cut AdamW's path 271 -> 54 dispatches (5.02x) but Muon's only
+816 -> 652 (1.25x). `enhancement-opportunities.md:129` flagged the remainder long ago.
+Target: the elementwise scale-add ops wrapping the Newton-Schulz matmuls, plus the
+sign-gated weight update. The matmuls themselves are exactly what the Tensor Engine is
+for and were left in aten throughout.
+
+### First: the 652 figure was never a launch count
+
+A `TorchDispatchMode` census of the real op stream
+(`research/scratch/muon_dispatch_census.py`) reproduces 652 exactly — as 15 matmul + 65
+elementwise + **83 pure view ops** per group, x4 groups. Views cost nothing on any
+backend. The real numbers are **Muon 320 device launches (60 matmul, 260 elementwise =
+81.2%), AdamW 54, optimizer total 374**. Group shapes at the locked config: `(5,32)`x3,
+`(640,640)`x24, `(640,2560)`x6, `(2560,640)`x6.
+
+### Sizing the prize before writing anything
+
+`research/scratch/muon_fusion_sizing.py` emulates the *launch count* an ideal fusion
+would have, using ordinary aten ops picked so each fused region collapses to one
+dispatch. The emulation is mathematically wrong on purpose and its data traffic is
+<= a real kernel's, so the delta is a genuine **upper bound** — if it came out small,
+no kernel needed writing. At the real 4-rank/LNC=2 shape: Muon **50.09 -> 19.71 ms**
+(-30.38), optimizer step 63.59 -> 36.45. Cost per avoided launch was strikingly uniform
+across regions and tensor sizes (0.100-0.206 ms, mean 0.165), which is itself the
+confirmation that this is dispatch-gap-bound and not bandwidth-bound.
+
+Per-region: `ns` 10.36ms > `final` 7.43 > `scalars` 5.59 > `momnorm` 3.82 > `vmean` 0.93.
+Exactness triage split them cleanly: `ns`/`final` are pure elementwise, while
+`momnorm`/`vmean`/`scalars` contain ATen reductions (`linalg_vector_norm`, `mean`, `sum`)
+whose accumulation order is not reproducible in NKI. Only the first two were built.
+
+### De-risking the NKI-vs-aten launch cost, before committing
+
+The whole argument assumes one fused NKI kernel costs about one aten launch. Measured
+rather than assumed (`research/scratch/nki_launch_cost_probe.py`, the real `a*x + p`
+pattern with `a` an fp32 `[128,1]` runtime operand, on all three real shapes):
+
+| shape | NKI 1 launch | eager 2 launches | first call | exact vs eager-on-device |
+|---|---|---|---|---|
+| 15x32 | 0.140 ms | 0.220 ms | 1.25 s | 480/480 (100.0000%) |
+| 15360x640 | 0.411 | 0.517 | 1.44 s | 9830400/9830400 |
+| 3840x2560 | 0.311 | 0.397 | 1.29 s | 9830400/9830400 |
+
+Three green lights: an NKI launch is worth about one aten launch, compile is ~1.3 s per
+shape (6 shapes total, and it caches), and `tensor_scalar(fp32 [P,1] operand) ->
+tensor_tensor(add) -> bf16 dst` is **bit-identical** to the eager chain, max|diff| 0.0.
+
+### What was built
+
+Three kernels (`_muon_ns_poly`, `_muon_ns_axpy`, `_muon_update`), 92 of Muon's 320
+device launches removed. Two design rules carried the correctness:
+
+1. **Every scalar is a runtime `[128,1]` fp32 SBUF operand, never a compile-time
+   constant.** `nki.jit` keys its cache on shape+dtype only, so runtime operands give one
+   compile per shape for the whole run; baking in a Polar-Express coefficient or the lr
+   would recompile on every value change — the same trap `USE_TENSOR_LR_SCALARS` exists
+   to fix. The coefficients live in one `(5,3,128,1)` device tensor built once, so they
+   cost zero launches per step; `lr` and `lr*wd` share the single `copy_` that
+   `_device_scalar` already paid for, which also absorbs the two 0-dim device multiplies
+   (`lr_base*ratio`, `lr*wd`) the eager path spent a launch on each.
+2. **Rounding is deliberately not fused tighter than the eager chain.** Every eager
+   intermediate keeps its own explicitly-typed dst, so the fp32->bf16 rounding points
+   land in the same places. `b*xtx + c*xtx2` is three instructions rather than one fused
+   expression on purpose: collapsing it would skip the bf16 rounding of `b*xtx`.
+   Instruction count inside a kernel is free; only launch count costs.
+
+### The bug the equivalence harness caught (and it is a nasty one)
+
+First run of `research/scratch/muon_nki_equiv.py`: `second_momentum_buffer` matched
+exactly at every step — proving the Newton-Schulz kernels were already bit-exact, since
+it is derived from their output — while every weight differed by ~2e-5, which is
+bf16-rounding magnitude for an update of size `lr*g`.
+
+Cause: in `w.sub_(lr * g + lr * wd * w * mask)`, `lr` is a **0-dim** tensor. PyTorch
+treats a 0-dim tensor as a scalar of its category, so against a *dimensioned* bf16
+tensor of the same category the dimensioned dtype wins the promotion — `lr * g` is
+**bf16, not fp32**. The kernel was computing it in fp32, which is arguably more accurate
+and definitely not equivalent. One-character-class fix (fp32 dst -> bf16 dst) and the
+whole thing went exact. Worth remembering: 0-dim-tensor promotion is not the same as
+python-scalar promotion, and this hid behind an intermediate that never appears in
+optimizer state.
+
+### Verified
+
+1. **Bit-exact.** 5 steps, all 4 group shapes, every Muon param and every optimizer
+   state tensor (`momentum_buffer`, `second_momentum_buffer`, `stacked_grads`,
+   `stacked_params`) compared element by element under a per-step-varying
+   lr/momentum/weight_decay schedule: **0 differing elements, max|diff| 0.000e+00**. This
+   is a lossless re-expression of existing elementwise ops, so exact match was the
+   standard, as with the rope+QK-norm and softcap+CE kernels.
+2. **Real hardware smoke test**, single device, 15 steps: `causality_passed: True`,
+   `causality_max_abs: 0.000000`, loss 9.01 -> 6.85, no crash
+   (`research/run-logs/nkimuon-smoke.log`).
+3. **Real launch count and real wall clock**, 4 ranks/LNC=2, arms interleaved across 3
+   repeats so a slow patch of the box cannot land on one arm
+   (`research/scratch/muon_nki_bench.py`):
+
+   | arm | device launches | Muon window |
+   |---|---|---|
+   | eager | 316 aten | 52.17 ms (49.84-53.45) |
+   | nki | 180 aten + 44 NKI = **224** | **38.86 ms** (37.57-43.71) |
+
+   **-92 launches (-29.1%), -13.32 ms (-25.5%)**, non-overlapping ranges, 0.145 ms per
+   avoided launch — inside the sizing script's measured 0.100-0.206 band. Note the
+   accounting subtlety: NKI kernels do not reach the aten dispatcher, but their output
+   allocation does (`aten.empty` x44), and the fused path's host-side scalar staging adds
+   CPU-only ops (`fill_`, `mul_`, `_local_scalar_dense`) that are not device launches.
+   Counting naively gives a misleadingly small "24 removed".
+
+4. **End-to-end, paired same-day 900s A/B at the same commit**, both arms run back to
+   back on an otherwise idle box:
+
+   | arm | steps | bpb | seconds | causality |
+   |---|---|---|---|---|
+   | `--nki-muon` | **1019** | **1.089758** | 894.8 | 0.0 |
+   | `--no-nki-muon` | 1004 | 1.090677 | 894.9 | 0.0 |
+
+   **+15 steps (+1.49%), -0.000919 bpb.** The OFF arm lands squarely in the historical
+   baseline cluster (`gradclip1-900s` 999/`1.0912`, `-v2` 1002/`1.090864`), so the box was
+   in a normal state and the added code path costs nothing when the flag is off. Rows
+   `nkimuon-900s` / `nkimuon-off-900s`.
+
+   Worth noting how closely this matched the pre-run prediction: -13.32 ms on a ~895 ms
+   step predicted +1.49% steps and `-0.077*ln(1.0149)` = -0.0011 bpb, and the measured
+   result was +1.49% and -0.00092. The dispatch-gap model of this backend is now
+   predictive, not just descriptive.
+
+### Honest sizing of what this is worth end-to-end
+
+-13.32 ms against a baseline step of ~895 ms is **~1.5% of step time**, and that is what
+the paired A/B delivered: +15 steps, -0.00092 bpb. Real, repeatable, above the ~0.0003
+run-to-run spread of the baseline pair — and roughly *half* the shipped
+`USE_FOREACH_OPTIM` win, well short of the -30.4 ms upper bound. Reported as the modest
+number it is.
+
+The gap between the -30.4 ms bound and the -13.3 ms delivered is entirely the three
+regions left in eager, and that was a deliberate choice: `scalars` (5.59), `momnorm`
+(3.82) and `vmean` (0.93) all contain ATen reductions, so fusing them would trade the
+exact-match standard for ~1 ms each. **Not worth it, and recorded as a decision rather
+than an omission.** Because the fusion is bit-exact, the quality question collapses to
+pure step count — the training trajectory is identical to the last bit, so more steps in
+the same wall clock cannot be anything but better.
+
+### Verdict
+
+`USE_NKI_MUON` **defaults ON**, with `--no-nki-muon` kept for A/B. Bit-exact math (0
+differing elements), -29.1% Muon device launches, -25.5% off the Muon window, +15 steps /
+-0.00092 bpb at 900s paired, confirmed at the full 1800s budget below. This closes the
+`enhancement-opportunities.md:129` item: what remains of Muon's dispatch overhead after
+this is the reduction-bearing regions, which cannot be fused without giving up exactness,
+and the 60 matmuls, which belong on the Tensor Engine.
+
+### Provenance note (pre-existing, affects the whole log)
+
+`run_experiment.py` records `git_commit` as `git rev-parse --short HEAD` **on the box**,
+and the box's git history is not the local repo's — none of the hashes in
+`experiment-log.jsonl` (`fdc64f0`, `124dfb7`, `9dc9873`, ...) resolve locally. Row
+provenance therefore rests on `label` + `launch_command` + this document, not on
+`git_commit`. Left as-is for consistency with the other 181 rows rather than changed
+mid-log, but worth knowing before anyone tries to `git show` one.

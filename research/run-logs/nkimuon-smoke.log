@@ -1,0 +1,61 @@
+[W909 05:14:31.497697913 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+device=neuron dtype=torch.bfloat16 world_size=1
+training target=15 steps max_seconds=400 official_budget=1800s
+model_config={
+  "sequence_len": 2048,
+  "vocab_size": 8192,
+  "n_layer": 6,
+  "n_head": 5,
+  "n_embd": 640
+}
+num_params=55,721,452 flops_per_token=3.972432e+08
+torch.compile enabled (backend=neuron)
+micro_tokens=4,096 grad_accum_steps=32 pack_factor=2
+step 00000 | loss 9.0116 | lrm 1.000 | dt 93.37s | tok/s 1,404 | remaining_steps 14 | remaining_time 307s | epoch 1
+step 00001 | loss 8.8212 | lrm 1.000 | dt 6.79s | tok/s 19,292 | remaining_steps 13 | remaining_time 300s | epoch 1
+step 00002 | loss 8.3724 | lrm 0.999 | dt 3.06s | tok/s 42,897 | remaining_steps 12 | remaining_time 297s | epoch 1
+step 00003 | loss 8.4277 | lrm 0.989 | dt 3.07s | tok/s 42,684 | remaining_steps 11 | remaining_time 294s | epoch 1
+step 00004 | loss 8.1471 | lrm 0.980 | dt 3.06s | tok/s 42,764 | remaining_steps 10 | remaining_time 400s | epoch 1
+step 00010 | loss 6.8537 | lrm 1.000 | dt 3.08s | tok/s 42,506 | remaining_steps 4 | remaining_time 382s | epoch 1
+WARNING:torch_neuronx.python_ops.dtype_autocast:Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
+---
+checkpoint_path:    out/nkimuon-smoke/final.pt
+training_seconds:  30.8
+budget_seconds:    1800
+target_steps:      15
+max_train_seconds: 400
+startup_allowance_est: 117.9
+charged_seconds_est:   31.0
+over_budget:       False
+total_seconds:     174.1
+compiled:          True
+nki_relu2:         False
+nki_rope_norm:     True
+nki_softcap_ce:    True
+nki_muon:          True
+mudd:              False
+dcmha:             False
+mamba2:            False
+mamba2_pattern:    MMAMMM
+nki_ssd:           True
+rwkv:              False
+rwkv_pattern:      RRRRRR
+fp8_linear:        False
+num_steps:         15
+total_tokens_M:    2.0
+world_size:        1
+lnc:               
+seq_len:           2048
+num_params_M:      55.7
+causality_passed:  True
+causality_max_abs: 0.000000
+public_val_bpb:    2.047706
+eval_seconds:      33.2
+eval_timeout:      1200
+eval_over_timeout: False

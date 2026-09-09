@@ -1640,6 +1640,158 @@ try:
                     dB2.reshape(b, T, G, N), dC2.reshape(b, T, G, N), dDo.reshape(H),
                     None)
 
+    # ---------------- Muon elementwise fusion (MuonAdamW._muon_step) ----------------
+    # The optimizer step on this backend is dispatch-gap bound: ~54% of the optimizer
+    # window is pure inter-launch gap, and a census of the real op stream
+    # (research/scratch/muon_dispatch_census.py) shows Muon dispatches 320 real
+    # launches per step of which 260 (81.2%) are elementwise/reduce ops wrapped
+    # around 60 matmuls. The matmuls are exactly what the Tensor Engine is for and
+    # are deliberately left in aten; these kernels fuse ONLY the elementwise
+    # wrappers, which is where the launch count actually lives.
+    #
+    # Two design rules make this safe:
+    #
+    # 1. Every scalar (the Polar-Express a/b/c, lr, lr*wd) arrives as a runtime
+    #    [128,1] fp32 SBUF operand, NEVER as a compile-time constant. nki.jit
+    #    specialises its compile cache on shape+dtype only, so runtime operands mean
+    #    one compile per shape for the whole run; a baked-in coefficient or lr would
+    #    force a fresh neuronx-cc compile every time the value changed -- the exact
+    #    trap USE_TENSOR_LR_SCALARS exists to avoid.
+    #
+    # 2. Rounding is NOT fused tighter than the eager chain. Every eager intermediate
+    #    keeps its own explicitly-typed dst here, so the fp32->bf16 rounding points
+    #    land in the same places. nisa.tensor_scalar/tensor_tensor compute in fp32
+    #    internally and cast to dst.dtype for free, so e.g. `b*xtx + c*xtx2` is three
+    #    instructions rather than one fused expression on purpose: collapsing it would
+    #    skip the bf16 rounding of `b*xtx` that eager performs. This is what makes the
+    #    fusion bit-exact rather than merely close.
+    #
+    # Instruction count inside a kernel is free; only launch count costs. Verified
+    # bit-identical to the eager chain by research/scratch/muon_nki_equiv.py.
+
+    @nki.jit
+    def _muon_ns_poly(t1, t2, cb, cc):
+        """b*t1 + c*t2 for a 2-D [M, N] bf16 pair -- 3 aten launches become 1.
+
+        This is the Newton-Schulz polynomial `b*xtx + c*(xtx@xtx)`. The two matmuls
+        feeding it stay in aten. `cb`/`cc` are [128,1] fp32 runtime operands.
+
+        M is a compile-time constant (nki.jit specialises per shape), so both the
+        128-partition tiling and its remainder resolve at trace time -- the real Muon
+        groups include a 15-row flattened shape, so the remainder case is load-bearing
+        and a bare affine_range over ceil(M/128) would read out of bounds.
+        """
+        M, N = t1.shape
+        out = nl.ndarray((M, N), dtype=t1.dtype, buffer=nl.shared_hbm)
+        n_full = M // _NKI_PARTITION
+        rem = M - n_full * _NKI_PARTITION
+        for i in range(n_full + (1 if rem else 0)):
+            start = i * _NKI_PARTITION
+            size = _NKI_PARTITION if i < n_full else rem
+            a1 = nl.ndarray((size, N), dtype=t1.dtype, buffer=nl.sbuf)
+            nisa.dma_copy(dst=a1, src=t1[start:start + size, 0:N])
+            a2 = nl.ndarray((size, N), dtype=t2.dtype, buffer=nl.sbuf)
+            nisa.dma_copy(dst=a2, src=t2[start:start + size, 0:N])
+            kb = nl.ndarray((size, 1), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.dma_copy(dst=kb, src=cb[0:size, 0:1])
+            kc = nl.ndarray((size, 1), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.dma_copy(dst=kc, src=cc[0:size, 0:1])
+            # separate bf16 dsts: eager rounds b*t1 and c*t2 to bf16 before adding.
+            m1 = nl.ndarray((size, N), dtype=t1.dtype, buffer=nl.sbuf)
+            nisa.tensor_scalar(dst=m1, data=a1, op0=nl.multiply, operand0=kb)
+            m2 = nl.ndarray((size, N), dtype=t1.dtype, buffer=nl.sbuf)
+            nisa.tensor_scalar(dst=m2, data=a2, op0=nl.multiply, operand0=kc)
+            s = nl.ndarray((size, N), dtype=t1.dtype, buffer=nl.sbuf)
+            nisa.tensor_tensor(dst=s, data1=m1, data2=m2, op=nl.add)
+            nisa.dma_copy(dst=out[start:start + size, 0:N], src=s)
+        return out
+
+    @nki.jit
+    def _muon_ns_axpy(x, pm, ca):
+        """a*x + pm for a 2-D [M, N] bf16 pair -- 2 aten launches become 1.
+
+        The Newton-Schulz update `x = a*x + x @ (...)`, with the matmul left in aten
+        and `ca` a [128,1] fp32 runtime operand. Addition is commutative in IEEE, so
+        computing a*x first and adding the (already-materialised) matmul result gives
+        exactly eager's `add(a*x, x@m)`.
+        """
+        M, N = x.shape
+        out = nl.ndarray((M, N), dtype=x.dtype, buffer=nl.shared_hbm)
+        n_full = M // _NKI_PARTITION
+        rem = M - n_full * _NKI_PARTITION
+        for i in range(n_full + (1 if rem else 0)):
+            start = i * _NKI_PARTITION
+            size = _NKI_PARTITION if i < n_full else rem
+            xb = nl.ndarray((size, N), dtype=x.dtype, buffer=nl.sbuf)
+            nisa.dma_copy(dst=xb, src=x[start:start + size, 0:N])
+            pb = nl.ndarray((size, N), dtype=pm.dtype, buffer=nl.sbuf)
+            nisa.dma_copy(dst=pb, src=pm[start:start + size, 0:N])
+            ka = nl.ndarray((size, 1), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.dma_copy(dst=ka, src=ca[0:size, 0:1])
+            ax = nl.ndarray((size, N), dtype=x.dtype, buffer=nl.sbuf)
+            nisa.tensor_scalar(dst=ax, data=xb, op0=nl.multiply, operand0=ka)
+            yb = nl.ndarray((size, N), dtype=x.dtype, buffer=nl.sbuf)
+            nisa.tensor_tensor(dst=yb, data1=ax, data2=pb, op=nl.add)
+            nisa.dma_copy(dst=out[start:start + size, 0:N], src=yb)
+        return out
+
+    @nki.jit
+    def _muon_update(g, w, klr, klw):
+        """The whole sign-gated Muon weight update -- 9 aten launches become 1.
+
+            mask = (g*w) >= 0
+            out  = w - (lr*g + (lr*wd)*w*mask)
+
+        `g` is bf16 [M, N] (already scaled), `w` fp32 [M, N]; `klr` and `klw` are
+        [128,1] fp32 runtime operands holding lr and lr*wd, both formed on the host in
+        float32 so they equal the device's own fp32 products bit for bit. Returning a
+        fresh tensor instead of updating `w` in place is free here: `stacked_params` is
+        a scratch buffer refilled from the live params at the top of every step, so the
+        caller just rebinds it.
+
+        The mask is materialised as 0.0/1.0 and multiplied in, which is what eager's
+        `fp32 * bool` does; the multiply is exact either way, so no rounding question
+        arises from the gate itself.
+        """
+        M, N = g.shape
+        out = nl.ndarray((M, N), dtype=w.dtype, buffer=nl.shared_hbm)
+        n_full = M // _NKI_PARTITION
+        rem = M - n_full * _NKI_PARTITION
+        for i in range(n_full + (1 if rem else 0)):
+            start = i * _NKI_PARTITION
+            size = _NKI_PARTITION if i < n_full else rem
+            gb = nl.ndarray((size, N), dtype=g.dtype, buffer=nl.sbuf)
+            nisa.dma_copy(dst=gb, src=g[start:start + size, 0:N])
+            wb = nl.ndarray((size, N), dtype=w.dtype, buffer=nl.sbuf)
+            nisa.dma_copy(dst=wb, src=w[start:start + size, 0:N])
+            a_lr = nl.ndarray((size, 1), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.dma_copy(dst=a_lr, src=klr[0:size, 0:1])
+            a_lw = nl.ndarray((size, 1), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.dma_copy(dst=a_lw, src=klw[0:size, 0:1])
+            f32 = nl.float32
+            s1 = nl.ndarray((size, N), dtype=f32, buffer=nl.sbuf)
+            nisa.tensor_tensor(dst=s1, data1=gb, data2=wb, op=nl.multiply)     # g*w
+            s2 = nl.ndarray((size, N), dtype=f32, buffer=nl.sbuf)
+            nisa.tensor_scalar(dst=s2, data=s1, op0=nl.greater_equal, operand0=0.0)
+            # bf16, NOT fp32, and this is load-bearing: eager's `lr * g` has a 0-dim
+            # fp32 `lr` against a dimensioned bf16 `g`, and PyTorch treats a 0-dim
+            # tensor as a scalar of its category, so the dimensioned bf16 dtype wins the
+            # promotion and the product is rounded to bf16. Computing it in fp32 here
+            # instead is a ~2e-5 difference in every updated weight -- the one thing the
+            # equivalence harness caught.
+            s3 = nl.ndarray((size, N), dtype=g.dtype, buffer=nl.sbuf)
+            nisa.tensor_scalar(dst=s3, data=gb, op0=nl.multiply, operand0=a_lr)  # lr*g
+            s4 = nl.ndarray((size, N), dtype=f32, buffer=nl.sbuf)
+            nisa.tensor_scalar(dst=s4, data=wb, op0=nl.multiply, operand0=a_lw)  # lr*wd*w
+            s5 = nl.ndarray((size, N), dtype=f32, buffer=nl.sbuf)
+            nisa.tensor_tensor(dst=s5, data1=s4, data2=s2, op=nl.multiply)       # *mask
+            # s1/s2 are dead from here, so reuse them rather than growing the SBUF
+            # footprint (N is up to 2560 fp32 = 10 KB per partition per tile).
+            nisa.tensor_tensor(dst=s1, data1=s3, data2=s5, op=nl.add)
+            nisa.tensor_tensor(dst=s2, data1=wb, data2=s1, op=nl.subtract)
+            nisa.dma_copy(dst=out[start:start + size, 0:N], src=s2)
+        return out
+
     _HAS_NKI = True
 except Exception:  # nki unavailable (e.g. CPU/GPU dev box) — eager path still works
     _HAS_NKI = False
@@ -1687,6 +1839,56 @@ USE_NKI_SOFTCAP_CE = True
 # calls and the fragments compile far worse than the unsplit graph does. Use
 # --no-compile whenever --mamba2 --nki-ssd are on.
 USE_NKI_SSD = True
+# Toggled by the --nki-muon flag in main(). Fuses the elementwise ops that wrap
+# Muon's Newton-Schulz matmuls (the matmuls themselves stay in aten) plus the whole
+# sign-gated weight update, via _muon_ns_poly/_muon_ns_axpy/_muon_update.
+#
+# Sized BEFORE it was written (research/scratch/muon_fusion_sizing.py, a launch-count
+# emulation using cheap aten ops, which gives a genuine upper bound because its data
+# traffic is <= a real kernel's): the "652 Muon dispatches" in the USE_FOREACH_OPTIM
+# note above is not a launch count -- a TorchDispatchMode census
+# (research/scratch/muon_dispatch_census.py) reproduces 652 exactly as 15 matmul + 65
+# elementwise + 83 pure VIEW ops per group x4 groups, and views cost nothing. The real
+# figure is 320 device launches, 260 of them (81.2%) elementwise. Collapsing every
+# elementwise region would take Muon's window from 50.09ms to 19.71ms at the real
+# 4-rank/LNC=2 shape; this flag implements the two regions of that plan where exactness
+# is achievable, removing 92 of the 320.
+#
+# The three regions left in eager on purpose (`scalars` 5.59ms, `momnorm` 3.82ms,
+# `vmean` 0.93ms of that upper bound) contain ATen reductions -- linalg_vector_norm,
+# mean, sum -- whose accumulation order is not reproducible in NKI. Fusing them would
+# trade the exact-match standard the rest of this file's kernels are held to for ~1ms
+# each. Recorded as a decision, not an omission.
+#
+# MEASURED, all four checks:
+# (1) EQUIVALENCE -- research/scratch/muon_nki_equiv.py runs 5 steps of fused-vs-eager on
+#     identically-initialised parameter sets with identical synthetic grads and a
+#     per-step-varying lr/momentum/weight_decay schedule, comparing every Muon param AND
+#     every optimizer state tensor element by element on all 4 real group shapes:
+#     0 differing elements, max|diff| 0.000e+00. BIT-EXACT, which is the right standard
+#     here (a lossless re-expression of existing elementwise ops, like the rope+QK-norm
+#     and softcap+CE kernels -- not the FP8 kernel's inherent-precision-loss standard).
+# (2) LAUNCH COUNT + (3) REAL TIMING (research/scratch/muon_nki_bench.py, 4 ranks LNC=2,
+#     arms interleaved across 3 repeats so a slow patch of the box cannot land on one
+#     arm): device launches 316 -> 224 (180 aten + 44 NKI), -92 = -29.1%; Muon window
+#     52.17ms -> 38.86ms, -13.32ms = -25.5%, ranges non-overlapping (49.84-53.45 vs
+#     37.57-43.71), 0.145ms per avoided launch -- inside the sizing script's independently
+#     measured 0.100-0.206 band. Counting launches naively says only "24 removed": NKI
+#     kernels never reach the aten dispatcher but their output allocation does
+#     (aten.empty x44), and the host-side scalar staging adds CPU-only ops.
+#     Smoke test single-device 15 steps: causality_passed True, causality_max_abs 0.0.
+# (4) END-TO-END, paired same-day 900s A/B at the same commit and the locked shape:
+#     ON 1019 steps / 1.089758 bpb vs OFF 1004 / 1.090677 -- +15 steps (+1.49%) and
+#     -0.000919 bpb, with the OFF arm landing squarely in the historical baseline cluster
+#     (gradclip1-900s 999/1.0912, -v2 1002/1.090864) so the box was in a normal state.
+#     That is ~1.5% of step time and about half the USE_FOREACH_OPTIM win -- an honestly
+#     modest number, and it matched the pre-run prediction from (3) almost exactly
+#     (+15 steps, -0.0011 bpb predicted). Because the math is bit-exact the quality
+#     question collapses to pure step count: the trajectory is identical to the last bit,
+#     so more steps in the same wall clock cannot be anything but better.
+# See rows nkimuon-900s / nkimuon-off-900s in research/experiment-log.jsonl and the
+# "Muon's elementwise wrapper ops in NKI" section of research/trn2-experiment-results.md.
+USE_NKI_MUON = True
 
 
 def softcap_cross_entropy(logits: torch.Tensor, targets: torch.Tensor,
@@ -3114,6 +3316,7 @@ class MuonAdamW(torch.optim.Optimizer):
     def __init__(self, param_groups):
         super().__init__(param_groups, defaults={})
         self._scalar_cache: dict[int, dict[str, tuple[torch.Tensor, torch.Tensor]]] = {}
+        self._ns_coef_cache: dict[torch.device, torch.Tensor] = {}
 
     def _device_scalar(self, group, key: str, value: float, ref: torch.Tensor) -> torch.Tensor:
         """Carry a per-step-changing hyperparameter in a persistent DEVICE tensor
@@ -3132,6 +3335,61 @@ class MuonAdamW(torch.optim.Optimizer):
         host.fill_(float(value))
         dev.copy_(host)
         return dev
+
+    def _ns_coef(self, ref: torch.Tensor) -> torch.Tensor:
+        """The Polar-Express (a, b, c) triples as runtime [128, 1] fp32 operands.
+
+        Shape (n_coeffs, 3, 128, 1) so `coef[i, j]` is a *contiguous* [128, 1] view --
+        NKI wants contiguous operands, and a column slice of a wider tensor would not
+        be. Built once per device and never touched again, so it costs zero launches
+        per step, and it is the reason the Newton-Schulz kernels compile once per shape
+        instead of once per coefficient value.
+
+        Each value is stored as float32, which is exactly what eager does with these
+        Python floats: multiplying a bf16 tensor by a Python scalar uses float32 as the
+        opmath type, so the scalar is rounded to fp32 there too.
+        """
+        cached = self._ns_coef_cache.get(ref.device)
+        if cached is None:
+            host = torch.empty((len(POLAR_EXPRESS_COEFFS), 3, _NKI_PARTITION, 1),
+                               dtype=torch.float32)
+            for i, abc in enumerate(POLAR_EXPRESS_COEFFS):
+                for j, v in enumerate(abc):
+                    host[i, j].fill_(v)
+            cached = host.to(ref.device)
+            self._ns_coef_cache[ref.device] = cached
+        return cached
+
+    def _muon_lrwd(self, group, ref: torch.Tensor, ratio: float):
+        """lr and lr*wd as two persistent [128, 1] fp32 device operands, one copy_.
+
+        Replaces `_device_scalar("lr")` for the fused path at the same cost -- one
+        host->device copy per step -- while additionally absorbing the two 0-dim device
+        multiplies (`lr_base * ratio` and `lr * wd`) that the eager path spends a whole
+        launch on each.
+
+        Both products are formed on the host in float32 rather than float64 so they are
+        bit-identical to the device's own fp32 arithmetic: eager computes
+        fp32(fp32(lr) * fp32(ratio)) because `ratio` is a Python float wrapped into the
+        fp32 opmath type, and doing the same multiply on an fp32 CPU tensor reproduces
+        it exactly.
+        """
+        cache = self._scalar_cache.setdefault(id(group), {})
+        entry = cache.get("muon_lrwd")
+        if entry is None:
+            entry = (torch.empty((2, _NKI_PARTITION, 1), dtype=torch.float32),
+                     torch.zeros((2, _NKI_PARTITION, 1), dtype=torch.float32,
+                                 device=ref.device),
+                     torch.empty((), dtype=torch.float32))
+            cache["muon_lrwd"] = entry
+        host, dev, tmp = entry
+        tmp.fill_(float(group["lr"]))
+        tmp.mul_(ratio)                      # fp32(fp32(lr) * fp32(ratio)) == device
+        host[0].fill_(float(tmp))
+        tmp.mul_(float(group["weight_decay"]))
+        host[1].fill_(float(tmp))
+        dev.copy_(host)
+        return dev[0], dev[1]
 
     def _adamw_state(self, group):
         """Shared prologue for both AdamW paths: filter to params that actually have a
@@ -3294,11 +3552,36 @@ class MuonAdamW(torch.optim.Optimizer):
         momentum_buffer = state["momentum_buffer"]
         second = state["second_momentum_buffer"]
 
+        # Fused-elementwise path: same math, fewer launches. Gated on
+        # USE_TENSOR_LR_SCALARS because the fused update always carries lr as an fp32
+        # device operand, which is the tensor-lr semantics; with the flag off eager
+        # would fold lr*ratio in float64 instead and the two would not be bit-equal.
+        use_nki = (USE_NKI_MUON and _HAS_NKI and p0.device.type == "neuron"
+                   and USE_TENSOR_LR_SCALARS and COMPUTE_DTYPE == torch.bfloat16
+                   and w.dtype == torch.float32 and shape[-1] <= 8192
+                   and min(shape[-2], shape[-1]) <= 8192)
+
         momentum_buffer.lerp_(g, 1 - group["momentum"])
         g = g.lerp_(momentum_buffer, group["momentum"])
         x = g.bfloat16() if COMPUTE_DTYPE == torch.bfloat16 else g
         x = x / (x.norm(dim=(-2, -1), keepdim=True) * 1.01 + 1e-6)
-        if x.shape[-2] > x.shape[-1]:
+        if use_nki:
+            # Newton-Schulz with the three matmuls untouched and the five elementwise
+            # ops per iteration collapsed into two kernels: 8 launches -> 5. Every
+            # tensor crossing a kernel boundary is a contiguous matmul or kernel output,
+            # so `reshape(-1, last)` is a pure view and the flattening is free.
+            coef = self._ns_coef(p0)
+            tall = x.shape[-2] > x.shape[-1]
+            for i in range(min(group["ns_steps"], len(POLAR_EXPRESS_COEFFS))):
+                ca, cb, cc = coef[i, 0], coef[i, 1], coef[i, 2]
+                sym = x.mT @ x if tall else x @ x.mT
+                k = sym.shape[-1]
+                m = _muon_ns_poly(sym.reshape(-1, k), (sym @ sym).reshape(-1, k),
+                                  cb, cc).view_as(sym)
+                prod = x @ m if tall else m @ x
+                n = x.shape[-1]
+                x = _muon_ns_axpy(x.reshape(-1, n), prod.reshape(-1, n), ca).view_as(x)
+        elif x.shape[-2] > x.shape[-1]:
             for a, b, c in POLAR_EXPRESS_COEFFS[:group["ns_steps"]]:
                 xtx = x.mT @ x
                 x = a * x + x @ (b * xtx + c * (xtx @ xtx))
@@ -3318,13 +3601,25 @@ class MuonAdamW(torch.optim.Optimizer):
         v_norm_new = scaled.sum(dim=(-2, -1), keepdim=True).sqrt()
         g = g * (step_size * (v_norm / v_norm_new.clamp_min(1e-10))).to(g.dtype)
 
-        lr_base = group["lr"]
-        if USE_TENSOR_LR_SCALARS:
-            lr_base = self._device_scalar(group, "lr", lr_base, p0)
-        lr = lr_base * max(1.0, shape[-2] / shape[-1]) ** 0.5
-        wd = group["weight_decay"]
-        mask = (g * w) >= 0
-        w.sub_(lr * g + lr * wd * w * mask)
+        ratio = max(1.0, shape[-2] / shape[-1]) ** 0.5
+        if use_nki:
+            # 10 launches -> 2 (one scalar upload, one kernel). The upload replaces the
+            # _device_scalar copy the eager path already pays for, so it is not new.
+            klr, klw = self._muon_lrwd(group, p0, ratio)
+            n = g.shape[-1]
+            w = _muon_update(g.reshape(-1, n), w.reshape(-1, n), klr, klw).view_as(w)
+            # stacked_params is scratch -- fully refilled from the live params at the top
+            # of every step -- so rebinding it to the kernel's output is free and needs
+            # no copy back.
+            state["stacked_params"] = w
+        else:
+            lr_base = group["lr"]
+            if USE_TENSOR_LR_SCALARS:
+                lr_base = self._device_scalar(group, "lr", lr_base, p0)
+            lr = lr_base * ratio
+            wd = group["weight_decay"]
+            mask = (g * w) >= 0
+            w.sub_(lr * g + lr * wd * w * mask)
         torch._foreach_copy_(params, list(w.unbind(0)))
 
     @torch.no_grad()
@@ -3514,6 +3809,18 @@ def main() -> None:
                              "verified numerically offline (research/scratch/softcap_ce_equiv.py) and confirmed "
                              "on real hardware at the final locked shape -- pass --no-nki-softcap-ce for the "
                              "plain eager comparison path.")
+    parser.add_argument("--nki-muon", action=argparse.BooleanOptionalAction,
+                        # literal default, like the other --nki-* flags: this function
+                        # rebinds USE_NKI_MUON as a global, so it cannot also read it here.
+                        default=os.environ.get("NEURON_COMPETITION_R1_NKI_MUON", "1") != "0",
+                        help="fuse the elementwise ops wrapping Muon's Newton-Schulz matmuls, plus the "
+                             "sign-gated weight update, into three NKI kernels (Neuron only). The matmuls "
+                             "themselves stay in aten. Default ON: removes 92 of Muon's 320 per-step device "
+                             "launches (-25.5%% off the Muon window) on a step whose optimizer window is "
+                             "~54%% inter-launch gap, with BIT-IDENTICAL update math "
+                             "(research/scratch/muon_nki_equiv.py: 0 differing elements). Real paired 900s "
+                             "A/B: 1019 steps/1.089758 vs 1004/1.090677 -- pass --no-nki-muon for the plain "
+                             "eager comparison path.")
     parser.add_argument("--local-conv", action=argparse.BooleanOptionalAction,
                         default=os.environ.get("NEURON_COMPETITION_R1_LOCAL_CONV", "1" if USE_LOCAL_CONV else "0") != "0",
                         help="depthwise causal conv1d before attention in each block. Provably dead "
@@ -3622,7 +3929,7 @@ def main() -> None:
                      "mixer and an RWKV block, and no hybrid-of-hybrids pattern language exists. "
                      "Pick one, or use its pattern flag to keep some attention layers.")
 
-    global USE_NKI_RELU2, USE_NKI_ROPE_NORM, USE_NKI_SOFTCAP_CE
+    global USE_NKI_RELU2, USE_NKI_ROPE_NORM, USE_NKI_SOFTCAP_CE, USE_NKI_MUON
     USE_LOCAL_CONV = args.local_conv         # read by Block.__init__, i.e. before GPT(config) below
     LRM_QUANTUM = args.lrm_quantum
     USE_TENSOR_LR_SCALARS = args.tensor_lr_scalars
@@ -3633,7 +3940,8 @@ def main() -> None:
     USE_NKI_RELU2 = args.nki_relu2
     USE_NKI_ROPE_NORM = args.nki_rope_norm
     USE_NKI_SOFTCAP_CE = args.nki_softcap_ce
-    USE_MAMBA2 = args.mamba2                  # read by Block.__init__, i.e. before GPT(config) below
+    USE_NKI_MUON = args.nki_muon
+    USE_MAMBA2 = args.mamba2                # read by Block.__init__, i.e. before GPT(config) below
     MAMBA2_PATTERN = args.mamba2_pattern      # ditto (mamba2_layer_flags reads it per block)
     # Mixer geometry: all read by Mamba2Mixer.__init__, i.e. before GPT(config) below.
     MAMBA2_EXPAND = args.mamba2_expand
@@ -3879,6 +4187,7 @@ def main() -> None:
         print(f"nki_relu2:         {args.nki_relu2}")
         print(f"nki_rope_norm:     {args.nki_rope_norm}")
         print(f"nki_softcap_ce:    {args.nki_softcap_ce}")
+        print(f"nki_muon:          {args.nki_muon}")
         print(f"mudd:              {args.mudd}")
         print(f"dcmha:             {args.dcmha}")
         print(f"mamba2:            {args.mamba2}")
