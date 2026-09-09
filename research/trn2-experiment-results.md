@@ -1850,3 +1850,96 @@ efficient batched path on this device backend, or the per-tensor path is cheap e
 62 tensors (~6-8ms total either way, ~0.7-0.9% of the step) that batching it further has
 nothing to buy. **Verdict: neutral, not worth adopting as a distinct default** (kept as
 an opt-in flag; changing the default would add a code path for zero measured benefit).
+
+## Day 2 (2026-09-09) — T0.1 defaults flipped; T1.5 PACK_FACTOR anomaly re-opened
+
+Session scope: flip the T0.1 winners to hardcoded defaults, then T0.4 (hyperparameter
+resweep), T0.6 (compiler flags + LNC re-check), T1.5 (PACK_FACTOR=4 anomaly), T1.4
+(Adam-every-other-step), T1.9/T1.10 (sync/`.item()` and weight-cache launch counts).
+Baseline going in: `t01-kernel2-fullbudget` = 2100 steps / `public_val_bpb` **1.038386**.
+
+### T0.1 defaults flipped: verified a true no-op (commit `02ba1ec`)
+
+`TRAIN_LOCAL_CONV` False→**True** and `LOCAL_CONV_KERNEL` 4→**2** are now the hardcoded
+defaults; `--no-train-local-conv` reproduces the old dead-conv behaviour for provenance.
+The flip was verified rather than assumed, because "same values via flags" and "same
+values as defaults" are only obviously equivalent until one of them isn't:
+
+| run | how the values got set | steps | `public_val_bpb` |
+|---|---|---|---|
+| `t01-kernel2-900s` (Day 1) | CLI flags on the old defaults | 1049 | 1.085529 |
+| `t04-base-900s` (Day 2) | new hardcoded defaults, no flags | 1054 | 1.085307 |
+
+Δ = **+5 steps, −0.000222 bpb — inside the noise floor**, i.e. exactly the no-op that was
+wanted. Stronger evidence than the bpb: the first three logged training losses are
+**byte-identical** across the two runs (9.0105 / 8.7644 / 8.4701), so the initialisation
+and the first optimizer steps are bit-for-bit the same code path. A 120s smoke first
+(138 steps, 0.83s/step) confirmed `causality_passed True` / `causality_max_abs 0.000000`.
+
+`t04-base-900s` (1054 steps / 1.085307) is the same-day, same-commit 900s reference point
+for every A/B below.
+
+### T1.5 — the PACK_FACTOR=4 anomaly is NOT device compute. Microbenchmark says PF=4 is *cheaper* per token.
+
+The standing anomaly: `packfactor4-900s` reached only **776 steps** in 894.3s (**1.152
+s/step**) against a same-commit PF=2 reference of ~0.897 s/step — a ~22% step-count loss —
+even though PACK_FACTOR only changes how the *same* total tokens per step are grouped
+(`grad_accum_steps` 8→4, micro-batch rows 2→4, `TOTAL_BATCH_SIZE` held fixed). Bigger
+micro-batches should be *more* efficient on a systolic-array device, not less, so the
+number never made sense.
+
+**(1) Pure device fwd+bwd microbenchmark** (`phase_timer.py --micro-only 6
+--warmup-steps 2`, real 4-rank / LNC=2 shape, `torch.compile(backend="neuron")` ON,
+synthetic data, nothing but forward+backward inside the timed window):
+
+| micro rows | `grad_accum` | ms/microstep (median) | µs/token | implied fwd+bwd ms per full step |
+|---|---|---|---|---|
+| 1 | 16 | 78.49 | 38.325 | 1256 |
+| 2 | 8 (**current default**) | 91.43 | 22.322 | 731 |
+| 4 | 4 (**PF=4**) | 177.55 | 21.673 | 710 |
+| 8 | 2 | 389.93 | 23.800 | 780 |
+
+µs/token **falls** from 1→2→4 rows and only turns back up at 8. PF=4's device compute is
+**2.9% cheaper per token than PF=2** — it should make the step ~21ms *faster*, not ~255ms
+slower. This is branch (4) of the T1.5 decision tree: the loss is not on the device.
+
+**(2) Loader isolation** — full-step timing, synthetic vs. the real dataloader, at both
+shapes and at the "same device shape, different loader code path" control
+(`--device-batch-size 2 --pack-factor 2`, which produces the identical `[4,2048]`
+micro-batch as `--device-batch-size 1 --pack-factor 4`). All with `--foreach-optim`,
+4 ranks, LNC=2, compile ON, median of 4 steady-state steps:
+
+| config | micro rows | `grad_accum` | synthetic step | real-loader step | exposed loader cost |
+|---|---|---|---|---|---|
+| DBS=1 PF=2 (default) | 2 | 8 | 828 ms | 861 ms | **+33 ms** |
+| DBS=1 PF=4 | 4 | 4 | 823 ms | 838 ms | **+15 ms** |
+| DBS=2 PF=2 | 4 | 4 | 823 ms | 835 ms | **+12 ms** |
+
+Three things fall out of this table:
+
+1. **The harness is faithful.** phase_timer's PF=2 real-loader step (861 ms) matches the
+   real `t04-base-900s` dt (894.5s / 1054 = **849 ms**) to within 1.4%, so its numbers are
+   apples-to-apples with a real run's dt rather than a synthetic lower bound.
+2. **The exposed dataloader cost is small and gets *smaller* at PF=4** (33 → 15 ms), which
+   is the expected direction: PF=4 makes 4 `fetch()` calls per step instead of 8, each
+   fetching the same total tokens, and more device work per microstep for the host to hide
+   behind. So the loader is **not** the ~255-300ms culprit either.
+3. **The two `[4,2048]` routes agree** (838 vs 835 ms, i.e. within noise), so there is no
+   PACK_FACTOR-specific reshape penalty: the `xb.reshape(DEVICE_BATCH_SIZE*PACK_FACTOR,
+   SEQ_LEN)` path costs nothing measurable versus letting the loader produce 2 rows
+   directly.
+
+**Under current code, phase_timer predicts PF=4 at ~838 ms/step — i.e. slightly FASTER
+than PF=2's ~861 ms, not 1.152 s.** Neither of the two candidate explanations in the
+original hypothesis (device compute, dataloader) survives measurement.
+
+**Provenance check, which is where this turns.** `packfactor4-900s` was run at commit
+`9dc9873`; the current baseline is `fdc64f0`+. The intervening commits include the
+`USE_NKI_MUON` work (`fdc64f0`) and the T0.1 local-conv flip. The logged
+`launch_command` for that row carries **no** `--pack-factor` flag — PACK_FACTOR was only
+settable by editing the constant at the time — so that run is not reproducible from its
+own logged command, which is exactly the failure mode the "read the header, never the
+label" rule exists to catch. (Fixed: `--pack-factor` is now a real flag, so the re-test
+is reproducible from the launch command alone.) The historical 776-step figure is
+therefore under suspicion of being a stale-commit artifact rather than a property of
+PACK_FACTOR=4, and the only way to settle it is a real 900s run at PF=4 on current code.
