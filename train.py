@@ -187,7 +187,7 @@ WEIGHT_DECAY = 0.10
 VE_WD = 0.0  # weight decay for the value_embeds AdamW group (separate from the shared embedding_params group)
 EMBED_ADAMW_BETA2 = 0.95  # Tier-0 resweep confirms still correct at the new ~2000-step regime: 0.95 (995/1.094327) beats 0.995 (977/1.097342) again. See trn2-experiment-results.md
 WARMUP_STEPS = 0
-GRAD_CLIP = 0.0
+GRAD_CLIP = 1.0  # Scavenger hunt real win, locked: never tested on Trn2 before ("deferred, not GPU-retested"). HLAT (real 7B/70B Trainium pretrain) used clip=1.0. Real repeat-confirmed win at 900s (999/1.0912, 1002/1.090864 vs 0.0-baseline cluster 1002-1004/1.09367-1.09399) and full 1800s (2000/1.042278 vs prior best 1987/1.043651). See trn2-experiment-results.md
 WARMDOWN_RATIO = 0.75   # fraction of max_train_seconds spent on LR cooldown (0 = old flat-after-warmup)
 FINAL_LR_FRAC = 0.05    # LR floor as a fraction of peak LR at the end of cooldown (1.0 = no floor effect)
 USE_TENSOR_LR_SCALARS = True   # LOCKED ON. Carry the per-step lr in a device tensor instead of a Python float so the optimizer graph is compiled once, not once per lr value (see MuonAdamW._device_scalar). Biggest single win measured on Trn2 so far: dt stays 0.90s through the whole cooldown instead of 2.2-4.3s, giving 1995 steps/1.043489 at 1800s vs 847/1.108697, and 995/1.094327 at 900s vs 427/1.180633. Model math unchanged; causality exact.

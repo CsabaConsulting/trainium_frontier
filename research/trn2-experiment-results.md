@@ -1255,3 +1255,20 @@ blind.
 math, -25.6% off the optimizer step, -37.9% launches, and a clean paired +3.3% steps /
 -0.0027 bpb at 900s reproduced as +2.7% / -0.0020 at the full 1800s budget. Compiling the
 optimizer step is closed as impossible on this backend, for a reason that predates this work.
+
+## Scavenger hunt — GRAD_CLIP: real win, new best confirmed number
+
+`GRAD_CLIP=0.0` had never been tested on Trn2 — HLAT (real 7B/70B Trainium pretrain paper
+already mined this competition) used clip=1.0, but this repo's own note said "deferred,
+not GPU-retested, per explicit decision." Tested now, given no time limit.
+
+Real 900s A/B against the current `foreach-optim` baseline cluster (3 repeat runs,
+1002-1004 steps, `1.093671-1.093991`, a tight `0.00032` spread): `GRAD_CLIP=1.0`
+repeat-confirmed twice — `gradclip1-900s`: 999 steps/`1.0912`, `gradclip1-900s-v2`: 1002
+steps/`1.090864` — both clearly below the entire baseline cluster (gap `~0.0027`, ~8x the
+baseline's own noise floor). Steps essentially tied (no throughput cost from clipping).
+
+**Full-1800s confirmation: 2000 steps, `public_val_bpb: 1.042278`, `causality_passed:
+True`, `causality_max_abs: 0.0`.** Beats the prior best (`foreach-optim-fullbudget`: 1987
+steps/`1.043651`) on both axes. **New best confirmed number this competition.**
+`GRAD_CLIP=1.0` locked as the new default.
