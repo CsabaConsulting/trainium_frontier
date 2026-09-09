@@ -195,7 +195,42 @@ LRM_QUANTUM = 0         # >0: snap the LR multiplier onto a 1/LRM_QUANTUM grid, 
 USE_FOREACH_OPTIM = True  # batch the optimizer's per-parameter work into torch._foreach_* calls instead of a Python loop of single-tensor ops (see MuonAdamW._adamw_step_foreach and the batched read-in in _muon_step). Pure dispatch-overhead change: the update math is BIT-IDENTICAL, not an approximation. Motivation: on this native-eager backend every aten op is its own NEFF, so the optimizer step ran 647 launches over 171 separate NEFFs with 73.9ms of the 123.8ms window being pure inter-launch gap -- 10.0% of step time, every engine idle for three quarters of it. MEASURED, all four checks: (1) EQUIVALENCE -- research/scratch/foreach_optim_equiv.py builds the real GPT at the locked config on CPU, runs 5 steps of loop-vs-foreach on identical deterministic grads and gets 0.000e+00 max abs diff (torch.equal True) on all 62 params AND all 42 optimizer-state tensors, for both USE_TENSOR_LR_SCALARS=True and False. (2) DISPATCH COUNT (CPU, TorchDispatchMode) 1023 -> 708 aten calls per step; the AdamW groups collapse 271 -> 54 (5.02x, they are 17 tiny tensors of which 12 are shape-(1,) scalars each costing ~8 launches for no compute) while Muon only gets 816 -> 652 (1.25x, its bulk is real batched Newton-Schulz matmul). (3) REAL PROFILE of the optimizer-step window (4 ranks, LNC=2, neuron-explorer): launches 647 -> 402 (-37.9%), inter-launch gap 73.9 -> 50.5ms (-31.6%), gap share of the window 59.8% -> 54.4%. (4) REAL TIMING at the submission shape (research/scratch/phase_timer.py, 4 ranks, LNC=2, compile on): opt_step_ms 90.05 -> 66.99 (-23.1ms, -25.6%, non-overlapping ranges over 4 measurements a side), step_total_ms 891.4 -> 876.3 (-1.7%). Smoke test single-device 15 steps: causality_passed True, causality_max_abs 0.0. END-TO-END, paired same-day 900s A/B at the locked shape (this is the number that decided the default, because the week's older 900s rows span 976-1004 steps across different knob settings and a cross-day absolute comparison is not trustworthy): ON 1002/1004/1003 steps (mean 1003.0) at 1.093909/1.093671/1.093991 bpb (mean 1.093857) vs OFF 974/968 (mean 971.0) at 1.096378/1.096809 (mean 1.096594) -- +32.0 steps (+3.3%) and -0.0027 bpb, with the two groups' step counts 28 apart and non-overlapping. Quality moves the right way for the mechanical reason (same update math, more steps in the same wall clock). CONFIRMED at the real full 1800s budget, also paired same-day: ON 1987 steps / 1.043651 bpb vs OFF 1934 / 1.045602 -- +53 steps (+2.7%) and -0.0020 bpb. See rows foreach-optim-900s{,-v2,-v3}, foreach-off-900s-v{1,2}, foreach-optim-fullbudget and foreach-off-fullbudget in research/experiment-log.jsonl and the "optimizer dispatch overhead" section of research/trn2-experiment-results.md. NOTE torch._foreach_* is EAGER-ONLY on this stack: torch.compile(backend="neuron") on the optimizer step dies with 'failed to legalize operation torch.operator' on _foreach_copy_, which is also why the pre-existing _foreach_copy_ write-back at the bottom of _muon_step makes compiling the optimizer step impossible either way.
 WD_DECAY_TO_ZERO = True  # decay Muon's weight_decay linearly to 0 over the run instead of holding it constant
 MUON_MOMENTUM_WARMUP_STEPS = 300  # Tier-0 resweep, confirmed still correct despite the step-count regime shift: 700 (979/1.097288) and 100 (976/1.098676) both worse than 300's baseline (995/1.094327) at 900s -- real signal both directions lose, not stale. See trn2-experiment-results.md
+# T0.4: symmetric counterpart to the warmup above -- ramp Muon's momentum back DOWN over the
+# tail of the run (modded-nanogpt does this; the intuition is that a lower momentum near the
+# end lets the update track the sharply-decaying LR instead of averaging over a stale window).
+# Expressed as a FRACTION OF THE WALL-CLOCK BUDGET, not a step count, because every run here is
+# time-budgeted and the achieved step count is not known in advance (0.024 of 1800s at ~0.86s/step
+# is ~50 steps). 0.0 = off, i.e. bit-identical to the pre-T0.4 schedule.
+MUON_MOMENTUM_COOLDOWN_FRAC = 0.0
+MUON_MOMENTUM_FINAL = 0.85  # momentum at the very end of the cooldown (only read when FRAC > 0)
+MUON_NS_STEPS = 5  # Newton-Schulz iterations in Muon's orthogonalization (3 matmuls each)
+# T1.4: run the AdamW parameter groups (wte, lm_head, value-embedding tables, scalars and the T0.1
+# local_conv group) only every Nth optimizer step, letting their gradients ACCUMULATE across the
+# skipped steps rather than being zeroed. 1 = every step (the historical behaviour, bit-identical).
+# Rationale: the AdamW groups are 17 small tensors, of which 12 are shape-(1,) scalars -- they cost
+# a disproportionate share of optimizer dispatch and of the per-step all_reduce COUNT while carrying
+# almost no gradient information per step. The Muon groups (the real matmul weights) still update
+# every step, untouched.
+#
+# The deferral is EXACT on the collective side: skipping dist.all_reduce(AVG) on a non-update step
+# and reducing the 2-step local sum on the update step gives the same number as reducing each step
+# and summing, because AVG is linear. It is NOT exact on the training-dynamics side, and deliberately
+# so: (a) Adam's update is scale-invariant in the gradient, so summing two steps' grads and taking
+# ONE step moves those tensors about half as far in total as two steps would -- an effective LR
+# halving for those groups, which is why --adam-every-n-lr-comp exists to multiply their lr by N and
+# separate "less often" from "less far"; and (b) GRAD_CLIP is applied over model.parameters() every
+# step, so an accumulating AdamW gradient can be scaled by the clip coefficient more than once
+# before it is consumed. Both are real changes, judged on bpb like any other, not equivalences.
+ADAM_EVERY_N = 1
+ADAM_EVERY_N_LR_COMP = False
 INIT_SCALE = 0.68  # multiplier on the attn/mlp uniform-init bound (1.0 = original baseline scale)
+# T0.4: attn.c_proj is zero-initialised (below, in init_weights) so a fresh block is an exact
+# identity. Zero-init output projections are known to delay early learning, which matters more in a
+# ~2000-step run than in a normal pretrain, so this makes the attention output projection's init
+# bound a swept multiple of the shared bound `s`: 0.0 keeps the historical exact-zero behaviour,
+# 0.1 gives uniform(-0.1*s, 0.1*s), etc. mlp.c_proj is deliberately NOT covered -- the task scopes
+# this to attention only, so the two output projections can be separated if it wins.
+ATTN_CPROJ_INIT_SCALE = 0.0
 PACK_FACTOR = 2  # Scavenger hunt resweep confirmed still correct under the new regime: 4 lost decisively (776/1.113876 vs current baseline ~1000/1.094 territory). dataloader packing-bin multiplier: fetch PACK_FACTOR*SEQ_LEN rows, reshape to PACK_FACTOR*batch rows of SEQ_LEN
 USE_REQUEUE_PACKER = False  # Bucket B: implemented + verified correct (offline harness, research/scratch/requeue_packer_equiv.py, zero corruption over a 20k-doc synthetic corpus), but the real hardware A/B at the final locked shape was a small real negative (332 steps/1.235799 vs baseline 330/1.234514) -- not kept. See trn2-experiment-results.md
 USE_VE = True  # value embeddings (ResFormer-style): alternating layers, input-gated mix into attention's V stream
@@ -222,19 +257,26 @@ USE_LOCAL_CONV = True    # depthwise causal conv1d before attention in each bloc
 # comment) for the current true ungrouped-param count. Init is still exactly zero, so step 0 remains
 # a bit-exact no-op regardless of whether the weight then moves. Left ON (rather than removed)
 # independent of whether training it helps: turning the COMPUTE off measured SLOWER on real
-# hardware (6.9x compiled-graph slowdown, unexplained compiler effect) -- drive the A/B for THIS
-# fix specifically with --local-conv / --no-local-conv, which now also toggles whether the weight
-# is optimizer-visible (see setup_optimizer).
-LOCAL_CONV_KERNEL = 4
-TRAIN_LOCAL_CONV = False  # T0.1: whether local_conv.weight is registered with the optimizer (see
-# setup_optimizer's local_conv_params group and the USE_LOCAL_CONV comment above). Kept a SEPARATE
-# toggle from USE_LOCAL_CONV/--local-conv on purpose: USE_LOCAL_CONV controls whether the conv
-# COMPUTE happens at all (a shape-critical toggle -- removing the compute changes num_params and
-# was independently measured 6.9x-compiled-graph-slower, so it must stay ON), while
-# TRAIN_LOCAL_CONV controls only whether its (still zero-init) weight is optimizer-visible --
-# this is the one that needs its own A/B, from one identical binary, via --train-local-conv /
-# --no-train-local-conv. Default OFF (bit-identical to every prior locked-baseline run) until the
-# 900s/1800s A/B in trn2-experiment-results.md decides otherwise.
+# hardware (6.9x compiled-graph slowdown, unexplained compiler effect). Training the weight IS a
+# real win and is now the default -- see TRAIN_LOCAL_CONV below for the numbers; drive the A/B for
+# THAT fix specifically with --train-local-conv / --no-train-local-conv (see setup_optimizer).
+LOCAL_CONV_KERNEL = 2  # T0.1 SWEEP WINNER, now the locked default (was 4). 900s sweep with
+# TRAIN_LOCAL_CONV on: kernel=2 1049 steps/1.085529, kernel=4 1009/1.085591, kernel=8 999/1.088411 --
+# kernel=2 wins on BOTH axes (most steps AND best bpb; a smaller depthwise kernel is less compute per
+# step and cost nothing in quality here). Confirmed at full 1800s as part of the winning pair below.
+# See trn2-experiment-results.md.
+TRAIN_LOCAL_CONV = True  # T0.1 WINNER, now the locked default (was False). Whether local_conv.weight
+# is registered with the optimizer (see setup_optimizer's local_conv_params group and the
+# USE_LOCAL_CONV comment above). Kept a SEPARATE toggle from USE_LOCAL_CONV/--local-conv on purpose:
+# USE_LOCAL_CONV controls whether the conv COMPUTE happens at all (a shape-critical toggle --
+# removing the compute changes num_params and was independently measured 6.9x-compiled-graph-slower,
+# so it must stay ON), while TRAIN_LOCAL_CONV controls only whether its (zero-init) weight is
+# optimizer-visible. For most of the competition this was OFF, which made the conv DEAD COMPUTE.
+# REAL WIN, paired same-day A/B from one identical binary: 900s 1009/1.085591 (on, kernel=4) vs
+# 1012/1.090389 (off) = -0.004798 bpb at equal step count; full 1800s 2100 steps/1.038386 (on,
+# kernel=2) vs 2037/1.040879 (off) = +63 steps (+3.1%) and -0.002493 bpb. That 2100/1.038386 is the
+# best-known local config and the baseline every subsequent experiment is measured against.
+# --no-train-local-conv reproduces the old (dead-conv) behaviour for provenance.
 USE_GATED_MLP = False    # SwiGLU-style: c_fc(x) * silu(c_gate(x)) instead of relu(c_fc(x))**2; adds one weight matrix
 USE_WEIGHT_CACHE = True  # cache each Linear's dtype-cast weight once per optimizer step instead of every forward call
 USE_FP8_LINEAR = False  # run the MLP's c_fc/c_proj FORWARD matmul in torch.float8_e4m3fn (current-scaling), backward left in bf16/fp32. Scope deliberately limited to the MLP (the widest matmuls, matching modded-nanogpt's own FP8-MLP records #84/#89); attention's c_q/c_k/c_v/c_proj and lm_head are NOT touched, because those feed the rope/softcap NKI kernels and would compound quantization noise into paths this repo has verified to 1-bf16-ULP. Design (see the "FP8 training-path precision" section of research/trn2-experiment-results.md): CURRENT-scaling, i.e. each tensor's own amax every call, NOT delayed-scaling amax-history -- that sidesteps Transformer Engine's own documented 50-200-step warmup instability, which would eat a far larger fraction of this competition's ~2000-step budget than of a normal long pretrain. FORWARD-only fp8: _Fp8LinearFn casts both operands, and its backward recomputes grads against the saved FULL-PRECISION tensors, so gradient quantization (a separate, unvalidated risk) is never taken on. DEFAULT OFF, and it is a real, cleanly-measured DOUBLE negative on this specific Trainium2 native-PyTorch stack -- both axes lose, so there is no configuration in which this pays. (1) SPEED, and this is the decisive one: the only NUMERICALLY CORRECT fp8 GEMM on this stack, torch._scaled_mm, measures 46366 ms/call against bf16 F.linear's 0.340 ms at the real c_fc shape [2048,640]x[640,2560] -- 136521x SLOWER, matched methodology, a real host-visible sync per iteration on both arms, and ~46.4 s on EVERY call (46180/47053/46798/46500/46217/45950) not just the first, so it is a per-call cost that never amortizes and is NOT compilation. Controls isolate it precisely to the GEMM: the bf16->fp8 CAST alone is 3.096 ms and an fp8->bf16 upcast followed by an ordinary bf16 matmul is 5.217 ms, both sane -- fp8 as a DTYPE is fine here, there is simply no fp8 Tensor-Engine GEMM path exposed through this stack. CORRECTS an earlier research note in trn2-experiment-results.md which recorded that "torch.matmul on direct float8_e4m3fn tensors works natively on the neuron device": it does not raise, but it is SILENTLY WRONG -- it returns a float8_e4m3fn (not fp32-accumulated) result that is all-NaN at this shape (rel_l2=nan, absmax=nan), which is exactly why this implementation uses torch._scaled_mm and never torch.matmul on fp8 operands. (2) QUALITY: fp8 costs 13x the per-matmul error of the bf16 it replaces -- forward rel_l2 0.0374 vs bf16's 0.00287 against an fp64 CPU reference, and the real hardware number reproduces the offline harness's CPU-simulated prediction to 4 decimals (0.0374 vs 0.0374), so research/scratch/fp8_linear_equiv.py is a trustworthy model of the hardware. Because 46.4 s/GEMM x 12 GEMMs (2 per MLP x DEPTH=6) is ~557 s of forward per step, a real dozens-to-100-step loss-trajectory run is ~10 min/step and physically infeasible on the shared box, so the open compounding question was instead answered by the harness's DEPTH=6 additive-residual simulation. Kept in-tree, off by default, per this session's standing pattern for honest negatives; --fp8-linear runs the A/B from one identical binary. Read by MLP.__init__, i.e. before GPT(config).
@@ -3110,7 +3152,12 @@ class GPT(nn.Module):
                 torch.nn.init.uniform_(block.attn.c_q.weight, -s, s)
                 torch.nn.init.uniform_(block.attn.c_k.weight, -s, s)
                 torch.nn.init.uniform_(block.attn.c_v.weight, -s, s)
-            torch.nn.init.zeros_(block.attn.c_proj.weight)
+            if ATTN_CPROJ_INIT_SCALE > 0.0:
+                # T0.4: nonzero attn output-projection init (see ATTN_CPROJ_INIT_SCALE).
+                b = ATTN_CPROJ_INIT_SCALE * s
+                torch.nn.init.uniform_(block.attn.c_proj.weight, -b, b)
+            else:
+                torch.nn.init.zeros_(block.attn.c_proj.weight)
             torch.nn.init.uniform_(block.mlp.c_fc.weight, -0.4 * s, 0.4 * s)
             if block.mlp.c_gate is not None:
                 torch.nn.init.uniform_(block.mlp.c_gate.weight, -0.4 * s, 0.4 * s)
@@ -3275,7 +3322,7 @@ class GPT(nn.Module):
             param_groups.append(dict(kind="adamw", params=local_conv_params, lr=MATRIX_LR, betas=(0.9, 0.95), eps=1e-10, weight_decay=0.0))
         for shape in sorted({p.shape for p in matrix_params}):
             params = [p for p in matrix_params if p.shape == shape]
-            param_groups.append(dict(kind="muon", params=params, lr=MATRIX_LR, momentum=0.95, beta2=0.90, ns_steps=5, weight_decay=WEIGHT_DECAY))
+            param_groups.append(dict(kind="muon", params=params, lr=MATRIX_LR, momentum=0.95, beta2=0.90, ns_steps=MUON_NS_STEPS, weight_decay=WEIGHT_DECAY))
         opt = MuonAdamW(param_groups)
         for group in opt.param_groups:
             group["initial_lr"] = group["lr"]
@@ -3660,9 +3707,13 @@ class MuonAdamW(torch.optim.Optimizer):
         torch._foreach_copy_(params, list(w.unbind(0)))
 
     @torch.no_grad()
-    def step(self):
+    def step(self, update_adamw: bool = True):
+        """`update_adamw=False` (T1.4) runs only the Muon groups this step and leaves the AdamW
+        groups' gradients untouched, so they keep accumulating into the same .grad tensors."""
         for group in self.param_groups:
             if group["kind"] == "adamw":
+                if not update_adamw:
+                    continue
                 if USE_FOREACH_OPTIM:
                     self._adamw_step_foreach(group)
                 else:
@@ -3672,12 +3723,33 @@ class MuonAdamW(torch.optim.Optimizer):
             else:
                 raise ValueError(f"unknown optimizer kind: {group['kind']}")
 
+    @torch.no_grad()
+    def zero_grad_selective(self, zero_adamw: bool = True) -> None:
+        """T1.4: like `zero_grad(set_to_none=True)`, but can leave the AdamW groups' gradients in
+        place so they accumulate across a skipped update. Never severs an accumulation by
+        accident -- the AdamW branch is skipped entirely rather than zeroed with a different
+        mechanism."""
+        for group in self.param_groups:
+            if group["kind"] == "adamw" and not zero_adamw:
+                continue
+            for p in group["params"]:
+                p.grad = None
 
-def sync_gradients(model: nn.Module) -> None:
+    def adamw_param_ids(self) -> frozenset[int]:
+        """T1.4: identities of every parameter in an AdamW group, so the per-step all_reduce can
+        skip exactly those on a non-update step."""
+        return frozenset(id(p) for g in self.param_groups if g["kind"] == "adamw"
+                         for p in g["params"])
+
+
+def sync_gradients(model: nn.Module, skip_param_ids: frozenset[int] | None = None) -> None:
+    """`skip_param_ids` (T1.4) defers these parameters' all_reduce to a later step. Exact, not an
+    approximation: ReduceOp.AVG is linear, so averaging the sum of K locally-accumulated steps
+    equals summing K averaged steps."""
     if not (dist.is_available() and dist.is_initialized()):
         return
     for p in model.parameters():
-        if p.grad is not None:
+        if p.grad is not None and not (skip_param_ids and id(p) in skip_param_ids):
             dist.all_reduce(p.grad, op=dist.ReduceOp.AVG)
 
 
@@ -3753,6 +3825,14 @@ ARCH_TOGGLE_NAMES = [
     "MAMBA2_CHUNK", "MAMBA2_EXPAND", "MAMBA2_N_GROUPS", "MAMBA2_CONV_KERNEL",
     "USE_RWKV", "RWKV_PATTERN", "RWKV_HEAD_DIM", "RWKV_CHUNK", "RWKV_CMIX_EXPAND",
     "USE_FP8_LINEAR",
+    # T0.4 resweep knobs. None of these changes a tensor's name or shape, so every one of them
+    # is exactly the "loads silently with quietly wrong behavior" class this snapshot exists to
+    # catch -- ATTN_CPROJ_INIT_SCALE and LOGIT_SOFTCAP especially, since they change what the
+    # weights MEAN without changing what they look like.
+    "MATRIX_LR", "EMBEDDING_LR", "UNEMBEDDING_LR", "SCALAR_LR", "WEIGHT_DECAY",
+    "LOGIT_SOFTCAP", "ATTN_CPROJ_INIT_SCALE", "MUON_NS_STEPS",
+    "MUON_MOMENTUM_COOLDOWN_FRAC", "MUON_MOMENTUM_FINAL",
+    "ADAM_EVERY_N", "ADAM_EVERY_N_LR_COMP",
 ]
 # Toggles whose mismatch corrupts the state_dict shape (load_state_dict(strict=True) will
 # error loudly). Everything else in ARCH_TOGGLE_NAMES lives in non-persistent buffers or
@@ -3881,9 +3961,29 @@ def lr_multiplier(step: int, elapsed: float = 0.0, max_train_seconds: float = 1.
     return lrm
 
 
-def muon_momentum(step: int) -> float:
+def muon_momentum(step: int, progress: float = 0.0) -> float:
+    """Muon momentum: 0.85 -> 0.95 over MUON_MOMENTUM_WARMUP_STEPS, then optionally back down.
+
+    `progress` is elapsed/max_train_seconds (the same 0..1 wall-clock fraction wd_progress uses).
+    The cooldown is off by default (MUON_MOMENTUM_COOLDOWN_FRAC == 0.0), in which case this is
+    bit-identical to the original two-line warmup.
+
+    Both branches return a plain Python float, which is safe here for a reason worth recording:
+    the warmup already feeds 300 DISTINCT float momentum values into `momentum_buffer.lerp_(g, 1 -
+    momentum)` on every historical run, and the logged dt is flat at ~0.86s from step 2 onwards --
+    so `lerp_.Scalar`'s weight is NOT baked into the Neuron graph as a constant the way `alpha=`
+    and a float `lr` were (the USE_TENSOR_LR_SCALARS lesson). A per-step-changing momentum
+    therefore does not need the _device_scalar treatment. Verified again by watching dt across the
+    cooldown window of the A/B run itself, not just inferred from history.
+    """
     frac = min(step / MUON_MOMENTUM_WARMUP_STEPS, 1.0)
-    return (1 - frac) * 0.85 + frac * 0.95
+    m = (1 - frac) * 0.85 + frac * 0.95
+    if MUON_MOMENTUM_COOLDOWN_FRAC > 0.0:
+        # 0 while progress <= 1 - FRAC, ramping to 1 at progress == 1.
+        cd = min(1.0, max(0.0, (progress - (1.0 - MUON_MOMENTUM_COOLDOWN_FRAC))
+                          / MUON_MOMENTUM_COOLDOWN_FRAC))
+        m = (1 - cd) * m + cd * MUON_MOMENTUM_FINAL
+    return m
 
 
 def main() -> None:
@@ -4067,13 +4167,94 @@ def main() -> None:
                              "Still zero-initialized, so step 0 is unchanged either way. Default OFF "
                              "(bit-identical to every prior locked-baseline run) -- pass "
                              "--train-local-conv for the A/B; only matters when --local-conv is on.")
+    # ---- T0.4 hyperparameter-resweep knobs -----------------------------------------------
+    # Every one of these defaults to the module-level constant, so passing none of them is
+    # bit-identical to the locked baseline; they exist so a coordinate-descent sweep runs from
+    # ONE identical binary instead of a series of edited files (the same discipline every other
+    # A/B in this repo follows). All are float/int scalars read either before GPT(config) (init
+    # scales) or inside setup_optimizer/lr_multiplier (LRs, decays), never mid-step, so none of
+    # them can introduce a per-step graph constant.
+    def _hp(flag: str, default, typ, helptext: str) -> None:
+        env = "NEURON_COMPETITION_R1_" + flag.lstrip("-").replace("-", "_").upper()
+        parser.add_argument(flag, type=typ, default=typ(os.environ.get(env, default)), help=helptext)
+
+    _hp("--matrix-lr", MATRIX_LR, float, "T0.4: Muon groups' base lr (also the AdamW lr for the "
+        "ssm/rwkv/hypernet/local_conv groups). Currently 0.025.")
+    _hp("--embedding-lr", EMBEDDING_LR, float, "T0.4: wte (and value-embedding) AdamW lr before the "
+        "(n_embd/768)**-0.5 scale. Currently 0.30.")
+    _hp("--unembedding-lr", UNEMBEDDING_LR, float, "T0.4: lm_head AdamW lr before the d_model scale. "
+        "Currently 0.006.")
+    _hp("--scalar-lr", SCALAR_LR, float, "T0.4: AdamW lr for the scalar/skip params. Currently 0.20.")
+    _hp("--weight-decay", WEIGHT_DECAY, float, "T0.4: Muon groups' weight decay (decayed to zero over "
+        "the run unless --no-wd-decay-to-zero). Currently 0.10.")
+    _hp("--final-lr-frac", FINAL_LR_FRAC, float, "T0.4: LR floor at the end of cooldown as a fraction "
+        "of peak. Currently 0.05.")
+    _hp("--warmdown-ratio", WARMDOWN_RATIO, float, "T0.4: fraction of the wall-clock budget spent on "
+        "LR cooldown. Currently 0.75.")
+    _hp("--init-scale", INIT_SCALE, float, "T0.4: multiplier on the attn/mlp uniform-init bound. "
+        "Currently 0.68.")
+    _hp("--attn-cproj-init", ATTN_CPROJ_INIT_SCALE, float, "T0.4: attn.c_proj init bound as a multiple "
+        "of the shared bound s; 0.0 (default) keeps the historical exact-zero init.")
+    _hp("--logit-softcap", LOGIT_SOFTCAP, float, "T0.4: tanh logit softcap. Currently 15.0.")
+    _hp("--muon-ns-steps", MUON_NS_STEPS, int, "T0.4: Newton-Schulz iterations per Muon step "
+        "(3 matmuls each). Currently 5.")
+    _hp("--muon-momentum-cooldown-frac", MUON_MOMENTUM_COOLDOWN_FRAC, float, "T0.4: ramp Muon momentum "
+        "from its warmed-up 0.95 down to --muon-momentum-final over this trailing fraction of the "
+        "wall-clock budget. 0.0 (default) = no cooldown, bit-identical to the old schedule.")
+    _hp("--muon-momentum-final", MUON_MOMENTUM_FINAL, float, "T0.4: momentum at the very end of the "
+        "cooldown. Only read when --muon-momentum-cooldown-frac > 0.")
+    parser.add_argument("--wd-decay-to-zero", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_WD_DECAY_TO_ZERO",
+                                               "1" if WD_DECAY_TO_ZERO else "0") != "0",
+                        help="T0.4: decay Muon's weight_decay linearly to 0 over the run instead of "
+                             "holding it constant. Currently ON.")
+    _hp("--adam-every-n", ADAM_EVERY_N, int, "T1.4: update the AdamW parameter groups (wte, lm_head, "
+        "value-embedding tables, scalars, local_conv) only every Nth step, accumulating their "
+        "gradients in between and skipping their all_reduce on the other steps. Muon groups still "
+        "update every step. 1 (default) = historical behaviour, bit-identical.")
+    parser.add_argument("--adam-every-n-lr-comp", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_ADAM_EVERY_N_LR_COMP",
+                                               "1" if ADAM_EVERY_N_LR_COMP else "0") != "0",
+                        help="T1.4: multiply the AdamW groups' lr by --adam-every-n. Adam's update is "
+                             "scale-invariant in the gradient, so updating N times less often "
+                             "otherwise moves those tensors ~N times less far in total; this "
+                             "separates 'less often' from 'less far'. Default OFF.")
     args = parser.parse_args()
+    if args.adam_every_n < 1:
+        parser.error("--adam-every-n must be >= 1")
+    if args.adam_every_n > 1 and args.grad_bucket:
+        parser.error("--adam-every-n > 1 is incompatible with --grad-bucket: the flat buffer is "
+                     "zeroed wholesale every step, so it cannot leave the AdamW groups' gradients "
+                     "standing to accumulate. (--grad-bucket is also a known hang on this hardware; "
+                     "see trn2-experiment-results.md.)")
     if args.rwkv and args.mamba2:
         parser.error("--rwkv and --mamba2 are mutually exclusive: a layer cannot be both a Mamba2 "
                      "mixer and an RWKV block, and no hybrid-of-hybrids pattern language exists. "
                      "Pick one, or use its pattern flag to keep some attention layers.")
 
     global USE_NKI_RELU2, USE_NKI_ROPE_NORM, USE_NKI_SOFTCAP_CE, USE_NKI_MUON
+    # T0.4 resweep knobs (see the _hp block above). Assigned here, i.e. before GPT(config) and
+    # before setup_optimizer(), which is where every one of them is read.
+    global MATRIX_LR, EMBEDDING_LR, UNEMBEDDING_LR, SCALAR_LR, WEIGHT_DECAY, WD_DECAY_TO_ZERO
+    global FINAL_LR_FRAC, WARMDOWN_RATIO, INIT_SCALE, ATTN_CPROJ_INIT_SCALE, LOGIT_SOFTCAP
+    global MUON_NS_STEPS, MUON_MOMENTUM_COOLDOWN_FRAC, MUON_MOMENTUM_FINAL
+    global ADAM_EVERY_N, ADAM_EVERY_N_LR_COMP
+    ADAM_EVERY_N = args.adam_every_n
+    ADAM_EVERY_N_LR_COMP = args.adam_every_n_lr_comp
+    MATRIX_LR = args.matrix_lr
+    EMBEDDING_LR = args.embedding_lr
+    UNEMBEDDING_LR = args.unembedding_lr
+    SCALAR_LR = args.scalar_lr
+    WEIGHT_DECAY = args.weight_decay
+    WD_DECAY_TO_ZERO = args.wd_decay_to_zero
+    FINAL_LR_FRAC = args.final_lr_frac
+    WARMDOWN_RATIO = args.warmdown_ratio
+    INIT_SCALE = args.init_scale               # read by GPT.init_weights, i.e. inside GPT(config)
+    ATTN_CPROJ_INIT_SCALE = args.attn_cproj_init  # ditto
+    LOGIT_SOFTCAP = args.logit_softcap
+    MUON_NS_STEPS = args.muon_ns_steps
+    MUON_MOMENTUM_COOLDOWN_FRAC = args.muon_momentum_cooldown_frac
+    MUON_MOMENTUM_FINAL = args.muon_momentum_final
     USE_LOCAL_CONV = args.local_conv         # read by Block.__init__, i.e. before GPT(config) below
     LOCAL_CONV_KERNEL = args.local_conv_kernel  # ditto (CausalConv.__init__ reads it via the global default)
     TRAIN_LOCAL_CONV = args.train_local_conv  # read by GPT.setup_optimizer(), called after GPT(config) below
@@ -4175,6 +4356,18 @@ def main() -> None:
         # regardless of --train-local-conv.
         grad_flat_buffer, _grad_bucket_params = build_flat_grad_buffer(model)
         print0(f"grad_bucket enabled: {len(_grad_bucket_params)} params, {grad_flat_buffer.numel():,} floats in one flat fp32 buffer")
+    # T1.4: identify the AdamW-group parameters once, outside the loop, so the per-step decision
+    # costs nothing. Mutually exclusive with --grad-bucket, whose flat buffer is zeroed wholesale
+    # and cannot leave one subset of gradients standing (asserted at flag-parse time).
+    adamw_skip_ids: frozenset[int] = frozenset()
+    if ADAM_EVERY_N > 1:
+        adamw_skip_ids = optimizer.adamw_param_ids()
+        if ADAM_EVERY_N_LR_COMP:
+            for group in optimizer.param_groups:
+                if group["kind"] == "adamw":
+                    group["initial_lr"] = group["initial_lr"] * ADAM_EVERY_N
+        print0(f"adam_every_n={ADAM_EVERY_N} lr_comp={ADAM_EVERY_N_LR_COMP}: "
+               f"{len(adamw_skip_ids)} AdamW params update every {ADAM_EVERY_N} steps")
     loop_started = time.monotonic()
     budget_started = loop_started
 
@@ -4189,12 +4382,20 @@ def main() -> None:
 
         synchronize(device)
         t0 = time.monotonic()
+        # T1.4: with ADAM_EVERY_N > 1 the AdamW groups update on the LAST step of each
+        # N-step window ((step+1) % N == 0, i.e. odd steps when N=2) and their gradients are
+        # zeroed only at the START of a window (step % N == 0). With N == 1 both are always
+        # True and every branch below is the historical one.
+        adam_step_now = (step + 1) % ADAM_EVERY_N == 0
+        zero_adamw_now = step % ADAM_EVERY_N == 0
         if grad_flat_buffer is not None:
             # zero_(set_to_none=False)-equivalent: keeps every p.grad pointed at its
             # view into the buffer rather than severing the link with a fresh None.
             grad_flat_buffer.zero_()
-        else:
+        elif zero_adamw_now:
             optimizer.zero_grad(set_to_none=True)
+        else:
+            optimizer.zero_grad_selective(zero_adamw=False)
         last_loss = None
         for _ in range(grad_accum_steps):
             loss = model(x, y)
@@ -4209,16 +4410,16 @@ def main() -> None:
         else:
             if GRAD_CLIP > 0:
                 torch.nn.utils.clip_grad_norm_(model.parameters(), GRAD_CLIP, foreach=True if args.clip_foreach else None)
-            sync_gradients(model)
+            sync_gradients(model, skip_param_ids=None if adam_step_now else adamw_skip_ids)
 
         lrm = lr_multiplier(step, elapsed=elapsed, max_train_seconds=args.max_train_seconds)
         wd_progress = min(1.0, elapsed / max(1e-6, args.max_train_seconds))
         for group in optimizer.param_groups:
             group["lr"] = group["initial_lr"] * lrm
             if group["kind"] == "muon":
-                group["momentum"] = muon_momentum(step)
+                group["momentum"] = muon_momentum(step, wd_progress)
                 group["weight_decay"] = WEIGHT_DECAY * (1.0 - wd_progress) if WD_DECAY_TO_ZERO else WEIGHT_DECAY
-        optimizer.step()
+        optimizer.step(update_adamw=adam_step_now)
         if USE_WEIGHT_CACHE:
             for m in model.modules():
                 if isinstance(m, Linear):

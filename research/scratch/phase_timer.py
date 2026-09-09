@@ -64,6 +64,31 @@ def main():
                          "compute (fetch() runs between backward() and the next forward(), so "
                          "whatever the device queue can hide, it does -- this measures only what "
                          "is NOT hidden).")
+    ap.add_argument("--pack-factor", type=int, default=None,
+                    help="T1.5: override train.PACK_FACTOR, i.e. the micro-batch ROW COUNT "
+                         "(rows = DEVICE_BATCH_SIZE * PACK_FACTOR). grad_accum is recomputed from "
+                         "TOTAL_BATCH_SIZE so total tokens/step stays fixed. Only meaningful with "
+                         "--dataloader synthetic; the real loader path also reshapes by PACK_FACTOR.")
+    ap.add_argument("--device-batch-size", type=int, default=None,
+                    help="T1.5: override train.DEVICE_BATCH_SIZE. Combined with --pack-factor this "
+                         "separates 'same device shape, different loader code path' (e.g. "
+                         "--device-batch-size 2 --pack-factor 2 gives the same [4,2048] micro-batch "
+                         "as --device-batch-size 1 --pack-factor 4).")
+    ap.add_argument("--wcache-mode", choices=["loop", "foreach"], default="loop",
+                    help="T1.10: loop = train.py's real per-Linear `weight.to(dtype)` (one device op "
+                         "each, ~40 launches/step). foreach = one torch._foreach_copy_ into a set of "
+                         "preallocated bf16 buffers. Measures whether the launch count is actually "
+                         "costing anything before train.py is changed at all.")
+    ap.add_argument("--time-loss-item", action=argparse.BooleanOptionalAction, default=False,
+                    help="T1.9: time `float(loss.item())` as its own phase, separately from the "
+                         "control collective, so the real cost of reading the loss every step "
+                         "(right after an explicit synchronize, i.e. when the device is already "
+                         "idle) is a measured number rather than an assumption.")
+    ap.add_argument("--micro-only", type=int, default=0,
+                    help="T1.5: instead of full steps, time N individual forward+backward "
+                         "microsteps (with a synchronize around each) and report ms and ms/token. "
+                         "Isolates pure device compute from the optimizer/collective tail, which is "
+                         "what the PACK_FACTOR anomaly needs to be judged on.")
     args = ap.parse_args()
 
     sys.path.insert(0, REPO)
@@ -73,6 +98,10 @@ def main():
     import train as T
 
     T.USE_LOCAL_CONV = args.local_conv
+    if args.pack_factor is not None:
+        T.PACK_FACTOR = args.pack_factor
+    if args.device_batch_size is not None:
+        T.DEVICE_BATCH_SIZE = args.device_batch_size
     T.USE_TENSOR_LR_SCALARS = True
     T.USE_FOREACH_OPTIM = args.foreach_optim
     T.USE_NKI_ROPE_NORM = True
@@ -104,7 +133,7 @@ def main():
         print("[pt] optimizer.step wrapped in torch.compile", flush=True)
 
     micro_tokens = T.DEVICE_BATCH_SIZE * T.PACK_FACTOR * T.SEQ_LEN * world_size
-    grad_accum = T.TOTAL_BATCH_SIZE // micro_tokens
+    grad_accum = max(1, T.TOTAL_BATCH_SIZE // micro_tokens)
     if rank == 0:
         print(f"[pt] world_size={world_size} LNC={os.environ.get('NEURON_LOGICAL_NC_CONFIG')} "
               f"micro_tokens={micro_tokens:,} grad_accum={grad_accum} "
@@ -188,8 +217,21 @@ def main():
                 group["weight_decay"] = (T.WEIGHT_DECAY * (1.0 - wd_progress)
                                          if T.WD_DECAY_TO_ZERO else T.WEIGHT_DECAY)
 
+    # T1.10: preallocated bf16 destinations for the batched refresh. Built once; the loop-mode
+    # path never touches them, so the two modes are strictly comparable.
+    wcache_dsts = [torch.empty_like(m.weight, dtype=T.COMPUTE_DTYPE) for m in linears]
+    wcache_srcs = [m.weight for m in linears]
+
     def refresh_cache():
-        if T.USE_WEIGHT_CACHE:
+        if not T.USE_WEIGHT_CACHE:
+            return
+        if args.wcache_mode == "foreach":
+            # One dispatch for all ~40 casts instead of one per Linear. _foreach_copy_ does the
+            # dtype conversion as part of the copy, exactly like `weight.to(bf16)` does.
+            torch._foreach_copy_(wcache_dsts, wcache_srcs)
+            for m, d in zip(linears, wcache_dsts):
+                m._cached_weight = d
+        else:
             for m in linears:
                 m.refresh_weight_cache(T.COMPUTE_DTYPE)
 
@@ -198,6 +240,49 @@ def main():
             grad_flat_buffer.zero_()
         else:
             optimizer.zero_grad(set_to_none=True)
+
+    if args.micro_only:
+        # T1.5: pure forward+backward at this micro shape, nothing else in the window.
+        micro_rows = T.DEVICE_BATCH_SIZE * T.PACK_FACTOR
+        tok_per_micro = micro_rows * T.SEQ_LEN          # per rank
+        for s in range(args.warmup_steps):
+            zero_grads()
+            micro()
+            T.synchronize(device)
+            if rank == 0:
+                print(f"[pt] micro-warmup {s}", flush=True)
+        times = []
+        for s in range(args.micro_only):
+            zero_grads()
+            T.synchronize(device)
+            t = time.monotonic()
+            micro()
+            T.synchronize(device)
+            ms = (time.monotonic() - t) * 1e3
+            times.append(ms)
+            if rank == 0:
+                print(f"[pt] MICRO {s} ms={ms:.2f} us_per_token={ms * 1e3 / tok_per_micro:.4f}",
+                      flush=True)
+        if rank == 0:
+            srt = sorted(times)
+            med = srt[len(srt) // 2]
+            print("MICRO_JSON " + json.dumps(dict(
+                world_size=world_size, lnc=os.environ.get("NEURON_LOGICAL_NC_CONFIG"),
+                device_batch_size=T.DEVICE_BATCH_SIZE, pack_factor=T.PACK_FACTOR,
+                micro_rows=micro_rows, seq_len=T.SEQ_LEN, tokens_per_micro_per_rank=tok_per_micro,
+                tokens_per_micro_global=tok_per_micro * world_size,
+                compile=args.compile, dataloader=args.dataloader,
+                ms=times, ms_median=med, ms_min=min(times),
+                us_per_token_median=med * 1e3 / tok_per_micro,
+                us_per_token_min=min(times) * 1e3 / tok_per_micro)), flush=True)
+        if ddp:
+            try:
+                import torch.distributed as dist
+                dist.barrier()
+                dist.destroy_process_group()
+            except Exception:
+                pass
+        return
 
     for s in range(args.warmup_steps):
         t = time.monotonic()
@@ -259,6 +344,12 @@ def main():
         T.synchronize(device)
         rec["sync_grad_ms"] = (time.monotonic() - t) * 1e3
 
+        if args.time_loss_item:
+            # T1.9: exactly train.py's `train_loss = float(last_loss.item())`, timed alone.
+            t = time.monotonic()
+            _ = float(last_loss.item()) if last_loss is not None else 0.0
+            rec["loss_item_ms"] = (time.monotonic() - t) * 1e3
+
         t = time.monotonic()
         control_collective()
         T.synchronize(device)
@@ -281,7 +372,7 @@ def main():
 
         rec["step_total_ms"] = (time.monotonic() - t_step) * 1e3
         rec["tail_ms"] = (rec["zero_grad_ms"] + rec["clip_ms"] + rec["sync_grad_ms"]
-                          + rec["control_ms"] + rec["set_lr_ms"]
+                          + rec.get("loss_item_ms", 0.0) + rec["control_ms"] + rec["set_lr_ms"]
                           + rec["opt_step_ms"] + rec["wcache_ms"])
         rec["tail_pct"] = 100.0 * rec["tail_ms"] / rec["step_total_ms"]
         out.append(rec)
@@ -291,6 +382,7 @@ def main():
                   f"zero_grad={rec['zero_grad_ms']:.1f} clip={rec['clip_ms']:.1f} "
                   f"sync_grad={rec['sync_grad_ms']:.1f} control={rec['control_ms']:.1f} "
                   f"set_lr={rec['set_lr_ms']:.1f} opt_step={rec['opt_step_ms']:.1f} "
+                  f"loss_item={rec.get('loss_item_ms', 0.0):.1f} "
                   f"wcache={rec['wcache_ms']:.1f} => TAIL={rec['tail_ms']:.1f}ms "
                   f"({rec['tail_pct']:.1f}%)", flush=True)
 
@@ -301,7 +393,9 @@ def main():
             local_conv=args.local_conv, conv_mode=args.conv_mode,
             compile=args.compile, foreach_optim=args.foreach_optim,
             compile_optim=args.compile_optim, grad_bucket=args.grad_bucket,
-            clip_foreach=args.clip_foreach, dataloader=args.dataloader, steps=out)))
+            clip_foreach=args.clip_foreach, dataloader=args.dataloader,
+            wcache_mode=args.wcache_mode, time_loss_item=args.time_loss_item,
+            device_batch_size=T.DEVICE_BATCH_SIZE, pack_factor=T.PACK_FACTOR, steps=out)))
     if ddp:
         try:
             import torch.distributed as dist
