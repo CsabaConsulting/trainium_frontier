@@ -221,6 +221,7 @@ USE_LOCAL_CONV = True    # depthwise causal conv1d before attention in each bloc
 LOCAL_CONV_KERNEL = 4
 USE_GATED_MLP = False    # SwiGLU-style: c_fc(x) * silu(c_gate(x)) instead of relu(c_fc(x))**2; adds one weight matrix
 USE_WEIGHT_CACHE = True  # cache each Linear's dtype-cast weight once per optimizer step instead of every forward call
+USE_FP8_LINEAR = False  # run the MLP's c_fc/c_proj FORWARD matmul in torch.float8_e4m3fn (current-scaling), backward left in bf16/fp32. Scope deliberately limited to the MLP (the widest matmuls, matching modded-nanogpt's own FP8-MLP records #84/#89); attention's c_q/c_k/c_v/c_proj and lm_head are NOT touched, because those feed the rope/softcap NKI kernels and would compound quantization noise into paths this repo has verified to 1-bf16-ULP. Design (see the "FP8 training-path precision" section of research/trn2-experiment-results.md): CURRENT-scaling, i.e. each tensor's own amax every call, NOT delayed-scaling amax-history -- that sidesteps Transformer Engine's own documented 50-200-step warmup instability, which would eat a far larger fraction of this competition's ~2000-step budget than of a normal long pretrain. FORWARD-only fp8: _Fp8LinearFn casts both operands, and its backward recomputes grads against the saved FULL-PRECISION tensors, so gradient quantization (a separate, unvalidated risk) is never taken on. DEFAULT OFF, and it is a real, cleanly-measured DOUBLE negative on this specific Trainium2 native-PyTorch stack -- both axes lose, so there is no configuration in which this pays. (1) SPEED, and this is the decisive one: the only NUMERICALLY CORRECT fp8 GEMM on this stack, torch._scaled_mm, measures 46366 ms/call against bf16 F.linear's 0.340 ms at the real c_fc shape [2048,640]x[640,2560] -- 136521x SLOWER, matched methodology, a real host-visible sync per iteration on both arms, and ~46.4 s on EVERY call (46180/47053/46798/46500/46217/45950) not just the first, so it is a per-call cost that never amortizes and is NOT compilation. Controls isolate it precisely to the GEMM: the bf16->fp8 CAST alone is 3.096 ms and an fp8->bf16 upcast followed by an ordinary bf16 matmul is 5.217 ms, both sane -- fp8 as a DTYPE is fine here, there is simply no fp8 Tensor-Engine GEMM path exposed through this stack. CORRECTS an earlier research note in trn2-experiment-results.md which recorded that "torch.matmul on direct float8_e4m3fn tensors works natively on the neuron device": it does not raise, but it is SILENTLY WRONG -- it returns a float8_e4m3fn (not fp32-accumulated) result that is all-NaN at this shape (rel_l2=nan, absmax=nan), which is exactly why this implementation uses torch._scaled_mm and never torch.matmul on fp8 operands. (2) QUALITY: fp8 costs 13x the per-matmul error of the bf16 it replaces -- forward rel_l2 0.0374 vs bf16's 0.00287 against an fp64 CPU reference, and the real hardware number reproduces the offline harness's CPU-simulated prediction to 4 decimals (0.0374 vs 0.0374), so research/scratch/fp8_linear_equiv.py is a trustworthy model of the hardware. Because 46.4 s/GEMM x 12 GEMMs (2 per MLP x DEPTH=6) is ~557 s of forward per step, a real dozens-to-100-step loss-trajectory run is ~10 min/step and physically infeasible on the shared box, so the open compounding question was instead answered by the harness's DEPTH=6 additive-residual simulation. Kept in-tree, off by default, per this session's standing pattern for honest negatives; --fp8-linear runs the A/B from one identical binary. Read by MLP.__init__, i.e. before GPT(config).
 USE_DOC_MASK = False  # block attention across document boundaries within a packed row (BOS-derived, data-dependent)
 USE_SELECTIVE_GATE = False  # make resid_lambda/x0_lambda data-dependent (Mamba-style selectivity) instead of static scalars
 SELECTIVE_GATE_CHANNELS = 32
@@ -1752,6 +1753,108 @@ class Linear(nn.Linear):
         return F.linear(x, self.weight.to(dtype=x.dtype), None)
 
 
+_FP8_E4M3_MAX = 448.0  # torch.finfo(torch.float8_e4m3fn).max, verified on this SDK (torch 2.11.0)
+_FP8_AMAX_EPS = 1e-12  # floor on the amax denominator: an all-zero tensor must not give inf scale
+
+
+def _fp8_current_scale(t: torch.Tensor) -> torch.Tensor:
+    """Current-scaling factor (Transformer Engine's Float8CurrentScaling): map this
+    tensor's OWN amax onto the top of the E4M3 range. No amax history, no delay --
+    that is the whole point of the design (see the USE_FP8_LINEAR comment). Returned
+    as a 0-dim device tensor so nothing forces a host sync mid-forward.
+    """
+    return _FP8_E4M3_MAX / t.detach().abs().amax().clamp_min(_FP8_AMAX_EPS)
+
+
+def _fp8_can_run(x: torch.Tensor, weight: torch.Tensor) -> bool:
+    """fp8 GEMM is only attempted where it is known real; everything else falls back to
+    the ordinary bf16 F.linear, so the toggle is always safe to flip.
+
+    torch._scaled_mm is the ONLY numerically correct fp8 matmul on this stack --
+    torch.matmul on fp8 operands returns an all-NaN fp8 result without raising (measured;
+    see USE_FP8_LINEAR). It is 2-D only, hence the reshape in _fp8_linear_forward.
+    """
+    return (
+        hasattr(torch, "_scaled_mm")
+        and hasattr(torch, "float8_e4m3fn")
+        and x.device.type == "neuron"
+        and weight.device.type == "neuron"
+        and x.ndim >= 2
+        and x.shape[-1] == weight.shape[1]
+    )
+
+
+def _fp8_linear_forward(x: torch.Tensor, weight: torch.Tensor) -> torch.Tensor:
+    """One forward-only-fp8 matmul: cast both operands with their own current-scale,
+    GEMM in fp8 with fp32 accumulation, and let _scaled_mm undo both scales via its
+    scale_a/scale_b arguments (so the rescale costs nothing extra).
+    """
+    x_2d = x.reshape(-1, x.shape[-1])
+    x_scale = _fp8_current_scale(x_2d)
+    w_scale = _fp8_current_scale(weight)
+    x_fp8 = (x_2d.float() * x_scale).to(torch.float8_e4m3fn)
+    w_fp8 = (weight.float() * w_scale).to(torch.float8_e4m3fn)
+    y = torch._scaled_mm(
+        x_fp8,
+        w_fp8.t().contiguous(),  # _scaled_mm wants the [K, N] orientation
+        scale_a=1.0 / x_scale,
+        scale_b=1.0 / w_scale,
+        out_dtype=x.dtype,
+    )
+    return y.reshape(*x.shape[:-1], weight.shape[0])
+
+
+class _Fp8LinearFn(torch.autograd.Function):
+    """Forward in fp8, backward in the input dtype (bf16) against the SAVED
+    full-precision operands.
+
+    This asymmetry is the deliberate de-risking: only the forward matmul ever sees an
+    fp8 rounding, and dgrad/wgrad are computed from the original x and weight, so no
+    gradient is ever quantized. For a single isolated matmul that makes the backward
+    numerically EXACT versus an ordinary bf16 Linear (verified, 0.0 relative error);
+    through a whole MLP it is near-exact rather than exact, because c_proj's wgrad is
+    taken against the relu^2 of an activation that the fp8 forward did perturb.
+    """
+
+    @staticmethod
+    def forward(ctx, x: torch.Tensor, weight: torch.Tensor) -> torch.Tensor:
+        ctx.save_for_backward(x, weight)
+        return _fp8_linear_forward(x, weight)
+
+    @staticmethod
+    def backward(ctx, grad_out: torch.Tensor):
+        x, weight = ctx.saved_tensors
+        grad_x = grad_out @ weight  # [..., O] @ [O, I] -> [..., I]
+        grad_w = grad_out.reshape(-1, grad_out.shape[-1]).t() @ x.reshape(-1, x.shape[-1])
+        return grad_x, grad_w.to(weight.dtype)
+
+
+class Fp8Linear(Linear):
+    """Linear whose forward matmul runs in fp8 when USE_FP8_LINEAR is on.
+
+    Deliberately a subclass of Linear, not a parallel implementation: it inherits the
+    exact same single `weight` parameter (so the state_dict is byte-for-byte the same
+    shape either way -- which is why USE_FP8_LINEAR is NOT shape-critical) and the same
+    USE_WEIGHT_CACHE / _cached_weight refresh pattern. The cached tensor is the one fed
+    to autograd, exactly as in Linear.forward, so grads still flow back through the
+    once-per-optimizer-step dtype cast to self.weight.
+
+    With USE_FP8_LINEAR off this is bit-identical to Linear -- it takes the same
+    super().forward(x) path, no fp8 code runs at all.
+    """
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        if not USE_FP8_LINEAR:
+            return super().forward(x)
+        if USE_WEIGHT_CACHE and self._cached_weight is not None and self._cached_weight.dtype == x.dtype:
+            weight = self._cached_weight
+        else:
+            weight = self.weight.to(dtype=x.dtype)
+        if not _fp8_can_run(x, weight):
+            return F.linear(x, weight, None)
+        return _Fp8LinearFn.apply(x, weight)
+
+
 def apply_rotary_emb(x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor) -> torch.Tensor:
     d = x.shape[-1] // 2
     x1, x2 = x[..., :d], x[..., d:]
@@ -2557,9 +2660,16 @@ class CausalSelfAttention(nn.Module):
 class MLP(nn.Module):
     def __init__(self, config: GPTConfig):
         super().__init__()
-        self.c_fc = Linear(config.n_embd, 4 * config.n_embd, bias=False)
+        # c_fc/c_proj are the two widest matmuls in the model, which is why they are the
+        # ones USE_FP8_LINEAR targets (matching modded-nanogpt's own FP8-MLP records).
+        # Fp8Linear is a Linear subclass with an identical parameter set, so picking the
+        # class here leaves the state_dict unchanged and makes the OFF path literally the
+        # pre-existing code. c_gate is left on plain Linear: USE_GATED_MLP is itself off
+        # by default, so an fp8 variant of it would be an unmeasured combination.
+        mlp_linear = Fp8Linear if USE_FP8_LINEAR else Linear
+        self.c_fc = mlp_linear(config.n_embd, 4 * config.n_embd, bias=False)
         self.c_gate = Linear(config.n_embd, 4 * config.n_embd, bias=False) if USE_GATED_MLP else None
-        self.c_proj = Linear(4 * config.n_embd, config.n_embd, bias=False)
+        self.c_proj = mlp_linear(4 * config.n_embd, config.n_embd, bias=False)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if self.c_gate is not None:
@@ -3253,6 +3363,7 @@ ARCH_TOGGLE_NAMES = [
     "USE_MAMBA2", "MAMBA2_PATTERN", "MAMBA2_HEAD_DIM", "MAMBA2_D_STATE",
     "MAMBA2_CHUNK", "MAMBA2_EXPAND", "MAMBA2_N_GROUPS", "MAMBA2_CONV_KERNEL",
     "USE_RWKV", "RWKV_PATTERN", "RWKV_HEAD_DIM", "RWKV_CHUNK", "RWKV_CMIX_EXPAND",
+    "USE_FP8_LINEAR",
 ]
 # Toggles whose mismatch corrupts the state_dict shape (load_state_dict(strict=True) will
 # error loudly). Everything else in ARCH_TOGGLE_NAMES lives in non-persistent buffers or
@@ -3278,6 +3389,11 @@ SHAPE_CRITICAL_TOGGLES = {"USE_VE", "USE_LOCAL_CONV", "USE_GATED_MLP", "USE_SELE
                           # changes shape, so it is deliberately NOT in this set.
                           "USE_RWKV", "RWKV_PATTERN", "RWKV_HEAD_DIM",
                           "RWKV_CMIX_EXPAND"}
+# USE_FP8_LINEAR is deliberately NOT in the set above: Fp8Linear is a Linear subclass with
+# the identical single `weight` parameter, so flipping it changes only the arithmetic used
+# inside MLP.forward, never a tensor's name or shape. That makes it exactly the
+# "silent-behavior" class of mismatch the snapshot above exists to catch, which is why it
+# still belongs in ARCH_TOGGLE_NAMES.
 
 
 def current_toggles() -> dict:
@@ -3366,6 +3482,7 @@ def muon_momentum(step: int) -> float:
 
 def main() -> None:
     global USE_LOCAL_CONV, LRM_QUANTUM, USE_TENSOR_LR_SCALARS, USE_FOREACH_OPTIM, USE_MUDD, USE_DCMHA, USE_MAMBA2, MAMBA2_PATTERN, USE_NKI_SSD  # flags below default off these constants
+    global USE_FP8_LINEAR
     global MAMBA2_EXPAND, MAMBA2_D_STATE, MAMBA2_HEAD_DIM, MAMBA2_CHUNK, MAMBA2_N_GROUPS, MAMBA2_CONV_KERNEL
     global USE_RWKV, RWKV_PATTERN, RWKV_HEAD_DIM, RWKV_CHUNK, RWKV_CMIX_EXPAND
     parser = argparse.ArgumentParser(description="Neuron Competition R1 baseline")
@@ -3412,6 +3529,16 @@ def main() -> None:
                         help="batch the optimizer's per-parameter work into torch._foreach_* calls "
                              "instead of a Python loop of single-tensor ops. Bit-identical update "
                              "math; targets the optimizer step's launch/dispatch overhead only.")
+    parser.add_argument("--fp8-linear", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_FP8_LINEAR", "1" if USE_FP8_LINEAR else "0") != "0",
+                        help="run the MLP's c_fc/c_proj FORWARD matmul in float8_e4m3fn with "
+                             "current-scaling (backward stays bf16/fp32). Default OFF -- a real, "
+                             "measured DOUBLE negative on this stack: torch._scaled_mm, the only "
+                             "numerically correct fp8 GEMM here, is 136521x slower than bf16 "
+                             "F.linear (46366 vs 0.340 ms/call, per-call, never amortizes) AND fp8 "
+                             "costs 13x the per-matmul error of the bf16 it replaces (0.0374 vs "
+                             "0.00287). See the USE_FP8_LINEAR comment; exposed as a flag so the "
+                             "A/B runs from one identical binary.")
     parser.add_argument("--lrm-quantum", type=int,
                         default=int(os.environ.get("NEURON_COMPETITION_R1_LRM_QUANTUM", LRM_QUANTUM)),
                         help="snap the LR multiplier onto a 1/N grid (0 = continuous). Each distinct "
@@ -3500,6 +3627,7 @@ def main() -> None:
     LRM_QUANTUM = args.lrm_quantum
     USE_TENSOR_LR_SCALARS = args.tensor_lr_scalars
     USE_FOREACH_OPTIM = args.foreach_optim
+    USE_FP8_LINEAR = args.fp8_linear           # read by MLP.__init__, i.e. before GPT(config) below
     USE_MUDD = args.mudd                      # read by Block.__init__, i.e. before GPT(config) below
     USE_DCMHA = args.dcmha                    # read by CausalSelfAttention.__init__, i.e. before GPT(config) below
     USE_NKI_RELU2 = args.nki_relu2
@@ -3758,6 +3886,7 @@ def main() -> None:
         print(f"nki_ssd:           {args.nki_ssd}")
         print(f"rwkv:              {args.rwkv}")
         print(f"rwkv_pattern:      {args.rwkv_pattern}")
+        print(f"fp8_linear:        {args.fp8_linear}")
         print(f"num_steps:         {step}")
         print(f"total_tokens_M:    {total_train_tokens / 1e6:.1f}")
         print(f"world_size:        {world_size}")

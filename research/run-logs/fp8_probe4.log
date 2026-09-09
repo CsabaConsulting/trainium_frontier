@@ -1,0 +1,39 @@
+has torch.neuron: True | synchronize: True
+
+=== bf16 F.linear (the incumbent) ===
+    bf16 call 0:     15.323 ms  (sample=-0.0457)
+    bf16 call 1:      0.573 ms  (sample=-0.0457)
+    bf16 call 2:      0.384 ms  (sample=-0.0457)
+    bf16 call 3:      0.356 ms  (sample=-0.0457)
+    bf16 call 4:      0.384 ms  (sample=-0.0457)
+    bf16 call 5:      0.235 ms  (sample=-0.0457)
+  >> bf16: first=15.323 ms  steady(mean of 4)=0.340 ms
+
+=== fp8 torch._scaled_mm, operands ALREADY cast (matmul cost only) ===
+    _scaled_mm call 0:  46179.583 ms  (sample=22.0000)
+    _scaled_mm call 1:  47052.560 ms  (sample=22.0000)
+    _scaled_mm call 2:  46798.357 ms  (sample=22.0000)
+    _scaled_mm call 3:  46500.115 ms  (sample=22.0000)
+    _scaled_mm call 4:  46216.719 ms  (sample=22.0000)
+    _scaled_mm call 5:  45950.147 ms  (sample=22.0000)
+  >> _scaled_mm: first=46179.583 ms  steady(mean of 4)=46366.334 ms
+
+RATIO _scaled_mm / bf16 = 136520.7x
+
+=== control: is it _scaled_mm specifically, or any fp8 op? bf16->fp8 cast alone ===
+    cast call 0:      8.481 ms  (sample=-8.0000)
+    cast call 1:      2.698 ms  (sample=-8.0000)
+    cast call 2:      2.795 ms  (sample=-8.0000)
+    cast call 3:      2.868 ms  (sample=-8.0000)
+    cast call 4:      3.068 ms  (sample=-8.0000)
+    cast call 5:      3.653 ms  (sample=-8.0000)
+  >> cast: first=8.481 ms  steady(mean of 4)=3.096 ms
+
+=== control: fp8 operands but a bf16 matmul (upcast fp8->bf16 then F.linear) ===
+    fp8->bf16 mm call 0:      5.617 ms  (sample=11008.0000)
+    fp8->bf16 mm call 1:      5.784 ms  (sample=11008.0000)
+    fp8->bf16 mm call 2:      5.714 ms  (sample=11008.0000)
+    fp8->bf16 mm call 3:      5.368 ms  (sample=11008.0000)
+    fp8->bf16 mm call 4:      4.864 ms  (sample=11008.0000)
+    fp8->bf16 mm call 5:      4.922 ms  (sample=11008.0000)
+  >> fp8->bf16 mm: first=5.617 ms  steady(mean of 4)=5.217 ms

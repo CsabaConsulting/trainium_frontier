@@ -127,3 +127,145 @@ def run():
 
 if __name__ == "__main__":
     run()
+
+
+# ---------------------------------------------------------------------------
+# Phase 2 additions (this round): validate the design once wired into the REAL
+# MLP class shape rather than a standalone Linear, and answer the compounding
+# question offline (cheaply) before spending hardware time on it.
+#
+# Real locked config: DEPTH=6, ASPECT_RATIO=96 -> n_embd=640, MLP hidden=4*640=2560,
+# INIT_SCALE=0.68, SEQ_LEN=2048. MLP forward is c_proj(relu(c_fc(x))**2), i.e. TWO
+# fp8 matmuls per layer, six layers, wired into an additive residual stream.
+# ---------------------------------------------------------------------------
+
+N_EMBD = 640          # ASPECT_RATIO=96 * DEPTH=6 -> 640, train.py's locked width
+MLP_HIDDEN = 4 * N_EMBD
+INIT_SCALE = 0.68     # train.py's real locked INIT_SCALE (the Phase-1 pass used 1.0)
+DEPTH = 6
+
+
+def init_bound(fan_in: int, init_scale: float = INIT_SCALE) -> float:
+    """train.py's attn/mlp uniform-init bound: INIT_SCALE * sqrt(3) * fan_in**-0.5."""
+    return init_scale * (3.0 ** 0.5) * fan_in ** -0.5
+
+
+class Fp8LinearRef(torch.nn.Module):
+    """Offline stand-in for train.py's Fp8Linear: fp8 forward matmul (current-scaling,
+    both operands), full-precision backward. Mirrors Fp8LinearFn above but as a Module
+    so it can be dropped into a real MLP-shaped stack."""
+
+    def __init__(self, in_features: int, out_features: int, fp8: bool = True):
+        super().__init__()
+        b = init_bound(in_features)
+        self.weight = torch.nn.Parameter(torch.empty(out_features, in_features).uniform_(-b, b))
+        self.fp8 = fp8
+
+    def forward(self, x):
+        if not self.fp8:
+            return F.linear(x, self.weight)
+        return Fp8LinearFn.apply(x, self.weight)
+
+
+class MlpRef(torch.nn.Module):
+    """Exactly train.py's MLP.forward for the non-gated (default) path:
+    c_proj(relu_squared(c_fc(x))). Two matmuls, both fp8 when enabled."""
+
+    def __init__(self, n_embd: int, fp8: bool):
+        super().__init__()
+        self.c_fc = Fp8LinearRef(n_embd, 4 * n_embd, fp8=fp8)
+        self.c_proj = Fp8LinearRef(4 * n_embd, n_embd, fp8=fp8)
+
+    def forward(self, x):
+        return self.c_proj(F.relu(self.c_fc(x)).square())
+
+
+def rms_norm(x, eps: float = 1e-6):
+    """train.py's norm() is an RMSNorm; the MLP always sees post-norm activations."""
+    return x * torch.rsqrt(x.pow(2).mean(-1, keepdim=True) + eps)
+
+
+def run_phase2():
+    print()
+    print("=" * 78)
+    print("PHASE 2: real MLP class shape + DEPTH=6 residual-stream compounding")
+    print("=" * 78)
+
+    n_tokens = 512  # a slice of the real B*T=4096; error metrics are per-element ratios
+
+    # ---- 2a: one whole MLP (both matmuls fp8), real locked shape and init scale ----
+    print()
+    print(f"=== 2a: full MLP forward error, n_embd={N_EMBD} hidden={MLP_HIDDEN} INIT_SCALE={INIT_SCALE} ===")
+    print("    (two chained fp8 matmuls with a relu^2 nonlinearity between them)")
+    for act_scale in [0.1, 1.0, 3.0, 10.0]:
+        torch.manual_seed(0)
+        mlp8 = MlpRef(N_EMBD, fp8=True)
+        torch.manual_seed(0)
+        mlp_ref = MlpRef(N_EMBD, fp8=False)
+        x = rms_norm(torch.randn(n_tokens, N_EMBD)) * act_scale
+        y_ref = mlp_ref(x).detach()
+        y_8 = mlp8(x).detach()
+        print(f"  act_scale={act_scale:5.1f}: MLP rel_l2_err={relative_l2_error(y_ref, y_8):.4f}  "
+              f"cos={float(F.cosine_similarity(y_ref.flatten(), y_8.flatten(), dim=0)):.6f}")
+
+    # ---- 2b: exact-backward, re-checked at the real MLP shape (not a lone Linear) ----
+    print()
+    print("=== 2b: backward through the FULL MLP (both fp8 matmuls) ===")
+    torch.manual_seed(0)
+    mlp8 = MlpRef(N_EMBD, fp8=True)
+    torch.manual_seed(0)
+    mlp_ref = MlpRef(N_EMBD, fp8=False)
+    x0 = rms_norm(torch.randn(n_tokens, N_EMBD))
+    xa = x0.clone().requires_grad_(True)
+    xb = x0.clone().requires_grad_(True)
+    mlp_ref(xa).sum().backward()
+    mlp8(xb).sum().backward()
+    print(f"  grad_x   rel_l2_err={relative_l2_error(xa.grad, xb.grad):.6f}")
+    for (n1, p1), (n2, p2) in zip(mlp_ref.named_parameters(), mlp8.named_parameters()):
+        print(f"  {n1:16s} rel_l2_err={relative_l2_error(p1.grad, p2.grad):.6f}  "
+              f"nan={bool(torch.isnan(p2.grad).any())}")
+    print("  CORRECTION to the Phase-1 claim above: backward is exact ONLY for a single isolated")
+    print("  matmul (the 0.0000 the Phase-1 block prints). Wired into the real MLP it is NOT exact --")
+    print("  the fp8 forward perturbs the relu^2 activation that c_proj's own grad_w is taken")
+    print("  against, so real gradients carry a few percent error. That is the honest number, and")
+    print("  it is reproduced on real hardware (grad_x 4.79%, grad_w_fc 4.73%).")
+
+    # ---- 2c: THE OPEN QUESTION -- compounding through a DEPTH=6 residual stream ----
+    print()
+    print(f"=== 2c: compounding through DEPTH={DEPTH} additive residual blocks ===")
+    print("    x = x + mlp(norm(x)), repeated -- the real question the Phase-1 pass flagged.")
+    torch.manual_seed(1)
+    mlps8 = [MlpRef(N_EMBD, fp8=True) for _ in range(DEPTH)]
+    torch.manual_seed(1)
+    mlps_ref = [MlpRef(N_EMBD, fp8=False) for _ in range(DEPTH)]
+    torch.manual_seed(7)
+    x = rms_norm(torch.randn(n_tokens, N_EMBD))
+    h_ref, h_8 = x.clone(), x.clone()
+    print(f"  {'layer':>5}  {'resid rel_l2':>13}  {'mlp-out rel_l2':>14}  {'cos(resid)':>11}")
+    for i in range(DEPTH):
+        m_ref = mlps_ref[i](rms_norm(h_ref))
+        m_8 = mlps8[i](rms_norm(h_8))
+        h_ref = h_ref + m_ref
+        h_8 = h_8 + m_8
+        print(f"  {i:>5}  {relative_l2_error(h_ref, h_8):>13.5f}  {relative_l2_error(m_ref, m_8):>14.5f}  "
+              f"{float(F.cosine_similarity(h_ref.flatten(), h_8.flatten(), dim=0)):>11.6f}")
+    print("  If the residual-stream column grows sub-linearly / saturates, the additive-residual")
+    print("  bounded-compounding expectation holds. Linear-or-worse growth would be the red flag.")
+
+    # ---- 2d: does the perturbation actually change the LOSS materially? ----
+    print()
+    print("=== 2d: effect on a real next-token loss (proxy: 6-block stack -> tied lm_head) ===")
+    vocab = 8192
+    torch.manual_seed(3)
+    head = torch.empty(vocab, N_EMBD).uniform_(-init_bound(N_EMBD), init_bound(N_EMBD))
+    targets = torch.randint(0, vocab, (n_tokens,))
+    for name, h in (("bf16-ref", h_ref), ("fp8", h_8)):
+        logits = F.linear(rms_norm(h), head)
+        capped = 15.0 * torch.tanh(logits / 15.0)  # train.py's LOGIT_SOFTCAP
+        loss = F.cross_entropy(capped, targets)
+        print(f"  {name:9s}: loss={float(loss):.6f}  bpb-ish={float(loss)/torch.log(torch.tensor(2.0)):.6f}")
+    print("  (random head/targets, so absolute loss is ~ln(vocab); what matters is the DELTA.)")
+
+
+if __name__ == "__main__":
+    run_phase2()

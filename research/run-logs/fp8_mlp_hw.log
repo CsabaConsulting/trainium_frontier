@@ -1,0 +1,25 @@
+n_embd=576 hidden=2304
+OFF arm c_fc class: Linear
+ON  arm c_fc class: Fp8Linear | state_dict keys identical: True
+/tmp/fp8_mlp_hw.py:42: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:836.)
+  print(f"CPU fp32 reference: absmax={float(y_ref_cpu.abs().max()):.4f}")
+CPU fp32 reference: absmax=1.1650
+
+=== USE_FP8_LINEAR=False on device (the incumbent) ===
+  [OFF] fwd=   1771.7 ms  bwd=   6427.9 ms
+  [OFF] out: rel_l2 vs CPU-fp32-ref=0.00524 absmax=1.1641 nan=False inf=False
+  [OFF] grad_x  absmax=0.000002 nan=False
+  [OFF] grad_w_fc absmax=0.000067 nan=False
+
+=== USE_FP8_LINEAR=True on device (2 real fp8 GEMMs) ===
+  [ON ] fwd=  95406.9 ms  bwd=   1691.9 ms
+  [ON ] out: rel_l2 vs CPU-fp32-ref=0.05652 absmax=1.1719 nan=False inf=False
+  [ON ] grad_x  absmax=0.000002 nan=False
+  [ON ] grad_w_fc absmax=0.000068 nan=False
+
+=== ON vs OFF, real hardware, identical weights ===
+  forward   rel_l2 = 0.05654   cos = 0.998330
+  grad_x    rel_l2 = 0.04794
+  grad_w_fc rel_l2 = 0.04734
+  offline harness predicted whole-MLP forward rel_l2 = 0.0561 (CPU-simulated)

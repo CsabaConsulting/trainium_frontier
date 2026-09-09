@@ -450,7 +450,7 @@ Real, time-boxed research (not full implementation attempts) on the rest of `mod
 
 **Prefix-token-prediction auxiliary loss (record #88)**: traced to the real underlying idea — "during early training, add an auxiliary loss on the longest token-prefix of each target token" (a coarse-to-fine auxiliary classification signal derived from the tokenizer's subword structure, intended to bootstrap the embedding/output space faster before the fine-grained full-vocab signal is well-learned). Legal in principle (an auxiliary loss term is squarely within `train.py`'s "architecture/training loop" freedom; deriving a static prefix-class lookup table by *reading* — not modifying — the fixed tokenizer's vocabulary would not touch `prepare.py`). **Not pursued this round**: real, nontrivial work to correctly derive the "prefix" structure from our specific BPE tokenizer (8192 vocab, unknown merge order without direct inspection), and a real, open question whether the annealed-out early-training benefit the technique is designed for even applies here — our entire run (~500-750 steps) *is* "early training" by the standard this technique targets, so there's no later phase to anneal into; unclear a priori whether the extra head/loss term pays for itself over that short a horizon. Genuinely worth a closer look if more time is spent on Bucket D-style bets, not ruled out on the merits, just not time-boxed into this round.
 
-**FP8 MLP/matmul precision (records #84/#89)**: real feasibility check, direct SDK introspection (matching this session's established discipline rather than assuming) — **corrects an earlier research note's uncertainty**. Confirmed real on this SDK: `torch.matmul` on direct `float8_e4m3fn` tensors works natively on the `neuron` device (no upcast needed), and `neuronx-cc compile --help` lists a real `--auto-cast-type fp8_e4m3` compiler flag — genuine training-path FP8 support exists, not just the inference-quantization tutorials found earlier. One real snag: `nn.Linear`'s native fp8 weight init fails (`check_uniform_bounds` not implemented for the dtype) — a real, but standard-pattern-solvable limitation (real fp8 training keeps bf16/fp32 "master" weights and casts to fp8 only around the forward matmul, with a delayed-scaling calibration scheme — matching `modded-nanogpt`'s own record #89 description, "efficient delayed scaling metric"). **Not implemented this round**: building this properly (a custom autograd-wrapped cast-and-scale Linear, with real numerical verification) is a genuine engineering project comparable in size to writing a new NKI kernel, not a quick toggle — flagged as a real, confirmed-feasible candidate for future work, not a quick win to grab now.
+**FP8 MLP/matmul precision (records #84/#89)**: real feasibility check, direct SDK introspection (matching this session's established discipline rather than assuming) — **corrects an earlier research note's uncertainty**. Confirmed real on this SDK: `torch.matmul` on direct `float8_e4m3fn` tensors works natively on the `neuron` device (no upcast needed) **[SUPERSEDED -- see the FP8 Phase 2 section below: `torch.matmul` on fp8 operands does not raise but returns an all-NaN fp8 result; the real, numerically-correct fp8 GEMM here is `torch._scaled_mm`, and it is 136521x slower than bf16]**, and `neuronx-cc compile --help` lists a real `--auto-cast-type fp8_e4m3` compiler flag — genuine training-path FP8 support exists, not just the inference-quantization tutorials found earlier. One real snag: `nn.Linear`'s native fp8 weight init fails (`check_uniform_bounds` not implemented for the dtype) — a real, but standard-pattern-solvable limitation (real fp8 training keeps bf16/fp32 "master" weights and casts to fp8 only around the forward matmul, with a delayed-scaling calibration scheme — matching `modded-nanogpt`'s own record #89 description, "efficient delayed scaling metric"). **Not implemented this round**: building this properly (a custom autograd-wrapped cast-and-scale Linear, with real numerical verification) is a genuine engineering project comparable in size to writing a new NKI kernel, not a quick toggle — flagged as a real, confirmed-feasible candidate for future work, not a quick win to grab now.
 
 ## Bucket E, second attempt — `torch.compile(backend="neuron")`: real win, confirmed at full 1800s budget, now default ON
 
@@ -569,6 +569,129 @@ compounding isn't the obvious default expectation — but this is exactly the ki
 to verify with a real loss-trajectory smoke test, not settle by more offline reasoning).
 Real-hardware correctness smoke test (causality + loss-trajectory sanity) is next, once
 `local_conv` kernel work frees up the shared Trn2 device.
+
+## FP8 training-path precision — Phase 2 (integration + real hardware): CLOSED, double negative
+
+`Fp8Linear` is now really wired into `train.py`'s `MLP` (`c_fc`/`c_proj` only) behind
+`USE_FP8_LINEAR` / `--fp8-linear`, default OFF. Attention's `c_q/c_k/c_v/c_proj` and
+`lm_head` were deliberately left alone, per the Phase-1 design's own reasoning about
+compounding into the verified rope/softcap kernels. The answer is a real, cleanly-measured
+**negative on both axes at once**, so there is no configuration in which this pays.
+
+### The finding that decided it: there is no fp8 GEMM path on this stack
+
+Matched methodology, real host-visible sync per iteration on both arms, real `c_fc` shape
+`[2048,640] x [640,2560]`, single core, eager (`research/scratch/fp8_probe4.py`,
+`research/run-logs/fp8_probe4.log`):
+
+| op | steady ms/call | vs bf16 |
+|---|---|---|
+| `F.linear` bf16 (the incumbent) | **0.340** | 1x |
+| `torch._scaled_mm` fp8 (only correct fp8 GEMM here) | **46366** | **136521x SLOWER** |
+| bf16 -> fp8 cast alone | 3.096 | 9.1x |
+| fp8 -> bf16 upcast, then bf16 matmul | 5.217 | 15.3x |
+
+The `_scaled_mm` cost is **per call and never amortizes** — the six individual calls were
+46180 / 47053 / 46798 / 46500 / 46217 / 45950 ms, so this is not a one-time `neuronx-cc`
+compile (the bf16 arm shows what compile looks like: 15.3 ms first call, 0.340 steady).
+The two controls localise it precisely to the GEMM: fp8 as a *dtype* is fine here (casts
+and upcast-then-bf16-matmul are both sane), there is simply **no fp8 Tensor-Engine GEMM
+exposed through this Trainium2 native-PyTorch stack**. Smaller dtype did not mean faster,
+which is exactly the thing worth verifying rather than assuming.
+
+### Correction to the earlier note (records #84/#89, line 453 of this file)
+
+That note recorded that "`torch.matmul` on direct `float8_e4m3fn` tensors works natively on
+the `neuron` device (no upcast needed)". **It does not raise, but it is silently wrong.**
+Measured: `torch.matmul(fp8, fp8)` returns a `float8_e4m3fn` (i.e. *not* fp32-accumulated)
+result that is **all-NaN** at the real `c_fc` shape (`rel_l2=nan`, `absmax=nan`), and
+all-zero at another shape tried. "Works" meant "did not throw". This is why the
+implementation uses `torch._scaled_mm` and never `torch.matmul` on fp8 operands.
+`neuronx-cc`'s `--auto-cast-type fp8_e4m3` flag *is* real and still present on the
+installed SDK (2.26.6360.0) — but `--auto-cast` casts **FP32** operators by its own
+documentation, and this model already runs in bf16, so it has nothing to act on here.
+
+### Quality: fp8 costs 13x the error of the bf16 it replaces
+
+Against an fp64 CPU reference at the real `c_fc` shape: fp8 forward `rel_l2 = 0.0374`
+versus bf16's `0.00287`. The offline harness's CPU-simulated prediction was `0.0374` —
+**matching real hardware to four decimals**, which makes
+`research/scratch/fp8_linear_equiv.py` a trustworthy model of this hardware.
+
+### The open compounding question: answered, and it is NOT the problem
+
+The harness now builds the real `MLP` shape (`n_embd=640`, hidden `2560`, real
+`INIT_SCALE=0.68`) and runs it through `DEPTH=6` additive residual blocks:
+
+| layer | residual-stream `rel_l2` | mlp-out `rel_l2` | cos(residual) |
+|---|---|---|---|
+| 0 | 0.02016 | 0.05683 | 0.999801 |
+| 1 | 0.02823 | 0.06068 | 0.999606 |
+| 2 | 0.03388 | 0.06456 | 0.999430 |
+| 3 | 0.03860 | 0.06834 | 0.999259 |
+| 4 | 0.04231 | 0.07114 | 0.999110 |
+| 5 | 0.04564 | 0.07465 | 0.998965 |
+
+Growth is **sub-`sqrt(L)`** (`0.02016 * sqrt(6) = 0.0494` bounds the observed `0.04564`) —
+a random-walk accumulation, not multiplicative blow-up — and cosine similarity is still
+`0.9990` after all six layers. **The Phase-1 expectation was right: additive residual
+connections keep this bounded.** Compounding was never the real risk; the GEMM speed was.
+
+### Two honest corrections to Phase 1's own claims
+
+1. **"Backward exact (0.0000)" does not survive integration.** That is true only for a
+   single isolated matmul. Wired into the real `MLP`, the fp8 forward perturbs the `relu^2`
+   activation that `c_proj`'s `wgrad` is taken against, so gradients really do carry error:
+   offline `grad_x 3.70% / c_fc.weight 3.40% / c_proj.weight 0.53%`, and on real hardware
+   `grad_x 4.79% / grad_w_fc 4.73%`. Gradient quantization was avoided by design; gradient
+   *contamination* through the perturbed activation was not, and is real.
+2. **Whole-MLP forward error is `5.6%`, not `3.6%`** — two chained fp8 matmuls, and real
+   hardware confirms it: `0.05654` measured ON-vs-OFF on device against the harness's
+   `0.0561` prediction (`research/scratch/fp8_mlp_hw.py`).
+
+### Real-hardware integration checks
+
+- **The integrated path is real and NaN-free.** `train.py`'s own `MLP` on the `neuron`
+  device: OFF arm builds `Linear`, ON arm builds `Fp8Linear`, `state_dict` keys identical
+  and `load_state_dict(strict=True)` cross-loads both ways (which is why `USE_FP8_LINEAR`
+  is in `ARCH_TOGGLE_NAMES` but deliberately **not** in `SHAPE_CRITICAL_TOGGLES`). No
+  NaN/Inf in forward, `grad_x`, or `grad_w`.
+- **Full model, one micro-step, fp8 ON vs OFF** (`research/scratch/fp8_full_model.py`):
+  no NaN/Inf in **any** of the model's gradients; forward-only-fp8 behaves exactly as
+  designed (`fwd 946.44 s` fp8 vs `bwd 2.50 s` bf16 — the backward really does stay on the
+  fast path); micro-step `948.94 s` ON vs `63.89 s` OFF.
+- **`USE_FP8_LINEAR=False` is a clean no-op**, which is the check that actually protects
+  the submission: 15-step single-device smoke on the edited file gives
+  `causality_passed: True`, `causality_max_abs: 0.000000`, `num_params 55,721,452`
+  (unchanged), `fp8_linear: False` (`research/run-logs/fp8-smoke-off.log`).
+
+### Why there is no 900s A/B row, stated plainly
+
+From the measured `948.94 s` per micro-step and the real `grad_accum_steps`
+(32 at 1 rank, 8 at 4 ranks), **one optimizer step with fp8 costs 2.11 h at 4 ranks**
+(8.44 h single-device). The requested dozens-to-100-step loss-trajectory run is
+**~8.8 days**; a 900s proxy would complete **zero** steps against the current baseline's
+1003. So the loss-trajectory check was not run — not skipped for convenience, but because
+it is ~4 orders of magnitude outside any budget on a shared box, and the compounding
+question it was meant to settle has been answered offline against a harness that matches
+this hardware to four decimals.
+
+**One trap worth recording**: the full-model test reports `loss OFF == ON == 10.824890`,
+delta exactly `0.000000`. That is **not** evidence that fp8 is harmless. `init_weights()`
+does `torch.nn.init.zeros_(block.mlp.c_proj.weight)`, so at step 0 the entire MLP branch
+outputs exactly `0` and the fp8 forward provably cannot move the loss. Reading that zero
+as "fp8 is free" would have been a real false positive.
+
+**Decision: `USE_FP8_LINEAR=False`, closed out.** Real, correctly-implemented,
+numerically-validated technique with genuine precedent at this step-count scale
+(`modded-nanogpt` #84/#89), and it fails on this specific hardware stack for a reason that
+has nothing to do with the design being wrong: the fp8 GEMM is 136521x slower than the
+bf16 it would replace, while also being 13x less accurate. Code stays in-tree, off by
+default, per this session's standing pattern for honest negatives. The one thing that
+would change the verdict is a future SDK exposing a real fp8 Tensor-Engine GEMM (or an NKI
+kernel doing the fp8 matmul directly, bypassing `_scaled_mm` — untested, and it would have
+to beat a bf16 matmul that is already near peak TensorE efficiency, so it is not obviously
+worth the attempt).
 
 ---
 
@@ -914,7 +1037,7 @@ behind), `TOTAL_BATCH_SIZE=131072` (beats both neighbors), `MUON_MOMENTUM_WARMUP
 (beats both neighbors), `EMBED_ADAMW_BETA2=0.95` (beats 0.995 again). **Every locked
 default was already correct** — the 2.35x step-count jump changed how many steps complete,
 not which architecture/hyperparameters are optimal. Remaining Tier 0 items: re-profile
-(now that the optimizer no longer dominates the tail) and FP8 real-hardware validation.
+(now that the optimizer no longer dominates the tail). FP8 real-hardware validation is now DONE and CLOSED as a double negative -- see the "FP8 training-path precision - Phase 2" section above.
 
 ## RWKV "x051a" (`USE_RWKV`): eager port lands, real hardware says no — twice
 

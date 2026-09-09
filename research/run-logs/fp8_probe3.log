@@ -1,0 +1,10 @@
+CPU reference: absmax=6.5730 norm=2894.43
+CPU-simulated fp8 (harness math): rel_l2 vs ref = 0.0374
+A) device torch.matmul(fp8,fp8): out_dtype=torch.float8_e4m3fn rel_l2=nan absmax=nan nan=True zeros_frac=0.0000
+B) _scaled_mm(w.t().contiguous()): out=torch.float32 rel_l2=0.0374 absmax=6.5436 nan=False
+C) _scaled_mm(w.t() view, bf16 out): rel_l2=0.0374 absmax=6.5312 nan=False
+D) bf16 F.linear on device: rel_l2 vs ref=0.00287
+
+=== SPEED (eager, single core, ms/call, real MLP c_fc shape 2048x640x2560) ===
+  bf16 F.linear                 : 0.132 ms
+  _scaled_mm (pre-cast operands): 46588.263 ms   [matmul only, no cast/amax]

@@ -1,0 +1,18 @@
+cfg n_embd=576 n_head=4 n_layer=6 seq_len=2048
+WARNING:torch_neuronx.python_ops.dtype_autocast:Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
+[OFF] c_fc class=Linear params=168.8M
+[OFF] loss=10.824890  finite=True
+[OFF] fwd=   30.22s  bwd=   33.67s  micro_step_total=   63.89s
+[OFF] grad NaN/Inf tensors=0 []  grad_absmax=0.001641
+
+[ON ] c_fc class=Fp8Linear params=168.8M
+[ON ] loss=10.824890  finite=True
+[ON ] fwd=  946.44s  bwd=    2.50s  micro_step_total=  948.94s
+[ON ] grad NaN/Inf tensors=0 []  grad_absmax=0.001641
+
+=== FULL MODEL, real hardware, identical init seed ===
+  loss  OFF=10.824890   ON=10.824890   delta=+0.000000
+  micro-step time OFF=63.89s  ON=948.94s  slowdown=14.9x
+  grad_accum_steps: 32 (1 rank) / 8 (4 ranks)
+  => ONE optimizer step with fp8: 8.44 h (1 rank), 2.11 h (4 ranks)
+  => 100-step loss-trajectory run: 8.8 DAYS at 4 ranks
