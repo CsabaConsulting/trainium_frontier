@@ -4397,6 +4397,16 @@ def main() -> None:
                     group["initial_lr"] = group["initial_lr"] * ADAM_EVERY_N
         print0(f"adam_every_n={ADAM_EVERY_N} lr_comp={ADAM_EVERY_N_LR_COMP}: "
                f"{len(adamw_skip_ids)} AdamW params update every {ADAM_EVERY_N} steps")
+    # T1.10: hoist the Linear lookup out of the step loop. The refresh below used to walk the whole
+    # `model.modules()` tree and isinstance-test every module on EVERY step to find the same ~40
+    # Linears; the set never changes after construction. Pure removal of per-step Python work, no
+    # numerics change, no new code path. (The measured alternative -- one `torch._foreach_copy_`
+    # into preallocated bf16 buffers instead of ~40 separate `weight.to(dtype)` casts -- is a real
+    # but tiny 2.65ms -> 1.20ms per step, i.e. 0.17% of an 837ms step, so it was NOT adopted: it
+    # needs a second code path and a duplicate set of buffers to buy less than the run-to-run
+    # noise on step_total. See trn2-experiment-results.md T1.10.)
+    cached_linears = [m for m in model.modules() if isinstance(m, Linear)] if USE_WEIGHT_CACHE else []
+
     loop_started = time.monotonic()
     budget_started = loop_started
 
@@ -4449,10 +4459,8 @@ def main() -> None:
                 group["momentum"] = muon_momentum(step, wd_progress)
                 group["weight_decay"] = WEIGHT_DECAY * (1.0 - wd_progress) if WD_DECAY_TO_ZERO else WEIGHT_DECAY
         optimizer.step(update_adamw=adam_step_now)
-        if USE_WEIGHT_CACHE:
-            for m in model.modules():
-                if isinstance(m, Linear):
-                    m.refresh_weight_cache(COMPUTE_DTYPE)
+        for m in cached_linears:  # T1.10: prebuilt list; empty when USE_WEIGHT_CACHE is off
+            m.refresh_weight_cache(COMPUTE_DTYPE)
 
         synchronize(device)
         record_step_boundary(step)
