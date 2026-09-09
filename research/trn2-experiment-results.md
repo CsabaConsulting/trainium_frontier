@@ -1943,3 +1943,92 @@ label" rule exists to catch. (Fixed: `--pack-factor` is now a real flag, so the 
 is reproducible from the launch command alone.) The historical 776-step figure is
 therefore under suspicion of being a stale-commit artifact rather than a property of
 PACK_FACTOR=4, and the only way to settle it is a real 900s run at PF=4 on current code.
+
+**(3) The real 900s re-test settles it: PACK_FACTOR=4 is a REAL WIN and is now the
+default.** Paired same-day same-commit A/B, 900s budget, 4 ranks / LNC=2, all four runs
+`causality_passed True` / `causality_max_abs 0.0`:
+
+| run | `pack_factor` | `grad_accum_steps` | steps | s/step | `total_tokens_M` | `public_val_bpb` |
+|---|---|---|---|---|---|---|
+| `t01-kernel2-900s` | 2 | 8 | 1049 | 0.8531 | 137.5 | 1.085529 |
+| `t04-base-900s` | 2 | 8 | 1054 | 0.8487 | 138.1 | 1.085307 |
+| `t15-packfactor4-900s` | 4 | 4 | 1077 | 0.8306 | 141.2 | **1.083610** |
+| `t15-packfactor4-900s-v2` | 4 | 4 | 1080 | 0.8283 | 141.6 | **1.083759** |
+
+Group means: PF=2 **1.085418**, PF=4 **1.083685** → **−0.001734 bpb and +27 steps
+(+2.6%)**. This sits in the "<0.003 needs a paired same-day same-commit repeat" band, and
+the repeat is what the table is: **both** PF=4 runs beat **both** PF=2 runs, and the
+within-pair spreads (0.000149 for PF=4, 0.000222 for PF=2) are ~8x smaller than the
+between-group gap. Headers read directly off each run rather than trusted from the label:
+`micro_tokens=32,768 grad_accum_steps=4 pack_factor=4`, `num_params 55,721,452`,
+`seq_len 2048`, `world_size 4`, `lnc 2` — and `total_tokens_M` scales exactly with step
+count (141.2/1077 = 138.1/1054 = 0.1311 M/step), confirming `TOTAL_BATCH_SIZE` really is
+held fixed and this is a pure regrouping.
+
+The measured 0.8306 s/step vs 0.8487 (−2.1%) matches the microbenchmark's predicted −2.9%
+device saving, so the throughput half of the win is mechanically explained rather than
+merely observed. The bpb half is mostly *downstream* of it (more steps in the same wall
+clock at identical per-step math).
+
+**`PACK_FACTOR = 4` is now the hardcoded default**, and the old comment claiming "4 lost
+decisively (776/1.113876)" has been corrected in place. **PACK_FACTOR=8 is deliberately
+NOT A/B'd**: the microbenchmark already shows 8 rows at 23.800 µs/token, worse than both
+4 (21.673) and 2 (22.322), i.e. past the per-token optimum — the cheap measurement
+answered the expensive question.
+
+**Honest process finding, and the most transferable one here.** The original PACK_FACTOR=4
+result was not a wrong measurement — it was a *correctly measured obsolete* one. It stood
+in a comment as settled fact for days and was actively used to justify not revisiting the
+axis. Two things let that happen: (a) the run's `launch_command` did not record the
+setting under test, because PACK_FACTOR was only reachable by editing the constant, so
+nothing about the row was reproducible; (b) nothing re-checked it after `USE_NKI_MUON`
+and the other step-time work changed the surrounding cost structure. Both are now
+addressed for this one axis (`--pack-factor` exists; the comment cites the runs). The
+general lesson: **a throughput-axis conclusion has a shelf life exactly as long as the
+step-time breakdown it was measured against, and any toggle not settable from the launch
+command is a conclusion that cannot be audited later.**
+
+### T1.9 — per-step host syncs and `.item()` calls: counted, measured, deliberately unchanged
+
+Static count of the real per-step host round-trips in `train.py`'s main loop: **2
+`synchronize(device)`** (the step-boundary barriers that make `dt` meaningful), **1
+`float(last_loss.item())`** (logging + the NaN check), **1 `dist.all_reduce(control,
+ReduceOp.MAX)`**, and **2 `int(control[i].item())`** (NaN flag, stop flag). So the loss
+*is* read on every single step, exactly as suspected.
+
+Measured cost (phase_timer `--time-loss-item`, PF=4 shape, real dataloader,
+`--foreach-optim`, 6 steady-state steps): `loss_item` **0.1–0.7 ms** (median ~0.35 ms) and
+`control` **0.7–2.8 ms**. Against an ~837 ms step that is **0.04%** and **~0.2%**
+respectively. The reason it is this cheap is structural, not lucky: `last_loss.item()`
+lands immediately after the step-boundary `synchronize(device)`, so the device is already
+idle and there is no pipeline to stall — the read is a memcpy, not a barrier.
+
+**Verdict: no change.** Deferring the loss read to every 10th step buys ~0.3 ms/step
+(0.04%) and costs a restructured NaN guard (an on-device `isnan` folded into the control
+tensor) in the one place in the loop where a mistake silently lets a diverged run keep
+burning budget. The original hypothesis — "the loss is `.item()`'d every step just for
+logging, which must be stalling the pipeline" — is **half right and half wrong**: it *is*
+read every step, and it costs essentially nothing.
+
+### T1.10 — batched weight-cache refresh: real, 0.17%, not adopted (one free half taken)
+
+`refresh_weight_cache` does ~40 separate `weight.to(bf16)` casts per step, one device op
+each. Measured both ways before changing anything, same harness/shape as above:
+
+| refresh mode | `wcache_ms` (6 steps) | median |
+|---|---|---|
+| `loop` — per-Linear `weight.to(dtype)` (current) | 2.2–2.8 | 2.65 |
+| `foreach` — one `torch._foreach_copy_` into preallocated bf16 buffers | 1.0–1.3 | 1.20 |
+
+**Real, reproducible, and 1.45 ms — 0.17% of the step.** `step_total_ms` medians were
+837.5 (loop) vs 834.8 (foreach): directionally consistent, but the difference is inside
+the ±5 ms run-to-run spread on `step_total`, which is the honest way to say that this
+saving is not independently visible at the level that matters. **Not adopted**: it needs a
+second code path plus a duplicated set of bf16 buffers to buy less than the noise. (It is
+also worth noting `torch._foreach_copy_` is eager-only on this stack — safe here only
+because the refresh sits outside the compiled region, in the training loop.)
+
+**One half of it was free and was taken.** The refresh was walking the entire
+`model.modules()` tree and `isinstance`-testing every module *on every step* to rebuild
+the same never-changing ~40-Linear list. That list is now built once before the loop. Pure
+removal of per-step Python work, no numerics change, no new code path, no flag.
