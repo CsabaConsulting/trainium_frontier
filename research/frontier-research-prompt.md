@@ -12,6 +12,6 @@ In a CCR (Claude Code Router) + OpenRouter proxied Claude Code harness
 Bedrock
 ===
 1. us.anthropic.claude-fable-5-1 (claude --resume da46ad08-dcac-4b8f-96ec-8aee625202c9)
-2. openai.gpt-6-astra
-3. xai.grok-4.6
+2. us.openai.gpt-6-astra
+3. us.xai.grok-4.6
 
