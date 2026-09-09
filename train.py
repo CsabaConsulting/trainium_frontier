@@ -3992,6 +3992,14 @@ def main() -> None:
     global MAMBA2_EXPAND, MAMBA2_D_STATE, MAMBA2_HEAD_DIM, MAMBA2_CHUNK, MAMBA2_N_GROUPS, MAMBA2_CONV_KERNEL
     global USE_RWKV, RWKV_PATTERN, RWKV_HEAD_DIM, RWKV_CHUNK, RWKV_CMIX_EXPAND
     global LOCAL_CONV_KERNEL, TRAIN_LOCAL_CONV
+    # T0.4/T1.4 resweep knobs. These must be declared global HERE, at the top of main(), not next
+    # to their assignments further down: the argparse defaults below READ them, and Python rejects
+    # a `global` statement that follows any use of the name in the same function
+    # ("SyntaxError: name 'MATRIX_LR' is used prior to global declaration").
+    global MATRIX_LR, EMBEDDING_LR, UNEMBEDDING_LR, SCALAR_LR, WEIGHT_DECAY, WD_DECAY_TO_ZERO
+    global FINAL_LR_FRAC, WARMDOWN_RATIO, INIT_SCALE, ATTN_CPROJ_INIT_SCALE, LOGIT_SOFTCAP
+    global MUON_NS_STEPS, MUON_MOMENTUM_COOLDOWN_FRAC, MUON_MOMENTUM_FINAL
+    global ADAM_EVERY_N, ADAM_EVERY_N_LR_COMP
     parser = argparse.ArgumentParser(description="Neuron Competition R1 baseline")
     parser.add_argument("--device-type", type=str, default="")
     parser.add_argument("--num-steps", type=int, default=int(os.environ.get("NEURON_COMPETITION_R1_NUM_STEPS", NUM_STEPS)))
@@ -4233,12 +4241,9 @@ def main() -> None:
                      "Pick one, or use its pattern flag to keep some attention layers.")
 
     global USE_NKI_RELU2, USE_NKI_ROPE_NORM, USE_NKI_SOFTCAP_CE, USE_NKI_MUON
-    # T0.4 resweep knobs (see the _hp block above). Assigned here, i.e. before GPT(config) and
-    # before setup_optimizer(), which is where every one of them is read.
-    global MATRIX_LR, EMBEDDING_LR, UNEMBEDDING_LR, SCALAR_LR, WEIGHT_DECAY, WD_DECAY_TO_ZERO
-    global FINAL_LR_FRAC, WARMDOWN_RATIO, INIT_SCALE, ATTN_CPROJ_INIT_SCALE, LOGIT_SOFTCAP
-    global MUON_NS_STEPS, MUON_MOMENTUM_COOLDOWN_FRAC, MUON_MOMENTUM_FINAL
-    global ADAM_EVERY_N, ADAM_EVERY_N_LR_COMP
+    # T0.4/T1.4 resweep knobs (see the _hp block above; declared global at the top of main()).
+    # Assigned here, i.e. before GPT(config) and before setup_optimizer(), which is where every
+    # one of them is read.
     ADAM_EVERY_N = args.adam_every_n
     ADAM_EVERY_N_LR_COMP = args.adam_every_n_lr_comp
     MATRIX_LR = args.matrix_lr
