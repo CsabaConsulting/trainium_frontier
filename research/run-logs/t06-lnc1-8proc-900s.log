@@ -1,0 +1,213 @@
+device=neuron dtype=torch.bfloat16 world_size=8
+training target=5000 steps max_seconds=900 official_budget=1800s
+model_config={
+  "sequence_len": 2048,
+  "vocab_size": 8192,
+  "n_layer": 6,
+  "n_head": 5,
+  "n_embd": 640
+}
+num_params=55,713,772 flops_per_token=3.971971e+08
+torch.compile enabled (backend=neuron)
+micro_tokens=65,536 grad_accum_steps=2 pack_factor=4
+[W909 18:04:46.634110152 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+W0909 18:04:46.178000 1667733 torch/distributed/run.py:851] 
+W0909 18:04:46.178000 1667733 torch/distributed/run.py:851] *****************************************
+W0909 18:04:46.178000 1667733 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0909 18:04:46.178000 1667733 torch/distributed/run.py:851] *****************************************
+[W909 18:04:48.969079918 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W909 18:04:48.972657592 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W909 18:04:48.099504293 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W909 18:04:48.099599771 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W909 18:04:49.578267984 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W909 18:04:49.581011405 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W909 18:04:49.722034072 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W909 18:04:49.875980311 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+[rank1]: Traceback (most recent call last):
+[rank1]:   File "/home/ubuntu/trainium_frontier/train.py", line 4620, in <module>
+[rank1]:     main()
+[rank1]:   File "/home/ubuntu/trainium_frontier/train.py", line 4451, in main
+[rank1]:     torch.nn.utils.clip_grad_norm_(model.parameters(), GRAD_CLIP, foreach=True if args.clip_foreach else None)
+[rank1]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/utils/clip_grad.py", line 42, in _no_grad_wrapper
+[rank1]:     return func(*args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/utils/clip_grad.py", line 232, in clip_grad_norm_
+[rank1]:     _clip_grads_with_norm_(parameters, max_norm, total_norm, foreach)
+[rank1]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/utils/clip_grad.py", line 42, in _no_grad_wrapper
+[rank1]:     return func(*args, **kwargs)
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/utils/clip_grad.py", line 165, in _clip_grads_with_norm_
+[rank1]:     clip_coef = max_norm / (total_norm + 1e-6)
+[rank1]:                             ~~~~~~~~~~~^~~~~~
+[rank1]: RuntimeError: Compilation error occurred on Neuron for operation=aten::_foreach_norm.Scalar;
+[rank1]: error message="COMPILATION FAILED: 2026-09-09T18:06:57Z Non-signal exit. Backend exited with code 1 and stderr: (CollectiveCompute: SR-0_inst__I-76-0)Source Kernel "nkilib.experimental.foreach.foreach_norm.l2_norm_kernel_lnc0"File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/experimental/foreach/foreach_norm.py",line 117 [INTERNAL_ERROR] [NCC_IBIR533] CollectiveKind::SendRecv is not a valid enum value for field CollectiveCompute.Kind on arch Trn2 - Choose a valid value for field CollectiveCompute.Kind"
+[rank1]: neff cache key=_foreach_norm.Scalar--_TL[[8192,640]:Float:S(C),[1]:Float:S(C),[1]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[2560,640]:Float:S(C),[640,2560]:Float:S(C),[640,1,2]:Float:S(C),[1]:Float:S(C),[1]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[5,32]:Float:S(C),[2560,640]:Float:S(C),[640,2560]:Float:S(C),[640,1,2]:Float:S(C),[1]:Float:S(C),[1]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[2560,640]:Float:S(C),[640,2560]:Float:S(C),[640,1,2]:Float:S(C),[1]:Float:S(C),[1]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[5,32]:Float:S(C),[2560,640]:Float:S(C),[640,2560]:Float:S(C),[640,1,2]:Float:S(C),[1]:Float:S(C),[1]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[2560,640]:Float:S(C),[640,2560]:Float:S(C),[640,1,2]:Float:S(C),[1]:Float:S(C),[1]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[5,32]:Float:S(C),[2560,640]:Float:S(C),[640,2560]:Float:S(C),[640,1,2]:Float:S(C),[8192,640]:Float:S(C),[8192,640]:Float:S(C),[8192,640]:Float:S(C),[8192,640]:Float:S(C)]_d2_None:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433
+[rank1]: Note: Neuron errors are reported asynchronously. The Python traceback shows where the
+[rank1]: error was detected (synchronization point), not necessarily where the failing operation
+[rank1]: was dispatched. For synchronous error reporting, set NEURON_LAUNCH_BLOCKING=1.
+[rank4]: Traceback (most recent call last):
+[rank4]:   File "/home/ubuntu/trainium_frontier/train.py", line 4620, in <module>
+[rank4]:     main()
+[rank4]:   File "/home/ubuntu/trainium_frontier/train.py", line 4451, in main
+[rank4]:     torch.nn.utils.clip_grad_norm_(model.parameters(), GRAD_CLIP, foreach=True if args.clip_foreach else None)
+[rank4]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/utils/clip_grad.py", line 42, in _no_grad_wrapper
+[rank4]:     return func(*args, **kwargs)
+[rank4]:            ^^^^^^^^^^^^^^^^^^^^^
+[rank4]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/utils/clip_grad.py", line 232, in clip_grad_norm_
+[rank4]:     _clip_grads_with_norm_(parameters, max_norm, total_norm, foreach)
+[rank4]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/utils/clip_grad.py", line 42, in _no_grad_wrapper
+[rank4]:     return func(*args, **kwargs)
+[rank4]:            ^^^^^^^^^^^^^^^^^^^^^
+[rank4]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/utils/clip_grad.py", line 165, in _clip_grads_with_norm_
+[rank4]:     clip_coef = max_norm / (total_norm + 1e-6)
+[rank4]:                             ~~~~~~~~~~~^~~~~~
+[rank4]: RuntimeError: Compilation error occurred on Neuron for operation=aten::_foreach_norm.Scalar;
+[rank4]: error message="COMPILATION FAILED: 2026-09-09T18:06:58Z Non-signal exit. Backend exited with code 1 and stderr: (CollectiveCompute: SR-0_inst__I-76-0)Source Kernel "nkilib.experimental.foreach.foreach_norm.l2_norm_kernel_lnc0"File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/experimental/foreach/foreach_norm.py",line 117 [INTERNAL_ERROR] [NCC_IBIR533] CollectiveKind::SendRecv is not a valid enum value for field CollectiveCompute.Kind on arch Trn2 - Choose a valid value for field CollectiveCompute.Kind"
+[rank4]: neff cache key=_foreach_norm.Scalar--_TL[[8192,640]:Float:S(C),[1]:Float:S(C),[1]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[2560,640]:Float:S(C),[640,2560]:Float:S(C),[640,1,2]:Float:S(C),[1]:Float:S(C),[1]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[5,32]:Float:S(C),[2560,640]:Float:S(C),[640,2560]:Float:S(C),[640,1,2]:Float:S(C),[1]:Float:S(C),[1]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[2560,640]:Float:S(C),[640,2560]:Float:S(C),[640,1,2]:Float:S(C),[1]:Float:S(C),[1]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[5,32]:Float:S(C),[2560,640]:Float:S(C),[640,2560]:Float:S(C),[640,1,2]:Float:S(C),[1]:Float:S(C),[1]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[2560,640]:Float:S(C),[640,2560]:Float:S(C),[640,1,2]:Float:S(C),[1]:Float:S(C),[1]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[5,32]:Float:S(C),[2560,640]:Float:S(C),[640,2560]:Float:S(C),[640,1,2]:Float:S(C),[8192,640]:Float:S(C),[8192,640]:Float:S(C),[8192,640]:Float:S(C),[8192,640]:Float:S(C)]_d2_None:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433
+[rank4]: Note: Neuron errors are reported asynchronously. The Python traceback shows where the
+[rank4]: error was detected (synchronization point), not necessarily where the failing operation
+[rank4]: was dispatched. For synchronous error reporting, set NEURON_LAUNCH_BLOCKING=1.
+W0909 18:06:59.215000 1667733 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 1667748 closing signal SIGTERM
+W0909 18:06:59.215000 1667733 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 1667750 closing signal SIGTERM
+W0909 18:06:59.215000 1667733 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 1667751 closing signal SIGTERM
+W0909 18:06:59.215000 1667733 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 1667752 closing signal SIGTERM
+W0909 18:06:59.215000 1667733 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 1667753 closing signal SIGTERM
+W0909 18:06:59.215000 1667733 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 1667754 closing signal SIGTERM
+W0909 18:06:59.215000 1667733 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 1667755 closing signal SIGTERM
+E0909 18:06:59.794000 1667733 torch/distributed/elastic/multiprocessing/api.py:986] failed (exitcode: 1) local_rank: 1 (pid: 1667749) of binary: /home/ubuntu/workspace/native_venv/bin/python3
+Traceback (most recent call last):
+  File "/home/ubuntu/workspace/native_venv/bin/torchrun", line 10, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 362, in wrapper
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/run.py", line 990, in main
+    run(args)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/run.py", line 981, in run
+    elastic_launch(
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 170, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 317, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+============================================================
+train.py FAILED
+------------------------------------------------------------
+Failures:
+[1]:
+  time      : 2026-09-09_18:06:59
+  host      : ip-172-31-38-93.ap-southeast-4.compute.internal
+  rank      : 0 (local_rank: 0)
+  exitcode  : -15 (pid: 1667748)
+  error_file: <N/A>
+  traceback : Signal 15 (SIGTERM) received by PID 1667748
+[2]:
+  time      : 2026-09-09_18:06:59
+  host      : ip-172-31-38-93.ap-southeast-4.compute.internal
+  rank      : 2 (local_rank: 2)
+  exitcode  : -15 (pid: 1667750)
+  error_file: <N/A>
+  traceback : Signal 15 (SIGTERM) received by PID 1667750
+[3]:
+  time      : 2026-09-09_18:06:59
+  host      : ip-172-31-38-93.ap-southeast-4.compute.internal
+  rank      : 3 (local_rank: 3)
+  exitcode  : -15 (pid: 1667751)
+  error_file: <N/A>
+  traceback : Signal 15 (SIGTERM) received by PID 1667751
+[4]:
+  time      : 2026-09-09_18:06:59
+  host      : ip-172-31-38-93.ap-southeast-4.compute.internal
+  rank      : 4 (local_rank: 4)
+  exitcode  : -15 (pid: 1667752)
+  error_file: <N/A>
+  traceback : Signal 15 (SIGTERM) received by PID 1667752
+[5]:
+  time      : 2026-09-09_18:06:59
+  host      : ip-172-31-38-93.ap-southeast-4.compute.internal
+  rank      : 5 (local_rank: 5)
+  exitcode  : -15 (pid: 1667753)
+  error_file: <N/A>
+  traceback : Signal 15 (SIGTERM) received by PID 1667753
+[6]:
+  time      : 2026-09-09_18:06:59
+  host      : ip-172-31-38-93.ap-southeast-4.compute.internal
+  rank      : 6 (local_rank: 6)
+  exitcode  : -15 (pid: 1667754)
+  error_file: <N/A>
+  traceback : Signal 15 (SIGTERM) received by PID 1667754
+[7]:
+  time      : 2026-09-09_18:06:59
+  host      : ip-172-31-38-93.ap-southeast-4.compute.internal
+  rank      : 7 (local_rank: 7)
+  exitcode  : -15 (pid: 1667755)
+  error_file: <N/A>
+  traceback : Signal 15 (SIGTERM) received by PID 1667755
+------------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2026-09-09_18:06:59
+  host      : ip-172-31-38-93.ap-southeast-4.compute.internal
+  rank      : 1 (local_rank: 1)
+  exitcode  : 1 (pid: 1667749)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+============================================================
