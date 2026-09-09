@@ -3868,7 +3868,7 @@ ARCH_TOGGLE_NAMES = [
     # is exactly the "loads silently with quietly wrong behavior" class this snapshot exists to
     # catch -- ATTN_CPROJ_INIT_SCALE and LOGIT_SOFTCAP especially, since they change what the
     # weights MEAN without changing what they look like.
-    "MATRIX_LR", "EMBEDDING_LR", "UNEMBEDDING_LR", "SCALAR_LR", "WEIGHT_DECAY",
+    "MATRIX_LR", "EMBEDDING_LR", "UNEMBEDDING_LR", "SCALAR_LR", "WEIGHT_DECAY", "GRAD_CLIP",
     "LOGIT_SOFTCAP", "ATTN_CPROJ_INIT_SCALE", "MUON_NS_STEPS",
     "MUON_MOMENTUM_COOLDOWN_FRAC", "MUON_MOMENTUM_FINAL",
     "ADAM_EVERY_N", "ADAM_EVERY_N_LR_COMP",
@@ -4038,7 +4038,7 @@ def main() -> None:
     global MATRIX_LR, EMBEDDING_LR, UNEMBEDDING_LR, SCALAR_LR, WEIGHT_DECAY, WD_DECAY_TO_ZERO
     global FINAL_LR_FRAC, WARMDOWN_RATIO, INIT_SCALE, ATTN_CPROJ_INIT_SCALE, LOGIT_SOFTCAP
     global MUON_NS_STEPS, MUON_MOMENTUM_COOLDOWN_FRAC, MUON_MOMENTUM_FINAL
-    global ADAM_EVERY_N, ADAM_EVERY_N_LR_COMP, PACK_FACTOR
+    global ADAM_EVERY_N, ADAM_EVERY_N_LR_COMP, PACK_FACTOR, GRAD_CLIP
     parser = argparse.ArgumentParser(description="Neuron Competition R1 baseline")
     parser.add_argument("--device-type", type=str, default="")
     parser.add_argument("--num-steps", type=int, default=int(os.environ.get("NEURON_COMPETITION_R1_NUM_STEPS", NUM_STEPS)))
@@ -4262,6 +4262,11 @@ def main() -> None:
                                                "1" if WD_DECAY_TO_ZERO else "0") != "0",
                         help="T0.4: decay Muon's weight_decay linearly to 0 over the run instead of "
                              "holding it constant. Currently ON.")
+    _hp("--grad-clip", GRAD_CLIP, float, "Global gradient-norm clip, applied to each rank's LOCAL "
+        "gradients BEFORE sync_gradients' all_reduce(AVG) -- so its effective strength depends on "
+        "the per-rank token count, and therefore on world_size. 0 disables it. Currently 1.0; a "
+        "flag so the T0.6 LNC=1 quality-cliff mechanism (clip-then-average vs average-then-clip) "
+        "is testable without editing the constant.")
     _hp("--pack-factor", PACK_FACTOR, int, "T1.5: dataloader packing-bin multiplier. The loader "
         "fetches DEVICE_BATCH_SIZE rows of PACK_FACTOR*SEQ_LEN tokens and reshapes them to "
         "DEVICE_BATCH_SIZE*PACK_FACTOR rows of SEQ_LEN, so this is the micro-batch ROW COUNT and "
@@ -4298,6 +4303,7 @@ def main() -> None:
     # one of them is read.
     ADAM_EVERY_N = args.adam_every_n
     ADAM_EVERY_N_LR_COMP = args.adam_every_n_lr_comp
+    GRAD_CLIP = args.grad_clip
     PACK_FACTOR = args.pack_factor
     MATRIX_LR = args.matrix_lr
     EMBEDDING_LR = args.embedding_lr
