@@ -8,6 +8,7 @@ so the fixed-overhead-vs-compute split can be read directly, at any world_size/L
 
 import argparse
 import json
+import math
 import os
 import sys
 import time
@@ -39,6 +40,30 @@ def main():
                     help="zeros: monkeypatch CausalConv.forward to return zeros_like(x). "
                          "Mathematically identical because the weight is provably all-zero, "
                          "but skips pad+conv1d+2 transposes. train.py is NOT modified.")
+    ap.add_argument("--grad-clip", type=float, default=1.0,
+                    help="T1.1 re-profile: include torch.nn.utils.clip_grad_norm_(model.parameters(), "
+                         "this) in the timed window, matching train.py's real per-step order "
+                         "(clip -> sync_gradients). 0 disables it, matching GRAD_CLIP<=0.")
+    ap.add_argument("--clip-foreach", action=argparse.BooleanOptionalAction, default=False,
+                    help="T1.3: pass foreach=True to clip_grad_norm_ explicitly.")
+    ap.add_argument("--grad-bucket", action=argparse.BooleanOptionalAction, default=False,
+                    help="T1.2: flat fp32 gradient buffer + one all_reduce/clip instead of "
+                         "per-tensor (mirrors train.py's --grad-bucket).")
+    ap.add_argument("--control-collective", action=argparse.BooleanOptionalAction, default=True,
+                    help="T1.1 re-profile: also time train.py's real per-step control tensor "
+                         "(NaN/stop-flag all_reduce + two .item() calls) so this harness's "
+                         "step_total_ms is apples-to-apples with a real run's dt, and the only "
+                         "remaining gap is the dataloader fetch() cost (see --dataloader).")
+    ap.add_argument("--dataloader", choices=["synthetic", "real"], default="synthetic",
+                    help="synthetic (default): reuse one cached (x,y) batch forever, no fetch() "
+                         "call at all -- the correctness-irrelevant timing probe from T1.1's "
+                         "'direct dataloader-exposure test'. real: build the actual train "
+                         "dataloader and call fetch() every microstep exactly like train.py's "
+                         "main loop, so (real step_total_ms - synthetic step_total_ms) is the "
+                         "true exposed host dataloader cost, including any overlap with device "
+                         "compute (fetch() runs between backward() and the next forward(), so "
+                         "whatever the device queue can hide, it does -- this measures only what "
+                         "is NOT hidden).")
     args = ap.parse_args()
 
     sys.path.insert(0, REPO)
@@ -94,11 +119,64 @@ def main():
     x = cpu_x.to(device)
     y = cpu_y.to(device)
 
+    train_loader = None
+    if args.dataloader == "real":
+        tokenizer = T.ensure_tokenizer(build_if_missing=False)
+        loader_seq_len = T.PACK_FACTOR * T.SEQ_LEN
+        train_loader = T.make_dataloader(tokenizer, T.DEVICE_BATCH_SIZE, loader_seq_len, "train", device)
+
+        def fetch():
+            xb, yb, state = next(train_loader)
+            if T.PACK_FACTOR > 1:
+                xb = xb.reshape(T.DEVICE_BATCH_SIZE * T.PACK_FACTOR, T.SEQ_LEN)
+                yb = yb.reshape(T.DEVICE_BATCH_SIZE * T.PACK_FACTOR, T.SEQ_LEN)
+            return xb, yb
+
+        x, y = fetch()  # prime, exactly like train.py's `x, y, loader_state = fetch()` before the loop
+
     linears = [m for m in model.modules() if isinstance(m, T.Linear)]
 
+    grad_flat_buffer = None
+    if args.grad_bucket:
+        grad_flat_buffer, _gb_params = T.build_flat_grad_buffer(model)
+        if rank == 0:
+            print(f"[pt] grad_bucket: {len(_gb_params)} params, {grad_flat_buffer.numel():,} floats", flush=True)
+
+    last_loss = None
+
     def micro():
+        nonlocal x, y, last_loss
         loss = model(x, y)
+        last_loss = loss.detach()
         (loss / grad_accum).backward()
+        if args.dataloader == "real":
+            x, y = fetch()
+
+    def clip_and_sync():
+        if grad_flat_buffer is not None:
+            if args.grad_clip > 0:
+                T.clip_grad_norm_flat_(grad_flat_buffer, args.grad_clip)
+            T.sync_gradients_flat(grad_flat_buffer)
+        else:
+            if args.grad_clip > 0:
+                torch.nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip,
+                                               foreach=True if args.clip_foreach else None)
+            T.sync_gradients(model)
+
+    def control_collective():
+        # Mirrors train.py's real per-step control tensor: the loss .item() call,
+        # a NaN/stop-flag all_reduce, and its two .item() calls -- all real host
+        # syncs on every step, missing from earlier profiles. Synthetic here
+        # (stop_after_step is always False) -- only the COST is under test, not
+        # the stop/NaN logic itself.
+        train_loss = float(last_loss.item()) if last_loss is not None else 0.0
+        control = torch.tensor(
+            [1 if math.isnan(train_loss) else 0, 0], device=device, dtype=torch.int32)
+        if ddp:
+            import torch.distributed as dist
+            dist.all_reduce(control, op=dist.ReduceOp.MAX)
+        _ = int(control[0].item())
+        _ = int(control[1].item())
 
     def set_lr(step):
         lrm = 1.0 - 0.001 * step
@@ -115,12 +193,19 @@ def main():
             for m in linears:
                 m.refresh_weight_cache(T.COMPUTE_DTYPE)
 
+    def zero_grads():
+        if grad_flat_buffer is not None:
+            grad_flat_buffer.zero_()
+        else:
+            optimizer.zero_grad(set_to_none=True)
+
     for s in range(args.warmup_steps):
         t = time.monotonic()
-        optimizer.zero_grad(set_to_none=True)
+        zero_grads()
         for _ in range(grad_accum):
             micro()
-        T.sync_gradients(model)
+        clip_and_sync()
+        control_collective()
         set_lr(s)
         optimizer.step()
         refresh_cache()
@@ -136,7 +221,7 @@ def main():
         t_step = time.monotonic()
 
         t = time.monotonic()
-        optimizer.zero_grad(set_to_none=True)
+        zero_grads()
         T.synchronize(device)
         rec["zero_grad_ms"] = (time.monotonic() - t) * 1e3
 
@@ -156,9 +241,28 @@ def main():
             rec["micro_rest_mean_ms"] = sum(micros[1:]) / max(len(micros) - 1, 1)
 
         t = time.monotonic()
-        T.sync_gradients(model)
+        if grad_flat_buffer is not None:
+            if args.grad_clip > 0:
+                T.clip_grad_norm_flat_(grad_flat_buffer, args.grad_clip)
+        else:
+            if args.grad_clip > 0:
+                torch.nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip,
+                                               foreach=True if args.clip_foreach else None)
+        T.synchronize(device)
+        rec["clip_ms"] = (time.monotonic() - t) * 1e3
+
+        t = time.monotonic()
+        if grad_flat_buffer is not None:
+            T.sync_gradients_flat(grad_flat_buffer)
+        else:
+            T.sync_gradients(model)
         T.synchronize(device)
         rec["sync_grad_ms"] = (time.monotonic() - t) * 1e3
+
+        t = time.monotonic()
+        control_collective()
+        T.synchronize(device)
+        rec["control_ms"] = (time.monotonic() - t) * 1e3
 
         t = time.monotonic()
         set_lr(base)
@@ -176,14 +280,16 @@ def main():
         rec["wcache_ms"] = (time.monotonic() - t) * 1e3
 
         rec["step_total_ms"] = (time.monotonic() - t_step) * 1e3
-        rec["tail_ms"] = (rec["zero_grad_ms"] + rec["sync_grad_ms"] + rec["set_lr_ms"]
+        rec["tail_ms"] = (rec["zero_grad_ms"] + rec["clip_ms"] + rec["sync_grad_ms"]
+                          + rec["control_ms"] + rec["set_lr_ms"]
                           + rec["opt_step_ms"] + rec["wcache_ms"])
         rec["tail_pct"] = 100.0 * rec["tail_ms"] / rec["step_total_ms"]
         out.append(rec)
         if rank == 0:
             print(f"[pt] STEP {s} total={rec['step_total_ms']:.1f}ms "
                   f"micro_total={rec['micro_total_ms']:.1f} (mean {rec['micro_mean_ms']:.1f}) "
-                  f"zero_grad={rec['zero_grad_ms']:.1f} sync_grad={rec['sync_grad_ms']:.1f} "
+                  f"zero_grad={rec['zero_grad_ms']:.1f} clip={rec['clip_ms']:.1f} "
+                  f"sync_grad={rec['sync_grad_ms']:.1f} control={rec['control_ms']:.1f} "
                   f"set_lr={rec['set_lr_ms']:.1f} opt_step={rec['opt_step_ms']:.1f} "
                   f"wcache={rec['wcache_ms']:.1f} => TAIL={rec['tail_ms']:.1f}ms "
                   f"({rec['tail_pct']:.1f}%)", flush=True)
@@ -194,7 +300,8 @@ def main():
             grad_accum=grad_accum, micro_tokens=micro_tokens,
             local_conv=args.local_conv, conv_mode=args.conv_mode,
             compile=args.compile, foreach_optim=args.foreach_optim,
-            compile_optim=args.compile_optim, steps=out)))
+            compile_optim=args.compile_optim, grad_bucket=args.grad_bucket,
+            clip_foreach=args.clip_foreach, dataloader=args.dataloader, steps=out)))
     if ddp:
         try:
             import torch.distributed as dist

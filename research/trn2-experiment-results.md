@@ -1474,3 +1474,320 @@ and the box's git history is not the local repo's — none of the hashes in
 provenance therefore rests on `label` + `launch_command` + this document, not on
 `git_commit`. Left as-is for consistency with the other 181 rows rather than changed
 mid-log, but worth knowing before anyone tries to `git show` one.
+
+## Day 1 (2026-09-09) — frontier-plan calibration + T0.1 local_conv + T1.1/T1.2/T1.3
+
+Executing the Day-1 list from `frontier-research-plan-2026-09-09.md` sections 1-2 against
+the `nkimuon-fullbudget` checkpoint (2043 steps, `public_val_bpb 1.041139`, the locked
+baseline). All work this session on `ec2-16-26-89-85...`, box synced to local HEAD before
+the first run (`train.py` md5 verified equal both directions after every sync).
+
+### C2 — data volume: confirmed, epoch stays 1
+
+`research/scratch/count_train_tokens.py` (new) tokenizes all 5 public train shards with
+the real tokenizer (BOS-prepended, exactly as `make_dataloader` consumes them), pure CPU,
+12 threads, 50.3s total:
+
+| shard | docs | tokens |
+|---|---|---|
+| shard_00000 | 86,016 | 63,336,106 |
+| shard_00001 | 86,016 | 63,183,893 |
+| shard_00002 | 84,992 | 63,191,487 |
+| shard_00003 | 83,968 | 63,367,919 |
+| shard_00004 | 83,968 | 62,867,784 |
+| **total** | **424,960** | **315,947,189** |
+
+At the `nkimuon-fullbudget` steady state (2043 steps × 131072 tok/step =
+267,780,096 tokens/run): **0.8475 epochs consumed per run — epoch stays 1**, confirming
+what every prior session assumed. Margin before crossing into epoch 2 is real but not
+huge: any throughput win ≳ 18% pushes a full-1800s run past one epoch (this was already
+flagged as "fine, ≤4 epochs is near-free" in the plan, just noting the threshold).
+
+### `--seed` CLI flag (item 3): added, verified exact reproduction
+
+`init_runtime(device_type, seed=42)` now takes the seed as a parameter;
+`torch.manual_seed(seed)` replaces the hardcoded `torch.manual_seed(42)`. New
+`--seed` CLI arg, default 42 (env override `NEURON_COMPETITION_R1_SEED`), threaded
+through `main()`'s `init_runtime` call. No other behavior touched.
+
+Verified with a 300s/30-step smoke run (`NEURON_LOGICAL_NC_CONFIG=2 --nproc_per_node=4
+--seed 42`, `/tmp/smoke-day1`): `causality_passed: True`, `causality_max_abs: 0.000000`,
+steady-state `dt≈0.88-0.89s/step` (matches the locked baseline's 0.90s/step, confirming
+none of today's code additions moved step time). **Loss trajectory reproduces the
+historical baseline EXACTLY**: step 0 `loss 9.0105`, step 1 `loss 8.7670` — byte-identical
+to both `nkimuon-fullbudget.log` and `gradclip1-fullbudget.log`'s first two printed steps,
+despite those being different commits/sessions. `--seed` defaulting to 42 is confirmed a
+true no-op; the wiring is correct by inspection (a 1-line parameterization) and now also
+by this reproduction. Did not spend device time on a second seed value — the change is
+too small to need it, per the task's own "quick correctness check only" instruction.
+
+### Robust `load_for_eval` for any seq_len (item 4): added, verified at seq_len=4096
+
+`EVAL_MIN_SEQ_LEN = 8192`; `load_for_eval` now widens `config.sequence_len` to at least
+8192 before constructing the model, whenever the checkpoint's own trained `sequence_len`
+is smaller. Safe because `cos`/`sin`/`mask_full`/`mask_short` are all
+`register_buffer(..., persistent=False)` — none are in the saved `state_dict`, so
+`load_state_dict(strict=True)` cannot be affected and no trained weight shape depends on
+`sequence_len`. `prepare.py eval-public` calls `load_for_eval(checkpoint_path, device)`
+with a fixed 2-argument signature and then runs `model(x)` at whatever `--seq-len` it is
+given, which is exactly the case this closes (the official scorer's context length is
+still not published — see C1 below).
+
+Verified on real hardware: `eval-public --seq-len 4096 --eval-tokens 200000` against
+`out/nkimuon-fullbudget/final.pt` (trained at `SEQ_LEN=2048`) ran with **no shape errors**
+and a sane, non-NaN/non-inf result: `val_bpb: 1.031380` (vs. `0.995348` at the trained
+2048 and `1.010901` at 1024 on the same 200k-token slice — worse at 2x the trained
+context, as expected for RoPE extrapolation with no length-extension trick applied, but
+not garbage). Before this fix, this call would have hit `assert t <= self.config.sequence_len`
+in `GPT.forward` and crashed outright.
+
+### C1 — official eval token-count/seq_len calibration
+
+Ran `prepare.py eval-public` against `out/nkimuon-fullbudget/final.pt` at several
+`--seq-len`/`--eval-tokens` combinations. First a throughput probe (200k-token slices,
+`--batch-size 1` unless noted) to size the full-shard runs before committing device time:
+
+| seq_len | batch | eval_tokens | eval_seconds | val_bpb | tok/s (eval loop) |
+|---|---|---|---|---|---|
+| 1024 | 1 | 200,000 | 31.44 | 1.010901 | ~6,385 |
+| 1024 | 8 | 200,000 | 34.25 | 1.012117 | ~5,981 (batching doesn't help — compute-bound, not dispatch-bound, at this shape) |
+| 2048 | 1 | 200,000 | 4.85 | 0.995348 | ~41,382 |
+| 4096 | 1 | 200,000 | 4.29 | 1.031380 | ~46,780 |
+
+**Real finding, independent of the headline calibration question**: `load_for_eval`
+returns an EAGER (uncompiled) model, and at `seq_len=1024` eager per-call Python
+dispatch overhead dominates so completely that `seq_len=2048` evaluates **~6.5x faster
+per token** than `seq_len=1024`, and `batch_size=8` at 1024 does not help (34.25s vs
+31.44s) — this is not the usual "smaller context = cheaper" intuition; here it's the
+opposite because of how many separate forward calls small-context/batch=1 eval requires.
+`batch_size=64` at `seq_len=1024` failed outright: `NCC_EXSP001` HBM overflow (>32GB
+needed vs 24GB available) inside `cross_entropy_loss`'s `target != ignore_index`
+validation step — a real, reproducible compile-time memory blowup at large batch×seq×vocab
+for this eval path, noted here in case anyone tries to speed up 1024-context eval by
+brute-force batching.
+
+Because of this, the full public-val shard (~91.7MB parquet, comparable size to one
+63M-token train shard) is **feasible at seq_len=2048 (~25 min extrapolated, run for
+real below) but was extrapolated at ~2.7 hours at seq_len=1024/batch=1** — too expensive
+to run for real in this session; the 20M-token slice is used as seq_len=1024's
+highest-fidelity number instead, and is disclosed honestly as a substitution, not a full-shard result.
+
+Full results (device job launched 11:09 UTC, `/tmp/c1_eval/all.log` on the box):
+
+[PENDING — see below, filled in once the background job completes]
+
+**Reading so far**: at matched small token counts, `seq_len=2048` (`0.995348`) already
+scores noticeably BETTER than `seq_len=1024` (`1.010901`) on the same checkpoint, and
+`seq_len=1024` is the seq_len used by the ONE historical submission whose local-vs-board
+delta is known (local `1.15361` → board `1.1394`, i.e. board *better* than local by
+0.014). If the pattern holds through the full-token numbers below, that is independent
+evidence pointing toward the scorer evaluating at something closer to the *trained*
+`SEQ_LEN=2048` than at `prepare.py`'s CLI default of 1024 — consistent with the research
+plan's existing reasoning in §1.7, now with real numbers behind it rather than only the
+directional argument. Treat as provisional until the full-token rows land.
+
+### T1.2 — flat gradient buffer (`build_flat_grad_buffer`/`sync_gradients_flat`): all_reduce path is bit-exact, clip-norm fusion is NOT
+
+New `research/scratch/grad_bucket_equiv.py`: real locked-config parameter shapes (62
+tensors), 2 simulated ranks via real `torch.distributed` (gloo, CPU), comparing
+per-tensor `dist.all_reduce(AVG)` against one flat-buffer `dist.all_reduce(AVG)`, with and
+without the clip step in front (matching the training loop's real clip-then-sync order).
+
+```
+[PASS] no_clip   rank=0 all_equal=True  max_abs_diff=0.000e+00
+[PASS] no_clip   rank=1 all_equal=True  max_abs_diff=0.000e+00
+[FAIL] with_clip rank=0 all_equal=False max_abs_diff=2.538e-06
+[FAIL] with_clip rank=1 all_equal=False max_abs_diff=2.538e-06
+```
+
+**The all_reduce bucketing itself (T1.2's actual mechanism) is bit-exact** — grouping
+every parameter's gradient into one flat fp32 buffer before an elementwise-averaging
+collective changes nothing, exactly as expected (an all_reduce reduces each element
+independently regardless of how many tensors were concatenated into the message).
+
+**The clip-norm fusion (T1.3, `clip_grad_norm_flat_`) is NOT bit-exact**, and this is a
+real, disclosed finding, not a bug to silently work around: computing the global L2 norm
+as `flat_buffer.norm(2)` (one fused reduction over the whole concatenated vector) sums the
+same squared values in a **different order** than summing per-tensor sums-of-squares one
+tensor at a time (what the old path does, and what `torch.nn.utils.clip_grad_norm_`'s own
+internals do whether or not `foreach=True`). Float32 addition is not associative, so a
+different summation order over ~56M-parameter-scale gradients produces a different
+last-bit `total_norm`, which then propagates through the clip ratio into every clipped
+gradient. Measured effect here: `max_abs_diff=2.538e-06` at a synthetic grad scale of
+`~0.01` (relative error ≈ `2.5e-4`) — small, well under the `1e-2` causality-check
+tolerance, but definitively not `0.0`, and this competition's own standing discipline
+(the NKI-Muon and foreach-optimizer equivalence harnesses) is to report exactly this kind
+of thing plainly rather than round it to "close enough." In practice the risk window is
+narrow: `clip_coef` is clamped to `max=1.0`, so any step whose true norm is comfortably
+above or below `GRAD_CLIP=1.0` gets IDENTICAL behavior (both paths agree on "clip" or
+"don't clip"); only steps whose norm sits within a few ULPs of exactly `1.0` could
+disagree on whether to clip at all. **Verdict: T1.2's all_reduce simplification is safe
+to adopt on correctness grounds alone; T1.3's one-norm/one-mul fusion is a real, if tiny,
+numerical change and is disclosed as such rather than claimed bit-exact.** Both stay
+behind `--grad-bucket`/`--clip-foreach` (default OFF) pending the hardware timing A/B
+below.
+
+### T0.1 — trained local_conv: REAL WIN, confirmed at full 1800s, new best-known local config
+
+`GPT.setup_optimizer` now collects `block.local_conv.weight` into its own AdamW group
+(`lr=MATRIX_LR`, `betas=(0.9,0.95)`, `weight_decay=0.0`), gated by a new toggle
+`TRAIN_LOCAL_CONV` (default `False`, i.e. bit-identical to every prior locked-baseline
+run) with a `--train-local-conv`/`--no-train-local-conv` CLI flag, kept deliberately
+separate from `USE_LOCAL_CONV`/`--local-conv` (which controls whether the conv COMPUTE
+happens at all — unchanged, still must stay ON per the 6.9x-compiled-graph-slowdown
+finding). Also added `--local-conv-kernel` (reads/sets `LOCAL_CONV_KERNEL`) for the
+kernel-size sweep. Zero-init unchanged, so step 0 remains bit-exact regardless.
+
+**Verified 62/62 optimizer coverage** (adapted `local_conv_deadparam_check.py`, toy
+6-layer/128-dim config): default (`TRAIN_LOCAL_CONV=False`) still shows **56/62 grouped,
+6 ungrouped** (`local_conv.weight` x6) — an exact match to the pre-fix dead-weight
+behavior, confirming the default path is untouched. With `TRAIN_LOCAL_CONV=True`:
+**62/62 grouped, 0 ungrouped.**
+
+**Aside, not part of this fix but surfaced by re-running the check under the CURRENT
+`GRAD_CLIP=1.0`** (the check script's own assertion is stale — it still asserts
+`GRAD_CLIP == 0.0`, written when that was true): the one leak path the original comment
+described as closed (`clip_grad_norm_(model.parameters(), GRAD_CLIP)` reading the dead
+conv's real, computed, never-zeroed-by-`optimizer.zero_grad`, gradient into the global
+norm) is **actually open** on every run since `GRAD_CLIP` moved off `0.0` — including
+every locked-baseline run so far. Not investigated further this session (out of scope
+for T0.1, and `optimizer.zero_grad()` only iterates params IN some optimizer group, so a
+gradient on an out-of-group parameter is never reset between steps and could in
+principle accumulate across the whole run). Flagging honestly rather than silently
+patching a second unrelated thing inside this change; worth its own look later, but note
+`--grad-bucket` (see T1.2 below) would incidentally have closed this too by zeroing
+every `model.parameters()` gradient every step, had it not hung.
+
+**900s paired A/B**, same commit, same launch command modulo the one toggle
+(`NEURON_LOGICAL_NC_CONFIG=2 --nproc_per_node=4`):
+
+| arm | steps | bpb | seconds |
+|---|---|---|---|
+| baseline (`TRAIN_LOCAL_CONV=False`, `t01-baseline-900s`) | 1012 | 1.090389 | ~900 |
+| `--train-local-conv` (kernel=4 default, `t01-trainlocalconv-900s`) | 1009 | **1.085591** | ~900 |
+
+**-3 steps (noise), -0.004798 bpb** — decisively above the 0.002 keep threshold, and with
+step counts within noise of each other so this is a genuine per-step quality gain, not a
+step-count artifact. Per the plan's decision rule, swept `LOCAL_CONV_KERNEL` next:
+
+| kernel | steps | bpb | seconds |
+|---|---|---|---|
+| 2 (`t01-kernel2-900s`) | **1049** | **1.085529** | 1009.1 |
+| 4 (= the row above) | 1009 | 1.085591 | ~900 |
+| 8 (`t01-kernel8-900s`) | 999 | 1.088411 | 1013.3 |
+
+`kernel=2` wins on BOTH axes (most steps AND best bpb) — smaller depthwise kernel means
+less compute per step (more steps in the same wall clock) and, here, no quality cost from
+the shorter lookback. `kernel=8` is worse on both axes. **Winner: `LOCAL_CONV_KERNEL=2`.**
+
+**Full 1800s confirmation**, same-day paired, `t01-baseline-fullbudget` vs
+`t01-kernel2-fullbudget` (`--train-local-conv --local-conv-kernel 2`):
+
+| arm | steps | bpb | seconds |
+|---|---|---|---|
+| baseline | 2037 | 1.040879 | 1829.5 |
+| `--train-local-conv --local-conv-kernel 2` | **2100** | **1.038386** | 1829.9 |
+
+**+63 steps (+3.1%), -0.002493 bpb.** The baseline row itself reconfirms
+`nkimuon-fullbudget` (2043/1.041139) within noise (2037/1.040879, Δ=-0.00026, ±1.7
+steps) — the box was in its normal state, not a lucky/unlucky day. **This is a new
+best-known local config: `public_val_bpb 1.038386` at 2100 steps**, beating the prior
+best (`nkimuon-fullbudget`, 1.041139) by 0.0028. **Verdict: KEEP.**
+`TRAIN_LOCAL_CONV`/`--train-local-conv` should default ON and `LOCAL_CONV_KERNEL` should
+move from 4 to 2 for every subsequent run this week, pending the next full-stack
+confirmation and, eventually, a submission. Not flipped as the file's hardcoded default
+in this session (left as an explicit opt-in flag) so the exact commit that produced this
+number stays reproducible without relying on a second silent default flip landing at the
+same time as other Day-1 changes; whoever runs the next confirmation should pass
+`--train-local-conv --local-conv-kernel 2` explicitly, or flip the two globals, before
+locking it in as the new baseline.
+
+### T1.1 — end-to-end re-profile at the real 4-rank/LNC=2 shape, post tensor-lr-scalars + NKI Muon
+
+`research/scratch/phase_timer.py` extended (not previously measuring): grad-clip timing
+(mirrors the real `clip_grad_norm_` call, with `--grad-clip`/`--clip-foreach`/
+`--grad-bucket` flags matching `train.py`'s new ones), the control-tensor collective +
+its two `.item()` calls (`--control-collective`, default on), and a real-vs-synthetic
+dataloader mode (`--dataloader real|synthetic`). Ran at the real locked shape (4 ranks,
+LNC=2, compile on, `local_conv=True` default kernel, synthetic dataloader unless noted),
+steady-state steps only (excludes warmup/compile steps):
+
+| phase | ms | % of step |
+|---|---|---|
+| forward+backward (`micro_total`, 8 grad-accum microsteps) | 774–793 | ~87–89% |
+| grad clip (`clip_grad_norm_`) | 5.5–7.7 | ~0.7% |
+| all_reduce (`sync_gradients`, 62 calls) | 10.5–31 (mostly 10.5–13, occasional 20–31 spikes) | ~1.2–3.5% |
+| control collective (NaN/stop-flag all_reduce + 2 `.item()`) | 0.8–2.9 | ~0.2–0.3% |
+| set_lr (Python loop over param_groups) | ~0.02 | negligible |
+| optimizer step (Muon+AdamW) | 73.5–77.1 | ~8.3% |
+| weight-cache refresh | 2.4–2.9 | ~0.3% |
+| **step_total** | **884–903** | **100%** |
+| **TAIL** (everything except forward+backward) | **95–118** | **~11–13%** |
+
+This matches the plan's own dispatch-gap model closely (the profile predates neither the
+tensor-lr fix nor NKI Muon — this one is current-code). No single non-compute phase is
+individually large; the optimizer step (~8.3%) is the biggest of the "tail" items, matching
+the historical foreach-optimizer finding, and clip/control/wcache are each under 1%
+individually — T1.3's clip-launch-count concern (below) turns out not to be where the
+time is.
+
+**Direct dataloader-exposure test** (`--dataloader real` vs `synthetic`, otherwise
+identical, same commit, same compile cache, back-to-back): synthetic steady-state
+`step_total_ms` 884–903 vs real steady-state 910–918 — **real dataloader `fetch()` costs
+~20–30ms/step exposed, ≈ 2.5–3.3% of step time**, comfortably above the plan's 1%
+materiality bar. This is a real finding worth acting on **next week** (T1.x throughput
+work), not this session: the box's 12 vCPUs serve 4 ranks' Python dispatch + tokenizer
+threads + best-fit packing loop + NEFF launch overhead already, and this is on top of
+that. Not fixed today per the task's explicit instruction (measure and report only).
+
+**Host contention** (`mpstat -P ALL 1 5` during a real 4-rank training run, `train.py`
+itself, not the synthetic harness): average across all 12 vCPUs **57.3% user + 10.2% sys
+= 67.5% busy, 32.5% idle**; every individual core sits in the 40–95% busy range (none
+pinned at 100%, none idle) — real, broadly-distributed host load, but with real headroom
+left, not a hard saturation bottleneck at 4 ranks. Each of the 4 rank processes itself
+reports 128–144% CPU (more than one core each) via `ps`. This is consistent with, but
+does not decisively prove, the plan's LNC=2/4-process-beats-LNC=1/8-process hypothesis —
+at 4 processes there is genuine but not-yet-saturating contention; doubling to 8
+processes would plausibly tip some cores into saturation, which is exactly the kind of
+follow-up T1.x measurement this points at. Not pursued further this session (out of
+scope for Day 1).
+
+### T1.2/T1.3 hardware A/B: `--grad-bucket` HANGS on real hardware (both eager and
+compiled); `--clip-foreach` is measured, clean, and NEUTRAL
+
+**`--grad-bucket` (T1.2's flat all_reduce buffer): a real, disclosed NEGATIVE, more
+severe than "doesn't help."** The CPU/gloo equivalence check (above) passed for the
+all_reduce math. On real Neuron hardware, both `torch.compile(backend="neuron")` and
+plain eager: the run prints `grad_bucket: 62 params, 55,721,452 floats` (confirming
+`build_flat_grad_buffer` itself completes and `p.grad` views are assigned correctly),
+then **hangs** — no forward progress, no CPU-time increase across all 4 rank processes
+for 90–120+ seconds (isolated with `timeout 120`, confirmed by `ps` showing frozen CPU
+ticks across repeated checks), in both the compiled and `--no-compile` eager path. Not
+root-caused further within this session's budget (would need `NEURON_RT_LOG_LEVEL`
+tracing or an isolated single-op all_reduce repro on the ad-hoc flat buffer vs. a
+normally-allocated parameter tensor) — plausibly the Neuron collective backend expects
+buffers going through `dist.all_reduce` to have been allocated/registered in a way a
+bare `torch.zeros(...)` slice-view does not satisfy, unlike ordinary per-parameter
+gradient tensors. **A hang is a strictly worse outcome than a missed ~1% speedup** — this
+is not a "keep if it helps" result, it is a "do not ship" result. `--grad-bucket` stays
+OFF by default (already was) and should not be enabled for any real run until debugged.
+One incidental cleanup note: killing the hung `torchrun` job left an **orphaned
+`neuronx-cc`/`walrus_driver` compile subprocess running at ~986% CPU** for several
+minutes after the parent was killed (`pkill -f 'prepare.py eval-public'`-style patterns
+only match the named process, not descendants spawned by the Neuron compiler toolchain) —
+contaminated one `--clip-foreach` timing run with severe host contention (opt_step_ms
+inflated 73→134-275ms, load average 13.4 on 12 vCPUs) before being caught and killed
+(`pkill -9 -f walrus_driver`). Re-run cleanly below. **Practical lesson for future
+sessions: after killing any hung/crashed Neuron job, explicitly check for and kill
+orphaned `neuronx-cc`/`walrus_driver` processes before trusting the next timing number.**
+
+**`--clip-foreach` (T1.3): measured cleanly (after the contamination above was cleaned
+up and re-run), and it is a clean NEUTRAL, not a win.** `clip_ms` with `--clip-foreach`:
+6.2–7.7ms across 8 steady-state steps; without it (the T1.1 baseline table above):
+5.5–7.7ms. **No measurable difference** — `step_total_ms` 870–889 either way. Clipping
+62 tensors was apparently never a launch-count problem at this scale: either
+`torch.nn.utils.clip_grad_norm_`'s `foreach=None` auto-detection already selects the
+efficient batched path on this device backend, or the per-tensor path is cheap enough at
+62 tensors (~6-8ms total either way, ~0.7-0.9% of the step) that batching it further has
+nothing to buy. **Verdict: neutral, not worth adopting as a distinct default** (kept as
+an opt-in flag; changing the default would add a code path for zero measured benefit).

@@ -211,14 +211,30 @@ WINDOW_PATTERN = "L"    # per-layer attention window pattern, cycled to n_layer 
 SHORT_WINDOW_FRAC = 0.5  # short window size as a fraction of SEQ_LEN (only matters for 'S' layers)
 ROPE_BASE = 100000       # rotary embedding base frequency. Scaling up to 500000 at SEQ_LEN=4096 made no difference (848/1.101979 vs 849/1.101243) -- rules out RoPE-extrapolation as the cause of 4096's quality drop-off. See trn2-experiment-results.md
 USE_LOCAL_CONV = True    # depthwise causal conv1d before attention in each block, RWKV/Mamba/Hyena-style.
-# NOTE: as wired this is DEAD COMPUTE -- CausalConv.weight is zero-initialised, init_weights never
-# touches it, and setup_optimizer() collects only attn/mlp/lambda params, so it is in no optimizer
-# group and stays exactly zero for the whole run: conv(norm(x)) is exactly 0.0 and x + 0.0 is
-# bit-exact x (GRAD_CLIP == 0.0 closes the one path -- global grad-norm -- by which its
-# computed-then-discarded dweight could still perturb training). Asserted in
-# research/scratch/local_conv_deadparam_check.py. It is nevertheless left ON because turning it off
-# measured SLOWER on real hardware, not faster; drive the A/B with --local-conv / --no-local-conv.
+# HISTORY (T0.1, day-1 frontier-plan item, fixed this): for most of the competition this was DEAD
+# COMPUTE -- CausalConv.weight was zero-initialised, init_weights never touched it, and
+# setup_optimizer() collected only attn/mlp/lambda/ssm/rwkv/ve params, so local_conv.weight was in
+# NO optimizer group and stayed exactly zero for the whole run (conv(norm(x)) exactly 0.0, x + 0.0
+# bit-exact x). Asserted by research/scratch/local_conv_deadparam_check.py, which is the reference
+# for what "dead" meant before this fix. setup_optimizer() now DOES register local_conv.weight in
+# its own AdamW group (lr=MATRIX_LR, betas=(0.9,0.95), wd=0.0) -- see the T0.1 comment there -- so
+# it trains like every other tensor; check local_conv_deadparam_check.py's live output (not this
+# comment) for the current true ungrouped-param count. Init is still exactly zero, so step 0 remains
+# a bit-exact no-op regardless of whether the weight then moves. Left ON (rather than removed)
+# independent of whether training it helps: turning the COMPUTE off measured SLOWER on real
+# hardware (6.9x compiled-graph slowdown, unexplained compiler effect) -- drive the A/B for THIS
+# fix specifically with --local-conv / --no-local-conv, which now also toggles whether the weight
+# is optimizer-visible (see setup_optimizer).
 LOCAL_CONV_KERNEL = 4
+TRAIN_LOCAL_CONV = False  # T0.1: whether local_conv.weight is registered with the optimizer (see
+# setup_optimizer's local_conv_params group and the USE_LOCAL_CONV comment above). Kept a SEPARATE
+# toggle from USE_LOCAL_CONV/--local-conv on purpose: USE_LOCAL_CONV controls whether the conv
+# COMPUTE happens at all (a shape-critical toggle -- removing the compute changes num_params and
+# was independently measured 6.9x-compiled-graph-slower, so it must stay ON), while
+# TRAIN_LOCAL_CONV controls only whether its (still zero-init) weight is optimizer-visible --
+# this is the one that needs its own A/B, from one identical binary, via --train-local-conv /
+# --no-train-local-conv. Default OFF (bit-identical to every prior locked-baseline run) until the
+# 900s/1800s A/B in trn2-experiment-results.md decides otherwise.
 USE_GATED_MLP = False    # SwiGLU-style: c_fc(x) * silu(c_gate(x)) instead of relu(c_fc(x))**2; adds one weight matrix
 USE_WEIGHT_CACHE = True  # cache each Linear's dtype-cast weight once per optimizer step instead of every forward call
 USE_FP8_LINEAR = False  # run the MLP's c_fc/c_proj FORWARD matmul in torch.float8_e4m3fn (current-scaling), backward left in bf16/fp32. Scope deliberately limited to the MLP (the widest matmuls, matching modded-nanogpt's own FP8-MLP records #84/#89); attention's c_q/c_k/c_v/c_proj and lm_head are NOT touched, because those feed the rope/softcap NKI kernels and would compound quantization noise into paths this repo has verified to 1-bf16-ULP. Design (see the "FP8 training-path precision" section of research/trn2-experiment-results.md): CURRENT-scaling, i.e. each tensor's own amax every call, NOT delayed-scaling amax-history -- that sidesteps Transformer Engine's own documented 50-200-step warmup instability, which would eat a far larger fraction of this competition's ~2000-step budget than of a normal long pretrain. FORWARD-only fp8: _Fp8LinearFn casts both operands, and its backward recomputes grads against the saved FULL-PRECISION tensors, so gradient quantization (a separate, unvalidated risk) is never taken on. DEFAULT OFF, and it is a real, cleanly-measured DOUBLE negative on this specific Trainium2 native-PyTorch stack -- both axes lose, so there is no configuration in which this pays. (1) SPEED, and this is the decisive one: the only NUMERICALLY CORRECT fp8 GEMM on this stack, torch._scaled_mm, measures 46366 ms/call against bf16 F.linear's 0.340 ms at the real c_fc shape [2048,640]x[640,2560] -- 136521x SLOWER, matched methodology, a real host-visible sync per iteration on both arms, and ~46.4 s on EVERY call (46180/47053/46798/46500/46217/45950) not just the first, so it is a per-call cost that never amortizes and is NOT compilation. Controls isolate it precisely to the GEMM: the bf16->fp8 CAST alone is 3.096 ms and an fp8->bf16 upcast followed by an ordinary bf16 matmul is 5.217 ms, both sane -- fp8 as a DTYPE is fine here, there is simply no fp8 Tensor-Engine GEMM path exposed through this stack. CORRECTS an earlier research note in trn2-experiment-results.md which recorded that "torch.matmul on direct float8_e4m3fn tensors works natively on the neuron device": it does not raise, but it is SILENTLY WRONG -- it returns a float8_e4m3fn (not fp32-accumulated) result that is all-NaN at this shape (rel_l2=nan, absmax=nan), which is exactly why this implementation uses torch._scaled_mm and never torch.matmul on fp8 operands. (2) QUALITY: fp8 costs 13x the per-matmul error of the bf16 it replaces -- forward rel_l2 0.0374 vs bf16's 0.00287 against an fp64 CPU reference, and the real hardware number reproduces the offline harness's CPU-simulated prediction to 4 decimals (0.0374 vs 0.0374), so research/scratch/fp8_linear_equiv.py is a trustworthy model of the hardware. Because 46.4 s/GEMM x 12 GEMMs (2 per MLP x DEPTH=6) is ~557 s of forward per step, a real dozens-to-100-step loss-trajectory run is ~10 min/step and physically infeasible on the shared box, so the open compounding question was instead answered by the harness's DEPTH=6 additive-residual simulation. Kept in-tree, off by default, per this session's standing pattern for honest negatives; --fp8-linear runs the A/B from one identical binary. Read by MLP.__init__, i.e. before GPT(config).
@@ -378,9 +394,9 @@ def detect_device_type(requested: str = "") -> str:
     return "cpu"
 
 
-def init_runtime(device_type: str):
+def init_runtime(device_type: str, seed: int = 42):
     assert device_type in {"cpu", "cuda", "neuron"}
-    torch.manual_seed(42)
+    torch.manual_seed(seed)
     ddp, rank, local_rank, world_size = get_dist_info()
     if ddp and device_type == "cuda":
         device = torch.device("cuda", local_rank)
@@ -3153,6 +3169,7 @@ class GPT(nn.Module):
     def setup_optimizer(self):
         scalar_params = []
         matrix_params = []
+        local_conv_params = []  # T0.1: local_conv.weight, previously dead compute -- see below
         ssm_params = []  # Mamba2's non-matrix state-space tensors, see below
         rwkv_params = []  # RWKV x051a's non-matrix per-channel/per-head tensors, see below
         hypernet_params = []  # MUDD/DCMHA's own generator weights: real matrices, not
@@ -3167,6 +3184,17 @@ class GPT(nn.Module):
         # either (tiny, varies in shape per layer/branch), so it gets its own AdamW group
         # at MATRIX_LR instead.
         for block in self.transformer.h:
+            if block.local_conv is not None:
+                # T0.1: register the depthwise causal conv1d weight so it actually
+                # trains. Not Muon material (depthwise: each output channel's kernel
+                # is an independent [1, k] row with no second axis to orthogonalize,
+                # and k is tiny -- same reasoning as ssm_params/rwkv_params below), and
+                # not the SCALAR_LR=0.20 group either (that LR is tuned for a single
+                # learned scalar's blast radius, not a real weight tensor -- see the
+                # hypernet_params comment). Own AdamW group at MATRIX_LR, wd=0.0,
+                # matching the plan's T0.1 spec. Kept zero-initialized (CausalConv.__init__)
+                # so step 0 is still an exact no-op regardless of this change.
+                local_conv_params.append(block.local_conv.weight)
             if block.resid_lambda is not None:
                 scalar_params.extend([block.resid_lambda, block.x0_lambda])
             if block.mudd is not None:
@@ -3243,6 +3271,8 @@ class GPT(nn.Module):
             param_groups.append(dict(kind="adamw", params=rwkv_params, lr=MATRIX_LR, betas=(0.9, 0.95), eps=1e-10, weight_decay=0.0))
         if value_embed_params:
             param_groups.append(dict(kind="adamw", params=value_embed_params, lr=EMBEDDING_LR * dmodel_lr_scale, betas=(0.8, EMBED_ADAMW_BETA2), eps=1e-10, weight_decay=VE_WD))
+        if local_conv_params and TRAIN_LOCAL_CONV:
+            param_groups.append(dict(kind="adamw", params=local_conv_params, lr=MATRIX_LR, betas=(0.9, 0.95), eps=1e-10, weight_decay=0.0))
         for shape in sorted({p.shape for p in matrix_params}):
             params = [p for p in matrix_params if p.shape == shape]
             param_groups.append(dict(kind="muon", params=params, lr=MATRIX_LR, momentum=0.95, beta2=0.90, ns_steps=5, weight_decay=WEIGHT_DECAY))
@@ -3652,11 +3682,68 @@ def sync_gradients(model: nn.Module) -> None:
 
 
 # -----------------------------------------------------------------------------
+# T1.2 -- flat gradient buffer: one all_reduce/step instead of one per parameter.
+#
+# sync_gradients() above issues one dist.all_reduce per parameter (62 at the locked
+# shape). This builds a single flat fp32 buffer sized to hold every trainable
+# parameter's gradient, points each p.grad at a VIEW into that buffer (so autograd's
+# normal in-place accumulation -- "if p.grad is not None: p.grad += new_grad" --
+# writes directly into the shared storage), and all-reduces the whole buffer once.
+# Must be built exactly once, before the first backward() of the run (grad-accum
+# micro-steps within one optimizer step then keep accumulating into the same views),
+# and the training loop must use optimizer.zero_grad(set_to_none=False) so the zero
+# between optimizer steps zeroes the existing view tensors in place instead of
+# replacing them with None (which would sever the view and silently fall back to
+# fresh per-tensor grad tensors on the next backward). Verified bit-equal against the
+# per-tensor path in research/scratch/grad_bucket_equiv.py; only wired in behind
+# --grad-bucket (default OFF) until a real hardware A/B decides whether the ~1%
+# expected win is real. See the T1.2 section of trn2-experiment-results.md.
+def build_flat_grad_buffer(model: nn.Module) -> tuple[torch.Tensor, list[torch.Tensor]]:
+    """Returns (flat_buffer, params) and leaves every params[i].grad pointing at a
+    zeroed view into flat_buffer. Call once, before the first backward() of the run."""
+    params = [p for p in model.parameters() if p.requires_grad]
+    device = params[0].device if params else torch.device("cpu")
+    total = sum(p.numel() for p in params)
+    flat = torch.zeros(total, dtype=torch.float32, device=device)
+    offset = 0
+    for p in params:
+        n = p.numel()
+        view = flat[offset:offset + n].view_as(p)
+        p.grad = view
+        offset += n
+    assert offset == total
+    return flat, params
+
+
+def sync_gradients_flat(flat_grad_buffer: torch.Tensor) -> None:
+    if not (dist.is_available() and dist.is_initialized()):
+        return
+    dist.all_reduce(flat_grad_buffer, op=dist.ReduceOp.AVG)
+
+
+def clip_grad_norm_flat_(flat_grad_buffer: torch.Tensor, max_norm: float) -> torch.Tensor:
+    """T1.3: the flat-buffer equivalent of torch.nn.utils.clip_grad_norm_(params, max_norm) --
+    one norm + one mul instead of one norm + one mul PER TENSOR. Mathematically identical to the
+    default (norm_type=2, foreach) path: the global L2 norm of a concatenation of tensors equals
+    the L2 norm of the concatenated flat vector, and clipping is a single elementwise scale
+    applied uniformly, so grouping changes nothing about which numbers are combined -- only NNs
+    where the reduction algorithm's summation order depends on how values are chunked (the
+    cross-rank all_reduce, handled by sync_gradients_flat, not this local per-rank op) could ever
+    perturb bit-equality; the local norm/mul here is a single-rank, single-tensor float32
+    reduction verified bit-equal in research/scratch/grad_bucket_equiv.py."""
+    total_norm = flat_grad_buffer.norm(2)
+    clip_coef = max_norm / (total_norm + 1e-6)
+    clip_coef_clamped = torch.clamp(clip_coef, max=1.0)
+    flat_grad_buffer.mul_(clip_coef_clamped)
+    return total_norm
+
+
+# -----------------------------------------------------------------------------
 # Checkpoint / scoring hook
 
 ARCH_TOGGLE_NAMES = [
     "PACK_FACTOR", "INIT_SCALE", "USE_VE", "WINDOW_PATTERN", "SHORT_WINDOW_FRAC",
-    "ROPE_BASE", "USE_LOCAL_CONV", "LOCAL_CONV_KERNEL", "USE_GATED_MLP",
+    "ROPE_BASE", "USE_LOCAL_CONV", "LOCAL_CONV_KERNEL", "TRAIN_LOCAL_CONV", "USE_GATED_MLP",
     "USE_WEIGHT_CACHE", "WARMDOWN_RATIO", "FINAL_LR_FRAC", "WARMUP_STEPS",
     "WD_DECAY_TO_ZERO", "MUON_MOMENTUM_WARMUP_STEPS", "USE_DOC_MASK", "VE_WD",
     "USE_SELECTIVE_GATE", "SELECTIVE_GATE_CHANNELS", "USE_FUSED_QKV",
@@ -3737,13 +3824,30 @@ def torch_load_weights(path: str | Path, map_location):
     return torch.load(path, map_location=map_location, weights_only=True)
 
 
+EVAL_MIN_SEQ_LEN = 8192  # C1/T0.7: floor for load_for_eval's rotary/window-mask tables, see below.
+
+
 def load_for_eval(checkpoint_path: str, device: torch.device) -> nn.Module:
+    """Build+load a model for eval-only use, robust to any probing seq_len up to EVAL_MIN_SEQ_LEN.
+
+    prepare.py's eval-public (and the official scorer, whose context length is not published --
+    see C1 in the research plan) call this with a fixed 2-argument signature and then run
+    model(x) at whatever --seq-len they choose, which may exceed the checkpoint's own trained
+    SEQ_LEN. config.sequence_len only controls three things here: the size of the cos/sin
+    rotary tables, the size of mask_full/mask_short, and the `t <= config.sequence_len` assert in
+    GPT.forward -- none of which are trained parameters, and cos/sin/mask_full/mask_short are all
+    registered with persistent=False, so they are never part of the saved state_dict and widening
+    sequence_len before construction cannot break strict-loading or change a single weight shape.
+    Zero training-cost change: this function is eval-only, never called from the training loop.
+    """
     global COMPUTE_DTYPE, BOS_TOKEN_ID
     COMPUTE_DTYPE = compute_dtype_for(device)
     if USE_DOC_MASK:
         BOS_TOKEN_ID = ensure_tokenizer(build_if_missing=False).get_bos_token_id()
     payload = torch_load_weights(checkpoint_path, map_location="cpu")
     config = GPTConfig(**payload["model_config"])
+    if config.sequence_len < EVAL_MIN_SEQ_LEN:
+        config.sequence_len = EVAL_MIN_SEQ_LEN
     model = GPT(config)
     model.init_weights()
     model.load_state_dict(payload["model_state"], strict=True)
@@ -3787,6 +3891,7 @@ def main() -> None:
     global USE_FP8_LINEAR
     global MAMBA2_EXPAND, MAMBA2_D_STATE, MAMBA2_HEAD_DIM, MAMBA2_CHUNK, MAMBA2_N_GROUPS, MAMBA2_CONV_KERNEL
     global USE_RWKV, RWKV_PATTERN, RWKV_HEAD_DIM, RWKV_CHUNK, RWKV_CMIX_EXPAND
+    global LOCAL_CONV_KERNEL, TRAIN_LOCAL_CONV
     parser = argparse.ArgumentParser(description="Neuron Competition R1 baseline")
     parser.add_argument("--device-type", type=str, default="")
     parser.add_argument("--num-steps", type=int, default=int(os.environ.get("NEURON_COMPETITION_R1_NUM_STEPS", NUM_STEPS)))
@@ -3930,6 +4035,38 @@ def main() -> None:
                              "layer's 12*C^2). Only read when --rwkv is on.")
     parser.add_argument("--init-from", type=str, default="",
                         help="warm-start model weights from a prior checkpoint (fresh optimizer/step/dataloader; dev-iteration only, never for a scored submission)")
+    parser.add_argument("--grad-bucket", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_GRAD_BUCKET", "0") != "0",
+                        help="T1.2: point every parameter's .grad at a view into one flat fp32 "
+                             "buffer and all_reduce it once per step instead of once per parameter. "
+                             "Also switches grad clipping to the flat-buffer one-norm/one-mul form "
+                             "(T1.3). Verified bit-equal to the per-tensor path in "
+                             "research/scratch/grad_bucket_equiv.py. Default OFF pending a real "
+                             "hardware A/B (~1%% expected win).")
+    parser.add_argument("--clip-foreach", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_CLIP_FOREACH", "0") != "0",
+                        help="T1.3: pass foreach=True explicitly to torch.nn.utils.clip_grad_norm_ "
+                             "instead of letting it auto-detect (which may fall back to a per-tensor "
+                             "Python loop on this device backend). Numerically identical; only "
+                             "matters when --grad-bucket is off. Default OFF pending a real "
+                             "hardware A/B.")
+    parser.add_argument("--seed", type=int, default=int(os.environ.get("NEURON_COMPETITION_R1_SEED", "42")),
+                        help="torch.manual_seed value (init_runtime). Default 42, unchanged from the "
+                             "long-standing hardcoded value -- exposed as a flag purely so noise/variance "
+                             "can be estimated with paired seeds without editing the file.")
+    parser.add_argument("--local-conv-kernel", type=int,
+                        default=int(os.environ.get("NEURON_COMPETITION_R1_LOCAL_CONV_KERNEL", str(LOCAL_CONV_KERNEL))),
+                        help="depthwise causal conv1d kernel size for --local-conv (T0.1 sweep knob). "
+                             "Only matters once the conv's weight is actually trained (see the "
+                             "USE_LOCAL_CONV comment); a shape-critical toggle already covered by "
+                             "SHAPE_CRITICAL_TOGGLES via LOCAL_CONV_KERNEL.")
+    parser.add_argument("--train-local-conv", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_TRAIN_LOCAL_CONV", "1" if TRAIN_LOCAL_CONV else "0") != "0",
+                        help="T0.1: register local_conv.weight in its own AdamW group (lr=MATRIX_LR, "
+                             "betas=(0.9,0.95), wd=0.0) instead of leaving it permanently zero/dead. "
+                             "Still zero-initialized, so step 0 is unchanged either way. Default OFF "
+                             "(bit-identical to every prior locked-baseline run) -- pass "
+                             "--train-local-conv for the A/B; only matters when --local-conv is on.")
     args = parser.parse_args()
     if args.rwkv and args.mamba2:
         parser.error("--rwkv and --mamba2 are mutually exclusive: a layer cannot be both a Mamba2 "
@@ -3938,6 +4075,8 @@ def main() -> None:
 
     global USE_NKI_RELU2, USE_NKI_ROPE_NORM, USE_NKI_SOFTCAP_CE, USE_NKI_MUON
     USE_LOCAL_CONV = args.local_conv         # read by Block.__init__, i.e. before GPT(config) below
+    LOCAL_CONV_KERNEL = args.local_conv_kernel  # ditto (CausalConv.__init__ reads it via the global default)
+    TRAIN_LOCAL_CONV = args.train_local_conv  # read by GPT.setup_optimizer(), called after GPT(config) below
     LRM_QUANTUM = args.lrm_quantum
     USE_TENSOR_LR_SCALARS = args.tensor_lr_scalars
     USE_FOREACH_OPTIM = args.foreach_optim
@@ -3965,7 +4104,7 @@ def main() -> None:
     RWKV_CMIX_EXPAND = args.rwkv_cmix_expand
 
     device_type = detect_device_type(args.device_type)
-    ddp, rank, _local_rank, world_size, device = init_runtime(device_type)
+    ddp, rank, _local_rank, world_size, device = init_runtime(device_type, seed=args.seed)
     global COMPUTE_DTYPE
     COMPUTE_DTYPE = compute_dtype_for(device)
 
@@ -4028,6 +4167,14 @@ def main() -> None:
 
     x, y, loader_state = fetch()
     optimizer = model.setup_optimizer()
+    grad_flat_buffer = None
+    if args.grad_bucket:
+        # T1.2: build once, before the first backward() of the run -- see the
+        # build_flat_grad_buffer docstring. Uses model.parameters() (every trainable
+        # tensor), same as sync_gradients(), so it also covers local_conv.weight
+        # regardless of --train-local-conv.
+        grad_flat_buffer, _grad_bucket_params = build_flat_grad_buffer(model)
+        print0(f"grad_bucket enabled: {len(_grad_bucket_params)} params, {grad_flat_buffer.numel():,} floats in one flat fp32 buffer")
     loop_started = time.monotonic()
     budget_started = loop_started
 
@@ -4042,7 +4189,12 @@ def main() -> None:
 
         synchronize(device)
         t0 = time.monotonic()
-        optimizer.zero_grad(set_to_none=True)
+        if grad_flat_buffer is not None:
+            # zero_(set_to_none=False)-equivalent: keeps every p.grad pointed at its
+            # view into the buffer rather than severing the link with a fresh None.
+            grad_flat_buffer.zero_()
+        else:
+            optimizer.zero_grad(set_to_none=True)
         last_loss = None
         for _ in range(grad_accum_steps):
             loss = model(x, y)
@@ -4050,9 +4202,14 @@ def main() -> None:
             (loss / grad_accum_steps).backward()
             x, y, loader_state = fetch()
 
-        if GRAD_CLIP > 0:
-            torch.nn.utils.clip_grad_norm_(model.parameters(), GRAD_CLIP)
-        sync_gradients(model)
+        if grad_flat_buffer is not None:
+            if GRAD_CLIP > 0:
+                clip_grad_norm_flat_(grad_flat_buffer, GRAD_CLIP)
+            sync_gradients_flat(grad_flat_buffer)
+        else:
+            if GRAD_CLIP > 0:
+                torch.nn.utils.clip_grad_norm_(model.parameters(), GRAD_CLIP, foreach=True if args.clip_foreach else None)
+            sync_gradients(model)
 
         lrm = lr_multiplier(step, elapsed=elapsed, max_train_seconds=args.max_train_seconds)
         wd_progress = min(1.0, elapsed / max(1e-6, args.max_train_seconds))
