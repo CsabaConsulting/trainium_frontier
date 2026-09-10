@@ -2255,3 +2255,124 @@ in rough order of suspicion: (i) LNC=1 variants of the NKI kernels (`USE_NKI_ROP
 generated and less well exercised; (ii) something world_size-dependent in the data pipeline at
 8 ranks; (iii) Muon's per-rank Newton–Schulz interacting with the halved per-rank batch. Any of
 those is a real investigation, not a one-run check, and none of it changes the locked config.
+
+### T0.4 — full hyperparameter coordinate-descent resweep at ~1100 steps: 22 single-axis 900s runs
+
+The point of this item was to re-test every T0.4 hyperparameter *on the current code*, because
+each of them was last tuned on a materially different stack (before `USE_NKI_MUON`, before
+`GRAD_CLIP`, before `USE_FOREACH_OPTIM`, before T0.1's trained `local_conv`, before
+`PACK_FACTOR = 4`, before `--optlevel=1`). A resweep is not a formality: `MATRIX_LR` in
+particular sits downstream of every one of those changes.
+
+**Baseline for every delta below** is the same-code 900s pair
+`t06-optlevel1-900s` / `-v2` = 1097 / 1.081696 and 1098 / 1.082876, **mean 1.082286**, ~1097
+steps. Every run in this section is 900s, 4 ranks, LNC=2, `PACK_FACTOR = 4`, `--optlevel=1`,
+`seq_len` 2048, 55.7M params, `grad_accum` 4 × 32,768 tokens/rank, and every one reported
+`causality_passed True` / `causality_max_abs 0.000000`. Deltas are versus 1.082286; negative is
+better.
+
+| axis | value | steps | `public_val_bpb` | Δ bpb |
+|---|---|---|---|---|
+| `MATRIX_LR` (0.025) | 0.015 | 1095 | 1.085014 | +0.002728 |
+| | 0.020 | 1101 | 1.081451 | −0.000835 |
+| | 0.020 (repeat) | 1095 | 1.082180 | −0.000106 |
+| | 0.030 | 1101 | 1.082838 | +0.000552 |
+| | 0.035 | 1100 | 1.083276 | +0.000990 |
+| `FINAL_LR_FRAC` (0.05) | 0.02 | 1098 | 1.083099 | +0.000813 |
+| | 0.10 | 1099 | 1.083256 | +0.000970 |
+| | 0.15 | 1100 | 1.084506 | +0.002220 |
+| `WARMDOWN_RATIO` (0.75) | 0.60 | 1101 | 1.082468 | +0.000182 |
+| | 0.90 | 1095 | 1.082540 | +0.000254 |
+| `EMBEDDING_LR` (0.30) | 0.18 (−40%) | 1094 | 1.083387 | +0.001101 |
+| | 0.45 (+50%) | 1094 | 1.082229 | −0.000057 |
+| `UNEMBEDDING_LR` (0.006) | 0.0035 (−42%) | 1096 | 1.084028 | +0.001742 |
+| | 0.010 (+67%) | 1095 | 1.083672 | +0.001386 |
+| `WEIGHT_DECAY` (0.10) | 0.05 | 1095 | 1.082267 | −0.000019 |
+| | 0.20 | 1095 | 1.081729 | −0.000557 |
+| | 0.20 (repeat) | 1096 | 1.081753 | −0.000533 |
+| | 0.35 | 1098 | 1.081828 | −0.000458 |
+| `WD_DECAY_TO_ZERO` (True) | off | 1101 | 1.081493 | −0.000793 |
+| | off (repeat) | 1095 | 1.081925 | −0.000361 |
+| | 0.20 **and** off | 1099 | 1.084114 | +0.001828 |
+| `INIT_SCALE` (0.68) | 0.50 | 1099 | 1.081380 | −0.000906 |
+| | 0.85 | 1098 | 1.082347 | +0.000061 |
+| `attn.c_proj` init (0, i.e. zero) | `U(-0.10s, 0.10s)` | 1099 | 1.081814 | −0.000472 |
+| | `U(-0.25s, 0.25s)` | 1101 | 1.083091 | +0.000805 |
+| `LOGIT_SOFTCAP` (15.0) | 7.5 | 1096 | 1.086722 | +0.004436 |
+| | 22.5 | 1095 | 1.083872 | +0.001586 |
+| `MUON_NS_STEPS` (5) | 4 | 1100 | 1.083371 | +0.001085 |
+| Muon momentum cooldown (off) | 0.95→0.85 over last 4.5% | 1097 | 1.081793 | −0.000493 |
+
+**Axes that are now confirmed genuinely optimal, with both directions worse by more than the
+noise floor** (these are the useful results — they say "stop tuning this"):
+
+- **`FINAL_LR_FRAC = 0.05`.** 0.02 is +0.0008, 0.10 is +0.0010, 0.15 is +0.0022 — a clean
+  interior minimum, checked on both sides.
+- **`UNEMBEDDING_LR = 0.006`.** −42% costs +0.0017, +67% costs +0.0014. A real optimum, and a
+  sharp one.
+- **`LOGIT_SOFTCAP = 15.0`.** Halving it is the single worst move in the whole sweep
+  (+0.0044); +50% costs +0.0016.
+- **`MUON_NS_STEPS = 5`.** Dropping to 4 costs +0.0011 and bought nothing measurable in
+  throughput (1100 steps vs ~1097 — inside step-count noise). The cheaper orthogonalization is
+  not cheap enough to notice and is measurably worse.
+- **`EMBEDDING_LR = 0.30`** and **`WARMDOWN_RATIO = 0.75`** are at flat optima: −40%/+50% on
+  the embedding lr gives +0.0011/−0.0001, and 0.60/0.90 warmdown gives +0.0002/+0.0003. Nothing
+  to gain, so nothing changes.
+- **`MATRIX_LR = 0.025`** survives, but its curve is asymmetric: 0.015 is decisively worse
+  (+0.0027), 0.030/0.035 are mildly worse, and 0.020 is the one value that came in *better* —
+  by −0.000835 on the first run and only −0.000106 on the paired repeat, i.e. **mean −0.000470
+  with a within-pair spread of 0.00073.** Per the escalation ladder (lock at 900s only if the
+  paired delta ≥ 0.002) that is not a lockable move. `MATRIX_LR` stays 0.025.
+
+**The axes that hinted at an improvement, and what happened when they were pushed:**
+
+- **`WEIGHT_DECAY` is nearly flat upward and reproducible.** 0.20 gave −0.000557 and −0.000533
+  on a paired repeat — a within-pair spread of **0.000024**, which is the tightest pair in this
+  entire results file and worth noting as evidence that the true same-config noise at 900s is
+  well under the 0.001 working floor. 0.35 gives −0.000458, 0.05 gives −0.000019. So the whole
+  band 0.10–0.35 is within 0.0006 of itself: the axis is real but tiny, and no value in it
+  clears 0.002.
+- **`WD_DECAY_TO_ZERO` off** gave −0.000793 then −0.000361 (mean −0.000577) — the same size and
+  the same direction as raising `WEIGHT_DECAY`, which is what you would expect if both are
+  really the same knob (total integrated decay over the run).
+- **And that interpretation is confirmed by the combination test, which is the most useful
+  single row here: `WEIGHT_DECAY 0.20` *and* `WD_DECAY_TO_ZERO` off together came in at
+  +0.001828 — worse than the default, and worse than either move alone by ~0.0024.** Two
+  sub-noise improvements on "the same" axis did not add; they overshot. This is a concrete,
+  measured warning against the tempting move of stacking every sub-noise-negative single-axis
+  result and assuming additivity.
+- **`INIT_SCALE 0.50`** (−0.000906) and **nonzero `attn.c_proj` init at `0.10s`** (−0.000472)
+  are the other two sub-noise hints; `INIT_SCALE 0.85` (+0.000061) and `attn.c_proj` at `0.25s`
+  (+0.000805) bracket them, so both point weakly in the "smaller init" direction. `mlp.c_proj`
+  was left at exactly zero throughout, as specified.
+- **Muon momentum cooldown 0.95 → 0.85 over the last 4.5% of steps** gave −0.000493. Note the
+  implementation detail that made this testable at all: the momentum is written into the
+  optimizer's param groups as a **device tensor updated in place**, never as a per-step Python
+  float, because a fresh Python scalar reaching a device op recompiles the graph every step
+  during cooldown (the `USE_TENSOR_LR_SCALARS` lesson). Step time was unchanged (1097 steps),
+  which is itself the evidence that no recompilation happened.
+
+So after 22 single-axis runs the honest position is: **six axes are confirmed correct, and no
+single axis produced a delta that clears the 0.002 lock threshold.** Four axes produced
+consistent-but-sub-noise negatives (`MATRIX_LR` 0.020, `WEIGHT_DECAY` 0.20, `INIT_SCALE` 0.50,
+`attn.c_proj` 0.10s, plus the momentum cooldown). The WD-combination row above is direct
+evidence that stacking such hints can be *negative*, so the stack was tested rather than
+assumed — see the next subsection.
+
+### T1.4 addendum — `--adam-every-n-lr-comp`: decisively worse, T1.4 fully closed
+
+The one untested variant left from T1.4 was lr compensation: multiply the AdamW groups' lr by
+`N` so that updating half as often still travels the same distance. Measured:
+
+| run | steps | `public_val_bpb` | Δ vs baseline |
+|---|---|---|---|
+| `t14-adam-every2-900s` | 1110 | 1.083173 | +0.000887 |
+| `t14-adam-every2-lrcomp-900s` | 1105 | **1.110379** | **+0.028093** |
+
+**+0.028 bpb — 30x the noise floor.** Doubling the embedding/unembedding lr to compensate is
+far worse than just taking fewer, normal-sized steps. That is consistent with the mechanism
+already documented above (Adam's update is scale-invariant in the gradient, so the compensation
+does not restore the missing updates, it just makes each surviving update twice as large as any
+value the lr sweep ever validated — and `UNEMBEDDING_LR` was independently shown in T0.4 above
+to be a *sharp* optimum, where +67% alone already costs +0.0014). **T1.4 is closed: discarded in
+both variants, `ADAM_EVERY_N` stays 1.**
