@@ -2438,3 +2438,108 @@ stack on top gives the current best:
 
 Both throughput wins convert; the tuning win is real but an order of magnitude smaller than the
 throughput work, which is worth remembering for how the remaining time gets spent.
+
+### URGENT / submission-critical — leaderboard 1.1495 vs local 1.034: the cold-compile-cache hypothesis is REFUTED
+
+The real leaderboard submission (bare launch command
+`NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py`, exactly the
+`train.py` in this repo, no extra flags) scored **1.1495** on the private shard, while the same
+config measured **1.034005 / 1.034101 / 1.034118 / 1.034459** across four independent full-1800s
+runs here. A **~0.115 bpb** gap — roughly 10x the known 0.006–0.014 local-vs-board calibration
+bias, so it is not a calibration effect.
+
+**The most informative thing about 1.1495 is its size.** Using this notebook's own exchange rate
+(≈0.077·ln(steps)), 1.1495 corresponds to about **490–660 steps** rather than 2200, and it sits
+right on top of the historical short-run cluster (`sol13-lnc2-fullbudget` 639 steps / 1.15361,
+the pre-`USE_TENSOR_LR_SCALARS` recompile regime at 847 steps / 1.108697 and 427 / 1.180633). So
+the official run almost certainly **trained far fewer charged steps than this box does**, rather
+than trained the same number of steps to a worse loss.
+
+The leading hypothesis was a **cold NEFF/compile cache**: every dev run in this competition has
+reused a warm `/tmp/neuron_backend` cache (303 MB, 34 entries), a fresh submission sandbox would
+not, and if a cold compile blew past `TRAIN_STARTUP_ALLOWANCE_CAP_SECONDS = 900` then `train.py`'s
+own back-dating logic (`excess = observed_startup + 30 - 900`, applied at the
+`TRAIN_STARTUP_STEPS_EXCLUDED = 5` boundary) would correctly-but-painfully charge the excess and
+cut real training time.
+
+**Tested directly, and it is not the cause.** `research/run-logs/cold-cache-fullbudget.log`
+(`/home/ubuntu/coldrun.sh` on the box): the entire warm cache was moved aside
+(`mv /tmp/neuron_backend /tmp/neuron_backend_warm_<stamp>`), `NEURON_COMPILE_CACHE_DIR` was
+pointed at a fresh empty directory, and the exact submitted command was then run at the full
+1800s budget:
+
+| | steps | `startup_allowance_est` | `training_seconds` | `public_val_bpb` |
+|---|---|---|---|---|
+| warm cache (`t04-stack-fullbudget`) | 2205 | 56.5 | 1794.3 | 1.034005 |
+| warm cache (`t04-stack-defaults-fullbudget`) | 2199 | 118.0 | 1794.7 | 1.034118 |
+| **cold cache** (`cold-cache-fullbudget`) | **2198** | **57.7** | 1794.2 | **1.034459** |
+
+**Cold compilation costs essentially nothing here: 57.7s of startup, inside the same 46–118s band
+as warm runs, and the run lands at 2198 steps / 1.034459 — indistinguishable from warm.** The
+compile really was cold, on three independent pieces of evidence: (1) the cache directory was
+still 4 KB eleven minutes into the run and only reached 303 MB when the process exited, so nothing
+was read from it; (2) fresh `/tmp/nki_*/sg00` scratch directories were created during the run,
+i.e. the NKI kernels were compiled from source; (3) the same-session
+`t06-lnc1-nkioff-900s` run, which genuinely does present a new graph (NKI off, 8 ranks), shows
+`startup_allowance_est: 268.4` — so this accounting does register a real compile when one happens.
+Compilation on this native-eager backend is many small NEFFs compiled in parallel across 12 vCPUs,
+which is why it is ~30s and not ~30 minutes.
+
+**So the hypothesis is dead, and the gap is still unexplained.** What is now ruled out or
+established, for whoever picks this up:
+
+- Cold compile cache: **ruled out** (this section).
+- `train.py`'s startup accounting mis-charging: not implicated at these startup times, but note
+  it has never been exercised anywhere near the 900s cap — the largest startup ever observed is
+  268s.
+- The gap is ~10x the eval calibration bias, so it is **not** an eval-window artifact.
+- The magnitude points at a **step-count / throughput collapse on the official runner**, not at a
+  worse-quality config.
+
+Remaining hypotheses, in the order I would test them (none tested yet):
+
+1. **A per-step recompile regime on the official SDK/AMI.** The signature score (~500–660 steps)
+   is exactly what this repo measured before `USE_TENSOR_LR_SCALARS` fixed the "new Python float
+   reaches a device op → recompile every step" trap (847/1.108697, 427/1.180633). If the official
+   image's compiler/backend version treats any of the per-step scalars differently, the same
+   collapse reappears. Cheap hardening that does not depend on diagnosing it: set `LRM_QUANTUM`
+   to a small number so at most that many distinct lr values ever exist, which bounds the damage
+   even in a recompiling environment, and re-measure the cost of that quantisation locally.
+2. **`NEURON_CC_FLAGS=--optlevel=1` interacting badly with a different compiler version.**
+   `train.py` sets it via `os.environ.setdefault`, so it is applied on the official runner too.
+   It was a clean +1.8% win here, but it is the newest environment-level change in the submitted
+   code and is the kind of flag whose behaviour can differ across `neuronx-cc` versions. An
+   `--optlevel=2`/unset variant is a one-line, zero-risk fallback submission.
+3. **`PACK_FACTOR = 4`** (the other Day-2 change) if the official runner's host is more
+   contended: it is a *loader-side* change, and its win here partly came from lower exposed loader
+   cost. On a slower host the reshape path could behave differently.
+4. **A crash/restart on the official runner** that silently produced a short run (the forum
+   already documents `USER_TRAINING_CRASHED (exit=1, status=no_run_meta)` for another
+   participant). The submitted `train.py` writes its checkpoint at the end, so a hard kill should
+   produce no score at all — but a runner-side retry with a truncated budget would look exactly
+   like this.
+
+The single most valuable next action is not another local run: it is **getting the official
+`train.log` / step count for that submission**, because `num_steps` alone discriminates between
+hypotheses 1–3 (throughput collapse) and 4 (truncated budget).
+
+### T0.6 follow-up (b) — LNC=1 cliff is not the NKI kernels either
+
+Testing the leading suspect from the previous LNC section: all three NKI toggles off at LNC=1.
+
+| run | LNC | procs | NKI kernels | GRAD_CLIP | steps | `public_val_bpb` |
+|---|---|---|---|---|---|---|
+| `t06-lnc1-nkioff-900s` | 1 | 8 | all off | 0 | 911 | **1.337690** |
+| `t06-lnc1-noclip-900s` | 1 | 8 | on | 0 | 1126 | 1.322584 |
+| `t06-lnc2-noclip-900s` | 2 | 4 | on | 0 | 1105 | 1.083143 |
+
+**Turning the NKI kernels off makes LNC=1 slightly worse, not better** (+0.0151, and 215 fewer
+steps because the ATen fallbacks are slower). So the LNC=1 quality cliff is **not** caused by
+`USE_NKI_ROPE_NORM` / `USE_NKI_SOFTCAP_CE` / `USE_NKI_MUON` LNC=1 codegen. Combined with the
+earlier results, LNC=1's +0.24 bpb is now independent of gradient clipping, of clip placement,
+of the `--clip-foreach` path, and of the NKI kernels. The matched LNC=2 NKI-off control was
+started and deliberately killed to free the device for the urgent cold-cache test above, so the
+"NKI off costs X at LNC=2" number is missing; it is not needed for the conclusion (the LNC=1 arm
+got *worse*, in the wrong direction for the hypothesis). Remaining suspects: something
+world-size-dependent in the data pipeline at 8 ranks, or Muon's per-rank Newton–Schulz with a
+halved per-rank batch.

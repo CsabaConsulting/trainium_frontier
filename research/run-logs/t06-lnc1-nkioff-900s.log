@@ -1,0 +1,254 @@
+device=neuron dtype=torch.bfloat16 world_size=8
+training target=5000 steps max_seconds=900 official_budget=1800s
+model_config={
+  "sequence_len": 2048,
+  "vocab_size": 8192,
+  "n_layer": 6,
+  "n_head": 5,
+  "n_embd": 640
+}
+num_params=55,713,772 flops_per_token=3.971971e+08
+torch.compile enabled (backend=neuron)
+micro_tokens=65,536 grad_accum_steps=2 pack_factor=4
+step 00000 | loss 9.0096 | lrm 1.000 | dt 237.14s | tok/s 553 | remaining_steps 4999 | remaining_time 663s | epoch 1
+step 00001 | loss 8.8238 | lrm 0.983 | dt 7.06s | tok/s 18,554 | remaining_steps 4998 | remaining_time 655s | epoch 1
+step 00002 | loss 8.5484 | lrm 0.973 | dt 0.94s | tok/s 139,090 | remaining_steps 4997 | remaining_time 655s | epoch 1
+step 00003 | loss 8.1622 | lrm 0.971 | dt 0.96s | tok/s 136,792 | remaining_steps 4996 | remaining_time 654s | epoch 1
+step 00004 | loss 8.4310 | lrm 0.970 | dt 1.01s | tok/s 130,121 | remaining_steps 4995 | remaining_time 900s | epoch 1
+step 00010 | loss 7.3631 | lrm 1.000 | dt 0.95s | tok/s 138,474 | remaining_steps 4989 | remaining_time 894s | epoch 1
+step 00020 | loss 6.4837 | lrm 1.000 | dt 0.99s | tok/s 132,075 | remaining_steps 4979 | remaining_time 884s | epoch 1
+step 00030 | loss 6.0644 | lrm 1.000 | dt 0.97s | tok/s 135,122 | remaining_steps 4969 | remaining_time 874s | epoch 1
+step 00040 | loss 5.8657 | lrm 1.000 | dt 0.98s | tok/s 133,817 | remaining_steps 4959 | remaining_time 865s | epoch 1
+step 00050 | loss 5.7509 | lrm 1.000 | dt 0.96s | tok/s 136,924 | remaining_steps 4949 | remaining_time 855s | epoch 1
+step 00060 | loss 5.6106 | lrm 1.000 | dt 0.97s | tok/s 134,540 | remaining_steps 4939 | remaining_time 845s | epoch 1
+step 00070 | loss 5.5173 | lrm 1.000 | dt 1.00s | tok/s 131,090 | remaining_steps 4929 | remaining_time 835s | epoch 1
+step 00080 | loss 5.3843 | lrm 1.000 | dt 0.97s | tok/s 134,657 | remaining_steps 4919 | remaining_time 825s | epoch 1
+step 00090 | loss 5.2179 | lrm 1.000 | dt 0.98s | tok/s 133,322 | remaining_steps 4909 | remaining_time 815s | epoch 1
+step 00100 | loss 5.1394 | lrm 1.000 | dt 0.96s | tok/s 136,267 | remaining_steps 4899 | remaining_time 805s | epoch 1
+step 00110 | loss 4.9387 | lrm 1.000 | dt 0.97s | tok/s 135,001 | remaining_steps 4889 | remaining_time 795s | epoch 1
+step 00120 | loss 4.7794 | lrm 1.000 | dt 0.95s | tok/s 137,621 | remaining_steps 4879 | remaining_time 786s | epoch 1
+step 00130 | loss 4.7478 | lrm 1.000 | dt 0.96s | tok/s 136,839 | remaining_steps 4869 | remaining_time 776s | epoch 1
+step 00140 | loss 4.6585 | lrm 1.000 | dt 1.00s | tok/s 130,656 | remaining_steps 4859 | remaining_time 766s | epoch 1
+step 00150 | loss 4.6164 | lrm 1.000 | dt 0.97s | tok/s 134,459 | remaining_steps 4849 | remaining_time 756s | epoch 1
+step 00160 | loss 4.5230 | lrm 1.000 | dt 0.99s | tok/s 132,579 | remaining_steps 4839 | remaining_time 746s | epoch 1
+step 00170 | loss 4.5300 | lrm 1.000 | dt 0.95s | tok/s 138,107 | remaining_steps 4829 | remaining_time 736s | epoch 1
+step 00180 | loss 4.4457 | lrm 1.000 | dt 0.97s | tok/s 134,586 | remaining_steps 4819 | remaining_time 726s | epoch 1
+step 00190 | loss 4.4407 | lrm 1.000 | dt 0.99s | tok/s 132,171 | remaining_steps 4809 | remaining_time 716s | epoch 1
+step 00200 | loss 4.3199 | lrm 1.000 | dt 0.97s | tok/s 135,087 | remaining_steps 4799 | remaining_time 706s | epoch 1
+step 00210 | loss 4.2963 | lrm 1.000 | dt 0.98s | tok/s 133,306 | remaining_steps 4789 | remaining_time 697s | epoch 1
+step 00220 | loss 4.2950 | lrm 1.000 | dt 0.96s | tok/s 136,428 | remaining_steps 4779 | remaining_time 687s | epoch 1
+step 00230 | loss 4.2657 | lrm 1.000 | dt 0.97s | tok/s 134,481 | remaining_steps 4769 | remaining_time 677s | epoch 1
+step 00240 | loss 4.2454 | lrm 0.990 | dt 1.02s | tok/s 128,891 | remaining_steps 4759 | remaining_time 667s | epoch 1
+step 00250 | loss 4.3068 | lrm 0.976 | dt 0.96s | tok/s 136,623 | remaining_steps 4749 | remaining_time 657s | epoch 1
+step 00260 | loss 4.1964 | lrm 0.962 | dt 0.98s | tok/s 133,578 | remaining_steps 4739 | remaining_time 647s | epoch 1
+step 00270 | loss 4.1344 | lrm 0.948 | dt 0.96s | tok/s 137,136 | remaining_steps 4729 | remaining_time 637s | epoch 1
+step 00280 | loss 4.1694 | lrm 0.934 | dt 0.98s | tok/s 133,427 | remaining_steps 4719 | remaining_time 627s | epoch 1
+step 00290 | loss 4.2406 | lrm 0.921 | dt 0.97s | tok/s 135,279 | remaining_steps 4709 | remaining_time 618s | epoch 1
+step 00300 | loss 4.1843 | lrm 0.907 | dt 0.97s | tok/s 135,313 | remaining_steps 4699 | remaining_time 608s | epoch 1
+step 00310 | loss 4.1167 | lrm 0.893 | dt 0.98s | tok/s 133,323 | remaining_steps 4689 | remaining_time 598s | epoch 1
+step 00320 | loss 4.1395 | lrm 0.879 | dt 0.98s | tok/s 133,669 | remaining_steps 4679 | remaining_time 588s | epoch 1
+step 00330 | loss 4.1164 | lrm 0.865 | dt 0.96s | tok/s 135,913 | remaining_steps 4669 | remaining_time 578s | epoch 1
+step 00340 | loss 4.0490 | lrm 0.851 | dt 0.97s | tok/s 135,216 | remaining_steps 4659 | remaining_time 568s | epoch 1
+step 00350 | loss 4.1013 | lrm 0.837 | dt 0.97s | tok/s 135,177 | remaining_steps 4649 | remaining_time 559s | epoch 1
+step 00360 | loss 4.0676 | lrm 0.824 | dt 0.96s | tok/s 136,684 | remaining_steps 4639 | remaining_time 549s | epoch 1
+step 00370 | loss 4.0828 | lrm 0.810 | dt 1.02s | tok/s 128,867 | remaining_steps 4629 | remaining_time 539s | epoch 1
+step 00380 | loss 4.0481 | lrm 0.796 | dt 0.97s | tok/s 134,624 | remaining_steps 4619 | remaining_time 529s | epoch 1
+step 00390 | loss 4.0421 | lrm 0.782 | dt 0.98s | tok/s 133,954 | remaining_steps 4609 | remaining_time 519s | epoch 1
+step 00400 | loss 4.0385 | lrm 0.768 | dt 0.97s | tok/s 134,965 | remaining_steps 4599 | remaining_time 509s | epoch 1
+step 00410 | loss 3.9450 | lrm 0.754 | dt 0.98s | tok/s 133,971 | remaining_steps 4589 | remaining_time 499s | epoch 1
+step 00420 | loss 4.0004 | lrm 0.740 | dt 0.98s | tok/s 134,241 | remaining_steps 4579 | remaining_time 489s | epoch 1
+step 00430 | loss 4.0041 | lrm 0.726 | dt 1.00s | tok/s 131,344 | remaining_steps 4569 | remaining_time 479s | epoch 1
+step 00440 | loss 4.0014 | lrm 0.712 | dt 0.98s | tok/s 134,423 | remaining_steps 4559 | remaining_time 470s | epoch 1
+step 00450 | loss 4.0314 | lrm 0.698 | dt 0.95s | tok/s 137,950 | remaining_steps 4549 | remaining_time 460s | epoch 1
+step 00460 | loss 3.9983 | lrm 0.685 | dt 0.98s | tok/s 133,449 | remaining_steps 4539 | remaining_time 450s | epoch 1
+step 00470 | loss 3.9760 | lrm 0.671 | dt 0.98s | tok/s 133,371 | remaining_steps 4529 | remaining_time 440s | epoch 1
+step 00480 | loss 4.0108 | lrm 0.657 | dt 1.03s | tok/s 127,264 | remaining_steps 4519 | remaining_time 430s | epoch 1
+step 00490 | loss 3.9343 | lrm 0.643 | dt 0.97s | tok/s 134,837 | remaining_steps 4509 | remaining_time 420s | epoch 1
+step 00500 | loss 3.9097 | lrm 0.629 | dt 0.97s | tok/s 134,697 | remaining_steps 4499 | remaining_time 410s | epoch 1
+step 00510 | loss 3.9806 | lrm 0.615 | dt 0.97s | tok/s 135,002 | remaining_steps 4489 | remaining_time 400s | epoch 1
+step 00520 | loss 3.9356 | lrm 0.601 | dt 0.99s | tok/s 133,059 | remaining_steps 4479 | remaining_time 390s | epoch 1
+step 00530 | loss 3.8784 | lrm 0.587 | dt 0.99s | tok/s 132,410 | remaining_steps 4469 | remaining_time 381s | epoch 1
+step 00540 | loss 3.8418 | lrm 0.573 | dt 0.98s | tok/s 133,952 | remaining_steps 4459 | remaining_time 371s | epoch 1
+step 00550 | loss 3.8954 | lrm 0.559 | dt 1.00s | tok/s 131,645 | remaining_steps 4449 | remaining_time 361s | epoch 1
+step 00560 | loss 3.9088 | lrm 0.545 | dt 0.99s | tok/s 132,795 | remaining_steps 4439 | remaining_time 351s | epoch 1
+step 00570 | loss 3.9112 | lrm 0.531 | dt 0.98s | tok/s 133,401 | remaining_steps 4429 | remaining_time 341s | epoch 1
+step 00580 | loss 3.8887 | lrm 0.517 | dt 0.99s | tok/s 132,219 | remaining_steps 4419 | remaining_time 331s | epoch 1
+step 00590 | loss 3.8475 | lrm 0.504 | dt 0.96s | tok/s 137,196 | remaining_steps 4409 | remaining_time 321s | epoch 1
+step 00600 | loss 3.9551 | lrm 0.490 | dt 0.97s | tok/s 135,169 | remaining_steps 4399 | remaining_time 311s | epoch 1
+step 00610 | loss 3.8933 | lrm 0.476 | dt 0.96s | tok/s 136,102 | remaining_steps 4389 | remaining_time 302s | epoch 1
+step 00620 | loss 3.8988 | lrm 0.462 | dt 0.97s | tok/s 135,195 | remaining_steps 4379 | remaining_time 292s | epoch 1
+step 00630 | loss 3.8766 | lrm 0.448 | dt 0.98s | tok/s 134,110 | remaining_steps 4369 | remaining_time 282s | epoch 1
+step 00640 | loss 3.8459 | lrm 0.434 | dt 0.96s | tok/s 136,439 | remaining_steps 4359 | remaining_time 272s | epoch 1
+step 00650 | loss 3.8607 | lrm 0.420 | dt 0.98s | tok/s 134,086 | remaining_steps 4349 | remaining_time 262s | epoch 1
+step 00660 | loss 3.8035 | lrm 0.406 | dt 1.02s | tok/s 128,812 | remaining_steps 4339 | remaining_time 252s | epoch 1
+step 00670 | loss 3.8214 | lrm 0.392 | dt 0.97s | tok/s 135,284 | remaining_steps 4329 | remaining_time 242s | epoch 1
+step 00680 | loss 3.7987 | lrm 0.379 | dt 0.97s | tok/s 135,128 | remaining_steps 4319 | remaining_time 232s | epoch 1
+step 00690 | loss 3.8460 | lrm 0.365 | dt 0.97s | tok/s 135,539 | remaining_steps 4309 | remaining_time 223s | epoch 1
+step 00700 | loss 3.8479 | lrm 0.351 | dt 0.98s | tok/s 133,127 | remaining_steps 4299 | remaining_time 213s | epoch 1
+step 00710 | loss 3.8369 | lrm 0.337 | dt 0.98s | tok/s 134,199 | remaining_steps 4289 | remaining_time 203s | epoch 1
+step 00720 | loss 3.7794 | lrm 0.323 | dt 0.97s | tok/s 135,151 | remaining_steps 4279 | remaining_time 193s | epoch 1
+step 00730 | loss 3.7662 | lrm 0.309 | dt 0.99s | tok/s 132,883 | remaining_steps 4269 | remaining_time 183s | epoch 1
+step 00740 | loss 3.7606 | lrm 0.295 | dt 1.00s | tok/s 131,184 | remaining_steps 4259 | remaining_time 173s | epoch 1
+step 00750 | loss 3.7452 | lrm 0.281 | dt 0.98s | tok/s 133,473 | remaining_steps 4249 | remaining_time 163s | epoch 1
+step 00760 | loss 3.8115 | lrm 0.267 | dt 1.00s | tok/s 130,672 | remaining_steps 4239 | remaining_time 154s | epoch 1
+step 00770 | loss 3.7930 | lrm 0.254 | dt 0.98s | tok/s 134,009 | remaining_steps 4229 | remaining_time 144s | epoch 1
+step 00780 | loss 3.8424 | lrm 0.240 | dt 0.98s | tok/s 133,348 | remaining_steps 4219 | remaining_time 134s | epoch 1
+step 00790 | loss 3.7497 | lrm 0.226 | dt 0.95s | tok/s 138,088 | remaining_steps 4209 | remaining_time 124s | epoch 1
+step 00800 | loss 3.7684 | lrm 0.212 | dt 0.98s | tok/s 134,366 | remaining_steps 4199 | remaining_time 114s | epoch 1
+step 00810 | loss 3.7405 | lrm 0.198 | dt 0.99s | tok/s 131,759 | remaining_steps 4189 | remaining_time 104s | epoch 1
+step 00820 | loss 3.7661 | lrm 0.184 | dt 0.97s | tok/s 134,630 | remaining_steps 4179 | remaining_time 94s | epoch 1
+step 00830 | loss 3.7870 | lrm 0.170 | dt 0.99s | tok/s 132,586 | remaining_steps 4169 | remaining_time 84s | epoch 1
+step 00840 | loss 3.7528 | lrm 0.156 | dt 0.96s | tok/s 136,675 | remaining_steps 4159 | remaining_time 75s | epoch 1
+step 00850 | loss 3.7148 | lrm 0.143 | dt 1.00s | tok/s 131,303 | remaining_steps 4149 | remaining_time 65s | epoch 1
+step 00860 | loss 3.6757 | lrm 0.129 | dt 0.96s | tok/s 137,093 | remaining_steps 4139 | remaining_time 55s | epoch 1
+step 00870 | loss 3.7018 | lrm 0.115 | dt 0.97s | tok/s 134,457 | remaining_steps 4129 | remaining_time 45s | epoch 1
+step 00880 | loss 3.6487 | lrm 0.101 | dt 0.97s | tok/s 134,644 | remaining_steps 4119 | remaining_time 35s | epoch 1
+step 00890 | loss 3.6348 | lrm 0.087 | dt 0.97s | tok/s 134,442 | remaining_steps 4109 | remaining_time 25s | epoch 1
+step 00900 | loss 3.6711 | lrm 0.073 | dt 1.00s | tok/s 131,195 | remaining_steps 4099 | remaining_time 15s | epoch 1
+step 00910 | loss 3.7419 | lrm 0.059 | dt 0.98s | tok/s 133,755 | remaining_steps 4089 | remaining_time 6s | epoch 1
+---
+checkpoint_path:    out/t06-lnc1-nkioff-900s/final.pt
+training_seconds:  894.5
+budget_seconds:    1800
+target_steps:      5000
+max_train_seconds: 900
+startup_allowance_est: 268.4
+charged_seconds_est:   894.6
+over_budget:       False
+total_seconds:     1154.8
+compiled:          True
+nki_relu2:         False
+nki_rope_norm:     False
+nki_softcap_ce:    False
+nki_muon:          False
+mudd:              False
+dcmha:             False
+mamba2:            False
+mamba2_pattern:    MMAMMM
+nki_ssd:           True
+rwkv:              False
+rwkv_pattern:      RRRRRR
+fp8_linear:        False
+num_steps:         911
+total_tokens_M:    119.4
+world_size:        8
+lnc:               1
+seq_len:           2048
+num_params_M:      55.7
+causality_passed:  True
+causality_max_abs: 0.000000
+public_val_bpb:    1.337690
+eval_seconds:      8.9
+eval_timeout:      1200
+eval_over_timeout: False
+[W910 07:53:55.501216617 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+W0910 07:53:55.044000 2121024 torch/distributed/run.py:851] 
+W0910 07:53:55.044000 2121024 torch/distributed/run.py:851] *****************************************
+W0910 07:53:55.044000 2121024 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0910 07:53:55.044000 2121024 torch/distributed/run.py:851] *****************************************
+[W910 07:53:57.593228458 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W910 07:53:57.600426523 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W910 07:53:57.647514580 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W910 07:53:57.700945085 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W910 07:53:57.190703034 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W910 07:53:57.210447271 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W910 07:53:57.278027691 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W910 07:53:57.293892121 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/functions.py:2082: UserWarning: Dynamo does not know how to trace the builtin `<unknown module>.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_1..` This function is either a Python builtin (e.g. _warnings.warn) or a third-party C/C++ Python extension (perhaps created with pybind).
+If it is a Python builtin, please file an issue on GitHub so the PyTorch team can add support for it and see the next case for a workaround.
+If it is a third-party C/C++ Python extension, please either wrap it into a PyTorch-understood custom operator (see https://pytorch.org/tutorials/advanced/custom_ops_landing_page.html for more details) or, if it is traceable, use `torch.compiler.allow_in_graph`.
+  torch._dynamo.utils.warn_once(explanation + "\n" + "\n".join(hints))
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/functions.py:2082: UserWarning: Dynamo does not know how to trace the builtin `<unknown module>.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_1..` This function is either a Python builtin (e.g. _warnings.warn) or a third-party C/C++ Python extension (perhaps created with pybind).
+If it is a Python builtin, please file an issue on GitHub so the PyTorch team can add support for it and see the next case for a workaround.
+If it is a third-party C/C++ Python extension, please either wrap it into a PyTorch-understood custom operator (see https://pytorch.org/tutorials/advanced/custom_ops_landing_page.html for more details) or, if it is traceable, use `torch.compiler.allow_in_graph`.
+  torch._dynamo.utils.warn_once(explanation + "\n" + "\n".join(hints))
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/functions.py:2082: UserWarning: Dynamo does not know how to trace the builtin `<unknown module>.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_1..` This function is either a Python builtin (e.g. _warnings.warn) or a third-party C/C++ Python extension (perhaps created with pybind).
+If it is a Python builtin, please file an issue on GitHub so the PyTorch team can add support for it and see the next case for a workaround.
+If it is a third-party C/C++ Python extension, please either wrap it into a PyTorch-understood custom operator (see https://pytorch.org/tutorials/advanced/custom_ops_landing_page.html for more details) or, if it is traceable, use `torch.compiler.allow_in_graph`.
+  torch._dynamo.utils.warn_once(explanation + "\n" + "\n".join(hints))
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/functions.py:2082: UserWarning: Dynamo does not know how to trace the builtin `<unknown module>.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_1..` This function is either a Python builtin (e.g. _warnings.warn) or a third-party C/C++ Python extension (perhaps created with pybind).
+If it is a Python builtin, please file an issue on GitHub so the PyTorch team can add support for it and see the next case for a workaround.
+If it is a third-party C/C++ Python extension, please either wrap it into a PyTorch-understood custom operator (see https://pytorch.org/tutorials/advanced/custom_ops_landing_page.html for more details) or, if it is traceable, use `torch.compiler.allow_in_graph`.
+  torch._dynamo.utils.warn_once(explanation + "\n" + "\n".join(hints))
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/functions.py:2082: UserWarning: Dynamo does not know how to trace the builtin `<unknown module>.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_1..` This function is either a Python builtin (e.g. _warnings.warn) or a third-party C/C++ Python extension (perhaps created with pybind).
+If it is a Python builtin, please file an issue on GitHub so the PyTorch team can add support for it and see the next case for a workaround.
+If it is a third-party C/C++ Python extension, please either wrap it into a PyTorch-understood custom operator (see https://pytorch.org/tutorials/advanced/custom_ops_landing_page.html for more details) or, if it is traceable, use `torch.compiler.allow_in_graph`.
+  torch._dynamo.utils.warn_once(explanation + "\n" + "\n".join(hints))
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/functions.py:2082: UserWarning: Dynamo does not know how to trace the builtin `<unknown module>.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_1..` This function is either a Python builtin (e.g. _warnings.warn) or a third-party C/C++ Python extension (perhaps created with pybind).
+If it is a Python builtin, please file an issue on GitHub so the PyTorch team can add support for it and see the next case for a workaround.
+If it is a third-party C/C++ Python extension, please either wrap it into a PyTorch-understood custom operator (see https://pytorch.org/tutorials/advanced/custom_ops_landing_page.html for more details) or, if it is traceable, use `torch.compiler.allow_in_graph`.
+  torch._dynamo.utils.warn_once(explanation + "\n" + "\n".join(hints))
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/functions.py:2082: UserWarning: Dynamo does not know how to trace the builtin `<unknown module>.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_1..` This function is either a Python builtin (e.g. _warnings.warn) or a third-party C/C++ Python extension (perhaps created with pybind).
+If it is a Python builtin, please file an issue on GitHub so the PyTorch team can add support for it and see the next case for a workaround.
+If it is a third-party C/C++ Python extension, please either wrap it into a PyTorch-understood custom operator (see https://pytorch.org/tutorials/advanced/custom_ops_landing_page.html for more details) or, if it is traceable, use `torch.compiler.allow_in_graph`.
+  torch._dynamo.utils.warn_once(explanation + "\n" + "\n".join(hints))
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/functions.py:2082: UserWarning: Dynamo does not know how to trace the builtin `<unknown module>.pybind11_detail_function_record_v1_system_libstdcpp_gxx_abi_1xxx_use_cxx11_abi_1..` This function is either a Python builtin (e.g. _warnings.warn) or a third-party C/C++ Python extension (perhaps created with pybind).
+If it is a Python builtin, please file an issue on GitHub so the PyTorch team can add support for it and see the next case for a workaround.
+If it is a third-party C/C++ Python extension, please either wrap it into a PyTorch-understood custom operator (see https://pytorch.org/tutorials/advanced/custom_ops_landing_page.html for more details) or, if it is traceable, use `torch.compiler.allow_in_graph`.
+  torch._dynamo.utils.warn_once(explanation + "\n" + "\n".join(hints))
+WARNING:torch_neuronx.python_ops.dtype_autocast:Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
+WARNING:torch_neuronx.python_ops.dtype_autocast:Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
+WARNING:torch_neuronx.python_ops.dtype_autocast:Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
+WARNING:torch_neuronx.python_ops.dtype_autocast:Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
+WARNING:torch_neuronx.python_ops.dtype_autocast:Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
+WARNING:torch_neuronx.python_ops.dtype_autocast:Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
+WARNING:torch_neuronx.python_ops.dtype_autocast:Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
+WARNING:torch_neuronx.python_ops.dtype_autocast:Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
