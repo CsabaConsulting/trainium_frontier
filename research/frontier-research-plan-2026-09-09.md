@@ -789,3 +789,40 @@ unless passed): `--pack-factor`, `--grad-clip`, tri-state `--clip-foreach`, `--a
   trust `md5sum train.py` against local HEAD instead.
 - **Sub-noise single-axis wins do not necessarily add.** `WEIGHT_DECAY 0.20` (−0.00055) plus
   `WD_DECAY_TO_ZERO` off (−0.00058) measured **+0.00183** together. Always test the stack.
+
+### 12.4 OPEN AND URGENT (2026-09-10 ~09:40 UTC): the leaderboard scored 1.1495, we measure 1.034
+
+The submission of this exact `train.py` with the bare launch command scored **1.1495**. Four
+independent full-1800s runs here give **1.034005 / 1.034101 / 1.034118 / 1.034459**. Gap ~0.115 bpb
+— about 10x the known local-vs-board calibration bias, so it is a real behavioural difference on
+the official runner, not an eval artifact.
+
+**Ruled out (tested, see the notebook's "cold-compile-cache hypothesis is REFUTED" section):**
+a cold NEFF/compile cache. With `/tmp/neuron_backend` moved aside and a fresh empty
+`NEURON_COMPILE_CACHE_DIR`, the exact submitted command produced **2198 steps / 1.034459 /
+`startup_allowance_est` 57.7s** — cold compile costs ~30s here, and the run is indistinguishable
+from warm. So `train.py`'s 900s startup-allowance back-dating never fires and never cut the budget.
+
+**Key quantitative clue:** at this notebook's ≈0.077·ln(steps) exchange rate, 1.1495 corresponds to
+roughly **490–660 charged steps**, not 2200 — and that lands exactly on the historical
+recompile-every-step cluster (639/1.15361, 847/1.108697, 427/1.180633). The official run almost
+certainly trained ~4x fewer steps, rather than trained the same steps to a worse loss.
+
+**Untested hypotheses, best first:**
+
+1. **Per-step recompiles on the official SDK/compiler version** (the `USE_TENSOR_LR_SCALARS`
+   failure mode returning because a different backend version handles one of the per-step scalars
+   differently). Cheap hardening independent of diagnosis: quantise the lr multiplier so only a
+   bounded number of distinct values ever exist.
+2. **`NEURON_CC_FLAGS=--optlevel=1`** (set via `os.environ.setdefault` in `train.py`, so it applies
+   on the runner too) behaving differently under a different `neuronx-cc`. A no-`--optlevel`
+   fallback submission is a one-line, zero-risk hedge.
+3. **`PACK_FACTOR = 4`**, the other Day-2 change, on a more contended official host (its win here
+   was partly loader-side).
+4. **A runner-side crash/retry** producing a truncated run (the forum documents
+   `USER_TRAINING_CRASHED (exit=1, status=no_run_meta)` for others).
+
+**Highest-value next action is not a local run: get the official `train.log` / `num_steps` for that
+submission.** `num_steps` alone separates hypotheses 1–3 (throughput collapse) from 4 (truncated
+budget). Until that gap is understood, do not spend budget on further hyperparameter tuning — a
+0.115 environment gap dwarfs every win in §12.2 combined.
