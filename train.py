@@ -203,9 +203,9 @@ LOGIT_SOFTCAP = 15.0
 
 EMBEDDING_LR = 0.30
 UNEMBEDDING_LR = 0.006
-MATRIX_LR = 0.025
+MATRIX_LR = 0.020  # T0.4 resweep (Day 3): part of the combined stack below. Single-axis at 900s: 0.020 -0.000835/-0.000106 (paired), 0.015 +0.002728, 0.030 +0.000552, 0.035 +0.000990 -- an asymmetric curve whose only better-than-baseline point is 0.020, sub-noise on its own, adopted as part of the confirmed stack.
 SCALAR_LR = 0.20
-WEIGHT_DECAY = 0.10
+WEIGHT_DECAY = 0.20  # T0.4 resweep (Day 3): part of the combined stack below. Single-axis at 900s: 0.20 -0.000557/-0.000533 (paired, spread 0.000024 -- the tightest pair in the log), 0.35 -0.000458, 0.05 -0.000019. Flat-but-reproducible axis; 0.20 chosen as the middle of the better region. NOTE: combining 0.20 with WD_DECAY_TO_ZERO=False came in +0.001828, i.e. WORSE than either alone -- they are effectively the same knob (total integrated decay), so WD_DECAY_TO_ZERO stays True.
 VE_WD = 0.0  # weight decay for the value_embeds AdamW group (separate from the shared embedding_params group)
 EMBED_ADAMW_BETA2 = 0.95  # Tier-0 resweep confirms still correct at the new ~2000-step regime: 0.95 (995/1.094327) beats 0.995 (977/1.097342) again. See trn2-experiment-results.md
 WARMUP_STEPS = 0
@@ -223,7 +223,13 @@ MUON_MOMENTUM_WARMUP_STEPS = 300  # Tier-0 resweep, confirmed still correct desp
 # Expressed as a FRACTION OF THE WALL-CLOCK BUDGET, not a step count, because every run here is
 # time-budgeted and the achieved step count is not known in advance (0.024 of 1800s at ~0.86s/step
 # is ~50 steps). 0.0 = off, i.e. bit-identical to the pre-T0.4 schedule.
-MUON_MOMENTUM_COOLDOWN_FRAC = 0.0
+# T0.4 resweep (Day 3): ON at 0.045 of the budget (~50 steps at 1800s), part of the confirmed
+# combined stack. Single-axis at 900s: -0.000493 with step count unchanged (1097 vs ~1097), which is
+# also the evidence that the schedule does NOT recompile -- the momentum is written into the param
+# groups as a DEVICE TENSOR updated in place (see MuonAdamW/set_lr), never as a fresh Python float,
+# because a new Python scalar reaching a device op recompiles the whole graph every step (the
+# USE_TENSOR_LR_SCALARS lesson).
+MUON_MOMENTUM_COOLDOWN_FRAC = 0.045
 MUON_MOMENTUM_FINAL = 0.85  # momentum at the very end of the cooldown (only read when FRAC > 0)
 MUON_NS_STEPS = 5  # Newton-Schulz iterations in Muon's orthogonalization (3 matmuls each)
 # T1.4: run the AdamW parameter groups (wte, lm_head, value-embedding tables, scalars and the T0.1
@@ -245,14 +251,35 @@ MUON_NS_STEPS = 5  # Newton-Schulz iterations in Muon's orthogonalization (3 mat
 # before it is consumed. Both are real changes, judged on bpb like any other, not equivalences.
 ADAM_EVERY_N = 1
 ADAM_EVERY_N_LR_COMP = False
-INIT_SCALE = 0.68  # multiplier on the attn/mlp uniform-init bound (1.0 = original baseline scale)
+INIT_SCALE = 0.50  # multiplier on the attn/mlp uniform-init bound (1.0 = original baseline scale). T0.4 resweep (Day 3), part of the combined stack: 0.50 -0.000906, 0.85 +0.000061 at 900s -- points weakly but consistently at a smaller init.
 # T0.4: attn.c_proj is zero-initialised (below, in init_weights) so a fresh block is an exact
 # identity. Zero-init output projections are known to delay early learning, which matters more in a
 # ~2000-step run than in a normal pretrain, so this makes the attention output projection's init
 # bound a swept multiple of the shared bound `s`: 0.0 keeps the historical exact-zero behaviour,
 # 0.1 gives uniform(-0.1*s, 0.1*s), etc. mlp.c_proj is deliberately NOT covered -- the task scopes
 # this to attention only, so the two output projections can be separated if it wins.
-ATTN_CPROJ_INIT_SCALE = 0.0
+# T0.4 resweep (Day 3): 0.10 adopted as part of the confirmed combined stack. Single-axis at 900s:
+# 0.10 -0.000472, 0.25 +0.000805 -- a small nonzero bound helps, a large one hurts. mlp.c_proj stays
+# exactly zero.
+ATTN_CPROJ_INIT_SCALE = 0.10
+# ---------------------------------------------------------------------------------------------
+# T0.4 COMBINED STACK (Day 3), confirmed at the real full 1800s budget. The five constants above
+# (MATRIX_LR 0.025->0.020, WEIGHT_DECAY 0.10->0.20, INIT_SCALE 0.68->0.50, ATTN_CPROJ_INIT_SCALE
+# 0.0->0.10, MUON_MOMENTUM_COOLDOWN_FRAC 0.0->0.045) were adopted TOGETHER, not individually: none
+# of them cleared the 0.002 single-axis lock threshold at 900s, but all five pointed the same way,
+# and the stack was then measured rather than assumed (which mattered -- the one other "stack two
+# sub-noise wins" test in this sweep, WEIGHT_DECAY 0.20 + WD_DECAY_TO_ZERO off, came out WORSE).
+#   900s, paired:  stack 1097/1.081226 and 1096/1.081464 (mean 1.081345)
+#                  defaults 1097/1.081696, 1098/1.082876, 1102/1.082271 (mean 1.082281)
+#                  -> -0.000936, and min(defaults) > max(stack), i.e. non-overlapping
+#   1800s, paired: stack 2205/1.034005 and 2199/1.034101 (mean 1.034053)
+#                  defaults 2205/1.035073 and 2204/1.035816 (mean 1.035445)
+#                  -> -0.001392, again non-overlapping, at identical step counts (so this is pure
+#                     optimisation quality, no throughput confound)
+# The rest of the T0.4 axes were re-tested and CONFIRMED unchanged: FINAL_LR_FRAC 0.05,
+# WARMDOWN_RATIO 0.75, EMBEDDING_LR 0.30, UNEMBEDDING_LR 0.006, LOGIT_SOFTCAP 15.0, MUON_NS_STEPS 5,
+# WD_DECAY_TO_ZERO True. See the T0.4 section of research/trn2-experiment-results.md for all 27 rows.
+# ---------------------------------------------------------------------------------------------
 # Dataloader packing-bin multiplier: fetch DEVICE_BATCH_SIZE rows of PACK_FACTOR*SEQ_LEN tokens and
 # reshape to DEVICE_BATCH_SIZE*PACK_FACTOR rows of SEQ_LEN, so this is the micro-batch ROW COUNT and
 # grad_accum_steps falls as it rises (TOTAL_BATCH_SIZE is held fixed either way).
