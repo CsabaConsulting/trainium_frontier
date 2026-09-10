@@ -2376,3 +2376,65 @@ does not restore the missing updates, it just makes each surviving update twice 
 value the lr sweep ever validated — and `UNEMBEDDING_LR` was independently shown in T0.4 above
 to be a *sharp* optimum, where +67% alone already costs +0.0014). **T1.4 is closed: discarded in
 both variants, `ADAM_EVERY_N` stays 1.**
+
+### T0.4 — the combined stack, and the ONE full-1800s confirmation: a real (small) win, new best 1.034005
+
+No single T0.4 axis cleared the 0.002 lock threshold, but five of them came in negative in the
+same direction. Whether that is signal or five coin flips is exactly what a combination test
+decides — and the WD row in the previous subsection is the cautionary example that says the
+answer is not automatically "they add". So the stack was measured, twice at 900s and twice at
+1800s, each against a same-day same-commit default control.
+
+**Stack** = `MATRIX_LR 0.020`, `WEIGHT_DECAY 0.20`, `INIT_SCALE 0.50`, `attn.c_proj` init
+`U(-0.10s, 0.10s)`, Muon momentum cooldown 0.95→0.85 over the last 4.5% of the budget.
+`WD_DECAY_TO_ZERO` deliberately left **True**, because 0.20-plus-off had already measured worse
+than either alone.
+
+| budget | run | steps | `public_val_bpb` |
+|---|---|---|---|
+| 900s | `t04-stack-900s` | 1097 | 1.081226 |
+| 900s | `t04-stack-900s-v2` | 1096 | 1.081464 |
+| 900s | `t06-optlevel1-900s` (defaults) | 1097 | 1.081696 |
+| 900s | `t06-optlevel1-900s-v2` (defaults) | 1098 | 1.082876 |
+| 900s | `t04-stackbase-900s` (defaults, same-day control) | 1102 | 1.082271 |
+| **1800s** | `t04-stack-fullbudget` | 2205 | **1.034005** |
+| **1800s** | `t04-stack-fullbudget-v2` | 2199 | **1.034101** |
+| **1800s** | `t04-defaults-fullbudget` | 2205 | 1.035073 |
+| **1800s** | `t04-defaults-fullbudget-v2` | 2204 | 1.035816 |
+
+- **900s:** stack mean 1.081345 vs defaults mean 1.082281 → **−0.000936**, and the two groups do
+  not overlap (worst stack run 1.081464 < best default run 1.081696) across five runs.
+- **1800s (the decision budget):** stack mean 1.034053 vs defaults mean 1.035445 →
+  **−0.001392**, again non-overlapping, and **at identical step counts** (2199–2205 in both
+  arms), so this is pure optimisation quality with no throughput confound. The stack's own pair
+  agrees to 0.000096.
+
+**Adopted.** The five constants are now the hardcoded defaults in `train.py`. The honest
+characterisation, as instructed: this is a **small** win — ~0.0014 bpb, about 1.4x the working
+noise floor, and it is only credible because it reproduces in four independent paired runs at
+two budgets with non-overlapping groups, not because any single measurement was decisive. It is
+*not* the 0.002-per-axis kind of win the ladder was written for; it is five sub-noise nudges that
+happen to be real and happen to add sub-linearly (the naive sum of the five single-axis deltas is
+about −0.0032; the delivered stack effect is −0.0014, i.e. **~44% of the sum**).
+
+**The same-day default control is worth its own line**: `t04-stackbase-900s` came in at 1102 /
+1.082271 against the earlier baseline pair mean of 1.082286 — agreement to **0.000015 bpb**. That
+retires two worries at once: the 900s baseline is reproducible across several hours of device
+time, and the `--grad-clip`-flag plumbing commit that landed between them is genuinely inert.
+
+**The other half of this pair of full-budget runs is the bigger number.** `t04-defaults-fullbudget`
+is the first full-1800s run of the two Day-2 throughput wins (`PACK_FACTOR = 4` and
+`NEURON_CC_FLAGS=--optlevel=1`), and it lands at **2205 steps / 1.035073** against the previous
+locked best of 2100 / 1.038386 — **+105 steps (+5.0%) and −0.003313 bpb**, which is 3x the noise
+floor and matches what the two 900s A/Bs predicted (−0.0017 and −0.0014 respectively, both of
+which also showed up as step-count gains that compound over the longer budget). Adding the T0.4
+stack on top gives the current best:
+
+| | steps | `public_val_bpb` | Δ vs previous locked best |
+|---|---|---|---|
+| previous locked best (`t01-kernel2-fullbudget`, Day 1) | 2100 | 1.038386 | — |
+| + `PACK_FACTOR = 4`, `--optlevel=1` (`t04-defaults-fullbudget`) | 2205 | 1.035073 | −0.003313 |
+| + T0.4 stack (`t04-stack-fullbudget`) | 2205 | **1.034005** | **−0.004381** |
+
+Both throughput wins convert; the tuning win is real but an order of magnitude smaller than the
+throughput work, which is worth remembering for how the remaining time gets spent.
