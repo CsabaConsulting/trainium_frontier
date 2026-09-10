@@ -698,3 +698,94 @@ paper: memory helps most when the backbone is small and undertrained — exactly
   native-backend performance guide beyond the overview already read.
 - For the loop: use `tvly extract <urls> --json` for full-text page grabs, `tvly map/crawl` for
   sweeping a site, and the REST search helper (`/tmp/research/tsearch.py`) for queries.
+
+---
+
+## 12. STATUS as of 2026-09-10 ~07:30 UTC — end of the Days 2–4 block (read this first)
+
+### 12.1 Current best config and the exact submission launch command
+
+Everything below is a **hardcoded default in `train.py` at commit `bf1a3ae`** — no flags are
+needed, which matters because the submission launch command is fixed:
+
+```
+NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py
+```
+
+Best measured full-budget result at that command: **2205 steps / `public_val_bpb` 1.034005**
+(`t04-stack-fullbudget`, paired repeat 2199 / 1.034101). Previous locked best was
+2100 / 1.038386, so the Days 2–4 block is worth **−0.004381 bpb**. (Reminder, already
+established, do not re-derive: the standard 2M-token quick eval reads ~0.006 bpb optimistic
+versus the 20M/full-shard eval; it does not affect paired A/B direction.)
+
+What changed in `train.py` during Days 2–4, all of it default-on now:
+
+| change | item | measured effect |
+|---|---|---|
+| `TRAIN_LOCAL_CONV = True`, `LOCAL_CONV_KERNEL = 2` | T0.1 | already locked Day 1; defaults flip verified a no-op |
+| `PACK_FACTOR = 4` | T1.5 | 900s paired −0.001734, +2.6% steps |
+| `NEURON_CC_FLAGS=--optlevel=1` (via `os.environ.setdefault`) | T0.6 | 900s paired −0.001399, +1.8% steps |
+| prebuilt `cached_linears` list (no per-step `model.modules()` walk) | T1.10 | free, ~0 measurable |
+| `MATRIX_LR 0.020`, `WEIGHT_DECAY 0.20`, `INIT_SCALE 0.50`, `ATTN_CPROJ_INIT_SCALE 0.10`, `MUON_MOMENTUM_COOLDOWN_FRAC 0.045` | T0.4 stack | 1800s paired −0.001392, non-overlapping |
+
+New flags added for reproducibility (all default to the locked values, so they change nothing
+unless passed): `--pack-factor`, `--grad-clip`, tri-state `--clip-foreach`, `--adam-every-n`,
+`--adam-every-n-lr-comp`, and the full T0.4 knob set (`--matrix-lr`, `--embedding-lr`,
+`--unembedding-lr`, `--scalar-lr`, `--weight-decay`, `--wd-decay-to-zero`, `--final-lr-frac`,
+`--warmdown-ratio`, `--init-scale`, `--attn-cproj-init`, `--logit-softcap`, `--muon-ns-steps`,
+`--muon-momentum-cooldown-frac`, `--muon-momentum-final`).
+
+### 12.2 Days 2–4 list: done vs pending
+
+**Done and closed (full write-ups in `research/trn2-experiment-results.md`, Day 2/Day 3 sections):**
+
+1. **T0.1 defaults flip** — done, verified a no-op versus the flagged run.
+2. **T0.4 resweep** — done. 27 runs. Six axes confirmed optimal (`FINAL_LR_FRAC` 0.05,
+   `UNEMBEDDING_LR` 0.006, `LOGIT_SOFTCAP` 15.0, `MUON_NS_STEPS` 5, `EMBEDDING_LR` 0.30,
+   `WARMDOWN_RATIO` 0.75); five sub-noise axes adopted as a combined stack confirmed at 1800s.
+3. **T0.6 compiler flags + LNC re-check** — done. `--optlevel=1` adopted; `--optlevel={2,3}` and
+   `--model-type={generic,transformer}` are all no-ops or worse. LNC=1/8-proc does not compile
+   under the current code (SDK `l2_norm_kernel_lnc0` bug) and, forced to run, is a **+0.24 bpb**
+   quality cliff at identical throughput — mechanism still unexplained (clip placement was tested
+   and **refuted**).
+4. **T1.5 PACK_FACTOR anomaly** — resolved. The old "PF=4 is 22% slower" row was a stale-commit
+   artifact (its logged launch command has no `--pack-factor`). Synthetic microbenchmark says PF=4
+   is 2.9% cheaper per token and PF=8 is past the optimum; PF=4 adopted.
+5. **T1.4 Adam-every-other-step** — implemented, correct (causality clean, deferred all-reduce
+   proven exact), +1.1% throughput, +0.000887 bpb → **discarded**. The lr-compensated variant is
+   +0.028 bpb → discarded decisively.
+6. **T1.9 / T1.10 host syncs and weight-cast cache** — measured, both are ~0.2% of step time;
+   only the free half (hoisting the `model.modules()` walk) was taken. Nothing else shipped.
+
+**Pending / open, in the order I would pick them up:**
+
+- **The LNC=1 0.24 bpb cliff is unexplained.** Ruled out: throughput, `GRAD_CLIP` in either
+  placement, the `--clip-foreach` flag. Prime suspects, in order: LNC=1 variants of the NKI
+  kernels (`USE_NKI_ROPE_NORM`, `USE_NKI_SOFTCAP_CE`, `USE_NKI_MUON`) being numerically worse or
+  buggy (the compile crash already proves those paths are separately generated and less exercised);
+  something world-size-dependent in the data pipeline at 8 ranks; Muon's per-rank Newton–Schulz
+  with a halved per-rank batch. Cheap first probe: LNC=1 with all three NKI toggles off.
+- **`GRAD_CLIP` is now nearly free and nearly pointless** (`--grad-clip 0` at LNC=2 costs only
+  +0.000857 at 900s, inside noise, and buys +7.5 steps). Not changed, but the historical "real win"
+  no longer reproduces at this scale — worth one 1800s pair before anyone relies on it.
+- **T0.2 / T0.3 (depth/width, MLP ratio)** — untouched by design, they are the next block.
+- **Tier 2 / Tier 3 / Tier 4** (batch-size ramp, EMA, hashed n-gram tables, etc.) — untouched.
+- Not attempted this block, deliberately: T1.6 (transposed weights), T1.7 (compile the optimizer
+  step), T1.8 (`@nki_op` traceability), T1.11 (FP8 via NKI).
+
+### 12.3 Traps re-confirmed this block (keep these in view)
+
+- **Any new per-step Python float that reaches a device op recompiles the whole graph every step
+  during cooldown.** The Muon momentum cooldown adopted above is a device tensor updated in place
+  for exactly this reason; the evidence that it worked is that step count did not move.
+- **`torch._foreach_*` is eager-only on this stack** — never inside anything `torch.compile`d.
+- **Read `grad_accum × micro_tokens`, `num_params_M`, `seq_len`, `world_size`, `lnc` out of each
+  run's own logged header**, never from the label. The T1.5 anomaly was a stale-commit artifact
+  that only became visible by reading the *logged launch command* of the old row.
+- **Verify edited `train.py` with `compile(src, 'train.py', 'exec')`, not `ast.parse`** —
+  `ast.parse` does not catch symtable errors like "name used prior to global declaration".
+- **The box's `.git` is stale and disposable.** `research/run_experiment.py` runs `git rev-parse`
+  on the box, so its `git_commit` / `git_dirty` fields in `experiment-log.jsonl` are meaningless;
+  trust `md5sum train.py` against local HEAD instead.
+- **Sub-noise single-axis wins do not necessarily add.** `WEIGHT_DECAY 0.20` (−0.00055) plus
+  `WD_DECAY_TO_ZERO` off (−0.00058) measured **+0.00183** together. Always test the stack.
