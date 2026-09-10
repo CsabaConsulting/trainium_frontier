@@ -2210,3 +2210,48 @@ tensors' worth of `all_reduce` plus optimizer work on half the steps — it just
 `--adam-every-n-lr-comp` (multiply the AdamW groups' lr by N to compensate the "half as far"
 effect) is implemented and untested as of this section; it is the one variant that could
 plausibly convert the 1.1% into a win.
+
+### T0.6 follow-up (a) — `GRAD_CLIP = 0` at both LNC settings: clip placement is **not** the mechanism
+
+The LNC=1 section above closed with a hypothesis: that clip-then-average makes the effective
+clipping strength a function of `world_size`, so 8 ranks at half the per-rank tokens clip
+harder and the averaged update is scaled down more than the batch gradient warrants. Follow-up
+(a) was the falsification test — re-run both shapes with `GRAD_CLIP = 0`, i.e. with the clip
+removed entirely. If clip placement is the cause, the gap must collapse.
+
+| run | LNC | procs | `grad_accum` | per-rank tokens/step | GRAD_CLIP | steps | `public_val_bpb` |
+|---|---|---|---|---|---|---|---|
+| `t06-lnc1-noclip-900s` | 1 | 8 | 2 | 16,384 | 0 | 1126 | **1.322584** |
+| `t06-lnc2-noclip-900s` | 2 | 4 | 4 | 32,768 | 0 | 1105 | **1.083143** |
+| `t06-lnc1-8proc-noclipforeach-900s` | 1 | 8 | 2 | 16,384 | 1.0 | 1088 | 1.324435 |
+| `t06-lnc2-noclipforeach-900s` | 2 | 4 | 4 | 32,768 | 1.0 | 1080 | 1.083798 |
+
+**The gap does not collapse: +0.239441 bpb with no clip at all, versus +0.240637 with it.** The
+hypothesis is **refuted** — removing the clip changes the LNC=1 penalty by 0.0012 bpb, i.e. by
+about the noise floor. Whatever is wrong at LNC=1 / 8 processes is not `clip_grad_norm_`'s
+position relative to `sync_gradients`, and follow-up (b) (moving the clip after the all_reduce)
+therefore loses its motivating evidence — it may still be a defensible change on first
+principles, but the 0.24 bpb cliff is no longer a reason to make it.
+
+Two side results worth keeping from the same pair, both at LNC=2:
+
+- **`GRAD_CLIP = 0` costs only +0.000857 bpb at 900s** (1.083143 with `--grad-clip 0
+  --no-clip-foreach` vs 1.082286 for the current default) while buying +7.5 steps. That is
+  inside the <0.001 noise band. The historical GRAD_CLIP=1.0 win was measured on a much older
+  code state; on the current stack the clip is close to free but also close to pointless. It is
+  **not** being changed here (no evidence to move it, and it is cheap insurance against a loss
+  spike), but the number is recorded so nobody re-derives a large win that no longer exists.
+- **`--no-clip-foreach` at LNC=2 costs ~+0.0005 bpb and ~17 steps** relative to auto-detect,
+  which is why every LNC comparison in this section carries its own matched control rather than
+  reusing the default-path baseline.
+
+So the state of the LNC question is: LNC=2 / 4 processes stays locked, the margin is ~0.24 bpb
+rather than a throughput preference, and the mechanism is **still unexplained**. What is now
+ruled out: throughput/host contention (step time is within 1%), gradient clipping in either
+placement, and the `--clip-foreach` flag introduced to make LNC=1 compile. What remains open,
+in rough order of suspicion: (i) LNC=1 variants of the NKI kernels (`USE_NKI_ROPE_NORM`,
+`USE_NKI_SOFTCAP_CE`, `USE_NKI_MUON`) computing something numerically worse — the
+`l2_norm_kernel_lnc0` compile crash already proves the LNC=1 kernel paths are separately
+generated and less well exercised; (ii) something world_size-dependent in the data pipeline at
+8 ranks; (iii) Muon's per-rank Newton–Schulz interacting with the halved per-rank batch. Any of
+those is a real investigation, not a one-run check, and none of it changes the locked config.
