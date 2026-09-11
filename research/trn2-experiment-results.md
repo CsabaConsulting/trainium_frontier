@@ -3115,3 +3115,64 @@ but `opt_step` goes 71 → 124ms, `sync_grad` to 41ms and `clip` to 16ms. Post-f
 cost roughly what their **parameter count** says they should, which is why `dim 128` (5x
 fewer table parameters at the same row count) is now a real lever where before the fix it was
 worth only 7%.
+
+### Verdict: T3.1 is **discarded** — it is exactly break-even on this stack, at every operating point
+
+The brief's decision protocol is a 900s paired A/B, escalating to 1800s only if the gap is
+≥0.002. Same box, same commit `ad3c467`, back-to-back in one `tmux` queue, both arms with
+`--eval-seq-len 1024`:
+
+| run | tables | params | steps | `bpb`@2048 | `bpb`@1024 | Δ@2048 | Δ@1024 |
+|---|---|---|---|---|---|---|---|
+| `t31-base-900s` (control) | 0 | 55.7M | 1095 | 1.081257 | 1.096963 | — | — |
+| `t31-bi3-m32d128-900s` | 3 bigram, 262144 rows, dim 128 | 156.6M | 844 (-22.9%) | **1.079657** | **1.095106** | **-0.001600** | **-0.001857** |
+
+**-0.0016, i.e. below the escalation threshold and inside the range the noise rules call
+"needs a paired repeat".** The control is worth noting on its own: 1.081257 at 1095 steps
+against `t02-base-900s`'s 1.081255 at 1094 steps — a **2e-6** reproduction, which is the
+tightest the baseline has ever repeated and means the -0.0016 is not a control artifact.
+
+The step count came in at exactly the predicted 844, so the throughput model was right and
+the shortfall is on the quality side: solving back, the per-step gain at 844 steps is 0.0217
+against 0.0235 at 300 steps. **The n-gram advantage decays with training while its cost is
+constant**, which is the mechanism that decides this item. Fitting `gain = c - d·ln(steps)`
+on those two points (d = 0.00176) and extrapolating to the real 1800s budget, where the
+baseline reaches ~2190 steps and the treatment would reach ~1690:
+
+    cost at r=1.297:  0.077 · ln(1.297) = 0.02005
+    gain at ~1690 steps:                 = 0.02042
+    predicted net at 1800s:              = -0.0004
+
+**A wash at the budget that actually matters.** So T3.1 is not escalated to 1800s and is not
+adopted. `USE_NGRAM_VE` stays `False`; the code, the 10-check harness and the toggles stay in
+the tree because they are correct and cheap to re-enable.
+
+The reason this is a *clean* negative rather than a "maybe with more tuning" is the
+per-table arithmetic, which is self-consistent across the whole grid:
+
+| | gain per table | cost per table (bpb) |
+|---|---|---|
+| bigram table | 0.0078 | 0.0067 |
+| trigram table | 0.0022 | 0.0069 |
+
+Every bigram table sits *just* above the line and every trigram table sits well below it, so
+there is no table count, row count or width in the reachable space that turns this into a real
+win — 1 table, 3 tables and 5 tables all land within ~0.001 of zero. That is a much stronger
+statement than a single losing A/B.
+
+**The one condition that would flip it.** After the `weight[idx]` fix, the gather+scatter is
+measured at 2.45ms per table at (262144, 128), yet each table costs **~17.6ms of micro time**
+in the model. The missing ~15ms/table is the hash + gate + injection + their backwards, and it
+is *two orders of magnitude* more than the bandwidth those ops move (≈100MB per table per
+micro ≈ 36µs at 2.9 TB/s) or the FLOPs they do (the dim-128 up-projection is ~1.3 GFLOP ≈
+2µs). Something in that fragment lowers badly — the leading suspects are `torch.remainder`
+with a non-power-of-two modulus (integer division is usually emulated) and the injection
+breaking a fusion inside the attention. If that residual were removed, `r` would fall to
+roughly 1.05, the cost to ~0.004, and T3.1 would be a **clear -0.017 win**. That is the
+highest-value open thread this item leaves behind, and it needs a `neuron-profile` trace of
+the compiled graph rather than another A/B.
+
+Also recorded, because it cost real time to learn: `phase_timer`'s `--foreach-optim` defaults
+to **False** while every earlier T3.1 timing run passed it explicitly. One sweep was launched
+without it and had to be thrown away; `opt_step` is the phase that differs. Any comparison
+against the numbers in this document must pass `--foreach-optim`.
