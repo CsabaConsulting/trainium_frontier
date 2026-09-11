@@ -89,6 +89,19 @@ def main():
                          "microsteps (with a synchronize around each) and report ms and ms/token. "
                          "Isolates pure device compute from the optimizer/collective tail, which is "
                          "what the PACK_FACTOR anomaly needs to be judged on.")
+    ap.add_argument("--ngram-ve", action=argparse.BooleanOptionalAction, default=False,
+                    help="T3.1: hashed bigram/trigram value embeddings (train.USE_NGRAM_VE). "
+                         "The 15-step smoke test measured dt 1.62s against baseline 0.90s, so "
+                         "this exists to attribute that 0.72s to a phase before tuning anything.")
+    ap.add_argument("--ngram-ve-trigram", action=argparse.BooleanOptionalAction, default=True,
+                    help="T3.1: trigram tables on the first/last VE layer (5 tables vs 3).")
+    ap.add_argument("--ngram-ve-table-mult", type=int, default=8,
+                    help="T3.1: rows per table = this x padded_vocab_size. Varying ONLY this "
+                         "holds the per-token gather/injection work fixed and scales every "
+                         "param-count-proportional cost (allreduce bytes, dense embedding-grad "
+                         "scatter, optimizer traffic), which is what separates the two.")
+    ap.add_argument("--ngram-ve-clip-exclude", action=argparse.BooleanOptionalAction, default=True,
+                    help="T3.1: keep the table grads out of the global clip norm, like train.py.")
     args = ap.parse_args()
 
     sys.path.insert(0, REPO)
@@ -106,6 +119,10 @@ def main():
     T.USE_FOREACH_OPTIM = args.foreach_optim
     T.USE_NKI_ROPE_NORM = True
     T.USE_NKI_SOFTCAP_CE = True
+    T.USE_NGRAM_VE = args.ngram_ve
+    T.NGRAM_VE_TRIGRAM = args.ngram_ve_trigram
+    T.NGRAM_VE_TABLE_MULT = args.ngram_ve_table_mult
+    T.NGRAM_VE_CLIP_EXCLUDE = args.ngram_ve_clip_exclude
 
     if args.conv_mode == "zeros":
         def _zero_forward(self, x):
@@ -121,6 +138,7 @@ def main():
     model = T.GPT(config)
     model.init_weights()
     model.to(device)
+    orig_model = model
     if args.compile:
         model = torch.compile(model, backend="neuron" if device_type == "neuron" else "inductor",
                               dynamic=False)
@@ -139,7 +157,10 @@ def main():
               f"micro_tokens={micro_tokens:,} grad_accum={grad_accum} "
               f"local_conv={args.local_conv} conv_mode={args.conv_mode} compile={args.compile} "
               f"foreach_optim={T.USE_FOREACH_OPTIM} "
-              f"weight_cache={T.USE_WEIGHT_CACHE}", flush=True)
+              f"weight_cache={T.USE_WEIGHT_CACHE} "
+              f"ngram_ve={T.USE_NGRAM_VE} ngram_tables={len(orig_model.ngram_embeds)} "
+              f"ngram_rows={orig_model.ngram_rows} "
+              f"params={sum(p.numel() for p in orig_model.parameters()):,}", flush=True)
 
     rows = T.DEVICE_BATCH_SIZE * T.PACK_FACTOR
     gen = torch.Generator().manual_seed(1234 + rank)
@@ -164,6 +185,7 @@ def main():
         x, y = fetch()  # prime, exactly like train.py's `x, y, loader_state = fetch()` before the loop
 
     linears = [m for m in model.modules() if isinstance(m, T.Linear)]
+    clip_main, clip_ngram = T.split_clip_params(orig_model)
 
     grad_flat_buffer = None
     if args.grad_bucket:
@@ -188,8 +210,12 @@ def main():
             T.sync_gradients_flat(grad_flat_buffer)
         else:
             if args.grad_clip > 0:
-                torch.nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip,
-                                               foreach=True if args.clip_foreach else None)
+                # Mirrors train.py's real per-step order, including T3.1's separate clip for
+                # the n-gram tables (they must not enter the main global norm).
+                for plist in (clip_main, clip_ngram):
+                    if plist:
+                        torch.nn.utils.clip_grad_norm_(
+                            plist, args.grad_clip, foreach=True if args.clip_foreach else None)
             T.sync_gradients(model)
 
     def control_collective():
