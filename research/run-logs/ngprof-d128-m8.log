@@ -1,0 +1,52 @@
++ NEURON_LOGICAL_NC_CONFIG=2
++ torchrun --standalone --nproc_per_node=4 research/scratch/phase_timer.py --steps 3 --warmup-steps 2 --foreach-optim --ngram-ve --ngram-ve-dim 128
+[W911 19:01:20.079383091 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+W0911 19:01:20.635000 237800 torch/distributed/run.py:851] 
+W0911 19:01:20.635000 237800 torch/distributed/run.py:851] *****************************************
+W0911 19:01:20.635000 237800 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0911 19:01:20.635000 237800 torch/distributed/run.py:851] *****************************************
+[W911 19:01:22.299944999 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W911 19:01:22.300030885 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W911 19:01:22.300439172 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W911 19:01:22.303179912 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+[pt] world_size=4 LNC=2 micro_tokens=32,768 grad_accum=4 local_conv=True conv_mode=normal compile=True foreach_optim=True weight_cache=True ngram_ve=True ngram_tables=5 ngram_rows=65536 ngram_dim=128 params=98,067,212
+[pt] warmup 0 dt=347.533s
+[pt] warmup 1 dt=313.000s
+[pt] STEP 0 total=4212.8ms micro_total=1460.2 (mean 365.0) zero_grad=1.0 clip=2487.6 sync_grad=190.9 control=3.6 set_lr=0.0 opt_step=66.0 loss_item=0.0 wcache=3.5 => TAIL=2752.6ms (65.3%)
+[pt] STEP 1 total=1537.1ms micro_total=1444.7 (mean 361.2) zero_grad=0.7 clip=7.5 sync_grad=14.7 control=1.4 set_lr=0.0 opt_step=64.8 loss_item=0.0 wcache=3.3 => TAIL=92.4ms (6.0%)
+[pt] STEP 2 total=1541.6ms micro_total=1447.3 (mean 361.8) zero_grad=0.9 clip=8.6 sync_grad=14.5 control=1.9 set_lr=0.0 opt_step=65.2 loss_item=0.0 wcache=3.2 => TAIL=94.3ms (6.1%)
+PHASE_JSON {"world_size": 4, "lnc": "2", "grad_accum": 4, "micro_tokens": 32768, "local_conv": true, "conv_mode": "normal", "compile": true, "foreach_optim": true, "compile_optim": false, "grad_bucket": false, "clip_foreach": false, "dataloader": "synthetic", "wcache_mode": "loop", "time_loss_item": false, "device_batch_size": 1, "pack_factor": 4, "steps": [{"zero_grad_ms": 0.962627000262728, "micro_total_ms": 1460.1665279988083, "micro_mean_ms": 365.0416319997021, "clip_ms": 2487.6445209993108, "sync_grad_ms": 190.90271599998232, "control_ms": 3.6133649991825223, "set_lr_ms": 0.035570999898482114, "opt_step_ms": 65.96973900013836, "wcache_ms": 3.4805979994416703, "step_total_ms": 4212.799431999883, "tail_ms": 2752.609136998217, "tail_pct": 65.33919265393342}, {"zero_grad_ms": 0.6786629965063184, "micro_total_ms": 1444.6628100013186, "micro_mean_ms": 361.16570250032964, "clip_ms": 7.540153001173167, "sync_grad_ms": 14.749459998711245, "control_ms": 1.3638939999509603, "set_lr_ms": 0.038364996726159006, "opt_step_ms": 64.79576600031578, "wcache_ms": 3.2558100028836634, "step_total_ms": 1537.1023529987724, "tail_ms": 92.42211099626729, "tail_pct": 6.012749301694752}, {"zero_grad_ms": 0.8549539998057298, "micro_total_ms": 1447.3086159996456, "micro_mean_ms": 361.8271539999114, "clip_ms": 8.647086000564741, "sync_grad_ms": 14.462167000601767, "control_ms": 1.9186400022590533, "set_lr_ms": 0.02928200046881102, "opt_step_ms": 65.18536799922003, "wcache_ms": 3.15623600181425, "step_total_ms": 1541.5749409985438, "tail_ms": 94.25373300473439, "tail_pct": 6.114119430592341}]}
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)

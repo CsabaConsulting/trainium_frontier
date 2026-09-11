@@ -376,6 +376,12 @@ NGRAM_VE_CLIP_EXCLUDE = True  # keep the tables OUT of the global clip_grad_norm
 # tensor in the model -- a confound that has nothing to do with whether n-gram tables help. With
 # this on, the baseline arm's clip is bit-identical (same tensors, same order) and the tables are
 # still norm-bounded, just separately.
+NGRAM_VE_INDEX_GATHER = True  # gather rows as `weight[idx]` instead of `nn.Embedding.__call__`.
+# Numerically identical; only the lowering differs. `aten::embedding_dense_backward` on this stack
+# costs time proportional to the table's ROW COUNT (19.4ms at 65536 rows, 72.5ms at 262144,
+# regardless of width) while advanced indexing's backward stays at 1.8-5.2ms. Kept as a toggle
+# purely so the two lowerings remain A/B-able from research/scratch/phase_timer.py; there is no
+# known reason to turn it off. See _ngram_lookup for the full measurement table.
 
 
 def _next_prime(n: int) -> int:
@@ -3547,8 +3553,26 @@ class GPT(nn.Module):
         With NGRAM_VE_DIM=0 (default) this is the plain gather. With a narrow table it is
         the gather followed by that table's own up-projection -- kept in one place so the
         forward loop reads the same either way and the two paths cannot drift apart.
+
+        NGRAM_VE_INDEX_GATHER picks HOW the gather is spelled. The two spellings are
+        numerically identical (both are a row gather whose backward scatter-adds into a
+        dense [rows, dim] grad), but they lower to completely different backward kernels on
+        this stack, and the difference decides whether T3.1 is affordable at all
+        (research/run-logs/embed-gather-bench.log, best-of-5 fwd+bwd, b=4 t=2048):
+
+            rows    dim   nn.Embedding   index_select   weight[idx]
+             8192   640        3.18ms         5.12ms       5.20ms
+            65536   640       19.39ms         5.20ms       5.21ms
+            65536   128       19.09ms         1.88ms       1.80ms
+           262144   128       72.49ms        72.43ms       2.21ms
+
+        The forward is ~0.25ms at EVERY shape, so `aten::embedding_dense_backward` is the
+        entire cost, and it is linear in the table's ROW COUNT while being independent of
+        its width -- i.e. it touches the whole table, not just the rows that were read.
+        Advanced indexing is the only spelling that stays cheap at every shape.
         """
-        out = self.ngram_embeds[key](rows).to(COMPUTE_DTYPE)
+        tbl = self.ngram_embeds[key].weight
+        out = (tbl[rows] if NGRAM_VE_INDEX_GATHER else self.ngram_embeds[key](rows)).to(COMPUTE_DTYPE)
         if key in self.ngram_proj:
             out = self.ngram_proj[key](out)
         return out
@@ -5310,6 +5334,7 @@ def main() -> None:
         # (SUMMARY_KEYS in research/run_experiment.py has the matching entry).
         print(f"ngram_ve:          {args.ngram_ve} tables={len(orig_model.ngram_embeds)} "
               f"rows={orig_model.ngram_rows} dim={orig_model.ngram_dim} "
+              f"index_gather={NGRAM_VE_INDEX_GATHER} "
               f"trigram={args.ngram_ve_trigram} opt={args.ngram_ve_opt} "
               f"flat_lr={args.ngram_ve_flat_lr} bf16={args.ngram_ve_bf16}")
         print(f"num_steps:         {step}")

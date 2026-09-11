@@ -21,6 +21,11 @@ Checks, in order, all on the real GPT at the locked config:
      exactly 0.0 (no 0/0 NaN), on a hit row moves it by exactly lr, and the foreach and
      loop paths agree bit-for-bit.
   7. FLAT LR: a no_lr_decay group ignores the warmdown while the others follow it.
+  8. BF16 TABLES: they train and stay finite for a step at bf16 storage.
+  9. NGRAM_VE_DIM: a narrow table plus its (necessarily nonzero) up-projection still starts
+     as a no-op, still receives gradient, and its projections land in Muon.
+ 10. NGRAM_VE_INDEX_GATHER: weight[idx] and nn.Embedding(idx) agree bit-for-bit on both the
+     forward and the table gradient, i.e. the throughput fix is not also a model change.
 
 Run: python research/scratch/ngram_ve_equiv.py
 """
@@ -229,6 +234,28 @@ def main() -> int:
     if not ok_dim:
         failures.append("NGRAM_VE_DIM path failed (see [9])")
     T.NGRAM_VE_DIM = 0
+
+    # ---- 10. NGRAM_VE_INDEX_GATHER is a pure lowering change -------------------------
+    # weight[idx] vs nn.Embedding(idx) must agree BIT-FOR-BIT on the forward and on the
+    # table gradient. It is only a throughput fix (embedding_dense_backward is O(rows) on
+    # Trn2, advanced indexing is not -- see _ngram_lookup), so any numerical difference
+    # here would mean it is silently also a model change.
+    outs, grads = {}, {}
+    for flag in (True, False):
+        T.NGRAM_VE_INDEX_GATHER = flag
+        gm = build(True)
+        with torch.no_grad():
+            outs[flag] = gm(idx).clone()
+        gm(idx, targets).backward()
+        grads[flag] = {k: p.grad.clone() for k, p in gm.ngram_embeds.named_parameters()}
+    T.NGRAM_VE_INDEX_GATHER = True
+    fwd_same = torch.equal(outs[True], outs[False])
+    grad_same = all(torch.equal(grads[True][k], grads[False][k]) for k in grads[True])
+    grad_nz = max(float(g.abs().max()) for g in grads[True].values())
+    print(f"[10] index_gather: fwd bit-identical={fwd_same} table-grad bit-identical={grad_same} "
+          f"max|dL/dtable|={grad_nz:.3e}")
+    if not (fwd_same and grad_same and grad_nz > 0.0):
+        failures.append("NGRAM_VE_INDEX_GATHER is not numerically equivalent to nn.Embedding")
 
     print()
     if failures:

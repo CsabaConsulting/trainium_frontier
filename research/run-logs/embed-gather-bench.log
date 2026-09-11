@@ -1,0 +1,74 @@
+[W911 19:32:53.546365340 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W911 19:32:55.579806946 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+[eb] nn.Embedding                                 rows=   8192 dim= 640 gathers=1 fwd=    0.33ms fwd+bwd=    3.18ms (  10.5 MB out)
+[eb] index_select                                 rows=   8192 dim= 640 gathers=1 fwd=    0.30ms fwd+bwd=    5.12ms (  10.5 MB out)
+[eb] advanced indexing p[idx]                     rows=   8192 dim= 640 gathers=1 fwd=    0.30ms fwd+bwd=    5.20ms (  10.5 MB out)
+[eb] one-hot matmul                               rows=   8192 dim= 640 gathers=1 fwd=    3.99ms fwd+bwd=    5.18ms (  10.5 MB out)
+[eb] nn.Embedding                                 rows=   8192 dim= 128 gathers=1 fwd=    0.24ms fwd+bwd=    2.72ms (   2.1 MB out)
+[eb] index_select                                 rows=   8192 dim= 128 gathers=1 fwd=    0.26ms fwd+bwd=    1.63ms (   2.1 MB out)
+[eb] advanced indexing p[idx]                     rows=   8192 dim= 128 gathers=1 fwd=    0.48ms fwd+bwd=    1.64ms (   2.1 MB out)
+[eb] one-hot matmul                               rows=   8192 dim= 128 gathers=1 fwd=    3.72ms fwd+bwd=    3.97ms (   2.1 MB out)
+[eb] nn.Embedding                                 rows=  65536 dim= 640 gathers=1 fwd=    0.26ms fwd+bwd=   19.39ms (  10.5 MB out)
+[eb] index_select                                 rows=  65536 dim= 640 gathers=1 fwd=    0.34ms fwd+bwd=    5.20ms (  10.5 MB out)
+[eb] advanced indexing p[idx]                     rows=  65536 dim= 640 gathers=1 fwd=    0.33ms fwd+bwd=    5.21ms (  10.5 MB out)
+[eb] nn.Embedding                                 rows=  65536 dim= 128 gathers=1 fwd=    0.24ms fwd+bwd=   19.09ms (   2.1 MB out)
+[eb] index_select                                 rows=  65536 dim= 128 gathers=1 fwd=    0.21ms fwd+bwd=    1.88ms (   2.1 MB out)
+[eb] advanced indexing p[idx]                     rows=  65536 dim= 128 gathers=1 fwd=    0.24ms fwd+bwd=    1.80ms (   2.1 MB out)
+[rank0]:W0911 19:34:23.385000 246529 torch/_dynamo/convert_frame.py:1743] [1/8] torch._dynamo hit config.recompile_limit (8)
+[rank0]:W0911 19:34:23.385000 246529 torch/_dynamo/convert_frame.py:1743] [1/8]    function: 'fb_emb' (/home/ubuntu/trainium_frontier/research/scratch/embed_gather_bench.py:117)
+[rank0]:W0911 19:34:23.385000 246529 torch/_dynamo/convert_frame.py:1743] [1/8]    last reason: 1/7: tensor 'emb._parameters['weight']' size mismatch at index 0. expected 65536, actual 262144. Guard failed on a parameter, consider using torch._dynamo.config.force_parameter_static_shapes = False to allow dynamism on parameters.
+[rank0]:W0911 19:34:23.385000 246529 torch/_dynamo/convert_frame.py:1743] [1/8] To log all recompilation reasons, use TORCH_LOGS="recompiles".
+[rank0]:W0911 19:34:23.385000 246529 torch/_dynamo/convert_frame.py:1743] [1/8] To diagnose recompilation issues, see https://docs.pytorch.org/docs/main/user_guide/torch_compiler/compile/programming_model.recompilation.html
+[eb] nn.Embedding                                 rows= 262144 dim= 128 gathers=1 fwd=    0.24ms fwd+bwd=   72.49ms (   2.1 MB out)
+[rank0]:W0911 19:34:54.612000 246529 torch/_dynamo/convert_frame.py:1743] [5/8] torch._dynamo hit config.recompile_limit (8)
+[rank0]:W0911 19:34:54.612000 246529 torch/_dynamo/convert_frame.py:1743] [5/8]    function: 'fb_sel' (/home/ubuntu/trainium_frontier/research/scratch/embed_gather_bench.py:127)
+[rank0]:W0911 19:34:54.612000 246529 torch/_dynamo/convert_frame.py:1743] [5/8]    last reason: 5/7: tensor 'p' size mismatch at index 0. expected 65536, actual 262144. Guard failed on a parameter, consider using torch._dynamo.config.force_parameter_static_shapes = False to allow dynamism on parameters.
+[rank0]:W0911 19:34:54.612000 246529 torch/_dynamo/convert_frame.py:1743] [5/8] To log all recompilation reasons, use TORCH_LOGS="recompiles".
+[rank0]:W0911 19:34:54.612000 246529 torch/_dynamo/convert_frame.py:1743] [5/8] To diagnose recompilation issues, see https://docs.pytorch.org/docs/main/user_guide/torch_compiler/compile/programming_model.recompilation.html
+[eb] index_select                                 rows= 262144 dim= 128 gathers=1 fwd=    0.22ms fwd+bwd=   72.43ms (   2.1 MB out)
+[eb] advanced indexing p[idx]                     rows= 262144 dim= 128 gathers=1 fwd=    0.23ms fwd+bwd=    2.21ms (   2.1 MB out)
+[eb] 5x separate nn.Embedding                     rows=  65536 dim= 640 gathers=5 fwd=    0.67ms fwd+bwd=  129.34ms (  52.4 MB out)
+W0911 19:40:58.974000 246512 torch/distributed/elastic/agent/server/api.py:739] Received 1 death signal, shutting down workers
+W0911 19:40:58.974000 246512 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 246529 closing signal SIGHUP
+Traceback (most recent call last):
+  File "/home/ubuntu/workspace/native_venv/bin/torchrun", line 10, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 362, in wrapper
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/run.py", line 990, in main
+    run(args)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/run.py", line 981, in run
+    elastic_launch(
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 170, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 308, in launch_agent
+    result = agent.run()
+             ^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/metrics/api.py", line 134, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/agent/server/api.py", line 731, in run
+    result = self._invoke_run(role)
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/agent/server/api.py", line 908, in _invoke_run
+    time.sleep(monitor_interval)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/api.py", line 86, in _terminate_process_handler
+    raise SignalException(f"Process {os.getpid()} got signal: {sigval}", sigval=sigval)
+torch.distributed.elastic.multiprocessing.api.SignalException: Process 246512 got signal: 1

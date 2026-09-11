@@ -100,8 +100,23 @@ def main():
                          "holds the per-token gather/injection work fixed and scales every "
                          "param-count-proportional cost (allreduce bytes, dense embedding-grad "
                          "scatter, optimizer traffic), which is what separates the two.")
+    ap.add_argument("--ngram-ve-dim", type=int, default=0,
+                    help="T3.1: table WIDTH (0 = n_embd). >0 adds a per-table up-projection. The "
+                         "measured cost scales with rows x width in both the forward gather and the "
+                         "dense embedding backward, so this is the lever with the most headroom.")
+    ap.add_argument("--ngram-ve-index-gather", action=argparse.BooleanOptionalAction, default=True,
+                    help="T3.1: spell the row gather as weight[idx] instead of nn.Embedding(idx). "
+                         "Numerically identical; embedding_dense_backward costs time proportional to "
+                         "ROW COUNT on this stack (19.4ms at 65536 rows) while advanced indexing's "
+                         "backward stays at 1.8-5.2ms. --no-... reproduces the old, slow lowering.")
     ap.add_argument("--ngram-ve-clip-exclude", action=argparse.BooleanOptionalAction, default=True,
                     help="T3.1: keep the table grads out of the global clip norm, like train.py.")
+    ap.add_argument("--ngram-ve-freeze", action="store_true",
+                    help="T3.1 DIAGNOSTIC ONLY (not a trainable configuration): requires_grad_(False) "
+                         "on the tables, so the gather still runs in the forward but no "
+                         "embedding_dense_backward runs at all. (full - frozen) is the backward "
+                         "cost of the tables, which is the number that decides whether a narrower "
+                         "table + up-projection is worth building.")
     args = ap.parse_args()
 
     sys.path.insert(0, REPO)
@@ -122,6 +137,8 @@ def main():
     T.USE_NGRAM_VE = args.ngram_ve
     T.NGRAM_VE_TRIGRAM = args.ngram_ve_trigram
     T.NGRAM_VE_TABLE_MULT = args.ngram_ve_table_mult
+    T.NGRAM_VE_DIM = args.ngram_ve_dim
+    T.NGRAM_VE_INDEX_GATHER = args.ngram_ve_index_gather
     T.NGRAM_VE_CLIP_EXCLUDE = args.ngram_ve_clip_exclude
 
     if args.conv_mode == "zeros":
@@ -138,6 +155,11 @@ def main():
     model = T.GPT(config)
     model.init_weights()
     model.to(device)
+    if args.ngram_ve_freeze:
+        for p in model.ngram_embeds.parameters():
+            p.requires_grad_(False)
+        print(f"[pt] DIAGNOSTIC: froze {len(list(model.ngram_embeds.parameters()))} n-gram tables "
+              f"(forward gather only, no embedding_dense_backward)", flush=True)
     orig_model = model
     if args.compile:
         model = torch.compile(model, backend="neuron" if device_type == "neuron" else "inductor",
@@ -159,7 +181,8 @@ def main():
               f"foreach_optim={T.USE_FOREACH_OPTIM} "
               f"weight_cache={T.USE_WEIGHT_CACHE} "
               f"ngram_ve={T.USE_NGRAM_VE} ngram_tables={len(orig_model.ngram_embeds)} "
-              f"ngram_rows={orig_model.ngram_rows} "
+              f"ngram_rows={orig_model.ngram_rows} ngram_dim={orig_model.ngram_dim} "
+              f"ngram_index_gather={T.NGRAM_VE_INDEX_GATHER} "
               f"params={sum(p.numel() for p in orig_model.parameters()):,}", flush=True)
 
     rows = T.DEVICE_BATCH_SIZE * T.PACK_FACTOR
