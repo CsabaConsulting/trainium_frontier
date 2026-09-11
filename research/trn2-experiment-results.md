@@ -3058,3 +3058,60 @@ remaining +98.6ms/micro is no longer the tables at all — the per-table residua
 itself measured at 1.8-5.2ms. Note also that the -0.0311 gain was measured at **dim 640**;
 the break-even row is at dim 128, whose narrower tables may not deliver the full gain. That
 is the open question, and it is now a *quality* question rather than a throughput one.
+
+### The full cost/quality grid after the fix, and the configuration that actually wins
+
+With `weight[idx]` in place, rows became almost free and the cost structure changed shape, so
+the whole grid was re-measured. Everything below is `phase_timer` at the real 4-rank/LNC=2
+shape with `--foreach-optim` in every arm, plus a fixed-300-step LR-matched quality A/B
+against `t31-base-fixed300` (1.259003) for the configurations worth deciding on.
+
+| config | table params | step total | `r` | needed gain | measured gain | net at 1800s |
+|---|---|---|---|---|---|---|
+| base | — | 808ms | 1.00 | — | — | — |
+| 5T, 65536 rows, dim 640 | 209.7M | 1294ms | 1.60 | 0.0362 | 0.0311 | +0.0051 lose |
+| 5T, 65536 rows, dim 128 | 41.9M | 1226ms | 1.52 | 0.0321 | — | — |
+| 5T, 262144 rows, dim 640 | 838.9M | 1479ms | 1.83 | 0.0466 | — | — |
+| 5T, 262144 rows, dim 128 | 167.8M | 1238ms | 1.53 | 0.0328 | 0.0278 | +0.0050 lose |
+| **3T (bigram only), 262144 rows, dim 128** | **100.7M** | **1041ms** | **1.29** | **0.0195** | **0.0235** | **-0.0040 WIN** |
+| 3T (bigram only), 65536 rows, dim 128 | 25.2M | 1030ms | 1.27 | 0.0186 | — | — |
+
+Quality arms in full (all `--num-steps 300 --max-train-seconds 3600`, so both arms sit
+entirely at `lrm=1.0`):
+
+| run | tables | rows | dim | `bpb`@2048 | gain vs base | train s | real `r` |
+|---|---|---|---|---|---|---|---|
+| `t31-base-fixed300` | 0 | — | — | 1.259003 | — | 242.8 | 1.000 |
+| `t31-ngram-fixed300` | 5 | 65536 | 640 | 1.227918 | 0.031085 | 479.2 | 1.974 |
+| `t31-ng-m32d128-fixed300` | 5 | 262144 | 128 | 1.231173 | 0.027830 | 376.8 | 1.552 |
+| `t31-ng-bi3-m32d128-fixed300` | 3 | 262144 | 128 | 1.235529 | 0.023474 | 315.0 | 1.297 |
+
+**`phase_timer`'s `r` is validated against real training runs**, which is worth recording on
+its own: predicted 1.99/1.53/1.29 against measured 1.974/1.552/1.297. The profiler can be
+trusted to pick configurations without spending a training run on each.
+
+Three things fall out of the grid:
+
+**1. Trigram tables are a bad trade, by a factor of three.** Going 3T → 5T buys 0.00436 of
+gain for 0.2545 of `r`, i.e. 0.0133 of bpb. Each trigram table returns 0.0022 and costs
+0.0069. The information is presumably mostly already in the bigram (and in the model's own
+attention), so **`NGRAM_VE_TRIGRAM=False` is the right setting** — the opposite of what the
+brief's starting recipe assumed, and only visible because the cost and the gain were measured
+separately per table count.
+
+**2. Each *bigram* table is barely above water**, which is why 3 is the right number rather
+than 2: gain 0.0078/table against cost 0.0067/table. Dropping one saves less than it loses.
+
+**3. Rows are now free, so take them.** 65536 → 262144 rows (4x) costs 0.011 of `r`, i.e.
+**0.00069 bpb**, while quartering the hash collision rate. `NGRAM_VE_TABLE_MULT=32` is
+therefore strictly better than 8 unless the extra rows actively hurt, and the 5T pair
+(0.0278 at m32/d128 vs 0.0311 at m8/d640) is confounded by width so it cannot say they do.
+Note this is the exact opposite of the pre-fix conclusion, where rows were the dominant cost
+and `NGRAM_VE_TABLE_MULT` was the first thing to shrink.
+
+The `5T, 262144 rows, dim 640` row is the cleanest illustration of where the cost went: at
+838.9M table parameters the *compiled fwd+bwd* is only 28ms/micro worse than at 65536 rows,
+but `opt_step` goes 71 → 124ms, `sync_grad` to 41ms and `clip` to 16ms. Post-fix, the tables
+cost roughly what their **parameter count** says they should, which is why `dim 128` (5x
+fewer table parameters at the same row count) is now a real lever where before the fix it was
+worth only 7%.
