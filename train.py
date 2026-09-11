@@ -344,6 +344,26 @@ def has_ve(layer_idx: int, n_layer: int) -> bool:
 USE_NGRAM_VE = False
 NGRAM_VE_TABLE_MULT = 8   # rows per table = this x padded_vocab_size (8 x 8192 = 65536).
 NGRAM_VE_TRIGRAM = True   # also add a trigram table on the FIRST and LAST VE layer.
+NGRAM_VE_DIM = 0          # table WIDTH. 0 => n_embd, i.e. the table is gathered straight into v.
+# >0 makes each table [rows, NGRAM_VE_DIM] followed by its own Linear(NGRAM_VE_DIM, n_embd)
+# up-projection, which is a THROUGHPUT knob, not a quality one, and it exists because the
+# measured cost of the full-width version is the whole problem with T3.1 on this stack.
+# MEASURED with research/scratch/phase_timer.py at the locked shape (4 ranks, LNC=2, compile
+# on, foreach optimizer), micro-step mean fwd+bwd, baseline 182.3 ms:
+#   5 tables x 65536 rows, trainable      373.9 ms  (+191.6)  -> step 1610 ms vs base 808
+#   5 tables x 65536 rows, tables FROZEN  273.9 ms  (+ 91.6)  -> the FORWARD gather alone is
+#                                                   half the cost; it is not just the dense
+#                                                   embedding backward
+#   3 tables x 65536 rows, trainable      313.9 ms  (+131.6)  -> ~30 ms per table
+#   5 tables x  8192 rows, trainable      286.3 ms  (+104.0)  -> ~1.53e-3 ms per row (5 tables),
+#                                                   i.e. cost scales with ROWS even in the
+#                                                   forward, which a plain gather should not do
+# Both terms are proportional to rows x width, so narrowing the table is the only lever that
+# touches all of them at once: NGRAM_VE_DIM=128 is 5x less table to read, scatter into,
+# all-reduce and update, at the price of one tiny [tokens,128]x[128,640] matmul per table.
+# Step-0 no-op is preserved: the TABLE is zero-init, so the product is zero whatever the
+# up-projection holds (and the projection must NOT be zero-init, or the table would receive
+# no gradient at all and the whole thing would be dead weight -- see init_weights).
 NGRAM_VE_LR = 0.0         # 0 => EMBEDDING_LR (Recursive uses the embedding LR for the tables)
 NGRAM_VE_BETA2 = 0.999    # RMSProp second-moment decay
 NGRAM_VE_FLAT_LR = True   # no warmdown for these tables ("sparse tables benefit from full-rate
@@ -3329,6 +3349,7 @@ class GPT(nn.Module):
         # simply never indexed -- kept so the row count stays a multiple of 64.
         self.ngram_mod = _largest_prime_below(self.ngram_rows)
         ngram_dtype = torch.bfloat16 if NGRAM_VE_BF16 else torch.float32
+        self.ngram_dim = NGRAM_VE_DIM if NGRAM_VE_DIM > 0 else config.n_embd
 
         def _table() -> nn.Embedding:
             # `_weight=` skips nn.Embedding.reset_parameters(), which would otherwise draw
@@ -3338,8 +3359,8 @@ class GPT(nn.Module):
             # (see init_weights): it makes the step-0 forward bit-identical to USE_NGRAM_VE
             # off, because the zero-init gate evaluates to the NEUTRAL 2*sigmoid(0) = 1.0
             # rather than 0, so only a zero TABLE makes the injection a true no-op.
-            return nn.Embedding(self.ngram_rows, config.n_embd,
-                                _weight=torch.zeros(self.ngram_rows, config.n_embd, dtype=ngram_dtype))
+            return nn.Embedding(self.ngram_rows, self.ngram_dim,
+                                _weight=torch.zeros(self.ngram_rows, self.ngram_dim, dtype=ngram_dtype))
 
         tables: dict[str, nn.Module] = {}
         for i in range(config.n_layer):
@@ -3350,6 +3371,19 @@ class GPT(nn.Module):
             if has_ngram_trigram(i, config.n_layer):
                 tables[f"t{i}"] = _table()
         self.ngram_embeds = nn.ModuleDict(tables)
+        # NGRAM_VE_DIM: per-table up-projection to n_embd. Deliberately per-table rather than
+        # one shared matrix -- a shared one would force every layer's table into the same
+        # 128-dimensional subspace of v, which is exactly the cross-layer decorrelation the
+        # per-layer prime pairs exist to create. Uses the repo's own Linear (bf16 weight cache,
+        # Muon-eligible), and is empty when the tables are already full width so the
+        # NGRAM_VE_DIM=0 path adds no module and no state_dict key at all.
+        # _rng_neutral for the same reason as the gates: init_weights re-initializes these
+        # unconditionally, so their construction-time draws must not shift the RNG stream and
+        # change every other tensor's init between the two arms of the A/B.
+        self.ngram_proj = nn.ModuleDict(
+            {k: _rng_neutral(lambda: Linear(self.ngram_dim, config.n_embd, bias=False))
+             for k in tables}
+            if self.ngram_dim != config.n_embd else {})
         # The n-gram gates live in CausalSelfAttention, so an RWKV layer (which has a
         # tmix instead of an attn) would carry a table nothing ever reads. Refuse the
         # combination loudly rather than silently pay ~40M dead parameters for it.
@@ -3454,6 +3488,14 @@ class GPT(nn.Module):
         # modded-nanogpt #62 does with its bigram table.
         for tbl in self.ngram_embeds.values():
             torch.nn.init.zeros_(tbl.weight)
+        # NGRAM_VE_DIM's up-projections must NOT be zero-init, which is the opposite of the rule
+        # every other output projection in this file follows. The table is already zero, so the
+        # injected value is zero either way and the step-0 no-op holds regardless -- but the
+        # TABLE's gradient is (dL/dv) @ proj, so a zero projection would make it identically
+        # zero and neither tensor would ever leave the origin. Same uniform(-s, s) as the
+        # unigram value-embedding tables, since this matrix is what plays their role here.
+        for proj in self.ngram_proj.values():
+            torch.nn.init.uniform_(proj.weight, -s, s)
         cos, sin = self._precompute_rotary_embeddings(self.config.sequence_len, self.config.n_embd // self.config.n_head)
         self.cos.copy_(cos)
         self.sin.copy_(sin)
@@ -3497,6 +3539,18 @@ class GPT(nn.Module):
                 h = torch.bitwise_xor(torch.bitwise_xor(prev2 * p_prev2, prev * p_prev),
                                       cur * p_cur)
             out[key] = torch.remainder(h, self.ngram_mod)
+        return out
+
+    def _ngram_lookup(self, key: str, rows: torch.Tensor) -> torch.Tensor:
+        """One table's contribution to v, at full n_embd width, in COMPUTE_DTYPE.
+
+        With NGRAM_VE_DIM=0 (default) this is the plain gather. With a narrow table it is
+        the gather followed by that table's own up-projection -- kept in one place so the
+        forward loop reads the same either way and the two paths cannot drift apart.
+        """
+        out = self.ngram_embeds[key](rows).to(COMPUTE_DTYPE)
+        if key in self.ngram_proj:
+            out = self.ngram_proj[key](out)
         return out
 
     def _precompute_rotary_embeddings(self, seq_len: int, head_dim: int, base: int = ROPE_BASE):
@@ -3631,6 +3685,11 @@ class GPT(nn.Module):
                 hypernet_params.extend(block.attn.dcmha.parameters())
             matrix_params.extend(p for name, p in block.attn.named_parameters() if not name.startswith("dcmha."))
             matrix_params.extend(block.mlp.parameters())
+        # NGRAM_VE_DIM's up-projections are ordinary [n_embd, ngram_dim] weight matrices, so
+        # they belong in Muon with every other matrix, grouped by shape like the rest. They
+        # live on GPT rather than inside a Block, which is why they need an explicit line here
+        # -- the loop above only walks self.transformer.h.
+        matrix_params.extend(p.weight for p in self.ngram_proj.values())
         embedding_params = list(self.transformer.wte.parameters())
         lm_head_params = list(self.lm_head.parameters())
         value_embed_params = list(self.value_embeds.parameters())
@@ -3702,9 +3761,9 @@ class GPT(nn.Module):
             ve_bi = ve_tri = None
             if ngram_idx is not None:
                 if f"b{i}" in self.ngram_embeds:
-                    ve_bi = self.ngram_embeds[f"b{i}"](ngram_idx[f"b{i}"]).to(COMPUTE_DTYPE)
+                    ve_bi = self._ngram_lookup(f"b{i}", ngram_idx[f"b{i}"])
                 if f"t{i}" in self.ngram_embeds:
-                    ve_tri = self.ngram_embeds[f"t{i}"](ngram_idx[f"t{i}"]).to(COMPUTE_DTYPE)
+                    ve_tri = self._ngram_lookup(f"t{i}", ngram_idx[f"t{i}"])
             if self.layer_is_mamba[i] or self.layer_is_rwkv[i]:
                 # No attention here, so don't materialize an additive mask this
                 # layer will never read. Both alternatives are causal structurally
@@ -4319,7 +4378,8 @@ ARCH_TOGGLE_NAMES = [
     # bf16-vs-fp32 mismatch is exactly the quiet class this snapshot exists for. The
     # optimizer-side knobs (LR/BETA2/FLAT_LR/OPT/CLIP_EXCLUDE) leave no trace in the
     # weights at all, which is the other half of the same reason.
-    "USE_NGRAM_VE", "NGRAM_VE_TABLE_MULT", "NGRAM_VE_TRIGRAM", "NGRAM_VE_BF16",
+    "USE_NGRAM_VE", "NGRAM_VE_TABLE_MULT", "NGRAM_VE_TRIGRAM", "NGRAM_VE_DIM",
+    "NGRAM_VE_BF16",
     "NGRAM_VE_LR", "NGRAM_VE_BETA2", "NGRAM_VE_FLAT_LR", "NGRAM_VE_OPT",
     "NGRAM_VE_CLIP_EXCLUDE",
 ]
@@ -4351,7 +4411,8 @@ SHAPE_CRITICAL_TOGGLES = {"USE_VE", "USE_LOCAL_CONV", "USE_GATED_MLP", "USE_SELE
                           # attn.ve_gate_bi/ve_gate_tri weights, NGRAM_VE_TRIGRAM adds/removes
                           # the "t<layer>" tables and their gates, and NGRAM_VE_TABLE_MULT
                           # resizes every table's row count -- all three break strict loading.
-                          "USE_NGRAM_VE", "NGRAM_VE_TRIGRAM", "NGRAM_VE_TABLE_MULT"}
+                          "USE_NGRAM_VE", "NGRAM_VE_TRIGRAM", "NGRAM_VE_TABLE_MULT",
+                          "NGRAM_VE_DIM"}
 # USE_FP8_LINEAR is deliberately NOT in the set above: Fp8Linear is a Linear subclass with
 # the identical single `weight` parameter, so flipping it changes only the arithmetic used
 # inside MLP.forward, never a tensor's name or shape. That makes it exactly the
@@ -4501,7 +4562,7 @@ def main() -> None:
     # GPT.__init__ and CausalSelfAttention.__init__ (before GPT(config)); the rest are read by
     # setup_optimizer() or once per step in the training loop, all well before any device op
     # that could bake them in as a per-step graph constant.
-    global USE_NGRAM_VE, NGRAM_VE_TABLE_MULT, NGRAM_VE_TRIGRAM, NGRAM_VE_BF16
+    global USE_NGRAM_VE, NGRAM_VE_TABLE_MULT, NGRAM_VE_TRIGRAM, NGRAM_VE_BF16, NGRAM_VE_DIM
     global NGRAM_VE_LR, NGRAM_VE_BETA2, NGRAM_VE_FLAT_LR, NGRAM_VE_OPT, NGRAM_VE_CLIP_EXCLUDE
     parser = argparse.ArgumentParser(description="Neuron Competition R1 baseline")
     parser.add_argument("--device-type", type=str, default="")
@@ -4585,6 +4646,13 @@ def main() -> None:
                         help="add a trigram table on the first and last VE layer as well as the "
                              "bigram table every VE layer gets. --no-ngram-ve-trigram is the "
                              "bigram-only arm.")
+    parser.add_argument("--ngram-ve-dim", type=int,
+                        default=int(os.environ.get("NEURON_COMPETITION_R1_NGRAM_VE_DIM", NGRAM_VE_DIM)),
+                        help="n-gram table WIDTH (0 = n_embd, gathered straight into v). A throughput "
+                             "knob: the measured cost of these tables scales with rows x width in BOTH "
+                             "the forward gather and the dense embedding backward, so e.g. 128 is ~5x "
+                             "less table to read, scatter into, all-reduce and update, at the price of "
+                             "one [tokens,dim]x[dim,n_embd] matmul per table. See NGRAM_VE_DIM.")
     parser.add_argument("--ngram-ve-opt", type=str, default=NGRAM_VE_OPT, choices=("rmsprop", "adamw"),
                         help="optimizer for the n-gram tables. rmsprop (default, Recursive's choice) "
                              "drops the first moment so a rarely-hit row still gets a full-rate "
@@ -4867,6 +4935,7 @@ def main() -> None:
     # rest by setup_optimizer() / the training loop.
     USE_NGRAM_VE = args.ngram_ve
     NGRAM_VE_TABLE_MULT = args.ngram_ve_table_mult
+    NGRAM_VE_DIM = args.ngram_ve_dim
     NGRAM_VE_TRIGRAM = args.ngram_ve_trigram
     NGRAM_VE_BF16 = args.ngram_ve_bf16
     NGRAM_VE_OPT = args.ngram_ve_opt
@@ -5237,6 +5306,12 @@ def main() -> None:
         print(f"rwkv:              {args.rwkv}")
         print(f"rwkv_pattern:      {args.rwkv_pattern}")
         print(f"fp8_linear:        {args.fp8_linear}")
+        # T3.1. Printed as one line so the experiment log can tell two n-gram arms apart
+        # (SUMMARY_KEYS in research/run_experiment.py has the matching entry).
+        print(f"ngram_ve:          {args.ngram_ve} tables={len(orig_model.ngram_embeds)} "
+              f"rows={orig_model.ngram_rows} dim={orig_model.ngram_dim} "
+              f"trigram={args.ngram_ve_trigram} opt={args.ngram_ve_opt} "
+              f"flat_lr={args.ngram_ve_flat_lr} bf16={args.ngram_ve_bf16}")
         print(f"num_steps:         {step}")
         print(f"total_tokens_M:    {total_train_tokens / 1e6:.1f}")
         print(f"world_size:        {world_size}")

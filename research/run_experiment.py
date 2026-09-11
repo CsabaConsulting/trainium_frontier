@@ -58,6 +58,9 @@ SUMMARY_KEYS = {
     # train.py --eval-seq-len: a second eval of the same weights at a shorter context, for the
     # open "what context length does the scorer actually use?" question (2026-09-11).
     "eval_alt_seq_len", "public_val_bpb_alt", "eval_alt_seconds",
+    # T3.1 (2026-09-11): one line carrying every n-gram-VE knob that changes the model, so
+    # two n-gram arms are distinguishable in the log without re-reading the run log.
+    "ngram_ve",
 }
 LINE_RE = re.compile(r"^(" + "|".join(SUMMARY_KEYS) + r"):\s*(.+)$")
 

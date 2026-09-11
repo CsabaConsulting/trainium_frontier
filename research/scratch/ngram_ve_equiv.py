@@ -35,10 +35,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import train as T  # noqa: E402
 
 
-def build(ngram: bool, trigram: bool = True, bf16: bool = False, seed: int = 1234):
+def build(ngram: bool, trigram: bool = True, bf16: bool = False, seed: int = 1234, dim: int = 0):
     T.USE_NGRAM_VE = ngram
     T.NGRAM_VE_TRIGRAM = trigram
     T.NGRAM_VE_BF16 = bf16
+    T.NGRAM_VE_DIM = dim
     torch.manual_seed(seed)
     model = T.GPT(T.build_config())
     model.init_weights()
@@ -199,6 +200,35 @@ def main() -> int:
           f"max|table| after 1 step={moved:.6f} all-finite={finite}")
     if not (dtypes == {"torch.bfloat16"} and finite and moved > 0.0):
         failures.append("bf16 table path did not train cleanly")
+
+    # ---- 9. NGRAM_VE_DIM: narrow table + per-table up-projection --------------------
+    # Same three invariants as the full-width path, plus the one that is specific to it:
+    # the up-projection must be NONZERO or the table's gradient is identically zero.
+    T.COMPUTE_DTYPE = torch.float32
+    dm = build(True, dim=128)
+    with torch.no_grad():
+        ld = dm(idx)
+    n_dm = sum(p.numel() for p in dm.parameters())
+    proj_nonzero = all(float(p.weight.abs().max()) > 0 for p in dm.ngram_proj.values())
+    dopt = dm.setup_optimizer()
+    for g in dopt.param_groups:
+        g["initial_lr"] = g["lr"]
+    dloss = dm(idx, targets)
+    dloss.backward()
+    tbl_grad = max(float(p.grad.abs().max()) for p in dm.ngram_embeds.parameters())
+    dopt.step()
+    proj_ids = {id(p.weight) for p in dm.ngram_proj.values()}
+    muon = [g for g in dopt.param_groups if g["kind"] == "muon" and proj_ids & {id(p) for p in g["params"]}]
+    ok_dim = (torch.equal(ld, lo) and len(dm.ngram_proj) == n_tables and proj_nonzero
+              and tbl_grad > 0.0 and len(muon) == 1
+              and all(torch.isfinite(p).all().item() for p in dm.parameters()))
+    print(f"[9] dim=128: step-0 identical={torch.equal(ld, lo)} "
+          f"proj_tables={len(dm.ngram_proj)} proj_nonzero={proj_nonzero} "
+          f"max|dL/dtable|={tbl_grad:.3e} proj_in_muon_groups={len(muon)} "
+          f"params {n_on/1e6:.1f}M -> {n_dm/1e6:.1f}M -> {ok_dim}")
+    if not ok_dim:
+        failures.append("NGRAM_VE_DIM path failed (see [9])")
+    T.NGRAM_VE_DIM = 0
 
     print()
     if failures:
