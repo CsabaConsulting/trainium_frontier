@@ -3176,3 +3176,110 @@ Also recorded, because it cost real time to learn: `phase_timer`'s `--foreach-op
 to **False** while every earlier T3.1 timing run passed it explicitly. One sweep was launched
 without it and had to be thrown away; `opt_step` is the phase that differs. Any comparison
 against the numbers in this document must pass `--foreach-optim`.
+
+---
+
+## 2026-09-11 — T2.1 batch-size ramp: implemented, measured at the full budget, DISCARDED
+
+**Verdict: discard. `BATCH_RAMP` stays `False`.** The ramp buys +19.5% *steps* and **0% extra
+tokens**, and costs +0.0018 bpb.
+
+### The idea and what it actually does
+
+Vary `grad_accum_steps` across the run — small batch early (gradient noise is tolerable when any
+descent direction is roughly right), large batch over the cooldown (a small lr can only exploit a
+clean gradient) — holding the *micro* shape fixed so no compiled graph is ever invalidated.
+Stages are wall-clock fractions of the budget, matching the LR schedule, which is time-driven too.
+Muon/Adam lr scales by `(B/B_ref)**0.5`.
+
+Config tested: `grad_accum=(2,4,8)` at `bounds=(0.35, 0.75)`, `lr_exp=0.5`. Stage B reproduces
+today's `TOTAL_BATCH_SIZE` exactly (131,072), so the ramp is a perturbation *around* the locked
+batch size rather than a different one, and `bounds[1]` is deliberately `WARMDOWN_RATIO` so stage
+C is exactly the cooldown.
+
+### Correctness (`research/scratch/batch_ramp_check.py`, 5 checks, CPU)
+
+```
+[1] BATCH_RAMP=False is the identity at 21 progress values: True
+[2] boundaries (0.35, 0.75) grad_accum (2, 4, 8) lr_scales={2: 0.707107, 4: 1.0, 8: 1.414214} -> True
+[3] grad_accum=2/4/8: `loss/N` vs `loss*inv_tensor` bit-identical=True max_abs_diff=0.000e+00 (62 tensors)
+[4] three different lr scales reuse the same 9 cached scalar tensors: True
+[5] stage B tokens=131,072 vs TOTAL_BATCH_SIZE=131,072 -> True  (A=65,536 C=262,144)
+```
+
+Check 3 and check 4 are the two device-constant hazards, and they are handled differently on
+purpose. The lr scale rides the *existing* `MuonAdamW._device_scalar` path, so a new scale value
+never reaches the graph — check 4 proves the same 9 cached tensors are reused across three
+different scales. The `1/grad_accum` loss scaling is the one genuinely new place a per-step
+Python float would multiply a device tensor, so under `BATCH_RAMP` it is carried in a
+preallocated `inv_gas_dev` written with `copy_`; with the toggle off the loop keeps the literal
+`loss / grad_accum_steps`, which is why the default path is bit-identical rather than merely
+equivalent.
+
+### Device smoke (`t21-ramp-smoke2`, 240s budget, 4 ranks, LNC=2)
+
+The first smoke was mis-sized and is recorded here as a trap for later: with
+`--max-train-seconds 40` against a ~90s step-0 compile, `ramp_progress` saturates at 1.0 on step
+1, so the run jumps **A → C**, `lrm` collapses to 0.050, and the predictive stop (which takes
+`max(recent_step_times[-20:])`, i.e. the compile step) ends the run at step 5. Not a ramp bug —
+it is the documented shared pre-reset-`elapsed` quirk with `lrm`/`wd_progress`, and it means **no
+ramp smoke below ~a 300s budget tells you anything.**
+
+Re-run at 240s walked the stages in order and is the clean mechanical result:
+
+```
+batch_ramp: step   0 progress 0.000 -> stage A grad_accum=2 tokens=65,536  lr_scale=0.7071
+batch_ramp: step 196 progress 0.351 -> stage B grad_accum=4 tokens=131,072 lr_scale=1.0000
+batch_ramp: step 315 progress 0.752 -> stage C grad_accum=8 tokens=262,144 lr_scale=1.4142
+causality_passed: True   causality_max_abs: 0.000000
+```
+
+`dt` is **0.44 / 0.81 / 1.54s** in stages A/B/C — exactly linear in the accumulation count, with
+no spike at either boundary. The fixed-micro-shape design does what it claims: **no stage
+boundary recompiles anything.**
+
+### The 1800s decision A/B (paired, same day, same commit `a9e5b76`, `--eval-seq-len 1024`)
+
+| run | steps | tokens | bpb @2048 | bpb @1024 |
+|---|---|---|---|---|
+| `t21-base-1800s` (control) | 2192 | 287.4M | 1.034536 | 1.049742 |
+| `t21-ramp-1800s` (ramp) | 2620 | 286.9M | 1.036367 | 1.051112 |
+| **Δ (ramp − control)** | **+428 (+19.5%)** | **−0.5M (−0.2%)** | **+0.001831** | **+0.001370** |
+
+The control is a good reproduction of the locked baseline (2205/1.034005 and
+`t02-base-1800s` 2187/1.034328), so the pairing is trustworthy.
+
+### Why it loses, in one line: **steps are not the scarce resource — tokens are.**
+
+Measured throughput at the three accumulation counts, from the treatment's own log:
+
+| grad_accum | tokens/step | dt | tok/s |
+|---|---|---|---|
+| 2 | 65,536 | 0.44s | 148.9k |
+| 4 (locked) | 131,072 | 0.81s | 161-163k |
+| 8 | 262,144 | 1.54s | 170.2k |
+
+Per-token cost *falls* with accumulation (gas=8 is ~6% cheaper per token than gas=4; gas=2 is
+~7% dearer), because the per-step optimizer/collective overhead is amortized over more
+micro-batches. So the ramp spends its long early phase at the **worst** throughput and only its
+short tail at the best, and the mix lands at exactly the baseline's token count — 286.9M vs
+287.4M, a 0.2% difference. It bought 428 extra steps and paid for them entirely with
+gradient noise (sqrt-scaled lr on half-size batches for the first 35% of the run). The
+underlying premise, "more cheap steps early", assumed steps were expensive and tokens free;
+on this stack it is the reverse.
+
+This also cleanly explains why the `bpb ≈ a − 0.077·ln(steps)` exchange rate must not be read as
+a *step* law. It was fitted across runs whose tokens/step was constant, so it is really a
+tokens law wearing step clothing. Any change that moves steps and tokens in different directions
+(this one moves steps +19.5% and tokens −0.2%) breaks it, and the +0.0018 regression is the
+proof.
+
+Magnitude note per the methodology rule: |Δ| is between 0.001 and 0.003, so a single pair would
+not be enough to *adopt* something. It is enough to *reject*: the sign is wrong, the mechanism
+that would have produced a win is measurably absent (tokens did not increase), and there is no
+cheaper variant of the idea left — a ramp *upward* only shifts the mix toward gas=8, which is
+just "use a bigger fixed batch", and the Tier-0 batch resweep already showed both neighbours of
+131,072 lose.
+
+Rows `t21-base-1800s` and `t21-ramp-1800s` in `research/experiment-log.jsonl`; logs
+`research/run-logs/t21-{base,ramp}-1800s.log` and `t21-ramp-smoke{,2}.log`.

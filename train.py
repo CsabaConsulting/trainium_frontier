@@ -233,6 +233,29 @@ BATCH_RAMP_LR_EXP = 0.5             # lr scales as (B/B_ref)**this. 0.5 = sqrt, 
 # anything -- see the USE_TENSOR_LR_SCALARS note. The 1/grad_accum loss scaling is the one place
 # a changing Python float WOULD reach a device op, so under BATCH_RAMP it is carried in a
 # preallocated device tensor updated with copy_ instead (see the training loop).
+
+# T2.2 EMA of the final weights. The last weights a run happens to land on are one sample from a
+# distribution the optimizer is still bouncing around inside; averaging over the tail of the
+# trajectory cancels part of that bounce for free (no extra gradient, no extra step). It is only
+# credible over the COOLDOWN, which is why WEIGHT_EMA_START_FRAC defaults to WARMDOWN_RATIO: the
+# shadow is initialized from the live weights at that point, so the averaged region is the low-lr
+# tail and nothing from the high-lr phase is dragged in.
+#
+# Cost: one torch._foreach_lerp_ over the 62 parameters per step. That is ~3 x 223MB of HBM
+# traffic = ~0.23ms at 2.9TB/s, i.e. <0.03% of an 816ms step, plus 223MB of extra HBM for the
+# shadow (of 96GB). EAGER ONLY -- it sits next to optimizer.step(), which is already outside
+# every compiled region, because torch._foreach_* cannot be traced by backend="neuron".
+# The lerp weight is a fixed Python constant (1 - decay), never a per-step-changing one, so it
+# cannot cause the per-step recompile that USE_TENSOR_LR_SCALARS exists to avoid.
+USE_WEIGHT_EMA = False
+WEIGHT_EMA_DECAY = 0.995        # per-step; 0.995 ~ a 200-step window, 0.999 ~ 1000 steps
+WEIGHT_EMA_START_FRAC = 0.75    # elapsed/max_train_seconds at which the shadow is seeded
+# When on, the checkpoint carries BOTH weight sets ("model_state" = raw, "ema_state" = averaged)
+# and the run evaluates both, so a single run is its own A/B with zero run-to-run noise.
+# load_for_eval's 2-argument contract is untouched: it prefers "ema_state" only when the key is
+# actually present, which can only happen if this toggle was on during training.
+EVAL_PREFER_EMA = os.environ.get("NEURON_COMPETITION_R1_EVAL_PREFER_EMA", "1") != "0"
+
 MAX_TRAIN_SECONDS = TRAIN_TIME_BUDGET_SECONDS
 CHECKPOINT_RESERVE_SECONDS = 5.0
 # Covers the launch -> module-import gap this process cannot observe when
@@ -4433,6 +4456,9 @@ ARCH_TOGGLE_NAMES = [
     # dtype -- but they change how many tokens each recorded step saw and at what lr, so a
     # checkpoint trained with a ramp and reloaded without one is silently mis-described.
     "BATCH_RAMP", "BATCH_RAMP_GRAD_ACCUM", "BATCH_RAMP_BOUNDS", "BATCH_RAMP_LR_EXP",
+    # T2.2 weight EMA. Also shape-neutral, but it decides whether the checkpoint has an
+    # "ema_state" key at all -- i.e. WHICH weights load_for_eval will hand the scorer.
+    "USE_WEIGHT_EMA", "WEIGHT_EMA_DECAY", "WEIGHT_EMA_START_FRAC",
 ]
 # Toggles whose mismatch corrupts the state_dict shape (load_state_dict(strict=True) will
 # error loudly). Everything else in ARCH_TOGGLE_NAMES lives in non-persistent buffers or
@@ -4476,7 +4502,7 @@ def current_toggles() -> dict:
     return {name: g[name] for name in ARCH_TOGGLE_NAMES}
 
 
-def save_checkpoint(path: Path, model: GPT, meta: dict) -> None:
+def save_checkpoint(path: Path, model: GPT, meta: dict, ema_state: dict | None = None) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
         "model_state": {k: v.detach().cpu() for k, v in model.state_dict().items()},
@@ -4484,6 +4510,11 @@ def save_checkpoint(path: Path, model: GPT, meta: dict) -> None:
         "toggles": current_toggles(),
         "meta": meta,
     }
+    # T2.2: BOTH weight sets in one file, so nothing downstream has to guess which checkpoint is
+    # which and the raw weights are never destroyed by the averaging. The key is absent entirely
+    # when USE_WEIGHT_EMA is off, which is what keeps load_for_eval's behaviour unchanged.
+    if ema_state is not None:
+        payload["ema_state"] = {k: v.detach().cpu() for k, v in ema_state.items()}
     torch.save(payload, path)
 
 
@@ -4536,7 +4567,15 @@ def load_for_eval(checkpoint_path: str, device: torch.device) -> nn.Module:
         config.sequence_len = EVAL_MIN_SEQ_LEN
     model = GPT(config)
     model.init_weights()
-    model.load_state_dict(payload["model_state"], strict=True)
+    # T2.2: prefer the averaged weights when the checkpoint carries them. Same signature, same
+    # return type, same strict load -- "ema_state" only exists if USE_WEIGHT_EMA was on for that
+    # run, so for every checkpoint written before T2.2 this is exactly the old single line.
+    state = payload["model_state"]
+    if EVAL_PREFER_EMA and "ema_state" in payload:
+        state = payload["ema_state"]
+        print(f"load_for_eval: using EMA weights from {checkpoint_path} "
+              f"(raw weights still available under 'model_state')")
+    model.load_state_dict(state, strict=True)
     model.to(device)
     model.eval()
     return model
@@ -4597,6 +4636,24 @@ def batch_ramp_grad_accum(progress: float, grad_accum_ref: int) -> tuple[int, fl
     return gas, (gas / grad_accum_ref) ** BATCH_RAMP_LR_EXP
 
 
+def weight_ema_state(model: GPT, names: list[str], shadow: list[torch.Tensor]) -> dict:
+    """A full state_dict with the EMA copy substituted for every PARAMETER.
+
+    Built from model.state_dict() rather than from `shadow` alone so the result has exactly the
+    same key set as "model_state" and still load_state_dict(strict=True)s into the same model.
+    Non-parameter entries (any persistent buffer) are carried over verbatim -- they are not
+    trained, so averaging them would be meaningless, and dropping them would break strict load.
+    """
+    state = dict(model.state_dict())
+    by_name = dict(zip(names, shadow))
+    missing = [n for n in by_name if n not in state]
+    if missing:
+        raise KeyError(f"EMA tracks parameters absent from state_dict: {missing}")
+    for n, t in by_name.items():
+        state[n] = t
+    return state
+
+
 def muon_momentum(step: int, progress: float = 0.0) -> float:
     """Muon momentum: 0.85 -> 0.95 over MUON_MOMENTUM_WARMUP_STEPS, then optionally back down.
 
@@ -4649,6 +4706,7 @@ def main() -> None:
     # Python float lr scale -- neither reaches a device op as a constant (the loss scaling, which
     # would, goes through inv_gas_dev instead).
     global BATCH_RAMP, BATCH_RAMP_GRAD_ACCUM, BATCH_RAMP_BOUNDS, BATCH_RAMP_LR_EXP
+    global USE_WEIGHT_EMA, WEIGHT_EMA_DECAY, WEIGHT_EMA_START_FRAC
     parser = argparse.ArgumentParser(description="Neuron Competition R1 baseline")
     parser.add_argument("--device-type", type=str, default="")
     parser.add_argument("--num-steps", type=int, default=int(os.environ.get("NEURON_COMPETITION_R1_NUM_STEPS", NUM_STEPS)))
@@ -4781,6 +4839,19 @@ def main() -> None:
                         default=float(os.environ.get("NEURON_COMPETITION_R1_BATCH_RAMP_LR_EXP", BATCH_RAMP_LR_EXP)),
                         help="T2.1: lr scales as (B/B_ref)**this. 0.5 = sqrt (gradient-noise "
                              "matched), 1.0 = linear scaling, 0.0 = leave the lr alone.")
+    parser.add_argument("--weight-ema", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_WEIGHT_EMA", "1" if USE_WEIGHT_EMA else "0") != "0",
+                        help="T2.2: keep an exponential moving average of the weights over the "
+                             "cooldown tail, save it alongside the raw weights, and evaluate both. "
+                             "Off by default.")
+    parser.add_argument("--weight-ema-decay", type=float,
+                        default=float(os.environ.get("NEURON_COMPETITION_R1_WEIGHT_EMA_DECAY", WEIGHT_EMA_DECAY)),
+                        help="T2.2: per-step EMA decay. The averaging window is ~1/(1-decay) "
+                             "steps, so 0.995 ~ 200 steps and 0.999 ~ 1000.")
+    parser.add_argument("--weight-ema-start-frac", type=float,
+                        default=float(os.environ.get("NEURON_COMPETITION_R1_WEIGHT_EMA_START_FRAC", WEIGHT_EMA_START_FRAC)),
+                        help="T2.2: elapsed/max_train_seconds at which the shadow is seeded from "
+                             "the live weights. Defaults to WARMDOWN_RATIO (average the cooldown).")
     parser.add_argument("--lrm-quantum", type=int,
                         default=int(os.environ.get("NEURON_COMPETITION_R1_LRM_QUANTUM", LRM_QUANTUM)),
                         help="snap the LR multiplier onto a 1/N grid (0 = continuous). Each distinct "
@@ -5057,6 +5128,13 @@ def main() -> None:
         raise ValueError(f"--batch-ramp-grad-accum needs three counts >= 1, got {BATCH_RAMP_GRAD_ACCUM}")
     if len(BATCH_RAMP_BOUNDS) != 2 or not 0.0 < BATCH_RAMP_BOUNDS[0] <= BATCH_RAMP_BOUNDS[1] < 1.0:
         raise ValueError(f"--batch-ramp-bounds needs 0 < A->B <= B->C < 1, got {BATCH_RAMP_BOUNDS}")
+    USE_WEIGHT_EMA = args.weight_ema
+    WEIGHT_EMA_DECAY = args.weight_ema_decay
+    WEIGHT_EMA_START_FRAC = args.weight_ema_start_frac
+    if not 0.0 < WEIGHT_EMA_DECAY < 1.0:
+        raise ValueError(f"--weight-ema-decay must be in (0,1), got {WEIGHT_EMA_DECAY}")
+    if not 0.0 <= WEIGHT_EMA_START_FRAC < 1.0:
+        raise ValueError(f"--weight-ema-start-frac must be in [0,1), got {WEIGHT_EMA_START_FRAC}")
     LRM_QUANTUM = args.lrm_quantum
     USE_TENSOR_LR_SCALARS = args.tensor_lr_scalars
     USE_FOREACH_OPTIM = args.foreach_optim
@@ -5211,6 +5289,16 @@ def main() -> None:
     inv_gas_dev = torch.zeros((), dtype=torch.float32, device=device)
     grad_accum_now = grad_accum_steps
     ramp_stage_logged = -1
+    # T2.2: EMA of the final weights. `ema_names`/`ema_live` are fixed lists (the parameter set
+    # never changes after construction) so the per-step work is one torch._foreach_lerp_ over
+    # preallocated tensors and no Python walk of the module tree. `ema_shadow` stays None until
+    # WEIGHT_EMA_START_FRAC of the budget has elapsed -- both to keep the high-lr phase out of the
+    # average and so a run that never reaches that point allocates nothing.
+    ema_names = [n for n, _ in orig_model.named_parameters()]
+    ema_live = [p for _, p in orig_model.named_parameters()]
+    ema_shadow: list[torch.Tensor] | None = None
+    ema_updates = 0
+    ema_lerp_weight = 1.0 - WEIGHT_EMA_DECAY  # fixed for the whole run, see the T2.2 note above
 
     while step < args.num_steps:
         elapsed = time.monotonic() - budget_started
@@ -5288,6 +5376,22 @@ def main() -> None:
                 group["momentum"] = muon_momentum(step, wd_progress)
                 group["weight_decay"] = WEIGHT_DECAY * (1.0 - wd_progress) if WD_DECAY_TO_ZERO else WEIGHT_DECAY
         optimizer.step(update_adamw=adam_step_now)
+        # T2.2: after the step, so the average is over post-update weights. Eager by construction
+        # (this is the same region as optimizer.step, which torch.compile never sees) because
+        # torch._foreach_* cannot be lowered by backend="neuron".
+        if USE_WEIGHT_EMA and ramp_progress >= WEIGHT_EMA_START_FRAC:
+            # no_grad is load-bearing, not decoration: the live tensors are leaf Parameters with
+            # requires_grad=True, so an in-place lerp_ into a non-requiring shadow OUTSIDE no_grad
+            # succeeds but makes the shadow a graph node holding a reference to the parameters --
+            # a new autograd graph retained every step.
+            with torch.no_grad():
+                if ema_shadow is None:
+                    ema_shadow = [p.detach().clone() for p in ema_live]
+                    print0(f"weight_ema: seeded at step {step} progress {ramp_progress:.3f} "
+                           f"decay={WEIGHT_EMA_DECAY} tensors={len(ema_shadow)}")
+                else:
+                    torch._foreach_lerp_(ema_shadow, ema_live, ema_lerp_weight)
+                    ema_updates += 1
         for m in cached_linears:  # T1.10: prebuilt list; empty when USE_WEIGHT_CACHE is off
             m.refresh_weight_cache(COMPUTE_DTYPE)
 
@@ -5393,7 +5497,9 @@ def main() -> None:
             "budget_elapsed_before_save": budget_elapsed_before_save,
             "world_size": world_size,
             "compiled": args.compile,
-        })
+            "weight_ema_updates": ema_updates,
+            "weight_ema_decay": WEIGHT_EMA_DECAY if ema_shadow is not None else None,
+        }, ema_state=weight_ema_state(orig_model, ema_names, ema_shadow) if ema_shadow is not None else None)
     if dist.is_available() and dist.is_initialized():
         dist.barrier()
     budget_elapsed_after_save = time.monotonic() - budget_started
@@ -5428,6 +5534,35 @@ def main() -> None:
                 max_tokens=args.eval_tokens,
                 timeout_seconds=EVAL_TIMEOUT_SECONDS,
             )
+
+    # T2.2: evaluate the EMA weights too, in the SAME process, on the SAME eval window. This is
+    # the whole reason the shadow is kept on device instead of only written to the checkpoint: raw
+    # and averaged differ by nothing except the averaging, so the comparison has zero run-to-run
+    # noise and needs no paired run. Safe to clobber the live weights here because the checkpoint
+    # (which holds the raw set) is already written and training is over. The bf16 weight cache has
+    # to be refreshed or the Linears would keep serving the pre-swap copies.
+    public_eval_ema = None
+    public_eval_ema_alt = None
+    ema_eval_seconds = 0.0
+    if args.eval_public and ema_shadow is not None:
+        ema_eval_started = time.monotonic()
+        with torch.no_grad():
+            for p, s in zip(ema_live, ema_shadow):
+                p.copy_(s)
+        for m in cached_linears:
+            m.refresh_weight_cache(COMPUTE_DTYPE)
+        public_eval_ema = evaluate_bpb(
+            orig_model, tokenizer, DEVICE_BATCH_SIZE, SEQ_LEN, device,
+            split="public_val", max_tokens=args.eval_tokens,
+            timeout_seconds=EVAL_TIMEOUT_SECONDS,
+        )
+        if args.eval_seq_len:
+            public_eval_ema_alt = evaluate_bpb(
+                orig_model, tokenizer, DEVICE_BATCH_SIZE, args.eval_seq_len, device,
+                split="public_val", max_tokens=args.eval_tokens,
+                timeout_seconds=EVAL_TIMEOUT_SECONDS,
+            )
+        ema_eval_seconds = time.monotonic() - ema_eval_started
 
     if rank == 0:
         print("---")
@@ -5468,6 +5603,10 @@ def main() -> None:
         print(f"batch_ramp:        {BATCH_RAMP} grad_accum={BATCH_RAMP_GRAD_ACCUM} "
               f"bounds={BATCH_RAMP_BOUNDS} lr_exp={BATCH_RAMP_LR_EXP} "
               f"ref_grad_accum={grad_accum_steps} last_grad_accum={grad_accum_now}")
+        # T2.2, same one-line convention.
+        print(f"weight_ema:        {USE_WEIGHT_EMA} decay={WEIGHT_EMA_DECAY} "
+              f"start_frac={WEIGHT_EMA_START_FRAC} seeded={ema_shadow is not None} "
+              f"updates={ema_updates}")
         print(f"num_steps:         {step}")
         print(f"total_tokens_M:    {total_train_tokens / 1e6:.1f}")
         print(f"world_size:        {world_size}")
@@ -5486,6 +5625,17 @@ def main() -> None:
             print(f"eval_alt_seq_len:  {args.eval_seq_len}")
             print(f"public_val_bpb_alt: {public_eval_alt['val_bpb']:.6f}")
             print(f"eval_alt_seconds:  {public_eval_alt['eval_seconds']:.1f}")
+        # T2.2: same weights-except-averaging, same eval window, so the delta against
+        # public_val_bpb / public_val_bpb_alt above IS the effect of the EMA, with no run-to-run
+        # noise in it at all.
+        if public_eval_ema is not None:
+            print(f"public_val_bpb_ema: {public_eval_ema['val_bpb']:.6f}")
+            print(f"ema_delta:         {public_eval_ema['val_bpb'] - public_eval['val_bpb']:+.6f}")
+            print(f"eval_ema_seconds:  {ema_eval_seconds:.1f}")
+        if public_eval_ema_alt is not None:
+            print(f"public_val_bpb_ema_alt: {public_eval_ema_alt['val_bpb']:.6f}")
+            print(f"ema_delta_alt:     "
+                  f"{public_eval_ema_alt['val_bpb'] - public_eval_alt['val_bpb']:+.6f}")
 
     cleanup_runtime()
 

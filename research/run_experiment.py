@@ -63,6 +63,10 @@ SUMMARY_KEYS = {
     "ngram_ve",
     # T2.1 (2026-09-11): the batch-size ramp's knobs, same reasoning as ngram_ve above.
     "batch_ramp",
+    # T2.2 (2026-09-11): the weight-EMA knobs plus its in-run raw-vs-EMA comparison. ema_delta is
+    # the whole result of the experiment, so it belongs in the log row, not just the run log.
+    "weight_ema", "public_val_bpb_ema", "ema_delta", "eval_ema_seconds",
+    "public_val_bpb_ema_alt", "ema_delta_alt",
 }
 LINE_RE = re.compile(r"^(" + "|".join(SUMMARY_KEYS) + r"):\s*(.+)$")
 
