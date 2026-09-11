@@ -2543,3 +2543,53 @@ started and deliberately killed to free the device for the urgent cold-cache tes
 got *worse*, in the wrong direction for the hypothesis). Remaining suspects: something
 world-size-dependent in the data pipeline at 8 ranks, or Muon's per-rank Newton–Schulz with a
 halved per-rank batch.
+
+## 2026-09-11 — new Trn2 instance, dress-rehearsal confirms the NUM_STEPS fix + strong evidence the scorer evaluates at seq_len=1024
+
+Previous box went down; new instance provisioned (`ec2-16-50-61-34...`, 3-week allocation, sudo).
+Environment verified byte-for-byte identical to the old box: `torch==2.11.0+cpu`,
+`torch_neuronx==2.11.3.0.0`, `neuronx-cc==2.26.6360.0+6f180f47`. Repo rsync'd, `train.py` md5
+matched local HEAD, `prepare.py setup` ran clean (6 shards). New standing rule applied for the
+first time: both the shard download and the dress-rehearsal run below were launched inside named
+`tmux` sessions so they survive an SSH disconnect.
+
+**Correctness smoke** (20 steps/200s, real submission shape): clean, `causality`-equivalent
+behavior (loss 9.01→7.51, monotonic), cold compile 159.6s (`startup_allowance_est: 235.6`, well
+under the 900s cap), steady-state 0.82s/step / ~160k tok/s — matches every historical number on
+the old box exactly.
+
+**Dress rehearsal (new standing rule) — the actual point of this session**: ran the *literal* bare
+submission launch command directly, bypassing `research/run_experiment.py` entirely (it always
+forces `--num-steps 5000`, which is exactly how the `NUM_STEPS=1000` starter-kit default went
+unnoticed for days — see `research/submission-gap-analysis-2026-09-10.md`):
+
+```
+NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --no-eval-public --num-steps 1000000
+```
+
+Result: **2192 steps**, `over_budget: False`, checkpoint valid, no NaN. The fix (`ba37f86`,
+`NUM_STEPS = 1_000_000`) genuinely removes the step cap on real hardware, on a fresh box, not just
+by code inspection. Row `dress-rehearsal-newbox` in `research/experiment-log.jsonl`.
+
+**Eval calibration, same checkpoint, `--no-eval-public` meant no in-process number, so run
+`prepare.py eval-public` separately afterward — and this lands the open seq_len question**:
+
+| eval | `public_val_bpb` |
+|---|---|
+| seq_len=2048, 2M tokens (matches training's own SEQ_LEN) | **1.033421** |
+| seq_len=1024, 2M tokens (`prepare.py eval-public`'s CLI default) | **1.049535** |
+| *real board score, actual 2026-09-10 23:59 PT submission (this exact fix)* | **1.0548** |
+
+The seq_len=1024 number (1.049535) is only 0.0053 away from the real board score (1.0548) — far
+closer than the seq_len=2048 number (1.033421, 0.0214 away). This is the strongest evidence yet
+that **the official scorer evaluates at seq_len=1024**, not 2048 (the open question from C1/§3.2
+of the gap-analysis doc). Remaining small gap (0.005) is consistent with the private shard simply
+being different bytes than the public dev shard, or a slightly different token count than the 2M
+default. A 20M-token/seq1024 number was also kicked off (background, ~50+ min expected given
+seq1024 eager eval's known ~6.5x-slower-per-token dispatch cost, see the Day-1 C1 section) to
+tighten this further; append when it lands.
+
+**Actionable consequence**: if the scorer really evaluates at 1024, closing that gap (T0.7-style
+eval-side work — the plan already flagged this as worth ~0.016 bpb, larger than most single
+Days-5-7 items) is now a legitimately higher-priority item than it looked when the seq_len
+question was still open. Not yet acted on; flagging for the next planning pass.
