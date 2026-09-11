@@ -188,7 +188,11 @@ HEAD_DIM = 128
 
 DEVICE_BATCH_SIZE = 1
 TOTAL_BATCH_SIZE = 131072  # Tier-0 resweep confirmed still correct at full 1800s: 65536 (3544/1.048832) and 262144 (1038/1.051031) both lose. See trn2-experiment-results.md
-NUM_STEPS = 1000
+NUM_STEPS = 1_000_000  # Deliberately unreachable: the wall-clock budget (MAX_TRAIN_SECONDS, self-enforced with a
+# checkpoint reserve) is the ONLY control that may stop a scored run. The starter kit's 1000 silently capped the
+# 2026-09-10 submission at step 1000 (~815s, lrm ~0.74, no cooldown) -> 1.1495 on the board vs 1.034 locally,
+# because the bare launch command passes no --num-steps while every local run passed --num-steps 5000 via
+# research/run_experiment.py. See research/submission-gap-analysis-2026-09-10.md. Pass --num-steps N for smoke tests.
 # The official runner charges wall time only after the first five completed
 # optimizer steps (the startup/compilation allowance, capped). The baseline
 # restarts its budget clock at that boundary so it can use the full charged
@@ -4382,6 +4386,12 @@ def main() -> None:
 
     print0(f"device={device} dtype={COMPUTE_DTYPE} world_size={world_size}")
     print0(f"training target={args.num_steps} steps max_seconds={args.max_train_seconds} official_budget={TRAIN_TIME_BUDGET_SECONDS}s")
+    # Guard against the 2026-09-10 failure mode (a step cap that binds before the time budget leaves the
+    # wall-clock LR schedule uncooled). Coarse check here; the precise projection runs at step 50 below.
+    if args.num_steps < args.max_train_seconds:
+        print0(f"WARNING: --num-steps {args.num_steps} is below max_train_seconds={args.max_train_seconds}s and will "
+               f"almost certainly stop training before the time budget (the LR schedule would end without cooldown). "
+               f"For a scored submission leave --num-steps at its default ({NUM_STEPS}).")
 
     tokenizer = ensure_tokenizer(build_if_missing=False)
     global BOS_TOKEN_ID
@@ -4597,6 +4607,17 @@ def main() -> None:
                 flush=True,
             )
 
+        if step == 50 and rank == 0:
+            # Host-only projection (no device op): will the step cap fire before the time budget does?
+            window = sorted(recent_step_times[-20:])
+            median_dt = window[len(window) // 2]
+            time_to_step_cap = (args.num_steps - step - 1) * median_dt
+            time_left = args.max_train_seconds - (time.monotonic() - budget_started)
+            if time_to_step_cap < time_left:
+                print(f"WARNING: at {median_dt:.2f}s/step the --num-steps {args.num_steps} cap will stop training "
+                      f"~{time_left - time_to_step_cap:.0f}s BEFORE max_train_seconds={args.max_train_seconds}s; "
+                      f"the wall-clock LR schedule will end without cooldown. Intentional for fixed-step sweeps, "
+                      f"wrong for a scored submission.", flush=True)
         if step == 0:
             # After first step all persistent objects are allocated; freeze to avoid GC pauses
             gc.collect()

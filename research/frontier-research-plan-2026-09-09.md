@@ -792,6 +792,18 @@ unless passed): `--pack-factor`, `--grad-clip`, tri-state `--clip-foreach`, `--a
 
 ### 12.4 OPEN AND URGENT (2026-09-10 ~09:40 UTC): the leaderboard scored 1.1495, we measure 1.034
 
+> **RESOLVED (2026-09-10 evening, local-box research pass, no hardware): see
+> `research/submission-gap-analysis-2026-09-10.md`.** The submitted file still has
+> `NUM_STEPS = 1000` (`train.py:191`) and `--num-steps` defaults to it; the bare submission
+> command passes no flags, so the official run stopped at step 1000 (~815 s) with the
+> wall-clock LR schedule at `lrm ~0.74` and no cooldown. Every local full-budget run,
+> including the cold-cache test below, was launched via `run_experiment.py` with
+> `--num-steps 5000 --max-train-seconds 1800`, so "the exact submitted command" was never
+> actually run. Expected score of a 1000-step no-cooldown run: ~1.12-1.16. The four
+> hypotheses below are not needed; the optlevel/pack-factor hedge submissions would not
+> fix it. Fix: make the time budget the only binding control, then resubmit once.
+
+
 The submission of this exact `train.py` with the bare launch command scored **1.1495**. Four
 independent full-1800s runs here give **1.034005 / 1.034101 / 1.034118 / 1.034459**. Gap ~0.115 bpb
 — about 10x the known local-vs-board calibration bias, so it is a real behavioural difference on
