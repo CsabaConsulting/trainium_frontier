@@ -61,6 +61,8 @@ SUMMARY_KEYS = {
     # T3.1 (2026-09-11): one line carrying every n-gram-VE knob that changes the model, so
     # two n-gram arms are distinguishable in the log without re-reading the run log.
     "ngram_ve",
+    # T2.1 (2026-09-11): the batch-size ramp's knobs, same reasoning as ngram_ve above.
+    "batch_ramp",
 }
 LINE_RE = re.compile(r"^(" + "|".join(SUMMARY_KEYS) + r"):\s*(.+)$")
 

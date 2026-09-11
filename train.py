@@ -210,6 +210,29 @@ NUM_STEPS = 1_000_000  # Deliberately unreachable: the wall-clock budget (MAX_TR
 # optimizer steps (the startup/compilation allowance, capped). The baseline
 # restarts its budget clock at that boundary so it can use the full charged
 # budget even when compilation makes the first steps slow.
+
+# T2.1 batch-size ramp. TOTAL_BATCH_SIZE above is a single fixed value for the whole run, and
+# the Tier-0 resweep showed both neighbours lose -- but that sweep could only ask "which ONE
+# batch size is best on average", and the answer to that is a compromise. Early training is
+# gradient-noise-tolerant (any descent direction is roughly right, so steps are worth more than
+# precision) while the cooldown is not (a large-batch, low-noise gradient is what a small lr can
+# actually exploit). A ramp buys both: more cheap steps early, cleaner steps late.
+#
+# The MICRO shape never changes (DEVICE_BATCH_SIZE * PACK_FACTOR * SEQ_LEN), only how many
+# micro-batches are accumulated, so every compiled graph is shape-identical in all three stages
+# and no stage boundary can trigger a recompile. Boundaries are fractions of the WALL-CLOCK
+# budget, matching the LR schedule, which is time-driven too -- BATCH_RAMP_BOUNDS[1] is
+# deliberately WARMDOWN_RATIO so stage C is exactly the cooldown.
+BATCH_RAMP = False
+BATCH_RAMP_GRAD_ACCUM = (2, 4, 8)   # micro-batches per stage; 4 == today's TOTAL_BATCH_SIZE
+BATCH_RAMP_BOUNDS = (0.35, 0.75)    # elapsed/max_train_seconds boundaries A->B and B->C
+BATCH_RAMP_LR_EXP = 0.5             # lr scales as (B/B_ref)**this. 0.5 = sqrt, the standard
+# gradient-noise scaling (SGD-noise-matched); 1.0 would be linear scaling and 0.0 no scaling.
+# The scale is folded straight into group["lr"], which ALREADY goes through
+# MuonAdamW._device_scalar every step, so this adds no new device constant and cannot recompile
+# anything -- see the USE_TENSOR_LR_SCALARS note. The 1/grad_accum loss scaling is the one place
+# a changing Python float WOULD reach a device op, so under BATCH_RAMP it is carried in a
+# preallocated device tensor updated with copy_ instead (see the training loop).
 MAX_TRAIN_SECONDS = TRAIN_TIME_BUDGET_SECONDS
 CHECKPOINT_RESERVE_SECONDS = 5.0
 # Covers the launch -> module-import gap this process cannot observe when
@@ -4406,6 +4429,10 @@ ARCH_TOGGLE_NAMES = [
     "NGRAM_VE_BF16",
     "NGRAM_VE_LR", "NGRAM_VE_BETA2", "NGRAM_VE_FLAT_LR", "NGRAM_VE_OPT",
     "NGRAM_VE_CLIP_EXCLUDE",
+    # T2.1 batch-size ramp. Pure training-schedule knobs -- no tensor changes name, shape or
+    # dtype -- but they change how many tokens each recorded step saw and at what lr, so a
+    # checkpoint trained with a ramp and reloaded without one is silently mis-described.
+    "BATCH_RAMP", "BATCH_RAMP_GRAD_ACCUM", "BATCH_RAMP_BOUNDS", "BATCH_RAMP_LR_EXP",
 ]
 # Toggles whose mismatch corrupts the state_dict shape (load_state_dict(strict=True) will
 # error loudly). Everything else in ARCH_TOGGLE_NAMES lives in non-persistent buffers or
@@ -4540,6 +4567,36 @@ def lr_multiplier(step: int, elapsed: float = 0.0, max_train_seconds: float = 1.
     return lrm
 
 
+def batch_ramp_stage(progress: float) -> int:
+    """Which T2.1 stage the run is in, from the wall-clock fraction. 0 = A, 1 = B, 2 = C.
+
+    Separate from batch_ramp_grad_accum() only so the stage index can be logged and asserted on
+    without duplicating the boundary comparison.
+    """
+    lo, hi = BATCH_RAMP_BOUNDS
+    if progress < lo:
+        return 0
+    if progress < hi:
+        return 1
+    return 2
+
+
+def batch_ramp_grad_accum(progress: float, grad_accum_ref: int) -> tuple[int, float]:
+    """(micro-batches to accumulate, lr scale) for this point in the budget.
+
+    With BATCH_RAMP off this is `(grad_accum_ref, 1.0)` for every progress value, which is what
+    makes the default path bit-identical to the locked baseline rather than merely equivalent.
+
+    The lr scale is (B/B_ref)**BATCH_RAMP_LR_EXP and, because the micro shape is fixed, B/B_ref is
+    exactly grad_accum/grad_accum_ref -- no token arithmetic needed, and no dependence on
+    world_size or PACK_FACTOR that could silently drift from the loop's own accounting.
+    """
+    if not BATCH_RAMP:
+        return grad_accum_ref, 1.0
+    gas = BATCH_RAMP_GRAD_ACCUM[batch_ramp_stage(progress)]
+    return gas, (gas / grad_accum_ref) ** BATCH_RAMP_LR_EXP
+
+
 def muon_momentum(step: int, progress: float = 0.0) -> float:
     """Muon momentum: 0.85 -> 0.95 over MUON_MOMENTUM_WARMUP_STEPS, then optionally back down.
 
@@ -4588,6 +4645,10 @@ def main() -> None:
     # that could bake them in as a per-step graph constant.
     global USE_NGRAM_VE, NGRAM_VE_TABLE_MULT, NGRAM_VE_TRIGRAM, NGRAM_VE_BF16, NGRAM_VE_DIM
     global NGRAM_VE_LR, NGRAM_VE_BETA2, NGRAM_VE_FLAT_LR, NGRAM_VE_OPT, NGRAM_VE_CLIP_EXCLUDE
+    # T2.1. Read once per step by batch_ramp_grad_accum() to pick a Python int loop count and a
+    # Python float lr scale -- neither reaches a device op as a constant (the loss scaling, which
+    # would, goes through inv_gas_dev instead).
+    global BATCH_RAMP, BATCH_RAMP_GRAD_ACCUM, BATCH_RAMP_BOUNDS, BATCH_RAMP_LR_EXP
     parser = argparse.ArgumentParser(description="Neuron Competition R1 baseline")
     parser.add_argument("--device-type", type=str, default="")
     parser.add_argument("--num-steps", type=int, default=int(os.environ.get("NEURON_COMPETITION_R1_NUM_STEPS", NUM_STEPS)))
@@ -4699,6 +4760,27 @@ def main() -> None:
                         help="keep the n-gram tables out of the GLOBAL clip_grad_norm_ and clip them "
                              "as their own group, so adding them cannot change the effective lr of "
                              "every other tensor through clip_coef. See split_clip_params.")
+    parser.add_argument("--batch-ramp", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_BATCH_RAMP", "1" if BATCH_RAMP else "0") != "0",
+                        help="T2.1: ramp the effective batch size across the run by varying "
+                             "grad_accum_steps on wall-clock-fraction boundaries, holding the micro "
+                             "shape (and therefore every compiled graph) fixed. Off by default.")
+    parser.add_argument("--batch-ramp-grad-accum", type=str,
+                        default=os.environ.get("NEURON_COMPETITION_R1_BATCH_RAMP_GRAD_ACCUM",
+                                               ",".join(str(g) for g in BATCH_RAMP_GRAD_ACCUM)),
+                        help="T2.1: comma-separated micro-batch counts for stages A,B,C. Stage B "
+                             "should normally be TOTAL_BATCH_SIZE's own grad_accum (4 at the locked "
+                             "shape) so the ramp is symmetric around today's batch size.")
+    parser.add_argument("--batch-ramp-bounds", type=str,
+                        default=os.environ.get("NEURON_COMPETITION_R1_BATCH_RAMP_BOUNDS",
+                                               ",".join(str(b) for b in BATCH_RAMP_BOUNDS)),
+                        help="T2.1: comma-separated elapsed/max_train_seconds boundaries A->B,B->C. "
+                             "The second should normally equal WARMDOWN_RATIO so the largest batch "
+                             "covers exactly the lr cooldown.")
+    parser.add_argument("--batch-ramp-lr-exp", type=float,
+                        default=float(os.environ.get("NEURON_COMPETITION_R1_BATCH_RAMP_LR_EXP", BATCH_RAMP_LR_EXP)),
+                        help="T2.1: lr scales as (B/B_ref)**this. 0.5 = sqrt (gradient-noise "
+                             "matched), 1.0 = linear scaling, 0.0 = leave the lr alone.")
     parser.add_argument("--lrm-quantum", type=int,
                         default=int(os.environ.get("NEURON_COMPETITION_R1_LRM_QUANTUM", LRM_QUANTUM)),
                         help="snap the LR multiplier onto a 1/N grid (0 = continuous). Each distinct "
@@ -4967,6 +5049,14 @@ def main() -> None:
     NGRAM_VE_BETA2 = args.ngram_ve_beta2
     NGRAM_VE_FLAT_LR = args.ngram_ve_flat_lr
     NGRAM_VE_CLIP_EXCLUDE = args.ngram_ve_clip_exclude
+    BATCH_RAMP = args.batch_ramp
+    BATCH_RAMP_GRAD_ACCUM = tuple(int(v) for v in args.batch_ramp_grad_accum.split(","))
+    BATCH_RAMP_BOUNDS = tuple(float(v) for v in args.batch_ramp_bounds.split(","))
+    BATCH_RAMP_LR_EXP = args.batch_ramp_lr_exp
+    if len(BATCH_RAMP_GRAD_ACCUM) != 3 or min(BATCH_RAMP_GRAD_ACCUM) < 1:
+        raise ValueError(f"--batch-ramp-grad-accum needs three counts >= 1, got {BATCH_RAMP_GRAD_ACCUM}")
+    if len(BATCH_RAMP_BOUNDS) != 2 or not 0.0 < BATCH_RAMP_BOUNDS[0] <= BATCH_RAMP_BOUNDS[1] < 1.0:
+        raise ValueError(f"--batch-ramp-bounds needs 0 < A->B <= B->C < 1, got {BATCH_RAMP_BOUNDS}")
     LRM_QUANTUM = args.lrm_quantum
     USE_TENSOR_LR_SCALARS = args.tensor_lr_scalars
     USE_FOREACH_OPTIM = args.foreach_optim
@@ -5111,9 +5201,38 @@ def main() -> None:
     step = 0
     recent_step_times: list[float] = []
     startup_allowance_est = 0.0
+    # T2.1: the loss scaling is 1/grad_accum, and under BATCH_RAMP that changes mid-run. A Python
+    # float multiplying a device tensor is baked into the Neuron graph as a constant, so a new
+    # value would force a fresh compile (the USE_TENSOR_LR_SCALARS failure mode). Carry it in a
+    # preallocated device scalar written with copy_ instead. Allocated unconditionally (it is 4
+    # bytes) but only USED when BATCH_RAMP is on, so the default path keeps the literal
+    # `loss / grad_accum_steps` and stays bit-identical to every previous run.
+    inv_gas_host = torch.empty((), dtype=torch.float32)
+    inv_gas_dev = torch.zeros((), dtype=torch.float32, device=device)
+    grad_accum_now = grad_accum_steps
+    ramp_stage_logged = -1
 
     while step < args.num_steps:
         elapsed = time.monotonic() - budget_started
+        # T2.1: recomputed every step from the wall clock, exactly like lrm and wd_progress, so
+        # the three schedules cannot drift apart. Only the ACCUMULATION COUNT changes -- the micro
+        # shape is fixed, so no graph is invalidated at a stage boundary. Deliberately shares the
+        # pre-reset `elapsed` quirk with lrm/wd_progress: for steps 1-4 the clock still includes
+        # the compile, so a short budget can briefly report a later stage before budget_started is
+        # reset at TRAIN_STARTUP_STEPS_EXCLUDED. Matching the existing schedules is worth more than
+        # special-casing four steps out of ~2200.
+        ramp_progress = min(1.0, elapsed / max(1e-6, args.max_train_seconds))
+        grad_accum_now, batch_lr_scale = batch_ramp_grad_accum(ramp_progress, grad_accum_steps)
+        if BATCH_RAMP:
+            inv_gas_host.fill_(1.0 / grad_accum_now)
+            inv_gas_dev.copy_(inv_gas_host)
+            stage = batch_ramp_stage(ramp_progress)
+            if stage != ramp_stage_logged:
+                ramp_stage_logged = stage
+                print0(f"batch_ramp: step {step} progress {ramp_progress:.3f} -> stage "
+                       f"{'ABC'[stage]} grad_accum={grad_accum_now} "
+                       f"tokens={grad_accum_now * world_tokens_per_micro:,} "
+                       f"lr_scale={batch_lr_scale:.4f}")
 
         synchronize(device)
         t0 = time.monotonic()
@@ -5132,10 +5251,11 @@ def main() -> None:
         else:
             optimizer.zero_grad_selective(zero_adamw=False)
         last_loss = None
-        for _ in range(grad_accum_steps):
+        for _ in range(grad_accum_now):
             loss = model(x, y)
             last_loss = loss.detach()
-            (loss / grad_accum_steps).backward()
+            # See inv_gas_dev above: device scalar under BATCH_RAMP, literal float otherwise.
+            (loss * inv_gas_dev if BATCH_RAMP else loss / grad_accum_steps).backward()
             x, y, loader_state = fetch()
 
         if grad_flat_buffer is not None:
@@ -5159,7 +5279,11 @@ def main() -> None:
         lrm_flat = min(1.0, (step + 1) / max(1, WARMUP_STEPS))
         wd_progress = min(1.0, elapsed / max(1e-6, args.max_train_seconds))
         for group in optimizer.param_groups:
-            group["lr"] = group["initial_lr"] * (lrm_flat if group.get("no_lr_decay") else lrm)
+            # T2.1: batch_lr_scale is 1.0 unless BATCH_RAMP is on, so this multiplication is the
+            # identity on the default path. It costs nothing even when it is not: group["lr"] is
+            # already handed to _device_scalar, which writes whatever float it is given into a
+            # persistent device tensor, so the graph never sees the value.
+            group["lr"] = group["initial_lr"] * batch_lr_scale * (lrm_flat if group.get("no_lr_decay") else lrm)
             if group["kind"] == "muon":
                 group["momentum"] = muon_momentum(step, wd_progress)
                 group["weight_decay"] = WEIGHT_DECAY * (1.0 - wd_progress) if WD_DECAY_TO_ZERO else WEIGHT_DECAY
@@ -5223,10 +5347,12 @@ def main() -> None:
         if int(control[0].item()) != 0:
             raise RuntimeError(f"bad loss detected: {train_loss}")
 
-        total_train_tokens += TOTAL_BATCH_SIZE
+        # T2.1: the step's ACTUAL token count, which is TOTAL_BATCH_SIZE only when the ramp is off.
+        step_tokens = grad_accum_now * world_tokens_per_micro
+        total_train_tokens += step_tokens
         smooth_loss = 0.9 * smooth_loss + 0.1 * train_loss
         debiased = smooth_loss / (1 - 0.9 ** (step + 1))
-        tok_per_sec = TOTAL_BATCH_SIZE / max(dt, 1e-6)
+        tok_per_sec = step_tokens / max(dt, 1e-6)
         if rank == 0 and (step < 5 or step % 10 == 0):
             remaining_steps = args.num_steps - step - 1
             remaining_time = max(0.0, args.max_train_seconds - (time.monotonic() - budget_started))
@@ -5337,6 +5463,11 @@ def main() -> None:
               f"index_gather={NGRAM_VE_INDEX_GATHER} "
               f"trigram={args.ngram_ve_trigram} opt={args.ngram_ve_opt} "
               f"flat_lr={args.ngram_ve_flat_lr} bf16={args.ngram_ve_bf16}")
+        # T2.1, same reason: one line carrying every ramp knob, so two ramp arms are
+        # distinguishable in experiment-log.jsonl without re-reading the run log.
+        print(f"batch_ramp:        {BATCH_RAMP} grad_accum={BATCH_RAMP_GRAD_ACCUM} "
+              f"bounds={BATCH_RAMP_BOUNDS} lr_exp={BATCH_RAMP_LR_EXP} "
+              f"ref_grad_accum={grad_accum_steps} last_grad_accum={grad_accum_now}")
         print(f"num_steps:         {step}")
         print(f"total_tokens_M:    {total_train_tokens / 1e6:.1f}")
         print(f"world_size:        {world_size}")
