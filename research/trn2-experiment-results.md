@@ -2658,3 +2658,78 @@ a "slower but better per step" story could rescue it at a longer budget:
 
 T0.2 closed. `DEPTH`, `ASPECT_RATIO` and `HEAD_DIM` all stay at their locked values; the three new
 flags stay in `train.py` as the sweep instrument (they cost nothing when unset).
+
+## 2026-09-11 (afternoon) — eval-side seq_len (T0.7): there is no short-context problem to fix, and the locked config is robust to the open scorer-context question
+
+This was the highest-priority item of the afternoon, on the strength of this morning's finding that
+the official scorer probably grades at `seq_len=1024` while we train at 2048 (same checkpoint:
+1.033421 at 2048 vs 1.049535 at 1024, board 1.0548). The framing in the plan was
+"distribution-shift-at-shorter-context". **That framing is wrong, and the reason it is wrong is
+worth writing down before the numbers, because it predicts them.**
+
+**For a causal LM, evaluating at a shorter context than trained is exactly in-distribution.** Token
+`i`'s prediction depends only on tokens `0..i-1`, so the model's output at position `i < 1024` is
+*bit-identical* whether that position sits in a 1024-token window or a 2048-token window (same
+alignment, and the eval loader reads the shard sequentially from the start, so the alignment does
+match — 2048-windows are exactly pairs of adjacent 1024-windows). The RoPE angles used at positions
+0..1023 are a strict subset of the trained ones; nothing extrapolates. Contrast eval at **4096**,
+which *is* out of distribution and does degrade (1.031380 vs 0.995348 on the same 200k slice, Day 1).
+
+So the entire `bpb@1024` − `bpb@2048` gap decomposes into exactly one mechanical term: at 2048,
+half of the scored tokens get 1024–2047 tokens of context; at 1024, *every* scored token gets at most
+1023. It is the "more context is easier" effect and nothing else. Which means the only lever that
+could possibly move it is **reallocating training loss weight toward positions < 1024** — i.e.
+training at the eval length. That is the experiment.
+
+Two 900s arms, both scored at **seq_len 1024**, using the new `--eval-seq-len` flag (a second
+in-process eval of the same weights at a different context length, post-training so it costs wall
+clock and never a charged second):
+
+| run | train `SEQ_LEN` | `PACK_FACTOR` | grad_accum | micro tokens | steps | `bpb@2048` | `bpb@1024` |
+|---|---|---|---|---|---|---|---|
+| `t07-seq2048-alt1024-900s` | 2048 | 4 | 4 | 32,768 | 1094 | **1.081201** | **1.097033** |
+| `t07-seq1024-pf8-900s` | 1024 | 8 | 4 | 32,768 | 1077 | — | **1.096998** |
+
+**Δ on the metric that probably counts: −0.000035.** That is 30x below the noise floor — not a small
+win, an exact tie. Training at the eval length buys *nothing*.
+
+`PACK_FACTOR=8` was chosen for the 1024 arm deliberately, so that the comparison holds **micro
+tokens** (32,768) and **grad_accum** (4) fixed rather than micro *rows* — the alternative, PF=4 at
+1024, would have doubled grad_accum to 8 and reintroduced exactly the per-microstep dispatch cost
+that T1.5 measured, confounding the seq_len question with a throughput one. It worked: 1077 vs 1094
+steps, a 1.6% throughput difference, so this is a near-perfectly matched pair. (Incidentally that
+1.6% is its own small result: **halving T barely moves step time**, which is consistent with SDPA
+being only ~10.6% of the step — the T² term is not where this model's time goes.)
+
+**Three things follow.**
+
+1. **T0.7 verdict: nothing cheap and safe is available, and now there is a measurement saying so
+   rather than a shrug.** The 0.016 penalty for being graded at 1024 is not a defect in our model,
+   it is a property of the scorer's protocol, and it is invariant to what we train at. No
+   position-weighted loss, no length curriculum, no mixed-length tail is worth building on this
+   evidence: the ceiling on that whole family of interventions is the 0.000035 measured above.
+2. **The locked config is robust to the unresolved scorer-context question**, which was a real open
+   risk this morning. At 1024 the two arms tie; at 2048 the 2048-trained arm obviously wins (the
+   1024-trained model is out of distribution there). So `SEQ_LEN=2048` is optimal-or-tied under both
+   hypotheses, and no submission decision depends on resolving the ambiguity. That is worth more
+   than the 0.000035 the experiment "found".
+3. **The old SEQ_LEN sweep was apples-to-oranges and this retires it properly.** The 2026-09-06
+   sweep read 1024 at 1.234514 and 2048 at 1.198086 — but each arm was evaluated at *its own*
+   training length, because the in-process eval uses `SEQ_LEN`. Roughly 0.016 of that 0.036 gap was
+   pure eval-length artifact. Corrected, the old-era gap was ~0.020, and today, in a code era doing
+   1080 steps per 900s instead of 330, it is 0.000035. The conclusion did not change but the margin
+   evaporated entirely, which is a good reminder of the notebook's own shelf-life rule.
+
+**The `bpb@1024` − `bpb@2048` artifact has now been measured four times on four different
+checkpoints and it is remarkably stable**: 0.0162 (Day 1, `nkimuon-fullbudget`, 20M tokens), 0.016114
+(this morning, `dress-rehearsal-newbox`, 2M), 0.015832 (this run, a 900s checkpoint, 2M), and
+0.015553 (Day 1, 200k slice). Treat **+0.0158 ± 0.0004** as the standing conversion from any
+`seq_len=2048` number in this notebook to the number the scorer probably sees. Combined with the
+known ~0.006 optimism of the 2M-token window, the current locked baseline's 1.034005 at 2048/2M
+implies roughly **1.056** on a 1024/full-shard basis — which is within 0.001 of the 1.0548 the board
+actually returned. The calibration chain is now closed end-to-end.
+
+Mechanically, `--eval-seq-len` cost 13.8s for a 2M-token eval at 1024 (vs 7.8s at 2048), so it is
+cheap enough to leave on for any run whose absolute number matters. Note this contradicts Day 1's
+"seq_len=1024 evaluates ~6.5x slower per token" — that was extrapolated from a 200k slice and is a
+small-sample artifact; the real large-sample ratio is ~1.8x.
