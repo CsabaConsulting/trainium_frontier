@@ -2837,3 +2837,51 @@ follow:
   a short tail, a cheap-steps-first schedule) now has a measured downside as well as the measured
   0.000035 upside from T0.7 — it would trade a real 0.019-scale extrapolation risk for a delta 500×
   smaller than the noise floor. That whole family stays closed.
+
+## 2026-09-11 (evening) — T0.2 closed at the decision budget: `n_embd=768` loses at 1800s, and the locked baseline reproduces a third time
+
+The one T0.2 arm left open was `(DEPTH=6, n_embd=768)`. It lost by +0.0094 at 900s, but its only
+pre-existing 1800s comparison was a **+0.0007 tie** on an older, slower stack, and the discipline
+rule is that a capacity change is decided at 1800s only. A tie is not a decision, so this is the
+paired 1800s A/B that actually closes it — same box, same commit `8973cff`, back-to-back in the same
+`tmux` queue, both with `--eval-seq-len 1024` so each arm reports at **both** candidate scorer
+lengths.
+
+| run | shape | params | steps | `bpb`@2048 | `bpb`@1024 | Δ@2048 | Δ@1024 |
+|---|---|---|---|---|---|---|---|
+| `t02-base-1800s` (control) | (6, 640), 5 heads | 55.7M | **2187** | **1.034328** | **1.049682** | — | — |
+| `t02-d6-e768-1800s` | (6, 768), 6 heads | 73.9M | 1771 (-19.0%) | 1.037112 | 1.052234 | **+0.002784** | **+0.002552** |
+
+**Verdict: `n_embd=640` stays. T0.2 is closed on all four arms, nothing adopted.** +0.0028 is ~2.8×
+the single-run noise floor and it loses *identically at both eval lengths* (+0.00278 / +0.00255),
+which is the useful part — the decision does not hinge on the unresolved scorer-context question, so
+there is no version of the grading setup in which 768 is the right shape. No paired repeat was
+bought, because a repeat is only worth it to rescue a *candidate*, and this is a loss in the
+direction the mechanism predicts.
+
+The interesting structure is in how the gap moved with budget while the step deficit did not:
+
+| budget | steps (640 → 768) | step deficit | Δ bpb |
+|---|---|---|---|
+| 900s | 1094 → 885 | -19.1% | +0.0094 |
+| 1800s | 2187 → 1771 | -19.0% | +0.0028 |
+
+The throughput penalty of the wider model is a fixed -19% at both budgets (as it must be — it is a
+FLOPs ratio, not a schedule effect), yet the quality gap shrinks 3.4× when the budget doubles. So
+768 really is the better *shape* asymptotically and is simply not reached inside 1800s: it is still
+0.0028 behind at the point where the clock stops. Extrapolating the same trend, 768 would need
+roughly another doubling of budget-or-throughput to break even. That is the concrete condition to
+re-test on, and it matches the plan's standing note to re-run T0.2 if throughput ever moves >15% —
+sharpened here to: **re-test 768 (and only 768) when throughput improves ~1.4× or more.** The old
++0.0007 tie was measured on a slower stack whose 1800s run reached only 1995 steps; the current
+stack reaches 2187, i.e. we have moved *further* into the regime where the narrower model wins, which
+is why the gap re-opened rather than closing. Nothing was wrong with the old measurement.
+
+**Third independent reproduction of the locked baseline on this instance.** `t02-base-1800s` at
+2187 / 1.034328 against the two runs the baseline was locked on (2205 / 1.034005 and 2199 /
+1.034101, mean 1.034053): **+0.00028**, well inside noise, on a different physical box. Also worth
+recording: its `bpb`@1024 is 1.049682, so the 2048→1024 eval-length artifact measures **+0.015354**
+here. Across five checkpoints now the artifact sits at **+0.0154 to +0.0162**, and the full
+calibration chain reads 1.049682 (our 2M @1024) + ~0.006 (2M-window optimism) ≈ **1.0557** against
+the board's actual **1.0548** — 0.0009 apart. The calibration model is holding to better than a
+thousandth of a bpb, which is now the most reliable board-score predictor we have.
