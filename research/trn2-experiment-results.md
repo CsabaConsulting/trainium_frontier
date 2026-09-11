@@ -2593,3 +2593,68 @@ tighten this further; append when it lands.
 eval-side work — the plan already flagged this as worth ~0.016 bpb, larger than most single
 Days-5-7 items) is now a legitimately higher-priority item than it looked when the seq_len
 question was still open. Not yet acted on; flagging for the next planning pass.
+
+## 2026-09-11 (afternoon) — T0.2 depth/width decoupling: all four candidates lose, the locked shape survives
+
+`build_config` could only ever produce `n_embd = round_up(DEPTH * ASPECT_RATIO, HEAD_DIM)`, so every
+historical depth result was confounded with the width that depth happens to imply. Commit `b434862`
+adds explicit `--depth` / `--n-embd` / `--head-dim` (plus T0.3's `--mlp-ratio` / `--attn-scale`),
+each defaulting to its existing constant so passing none of them is bit-identical to the locked
+baseline. One implementation note worth recording because it is the same class of bug as the
+`NUM_STEPS = 1000` default: `build_config(depth: int = DEPTH)` froze the pre-flag value at *def*
+time, which would have made `--depth` silently inert. It is now `depth: int | None = None` and reads
+`DEPTH` at call time.
+
+**The fused rope+QK-norm NKI kernel needed checking at `HEAD_DIM=64`, not assuming** (the plan
+flagged it as "written for 128"). It is in fact written generically in `D` — `D = x.shape[2]`,
+`Dh = D // 2`, and the wrapper's only shape guard is `d % 2 == 0` — and a `D=64, H=10` run of
+`research/scratch/rope_norm_equiv.py` gives `rel_l2` 2.7e-5 / 3.1e-5 / 3.9e-5 against the CPU eager
+chain, versus the `D=128, H=3` baseline's 3.1e-5 / 3.7e-5 / 3.6e-5 on the same harness the same
+afternoon. Same character, ~100% bit-exact forward, no eager fallback needed. So the `HEAD_DIM=64`
+arm below is a real kernel-on number, not a fallback number.
+
+All five runs are 900s, same box, same commit, same afternoon, `--nproc-per-node 4 --lnc 2`,
+in-process eval (2M tokens, seq_len 2048 = the training length).
+
+| run | `(DEPTH, n_embd, HEAD_DIM)` | n_head | params | steps | `public_val_bpb` | Δ vs control |
+|---|---|---|---|---|---|---|
+| `t02-base-900s` (control) | (6, 640, 128) | 5 | 55.7M | **1094** | **1.081255** | — |
+| `t02-d7-e640-900s` | (7, 640, 128) | 5 | 65.9M | 908 | 1.093900 | **+0.012645** |
+| `t02-d8-e640-900s` | (8, 640, 128) | 5 | 70.8M | 839 | 1.094958 | **+0.013703** |
+| `t02-d6-e768-900s` | (6, 768, 128) | 6 | 73.9M | 885 | 1.090657 | **+0.009402** |
+| `t02-d6-hd64-e640-900s` | (6, 640, **64**) | **10** | 55.7M | 999 | 1.099107 | **+0.017852** |
+
+**The control is the most reassuring row in the table.** 1094 / 1.081255 against the old box's
+900s stack pair (1.081226, 1.081464, mean 1.081345) — agreement to **0.00009 bpb**. The new
+instance reproduces the locked baseline exactly; every delta below is measured against a verified
+anchor.
+
+**Verdict: keep `DEPTH=6, n_embd=640, HEAD_DIM=128`. All four candidates discarded.** Every one
+loses by 9x-18x the 0.001 noise floor, and every one *also* loses steps, so there is no arm where
+a "slower but better per step" story could rescue it at a longer budget:
+
+- **Depth at fixed width is now decoupled, and it still loses.** This is the actual new fact. The
+  earlier Tier-0 resweep only knew that `DEPTH=8` lost *at its implied width of 768*, which left
+  open that the width, not the depth, was the problem. It was not: at a held-fixed 640, the 7th
+  layer costs 186 steps (-17.0%) for +0.0126 and the 8th costs 255 (-23.3%) for +0.0137. Note how
+  close d7 and d8 are to each other (0.0011 apart) despite 69 steps between them — the marginal
+  layer is roughly free in quality terms and pure loss in throughput terms, which is exactly the
+  signature of a model that is *not* depth-limited at this budget.
+- **`(6, 768)` is the closest candidate and the one to revisit, but it does not clear the bar.**
+  +0.0094 at 900s here, and the one pre-existing full-1800s comparison had it at 1623/1.04415 vs
+  640's 1995/1.043489, i.e. **+0.0007 — a tie, not a win**. The relative step deficit is essentially
+  identical at both budgets (-19.1% here, -18.6% there), so the 900s→1800s narrowing (+0.0094 →
+  +0.0007) is a real asymptote effect and 768 genuinely is the better *shape* if steps were free.
+  They are not. The standing rule is "only lock a capacity change if it wins clearly at 1800s", and
+  a tie is not a clear win, so no 1800s pair was spent re-deriving a tie. Flagged as the one arm to
+  re-run if throughput ever moves another >15%.
+- **`HEAD_DIM=64` / 10 heads is the worst of the four, and it loses on both axes at once**
+  (+0.0179 *and* -95 steps at identical parameter count). "More heads usually help small models"
+  did not survive contact with this hardware: at 640 width, 10 heads of 64 means every SDPA and
+  every rope tile is half as wide, which costs 8.7% throughput outright, and the quality went the
+  wrong way too. Since the parameter count is identical to the control, this is the cleanest
+  single-axis result in the table — it is purely a head-geometry effect, with no capacity confound
+  at all.
+
+T0.2 closed. `DEPTH`, `ASPECT_RATIO` and `HEAD_DIM` all stay at their locked values; the three new
+flags stay in `train.py` as the sweep instrument (they cost nothing when unset).
