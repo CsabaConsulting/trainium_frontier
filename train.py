@@ -4119,7 +4119,7 @@ def main() -> None:
     global ADAM_EVERY_N, ADAM_EVERY_N_LR_COMP, PACK_FACTOR, GRAD_CLIP
     # T0.2/T0.3 capacity-shape knobs. All read inside build_config()/GPT(config), i.e. well before
     # the first step, so none of them can add a per-step graph constant.
-    global DEPTH, N_EMBD, HEAD_DIM, MLP_RATIO, ATTN_SCALE
+    global DEPTH, N_EMBD, HEAD_DIM, MLP_RATIO, ATTN_SCALE, SEQ_LEN
     parser = argparse.ArgumentParser(description="Neuron Competition R1 baseline")
     parser.add_argument("--device-type", type=str, default="")
     parser.add_argument("--num-steps", type=int, default=int(os.environ.get("NEURON_COMPETITION_R1_NUM_STEPS", NUM_STEPS)))
@@ -4313,6 +4313,19 @@ def main() -> None:
         env = "NEURON_COMPETITION_R1_" + flag.lstrip("-").replace("-", "_").upper()
         parser.add_argument(flag, type=typ, default=typ(os.environ.get(env, default)), help=helptext)
 
+    _hp("--seq-len", SEQ_LEN, int, "Training context length. Previously only settable by editing the "
+        "constant. Currently 2048. NOTE: the in-process eval runs at this same length, so a "
+        "--seq-len A/B is apples-to-oranges unless --eval-seq-len pins both arms to one eval "
+        "length -- which matters a lot now that the scorer looks like it evaluates at 1024 "
+        "(see the 2026-09-11 section of trn2-experiment-results.md).")
+    parser.add_argument("--eval-seq-len", type=int,
+                        default=int(os.environ.get("NEURON_COMPETITION_R1_EVAL_SEQ_LEN", 0)),
+                        help="Run a SECOND in-process public_val eval at this context length and "
+                             "report it as public_val_bpb_alt. 0 (default) = off, zero cost. Must be "
+                             "<= --seq-len and a multiple of 128: the live model's rotary/mask tables "
+                             "are sized to --seq-len (a LONGER eval needs prepare.py eval-public, "
+                             "whose load_for_eval widens them to EVAL_MIN_SEQ_LEN). Post-training "
+                             "only, so it costs wall clock and never a charged training second.")
     _hp("--depth", DEPTH, int, "T0.2: n_layer. Previously only settable by editing the constant, so "
         "every historical depth sweep also moved the width (n_embd is derived from DEPTH via "
         "ASPECT_RATIO unless --n-embd is given). Currently 6.")
@@ -4378,6 +4391,13 @@ def main() -> None:
                              "otherwise moves those tensors ~N times less far in total; this "
                              "separates 'less often' from 'less far'. Default OFF.")
     args = parser.parse_args()
+    if args.eval_seq_len:
+        if args.eval_seq_len > args.seq_len:
+            parser.error(f"--eval-seq-len {args.eval_seq_len} > --seq-len {args.seq_len}: the live "
+                         "model's rotary/mask tables are only built out to --seq-len. Use "
+                         "`prepare.py eval-public --seq-len N` on the saved checkpoint instead.")
+        if args.eval_seq_len % 128 != 0:
+            parser.error("--eval-seq-len must be a multiple of 128 (NKI tiling).")
     if args.adam_every_n < 1:
         parser.error("--adam-every-n must be >= 1")
     if args.adam_every_n > 1 and args.grad_bucket:
@@ -4399,6 +4419,7 @@ def main() -> None:
     GRAD_CLIP = args.grad_clip
     PACK_FACTOR = args.pack_factor
     # T0.2/T0.3: all four are read by build_config()/MLP.__init__/CausalSelfAttention.__init__ below.
+    SEQ_LEN = args.seq_len
     DEPTH = args.depth
     N_EMBD = args.n_embd
     HEAD_DIM = args.head_dim
@@ -4710,6 +4731,7 @@ def main() -> None:
     budget_elapsed_after_save = time.monotonic() - budget_started
 
     public_eval = None
+    public_eval_alt = None
     causal = None
     if args.eval_public:
         causal = causality_check(orig_model, tokenizer, DEVICE_BATCH_SIZE, SEQ_LEN, device)
@@ -4723,6 +4745,21 @@ def main() -> None:
             max_tokens=args.eval_tokens,
             timeout_seconds=EVAL_TIMEOUT_SECONDS,
         )
+        if args.eval_seq_len:
+            # Second eval of the SAME weights at a shorter context. Purely diagnostic: the
+            # scorer's own context length is not published, and the 2026-09-11 calibration
+            # (same checkpoint: 1.033421 at 2048 vs 1.049535 at 1024, board 1.0548) says the
+            # length we are graded at is probably NOT the one we train at.
+            public_eval_alt = evaluate_bpb(
+                orig_model,
+                tokenizer,
+                DEVICE_BATCH_SIZE,
+                args.eval_seq_len,
+                device,
+                split="public_val",
+                max_tokens=args.eval_tokens,
+                timeout_seconds=EVAL_TIMEOUT_SECONDS,
+            )
 
     if rank == 0:
         print("---")
@@ -4765,6 +4802,10 @@ def main() -> None:
             print(f"eval_seconds:      {public_eval['eval_seconds']:.1f}")
             print(f"eval_timeout:      {public_eval['eval_timeout']}")
             print(f"eval_over_timeout: {public_eval['eval_over_timeout']}")
+        if public_eval_alt is not None:
+            print(f"eval_alt_seq_len:  {args.eval_seq_len}")
+            print(f"public_val_bpb_alt: {public_eval_alt['val_bpb']:.6f}")
+            print(f"eval_alt_seconds:  {public_eval_alt['eval_seconds']:.1f}")
 
     cleanup_runtime()
 

@@ -55,6 +55,9 @@ SUMMARY_KEYS = {
     "nki_relu2", "num_steps", "total_tokens_M", "world_size", "lnc",
     "seq_len", "num_params_M", "causality_passed", "causality_max_abs",
     "public_val_bpb", "eval_seconds", "eval_timeout", "eval_over_timeout",
+    # train.py --eval-seq-len: a second eval of the same weights at a shorter context, for the
+    # open "what context length does the scorer actually use?" question (2026-09-11).
+    "eval_alt_seq_len", "public_val_bpb_alt", "eval_alt_seconds",
 }
 LINE_RE = re.compile(r"^(" + "|".join(SUMMARY_KEYS) + r"):\s*(.+)$")
 
