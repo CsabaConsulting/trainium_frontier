@@ -2885,3 +2885,176 @@ here. Across five checkpoints now the artifact sits at **+0.0154 to +0.0162**, a
 calibration chain reads 1.049682 (our 2M @1024) + ~0.006 (2M-window optimism) ≈ **1.0557** against
 the board's actual **1.0548** — 0.0009 apart. The calibration model is holding to better than a
 thousandth of a bpb, which is now the most reliable board-score predictor we have.
+
+## 2026-09-11 (night) — T3.1 hashed n-gram value embeddings: correct, and a 3.7-40x embedding-backward pathology found and fixed
+
+T3.1 is the first item where the *implementation* was never the hard part. The feature was
+correct on the first device run; what nearly killed it was a Trn2 lowering detail that had
+nothing to do with n-grams, and finding it took a microbenchmark rather than another
+whole-model A/B.
+
+### What was built
+
+Hashed bigram + trigram value embeddings, per the brief: a bigram table on every `has_ve`
+layer (1, 3, 5) and a trigram table on the first and last of those (1, 5) — five tables,
+`8 x padded_vocab_size = 65536` rows each. Hash is `((prev*p1) ^ (cur*p2)) % mod` and
+`((prev2*a) ^ (prev*b) ^ (cur*c)) % mod` with a **different prime pair per layer** so the
+tables cannot collapse onto each other. Two details are worth recording because both were
+deliberate departures from the obvious implementation:
+
+- **The modulus is the largest prime *below* the row count, not the row count.** `rows` is a
+  power of two, and `h % 2^k` keeps only `h`'s low `k` bits — which throws away every bit of
+  mixing the primes just put into the high half. A prime modulus uses all of `h`. The handful
+  of rows above the modulus are simply never indexed.
+- **The zero-init gate is *neutral*, not off.** The injection is
+  `v = v + 2*sigmoid(gate(x[..., 32:64])) * ve`, so a zero gate evaluates to
+  `2*sigmoid(0) = 1.0`. What makes step 0 a no-op is therefore the zero-init *table*, not the
+  gate.
+
+Optimizer treatment as specified: own param group, RMSProp (β1=0, β2=0.999, eps=1e-10, no
+weight decay), **no LR decay** (`no_lr_decay` → the warmdown is bypassed, warmup is not),
+bf16 storage, and excluded from the global `clip_grad_norm_` via `split_clip_params` so the
+baseline arm's clip stays bit-identical (folding 210M extra parameters into a *global* norm
+would shrink `clip_coef` and thereby change the effective LR of every other tensor — a
+confound with nothing to do with n-grams).
+
+Real parameter count at the default config: **265,429,772** (55.7M → 265.4M). There is no
+parameter cap in the README; the only limits are one chip and 30 minutes.
+
+### Correctness: `research/scratch/ngram_ve_equiv.py`, 10 checks, all passing
+
+The two that actually caught bugs:
+
+**Check 1 (step-0 no-op) failed first.** With zero tables the forward *must* be bit-identical
+to `USE_NGRAM_VE=False`, and it was off by 1.9e-1. The cause was not the injection at all:
+`nn.Embedding.reset_parameters()` draws **41.9M normals per table (210M total)** from the
+global CPU generator at *construction* time, and the five gate `nn.Linear`s draw too — so
+every tensor `init_weights()` drew *afterwards* differed between the two arms. The A/B would
+have compared two different random inits plus the feature. Fixed by building the tables with
+`_weight=torch.zeros(...)` (which skips `reset_parameters` entirely — no wasted 210M draws
+either) and wrapping the gate/projection constructions in a new `_rng_neutral()` helper that
+saves and restores the CPU RNG state. The check now also asserts that **all 62 shared
+tensors are elementwise equal**, which is what localizes any future failure to the injection
+instead of the init.
+
+**Check 4 (int32 headroom)** confirms the on-device hash cannot overflow: worst-case product
+is the sentinel id times the largest prime, `1,967,693,824` against int32's `2,147,483,647`.
+`NGRAM_HASH_PRIMES` is bounded for exactly this reason.
+
+On device, at the real 4-rank/LNC=2 shape: `causality_passed: True`,
+`causality_max_abs: 0.000000`, no NaN/Inf, and — the main open technical risk from the
+brief — **it compiles under `torch.compile(backend="neuron")` with the hashing done
+on-device in int32**. The host-side `fetch()` fallback was never needed and was not written.
+
+### Quality per step is real: -0.0311 bpb
+
+LR-matched fixed-step A/B (`--num-steps 300 --max-train-seconds 3600`, so both arms sit
+entirely at `lrm=1.0` and the time-driven schedule cannot confound the step count):
+
+| run | steps | `bpb`@2048 | train seconds |
+|---|---|---|---|
+| `t31-base-fixed300` | 300 | 1.259003 | 349.8 |
+| `t31-ngram-fixed300` | 300 | **1.227918** | 550.5 |
+
+**-0.031085 bpb at equal steps**, which is ~30x the noise floor. (Small residual confound
+noted for honesty: `wd_progress` is time-based, so the two arms are not at identical weight
+decay. It is far too small to explain 0.031.)
+
+### The cost, and where it actually was
+
+`research/scratch/phase_timer.py` (extended with the T3.1 toggles and a `--ngram-ve-freeze`
+diagnostic) localized the entire penalty to the **compiled forward+backward**. Everything
+else was nearly free, which is itself a result: `opt_step` 52 → 71ms, `sync_grad` 13 → 24ms,
+`clip` unchanged — so `split_clip_params` works, and 210M extra parameters cost almost
+nothing to all-reduce and update.
+
+| config | micro mean | Δ vs base | step total |
+|---|---|---|---|
+| base, 55.7M params | 182.3ms | — | 808ms |
+| 5 tables, 65536 rows, dim 640 | 373.9ms | +191.6 | 1610ms |
+| 5 tables, 65536 rows, dim 640, **tables frozen** | 273.9ms | +91.6 | 1177ms |
+| 3 tables, 65536 rows, dim 640 (bigram only) | 313.9ms | +131.6 | 1353ms |
+| 5 tables, 8192 rows, dim 640 | 286.3ms | +104.0 | 1230ms |
+| 5 tables, 65536 rows, dim 128 (98.1M params) | 361.5ms | +179.2 | 1539ms |
+| 5 tables, 262144 rows, dim 128 (223.9M params) | 620.5ms | +438.2 | 2595ms |
+
+Two things in that table are impossible if the cost is a gather. A row lookup's output is
+`[tokens, dim]` — **rows-independent** — yet the cost tracks `rows` almost perfectly
+(fitted: ~18.4ms fixed + 2.7e-4 ms/row per table). And width, which the output size *is*
+proportional to, barely matters: dim 128 was only **7% cheaper** than dim 640, which killed
+the `NGRAM_VE_DIM` narrow-table mitigation outright.
+
+### `research/scratch/embed_gather_bench.py`: it was `embedding_dense_backward`
+
+Isolating the lookup from the model settled it in one run (best-of-5, `b=4 t=2048`,
+`torch.compile(backend="neuron")`, `research/run-logs/embed-gather-bench.log`):
+
+| rows | dim | `nn.Embedding` fwd | `nn.Embedding` fwd+bwd | `index_select` fwd+bwd | `weight[idx]` fwd+bwd |
+|---|---|---|---|---|---|
+| 8192 | 640 | 0.33ms | 3.18ms | 5.12ms | 5.20ms |
+| 8192 | 128 | 0.24ms | 2.72ms | 1.63ms | 1.64ms |
+| 65536 | 640 | 0.26ms | **19.39ms** | 5.20ms | 5.21ms |
+| 65536 | 128 | 0.24ms | **19.09ms** | 1.88ms | 1.80ms |
+| 262144 | 128 | 0.24ms | **72.49ms** | 72.43ms | **2.21ms** |
+
+**The forward gather is ~0.25ms at every shape.** The entire cost is
+`aten::embedding_dense_backward`, and its time is linear in the table's **row count** and
+independent of its **width** — i.e. it touches the whole table, not just the rows that were
+read. 19.4ms at 65536 rows and 72.5ms at 262144 rows reproduce the fitted whole-model
+coefficient (2.7e-4 ms/row) essentially exactly, so this one op explains the entire anomaly.
+
+Advanced indexing (`weight[idx]`) is the only spelling that stays cheap at every row count.
+`index_select` matches it up to 65536 rows and then falls back to the same pathology at
+262144 (a lowering cliff worth remembering). A one-hot matmul was also measured (3.99ms fwd
+at 8192x640) and is never competitive.
+
+**Fix (commit `b5b726c`):** `GPT._ngram_lookup` now gathers as `self.ngram_embeds[key].weight[rows]`
+under a new `NGRAM_VE_INDEX_GATHER` toggle — kept as a toggle only so `phase_timer` can
+still reproduce the slow lowering. Harness check 10 asserts the two spellings agree
+**bit-for-bit on both the forward and the table gradient**, so this is purely a lowering
+change and not a silent model change.
+
+**Negative result worth recording: there is no baseline win here.** At 8192x640 — the shape
+of the locked model's *own* unigram value embeddings and of `wte` — `nn.Embedding` is already
+the fastest of the three (3.18ms vs 5.12/5.20). The pathology only bites above ~8192 rows, so
+the baseline was never exposed to it and those modules are deliberately left alone.
+
+### Where the cost model lands after the fix
+
+Same `phase_timer`, same shape, `--foreach-optim` in every arm so `opt_step` is comparable:
+
+| config | params | micro mean | step total | `r` vs 808ms |
+|---|---|---|---|---|
+| base | 55.7M | 182.3ms | 808ms | 1.00 |
+| 5 tables, 65536 rows, dim 640, **`nn.Embedding`** | 265.4M | 373.9ms | 1610ms | 1.99 |
+| 5 tables, 65536 rows, dim 640, **`weight[idx]`** | 265.4M | 295.5ms | 1294ms | **1.60** |
+| 5 tables, 65536 rows, dim 128, **`weight[idx]`** | 98.1M | 280.9ms | 1226ms | **1.52** |
+| 5 tables, 262144 rows, dim 640, **`weight[idx]`** | 894.6M | 323.3ms | 1479ms | 1.83 |
+
+The 262144-row arm is the informative one: **4x the rows cost only +28ms of micro time**
+(295.5 → 323.3), i.e. after the fix the compiled fwd+bwd is nearly row-independent, exactly
+as a gather should be. Its extra `r` comes entirely from param-count-proportional phases
+instead (`opt_step` 71 → 124ms, `sync_grad` 41ms, `clip` 16ms on 838MB of bf16 tables) — the
+cost has *moved*, from a pathological kernel to something that scales for an understandable
+reason.
+
+### The decision arithmetic
+
+The standing exchange rate is `bpb ≈ a - 0.077·ln(steps)`, and the locked baseline's real
+1800s step time is `1800/2205 = 0.8163s`. A treatment that is `r` times slower at equal
+per-step quality therefore pays `0.077·ln(r)`, so break-even against a -0.0311 gain is
+
+    r* = exp(0.0311 / 0.077) = 1.498
+
+| config | `r` | predicted net at 1800s |
+|---|---|---|
+| dim 640, `nn.Embedding` (before the fix) | 1.99 | **+0.0219 (loses badly)** |
+| dim 640, `weight[idx]` | 1.60 | +0.0051 (still loses) |
+| dim 128, `weight[idx]` | **1.52** | **+0.0010 (break-even, inside noise)** |
+
+So the embedding-backward fix moved T3.1 from *-0.022 hopeless* to *break-even*, and the
+remaining +98.6ms/micro is no longer the tables at all — the per-table residual is now
+~19.7ms of injection/gate/elementwise work in the compiled graph, with the gather+scatter
+itself measured at 1.8-5.2ms. Note also that the -0.0311 gain was measured at **dim 640**;
+the break-even row is at dim 128, whose narrower tables may not deliver the full gain. That
+is the open question, and it is now a *quality* question rather than a throughput one.
