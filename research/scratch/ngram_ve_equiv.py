@@ -3,8 +3,12 @@
 Checks, in order, all on the real GPT at the locked config:
 
   1. STEP-0 NO-OP: with zero-initialized tables, USE_NGRAM_VE=True is BIT-IDENTICAL to
-     USE_NGRAM_VE=False on the forward pass (same seed => same RNG draws for every shared
-     tensor, because the n-gram tables are zeroed rather than drawn from the generator).
+     USE_NGRAM_VE=False on the forward pass. Two things have to hold for that: the tables
+     are zero (the zero-init GATE is 2*sigmoid(0) = 1.0, i.e. neutral, not off), and the
+     extra modules are RNG-neutral at construction (nn.Embedding gets _weight=, the gates
+     go through _rng_neutral) so no shared tensor's init is reshuffled. Also verifies that
+     every shared parameter is elementwise equal, which localizes a failure to the
+     injection instead of the init.
   2. CAUSALITY: perturbing token t only changes outputs at positions >= t. Run directly on
      the hash indices AND on the model's logits.
   3. DETERMINISM: the same tokens produce the same table rows across calls, across a
@@ -59,6 +63,16 @@ def main() -> int:
     print(f"[1] step-0 no-op: bit-identical={same} max_abs_diff={(lo - ln).abs().max():.3e}")
     if not same:
         failures.append("step-0 forward is not bit-identical with zero-init tables")
+
+    # Localize any failure above: are the SHARED parameters even the same? If these differ,
+    # the extra modules perturbed the RNG stream at construction and the problem is the init,
+    # not the injection.
+    sd_off, sd_on = off.state_dict(), on.state_dict()
+    shared_bad = [k for k in sd_off if not torch.equal(sd_off[k], sd_on[k])]
+    print(f"    shared tensors identical: {len(sd_off) - len(shared_bad)}/{len(sd_off)} "
+          f"(rng-neutral construction) bad={shared_bad[:4]}")
+    if shared_bad:
+        failures.append(f"{len(shared_bad)} shared tensors differ => construction is not RNG-neutral")
 
     n_off = sum(p.numel() for p in off.parameters())
     n_on = sum(p.numel() for p in on.parameters())
@@ -179,7 +193,7 @@ def main() -> int:
     loss = bm(idx, targets)
     loss.backward()
     bopt.step()
-    moved = max(float(p.abs().max()) for p in bm.ngram_embeds.parameters())
+    moved = max(float(p.detach().abs().max()) for p in bm.ngram_embeds.parameters())
     finite = all(torch.isfinite(p).all().item() for p in bm.parameters())
     print(f"[8] bf16 tables: dtypes={dtypes} loss={float(loss):.6f} "
           f"max|table| after 1 step={moved:.6f} all-finite={finite}")

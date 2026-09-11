@@ -393,6 +393,25 @@ def _largest_prime_below(n: int) -> int:
     return m
 
 
+def _rng_neutral(build):
+    """Construct a module WITHOUT consuming draws from the global CPU generator.
+
+    Only correct for modules that init_weights() overwrites unconditionally -- here the
+    T3.1 n-gram gates, which it zeroes. The point is that USE_NGRAM_VE must not perturb
+    every other tensor's initial values: nn.Linear.reset_parameters() draws from the
+    default generator at CONSTRUCTION time, so adding five tiny gates would shift the RNG
+    stream for everything init_weights() draws afterwards and make the A/B a comparison of
+    two different random inits plus the feature, instead of just the feature. The model is
+    built on CPU and only then .to(device)'d (see main()), so the CPU generator is the only
+    one involved and save/restore is exact.
+    """
+    state = torch.random.get_rng_state()
+    try:
+        return build()
+    finally:
+        torch.random.set_rng_state(state)
+
+
 def ngram_bigram_primes(layer_idx: int) -> tuple[int, int]:
     """(p_prev, p_cur) for this layer's bigram hash. Different pair per layer so
     collisions decorrelate across layers (Recursive's stated reason)."""
@@ -3058,9 +3077,11 @@ class CausalSelfAttention(nn.Module):
         # T3.1: one extra per-head gate per hashed n-gram order, each reading a DISJOINT
         # 32-channel slice of the V-stream residual so the three value-embedding gates
         # never compete for the same channels (unigram 0:32, bigram 32:64, trigram 64:96).
-        self.ve_gate_bi = Linear(VE_GATE_CHANNELS, self.n_head, bias=False) \
+        # Both are built RNG-neutrally (init_weights zeroes them anyway) so that flipping
+        # USE_NGRAM_VE does not reshuffle every other tensor's init -- see _rng_neutral.
+        self.ve_gate_bi = _rng_neutral(lambda: Linear(VE_GATE_CHANNELS, self.n_head, bias=False)) \
             if has_ngram_bigram(layer_idx, config.n_layer) else None
-        self.ve_gate_tri = Linear(VE_GATE_CHANNELS, self.n_head, bias=False) \
+        self.ve_gate_tri = _rng_neutral(lambda: Linear(VE_GATE_CHANNELS, self.n_head, bias=False)) \
             if has_ngram_trigram(layer_idx, config.n_layer) else None
         if self.ve_gate_tri is not None:
             assert config.n_embd >= 3 * VE_GATE_CHANNELS, (config.n_embd, VE_GATE_CHANNELS)
@@ -3308,14 +3329,26 @@ class GPT(nn.Module):
         # simply never indexed -- kept so the row count stays a multiple of 64.
         self.ngram_mod = _largest_prime_below(self.ngram_rows)
         ngram_dtype = torch.bfloat16 if NGRAM_VE_BF16 else torch.float32
+
+        def _table() -> nn.Embedding:
+            # `_weight=` skips nn.Embedding.reset_parameters(), which would otherwise draw
+            # 41.9M normals PER TABLE (210M total) from the global generator only for
+            # init_weights to immediately zero them -- wasted work AND, worse, an RNG-stream
+            # shift that would change every other tensor's init. Zero is the real init here
+            # (see init_weights): it makes the step-0 forward bit-identical to USE_NGRAM_VE
+            # off, because the zero-init gate evaluates to the NEUTRAL 2*sigmoid(0) = 1.0
+            # rather than 0, so only a zero TABLE makes the injection a true no-op.
+            return nn.Embedding(self.ngram_rows, config.n_embd,
+                                _weight=torch.zeros(self.ngram_rows, config.n_embd, dtype=ngram_dtype))
+
         tables: dict[str, nn.Module] = {}
         for i in range(config.n_layer):
             if self.layer_is_mamba[i]:
                 continue
             if has_ngram_bigram(i, config.n_layer):
-                tables[f"b{i}"] = nn.Embedding(self.ngram_rows, config.n_embd, dtype=ngram_dtype)
+                tables[f"b{i}"] = _table()
             if has_ngram_trigram(i, config.n_layer):
-                tables[f"t{i}"] = nn.Embedding(self.ngram_rows, config.n_embd, dtype=ngram_dtype)
+                tables[f"t{i}"] = _table()
         self.ngram_embeds = nn.ModuleDict(tables)
         # The n-gram gates live in CausalSelfAttention, so an RWKV layer (which has a
         # tmix instead of an attn) would carry a table nothing ever reads. Refuse the
