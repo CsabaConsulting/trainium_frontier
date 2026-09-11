@@ -66,7 +66,7 @@ SUMMARY_KEYS = {
     # T2.2 (2026-09-11): the weight-EMA knobs plus its in-run raw-vs-EMA comparison. ema_delta is
     # the whole result of the experiment, so it belongs in the log row, not just the run log.
     "weight_ema", "public_val_bpb_ema", "ema_delta", "eval_ema_seconds",
-    "public_val_bpb_ema_alt", "ema_delta_alt",
+    "public_val_bpb_ema_alt", "ema_delta_alt", "weight_ema_arms",
 }
 LINE_RE = re.compile(r"^(" + "|".join(SUMMARY_KEYS) + r"):\s*(.+)$")
 

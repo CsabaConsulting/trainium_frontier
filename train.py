@@ -241,15 +241,30 @@ BATCH_RAMP_LR_EXP = 0.5             # lr scales as (B/B_ref)**this. 0.5 = sqrt, 
 # shadow is initialized from the live weights at that point, so the averaged region is the low-lr
 # tail and nothing from the high-lr phase is dragged in.
 #
-# Cost: one torch._foreach_lerp_ over the 62 parameters per step. That is ~3 x 223MB of HBM
-# traffic = ~0.23ms at 2.9TB/s, i.e. <0.03% of an 816ms step, plus 223MB of extra HBM for the
-# shadow (of 96GB). EAGER ONLY -- it sits next to optimizer.step(), which is already outside
-# every compiled region, because torch._foreach_* cannot be traced by backend="neuron".
+# Cost: one torch._foreach_lerp_ over the 62 parameters per step per decay. That is ~3 x 223MB of
+# HBM traffic = ~0.23ms at 2.9TB/s, i.e. <0.03% of an 816ms step, plus 223MB of extra HBM per
+# shadow (of 96GB). EAGER ONLY -- it sits next to optimizer.step(), which is already outside every
+# compiled region, because torch._foreach_* cannot be traced by backend="neuron".
 # The lerp weight is a fixed Python constant (1 - decay), never a per-step-changing one, so it
 # cannot cause the per-step recompile that USE_TENSOR_LR_SCALARS exists to avoid.
+#
+# WEIGHT_EMA_DECAYS is a TUPLE because the shadows are so cheap that carrying several at once is
+# strictly better than running several jobs: every decay then sees bit-identical weights at every
+# step, so comparing them has no run-to-run noise in it at all. Whichever is listed FIRST is the
+# primary -- it is the one written into the checkpoint's "ema_state" (and therefore the one
+# load_for_eval would hand the scorer); the rest are evaluated in-process and reported only,
+# which keeps the checkpoint at 2x the weights instead of (1+N)x and its save inside
+# CHECKPOINT_RESERVE_SECONDS.
+#
+# The averaging window is ~1/(1-decay) steps and the EMA's weights are, to first order, the
+# trajectory's weights from ~that many steps ago. That lag is the entire risk: it only pays for
+# itself once the trajectory has stopped descending and is merely bouncing. Measured at a 400s
+# budget (474 steps, seeded at 0.75, decay 0.995 -> a 200-step window over a 103-step tail) the
+# EMA was +0.0168 bpb WORSE than the raw weights -- consistent with it being "the weights from
+# ~100 steps ago" and nothing else. Hence the short windows are the interesting ones here.
 USE_WEIGHT_EMA = False
-WEIGHT_EMA_DECAY = 0.995        # per-step; 0.995 ~ a 200-step window, 0.999 ~ 1000 steps
-WEIGHT_EMA_START_FRAC = 0.75    # elapsed/max_train_seconds at which the shadow is seeded
+WEIGHT_EMA_DECAYS = (0.995,)    # per-step decays; 0.98 ~ 50 steps, 0.995 ~ 200, 0.999 ~ 1000
+WEIGHT_EMA_START_FRAC = 0.75    # elapsed/max_train_seconds at which the shadows are seeded
 # When on, the checkpoint carries BOTH weight sets ("model_state" = raw, "ema_state" = averaged)
 # and the run evaluates both, so a single run is its own A/B with zero run-to-run noise.
 # load_for_eval's 2-argument contract is untouched: it prefers "ema_state" only when the key is
@@ -4458,7 +4473,7 @@ ARCH_TOGGLE_NAMES = [
     "BATCH_RAMP", "BATCH_RAMP_GRAD_ACCUM", "BATCH_RAMP_BOUNDS", "BATCH_RAMP_LR_EXP",
     # T2.2 weight EMA. Also shape-neutral, but it decides whether the checkpoint has an
     # "ema_state" key at all -- i.e. WHICH weights load_for_eval will hand the scorer.
-    "USE_WEIGHT_EMA", "WEIGHT_EMA_DECAY", "WEIGHT_EMA_START_FRAC",
+    "USE_WEIGHT_EMA", "WEIGHT_EMA_DECAYS", "WEIGHT_EMA_START_FRAC",
 ]
 # Toggles whose mismatch corrupts the state_dict shape (load_state_dict(strict=True) will
 # error loudly). Everything else in ARCH_TOGGLE_NAMES lives in non-persistent buffers or
@@ -4706,7 +4721,7 @@ def main() -> None:
     # Python float lr scale -- neither reaches a device op as a constant (the loss scaling, which
     # would, goes through inv_gas_dev instead).
     global BATCH_RAMP, BATCH_RAMP_GRAD_ACCUM, BATCH_RAMP_BOUNDS, BATCH_RAMP_LR_EXP
-    global USE_WEIGHT_EMA, WEIGHT_EMA_DECAY, WEIGHT_EMA_START_FRAC
+    global USE_WEIGHT_EMA, WEIGHT_EMA_DECAYS, WEIGHT_EMA_START_FRAC
     parser = argparse.ArgumentParser(description="Neuron Competition R1 baseline")
     parser.add_argument("--device-type", type=str, default="")
     parser.add_argument("--num-steps", type=int, default=int(os.environ.get("NEURON_COMPETITION_R1_NUM_STEPS", NUM_STEPS)))
@@ -4844,10 +4859,14 @@ def main() -> None:
                         help="T2.2: keep an exponential moving average of the weights over the "
                              "cooldown tail, save it alongside the raw weights, and evaluate both. "
                              "Off by default.")
-    parser.add_argument("--weight-ema-decay", type=float,
-                        default=float(os.environ.get("NEURON_COMPETITION_R1_WEIGHT_EMA_DECAY", WEIGHT_EMA_DECAY)),
-                        help="T2.2: per-step EMA decay. The averaging window is ~1/(1-decay) "
-                             "steps, so 0.995 ~ 200 steps and 0.999 ~ 1000.")
+    parser.add_argument("--weight-ema-decay", type=str,
+                        default=os.environ.get("NEURON_COMPETITION_R1_WEIGHT_EMA_DECAY",
+                                               ",".join(str(d) for d in WEIGHT_EMA_DECAYS)),
+                        help="T2.2: comma-separated per-step EMA decays -- one shadow each, all "
+                             "updated from the same weights every step, so they are a zero-noise "
+                             "comparison. The averaging window is ~1/(1-decay) steps (0.98 ~ 50, "
+                             "0.995 ~ 200, 0.999 ~ 1000). The FIRST is the primary: it is the one "
+                             "saved into the checkpoint's 'ema_state'.")
     parser.add_argument("--weight-ema-start-frac", type=float,
                         default=float(os.environ.get("NEURON_COMPETITION_R1_WEIGHT_EMA_START_FRAC", WEIGHT_EMA_START_FRAC)),
                         help="T2.2: elapsed/max_train_seconds at which the shadow is seeded from "
@@ -5129,10 +5148,10 @@ def main() -> None:
     if len(BATCH_RAMP_BOUNDS) != 2 or not 0.0 < BATCH_RAMP_BOUNDS[0] <= BATCH_RAMP_BOUNDS[1] < 1.0:
         raise ValueError(f"--batch-ramp-bounds needs 0 < A->B <= B->C < 1, got {BATCH_RAMP_BOUNDS}")
     USE_WEIGHT_EMA = args.weight_ema
-    WEIGHT_EMA_DECAY = args.weight_ema_decay
+    WEIGHT_EMA_DECAYS = tuple(float(v) for v in args.weight_ema_decay.split(","))
     WEIGHT_EMA_START_FRAC = args.weight_ema_start_frac
-    if not 0.0 < WEIGHT_EMA_DECAY < 1.0:
-        raise ValueError(f"--weight-ema-decay must be in (0,1), got {WEIGHT_EMA_DECAY}")
+    if not WEIGHT_EMA_DECAYS or not all(0.0 < d < 1.0 for d in WEIGHT_EMA_DECAYS):
+        raise ValueError(f"--weight-ema-decay needs one or more values in (0,1), got {WEIGHT_EMA_DECAYS}")
     if not 0.0 <= WEIGHT_EMA_START_FRAC < 1.0:
         raise ValueError(f"--weight-ema-start-frac must be in [0,1), got {WEIGHT_EMA_START_FRAC}")
     LRM_QUANTUM = args.lrm_quantum
@@ -5291,14 +5310,14 @@ def main() -> None:
     ramp_stage_logged = -1
     # T2.2: EMA of the final weights. `ema_names`/`ema_live` are fixed lists (the parameter set
     # never changes after construction) so the per-step work is one torch._foreach_lerp_ over
-    # preallocated tensors and no Python walk of the module tree. `ema_shadow` stays None until
+    # preallocated tensors and no Python walk of the module tree. `ema_shadows` stays None until
     # WEIGHT_EMA_START_FRAC of the budget has elapsed -- both to keep the high-lr phase out of the
     # average and so a run that never reaches that point allocates nothing.
     ema_names = [n for n, _ in orig_model.named_parameters()]
     ema_live = [p for _, p in orig_model.named_parameters()]
-    ema_shadow: list[torch.Tensor] | None = None
+    ema_shadows: list[list[torch.Tensor]] | None = None   # one shadow set per decay
     ema_updates = 0
-    ema_lerp_weight = 1.0 - WEIGHT_EMA_DECAY  # fixed for the whole run, see the T2.2 note above
+    ema_lerp_ws = [1.0 - d for d in WEIGHT_EMA_DECAYS]  # fixed for the run, see the T2.2 note
 
     while step < args.num_steps:
         elapsed = time.monotonic() - budget_started
@@ -5385,12 +5404,13 @@ def main() -> None:
             # succeeds but makes the shadow a graph node holding a reference to the parameters --
             # a new autograd graph retained every step.
             with torch.no_grad():
-                if ema_shadow is None:
-                    ema_shadow = [p.detach().clone() for p in ema_live]
+                if ema_shadows is None:
+                    ema_shadows = [[p.detach().clone() for p in ema_live] for _ in ema_lerp_ws]
                     print0(f"weight_ema: seeded at step {step} progress {ramp_progress:.3f} "
-                           f"decay={WEIGHT_EMA_DECAY} tensors={len(ema_shadow)}")
+                           f"decays={WEIGHT_EMA_DECAYS} tensors={len(ema_live)} each")
                 else:
-                    torch._foreach_lerp_(ema_shadow, ema_live, ema_lerp_weight)
+                    for shadow, w in zip(ema_shadows, ema_lerp_ws):
+                        torch._foreach_lerp_(shadow, ema_live, w)
                     ema_updates += 1
         for m in cached_linears:  # T1.10: prebuilt list; empty when USE_WEIGHT_CACHE is off
             m.refresh_weight_cache(COMPUTE_DTYPE)
@@ -5498,8 +5518,9 @@ def main() -> None:
             "world_size": world_size,
             "compiled": args.compile,
             "weight_ema_updates": ema_updates,
-            "weight_ema_decay": WEIGHT_EMA_DECAY if ema_shadow is not None else None,
-        }, ema_state=weight_ema_state(orig_model, ema_names, ema_shadow) if ema_shadow is not None else None)
+            "weight_ema_decay": WEIGHT_EMA_DECAYS[0] if ema_shadows is not None else None,
+        }, ema_state=(weight_ema_state(orig_model, ema_names, ema_shadows[0])
+                      if ema_shadows is not None else None))
     if dist.is_available() and dist.is_initialized():
         dist.barrier()
     budget_elapsed_after_save = time.monotonic() - budget_started
@@ -5541,27 +5562,29 @@ def main() -> None:
     # noise and needs no paired run. Safe to clobber the live weights here because the checkpoint
     # (which holds the raw set) is already written and training is over. The bf16 weight cache has
     # to be refreshed or the Linears would keep serving the pre-swap copies.
-    public_eval_ema = None
-    public_eval_ema_alt = None
+    ema_evals: list[tuple[float, dict, dict | None]] = []   # (decay, eval@SEQ_LEN, eval@alt)
     ema_eval_seconds = 0.0
-    if args.eval_public and ema_shadow is not None:
+    if args.eval_public and ema_shadows is not None:
         ema_eval_started = time.monotonic()
-        with torch.no_grad():
-            for p, s in zip(ema_live, ema_shadow):
-                p.copy_(s)
-        for m in cached_linears:
-            m.refresh_weight_cache(COMPUTE_DTYPE)
-        public_eval_ema = evaluate_bpb(
-            orig_model, tokenizer, DEVICE_BATCH_SIZE, SEQ_LEN, device,
-            split="public_val", max_tokens=args.eval_tokens,
-            timeout_seconds=EVAL_TIMEOUT_SECONDS,
-        )
-        if args.eval_seq_len:
-            public_eval_ema_alt = evaluate_bpb(
-                orig_model, tokenizer, DEVICE_BATCH_SIZE, args.eval_seq_len, device,
+        for decay, shadow in zip(WEIGHT_EMA_DECAYS, ema_shadows):
+            with torch.no_grad():
+                for p, s in zip(ema_live, shadow):
+                    p.copy_(s)
+            for m in cached_linears:
+                m.refresh_weight_cache(COMPUTE_DTYPE)
+            main = evaluate_bpb(
+                orig_model, tokenizer, DEVICE_BATCH_SIZE, SEQ_LEN, device,
                 split="public_val", max_tokens=args.eval_tokens,
                 timeout_seconds=EVAL_TIMEOUT_SECONDS,
             )
+            alt = None
+            if args.eval_seq_len:
+                alt = evaluate_bpb(
+                    orig_model, tokenizer, DEVICE_BATCH_SIZE, args.eval_seq_len, device,
+                    split="public_val", max_tokens=args.eval_tokens,
+                    timeout_seconds=EVAL_TIMEOUT_SECONDS,
+                )
+            ema_evals.append((decay, main, alt))
         ema_eval_seconds = time.monotonic() - ema_eval_started
 
     if rank == 0:
@@ -5604,8 +5627,8 @@ def main() -> None:
               f"bounds={BATCH_RAMP_BOUNDS} lr_exp={BATCH_RAMP_LR_EXP} "
               f"ref_grad_accum={grad_accum_steps} last_grad_accum={grad_accum_now}")
         # T2.2, same one-line convention.
-        print(f"weight_ema:        {USE_WEIGHT_EMA} decay={WEIGHT_EMA_DECAY} "
-              f"start_frac={WEIGHT_EMA_START_FRAC} seeded={ema_shadow is not None} "
+        print(f"weight_ema:        {USE_WEIGHT_EMA} decays={WEIGHT_EMA_DECAYS} "
+              f"start_frac={WEIGHT_EMA_START_FRAC} seeded={ema_shadows is not None} "
               f"updates={ema_updates}")
         print(f"num_steps:         {step}")
         print(f"total_tokens_M:    {total_train_tokens / 1e6:.1f}")
@@ -5628,14 +5651,26 @@ def main() -> None:
         # T2.2: same weights-except-averaging, same eval window, so the delta against
         # public_val_bpb / public_val_bpb_alt above IS the effect of the EMA, with no run-to-run
         # noise in it at all.
-        if public_eval_ema is not None:
-            print(f"public_val_bpb_ema: {public_eval_ema['val_bpb']:.6f}")
-            print(f"ema_delta:         {public_eval_ema['val_bpb'] - public_eval['val_bpb']:+.6f}")
+        if ema_evals:
+            # The PRIMARY decay (the one in the checkpoint) gets its own keys; every arm also
+            # appears on one summary line so a multi-decay run is one log row, not several.
+            primary_decay, primary, primary_alt = ema_evals[0]
+            print(f"public_val_bpb_ema: {primary['val_bpb']:.6f}")
+            print(f"ema_delta:         {primary['val_bpb'] - public_eval['val_bpb']:+.6f}")
             print(f"eval_ema_seconds:  {ema_eval_seconds:.1f}")
-        if public_eval_ema_alt is not None:
-            print(f"public_val_bpb_ema_alt: {public_eval_ema_alt['val_bpb']:.6f}")
-            print(f"ema_delta_alt:     "
-                  f"{public_eval_ema_alt['val_bpb'] - public_eval_alt['val_bpb']:+.6f}")
+            if primary_alt is not None:
+                print(f"public_val_bpb_ema_alt: {primary_alt['val_bpb']:.6f}")
+                print(f"ema_delta_alt:     "
+                      f"{primary_alt['val_bpb'] - public_eval_alt['val_bpb']:+.6f}")
+            arms = " ".join(
+                f"{d}={m['val_bpb']:.6f}/{m['val_bpb'] - public_eval['val_bpb']:+.6f}"
+                + (f"|{a['val_bpb']:.6f}/{a['val_bpb'] - public_eval_alt['val_bpb']:+.6f}"
+                   if a is not None else "")
+                for d, m, a in ema_evals
+            )
+            print(f"weight_ema_arms:   raw={public_eval['val_bpb']:.6f}"
+                  + (f"|{public_eval_alt['val_bpb']:.6f}" if public_eval_alt is not None else "")
+                  + f" {arms}")
 
     cleanup_runtime()
 
