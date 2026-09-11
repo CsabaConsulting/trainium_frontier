@@ -325,6 +325,101 @@ def has_ve(layer_idx: int, n_layer: int) -> bool:
     return layer_idx % 2 == (n_layer - 1) % 2
 
 
+# -----------------------------------------------------------------------------
+# T3.1 -- hashed bigram/trigram VALUE embeddings (Recursive's recipe, research plan
+# §5 T3.1 + §11.1). The two SOTA 5-minute-budget solutions both credit hashed n-gram
+# tables as their single largest gap-closer, and Recursive's variant rides exactly on
+# the code path this file already has: on every has_ve() layer, add a table indexed by
+# a HASH of (prev, cur) -- and, on the first and last VE layer, of (prev2, prev, cur) --
+# and mix it into the same attention V stream the unigram value embedding already feeds,
+# through its own zero-init per-head gate reading a DISJOINT slice of the residual
+# (unigram 0:32, bigram 32:64, trigram 64:96).
+#
+# Strictly causal by construction: position t's index is a function of tokens t, t-1,
+# t-2 only -- never a later position -- so causality_check must stay at exactly 0.0.
+# Exact no-op at step 0: the tables are ZERO-initialized (unlike the unigram VE, whose
+# table is uniform(-s, s)), so `v + gate * 0 == v` bit-exactly even though the zero-init
+# gate evaluates to the neutral 2*sigmoid(0) = 1.0. That is what makes USE_NGRAM_VE=True
+# bit-identical to False at init and the A/B honest.
+USE_NGRAM_VE = False
+NGRAM_VE_TABLE_MULT = 8   # rows per table = this x padded_vocab_size (8 x 8192 = 65536).
+NGRAM_VE_TRIGRAM = True   # also add a trigram table on the FIRST and LAST VE layer.
+NGRAM_VE_LR = 0.0         # 0 => EMBEDDING_LR (Recursive uses the embedding LR for the tables)
+NGRAM_VE_BETA2 = 0.999    # RMSProp second-moment decay
+NGRAM_VE_FLAT_LR = True   # no warmdown for these tables ("sparse tables benefit from full-rate
+                          # training"). Warmup still applies -- only the cooldown is skipped.
+NGRAM_VE_OPT = "rmsprop"  # "rmsprop" (no first moment, Recursive's choice) or "adamw"
+NGRAM_VE_BF16 = True      # store the tables (and their optimizer state) in bf16
+NGRAM_VE_CLIP_EXCLUDE = True  # keep the tables OUT of the global clip_grad_norm_ and clip them as
+# their own group instead. GRAD_CLIP=1.0 is a GLOBAL norm, so folding ~200M extra parameters'
+# gradients into it would shrink clip_coef and thereby change the effective LR of every OTHER
+# tensor in the model -- a confound that has nothing to do with whether n-gram tables help. With
+# this on, the baseline arm's clip is bit-identical (same tensors, same order) and the tables are
+# still norm-bounded, just separately.
+
+
+def _next_prime(n: int) -> int:
+    """Smallest prime >= n. Used once at import to build the hash multipliers."""
+    def is_prime(m: int) -> bool:
+        if m < 2:
+            return False
+        if m % 2 == 0:
+            return m == 2
+        f = 3
+        while f * f <= m:
+            if m % f == 0:
+                return False
+            f += 2
+        return True
+    while not is_prime(n):
+        n += 1
+    return n
+
+
+# 30 well-spaced primes, generated deterministically so a given (layer, order) always
+# hashes the same way for the life of this code -- and provably prime, rather than a
+# hand-typed list that might quietly contain a composite. The upper bound matters: the
+# hash multiplies a token id (<= NGRAM_PAD_ID = padded_vocab_size = 8192) by one of
+# these and the product must stay inside int32, so max prime x 8192 < 2^31 requires
+# every prime < 262144. 8192 + 8000*29 = 240192 leaves real headroom.
+NGRAM_HASH_PRIMES = tuple(_next_prime(8192 + 8000 * k) for k in range(30))
+
+
+def _largest_prime_below(n: int) -> int:
+    """Largest prime <= n. Used for the hash modulus (see GPT.ngram_mod)."""
+    m = n
+    while _next_prime(m) != m:
+        m -= 1
+    return m
+
+
+def ngram_bigram_primes(layer_idx: int) -> tuple[int, int]:
+    """(p_prev, p_cur) for this layer's bigram hash. Different pair per layer so
+    collisions decorrelate across layers (Recursive's stated reason)."""
+    i = (2 * layer_idx) % (len(NGRAM_HASH_PRIMES) - 1)
+    return NGRAM_HASH_PRIMES[i], NGRAM_HASH_PRIMES[i + 1]
+
+
+def ngram_trigram_primes(layer_idx: int) -> tuple[int, int, int]:
+    """(p_prev2, p_prev, p_cur) for this layer's trigram hash. Offset into the prime
+    table so it never coincides with any layer's bigram pair."""
+    i = 12 + (3 * layer_idx) % (len(NGRAM_HASH_PRIMES) - 14)
+    return NGRAM_HASH_PRIMES[i], NGRAM_HASH_PRIMES[i + 1], NGRAM_HASH_PRIMES[i + 2]
+
+
+def has_ngram_bigram(layer_idx: int, n_layer: int) -> bool:
+    """Bigram table on every VE layer (the same has_ve() rule the unigram VE uses)."""
+    return USE_NGRAM_VE and USE_VE and has_ve(layer_idx, n_layer)
+
+
+def has_ngram_trigram(layer_idx: int, n_layer: int) -> bool:
+    """Trigram table on the FIRST and LAST VE layer only (Recursive's allocation)."""
+    if not (NGRAM_VE_TRIGRAM and has_ngram_bigram(layer_idx, n_layer)):
+        return False
+    ve = [i for i in range(n_layer) if has_ve(i, n_layer)]
+    return layer_idx in (ve[0], ve[-1])
+
+
 WINDOW_PATTERN = "L"    # per-layer attention window pattern, cycled to n_layer length; 'L' = full context, 'S' = short window
 SHORT_WINDOW_FRAC = 0.5  # short window size as a fraction of SEQ_LEN (only matters for 'S' layers)
 ROPE_BASE = 100000       # rotary embedding base frequency. Scaling up to 500000 at SEQ_LEN=4096 made no difference (848/1.101979 vs 849/1.101243) -- rules out RoPE-extrapolation as the cause of 4096's quality drop-off. See trn2-experiment-results.md
@@ -2960,9 +3055,20 @@ class CausalSelfAttention(nn.Module):
         # per forward) so it is a single compile-time constant in the graph, identical every step.
         self.attn_scale = config.attn_scale if config.attn_scale > 0.0 else None
         self.ve_gate = Linear(VE_GATE_CHANNELS, self.n_head, bias=False) if USE_VE and has_ve(layer_idx, config.n_layer) else None
+        # T3.1: one extra per-head gate per hashed n-gram order, each reading a DISJOINT
+        # 32-channel slice of the V-stream residual so the three value-embedding gates
+        # never compete for the same channels (unigram 0:32, bigram 32:64, trigram 64:96).
+        self.ve_gate_bi = Linear(VE_GATE_CHANNELS, self.n_head, bias=False) \
+            if has_ngram_bigram(layer_idx, config.n_layer) else None
+        self.ve_gate_tri = Linear(VE_GATE_CHANNELS, self.n_head, bias=False) \
+            if has_ngram_trigram(layer_idx, config.n_layer) else None
+        if self.ve_gate_tri is not None:
+            assert config.n_embd >= 3 * VE_GATE_CHANNELS, (config.n_embd, VE_GATE_CHANNELS)
+        elif self.ve_gate_bi is not None:
+            assert config.n_embd >= 2 * VE_GATE_CHANNELS, (config.n_embd, VE_GATE_CHANNELS)
         self.dcmha = DCMHACompose(config.n_embd, self.n_head, layer_idx) if USE_DCMHA else None
 
-    def forward(self, x_q: torch.Tensor, x_k: torch.Tensor, x_v: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, attn_mask: torch.Tensor | None, v0: torch.Tensor | None = None, v0_lambda: torch.Tensor | None = None) -> tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, x_q: torch.Tensor, x_k: torch.Tensor, x_v: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, attn_mask: torch.Tensor | None, v0: torch.Tensor | None = None, v0_lambda: torch.Tensor | None = None, ve_bi: torch.Tensor | None = None, ve_tri: torch.Tensor | None = None) -> tuple[torch.Tensor, torch.Tensor]:
         b, t, c = x_q.shape
         if USE_FUSED_QKV:
             # Fused QKV needs one shared input; MUDD's separate Q/K/V streams collapse
@@ -2979,6 +3085,15 @@ class CausalSelfAttention(nn.Module):
             ve = ve.view(b, t, self.n_head, self.head_dim)
             gate = 2 * torch.sigmoid(self.ve_gate(x_v[..., :VE_GATE_CHANNELS]))
             v = v + gate.unsqueeze(-1) * ve
+        if ve_bi is not None:
+            # T3.1. Purely per-position, like the unigram VE above: ve_bi[t] was gathered
+            # with a hash of tokens (t-1, t) and the gate reads position t's own residual,
+            # so nothing here can see a later position.
+            g_bi = 2 * torch.sigmoid(self.ve_gate_bi(x_v[..., VE_GATE_CHANNELS:2 * VE_GATE_CHANNELS]))
+            v = v + g_bi.unsqueeze(-1) * ve_bi.view(b, t, self.n_head, self.head_dim)
+        if ve_tri is not None:
+            g_tri = 2 * torch.sigmoid(self.ve_gate_tri(x_v[..., 2 * VE_GATE_CHANNELS:3 * VE_GATE_CHANNELS]))
+            v = v + g_tri.unsqueeze(-1) * ve_tri.view(b, t, self.n_head, self.head_dim)
         v_raw = v
         if v0 is not None:
             # Value Residual Learning (arXiv:2410.17897): v0 is layer-0's own v_raw, same
@@ -3115,7 +3230,7 @@ class Block(nn.Module):
         self.v_lambda = nn.Parameter(torch.zeros(1)) \
             if USE_VALUE_RESIDUAL and layer_idx > 0 and not (self.is_mamba or self.is_rwkv) else None
 
-    def forward(self, x: torch.Tensor, x0: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, attn_mask: torch.Tensor | None, v0: torch.Tensor | None = None, hidden_states: list[torch.Tensor] | None = None) -> tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, x: torch.Tensor, x0: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, attn_mask: torch.Tensor | None, v0: torch.Tensor | None = None, hidden_states: list[torch.Tensor] | None = None, ve_bi: torch.Tensor | None = None, ve_tri: torch.Tensor | None = None) -> tuple[torch.Tensor, torch.Tensor]:
         if self.mudd is not None:
             q_in, k_in, v_in, x = self.mudd(hidden_states, hidden_states[-1])
         else:
@@ -3146,7 +3261,7 @@ class Block(nn.Module):
             x = x + self.tmix(norm(q_in), ve)
             v_raw = None
         else:
-            attn_out, v_raw = self.attn(norm(q_in), norm(k_in), norm(v_in), ve, cos, sin, attn_mask, v0, self.v_lambda)
+            attn_out, v_raw = self.attn(norm(q_in), norm(k_in), norm(v_in), ve, cos, sin, attn_mask, v0, self.v_lambda, ve_bi, ve_tri)
             x = x + attn_out
         x = x + (self.cmix(norm(x)) if self.cmix is not None else self.mlp(norm(x)))
         return x, v_raw
@@ -3180,6 +3295,37 @@ class GPT(nn.Module):
             for i in range(config.n_layer)
             if USE_VE and has_ve(i, config.n_layer) and not self.layer_is_mamba[i]
         })
+        # T3.1: hashed n-gram VALUE embeddings. Keys are "b<layer>" / "t<layer>" so a
+        # bigram-only and a bigram+trigram run have visibly different state_dict keys
+        # (strict=True then catches a toggle mismatch loudly -- USE_NGRAM_VE and
+        # NGRAM_VE_TRIGRAM are both in SHAPE_CRITICAL_TOGGLES for that reason).
+        # A Mamba2 layer has no attention V, exactly as for the unigram tables above.
+        self.ngram_rows = NGRAM_VE_TABLE_MULT * padded_vocab_size
+        # The MODULUS is the largest prime <= rows, not `rows` itself. `rows` is a power of
+        # two here, and `h % 2^k` keeps only h's low k bits, which throws away every bit of
+        # mixing the primes put in the high half (modded-nanogpt uses `mod (R-1)` for the
+        # same reason). A prime modulus uses all of h. The few rows above the modulus are
+        # simply never indexed -- kept so the row count stays a multiple of 64.
+        self.ngram_mod = _largest_prime_below(self.ngram_rows)
+        ngram_dtype = torch.bfloat16 if NGRAM_VE_BF16 else torch.float32
+        tables: dict[str, nn.Module] = {}
+        for i in range(config.n_layer):
+            if self.layer_is_mamba[i]:
+                continue
+            if has_ngram_bigram(i, config.n_layer):
+                tables[f"b{i}"] = nn.Embedding(self.ngram_rows, config.n_embd, dtype=ngram_dtype)
+            if has_ngram_trigram(i, config.n_layer):
+                tables[f"t{i}"] = nn.Embedding(self.ngram_rows, config.n_embd, dtype=ngram_dtype)
+        self.ngram_embeds = nn.ModuleDict(tables)
+        # The n-gram gates live in CausalSelfAttention, so an RWKV layer (which has a
+        # tmix instead of an attn) would carry a table nothing ever reads. Refuse the
+        # combination loudly rather than silently pay ~40M dead parameters for it.
+        assert not (tables and any(self.layer_is_rwkv)), \
+            "USE_NGRAM_VE is not wired into RWKVTimeMix; use --no-rwkv"
+        # Sentinel for the missing history at positions 0 (and 1): a token id one past the
+        # padded vocabulary, so it can never be confused with a real token. NGRAM_HASH_PRIMES
+        # is bounded so that this id times any multiplier still fits in int32.
+        self.ngram_pad_id = padded_vocab_size
         cos, sin = self._precompute_rotary_embeddings(config.sequence_len, config.n_embd // config.n_head)
         self.register_buffer("cos", cos, persistent=False)
         self.register_buffer("sin", sin, persistent=False)
@@ -3262,13 +3408,63 @@ class GPT(nn.Module):
                 block.x0_lambda.fill_(0.05)
             if block.attn.ve_gate is not None:
                 torch.nn.init.zeros_(block.attn.ve_gate.weight)
+            for g in (block.attn.ve_gate_bi, block.attn.ve_gate_tri):
+                if g is not None:
+                    torch.nn.init.zeros_(g.weight)   # T3.1: neutral gate = 2*sigmoid(0) = 1.0
             if block.scalar_gate is not None:
                 torch.nn.init.zeros_(block.scalar_gate.weight)
         for ve in self.value_embeds.values():
             torch.nn.init.uniform_(ve.weight, -s, s)
+        # T3.1: ZERO-init, deliberately unlike the unigram tables above. The gate is neutral
+        # (1.0) rather than closed at init, so a zero TABLE is the only thing that makes
+        # USE_NGRAM_VE=True bit-identical to USE_NGRAM_VE=False at step 0. It is also what
+        # modded-nanogpt #62 does with its bigram table.
+        for tbl in self.ngram_embeds.values():
+            torch.nn.init.zeros_(tbl.weight)
         cos, sin = self._precompute_rotary_embeddings(self.config.sequence_len, self.config.n_embd // self.config.n_head)
         self.cos.copy_(cos)
         self.sin.copy_(sin)
+
+    def _ngram_hash_indices(self, idx: torch.Tensor) -> dict[str, torch.Tensor]:
+        """T3.1: per-table gather indices for the hashed n-gram value embeddings.
+
+        STRICTLY CAUSAL: index[b, t] is a function of idx[b, t], idx[b, t-1] and (for the
+        trigram tables) idx[b, t-2] only, so no position can ever read a later one --
+        which is why causality_check stays at exactly 0.0 with this on.
+
+        DETERMINISTIC: a pure function of the token ids and of compile-time prime
+        constants (NGRAM_HASH_PRIMES, built once at import by a sieve, and self.ngram_mod).
+        No RNG, no dependence on dict/iteration order, no per-step-changing scalar -- the
+        same token pair maps to the same row on every step, every rank and every process.
+
+        Computed on DEVICE rather than on the host in fetch(): every operand is int32 and
+        every op (mul by a compile-time constant, bitwise_xor, remainder) is elementwise on
+        a [b, T] tensor, i.e. ~5 tiny launches per table against the 168 MB gather the row
+        lookup itself costs. The plan's host-side fallback (numpy int64 in fetch() plus an
+        extra H2D copy per micro-step) exists if these int ops ever stop compiling, but it
+        also has to thread an extra tensor through forward()/eval/load_for_eval, so it is
+        only worth paying for if measured to be necessary.
+        """
+        cur = idx.to(torch.int32)
+        # Missing history at t = 0 (and t = 1) gets a sentinel id one past the padded
+        # vocabulary, so "no previous token" is its own hash input rather than colliding
+        # with real token 0.
+        pad = torch.full_like(cur[:, :1], self.ngram_pad_id)
+        prev = torch.cat((pad, cur[:, :-1]), dim=1)
+        need_trigram = any(k.startswith("t") for k in self.ngram_embeds)
+        prev2 = torch.cat((pad, pad, cur[:, :-2]), dim=1) if need_trigram else None
+        out: dict[str, torch.Tensor] = {}
+        for key in self.ngram_embeds:
+            layer = int(key[1:])
+            if key[0] == "b":
+                p_prev, p_cur = ngram_bigram_primes(layer)
+                h = torch.bitwise_xor(prev * p_prev, cur * p_cur)
+            else:
+                p_prev2, p_prev, p_cur = ngram_trigram_primes(layer)
+                h = torch.bitwise_xor(torch.bitwise_xor(prev2 * p_prev2, prev * p_prev),
+                                      cur * p_cur)
+            out[key] = torch.remainder(h, self.ngram_mod)
+        return out
 
     def _precompute_rotary_embeddings(self, seq_len: int, head_dim: int, base: int = ROPE_BASE):
         device = self.transformer.wte.weight.device
@@ -3287,6 +3483,12 @@ class GPT(nn.Module):
         """Estimate FLOPs per token (forward + backward). Attention QK^T and AV are O(T) per token."""
         nparams = sum(p.numel() for p in self.parameters())
         non_matmul = self.transformer.wte.weight.numel() + 2 * self.config.n_layer  # per-block scalars
+        # Same reasoning as wte: an n-gram table is READ BY A GATHER, not a matmul, so
+        # pricing its up-to-210M parameters at 6 FLOPs/param/token would report a fictitious
+        # ~1.3 GFLOP/token and make the MFU number meaningless. Deliberately NOT extended to
+        # the (much smaller) unigram value_embeds tables, which have the same character but
+        # whose exclusion would silently move every historical MFU number in the log.
+        non_matmul += sum(p.numel() for p in self.ngram_embeds.parameters())
         h = self.config.n_head
         d = self.config.n_embd // self.config.n_head
         t = self.config.sequence_len
@@ -3413,6 +3615,28 @@ class GPT(nn.Module):
             param_groups.append(dict(kind="adamw", params=rwkv_params, lr=MATRIX_LR, betas=(0.9, 0.95), eps=1e-10, weight_decay=0.0))
         if value_embed_params:
             param_groups.append(dict(kind="adamw", params=value_embed_params, lr=EMBEDDING_LR * dmodel_lr_scale, betas=(0.8, EMBED_ADAMW_BETA2), eps=1e-10, weight_decay=VE_WD))
+        ngram_params = list(self.ngram_embeds.parameters())
+        if ngram_params:
+            # T3.1. Its own group for three reasons, all from Recursive's recipe:
+            #  * RMSProp (no first moment) rather than Adam. A hashed n-gram row is touched
+            #    a fraction of a step on average, and Adam's m/sqrt(v) DAMPS a rare update
+            #    by exactly the frequency factor it divides out of v; dropping the first
+            #    moment gives every row a full-rate update whenever it is hit, which is
+            #    the stated point ("sparse tables benefit from full-rate training").
+            #  * weight_decay 0 -- decaying a table 99.95% of whose rows have no gradient
+            #    this step is pure signal destruction.
+            #  * no_lr_decay -- these tables keep a FLAT lr for the whole run instead of
+            #    following the warmdown (the training loop honours this key; warmup still
+            #    applies, only the cooldown is skipped).
+            # NGRAM_VE_OPT="adamw" is the fallback arm: identical group, but the same
+            # (0.8, EMBED_ADAMW_BETA2) Adam the unigram value-embedding tables use, so the
+            # optimizer choice can be A/B'd on its own without touching anything else.
+            ngram_lr = (NGRAM_VE_LR if NGRAM_VE_LR > 0.0 else EMBEDDING_LR) * dmodel_lr_scale
+            rmsprop = NGRAM_VE_OPT == "rmsprop"
+            param_groups.append(dict(
+                kind="rmsprop" if rmsprop else "adamw", params=ngram_params, lr=ngram_lr,
+                betas=(0.0, NGRAM_VE_BETA2) if rmsprop else (0.8, EMBED_ADAMW_BETA2),
+                eps=1e-10, weight_decay=0.0, no_lr_decay=NGRAM_VE_FLAT_LR))
         if local_conv_params and TRAIN_LOCAL_CONV:
             param_groups.append(dict(kind="adamw", params=local_conv_params, lr=MATRIX_LR, betas=(0.9, 0.95), eps=1e-10, weight_decay=0.0))
         for shape in sorted({p.shape for p in matrix_params}):
@@ -3437,8 +3661,17 @@ class GPT(nn.Module):
         # the non-MUDD path pays no extra memory for activations it never uses.
         hidden_states = [x0] if USE_MUDD else None
         doc_mask = doc_boundary_mask(idx) if USE_DOC_MASK else None
+        # T3.1: all hash indices in one place (each is a [b, T] int32 tensor, ~32 KB), so
+        # the shared prev/prev2 shifts are computed once rather than once per layer.
+        ngram_idx = self._ngram_hash_indices(idx) if len(self.ngram_embeds) else None
         for i, block in enumerate(self.transformer.h):
             ve = self.value_embeds[str(i)](idx).to(COMPUTE_DTYPE) if str(i) in self.value_embeds else None
+            ve_bi = ve_tri = None
+            if ngram_idx is not None:
+                if f"b{i}" in self.ngram_embeds:
+                    ve_bi = self.ngram_embeds[f"b{i}"](ngram_idx[f"b{i}"]).to(COMPUTE_DTYPE)
+                if f"t{i}" in self.ngram_embeds:
+                    ve_tri = self.ngram_embeds[f"t{i}"](ngram_idx[f"t{i}"]).to(COMPUTE_DTYPE)
             if self.layer_is_mamba[i] or self.layer_is_rwkv[i]:
                 # No attention here, so don't materialize an additive mask this
                 # layer will never read. Both alternatives are causal structurally
@@ -3454,7 +3687,7 @@ class GPT(nn.Module):
             else:
                 static_mask = (self.mask_short if self.layer_is_short[i] else self.mask_full)[..., :t, :t]
                 attn_mask = static_mask + doc_mask if doc_mask is not None else static_mask
-            x, v_raw = block(x, x0, ve, cos, sin, attn_mask, v0, hidden_states)
+            x, v_raw = block(x, x0, ve, cos, sin, attn_mask, v0, hidden_states, ve_bi, ve_tri)
             if USE_MUDD:
                 hidden_states.append(x)
             if USE_VALUE_RESIDUAL and v0 is None:
@@ -3504,6 +3737,12 @@ POLAR_EXPRESS_COEFFS = [
     (3.285753657755655, -2.3681294933425376, 0.46449024233003106),
     (2.3465413258596377, -1.7097828382687081, 0.42323551169305323),
 ]
+
+
+# Kinds that T1.4's every-N-steps machinery treats alike: both are diagonal, per-element
+# optimizers whose gradients accumulate in place between updates, unlike Muon's stacked
+# momentum buffers. See MuonAdamW.step / zero_grad_selective / adamw_param_ids.
+ADAM_LIKE_KINDS = ("adamw", "rmsprop")
 
 
 class MuonAdamW(torch.optim.Optimizer):
@@ -3697,6 +3936,70 @@ class MuonAdamW(torch.optim.Optimizer):
             else:
                 p.add_(update, alpha=-lr)
 
+    def _rmsprop_state(self, group):
+        """Prologue for the RMSProp path -- the same contract as _adamw_state, minus the
+        first moment (that is the whole point of this kind) and minus its bias correction."""
+        beta2 = group["betas"][1]
+        params, grads, exp_avg_sqs, bias2 = [], [], [], []
+        for p in group["params"]:
+            if p.grad is None:
+                continue
+            state = self.state[p]
+            if not state:
+                state["step"] = 0
+                state["exp_avg_sq"] = torch.zeros_like(p)
+            state["step"] += 1
+            params.append(p)
+            grads.append(p.grad)
+            exp_avg_sqs.append(state["exp_avg_sq"])
+            bias2.append(1 - beta2 ** state["step"])
+        return params, grads, exp_avg_sqs, bias2
+
+    @torch.no_grad()
+    def _rmsprop_step(self, group):
+        """T3.1: RMSProp with no first moment, for the hashed n-gram value-embedding tables.
+
+        `update = grad / (sqrt(exp_avg_sq / bias2) + eps)`, i.e. exactly Adam with beta1 = 0.
+        The bias correction is NOT optional here: classic un-corrected RMSProp starts from
+        exp_avg_sq = 0, so step 1 gives `g / sqrt((1-beta2) g^2)` = 31.6 x sign(g) at
+        beta2 = 0.999 -- a 31x over-sized first update into a zero-initialized table. With
+        the correction the first update is exactly sign(g) * lr, like Adam's.
+
+        weight_decay is asserted 0 rather than implemented: decaying a table whose rows
+        mostly have no gradient this step just erases the rows that are not being trained.
+
+        No NaN on an untouched row: its grad and exp_avg_sq are both exactly 0.0, and eps
+        (1e-10) is representable in bf16 as well as fp32 -- bf16 shares fp32's 8-bit
+        exponent -- so the denominator is 1e-10, not 0, and 0/1e-10 = 0.
+        """
+        assert group["weight_decay"] == 0.0, "rmsprop groups are weight-decay free by design"
+        params, grads, exp_avg_sqs, bias2 = self._rmsprop_state(group)
+        if not params:
+            return
+        lr = group["lr"]
+        if USE_TENSOR_LR_SCALARS:
+            lr = self._device_scalar(group, "lr", lr, params[0])
+        beta2 = group["betas"][1]
+        if USE_FOREACH_OPTIM:
+            torch._foreach_lerp_(exp_avg_sqs, torch._foreach_mul(grads, grads), 1 - beta2)
+            denom = torch._foreach_div(exp_avg_sqs, bias2)
+            torch._foreach_sqrt_(denom)
+            torch._foreach_add_(denom, group["eps"])
+            update = torch._foreach_div(grads, denom)
+            if USE_TENSOR_LR_SCALARS:
+                torch._foreach_mul_(update, lr)
+                torch._foreach_sub_(params, update)
+            else:
+                torch._foreach_add_(params, update, alpha=-lr)
+        else:
+            for p, grad, exp_avg_sq, b2 in zip(params, grads, exp_avg_sqs, bias2):
+                exp_avg_sq.lerp_(grad.square(), 1 - beta2)
+                update = grad / ((exp_avg_sq / b2).sqrt() + group["eps"])
+                if USE_TENSOR_LR_SCALARS:
+                    p.sub_(update * lr)
+                else:
+                    p.add_(update, alpha=-lr)
+
     @torch.no_grad()
     def _muon_step(self, group):
         params = group["params"]
@@ -3828,6 +4131,15 @@ class MuonAdamW(torch.optim.Optimizer):
                     self._adamw_step_foreach(group)
                 else:
                     self._adamw_step(group)
+            elif group["kind"] == "rmsprop":
+                # T3.1: gated by the same update_adamw flag as the AdamW groups. Both are
+                # diagonal/elementwise optimizers over gradients that keep accumulating in
+                # place, so T1.4's "skip the cheap groups on some steps" transformation is
+                # exactly as valid here, and treating them alike keeps zero_grad_selective /
+                # adamw_param_ids from ever leaving one of the two half-updated.
+                if not update_adamw:
+                    continue
+                self._rmsprop_step(group)
             elif group["kind"] == "muon":
                 self._muon_step(group)
             else:
@@ -3840,16 +4152,35 @@ class MuonAdamW(torch.optim.Optimizer):
         accident -- the AdamW branch is skipped entirely rather than zeroed with a different
         mechanism."""
         for group in self.param_groups:
-            if group["kind"] == "adamw" and not zero_adamw:
+            if group["kind"] in ADAM_LIKE_KINDS and not zero_adamw:
                 continue
             for p in group["params"]:
                 p.grad = None
 
     def adamw_param_ids(self) -> frozenset[int]:
-        """T1.4: identities of every parameter in an AdamW group, so the per-step all_reduce can
-        skip exactly those on a non-update step."""
-        return frozenset(id(p) for g in self.param_groups if g["kind"] == "adamw"
+        """T1.4: identities of every parameter in an AdamW (or RMSProp) group, so the per-step
+        all_reduce can skip exactly those on a non-update step."""
+        return frozenset(id(p) for g in self.param_groups if g["kind"] in ADAM_LIKE_KINDS
                          for p in g["params"])
+
+
+def split_clip_params(model: "GPT") -> tuple[list[torch.nn.Parameter], list[torch.nn.Parameter]]:
+    """(main, ngram) parameter lists for clip_grad_norm_ -- see NGRAM_VE_CLIP_EXCLUDE.
+
+    GRAD_CLIP is a GLOBAL norm over every gradient at once, so folding the ~200M-parameter
+    hashed n-gram tables into it would raise the total norm, shrink clip_coef, and thereby
+    change the effective learning rate of every OTHER tensor in the model -- a confound with
+    nothing to do with whether n-gram tables help. Splitting them off leaves the main clip
+    bit-identical to the historical `clip_grad_norm_(model.parameters(), ...)` (same tensors,
+    in the same order) whenever there are no n-gram tables, and still norm-bounds the tables.
+    """
+    ngram_ids = {id(p) for p in model.ngram_embeds.parameters()} if NGRAM_VE_CLIP_EXCLUDE else set()
+    if not ngram_ids:
+        return list(model.parameters()), []
+    main, ngram = [], []
+    for p in model.parameters():
+        (ngram if id(p) in ngram_ids else main).append(p)
+    return main, ngram
 
 
 def sync_gradients(model: nn.Module, skip_param_ids: frozenset[int] | None = None) -> None:
@@ -3950,6 +4281,14 @@ ARCH_TOGGLE_NAMES = [
     # that is NOT in model_config and changes what the weights mean without changing
     # any shape, i.e. exactly the silent class this snapshot exists for.
     "DEPTH", "N_EMBD", "HEAD_DIM", "MLP_RATIO", "ATTN_SCALE",
+    # T3.1 hashed n-gram value embeddings. NGRAM_VE_BF16 is the interesting one to list
+    # here: load_state_dict silently CASTS a mismatched dtype rather than erroring, so a
+    # bf16-vs-fp32 mismatch is exactly the quiet class this snapshot exists for. The
+    # optimizer-side knobs (LR/BETA2/FLAT_LR/OPT/CLIP_EXCLUDE) leave no trace in the
+    # weights at all, which is the other half of the same reason.
+    "USE_NGRAM_VE", "NGRAM_VE_TABLE_MULT", "NGRAM_VE_TRIGRAM", "NGRAM_VE_BF16",
+    "NGRAM_VE_LR", "NGRAM_VE_BETA2", "NGRAM_VE_FLAT_LR", "NGRAM_VE_OPT",
+    "NGRAM_VE_CLIP_EXCLUDE",
 ]
 # Toggles whose mismatch corrupts the state_dict shape (load_state_dict(strict=True) will
 # error loudly). Everything else in ARCH_TOGGLE_NAMES lives in non-persistent buffers or
@@ -3974,7 +4313,12 @@ SHAPE_CRITICAL_TOGGLES = {"USE_VE", "USE_LOCAL_CONV", "USE_GATED_MLP", "USE_SELE
                           # MAMBA2_CHUNK: pure blocking of identical math, no tensor
                           # changes shape, so it is deliberately NOT in this set.
                           "USE_RWKV", "RWKV_PATTERN", "RWKV_HEAD_DIM",
-                          "RWKV_CMIX_EXPAND"}
+                          "RWKV_CMIX_EXPAND",
+                          # T3.1: USE_NGRAM_VE adds/removes the ngram_embeds.* tables AND the
+                          # attn.ve_gate_bi/ve_gate_tri weights, NGRAM_VE_TRIGRAM adds/removes
+                          # the "t<layer>" tables and their gates, and NGRAM_VE_TABLE_MULT
+                          # resizes every table's row count -- all three break strict loading.
+                          "USE_NGRAM_VE", "NGRAM_VE_TRIGRAM", "NGRAM_VE_TABLE_MULT"}
 # USE_FP8_LINEAR is deliberately NOT in the set above: Fp8Linear is a Linear subclass with
 # the identical single `weight` parameter, so flipping it changes only the arithmetic used
 # inside MLP.forward, never a tensor's name or shape. That makes it exactly the
@@ -4120,6 +4464,12 @@ def main() -> None:
     # T0.2/T0.3 capacity-shape knobs. All read inside build_config()/GPT(config), i.e. well before
     # the first step, so none of them can add a per-step graph constant.
     global DEPTH, N_EMBD, HEAD_DIM, MLP_RATIO, ATTN_SCALE, SEQ_LEN
+    # T3.1. USE_NGRAM_VE / NGRAM_VE_TABLE_MULT / NGRAM_VE_TRIGRAM / NGRAM_VE_BF16 are read by
+    # GPT.__init__ and CausalSelfAttention.__init__ (before GPT(config)); the rest are read by
+    # setup_optimizer() or once per step in the training loop, all well before any device op
+    # that could bake them in as a per-step graph constant.
+    global USE_NGRAM_VE, NGRAM_VE_TABLE_MULT, NGRAM_VE_TRIGRAM, NGRAM_VE_BF16
+    global NGRAM_VE_LR, NGRAM_VE_BETA2, NGRAM_VE_FLAT_LR, NGRAM_VE_OPT, NGRAM_VE_CLIP_EXCLUDE
     parser = argparse.ArgumentParser(description="Neuron Competition R1 baseline")
     parser.add_argument("--device-type", type=str, default="")
     parser.add_argument("--num-steps", type=int, default=int(os.environ.get("NEURON_COMPETITION_R1_NUM_STEPS", NUM_STEPS)))
@@ -4186,6 +4536,44 @@ def main() -> None:
                              "costs 13x the per-matmul error of the bf16 it replaces (0.0374 vs "
                              "0.00287). See the USE_FP8_LINEAR comment; exposed as a flag so the "
                              "A/B runs from one identical binary.")
+    parser.add_argument("--ngram-ve", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_NGRAM_VE", "1" if USE_NGRAM_VE else "0") != "0",
+                        help="T3.1: hashed bigram (all VE layers) and trigram (first/last VE layer) "
+                             "VALUE embeddings, mixed into attention's V through their own zero-init "
+                             "per-head gates on disjoint residual channels (unigram 0:32, bigram 32:64, "
+                             "trigram 64:96). Tables are zero-init, so this is an exact no-op at step 0 "
+                             "and the A/B runs from one identical binary. Strictly causal: a position's "
+                             "table row is a hash of tokens t-2..t only.")
+    parser.add_argument("--ngram-ve-table-mult", type=int, default=NGRAM_VE_TABLE_MULT,
+                        help="rows per n-gram table = this x padded_vocab_size (8 => 65536 rows, "
+                             "41.9M params per table at n_embd=640). Recursive went to 64x; start at 8x.")
+    parser.add_argument("--ngram-ve-trigram", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_NGRAM_VE_TRIGRAM", "1" if NGRAM_VE_TRIGRAM else "0") != "0",
+                        help="add a trigram table on the first and last VE layer as well as the "
+                             "bigram table every VE layer gets. --no-ngram-ve-trigram is the "
+                             "bigram-only arm.")
+    parser.add_argument("--ngram-ve-opt", type=str, default=NGRAM_VE_OPT, choices=("rmsprop", "adamw"),
+                        help="optimizer for the n-gram tables. rmsprop (default, Recursive's choice) "
+                             "drops the first moment so a rarely-hit row still gets a full-rate "
+                             "update; adamw is the fallback arm and matches the unigram VE group.")
+    parser.add_argument("--ngram-ve-lr", type=float, default=NGRAM_VE_LR,
+                        help="lr for the n-gram tables before the dmodel scale (0 = use --embedding-lr).")
+    parser.add_argument("--ngram-ve-beta2", type=float, default=NGRAM_VE_BETA2,
+                        help="second-moment decay for the n-gram table optimizer.")
+    parser.add_argument("--ngram-ve-flat-lr", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_NGRAM_VE_FLAT_LR", "1" if NGRAM_VE_FLAT_LR else "0") != "0",
+                        help="hold the n-gram tables' lr FLAT (warmup only, no warmdown), per "
+                             "Recursive's \"sparse tables benefit from full-rate training\". "
+                             "--no-ngram-ve-flat-lr puts them back on the normal cooldown.")
+    parser.add_argument("--ngram-ve-bf16", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_NGRAM_VE_BF16", "1" if NGRAM_VE_BF16 else "0") != "0",
+                        help="store the n-gram tables (and their optimizer state) in bf16 rather "
+                             "than fp32 -- halves their HBM footprint and all-reduce volume.")
+    parser.add_argument("--ngram-ve-clip-exclude", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_NGRAM_VE_CLIP_EXCLUDE", "1" if NGRAM_VE_CLIP_EXCLUDE else "0") != "0",
+                        help="keep the n-gram tables out of the GLOBAL clip_grad_norm_ and clip them "
+                             "as their own group, so adding them cannot change the effective lr of "
+                             "every other tensor through clip_coef. See split_clip_params.")
     parser.add_argument("--lrm-quantum", type=int,
                         default=int(os.environ.get("NEURON_COMPETITION_R1_LRM_QUANTUM", LRM_QUANTUM)),
                         help="snap the LR multiplier onto a 1/N grid (0 = continuous). Each distinct "
@@ -4442,6 +4830,17 @@ def main() -> None:
     USE_LOCAL_CONV = args.local_conv         # read by Block.__init__, i.e. before GPT(config) below
     LOCAL_CONV_KERNEL = args.local_conv_kernel  # ditto (CausalConv.__init__ reads it via the global default)
     TRAIN_LOCAL_CONV = args.train_local_conv  # read by GPT.setup_optimizer(), called after GPT(config) below
+    # T3.1: the first four are read by GPT.__init__/CausalSelfAttention.__init__ below, the
+    # rest by setup_optimizer() / the training loop.
+    USE_NGRAM_VE = args.ngram_ve
+    NGRAM_VE_TABLE_MULT = args.ngram_ve_table_mult
+    NGRAM_VE_TRIGRAM = args.ngram_ve_trigram
+    NGRAM_VE_BF16 = args.ngram_ve_bf16
+    NGRAM_VE_OPT = args.ngram_ve_opt
+    NGRAM_VE_LR = args.ngram_ve_lr
+    NGRAM_VE_BETA2 = args.ngram_ve_beta2
+    NGRAM_VE_FLAT_LR = args.ngram_ve_flat_lr
+    NGRAM_VE_CLIP_EXCLUDE = args.ngram_ve_clip_exclude
     LRM_QUANTUM = args.lrm_quantum
     USE_TENSOR_LR_SCALARS = args.tensor_lr_scalars
     USE_FOREACH_OPTIM = args.foreach_optim
@@ -4517,8 +4916,10 @@ def main() -> None:
             loss = model(synthetic_x, synthetic_y)
             (loss / grad_accum_steps).backward()
         if GRAD_CLIP > 0:
-            torch.nn.utils.clip_grad_norm_(model.parameters(), GRAD_CLIP,
-                                           foreach=args.clip_foreach)
+            clip_main, clip_ngram = split_clip_params(orig_model)
+            torch.nn.utils.clip_grad_norm_(clip_main, GRAD_CLIP, foreach=args.clip_foreach)
+            if clip_ngram:
+                torch.nn.utils.clip_grad_norm_(clip_ngram, GRAD_CLIP, foreach=args.clip_foreach)
         sync_gradients(model)
         optimizer.step()
         synchronize(device)
@@ -4568,6 +4969,13 @@ def main() -> None:
     # needs a second code path and a duplicate set of buffers to buy less than the run-to-run
     # noise on step_total. See trn2-experiment-results.md T1.10.)
     cached_linears = [m for m in model.modules() if isinstance(m, Linear)] if USE_WEIGHT_CACHE else []
+    # T3.1: split once, outside the loop (the sets never change after construction), for the
+    # same reason cached_linears is hoisted -- and so the main clip's tensor list is provably
+    # identical to the historical model.parameters() order. See split_clip_params.
+    clip_main_params, clip_ngram_params = split_clip_params(orig_model)
+    assert not (grad_flat_buffer is not None and clip_ngram_params), \
+        "--grad-bucket clips one flat buffer and cannot exclude the n-gram tables; " \
+        "use --no-ngram-ve-clip-exclude to combine them"
 
     loop_started = time.monotonic()
     budget_started = loop_started
@@ -4610,14 +5018,22 @@ def main() -> None:
             sync_gradients_flat(grad_flat_buffer)
         else:
             if GRAD_CLIP > 0:
-                torch.nn.utils.clip_grad_norm_(model.parameters(), GRAD_CLIP,
+                torch.nn.utils.clip_grad_norm_(clip_main_params, GRAD_CLIP,
                                                foreach=args.clip_foreach)
+                if clip_ngram_params:
+                    torch.nn.utils.clip_grad_norm_(clip_ngram_params, GRAD_CLIP,
+                                                   foreach=args.clip_foreach)
             sync_gradients(model, skip_param_ids=None if adam_step_now else adamw_skip_ids)
 
         lrm = lr_multiplier(step, elapsed=elapsed, max_train_seconds=args.max_train_seconds)
+        # T3.1: warmup-only multiplier for the groups that opt out of the warmdown (the
+        # hashed n-gram tables). Identical to lr_multiplier() during warmup and pinned at
+        # 1.0 afterwards, so those groups hold a FLAT lr for the whole run. It settles on
+        # exactly one value after WARMUP_STEPS, so it costs no extra graph constants.
+        lrm_flat = min(1.0, (step + 1) / max(1, WARMUP_STEPS))
         wd_progress = min(1.0, elapsed / max(1e-6, args.max_train_seconds))
         for group in optimizer.param_groups:
-            group["lr"] = group["initial_lr"] * lrm
+            group["lr"] = group["initial_lr"] * (lrm_flat if group.get("no_lr_decay") else lrm)
             if group["kind"] == "muon":
                 group["momentum"] = muon_momentum(step, wd_progress)
                 group["weight_decay"] = WEIGHT_DECAY * (1.0 - wd_progress) if WD_DECAY_TO_ZERO else WEIGHT_DECAY
