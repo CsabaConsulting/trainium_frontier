@@ -185,6 +185,19 @@ SEQ_LEN = 2048  # Real interior optimum, robust to torch.compile (see trn2-exper
 DEPTH = 6  # Tier-0 resweep confirmed DEPTH=8 loses clearly at full 1800s (1217/1.052406 vs 1995/1.043489) -- DEPTH=6 stays locked. See trn2-experiment-results.md
 ASPECT_RATIO = 96  # Tier-0 resweep confirmed width=640 still correct at full 1800s: 512 (2433/1.05416) and 768 (1623/1.04415, close but still behind) both lose. See trn2-experiment-results.md
 HEAD_DIM = 128
+N_EMBD = 0  # T0.2 depth/width decoupling: explicit width override. 0 (default) = keep the historical
+# derivation n_embd = round_up(DEPTH * ASPECT_RATIO, HEAD_DIM), which is bit-identical to every run
+# before this flag existed. Set > 0 (must be a multiple of HEAD_DIM) to force a specific
+# (DEPTH, n_embd) pair -- DEPTH had never been tested independently of the width it happens to
+# imply through ASPECT_RATIO, which is exactly what --depth/--n-embd exist to separate.
+MLP_RATIO = 4  # T0.3: MLP hidden width = MLP_RATIO * n_embd. 4 is the historical (and starter-kit)
+# value, so the default is bit-identical to every previous run. Carried in GPTConfig so a checkpoint
+# is self-describing and load_for_eval rebuilds the right shape without needing the flag.
+ATTN_SCALE = 0.0  # T0.3: explicit softmax scale for F.scaled_dot_product_attention. 0.0 (default) =
+# pass scale=None, i.e. SDPA's own 1/sqrt(head_dim) == 0.0884 at HEAD_DIM=128 -- bit-identical to
+# every previous run. QK-norm (rope_norm on both q and k) already fixes |q|,|k| to sqrt(D) per head,
+# which decouples the useful logit temperature from the 1/sqrt(D) convention, so this is a real free
+# knob rather than a redundant reparameterisation of the init scale.
 
 DEVICE_BATCH_SIZE = 1
 TOTAL_BATCH_SIZE = 131072  # Tier-0 resweep confirmed still correct at full 1800s: 65536 (3544/1.048832) and 262144 (1038/1.051031) both lose. See trn2-experiment-results.md
@@ -557,6 +570,14 @@ class GPTConfig:
     n_layer: int
     n_head: int
     n_embd: int
+    # T0.3: MLP hidden = mlp_ratio * n_embd. Defaulted (and appended last) so that
+    # GPTConfig(**payload["model_config"]) still loads every checkpoint written before this
+    # field existed -- those were all ratio 4, which is exactly this default.
+    mlp_ratio: int = 4
+    # T0.3: SDPA softmax scale; 0.0 => SDPA's own 1/sqrt(head_dim). Also carried in the config
+    # (same reasoning as mlp_ratio) because it changes what the trained weights MEAN without
+    # changing any shape, so a checkpoint evaluated with the wrong value would fail silently.
+    attn_scale: float = 0.0
 
 
 COMPUTE_DTYPE: torch.dtype = torch.bfloat16
@@ -2935,6 +2956,9 @@ class CausalSelfAttention(nn.Module):
             self.c_k = Linear(config.n_embd, config.n_embd, bias=False)
             self.c_v = Linear(config.n_embd, config.n_embd, bias=False)
         self.c_proj = Linear(config.n_embd, config.n_embd, bias=False)
+        # T0.3: None => SDPA's own 1/sqrt(head_dim). Snapshotted here (not read from the global
+        # per forward) so it is a single compile-time constant in the graph, identical every step.
+        self.attn_scale = config.attn_scale if config.attn_scale > 0.0 else None
         self.ve_gate = Linear(VE_GATE_CHANNELS, self.n_head, bias=False) if USE_VE and has_ve(layer_idx, config.n_layer) else None
         self.dcmha = DCMHACompose(config.n_embd, self.n_head, layer_idx) if USE_DCMHA else None
 
@@ -2970,7 +2994,7 @@ class CausalSelfAttention(nn.Module):
             # Unfused path: DCMHA's Compose needs the raw [B,H,T,T] score/weight
             # matrices, which F.scaled_dot_product_attention never materializes.
             pre_args, post_args = self.dcmha(x_q)
-            scale = 1.0 / math.sqrt(self.head_dim)
+            scale = self.attn_scale if self.attn_scale is not None else 1.0 / math.sqrt(self.head_dim)
             logits = torch.matmul(q.float(), k.float().transpose(-2, -1)) * scale
             logits = _cross_head_compose(logits, *pre_args)
             keep = _dcmha_keep_mask(t, attn_mask, x_q.device)
@@ -2979,9 +3003,9 @@ class CausalSelfAttention(nn.Module):
             probs = _cross_head_compose(probs, *post_args).to(v.dtype)
             y = torch.matmul(probs, v)
         elif attn_mask is None:
-            y = F.scaled_dot_product_attention(q, k, v, is_causal=True)
+            y = F.scaled_dot_product_attention(q, k, v, is_causal=True, scale=self.attn_scale)
         else:
-            y = F.scaled_dot_product_attention(q, k, v, attn_mask=attn_mask[..., :t, :t])
+            y = F.scaled_dot_product_attention(q, k, v, attn_mask=attn_mask[..., :t, :t], scale=self.attn_scale)
         if USE_XSA:
             # Exclusive Self Attention (arXiv:2603.09078, Zhai/Apple): project out the
             # component of the attention output along the token's OWN value vector --
@@ -3004,9 +3028,10 @@ class MLP(nn.Module):
         # pre-existing code. c_gate is left on plain Linear: USE_GATED_MLP is itself off
         # by default, so an fp8 variant of it would be an unmeasured combination.
         mlp_linear = Fp8Linear if USE_FP8_LINEAR else Linear
-        self.c_fc = mlp_linear(config.n_embd, 4 * config.n_embd, bias=False)
-        self.c_gate = Linear(config.n_embd, 4 * config.n_embd, bias=False) if USE_GATED_MLP else None
-        self.c_proj = mlp_linear(4 * config.n_embd, config.n_embd, bias=False)
+        hidden = config.mlp_ratio * config.n_embd
+        self.c_fc = mlp_linear(config.n_embd, hidden, bias=False)
+        self.c_gate = Linear(config.n_embd, hidden, bias=False) if USE_GATED_MLP else None
+        self.c_proj = mlp_linear(hidden, config.n_embd, bias=False)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if self.c_gate is not None:
@@ -3441,9 +3466,22 @@ class GPT(nn.Module):
         return softcap_cross_entropy(logits, targets, loss_reduction)
 
 
-def build_config(depth: int = DEPTH) -> GPTConfig:
-    base_dim = depth * ASPECT_RATIO
-    n_embd = ((base_dim + HEAD_DIM - 1) // HEAD_DIM) * HEAD_DIM
+def build_config(depth: int | None = None) -> GPTConfig:
+    """T0.2: depth and width are now independently settable.
+
+    `depth=None` reads the module-level DEPTH *at call time* -- deliberately not
+    `depth: int = DEPTH`, which would freeze the pre-flag value at def time and make
+    `--depth` silently inert (the same class of bug as the NUM_STEPS default).
+    N_EMBD == 0 reproduces the historical derivation exactly.
+    """
+    depth = DEPTH if depth is None else depth
+    if N_EMBD > 0:
+        n_embd = N_EMBD
+        if n_embd % HEAD_DIM != 0:
+            raise ValueError(f"N_EMBD={N_EMBD} must be a multiple of HEAD_DIM={HEAD_DIM}")
+    else:
+        base_dim = depth * ASPECT_RATIO
+        n_embd = ((base_dim + HEAD_DIM - 1) // HEAD_DIM) * HEAD_DIM
     n_head = n_embd // HEAD_DIM
     return GPTConfig(
         sequence_len=SEQ_LEN,
@@ -3451,6 +3489,8 @@ def build_config(depth: int = DEPTH) -> GPTConfig:
         n_layer=depth,
         n_head=n_head,
         n_embd=n_embd,
+        mlp_ratio=MLP_RATIO,
+        attn_scale=ATTN_SCALE,
     )
 
 
@@ -3903,6 +3943,13 @@ ARCH_TOGGLE_NAMES = [
     "LOGIT_SOFTCAP", "ATTN_CPROJ_INIT_SCALE", "MUON_NS_STEPS",
     "MUON_MOMENTUM_COOLDOWN_FRAC", "MUON_MOMENTUM_FINAL",
     "ADAM_EVERY_N", "ADAM_EVERY_N_LR_COMP",
+    # T0.2/T0.3. DEPTH/N_EMBD/HEAD_DIM/MLP_RATIO are all *also* recoverable from
+    # model_config (n_layer / n_embd / n_embd//n_head / mlp_ratio), which is what
+    # load_for_eval actually rebuilds from -- they are listed here only so a mismatch
+    # is reported by name rather than as a wall of shape errors. ATTN_SCALE is the one
+    # that is NOT in model_config and changes what the weights mean without changing
+    # any shape, i.e. exactly the silent class this snapshot exists for.
+    "DEPTH", "N_EMBD", "HEAD_DIM", "MLP_RATIO", "ATTN_SCALE",
 ]
 # Toggles whose mismatch corrupts the state_dict shape (load_state_dict(strict=True) will
 # error loudly). Everything else in ARCH_TOGGLE_NAMES lives in non-persistent buffers or
@@ -4070,6 +4117,9 @@ def main() -> None:
     global FINAL_LR_FRAC, WARMDOWN_RATIO, INIT_SCALE, ATTN_CPROJ_INIT_SCALE, LOGIT_SOFTCAP
     global MUON_NS_STEPS, MUON_MOMENTUM_COOLDOWN_FRAC, MUON_MOMENTUM_FINAL
     global ADAM_EVERY_N, ADAM_EVERY_N_LR_COMP, PACK_FACTOR, GRAD_CLIP
+    # T0.2/T0.3 capacity-shape knobs. All read inside build_config()/GPT(config), i.e. well before
+    # the first step, so none of them can add a per-step graph constant.
+    global DEPTH, N_EMBD, HEAD_DIM, MLP_RATIO, ATTN_SCALE
     parser = argparse.ArgumentParser(description="Neuron Competition R1 baseline")
     parser.add_argument("--device-type", type=str, default="")
     parser.add_argument("--num-steps", type=int, default=int(os.environ.get("NEURON_COMPETITION_R1_NUM_STEPS", NUM_STEPS)))
@@ -4263,6 +4313,18 @@ def main() -> None:
         env = "NEURON_COMPETITION_R1_" + flag.lstrip("-").replace("-", "_").upper()
         parser.add_argument(flag, type=typ, default=typ(os.environ.get(env, default)), help=helptext)
 
+    _hp("--depth", DEPTH, int, "T0.2: n_layer. Previously only settable by editing the constant, so "
+        "every historical depth sweep also moved the width (n_embd is derived from DEPTH via "
+        "ASPECT_RATIO unless --n-embd is given). Currently 6.")
+    _hp("--n-embd", N_EMBD, int, "T0.2: force n_embd (must be a multiple of --head-dim), decoupling "
+        "width from DEPTH*ASPECT_RATIO. 0 (default) = historical derived width, bit-identical.")
+    _hp("--head-dim", HEAD_DIM, int, "T0.2: per-head width; n_head = n_embd / head_dim. Also the "
+        "rounding granularity of the derived n_embd. Currently 128. The fused rope+QK-norm NKI "
+        "kernel is written generically in D (it only requires D even), so 64 stays on the kernel.")
+    _hp("--mlp-ratio", MLP_RATIO, int, "T0.3: MLP hidden width as a multiple of n_embd. Currently 4.")
+    _hp("--attn-scale", ATTN_SCALE, float, "T0.3: explicit SDPA softmax scale. 0.0 (default) = SDPA's "
+        "own 1/sqrt(head_dim) (0.0884 at 128). QK-norm already fixes the q/k norms, so the logit "
+        "temperature is a free knob here rather than a redundant init reparameterisation.")
     _hp("--matrix-lr", MATRIX_LR, float, "T0.4: Muon groups' base lr (also the AdamW lr for the "
         "ssm/rwkv/hypernet/local_conv groups). Currently 0.025.")
     _hp("--embedding-lr", EMBEDDING_LR, float, "T0.4: wte (and value-embedding) AdamW lr before the "
@@ -4336,6 +4398,12 @@ def main() -> None:
     ADAM_EVERY_N_LR_COMP = args.adam_every_n_lr_comp
     GRAD_CLIP = args.grad_clip
     PACK_FACTOR = args.pack_factor
+    # T0.2/T0.3: all four are read by build_config()/MLP.__init__/CausalSelfAttention.__init__ below.
+    DEPTH = args.depth
+    N_EMBD = args.n_embd
+    HEAD_DIM = args.head_dim
+    MLP_RATIO = args.mlp_ratio
+    ATTN_SCALE = args.attn_scale
     MATRIX_LR = args.matrix_lr
     EMBEDDING_LR = args.embedding_lr
     UNEMBEDDING_LR = args.unembedding_lr
