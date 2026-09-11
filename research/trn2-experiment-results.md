@@ -2793,3 +2793,47 @@ Not built.
 
 T0.3 closed. `MLP_RATIO=4` and `ATTN_SCALE=0.0` stay as the locked defaults; `--mlp-ratio` and
 `--attn-scale` stay in `train.py` as zero-cost sweep instruments.
+
+## 2026-09-11 (late afternoon) — T0.7 addendum: `SEQ_LEN=2048` is *strictly dominant*, so the open "what length does the scorer use?" question cannot cost us anything
+
+The T0.7 pair above established that a 1024-trained model and a 2048-trained model are an exact tie
+*when both are scored at 1024* (Δ = −0.000035). That closed the "should we train at the eval length?"
+question only in one direction. This is the missing cell of the 2×2: the same two checkpoints, both
+also scored at **2048**. The 1024-trained checkpoint was re-scored post-hoc off its saved
+`final.pt` via `prepare.py eval-public` (no retraining needed, ~1 min each), which also
+double-checks the two eval paths against each other.
+
+| checkpoint | scored @1024 | scored @2048 | its own 1024→2048 change |
+|---|---|---|---|
+| `t07-seq2048-alt1024-900s` (**trained at 2048**) | 1.097033 | **1.081201** | **−0.015832** (gets better) |
+| `t07-seq1024-pf8-900s` (trained at 1024) | 1.096998 | 1.099924 | **+0.002906** (gets *worse*) |
+| Δ (2048-trained − 1024-trained) | −0.000035 (tie) | **−0.018723** | |
+
+Cross-check first: the 1024-trained checkpoint reads **1.097017** here through `prepare.py
+eval-public` versus **1.096998** from `train.py`'s own in-process eval — agreement to **0.000019**
+across two independent code paths (in-process live model vs. `load_for_eval` off a serialized
+checkpoint with rotary tables rebuilt to `EVAL_MIN_SEQ_LEN=8192`). The post-hoc harness is
+trustworthy to well under the noise floor.
+
+**The verdict this settles: `SEQ_LEN=2048` is strictly dominant, not merely better on average.** It
+ties at 1024 and wins by 0.0187 at 2048. There is no scorer-context assumption under which training
+at 1024 is the right call, so the still-unresolved 1024-vs-2048 scorer question **cannot cost us
+anything** as long as we train at 2048 — it only affects what absolute number we should *expect*
+back from the board, never which config to submit. Training at 2048 is a free hedge, and the
+`SEQ_LEN` axis is now closed on evidence rather than on inheritance.
+
+**Second, sharper finding: the 1024-trained model gets measurably worse when *given more context*.**
++0.0029 going from 1024 to 2048, where the 2048-trained model *gains* 0.0158 over the same move.
+That is a ~0.019 swing on the same axis, and the sign flip is the interesting part: extra context is
+supposed to be free information for a causal LM. The rotary angles for positions 1024–2047 are
+perfectly well-defined here (`load_for_eval` rebuilds the tables out to 8192, so nothing wraps or
+clamps), they were simply **never trained**, and 2× is already enough for that to hurt. Two things
+follow:
+- The earlier "evaluating below the trained length is exactly in-distribution" argument was right,
+  and it is worth noting explicitly that it is **one-directional**. Short-context eval of a
+  long-context model is in-distribution and safe; long-context eval of a short-context model is
+  extrapolation and is not. Our exposure is entirely in the safe direction.
+- Any future change that *shortens* training context (a length curriculum, mixed-length batches with
+  a short tail, a cheap-steps-first schedule) now has a measured downside as well as the measured
+  0.000035 upside from T0.7 — it would trade a real 0.019-scale extrapolation risk for a delta 500×
+  smaller than the noise floor. That whole family stays closed.
