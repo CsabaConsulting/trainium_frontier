@@ -2733,3 +2733,63 @@ Mechanically, `--eval-seq-len` cost 13.8s for a 2M-token eval at 1024 (vs 7.8s a
 cheap enough to leave on for any run whose absolute number matters. Note this contradicts Day 1's
 "seq_len=1024 evaluates ~6.5x slower per token" — that was extrapolated from a 200k slice and is a
 small-sample artifact; the real large-sample ratio is ~1.8x.
+
+## 2026-09-11 (afternoon) — T0.3 MLP ratio + attention scale: `MLP_RATIO=4` is a verified interior optimum, and the softmax scale is a flat direction
+
+Two independent sweeps on the same instrument added in `b434862` (`--mlp-ratio`, `--attn-scale`).
+`MLP_RATIO` was **checked, not assumed**, before sweeping: `train.py:193` had it at 4, so the sweep
+is 3 and 6 against a real 4-control. `ATTN_SCALE=0.0` means "pass `scale=None` to
+`F.scaled_dot_product_attention`", i.e. PyTorch's default `1/sqrt(head_dim) = 1/sqrt(128) ≈ 0.0884`;
+the flag snapshots the value into `CausalSelfAttention.__init__` as `self.attn_scale`, so it is a
+compile-time graph constant and is never read per forward (no per-step Python float reaches a device
+op — the `USE_TENSOR_LR_SCALARS` rule).
+
+All five runs are 900s, same box, same commit (`8973cff`), same afternoon, `--nproc-per-node 4
+--lnc 2`, in-process eval (2M tokens, seq_len 2048). The control is the **mean of two same-day
+same-commit control runs**, `t02-base-900s` (1.081255) and `t07-seq2048-alt1024-900s` (1.081201),
+mean **1.081228** — the two agree to 0.000054, which is itself a useful restatement of the noise
+floor on this box.
+
+| run | change | params | steps | `public_val_bpb` | Δ vs control mean |
+|---|---|---|---|---|---|
+| control (×2, mean) | `MLP_RATIO=4`, `scale=1/sqrt(128)` | 55.7M | **1094** | **1.081228** | — |
+| `t03-mlp3-900s` | `--mlp-ratio 3` | 50.8M | 1161 (+6.1%) | 1.083480 | +0.002252 |
+| `t03-mlp6-900s` | `--mlp-ratio 6` | 65.5M | 981 (-10.3%) | 1.082910 | +0.001682 |
+| `t03-scale010-900s` | `--attn-scale 0.10` | 55.7M | 1093 | 1.081613 | +0.000385 |
+| `t03-scale012-900s` | `--attn-scale 0.12` | 55.7M | 1094 | 1.081488 | +0.000260 |
+| `t03-scale015-900s` | `--attn-scale 0.15` | 55.7M | 1092 | 1.082170 | +0.000942 |
+
+**Verdict: keep `MLP_RATIO=4`. Keep the default softmax scale. Nothing from T0.3 is adopted.**
+Nothing clears the ≥0.003 bar for an 1800s confirm, so no 1800s pair was spent.
+
+**MLP ratio: a real two-sided interior optimum, which is rare here.** Almost every other axis in
+this project has been monotone (one direction just loses), so the sweep only tells you which wall
+you are against. Here both walls are visible from 4: going narrower buys +67 steps and still loses
+0.0023, going wider costs -113 steps and still loses 0.0017. Note the asymmetry — `MLP_RATIO=3` is
+the *worse* arm despite being the *faster* one, which means the loss at 3 is a genuine capacity/
+expressivity loss and not a throughput story, while the loss at 6 is mostly the step deficit. 4 is
+therefore not just "the best of three", it is bracketed. Both deltas are above the 0.001 noise floor
+and below 0.003, so strictly they are "needs a paired repeat" by the discipline rule — but a repeat
+would only be worth buying if a *win* were on the table, and both arms lose, in the same direction
+as the throughput/capacity mechanism predicts. Closed.
+
+**Attention scale: flat to within noise across a 70% range (0.0884 → 0.15).** The three arms span
++0.00026 / +0.00039 / +0.00094 — the first two are *below* the 0.001 single-run noise floor and the
+third is barely at it, and they are not monotone. The honest reading is "no signal", with at most a
+hint that going above ~0.12 starts to cost something. This is worth recording as a mechanism result
+rather than a null result, because the naive expectation was the opposite. With QK-norm in the path
+the per-head RMS-norm forces `|q_h| = |k_h| = sqrt(D)` exactly, so `scale` is a *true* logit
+temperature that cannot be absorbed by rescaling `c_q`/`c_k` — unlike a network without QK-norm,
+where the sweep would be trivially degenerate. The reason it is flat anyway is that the model
+retains a free equivalent knob: the logit spread depends on the *angular* concentration of q against
+k, not just on the temperature, and gradient descent adjusts that concentration to whatever the
+temperature demands within a step or two. So QK-norm removes the magnitude degeneracy but not the
+functional one, and `scale` is a soft reparameterization rather than a real hyperparameter here.
+Practical consequence: **do not spend further budget on softmax-temperature variants** (learnable
+per-head gain after `rope_norm`, learned global temperature, entropy targets). The plan allowed a
+per-head learnable gain "if it is genuinely cheap"; it is cheap, but the fixed-scale sweep says
+there is nothing for it to find — the ceiling on the whole family is ~0.001, i.e. the noise floor.
+Not built.
+
+T0.3 closed. `MLP_RATIO=4` and `ATTN_SCALE=0.0` stay as the locked defaults; `--mlp-ratio` and
+`--attn-scale` stay in `train.py` as zero-cost sweep instruments.
