@@ -200,6 +200,42 @@ The two are also complementary in principle: T3.1 helps the model *use* n-gram c
 internally; the mixer fixes the *output* calibration on memorisable continuations. But T3.1
 is priced out on this hardware regardless.
 
+## 5a. Update, 2026-09-12 evening — T3.1 is no longer discarded (other agent's result)
+
+While this document was being written, the box-side agent found the T3.1 overhead's cause
+and reversed the verdict (commits `1eede36`, `39c5e0a`; notebook "T3.1 overhead hunt, part
+2"). The ~15 ms/table cost was a **layer-position** effect of the whole-graph schedule, not
+the table size, gather, modulus, gate or up-projection: a table on the *last* layer only
+(`NGRAM_VE_LAYERS=-1`) makes the step *faster* than baseline (r=0.967–0.983) at any table
+size, while tables on layers 1 or 3 cost +5 to +48 ms. Paired 900 s A/B, same box, same day:
+
+| arm | bpb | steps | Δ |
+|---|---|---|---|
+| control | 1.081306 | 1094 | — |
+| bigram, layer −1, 524288 rows × 128 | 1.068101 | 1099 | **−0.0132** |
+| bigram + trigram, layer −1, 262144 rows each | 1.066917 | 1084 | **−0.0144** |
+
+Causality exact on all arms; 1800 s escalation pending. Two consequences for this document:
+
+1. **The learned hashed n-gram value embedding is now the leading n-gram lever**, not a
+   discarded one, and it is rules-safe today (plain parameters trained by gradient descent;
+   T4.2). §5's comparison table should be read with T3.1's cost column at ≈0 and its measured
+   quality at −0.013 to −0.014 per step at 900 s.
+2. **The count-based output mixer becomes a complement, not a substitute.** T3.1 injects
+   n-gram context into attention values in the last layer; the mixer recalibrates the output
+   distribution with exact corpus counts. They may overlap (both draw on the same bigram
+   statistics) or stack (Aster used both an input-side hashed n-gram embedding and an output
+   bigram logit table). The offline test in §6 should therefore be run on the **new T3.1
+   checkpoint**, not the plain baseline: if the residual gain of a frozen bigram mixer on top
+   of last-layer n-gram VE is < 0.003, drop the mixer and skip the rules question; if ≥ 0.005,
+   it is still worth asking.
+
+Also relevant to §8's startup-window discussion: the agent measured that the larger tables
+add ~145 s of compile time which is entirely uncharged under the 900 s allowance
+(`startup_allowance_est` 121 → 266 s, `charged_seconds_est` unchanged). Compiling more
+graphs in the excluded window is the uncontroversial use of it; counting data there remains
+the question to ask.
+
 ## 6. Offline test first (CPU on the box, zero device time while other A/Bs run)
 
 This is the plan's T4.1 protocol, made concrete:
