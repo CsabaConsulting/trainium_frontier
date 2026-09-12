@@ -403,6 +403,29 @@ def has_ve(layer_idx: int, n_layer: int) -> bool:
 # gate evaluates to the neutral 2*sigmoid(0) = 1.0. That is what makes USE_NGRAM_VE=True
 # bit-identical to False at init and the A/B honest.
 USE_NGRAM_VE = False
+NGRAM_VE_LAYERS = ""      # WHICH layers get a bigram table. "" = every has_ve() layer, which is
+# Recursive's own allocation and what the original T3.1 grid measured. A comma-separated list of
+# layer indices (negatives count from the end, so "-1" is the last layer at any DEPTH) restricts
+# it. This exists because the per-step cost of these tables turned out to depend almost entirely
+# on WHICH layer holds them and not at all on how big they are. Measured 2026-09-12 with
+# research/scratch/prof_driver.py at the locked shape (1 rank, LNC=2, compile on, foreach
+# optimizer, 262144 rows, dim 128), best-of-3 micro fwd+bwd, baseline 172.9 ms:
+#   layers          micro dt    delta      step dt
+#   (none)           172.9 ms      --       2.862 s
+#   {5} only         164.1 ms    -8.8       2.768 s   <- FASTER THAN BASELINE
+#   {1} only         178.2 ms    +5.3       2.991 s
+#   {3} only         220.6 ms   +47.7       3.662 s
+#   {1,5}            223.1 ms   +50.2       3.711 s
+#   {3,5}            222.7 ms   +49.8       3.711 s
+#   {1,3}            222.5 ms   +49.6       3.711 s
+#   {1,3,5} (all)    225.7 ms   +52.8       3.768 s
+# and the cost is INVARIANT to table geometry -- 8192 rows costs the same +51.9 as 262144 rows,
+# dim 64 the same as dim 128 -- so this is not a bandwidth or a backward-scatter cost at all. It
+# is a whole-graph scheduling effect: one dynamic gather at the LAST layer is free (it makes the
+# step 3.3% faster, which is itself worth 0.0026 bpb of extra steps), and any second table
+# anywhere costs ~50 ms no matter where. See the 2026-09-12 section of
+# research/trn2-experiment-results.md for the full ablation (the gate, the slice offset, the
+# up-projection and the injection into V were each ruled out individually).
 NGRAM_VE_TABLE_MULT = 8   # rows per table = this x padded_vocab_size (8 x 8192 = 65536).
 NGRAM_VE_TRIGRAM = True   # also add a trigram table on the FIRST and LAST VE layer.
 NGRAM_VE_DIM = 0          # table WIDTH. 0 => n_embd, i.e. the table is gathered straight into v.
@@ -513,9 +536,25 @@ def ngram_trigram_primes(layer_idx: int) -> tuple[int, int, int]:
     return NGRAM_HASH_PRIMES[i], NGRAM_HASH_PRIMES[i + 1], NGRAM_HASH_PRIMES[i + 2]
 
 
+def ngram_layer_set(n_layer: int) -> frozenset[int]:
+    """NGRAM_VE_LAYERS parsed to absolute indices. Empty set means "no restriction".
+
+    Negative indices wrap (so "-1" is the last layer whatever DEPTH is), which is what makes
+    the winning `NGRAM_VE_LAYERS="-1"` configuration survive a depth change instead of
+    silently pointing at the wrong layer.
+    """
+    if not NGRAM_VE_LAYERS:
+        return frozenset()
+    return frozenset(int(tok) % n_layer for tok in NGRAM_VE_LAYERS.split(",") if tok.strip())
+
+
 def has_ngram_bigram(layer_idx: int, n_layer: int) -> bool:
-    """Bigram table on every VE layer (the same has_ve() rule the unigram VE uses)."""
-    return USE_NGRAM_VE and USE_VE and has_ve(layer_idx, n_layer)
+    """Bigram table on every VE layer (the same has_ve() rule the unigram VE uses), further
+    restricted to NGRAM_VE_LAYERS when that is set."""
+    if not (USE_NGRAM_VE and USE_VE and has_ve(layer_idx, n_layer)):
+        return False
+    keep = ngram_layer_set(n_layer)
+    return not keep or layer_idx in keep
 
 
 def has_ngram_trigram(layer_idx: int, n_layer: int) -> bool:
@@ -4463,7 +4502,7 @@ ARCH_TOGGLE_NAMES = [
     # bf16-vs-fp32 mismatch is exactly the quiet class this snapshot exists for. The
     # optimizer-side knobs (LR/BETA2/FLAT_LR/OPT/CLIP_EXCLUDE) leave no trace in the
     # weights at all, which is the other half of the same reason.
-    "USE_NGRAM_VE", "NGRAM_VE_TABLE_MULT", "NGRAM_VE_TRIGRAM", "NGRAM_VE_DIM",
+    "USE_NGRAM_VE", "NGRAM_VE_LAYERS", "NGRAM_VE_TABLE_MULT", "NGRAM_VE_TRIGRAM", "NGRAM_VE_DIM",
     "NGRAM_VE_BF16",
     "NGRAM_VE_LR", "NGRAM_VE_BETA2", "NGRAM_VE_FLAT_LR", "NGRAM_VE_OPT",
     "NGRAM_VE_CLIP_EXCLUDE",
@@ -4716,6 +4755,7 @@ def main() -> None:
     # setup_optimizer() or once per step in the training loop, all well before any device op
     # that could bake them in as a per-step graph constant.
     global USE_NGRAM_VE, NGRAM_VE_TABLE_MULT, NGRAM_VE_TRIGRAM, NGRAM_VE_BF16, NGRAM_VE_DIM
+    global NGRAM_VE_LAYERS
     global NGRAM_VE_LR, NGRAM_VE_BETA2, NGRAM_VE_FLAT_LR, NGRAM_VE_OPT, NGRAM_VE_CLIP_EXCLUDE
     # T2.1. Read once per step by batch_ramp_grad_accum() to pick a Python int loop count and a
     # Python float lr scale -- neither reaches a device op as a constant (the loss scaling, which
@@ -4796,6 +4836,14 @@ def main() -> None:
                              "trigram 64:96). Tables are zero-init, so this is an exact no-op at step 0 "
                              "and the A/B runs from one identical binary. Strictly causal: a position's "
                              "table row is a hash of tokens t-2..t only.")
+    parser.add_argument("--ngram-ve-layers", type=str,
+                        default=os.environ.get("NEURON_COMPETITION_R1_NGRAM_VE_LAYERS", NGRAM_VE_LAYERS),
+                        help="which layers get a bigram table, comma-separated, negatives counting "
+                             "from the end ('-1' = last layer at any DEPTH). Empty = every VE layer, "
+                             "Recursive's own allocation. The per-step cost of these tables depends "
+                             "on WHICH layer holds them and not on their size: one table on the last "
+                             "layer is FASTER than no table at all, while any second table anywhere "
+                             "costs ~50ms/micro-step. See NGRAM_VE_LAYERS for the measurement.")
     parser.add_argument("--ngram-ve-table-mult", type=int, default=NGRAM_VE_TABLE_MULT,
                         help="rows per n-gram table = this x padded_vocab_size (8 => 65536 rows, "
                              "41.9M params per table at n_embd=640). Recursive went to 64x; start at 8x.")
@@ -5130,6 +5178,7 @@ def main() -> None:
     # T3.1: the first four are read by GPT.__init__/CausalSelfAttention.__init__ below, the
     # rest by setup_optimizer() / the training loop.
     USE_NGRAM_VE = args.ngram_ve
+    NGRAM_VE_LAYERS = args.ngram_ve_layers
     NGRAM_VE_TABLE_MULT = args.ngram_ve_table_mult
     NGRAM_VE_DIM = args.ngram_ve_dim
     NGRAM_VE_TRIGRAM = args.ngram_ve_trigram
