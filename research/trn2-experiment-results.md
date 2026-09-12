@@ -3680,3 +3680,54 @@ Verified on the box at the locked DEPTH=6: `ngram_layer_set(6) == {5}`, and only
 Per-mechanism value at equal parameters, from the four 1800s arms: the trigram table is worth
 0.0017 (bigram-only at mult 64 = 1.022205 / 122.9M vs bigram+trigram at mult 32 = 1.020516 /
 123.0M), and going from 123.0M to 190.1M of table buys another 0.0015.
+
+### Dress rehearsal on the new default (2026-09-12, commit `0b44cef`, bare launch command)
+
+Run literally as the leaderboard would run it — no `run_experiment.py`, no flags:
+
+```
+NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --no-eval-public --num-steps 1000000
+```
+
+Config echo confirms the intended defaults with no CLI help:
+`ngram_ve: True tables=2 rows=524288 dim=128 index_gather=True trigram=True opt=rmsprop
+flat_lr=True bf16=True`, `num_params=190,095,660`.
+
+| | value |
+|---|---|
+| `num_steps` | 2140 (harness run: 2139) |
+| `training_seconds` | 1794.2 |
+| `charged_seconds_est` | 1797.3 |
+| `startup_allowance_est` | 253.5 (cap 900, uncharged) |
+| `over_budget` | **False** |
+| `total_tokens_M` | 280.5 |
+| `out/final.pt` | 491,967,683 B (469 MiB) |
+
+Checkpoint size is exactly as predicted and is still one consolidated file: 55.7M backbone
+params at fp32 (222 MB, the old size) + 134.2M table params at bf16 (268 MB) = 490 MB. The
+tables are the only thing that grew and they are stored at half precision.
+
+Then `prepare.py eval-public` on that checkpoint, 2M tokens, both context lengths:
+
+| eval | dress-rehearsal checkpoint | harness `t31L-l5tri-m64-1800s` | control `t31L-base-1800s` |
+|---|---|---|---|
+| seq_len 2048 (training-native) | **1.017998** | 1.018985 | 1.034199 |
+| seq_len 1024 (scorer's length) | **1.033529** | 1.034050 | 1.049507 |
+
+Two things worth recording.
+
+**The win is the same size at both eval context lengths** — −0.015214 at 2048 and −0.015457 at
+1024. It is not a long-context artifact, which was the obvious thing to worry about for a
+mechanism that reads t−2..t. Every 1800s arm in the sweep shows the same: the 2048 and 1024
+columns move together to within 0.0003.
+
+**Careful with `--eval-seq-len`:** it does not *replace* the eval, it adds an alt one.
+`public_val_bpb` in `experiment-log.jsonl` is always at the training-native `seq_len` (2048);
+the 1024 number is `public_val_bpb_alt`. The board comparison must use the alt column: the
+calibration established on 2026-09-10 is board ≈ 2M/seq1024 + 0.005 (local 1.049535 vs board
+1.0548).
+
+**Predicted board score ≈ 1.039** (1.0335 + 0.005), against the standing 1.0548 — a real
+improvement of about 0.0155, and the largest single win in this repo. The dress rehearsal
+reproduces the harness arm independently (1.017998 vs 1.018985 at 2048; 1.033529 vs 1.034050 at
+1024, both marginally better), so the number is not a one-run fluke.
