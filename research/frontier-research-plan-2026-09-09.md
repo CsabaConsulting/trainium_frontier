@@ -421,6 +421,15 @@ Low priority; try last.
 ## 6. Tier 4 — Stand-out bets
 
 ### T4.1 Neural + count-based n-gram hybrid at evaluation (assess offline first, zero device time)
+> **2026-09-12 update — see `research/ngram-drafter-and-count-mixer-2026-09-12.md`.** The Parameter Golf
+> evidence cited below is eval-time caches that update on the scored text (illegal here) and the PG n-gram
+> track was invalidated on 2026-03-27 for a normalisation bug (#978: a properly normalised n-gram alone is
+> 1.51 bpb). Keep the item, but base it on kNN-LM / Infini-gram and on this repo's T3.1 measurement
+> (learned bigram tables: −0.020 to −0.024 bpb per step, lost only to device cost). Design and offline
+> protocol are in the new document; rules question still open. **Same evening:** T3.1 was un-discarded —
+> last-layer-only tables (`NGRAM_VE_LAYERS=-1`) are free in throughput and gave −0.0132/−0.0144 at 900 s paired
+> (`39c5e0a`); run the mixer's offline test on that checkpoint, since the two may overlap.
+
 - **Evidence:** Parameter Golf's within-frontier analysis: N-gram Backoff is the *only* technique
   with a robust positive effect (+0.080 bpb, 95% CI [0.06, 0.10], p<0.0001) among 429 frontier
   submissions; PPM byte mixture +0.03. Those are persistent n-gram models blended with the neural
