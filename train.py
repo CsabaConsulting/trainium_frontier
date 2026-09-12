@@ -418,7 +418,7 @@ NGRAM_VE_LAYERS = "-1"    # WHICH layers get a bigram table. "" = every has_ve()
 # optimizer, 262144 rows, dim 128), best-of-3 micro fwd+bwd, baseline 172.9 ms:
 #   layers          micro dt    delta      step dt
 #   (none)           172.9 ms      --       2.862 s
-#   {5} only         164.1 ms    -8.8       2.768 s   <- FASTER THAN BASELINE
+#   {5} only         164.1 ms    -8.8       2.768 s   <- FREE (see the -8.8 caveat below)
 #   {1} only         178.2 ms    +5.3       2.991 s
 #   {3} only         220.6 ms   +47.7       3.662 s
 #   {1,5}            223.1 ms   +50.2       3.711 s
@@ -426,12 +426,34 @@ NGRAM_VE_LAYERS = "-1"    # WHICH layers get a bigram table. "" = every has_ve()
 #   {1,3}            222.5 ms   +49.6       3.711 s
 #   {1,3,5} (all)    225.7 ms   +52.8       3.768 s
 # and the cost is INVARIANT to table geometry -- 8192 rows costs the same +51.9 as 262144 rows,
-# dim 64 the same as dim 128 -- so this is not a bandwidth or a backward-scatter cost at all. It
-# is a whole-graph scheduling effect: one dynamic gather at the LAST layer is free (it makes the
-# step 3.3% faster, which is itself worth 0.0026 bpb of extra steps), and any second table
-# anywhere costs ~50 ms no matter where. See the 2026-09-12 section of
-# research/trn2-experiment-results.md for the full ablation (the gate, the slice offset, the
-# up-projection and the injection into V were each ruled out individually).
+# dim 64 the same as dim 128 -- so this is not a bandwidth or a backward-scatter cost at all.
+# ROOT CAUSE, from a device profile of the forward NEFF (neuron-explorer event data, 2026-09-12):
+# under LNC=2 a logical core spans two PHYSICAL cores, and one dynamic-address gather makes the
+# compiler re-shard the residual/V stream across those two pcores for every layer DOWNSTREAM of
+# the injection. Each downstream layer boundary then pays a cross-pcore SBUF->SBUF reduce-add
+# whose descriptors are 1 partition wide fanned into 128, i.e. ~30 BYTES PER DMA PACKET. The
+# layer-3 arm issues 42,031,968 cross-pcore packets (the layer-5 and no-table arms issue exactly
+# ZERO) for 38 MB of payload: 108x the packets of the baseline for 1.7x the bytes, ~94 ms of pure
+# descriptor issue, and the Tensor engine sits idle 23.7 ms of the +43.8 ms with the data DMA
+# queue busy. It is descriptor-rate bound, which is exactly why table size and width do not
+# matter. The packets arrive in 3 bursts for an injection at layer 3 of DEPTH 6 -- one per layer
+# at-or-after the injection point -- so the cost counts DOWNSTREAM LAYER BOUNDARIES, not gathers.
+# That is why the LAST layer is free: it has no downstream boundaries to re-shard. Same reason two
+# tables on ONE layer are free while two on DIFFERENT layers cost ~50 ms.
+# CAVEAT on the -8.8 ms above: the profile shows the layer-5 arm has zero cross-pcore packets and
+# pays only ~0.40 ms for the injected ops, so it is not genuinely faster than no table at all --
+# its recompile happened to pick a cheaper matmul schedule (243,140 vs 263,258 MATMUL instrs).
+# Treat last-layer injection as step-NEUTRAL, not as a speedup; the real 1800s runs bear that out
+# (2202 steps vs the control's 2191 for one table, 2139 for two).
+# NOT fixable by moving the op: merging all gathers into one, hoisting them to the top of the
+# forward, injecting after attention instead of into V, and changing the hash are all measured
+# null results, because the trigger is the DYNAMIC ADDRESS anywhere in the compiled region, not
+# the op's position. Making layers 1/3 cheap would require taking the gather out of the compiled
+# graph entirely (pass the gathered rows in as an ordinary input), re-expressing it as a static
+# one-hot matmul (only viable at small row counts), or dropping to LNC=1 (no peer SBUF to reduce
+# into). See the 2026-09-12 sections of research/trn2-experiment-results.md for the full ablation
+# (the gate, the slice offset, the up-projection and the injection into V were each ruled out
+# individually) and for the profile tables.
 NGRAM_VE_TABLE_MULT = 64  # rows per table = this x padded_vocab_size (64 x 8192 = 524288).
 # Chosen by the 2026-09-12 1800s sweep with NGRAM_VE_LAYERS="-1", bigram+trigram, dim 128
 # (bpb / steps / params): mult 32 -> 1.020516 / 2173 / 123.0M, mult 64 -> 1.018985 / 2139 /

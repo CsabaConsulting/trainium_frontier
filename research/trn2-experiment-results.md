@@ -3764,3 +3764,109 @@ train.py ships `NGRAM_VE_LAYERS="-1"`, every driver arm would have silently sele
 beautifully consistent "no cost anywhere" result. Added `--ngram-ve-layers`, defaulting to
 **empty** rather than to train.py's value, so the driver's own layer flags stay authoritative.
 Confirmed working: the `l3` arm reports `tables=1` and reproduces +47.6 ms.
+
+### ROOT CAUSE of the layer-position effect, from the device profile (2026-09-12)
+
+Analysis of the three forward NTFFs above (`neuron-explorer` event data ingested to parquet;
+scripts left on the box under `/home/ubuntu/prof/analysis/`, outputs `out_quant.txt`,
+`out_xpcore.txt`, `out_summary.txt`, `out_srcdiff.txt`, `out_temporal.txt`, `out_layers.txt`).
+
+Forward-graph device time accounts for ~92% of the wall-clock micro delta, so the whole effect
+is in this one graph:
+
+| | off | l3 | l5 |
+|---|---|---|---|
+| forward device time | 74.912 ms | 118.701 ms (+43.79) | 64.440 ms (−10.47) |
+| NEFF `data_size` | 9,336,867 | 15,489,499 | 13,958,845 |
+| `mfu_estimated_%` | 0.2067 | 0.1321 | 0.2405 |
+| `hardware_flops` | 8.353e11 | 8.383e11 | 8.394e11 |
+
+**No compute engine absorbs the cost.** Engine ActiveTime (ms, both pcores): tensor 80.6 / 98.3 /
+69.8, sync 36.9 / 28.5 / 23.8, scalar 30.4 / 26.2 / 27.2, vector 36.3 / 37.4 / 36.7, gpsimd
+10.9 / 12.0 / 11.1. Instead, **23.7 of the +43.8 ms (54%) is the Tensor engine idle with the
+`data` DMA queue busy** (off: 2.15 ms of such idle; l5: 1.80 ms).
+
+**The mechanism: a cross-physical-core SBUF reduce-add with 1-partition descriptors.** Under
+LNC=2 a logical core spans two physical cores. The layer-3 arm performs an `op=add` reduction
+from `[[SB REMOTE]]` into `[SB]` that the other two arms **do not perform at all** (both have
+exactly ZERO cross-pcore packets). The decisive field is the descriptor geometry:
+`read_num_sbuf_partitions = 1` -> `write_num_sbuf_partitions = 128`, i.e. a one-partition-wide
+read fanned into 128 partitions on the peer core's SBUF, which produces one ~8-15 byte packet per
+element group. The `off`/`l5` arms do the equivalent spill/reload *locally* at 1972 B/packet.
+
+| `data` queue totals | off | l3 | l5 |
+|---|---|---|---|
+| packets | 391,680 | **42,391,264** | 391,680 |
+| MB | 772.25 | 1298.9 | 772.25 |
+| avg bytes/packet | 1971.6 | **30.6** | 1971.6 |
+| summed engine busy (32 DMA engines) | 68.7 ms | **1510.7 ms** | 65.5 ms |
+| busiest DMA engines, % of window | 3.2% | **78-80%** | 3.6% |
+
+**It is descriptor-rate bound, not bandwidth bound**: 108x the packets for 1.7x the bytes,
+~94 ms of pure descriptor issue (2.63M packets x 36 ns per engine) to move 38 MB, i.e. ~0.4 GB/s
+on a ~400 GB/s path. *That is why table rows and width are irrelevant* — the ablation grid's most
+confusing result is explained exactly. The l3 arm also uniquely has a `qSyncPIOParam0` queue
+(4096 transfers, 16 B avg) — the compiler streaming runtime-computed addresses through
+programmed I/O, the direct fingerprint of the dynamic address. Corroborating: `CoreBarriers`
+rows 184 / **4324** / 178; `static_dma_packet_count` 393,475 / **42,391,264** / 393,600.
+
+**Ruled out by the data**, adding to the wall-clock ablation: not HBM spilling (spill_save
+2.58 / 2.88 / 2.37 GB, spill_reload 3.59 / 4.65 / 3.58 GB — modest), and **not a lost fusion in
+the injected code**: the injected source lines cost ~0.40 ms in *both* l3 and l5
+(`train.py:3255` 0.02/0.02, `:3256` 0.29/0.28, `:3691` 0.08/0.08, `:2366` 0.18/0.14). l3's extra
+time lands on compiler-generated `<none>` (+39.43 ms) and on `train.py:2367` `F.linear`
+(+25.04 ms) — collateral damage, not the injection.
+
+**No extra subgraphs**: `num_subgraphs = 2` in all three arms, one `nrta_execute_schedule`, one
+`ExecutionInfo` row. The change is *within* the subgraph — how tensors are sharded across the two
+pcores (+2 DMA queue definitions, 16 l3-only `qSyncSpillReload0` queues, 23.5x the barriers).
+
+**My "pipeline drain at the injection point" hypothesis is REFUTED, and the truth is better.**
+Cross-pcore packets in l3 arrive in three separate bursts, not one drain: 1-12 ms (15,731,488
+packets), 23-31 ms (10,402,470), 43-57 ms (15,728,192), then ~0 after 58 ms of a 118.7 ms window.
+Union-idle is tiny in every arm (off 3.24 ms, l5 3.83 ms, largest gap ~0.8 ms), so nothing
+stop-the-world happens. Three bursts, with regions A and C near-identical in packet count, for an
+injection at layer 3 of DEPTH 6 = **one burst per layer at-or-after the injection point (3, 4, 5)**.
+
+So the cost is **per layer boundary downstream of the injection**: the dynamic-address dependency
+changes the cross-core sharding of the residual/V stream for the remainder of the network, and
+every subsequent layer boundary pays the 1-partition-wide reduce-add. The last layer is free
+because it has **zero downstream boundaries to re-shard** — not because there is nothing left to
+drain. This also predicts, correctly, that two tables on the same layer are free and two on
+different layers cost ~50 ms: the price counts **distinct injection points**, not gathers.
+
+**Correction to an earlier claim.** The `{5} only` arm's −8.8 ms is *not* a real speedup. The
+profile shows l5 has zero cross-pcore packets and pays only ~0.40 ms for the injected ops; its
+recompile simply picked a cheaper schedule (MATMUL instructions 263,258 -> 243,140, −15.9 ms;
+STREAM_TRANSPOSE 16,390 -> 32,774; mfu 0.2067 -> 0.2405). One execution per arm, no repeats, so
+treat last-layer injection as **step-neutral, not a speedup**. The real 1800s runs agree: 2202
+steps vs the control's 2191 with one table, 2139 with two. The "worth 0.0026 bpb of extra steps"
+line previously in `train.py` was an over-read of schedule noise and has been removed.
+
+#### Can layers 1 and 3 be made as cheap as layer 5?
+
+Not by moving, merging, fusing or resizing anything inside the compiled graph — the trigger is
+the **dynamic address anywhere in the compiled region**, so every null result already measured
+(merge all gathers, hoist to top of forward, inject after attention, change the hash, shrink
+rows, shrink dim, offset the gate slice) is explained and no further variation of that kind will
+help. Three escapes exist, none free:
+
+1. **Take the gather out of the compiled graph** — compute `table[rows]` eagerly (or in a
+   separate compiled region) and pass the `[b, t, 128]` result in as an ordinary input. This is
+   genuinely different from the `--ngram-hoist` null, which kept the op inside the graph. Cost:
+   one extra 2 MB HBM round-trip. Complication: `forward` must stay a pure function of the input
+   tokens for `load_for_eval`, so the eager pre-pass has to live inside the module's own
+   `forward`, wrapping a compiled inner callable.
+2. **Re-express it as a static-address one-hot matmul** — `F.linear(one_hot(rows, R).bf16(),
+   table.T)`. All addresses compile-time known. Scales O(R), so only viable at small row counts,
+   and the 1800s sweep says quality wants R = 524288. Supported by the `--ngram-gather static`
+   datapoint (+5.5 ms instead of +47.6, i.e. a static address recovers ~88%).
+3. **`NEURON_LOGICAL_NC_CONFIG=1`** — the entire mechanism exists only because a logical core
+   spans two physical cores; at LNC=1 there is no peer SBUF to reduce into. It also halves
+   per-logical-core compute, so the net is unknown and would have to be measured.
+
+Value of pursuing this: it would allow 3 injection points instead of 1. The old all-VE-layers
+configuration measured −0.0217 bpb of *per-step quality* at 844 steps, versus −0.0152 now at full
+step count, so the headroom is real but smaller than the win already banked, and option 1 is an
+invasive change to the forward signature with rules implications. **Recommended as the next T3.1
+item, not as a blocker on submitting what is already measured.**
