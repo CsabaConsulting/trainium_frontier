@@ -3623,3 +3623,31 @@ Two things make this a much bigger win than the −0.017 the part-1 analysis pro
 `t31l-l5tri` beats `t31l-l5m64` by 0.0012, which is inside the "needs a repeat" band, so the
 two are treated as tied going into the 1800s escalation and both are carried forward (plus
 bigram+trigram at mult 64, the untested corner).
+
+### 1800s paired escalation (2026-09-12, commit 39c5e0a, same box, same session)
+
+All arms `--num-steps 5000 --max-train-seconds 1800 --nproc-per-node 4 --lnc 2
+--eval-seq-len 1024`; every n-gram arm is `--ngram-ve --ngram-ve-layers=-1 --ngram-ve-dim 128`.
+
+| label | tables | rows/table | bpb | steps | Δbpb vs base | params | charged_s |
+|---|---|---|---|---|---|---|---|
+| `t31L-base-1800s` | — | — | 1.034199 | 2191 | — | 55.7M | 1794.8 |
+| `t31L-l5bi-m64-1800s` | bigram | 524288 | 1.022205 | 2202 | **−0.011994** | 122.9M | 1795.2 |
+| `t31L-l5tri-m32-1800s` | bigram+trigram | 262144 | 1.020516 | 2173 | **−0.013683** | 123.0M | 1794.7 |
+| `t31L-l5tri-m64-1800s` | bigram+trigram | 524288 | **1.018985** | 2139 | **−0.015214** | 190.1M | 1795.1 |
+
+`causality_max_abs = 0.000000`, `causality_passed: True`, `over_budget: False` on all four.
+The control reproduces `t21-base-1800s` (1.034536 / 2192) to 3.4e-4.
+
+The win does **not** decay from 900s to 1800s — it grows: bigram-only is −0.0132 at 900s and
+−0.0120 at 1800s (flat), and adding the trigram plus 2x the rows takes it to −0.0152 at 1800s.
+That is 5x the entire Days 2-4 optimizer/schedule block (0.0044) and 7x the largest remaining
+Tier 3 item, from one table pair on one layer.
+
+Capacity is still paying at the margin (m32 -> m64 with the trigram is worth another 0.0015
+for 34 fewer steps), so a second round is running at mult 128 and at dim 256.
+
+Startup note: 55.8s for the control vs 263.8s for the fresh mult-64 compile, all far under the
+900s uncharged cap, and `charged_seconds_est` is 1794.7-1795.2 on every arm — the bigger tables
+genuinely cost zero charged time to compile. `training_seconds` is 1794.x everywhere, so the
+step-count differences are pure throughput.
