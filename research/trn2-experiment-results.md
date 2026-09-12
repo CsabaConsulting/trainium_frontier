@@ -3651,3 +3651,32 @@ Startup note: 55.8s for the control vs 263.8s for the fresh mult-64 compile, all
 900s uncharged cap, and `charged_seconds_est` is 1794.7-1795.2 on every arm — the bigger tables
 genuinely cost zero charged time to compile. `training_seconds` is 1794.x everywhere, so the
 step-count differences are pure throughput.
+
+### Capacity sweep on top of it (1800s, same day/box/commit) and the final pick
+
+| label | tables | rows/table | dim | bpb | steps | params | Δ vs base |
+|---|---|---|---|---|---|---|---|
+| `t31L-l5tri-m32-1800s` | bi+tri | 262144 | 128 | 1.020516 | 2173 | 123.0M | −0.013683 |
+| `t31L-l5tri-m64-1800s` | bi+tri | 524288 | 128 | **1.018985** | 2139 | **190.1M** | **−0.015214** |
+| `t31M-l5tri-m128-1800s` | bi+tri | 1048576 | 128 | 1.019171 | 2067 | 324.3M | −0.015028 |
+| `t31M-l5tri-m64-d256-1800s` | bi+tri | 524288 | 256 | 1.018483 | 2069 | 324.5M | −0.015716 |
+
+`causality_max_abs = 0.000000` and `over_budget: False` on both new arms.
+
+Capacity **saturates at mult 64**: doubling the rows again is 0.0002 *worse* for 72 fewer steps
+and 134M more parameters. Widening to dim 256 is 0.0005 better, which is inside the noise band
+(<0.003, no paired repeat), for 1.7x the parameters and 70 fewer steps — and the README's second
+tie-break is "fewer total parameters", so it is not worth taking on a coin-flip.
+
+**Locked default (commit `0b44cef`): `USE_NGRAM_VE=True`, `NGRAM_VE_LAYERS="-1"`,
+`NGRAM_VE_TRIGRAM=True`, `NGRAM_VE_TABLE_MULT=64`, `NGRAM_VE_DIM=128`** — 190.1M params,
+1.018985 bpb / 2139 steps at 1800s against a 1.034199 / 2191 control.
+
+Verified on the box at the locked DEPTH=6: `ngram_layer_set(6) == {5}`, and only layer 5 has
+`has_ngram_bigram` / `has_ngram_trigram` true (layers 1 and 3 are VE layers but get no table).
+`NGRAM_VE_TRIGRAM` costs exactly one extra table here because with `NGRAM_VE_LAYERS="-1"` the
+"first and last VE layer" are the same layer.
+
+Per-mechanism value at equal parameters, from the four 1800s arms: the trigram table is worth
+0.0017 (bigram-only at mult 64 = 1.022205 / 122.9M vs bigram+trigram at mult 32 = 1.020516 /
+123.0M), and going from 123.0M to 190.1M of table buys another 0.0015.
