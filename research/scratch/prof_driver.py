@@ -41,16 +41,41 @@ def build_args():
     ap.add_argument("--ngram-ve-dim", type=int, default=128)
     ap.add_argument("--ngram-ve-index-gather", action=argparse.BooleanOptionalAction, default=True)
     ap.add_argument("--ngram-ablate", type=str, default="real",
-                    choices=["real", "copy", "nogate", "slice0", "gatefull", "noinject"],
+                    choices=["real", "copy", "nogate", "slice0", "gatefull", "noinject",
+                             "injectpost"],
                     help="Which PIECE of the n-gram injection to remove, to attribute the "
                          "+47ms forward regression. Implemented by re-exec'ing the REAL "
                          "CausalSelfAttention.forward source (inspect.getsource) with exact "
                          "string substitutions, so `copy` is a literal drift control and any "
                          "train.py edit that breaks a substitution fails loudly instead of "
                          "silently measuring the wrong thing. real=no patch at all.")
+    ap.add_argument("--ngram-only-layer", type=int, default=-1,
+                    help=">=0: give a bigram table to EXACTLY this layer. Distinguishes a "
+                         "per-gather-COUNT threshold (every single-layer arm equally cheap) "
+                         "from a layer-SPECIFIC cost (one arm expensive).")
+    ap.add_argument("--ngram-merge-gather", action=argparse.BooleanOptionalAction, default=False,
+                    help="Do ONE dynamic gather from a single [n_tables*rows, dim] table "
+                         "instead of one per table, splitting the result afterwards. Same "
+                         "bytes, same output, same hash -- collapses N dynamic-DMA ops into "
+                         "1. Timing arm for the >=2-gather step change.")
     ap.add_argument("--ngram-max-tables", type=int, default=0,
                     help="0 = all VE layers. N>0 restricts bigram tables to layers <N, to "
                          "check whether the forward cost is linear in table count.")
+    ap.add_argument("--ngram-gather", choices=["index", "static"], default="index",
+                    help="static: replace `tbl[rows]` with a CONTIGUOUS slice `tbl[:b*t]` "
+                         "reshaped to the same shape. Same bytes out of HBM, same output "
+                         "shape, same downstream graph -- but static addresses instead of "
+                         "8192 dynamic 256-byte descriptors. Isolates dynamic-DMA cost. "
+                         "NOT numerically meaningful; a timing arm only.")
+    ap.add_argument("--ngram-proj", choices=["matmul", "repeat"], default="matmul",
+                    help="repeat: replace each table's Linear(dim, n_embd) up-projection "
+                         "with `out.repeat(1, 1, n_embd // dim)`. Same output shape and "
+                         "dtype, no matmul, no extra params in the graph. Prices the "
+                         "projection separately from the gather. Timing arm only.")
+    ap.add_argument("--check-ngram-grads", action=argparse.BooleanOptionalAction, default=False,
+                    help="After the timed micro, print each n-gram table's grad abs-sum. A "
+                         "zero/None grad means the compiler DCE'd the gather and the arm is "
+                         "not measuring what its name claims.")
     ap.add_argument("--ngram-ve-hash", choices=["prime", "mask"], default="prime",
                     help="prime: train.py's `% largest_prime_below(rows)`. mask: `& (rows-1)`, "
                          "monkeypatched in here so the two lowerings are A/B-able without "
@@ -83,6 +108,8 @@ GBI_INJECT = ("        v = v + g_bi.unsqueeze(-1) * "
 # in the graph while removing the injection into v.
 _EPS_KEEPALIVE = "1e-30"
 
+GBI_RETURN = "    return self.c_proj(y), v_raw\n"
+
 ABLATIONS = {
     # (needle, replacement) pairs applied to the extracted forward source.
     "copy": [],
@@ -96,6 +123,16 @@ ABLATIONS = {
     # 32x5, i.e. +20 MFLOP/layer, negligible) but removes every strided read.
     "gatefull": [(GBI_GATE,
                   "        g_bi = 2 * torch.sigmoid(F.linear(x_v, self._gatefull_w))\n")],
+    # Keep the gather, the projection, the gate, the elementwise multiply AND the
+    # materialization of a full [b,t,n_head,head_dim] product -- but add it to the block
+    # OUTPUT instead of to V. Same tensors, same bytes, same FLOPs; the only thing that
+    # changes is whether the sum enters the c_v -> rope -> SDPA chain. This is the arm
+    # that separates "the injection costs" from "injecting into V specifically costs".
+    "injectpost": [(GBI_INJECT,
+                    "        _ve_post = (g_bi.unsqueeze(-1) * ve_bi.view("
+                    "b, t, self.n_head, self.head_dim)).reshape(b, t, c)\n"),
+                   (GBI_RETURN,
+                    "    return self.c_proj(y) + (_ve_post if ve_bi is not None else 0), v_raw\n")],
     "noinject": [(GBI_INJECT,
                   "        v = v + (g_bi.float().mean() + ve_bi.float().mean()"
                   ").to(v.dtype) * " + _EPS_KEEPALIVE + "\n")],
@@ -140,6 +177,59 @@ def _apply_ablation(T, mode: str):
         T.CausalSelfAttention.__init__ = _init
     print(f"[drv] MONKEYPATCH: CausalSelfAttention.forward -> ablate={mode} "
           f"({len(ABLATIONS[mode])} substitution(s))", flush=True)
+
+
+def _install_merged_gather(T, model, device):
+    """One dynamic gather for all n-gram tables instead of one per table.
+
+    The >=2-table step change (1 table +4.9ms, 2 tables +49.8ms, 3 tables +52.6ms, all
+    independent of row count) says the cost is per dynamic-gather OP, not per byte. If
+    that is what it is, folding N gathers into one read of a [N*rows, dim] table -- same
+    bytes moved, same output values, same hash -- should recover almost all of it.
+
+    Implemented by hijacking `_ngram_hash_indices` (called exactly once per forward, in
+    GPT.forward, before any `_ngram_lookup`) to do the single gather and stash the per-key
+    slices, and reducing `_ngram_lookup` to a dict read plus the table's own projection.
+
+    Timing arm only: grads land on the merged table rather than on the originals, so the
+    optimizer sees fewer live params. micro dt is fwd+bwd with no optimizer, which is the
+    number this arm exists to produce.
+    """
+    import torch
+    import torch.nn as nn
+
+    keys = sorted(model.ngram_embeds.keys())
+    rows, dim = model.ngram_rows, model.ngram_embeds[keys[0]].weight.shape[1]
+    merged = nn.Parameter(torch.cat([model.ngram_embeds[k].weight.detach()
+                                     for k in keys], dim=0).clone())
+    model.register_parameter("_merged_ngram", merged)
+    model._merged_keys = keys
+    orig_hash = T.GPT._ngram_hash_indices
+
+    def _hash_and_gather(self, idx, _keys=keys, _rows=rows, _oh=orig_hash):
+        # Returns GATHERED ROWS keyed the same way the index dict was. GPT.forward only
+        # ever does `self._ngram_lookup(key, ngram_idx[key])`, so handing the already
+        # gathered tensor through that same slot keeps this side-effect-free -- no module
+        # attribute mutation for dynamo to break the graph on.
+        out = _oh(self, idx)
+        b, t = idx.shape
+        # Offset each key's rows into its own block of the merged table, then ONE gather.
+        flat = torch.cat([out[k].reshape(-1) + i * _rows for i, k in enumerate(_keys)], dim=0)
+        big = self._merged_ngram[flat]
+        return {k: big[i * b * t:(i + 1) * b * t].view(b, t, -1)
+                for i, k in enumerate(_keys)}
+
+    def _lookup_merged(self, key, gathered):
+        out = gathered.to(T.COMPUTE_DTYPE)
+        if key in self.ngram_proj:
+            out = self.ngram_proj[key](out)
+        return out
+
+    T.GPT._ngram_hash_indices = _hash_and_gather
+    T.GPT._ngram_lookup = _lookup_merged
+    model.to(device)
+    print(f"[drv] MONKEYPATCH: merged gather over {len(keys)} tables "
+          f"-> one [{len(keys) * rows}, {dim}] read", flush=True)
 
 
 def main():
@@ -190,6 +280,16 @@ def main():
         T.GPT._ngram_hash_indices = _mask_hash
         print("[drv] MONKEYPATCH: _ngram_hash_indices -> power-of-two mask", flush=True)
 
+    if args.ngram_only_layer >= 0:
+        _orig_has_bi_ol = T.has_ngram_bigram
+
+        def _only_has_bi(layer_idx, n_layer, _o=_orig_has_bi_ol, _L=args.ngram_only_layer):
+            return _o(layer_idx, n_layer) and layer_idx == _L
+
+        T.has_ngram_bigram = _only_has_bi
+        print(f"[drv] MONKEYPATCH: bigram table on layer {args.ngram_only_layer} only",
+              flush=True)
+
     if args.ngram_max_tables > 0:
         _orig_has_bi = T.has_ngram_bigram
 
@@ -199,6 +299,29 @@ def main():
         T.has_ngram_bigram = _capped_has_bi
         print(f"[drv] MONKEYPATCH: bigram tables capped to layers <{args.ngram_max_tables}",
               flush=True)
+
+    if args.ngram_gather != "index" or args.ngram_proj != "matmul":
+        _n_embd_for_lookup = T.build_config().n_embd
+
+        def _lookup(self, key, rows, _g=args.ngram_gather, _p=args.ngram_proj,
+                    _ne=_n_embd_for_lookup):
+            tbl = self.ngram_embeds[key].weight
+            if _g == "static":
+                n = rows.numel()
+                out = tbl[:n].view(*rows.shape, tbl.shape[1])
+            else:
+                out = tbl[rows]
+            out = out.to(T.COMPUTE_DTYPE)
+            if key in self.ngram_proj:
+                if _p == "repeat":
+                    out = out.repeat(1, 1, _ne // out.shape[-1])
+                else:
+                    out = self.ngram_proj[key](out)
+            return out
+
+        T.GPT._ngram_lookup = _lookup
+        print(f"[drv] MONKEYPATCH: _ngram_lookup gather={args.ngram_gather} "
+              f"proj={args.ngram_proj}", flush=True)
 
     if args.ngram_ablate != "real":
         _apply_ablation(T, args.ngram_ablate)
@@ -218,6 +341,9 @@ def main():
     print(f"[drv] ngram_ve={T.USE_NGRAM_VE} tables={len(model.ngram_embeds)} "
           f"rows={model.ngram_rows} dim={model.ngram_dim} mod={model.ngram_mod} "
           f"hash={args.ngram_ve_hash} index_gather={T.NGRAM_VE_INDEX_GATHER}", flush=True)
+
+    if args.ngram_merge_gather and len(model.ngram_embeds):
+        _install_merged_gather(T, model, device)
 
     if args.compile:
         backend = "neuron" if device_type == "neuron" else "inductor"
@@ -368,6 +494,16 @@ def main():
         micro_dts.append(time.monotonic() - ts)
     print(f"[drv] micro dts (s): {['%.4f' % d for d in micro_dts]}", flush=True)
 
+    if args.check_ngram_grads:
+        # The last micro left grads populated. A None or exactly-zero table grad means the
+        # compiler proved the gather dead and removed it -- in which case the arm's dt is
+        # not measuring the thing the arm is named after.
+        base = model._orig_mod if hasattr(model, "_orig_mod") else model
+        for key, emb in base.ngram_embeds.items():
+            g = emb.weight.grad
+            print(f"[drv] grad[{key}] {'None' if g is None else '%.6e' % g.float().abs().sum().item()}",
+                  flush=True)
+
     info = {
         "window": args.window,
         "window_wall_ms": window_wall * 1e3,
@@ -393,7 +529,11 @@ def main():
         "ngram_ve_dim": args.ngram_ve_dim,
         "ngram_ve_hash": args.ngram_ve_hash,
         "ngram_ablate": args.ngram_ablate,
+        "ngram_gather": args.ngram_gather,
+        "ngram_proj": args.ngram_proj,
         "ngram_max_tables": args.ngram_max_tables,
+        "ngram_only_layer": args.ngram_only_layer,
+        "ngram_merge_gather": args.ngram_merge_gather,
         "capture": args.capture,
     }
     print("[drv] INFO " + json.dumps(info), flush=True)
