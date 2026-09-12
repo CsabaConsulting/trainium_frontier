@@ -3389,3 +3389,29 @@ only touches the weights after training.
 
 Rows `t22-ema-1800s` in `research/experiment-log.jsonl`; logs
 `research/run-logs/t22-ema-{smoke,1800s}.log`.
+
+### Dress rehearsal, 2026-09-12 (required before recommending any submission)
+
+`train.py` has changed a lot since the 1.0548 board score (T3.1 n-gram code, T2.1 ramp, T2.2 EMA
+— all default off), so the **literal** submission command was run once, directly, not through
+`research/run_experiment.py` (which forces its own `--num-steps` and would not exercise the
+default):
+
+```
+NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --no-eval-public --num-steps 1000000
+```
+
+```
+num_steps: 2191   total_tokens_M: 287.2   training_seconds: 1794.4
+startup_allowance_est: 54.9   charged_seconds_est: 1795.3   over_budget: False
+total_seconds: 1830.3   checkpoint out/final.pt = 222,874,081 bytes (62 tensors, one weight set)
+ngram_ve: False   batch_ramp: False   weight_ema: False seeded=False updates=0
+```
+
+2191 steps is right on the locked baseline's 2192/2205, the LR cooldown completes, nothing is
+over budget, and the payload keys are exactly `['meta','model_config','model_state','toggles']` —
+**no `ema_state`**, so `load_for_eval` hands the scorer the same single weight set it did at
+1.0548. All three of this week's additions are confirmed inert on the default path at the real
+launch shape, not just in a harness.
+
+Log: `research/run-logs/dress-rehearsal-2026-09-12.log`.
