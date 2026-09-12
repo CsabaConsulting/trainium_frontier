@@ -94,8 +94,14 @@ def main() -> int:
     # v: attention's value stream, the injection target.
     v_base = torch.randn(b, t, n_head, head_dim, generator=g).to(dtype).to(device)
 
-    tables = [torch.randn(rows, dim, generator=g).to(dtype).to(device).requires_grad_(True)
-              for _ in range(ntab)]
+    # 5 tables are allocated even when only `ntab` are used, so build_ngather() can scale
+    # the gather count to 5 with a DISTINCT table (and therefore a distinct grad buffer)
+    # each -- scattering N times into ONE grad is a different, worse contention case and
+    # would not answer the question being asked.
+    n_max = max(5, ntab)
+    tables_all = [torch.randn(rows, dim, generator=g).to(dtype).to(device).requires_grad_(True)
+                  for _ in range(n_max)]
+    tables = tables_all[:ntab]
     projs = [torch.randn(n_embd, dim, generator=g).to(dtype).mul_(0.02).to(device).requires_grad_(True)
              for _ in range(ntab)]
     gates = [torch.randn(n_head, gate_ch, generator=g).to(dtype).mul_(0.02).to(device).requires_grad_(True)
@@ -104,7 +110,7 @@ def main() -> int:
 
     # Precomputed indices for the hash_none floor: same distribution, no hash math.
     const_idx = [torch.randint(0, mod, (b, t), generator=g).to(torch.int32).to(device)
-                 for _ in range(ntab)]
+                 for _ in range(n_max)]
 
     def shifted(cur):
         pad = torch.full_like(cur[:, :1], pad_id)
@@ -150,6 +156,21 @@ def main() -> int:
     HASHES = {"prime": hash_prime, "mask": hash_mask,
               "maskfold": hash_maskfold, "none": hash_none}
 
+    # ---- non-collapsible loss reductions ----------------------------------------------
+    # A bare `.sum()` is ALGEBRAICALLY COLLAPSIBLE and the first version of this file was
+    # wrong because of it: sum(G @ W.T) == (G.sum(0)) @ (W.sum(0)), and d/dT of sum(T[idx])
+    # is a scatter-add of a CONSTANT, which a compiler may turn into a bincount. Both let
+    # arms be optimized to different degrees and produced a 3ms spread between arms that
+    # differ only in one integer op. Contracting against a fixed random tensor of the same
+    # shape blocks every such rewrite: sum_ij X_ij R_ij needs every element of X.
+    r_dim = torch.randn(b, t, dim, generator=g).to(dtype).to(device)
+    r_emb = torch.randn(b, t, n_embd, generator=g).to(dtype).to(device)
+    r_head = torch.randn(b, t, n_head, generator=g).to(dtype).to(device)
+    r_v = torch.randn(b, t, n_head, head_dim, generator=g).to(dtype).to(device)
+
+    def _dot(x, r):
+        return (x.float() * r.float()).sum()
+
     # ---- cumulative fragment stages ---------------------------------------------------
     def build(stage: str, hname: str):
         hfn = HASHES[hname]
@@ -157,35 +178,50 @@ def main() -> int:
         def fn():
             ids = hfn(idx)
             if stage == "hash":
-                # int outputs have no grad; return a float scalar so fwd+bwd is well-formed
-                # (the .float().sum() itself is one cheap reduce, identical across hash arms).
+                # Integer-only, so there is no backward here or in the model; the trailing
+                # float().sum() is identical across hash arms and only exists to give the
+                # compiled graph an output.
                 return sum(i.float().sum() for i in ids)
             outs = [tables[k][ids[k]] for k in range(ntab)]
             if stage == "gather":
-                return sum(o.float().sum() for o in outs)
+                return sum(_dot(o, r_dim) for o in outs)
             outs = [torch.nn.functional.linear(o, projs[k]) for k, o in enumerate(outs)]
             if stage == "proj":
-                return sum(o.float().sum() for o in outs)
+                return sum(_dot(o, r_emb) for o in outs)
             gs = [2 * torch.sigmoid(torch.nn.functional.linear(
                 x_v[..., k * gate_ch:(k + 1) * gate_ch], gates[k])) for k in range(ntab)]
             if stage == "gate":
-                return sum(o.float().sum() for o in outs) + sum(gg.float().sum() for gg in gs)
+                return sum(_dot(o, r_emb) for o in outs) + sum(_dot(gg, r_head) for gg in gs)
             v = v_base
             for k in range(ntab):
                 v = v + gs[k].unsqueeze(-1) * outs[k].view(b, t, n_head, head_dim)
-            return v.float().sum()
+            return _dot(v, r_v)
 
         return torch.compile(fn, backend="neuron" if device_type == "neuron" else "inductor",
                              dynamic=False) if args.compile else fn
 
     def build_base():
-        """Floor: just the reduce on v, so every arm's trailing .sum() is accounted for."""
+        """Floor: just the reduce on v, so every arm's trailing contraction is accounted for."""
         def fn():
-            return v_base.float().sum()
+            return _dot(v_base, r_v)
         return torch.compile(fn, backend="neuron" if device_type == "neuron" else "inductor",
                              dynamic=False) if args.compile else fn
 
-    params = tables + projs + gates
+    def build_ngather(n: int):
+        """How does the `weight[idx]` scatter-add backward SCALE with the number of
+        simultaneous large tables in one graph?
+
+        embed_gather_bench.py measured ONE gather (2.21ms fwd+bwd at 262144x128) and its
+        `5x separate` arm was only ever run for nn.Embedding (129.34ms, i.e. linear), so
+        advanced indexing was never checked for N>1. If N large scatter-adds in one graph
+        contend, per-gather cost rises with N and THAT is the missing per-table overhead.
+        """
+        def fn():
+            return sum(_dot(tables_all[k][const_idx[k]], r_dim) for k in range(n))
+        return torch.compile(fn, backend="neuron" if device_type == "neuron" else "inductor",
+                             dynamic=False) if args.compile else fn
+
+    params = tables_all + projs + gates
 
     def timeit(fn, bwd: bool) -> float:
         def once():
@@ -235,6 +271,10 @@ def main() -> int:
     for stage in ("gather", "proj", "gate", "inject"):
         for hname in ("prime", "mask", "none"):
             run(f"{stage}-{hname}", build(stage, hname))
+    # Does the advanced-indexing scatter-add backward scale linearly in the number of
+    # simultaneous large tables? embed_gather_bench.py never checked N>1 for this spelling.
+    for n in (1, 2, 3, 5):
+        run(f"ngather-{n}", build_ngather(n))
 
     if rank == 0:
         base = results["base(sum only)"]["fwd_ms"]

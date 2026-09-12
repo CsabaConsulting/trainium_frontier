@@ -21,7 +21,7 @@ REPO = os.environ.get("PROF_REPO", "/home/ubuntu/trainium_frontier")
 def build_args():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", required=True, help="profile_output_dir for NRT traces")
-    ap.add_argument("--window", choices=["micro", "microacc", "step", "opt"], default="micro")
+    ap.add_argument("--window", choices=["micro", "microacc", "fwd", "step", "opt"], default="micro")
     ap.add_argument("--warmup-steps", type=int, default=2,
                     help="full optimizer steps to run before the profiled window")
     ap.add_argument("--compile", action=argparse.BooleanOptionalAction, default=True)
@@ -31,13 +31,115 @@ def build_args():
                     help="MuonAdamW batched-dispatch path (train.py USE_FOREACH_OPTIM)")
     ap.add_argument("--nki-rope-norm", action=argparse.BooleanOptionalAction, default=True)
     ap.add_argument("--nki-softcap-ce", action=argparse.BooleanOptionalAction, default=True)
+    # T3.1 overhead hunt (2026-09-12): the on/off arms of the n-gram value embeddings, so
+    # the ~15ms/table residual can be localized in the REAL compiled graph. The fragment
+    # rebuilt in isolation (research/scratch/ngram_frag_bench.py) only costs ~5.5ms/table,
+    # so whatever is left is a whole-graph scheduling/fusion effect and only visible here.
+    ap.add_argument("--ngram-ve", action=argparse.BooleanOptionalAction, default=False)
+    ap.add_argument("--ngram-ve-trigram", action=argparse.BooleanOptionalAction, default=False)
+    ap.add_argument("--ngram-ve-table-mult", type=int, default=32)
+    ap.add_argument("--ngram-ve-dim", type=int, default=128)
+    ap.add_argument("--ngram-ve-index-gather", action=argparse.BooleanOptionalAction, default=True)
+    ap.add_argument("--ngram-ablate", type=str, default="real",
+                    choices=["real", "copy", "nogate", "slice0", "gatefull", "noinject"],
+                    help="Which PIECE of the n-gram injection to remove, to attribute the "
+                         "+47ms forward regression. Implemented by re-exec'ing the REAL "
+                         "CausalSelfAttention.forward source (inspect.getsource) with exact "
+                         "string substitutions, so `copy` is a literal drift control and any "
+                         "train.py edit that breaks a substitution fails loudly instead of "
+                         "silently measuring the wrong thing. real=no patch at all.")
+    ap.add_argument("--ngram-max-tables", type=int, default=0,
+                    help="0 = all VE layers. N>0 restricts bigram tables to layers <N, to "
+                         "check whether the forward cost is linear in table count.")
+    ap.add_argument("--ngram-ve-hash", choices=["prime", "mask"], default="prime",
+                    help="prime: train.py's `% largest_prime_below(rows)`. mask: `& (rows-1)`, "
+                         "monkeypatched in here so the two lowerings are A/B-able without "
+                         "editing train.py. Quality-neutral -- see ngram_hash_quality.py.")
     ap.add_argument("--max-events-per-nc", type=int, default=0,
                     help="0 = leave at runtime default")
     ap.add_argument("--capture-nc", type=str, default="0")
     ap.add_argument("--timing-steps", type=int, default=3,
                     help="extra un-profiled steps timed for wall-clock dt after capture")
+    ap.add_argument("--capture", action=argparse.BooleanOptionalAction, default=True,
+                    help="--no-capture skips the NeuronProfiler entirely and only reports "
+                         "the clean un-profiled step/micro dt. Used for ablation sweeps where "
+                         "the number that matters is dt, not the trace (and where a 1.4 GB "
+                         "NTFF per arm is pure cost).")
     ap.add_argument("--json-out", type=str, default="")
     return ap.parse_args()
+
+
+# --- n-gram injection ablations -------------------------------------------------------
+# Rebuilt from train.py's OWN source rather than hand-copied: a hand copy silently rots
+# the moment attention changes, and the whole point of these arms is that the ONLY
+# difference between them is the piece named in the mode.
+GBI_SLICE = "x_v[..., VE_GATE_CHANNELS:2 * VE_GATE_CHANNELS]"
+GBI_GATE = "        g_bi = 2 * torch.sigmoid(self.ve_gate_bi(" + GBI_SLICE + "))\n"
+GBI_INJECT = ("        v = v + g_bi.unsqueeze(-1) * "
+              "ve_bi.view(b, t, self.n_head, self.head_dim)\n")
+
+# 1e-30 (not 0.0) so no constant-folding pass can prove the term dead and delete the
+# gather with it: the arm exists precisely to keep the gather + its scatter-add backward
+# in the graph while removing the injection into v.
+_EPS_KEEPALIVE = "1e-30"
+
+ABLATIONS = {
+    # (needle, replacement) pairs applied to the extracted forward source.
+    "copy": [],
+    "nogate": [(GBI_GATE + GBI_INJECT,
+                "        v = v + ve_bi.view(b, t, self.n_head, self.head_dim)\n")],
+    # Suspect: an offset-0 innermost slice is a free view, a 32-wide slice at offset 32
+    # out of 640 is a strided gather of 8192 rows x 64 bytes. Same shapes, same FLOPs,
+    # same parameter count -- only the offset changes.
+    "slice0": [(GBI_SLICE, "x_v[..., :VE_GATE_CHANNELS]")],
+    # No slice at all: gate reads the whole residual. Costs a wider matmul (640x5 vs
+    # 32x5, i.e. +20 MFLOP/layer, negligible) but removes every strided read.
+    "gatefull": [(GBI_GATE,
+                  "        g_bi = 2 * torch.sigmoid(F.linear(x_v, self._gatefull_w))\n")],
+    "noinject": [(GBI_INJECT,
+                  "        v = v + (g_bi.float().mean() + ve_bi.float().mean()"
+                  ").to(v.dtype) * " + _EPS_KEEPALIVE + "\n")],
+}
+
+
+def _apply_ablation(T, mode: str):
+    import inspect
+    import textwrap
+
+    import torch
+    import torch.nn as nn
+
+    src = textwrap.dedent(inspect.getsource(T.CausalSelfAttention.forward))
+    for needle, repl in ABLATIONS[mode]:
+        assert src.count(needle) == 1, (
+            f"ablation {mode!r}: expected exactly 1 occurrence of {needle!r} in "
+            f"CausalSelfAttention.forward, found {src.count(needle)}. train.py changed; "
+            f"update ABLATIONS before trusting any number from this run.")
+        src = src.replace(needle, repl)
+
+    # Execute in train.py's LIVE module dict (not a copy) so every name the body
+    # references (USE_FUSED_QKV, VE_GATE_CHANNELS, rope_norm, F, torch,
+    # _cross_head_compose, ...) resolves to the exact object the real forward would have
+    # used, including any global set after this patch is applied.
+    assert "forward" not in T.__dict__, "train.py has a module-level `forward`; exec would clobber it"
+    exec(compile(src, f"<ablate:{mode}>", "exec"), T.__dict__)
+    T.CausalSelfAttention.forward = T.__dict__.pop("forward")
+
+    if mode == "gatefull":
+        _orig_init = T.CausalSelfAttention.__init__
+
+        def _init(self, config, layer_idx=0, _o=_orig_init):
+            _o(self, config, layer_idx)
+            if self.ve_gate_bi is not None:
+                # Same fan-in-agnostic zero init the real gate gets from init_weights(),
+                # so this arm is still a no-op at step 0 (2*sigmoid(0) == 1 either way,
+                # matching the real gate's own zero-init behaviour).
+                self._gatefull_w = nn.Parameter(
+                    torch.zeros(self.n_head, config.n_embd))
+
+        T.CausalSelfAttention.__init__ = _init
+    print(f"[drv] MONKEYPATCH: CausalSelfAttention.forward -> ablate={mode} "
+          f"({len(ABLATIONS[mode])} substitution(s))", flush=True)
 
 
 def main():
@@ -59,6 +161,47 @@ def main():
     T.USE_FOREACH_OPTIM = args.foreach_optim
     T.USE_NKI_ROPE_NORM = args.nki_rope_norm
     T.USE_NKI_SOFTCAP_CE = args.nki_softcap_ce
+    T.USE_NGRAM_VE = args.ngram_ve
+    T.NGRAM_VE_TRIGRAM = args.ngram_ve_trigram
+    T.NGRAM_VE_TABLE_MULT = args.ngram_ve_table_mult
+    T.NGRAM_VE_DIM = args.ngram_ve_dim
+    T.NGRAM_VE_INDEX_GATHER = args.ngram_ve_index_gather
+    if args.ngram_ve_hash == "mask":
+        def _mask_hash(self, idx):
+            cur = idx.to(torch.int32)
+            pad = torch.full_like(cur[:, :1], self.ngram_pad_id)
+            prev = torch.cat((pad, cur[:, :-1]), dim=1)
+            need_tri = any(k.startswith("t") for k in self.ngram_embeds)
+            prev2 = torch.cat((pad, pad, cur[:, :-2]), dim=1) if need_tri else None
+            m = self.ngram_rows - 1
+            assert self.ngram_rows & m == 0, self.ngram_rows
+            out = {}
+            for key in self.ngram_embeds:
+                layer = int(key[1:])
+                if key[0] == "b":
+                    p0, p1 = T.ngram_bigram_primes(layer)
+                    h = torch.bitwise_xor(prev * p0, cur * p1)
+                else:
+                    p0, p1, p2 = T.ngram_trigram_primes(layer)
+                    h = torch.bitwise_xor(torch.bitwise_xor(prev2 * p0, prev * p1), cur * p2)
+                out[key] = torch.bitwise_and(h, m)
+            return out
+
+        T.GPT._ngram_hash_indices = _mask_hash
+        print("[drv] MONKEYPATCH: _ngram_hash_indices -> power-of-two mask", flush=True)
+
+    if args.ngram_max_tables > 0:
+        _orig_has_bi = T.has_ngram_bigram
+
+        def _capped_has_bi(layer_idx, n_layer, _o=_orig_has_bi, _n=args.ngram_max_tables):
+            return _o(layer_idx, n_layer) and layer_idx < _n
+
+        T.has_ngram_bigram = _capped_has_bi
+        print(f"[drv] MONKEYPATCH: bigram tables capped to layers <{args.ngram_max_tables}",
+              flush=True)
+
+    if args.ngram_ablate != "real":
+        _apply_ablation(T, args.ngram_ablate)
 
     device_type = T.detect_device_type("")
     ddp, rank, local_rank, world_size, device = T.init_runtime(device_type)
@@ -72,6 +215,9 @@ def main():
     model.to(device)
     n_params = sum(p.numel() for p in model.parameters())
     print(f"[drv] num_params={n_params:,} config={config}", flush=True)
+    print(f"[drv] ngram_ve={T.USE_NGRAM_VE} tables={len(model.ngram_embeds)} "
+          f"rows={model.ngram_rows} dim={model.ngram_dim} mod={model.ngram_mod} "
+          f"hash={args.ngram_ve_hash} index_gather={T.NGRAM_VE_INDEX_GATHER}", flush=True)
 
     if args.compile:
         backend = "neuron" if device_type == "neuron" else "inductor"
@@ -130,8 +276,8 @@ def main():
     )
     if args.max_events_per_nc:
         nc_kwargs["max_events_per_nc"] = args.max_events_per_nc
-    nconf = NeuronConfig(**nc_kwargs)
-    nprof = NeuronProfiler(nconf)
+    nconf = NeuronConfig(**nc_kwargs) if args.capture else None
+    nprof = NeuronProfiler(nconf) if args.capture else None
 
     # --- warmup (compile + precache), outside the profiler -------------------
     t_warm = time.monotonic()
@@ -146,7 +292,10 @@ def main():
     T.synchronize(device)
     session_dir = None
     t0 = time.monotonic()
-    with profile(activities=[ProfilerActivity.CPU], experimental_config=nconf) as prof:
+    import contextlib
+    _ctx = (profile(activities=[ProfilerActivity.CPU], experimental_config=nconf)
+            if args.capture else contextlib.nullcontext())
+    with _ctx as prof:
         if args.window == "micro":
             optimizer.zero_grad(set_to_none=True)
             x, y = fetch()
@@ -159,6 +308,15 @@ def main():
             # real grad-accum step actually do.
             x, y = fetch()
             micro(x, y)
+            T.synchronize(device)
+        elif args.window == "fwd":
+            # FORWARD ONLY. The 2026-09-12 T3.1 overhead hunt measured the n-gram cost
+            # as +47.0ms in the forward NEFF and only +5.6ms in the backward one, so a
+            # forward-only capture is both the relevant window and a far smaller NTFF.
+            # NOT under no_grad: that would compile a different (inference) graph.
+            optimizer.zero_grad(set_to_none=True)
+            x, y = fetch()
+            _ = model(x, y)
             T.synchronize(device)
         elif args.window == "opt":
             # grads are already populated by the last warmup step; profile only
@@ -175,15 +333,17 @@ def main():
             full_step(args.warmup_steps)
             T.synchronize(device)
         window_wall = time.monotonic() - t0
-        try:
-            session_dir = nconf.get_session_dir()
-        except Exception as exc:  # noqa: BLE001
-            print(f"[drv] get_session_dir failed: {exc}", flush=True)
+        if args.capture:
+            try:
+                session_dir = nconf.get_session_dir()
+            except Exception as exc:  # noqa: BLE001
+                print(f"[drv] get_session_dir failed: {exc}", flush=True)
     print(f"[drv] profiled window ({args.window}) wall={window_wall * 1e3:.2f} ms", flush=True)
-    try:
-        nprof.export_trace(prof, filename="trace.json")
-    except Exception as exc:  # noqa: BLE001
-        print(f"[drv] export_trace failed: {exc}", flush=True)
+    if args.capture:
+        try:
+            nprof.export_trace(prof, filename="trace.json")
+        except Exception as exc:  # noqa: BLE001
+            print(f"[drv] export_trace failed: {exc}", flush=True)
     print(f"[drv] session_dir={session_dir}", flush=True)
 
     # --- clean wall-clock dt, no profiler attached ---------------------------
@@ -227,6 +387,14 @@ def main():
         "n_embd": config.n_embd,
         "total_batch_size": T.TOTAL_BATCH_SIZE,
         "lnc": os.environ.get("NEURON_LOGICAL_NC_CONFIG", ""),
+        "ngram_ve": args.ngram_ve,
+        "ngram_ve_trigram": args.ngram_ve_trigram,
+        "ngram_ve_table_mult": args.ngram_ve_table_mult,
+        "ngram_ve_dim": args.ngram_ve_dim,
+        "ngram_ve_hash": args.ngram_ve_hash,
+        "ngram_ablate": args.ngram_ablate,
+        "ngram_max_tables": args.ngram_max_tables,
+        "capture": args.capture,
     }
     print("[drv] INFO " + json.dumps(info), flush=True)
     if args.json_out:
