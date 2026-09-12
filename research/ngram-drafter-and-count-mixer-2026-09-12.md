@@ -1,5 +1,15 @@
 # From n-gram speculative drafters to a count-based n-gram mixer — what the "flash scan" idea is worth here
 
+> **OUTCOME (2026-09-12, later the same day): the §6 offline protocol was run in full and the
+> count-based mixer is a CLEAN NEGATIVE. It is dropped.** Best honestly-fitted gain on the
+> public val shard: **+0.00062 bpb**; oracle ceiling (gate fitted on the test stream itself):
+> **+0.00121**. The decision rule below said "< 0.003 → drop". The 0.005–0.015 estimate in §0.5
+> / §3.3 was too optimistic by 2–6x, and separately T3.1 absorbed ~75% of the little that was
+> there. **The §9 Devpost rules question is moot and stays unposted.** Full numbers in
+> `research/trn2-experiment-results.md`, section "2026-09-12 — T4.1 frozen count-based n-gram
+> output mixer"; §6 below is annotated with the measured result. Everything in §1 (drafters are
+> worth zero) and §3.1 (the Parameter Golf evidence is contaminated) stands unchanged.
+
 Research pass on 2026-09-12 (local box, no hardware). Prompted by the user's line of thought:
 shrink a speculative draft model until it becomes a Markov chain / n-gram table built by one
 streaming pass over the corpus. The pasted Google AI Mode answer describes model-free n-gram
@@ -16,7 +26,9 @@ the plan cited for T4.1.
    proposing tokens that the same model then verifies. Verification leaves the model's
    distribution unchanged by construction, and `evaluate_bpb` never generates. Zero effect on
    the metric, same as DSpark, Medusa and EAGLE (§1).
-2. **As a mixer, the same statistics are a legitimate and untested bpb lever.** A frozen bigram
+2. ~~**As a mixer, the same statistics are a legitimate and untested bpb lever.**~~ **MEASURED
+   AND FALSIFIED — worth +0.0006, dropped (see the banner above and §6).** The rules analysis
+   below is still correct; it is the *value* that is not there. Original text: A frozen bigram
    (and possibly hashed trigram) table counted from the training shards *inside* train.py,
    stored in `final.pt`, and blended into the output distribution in `forward`, satisfies every
    rule I can find: the forward stays pure, stateless and causal; the table is an asset
@@ -38,11 +50,15 @@ the plan cited for T4.1.
    −0.020 to −0.024 bpb per-step quality gain that was eaten entirely by their device-side
    training cost. A count-based mixer has the same source of gain (n-gram memory the 56M
    backbone cannot store after 0.9 epochs) with the cost moved to the host CPU (§3.2–3.3, §5).
-5. **Expected value:** +0.005 to +0.015 bpb improvement if the offline test in §6 succeeds,
-   at ~0 device training cost, a few ms per eval row, and 134 MB (bigram, fp16) in the
-   checkpoint. Failure mode is a clean zero. This is worth more than any remaining Tier 3 item
-   and is cheap to falsify offline. Ask the organisers the T4.1 rules question in parallel;
-   do not spend a submission before an answer (§6–§7).
+5. ~~**Expected value:** +0.005 to +0.015 bpb improvement~~ **WRONG BY 2–6x. Measured: +0.0006
+   honest, +0.0012 oracle ceiling.** The estimate was extrapolated from kNN-LM (103M-token
+   datastore seen for many epochs) and Infini-gram (360B-token index, 10^3x ours); neither
+   transfers to a 253M-token count over an 8192-entry BPE vocabulary. Failure mode was indeed
+   "a clean zero", and that is what happened — for 2 CPU-hours and no device time, which is the
+   one part of the plan that worked exactly as advertised. Original text: at ~0 device training
+   cost, a few ms per eval row, and 134 MB (bigram, fp16) in the checkpoint. This is worth more
+   than any remaining Tier 3 item and is cheap to falsify offline. Ask the organisers the T4.1
+   rules question in parallel; do not spend a submission before an answer (§6–§7).
 
 ## 1. Part A — n-gram speculative decoding (the thing the AI Mode answer describes)
 
@@ -229,6 +245,9 @@ Causality exact on all arms; 1800 s escalation pending. Two consequences for thi
    checkpoint**, not the plain baseline: if the residual gain of a frozen bigram mixer on top
    of last-layer n-gram VE is < 0.003, drop the mixer and skip the rules question; if ≥ 0.005,
    it is still worth asking.
+   **ANSWERED by §6: residual gain +0.00062 → mixer dropped, rules question skipped. They
+   OVERLAP, they do not stack: the same protocol on the paired pre-T3.1 control gives +0.00249,
+   so T3.1 absorbed ~75% of a gain that was already under the drop threshold to begin with.**
 
 Also relevant to §8's startup-window discussion: the agent measured that the larger tables
 add ~145 s of compile time which is entirely uncharged under the 900 s allowance
@@ -236,9 +255,42 @@ add ~145 s of compile time which is entirely uncharged under the 900 s allowance
 graphs in the excluded window is the uncontroversial use of it; counting data there remains
 the question to ask.
 
-## 6. Offline test first (CPU on the box, zero device time while other A/Bs run)
+## 6. Offline test — RUN 2026-09-12, RESULT: NO-GO
 
-This is the plan's T4.1 protocol, made concrete:
+**The protocol below was executed exactly as written. Result: no-go.** Scripts:
+`research/scratch/count_mixer_tables.py`, `count_mixer_dump.py`, `count_mixer_fit.py`,
+`count_mixer_top64_check.py`. Logs/JSONs: `research/run-logs/countmix-2026-09-12/`. Full
+write-up: `research/trn2-experiment-results.md`, "2026-09-12 — T4.1 frozen count-based n-gram
+output mixer".
+
+Headline table — stream (a) = public val shard, 2,007,040 tokens, `seq_len=1024`, every gate
+fitted on stream (b) = held-out train shard 4:
+
+| arm | bpb (a) | gain |
+|---|---|---|
+| neural alone (T3.1 checkpoint, CPU fp32) | 1.032816 | — |
+| + KN bigram, global λ | 1.032816 | **+0.000000** (λ fitted to exactly 0) |
+| + bigram+exact-trigram, global λ = 0.0025 | 1.032410 | +0.000407 |
+| + per-order λ | 1.032419 | +0.000398 |
+| + 30-cell (order × entropy-decile) λ table | 1.032406 | +0.000410 |
+| + 7-feature logistic gate (mean g = 0.0031) | **1.032198** | **+0.000618** |
+| *[oracle] logistic gate fitted on (a) itself* | 1.031602 | *+0.001214* |
+
+The count model alone: KN bigram **1.851**, bigram+trigram **1.616** on (a) — both far worse
+than the neural model, in line with Parameter Golf's honest rerun (§3.1). The optimal mixing
+weight is λ ≈ 0.0025–0.0125, **two orders of magnitude below kNN-LM's λ ≈ 0.25**, and exactly
+0 for the bigram alone.
+
+Against the paired **pre-T3.1 control** (`out/t31L-base-1800s/final.pt`, `USE_NGRAM_VE=False`),
+the same protocol gives neural 1.048534 → 1.046045 with the logistic gate, **+0.002489** — i.e.
+the mixer was *already* under the 0.003 drop threshold before T3.1 existed, and T3.1 then
+absorbed ~75% of it. **§5a's open question is answered: the two mechanisms overlap, they do not
+stack.**
+
+The approximation caveat at the bottom of this section turned out to matter a great deal, and
+the fix is not a bigger K — see the "top-64" paragraph below and the results doc.
+
+For the record, the protocol as originally specified:
 
 1. From the best checkpoint, dump per-token neural log-probs on two token streams through
    `prepare.py`'s eval loader at `seq_len 1024` (the scorer's length): (a) the public val
@@ -259,9 +311,49 @@ must be handled (assign the remainder to the n-gram distribution's tail or re-du
 at the scorer's 1024 context, where the neural model is weaker and the mixer should help
 *more*.
 
-## 7. Recommendation
+**Measured (this caveat was well founded, and worse than expected).** On a 131,072-position
+slice with the full `[N, 8192]` fp16 distribution dumped: mean top-64 mass is only **0.888**
+(p10 = 0.701) and **11.2% of targets fall outside the top 64**. A top-64-truncated mixer scores
+**1.0661** where the exact mixer scores **0.9818** on that slice — **+0.084 bpb of pure
+approximation error**, ~100x the effect under test. Spreading the residual over the tail
+(1.0661) and handing it to the count model (1.0788) are both bad. The top-64 entropy estimate
+is off by MAE 0.271 nats on a mean of 2.760.
 
-- **Part A (drafters):** file with the other inference-only ideas; nothing to do.
+The fix is structural, not a bigger K: **both mixands are proper distributions over the 8192
+real tokens, so `log p_mix(y_t) = log((1-g)·p_N(y_t) + g·p_C(y_t))` needs only the two *target*
+probabilities**, each one exact scalar per position. `count_mixer_dump.py` stores
+`log p_N(target)` in fp32 plus the exact full-softmax entropy for the gate feature, which makes
+every number in this section exact rather than approximate; the top-64 arrays it also stores
+were used only for the check above. General lesson for any future output-distribution
+experiment on this repo: dump `log p(target)` and scalar summary features, not a truncated
+top-K.
+
+The 1024-context question is also settled: the whole test was run at 1024 (2M tokens on each
+stream, 6,500 tok/s on 12 vCPUs, ~5 min/stream on the CPU — the device was never needed), and
+the CPU fp32 dump reproduces the harness's `public_val_bpb_alt` to 0.0007 (1.032816 vs
+1.033529 device bf16).
+
+## 7. Recommendation — SUPERSEDED by the §6 result
+
+Current standing recommendation (2026-09-12, post-measurement):
+
+- **Part A (drafters):** file with the other inference-only ideas; nothing to do. Unchanged.
+- **Part B (frozen mixer): CLOSED as a negative.** Do not implement §4 on the device. 134 MB of
+  checkpoint growth and 67M table entries of tie-break exposure for +0.0006 bpb is not a trade
+  worth making, and the honest gain is inside the run-to-run noise of a paired A/B.
+- **Do not post the §9 rules question.** It is moot.
+- **Aster's *learned* output bigram logit table (plan §11.1) is not refuted by this result**, but
+  its prior should now be set by it. That mechanism is genuinely different — gradient-trained
+  logit *biases* that can encode residual corrections and that the neural model co-adapts to,
+  rather than a frozen table pinned to the corpus's own conditional distribution. It also draws
+  on the same statistics T3.1 already banked −0.0152 from, so expect ten-thousandths, not
+  thousandths, and price it accordingly against other Tier 3 items.
+- **Reusable asset from this pass:** the CPU log-prob dump pipeline (6,500 tok/s, exact bpb to
+  0.0007 of the harness, no device contention). Any future output-distribution or calibration
+  idea can now be falsified offline in ~5 min per 2M-token stream.
+
+Original recommendation, kept for the record:
+
 - **Part B (frozen mixer):** promote from "Tier 4 stand-out bet" to the next CPU-side task.
   It costs no device time to falsify, has a measured quality signal on this exact model from
   T3.1, and its cost profile is the opposite of T3.1's. Run §6 while the box is busy with
@@ -360,10 +452,16 @@ search cost in the previous paragraph stands.
 
 *Drafter.* Irrelevant either way (Part A): it cannot change val_bpb wherever it is built.
 
-## 9. Draft question for the Devpost forum
+## 9. Draft question for the Devpost forum — MOOT, DO NOT POST
 
-Post as a new thread under a neutral title such as "Hybrid neural + count-based n-gram
-model: allowed?" and keep it to the facts the organisers need:
+**The §6 measurement makes this question pointless: the hybrid is worth +0.0006 bpb, so there is
+nothing to gain from a ruling.** Kept only as a template in case a *different* asset-legality
+question ever needs asking (question 3, on host-side preprocessing in the excluded startup
+window, is the only part that might be independently reusable — and note that compiling more
+graphs in that window is already uncontroversial, per §5a). Not posted.
+
+Original draft: post as a new thread under a neutral title such as "Hybrid neural + count-based
+n-gram model: allowed?" and keep it to the facts the organisers need:
 
 > We are considering a hybrid language model for Phase 1: a standard transformer plus a
 > frozen n-gram component. During the 30-minute training run, `train.py` counts bigram (and
@@ -408,6 +506,10 @@ adaptation and a normalisation bug, and citing it would invite the wrong compari
 - This repo: README ("pure, stateless, causal forward"; assets produced within the training
   loop; tie-breaks), `prepare.py` (`evaluate_bpb`, `causality_check`), `train.py`
   (`make_dataloader_requeue`, host-side `cpu_inputs`/`row_buffer`),
-  `research/trn2-experiment-results.md` (T3.1 sections 2026-09-11/12),
-  `research/scratch/count_train_tokens.py`, `research/frontier-research-plan-2026-09-09.md`
-  §6 T4.1–T4.3, §11.1.
+  `research/trn2-experiment-results.md` (T3.1 sections 2026-09-11/12, and the 2026-09-12 T4.1
+  negative), `research/scratch/count_train_tokens.py`,
+  `research/frontier-research-plan-2026-09-09.md` §6 T4.1–T4.3, §11.1.
+- This pass's own artifacts (2026-09-12): `research/scratch/count_mixer_tables.py`,
+  `count_mixer_dump.py`, `count_mixer_fit.py`, `count_mixer_top64_check.py`;
+  `research/run-logs/countmix-2026-09-12/` (`fit_results.json`, `fit_results_ctrl.json`,
+  `top64_check_public_val_seq1024.json`, and the run logs).

@@ -420,8 +420,25 @@ Low priority; try last.
 
 ## 6. Tier 4 — Stand-out bets
 
-### T4.1 Neural + count-based n-gram hybrid at evaluation (assess offline first, zero device time)
-> **2026-09-12 update — see `research/ngram-drafter-and-count-mixer-2026-09-12.md`.** The Parameter Golf
+### T4.1 Neural + count-based n-gram hybrid at evaluation — **CLOSED 2026-09-12, NEGATIVE**
+> **2026-09-12 RESULT — the offline protocol was run in full and this item is dropped.** Best
+> honestly-fitted gain (gates fit on held-out train shard 4, evaluated on the public val shard,
+> `seq_len=1024`, 2M tokens): **+0.00062 bpb**; oracle ceiling with the gate fitted on the test
+> stream itself: **+0.00121**. The count model alone is 1.851 bpb (KN bigram) / 1.616
+> (bigram+exact trigram) against the neural model's 1.033, and the optimal mixing weight is
+> λ ≈ 0.0025–0.0125, ~100x below kNN-LM's 0.25 (exactly 0 for the bigram alone). On the paired
+> pre-T3.1 control the same protocol gives +0.00249 — already under the drop threshold — so T3.1's
+> learned last-layer n-gram VE absorbed ~75% of an effect that was marginal to begin with: the two
+> **overlap, they do not stack**. The 0.005–0.03 estimate in §7's table was too optimistic by an
+> order of magnitude (kNN-LM's datastore was seen for many epochs; Infini-gram's index is 10^3x
+> ours; a 253M-token count over an 8192-entry BPE vocabulary is not much memory). **No device
+> implementation, and the T4.1 forum question is moot and stays unposted.** Full numbers:
+> `research/trn2-experiment-results.md` "2026-09-12 — T4.1 frozen count-based n-gram output
+> mixer"; scripts `research/scratch/count_mixer_{tables,dump,fit,top64_check}.py`; logs
+> `research/run-logs/countmix-2026-09-12/`. Aster's *learned* output bigram logit table (§11.1)
+> is not refuted by this, but its prior should now be ten-thousandths, not thousandths.
+>
+> **2026-09-12 update (pre-measurement, kept for the record) — see `research/ngram-drafter-and-count-mixer-2026-09-12.md`.** The Parameter Golf
 > evidence cited below is eval-time caches that update on the scored text (illegal here) and the PG n-gram
 > track was invalidated on 2026-03-27 for a normalisation bug (#978: a properly normalised n-gram alone is
 > 1.51 bpb). Keep the item, but base it on kNN-LM / Infini-gram and on this repo's T3.1 measurement
@@ -537,10 +554,11 @@ warnings; `startup_allowance_est` < 900; `over_budget: False`; `eval-public` at 
 | T3.4/T3.5/T3.6 key offset, skip/backout, attn gate | quality | 2 hours each | 0.001–0.004 each | medium |
 | T3.7 MTP / prefix aux loss | quality | 1 day | 0.002–0.006 | medium |
 | T2.2 EMA | quality | 2 hours | 0–0.003 | high (small) |
-| T4.1 neural+n-gram hybrid at eval | stand-out | 1 day CPU + 1 day device | 0.005–0.03 | medium, rules risk |
+| ~~T4.1 neural+n-gram hybrid at eval~~ | **CLOSED, NEGATIVE 2026-09-12** | 2 h CPU (actual) | **+0.0006 measured**, was estimated 0.005–0.03 | n/a |
 
 If half of the high/medium-high items land, the stack reaches ≈ 1.00–1.01; with T1.5 or T4.1
-paying out it reaches the 0.97–0.99 range.
+paying out it reaches the 0.97–0.99 range. **(T4.1 is now closed as a negative — see §6 — so
+this line's upper end depends on T1.5 alone.)**
 
 ---
 
@@ -663,6 +681,9 @@ paper: memory helps most when the backbone is small and undertrained — exactly
    bigram logit table** (`V×V` bf16 = 67M params, one gather + one add per micro-step, zero-init):
    this is the **rules-safe, gradient-trained version of T4.1** and should be tried *before* any
    count-based n-gram mixing. If it wins, the count-based T4.1 becomes optional.
+   **2026-09-12: the count-based T4.1 is now closed as a negative (+0.0006) regardless, so this
+   is the only surviving output-side n-gram candidate — but T3.1 already banked −0.0152 from the
+   same statistics on the last layer, so price it at ten-thousandths.**
 3. **Cheap one-liners from Recursive to A/B in the T0.4 sweep:** `relu(h−0.5)²`; sandwich norm on
    the MLP; per-head output norm + head gate (T3.6); last-3-layer output pooling (T3.5 variant);
    softcap 16.5/15; `x0_lambda` init 0.1; rotary base 1e6; causal Q/K token shift

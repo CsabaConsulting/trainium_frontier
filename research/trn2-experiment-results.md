@@ -3870,3 +3870,143 @@ configuration measured −0.0217 bpb of *per-step quality* at 844 steps, versus 
 step count, so the headroom is real but smaller than the win already banked, and option 1 is an
 invasive change to the forward signature with rules implications. **Recommended as the next T3.1
 item, not as a blocker on submitting what is already measured.**
+
+## 2026-09-12 — T4.1 frozen count-based n-gram output mixer: offline protocol run in full, CLEAN NEGATIVE, dropped
+
+The §6 offline protocol of `research/ngram-drafter-and-count-mixer-2026-09-12.md`, executed
+end-to-end on the box's CPU (zero device time, zero `train.py` change). Verdict up front:
+**no-go**. The best honestly-fitted mixer gains **+0.00062 bpb** on the public val shard, and
+even an *oracle* gate fitted directly on that shard cannot exceed **+0.00121**. The doc's own
+decision rule was "< 0.003 → drop"; this is 5x below it and 4x below the "≥ 0.005, keep
+pursuing" bar. Dropped. The Devpost rules question in that doc's §9 is therefore moot and
+stays unposted.
+
+### What was run
+
+Scratch scripts, all pure-CPU and reusable: `research/scratch/count_mixer_tables.py`,
+`count_mixer_dump.py`, `count_mixer_fit.py`, `count_mixer_top64_check.py`. Logs and result
+JSONs under `research/run-logs/countmix-2026-09-12/`.
+
+1. **Count tables** from train shards 0-3 only (shard 4 held out for gate fitting, public val
+   never touched). Tokenised BOS-prepended exactly as `prepare.make_dataloader` does:
+   **253,079,405 tokens in 60 s** on the 12 vCPUs, n-grams counted *within* documents.
+   Dense bigram `[8192, 8192]` int32 (268 MB): **7,920,856 distinct bigrams** (11.8% of the
+   67M cells). Exact — not hashed — trigram: **63,007,016 distinct trigrams**, i.e. an average
+   count of 4, which is already the reason the trigram layer cannot carry much. Smoothing:
+   interpolated Kneser-Ney with `D ∈ {0.5, 0.75, 0.9}` against both the KN continuation
+   unigram and the plain MLE unigram; trigram interpolated onto the smoothed bigram (`D3=0.75`).
+2. **Per-token neural log-probs** at `seq_len=1024` (the scorer's length) from
+   `~/ckpt-keep/final-t31-l5tri-m64-2026-09-12.pt` via `load_for_eval` on the CPU, walking
+   `prepare.make_eval_dataloader` so the packing and the `-1` padding are the scorer's:
+   2,007,040 valid tokens on each of stream (a) = public val shard and stream (b) = train
+   shard 4. **6,500 tok/s on 12 vCPUs, ~5 min per stream** — the device was never needed.
+   Sanity: the dump reproduces `public_val_bpb_alt` to 0.0007 (**1.032816** CPU fp32 vs
+   **1.033529** device bf16 — the whole gap is the compute dtype).
+3. **Gates fitted on (b) only**, evaluated on (a): global λ, per-order λ, a 7-feature logistic
+   gate on context-only features, and a non-parametric (order × neural-entropy-decile) 30-cell
+   λ table. Plus the same families fitted on (a) itself, reported as oracle ceilings.
+
+### The numbers
+
+Count model *alone*, on the public val shard (both far worse than the neural model, consistent
+with Parameter Golf's honest rerun at 1.51):
+
+| count model | bpb (a) |
+|---|---|
+| KN bigram | 1.8513 |
+| KN bigram + exact trigram | 1.6158 |
+
+Mixture, stream (a) = public val, 2.007M tokens, seq 1024, gates fitted on (b):
+
+| arm | (a) bpb | gain vs neural | fitted λ / mean gate |
+|---|---|---|---|
+| **neural alone** | **1.032816** | — | — |
+| + bigram, global λ | 1.032816 | **+0.000000** | λ fitted to exactly **0.0** |
+| + trigram, global λ | 1.032410 | +0.000407 | λ = 0.0025 |
+| + trigram, per-order λ | 1.032419 | +0.000398 | (0, 0, 0.0025) |
+| + trigram, 30-cell bucket gate | 1.032406 | +0.000410 | — |
+| + trigram, **7-feature logistic gate** | **1.032198** | **+0.000618** | mean g = 0.0031 |
+| *[oracle] global λ fitted on (a)* | 1.032073 | *+0.000743* | *λ = 0.0125* |
+| *[oracle] bucket fitted on (a)* | 1.031799 | *+0.001017* | — |
+| *[oracle] logistic fitted on (a)* | 1.031602 | ***+0.001214*** | — |
+
+Held-out sanity on (b): neural 0.968293 → 0.968149 with the same logistic gate, i.e. the gate
+is not an artifact of fitting on (a) (it never saw (a)), and the sign is the same on both
+streams. The gain being *larger* on (a) than on (b) is expected: shard 4 is in-distribution
+for a model that trained on shards 0-4, so there is less calibration error to fix there.
+
+**The single most damning number is λ = 0.0.** kNN-LM got most of its gain at a fixed
+λ ≈ 0.25; the optimal weight for a frozen count bigram against this model is *two orders of
+magnitude smaller*, and for the bigram alone the optimiser drives it to exactly zero. Even the
+oracle bucket gate only reaches λ = 0.11 in a single one of its 30 cells (the highest-entropy,
+lowest-order cell) and 0.0 in 16 of them.
+
+### Why: T3.1 had already taken it, and there was not much there to begin with
+
+Same protocol re-run against the **paired pre-T3.1 control** from the 1800 s sweep
+(`out/t31L-base-1800s/final.pt`, `USE_NGRAM_VE=False`, loaded by reading the checkpoint's own
+`payload["toggles"]` — the dump script has an `--apply-ckpt-toggles` flag for this, `train.py`
+untouched):
+
+| gate (fitted on (b)) | pre-T3.1 control (a) | gain | T3.1 checkpoint (a) | gain | absorbed by T3.1 |
+|---|---|---|---|---|---|
+| neural alone | 1.048534 | — | 1.032816 | — | — |
+| global λ | 1.047249 | +0.001285 | 1.032410 | +0.000407 | 68% |
+| bucket gate | 1.046598 | +0.001936 | 1.032406 | +0.000410 | 79% |
+| logistic gate | 1.046045 | **+0.002489** | 1.032198 | **+0.000618** | **75%** |
+| *[oracle] logistic on (a)* | 1.045707 | *+0.002827* | 1.031602 | *+0.001214* | *57%* |
+
+Two independent reasons, both fatal:
+
+1. **The mixer was already marginal before T3.1.** Its best honest gain on the pre-T3.1
+   baseline is +0.00249 — under the doc's own 0.003 drop threshold even there. The §3.3
+   working estimate of 0.005–0.015, extrapolated from kNN-LM and Infini-gram, was too
+   optimistic by 2–6x. Those results come from datastores 10^3x larger (Infini-gram: 360B
+   tokens) or from models that had seen their datastore for many epochs (kNN-LM: 103M tokens,
+   many epochs). A 253M-token bigram/trigram count is simply not much memory, and the 8192-token
+   BPE vocabulary makes each individual bigram far less informative than a word-level one.
+2. **T3.1 absorbed ~75% of what was left.** The learned last-layer hashed n-gram value
+   embedding and the frozen count mixer draw on the same statistics, and the learned,
+   gradient-trained, attention-side version gets there first. This is the answer to the
+   §5a question the doc left open: the two mechanisms **overlap, they do not stack**.
+
+### Bonus: the doc's top-64 caveat was real, and the design that avoids it
+
+The doc worried (§6) that mixing from top-64 neural probabilities introduces error. Measured
+directly on a 131,072-position slice with the full `[N, 8192]` fp16 distribution dumped
+(`count_mixer_top64_check.py`):
+
+- mean top-64 mass is only **0.888** (10th percentile 0.701), and **11.2% of targets fall
+  outside the top 64**;
+- a top-64-truncated mixer, residual mass spread over the tail, scores **1.0661** where the
+  exact mixer scores **0.9818** on the same slice — an error of **+0.084 bpb**, 100x the effect
+  being measured. Handing the residual to the count model instead is no better (1.0788).
+- the top-64 entropy estimate has MAE 0.271 nats against a mean of 2.760.
+
+So the caveat would have completely invalidated a naive implementation. The way out is not a
+bigger K: **because both mixands are proper distributions over the 8192 real tokens, the
+mixture's log-prob at the target needs only the two *target* probabilities**, both exact and
+both one scalar per position. `count_mixer_dump.py` stores exactly that (plus the exact
+full-softmax entropy for the gate feature), so every number above is exact rather than
+approximate. Worth remembering for any future output-distribution experiment: dump
+`log p(target)` and scalar summary features, never a truncated top-K, unless the full
+distribution is genuinely needed.
+
+### Consequences
+
+- **T4.1 is closed as a negative.** No device implementation, no `train.py` change, no
+  paired A/B. The 134 MB checkpoint growth and the tie-break exposure on 67M table entries buy
+  0.0006 bpb.
+- **The §9 Devpost rules question is moot and stays unposted.** There is nothing to gain by
+  asking whether a hybrid neural + count model is legal when the hybrid is worth 0.0006.
+- **Aster's *learned* output bigram logit table (plan §11.1) is not refuted by this**, and is
+  the one remaining variant worth a thought. It is a different mechanism: gradient-trained
+  `nn.Embedding(V, V)` logit biases, which can learn *residual corrections* to the neural
+  logits rather than being pinned to the corpus's own conditional distribution, and which the
+  neural model co-adapts to during training. But it shares T3.1's source of signal, and T3.1
+  already banked −0.0152 from that source on the last layer, so the prior for it should now be
+  set by this result: expect single-digit-ten-thousandths, not thousandths.
+- **Reusable asset:** the CPU log-prob dump pipeline. 6,500 tok/s means any future
+  output-distribution or calibration idea (temperature, logit bias, ensembling, entropy-gated
+  anything) can be falsified offline in ~5 min per 2M-token stream with no device contention,
+  against an exact bpb that matches the harness to 0.0007.
