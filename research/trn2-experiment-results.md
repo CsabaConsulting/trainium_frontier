@@ -3505,3 +3505,94 @@ The ablations are generated from train.py's own `CausalSelfAttention.forward` so
 `inspect.getsource` plus assert-single-occurrence string substitution, so `copy` is a literal
 drift control and a future edit to attention breaks the sweep loudly instead of quietly
 measuring a stale hand-copy.
+
+## 2026-09-12 — T3.1 overhead hunt, part 2: it is a LAYER-POSITION effect, and the last layer is free
+
+Part 1 localized the missing time to the forward graph and ruled out the modulus. Part 2 is
+an in-model ablation grid (`research/scratch/prof_driver.py --no-capture --window micro`,
+1 rank, LNC=2, compile on, foreach optimizer, best-of-3 micro fwd+bwd, `--check-ngram-grads`
+on every arm so a silently-DCE'd arm cannot be mistaken for a fast one). Baseline (`off`)
+is **172.9ms micro / 2.862s step**, reproduced twice (172.9, 172.6).
+
+### Everything the overhead is NOT
+
+| arm | micro dt | Δ vs off | what it removes |
+|---|---|---|---|
+| on (real, 3 tables, 262144 rows, dim 128) | 225.7 | +52.8 | — |
+| `copy` (regenerated forward, no change) | 225.3 | +52.4 | nothing — **drift control** |
+| `slice0` (gate reads `x_v[..., :32]` not `[..., 32:64]`) | 225.4 | +52.5 | the non-zero-offset slice |
+| `gatefull` (gate reads all 640 channels, no slice) | 226.8 | +53.9 | every strided read in the gate |
+| `nogate` (no slice, no Linear, no sigmoid) | 221.2 | +48.3 | the whole gate |
+| `repeatproj` (`repeat` instead of `Linear(128,640)`) | 223.7 | +50.8 | the up-projection matmul |
+| `injectpost` (add to the block OUTPUT, not to V) | 216.8 | +43.9 | injection into the V→RoPE→SDPA chain |
+| `mult8` (65536 rows) | 225.2 | +52.3 | 4x less table |
+| `mult2` (16384 rows) | 224.9 | +52.0 | 16x less table |
+| `mult1` (8192 rows, 2MB/table) | 224.8 | +51.9 | 32x less table |
+| `dim64` | 225.2 | +52.3 | half the bytes per row |
+| `dim256` | 228.6 | +55.7 | (2x the bytes per row) |
+| `emb1` (`nn.Embedding` at 8192 rows) | 227.1 | +54.2 | the advanced-indexing spelling |
+| `merge` (ONE gather from a [786432,128] table) | 226.4 | +53.5 | 2 of the 3 gather ops |
+| **`static`** (`tbl[:8192]` contiguous, same shapes) | **178.4** | **+5.5** | the DYNAMIC index only |
+
+So: the gate is worth 4.5ms of 52.8, the projection 2ms, injecting into V rather than
+elsewhere 8.9ms, and the *entire rest* is the presence of a data-dependent gather —
+**independent of how many rows it reads, how wide they are, how many gathers there are, or
+which of the two PyTorch spellings is used**. 8192 rows costs the same as 262144. One merged
+gather costs the same as three. That rules out bandwidth, descriptor volume, backward
+scatter-add cost, and the `aten::index` vs `aten::embedding` lowering, all at once.
+
+The `noinject` arm (166.8ms) is **invalid and must not be quoted**: `--check-ngram-grads`
+shows its table grads are exactly 0.0, i.e. the compiler proved the gather dead and deleted
+it. This is exactly why that flag exists.
+
+### What the overhead IS
+
+| layers with a bigram table | micro dt | Δ | step dt | r |
+|---|---|---|---|---|
+| none | 172.9 | — | 2.862 | 1.000 |
+| **{5} (last)** | **164.1** | **−8.8** | **2.767** | **0.967** |
+| {1} | 178.2 | +5.3 | 2.991 | 1.045 |
+| {3} | 220.6 | +47.7 | 3.662 | 1.279 |
+| {1,5} | 223.1 | +50.2 | 3.716 | 1.298 |
+| {3,5} | 222.7 | +49.8 | 3.703 | 1.294 |
+| {1,3} | 222.5 | +49.6 | 3.700 | 1.293 |
+| {1,3,5} | 225.7 | +52.8 | 3.768 | 1.317 |
+
+`WINDOW_PATTERN="L"`, `USE_MAMBA2/USE_RWKV` off, so layers 1, 3 and 5 are structurally
+*identical* blocks — same modules, same mask path, same value-residual, same local_conv. Yet
+one table on layer 5 makes the model **faster than having no table at all** (−8.8ms micro,
+−3.3% step time), one on layer 3 costs +47.7ms, and any two layers cost ~+50ms wherever they
+are. It is not the number of tables: **bigram AND trigram both on layer 5 is 167.1ms**, still
+5.8ms *under* baseline. It is the number of distinct layers that inject.
+
+And it does not get cheaper by hoisting: `merge` emits its single gather at the very top of
+the forward and still costs +53.5ms.
+
+This is a whole-graph scheduling/placement effect in `neuronx-cc`, not a cost of the n-gram
+computation. The n-gram work itself is ~5ms/table (which is what the isolated fragment bench
+measured, and what the `static` arm confirms in situ); everything above that is a schedule
+regression triggered by placing a dynamic gather anywhere but the last block.
+
+### Consequence: a configuration that buys quality at negative time cost
+
+Because the cost is geometry-invariant, table size is free once the placement is right:
+
+| config (all `NGRAM_VE_LAYERS=-1`) | rows | micro dt | step dt | r |
+|---|---|---|---|---|
+| bigram, mult 32 | 262144 | 164.6 | 2.767 | 0.967 |
+| bigram, mult 64 | 524288 | 165.1 | 2.784 | 0.973 |
+| bigram, mult 128 | 1048576 | 165.4 | 2.812 | 0.983 |
+| bigram, dim 256 | 262144 | 165.7 | 2.790 | 0.975 |
+| bigram + trigram, mult 32 | 262144 each | 167.1 | 2.805 | 0.980 |
+
+Every one of these is **faster than the baseline** while adding a quality-bearing table. The
+original T3.1 verdict was "correct but exactly break-even at r=1.297"; at r=0.97 the same
+mechanism only has to earn something, anything, to be a win — the step-count term alone is
+worth `0.077·ln(1/0.973) = 0.0021` bpb before the table contributes at all.
+
+`NGRAM_VE_LAYERS` (new, default `""` = the original all-VE-layers rule, so this is a no-op on
+every existing configuration) takes a comma-separated layer list with negatives counting from
+the end, so `-1` keeps meaning "last layer" if DEPTH ever changes.
+
+Logs: `research/run-logs/ngram-ablate{,2,3,4}-2026-09-12.log`,
+`research/run-logs/ngram-ablate-json/*.json`.
