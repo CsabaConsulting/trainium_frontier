@@ -3596,3 +3596,30 @@ the end, so `-1` keeps meaning "last layer" if DEPTH ever changes.
 
 Logs: `research/run-logs/ngram-ablate{,2,3,4}-2026-09-12.log`,
 `research/run-logs/ngram-ablate-json/*.json`.
+
+### 900s paired A/B (2026-09-12, commit 1eede36, same box, same session)
+
+| label | config | bpb | steps | Δbpb vs base | startup_est |
+|---|---|---|---|---|---|
+| `t31l-base-900s` | none | 1.081306 | 1094 | — | 121.1s |
+| `t31l-l5m64-900s` | bigram, layer −1, mult 64, dim 128 | **1.068101** | 1099 | **−0.013205** | 266.3s |
+| `t31l-l5tri-900s` | bigram+trigram, layer −1, mult 32, dim 128 | **1.066917** | 1084 | **−0.014389** | 264.9s |
+
+`causality_max_abs = 0.000000` and `causality_passed: True` on all three arms.
+
+The control reproduces yesterday's `t31-base-900s` (1.081257 / 1095 steps) to 5e-5 bpb and
+1 step, so the harness noise floor here is far below the effect.
+
+Two things make this a much bigger win than the −0.017 the part-1 analysis projected:
+
+1. **Step count no longer pays for the table.** 1099 and 1084 steps against the control's
+   1094 — the old all-VE-layers configuration got 844. The whole 22% step loss is gone.
+2. **The extra compile time is free.** `startup_allowance_est` rises 121s -> 266s, but
+   `TRAIN_STARTUP_ALLOWANCE_CAP_SECONDS = 900` (prepare.py:41) and startup is *uncharged*
+   below that cap, so `training_seconds` is 894.6s on all three arms and `charged_seconds_est`
+   is 894.7/894.9/894.7. A 145s-longer compile costs nothing. This is what makes the large
+   tables usable at all: mult 64 is 524288 rows x 128 x bf16 x 2 tables.
+
+`t31l-l5tri` beats `t31l-l5m64` by 0.0012, which is inside the "needs a repeat" band, so the
+two are treated as tied going into the 1800s escalation and both are carried forward (plus
+bigram+trigram at mult 64, the untested corner).
