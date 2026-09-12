@@ -402,8 +402,14 @@ def has_ve(layer_idx: int, n_layer: int) -> bool:
 # table is uniform(-s, s)), so `v + gate * 0 == v` bit-exactly even though the zero-init
 # gate evaluates to the neutral 2*sigmoid(0) = 1.0. That is what makes USE_NGRAM_VE=True
 # bit-identical to False at init and the A/B honest.
-USE_NGRAM_VE = False
-NGRAM_VE_LAYERS = ""      # WHICH layers get a bigram table. "" = every has_ve() layer, which is
+# ON since 2026-09-12: with NGRAM_VE_LAYERS="-1" this is the single largest measured win in the
+# repo. Paired 1800s A/B, same box/session/commit, --eval-seq-len 1024: control 1.034199 bpb /
+# 2191 steps vs 1.018985 / 2139 with bigram+trigram tables (524288 rows x 128) on the LAST layer
+# only, i.e. -0.0152 bpb. It was "exactly break-even" for two days only because the tables were
+# on every VE layer, which is a ~+50ms/step whole-graph scheduling penalty that has nothing to do
+# with the tables' size -- see NGRAM_VE_LAYERS below.
+USE_NGRAM_VE = True
+NGRAM_VE_LAYERS = "-1"    # WHICH layers get a bigram table. "" = every has_ve() layer, which is
 # Recursive's own allocation and what the original T3.1 grid measured. A comma-separated list of
 # layer indices (negatives count from the end, so "-1" is the last layer at any DEPTH) restricts
 # it. This exists because the per-step cost of these tables turned out to depend almost entirely
@@ -426,9 +432,19 @@ NGRAM_VE_LAYERS = ""      # WHICH layers get a bigram table. "" = every has_ve()
 # anywhere costs ~50 ms no matter where. See the 2026-09-12 section of
 # research/trn2-experiment-results.md for the full ablation (the gate, the slice offset, the
 # up-projection and the injection into V were each ruled out individually).
-NGRAM_VE_TABLE_MULT = 8   # rows per table = this x padded_vocab_size (8 x 8192 = 65536).
+NGRAM_VE_TABLE_MULT = 64  # rows per table = this x padded_vocab_size (64 x 8192 = 524288).
+# Chosen by the 2026-09-12 1800s sweep with NGRAM_VE_LAYERS="-1", bigram+trigram, dim 128
+# (bpb / steps / params): mult 32 -> 1.020516 / 2173 / 123.0M, mult 64 -> 1.018985 / 2139 /
+# 190.1M, mult 128 -> 1.019171 / 2067 / 324.3M. Capacity saturates at 64: doubling again is
+# 0.0002 WORSE for 72 fewer steps and 134M more parameters. dim 256 at mult 64 measured
+# 1.018483 / 2069 / 324.5M, which is 0.0005 better -- inside the noise band and at 1.7x the
+# parameters, so dim stays 128 (the "fewer total parameters" tie-break is real).
 NGRAM_VE_TRIGRAM = True   # also add a trigram table on the FIRST and LAST VE layer.
-NGRAM_VE_DIM = 0          # table WIDTH. 0 => n_embd, i.e. the table is gathered straight into v.
+# With NGRAM_VE_LAYERS="-1" the first and last VE layer are the same layer, so this adds exactly
+# one extra table, on that layer, and two tables on ONE layer is still free (measured). Worth
+# -0.0017 at 1800s (1.020516 -> 1.018985 is mult, but bigram-only at mult 64 is 1.022205 vs
+# bigram+trigram at mult 32 = 1.020516 at equal parameter count).
+NGRAM_VE_DIM = 128        # table WIDTH. 0 => n_embd, i.e. the table is gathered straight into v.
 # >0 makes each table [rows, NGRAM_VE_DIM] followed by its own Linear(NGRAM_VE_DIM, n_embd)
 # up-projection, which is a THROUGHPUT knob, not a quality one, and it exists because the
 # measured cost of the full-width version is the whole problem with T3.1 on this stack.
