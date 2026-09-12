@@ -3415,3 +3415,93 @@ over budget, and the payload keys are exactly `['meta','model_config','model_sta
 launch shape, not just in a harness.
 
 Log: `research/run-logs/dress-rehearsal-2026-09-12.log`.
+
+## 2026-09-12 — T3.1 overhead hunt, part 1: the modulus is innocent, and 89% of the cost is in the forward graph
+
+T3.1 (hashed bigram value embeddings) landed exactly *break-even* at the real 1800s budget:
+a genuine per-step quality gain, paid for at a step-ratio of r=1.297 that ate all of it. The
+prior section flagged ~15ms/table of **unexplained** overhead — the gather itself measures
+2.2–2.5ms fwd+bwd in isolation, yet each table costs ~17.6ms of compiled micro time in the
+model. If that residual is a fixable bug rather than a hardware cost, the trade flips to an
+estimated **-0.017 bpb** win. Two named suspects were on the list. This is what they turned
+out to be.
+
+### Suspect 1 — `torch.remainder` by a non-power-of-two modulus: DEAD, three independent ways
+
+The row count *is* a power of two (`NGRAM_VE_TABLE_MULT=32 × padded_vocab 8192 = 262144`);
+the modulus is not, because `_largest_prime_below(262144) = 262139` is deliberately prime. So
+the hash really is a 31-bit integer remainder by a non-power-of-two constant, which on a
+vector engine with an fp32 datapath cannot go through a reciprocal at all (24-bit mantissa)
+and must be long-divided or scalarized. Plausible. Also wrong:
+
+1. **Isolated cost** (`research/scratch/ngram_frag_bench.py`, 3 tables, exact model shapes):
+   hash-only forward is **0.742ms prime vs 0.274ms mask**, i.e. `+0.156ms/table`. Two orders
+   of magnitude below the 15ms being hunted.
+2. **Whole-model cost** (`prof_driver.py --ngram-ve-hash {prime,mask}`, which monkeypatches
+   `_ngram_hash_indices` to `& (rows-1)` without touching train.py): micro dt **225.5ms prime
+   vs 225.7ms mask**; forward NEFF **124.33 vs 124.55ms**. Zero benefit, and the mask arm is
+   fractionally *slower* — pure noise.
+3. **Quality of the swap, had it been free** (`research/scratch/ngram_hash_quality.py`, full
+   8193² bigram space + a Zipf(1.0) stream): mean distinct-rows/ideal is 0.9945 for `prime%`,
+   0.9950 for raw mask, 0.9940 for mask+xor-fold, with identical max_load (~43350). The
+   mask is quality-neutral, so the argument in the code comment ("`% 2^k` throws away every
+   bit of mixing the primes put in") is **wrong** — `(a^b) & M == (a&M)^(b&M)`, and `x → x·p
+   mod 2^18` is a bijection for odd `p`, hence injective on ids < 2^14. But it is also moot,
+   because the swap buys nothing.
+
+**Verdict: leave `_largest_prime_below` alone.** Not because it is better, but because the
+modulus is not where the time goes, and a quality-neutral rewrite of a hot hash for 0.15ms is
+not worth the risk surface.
+
+### A second question closed on the way: the gather backward scales linearly
+
+`embed_gather_bench.py` only ever tested N>1 large tables for `nn.Embedding`, never for the
+`weight[idx]` advanced-indexing spelling that replaced it. If N simultaneous scatter-adds
+contended, per-table cost would grow with N and *that* would be the missing overhead. It
+does not: `ngather-{1,2,3,5}` fwd+bwd = **1.887 / 3.351 / 4.826 / 7.908ms**, i.e. a flat
+~1.5ms per gather with no fixed cost and no contention.
+
+### Where the time actually is: the FORWARD graph, 89% of it
+
+`prof_driver.py --window micro --foreach-optim` at the T3.1 grid config (3 bigram tables,
+262144 rows, dim 128), NEFF-level totals from the device profile:
+
+| arm | params | micro dt | step dt | **fwd NEFF** | bwd NEFF |
+|---|---|---|---|---|---|
+| off | 55,713,772 | 172.9ms | 2.871s | **77.28ms** | 90.21ms |
+| on (prime) | 156,623,308 | 225.5ms | 3.749s | **124.33ms** | 95.76ms |
+| on (mask) | 156,623,308 | 225.7ms | — | **124.55ms** | 95.62ms |
+
+`+47.05ms forward (+61%)` versus `+5.55ms backward (+6%)`. Total `+17.5ms/table`, which
+reproduces the 1.297 step-ratio from the quality runs (r=1.306 here) — so this micro-benchmark
+is measuring the same thing the 1800s runs paid for.
+
+The decisive number is the comparison against the isolated fragment:
+
+| | in-model | isolated fragment | ratio |
+|---|---|---|---|
+| forward | 15.7ms/table | 2.5ms/table | **6.3x worse** |
+| backward | 1.8ms/table | 3.2ms/table | 0.6x (cheaper!) |
+
+The backward is *cheaper* in context than in isolation, which is what one expects when a big
+graph gives the scheduler more to overlap with. The forward is 6x worse. So the forward cost
+is **not the fragment's intrinsic cost** — it is a whole-graph effect (scheduling, fusion, or
+memory plan) that only appears when the injection sits inside attention. That is suspect 2,
+and it cannot be answered by any isolated microbenchmark.
+
+Ruled out by reasoning, so as not to waste a run: hoisting the three gathers out of the layer
+loop in Python is a no-op. `torch.compile` traces the entire forward into one DAG and the
+gathers depend only on `idx`, so the compiler is already free to schedule them anywhere it
+likes; moving the Python statement changes nothing it sees.
+
+One unexplained artifact, recorded in case it matters later: the `on` arm's runtime trace has
+3 extra `aten::_to_copy` driver events totalling 280.10ms that are absent from `off`. The NEFF
+sum (220.09ms) matches the clean un-profiled micro dt (225.5ms), so these are almost certainly
+async/profiler accounting, not real serial time — but they are not yet positively explained.
+
+Tooling added: `prof_driver.py --window fwd` (forward-only capture), `--no-capture` (dt-only
+sweeps), `--ngram-max-tables N`, and `--ngram-ablate {copy,nogate,slice0,gatefull,noinject}`.
+The ablations are generated from train.py's own `CausalSelfAttention.forward` source with
+`inspect.getsource` plus assert-single-occurrence string substitution, so `copy` is a literal
+drift control and a future edit to attention breaks the sweep loudly instead of quietly
+measuring a stale hand-copy.
