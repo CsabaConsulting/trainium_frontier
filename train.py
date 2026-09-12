@@ -5212,6 +5212,14 @@ def main() -> None:
                         help="keep the n-gram tables out of the GLOBAL clip_grad_norm_ and clip them "
                              "as their own group, so adding them cannot change the effective lr of "
                              "every other tensor through clip_coef. See split_clip_params.")
+    # Shorthand for the many scalar knobs below: one flag whose default is the module-level
+    # constant, overridable by NEURON_COMPETITION_R1_<FLAG>. Defined here rather than next to the
+    # T0.4 block it was written for because it is a local of main(): every call must come after
+    # this `def` statement executes, or Python raises UnboundLocalError.
+    def _hp(flag: str, default, typ, helptext: str) -> None:
+        env = "NEURON_COMPETITION_R1_" + flag.lstrip("-").replace("-", "_").upper()
+        parser.add_argument(flag, type=typ, default=typ(os.environ.get(env, default)), help=helptext)
+
     # T4.2: Aster's output bigram logit table.
     parser.add_argument("--out-bigram", action=argparse.BooleanOptionalAction,
                         default=os.environ.get("NEURON_COMPETITION_R1_OUT_BIGRAM", "1" if USE_OUT_BIGRAM else "0") != "0",
@@ -5424,10 +5432,9 @@ def main() -> None:
     # A/B in this repo follows). All are float/int scalars read either before GPT(config) (init
     # scales) or inside setup_optimizer/lr_multiplier (LRs, decays), never mid-step, so none of
     # them can introduce a per-step graph constant.
-    def _hp(flag: str, default, typ, helptext: str) -> None:
-        env = "NEURON_COMPETITION_R1_" + flag.lstrip("-").replace("-", "_").upper()
-        parser.add_argument(flag, type=typ, default=typ(os.environ.get(env, default)), help=helptext)
-
+    # (_hp itself is defined further up, just above the T4.2 block, because that block was the
+    # first caller and `_hp` is a local of main() -- calling it before its `def` statement runs
+    # raises UnboundLocalError, which is exactly what happened on 2026-09-12.)
     _hp("--seq-len", SEQ_LEN, int, "Training context length. Previously only settable by editing the "
         "constant. Currently 2048. NOTE: the in-process eval runs at this same length, so a "
         "--seq-len A/B is apples-to-oranges unless --eval-seq-len pins both arms to one eval "
