@@ -3731,3 +3731,36 @@ calibration established on 2026-09-10 is board ≈ 2M/seq1024 + 0.005 (local 1.0
 improvement of about 0.0155, and the largest single win in this repo. The dress rehearsal
 reproduces the harness arm independently (1.017998 vs 1.018985 at 2048; 1.033529 vs 1.034050 at
 1024, both marginally better), so the number is not a one-run fluke.
+
+### Device-level capture of the layer-position asymmetry (2026-09-12)
+
+Three forward-only captures at the ablation grid's shape (1 rank, LNC=2, compile on, foreach
+optimizer, 1 bigram table, 262144 rows x 128, mult 32), `research/scratch/prof_driver.py
+--window fwd`:
+
+| arm | tables | layer | micro fwd+bwd | Δ | step | profile dir size |
+|---|---|---|---|---|---|---|
+| `off` | 0 | — | 172.8 ms | — | 2.874 s | 943 MB |
+| `l3` | 1 | 3 | 220.4 ms | **+47.6** | 3.647 s | **2.8 GB** |
+| `l5` | 1 | 5 (last) | 165.1 ms | **−7.7** | 2.759 s | 926 MB |
+
+These reproduce the wall-clock ablation grid to within 1 ms three days of tooling later, so the
+effect is stable and not a compile-cache artifact.
+
+The captured NTFF volume is itself the first piece of device-level evidence: the layer-3 arm
+produced 3x the profile bytes of the other two for a graph that differs by one gather, one
+matmul, one sigmoid and one add. That is an event-count difference, not a bytes-moved
+difference — consistent with the wall-clock finding that the cost is invariant to table size.
+
+Session dirs on the box (kept for analysis):
+`/home/ubuntu/prof/{off,l3,l5}/i-0329acb9a6244986b_pid_*/`, NEFFs under `/home/ubuntu/prof/*/neffs`.
+Driver JSON pulled to `research/run-logs/prof-layerpos-json/{off,l3,l5}.json`, driver log to
+`research/run-logs/prof-layerpos-2026-09-12.log`.
+
+**Tooling trap fixed in the same commit:** `prof_driver.py` monkeypatches `has_ngram_bigram` for
+its `--ngram-only-layer` / `--ngram-layers` arms, but it never set `NGRAM_VE_LAYERS`. Now that
+train.py ships `NGRAM_VE_LAYERS="-1"`, every driver arm would have silently selected the
+*intersection* with {last layer} — i.e. zero tables for every arm except layer 5, and a
+beautifully consistent "no cost anywhere" result. Added `--ngram-ve-layers`, defaulting to
+**empty** rather than to train.py's value, so the driver's own layer flags stay authoritative.
+Confirmed working: the `l3` arm reports `tables=1` and reproduces +47.6 ms.

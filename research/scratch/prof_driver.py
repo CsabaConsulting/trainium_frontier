@@ -40,6 +40,13 @@ def build_args():
     ap.add_argument("--ngram-ve-table-mult", type=int, default=32)
     ap.add_argument("--ngram-ve-dim", type=int, default=128)
     ap.add_argument("--ngram-ve-index-gather", action=argparse.BooleanOptionalAction, default=True)
+    ap.add_argument("--ngram-ve-layers", type=str, default="",
+                    help="train.py's own NGRAM_VE_LAYERS global. Defaults to EMPTY, not to "
+                         "train.py's value: since 2026-09-12 train.py ships '-1', and leaving "
+                         "that in place would make --ngram-layers/--ngram-only-layer select the "
+                         "intersection with {last layer}, i.e. NO tables for every arm except "
+                         "layer 5. Empty here keeps the driver's own layer-selection flags "
+                         "authoritative and reproduces the original ablation grid.")
     ap.add_argument("--ngram-ablate", type=str, default="real",
                     choices=["real", "copy", "nogate", "slice0", "gatefull", "noinject",
                              "injectpost"],
@@ -290,6 +297,7 @@ def main():
     T.NGRAM_VE_TRIGRAM = args.ngram_ve_trigram
     T.NGRAM_VE_TABLE_MULT = args.ngram_ve_table_mult
     T.NGRAM_VE_DIM = args.ngram_ve_dim
+    T.NGRAM_VE_LAYERS = args.ngram_ve_layers
     T.NGRAM_VE_INDEX_GATHER = args.ngram_ve_index_gather
     if args.ngram_ve_hash == "mask":
         def _mask_hash(self, idx):

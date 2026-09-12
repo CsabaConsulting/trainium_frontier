@@ -1,0 +1,52 @@
+=== off 14:19:36
+[drv] device=neuron dtype=torch.bfloat16 world_size=1 device_type=neuron
+[drv] num_params=55,713,772 config=GPTConfig(sequence_len=2048, vocab_size=8192, n_layer=6, n_head=5, n_embd=640, mlp_ratio=4, attn_scale=0.0)
+[drv] ngram_ve=False tables=0 rows=262144 dim=128 mod=262139 hash=prime index_gather=True
+[drv] torch.compile enabled (backend=neuron)
+[drv] micro_tokens=8,192 grad_accum_steps=16
+[drv] warmup step 0 dt=89.146s
+[drv] warmup step 1 dt=6.886s
+[drv] warmup total 96.0s
+[drv] profiled window (fwd) wall=3093.03 ms
+[drv] session_dir=/home/ubuntu/prof/off/i-0329acb9a6244986b_pid_625150/1789222883698650473
+[drv] timed step 0 dt=2.8770s
+[drv] timed step 1 dt=2.8753s
+[drv] timed step 2 dt=2.8721s
+[drv] micro dts (s): ['0.1728', '0.1730', '0.1731']
+[drv] INFO {"window": "fwd", "window_wall_ms": 3093.0252990074223, "session_dir": "/home/ubuntu/prof/off/i-0329acb9a6244986b_pid_625150/1789222883698650473", "grad_accum_steps": 16, "world_size": 1, "num_params": 55713772, "compile": true, "local_conv": true, "tensor_lr_scalars": true, "nki_rope_norm": true, "nki_softcap_ce": true, "step_dts_s": [2.8769810759986285, 2.875293049000902, 2.872080052999081], "micro_dts_s": [0.17278235701087397, 0.17298418701102491, 0.1730705259979004], "seq_len": 2048, "depth": 6, "n_embd": 640, "total_batch_size": 131072, "lnc": "", "ngram_ve": false, "ngram_ve_trigram": false, "ngram_ve_table_mult": 32, "ngram_ve_dim": 128, "ngram_ve_hash": "prime", "ngram_ablate": "real", "ngram_gather": "index", "ngram_proj": "matmul", "ngram_max_tables": 0, "ngram_only_layer": -1, "ngram_layers": "", "ngram_merge_gather": false, "ngram_hoist": false, "capture": true}
+=== l3 14:21:41
+[drv] MONKEYPATCH: bigram table on layer 3 only
+[drv] device=neuron dtype=torch.bfloat16 world_size=1 device_type=neuron
+[drv] num_params=89,350,284 config=GPTConfig(sequence_len=2048, vocab_size=8192, n_layer=6, n_head=5, n_embd=640, mlp_ratio=4, attn_scale=0.0)
+[drv] ngram_ve=True tables=1 rows=262144 dim=128 mod=262139 hash=prime index_gather=True
+[drv] torch.compile enabled (backend=neuron)
+[drv] micro_tokens=8,192 grad_accum_steps=16
+[drv] warmup step 0 dt=169.174s
+[drv] warmup step 1 dt=152.516s
+[drv] warmup total 321.7s
+[drv] profiled window (fwd) wall=3319.29 ms
+[drv] session_dir=/home/ubuntu/prof/l3/i-0329acb9a6244986b_pid_625791/1789223234954669732
+[drv] timed step 0 dt=3.6508s
+[drv] timed step 1 dt=3.6450s
+[drv] timed step 2 dt=3.6450s
+[drv] micro dts (s): ['0.2204', '0.2205', '0.2209']
+[drv] INFO {"window": "fwd", "window_wall_ms": 3319.290675994125, "session_dir": "/home/ubuntu/prof/l3/i-0329acb9a6244986b_pid_625791/1789223234954669732", "grad_accum_steps": 16, "world_size": 1, "num_params": 89350284, "compile": true, "local_conv": true, "tensor_lr_scalars": true, "nki_rope_norm": true, "nki_softcap_ce": true, "step_dts_s": [3.6508211610052967, 3.6450179829989793, 3.6450351149978815], "micro_dts_s": [0.22038642899133265, 0.22053833000245504, 0.2209299019887112], "seq_len": 2048, "depth": 6, "n_embd": 640, "total_batch_size": 131072, "lnc": "", "ngram_ve": true, "ngram_ve_trigram": false, "ngram_ve_table_mult": 32, "ngram_ve_dim": 128, "ngram_ve_hash": "prime", "ngram_ablate": "real", "ngram_gather": "index", "ngram_proj": "matmul", "ngram_max_tables": 0, "ngram_only_layer": 3, "ngram_layers": "", "ngram_merge_gather": false, "ngram_hoist": false, "capture": true}
+=== l5 14:27:39
+[drv] MONKEYPATCH: bigram table on layer 5 only
+[drv] device=neuron dtype=torch.bfloat16 world_size=1 device_type=neuron
+[drv] num_params=89,350,284 config=GPTConfig(sequence_len=2048, vocab_size=8192, n_layer=6, n_head=5, n_embd=640, mlp_ratio=4, attn_scale=0.0)
+[drv] ngram_ve=True tables=1 rows=262144 dim=128 mod=262139 hash=prime index_gather=True
+[drv] torch.compile enabled (backend=neuron)
+[drv] micro_tokens=8,192 grad_accum_steps=16
+[drv] warmup step 0 dt=122.996s
+[drv] warmup step 1 dt=104.754s
+[drv] warmup total 227.8s
+[drv] profiled window (fwd) wall=3204.58 ms
+[drv] session_dir=/home/ubuntu/prof/l5/i-0329acb9a6244986b_pid_626739/1789223497837676757
+[drv] timed step 0 dt=2.7501s
+[drv] timed step 1 dt=2.7619s
+[drv] timed step 2 dt=2.7668s
+[drv] micro dts (s): ['0.1652', '0.1651', '0.1650']
+[drv] INFO {"window": "fwd", "window_wall_ms": 3204.575081996154, "session_dir": "/home/ubuntu/prof/l5/i-0329acb9a6244986b_pid_626739/1789223497837676757", "grad_accum_steps": 16, "world_size": 1, "num_params": 89350284, "compile": true, "local_conv": true, "tensor_lr_scalars": true, "nki_rope_norm": true, "nki_softcap_ce": true, "step_dts_s": [2.7500620409991825, 2.7618909790035104, 2.766788020002423], "micro_dts_s": [0.16516382299596444, 0.16507017599360552, 0.1649890340049751], "seq_len": 2048, "depth": 6, "n_embd": 640, "total_batch_size": 131072, "lnc": "", "ngram_ve": true, "ngram_ve_trigram": false, "ngram_ve_table_mult": 32, "ngram_ve_dim": 128, "ngram_ve_hash": "prime", "ngram_ablate": "real", "ngram_gather": "index", "ngram_proj": "matmul", "ngram_max_tables": 0, "ngram_only_layer": 5, "ngram_layers": "", "ngram_merge_gather": false, "ngram_hoist": false, "capture": true}
+=== ALLDONE 14:31:56
+DONE
