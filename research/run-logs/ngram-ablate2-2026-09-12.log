@@ -1,0 +1,157 @@
+=================== ARM t2-tab4  05:10:39 ===================
+[drv] MONKEYPATCH: bigram tables capped to layers <4
+[drv] device=neuron dtype=torch.bfloat16 world_size=1 device_type=neuron
+[drv] num_params=122,986,796 config=GPTConfig(sequence_len=2048, vocab_size=8192, n_layer=6, n_head=5, n_embd=640, mlp_ratio=4, attn_scale=0.0)
+[drv] ngram_ve=True tables=2 rows=262144 dim=128 mod=262139 hash=prime index_gather=True
+[drv] torch.compile enabled (backend=neuron)
+[drv] micro_tokens=8,192 grad_accum_steps=16
+[drv] warmup step 0 dt=191.717s
+[drv] warmup step 1 dt=147.369s
+[drv] warmup total 339.1s
+[drv] profiled window (micro) wall=223.99 ms
+[drv] session_dir=None
+[drv] timed step 0 dt=3.7115s
+[drv] timed step 1 dt=3.7106s
+[drv] micro dts (s): ['0.2229', '0.2231', '0.2231']
+[drv] INFO {"window": "micro", "window_wall_ms": 223.99310300534125, "session_dir": null, "grad_accum_steps": 16, "world_size": 1, "num_params": 122986796, "compile": true, "local_conv": true, "tensor_lr_scalars": true, "nki_rope_norm": true, "nki_softcap_ce": true, "step_dts_s": [3.7115263969972148, 3.7106017260011868], "micro_dts_s": [0.22294991899980232, 0.22314384100172902, 0.2231396759962081], "seq_len": 2048, "depth": 6, "n_embd": 640, "total_batch_size": 131072, "lnc": "2", "ngram_ve": true, "ngram_ve_trigram": false, "ngram_ve_table_mult": 32, "ngram_ve_dim": 128, "ngram_ve_hash": "prime", "ngram_ablate": "real", "ngram_gather": "index", "ngram_proj": "matmul", "ngram_max_tables": 4, "capture": false}
+--- ARM t2-tab4 END 05:16:38
+=================== ARM t2-mult8  05:16:38 ===================
+[drv] device=neuron dtype=torch.bfloat16 world_size=1 device_type=neuron
+[drv] num_params=81,125,836 config=GPTConfig(sequence_len=2048, vocab_size=8192, n_layer=6, n_head=5, n_embd=640, mlp_ratio=4, attn_scale=0.0)
+[drv] ngram_ve=True tables=3 rows=65536 dim=128 mod=65521 hash=prime index_gather=True
+[drv] torch.compile enabled (backend=neuron)
+[drv] micro_tokens=8,192 grad_accum_steps=16
+[drv] warmup step 0 dt=168.567s
+[drv] warmup step 1 dt=151.102s
+[drv] warmup total 319.7s
+[drv] profiled window (micro) wall=226.00 ms
+[drv] session_dir=None
+[drv] timed step 0 dt=3.7434s
+[drv] timed step 1 dt=3.7412s
+[drv] micro dts (s): ['0.2252', '0.2254', '0.2257']
+[drv] INFO {"window": "micro", "window_wall_ms": 226.00269399845274, "session_dir": null, "grad_accum_steps": 16, "world_size": 1, "num_params": 81125836, "compile": true, "local_conv": true, "tensor_lr_scalars": true, "nki_rope_norm": true, "nki_softcap_ce": true, "step_dts_s": [3.74339776099805, 3.7411689540022053], "micro_dts_s": [0.2251690429984592, 0.2254011969998828, 0.22568754399981117], "seq_len": 2048, "depth": 6, "n_embd": 640, "total_batch_size": 131072, "lnc": "2", "ngram_ve": true, "ngram_ve_trigram": false, "ngram_ve_table_mult": 8, "ngram_ve_dim": 128, "ngram_ve_hash": "prime", "ngram_ablate": "real", "ngram_gather": "index", "ngram_proj": "matmul", "ngram_max_tables": 0, "capture": false}
+--- ARM t2-mult8 END 05:22:17
+=================== ARM t2-mult2  05:22:17 ===================
+[drv] device=neuron dtype=torch.bfloat16 world_size=1 device_type=neuron
+[drv] num_params=62,251,468 config=GPTConfig(sequence_len=2048, vocab_size=8192, n_layer=6, n_head=5, n_embd=640, mlp_ratio=4, attn_scale=0.0)
+[drv] ngram_ve=True tables=3 rows=16384 dim=128 mod=16381 hash=prime index_gather=True
+[drv] torch.compile enabled (backend=neuron)
+[drv] micro_tokens=8,192 grad_accum_steps=16
+[drv] warmup step 0 dt=173.440s
+[drv] warmup step 1 dt=150.716s
+[drv] warmup total 324.2s
+[drv] profiled window (micro) wall=225.69 ms
+[drv] session_dir=None
+[drv] timed step 0 dt=3.7411s
+[drv] timed step 1 dt=3.7361s
+[drv] micro dts (s): ['0.2249', '0.2253', '0.2255']
+[drv] INFO {"window": "micro", "window_wall_ms": 225.6902090011863, "session_dir": null, "grad_accum_steps": 16, "world_size": 1, "num_params": 62251468, "compile": true, "local_conv": true, "tensor_lr_scalars": true, "nki_rope_norm": true, "nki_softcap_ce": true, "step_dts_s": [3.7411393110014615, 3.736137461994076], "micro_dts_s": [0.22494916200230364, 0.22527276899927529, 0.22545156300475355], "seq_len": 2048, "depth": 6, "n_embd": 640, "total_batch_size": 131072, "lnc": "2", "ngram_ve": true, "ngram_ve_trigram": false, "ngram_ve_table_mult": 2, "ngram_ve_dim": 128, "ngram_ve_hash": "prime", "ngram_ablate": "real", "ngram_gather": "index", "ngram_proj": "matmul", "ngram_max_tables": 0, "capture": false}
+--- ARM t2-mult2 END 05:28:01
+=================== ARM t2-mult1  05:28:01 ===================
+[drv] device=neuron dtype=torch.bfloat16 world_size=1 device_type=neuron
+[drv] num_params=59,105,740 config=GPTConfig(sequence_len=2048, vocab_size=8192, n_layer=6, n_head=5, n_embd=640, mlp_ratio=4, attn_scale=0.0)
+[drv] ngram_ve=True tables=3 rows=8192 dim=128 mod=8191 hash=prime index_gather=True
+[drv] torch.compile enabled (backend=neuron)
+[drv] micro_tokens=8,192 grad_accum_steps=16
+[drv] warmup step 0 dt=175.331s
+[drv] warmup step 1 dt=153.474s
+[drv] warmup total 328.8s
+[drv] profiled window (micro) wall=225.85 ms
+[drv] session_dir=None
+[drv] timed step 0 dt=3.7419s
+[drv] timed step 1 dt=3.7409s
+[drv] micro dts (s): ['0.2248', '0.2251', '0.2256']
+[drv] INFO {"window": "micro", "window_wall_ms": 225.85346899722936, "session_dir": null, "grad_accum_steps": 16, "world_size": 1, "num_params": 59105740, "compile": true, "local_conv": true, "tensor_lr_scalars": true, "nki_rope_norm": true, "nki_softcap_ce": true, "step_dts_s": [3.741926365000836, 3.7408767610031646], "micro_dts_s": [0.2248002609994728, 0.22514257000148064, 0.2256151389956358], "seq_len": 2048, "depth": 6, "n_embd": 640, "total_batch_size": 131072, "lnc": "2", "ngram_ve": true, "ngram_ve_trigram": false, "ngram_ve_table_mult": 1, "ngram_ve_dim": 128, "ngram_ve_hash": "prime", "ngram_ablate": "real", "ngram_gather": "index", "ngram_proj": "matmul", "ngram_max_tables": 0, "capture": false}
+--- ARM t2-mult1 END 05:33:50
+=================== ARM t2-injectpost  05:33:50 ===================
+[drv] MONKEYPATCH: CausalSelfAttention.forward -> ablate=injectpost (2 substitution(s))
+[drv] device=neuron dtype=torch.bfloat16 world_size=1 device_type=neuron
+[drv] num_params=156,623,308 config=GPTConfig(sequence_len=2048, vocab_size=8192, n_layer=6, n_head=5, n_embd=640, mlp_ratio=4, attn_scale=0.0)
+[drv] ngram_ve=True tables=3 rows=262144 dim=128 mod=262139 hash=prime index_gather=True
+[drv] torch.compile enabled (backend=neuron)
+[drv] micro_tokens=8,192 grad_accum_steps=16
+[drv] warmup step 0 dt=196.752s
+[drv] warmup step 1 dt=179.788s
+[drv] warmup total 376.5s
+[drv] profiled window (micro) wall=218.09 ms
+[drv] session_dir=None
+[drv] timed step 0 dt=3.6300s
+[drv] timed step 1 dt=3.6229s
+[drv] micro dts (s): ['0.2168', '0.2172', '0.2171']
+[drv] INFO {"window": "micro", "window_wall_ms": 218.0865519985673, "session_dir": null, "grad_accum_steps": 16, "world_size": 1, "num_params": 156623308, "compile": true, "local_conv": true, "tensor_lr_scalars": true, "nki_rope_norm": true, "nki_softcap_ce": true, "step_dts_s": [3.630029392996221, 3.6229115090027335], "micro_dts_s": [0.21679446400230518, 0.2171548860060284, 0.21713841699965997], "seq_len": 2048, "depth": 6, "n_embd": 640, "total_batch_size": 131072, "lnc": "2", "ngram_ve": true, "ngram_ve_trigram": false, "ngram_ve_table_mult": 32, "ngram_ve_dim": 128, "ngram_ve_hash": "prime", "ngram_ablate": "injectpost", "ngram_gather": "index", "ngram_proj": "matmul", "ngram_max_tables": 0, "capture": false}
+--- ARM t2-injectpost END 05:40:26
+=================== ARM t2-static  05:40:26 ===================
+[drv] MONKEYPATCH: _ngram_lookup gather=static proj=matmul
+[drv] device=neuron dtype=torch.bfloat16 world_size=1 device_type=neuron
+[drv] num_params=156,623,308 config=GPTConfig(sequence_len=2048, vocab_size=8192, n_layer=6, n_head=5, n_embd=640, mlp_ratio=4, attn_scale=0.0)
+[drv] ngram_ve=True tables=3 rows=262144 dim=128 mod=262139 hash=prime index_gather=True
+[drv] torch.compile enabled (backend=neuron)
+[drv] micro_tokens=8,192 grad_accum_steps=16
+[drv] warmup step 0 dt=112.912s
+[drv] warmup step 1 dt=93.642s
+[drv] warmup total 206.6s
+[drv] profiled window (micro) wall=178.59 ms
+[drv] session_dir=None
+[drv] timed step 0 dt=2.9909s
+[drv] timed step 1 dt=2.9982s
+[drv] micro dts (s): ['0.1784', '0.1784', '0.1787']
+[drv] INFO {"window": "micro", "window_wall_ms": 178.59337000118103, "session_dir": null, "grad_accum_steps": 16, "world_size": 1, "num_params": 156623308, "compile": true, "local_conv": true, "tensor_lr_scalars": true, "nki_rope_norm": true, "nki_softcap_ce": true, "step_dts_s": [2.9909241929999553, 2.9982111400022404], "micro_dts_s": [0.17836079900007462, 0.17841803200280992, 0.17872591800551163], "seq_len": 2048, "depth": 6, "n_embd": 640, "total_batch_size": 131072, "lnc": "2", "ngram_ve": true, "ngram_ve_trigram": false, "ngram_ve_table_mult": 32, "ngram_ve_dim": 128, "ngram_ve_hash": "prime", "ngram_ablate": "real", "ngram_gather": "static", "ngram_proj": "matmul", "ngram_max_tables": 0, "capture": false}
+--- ARM t2-static END 05:44:10
+=================== ARM t2-repeatproj  05:44:10 ===================
+[drv] MONKEYPATCH: _ngram_lookup gather=index proj=repeat
+[drv] device=neuron dtype=torch.bfloat16 world_size=1 device_type=neuron
+[drv] num_params=156,623,308 config=GPTConfig(sequence_len=2048, vocab_size=8192, n_layer=6, n_head=5, n_embd=640, mlp_ratio=4, attn_scale=0.0)
+[drv] ngram_ve=True tables=3 rows=262144 dim=128 mod=262139 hash=prime index_gather=True
+[drv] torch.compile enabled (backend=neuron)
+[drv] micro_tokens=8,192 grad_accum_steps=16
+[drv] warmup step 0 dt=173.774s
+[drv] warmup step 1 dt=8.045s
+[drv] warmup total 181.8s
+[drv] profiled window (micro) wall=225.51 ms
+[drv] session_dir=None
+[drv] timed step 0 dt=3.7273s
+[drv] timed step 1 dt=3.7383s
+[drv] micro dts (s): ['0.2237', '0.2239', '0.2242']
+[drv] INFO {"window": "micro", "window_wall_ms": 225.5106560041895, "session_dir": null, "grad_accum_steps": 16, "world_size": 1, "num_params": 156623308, "compile": true, "local_conv": true, "tensor_lr_scalars": true, "nki_rope_norm": true, "nki_softcap_ce": true, "step_dts_s": [3.7272738059982657, 3.7382919340016088], "micro_dts_s": [0.2237247609955375, 0.22388903200044297, 0.2242180239991285], "seq_len": 2048, "depth": 6, "n_embd": 640, "total_batch_size": 131072, "lnc": "2", "ngram_ve": true, "ngram_ve_trigram": false, "ngram_ve_table_mult": 32, "ngram_ve_dim": 128, "ngram_ve_hash": "prime", "ngram_ablate": "real", "ngram_gather": "index", "ngram_proj": "repeat", "ngram_max_tables": 0, "capture": false}
+--- ARM t2-repeatproj END 05:47:33
+=================== ARM t2-real-g  05:47:33 ===================
+[drv] device=neuron dtype=torch.bfloat16 world_size=1 device_type=neuron
+[drv] num_params=156,623,308 config=GPTConfig(sequence_len=2048, vocab_size=8192, n_layer=6, n_head=5, n_embd=640, mlp_ratio=4, attn_scale=0.0)
+[drv] ngram_ve=True tables=3 rows=262144 dim=128 mod=262139 hash=prime index_gather=True
+[drv] torch.compile enabled (backend=neuron)
+[drv] micro_tokens=8,192 grad_accum_steps=16
+[drv] warmup step 0 dt=45.772s
+[drv] warmup step 1 dt=27.864s
+[drv] warmup total 73.6s
+[drv] profiled window (micro) wall=226.40 ms
+[drv] session_dir=None
+[drv] timed step 0 dt=3.7694s
+[drv] timed step 1 dt=3.7666s
+[drv] micro dts (s): ['0.2257', '0.2259', '0.2258']
+[drv] grad[b1] 1.447452e-04
+[drv] grad[b3] 1.496197e-04
+[drv] grad[b5] 1.121539e-04
+[drv] INFO {"window": "micro", "window_wall_ms": 226.3977570037241, "session_dir": null, "grad_accum_steps": 16, "world_size": 1, "num_params": 156623308, "compile": true, "local_conv": true, "tensor_lr_scalars": true, "nki_rope_norm": true, "nki_softcap_ce": true, "step_dts_s": [3.7694147340007476, 3.766568227998505], "micro_dts_s": [0.2256923460008693, 0.22594068499893183, 0.22576532100356417], "seq_len": 2048, "depth": 6, "n_embd": 640, "total_batch_size": 131072, "lnc": "2", "ngram_ve": true, "ngram_ve_trigram": false, "ngram_ve_table_mult": 32, "ngram_ve_dim": 128, "ngram_ve_hash": "prime", "ngram_ablate": "real", "ngram_gather": "index", "ngram_proj": "matmul", "ngram_max_tables": 0, "capture": false}
+--- ARM t2-real-g END 05:49:10
+=================== ARM t2-noinject-g  05:49:10 ===================
+[drv] MONKEYPATCH: CausalSelfAttention.forward -> ablate=noinject (1 substitution(s))
+[drv] device=neuron dtype=torch.bfloat16 world_size=1 device_type=neuron
+[drv] num_params=156,623,308 config=GPTConfig(sequence_len=2048, vocab_size=8192, n_layer=6, n_head=5, n_embd=640, mlp_ratio=4, attn_scale=0.0)
+[drv] ngram_ve=True tables=3 rows=262144 dim=128 mod=262139 hash=prime index_gather=True
+[drv] torch.compile enabled (backend=neuron)
+[drv] micro_tokens=8,192 grad_accum_steps=16
+[drv] warmup step 0 dt=29.425s
+[drv] warmup step 1 dt=12.053s
+[drv] warmup total 41.5s
+[drv] profiled window (micro) wall=167.91 ms
+[drv] session_dir=None
+[drv] timed step 0 dt=2.8261s
+[drv] timed step 1 dt=2.8256s
+[drv] micro dts (s): ['0.1663', '0.1669', '0.1668']
+[drv] grad[b1] 0.000000e+00
+[drv] grad[b3] 0.000000e+00
+[drv] grad[b5] 0.000000e+00
+[drv] INFO {"window": "micro", "window_wall_ms": 167.90889300318668, "session_dir": null, "grad_accum_steps": 16, "world_size": 1, "num_params": 156623308, "compile": true, "local_conv": true, "tensor_lr_scalars": true, "nki_rope_norm": true, "nki_softcap_ce": true, "step_dts_s": [2.826086949004093, 2.825595329006319], "micro_dts_s": [0.16631101399980253, 0.16686419799953, 0.16679124199436046], "seq_len": 2048, "depth": 6, "n_embd": 640, "total_batch_size": 131072, "lnc": "2", "ngram_ve": true, "ngram_ve_trigram": false, "ngram_ve_table_mult": 32, "ngram_ve_dim": 128, "ngram_ve_hash": "prime", "ngram_ablate": "noinject", "ngram_gather": "index", "ngram_proj": "matmul", "ngram_max_tables": 0, "capture": false}
+--- ARM t2-noinject-g END 05:50:11
+ALLDONE
+DONE

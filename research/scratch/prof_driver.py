@@ -49,10 +49,20 @@ def build_args():
                          "string substitutions, so `copy` is a literal drift control and any "
                          "train.py edit that breaks a substitution fails loudly instead of "
                          "silently measuring the wrong thing. real=no patch at all.")
+    ap.add_argument("--ngram-layers", type=str, default="",
+                    help="Comma-separated layer indices that get a bigram table, e.g. '5' "
+                         "or '1,5'. Empty = train.py's own has_ve() rule (all VE layers).")
     ap.add_argument("--ngram-only-layer", type=int, default=-1,
                     help=">=0: give a bigram table to EXACTLY this layer. Distinguishes a "
                          "per-gather-COUNT threshold (every single-layer arm equally cheap) "
                          "from a layer-SPECIFIC cost (one arm expensive).")
+    ap.add_argument("--ngram-hoist", action=argparse.BooleanOptionalAction, default=False,
+                    help="Emit every table's gather (and its up-projection) at the TOP of "
+                         "the forward, right after the hash, instead of inside the layer "
+                         "loop at its consumer. Same ops, same dependencies, same values -- "
+                         "only the HLO emission position changes. Separates 'position in the "
+                         "graph matters' from 'number of gathers matters' (--ngram-merge-"
+                         "gather changes both).")
     ap.add_argument("--ngram-merge-gather", action=argparse.BooleanOptionalAction, default=False,
                     help="Do ONE dynamic gather from a single [n_tables*rows, dim] table "
                          "instead of one per table, splitting the result afterwards. Same "
@@ -179,6 +189,31 @@ def _apply_ablation(T, mode: str):
           f"({len(ABLATIONS[mode])} substitution(s))", flush=True)
 
 
+def _install_hoisted_gather(T):
+    """Move every gather+projection from its layer to the top of the forward.
+
+    Layer 1's gather costs +5.3ms and layer 3's costs +47.6ms at identical structure
+    (WINDOW_PATTERN="L", so layers 1/3/5 are the same block), which says the cost depends
+    on WHERE in the graph the dynamic gather is emitted, not on how many there are or how
+    big the table is. If that is right, emitting all of them at the top -- where layer 1's
+    already effectively is -- should make all of them cheap.
+
+    GPT.forward calls `_ngram_lookup(key, ngram_idx[key])` and nothing else touches the
+    dict, so doing the lookup inside `_ngram_hash_indices` and passing the RESULT through
+    that same slot is behaviour-preserving and side-effect-free.
+    """
+    orig_hash = T.GPT._ngram_hash_indices
+    orig_lookup = T.GPT._ngram_lookup
+
+    def _hash_then_lookup(self, idx, _oh=orig_hash, _ol=orig_lookup):
+        rows = _oh(self, idx)
+        return {k: _ol(self, k, v) for k, v in rows.items()}
+
+    T.GPT._ngram_hash_indices = _hash_then_lookup
+    T.GPT._ngram_lookup = lambda self, key, gathered: gathered
+    print("[drv] MONKEYPATCH: n-gram gathers hoisted to the top of forward", flush=True)
+
+
 def _install_merged_gather(T, model, device):
     """One dynamic gather for all n-gram tables instead of one per table.
 
@@ -280,6 +315,16 @@ def main():
         T.GPT._ngram_hash_indices = _mask_hash
         print("[drv] MONKEYPATCH: _ngram_hash_indices -> power-of-two mask", flush=True)
 
+    if args.ngram_layers:
+        _keep = tuple(int(v) for v in args.ngram_layers.split(","))
+        _orig_has_bi_ls = T.has_ngram_bigram
+
+        def _sel_has_bi(layer_idx, n_layer, _o=_orig_has_bi_ls, _k=_keep):
+            return _o(layer_idx, n_layer) and layer_idx in _k
+
+        T.has_ngram_bigram = _sel_has_bi
+        print(f"[drv] MONKEYPATCH: bigram tables on layers {_keep} only", flush=True)
+
     if args.ngram_only_layer >= 0:
         _orig_has_bi_ol = T.has_ngram_bigram
 
@@ -344,6 +389,8 @@ def main():
 
     if args.ngram_merge_gather and len(model.ngram_embeds):
         _install_merged_gather(T, model, device)
+    elif args.ngram_hoist and len(model.ngram_embeds):
+        _install_hoisted_gather(T)
 
     if args.compile:
         backend = "neuron" if device_type == "neuron" else "inductor"
@@ -533,7 +580,9 @@ def main():
         "ngram_proj": args.ngram_proj,
         "ngram_max_tables": args.ngram_max_tables,
         "ngram_only_layer": args.ngram_only_layer,
+        "ngram_layers": args.ngram_layers,
         "ngram_merge_gather": args.ngram_merge_gather,
+        "ngram_hoist": args.ngram_hoist,
         "capture": args.capture,
     }
     print("[drv] INFO " + json.dumps(info), flush=True)
