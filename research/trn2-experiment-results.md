@@ -3283,3 +3283,109 @@ just "use a bigger fixed batch", and the Tier-0 batch resweep already showed bot
 
 Rows `t21-base-1800s` and `t21-ramp-1800s` in `research/experiment-log.jsonl`; logs
 `research/run-logs/t21-{base,ramp}-1800s.log` and `t21-ramp-smoke{,2}.log`.
+
+---
+
+## 2026-09-12 — T2.2 EMA of the final weights: implemented, measured at the full budget, DISCARDED
+
+**Verdict: discard. `USE_WEIGHT_EMA` stays `False`.** The best decay in the sweep is worth
+**−0.00011 bpb**, an order of magnitude below the noise floor, and the whole decay curve says the
+optimum is "do not average".
+
+### Design, and the one thing that made this cheap to answer
+
+Shadow copy of the 62 parameters, seeded from the live weights at `WEIGHT_EMA_START_FRAC` (default
+`WARMDOWN_RATIO` = 0.75, so the averaged region is exactly the cooldown) and updated with one
+`torch._foreach_lerp_` per step, under `no_grad`, next to `optimizer.step()` — i.e. eager, since
+`torch._foreach_*` cannot be lowered by `backend="neuron"`.
+
+The decisive design choice is that `WEIGHT_EMA_DECAYS` is a **tuple**: one shadow per decay, all
+updated from the same weights on the same step. A shadow is 223MB and ~0.23ms/step, so carrying
+three costs ~0.7ms of an 820ms step and 670MB of 96GB — nothing. In exchange, **the three decays
+and the raw weights are all evaluated in the same process on the same eval window, so the
+comparison contains zero run-to-run noise**, and one 1800s run answers what would otherwise have
+been four. Only the primary (first) decay goes into the checkpoint's `"ema_state"`, which keeps
+the file at 2x the weights and its save inside `CHECKPOINT_RESERVE_SECONDS`.
+
+`load_for_eval`'s contract is untouched: it prefers `"ema_state"` only when that key is actually
+present, which can only happen if the toggle was on for that run, so every pre-T2.2 checkpoint
+and every toggle-off run loads exactly as before.
+
+### Correctness (`research/scratch/weight_ema_check.py`, 5 checks, CPU)
+
+```
+[1] toggle off: 'ema_state' absent from payload=True load_for_eval returns raw weights=True keys=4
+[2] _foreach_lerp_ over 5 updates: bit-identical to s+w*(p-s)=True max_abs_diff=0.000e+00;
+    gap to decay*s+w*p=1.431e-06 (fp32 rounding, <1e-4 required)=True; 62 tensors; shadow graph-free=True
+[2] direction: gap to a pinned target 0.995000/0.990025/0.985075 (as expected) -> True
+[3] weight_ema_state: same key set=True (62 keys, 62 params, 0 buffers) params=shadow=True
+    buffers verbatim=True strict load=True
+[4] contract: signature=['checkpoint_path','device'] both weight sets saved=True raw untouched=True
+    prefer_ema->ema=True prefer_ema off->raw=True eval mode=True -> True
+[5] not a no-op: max|ema-raw|=1.277e-02 loss ema=9.010605 raw=9.008545 all-finite=True -> True
+```
+
+Two of these earned their keep immediately, and both were *harness* bugs rather than `train.py`
+bugs — worth recording because both are easy to get backwards:
+
+* `lerp_(s, p, w)` computes `s + w*(p−s)`, which is **not bitwise equal** to the textbook
+  `decay*s + w*p` — 1.4e-6 apart after 5 updates on real weights. (lerp's form is the better one:
+  it adds a small correction to `s` instead of rescaling `s` and adding.) The check now asserts
+  bit-equality against lerp's own form and fp32-sized closeness to the textbook one.
+* The "shadow stays graph-free" assertion is load-bearing. The live tensors are leaf Parameters
+  with `requires_grad=True`, so an in-place lerp into a `requires_grad=False` shadow **outside**
+  `no_grad` succeeds, produces correct numbers, and silently makes the shadow a graph node
+  pinning a fresh autograd graph every step.
+
+### Device smoke (`t22-ema-smoke`, 400s budget) — the result that reframed the item
+
+```
+weight_ema: seeded at step 370 progress 0.752 decay=0.995 tensors=62
+step 00370 ... dt 3.33s     <- one-time shadow clone
+step 00380 ... dt 0.82s     <- back to baseline; the per-step lerp is under the noise
+num_steps 474  updates 103  causality_max_abs 0.000000
+public_val_bpb 1.149358   public_val_bpb_ema 1.166198   ema_delta +0.016840
+public_val_bpb_alt 1.165212  public_val_bpb_ema_alt 1.182277  ema_delta_alt +0.017065
+```
+
+Mechanically perfect and **+0.0168 bpb worse**. A decay of 0.995 is a ~200-step window over a
+103-step tail of a 474-step run, so to first order the EMA *is* "the weights from ~100 steps ago",
+and on a trajectory still descending fast that is pure lag with no visible variance benefit to
+offset it. That is what motivated sweeping a much shorter window at the real budget.
+
+### The 1800s decision (single run, all four arms on identical weights, `--eval-seq-len 1024`)
+
+`t22-ema-1800s`: 2185 steps, 286.4M tokens, seeded at step 1648, 536 updates, causality 0.0.
+
+| arm | window (steps) | bpb @2048 | Δ vs raw | bpb @1024 | Δ vs raw |
+|---|---|---|---|---|---|
+| raw weights | — | 1.034745 | — | 1.050025 | — |
+| EMA decay 0.98 | ~50 | **1.034635** | **−0.000110** | **1.049984** | **−0.000041** |
+| EMA decay 0.995 | ~200 | 1.035025 | +0.000279 | 1.050395 | +0.000370 |
+| EMA decay 0.999 | ~1000 | 1.048900 | +0.014154 | 1.064374 | +0.014349 |
+
+The raw arm is a good reproduction of the same-day control (`t21-base-1800s` 2192 steps /
+1.034536 / 1.049742); the 7 missing steps are the ~8s spent cloning three shadows at the seed
+step, which is the honest cost of running the sweep this way.
+
+### Why it cannot be made to work here
+
+The curve is monotone in window length and it is pinned at both ends. As the window shrinks the
+EMA converges to the raw weights, so Δ → 0 by construction; at window ~50 it is already only
+−0.0001; by window ~1000 it is +0.014. Any optimum therefore sits somewhere near window 20-50
+with a magnitude bounded by a few times 1e-4 — **inside the noise floor by an order of
+magnitude**, so no shorter decay is worth another 30-minute run.
+
+The mechanism is clear and it is a property of the schedule, not of the implementation:
+**averaging the tail can only recover the bounce the tail actually has**, and this run's LR
+schedule already decays to `FINAL_LR_FRAC = 0.05` of peak. The cooldown *is* the averaging. An
+EMA on top of a cooldown-to-near-zero schedule is being asked to cancel a bounce that the
+cooldown has already cancelled, while paying the lag in full. EMA is a real win in setups that
+end at a high or constant LR; this one does not.
+
+Kept in the tree, default off, because it is a clean measured negative with a 5-check harness and
+because the multi-shadow pattern (N zero-noise arms in one run) is reusable for anything else that
+only touches the weights after training.
+
+Rows `t22-ema-1800s` in `research/experiment-log.jsonl`; logs
+`research/run-logs/t22-ema-{smoke,1800s}.log`.
