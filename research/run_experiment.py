@@ -61,6 +61,9 @@ SUMMARY_KEYS = {
     # T3.1 (2026-09-11): one line carrying every n-gram-VE knob that changes the model, so
     # two n-gram arms are distinguishable in the log without re-reading the run log.
     "ngram_ve",
+    # T4.2 / T3.9 (2026-09-12): the Aster output-bigram-logit-table knobs and the Recursive
+    # one-liner toggles, same reasoning as ngram_ve above.
+    "out_bigram", "oneliners",
     # T2.1 (2026-09-11): the batch-size ramp's knobs, same reasoning as ngram_ve above.
     "batch_ramp",
     # T2.2 (2026-09-11): the weight-EMA knobs plus its in-run raw-vs-EMA comparison. ema_delta is

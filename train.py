@@ -505,6 +505,108 @@ NGRAM_VE_INDEX_GATHER = True  # gather rows as `weight[idx]` instead of `nn.Embe
 # purely so the two lowerings remain A/B-able from research/scratch/phase_timer.py; there is no
 # known reason to turn it off. See _ngram_lookup for the full measurement table.
 
+# -----------------------------------------------------------------------------
+# T4.2: Aster's OUTPUT bigram logit table (research/frontier-research-plan-2026-09-09.md §11.1,
+# change (2) of the three Aster describes). A [V, V] table indexed by the CURRENT token whose row
+# is added straight to the next-token logits, gated per token by sigmoid(Linear(n_embd -> 1)) with
+# a negative bias. Strictly causal by construction: row = table[idx[b, t]] and the gate reads
+# x[b, t], so position t's logit bias is a function of tokens <= t only, exactly like lm_head's
+# own output.
+#
+# This is NOT the T4.1 count-based mixer that was closed as a negative on 2026-09-12: that one was
+# a FROZEN, corpus-counted, Kneser-Ney-smoothed distribution mixed into the softmax after training
+# (+0.0006, and 75% of even that was already absorbed by T3.1). This one is gradient-trained
+# jointly with the model and can learn residual CORRECTIONS to the neural logits rather than being
+# pinned to the corpus's conditional distribution. Prior after T4.1 and T3.1 (which already banked
+# -0.0152 from the same bigram statistics on the attention-value side): ten-thousandths, not
+# thousandths. Measured result recorded in research/trn2-experiment-results.md.
+USE_OUT_BIGRAM = False
+OUT_BIGRAM_BF16 = True     # store the [V, V] table in bf16 (Aster's choice): 8192^2 x 2 B = 134 MB
+                           # of parameters and 67.1M on the tie-break's parameter count.
+OUT_BIGRAM_GATE_BIAS = -2.0  # bias init of the per-token gate. Aster specifies -2, i.e. the gate
+                           # starts at sigmoid(-2) = 0.119 rather than neutral. The step-0 no-op
+                           # comes from the ZERO-init TABLE (see init_weights), so it holds for any
+                           # bias value; the bias only sets how fast the mechanism can turn on.
+OUT_BIGRAM_LR = 0.0        # 0 => UNEMBEDDING_LR. The table is an additive bias on the logits, so
+                           # lm_head's own LR is the right scale reference, and it gets lm_head's
+                           # AdamW betas in its own group (a [V, V] embedding is Muon-ineligible
+                           # for the same reason wte is: it is read by a gather, not a matmul).
+
+# -----------------------------------------------------------------------------
+# T3.9: the cheap architectural one-liners from Recursive's optimized_from_karpathy.py
+# (research/frontier-research-plan-2026-09-09.md §11.1). Each is independently toggleable because
+# the whole point of the item is to find out which of them individually clears the 0.002 bar --
+# Recursive ships them as a bundle and gives no per-item attribution.
+RELU2_TAU = 0.0            # shifted ReLU^2: the MLP activation becomes relu(h - RELU2_TAU)^2.
+                           # 0.0 = the historical relu(h)^2. Recursive: "tau=0.5 confirmed
+                           # optimal". Nonzero forces the eager activation (the example NKI relu2
+                           # kernel implements the unshifted form only) -- USE_NKI_RELU2 is off by
+                           # default anyway, and relu_squared asserts the combination is not used.
+USE_MLP_SANDWICH_NORM = False  # x = x + norm(mlp(norm(x))) instead of x = x + mlp(norm(x)).
+                           # Attention is already pre-norm-only here too, but Recursive applies
+                           # the sandwich to the MLP only, which is what this reproduces.
+USE_HEAD_GATE = False      # T3.6: per-head gate on the attention output, read from a residual
+                           # slice. Recursive's form is y = norm(y) * 2*sigmoid(head_gate(x[..., :32]))
+                           # per head ("head-level MoE"); the plan's own T3.6 entry is the
+                           # gate-only variant y = y * sigmoid(Linear(12, n_head)(x[..., :12])).
+                           # HEAD_GATE_NORM picks between them.
+HEAD_GATE_NORM = True      # RMSNorm each head's attention output before gating (Recursive's form).
+                           # NOTE this is the one item here that is NOT a step-0 no-op: it rescales
+                           # every head to unit RMS at init. With HEAD_GATE_NORM=False the arm is
+                           # an exact identity at step 0 (zero-init weight, HEAD_GATE_BIAS=0 =>
+                           # 2*sigmoid(0) = 1.0).
+HEAD_GATE_CHANNELS = 32    # width of the residual slice the gate reads. The slice OFFSET is
+                           # computed to sit after every value-embedding gate's slice (see
+                           # head_gate_slice) so the gates never compete for the same channels:
+                           # unigram VE has 0:32, bigram 32:64, trigram 64:96, so this takes
+                           # 96:128 at the locked config.
+HEAD_GATE_MUL = 2.0        # gate = HEAD_GATE_MUL * sigmoid(...). 2.0 makes zero-init NEUTRAL
+                           # (gate == 1.0), matching every other gate in this file; 1.0 gives the
+                           # plan's T3.6 sigmoid-only form, whose neutral point is a positive bias.
+HEAD_GATE_BIAS = 0.0       # bias init of the head gate. With HEAD_GATE_MUL=2 the neutral value is
+                           # 0.0; with HEAD_GATE_MUL=1 the plan asks for sigma ~= 0.5-0.75, i.e. a
+                           # bias in [0.0, 1.1].
+USE_OUT_POOL = False       # zero-init pooling of the last OUT_POOL_LAYERS block outputs into the
+                           # final residual, before the final norm: x = x + sum_k lam_k * h_k with
+                           # every lam_k zero-init, so step 0 is an exact no-op.
+OUT_POOL_LAYERS = 3        # how many trailing block outputs to pool (Recursive uses 3).
+USE_QK_SHIFT = False       # causal token shift on the Q/K inputs only: q_in = k_in = x + beta*x_prev
+                           # with a learned PER-DIM beta, V left unshifted. Different mechanism from
+                           # USE_LOCAL_CONV (T0.1), which is a learned depthwise conv applied to the
+                           # residual stream itself and feeds all three of Q/K/V.
+QK_SHIFT_BETA = 0.3        # per-dim beta init (Recursive: 0.3). Not a step-0 no-op by design.
+
+
+def head_gate_slice(n_embd: int, n_layer: int) -> tuple[int, int]:
+    """(start, stop) residual channels the T3.6 head gate reads.
+
+    Placed after every value-embedding gate's slice so no two gates share channels. The VE gates
+    claim 0:32 (unigram), 32:64 (bigram) and 64:96 (trigram) whenever those tables exist on ANY
+    layer, and the offset is computed layer-INDEPENDENTLY on purpose: every layer's head gate must
+    read the same slice, or the A/B would also be testing a per-layer channel permutation.
+    """
+    claimed = 0
+    if USE_VE:
+        claimed = VE_GATE_CHANNELS
+        if any(has_ngram_bigram(i, n_layer) for i in range(n_layer)):
+            claimed = 2 * VE_GATE_CHANNELS
+        if any(has_ngram_trigram(i, n_layer) for i in range(n_layer)):
+            claimed = 3 * VE_GATE_CHANNELS
+    start = claimed
+    stop = start + HEAD_GATE_CHANNELS
+    assert stop <= n_embd, (start, stop, n_embd)
+    return start, stop
+
+
+def causal_shift_1(x: torch.Tensor) -> torch.Tensor:
+    """x shifted one position later along dim 1, zero-padded at t=0.
+
+    Result[:, t] == x[:, t-1] (and 0 at t == 0), so anything built from it reads strictly into the
+    past. Written as a slice + cat rather than torch.roll because roll WRAPS the last position
+    into position 0, which would be an exact causality violation.
+    """
+    return torch.cat((torch.zeros_like(x[:, :1]), x[:, :-1]), dim=1)
+
 
 def _next_prime(n: int) -> int:
     """Smallest prime >= n. Used once at import to build the hash multipliers."""
@@ -2359,12 +2461,21 @@ def softcap_cross_entropy(logits: torch.Tensor, targets: torch.Tensor,
 
 
 def relu_squared(x: torch.Tensor) -> torch.Tensor:
-    """relu(x)**2, via the example NKI kernel when enabled, else eager."""
+    """relu(x - RELU2_TAU)**2, via the example NKI kernel when enabled, else eager.
+
+    T3.9: RELU2_TAU is Recursive's "shifted ReLU^2" (tau=0.5 in their recipe, 0.0 = the
+    historical activation). The shift is a compile-time Python float folded into one subtraction,
+    NOT a per-step-changing scalar, so it is baked into the graph exactly once -- the rule about
+    new scalars needing to be device tensors applies to values that CHANGE per step.
+    """
     # The example kernel tiles rows in blocks of 128, so it needs a row count that
     # is a multiple of 128 (true for the baseline: B*T = 1*1024). Otherwise fall
     # back to eager so the knob is always safe to flip.
     if USE_NKI_RELU2 and _HAS_NKI and x.device.type == "neuron" and (x.numel() // x.shape[-1]) % _NKI_PARTITION == 0:
+        # The kernel implements the UNSHIFTED form only; main() refuses the combination.
         return _ReluSquaredNKI.apply(x)
+    if RELU2_TAU != 0.0:
+        return F.relu(x - RELU2_TAU).square()
     return F.relu(x).square()
 
 
@@ -3252,6 +3363,22 @@ class CausalSelfAttention(nn.Module):
         elif self.ve_gate_bi is not None:
             assert config.n_embd >= 2 * VE_GATE_CHANNELS, (config.n_embd, VE_GATE_CHANNELS)
         self.dcmha = DCMHACompose(config.n_embd, self.n_head, layer_idx) if USE_DCMHA else None
+        # T3.6 / T3.9: per-head gate on the attention output, reading a residual slice that no
+        # value-embedding gate has claimed. Built RNG-neutrally and re-initialized by
+        # init_weights for exactly the reason the n-gram gates are (see _rng_neutral): flipping
+        # USE_HEAD_GATE must not reshuffle every other tensor's init.
+        # The bias is a separate nn.Parameter rather than Linear(bias=True) because this file's
+        # Linear subclass is bias-free by design (it casts the weight to the input dtype), and
+        # because a 1-D bias must be kept OUT of the Muon groups that block.attn's named
+        # parameters otherwise flow into -- setup_optimizer routes it to the scalar group by name.
+        if USE_HEAD_GATE:
+            self.head_gate_lo, self.head_gate_hi = head_gate_slice(config.n_embd, config.n_layer)
+            self.head_gate = _rng_neutral(
+                lambda: Linear(HEAD_GATE_CHANNELS, self.n_head, bias=False))
+            self.head_gate_bias = nn.Parameter(torch.full((self.n_head,), float(HEAD_GATE_BIAS)))
+        else:
+            self.head_gate_lo = self.head_gate_hi = 0
+            self.head_gate = None
 
     def forward(self, x_q: torch.Tensor, x_k: torch.Tensor, x_v: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, attn_mask: torch.Tensor | None, v0: torch.Tensor | None = None, v0_lambda: torch.Tensor | None = None, ve_bi: torch.Tensor | None = None, ve_tri: torch.Tensor | None = None) -> tuple[torch.Tensor, torch.Tensor]:
         b, t, c = x_q.shape
@@ -3315,6 +3442,17 @@ class CausalSelfAttention(nn.Module):
             proj_coef = (y * v).sum(dim=-1, keepdim=True) / (v.pow(2).sum(dim=-1, keepdim=True) + _XSA_EPS)
             y = y - proj_coef * v
         y = y.transpose(1, 2).contiguous().view(b, t, c)
+        if self.head_gate is not None:
+            # T3.6 / T3.9. Per-head, per-POSITION: reshape to [b, t, H, D], optionally RMS-norm
+            # each head's D-vector on its own, then scale head h at position t by
+            # HEAD_GATE_MUL * sigmoid(w_h . x_q[b, t, lo:hi] + bias_h). Nothing crosses positions,
+            # so causality is untouched (x_q is already position t's own normed residual).
+            yh = y.view(b, t, self.n_head, self.head_dim)
+            if HEAD_GATE_NORM:
+                yh = norm(yh)
+            g = self.head_gate(x_q[..., self.head_gate_lo:self.head_gate_hi])
+            g = HEAD_GATE_MUL * torch.sigmoid(g + self.head_gate_bias.to(g.dtype))
+            y = (yh * g.unsqueeze(-1)).view(b, t, c)
         return self.c_proj(y), v_raw
 
 
@@ -3414,6 +3552,12 @@ class Block(nn.Module):
         # A Mamba2 layer has no attention V to blend, so it gets no v_lambda either.
         self.v_lambda = nn.Parameter(torch.zeros(1)) \
             if USE_VALUE_RESIDUAL and layer_idx > 0 and not (self.is_mamba or self.is_rwkv) else None
+        # T3.9: causal Q/K token shift (Recursive's from-vanilla recipe). Per-DIM learned beta, so
+        # each residual channel decides for itself how much of the previous token to mix into the
+        # query/key view; V is deliberately left unshifted. Only meaningful where there is an
+        # attention module to feed.
+        self.qk_shift_beta = nn.Parameter(torch.full((config.n_embd,), float(QK_SHIFT_BETA))) \
+            if USE_QK_SHIFT and not (self.is_mamba or self.is_rwkv) else None
 
     def forward(self, x: torch.Tensor, x0: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, attn_mask: torch.Tensor | None, v0: torch.Tensor | None = None, hidden_states: list[torch.Tensor] | None = None, ve_bi: torch.Tensor | None = None, ve_tri: torch.Tensor | None = None) -> tuple[torch.Tensor, torch.Tensor]:
         if self.mudd is not None:
@@ -3427,6 +3571,10 @@ class Block(nn.Module):
             else:
                 x = self.resid_lambda * x + self.x0_lambda * x0
             q_in = k_in = v_in = x
+            if self.qk_shift_beta is not None:
+                # T3.9: q/k see x + beta*x_prev, v sees plain x. causal_shift_1 zero-pads at t=0
+                # (it does NOT wrap), so position t reads only positions t and t-1.
+                q_in = k_in = x + self.qk_shift_beta * causal_shift_1(x)
         if self.local_conv is not None:
             x = x + self.local_conv(norm(x))
         if self.mixer is not None:
@@ -3448,7 +3596,16 @@ class Block(nn.Module):
         else:
             attn_out, v_raw = self.attn(norm(q_in), norm(k_in), norm(v_in), ve, cos, sin, attn_mask, v0, self.v_lambda, ve_bi, ve_tri)
             x = x + attn_out
-        x = x + (self.cmix(norm(x)) if self.cmix is not None else self.mlp(norm(x)))
+        if self.cmix is not None:
+            x = x + self.cmix(norm(x))
+        elif USE_MLP_SANDWICH_NORM:
+            # T3.9: sandwich norm on the MLP branch only (Recursive). norm() is parameter-free
+            # F.rms_norm with the default eps, so the zero-init c_proj still gives exactly 0 here
+            # at step 0 (0 / sqrt(0 + eps) = 0) -- the step-0 no-op survives, and the arm only
+            # starts to differ once c_proj leaves the origin.
+            x = x + norm(self.mlp(norm(x)))
+        else:
+            x = x + self.mlp(norm(x))
         return x, v_raw
 
 
@@ -3537,6 +3694,27 @@ class GPT(nn.Module):
         # padded vocabulary, so it can never be confused with a real token. NGRAM_HASH_PRIMES
         # is bounded so that this id times any multiplier still fits in int32.
         self.ngram_pad_id = padded_vocab_size
+        # T4.2: Aster's output bigram logit table. [padded_vocab, padded_vocab] so a row can be
+        # gathered by raw token id and sliced to the real vocab on the way into the logits, which
+        # keeps the gather's index space identical to wte's. Built RNG-neutrally and zero-init (see
+        # init_weights) for the same two reasons as the n-gram tables: an exact step-0 no-op, and
+        # no shift of the RNG stream that every other tensor's init depends on.
+        if USE_OUT_BIGRAM:
+            ob_dtype = torch.bfloat16 if OUT_BIGRAM_BF16 else torch.float32
+            self.out_bigram = nn.Embedding(
+                padded_vocab_size, padded_vocab_size,
+                _weight=torch.zeros(padded_vocab_size, padded_vocab_size, dtype=ob_dtype))
+            self.out_bigram_gate = _rng_neutral(lambda: Linear(config.n_embd, 1, bias=False))
+            self.out_bigram_gate_bias = nn.Parameter(torch.full((1,), float(OUT_BIGRAM_GATE_BIAS)))
+        else:
+            self.out_bigram = None
+            self.out_bigram_gate = None
+            self.out_bigram_gate_bias = None
+        # T3.9: zero-init pooling of the last OUT_POOL_LAYERS block outputs into the final
+        # residual. One learned scalar per pooled layer, all zero at init, so step 0 is an exact
+        # no-op and the arm can only ever add what it learns to be worth adding.
+        self.out_pool_lambdas = nn.Parameter(torch.zeros(min(OUT_POOL_LAYERS, config.n_layer))) \
+            if USE_OUT_POOL else None
         cos, sin = self._precompute_rotary_embeddings(config.sequence_len, config.n_embd // config.n_head)
         self.register_buffer("cos", cos, persistent=False)
         self.register_buffer("sin", sin, persistent=False)
@@ -3640,6 +3818,22 @@ class GPT(nn.Module):
         # unigram value-embedding tables, since this matrix is what plays their role here.
         for proj in self.ngram_proj.values():
             torch.nn.init.uniform_(proj.weight, -s, s)
+        # T4.2: zero TABLE + zero gate WEIGHT, and the gate bias keeps its constructed value
+        # (OUT_BIGRAM_GATE_BIAS). The zero table is what makes step 0 exact: sigmoid(bias) is a
+        # positive constant, so a nonzero table would shift every logit at init.
+        if self.out_bigram is not None:
+            torch.nn.init.zeros_(self.out_bigram.weight)
+            torch.nn.init.zeros_(self.out_bigram_gate.weight)
+        # T3.9: zero pooling weights => exact step-0 no-op (they are constructed zero; this line
+        # exists so a future non-zero construction cannot silently change that).
+        if self.out_pool_lambdas is not None:
+            torch.nn.init.zeros_(self.out_pool_lambdas)
+        # T3.6 / T3.9: zero head-gate weight, bias left at HEAD_GATE_BIAS. With
+        # HEAD_GATE_MUL * sigmoid(HEAD_GATE_BIAS) == 1.0 (the default 2.0 / 0.0 pair) and
+        # HEAD_GATE_NORM off, this is an exact identity at step 0.
+        for block in self.transformer.h:
+            if block.attn is not None and block.attn.head_gate is not None:
+                torch.nn.init.zeros_(block.attn.head_gate.weight)
         cos, sin = self._precompute_rotary_embeddings(self.config.sequence_len, self.config.n_embd // self.config.n_head)
         self.cos.copy_(cos)
         self.sin.copy_(sin)
@@ -3738,6 +3932,11 @@ class GPT(nn.Module):
         # the (much smaller) unigram value_embeds tables, which have the same character but
         # whose exclusion would silently move every historical MFU number in the log.
         non_matmul += sum(p.numel() for p in self.ngram_embeds.parameters())
+        # T4.2: same reasoning -- the [V, V] output bigram table is read by a gather and added,
+        # never multiplied, so pricing its 67M parameters at 6 FLOPs/param/token would report a
+        # fictitious ~0.4 GFLOP/token and make every MFU number in this run meaningless.
+        if self.out_bigram is not None:
+            non_matmul += self.out_bigram.weight.numel()
         h = self.config.n_head
         d = self.config.n_embd // self.config.n_head
         t = self.config.sequence_len
@@ -3765,6 +3964,14 @@ class GPT(nn.Module):
         local_conv_params = []  # T0.1: local_conv.weight, previously dead compute -- see below
         ssm_params = []  # Mamba2's non-matrix state-space tensors, see below
         rwkv_params = []  # RWKV x051a's non-matrix per-channel/per-head tensors, see below
+        gate_params = []  # T3.9/T4.2: small 1-D or single-row gate tensors (attention head-gate
+        # biases, the output-bigram gate's weight+bias, per-dim Q/K shift betas). None of them is
+        # Muon material -- a 1-D vector has no second axis to orthogonalize and a [1, n_embd] row
+        # would come out of Newton-Schulz as a unit-norm direction, i.e. a wildly oversized update
+        # -- and none of them belongs in the SCALAR_LR=0.20 group either, which is tuned for a
+        # single learned scalar's blast radius and has already caused a real NaN divergence when a
+        # genuine tensor was put there (see the hypernet_params comment below). AdamW at MATRIX_LR,
+        # weight_decay 0, exactly like ssm_params/rwkv_params/local_conv_params.
         hypernet_params = []  # MUDD/DCMHA's own generator weights: real matrices, not
         # true scalars like resid_lambda -- SCALAR_LR=0.20 is tuned for a single learned
         # scalar's limited blast radius. A real hardware A/B first put MuddCompose.w1
@@ -3794,6 +4001,8 @@ class GPT(nn.Module):
                 hypernet_params.extend([block.mudd.w1, block.mudd.w2, block.mudd.bias])
             if block.v_lambda is not None:
                 scalar_params.append(block.v_lambda)
+            if block.qk_shift_beta is not None:
+                gate_params.append(block.qk_shift_beta)
             if block.mixer is not None:
                 # in_proj / out_proj are ordinary weight matrices -> Muon, grouped
                 # by shape like every other block matrix.
@@ -3845,13 +4054,25 @@ class GPT(nn.Module):
                 # groups, so route them through AdamW alongside the scalar/skip
                 # params (excluded from block.attn.parameters() below by name).
                 hypernet_params.extend(block.attn.dcmha.parameters())
-            matrix_params.extend(p for name, p in block.attn.named_parameters() if not name.startswith("dcmha."))
+            if block.attn.head_gate is not None:
+                # The [n_head, HEAD_GATE_CHANNELS] weight goes to Muon with every other per-head
+                # gate matrix (ve_gate/ve_gate_bi/ve_gate_tri have exactly this shape); only the
+                # 1-D bias has to be pulled out by name.
+                gate_params.append(block.attn.head_gate_bias)
+            matrix_params.extend(p for name, p in block.attn.named_parameters()
+                                 if not name.startswith("dcmha.") and name != "head_gate_bias")
             matrix_params.extend(block.mlp.parameters())
         # NGRAM_VE_DIM's up-projections are ordinary [n_embd, ngram_dim] weight matrices, so
         # they belong in Muon with every other matrix, grouped by shape like the rest. They
         # live on GPT rather than inside a Block, which is why they need an explicit line here
         # -- the loop above only walks self.transformer.h.
         matrix_params.extend(p.weight for p in self.ngram_proj.values())
+        if self.out_pool_lambdas is not None:
+            # T3.9: OUT_POOL_LAYERS learned scalars, exactly the same character as
+            # resid_lambda/x0_lambda -- the group SCALAR_LR was actually tuned for.
+            scalar_params.append(self.out_pool_lambdas)
+        if self.out_bigram is not None:
+            gate_params.extend([self.out_bigram_gate.weight, self.out_bigram_gate_bias])
         embedding_params = list(self.transformer.wte.parameters())
         lm_head_params = list(self.lm_head.parameters())
         value_embed_params = list(self.value_embeds.parameters())
@@ -3861,6 +4082,8 @@ class GPT(nn.Module):
             dict(kind="adamw", params=lm_head_params, lr=UNEMBEDDING_LR * dmodel_lr_scale, betas=(0.8, 0.96), eps=1e-10, weight_decay=0.01),
             dict(kind="adamw", params=scalar_params, lr=SCALAR_LR, betas=(0.9, 0.95), eps=1e-10, weight_decay=0.0),
         ]
+        if gate_params:
+            param_groups.append(dict(kind="adamw", params=gate_params, lr=MATRIX_LR, betas=(0.9, 0.95), eps=1e-10, weight_decay=0.0))
         if hypernet_params:
             param_groups.append(dict(kind="adamw", params=hypernet_params, lr=MATRIX_LR, betas=(0.9, 0.95), eps=1e-10, weight_decay=0.0))
         if ssm_params:
@@ -3891,6 +4114,19 @@ class GPT(nn.Module):
                 kind="rmsprop" if rmsprop else "adamw", params=ngram_params, lr=ngram_lr,
                 betas=(0.0, NGRAM_VE_BETA2) if rmsprop else (0.8, EMBED_ADAMW_BETA2),
                 eps=1e-10, weight_decay=0.0, no_lr_decay=NGRAM_VE_FLAT_LR))
+        if self.out_bigram is not None:
+            # T4.2. Its own AdamW group mirroring lm_head's, which is the right reference: this
+            # table's output is an additive term on the same logits lm_head produces, so its
+            # gradient has lm_head's scale and UNEMBEDDING_LR is the LR that was swept against it
+            # (and found to be a sharp optimum -- +0.0017/+0.0014 for -42%/+67%). NOT Muon: a
+            # [V, V] table read by a row gather is Muon-ineligible for exactly the reason wte is.
+            # weight_decay 0 rather than lm_head's 0.01: most rows see gradient from only the
+            # handful of positions holding that token this step, so decay would shrink rare rows
+            # far harder than common ones -- the same argument the n-gram group above makes.
+            param_groups.append(dict(
+                kind="adamw", params=[self.out_bigram.weight],
+                lr=(OUT_BIGRAM_LR if OUT_BIGRAM_LR > 0.0 else UNEMBEDDING_LR) * dmodel_lr_scale,
+                betas=(0.8, 0.96), eps=1e-10, weight_decay=0.0))
         if local_conv_params and TRAIN_LOCAL_CONV:
             param_groups.append(dict(kind="adamw", params=local_conv_params, lr=MATRIX_LR, betas=(0.9, 0.95), eps=1e-10, weight_decay=0.0))
         for shape in sorted({p.shape for p in matrix_params}):
@@ -3918,6 +4154,10 @@ class GPT(nn.Module):
         # T3.1: all hash indices in one place (each is a [b, T] int32 tensor, ~32 KB), so
         # the shared prev/prev2 shifts are computed once rather than once per layer.
         ngram_idx = self._ngram_hash_indices(idx) if len(self.ngram_embeds) else None
+        # T3.9: the trailing block outputs the output pooling reads. Only materialized when the
+        # toggle is on, so the default path keeps exactly one live residual as before.
+        pool_from = self.config.n_layer - self.out_pool_lambdas.numel() if self.out_pool_lambdas is not None else -1
+        pool_buf: list[torch.Tensor] = []
         for i, block in enumerate(self.transformer.h):
             ve = self.value_embeds[str(i)](idx).to(COMPUTE_DTYPE) if str(i) in self.value_embeds else None
             ve_bi = ve_tri = None
@@ -3946,8 +4186,29 @@ class GPT(nn.Module):
                 hidden_states.append(x)
             if USE_VALUE_RESIDUAL and v0 is None:
                 v0 = v_raw
+            if i >= pool_from:
+                pool_buf.append(x)
+        if self.out_pool_lambdas is not None:
+            # T3.9: zero-init pooling of the last few layers' outputs into the final residual. The
+            # last entry of pool_buf IS x, so its term is a redundant rescale of x -- kept anyway
+            # because that is Recursive's own "pool the last three layers" and dropping it would
+            # silently make this a 2-layer pool.
+            for k, h in enumerate(pool_buf):
+                x = x + self.out_pool_lambdas[k] * h
         x = norm(x)
         logits = self.lm_head(x)[..., :self.config.vocab_size].float()
+        if self.out_bigram is not None:
+            # T4.2: bias[b, t, :] = sigmoid(w . x[b,t] + bias) * table[idx[b, t], :]. Added to the
+            # RAW logits, i.e. BEFORE the softcap -- both the eager tanh below and the fused NKI
+            # softcap+CE kernel take pre-softcap logits and apply LOGIT_SOFTCAP*tanh(z/S)
+            # themselves, so the bias has to land here to be capped along with everything else
+            # (adding it after the cap could push a logit outside (-S, S) and would also change
+            # what the kernel's own backward is the gradient OF).
+            # The gather+multiply stay in COMPUTE_DTYPE and only the [.., vocab] result is upcast,
+            # which is Aster's "added before the float upcast" and halves the intermediate.
+            g = torch.sigmoid(self.out_bigram_gate(x) + self.out_bigram_gate_bias.to(x.dtype))
+            row = self.out_bigram.weight[idx][..., :self.config.vocab_size]
+            logits = logits + (g * row).float()
         if targets is None:
             return LOGIT_SOFTCAP * torch.tanh(logits / LOGIT_SOFTCAP)
         return softcap_cross_entropy(logits, targets, loss_reduction)
@@ -4429,6 +4690,11 @@ def split_clip_params(model: "GPT") -> tuple[list[torch.nn.Parameter], list[torc
     in the same order) whenever there are no n-gram tables, and still norm-bounds the tables.
     """
     ngram_ids = {id(p) for p in model.ngram_embeds.parameters()} if NGRAM_VE_CLIP_EXCLUDE else set()
+    # T4.2: the [V, V] output bigram table is 67M more parameters with exactly the same problem --
+    # a big, sparse-per-step gradient that would drag the global clip coefficient down and silently
+    # rescale every other tensor's update. Rides the same toggle, since it is the same argument.
+    if NGRAM_VE_CLIP_EXCLUDE and model.out_bigram is not None:
+        ngram_ids = ngram_ids | {id(model.out_bigram.weight)}
     if not ngram_ids:
         return list(model.parameters()), []
     main, ngram = [], []
@@ -4544,6 +4810,14 @@ ARCH_TOGGLE_NAMES = [
     "NGRAM_VE_BF16",
     "NGRAM_VE_LR", "NGRAM_VE_BETA2", "NGRAM_VE_FLAT_LR", "NGRAM_VE_OPT",
     "NGRAM_VE_CLIP_EXCLUDE",
+    # T4.2 Aster output bigram logit table, T3.9 Recursive one-liners. RELU2_TAU,
+    # USE_MLP_SANDWICH_NORM, HEAD_GATE_NORM/MUL/BIAS and QK_SHIFT_BETA are all pure
+    # silent-behavior knobs -- they change what the same-shaped weights MEAN, which is exactly
+    # the class this snapshot exists to catch.
+    "USE_OUT_BIGRAM", "OUT_BIGRAM_BF16", "OUT_BIGRAM_GATE_BIAS", "OUT_BIGRAM_LR",
+    "RELU2_TAU", "USE_MLP_SANDWICH_NORM",
+    "USE_HEAD_GATE", "HEAD_GATE_NORM", "HEAD_GATE_CHANNELS", "HEAD_GATE_MUL", "HEAD_GATE_BIAS",
+    "USE_OUT_POOL", "OUT_POOL_LAYERS", "USE_QK_SHIFT", "QK_SHIFT_BETA",
     # T2.1 batch-size ramp. Pure training-schedule knobs -- no tensor changes name, shape or
     # dtype -- but they change how many tokens each recorded step saw and at what lr, so a
     # checkpoint trained with a ramp and reloaded without one is silently mis-described.
@@ -4581,7 +4855,15 @@ SHAPE_CRITICAL_TOGGLES = {"USE_VE", "USE_LOCAL_CONV", "USE_GATED_MLP", "USE_SELE
                           # the "t<layer>" tables and their gates, and NGRAM_VE_TABLE_MULT
                           # resizes every table's row count -- all three break strict loading.
                           "USE_NGRAM_VE", "NGRAM_VE_TRIGRAM", "NGRAM_VE_TABLE_MULT",
-                          "NGRAM_VE_DIM"}
+                          "NGRAM_VE_DIM",
+                          # T4.2/T3.9: each of these adds, removes or resizes a parameter tensor --
+                          # out_bigram.weight + its gate, attn.head_gate.weight/bias (whose input
+                          # width IS HEAD_GATE_CHANNELS), out_pool_lambdas (length OUT_POOL_LAYERS)
+                          # and the per-block qk_shift_beta. OUT_BIGRAM_BF16 is deliberately not
+                          # here for the same reason NGRAM_VE_BF16 is not: load_state_dict casts a
+                          # dtype mismatch silently instead of erroring.
+                          "USE_OUT_BIGRAM", "USE_HEAD_GATE", "HEAD_GATE_CHANNELS",
+                          "USE_OUT_POOL", "OUT_POOL_LAYERS", "USE_QK_SHIFT"}
 # USE_FP8_LINEAR is deliberately NOT in the set above: Fp8Linear is a Linear subclass with
 # the identical single `weight` parameter, so flipping it changes only the arithmetic used
 # inside MLP.forward, never a tensor's name or shape. That makes it exactly the
@@ -4795,6 +5077,17 @@ def main() -> None:
     global USE_NGRAM_VE, NGRAM_VE_TABLE_MULT, NGRAM_VE_TRIGRAM, NGRAM_VE_BF16, NGRAM_VE_DIM
     global NGRAM_VE_LAYERS
     global NGRAM_VE_LR, NGRAM_VE_BETA2, NGRAM_VE_FLAT_LR, NGRAM_VE_OPT, NGRAM_VE_CLIP_EXCLUDE
+    # T4.2 / T3.9. USE_OUT_BIGRAM, OUT_BIGRAM_BF16, OUT_BIGRAM_GATE_BIAS, USE_HEAD_GATE,
+    # HEAD_GATE_CHANNELS, HEAD_GATE_BIAS, USE_OUT_POOL, OUT_POOL_LAYERS, USE_QK_SHIFT and
+    # QK_SHIFT_BETA are read by GPT.__init__ / Block.__init__ / CausalSelfAttention.__init__, i.e.
+    # before GPT(config); OUT_BIGRAM_LR by setup_optimizer(). RELU2_TAU, USE_MLP_SANDWICH_NORM,
+    # HEAD_GATE_NORM and HEAD_GATE_MUL are read inside forward() -- as COMPILE-TIME Python
+    # constants that never change across steps, so they are baked into the graph exactly once
+    # (the "no new per-step Python scalar" rule is about values that CHANGE per step).
+    global USE_OUT_BIGRAM, OUT_BIGRAM_BF16, OUT_BIGRAM_GATE_BIAS, OUT_BIGRAM_LR
+    global RELU2_TAU, USE_MLP_SANDWICH_NORM
+    global USE_HEAD_GATE, HEAD_GATE_NORM, HEAD_GATE_CHANNELS, HEAD_GATE_MUL, HEAD_GATE_BIAS
+    global USE_OUT_POOL, OUT_POOL_LAYERS, USE_QK_SHIFT, QK_SHIFT_BETA
     # T2.1. Read once per step by batch_ramp_grad_accum() to pick a Python int loop count and a
     # Python float lr scale -- neither reaches a device op as a constant (the loss scaling, which
     # would, goes through inv_gas_dev instead).
@@ -4919,6 +5212,57 @@ def main() -> None:
                         help="keep the n-gram tables out of the GLOBAL clip_grad_norm_ and clip them "
                              "as their own group, so adding them cannot change the effective lr of "
                              "every other tensor through clip_coef. See split_clip_params.")
+    # T4.2: Aster's output bigram logit table.
+    parser.add_argument("--out-bigram", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_OUT_BIGRAM", "1" if USE_OUT_BIGRAM else "0") != "0",
+                        help="T4.2: a gradient-trained [vocab, vocab] table indexed by the CURRENT "
+                             "token whose row is added to the next-token logits, gated per token by "
+                             "sigmoid(Linear(n_embd->1)). Zero-init table => exact no-op at step 0. "
+                             "67.1M bf16 parameters. Distinct from the frozen count-based mixer that "
+                             "was closed as a negative on 2026-09-12. See USE_OUT_BIGRAM.")
+    parser.add_argument("--out-bigram-bf16", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_OUT_BIGRAM_BF16", "1" if OUT_BIGRAM_BF16 else "0") != "0",
+                        help="store the [vocab, vocab] output bigram table in bf16 (Aster's choice).")
+    _hp("--out-bigram-gate-bias", OUT_BIGRAM_GATE_BIAS, float,
+        "T4.2: bias init of the output bigram table's per-token gate. Aster specifies -2.0.")
+    _hp("--out-bigram-lr", OUT_BIGRAM_LR, float,
+        "T4.2: lr for the output bigram table's own AdamW group. 0 => UNEMBEDDING_LR.")
+    # T3.9: Recursive's cheap architectural one-liners, each independently toggleable.
+    _hp("--relu2-tau", RELU2_TAU, float,
+        "T3.9: shifted ReLU^2 -- the MLP activation becomes relu(h - tau)^2. 0.0 = historical. "
+        "Recursive: 'tau=0.5 confirmed optimal'.")
+    parser.add_argument("--mlp-sandwich-norm", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_MLP_SANDWICH_NORM", "1" if USE_MLP_SANDWICH_NORM else "0") != "0",
+                        help="T3.9: x = x + norm(mlp(norm(x))) instead of x = x + mlp(norm(x)).")
+    parser.add_argument("--head-gate", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_HEAD_GATE", "1" if USE_HEAD_GATE else "0") != "0",
+                        help="T3.6/T3.9: per-head gate on the attention output, read from a residual "
+                             "slice that no value-embedding gate has claimed (see head_gate_slice).")
+    parser.add_argument("--head-gate-norm", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_HEAD_GATE_NORM", "1" if HEAD_GATE_NORM else "0") != "0",
+                        help="RMS-norm each head's attention output before gating (Recursive's form). "
+                             "Pass --no-head-gate-norm for the gate-only variant, which is an exact "
+                             "no-op at step 0.")
+    _hp("--head-gate-channels", HEAD_GATE_CHANNELS, int,
+        "T3.6/T3.9: width of the residual slice the head gate reads. SHAPE-CRITICAL.")
+    _hp("--head-gate-mul", HEAD_GATE_MUL, float,
+        "T3.6/T3.9: gate = this * sigmoid(...). 2.0 makes zero-init neutral; 1.0 is the plan's "
+        "sigmoid-only T3.6 form.")
+    _hp("--head-gate-bias", HEAD_GATE_BIAS, float,
+        "T3.6/T3.9: bias init of the head gate. 0.0 is neutral at --head-gate-mul 2.")
+    parser.add_argument("--out-pool", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_OUT_POOL", "1" if USE_OUT_POOL else "0") != "0",
+                        help="T3.9: zero-init pooling of the last --out-pool-layers block outputs "
+                             "into the final residual. Exact no-op at step 0.")
+    _hp("--out-pool-layers", OUT_POOL_LAYERS, int,
+        "T3.9: how many trailing block outputs to pool. Recursive uses 3. SHAPE-CRITICAL.")
+    parser.add_argument("--qk-shift", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_QK_SHIFT", "1" if USE_QK_SHIFT else "0") != "0",
+                        help="T3.9: causal token shift on the Q/K inputs only (q_in = k_in = "
+                             "x + beta*x_prev, per-dim learned beta, V unshifted). Different "
+                             "mechanism from --local-conv.")
+    _hp("--qk-shift-beta", QK_SHIFT_BETA, float,
+        "T3.9: per-dim init of the Q/K shift's beta. Recursive uses 0.3.")
     parser.add_argument("--batch-ramp", action=argparse.BooleanOptionalAction,
                         default=os.environ.get("NEURON_COMPETITION_R1_BATCH_RAMP", "1" if BATCH_RAMP else "0") != "0",
                         help="T2.1: ramp the effective batch size across the run by varying "
@@ -5226,6 +5570,30 @@ def main() -> None:
     NGRAM_VE_BETA2 = args.ngram_ve_beta2
     NGRAM_VE_FLAT_LR = args.ngram_ve_flat_lr
     NGRAM_VE_CLIP_EXCLUDE = args.ngram_ve_clip_exclude
+    # T4.2 / T3.9. All read by GPT/Block/CausalSelfAttention.__init__ or setup_optimizer() below,
+    # i.e. before the first device op.
+    USE_OUT_BIGRAM = args.out_bigram
+    OUT_BIGRAM_BF16 = args.out_bigram_bf16
+    OUT_BIGRAM_GATE_BIAS = args.out_bigram_gate_bias
+    OUT_BIGRAM_LR = args.out_bigram_lr
+    RELU2_TAU = args.relu2_tau
+    USE_MLP_SANDWICH_NORM = args.mlp_sandwich_norm
+    USE_HEAD_GATE = args.head_gate
+    HEAD_GATE_NORM = args.head_gate_norm
+    HEAD_GATE_CHANNELS = args.head_gate_channels
+    HEAD_GATE_MUL = args.head_gate_mul
+    HEAD_GATE_BIAS = args.head_gate_bias
+    USE_OUT_POOL = args.out_pool
+    OUT_POOL_LAYERS = args.out_pool_layers
+    USE_QK_SHIFT = args.qk_shift
+    QK_SHIFT_BETA = args.qk_shift_beta
+    if RELU2_TAU != 0.0 and args.nki_relu2:
+        raise ValueError("--relu2-tau is not implemented by the example NKI relu2 kernel; "
+                         "run it with --no-nki-relu2 (the default).")
+    if OUT_POOL_LAYERS < 1:
+        raise ValueError(f"--out-pool-layers must be >= 1, got {OUT_POOL_LAYERS}")
+    if HEAD_GATE_CHANNELS < 1:
+        raise ValueError(f"--head-gate-channels must be >= 1, got {HEAD_GATE_CHANNELS}")
     BATCH_RAMP = args.batch_ramp
     BATCH_RAMP_GRAD_ACCUM = tuple(int(v) for v in args.batch_ramp_grad_accum.split(","))
     BATCH_RAMP_BOUNDS = tuple(float(v) for v in args.batch_ramp_bounds.split(","))
@@ -5708,6 +6076,16 @@ def main() -> None:
               f"index_gather={NGRAM_VE_INDEX_GATHER} "
               f"trigram={args.ngram_ve_trigram} opt={args.ngram_ve_opt} "
               f"flat_lr={args.ngram_ve_flat_lr} bf16={args.ngram_ve_bf16}")
+        # T4.2 / T3.9, same reason: one line carrying every knob of this block, so two arms are
+        # distinguishable in experiment-log.jsonl without re-reading the run log
+        # (SUMMARY_KEYS in research/run_experiment.py has the matching entries).
+        print(f"out_bigram:        {USE_OUT_BIGRAM} bf16={OUT_BIGRAM_BF16} "
+              f"gate_bias={OUT_BIGRAM_GATE_BIAS} lr={OUT_BIGRAM_LR}")
+        print(f"oneliners:         relu2_tau={RELU2_TAU} mlp_sandwich={USE_MLP_SANDWICH_NORM} "
+              f"head_gate={USE_HEAD_GATE} hg_norm={HEAD_GATE_NORM} hg_ch={HEAD_GATE_CHANNELS} "
+              f"hg_mul={HEAD_GATE_MUL} hg_bias={HEAD_GATE_BIAS} "
+              f"out_pool={USE_OUT_POOL} pool_layers={OUT_POOL_LAYERS} "
+              f"qk_shift={USE_QK_SHIFT} qk_beta={QK_SHIFT_BETA}")
         # T2.1, same reason: one line carrying every ramp knob, so two ramp arms are
         # distinguishable in experiment-log.jsonl without re-reading the run log.
         print(f"batch_ramp:        {BATCH_RAMP} grad_accum={BATCH_RAMP_GRAD_ACCUM} "
