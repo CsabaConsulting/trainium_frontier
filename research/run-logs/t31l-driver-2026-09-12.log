@@ -1,0 +1,11 @@
+=== BASE 07:12:08
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 900 --out-dir out/t31l-base-900s --eval-seq-len 1024
+--- logged: status=keep public_val_bpb=1.081306 num_steps=1094 total_seconds=1013.6 -> research/experiment-log.jsonl
+=== L5M64 07:29:29
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 900 --out-dir out/t31l-l5m64-900s --ngram-ve --no-ngram-ve-trigram --ngram-ve-layers=-1 --ngram-ve-table-mult 64 --ngram-ve-dim 128 --eval-seq-len 1024
+--- logged: status=keep public_val_bpb=1.068101 num_steps=1099 total_seconds=1165.3 -> research/experiment-log.jsonl
+=== L5TRI 07:49:21
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 900 --out-dir out/t31l-l5tri-900s --ngram-ve --ngram-ve-trigram --ngram-ve-layers=-1 --ngram-ve-table-mult 32 --ngram-ve-dim 128 --eval-seq-len 1024
+--- logged: status=keep public_val_bpb=1.066917 num_steps=1084 total_seconds=1165.6 -> research/experiment-log.jsonl
+=== ALLDONE 08:09:13
+DONE
