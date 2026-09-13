@@ -596,27 +596,42 @@ NGRAM_VE_INDEX_GATHER = True  # gather rows as `weight[idx]` instead of `nn.Embe
 # that is zero-init, which makes Y == vt from step 1 and lets the conv branch switch itself on
 # only if it earns its way -- the plan's own "conv zero-init".
 #
-# WHY ENGRAM_SITE DEFAULTS TO THE LAST LAYER AND NOT THE SPEC'S "LAYER 2 OF 6".
-# The Engram paper's ablation puts the module at layer 2 of 12 (and the plan transcribes "layer 2
-# of 6"). On THIS stack that placement is measured-fatal, for a reason that has nothing to do with
-# Engram: see the NGRAM_VE_LAYERS block above. Under LNC=2 a logical NeuronCore spans two PHYSICAL
-# cores, and ONE dynamic-address gather anywhere in the compiled region makes the compiler re-shard
-# the residual stream across those two pcores at every layer boundary DOWNSTREAM of it, at ~30
-# bytes per DMA packet. The measured penalty is ~+48 ms per micro-step for an injection at layer 3
-# of 6 versus ZERO for an injection at the last layer, and it is INVARIANT to table geometry
-# (8192 rows costs the same as 262144, dim 64 the same as dim 128) because it is descriptor-rate
-# bound. Engram-lite's smaller d_mem therefore does NOT escape it: the trigger is the dynamic
-# address, not the payload. The cost counts DOWNSTREAM LAYER BOUNDARIES, so the last layer is free
-# and every earlier one is not. ENGRAM_SITE keeps the mid-stack placement expressible (so the
-# hypothesis can be MEASURED here rather than assumed to transfer), but the default is the last
-# layer because that is the only affordable one, and under the data wall a ~25% slowdown prices at
-# roughly +0.018 bpb before the mechanism has said anything at all.
+# WHY ENGRAM_SITE DEFAULTS TO MID-STACK, AND WHY THAT WAS A SURPRISE (2026-09-13).
+# T3.1's LNC=2 root-cause work established that a logical NeuronCore spans two PHYSICAL cores and
+# that ONE dynamic-address gather makes the compiler re-shard the residual/V stream across both
+# pcores at every layer boundary DOWNSTREAM of the injection, at ~30 bytes per DMA packet:
+# ~+48 ms per micro-step for an n-gram injection at layer 3 of 6 versus ZERO at the last layer,
+# INVARIANT to table geometry (see the NGRAM_VE_LAYERS block above). This module was therefore
+# built with ENGRAM_SITE defaulting to -1, on the reasoning that a smaller d_mem cannot escape a
+# descriptor-rate-bound cost and that the last layer is the only site with no downstream boundary.
+#
+# THAT DID NOT TRANSFER, and it was measured rather than assumed. Two paired 900s runs, identical
+# except for the site, at 8.4M of Engram tables plus the frozen qk-shift:
+#
+#   site 5 (last)   1129 steps   val_bpb 1.063967
+#   site 2 (mid)    1128 steps   val_bpb 1.062342
+#
+# ONE step apart -- mid-stack placement costs nothing here -- and 0.0016 bpb better. The
+# difference from T3.1 is presumably WHAT CONSUMES the gathered rows: T3.1 injects into
+# attention's V *inside* the block, so the gathered tensor is consumed by that layer's attention
+# subgraph, whereas Engram consumes it in two dense matmuls plus an elementwise chain and adds one
+# [B, T, C] tensor onto the residual AT a layer boundary. That mechanism is a hypothesis; the
+# throughput equality is the measurement. Either way the conclusion is the practical one: the
+# paper's mid-stack site is affordable, so the default is the paper's site, and the last-layer
+# placement stays expressible for contrast (it is the arm that measures WORSE).
+#
+# Why the site matters at all for quality: injecting at the last block puts Y one norm and one
+# matmul away from the logits, which makes Engram-lite mostly an additive output path -- the same
+# thing T4.2's output bigram table was, and that was measured negative. Mid-stack leaves three
+# more blocks to process the memory read, which is the point of the mechanism.
 USE_ENGRAM = False
-ENGRAM_SITE = "-1"         # 0-based index of the block AFTER whose output Y is added to the
-                           # residual. Negative counts from the end, so "-1" (the default) is the
-                           # last block, i.e. the final residual just before the final norm --
-                           # the only injection point with no downstream layer boundary to
-                           # re-shard. "2" reproduces the paper's mid-stack placement.
+ENGRAM_SITE = "2"          # 0-based index of the block AFTER whose output Y is added to the
+                           # residual; negative counts from the end. "2" is the paper's mid-stack
+                           # placement and is both free and better here (see above). "-1" is the
+                           # final residual just before the final norm.
+                           # NOTE: ENGRAM_SHARE_NGRAM_TABLES needs an n-gram table at or BEFORE
+                           # this site, and NGRAM_VE_LAYERS is locked at "-1", so share mode
+                           # requires an explicit --engram-site -1 (or a wider --ngram-ve-layers).
 ENGRAM_ORDERS = "2,3"      # which n-gram orders feed e_t. Engram uses n=2,3 and reports 4-grams
                            # "slightly suboptimal"; T3.1 independently found bigram+trigram worth
                            # -0.0017 over bigram-only at equal parameter count.
@@ -5990,9 +6005,10 @@ def main() -> None:
     parser.add_argument("--engram-site", type=str,
                         default=os.environ.get("NEURON_COMPETITION_R1_ENGRAM_SITE", ENGRAM_SITE),
                         help="block index whose OUTPUT residual Engram writes into; negative counts "
-                             "from the end. Default -1 (last block) because under LNC=2 a gather "
-                             "before layer L forces cross-pcore resharding at every layer boundary "
-                             "after it (~+48ms/micro-step at layer 3, 0 at layer 5).")
+                             "from the end. Default 2 (the paper's mid-stack site): T3.1's LNC=2 "
+                             "downstream-resharding penalty was expected to make this unaffordable "
+                             "and measurably does NOT (1128 vs 1129 steps at 900s), while being "
+                             "0.0016 bpb better than the last-layer placement.")
     parser.add_argument("--engram-orders", type=str,
                         default=os.environ.get("NEURON_COMPETITION_R1_ENGRAM_ORDERS", ENGRAM_ORDERS),
                         help="comma-separated n-gram orders for Engram's hash heads; only 2 and 3 "

@@ -142,16 +142,17 @@ ARMS = [
     ("engram-noconv", dict(USE_ENGRAM=True, ENGRAM_TABLE_MULT=1, ENGRAM_CONV_KERNEL=0)),
     # A narrow gate space, which is the only configuration that builds w_q.
     ("engram-keydim", dict(USE_ENGRAM=True, ENGRAM_TABLE_MULT=1, ENGRAM_KEY_DIM=64)),
-    # Mid-stack site: the placement the Engram paper specifies. Kept expressible (and CHECKED) even
-    # though the default is the last layer for the LNC=2 resharding reason -- causality especially
-    # matters here, since the injection is now upstream of three more attention layers.
-    ("engram-mid", dict(USE_ENGRAM=True, ENGRAM_TABLE_MULT=1, ENGRAM_SITE="2")),
+    # Last-layer site: what the default was before the paired 900s site test showed mid-stack is
+    # both free and 0.0016 better. Kept as an arm because it is the contrast the doc block cites.
+    ("engram-last", dict(USE_ENGRAM=True, ENGRAM_TABLE_MULT=1, ENGRAM_SITE="-1")),
     # Share mode: no tables of its own, e_t is T3.1's already-gathered rows. The n-gram tables are
     # ALSO zero at init, so the step-0 no-op holds for the same reason, and the arm must add no
-    # table parameters at all (checked by `tensors` versus the baseline's).
-    ("engram-share", dict(USE_ENGRAM=True, ENGRAM_SHARE_NGRAM_TABLES=True)),
-    ("engram-share-bigram-only", dict(USE_ENGRAM=True, ENGRAM_SHARE_NGRAM_TABLES=True,
-                                      NGRAM_VE_TRIGRAM=False)),
+    # table parameters at all (checked by `tensors` versus the baseline's). ENGRAM_SITE is forced to
+    # -1 here because NGRAM_VE_LAYERS is locked at "-1": share mode can only read rows that have
+    # already been gathered by the time the loop reaches the injection site.
+    ("engram-share", dict(USE_ENGRAM=True, ENGRAM_SITE="-1", ENGRAM_SHARE_NGRAM_TABLES=True)),
+    ("engram-share-bigram-only", dict(USE_ENGRAM=True, ENGRAM_SITE="-1",
+                                      ENGRAM_SHARE_NGRAM_TABLES=True, NGRAM_VE_TRIGRAM=False)),
 ]
 
 

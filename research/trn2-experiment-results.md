@@ -5000,3 +5000,89 @@ is touched a small fraction of a step. At 1100 steps that is a large block of de
 effect on the loss is through the gradient noise it adds. If that is the mechanism, the penalty
 should shrink with the amount of capacity added, which is directly testable and is what the
 `t32-engram-small-frozen-900s` arm below checks.
+
+### The follow-ups: the per-step penalty is size-independent, and the SITE is the thing
+
+Two more paired 900s arms, same session, same binary. The control was repeated so the reference has
+error bars.
+
+| run | steps | val_bpb | params | Engram site |
+|---|---|---|---|---|
+| `t32-control-900s` | 1076 | 1.065199 | 190.1M | — |
+| `t32-control-900s-rep` | 1076 | 1.065036 | 190.1M | — |
+| `t32-engram-frozen-900s` | 1100 | 1.065958 | 257.5M | 5 (last) |
+| `t32-engram-frozen-900s-rep` | 1100 | 1.065935 | 257.5M | 5 (last) |
+| `t32-engram-small-frozen-900s` | 1129 | 1.063967 | 198.7M | 5 (last) |
+| `t32-engram-small-mid-frozen-900s` | 1128 | 1.062342 | 198.7M | **2 (mid)** |
+
+Reproducibility first, because everything below rests on it: the control pair differ by 0.000163 and
+the big-Engram pair by **0.000023**, both at identical step counts. These 900s numbers are far tighter
+than the 0.001 noise floor the log's rule-of-thumb assumes for unpaired runs.
+
+Decomposed against the control mean (1.065117 at 1076 steps), slope −0.077:
+
+| arm | added capacity | total | throughput term | **per-step term** |
+|---|---|---|---|---|
+| Engram 67.4M, last layer | +67.4M | +0.000841 | −0.001699 | **+0.002539** |
+| Engram 67.4M, last layer (rep) | +67.4M | +0.000818 | −0.001699 | **+0.002516** |
+| Engram 8.4M, last layer | +8.4M | −0.001150 | −0.003702 | **+0.002552** |
+| Engram 8.4M, **mid-stack** | +8.4M | **−0.002776** | −0.003634 | **+0.000859** |
+
+**Finding 1: the per-step penalty does not depend on how much capacity was added.** +0.00254,
++0.00252, +0.00255 — across an **8× difference** in new parameters (8.4M vs 67.4M). That kills the
+obvious explanation ("67M zero-init parameters cannot warm up in 1100 steps"): if warm-up were the
+driver, the small arm would be penalised ~8× less. The penalty is the *mechanism*, evaluated at that
+site, and it is a fixed cost.
+
+**Finding 2: the LNC=2 mid-stack penalty did NOT transfer, and mid-stack is where the mechanism
+works.** This module was built with `ENGRAM_SITE = "-1"` on the strength of T3.1's measurement
+(+47.7 ms/micro-step for a layer-3 n-gram injection, invariant to table geometry, therefore not
+escapable by a smaller `d_mem`). The site test says otherwise: **1128 steps at mid-stack versus 1129
+at the last layer** — one step apart, i.e. mid-stack placement is *free* here — and 0.0016 bpb
+better, which the decomposition attributes entirely to quality (+0.00086 per-step versus +0.00255).
+
+The difference from T3.1 is presumably *what consumes the gathered rows*. T3.1 injects into
+attention's V **inside** the block, so the gathered tensor is consumed by that layer's attention
+subgraph; Engram consumes it in two dense matmuls plus an elementwise chain and adds one `[B, T, C]`
+tensor onto the residual **at** a layer boundary. That mechanism is a hypothesis. The throughput
+equality is a measurement, and it is the one that matters: **the "only the last layer is affordable"
+rule is specific to the n-gram-VE injection and must not be assumed for any future residual-stream
+mechanism.** It cost a real experiment to learn that, and it is reusable.
+
+Why the site changes quality is the easier half. Injected after the last block, `Y` is one norm and
+one matmul from the logits, so Engram-lite degenerates into an additive output path — which is what
+T4.2's output bigram table was, and T4.2 was measured negative. Mid-stack leaves three more blocks to
+process the memory read, which is the entire point of the mechanism. `ENGRAM_SITE` now defaults to
+`"2"`, the paper's site, on this evidence.
+
+### Final verdict
+
+**DISCARDED. `--engram` stays default OFF.** The best Engram configuration found (8.4M tables,
+mid-stack, with the frozen Q/K shift) is **per-step +0.00086 bpb — i.e. neutral to within noise, not
+better.** Its entire −0.0028 advantage at 900s is bought with a 4.8% throughput gain, and *that gain
+is not convertible at full budget*: 2139 × 1.048 ≈ 2242 steps, past the ~2195-step data wall, where
+extra steps price negative. Step-matched at ~2140 the arm is a wash at best. No 1800s run was spent,
+per the standing rule that only a real net win after decomposition earns full-budget time.
+
+Answering the question the pivot actually posed — *did the capacity-for-throughput trade work out
+arithmetically?* — **yes, cleanly, and that is the part that surprised.** A 35%-larger model that runs
+2.4% *faster* than the one it replaces is exactly the trade that was asked for. The frozen Q/K shift's
+budget not only covered Engram's cost, it over-covered it, because the two are superadditive rather
+than additive. **The trade closed and the merchandise was worthless:** more capacity, correctly
+placed, trained with the right optimizer group, bought nothing per step.
+
+Three things worth keeping out of it:
+
+1. **The op-count ceiling is the binding constraint on this box, not FLOPs or parameters.** Share mode
+   proved it from the cheap direction (+0.33M parameters, +23.4% time) and the 67.4M own-table arm
+   proved it from the expensive one (+35% parameters for the same +27.5%). Anything that adds ops to
+   the compiled graph is expensive; anything that only adds *width* to ops already there is nearly
+   free. Future capacity should be bought as width, not as new mechanisms.
+2. **The frozen Q/K shift is worth more the more work there is in the block region** (0.070 s/step
+   saved on the base, 0.250 s/step saved with Engram present). It should be attached to any future
+   arm that adds block-level ops, and its budget must be re-measured *with* that arm, never assumed.
+3. **`--engram-site` is measured, not inherited.** The T3.1 layer-position rule does not generalize.
+
+Code stays in (default OFF, `causality_max_abs == 0.0` on hardware, 8 CPU harness arms green) because
+it is the only implemented mechanism that can read a *context-gated* n-gram memory, and if the data
+wall is ever relieved the per-step term is the only number that would need to change sign.
