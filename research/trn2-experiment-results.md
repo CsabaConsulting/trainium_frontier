@@ -4892,3 +4892,111 @@ then ≈1 hour of box time per arm (one cold compile at 7–9 min plus a 900s pa
 kernel work; it does, by roughly a factor of three, and the only surviving justification is a
 sign-unknown quality coin-flip on a change whose measured-in-advance throughput value is 0.5% step
 time — which the data wall converts to ≈0 bpb. Everything needed to build it is written down above.
+
+## 2026-09-13 — T3.2 Engram-lite: the capacity-for-throughput trade closes arithmetically but NOT in bpb. DISCARDED
+
+**The pivot this section tests.** Past the data wall, throughput is only convertible for its first
+~2.6%; beyond that, extra steps price negative. The frozen Q/K shift
+(`--qk-shift --qk-shift-beta 0.0 --qk-shift-freeze`, a verified mathematical identity) hands over a
++9.2% throughput budget that is therefore *mostly unspendable as steps*. So: stop buying steps, buy
+capacity instead — hold step count roughly fixed and spend the freed wall-clock on more FLOPs and
+more parameters per step. T3.2 Engram-lite is the capacity.
+
+Implementation (`a9e50dd`): K hash heads per order (2 and 3), prime-modulus tables of width `d_mem`,
+`e_t` their concatenation; `k = W_K e`, `v = W_V e`;
+`α = σ(RMSNorm(h)·RMSNorm(k)/√d)`; `ṽ = α v`; `Y = SiLU(dwconv(RMSNorm(ṽ))) + ṽ`; `H ← H + Y`.
+Gated behind `--engram`, default OFF.
+
+### Item 1 — the frozen Q/K shift's budget, re-confirmed at the locked config
+
+The concern was that the +9-10% was measured before the n-gram VE tables became the locked default,
+and that both changes touch block-level compute. It reproduces exactly. 120-step probe, same session,
+same binary (`research/run-logs/probe-engram-*.log`), steady-state `dt` flat from step ~5:
+
+| arm | s/step | vs base (time) | vs base (steps) | params |
+|---|---|---|---|---|
+| `base` (locked default) | 0.835 | — | — | 190.1M |
+| `+ frozen qk-shift` | 0.765 | −8.4% | **+9.2%** | 190.1M |
+| `+ engram` (own tables) | 1.065 | +27.5% | −21.6% | 257.5M |
+| `+ engram + frozen qk-shift` | 0.815 | **−2.4%** | **+2.5%** | 257.5M |
+| `+ engram --engram-share-ngram-tables` | 1.030 | +23.4% | −18.8% | 190.4M |
+
++9.2% is the same number the full-budget 1800s pair gave (2155 → 2354 steps). Item 1 closed: **the
+budget is real and it survives the n-gram VE tables.**
+
+### The cost is the OPS, not the tables — and the frozen shift is superadditive with it
+
+Two readings from the table above matter more than the headline.
+
+**Share mode isolates the mechanism from the capacity.** `--engram-share-ngram-tables` reads T3.1's
+*already-gathered* rows, so it adds no table, no gather, no gradient all-reduce — +0.33M parameters
+total. It still costs **+23.4%**, i.e. essentially the whole cost of the own-table arm's +27.5%. So
+Engram's cost is not the 67.4M new parameters, not their all-reduce, and not the gather: it is the
+handful of extra *ops* (two matmuls, a norm, a per-token channel reduction, a depthwise conv, a SiLU,
+two elementwise multiplies) added to a dispatch-bound graph. This is the x0-gate result again, from a
+different direction: four extra elementwise ops per block cost 13%; here ~8 ops **at one layer** cost
+23%.
+
+**And the frozen Q/K shift does not just *offset* that cost, it *cancels* it.** The two are wildly
+superadditive. Adding the frozen shift to the base saves 0.070 s/step; adding it to the Engram arm
+saves **0.250 s/step** (1.065 → 0.815). If the effects were additive, `engram+frozen` would sit at
+0.995 s/step; it sits at 0.815. Both changes are pure compiler-scheduling perturbations of the same
+region, and the identity's rescheduling is evidently worth far more once there is more work in that
+region to reschedule. This is the strongest evidence yet that the ~8% MFU is a *scheduling* ceiling
+rather than a compute one.
+
+**So the arithmetic of the pivot worked, and then some.** The prescription was "spend the free budget,
+don't go negative." `engram + frozen` is **2.4% FASTER than the locked default** while carrying
++67.4M parameters (+35%) and a whole new mechanism. Capacity was bought and the change came back with
+change.
+
+### Item 3 — the paired 900s A/B: the capacity does not pay for itself in bpb
+
+Paired, same day, same session, same binary (`md5 64d249af…`, local commit `a9e50dd`; the box's own
+`.git` reports the stale `496befd` and is disposable). Control is the locked default with no new flags.
+
+| run | steps | val_bpb | params |
+|---|---|---|---|
+| `t32-control-900s` | 1076 | 1.065199 | 190.1M |
+| `t32-engram-frozen-900s` | 1100 | 1.065958 | 257.5M |
+
+The step gain is +2.23%, matching the probe's predicted +2.5% to within a step. `causality_max_abs`
+is exactly **0.0** on hardware with Engram on, as required.
+
+**Mandatory decomposition** (Δln steps = 0.022060, below-the-wall slope −0.077 per unit ln steps):
+
+| component | value |
+|---|---|
+| total observed | **+0.000759** |
+| throughput term (−0.077 × 0.022060) | −0.001699 |
+| **per-step (quality) term** | **+0.002458** |
+
+Read that carefully, because the headline number is a trap. The *total* +0.00076 is below the 0.001
+single-run noise floor, so on its own the arm looks like a wash. But the decomposition says the wash
+is a cancellation of two real effects: Engram makes the model **+0.0025 bpb WORSE at matched steps**,
+and the 24 extra steps it bought hand back −0.0017 of that. The mechanism is not neutral; it is
+negative, and it is being partly hidden by its own speedup.
+
+The frozen Q/K shift cannot be blamed for any of the per-step term: with `beta` frozen at exactly 0.0
+the arm is `x + 0.0*causal_shift_1(x)`, bit-identical forever (verified over 5 optimizer steps in
+`research/scratch/qk_freeze_probe.py`). Its historical "step-matched +0.000664" was, and had to be,
+pure run-to-run noise. So the +0.0025 is Engram's, up to noise.
+
+### Verdict
+
+**DISCARDED.** `--engram` stays default OFF.
+
+The trade the pivot asked for genuinely closed — a 35%-larger model that runs 2.4% *faster* than the
+one it replaces is exactly what "spend the free budget on capacity" was supposed to produce, and the
+superadditivity of the frozen shift with extra block work is a real, reusable finding. What did not
+happen is the second half: **the added capacity did not make the model better per step, it made it
+worse.** No escalation to 1800s, per the standing rule that only a real net win after decomposition
+earns full-budget time.
+
+The likeliest reading is the one that generalizes past this mechanism: **67.4M zero-initialized
+parameters cannot be warmed up inside ~1100 steps.** T3.2's tables start at exactly zero (that is
+what makes step 0 an exact no-op) and are trained by a flat-LR RMSProp group over rows each of which
+is touched a small fraction of a step. At 1100 steps that is a large block of dead weight whose only
+effect on the loss is through the gradient noise it adds. If that is the mechanism, the penalty
+should shrink with the amount of capacity added, which is directly testable and is what the
+`t32-engram-small-frozen-900s` arm below checks.
