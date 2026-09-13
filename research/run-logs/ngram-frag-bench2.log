@@ -1,0 +1,63 @@
+[W912 04:26:04.116044081 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[nfb] b=4 t=2048 tables=3 rows=262144 dim=128 prime_mod=262139 mask=0x3ffff compile=True
+[nfb] base(sum only)           fwd    0.336ms   fwd+bwd      nanms
+[nfb] hash-prime               fwd    0.847ms   fwd+bwd      nanms
+[nfb] hash-mask                fwd    0.336ms   fwd+bwd      nanms
+[nfb] hash-maskfold            fwd    0.770ms   fwd+bwd      nanms
+[nfb] hash-none                fwd    0.175ms   fwd+bwd      nanms
+[nfb] gather-prime             fwd    0.768ms   fwd+bwd    5.184ms
+[nfb] gather-mask              fwd    0.767ms   fwd+bwd    5.150ms
+[nfb] gather-none              fwd    0.441ms   fwd+bwd    5.060ms
+[nfb] proj-prime               fwd    0.987ms   fwd+bwd    5.579ms
+W0912 04:26:37.946000 397111 torch/_dynamo/convert_frame.py:1743] [1/8] torch._dynamo hit config.recompile_limit (8)
+W0912 04:26:37.946000 397111 torch/_dynamo/convert_frame.py:1743] [1/8]    function: 'fn' (/home/ubuntu/trainium_frontier/research/scratch/ngram_frag_bench.py:178)
+W0912 04:26:37.946000 397111 torch/_dynamo/convert_frame.py:1743] [1/8]    last reason: 1/7: ___check_obj_id(hfn.__code__, 140499154644368), type=<code object hash_prime at 0x7fc882342d90, file "/home/ubuntu/trainium_frontier/research/scratch/ngram_frag_bench.py", line 120>  # ids = hfn(idx)  # trainium_frontier/research/scratch/ngram_frag_bench.py:179 in fn
+W0912 04:26:37.946000 397111 torch/_dynamo/convert_frame.py:1743] [1/8] User stack trace:
+W0912 04:26:37.946000 397111 torch/_dynamo/convert_frame.py:1743] [1/8]   File "/home/ubuntu/trainium_frontier/research/scratch/ngram_frag_bench.py", line 179, in fn
+W0912 04:26:37.946000 397111 torch/_dynamo/convert_frame.py:1743] [1/8]     ids = hfn(idx)
+W0912 04:26:37.946000 397111 torch/_dynamo/convert_frame.py:1743] [1/8] To log all recompilation reasons, use TORCH_LOGS="recompiles".
+W0912 04:26:37.946000 397111 torch/_dynamo/convert_frame.py:1743] [1/8] To diagnose recompilation issues, see https://docs.pytorch.org/docs/main/user_guide/torch_compiler/compile/programming_model.recompilation.html
+[nfb] proj-mask                fwd    5.027ms   fwd+bwd   10.977ms
+[nfb] proj-none                fwd    3.224ms   fwd+bwd    8.749ms
+[nfb] gate-prime               fwd    9.017ms   fwd+bwd   17.809ms
+[nfb] gate-mask                fwd    9.642ms   fwd+bwd   17.252ms
+[nfb] gate-none                fwd    6.516ms   fwd+bwd   15.255ms
+[nfb] inject-prime             fwd    7.589ms   fwd+bwd   17.189ms
+[nfb] inject-mask              fwd    8.025ms   fwd+bwd   17.050ms
+[nfb] inject-none              fwd    4.539ms   fwd+bwd   13.785ms
+[nfb] ngather-1                fwd    0.258ms   fwd+bwd    1.887ms
+[nfb] ngather-2                fwd    0.364ms   fwd+bwd    3.351ms
+[nfb] ngather-3                fwd    0.438ms   fwd+bwd    4.826ms
+[nfb] ngather-5                fwd    0.597ms   fwd+bwd    7.908ms
+
+[nfb] --- per-table fwd+bwd, minus the sum-only floor ---
+[nfb] hash-prime               total      nanms  per-table     nanms
+[nfb] hash-mask                total      nanms  per-table     nanms
+[nfb] hash-maskfold            total      nanms  per-table     nanms
+[nfb] hash-none                total      nanms  per-table     nanms
+[nfb] gather-prime             total    4.847ms  per-table   1.616ms
+[nfb] gather-mask              total    4.813ms  per-table   1.604ms
+[nfb] gather-none              total    4.723ms  per-table   1.574ms
+[nfb] proj-prime               total    5.243ms  per-table   1.748ms
+[nfb] proj-mask                total   10.640ms  per-table   3.547ms
+[nfb] proj-none                total    8.412ms  per-table   2.804ms
+[nfb] gate-prime               total   17.473ms  per-table   5.824ms
+[nfb] gate-mask                total   16.916ms  per-table   5.639ms
+[nfb] gate-none                total   14.919ms  per-table   4.973ms
+[nfb] inject-prime             total   16.853ms  per-table   5.618ms
+[nfb] inject-mask              total   16.714ms  per-table   5.571ms
+[nfb] inject-none              total   13.449ms  per-table   4.483ms
+[nfb] ngather-1                total    1.551ms  per-table   0.517ms
+[nfb] ngather-2                total    3.014ms  per-table   1.005ms
+[nfb] ngather-3                total    4.489ms  per-table   1.496ms
+[nfb] ngather-5                total    7.572ms  per-table   2.524ms
+[nfb] SUSPECT 1 (hash only, fwd): +0.511ms total, +0.170ms/table
+
+[nfb] SUSPECT 1 (remainder vs mask), full fragment fwd+bwd: +0.139ms total, +0.046ms/table
+DONE

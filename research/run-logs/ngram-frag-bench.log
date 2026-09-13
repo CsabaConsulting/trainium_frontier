@@ -1,0 +1,64 @@
+[W912 04:06:38.841500152 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W912 04:06:40.946995571 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+[nfb] b=4 t=2048 tables=3 rows=262144 dim=128 prime_mod=262139 mask=0x3ffff compile=True
+[nfb] base(sum only)           fwd    0.184ms   fwd+bwd      nanms
+[nfb] hash-prime               fwd    0.742ms   fwd+bwd      nanms
+[nfb] hash-mask                fwd    0.274ms   fwd+bwd      nanms
+[nfb] hash-maskfold            fwd    0.630ms   fwd+bwd      nanms
+[nfb] hash-none                fwd    0.307ms   fwd+bwd      nanms
+[nfb] gather-prime             fwd    0.572ms   fwd+bwd    5.051ms
+[nfb] gather-mask              fwd    0.535ms   fwd+bwd    4.969ms
+[nfb] gather-none              fwd    0.377ms   fwd+bwd    5.075ms
+[nfb] proj-prime               fwd    0.738ms   fwd+bwd    5.173ms
+[rank0]:W0912 04:07:11.772000 388562 torch/_dynamo/convert_frame.py:1743] [1/8] torch._dynamo hit config.recompile_limit (8)
+[rank0]:W0912 04:07:11.772000 388562 torch/_dynamo/convert_frame.py:1743] [1/8]    function: 'fn' (/home/ubuntu/trainium_frontier/research/scratch/ngram_frag_bench.py:157)
+[rank0]:W0912 04:07:11.772000 388562 torch/_dynamo/convert_frame.py:1743] [1/8]    last reason: 1/7: ___check_obj_id(hfn.__code__, 128728535788944), type=<code object hash_prime at 0x7513f2a5ed90, file "/home/ubuntu/trainium_frontier/research/scratch/ngram_frag_bench.py", line 114>  # ids = hfn(idx)  # trainium_frontier/research/scratch/ngram_frag_bench.py:158 in fn
+[rank0]:W0912 04:07:11.772000 388562 torch/_dynamo/convert_frame.py:1743] [1/8] User stack trace:
+[rank0]:W0912 04:07:11.772000 388562 torch/_dynamo/convert_frame.py:1743] [1/8]   File "/home/ubuntu/trainium_frontier/research/scratch/ngram_frag_bench.py", line 158, in fn
+[rank0]:W0912 04:07:11.772000 388562 torch/_dynamo/convert_frame.py:1743] [1/8]     ids = hfn(idx)
+[rank0]:W0912 04:07:11.772000 388562 torch/_dynamo/convert_frame.py:1743] [1/8] To log all recompilation reasons, use TORCH_LOGS="recompiles".
+[rank0]:W0912 04:07:11.772000 388562 torch/_dynamo/convert_frame.py:1743] [1/8] To diagnose recompilation issues, see https://docs.pytorch.org/docs/main/user_guide/torch_compiler/compile/programming_model.recompilation.html
+[nfb] proj-mask                fwd    3.885ms   fwd+bwd    9.996ms
+[nfb] proj-none                fwd    2.409ms   fwd+bwd    8.216ms
+[nfb] gate-prime               fwd    6.277ms   fwd+bwd   17.245ms
+[nfb] gate-mask                fwd    8.746ms   fwd+bwd   16.680ms
+[nfb] gate-none                fwd    5.270ms   fwd+bwd   13.684ms
+[nfb] inject-prime             fwd    5.806ms   fwd+bwd   16.625ms
+[nfb] inject-mask              fwd    7.507ms   fwd+bwd   17.181ms
+[nfb] inject-none              fwd    4.428ms   fwd+bwd   13.755ms
+
+[nfb] --- per-table fwd+bwd, minus the sum-only floor ---
+[nfb] hash-prime               total      nanms  per-table     nanms
+[nfb] hash-mask                total      nanms  per-table     nanms
+[nfb] hash-maskfold            total      nanms  per-table     nanms
+[nfb] hash-none                total      nanms  per-table     nanms
+[nfb] gather-prime             total    4.867ms  per-table   1.622ms
+[nfb] gather-mask              total    4.785ms  per-table   1.595ms
+[nfb] gather-none              total    4.891ms  per-table   1.630ms
+[nfb] proj-prime               total    4.989ms  per-table   1.663ms
+[nfb] proj-mask                total    9.812ms  per-table   3.271ms
+[nfb] proj-none                total    8.032ms  per-table   2.677ms
+[nfb] gate-prime               total   17.061ms  per-table   5.687ms
+[nfb] gate-mask                total   16.496ms  per-table   5.499ms
+[nfb] gate-none                total   13.500ms  per-table   4.500ms
+[nfb] inject-prime             total   16.441ms  per-table   5.480ms
+[nfb] inject-mask              total   16.997ms  per-table   5.666ms
+[nfb] inject-none              total   13.571ms  per-table   4.524ms
+[nfb] SUSPECT 1 (hash only, fwd): +0.468ms total, +0.156ms/table
+
+[nfb] SUSPECT 1 (remainder vs mask), full fragment fwd+bwd: -0.556ms total, -0.185ms/table
+DONE

@@ -1,0 +1,37 @@
+rows=262144 prime_mod=262139 mask=0x3ffff vocab(with sentinel)=8193
+
+[1] full bigram space, 67,125,249 pairs
+  layer 0 primes (8209, 16193)
+    prime%      distinct  262,139 / ideal    262,144 (1.0000 of ideal)   max_load 330   colliding_pairs 66,863,110 (99.61%)
+    mask+fold   distinct  262,144 / ideal    262,144 (1.0000 of ideal)   max_load 331   colliding_pairs 66,863,105 (99.61%)
+    mask(raw)   distinct  262,144 / ideal    262,144 (1.0000 of ideal)   max_load 395   colliding_pairs 66,863,105 (99.61%)
+  layer 1 primes (24197, 32203)
+    prime%      distinct  262,139 / ideal    262,144 (1.0000 of ideal)   max_load 334   colliding_pairs 66,863,110 (99.61%)
+    mask+fold   distinct  262,144 / ideal    262,144 (1.0000 of ideal)   max_load 358   colliding_pairs 66,863,105 (99.61%)
+    mask(raw)   distinct  262,144 / ideal    262,144 (1.0000 of ideal)   max_load 391   colliding_pairs 66,863,105 (99.61%)
+  layer 2 primes (40193, 48193)
+    prime%      distinct  262,139 / ideal    262,144 (1.0000 of ideal)   max_load 333   colliding_pairs 66,863,110 (99.61%)
+    mask+fold   distinct  262,144 / ideal    262,144 (1.0000 of ideal)   max_load 328   colliding_pairs 66,863,105 (99.61%)
+    mask(raw)   distinct  262,144 / ideal    262,144 (1.0000 of ideal)   max_load 338   colliding_pairs 66,863,105 (99.61%)
+
+[2] Zipf(1.0)-sampled stream, 4,000,000 positions (1,361,124 distinct bigrams)
+  layer 0 primes (8209, 16193)
+    prime%      distinct  260,741 / ideal    262,144 (0.9946 of ideal)   max_load 43354   colliding_pairs 3,739,259 (93.48%)
+    mask+fold   distinct  260,457 / ideal    262,144 (0.9936 of ideal)   max_load 43358   colliding_pairs 3,739,543 (93.49%)
+    mask(raw)   distinct  260,862 / ideal    262,144 (0.9951 of ideal)   max_load 43355   colliding_pairs 3,739,138 (93.48%)
+  layer 1 primes (24197, 32203)
+    prime%      distinct  260,708 / ideal    262,144 (0.9945 of ideal)   max_load 43356   colliding_pairs 3,739,292 (93.48%)
+    mask+fold   distinct  260,646 / ideal    262,144 (0.9943 of ideal)   max_load 43350   colliding_pairs 3,739,354 (93.48%)
+    mask(raw)   distinct  260,720 / ideal    262,144 (0.9946 of ideal)   max_load 43358   colliding_pairs 3,739,280 (93.48%)
+  layer 2 primes (40193, 48193)
+    prime%      distinct  260,698 / ideal    262,144 (0.9945 of ideal)   max_load 43351   colliding_pairs 3,739,302 (93.48%)
+    mask+fold   distinct  260,633 / ideal    262,144 (0.9942 of ideal)   max_load 43352   colliding_pairs 3,739,367 (93.48%)
+    mask(raw)   distinct  260,939 / ideal    262,144 (0.9954 of ideal)   max_load 43351   colliding_pairs 3,739,061 (93.48%)
+
+SUMMARY (full space, mean distinct/ideal over layers):
+  prime%      0.999981
+  mask+fold   1.000000
+  mask(raw)   1.000000
+
+A mask spelling within ~0.001 of the prime spelling on distinct-row count and max_load is a quality-neutral swap.
+DONE

@@ -1,0 +1,9 @@
+=== control
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 900 --out-dir out/t31-base-900s --eval-seq-len 1024
+--- logged: status=keep public_val_bpb=1.081257 num_steps=1095 total_seconds=1013.3 -> research/experiment-log.jsonl
+=== control rc=0
+=== treatment
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 900 --out-dir out/t31-bi3-m32d128-900s --ngram-ve --no-ngram-ve-trigram --ngram-ve-table-mult 32 --ngram-ve-dim 128 --eval-seq-len 1024
+--- logged: status=keep public_val_bpb=1.079657 num_steps=844 total_seconds=999.7 -> research/experiment-log.jsonl
+=== treatment rc=0
+ALLDONE

@@ -1,0 +1,84 @@
+{
+  "config": {
+    "iters": 7,
+    "warmup": 3,
+    "rows_batch": 4,
+    "seq_len": 2048,
+    "tables": 3,
+    "table_rows": 262144,
+    "table_dim": 128,
+    "compile": true,
+    "json_out": "research/run-logs/ngram-frag-bench.json"
+  },
+  "mod": 262139,
+  "results": {
+    "base(sum only)": {
+      "fwd_ms": 0.18398700194666162,
+      "fwdbwd_ms": NaN
+    },
+    "hash-prime": {
+      "fwd_ms": 0.7424119976349175,
+      "fwdbwd_ms": NaN
+    },
+    "hash-mask": {
+      "fwd_ms": 0.2740279960562475,
+      "fwdbwd_ms": NaN
+    },
+    "hash-maskfold": {
+      "fwd_ms": 0.630018999800086,
+      "fwdbwd_ms": NaN
+    },
+    "hash-none": {
+      "fwd_ms": 0.30735499603906646,
+      "fwdbwd_ms": NaN
+    },
+    "gather-prime": {
+      "fwd_ms": 0.5721229972550645,
+      "fwdbwd_ms": 5.05143800546648
+    },
+    "gather-mask": {
+      "fwd_ms": 0.5351859945221804,
+      "fwdbwd_ms": 4.968545996234752
+    },
+    "gather-none": {
+      "fwd_ms": 0.377062002371531,
+      "fwdbwd_ms": 5.074915003206115
+    },
+    "proj-prime": {
+      "fwd_ms": 0.737852999009192,
+      "fwdbwd_ms": 5.173089004529174
+    },
+    "proj-mask": {
+      "fwd_ms": 3.885311998601537,
+      "fwdbwd_ms": 9.995632994105108
+    },
+    "proj-none": {
+      "fwd_ms": 2.408852000371553,
+      "fwdbwd_ms": 8.21569900290342
+    },
+    "gate-prime": {
+      "fwd_ms": 6.276669002545532,
+      "fwdbwd_ms": 17.24535600078525
+    },
+    "gate-mask": {
+      "fwd_ms": 8.746001003601123,
+      "fwdbwd_ms": 16.680069995345548
+    },
+    "gate-none": {
+      "fwd_ms": 5.269881003187038,
+      "fwdbwd_ms": 13.68429500143975
+    },
+    "inject-prime": {
+      "fwd_ms": 5.8057139976881444,
+      "fwdbwd_ms": 16.6247429951909
+    },
+    "inject-mask": {
+      "fwd_ms": 7.507301001169253,
+      "fwdbwd_ms": 17.181117000291124
+    },
+    "inject-none": {
+      "fwd_ms": 4.4276639964664355,
+      "fwdbwd_ms": 13.755036998190917
+    }
+  }
+}

@@ -1,0 +1,11 @@
+=== timing 3T-m32-d128
+=== timing rc=0
+=== fixed300 3T-m32-d128
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 300 --max-train-seconds 3600 --out-dir out/t31-ng-bi3-m32d128-fixed300 --ngram-ve --no-ngram-ve-trigram --ngram-ve-table-mult 32 --ngram-ve-dim 128
+--- logged: status=keep public_val_bpb=1.235529 num_steps=300 total_seconds=653.0 -> research/experiment-log.jsonl
+=== fixed300-bi3 rc=0
+=== fixed300 5T-m32-d128
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 300 --max-train-seconds 3600 --out-dir out/t31-ng-m32d128-fixed300 --ngram-ve --ngram-ve-table-mult 32 --ngram-ve-dim 128
+--- logged: status=keep public_val_bpb=1.231173 num_steps=300 total_seconds=1038.4 -> research/experiment-log.jsonl
+=== fixed300-5T rc=0
+ALLDONE

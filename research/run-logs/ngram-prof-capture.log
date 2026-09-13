@@ -1,0 +1,80 @@
+=== ARM off  FLAGS=--no-ngram-ve ===
+[W912 04:10:46.558714722 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[drv] device=neuron dtype=torch.bfloat16 world_size=1 device_type=neuron
+[drv] num_params=55,713,772 config=GPTConfig(sequence_len=2048, vocab_size=8192, n_layer=6, n_head=5, n_embd=640, mlp_ratio=4, attn_scale=0.0)
+[drv] ngram_ve=False tables=0 rows=262144 dim=128 mod=262139 hash=prime index_gather=True
+[drv] torch.compile enabled (backend=neuron)
+[drv] micro_tokens=8,192 grad_accum_steps=16
+[drv] warmup step 0 dt=96.143s
+[drv] warmup step 1 dt=6.897s
+[drv] warmup total 103.0s
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/profiler/profiler.py:224: UserWarning: Warning: Profiler clears events at the end of each cycle.Only events from the current cycle will be reported.To keep events across cycles, set acc_events=True.
+  _warn_once(
+[drv] profiled window (micro) wall=1035.94 ms
+[drv] session_dir=/home/ubuntu/ngram_prof/off/i-0329acb9a6244986b_pid_392195/1789186356232410418
+[drv] timed step 0 dt=2.8705s
+[drv] timed step 1 dt=2.8754s
+[drv] timed step 2 dt=2.8768s
+[drv] micro dts (s): ['0.1729', '0.1731', '0.1728']
+[drv] INFO {"window": "micro", "window_wall_ms": 1035.941478003224, "session_dir": "/home/ubuntu/ngram_prof/off/i-0329acb9a6244986b_pid_392195/1789186356232410418", "grad_accum_steps": 16, "world_size": 1, "num_params": 55713772, "compile": true, "local_conv": true, "tensor_lr_scalars": true, "nki_rope_norm": true, "nki_softcap_ce": true, "step_dts_s": [2.870458684003097, 2.875434416004282, 2.876798023004085], "micro_dts_s": [0.17287795399897732, 0.1730881639959989, 0.17275957200035919], "seq_len": 2048, "depth": 6, "n_embd": 640, "total_batch_size": 131072, "lnc": "2", "ngram_ve": false, "ngram_ve_trigram": false, "ngram_ve_table_mult": 32, "ngram_ve_dim": 128, "ngram_ve_hash": "prime"}
+=== ARM off EXIT=0 ===
+=== ARM on  FLAGS=--ngram-ve --no-ngram-ve-trigram --ngram-ve-table-mult 32 --ngram-ve-dim 128 --ngram-ve-hash prime ===
+[W912 04:12:52.009165739 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[drv] device=neuron dtype=torch.bfloat16 world_size=1 device_type=neuron
+[drv] num_params=156,623,308 config=GPTConfig(sequence_len=2048, vocab_size=8192, n_layer=6, n_head=5, n_embd=640, mlp_ratio=4, attn_scale=0.0)
+[drv] ngram_ve=True tables=3 rows=262144 dim=128 mod=262139 hash=prime index_gather=True
+[drv] torch.compile enabled (backend=neuron)
+[drv] micro_tokens=8,192 grad_accum_steps=16
+[drv] warmup step 0 dt=174.158s
+[drv] warmup step 1 dt=152.795s
+[drv] warmup total 327.0s
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/profiler/profiler.py:224: UserWarning: Warning: Profiler clears events at the end of each cycle.Only events from the current cycle will be reported.To keep events across cycles, set acc_events=True.
+  _warn_once(
+[drv] profiled window (micro) wall=1271.41 ms
+[drv] session_dir=/home/ubuntu/ngram_prof/on/i-0329acb9a6244986b_pid_393777/1789186707288148600
+[drv] timed step 0 dt=3.7455s
+[drv] timed step 1 dt=3.7520s
+[drv] timed step 2 dt=3.7643s
+[drv] micro dts (s): ['0.2253', '0.2260', '0.2257']
+[drv] INFO {"window": "micro", "window_wall_ms": 1271.4133569970727, "session_dir": "/home/ubuntu/ngram_prof/on/i-0329acb9a6244986b_pid_393777/1789186707288148600", "grad_accum_steps": 16, "world_size": 1, "num_params": 156623308, "compile": true, "local_conv": true, "tensor_lr_scalars": true, "nki_rope_norm": true, "nki_softcap_ce": true, "step_dts_s": [3.745484104998468, 3.751984968002944, 3.764317802997539], "micro_dts_s": [0.2252937919984106, 0.22597705400403356, 0.22571806599444244], "seq_len": 2048, "depth": 6, "n_embd": 640, "total_batch_size": 131072, "lnc": "2", "ngram_ve": true, "ngram_ve_trigram": false, "ngram_ve_table_mult": 32, "ngram_ve_dim": 128, "ngram_ve_hash": "prime"}
+=== ARM on EXIT=0 ===
+=== ARM onmask  FLAGS=--ngram-ve --no-ngram-ve-trigram --ngram-ve-table-mult 32 --ngram-ve-dim 128 --ngram-ve-hash mask ===
+[W912 04:18:49.321223891 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[drv] MONKEYPATCH: _ngram_hash_indices -> power-of-two mask
+[drv] device=neuron dtype=torch.bfloat16 world_size=1 device_type=neuron
+[drv] num_params=156,623,308 config=GPTConfig(sequence_len=2048, vocab_size=8192, n_layer=6, n_head=5, n_embd=640, mlp_ratio=4, attn_scale=0.0)
+[drv] ngram_ve=True tables=3 rows=262144 dim=128 mod=262139 hash=mask index_gather=True
+[drv] torch.compile enabled (backend=neuron)
+[drv] micro_tokens=8,192 grad_accum_steps=16
+[drv] warmup step 0 dt=158.232s
+[drv] warmup step 1 dt=139.414s
+[drv] warmup total 297.6s
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/profiler/profiler.py:224: UserWarning: Warning: Profiler clears events at the end of each cycle.Only events from the current cycle will be reported.To keep events across cycles, set acc_events=True.
+  _warn_once(
+[drv] profiled window (micro) wall=1273.09 ms
+[drv] session_dir=/home/ubuntu/ngram_prof/onmask/i-0329acb9a6244986b_pid_395580/1789187034649346452
+[drv] timed step 0 dt=3.7510s
+[drv] timed step 1 dt=3.7475s
+[drv] timed step 2 dt=3.7492s
+[drv] micro dts (s): ['0.2257', '0.2258', '0.2257']
+[drv] INFO {"window": "micro", "window_wall_ms": 1273.09452600457, "session_dir": "/home/ubuntu/ngram_prof/onmask/i-0329acb9a6244986b_pid_395580/1789187034649346452", "grad_accum_steps": 16, "world_size": 1, "num_params": 156623308, "compile": true, "local_conv": true, "tensor_lr_scalars": true, "nki_rope_norm": true, "nki_softcap_ce": true, "step_dts_s": [3.7510011210033554, 3.747505695995642, 3.7492010189962457], "micro_dts_s": [0.22567403099674266, 0.2257875889990828, 0.2256726970008458], "seq_len": 2048, "depth": 6, "n_embd": 640, "total_batch_size": 131072, "lnc": "2", "ngram_ve": true, "ngram_ve_trigram": false, "ngram_ve_table_mult": 32, "ngram_ve_dim": 128, "ngram_ve_hash": "mask"}
+=== ARM onmask EXIT=0 ===
+ALLDONE

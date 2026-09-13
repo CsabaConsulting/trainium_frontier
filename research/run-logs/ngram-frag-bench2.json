@@ -1,0 +1,100 @@
+{
+  "config": {
+    "iters": 7,
+    "warmup": 3,
+    "rows_batch": 4,
+    "seq_len": 2048,
+    "tables": 3,
+    "table_rows": 262144,
+    "table_dim": 128,
+    "compile": true,
+    "json_out": "research/run-logs/ngram-frag-bench2.json"
+  },
+  "mod": 262139,
+  "results": {
+    "base(sum only)": {
+      "fwd_ms": 0.3362770003150217,
+      "fwdbwd_ms": NaN
+    },
+    "hash-prime": {
+      "fwd_ms": 0.8469950043945573,
+      "fwdbwd_ms": NaN
+    },
+    "hash-mask": {
+      "fwd_ms": 0.3357859968673438,
+      "fwdbwd_ms": NaN
+    },
+    "hash-maskfold": {
+      "fwd_ms": 0.7702399961999618,
+      "fwdbwd_ms": NaN
+    },
+    "hash-none": {
+      "fwd_ms": 0.1754140030243434,
+      "fwdbwd_ms": NaN
+    },
+    "gather-prime": {
+      "fwd_ms": 0.7675469969399273,
+      "fwdbwd_ms": 5.183590001252014
+    },
+    "gather-mask": {
+      "fwd_ms": 0.7673330037505366,
+      "fwdbwd_ms": 5.149580996658187
+    },
+    "gather-none": {
+      "fwd_ms": 0.44100599916419014,
+      "fwdbwd_ms": 5.059735005488619
+    },
+    "proj-prime": {
+      "fwd_ms": 0.9871759975794703,
+      "fwdbwd_ms": 5.579206001129933
+    },
+    "proj-mask": {
+      "fwd_ms": 5.026933999033645,
+      "fwdbwd_ms": 10.976555000524968
+    },
+    "proj-none": {
+      "fwd_ms": 3.2235060061793774,
+      "fwdbwd_ms": 8.748726002522744
+    },
+    "gate-prime": {
+      "fwd_ms": 9.016805997816846,
+      "fwdbwd_ms": 17.80944300116971
+    },
+    "gate-mask": {
+      "fwd_ms": 9.641590004321188,
+      "fwdbwd_ms": 17.252242992981337
+    },
+    "gate-none": {
+      "fwd_ms": 6.51615400420269,
+      "fwdbwd_ms": 15.254920996085275
+    },
+    "inject-prime": {
+      "fwd_ms": 7.589328997710254,
+      "fwdbwd_ms": 17.188976999022998
+    },
+    "inject-mask": {
+      "fwd_ms": 8.025215996894985,
+      "fwdbwd_ms": 17.049976995622274
+    },
+    "inject-none": {
+      "fwd_ms": 4.538890992989764,
+      "fwdbwd_ms": 13.785128001472913
+    },
+    "ngather-1": {
+      "fwd_ms": 0.25784000172279775,
+      "fwdbwd_ms": 1.8870900021283887
+    },
+    "ngather-2": {
+      "fwd_ms": 0.3635300017776899,
+      "fwdbwd_ms": 3.3507170010125265
+    },
+    "ngather-3": {
+      "fwd_ms": 0.4375159987830557,
+      "fwdbwd_ms": 4.825727999559604
+    },
+    "ngather-5": {
+      "fwd_ms": 0.5966909957351163,
+      "fwdbwd_ms": 7.908163999672979
+    }
+  }
+}

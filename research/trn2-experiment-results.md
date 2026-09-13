@@ -4010,3 +4010,148 @@ distribution is genuinely needed.
   output-distribution or calibration idea (temperature, logit bias, ensembling, entropy-gated
   anything) can be falsified offline in ~5 min per 2M-token stream with no device contention,
   against an exact bpb that matches the harness to 0.0007.
+
+## 2026-09-12 (night) — T4.2 Aster output bigram table: DISCARDED. T3.9 one-liner grab-bag: 5 of 6 discarded, `--qk-shift` is a real −0.006 at 900s (and it is mostly a *throughput* win)
+
+Two exploratory items from plan §11.1, implemented in `train.py` behind default-OFF flags
+(commit `820a250`), each measured as an independent paired 900s A/B against a fresh same-day
+control on the same box and the same binary.
+
+### Control repeatability (worth quoting in future)
+
+Two identical 900s runs of the locked defaults, back to back, same commit, same box:
+
+| run | steps | `public_val_bpb` (2048) | `public_val_bpb_alt` (1024) |
+| --- | --- | --- | --- |
+| `t42-base-900s` | 1068 | 1.065569 | 1.081036 |
+| `t39-base2-900s` | 1067 | 1.065718 | 1.081093 |
+
+Spread **0.000149** at seq 2048 and **0.000057** at seq 1024, with the step count reproducing to
+one step. That is the tightest control pair measured on this box so far and it means the 0.001
+noise-floor rule is conservative for *same-day same-binary* pairs; a 0.003 delta is unambiguous.
+Control mean used as the reference below: **1.065643 / 1.081065 at 1067.5 steps**.
+
+### All seven arms, 900s, one table
+
+`d` = delta vs the control mean (negative = better). `s/step` = 900 / steps.
+
+| arm | flag | steps | s/step | bpb(2048) | d | bpb(1024) | d |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| control (mean of 2) | — | 1067.5 | 0.843 | 1.065643 | — | 1.081065 | — |
+| T4.2 output bigram table | `--out-bigram` | 992 | 0.907 | 1.069691 | **+0.004047** | 1.085172 | +0.004107 |
+| shifted ReLU² | `--relu2-tau 0.5` | 1074 | 0.838 | 1.068547 | **+0.002903** | 1.083968 | +0.002903 |
+| last-3-layer output pooling | `--out-pool` | 1053 | 0.855 | 1.066954 | +0.001310 | 1.082385 | +0.001320 |
+| per-head out norm + gate | `--head-gate` | 856 | 1.051 | 1.079168 | **+0.013524** | 1.094849 | +0.013784 |
+| MLP sandwich norm (mean of 2) | `--mlp-sandwich-norm` | 1162 | 0.775 | 1.062525 | **−0.003119** | 1.078167 | −0.002898 |
+| causal Q/K token shift (mean of 2) | `--qk-shift` | 1153.5 | 0.780 | 1.059527 | **−0.006116** | 1.075265 | −0.005800 |
+| both stacked | `--qk-shift --mlp-sandwich-norm` | 1143 | 0.787 | 1.058920 | **−0.006723** | 1.074905 | −0.006160 |
+
+Both winners reproduced to 0.0002 on the repeat (`qk-shift` 1.059431 / 1.059623; `sandwich`
+1.062569 / 1.062480), so none of these numbers is a single-run artifact.
+
+### The dominant effect in this table is step count, not per-step quality
+
+Every arm changes the step count inside the fixed 900s, and the changes are large (−19.8% to
++8.9%). Using the same-config compute-scaling slope measured earlier on this box
+(`t31l-l5tri-900s` 1.066917 @ 1084 steps → `t31L-l5tri-m64-1800s` 1.018985 @ 2139 steps, i.e.
+**−0.0705 bpb per unit ln(steps)**, −0.049 per doubling), the observed delta splits into a part
+explained purely by throughput and a per-step-quality residual:
+
+| arm | Δsteps | expected from steps alone | measured | **per-step quality residual** |
+| --- | --- | --- | --- | --- |
+| `--out-bigram` | −7.1% | +0.005173 | +0.004047 | −0.001125 |
+| `--relu2-tau 0.5` | +0.6% | −0.000428 | +0.002903 | **+0.003332** |
+| `--out-pool` | −1.4% | +0.000965 | +0.001310 | +0.000346 |
+| `--head-gate` | −19.8% | +0.015572 | +0.013524 | −0.002047 |
+| `--mlp-sandwich-norm` | +8.9% | −0.005981 | −0.003119 | **+0.002863** |
+| `--qk-shift` | +8.1% | −0.005464 | −0.006116 | −0.000652 |
+| stack | +7.1% | −0.004819 | −0.006723 | −0.001904 |
+
+Read that column carefully, because it inverts two of the naive verdicts:
+
+- **`--qk-shift`'s win is ~90% throughput.** Per step it is worth about −0.0007, i.e. inside
+  the noise. What it actually does is make a step **8.1% faster** (0.843 s → 0.780 s) at
+  identical `micro_tokens=32,768`, `grad_accum_steps=4`, identical tokens per step
+  (131,072) and +3,840 parameters. `tok/s` at step 600: control 155,877 → 169,004.
+- **`--mlp-sandwich-norm` is per-step *harmful* (+0.0029) and still wins on wall clock**,
+  because it buys +8.9% steps (0.775 s/step, 170,630 tok/s).
+- **`--head-gate` is the only arm with a genuinely useful per-step residual (−0.0020) and it
+  loses catastrophically anyway**, because the per-head RMS-norm + sigmoid gate costs **+25%
+  step time** (0.843 → 1.051 s). T3.6 is not wrong as an architecture idea on this stack; it is
+  simply unaffordable in eager/`torch.compile(backend="neuron")` form, where the extra
+  `view`/`norm`/`sigmoid`/broadcast-multiply per layer are their own graph regions. If a fused
+  NKI head-gate ever exists, revisit; as a Python one-liner it is dead.
+
+Adding an elementwise op to the block body making a step *faster* is counter-intuitive and is
+almost certainly a compiler-scheduling artifact of the same family as the T3.1 layer-boundary
+story: the perturbed block graph gets partitioned differently and escapes whatever the baseline
+block body is hitting. Two independent, structurally unrelated edits (a `cat`+`mul`+`add` on the
+Q/K input; an extra RMS-norm on the MLP output) both landing at +8–9% is suggestive that the
+baseline block body, not the edits, is the anomaly — a **throughput lead worth handing to the
+T1.6/T1.7/T1.8 queue** rather than something to chase inside an architecture A/B.
+
+### T4.2, Aster's gradient-trained output bigram logit table: DISCARDED
+
+Implementation (`USE_OUT_BIGRAM`): `nn.Embedding(8192, 8192)` stored bf16 (+67.1M params,
+190.10M → 257.21M), zero-initialized, indexed by the *current* token, its row added to the RAW
+pre-softcap logits (so the fused softcap+CE NKI kernel still owns the cap and its backward),
+gated per token by `sigmoid(Linear(n_embd→1) + bias)` with `bias = −2.0` per Aster, its own AdamW
+group at `UNEMBEDDING_LR` with betas (0.8, 0.96), and excluded from the GLOBAL
+`clip_grad_norm_` alongside the other big sparse tables. CPU smoke: exact step-0 no-op
+(loss bit-identical to baseline 9.011033), `causality_max_abs == 0.0`, no NaN/Inf, every
+parameter in exactly one optimizer group.
+
+Result: **+0.004047 bpb, DISCARD.** Two things went wrong at once:
+
+1. **It costs 7.1% of the step budget** (0.843 → 0.907 s/step, 1068 → 992 steps). The T3.1
+   root-cause analysis predicted the *gather* would be cheap here, and that part held —
+   the table sits after the last layer, so there are no downstream layer boundaries to pay for.
+   What it did not predict is the cost of the `[B, T, 8192]` bf16 row materialization, the gated
+   add into fp32 logits, and the 67.1M-row `embedding_dense_backward` — the same
+   backward-cost-linear-in-rows pathology found in T3.1, here at V=8192 rows touched per token.
+2. **Per step it is worth −0.0011**, i.e. at the very best edge of the range plan §11.1 itself
+   predicted after T4.1 ("expect single-digit-ten-thousandths, not thousandths"). Even a free
+   version of this table would not clear the noise floor.
+
+So the *learned* output bigram table lands in the same place as T4.1's *frozen* count-based
+mixer: the signal it draws on has already been banked by the last-layer hashed n-gram value
+embeddings (T3.1, −0.0152). **T4.1 and T4.2 are now both closed as negatives, from the same
+cause: output-side bigram statistics are not an independent source of gain once T3.1 is in.**
+The code stays in `train.py` behind `--out-bigram` (default OFF, exact no-op) as the record.
+
+### T3.9, the rest of the grab-bag
+
+- **Shifted ReLU² (`--relu2-tau 0.5`): DISCARD.** +0.0029 with essentially no step-count change,
+  so this is a clean *quality* loss of +0.0033 per step — the only arm in the batch whose
+  verdict needs no throughput correction. Recursive's "tau=0.5 confirmed optimal" does not
+  transfer to this model/optimizer/data. Note it also forces `--no-nki-relu2`, which the code
+  now asserts rather than silently mis-applying the kernel.
+- **Last-3-layer output pooling (`--out-pool`): DISCARD.** +0.0013, residual +0.0003 — a
+  genuine null. The zero-init `out_pool_lambdas` apparently never find anything the final
+  `norm(x)` + residual stream does not already carry. Cheap, harmless, worthless.
+- **Per-head output norm + gate (`--head-gate`): DISCARD at 25% step cost**, see above. Gate
+  reads residual channels 96:128 (the first slice no value-embedding gate has claimed at the
+  locked shape, via `head_gate_slice`), `2*sigmoid(0) = 1.0` neutral at init; the gate-only
+  variant (`--no-head-gate-norm`) is an exact step-0 no-op, the norm+gate form is not.
+- **MLP sandwich norm (`--mlp-sandwich-norm`): −0.0031, KEEP ONLY AS A THROUGHPUT KNOB.**
+  Per-step harmful (+0.0029). It wins the wall clock today but for a reason that has nothing to
+  do with the architectural claim, and it would evaporate the moment the compiler-scheduling
+  quirk is fixed or the block body changes.
+- **Causal Q/K token shift (`--qk-shift`): −0.0061, the only real candidate.** `q_in = k_in =
+  x + beta * x_prev` with a learned per-dim `beta` initialized to 0.3, V unshifted, computed
+  with an explicit non-wrapping `causal_shift_1` (`torch.roll` would leak position T−1 into
+  position 0 and break causality; the smoke asserts `causality_max_abs == 0.0`). `beta` lives in
+  a new AdamW `gate_params` group at `MATRIX_LR`, wd 0 — not Muon (1-D) and not `SCALAR_LR`
+  (which has a documented NaN-divergence precedent for real weight tensors).
+- **WARMDOWN_RATIO 0.9–0.95: not re-litigated.** Already measured: 0.90 = +0.000254 and 0.60 =
+  +0.000182 at 900s, i.e. a flat plateau around the locked value. The axis is settled.
+
+### Stacking
+
+The two winners are strongly sub-additive: −0.0061 (`qk-shift`) plus −0.0031 (`sandwich`) would
+predict −0.0092; the stack measures **−0.0067**, only 0.0006 better than `qk-shift` alone —
+under the 0.001 noise floor, i.e. **sandwich norm adds nothing on top of qk-shift**. That is
+exactly what the throughput decomposition predicts: both arms are buying the same +8–9% step
+count from the same compiler artifact, and they cannot buy it twice (the stack gets +7.1%, less
+than either alone). No surprising *negative* interaction of the `WEIGHT_DECAY` +
+`WD_DECAY_TO_ZERO` kind — just overlap.
