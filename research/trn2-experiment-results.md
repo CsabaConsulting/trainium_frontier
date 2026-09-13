@@ -4492,6 +4492,25 @@ Everything below the wall lands in 1.0183–1.0192. Everything above it lands in
 The gap is not subtle and it does not care which mechanism the arm was testing — including the arm
 with **no mechanism at all**.
 
+### The compute-scaling slope itself degrades at the wall — independent corroboration
+
+Every label with both a `-900s` and a `-1800s` run of the same config gives a direct
+900s→1800s slope. Sorted by where the 1800s run finishes relative to the ~288M wall:
+
+| config | 900s | 1800s | 1800s vs wall | measured slope |
+| --- | --- | --- | --- | --- |
+| `t02-d6-e768` | 116.0M / 1.090657 | 232.1M / 1.037112 | well below | **−0.0772** |
+| `t02-base` | 143.4M / 1.081255 | 286.7M / 1.034328 | right at it | −0.0677 |
+| `t39-stack` | 149.8M / 1.058920 | 299.9M / 1.021278 | 12M past | −0.0542 |
+| `t39-qkshift` | 151.3M / 1.059431 | 302.9M / 1.022031 | 15M past | −0.0539 |
+| `t39-sandwich` | 152.4M / 1.062569 | 304.9M / 1.025017 | 17M past | −0.0542 |
+
+The canonical −0.0705 is an *average over runs that straddle the wall*. Below the wall the real
+slope is ≈−0.077; through it, ≈−0.054. Three independent configs land on −0.054 to three digits,
+which is what a fixed penalty applied to the last ~5% of a run looks like when it is amortized into
+a slope. Using −0.068 as the local slope near 2150 steps, the frozen arm's 205 extra steps should
+have been worth ≈−0.0064; the observed +0.0023 leaves a **~0.0085 deficit** to explain.
+
 ### What this forces us to revise
 
 The previous section concluded that "the damage tracks the mechanism": `t39-sandwich-1800s`
@@ -4506,6 +4525,11 @@ More generally: **every 900s → 1800s extrapolation in this file is optimistic 
 throughput-positive change.** A 900s run reaches ~1050–1100 steps ≈ 140M tokens, half an epoch —
 it cannot see the wall. So a change that buys +10% throughput looks worth −0.007 at 900s and is
 worth ≈0 (or worse) at 1800s. This is a methodology error, not a one-off result.
+
+And it is **asymmetric**, which is the practically useful form of the rule: the locked config sits
+2.6% below the wall, so a *speedup* is only convertible for its first ~2.6% and is worth nothing (or
+negative) beyond that, while a *slowdown* is still fully penalized at the below-the-wall slope of
+≈−0.077. Cheap-and-neutral is no longer a free win, but expensive-and-neutral is still a real loss.
 
 ### Mechanism: it is not "repeats are bad", it is "a narrow repeat during cooldown is bad"
 
@@ -4560,8 +4584,8 @@ Per the README this is a permitted change: "Modify `train.py` freely: … **data
 The decisive run is the frozen identity at 1800s **with** `--epoch-shuffle`, against the two
 controls already in hand:
 
-- if it lands near 1.0165 (base 1.018303 plus the −0.0062 the extra 205 steps should be worth),
-  then the data wall is a *fixable* ordering artifact and every throughput win in the queue —
+- if it lands near 1.0125 (the step-matched 1.018967 plus the ≈−0.0064 the extra 205 steps should be
+  worth), then the data wall is a *fixable* ordering artifact and every throughput win in the queue —
   T1.6/T1.7/T1.8, the n-gram cost reduction, the LNC=1 mystery — becomes convertible again;
 - if it lands near 1.0213, repetition itself is the cost, throughput above ~2195 steps is worth
   nothing at this budget, and the correct strategic response is to stop buying throughput and spend
