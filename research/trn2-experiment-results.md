@@ -4284,3 +4284,128 @@ the AdamW `gate_params` group), which is the one-line change that experiment nee
 
 The locked config is unchanged and still the best known: **1.018985 / 2139 steps at 1800s**,
 reproduced today as 1.019153 / 2142.
+
+---
+
+## 2026-09-13 — Harvesting the block-body scheduling anomaly: the frozen Q/K shift is a verified identity and 10.6% faster
+
+The previous section closed with a queued experiment: *"a **frozen** `beta ≡ 0` (or any other
+mathematically-null block-body perturbation): same graph, zero gradient, no mechanism. If that
+keeps +8% steps it is worth ~0.005 bpb at the full budget for free; if it does not, the speedup
+was never separable from the mechanism and the whole lead dies."* This section runs it.
+
+### The flag, and why the arm is an identity rather than a step-0 no-op
+
+`--qk-shift-freeze` (`QK_SHIFT_FREEZE`) builds `qk_shift_beta` with `requires_grad=False` and
+leaves it out of **every** optimizer group (`setup_optimizer` now guards the `gate_params` append
+on `block.qk_shift_beta.requires_grad`). Combined with `--qk-shift-beta 0.0`, the block body
+computes `q_in = k_in = x + 0.0 * causal_shift_1(x)`, which is `x` bit-exactly for any finite `x`,
+forever — not just at initialization. The backward contribution through the shifted branch is
+scaled by the same `0.0`, and `beta` cannot move because nothing owns it. This is a much stronger
+claim than the usual step-0 neutrality, and it is what makes the arm a clean probe: the elementwise
+ops stay in the compiled graph, the mathematics does not change at all.
+
+`research/scratch/qk_freeze_probe.py` verifies it on CPU in fp32 (so "no-op" means bit-identical,
+not "within tolerance"), over 5 full optimizer steps, at the locked config: every **trainable**
+parameter in exactly one optimizer group and no frozen tensor in any group; `beta.grad` stays
+`None` after every backward; the loss is bit-identical to the baseline's at step 0 **and** at step
+4; `beta` has not moved; `causality_max_abs == 0.0`. The optimizer group *structure* is also
+identical to the baseline's, since `gate_params` is empty in both.
+
+### 120-step fixed-step throughput probe (`research/scratch/qk_freeze_throughput_probe.sh`)
+
+120 steps with `--max-train-seconds 1800`, so `lr_multiplier` stays at 1.000 throughout (the
+schedule is driven by `elapsed/max_train_seconds`, never by step index) and no cooldown recompile
+contaminates the measurement.
+
+| arm | s/step | tok/s | Δ throughput |
+| --- | --- | --- | --- |
+| `probe-qkfreeze-base` | 0.83–0.84 | 156–157k | — |
+| `probe-qkfreeze-frozen` (`--qk-shift --qk-shift-beta 0.0 --qk-shift-freeze`) | 0.76 | 172.7k | **+10.6%** |
+| `probe-qkfreeze-trained` (`--qk-shift --qk-shift-beta 0.0`) | 0.77 | 170.7k | +9.1% |
+
+The base arm reproduces the existing `t39-base-1800s` control (0.840 s/step, 156k tok/s) to three
+digits, which validates the probe method: a 120-step fixed-step run measures the same steady state
+as a 1800s run. **The frozen arm is faster than the trainable one** (no gradient for `beta`, no
+optimizer state, no update), so the speedup is not merely preserved by freezing, it grows.
+
+**The anomaly is real and it is free.** The +10.6% comes from a perturbation that provably changes
+no arithmetic. By the box's −0.0705 bpb per unit ln(steps) slope, +10.6% more steps is worth
+≈ −0.0070 bpb at the full budget, and unlike every arm in the previous section there is no
+per-step quality term to invert, because there is no mathematical difference to have a quality
+term. This also settles the previous section's open question about `t39-qkshift-b0-1800s`'s
++0.0016: that damage belongs entirely to the *trainable mechanism* (`beta` moves ~0.1 within 5
+steps at the group's LR), not to the graph perturbation.
+
+### A hypothesis that looked right and was wrong: fp32 promotion
+
+The obvious mechanism was dtype. `qk_shift_beta` is an fp32 parameter and `x` is bf16, so
+`x + beta*causal_shift_1(x)` promotes the Q/K path to fp32 — and a device dtype trace confirmed
+the frozen arm runs fp32 from block 0 onward. That looked like a complete explanation until the
+**baseline** was traced the same way: it *also* runs fp32 from block 0 onward, because
+`resid_lambda`/`x0_lambda` are themselves fp32 parameters multiplying the residual
+(`baseline 0:bfloat16->float32 1:float32->float32 ... logits float32`). Same for the
+`mlp-sandwich` arm. The arms are dtype-identical, and the small device-loss differences (step 50:
+base 5.1352 vs frozen 5.1362) are compile-to-compile numerical noise of exactly the magnitude seen
+between two runs of the *same* config (probe base 5.1352 vs `t39-base-1800s` 5.1364). Recorded
+because it was a plausible lead that a single extra control killed.
+
+### Follow-ups implemented while the 1800s pair runs
+
+Since the perturbation need not be the Q/K shift specifically, three cheaper or more informative
+block-body variants are now in `train.py`, all default OFF:
+
+- **`--block-nudge` / `--block-nudge-site {qk,resid}`** — the minimal perturbation: `x = x +
+  nudge*x` with one `nn.Parameter` per block frozen at zero and in no optimizer group. Strictly
+  cheaper than the frozen shift (a broadcast scalar multiply and an add, versus a gather plus a
+  `[C]`-wide multiply and add) and adds no trainable state. Same bit-identity claim, same smoke
+  arms.
+- **`--qkv-norm-cse`** — found while reading the block body for the parallel-block work:
+  `Block.forward` calls `norm()` three times on `q_in`, `k_in` and `v_in`, which in the locked
+  config are the **same tensor object**. Hoisting them into one call is a bit-exact identity,
+  guarded on `q_in is k_in is v_in` so it falls back automatically under MUDD or a Q/K shift. This
+  is the sharpest available test of what the anomaly actually is, because it perturbs the graph in
+  the **opposite** direction: it removes two ops per block instead of adding three.
+- **`--parallel-block`** and **`--parallel-block-coalesce {none,vfc,all}`** — the parallel
+  attention+MLP block and its coalesced input projection (next section; a real architecture
+  change, not an identity).
+
+`research/scratch/blockbody_throughput_probe.sh` runs all of them against one shared control.
+
+**Status: the 1800s paired A/B (`qkfreeze-base-1800s`, `qkfreeze-frozen-1800s`, same commit, back
+to back) is running as this is written. The bpb numbers are NOT in this section yet — the rows
+below are deliberately absent rather than estimated.** The prediction on record, from the identity
+argument plus the measured +10.6% and the −0.0705/ln(step) slope, is ≈ −0.0070 bpb with a per-step
+residual of ~0.000.
+
+### Scoping note on the coalesced input projection, and what `USE_FUSED_QKV` actually measured
+
+Solution 13c (`USE_FUSED_QKV`, one `Linear(640, 1920)` for Q/K/V) is on record at **−0.0428**
+(206 steps/1.312086 vs 240/1.269318), with the explanation "it disables the rope+QK-norm NKI
+kernel fusion". The precise mechanism matters for anyone re-attempting coalescing: `rope_norm()`
+requires `x.is_contiguous()`, and a last-dim slice of a fused projection's output is not
+contiguous, so the kernel silently falls back to eager. The regression was not the fusion — it was
+losing a 15–18% kernel.
+
+That gives two distinct coalescing designs rather than one, both now implemented behind
+`--parallel-block-coalesce`:
+
+- `"all"` — one `Linear(640, 4480)` for `q,k,v,c_fc`, with `.contiguous()` on the `q` and `k`
+  slices so the kernel still fires. Trades two elementwise copies for three saved matmul launches.
+- `"vfc"` — `Linear(640, 3200)` for `c_v + c_fc` only, `c_q`/`c_k` left alone. Three matmuls
+  instead of four with **no copies at all**: a `[b,t,640]` last-dim-contiguous slice still `.view()`s
+  to `[b,t,10,64]`, and `v` never reaches the kernel.
+
+Both are bit-identical to the uncoalesced parallel block at step 0. `c_in` is built in
+`Block.__init__` rather than through `_rng_neutral` on purpose: the absorbed Linears all have
+`in_features == n_embd` and the same total `numel`, so construction consumes exactly as many RNG
+draws as the baseline's block, leaving every later tensor's initialization untouched; `init_weights`
+then fills the row ranges in the baseline's order with the baseline's per-slice bounds, and
+`uniform_` advances the RNG by `numel` regardless of the bound. They are *not* identical after step
+0, and not only because of the copies: Muon now orthogonalizes one `[4480, 640]` matrix instead of
+four smaller ones, which is a real optimizer change and part of what the arm measures.
+
+**A measurement warning that follows from the anomaly:** any block-body change now has to be
+priced against a *perturbed* control, not the raw baseline. If almost any small edit to the block
+body collects +8–10%, then the parallel block's throughput gain is partly that same free lunch and
+partly its own, and only a comparison against `--block-nudge` (or the frozen shift) separates them.
