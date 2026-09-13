@@ -4823,3 +4823,72 @@ the baseline apart from Muon seeing one `[1920, 640]` matrix instead of three `[
 and throughput above ~2.6% is worth ≈0 bpb at this budget. Recorded here so that it is available the
 moment there is a reason to spend a speedup — see the capacity-per-step direction at the end of the
 data-wall section.
+
+## 2026-09-13 — Item 4: partial RoPE in the NKI kernel — SCOPED, NOT ATTEMPTED
+
+The idea: rotate only the first 64 of the 128 head dims and pass the other 64 through unrotated
+(GPT-J / Phi-style `rotary_pct=0.5`), so half the channels become position-invariant "NoPE" dims,
+while the RMS norm still spans all 128. Two motivations were on the table: less elementwise work
+inside `_rope_norm_fwd`/`_rope_norm_bwd`, and a possible per-step quality effect from the NoPE dims.
+
+**The throughput motivation is dead on arrival, and the arithmetic is worth writing down** so nobody
+re-derives it. At the locked shape `HEAD_DIM = 128`, `n_embd = 640`, so `H = 5`, `D = 128`,
+`Dh = 64`. Per 128-row SBUF tile the forward kernel's vector work, counted in elements per
+row-and-head:
+
+| stage | full RoPE | partial RoPE (R = 64) |
+|---|---|---|
+| rope: 6 `tensor_tensor` | 6 × 64 = 384 | 6 × 32 = 192, plus a 96-wide pass-through copy = 288 |
+| fp32 copy + square + reduce + final multiply | 4 × 128 = 512 | 512 (unchanged — the norm still spans all 128) |
+| `tensor_scalar` + `reciprocal` + `sqrt` | ≈ 3 | ≈ 3 |
+| **total** | **≈ 899** | **≈ 803** |
+
+So partial RoPE removes ≈10.7% of *this kernel's* vector work — and nothing else. The norm half is
+untouched by construction, and the six rope ops do not disappear, they only halve in width. Even
+granting the whole fused rope+norm family (12 forward + 12 backward calls per micro-step) a generous
+5% of the 0.83 s step, 10.7% of 5% is **0.5% step time**. Under the asymmetric pricing rule that is
+worth ≈0.0004 bpb at best, i.e. below the 0.001 noise floor, before the data wall even applies.
+
+**That leaves only the quality hypothesis, whose sign is unknown**, and unlike every other item this
+session there is no identity to lean on: partial RoPE changes the model from step 1, so there is no
+step-0-neutral arm and no bit-identical CPU check. The only available validation is device-vs-eager
+equivalence plus `causality_max_abs == 0.0`.
+
+### What it would actually take
+
+1. **`_rope_norm_fwd`.** The kernel uses the split-half pairing (`x1 = x[..., 0:64]`,
+   `x2 = x[..., 64:128]`, dim `i` paired with dim `i+64`), so "rotate the first 64 dims" means
+   rotating `x1[0:32]` against `x2[0:32]` — two 32-wide sub-slices, both contiguous in SBUF, so it is
+   expressible without a gather. The remaining `x1[32:64]` and `x2[32:64]` need an explicit
+   pass-through copy into `zb`, which is the one op the variant *adds*.
+2. **`_rope_norm_bwd`.** Symmetric: `rope^T` on the same two 32-wide sub-slices, `dz` passed through
+   on the rest. **The RMS backward gets no shortcut** — `q = <g,z>·r²/D` is a full-`D` reduction that
+   couples rotated and unrotated dims, so the whole `dz = r·(g − q·z)` block stays full width. This
+   is hand-derived math with no upstream forward+backward reference (see the header comment above
+   `_rope_norm_fwd`), which is what makes the estimate a day rather than an afternoon.
+3. **The eager mirror is mandatory, and it is the trap.** `rope_norm` falls back to
+   `norm(apply_rotary_emb(x, cos, sin))` whenever the shape check fails, and `apply_rotary_emb` is
+   also what every CPU smoke and every equivalence harness runs. If the eager path is not given the
+   same partial semantics, the harness compares two different models and passes for the wrong reason.
+4. **The cos/sin table decision is a real fork, not a detail.** `_precompute_rotary_embeddings`
+   builds `D/2 = 64` frequencies from `base ** (arange(0, 128, 2) / 128)`. Partial RoPE needs 32, and
+   there are two defensible constructions: (a) **truncate** — keep the 32 lowest frequencies, so the
+   model loses all high-frequency positional detail; (b) **recompress** — rebuild as
+   `base ** (arange(0, 64, 2) / 64)`, putting the full frequency spectrum into 32 dims. These are
+   *different models*, the literature is not consistent about which "partial rope" means, and picking
+   one arbitrarily makes a negative result uninterpretable. Honestly tested, this is two arms.
+5. **A fresh equivalence harness** (`research/scratch/rope_norm_partial_equiv.py`): device-vs-eager
+   at the locked shape plus an fp64 CPU gradcheck against a from-scratch reference. The existing
+   `rope_norm_equiv.py` gives the structure, but the reference itself must be rewritten.
+6. **Plumbing:** a `ROPE_ROTATE_DIMS` global, `ARCH_TOGGLE_NAMES` entry (not `SHAPE_CRITICAL` — no
+   parameter shape changes), argparse flag, `oneliners:` echo.
+
+Estimate: ~1 full day of kernel work for the two functions plus the eager mirror and the harness,
+then ≈1 hour of box time per arm (one cold compile at 7–9 min plus a 900s pair), ×2 table variants.
+
+### Verdict
+
+**Scoped, not attempted.** The instruction was to stop and report if this ran past a few hours of
+kernel work; it does, by roughly a factor of three, and the only surviving justification is a
+sign-unknown quality coin-flip on a change whose measured-in-advance throughput value is 0.5% step
+time — which the data wall converts to ≈0 bpb. Everything needed to build it is written down above.
