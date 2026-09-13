@@ -128,6 +128,30 @@ ARMS = [
     # -- that is what the slice-wise init in init_weights buys, and it is checked against `par_ref`.
     ("par-coalesce-vfc", dict(USE_PARALLEL_BLOCK=True, PARALLEL_BLOCK_COALESCE="vfc")),
     ("par-coalesce-all", dict(USE_PARALLEL_BLOCK=True, PARALLEL_BLOCK_COALESCE="all")),
+    # T3.2 Engram-lite. Same class of claim as x0-gate/parallel-block: bit-identical at step 0 (zero
+    # tables => e_t = 0 => v = 0 => vt = 0 => SiLU(Conv(0)) = 0 => Y = 0, and the gate's
+    # sigmoid(0) = 0.5 is deliberately NOT relied on), then divergent by step 5 once W_V's gradient
+    # has moved the tables off the origin. ENGRAM_TABLE_MULT is dropped to 1 for all arms so the
+    # harness allocates 8192-row tables instead of 262144-row ones -- the geometry is irrelevant to
+    # every claim being checked here and 32x smaller keeps the CPU run seconds long.
+    ("engram-own", dict(USE_ENGRAM=True, ENGRAM_TABLE_MULT=1)),
+    # Multi-head: 2 heads x 2 orders = 4 tables, so e_dim = 4*d_mem. Checks the per-order/per-head
+    # prime slicing and the concat width actually line up with w_k/w_v.
+    ("engram-2head", dict(USE_ENGRAM=True, ENGRAM_TABLE_MULT=1, ENGRAM_HEADS=2)),
+    # Conv off: Y = alpha*v. Still a step-0 no-op, and it must have strictly fewer parameters.
+    ("engram-noconv", dict(USE_ENGRAM=True, ENGRAM_TABLE_MULT=1, ENGRAM_CONV_KERNEL=0)),
+    # A narrow gate space, which is the only configuration that builds w_q.
+    ("engram-keydim", dict(USE_ENGRAM=True, ENGRAM_TABLE_MULT=1, ENGRAM_KEY_DIM=64)),
+    # Mid-stack site: the placement the Engram paper specifies. Kept expressible (and CHECKED) even
+    # though the default is the last layer for the LNC=2 resharding reason -- causality especially
+    # matters here, since the injection is now upstream of three more attention layers.
+    ("engram-mid", dict(USE_ENGRAM=True, ENGRAM_TABLE_MULT=1, ENGRAM_SITE="2")),
+    # Share mode: no tables of its own, e_t is T3.1's already-gathered rows. The n-gram tables are
+    # ALSO zero at init, so the step-0 no-op holds for the same reason, and the arm must add no
+    # table parameters at all (checked by `tensors` versus the baseline's).
+    ("engram-share", dict(USE_ENGRAM=True, ENGRAM_SHARE_NGRAM_TABLES=True)),
+    ("engram-share-bigram-only", dict(USE_ENGRAM=True, ENGRAM_SHARE_NGRAM_TABLES=True,
+                                      NGRAM_VE_TRIGRAM=False)),
 ]
 
 
@@ -183,6 +207,34 @@ def main() -> int:
                     status = f"FAIL frozen nudge moved by {n_moved:.3e}"
             if label in ("qkshift-b0-trained", "x0-gate", "parallel-block") and (not same_step0 or same_all):
                 status = "FAIL expected step-0 no-op then divergence"
+            if label.startswith("engram"):
+                # The Engram claim, in three parts. (1) Step 0 must be bit-identical to the
+                # baseline's -- zero tables + zero conv, NOT a closed gate. (2) It must DIVERGE by
+                # step 5: if it does not, the tables are receiving no gradient (the W_V-must-not-be-
+                # zero-init trap) and the whole mechanism is dead weight. (3) The site must be where
+                # it was asked for, so a typo'd ENGRAM_SITE cannot silently pass as the default.
+                eng = model.engram
+                want_site = int(toggles.get("ENGRAM_SITE", train.ENGRAM_SITE)) % DEPTH
+                ntab = len(eng.tables)
+                want_tab = 0 if toggles.get("ENGRAM_SHARE_NGRAM_TABLES") else \
+                    toggles.get("ENGRAM_HEADS", train.ENGRAM_HEADS) * len(train.engram_orders())
+                if not same_step0:
+                    status = f"FAIL step-0 differs from baseline by {losses[0] - ref[0]:.3e}"
+                elif same_all:
+                    status = "FAIL never diverged -- tables are getting no gradient"
+                elif model.engram_site != want_site:
+                    status = f"FAIL site {model.engram_site} != {want_site}"
+                elif ntab != want_tab:
+                    status = f"FAIL {ntab} tables != {want_tab}"
+                elif (eng.conv is not None) != (toggles.get("ENGRAM_CONV_KERNEL", 1) != 0):
+                    status = "FAIL conv presence does not match ENGRAM_CONV_KERNEL"
+                elif (eng.w_q is not None) != (eng.key_dim != cfg.n_embd):
+                    status = "FAIL w_q presence does not match ENGRAM_KEY_DIM"
+                elif eng.w_k.weight.shape[1] != eng.e_dim or eng.w_v.weight.shape[1] != eng.e_dim:
+                    status = f"FAIL w_k/w_v input width != e_dim {eng.e_dim}"
+                elif toggles.get("ENGRAM_SHARE_NGRAM_TABLES") and \
+                        any(int(k[1:]) > model.engram_site for k in model.engram_share_keys):
+                    status = "FAIL share mode reads a table from AFTER the injection site"
             if label.startswith("par-coalesce-"):
                 # The reference for these is the UNCOALESCED parallel block, not the baseline: the
                 # step-0 claim is "merging four matmuls into one changed no arithmetic", and it is

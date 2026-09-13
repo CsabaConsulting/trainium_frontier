@@ -567,6 +567,102 @@ NGRAM_VE_INDEX_GATHER = True  # gather rows as `weight[idx]` instead of `nn.Embe
 # known reason to turn it off. See _ngram_lookup for the full measurement table.
 
 # -----------------------------------------------------------------------------
+# T3.2 -- ENGRAM-LITE: gated, context-aware conditional memory (research plan §5 T3.2, i.e.
+# DeepSeek's Engram (arXiv 2601.07372v2) scaled down). This is the architectural SUPERSET of
+# T3.1: the same hashed n-gram statistics, but read through a gate that depends on the model's
+# own HIDDEN STATE rather than on a fixed 32-channel residual slice, and injected into the
+# RESIDUAL STREAM rather than into attention's V. The plan gates it on "only if T3.1 shows a
+# clear win", which T3.1 did (-0.0152 at 1800s, the largest measured win in the repo).
+#
+# The mechanism, exactly as the plan's T3.2 entry specifies it:
+#     e_t   = concat_{h,n} table[h,n][ hash_{h,n}(tokens t-n+1 .. t) ]     (K heads per order)
+#     k_t   = W_K e_t ,   v_t = W_V e_t
+#     a_t   = sigmoid( <RMSNorm(q_t), RMSNorm(k_t)> / sqrt(d) ) ,  q_t = h_t (or W_Q h_t)
+#     vt_t  = a_t * v_t
+#     Y     = SiLU(Conv1D_dw(RMSNorm(vt))) + vt          (the conv is ZERO-init)
+#     H    <- H + Y                                       (at ENGRAM_SITE)
+#
+# STRICTLY CAUSAL twice over, and structurally rather than by mask: the hash at position t reads
+# tokens t-n+1..t only (identical argument to T3.1's), and the depthwise mixer is this file's
+# CausalConv, which LEFT-pads by kernel_size-1 and therefore reads positions t-K+1..t only.
+# causality_max_abs must stay exactly 0.0.
+#
+# EXACT step-0 no-op: the tables are ZERO-init, so e_t = 0 => k_t = v_t = 0 => vt = 0 =>
+# RMSNorm(0) = 0/sqrt(0+eps) = 0 => Conv(0) = 0 => SiLU(0) = 0*sigmoid(0) = 0 => Y = 0,
+# bit-exactly, for any value of W_K/W_V/conv. W_V must NOT be zero-init -- the same trap
+# NGRAM_VE_DIM's up-projection documents, because dL/de_t = W_V^T dL/dv_t + W_K^T dL/dk_t, so a
+# zero W_V (with a_t's own branch also starting at v=0) would leave the tables with identically
+# zero gradient forever and the whole module would be dead weight. The CONV is the one thing
+# that is zero-init, which makes Y == vt from step 1 and lets the conv branch switch itself on
+# only if it earns its way -- the plan's own "conv zero-init".
+#
+# WHY ENGRAM_SITE DEFAULTS TO THE LAST LAYER AND NOT THE SPEC'S "LAYER 2 OF 6".
+# The Engram paper's ablation puts the module at layer 2 of 12 (and the plan transcribes "layer 2
+# of 6"). On THIS stack that placement is measured-fatal, for a reason that has nothing to do with
+# Engram: see the NGRAM_VE_LAYERS block above. Under LNC=2 a logical NeuronCore spans two PHYSICAL
+# cores, and ONE dynamic-address gather anywhere in the compiled region makes the compiler re-shard
+# the residual stream across those two pcores at every layer boundary DOWNSTREAM of it, at ~30
+# bytes per DMA packet. The measured penalty is ~+48 ms per micro-step for an injection at layer 3
+# of 6 versus ZERO for an injection at the last layer, and it is INVARIANT to table geometry
+# (8192 rows costs the same as 262144, dim 64 the same as dim 128) because it is descriptor-rate
+# bound. Engram-lite's smaller d_mem therefore does NOT escape it: the trigger is the dynamic
+# address, not the payload. The cost counts DOWNSTREAM LAYER BOUNDARIES, so the last layer is free
+# and every earlier one is not. ENGRAM_SITE keeps the mid-stack placement expressible (so the
+# hypothesis can be MEASURED here rather than assumed to transfer), but the default is the last
+# layer because that is the only affordable one, and under the data wall a ~25% slowdown prices at
+# roughly +0.018 bpb before the mechanism has said anything at all.
+USE_ENGRAM = False
+ENGRAM_SITE = "-1"         # 0-based index of the block AFTER whose output Y is added to the
+                           # residual. Negative counts from the end, so "-1" (the default) is the
+                           # last block, i.e. the final residual just before the final norm --
+                           # the only injection point with no downstream layer boundary to
+                           # re-shard. "2" reproduces the paper's mid-stack placement.
+ENGRAM_ORDERS = "2,3"      # which n-gram orders feed e_t. Engram uses n=2,3 and reports 4-grams
+                           # "slightly suboptimal"; T3.1 independently found bigram+trigram worth
+                           # -0.0017 over bigram-only at equal parameter count.
+ENGRAM_HEADS = 1           # K independent hash heads PER ORDER, each with its own table and its
+                           # own prime triple, so collisions decorrelate across heads (the same
+                           # reason T3.1 gives each layer a different prime pair). K=1 is the
+                           # cheap starting point: e_t is then 2 x ENGRAM_MEM_DIM wide.
+ENGRAM_TABLE_MULT = 32     # rows per table = this x padded_vocab_size (32 x 8192 = 262144). The
+                           # modulus is the largest prime <= that, for the reason GPT.ngram_mod
+                           # documents. T3.1's own sweep found capacity SATURATED at 64x with
+                           # dim 128 (128x was 0.0002 worse for 72 fewer steps), so there is no
+                           # reason to start higher here: 32x x 128 x 2 tables = 67.1M new
+                           # parameters, which is already 35% on top of the locked 190.1M.
+ENGRAM_MEM_DIM = 128       # d_mem, the width of each table's row. The plan suggests 256 per head;
+                           # 128 is T3.1's measured-best width on this stack and halves the
+                           # gather/scatter/all-reduce traffic. e_t width = heads x orders x this.
+ENGRAM_KEY_DIM = 0         # d, the width the gate's dot product is taken in. 0 => n_embd, which
+                           # means q_t is the raw hidden state and NO extra projection is needed;
+                           # >0 adds a W_Q Linear(n_embd, d) on the query side. 0 is both cheaper
+                           # and the more faithful reading of "RMSNorm(h_t) . RMSNorm(k_t)".
+ENGRAM_CONV_KERNEL = 4     # depthwise CAUSAL conv width on the gated memory (0 disables the conv
+                           # branch entirely, leaving Y = vt). Zero-init, so it is a no-op until
+                           # trained. The Engram paper's own ablation calls the conv the least
+                           # important of its three ingredients ("tokenizer canonicalization and
+                           # context-aware gating matter more than the conv"), which is why it is
+                           # separately switchable.
+ENGRAM_SHARE_NGRAM_TABLES = False
+                           # reuse T3.1's ALREADY-GATHERED n-gram rows as e_t instead of building
+                           # new tables. This is the zero-marginal-gather, zero-new-parameter arm:
+                           # it adds no table, no extra dynamic-address gather, no extra gradient
+                           # all-reduce and no extra optimizer state, so it isolates the Engram
+                           # MECHANISM (hidden-state-dependent gating + residual injection + conv)
+                           # from the added CAPACITY. Requires every shared table to live at or
+                           # before ENGRAM_SITE, which the locked NGRAM_VE_LAYERS="-1" satisfies
+                           # exactly when the site is the last layer.
+ENGRAM_BF16 = True         # store the tables (and their optimizer state) in bf16, like T3.1's.
+# The tables ride T3.1's optimizer group (RMSProp, no first moment, weight_decay 0, flat LR) for
+# the reasons NGRAM_VE_OPT/NGRAM_VE_FLAT_LR document -- they are the same kind of object, and
+# giving them their own differently-tuned group would confound the arm with an optimizer change.
+# W_K/W_V (and W_Q when ENGRAM_KEY_DIM > 0) are ordinary matrices and go to Muon; the conv kernel
+# is depthwise and goes to AdamW at MATRIX_LR with wd=0, exactly like block.local_conv.
+
+# ENGRAM_HASH_PRIMES / engram_hash_primes() / engram_site_index() live further down, next to
+# NGRAM_HASH_PRIMES, because they need _next_prime() which is defined there.
+
+# -----------------------------------------------------------------------------
 # T4.2: Aster's OUTPUT bigram logit table (research/frontier-research-plan-2026-09-09.md §11.1,
 # change (2) of the three Aster describes). A [V, V] table indexed by the CURRENT token whose row
 # is added straight to the next-token logits, gated per token by sigmoid(Linear(n_embd -> 1)) with
@@ -872,6 +968,38 @@ def has_ngram_trigram(layer_idx: int, n_layer: int) -> bool:
         return False
     ve = [i for i in range(n_layer) if has_ve(i, n_layer)]
     return layer_idx in (ve[0], ve[-1])
+
+
+# T3.2 Engram-lite hash primes. Deliberately DISJOINT from NGRAM_HASH_PRIMES: in share mode the
+# two mechanisms read the same table, but in own-table mode their hashes must not coincide, or an
+# Engram table would be a renamed copy of a T3.1 table. Same int32 bound as NGRAM_HASH_PRIMES
+# (max prime x 8192 < 2^31 requires every prime < 262144; 20011 + 7919*23 = 202148 has headroom).
+ENGRAM_HASH_PRIMES = tuple(_next_prime(20011 + 7919 * k) for k in range(24))
+
+
+def engram_orders() -> tuple[int, ...]:
+    """ENGRAM_ORDERS parsed. Only 2 and 3 are supported (Engram's own choice; 4-grams were
+    reported "slightly suboptimal" and the index shift would need a third pad column)."""
+    orders = tuple(int(o) for o in ENGRAM_ORDERS.split(",") if o.strip())
+    assert orders and all(o in (2, 3) for o in orders), f"ENGRAM_ORDERS={ENGRAM_ORDERS!r}"
+    return orders
+
+
+def engram_hash_primes(head_idx: int, order: int) -> tuple[int, ...]:
+    """The `order` multipliers for hash head `head_idx` of that order, oldest token first.
+
+    Orders get disjoint 12-prime regions so no head of order 2 can ever share a multiplier with
+    a head of order 3; within a region each head takes its own consecutive slice.
+    """
+    base = (order - 2) * 12 + head_idx * order
+    assert base + order <= len(ENGRAM_HASH_PRIMES), \
+        f"ENGRAM_HEADS={ENGRAM_HEADS} needs more than {len(ENGRAM_HASH_PRIMES)} hash primes"
+    return tuple(ENGRAM_HASH_PRIMES[base + j] for j in range(order))
+
+
+def engram_site_index(n_layer: int) -> int:
+    """ENGRAM_SITE resolved to an absolute block index (negatives count from the end)."""
+    return int(ENGRAM_SITE) % n_layer
 
 
 WINDOW_PATTERN = "L"    # per-layer attention window pattern, cycled to n_layer length; 'L' = full context, 'S' = short window
@@ -3900,6 +4028,82 @@ class Block(nn.Module):
         return x, v_raw
 
 
+class EngramLite(nn.Module):
+    """T3.2 Engram-lite: hashed n-gram memory read through a hidden-state-dependent gate.
+
+    See the USE_ENGRAM block for the full spec, the causality argument and the step-0 no-op
+    argument. This class owns everything except the hash indices themselves, which are computed
+    once per forward alongside T3.1's in GPT._ngram_hash_indices (the prev/prev2 shifts are
+    shared), and except the gathered rows in share mode, which GPT.forward hands over.
+
+    `share_e_dim` is the width of the e_t that GPT.forward will supply in share mode; it is None
+    in own-table mode, where this module builds and gathers its own tables.
+    """
+
+    def __init__(self, config: GPTConfig, padded_vocab_size: int, share_e_dim: int | None = None):
+        super().__init__()
+        self.orders = engram_orders()
+        self.heads = int(ENGRAM_HEADS)
+        assert self.heads >= 1, ENGRAM_HEADS
+        self.share = share_e_dim is not None
+        self.mem_dim = int(ENGRAM_MEM_DIM)
+        self.rows = int(ENGRAM_TABLE_MULT) * padded_vocab_size
+        # Same argument as GPT.ngram_mod: `rows` is a power of two, and `h % 2^k` keeps only h's
+        # low k bits, discarding every bit of mixing the primes put in the high half. A prime
+        # modulus uses all of h; the few rows above it are simply never indexed.
+        self.mod = _largest_prime_below(self.rows)
+        dtype = torch.bfloat16 if ENGRAM_BF16 else torch.float32
+        # Keys are stable strings so a state_dict makes the (heads, orders) allocation visible and
+        # strict=True catches a toggle mismatch loudly.
+        self.table_keys = tuple(f"e{h}o{o}" for o in self.orders for h in range(self.heads))
+        if self.share:
+            self.tables = nn.ModuleDict()
+            self.e_dim = share_e_dim
+        else:
+            # `_weight=` for the same two reasons T3.1's _table() gives: nn.Embedding's own
+            # reset_parameters would draw millions of normals per table from the global generator
+            # only for init_weights to zero them, and that draw would shift the RNG stream for
+            # every tensor initialized afterwards -- turning the A/B into a comparison of two
+            # different random inits plus the feature.
+            self.tables = nn.ModuleDict({
+                k: nn.Embedding(self.rows, self.mem_dim,
+                                _weight=torch.zeros(self.rows, self.mem_dim, dtype=dtype))
+                for k in self.table_keys})
+            self.e_dim = self.mem_dim * len(self.table_keys)
+        self.key_dim = int(ENGRAM_KEY_DIM) if int(ENGRAM_KEY_DIM) > 0 else config.n_embd
+        # _rng_neutral for the same reason the T3.1 gates and up-projections use it: init_weights
+        # overwrites all three unconditionally, so their construction must not move the RNG stream.
+        self.w_k = _rng_neutral(lambda: Linear(self.e_dim, self.key_dim, bias=False))
+        self.w_v = _rng_neutral(lambda: Linear(self.e_dim, config.n_embd, bias=False))
+        self.w_q = _rng_neutral(lambda: Linear(config.n_embd, self.key_dim, bias=False)) \
+            if self.key_dim != config.n_embd else None
+        self.conv = CausalConv(config.n_embd, int(ENGRAM_CONV_KERNEL)) \
+            if int(ENGRAM_CONV_KERNEL) > 0 else None
+        self._scale = self.key_dim ** -0.5
+
+    def gather(self, ngram_idx: dict[str, torch.Tensor]) -> torch.Tensor:
+        """e_t in own-table mode: concatenate this module's own table rows, heads-within-order."""
+        parts = [self.tables[k].weight[ngram_idx[k]].to(COMPUTE_DTYPE) for k in self.table_keys]
+        return parts[0] if len(parts) == 1 else torch.cat(parts, dim=-1)
+
+    def forward(self, h: torch.Tensor, e: torch.Tensor) -> torch.Tensor:
+        """Y for `H <- H + Y`. `h` is the residual at the injection site, `e` is e_t."""
+        k = self.w_k(e)
+        v = self.w_v(e)
+        q = self.w_q(h) if self.w_q is not None else h
+        # The gate. A per-token reduction over the key dimension only -- never across positions --
+        # so causality is structural here, exactly as for the x0 gate and MuddCompose. There is
+        # ONE such reduction in the whole model (the x0 gate's 13% cost came from paying one per
+        # block, six times over, in a dispatch-bound graph).
+        alpha = torch.sigmoid((norm(q) * norm(k)).sum(dim=-1, keepdim=True) * self._scale)
+        vt = alpha * v
+        if self.conv is None:
+            return vt
+        # CausalConv left-pads by kernel_size-1, so position t reads only t-K+1..t. Zero-init
+        # weight => SiLU(0) == 0 => Y == vt until the conv has learned something.
+        return F.silu(self.conv(norm(vt))) + vt
+
+
 class GPT(nn.Module):
     def __init__(self, config: GPTConfig):
         super().__init__()
@@ -3985,6 +4189,26 @@ class GPT(nn.Module):
         # padded vocabulary, so it can never be confused with a real token. NGRAM_HASH_PRIMES
         # is bounded so that this id times any multiplier still fits in int32.
         self.ngram_pad_id = padded_vocab_size
+        # T3.2 Engram-lite. Built last among the table-owning modules so it cannot shift the RNG
+        # stream of anything above it (its own construction is RNG-neutral either way).
+        self.engram_site = engram_site_index(config.n_layer) if USE_ENGRAM else -1
+        self.engram_share_keys: tuple[str, ...] = ()
+        if USE_ENGRAM:
+            share_e_dim = None
+            if ENGRAM_SHARE_NGRAM_TABLES:
+                # Share mode reuses the rows T3.1 has ALREADY gathered, so the mechanism (gate +
+                # conv + residual write) can be measured with zero new gathers, zero new
+                # parameters in the tables and zero extra gradient all-reduce. Only tables at or
+                # before the injection site qualify: a later layer's rows do not exist yet.
+                self.engram_share_keys = tuple(
+                    k for k in self.ngram_embeds if int(k[1:]) <= self.engram_site)
+                assert self.engram_share_keys, (
+                    f"ENGRAM_SHARE_NGRAM_TABLES needs an n-gram table at or before layer "
+                    f"{self.engram_site}; have {list(self.ngram_embeds)}")
+                share_e_dim = self.ngram_dim * len(self.engram_share_keys)
+            self.engram = EngramLite(config, padded_vocab_size, share_e_dim)
+        else:
+            self.engram = None
         # T4.2: Aster's output bigram logit table. [padded_vocab, padded_vocab] so a row can be
         # gathered by raw token id and sliced to the real vocab on the way into the logits, which
         # keeps the gather's index space identical to wte's. Built RNG-neutrally and zero-init (see
@@ -4136,6 +4360,20 @@ class GPT(nn.Module):
         # unigram value-embedding tables, since this matrix is what plays their role here.
         for proj in self.ngram_proj.values():
             torch.nn.init.uniform_(proj.weight, -s, s)
+        # T3.2 Engram-lite. Zero TABLES + zero CONV, and W_K/W_V/W_Q emphatically NOT zero.
+        # The chain that makes step 0 exact: e_t = 0 => k_t = v_t = 0 => alpha = sigmoid(0) = 0.5
+        # (a nonzero constant, so the gate alone would NOT do it) => vt = 0.5 * 0 = 0 =>
+        # RMSNorm(0) = 0 => Conv(0) = 0 => SiLU(0) = 0 => Y = 0 => H unchanged, bit-exactly.
+        # And W_V must stay nonzero for the same reason ngram_proj must: the table's gradient is
+        # dL/de = W_V^T dL/dv + W_K^T dL/dk, which a zero W_V/W_K would pin at the origin forever.
+        if self.engram is not None:
+            for tbl in self.engram.tables.values():
+                torch.nn.init.zeros_(tbl.weight)
+            for lin in (self.engram.w_k, self.engram.w_v, self.engram.w_q):
+                if lin is not None:
+                    torch.nn.init.uniform_(lin.weight, -s, s)
+            if self.engram.conv is not None:
+                torch.nn.init.zeros_(self.engram.conv.weight)
         # T4.2: zero TABLE + zero gate WEIGHT, and the gate bias keeps its constructed value
         # (OUT_BIGRAM_GATE_BIAS). The zero table is what makes step 0 exact: sigmoid(bias) is a
         # positive constant, so a nonzero table would shift every logit at init.
@@ -4183,8 +4421,22 @@ class GPT(nn.Module):
         pad = torch.full_like(cur[:, :1], self.ngram_pad_id)
         prev = torch.cat((pad, cur[:, :-1]), dim=1)
         need_trigram = any(k.startswith("t") for k in self.ngram_embeds)
+        # T3.2's own-mode tables share the prev/prev2 shifts computed here rather than recomputing
+        # them: the shifts are the only part of the index math that is per-position rather than
+        # per-table, so doing it once keeps the launch count down in a dispatch-bound graph.
+        engram_keys = tuple(self.engram.tables) if self.engram is not None else ()
+        need_trigram = need_trigram or any(k.endswith("o3") for k in engram_keys)
         prev2 = torch.cat((pad, pad, cur[:, :-2]), dim=1) if need_trigram else None
         out: dict[str, torch.Tensor] = {}
+        for key in engram_keys:
+            head_idx, order = int(key[1:key.index("o")]), int(key[key.index("o") + 1:])
+            primes = engram_hash_primes(head_idx, order)
+            if order == 2:
+                h = torch.bitwise_xor(prev * primes[0], cur * primes[1])
+            else:
+                h = torch.bitwise_xor(torch.bitwise_xor(prev2 * primes[0], prev * primes[1]),
+                                      cur * primes[2])
+            out[key] = torch.remainder(h, self.engram.mod)
         for key in self.ngram_embeds:
             layer = int(key[1:])
             if key[0] == "b":
@@ -4197,7 +4449,8 @@ class GPT(nn.Module):
             out[key] = torch.remainder(h, self.ngram_mod)
         return out
 
-    def _ngram_lookup(self, key: str, rows: torch.Tensor) -> torch.Tensor:
+    def _ngram_lookup(self, key: str, rows: torch.Tensor,
+                      raw_out: dict[str, torch.Tensor] | None = None) -> torch.Tensor:
         """One table's contribution to v, at full n_embd width, in COMPUTE_DTYPE.
 
         With NGRAM_VE_DIM=0 (default) this is the plain gather. With a narrow table it is
@@ -4223,6 +4476,11 @@ class GPT(nn.Module):
         """
         tbl = self.ngram_embeds[key].weight
         out = (tbl[rows] if NGRAM_VE_INDEX_GATHER else self.ngram_embeds[key](rows)).to(COMPUTE_DTYPE)
+        # T3.2 share mode taps the PRE-projection rows: they are what an Engram table would hold,
+        # and reading them here means the shared arm adds no gather of its own. `raw_out` is None
+        # on the default path, so that path's ops are byte-identical to before.
+        if raw_out is not None:
+            raw_out[key] = out
         if key in self.ngram_proj:
             out = self.ngram_proj[key](out)
         return out
@@ -4250,6 +4508,9 @@ class GPT(nn.Module):
         # the (much smaller) unigram value_embeds tables, which have the same character but
         # whose exclusion would silently move every historical MFU number in the log.
         non_matmul += sum(p.numel() for p in self.ngram_embeds.parameters())
+        # T3.2: same reasoning -- Engram's tables are read by a gather, never multiplied.
+        if self.engram is not None:
+            non_matmul += sum(p.numel() for p in self.engram.tables.parameters())
         # T4.2: same reasoning -- the [V, V] output bigram table is read by a gather and added,
         # never multiplied, so pricing its 67M parameters at 6 FLOPs/param/token would report a
         # fictitious ~0.4 GFLOP/token and make every MFU number in this run meaningless.
@@ -4405,6 +4666,16 @@ class GPT(nn.Module):
         # live on GPT rather than inside a Block, which is why they need an explicit line here
         # -- the loop above only walks self.transformer.h.
         matrix_params.extend(p.weight for p in self.ngram_proj.values())
+        # T3.2: W_K / W_V / W_Q are ordinary dense 2-D weight matrices with no shape pathology, so
+        # they go to Muon like every other matrix here. The conv kernel does NOT (depthwise, k=4 --
+        # same argument as block.local_conv/ssm_params) and gets its own AdamW group below.
+        engram_conv_params = []
+        if self.engram is not None:
+            matrix_params.extend(lin.weight for lin in
+                                 (self.engram.w_k, self.engram.w_v, self.engram.w_q)
+                                 if lin is not None)
+            if self.engram.conv is not None:
+                engram_conv_params.append(self.engram.conv.weight)
         if self.out_pool_lambdas is not None:
             # T3.9: OUT_POOL_LAYERS learned scalars, exactly the same character as
             # resid_lambda/x0_lambda -- the group SCALAR_LR was actually tuned for.
@@ -4431,6 +4702,11 @@ class GPT(nn.Module):
         if value_embed_params:
             param_groups.append(dict(kind="adamw", params=value_embed_params, lr=EMBEDDING_LR * dmodel_lr_scale, betas=(0.8, EMBED_ADAMW_BETA2), eps=1e-10, weight_decay=VE_WD))
         ngram_params = list(self.ngram_embeds.parameters())
+        # T3.2's own-mode tables ride T3.1's group deliberately: they are the same object (a hashed
+        # n-gram table read by a row gather), so every one of the three reasons below applies
+        # verbatim, and a separate group would only add an untuned LR to sweep.
+        if self.engram is not None:
+            ngram_params.extend(self.engram.tables.parameters())
         if ngram_params:
             # T3.1. Its own group for three reasons, all from Recursive's recipe:
             #  * RMSProp (no first moment) rather than Adam. A hashed n-gram row is touched
@@ -4467,6 +4743,11 @@ class GPT(nn.Module):
                 betas=(0.8, 0.96), eps=1e-10, weight_decay=0.0))
         if local_conv_params and TRAIN_LOCAL_CONV:
             param_groups.append(dict(kind="adamw", params=local_conv_params, lr=MATRIX_LR, betas=(0.9, 0.95), eps=1e-10, weight_decay=0.0))
+        if engram_conv_params:
+            # T3.2: deliberately NOT folded into the local_conv group, which is gated on
+            # TRAIN_LOCAL_CONV -- flipping that debug toggle must not silently freeze Engram's conv
+            # (a frozen zero conv would make Y == vt forever and quietly delete half the mechanism).
+            param_groups.append(dict(kind="adamw", params=engram_conv_params, lr=MATRIX_LR, betas=(0.9, 0.95), eps=1e-10, weight_decay=0.0))
         for shape in sorted({p.shape for p in matrix_params}):
             params = [p for p in matrix_params if p.shape == shape]
             param_groups.append(dict(kind="muon", params=params, lr=MATRIX_LR, momentum=0.95, beta2=0.90, ns_steps=MUON_NS_STEPS, weight_decay=WEIGHT_DECAY))
@@ -4491,7 +4772,12 @@ class GPT(nn.Module):
         doc_mask = doc_boundary_mask(idx) if USE_DOC_MASK else None
         # T3.1: all hash indices in one place (each is a [b, T] int32 tensor, ~32 KB), so
         # the shared prev/prev2 shifts are computed once rather than once per layer.
-        ngram_idx = self._ngram_hash_indices(idx) if len(self.ngram_embeds) else None
+        ngram_idx = self._ngram_hash_indices(idx) \
+            if (len(self.ngram_embeds) or self.engram is not None) else None
+        # T3.2 share mode: the pre-projection rows T3.1 gathers, keyed by table, accumulated as the
+        # loop passes each table's layer. Stays None otherwise so the default path is unchanged.
+        engram_raw: dict[str, torch.Tensor] | None = \
+            {} if (self.engram is not None and self.engram.share) else None
         # T3.9: the trailing block outputs the output pooling reads. Only materialized when the
         # toggle is on, so the default path keeps exactly one live residual as before.
         pool_from = self.config.n_layer - self.out_pool_lambdas.numel() if self.out_pool_lambdas is not None else -1
@@ -4501,9 +4787,9 @@ class GPT(nn.Module):
             ve_bi = ve_tri = None
             if ngram_idx is not None:
                 if f"b{i}" in self.ngram_embeds:
-                    ve_bi = self._ngram_lookup(f"b{i}", ngram_idx[f"b{i}"])
+                    ve_bi = self._ngram_lookup(f"b{i}", ngram_idx[f"b{i}"], engram_raw)
                 if f"t{i}" in self.ngram_embeds:
-                    ve_tri = self._ngram_lookup(f"t{i}", ngram_idx[f"t{i}"])
+                    ve_tri = self._ngram_lookup(f"t{i}", ngram_idx[f"t{i}"], engram_raw)
             if self.layer_is_mamba[i] or self.layer_is_rwkv[i]:
                 # No attention here, so don't materialize an additive mask this
                 # layer will never read. Both alternatives are causal structurally
@@ -4520,6 +4806,17 @@ class GPT(nn.Module):
                 static_mask = (self.mask_short if self.layer_is_short[i] else self.mask_full)[..., :t, :t]
                 attn_mask = static_mask + doc_mask if doc_mask is not None else static_mask
             x, v_raw = block(x, x0, ve, cos, sin, attn_mask, v0, hidden_states, ve_bi, ve_tri)
+            if self.engram is not None and i == self.engram_site:
+                # H <- H + Y, on the residual leaving this block. Placed at the LAST layer by
+                # default: the gather's dynamic address forces the LNC=2 compiler to re-shard the
+                # residual stream at every DOWNSTREAM layer boundary (~+48ms/micro-step for a
+                # layer-3 injection vs 0 for layer 5), and that cost is invariant to d_mem.
+                if engram_raw is not None:
+                    parts = [engram_raw[k] for k in self.engram_share_keys]
+                    e_t = parts[0] if len(parts) == 1 else torch.cat(parts, dim=-1)
+                else:
+                    e_t = self.engram.gather(ngram_idx)
+                x = x + self.engram(x, e_t)
             if USE_MUDD:
                 hidden_states.append(x)
             if USE_VALUE_RESIDUAL and v0 is None:
@@ -5033,6 +5330,11 @@ def split_clip_params(model: "GPT") -> tuple[list[torch.nn.Parameter], list[torc
     # rescale every other tensor's update. Rides the same toggle, since it is the same argument.
     if NGRAM_VE_CLIP_EXCLUDE and model.out_bigram is not None:
         ngram_ids = ngram_ids | {id(model.out_bigram.weight)}
+    # T3.2: same argument again for Engram's own tables (67M at the default mult=32, 2 tables). The
+    # projections and the conv stay in the MAIN clip -- they are small dense matrices whose gradient
+    # is dense every step, i.e. exactly the population GRAD_CLIP was calibrated on.
+    if NGRAM_VE_CLIP_EXCLUDE and model.engram is not None:
+        ngram_ids = ngram_ids | {id(p) for p in model.engram.tables.parameters()}
     if not ngram_ids:
         return list(model.parameters()), []
     main, ngram = [], []
@@ -5158,6 +5460,13 @@ ARCH_TOGGLE_NAMES = [
     "USE_OUT_POOL", "OUT_POOL_LAYERS", "USE_QK_SHIFT", "QK_SHIFT_BETA", "QK_SHIFT_FREEZE",
     "USE_X0_GATE", "USE_BLOCK_NUDGE", "BLOCK_NUDGE_SITE", "USE_QKV_NORM_CSE",
     "USE_PARALLEL_BLOCK", "PARALLEL_BLOCK_COALESCE",
+    # T3.2 Engram-lite. ENGRAM_SITE / ENGRAM_ORDERS / ENGRAM_HEADS / ENGRAM_TABLE_MULT /
+    # ENGRAM_MEM_DIM / ENGRAM_KEY_DIM / ENGRAM_CONV_KERNEL all change a tensor's shape or its
+    # existence; ENGRAM_SHARE_NGRAM_TABLES changes which tensors exist at all; ENGRAM_BF16 is the
+    # silently-CAST-on-load class, exactly like NGRAM_VE_BF16 above.
+    "USE_ENGRAM", "ENGRAM_SITE", "ENGRAM_ORDERS", "ENGRAM_HEADS", "ENGRAM_TABLE_MULT",
+    "ENGRAM_MEM_DIM", "ENGRAM_KEY_DIM", "ENGRAM_CONV_KERNEL", "ENGRAM_SHARE_NGRAM_TABLES",
+    "ENGRAM_BF16",
     # Data ORDER, not a tensor -- but it changes which tokens the cooldown steps saw, which is
     # exactly the kind of thing that must be recoverable from a checkpoint after the fact.
     "USE_EPOCH_SHUFFLE", "EPOCH_SHUFFLE_SEED",
@@ -5213,7 +5522,19 @@ SHAPE_CRITICAL_TOGGLES = {"USE_VE", "USE_LOCAL_CONV", "USE_GATED_MLP", "USE_SELE
                           "USE_X0_GATE", "USE_BLOCK_NUDGE",
                           # USE_PARALLEL_BLOCK adds par_lambda_a/par_lambda_m per block;
                           # PARALLEL_BLOCK_COALESCE replaces c_q/c_k/c_v/c_fc with one c_in.
-                          "USE_PARALLEL_BLOCK", "PARALLEL_BLOCK_COALESCE"}
+                          "USE_PARALLEL_BLOCK", "PARALLEL_BLOCK_COALESCE",
+                          # T3.2: USE_ENGRAM adds engram.*; ORDERS/HEADS decide how many tables
+                          # exist and hence w_k/w_v's input width; TABLE_MULT and MEM_DIM resize
+                          # the tables (MEM_DIM also resizes w_k/w_v's input); KEY_DIM resizes
+                          # w_k's output and adds/removes w_q; CONV_KERNEL resizes conv.weight
+                          # (and 0 removes it); SHARE_NGRAM_TABLES removes the tables entirely and
+                          # changes w_k/w_v's input width to the shared rows'. ENGRAM_BF16 is
+                          # excluded for the same reason NGRAM_VE_BF16 is: a silent cast, not an
+                          # error. ENGRAM_SITE is excluded too -- it moves WHERE the same-shaped
+                          # module is read, so it is silent-behavior, not shape-critical.
+                          "USE_ENGRAM", "ENGRAM_ORDERS", "ENGRAM_HEADS", "ENGRAM_TABLE_MULT",
+                          "ENGRAM_MEM_DIM", "ENGRAM_KEY_DIM", "ENGRAM_CONV_KERNEL",
+                          "ENGRAM_SHARE_NGRAM_TABLES"}
 # USE_FP8_LINEAR is deliberately NOT in the set above: Fp8Linear is a Linear subclass with
 # the identical single `weight` parameter, so flipping it changes only the arithmetic used
 # inside MLP.forward, never a tensor's name or shape. That makes it exactly the
@@ -5440,6 +5761,12 @@ def main() -> None:
     global USE_OUT_POOL, OUT_POOL_LAYERS, USE_QK_SHIFT, QK_SHIFT_BETA, QK_SHIFT_FREEZE
     global USE_X0_GATE, USE_BLOCK_NUDGE, BLOCK_NUDGE_SITE, USE_QKV_NORM_CSE, USE_PARALLEL_BLOCK
     global PARALLEL_BLOCK_COALESCE, USE_EPOCH_SHUFFLE, EPOCH_SHUFFLE_SEED
+    # T3.2. Every one of these is read at MODULE-CONSTRUCTION time (or, for ENGRAM_SITE, once per
+    # forward as a Python int compared against the loop index), so none of them is a per-step
+    # changing scalar reaching a device op.
+    global USE_ENGRAM, ENGRAM_SITE, ENGRAM_ORDERS, ENGRAM_HEADS, ENGRAM_TABLE_MULT
+    global ENGRAM_MEM_DIM, ENGRAM_KEY_DIM, ENGRAM_CONV_KERNEL, ENGRAM_SHARE_NGRAM_TABLES
+    global ENGRAM_BF16
     # T2.1. Read once per step by batch_ramp_grad_accum() to pick a Python int loop count and a
     # Python float lr scale -- neither reaches a device op as a constant (the loss scaling, which
     # would, goes through inv_gas_dev instead).
@@ -5654,6 +5981,54 @@ def main() -> None:
                         help="hoist the three identical norm(q_in)/norm(k_in)/norm(v_in) calls into "
                              "one when they share the same input tensor. Bit-exact identity; the "
                              "only effect is 2 fewer ops per block in a dispatch-bound graph.")
+    parser.add_argument("--engram", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_ENGRAM", "1" if USE_ENGRAM else "0") != "0",
+                        help="T3.2 Engram-lite: hashed n-gram memory read through a gate on the "
+                             "hidden state (alpha = sigmoid(norm(h).norm(k)/sqrt(d))), then "
+                             "Y = SiLU(dwconv(norm(alpha*v))) + alpha*v added to the residual. The "
+                             "context-aware superset of the n-gram value embeddings.")
+    parser.add_argument("--engram-site", type=str,
+                        default=os.environ.get("NEURON_COMPETITION_R1_ENGRAM_SITE", ENGRAM_SITE),
+                        help="block index whose OUTPUT residual Engram writes into; negative counts "
+                             "from the end. Default -1 (last block) because under LNC=2 a gather "
+                             "before layer L forces cross-pcore resharding at every layer boundary "
+                             "after it (~+48ms/micro-step at layer 3, 0 at layer 5).")
+    parser.add_argument("--engram-orders", type=str,
+                        default=os.environ.get("NEURON_COMPETITION_R1_ENGRAM_ORDERS", ENGRAM_ORDERS),
+                        help="comma-separated n-gram orders for Engram's hash heads; only 2 and 3 "
+                             "are supported (Engram reports 4-grams slightly suboptimal).")
+    parser.add_argument("--engram-heads", type=int,
+                        default=int(os.environ.get("NEURON_COMPETITION_R1_ENGRAM_HEADS", ENGRAM_HEADS)),
+                        help="hash heads PER ORDER. Each head is its own table with its own primes, "
+                             "so K heads is K independent hashings of the same n-gram (Engram's own "
+                             "collision-mitigation trick). Total tables = heads * len(orders).")
+    parser.add_argument("--engram-table-mult", type=int,
+                        default=int(os.environ.get("NEURON_COMPETITION_R1_ENGRAM_TABLE_MULT", ENGRAM_TABLE_MULT)),
+                        help="rows per Engram table, in units of the padded vocab (8192). 32 => "
+                             "262144 rows; the modulus used is the largest prime <= that.")
+    parser.add_argument("--engram-mem-dim", type=int,
+                        default=int(os.environ.get("NEURON_COMPETITION_R1_ENGRAM_MEM_DIM", ENGRAM_MEM_DIM)),
+                        help="d_mem: width of each Engram table row. e_t is the concatenation over "
+                             "all tables, so w_k/w_v read heads*len(orders)*d_mem.")
+    parser.add_argument("--engram-key-dim", type=int,
+                        default=int(os.environ.get("NEURON_COMPETITION_R1_ENGRAM_KEY_DIM", ENGRAM_KEY_DIM)),
+                        help="width of the gate's key/query space. 0 (default) means n_embd, which "
+                             "lets the gate dot norm(h) directly and needs no query projection.")
+    parser.add_argument("--engram-conv-kernel", type=int,
+                        default=int(os.environ.get("NEURON_COMPETITION_R1_ENGRAM_CONV_KERNEL", ENGRAM_CONV_KERNEL)),
+                        help="depthwise causal conv kernel applied to norm(alpha*v) before the "
+                             "SiLU. 0 disables the conv branch entirely (Y = alpha*v), which is the "
+                             "ablation arm. Zero-init, so it starts as a no-op either way.")
+    parser.add_argument("--engram-share-ngram-tables", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_ENGRAM_SHARE_NGRAM_TABLES", "1" if ENGRAM_SHARE_NGRAM_TABLES else "0") != "0",
+                        help="read T3.1's ALREADY-GATHERED n-gram rows instead of Engram's own "
+                             "tables. Isolates the MECHANISM (gate + conv + residual write) from "
+                             "the added capacity: no new gather, no new table parameters, no extra "
+                             "gradient all-reduce. Needs an n-gram table at or before --engram-site.")
+    parser.add_argument("--engram-bf16", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_ENGRAM_BF16", "1" if ENGRAM_BF16 else "0") != "0",
+                        help="hold Engram's tables in bf16 (halves 67M params of memory and the "
+                             "gather's bandwidth). Same trade as --ngram-ve-bf16.")
     parser.add_argument("--epoch-shuffle", action=argparse.BooleanOptionalAction,
                         default=os.environ.get("NEURON_COMPETITION_R1_EPOCH_SHUFFLE", "1" if USE_EPOCH_SHUFFLE else "0") != "0",
                         help="reshuffle the row-group order from epoch 2 onward. Epoch 1 keeps "
@@ -5997,6 +6372,29 @@ def main() -> None:
     USE_BLOCK_NUDGE = args.block_nudge
     BLOCK_NUDGE_SITE = args.block_nudge_site
     USE_QKV_NORM_CSE = args.qkv_norm_cse
+    # T3.2. All read by EngramLite.__init__/GPT.__init__, i.e. before GPT(config) below.
+    USE_ENGRAM = args.engram
+    ENGRAM_SITE = args.engram_site
+    ENGRAM_ORDERS = args.engram_orders
+    ENGRAM_HEADS = args.engram_heads
+    ENGRAM_TABLE_MULT = args.engram_table_mult
+    ENGRAM_MEM_DIM = args.engram_mem_dim
+    ENGRAM_KEY_DIM = args.engram_key_dim
+    ENGRAM_CONV_KERNEL = args.engram_conv_kernel
+    ENGRAM_SHARE_NGRAM_TABLES = args.engram_share_ngram_tables
+    ENGRAM_BF16 = args.engram_bf16
+    if USE_ENGRAM:
+        engram_orders()  # validates ENGRAM_ORDERS, raising here rather than mid-construction
+        if ENGRAM_HEADS < 1:
+            raise ValueError(f"--engram-heads must be >= 1, got {ENGRAM_HEADS}")
+        if ENGRAM_TABLE_MULT < 1 or ENGRAM_MEM_DIM < 1:
+            raise ValueError("--engram-table-mult and --engram-mem-dim must both be >= 1, got "
+                             f"{ENGRAM_TABLE_MULT} and {ENGRAM_MEM_DIM}")
+        if ENGRAM_CONV_KERNEL < 0:
+            raise ValueError(f"--engram-conv-kernel must be >= 0 (0 disables), got {ENGRAM_CONV_KERNEL}")
+        if ENGRAM_SHARE_NGRAM_TABLES and not USE_NGRAM_VE:
+            raise ValueError("--engram-share-ngram-tables needs --ngram-ve: there are no gathered "
+                             "n-gram rows to share otherwise.")
     USE_EPOCH_SHUFFLE = args.epoch_shuffle
     EPOCH_SHUFFLE_SEED = args.epoch_shuffle_seed
     USE_PARALLEL_BLOCK = args.parallel_block
@@ -6539,6 +6937,17 @@ def main() -> None:
               f"qkv_norm_cse={USE_QKV_NORM_CSE} parallel_block={USE_PARALLEL_BLOCK} "
               f"par_coalesce={PARALLEL_BLOCK_COALESCE} "
               f"epoch_shuffle={USE_EPOCH_SHUFFLE} epoch_shuffle_seed={EPOCH_SHUFFLE_SEED}")
+        # T3.2, same one-line convention. `tables` and `site` are read off the built model rather
+        # than off the flags, so a share-mode run visibly reports 0 own tables and the resolved
+        # absolute block index rather than the raw "-1".
+        print(f"engram:            {USE_ENGRAM} site={orig_model.engram_site} "
+              f"orders={ENGRAM_ORDERS} heads={ENGRAM_HEADS} "
+              f"tables={0 if orig_model.engram is None else len(orig_model.engram.tables)} "
+              f"mult={ENGRAM_TABLE_MULT} mem_dim={ENGRAM_MEM_DIM} "
+              f"e_dim={0 if orig_model.engram is None else orig_model.engram.e_dim} "
+              f"key_dim={0 if orig_model.engram is None else orig_model.engram.key_dim} "
+              f"conv_k={ENGRAM_CONV_KERNEL} share={ENGRAM_SHARE_NGRAM_TABLES} "
+              f"bf16={ENGRAM_BF16}")
         # T2.1, same reason: one line carrying every ramp knob, so two ramp arms are
         # distinguishable in experiment-log.jsonl without re-reading the run log.
         print(f"batch_ramp:        {BATCH_RAMP} grad_accum={BATCH_RAMP_GRAD_ACCUM} "
