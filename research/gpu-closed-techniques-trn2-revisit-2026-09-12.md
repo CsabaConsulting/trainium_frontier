@@ -117,6 +117,14 @@ quality effect.
 4. **Recursive's cheap one-liners as a bundle** (already in plan §11.2 item 3): shifted ReLU²
    `relu(h−0.5)²`, sandwich norm on the MLP, input-dependent x0 gate. Zero throughput cost by
    construction; this is where the GPU-discarded selective gate gets its fair Trn2 hearing.
+   **Measured the same evening by the device agent (notebook "T4.2 … T3.9 one-liner grab-bag",
+   900 s, seven arms):** shifted ReLU² **+0.0029 worse** per step (closed); `--mlp-sandwich-norm`
+   **−0.0031** and `--qk-shift` **−0.0061**, both ~90% *throughput* wins (+8–9% steps from compiler
+   scheduling, not per-step quality), stacking sub-additively to −0.0067; `--head-gate` loses on
+   a +25% step cost; `--out-pool` neutral. So the "zero cost by construction" assumption was wrong
+   in both directions — this stack reprices even one-liners — and the surviving two are exactly
+   the pattern §5 predicts (cost structure flips, quality does not). The x0 gate was not in the
+   grab-bag and stays untested.
 
 Do not revisit: sliding window, doc masking, `ROPE_BASE` as a standalone item, `VE_WD`, MQA
 (unless the width changes), anything memory-motivated.

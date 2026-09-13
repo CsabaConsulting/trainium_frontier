@@ -95,8 +95,8 @@ with the bytes it is made of: hash n-gram embeddings over byte substrings (BLT T
 (hierarchical 1–n-gram input embeddings, Parameter Golf, arXiv 2501.16975: a 400M model
 matching a 1B baseline's loss at the same cost). With an 8192 vocabulary and ~4 bytes/token the
 token table already encodes most of this, so the expected effect is small, but it is legal, is a
-one-time table lookup at the input, and belongs in the same family as the T3.1 tables that just
-won 0.013 bpb. Recommendation: fold "initialise `wte` from byte features" into the T3.x
+one-time table lookup at the input, and belongs in the same family as the T3.1 tables that are now
+the default (−0.0152 bpb at 1800 s, dress-rehearsed at 2140 steps, board ~1.039). Recommendation: fold "initialise `wte` from byte features" into the T3.x
 queue as a zero-cost one-liner; do not build a byte-level model.
 
 ## 2. MatMul-free / ternary / 1-bit training

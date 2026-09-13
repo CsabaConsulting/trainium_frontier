@@ -541,7 +541,9 @@ masking, requeue packer, PACK_FACTOR 4 (until T1.5 explains it), `--nki-relu2`.
   SLAY/YAT). `KAN or MLP: A Fairer Comparison` (2407.16674): MLP wins every domain but symbolic regression at
   matched params/FLOPs. KAT (2409.10594) reports vision only. The salvageable idea is a *cheap* learned
   activation (per-channel shift/slope on ReLU², cf. Recursive's `relu(h−0.5)²`, PG's LeakyReLU(0.75)²/Star-ReLU),
-  which is a ~0-cost T0.3-style sweep, not an architecture change.
+  which is a ~0-cost T0.3-style sweep, not an architecture change. **Measured 2026-09-12 (T3.9 grab-bag):
+  `--relu2-tau 0.5` is +0.0029 worse per step — the shifted variant is closed; a learnable per-channel shift/slope
+  remains untested but its prior just dropped.**
 
 ---
 

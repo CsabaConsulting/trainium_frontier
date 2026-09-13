@@ -4155,3 +4155,28 @@ exactly what the throughput decomposition predicts: both arms are buying the sam
 count from the same compiler artifact, and they cannot buy it twice (the stack gets +7.1%, less
 than either alone). No surprising *negative* interaction of the `WEIGHT_DECAY` +
 `WD_DECAY_TO_ZERO` kind — just overlap.
+
+## 2026-09-12 — local-box research pass (no hardware): six review documents, what they closed and what they left open
+
+Written on the laptop-free box by the Fable session while the device agent ran T3.1/T4.1/T4.2/T3.9.
+Each item below has a full write-up under `research/`; this entry is the index so the loop does not
+re-derive them.
+
+| document | question | verdict |
+|---|---|---|
+| `submission-gap-analysis-2026-09-10.md` | why the 2026-09-10 submission scored 1.1495 | `NUM_STEPS=1000` default capped the bare launch command at step 1000 (no cooldown); fixed in `ba37f86`; board 1.0548 → 1.0384 after |
+| `diffusion-lm-at-nanogpt-scale-2026-09-12.md` | diffusion LMs (BLT-era question: "downsize DiffusionGemma") | unscoreable (bidirectional forward fails the causality check; ELBO not a single pass) and 14–16× compute behind AR at <1 epoch |
+| `mtp-multi-token-prediction-2026-09-12.md` | MTP as an auxiliary loss | legal and eval-free, but every NTP-loss/bpb measurement ≤3B is neutral-to-negative (DeepSeek-V3 BPB unchanged); keep T3.7 last |
+| `ngram-drafter-and-count-mixer-2026-09-12.md` | n-gram drafters; frozen count-based mixer (T4.1) | drafters worth zero; mixer **measured negative by the device agent the same day (+0.0006)** — T3.1's learned tables absorbed it |
+| `engineering-stance-parallelism-precision-2026-09-12.md` | why pure DP at LNC=2, bf16/fp32, no FP8/SR; HLAT and NeoX/Pythia references | consolidated; nothing new in the AWS NeoX/Pythia blog |
+| `gpu-closed-techniques-trn2-revisit-2026-09-12.md` | which GPU-era closures could flip on Trn2 | candidates: parallel block with coalesced input matmul, param-matched SwiGLU, partial RoPE; sliding window / doc-mask get *worse* here |
+| `byte-level-and-lowbit-training-review-2026-09-12.md` | BLT/MBLM, BitNet/ternary, Hyena (Gemini prompt) | all three closed: fixed-tokenizer scorer, no ternary TensorE path, `torch.fft` unsupported; Gemini Deep Research 2 roadmap audited (its Trn2 runtime prescriptions are measured-false here) |
+
+Cross-checks against today's device results: the T3.9 grab-bag measured shifted ReLU² at **+0.0029
+per step (worse)**, which closes the "cheap learned activation" fallback the KAN review suggested;
+`--qk-shift` (−0.006) and `--mlp-sandwich-norm` (−0.003) are ~90% throughput wins from compiler
+scheduling, the same mechanism as the T3.1 layer-position effect — consistent with the
+GPU-closed audit's rule that on this stack *cost structure*, not quality, is what flips. Aster's
+output bigram table (+0.004, −7.1% steps) closes T4.2 alongside T4.1. Plan §T4.4 and §9.x carry
+the closures and the compile-stall/cache-hygiene rule; `no_run_meta` is decoded there as a
+pre-flight rejection, not a crash.
