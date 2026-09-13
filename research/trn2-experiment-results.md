@@ -4709,3 +4709,61 @@ since a perturbation can land either side of the baseline.
 A cheaper variant is conceivable (drive the gate from a few channels through a small `Linear`, the
 way `ve_gate` already does, instead of a full channel mean) and would remove the reduction. It is not
 worth chasing: the mechanism it would be buying is measured at −0.0005 ± 0.001 bpb, i.e. nothing.
+
+---
+
+## 2026-09-13 — Item 3: parallel attention+MLP block with a coalesced input projection
+
+The arm: `h = norm(x)` once, then `x = x + λ_a·attn(h) + λ_m·mlp(h)` with `λ_a`, `λ_m` initialized to
+1.0 and `mlp.c_proj` zero-init, so the block is bit-identical to the serial baseline at step 0 and
+diverges from step 1 (the MLP now reads the *pre*-attention normed residual). Because all four input
+projections then read the same tensor, they can be merged:
+
+- `--parallel-block-coalesce vfc` — `Linear(640, 3200)` for `c_v + c_fc`; `c_q`/`c_k` left alone, so
+  nothing that reaches the rope+QK-norm NKI kernel is ever a strided slice. Three matmuls, no copies.
+- `--parallel-block-coalesce all` — `Linear(640, 4480)` for `q,k,v,c_fc`, with `.contiguous()` on the
+  `q`/`k` slices so the kernel still fires. One matmul, two elementwise copies. Also changes the
+  optimizer: Muon orthogonalizes one `[4480, 640]` matrix instead of four smaller ones.
+
+### CPU correctness (`research/scratch/qk_freeze_probe.py`, fp32, 5 optimizer steps, DEPTH=6)
+
+All eleven arms pass. The three parallel arms are bit-identical to the baseline at step 0 and diverge
+by step 4, both coalesced modes are bit-identical to the **uncoalesced parallel block** at step 0 (the
+slice-wise `init_weights` ordering works), every trainable parameter is in exactly one optimizer
+group, and `causality_max_abs == 0.0` everywhere. Parameter-tensor counts confirm the plumbing:
+baseline 68, `parallel-block` 80 (+2 λ per block), `vfc` 74 (−6 `c_fc`), `all` 62 (−24 projections,
++6 `c_in`).
+
+### 120-step fixed-step device throughput probe (all at `lrm 1.000`, identical data)
+
+| arm | s/step | tok/s | Δ throughput | step-110 loss |
+| --- | --- | --- | --- | --- |
+| `probe-bb-base` | 0.83–0.84 | 156–157k | — | 3.9651 |
+| `probe-bb-parallel` | 0.88–0.89 | 148–150k | **−5.5%** | 3.9364 |
+| `probe-bb-par-vfc` | 0.75–0.76 | 172–174k | **+10.5%** | 3.9496 |
+| `probe-bb-par-all` | 0.75–0.76 | 172–174k | **+10.5%** | 3.9433 |
+
+Three things worth recording:
+
+1. **The parallel block on its own is *slower*, not faster** (−5.5%). Saving one `norm()` per block
+   does not pay for the two `λ` multiplies and the extra add. The throughput case for this
+   architecture rests entirely on the coalescing it enables, not on the parallel structure.
+2. **Coalescing is worth +10.5%, and the two modes are indistinguishable in speed.** The two
+   `.contiguous()` copies that `all` needs to keep the NKI kernel alive cost nothing measurable, so
+   the "no copies at all" advantage that motivated `vfc` does not exist on this hardware. `all`
+   collapses four matmul launches into one in a dispatch-bound graph and that is where the win is.
+   This is also the correct epilogue to `USE_FUSED_QKV`'s −0.0428: coalescing was never the problem,
+   losing the kernel to a strided slice was.
+3. **The step-110 losses favour every parallel arm over the baseline** (3.9364–3.9496 vs 3.9651),
+   at matched step, matched `lrm 1.000` and identical data. That is a per-step signal, not a
+   throughput artifact — though a 110-step loss is a weak predictor of final bpb, and the x0 gate
+   from item 2 showed exactly how an early advantage can evaporate.
+
+### The full-budget test is step-matched, not full-length
+
+Because of the data wall, running a +10.5% arm for the full 1800s would push it ~160 steps past the
+end of epoch 1 and confound its architecture delta with a penalty already measured at +0.0023. So
+both modes get a **shortened 1630s budget**, chosen so that their throughput lands them on ~2150
+steps — step-matched to the two controls already in hand (`qkfreeze-base-1800s` 2155/1.018303 and
+`qkfreeze-frozen-1648s` 2149/1.018967) and below the wall. `parall-1630s` and `parvfc-1630s` are
+running as this is written; the numbers are deliberately absent rather than estimated.
