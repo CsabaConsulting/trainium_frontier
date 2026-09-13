@@ -4240,3 +4240,47 @@ at 1800s there is. This is the cleanest train/val divergence measured in this pr
   without touching the mathematics, it is worth ~0.005 bpb at the full budget by the same slope
   used above. `--qk-shift --qk-shift-beta 0.0` is the obvious first probe (same graph, identity
   at init) and is queued.
+
+### Two closing 1800s arms: sandwich norm alone is worse still, and `beta=0` does not rescue the throughput
+
+| arm | steps | s/step | bpb(2048) | d vs control | bpb(1024) | d | per-step residual |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `t39-base-1800s` (control) | 2142 | 0.840 | 1.019153 | — | 1.034176 | — | — |
+| `t39-sandwich-1800s` | 2326 | 0.774 | 1.025017 | **+0.005864** | 1.040276 | +0.006100 | +0.011676 |
+| `t39-qkshift-b0-1800s` | 2330 | 0.773 | 1.020738 | **+0.001585** | 1.036190 | +0.002014 | +0.007518 |
+
+- **MLP sandwich norm alone at the full budget: +0.0059, the worst of the "winners".** Its 900s
+  −0.0031 was entirely the +8.6% step count; per step it costs +0.0117 at 1800s (vs +0.0029 at
+  900s), so it degrades with budget in exactly the same way `--qk-shift` does. Closed.
+- **`--qk-shift --qk-shift-beta 0.0`** (identical graph, identity at initialization, `beta`
+  still learned per-dim) gets the throughput — **+8.8% steps, the largest of any arm** — and
+  still loses **+0.0016**. Its per-step residual is +0.0075, statistically the same as the
+  `beta=0.3` version's +0.0082. **The damage tracks the mechanism, not the initialization:**
+  once `beta` is trainable it learns its way into the same shortcut regardless of where it
+  starts. Halving the loss (0.0029 → 0.0016) is entirely the extra 0.9% of steps.
+
+That leaves the throughput observation cleanly separated from the architecture: the +8–9% is
+available from a graph perturbation, the quality damage comes from the perturbation being
+*mathematically active*. The decisive follow-up — which belongs to the T1.x throughput queue,
+not here — is a **frozen** `beta ≡ 0` (or any other mathematically-null block-body perturbation):
+same graph, zero gradient, no mechanism. If that keeps +8% steps it is worth ~0.005 bpb at the
+full budget for free; if it does not, the speedup was never separable from the mechanism and the
+whole lead dies. There is currently no flag for a frozen `beta` (`qk_shift_beta` always joins
+the AdamW `gate_params` group), which is the one-line change that experiment needs.
+
+### Final scoreboard for this task (13 x 900s + 5 x 1800s runs, all discarded)
+
+| change | 900s d | 1800s d | verdict |
+| --- | --- | --- | --- |
+| T4.2 output bigram logit table | +0.0040 | — | DISCARD (costs 7% of steps, −0.0011/step) |
+| shifted ReLU² tau=0.5 | +0.0029 | — | DISCARD (clean per-step quality loss) |
+| last-3-layer output pooling | +0.0013 | — | DISCARD (null) |
+| per-head out norm + gate (T3.6) | +0.0135 | — | DISCARD (+25% step time; −0.0020/step is real but unaffordable) |
+| MLP sandwich norm | −0.0031 | **+0.0059** | DISCARD (inverts) |
+| causal Q/K token shift | −0.0061 | **+0.0029** | DISCARD (inverts) |
+| both stacked | −0.0067 | **+0.0021** | DISCARD (inverts, sub-additive) |
+| Q/K shift, beta init 0 | — | **+0.0016** | DISCARD (inverts) |
+| WARMDOWN_RATIO 0.9–0.95 | already flat (+0.00025 at 0.90) | — | axis settled, not re-run |
+
+The locked config is unchanged and still the best known: **1.018985 / 2139 steps at 1800s**,
+reproduced today as 1.019153 / 2142.
