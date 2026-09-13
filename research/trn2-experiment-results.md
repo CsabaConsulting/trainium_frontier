@@ -4180,3 +4180,63 @@ GPU-closed audit's rule that on this stack *cost structure*, not quality, is wha
 output bigram table (+0.004, −7.1% steps) closes T4.2 alongside T4.1. Plan §T4.4 and §9.x carry
 the closures and the compile-stall/cache-hygiene rule; `no_run_meta` is decoded there as a
 pre-flight rejection, not a crash.
+
+### The 1800s escalation kills both winners: **`--qk-shift` INVERTS at the full budget**
+
+`--qk-shift` cleared the 0.002 escalation bar at 900s, so it and the stack went to the full
+budget against a fresh same-day 1800s control:
+
+| arm | steps | s/step | bpb(2048) | d vs control | bpb(1024) | d | per-step residual |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `t39-base-1800s` (control) | 2142 | 0.840 | 1.019153 | — | 1.034176 | — | — |
+| `t39-qkshift-1800s` | 2311 | 0.779 | 1.022031 | **+0.002878** | 1.037069 | +0.002893 | +0.008233 |
+| `t39-stack-1800s` | 2288 | 0.787 | 1.021278 | **+0.002125** | 1.036844 | +0.002668 | +0.006775 |
+
+Both **lose**, by more than the whole size of their 900s win. The control reproduces the locked
+baseline to 0.00017 (1.019153 vs the 1.018985 of `t31L-l5tri-m64-1800s`), so the reference is
+sound and the inversion is in the arm, not the control.
+
+The throughput half of the effect is stable — `--qk-shift` still buys +7.9% steps (0.840 →
+0.779 s/step) at 1800s, essentially the same as at 900s. What changes is the per-step quality
+residual: **−0.00065 at 900s → +0.00823 at 1800s.** The shift's damage scales with training
+length far faster than its throughput gift, so at 1800s it is a net loss even while running
+2311 steps to the control's 2142.
+
+The training-loss curves at matched *fractions* of each run show the mechanism, and it is not
+a divergence or an instability:
+
+| fraction of run | control loss | `--qk-shift` loss |
+| --- | --- | --- |
+| 0.25 | 3.2987 | 3.2099 |
+| 0.50 | 2.9860 | 3.0167 |
+| 0.75 | 2.8636 | 2.8759 |
+| 1.00 | 2.8081 | **2.7513** |
+
+`--qk-shift` ends with a **lower training loss** (2.7513 vs 2.8081) and a **higher validation
+bpb** (+0.0029). Mixing the previous token into Q and K makes the training stream easier to fit
+— locally smoothed keys/queries are a shortcut for the repetitive local structure in the data —
+and that shortcut does not generalize. At 900s there is not enough training for the gap to open;
+at 1800s there is. This is the cleanest train/val divergence measured in this project.
+
+### Consequences and the methodology lesson
+
+- **Nothing from either item is adopted. The locked config is unchanged and no submission is
+  recommended.** All seven arms are discarded: `--out-bigram` (T4.2), `--relu2-tau`,
+  `--out-pool`, `--head-gate`, `--mlp-sandwich-norm`, `--qk-shift`, and the stack. Every flag
+  stays in `train.py` default-OFF and step-0-neutral, with the smoke harness
+  (`research/scratch/t39_t42_smoke.py`) as the record.
+- **New rule for the 900s proxy: it is not trustworthy for changes whose delta is dominated by
+  step count.** Decompose every 900s win into (throughput) + (per-step residual) using the
+  −0.0705 bpb/ln(step) slope before escalating. A win whose per-step residual is ~0 is a
+  throughput win, and a throughput win's *quality* term is exactly the term that can grow with
+  budget. Both 900s winners here had near-zero or positive residuals; both inverted. Had this
+  decomposition been applied first, the 1800s escalation would have been run with the
+  expectation of an inversion rather than a confirmation.
+- **A throughput lead for the T1.6/T1.7/T1.8 queue (not chased here):** two unrelated
+  elementwise additions to the block body — `x + beta*x_prev` on the Q/K input, and an extra
+  RMS-norm on the MLP output — each independently make a step **8–9% faster** at identical
+  tokens per step, reproducibly, at both 900s and 1800s. The baseline block body appears to hit
+  a bad compiler-scheduling pattern that almost any perturbation escapes. If that 8% can be had
+  without touching the mathematics, it is worth ~0.005 bpb at the full budget by the same slope
+  used above. `--qk-shift --qk-shift-beta 0.0` is the obvious first probe (same graph, identity
+  at init) and is queued.
