@@ -575,6 +575,27 @@ USE_QK_SHIFT = False       # causal token shift on the Q/K inputs only: q_in = k
                            # USE_LOCAL_CONV (T0.1), which is a learned depthwise conv applied to the
                            # residual stream itself and feeds all three of Q/K/V.
 QK_SHIFT_BETA = 0.3        # per-dim beta init (Recursive: 0.3). Not a step-0 no-op by design.
+QK_SHIFT_FREEZE = False    # T3.9-followup / T1.x throughput probe: keep beta OUT of every optimizer
+                           # group and set requires_grad=False, so it stays at QK_SHIFT_BETA forever.
+                           # With --qk-shift-beta 0.0 that makes the whole shift a MATHEMATICAL
+                           # IDENTITY at every step (x + 0.0*x_prev == x bit-exactly in IEEE fp, and
+                           # the backward contribution through the shifted branch is scaled by the
+                           # same 0.0), while the elementwise ops STAY in the compiled graph. That is
+                           # the decisive probe for the observed anomaly that adding almost any
+                           # elementwise op to the block body makes a step 8-9% FASTER: if the frozen
+                           # arm keeps the speedup with bit-identical losses, the +8% is free.
+USE_X0_GATE = False        # Recursive's INPUT-DEPENDENT x0 gate, the rehabilitated form of the
+                           # GPU-discarded USE_SELECTIVE_GATE (which was +0.0092 there): scale this
+                           # block's x0 skip by `2*sigmoid(s * mean(x))` with ONE learned scalar s
+                           # per layer and `mean` taken over the residual CHANNELS of each token
+                           # independently (so it is causally trivial -- position t reads only
+                           # position t, same argument as MuddCompose). s is zero-initialized, and
+                           # 2*sigmoid(0) == 1.0 exactly in IEEE fp, so the gate is a BIT-EXACT
+                           # no-op at step 0 against the plain `x0_lambda * x0` skip. Differs from
+                           # USE_SELECTIVE_GATE in three ways that matter on this stack: it touches
+                           # only the x0 term (not resid_lambda), its input is a free per-token
+                           # reduction rather than a Linear over 32 residual channels, and it is
+                           # multiplicative-around-1 rather than (1 + g).
 
 
 def head_gate_slice(n_embd: int, n_layer: int) -> tuple[int, int]:
@@ -3545,6 +3566,9 @@ class Block(nn.Module):
         self.resid_lambda = nn.Parameter(torch.ones(1)) if self.mudd is None else None
         # x0 skip: mixes initial embedding into each layer's input (stabilizes deep nets)
         self.x0_lambda = nn.Parameter(torch.zeros(1)) if self.mudd is None else None
+        # Recursive's input-dependent x0 gate: one scalar per layer, zero-init so
+        # 2*sigmoid(0) == 1.0 makes it a bit-exact no-op against the static x0_lambda skip.
+        self.x0_gate_s = nn.Parameter(torch.zeros(1)) if (USE_X0_GATE and self.mudd is None) else None
         self.local_conv = CausalConv(config.n_embd, LOCAL_CONV_KERNEL) if USE_LOCAL_CONV else None
         self.scalar_gate = Linear(SELECTIVE_GATE_CHANNELS, 2, bias=False) if USE_SELECTIVE_GATE else None
         # Value Residual Learning (arXiv:2410.17897): layer 0 has no v0 to consume yet (it
@@ -3556,7 +3580,8 @@ class Block(nn.Module):
         # each residual channel decides for itself how much of the previous token to mix into the
         # query/key view; V is deliberately left unshifted. Only meaningful where there is an
         # attention module to feed.
-        self.qk_shift_beta = nn.Parameter(torch.full((config.n_embd,), float(QK_SHIFT_BETA))) \
+        self.qk_shift_beta = nn.Parameter(torch.full((config.n_embd,), float(QK_SHIFT_BETA)),
+                                          requires_grad=not QK_SHIFT_FREEZE) \
             if USE_QK_SHIFT and not (self.is_mamba or self.is_rwkv) else None
 
     def forward(self, x: torch.Tensor, x0: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, attn_mask: torch.Tensor | None, v0: torch.Tensor | None = None, hidden_states: list[torch.Tensor] | None = None, ve_bi: torch.Tensor | None = None, ve_tri: torch.Tensor | None = None) -> tuple[torch.Tensor, torch.Tensor]:
@@ -3568,6 +3593,16 @@ class Block(nn.Module):
                 resid_lambda = self.resid_lambda * (1.0 + g[..., 0:1])
                 x0_lambda = self.x0_lambda * (1.0 + g[..., 1:2])
                 x = resid_lambda * x + x0_lambda * x0
+            elif self.x0_gate_s is not None:
+                # Recursive's input-dependent x0 gate. mean() is over the LAST axis only, i.e. each
+                # token's own 640 residual channels -- no cross-position reduction, so causality is
+                # structural here, not something the mask has to enforce. The grouping
+                # `x0_lambda * (gate * x0)` is deliberate: at init gate is exactly 1.0, so this is
+                # bit-identical to `x0_lambda * x0`, which is what makes the A/B start from the same
+                # point. 2*sigmoid keeps the neutral value at 1.0 instead of 0.5, matching every
+                # other gate in this file (ve_gate, head_gate).
+                gate0 = 2.0 * torch.sigmoid(self.x0_gate_s * x.mean(dim=-1, keepdim=True))
+                x = self.resid_lambda * x + self.x0_lambda * (gate0 * x0)
             else:
                 x = self.resid_lambda * x + self.x0_lambda * x0
             q_in = k_in = v_in = x
@@ -3997,11 +4032,20 @@ class GPT(nn.Module):
                 local_conv_params.append(block.local_conv.weight)
             if block.resid_lambda is not None:
                 scalar_params.extend([block.resid_lambda, block.x0_lambda])
+            if block.x0_gate_s is not None:
+                # A single learned scalar per layer, exactly the class SCALAR_LR was tuned for --
+                # same group as the resid_lambda/x0_lambda it gates. It also NEEDS the larger LR:
+                # its input is mean(x) over 640 channels, which is ~1/sqrt(640) of a channel's own
+                # scale, so the gradient reaching s is correspondingly small.
+                scalar_params.append(block.x0_gate_s)
             if block.mudd is not None:
                 hypernet_params.extend([block.mudd.w1, block.mudd.w2, block.mudd.bias])
             if block.v_lambda is not None:
                 scalar_params.append(block.v_lambda)
-            if block.qk_shift_beta is not None:
+            if block.qk_shift_beta is not None and block.qk_shift_beta.requires_grad:
+                # QK_SHIFT_FREEZE leaves beta out of EVERY optimizer group on purpose (see the
+                # QK_SHIFT_FREEZE comment): the throughput probe needs the ops in the graph but the
+                # parameter mathematically inert, and an AdamW group would move it off its init.
                 gate_params.append(block.qk_shift_beta)
             if block.mixer is not None:
                 # in_proj / out_proj are ordinary weight matrices -> Muon, grouped
@@ -4817,7 +4861,8 @@ ARCH_TOGGLE_NAMES = [
     "USE_OUT_BIGRAM", "OUT_BIGRAM_BF16", "OUT_BIGRAM_GATE_BIAS", "OUT_BIGRAM_LR",
     "RELU2_TAU", "USE_MLP_SANDWICH_NORM",
     "USE_HEAD_GATE", "HEAD_GATE_NORM", "HEAD_GATE_CHANNELS", "HEAD_GATE_MUL", "HEAD_GATE_BIAS",
-    "USE_OUT_POOL", "OUT_POOL_LAYERS", "USE_QK_SHIFT", "QK_SHIFT_BETA",
+    "USE_OUT_POOL", "OUT_POOL_LAYERS", "USE_QK_SHIFT", "QK_SHIFT_BETA", "QK_SHIFT_FREEZE",
+    "USE_X0_GATE",
     # T2.1 batch-size ramp. Pure training-schedule knobs -- no tensor changes name, shape or
     # dtype -- but they change how many tokens each recorded step saw and at what lr, so a
     # checkpoint trained with a ramp and reloaded without one is silently mis-described.
@@ -4863,7 +4908,9 @@ SHAPE_CRITICAL_TOGGLES = {"USE_VE", "USE_LOCAL_CONV", "USE_GATED_MLP", "USE_SELE
                           # here for the same reason NGRAM_VE_BF16 is not: load_state_dict casts a
                           # dtype mismatch silently instead of erroring.
                           "USE_OUT_BIGRAM", "USE_HEAD_GATE", "HEAD_GATE_CHANNELS",
-                          "USE_OUT_POOL", "OUT_POOL_LAYERS", "USE_QK_SHIFT"}
+                          "USE_OUT_POOL", "OUT_POOL_LAYERS", "USE_QK_SHIFT",
+                          # USE_X0_GATE adds one x0_gate_s scalar per block.
+                          "USE_X0_GATE"}
 # USE_FP8_LINEAR is deliberately NOT in the set above: Fp8Linear is a Linear subclass with
 # the identical single `weight` parameter, so flipping it changes only the arithmetic used
 # inside MLP.forward, never a tensor's name or shape. That makes it exactly the
@@ -5087,7 +5134,8 @@ def main() -> None:
     global USE_OUT_BIGRAM, OUT_BIGRAM_BF16, OUT_BIGRAM_GATE_BIAS, OUT_BIGRAM_LR
     global RELU2_TAU, USE_MLP_SANDWICH_NORM
     global USE_HEAD_GATE, HEAD_GATE_NORM, HEAD_GATE_CHANNELS, HEAD_GATE_MUL, HEAD_GATE_BIAS
-    global USE_OUT_POOL, OUT_POOL_LAYERS, USE_QK_SHIFT, QK_SHIFT_BETA
+    global USE_OUT_POOL, OUT_POOL_LAYERS, USE_QK_SHIFT, QK_SHIFT_BETA, QK_SHIFT_FREEZE
+    global USE_X0_GATE
     # T2.1. Read once per step by batch_ramp_grad_accum() to pick a Python int loop count and a
     # Python float lr scale -- neither reaches a device op as a constant (the loss scaling, which
     # would, goes through inv_gas_dev instead).
@@ -5271,6 +5319,19 @@ def main() -> None:
                              "mechanism from --local-conv.")
     _hp("--qk-shift-beta", QK_SHIFT_BETA, float,
         "T3.9: per-dim init of the Q/K shift's beta. Recursive uses 0.3.")
+    parser.add_argument("--qk-shift-freeze", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_QK_SHIFT_FREEZE", "1" if QK_SHIFT_FREEZE else "0") != "0",
+                        help="freeze the Q/K shift's beta (requires_grad=False, no optimizer group) "
+                             "so it stays at --qk-shift-beta forever. With --qk-shift-beta 0.0 this "
+                             "is a mathematical identity that still keeps the elementwise ops in the "
+                             "compiled graph -- the decisive probe for the block-body "
+                             "compiler-scheduling speedup.")
+    parser.add_argument("--x0-gate", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_X0_GATE", "1" if USE_X0_GATE else "0") != "0",
+                        help="Recursive's input-dependent x0 gate: scale each block's x0 skip by "
+                             "2*sigmoid(s*mean(x)) with one zero-init learned scalar s per layer. "
+                             "Bit-exact no-op at step 0. Mutually exclusive with USE_SELECTIVE_GATE, "
+                             "which owns the same line of Block.forward.")
     parser.add_argument("--batch-ramp", action=argparse.BooleanOptionalAction,
                         default=os.environ.get("NEURON_COMPETITION_R1_BATCH_RAMP", "1" if BATCH_RAMP else "0") != "0",
                         help="T2.1: ramp the effective batch size across the run by varying "
@@ -5594,6 +5655,11 @@ def main() -> None:
     OUT_POOL_LAYERS = args.out_pool_layers
     USE_QK_SHIFT = args.qk_shift
     QK_SHIFT_BETA = args.qk_shift_beta
+    QK_SHIFT_FREEZE = args.qk_shift_freeze
+    USE_X0_GATE = args.x0_gate
+    if USE_X0_GATE and USE_SELECTIVE_GATE:
+        raise ValueError("--x0-gate and USE_SELECTIVE_GATE both rewrite the same resid/x0 mix line "
+                         "in Block.forward; pick one.")
     if RELU2_TAU != 0.0 and args.nki_relu2:
         raise ValueError("--relu2-tau is not implemented by the example NKI relu2 kernel; "
                          "run it with --no-nki-relu2 (the default).")
@@ -6092,7 +6158,8 @@ def main() -> None:
               f"head_gate={USE_HEAD_GATE} hg_norm={HEAD_GATE_NORM} hg_ch={HEAD_GATE_CHANNELS} "
               f"hg_mul={HEAD_GATE_MUL} hg_bias={HEAD_GATE_BIAS} "
               f"out_pool={USE_OUT_POOL} pool_layers={OUT_POOL_LAYERS} "
-              f"qk_shift={USE_QK_SHIFT} qk_beta={QK_SHIFT_BETA}")
+              f"qk_shift={USE_QK_SHIFT} qk_beta={QK_SHIFT_BETA} qk_freeze={QK_SHIFT_FREEZE} "
+              f"x0_gate={USE_X0_GATE}")
         # T2.1, same reason: one line carrying every ramp knob, so two ramp arms are
         # distinguishable in experiment-log.jsonl without re-reading the run log.
         print(f"batch_ramp:        {BATCH_RAMP} grad_accum={BATCH_RAMP_GRAD_ACCUM} "
