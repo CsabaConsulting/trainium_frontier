@@ -112,6 +112,11 @@ ARMS = [
     # same class of claim (bit-exact step-0 no-op, per-token-only reduction so causality is
     # structural) and it needs the same three checks.
     ("x0-gate", dict(USE_X0_GATE=True)),
+    # The MINIMAL form of the same graph perturbation: `x = x + nudge*x` with nudge frozen at 0.
+    # Two multiplies/adds per block instead of the shift's gather+multiply+add over [B,T,C], and
+    # no [C]-wide parameter. Same bit-identity claim as qkshift-b0-frozen.
+    ("nudge-qk", dict(USE_BLOCK_NUDGE=True, BLOCK_NUDGE_SITE="qk")),
+    ("nudge-resid", dict(USE_BLOCK_NUDGE=True, BLOCK_NUDGE_SITE="resid")),
 ]
 
 
@@ -133,6 +138,10 @@ def main() -> int:
                 if toggles.get("QK_SHIFT_FREEZE"):
                     bad = [i for i, b in enumerate(betas) if b.grad is not None]
                     assert not bad, f"{label}: frozen beta got a .grad on layers {bad}"
+                if toggles.get("USE_BLOCK_NUDGE"):
+                    bad = [i for i, b in enumerate(model.transformer.h)
+                           if b.block_nudge is not None and b.block_nudge.grad is not None]
+                    assert not bad, f"{label}: frozen nudge got a .grad on layers {bad}"
                 opt.step()
                 losses.append(loss.item())
             cz = causality(model, cfg)
@@ -149,6 +158,14 @@ def main() -> int:
                 status = "FAIL not bit-identical over 5 steps"
             if label.endswith("-frozen") and beta_moved != 0.0:
                 status = f"FAIL frozen beta moved by {beta_moved:.3e}"
+            if label.startswith("nudge-"):
+                nudges = [b.block_nudge for b in model.transformer.h if b.block_nudge is not None]
+                assert len(nudges) == DEPTH, f"{label}: {len(nudges)} nudges for {DEPTH} blocks"
+                n_moved = max(n.detach().abs().max().item() for n in nudges)
+                if not same_all:
+                    status = "FAIL not bit-identical over 5 steps"
+                elif n_moved != 0.0:
+                    status = f"FAIL frozen nudge moved by {n_moved:.3e}"
             if label in ("qkshift-b0-trained", "x0-gate") and (not same_step0 or same_all):
                 status = "FAIL expected step-0 no-op then divergence"
             if cz != 0.0:

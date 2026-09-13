@@ -584,6 +584,20 @@ QK_SHIFT_FREEZE = False    # T3.9-followup / T1.x throughput probe: keep beta OU
                            # the decisive probe for the observed anomaly that adding almost any
                            # elementwise op to the block body makes a step 8-9% FASTER: if the frozen
                            # arm keeps the speedup with bit-identical losses, the +8% is free.
+USE_BLOCK_NUDGE = False    # The harvestable form of the block-body compiler-scheduling anomaly, once
+                           # --qk-shift-freeze had shown the +10% throughput survives with the
+                           # mathematics removed: add `x = x + nudge * x` with ONE nudge scalar per
+                           # block, frozen at exactly 0.0 and in no optimizer group. That is a
+                           # mathematical identity forever (x + 0.0*x == x bit-exactly for finite x,
+                           # and the backward contribution through the extra branch is scaled by the
+                           # same 0.0), so it can only ever change the compiled graph -- which on
+                           # this stack is the entire point. Strictly cheaper than the frozen
+                           # qk-shift: a broadcast scalar mul plus an add, with no causal_shift_1
+                           # pad/slice and no per-dim vector.
+BLOCK_NUDGE_SITE = "qk"    # where the nudge lands. "qk" puts it exactly where --qk-shift put it (the
+                           # Q/K input, V untouched); "resid" puts it on the residual stream right
+                           # after the resid/x0 mix, so all of Q/K/V and the MLP see it. Both are
+                           # identities; they differ only in which compiled region gets perturbed.
 USE_X0_GATE = False        # Recursive's INPUT-DEPENDENT x0 gate, the rehabilitated form of the
                            # GPU-discarded USE_SELECTIVE_GATE (which was +0.0092 there): scale this
                            # block's x0 skip by `2*sigmoid(s * mean(x))` with ONE learned scalar s
@@ -3569,6 +3583,8 @@ class Block(nn.Module):
         # Recursive's input-dependent x0 gate: one scalar per layer, zero-init so
         # 2*sigmoid(0) == 1.0 makes it a bit-exact no-op against the static x0_lambda skip.
         self.x0_gate_s = nn.Parameter(torch.zeros(1)) if (USE_X0_GATE and self.mudd is None) else None
+        # Frozen zero nudge: never trained, never in an optimizer group. See USE_BLOCK_NUDGE.
+        self.block_nudge = nn.Parameter(torch.zeros(1), requires_grad=False) if USE_BLOCK_NUDGE else None
         self.local_conv = CausalConv(config.n_embd, LOCAL_CONV_KERNEL) if USE_LOCAL_CONV else None
         self.scalar_gate = Linear(SELECTIVE_GATE_CHANNELS, 2, bias=False) if USE_SELECTIVE_GATE else None
         # Value Residual Learning (arXiv:2410.17897): layer 0 has no v0 to consume yet (it
@@ -3605,7 +3621,13 @@ class Block(nn.Module):
                 x = self.resid_lambda * x + self.x0_lambda * (gate0 * x0)
             else:
                 x = self.resid_lambda * x + self.x0_lambda * x0
+            if self.block_nudge is not None and BLOCK_NUDGE_SITE == "resid":
+                x = x + self.block_nudge * x
             q_in = k_in = v_in = x
+            if self.block_nudge is not None and BLOCK_NUDGE_SITE == "qk":
+                # Exactly where --qk-shift put its perturbation (Q/K only, V untouched), minus the
+                # causal shift and minus the trainable parameter. An identity; see USE_BLOCK_NUDGE.
+                q_in = k_in = x + self.block_nudge * x
             if self.qk_shift_beta is not None:
                 # T3.9: q/k see x + beta*x_prev, v sees plain x. causal_shift_1 zero-pads at t=0
                 # (it does NOT wrap), so position t reads only positions t and t-1.
@@ -4862,7 +4884,7 @@ ARCH_TOGGLE_NAMES = [
     "RELU2_TAU", "USE_MLP_SANDWICH_NORM",
     "USE_HEAD_GATE", "HEAD_GATE_NORM", "HEAD_GATE_CHANNELS", "HEAD_GATE_MUL", "HEAD_GATE_BIAS",
     "USE_OUT_POOL", "OUT_POOL_LAYERS", "USE_QK_SHIFT", "QK_SHIFT_BETA", "QK_SHIFT_FREEZE",
-    "USE_X0_GATE",
+    "USE_X0_GATE", "USE_BLOCK_NUDGE", "BLOCK_NUDGE_SITE",
     # T2.1 batch-size ramp. Pure training-schedule knobs -- no tensor changes name, shape or
     # dtype -- but they change how many tokens each recorded step saw and at what lr, so a
     # checkpoint trained with a ramp and reloaded without one is silently mis-described.
@@ -4909,8 +4931,10 @@ SHAPE_CRITICAL_TOGGLES = {"USE_VE", "USE_LOCAL_CONV", "USE_GATED_MLP", "USE_SELE
                           # dtype mismatch silently instead of erroring.
                           "USE_OUT_BIGRAM", "USE_HEAD_GATE", "HEAD_GATE_CHANNELS",
                           "USE_OUT_POOL", "OUT_POOL_LAYERS", "USE_QK_SHIFT",
-                          # USE_X0_GATE adds one x0_gate_s scalar per block.
-                          "USE_X0_GATE"}
+                          # USE_X0_GATE adds one x0_gate_s scalar per block; USE_BLOCK_NUDGE adds
+                          # one frozen block_nudge scalar per block. Both are state_dict keys even
+                          # though the nudge never trains, so a mismatch is a load-time error.
+                          "USE_X0_GATE", "USE_BLOCK_NUDGE"}
 # USE_FP8_LINEAR is deliberately NOT in the set above: Fp8Linear is a Linear subclass with
 # the identical single `weight` parameter, so flipping it changes only the arithmetic used
 # inside MLP.forward, never a tensor's name or shape. That makes it exactly the
@@ -5135,7 +5159,7 @@ def main() -> None:
     global RELU2_TAU, USE_MLP_SANDWICH_NORM
     global USE_HEAD_GATE, HEAD_GATE_NORM, HEAD_GATE_CHANNELS, HEAD_GATE_MUL, HEAD_GATE_BIAS
     global USE_OUT_POOL, OUT_POOL_LAYERS, USE_QK_SHIFT, QK_SHIFT_BETA, QK_SHIFT_FREEZE
-    global USE_X0_GATE
+    global USE_X0_GATE, USE_BLOCK_NUDGE, BLOCK_NUDGE_SITE
     # T2.1. Read once per step by batch_ramp_grad_accum() to pick a Python int loop count and a
     # Python float lr scale -- neither reaches a device op as a constant (the loss scaling, which
     # would, goes through inv_gas_dev instead).
@@ -5326,6 +5350,15 @@ def main() -> None:
                              "is a mathematical identity that still keeps the elementwise ops in the "
                              "compiled graph -- the decisive probe for the block-body "
                              "compiler-scheduling speedup.")
+    parser.add_argument("--block-nudge", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_BLOCK_NUDGE", "1" if USE_BLOCK_NUDGE else "0") != "0",
+                        help="add `x = x + nudge*x` with one frozen zero scalar per block -- a "
+                             "mathematical identity whose only effect is on the compiled graph. The "
+                             "cheap, general form of the +10%% throughput the frozen qk-shift found.")
+    parser.add_argument("--block-nudge-site", type=str, choices=("qk", "resid"),
+                        default=os.environ.get("NEURON_COMPETITION_R1_BLOCK_NUDGE_SITE", BLOCK_NUDGE_SITE),
+                        help="where --block-nudge lands: the Q/K input ('qk', where --qk-shift put "
+                             "it) or the residual stream after the resid/x0 mix ('resid').")
     parser.add_argument("--x0-gate", action=argparse.BooleanOptionalAction,
                         default=os.environ.get("NEURON_COMPETITION_R1_X0_GATE", "1" if USE_X0_GATE else "0") != "0",
                         help="Recursive's input-dependent x0 gate: scale each block's x0 skip by "
@@ -5657,6 +5690,11 @@ def main() -> None:
     QK_SHIFT_BETA = args.qk_shift_beta
     QK_SHIFT_FREEZE = args.qk_shift_freeze
     USE_X0_GATE = args.x0_gate
+    USE_BLOCK_NUDGE = args.block_nudge
+    BLOCK_NUDGE_SITE = args.block_nudge_site
+    if USE_BLOCK_NUDGE and USE_QK_SHIFT and BLOCK_NUDGE_SITE == "qk":
+        raise ValueError("--block-nudge --block-nudge-site qk and --qk-shift both rewrite q_in/k_in; "
+                         "the nudge exists to REPLACE the frozen qk-shift, so pick one.")
     if USE_X0_GATE and USE_SELECTIVE_GATE:
         raise ValueError("--x0-gate and USE_SELECTIVE_GATE both rewrite the same resid/x0 mix line "
                          "in Block.forward; pick one.")
@@ -6159,7 +6197,8 @@ def main() -> None:
               f"hg_mul={HEAD_GATE_MUL} hg_bias={HEAD_GATE_BIAS} "
               f"out_pool={USE_OUT_POOL} pool_layers={OUT_POOL_LAYERS} "
               f"qk_shift={USE_QK_SHIFT} qk_beta={QK_SHIFT_BETA} qk_freeze={QK_SHIFT_FREEZE} "
-              f"x0_gate={USE_X0_GATE}")
+              f"x0_gate={USE_X0_GATE} "
+              f"block_nudge={USE_BLOCK_NUDGE} nudge_site={BLOCK_NUDGE_SITE}")
         # T2.1, same reason: one line carrying every ramp knob, so two ramp arms are
         # distinguishable in experiment-log.jsonl without re-reading the run log.
         print(f"batch_ramp:        {BATCH_RAMP} grad_accum={BATCH_RAMP_GRAD_ACCUM} "
