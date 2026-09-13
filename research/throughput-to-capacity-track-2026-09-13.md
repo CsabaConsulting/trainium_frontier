@@ -103,6 +103,9 @@ Protocol:
 1. Ablate-down arm on the fastest backend/micro-step from Probes 1–2: `--no-local-conv`,
    `--no-ve`, `--no-ngram-ve`, lambdas fixed, `--no-nki-rope-norm --no-nki-softcap-ce` (let the
    compiler fuse the plain ops). Measure s/step only; quality will be worse and that is expected.
+1b. Optional shared-KV arm (`--shared-kv-from 3`: layers 4–6 attend to K/V projected once from
+   layer 3's output, YOCO/CED-style; removes three K/V projections and their launches). Measure
+   s/step first; only if it is ≥ 3% faster run a 900 s pair. Prior for a net win: low.
 2. Re-add features one at a time and record each one's s/step cost on the fast stack (the costs
    on the eager stack are not transferable — the rope kernel win, for instance, was a
    launch-count win).

@@ -543,7 +543,12 @@ masking, requeue packer, PACK_FACTOR 4 (until T1.5 explains it), `--nki-relu2`.
   is another per-step scalar. Neuron's MoE support (NxD `RouterTopK`/`ExpertMLPs`, EP/TP) lives in the torch-xla
   NeuronX-Distributed stack for multi-node Mixtral-class training, not the native-eager path; EP is training-only
   and the scorer needs one consolidated module anyway. Same family verdict as Engram: capacity via a new routed
-  mechanism does not pay here; capacity as width on existing ops is the only conversion that has.- **Kolmogorov–Arnold networks (KAN / KAT / GR-KAN) as the FFN** — closed on published evidence (2026-09-12):
+  mechanism does not pay here; capacity as width on existing ops is the only conversion that has.- **DeepSeek-V4.1-Flash component list** (CED shared KV, CSA2, hierarchical sparse indexer, FP4 KV, SWA bounded replay,
+  Single-Pass mHC, Engram, DSpark, 384-expert MoE) — reviewed 2026-09-13
+  (`research/deepseek-v4.1-flash-techniques-review-2026-09-13.md`): seven of nine are serving-cost items the single-forward
+  scorer never exercises; mHC is the hyper-connection / MUDD family (MUDD negative at DEPTH=6, x0-gate +13% slower) and needs a
+  fused kernel we do not have; Engram is already done both ways (T3.1 adopted, T3.2 discarded). Only CED's shared-KV idea
+  (YOCO-style: later layers reuse K/V projected from a mid-layer) earns an ablation arm in the second box's plain-block probe.- **Kolmogorov–Arnold networks (KAN / KAT / GR-KAN) as the FFN** — closed on published evidence (2026-09-12):
   Alves & Vicente, arXiv 2607.15525, ran the best variant (grouped rational GR-KAN) at 286M on **ClimbMix**:
   BPB 0.8904 vs 0.8464 for the SwiGLU MLP at equal steps, at 290K vs 508K tok/s (0.57×). Worse per step *and*
   1.75× slower — for us ≈ +0.04 bpb from lost steps plus +0.04 per-step, before any Trainium penalty for
