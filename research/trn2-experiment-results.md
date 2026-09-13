@@ -4767,3 +4767,59 @@ both modes get a **shortened 1630s budget**, chosen so that their throughput lan
 steps — step-matched to the two controls already in hand (`qkfreeze-base-1800s` 2155/1.018303 and
 `qkfreeze-frozen-1648s` 2149/1.018967) and below the wall. `parall-1630s` and `parvfc-1630s` are
 running as this is written; the numbers are deliberately absent rather than estimated.
+
+### The full-budget verdict: a large, real negative — the parallel structure costs ~0.0147 bpb
+
+Both modes, step-matched at ~2130–2150 steps and below the data wall, against the two controls run
+on the same box the same day:
+
+| arm | budget | steps | s/step | tokens | `val_bpb` (2048) | `val_bpb` (1024) | Δ vs base |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `qkfreeze-base-1800s` | 1800s | 2155 | 0.83 | 282.5M | **1.018303** | 1.033265 | — |
+| `qkfreeze-frozen-1648s` | 1648s | 2149 | 0.76 | 281.8M | 1.018967 | 1.033777 | +0.00066 |
+| `parvfc-1630s` | 1630s | 2143 | 0.76 | 280.9M | 1.032908 | 1.048085 | **+0.01461** |
+| `parall-1630s` | 1630s | 2128 | 0.76 | 278.8M | 1.033200 | 1.048447 | **+0.01490** |
+
+Parameter-matched: 190,095,672 vs the baseline's 190,095,660 — the twelve `λ` scalars, nothing else.
+`causality_max_abs == 0.0` and `ngram_ve: True tables=2 … trigram=True` on both arms, so nothing was
+silently disabled. The two modes agree to 0.0003, which is both a clean replication and a useful
+noise estimate: **the regression is the parallel structure, not the coalescing.**
+
+**Item 3 verdict: discarded.** `--parallel-block` and `--parallel-block-coalesce` stay in-tree,
+default OFF.
+
+### The early-loss signal inverted, and it inverted early
+
+| step (`lrm`) | base | `parall-1630s` |
+| --- | --- | --- |
+| 110 (1.000) | 3.9640 | **3.9445** |
+| 1000 (0.73 / 0.72) | **3.0166** | 3.0634 |
+| 2000 (0.145 / 0.130) | **2.8341** | 2.8733 |
+
+The parallel block is genuinely better for the first few hundred steps and is behind by 0.047 at step
+1000. Two arms in this session now show the same shape (the x0 gate in item 2, this in item 3), which
+is worth stating as a rule: **a 100-step loss advantage at `lrm 1.000` carries no information about
+final bpb on this task, in either direction.** The 120-step probe is a throughput instrument only.
+
+Mechanistically the result is unsurprising in hindsight: at DEPTH=6 there are only six opportunities
+for the MLP to consume what attention just produced, and the parallel block removes all of them. The
+architecture is borrowed from settings (GPT-J, PaLM, ViT-22B) with 4–8× the depth, where one layer's
+worth of lost serial composition is a much smaller fraction of the whole network.
+
+### What is worth keeping from item 3: the coalescing recipe, and where it actually applies
+
+The coalescing itself is a clean +10.5% and it comes with the fix for a two-year-old wrong conclusion
+in this file. `USE_FUSED_QKV`'s −0.0428 was never about fusing — it was that a strided last-dim slice
+fails `rope_norm`'s `is_contiguous()` check and silently drops the rope+QK-norm NKI kernel. The
+`all` mode proves the fix: `.contiguous()` on the `q`/`k` slices keeps the kernel, and the two copies
+cost **nothing measurable** (`vfc`, which needs no copies, is exactly as fast).
+
+That recipe applies to the **serial** block too, and does not need the parallel structure: `c_q`,
+`c_k` and `c_v` already read the same `norm(x)` in the locked config, so they can be merged into one
+`Linear(640, 1920)` with contiguous `q`/`k` slices — a 3→1 matmul saving, arithmetically identical to
+the baseline apart from Muon seeing one `[1920, 640]` matrix instead of three `[640, 640]` ones.
+
+**It is not implemented, and under the data wall it should not be.** Its entire value is throughput,
+and throughput above ~2.6% is worth ≈0 bpb at this budget. Recorded here so that it is available the
+moment there is a reason to spend a speedup — see the capacity-per-step direction at the end of the
+data-wall section.

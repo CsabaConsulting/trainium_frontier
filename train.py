@@ -659,7 +659,24 @@ BLOCK_NUDGE_SITE = "qk"    # where the nudge lands. "qk" puts it exactly where -
                            # Q/K input, V untouched); "resid" puts it on the residual stream right
                            # after the resid/x0 mix, so all of Q/K/V and the MLP see it. Both are
                            # identities; they differ only in which compiled region gets perturbed.
-USE_PARALLEL_BLOCK = False # GPT-J / PaLM-style parallel block: attention and the MLP both read the
+USE_PARALLEL_BLOCK = False # DISCARDED: a large real negative at the full budget. Step-matched at
+                           # ~2140 steps (a SHORTENED 1630s budget so its +10.5% throughput stays
+                           # below the ~2195-step data wall): parvfc-1630s 2143/1.032908 and
+                           # parall-1630s 2128/1.033200 vs the same-day control's 2155/1.018303, i.e.
+                           # +0.0146 to +0.0149, parameter-matched (+12 lambda scalars) with
+                           # causality_max_abs 0.0 and the n-gram VE confirmed still on. The two
+                           # coalesce modes agree to 0.0003, so the regression is the PARALLEL
+                           # STRUCTURE, not the coalescing. It is also a warning about early loss: the
+                           # arm is AHEAD at step 110 (3.9445 vs 3.9640 at lrm 1.000 on identical
+                           # data) and 0.047 behind by step 1000. At DEPTH=6 there are only six
+                           # chances for the MLP to consume what attention just produced and this
+                           # removes all of them; the architecture comes from 4-8x deeper models.
+                           # The coalescing half IS worth +10.5% and its recipe (contiguous q/k slices
+                           # keep the rope+QK-norm NKI kernel alive -- which is the real explanation of
+                           # USE_FUSED_QKV's -0.0428) carries over to the serial block, but under the
+                           # data wall throughput above ~2.6% is worth ~0 bpb. See
+                           # trn2-experiment-results.md.
+                           # GPT-J / PaLM-style parallel block: attention and the MLP both read the
                            # SAME norm(x) and their outputs are summed into the residual together,
                            # `x = x + la*attn(norm(x)) + lm*mlp(norm(x))`, instead of the MLP reading
                            # the post-attention residual. Removes three of the four norm() calls per
