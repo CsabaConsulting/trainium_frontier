@@ -4596,6 +4596,64 @@ controls already in hand:
 
 Either answer changes what is worth working on more than any single architecture arm would.
 
+### The answer: reordering does not fix it — and the shuffle is *worse* than prepare's order
+
+| arm | budget | steps | tokens | epoch 2 steps | `val_bpb` (2048) | `val_bpb` (1024) |
+| --- | --- | --- | --- | --- | --- | --- |
+| `qkfreeze-base-1800s` | 1800s | 2155 | 282.5M | 0 | **1.018303** | 1.033265 |
+| `qkfreeze-frozen-1648s` | 1648s | 2149 | 281.8M | 0 | 1.018967 | 1.033777 |
+| `qkfreeze-frozen-1800s` | 1800s | 2354 | 308.5M | ~155 | 1.021278 | 1.036399 |
+| `epochshuf-frozen-1800s` | 1800s | 2341 | 306.8M | ~145 | **1.023799** | 1.038890 |
+
+Predicted for the shuffle arm: ≈1.0125. Measured: 1.023799 — **+0.0048 above the step-matched
+control and +0.0025 above the unshuffled arm it was supposed to rescue.** The hypothesis is refuted
+twice over: reordering does not recover the throughput, and it makes the crossing measurably worse.
+
+`--epoch-shuffle`: **discarded.** It stays in-tree, default OFF, as the recorded negative.
+
+### Why the shuffle is worse, and why prepare's "naive" order is already near-optimal
+
+The failure has a clean mechanism, and it inverts the original reasoning. Without the shuffle, the
+epoch-2 steps replay the corpus's *opening* row groups — the documents the model last saw ~2100
+steps and one full LR cooldown ago, i.e. the ones it has had the most time to forget. With the
+shuffle, epoch 2 draws a *uniform* sample of the rank's 104 row groups, so a large fraction of the
+replayed documents were last seen only tens or a couple of hundred steps earlier. Replaying
+recently-seen data is a much sharper overfit than replaying long-forgotten data.
+
+So prepare's identical-order replay is not a bug to be fixed; **it is the recency-maximizing order**,
+and it is close to the best thing to do if you must cross the boundary at all. Any reordering that
+mixes recent groups into the replay is strictly worse. This also means there is no cheap variant
+worth trying next (reverse order, stride-k, shuffle-within-shard): they all move *toward* recency,
+not away from it.
+
+### The strategic consequence: stop buying throughput, buy capacity per step
+
+The ~288M-token corpus is a hard ceiling — `PUBLIC_TRAIN_SHARDS` is 5 shards and external data is
+forbidden — so the 1800s budget cannot be made compute-bound. Three rules follow, and they change
+what is worth working on:
+
+1. **A speedup is convertible only for its first ~2.6%.** The locked config runs 2139 of the ~2195
+   available steps. Beyond that, extra steps are worth *negative* bpb (+0.0023 measured for a
+   9.2% speedup, +0.0048 if you also reshuffle). This applies directly to the queued throughput
+   items (T1.6/T1.7/T1.8, the n-gram layers-1/3 cost reduction, the LNC=1 mystery): they should be
+   re-priced as ≈0 bpb, not as their step gain × the slope, unless they come with a capacity
+   increase to absorb them.
+2. **A slowdown is still fully penalized**, at the below-the-wall slope of ≈−0.077 per unit
+   ln(steps). The pricing is asymmetric: cheap is no longer free, but expensive is still a real loss.
+3. **The right way to harvest a free speedup is to spend it on the model, not on steps.** A
+   verified-neutral +9.2% (the frozen shift) can fund ~9% more FLOPs per step — wider MLP, more
+   heads, an extra n-gram layer — while *holding* the step count at ~2150 and the token count below
+   the wall. That is the one conversion the wall does not block, and it is untested. Previous
+   capacity sweeps (DEPTH=8, width 768) all lost because they paid for capacity with steps; funding
+   capacity from a free speedup instead is a different experiment.
+
+A fourth, mechanical point for any faster arm that does get submitted: because past-the-wall steps
+are harmful, a faster configuration should *shorten its own budget* so the wall-clock LR schedule
+completes right at ~2190 steps rather than running past it. `qkfreeze-frozen-1648s` is exactly that
+configuration, and it scores 1.018967 — no gain, but no loss, versus 1.021278 for the same arm
+allowed to run the full 1800s. Throughput, at this budget, is worth zero rather than negative only
+if you deliberately decline to use it.
+
 **Still open from the local-box pass** (also plan §12.5, updated the same night): the device agent has
 since *implemented* the two lead candidates — `--parallel-block` with `--parallel-block-coalesce
 {none,vfc,all}` (bed5b38, 4503d84) and `--x0-gate` (03144c1) — with 900 s pair scripts queued; their

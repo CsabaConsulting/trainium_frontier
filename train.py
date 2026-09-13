@@ -418,7 +418,14 @@ ATTN_CPROJ_INIT_SCALE = 0.10
 # reproducible from its own log -- hence the flag now exists. See trn2-experiment-results.md.
 PACK_FACTOR = 4
 USE_REQUEUE_PACKER = False  # Bucket B: implemented + verified correct (offline harness, research/scratch/requeue_packer_equiv.py, zero corruption over a 20k-doc synthetic corpus), but the real hardware A/B at the final locked shape was a small real negative (332 steps/1.235799 vs baseline 330/1.234514) -- not kept. See trn2-experiment-results.md
-USE_EPOCH_SHUFFLE = False  # Reshuffle the row-group order from epoch 2 onward (epoch 1 untouched, so
+USE_EPOCH_SHUFFLE = False  # DISCARDED, kept as the recorded negative: at 1800s with the frozen
+# qk-shift (+9.2% steps) it measured 2341/1.023799 against 2354/1.021278 unshuffled and 2149/1.018967
+# step-matched -- i.e. reordering does NOT recover the throughput and makes the epoch crossing WORSE.
+# Mechanism: prepare's identical-order replay hands epoch 2 the corpus's OPENING row groups, the ones
+# the model last saw ~2100 steps ago and has had the most time to forget; a uniform shuffle mixes in
+# groups seen only tens of steps earlier, which is a much sharper overfit. prepare's "naive" order is
+# already the recency-MAXIMIZING one, so no reordering variant is worth trying.
+# Reshuffle the row-group order from epoch 2 onward (epoch 1 untouched, so
 # this is a literal no-op for any run that never crosses the epoch boundary -- including the locked
 # submission config at ~2140 steps). Exists because the 1800s budget is DATA-bound, not
 # compute-bound: one epoch is ~2195 steps / ~288M tokens at the locked shape, and a mathematically
