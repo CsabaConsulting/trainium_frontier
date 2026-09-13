@@ -121,10 +121,14 @@ quality effect.
    900 s, seven arms):** shifted ReLU² **+0.0029 worse** per step (closed); `--mlp-sandwich-norm`
    **−0.0031** and `--qk-shift` **−0.0061**, both ~90% *throughput* wins (+8–9% steps from compiler
    scheduling, not per-step quality), stacking sub-additively to −0.0067; `--head-gate` loses on
-   a +25% step cost; `--out-pool` neutral. So the "zero cost by construction" assumption was wrong
-   in both directions — this stack reprices even one-liners — and the surviving two are exactly
-   the pattern §5 predicts (cost structure flips, quality does not). The x0 gate was not in the
-   grab-bag and stays untested.
+   a +25% step cost; `--out-pool` neutral. **At 1800 s both 900 s winners inverted** (qk-shift +0.0029
+   with lower train loss and higher val bpb; sandwich alone +0.0059) and all arms were discarded. So
+   the "zero cost by construction" assumption was wrong in both directions — this stack reprices
+   even one-liners — and the 900 s throughput wins were exactly the pattern §5 predicts, with a new
+   corollary: a pure throughput gain is capped by the one-epoch data wall (see notebook). The x0
+   gate was not in the grab-bag; the device agent has since added `--x0-gate` (03144c1), verdict
+   pending. The parallel block (item 1) is likewise implemented as `--parallel-block` /
+   `--parallel-block-coalesce` (bed5b38, 4503d84), verdict pending.
 
 Do not revisit: sliding window, doc masking, `ROPE_BASE` as a standalone item, `VE_WD`, MQA
 (unless the width changes), anything memory-motivated.

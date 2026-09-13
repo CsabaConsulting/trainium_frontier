@@ -4174,9 +4174,12 @@ re-derive them.
 
 Cross-checks against today's device results: the T3.9 grab-bag measured shifted ReLU² at **+0.0029
 per step (worse)**, which closes the "cheap learned activation" fallback the KAN review suggested;
-`--qk-shift` (−0.006) and `--mlp-sandwich-norm` (−0.003) are ~90% throughput wins from compiler
-scheduling, the same mechanism as the T3.1 layer-position effect — consistent with the
-GPU-closed audit's rule that on this stack *cost structure*, not quality, is what flips. Aster's
+`--qk-shift` (−0.006) and `--mlp-sandwich-norm` (−0.003) won at 900 s as ~90% throughput effects from
+compiler scheduling — and then **both inverted at 1800 s** (qk-shift +0.0029 with a lower train loss and
+higher val bpb; sandwich alone +0.0059), so all T3.9 arms are discarded. Consistent with the GPU-closed
+audit's rule that on this stack *cost structure*, not quality, is what flips — with the new corollary
+that a pure throughput win is capped by the **data wall** (the locked config sits at 97.4% of one epoch;
+every 1800 s arm past ~288M tokens lands worse), so throughput gains need `--epoch-shuffle` validated first. Aster's
 output bigram table (+0.004, −7.1% steps) closes T4.2 alongside T4.1. Plan §T4.4 and §9.x carry
 the closures and the compile-stall/cache-hygiene rule; `no_run_meta` is decoded there as a
 pre-flight rejection, not a crash.
@@ -4593,3 +4596,9 @@ controls already in hand:
 
 Either answer changes what is worth working on more than any single architecture arm would.
 
+**Still open from the local-box pass** (also plan §12.5, updated the same night): the device agent has
+since *implemented* the two lead candidates — `--parallel-block` with `--parallel-block-coalesce
+{none,vfc,all}` (bed5b38, 4503d84) and `--x0-gate` (03144c1) — with 900 s pair scripts queued; their
+verdicts are pending. Byte-feature `wte` init, parameter-matched coalesced SwiGLU and partial RoPE in
+the NKI kernel remain unimplemented and low priority. Any throughput-positive result must now be read
+against the data wall and the asymmetric slope (−0.077/ln step below the wall, −0.054 across it).

@@ -869,6 +869,40 @@ unless passed): `--pack-factor`, `--grad-clip`, tri-state `--clip-foreach`, `--a
 - Not attempted this block, deliberately: T1.6 (transposed weights), T1.7 (compile the optimizer
   step), T1.8 (`@nki_op` traceability), T1.11 (FP8 via NKI).
 
+### 12.5 Open candidates left by the 2026-09-12 local-box audits (added 2026-09-12 night)
+
+After the same-day device results (T4.1 count mixer negative, T4.2 output bigram table negative,
+T3.9 grab-bag: all eight arms discarded — qk-shift and sandwich norm won at 900 s on throughput and
+**inverted at 1800 s**; frozen-β qk-shift is a verified identity that is 9–10% faster yet buys nothing
+because the run is **data-bound at ~97.4% of one epoch** — see the notebook's "data wall" and
+`--epoch-shuffle`), these are the items the seven review documents still leave open, in order.
+**Items 1 and 2 were implemented by the device agent the same night** (`--parallel-block`,
+`--parallel-block-coalesce {none,vfc,all}`, `--x0-gate`; pair scripts in `research/scratch/`), verdicts
+pending; note the coalesce trap the agent found: a last-dim slice of a fused output is non-contiguous
+and silently drops the rope+QK-norm NKI kernel to eager (the real cause of `USE_FUSED_QKV`'s −0.0428),
+hence the `vfc` mode. Any throughput-positive verdict must be priced against the data wall (slope
+−0.077/ln step below one epoch, −0.054 across it) with `--epoch-shuffle` validated first.
+
+1. **Parallel attention + MLP block with one coalesced input projection** — `h = norm(x)`; one
+   `640×4480` matmul yields `[q,k,v,fc]`; `x += λ_a·attn + λ_m·mlp`. The one genuinely
+   Trn2-favoured idea from the GPU-closed audit (`gpu-closed-techniques-trn2-revisit-2026-09-12.md`
+   §3.1): fewer launches, one bigger matmul, keeps the rope+QK-norm kernel and the causal fast
+   path. Risk: effective depth at DEPTH=6. phase_timer first, then one 900 s pair.
+2. **Input-dependent x0 gate** `2σ(s_i · mean(x))` (Recursive) — the rehabilitated form of the
+   GPU-discarded selective gate; not in the T3.9 grab-bag. Zero-cost one-liner, bundle with a
+   qk-shift/sandwich-norm control.
+3. **Byte-feature `wte` initialisation / small hashed byte-n-gram input table** — the only legal
+   fragment of the BLT idea (`byte-level-and-lowbit-training-review-2026-09-12.md` §1.5);
+   expected ≤ 0.002, zero step cost.
+4. **Parameter-matched, coalesced SwiGLU** (hidden 1664, gate+up as one matmul) — low prior
+   (~15–20%), one 900 s pair, only after 1–3.
+5. **Partial-rotation RoPE inside `_rope_norm_fwd/_bwd`** — ≤ 0.002, kernel edit + harness.
+
+Parked, not open: Mixture-of-Depths and parameter-free MTP (both wait for a FLOP-bound step),
+a learnable per-channel ReLU² shift/slope (prior dropped after `--relu2-tau 0.5` lost).
+Closed today with numbers in T4.4: KAN, linear attention as a family, MQA/GQA, BLT/MBLM,
+BitNet/ternary, Hyena, diffusion LMs, n-gram drafters, count-based mixer, Aster's output table.
+
 ### 12.3 Traps re-confirmed this block (keep these in view)
 
 - **Any new per-step Python float that reaches a device op recompiles the whole graph every step
