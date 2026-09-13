@@ -705,7 +705,17 @@ USE_QKV_NORM_CSE = False   # Block.forward calls norm() THREE times on q_in/k_in
                            # with everything. Worth probing on its own because this stack is
                            # dispatch-bound (~67 NEFF launches per micro-step): 2 saved launches per
                            # block times 10 blocks is a bigger fraction of a step than of the FLOPs.
-USE_X0_GATE = False        # Recursive's INPUT-DEPENDENT x0 gate, the rehabilitated form of the
+USE_X0_GATE = False        # DISCARDED at 900s: per-step NEUTRAL (-0.00050 residual, inside the
+                           # <0.001 noise floor) and 13% SLOWER per step, which is the entire delta.
+                           # Paired 900s A/B, fresh same-commit control: 951 steps/1.074042 vs
+                           # 1071/1.065348; the -0.077/ln(steps) throughput term alone predicts
+                           # +0.00919 against an observed +0.00869. The gate does do something early
+                           # (step-100 loss 3.9594 vs 4.0002, both at lrm 1.000 on identical data) but
+                           # it has washed out by convergence. Four extra elementwise ops per block --
+                           # one of them a channel-mean REDUCTION -- cost 13% in this dispatch-bound
+                           # graph, which also falsifies the idea that any small block-body edit
+                           # collects the frozen-qk-shift speedup. See trn2-experiment-results.md.
+                           # Recursive's INPUT-DEPENDENT x0 gate, the rehabilitated form of the
                            # GPU-discarded USE_SELECTIVE_GATE (which was +0.0092 there): scale this
                            # block's x0 skip by `2*sigmoid(s * mean(x))` with ONE learned scalar s
                            # per layer and `mean` taken over the residual CHANNELS of each token

@@ -4660,3 +4660,52 @@ since *implemented* the two lead candidates — `--parallel-block` with `--paral
 verdicts are pending. Byte-feature `wte` init, parameter-matched coalesced SwiGLU and partial RoPE in
 the NKI kernel remain unimplemented and low priority. Any throughput-positive result must now be read
 against the data wall and the asymmetric slope (−0.077/ln step below the wall, −0.054 across it).
+
+---
+
+## 2026-09-13 — Item 2: Recursive's input-dependent x0 gate — per-step NEUTRAL and 13% slower. DISCARDED
+
+`--x0-gate` (`USE_X0_GATE`) scales each block's `x0` skip term by `2*sigmoid(s_i * mean(x))` with one
+zero-initialized scalar `s_i` per layer, so `2*sigmoid(0) == 1.0` and the arm is a bit-exact no-op at
+step 0. The reduction is over each token's own `n_embd` channels only — never across positions — so
+causality is structural, and both runs report `causality_max_abs == 0.0`.
+
+Paired 900s A/B, fresh same-commit control, back to back (`research/scratch/x0gate_900s_pair.sh`).
+900s is deliberately the right budget here: it reaches ~1070 steps / ~140M tokens, half an epoch, so
+the data wall cannot contaminate the comparison.
+
+| arm | steps | s/step | tok/s | tokens | `val_bpb` |
+| --- | --- | --- | --- | --- | --- |
+| `x0gate-base-900s` | 1071 | 0.83–0.84 | 156–157k | 140.4M | **1.065348** |
+| `x0gate-900s` | 951 (−11.2%) | 0.94–0.95 | 138–140k | 124.6M | 1.074042 (+0.008694) |
+
+Decomposed against the below-the-wall slope (−0.077 per unit ln steps):
+
+- **throughput term**: −0.077 · ln(124.6/140.4) = **+0.00919**
+- **observed total**: +0.00869
+- **per-step residual**: **−0.00050** — inside the <0.001 noise floor, i.e. per-step neutral.
+
+The gate does something real early: at step 100, both arms at `lrm 1.000` on identical data, the
+gated arm's loss is 3.9594 vs the control's 4.0002 (−0.041). That advantage is gone by convergence,
+which is the usual fate of an early-training gain, and it never comes close to paying for the 13%
+per-step cost. **Verdict: discarded**, and no 1800s escalation (the escalation bar was a 900s delta
+of ≤ −0.002; this is +0.0087). The flag stays in-tree, default OFF.
+
+### The throughput cost is the whole story, and it is much larger than the op count suggests
+
+Four extra elementwise ops per block — a channel-mean reduction, a scalar multiply, a sigmoid and a
+multiply — cost **13% per step**. That is the dispatch-bound regime showing its teeth: at ~67 NEFF
+launches per micro-step and ~8% MFU, what matters is the number of dispatched operators, and a
+reduction is not free even when its FLOP count is negligible.
+
+This also **falsifies the tempting generalization from the previous section**. It is *not* true that
+"almost any small edit to the block body collects +8–10%": the frozen Q/K shift adds three
+elementwise ops per block and gets 10.6% *faster*, while the x0 gate adds four and gets 13%
+*slower*. The scheduling anomaly is specific to what the frozen shift does to the graph, not a
+general property of perturbing the block body — so the "price every block-body change against a
+perturbed control" warning from the previous section should be read as "against *both* controls",
+since a perturbation can land either side of the baseline.
+
+A cheaper variant is conceivable (drive the gate from a few channels through a small `Linear`, the
+way `ve_gate` already does, instead of a full channel mean) and would remove the reduction. It is not
+worth chasing: the mechanism it would be buying is measured at −0.0005 ± 0.001 bpb, i.e. nothing.
