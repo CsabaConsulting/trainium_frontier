@@ -206,3 +206,17 @@ of the 2026-09-12 snapshot, and the queued n-gram layers-1/3 cost fix is estimat
 is the near-term play; the zero-op sweep above is the medium-term one; nothing in the exotic queue
 (diffusion, MTP, byte-level, ternary, KAN, linear attention, drafters, count mixer — all closed
 this week with numbers) is.
+
+## 10. Proposed use of the second Trn2 instance (2026-09-13)
+
+The most parsimonious explanation for eight teams under 1.0 within two weeks is not a technique
+but a faster loop feeding a bigger plain model over the same 288M tokens (§9, and the data wall).
+The bundled autoresearch loop points every team that way — its only knob is `train.py`, with
+"model size" and "batch size" explicitly fair game, and a 5-minute single-core reward selects for
+throughput and geometry first. Three cheap probes decide whether a 1.5–3× throughput gap exists
+on our side: the XLA graph backend vs the native-eager runtime (the starter kit uses
+`torch.device("neuron")`, the README allows "Neuron trace"), one micro-step per optimizer step
+(launches per token), and an ablate-down plain block. If any shows the gap, the payoff is a
+width/depth re-sweep at a fixed ~2150 steps. Full programme, gates and coordination rules:
+`research/throughput-to-capacity-track-2026-09-13.md`. Recommended owner: the second box, so the
+main box keeps the locked config and the submission cadence untouched.

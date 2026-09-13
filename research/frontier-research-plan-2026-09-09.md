@@ -903,6 +903,15 @@ a learnable per-channel ReLU² shift/slope (prior dropped after `--relu2-tau 0.5
 Closed today with numbers in T4.4: KAN, linear attention as a family, MQA/GQA, BLT/MBLM,
 BitNet/ternary, Hyena, diffusion LMs, n-gram drafters, count-based mixer, Aster's output table.
 
+### 12.6 Throughput→capacity track for the second Trn2 box (proposed 2026-09-13)
+
+Thesis: under the data wall, throughput is capacity; a 2–3× faster loop (XLA graph backend?
+one micro-step per step? plain wide block?) trains a 2–3× larger model over the same epoch, which
+is the size of the gap to the sub-1.0 cluster. Programme with probes, gates and coordination rules
+in `research/throughput-to-capacity-track-2026-09-13.md`; discussion in
+`research/leaderboard-gap-analysis-2026-09-13.md` §9–§10. Status: not started; awaiting the
+second instance. Rules: flags only, no locked-default changes, no submissions from that box.
+
 ### 12.3 Traps re-confirmed this block (keep these in view)
 
 - **Any new per-step Python float that reaches a device op recompiles the whole graph every step
