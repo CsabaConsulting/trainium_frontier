@@ -112,6 +112,17 @@ Protocol:
    equal steps and by whether it fits the 1800 s budget on the fast stack. Then re-add the
    features that paid on the fast stack (T3.1's tables first).
 
+4. **A "two epochs by design" arm, once throughput allows it.** The data wall was measured
+   as an *unplanned* second epoch landing in the LR cooldown tail (identical order, then a
+   uniform shuffle — both worse). The data-constrained scaling literature (Muennighoff et al.
+   2023, "Scaling Data-Constrained Language Models": repeated data is close to free for ~4
+   epochs when repetition is spread across a schedule designed for it) predicts a different
+   outcome for a run whose warmdown spans both epochs from the start. That needs ≥ 2× throughput
+   at the current model, or a smaller model, so it is a payoff-stage arm, not a probe: same
+   model, `--epoch-shuffle` on for epoch 2, LR schedule spanning the full 2-epoch step count,
+   priced against the fixed-step width/depth arms. Record it either way — it decides whether
+   the wall is "one epoch" or "unplanned repetition".
+
 Gate for the whole track: a configuration that reaches ≤ 1.010 local (2048-context in-process
 eval), i.e. ≈ 0.99–1.00 on the board, inside 1800 s with the bare launch command and a clean
 dress rehearsal. That is the point at which it replaces the main box's config.
