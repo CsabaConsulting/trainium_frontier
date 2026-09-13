@@ -504,6 +504,44 @@ YAT (harmonic-budget argument), MUDD and DCMHA at DEPTH=6, XSA, value-residual (
 FP8 via torch (`_scaled_mm`), stochastic rounding (fails the causality tolerance), fused QKV
 (disables the rope kernel), sliding-window attention (both sub-components lost), doc-boundary
 masking, requeue packer, PACK_FACTOR 4 (until T1.5 explains it), `--nki-relu2`.
+- **SwiGLU / gated MLP** (`USE_GATED_MLP`, toggle still in tree) — measured 2026-09-04 on the GPU proxy, eager,
+  fixed 800 steps, un-matched params (85.9M → 102.3M): bpb 1.1759 vs 1.1720 control and 930 s vs 779 s (+19%),
+  i.e. worse per step *with more parameters* and slower. Never re-run on Trn2 or parameter-matched (hidden 8/3·d,
+  gate+up coalesced into one matmul). Small-model consensus (modded-nanogpt, nanochat, Recursive, PG #340/#344) is
+  ReLU² ≥ SwiGLU, so a Trn2 re-test is a low-probability (~15–20%) 900 s pair; do it only after the cheap
+  shifted/parametrised ReLU² sweep below, which is untested here and is what the best-known solution actually uses.
+- **MQA / GQA** — not tried here by design (enhancement scan, day 1): Karpathy's nanochat ablation discarded
+  `n_kv_head=1` as "too few KV heads". At our shape (5 heads of 128) GQA is impossible — only MQA (1 KV head)
+  or full MHA divide 5 — and MQA saves ~3.9M params / ~9% of forward matmul FLOPs (K/V projections only; scores
+  unchanged), worth ≈ 0.002–0.003 bpb of step time on a dispatch-bound step, against a measured quality loss.
+  Its real payoff is inference KV cache, which the scorer never exercises. Legal 900 s test, EV ≈ 0 or negative.
+- **Linear attention as a family (cosFormer, Performer/FAVOR+, FNet, ELU+1, SLAY, Gated DeltaNet)** — closed
+  (2026-09-12 review). Quality: in SLAY's own matched table (yat-slay-attention-research.md) softmax val loss 4.64 vs
+  SLAY 4.68, ELU+1 5.09, cosFormer 5.20, FAVOR+ 5.45 — every linear variant is worse, SLAY least so; FNet is an
+  encoder-style Fourier mixer and any causal variant is weaker still. Hardware: attention is ~10.6% of our step at
+  SEQ_LEN 2048 behind a fused NKI flash kernel (~98% TensorE-occupied on backward), so the ceiling for replacing it
+  is ≤ ~5% steps ≈ 0.004 bpb even if the replacement were free and quality-neutral; measured here, SLAY was
+  500–1300× slower per op, Mamba2/SSD (with an NKI chunked-scan kernel) cost +0.11–0.17 s/step per mixer against a
+  0.013 bpb break-even, RWKV was 2.05× slower. Gated DeltaNet's Parameter Golf gains ride the `fla` Triton chunked
+  scan on H100 — the same kernel class that priced out Mamba2 here. Hybrids (1 softmax : 3 linear) exist for
+  inference cost, which the scorer never measures. Only a new chunked-scan NKI kernel could reopen this, and the
+  ceiling above says it is not worth writing.- **Byte-level hierarchies (BLT / MBLM / SpaceByte), ternary / MatMul-free training (BitNet b1.58), Hyena long
+  convolutions** — closed on published evidence (2026-09-12, `research/byte-level-and-lowbit-training-review-2026-09-12.md`).
+  BLT: the scorer feeds fixed 8192-BPE token ids and reads token logits, the tokenizer may not be modified, and BLT's
+  own smallest class crosses BPE only at ~150B training bytes (we train on ~1.2 GB) with dynamic shapes and a 100M-param
+  entropy model. Ternary: no ternary/1-bit TensorE path (bf16 matmul anyway), extra elementwise quantisers, 700M BitNet
+  PPL 12.87 vs 12.33 FP16, Parameter Golf ternary 1.177 vs ~1.11; Neuron stochastic rounding is a bf16 rounding mode,
+  not a quantiser, and already fails the causality check. Hyena: `torch.fft` unsupported on Neuron (CPU partition),
+  attention is 10.6% of the step (≤ 5% ceiling). Legal fragment: byte-feature `wte` init / hashed byte-n-gram input
+  table as a zero-cost T3 one-liner. Mixture-of-Depths (static top-k routing) parked with MTP until the step is FLOP-bound.- **Kolmogorov–Arnold networks (KAN / KAT / GR-KAN) as the FFN** — closed on published evidence (2026-09-12):
+  Alves & Vicente, arXiv 2607.15525, ran the best variant (grouped rational GR-KAN) at 286M on **ClimbMix**:
+  BPB 0.8904 vs 0.8464 for the SwiGLU MLP at equal steps, at 290K vs 508K tok/s (0.57×). Worse per step *and*
+  1.75× slower — for us ≈ +0.04 bpb from lost steps plus +0.04 per-step, before any Trainium penalty for
+  per-element spline/rational math on the already-busy Vector/Scalar/GpSimd engines (same failure mode as
+  SLAY/YAT). `KAN or MLP: A Fairer Comparison` (2407.16674): MLP wins every domain but symbolic regression at
+  matched params/FLOPs. KAT (2409.10594) reports vision only. The salvageable idea is a *cheap* learned
+  activation (per-channel shift/slope on ReLU², cf. Recursive's `relu(h−0.5)²`, PG's LeakyReLU(0.75)²/Star-ReLU),
+  which is a ~0-cost T0.3-style sweep, not an architecture change.
 
 ---
 
@@ -584,6 +622,32 @@ this line's upper end depends on T1.5 alone.)**
 - Tavily's API key in this environment is invalid (401) and the `tvly` CLI install was blocked;
   `gh api` (authenticated) reaches the upstream `aws-neuron/trainium-frontier` repo and public
   repos, and arXiv's export API works with `curl -L`. Use those for further web checks.
+
+### 9.x Compile stalls and Neuron cache hygiene (added 2026-09-12)
+
+A participant reported (forum 45135) fresh-graph compiles hanging for exactly 1200 s on the
+competition AMI with the eager runtime's compile child stuck in a futex wait before `execvp`,
+while the same HLO compiled in ~1 s when fed to `neuronx-cc` by hand. Fix on their side:
+**clear `/tmp/hlo_cache`, `/tmp/local_cache`, `/tmp/neff_cache`** (our own cache is
+`NEURON_COMPILE_CACHE_DIR=/tmp/neuron_cache`, and the cold-cache test also moved
+`/tmp/neuron_backend` aside). Tally of our own compile/runtime incidents, none of which was this
+failure mode, but the recipe is cheap insurance:
+
+| incident | cause | fix / status |
+|---|---|---|
+| Sep 5 "throughput cliff" at ~450–460 s in 1800 s runs (1.4 → 6–9 s/step), theorised as thermal | almost certainly the per-step recompile once the LR multiplier started changing — 450 s is exactly the warmdown onset at WARMDOWN_RATIO 0.75 | fixed by `USE_TENSOR_LR_SCALARS` (2.4× steps); thermal theory never formally retracted |
+| `USE_TRN2_COMPILER_FLAGS` crash ×2 | our own `NEURON_CC_FLAGS` quoting bug, then a non-existent flag | fixed; toggle off anyway |
+| LNC=1 / 8-rank compile failure | SDK bug in `nkilib ... l2_norm_kernel_lnc0` | not ours; LNC=2 is the submission shape |
+| DCMHA compile failure `NCC_EXTP004` | graph exceeds the compiler's instruction limit at SEQ_LEN 2048 | architecture dropped |
+| `eval-public` `EvalTimeoutError` after 1200 s | two concurrent eval processes contending on device / compile-cache locks | rule: never run two `eval-public`/`train.py` on the box at once |
+| (other team, forum 45108/45164) `USER_TRAINING_CRASHED (exit=1, status=no_run_meta), (no train.log)` | **not a crash**: the runner's pre-flight is `prepare.check_submission`; its warning text is verbatim what the organisers quoted; `no_run_meta` = rejected before launch (here: `record_step_boundary` never called) | we call it at every step (`train.py`, bare-name form, accepted by the checker's `ast.Name` branch); run `python prepare.py check --train-py train.py --launch-command "..."` before every submission |
+
+Standing rule: if any compile takes more than ~2× its usual time (steps 0–1 normally 26 s + 4.6 s
+warm, ~90 s cold), kill it, clear the three `/tmp/*_cache` dirs plus `/tmp/neuron_cache`, and
+re-run before debugging anything else. Do this before every dress rehearsal so the rehearsal
+measures a genuinely cold compile. None of this bears on FP8: the 46 s per `_scaled_mm` call was
+measured on repeated calls, is not compilation, and reflects a missing fp8 GEMM path (§2 of the
+engineering-stance doc).
 
 ## 10. Reference links
 
