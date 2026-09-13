@@ -4372,12 +4372,6 @@ block-body variants are now in `train.py`, all default OFF:
 
 `research/scratch/blockbody_throughput_probe.sh` runs all of them against one shared control.
 
-**Status: the 1800s paired A/B (`qkfreeze-base-1800s`, `qkfreeze-frozen-1800s`, same commit, back
-to back) is running as this is written. The bpb numbers are NOT in this section yet — the rows
-below are deliberately absent rather than estimated.** The prediction on record, from the identity
-argument plus the measured +10.6% and the −0.0705/ln(step) slope, is ≈ −0.0070 bpb with a per-step
-residual of ~0.000.
-
 ### Scoping note on the coalesced input projection, and what `USE_FUSED_QKV` actually measured
 
 Solution 13c (`USE_FUSED_QKV`, one `Linear(640, 1920)` for Q/K/V) is on record at **−0.0428**
@@ -4409,3 +4403,169 @@ four smaller ones, which is a real optimizer change and part of what the arm mea
 priced against a *perturbed* control, not the raw baseline. If almost any small edit to the block
 body collects +8–10%, then the parallel block's throughput gain is partly that same free lunch and
 partly its own, and only a comparison against `--block-nudge` (or the frozen shift) separates them.
+
+
+### The 1800s result: the identity holds, the throughput is real, and the quality gain is zero
+
+The prediction on record before the runs was ≈ −0.0070 bpb with a per-step residual of ~0.000.
+The throughput half was right. The bpb half was wrong, in a way that turned out to be the most
+important thing found this session.
+
+Three runs, same commit, same box, back to back, `--eval-seq-len 1024` on all three:
+
+| arm | budget | steps | s/step | tokens | epoch reached | `val_bpb` (2048) | `val_bpb` (1024) |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `qkfreeze-base-1800s` | 1800s | 2155 | 0.83 | 282.5M | 1 | **1.018303** | 1.033265 |
+| `qkfreeze-frozen-1800s` | 1800s | 2354 (+9.2%) | 0.76–0.77 | 308.5M | **2** | 1.021278 (**+0.002975**) | 1.036399 |
+| `qkfreeze-frozen-1648s` | 1648s | 2149 (−0.3%) | 0.76 | 281.8M | 1 | 1.018967 (+0.000664) | 1.033777 |
+
+The third row is the control that makes the other two readable. It runs the *frozen arm* at a
+deliberately shortened 1648s budget picked so that its +9.2% throughput lands it on the base arm's
+step count: same steps, same tokens, same schedule shape, no epoch-2 crossing.
+
+- **The identity holds end-to-end on real hardware.** Step-matched, frozen vs base is +0.000664 —
+  below the <0.001 noise floor, and the same size as the base-to-base spread already on record
+  (`t39-base-1800s` 1.019153 vs `qkfreeze-base-1800s` 1.018303 = 0.000850, two runs of the *same*
+  config). There is no per-step quality term, exactly as the fp32 CPU bit-identity argument said.
+- **The +10.6% throughput is real** and reproduces in the full-budget runs (0.83 → 0.76 s/step,
+  158k → 171k tok/s).
+- **And it buys nothing.** Spending the speedup on 205 extra steps made the run **+0.002311 worse**
+  than the same arm stopped at 2149 steps, where the −0.0705/ln(step) slope predicted −0.0062.
+  A ~0.0085 gap, in the wrong direction, from steps that cost nothing.
+
+Verdict on item 1: **the anomaly is real, free, and useless.** `--qk-shift-freeze` stays in-tree,
+default OFF. It is not a default and there is no reason to make one — see the next section for why.
+
+---
+
+## 2026-09-13 — The data wall: the 1800s budget is data-bound, and throughput past ~2195 steps is negative
+
+This is the reason item 1's free +10.6% could not be converted, and it invalidates part of the
+previous section's reasoning as well as the standard way throughput has been priced in this file.
+
+### The corpus is replayed in identical order, and the locked config sits at 98% of one epoch
+
+`prepare._document_batches` is:
+
+```python
+groups = _row_groups_for_split(split, start, step, shard_ids=shard_ids)
+epoch = 0
+while True:
+    epoch += 1
+    for path, rg_idx in groups:      # <-- same order, every epoch
+        ...
+```
+
+There is no per-epoch reshuffle. `PUBLIC_TRAIN_SHARDS = list(range(5))` and that is all the data
+there is: the dataset has 6543 shards, but only those 5 are provided, and the README forbids "any
+external training data", so fetching more is not an option.
+
+At the locked shape (4 ranks × 4 grad-accum × 8192 tokens = 131,072 tokens/step) one epoch is
+**~2195 steps / ~288M tokens**. Every 1800s run logs its epoch, and the boundary is remarkably
+stable across nine separate 1800s runs — the first `epoch 2` line always appears at the step-2200
+print, with step 2190 still on `epoch 1`.
+
+**The locked submission config runs 2139 steps.** That is 97.4% of one epoch. There is ~2.6%
+of headroom, and then the corpus runs out.
+
+### Every 1800s arm that was faster than baseline crossed the wall, and every one of them lost
+
+Sorting the n-gram-VE-era 1800s runs by tokens consumed:
+
+| tokens | `val_bpb` | run |
+| --- | --- | --- |
+| 270.9M | 1.019171 | `t31M-l5tri-m128-1800s` |
+| 271.2M | 1.018483 | `t31M-l5tri-m64-d256-1800s` |
+| 280.4M | 1.018985 | `t31L-l5tri-m64-1800s` (the locked config) |
+| 280.8M | 1.019153 | `t39-base-1800s` |
+| 281.8M | 1.018967 | `qkfreeze-frozen-1648s` |
+| 282.5M | 1.018303 | `qkfreeze-base-1800s` |
+| — | — | *— ~288M: end of epoch 1 —* |
+| 288.6M | 1.022205 | `t31L-l5bi-m64-1800s` |
+| 299.9M | 1.021278 | `t39-stack-1800s` |
+| 302.9M | 1.022031 | `t39-qkshift-1800s` |
+| 304.9M | 1.025017 | `t39-sandwich-1800s` |
+| 305.4M | 1.020738 | `t39-qkshift-b0-1800s` |
+| 308.5M | 1.021278 | `qkfreeze-frozen-1800s` |
+
+Everything below the wall lands in 1.0183–1.0192. Everything above it lands in 1.0207–1.0250.
+The gap is not subtle and it does not care which mechanism the arm was testing — including the arm
+with **no mechanism at all**.
+
+### What this forces us to revise
+
+The previous section concluded that "the damage tracks the mechanism": `t39-sandwich-1800s`
+(+0.0059) and `t39-qkshift-b0-1800s` (+0.0016) were read as per-step quality costs of sandwich-norm
+and of a trainable `beta`. **That reading is confounded.** Both arms crossed the epoch boundary by
+110–130 steps, and `qkfreeze-frozen-1800s` — a bit-exact identity — crossed it by 155 steps and
+produced the same sign and a similar magnitude. The honest statement is that the whole T3.9 family's
+1800s deltas are a *sum* of a mechanism term and a data-wall term, and only the step-matched control
+separates them. For the frozen shift the mechanism term is now measured and it is zero.
+
+More generally: **every 900s → 1800s extrapolation in this file is optimistic for any
+throughput-positive change.** A 900s run reaches ~1050–1100 steps ≈ 140M tokens, half an epoch —
+it cannot see the wall. So a change that buys +10% throughput looks worth −0.007 at 900s and is
+worth ≈0 (or worse) at 1800s. This is a methodology error, not a one-off result.
+
+### Mechanism: it is not "repeats are bad", it is "a narrow repeat during cooldown is bad"
+
+155 steps is 7% of the run, at `lrm` 0.14 → 0.05. Losing 0.0037 relative to a flat-marginal-value
+prediction is a lot for 7% of the steps at the lowest LR — unless those steps are not merely
+*repeats* but a **contiguous 20M-token slice** of the corpus, replayed at exactly the point in the
+schedule that shapes the final weights most. That is a narrow fine-tune, and it narrows the
+distribution the final model is calibrated to. Notably the train loss over the epoch-2 steps is
+*not* visibly lower than epoch-1 steps at matched `lrm` (2.85–2.91 either side), so this is a
+distribution-narrowing effect, not naive memorization.
+
+Checked and ruled out as alternative explanations:
+
+- **A step-indexed schedule desynchronising from the wall-clock LR.** `lr_multiplier` is
+  wall-clock-driven, and the only step-indexed schedules are `WARMUP_STEPS` and
+  `MUON_MOMENTUM_WARMUP_STEPS`, both of which finish in the first 300 steps and are therefore
+  identical in both arms.
+- **Anything in `train.py` keying off `epoch`.** It appears in exactly four places: the loader's own
+  bookkeeping and one print. No code path changes at the boundary.
+- **Device numerics.** The two arms' logged losses differ by ~1e-3 at steps 10/50/100
+  (6.5598/6.5599, 5.1357/5.1364, 3.9992/4.0006) — compile-to-compile noise of the same size seen
+  between two runs of the same config, two orders of magnitude too small.
+
+### `--epoch-shuffle`, and why it is zero-risk for the locked config
+
+If the mechanism is *narrow* repetition rather than repetition itself, then reshuffling the
+row-group order for epochs ≥ 2 turns a contiguous 7% slice into a uniform 7% sample of the whole
+corpus, which should be close to harmless.
+
+`USE_EPOCH_SHUFFLE` / `--epoch-shuffle` (default OFF) injects
+`_document_batches_epoch_shuffle` into train.py's own copy of the packer. Two properties make it
+safe to reason about:
+
+- **Epoch 1 is byte-for-byte prepare's order**, with no RNG draw at all, so any run that never
+  reaches epoch 2 — the locked config included — is bit-identical to the baseline. The flag is a
+  literal no-op below 2195 steps.
+- **The packer is not touched.** `make_dataloader_requeue` gained a `requeue: bool` parameter; with
+  `requeue=False` its body is `prepare.make_dataloader`'s line-for-line (the only textual difference
+  between the two functions is the `if requeue:` guard around the leftover append). So the arm
+  changes data *order* and nothing else — it does not confound the order experiment with the
+  already-measured-negative requeue packer.
+
+The shuffle uses a local `random.Random(EPOCH_SHUFFLE_SEED + epoch)`, never the global RNG, so it
+cannot perturb weight init. Each rank shuffles its own disjoint group list.
+
+Per the README this is a permitted change: "Modify `train.py` freely: … **data sampling strategy**".
+`prepare.py` is untouched; the flag reuses its private `_row_groups_for_split`, exactly as
+`USE_REQUEUE_PACKER` already reuses `_document_batches`.
+
+### The experiment this sets up, and what it is worth
+
+The decisive run is the frozen identity at 1800s **with** `--epoch-shuffle`, against the two
+controls already in hand:
+
+- if it lands near 1.0165 (base 1.018303 plus the −0.0062 the extra 205 steps should be worth),
+  then the data wall is a *fixable* ordering artifact and every throughput win in the queue —
+  T1.6/T1.7/T1.8, the n-gram cost reduction, the LNC=1 mystery — becomes convertible again;
+- if it lands near 1.0213, repetition itself is the cost, throughput above ~2195 steps is worth
+  nothing at this budget, and the correct strategic response is to stop buying throughput and spend
+  the fixed ~288M-token budget better instead.
+
+Either answer changes what is worth working on more than any single architecture arm would.
+

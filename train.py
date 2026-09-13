@@ -12,6 +12,7 @@ import gc
 import json
 import math
 import os
+import random
 import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -71,6 +72,7 @@ else:
 if USE_STOCHASTIC_ROUNDING:
     os.environ.setdefault("NEURON_RT_STOCHASTIC_ROUNDING_EN", "1")
 
+import pyarrow.parquet as pq
 import torch
 import torch.distributed as dist
 import torch.nn as nn
@@ -84,6 +86,7 @@ from prepare import (
     TRAIN_TIME_BUDGET_SECONDS,
     Tokenizer,
     _document_batches,
+    _row_groups_for_split,
     causality_check,
     ensure_tokenizer,
     evaluate_bpb,
@@ -110,6 +113,14 @@ from prepare import (
 # cropping ever happens. _document_batches_fn is an injectable seam purely for
 # the offline correctness harness (research/scratch/requeue_packer_equiv.py);
 # real runs always use the real prepare._document_batches default.
+#
+# `requeue=False` makes this function reproduce prepare.make_dataloader()
+# EXACTLY -- the only textual difference between the two is the
+# `if requeue:` guard around the leftover append, so with it False the crop
+# branch is prepare's line-for-line (pop the shortest doc, take doc[:remaining],
+# drop the rest). That mode exists so USE_EPOCH_SHUFFLE below can inject a
+# different _document_batches_fn without also changing the packer, i.e. without
+# confounding a data-ORDER experiment with a data-PACKING one.
 def make_dataloader_requeue(
     tokenizer: Tokenizer,
     batch_size: int,
@@ -119,6 +130,7 @@ def make_dataloader_requeue(
     tokenizer_threads: int = 4,
     tokenizer_batch_size: int = 128,
     shard_ids=None,
+    requeue: bool = True,
     _document_batches_fn=_document_batches,
 ):
     assert batch_size > 0 and seq_len > 1
@@ -166,9 +178,10 @@ def make_dataloader_requeue(
                     shortest_idx = min(range(len(doc_buffer)), key=lambda i: len(doc_buffer[i]))
                     doc = doc_buffer.pop(shortest_idx)
                     row_buffer[row_idx, pos:pos + remaining] = torch.tensor(doc[:remaining], dtype=torch.long)
-                    leftover = doc[remaining:]
-                    if leftover:
-                        doc_buffer.append(leftover)
+                    if requeue:
+                        leftover = doc[remaining:]
+                        if leftover:
+                            doc_buffer.append(leftover)
                     pos += remaining
 
         cpu_inputs.copy_(row_buffer[:, :-1].to(dtype=torch.int32))
@@ -176,6 +189,34 @@ def make_dataloader_requeue(
         inputs.copy_(cpu_inputs, non_blocking=pin_memory)
         targets.copy_(cpu_targets, non_blocking=pin_memory)
         yield inputs, targets, {"epoch": epoch}
+
+
+def _document_batches_epoch_shuffle(split, start, step, tokenizer_batch_size, shard_ids=None):
+    """prepare._document_batches, but the row-group order is reshuffled from epoch 2 onward.
+
+    prepare's generator walks `groups` in the same order every epoch, so a run that crosses the
+    epoch boundary replays the corpus's OPENING documents -- and it does so during the lowest-LR
+    cooldown steps, which shape the final weights most. Measured cost of that at the locked 1800s
+    config: see the 2026-09-13 "data wall" section of research/trn2-experiment-results.md.
+
+    Epoch 1 is byte-for-byte prepare's order (no shuffle, no RNG draw), so any run that never
+    reaches epoch 2 -- which includes the locked submission config at ~2140 steps -- is bit-identical
+    to the baseline. The RNG is a local random.Random, never the global one, so it cannot perturb
+    weight init on any rank. Every rank shuffles its own disjoint group list with the same seed
+    stream; ranks never share groups, so no coordination is needed.
+    """
+    groups = _row_groups_for_split(split, start, step, shard_ids=shard_ids)
+    epoch = 0
+    while True:
+        epoch += 1
+        order = list(groups)
+        if epoch > 1:
+            random.Random(EPOCH_SHUFFLE_SEED + epoch).shuffle(order)
+        for path, rg_idx in order:
+            rg = pq.ParquetFile(path).read_row_group(rg_idx)
+            rows = rg.column("text").to_pylist()
+            for i in range(0, len(rows), tokenizer_batch_size):
+                yield rows[i:i + tokenizer_batch_size], epoch
 
 
 # -----------------------------------------------------------------------------
@@ -377,6 +418,19 @@ ATTN_CPROJ_INIT_SCALE = 0.10
 # reproducible from its own log -- hence the flag now exists. See trn2-experiment-results.md.
 PACK_FACTOR = 4
 USE_REQUEUE_PACKER = False  # Bucket B: implemented + verified correct (offline harness, research/scratch/requeue_packer_equiv.py, zero corruption over a 20k-doc synthetic corpus), but the real hardware A/B at the final locked shape was a small real negative (332 steps/1.235799 vs baseline 330/1.234514) -- not kept. See trn2-experiment-results.md
+USE_EPOCH_SHUFFLE = False  # Reshuffle the row-group order from epoch 2 onward (epoch 1 untouched, so
+# this is a literal no-op for any run that never crosses the epoch boundary -- including the locked
+# submission config at ~2140 steps). Exists because the 1800s budget is DATA-bound, not
+# compute-bound: one epoch is ~2195 steps / ~288M tokens at the locked shape, and a mathematically
+# IDENTICAL arm that ran 9.2% faster (2354 steps) came out +0.00231 bpb WORSE than the same arm
+# step-matched at 2149, instead of the -0.0062 the compute-scaling slope predicts. prepare's
+# generator replays the corpus in identical order every epoch, so those extra steps re-trained on a
+# contiguous ~7% slice of the corpus during the lowest-LR cooldown -- a narrow fine-tune, not extra
+# data. See the 2026-09-13 "data wall" section of trn2-experiment-results.md.
+# "Data sampling strategy" is explicitly permitted in train.py by the README; prepare.py is untouched
+# (this reuses its private _row_groups_for_split, exactly as USE_REQUEUE_PACKER reuses
+# _document_batches).
+EPOCH_SHUFFLE_SEED = 1234  # seed base for the per-epoch row-group shuffle; epoch e uses SEED + e.
 USE_VE = True  # value embeddings (ResFormer-style): alternating layers, input-gated mix into attention's V stream
 VE_GATE_CHANNELS = 32
 
@@ -5070,6 +5124,9 @@ ARCH_TOGGLE_NAMES = [
     "USE_OUT_POOL", "OUT_POOL_LAYERS", "USE_QK_SHIFT", "QK_SHIFT_BETA", "QK_SHIFT_FREEZE",
     "USE_X0_GATE", "USE_BLOCK_NUDGE", "BLOCK_NUDGE_SITE", "USE_QKV_NORM_CSE",
     "USE_PARALLEL_BLOCK", "PARALLEL_BLOCK_COALESCE",
+    # Data ORDER, not a tensor -- but it changes which tokens the cooldown steps saw, which is
+    # exactly the kind of thing that must be recoverable from a checkpoint after the fact.
+    "USE_EPOCH_SHUFFLE", "EPOCH_SHUFFLE_SEED",
     # T2.1 batch-size ramp. Pure training-schedule knobs -- no tensor changes name, shape or
     # dtype -- but they change how many tokens each recorded step saw and at what lr, so a
     # checkpoint trained with a ramp and reloaded without one is silently mis-described.
@@ -5348,7 +5405,7 @@ def main() -> None:
     global USE_HEAD_GATE, HEAD_GATE_NORM, HEAD_GATE_CHANNELS, HEAD_GATE_MUL, HEAD_GATE_BIAS
     global USE_OUT_POOL, OUT_POOL_LAYERS, USE_QK_SHIFT, QK_SHIFT_BETA, QK_SHIFT_FREEZE
     global USE_X0_GATE, USE_BLOCK_NUDGE, BLOCK_NUDGE_SITE, USE_QKV_NORM_CSE, USE_PARALLEL_BLOCK
-    global PARALLEL_BLOCK_COALESCE
+    global PARALLEL_BLOCK_COALESCE, USE_EPOCH_SHUFFLE, EPOCH_SHUFFLE_SEED
     # T2.1. Read once per step by batch_ramp_grad_accum() to pick a Python int loop count and a
     # Python float lr scale -- neither reaches a device op as a constant (the loss scaling, which
     # would, goes through inv_gas_dev instead).
@@ -5563,6 +5620,15 @@ def main() -> None:
                         help="hoist the three identical norm(q_in)/norm(k_in)/norm(v_in) calls into "
                              "one when they share the same input tensor. Bit-exact identity; the "
                              "only effect is 2 fewer ops per block in a dispatch-bound graph.")
+    parser.add_argument("--epoch-shuffle", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_EPOCH_SHUFFLE", "1" if USE_EPOCH_SHUFFLE else "0") != "0",
+                        help="reshuffle the row-group order from epoch 2 onward. Epoch 1 keeps "
+                             "prepare's exact order, so this is a no-op for any run that never "
+                             "crosses the epoch boundary. Only matters above ~2195 steps at the "
+                             "locked shape -- see the 2026-09-13 data-wall section of "
+                             "research/trn2-experiment-results.md.")
+    parser.add_argument("--epoch-shuffle-seed", type=int, default=EPOCH_SHUFFLE_SEED,
+                        help="seed base for --epoch-shuffle; epoch e is shuffled with seed+e.")
     parser.add_argument("--x0-gate", action=argparse.BooleanOptionalAction,
                         default=os.environ.get("NEURON_COMPETITION_R1_X0_GATE", "1" if USE_X0_GATE else "0") != "0",
                         help="Recursive's input-dependent x0 gate: scale each block's x0 skip by "
@@ -5897,6 +5963,8 @@ def main() -> None:
     USE_BLOCK_NUDGE = args.block_nudge
     BLOCK_NUDGE_SITE = args.block_nudge_site
     USE_QKV_NORM_CSE = args.qkv_norm_cse
+    USE_EPOCH_SHUFFLE = args.epoch_shuffle
+    EPOCH_SHUFFLE_SEED = args.epoch_shuffle_seed
     USE_PARALLEL_BLOCK = args.parallel_block
     PARALLEL_BLOCK_COALESCE = args.parallel_block_coalesce
     if PARALLEL_BLOCK_COALESCE != "none" and not USE_PARALLEL_BLOCK:
@@ -6032,8 +6100,18 @@ def main() -> None:
         return
 
     loader_seq_len = PACK_FACTOR * SEQ_LEN
-    _loader_fn = make_dataloader_requeue if USE_REQUEUE_PACKER else make_dataloader
-    train_loader = _loader_fn(tokenizer, DEVICE_BATCH_SIZE, loader_seq_len, "train", device)
+    if USE_REQUEUE_PACKER or USE_EPOCH_SHUFFLE:
+        # train.py's own copy of the packer. With requeue=USE_REQUEUE_PACKER=False it is
+        # prepare.make_dataloader line-for-line, so --epoch-shuffle changes the data ORDER and
+        # nothing else.
+        train_loader = make_dataloader_requeue(
+            tokenizer, DEVICE_BATCH_SIZE, loader_seq_len, "train", device,
+            requeue=USE_REQUEUE_PACKER,
+            _document_batches_fn=(_document_batches_epoch_shuffle if USE_EPOCH_SHUFFLE
+                                  else _document_batches),
+        )
+    else:
+        train_loader = make_dataloader(tokenizer, DEVICE_BATCH_SIZE, loader_seq_len, "train", device)
 
     def fetch():
         xb, yb, state = next(train_loader)
@@ -6425,7 +6503,8 @@ def main() -> None:
               f"x0_gate={USE_X0_GATE} "
               f"block_nudge={USE_BLOCK_NUDGE} nudge_site={BLOCK_NUDGE_SITE} "
               f"qkv_norm_cse={USE_QKV_NORM_CSE} parallel_block={USE_PARALLEL_BLOCK} "
-              f"par_coalesce={PARALLEL_BLOCK_COALESCE}")
+              f"par_coalesce={PARALLEL_BLOCK_COALESCE} "
+              f"epoch_shuffle={USE_EPOCH_SHUFFLE} epoch_shuffle_seed={EPOCH_SHUFFLE_SEED}")
         # T2.1, same reason: one line carrying every ramp knob, so two ramp arms are
         # distinguishable in experiment-log.jsonl without re-reading the run log.
         print(f"batch_ramp:        {BATCH_RAMP} grad_accum={BATCH_RAMP_GRAD_ACCUM} "
