@@ -117,6 +117,13 @@ ARMS = [
     # no [C]-wide parameter. Same bit-identity claim as qkshift-b0-frozen.
     ("nudge-qk", dict(USE_BLOCK_NUDGE=True, BLOCK_NUDGE_SITE="qk")),
     ("nudge-resid", dict(USE_BLOCK_NUDGE=True, BLOCK_NUDGE_SITE="resid")),
+    # The op-REMOVING identity found while scoping the parallel block: three norm() calls on one
+    # tensor collapse to one. Same bit-identity claim, opposite direction (fewer ops, not more).
+    ("qkv-norm-cse", dict(USE_QKV_NORM_CSE=True)),
+    # Item 3's parallel attn+MLP block. NOT an identity past step 0 (the MLP reads the pre-attention
+    # normed residual from step 1 on), but it IS bit-identical at step 0 because mlp.c_proj is
+    # zero-init and par_lambda_a starts at 1.0 -- same class of claim as x0-gate.
+    ("parallel-block", dict(USE_PARALLEL_BLOCK=True)),
 ]
 
 
@@ -158,6 +165,8 @@ def main() -> int:
                 status = "FAIL not bit-identical over 5 steps"
             if label.endswith("-frozen") and beta_moved != 0.0:
                 status = f"FAIL frozen beta moved by {beta_moved:.3e}"
+            if label == "qkv-norm-cse" and not same_all:
+                status = "FAIL not bit-identical over 5 steps"
             if label.startswith("nudge-"):
                 nudges = [b.block_nudge for b in model.transformer.h if b.block_nudge is not None]
                 assert len(nudges) == DEPTH, f"{label}: {len(nudges)} nudges for {DEPTH} blocks"
@@ -166,7 +175,7 @@ def main() -> int:
                     status = "FAIL not bit-identical over 5 steps"
                 elif n_moved != 0.0:
                     status = f"FAIL frozen nudge moved by {n_moved:.3e}"
-            if label in ("qkshift-b0-trained", "x0-gate") and (not same_step0 or same_all):
+            if label in ("qkshift-b0-trained", "x0-gate", "parallel-block") and (not same_step0 or same_all):
                 status = "FAIL expected step-0 no-op then divergence"
             if cz != 0.0:
                 status = f"FAIL causality {cz:.3e}"

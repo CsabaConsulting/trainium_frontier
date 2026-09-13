@@ -598,6 +598,31 @@ BLOCK_NUDGE_SITE = "qk"    # where the nudge lands. "qk" puts it exactly where -
                            # Q/K input, V untouched); "resid" puts it on the residual stream right
                            # after the resid/x0 mix, so all of Q/K/V and the MLP see it. Both are
                            # identities; they differ only in which compiled region gets perturbed.
+USE_PARALLEL_BLOCK = False # GPT-J / PaLM-style parallel block: attention and the MLP both read the
+                           # SAME norm(x) and their outputs are summed into the residual together,
+                           # `x = x + la*attn(norm(x)) + lm*mlp(norm(x))`, instead of the MLP reading
+                           # the post-attention residual. Removes three of the four norm() calls per
+                           # block and one residual add, and makes the attention and MLP matmuls
+                           # mutually independent instead of serialised through the attention output
+                           # -- both of which matter far more here than the FLOPs, because this stack
+                           # is dispatch- and serialisation-bound (~28% serialisation loss at ~8% MFU).
+                           # The quality cost is that the MLP no longer sees what attention just did;
+                           # published results at this scale call that roughly neutral, which is
+                           # exactly the kind of claim that only a paired A/B on this box can settle.
+                           # Bit-identical at step 0 (mlp.c_proj is zero-init, so the MLP contributes
+                           # exactly 0 whichever input it reads, and la starts at 1.0).
+USE_QKV_NORM_CSE = False   # Block.forward calls norm() THREE times on q_in/k_in/v_in, which in the
+                           # locked config are the SAME tensor object -- three F.rms_norm nodes with
+                           # identical inputs. This hoists them into one call whenever the three
+                           # inputs are literally the same object (`q_in is k_in is v_in`), which is
+                           # a bit-exact identity: F.rms_norm is deterministic, so three calls on one
+                           # tensor return three equal results, and the backward just accumulates the
+                           # three incoming grads into one node instead of separately. Falls back to
+                           # the three-call form automatically whenever the inputs really do differ
+                           # (MUDD, --qk-shift, --block-nudge --block-nudge-site qk), so it composes
+                           # with everything. Worth probing on its own because this stack is
+                           # dispatch-bound (~67 NEFF launches per micro-step): 2 saved launches per
+                           # block times 10 blocks is a bigger fraction of a step than of the FLOPs.
 USE_X0_GATE = False        # Recursive's INPUT-DEPENDENT x0 gate, the rehabilitated form of the
                            # GPU-discarded USE_SELECTIVE_GATE (which was +0.0092 there): scale this
                            # block's x0 skip by `2*sigmoid(s * mean(x))` with ONE learned scalar s
@@ -3585,6 +3610,15 @@ class Block(nn.Module):
         self.x0_gate_s = nn.Parameter(torch.zeros(1)) if (USE_X0_GATE and self.mudd is None) else None
         # Frozen zero nudge: never trained, never in an optimizer group. See USE_BLOCK_NUDGE.
         self.block_nudge = nn.Parameter(torch.zeros(1), requires_grad=False) if USE_BLOCK_NUDGE else None
+        # T-parallel: the two branch weights of the parallel attn+MLP block. Only built where
+        # BOTH sublayers exist (a Mamba2 or RWKV layer keeps its serial form), so a mixed model
+        # still works -- the branch in forward is guarded on par_lambda_a being present.
+        # nn.Parameter(ones) draws no RNG, so building these cannot shift any other tensor's init.
+        if USE_PARALLEL_BLOCK and self.attn is not None and self.mlp is not None:
+            self.par_lambda_a = nn.Parameter(torch.ones(1))
+            self.par_lambda_m = nn.Parameter(torch.ones(1))
+        else:
+            self.par_lambda_a = self.par_lambda_m = None
         self.local_conv = CausalConv(config.n_embd, LOCAL_CONV_KERNEL) if USE_LOCAL_CONV else None
         self.scalar_gate = Linear(SELECTIVE_GATE_CHANNELS, 2, bias=False) if USE_SELECTIVE_GATE else None
         # Value Residual Learning (arXiv:2410.17897): layer 0 has no v0 to consume yet (it
@@ -3634,6 +3668,23 @@ class Block(nn.Module):
                 q_in = k_in = x + self.qk_shift_beta * causal_shift_1(x)
         if self.local_conv is not None:
             x = x + self.local_conv(norm(x))
+        if self.par_lambda_a is not None:
+            # T-parallel: attention and the MLP both read the SAME normed residual and their
+            # outputs are summed into it once, instead of the MLP reading the post-attention
+            # residual. One norm() instead of four, one residual add instead of two, and the
+            # attn/MLP matmuls become independent (they can be co-scheduled rather than
+            # serialised through the attention output) -- which is the point on a stack that is
+            # dispatch- and serialisation-bound.
+            #
+            # Bit-identical at step 0 despite being a real architecture change: mlp.c_proj is
+            # zero-initialized, so mlp_out is exactly 0 at step 0 whichever input it reads, and
+            # par_lambda_a starts at exactly 1.0. So the step-0 loss must match the baseline's,
+            # which is what makes the A/B start from a common point (and makes a step-0
+            # mismatch a real bug signal, not an expected difference).
+            h = norm(x)
+            attn_out, v_raw = self.attn(h, h, h, ve, cos, sin, attn_mask, v0, self.v_lambda, ve_bi, ve_tri)
+            x = x + self.par_lambda_a * attn_out + self.par_lambda_m * self.mlp(h)
+            return x, v_raw
         if self.mixer is not None:
             # A Mamba2 layer produces no v_raw: there is no attention V here, so it
             # cannot seed the value residual. GPT.forward keeps v0 at None until the
@@ -3650,6 +3701,12 @@ class Block(nn.Module):
             # as layer-0 ATTENTION's V), so no v0 is seeded from here.
             x = x + self.tmix(norm(q_in), ve)
             v_raw = None
+        elif USE_QKV_NORM_CSE and q_in is k_in and k_in is v_in:
+            # See USE_QKV_NORM_CSE. Guarded on object identity, not equality, so this branch can
+            # only ever be taken when the three norm() calls it replaces had identical inputs.
+            qkv_n = norm(q_in)
+            attn_out, v_raw = self.attn(qkv_n, qkv_n, qkv_n, ve, cos, sin, attn_mask, v0, self.v_lambda, ve_bi, ve_tri)
+            x = x + attn_out
         else:
             attn_out, v_raw = self.attn(norm(q_in), norm(k_in), norm(v_in), ve, cos, sin, attn_mask, v0, self.v_lambda, ve_bi, ve_tri)
             x = x + attn_out
@@ -3852,6 +3909,11 @@ class GPT(nn.Module):
             if block.resid_lambda is not None:
                 block.resid_lambda.fill_(1.0)
                 block.x0_lambda.fill_(0.05)
+            if block.par_lambda_a is not None:
+                # Explicit, not left to nn.Parameter(ones): every other scalar in this loop is set
+                # here, and la=1.0 is exactly what makes the parallel block a step-0 no-op.
+                block.par_lambda_a.fill_(1.0)
+                block.par_lambda_m.fill_(1.0)
             if block.attn.ve_gate is not None:
                 torch.nn.init.zeros_(block.attn.ve_gate.weight)
             for g in (block.attn.ve_gate_bi, block.attn.ve_gate_tri):
@@ -4060,6 +4122,10 @@ class GPT(nn.Module):
                 # its input is mean(x) over 640 channels, which is ~1/sqrt(640) of a channel's own
                 # scale, so the gradient reaching s is correspondingly small.
                 scalar_params.append(block.x0_gate_s)
+            if block.par_lambda_a is not None:
+                # Two learned scalars per layer, same class as resid_lambda/x0_lambda: one
+                # multiplies a whole branch output, which is what SCALAR_LR=0.20 is tuned for.
+                scalar_params.extend([block.par_lambda_a, block.par_lambda_m])
             if block.mudd is not None:
                 hypernet_params.extend([block.mudd.w1, block.mudd.w2, block.mudd.bias])
             if block.v_lambda is not None:
@@ -4884,7 +4950,8 @@ ARCH_TOGGLE_NAMES = [
     "RELU2_TAU", "USE_MLP_SANDWICH_NORM",
     "USE_HEAD_GATE", "HEAD_GATE_NORM", "HEAD_GATE_CHANNELS", "HEAD_GATE_MUL", "HEAD_GATE_BIAS",
     "USE_OUT_POOL", "OUT_POOL_LAYERS", "USE_QK_SHIFT", "QK_SHIFT_BETA", "QK_SHIFT_FREEZE",
-    "USE_X0_GATE", "USE_BLOCK_NUDGE", "BLOCK_NUDGE_SITE",
+    "USE_X0_GATE", "USE_BLOCK_NUDGE", "BLOCK_NUDGE_SITE", "USE_QKV_NORM_CSE",
+    "USE_PARALLEL_BLOCK",
     # T2.1 batch-size ramp. Pure training-schedule knobs -- no tensor changes name, shape or
     # dtype -- but they change how many tokens each recorded step saw and at what lr, so a
     # checkpoint trained with a ramp and reloaded without one is silently mis-described.
@@ -4934,7 +5001,9 @@ SHAPE_CRITICAL_TOGGLES = {"USE_VE", "USE_LOCAL_CONV", "USE_GATED_MLP", "USE_SELE
                           # USE_X0_GATE adds one x0_gate_s scalar per block; USE_BLOCK_NUDGE adds
                           # one frozen block_nudge scalar per block. Both are state_dict keys even
                           # though the nudge never trains, so a mismatch is a load-time error.
-                          "USE_X0_GATE", "USE_BLOCK_NUDGE"}
+                          "USE_X0_GATE", "USE_BLOCK_NUDGE",
+                          # USE_PARALLEL_BLOCK adds par_lambda_a/par_lambda_m per block.
+                          "USE_PARALLEL_BLOCK"}
 # USE_FP8_LINEAR is deliberately NOT in the set above: Fp8Linear is a Linear subclass with
 # the identical single `weight` parameter, so flipping it changes only the arithmetic used
 # inside MLP.forward, never a tensor's name or shape. That makes it exactly the
@@ -5159,7 +5228,7 @@ def main() -> None:
     global RELU2_TAU, USE_MLP_SANDWICH_NORM
     global USE_HEAD_GATE, HEAD_GATE_NORM, HEAD_GATE_CHANNELS, HEAD_GATE_MUL, HEAD_GATE_BIAS
     global USE_OUT_POOL, OUT_POOL_LAYERS, USE_QK_SHIFT, QK_SHIFT_BETA, QK_SHIFT_FREEZE
-    global USE_X0_GATE, USE_BLOCK_NUDGE, BLOCK_NUDGE_SITE
+    global USE_X0_GATE, USE_BLOCK_NUDGE, BLOCK_NUDGE_SITE, USE_QKV_NORM_CSE, USE_PARALLEL_BLOCK
     # T2.1. Read once per step by batch_ramp_grad_accum() to pick a Python int loop count and a
     # Python float lr scale -- neither reaches a device op as a constant (the loss scaling, which
     # would, goes through inv_gas_dev instead).
@@ -5359,6 +5428,16 @@ def main() -> None:
                         default=os.environ.get("NEURON_COMPETITION_R1_BLOCK_NUDGE_SITE", BLOCK_NUDGE_SITE),
                         help="where --block-nudge lands: the Q/K input ('qk', where --qk-shift put "
                              "it) or the residual stream after the resid/x0 mix ('resid').")
+    parser.add_argument("--parallel-block", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_PARALLEL_BLOCK", "1" if USE_PARALLEL_BLOCK else "0") != "0",
+                        help="GPT-J/PaLM parallel block: attention and MLP both read one norm(x) and "
+                             "are summed into the residual together (x + la*attn + lm*mlp). Removes "
+                             "3 of 4 norms per block and unserialises the two branches.")
+    parser.add_argument("--qkv-norm-cse", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_QKV_NORM_CSE", "1" if USE_QKV_NORM_CSE else "0") != "0",
+                        help="hoist the three identical norm(q_in)/norm(k_in)/norm(v_in) calls into "
+                             "one when they share the same input tensor. Bit-exact identity; the "
+                             "only effect is 2 fewer ops per block in a dispatch-bound graph.")
     parser.add_argument("--x0-gate", action=argparse.BooleanOptionalAction,
                         default=os.environ.get("NEURON_COMPETITION_R1_X0_GATE", "1" if USE_X0_GATE else "0") != "0",
                         help="Recursive's input-dependent x0 gate: scale each block's x0 skip by "
@@ -5692,6 +5771,18 @@ def main() -> None:
     USE_X0_GATE = args.x0_gate
     USE_BLOCK_NUDGE = args.block_nudge
     BLOCK_NUDGE_SITE = args.block_nudge_site
+    USE_QKV_NORM_CSE = args.qkv_norm_cse
+    USE_PARALLEL_BLOCK = args.parallel_block
+    if USE_PARALLEL_BLOCK:
+        # The parallel block reads ONE norm(x) and ignores q_in/k_in/v_in entirely, so anything
+        # that exists only to make those three differ would be silently dropped. Fail loudly.
+        for name, on in (("--qk-shift", USE_QK_SHIFT), ("--mudd", USE_MUDD),
+                         ("--block-nudge", USE_BLOCK_NUDGE),
+                         ("--mlp-sandwich-norm", USE_MLP_SANDWICH_NORM)):
+            if on:
+                raise ValueError(f"--parallel-block and {name} are incompatible: the parallel block "
+                                 "replaces the whole serial attn->MLP body that "
+                                 f"{name} modifies, so {name} would be silently ignored.")
     if USE_BLOCK_NUDGE and USE_QK_SHIFT and BLOCK_NUDGE_SITE == "qk":
         raise ValueError("--block-nudge --block-nudge-site qk and --qk-shift both rewrite q_in/k_in; "
                          "the nudge exists to REPLACE the frozen qk-shift, so pick one.")
@@ -6198,7 +6289,8 @@ def main() -> None:
               f"out_pool={USE_OUT_POOL} pool_layers={OUT_POOL_LAYERS} "
               f"qk_shift={USE_QK_SHIFT} qk_beta={QK_SHIFT_BETA} qk_freeze={QK_SHIFT_FREEZE} "
               f"x0_gate={USE_X0_GATE} "
-              f"block_nudge={USE_BLOCK_NUDGE} nudge_site={BLOCK_NUDGE_SITE}")
+              f"block_nudge={USE_BLOCK_NUDGE} nudge_site={BLOCK_NUDGE_SITE} "
+              f"qkv_norm_cse={USE_QKV_NORM_CSE} parallel_block={USE_PARALLEL_BLOCK}")
         # T2.1, same reason: one line carrying every ramp knob, so two ramp arms are
         # distinguishable in experiment-log.jsonl without re-reading the run log.
         print(f"batch_ramp:        {BATCH_RAMP} grad_accum={BATCH_RAMP_GRAD_ACCUM} "
