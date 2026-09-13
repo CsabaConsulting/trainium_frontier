@@ -141,3 +141,68 @@ Not to change the current plan. To think about, with fresh eyes and possibly new
 - `README.md` (data source, rules on evaluation-infrastructure exploitation, manual review for top
   entries), `prepare.py` (ClimbMix source URL).
 - This conversation, 2026-09-13.
+
+## 9. Second opinion (Fable, local box, 2026-09-13) — read after §7
+
+Answers to the four questions in §7 as far as they can be answered without hardware, plus two
+things the conversation did not surface.
+
+**On Q2 (what are the other teams doing): it is unobservable, and we are the only observable team.**
+GitHub code search for the harness's unique identifiers (`record_step_boundary`,
+`TRAIN_STARTUP_STEPS_EXCLUDED`, `NEURON_COMPETITION_R1_STEP_LOG`, the ClimbMix shuffle URL) returns
+exactly two repositories: `aws-neuron/trainium-frontier` and **`CsabaConsulting/trainium_frontier`**.
+No competitor has published a `train.py`. The Devpost gallery is unpublished and the forum has no
+technique threads. So there is no public signal to mine, and no reason to assume bad faith about the
+startup window — the §6 reasoning stands. The flip side deserves a decision: **our repository is
+public and fully indexed**, including `train.py` with the T3.1 recipe, every notebook verdict, and
+the plan. Anyone on the leaderboard can read what took this team ten days to measure. Whether to
+make the repo private until 2026-09-30 is the user's call; the cost is nothing technical (both
+machines push over SSH/HTTPS auth either way).
+
+**On Q1 (is there a formula):** the honest reading of §2 is that the *portable* part of the
+Recursive/Aster delta has mostly been tested here and lost on this hardware — head gate (+25% step
+cost), sandwich norm and shifted ReLU² (worse per step), Q/K token shift (inverts at 1800 s), EMA
+(−0.0001), batch ramp (discard), the output bigram table (+0.004), and the input-dependent x0 gate
+(13% slower). What has **not** been tested is the zero-op class: **Adam "Demon" β1 decay (0.8 →
+0.55 over its warmdown), per-depth LR/momentum scaling (LR ×1.15 at the bottom → ×0.85 at the top,
+momentum 0.90 → 0.97), NorMuon's β2 ramp (0.95 → 0.97), `wte` init std 1.0, `x0_lambdas` init 0.1,
+cautious weight decay on the Adam groups** (nanochat: "a clear win"; Parameter Golf warns it broke
+`torch.compile` there — it must be expressed with device tensors, like the LR scalars). These are
+scalar-schedule changes with no new ops, which makes them exactly the class the data wall does not
+penalise and the T0.4 900 s single-axis protocol handles in a day. They are the closest thing to a
+"formula" left in the public playbook. K=3 routed output heads is the one remaining Recursive item
+that adds ops; price it with `phase_timer` before any run.
+
+**On the data wall — agree it is real and the most important strategic fact of the week, with two
+caveats worth one cheap test each.** (a) The evidence is three 1800 s arms, and the epoch-2 penalty
+coincides with replaying **shard 0's opening row groups** during cooldown. The C1 calibration found
+the *val* shard's first 2M tokens measurably easier than its later tokens, i.e. these shards have
+internal ordering structure. A distribution shift at the epoch boundary and "repetition at low LR"
+predict the same three numbers. Cheap discriminator: start epoch 1 at a different shard/row offset
+(legal "data sampling strategy") so epoch 2 begins on different rows; if the penalty follows the
+rows, it is a boundary effect and a rotation fixes it; if it stays, it is repetition and the wall is
+hard. (b) The repeated-data literature (Muennighoff et al.; Prabhudesai et al. cited in the diffusion
+review) finds ≤ ~4 epochs near-free for AR models when repetition is spread through training, not
+concentrated in the LR cooldown. Only one reordering variant (uniform shuffle of epoch-2 row groups)
+was tried. Neither caveat changes the current strategy — capacity per step at a fixed step count is
+the right conversion either way — but the wall should be labelled "measured under two designs", not
+"permanent", until (a) is run.
+
+**On Q3 (GPU apples-to-apples with the mature recipe):** not worth device money. It would separate
+"hardware tier" from "recipe maturity" in §4's confound stack, which is academically satisfying and
+changes nothing we can submit. The only version worth its cost is free: run the *current* recipe at
+800 fixed steps on the L4/RTX if either is still rented, purely to update §4's numbers.
+
+**On the "compound eleven 0.0009 gains" idea (session 08:10): the agent's pushback is right, and
+the WD example is the proof.** `WEIGHT_DECAY 0.20` (−0.00055) and `WD_DECAY_TO_ZERO` off (−0.00058)
+measured **+0.00183 together**. Sub-noise wins do not add; they have to be re-measured as a stack,
+and a stack of eleven has eleven chances to interact.
+
+**Two framing corrections for whoever picks this up.** (i) bpb is tokenizer-independent in
+principle but not in practice across a 32k vs 8k vocabulary and a 5-minute B200 vs 30-minute Trn2
+budget; the Recursive/Aster *absolute* numbers are not a target, only their *deltas* over Karpathy's
+recipe are, and §2 already says so — keep it that way. (ii) The gap that matters is 0.008 to #10 as
+of the 2026-09-12 snapshot, and the queued n-gram layers-1/3 cost fix is estimated at ~0.007. That
+is the near-term play; the zero-op sweep above is the medium-term one; nothing in the exotic queue
+(diffusion, MTP, byte-level, ternary, KAN, linear attention, drafters, count mixer — all closed
+this week with numbers) is.
