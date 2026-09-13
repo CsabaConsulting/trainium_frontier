@@ -117,6 +117,12 @@ def main():
                          "embedding_dense_backward runs at all. (full - frozen) is the backward "
                          "cost of the tables, which is the number that decides whether a narrower "
                          "table + up-projection is worth building.")
+    ap.add_argument("--set", action="append", default=[], metavar="NAME=VALUE",
+                    help="set any train.py module global before the model is built, e.g. "
+                         "--set USE_PARALLEL_BLOCK=True --set PARALLEL_BLOCK_COALESCE=vfc. "
+                         "Repeatable. The value is coerced to the type of the existing global, so a "
+                         "typo'd NAME or an uncoercible VALUE is an error rather than a silent "
+                         "no-op. Applied AFTER the explicit flags above, so it wins.")
     args = ap.parse_args()
 
     sys.path.insert(0, REPO)
@@ -140,6 +146,26 @@ def main():
     T.NGRAM_VE_DIM = args.ngram_ve_dim
     T.NGRAM_VE_INDEX_GATHER = args.ngram_ve_index_gather
     T.NGRAM_VE_CLIP_EXCLUDE = args.ngram_ve_clip_exclude
+
+    for spec in args.set:
+        name, _, raw = spec.partition("=")
+        if not _:
+            raise SystemExit(f"[pt] --set needs NAME=VALUE, got {spec!r}")
+        if not hasattr(T, name):
+            raise SystemExit(f"[pt] --set: train.py has no global named {name!r}")
+        cur = getattr(T, name)
+        if isinstance(cur, bool):
+            val = raw.lower() in ("1", "true", "yes", "on")
+        elif isinstance(cur, int):
+            val = int(raw)
+        elif isinstance(cur, float):
+            val = float(raw)
+        elif isinstance(cur, str):
+            val = raw
+        else:
+            raise SystemExit(f"[pt] --set: {name} is a {type(cur).__name__}, not settable from CLI")
+        setattr(T, name, val)
+        print(f"[pt] set {name} = {val!r} (was {cur!r})", flush=True)
 
     if args.conv_mode == "zeros":
         def _zero_forward(self, x):
