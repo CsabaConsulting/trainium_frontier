@@ -611,6 +611,27 @@ USE_PARALLEL_BLOCK = False # GPT-J / PaLM-style parallel block: attention and th
                            # exactly the kind of claim that only a paired A/B on this box can settle.
                            # Bit-identical at step 0 (mlp.c_proj is zero-init, so the MLP contributes
                            # exactly 0 whichever input it reads, and la starts at 1.0).
+PARALLEL_BLOCK_COALESCE = "none"
+                           # Only read when USE_PARALLEL_BLOCK is on. Which of the block's four
+                           # input projections (c_q, c_k, c_v, mlp.c_fc -- all four take the SAME
+                           # normed residual in a parallel block, and all four have in_features =
+                           # n_embd) are merged into one wide matmul on the Block itself:
+                           #   "none" -- four separate Linears, as today.
+                           #   "vfc"  -- c_v and c_fc merged into Linear(640, 3200); c_q/c_k stay
+                           #             separate. Three matmuls instead of four and NO extra copy:
+                           #             a [b,t,640] last-dim-contiguous slice still .view()s to
+                           #             [b,t,10,64], and v never reaches the rope+QK-norm kernel.
+                           #   "all"  -- one Linear(640, 4480) for q,k,v,c_fc. Needs .contiguous()
+                           #             on the q and k slices, because rope_norm() falls back to
+                           #             eager on a non-contiguous input -- which is exactly the
+                           #             mechanism that made USE_FUSED_QKV a -0.0428 regression
+                           #             (see trn2-experiment-results.md, Solution 13c). So this
+                           #             mode trades 2 copies for 3 saved matmul launches.
+                           # Bit-identical to "none" at step 0 either way: init_weights fills the
+                           # slices in the baseline's order with the baseline's per-slice bounds.
+                           # NOT identical afterwards, and not only because of the copies -- Muon
+                           # now orthogonalizes one [4480,640] matrix instead of four smaller ones,
+                           # which is a real optimizer change and part of what the arm measures.
 USE_QKV_NORM_CSE = False   # Block.forward calls norm() THREE times on q_in/k_in/v_in, which in the
                            # locked config are the SAME tensor object -- three F.rms_norm nodes with
                            # identical inputs. This hoists them into one call whenever the three
@@ -3392,13 +3413,24 @@ def _dcmha_keep_mask(t: int, attn_mask: torch.Tensor | None, device: torch.devic
 
 
 class CausalSelfAttention(nn.Module):
-    def __init__(self, config: GPTConfig, layer_idx: int = 0):
+    def __init__(self, config: GPTConfig, layer_idx: int = 0, coalesced: str = "none"):
         super().__init__()
         self.n_head = config.n_head
         self.n_embd = config.n_embd
         self.head_dim = config.n_embd // config.n_head
         assert self.head_dim * self.n_head == self.n_embd
-        if USE_FUSED_QKV:
+        # `coalesced` (parallel block only): which of this module's input projections live in the
+        # OWNING BLOCK's single c_in matmul instead of here. "all" = q, k and v; "vfc" = v only
+        # (q and k stay separate so their outputs are contiguous and the rope+QK-norm NKI kernel
+        # still fires -- see PARALLEL_BLOCK_COALESCE). The replaced Linears are not built at all,
+        # so no path ever carries a dead parameter.
+        self.coalesced = coalesced
+        if coalesced == "all":
+            pass
+        elif coalesced == "vfc":
+            self.c_q = Linear(config.n_embd, config.n_embd, bias=False)
+            self.c_k = Linear(config.n_embd, config.n_embd, bias=False)
+        elif USE_FUSED_QKV:
             self.c_qkv = Linear(config.n_embd, 3 * config.n_embd, bias=False)
         else:
             self.c_q = Linear(config.n_embd, config.n_embd, bias=False)
@@ -3440,9 +3472,20 @@ class CausalSelfAttention(nn.Module):
             self.head_gate_lo = self.head_gate_hi = 0
             self.head_gate = None
 
-    def forward(self, x_q: torch.Tensor, x_k: torch.Tensor, x_v: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, attn_mask: torch.Tensor | None, v0: torch.Tensor | None = None, v0_lambda: torch.Tensor | None = None, ve_bi: torch.Tensor | None = None, ve_tri: torch.Tensor | None = None) -> tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, x_q: torch.Tensor, x_k: torch.Tensor, x_v: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, attn_mask: torch.Tensor | None, v0: torch.Tensor | None = None, v0_lambda: torch.Tensor | None = None, ve_bi: torch.Tensor | None = None, ve_tri: torch.Tensor | None = None, qkv: tuple[torch.Tensor, torch.Tensor, torch.Tensor] | None = None) -> tuple[torch.Tensor, torch.Tensor]:
         b, t, c = x_q.shape
-        if USE_FUSED_QKV:
+        if qkv is not None:
+            # Parallel block with a coalesced input projection: the block already did the matmul
+            # and handed over q/k/v as [b, t, n_head, head_dim], including whatever contiguity the
+            # rope+QK-norm kernel needs. x_q/x_k/x_v are still the normed residual, which is what
+            # the value-embedding and head gates below read. Under "vfc" only v is coalesced, so
+            # q and k arrive as None and are projected here as usual -- that is the whole point of
+            # that mode: their outputs stay contiguous for the NKI kernel.
+            q, k, v = qkv
+            if q is None:
+                q = self.c_q(x_q).view(b, t, self.n_head, self.head_dim)
+                k = self.c_k(x_k).view(b, t, self.n_head, self.head_dim)
+        elif USE_FUSED_QKV:
             # Fused QKV needs one shared input; MUDD's separate Q/K/V streams collapse
             # to x_q in this combination (untested/discouraged -- both default OFF).
             q, k, v = self.c_qkv(x_q).split(self.n_embd, dim=-1)
@@ -3517,7 +3560,7 @@ class CausalSelfAttention(nn.Module):
 
 
 class MLP(nn.Module):
-    def __init__(self, config: GPTConfig):
+    def __init__(self, config: GPTConfig, coalesced: str = "none"):
         super().__init__()
         # c_fc/c_proj are the two widest matmuls in the model, which is why they are the
         # ones USE_FP8_LINEAR targets (matching modded-nanogpt's own FP8-MLP records).
@@ -3527,14 +3570,17 @@ class MLP(nn.Module):
         # by default, so an fp8 variant of it would be an unmeasured combination.
         mlp_linear = Fp8Linear if USE_FP8_LINEAR else Linear
         hidden = config.mlp_ratio * config.n_embd
-        self.c_fc = mlp_linear(config.n_embd, hidden, bias=False)
+        # `coalesced` != "none" (parallel block only): c_fc lives in the owning block's single c_in
+        # matmul, so it is not built here and forward takes the pre-activation as an argument.
+        self.c_fc = None if coalesced in ("all", "vfc") else mlp_linear(config.n_embd, hidden, bias=False)
         self.c_gate = Linear(config.n_embd, hidden, bias=False) if USE_GATED_MLP else None
         self.c_proj = mlp_linear(hidden, config.n_embd, bias=False)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, fc: torch.Tensor | None = None) -> torch.Tensor:
+        h = self.c_fc(x) if fc is None else fc
         if self.c_gate is not None:
-            return self.c_proj(self.c_fc(x) * F.silu(self.c_gate(x)))
-        return self.c_proj(relu_squared(self.c_fc(x)))
+            return self.c_proj(h * F.silu(self.c_gate(x)))
+        return self.c_proj(relu_squared(h))
 
 
 class MuddCompose(nn.Module):
@@ -3596,11 +3642,31 @@ class Block(nn.Module):
         # ever carries another's dead parameters.
         self.is_rwkv = rwkv_layer_flags(config.n_layer)[layer_idx]
         assert not (self.is_mamba and self.is_rwkv), "a layer cannot be both Mamba2 and RWKV"
-        self.attn = None if (self.is_mamba or self.is_rwkv) else CausalSelfAttention(config, layer_idx)
+        # Coalescing is decided PER BLOCK, not globally: a Mamba2/RWKV layer keeps its serial form
+        # and its own MLP, so it must keep its own c_fc. See PARALLEL_BLOCK_COALESCE.
+        self.coalesced = PARALLEL_BLOCK_COALESCE \
+            if (USE_PARALLEL_BLOCK and not (self.is_mamba or self.is_rwkv)) else "none"
+        self.attn = None if (self.is_mamba or self.is_rwkv) \
+            else CausalSelfAttention(config, layer_idx, coalesced=self.coalesced)
         self.mixer = Mamba2Mixer(config) if self.is_mamba else None
         self.tmix = RWKVTimeMix(config, layer_idx) if self.is_rwkv else None
         self.cmix = RWKVChannelMix(config, layer_idx) if self.is_rwkv else None
-        self.mlp = None if self.is_rwkv else MLP(config)
+        self.mlp = None if self.is_rwkv else MLP(config, coalesced=self.coalesced)
+        # The coalesced input projection. Built HERE, immediately after the two modules whose
+        # Linears it absorbs, and deliberately NOT via _rng_neutral: the absorbed Linears all have
+        # in_features == n_embd and the same total numel as c_in, so this consumes exactly as many
+        # RNG draws as the baseline's block does, leaving the stream position -- and therefore every
+        # LATER tensor's initialization -- unchanged. init_weights then fills the slices in the
+        # baseline's own order and with the baseline's own per-slice bounds, which makes the
+        # coalesced arm bit-identical to the uncoalesced parallel block at step 0.
+        if self.coalesced == "all":
+            self.c_in = Linear(config.n_embd, 3 * config.n_embd + config.mlp_ratio * config.n_embd,
+                               bias=False)
+        elif self.coalesced == "vfc":
+            self.c_in = Linear(config.n_embd, config.n_embd + config.mlp_ratio * config.n_embd,
+                               bias=False)
+        else:
+            self.c_in = None
         self.mudd = MuddCompose(config.n_embd, layer_idx + 1, layer_idx) if USE_MUDD else None
         self.resid_lambda = nn.Parameter(torch.ones(1)) if self.mudd is None else None
         # x0 skip: mixes initial embedding into each layer's input (stabilizes deep nets)
@@ -3682,8 +3748,31 @@ class Block(nn.Module):
             # which is what makes the A/B start from a common point (and makes a step-0
             # mismatch a real bug signal, not an expected difference).
             h = norm(x)
-            attn_out, v_raw = self.attn(h, h, h, ve, cos, sin, attn_mask, v0, self.v_lambda, ve_bi, ve_tri)
-            x = x + self.par_lambda_a * attn_out + self.par_lambda_m * self.mlp(h)
+            qkv = fc = None
+            if self.c_in is not None:
+                b, t, c = h.shape
+                nh, hd = self.attn.n_head, self.attn.head_dim
+                proj = self.c_in(h)
+                if self.coalesced == "all":
+                    # A last-dim slice of proj is NOT contiguous, and rope_norm() silently falls
+                    # back to eager on a non-contiguous input -- exactly the trap that made
+                    # USE_FUSED_QKV a -0.0428 regression. So q and k are copied; the copy is two
+                    # [b,t,640] elementwise kernels against a ~15-18% kernel speedup, which is the
+                    # trade this mode exists to measure. v needs no copy: its last dim is still
+                    # contiguous, so [b,t,640] -> [b,t,nh,hd] is a real view, and v never reaches
+                    # the kernel.
+                    q = proj[..., :c].contiguous().view(b, t, nh, hd)
+                    k = proj[..., c:2 * c].contiguous().view(b, t, nh, hd)
+                    v = proj[..., 2 * c:3 * c].view(b, t, nh, hd)
+                    fc = proj[..., 3 * c:]
+                else:  # "vfc": only v and c_fc are coalesced, so no copy is needed anywhere
+                    q = k = None
+                    v = proj[..., :c].view(b, t, nh, hd)
+                    fc = proj[..., c:]
+                qkv = (q, k, v)
+            attn_out, v_raw = self.attn(h, h, h, ve, cos, sin, attn_mask, v0, self.v_lambda,
+                                        ve_bi, ve_tri, qkv=qkv)
+            x = x + self.par_lambda_a * attn_out + self.par_lambda_m * self.mlp(h, fc=fc)
             return x, v_raw
         if self.mixer is not None:
             # A Mamba2 layer produces no v_raw: there is no attention V here, so it
@@ -3884,7 +3973,26 @@ class GPT(nn.Module):
                 if block.scalar_gate is not None:
                     torch.nn.init.zeros_(block.scalar_gate.weight)
                 continue
-            if USE_FUSED_QKV:
+            if block.c_in is not None:
+                # Parallel block, coalesced input projection. Filled slice by slice IN THE
+                # BASELINE'S ORDER and with the baseline's per-slice bounds (q/k/v at +-s, the
+                # c_fc slice at +-0.4s), each row range being exactly the weight matrix it
+                # replaces. Because uniform_ advances the RNG by numel regardless of the bound,
+                # this consumes the same draws in the same order as the uncoalesced arm, so the
+                # two are bit-identical at init -- which is what lets one A/B isolate the
+                # coalescing from the architecture change.
+                n = self.config.n_embd
+                if block.coalesced == "all":
+                    torch.nn.init.uniform_(block.c_in.weight[:n], -s, s)
+                    torch.nn.init.uniform_(block.c_in.weight[n:2 * n], -s, s)
+                    torch.nn.init.uniform_(block.c_in.weight[2 * n:3 * n], -s, s)
+                    fc_rows = block.c_in.weight[3 * n:]
+                else:  # "vfc": q/k are still real Linears, initialized in the branch below
+                    torch.nn.init.uniform_(block.attn.c_q.weight, -s, s)
+                    torch.nn.init.uniform_(block.attn.c_k.weight, -s, s)
+                    torch.nn.init.uniform_(block.c_in.weight[:n], -s, s)
+                    fc_rows = block.c_in.weight[n:]
+            elif USE_FUSED_QKV:
                 # Slice-wise, not one uniform_ over the whole fused tensor: keeps each
                 # third's per-tensor distribution identical to the unfused baseline (RNG
                 # draw order differs -- expected, not a bug -- see Solution 13c).
@@ -3902,7 +4010,10 @@ class GPT(nn.Module):
                 torch.nn.init.uniform_(block.attn.c_proj.weight, -b, b)
             else:
                 torch.nn.init.zeros_(block.attn.c_proj.weight)
-            torch.nn.init.uniform_(block.mlp.c_fc.weight, -0.4 * s, 0.4 * s)
+            # The c_fc slice of a coalesced c_in comes LAST, matching the baseline's order
+            # (q, k, v, attn.c_proj, c_fc) so the RNG stream is identical -- see block.c_in above.
+            torch.nn.init.uniform_(block.mlp.c_fc.weight if block.c_in is None else fc_rows,
+                                   -0.4 * s, 0.4 * s)
             if block.mlp.c_gate is not None:
                 torch.nn.init.uniform_(block.mlp.c_gate.weight, -0.4 * s, 0.4 * s)
             torch.nn.init.zeros_(block.mlp.c_proj.weight)
@@ -4194,6 +4305,13 @@ class GPT(nn.Module):
             matrix_params.extend(p for name, p in block.attn.named_parameters()
                                  if not name.startswith("dcmha.") and name != "head_gate_bias")
             matrix_params.extend(block.mlp.parameters())
+            if block.c_in is not None:
+                # The coalesced input projection is an ordinary weight matrix, so it goes to Muon
+                # with every other block matrix. It lives on the Block rather than inside attn/mlp
+                # (it spans both), which is why it needs its own line here. Its [4480, 640] shape is
+                # its own Muon shape group -- which is itself part of what the arm measures, since
+                # Muon's per-shape orthogonalization now sees one big matrix instead of four.
+                matrix_params.append(block.c_in.weight)
         # NGRAM_VE_DIM's up-projections are ordinary [n_embd, ngram_dim] weight matrices, so
         # they belong in Muon with every other matrix, grouped by shape like the rest. They
         # live on GPT rather than inside a Block, which is why they need an explicit line here
@@ -4951,7 +5069,7 @@ ARCH_TOGGLE_NAMES = [
     "USE_HEAD_GATE", "HEAD_GATE_NORM", "HEAD_GATE_CHANNELS", "HEAD_GATE_MUL", "HEAD_GATE_BIAS",
     "USE_OUT_POOL", "OUT_POOL_LAYERS", "USE_QK_SHIFT", "QK_SHIFT_BETA", "QK_SHIFT_FREEZE",
     "USE_X0_GATE", "USE_BLOCK_NUDGE", "BLOCK_NUDGE_SITE", "USE_QKV_NORM_CSE",
-    "USE_PARALLEL_BLOCK",
+    "USE_PARALLEL_BLOCK", "PARALLEL_BLOCK_COALESCE",
     # T2.1 batch-size ramp. Pure training-schedule knobs -- no tensor changes name, shape or
     # dtype -- but they change how many tokens each recorded step saw and at what lr, so a
     # checkpoint trained with a ramp and reloaded without one is silently mis-described.
@@ -5002,8 +5120,9 @@ SHAPE_CRITICAL_TOGGLES = {"USE_VE", "USE_LOCAL_CONV", "USE_GATED_MLP", "USE_SELE
                           # one frozen block_nudge scalar per block. Both are state_dict keys even
                           # though the nudge never trains, so a mismatch is a load-time error.
                           "USE_X0_GATE", "USE_BLOCK_NUDGE",
-                          # USE_PARALLEL_BLOCK adds par_lambda_a/par_lambda_m per block.
-                          "USE_PARALLEL_BLOCK"}
+                          # USE_PARALLEL_BLOCK adds par_lambda_a/par_lambda_m per block;
+                          # PARALLEL_BLOCK_COALESCE replaces c_q/c_k/c_v/c_fc with one c_in.
+                          "USE_PARALLEL_BLOCK", "PARALLEL_BLOCK_COALESCE"}
 # USE_FP8_LINEAR is deliberately NOT in the set above: Fp8Linear is a Linear subclass with
 # the identical single `weight` parameter, so flipping it changes only the arithmetic used
 # inside MLP.forward, never a tensor's name or shape. That makes it exactly the
@@ -5229,6 +5348,7 @@ def main() -> None:
     global USE_HEAD_GATE, HEAD_GATE_NORM, HEAD_GATE_CHANNELS, HEAD_GATE_MUL, HEAD_GATE_BIAS
     global USE_OUT_POOL, OUT_POOL_LAYERS, USE_QK_SHIFT, QK_SHIFT_BETA, QK_SHIFT_FREEZE
     global USE_X0_GATE, USE_BLOCK_NUDGE, BLOCK_NUDGE_SITE, USE_QKV_NORM_CSE, USE_PARALLEL_BLOCK
+    global PARALLEL_BLOCK_COALESCE
     # T2.1. Read once per step by batch_ramp_grad_accum() to pick a Python int loop count and a
     # Python float lr scale -- neither reaches a device op as a constant (the loss scaling, which
     # would, goes through inv_gas_dev instead).
@@ -5433,6 +5553,11 @@ def main() -> None:
                         help="GPT-J/PaLM parallel block: attention and MLP both read one norm(x) and "
                              "are summed into the residual together (x + la*attn + lm*mlp). Removes "
                              "3 of 4 norms per block and unserialises the two branches.")
+    parser.add_argument("--parallel-block-coalesce", type=str, choices=("none", "vfc", "all"),
+                        default=os.environ.get("NEURON_COMPETITION_R1_PARALLEL_BLOCK_COALESCE", PARALLEL_BLOCK_COALESCE),
+                        help="merge the parallel block's input projections into one matmul: 'vfc' "
+                             "(c_v+c_fc, no copies) or 'all' (q,k,v,c_fc, needs contiguous copies "
+                             "of q/k to keep the rope+QK-norm NKI kernel). Needs --parallel-block.")
     parser.add_argument("--qkv-norm-cse", action=argparse.BooleanOptionalAction,
                         default=os.environ.get("NEURON_COMPETITION_R1_QKV_NORM_CSE", "1" if USE_QKV_NORM_CSE else "0") != "0",
                         help="hoist the three identical norm(q_in)/norm(k_in)/norm(v_in) calls into "
@@ -5773,6 +5898,15 @@ def main() -> None:
     BLOCK_NUDGE_SITE = args.block_nudge_site
     USE_QKV_NORM_CSE = args.qkv_norm_cse
     USE_PARALLEL_BLOCK = args.parallel_block
+    PARALLEL_BLOCK_COALESCE = args.parallel_block_coalesce
+    if PARALLEL_BLOCK_COALESCE != "none" and not USE_PARALLEL_BLOCK:
+        raise ValueError("--parallel-block-coalesce needs --parallel-block: the coalesced matmul is "
+                         "only valid when all four input projections read the same normed residual, "
+                         "which is exactly what the parallel block makes true.")
+    if PARALLEL_BLOCK_COALESCE != "none" and (USE_FUSED_QKV or USE_GATED_MLP):
+        raise ValueError("--parallel-block-coalesce is incompatible with USE_FUSED_QKV (it is the "
+                         "same idea, done differently) and with USE_GATED_MLP (c_gate would still "
+                         "need its own matmul over the same input, which defeats the coalescing).")
     if USE_PARALLEL_BLOCK:
         # The parallel block reads ONE norm(x) and ignores q_in/k_in/v_in entirely, so anything
         # that exists only to make those three differ would be silently dropped. Fail loudly.
@@ -6290,7 +6424,8 @@ def main() -> None:
               f"qk_shift={USE_QK_SHIFT} qk_beta={QK_SHIFT_BETA} qk_freeze={QK_SHIFT_FREEZE} "
               f"x0_gate={USE_X0_GATE} "
               f"block_nudge={USE_BLOCK_NUDGE} nudge_site={BLOCK_NUDGE_SITE} "
-              f"qkv_norm_cse={USE_QKV_NORM_CSE} parallel_block={USE_PARALLEL_BLOCK}")
+              f"qkv_norm_cse={USE_QKV_NORM_CSE} parallel_block={USE_PARALLEL_BLOCK} "
+              f"par_coalesce={PARALLEL_BLOCK_COALESCE}")
         # T2.1, same reason: one line carrying every ramp knob, so two ramp arms are
         # distinguishable in experiment-log.jsonl without re-reading the run log.
         print(f"batch_ramp:        {BATCH_RAMP} grad_accum={BATCH_RAMP_GRAD_ACCUM} "

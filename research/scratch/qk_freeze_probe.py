@@ -124,12 +124,16 @@ ARMS = [
     # normed residual from step 1 on), but it IS bit-identical at step 0 because mlp.c_proj is
     # zero-init and par_lambda_a starts at 1.0 -- same class of claim as x0-gate.
     ("parallel-block", dict(USE_PARALLEL_BLOCK=True)),
+    # Both coalescing modes must be bit-identical to parallel-block (NOT to the baseline) at step 0
+    # -- that is what the slice-wise init in init_weights buys, and it is checked against `par_ref`.
+    ("par-coalesce-vfc", dict(USE_PARALLEL_BLOCK=True, PARALLEL_BLOCK_COALESCE="vfc")),
+    ("par-coalesce-all", dict(USE_PARALLEL_BLOCK=True, PARALLEL_BLOCK_COALESCE="all")),
 ]
 
 
 def main() -> int:
     train.COMPUTE_DTYPE = torch.float32
-    ref = None
+    ref = par_ref = None
     failures = []
     for label, toggles in ARMS:
         with toggled(**toggles):
@@ -154,6 +158,8 @@ def main() -> int:
             cz = causality(model, cfg)
             if label == "baseline":
                 ref = losses
+            if label == "parallel-block":
+                par_ref = losses
             same_step0 = losses[0] == ref[0]
             same_all = losses == ref
             beta_moved = max((b.detach() - float(toggles.get("QK_SHIFT_BETA", 0.0))).abs().max().item()
@@ -177,6 +183,14 @@ def main() -> int:
                     status = f"FAIL frozen nudge moved by {n_moved:.3e}"
             if label in ("qkshift-b0-trained", "x0-gate", "parallel-block") and (not same_step0 or same_all):
                 status = "FAIL expected step-0 no-op then divergence"
+            if label.startswith("par-coalesce-"):
+                # The reference for these is the UNCOALESCED parallel block, not the baseline: the
+                # step-0 claim is "merging four matmuls into one changed no arithmetic", and it is
+                # only interesting relative to the architecture the merge is applied to.
+                if losses[0] != par_ref[0]:
+                    status = f"FAIL step-0 differs from parallel-block by {losses[0] - par_ref[0]:.3e}"
+                elif losses[0] != ref[0]:
+                    status = f"FAIL step-0 differs from baseline by {losses[0] - ref[0]:.3e}"
             if cz != 0.0:
                 status = f"FAIL causality {cz:.3e}"
             print(f"{label:20s} tensors={ntensors:3d} frozen={len(frozen):2d} "
