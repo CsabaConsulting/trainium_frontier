@@ -943,7 +943,68 @@ Reproduces box 1's s/step to **0.11%**, so throughput numbers transfer between b
   silently also sets n_embd 768 via `round_up(DEPTH*96, 128)`, which made two planned arms identical.
   Mechanism worth knowing generally: an early n-gram injection site's LNC=2 resharding cost scales with
   the number of layers *below* it, so `--ngram-ve-layers "1,-1"` and `--depth` are anti-synergistic.
-- **Probe 3 width payoff (640/768/896 × 6 at a fixed ~2135 steps) — in flight.**
+- **Probe 3 width payoff (640/768/896 × 6 at a fixed ~2135 steps) — DONE. Width buys real quality per
+  step and still LOSES at the budget.** At a fixed ~2136 steps: 640×6 **1.004380**, 768×6
+  **0.998894** (−0.005594), 896×6 **0.987716** (−0.016700) — superlinear in width, so the thesis'
+  *quality* half was right. But at 1800 s the throughput cost dominates: 768×6 reaches 1816 steps for a
+  +0.01255 slope penalty → est. **1.011340** (+0.0070 worse); 896×6 reaches 1542 → est. **1.012855**
+  (+0.0085 worse). **Inverting the −0.077/ln(steps) slope gives the number that closes the track:
+  768×6 needs +9.46% throughput to break even, 896×6 needs +11.63%.**
+  The 640×6 control is also a **cross-box reproduction check that passed to 1.7e-5** (box 2's
+  1.004380 vs box 1's `t17-l1-m128` 1.004363).
+- **Probe 3 ablate-down / re-add — DONE. The block's constant-capacity throughput ceiling is +1.36%,
+  against the 9.46% needed. THE TRACK IS CLOSED NEGATIVE.** 120-step instrument, 8-point means:
+  `--no-nki-rope-norm` **+1.36%** (158444 vs 156323 tok/s, reproduced 3×3 interleaved with **no
+  overlap** between the groups, proxy loss inside the ±0.0034 floor); `--no-nki-softcap-ce` **−3.52%**
+  (that kernel stays); both off −2.21%, which is *exactly* the multiplicative composition of the two,
+  so the kernels do not interact with each other. Ablating capacity does find +43.05%
+  (`--no-local-conv --no-ve --no-ngram-ve` = 223621 tok/s) but costs 553M of 593M params — the only
+  place the throughput lives is inside the capacity, which is the negative result stated exactly.
+- **THE MECHANISM, the most reusable thing this track produced: the layer-1 n-gram gather INVERTS the
+  rope+norm kernel.** An NKI kernel island is opaque to the LNC=2 resharding that a dynamic-address
+  gather forces, so each kernel boundary becomes a forced materialisation point:
+
+  | | rope kernel ON | rope kernel OFF | kernel worth |
+  |---|---|---|---|
+  | n-gram ON (locked) | 156323 tok/s | 158444 | **−1.34%** |
+  | n-gram OFF | 141877 | 131465 | **+7.92%** |
+
+  A 9.4-point swing from one gather, 35× the instrument's resolution. **Kernel wins do not transfer
+  across stacks and the sign can flip** — the same kernel is +15–18% / +7.92% / −1.34% on three stacks
+  of one model. Any "this kernel looks obsolete/essential" judgement needs a 120-step measurement on
+  the *current* stack, never the comment beside it.
+- **THREE FACTS THE MAIN TRACK MUST NOT TRIP OVER.**
+  1. **Removing the n-gram VE tables is 10.2% SLOWER *and* worse** — 156323 → 141877 tok/s while
+     dropping **537M params** (592.9M → 55.7M) at essentially unchanged FLOPs/token, with proxy loss
+     4.0360 vs 3.9391. Unexplained (same class as `local_conv`'s old 6.9×), but an unambiguous
+     do-not-touch: the tables are both faster and better.
+  2. **`--local-conv` is NOT dead compute any more.** T0.1 registered `local_conv.weight` in its own
+     AdamW group, so `--no-local-conv` drops **7,680 trained params** and costs **+0.267** proxy loss
+     for its +3.33%. Its help text claimed "provably dead compute … bit-identical" — corrected. The
+     `USE_LOCAL_CONV` block comment is stale in the opposite direction ("6.9× slower to turn off" was
+     the pre-NKI eager stack). Two stale comments in opposite directions on the same three lines,
+     both caught only by measuring.
+  3. `--depth 8` alone silently also sets `n_embd=768` (see the shape-screen bullet above).
+- **ONE ADOPTABLE HANDOVER, offered as a simplification and not as a bpb win:** `--no-nki-rope-norm`
+  on the locked config, +1.36% at constant capacity, retires a hand-written NKI kernel. At 2138 steps
+  that is ~+29 steps = **−0.0010 bpb**, *below* the 0.001 single-run noise threshold. **Contingent** on
+  `--ngram-ve-layers "1,-1"` per the 2×2 — re-measure if that moves. Do **not** delete the kernel from
+  the codebase; it is worth +7.92% whenever the gather is absent.
+- **DO NOT RE-RUN:** `PACK_FACTOR` 8/16, any depth-8 shape, width 768/896 at the 1800 s budget.
+- **NOT DONE, closed by arithmetic rather than left open:** the shared-KV arm (`--shared-kv-from` does
+  not exist, and part 3 shows even a *free* 9.46% only just breaks even, so building it could not have
+  changed the verdict) and the "two epochs by design" arm (its stated precondition was ≥2× throughput
+  headroom; measured headroom is +1.36%, and `USE_EPOCH_SHUFFLE` is already a recorded negative with
+  numbers).
+- **Process incident from this track, recorded because the fix is a rule:** commit `56cd19f` from this
+  track was described as "help strings only" but landed **19 insertions and 396 deletions** in
+  `train.py` — `git add train.py` in a working tree that another agent was mid-edit in swept up an
+  in-progress slice of the dead-code removal and left `origin/main` **runtime-broken** (`USE_RWKV`
+  still read, definition gone; `py_compile` passes because `NameError` is a runtime error). Fixed by
+  `d4abc14`. **Rules: check `git diff --numstat` before committing a file you did not intend to
+  rewrite, stage specific hunks in a shared tree, and never trust `py_compile` alone — import and
+  instantiate.** No hardware run was affected: box 2 was deliberately frozen on md5
+  `d0995051e0375541d6f9fc71abecf465` for its in-flight arms.
 - **Two blockers cleared on the way, both affecting the main track too:** `train.py` at commit
   `7fb5fb3` **did not compile at all** (`SyntaxError: name 'USE_COMPILE_MUON' is used prior to global
   declaration` — `--compile-muon`'s argparse default reads the constant before the `global` statement;
@@ -956,6 +1017,16 @@ either box's own track work, separate `--out-dir tc-*` / label prefix. Both boxe
 notebook/experiment-log; check here before starting anything to avoid duplicating a run. **The track's
 original ≤1.010 gate was overtaken by the main track on 2026-09-14** (new locked config = 1.004363), so
 the live bar for this track is "beat 1.004363".
+
+**TRACK VERDICT (2026-09-14): the ≤1.010 gate was NOT crossed by this track, and it produced no
+configuration that beats 1.004363 and no candidate that would.** The gate is met by the main track's
+own config. All four probes closed negative — XLA graph mode ≤1.11×, `PACK_FACTOR` monotonically
+slower, block-body ablation +1.36% constant-capacity ceiling, against a 9.46% purchase price. What the
+track delivers instead is the exchange rate itself (width is worth −0.0056/−0.0167 bpb per step and
+loses by +0.0070/+0.0085 at the budget), the resharding mechanism, the three corrected facts above, and
+one small adoptable simplification. The thesis' premise "we are at ~8% of peak so a 2–3× loop must
+exist" is now falsified from four independent directions; **no further throughput work should be
+scheduled on the expectation of converting it to capacity via width or depth.**
 
 ### 12.3 Traps re-confirmed this block (keep these in view)
 

@@ -32,6 +32,46 @@
 > **NOTE the track's ≤1.010 gate was overtaken by the main track on the same day**: the new locked
 > config (n-gram VE layers "1,-1" at mult 128 + compiled Muon + frozen qk-shift) is **1.004363**, so
 > the meaningful bar for this track is now "beat 1.004363", not "reach 1.010".
+>
+> ---
+> **FINAL STATUS 2026-09-14 — THE WHOLE TRACK IS DONE AND CLOSED NEGATIVE, WITH THE GAP QUANTIFIED.**
+> Full numbers: notebook section "2026-09-14 — Probe 3 completes the throughput→capacity track".
+> The one number that closes it: **768×6 is worth −0.005594 bpb at equal steps but needs +9.46%
+> throughput to break even at 1800 s, and the block's constant-capacity throughput ceiling is
+> +1.36%.** 896×6 is worth −0.016700 at equal steps (superlinear in width, so the thesis' *quality*
+> half was right) and needs +11.63%. Depth is closed unconditionally — a double negative, ~half the
+> throughput *and* a worse proxy loss per step.
+> **ONE ADOPTABLE HANDOVER:** `--no-nki-rope-norm` is **+1.36%** at constant capacity on the locked
+> config, reproduced 3×3 interleaved with no overlap between the two groups. Offered as a
+> *simplification that retires a hand-written NKI kernel*, **not** as a bpb win (~+29 steps =
+> −0.0010 bpb, below the single-run noise threshold). **Contingent** on `--ngram-ve-layers "1,-1"`:
+> see the 2×2 below.
+> **THE MECHANISM, which is the most reusable thing this track found.** The layer-1 n-gram gather
+> *inverts* the rope+norm kernel, because an NKI kernel island is opaque to the LNC=2 resharding that
+> a dynamic-address gather forces:
+> | | rope kernel ON | rope kernel OFF | kernel worth |
+> |---|---|---|---|
+> | n-gram ON (locked) | 156323 tok/s | 158444 | **−1.34%** |
+> | n-gram OFF | 141877 | 131465 | **+7.92%** |
+> A 9.4-point swing from one gather. **Kernel wins do not transfer across stacks — measure, never
+> read the comment.** (The same kernel is +15–18% / +7.92% / −1.34% on three stacks of one model.)
+> **THREE FACTS THE MAIN TRACK MUST NOT TRIP OVER.** (1) Removing the n-gram VE tables is **10.2%
+> SLOWER** *and* worse (proxy 4.0360 vs 3.9391) despite dropping 537M params at unchanged
+> FLOPs/token — unexplained, but an unambiguous do-not-touch. (2) `--local-conv` is **not** dead
+> compute any more (T0.1 made it trainable): `--no-local-conv` drops 7,680 trained params and costs
+> +0.267 proxy loss for +3.33%; its help text said "bit-identical" and has been corrected. (3)
+> `--depth 8` alone silently also sets `n_embd=768` via `round_up(DEPTH*96, 128)` — always pass
+> `--n-embd` with `--depth`.
+> **CROSS-BOX REPRODUCTION PASSED to 1.7e-5**: box 2's `sh-640x6-2135` = **1.004380** vs box 1's
+> `t17-l1-m128` = **1.004363**, same shape, same flags, different machines and agents.
+> **DO NOT RE-RUN:** `PACK_FACTOR` 8/16, any depth-8 shape, width 768/896 at the 1800 s budget.
+> **NOT DONE, closed by arithmetic:** the shared-KV arm (`--shared-kv-from` does not exist; even a
+> *free* 9.46% only breaks even, so it could not have changed the verdict) and the two-epochs-by-design
+> arm (precondition was ≥2× throughput headroom; measured headroom is +1.36%, and `USE_EPOCH_SHUFFLE`
+> is already a recorded negative).
+> **The ≤1.010 gate: NOT crossed by this track.** It is met by the main track's own config
+> (1.004363), and this track produced no configuration that beats 1.004363 and no candidate that
+> would. Stated plainly rather than dressed up.
 
 Written 2026-09-13 (local box, no hardware). Purpose: give a second instance, and whichever
 agent drives it, a track that is independent of the main box's locked config and submission
@@ -152,6 +192,28 @@ outcome if the hypothesis holds: 15–30% fewer s/step. Gate: ≥ 10% → adopt 
 baseline for Probe 3; < 5% → the launch-count story is wrong, record it.
 
 ## 5. Probe 3 — the plain block: ablate down, then widen (one day)
+
+> **DONE 2026-09-14, CLOSED NEGATIVE. Do not re-run any part of this.** Results table by part:
+>
+> | part | what was asked | answer |
+> |---|---|---|
+> | 1 ablate-down | how much can a plain block hand back? | **+43.05%** — but by deleting 553M of 593M params (`ab-nofeat` 223621 tok/s vs 156323). Not an offer. |
+> | 1 constant-capacity | how much can it hand back *for free*? | **+1.36%**, and that is the whole ceiling (`--no-nki-rope-norm`, 3×3 interleaved, no overlap) |
+> | 1b shared-KV | worth building? | **NO.** Flag does not exist, and part 3 shows even a free 9.46% only breaks even. Closed by arithmetic. |
+> | 2 re-add one at a time | do old per-feature costs transfer? | **NO, and the sign can flip.** Same kernel = +15–18% / +7.92% / −1.34% on three stacks. See the 2×2 in the status box. |
+> | 3 payoff sweep | does width/depth pay at 1800 s? | **NO.** 768×6 −0.0056/step but +0.0070 worse at budget; 896×6 −0.0167/step but +0.0085 worse. Depth: double negative, closed unconditionally. |
+> | 4 two epochs by design | run it? | **NO.** Precondition was ≥2× headroom; measured +1.36%. |
+>
+> Per-arm numbers, the corrected `--local-conv` and `--depth` facts, and the resharding mechanism are
+> in the notebook section "2026-09-14 — Probe 3 completes the throughput→capacity track". Drivers:
+> `research/scratch/tc_probe3_{shape_screen,payoff_driver,ablate,repeat,mech}.sh`.
+>
+> **One methodological correction to the protocol as written below**, worth keeping because it would
+> bite anyone re-using this doc: step 3 says to sweep width/depth *first* and re-add the paid-off
+> features to the winner *afterwards*. That ordering costs an extra full-budget run per candidate and
+> prices width against a control that the main track had already superseded. Every arm here was run
+> **on top of** the best-known config instead, which collapsed the two passes into one and made the
+> control arm a cross-box reproduction check (it passed to 1.7e-5). Do it that way next time.
 
 Hypothesis: every feature in the current block adds ops (local conv 5.4% exposed, value
 embeddings and their gates, per-layer lambdas, two NKI kernel islands outside the compiled

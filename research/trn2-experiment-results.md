@@ -5798,3 +5798,250 @@ exact same trap as the earlier `428319a` HOTFIX. No hardware run was affected (t
 deliberately frozen on an older binary for its in-flight probe arms). Fixed by `d4abc14`. Two
 process rules came out of it: check `git diff --numstat` before committing a file you did not
 intend to rewrite, and never trust `py_compile` alone as the gate — import and instantiate.
+
+## 2026-09-14 — Probe 3 completes the throughput→capacity track: width is worth real bpb per step but **loses at the budget by ~0.007**, the block's constant-capacity throughput ceiling is **+1.36%** against a **9.46%** break-even, and the reason is a clean 2×2 — the layer-1 n-gram gather **inverts** the rope+norm kernel (track: throughput→capacity)
+
+Continues the same track as the Probe 0/1 and Probe 2 sections above. Everything here ran on the
+second box (`ec2-16-26-154-27`), whose speed parity with box 1 was established in the Probe 2 section
+(0.84081 vs 0.8399 s/step at the then-locked config, 0.11% apart) — that parity is what licenses
+comparing any of these numbers against box 1's.
+
+All arms are frozen on one binary, `train.py` md5 `d0995051e0375541d6f9fc71abecf465` (commit
+`b0460f4`), deliberately not resynced mid-flight so that every number in every table below comes from
+the same file. All arms carry the promoted config explicitly — `--compile-muon --qk-shift
+--qk-shift-beta 0.0 --qk-shift-freeze --ngram-ve-layers "1,-1" --ngram-ve-table-mult 128` — rather
+than relying on defaults, so they survive the other box promoting something else mid-run (which it
+did, twice).
+
+Drivers: `research/scratch/tc_probe3_shape_screen.sh`, `tc_probe3_payoff_driver.sh`,
+`tc_probe3_ablate.sh`, `tc_probe3_repeat.sh`, `tc_probe3_mech.sh`.
+
+### 0. What this track was asking, and the one number that answers it
+
+The track exists because of the **data wall**: the corpus is ~288M tokens ≈ 2195 steps, the locked
+config already runs ~2138 of them, so throughput past that point buys almost nothing. The thesis was
+that throughput should therefore be *converted into capacity* — spend it on a wider or deeper model
+at a fixed step count. Probe 1 (torch_xla graph mode) and Probe 2 (launch count / `PACK_FACTOR`) had
+already closed negative, so Probe 3 had to both (a) price the capacity purchase and (b) find the
+throughput to pay for it.
+
+Part B priced it. **Width genuinely buys quality per step, and still loses at the real budget.** The
+exchange rate that decides the whole track:
+
+> 768×6 is worth **−0.005594 bpb at equal steps**, costs 14.65% of the throughput, and the
+> **−0.077 bpb per ln(steps)** slope prices that shortfall at **+0.01255** — a net **+0.00696 worse**
+> at 1800 s. Inverting the slope, **+9.46% throughput** on the 768 shape would flip it to a win.
+
+Parts A/C/D then searched the entire block for that 9.46%. The best constant-capacity offer found
+anywhere is **+1.36%**. The track is closed negative, with the gap quantified rather than asserted.
+
+### 1. Part A — the width/depth s/step screen (120-step instrument)
+
+Fixed-step instrument, `--num-steps 120 --eval-seq-len 1024`, s/step read as the mean of the printed
+steps 40–110 (step 0 carries the cold compile and must be excluded — including it was an early error
+in this track and it contaminated the first pass of these numbers).
+
+| arm | shape | num_params | s/step | vs control | step-110 loss |
+|---|---|---|---|---|---|
+| `sh-640x6` | 640×6 (control) | 592,916,844 | **0.8457** | — | 3.9346 |
+| `sh-768x6` | 768×6 | 631,655,952 *see note* | **0.9908** | −14.65% | 3.9159 |
+| `sh-896x6` | 896×6 | — | **1.1646** | −27.38% | 3.9046 |
+| `sh-640x8` (as launched) | **768×8** | 631,655,952 | **1.9195** | −55.94% | 3.9480 |
+| `sh-768x8` | 768×8 | 631,655,952 | **1.9247** | −56.06% | 3.9465 |
+| `sh-640x8-real` | 640×8 | — | **1.6335** | −48.23% | 4.0120 |
+
+**A `--depth` trap, recorded because it cost a run.** `--depth 8` alone does *not* give 640×8:
+`n_embd = round_up(DEPTH * ASPECT_RATIO(96), HEAD_DIM(128))` when `N_EMBD == 0`, which is 640 at depth
+6 but **768** at depth 8. So the "640×8" arm was silently a duplicate of the "768×8" arm — identical
+`num_params=631,655,952`, identical `flops_per_token`. **Anyone sweeping depth must pass `--n-embd`
+explicitly.** The accident paid for itself: two arms with byte-identical shapes ran 1.9195 and 1.9247,
+which puts this instrument's s/step reproducibility at **0.27%** on the 8-point mean.
+
+**Depth is closed on both axes at once.** Every depth-8 arm is a *double* negative — roughly half the
+throughput *and* a worse 120-step proxy loss than the 640×6 control (3.9465–3.9480 and 4.0120 against
+3.9346). Nothing in this project's history has ever recovered a double negative at full budget, and at
+1800 s depth 8 would reach ~940 steps, a **+0.063 bpb** step penalty off the slope. Not paid for
+again.
+
+The mechanism, which is specific to this stack and worth keeping: the promoted `--ngram-ve-layers
+"1,-1"` injects an n-gram gather at **layer 1**, and that gather's dynamic address forces LNC=2 to
+re-shard the residual/V stream for **every layer downstream of the injection site**. The cost
+therefore scales with how many layers sit below layer 1 — so `--depth` and an early n-gram injection
+are **anti-synergistic by construction**. Depth is not merely expensive here, it is expensive *because
+of* the current best config.
+
+### 2. Part B — the payoff experiment: fixed ~2135 steps, real `val_bpb`
+
+Each arm's `--max-train-seconds` was set to `2135 × (that arm's own Part-A s/step)`, so step counts
+match **by construction** and the comparison is pure quality-per-step with no data-wall confound
+(2135 < the ~2195-step one-epoch wall, so every arm sees exactly one epoch and no post-hoc slope
+correction is needed). 2135 rather than the plan's 2150 because 2135 is what the locked config reaches
+in the legal 1800 s — so the control arm **is** the submission run, not a proxy for it.
+
+| arm | s/step | steps | `val_bpb` | at 2138 steps | vs control | steps @1800 s | slope penalty | est. @1800 s | vs control | throughput needed to break even |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `sh-640x6-2135` | 0.83980 | 2138 | **1.004380** | 1.004380 | — | 2138 | 0 | **1.004380** | — | n/a |
+| `sh-768x6-2135` | 0.98852 | 2135 | **0.998894** | 0.998786 | **−0.005594** | 1816 | +0.01255 | **1.011340** | +0.006960 | **9.46%** |
+| `sh-896x6-2135` | 1.16458 | 2137 | **0.987716** | 0.987680 | **−0.016700** | 1542 | +0.02517 | **1.012855** | +0.008475 | **11.63%** |
+
+All three: `causality_passed: True`, `causality_max_abs: 0.000000`. The control was `over_budget:
+False` with `charged_seconds_est: 1795.5`; the two width arms are `over_budget: True` **by
+construction**, because they are fixed-*step* arms deliberately run past 1800 s — that is the point of
+the design, not a failure, and neither is a submittable configuration as run.
+
+Two things to take from this table.
+
+**First, it is a cross-box reproduction check and it passed to 1.7e-5.** `sh-640x6-2135` reached
+**1.004380** against box 1's `t17-l1-m128` **1.004363** at the same shape and the same flags. Two
+different machines, two different agents, same number to five decimal places. Every other number in
+this section inherits that credibility.
+
+**Second, width's quality win is real and superlinear, and it still is not enough.** −0.0056 at 768,
+−0.0167 at 896: the *second* 128 channels are worth roughly twice the first. The naive read — "width
+scales, buy width" — is exactly backwards at a fixed wall-clock budget, because the throughput cost is
+superlinear too and grows faster. This is the single most important number the track produced, because
+it converts a vague "spend throughput on capacity" thesis into a hard threshold that a throughput
+search can be aimed at and can *fail*.
+
+### 3. Part C — the ablate-down / re-add screen: where is 9.46%?
+
+Same 120-step instrument. `ab-full` and `ab-norope` were each run **three times, interleaved**
+(`full, norope, full, norope` order, not back-to-back) so a slow drift in box state cannot masquerade
+as the effect. `tok/s` is the 8-point mean of steps 40–110; `s/step = 131072 / tok_s`.
+
+| arm | flags | num_params | tok/s | s/step | vs `ab-full` | step-110 loss |
+|---|---|---|---|---|---|---|
+| `ab-full` ×3 | (control) | 592,916,844 | 156945 / 155789 / 156235 → **156323** | 0.83848 | — | 3.9380 / 3.9380 / 3.9412 |
+| `ab-norope` ×3 | `--no-nki-rope-norm` | 592,916,844 | 158504 / 158327 / 158502 → **158444** | 0.82724 | **+1.36%** | 3.9366 / 3.9344 / 3.9359 |
+| `ab-noce` | `--no-nki-softcap-ce` | 592,916,844 | **150811** | 0.86911 | −3.52% | 3.9377 |
+| `ab-nokernels` | both kernels off | 592,916,844 | **152865** | 0.85743 | −2.21% | 3.9343 |
+| `ab-noconv` | `--no-local-conv` | 592,909,164 | **161525** | 0.81147 | +3.33% | **4.2054** |
+| `ab-nofeat` | `--no-local-conv --no-ve --no-ngram-ve` | 39,980,812 | **223621** | 0.58613 | +43.05% | 4.5700 |
+| `ab-plain` | those three plus both kernels off | 39,980,812 | **185064** | 0.70825 | +18.39% | 4.5701 |
+| `ab-norope-768` | `--no-nki-rope-norm --n-embd 768` | — | **135438** | 0.96776 | +2.14% *vs `sh-768x6`* | 3.9162 |
+
+**The `+1.36%` is real, not noise.** Three-vs-three with **no overlap**: the slowest `ab-norope`
+(158327) beats the fastest `ab-full` (156945). The `norope` replicates are tight to σ≈0.06%
+(158504/158327/158502) while the control spreads 0.74%, which also says the control's spread is the
+box, not the config. Proxy losses are `full` 3.93907 mean vs `norope` 3.93563 mean — a −0.0034 delta
+that is *exactly* the 120-step noise floor established independently in the Probe 2 section, so this
+is **constant capacity** and no quality claim is made either way.
+
+**The two kernel effects compose exactly multiplicatively**, which is a useful internal consistency
+check on the instrument: `1.0136 × 0.9648 = 0.9779` predicted for both-off, `0.9779` measured
+(−2.21%). The rope+norm kernel and the softcap+CE kernel do not interact with each other at all.
+
+**`--no-nki-softcap-ce` is −3.52%: that kernel still earns its keep and must stay.**
+
+**`ab-noconv`'s +3.33% is not available, and finding out why fixed a documentation bug.** Its proxy
+loss is **4.2054** against the control's 3.9380 — 79× the noise floor. The `--local-conv` help text
+claimed "*Provably dead compute as wired (zero weight, in no optimizer group), so `--no-local-conv` is
+a bit-identical model*". That was true for most of the competition and has been **false since T0.1**,
+which registered `local_conv.weight` in its own AdamW group (`TRAIN_LOCAL_CONV=True`).
+`--no-local-conv` now removes **7,680 trained parameters** (num_params 592,909,164 vs 592,916,844) and
+is a real capacity ablation. Help text corrected. The `USE_LOCAL_CONV` block comment is stale in the
+*other* direction too — it records "turning the compute off measured 6.9× compiled-graph slower",
+where the current measurement is +3.33% **faster**; that 6.9× was the pre-NKI eager stack. **Two stale
+comments, in opposite directions, on the same three lines of code — both caught only by measuring.**
+
+**The floor arms confirm there is >9.46% in the block, and that it is unreachable.** `ab-nofeat` is
++43.05%, but it costs 553M of 593M parameters and +0.63 of proxy loss. The track wanted to convert
+throughput *into* capacity; the only place the throughput lives is *inside* the capacity. That is the
+track's negative result stated exactly.
+
+### 4. Part D — the mechanism: the layer-1 n-gram gather **inverts** the rope+norm kernel
+
+Part C left a real puzzle. The two NKI kernels together are worth **+21.1%** on the stripped model
+(`ab-nofeat` 223621 vs `ab-plain` 185064; **0.1236 s/step** saved) but only **+2.21%** on the promoted
+stack (156323 vs 152865; **0.0206 s/step** saved). The saving did not merely shrink as a *fraction* of
+a longer step — it shrank **6× in absolute seconds**. A fixed per-step launch saving cannot do that.
+And the rope+norm kernel alone, worth a documented +15–18% when it was written, now measures
+**−1.36%**.
+
+Hypothesis: an NKI kernel island is **opaque to the LNC=2 resharding decision**, so once a
+dynamic-address gather forces the residual stream to be re-sharded, each kernel boundary becomes a
+forced materialisation point — a cost that exists *only* when resharding is in play, i.e. only once
+the layer-1 n-gram gather is there. Test: turn off just the n-gram tables (`--no-ngram-ve`, leaving VE
+and `local_conv` on) and re-measure the kernel.
+
+| | rope+norm kernel **ON** | rope+norm kernel **OFF** | kernel is worth |
+|---|---|---|---|
+| n-gram VE **ON** (locked) | **156323** tok/s (0.83848) | **158444** (0.82724) | **−1.34%** |
+| n-gram VE **OFF** | **141877** (0.92385) | **131465** (0.99701) | **+7.92%** |
+| n-gram VE is worth | **+10.18%** | **+20.52%** | interaction ≈ **9.4 points** |
+
+`mech-ng-off-*` both report `num_params=55,717,612`, `flops_per_token=3.972202e+08`.
+
+**Hypothesis confirmed.** Removing one gather swings the rope+norm kernel from **+7.92%** to
+**−1.34%** — a 9.4-point inversion, 35× the instrument's resolution. Three consequences, all
+actionable:
+
+1. **Adopt `--no-nki-rope-norm` on the locked config, but do not delete the kernel.** It is worth
+   +7.92% whenever the n-gram gather is absent. The adopt decision is **contingent on
+   `--ngram-ve-layers "1,-1"`** and must be re-measured if that ever moves.
+2. **"Kernel wins do not transfer across stacks" is now a measured law here, not a caution.** The same
+   kernel is +15–18%, +7.92%, and −1.34% on three stacks of the same model. Any judgement that a
+   kernel is obsolete — or essential — needs a 120-step measurement on the *current* stack, never the
+   comment next to it. (Same lesson as the two stale `local_conv` comments in §3, arrived at
+   independently.)
+3. **An unexplained and counterintuitive result that the main track must not trip over: removing the
+   n-gram VE tables makes the model 10.2% SLOWER.** 156323 → 141877 tok/s while dropping **537M
+   parameters** (592.9M → 55.7M) at essentially unchanged FLOPs/token (3.9919e8 → 3.9722e8). Its proxy
+   loss is also worse (4.0360 vs 3.9391). So the n-gram VE tables are **both faster and better** — an
+   unambiguous do-not-touch. The *why* is unknown; the honest reading is that their presence changes a
+   global shard/layout or tiling decision that happens to suit the rest of the graph, the same class of
+   "unexplained compiler effect" already recorded for `local_conv`'s old 6.9×. Recorded as a measured
+   fact with the mechanism explicitly **not** claimed.
+
+Note also that `--no-ngram-ve` alone is *slower* while `--no-local-conv --no-ve --no-ngram-ve`
+together are 43% *faster*. These features are wildly non-additive on this stack. Per-feature costs
+read off separate runs cannot be summed.
+
+### 5. Does the one available win rescue width? No — and here is the arithmetic
+
+Adopting `--no-nki-rope-norm` helps the wide arm slightly *more* than the control (+2.14% at 768 vs
++1.36% at 640 — consistent with the kernel's cost scaling with `n_embd`), so it is worth redoing the
+break-even with it applied to **both** arms:
+
+| | s/step (norope) | steps @1800 s |
+|---|---|---|
+| 640×6 | 0.82724 | 2176 |
+| 768×6 | 0.96776 | 1860 |
+
+Step penalty `= 0.077 × ln(2176/1860) = +0.01207`, against width's `−0.00559` at equal steps →
+**+0.00648 worse**. Break-even now needs 768×6 at ≤0.88933 s/step, i.e. **+8.82% more** throughput
+than measured. **Spending the only win available moved the target from 9.46% to 8.82% and delivered
+0% of it**, because it applies to both arms.
+
+### 6. Verdict on the track, and on the ≤1.010 gate
+
+**The throughput→capacity thesis is CLOSED NEGATIVE at the block level, with the gap quantified.**
+All four probes: XLA graph mode (Probe 1) ≤1.11× and not ours to take; launch count / `PACK_FACTOR`
+(Probe 2) monotonically *slower*; block-body ablation (Probe 3 Parts C/D) **+1.36%** constant-capacity
+ceiling; and the purchase itself (Part B) needing **9.46%**. Width and depth are both closed at the
+1800 s budget. Depth is additionally closed on quality-per-step, so it is closed unconditionally.
+
+**The track's own ≤1.010 gate was overtaken by the main track before Probe 3 finished.** The locked
+config moved 1.018985 → **1.004363** during this work (layer-1 n-gram VE at table-mult 128, compiled
+Muon, frozen qk-shift). So the ≤1.010 bar is met by the main track's config, not by anything in this
+track, and the live bar is now "beat 1.004363". **This track did not beat it and produced no candidate
+that would.** Its deliverable is the exchange rate, the three corrected/measured facts below, and one
+small adoptable simplification.
+
+**What this track hands over:**
+- **Adopt (simplification, tailwind at the noise floor):** `--no-nki-rope-norm` on the locked config,
+  **+1.36%** at constant capacity, reproduced 3×3 with no overlap. At 2138 steps that is ~+29 steps =
+  **−0.0010 bpb** off the slope — *below* the 0.001 single-run noise threshold, so it is offered as
+  "retires a hand-written NKI kernel and is very slightly faster", **not** as a bpb win. Contingent on
+  the n-gram layer choice (§4).
+- **Do not touch:** the n-gram VE tables (faster *and* better, §4.3), `--nki-softcap-ce` (−3.52% to
+  remove), `local_conv` (a real trained-capacity ablation, §3).
+- **Do not re-run:** `PACK_FACTOR` 8/16, any depth-8 shape, width 768/896 at the 1800 s budget.
+
+**Not done, with reasons.** The **shared-KV arm** (`--shared-kv-from`) — the flag does not exist in
+`train.py`, the plan's own prior for a net win was low, and Part B had already shown that even a
+*free* 9.46% would only just break even, so building it could not have changed the verdict. The **"two
+epochs by design" arm** (`--epoch-shuffle` plus an LR schedule spanning two epochs) — its stated
+precondition was ≥2× throughput headroom from Probes 1–3, and the measured headroom is +1.36%;
+`USE_EPOCH_SHUFFLE` is also already a recorded negative with numbers. Both are closed by arithmetic
+already in this section rather than left open.
