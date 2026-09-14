@@ -1069,6 +1069,14 @@ TRAIN_LOCAL_CONV = True  # T0.1 WINNER, now the locked default (was False). Whet
 # --no-train-local-conv reproduces the old (dead-conv) behaviour for provenance.
 USE_GATED_MLP = False    # SwiGLU-style: c_fc(x) * silu(c_gate(x)) instead of relu(c_fc(x))**2; adds one weight matrix
 USE_WEIGHT_CACHE = True  # cache each Linear's dtype-cast weight once per optimizer step instead of every forward call
+# T1.6: store every Linear's weight TRANSPOSED, as [in_features, out_features], and compute
+# `x @ weight` instead of `F.linear(x, weight)` (which is `x @ weight.T`). The premise is that
+# TensorE wants the contraction dimension on partitions, so the [out, in] storage forces the
+# compiled graph to carry a transpose per matmul. See transpose_linear_weights() for why the
+# conversion happens AFTER init_weights() rather than at construction (bit-exact init), and
+# _muon_step for why Muon has to be told the LOGICAL orientation (its `ratio` LR scale is NOT
+# transpose-invariant -- the one real trap in this change).
+USE_TRANSPOSED_LINEAR = False
 USE_DOC_MASK = False  # block attention across document boundaries within a packed row (BOS-derived, data-dependent)
 USE_SELECTIVE_GATE = False  # make resid_lambda/x0_lambda data-dependent (Mamba-style selectivity) instead of static scalars
 SELECTIVE_GATE_CHANNELS = 32
@@ -1990,19 +1998,61 @@ class Linear(nn.Linear):
     When USE_WEIGHT_CACHE is on, the cast copy is refreshed once per optimizer step
     (see refresh_weight_cache, called from the training loop) instead of being
     recomputed on every forward call across the grad-accum inner loop.
+
+    T1.6: when `weight_transposed` is set (by transpose_linear_weights(), driven by
+    USE_TRANSPOSED_LINEAR), `self.weight` holds [in_features, out_features] instead of
+    nn.Linear's [out_features, in_features] and forward does a plain `x @ weight`. The flag
+    is per-instance rather than read off the global in forward() so that a module which was
+    never converted still works while the global is on -- forward must describe the tensor it
+    actually holds, never what the global wishes it held.
     """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._cached_weight: torch.Tensor | None = None
+        self.weight_transposed = False
 
     def refresh_weight_cache(self, dtype: torch.dtype) -> None:
         self._cached_weight = self.weight.to(dtype=dtype)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if USE_WEIGHT_CACHE and self._cached_weight is not None and self._cached_weight.dtype == x.dtype:
-            return F.linear(x, self._cached_weight, None)
-        return F.linear(x, self.weight.to(dtype=x.dtype), None)
+            w = self._cached_weight
+        else:
+            w = self.weight.to(dtype=x.dtype)
+        if self.weight_transposed:
+            return x @ w
+        return F.linear(x, w, None)
+
+
+def transpose_linear_weights(root: nn.Module) -> int:
+    """T1.6: replace every Linear's [out, in] weight with its [in, out] transpose, in place.
+
+    Returns the number of modules converted (0 when the flag is off, which callers print so a
+    silent no-op can never masquerade as a measured arm).
+
+    Called at the END of GPT.init_weights(), which is the single point both main() and
+    load_for_eval() go through, so the training model and the eval model always agree on the
+    layout. `state_dict` keys are UNCHANGED (still ".weight"); only the shape flips. That makes
+    USE_TRANSPOSED_LINEAR shape-critical, hence its entry in SHAPE_CRITICAL_TOGGLES: a
+    checkpoint written with it on will not strict-load with it off, and vice versa. That is
+    acceptable and needs no back-compat shim because load_for_eval() reads the LIVE module-level
+    toggles and never consults payload["toggles"] -- exactly how USE_NGRAM_VE and every other
+    shape-critical toggle already behave -- and no submission reuses a previous run's checkpoint.
+
+    `.t().contiguous()` and not just `.t()`: a non-contiguous parameter would leave the compiler
+    to materialize the transpose anyway, which is the entire cost this change exists to remove.
+    """
+    n = 0
+    for m in root.modules():
+        if isinstance(m, Linear) and not m.weight_transposed:
+            with torch.no_grad():
+                wt = m.weight.detach().t().contiguous()
+            m.weight = nn.Parameter(wt, requires_grad=m.weight.requires_grad)
+            m.weight_transposed = True
+            m._cached_weight = None
+            n += 1
+    return n
 
 
 def apply_rotary_emb(x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor) -> torch.Tensor:
@@ -2607,6 +2657,18 @@ class GPT(nn.Module):
         cos, sin = self._precompute_rotary_embeddings(self.config.sequence_len, self.config.n_embd // self.config.n_head)
         self.cos.copy_(cos)
         self.sin.copy_(sin)
+        # T1.6 MUST be the last thing init_weights does. Every initializer above addresses
+        # weights in nn.Linear's native [out, in] layout -- `c_in.weight[:n]` row slices, the
+        # per-slice uniform_ bounds that keep the coalesced arm bit-identical to the unfused
+        # one, and `uniform_` itself, which fills in MEMORY order and so does not commute with
+        # a transpose. Initializing first and transposing after is what makes
+        # USE_TRANSPOSED_LINEAR bit-exact rather than "the same distribution".
+        if USE_TRANSPOSED_LINEAR:
+            n_t = transpose_linear_weights(self)
+            # Announce the count: this arm's whole effect is invisible in the loss (it is
+            # bit-exact), so a flag that silently converted nothing would look exactly like a
+            # flag that worked. Same reason --compile-muon prints the branch it took.
+            print0(f"T1.6: transposed {n_t} Linear weights to [in, out] layout")
 
     def _ngram_hash_indices(self, idx: torch.Tensor) -> dict[str, torch.Tensor]:
         """T3.1: per-table gather indices for the hashed n-gram value embeddings.
@@ -2879,9 +2941,20 @@ class GPT(nn.Module):
             # TRAIN_LOCAL_CONV -- flipping that debug toggle must not silently freeze Engram's conv
             # (a frozen zero conv would make Y == vt forever and quietly delete half the mechanism).
             param_groups.append(dict(kind="adamw", params=engram_conv_params, lr=MATRIX_LR, betas=(0.9, 0.95), eps=1e-10, weight_decay=0.0))
-        for shape in sorted({p.shape for p in matrix_params}):
-            params = [p for p in matrix_params if p.shape == shape]
-            param_groups.append(dict(kind="muon", params=params, lr=MATRIX_LR, momentum=0.95, beta2=0.90, ns_steps=MUON_NS_STEPS, weight_decay=WEIGHT_DECAY))
+        # T1.6: a transposed weight is a DIFFERENT Muon group from a same-shaped untransposed one,
+        # because `transposed` changes the logical orientation the group's math is derived from
+        # (see _muon_step). Keyed on identity rather than on the global toggle so a partially
+        # converted model can never be silently mis-grouped. With USE_TRANSPOSED_LINEAR off the
+        # set is empty and the grouping is byte-for-byte the previous `sorted({p.shape})`.
+        transposed_ids = {id(m.weight) for m in self.modules()
+                          if isinstance(m, Linear) and m.weight_transposed}
+        for shape, transposed in sorted({(p.shape, id(p) in transposed_ids) for p in matrix_params},
+                                        key=lambda st: (st[0], st[1])):
+            params = [p for p in matrix_params
+                      if p.shape == shape and (id(p) in transposed_ids) == transposed]
+            param_groups.append(dict(kind="muon", params=params, lr=MATRIX_LR, momentum=0.95, beta2=0.90,
+                                     ns_steps=MUON_NS_STEPS, weight_decay=WEIGHT_DECAY,
+                                     transposed=transposed))
         opt = MuonAdamW(param_groups)
         for group in opt.param_groups:
             group["initial_lr"] = group["lr"]
@@ -3398,10 +3471,34 @@ class MuonAdamW(torch.optim.Optimizer):
         p0 = params[0]
         state = self.state[p0]
         shape = p0.shape
+        # T1.6: Muon's math is NOT transpose-invariant, so a transposed parameter has to be
+        # described to it in its LOGICAL [out, in] orientation. Two things depend on it:
+        #
+        #  * `ratio = max(1, rows/cols)**0.5` is a one-sided LR scale. For the [3200, 640] MLP
+        #    c_fc it is sqrt(5) = 2.236; read off the transposed [640, 3200] tensor it collapses
+        #    to 1.0. Getting this wrong is a silent 2.24x LR change on every non-square matrix --
+        #    i.e. USE_TRANSPOSED_LINEAR would NOT have been the "zero quality effect" storage
+        #    reformulation it is advertised as. This is the whole reason `transposed` exists.
+        #  * `red_dim` is the RMS-normalization axis. Here the fix is a flip rather than a
+        #    correction: reducing the transposed tensor over the OPPOSITE axis is exactly the
+        #    transpose of reducing the original, and everything downstream of `v_mean` is
+        #    elementwise with broadcasting, so the whole tail comes out transposed and correct.
+        #
+        # The `tall` flag driving the Newton-Schulz branch is deliberately left on the ACTUAL
+        # shape: the two branches contract over the smaller side either way, so they cost the
+        # same and each is the transpose of the other (`x.mT @ x` is bit-exactly symmetric, so
+        # the symmetric polynomial commutes with the transpose).
+        transposed = group.get("transposed", False)
+        lshape = (shape[-1], shape[-2]) if transposed else shape
+        red_dim = -1 if lshape[-2] >= lshape[-1] else -2
+        if transposed:
+            red_dim = -2 if red_dim == -1 else -1
         if "momentum_buffer" not in state:
             state["momentum_buffer"] = torch.zeros(len(params), *shape, dtype=p0.dtype, device=p0.device)
         if "second_momentum_buffer" not in state:
-            state_shape = (len(params), shape[-2], 1) if shape[-2] >= shape[-1] else (len(params), 1, shape[-1])
+            # Derived from red_dim rather than re-deriving the shape comparison, so the buffer
+            # can never disagree with the axis the reduction actually keeps.
+            state_shape = (len(params), shape[-2], 1) if red_dim == -1 else (len(params), 1, shape[-1])
             state["second_momentum_buffer"] = torch.zeros(state_shape, dtype=torch.float32, device=p0.device)
         if "stacked_grads" not in state:
             state["stacked_grads"] = torch.empty(len(params), *shape, dtype=p0.dtype, device=p0.device)
@@ -3452,8 +3549,7 @@ class MuonAdamW(torch.optim.Optimizer):
         # free / functional / device-scalar) from the compiler, and that half is required
         # to be bit-exact. research/scratch/compile_optim_equiv.py --device cpu.
         if (USE_COMPILE_MUON and USE_TENSOR_LR_SCALARS and w.dtype == torch.float32):
-            ratio = max(1.0, shape[-2] / shape[-1]) ** 0.5
-            red_dim = -1 if shape[-2] >= shape[-1] else -2
+            ratio = max(1.0, lshape[-2] / lshape[-1]) ** 0.5  # T1.6: logical orientation
             ns_steps = min(group["ns_steps"], len(POLAR_EXPRESS_COEFFS))
             key = (g.shape[-2] > g.shape[-1], ns_steps, red_dim, tuple(g.shape))
             fn = _MUON_COMPILED.get(key)
@@ -3518,7 +3614,6 @@ class MuonAdamW(torch.optim.Optimizer):
                 x = a * x + (b * xxt + c * (xxt @ xxt)) @ x
         g = x
 
-        red_dim = -1 if shape[-2] >= shape[-1] else -2
         v_mean = g.float().square().mean(dim=red_dim, keepdim=True)
         red_dim_size = g.size(red_dim)
         v_norm = (v_mean.sum(dim=(-2, -1), keepdim=True) * red_dim_size).sqrt()
@@ -3528,7 +3623,7 @@ class MuonAdamW(torch.optim.Optimizer):
         v_norm_new = scaled.sum(dim=(-2, -1), keepdim=True).sqrt()
         g = g * (step_size * (v_norm / v_norm_new.clamp_min(1e-10))).to(g.dtype)
 
-        ratio = max(1.0, shape[-2] / shape[-1]) ** 0.5
+        ratio = max(1.0, lshape[-2] / lshape[-1]) ** 0.5  # T1.6: logical orientation
         if use_nki:
             # 10 launches -> 2 (one scalar upload, one kernel). The upload replaces the
             # _device_scalar copy the eager path already pays for, so it is not new.
@@ -3697,7 +3792,7 @@ def clip_grad_norm_flat_(flat_grad_buffer: torch.Tensor, max_norm: float) -> tor
 ARCH_TOGGLE_NAMES = [
     "PACK_FACTOR", "INIT_SCALE", "USE_VE", "WINDOW_PATTERN", "SHORT_WINDOW_FRAC",
     "ROPE_BASE", "USE_LOCAL_CONV", "LOCAL_CONV_KERNEL", "TRAIN_LOCAL_CONV", "USE_GATED_MLP",
-    "USE_WEIGHT_CACHE", "WARMDOWN_RATIO", "FINAL_LR_FRAC", "WARMUP_STEPS",
+    "USE_WEIGHT_CACHE", "USE_TRANSPOSED_LINEAR", "WARMDOWN_RATIO", "FINAL_LR_FRAC", "WARMUP_STEPS",
     "WD_DECAY_TO_ZERO", "MUON_MOMENTUM_WARMUP_STEPS", "USE_DOC_MASK", "VE_WD",
     "USE_SELECTIVE_GATE", "SELECTIVE_GATE_CHANNELS", "USE_FUSED_QKV",
     "USE_CAUSAL_FASTPATH", "USE_TRN2_COMPILER_FLAGS",
@@ -3759,6 +3854,10 @@ ARCH_TOGGLE_NAMES = [
 # silently with no crash and quietly wrong behavior, which is exactly why we snapshot and
 # check all of them, not just the shape-critical ones.
 SHAPE_CRITICAL_TOGGLES = {"USE_VE", "USE_LOCAL_CONV", "USE_GATED_MLP", "USE_SELECTIVE_GATE", "USE_FUSED_QKV",
+                          # T1.6: transposes every Linear weight in place. Same state_dict KEYS,
+                          # flipped shapes, so a cross-setting strict load errors loudly -- which
+                          # is the desired behaviour, see transpose_linear_weights().
+                          "USE_TRANSPOSED_LINEAR",
                           # T3.1: USE_NGRAM_VE adds/removes the ngram_embeds.* tables AND the
                           # attn.ve_gate_bi/ve_gate_tri weights, NGRAM_VE_TRIGRAM adds/removes
                           # the "t<layer>" tables and their gates, and NGRAM_VE_TABLE_MULT
@@ -4030,6 +4129,7 @@ def main() -> None:
     # statement that follows any use of the name in the same function. Same rule that put
     # MATRIX_LR et al. in this block; --nki-muon dodged it by hardcoding a literal default instead.
     global USE_COMPILE_MUON
+    global USE_TRANSPOSED_LINEAR  # T1.6, same reason as USE_COMPILE_MUON above
     parser = argparse.ArgumentParser(description="Neuron Competition R1 baseline")
     parser.add_argument("--device-type", type=str, default="")
     parser.add_argument("--num-steps", type=int, default=int(os.environ.get("NEURON_COMPETITION_R1_NUM_STEPS", NUM_STEPS)))
@@ -4079,6 +4179,16 @@ def main() -> None:
                              "(Neuron only). Mutually exclusive with --nki-muon by construction -- a "
                              "compiled region cannot contain an nki.jit call -- so this trades the NKI "
                              "elementwise fusion for whole-body fusion. See _muon_math.")
+    parser.add_argument("--transposed-linear", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_TRANSPOSED_LINEAR",
+                                               "1" if USE_TRANSPOSED_LINEAR else "0") != "0",
+                        help="T1.6: store every Linear weight as [in, out] and compute x @ weight "
+                             "instead of F.linear's x @ weight.T, on the theory that TensorE wants the "
+                             "contraction dim on partitions and the [out, in] storage costs a transpose "
+                             "per matmul. Bit-exact by construction (weights are initialized in the "
+                             "native layout and transposed afterwards; Muon is told the logical "
+                             "orientation so its one-sided `ratio` LR scale is unchanged). "
+                             "SHAPE-CRITICAL: flips every Linear weight's state_dict shape.")
     parser.add_argument("--local-conv", action=argparse.BooleanOptionalAction,
                         default=os.environ.get("NEURON_COMPETITION_R1_LOCAL_CONV", "1" if USE_LOCAL_CONV else "0") != "0",
                         help="depthwise causal conv1d before attention in each block. NOT dead compute "
@@ -4653,6 +4763,7 @@ def main() -> None:
     USE_NKI_ROPE_NORM = args.nki_rope_norm
     USE_NKI_SOFTCAP_CE = args.nki_softcap_ce
     USE_NKI_MUON = args.nki_muon
+    USE_TRANSPOSED_LINEAR = args.transposed_linear
     USE_COMPILE_MUON = args.compile_muon
     if USE_COMPILE_MUON and USE_NKI_MUON:
         # Not an error, because both are ON by default now and --compile-muon is the faster of the
@@ -5096,6 +5207,7 @@ def main() -> None:
         print(f"nki_relu2:         {args.nki_relu2}")
         print(f"nki_rope_norm:     {args.nki_rope_norm}")
         print(f"nki_softcap_ce:    {args.nki_softcap_ce}")
+        print(f"transposed_linear: {USE_TRANSPOSED_LINEAR}")
         # USE_NKI_MUON, not args.nki_muon: --compile-muon supersedes it (see main()), and the dump
         # should say which Muon step actually ran rather than which one was requested.
         print(f"nki_muon:          {USE_NKI_MUON}")
