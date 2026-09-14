@@ -533,7 +533,22 @@ masking, requeue packer, PACK_FACTOR 4 (until T1.5 explains it), `--nki-relu2`.
   PPL 12.87 vs 12.33 FP16, Parameter Golf ternary 1.177 vs ~1.11; Neuron stochastic rounding is a bf16 rounding mode,
   not a quantiser, and already fails the causality check. Hyena: `torch.fft` unsupported on Neuron (CPU partition),
   attention is 10.6% of the step (≤ 5% ceiling). Legal fragment: byte-feature `wte` init / hashed byte-n-gram input
-  table as a zero-cost T3 one-liner. Mixture-of-Depths (static top-k routing) parked with MTP until the step is FLOP-bound.- **Kolmogorov–Arnold networks (KAN / KAT / GR-KAN) as the FFN** — closed on published evidence (2026-09-12):
+  table as a zero-cost T3 one-liner. Mixture-of-Depths (static top-k routing) parked with MTP until the step is FLOP-bound.- **Mixture of Experts (MoE) MLP** — closed on evidence (2026-09-13 review, no run). Small-scale quality: Parameter
+  Golf #480, 2-expert MoE, −0.06 to −0.08 bpb *worse* than dense on 8×H100; the Apple MoE scaling laws (ICML 2025)
+  put optimal sparsity at 0 below ~500M params. The one small positive (cat-state/modded-nanogpt-moe, −1.8% loss)
+  was at 124M dense-equivalent on 2.4B tokens (8× our data) and traded per-step cost for fewer steps. Data wall:
+  each of k experts sees only 288M/k tokens, exactly the data-starved regime where MoE loses. Trn2 fit: routing +
+  top-k + permute/gather/scatter + per-expert small matmuls is more ops and worse TensorE shapes on an op-count-bound
+  step; dynamic per-expert token counts need capacity-factor padding to keep static shapes; the load-balance aux loss
+  is another per-step scalar. Neuron's MoE support (NxD `RouterTopK`/`ExpertMLPs`, EP/TP) lives in the torch-xla
+  NeuronX-Distributed stack for multi-node Mixtral-class training, not the native-eager path; EP is training-only
+  and the scorer needs one consolidated module anyway. Same family verdict as Engram: capacity via a new routed
+  mechanism does not pay here; capacity as width on existing ops is the only conversion that has.- **DeepSeek-V4.1-Flash component list** (CED shared KV, CSA2, hierarchical sparse indexer, FP4 KV, SWA bounded replay,
+  Single-Pass mHC, Engram, DSpark, 384-expert MoE) — reviewed 2026-09-13
+  (`research/deepseek-v4.1-flash-techniques-review-2026-09-13.md`): seven of nine are serving-cost items the single-forward
+  scorer never exercises; mHC is the hyper-connection / MUDD family (MUDD negative at DEPTH=6, x0-gate +13% slower) and needs a
+  fused kernel we do not have; Engram is already done both ways (T3.1 adopted, T3.2 discarded). Only CED's shared-KV idea
+  (YOCO-style: later layers reuse K/V projected from a mid-layer) earns an ablation arm in the second box's plain-block probe.- **Kolmogorov–Arnold networks (KAN / KAT / GR-KAN) as the FFN** — closed on published evidence (2026-09-12):
   Alves & Vicente, arXiv 2607.15525, ran the best variant (grouped rational GR-KAN) at 286M on **ClimbMix**:
   BPB 0.8904 vs 0.8464 for the SwiGLU MLP at equal steps, at 290K vs 508K tok/s (0.57×). Worse per step *and*
   1.75× slower — for us ≈ +0.04 bpb from lost steps plus +0.04 per-step, before any Trainium penalty for
@@ -902,6 +917,15 @@ Parked, not open: Mixture-of-Depths and parameter-free MTP (both wait for a FLOP
 a learnable per-channel ReLU² shift/slope (prior dropped after `--relu2-tau 0.5` lost).
 Closed today with numbers in T4.4: KAN, linear attention as a family, MQA/GQA, BLT/MBLM,
 BitNet/ternary, Hyena, diffusion LMs, n-gram drafters, count-based mixer, Aster's output table.
+
+### 12.6 Throughput→capacity track for the second Trn2 box (proposed 2026-09-13)
+
+Thesis: under the data wall, throughput is capacity; a 2–3× faster loop (XLA graph backend?
+one micro-step per step? plain wide block?) trains a 2–3× larger model over the same epoch, which
+is the size of the gap to the sub-1.0 cluster. Programme with probes, gates and coordination rules
+in `research/throughput-to-capacity-track-2026-09-13.md`; discussion in
+`research/leaderboard-gap-analysis-2026-09-13.md` §9–§10. Status: not started; awaiting the
+second instance. Rules: flags only, no locked-default changes, no submissions from that box.
 
 ### 12.3 Traps re-confirmed this block (keep these in view)
 
