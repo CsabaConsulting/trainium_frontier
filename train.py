@@ -313,7 +313,16 @@ WEIGHT_EMA_START_FRAC = 0.75    # elapsed/max_train_seconds at which the shadows
 EVAL_PREFER_EMA = os.environ.get("NEURON_COMPETITION_R1_EVAL_PREFER_EMA", "1") != "0"
 
 MAX_TRAIN_SECONDS = TRAIN_TIME_BUDGET_SECONDS
-CHECKPOINT_RESERVE_SECONDS = 5.0
+# CHECKPOINT_RESERVE_SECONDS raised from 5.0 on 2026-09-14, when the locked config's checkpoint went
+# from 0.49 GB (190.1M params) to 1.30 GB (592.9M, n-gram VE tables at mult 128 on two layers, four
+# tables of 1048576 x 128). torch.save of that file measured
+# 1.0 s in one run and 9.9 s in the next -- same file, same box, minutes apart, so it is write-back
+# and page-cache state, not size alone. The 9.9 s one overshot the old 5.0 s reserve and printed
+# `over_budget: True` at charged_seconds_est 1804.4 for a 1800 s budget: scorable, but 4.4 s into a
+# margin that does not exist. 15.0 s covers the measured worst case with 50% headroom and costs ~18
+# steps, i.e. ~0.0007 bpb at the -0.077/ln(steps) slope. Cheap insurance; revisit if the checkpoint
+# grows again, and note that USE_WEIGHT_EMA would double it.
+CHECKPOINT_RESERVE_SECONDS = 15.0
 # Covers the launch -> module-import gap this process cannot observe when
 # checking its startup time against the allowance cap.
 STARTUP_LAUNCH_MARGIN_SECONDS = 30.0
@@ -7155,8 +7164,10 @@ def main() -> None:
         print(f"nki_relu2:         {args.nki_relu2}")
         print(f"nki_rope_norm:     {args.nki_rope_norm}")
         print(f"nki_softcap_ce:    {args.nki_softcap_ce}")
-        print(f"nki_muon:          {args.nki_muon}")
-        print(f"compile_muon:      {args.compile_muon}")
+        # USE_NKI_MUON, not args.nki_muon: --compile-muon supersedes it (see main()), and the dump
+        # should say which Muon step actually ran rather than which one was requested.
+        print(f"nki_muon:          {USE_NKI_MUON}")
+        print(f"compile_muon:      {USE_COMPILE_MUON}")
         print(f"mudd:              {args.mudd}")
         print(f"dcmha:             {args.dcmha}")
         print(f"mamba2:            {args.mamba2}")
