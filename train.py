@@ -5898,6 +5898,10 @@ def main() -> None:
     global MAMBA2_EXPAND, MAMBA2_D_STATE, MAMBA2_HEAD_DIM, MAMBA2_CHUNK, MAMBA2_N_GROUPS, MAMBA2_CONV_KERNEL
     global USE_RWKV, RWKV_PATTERN, RWKV_HEAD_DIM, RWKV_CHUNK, RWKV_CMIX_EXPAND
     global LOCAL_CONV_KERNEL, TRAIN_LOCAL_CONV
+    # Throughput->capacity track, Probe 3: USE_VE needs to be reachable from the CLI so the
+    # "maximally plain block" ablate-down arm can be measured. Default is the locked True, so
+    # passing nothing changes nothing. Declared here because --ve's argparse default reads it.
+    global USE_VE
     # T0.4/T1.4 resweep knobs. These must be declared global HERE, at the top of main(), not next
     # to their assignments further down: the argparse defaults below READ them, and Python rejects
     # a `global` statement that follows any use of the name in the same function
@@ -6000,6 +6004,14 @@ def main() -> None:
                              "compute as wired (zero weight, in no optimizer group -- see the comment on "
                              "USE_LOCAL_CONV), so --no-local-conv is a bit-identical model; exposed as a "
                              "flag so the A/B runs from one identical binary.")
+    parser.add_argument("--ve", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_VE", "1" if USE_VE else "0") != "0",
+                        help="ResFormer-style value embeddings on alternating layers (has_ve), "
+                             "input-gated into attention's V stream. Default ON (the locked value); "
+                             "exposed for the throughput->capacity track's plain-block ablate-down "
+                             "arm. NOTE --no-ve also removes the n-gram value embeddings, because "
+                             "has_ngram_bigram() requires USE_VE and has_ve(layer) -- so --no-ve "
+                             "is strictly a step-time diagnostic, not a candidate config.")
     parser.add_argument("--tensor-lr-scalars", action=argparse.BooleanOptionalAction,
                         default=os.environ.get("NEURON_COMPETITION_R1_TENSOR_LR_SCALARS", "1" if USE_TENSOR_LR_SCALARS else "0") != "0",
                         help="hold the per-step lr in a device tensor rather than a Python float, so a "
@@ -6517,6 +6529,7 @@ def main() -> None:
     MUON_NS_STEPS = args.muon_ns_steps
     MUON_MOMENTUM_COOLDOWN_FRAC = args.muon_momentum_cooldown_frac
     MUON_MOMENTUM_FINAL = args.muon_momentum_final
+    USE_VE = args.ve                         # read by Block/CausalSelfAttention/GPT.__init__, i.e. before GPT(config) below
     USE_LOCAL_CONV = args.local_conv         # read by Block.__init__, i.e. before GPT(config) below
     LOCAL_CONV_KERNEL = args.local_conv_kernel  # ditto (CausalConv.__init__ reads it via the global default)
     TRAIN_LOCAL_CONV = args.train_local_conv  # read by GPT.setup_optimizer(), called after GPT(config) below
