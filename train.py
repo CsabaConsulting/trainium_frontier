@@ -869,7 +869,7 @@ USE_QKV_NORM_CSE = False   # Block.forward calls norm() THREE times on q_in/k_in
                            # tensor return three equal results, and the backward just accumulates the
                            # three incoming grads into one node instead of separately. Falls back to
                            # the three-call form automatically whenever the inputs really do differ
-                           # (MUDD, --qk-shift, --block-nudge --block-nudge-site qk), so it composes
+                           # (--qk-shift, --block-nudge --block-nudge-site qk), so it composes
                            # with everything. Worth probing on its own because this stack is
                            # dispatch-bound (~67 NEFF launches per micro-step): 2 saved launches per
                            # block times 10 blocks is a bigger fraction of a step than of the FLOPs.
@@ -888,7 +888,7 @@ USE_X0_GATE = False        # DISCARDED at 900s: per-step NEUTRAL (-0.00050 resid
                            # block's x0 skip by `2*sigmoid(s * mean(x))` with ONE learned scalar s
                            # per layer and `mean` taken over the residual CHANNELS of each token
                            # independently (so it is causally trivial -- position t reads only
-                           # position t, same argument as MuddCompose). s is zero-initialized, and
+                           # position t). s is zero-initialized, and
                            # 2*sigmoid(0) == 1.0 exactly in IEEE fp, so the gate is a BIT-EXACT
                            # no-op at step 0 against the plain `x0_lambda * x0` skip. Differs from
                            # USE_SELECTIVE_GATE in three ways that matter on this stack: it touches
@@ -1103,7 +1103,6 @@ _XSA_EPS = 1e-6  # numerical floor for the ||v_i||^2 denominator, avoids div-by-
 USE_VALUE_RESIDUAL = False  # Value Residual Learning / ResFormer (arXiv:2410.17897, Zhou et al., ICLR 2025): inject layer-0's own value stream into every later layer's V via a learned per-layer scalar (zero-init). Real win at the autoresearch proxy scale (1.405->1.368 val_bpb, eager, no compile, no kernels) but a real, clean NEGATIVE at final locked shape (388/1.196654 vs baseline 427/1.180633, both dimensions worse) -- a new instance of the scale-transfer trap (matches XSA/SLAY), here likely from keeping an extra full-sized activation (v0) alive across the whole network depth for fwd+bwd, interacting badly with torch.compile's memory/fusion assumptions. See trn2-experiment-results.md
 USE_FUSED_QKV = False  # A/B'd at final locked shape: net negative as expected (206 steps/1.312086 vs baseline 240/1.269318) -- disables the rope+QK-norm kernel fusion, fewer steps and worse quality. See trn2-experiment-results.md
 USE_CAUSAL_FASTPATH = True  # Solution 13 winner, A/B'd at final locked shape: real win (265 steps/1.252675 vs baseline 240/1.269318, +0.0166) -- the best of all four Solution-13 toggles, doesn't compose further with USE_TRN2_COMPILER_FLAGS. See trn2-experiment-results.md
-USE_MUDD = False  # MUDDFormer (arXiv:2502.12170, Xiao et al., ICML'25 -- real, verified directly against the arxiv HTML, not just the prior research note): Multiway dynamic DENSE connections replace this block's single learned resid_lambda/x0_lambda scalar with FOUR independent, per-token dynamic weighted sums (one each for the block's Q/K/V input streams and its residual-stream base) drawn from ALL earlier hidden states (embedding + every prior block's output), not just x_prev/x0. Causally trivial: the weight generator (Block.mudd) and the weighted sum both operate per-token-position independently -- it only recombines information already available at that position from earlier LAYERS, never a different position. Zero-init no-op: the generator's second-stage projection (MuddCompose.w2) is zero-initialized so at step 0 the dynamic weights collapse to the constant bias, which is itself set to reproduce the exact resid_lambda=1.0/x0_lambda=0.05 formula for all 4 streams -- USE_MUDD=True is bit-identical to USE_MUDD=False at init. CAVEAT the paper's own depth-scaling ablation (Fig. 4/Table 2) only tests LM depths >=24 layers (up to 42) and a 12-layer ViT; it never tests anything as shallow as this repo's locked DEPTH=6, and states Transformer++ "shows diminishing returns beyond 24 layers" while MUDD "maintains gains up to 42" -- i.e. the demonstrated advantage is framed entirely in terms of depths this repo doesn't reach. Real A/B at the locked shape (900s, DEPTH=6): 646 steps/1.146435 vs baseline 995/1.094327 -- a real, clean NEGATIVE on both dimensions (fewer steps from the O(L) dense-connection overhead, ~1.40s/step vs baseline's ~0.90s/step, AND worse quality even so). Consistent with the paper's own framing: this repo's DEPTH=6 is well below anything MUDD was shown to help at. See research/experiment-log.jsonl (mudd-900s-v2) and research/run-logs/mudd-900s-v2.log.
 
 
 def doc_boundary_mask(idx: torch.Tensor) -> torch.Tensor:
@@ -2235,7 +2234,7 @@ class CausalSelfAttention(nn.Module):
                 q = self.c_q(x_q).view(b, t, self.n_head, self.head_dim)
                 k = self.c_k(x_k).view(b, t, self.n_head, self.head_dim)
         elif USE_FUSED_QKV:
-            # Fused QKV needs one shared input; MUDD's separate Q/K/V streams collapse
+            # Fused QKV needs one shared input; separate Q/K/V streams collapse
             # to x_q in this combination (untested/discouraged -- both default OFF).
             q, k, v = self.c_qkv(x_q).split(self.n_embd, dim=-1)
             q = q.view(b, t, self.n_head, self.head_dim)
@@ -2320,50 +2319,6 @@ class MLP(nn.Module):
         return self.c_proj(relu_squared(h))
 
 
-class MuddCompose(nn.Module):
-    """MUDDFormer's multiway dynamic dense connections (arXiv:2502.12170, Eq. 5-8).
-
-    Replaces the single learned resid_lambda/x0_lambda skip with FOUR independent
-    per-token dynamic weighted sums over ALL earlier hidden states (embedding +
-    every prior block's output) -- one each for this block's Q input, K input,
-    V input, and residual-stream base. `num_sources` = layer_idx + 1 is the count
-    of hidden states available to this layer (X_0 = the embedding, X_1..X_{i}
-    = the outputs of blocks 0..i-1), matching the paper's j=0..i summation.
-
-    Causally trivial: `w1`/`w2` project the layer's OWN current hidden state
-    (per-position, no cross-position mixing -- an RMSNorm+matmul is a pure
-    per-token map) into per-position weights, and the weighted sum
-    `sum_j A[...,j] * X_j` only recombines information already present at that
-    SAME token position from earlier LAYERS -- it never reads a different
-    position, so it is exactly as safe as the resid_lambda/x0_lambda scalar it
-    replaces.
-
-    Zero-init no-op: `w2` is zero-initialized, so at step 0 the dynamic term
-    (GELU(RMSNorm(X_i) @ w1) @ w2) is exactly 0 regardless of input, leaving
-    A == bias. `bias` is set to reproduce the exact resid_lambda=1.0/x0_lambda=0.05
-    formula (weight 1.0 on this layer's own immediate input X_i, weight 0.05 on
-    the initial embedding X_0, 0 elsewhere) for all 4 streams identically --
-    USE_MUDD=True is bit-identical to USE_MUDD=False at init.
-    """
-
-    def __init__(self, n_embd: int, num_sources: int, layer_idx: int):
-        super().__init__()
-        self.num_sources = num_sources
-        self.w1 = nn.Parameter(torch.empty(n_embd, 4, num_sources))
-        torch.nn.init.normal_(self.w1, std=n_embd**-0.5)
-        self.w2 = nn.Parameter(torch.zeros(4, num_sources, num_sources))
-        target = torch.zeros(4, num_sources)
-        target[:, layer_idx] += 1.0
-        target[:, 0] += 0.05
-        self.bias = nn.Parameter(target)
-
-    def forward(self, hidden_states: list[torch.Tensor], query_state: torch.Tensor):
-        h = F.gelu(torch.einsum('btd,dsj->btsj', norm(query_state).float(), self.w1.float()))
-        a = torch.einsum('btsj,sjk->btsk', h, self.w2.float()) + self.bias.float()
-        stacked = torch.stack(hidden_states[: self.num_sources], dim=0)  # [J,B,T,D]
-        out = torch.einsum('btsj,jbtd->sbtd', a.to(stacked.dtype), stacked)
-        return out[0], out[1], out[2], out[3]  # q_in, k_in, v_in, resid_in
-
 
 class Block(nn.Module):
     def __init__(self, config: GPTConfig, layer_idx: int = 0):
@@ -2386,13 +2341,12 @@ class Block(nn.Module):
                                bias=False)
         else:
             self.c_in = None
-        self.mudd = MuddCompose(config.n_embd, layer_idx + 1, layer_idx) if USE_MUDD else None
-        self.resid_lambda = nn.Parameter(torch.ones(1)) if self.mudd is None else None
+        self.resid_lambda = nn.Parameter(torch.ones(1))
         # x0 skip: mixes initial embedding into each layer's input (stabilizes deep nets)
-        self.x0_lambda = nn.Parameter(torch.zeros(1)) if self.mudd is None else None
+        self.x0_lambda = nn.Parameter(torch.zeros(1))
         # Recursive's input-dependent x0 gate: one scalar per layer, zero-init so
         # 2*sigmoid(0) == 1.0 makes it a bit-exact no-op against the static x0_lambda skip.
-        self.x0_gate_s = nn.Parameter(torch.zeros(1)) if (USE_X0_GATE and self.mudd is None) else None
+        self.x0_gate_s = nn.Parameter(torch.zeros(1)) if USE_X0_GATE else None
         # Frozen zero nudge: never trained, never in an optimizer group. See USE_BLOCK_NUDGE.
         self.block_nudge = nn.Parameter(torch.zeros(1), requires_grad=False) if USE_BLOCK_NUDGE else None
         # T-parallel: the two branch weights of the parallel attn+MLP block. The branch in
@@ -2416,38 +2370,35 @@ class Block(nn.Module):
                                           requires_grad=not QK_SHIFT_FREEZE) \
             if USE_QK_SHIFT else None
 
-    def forward(self, x: torch.Tensor, x0: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, attn_mask: torch.Tensor | None, v0: torch.Tensor | None = None, hidden_states: list[torch.Tensor] | None = None, ve_bi: torch.Tensor | None = None, ve_tri: torch.Tensor | None = None) -> tuple[torch.Tensor, torch.Tensor]:
-        if self.mudd is not None:
-            q_in, k_in, v_in, x = self.mudd(hidden_states, hidden_states[-1])
+    def forward(self, x: torch.Tensor, x0: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, attn_mask: torch.Tensor | None, v0: torch.Tensor | None = None, ve_bi: torch.Tensor | None = None, ve_tri: torch.Tensor | None = None) -> tuple[torch.Tensor, torch.Tensor]:
+        if self.scalar_gate is not None:
+            g = self.scalar_gate(x[..., :SELECTIVE_GATE_CHANNELS])
+            resid_lambda = self.resid_lambda * (1.0 + g[..., 0:1])
+            x0_lambda = self.x0_lambda * (1.0 + g[..., 1:2])
+            x = resid_lambda * x + x0_lambda * x0
+        elif self.x0_gate_s is not None:
+            # Recursive's input-dependent x0 gate. mean() is over the LAST axis only, i.e. each
+            # token's own 640 residual channels -- no cross-position reduction, so causality is
+            # structural here, not something the mask has to enforce. The grouping
+            # `x0_lambda * (gate * x0)` is deliberate: at init gate is exactly 1.0, so this is
+            # bit-identical to `x0_lambda * x0`, which is what makes the A/B start from the same
+            # point. 2*sigmoid keeps the neutral value at 1.0 instead of 0.5, matching every
+            # other gate in this file (ve_gate, head_gate).
+            gate0 = 2.0 * torch.sigmoid(self.x0_gate_s * x.mean(dim=-1, keepdim=True))
+            x = self.resid_lambda * x + self.x0_lambda * (gate0 * x0)
         else:
-            if self.scalar_gate is not None:
-                g = self.scalar_gate(x[..., :SELECTIVE_GATE_CHANNELS])
-                resid_lambda = self.resid_lambda * (1.0 + g[..., 0:1])
-                x0_lambda = self.x0_lambda * (1.0 + g[..., 1:2])
-                x = resid_lambda * x + x0_lambda * x0
-            elif self.x0_gate_s is not None:
-                # Recursive's input-dependent x0 gate. mean() is over the LAST axis only, i.e. each
-                # token's own 640 residual channels -- no cross-position reduction, so causality is
-                # structural here, not something the mask has to enforce. The grouping
-                # `x0_lambda * (gate * x0)` is deliberate: at init gate is exactly 1.0, so this is
-                # bit-identical to `x0_lambda * x0`, which is what makes the A/B start from the same
-                # point. 2*sigmoid keeps the neutral value at 1.0 instead of 0.5, matching every
-                # other gate in this file (ve_gate, head_gate).
-                gate0 = 2.0 * torch.sigmoid(self.x0_gate_s * x.mean(dim=-1, keepdim=True))
-                x = self.resid_lambda * x + self.x0_lambda * (gate0 * x0)
-            else:
-                x = self.resid_lambda * x + self.x0_lambda * x0
-            if self.block_nudge is not None and BLOCK_NUDGE_SITE == "resid":
-                x = x + self.block_nudge * x
-            q_in = k_in = v_in = x
-            if self.block_nudge is not None and BLOCK_NUDGE_SITE == "qk":
-                # Exactly where --qk-shift put its perturbation (Q/K only, V untouched), minus the
-                # causal shift and minus the trainable parameter. An identity; see USE_BLOCK_NUDGE.
-                q_in = k_in = x + self.block_nudge * x
-            if self.qk_shift_beta is not None:
-                # T3.9: q/k see x + beta*x_prev, v sees plain x. causal_shift_1 zero-pads at t=0
-                # (it does NOT wrap), so position t reads only positions t and t-1.
-                q_in = k_in = x + self.qk_shift_beta * causal_shift_1(x)
+            x = self.resid_lambda * x + self.x0_lambda * x0
+        if self.block_nudge is not None and BLOCK_NUDGE_SITE == "resid":
+            x = x + self.block_nudge * x
+        q_in = k_in = v_in = x
+        if self.block_nudge is not None and BLOCK_NUDGE_SITE == "qk":
+            # Exactly where --qk-shift put its perturbation (Q/K only, V untouched), minus the
+            # causal shift and minus the trainable parameter. An identity; see USE_BLOCK_NUDGE.
+            q_in = k_in = x + self.block_nudge * x
+        if self.qk_shift_beta is not None:
+            # T3.9: q/k see x + beta*x_prev, v sees plain x. causal_shift_1 zero-pads at t=0
+            # (it does NOT wrap), so position t reads only positions t and t-1.
+            q_in = k_in = x + self.qk_shift_beta * causal_shift_1(x)
         if self.local_conv is not None:
             x = x + self.local_conv(norm(x))
         if self.par_lambda_a is not None:
@@ -2574,7 +2525,7 @@ class EngramLite(nn.Module):
         v = self.w_v(e)
         q = self.w_q(h) if self.w_q is not None else h
         # The gate. A per-token reduction over the key dimension only -- never across positions --
-        # so causality is structural here, exactly as for the x0 gate and MuddCompose. There is
+        # so causality is structural here, exactly as for the x0 gate. There is
         # ONE such reduction in the whole model (the x0 gate's 13% cost came from paying one per
         # block, six times over, in a dispatch-bound graph).
         alpha = torch.sigmoid((norm(q) * norm(k)).sum(dim=-1, keepdim=True) * self._scale)
@@ -2952,21 +2903,15 @@ class GPT(nn.Module):
         # biases, the output-bigram gate's weight+bias, per-dim Q/K shift betas). None of them is
         # Muon material -- a 1-D vector has no second axis to orthogonalize and a [1, n_embd] row
         # would come out of Newton-Schulz as a unit-norm direction, i.e. a wildly oversized update
-        # -- and none of them belongs in the SCALAR_LR=0.20 group either, which is tuned for a
-        # single learned scalar's blast radius and has already caused a real NaN divergence when a
-        # genuine tensor was put there (see the hypernet_params comment below). AdamW at MATRIX_LR,
-        # weight_decay 0, exactly like local_conv_params.
-        hypernet_params = []  # MUDD's own generator weights: real matrices, not
-        # true scalars like resid_lambda -- SCALAR_LR=0.20 is tuned for a single learned
-        # scalar's limited blast radius. A real hardware A/B first put MuddCompose.w1
-        # (a genuine [n_embd,4,num_sources] projection) in the SCALAR_LR group and hit
-        # a real NaN divergence around step ~270-280 (loss climbing 4.7->6+ then NaN,
-        # while the same optimizer/schedule trains the baseline stably past 900+ steps)
-        # -- a plausible cause given AdamW's adaptive per-parameter scaling can amplify
-        # an 8x-too-aggressive LR (0.20 vs MATRIX_LR=0.025) on a real weight matrix over
-        # a few hundred steps. Not a fit for Muon's same-shape orthogonalization groups
-        # either (tiny, varies in shape per layer/branch), so it gets its own AdamW group
-        # at MATRIX_LR instead.
+        # -- and none of them belongs in the SCALAR_LR=0.20 group either. THIS IS A MEASURED
+        # CONSTRAINT, not a style preference: SCALAR_LR is tuned for a single learned scalar's
+        # limited blast radius, and a real hardware A/B that put a genuine projection matrix in
+        # the SCALAR_LR group hit a real NaN divergence around step ~270-280 (loss climbing
+        # 4.7->6+ then NaN, while the same optimizer/schedule trains the baseline stably past
+        # 900+ steps) -- a plausible cause given AdamW's adaptive per-parameter scaling can
+        # amplify an 8x-too-aggressive LR (0.20 vs MATRIX_LR=0.025) on a real weight tensor over
+        # a few hundred steps. So: AdamW at MATRIX_LR, weight_decay 0, exactly like
+        # local_conv_params.
         for block in self.transformer.h:
             if block.local_conv is not None:
                 # T0.1: register the depthwise causal conv1d weight so it actually
@@ -2975,7 +2920,7 @@ class GPT(nn.Module):
                 # and k is tiny), and
                 # not the SCALAR_LR=0.20 group either (that LR is tuned for a single
                 # learned scalar's blast radius, not a real weight tensor -- see the
-                # hypernet_params comment). Own AdamW group at MATRIX_LR, wd=0.0,
+                # gate_params comment above). Own AdamW group at MATRIX_LR, wd=0.0,
                 # matching the plan's T0.1 spec. Kept zero-initialized (CausalConv.__init__)
                 # so step 0 is still an exact no-op regardless of this change.
                 local_conv_params.append(block.local_conv.weight)
@@ -2991,8 +2936,6 @@ class GPT(nn.Module):
                 # Two learned scalars per layer, same class as resid_lambda/x0_lambda: one
                 # multiplies a whole branch output, which is what SCALAR_LR=0.20 is tuned for.
                 scalar_params.extend([block.par_lambda_a, block.par_lambda_m])
-            if block.mudd is not None:
-                hypernet_params.extend([block.mudd.w1, block.mudd.w2, block.mudd.bias])
             if block.v_lambda is not None:
                 scalar_params.append(block.v_lambda)
             if block.qk_shift_beta is not None and block.qk_shift_beta.requires_grad:
@@ -3047,8 +2990,6 @@ class GPT(nn.Module):
         ]
         if gate_params:
             param_groups.append(dict(kind="adamw", params=gate_params, lr=MATRIX_LR, betas=(0.9, 0.95), eps=1e-10, weight_decay=0.0))
-        if hypernet_params:
-            param_groups.append(dict(kind="adamw", params=hypernet_params, lr=MATRIX_LR, betas=(0.9, 0.95), eps=1e-10, weight_decay=0.0))
         if value_embed_params:
             param_groups.append(dict(kind="adamw", params=value_embed_params, lr=EMBEDDING_LR * dmodel_lr_scale, betas=(0.8, EMBED_ADAMW_BETA2), eps=1e-10, weight_decay=VE_WD))
         ngram_params = list(self.ngram_embeds.parameters())
@@ -3114,11 +3055,6 @@ class GPT(nn.Module):
         x = norm(x)
         x0 = x
         v0 = None
-        # MUDDFormer (arXiv:2502.12170): each block's dense-connection generator
-        # (Block.mudd) needs every earlier hidden state (the embedding plus every
-        # prior block's output), not just x0/x_prev -- kept only when USE_MUDD so
-        # the non-MUDD path pays no extra memory for activations it never uses.
-        hidden_states = [x0] if USE_MUDD else None
         doc_mask = doc_boundary_mask(idx) if USE_DOC_MASK else None
         # T3.1: all hash indices in one place (each is a [b, T] int32 tensor, ~32 KB), so
         # the shared prev/prev2 shifts are computed once rather than once per layer.
@@ -3148,7 +3084,7 @@ class GPT(nn.Module):
             else:
                 static_mask = (self.mask_short if self.layer_is_short[i] else self.mask_full)[..., :t, :t]
                 attn_mask = static_mask + doc_mask if doc_mask is not None else static_mask
-            x, v_raw = block(x, x0, ve, cos, sin, attn_mask, v0, hidden_states, ve_bi, ve_tri)
+            x, v_raw = block(x, x0, ve, cos, sin, attn_mask, v0, ve_bi, ve_tri)
             if self.engram is not None and i == self.engram_site:
                 # H <- H + Y, on the residual leaving this block. Placed at the LAST layer by
                 # default: the gather's dynamic address forces the LNC=2 compiler to re-shard the
@@ -3160,8 +3096,6 @@ class GPT(nn.Module):
                 else:
                     e_t = self.engram.gather(ngram_idx)
                 x = x + self.engram(x, e_t)
-            if USE_MUDD:
-                hidden_states.append(x)
             if USE_VALUE_RESIDUAL and v0 is None:
                 v0 = v_raw
             if i >= pool_from:
@@ -3930,7 +3864,7 @@ ARCH_TOGGLE_NAMES = [
     "WD_DECAY_TO_ZERO", "MUON_MOMENTUM_WARMUP_STEPS", "USE_DOC_MASK", "VE_WD",
     "USE_SELECTIVE_GATE", "SELECTIVE_GATE_CHANNELS", "USE_FUSED_QKV",
     "USE_CAUSAL_FASTPATH", "USE_STOCHASTIC_ROUNDING", "USE_TRN2_COMPILER_FLAGS",
-    "USE_REQUEUE_PACKER", "USE_XSA", "USE_VALUE_RESIDUAL", "USE_MUDD",
+    "USE_REQUEUE_PACKER", "USE_XSA", "USE_VALUE_RESIDUAL",
     "USE_FP8_LINEAR",
     # T0.4 resweep knobs. None of these changes a tensor's name or shape, so every one of them
     # is exactly the "loads silently with quietly wrong behavior" class this snapshot exists to
@@ -3989,7 +3923,7 @@ ARCH_TOGGLE_NAMES = [
 # plain Python constants excluded from state_dict() entirely -- a mismatch there loads
 # silently with no crash and quietly wrong behavior, which is exactly why we snapshot and
 # check all of them, not just the shape-critical ones.
-SHAPE_CRITICAL_TOGGLES = {"USE_VE", "USE_LOCAL_CONV", "USE_GATED_MLP", "USE_SELECTIVE_GATE", "USE_FUSED_QKV", "USE_VALUE_RESIDUAL", "USE_MUDD",
+SHAPE_CRITICAL_TOGGLES = {"USE_VE", "USE_LOCAL_CONV", "USE_GATED_MLP", "USE_SELECTIVE_GATE", "USE_FUSED_QKV", "USE_VALUE_RESIDUAL",
                           # T3.1: USE_NGRAM_VE adds/removes the ngram_embeds.* tables AND the
                           # attn.ve_gate_bi/ve_gate_tri weights, NGRAM_VE_TRIGRAM adds/removes
                           # the "t<layer>" tables and their gates, and NGRAM_VE_TABLE_MULT
@@ -4213,7 +4147,7 @@ def muon_momentum(step: int, progress: float = 0.0) -> float:
 
 
 def main() -> None:
-    global USE_LOCAL_CONV, LRM_QUANTUM, USE_TENSOR_LR_SCALARS, USE_FOREACH_OPTIM, USE_MUDD  # flags below default off these constants
+    global USE_LOCAL_CONV, LRM_QUANTUM, USE_TENSOR_LR_SCALARS, USE_FOREACH_OPTIM  # flags below default off these constants
     global USE_FP8_LINEAR
     global LOCAL_CONV_KERNEL, TRAIN_LOCAL_CONV
     # Throughput->capacity track, Probe 3: USE_VE needs to be reachable from the CLI so the
@@ -4607,11 +4541,6 @@ def main() -> None:
                         help="snap the LR multiplier onto a 1/N grid (0 = continuous). Each distinct "
                              "lr value costs one neuronx-cc compile, so a continuous cooldown "
                              "recompiles the optimizer every step.")
-    parser.add_argument("--mudd", action=argparse.BooleanOptionalAction,
-                        default=os.environ.get("NEURON_COMPETITION_R1_MUDD", "1" if USE_MUDD else "0") != "0",
-                        help="MUDDFormer multiway dynamic dense connections (arXiv:2502.12170) in place of "
-                             "the resid_lambda/x0_lambda skip -- zero-init no-op at step 0, exposed as a "
-                             "flag so the A/B runs from one identical binary.")
     parser.add_argument("--init-from", type=str, default="",
                         help="warm-start model weights from a prior checkpoint (fresh optimizer/step/dataloader; dev-iteration only, never for a scored submission)")
     parser.add_argument("--grad-bucket", action=argparse.BooleanOptionalAction,
@@ -4689,7 +4618,7 @@ def main() -> None:
         "own 1/sqrt(head_dim) (0.0884 at 128). QK-norm already fixes the q/k norms, so the logit "
         "temperature is a free knob here rather than a redundant init reparameterisation.")
     _hp("--matrix-lr", MATRIX_LR, float, "T0.4: Muon groups' base lr (also the AdamW lr for the "
-        "hypernet/local_conv groups). Currently 0.025.")
+        "gate/local_conv groups). Currently 0.025.")
     _hp("--embedding-lr", EMBEDDING_LR, float, "T0.4: wte (and value-embedding) AdamW lr before the "
         "(n_embd/768)**-0.5 scale. Currently 0.30.")
     _hp("--unembedding-lr", UNEMBEDDING_LR, float, "T0.4: lm_head AdamW lr before the d_model scale. "
@@ -4863,7 +4792,7 @@ def main() -> None:
     if USE_PARALLEL_BLOCK:
         # The parallel block reads ONE norm(x) and ignores q_in/k_in/v_in entirely, so anything
         # that exists only to make those three differ would be silently dropped. Fail loudly.
-        for name, on in (("--qk-shift", USE_QK_SHIFT), ("--mudd", USE_MUDD),
+        for name, on in (("--qk-shift", USE_QK_SHIFT),
                          ("--block-nudge", USE_BLOCK_NUDGE),
                          ("--mlp-sandwich-norm", USE_MLP_SANDWICH_NORM)):
             if on:
@@ -4902,7 +4831,6 @@ def main() -> None:
     USE_TENSOR_LR_SCALARS = args.tensor_lr_scalars
     USE_FOREACH_OPTIM = args.foreach_optim
     USE_FP8_LINEAR = args.fp8_linear           # read by MLP.__init__, i.e. before GPT(config) below
-    USE_MUDD = args.mudd                      # read by Block.__init__, i.e. before GPT(config) below
     USE_NKI_RELU2 = args.nki_relu2
     USE_NKI_ROPE_NORM = args.nki_rope_norm
     USE_NKI_SOFTCAP_CE = args.nki_softcap_ce
@@ -5357,7 +5285,6 @@ def main() -> None:
         # should say which Muon step actually ran rather than which one was requested.
         print(f"nki_muon:          {USE_NKI_MUON}")
         print(f"compile_muon:      {USE_COMPILE_MUON}")
-        print(f"mudd:              {args.mudd}")
         print(f"fp8_linear:        {args.fp8_linear}")
         # T3.1. Printed as one line so the experiment log can tell two n-gram arms apart
         # (SUMMARY_KEYS in research/run_experiment.py has the matching entry).
