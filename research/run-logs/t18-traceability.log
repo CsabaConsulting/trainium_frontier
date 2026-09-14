@@ -1,0 +1,20 @@
+[W914 19:33:20.150878790 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+=== API availability (T1.8 asks for nki_op + register_autograd) ===
+  torch_neuronx.nki_op: PRESENT (function)
+  torch_neuronx.wrap_nki: PRESENT (function)
+  torch.library.custom_op: PRESENT (function)
+  torch.library.register_autograd: PRESENT (function)
+  torch.library.register_fake: PRESENT (function)
+  nki.framework.kernel.Kernel.__call__ auto-routes torch inputs to a HOP: True
+  wrap_nki_to_torch_hop IS torch_neuronx.wrap_nki: False
+
+_HAS_NKI=True
+=== device=neuron ===
+
+=== eager sanity + null test (did the kernel actually run?) ===

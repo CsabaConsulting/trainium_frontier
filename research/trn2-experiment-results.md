@@ -6125,3 +6125,291 @@ there is no power to resolve anything below the floor. Combined with the CPU bit
 reasonable reading is "no detectable change"; a 120-step proxy cannot license a stronger claim than
 that, and it is not needed, because bit-exactness on CPU already covers the numerics and this test was
 only ever about the compiled graph.
+
+## 2026-09-14 — T1.6 (transposed Linear storage) and T1.8 (NKI kernels under `torch.compile`): **both CLOSED NEGATIVE**, and both premises turned out to be stale rather than merely unprofitable
+
+Two plan items from `research/frontier-research-plan-2026-09-09.md` §T1.6 / §T1.8, both re-measured from
+scratch on the current locked config per the standing rule that a kernel/layout fact expires when the
+stack changes and *the sign can flip*. Neither landed. Both negatives are numbers-backed, and in both
+cases the interesting result is not "the win is small" but **"the number that motivated the item was
+measured on a stack that is not the one being submitted."**
+
+Binary for every measurement below: `train.py` md5 `4a2f982618cf1d4c4a7559f81ae4ee47`, commit
+`a49890d`. Box 1 (`ec2-16-50-61-34`). Every arm carries the locked config explicitly — `--compile-muon
+--qk-shift --qk-shift-beta 0.0 --qk-shift-freeze --ngram-ve-layers "1,-1" --ngram-ve-table-mult 128` —
+rather than relying on defaults, because the other box was actively promoting things during this work.
+
+Drivers: `research/scratch/t16_transposed_probe.sh` (throughput),
+`research/scratch/transposed_linear_equiv.py` (CPU bit-exactness),
+`research/scratch/t18_nki_traceability_probe.py` (T1.8 API + mechanism),
+`research/scratch/t18_nki_graphbreak_min.py` + `t18_nki_graphbreak_ce.py` (T1.8 graph breaks).
+Logs: `research/run-logs/t16-t16-{ctrl,tr}-r{1,2,3}.log`, `t16-probe-driver.log`,
+`t16-equiv-small.log`, `t18-traceability.log`, `t18-min.log`, `t18-ce.log`.
+
+---
+
+### T1.6 — storing every `Linear` weight as `[in, out]`
+
+`F.linear(x, W)` computes `x @ W.T`. TensorE wants the contraction dimension on partitions, so the
+premise is that `nn.Linear`'s native `[out, in]` storage forces the compiled graph to carry a
+partition-free transpose per matmul. Implemented as `USE_TRANSPOSED_LINEAR` / `--transposed-linear`
+(`argparse.BooleanOptionalAction`, env `NEURON_COMPETITION_R1_TRANSPOSED_LINEAR`), **default OFF**,
+listed in `ARCH_TOGGLE_NAMES` and `SHAPE_CRITICAL_TOGGLES`.
+
+#### 1. The premise was measured at nproc=1 / LNC=1 and never on the submitted stack
+
+Plan §T1.6 cites "the compiled graph carries **+75% transpose instructions** vs eager, and `F.linear`
+is **48% of the window**". Chasing the provenance: that profile was taken at **1 rank / LNC=1**, and
+this same results doc's note on it records that the compiled step measured *slower* than eager there
+and that the finding "doesn't replicate the real submission's win" — which is at 4 ranks / LNC=2. The
+same doc separately records `aten::linear` / `linear_backward` already running at **80.4% of peak
+TensorE FLOPS** at the locked shape, i.e. explicitly "nothing to fix there via kernel work". So the
+motivating number and the disqualifying number were already both in the doc, on opposite sides.
+
+#### 2. The one real trap: Muon's `ratio` is not transpose-invariant
+
+Found by implementing, not by measuring, and it invalidates the plan's "zero quality effect expected"
+framing for any naive version of this change. Muon applies a **one-sided** LR scale
+
+```
+ratio = max(1.0, shape[-2] / shape[-1]) ** 0.5
+```
+
+On the MLP `c_fc` at `[3200, 640]` that is `sqrt(5) = 2.236`. Read off the *transposed* `[640, 3200]`
+tensor it collapses to **1.0** — a silent **2.24× LR change on every non-square matrix in the model**.
+The second-moment buffer's reduction axis (`red_dim`) has the same problem. Corrected by carrying a
+`transposed` key on each Muon param group (`setup_optimizer` now keys groups on `(shape, transposed)`)
+and computing everything rate-related from a **logical** shape `lshape = (shape[-1], shape[-2])`, with
+`red_dim` flipped and `state_shape` derived from `red_dim` rather than restated. The `tall` flag that
+selects the Newton–Schulz branch is deliberately left on the **actual** shape — see §4.
+
+Two more placement constraints, both load-bearing:
+- `transpose_linear_weights()` runs as the **last** statement of `GPT.init_weights()`, not at
+  construction. Every initializer above it addresses `[out, in]` layout — `c_in.weight[:n]` row
+  slices, the per-slice `uniform_` bounds that keep the coalesced arm bit-identical to the unfused
+  one — and `uniform_` fills in **memory order**, so it does not commute with a transpose. Initialize
+  first, transpose after, is what makes this bit-exact rather than "the same distribution".
+- `.t().contiguous()`, not `.t()`, so the compiler is not handed a strided view and does not simply
+  re-materialize the transpose it was supposed to remove.
+
+#### 3. Checkpoint compatibility: verified, not assumed
+
+The task flagged this as an assumption to check rather than wave away. `transpose_linear_weights`
+leaves every `state_dict` **key** unchanged and only flips the shape, so an old checkpoint would fail
+`load_state_dict(strict=True)` on shape. Read of `load_for_eval`: it never consults
+`payload["toggles"]` — it rebuilds the model from the **live module-level toggles** and then loads
+strict. So `USE_TRANSPOSED_LINEAR` behaves exactly like `USE_NGRAM_VE`, listing it in
+`SHAPE_CRITICAL_TOGGLES` is both correct and sufficient, and **no back-compat shim is needed.**
+
+#### 4. Bit-exactness: exact through forward and backward, and the boundary is *precisely* Muon
+
+`research/scratch/transposed_linear_equiv.py`, CPU fp32 (deliberately — bf16 on device cannot separate
+"the reformulation is wrong" from "the compiler re-associated a reduction"), `--small --steps 4`, 18
+Linears converted of which 10 non-square, `n_params` match, optimizer group structure match, all 5
+Muon groups flagged `transposed`:
+
+| phase | result |
+|---|---|
+| init weights | **IDENTICAL**, max\|diff\| `0.000e+00` |
+| step-0 loss | **IDENTICAL** to the last bit (`9.01240348815918` both arms) |
+| step-0 gradients | **IDENTICAL**, max\|diff\| `0.000e+00` |
+| step-0 params after `opt.step()` | **971,428 differing**, max\|diff\| `1.569e-04` |
+
+So **100% of the divergence is inside Muon's Newton–Schulz**, and the `ratio` correction in §2 is
+confirmed working (a wrong `ratio` would have shown up as an O(1) relative difference on exactly the
+non-square matrices, not as 1e-4).
+
+**Mechanism, and why it is not fixable by branch selection.** NS's two algebraically equivalent forms
+`q(X Xᵀ) @ X` and `X @ q(Xᵀ X)` round differently, and which one runs depends on the tensor's
+**actual** orientation:
+- **Non-square**: `tall` flips with the transpose, so both arms build the *same* Gram matrix, but the
+  final products are `X @ M` vs `M @ Xᵀ` — exact transposes of each other in real arithmetic,
+  different accumulation order in floating point.
+- **Square**: `tall` does not flip at all, so the transposed arm builds the *other* Gram matrix
+  (`X Xᵀ` instead of `Xᵀ X`). Still a transpose in real arithmetic; still different rounding.
+
+Forcing `tall` from the logical shape fixes neither case. The only bit-exact fix is to transpose back
+into logical layout at NS entry and out at exit — which reintroduces exactly the transposes T1.6
+exists to delete, on the ~47M Muon-governed parameters, twice per optimizer step. Rough cost:
+2 × 188 MB of traffic on a ~840 ms step ≈ **0.5%**, i.e. most of the measured win (§5).
+
+**How it propagates** (recorded because the absolute numbers look alarming and are not): step-1 loss
+differs by `9.537e-07`, and by step 1 the AdamW-group embeddings show max\|diff\| `2.734e-02`. That is
+not error amplification in the usual sense — AdamW's `m / (sqrt(v) + eps)` normalizes magnitude away,
+so a 1e-8 gradient perturbation can change the *direction* of a near-full-size update on a
+freshly-initialized second moment. `lm_head` (AdamW, and transpose-invariant elementwise) only diverges
+from step 3, i.e. purely downstream.
+
+#### 5. Throughput: real, reproducible, and far too small to matter
+
+120-step instrument (`--num-steps 120 --eval-seq-len 1024`), tok/s read as the 8-point mean of printed
+steps 40–110, step 0 excluded (cold compile). Six arms **interleaved** ctrl/tr/ctrl/tr/ctrl/tr so box
+drift cannot masquerade as the effect.
+
+| arm | tok/s (8-pt mean) | step-110 loss |
+|---|---|---|
+| `t16-ctrl-r1` | 155,686.6 | 3.9348 |
+| `t16-tr-r1` | 156,643.5 | 3.9411 |
+| `t16-ctrl-r2` | 155,640.1 | 3.9317 |
+| `t16-tr-r2` | 156,986.4 | 3.9442 |
+| `t16-ctrl-r3` | 155,618.8 | 3.9351 |
+| `t16-tr-r3` | 157,197.6 | 3.9466 |
+| **control pooled** | **155,648.5** (0.84210 s/step) | 3.93387 |
+| **transposed pooled** | **156,942.5** (0.83516 s/step) | 3.94397 |
+
+**+0.831%**, 3-vs-3 with **no overlap** (slowest treatment 156,643.5 > fastest control 155,686.6).
+Control spread 0.044%, treatment spread 0.353% — both inside the instrument's independently
+established 0.27–0.74%. So the effect is real, not noise.
+
+**Null test fired correctly.** All three treatment arms printed `T1.6: transposed 48 Linear weights to
+[in, out] layout`; no control arm did. Capacity identical across all six
+(`num_params=592,916,844 flops_per_token=3.991901e+08`), so this is a pure constant-capacity
+measurement.
+
+**This end-to-end number is itself the refutation of the premise, which is why no separate
+instruction-count profile was run.** If layout transposes were 48% of the window, deleting the storage
+transpose would have moved the step time by tens of percent. It moved **0.83%**. That *bounds* the
+entire cost of `F.linear`'s layout mismatch at ≤0.83% of the step — roughly two orders of magnitude
+below the plan's figure — and is exactly what the 80.4%-of-peak-TensorE reading already implied. A
+profile could only itemize a cost that has now been measured as negligible end-to-end.
+
+#### 6. Quality: measurably *worse* on the proxy, and that decides it
+
+Step-110 loss, pooled: control **3.93387** vs transposed **3.94397** = **+0.01010**, about **3× the
+established 120-step proxy noise floor (0.0034)**, with **no overlap** (worst control 3.9351 < best
+treatment 3.9411). Already present at step 40 (+0.00477) and monotone from there, so it is a
+trajectory difference, not a transient. Direction and magnitude are consistent with §4: the change
+perturbs Muon's orthogonalization, and it does not perturb it in a favourable direction.
+
+#### 7. The arithmetic that closes T1.6
+
+> **+0.831%** at 2138 steps = **2155.8 steps**. Off the **−0.077 bpb per ln(steps)** slope that is
+> **−0.00064 bpb** — *below* the 0.001 single-run noise threshold. **The prize was never large enough
+> to be detectable even if it were free.**
+
+Against that: a **+0.010** proxy-loss regression at 3× the noise floor, and non-bit-exactness inside
+the optimizer whose only clean fix costs ~0.5% of the step — most of the 0.83%. A 900 s paired A/B was
+therefore **not** run: the best conceivable outcome (−0.0006 bpb) sits below what a 900 s A/B can
+resolve, and the proxy already points the other way, so it could not have changed the verdict. This
+follows the same rule as Probe 3's `--no-nki-rope-norm` offer (+1.36% → −0.0010 bpb, also declined as
+a bpb win).
+
+**Verdict: CLOSED NEGATIVE. The flag stays in `train.py`, default OFF, not promoted.** It is kept
+rather than reverted because it is the only implemented probe of the layout question and because
+§2/§4 are the reusable findings — if the stack ever changes such that layout transposes *do* dominate,
+this is the switch, and the Muon `ratio` trap is already handled in it.
+
+---
+
+### T1.8 — making the two hand-written NKI kernels traceable under `torch.compile`
+
+The item asked to wrap `_rope_norm_fwd/_bwd` and `_softcap_ce_fwd/_bwd` with
+`torch_neuronx.nki_op` + `torch.library.register_autograd`, so Dynamo stops splitting the graph around
+them and the compile islands disappear.
+
+#### 1. The API exists (checked, not assumed)
+
+On this box's `native_venv`, nki `0.5.0+28631259367.ga768afa6`:
+
+```
+torch_neuronx.nki_op:              PRESENT
+torch_neuronx.wrap_nki:            PRESENT
+torch.library.custom_op:           PRESENT
+torch.library.register_autograd:   PRESENT
+torch.library.register_fake:       PRESENT
+```
+
+So the item does not fail for lack of API. It fails on its premise.
+
+#### 2. The premise is false: the kernels are **already** HOP nodes in the graph
+
+`nki.framework.kernel.Kernel.__call__` — the code path every `@nki.jit` symbol in `train.py` goes
+through — contains, verified by `inspect.getsource` on the installed package:
+
+```python
+if has_torch_input(*args, **kwargs):
+    torch_hop = wrap_nki_to_torch_hop(self, _frontend_cls=fe)
+    return torch_hop(*args, **kwargs)
+```
+
+Probe output: `nki.framework.kernel.Kernel.__call__ auto-routes torch inputs to a HOP: True`. So
+calling a `@nki.jit` kernel with torch tensors **already** dispatches through
+`register_kernel_to_torch` + `NKIHOPCaller`, i.e. through a `HigherOrderOperator` that Dynamo can
+capture. `wrap_nki_to_torch_hop` is not the *same object* as `torch_neuronx.wrap_nki` (identity check
+returned `False`) but is the same mechanism over the same two helpers, differing only in the grid it
+passes (`[kernel.lnc]` vs `[]`) — which the earlier prototype patch had explicitly pinned to match.
+**Registering via `nki_op` adds no graph node that is not already there. There is no compile island to
+remove.**
+
+This also explains the prior measurements, which had been recorded as puzzling: graph breaks **0 → 0**,
+`fullgraph=True` already succeeding on the existing `torch.autograd.Function` path, **189 NEFFs both
+ways**, and a 900 s A/B of the prototype landing **−15 steps / +0.001247 bpb worse**. Those are the
+signature of a no-op wrapper, not of a failed optimization.
+
+**Methodology bug in the earlier probe, recorded so it is not repeated.** That probe traced **CPU**
+tensors. `has_torch_input` routing plus `train.py`'s own `device.type == "neuron"` guards mean a CPU
+trace never reaches the kernel at all — it measured the fallback path and would have reported 0 breaks
+regardless of the answer. `t18_nki_traceability_probe.py` builds inputs on the **neuron** device at
+the locked shapes and carries an explicit null test (it monkeypatches the two `@nki.jit` symbols with
+call counters and aborts if either count is zero) precisely so an all-fallback trace cannot again
+masquerade as a clean pass.
+
+#### 3. Empirical confirmation on NEURON tensors ("comment says dead, probe says dead, *then* delete")
+
+Source-level mechanism is not enough under the standing rule, so it was measured. `t18-min.log`, one
+process, inputs built on the **neuron** device, `_rope_norm_fwd` monkeypatched with a call counter as
+the null test:
+
+```
+[   10.8s] eager rope OK shape=(1, 8, 5, 128) calls=1
+[   11.5s] rope_norm: graph_count=1 graph_break_count=0 op_count=2 kernel_calls_during_trace=1
+[   11.8s]   rope_norm: fullgraph=True SUCCEEDED shape=(1, 8, 5, 128)
+```
+
+**`graph_break_count=0`**, a single graph, `fullgraph=True` succeeds, and `kernel_calls_during_trace=1`
+proves the kernel really executed on the traced path rather than the trace falling back past it — the
+null test the earlier CPU-tensor probe lacked. So the existing `torch.autograd.Function` wrapper
+already produces a single unbroken graph. This matches, on the current binary, the previously recorded
+whole-model numbers (0 → 0 breaks, 189 NEFFs both ways) that had been filed as unexplained.
+
+**Two harness artifacts, recorded so the next person does not chase them.** (a) The first version of
+this probe appeared to hang for 13 minutes; the cause was `torch.randn(1024, 8192, device="neuron")`
+compiling an on-device `randn` NEFF, nothing to do with the kernels — with `.to(dev)` from CPU the same
+allocation takes 8.9 s. (b) `torch._dynamo.explain` on `_SoftcapCrossEntropyNKI.apply` hangs
+indefinitely (`t18-ce.log`) where the rope kernel's took **0.7 s**, apparently on the int64 target
+index path. That is an unresolved *harness* artifact and is explicitly **not** evidence either way
+about graph breaks; the softcap CE kernel runs eagerly through the same `Kernel.__call__` auto-routing
+(`calls=1` at 11.1 s in the same log), and the whole-model measurement above already covers both
+kernels.
+
+#### 4. Even if it worked, it cannot address the one live cost
+
+The remaining real cost at a kernel boundary under LNC=2 is **resharding opacity**: the compiler
+cannot see inside the kernel body under *either* registration path, so the boundary — and the
+resharding decision at it — survives the change identically. And the current direction of travel for
+the rope+norm kernel is the opposite one: Probe 3 measured removing it at **+1.36%** on the locked
+config (having measured it at **+15–18%** and **+7.92%** on two earlier configurations of the same
+model — the canonical example of the sign flipping). Investing in that kernel's graph integration
+while the standing recommendation is to retire it would be backwards.
+
+**Verdict: CLOSED NEGATIVE at the premise level. No change to `train.py`.** The API is present and
+functional; the graph-break problem it was meant to solve does not exist on this SDK version, because
+the NKI frontend already performs the registration itself.
+
+---
+
+### What these two items hand over
+
+- **Do not re-run:** T1.6 in any form on this stack (the layout-transpose cost is bounded at ≤0.83% of
+  the step, and the slope prices that at −0.0006 bpb); T1.8 in any form on this SDK version (the
+  registration already happens inside `nki.framework.kernel`).
+- **Reusable finding, independent of both verdicts:** Muon's `ratio` LR scale is **one-sided and not
+  transpose-invariant**. Any future change that flips a matrix parameter's orientation — a fused
+  projection, a shared-KV rewrite, a layout experiment — silently rescales that matrix's LR by up to
+  `sqrt(rows/cols)` unless it carries a logical shape through `_muon_step`. `train.py` now has that
+  machinery (`transposed` group key + `lshape`) even with the flag off.
+- **Corrected provenance:** the "+75% transpose instructions / `F.linear` is 48% of the window" figure
+  in plan §T1.6 is an **LNC=1, 1-rank** measurement and must not be cited for the 4-rank LNC=2
+  submission. Plan §T1.8's "graph breaks around the kernels" premise is **false on nki 0.5.0**.
+- **Bar unchanged.** Best known config is still **1.004363 bpb / 2135 steps @ 1800 s**. Neither item
+  produced a candidate, so there is nothing here to dress-rehearse or submit.

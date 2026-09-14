@@ -1,0 +1,411 @@
+[W914 19:29:27.192669414 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+device=cpu compute_dtype=torch.float32 steps=4 small=True
+T1.6: transposed 18 Linear weights to [in, out] layout
+converted Linears: 18
+non-square converted Linears: 10 (e.g. transformer.h.0.mlp.c_proj.weight (1024, 256))
+n_params: ref=10028740 transposed=10028740 MATCH
+optimizer groups: ref=11 transposed=11
+muon groups flagged transposed: 5/5
+[1] init weights: IDENTICAL (max|diff| 0.000e+00)
+/home/ubuntu/trainium_frontier/research/scratch/transposed_linear_equiv.py:267: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:836.)
+  lref = float(losses["ref"])
+[2] step 0 loss: ref=9.01240348815918 tr=9.01240348815918 IDENTICAL
+[2] step 0 grads: IDENTICAL (max|diff| 0.000e+00, 2 params with no grad on either side)
+muon step: COMPILED body for (3, 2, 32) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 1]
+muon step: COMPILED body for (2, 256, 128) (tall=True ns_steps=5 red_dim=-1) [specialisations so far: 2]
+muon step: COMPILED body for (8, 256, 256) (tall=False ns_steps=5 red_dim=-1) [specialisations so far: 3]
+muon step: COMPILED body for (2, 256, 1024) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 4]
+muon step: COMPILED body for (2, 1024, 256) (tall=True ns_steps=5 red_dim=-1) [specialisations so far: 5]
+muon step: COMPILED body for (3, 32, 2) (tall=True ns_steps=5 red_dim=-1) [specialisations so far: 6]
+muon step: COMPILED body for (2, 128, 256) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 7]
+muon step: COMPILED body for (8, 256, 256) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 8]
+  step 0 post: transformer.h.0.attn.c_k.weight 53802 differing, max|diff| 3.772e-08
+  step 0 post: transformer.h.0.attn.c_proj.weight 64050 differing, max|diff| 2.416e-08
+  step 0 post: transformer.h.0.attn.c_q.weight 52727 differing, max|diff| 2.608e-08
+  step 0 post: transformer.h.0.attn.c_v.weight 55014 differing, max|diff| 1.569e-04
+  step 0 post: transformer.h.0.mlp.c_proj.weight 260477 differing, max|diff| 2.049e-08
+  step 0 post: transformer.h.1.attn.c_k.weight 53679 differing, max|diff| 2.608e-08
+  step 0 post: transformer.h.1.attn.c_proj.weight 64053 differing, max|diff| 2.678e-08
+  step 0 post: transformer.h.1.attn.c_q.weight 52614 differing, max|diff| 2.375e-08
+  step 0 post: transformer.h.1.attn.c_v.weight 55234 differing, max|diff| 3.353e-08
+  step 0 post: transformer.h.1.mlp.c_proj.weight 259778 differing, max|diff| 1.525e-08
+[3] step 0 params after opt.step: 971428 DIFFERING (max|diff| 1.569e-04)
+FAIL: step 0 post-optimizer params differ (971428 elements)
+[2] step 1 loss: ref=9.010604858398438 tr=9.010603904724121 DIFFER by 9.537e-07
+FAIL: step 1 loss differs by 9.537e-07
+  step 1: grad lm_head.weight 2065676 differing, max|diff| 1.793e-08
+  step 1: grad ngram_embeds.b1.weight 79 differing, max|diff| 9.313e-10
+  step 1: grad ngram_embeds.t1.weight 67 differing, max|diff| 3.725e-09
+  step 1: grad ngram_proj.b1.weight 32383 differing, max|diff| 4.420e-12
+  step 1: grad ngram_proj.t1.weight 32392 differing, max|diff| 2.574e-12
+  step 1: grad transformer.h.0.attn.c_k.weight 65436 differing, max|diff| 1.444e-09
+  step 1: grad transformer.h.0.attn.c_proj.weight 64367 differing, max|diff| 6.470e-08
+  step 1: grad transformer.h.0.attn.c_q.weight 65449 differing, max|diff| 5.696e-10
+  step 1: grad transformer.h.0.attn.c_v.weight 64793 differing, max|diff| 6.733e-11
+  step 1: grad transformer.h.0.local_conv.weight 503 differing, max|diff| 1.208e-09
+  step 1: grad transformer.h.0.mlp.c_fc.weight 260746 differing, max|diff| 7.424e-11
+  step 1: grad transformer.h.0.mlp.c_proj.weight 256140 differing, max|diff| 1.455e-10
+  step 1: grad transformer.h.0.resid_lambda 1 differing, max|diff| 8.149e-10
+  step 1: grad transformer.h.0.x0_lambda 1 differing, max|diff| 8.149e-10
+  step 1: grad transformer.h.1.attn.c_k.weight 64737 differing, max|diff| 5.366e-11
+  step 1: grad transformer.h.1.attn.c_proj.weight 64657 differing, max|diff| 1.834e-09
+  step 1: grad transformer.h.1.attn.c_q.weight 64754 differing, max|diff| 5.912e-11
+  step 1: grad transformer.h.1.attn.c_v.weight 64892 differing, max|diff| 1.146e-10
+  step 1: grad transformer.h.1.attn.ve_gate.weight 64 differing, max|diff| 1.160e-11
+  step 1: grad transformer.h.1.attn.ve_gate_bi.weight 63 differing, max|diff| 1.199e-11
+  step 1: grad transformer.h.1.attn.ve_gate_tri.weight 61 differing, max|diff| 2.728e-12
+  step 1: grad transformer.h.1.local_conv.weight 504 differing, max|diff| 1.572e-09
+  step 1: grad transformer.h.1.mlp.c_fc.weight 260413 differing, max|diff| 6.798e-11
+  step 1: grad transformer.h.1.mlp.c_proj.weight 256261 differing, max|diff| 2.838e-10
+  step 1: grad transformer.h.1.resid_lambda 1 differing, max|diff| 2.910e-11
+  step 1: grad transformer.h.1.x0_lambda 1 differing, max|diff| 1.048e-09
+  step 1: grad transformer.wte.weight 62003 differing, max|diff| 3.779e-10
+  step 1: grad value_embeds.1.weight 63600 differing, max|diff| 2.046e-11
+[2] step 1 grads: 3810044 DIFFERING (max|diff| 6.470e-08, 2 params with no grad on either side)
+FAIL: step 1 gradients differ (3810044 elements)
+  step 1 post: lm_head.weight 1646851 differing, max|diff| 4.213e-05
+  step 1 post: ngram_embeds.b1.weight 45 differing, max|diff| 3.906e-03
+  step 1 post: ngram_embeds.t1.weight 38 differing, max|diff| 2.734e-02
+  step 1 post: ngram_proj.b1.weight 31324 differing, max|diff| 1.762e-04
+  step 1 post: ngram_proj.t1.weight 30877 differing, max|diff| 2.078e-04
+  step 1 post: transformer.h.0.attn.c_k.weight 64320 differing, max|diff| 1.207e-04
+  step 1 post: transformer.h.0.attn.c_proj.weight 65258 differing, max|diff| 1.164e-06
+  step 1 post: transformer.h.0.attn.c_q.weight 64242 differing, max|diff| 6.161e-05
+  step 1 post: transformer.h.0.attn.c_v.weight 60457 differing, max|diff| 1.564e-04
+  step 1 post: transformer.h.0.local_conv.weight 313 differing, max|diff| 1.131e-06
+  step 1 post: transformer.h.0.mlp.c_fc.weight 251183 differing, max|diff| 7.960e-05
+  step 1 post: transformer.h.0.mlp.c_proj.weight 260149 differing, max|diff| 2.841e-08
+  step 1 post: transformer.h.0.resid_lambda 1 differing, max|diff| 5.960e-08
+  step 1 post: transformer.h.0.x0_lambda 1 differing, max|diff| 1.490e-08
+  step 1 post: transformer.h.1.attn.c_k.weight 59273 differing, max|diff| 4.843e-08
+  step 1 post: transformer.h.1.attn.c_proj.weight 64854 differing, max|diff| 5.355e-08
+  step 1 post: transformer.h.1.attn.c_q.weight 59402 differing, max|diff| 4.843e-08
+  step 1 post: transformer.h.1.attn.c_v.weight 60724 differing, max|diff| 5.219e-05
+  step 1 post: transformer.h.1.attn.ve_gate.weight 64 differing, max|diff| 9.220e-08
+  step 1 post: transformer.h.1.attn.ve_gate_bi.weight 64 differing, max|diff| 1.513e-07
+  step 1 post: transformer.h.1.attn.ve_gate_tri.weight 62 differing, max|diff| 2.491e-08
+  step 1 post: transformer.h.1.local_conv.weight 332 differing, max|diff| 8.158e-07
+  step 1 post: transformer.h.1.mlp.c_fc.weight 250291 differing, max|diff| 8.312e-06
+  step 1 post: transformer.h.1.mlp.c_proj.weight 259726 differing, max|diff| 1.991e-08
+  step 1 post: transformer.h.1.x0_lambda 1 differing, max|diff| 1.490e-08
+  step 1 post: transformer.wte.weight 26417 differing, max|diff| 1.028e-02
+  step 1 post: value_embeds.1.weight 40449 differing, max|diff| 1.371e-03
+[3] step 1 params after opt.step: 3296718 DIFFERING (max|diff| 2.734e-02)
+FAIL: step 1 post-optimizer params differ (3296718 elements)
+[2] step 2 loss: ref=9.012049674987793 tr=9.012049674987793 IDENTICAL
+  step 2: grad lm_head.weight 2044823 differing, max|diff| 1.986e-07
+  step 2: grad ngram_embeds.b1.weight 246 differing, max|diff| 9.313e-10
+  step 2: grad ngram_embeds.t1.weight 275 differing, max|diff| 1.863e-09
+  step 2: grad ngram_proj.b1.weight 32665 differing, max|diff| 2.771e-11
+  step 2: grad ngram_proj.t1.weight 32706 differing, max|diff| 6.983e-11
+  step 2: grad transformer.h.0.attn.c_k.weight 65460 differing, max|diff| 1.334e-09
+  step 2: grad transformer.h.0.attn.c_proj.weight 65341 differing, max|diff| 4.760e-08
+  step 2: grad transformer.h.0.attn.c_q.weight 65455 differing, max|diff| 2.080e-09
+  step 2: grad transformer.h.0.attn.c_v.weight 65426 differing, max|diff| 1.068e-09
+  step 2: grad transformer.h.0.local_conv.weight 501 differing, max|diff| 3.327e-08
+  step 2: grad transformer.h.0.mlp.c_fc.weight 261538 differing, max|diff| 2.438e-09
+  step 2: grad transformer.h.0.mlp.c_proj.weight 258808 differing, max|diff| 2.431e-08
+  step 2: grad transformer.h.0.resid_lambda 1 differing, max|diff| 1.572e-09
+  step 2: grad transformer.h.0.x0_lambda 1 differing, max|diff| 1.572e-09
+  step 2: grad transformer.h.1.attn.c_k.weight 65375 differing, max|diff| 2.940e-10
+  step 2: grad transformer.h.1.attn.c_proj.weight 64822 differing, max|diff| 2.111e-08
+  step 2: grad transformer.h.1.attn.c_q.weight 65374 differing, max|diff| 2.545e-10
+  step 2: grad transformer.h.1.attn.c_v.weight 65336 differing, max|diff| 2.919e-10
+  step 2: grad transformer.h.1.attn.ve_gate.weight 63 differing, max|diff| 1.028e-10
+  step 2: grad transformer.h.1.attn.ve_gate_bi.weight 64 differing, max|diff| 1.269e-10
+  step 2: grad transformer.h.1.attn.ve_gate_tri.weight 64 differing, max|diff| 1.798e-10
+  step 2: grad transformer.h.1.local_conv.weight 500 differing, max|diff| 3.498e-08
+  step 2: grad transformer.h.1.mlp.c_fc.weight 261102 differing, max|diff| 1.876e-10
+  step 2: grad transformer.h.1.mlp.c_proj.weight 258684 differing, max|diff| 5.915e-09
+  step 2: grad transformer.h.1.resid_lambda 1 differing, max|diff| 7.276e-10
+  step 2: grad transformer.h.1.x0_lambda 1 differing, max|diff| 2.910e-09
+  step 2: grad transformer.wte.weight 63217 differing, max|diff| 1.301e-08
+  step 2: grad value_embeds.1.weight 63533 differing, max|diff| 6.037e-11
+[2] step 2 grads: 3801382 DIFFERING (max|diff| 1.986e-07, 2 params with no grad on either side)
+FAIL: step 2 gradients differ (3801382 elements)
+  step 2 post: lm_head.weight 1858666 differing, max|diff| 4.218e-05
+  step 2 post: ngram_embeds.b1.weight 198 differing, max|diff| 7.812e-03
+  step 2 post: ngram_embeds.t1.weight 199 differing, max|diff| 2.734e-02
+  step 2 post: ngram_proj.b1.weight 31961 differing, max|diff| 1.755e-04
+  step 2 post: ngram_proj.t1.weight 31947 differing, max|diff| 2.078e-04
+  step 2 post: transformer.h.0.attn.c_k.weight 64742 differing, max|diff| 1.469e-04
+  step 2 post: transformer.h.0.attn.c_proj.weight 65390 differing, max|diff| 1.373e-05
+  step 2 post: transformer.h.0.attn.c_q.weight 64775 differing, max|diff| 6.146e-05
+  step 2 post: transformer.h.0.attn.c_v.weight 63931 differing, max|diff| 1.558e-04
+  step 2 post: transformer.h.0.local_conv.weight 447 differing, max|diff| 1.155e-06
+  step 2 post: transformer.h.0.mlp.c_fc.weight 257947 differing, max|diff| 7.852e-05
+  step 2 post: transformer.h.0.mlp.c_proj.weight 260784 differing, max|diff| 6.015e-06
+  step 2 post: transformer.h.0.resid_lambda 1 differing, max|diff| 1.788e-07
+  step 2 post: transformer.h.0.x0_lambda 1 differing, max|diff| 1.937e-07
+  step 2 post: transformer.h.1.attn.c_k.weight 63293 differing, max|diff| 1.490e-07
+  step 2 post: transformer.h.1.attn.c_proj.weight 65141 differing, max|diff| 2.421e-07
+  step 2 post: transformer.h.1.attn.c_q.weight 63842 differing, max|diff| 2.086e-07
+  step 2 post: transformer.h.1.attn.c_v.weight 62887 differing, max|diff| 5.205e-05
+  step 2 post: transformer.h.1.attn.ve_gate.weight 64 differing, max|diff| 1.537e-07
+  step 2 post: transformer.h.1.attn.ve_gate_bi.weight 64 differing, max|diff| 7.250e-07
+  step 2 post: transformer.h.1.attn.ve_gate_tri.weight 64 differing, max|diff| 8.042e-07
+  step 2 post: transformer.h.1.local_conv.weight 462 differing, max|diff| 8.754e-07
+  step 2 post: transformer.h.1.mlp.c_fc.weight 256886 differing, max|diff| 5.728e-05
+  step 2 post: transformer.h.1.mlp.c_proj.weight 260287 differing, max|diff| 1.309e-07
+  step 2 post: transformer.h.1.resid_lambda 1 differing, max|diff| 1.192e-07
+  step 2 post: transformer.h.1.x0_lambda 1 differing, max|diff| 1.416e-07
+  step 2 post: transformer.wte.weight 56417 differing, max|diff| 1.701e-02
+  step 2 post: value_embeds.1.weight 76998 differing, max|diff| 1.582e-02
+[3] step 2 params after opt.step: 3607396 DIFFERING (max|diff| 2.734e-02)
+FAIL: step 2 post-optimizer params differ (3607396 elements)
+[2] step 3 loss: ref=9.009703636169434 tr=9.009703636169434 IDENTICAL
+  step 3: grad lm_head.weight 2090766 differing, max|diff| 3.677e-05
+  step 3: grad ngram_embeds.b1.weight 539 differing, max|diff| 7.451e-09
+  step 3: grad ngram_embeds.t1.weight 525 differing, max|diff| 7.451e-09
+  step 3: grad ngram_proj.b1.weight 32720 differing, max|diff| 7.947e-09
+  step 3: grad ngram_proj.t1.weight 32741 differing, max|diff| 2.469e-08
+  step 3: grad transformer.h.0.attn.c_k.weight 65525 differing, max|diff| 5.820e-08
+  step 3: grad transformer.h.0.attn.c_proj.weight 65528 differing, max|diff| 1.154e-07
+  step 3: grad transformer.h.0.attn.c_q.weight 65526 differing, max|diff| 1.699e-08
+  step 3: grad transformer.h.0.attn.c_v.weight 65510 differing, max|diff| 1.351e-07
+  step 3: grad transformer.h.0.local_conv.weight 509 differing, max|diff| 6.906e-08
+  step 3: grad transformer.h.0.mlp.c_fc.weight 261654 differing, max|diff| 4.775e-09
+  step 3: grad transformer.h.0.mlp.c_proj.weight 261097 differing, max|diff| 3.161e-08
+  step 3: grad transformer.h.0.resid_lambda 1 differing, max|diff| 7.974e-09
+  step 3: grad transformer.h.0.x0_lambda 1 differing, max|diff| 7.974e-09
+  step 3: grad transformer.h.1.attn.c_k.weight 65520 differing, max|diff| 1.102e-07
+  step 3: grad transformer.h.1.attn.c_proj.weight 65525 differing, max|diff| 6.178e-08
+  step 3: grad transformer.h.1.attn.c_q.weight 65524 differing, max|diff| 1.710e-08
+  step 3: grad transformer.h.1.attn.c_v.weight 65507 differing, max|diff| 2.612e-08
+  step 3: grad transformer.h.1.attn.ve_gate.weight 64 differing, max|diff| 1.042e-08
+  step 3: grad transformer.h.1.attn.ve_gate_bi.weight 64 differing, max|diff| 9.040e-10
+  step 3: grad transformer.h.1.attn.ve_gate_tri.weight 64 differing, max|diff| 2.084e-09
+  step 3: grad transformer.h.1.local_conv.weight 507 differing, max|diff| 7.873e-08
+  step 3: grad transformer.h.1.mlp.c_fc.weight 261557 differing, max|diff| 3.279e-09
+  step 3: grad transformer.h.1.mlp.c_proj.weight 261048 differing, max|diff| 3.362e-08
+  step 3: grad transformer.h.1.resid_lambda 1 differing, max|diff| 9.430e-09
+  step 3: grad transformer.h.1.x0_lambda 1 differing, max|diff| 1.129e-08
+  step 3: grad transformer.wte.weight 63107 differing, max|diff| 1.937e-08
+  step 3: grad value_embeds.1.weight 63332 differing, max|diff| 2.058e-09
+[2] step 3 grads: 3854463 DIFFERING (max|diff| 3.677e-05, 2 params with no grad on either side)
+FAIL: step 3 gradients differ (3854463 elements)
+  step 3 post: lm_head.weight 1977236 differing, max|diff| 1.888e-04
+  step 3 post: ngram_embeds.b1.weight 384 differing, max|diff| 8.984e-02
+  step 3 post: ngram_embeds.t1.weight 404 differing, max|diff| 2.734e-02
+  step 3 post: ngram_proj.b1.weight 32544 differing, max|diff| 1.761e-04
+  step 3 post: ngram_proj.t1.weight 32592 differing, max|diff| 2.080e-04
+  step 3 post: transformer.h.0.attn.c_k.weight 65239 differing, max|diff| 1.471e-04
+  step 3 post: transformer.h.0.attn.c_proj.weight 65501 differing, max|diff| 1.374e-05
+  step 3 post: transformer.h.0.attn.c_q.weight 65344 differing, max|diff| 7.515e-05
+  step 3 post: transformer.h.0.attn.c_v.weight 65184 differing, max|diff| 1.549e-04
+  step 3 post: transformer.h.0.local_conv.weight 485 differing, max|diff| 1.780e-06
+  step 3 post: transformer.h.0.mlp.c_fc.weight 260551 differing, max|diff| 9.041e-05
+  step 3 post: transformer.h.0.mlp.c_proj.weight 261494 differing, max|diff| 6.009e-06
+  step 3 post: transformer.h.0.resid_lambda 1 differing, max|diff| 2.980e-07
+  step 3 post: transformer.h.0.x0_lambda 1 differing, max|diff| 3.278e-07
+  step 3 post: transformer.h.1.attn.c_k.weight 65207 differing, max|diff| 1.007e-04
+  step 3 post: transformer.h.1.attn.c_proj.weight 65482 differing, max|diff| 2.054e-05
+  step 3 post: transformer.h.1.attn.c_q.weight 65355 differing, max|diff| 1.041e-04
+  step 3 post: transformer.h.1.attn.c_v.weight 65055 differing, max|diff| 5.205e-05
+  step 3 post: transformer.h.1.attn.ve_gate.weight 64 differing, max|diff| 3.340e-05
+  step 3 post: transformer.h.1.attn.ve_gate_bi.weight 64 differing, max|diff| 2.926e-06
+  step 3 post: transformer.h.1.attn.ve_gate_tri.weight 64 differing, max|diff| 3.407e-06
+  step 3 post: transformer.h.1.local_conv.weight 496 differing, max|diff| 1.538e-06
+  step 3 post: transformer.h.1.mlp.c_fc.weight 260422 differing, max|diff| 5.735e-05
+  step 3 post: transformer.h.1.mlp.c_proj.weight 261428 differing, max|diff| 2.493e-06
+  step 3 post: transformer.h.1.resid_lambda 1 differing, max|diff| 1.371e-06
+  step 3 post: transformer.h.1.x0_lambda 1 differing, max|diff| 6.557e-07
+  step 3 post: transformer.wte.weight 88939 differing, max|diff| 3.016e-02
+  step 3 post: value_embeds.1.weight 117662 differing, max|diff| 2.662e-02
+[3] step 3 params after opt.step: 3817200 DIFFERING (max|diff| 8.984e-02)
+FAIL: step 3 post-optimizer params differ (3817200 elements)
+
+RESULT: FAIL -- 185 problem(s)
+  -   step 0 post: transformer.h.0.attn.c_k.weight 53802 differing, max|diff| 3.772e-08
+  -   step 0 post: transformer.h.0.attn.c_proj.weight 64050 differing, max|diff| 2.416e-08
+  -   step 0 post: transformer.h.0.attn.c_q.weight 52727 differing, max|diff| 2.608e-08
+  -   step 0 post: transformer.h.0.attn.c_v.weight 55014 differing, max|diff| 1.569e-04
+  -   step 0 post: transformer.h.0.mlp.c_proj.weight 260477 differing, max|diff| 2.049e-08
+  -   step 0 post: transformer.h.1.attn.c_k.weight 53679 differing, max|diff| 2.608e-08
+  -   step 0 post: transformer.h.1.attn.c_proj.weight 64053 differing, max|diff| 2.678e-08
+  -   step 0 post: transformer.h.1.attn.c_q.weight 52614 differing, max|diff| 2.375e-08
+  -   step 0 post: transformer.h.1.attn.c_v.weight 55234 differing, max|diff| 3.353e-08
+  -   step 0 post: transformer.h.1.mlp.c_proj.weight 259778 differing, max|diff| 1.525e-08
+  - FAIL: step 0 post-optimizer params differ (971428 elements)
+  - FAIL: step 1 loss differs by 9.537e-07
+  -   step 1: grad lm_head.weight 2065676 differing, max|diff| 1.793e-08
+  -   step 1: grad ngram_embeds.b1.weight 79 differing, max|diff| 9.313e-10
+  -   step 1: grad ngram_embeds.t1.weight 67 differing, max|diff| 3.725e-09
+  -   step 1: grad ngram_proj.b1.weight 32383 differing, max|diff| 4.420e-12
+  -   step 1: grad ngram_proj.t1.weight 32392 differing, max|diff| 2.574e-12
+  -   step 1: grad transformer.h.0.attn.c_k.weight 65436 differing, max|diff| 1.444e-09
+  -   step 1: grad transformer.h.0.attn.c_proj.weight 64367 differing, max|diff| 6.470e-08
+  -   step 1: grad transformer.h.0.attn.c_q.weight 65449 differing, max|diff| 5.696e-10
+  -   step 1: grad transformer.h.0.attn.c_v.weight 64793 differing, max|diff| 6.733e-11
+  -   step 1: grad transformer.h.0.local_conv.weight 503 differing, max|diff| 1.208e-09
+  -   step 1: grad transformer.h.0.mlp.c_fc.weight 260746 differing, max|diff| 7.424e-11
+  -   step 1: grad transformer.h.0.mlp.c_proj.weight 256140 differing, max|diff| 1.455e-10
+  -   step 1: grad transformer.h.0.resid_lambda 1 differing, max|diff| 8.149e-10
+  -   step 1: grad transformer.h.0.x0_lambda 1 differing, max|diff| 8.149e-10
+  -   step 1: grad transformer.h.1.attn.c_k.weight 64737 differing, max|diff| 5.366e-11
+  -   step 1: grad transformer.h.1.attn.c_proj.weight 64657 differing, max|diff| 1.834e-09
+  -   step 1: grad transformer.h.1.attn.c_q.weight 64754 differing, max|diff| 5.912e-11
+  -   step 1: grad transformer.h.1.attn.c_v.weight 64892 differing, max|diff| 1.146e-10
+  -   step 1: grad transformer.h.1.attn.ve_gate.weight 64 differing, max|diff| 1.160e-11
+  -   step 1: grad transformer.h.1.attn.ve_gate_bi.weight 63 differing, max|diff| 1.199e-11
+  -   step 1: grad transformer.h.1.attn.ve_gate_tri.weight 61 differing, max|diff| 2.728e-12
+  -   step 1: grad transformer.h.1.local_conv.weight 504 differing, max|diff| 1.572e-09
+  -   step 1: grad transformer.h.1.mlp.c_fc.weight 260413 differing, max|diff| 6.798e-11
+  -   step 1: grad transformer.h.1.mlp.c_proj.weight 256261 differing, max|diff| 2.838e-10
+  -   step 1: grad transformer.h.1.resid_lambda 1 differing, max|diff| 2.910e-11
+  -   step 1: grad transformer.h.1.x0_lambda 1 differing, max|diff| 1.048e-09
+  -   step 1: grad transformer.wte.weight 62003 differing, max|diff| 3.779e-10
+  -   step 1: grad value_embeds.1.weight 63600 differing, max|diff| 2.046e-11
+  - FAIL: step 1 gradients differ (3810044 elements)
+  -   step 1 post: lm_head.weight 1646851 differing, max|diff| 4.213e-05
+  -   step 1 post: ngram_embeds.b1.weight 45 differing, max|diff| 3.906e-03
+  -   step 1 post: ngram_embeds.t1.weight 38 differing, max|diff| 2.734e-02
+  -   step 1 post: ngram_proj.b1.weight 31324 differing, max|diff| 1.762e-04
+  -   step 1 post: ngram_proj.t1.weight 30877 differing, max|diff| 2.078e-04
+  -   step 1 post: transformer.h.0.attn.c_k.weight 64320 differing, max|diff| 1.207e-04
+  -   step 1 post: transformer.h.0.attn.c_proj.weight 65258 differing, max|diff| 1.164e-06
+  -   step 1 post: transformer.h.0.attn.c_q.weight 64242 differing, max|diff| 6.161e-05
+  -   step 1 post: transformer.h.0.attn.c_v.weight 60457 differing, max|diff| 1.564e-04
+  -   step 1 post: transformer.h.0.local_conv.weight 313 differing, max|diff| 1.131e-06
+  -   step 1 post: transformer.h.0.mlp.c_fc.weight 251183 differing, max|diff| 7.960e-05
+  -   step 1 post: transformer.h.0.mlp.c_proj.weight 260149 differing, max|diff| 2.841e-08
+  -   step 1 post: transformer.h.0.resid_lambda 1 differing, max|diff| 5.960e-08
+  -   step 1 post: transformer.h.0.x0_lambda 1 differing, max|diff| 1.490e-08
+  -   step 1 post: transformer.h.1.attn.c_k.weight 59273 differing, max|diff| 4.843e-08
+  -   step 1 post: transformer.h.1.attn.c_proj.weight 64854 differing, max|diff| 5.355e-08
+  -   step 1 post: transformer.h.1.attn.c_q.weight 59402 differing, max|diff| 4.843e-08
+  -   step 1 post: transformer.h.1.attn.c_v.weight 60724 differing, max|diff| 5.219e-05
+  -   step 1 post: transformer.h.1.attn.ve_gate.weight 64 differing, max|diff| 9.220e-08
+  -   step 1 post: transformer.h.1.attn.ve_gate_bi.weight 64 differing, max|diff| 1.513e-07
+  -   step 1 post: transformer.h.1.attn.ve_gate_tri.weight 62 differing, max|diff| 2.491e-08
+  -   step 1 post: transformer.h.1.local_conv.weight 332 differing, max|diff| 8.158e-07
+  -   step 1 post: transformer.h.1.mlp.c_fc.weight 250291 differing, max|diff| 8.312e-06
+  -   step 1 post: transformer.h.1.mlp.c_proj.weight 259726 differing, max|diff| 1.991e-08
+  -   step 1 post: transformer.h.1.x0_lambda 1 differing, max|diff| 1.490e-08
+  -   step 1 post: transformer.wte.weight 26417 differing, max|diff| 1.028e-02
+  -   step 1 post: value_embeds.1.weight 40449 differing, max|diff| 1.371e-03
+  - FAIL: step 1 post-optimizer params differ (3296718 elements)
+  -   step 2: grad lm_head.weight 2044823 differing, max|diff| 1.986e-07
+  -   step 2: grad ngram_embeds.b1.weight 246 differing, max|diff| 9.313e-10
+  -   step 2: grad ngram_embeds.t1.weight 275 differing, max|diff| 1.863e-09
+  -   step 2: grad ngram_proj.b1.weight 32665 differing, max|diff| 2.771e-11
+  -   step 2: grad ngram_proj.t1.weight 32706 differing, max|diff| 6.983e-11
+  -   step 2: grad transformer.h.0.attn.c_k.weight 65460 differing, max|diff| 1.334e-09
+  -   step 2: grad transformer.h.0.attn.c_proj.weight 65341 differing, max|diff| 4.760e-08
+  -   step 2: grad transformer.h.0.attn.c_q.weight 65455 differing, max|diff| 2.080e-09
+  -   step 2: grad transformer.h.0.attn.c_v.weight 65426 differing, max|diff| 1.068e-09
+  -   step 2: grad transformer.h.0.local_conv.weight 501 differing, max|diff| 3.327e-08
+  -   step 2: grad transformer.h.0.mlp.c_fc.weight 261538 differing, max|diff| 2.438e-09
+  -   step 2: grad transformer.h.0.mlp.c_proj.weight 258808 differing, max|diff| 2.431e-08
+  -   step 2: grad transformer.h.0.resid_lambda 1 differing, max|diff| 1.572e-09
+  -   step 2: grad transformer.h.0.x0_lambda 1 differing, max|diff| 1.572e-09
+  -   step 2: grad transformer.h.1.attn.c_k.weight 65375 differing, max|diff| 2.940e-10
+  -   step 2: grad transformer.h.1.attn.c_proj.weight 64822 differing, max|diff| 2.111e-08
+  -   step 2: grad transformer.h.1.attn.c_q.weight 65374 differing, max|diff| 2.545e-10
+  -   step 2: grad transformer.h.1.attn.c_v.weight 65336 differing, max|diff| 2.919e-10
+  -   step 2: grad transformer.h.1.attn.ve_gate.weight 63 differing, max|diff| 1.028e-10
+  -   step 2: grad transformer.h.1.attn.ve_gate_bi.weight 64 differing, max|diff| 1.269e-10
+  -   step 2: grad transformer.h.1.attn.ve_gate_tri.weight 64 differing, max|diff| 1.798e-10
+  -   step 2: grad transformer.h.1.local_conv.weight 500 differing, max|diff| 3.498e-08
+  -   step 2: grad transformer.h.1.mlp.c_fc.weight 261102 differing, max|diff| 1.876e-10
+  -   step 2: grad transformer.h.1.mlp.c_proj.weight 258684 differing, max|diff| 5.915e-09
+  -   step 2: grad transformer.h.1.resid_lambda 1 differing, max|diff| 7.276e-10
+  -   step 2: grad transformer.h.1.x0_lambda 1 differing, max|diff| 2.910e-09
+  -   step 2: grad transformer.wte.weight 63217 differing, max|diff| 1.301e-08
+  -   step 2: grad value_embeds.1.weight 63533 differing, max|diff| 6.037e-11
+  - FAIL: step 2 gradients differ (3801382 elements)
+  -   step 2 post: lm_head.weight 1858666 differing, max|diff| 4.218e-05
+  -   step 2 post: ngram_embeds.b1.weight 198 differing, max|diff| 7.812e-03
+  -   step 2 post: ngram_embeds.t1.weight 199 differing, max|diff| 2.734e-02
+  -   step 2 post: ngram_proj.b1.weight 31961 differing, max|diff| 1.755e-04
+  -   step 2 post: ngram_proj.t1.weight 31947 differing, max|diff| 2.078e-04
+  -   step 2 post: transformer.h.0.attn.c_k.weight 64742 differing, max|diff| 1.469e-04
+  -   step 2 post: transformer.h.0.attn.c_proj.weight 65390 differing, max|diff| 1.373e-05
+  -   step 2 post: transformer.h.0.attn.c_q.weight 64775 differing, max|diff| 6.146e-05
+  -   step 2 post: transformer.h.0.attn.c_v.weight 63931 differing, max|diff| 1.558e-04
+  -   step 2 post: transformer.h.0.local_conv.weight 447 differing, max|diff| 1.155e-06
+  -   step 2 post: transformer.h.0.mlp.c_fc.weight 257947 differing, max|diff| 7.852e-05
+  -   step 2 post: transformer.h.0.mlp.c_proj.weight 260784 differing, max|diff| 6.015e-06
+  -   step 2 post: transformer.h.0.resid_lambda 1 differing, max|diff| 1.788e-07
+  -   step 2 post: transformer.h.0.x0_lambda 1 differing, max|diff| 1.937e-07
+  -   step 2 post: transformer.h.1.attn.c_k.weight 63293 differing, max|diff| 1.490e-07
+  -   step 2 post: transformer.h.1.attn.c_proj.weight 65141 differing, max|diff| 2.421e-07
+  -   step 2 post: transformer.h.1.attn.c_q.weight 63842 differing, max|diff| 2.086e-07
+  -   step 2 post: transformer.h.1.attn.c_v.weight 62887 differing, max|diff| 5.205e-05
+  -   step 2 post: transformer.h.1.attn.ve_gate.weight 64 differing, max|diff| 1.537e-07
+  -   step 2 post: transformer.h.1.attn.ve_gate_bi.weight 64 differing, max|diff| 7.250e-07
+  -   step 2 post: transformer.h.1.attn.ve_gate_tri.weight 64 differing, max|diff| 8.042e-07
+  -   step 2 post: transformer.h.1.local_conv.weight 462 differing, max|diff| 8.754e-07
+  -   step 2 post: transformer.h.1.mlp.c_fc.weight 256886 differing, max|diff| 5.728e-05
+  -   step 2 post: transformer.h.1.mlp.c_proj.weight 260287 differing, max|diff| 1.309e-07
+  -   step 2 post: transformer.h.1.resid_lambda 1 differing, max|diff| 1.192e-07
+  -   step 2 post: transformer.h.1.x0_lambda 1 differing, max|diff| 1.416e-07
+  -   step 2 post: transformer.wte.weight 56417 differing, max|diff| 1.701e-02
+  -   step 2 post: value_embeds.1.weight 76998 differing, max|diff| 1.582e-02
+  - FAIL: step 2 post-optimizer params differ (3607396 elements)
+  -   step 3: grad lm_head.weight 2090766 differing, max|diff| 3.677e-05
+  -   step 3: grad ngram_embeds.b1.weight 539 differing, max|diff| 7.451e-09
+  -   step 3: grad ngram_embeds.t1.weight 525 differing, max|diff| 7.451e-09
+  -   step 3: grad ngram_proj.b1.weight 32720 differing, max|diff| 7.947e-09
+  -   step 3: grad ngram_proj.t1.weight 32741 differing, max|diff| 2.469e-08
+  -   step 3: grad transformer.h.0.attn.c_k.weight 65525 differing, max|diff| 5.820e-08
+  -   step 3: grad transformer.h.0.attn.c_proj.weight 65528 differing, max|diff| 1.154e-07
+  -   step 3: grad transformer.h.0.attn.c_q.weight 65526 differing, max|diff| 1.699e-08
+  -   step 3: grad transformer.h.0.attn.c_v.weight 65510 differing, max|diff| 1.351e-07
+  -   step 3: grad transformer.h.0.local_conv.weight 509 differing, max|diff| 6.906e-08
+  -   step 3: grad transformer.h.0.mlp.c_fc.weight 261654 differing, max|diff| 4.775e-09
+  -   step 3: grad transformer.h.0.mlp.c_proj.weight 261097 differing, max|diff| 3.161e-08
+  -   step 3: grad transformer.h.0.resid_lambda 1 differing, max|diff| 7.974e-09
+  -   step 3: grad transformer.h.0.x0_lambda 1 differing, max|diff| 7.974e-09
+  -   step 3: grad transformer.h.1.attn.c_k.weight 65520 differing, max|diff| 1.102e-07
+  -   step 3: grad transformer.h.1.attn.c_proj.weight 65525 differing, max|diff| 6.178e-08
+  -   step 3: grad transformer.h.1.attn.c_q.weight 65524 differing, max|diff| 1.710e-08
+  -   step 3: grad transformer.h.1.attn.c_v.weight 65507 differing, max|diff| 2.612e-08
+  -   step 3: grad transformer.h.1.attn.ve_gate.weight 64 differing, max|diff| 1.042e-08
+  -   step 3: grad transformer.h.1.attn.ve_gate_bi.weight 64 differing, max|diff| 9.040e-10
+  -   step 3: grad transformer.h.1.attn.ve_gate_tri.weight 64 differing, max|diff| 2.084e-09
+  -   step 3: grad transformer.h.1.local_conv.weight 507 differing, max|diff| 7.873e-08
+  -   step 3: grad transformer.h.1.mlp.c_fc.weight 261557 differing, max|diff| 3.279e-09
+  -   step 3: grad transformer.h.1.mlp.c_proj.weight 261048 differing, max|diff| 3.362e-08
+  -   step 3: grad transformer.h.1.resid_lambda 1 differing, max|diff| 9.430e-09
+  -   step 3: grad transformer.h.1.x0_lambda 1 differing, max|diff| 1.129e-08
+  -   step 3: grad transformer.wte.weight 63107 differing, max|diff| 1.937e-08
+  -   step 3: grad value_embeds.1.weight 63332 differing, max|diff| 2.058e-09
+  - FAIL: step 3 gradients differ (3854463 elements)
+  -   step 3 post: lm_head.weight 1977236 differing, max|diff| 1.888e-04
+  -   step 3 post: ngram_embeds.b1.weight 384 differing, max|diff| 8.984e-02
+  -   step 3 post: ngram_embeds.t1.weight 404 differing, max|diff| 2.734e-02
+  -   step 3 post: ngram_proj.b1.weight 32544 differing, max|diff| 1.761e-04
+  -   step 3 post: ngram_proj.t1.weight 32592 differing, max|diff| 2.080e-04
+  -   step 3 post: transformer.h.0.attn.c_k.weight 65239 differing, max|diff| 1.471e-04
+  -   step 3 post: transformer.h.0.attn.c_proj.weight 65501 differing, max|diff| 1.374e-05
+  -   step 3 post: transformer.h.0.attn.c_q.weight 65344 differing, max|diff| 7.515e-05
+  -   step 3 post: transformer.h.0.attn.c_v.weight 65184 differing, max|diff| 1.549e-04
+  -   step 3 post: transformer.h.0.local_conv.weight 485 differing, max|diff| 1.780e-06
+  -   step 3 post: transformer.h.0.mlp.c_fc.weight 260551 differing, max|diff| 9.041e-05
+  -   step 3 post: transformer.h.0.mlp.c_proj.weight 261494 differing, max|diff| 6.009e-06
+  -   step 3 post: transformer.h.0.resid_lambda 1 differing, max|diff| 2.980e-07
+  -   step 3 post: transformer.h.0.x0_lambda 1 differing, max|diff| 3.278e-07
+  -   step 3 post: transformer.h.1.attn.c_k.weight 65207 differing, max|diff| 1.007e-04
+  -   step 3 post: transformer.h.1.attn.c_proj.weight 65482 differing, max|diff| 2.054e-05
+  -   step 3 post: transformer.h.1.attn.c_q.weight 65355 differing, max|diff| 1.041e-04
+  -   step 3 post: transformer.h.1.attn.c_v.weight 65055 differing, max|diff| 5.205e-05
+  -   step 3 post: transformer.h.1.attn.ve_gate.weight 64 differing, max|diff| 3.340e-05
+  -   step 3 post: transformer.h.1.attn.ve_gate_bi.weight 64 differing, max|diff| 2.926e-06
+  -   step 3 post: transformer.h.1.attn.ve_gate_tri.weight 64 differing, max|diff| 3.407e-06
+  -   step 3 post: transformer.h.1.local_conv.weight 496 differing, max|diff| 1.538e-06
+  -   step 3 post: transformer.h.1.mlp.c_fc.weight 260422 differing, max|diff| 5.735e-05
+  -   step 3 post: transformer.h.1.mlp.c_proj.weight 261428 differing, max|diff| 2.493e-06
+  -   step 3 post: transformer.h.1.resid_lambda 1 differing, max|diff| 1.371e-06
+  -   step 3 post: transformer.h.1.x0_lambda 1 differing, max|diff| 6.557e-07
+  -   step 3 post: transformer.wte.weight 88939 differing, max|diff| 3.016e-02
+  -   step 3 post: value_embeds.1.weight 117662 differing, max|diff| 2.662e-02
+  - FAIL: step 3 post-optimizer params differ (3817200 elements)
+DONE

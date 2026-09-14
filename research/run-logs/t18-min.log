@@ -1,0 +1,22 @@
+[    0.0s] importing torch
+[W914 19:42:13.711932945 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[    2.0s] importing torch_neuronx
+[    2.0s] importing train
+[    2.1s] _HAS_NKI=True
+[    2.1s] alloc x cpu->neuron
+[   10.6s] x done
+[   10.6s] cos/sin done
+[   10.6s] eager rope call (first = kernel compile)
+[   10.8s] eager rope OK shape=(1, 8, 5, 128) calls=1
+[   10.8s] explain rope_norm
+[   11.5s] rope_norm: graph_count=1 graph_break_count=0 op_count=2 kernel_calls_during_trace=1
+[   11.5s]   graph[0] nki lines: NONE
+[   11.5s] fullgraph rope_norm
+[   11.8s]   rope_norm: fullgraph=True SUCCEEDED shape=(1, 8, 5, 128)
+[   11.8s] alloc z for softcap_ce

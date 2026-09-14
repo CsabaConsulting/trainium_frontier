@@ -64,12 +64,19 @@ def build_arm(transposed: bool, device, seed: int, small: bool):
     T1.6 does not perturb initialization, so the harness must not perturb it either.
     """
     T.USE_TRANSPOSED_LINEAR = transposed
+    if small:
+        # Shrink the hashed n-gram tables too, or the "small" arm still allocates the real
+        # [1048576, mult] tables and is not small at all. Set before build_config() because
+        # the table geometry is derived there.
+        T.NGRAM_VE_TABLE_MULT = 1
     config = T.build_config()
     if small:
         # A small shape exercises every code path (both tall and wide Muon groups, the
         # gates, the n-gram projections) in seconds instead of minutes. The full locked
         # shape is the default because that is the one being submitted.
-        config.n_layer, config.n_head, config.n_embd = 2, 2, 64
+        # n_embd=256/n_head=2 is the smallest LEGAL shape: CausalSelfAttention asserts
+        # n_embd >= 3 * VE_GATE_CHANNELS (96), and head_dim wants to stay at 128.
+        config.n_layer, config.n_head, config.n_embd = 2, 2, 256
         config.sequence_len = 128
     torch.manual_seed(seed)
     model = T.GPT(config)
