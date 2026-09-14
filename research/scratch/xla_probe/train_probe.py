@@ -122,12 +122,30 @@ def init_runtime(device_type: str):
     torch.manual_seed(42)
     ddp, rank, local_rank, world_size = get_dist_info()
     if device_type == "xla":
+        # torch_xla 2.11 defines _aws_ec2_inf_trn_init() but never calls it, so under
+        # torchrun nothing sets NEURON_RT_VISIBLE_CORES / NEURON_PJRT_* and every rank
+        # asks the runtime for all 4 logical cores:
+        #   NRT:nrt_allocate_neuron_cores  Logical Neuron Core(s) not available -
+        #   Requested:4 Available:0 Logical Core size 2 (cores busy, ret=-16)
+        # Do the configuration ourselves, before the PJRT client is created.
+        # (Imports are local because they must run in this order relative to the
+        # first torch_xla runtime touch.)
+        import libneuronxla
+        from torch_xla._internal import neuron as _neuron
+
+        # Order matters: libneuronxla's import hook would otherwise assign each rank
+        # its own random NEURON_RT_ROOT_COMM_ID port, so the ranks never rendezvous.
+        _neuron.set_rt_root_comm_id()
+        libneuronxla.configure_environment()
+        _neuron.set_envvar_defaults()
+        _neuron.configure_pjrt_environment()
+
         import torch_xla.core.xla_model as _xm
         import torch_xla.distributed.xla_backend  # noqa: F401  registers the "xla" c10d backend
         xm = _xm
+        device = xm.xla_device()
         if ddp:
             dist.init_process_group("xla")
-        device = xm.xla_device()
     elif ddp and device_type == "cuda":
         device = torch.device("cuda", local_rank)
         torch.cuda.set_device(device)
@@ -692,6 +710,9 @@ def main() -> None:
     parser.add_argument("--warmup-measure-steps", type=int, default=10,
                         help="steps excluded from the steady-state summary")
     parser.add_argument("--label", type=str, default="probe")
+    parser.add_argument("--debug-numerics", type=int, default=0,
+                        help="print grad/param L2 and input checksums for the first N steps "
+                             "(forces a sync; off by default)")
     args = parser.parse_args()
 
     USE_NKI_RELU2 = args.nki_relu2
@@ -773,6 +794,14 @@ def main() -> None:
                 mark_step()
             x, y, loader_state = next(train_loader)
 
+        dbg_g = None
+        dbg_group_g: list[str] = []
+        if step < args.debug_numerics:
+            dbg_g = sum(p.grad.float().pow(2).sum() for p in model.parameters() if p.grad is not None).sqrt()
+            for gi, group in enumerate(optimizer.param_groups):
+                gg = sum(p.grad.float().pow(2).sum() for p in group["params"] if p.grad is not None)
+                dbg_group_g.append(f"g{gi}={float(gg.sqrt()):.6f}")
+
         if GRAD_CLIP > 0:
             torch.nn.utils.clip_grad_norm_(model.parameters(), GRAD_CLIP)
         sync_gradients(model)
@@ -784,6 +813,18 @@ def main() -> None:
                 group["momentum"] = muon_momentum(step)
                 group["weight_decay"] = WEIGHT_DECAY
         optimizer.step()
+
+        if dbg_g is not None:
+            dbg_p = sum(p.float().pow(2).sum() for p in model.parameters()).sqrt()
+            dbg_x = x.float().sum()
+            per_group = []
+            for gi, group in enumerate(optimizer.param_groups):
+                gl2 = sum(p.float().pow(2).sum() for p in group["params"])
+                per_group.append(f"g{gi}:{group['kind']}[{len(group['params'])}]={float(gl2.sqrt()):.4f}")
+            print0(f"dbg step {step} grad_l2 {float(dbg_g):.6f} param_l2 {float(dbg_p):.6f} "
+                   f"x_sum {float(dbg_x):.1f} y0 {int(y.flatten()[0])}\n"
+                   f"    grads  " + " ".join(dbg_group_g) + "\n"
+                   f"    params " + " ".join(per_group))
 
         synchronize(device)
         record_step_boundary(step)
