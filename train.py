@@ -1063,7 +1063,7 @@ ROPE_BASE = 100000       # rotary embedding base frequency. Scaling up to 500000
 USE_LOCAL_CONV = True    # depthwise causal conv1d before attention in each block, RWKV/Mamba/Hyena-style.
 # HISTORY (T0.1, day-1 frontier-plan item, fixed this): for most of the competition this was DEAD
 # COMPUTE -- CausalConv.weight was zero-initialised, init_weights never touched it, and
-# setup_optimizer() collected only attn/mlp/lambda/ssm/rwkv/ve params, so local_conv.weight was in
+# setup_optimizer() collected only attn/mlp/lambda/ssm/ve params, so local_conv.weight was in
 # NO optimizer group and stayed exactly zero for the whole run (conv(norm(x)) exactly 0.0, x + 0.0
 # bit-exact x). Asserted by research/scratch/local_conv_deadparam_check.py, which is the reference
 # for what "dead" meant before this fix. setup_optimizer() now DOES register local_conv.weight in
@@ -3667,15 +3667,6 @@ class Block(nn.Module):
             # a Mamba2 layer's state is not a per-token value vector.
             x = x + self.mixer(norm(q_in))
             v_raw = None
-        elif self.tmix is not None:
-            # RWKV time mixing. No rope and no attn_mask: the operator is causal
-            # structurally (1-step time_shift + a decay matrix that is exactly 0 above
-            # the diagonal), and RWKV carries no positional encoding by design -- the
-            # per-head decay IS the position signal. v_raw stays None: x051a's own value
-            # stream is not what the value-residual toggle means by v0 (that is defined
-            # as layer-0 ATTENTION's V), so no v0 is seeded from here.
-            x = x + self.tmix(norm(q_in), ve)
-            v_raw = None
         elif USE_QKV_NORM_CSE and q_in is k_in and k_in is v_in:
             # See USE_QKV_NORM_CSE. Guarded on object identity, not equality, so this branch can
             # only ever be taken when the three norm() calls it replaces had identical inputs.
@@ -3685,9 +3676,7 @@ class Block(nn.Module):
         else:
             attn_out, v_raw = self.attn(norm(q_in), norm(k_in), norm(v_in), ve, cos, sin, attn_mask, v0, self.v_lambda, ve_bi, ve_tri)
             x = x + attn_out
-        if self.cmix is not None:
-            x = x + self.cmix(norm(x))
-        elif USE_MLP_SANDWICH_NORM:
+        if USE_MLP_SANDWICH_NORM:
             # T3.9: sandwich norm on the MLP branch only (Recursive). norm() is parameter-free
             # F.rms_norm with the default eps, so the zero-init c_proj still gives exactly 0 here
             # at step 0 (0 / sqrt(0 + eps) = 0) -- the step-0 no-op survives, and the arm only
@@ -3785,13 +3774,6 @@ class GPT(nn.Module):
         })
         self.lm_head = Linear(config.n_embd, padded_vocab_size, bias=False)
         self.layer_is_mamba = [blk.is_mamba for blk in self.transformer.h]
-        # RWKV layers DO keep their value-embedding table: x051a has a real per-token
-        # value stream (the `value` projection feeding the decay operator), so ve is
-        # injected there exactly as it is into attention's V, with the same
-        # zero-initialized ve_gate. That is deliberate -- it keeps a USE_RWKV A/B a
-        # clean mixer-vs-mixer comparison instead of also silently deleting 5 of 6
-        # value-embedding tables the way MAMBA2_PATTERN="MMAMMM" does.
-        self.layer_is_rwkv = [blk.is_rwkv for blk in self.transformer.h]
         # A value embedding is injected into ATTENTION's V projection, so a Mamba2
         # layer has nowhere to put one. Skipping the table entirely (rather than
         # building it and never reading it) keeps the parameter count honest -- at
@@ -3850,11 +3832,6 @@ class GPT(nn.Module):
             {k: _rng_neutral(lambda: Linear(self.ngram_dim, config.n_embd, bias=False))
              for k in tables}
             if self.ngram_dim != config.n_embd else {})
-        # The n-gram gates live in CausalSelfAttention, so an RWKV layer (which has a
-        # tmix instead of an attn) would carry a table nothing ever reads. Refuse the
-        # combination loudly rather than silently pay ~40M dead parameters for it.
-        assert not (tables and any(self.layer_is_rwkv)), \
-            "USE_NGRAM_VE is not wired into RWKVTimeMix; use --no-rwkv"
         # Sentinel for the missing history at positions 0 (and 1): a token id one past the
         # padded vocabulary, so it can never be confused with a real token. NGRAM_HASH_PRIMES
         # is bounded so that this id times any multiplier still fits in int32.
@@ -3932,28 +3909,6 @@ class GPT(nn.Module):
                 if block.mlp.c_gate is not None:
                     torch.nn.init.uniform_(block.mlp.c_gate.weight, -0.4 * s, 0.4 * s)
                 torch.nn.init.zeros_(block.mlp.c_proj.weight)
-                continue
-            if block.tmix is not None:
-                # Same discipline as attention/Mamba2: input projections get the shared
-                # uniform init, output projections are zeroed so a fresh RWKV block is
-                # an exact identity (both sublayers: tmix.output and cmix.value). The
-                # x051a-specific tensors (time_maa_*, time_decay, time_faaaa, ln_x gain
-                # and bias) were set by reset_rwkv_parameters with the reference's
-                # layer-dependent schedule and must NOT be clobbered here.
-                for lin in (block.tmix.receptance, block.tmix.key, block.tmix.value, block.tmix.gate):
-                    torch.nn.init.uniform_(lin.weight, -s, s)
-                torch.nn.init.zeros_(block.tmix.output.weight)
-                if block.tmix.ve_gate is not None:
-                    torch.nn.init.zeros_(block.tmix.ve_gate.weight)
-                # cmix.key is the 3x-wide "c_fc" analogue -> the same 0.4*s the MLP uses.
-                torch.nn.init.uniform_(block.cmix.key.weight, -0.4 * s, 0.4 * s)
-                torch.nn.init.uniform_(block.cmix.receptance.weight, -s, s)
-                torch.nn.init.zeros_(block.cmix.value.weight)
-                if block.resid_lambda is not None:
-                    block.resid_lambda.fill_(1.0)
-                    block.x0_lambda.fill_(0.05)
-                if block.scalar_gate is not None:
-                    torch.nn.init.zeros_(block.scalar_gate.weight)
                 continue
             if block.c_in is not None:
                 # Parallel block, coalesced input projection. Filled slice by slice IN THE
@@ -4190,21 +4145,9 @@ class GPT(nn.Module):
         d = self.config.n_embd // self.config.n_head
         t = self.config.sequence_len
         # QK^T: 2*h*d*T per token, AV: 2*h*d*T per token, x3 for fwd+bwd.
-        # Only TRUE attention layers pay this: a Mamba2 or RWKV layer has no
-        # T-by-T contraction. RWKV's sequence-mixing cost is quadratic only inside
-        # a chunk (Q, not T) plus a chunk-granularity pass, so it is counted here at
-        # its own scale rather than being silently priced as full attention.
-        n_attn = sum(1 for i in range(self.config.n_layer)
-                     if not (self.layer_is_mamba[i] or self.layer_is_rwkv[i]))
+        # Only TRUE attention layers pay this: a Mamba2 layer has no T-by-T contraction.
+        n_attn = sum(1 for i in range(self.config.n_layer) if not self.layer_is_mamba[i])
         attn_flops = n_attn * 12 * h * d * t
-        n_rwkv = sum(1 for i in range(self.config.n_layer) if self.layer_is_rwkv[i])
-        if n_rwkv:
-            hr, nr = self.config.n_embd // RWKV_HEAD_DIM, RWKV_HEAD_DIM
-            q = min(RWKV_CHUNK, t)
-            # per token: intra-chunk (r@k^T then @v) 4*hr*nr*Q, plus the state path
-            # (k^T@v build, chunk-decay mix, r@S) ~6*hr*nr*nr/Q*Q -> 6*hr*nr*nr per
-            # chunk amortized over Q tokens; x3 for fwd+bwd.
-            attn_flops += n_rwkv * 3 * (4 * hr * nr * q + 6 * hr * nr * nr // max(1, q))
         return 6 * (nparams - non_matmul) + attn_flops
 
     def setup_optimizer(self):
@@ -4212,7 +4155,6 @@ class GPT(nn.Module):
         matrix_params = []
         local_conv_params = []  # T0.1: local_conv.weight, previously dead compute -- see below
         ssm_params = []  # Mamba2's non-matrix state-space tensors, see below
-        rwkv_params = []  # RWKV x051a's non-matrix per-channel/per-head tensors, see below
         gate_params = []  # T3.9/T4.2: small 1-D or single-row gate tensors (attention head-gate
         # biases, the output-bigram gate's weight+bias, per-dim Q/K shift betas). None of them is
         # Muon material -- a 1-D vector has no second axis to orthogonalize and a [1, n_embd] row
@@ -4220,7 +4162,7 @@ class GPT(nn.Module):
         # -- and none of them belongs in the SCALAR_LR=0.20 group either, which is tuned for a
         # single learned scalar's blast radius and has already caused a real NaN divergence when a
         # genuine tensor was put there (see the hypernet_params comment below). AdamW at MATRIX_LR,
-        # weight_decay 0, exactly like ssm_params/rwkv_params/local_conv_params.
+        # weight_decay 0, exactly like ssm_params/local_conv_params.
         hypernet_params = []  # MUDD/DCMHA's own generator weights: real matrices, not
         # true scalars like resid_lambda -- SCALAR_LR=0.20 is tuned for a single learned
         # scalar's limited blast radius. A real hardware A/B first put MuddCompose.w1
@@ -4237,7 +4179,7 @@ class GPT(nn.Module):
                 # T0.1: register the depthwise causal conv1d weight so it actually
                 # trains. Not Muon material (depthwise: each output channel's kernel
                 # is an independent [1, k] row with no second axis to orthogonalize,
-                # and k is tiny -- same reasoning as ssm_params/rwkv_params below), and
+                # and k is tiny -- same reasoning as ssm_params below), and
                 # not the SCALAR_LR=0.20 group either (that LR is tuned for a single
                 # learned scalar's blast radius, not a real weight tensor -- see the
                 # hypernet_params comment). Own AdamW group at MATRIX_LR, wd=0.0,
@@ -4286,29 +4228,6 @@ class GPT(nn.Module):
                                    block.mixer.A_log, block.mixer.D,
                                    block.mixer.norm_weight])
                 matrix_params.extend(block.mlp.parameters())
-                continue
-            if block.tmix is not None:
-                # The five/three projections of each sublayer are ordinary weight
-                # matrices -> Muon, grouped by shape like every other block matrix.
-                for lin in (block.tmix.receptance, block.tmix.key, block.tmix.value,
-                            block.tmix.gate, block.tmix.output,
-                            block.cmix.key, block.cmix.value, block.cmix.receptance):
-                    matrix_params.append(lin.weight)
-                if block.tmix.ve_gate is not None:
-                    matrix_params.append(block.tmix.ve_gate.weight)
-                # Everything else RWKV owns is a 1-D per-channel or per-head vector with
-                # no second axis to orthogonalize (time_maa_* are [1,1,C] mixing ratios,
-                # time_decay/time_faaaa are [H,1], ln_x_weight/ln_x_bias are the per-head
-                # GroupNorm affine). Same reasoning as ssm_params: not Muon material, and
-                # emphatically not SCALAR_LR=0.20 material either -- that LR already
-                # caused a real NaN divergence when a genuine tensor was put there (see
-                # the hypernet_params comment). AdamW at MATRIX_LR, weight_decay=0.0,
-                # which also matches upstream RWKV's no-weight-decay set for these.
-                rwkv_params.extend([block.tmix.time_maa_k, block.tmix.time_maa_v,
-                                    block.tmix.time_maa_r, block.tmix.time_maa_g,
-                                    block.tmix.time_decay, block.tmix.time_faaaa,
-                                    block.tmix.ln_x_weight, block.tmix.ln_x_bias,
-                                    block.cmix.time_maa_k, block.cmix.time_maa_r])
                 continue
             if block.attn.dcmha is not None:
                 # DCMHA's hypernetwork weights are tiny and vary in shape per
@@ -4367,8 +4286,6 @@ class GPT(nn.Module):
             param_groups.append(dict(kind="adamw", params=hypernet_params, lr=MATRIX_LR, betas=(0.9, 0.95), eps=1e-10, weight_decay=0.0))
         if ssm_params:
             param_groups.append(dict(kind="adamw", params=ssm_params, lr=MATRIX_LR, betas=(0.9, 0.95), eps=1e-10, weight_decay=0.0))
-        if rwkv_params:
-            param_groups.append(dict(kind="adamw", params=rwkv_params, lr=MATRIX_LR, betas=(0.9, 0.95), eps=1e-10, weight_decay=0.0))
         if value_embed_params:
             param_groups.append(dict(kind="adamw", params=value_embed_params, lr=EMBEDDING_LR * dmodel_lr_scale, betas=(0.8, EMBED_ADAMW_BETA2), eps=1e-10, weight_decay=VE_WD))
         ngram_params = list(self.ngram_embeds.parameters())
@@ -4460,12 +4377,10 @@ class GPT(nn.Module):
                     ve_bi = self._ngram_lookup(f"b{i}", ngram_idx[f"b{i}"], engram_raw)
                 if f"t{i}" in self.ngram_embeds:
                     ve_tri = self._ngram_lookup(f"t{i}", ngram_idx[f"t{i}"], engram_raw)
-            if self.layer_is_mamba[i] or self.layer_is_rwkv[i]:
+            if self.layer_is_mamba[i]:
                 # No attention here, so don't materialize an additive mask this
-                # layer will never read. Both alternatives are causal structurally
-                # rather than by mask: Mamba2 via left-padded conv + masked-before-exp
-                # decay, RWKV via a 1-step time_shift + a decay matrix that is exactly
-                # 0.0 above the diagonal (also masked before exp).
+                # layer will never read. Mamba2 is causal structurally rather than by
+                # mask: left-padded conv + masked-before-exp decay.
                 attn_mask = None
             elif USE_CAUSAL_FASTPATH and doc_mask is None and not self.layer_is_short[i]:
                 # Solution 13d: this layer's static mask is purely causal (full context,
@@ -5259,7 +5174,6 @@ ARCH_TOGGLE_NAMES = [
     "USE_REQUEUE_PACKER", "USE_XSA", "USE_VALUE_RESIDUAL", "USE_MUDD", "USE_DCMHA",
     "USE_MAMBA2", "MAMBA2_PATTERN", "MAMBA2_HEAD_DIM", "MAMBA2_D_STATE",
     "MAMBA2_CHUNK", "MAMBA2_EXPAND", "MAMBA2_N_GROUPS", "MAMBA2_CONV_KERNEL",
-    "USE_RWKV", "RWKV_PATTERN", "RWKV_HEAD_DIM", "RWKV_CHUNK", "RWKV_CMIX_EXPAND",
     "USE_FP8_LINEAR",
     # T0.4 resweep knobs. None of these changes a tensor's name or shape, so every one of them
     # is exactly the "loads silently with quietly wrong behavior" class this snapshot exists to
@@ -5329,14 +5243,6 @@ SHAPE_CRITICAL_TOGGLES = {"USE_VE", "USE_LOCAL_CONV", "USE_GATED_MLP", "USE_SELE
                           "USE_MAMBA2", "MAMBA2_PATTERN", "MAMBA2_HEAD_DIM",
                           "MAMBA2_D_STATE", "MAMBA2_EXPAND", "MAMBA2_N_GROUPS",
                           "MAMBA2_CONV_KERNEL",
-                          # Same story for RWKV: the pattern swaps attn+mlp <-> tmix+cmix
-                          # per layer, head_dim resizes time_decay/time_faaaa (H = n_embd
-                          # / RWKV_HEAD_DIM) and the ve_gate output width, and cmix_expand
-                          # resizes cmix.key/cmix.value. RWKV_CHUNK is the exception, like
-                          # MAMBA2_CHUNK: pure blocking of identical math, no tensor
-                          # changes shape, so it is deliberately NOT in this set.
-                          "USE_RWKV", "RWKV_PATTERN", "RWKV_HEAD_DIM",
-                          "RWKV_CMIX_EXPAND",
                           # T3.1: USE_NGRAM_VE adds/removes the ngram_embeds.* tables AND the
                           # attn.ve_gate_bi/ve_gate_tri weights, NGRAM_VE_TRIGRAM adds/removes
                           # the "t<layer>" tables and their gates, and NGRAM_VE_TABLE_MULT
@@ -5563,7 +5469,6 @@ def main() -> None:
     global USE_LOCAL_CONV, LRM_QUANTUM, USE_TENSOR_LR_SCALARS, USE_FOREACH_OPTIM, USE_MUDD, USE_DCMHA, USE_MAMBA2, MAMBA2_PATTERN, USE_NKI_SSD  # flags below default off these constants
     global USE_FP8_LINEAR
     global MAMBA2_EXPAND, MAMBA2_D_STATE, MAMBA2_HEAD_DIM, MAMBA2_CHUNK, MAMBA2_N_GROUPS, MAMBA2_CONV_KERNEL
-    global USE_RWKV, RWKV_PATTERN, RWKV_HEAD_DIM, RWKV_CHUNK, RWKV_CMIX_EXPAND
     global LOCAL_CONV_KERNEL, TRAIN_LOCAL_CONV
     # Throughput->capacity track, Probe 3: USE_VE needs to be reachable from the CLI so the
     # "maximally plain block" ablate-down arm can be measured. Default is the locked True, so
@@ -6003,29 +5908,6 @@ def main() -> None:
                              "(4.53x fwd / 3.83x fwd+bwd over the eager scan at the per-layer shape). "
                              "Falls back to eager automatically off-device or when the shape does not "
                              "conform; pass --no-nki-ssd for the bit-reproducible eager scan.")
-    parser.add_argument("--rwkv", action=argparse.BooleanOptionalAction,
-                        default=os.environ.get("NEURON_COMPETITION_R1_RWKV", "1" if USE_RWKV else "0") != "0",
-                        help="replace the layers selected by --rwkv-pattern with an RWKV x051a "
-                             "time-mix + channel-mix pair instead of attention + MLP (linear-attention "
-                             "decay operator, no rope, no attn mask, evaluated in a loop-free chunked "
-                             "form). Mutually exclusive with --mamba2. Default OFF -- see the USE_RWKV "
-                             "comment for the measured verdict.")
-    parser.add_argument("--rwkv-pattern", type=str, default=RWKV_PATTERN,
-                        help="per-layer selection cycled to n_layer: 'R' = RWKV block, anything else "
-                             "= ordinary attention + MLP (e.g. 'RRRARR' keeps one attention layer "
-                             "at index 3). Only read when --rwkv is on.")
-    parser.add_argument("--rwkv-chunk", type=int, default=RWKV_CHUNK,
-                        help="Q, the chunk length the decay operator is blocked at; must divide "
-                             "sequence_len. Pure blocking of identical math -- NOT shape-critical. "
-                             "Only read when --rwkv is on.")
-    parser.add_argument("--rwkv-head-dim", type=int, default=RWKV_HEAD_DIM,
-                        help="N, the per-head width; head count is n_embd / N (5 at n_embd=640). The "
-                             "carried state is [N,N] per head, so this is the dominant cost knob. "
-                             "Only read when --rwkv is on.")
-    parser.add_argument("--rwkv-cmix-expand", type=int, default=RWKV_CMIX_EXPAND,
-                        help="channel-mix hidden width as a multiple of n_embd (upstream x051a uses "
-                             "3, which with the 5 time-mix projections matches the transformer "
-                             "layer's 12*C^2). Only read when --rwkv is on.")
     parser.add_argument("--init-from", type=str, default="",
                         help="warm-start model weights from a prior checkpoint (fresh optimizer/step/dataloader; dev-iteration only, never for a scored submission)")
     parser.add_argument("--grad-bucket", action=argparse.BooleanOptionalAction,
@@ -6103,7 +5985,7 @@ def main() -> None:
         "own 1/sqrt(head_dim) (0.0884 at 128). QK-norm already fixes the q/k norms, so the logit "
         "temperature is a free knob here rather than a redundant init reparameterisation.")
     _hp("--matrix-lr", MATRIX_LR, float, "T0.4: Muon groups' base lr (also the AdamW lr for the "
-        "ssm/rwkv/hypernet/local_conv groups). Currently 0.025.")
+        "ssm/hypernet/local_conv groups). Currently 0.025.")
     _hp("--embedding-lr", EMBEDDING_LR, float, "T0.4: wte (and value-embedding) AdamW lr before the "
         "(n_embd/768)**-0.5 scale. Currently 0.30.")
     _hp("--unembedding-lr", UNEMBEDDING_LR, float, "T0.4: lm_head AdamW lr before the d_model scale. "
@@ -6169,10 +6051,6 @@ def main() -> None:
                      "zeroed wholesale every step, so it cannot leave the AdamW groups' gradients "
                      "standing to accumulate. (--grad-bucket is also a known hang on this hardware; "
                      "see trn2-experiment-results.md.)")
-    if args.rwkv and args.mamba2:
-        parser.error("--rwkv and --mamba2 are mutually exclusive: a layer cannot be both a Mamba2 "
-                     "mixer and an RWKV block, and no hybrid-of-hybrids pattern language exists. "
-                     "Pick one, or use its pattern flag to keep some attention layers.")
 
     global USE_NKI_RELU2, USE_NKI_ROPE_NORM, USE_NKI_SOFTCAP_CE, USE_NKI_MUON
     # (USE_COMPILE_MUON's `global` is at the top of main(); see the note there.)
@@ -6346,11 +6224,6 @@ def main() -> None:
     MAMBA2_N_GROUPS = args.mamba2_n_groups
     MAMBA2_CONV_KERNEL = args.mamba2_conv_kernel
     USE_NKI_SSD = args.nki_ssd
-    USE_RWKV = args.rwkv                      # read by Block.__init__, i.e. before GPT(config) below
-    RWKV_PATTERN = args.rwkv_pattern          # ditto (rwkv_layer_flags reads it per block)
-    RWKV_HEAD_DIM = args.rwkv_head_dim        # read by RWKVTimeMix.__init__, ditto
-    RWKV_CHUNK = args.rwkv_chunk
-    RWKV_CMIX_EXPAND = args.rwkv_cmix_expand
 
     device_type = detect_device_type(args.device_type)
     ddp, rank, _local_rank, world_size, device = init_runtime(device_type, seed=args.seed)
@@ -6796,8 +6669,6 @@ def main() -> None:
         print(f"mamba2:            {args.mamba2}")
         print(f"mamba2_pattern:    {args.mamba2_pattern}")
         print(f"nki_ssd:           {args.nki_ssd}")
-        print(f"rwkv:              {args.rwkv}")
-        print(f"rwkv_pattern:      {args.rwkv_pattern}")
         print(f"fp8_linear:        {args.fp8_linear}")
         # T3.1. Printed as one line so the experiment log can tell two n-gram arms apart
         # (SUMMARY_KEYS in research/run_experiment.py has the matching entry).
