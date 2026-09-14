@@ -1098,9 +1098,6 @@ USE_FP8_LINEAR = False  # run the MLP's c_fc/c_proj FORWARD matmul in torch.floa
 USE_DOC_MASK = False  # block attention across document boundaries within a packed row (BOS-derived, data-dependent)
 USE_SELECTIVE_GATE = False  # make resid_lambda/x0_lambda data-dependent (Mamba-style selectivity) instead of static scalars
 SELECTIVE_GATE_CHANNELS = 32
-USE_XSA = False  # A/B'd at final locked shape: real net negative (368 steps/1.208657 vs baseline 384/1.198478, both dimensions worse) -- consistent with the paper's own scale-dependent results (their smallest tested model, 0.7B, got only a small gain; ours is ~13x smaller). Bucket D: Exclusive Self Attention (arXiv:2603.09078). See trn2-experiment-results.md
-_XSA_EPS = 1e-6  # numerical floor for the ||v_i||^2 denominator, avoids div-by-zero at init/degenerate v
-USE_VALUE_RESIDUAL = False  # Value Residual Learning / ResFormer (arXiv:2410.17897, Zhou et al., ICLR 2025): inject layer-0's own value stream into every later layer's V via a learned per-layer scalar (zero-init). Real win at the autoresearch proxy scale (1.405->1.368 val_bpb, eager, no compile, no kernels) but a real, clean NEGATIVE at final locked shape (388/1.196654 vs baseline 427/1.180633, both dimensions worse) -- a new instance of the scale-transfer trap (matches XSA/SLAY), here likely from keeping an extra full-sized activation (v0) alive across the whole network depth for fwd+bwd, interacting badly with torch.compile's memory/fusion assumptions. See trn2-experiment-results.md
 USE_FUSED_QKV = False  # A/B'd at final locked shape: net negative as expected (206 steps/1.312086 vs baseline 240/1.269318) -- disables the rope+QK-norm kernel fusion, fewer steps and worse quality. See trn2-experiment-results.md
 USE_CAUSAL_FASTPATH = True  # Solution 13 winner, A/B'd at final locked shape: real win (265 steps/1.252675 vs baseline 240/1.269318, +0.0166) -- the best of all four Solution-13 toggles, doesn't compose further with USE_TRN2_COMPILER_FLAGS. See trn2-experiment-results.md
 
@@ -2220,7 +2217,7 @@ class CausalSelfAttention(nn.Module):
             self.head_gate_lo = self.head_gate_hi = 0
             self.head_gate = None
 
-    def forward(self, x_q: torch.Tensor, x_k: torch.Tensor, x_v: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, attn_mask: torch.Tensor | None, v0: torch.Tensor | None = None, v0_lambda: torch.Tensor | None = None, ve_bi: torch.Tensor | None = None, ve_tri: torch.Tensor | None = None, qkv: tuple[torch.Tensor, torch.Tensor, torch.Tensor] | None = None) -> tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, x_q: torch.Tensor, x_k: torch.Tensor, x_v: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, attn_mask: torch.Tensor | None, ve_bi: torch.Tensor | None = None, ve_tri: torch.Tensor | None = None, qkv: tuple[torch.Tensor, torch.Tensor, torch.Tensor] | None = None) -> torch.Tensor:
         b, t, c = x_q.shape
         if qkv is not None:
             # Parallel block with a coalesced input projection: the block already did the matmul
@@ -2257,12 +2254,6 @@ class CausalSelfAttention(nn.Module):
         if ve_tri is not None:
             g_tri = 2 * torch.sigmoid(self.ve_gate_tri(x_v[..., 2 * VE_GATE_CHANNELS:3 * VE_GATE_CHANNELS]))
             v = v + g_tri.unsqueeze(-1) * ve_tri.view(b, t, self.n_head, self.head_dim)
-        v_raw = v
-        if v0 is not None:
-            # Value Residual Learning (arXiv:2410.17897): v0 is layer-0's own v_raw, same
-            # shape [b,t,n_head,head_dim], causally trivial (both are pure per-position
-            # functions of x, no cross-position mixing beyond what SDPA already does).
-            v = v + v0_lambda * v0
         q = rope_norm(q, cos, sin)
         k = rope_norm(k, cos, sin)
         q = q.transpose(1, 2)
@@ -2272,14 +2263,6 @@ class CausalSelfAttention(nn.Module):
             y = F.scaled_dot_product_attention(q, k, v, is_causal=True, scale=self.attn_scale)
         else:
             y = F.scaled_dot_product_attention(q, k, v, attn_mask=attn_mask[..., :t, :t], scale=self.attn_scale)
-        if USE_XSA:
-            # Exclusive Self Attention (arXiv:2603.09078, Zhai/Apple): project out the
-            # component of the attention output along the token's OWN value vector --
-            # z_i = y_i - (y_i . v_i / ||v_i||^2) * v_i. Causally safe by construction:
-            # z_i depends only on y_i and v_i, both already functions of x_1..i only.
-            # y, v are [B, H, T, D] here (post-transpose, pre-reshape).
-            proj_coef = (y * v).sum(dim=-1, keepdim=True) / (v.pow(2).sum(dim=-1, keepdim=True) + _XSA_EPS)
-            y = y - proj_coef * v
         y = y.transpose(1, 2).contiguous().view(b, t, c)
         if self.head_gate is not None:
             # T3.6 / T3.9. Per-head, per-POSITION: reshape to [b, t, H, D], optionally RMS-norm
@@ -2292,7 +2275,7 @@ class CausalSelfAttention(nn.Module):
             g = self.head_gate(x_q[..., self.head_gate_lo:self.head_gate_hi])
             g = HEAD_GATE_MUL * torch.sigmoid(g + self.head_gate_bias.to(g.dtype))
             y = (yh * g.unsqueeze(-1)).view(b, t, c)
-        return self.c_proj(y), v_raw
+        return self.c_proj(y)
 
 
 class MLP(nn.Module):
@@ -2359,10 +2342,6 @@ class Block(nn.Module):
             self.par_lambda_a = self.par_lambda_m = None
         self.local_conv = CausalConv(config.n_embd, LOCAL_CONV_KERNEL) if USE_LOCAL_CONV else None
         self.scalar_gate = Linear(SELECTIVE_GATE_CHANNELS, 2, bias=False) if USE_SELECTIVE_GATE else None
-        # Value Residual Learning (arXiv:2410.17897): layer 0 has no v0 to consume yet (it
-        # produces the v0 every later layer will use), so it doesn't need its own lambda.
-        self.v_lambda = nn.Parameter(torch.zeros(1)) \
-            if USE_VALUE_RESIDUAL and layer_idx > 0 else None
         # T3.9: causal Q/K token shift (Recursive's from-vanilla recipe). Per-DIM learned beta, so
         # each residual channel decides for itself how much of the previous token to mix into the
         # query/key view; V is deliberately left unshifted.
@@ -2370,7 +2349,7 @@ class Block(nn.Module):
                                           requires_grad=not QK_SHIFT_FREEZE) \
             if USE_QK_SHIFT else None
 
-    def forward(self, x: torch.Tensor, x0: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, attn_mask: torch.Tensor | None, v0: torch.Tensor | None = None, ve_bi: torch.Tensor | None = None, ve_tri: torch.Tensor | None = None) -> tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, x: torch.Tensor, x0: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, attn_mask: torch.Tensor | None, ve_bi: torch.Tensor | None = None, ve_tri: torch.Tensor | None = None) -> torch.Tensor:
         if self.scalar_gate is not None:
             g = self.scalar_gate(x[..., :SELECTIVE_GATE_CHANNELS])
             resid_lambda = self.resid_lambda * (1.0 + g[..., 0:1])
@@ -2437,18 +2416,17 @@ class Block(nn.Module):
                     v = proj[..., :c].view(b, t, nh, hd)
                     fc = proj[..., c:]
                 qkv = (q, k, v)
-            attn_out, v_raw = self.attn(h, h, h, ve, cos, sin, attn_mask, v0, self.v_lambda,
-                                        ve_bi, ve_tri, qkv=qkv)
+            attn_out = self.attn(h, h, h, ve, cos, sin, attn_mask, ve_bi, ve_tri, qkv=qkv)
             x = x + self.par_lambda_a * attn_out + self.par_lambda_m * self.mlp(h, fc=fc)
-            return x, v_raw
+            return x
         if USE_QKV_NORM_CSE and q_in is k_in and k_in is v_in:
             # See USE_QKV_NORM_CSE. Guarded on object identity, not equality, so this branch can
             # only ever be taken when the three norm() calls it replaces had identical inputs.
             qkv_n = norm(q_in)
-            attn_out, v_raw = self.attn(qkv_n, qkv_n, qkv_n, ve, cos, sin, attn_mask, v0, self.v_lambda, ve_bi, ve_tri)
+            attn_out = self.attn(qkv_n, qkv_n, qkv_n, ve, cos, sin, attn_mask, ve_bi, ve_tri)
             x = x + attn_out
         else:
-            attn_out, v_raw = self.attn(norm(q_in), norm(k_in), norm(v_in), ve, cos, sin, attn_mask, v0, self.v_lambda, ve_bi, ve_tri)
+            attn_out = self.attn(norm(q_in), norm(k_in), norm(v_in), ve, cos, sin, attn_mask, ve_bi, ve_tri)
             x = x + attn_out
         if USE_MLP_SANDWICH_NORM:
             # T3.9: sandwich norm on the MLP branch only (Recursive). norm() is parameter-free
@@ -2458,7 +2436,7 @@ class Block(nn.Module):
             x = x + norm(self.mlp(norm(x)))
         else:
             x = x + self.mlp(norm(x))
-        return x, v_raw
+        return x
 
 
 class EngramLite(nn.Module):
@@ -2936,8 +2914,6 @@ class GPT(nn.Module):
                 # Two learned scalars per layer, same class as resid_lambda/x0_lambda: one
                 # multiplies a whole branch output, which is what SCALAR_LR=0.20 is tuned for.
                 scalar_params.extend([block.par_lambda_a, block.par_lambda_m])
-            if block.v_lambda is not None:
-                scalar_params.append(block.v_lambda)
             if block.qk_shift_beta is not None and block.qk_shift_beta.requires_grad:
                 # QK_SHIFT_FREEZE leaves beta out of EVERY optimizer group on purpose (see the
                 # QK_SHIFT_FREEZE comment): the throughput probe needs the ops in the graph but the
@@ -3054,7 +3030,6 @@ class GPT(nn.Module):
         x = self.transformer.wte(idx).to(COMPUTE_DTYPE)
         x = norm(x)
         x0 = x
-        v0 = None
         doc_mask = doc_boundary_mask(idx) if USE_DOC_MASK else None
         # T3.1: all hash indices in one place (each is a [b, T] int32 tensor, ~32 KB), so
         # the shared prev/prev2 shifts are computed once rather than once per layer.
@@ -3084,7 +3059,7 @@ class GPT(nn.Module):
             else:
                 static_mask = (self.mask_short if self.layer_is_short[i] else self.mask_full)[..., :t, :t]
                 attn_mask = static_mask + doc_mask if doc_mask is not None else static_mask
-            x, v_raw = block(x, x0, ve, cos, sin, attn_mask, v0, ve_bi, ve_tri)
+            x = block(x, x0, ve, cos, sin, attn_mask, ve_bi, ve_tri)
             if self.engram is not None and i == self.engram_site:
                 # H <- H + Y, on the residual leaving this block. Placed at the LAST layer by
                 # default: the gather's dynamic address forces the LNC=2 compiler to re-shard the
@@ -3096,8 +3071,6 @@ class GPT(nn.Module):
                 else:
                     e_t = self.engram.gather(ngram_idx)
                 x = x + self.engram(x, e_t)
-            if USE_VALUE_RESIDUAL and v0 is None:
-                v0 = v_raw
             if i >= pool_from:
                 pool_buf.append(x)
         if self.out_pool_lambdas is not None:
@@ -3864,7 +3837,7 @@ ARCH_TOGGLE_NAMES = [
     "WD_DECAY_TO_ZERO", "MUON_MOMENTUM_WARMUP_STEPS", "USE_DOC_MASK", "VE_WD",
     "USE_SELECTIVE_GATE", "SELECTIVE_GATE_CHANNELS", "USE_FUSED_QKV",
     "USE_CAUSAL_FASTPATH", "USE_STOCHASTIC_ROUNDING", "USE_TRN2_COMPILER_FLAGS",
-    "USE_REQUEUE_PACKER", "USE_XSA", "USE_VALUE_RESIDUAL",
+    "USE_REQUEUE_PACKER",
     "USE_FP8_LINEAR",
     # T0.4 resweep knobs. None of these changes a tensor's name or shape, so every one of them
     # is exactly the "loads silently with quietly wrong behavior" class this snapshot exists to
@@ -3923,7 +3896,7 @@ ARCH_TOGGLE_NAMES = [
 # plain Python constants excluded from state_dict() entirely -- a mismatch there loads
 # silently with no crash and quietly wrong behavior, which is exactly why we snapshot and
 # check all of them, not just the shape-critical ones.
-SHAPE_CRITICAL_TOGGLES = {"USE_VE", "USE_LOCAL_CONV", "USE_GATED_MLP", "USE_SELECTIVE_GATE", "USE_FUSED_QKV", "USE_VALUE_RESIDUAL",
+SHAPE_CRITICAL_TOGGLES = {"USE_VE", "USE_LOCAL_CONV", "USE_GATED_MLP", "USE_SELECTIVE_GATE", "USE_FUSED_QKV",
                           # T3.1: USE_NGRAM_VE adds/removes the ngram_embeds.* tables AND the
                           # attn.ve_gate_bi/ve_gate_tri weights, NGRAM_VE_TRIGRAM adds/removes
                           # the "t<layer>" tables and their gates, and NGRAM_VE_TABLE_MULT
