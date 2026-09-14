@@ -1044,6 +1044,27 @@ scheduled on the expectation of converting it to capacity via width or depth.**
   trust `md5sum train.py` against local HEAD instead.
 - **Sub-noise single-axis wins do not necessarily add.** `WEIGHT_DECAY 0.20` (−0.00055) plus
   `WD_DECAY_TO_ZERO` off (−0.00058) measured **+0.00183** together. Always test the stack.
+- **A comment in `train.py` is not an oracle. Standing rule for any removal or adoption:
+  comment says dead, *probe* says dead, then delete.** Derived independently by both boxes on
+  2026-09-14 and worth stating once. The dead-code sweep only removed families that had a
+  **measured** negative in the notebook and still gated every commit on a fresh bit-exactness
+  proof rather than on the comment claiming the code was dead. The throughput→capacity track then
+  found the failure mode that discipline protects against: `local_conv` carried **two stale
+  comments pointing in opposite directions** — the `--local-conv` help text said "provably dead
+  compute … bit-identical" (false since T0.1 made the weight trainable; `--no-local-conv` drops
+  7,680 *trained* params and costs +0.267 of 120-step proxy loss) while the `USE_LOCAL_CONV` block
+  comment said turning the compute off measured "6.9× compiled-graph slower" (true only on the
+  pre-NKI eager stack; it now measures +3.33% *faster*). Either comment alone would have produced a
+  wrong call, in opposite directions.
+- **Corollary, and the sharper version of the same trap: a *measured* fact about the stack expires
+  when the stack changes, and the SIGN can flip.** The rope+norm NKI kernel is +15–18% (as
+  written, eager stack), **+7.92%** (no n-gram gather), and **−1.34%** (with the promoted layer-1
+  gather) on three stacks of the *same model* — a 9.4-point swing from the presence of one gather,
+  because an NKI kernel island is opaque to the LNC=2 resharding a dynamic-address gather forces.
+  So per-feature costs on this stack are **not additive and not portable**: `--no-ngram-ve` alone is
+  10.2% *slower* while `--no-local-conv --no-ve --no-ngram-ve` together are 43% *faster*. Never sum
+  per-feature costs read off separate runs, and re-measure any kernel/feature decision when
+  anything upstream of it in the graph moves.
 
 ### 12.4 OPEN AND URGENT (2026-09-10 ~09:40 UTC): the leaderboard scored 1.1495, we measure 1.034
 
