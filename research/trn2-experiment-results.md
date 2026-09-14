@@ -5665,3 +5665,46 @@ monotonically with width (3.9346 → 3.9271 → **3.8921**), and 896×6's −0.0
 what layer 1's −0.0206 proxy delta was — and layer 1 went on to deliver −0.0118 real bpb. Against
 that, 896×6 costs 27.58% of the throughput, which the slope prices at +0.0253 bpb at 1800 s. Those two
 numbers are close enough that only the fixed-step runs can call it.
+
+### 7. Dress rehearsal — and the checkpoint-save trap the bigger model brought with it
+
+Standing rule: the literal bare launch command, once, before recommending anything. Run 1 exposed a real
+problem that had nothing to do with quality.
+
+| | rehearsal 1 | rehearsal 2 (final code) |
+| --- | --- | --- |
+| command | `NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py` (no flags) | same |
+| `num_params_M` | 592.9 | 592.9 |
+| `ngram_ve` | `tables=4 rows=1048576 dim=128 trigram=True` | same |
+| `qk_shift` | `True beta=0.0 freeze=True` | same |
+| `nki_muon` / `compile_muon` | True(reported) / True | **False / True** (dump now reports the effective path) |
+| startup (cold compile) | 390.1 s | 386.0 s |
+| `training_seconds` | 1794.5 | 1784.8 |
+| `charged_seconds_est` | **1804.4** | **1794.7** |
+| **`over_budget`** | **True** | **False** |
+| steps | 2135 | 2123 |
+| `causality_max_abs` | 0.000000 | 0.000000 |
+| `epoch` at the last step | 1 | 1 |
+| `public_val_bpb` | 1.004371 | **1.004910** |
+
+Three things worth recording:
+
+1. **The bare-defaults run reproduces the flagged arm to 8e-6** (1.004371 vs `t17-l1-m128`'s 1.004363),
+   which is what promoting the config to module-level defaults was supposed to mean.
+2. **`over_budget: True` on the first rehearsal, and it was the CHECKPOINT, not the training.** The new
+   config's checkpoint is **1.30 GB** (four 1048576×128 tables) against the old config's 0.49 GB, and
+   `torch.save` of it took **9.9 s** where the previous config took 1.0 s — reproducibly (9.9 s again on
+   rehearsal 2), so it is size, not luck. `CHECKPOINT_RESERVE_SECONDS` was 5.0, so the run trained until
+   1794.5 s and then spent 9.9 s saving = 1804.4 charged against an 1800 s budget. Raised to **15.0**;
+   rehearsal 2 lands at 1794.7 charged, `over_budget: False`. The cost is real but tiny: 12 fewer steps,
+   1.004371 → **1.004910** (+0.00054, against +0.00043 predicted by the slope). **General lesson: a
+   capacity win that lands mostly in embedding-style tables also buys a proportionally bigger
+   checkpoint, and the save is inside the charged budget.** Any future table widening must re-check
+   `CHECKPOINT_RESERVE_SECONDS` — at 2× again this would be ~20 s.
+3. Cold-cache startup is **~390 s** (a 159 s first step, versus 9.7 s warm), comfortably inside the
+   900 s `TRAIN_STARTUP_ALLOWANCE_CAP_SECONDS`, and editing `train.py` at all invalidates the
+   `torch.compile` cache — so every rehearsal after a source change pays it.
+
+**Submission-ready number: `public_val_bpb` 1.004910 at 2123 steps** (72 below the wall, `epoch 1`,
+`causality_max_abs 0.0`, `over_budget False`), from the flagless command above. Against the previous
+locked 1.018985 that is **−0.014075**.

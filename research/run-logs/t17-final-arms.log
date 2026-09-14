@@ -1,0 +1,8 @@
+=== 10:55:13 t17-l1-2185 (1723s) :  ===
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 1723 --out-dir out/t17-l1-2185 --eval-seq-len 1024 --compile-muon --qk-shift --qk-shift-beta 0.0 --qk-shift-freeze --ngram-ve-layers 1,-1
+--- logged: status=keep public_val_bpb=1.005973 num_steps=2187 total_seconds=1788.8 -> research/experiment-log.jsonl
+=== 11:25:28 t17-l1-m128 (1800s) : --ngram-ve-table-mult 128 ===
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 1800 --out-dir out/t17-l1-m128 --eval-seq-len 1024 --compile-muon --qk-shift --qk-shift-beta 0.0 --qk-shift-freeze --ngram-ve-layers 1,-1 --ngram-ve-table-mult 128
+--- logged: status=keep public_val_bpb=1.004363 num_steps=2135 total_seconds=1865.8 -> research/experiment-log.jsonl
+=== 11:57:00 done ===
+DONE
