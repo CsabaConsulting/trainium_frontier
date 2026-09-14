@@ -250,7 +250,26 @@ every expectation (fewer launches, larger matmuls). Resolve it:
    loss came from the loader or memory, and `grad_accum 8 → 4 or 2` is a 10–25% step-time win.
 4. Recall `TOTAL_BATCH_SIZE` must stay divisible by `DEVICE_BATCH_SIZE×PACK_FACTOR×SEQ_LEN×world`.
 
-### T1.6 Remove the transposes: store weights transposed
+### T1.6 Remove the transposes: store weights transposed — **DONE 2026-09-14, CLOSED NEGATIVE**
+> **Verdict, measured on the locked config** (results doc, dated section 2026-09-14 "T1.6 … and
+> T1.8 … both CLOSED NEGATIVE"). Implemented as `--transposed-linear`, **default OFF, not promoted**.
+> Real but tiny: **+0.831%** throughput, 3×3 interleaved, no overlap; off the −0.077 bpb/ln(steps)
+> slope that is **−0.00064 bpb**, *below* the 0.001 noise threshold. Step-110 proxy loss **+0.0101
+> worse** (3× the 0.0034 floor, no overlap). Bit-exact through forward and backward, **not** through
+> Muon's Newton–Schulz; the only bit-exact fix costs ~0.5% of the step, i.e. most of the win.
+>
+> **The "+75% / 48%" figures below are STALE — do not cite them.** They come from an **LNC=1,
+> 1-rank** profile, where this doc elsewhere records the compiled step as *slower* than eager and the
+> finding as not replicating the submission's win. The submission is 4 ranks / LNC=2, where
+> `aten::linear`/`linear_backward` already run at **80.4% of peak TensorE FLOPS**. The +0.831%
+> end-to-end result now **bounds** the entire layout-transpose cost at ≤0.83% of the step — two
+> orders of magnitude below "48% of the window".
+>
+> **Reusable finding, independent of the verdict:** Muon's `ratio = max(1, rows/cols)**0.5` is a
+> **one-sided LR scale and is not transpose-invariant**. Any future change that flips a matrix
+> parameter's orientation silently rescales its LR by up to `sqrt(rows/cols)`. `train.py` now carries
+> a `transposed` Muon group key + logical shape to handle it.
+
 The compiled graph carries +75% transpose instructions vs eager and `F.linear` is 48% of the
 window. `F.linear` computes `x @ W.T`; TensorE wants the contraction dim on partitions. Test a
 `Linear` variant that stores `weight_t = [in, out]` and computes `x @ weight_t` (modded-nanogpt
@@ -268,7 +287,22 @@ collapse to a handful. Risk: medium (compile of a graph with 62 parameters of 4 
 `torch.compile(fullgraph=False)`, and fall back to compiling only the AdamW part if Muon's
 Newton–Schulz misbehaves.
 
-### T1.8 Make the two NKI kernels traceable (`@nki_op` + `register_autograd`)
+### T1.8 Make the two NKI kernels traceable (`@nki_op` + `register_autograd`) — **DONE 2026-09-14, CLOSED NEGATIVE at the premise level**
+> **The premise below is FALSE on nki 0.5.0.** `nki.framework.kernel.Kernel.__call__` already does
+> `if has_torch_input(...): return wrap_nki_to_torch_hop(self, ...)(...)`, so every `@nki.jit` call
+> with torch tensors is *already* dispatched through `register_kernel_to_torch` + `NKIHOPCaller` —
+> the same mechanism `torch_neuronx.wrap_nki` uses, differing only in the grid. **There is no compile
+> island to remove.** Measured on NEURON tensors with a call-counter null test:
+> `graph_break_count=0`, one graph, `fullgraph=True` succeeds, `kernel_calls_during_trace=1`. That
+> also explains the previously-unexplained prototype numbers (0→0 breaks, 189 NEFFs both ways, 900 s
+> A/B **+0.001247 bpb worse**): they are the signature of a no-op wrapper.
+>
+> The API itself is present (`torch_neuronx.nki_op`, `torch.library.register_autograd/register_fake`)
+> — the item fails on its premise, not on availability. It also could not address the one live cost
+> (LNC=2 resharding opacity: the kernel body stays opaque under either registration path), and the
+> current recommendation for the rope+norm kernel is to turn it **OFF** (+1.36% on the locked config).
+> **No change to `train.py`.**
+
 Under compile the rope+QK-norm and softcap+CE kernels are ~6% "islands" (100% exposed). The
 TorchNeuron-native overview documents `@nki_op` with `torch.library.register_autograd` so NKI
 kernels embed in the compiled graph as custom ops. A prototype exists
