@@ -309,6 +309,32 @@ EMBEDDING_LR = 0.30
 UNEMBEDDING_LR = 0.006
 MATRIX_LR = 0.020  # T0.4 resweep (Day 3): part of the combined stack below. Single-axis at 900s: 0.020 -0.000835/-0.000106 (paired), 0.015 +0.002728, 0.030 +0.000552, 0.035 +0.000990 -- an asymmetric curve whose only better-than-baseline point is 0.020, sub-noise on its own, adopted as part of the confirmed stack.
 SCALAR_LR = 0.20
+# T2.4 (modded-nanogpt record #52), "smoothed scalars": the scalar/skip group's own Adam betas.
+# Defaults are exactly the (0.9, 0.95) the group has always used, so passing neither flag is
+# bit-identical to every prior run. The idea is that a single learned scalar's gradient is far
+# noisier per step than a matrix's (one number absorbing the whole model's disagreement), so a
+# longer second-moment window (0.99) plus a smaller step may beat the current aggressive setting.
+#
+# The historical NaN this group is famous for (see the gate_params comment in setup_optimizer) came
+# from a real PROJECTION MATRIX landing here and being driven at 8x MATRIX_LR. That is now
+# structurally impossible: gate_params exists precisely to catch 1-D/single-row gate tensors, and
+# setup_optimizer asserts the scalar group holds nothing with ndim > 1. Raising beta2 and/or
+# lowering the LR both move AWAY from that failure, not toward it.
+SCALAR_BETA1 = 0.9
+SCALAR_BETA2 = 0.95
+# T2.3 (modded-nanogpt record #50), "cautious weight decay": apply weight decay only to the
+# elements where the Adam update and the parameter itself agree in sign, i.e.
+# `mask = (update * p) > 0`, so decay never fights a parameter that the gradient is already
+# pushing away from zero. Only the AdamW groups with a nonzero weight_decay are affected, which in
+# the locked config is exactly two tensors -- wte (wd 0.001) and lm_head (wd 0.01) -- so the cost
+# is ~12 extra eager launches out of ~400 in the optimizer step.
+#
+# IMPLEMENTATION NOTE (this is why the flag is safe to add to a locked default): both AdamW paths
+# were restructured so the decay multiply happens AFTER `update` is computed instead of before.
+# That is exactly, not approximately, equivalent with the flag off -- the update depends only on
+# exp_avg/exp_avg_sq/grad and never reads p, and the decay reads the same pre-decay p either way.
+# research/scratch/cautious_wd_equiv.py checks it bitwise on the real model.
+USE_CAUTIOUS_WD = False
 WEIGHT_DECAY = 0.20  # T0.4 resweep (Day 3): part of the combined stack below. Single-axis at 900s: 0.20 -0.000557/-0.000533 (paired, spread 0.000024 -- the tightest pair in the log), 0.35 -0.000458, 0.05 -0.000019. Flat-but-reproducible axis; 0.20 chosen as the middle of the better region. NOTE: combining 0.20 with WD_DECAY_TO_ZERO=False came in +0.001828, i.e. WORSE than either alone -- they are effectively the same knob (total integrated decay), so WD_DECAY_TO_ZERO stays True.
 VE_WD = 0.0  # weight decay for the value_embeds AdamW group (separate from the shared embedding_params group)
 EMBED_ADAMW_BETA2 = 0.95  # Tier-0 resweep confirms still correct at the new ~2000-step regime: 0.95 (995/1.094327) beats 0.995 (977/1.097342) again. See trn2-experiment-results.md
@@ -383,6 +409,34 @@ ATTN_CPROJ_INIT_SCALE = 0.10
 # The rest of the T0.4 axes were re-tested and CONFIRMED unchanged: FINAL_LR_FRAC 0.05,
 # WARMDOWN_RATIO 0.75, EMBEDDING_LR 0.30, UNEMBEDDING_LR 0.006, LOGIT_SOFTCAP 15.0, MUON_NS_STEPS 5,
 # WD_DECAY_TO_ZERO True. See the T0.4 section of research/trn2-experiment-results.md for all 27 rows.
+# ---------------------------------------------------------------------------------------------
+# Plan 11.1 (Recursive's from-vanilla run): BYTE-FEATURE `wte` INIT. Instead of
+# normal_(0, 0.8), seed each token's embedding row from a hashed bag of byte n-grams of the
+# token's OWN byte string, so tokens with similar surface form start with correlated
+# embeddings and the model does not have to rediscover orthography from data alone.
+#
+# LEGALITY: the only input is `tokenizer.enc.decode_single_token_bytes(id)`, i.e. the fixed,
+# provided tokenizer artifact's own id->bytes mapping. No external data, no pretrained vectors,
+# no corpus statistics.
+#
+# ZERO throughput cost by construction: this runs once, on the host, between init_weights() and
+# model.to(device), and changes no op in the forward/backward graph. It also draws NO torch RNG,
+# so every other tensor in the model is initialized bit-identically to the control arm -- the
+# only difference between the two arms is the contents of wte.weight.
+#
+# NOTE `GPT.forward` does `x = norm(wte(idx))`, so the row SCALE is invisible to the forward
+# pass; it matters only through AdamW's effective relative step size (and wd=0.001) on that
+# tensor. The features are therefore rescaled to the same per-row RMS the normal_(0, 0.8) init
+# produces, not left at their raw counting scale.
+USE_BYTE_WTE_INIT = False
+BYTE_WTE_INIT_MIX = 1.0    # 1.0 = pure byte features; 0 <= mix < 1 blends with the random init as
+# mix*feat + sqrt(1-mix^2)*random, which keeps the row RMS at ~0.8 for any mix because the two
+# components are near-orthogonal in 640 dimensions. A blend hedges the one real risk of a pure
+# feature init: two tokens whose hashed feature sets collide would start life as the SAME row,
+# and a random component guarantees every row stays distinct.
+BYTE_WTE_INIT_NGRAM = 3    # highest byte-n-gram order hashed (1..N, plus \x02/\x03 boundary
+# markers around the token's bytes so a prefix feature is distinguishable from a suffix one).
+BYTE_WTE_INIT_STD = 0.8    # target per-row RMS; MUST track the normal_ std used in init_weights.
 # ---------------------------------------------------------------------------------------------
 # Dataloader packing-bin multiplier: fetch DEVICE_BATCH_SIZE rows of PACK_FACTOR*SEQ_LEN tokens and
 # reshape to DEVICE_BATCH_SIZE*PACK_FACTOR rows of SEQ_LEN, so this is the micro-batch ROW COUNT and
@@ -1068,6 +1122,34 @@ TRAIN_LOCAL_CONV = True  # T0.1 WINNER, now the locked default (was False). Whet
 # best-known local config and the baseline every subsequent experiment is measured against.
 # --no-train-local-conv reproduces the old (dead-conv) behaviour for provenance.
 USE_GATED_MLP = False    # SwiGLU-style: c_fc(x) * silu(c_gate(x)) instead of relu(c_fc(x))**2; adds one weight matrix
+# gpu-closed-techniques-trn2-revisit-2026-09-12.md §3.2: the PARAMETER-MATCHED, COALESCED form of
+# the SwiGLU above, which is the only version of it worth a second hearing on Trn2.
+#
+# What is different from USE_GATED_MLP, and why each difference matters here:
+#  * PARAMETER-MATCHED. USE_GATED_MLP bolts a third n_embd x 4*n_embd matrix onto the existing two,
+#    i.e. +50% MLP parameters and +50% MLP FLOPs -- which is why the GPU measurement closed it as
+#    "worse AND slower AND bigger" (+0.0039 bpb, +19% step time, 85.9M -> 102.3M params). Here the
+#    hidden width is dropped to ~8/3*n_embd instead of 4*n_embd so the three matrices cost the same
+#    as the baseline's two: 3*640*1664 = 3,194,880 vs 2*640*2560 = 3,276,800 per layer (-2.5% MLP,
+#    -0.08% of the whole 592.9M model). That makes this a test of the ACTIVATION, not of capacity.
+#  * COALESCED. gate and up come out of ONE Linear(n_embd, 2*hidden) rather than two, so the block
+#    keeps its launch count instead of adding one matmul per layer. On a stack that is
+#    dispatch/serialisation-bound with ~67 NEFF launches per micro-step, and where wider matmuls
+#    cost ~0.65x proportional time while extra launches cost ~1.0x, folding work into an existing
+#    launch is the only shape of change that is ever throughput-neutral.
+#
+# PRIOR IS LOW AND SAID SO UP FRONT (~15-20%): the small-model consensus (modded-nanogpt, nanochat,
+# Recursive, Parameter Golf #340/#344) is ReLU^2 >= SwiGLU at this scale, and that half of the
+# closure is hardware-independent. A negative here is the expected outcome, not a failure.
+#
+# Step-0 no-op is preserved for free: mlp.c_proj is zero-init, so the MLP contributes exactly 0 at
+# step 0 whatever the activation is. It is NOT bit-identical to the control beyond that, because
+# c_fc changes numel and therefore shifts the init RNG stream for every tensor built after it --
+# unavoidable for any real shape change, and the same caveat USE_NGRAM_VE/USE_GATED_MLP carry.
+USE_COALESCED_SWIGLU = False
+COALESCED_SWIGLU_HIDDEN = 0  # 0 = auto: round(8/3 * n_embd / 128) * 128, which is 1664 at n_embd=640
+# (the parameter-matched width, since 3*d*h == 2*d*(4*d) gives h = 8/3*d). Set > 0 to force a width
+# (must be a multiple of 128 so the matmuls stay on TensorE's tiling).
 USE_WEIGHT_CACHE = True  # cache each Linear's dtype-cast weight once per optimizer step instead of every forward call
 # T1.6: store every Linear's weight TRANSPOSED, as [in_features, out_features], and compute
 # `x @ weight` instead of `F.linear(x, weight)` (which is `x @ weight.T`). The premise is that
@@ -2025,6 +2107,121 @@ class Linear(nn.Linear):
         return F.linear(x, w, None)
 
 
+_FNV64_OFFSET = 0xCBF29CE484222325
+_FNV64_PRIME = 0x100000001B3
+_FNV64_MASK = 0xFFFFFFFFFFFFFFFF
+
+
+def _fnv1a64(data: bytes) -> int:
+    """FNV-1a 64. Deliberately NOT Python's builtin hash(): that is randomized per process for
+    bytes/str (PYTHONHASHSEED), which would make the init non-reproducible across runs -- the one
+    property an init function must never lack. Hand-rolled rather than hashlib so it stays in the
+    same style as NGRAM_HASH_PRIMES and costs no new import."""
+    h = _FNV64_OFFSET
+    for b in data:
+        h = ((h ^ b) * _FNV64_PRIME) & _FNV64_MASK
+    return h
+
+
+def byte_feature_wte_init(wte: torch.Tensor, tokenizer, vocab_size: int) -> tuple[int, int, float]:
+    """Plan 11.1: overwrite `wte`'s first `vocab_size` rows with a hashed byte-n-gram
+    representation of each token's own byte string. Returns (rows_written, rows_skipped,
+    mean_features_per_token) so the caller can print a null test.
+
+    THE FEATURE MAP. For token id i with bytes `raw`, the feature string is
+    `b"\\x02" + raw + b"\\x03"` (0x02/0x03 are STX/ETX, which cannot appear inside a UTF-8 byte
+    string, so they are unambiguous boundary markers) and the features are every contiguous
+    substring of length 1..BYTE_WTE_INIT_NGRAM. The markers are what make " the" and "the "
+    different feature sets, i.e. what lets the init encode word-initial vs word-final position --
+    which for a BPE vocabulary of mostly space-prefixed word pieces is most of the signal there is.
+
+    THE PROJECTION is the hashing trick (signed feature hashing, as in fastText's subword buckets):
+    each feature's 64-bit hash gives a column index (low bits) and a sign (bit 40, chosen away from
+    the bits the modulo consumes so index and sign are independent). Accumulating +-1 into a
+    length-n_embd vector is an unbiased random projection of the feature indicator vector, so two
+    tokens' rows have expected inner product proportional to their shared-n-gram count. That is the
+    whole mechanism: no learned component, no data, no external artifact.
+
+    CENTER, THEN SCALE. The columns are first centered over the written rows (features present in
+    every token would otherwise give every row the same large shared component -- measured +0.224
+    mean random-pair cosine before centering, ~0.000 after), then each row is rescaled to a fixed
+    RMS of BYTE_WTE_INIT_STD, both to match the normal_(0, 0.8) init the control uses and so that a
+    long token does not start with a systematically larger embedding than a short one (AdamW is
+    scale-invariant in the gradient but not in the parameter, so a 3x row-scale spread would be a 3x
+    spread in effective relative LR).
+
+    SPECIAL/PADDED ROWS keep their random init: a special token has no meaningful surface form (and
+    prepare.py's own token_bytes table records 0 bytes for exactly these ids), and rows at
+    index >= vocab_size are the vocab padding, never gathered by any real token id.
+    """
+    n_embd = wte.shape[-1]
+    enc = tokenizer.enc
+    # tiktoken exposes the specials as a name->id dict; take the IDS, which is the same set
+    # prepare.py's _save_tokenizer records 0 bytes for. The `or {}` covers an encoding with none.
+    special_ids = set((getattr(enc, "_special_tokens", None) or {}).values())
+    special_ids.add(tokenizer.get_bos_token_id())
+    feat = torch.zeros(vocab_size, n_embd, dtype=torch.float32)
+    touched = torch.zeros(vocab_size, dtype=torch.bool)
+    written = skipped = 0
+    total_features = 0
+    max_n = max(1, int(BYTE_WTE_INIT_NGRAM))
+    for tid in range(vocab_size):
+        if tid in special_ids:
+            skipped += 1
+            continue
+        try:
+            raw = enc.decode_single_token_bytes(tid)
+        except Exception:
+            skipped += 1
+            continue
+        if not raw:
+            skipped += 1
+            continue
+        s = b"\x02" + raw + b"\x03"
+        row = feat[tid]
+        n_feat = 0
+        for n in range(1, max_n + 1):
+            for j in range(len(s) - n + 1):
+                h = _fnv1a64(s[j:j + n])
+                col = h % n_embd
+                row[col] += 1.0 if (h >> 40) & 1 else -1.0
+                n_feat += 1
+        touched[tid] = True
+        written += 1
+        total_features += n_feat
+    # CENTERING, and it is not cosmetic. Some features occur in EVERY token -- the \x02/\x03 markers
+    # most obviously, but also the high-frequency letter unigrams -- and each of those lands in the
+    # same column with the same sign in every row, so the raw feature matrix has a large shared DC
+    # direction. Measured on the real 8192-token vocabulary: mean cosine over 2000 random token
+    # pairs was +0.224 before centering (i.e. ~22% of every row was the same vector) and ~0.000
+    # after, while the contrast that matters -- pairs sharing a 3-byte prefix -- stays far above it.
+    # A shared component in wte is close to useless anyway: it adds the same vector to every
+    # position, which is a bias the model already has, and it eats row norm that should be carrying
+    # the token's identity.
+    rows = feat[touched]
+    rows -= rows.mean(dim=0, keepdim=True)
+    # Per-row rescale AFTER centering: the raw accumulator is a count whose magnitude tracks token
+    # byte length, and a 3x row-scale spread would be a 3x spread in AdamW's effective relative LR.
+    rms = rows.pow(2).mean(dim=-1, keepdim=True).sqrt()
+    rows *= BYTE_WTE_INIT_STD / rms.clamp_min(1e-12)
+    feat[touched] = rows
+    # A row that centered to exactly zero (astronomically unlikely, not impossible) keeps its random
+    # init rather than being written as a zero vector.
+    degenerate = touched & (feat.abs().sum(dim=-1) == 0.0)
+    if bool(degenerate.any()):
+        n_deg = int(degenerate.sum())
+        touched &= ~degenerate
+        written -= n_deg
+        skipped += n_deg
+    mix = float(BYTE_WTE_INIT_MIX)
+    keep = math.sqrt(max(0.0, 1.0 - mix * mix))
+    with torch.no_grad():
+        target = wte[:vocab_size]                  # False rows of `touched` keep their normal_()
+        blended = mix * feat.to(target.dtype) + keep * target
+        target.copy_(torch.where(touched.unsqueeze(-1), blended, target))
+    return written, skipped, (total_features / written if written else 0.0)
+
+
 def transpose_linear_weights(root: nn.Module) -> int:
     """T1.6: replace every Linear's [out, in] weight with its [in, out] transpose, in place.
 
@@ -2199,18 +2396,48 @@ class CausalSelfAttention(nn.Module):
         return self.c_proj(y)
 
 
+def coalesced_swiglu_hidden(n_embd: int, mlp_ratio: int) -> int:
+    """Parameter-matched SwiGLU hidden width: the h that makes 3*d*h == 2*d*(mlp_ratio*d), i.e.
+    h = (2/3)*mlp_ratio*d (= 8/3*d at the locked mlp_ratio 4), rounded to a multiple of 128.
+
+    Reads mlp_ratio from the CONFIG, not the global: load_for_eval rebuilds the model from the
+    saved model_config, so a checkpoint written with --mlp-ratio must reproduce its own width."""
+    if COALESCED_SWIGLU_HIDDEN > 0:
+        return int(COALESCED_SWIGLU_HIDDEN)
+    exact = (2.0 / 3.0) * mlp_ratio * n_embd
+    return max(128, int(round(exact / 128.0)) * 128)
+
+
 class MLP(nn.Module):
     def __init__(self, config: GPTConfig, coalesced: str = "none"):
         super().__init__()
         hidden = config.mlp_ratio * config.n_embd
+        # Parameter-matched coalesced SwiGLU: one Linear(n_embd, 2*hidden) whose two halves are the
+        # gate and the up projection, at the narrower hidden width that keeps the three matrices'
+        # total size equal to the baseline's two. `swiglu_hidden` doubles as the forward-path flag
+        # so a module built without the toggle can never take the gated branch.
+        self.swiglu_hidden = coalesced_swiglu_hidden(config.n_embd, config.mlp_ratio) \
+            if USE_COALESCED_SWIGLU else 0
+        if self.swiglu_hidden:
+            hidden = self.swiglu_hidden
         # `coalesced` != "none" (parallel block only): c_fc lives in the owning block's single c_in
         # matmul, so it is not built here and forward takes the pre-activation as an argument.
-        self.c_fc = None if coalesced in ("all", "vfc") else Linear(config.n_embd, hidden, bias=False)
+        fc_out = 2 * hidden if self.swiglu_hidden else hidden
+        self.c_fc = None if coalesced in ("all", "vfc") else Linear(config.n_embd, fc_out, bias=False)
         self.c_gate = Linear(config.n_embd, hidden, bias=False) if USE_GATED_MLP else None
         self.c_proj = Linear(hidden, config.n_embd, bias=False)
 
     def forward(self, x: torch.Tensor, fc: torch.Tensor | None = None) -> torch.Tensor:
         h = self.c_fc(x) if fc is None else fc
+        if self.swiglu_hidden:
+            # silu(gate) * up from the two halves of the single projection. The last-dim slices are
+            # non-contiguous, which is fine HERE (unlike the parallel block's q/k slices, which had
+            # to be copied because rope_norm silently falls back to eager on a strided input): both
+            # operands only ever reach elementwise ops, and the product they produce is a fresh
+            # contiguous tensor before it reaches c_proj's matmul.
+            gate = h[..., :self.swiglu_hidden]
+            up = h[..., self.swiglu_hidden:]
+            return self.c_proj(F.silu(gate) * up)
         if self.c_gate is not None:
             return self.c_proj(h * F.silu(self.c_gate(x)))
         return self.c_proj(relu_squared(h))
@@ -2588,6 +2815,9 @@ class GPT(nn.Module):
                 torch.nn.init.zeros_(block.attn.c_proj.weight)
             # The c_fc slice of a coalesced c_in comes LAST, matching the baseline's order
             # (q, k, v, attn.c_proj, c_fc) so the RNG stream is identical -- see block.c_in above.
+            # USE_COALESCED_SWIGLU: this one call covers BOTH halves of the [2*hidden, n_embd]
+            # projection at the same +-0.4s bound, which is what USE_GATED_MLP's separate c_gate
+            # line does too -- canonical SwiGLU gives gate and up the same init scale.
             torch.nn.init.uniform_(block.mlp.c_fc.weight if block.c_in is None else fc_rows,
                                    -0.4 * s, 0.4 * s)
             if block.mlp.c_gate is not None:
@@ -2881,6 +3111,18 @@ class GPT(nn.Module):
             scalar_params.append(self.out_pool_lambdas)
         if self.out_bigram is not None:
             gate_params.extend([self.out_bigram_gate.weight, self.out_bigram_gate_bias])
+        # T2.4 guard, and the answer to "is the old NaN still a live risk?". The scalar group runs at
+        # SCALAR_LR = 8-10x MATRIX_LR, which is safe for a single learned scalar and NOT safe for a
+        # real weight tensor -- a projection matrix that landed here once diverged to NaN around step
+        # ~270. Every gate-shaped tensor added since (ve_gate/ve_gate_bi/ve_gate_tri, head_gate,
+        # out_bigram_gate, qk_shift_beta) is routed to Muon or to gate_params instead, so the
+        # invariant "this group holds only scalars and 1-D lambda vectors" is currently true; assert
+        # it so a future addition cannot quietly break it and blame the LR.
+        for p in scalar_params:
+            if p.ndim > 1:
+                raise ValueError(f"scalar_params must hold only scalars/1-D vectors (SCALAR_LR="
+                                 f"{SCALAR_LR} is tuned for those); got a {tuple(p.shape)} tensor. "
+                                 "Route it to gate_params or to Muon instead.")
         embedding_params = list(self.transformer.wte.parameters())
         lm_head_params = list(self.lm_head.parameters())
         value_embed_params = list(self.value_embeds.parameters())
@@ -2888,7 +3130,9 @@ class GPT(nn.Module):
         param_groups = [
             dict(kind="adamw", params=embedding_params, lr=EMBEDDING_LR * dmodel_lr_scale, betas=(0.8, EMBED_ADAMW_BETA2), eps=1e-10, weight_decay=0.001),
             dict(kind="adamw", params=lm_head_params, lr=UNEMBEDDING_LR * dmodel_lr_scale, betas=(0.8, 0.96), eps=1e-10, weight_decay=0.01),
-            dict(kind="adamw", params=scalar_params, lr=SCALAR_LR, betas=(0.9, 0.95), eps=1e-10, weight_decay=0.0),
+            # T2.4: SCALAR_BETA1/2 default to the historical (0.9, 0.95).
+            dict(kind="adamw", params=scalar_params, lr=SCALAR_LR,
+                 betas=(SCALAR_BETA1, SCALAR_BETA2), eps=1e-10, weight_decay=0.0),
         ]
         if gate_params:
             param_groups.append(dict(kind="adamw", params=gate_params, lr=MATRIX_LR, betas=(0.9, 0.95), eps=1e-10, weight_decay=0.0))
@@ -3176,6 +3420,29 @@ def _muon_math(w, g, momentum_buffer, second, mom, one_mom, lr, lrwd,
     return w, momentum_buffer, second
 
 
+def _cautious_weight_decay_(params, update, lr, wd) -> None:
+    """T2.3: decoupled AdamW weight decay applied only where `update * p > 0`, in place.
+
+    `update` is the un-lr-scaled Adam direction (`p` moves by `-lr*update`), one entry per param.
+    Masking on that product means decay is applied only where the gradient is already carrying the
+    element toward zero, so decay never fights an element the optimizer is actively driving
+    outward. A positive `lr` cannot change the sign of the product, so the pre-lr-scaled `update`
+    gives the same mask as the post-scaled one.
+
+    Convention note: `_muon_math` has carried this same trick for the Muon groups all along, with
+    `>=` rather than `>`. The plan's T2.3 spec writes `> 0` and that is what is implemented here;
+    the two differ only where the product is EXACTLY zero (and there either `update` is zero, so
+    the element is not moving, or `p` is zero, so the decay factor is moot), i.e. not measurably.
+
+    Not a `torch._foreach_*` chain on purpose: only groups with wd != 0 reach it, which in the
+    locked config is two tensors (wte, lm_head), so batching would save ~4 launches while adding a
+    dependency on `_foreach_sign_`/`_foreach_clamp_min_` being present and eager-lowerable here.
+    The plain loop is ~12 extra eager launches out of the optimizer step's ~400.
+    """
+    for p, u in zip(params, update):
+        p.mul_(1 - lr * wd * ((u * p) > 0).to(p.dtype))
+
+
 class MuonAdamW(torch.optim.Optimizer):
     def __init__(self, param_groups):
         super().__init__(param_groups, defaults={})
@@ -3351,8 +3618,6 @@ class MuonAdamW(torch.optim.Optimizer):
             lr = self._device_scalar(group, "lr", lr, params[0])
         beta1, beta2 = group["betas"]
         wd = group["weight_decay"]
-        if wd != 0:
-            torch._foreach_mul_(params, 1 - lr * wd)
         torch._foreach_lerp_(exp_avgs, grads, 1 - beta1)
         torch._foreach_lerp_(exp_avg_sqs, torch._foreach_mul(grads, grads), 1 - beta2)
         denom = torch._foreach_div(exp_avg_sqs, bias2)
@@ -3360,6 +3625,17 @@ class MuonAdamW(torch.optim.Optimizer):
         torch._foreach_add_(denom, group["eps"])
         update = torch._foreach_div(exp_avgs, bias1)
         torch._foreach_div_(update, denom)
+        # T2.3: the decay multiply sits HERE rather than before the two lerps, and that move is
+        # exactly (not approximately) equivalence-preserving: `update` reads only exp_avg,
+        # exp_avg_sq and grad -- never p -- and p is still at its pre-decay value when the mask and
+        # the multiply read it, so with USE_CAUTIOUS_WD off this computes the same two operations in
+        # the same order on the same operands as before. It has to be here because the cautious mask
+        # needs `update`. (Bitwise-checked in research/scratch/cautious_wd_equiv.py.)
+        if wd != 0:
+            if USE_CAUTIOUS_WD:
+                _cautious_weight_decay_(params, update, lr, wd)
+            else:
+                torch._foreach_mul_(params, 1 - lr * wd)
         if USE_TENSOR_LR_SCALARS:
             # Same reason as the loop path: alpha= would bake the lr into the graph as a
             # constant, a tensor multiply keeps it a runtime operand.
@@ -3386,12 +3662,23 @@ class MuonAdamW(torch.optim.Optimizer):
             state["step"] += 1
             exp_avg = state["exp_avg"]
             exp_avg_sq = state["exp_avg_sq"]
-            p.mul_(1 - lr * group["weight_decay"])
             exp_avg.lerp_(grad, 1 - beta1)
             exp_avg_sq.lerp_(grad.square(), 1 - beta2)
             bias1 = 1 - beta1 ** state["step"]
             bias2 = 1 - beta2 ** state["step"]
             update = exp_avg / bias1 / ((exp_avg_sq / bias2).sqrt() + group["eps"])
+            # T2.3: moved down from above the lerps for the same reason, and with the same
+            # equivalence argument, as in _adamw_step_foreach. The else branch keeps the original
+            # single-tensor `p.mul_(1 - lr*wd)` verbatim -- including the wd==0 no-op the foreach
+            # docstring documents -- so this path stays the literal reference implementation the
+            # foreach one is bitwise-checked against.
+            # The wd == 0 groups keep the literal `p.mul_(1 - lr*0)`, which is an exact no-op on a
+            # finite IEEE754 value (see the foreach docstring), rather than paying for a mask that
+            # would be multiplied by zero anyway.
+            if USE_CAUTIOUS_WD and group["weight_decay"] != 0:
+                _cautious_weight_decay_([p], [update], lr, group["weight_decay"])
+            else:
+                p.mul_(1 - lr * group["weight_decay"])
             if USE_TENSOR_LR_SCALARS:
                 # alpha= is the one place a Python float becomes a baked graph
                 # constant; as a tensor multiply it stays a runtime operand.
@@ -3847,6 +4134,15 @@ ARCH_TOGGLE_NAMES = [
     # T2.2 weight EMA. Also shape-neutral, but it decides whether the checkpoint has an
     # "ema_state" key at all -- i.e. WHICH weights load_for_eval will hand the scorer.
     "USE_WEIGHT_EMA", "WEIGHT_EMA_DECAYS", "WEIGHT_EMA_START_FRAC",
+    # Plan 11.1 byte-feature wte init. Nothing here changes a shape -- it changes what the
+    # SAME-shaped wte rows CONTAIN at step 0, which after a run is unrecoverable from the
+    # weights themselves. That is the purest form of the silent class this snapshot exists for.
+    "USE_BYTE_WTE_INIT", "BYTE_WTE_INIT_MIX", "BYTE_WTE_INIT_NGRAM", "BYTE_WTE_INIT_STD",
+    # gpu-closed-techniques §3.2 coalesced SwiGLU: both are shape-critical (see below).
+    "USE_COALESCED_SWIGLU", "COALESCED_SWIGLU_HIDDEN",
+    # T2.3/T2.4. Pure optimizer knobs -- no tensor changes name, shape or dtype, and they leave
+    # no trace at all in the saved weights, same reason the NGRAM_VE_* optimizer knobs are listed.
+    "USE_CAUTIOUS_WD", "SCALAR_BETA1", "SCALAR_BETA2",
 ]
 # Toggles whose mismatch corrupts the state_dict shape (load_state_dict(strict=True) will
 # error loudly). Everything else in ARCH_TOGGLE_NAMES lives in non-persistent buffers or
@@ -3890,7 +4186,12 @@ SHAPE_CRITICAL_TOGGLES = {"USE_VE", "USE_LOCAL_CONV", "USE_GATED_MLP", "USE_SELE
                           # module is read, so it is silent-behavior, not shape-critical.
                           "USE_ENGRAM", "ENGRAM_ORDERS", "ENGRAM_HEADS", "ENGRAM_TABLE_MULT",
                           "ENGRAM_MEM_DIM", "ENGRAM_KEY_DIM", "ENGRAM_CONV_KERNEL",
-                          "ENGRAM_SHARE_NGRAM_TABLES"}
+                          "ENGRAM_SHARE_NGRAM_TABLES",
+                          # Coalesced SwiGLU resizes mlp.c_fc's output (hidden -> 2*hidden) and
+                          # mlp.c_proj's input (2560 -> COALESCED_SWIGLU_HIDDEN), so a cross-setting
+                          # strict load errors loudly, which is what we want. HIDDEN is listed for
+                          # the same reason NGRAM_VE_TABLE_MULT is: it resizes both of them again.
+                          "USE_COALESCED_SWIGLU", "COALESCED_SWIGLU_HIDDEN"}
 
 
 def current_toggles() -> dict:
@@ -4130,6 +4431,11 @@ def main() -> None:
     # MATRIX_LR et al. in this block; --nki-muon dodged it by hardcoding a literal default instead.
     global USE_COMPILE_MUON
     global USE_TRANSPOSED_LINEAR  # T1.6, same reason as USE_COMPILE_MUON above
+    # Plan 11.1 / gpu-closed-techniques §3.2 / T2.3 / T2.4 -- same rule again: every one of these is
+    # read by its own argparse default line below, so the `global` has to precede the parser.
+    global USE_BYTE_WTE_INIT, BYTE_WTE_INIT_MIX, BYTE_WTE_INIT_NGRAM, BYTE_WTE_INIT_STD
+    global USE_COALESCED_SWIGLU, COALESCED_SWIGLU_HIDDEN
+    global USE_CAUTIOUS_WD, SCALAR_BETA1, SCALAR_BETA2
     parser = argparse.ArgumentParser(description="Neuron Competition R1 baseline")
     parser.add_argument("--device-type", type=str, default="")
     parser.add_argument("--num-steps", type=int, default=int(os.environ.get("NEURON_COMPETITION_R1_NUM_STEPS", NUM_STEPS)))
@@ -4281,6 +4587,51 @@ def main() -> None:
         env = "NEURON_COMPETITION_R1_" + flag.lstrip("-").replace("-", "_").upper()
         parser.add_argument(flag, type=typ, default=typ(os.environ.get(env, default)), help=helptext)
 
+    # Plan 11.1: byte-feature wte init.
+    parser.add_argument("--byte-wte-init", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_BYTE_WTE_INIT",
+                                               "1" if USE_BYTE_WTE_INIT else "0") != "0",
+                        help="Plan 11.1 (Recursive's from-vanilla run): initialize wte from a hashed "
+                             "bag of byte n-grams of each token's own byte string (from the provided "
+                             "tokenizer artifact's id->bytes map -- no external data) instead of "
+                             "normal_(0, 0.8), so tokens with similar surface form start correlated. "
+                             "Host-side and one-shot: zero ops added to the training graph, and no "
+                             "torch RNG consumed, so every OTHER tensor is initialized identically to "
+                             "the control arm. See byte_feature_wte_init.")
+    _hp("--byte-wte-init-mix", BYTE_WTE_INIT_MIX, float,
+        "Plan 11.1: 1.0 = pure byte features; mix<1 blends mix*feat + sqrt(1-mix^2)*random, which "
+        "keeps the row RMS and guarantees no two rows can coincide on a hash collision.")
+    _hp("--byte-wte-init-ngram", BYTE_WTE_INIT_NGRAM, int,
+        "Plan 11.1: highest byte-n-gram order hashed into each row (1..N).")
+    _hp("--byte-wte-init-std", BYTE_WTE_INIT_STD, float,
+        "Plan 11.1: target per-row RMS of the byte-feature rows. Must track init_weights' own "
+        "normal_ std for wte (0.8) or the arm also becomes an embedding-scale test.")
+    # gpu-closed-techniques §3.2: parameter-matched, coalesced SwiGLU.
+    parser.add_argument("--coalesced-swiglu", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_COALESCED_SWIGLU",
+                                               "1" if USE_COALESCED_SWIGLU else "0") != "0",
+                        help="parameter-matched coalesced SwiGLU MLP: one Linear(n_embd, 2*hidden) "
+                             "split into gate and up halves, silu(gate)*up, at hidden = 8/3*n_embd "
+                             "(1664) so the three matrices cost the same as the baseline's two. "
+                             "Distinct from --gated-mlp/USE_GATED_MLP, which keeps hidden=4*n_embd "
+                             "and so adds 50%% MLP params and FLOPs. SHAPE-CRITICAL. Prior ~15-20%%: "
+                             "the ReLU^2 >= SwiGLU consensus at this scale is hardware-independent.")
+    _hp("--coalesced-swiglu-hidden", COALESCED_SWIGLU_HIDDEN, int,
+        "force the coalesced-SwiGLU hidden width (must be a multiple of 128). 0 = auto, i.e. the "
+        "parameter-matched round(2/3*mlp_ratio*n_embd / 128)*128. SHAPE-CRITICAL.")
+    # T2.3 / T2.4: cautious weight decay on the Adam groups, and the scalar group's own betas.
+    parser.add_argument("--cautious-wd", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_CAUTIOUS_WD",
+                                               "1" if USE_CAUTIOUS_WD else "0") != "0",
+                        help="T2.3 (modded #50): in the AdamW groups, apply weight decay only where "
+                             "update*p > 0, so decay never fights an element the gradient is driving "
+                             "outward. Affects only the groups with wd != 0 -- wte (0.001) and "
+                             "lm_head (0.01). The Muon groups already do this (see _muon_math).")
+    _hp("--scalar-beta1", SCALAR_BETA1, float,
+        "T2.4 (modded #52): Adam beta1 for the scalar/skip group. Default 0.9 = historical.")
+    _hp("--scalar-beta2", SCALAR_BETA2, float,
+        "T2.4 (modded #52): Adam beta2 for the scalar/skip group. Default 0.95 = historical; "
+        "record #52's 'smoothed scalars' uses 0.99, usually with a lower --scalar-lr.")
     # T4.2: Aster's output bigram logit table.
     parser.add_argument("--out-bigram", action=argparse.BooleanOptionalAction,
                         default=os.environ.get("NEURON_COMPETITION_R1_OUT_BIGRAM", "1" if USE_OUT_BIGRAM else "0") != "0",
@@ -4661,6 +5012,35 @@ def main() -> None:
     NGRAM_VE_BETA2 = args.ngram_ve_beta2
     NGRAM_VE_FLAT_LR = args.ngram_ve_flat_lr
     NGRAM_VE_CLIP_EXCLUDE = args.ngram_ve_clip_exclude
+    # Plan 11.1 byte-feature wte init: read after model.init_weights(), on the host.
+    USE_BYTE_WTE_INIT = args.byte_wte_init
+    BYTE_WTE_INIT_MIX = args.byte_wte_init_mix
+    BYTE_WTE_INIT_NGRAM = args.byte_wte_init_ngram
+    BYTE_WTE_INIT_STD = args.byte_wte_init_std
+    if not 0.0 <= BYTE_WTE_INIT_MIX <= 1.0:
+        parser.error(f"--byte-wte-init-mix must be in [0, 1], got {BYTE_WTE_INIT_MIX}")
+    if BYTE_WTE_INIT_NGRAM < 1:
+        parser.error(f"--byte-wte-init-ngram must be >= 1, got {BYTE_WTE_INIT_NGRAM}")
+    # gpu-closed-techniques §3.2 coalesced SwiGLU: read by MLP.__init__, i.e. inside GPT(config).
+    USE_COALESCED_SWIGLU = args.coalesced_swiglu
+    COALESCED_SWIGLU_HIDDEN = args.coalesced_swiglu_hidden
+    if USE_COALESCED_SWIGLU:
+        if USE_GATED_MLP:
+            parser.error("--coalesced-swiglu and USE_GATED_MLP are two different SwiGLU MLPs and "
+                         "both own mlp.c_fc/c_gate; pick one (USE_GATED_MLP has no flag, so this "
+                         "can only fire if the module constant was edited). --coalesced-swiglu is "
+                         "the parameter-matched, single-matmul form.")
+        if args.parallel_block and args.parallel_block_coalesce != "none":
+            parser.error("--coalesced-swiglu is incompatible with --parallel-block-coalesce "
+                         f"{args.parallel_block_coalesce}: block.c_in is sized mlp_ratio*n_embd and "
+                         "hands mlp.forward a single pre-activation, not a gate/up pair.")
+        if COALESCED_SWIGLU_HIDDEN % 128 != 0:
+            parser.error(f"--coalesced-swiglu-hidden must be a multiple of 128 (0 = auto), got "
+                         f"{COALESCED_SWIGLU_HIDDEN}")
+    # T2.3 / T2.4: read by setup_optimizer() and by the AdamW step.
+    USE_CAUTIOUS_WD = args.cautious_wd
+    SCALAR_BETA1 = args.scalar_beta1
+    SCALAR_BETA2 = args.scalar_beta2
     # T4.2 / T3.9. All read by GPT/Block/CausalSelfAttention.__init__ or setup_optimizer() below,
     # i.e. before the first device op.
     USE_OUT_BIGRAM = args.out_bigram
@@ -4796,6 +5176,16 @@ def main() -> None:
     print0(f"model_config={json.dumps(asdict(config), indent=2)}")
     model = GPT(config)
     model.init_weights()
+    if USE_BYTE_WTE_INIT:
+        # Plan 11.1. AFTER init_weights (so every other tensor's draws are untouched -- wte's own
+        # normal_ still runs and is then overwritten, which is what keeps the RNG stream identical
+        # to the control) and BEFORE warm_start_from/model.to(device): host-side, one-shot, zero
+        # ops in the training graph. The print is the arm's null test.
+        n_ok, n_skip, feats = byte_feature_wte_init(model.transformer.wte.weight, tokenizer,
+                                                    config.vocab_size)
+        print0(f"byte-wte-init: {n_ok} rows from byte features, {n_skip} left random "
+               f"(mix={BYTE_WTE_INIT_MIX} max_n={BYTE_WTE_INIT_NGRAM} std={BYTE_WTE_INIT_STD} "
+               f"mean_features_per_token={feats:.1f})")
     if args.init_from:
         warm_start_from(args.init_from, model)
     model.to(device)
