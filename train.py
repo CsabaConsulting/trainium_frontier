@@ -5940,6 +5940,11 @@ def main() -> None:
     # would, goes through inv_gas_dev instead).
     global BATCH_RAMP, BATCH_RAMP_GRAD_ACCUM, BATCH_RAMP_BOUNDS, BATCH_RAMP_LR_EXP
     global USE_WEIGHT_EMA, WEIGHT_EMA_DECAYS, WEIGHT_EMA_START_FRAC
+    # T1.7. Declared HERE, not next to its assignment further down, because --compile-muon's
+    # argparse default READS it ("1" if USE_COMPILE_MUON else "0"), and Python forbids a `global`
+    # statement that follows any use of the name in the same function. Same rule that put
+    # MATRIX_LR et al. in this block; --nki-muon dodged it by hardcoding a literal default instead.
+    global USE_COMPILE_MUON
     parser = argparse.ArgumentParser(description="Neuron Competition R1 baseline")
     parser.add_argument("--device-type", type=str, default="")
     parser.add_argument("--num-steps", type=int, default=int(os.environ.get("NEURON_COMPETITION_R1_NUM_STEPS", NUM_STEPS)))
@@ -6483,7 +6488,7 @@ def main() -> None:
                      "Pick one, or use its pattern flag to keep some attention layers.")
 
     global USE_NKI_RELU2, USE_NKI_ROPE_NORM, USE_NKI_SOFTCAP_CE, USE_NKI_MUON
-    global USE_COMPILE_MUON
+    # (USE_COMPILE_MUON's `global` is at the top of main(); see the note there.)
     # T0.4/T1.4 resweep knobs (see the _hp block above; declared global at the top of main()).
     # Assigned here, i.e. before GPT(config) and before setup_optimizer(), which is where every
     # one of them is read.
