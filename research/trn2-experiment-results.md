@@ -5453,3 +5453,37 @@ budget left over) but not as the primary spend. Note the 2026-09-12 sweep's per-
 predictions were 1.014099 for dim256 and 1.014713 for mult128 at 2190 steps; measured here at 2145 they
 are 1.016356 and (jointly) 1.014014, so the width axis under-delivered slightly versus the extrapolation
 while layer 1 massively over-delivered relative to its 120-step loss proxy (3.9402 vs 3.9608).
+
+### 5. Spending the LEFTOVER budget: stacking width on top of layer 1, and the position space is closed
+
+Layer 1 only spends 5.86% of the 13.67% budget, so two follow-up 120-step quadrants asked what the rest
+buys. All arms carry the budget flags **and** `--ngram-ve-layers "1,-1"`; the reference is the layer-1
+arm itself (0.7848 s/step, 167008 tok/s, proxy loss 3.9402).
+
+| arm | tok/s | s/step | vs l1 | steps @1800s | params | step-110 loss |
+| --- | --- | --- | --- | --- | --- | --- |
+| `"1,-1"` (reference) | 167008 | 0.7848 | — | 2293 → **capped by the wall** | 324.5M | 3.9402 |
+| + `--ngram-ve-table-mult 128` | 157499 | 0.8318 | −5.7% | **2164** | 592.9M | **3.9343** |
+| + `--ngram-ve-dim 256` | 155467 | 0.8427 | −6.9% | 2136 | 593.2M | 3.9377 |
+| + dim 256 + mult 128 | 126461 | 1.0367 | −24.3% | **1736** | 1130.1M | 3.9325 |
+| `--ngram-ve-layers "1,3,-1"` | 161419 | 0.8122 | −3.5% | 2216 | 391.7M | 3.9855 (worse than *control*) |
+
+Two conclusions:
+
+- **Layer-1 cost and width cost are SUB-additive (they fight).** mult128 costs 3.64% on its own but
+  5.7% on top of layer 1; dim256 costs 3.72% on its own but 6.9%. Worse, the two width axes together on
+  top of layer 1 cost 24.3% — 1736 steps, and the 0.077/ln penalty for 2185→1736 is **+0.0177 bpb**,
+  which no 120-step proxy delta of 0.008 can repay. `l1 + dim256 + mult128` is dead on arithmetic alone.
+- **`--ngram-ve-layers "1,3,-1"` is worse than the plain control at 120 steps (3.9855 vs 3.9608)**,
+  reproducing the layer-3 sign from the previous quadrant. Layer 3 is not a capacity question, it is
+  actively harmful at this depth.
+
+**And the position space is now closed, for a reason worth writing down: `has_ve(i, n_layer)` is
+`i % 2 == (n_layer - 1) % 2`, so at DEPTH 6 the only value-embedding layers are {1, 3, 5}.**
+`--ngram-ve-layers "0,-1"`, `"2,-1"`, `"1,2,-1"` and `"0,1,-1"` are therefore **silently degenerate** —
+they parse fine, then `has_ngram_bigram` rejects the even index because it has no VE at all. Confirmed
+by instrument: `"0,-1"` and `"2,-1"` reported exactly 190.1M params and 177787/177778 tok/s, i.e. bit
+for bit the locked `"-1"` arm, and `"1,2,-1"` reported exactly layer 1's 324.5M and 167378 tok/s. So
+{1, 3, 5} is the whole space, layer 5 is the locked default, layer 1 is the win, layer 3 is negative,
+and `{1,3,5}` is worse than `{1,5}`. **There is no untried n-gram VE position left at this depth**, and
+any future attempt to put one on an even layer must first change `has_ve`.

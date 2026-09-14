@@ -5982,7 +5982,8 @@ def main() -> None:
                              "A/B: 1019 steps/1.089758 vs 1004/1.090677 -- pass --no-nki-muon for the plain "
                              "eager comparison path.")
     parser.add_argument("--compile-muon", action=argparse.BooleanOptionalAction,
-                        default=os.environ.get("NEURON_COMPETITION_R1_COMPILE_MUON", "0") != "0",
+                        default=os.environ.get("NEURON_COMPETITION_R1_COMPILE_MUON",
+                                               "1" if USE_COMPILE_MUON else "0") != "0",
                         help="T1.7: run Muon's per-group math body inside "
                              "torch.compile(backend='neuron') instead of ~80 eager aten launches "
                              "(Neuron only). Mutually exclusive with --nki-muon by construction -- a "
