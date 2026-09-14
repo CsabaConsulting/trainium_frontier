@@ -5532,3 +5532,136 @@ the config): `NGRAM_VE_LAYERS = "1,-1"`, `NGRAM_VE_TABLE_MULT = 128`, `USE_COMPI
 2135 steps in the official 1800 s, **1.004363 bpb** against the previous 1.018985 — **−0.0146 bpb**, of
 which −0.0130 is layer 1 (including the steps its budget bought) and −0.0016 is the width. Against the
 1.0384 board score for 1.018985, the naive translation is a board score near **1.024**.
+
+## 2026-09-14 — Probe 2: the launch-count hypothesis is CLOSED NEGATIVE (fatter micro-steps are monotonically SLOWER), and Probe 3's shape screen kills depth outright (track: throughput→capacity)
+
+Second Trn2 box (`ec2-16-26-154-27`, `trn2.3xlarge`, LNC=2, 4 logical cores, same AMI). Everything
+below is the 120-step fixed-step instrument (`--num-steps 120 --max-train-seconds 1800
+--eval-seq-len 1024`), the same one `t17_throughput_probe.sh` validated to reproduce 1800 s
+steady-state s/step to three digits. `lrm` stays 1.000 throughout. Steady-state means are over the
+eight printed steps 40–110; `s/step` is `131072 / mean(tok/s)`.
+
+### 0. Two things that had to be fixed before any number existed
+
+**(a) `train.py` at commit `7fb5fb3` did not compile at all.** Every invocation died at import:
+
+```
+File "train.py", line 6486
+    global USE_COMPILE_MUON
+SyntaxError: name 'USE_COMPILE_MUON' is used prior to global declaration
+```
+
+`--compile-muon`'s argparse default reads the module constant (`"1" if USE_COMPILE_MUON else "0"`) at
+line 5986, which is a *use* of the name inside `main()`, so the `global` statement 500 lines later is
+illegal. This is exactly the trap `--nki-muon` has a three-line comment about ("this function rebinds
+`USE_NKI_MUON` as a global, so it cannot also read it here") and that the T0.4 knobs are grouped at
+the top of `main()` to avoid. Fixed the same way the T0.4 knobs are, by declaring it in the top block
+(commit `428319a`); behaviour unchanged, since `USE_COMPILE_MUON` is `False` at argparse time either
+way. **Commits `682aa0d`…`7fb5fb3` are un-runnable and any md5 check against them is meaningless.**
+
+**(b) `--no-ve` did not exist.** The track doc's Probe 3 specifies it; `USE_VE` was in
+`ARCH_TOGGLE_NAMES` and `SHAPE_CRITICAL_TOGGLES` but had no CLI reachability, so the "maximally plain
+block" floor could not be measured from one identical binary. Added as `--ve/--no-ve`, default = the
+locked `True` (commit `61ce5d9`). Documented hazard: `--no-ve` transitively removes the n-gram value
+embeddings too, because `has_ngram_bigram()` requires `USE_VE and has_ve(layer)` — so it is a
+step-time diagnostic only, never a candidate config.
+
+### 1. Cross-box calibration: the two boxes are the same speed to three digits
+
+Before trusting any cross-box comparison, the *old* locked config (190.1M params, pre-promotion
+defaults) was re-run here:
+
+| box | arm | params | s/step | tok/s | step-110 loss |
+| --- | --- | --- | --- | --- | --- |
+| box 1 | `t17-base` | 190.1M | 0.8399 | 156063 | 3.9608 |
+| **box 2** | `tc-probe-pf4-locked` | 190.1M | **0.84081** | **155888** | 3.9666 |
+
+0.11% apart on s/step. **Box 1's throughput numbers transfer to box 2 unchanged**, which is what makes
+everything below comparable to the main track's tables without re-running the main track's arms.
+
+### 2. Probe 2 — one micro-step per optimizer step: closed NEGATIVE, and it is a monotone loss
+
+`research/scratch/tc_probe2_packfactor.sh`. `TOTAL_BATCH_SIZE = 131072` is held fixed by `train.py`, so
+total tokens per step are identical in all three arms and `grad_accum` falls as `PACK_FACTOR` rises.
+This is a pure launch-count-versus-work-per-launch trade at constant FLOPs.
+
+| arm | micro rows/rank | micro tokens/rank | `grad_accum` | s/step | tok/s (mean, n=8) | spread | **vs PF4** | step-0 compile |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `pf4-locked` (locked) | 4 | 8,192 | 4 | **0.84081** | 155888 | 0.72% | — | 210.1 s |
+| `pf8-locked` | 8 | 16,384 | 2 | **0.86345** | 151801 | 0.74% | **−2.62%** | 220.7 s |
+| `pf16-locked` | 16 | 32,768 | 1 | **0.89135** | 147049 | **3.14%** | **−5.67%** | 408.6 s |
+
+**Gate: ≥10% was needed to adopt, <5% closes the hypothesis. The measured result is not a small win,
+it is a monotone LOSS.** Neither fatter micro-step OOMed — 16 rows × 2048 per rank fits in 96 GB
+comfortably, so the HBM caveat in the track doc turned out not to bind and no `DEVICE_BATCH_SIZE`/PF
+combination had to be excluded.
+
+Three things worth keeping:
+
+- **The direction was independently predicted twice and both predictions were right.** T1.5's
+  synthetic fwd+bwd microbenchmark on the real 4-rank/LNC=2 compiled shape measured µs/token by micro
+  rows as 38.325 (1) / 22.322 (2) / **21.673 (4)** / 23.800 (8) — 4 is the per-token optimum and 8 is
+  ~10% past it. And Probe 1's native decomposition (`0.2544 s` at ga=1 vs `0.7952 s` at ga=4 ⇒ one
+  micro-step 0.1803 s, collective+optimizer 0.0741 s) bounded the *entire* prize for collapsing the
+  accumulation at 9.3% of the step, before subtracting what the fat micro-step itself costs. The real
+  number lands where those two said it would: the per-token penalty eats the whole 9.3% and then some.
+  The synthetic microbenchmark's −10% at 8 rows over-predicts the −2.62% seen here, which is the
+  expected direction — only the block-body fraction of the step pays it.
+- **`PACK_FACTOR = 4` is not a historical accident, it is an interior optimum**, now confirmed on both
+  sides: T1.5 measured PF2 as −2.6% on steps in a paired 900 s A/B, and PF8 is −2.62% here. The curve
+  is genuinely peaked at 4, and the track doc's "the only evidence against is a synthetic
+  microbenchmark, it was never a real run" is now answered with a real run.
+- **PF16's spread is 3.14%, 4× every other arm's.** With `grad_accum = 1` there is no averaging over
+  four micro-steps, and `dt` drifts 0.88 → 0.91 s across the window. Anything measured at ga=1 needs a
+  wider noise band than this project's usual 0.3%.
+
+**Why this verdict does not need re-running on the newly promoted defaults**, even though these arms
+predate them: `--compile-muon` and the frozen `--qk-shift` act on the optimizer window and the block
+body respectively, and neither changes the *number of micro-steps*. Probe 1's decomposition shows the
+collective+optimizer cost is fixed per optimizer step regardless of `grad_accum`, so the PF trade —
+(fewer per-micro-step fixed costs) versus (higher µs/token inside a fatter micro-step) — is untouched
+by them. Combined with a monotone sign across a 4× range of `PACK_FACTOR`, re-testing is not worth box
+time. **Probe 2 is closed; Probe 3 uses `PACK_FACTOR = 4`.**
+
+### 3. Probe 3 step 4, PART A — the width/depth s/step screen, and a correction about `--depth`
+
+`research/scratch/tc_probe3_shape_screen.sh`. Every arm carries the (now default) best config
+explicitly: `--compile-muon --qk-shift --qk-shift-beta 0.0 --qk-shift-freeze --ngram-ve-layers "1,-1"
+--ngram-ve-table-mult 128`. Run *after* the other box promoted those to defaults, so `sh-640x6` is the
+current locked config exactly.
+
+**A correction that invalidated one planned arm.** `--depth 8` alone does **not** give 640×8:
+`n_embd` defaults to `round_up(DEPTH * ASPECT_RATIO=96, HEAD_DIM=128)`, which is 640 at depth 6 and
+**768** at depth 8. So the arm launched as "640×8" was silently a second copy of "768×8" — identical
+`num_params=631,655,952`, identical `flops_per_token`. The accident is useful: it is an unplanned
+same-shape repeat, and it puts this instrument's s/step reproducibility at **0.27% on the mean** (68284
+vs 68102 tok/s), comfortably inside the 0.3% the notebook quotes. **Any future `--depth` sweep must
+pass `--n-embd` explicitly or it is sweeping two axes at once.**
+
+| arm | n_embd × depth | params | flops/token | s/step | tok/s (n=8) | **vs control** | steps @1800 s | step-110 loss |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `sh-640x6` (= locked) | 640 × 6 | 592.9M | 3.992e8 | **0.84565** | 154995 | — | **2128** | 3.9346 |
+| `sh-768x6` | 768 × 6 | 611.2M | 5.215e8 | **0.99075** | 132296 | **−14.65%** | 1817 | 3.9271 |
+| `sh-896x6` | 896 × 6 | 631.9M | 6.580e8 | **1.16765** | 112253 | **−27.58%** | 1542 | **3.8921** |
+| `sh-640x8`→768×8 | 768 × 8 | 631.7M | 6.820e8 | **1.91950** | 68284 | **−55.95%** | 938 | 3.9480 |
+| `sh-768x8` (repeat) | 768 × 8 | 631.7M | 6.820e8 | **1.92466** | 68102 | −56.06% | 935 | 3.9465 |
+
+**Depth is dead on both axes at once and does not get a full-budget run.** 768×8 is −56% throughput
+*and* its 120-step proxy loss (3.9465–3.9480) is **worse** than the 640×6 control's 3.9346. Nothing in
+this project's history has recovered from a simultaneous throughput and per-step-quality loss, and the
+arithmetic is not close: at 1800 s it would reach ~936 steps, and the measured −0.077 bpb/ln(steps)
+slope prices 2128 → 936 at **+0.063 bpb**. Recorded from the screen rather than paid for again.
+
+The mechanism is worth writing down, because it is a *superlinear* depth cost — 1.33× the layers for
+2.27× the step time — and it is the same LNC=2 resharding effect T3.1 found: the layer-1 n-gram
+gather's dynamic address forces the compiler to re-shard the residual/V stream for every layer
+*downstream* of the injection. At depth 6 with sites {1,5} that is layers 2–5, four layers; at depth 8
+with sites {1,7} it is layers 2–7, six layers. **So the cost of an early injection site scales with
+the depth below it, which means `--ngram-ve-layers "1,-1"` and `--depth` are anti-synergistic by
+construction** — a fact that would have been invisible without the promoted layer-1 default.
+
+Width, by contrast, is a live question and goes to Part B: the 120-step proxy loss improves
+monotonically with width (3.9346 → 3.9271 → **3.8921**), and 896×6's −0.0425 proxy delta is *twice*
+what layer 1's −0.0206 proxy delta was — and layer 1 went on to deliver −0.0118 real bpb. Against
+that, 896×6 costs 27.58% of the throughput, which the slope prices at +0.0253 bpb at 1800 s. Those two
+numbers are close enough that only the fixed-step runs can call it.

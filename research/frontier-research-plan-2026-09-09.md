@@ -931,12 +931,31 @@ graph-mode CLOSED NEGATIVE at the locked shape (0.997×, not the 1.5-3× the the
 bonus fell out of that work instead: `torch.compile` on the Muon optimizer step is unblocked
 (8.18× isolated, ~6% net), now being implemented as T1.7 on the first box.
 
-**Second box** (`ec2-16-26-154-27...`, same AMI, repo synced+verified 2026-09-14) is now running
-**Probes 2/3** (launches-per-token via bigger `PACK_FACTOR`, plain-block ablate-down, payoff
-width/depth resweep at fixed ~2150 steps) — independent of the first box's T1.7 work, per the
-track doc's coordination rules (flags only, no locked-default changes, no submissions from
-either box's own track work, separate `--out-dir tc-*`/label prefix). Both boxes append to the
-shared notebook/experiment-log; check here before starting anything to avoid duplicating a run.
+**Second box** (`ec2-16-26-154-27...`, same AMI, repo synced+verified 2026-09-14), Probes 2/3.
+Reproduces box 1's s/step to **0.11%**, so throughput numbers transfer between boxes unchanged.
+
+- **Probe 2 (launches per token) — DONE, CLOSED NEGATIVE.** `PACK_FACTOR` 4/8/16 = 0 / **−2.62%** /
+  **−5.67%** s/step. Fatter micro-steps are monotonically *slower*; `PACK_FACTOR = 4` is an interior
+  optimum. No OOM at 16×2048 rows/rank. **Do not re-test this.**
+- **Probe 3 shape screen — DONE, depth is DEAD.** 768×8 is −55.95% throughput *and* a worse 120-step
+  proxy loss (3.9480) than the 640×6 control (3.9346); at 1800 s it would reach ~936 steps for a
+  +0.063 bpb slope penalty. **`--depth` sweeps must pass `--n-embd` explicitly** — `--depth 8` alone
+  silently also sets n_embd 768 via `round_up(DEPTH*96, 128)`, which made two planned arms identical.
+  Mechanism worth knowing generally: an early n-gram injection site's LNC=2 resharding cost scales with
+  the number of layers *below* it, so `--ngram-ve-layers "1,-1"` and `--depth` are anti-synergistic.
+- **Probe 3 width payoff (640/768/896 × 6 at a fixed ~2135 steps) — in flight.**
+- **Two blockers cleared on the way, both affecting the main track too:** `train.py` at commit
+  `7fb5fb3` **did not compile at all** (`SyntaxError: name 'USE_COMPILE_MUON' is used prior to global
+  declaration` — `--compile-muon`'s argparse default reads the constant before the `global` statement;
+  commits `682aa0d`…`7fb5fb3` are un-runnable and md5 checks against them are meaningless). Hotfix
+  `428319a`. And `--no-ve` did not exist despite the track doc specifying it; added as `--ve/--no-ve`,
+  default = locked `True`, commit `61ce5d9`.
+
+Coordination unchanged: flags only, no locked-default changes from this track, no submissions from
+either box's own track work, separate `--out-dir tc-*` / label prefix. Both boxes append to the shared
+notebook/experiment-log; check here before starting anything to avoid duplicating a run. **The track's
+original ≤1.010 gate was overtaken by the main track on 2026-09-14** (new locked config = 1.004363), so
+the live bar for this track is "beat 1.004363".
 
 ### 12.3 Traps re-confirmed this block (keep these in view)
 

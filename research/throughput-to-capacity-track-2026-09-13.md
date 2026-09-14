@@ -21,7 +21,17 @@
 > **`torch.compile(backend="neuron")` compiles the Muon step and runs it 8.18× faster** once
 > `torch._foreach_copy_` is removed (that op is exactly the T1.7 blocker — it fails Torch-MLIR
 > legalization). Worth ≈6% of the step; T1.7 moves from known-blocked to known-feasible.
-> **Probes 2 and 3 are untouched and not started** (this task was scoped to Probes 0–1).
+> **UPDATE 2026-09-14 (box 2): Probe 2 is DONE and CLOSED NEGATIVE** (fatter micro-steps are
+> monotonically slower: PF4/8/16 = 0 / −2.62% / −5.67%). **Probe 3's shape screen is DONE and kills
+> depth outright** (768×8 is −56% throughput *and* a worse 120-step proxy loss than 640×6). Probe 3's
+> width payoff runs at a fixed ~2135 steps are the remaining item. Two blockers were cleared first:
+> `train.py` at commit `7fb5fb3` **did not compile at all** (`SyntaxError`, `global USE_COMPILE_MUON`
+> after its use in `--compile-muon`'s argparse default — commits `682aa0d`…`7fb5fb3` are un-runnable;
+> hotfix `428319a`), and `--no-ve` did not exist (added as `--ve/--no-ve`, default = locked, `61ce5d9`).
+> Box 2 reproduces box 1's s/step to 0.11%, so numbers transfer between boxes unchanged.
+> **NOTE the track's ≤1.010 gate was overtaken by the main track on the same day**: the new locked
+> config (n-gram VE layers "1,-1" at mult 128 + compiled Muon + frozen qk-shift) is **1.004363**, so
+> the meaningful bar for this track is now "beat 1.004363", not "reach 1.010".
 
 Written 2026-09-13 (local box, no hardware). Purpose: give a second instance, and whichever
 agent drives it, a track that is independent of the main box's locked config and submission
@@ -117,11 +127,16 @@ fails at eval.
 
 ## 4. Probe 2 — launches per token: one micro-step per optimizer step (half a day)
 
-**NOT STARTED.** Probe 1 supplies one number that bears on it directly: at the locked shape, native
-`0.2544 s` at ga=1 versus `0.7952 s` at ga=4 decomposes to **one micro-step = 0.1803 s, collective +
-optimizer = 0.0741 s (9.3% of the step)**. So going to one 32768-token micro-step per rank cannot save
-more than that 9.3% minus whatever the single fat micro-step itself costs — the launch-count story has
-much less headroom than §4 assumes. Fold this into the gate before spending the half day.
+**DONE 2026-09-14 on box 2 — CLOSED NEGATIVE, and it is a monotone LOSS, not a small win.**
+`PACK_FACTOR` 4 / 8 / 16 (grad_accum 4 / 2 / 1) at the locked model, 120-step fixed-step instrument:
+**0.84081 / 0.86345 / 0.89135 s/step = 0 / −2.62% / −5.67%**. Gate needed ≥10% to adopt and <5% to
+close; the sign is negative throughout, so it closes. Neither fatter micro-step OOMed (16×2048 rows per
+rank fits 96 GB), so the HBM caveat never bound. `PACK_FACTOR = 4` is an interior optimum, confirmed
+from both sides (T1.5 measured PF2 at −2.6% on steps, PF8 is −2.62% here). Full table, the mechanism,
+and why the verdict does not need re-running on the newly promoted defaults:
+`research/trn2-experiment-results.md`, "2026-09-14 — Probe 2: the launch-count hypothesis is CLOSED
+NEGATIVE". Probe 1's decomposition had already bounded the entire prize at 9.3% before subtracting the
+fat micro-step's own per-token penalty; the penalty ate all of it.
 
 
 Our step is 4 micro-steps of 8192 tokens per rank, ~67 launches each after compile. Hypothesis:
