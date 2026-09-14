@@ -6416,7 +6416,7 @@ the NKI frontend already performs the registration itself.
 
 ---
 
-## 2026-09-14 (later, second box `ec2-16-26-154-27`) — LNC=1 cliff investigation: the old +0.24 bpb finding cannot be reproduced, because LNC=1 multi-rank no longer *initialises*; both remaining suspects refuted
+## 2026-09-14 (later, second box `ec2-16-26-154-27`) — LNC=1 cliff investigation: the old +0.24 bpb finding cannot be reproduced, because LNC=1 no longer *runs at all*; both remaining suspects refuted
 
 Curiosity-tier task, run explicitly with the submission staying at LNC=2 / 4 ranks regardless of
 outcome. Goal: root-cause T0.6's `+0.2406 bpb` LNC=1 quality cliff. All runs below at
@@ -6464,24 +6464,43 @@ wait each; separate cold `NEURON_COMPILE_CACHE_DIR` per arm):
 | `cc-lnc1-4p` | `LNC=1` + external `NEURON_CC_FLAGS="--optlevel=1 --lnc=1"` | hang |
 
 **`nproc=1` hanging is the decisive datapoint.** `_nrt_barrier(0, rank, size)` with `size=1` has no
-peer to wait for; it still deadlocks. So the fault is *inside the barrier primitive at LNC=1* and is
-completely independent of world size, of collectives, of the data pipeline, of Muon, of the NKI
-kernels, of `clip_grad_norm_`, and of `torch.compile`. Everything downstream of
-`init_process_group` is unreachable and therefore exonerated by construction.
+peer to wait for; it still deadlocks. So the fault is completely independent of world size, of
+collectives, of the data pipeline, of Muon, of the NKI kernels, of `clip_grad_norm_`, and of
+`torch.compile`. Everything downstream of `init_process_group` is unreachable and therefore
+exonerated by construction.
 
 Not a core-acquisition problem: `NEURON_LOGICAL_NC_CONFIG=1 neuron-ls` correctly reports 8 cores
 (IDs 0-7) instead of LNC=2's 4, and `dmesg` shows the driver granting individual cores
-`00-00 … 07-07` at LNC=1. Userspace visibility and kernel-side allocation both work; only the
-barrier is broken. Stack: `neuronx-cc 2.26.6360.0`, `torch-neuronx 2.11.3.0.0` (vendored eager
-build at `~/workspace/torch_neuron_eager`), driver `2.30.2.0`, kernel `6.17.0-1019-aws`.
+`00-00 … 07-07` at LNC=1. Userspace visibility and kernel-side allocation both work.
+Stack: `neuronx-cc 2.26.6360.0`, `torch-neuronx 2.11.3.0.0` (vendored eager build at
+`~/workspace/torch_neuron_eager`), `nrt 2.34.10`, driver `2.30.2.0`, kernel `6.17.0-1019-aws`.
 
-**Control proving LNC=1 itself is not dead — only its distributed init is:** a *plain*
-`NEURON_LOGICAL_NC_CONFIG=1 python train.py` (no `torchrun`, so `get_dist_info()` returns
-`ddp=False` and `init_process_group` is never called) sails past the hang point and proceeds
-normally into compilation — `world_size=1`, `num_params=592,916,844`,
-`flops_per_token=3.991901e+08`, `torch.compile enabled (backend=neuron)`,
-`micro_tokens=8,192 grad_accum_steps=16`. LNC=1 codegen and execution work; `_nrt_barrier` at LNC=1
-does not.
+**Is it *only* the barrier? No — LNC=1 is non-functional on this stack, period.** Control: a *plain*
+`NEURON_LOGICAL_NC_CONFIG=1 python train.py` with **no `torchrun`** (so `get_dist_info()` returns
+`ddp=False` and `init_process_group` — hence `_nrt_barrier` — is never called at all). It gets much
+further: `world_size=1`, `num_params=592,916,844`, `flops_per_token=3.991901e+08`,
+`torch.compile enabled (backend=neuron)`, `micro_tokens=8,192 grad_accum_steps=16`. Then it hangs
+too, at the *next* NRT sync point:
+
+```
+Thread (idle): "MainThread"
+    _fn (torch/_dynamo/eval_frame.py:1263)
+    synchronize (torch_neuronx/__init__.py:531)
+    synchronize (torch_neuronx/neuron.py:290)
+    synchronize (train.py:1170)
+    main (train.py:4835)          # line numbers are the box's md5 87a7a4da... copy
+```
+
+After **17 minutes** in that state: 1.2% CPU, **no `neuronx-cc` process running** (so it is not
+merely a slow cold compile), 1,367,437,152 bytes allocated on the Neuron device, and — the decisive
+metric — `neuron-monitor` reporting `execution_summary: {"completed": 0, "completed_with_err": 0,
+"timed_out": 0, ...}` with an all-zero `error_summary`. **Zero device executions have ever
+completed.** Killed manually.
+
+So the honest statement is not "the barrier is broken at LNC=1" but: **on this
+runtime/driver/SDK combination, LNC=1 makes no device-execution progress at all.** It deadlocks at
+whichever NRT sync-point it reaches first — `_nrt_barrier` under `torchrun`, `torch_neuronx.
+synchronize()` without it — with no error, no timeout, and no diagnostic.
 
 **A partly-explanatory but incomplete side finding.** With only the *runtime* switch
 (`NEURON_RT_VIRTUAL_CORE_SIZE=1`, `NEURON_LOGICAL_NC_CONFIG` unset), the failure is loud instead of
@@ -6506,10 +6525,13 @@ LNC=1 breakages on this stack, and the barrier one is unexplained and unfixed fr
 because no multi-rank LNC=1 run can be started.** Task item 2 is blocked, not answered. Recorded
 honestly as such rather than dressed up.
 
-The only remaining route to an LNC=1 multi-rank number would be patching the vendored SDK to skip
-`_nrt_barrier`. **Not done, and recommended against**: that is the same `torch_neuronx` tree the
-locked LNC=2 submission runs on, and a run with the process-group barrier removed would not be
-trustworthy evidence about optimisation quality anyway.
+Patching the vendored SDK to skip `_nrt_barrier` would **not** help and is recommended against
+anyway: the no-`torchrun` control above already bypasses the barrier entirely and still hangs at the
+next sync, so the barrier is a symptom, not the cause — and that tree is the same `torch_neuronx` the
+locked LNC=2 submission runs on. The realistic route to an LNC=1 number is an SDK/driver bump, or
+booting the instance with `logical-neuroncore-config: 1` as the *driver-level* default rather than
+overriding it per-process (untried; judged not worth the risk of bricking the box for a
+curiosity-tier question with the submission locked to LNC=2).
 
 ### 2. Suspect (a) — world-size-dependent data pipeline: REFUTED, quantitatively
 
@@ -6596,9 +6618,10 @@ paired-repeat threshold anyway.
   They were measured at 55.7M params, before n-gram value embeddings (537M of today's 592.9M
   params), before compiled Muon, and on an SDK/train.py combination where LNC=1 could still
   initialise. Do not cite the `+0.24 bpb` figure as a live property of the current stack.
-- **LNC=1 is not a "slightly worse option" on this stack; it is a non-starter.** The LNC=2 lock needs
-  no quality justification at all right now — multi-rank LNC=1 cannot be launched. If a future SDK
-  bump fixes `_nrt_barrier`, re-measure from scratch rather than reusing any number above.
+- **LNC=1 is not a "slightly worse option" on this stack; it is a non-starter.** It completes zero
+  device executions, distributed or not. The LNC=2 lock needs no quality justification at all right
+  now. If a future SDK/driver bump revives LNC=1, re-measure from scratch rather than reusing any
+  number above.
 - **Latent trap worth knowing independently of LNC:** `NEURON_CC_FLAGS` on the live code path carries
   no `--lnc=`, so the compiler's `--lnc=2` default is silently assumed. Any future run at a non-2 LNC
   must pass `--lnc=` explicitly or it will hit `nrt_load_util` NEFF/runtime mismatches. (`setdefault`
@@ -6606,5 +6629,7 @@ paired-repeat threshold anyway.
 - **Both named suspects are closed.** The data pipeline is world-size-clean to ≤1.9% stream-length
   asymmetry with an identical corpus union, and Muon's NS is mathematically downstream of the
   all_reduce so it never sees a per-rank batch (confirmed to ~1e-7 relative). Neither can carry
-  0.24 bpb. The genuine unexplained residual is now the *barrier*, not the optimiser or the loader.
+  0.24 bpb. **The genuine unexplained residual is now a runtime-level LNC=1 execution deadlock, not
+  the optimiser and not the loader** — and it sits below `train.py`, so there is nothing in this
+  repo to fix.
 - **`train.py` unchanged by this task** (diagnostic only, no flags added).
