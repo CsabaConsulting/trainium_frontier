@@ -1,0 +1,68 @@
+[W914 06:51:58.688760093 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+device=neuron compute_dtype=torch.bfloat16 has_nki=True eager_math=False
+lerp overload check (fp32, gated): IDENTICAL
+muon groups: [((5, 32), 5, 'torch.float32'), ((640, 128), 2, 'torch.float32'), ((640, 640), 24, 'torch.float32'), ((640, 2560), 6, 'torch.float32'), ((2560, 640), 6, 'torch.float32')]
+muon groups eligible for the compiled branch (fp32): 5
+  [step 0] comp group0(5, 32) param0: 159/160 differ, max|diff| 1.129e-03
+  [step 0] comp group0(5, 32) second_momentum_buffer: 160/160 differ, max|diff| 1.931e-03
+  [step 0] comp group0(5, 32) stacked_params: 790/800 differ, max|diff| 1.740e-03
+  [step 0] comp group1(640, 128) param0: 79906/81920 differ, max|diff| 9.053e-04
+  [step 0] comp group1(640, 128) second_momentum_buffer: 1280/1280 differ, max|diff| 1.449e-05
+  [step 0] comp group1(640, 128) stacked_params: 159899/163840 differ, max|diff| 9.818e-04
+  [step 0] comp group2(640, 640) param0: 393147/409600 differ, max|diff| 3.110e-04
+  [step 0] comp group2(640, 640) second_momentum_buffer: 15360/15360 differ, max|diff| 7.968e-06
+  [step 0] comp group2(640, 640) stacked_params: 9431587/9830400 differ, max|diff| 3.353e-04
+  [step 0] comp group3(640, 2560) param0: 1557466/1638400 differ, max|diff| 1.144e-04
+  [step 0] comp group3(640, 2560) second_momentum_buffer: 15360/15360 differ, max|diff| 1.185e-06
+  [step 0] comp group3(640, 2560) stacked_params: 9350295/9830400 differ, max|diff| 1.373e-04
+  [step 0] comp group4(2560, 640) param0: 1556329/1638400 differ, max|diff| 2.594e-04
+  [step 0] comp group4(2560, 640) second_momentum_buffer: 15360/15360 differ, max|diff| 1.143e-06
+  [step 0] comp group4(2560, 640) stacked_params: 9347101/9830400 differ, max|diff| 2.899e-04
+step 0: nki: EXACT (worst 0.000e+00)  comp: 56626864 diff (worst 1.931e-03)
+  [step 1] comp group0(5, 32) param0: 160/160 differ, max|diff| 1.842e-03
+  [step 1] comp group0(5, 32) second_momentum_buffer: 160/160 differ, max|diff| 2.609e-03
+  [step 1] comp group0(5, 32) stacked_params: 797/800 differ, max|diff| 2.209e-03
+  [step 1] comp group1(640, 128) param0: 81549/81920 differ, max|diff| 1.396e-03
+  [step 1] comp group1(640, 128) second_momentum_buffer: 1280/1280 differ, max|diff| 2.260e-05
+  [step 1] comp group1(640, 128) stacked_params: 163083/163840 differ, max|diff| 1.396e-03
+  [step 1] comp group2(640, 640) param0: 406422/409600 differ, max|diff| 3.762e-04
+  [step 1] comp group2(640, 640) second_momentum_buffer: 15359/15360 differ, max|diff| 1.188e-05
+  [step 1] comp group2(640, 640) stacked_params: 9752158/9830400 differ, max|diff| 4.570e-04
+  [step 1] comp group3(640, 2560) param0: 1619243/1638400 differ, max|diff| 1.392e-04
+  [step 1] comp group3(640, 2560) second_momentum_buffer: 15360/15360 differ, max|diff| 2.007e-06
+  [step 1] comp group3(640, 2560) stacked_params: 9714272/9830400 differ, max|diff| 1.736e-04
+  [step 1] comp group4(2560, 640) param0: 1622574/1638400 differ, max|diff| 3.320e-04
+  [step 1] comp group4(2560, 640) second_momentum_buffer: 15360/15360 differ, max|diff| 2.025e-06
+  [step 1] comp group4(2560, 640) stacked_params: 9736248/9830400 differ, max|diff| 3.749e-04
+step 1: nki: EXACT (worst 0.000e+00)  comp: 115407499 diff (worst 2.609e-03)
+  [step 2] comp group0(5, 32) param0: 160/160 differ, max|diff| 2.403e-03
+  [step 2] comp group0(5, 32) second_momentum_buffer: 160/160 differ, max|diff| 3.254e-03
+  [step 2] comp group0(5, 32) stacked_params: 800/800 differ, max|diff| 2.830e-03
+  [step 2] comp group1(640, 128) param0: 81770/81920 differ, max|diff| 1.356e-03
+  [step 2] comp group1(640, 128) second_momentum_buffer: 1280/1280 differ, max|diff| 2.244e-05
+  [step 2] comp group1(640, 128) stacked_params: 163561/163840 differ, max|diff| 1.472e-03
+  [step 2] comp group2(640, 640) param0: 408473/409600 differ, max|diff| 4.922e-04
+  [step 2] comp group2(640, 640) second_momentum_buffer: 15360/15360 differ, max|diff| 1.454e-05
+  [step 2] comp group2(640, 640) stacked_params: 9801308/9830400 differ, max|diff| 4.922e-04
+  [step 2] comp group3(640, 2560) param0: 1630035/1638400 differ, max|diff| 1.639e-04
+  [step 2] comp group3(640, 2560) second_momentum_buffer: 15360/15360 differ, max|diff| 2.673e-06
+  [step 2] comp group3(640, 2560) stacked_params: 9781217/9830400 differ, max|diff| 1.888e-04
+  [step 2] comp group4(2560, 640) param0: 1632354/1638400 differ, max|diff| 4.285e-04
+  [step 2] comp group4(2560, 640) second_momentum_buffer: 15360/15360 differ, max|diff| 2.760e-06
+  [step 2] comp group4(2560, 640) stacked_params: 9794026/9830400 differ, max|diff| 4.332e-04
+step 2: nki: EXACT (worst 0.000e+00)  comp: 174536843 diff (worst 3.254e-03)
+
+=== T1.7 COMPILED-MUON EQUIVALENCE ===
+compiled specialisations built: 5 (expected 5)
+steps compared      3
+lerp overload       IDENTICAL
+nki   vs ref        differing=0  worst max|diff|=0.000e+00   [ungated scratch stacked_grads: 0]
+comp  vs ref        differing=174536843  worst max|diff|=3.254e-03   [ungated scratch stacked_grads: 88967517]
+VERDICT (compiled): not bit-exact, max|diff| 3.254e-03 -- judge against bf16 ULP
+DONE
