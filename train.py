@@ -470,7 +470,7 @@ def has_ve(layer_idx: int, n_layer: int) -> bool:
 # on every VE layer, which is a ~+50ms/step whole-graph scheduling penalty that has nothing to do
 # with the tables' size -- see NGRAM_VE_LAYERS below.
 USE_NGRAM_VE = True
-NGRAM_VE_LAYERS = "-1"    # WHICH layers get a bigram table. "" = every has_ve() layer, which is
+NGRAM_VE_LAYERS = "1,-1"  # WHICH layers get a bigram table. "" = every has_ve() layer, which is
 # Recursive's own allocation and what the original T3.1 grid measured. A comma-separated list of
 # layer indices (negatives count from the end, so "-1" is the last layer at any DEPTH) restricts
 # it. This exists because the per-step cost of these tables turned out to depend almost entirely
@@ -515,13 +515,36 @@ NGRAM_VE_LAYERS = "-1"    # WHICH layers get a bigram table. "" = every has_ve()
 # into). See the 2026-09-12 sections of research/trn2-experiment-results.md for the full ablation
 # (the gate, the slice offset, the up-projection and the injection into V were each ruled out
 # individually) and for the profile tables.
-NGRAM_VE_TABLE_MULT = 64  # rows per table = this x padded_vocab_size (64 x 8192 = 524288).
-# Chosen by the 2026-09-12 1800s sweep with NGRAM_VE_LAYERS="-1", bigram+trigram, dim 128
-# (bpb / steps / params): mult 32 -> 1.020516 / 2173 / 123.0M, mult 64 -> 1.018985 / 2139 /
-# 190.1M, mult 128 -> 1.019171 / 2067 / 324.3M. Capacity saturates at 64: doubling again is
-# 0.0002 WORSE for 72 fewer steps and 134M more parameters. dim 256 at mult 64 measured
-# 1.018483 / 2069 / 324.5M, which is 0.0005 better -- inside the noise band and at 1.7x the
-# parameters, so dim stays 128 (the "fewer total parameters" tie-break is real).
+#
+# LAYER 1 IS BACK ON, since 2026-09-14, and it is the largest single win since the tables themselves.
+# The +34% figure above ({5} -> {1,5}, 2.768 -> 3.711 s/step) was measured at ONE RANK, and it does
+# not survive the move to the 4-rank shape the competition actually runs: with the residual stream
+# already sharded four ways the cross-pcore reduce-add is far cheaper, and the real cost of adding
+# layer 1 is -5.86% throughput (177394 -> 167008 tok/s, 120-step instrument, 4 ranks, LNC=2). The
+# +13.67% budget from --compile-muon (T1.7, +3.38%) plus the frozen qk-shift (+9.50%) pays for it
+# with room to spare. Step-matched 1800s arms, same day, same commit, causality_max_abs 0.0:
+#   layers "-1"   (control)  2141 steps  1.019126   190.1M     <- reproduces the locked 1.018985
+#   layers "1,-1"            2139 steps  1.007376   324.5M     <- -0.0118 bpb at an EXACT step match
+#   layers "1,-1" @2187      2187 steps  1.005973   324.5M     <- +46 steps of leftover budget
+#   layers "1,-1" mult 128   2135 steps  1.004363   592.9M     <- LOCKED (see NGRAM_VE_TABLE_MULT)
+# layers "3,-1" and "1,3,-1" are both WORSE than the control on the 120-step proxy (3.9973 and
+# 3.9855 vs 3.9608), so layer 3 is not a budget question, it is harmful at this depth. And the
+# position space is CLOSED: has_ve() is `i % 2 == (n_layer-1) % 2`, so at DEPTH 6 the only VE layers
+# are {1,3,5} -- "0,-1", "2,-1", "1,2,-1" parse fine and then silently do nothing (measured: exactly
+# 190.1M params and the control's tok/s). Any even-layer attempt must change has_ve() first.
+NGRAM_VE_TABLE_MULT = 128 # rows per table = this x padded_vocab_size (128 x 8192 = 1048576).
+# The 2026-09-12 1800s sweep with NGRAM_VE_LAYERS="-1", bigram+trigram, dim 128 (bpb / steps /
+# params) said capacity saturates at 64: mult 32 -> 1.020516 / 2173 / 123.0M, mult 64 -> 1.018985 /
+# 2139 / 190.1M, mult 128 -> 1.019171 / 2067 / 324.3M, i.e. doubling was 0.0002 WORSE for 72 fewer
+# steps. **That saturation is a property of the ONE-LAYER configuration, and it reverses once layer 1
+# is also injecting** (2026-09-14, both arms at a legal <=1800s budget, same day/commit):
+#   layers "1,-1" mult  64   2187 steps  1.005973   324.5M
+#   layers "1,-1" mult 128   2135 steps  1.004363   592.9M   <- -0.0016 as run, -0.0035 step-matched
+# despite 52 fewer steps, so the extra capacity outruns the 0.077/ln(steps) penalty it costs. Two
+# injection sites make more table rows useful; one site cannot use them. Going further is arithmetic
+# that does NOT close: dim 256 on top of layer 1 is 0.8427 s/step (2136 steps) with a WORSE 120-step
+# proxy than mult 128 (3.9377 vs 3.9343), and dim 256 + mult 128 together cost 24.3% (1736 steps),
+# whose +0.0177 step penalty no measured capacity gain repays.
 NGRAM_VE_TRIGRAM = True   # also add a trigram table on the FIRST and LAST VE layer.
 # With NGRAM_VE_LAYERS="-1" the first and last VE layer are the same layer, so this adds exactly
 # one extra table, on that layer, and two tables on ONE layer is still free (measured). Worth
@@ -742,12 +765,17 @@ USE_OUT_POOL = False       # zero-init pooling of the last OUT_POOL_LAYERS block
                            # final residual, before the final norm: x = x + sum_k lam_k * h_k with
                            # every lam_k zero-init, so step 0 is an exact no-op.
 OUT_POOL_LAYERS = 3        # how many trailing block outputs to pool (Recursive uses 3).
-USE_QK_SHIFT = False       # causal token shift on the Q/K inputs only: q_in = k_in = x + beta*x_prev
+USE_QK_SHIFT = True        # causal token shift on the Q/K inputs only: q_in = k_in = x + beta*x_prev
                            # with a learned PER-DIM beta, V left unshifted. Different mechanism from
                            # USE_LOCAL_CONV (T0.1), which is a learned depthwise conv applied to the
                            # residual stream itself and feeds all three of Q/K/V.
-QK_SHIFT_BETA = 0.3        # per-dim beta init (Recursive: 0.3). Not a step-0 no-op by design.
-QK_SHIFT_FREEZE = False    # T3.9-followup / T1.x throughput probe: keep beta OUT of every optimizer
+                           # ON since 2026-09-14, but ONLY as the FROZEN beta=0.0 identity below --
+                           # i.e. it is on for its +9.50% throughput, not for its mathematics. The
+                           # learned form (beta 0.3, trainable) is NOT what is enabled here.
+QK_SHIFT_BETA = 0.0        # per-dim beta init (Recursive: 0.3). Not a step-0 no-op by design.
+                           # 0.0 since 2026-09-14: with QK_SHIFT_FREEZE this is a bit-exact identity
+                           # (see below), which is the whole point -- the win is the compiled graph.
+QK_SHIFT_FREEZE = True     # T3.9-followup / T1.x throughput probe: keep beta OUT of every optimizer
                            # group and set requires_grad=False, so it stays at QK_SHIFT_BETA forever.
                            # With --qk-shift-beta 0.0 that makes the whole shift a MATHEMATICAL
                            # IDENTITY at every step (x + 0.0*x_prev == x bit-exactly in IEEE fp, and
@@ -756,6 +784,9 @@ QK_SHIFT_FREEZE = False    # T3.9-followup / T1.x throughput probe: keep beta OU
                            # the decisive probe for the observed anomaly that adding almost any
                            # elementwise op to the block body makes a step 8-9% FASTER: if the frozen
                            # arm keeps the speedup with bit-identical losses, the +8% is free.
+                           # It did, twice: +9.50% at the locked config (2026-09-14 quadrant) with the
+                           # loss curve bit-identical, and the step-matched control at ~2145 steps
+                           # reproduced the locked 1.018985 to 3e-6 with this ON. Free throughput.
 USE_BLOCK_NUDGE = False    # The harvestable form of the block-body compiler-scheduling anomaly, once
                            # --qk-shift-freeze had shown the +10% throughput survives with the
                            # mathematics removed: add `x = x + nudge * x` with ONE nudge scalar per
@@ -4912,9 +4943,21 @@ ADAM_LIKE_KINDS = ("adamw", "rmsprop")
 
 # T1.7: toggled by --compile-muon in main(). Wrap Muon's per-group math body in
 # torch.compile(backend="neuron") so the whole elementwise+matmul chain becomes ONE
-# NEFF per group instead of ~80 aten launches. Default OFF until measured on this
-# config; see the _muon_math docstring for why this was blocked and what unblocked it.
-USE_COMPILE_MUON = False
+# NEFF per group instead of ~80 aten launches. See the _muon_math docstring for why this
+# was blocked and what unblocked it.
+# ON since 2026-09-14: +3.38% end-to-end at the locked config (156063 -> 161342 tok/s, 120-step
+# instrument, 4 ranks, LNC=2), and it stacks slightly SUPER-additively with the frozen qk-shift
+# (+13.67% together vs a 13.19% multiplicative prediction). Not the ~6% the isolated 8.18x
+# microbenchmark predicted, because that was priced against a non-NKI optimizer and the shipped
+# path already had the NKI Muon fusion. It REPLACES that fusion: a compiled region cannot contain
+# an nki.jit call, so --compile-muon and --nki-muon are mutually exclusive by construction.
+# Numerics: the source rewrite is BIT-EXACT against the eager body (0 differing elements, CPU,
+# 5 steps, per-step-varying schedule). The COMPILED execution is not -- worst max|diff| 3.25e-03
+# accumulated over 3 steps, bf16-ULP-scale drift in the bf16 Newton-Schulz chain, the same order as
+# the rope+norm (1 ULP) and softcap+CE (2.44 ULP) kernels already shipped. Checked where it
+# matters: the step-matched 1800s control with this ON scored 1.019126/2141, which normalises to
+# 1.018982 against the locked config's 1.018985 -- per-step neutral to 3e-6.
+USE_COMPILE_MUON = True
 
 # One compiled callable per (tall, ns_steps, red_dim) specialisation, built lazily.
 # Dynamo re-guards on the tensor shapes by itself, so a single entry can still hold
@@ -6652,6 +6695,15 @@ def main() -> None:
     USE_NKI_SOFTCAP_CE = args.nki_softcap_ce
     USE_NKI_MUON = args.nki_muon
     USE_COMPILE_MUON = args.compile_muon
+    if USE_COMPILE_MUON and USE_NKI_MUON:
+        # Not an error, because both are ON by default now and --compile-muon is the faster of the
+        # two (+3.38% vs the NKI path at the locked config). Silent precedence inside _muon_step
+        # would be worse than saying so: a reader looking at `nki_muon: True` in the config dump has
+        # to know that the compiled branch is checked first. Turn it off explicitly instead, so the
+        # dump tells the truth about which Muon step actually ran.
+        USE_NKI_MUON = False
+        print0("muon step: --compile-muon supersedes --nki-muon (a compiled region cannot contain "
+               "an nki.jit call); NKI Muon disabled for this run")
     USE_MAMBA2 = args.mamba2                # read by Block.__init__, i.e. before GPT(config) below
     MAMBA2_PATTERN = args.mamba2_pattern      # ditto (mamba2_layer_flags reads it per block)
     # Mixer geometry: all read by Mamba2Mixer.__init__, i.e. before GPT(config) below.
