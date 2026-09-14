@@ -1,0 +1,428 @@
+[W914 22:28:50.000809812 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+W0914 22:28:50.809000 224311 torch/distributed/run.py:851] 
+W0914 22:28:50.809000 224311 torch/distributed/run.py:851] *****************************************
+W0914 22:28:50.809000 224311 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0914 22:28:50.809000 224311 torch/distributed/run.py:851] *****************************************
+[W914 22:28:52.210946879 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W914 22:28:52.211259516 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W914 22:28:52.212185657 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W914 22:28:53.214840577 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+muon step: --compile-muon supersedes --nki-muon (a compiled region cannot contain an nki.jit call); NKI Muon disabled for this run
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+device=neuron dtype=torch.bfloat16 world_size=4
+training target=5 steps max_seconds=100000 official_budget=1800s
+WARNING: --num-steps 5 is below max_train_seconds=100000s and will almost certainly stop training before the time budget (the LR schedule would end without cooldown). For a scored submission leave --num-steps at its default (1000000).
+model_config={
+  "sequence_len": 2048,
+  "vocab_size": 8192,
+  "n_layer": 6,
+  "n_head": 5,
+  "n_embd": 640,
+  "mlp_ratio": 4,
+  "attn_scale": 0.0
+}
+num_params=592,916,844 flops_per_token=3.991901e+08
+torch.compile enabled (backend=neuron)
+micro_tokens=32,768 grad_accum_steps=4 pack_factor=4
+muon step: COMPILED body for (7, 5, 32) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 1]
+muon step: COMPILED body for (4, 640, 128) (tall=True ns_steps=5 red_dim=-1) [specialisations so far: 2]
+muon step: COMPILED body for (24, 640, 640) (tall=False ns_steps=5 red_dim=-1) [specialisations so far: 3]
+muon step: COMPILED body for (6, 640, 2560) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 4]
+muon step: COMPILED body for (6, 2560, 640) (tall=True ns_steps=5 red_dim=-1) [specialisations so far: 5]
+step 00000 | loss 9.0100 | lrm 1.000 | dt 52.37s | tok/s 2,503 | remaining_steps 4 | remaining_time 99946s | epoch 1
+2026-Sep-14 22:33:28.086586 224330:224525 ERROR  TDRV:dmem_alloc_internal                     Failed to allocate DEVICE memory (268435456 bytes): memory allocation failed (ret=-12)
+2026-Sep-14 22:33:28.088684 224330:224525 ERROR  TDRV:tensor_allocate                         Failed to allocate 268435456 bytes on DEVICE for tensor UNKNOWN.
+2026-Sep-14 22:33:28.090371 224330:224525 ERROR   NRT:nrt_infodump                            Neuron runtime information - please include in any support request:
+2026-Sep-14 22:33:28.092139 224330:224525 ERROR   NRT:nrt_infodump                            ------------->8------------[ cut here ]------------>8-------------
+2026-Sep-14 22:33:28.095017 224330:224525 ERROR   NRT:nrt_infodump                            NRT version: 2.34.10.0 (ac18d186d3198d7152096c3a8fa77e1ab1424c39)
+2026-Sep-14 22:33:28.097311 224330:224525 ERROR   NRT:nrt_infodump                            Embedded FW version: 1.24.1.0 (b0a1a5cc148a4e8a48e1889d2982f465280f3d0a) loaded from "libnrtucode_extisa.so"
+2026-Sep-14 22:33:28.099535 224330:224525 ERROR   NRT:nrt_infodump                            CCOM version: 2.34.10.0- (compat 92)
+2026-Sep-14 22:33:28.100923 224330:224525 ERROR   NRT:nrt_infodump                            NCFW version: 2.34.1.0 (23a4b43d43c9755014be657d2853735b1551cfbe)
+2026-Sep-14 22:33:28.103108 224330:224525 ERROR   NRT:nrt_infodump                            Instance ID: i-0673e54d9d66e6a1e
+2026-Sep-14 22:33:28.104418 224330:224525 ERROR   NRT:nrt_infodump                            Cluster ID: 328418119676649966
+2026-Sep-14 22:33:28.106306 224330:224525 ERROR   NRT:nrt_infodump                            Kernel: Linux 6.17.0-1019-aws #19~24.04.1-Ubuntu SMP Tue Jun 23 18:53:06 UTC 2026
+2026-Sep-14 22:33:28.109359 224330:224525 ERROR   NRT:nrt_infodump                            Nodename: ip-172-31-32-253
+2026-Sep-14 22:33:28.111268 224330:224525 ERROR   NRT:nrt_infodump                            Driver version: 2.30.2.0
+
+2026-Sep-14 22:33:28.113497 224330:224525 ERROR   NRT:nrt_infodump                            Failure: NRT_RESOURCE in nrt_tensor_allocate
+2026-Sep-14 22:33:28.115433 224330:224525 ERROR   NRT:nrt_infodump                            LNC: 0
+2026-Sep-14 22:33:28.117435 224330:224525 ERROR   NRT:nrt_infodump                            Visible cores: 3
+2026-Sep-14 22:33:28.118856 224330:224525 ERROR   NRT:nrt_infodump                            Environment:
+2026-Sep-14 22:33:28.120408 224330:224525 ERROR   NRT:nrt_infodump                                NEURON_CC_FLAGS=--optlevel=1 --lnc=1
+2026-Sep-14 22:33:28.122354 224330:224525 ERROR   NRT:nrt_infodump                                NEURON_LOGICAL_NC_CONFIG=1
+2026-Sep-14 22:33:28.124114 224330:224525 ERROR   NRT:nrt_infodump                                NEURON_LAUNCH_BLOCKING=0
+2026-Sep-14 22:33:28.125959 224330:224525 ERROR   NRT:nrt_infodump                                NEURON_RT_ALLOW_LEGACY_NEFF=1
+2026-Sep-14 22:33:28.128655 224330:224525 ERROR   NRT:nrt_infodump                                NEURON_RT_DBG_ZEROCOPY=1
+2026-Sep-14 22:33:28.130316 224330:224525 ERROR   NRT:nrt_infodump                                NEURON_RT_MAP_HBM=1
+2026-Sep-14 22:33:28.131937 224330:224525 ERROR   NRT:nrt_infodump                                NEURON_RT_DISABLE_EXECUTION_BARRIER=0
+2026-Sep-14 22:33:28.133762 224330:224525 ERROR   NRT:nrt_infodump                                NEURON_COMPILE_CACHE_DIR=/tmp/neuron_cache
+2026-Sep-14 22:33:28.135667 224330:224525 ERROR   NRT:nrt_infodump                                NEURON_RT_ROOT_COMM_ID=ip-172-31-32-253.ap-southeast-4.compute.internal:52425
+2026-Sep-14 22:33:28.138505 224330:224525 ERROR   NRT:nrt_infodump                                NEURON_RT_ENABLE_DEVICE_MEMORY_OOM_LOG=0
+2026-Sep-14 22:33:28.140376 224330:224525 ERROR   NRT:nrt_infodump                            -------------8<-----------[ cut to here ]-----------8<------------
+2026-Sep-14 22:33:28.236232 224327:224453 ERROR  TDRV:dmem_alloc_internal                     Failed to allocate DEVICE memory (268435456 bytes): memory allocation failed (ret=-12)
+2026-Sep-14 22:33:28.238884 224327:224453 ERROR  TDRV:tensor_allocate                         Failed to allocate 268435456 bytes on DEVICE for tensor UNKNOWN.
+2026-Sep-14 22:33:28.241095 224327:224453 ERROR   NRT:nrt_infodump                            Neuron runtime information - please include in any support request:
+2026-Sep-14 22:33:28.243173 224327:224453 ERROR   NRT:nrt_infodump                            ------------->8------------[ cut here ]------------>8-------------
+2026-Sep-14 22:33:28.245159 224327:224453 ERROR   NRT:nrt_infodump                            NRT version: 2.34.10.0 (ac18d186d3198d7152096c3a8fa77e1ab1424c39)
+2026-Sep-14 22:33:28.247124 224327:224453 ERROR   NRT:nrt_infodump                            Embedded FW version: 1.24.1.0 (b0a1a5cc148a4e8a48e1889d2982f465280f3d0a) loaded from "libnrtucode_extisa.so"
+2026-Sep-14 22:33:28.249579 224327:224453 ERROR   NRT:nrt_infodump                            CCOM version: 2.34.10.0- (compat 92)
+2026-Sep-14 22:33:28.251218 224327:224453 ERROR   NRT:nrt_infodump                            NCFW version: 2.34.1.0 (23a4b43d43c9755014be657d2853735b1551cfbe)
+2026-Sep-14 22:33:28.253169 224327:224453 ERROR   NRT:nrt_infodump                            Instance ID: i-0673e54d9d66e6a1e
+2026-Sep-14 22:33:28.254769 224327:224453 ERROR   NRT:nrt_infodump                            Cluster ID: 328418119676649966
+2026-Sep-14 22:33:28.256311 224327:224453 ERROR   NRT:nrt_infodump                            Kernel: Linux 6.17.0-1019-aws #19~24.04.1-Ubuntu SMP Tue Jun 23 18:53:06 UTC 2026
+2026-Sep-14 22:33:28.258979 224327:224453 ERROR   NRT:nrt_infodump                            Nodename: ip-172-31-32-253
+2026-Sep-14 22:33:28.261204 224327:224453 ERROR   NRT:nrt_infodump                            Driver version: 2.30.2.0
+
+2026-Sep-14 22:33:28.263814 224327:224453 ERROR   NRT:nrt_infodump                            Failure: NRT_RESOURCE in nrt_tensor_allocate
+2026-Sep-14 22:33:28.265518 224327:224453 ERROR   NRT:nrt_infodump                            LNC: 0
+2026-Sep-14 22:33:28.266710 224327:224453 ERROR   NRT:nrt_infodump                            Visible cores: 0
+2026-Sep-14 22:33:28.268043 224327:224453 ERROR   NRT:nrt_infodump                            Environment:
+2026-Sep-14 22:33:28.269520 224327:224453 ERROR   NRT:nrt_infodump                                NEURON_CC_FLAGS=--optlevel=1 --lnc=1
+2026-Sep-14 22:33:28.271197 224327:224453 ERROR   NRT:nrt_infodump                                NEURON_LOGICAL_NC_CONFIG=1
+2026-Sep-14 22:33:28.273040 224327:224453 ERROR   NRT:nrt_infodump                                NEURON_LAUNCH_BLOCKING=0
+2026-Sep-14 22:33:28.274599 224327:224453 ERROR   NRT:nrt_infodump                                NEURON_RT_ALLOW_LEGACY_NEFF=1
+2026-Sep-14 22:33:28.276161 224327:224453 ERROR   NRT:nrt_infodump                                NEURON_RT_DBG_ZEROCOPY=1
+2026-Sep-14 22:33:28.277669 224327:224453 ERROR   NRT:nrt_infodump                                NEURON_RT_MAP_HBM=1
+2026-Sep-14 22:33:28.279467 224327:224453 ERROR   NRT:nrt_infodump                                NEURON_RT_DISABLE_EXECUTION_BARRIER=0
+2026-Sep-14 22:33:28.281195 224327:224453 ERROR   NRT:nrt_infodump                                NEURON_COMPILE_CACHE_DIR=/tmp/neuron_cache
+2026-Sep-14 22:33:28.282965 224327:224453 ERROR   NRT:nrt_infodump                                NEURON_RT_ROOT_COMM_ID=ip-172-31-32-253.ap-southeast-4.compute.internal:52425
+2026-Sep-14 22:33:28.285101 224327:224453 ERROR   NRT:nrt_infodump                                NEURON_RT_ENABLE_DEVICE_MEMORY_OOM_LOG=0
+2026-Sep-14 22:33:28.286818 224327:224453 ERROR   NRT:nrt_infodump                            -------------8<-----------[ cut to here ]-----------8<------------
+2026-Sep-14 22:33:28.938389 224330:224525 ERROR   NRT:nrt_tensor_allocate                     Failed to allocate nrt tensor UNNAMED
+2026-Sep-14 22:33:28.938594 224327:224453 ERROR   NRT:nrt_tensor_allocate                     Failed to allocate nrt tensor UNNAMED
+2026-Sep-14 22:33:28.941735 224327:224453 ERROR  TDRV:dmem_alloc_internal                     Failed to allocate DEVICE memory (268435456 bytes): memory allocation failed (ret=-12)
+2026-Sep-14 22:33:28.942023 224330:224525 ERROR  TDRV:dmem_alloc_internal                     Failed to allocate DEVICE memory (268435456 bytes): memory allocation failed (ret=-12)
+2026-Sep-14 22:33:28.943626 224327:224453 ERROR  TDRV:tensor_allocate                         Failed to allocate 268435456 bytes on DEVICE for tensor UNKNOWN.
+2026-Sep-14 22:33:28.945637 224330:224525 ERROR  TDRV:tensor_allocate                         Failed to allocate 268435456 bytes on DEVICE for tensor UNKNOWN.
+2026-Sep-14 22:33:29.468077 224330:224525 ERROR   NRT:nrt_tensor_allocate                     Failed to allocate nrt tensor UNNAMED
+[rank3]:[W914 22:33:29.681775134 NeuronLogging.h:103] Warning: [Neuron] [WARNING] [torch_neuronx/csrc/core/utils/ErrorRecovery.cpp:100] OOM recovery failed after shelves cleanup + cache drain op= neuron::alloc::lazy nrt_status=NRT_RESOURCE  (function log)
+[rank3]:[W914 22:33:29.681794537 NeuronMetrics.cpp:604] Warning: Neuron OOM: requested_size=268435456 | Peak memory stats (at allocated_bytes peak): allocated_bytes.current=9315718016 allocated_bytes.peak=9315718016 reserved_bytes.current=9577693184 reserved_bytes.peak=9577693184 active_bytes.current=9263306541 active_bytes.peak=9263306541 internal_fragmentation=52411475 num_alloc_retries=0 num_ooms=0 num_alloc_deferred=0 num_alloc_drain_retry_ok=0 num_alloc_drain_retry_fail=0 (function RecordOOMFailure)
+[rank3]:[W914 22:33:29.682041937 NeuronMetrics.cpp:647] Warning: Neuron OOM: Segment pool state: segments=165 free_chunks=9 total_free=16454085760 largest_cached_free=247463936 nrt_free=16194207744 cached_free=259878016 allocated=9315718016 reserved=9575596032 active=9263306541 total_hbm=25769803776 (function RecordOOMFailure)
+python3: /opt/workspace/KaenaRuntime/tdrv/db.c:235: db_physical_core_get_mla_and_tpb: Assertion `m->is_used == true && m->tpb_map.map[pcore->device_tpb_idx] != 0' failed.
+2026-Sep-14 22:33:29.469256 224327:224453 ERROR   NRT:nrt_tensor_allocate                     Failed to allocate nrt tensor UNNAMED
+[rank0]:[W914 22:33:29.683804841 NeuronLogging.h:103] Warning: [Neuron] [WARNING] [torch_neuronx/csrc/core/utils/ErrorRecovery.cpp:100] OOM recovery failed after shelves cleanup + cache drain op= neuron::alloc::lazy nrt_status=NRT_RESOURCE  (function log)
+[rank0]:[W914 22:33:29.683822894 NeuronMetrics.cpp:604] Warning: Neuron OOM: requested_size=268435456 | Peak memory stats (at allocated_bytes peak): allocated_bytes.current=9315718016 allocated_bytes.peak=9315718016 reserved_bytes.current=9577693184 reserved_bytes.peak=9577693184 active_bytes.current=9263306541 active_bytes.peak=9263306541 internal_fragmentation=52411475 num_alloc_retries=0 num_ooms=0 num_alloc_deferred=0 num_alloc_drain_retry_ok=0 num_alloc_drain_retry_fail=0 (function RecordOOMFailure)
+[rank0]:[W914 22:33:29.684415430 NeuronMetrics.cpp:647] Warning: Neuron OOM: Segment pool state: segments=165 free_chunks=9 total_free=16454085760 largest_cached_free=247463936 nrt_free=16194207744 cached_free=259878016 allocated=9315718016 reserved=9575596032 active=9263306541 total_hbm=25769803776 (function RecordOOMFailure)
+2026-Sep-14 22:33:29.472236 224327:224453 ERROR  TDRV:print_lnc_hbm_details                   LNC size is 1. Neuron Cores using this HBM: NC 4 and NC 5
+2026-Sep-14 22:33:29.474363 224327:224453 ERROR  TDRV:log_dev_mem_utilization                 ND 0:NC 4, current utilization:
+WARNING: Unable to get usage details for NC 5 as it is not being used by current process.
+2026-Sep-14 22:33:29.478843 224327:224453 ERROR  TDRV:log_dev_mem_usage_table                 Displaying Current Memory Utilization:
+(NOTE: the lines are LONG, and NEFF id to name mapping is printed after)
+
+              |          |  Model   |  Model   |          |  Shared  |          |          |DMA Rings |DMA Rings | DMA Rings |DMA Rings |           | Profiler |
+              |  TOTAL   |   Code   |Constants | Tensors  |Scratchpad|Scratchpad| Runtime  |    IO    |  Spill   |Collectives| Runtime  |Collectives| Buffers  |
+ND 0 HBM 2    | 11.839GB |189.265MB | 4.406MB  | 8.918GB  | 2.500GB  | 256.000B | 11.509MB |468.500KB |187.781MB |  4.679MB  |448.000KB | 32.432MB  |  0.000B  |
+\_NEFF 1024   |137.570KB | 25.562KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1025   | 54.258KB | 26.250KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1026   |135.195KB | 23.188KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1027   |134.320KB | 22.312KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1028   | 49.508KB | 21.500KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1029   |134.320KB | 22.312KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1030   | 49.633KB | 21.625KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1031   |151.070KB | 39.062KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1032   |134.320KB | 22.312KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1033   |135.945KB | 23.938KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1034   |139.508KB | 27.500KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1035   |138.133KB | 26.125KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1036   |134.820KB | 22.812KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1037   |134.320KB | 22.312KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1038   |135.070KB | 23.062KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1039   | 2.198MB  | 2.088MB  |  0.000B  |   n/a    | 1.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1040   | 49.695KB | 21.688KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1041   |168.195KB | 24.188KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB | 32.000KB |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1042   |134.320KB | 22.312KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1043   |705.633KB |593.625KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1044   |775.391KB | 40.000KB |  0.000B  |   n/a    |40.000MB* |  0.000B  |108.008KB |  0.000B  |  0.000B  | 583.000KB | 4.000KB  | 40.383KB  |   n/a    |
+\_NEFF 1045   |270.656KB | 23.438KB |  0.000B  |   n/a    | 4.004KB* |  0.000B  |108.008KB |  0.000B  |  0.000B  | 95.000KB  | 4.000KB  | 40.211KB  |   n/a    |
+\_NEFF 1046   |271.781KB | 24.562KB |  0.000B  |   n/a    | 3.125MB* |  0.000B  |108.008KB |  0.000B  |  0.000B  | 95.000KB  | 4.000KB  | 40.211KB  |   n/a    |
+\_NEFF 1047   |276.797KB | 27.938KB |  0.000B  |   n/a    |12.500MB* |  0.000B  |108.008KB |  0.000B  |  0.000B  | 97.000KB  | 4.000KB  | 39.852KB  |   n/a    |
+\_NEFF 1048   |275.234KB | 26.375KB |  0.000B  |   n/a    |12.500MB* |  0.000B  |108.008KB |  0.000B  |  0.000B  | 97.000KB  | 4.000KB  | 39.852KB  |   n/a    |
+\_NEFF 1049   |270.656KB | 23.438KB |  0.000B  |   n/a    |13.000KB* |  0.000B  |108.008KB |  0.000B  |  0.000B  | 95.000KB  | 4.000KB  | 40.211KB  |   n/a    |
+\_NEFF 1050   |337.031KB | 25.812KB |  0.000B  |   n/a    | 4.625KB* |  0.000B  |108.008KB | 32.000KB | 32.000KB | 95.000KB  | 4.000KB  | 40.211KB  |   n/a    |
+\_NEFF 1051   | 4.001MB  |594.875KB |  0.000B  |   n/a    |512.000MB*|  0.000B  |108.008KB |  0.000B  |  0.000B  |  3.271MB  | 4.000KB  | 41.195KB  |   n/a    |
+\_NEFF 1052   |270.906KB | 23.688KB |  0.000B  |   n/a    |640.000KB*|  0.000B  |108.008KB |  0.000B  |  0.000B  | 95.000KB  | 4.000KB  | 40.211KB  |   n/a    |
+\_NEFF 1053   | 52.383KB | 24.375KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1054   |134.320KB | 22.312KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1055   |134.383KB | 22.375KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1056   |139.633KB | 27.625KB |  0.000B  |   n/a    |512.000B* |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1057   |144.320KB | 32.312KB |  0.000B  |   n/a    |512.000B* |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1058   | 57.070KB | 29.062KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1059   |151.133KB | 39.125KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1060   |139.320KB | 27.312KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1061   |139.633KB | 27.625KB |  0.000B  |   n/a    |512.000B* |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1062   | 57.820KB | 29.812KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1063   |143.695KB | 31.688KB |  0.000B  |   n/a    |512.000B* |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1064   | 49.387KB | 21.375KB |  4.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1065   |141.258KB | 29.250KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1066   |138.883KB | 26.875KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1067   |139.633KB | 27.625KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1068   |137.258KB | 25.250KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1069   |137.320KB | 25.312KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1070   |139.633KB | 27.625KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1071   |137.320KB | 25.312KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1072   |140.008KB | 28.000KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1073   |166.008KB | 54.000KB |  0.000B  |   n/a    |512.000B* |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1074   | 73.945KB | 45.938KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1075   |186.320KB | 74.312KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1076   |149.445KB | 37.438KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1077   |150.133KB | 38.125KB |  0.000B  |   n/a    |512.000B* |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1078   | 76.633KB | 48.625KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1079   |150.133KB | 38.125KB |  0.000B  |   n/a    |512.000B* |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1080   |162.320KB | 50.312KB |  0.000B  |   n/a    |512.000B* |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1081   |113.883KB | 85.875KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1082   |493.383KB |465.375KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1083   |703.070KB |591.062KB |  0.000B  |   n/a    |256.000B* |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1084   | 2.366MB  | 2.256MB  |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1085   |379.258KB |267.250KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1086   |393.758KB |281.750KB |  0.000B  |   n/a    |256.000B* |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1087   |522.070KB |494.062KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1088   |393.758KB |281.750KB |  0.000B  |   n/a    |256.000B* |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1089   |606.633KB |494.625KB |  0.000B  |   n/a    |512.000B* |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1090   | 49.445KB | 21.438KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1091   |137.320KB | 25.312KB |  0.000B  |   n/a    |512.000B* |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1092   | 51.508KB | 23.500KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1093   |139.570KB | 27.562KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1094   |135.320KB | 23.312KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1095   |135.633KB | 23.625KB |  0.000B  |   n/a    |512.000B* |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1096   | 51.883KB | 23.875KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1097   |135.633KB | 23.625KB |  0.000B  |   n/a    |512.000B* |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1098   |137.445KB | 25.438KB |  0.000B  |   n/a    |512.000B* |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1099   | 49.445KB | 21.438KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1100   | 49.445KB | 21.438KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1101   | 49.945KB | 21.938KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1102   | 49.398KB | 21.375KB | 16.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1103   |267.133KB | 59.125KB | 64.000KB |   n/a    | 0.000B*  |  0.000B  |108.008KB | 32.000KB |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1104   | 49.633KB | 21.625KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1105   | 49.445KB | 21.438KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1106   | 49.695KB | 21.688KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1107   |562.570KB |322.562KB | 96.000KB |   n/a    | 0.000B*  |  0.000B  |108.008KB | 32.000KB |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1108   | 54.570KB | 26.562KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1109   | 49.445KB | 21.438KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1110   | 51.320KB | 23.312KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1111   | 6.633MB  | 5.975MB  |480.000KB |   n/a    |165.875MB*|  0.000B  |190.117KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1112   | 54.570KB | 26.562KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1113   | 49.445KB | 21.438KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1114   | 49.883KB | 21.875KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1115   | 5.015MB  | 4.326MB  |480.000KB |   n/a    |104.402MB*|  0.000B  |190.117KB | 32.000KB |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1116   | 54.570KB | 26.562KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1117   | 49.445KB | 21.438KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1118   | 49.883KB | 21.875KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1119   | 4.709MB  | 4.238MB  |256.000KB |   n/a    |95.625MB* |  0.000B  |190.117KB | 32.000KB |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1120   | 49.383KB | 21.375KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1121   | 49.383KB | 21.375KB |  0.000B  |   n/a    | 0.<<TRUNCATED>>
+2026-Sep-14 22:33:29.478942 224327:224453 ERROR  TDRV:log_dev_mem_usage_table                 Also logged memory breakdown to /tmp/neuron_mem_table_device_0_nc_4.log
+2026-Sep-14 22:33:29.482950 224327:224453 ERROR  TDRV:dml_dump                                Wrote nrt memory alloc debug info to /tmp/nrt_mem_log_device_0_6aa87639.csv
+2026-Sep-14 22:33:29.490189 224327:224453 ERROR  TDRV:dml_driver_dump                         Wrote driver memory alloc debug info to /tmp/neuron_mem_log_device_0_hbm_2_6aa87639.csv
+2026-Sep-14 22:33:29.492593 224327:224453 ERROR  TDRV:dmem_alloc_internal                     Failed to allocate DEVICE memory (67108864 bytes): memory allocation failed (ret=-12)
+2026-Sep-14 22:33:29.494871 224327:224453 ERROR  TDRV:tensor_allocate                         Failed to allocate 67108864 bytes on DEVICE for tensor UNKNOWN.
+2026-Sep-14 22:33:30.002610 224327:224453 ERROR   NRT:nrt_tensor_allocate                     Failed to allocate nrt tensor UNNAMED
+2026-Sep-14 22:33:30.005040 224327:224453 ERROR  TDRV:dmem_alloc_internal                     Failed to allocate DEVICE memory (67108864 bytes): memory allocation failed (ret=-12)
+2026-Sep-14 22:33:30.007490 224327:224453 ERROR  TDRV:tensor_allocate                         Failed to allocate 67108864 bytes on DEVICE for tensor UNKNOWN.
+2026-Sep-14 22:33:30.515319 224327:224453 ERROR   NRT:nrt_tensor_allocate                     Failed to allocate nrt tensor UNNAMED
+[rank0]:[W914 22:33:30.729825637 NeuronLogging.h:103] Warning: [Neuron] [WARNING] [torch_neuronx/csrc/core/utils/ErrorRecovery.cpp:100] OOM recovery failed after shelves cleanup + cache drain op= neuron::alloc::lazy nrt_status=NRT_RESOURCE  (function log)
+[rank0]:[W914 22:33:30.729845172 NeuronMetrics.cpp:604] Warning: Neuron OOM: requested_size=1638400 | Peak memory stats (at allocated_bytes peak): allocated_bytes.current=9315887488 allocated_bytes.peak=9315887488 reserved_bytes.current=9577693184 reserved_bytes.peak=9577693184 active_bytes.current=9263475509 active_bytes.peak=9263475509 internal_fragmentation=52411979 num_alloc_retries=1 num_ooms=1 num_alloc_deferred=0 num_alloc_drain_retry_ok=0 num_alloc_drain_retry_fail=0 (function RecordOOMFailure)
+[rank0]:[W914 22:33:30.730128644 NeuronMetrics.cpp:647] Warning: Neuron OOM: Segment pool state: segments=166 free_chunks=10 total_free=16453916288 largest_cached_free=247463936 nrt_free=16192110592 cached_free=261805696 allocated=9315887488 reserved=9577693184 active=9263475509 total_hbm=25769803776 (function RecordOOMFailure)
+2026-Sep-14 22:33:30.517941 224327:224453 ERROR  TDRV:print_lnc_hbm_details                   LNC size is 1. Neuron Cores using this HBM: NC 4 and NC 5
+2026-Sep-14 22:33:30.520028 224327:224453 ERROR  TDRV:log_dev_mem_utilization                 ND 0:NC 4, current utilization:
+WARNING: Unable to get usage details for NC 5 as it is not being used by current process.
+2026-Sep-14 22:33:30.524680 224327:224453 ERROR  TDRV:log_dev_mem_usage_table                 Displaying Current Memory Utilization:
+(NOTE: the lines are LONG, and NEFF id to name mapping is printed after)
+
+              |          |  Model   |  Model   |          |  Shared  |          |          |DMA Rings |DMA Rings | DMA Rings |DMA Rings |           | Profiler |
+              |  TOTAL   |   Code   |Constants | Tensors  |Scratchpad|Scratchpad| Runtime  |    IO    |  Spill   |Collectives| Runtime  |Collectives| Buffers  |
+ND 0 HBM 2    | 11.841GB |189.265MB | 4.406MB  | 8.920GB  | 2.500GB  | 256.000B | 11.509MB |468.500KB |187.781MB |  4.679MB  |448.000KB | 32.432MB  |  0.000B  |
+\_NEFF 1024   |137.570KB | 25.562KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1025   | 54.258KB | 26.250KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1026   |135.195KB | 23.188KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1027   |134.320KB | 22.312KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1028   | 49.508KB | 21.500KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1029   |134.320KB | 22.312KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1030   | 49.633KB | 21.625KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1031   |151.070KB | 39.062KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1032   |134.320KB | 22.312KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1033   |135.945KB | 23.938KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1034   |139.508KB | 27.500KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1035   |138.133KB | 26.125KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1036   |134.820KB | 22.812KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1037   |134.320KB | 22.312KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1038   |135.070KB | 23.062KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1039   | 2.198MB  | 2.088MB  |  0.000B  |   n/a    | 1.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1040   | 49.695KB | 21.688KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1041   |168.195KB | 24.188KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB | 32.000KB |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1042   |134.320KB | 22.312KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1043   |705.633KB |593.625KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1044   |775.391KB | 40.000KB |  0.000B  |   n/a    |40.000MB* |  0.000B  |108.008KB |  0.000B  |  0.000B  | 583.000KB | 4.000KB  | 40.383KB  |   n/a    |
+\_NEFF 1045   |270.656KB | 23.438KB |  0.000B  |   n/a    | 4.004KB* |  0.000B  |108.008KB |  0.000B  |  0.000B  | 95.000KB  | 4.000KB  | 40.211KB  |   n/a    |
+\_NEFF 1046   |271.781KB | 24.562KB |  0.000B  |   n/a    | 3.125MB* |  0.000B  |108.008KB |  0.000B  |  0.000B  | 95.000KB  | 4.000KB  | 40.211KB  |   n/a    |
+\_NEFF 1047   |276.797KB | 27.938KB |  0.000B  |   n/a    |12.500MB* |  0.000B  |108.008KB |  0.000B  |  0.000B  | 97.000KB  | 4.000KB  | 39.852KB  |   n/a    |
+\_NEFF 1048   |275.234KB | 26.375KB |  0.000B  |   n/a    |12.500MB* |  0.000B  |108.008KB |  0.000B  |  0.000B  | 97.000KB  | 4.000KB  | 39.852KB  |   n/a    |
+\_NEFF 1049   |270.656KB | 23.438KB |  0.000B  |   n/a    |13.000KB* |  0.000B  |108.008KB |  0.000B  |  0.000B  | 95.000KB  | 4.000KB  | 40.211KB  |   n/a    |
+\_NEFF 1050   |337.031KB | 25.812KB |  0.000B  |   n/a    | 4.625KB* |  0.000B  |108.008KB | 32.000KB | 32.000KB | 95.000KB  | 4.000KB  | 40.211KB  |   n/a    |
+\_NEFF 1051   | 4.001MB  |594.875KB |  0.000B  |   n/a    |512.000MB*|  0.000B  |108.008KB |  0.000B  |  0.000B  |  3.271MB  | 4.000KB  | 41.195KB  |   n/a    |
+\_NEFF 1052   |270.906KB | 23.688KB |  0.000B  |   n/a    |640.000KB*|  0.000B  |108.008KB |  0.000B  |  0.000B  | 95.000KB  | 4.000KB  | 40.211KB  |   n/a    |
+\_NEFF 1053   | 52.383KB | 24.375KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1054   |134.320KB | 22.312KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1055   |134.383KB | 22.375KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1056   |139.633KB | 27.625KB |  0.000B  |   n/a    |512.000B* |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1057   |144.320KB | 32.312KB |  0.000B  |   n/a    |512.000B* |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1058   | 57.070KB | 29.062KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1059   |151.133KB | 39.125KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1060   |139.320KB | 27.312KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1061   |139.633KB | 27.625KB |  0.000B  |   n/a    |512.000B* |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1062   | 57.820KB | 29.812KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1063   |143.695KB | 31.688KB |  0.000B  |   n/a    |512.000B* |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1064   | 49.387KB | 21.375KB |  4.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1065   |141.258KB | 29.250KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1066   |138.883KB | 26.875KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1067   |139.633KB | 27.625KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1068   |137.258KB | 25.250KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1069   |137.320KB | 25.312KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1070   |139.633KB | 27.625KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1071   |137.320KB | 25.312KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1072   |140.008KB | 28.000KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1073   |166.008KB | 54.000KB |  0.000B  |   n/a    |512.000B* |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1074   | 73.945KB | 45.938KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1075   |186.320KB | 74.312KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1076   |149.445KB | 37.438KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1077   |150.133KB | 38.125KB |  0.000B  |   n/a    |512.000B* |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1078   | 76.633KB | 48.625KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1079   |150.133KB | 38.125KB |  0.000B  |   n/a    |512.000B* |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1080   |162.320KB | 50.312KB |  0.000B  |   n/a    |512.000B* |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1081   |113.883KB | 85.875KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1082   |493.383KB |465.375KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1083   |703.070KB |591.062KB |  0.000B  |   n/a    |256.000B* |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1084   | 2.366MB  | 2.256MB  |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1085   |379.258KB |267.250KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1086   |393.758KB |281.750KB |  0.000B  |   n/a    |256.000B* |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1087   |522.070KB |494.062KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1088   |393.758KB |281.750KB |  0.000B  |   n/a    |256.000B* |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1089   |606.633KB |494.625KB |  0.000B  |   n/a    |512.000B* |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1090   | 49.445KB | 21.438KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1091   |137.320KB | 25.312KB |  0.000B  |   n/a    |512.000B* |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1092   | 51.508KB | 23.500KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1093   |139.570KB | 27.562KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1094   |135.320KB | 23.312KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1095   |135.633KB | 23.625KB |  0.000B  |   n/a    |512.000B* |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1096   | 51.883KB | 23.875KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1097   |135.633KB | 23.625KB |  0.000B  |   n/a    |512.000B* |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1098   |137.445KB | 25.438KB |  0.000B  |   n/a    |512.000B* |  0.000B  |108.008KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1099   | 49.445KB | 21.438KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1100   | 49.445KB | 21.438KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1101   | 49.945KB | 21.938KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1102   | 49.398KB | 21.375KB | 16.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1103   |267.133KB | 59.125KB | 64.000KB |   n/a    | 0.000B*  |  0.000B  |108.008KB | 32.000KB |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1104   | 49.633KB | 21.625KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1105   | 49.445KB | 21.438KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1106   | 49.695KB | 21.688KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1107   |562.570KB |322.562KB | 96.000KB |   n/a    | 0.000B*  |  0.000B  |108.008KB | 32.000KB |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1108   | 54.570KB | 26.562KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1109   | 49.445KB | 21.438KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1110   | 51.320KB | 23.312KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1111   | 6.633MB  | 5.975MB  |480.000KB |   n/a    |165.875MB*|  0.000B  |190.117KB |  0.000B  |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1112   | 54.570KB | 26.562KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1113   | 49.445KB | 21.438KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1114   | 49.883KB | 21.875KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1115   | 5.015MB  | 4.326MB  |480.000KB |   n/a    |104.402MB*|  0.000B  |190.117KB | 32.000KB |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1116   | 54.570KB | 26.562KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1117   | 49.445KB | 21.438KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1118   | 49.883KB | 21.875KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1119   | 4.709MB  | 4.238MB  |256.000KB |   n/a    |95.625MB* |  0.000B  |190.117KB | 32.000KB |  0.000B  |  0.000B   | 4.000KB  |  0.000B   |   n/a    |
+\_NEFF 1120   | 49.383KB | 21.375KB |  0.000B  |   n/a    | 0.000B*  |  0.000B  | 26.008KB |  0.000B  |  0.000B  |  0.000B   | 2.000KB  |  0.000B   |   n/a    |
+\_NEFF 1121   | 49.383KB | 21.375KB |  0.000B  |   n/a    | 0.<<TRUNCATED>>
+2026-Sep-14 22:33:30.524806 224327:224453 ERROR  TDRV:log_dev_mem_usage_table                 Also logged memory breakdown to /tmp/neuron_mem_table_device_0_nc_4.log
+2026-Sep-14 22:33:30.528934 224327:224453 ERROR  TDRV:dml_dump                                Wrote nrt memory alloc debug info to /tmp/nrt_mem_log_device_0_6aa8763a.csv
+2026-Sep-14 22:33:30.536369 224327:224453 ERROR  TDRV:dml_driver_dump                         Wrote driver memory alloc debug info to /tmp/neuron_mem_log_device_0_hbm_2_6aa8763a.csv
+2026-Sep-14 22:33:30.538767 224327:224453 ERROR  TDRV:dmem_alloc_internal                     Failed to allocate DEVICE memory (67108864 bytes): memory allocation failed (ret=-12)
+2026-Sep-14 22:33:30.541075 224327:224453 ERROR  TDRV:tensor_allocate                         Failed to allocate 67108864 bytes on DEVICE for tensor UNKNOWN.
+2026-Sep-14 22:33:30.0918 224328:224487 [-1] include/socket.h:578 CCOM WARN RX, connection closed by remote peer [rx_from_child//3]
+2026-Sep-14 22:33:30.921378 224328:224487 ERROR   ENC:ncclBootstrapRecv                       failed neuronBootstrapRecv request to NCCL
+2026-Sep-14 22:33:30.924193 224328:224487 ERROR   ENC:validate_rg_signature                   [nec_dev 1] failed to receive signature validation result from 3 (rank 3) for group 0
+W0914 22:33:30.926000 224311 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 224327 closing signal SIGTERM
+W0914 22:33:30.927000 224311 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 224328 closing signal SIGTERM
+W0914 22:33:30.927000 224311 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 224329 closing signal SIGTERM
+E0914 22:33:31.391000 224311 torch/distributed/elastic/multiprocessing/api.py:986] failed (exitcode: -6) local_rank: 3 (pid: 224330) of binary: /home/ubuntu/workspace/native_venv/bin/python3
+Traceback (most recent call last):
+  File "/home/ubuntu/workspace/native_venv/bin/torchrun", line 10, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 362, in wrapper
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/run.py", line 990, in main
+    run(args)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/run.py", line 981, in run
+    elastic_launch(
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 170, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 317, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+============================================================
+train.py FAILED
+------------------------------------------------------------
+Failures:
+[1]:
+  time      : 2026-09-14_22:33:31
+  host      : ip-172-31-32-253.ap-southeast-4.compute.internal
+  rank      : 0 (local_rank: 0)
+  exitcode  : -15 (pid: 224327)
+  error_file: <N/A>
+  traceback : Signal 15 (SIGTERM) received by PID 224327
+[2]:
+  time      : 2026-09-14_22:33:31
+  host      : ip-172-31-32-253.ap-southeast-4.compute.internal
+  rank      : 1 (local_rank: 1)
+  exitcode  : -15 (pid: 224328)
+  error_file: <N/A>
+  traceback : Signal 15 (SIGTERM) received by PID 224328
+[3]:
+  time      : 2026-09-14_22:33:31
+  host      : ip-172-31-32-253.ap-southeast-4.compute.internal
+  rank      : 2 (local_rank: 2)
+  exitcode  : -15 (pid: 224329)
+  error_file: <N/A>
+  traceback : Signal 15 (SIGTERM) received by PID 224329
+------------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2026-09-14_22:33:30
+  host      : ip-172-31-32-253.ap-southeast-4.compute.internal
+  rank      : 3 (local_rank: 3)
+  exitcode  : -6 (pid: 224330)
+  error_file: <N/A>
+  traceback : Signal 6 (SIGABRT) received by PID 224330
+============================================================
+EXIT=1
+DONE

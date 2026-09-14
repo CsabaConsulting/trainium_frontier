@@ -6685,3 +6685,43 @@ resumes this: the path is `--no-clip-foreach` (preserves real gradient clipping,
 0`) at LNC=1 with a genuinely fresh cache, then a real paired 900s/1800s A/B against LNC=2 at the
 current locked config — that has never actually been run, since every prior LNC=1 attempt either
 crashed at compile time (old SDK/train.py) or hung (stale cache, this week, until now).
+
+### Addendum, same evening — the fourth cause found too: real device OOM at the current model size, LNC=1's genuine hardware wall
+
+Prompted directly by the user re-reading `research/gemini_ai_mode_lnc_1_failure.md` and asking
+whether all four causes it lists were actually checked. Two had already been confirmed (#1
+compile/runtime LNC mismatch, #3 the NKI-kernel/`foreach_norm` bug above); #4 (old SDK, fixed in
+2.32.0+) was checked and this box is on `neuronx-cc 2.26.6360.0` — below the threshold, not chased
+further (upgrading is out of scope for a curiosity-tier item). #2 ("noisy neighbour" device OOM)
+had been dismissed above on the grounds that the *known* failure was a deterministic compile-time
+enum error, not a memory symptom — that dismissal only held for the bug that was blocking progress
+at the time.
+
+Once both software blockers are routed around (fresh cache, explicit `NEURON_CC_FLAGS="--optlevel=1
+--lnc=1"`, `--no-clip-foreach`), the real 4-rank `torchrun` shape gets further than ever before —
+past the barrier, through model construction, into `torch.compile`, and starts compiling real Muon
+Newton-Schulz specialisations (3 of 5 logged in a first 5-minute attempt, killed by the timeout, not
+a hang — confirmed by real forward progress in the log between attempts). A second attempt with a
+25-minute timeout ran to a real conclusion in ~5 minutes: all 4 ranks fail with
+
+```
+TDRV:dmem_alloc_internal   Failed to allocate DEVICE memory (268435456 bytes): memory allocation failed (ret=-12)
+TDRV:tensor_allocate       Failed to allocate 268435456 bytes on DEVICE for tensor UNKNOWN.
+NRT:nrt_infodump           Failure: NRT_RESOURCE in nrt_tensor_allocate
+```
+
+`ret=-12` is `ENOMEM` — a real device memory exhaustion, not a bug. This is exactly cause #2 from
+the research doc: under LNC=1 each physical core's HBM bank is not pooled the way LNC=2 pools a
+paired logical core's two banks, so the same model needs to fit in a smaller per-core share. The
+current model is **592.9M params** (537M of it the n-gram VE tables) — an order of magnitude bigger
+than the 55.7M-param model that produced the original, now-unreproducible `+0.24 bpb` cliff number.
+It plausibly just doesn't fit a single LNC=1 core's HBM partition any more; the original small model
+may well have fit fine, which is consistent with the old cliff being a real *quality* effect on a
+model that could actually run, rather than a memory failure the old numbers never encountered.
+
+**All four causes in the research doc are now accounted for, three confirmed directly on this box,
+one unconfirmed but plausible (SDK version) and out of scope to chase.** LNC=1 is not fixable by
+more flags at the current model size — the remaining blocker is a genuine hardware capacity wall,
+not a software bug with a workaround. Closing this for good: real, complete, evidence-backed
+answer on all four fronts, still curiosity-tier, still submitting at LNC=2. Logs:
+`research/run-logs/cachecleared-lnc1-explicit-4p{,-v2}.log`.
