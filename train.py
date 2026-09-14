@@ -37,7 +37,6 @@ _PROCESS_STARTED = time.monotonic()
 # NEURON_COMPILE_CACHE_DIR is left unconditional: a plain filesystem path, not
 # compiler-flag syntax, independently verified safe across every run so far.
 USE_TRN2_COMPILER_FLAGS = False  # A/B'd at final locked shape: real small win alone (246/1.264601 vs baseline 240/1.269318), but combined with USE_CAUSAL_FASTPATH it's a net-negative (262/1.254491 vs USE_CAUSAL_FASTPATH alone's 265/1.252675) -- doesn't compose, left off. See trn2-experiment-results.md
-USE_STOCHASTIC_ROUNDING = False  # discarded: fails causality_check (max_abs_diff 0.021) at final shape -- confirmed a false positive (SR's own forward-to-forward rounding noise alone is 0.0113, already exceeding the harness's 1e-2 tolerance), not a real leak -- but the real submission's own compliance checks would hit the same false-positive risk, so not safe to use regardless of any speed benefit. See trn2-experiment-results.md
 os.environ.setdefault("NEURON_COMPILE_CACHE_DIR", "/tmp/neuron_cache")
 if USE_TRN2_COMPILER_FLAGS:
     os.environ.setdefault("NEURON_FUSE_SOFTMAX", "1")
@@ -69,8 +68,6 @@ else:
     # --optlevel=2 explicit reproducing the no-flags number is the control that proves the env var
     # is actually reaching neuronx-cc, i.e. that 2 really is the default being beaten.
     os.environ.setdefault("NEURON_CC_FLAGS", "--optlevel=1")
-if USE_STOCHASTIC_ROUNDING:
-    os.environ.setdefault("NEURON_RT_STOCHASTIC_ROUNDING_EN", "1")
 
 import pyarrow.parquet as pq
 import torch
@@ -98,29 +95,13 @@ from prepare import (
 
 
 # -----------------------------------------------------------------------------
-# Bucket B (post-submission round): remainder-requeue packer. A "data sampling
-# strategy" change per README (train.py may freely change this; prepare.py itself
-# is untouched here -- reuses its private _document_batches generator and
-# get_dist_info). prepare.py's make_dataloader() permanently crops+discards a
-# document's remainder when it doesn't fit the current row's remaining space
-# (picks the globally-shortest buffered doc, takes doc[:remaining], drops
-# doc[remaining:] forever). This is a byte-for-byte copy of that function except
-# the crop branch requeues the leftover back into doc_buffer instead of dropping
-# it, so a long document gets spread losslessly across multiple rows over time
-# instead of losing everything past the first crop point. The requeued leftover
-# carries no new BOS token (it isn't a new document, just a continuation) --
-# correct, since BOS is only prepended once, at encode() time, before any
-# cropping ever happens. _document_batches_fn is an injectable seam purely for
-# the offline correctness harness (research/scratch/requeue_packer_equiv.py);
-# real runs always use the real prepare._document_batches default.
-#
-# `requeue=False` makes this function reproduce prepare.make_dataloader()
-# EXACTLY -- the only textual difference between the two is the
-# `if requeue:` guard around the leftover append, so with it False the crop
-# branch is prepare's line-for-line (pop the shortest doc, take doc[:remaining],
-# drop the rest). That mode exists so USE_EPOCH_SHUFFLE below can inject a
-# different _document_batches_fn without also changing the packer, i.e. without
-# confounding a data-ORDER experiment with a data-PACKING one.
+# train.py's own copy of prepare.make_dataloader(), line-for-line identical in
+# behaviour (it reuses prepare's private _document_batches generator and
+# get_dist_info). The only difference is the injectable _document_batches_fn
+# seam, which lets USE_EPOCH_SHUFFLE below change the data ORDER without
+# touching the packer -- i.e. without confounding a data-ORDER experiment with
+# a data-PACKING one. Changing the data sampling strategy in train.py is
+# explicitly permitted by the README; prepare.py itself is untouched.
 def make_dataloader_requeue(
     tokenizer: Tokenizer,
     batch_size: int,
@@ -130,7 +111,6 @@ def make_dataloader_requeue(
     tokenizer_threads: int = 4,
     tokenizer_batch_size: int = 128,
     shard_ids=None,
-    requeue: bool = True,
     _document_batches_fn=_document_batches,
 ):
     assert batch_size > 0 and seq_len > 1
@@ -178,10 +158,6 @@ def make_dataloader_requeue(
                     shortest_idx = min(range(len(doc_buffer)), key=lambda i: len(doc_buffer[i]))
                     doc = doc_buffer.pop(shortest_idx)
                     row_buffer[row_idx, pos:pos + remaining] = torch.tensor(doc[:remaining], dtype=torch.long)
-                    if requeue:
-                        leftover = doc[remaining:]
-                        if leftover:
-                            doc_buffer.append(leftover)
                     pos += remaining
 
         cpu_inputs.copy_(row_buffer[:, :-1].to(dtype=torch.int32))
@@ -426,7 +402,6 @@ ATTN_CPROJ_INIT_SCALE = 0.10
 # no --pack-factor flag (the constant had to be edited by hand back then), so it was not
 # reproducible from its own log -- hence the flag now exists. See trn2-experiment-results.md.
 PACK_FACTOR = 4
-USE_REQUEUE_PACKER = False  # Bucket B: implemented + verified correct (offline harness, research/scratch/requeue_packer_equiv.py, zero corruption over a 20k-doc synthetic corpus), but the real hardware A/B at the final locked shape was a small real negative (332 steps/1.235799 vs baseline 330/1.234514) -- not kept. See trn2-experiment-results.md
 USE_EPOCH_SHUFFLE = False  # DISCARDED, kept as the recorded negative: at 1800s with the frozen
 # qk-shift (+9.2% steps) it measured 2341/1.023799 against 2354/1.021278 unshuffled and 2149/1.018967
 # step-matched -- i.e. reordering does NOT recover the throughput and makes the epoch crossing WORSE.
@@ -444,7 +419,7 @@ USE_EPOCH_SHUFFLE = False  # DISCARDED, kept as the recorded negative: at 1800s 
 # contiguous ~7% slice of the corpus during the lowest-LR cooldown -- a narrow fine-tune, not extra
 # data. See the 2026-09-13 "data wall" section of trn2-experiment-results.md.
 # "Data sampling strategy" is explicitly permitted in train.py by the README; prepare.py is untouched
-# (this reuses its private _row_groups_for_split, exactly as USE_REQUEUE_PACKER reuses
+# (this reuses its private _row_groups_for_split, exactly as make_dataloader_requeue reuses
 # _document_batches).
 EPOCH_SHUFFLE_SEED = 1234  # seed base for the per-epoch row-group shuffle; epoch e uses SEED + e.
 USE_VE = True  # value embeddings (ResFormer-style): alternating layers, input-gated mix into attention's V stream
@@ -3725,8 +3700,7 @@ ARCH_TOGGLE_NAMES = [
     "USE_WEIGHT_CACHE", "WARMDOWN_RATIO", "FINAL_LR_FRAC", "WARMUP_STEPS",
     "WD_DECAY_TO_ZERO", "MUON_MOMENTUM_WARMUP_STEPS", "USE_DOC_MASK", "VE_WD",
     "USE_SELECTIVE_GATE", "SELECTIVE_GATE_CHANNELS", "USE_FUSED_QKV",
-    "USE_CAUSAL_FASTPATH", "USE_STOCHASTIC_ROUNDING", "USE_TRN2_COMPILER_FLAGS",
-    "USE_REQUEUE_PACKER",
+    "USE_CAUSAL_FASTPATH", "USE_TRN2_COMPILER_FLAGS",
     # T0.4 resweep knobs. None of these changes a tensor's name or shape, so every one of them
     # is exactly the "loads silently with quietly wrong behavior" class this snapshot exists to
     # catch -- ATTN_CPROJ_INIT_SCALE and LOGIT_SOFTCAP especially, since they change what the
@@ -4751,15 +4725,12 @@ def main() -> None:
         return
 
     loader_seq_len = PACK_FACTOR * SEQ_LEN
-    if USE_REQUEUE_PACKER or USE_EPOCH_SHUFFLE:
-        # train.py's own copy of the packer. With requeue=USE_REQUEUE_PACKER=False it is
-        # prepare.make_dataloader line-for-line, so --epoch-shuffle changes the data ORDER and
-        # nothing else.
+    if USE_EPOCH_SHUFFLE:
+        # train.py's own copy of the packer: prepare.make_dataloader line-for-line, so
+        # --epoch-shuffle changes the data ORDER and nothing else.
         train_loader = make_dataloader_requeue(
             tokenizer, DEVICE_BATCH_SIZE, loader_seq_len, "train", device,
-            requeue=USE_REQUEUE_PACKER,
-            _document_batches_fn=(_document_batches_epoch_shuffle if USE_EPOCH_SHUFFLE
-                                  else _document_batches),
+            _document_batches_fn=_document_batches_epoch_shuffle,
         )
     else:
         train_loader = make_dataloader(tokenizer, DEVICE_BATCH_SIZE, loader_seq_len, "train", device)
