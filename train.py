@@ -4910,6 +4910,88 @@ POLAR_EXPRESS_COEFFS = [
 ADAM_LIKE_KINDS = ("adamw", "rmsprop")
 
 
+# T1.7: toggled by --compile-muon in main(). Wrap Muon's per-group math body in
+# torch.compile(backend="neuron") so the whole elementwise+matmul chain becomes ONE
+# NEFF per group instead of ~80 aten launches. Default OFF until measured on this
+# config; see the _muon_math docstring for why this was blocked and what unblocked it.
+USE_COMPILE_MUON = False
+
+# One compiled callable per (tall, ns_steps, red_dim) specialisation, built lazily.
+# Dynamo re-guards on the tensor shapes by itself, so a single entry can still hold
+# several NEFFs -- this cache only exists so the wrapper object is not rebuilt per step.
+_MUON_COMPILED: dict[tuple, object] = {}
+
+
+def _muon_math(w, g, momentum_buffer, second, mom, one_mom, lr, lrwd,
+               tall: bool, ns_steps: int, red_dim: int, red_dim_size: int,
+               one_beta2: float, to_bf16: bool):
+    """Muon's per-group math body, as a pure tensors-in/tensors-out function.
+
+    This is the ONLY form of the Muon step that `torch.compile(backend="neuron")` can
+    take, and every deviation from `_muon_step`'s eager body is forced by that:
+
+    * **No `torch._foreach_*` anywhere.** `torch._foreach_copy_` is what blocked T1.7:
+      the neuron backend fails Torch-MLIR legalization on it
+      ("failed to legalize operation 'torch.operator'"). The stacked read-in and the
+      write-back to the live parameters keep using `_foreach_copy_`, but they stay
+      OUTSIDE this function, in eager, where foreach is legal and cheap (1 launch a side).
+    * **No in-place ops on graph inputs.** `lerp` not `lerp_`, and `w` is returned
+      rather than mutated. That costs nothing: `stacked_params` is already scratch that
+      `_muon_step` refills from the live params every step, and `momentum_buffer` /
+      `second_momentum_buffer` are rebound in the state dict, which is a Python-level
+      assignment with no device work (the same trick the NKI path already uses for
+      `stacked_params`).
+    * **No per-step Python float reaches a device op.** `lr`, `lr*wd`, `momentum` and
+      `1-momentum` come in as 0-dim fp32 DEVICE tensors, because under
+      `dynamic=False` a Python float argument is a Dynamo guard: the LR schedule alone
+      would force a fresh neuronx-cc compile on every single step. This is the
+      USE_TENSOR_LR_SCALARS lesson applied to a compiled region, where it is much worse
+      than in eager -- eager only bakes `alpha=`-style scalars, Dynamo bakes all of them.
+      `tall` / `ns_steps` / `red_dim` / `red_dim_size` / `one_beta2` / `to_bf16` ARE
+      Python constants on purpose: they are fixed per group for the whole run, so
+      guarding on them is free and it keeps the traced graph straight-line.
+
+    Bit-exactness against the eager body is the standard, and these are the three places
+    it could have been lost:
+
+    1. `1-momentum` is formed on the HOST in float64 and uploaded, not computed on
+       device from an fp32 `momentum`. `fp32(1.0 - 0.95)` in float64-then-round is
+       0.05f, while `1.0f - 0.95f` on device is 0.0500000119 -- a real difference.
+       `_muon_compile_scalars` does the float64 subtraction, exactly like the Python
+       float the eager path hands to `lerp_.Scalar`.
+    2. `lr*ratio` and `lr*ratio*wd` are formed on the host in float32 (NOT float64), so
+       they equal the device's own fp32 products bit for bit -- the identical argument
+       `_muon_lrwd` already makes for the NKI path.
+    3. `lerp`'s weight arrives as a 0-dim tensor here and as a Python scalar in eager,
+       i.e. the `lerp.Tensor` overload versus `lerp.Scalar`. Verified equal, not
+       assumed: research/scratch/compile_optim_equiv.py compares both overloads
+       directly and then compares 6 full optimizer steps element by element.
+    """
+    momentum_buffer = torch.lerp(momentum_buffer, g, one_mom)
+    g = torch.lerp(g, momentum_buffer, mom)
+    x = g.bfloat16() if to_bf16 else g
+    x = x / (x.norm(dim=(-2, -1), keepdim=True) * 1.01 + 1e-6)
+    if tall:
+        for a, b, c in POLAR_EXPRESS_COEFFS[:ns_steps]:
+            xtx = x.mT @ x
+            x = a * x + x @ (b * xtx + c * (xtx @ xtx))
+    else:
+        for a, b, c in POLAR_EXPRESS_COEFFS[:ns_steps]:
+            xxt = x @ x.mT
+            x = a * x + (b * xxt + c * (xxt @ xxt)) @ x
+    g = x
+    v_mean = g.float().square().mean(dim=red_dim, keepdim=True)
+    v_norm = (v_mean.sum(dim=(-2, -1), keepdim=True) * red_dim_size).sqrt()
+    second = torch.lerp(second, v_mean, one_beta2)
+    step_size = second.clamp_min(1e-10).rsqrt()
+    scaled = (v_mean * red_dim_size) * step_size.square()
+    v_norm_new = scaled.sum(dim=(-2, -1), keepdim=True).sqrt()
+    g = g * (step_size * (v_norm / v_norm_new.clamp_min(1e-10))).to(g.dtype)
+    mask = (g * w) >= 0
+    w = w - (lr * g + lrwd * w * mask)
+    return w, momentum_buffer, second
+
+
 class MuonAdamW(torch.optim.Optimizer):
     def __init__(self, param_groups):
         super().__init__(param_groups, defaults={})
@@ -4988,6 +5070,38 @@ class MuonAdamW(torch.optim.Optimizer):
         host[1].fill_(float(tmp))
         dev.copy_(host)
         return dev[0], dev[1]
+
+    def _muon_compile_scalars(self, group, ref: torch.Tensor, ratio: float):
+        """T1.7: (lr*ratio, lr*ratio*wd, momentum, 1-momentum) as four 0-dim fp32 device
+        views behind ONE host->device copy of a (4,) staging tensor.
+
+        Replaces `_device_scalar("lr")` for the compiled path at strictly lower cost --
+        one copy instead of one per scalar -- and it is the reason the compiled graph has
+        no per-step constants at all. Slicing `dev[i]` is a pure view: no device work, no
+        launch, so four operands cost the same as one.
+
+        The two products are formed in float32 (see `_muon_lrwd`) and `1-momentum` in
+        float64 (see `_muon_math`), each matching what the eager path's arithmetic does
+        at that point. This distinction is load-bearing, not stylistic.
+        """
+        cache = self._scalar_cache.setdefault(id(group), {})
+        entry = cache.get("muon_compile")
+        if entry is None:
+            entry = (torch.empty(4, dtype=torch.float32),
+                     torch.zeros(4, dtype=torch.float32, device=ref.device),
+                     torch.empty((), dtype=torch.float32))
+            cache["muon_compile"] = entry
+        host, dev, tmp = entry
+        tmp.fill_(float(group["lr"]))
+        tmp.mul_(ratio)                      # fp32(fp32(lr) * fp32(ratio)) == device
+        host[0].fill_(float(tmp))
+        tmp.mul_(float(group["weight_decay"]))
+        host[1].fill_(float(tmp))
+        mom = float(group["momentum"])
+        host[2].fill_(mom)
+        host[3].fill_(1.0 - mom)             # float64 subtraction, like lerp_.Scalar's
+        dev.copy_(host)
+        return dev[0], dev[1], dev[2], dev[3]
 
     def _adamw_state(self, group):
         """Shared prologue for both AdamW paths: filter to params that actually have a
@@ -5213,6 +5327,45 @@ class MuonAdamW(torch.optim.Optimizer):
                 w[i].copy_(p)
         momentum_buffer = state["momentum_buffer"]
         second = state["second_momentum_buffer"]
+
+        # T1.7: the whole math body as ONE compiled graph. Checked before the NKI path
+        # because the two are alternatives, not layers -- a compiled region cannot
+        # contain an nki.jit call (Dynamo treats it as opaque and splits the graph around
+        # it, which is exactly how the Mamba2 SSD kernel lost 2.14x under compile), so
+        # --compile-muon deliberately gives up the NKI fusion in exchange for whole-body
+        # fusion. Gated on USE_TENSOR_LR_SCALARS for the same reason use_nki is: the
+        # compiled body always carries lr as an fp32 device operand.
+        # On a non-neuron device the body runs UNCOMPILED, which is not a fallback but
+        # the thing the equivalence gate needs: it isolates the source rewrite (foreach-
+        # free / functional / device-scalar) from the compiler, and that half is required
+        # to be bit-exact. research/scratch/compile_optim_equiv.py --device cpu.
+        if (USE_COMPILE_MUON and USE_TENSOR_LR_SCALARS and w.dtype == torch.float32):
+            ratio = max(1.0, shape[-2] / shape[-1]) ** 0.5
+            red_dim = -1 if shape[-2] >= shape[-1] else -2
+            ns_steps = min(group["ns_steps"], len(POLAR_EXPRESS_COEFFS))
+            key = (g.shape[-2] > g.shape[-1], ns_steps, red_dim, tuple(g.shape))
+            fn = _MUON_COMPILED.get(key)
+            if fn is None:
+                fn = (torch.compile(_muon_math, backend="neuron", dynamic=False)
+                      if p0.device.type == "neuron" else _muon_math)
+                _MUON_COMPILED[key] = fn
+                # Announce the branch actually taken, for the same reason ssd_scan does:
+                # a silent fallback to the eager/NKI body would make an A/B measure nothing.
+                print0(f"muon step: COMPILED body for {tuple(g.shape)} "
+                       f"(tall={key[0]} ns_steps={ns_steps} red_dim={red_dim}) "
+                       f"[specialisations so far: {len(_MUON_COMPILED)}]")
+            lr_t, lrwd_t, mom_t, one_mom_t = self._muon_compile_scalars(group, p0, ratio)
+            w, momentum_buffer, second = fn(
+                w, g, momentum_buffer, second, mom_t, one_mom_t, lr_t, lrwd_t,
+                key[0], ns_steps, red_dim, g.size(red_dim),
+                1 - group["beta2"], COMPUTE_DTYPE == torch.bfloat16)
+            # All three are scratch or state the caller owns, so rebinding is free --
+            # no copy back (see the _muon_math docstring).
+            state["stacked_params"] = w
+            state["momentum_buffer"] = momentum_buffer
+            state["second_momentum_buffer"] = second
+            torch._foreach_copy_(params, list(w.unbind(0)))
+            return
 
         # Fused-elementwise path: same math, fewer launches. Gated on
         # USE_TENSOR_LR_SCALARS because the fused update always carries lr as an fp32
@@ -5828,6 +5981,13 @@ def main() -> None:
                              "(research/scratch/muon_nki_equiv.py: 0 differing elements). Real paired 900s "
                              "A/B: 1019 steps/1.089758 vs 1004/1.090677 -- pass --no-nki-muon for the plain "
                              "eager comparison path.")
+    parser.add_argument("--compile-muon", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_COMPILE_MUON", "0") != "0",
+                        help="T1.7: run Muon's per-group math body inside "
+                             "torch.compile(backend='neuron') instead of ~80 eager aten launches "
+                             "(Neuron only). Mutually exclusive with --nki-muon by construction -- a "
+                             "compiled region cannot contain an nki.jit call -- so this trades the NKI "
+                             "elementwise fusion for whole-body fusion. See _muon_math.")
     parser.add_argument("--local-conv", action=argparse.BooleanOptionalAction,
                         default=os.environ.get("NEURON_COMPETITION_R1_LOCAL_CONV", "1" if USE_LOCAL_CONV else "0") != "0",
                         help="depthwise causal conv1d before attention in each block. Provably dead "
@@ -6322,6 +6482,7 @@ def main() -> None:
                      "Pick one, or use its pattern flag to keep some attention layers.")
 
     global USE_NKI_RELU2, USE_NKI_ROPE_NORM, USE_NKI_SOFTCAP_CE, USE_NKI_MUON
+    global USE_COMPILE_MUON
     # T0.4/T1.4 resweep knobs (see the _hp block above; declared global at the top of main()).
     # Assigned here, i.e. before GPT(config) and before setup_optimizer(), which is where every
     # one of them is read.
@@ -6471,6 +6632,7 @@ def main() -> None:
     USE_NKI_ROPE_NORM = args.nki_rope_norm
     USE_NKI_SOFTCAP_CE = args.nki_softcap_ce
     USE_NKI_MUON = args.nki_muon
+    USE_COMPILE_MUON = args.compile_muon
     USE_MAMBA2 = args.mamba2                # read by Block.__init__, i.e. before GPT(config) below
     MAMBA2_PATTERN = args.mamba2_pattern      # ditto (mamba2_layer_flags reads it per block)
     # Mixer geometry: all read by Mamba2Mixer.__init__, i.e. before GPT(config) below.
@@ -6923,6 +7085,7 @@ def main() -> None:
         print(f"nki_rope_norm:     {args.nki_rope_norm}")
         print(f"nki_softcap_ce:    {args.nki_softcap_ce}")
         print(f"nki_muon:          {args.nki_muon}")
+        print(f"compile_muon:      {args.compile_muon}")
         print(f"mudd:              {args.mudd}")
         print(f"dcmha:             {args.dcmha}")
         print(f"mamba2:            {args.mamba2}")
