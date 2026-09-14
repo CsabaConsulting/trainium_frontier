@@ -5,8 +5,9 @@
   (`USE_NGRAM_VE=True`, `NGRAM_VE_LAYERS="1,-1"`, bigram+trigram, **mult=128**, dim=128) plus the two
   free throughput changes — T1.7 compiled Muon (`USE_COMPILE_MUON=True`) and the frozen Q/K-shift
   identity (`USE_QK_SHIFT=True`, `QK_SHIFT_BETA=0.0`, `QK_SHIFT_FREEZE=True`). 592.9M params.
-  Local: **1.004363 bpb / 2135 steps at the full 1800s** (was 1.018985 / 2139 with the previous
-  last-layer-only, mult-64, no-throughput-flags config: **−0.0146**). All of it is in `train.py`'s
+  Local: **1.004910 bpb / 2123 steps at the full 1800s**, dress-rehearsed on the bare command with
+  `over_budget False`, `causality_max_abs 0.0`, `epoch 1` (was 1.018985 / 2139 with the previous
+  last-layer-only, mult-64, no-throughput-flags config: **−0.014075**). All of it is in `train.py`'s
   module-level defaults, so the launch command is still flagless:
   ```
   NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --no-eval-public --num-steps 1000000
@@ -33,7 +34,8 @@
   not on letting steps grow.
 
 ## In progress
-- Nothing running. Locked config unchanged (1.018985 bpb / 2139 steps at 1800s).
+- Nothing running from the T1.7 / n-gram-layer track. Locked config is the 2026-09-14 one above
+  (1.004910 bpb / 2123 steps at 1800s), dress-rehearsed and ready to submit as-is.
 
 ## Closed 2026-09-13 (evening): the capacity-per-step pivot — Engram-lite DISCARDED
 Full write-up in `research/trn2-experiment-results.md` (T3.2 section). Implemented behind
@@ -114,8 +116,15 @@ Full detail in the dated `research/trn2-experiment-results.md` section. New defa
 - **mult 64 → 128 is now worth −0.0016**, reversing the 2026-09-12 "capacity saturates at 64" verdict.
   Lesson: *a capacity axis measured as saturated at one injection site is not saturated at two.*
   dim 256 and dim256+mult128 stay discarded (dominated / +0.0177 step penalty).
-- Dress-rehearsed with the literal bare command; 592.9M params, 2135 steps in the official 1800 s,
-  60 steps below the data wall, `causality_max_abs 0.0`.
+- Dress-rehearsed with the literal bare command, twice. The first rehearsal printed **`over_budget:
+  True`** — not from training but from the **checkpoint**: the new config's `final.pt` is 1.30 GB (was
+  0.49 GB) and `torch.save` takes a reproducible 9.9 s against a 5.0 s `CHECKPOINT_RESERVE_SECONDS`.
+  Raised to 15.0; rehearsal 2 is `over_budget: False` at 1794.7 charged seconds, 2123 steps, 72 below
+  the wall, `causality_max_abs 0.0`, `epoch 1`, **1.004910**. **Standing lesson: a capacity win that
+  lands in embedding-style tables also grows the checkpoint, and the save is charged.** Re-check the
+  reserve on any future table widening (another 2× ≈ 20 s).
+- Cold-cache startup for this config is ~390 s (159 s first step) against the 900 s allowance cap, and
+  any `train.py` edit invalidates the `torch.compile` cache, so every post-edit rehearsal pays it.
 
 ## Queued next, in order (real, not discarded — just sequenced behind the capacity work)
 1. T1.6/T1.8 throughput (transposed weights, `@nki_op` traceable kernels). **T1.7 is DONE** (shipped
