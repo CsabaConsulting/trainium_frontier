@@ -1,5 +1,28 @@
 # Throughput-to-capacity track — a self-contained programme for the second Trn2 box
 
+> **STATUS 2026-09-14 — Probes 0 and 1 are DONE and Probe 1 is a CLEAN NEGATIVE.**
+> Full numbers: `research/trn2-experiment-results.md`, section
+> "2026-09-14 — Probes 0/1: the torch_xla graph-mode hypothesis is CLOSED NEGATIVE at the locked shape".
+> Headline: at the locked config's shape (depth 6, n_embd 640, seq 2048, dbs 4) torch_xla graph mode is
+> **0.997× at ga=4 and 1.114× at ga=1** versus native eager — below the §3 gate's 1.2× floor, so the
+> hypothesis is closed and **nothing gets ported**. The 2.44× seen at the *upstream starter's* shape
+> (dbs 1, seq 1024, ga 16) is a small-micro-batch artefact: graph mode only wins while per-op work is
+> too small to amortize dispatch, and the locked config's 8192-token-per-rank micro-step already
+> amortizes it. §0's "we are at ~8% of peak so a 2–3× loop must exist" premise is therefore wrong about
+> *where* the 92% goes — it is not dispatch overhead at this micro-batch size.
+> Two blockers found on the way, both recorded in the notebook: `islpy 2026.2.2` breaks every
+> neuronx-cc XLA compile (pin `islpy==2026.1`), and torch_xla 2.11 never calls its own
+> `_aws_ec2_inf_trn_init()`, so 4-rank `torchrun` under PJRT NEURON cannot allocate cores until the
+> probe sets `NEURON_RT_VISIBLE_CORES`/`NEURON_PJRT_*` itself.
+> One hard correctness bug found: **`index_add_` across a `mark_step()` boundary keeps only the last
+> call**, so gradient accumulation silently computes wrong embedding gradients under XLA unless the
+> whole accumulation loop is one graph (which did not finish compiling in 17 min at a toy shape).
+> The day's real payoff is on the native side and is item 4, not the hypothesis:
+> **`torch.compile(backend="neuron")` compiles the Muon step and runs it 8.18× faster** once
+> `torch._foreach_copy_` is removed (that op is exactly the T1.7 blocker — it fails Torch-MLIR
+> legalization). Worth ≈6% of the step; T1.7 moves from known-blocked to known-feasible.
+> **Probes 2 and 3 are untouched and not started** (this task was scoped to Probes 0–1).
+
 Written 2026-09-13 (local box, no hardware). Purpose: give a second instance, and whichever
 agent drives it, a track that is independent of the main box's locked config and submission
 cadence. The thesis, the probes, the decision gates and the coordination rules are all here so
@@ -47,7 +70,22 @@ Record on the new box, verbatim into the notebook:
   4 ranks, `--num-steps 60`) and record steady-state s/step and `micro_tokens`. This is the
   reference every other team started from.
 
+**Probe 0 outcome (2026-09-14, done on the main box, not a second one):** same AMI, `trn2.3xlarge`,
+LNC=2, 4 logical cores. `torch_xla` is **not** installed in the competition venv (`native_venv`:
+`torch 2.11.0.dev20250929+cpu`, `torch-neuronx 2.11.3.0.0+unknown.dev`); it installs cleanly into a
+separate `~/workspace/xla_venv` (`torch-xla 2.11.0`, `libneuronxla 3.0.5356.0`, `neuronx-cc 2.27.5334.0`)
+and sees all 4 NEURON devices. Unmodified upstream starter kit, 4 ranks, 60 steps:
+`micro_tokens=4,096`, `grad_accum_steps=16`, **1.48–1.49 s/step steady from step 20** (44.3k tok/s),
+step 0 = 75.1 s cold compile, steps 1–19 = 2.8–3.9 s. That step-20 cliff coincides with `lrm` reaching
+1.000, i.e. **the per-step-Python-scalar recompile hazard is native-backend too, not XLA-only.**
+
 ## 3. Probe 1 — the execution backend (the decisive one; half a day)
+
+**DONE 2026-09-14 — gate FAILED (0.997×–1.114× at the locked shape, floor was 1.2×). Closed negative;
+nothing ported. See the status box at the top and the notebook section for the full table, the
+`index_add_`/`mark_step()` correctness bug, the compile-time table, and item 4's 8.18× native
+`torch.compile` result.**
+
 
 Hypothesis: the mature torch-neuronx **XLA graph path** compiles a whole micro-step into one
 graph with the production compiler, versus native eager's one-NEFF-per-op design that leaves
@@ -78,6 +116,13 @@ default under it — turn it off (`NEURON_RT_STOCHASTIC_ROUNDING_EN=0`) or the c
 fails at eval.
 
 ## 4. Probe 2 — launches per token: one micro-step per optimizer step (half a day)
+
+**NOT STARTED.** Probe 1 supplies one number that bears on it directly: at the locked shape, native
+`0.2544 s` at ga=1 versus `0.7952 s` at ga=4 decomposes to **one micro-step = 0.1803 s, collective +
+optimizer = 0.0741 s (9.3% of the step)**. So going to one 32768-token micro-step per rank cannot save
+more than that 9.3% minus whatever the single fat micro-step itself costs — the launch-count story has
+much less headroom than §4 assumes. Fold this into the gate before spending the half day.
+
 
 Our step is 4 micro-steps of 8192 tokens per rank, ~67 launches each after compile. Hypothesis:
 launch count per token, not FLOPs, sets the step time, so one 32768-token micro-step per rank

@@ -5086,3 +5086,221 @@ Three things worth keeping out of it:
 Code stays in (default OFF, `causality_max_abs == 0.0` on hardware, 8 CPU harness arms green) because
 it is the only implemented mechanism that can read a *context-gated* n-gram memory, and if the data
 wall is ever relieved the per-step term is the only number that would need to change sign.
+
+## 2026-09-14 — Probes 0/1: the torch_xla graph-mode hypothesis is CLOSED NEGATIVE at the locked shape (1.00–1.11×), and the win it *does* have is not ours to take (track: throughput→capacity)
+
+The hypothesis under test (from `research/throughput-to-capacity-track-2026-09-13.md`): the locked
+config runs at ~8% of tensor-engine peak on the **beta native-eager runtime** (one NEFF per operator,
+dispatch-bound), and Trainium also has a **mature XLA graph-mode path** (`torch_xla`, `mark_step()`,
+whole-graph compilation) that might not pay the per-op dispatch cost. If XLA were 1.5–3× faster on the
+*same* model and shape, that would be a bigger lever than the whole kernel-optimization queue
+(T1.6–T1.8), because a faster loop converts into a bigger model at the fixed ~2195-step data wall.
+
+**Result: at the locked config's shape it is 1.00–1.11×. Gate says <1.2× → close the hypothesis.**
+Along the way the probe turned up one hard *correctness* bug in the XLA path and one genuinely
+valuable native-path finding (T1.7 is unblocked and worth 8.2× on the Muon step in isolation).
+
+### Probe 0 — the two runtimes, verbatim
+
+`trn2.3xlarge`, `logical-neuroncore-config: 2`, 1 NEURON device, 4 logical cores, 96 GB, driver
+2.30.2.0, NRT 2.34.10.0.
+
+Competition venv (`~/workspace/native_venv`, the one `train.py` runs in):
+
+```
+torch                     2.11.0.dev20250929+cpu
+torch-neuronx             2.11.3.0.0+unknown.dev   (from ~/workspace/torch_neuron_eager)
+torch-xla                 NOT INSTALLED  (import torch_xla -> ModuleNotFoundError)
+neuronx-cc                2.26.x
+```
+
+So the XLA path is not reachable from the competition venv at all. It *is* reachable on the AMI: a
+clean `~/workspace/xla_venv` (python3.12) with `torch==2.11.0+cpu`, `torch-xla==2.11.0`,
+`libneuronxla==3.0.5356.0`, `neuronx-cc==2.27.5334.0` sees all 4 NEURON devices under
+`PJRT_DEVICE=NEURON`. `torch.device("neuron")` works in the native venv; `xm.xla_device()` works in
+the XLA venv; neither venv can do both.
+
+**Unmodified upstream starter kit** (`research/scratch/xla_probe/train_starter.py`, md5
+`734659513094f0f66df19093f0c5ff00`, `train.py` fetched verbatim from `aws-neuron/trainium-frontier`),
+LNC=2, 4 ranks, `--num-steps 60`: `micro_tokens=4,096`, `grad_accum_steps=16`,
+`num_params=59,637,780`. `dt` = 75.1 s (step 0, cold compile), then **2.8–3.9 s for steps 1–19**, then
+**1.48–1.49 s/step steady from step 20** (44.3k tok/s). The step-20 cliff lands exactly where `lrm`
+reaches 1.000 — i.e. **the per-step-Python-scalar recompile hazard is real on the native backend too**,
+not just under XLA, and it costs ~2× for the first 20 steps. `--freeze-schedules` in the probe pins
+those scalars so both backends are compared on a static graph.
+
+### Two things that had to be fixed before any XLA number existed
+
+**(a) `islpy` version trap — every XLA compile failed, including a bare 256×256 matmul:**
+
+```
+[INTERNAL_ERROR] [NCC_ISMP902] Simplifier error: is_subset(): incompatible function arguments
+```
+
+`neuronx-cc` declares `Requires-Dist: islpy~=2026.1`, which permits `islpy 2026.2.2`, whose pybind
+signature breaks the compiler's Simplifier pass. **`pip install islpy==2026.1` fixes it.** Two things
+made this expensive to find: a failed compile *poisons XLA tensor state*, so an in-process op-bisection
+cascades (the isolation harness had to be rewritten as one stage per process), and the failure is
+**cached** — identical error timestamps across runs until `rm -rf /var/tmp/neuron-compile-cache`.
+
+**(b) 4-rank `torchrun` under PJRT NEURON could not start:**
+
+```
+NRT:nrt_allocate_neuron_cores  Logical Neuron Core(s) not available - Requested:4 Available:0
+                               Logical Core size 2 (cores busy, ret=-16)
+RuntimeError: Init: error condition (((rt_status) != NRT_SUCCESS)): [NRT_FAILURE] status_code=1
+```
+
+`torch_xla 2.11` *defines* `_aws_ec2_inf_trn_init()` but **never calls it**, so under `torchrun`
+nothing sets `NEURON_RT_VISIBLE_CORES` / `NEURON_PJRT_PROCESS_INDEX` / `NEURON_PJRT_WORLD_SIZE` and
+every rank asks the runtime for all four logical cores; rank 0 wins and ranks 1–3 die. The probe now
+calls `torch_xla._internal.neuron.{set_rt_root_comm_id, set_envvar_defaults,
+configure_pjrt_environment}` itself before the first runtime touch, **in that order** — `libneuronxla`'s
+import hook otherwise assigns each rank its own random free-port `NEURON_RT_ROOT_COMM_ID` and the ranks
+never rendezvous. Single-rank XLA runs were unaffected, which is why this only showed up in the matrix.
+
+All 20 starter-kit ops lower correctly under XLA once `islpy` is pinned, including
+`F.scaled_dot_product_attention(is_causal=True)`, `F.cross_entropy(..., ignore_index=-1)`, the Muon
+polar-express iteration, `lerp_`, bool-mask weight decay, and even `torch._foreach_copy_`.
+
+### The correctness bug: `index_add_` across a `mark_step()` boundary keeps only the last call
+
+The first 4-rank XLA arm ran 2.44× faster than native and **trained visibly worse** at the same shape
+and seed: loss 9.011 → 8.705 over 8 steps versus native's 9.011 → 7.032. Bisected with a new
+`--debug-numerics` mode (per-group grad L2 and param L2) plus `research/scratch/xla_probe/muon_numerics.py`:
+
+| stage | native vs XLA |
+| --- | --- |
+| forward + backward, total grad L2 | 0.607093 vs 0.607096 — **identical** |
+| Muon polar-express, stage by stage vs a CPU reference | matches to bf16 noise |
+| AdamW step math (betas 0.8/0.995, eps 1e-10), bf16 and fp32 | matches to bf16 noise |
+| **embedding param group, grad L2** | **0.000756 vs 0.000229 — 3.3× wrong** |
+
+Minimal repro, no autograd involved:
+
+```python
+acc = torch.zeros(rows, cols, device=dev)
+for i, v in zip(idx_list, val_list):     # 4 micro-steps
+    acc.index_add_(0, i.to(dev), v.to(dev))
+    xm.mark_step()
+# acc.sum() == 128.0, want 512.0   -> only the LAST index_add_ survived
+```
+
+while plain `acc.add_(...)` across the same boundaries is exact (28.0 for 0..7, correct). Verified
+end to end on the embedding backward: with `mark_step()` between micro-steps the accumulated grad is
+*exactly one* micro-step's contribution (nsteps=2 → the second one's sum; nsteps=4 → the fourth's;
+L2 ratio 0.3537 ≈ 1/√8 at nsteps=8, which is what you get when 8 near-orthogonal equal-norm
+contributions collapse to one). **Without** the per-micro `mark_step()` it is bit-exact against a CPU
+`index_add_` reference.
+
+**So on torch_xla 2.11 + neuronx-cc 2.27 on Neuron, gradient accumulation silently computes the wrong
+embedding gradients unless the entire accumulation loop lives in one graph.** Every real config here
+needs grad accumulation (131072-token batches over 32768-token micro-steps), and the locked config has
+*three* embedding-family tables (wte plus the T3.1 hashed n-gram value embeddings), all of which use
+the same dense scatter-add backward. Workarounds and their cost:
+
+- **One graph for all micro-steps** (`--no-mark-every-micro`): numerically exact, but the single
+  unrolled graph **did not finish compiling in 17 minutes at a toy shape** (depth 4, seq 512, ga 8)
+  and was killed. Not viable inside a 30-minute budget.
+- Manual accumulation into a separate buffer with `p.grad = None` each micro-step: **also wrong**
+  (same 0.3537 ratio), so it is not simply `AccumulateGrad`'s in-place add that breaks.
+- One-hot matmul instead of an embedding lookup: would avoid scatter entirely, but adds an
+  `[8192, T] × [T, 640]` matmul plus a 134 MB one-hot per micro-step, and op count is already the
+  binding constraint on this box.
+
+### Probe 1 — the ratio, decomposed apples-to-apples
+
+Same file (`research/scratch/xla_probe/train_probe.py`), same shapes, same seed, 4 ranks, LNC=2,
+`--freeze-schedules` on both arms, `NEURON_RT_STOCHASTIC_ROUNDING_EN=0` on the XLA arm, 40 steps with
+the first 10 excluded, median of the remaining 30.
+
+| arm | shape | ga | micro tokens | native s/step | XLA s/step | XLA/native |
+| --- | --- | --- | --- | --- | --- | --- |
+| A — upstream starter defaults | depth 10, n_embd 640, seq 1024, dbs 1 | 16 | 4,096 | **1.4816** | **0.6084** | **2.44×** |
+| B — locked-config shape | depth 6, n_embd 640, seq 2048, dbs 4 | 4 | 32,768 | **0.7952** | **0.7975** | **0.997×** |
+| B1 — locked shape, accumulation removed | depth 6, n_embd 640, seq 2048, dbs 4 | 1 | 32,768 | **0.2544** | **0.2283** | **1.114×** |
+
+(The probe's native arm reproduces Probe 0 exactly at shape A — 1.4816 vs 1.48–1.49 s/step — so the
+harness is not the variable. Arms A and B have XLA grad accumulation, hence wrong embedding grads; they
+are timing-only. **B1 is the only numerically valid comparison**, and it is also the honest one: at
+ga=1 both backends compute the same thing, confirmed by identical per-group grad L2 — g0 0.000690 on
+both, g1 0.550840 vs 0.550843.)
+
+**The whole 2.44× at shape A is a small-micro-batch artefact.** Shape A's micro-step is 1×1024 tokens
+per rank; shape B's is 4×2048 = 8192. When per-op work is small the native runtime is dispatch-bound
+and graph mode wins big; once the micro-batch is large enough to amortize dispatch — which is exactly
+what the locked config already does — **the advantage collapses to nothing (0.997×) or almost nothing
+(1.114×)**. This is the same fact the T3.2 work found from the other direction: *op count, not FLOPs or
+parameters, is the binding constraint*, and XLA does not reduce the work per op, it only reduces the
+number of launches. We already bought that reduction by choosing a fat micro-batch.
+
+Compile cost, for completeness (it would have to be paid out of the 900 s excluded-startup allowance):
+
+| arm | step 0 | step 1 | step 2 | total startup |
+| --- | --- | --- | --- | --- |
+| native, shape B, ga=4 | 77.4 s (cold) / 2.8 s (warm) | 0.78 s | — | 3.7–102 s |
+| XLA, shape B, ga=4 | 213.4 s | 6.0 s | 2.1 s | 235 s |
+| XLA, shape B, ga=1 | 339.3 s | 210.0 s | 66.4 s | 638 s |
+| XLA, shape A, ga=16 | 316.2 s | 102.7 s | — | 441 s |
+
+### Gate
+
+**Ratio at the locked shape is 0.997× (ga=4) to 1.114× (ga=1), both below the 1.2× floor. The
+hypothesis is closed as a clean negative.** Nothing in the locked model gets ported; the three NKI
+kernels never had to be scoped for `nki_jit`, and `torch._foreach_*` under XLA (which does lower
+correctly) is moot. The two side facts worth keeping:
+
+1. **The dispatch-bound regime is real but we are not in it.** If a future config ever wants a *small*
+   micro-batch — e.g. LNC=1 experiments, very long sequences at dbs=1, or a much deeper/narrower model
+   — graph mode is worth up to 2.4× there and this probe's launch fix + `islpy` pin make it reachable
+   in about an hour. Below ~8k tokens per micro-step, revisit; at or above it, do not.
+2. **`XLA_USE_BF16` was never needed** — the model already builds in bf16 explicitly, so the
+   stochastic-rounding-on-by-default hazard was sidestepped rather than fought. `NEURON_RT_STOCHASTIC_ROUNDING_EN=0`
+   was set on every XLA arm anyway.
+
+One loose end, recorded rather than chased: at ga=1 with **identical gradients**, the embedding group's
+param L2 after the first optimizer step is 2377.45 (native) vs 2108.48 (XLA), and after 40 steps native
+is at loss 6.088 versus XLA's 6.762. The isolated AdamW step matches across cpu/native/XLA to bf16
+noise, so this is a third-order numerics difference in how the two backends round the update for a
+5.2M-element bf16 table whose grad L2 is 6.9e-4 — it does not change the throughput verdict, and the
+throughput verdict is why nothing here gets ported.
+
+### The finding that pays for the day: T1.7 is unblocked, and it is worth 8.2× on the Muon step
+
+Item 4 of the probe brief asked whether `torch.compile` can wrap the **optimizer step** if
+`torch._foreach_*` is stripped (T1.7 was previously blocked by `_foreach_copy_`). Measured on the
+starter kit's `_muon_step` reduced to pure tensors (`research/scratch/xla_probe/compile_optim_probe.py`,
+shape `[6, 640, 640]`, bf16, 20 iters):
+
+| backend | eager | compiled | ratio | `_foreach_copy_` reintroduced |
+| --- | --- | --- | --- | --- |
+| native, `torch.compile(backend="neuron")` | 9.51 ms | **1.16 ms** | **8.18×** | **FAILS** |
+| XLA, `torch.compile(backend="openxla")` | 0.98 ms | 1.24 ms | 0.79× | works |
+
+The native failure with `_foreach_copy_` present is exactly the T1.7 blocker, now named precisely:
+
+```
+BackendCompilerFailed: backend='neuron' raised:
+RuntimeError: Neuron backend NEFF execution setup failed with unexpected error:
+Failed Torch-MLIR Neuron partial lowering from TorchFX IR -> StableHLO IR:
+error: failed to legalize operation 'torch.operator' that was explicitly marked illegal
+```
+
+pointing at the `torch._foreach_copy_` line. **Strip `_foreach_copy_` and the neuron backend compiles
+the Muon step and runs it 8.2× faster.** `torch.compile(backend="openxla")` also works on the XLA
+device but is *slower* than plain lazy-tensor XLA, which makes sense — lazy XLA is already whole-graph
+compiled, and dynamo adds a layer without removing one.
+
+Pricing that against the real loop, decomposed from the two native arms at shape B:
+`0.2544 = 1×micro + collective + optimizer` and `0.7952 = 4×micro + collective + optimizer`
+⇒ one micro-step = 0.1803 s, **collective + optimizer = 0.0741 s = 9.3% of the step**. An 8× cut on
+the Muon portion of that is worth roughly **0.05 s/step, ≈6% throughput** — not the 1.5–3× the XLA
+hypothesis was chasing, but real, native, and it does not touch numerics. Under the data wall a 6%
+throughput gain at 2139 steps lands at ~2270 steps, past the ~2195 wall, so **it must be spent as
+capacity (width) at a fixed step count, not as extra steps.** That is the T1.7 queue item, and it is
+now known-feasible rather than known-blocked.
+
+Everything in this section lives in `research/scratch/xla_probe/` (starter kit verbatim, dual-backend
+probe copy, op isolation sweep, Muon/AdamW/embedding numeric comparators, both matrix drivers, the
+`torch.compile` optimizer probe). **`train.py` was not touched at any point** — the protocol kept the
+comparison on the unmodified upstream starter kit, and `train.py`'s md5 still matches local HEAD.

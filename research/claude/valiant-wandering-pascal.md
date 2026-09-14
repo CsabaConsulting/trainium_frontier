@@ -52,9 +52,45 @@ arms green.
   Engram cost 1 step out of 1129 (nothing) and was 0.0016 better. That rule is specific to
   injecting into attention's V inside a block. Measure the site; don't inherit it.
 
+## 2026-09-14 — torch_xla graph mode: CLOSED NEGATIVE. T1.7 unblocked with a measured 8.18×
+Probes 0–1 of `research/throughput-to-capacity-track-2026-09-13.md` are done (full detail in
+`research/trn2-experiment-results.md`, dated section). `train.py` untouched; all work lives in
+`research/scratch/xla_probe/`.
+- **The "we run at 8% of peak so a 2–3× loop must exist" premise does not survive contact.** At the
+  locked shape (depth 6, 640, seq 2048, dbs 4, 4 ranks, LNC=2) torch_xla graph mode is **0.997× at
+  ga=4 (0.7975 vs 0.7952 s/step) and 1.114× at ga=1 (0.2283 vs 0.2544 s/step)**. Gate floor was 1.2×.
+  **Nothing ported.** The 2.44× at the *upstream starter's* shape (dbs 1, seq 1024, ga 16: 0.6084 vs
+  1.4816 s/step) is a small-micro-batch artefact — graph mode only wins while per-op work is too small
+  to amortize dispatch, and our fat 8192-token-per-rank micro-step already amortizes it. **Rule: below
+  ~8k tokens per micro-step, graph mode is worth revisiting; at or above it, it is not.**
+- **XLA has a silent correctness bug we would have shipped into:** `index_add_` across a `mark_step()`
+  boundary keeps only the **last** call, so gradient accumulation computes wrong embedding gradients
+  (ours has three embedding-family tables). Exact without the per-micro `mark_step()`, but that single
+  unrolled graph did not finish compiling in 17 minutes at a *toy* shape. Also: XLA compile cost
+  235–638 s of the 900 s allowance versus native's 3.7 s warm.
+- **T1.7 is unblocked and measured: `torch.compile(backend="neuron")` runs the Muon step 8.18× faster**
+  (9.51 → 1.16 ms at `[6,640,640]` bf16) once `torch._foreach_copy_` is gone. With it present the
+  neuron backend fails Torch-MLIR legalization — that op *is* the T1.7 blocker, now named. Sizing:
+  native `0.2544 s` (ga=1) vs `0.7952 s` (ga=4) decomposes to one micro-step = 0.1803 s and
+  **collective + optimizer = 0.0741 s = 9.3% of the step**, so ~6% throughput. Spend it as width at
+  fixed steps, not as extra steps (2139 × 1.06 ≈ 2270 > 2195 wall).
+- Two environment traps worth not re-paying: `islpy 2026.2.2` (allowed by neuronx-cc's `~=2026.1`)
+  breaks **every** XLA compile with `[NCC_ISMP902] Simplifier error: is_subset()` — pin `islpy==2026.1`,
+  and clear `/var/tmp/neuron-compile-cache` because the failure is cached. And torch_xla 2.11 defines
+  but never calls `_aws_ec2_inf_trn_init()`, so 4-rank `torchrun` under PJRT NEURON must set
+  `NEURON_RT_VISIBLE_CORES`/`NEURON_PJRT_*`/`NEURON_RT_ROOT_COMM_ID` itself or every rank requests all
+  four logical cores and three of them die with `NRT_FAILURE`.
+- Incidental, applies to the native path: the starter kit's `dt` halves at step 20 exactly when `lrm`
+  hits 1.000 — **the per-step-Python-scalar recompile hazard is native-backend too**, worth ~2× for the
+  first 20 steps. Our `USE_TENSOR_LR_SCALARS` discipline already covers it; do not relax it.
+- Probes 2 and 3 of that track are **not started** (scope was 0–1).
+
 ## Queued next, in order (real, not discarded — just sequenced behind the capacity work)
 1. T1.6/T1.7/T1.8 throughput (transposed weights, compiled optimizer, `@nki_op` traceable kernels)
    — deep device-profiling knowledge from the T3.1 root-cause work makes these more tractable now.
+   **T1.7 is now the concrete one:** strip `torch._foreach_copy_` from `_muon_step` and wrap the step
+   in `torch.compile(backend="neuron")`; 8.18× measured in isolation, ~6% of the step available, and
+   the failure mode if `_foreach_*` sneaks back in is a hard compile error, not a silent regression.
 2. N-gram VE cost reduction on layers 1/3 (currently cheap only on the last layer) — ~0.007
    headroom if the gather can be moved out of the compiled graph.
 3. LNC=1 quality-cliff mystery (curiosity-tier, lowest priority of the three).
@@ -105,7 +141,12 @@ source of truth) and git history.
   it (several false reads this week came from skipping this).
 - New per-step Python scalars must be device tensors updated via `copy_` — never a bare Python
   float reaching a compiled op (the tensor-lr-scalars lesson).
-- `torch._foreach_*` is eager-only — never inside anything `torch.compile`d.
+- `torch._foreach_*` is eager-only — never inside anything `torch.compile`d. (Confirmed 2026-09-14:
+  the neuron backend fails Torch-MLIR legalization on `_foreach_copy_`; `openxla` accepts it.)
+- **Gradient accumulation + graph-mode boundaries is a correctness trap, not just a perf question**
+  (2026-09-14: `index_add_` across `mark_step()` keeps only the last call). If any future work puts a
+  graph boundary inside the accumulation loop on any backend, verify per-group grad L2 against the
+  eager path before believing a loss curve.
 - **Dress rehearsal before every submission recommendation**: run the literal bare launch command
   once, not through `research/run_experiment.py` (which forces its own `--num-steps`).
 - **tmux for any box command that outlives a possible SSH disconnect** (every 900s/1800s run):
