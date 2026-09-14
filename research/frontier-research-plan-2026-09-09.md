@@ -918,14 +918,25 @@ a learnable per-channel ReLU² shift/slope (prior dropped after `--relu2-tau 0.5
 Closed today with numbers in T4.4: KAN, linear attention as a family, MQA/GQA, BLT/MBLM,
 BitNet/ternary, Hyena, diffusion LMs, n-gram drafters, count-based mixer, Aster's output table.
 
-### 12.6 Throughput→capacity track for the second Trn2 box (proposed 2026-09-13)
+### 12.6 Throughput→capacity track (second Trn2 box up 2026-09-14)
 
-Thesis: under the data wall, throughput is capacity; a 2–3× faster loop (XLA graph backend?
-one micro-step per step? plain wide block?) trains a 2–3× larger model over the same epoch, which
-is the size of the gap to the sub-1.0 cluster. Programme with probes, gates and coordination rules
-in `research/throughput-to-capacity-track-2026-09-13.md`; discussion in
-`research/leaderboard-gap-analysis-2026-09-13.md` §9–§10. Status: not started; awaiting the
-second instance. Rules: flags only, no locked-default changes, no submissions from that box.
+Thesis: under the data wall, throughput is capacity; a 2–3× faster loop trains a 2–3× larger
+model over the same epoch. Programme with probes, gates and coordination rules in
+`research/throughput-to-capacity-track-2026-09-13.md`; discussion in
+`research/leaderboard-gap-analysis-2026-09-13.md` §9–§10.
+
+**Status**: Probes 0/1 ran on the *first* box (2026-09-13, before the second existed) — XLA
+graph-mode CLOSED NEGATIVE at the locked shape (0.997×, not the 1.5-3× the thesis needed; see
+`research/trn2-experiment-results.md`'s dated `(track: throughput→capacity)` section). A real
+bonus fell out of that work instead: `torch.compile` on the Muon optimizer step is unblocked
+(8.18× isolated, ~6% net), now being implemented as T1.7 on the first box.
+
+**Second box** (`ec2-16-26-154-27...`, same AMI, repo synced+verified 2026-09-14) is now running
+**Probes 2/3** (launches-per-token via bigger `PACK_FACTOR`, plain-block ablate-down, payoff
+width/depth resweep at fixed ~2150 steps) — independent of the first box's T1.7 work, per the
+track doc's coordination rules (flags only, no locked-default changes, no submissions from
+either box's own track work, separate `--out-dir tc-*`/label prefix). Both boxes append to the
+shared notebook/experiment-log; check here before starting anything to avoid duplicating a run.
 
 ### 12.3 Traps re-confirmed this block (keep these in view)
 
