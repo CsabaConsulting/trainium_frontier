@@ -1,0 +1,14 @@
+=== 08:00:20 t17-ctrl-2150 (1589s) :  ===
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 1589 --out-dir out/t17-ctrl-2150 --eval-seq-len 1024 --compile-muon --qk-shift --qk-shift-beta 0.0 --qk-shift-freeze
+--- logged: status=keep public_val_bpb=1.019126 num_steps=2141 total_seconds=1651.8 -> research/experiment-log.jsonl
+=== 08:28:17 t17-dim256-m128-2150 (1795s) : --ngram-ve-dim 256 --ngram-ve-table-mult 128 ===
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 1795 --out-dir out/t17-dim256-m128-2150 --eval-seq-len 1024 --compile-muon --qk-shift --qk-shift-beta 0.0 --qk-shift-freeze --ngram-ve-dim 256 --ngram-ve-table-mult 128
+--- logged: status=keep public_val_bpb=1.013656 num_steps=2155 total_seconds=1858.2 -> research/experiment-log.jsonl
+=== 08:59:40 t17-l1-2150 (1687s) : --ngram-ve-layers 1,-1 ===
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 1687 --out-dir out/t17-l1-2150 --eval-seq-len 1024 --compile-muon --qk-shift --qk-shift-beta 0.0 --qk-shift-freeze --ngram-ve-layers 1,-1
+--- logged: status=keep public_val_bpb=1.007376 num_steps=2139 total_seconds=1753.2 -> research/experiment-log.jsonl
+=== 09:29:19 t17-dim256-2150 (1650s) : --ngram-ve-dim 256 ===
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 1650 --out-dir out/t17-dim256-2150 --eval-seq-len 1024 --compile-muon --qk-shift --qk-shift-beta 0.0 --qk-shift-freeze --ngram-ve-dim 256
+--- logged: status=keep public_val_bpb=1.016105 num_steps=2152 total_seconds=1712.6 -> research/experiment-log.jsonl
+=== 09:58:17 done ===
+DONE

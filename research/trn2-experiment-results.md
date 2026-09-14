@@ -5410,3 +5410,46 @@ position span only 3.9608–3.9661), and layer 3 *hurts* (3.9973) — consistent
 position matters more than geometry, but with the sign of affordability reversed. And **dim 256 + mult
 128 runs at essentially the locked config's speed (+0.59% vs base) with 3.1× the n-gram capacity**,
 which is exactly the trade the data wall demands.
+
+### 4. The decisive arms: STEP-MATCHED at ~2145 steps, not 1800 s each
+
+Because of the data wall, running four arms for 1800 s each would have compared four *different step
+counts* and mostly measured how much repeated corpus each one ate (the +13.67% budget would push the
+locked config to ~2432 steps, i.e. 237 steps past the ~2195 wall, which is measured **negative**).
+Instead every arm's own `--max-train-seconds` was shortened to `2150 × its measured s/step`, so the step
+counts are matched **by construction** — the brief's per-step/throughput decomposition requirement is
+satisfied without any post-hoc arithmetic, every arm sits below the wall, and all four are directly
+comparable to the locked `1.018985 / 2139`. This is the same "decline to use the speedup" move that
+scored 1.018967 for `qkfreeze-frozen-1648s`.
+
+All four carry `--compile-muon --qk-shift --qk-shift-beta 0.0 --qk-shift-freeze`. `causality_max_abs =
+0.0` on all four. Column 4 normalises to a common 2145 steps with the measured −0.077 bpb / ln(steps)
+slope; the correction is ≤0.0005 everywhere, so it changes nothing qualitatively.
+
+| arm | budget (s) | steps | `val_bpb` | @2145 steps | vs control | params |
+| --- | --- | --- | --- | --- | --- | --- |
+| `t17-ctrl-2150` (budget only) | 1589 | 2141 | 1.019126 | **1.018982** | — | 190.1M |
+| `t17-dim256-2150` | 1650 | 2152 | 1.016105 | 1.016356 | **−0.0026** | 324.5M |
+| `t17-dim256-m128-2150` | 1795 | 2155 | 1.013656 | 1.014014 | **−0.0050** | 592.9M |
+| **`t17-l1-2150`** (`--ngram-ve-layers "1,-1"`) | 1687 | **2139** | **1.007376** | **1.007160** | **−0.0118** | 324.5M |
+
+**The control lands at 1.018982 normalised against the locked config's 1.018985 — a 3e-6 reproduction.**
+That is the single most useful number in the table: it says the T1.7 compiled Muon step's
+non-bit-exactness (3.25e-03 max\|diff\|) and the frozen Q/K shift are **per-step neutral**, so the entire
++13.67% is *free* throughput, and it independently re-validates the whole step-matching protocol.
+
+**Item 3 verdict — KEEP, and it is the biggest single win since the n-gram VE itself: `--ngram-ve-layers
+"1,-1"` is −0.0118 bpb at an exact step match (2139 vs 2141).** Ten times the 0.001 noise floor, so no
+paired repeat is required by the protocol. It also needs no per-step/throughput decomposition argument:
+its step count is *lower* than the control's, so if anything the number is conservative. And the reason
+it is affordable at all is the +13.67% budget from items 1+2 — at the pre-T1.7 base speed, layer 1 would
+have run at 0.7848/0.8399 = 93.4% of base, i.e. ~2000 steps, and the 0.077/ln(steps) penalty for
+dropping 2141→2000 (+0.0053) would have eaten 45% of the win.
+
+**Item 4 verdict — the width spends are real but strictly smaller: dim 256 is −0.0026, dim 256 + mult
+128 is −0.0050, both below or at the edge of the 0.003 single-run threshold, against layer 1's −0.0118.**
+They are kept as live *stacking candidates* (layer 1 only spends 5.86% of the 13.67% budget, so there is
+budget left over) but not as the primary spend. Note the 2026-09-12 sweep's per-step-normalised
+predictions were 1.014099 for dim256 and 1.014713 for mult128 at 2190 steps; measured here at 2145 they
+are 1.016356 and (jointly) 1.014014, so the width axis under-delivered slightly versus the extrapolation
+while layer 1 massively over-delivered relative to its 120-step loss proxy (3.9402 vs 3.9608).
