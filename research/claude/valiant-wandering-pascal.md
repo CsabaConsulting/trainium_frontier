@@ -1,12 +1,20 @@
 # Trainium Frontier — active plan
 
-## Status (2026-09-13)
-- **Locked config**: T3.1 last-layer hashed n-gram value embeddings (`USE_NGRAM_VE=True`,
-  `NGRAM_VE_LAYERS="-1"`, bigram+trigram, mult=64, dim=128; 190.1M params). Local: 1.018985 bpb /
-  2139 steps at 1800s. Launch command (no flags needed, all defaults):
+## Status (2026-09-14)
+- **Locked config**: hashed n-gram value embeddings on **layers 1 AND the last layer**
+  (`USE_NGRAM_VE=True`, `NGRAM_VE_LAYERS="1,-1"`, bigram+trigram, **mult=128**, dim=128) plus the two
+  free throughput changes — T1.7 compiled Muon (`USE_COMPILE_MUON=True`) and the frozen Q/K-shift
+  identity (`USE_QK_SHIFT=True`, `QK_SHIFT_BETA=0.0`, `QK_SHIFT_FREEZE=True`). 592.9M params.
+  Local: **1.004363 bpb / 2135 steps at the full 1800s** (was 1.018985 / 2139 with the previous
+  last-layer-only, mult-64, no-throughput-flags config: **−0.0146**). All of it is in `train.py`'s
+  module-level defaults, so the launch command is still flagless:
   ```
   NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --no-eval-public --num-steps 1000000
   ```
+  **Heads-up for anything else running experiments: those defaults CHANGED on 2026-09-14.** A bare
+  `train.py` is no longer the 190.1M last-layer-only config, so any A/B that treats "no flags" as the
+  old baseline must now pass `--ngram-ve-layers "-1" --ngram-ve-table-mult 64 --no-compile-muon
+  --no-qk-shift` explicitly.
 - **Real board score**: 1.0384 (sub-c23baa39, 9/12/26 1:05 PM) — predicted 1.039, off by 0.0006,
   tightest calibration match yet. Trust the calibration chain.
 - **Leaderboard** (2026-09-12 snapshot): top 10 span 0.9683–1.0303; we'd sit just outside at
@@ -85,14 +93,40 @@ Probes 0–1 of `research/throughput-to-capacity-track-2026-09-13.md` are done (
   first 20 steps. Our `USE_TENSOR_LR_SCALARS` discipline already covers it; do not relax it.
 - Probes 2 and 3 of that track are **not started** (scope was 0–1).
 
+## 2026-09-14 (afternoon) — T1.7 SHIPPED, and the budget bought n-gram VE on layer 1: **1.004363 (−0.0146)**
+Full detail in the dated `research/trn2-experiment-results.md` section. New defaults are in `train.py`.
+- **T1.7 `--compile-muon` KEEP: +3.38%**, not the ~6% the isolated 8.18× predicted — that estimate was
+  priced against a non-NKI optimizer and the shipped path already had the NKI Muon fusion, which the
+  compiled body *replaces* (a compiled region cannot hold an `nki.jit` call). The source rewrite is
+  bit-exact on CPU; the *compiled* execution is not (3.25e-03 max|diff| over 3 steps, bf16-ULP scale in
+  the Newton-Schulz chain, same order as the shipped rope+norm and softcap+CE kernels). Verified where
+  it counts: the step-matched control with it ON reproduces 1.018985 to 3e-6.
+- **Stacks slightly SUPER-additively with the frozen qk-shift: +13.67% combined** (13.19% predicted
+  multiplicatively). Both now default ON.
+- **The T3.1 "early n-gram layer costs +34%" penalty is a ONE-RANK ARTEFACT.** At 4 ranks layer 1 costs
+  5.86%, layer 3 costs 3.04%. Generalise: any "this is unaffordable" verdict measured at 1 rank must be
+  re-measured at 4 before it closes a door, because the cross-pcore reshard is much cheaper when the
+  residual is already sharded four ways.
+- **Layer 1 is the win: −0.0118 bpb at an exact step match**, −0.0130 including the leftover steps its
+  budget buys. Layer 3 is *harmful* (worse than control on the proxy, twice) and `{1,3,5}` is worse than
+  `{1,5}`. **The position space is closed**: `has_ve()` = `i % 2 == (n_layer-1) % 2`, so at DEPTH 6 only
+  {1,3,5} exist and `"0,-1"`/`"2,-1"`/`"1,2,-1"` are silently degenerate no-ops (measured).
+- **mult 64 → 128 is now worth −0.0016**, reversing the 2026-09-12 "capacity saturates at 64" verdict.
+  Lesson: *a capacity axis measured as saturated at one injection site is not saturated at two.*
+  dim 256 and dim256+mult128 stay discarded (dominated / +0.0177 step penalty).
+- Dress-rehearsed with the literal bare command; 592.9M params, 2135 steps in the official 1800 s,
+  60 steps below the data wall, `causality_max_abs 0.0`.
+
 ## Queued next, in order (real, not discarded — just sequenced behind the capacity work)
-1. T1.6/T1.7/T1.8 throughput (transposed weights, compiled optimizer, `@nki_op` traceable kernels)
-   — deep device-profiling knowledge from the T3.1 root-cause work makes these more tractable now.
-   **T1.7 is now the concrete one:** strip `torch._foreach_copy_` from `_muon_step` and wrap the step
-   in `torch.compile(backend="neuron")`; 8.18× measured in isolation, ~6% of the step available, and
-   the failure mode if `_foreach_*` sneaks back in is a hard compile error, not a silent regression.
-2. N-gram VE cost reduction on layers 1/3 (currently cheap only on the last layer) — ~0.007
-   headroom if the gather can be moved out of the compiled graph.
+1. T1.6/T1.8 throughput (transposed weights, `@nki_op` traceable kernels). **T1.7 is DONE** (shipped
+   2026-09-14, +3.38%). Any further win here should be spent the same way T1.7's was: on capacity at a
+   fixed step count. Note there is now ~0 slack left — the locked config uses the full 1800 s and lands
+   60 steps under the wall — so the *next* speedup has to be paired with a capacity spend to be worth
+   anything at all.
+2. ~~N-gram VE cost reduction on layers 1/3~~ — **partly obsolete**: layer 1 is affordable as-is at
+   4 ranks and is now shipped; layer 3 is harmful on quality, so making it *cheaper* buys nothing. What
+   remains is only "make layer 1 cheaper", worth ~5.9% of a step, and there is nothing left to spend it
+   on that has been measured positive.
 3. LNC=1 quality-cliff mystery (curiosity-tier, lowest priority of the three).
 
 Note: any future throughput win from 1-3 should be spent the same way as the current pivot —
