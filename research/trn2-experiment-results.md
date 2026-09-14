@@ -5781,12 +5781,36 @@ own.
 
 ### What was removed, in order
 
-| # | Family | Lines after | Notes |
-|---|--------|------------|-------|
-| 1 | RWKV x051a | 6,761 | also un-broke `origin/main`, see below |
-| 2 | Mamba2 / SSD + its NKI kernel pair | 5,600 | −1,161 lines, the biggest single win |
+| # | Family | Commit | Lines after | Notes |
+|---|--------|--------|------------|-------|
+| 1 | RWKV x051a | `d4abc14` | 6,761 | also un-broke `origin/main`, see below |
+| 2 | Mamba2 / SSD + its NKI kernel pair | `73a1700` | 5,600 | −1,161 lines, the biggest single win |
+| 3 | DCMHA (`DCMHACompose`, `_DCMHAWeightGen`, `_cross_head_compose`) | `39efdc9` | 5,450 | verdict rescued above |
+| 4 | MUDDFormer (`MuddCompose`) | `b93426a` | 5,377 | verdict rescued above |
+| 5 | XSA + value-residual (`v_raw`/`v0` plumbing) | `8fd47d9` | 5,350 | the only commit that changed a live-path signature: `CausalSelfAttention.forward`/`Block.forward` go back to returning a plain `Tensor` instead of a `(Tensor, v_raw)` tuple |
+| 6 | `Fp8Linear` (`_Fp8LinearFn`, `_fp8_*`, the `mlp_linear` indirection) | `796a223` | 5,220 | `MLP.__init__` now uses `Linear` directly |
+| 7 | Stochastic rounding | `2c38d23` | — | toggle + the `NEURON_RT_STOCHASTIC_ROUNDING_EN` setdefault block |
+| 8 | Requeue packer (`USE_REQUEUE_PACKER`) | `2c38d23` | 5,191 | `make_dataloader_requeue()` itself is KEPT — `USE_EPOCH_SHUFFLE` still needs it. With the `requeue` parameter and the `if requeue:` leftover-append guard gone, its body is now byte-for-byte `prepare.make_dataloader()`'s; the only remaining difference is the injectable `_document_batches_fn` seam (verified by a function-level diff against `prepare.py`) |
 
-(Table continued in the commit series; the final count is reported at the end of this section.)
+**Net: 7,275 → 5,191 lines, −2,084 (−28.6%).** Nine closed architecture families, 20 toggles and 3
+CLI flags gone; zero behaviour change. Two historical comments were rewritten rather than deleted
+because they pointed at removed text: the Muon-kernel bit-exactness note (dropped its "not the FP8
+kernel's inherent-precision-loss standard" clause) and the epoch-shuffle note (now cross-references
+`make_dataloader_requeue` instead of `USE_REQUEUE_PACKER`). The SCALAR_LR NaN-divergence finding,
+whose only home was the deleted `hypernet_params` comment, was folded into the `gate_params` comment
+that the surviving cross-references point at.
+
+### Hardware verification chain (run after commit 8/8, all on box 1)
+
+| Check | Result |
+|-------|--------|
+| `py_compile` + real import/instantiate under the box's torch | PASS (`py_compile` alone is explicitly not trusted — see the incident below) |
+| CPU fingerprint probe vs the pre-cleanup file, every commit | PASS, ALL EQUIVALENT: loss `9.01068401337` to 12 s.f., `n_params` 592,916,844, `flops_per_token` 399,190,080, all 80 parameter md5s, all 74 gradient md5s, identical optimizer param-group structure; toggle-set delta exactly the 20 intended removals |
+| 110-step same-command hardware run vs `run-logs/rehearsal2-20260914.log` | PASS within the run-to-run band — steps 0-20 are digit-identical (`9.0100 / 8.7974 / 8.4196 / 8.0930 / 7.7344 / 6.5588 / 5.9051`), then drift reaches `4.0872` vs `4.0922` at step 90. **A control run of the OLD scored binary (md5 `28718afe…`) against the same reference log drifts at least as much** (step 90 `4.0874`, step 50 `5.1191` vs `5.1208`), so this is ordinary bf16/collective run-to-run nondeterminism on this box, not a cleanup effect. Bit-exactness is established by the CPU probe, which removes the nondeterminism |
+| `load_for_eval` on the real `out/final.pt` (1,297,949,831 B), OLD vs NEW | PASS, identical to the last digit: `val_bpb 1.0035637044807473`, `total_nats 5856178.5`, `n_params 592916844` on both |
+| `causality_check` on the loaded checkpoint | PASS both: `max_abs_diff 0.0`, `passed True` |
+| Checkpoint payload round-trip with 20 toggles removed | PASS — a strict `load_state_dict` of a checkpoint written by the 7,275-line binary succeeds under the 5,191-line binary, confirming the `ARCH_TOGGLE_NAMES`/`SHAPE_CRITICAL_TOGGLES` reasoning above |
+| `python prepare.py check --train-py train.py --launch-command …` | `check passed` |
 
 **Incident worth recording: `origin/main` was briefly runtime-broken.** Commit `56cd19f`, whose
 message says "No behaviour change: help strings only", actually landed **19 insertions and 396
