@@ -6045,3 +6045,38 @@ epochs by design" arm** (`--epoch-shuffle` plus an LR schedule spanning two epoc
 precondition was ≥2× throughput headroom from Probes 1–3, and the measured headroom is +1.36%;
 `USE_EPOCH_SHUFFLE` is also already a recorded negative with numbers. Both are closed by arithmetic
 already in this section rather than left open.
+
+### 7. Addendum — hardware smoke test of the dead-code cleanup (5191-line `train.py`), on this track's own control
+
+Cross-reference: section "2026-09-14 — dead-code removal from `train.py`" above, which verified the
+cleanup **bit-exact on CPU torch** (identical loss, `num_params`, `flops_per_token`, all 80 param md5s,
+all 74 grad md5s, identical optimizer groups). That proves the *math* is unchanged. It does **not**
+prove the *compiled graph* is unchanged, and §3–§4 above are precisely why that distinction is not
+academic on this stack: one gather's presence swings a kernel by 9.4 points, and deleting 537M
+parameters at unchanged FLOPs/token made the model 10.2% **slower**. Graph-level effects here are large,
+non-additive, and not predictable from the math. So "does removing 2,076 lines move s/step or loss on
+device?" was measured rather than argued.
+
+Run on box 2 immediately after Part D, same box / same flags / same day as the `ab-full` control, so no
+cross-day or cross-box assumption is needed. Driver `research/scratch/tc_cleanup_smoke.sh`, `train.py`
+md5 `87a7a4da50c9796db8afc4a3cf463c0f` (5191 lines) against the frozen pre-cleanup
+`d0995051e0375541d6f9fc71abecf465` (7267 lines).
+
+| binary | tok/s (8-pt means) | pooled | s/step | step-110 loss | pooled |
+|---|---|---|---|---|---|
+| pre-cleanup `ab-full` ×3 | 156945 / 155789 / 156235 | **156323** | 0.83848 | 3.9380 / 3.9380 / 3.9412 | **3.93907** |
+| cleaned `clean-full` ×2 | 156874 / 155622 | **156248** | 0.83888 | 3.9377 / 3.9336 | **3.93565** |
+
+**PASS.** Throughput delta **−0.048%**, far inside the control's own 0.74% run-to-run spread — and
+`clean-full-r1` (156874) falls *between* pre-cleanup r1 (156945) and r3 (156235). `num_params`
+(592,916,844) and `flops_per_token` (3.991901e+08) are byte-identical across the two binaries, which is
+the strongest single line of evidence here.
+
+**Stated honestly:** the pooled step-110 loss delta is **−0.0034**, which is *at* the 120-step noise
+floor rather than comfortably inside it (it is the same magnitude as the `ab-norope` arm's, which was
+also judged constant-capacity). The ranges overlap — the cleaned r1's 3.9377 sits inside the
+pre-cleanup cluster, and the cleaned r2's 3.9336 is the lowest of all five runs — and with n=2 vs n=3
+there is no power to resolve anything below the floor. Combined with the CPU bit-exactness proof, the
+reasonable reading is "no detectable change"; a 120-step proxy cannot license a stronger claim than
+that, and it is not needed, because bit-exactness on CPU already covers the numerics and this test was
+only ever about the compiled graph.
