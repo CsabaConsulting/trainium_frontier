@@ -6413,3 +6413,198 @@ the NKI frontend already performs the registration itself.
   submission. Plan §T1.8's "graph breaks around the kernels" premise is **false on nki 0.5.0**.
 - **Bar unchanged.** Best known config is still **1.004363 bpb / 2135 steps @ 1800 s**. Neither item
   produced a candidate, so there is nothing here to dress-rehearse or submit.
+
+---
+
+## 2026-09-14 (later, second box `ec2-16-26-154-27`) — LNC=1 cliff investigation: the old +0.24 bpb finding cannot be reproduced, because LNC=1 multi-rank no longer *initialises*; both remaining suspects refuted
+
+Curiosity-tier task, run explicitly with the submission staying at LNC=2 / 4 ranks regardless of
+outcome. Goal: root-cause T0.6's `+0.2406 bpb` LNC=1 quality cliff. All runs below at
+`train.py` md5 `87a7a4da50c9796db8afc4a3cf463c0f` (repo HEAD at launch time; the peer box's T1.6
+commit `a49890d` landed mid-session and moved train.py afterwards — no result here depends on the
+`--transposed-linear` addition, which defaults OFF).
+
+Reproduction scripts: `research/scratch/lnc_initmatrix.sh` (hang detector: launches the real
+`train.py`, py-spy-dumps rank 0 after N seconds, verdicts on whether `world_size=` was ever
+printed), `research/scratch/lnc1_ccflags.sh`, `research/scratch/lnc_ws_data_probe.py`,
+`research/scratch/lnc_ws_grad_equiv.py`, `research/scratch/lnc_wsaxis.sh`.
+
+### 1. The old compile failure is GONE and has been replaced by a worse failure: LNC=1 hard-deadlocks inside `dist.init_process_group`
+
+T0.6 recorded LNC=1 as a *compile* crash (`nkilib...l2_norm_kernel_lnc0` →
+`CollectiveKind::SendRecv is not a valid enum value`), escapable with `--no-clip-foreach`. **That
+error does not occur any more.** On the current stack, `NEURON_LOGICAL_NC_CONFIG=1` never reaches
+the compiler at all — it hangs, silently, at 0% CPU, with no device memory allocated, in the NRT
+barrier that `init_process_group` performs. Identical py-spy stack every time:
+
+```
+Thread (idle): "MainThread"
+    _fn (torch/_dynamo/eval_frame.py:1263)
+    _neuron_runtime_setup (torch_neuronx/distributed/backend.py:172)   <-- _nrt_barrier(0, rank, size)
+    _create_neuron_process_group (torch_neuronx/distributed/backend.py:32)
+    _new_process_group_helper (torch/distributed/distributed_c10d.py:2177)
+    init_process_group (torch/distributed/distributed_c10d.py:1838)
+    init_runtime (train.py:1149)
+    main (train.py:4668)
+```
+
+Escape-attempt matrix (all `VERDICT=STUCK_OR_FAILED`, i.e. `world_size=` never printed; 110-300 s
+wait each; separate cold `NEURON_COMPILE_CACHE_DIR` per arm):
+
+| arm | env / flags | result |
+|---|---|---|
+| `init-lnc2-4p` (control) | `LNC=2`, nproc=4 | **INIT_OK**, trains: 592,916,844 params, losses 9.0100/8.7974/8.4196, 0.84 s/step, 155,891 tok/s — digit-identical to the recorded rehearsal, so the instrument is sound |
+| `init-lnc1-4p` | `LNC=1`, nproc=4 | hang at `_nrt_barrier` |
+| `init-lnc1-1p` | `LNC=1`, nproc=**1** | hang at `_nrt_barrier` |
+| `init-lnc1nc8-4p` | `LNC=1` + `NEURON_RT_NUM_CORES=8` | hang |
+| `init-lnc1vcs1-4p` / `-8p` | `LNC=1` + `NEURON_RT_VIRTUAL_CORE_SIZE=1` | hang |
+| `init-lnc1-4p-nocompile` | `LNC=1` + `--no-compile` (eager) | hang — **eager does not rescue it** |
+| `init-lnc1-4p-noclipforeach` | `LNC=1` + `--no-clip-foreach` (T0.6's escape hatch) | hang |
+| `init-lnc1-4p-gc0` | `LNC=1` + `--grad-clip 0 --no-clip-foreach` | hang |
+| `cc-lnc1-4p` | `LNC=1` + external `NEURON_CC_FLAGS="--optlevel=1 --lnc=1"` | hang |
+
+**`nproc=1` hanging is the decisive datapoint.** `_nrt_barrier(0, rank, size)` with `size=1` has no
+peer to wait for; it still deadlocks. So the fault is *inside the barrier primitive at LNC=1* and is
+completely independent of world size, of collectives, of the data pipeline, of Muon, of the NKI
+kernels, of `clip_grad_norm_`, and of `torch.compile`. Everything downstream of
+`init_process_group` is unreachable and therefore exonerated by construction.
+
+Not a core-acquisition problem: `NEURON_LOGICAL_NC_CONFIG=1 neuron-ls` correctly reports 8 cores
+(IDs 0-7) instead of LNC=2's 4, and `dmesg` shows the driver granting individual cores
+`00-00 … 07-07` at LNC=1. Userspace visibility and kernel-side allocation both work; only the
+barrier is broken. Stack: `neuronx-cc 2.26.6360.0`, `torch-neuronx 2.11.3.0.0` (vendored eager
+build at `~/workspace/torch_neuron_eager`), driver `2.30.2.0`, kernel `6.17.0-1019-aws`.
+
+**Control proving LNC=1 itself is not dead — only its distributed init is:** a *plain*
+`NEURON_LOGICAL_NC_CONFIG=1 python train.py` (no `torchrun`, so `get_dist_info()` returns
+`ddp=False` and `init_process_group` is never called) sails past the hang point and proceeds
+normally into compilation — `world_size=1`, `num_params=592,916,844`,
+`flops_per_token=3.991901e+08`, `torch.compile enabled (backend=neuron)`,
+`micro_tokens=8,192 grad_accum_steps=16`. LNC=1 codegen and execution work; `_nrt_barrier` at LNC=1
+does not.
+
+**A partly-explanatory but incomplete side finding.** With only the *runtime* switch
+(`NEURON_RT_VIRTUAL_CORE_SIZE=1`, `NEURON_LOGICAL_NC_CONFIG` unset), the failure is loud instead of
+silent and names its own cause:
+
+```
+NRT:nrt_load_util  Mismatch detected between Runtime configuration and NEFF. Runtime currently
+configured with `NEURON_LOGICAL_NC_CONFIG=1` but NEFF module.neff was compiled with `--lnc=2`.
+```
+
+That is real and worth recording: `train.py` line 70 (the `USE_TRN2_COMPILER_FLAGS = False` branch)
+sets `NEURON_CC_FLAGS = "--optlevel=1"` with **no `--lnc=`**, so neuronx-cc uses its Trn2 default
+`--lnc=2` no matter what `NEURON_LOGICAL_NC_CONFIG` says. The abandoned
+`USE_TRN2_COMPILER_FLAGS = True` branch (line 47) *did* mirror `--lnc=` from the env var — which is
+how T0.6 was able to run LNC=1 at all, and means **the `--optlevel=1` win silently removed LNC=1
+runnability as a side effect**. But this is *not* the whole story: supplying
+`NEURON_CC_FLAGS="--optlevel=1 --lnc=1"` externally (which wins, since line 70 uses `setdefault`)
+does **not** fix the barrier hang, and produces no mismatch error either. So there are two distinct
+LNC=1 breakages on this stack, and the barrier one is unexplained and unfixed from userspace.
+
+**Consequence: T0.6's `+0.2406 bpb` cliff is not reproducible on this stack at any magnitude,
+because no multi-rank LNC=1 run can be started.** Task item 2 is blocked, not answered. Recorded
+honestly as such rather than dressed up.
+
+The only remaining route to an LNC=1 multi-rank number would be patching the vendored SDK to skip
+`_nrt_barrier`. **Not done, and recommended against**: that is the same `torch_neuronx` tree the
+locked LNC=2 submission runs on, and a run with the process-group barrier removed would not be
+trustworthy evidence about optimisation quality anyway.
+
+### 2. Suspect (a) — world-size-dependent data pipeline: REFUTED, quantitatively
+
+`prepare._row_groups_for_split` shards by striding row groups: `range(rank, n_groups, world_size)`.
+Measured on the real corpus (`research/scratch/lnc_ws_data_probe.py`): **415 row groups over 5
+shards, 424,960 documents, 1,260,004,142 text bytes.**
+
+| `world_size` | row groups / rank | docs/rank spread | bytes/rank spread | earliest rank wraps to epoch 2 at | total bytes |
+|---|---|---|---|---|---|
+| 1 | [415] | 0.000% | 0.000% | 100.00% | 1,260,004,142 |
+| 2 | [208, 207] | 0.481% | 0.245% | 99.75% | identical |
+| 4 | [104, 104, 104, 103] | 0.962% | 1.221% | 98.78% | identical |
+| 8 | [52 ×7, 51] | 1.923% | 1.912% | 98.09% | identical |
+
+No off-by-one, no dropped remainder: **the union of row groups is byte-for-byte the same corpus at
+every world size** (total bytes identical, verified). The only world-size effect is that the
+short-changed rank's stream is 1.9% shorter at ws=8 vs 1.2% at ws=4, i.e. it would wrap to epoch 2
+at 98.09% instead of 98.78% of the slowest rank's epoch — and at the 30-min budget the run reaches
+only ≈0.97 epoch anyway, so that sliver is never even touched.
+
+Packer waste is also world-size-agnostic in mechanism (per-rank buffer of `buffer_min=512` docs,
+best-fit into `seq_len+1`, shortest-doc truncation when nothing fits) and in magnitude. Over 10
+loader rows per rank of the real packing loop:
+
+| `world_size` | tokens kept | tokens discarded by truncation | truncated docs |
+|---|---|---|---|
+| 4 | 327,720 | 778 (**0.237%**) | 26 / 149 (17.45%) |
+| 8 | 655,440 | 2,020 (**0.307%**) | 58 / 321 (18.07%) |
+
+A 0.07-percentage-point difference in discarded tokens and a 0.6-point difference in truncation rate
+cannot produce 0.24 bpb. Also confirmed by inspection: `TOTAL_BATCH_SIZE = 131072` is held fixed and
+`grad_accum_steps = TOTAL_BATCH_SIZE // (DEVICE_BATCH_SIZE * PACK_FACTOR * SEQ_LEN * world_size)`
+divides exactly at ws∈{1,2,4,8} (16/8/4/2), so tokens-per-optimiser-step is *identical* across world
+sizes with no remainder discarded.
+
+### 3. Suspect (b) — Muon Newton-Schulz at a halved per-rank batch: REFUTED, analytically and numerically
+
+**Analytically the suspect cannot exist as stated.** The train loop (`train.py` ~4963-4990) runs
+`backward()` over all `grad_accum_now` microsteps, then `clip_grad_norm_`, then
+`sync_gradients(...)` — a per-parameter `dist.all_reduce(p.grad, op=ReduceOp.AVG)` — and *only then*
+`optimizer.step()`. Muon's Newton-Schulz therefore **never sees a per-rank gradient**; it sees the
+average over the full `TOTAL_BATCH_SIZE = 131072` tokens at every world size. `world_size` enters the
+math in exactly three places (grep-verified): the data split (line 118), `grad_accum_steps`
+(line 4815), and the all_reduce group size.
+
+**Numerically** (`research/scratch/lnc_ws_grad_equiv.py`, CPU, 16 synthetic micro-gradients grouped
+as ws=4/ga=4 vs ws=8/ga=2 through the real accumulate→AVG arithmetic, then pushed through
+`train.py`'s own `_muon_math`):
+
+| tensor | dtype | `max｜ws4 − ws8｜` | vs `exact` |
+|---|---|---|---|
+| Muon matrix (4480×640) | fp32 | 6.985e-10 (rel 1.166e-06) | — |
+| vector param | fp32 | 2.328e-10 | — |
+| `wte` | fp32 | 6.985e-10 | — |
+| `wte` | bf16 (the n-gram VE dtype) | 1.526e-05 | ws4 2.312e-05, **ws8 1.650e-05** (ws=8 marginally *closer* to exact) |
+
+Through the real Polar-Express Newton-Schulz body from an **identical** starting weight:
+`max|w_ws4 − w_ws8| = 5.722e-06`, `mean = 3.247e-07`, against `‖w‖ = 33.8558` — i.e. ~1.7e-7
+relative. Floating-point re-association noise, with no systematic sign. (Cost of getting this wrong,
+recorded as a methodology note: the first version of this probe drew `torch.randn` for the starting
+weight *inside* the per-arm loop and reported a bogus `1.499e-01` difference. A probe that gives each
+arm a different initial condition measures the initial condition.)
+
+### 4. Substitute experiment — the world-size axis at LNC=2, and a fresh 400-step control
+
+Since LNC=1 cannot run, the closest available proxy for "does rank count itself cost quality" is a
+fixed-step world-size sweep at LNC=2. Fixed-step (not fixed-wall-clock) so throughput cannot
+confound quality. `research/scratch/lnc_wsaxis.sh`.
+
+| run | LNC | procs | `grad_accum` | per-rank tokens/step | steps | s/step | `public_val_bpb` |
+|---|---|---|---|---|---|---|---|
+| `ws-ws4-400` | 2 | 4 | 4 | 32,768 | 400 | 0.84 | **1.190773** |
+
+The `nproc=2` and repeat arms were **deliberately cancelled mid-sequence** in favour of chasing the
+`--lnc=1` compiler-flag lead above (which then failed). So this is a single unpaired point: useful as
+a fresh 400-step reference at the locked config on the current stack, **not** as a world-size-axis
+verdict. Anyone resuming this should run `ws2-400` and a `ws4-400` repeat before drawing any
+conclusion from a rank-count comparison; a single-run delta here would be under the 0.003 bpb
+paired-repeat threshold anyway.
+
+### 5. What this hands over
+
+- **The T0.6 LNC=1 numbers (`1.324435` / `1.322584` / `1.337690`) are now unreproducible history.**
+  They were measured at 55.7M params, before n-gram value embeddings (537M of today's 592.9M
+  params), before compiled Muon, and on an SDK/train.py combination where LNC=1 could still
+  initialise. Do not cite the `+0.24 bpb` figure as a live property of the current stack.
+- **LNC=1 is not a "slightly worse option" on this stack; it is a non-starter.** The LNC=2 lock needs
+  no quality justification at all right now — multi-rank LNC=1 cannot be launched. If a future SDK
+  bump fixes `_nrt_barrier`, re-measure from scratch rather than reusing any number above.
+- **Latent trap worth knowing independently of LNC:** `NEURON_CC_FLAGS` on the live code path carries
+  no `--lnc=`, so the compiler's `--lnc=2` default is silently assumed. Any future run at a non-2 LNC
+  must pass `--lnc=` explicitly or it will hit `nrt_load_util` NEFF/runtime mismatches. (`setdefault`
+  means an external `NEURON_CC_FLAGS` overrides cleanly, no code change needed.)
+- **Both named suspects are closed.** The data pipeline is world-size-clean to ≤1.9% stream-length
+  asymmetry with an identical corpus union, and Muon's NS is mathematically downstream of the
+  all_reduce so it never sees a per-rank batch (confirmed to ~1e-7 relative). Neither can carry
+  0.24 bpb. The genuine unexplained residual is now the *barrier*, not the optimiser or the loader.
+- **`train.py` unchanged by this task** (diagnostic only, no flags added).
