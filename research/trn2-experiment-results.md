@@ -5304,3 +5304,109 @@ Everything in this section lives in `research/scratch/xla_probe/` (starter kit v
 probe copy, op isolation sweep, Muon/AdamW/embedding numeric comparators, both matrix drivers, the
 `torch.compile` optimizer probe). **`train.py` was not touched at any point** — the protocol kept the
 comparison on the unmodified upstream starter kit, and `train.py`'s md5 still matches local HEAD.
+
+## 2026-09-14 — T1.7 lands: the compiled Muon step is +3.4%, it stacks super-additively with the frozen Q/K shift for a **+13.67%** budget, and the T3.1 early-n-gram-layer penalty **does not reproduce at 4 ranks**
+
+Three separate results, in the order they were produced. All at the locked config (`USE_NGRAM_VE=True`,
+`NGRAM_VE_LAYERS="-1"`, mult 64, dim 128, 190.1M params, reference **1.018985 bpb / 2139 steps @1800s**,
+board 1.0384), 4 ranks, LNC=2, `~/workspace/native_venv`.
+
+### 1. T1.7 — Muon's math body inside `torch.compile(backend="neuron")`
+
+The 2026-09-14 XLA probe showed `torch.compile(backend="neuron")` runs a foreach-free Muon step 8.18×
+faster in isolation, with `torch._foreach_copy_` named as the exact blocker (Torch-MLIR legalization).
+Implemented as `_muon_math` in `train.py` — a pure tensors-in/tensors-out re-expression of `_muon_step`'s
+eager body — plus `MuonAdamW._muon_compile_scalars`, gated behind **`--compile-muon`, default OFF**.
+`_MUON_COMPILED` caches one compiled callable per `(tall, ns_steps, red_dim, shape)` specialisation; all
+**5** specialisations compile on hardware.
+
+Three places bit-exactness could have been lost, all handled deliberately rather than hoped for:
+
+1. `1 - momentum` is formed on the **host in float64**, because `lerp_.Scalar` does the same:
+   `fp32(1.0 - 0.95) = 0.05f`, whereas `1.0f - 0.95f` computed *on device* is `0.0500000119`.
+2. `lr*ratio` and `lr*ratio*wd` are formed on the host **in float32** so they equal the device fp32
+   products bit for bit (a float64 host multiply would not).
+3. `lerp.Tensor` (what the compiled body must use) vs `lerp.Scalar` (what the eager body uses).
+   **Verified, and it matters:** the two overloads are *bitwise identical in fp32* but disagree by a
+   **full bf16 ULP in bf16** (15468/16191 elements, max\|diff\| 1.562e-02) — `lerp.Scalar` computes bf16
+   in fp32 opmath and rounds once, `lerp.Tensor` rounds the intermediate. Harmless here (the compiled
+   branch is gated on `w.dtype == torch.float32` and all four lerp operands are fp32) but recorded as a
+   live hazard for any future tensor-weighted lerp.
+
+No per-step Python float reaches a device op: all four scalars are 0-dim fp32 **views into one (4,)
+device tensor** behind a single `host→device copy_`, so four operands cost the same as one launch. This
+is not optional politeness — under `torch.compile(dynamic=False)` a Python float argument is a *Dynamo
+guard*, which is strictly worse than eager (eager only bakes `alpha=`-style graph constants).
+
+`--compile-muon` is **mutually exclusive with `--nki-muon` by construction**: a compiled region cannot
+contain an `nki.jit` call, so the flag deliberately trades the NKI elementwise fusion for whole-body
+fusion. That is checked *before* the NKI path in `_muon_step`.
+
+**Equivalence gate** (`research/scratch/compile_optim_equiv.py`, 3 arms `ref`/`nki`/`comp` over
+identically-initialised param sets, identical synthetic grads, a **per-step-varying** lr/momentum/wd
+schedule, every Muon param + `momentum_buffer` + `second_momentum_buffer` + `stacked_params` compared
+element by element):
+
+| what | standard | result |
+| --- | --- | --- |
+| **source rewrite** (`--eager-math --device cpu`, 5 steps, all 5 groups) | must be bit-exact | **BIT-EXACT — 0 differing elements** |
+| `nki` arm vs `ref` on device | bit-exact (re-confirmation) | **EXACT** |
+| **compiled execution** on device (3 steps) | a few bf16 ULP, reported not asserted | **not bit-exact: worst max\|diff\| 3.254e-03** (step-0 params 1.1e-4 … 1.1e-3) |
+
+So the honest standing is: **bit-exact source rewrite, non-bit-exact compiled execution**, drift
+accumulating in the 5-iteration **bf16** Newton–Schulz chain because the compiler is free to skip the
+intermediate bf16 rounding the NKI kernel's comments call "load-bearing". That is the same order as two
+things already shipped (rope+norm at 1 ULP, softcap+CE at 2.44 ULP), so it is a judgement call made
+explicitly, not an oversight. `stacked_grads` differs 100% between arms and is compared but **not
+gated** — it is pure scratch, refilled from `p.grad` every step, and the eager body happens to use it as
+the destination of its in-place `g.lerp_`.
+
+### 2. The throughput quadrant — measured, not assumed
+
+`research/scratch/t17_throughput_probe.sh`, the 120-step fixed-step instrument (validated to reproduce
+1800s steady-state s/step to three digits; `lrm` stays 1.000 because the schedule is driven by
+`elapsed/max_train_seconds`). tok/s means, sd ≈ 400–550 (0.3%).
+
+| arm | tok/s | s/step | vs base | steps @1797s |
+| --- | --- | --- | --- | --- |
+| base (locked, `--nki-muon`) | 156063 | 0.8399 | — | 2140 |
+| `--compile-muon` | 161342 | 0.8124 | **+3.38%** | 2212 |
+| frozen qk-shift only | 170882 | 0.7670 | **+9.50%** | 2343 |
+| **both** | **177394** | **0.7389** | **+13.67%** | 2432 |
+
+Two things to take from this:
+
+- **T1.7's real net is +3.38%, not the ~6% the isolated 8.18× predicted.** The estimate was priced
+  against a *non-NKI, non-foreach* optimizer; the shipped path already has the NKI Muon fusion, so most
+  of the 8.18× had already been bought. This is why the brief's "measure the REAL net effect on a full
+  training step" is not a formality.
+- **They stack slightly SUPER-additively** — multiplicative prediction 13.19%, measured 13.67%. They do
+  touch different parts of the step (optimizer window vs block-body compute) as designed.
+
+### 3. The surprise: T3.1's early-layer resharding penalty is a 1-rank artefact
+
+`research/scratch/t17_spend_probe.sh` — same 120-step instrument, every arm carrying both throughput
+flags, so the reference is the 177394 tok/s budget control and every delta is the **marginal cost of the
+capacity being added**.
+
+| arm | tok/s | s/step | vs budget | vs base | params | step-110 loss |
+| --- | --- | --- | --- | --- | --- | --- |
+| budget control | 177394 | 0.7389 | — | +13.67% | 190.1M | 3.9608 |
+| `--ngram-ve-layers "1,-1"` | 167008 | 0.7848 | **−5.86%** | +7.01% | 324.5M | **3.9402** |
+| `--ngram-ve-layers "3,-1"` | 172004 | 0.7620 | −3.04% | +10.21% | 257.3M | 3.9973 (worse) |
+| `--ngram-ve-dim 256` | 170803 | 0.7674 | −3.72% | +9.44% | 324.5M | 3.9616 |
+| `--ngram-ve-table-mult 128` | 170946 | 0.7667 | −3.64% | +9.54% | 324.3M | 3.9646 |
+| dim 256 + mult 128 | 156990 | 0.8349 | −11.50% | **+0.59%** | 592.9M | **3.9491** |
+
+**T3.1 (2026-09-12) measured the cost of an early n-gram injection at 1 rank as a whole-graph LNC=2
+resharding penalty — `{5}` → `{1,5}` went 2.768 → 3.711 s/step, +34%, and was reported as invariant to
+table geometry. At the real 4-rank shape it costs −5.86%, which the 13.67% budget can pay for.** The
++34% number was not wrong, it was *measured at a shape the competition does not run*: with the residual
+stream already sharded four ways the cross-physical-core DMA the effect depends on is far cheaper. Any
+future "this layer position is unaffordable" conclusion drawn at 1 rank must be re-measured at 4.
+
+Layer 1 also *improves* the 120-step loss (3.9402 vs 3.9608, while the arms that change no table
+position span only 3.9608–3.9661), and layer 3 *hurts* (3.9973) — consistent with T3.1's finding that
+position matters more than geometry, but with the sign of affordability reversed. And **dim 256 + mult
+128 runs at essentially the locked config's speed (+0.59% vs base) with 3.1× the n-gram capacity**,
+which is exactly the trade the data wall demands.
