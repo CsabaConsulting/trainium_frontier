@@ -6633,3 +6633,55 @@ paired-repeat threshold anyway.
   the optimiser and not the loader** — and it sits below `train.py`, so there is nothing in this
   repo to fix.
 - **`train.py` unchanged by this task** (diagnostic only, no flags added).
+
+## 2026-09-14 (correction, same evening) — the LNC=1 "execution deadlock" was a stale compile cache; a real, narrow, workaroundable bug is underneath it
+
+The section above closed LNC=1 as "a non-starter... a runtime-level execution deadlock... below
+`train.py`, nothing in this repo to fix." **That conclusion was measured against a stale/corrupted
+compile cache and is wrong as stated.** Clearing every Neuron cache dir before retrying
+(`/tmp/hlo_cache /tmp/local_cache /tmp/neff_cache /tmp/neuron_cache /var/tmp/neuron-compile-cache`,
+plus `~/.cache/neuron_compile_cache` — none existed after clearing, confirming the box hadn't reset
+them itself) changes the outcome completely:
+
+| arm | cache | flags | result |
+|---|---|---|---|
+| this morning's investigation | stale | (various) | silent hang, 0 completed device executions |
+| `cachecleared-lnc1.log` | **fresh** | none | clean **compile failure** (not a hang) — see below |
+| `cachecleared-lnc1-noclip.log` | fresh | `--grad-clip 0` | **real training steps**: step 0 loss 9.0110, step 1 loss 8.8171 (sane, world_size=1, no torchrun) |
+| `cachecleared-lnc1-nocffalse.log` | fresh | `--no-clip-foreach` | **completes cleanly** — `causality_passed: True`, `causality_max_abs: 0.000000`, `public_val_bpb: 2.562237` (3-step smoke, not a real budget number, but a real, valid, non-crashed run) |
+
+**The real bug, once the cache stopped masking it as a hang**: `torch.nn.utils.clip_grad_norm_`'s
+foreach path calls `aten::_foreach_norm.Scalar`, which lowers to `nkilib.experimental.foreach
+.foreach_norm.l2_norm_kernel_lnc0`, which fails compilation with `[NCC_IBIR533] CollectiveKind
+::SendRecv is not a valid enum value for field CollectiveCompute.Kind on arch Trn2`. This is the
+**exact same error signature** as the original `l2_norm_kernel_lnc0` compile crash from months ago
+(before `torch.compile`/NKI-Muon/n-gram-VE existed) — it never actually went away; a stale cache had
+started serving either a cached failure state or an inconsistent partial artifact that manifested as
+a silent hang instead of the same clean compile error. **Avoiding the foreach-norm gradient-clip
+path entirely (`--grad-clip 0` or `--no-clip-foreach`) routes around it, and LNC=1 runs.**
+
+**External corroboration** (`research/gemini_ai_mode_lnc_1_failure.md`, a research drop checked
+against our own findings, not taken on faith): documents this as a known class of AWS Neuron SDK
+issue — "Undefined Dynamic Control Flow in NKI Kernels... dropping down to individual, unlinked
+cores (LNC=1) breaks that control logic... an unhandled exception or a perpetual synchronization
+loop (hang)" (matches exactly: an NKI-authored collective-reduction kernel not handling the
+unpaired-core case) — and separately, "Mismatched Environment vs. Graph Compilation... if your
+environment variable forces LNC=1 but the graph was compiled for LNC=2... frequently leads to
+immediate bootstrapping hangs," which matches this repo's own independently-found side-finding two
+sections up (`NEURON_CC_FLAGS` carries no explicit `--lnc=`, silently defaulting to the compiler's
+`--lnc=2`). Both causes are real and independently confirmed from two directions; a third external
+cause listed (older SDK versions have known LNC=1 linker/scheduling bugs, patched in 2.32.0+) was
+not checked against this box's exact `neuronx-cc` version — not chased further, out of scope.
+
+**Standing rule, upgraded**: cache-clearing was already required before a cold dress rehearsal
+(§9.x). It now also applies **before trusting any "X doesn't work at all" conclusion** on this
+stack, not just compile-time-stall symptoms — a stale cache can silently turn a real, narrow,
+informative compile error into an unexplained hang that looks like a dead end.
+
+**Still curiosity-tier, not re-opened as a priority.** We submit at LNC=2 regardless; this was not
+escalated into a full re-investigation of the original +0.24 bpb quality-cliff question at the real
+multi-rank shape (the world_size=1/no-torchrun smoke test above is not that measurement). If anyone
+resumes this: the path is `--no-clip-foreach` (preserves real gradient clipping, unlike `--grad-clip
+0`) at LNC=1 with a genuinely fresh cache, then a real paired 900s/1800s A/B against LNC=2 at the
+current locked config — that has never actually been run, since every prior LNC=1 attempt either
+crashed at compile time (old SDK/train.py) or hung (stale cache, this week, until now).

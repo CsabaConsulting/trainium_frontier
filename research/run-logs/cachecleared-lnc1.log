@@ -1,0 +1,47 @@
+[W914 21:31:40.150477966 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+muon step: --compile-muon supersedes --nki-muon (a compiled region cannot contain an nki.jit call); NKI Muon disabled for this run
+device=neuron dtype=torch.bfloat16 world_size=1
+training target=3 steps max_seconds=100000 official_budget=1800s
+WARNING: --num-steps 3 is below max_train_seconds=100000s and will almost certainly stop training before the time budget (the LR schedule would end without cooldown). For a scored submission leave --num-steps at its default (1000000).
+model_config={
+  "sequence_len": 2048,
+  "vocab_size": 8192,
+  "n_layer": 6,
+  "n_head": 5,
+  "n_embd": 640,
+  "mlp_ratio": 4,
+  "attn_scale": 0.0
+}
+num_params=592,916,844 flops_per_token=3.991901e+08
+torch.compile enabled (backend=neuron)
+micro_tokens=8,192 grad_accum_steps=16 pack_factor=4
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_frontier/train.py", line 5303, in <module>
+    main()
+  File "/home/ubuntu/trainium_frontier/train.py", line 4976, in main
+    torch.nn.utils.clip_grad_norm_(clip_main_params, GRAD_CLIP,
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/utils/clip_grad.py", line 42, in _no_grad_wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/utils/clip_grad.py", line 232, in clip_grad_norm_
+    _clip_grads_with_norm_(parameters, max_norm, total_norm, foreach)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/utils/clip_grad.py", line 42, in _no_grad_wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/utils/clip_grad.py", line 165, in _clip_grads_with_norm_
+    clip_coef = max_norm / (total_norm + 1e-6)
+                            ~~~~~~~~~~~^~~~~~
+RuntimeError: Compilation error occurred on Neuron for operation=aten::_foreach_norm.Scalar;
+error message="COMPILATION FAILED: 2026-09-14T21:35:43Z Non-signal exit. Backend exited with code 1 and stderr: (CollectiveCompute: SR-0_inst__I-84-0)Source Kernel "nkilib.experimental.foreach.foreach_norm.l2_norm_kernel_lnc0"File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/experimental/foreach/foreach_norm.py",line 117 [INTERNAL_ERROR] [NCC_IBIR533] CollectiveKind::SendRecv is not a valid enum value for field CollectiveCompute.Kind on arch Trn2 - Choose a valid value for field CollectiveCompute.Kind"
+neff cache key=_foreach_norm.Scalar--_TL[[8192,640]:Float:S(C),[1]:Float:S(C),[1]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[2560,640]:Float:S(C),[640,2560]:Float:S(C),[640,1,2]:Float:S(C),[1]:Float:S(C),[1]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[5,32]:Float:S(C),[5,32]:Float:S(C),[5,32]:Float:S(C),[2560,640]:Float:S(C),[640,2560]:Float:S(C),[640,1,2]:Float:S(C),[1]:Float:S(C),[1]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[2560,640]:Float:S(C),[640,2560]:Float:S(C),[640,1,2]:Float:S(C),[1]:Float:S(C),[1]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[5,32]:Float:S(C),[2560,640]:Float:S(C),[640,2560]:Float:S(C),[640,1,2]:Float:S(C),[1]:Float:S(C),[1]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[2560,640]:Float:S(C),[640,2560]:Float:S(C),[640,1,2]:Float:S(C),[1]:Float:S(C),[1]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[640,640]:Float:S(C),[5,32]:Float:S(C),[5,32]:Float:S(C),[5,32]:Float:S(C),[2560,640]:Float:S(C),[640,2560]:Float:S(C),[640,1,2]:Float:S(C),[8192,640]:Float:S(C),[8192,640]:Float:S(C),[8192,640]:Float:S(C),[8192,640]:Float:S(C),[640,128]:Float:S(C),[640,128]:Float:S(C),[640,128]:Float:S(C),[640,128]:Float:S(C)]_d2_None:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433
+Note: Neuron errors are reported asynchronously. The Python traceback shows where the
+error was detected (synchronization point), not necessarily where the failing operation
+was dispatched. For synchronous error reporting, set NEURON_LAUNCH_BLOCKING=1.
+EXIT=0
+DONE
