@@ -5487,3 +5487,48 @@ for bit the locked `"-1"` arm, and `"1,2,-1"` reported exactly layer 1's 324.5M 
 {1, 3, 5} is the whole space, layer 5 is the locked default, layer 1 is the win, layer 3 is negative,
 and `{1,3,5}` is worse than `{1,5}`. **There is no untried n-gram VE position left at this depth**, and
 any future attempt to put one on an even layer must first change `has_ve`.
+
+### 6. The new locked config: `--ngram-ve-layers "1,-1" --ngram-ve-table-mult 128`, **1.004363 bpb**
+
+Two head-to-head arms, same day, same commit, both at a legal ≤1800 s budget, `causality_max_abs = 0.0`
+on both. The question is how to spend layer 1's 113 s of leftover budget: as extra steps, or as table
+width.
+
+| arm | budget (s) | steps | `val_bpb` | @2187 steps | params |
+| --- | --- | --- | --- | --- | --- |
+| `t17-l1-2185` (mult 64) | 1723 | 2187 | 1.005973 | 1.005973 | 324.5M |
+| **`t17-l1-m128` (mult 128)** | **1800** | **2135** | **1.004363** | **1.002511** | **592.9M** |
+
+`t17-l1-2185` first: 2139 → 2187 steps was predicted at −0.0016 from the −0.077/ln(steps) slope
+(1.007376 → 1.00574) and measured 1.005973, **within 0.0002 of the prediction** — a fourth independent
+confirmation of the slope, and it means the leftover budget is worth roughly what the model says.
+
+`t17-l1-m128` wins anyway, and it wins *twice*: it is −0.0016 better **as run** despite 52 fewer steps,
+and −0.0035 better step-matched. It needs **no** budget shortening — the full official 1800 s lands it at
+2135 steps, 60 below the wall, which is a more comfortable margin against run-to-run throughput variance
+(sd ≈ 0.3%) than `t17-l1-2185`'s 8 steps.
+
+**This reverses the 2026-09-12 conclusion that n-gram capacity saturates at mult 64** (where mult 128
+was 0.0002 *worse*). That saturation was a property of the one-injection-site configuration: with two
+sites the extra rows are useful enough to outrun the step-count penalty they cost. Recorded as a general
+lesson — **a capacity axis measured as saturated at one injection site is not saturated at two**, so
+saturation verdicts do not survive a change in the number of sites reading the table.
+
+### Summary of the day, and what is now the default
+
+| # | change | verdict | measured |
+| --- | --- | --- | --- |
+| 1 | T1.7 `--compile-muon` | **KEEP** | +3.38% throughput, per-step neutral (control reproduces locked to 3e-6). Source rewrite bit-exact; compiled execution 3.25e-03 max\|diff\| (bf16-ULP scale, same order as shipped kernels) |
+| 2 | + frozen `--qk-shift` | **KEEP** | +13.67% combined, slightly super-additive (13.19% predicted multiplicatively) |
+| 3 | n-gram VE on layer 1 | **KEEP — biggest win since the tables themselves** | −0.0118 bpb at an exact step match; affordable only because of the item-1+2 budget |
+| 3 | n-gram VE on layer 3 | **DISCARD** | worse than the control on the 120-step proxy, twice (3.9973 alone, 3.9855 with layer 1) |
+| 4 | width: mult 64 → 128 **on top of layer 1** | **KEEP** | −0.0016 as run / −0.0035 step-matched, and it needs no budget shortening |
+| 4 | width: dim 128 → 256 | **DISCARD** | −0.0026 alone, and strictly dominated by mult 128 once layer 1 is on (worse proxy at a higher cost) |
+| 4 | dim 256 + mult 128 | **DISCARD** | 24.3% slower on top of layer 1 → 1736 steps → +0.0177 step penalty |
+
+**New locked config, promoted to `train.py`'s module-level defaults** (so the bare launch command *is*
+the config): `NGRAM_VE_LAYERS = "1,-1"`, `NGRAM_VE_TABLE_MULT = 128`, `USE_COMPILE_MUON = True`,
+`USE_QK_SHIFT = True` with `QK_SHIFT_BETA = 0.0` and `QK_SHIFT_FREEZE = True`. 592.9M parameters,
+2135 steps in the official 1800 s, **1.004363 bpb** against the previous 1.018985 — **−0.0146 bpb**, of
+which −0.0130 is layer 1 (including the steps its budget bought) and −0.0016 is the width. Against the
+1.0384 board score for 1.018985, the naive translation is a board score near **1.024**.
