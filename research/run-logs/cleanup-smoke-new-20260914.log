@@ -1,0 +1,112 @@
+[W914 16:53:10.436098098 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+W0914 16:53:10.992000 1470781 torch/distributed/run.py:851] 
+W0914 16:53:10.992000 1470781 torch/distributed/run.py:851] *****************************************
+W0914 16:53:10.992000 1470781 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0914 16:53:10.992000 1470781 torch/distributed/run.py:851] *****************************************
+[W914 16:53:13.786011324 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W914 16:53:13.786011405 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W914 16:53:13.786117329 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W914 16:53:13.788955764 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+muon step: --compile-muon supersedes --nki-muon (a compiled region cannot contain an nki.jit call); NKI Muon disabled for this run
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+device=neuron dtype=torch.bfloat16 world_size=4
+training target=1000000 steps max_seconds=1800 official_budget=1800s
+model_config={
+  "sequence_len": 2048,
+  "vocab_size": 8192,
+  "n_layer": 6,
+  "n_head": 5,
+  "n_embd": 640,
+  "mlp_ratio": 4,
+  "attn_scale": 0.0
+}
+num_params=592,916,844 flops_per_token=3.991901e+08
+torch.compile enabled (backend=neuron)
+micro_tokens=32,768 grad_accum_steps=4 pack_factor=4
+muon step: COMPILED body for (7, 5, 32) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 1]
+muon step: COMPILED body for (4, 640, 128) (tall=True ns_steps=5 red_dim=-1) [specialisations so far: 2]
+muon step: COMPILED body for (24, 640, 640) (tall=False ns_steps=5 red_dim=-1) [specialisations so far: 3]
+muon step: COMPILED body for (6, 640, 2560) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 4]
+muon step: COMPILED body for (6, 2560, 640) (tall=True ns_steps=5 red_dim=-1) [specialisations so far: 5]
+step 00000 | loss 9.0100 | lrm 1.000 | dt 204.94s | tok/s 640 | remaining_steps 999999 | remaining_time 1595s | epoch 1
+step 00001 | loss 8.7974 | lrm 1.000 | dt 161.22s | tok/s 813 | remaining_steps 999998 | remaining_time 1434s | epoch 1
+step 00002 | loss 8.4196 | lrm 1.000 | dt 0.84s | tok/s 156,432 | remaining_steps 999997 | remaining_time 1433s | epoch 1
+step 00003 | loss 8.0930 | lrm 1.000 | dt 0.84s | tok/s 156,415 | remaining_steps 999996 | remaining_time 1432s | epoch 1
+step 00004 | loss 7.7344 | lrm 1.000 | dt 0.84s | tok/s 155,714 | remaining_steps 999995 | remaining_time 1800s | epoch 1
+step 00010 | loss 6.5588 | lrm 1.000 | dt 0.84s | tok/s 156,313 | remaining_steps 999989 | remaining_time 1795s | epoch 1
+step 00020 | loss 5.9051 | lrm 1.000 | dt 0.83s | tok/s 156,994 | remaining_steps 999979 | remaining_time 1787s | epoch 1
+step 00030 | loss 5.5792 | lrm 1.000 | dt 0.84s | tok/s 155,646 | remaining_steps 999969 | remaining_time 1778s | epoch 1
+step 00040 | loss 5.3676 | lrm 1.000 | dt 0.84s | tok/s 155,488 | remaining_steps 999959 | remaining_time 1770s | epoch 1
+step 00050 | loss 5.1205 | lrm 1.000 | dt 0.84s | tok/s 155,345 | remaining_steps 999949 | remaining_time 1761s | epoch 1
+step 00060 | loss 4.8134 | lrm 1.000 | dt 0.85s | tok/s 154,945 | remaining_steps 999939 | remaining_time 1753s | epoch 1
+step 00070 | loss 4.5379 | lrm 1.000 | dt 0.85s | tok/s 154,889 | remaining_steps 999929 | remaining_time 1744s | epoch 1
+step 00080 | loss 4.3182 | lrm 1.000 | dt 0.84s | tok/s 156,336 | remaining_steps 999919 | remaining_time 1736s | epoch 1
+step 00090 | loss 4.0872 | lrm 1.000 | dt 0.84s | tok/s 156,295 | remaining_steps 999909 | remaining_time 1727s | epoch 1
+step 00100 | loss 3.9714 | lrm 1.000 | dt 0.84s | tok/s 155,609 | remaining_steps 999899 | remaining_time 1719s | epoch 1
+step 00110 | loss 3.9339 | lrm 1.000 | dt 0.84s | tok/s 156,082 | remaining_steps 999889 | remaining_time 1711s | epoch 1
+step 00120 | loss 3.8543 | lrm 1.000 | dt 0.84s | tok/s 156,152 | remaining_steps 999879 | remaining_time 1702s | epoch 1
+step 00130 | loss 3.7890 | lrm 1.000 | dt 0.84s | tok/s 155,959 | remaining_steps 999869 | remaining_time 1694s | epoch 1
+W0914 17:01:35.813000 1470781 torch/distributed/elastic/agent/server/api.py:739] Received 1 death signal, shutting down workers
+W0914 17:01:35.814000 1470781 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 1470798 closing signal SIGHUP
+W0914 17:01:35.815000 1470781 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 1470799 closing signal SIGHUP
+W0914 17:01:35.815000 1470781 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 1470800 closing signal SIGHUP
+W0914 17:01:35.815000 1470781 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 1470801 closing signal SIGHUP
+Traceback (most recent call last):
+  File "/home/ubuntu/workspace/native_venv/bin/torchrun", line 10, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 362, in wrapper
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/run.py", line 990, in main
+    run(args)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/run.py", line 981, in run
+    elastic_launch(
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 170, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 308, in launch_agent
+    result = agent.run()
+             ^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/metrics/api.py", line 134, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/agent/server/api.py", line 731, in run
+    result = self._invoke_run(role)
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/agent/server/api.py", line 908, in _invoke_run
+    time.sleep(monitor_interval)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/api.py", line 86, in _terminate_process_handler
+    raise SignalException(f"Process {os.getpid()} got signal: {sigval}", sigval=sigval)
+torch.distributed.elastic.multiprocessing.api.SignalException: Process 1470781 got signal: 1

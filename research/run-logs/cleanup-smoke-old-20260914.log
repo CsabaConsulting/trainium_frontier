@@ -1,0 +1,159 @@
+[W914 17:02:05.240391753 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+W0914 17:02:05.796000 1474324 torch/distributed/run.py:851] 
+W0914 17:02:05.796000 1474324 torch/distributed/run.py:851] *****************************************
+W0914 17:02:05.796000 1474324 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0914 17:02:05.796000 1474324 torch/distributed/run.py:851] *****************************************
+[W914 17:02:07.463606087 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W914 17:02:07.463788878 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W914 17:02:08.475592566 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W914 17:02:08.476059607 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+muon step: --compile-muon supersedes --nki-muon (a compiled region cannot contain an nki.jit call); NKI Muon disabled for this run
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+device=neuron dtype=torch.bfloat16 world_size=4
+training target=1000000 steps max_seconds=1800 official_budget=1800s
+model_config={
+  "sequence_len": 2048,
+  "vocab_size": 8192,
+  "n_layer": 6,
+  "n_head": 5,
+  "n_embd": 640,
+  "mlp_ratio": 4,
+  "attn_scale": 0.0
+}
+num_params=592,916,844 flops_per_token=3.991901e+08
+torch.compile enabled (backend=neuron)
+micro_tokens=32,768 grad_accum_steps=4 pack_factor=4
+muon step: COMPILED body for (7, 5, 32) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 1]
+muon step: COMPILED body for (4, 640, 128) (tall=True ns_steps=5 red_dim=-1) [specialisations so far: 2]
+muon step: COMPILED body for (24, 640, 640) (tall=False ns_steps=5 red_dim=-1) [specialisations so far: 3]
+muon step: COMPILED body for (6, 640, 2560) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 4]
+muon step: COMPILED body for (6, 2560, 640) (tall=True ns_steps=5 red_dim=-1) [specialisations so far: 5]
+step 00000 | loss 9.0100 | lrm 1.000 | dt 30.45s | tok/s 4,305 | remaining_steps 999999 | remaining_time 1770s | epoch 1
+step 00001 | loss 8.7974 | lrm 1.000 | dt 9.88s | tok/s 13,268 | remaining_steps 999998 | remaining_time 1759s | epoch 1
+step 00002 | loss 8.4196 | lrm 1.000 | dt 0.84s | tok/s 155,934 | remaining_steps 999997 | remaining_time 1759s | epoch 1
+step 00003 | loss 8.0931 | lrm 1.000 | dt 0.84s | tok/s 155,796 | remaining_steps 999996 | remaining_time 1758s | epoch 1
+step 00004 | loss 7.7343 | lrm 1.000 | dt 0.84s | tok/s 156,517 | remaining_steps 999995 | remaining_time 1800s | epoch 1
+step 00010 | loss 6.5587 | lrm 1.000 | dt 0.84s | tok/s 156,202 | remaining_steps 999989 | remaining_time 1795s | epoch 1
+step 00020 | loss 5.9049 | lrm 1.000 | dt 0.85s | tok/s 155,032 | remaining_steps 999979 | remaining_time 1787s | epoch 1
+step 00030 | loss 5.5785 | lrm 1.000 | dt 0.84s | tok/s 155,633 | remaining_steps 999969 | remaining_time 1778s | epoch 1
+step 00040 | loss 5.3661 | lrm 1.000 | dt 0.85s | tok/s 154,939 | remaining_steps 999959 | remaining_time 1770s | epoch 1
+step 00050 | loss 5.1191 | lrm 1.000 | dt 0.84s | tok/s 155,927 | remaining_steps 999949 | remaining_time 1761s | epoch 1
+step 00060 | loss 4.8121 | lrm 1.000 | dt 0.84s | tok/s 155,695 | remaining_steps 999939 | remaining_time 1753s | epoch 1
+step 00070 | loss 4.5360 | lrm 1.000 | dt 0.85s | tok/s 154,383 | remaining_steps 999929 | remaining_time 1744s | epoch 1
+step 00080 | loss 4.3154 | lrm 1.000 | dt 0.84s | tok/s 155,315 | remaining_steps 999919 | remaining_time 1736s | epoch 1
+step 00090 | loss 4.0874 | lrm 1.000 | dt 0.85s | tok/s 154,168 | remaining_steps 999909 | remaining_time 1727s | epoch 1
+step 00100 | loss 3.9706 | lrm 1.000 | dt 0.85s | tok/s 154,846 | remaining_steps 999899 | remaining_time 1719s | epoch 1
+step 00110 | loss 3.9369 | lrm 1.000 | dt 0.84s | tok/s 155,870 | remaining_steps 999889 | remaining_time 1711s | epoch 1
+step 00120 | loss 3.8491 | lrm 1.000 | dt 0.84s | tok/s 155,414 | remaining_steps 999879 | remaining_time 1702s | epoch 1
+step 00130 | loss 3.7894 | lrm 1.000 | dt 0.84s | tok/s 155,116 | remaining_steps 999869 | remaining_time 1694s | epoch 1
+step 00140 | loss 3.6613 | lrm 1.000 | dt 0.84s | tok/s 155,198 | remaining_steps 999859 | remaining_time 1685s | epoch 1
+step 00150 | loss 3.6229 | lrm 1.000 | dt 0.84s | tok/s 155,496 | remaining_steps 999849 | remaining_time 1677s | epoch 1
+step 00160 | loss 3.6592 | lrm 1.000 | dt 0.85s | tok/s 154,524 | remaining_steps 999839 | remaining_time 1668s | epoch 1
+step 00170 | loss 3.6159 | lrm 1.000 | dt 0.84s | tok/s 155,728 | remaining_steps 999829 | remaining_time 1660s | epoch 1
+step 00180 | loss 3.6246 | lrm 1.000 | dt 0.84s | tok/s 155,586 | remaining_steps 999819 | remaining_time 1651s | epoch 1
+step 00190 | loss 3.5066 | lrm 1.000 | dt 0.84s | tok/s 155,846 | remaining_steps 999809 | remaining_time 1643s | epoch 1
+step 00200 | loss 3.5256 | lrm 1.000 | dt 0.84s | tok/s 155,491 | remaining_steps 999799 | remaining_time 1635s | epoch 1
+step 00210 | loss 3.4956 | lrm 1.000 | dt 0.84s | tok/s 155,269 | remaining_steps 999789 | remaining_time 1626s | epoch 1
+step 00220 | loss 3.5196 | lrm 1.000 | dt 0.85s | tok/s 155,066 | remaining_steps 999779 | remaining_time 1618s | epoch 1
+step 00230 | loss 3.4534 | lrm 1.000 | dt 0.84s | tok/s 155,255 | remaining_steps 999769 | remaining_time 1609s | epoch 1
+step 00240 | loss 3.5586 | lrm 1.000 | dt 0.84s | tok/s 155,910 | remaining_steps 999759 | remaining_time 1601s | epoch 1
+step 00250 | loss 3.5417 | lrm 1.000 | dt 0.85s | tok/s 155,033 | remaining_steps 999749 | remaining_time 1592s | epoch 1
+step 00260 | loss 3.4741 | lrm 1.000 | dt 0.84s | tok/s 156,252 | remaining_steps 999739 | remaining_time 1584s | epoch 1
+step 00270 | loss 3.4265 | lrm 1.000 | dt 0.84s | tok/s 155,302 | remaining_steps 999729 | remaining_time 1575s | epoch 1
+step 00280 | loss 3.5143 | lrm 1.000 | dt 0.84s | tok/s 156,142 | remaining_steps 999719 | remaining_time 1567s | epoch 1
+step 00290 | loss 3.5162 | lrm 1.000 | dt 0.84s | tok/s 155,953 | remaining_steps 999709 | remaining_time 1559s | epoch 1
+step 00300 | loss 3.4257 | lrm 1.000 | dt 0.84s | tok/s 156,575 | remaining_steps 999699 | remaining_time 1550s | epoch 1
+step 00310 | loss 3.4285 | lrm 1.000 | dt 0.84s | tok/s 155,596 | remaining_steps 999689 | remaining_time 1542s | epoch 1
+step 00320 | loss 3.4094 | lrm 1.000 | dt 0.84s | tok/s 155,927 | remaining_steps 999679 | remaining_time 1533s | epoch 1
+step 00330 | loss 3.4416 | lrm 1.000 | dt 0.84s | tok/s 156,390 | remaining_steps 999669 | remaining_time 1525s | epoch 1
+step 00340 | loss 3.4281 | lrm 1.000 | dt 0.84s | tok/s 155,528 | remaining_steps 999659 | remaining_time 1516s | epoch 1
+step 00350 | loss 3.3951 | lrm 1.000 | dt 0.84s | tok/s 156,272 | remaining_steps 999649 | remaining_time 1508s | epoch 1
+step 00360 | loss 3.3828 | lrm 1.000 | dt 0.84s | tok/s 155,932 | remaining_steps 999639 | remaining_time 1500s | epoch 1
+step 00370 | loss 3.3377 | lrm 1.000 | dt 0.84s | tok/s 155,434 | remaining_steps 999629 | remaining_time 1491s | epoch 1
+step 00380 | loss 3.3577 | lrm 1.000 | dt 0.84s | tok/s 156,450 | remaining_steps 999619 | remaining_time 1483s | epoch 1
+step 00390 | loss 3.3170 | lrm 1.000 | dt 0.85s | tok/s 154,636 | remaining_steps 999609 | remaining_time 1474s | epoch 1
+step 00400 | loss 3.3618 | lrm 1.000 | dt 0.84s | tok/s 155,800 | remaining_steps 999599 | remaining_time 1466s | epoch 1
+step 00410 | loss 3.3936 | lrm 1.000 | dt 0.84s | tok/s 155,958 | remaining_steps 999589 | remaining_time 1457s | epoch 1
+step 00420 | loss 3.2810 | lrm 1.000 | dt 0.84s | tok/s 155,443 | remaining_steps 999579 | remaining_time 1449s | epoch 1
+step 00430 | loss 3.3009 | lrm 1.000 | dt 0.84s | tok/s 156,352 | remaining_steps 999569 | remaining_time 1441s | epoch 1
+step 00440 | loss 3.3240 | lrm 1.000 | dt 0.85s | tok/s 154,838 | remaining_steps 999559 | remaining_time 1432s | epoch 1
+step 00450 | loss 3.3470 | lrm 1.000 | dt 0.84s | tok/s 155,394 | remaining_steps 999549 | remaining_time 1424s | epoch 1
+step 00460 | loss 3.3648 | lrm 1.000 | dt 0.84s | tok/s 156,032 | remaining_steps 999539 | remaining_time 1415s | epoch 1
+step 00470 | loss 3.3030 | lrm 1.000 | dt 0.84s | tok/s 156,260 | remaining_steps 999529 | remaining_time 1407s | epoch 1
+step 00480 | loss 3.2613 | lrm 1.000 | dt 0.84s | tok/s 155,735 | remaining_steps 999519 | remaining_time 1398s | epoch 1
+step 00490 | loss 3.3069 | lrm 1.000 | dt 0.84s | tok/s 156,051 | remaining_steps 999509 | remaining_time 1390s | epoch 1
+step 00500 | loss 3.1799 | lrm 1.000 | dt 0.84s | tok/s 155,988 | remaining_steps 999499 | remaining_time 1382s | epoch 1
+step 00510 | loss 3.1790 | lrm 1.000 | dt 0.84s | tok/s 156,203 | remaining_steps 999489 | remaining_time 1373s | epoch 1
+step 00520 | loss 3.1894 | lrm 1.000 | dt 0.84s | tok/s 155,957 | remaining_steps 999479 | remaining_time 1365s | epoch 1
+step 00530 | loss 3.1880 | lrm 1.000 | dt 0.84s | tok/s 156,301 | remaining_steps 999469 | remaining_time 1356s | epoch 1
+step 00540 | loss 3.2596 | lrm 0.999 | dt 0.84s | tok/s 155,628 | remaining_steps 999459 | remaining_time 1348s | epoch 1
+step 00550 | loss 3.1397 | lrm 0.993 | dt 0.84s | tok/s 155,962 | remaining_steps 999449 | remaining_time 1339s | epoch 1
+step 00560 | loss 3.1578 | lrm 0.987 | dt 0.84s | tok/s 156,629 | remaining_steps 999439 | remaining_time 1331s | epoch 1
+step 00570 | loss 3.1389 | lrm 0.981 | dt 0.83s | tok/s 156,999 | remaining_steps 999429 | remaining_time 1323s | epoch 1
+step 00580 | loss 3.1750 | lrm 0.975 | dt 0.84s | tok/s 156,194 | remaining_steps 999419 | remaining_time 1314s | epoch 1
+step 00590 | loss 3.1486 | lrm 0.969 | dt 0.84s | tok/s 155,948 | remaining_steps 999409 | remaining_time 1306s | epoch 1
+step 00600 | loss 3.1748 | lrm 0.963 | dt 0.84s | tok/s 155,643 | remaining_steps 999399 | remaining_time 1297s | epoch 1
+W0914 17:11:34.029000 1474324 torch/distributed/elastic/agent/server/api.py:739] Received 1 death signal, shutting down workers
+W0914 17:11:34.030000 1474324 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 1474340 closing signal SIGHUP
+W0914 17:11:34.031000 1474324 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 1474341 closing signal SIGHUP
+W0914 17:11:34.031000 1474324 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 1474342 closing signal SIGHUP
+W0914 17:11:34.031000 1474324 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 1474343 closing signal SIGHUP
+Traceback (most recent call last):
+  File "/home/ubuntu/workspace/native_venv/bin/torchrun", line 10, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 362, in wrapper
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/run.py", line 990, in main
+    run(args)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/run.py", line 981, in run
+    elastic_launch(
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 170, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 308, in launch_agent
+    result = agent.run()
+             ^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/metrics/api.py", line 134, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/agent/server/api.py", line 731, in run
+    result = self._invoke_run(role)
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/agent/server/api.py", line 908, in _invoke_run
+    time.sleep(monitor_interval)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/api.py", line 86, in _terminate_process_handler
+    raise SignalException(f"Process {os.getpid()} got signal: {sigval}", sigval=sigval)
+torch.distributed.elastic.multiprocessing.api.SignalException: Process 1474324 got signal: 1

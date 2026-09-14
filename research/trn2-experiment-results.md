@@ -5812,6 +5812,27 @@ that the surviving cross-references point at.
 | Checkpoint payload round-trip with 20 toggles removed | PASS — a strict `load_state_dict` of a checkpoint written by the 7,275-line binary succeeds under the 5,191-line binary, confirming the `ARCH_TOGGLE_NAMES`/`SHAPE_CRITICAL_TOGGLES` reasoning above |
 | `python prepare.py check --train-py train.py --launch-command …` | `check passed` |
 
+### Dress rehearsal on the cleaned file (bare launch command, full 1800s)
+
+`NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 1000000`,
+run directly (not through `research/run_experiment.py`), box 1, log
+`research/run-logs/rehearsal-clean-20260914.log`:
+
+| | pre-cleanup reference (`rehearsal2-20260914.log`) | cleaned, 5,191 lines |
+|---|---|---|
+| `public_val_bpb` | 1.004910 | **1.004550** |
+| steps | 2123 | 2122 |
+| `causality_max_abs` | 0.000000 | 0.000000 |
+| `over_budget` | False | False (`charged_seconds_est` 1794.6) |
+| tok/s | ~156,000 | ~156,000 |
+
+−0.00036 bpb and −1 step, i.e. inside the noise floor in both directions — the cleaned file
+reproduces the locked number. Independently, box 2 ran its own same-day 3x/2x interleaved throughput
+control on the two binaries and measured **−0.048%** (156,323 → 156,248 tok/s, inside the control's
+own 0.74% run-to-run spread) with byte-identical `num_params`/`flops_per_token`, which closes the one
+gap the CPU probe cannot cover: that the COMPILED GRAPH is also unchanged. See the "Addendum" at the
+end of the Probe 3 section.
+
 **Incident worth recording: `origin/main` was briefly runtime-broken.** Commit `56cd19f`, whose
 message says "No behaviour change: help strings only", actually landed **19 insertions and 396
 deletions** in `train.py` — it swept up an in-progress slice of the RWKV removal out of a shared
