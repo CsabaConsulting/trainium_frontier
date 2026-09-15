@@ -8695,3 +8695,142 @@ session.
 Log: `research/run-logs/regcheck-dress-rehearsal-20260915.log` (training),
 `research/run-logs/regcheck-dress-rehearsal-20260915-evalpublic.log` (post-hoc `public_val_bpb`),
 `research/run-logs/regcheck-dress-rehearsal-20260915-causality.log` (post-hoc causality check).
+
+## 2026-09-15 — 3-seed variance check on the CURRENT locked default config, box 1, full 1800 s budget: the real seed-noise floor is **max−min 0.0061 bpb / std ≈0.0026–0.0032**, i.e. this week's informal "<0.001 noise / <0.003 needs-repeat" convention was too tight
+
+**Context.** This is the plan's standing pre-freeze item ("a quick 3-seed variance check, ~1.5h box
+time") pulled forward because box 1 freed up with nothing else well-motivated queued. Every A/B this
+week (including the muon-lr-fp32 and regression-check sections directly above) has inferred its
+noise floor from a same-day, same-commit **control pair's own spread**, never from an actual seed
+sweep — the immediately preceding section explicitly flagged this gap ("the exact noise band for
+this delta size is still being tightened by the concurrent 3-seed variance check on box 1... and
+should be folded in when it lands"). This section is that measurement.
+
+### Seed mechanism confirmed
+
+`--seed` (train.py:5328, `type=int, default=int(os.environ.get("NEURON_COMPETITION_R1_SEED", "42"))`)
+is consumed exactly once, in `init_runtime` (train.py:1335-1337):
+
+```python
+def init_runtime(device_type: str, seed: int = 42):
+    assert device_type in {"cpu", "cuda", "neuron"}
+    torch.manual_seed(seed)
+    ddp, rank, local_rank, world_size = get_dist_info()
+    ...
+```
+
+called before model construction and before `dist.init_process_group`. The model has no `nn.Dropout`
+anywhere (grepped clean); every stochastic op is a `torch.nn.init.{normal_,uniform_,zeros_}` call at
+model-build time (train.py:2880 onward, e.g. `wte` `normal_(0, 0.8)`, `lm_head` `normal_(0, 0.001)`,
+per-block `uniform_` inits) drawing from the seeded global RNG. So `--seed`'s entire effect on a run
+is **weight initialization only** — the forward/optimizer math is otherwise deterministic given the
+weights and the data order.
+
+**Important limitation, stated plainly (as the task asked):** `--seed` does **not** control data
+order. Row-group traversal comes from `prepare._document_batches`'s fixed shard walk; the only
+mechanism that would reshuffle it per epoch (`_document_batches_epoch_shuffle`, keyed off the
+separate `EPOCH_SHUFFLE_SEED` constant, currently 1234, decoupled from `--seed`) is gated behind
+`USE_EPOCH_SHUFFLE`, which is `False` in the current locked default (discarded track — see the
+2026-09-14 "data wall" section). None of the 3 runs below reached epoch 2 either (~2140 steps ×
+131,072 tokens/step is well inside one epoch). So data order was byte-identical across all 3 seeds —
+**the entire measured spread below is weight-init noise alone.** This is a real but narrower notion
+of "seed variance" than a sweep that also varies data order; treat the numbers below as a **lower
+bound** on the true noise floor, not necessarily the whole of it (a run that crosses into epoch 2, or
+any future config with `USE_EPOCH_SHUFFLE=True`, would add a second, currently-unmeasured source of
+variance).
+
+### Methodology note: the literal launch command in the task brief had to be corrected
+
+The bare command as given, `... train.py --no-eval-public --num-steps 1000000`, is wrong for this
+purpose: `--no-eval-public` gates off the *entire* `evaluate_bpb` call at the tail of `train.py`
+(only entered `if args.eval_public:`), so a run launched with it produces `num_steps` and throughput
+but **no `public_val_bpb` line at all** — confirmed by running it once, seed 42
+(`research/run-logs/seedvar-s42-1800s.log`, discarded, kept for the record). None of this week's 58
+`research/scratch/*.sh` A/B drivers pass `--no-eval-public` — eval-public is left at its default
+(`True`) in every other `public_val_bpb` comparison in this file, including every section above — so
+the corrected command actually used for all 3 counted runs was:
+
+```
+NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 1000000 --seed {42,43,44}
+```
+
+with everything else at the file's current defaults (`DEPTH=6`, `ASPECT_RATIO=96`,
+`TOTAL_BATCH_SIZE=131072`, `--compile`, `--compile-muon`, qk-shift frozen, n-gram VE 4 tables ×
+1,048,576 rows × dim 128, `GRAD_CLIP=1.0`, `WARMDOWN_RATIO=0.75`, etc.). `num_params_M=592.9` on
+every run, confirming no config drift between the three.
+
+### The 3 runs
+
+| seed | num_steps | training_seconds | total_seconds | total_tokens_M | causality_passed | causality_max_abs | over_budget | `public_val_bpb` |
+|---|---|---|---|---|---|---|---|---|
+| 42 | 2139 | 1784.9 | 1838.5 | 280.4 | True | 0.000000 | False | 1.004355 |
+| 43 | 2136 | 1784.3 | 1837.7 | 280.0 | True | 0.000000 | False | 1.008910 |
+| 44 | 2140 | 1784.7 | 1838.2 | 280.5 | True | 0.000000 | False | 1.010491 |
+
+(Discarded, no-bpb: seed-42 rerun with `--no-eval-public` — `research/run-logs/seedvar-s42-1800s.log`
+— reached **2141** steps in 1784.9 training_seconds / 1828.1 total_seconds. Kept as a free data point
+on timing jitter alone: same seed, same commit, two independent processes, 2139 vs. 2141 steps, a
+2-step spread from wall-clock/compile jitter with nothing else varying — smaller than the 4-step
+cross-seed spread below, i.e. seed doesn't add much step-count variance beyond ordinary jitter.)
+
+Logs: `research/run-logs/seedvar-s42-1800s-v2.log`, `seedvar-s43-1800s.log`, `seedvar-s44-1800s.log`
+(the 3 counted runs); `seedvar-s42-1800s.log` (discarded, no-eval-public).
+
+### Spread
+
+- **`public_val_bpb`**: max 1.010491 (seed 44), min 1.004355 (seed 42) → **max−min = 0.006136**;
+  mean 1.007919; population std **≈0.0026**, sample std (n−1) **≈0.0032**.
+- **`num_steps`**: 2136–2140, max−min = **4 steps** (0.19% of the ~2138 mean) — consistent with the
+  discarded run's same-seed rerun landing 2 steps from its own twin; step-count variance here is
+  dominated by ordinary wall-clock/compile timing jitter, not by seed.
+- All 3 runs: `causality_passed=True`, `causality_max_abs=0.000000`, `over_budget=False` — none
+  tripped the wall-clock guard or failed the causality check, so none of the spread is a
+  code-correctness artifact.
+
+Sanity check against this file's own history: seed 42's 1.004355 sits within 0.0002 of the
+2026-09-14 "last known-good" full-1800s number quoted in the regression-check section immediately
+above (1.004550, then 1.003408 after `4e740ee`) — reassuring that the default-seed run here
+reproduces the locked config's known trajectory, so the spread below isn't an artifact of a
+misconfigured run.
+
+### What this means for the week's noise-floor conventions
+
+This week's informal rule (see e.g. the muon-lr-fp32 verdict above) has been: `|delta| < 0.001` is
+noise outright; `0.001–0.003` triggers a same-day repeat before trusting it; a same-commit control
+**pair's** own spread at 900 s has typically been ~0.0003. That control-pair number was always a
+900 s, n=2, near-identical-random-state comparison — never an actual seed sweep — so it was always
+going to understate a true seed-driven floor. This is the first direct measurement:
+
+- **max−min (0.0061) is ~6× the "<0.001 noise" threshold and ~2× the "<0.003 needs-repeat"
+  threshold.** A single pairwise comparison landing anywhere inside a ~±0.003 band around one seed's
+  result is not distinguishable from ordinary seed noise at n=1 per arm.
+- **1-sigma (std ≈0.0026–0.0032) sits almost exactly on the existing "<0.003 needs-repeat" line.**
+  That threshold turns out to be roughly right as a one-sigma "worth a second look" gate — but it was
+  never a safe "this is real" gate on its own (a true null exceeds 1 sigma about a third of the time
+  by chance), and with only n=3 the sample std itself carries wide uncertainty.
+- **The "<0.001 is noise outright" floor is too tight by 3–6×.** Several deltas logged this week in
+  the 0.001–0.003 range, provisionally read as "a real if small effect" on a clean same-day paired
+  spread, sit well inside one seed-noise standard deviation here and are **not safely distinguishable
+  from a same-config reseed**, however clean the pairing looked. The large, mechanism-confirmed wins
+  this week (T3.1, the compiled-Muon-step stack, GRAD_CLIP, etc., all ≥0.01–0.03 bpb) remain far
+  outside this band and are unaffected by this finding.
+- **Practical revision for the remainder of the freeze run-up:** treat `|delta| < ~0.006` (the
+  observed full range) as **not confirmed** without either (a) a repeat at the *same* seed as a
+  weaker cross-check on top of the existing same-day-control convention, or (b) ideally 2–3 reseeds
+  per arm, since the n=3 std above is itself noisy. `|delta| ≥ ~0.008–0.01` (comfortably outside
+  max−min) is a more defensible "clearly real" bar than the previous 0.003.
+
+### Caveat on scope
+
+This is a **lower bound** on the true noise floor, for the reason given in the seed-mechanism
+section above: it is weight-init noise only (`USE_EPOCH_SHUFFLE=False`, data order identical across
+all 3 runs, no run reached epoch 2). It does not capture variance from data order, from any
+hardware/compile nondeterminism beyond the 2-step jitter seen in the discarded same-seed rerun, or
+from any future config that reintroduces epoch-level shuffling. n=3 is also small — the std estimate
+here has wide uncertainty and should be treated as a first real anchor, not a final number, revisited
+if more seeds become cheap to add later.
+
+**Verdict: pure measurement, no code changes.** `train.py` untouched — all 3 counted runs used box
+1's already-current, unmodified checkout of the locked default config (confirmed byte-identical to
+the local repo's `train.py`/`prepare.py` via `md5sum` before launching). This supersedes this week's
+ad-hoc "control pair spread" as the reference noise floor for the remainder of the freeze run-up.
