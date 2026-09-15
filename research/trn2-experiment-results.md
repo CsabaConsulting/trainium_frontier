@@ -9104,3 +9104,47 @@ Log: `research/run-logs/seedhunt-box1-driver.log` (combined driver output, times
 start/end); per-seed logs `research/run-logs/seedhunt-box1-seed{5,13,34,55,89,144}-1800s.log`.
 
 *(Batch started; this section is updated and committed after each seed completes.)*
+
+## Seed hunt batch — box2 (seeds 1,2,3,5,8,13)
+
+**User-approved real seed hunt, full 1800s budget, box 2.** Complementing box 1's concurrent batch
+(seeds 5,13,34,55,89,144) directly above — box 1's own section already flags that seeds 5 and 13
+overlap between the two batches by design, giving an independent cross-box confirmation point. This
+section runs the remaining 6-seed allocation (`1, 2, 3, 5, 8, 13`) sequentially on box 2, each at the
+real full 1800s budget, using the literal bare launch command (no `run_experiment.py` wrapper, no
+`--no-eval-public`, so `public_val_bpb` comes directly from the in-process eval):
+
+```
+NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 1000000 --seed <N>
+```
+
+### Defaults re-verified before the batch started
+
+`train.py` sha256 on box 2 (`464dc62e...`) confirmed byte-identical to the local repo's `train.py`
+before launching. `--seed` (train.py:5328, `type=int, default=int(os.environ.get("NEURON_COMPETITION_R1_SEED", "42"))`)
+is consumed once, in `init_runtime` (train.py:1335-1337) via `torch.manual_seed(seed)`, called before
+model construction — weight-init only, same conclusion as every earlier seed section in this file.
+Locked config unchanged: `DEPTH=6` (train.py:202), `NGRAM_VE_LAYERS="1,-1"` (train.py:608),
+`NGRAM_VE_TABLE_MULT=128` (train.py:670). No `train.py` changes were made or will be made in this
+batch — data gathering only.
+
+Driver: `research/scratch/seedhunt_batch.sh`, run inside `tmux` (session `seedhunt`) so the sequence
+survives SSH disconnects; each seed's full stdout+stderr is captured to
+`research/run-logs/seedhunt-box2-seed<N>-20260915.log`, with start/end markers in
+`research/scratch/seedhunt_progress.log`.
+
+### Running table (filled in as each run completes)
+
+| seed | num_steps | training_seconds | total_seconds | causality_passed | causality_max_abs | over_budget | `public_val_bpb` | note |
+|---|---|---|---|---|---|---|---|---|
+| 1  | 2118 | 1784.3 | 1847.7 | True | 0.000000 | False | **1.006380** | new coverage |
+| 2  | pending | | | | | | | new coverage |
+| 3  | pending | | | | | | | new coverage |
+| 5  | pending | | | | | | | cross-box overlap with box 1's cheap-screen-BEST seed |
+| 8  | pending | | | | | | | new coverage |
+| 13 | pending | | | | | | | cross-box overlap with box 1's cheap-screen-WORST seed |
+
+Logs: `research/run-logs/seedhunt-box2-seed1-20260915.log` (seed 1, done); remaining per-seed logs
+land as each run finishes.
+
+*(Batch started; this section is updated and committed after each seed completes.)*
