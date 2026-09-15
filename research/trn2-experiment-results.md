@@ -8232,3 +8232,149 @@ overriding. No `train.py` changes were needed or made.
 **Scripts added**: `research/scratch/ngram_ve_lr_900s.sh` (the paired 900 s driver). Logs:
 `research/run-logs/ngmlr-{ctrl-900s-r1,arm-015-900s,arm-060-900s,ctrl-900s-r2}.log`. Rows
 `ngmlr-{ctrl-900s-r1,arm-015-900s,arm-060-900s,ctrl-900s-r2}` in `research/experiment-log.jsonl`.
+
+## 2026-09-15 — `NGRAM_VE_BETA2` (RMSProp second-moment decay on the n-gram VE tables, 537M of the
+model's 592.9M params): tested standalone for the first time, and unlike its `EMBED_ADAMW_BETA2`
+analogue, a lower value is a real, reproducible **LOSS**, not a win — **CLOSED NEGATIVE**, default
+stays `0.999`
+
+### 0. Motivation and confirmed locked defaults (read directly from `train.py`)
+
+`NGRAM_VE_BETA2 = 0.999` (train.py:700, "RMSProp second-moment decay") is Recursive's inherited
+default — it has never been tuned for this stack. It governs the optimizer for the n-gram
+value-embedding tables (`NGRAM_VE_OPT="rmsprop"`, train.py:703, `betas=(0.0, NGRAM_VE_BETA2)`,
+train.py:3262), which are now the dominant parameter mass of the whole model: 4 tables ×
+1,048,576 rows × 128 dim ≈ 536.9M of the model's 592.9M total. The exact precedent for testing this
+kind of thing: `EMBED_ADAMW_BETA2` — another inherited beta2 on an embedding-style param group,
+also never tuned standalone — was tested for the first time this week and a *lower* value (`0.95`
+vs. the `0.995` default) won by `+21 steps (+5.2%)` and `0.009453` bpb (see the
+`EMBED_ADAMW_BETA2` entry above, ~line 493). `NGRAM_VE_BETA2` is analogous in kind but governs far
+more parameter mass, so the stakes are larger if it turns out to be mistuned either way. Other
+locked defaults confirmed unchanged and untouched for this block:
+
+```
+NGRAM_VE_LAYERS = "1,-1"           (train.py:599)
+NGRAM_VE_TABLE_MULT = 128          (train.py:661)
+NGRAM_VE_OPT = "rmsprop"           (train.py:703)
+```
+
+`--ngram-ve-beta2` is a pre-existing CLI flag (train.py:4990); **no `train.py` changes were made**
+for this block — only different arguments to an existing flag.
+
+### 1. Methodology
+
+Unlike the `NGRAM_VE_LAYERS`/`NGRAM_VE_TABLE_MULT`/`NGRAM_VE_DIM` axes above (which changed tensor
+shapes or injection sites and needed step-matching via a calibration), `--ngram-ve-beta2` is a
+**pure hyperparameter change** — same param count, same architecture, same ops, only the RMSProp
+second-moment decay constant differs for one param group. No throughput difference is expected, so
+(same discipline as `muon_lr_fp32_900s.sh`, also a pure-hyperparameter/precision change with no new
+tensors) every arm ran flat at 900 s with no pre-scaling, and throughput parity was **verified, not
+assumed** (per the task brief's standing instruction for exactly this kind of change).
+
+Two values tested, the two most informative points per the brief: `0.95` (mirrors
+`EMBED_ADAMW_BETA2`'s winning value) and `0.99` (a midpoint between `0.95` and the locked `0.999`).
+`research/scratch/ngram_ve_beta2_900s.sh`: fresh same-commit control, `0.95` arm, `0.99` arm,
+closing same-commit control — one 4-rank job owning the whole box, serial, `--eval-seq-len 1024`
+for the alt-context cross-check column, `--nproc-per-node 4 --lnc 2`. Box 1
+(`ec2-16-26-246-98`), no `train.py` edits.
+
+### 2. First-pass results (`ngram_ve_beta2_900s.sh`)
+
+| arm | steps | training_s | num_params_M | causality | `val_bpb`(2048) | `val_bpb`(1024, alt) |
+|---|---|---|---|---|---|---|
+| `ngmbeta2-ctrl-900s-r1` (0.999, locked) | 1063 | 955.0 | 592.9 | 0.0 / passed | 1.052188 | 1.067441 |
+| `ngmbeta2-arm-095-900s` (0.95) | 1062 | 955.3 | 592.9 | 0.0 / passed | 1.053878 | 1.069204 |
+| `ngmbeta2-arm-099-900s` (0.99) | 1064 | 955.4 | 592.9 | 0.0 / passed | 1.052365 | 1.067687 |
+| `ngmbeta2-ctrl-900s-r2` (0.999, locked) | 1063 | 955.3 | 592.9 | 0.0 / passed | 1.052331 | 1.067621 |
+
+`num_params_M` is bit-identical (592.9) and `causality_max_abs` is exactly `0.0` on every run, as
+expected for a change that touches only an optimizer constant.
+
+**Throughput really is unchanged, verified rather than assumed.** Steps ranged 1062–1064 (a 2-step,
+0.19% spread) and `training_seconds` ranged 955.0–955.4 (a 0.4 s, 0.04% spread) across all four
+runs — the two arms sit inside the two same-commit controls' own tiny spread, not outside it.
+Nothing here needed investigating before trusting the `bpb` numbers.
+
+`arm-095`'s raw delta (`+0.0016185` @2048 vs. the control pair's mean) is above the `0.001` noise
+floor but below the `0.003` same-day-repeat threshold — squarely in the band the task's standing
+rule says needs a same-day repeat before trusting. It is also the surprising result (opposite sign
+from the `EMBED_ADAMW_BETA2` precedent this test was modelled on), so it gets the extra scrutiny.
+`arm-099`'s raw delta (`+0.0001055` @2048) is clearly below the `0.001` floor — noise outright, no
+repeat needed.
+
+### 3. Same-day repeat pair for `0.95` (`ngram_ve_beta2_900s_repeat.sh`)
+
+| arm | steps | training_s | num_params_M | causality | `val_bpb`(2048) | `val_bpb`(1024, alt) |
+|---|---|---|---|---|---|---|
+| `ngmbeta2-ctrl-900s-r3` (0.999, locked) | 1062 | 954.8 | 592.9 | 0.0 / passed | 1.052088 | 1.067336 |
+| `ngmbeta2-arm-095-900s-r2` (0.95) | 1063 | 954.7 | 592.9 | 0.0 / passed | 1.054497 | 1.069868 |
+
+Same pattern: steps 1062/1063, `training_seconds` 954.7/954.8 — throughput parity holds again on a
+completely fresh pair.
+
+### 4. Decomposition
+
+Step-correcting each arm at the standing `0.077 · ln(steps_arm / steps_ctrl)` slope used throughout
+this doc's other 2026-09-15 closures (higher `bpb` is worse, so a *positive* corrected delta means
+the arm is worse):
+
+**Pass 1** (control mean of r1+r2: steps 1063, `bpb`@2048 1.0522595, `bpb`@1024 1.067531; the two
+controls' own spread — this block's noise band — is `0.000143` @2048 / `0.000180` @1024):
+
+| | `--ngram-ve-beta2 0.95` | `--ngram-ve-beta2 0.99` |
+|---|---|---|
+| raw Δ @2048 | +0.0016185 | +0.0001055 |
+| raw Δ @1024 | +0.001673 | +0.000156 |
+| step correction | −0.0000724 | +0.0000724 |
+| **step-normalised Δ @2048** | **+0.0015461** | **+0.0001779** |
+| **step-normalised Δ @1024** | **+0.0016006** | **+0.0002284** |
+
+`0.99`'s corrected delta (~`+0.0002`) sits well inside the control pair's own noise band
+(`0.000143`–`0.000180`) — clear noise in both eval contexts, no signal. `0.95`'s corrected delta
+(~`+0.0015`–`0.0016`) is **~10× the noise band** — a real signal, but per the standing rule this
+size (`0.001`–`0.003`) needs a same-day repeat before being trusted.
+
+**Pass 2, the repeat** (control r3 alone: steps 1062, `bpb`@2048 1.052088, `bpb`@1024 1.067336):
+
+| | `--ngram-ve-beta2 0.95` (repeat) |
+|---|---|
+| raw Δ @2048 | +0.002409 |
+| raw Δ @1024 | +0.002532 |
+| step correction | +0.0000725 |
+| **step-normalised Δ @2048** | **+0.0024815** |
+| **step-normalised Δ @1024** | **+0.0026045** |
+
+**The repeat confirms the first pass**: both independent same-day pairs put `0.95` worse than the
+locked `0.999` by the same sign and a similar order of magnitude (`+0.0015`–`0.0016` and
+`+0.0025`–`0.0026`, mean **≈+0.0020** across both eval contexts and both pairs) — every one of the
+four individual measurements exceeds this block's own control-pair noise band (`0.000143`–
+`0.000180`) by **7–18×**. This is not noise; `--ngram-ve-beta2 0.95` is a real, reproducible
+per-step **loss** of roughly `0.002` bpb relative to the locked `0.999`, the opposite direction
+from the `EMBED_ADAMW_BETA2` precedent it was modelled on.
+
+### 5. Verdict — CLOSED NEGATIVE, `NGRAM_VE_BETA2` stays `0.999`
+
+Neither tested value beats the locked default: `0.99` is indistinguishable from `0.999` (noise,
+`~+0.0002`), and `0.95` is a real, reproducible **loss** of `~0.002` bpb per step, confirmed by an
+independent same-day repeat pair rather than taken on a single run. Per the task's own decision
+rule, a confirming 1800 s pair is reserved for a real, reproducible **win** ≥ the noise floor —
+there is none here, so none is warranted; this closes negative on the spot-check alone.
+
+Unlike `EMBED_ADAMW_BETA2` (a dense, every-step-visited embedding table using the two-moment
+`(0.8, β2)` AdamW group), the n-gram VE tables use `NGRAM_VE_OPT="rmsprop"` with **no first
+moment** (`betas=(0.0, NGRAM_VE_BETA2)`, train.py:3262) precisely because a hashed n-gram row is
+touched a small fraction of steps on average (train.py:703 comment: "no first moment ... a rarely-
+hit row still gets a full-rate update"). A lower `β2` makes that lone second-moment estimate decay
+*faster* between the rare visits a given row gets, so its RMSProp-normalised step size swings more
+between visits instead of settling — plausibly the mechanism behind the sign flip relative to
+`EMBED_ADAMW_BETA2`'s dense, always-visited, two-moment case. This is a plausible explanation, not
+a separately measured one; the measured result stands regardless of the mechanism.
+
+`NGRAM_VE_BETA2` stays locked at `0.999`; `--ngram-ve-beta2` remains available as a pre-existing
+flag, now confirmed NOT worth lowering at this shape. No `train.py` changes were needed or made.
+
+**Scripts added**: `research/scratch/ngram_ve_beta2_900s.sh` (first-pass 900 s driver: ctrl / 0.95
+/ 0.99 / ctrl), `research/scratch/ngram_ve_beta2_900s_repeat.sh` (same-day repeat pair for 0.95).
+Logs: `research/run-logs/ngmbeta2-{ctrl-900s-r1,arm-095-900s,arm-099-900s,ctrl-900s-r2,ctrl-900s-r3,arm-095-900s-r2}.log`.
+Rows `ngmbeta2-{ctrl-900s-r1,arm-095-900s,arm-099-900s,ctrl-900s-r2,ctrl-900s-r3,arm-095-900s-r2}`
+in `research/experiment-log.jsonl`.
