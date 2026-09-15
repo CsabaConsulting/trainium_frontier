@@ -6725,3 +6725,176 @@ more flags at the current model size — the remaining blocker is a genuine hard
 not a software bug with a workaround. Closing this for good: real, complete, evidence-backed
 answer on all four fronts, still curiosity-tier, still submitting at LNC=2. Logs:
 `research/run-logs/cachecleared-lnc1-explicit-4p{,-v2}.log`.
+
+## 2026-09-15 — three small items closed in one 10-arm paired 900s block: byte-feature `wte` init **NEGATIVE with a monotone dose-response**, parameter-matched coalesced SwiGLU **NEGATIVE (per-step AND slower)**, T2.3 cautious WD **exactly neutral**, T2.4 smoothed scalar betas **NEGATIVE, and SCALAR_LR 0.20 re-confirmed as the top of the curve**
+
+All three items are implemented, flagged, default OFF, and staying that way. `train.py`'s locked
+behaviour is unchanged — proven bitwise on CPU, not argued (see the T2.3 subsection). Ten 900s arms
+on box 1 (`ec2-16-50-61-34`), one commit, same day, bracketed by two fresh controls.
+
+### The control pair, and why this block's numbers are unusually trustworthy
+| arm | bpb @2048 | bpb @1024 | steps | charged s |
+|---|---|---|---|---|
+| `ti-ctrl-900s-r1` | 1.052578 | 1.067789 | 1054 | 885.6 |
+| `ti-ctrl-900s-r2` | 1.052430 | 1.067718 | 1055 | 885.7 |
+
+**Control spread 0.000148 bpb over 1 step and 2h 11m of wall-clock separation** — the tightest
+control pair in this log after the WEIGHT_DECAY 0.20 pair. Every arm below is measured against the
+control MEAN (1.052504 @ 2048, 1.067754 @ 1024, 1054.5 steps), and every arm's delta reproduces at
+both eval lengths to within 0.0003, so none of these verdicts depends on which context the scorer
+grades at.
+
+### Results table (delta vs control mean; per-step residual = delta − throughput term, slope −0.077 bpb per unit ln steps)
+| arm | flags | bpb | steps | Δ bpb | thr term | **per-step** | verdict |
+|---|---|---|---|---|---|---|---|
+| byte-feature `wte` init | `--byte-wte-init` | 1.054655 | 1055 | +0.002151 | −0.000037 | **+0.002188** | DISCARD |
+| ... at mix 0.50 | `--byte-wte-init-mix 0.5` | 1.054011 | 1054 | +0.001507 | +0.000037 | **+0.001470** | DISCARD |
+| ... at mix 0.25 | `--byte-wte-init-mix 0.25` | 1.053705 | 1055 | +0.001201 | −0.000037 | **+0.001238** | DISCARD |
+| coalesced SwiGLU | `--coalesced-swiglu` | 1.057505 | 1043 | +0.005001 | +0.000844 | **+0.004157** | DISCARD |
+| cautious weight decay | `--cautious-wd` | 1.052454 | 1054 | −0.000050 | +0.000037 | **−0.000087** | neutral, stays OFF |
+| smoothed scalars, lr 0.20 | `--scalar-beta2 0.99` | 1.052756 | 1054 | +0.000252 | +0.000037 | **+0.000215** | neutral/negative |
+| smoothed scalars, lr 0.10 | `+ --scalar-lr 0.10` | 1.053657 | 1055 | +0.001153 | −0.000037 | **+0.001190** | DISCARD |
+| smoothed scalars, lr 0.05 | `+ --scalar-lr 0.05` | 1.054368 | 1054 | +0.001864 | +0.000037 | **+0.001827** | DISCARD |
+
+`causality_max_abs 0.000000` and `over_budget False` on all ten arms plus five 15-step hardware
+smokes. Charged seconds land in 885.3–886.0 across all ten, i.e. the budget machinery is not a
+confound anywhere in this block.
+
+### Item 1 — byte-feature `wte` init (plan §11.1): negative, and the DOSE-RESPONSE is what closes it
+Implementation (`byte_feature_wte_init`, `--byte-wte-init`): for each token id, take the tokenizer's
+own `decode_single_token_bytes(id)` (the only input — no external data, no pretrained vectors, no
+corpus statistics), wrap it in `\x02`/`\x03` boundary markers, hash every byte 1..3-gram with FNV-1a
+64 (**not** Python's `hash()`, which is PYTHONHASHSEED-randomized and would make the init
+irreproducible), and accumulate ±1 into a column chosen by the low bits with the sign taken from
+bit 40. That is signed feature hashing, so two rows' inner product grows with their shared-n-gram
+count. Runs once on the host between `init_weights()` and `model.to(device)`, draws **no torch RNG**,
+adds **zero ops to the training graph**: 0.84 s, and the measured step counts confirm it
+(1055 vs 1054.5, +0.05%).
+
+Two host-side findings worth keeping:
+- **Centering is mandatory and was found by measurement, not by theory.** The first version left the
+  raw hashed counts in place, and the mean cosine over 2000 random token pairs was **+0.224** — every
+  row shared ~22% of the same vector, because features present in every token (the `\x02`/`\x03`
+  markers, the frequent letter unigrams) land in the same column with the same sign every time.
+  Column-centering over the written rows drops that to **+0.003** while pairs sharing a 3-byte prefix
+  stay at **+0.615**, which is the contrast the whole idea depends on. Any hashed-feature init on
+  this stack should center; the shared component is pure waste (it is a constant added to every
+  position, i.e. a bias the model already has, paid for out of row norm).
+- Null test on the real 8192-token vocabulary: **8188 rows written, 4 left random** (the specials,
+  which `prepare.py` itself records as 0 bytes), 19.6 features/token, all 8192 rows still unique, row
+  RMS 0.775–0.822 around the target 0.8 (`GPT.forward` does `x = norm(wte(idx))`, so row *scale* is
+  invisible to the forward pass and matters only through AdamW's relative step size and wd — hence
+  matching the control's `normal_(0, 0.8)` exactly).
+
+**The result is +0.00219 per-step, i.e. 14.8x the control spread, in the WRONG direction.** Because
+0.00219 < the 0.003 "needs a paired repeat" threshold, the follow-up was not a bare repeat but a
+**dose-response** on `--byte-wte-init-mix` (blends as `mix*feat + sqrt(1−mix²)*random`, which holds
+row RMS fixed): mix 0.00 (= control, by definition) → 0.25 → 0.50 → 1.00 gives
+**0 → +0.00124 → +0.00147 → +0.00219**. Monotone in the dose, with three of the four points outside
+the control band, at both eval lengths. That is a real mechanism, not noise, and it costs bpb.
+
+**Why (best available reading, and it generalizes):** the penalty is already +0.00124 at mix 0.25,
+where the byte features carry only a quarter of each row — so it is the *correlation structure*, not
+the amplitude. Making orthographically similar tokens start with correlated embeddings makes them
+harder to separate, and at this scale (8192 tokens, 640 dims, 2100 steps) the embedding table is not
+capacity-starved enough to need the prior; it is faster to learn orthography from data than to unlearn
+an imposed similarity that cuts across meaning. **Reusable rule: a structured prior imposed on `wte`
+at init is a constraint the optimizer has to pay to escape. It is only worth it where the table is
+undertrained, and ours is not** — a table that gets 2100 steps × 8192 rows of dense updates is
+already the best-trained part of this model. This also predicts the same fate for other "smart"
+embedding inits (SVD of a co-occurrence matrix, positional priors on the vocabulary), and the mix
+sweep is the cheap way to check any of them: if mix 0.25 already hurts, the idea is dead.
+
+Kept in the tree behind `--byte-wte-init` (+ `--byte-wte-init-mix/-ngram/-std`). Default OFF.
+
+### Item 2 — parameter-matched coalesced SwiGLU (gpu-closed-techniques §3.2): negative on BOTH axes
+`--coalesced-swiglu` gives the MLP one `Linear(640, 3328)` whose two 1664-wide halves are gate and
+up, `silu(gate) * up` instead of `relu(c_fc(x))**2`, at hidden 1664 = round(8/3·640 / 128)·128 so
+that `3·640·1664 = 3,194,880` per layer matches the baseline's `2·640·2560 = 3,276,800` to −2.5%
+(**592,425,324 vs 592,916,844 params, −0.08% of the model** — measured, not estimated). This is the
+version of SwiGLU worth a second hearing here: parameter-matched, so it tests the *activation* and
+not capacity, and coalesced into ONE matmul, so it does not add a launch to a
+dispatch-bound block.
+
+- **Per-step +0.004157.** Six times the control spread, and the largest single-item regression in
+  this block. The ReLU²≥SwiGLU consensus at this scale (modded-nanogpt, nanochat, Recursive,
+  Parameter Golf #340/#344) holds on Trn2 too, and the prior of 15-20% was called correctly.
+- **It is also 1.09% SLOWER (1043 vs 1054.5 steps)** despite the identical launch count and 0.7%
+  *fewer* FLOPs/token (3.962e8 vs 3.992e8). So the coalescing did what it was supposed to and it
+  still lost time. Two candidates, not separated (not worth further device time on a discarded arm):
+  the two non-contiguous last-dim slices `h[..., :1664]` / `h[..., 1664:]`, and a `3328`-row output
+  being a worse tile than `2560`. **Reusable: "same launch count, fewer FLOPs" is still not a
+  throughput guarantee on this stack — 1664/3328 is a multiple of 128 and it was not enough.**
+- Note for anyone re-reading the old table: the results doc's "MLP `c_fc` at `[3200, 640]`" is the
+  parallel-block `vfc` `c_in` shape, not the MLP's. The real baseline MLP `c_fc` is `[2560, 640]`.
+
+Kept in the tree behind `--coalesced-swiglu` (+ `--coalesced-swiglu-hidden`), and both are in
+`SHAPE_CRITICAL_TOGGLES`. Default OFF.
+
+### Item 3a — T2.3 cautious weight decay: exactly neutral, and the refactor it needed is provably free
+`--cautious-wd` applies decoupled AdamW decay only where `update * p > 0`. It reaches exactly two
+tensors: `wte` (wd 0.001) and `lm_head` (wd 0.01) — every other AdamW group has wd 0.0, and the Muon
+groups have carried the same trick inside `_muon_math` all along (with `>=`; the two differ only on
+exact zeros).
+
+**Per-step −0.000087, i.e. inside a control spread of 0.000148: a genuine null.** It is not a
+regression and it is not a win. On a locked default the tie goes to the incumbent, so it stays OFF.
+(Mask occupancy at the shapes involved is ~50% of elements spared, so the flag is doing real work —
+the work simply does not matter here. That is consistent with wd 0.001/0.01 being small enough that
+the *whole* decay term is near-irrelevant at 2100 steps; the same measurement on a config with a
+large embedding wd could read differently.)
+
+**The part worth keeping is the safety argument, because it applies to any future edit of the
+optimizer.** Adding the mask required moving the decay multiply from *above* the two moment lerps to
+*below* the `update` computation. That move is exactly, not approximately, equivalence-preserving:
+`update` reads only `exp_avg`/`exp_avg_sq`/`grad` and never `p`, and `p` is still at its pre-decay
+value when the multiply reads it. `research/scratch/cautious_wd_equiv.py` proves it rather than
+asserting it — it re-implements the pre-edit bodies verbatim and demands **0.000e+00** max abs diff
+on all 80 parameters and all 60 optimizer-state tensors over 5 steps, for all four
+(`USE_FOREACH_OPTIM`, `USE_TENSOR_LR_SCALARS`) combinations, and separately checks that with the flag
+ON *only* `wte` and `lm_head` move and that they match an independently written
+`p*(1 − lr*wd*mask) − lr*update` bit-for-bit. **Standing pattern: a restructuring of a locked default
+is only acceptable with a bitwise harness that runs the OLD code, not with an argument.**
+
+### Item 3b — T2.4 smoothed scalar betas: negative, and it re-confirms SCALAR_LR 0.20 from the other side
+`--scalar-beta1/--scalar-beta2` give the scalar/skip group its own Adam betas (defaults are the
+historical `(0.9, 0.95)`, so the flags are inert unless passed). Record #52's "smoothed scalars" is
+`beta2 = 0.99` with a lower LR. Measured, all three arms at beta2 0.99:
+
+| SCALAR_LR | per-step Δ |
+|---|---|
+| 0.20 (current) | +0.000215 |
+| 0.10 | +0.001190 |
+| 0.05 | +0.001827 |
+
+**Monotone: the lower the scalar LR, the worse.** beta2 0.99 at the current LR is a null
+(+0.0002, inside ~1.5x the control spread), and every LR reduction on top of it costs bpb. So the
+axis is closed from both directions at once — the smoothing does nothing here, and T0.4's SCALAR_LR
+0.20 is re-confirmed as at-or-past the top of the curve rather than merely a local pick. Default
+stays `(0.9, 0.95)` at 0.20.
+
+**The NaN question this item was supposed to answer, answered structurally rather than empirically.**
+The historical divergence-to-NaN around step ~270 came from a real *projection matrix* landing in the
+scalar group and being driven at 8-10x MATRIX_LR. That is no longer reachable: `gate_params` exists
+precisely to catch 1-D/single-row gate tensors, and every gate-shaped tensor added since
+(`ve_gate`/`ve_gate_bi`/`ve_gate_tri`, `head_gate`, `out_bigram_gate`, `qk_shift_beta`) is routed to
+`gate_params` or to Muon. The group currently holds **12 shape-(1,) tensors and nothing else**, and
+`setup_optimizer` now **raises** on any `ndim > 1` member with a message pointing at the right group,
+so a future addition cannot silently re-create the failure and then blame the LR. (Raising beta2 and
+lowering the LR both move *away* from that failure, so none of these three arms was at risk.)
+
+### `train.py` changes from this block (all default OFF, locked behaviour bit-identical)
+- `USE_BYTE_WTE_INIT` + `BYTE_WTE_INIT_MIX/NGRAM/STD`, `_fnv1a64`, `byte_feature_wte_init`, and a
+  call site right after `model.init_weights()`.
+- `USE_COALESCED_SWIGLU` + `COALESCED_SWIGLU_HIDDEN`, `coalesced_swiglu_hidden`, and the `MLP`
+  gate/up branch. Mutually exclusive with `USE_GATED_MLP` and with `--parallel-block-coalesce`
+  (both enforced by `parser.error`).
+- `USE_CAUTIOUS_WD` + `_cautious_weight_decay_`, with both AdamW paths restructured as described
+  above, and `SCALAR_BETA1`/`SCALAR_BETA2` on the scalar group.
+- Nine new names in `ARCH_TOGGLE_NAMES`; the two SwiGLU shape knobs also in `SHAPE_CRITICAL_TOGGLES`.
+- New harnesses: `research/scratch/cautious_wd_equiv.py`, `research/scratch/three_items_smoke.sh`,
+  `research/scratch/three_items_900s.sh`, `research/scratch/three_items_900s_followup.sh`.
+
+Rows: `ti-ctrl-900s-r{1,2}`, `ti-bytewte-900s`, `ti-bytewte-mix0{50,25}-900s`, `ti-swiglu-900s`,
+`ti-cwd-900s`, `ti-sbeta99-lr0{20,10,05}-900s` in `research/experiment-log.jsonl`; logs of the same
+names plus `smoke-*.log` in `research/run-logs/`.

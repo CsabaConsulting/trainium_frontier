@@ -1,0 +1,25 @@
+=== 22:18:34 ti-ctrl-900s-r1 :  ===
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 900 --out-dir out/ti-ctrl-900s-r1 --eval-seq-len 1024
+--- logged: status=keep public_val_bpb=1.052578 num_steps=1054 total_seconds=956.9 -> research/experiment-log.jsonl
+=== 22:34:59 ti-bytewte-900s : --byte-wte-init ===
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 900 --out-dir out/ti-bytewte-900s --eval-seq-len 1024 --byte-wte-init
+--- logged: status=keep public_val_bpb=1.054655 num_steps=1055 total_seconds=957.3 -> research/experiment-log.jsonl
+=== 22:51:26 ti-swiglu-900s : --coalesced-swiglu ===
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 900 --out-dir out/ti-swiglu-900s --eval-seq-len 1024 --coalesced-swiglu
+--- logged: status=keep public_val_bpb=1.057505 num_steps=1043 total_seconds=957.8 -> research/experiment-log.jsonl
+=== 23:07:41 ti-cwd-900s : --cautious-wd ===
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 900 --out-dir out/ti-cwd-900s --eval-seq-len 1024 --cautious-wd
+--- logged: status=keep public_val_bpb=1.052454 num_steps=1054 total_seconds=957.2 -> research/experiment-log.jsonl
+=== 23:24:06 ti-sbeta99-lr020-900s : --scalar-beta2 0.99 ===
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 900 --out-dir out/ti-sbeta99-lr020-900s --eval-seq-len 1024 --scalar-beta2 0.99
+--- logged: status=keep public_val_bpb=1.052756 num_steps=1054 total_seconds=956.8 -> research/experiment-log.jsonl
+=== 23:40:28 ti-sbeta99-lr010-900s : --scalar-beta2 0.99 --scalar-lr 0.10 ===
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 900 --out-dir out/ti-sbeta99-lr010-900s --eval-seq-len 1024 --scalar-beta2 0.99 --scalar-lr 0.10
+--- logged: status=keep public_val_bpb=1.053657 num_steps=1055 total_seconds=957.9 -> research/experiment-log.jsonl
+=== 23:56:55 ti-sbeta99-lr005-900s : --scalar-beta2 0.99 --scalar-lr 0.05 ===
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 900 --out-dir out/ti-sbeta99-lr005-900s --eval-seq-len 1024 --scalar-beta2 0.99 --scalar-lr 0.05
+--- logged: status=keep public_val_bpb=1.054368 num_steps=1054 total_seconds=957.0 -> research/experiment-log.jsonl
+=== 00:13:16 ti-ctrl-900s-r2 :  ===
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 900 --out-dir out/ti-ctrl-900s-r2 --eval-seq-len 1024
+--- logged: status=keep public_val_bpb=1.05243 num_steps=1055 total_seconds=957.3 -> research/experiment-log.jsonl
+=== 00:29:40 done ===

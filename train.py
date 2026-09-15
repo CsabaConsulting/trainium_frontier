@@ -320,6 +320,11 @@ SCALAR_LR = 0.20
 # structurally impossible: gate_params exists precisely to catch 1-D/single-row gate tensors, and
 # setup_optimizer asserts the scalar group holds nothing with ndim > 1. Raising beta2 and/or
 # lowering the LR both move AWAY from that failure, not toward it.
+#
+# MEASURED 2026-09-15, CLOSED NEGATIVE, defaults unchanged. beta2 0.99 at the current SCALAR_LR 0.20
+# is a null (per-step +0.000215 against a control pair whose spread is 0.000148), and lowering the LR
+# on top of it is monotonically worse: 0.10 +0.001190, 0.05 +0.001827. That closes the axis from both
+# ends and re-confirms SCALAR_LR 0.20 as at or past the top of the curve.
 SCALAR_BETA1 = 0.9
 SCALAR_BETA2 = 0.95
 # T2.3 (modded-nanogpt record #50), "cautious weight decay": apply weight decay only to the
@@ -334,6 +339,12 @@ SCALAR_BETA2 = 0.95
 # That is exactly, not approximately, equivalent with the flag off -- the update depends only on
 # exp_avg/exp_avg_sq/grad and never reads p, and the decay reads the same pre-decay p either way.
 # research/scratch/cautious_wd_equiv.py checks it bitwise on the real model.
+#
+# MEASURED 2026-09-15: EXACT NULL, stays OFF. Paired 900s, per-step -0.000087 against a control pair
+# whose own spread is 0.000148 -- not a regression, not a win, and on a locked default the tie goes to
+# the incumbent. The mask does real work (~50% of elements spared at these shapes); it just does not
+# matter at wd 0.001/0.01 over ~2100 steps. Would be worth re-measuring on a config with a large
+# embedding weight decay, where the whole decay term is not already near-irrelevant.
 USE_CAUTIOUS_WD = False
 WEIGHT_DECAY = 0.20  # T0.4 resweep (Day 3): part of the combined stack below. Single-axis at 900s: 0.20 -0.000557/-0.000533 (paired, spread 0.000024 -- the tightest pair in the log), 0.35 -0.000458, 0.05 -0.000019. Flat-but-reproducible axis; 0.20 chosen as the middle of the better region. NOTE: combining 0.20 with WD_DECAY_TO_ZERO=False came in +0.001828, i.e. WORSE than either alone -- they are effectively the same knob (total integrated decay), so WD_DECAY_TO_ZERO stays True.
 VE_WD = 0.0  # weight decay for the value_embeds AdamW group (separate from the shared embedding_params group)
@@ -428,6 +439,15 @@ ATTN_CPROJ_INIT_SCALE = 0.10
 # pass; it matters only through AdamW's effective relative step size (and wd=0.001) on that
 # tensor. The features are therefore rescaled to the same per-row RMS the normal_(0, 0.8) init
 # produces, not left at their raw counting scale.
+#
+# MEASURED 2026-09-15, CLOSED NEGATIVE, stays OFF. Paired 900s block, control pair spread 0.000148:
+# per-step +0.002188 at mix 1.0 (1.054655 / 1055 steps vs control mean 1.052504 / 1054.5), and the
+# throughput term is 0.000 as designed. Confirmed by a monotone DOSE-RESPONSE on the mix rather than
+# a bare repeat: mix 0.25 +0.001238, mix 0.50 +0.001470, mix 1.00 +0.002188. Already harmful at mix
+# 0.25, so it is the correlation STRUCTURE, not the amplitude. Reading: a structured prior on wte is
+# a constraint the optimizer pays to escape, and at 8192 rows x ~2100 dense-update steps this table
+# is the best-trained tensor in the model -- it does not need one. See the 2026-09-15 section of
+# research/trn2-experiment-results.md.
 USE_BYTE_WTE_INIT = False
 BYTE_WTE_INIT_MIX = 1.0    # 1.0 = pure byte features; 0 <= mix < 1 blends with the random init as
 # mix*feat + sqrt(1-mix^2)*random, which keeps the row RMS at ~0.8 for any mix because the two
@@ -1146,6 +1166,14 @@ USE_GATED_MLP = False    # SwiGLU-style: c_fc(x) * silu(c_gate(x)) instead of re
 # step 0 whatever the activation is. It is NOT bit-identical to the control beyond that, because
 # c_fc changes numel and therefore shifts the init RNG stream for every tensor built after it --
 # unavoidable for any real shape change, and the same caveat USE_NGRAM_VE/USE_GATED_MLP carry.
+#
+# MEASURED 2026-09-15, CLOSED NEGATIVE on BOTH axes, stays OFF. Paired 900s (control pair spread
+# 0.000148): 1.057505 / 1043 steps vs control mean 1.052504 / 1054.5, i.e. per-step +0.004157 AND
+# 1.09% SLOWER -- despite the identical launch count and 0.7% FEWER flops/token (3.962e8 vs 3.992e8).
+# The 15-20% prior was called correctly; the ReLU^2 >= SwiGLU consensus holds on Trn2 too. The
+# slowdown is the more transferable half: "same launch count, fewer FLOPs" is NOT a throughput
+# guarantee here. Unseparated suspects (not worth device time on a discarded arm): the two
+# non-contiguous last-dim slices, and 3328 being a worse output tile than 2560.
 USE_COALESCED_SWIGLU = False
 COALESCED_SWIGLU_HIDDEN = 0  # 0 = auto: round(8/3 * n_embd / 128) * 128, which is 1664 at n_embd=640
 # (the parameter-matched width, since 3*d*h == 2*d*(4*d) gives h = 8/3*d). Set > 0 to force a width

@@ -142,10 +142,34 @@ Note: any future throughput win from 1-3 should be spent the same way as the cur
 on capacity at fixed step count, not on more steps, until/unless the data-wall situation changes
 (e.g. more train data ever becomes available, which it won't under the rules).
 
+## 2026-09-15 — the three small/cheap items are DONE and all three are OFF (10-arm paired 900s block)
+Full write-up in the dated `research/trn2-experiment-results.md` section. All three implemented,
+flagged, default OFF; locked config bit-identical (proven, not argued). Control pair spread 0.000148,
+`causality_max_abs 0.0` on all ten arms plus five hardware smokes, both eval lengths agree.
+- **Byte-feature `wte` init: DISCARD, +0.00219 per-step**, and a monotone dose-response on
+  `--byte-wte-init-mix` (0.25 → +0.00124, 0.50 → +0.00147, 1.00 → +0.00219) makes it a real mechanism
+  rather than noise. Reusable: **a structured prior imposed on `wte` at init is a constraint the
+  optimizer pays to escape — only worth it where the table is undertrained, and ours is the
+  best-trained tensor in the model.** Cheap kill test for any future embedding-init idea: if mix 0.25
+  already hurts, stop. (Host-side finding worth keeping: hashed byte features MUST be column-centered
+  — raw counts gave +0.224 mean random-pair cosine, centering drops it to +0.003 while
+  shared-3-byte-prefix pairs stay at +0.615.)
+- **Parameter-matched coalesced SwiGLU: DISCARD, +0.00416 per-step AND 1.09% slower**, at
+  592.43M vs 592.92M params and 0.7% *fewer* FLOPs/token. The ReLU²≥SwiGLU consensus holds on Trn2.
+  Reusable: **"same launch count, fewer FLOPs" is not a throughput guarantee** — suspects are the two
+  non-contiguous last-dim slices and 3328 being a worse output tile than 2560.
+- **T2.3 cautious weight decay: exact null (−0.000087, inside the control spread).** Stays OFF; tie
+  goes to the incumbent. The reusable part is the discipline: restructuring a locked default (the
+  decay multiply had to move below `update`) was only acceptable because
+  `research/scratch/cautious_wd_equiv.py` runs the OLD code and demands 0.0 diff on all 80 params and
+  60 state tensors across all four (foreach, tensor-lr) combinations.
+- **T2.4 smoothed scalar betas: DISCARD**, and it closes the axis from both ends — beta2 0.99 at the
+  current SCALAR_LR 0.20 is a null (+0.0002), and lowering the LR on top of it is monotonically worse
+  (0.10 → +0.00119, 0.05 → +0.00183). **SCALAR_LR 0.20 re-confirmed as at/past the top of the curve.**
+  The historical scalar-group NaN is now structurally unreachable: `setup_optimizer` raises on any
+  `ndim > 1` member of `scalar_params` (currently 12 shape-(1,) tensors and nothing else).
+
 ## Small/cheap, still unimplemented
-- Byte-feature `wte` init (≤0.002 bpb, near-zero cost).
-- Parameter-matched coalesced SwiGLU (~15-20% chance of a small win).
-- Cautious weight decay on Adam groups / smoothed scalar-group betas (T2.3/T2.4).
 - `lr_multiplier` defense-in-depth against step-capping (optional hardening on top of the
   NUM_STEPS fix; cheap, low priority since the actual cap is already gone).
 
@@ -168,7 +192,8 @@ host-sync/weight-cache, T0.2 depth/width decoupling, T0.3 MLP-ratio/attn-scale, 
 robustness, T2.1 batch-size ramp, T2.2 EMA, T4.1 count-based n-gram output mixer, T4.2 Aster
 output bigram table, T3.9 grab-bag (shifted ReLU², head-gate, out-pool — sandwich-norm/qk-shift
 were real but only via throughput, now devalued by the data wall), x0-gate, parallel attn+MLP
-block, partial RoPE (scoped, not worth the risk), `--epoch-shuffle` (made the data wall worse).
+block, partial RoPE (scoped, not worth the risk), `--epoch-shuffle` (made the data wall worse), byte-feature `wte` init (dose-response negative),
+parameter-matched coalesced SwiGLU, T2.3 cautious weight decay (null), T2.4 smoothed scalar betas.
 Full detail for all of the above: `research/trn2-experiment-results.md` (git-tracked, the real
 source of truth) and git history.
 
