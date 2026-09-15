@@ -8457,3 +8457,171 @@ step-cap exit deep into a run aimed at its full budget). `NUM_STEPS` itself is u
 (stays `1_000_000`); this is pure defense-in-depth for if it is ever lowered again, or a different
 step-bound is added, without the wall-clock budget being raised to match. No quality/throughput
 claim is made or implied — this is a code-safety item, not an A/B.
+
+## 2026-09-15 — `--ngram-ve-opt` (RMSProp vs. AdamW for the n-gram value-embedding tables, box 2,
+`ec2-16-26-154-27`): Recursive's "no first moment for sparse hashed rows" rationale has never been
+A/B'd on this stack, and it holds up — `adamw` is a real, reproducible **LOSS** on quality *and* on
+throughput — **CLOSED NEGATIVE**, `NGRAM_VE_OPT` stays `"rmsprop"` (track: n-gram-VE optimizer)
+
+### 0. Motivation and confirmed locked defaults (read directly from `train.py`)
+
+`NGRAM_VE_OPT = "rmsprop"` (`train.py:703`) governs the optimizer *kind* for the n-gram
+value-embedding tables' own param group (`train.py:3240–3266`), which are the dominant parameter
+mass of the whole model (4 tables × 1,048,576 rows × 128 dim ≈ 536.9M of 592.9M total). Per the
+`train.py:3255` comment, `NGRAM_VE_OPT="adamw"` is deliberately "the fallback arm: identical group,
+but the same `(0.8, EMBED_ADAMW_BETA2)` Adam the unigram value-embedding tables use, so the
+optimizer choice can be A/B'd on its own without touching anything else." The stated rationale for
+the locked `"rmsprop"` default (`train.py:3240–3254`, attributed to "Recursive's recipe"): a hashed
+n-gram row is touched a fraction of a step on average, and Adam's `m/sqrt(v)` **damps** a rare
+update by exactly the frequency factor it divides out of `v`; dropping the first moment gives every
+row a full-rate update whenever it is hit. Searched `research/trn2-experiment-results.md` for
+`ngram-ve-opt`/`NGRAM_VE_OPT`/`adamw` near the n-gram sections before starting: the only prior hit
+was a "confirmed locked defaults" listing in the 2026-09-15 `--ngram-ve-lr` section (`NGRAM_VE_OPT
+= "rmsprop" (line 703)`, a defaults readout, not a test) — this axis had never actually been
+measured. Other locked defaults confirmed unchanged and untouched for this block:
+
+```
+NGRAM_VE_LAYERS = "1,-1"           (train.py:599)
+NGRAM_VE_TABLE_MULT = 128          (train.py:661)
+NGRAM_VE_LR = 0.0                  (train.py:699, sentinel -> EMBEDDING_LR)
+EMBEDDING_LR = 0.30                (train.py:308)
+NGRAM_VE_BETA2 = 0.999             (train.py:700, just closed negative above at 0.95 — unrelated axis)
+NGRAM_VE_FLAT_LR = True            (train.py:701, no warmdown)
+EMBED_ADAMW_BETA2 = 0.95           (train.py:351, the betas the adamw arm inherits: (0.8, 0.95))
+```
+
+`--ngram-ve-opt` is a pre-existing CLI flag (`train.py:4984`, `choices=("rmsprop","adamw")`); **no
+`train.py` changes were made** for this block — only different arguments to an existing flag.
+
+### 1. Methodology: this is NOT a pure hyperparameter change, so throughput was calibrated first
+
+Unlike `--ngram-ve-lr`/`--ngram-ve-beta2` (pure scalar changes, same optimizer state, no measured
+throughput effect), swapping `rmsprop` → `adamw` changes the update rule itself: `adamw` adds a
+first-moment buffer (same shape as the 537M-param table group) and an extra elementwise FMA per
+step. Per the task brief's explicit instruction not to assume throughput parity here, a 120-step
+calibration ran first (`research/scratch/ngramveopt_calib.sh`, same convention as
+`ngrammult256_calib.sh`):
+
+| arm | steady-state tok/s (steps 60–110, mean) |
+|---|---|
+| `ngmveopt-ctrl` (`rmsprop`) | 155,258 |
+| `ngmveopt-arm` (`adamw`) | 152,693 |
+
+A real cost: **+1.68% s/step / −1.65% tok/s** (`dt_arm/dt_ctrl = 1.0168`). Small next to the
+tensor-shape-changing axes (`--ngram-ve-dim 256`/`--ngram-ve-table-mult 256`, ~19–23%) but not zero,
+so the paired spot-check pre-scaled the arm's `--max-train-seconds` (900 → 915 s) to land at
+matched step counts "by construction," the same convention `ngrammult256_900s.sh` used — and
+**throughput was verified rather than assumed for every run**, not just the calibration.
+
+### 2. First-pass paired 900 s spot-check, real `val_bpb`, box 2, `--eval-seq-len 1024`
+
+`research/scratch/ngramveopt_900s.sh`, via `research/run_experiment.py`, 4 ranks, LNC=2. Locked
+config otherwise (`DEPTH=6`, `ASPECT_RATIO=96`, `--ngram-ve-layers 1,-1`, `--ngram-ve-table-mult
+128`, `--ngram-ve-beta2 0.999`) untouched — only `--ngram-ve-opt` varies. All runs:
+`num_params_M=592.9`, `world_size=4`, `lnc=2`, `seq_len=2048`, `causality_passed=True`,
+`causality_max_abs=0.0` throughout.
+
+| arm | `max-train-seconds` | `training_seconds` | steps | `val_bpb`@2048 | `val_bpb`@1024 |
+|---|---|---|---|---|---|
+| `ngmveopt-ctrl-900s-r1` (rmsprop) | 900 | 884.2 | 1052 | 1.052999 | 1.068294 |
+| `ngmveopt-arm-900s` (adamw) | 915 | 899.6 | **1053** | 1.055048 | 1.070276 |
+| `ngmveopt-ctrl-900s-r2` (rmsprop) | 900 | 884.6 | 1054 | 1.052781 | 1.068080 |
+
+Step-matching worked as designed: control mean 1053.0 steps, arm 1053 steps — an exact match.
+Raw delta (arm − control mean): **+0.002158** @2048 / **+0.002089** @1024 — adamw is *worse*. This
+sits in the `0.001`–`0.003` band the standing noise-floor rule flags for a same-day repeat before
+trusting, despite the clean step match.
+
+### 3. Same-day confirming repeat (`research/scratch/ngramveopt_900s_repeat.sh`), same discipline
+
+| arm | `max-train-seconds` | `training_seconds` | steps | `val_bpb`@2048 | `val_bpb`@1024 |
+|---|---|---|---|---|---|
+| `ngmveopt-ctrl-900s-r3` (rmsprop) | 900 | 884.9 | 1055 | 1.052269 | 1.067544 |
+| `ngmveopt-arm-900s-r2` (adamw) | 915 | 899.5 | **1057** | 1.054695 | 1.070097 |
+| `ngmveopt-ctrl-900s-r4` (rmsprop) | 900 | 884.9 | 1052 | 1.052969 | 1.068170 |
+
+Control mean 1053.5 steps vs. arm 1057 steps (arm ran 3.5 more; step-corrected below). Raw delta:
+**+0.002076** @2048 / **+0.002240** @1024 — same sign, same order of magnitude as the first pass,
+on a completely independent pair.
+
+### 4. Decomposition
+
+Step-correcting each pass at the standing `0.077 · ln(steps_arm / steps_ctrl-mean)` slope used
+throughout this doc's other 2026-09-15 closures (higher `bpb` is worse, so a *positive* corrected
+delta means the arm is worse):
+
+| | Pass 1 (`ngramveopt_900s.sh`) | Pass 2, repeat (`_repeat.sh`) | Pooled (all 4 ctrl / 2 arm) |
+|---|---|---|---|
+| control steps (mean) | 1053.0 | 1053.5 | 1053.25 |
+| arm steps (mean) | 1053.0 | 1057.0 | 1055.0 |
+| raw Δ @2048 | +0.002158 | +0.002076 | +0.002117 |
+| raw Δ @1024 | +0.002089 | +0.002240 | +0.002165 |
+| step correction | +0.0000 | +0.000255 | +0.000128 |
+| **step-normalised Δ @2048** | **+0.002158** | **+0.002331** | **+0.002245** |
+| **step-normalised Δ @1024** | **+0.002089** | **+0.002495** | **+0.002292** |
+
+The four same-commit controls' own spread (this block's noise band) is **0.000730** @2048 /
+**0.000750** @1024 (max − min across `r1`–`r4`) — the arm's delta is **~3×** that spread, and
+(unlike a single-pair result at this magnitude) it reproduces in sign and magnitude across two
+fully independent same-day pairs (`+0.0022`/`+0.0021` in pass 1, `+0.0023`/`+0.0025` in pass 2).
+This is a real, reproducible per-step **loss**, not noise: `NGRAM_VE_OPT="adamw"` costs roughly
+**+0.0023 bpb** per step at matched step counts, averaged across both eval contexts and both pairs.
+
+### 5. Throughput cost, verified (not assumed) across all 6 real training runs
+
+Pooling `training_seconds`/`steps` from all four control runs and both arm runs (not just the
+calibration): control pooled `dt` **0.839924 s/step** (3538.6 s / 4213 steps); arm pooled `dt`
+**0.852654 s/step** (1799.1 s / 2110 steps) — a **+1.516% s/step / −1.493% tok/s** cost, agreeing
+with the 120-step calibration's +1.68%/−1.65% to within ~1.7 points. **Real and reproducible**,
+confirmed on real training runs rather than the short probe alone — exactly the kind of check the
+task brief asked for instead of assuming parity the way it held for the pure-scalar lr/beta2 axes.
+
+### 6. Break-even arithmetic (same method as the width=1024/dim256/mult256 closures)
+
+At the real 1800 s official budget, extrapolating each arm's own pooled measured `dt`:
+- control: `1800 / 0.839924 ≈` **2143.1 steps**
+- arm: `1800 / 0.852654 ≈` **2111.1 steps**
+
+Forgone-steps penalty: `0.077 × ln(2143.1/2111.1) = 0.077 × 0.01506 = ` **+0.001158 bpb**.
+
+Net at 1800 s: `+0.001158 (throughput) + 0.002269 (mean pooled per-step quality loss, both eval
+contexts) = ` **+0.003427 bpb WORSE** than the locked `rmsprop` default.
+
+Unlike the dim256/mult256/width=1024 closures, there is no quality **gain** here to weigh against
+the throughput cost — `adamw` loses on *both* axes independently and in the *same* direction, so
+the "break-even bar" is moot in the usual sense: even a hypothetical zero-cost `adamw` (no
+throughput penalty at all) would still lose by the quality term alone (`+0.00227`, well above the
+`0.001` noise floor and the `0.003` same-day-repeat threshold, and already confirmed by an
+independent repeat). No throughput improvement anywhere in this repo's queue is remotely large
+enough to flip a result that is negative on quality *before* the throughput term is even added.
+
+### 7. Verdict: **CLOSED NEGATIVE**, `NGRAM_VE_OPT` stays `"rmsprop"` — confirms Recursive's rationale
+
+Per the task's decision rule, a confirming 1800 s pair is reserved for a real, reproducible **win**
+that clears the break-even bar at the spot-check. There is no win here at all — `adamw` is worse on
+quality (a real, twice-confirmed **+0.0023 bpb/step** loss, well inside the `0.001`–`0.003`
+same-day-repeat band and correctly repeated before trusting) *and* worse on throughput (a real,
+twice-confirmed **+1.5% s/step** cost, verified rather than assumed exactly because this axis
+changes the optimizer's update rule and state, unlike the pure-scalar `--ngram-ve-lr`/
+`--ngram-ve-beta2` axes tested earlier this week). Both effects compound in the same direction: net
+**+0.0034 bpb worse** at the real 1800 s budget. No 1800 s confirming run was warranted or run.
+
+This is, as far as this repo's records show, the **first empirical A/B of Recursive's stated
+"no first moment for sparse hashed rows" rationale on this stack**, at the current locked shape
+(592.9M total params, `NGRAM_VE_LAYERS="1,-1"`, `NGRAM_VE_TABLE_MULT=128`). The result **confirms**
+the rationale rather than merely inheriting it: a hashed n-gram row that is touched a small
+fraction of steps on average is trained *worse* by AdamW's `m/sqrt(v)` (which damps a rare update
+by the same frequency factor it divides out of `v`) than by RMSProp's zero-first-moment full-rate
+update, exactly as the `train.py:3240–3254` comment predicted — and the cost isn't confined to
+quality: AdamW's extra first-moment state and per-step FMA over 537M parameters also costs real
+wall-clock throughput on this hardware, compounding rather than offsetting the quality loss.
+`NGRAM_VE_OPT` stays locked at `"rmsprop"`; `--ngram-ve-opt adamw` remains available as a
+pre-existing flag, now confirmed NOT worth using at this shape. No `train.py` changes were needed
+or made.
+
+**Scripts added**: `research/scratch/ngramveopt_calib.sh` (120-step calibration),
+`research/scratch/ngramveopt_900s.sh` (first paired real-`val_bpb` spot-check),
+`research/scratch/ngramveopt_900s_repeat.sh` (same-day confirming repeat). Logs:
+`research/run-logs/probe-ngmveopt-{ctrl,arm}.log`, `research/run-logs/ngmveopt-{ctrl-900s-r1,
+arm-900s,ctrl-900s-r2,ctrl-900s-r3,arm-900s-r2,ctrl-900s-r4}.log`. Rows `ngmveopt-{ctrl-900s-r1,
+arm-900s,ctrl-900s-r2,ctrl-900s-r3,arm-900s-r2,ctrl-900s-r4}` in `research/experiment-log.jsonl`.
