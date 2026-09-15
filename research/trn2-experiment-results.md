@@ -8834,3 +8834,83 @@ if more seeds become cheap to add later.
 1's already-current, unmodified checkout of the locked default config (confirmed byte-identical to
 the local repo's `train.py`/`prepare.py` via `md5sum` before launching). This supersedes this week's
 ad-hoc "control pair spread" as the reference noise floor for the remainder of the freeze run-up.
+
+## 2026-09-15 (later) — Box 2 cross-box variance point (seed 7, full 1800 s), complementing box 1's concurrent 3-seed check above
+
+**Purpose, stated plainly.** This repo has a real, previously-flagged, never-resolved methodology
+concern: box-to-box/run-to-run *hardware* variance (thermal state, clock throttling, etc.) has been a
+suspected confound at least since the softcap+CE kernel section's "very likely the unlucky thermal
+draw, not the kernel underperforming" aside earlier this week, but was never directly measured. The
+section immediately above measures the complementary axis — same hardware (box 1), three seeds
+(42/43/44) — and finds a real seed-noise floor of max−min 0.0061 bpb. This section is the other half:
+same locked config, run once more, on box 2 (`ec2-16-26-154-27`), with a seed value that does not
+collide with box 1's three (42/43/44), so the two sets of numbers stay cleanly distinguishable in the
+combined log. **This section deliberately does not attempt the box1-vs-box2 comparison/analysis** —
+box 1's results may not have landed when this was run (they have, as of this writing: commit
+`01182ff`), but reconciling the two is left for a follow-up pass, per this task's own brief. This is
+just the box 2 number, recorded cleanly.
+
+### Defaults re-verified in `train.py` before running
+
+Read directly from the file on box 2 (md5 `24cce227d3bcf9750f6ea07f9d58a8d1`, byte-identical to the
+local repo's `train.py` at the time of the run, HEAD `01182ff`): `DEPTH=6`, `NGRAM_VE_LAYERS="1,-1"`,
+`NGRAM_VE_TABLE_MULT=128` — all unchanged from every other locked-config section in this file.
+
+### Seed mechanism (same investigation box 1's agent did, independently confirmed here)
+
+`--seed` (train.py:5328, `type=int, default=int(os.environ.get("NEURON_COMPETITION_R1_SEED", "42"))`)
+is consumed exactly once, in `init_runtime` (train.py:1335-1337) via `torch.manual_seed(seed)`, called
+before model construction — so its entire effect is weight-init only, same conclusion box 1's section
+above already documented in detail. **Seed used here: `7`** — deliberately distinct from box 1's
+42/43/44, chosen per the task brief so the two sets of results don't collide.
+
+### Run
+
+```
+NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --no-eval-public --num-steps 1000000 --seed 7
+```
+
+Full real 1800 s budget, run directly in `tmux` on box 2 (not through `run_experiment.py`), log
+`research/run-logs/crossbox-box2-seed7-20260915.log`.
+
+**Methodology note on `--no-eval-public`, stated honestly.** Box 1's section immediately above found
+that `--no-eval-public` suppresses the *entire* `evaluate_bpb` call and therefore produces no
+`public_val_bpb` line at all in-process, and switched away from it for their 3 counted seeds. This run
+used `--no-eval-public` anyway, matching the *literal* command form given in this task's brief (itself
+copied from this file's own 2026-09-15-earlier "regression-check dress rehearsal" section, box 2,
+commit `4e740ee`). Rather than an in-process number, `public_val_bpb` was recovered the same way that
+dress-rehearsal section did — post-hoc, via `prepare.py eval-public --train-py train.py --checkpoint
+out/final.pt --seq-len 2048 --eval-tokens 2097152` against the saved checkpoint — a path that section
+already cross-validated to agree with the in-process number to ~2e-5. Causality was likewise recovered
+post-hoc, via a standalone call to `train.py`'s own `load_for_eval` plus `prepare.py`'s
+`causality_check` (same pattern, same file). **Flagged for whoever does the box1-vs-box2 reconciliation
+later**: this box 2 number comes from the post-hoc-recovery path, not the in-process path box 1's three
+counted seeds used directly — cross-validated equivalent in this file already, but worth knowing which
+path produced which number before treating the comparison as perfectly apples-to-apples.
+
+Logs: `research/run-logs/crossbox-box2-seed7-20260915.log` (training),
+`research/run-logs/crossbox-box2-seed7-20260915-evalpublic.log` (post-hoc `public_val_bpb`),
+`research/run-logs/crossbox-box2-seed7-20260915-causality.log` (post-hoc causality check).
+
+### Result
+
+| | box 2, seed 7 (this run) |
+|---|---|
+| `num_params_M` | 592.9 |
+| `num_steps` | 2121 |
+| `training_seconds` | 1784.6 |
+| `total_seconds` | 1837.6 |
+| `total_tokens_M` | 278.0 |
+| `over_budget` | False |
+| `causality_passed` / `causality_max_abs` | True / 0.000000 |
+| `public_val_bpb` (seq_len=2048, 2M tokens, post-hoc `eval-public`) | **1.006322** |
+
+For reference only, not analysis — box 1's 3-seed spread from the section directly above (same
+locked config, in-process eval, seeds 42/43/44): `public_val_bpb` ∈ [1.004355, 1.010491], mean
+1.007919, max−min 0.006136. No comparison or verdict is drawn here; that reconciliation (whether box
+2's number sits inside box 1's own seed-to-seed spread or stands out, and what that implies about
+cross-box hardware variance vs. the already-measured seed variance) is left for a follow-up pass.
+
+**Verdict: pure measurement, no code changes.** `train.py` untouched. Row not yet added to
+`research/experiment-log.jsonl` (this run bypassed `run_experiment.py` by design, same as both
+dress-rehearsal sections and box 1's 3-seed section above).
