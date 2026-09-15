@@ -9393,7 +9393,7 @@ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n
 | 1500 | 2135 | 1794.2 | 1847.1 | 279.8 | True | 0.000000 | False | **1.008106** |
 | 2000 | 2133 | 1794.3 | 1846.9 | 279.6 | True | 0.000000 | False | **1.011087** |
 | 2500 | 2131 | 1794.1 | 1846.7 | 279.3 | True | 0.000000 | False | **1.012127** |
-| 3000 | pending | | | | | | | |
+| 3000 | 2133 | 1794.7 | 1847.3 | 279.6 | True | 0.000000 | False | **1.004900** |
 | 3500 | pending | | | | | | | |
 
 Logs: `research/run-logs/seedhunt-box1-batch3-seed{1000,1500,2000,2500,3000,3500}-1800s.log`.
@@ -9410,6 +9410,16 @@ side (worse, not better); not a contender.
 
 **Seed 2500 vs. the leaders.** `1.012127` is worse than both leaders (`+0.007425` vs seed 42's average,
 `+0.006555` vs seed 3's average) — not a contender.
+
+**Seed 3000 vs. the leaders -- notable, but not a clear win.** `1.004900` is essentially tied with seed
+42's average (`1.004702`, only `+0.000198` worse) and clearly beats seed 3's average (`1.005572`, by
+`-0.000672`). This is a single measurement, so it sits well inside the established `0.001`-`0.0012`
+same-seed noise band around seed 42's own two points (`1.004355`, `1.005049`) -- it is NOT a case of
+clearing the noise floor by the ~`0.002`-`0.003` margin this batch was widened to look for. Still, of
+all seeds tested anywhere in the hunt so far (single or averaged), seed 3000's `1.004900` is the closest
+any seed has come to seed 42 without being seed 42 itself -- closer than seed 3's average and closer
+than seed 3's own two individual points. Worth flagging as a candidate for a confirming repeat, but not
+grounds by itself to unseat seed 42; see the batch verdict below.
 
 ## Seed hunt batch 2 — box2 (seeds 200,300,400,500,600,700), widening the search past the noise-floor tie at the top
 
