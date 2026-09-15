@@ -9394,7 +9394,7 @@ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n
 | 2000 | 2133 | 1794.3 | 1846.9 | 279.6 | True | 0.000000 | False | **1.011087** |
 | 2500 | 2131 | 1794.1 | 1846.7 | 279.3 | True | 0.000000 | False | **1.012127** |
 | 3000 | 2133 | 1794.7 | 1847.3 | 279.6 | True | 0.000000 | False | **1.004900** |
-| 3500 | pending | | | | | | | |
+| 3500 | 2131 | 1794.6 | 1847.4 | 279.3 | True | 0.000000 | False | **1.013480** |
 
 Logs: `research/run-logs/seedhunt-box1-batch3-seed{1000,1500,2000,2500,3000,3500}-1800s.log`.
 
@@ -9420,6 +9420,24 @@ all seeds tested anywhere in the hunt so far (single or averaged), seed 3000's `
 any seed has come to seed 42 without being seed 42 itself -- closer than seed 3's average and closer
 than seed 3's own two individual points. Worth flagging as a candidate for a confirming repeat, but not
 grounds by itself to unseat seed 42; see the batch verdict below.
+
+**Seed 3500 vs. the leaders.** `1.013480` is worse than both leaders (`+0.008778` vs seed 42's average,
+`+0.007908` vs seed 3's average) — not a contender.
+
+### Batch 3 verdict
+
+All 6 seeds complete. Ranked by `public_val_bpb` (lower is better): seed 3000 (`1.004900`) < seed 1500
+(`1.008106`) < seed 2000 (`1.011087`) < seed 2500 (`1.012127`) < seed 3500 (`1.013480`) < seed 1000
+(`1.014811`). None of the 6 beats seed 42's average (`1.004702`) outright, and none clears it by the
+~`0.002`-`0.003` margin this batch was widened to look for — the closest, seed 3000, comes in
+`0.000198` *worse* than seed 42's average, well inside the established `0.001`-`0.0012` same-seed noise
+band, not outside it. **No new seed in this batch qualifies as a confirmed win over seed 42 per the
+task's flagging threshold.** The one point worth carrying forward: seed 3000's single measurement
+(`1.004900`) is the closest any non-42 seed has come to seed 42 across the entire hunt (14+6=20 unique
+seeds now measured), edging out seed 3's two-point average (`1.005572`) by `0.000672` — a candidate for
+a confirming repeat if the search continues, but on the evidence gathered here it does not overturn
+seed 42 as the front-runner. `train.py`'s `SEED` default remains untouched at `42`; no code changes,
+pure measurement, same as every other section in this file's seed hunt.
 
 ## Seed hunt batch 2 — box2 (seeds 200,300,400,500,600,700), widening the search past the noise-floor tie at the top
 
