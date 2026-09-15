@@ -9243,3 +9243,55 @@ reconciled before any final "best of ~10-20" lock-in decision.
 
 **Verdict: pure measurement, no code changes, no default changed.** `train.py`'s `SEED` default is
 untouched, per the task brief — this section only gathers data for a later, separate lock-in decision.
+
+## Confirming repeat of seed 42, the seed-hunt leader
+
+**Motivation.** Across the two seed-hunt batches above, seed 42 (the untouched module-level `SEED`
+default, `train.py:5328`, `type=int, default=int(os.environ.get("NEURON_COMPETITION_R1_SEED", "42"))`)
+is the clear leader at `public_val_bpb=1.004355` (single measurement, from the earlier 3-seed check,
+commit `01182ff`) — about 0.0014 ahead of the next-best point (seed 3, `1.005730`). But every other
+seed measured more than once (seed 5: box1 `1.009551` vs. box2 `1.010524`, diff `0.000973`; seed 13:
+box1 `1.010303` vs. box2 `1.011495`, diff `0.001192`) shows a same-seed repeat spread of roughly
+`0.001`-`0.0012` bpb — that is the measurement noise floor at this full 1800s budget. Seed 42 had only
+one data point, so it was unclear whether `1.004355` was a robust result or itself a lucky draw inside
+that noise band. This section re-runs seed 42 once more, on box 2 (`ec2-16-26-154-27`, currently idle —
+its own 6-seed batch above had already completed), to get a second independent measurement.
+
+**Defaults reconfirmed unchanged before the run.** `train.py` sha256 on box 2 (`464dc62e...`) verified
+byte-identical to the local repo's `train.py` (same hash both sides) before launching — no edits made,
+none needed. `--seed` default is still `42` at `train.py:5328`, consumed once in weight-init via
+`torch.manual_seed(seed)` before model construction, same as documented in every earlier seed section
+in this file.
+
+**Launch.** Literal bare command, no wrapper, no `--no-eval-public` (so `public_val_bpb` is read
+directly from the in-process eval), run inside `tmux` (session `seed42confirm`) so the ~35-minute run
+survives SSH disconnects, full stdout+stderr captured to
+`research/run-logs/seed42-confirm-repeat-20260915.log`:
+
+```
+NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 1000000 --seed 42
+```
+
+### Result
+
+| seed | num_steps | training_seconds | total_seconds | total_tokens_M | causality_passed | causality_max_abs | over_budget | `public_val_bpb` |
+|---|---|---|---|---|---|---|---|---|
+| 42 (repeat) | 2116 | 1784.2 | 1848.1 | 277.3 | True | 0.000000 | False | **1.005049** |
+
+Log: `research/run-logs/seed42-confirm-repeat-20260915.log`.
+
+**Comparison to the first seed-42 measurement.** First measurement (commit `01182ff`):
+`public_val_bpb=1.004355`. This repeat: `1.005049`. Delta = `1.005049 − 1.004355 = 0.000694`, i.e. the
+repeat came in slightly worse (higher bpb). That delta is smaller than — consistent with, on the lower
+end of — the `0.000973`-`0.001192` same-seed spread already observed for seeds 5 and 13 across the two
+boxes. Conclusion: seed 42's original `1.004355` was **not** an outlier fluke sitting far outside the
+noise band; the two seed-42 measurements (`1.004355`, `1.005049`) bracket a range consistent with the
+established same-seed noise floor. Averaging the two: mean `1.004702`. That mean still beats the
+next-best seed in the full 10-seed set (seed 3, single measurement `1.005730`) by about `0.001028` —
+a margin on the same order as the noise floor itself, so seed 42 remains the front-runner but the
+margin over seed 3 is not conclusively outside measurement noise on the strength of these two points
+alone.
+
+**Verdict: pure measurement, no code changes, no default changed.** `train.py`'s `SEED` default is
+untouched. This section only gathers a second data point for seed 42, feeding the still-pending
+lock-in decision (which also awaits box 1's final 2 seeds).
