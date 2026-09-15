@@ -7637,6 +7637,122 @@ groups above, plus `research/scratch/sched_tricks_equiv.py` (bitwise harness),
 predictive stop then halts a 180 s arm at **5 steps** — the symptom is `num_steps: 5`, not an error),
 `sched_tricks_report.py` (the decomposition, in code), and the two 900 s drivers.
 
+## 2026-09-15 — `--ngram-ve-dim 256` on top of the CURRENT locked two-injection-site config: re-measured fresh, and it is the SAME discard as 2026-09-14, now on real paired `val_bpb` instead of a 120-step proxy (track: capacity)
+
+**Motivation and why this needed re-checking rather than trusting the existing record.** The
+pre-layer-1 finding (§3–4 of the 2026-09-14 T1.7 section above) showed `dim 256 + mult 128` running at
+essentially base speed (+0.59% vs the throughput-budget control) with 3.1× table capacity and a real
+step-110 loss win (3.9491 vs a 3.9608–3.9661 band) — but that was measured with **one** injection site
+(`layers "-1"`). Whether that "capacity is nearly free" result survives the move to the now-locked
+**two**-site config (`NGRAM_VE_LAYERS="1,-1"`, `NGRAM_VE_TABLE_MULT=128`) was worth checking directly
+rather than assuming, per §7 above's own lesson ("a capacity axis measured as saturated at one
+injection site is not saturated at two").
+
+**It turns out this exact question was already asked and answered on 2026-09-14**, in §5 of the T1.7
+section (`research/scratch/t17_l1_width_probe.sh`, table at "the LEFTOVER budget" heading) and in the
+train.py comment above `NGRAM_VE_TABLE_MULT` — `l1w-dim256-m128`: 126461 tok/s (−24.3% vs the
+layer-1-only reference), 1736 steps at 1800 s, step-110 loss 3.9325, closed **DISCARD** because
+"the 0.077/ln penalty for 2185→1736 is +0.0177 bpb, which no measured capacity gain repays." That
+prior closure used the 120-step throughput-and-proxy-loss instrument, not a real paired `val_bpb` run
+at parity, so this section redoes it with the higher-fidelity method the rest of this week's decisive
+items use (`research/run_experiment.py`, real training loop, real eval) — both to confirm the verdict
+on firmer footing and because the task instructions specifically asked for that.
+
+### 1. Confirmed current locked defaults, read directly from `train.py`
+
+```
+NGRAM_VE_LAYERS = "1,-1"        (line 599)
+NGRAM_VE_TABLE_MULT = 128       (line 661)
+NGRAM_VE_DIM = 128              (line 679)
+NGRAM_VE_TRIGRAM = True         (line 674)
+USE_COMPILE_MUON = True         (line 3462)
+USE_QK_SHIFT = True, QK_SHIFT_BETA = 0.0, QK_SHIFT_FREEZE = True   (lines 894/901/904)
+```
+All of these are now bare module-level defaults — the plain launch command with **no** extra flags
+*is* the locked config (as the 2026-09-14 "new locked config" section already established). So
+`ctrl` below passes no `--ngram-ve-*` flags at all; `arm` adds exactly one: `--ngram-ve-dim 256`.
+
+### 2. Fresh 120-step calibration (`research/scratch/ngramdim256_calib.sh`), same box/session as the pair below
+
+| arm | num_params | steady-state dt (steps 10-110) | tok/s | step-110 loss |
+|---|---|---|---|---|
+| `ngd256-ctrl` (locked defaults) | 592,916,844 | 0.8327 s | ~157,300 | 3.9336 |
+| `ngd256-arm` (+ `--ngram-ve-dim 256`) | 1,130,115,436 | 1.0355 s | ~126,800 | 3.9357 |
+
+Param counts reproduce the 2026-09-14 numbers exactly (592.9M / 1130.1M). The step-110 loss delta here
+is **+0.0021 (worse)** for the arm — sign-flipped from 2026-09-14's −0.0018 (better) — which is exactly
+the point of the standing noise-floor rule: a single 120-step proxy loss is not a reliable quality
+signal at this magnitude, and it is not what the verdict below is based on.
+
+### 3. Paired ~900 s spot-check, step-matched via the calibration above, real `val_bpb`
+
+`research/scratch/ngramdim256_900s_pair.sh`, via `research/run_experiment.py`, 4 ranks, LNC=2,
+`--eval-seq-len 1024`. Target: land the (slower) arm near 900 s of training-loop time, and shorten the
+control's `--max-train-seconds` by the calibrated dt ratio (869 steps × 0.8327 ≈ 724 s) so both land
+near the same step count "by construction" — the same convention items 3/4/6 above use.
+
+| arm | `max-train-seconds` | `training_seconds` | steps | tok/s | `val_bpb` | params | causality |
+|---|---|---|---|---|---|---|---|
+| `ngd256-ctrl-900` (locked defaults) | 724 | 708.7 | **853** | 157,724 | **1.069576** | 592.9M | 0.0 / passed |
+| `ngd256-arm-900` (+ `--ngram-ve-dim 256`) | 900 | 884.9 | **860** | 127,359 | **1.066135** | 1130.1M | 0.0 / passed |
+
+The calibration-implied target of 869 steps for both wasn't hit exactly — real full-run startup
+overhead (not present in the steady-state-only 120-step instrument) ate a few percent off both arms'
+step counts — but the two land within **7 steps of each other** (853 vs 860), so the step-matching
+correction is tiny. Real dt reproduces the calibration closely: control 708.7/853 = 0.8308 s/step
+(vs 0.8327 calibrated), arm 884.9/860 = 1.0290 s/step (vs 1.0355 calibrated) — both within ~0.5%.
+
+**Throughput delta: −19.25%** (157,724 → 127,359 tok/s; dt +23.85%, 0.8308 → 1.0290 s/step). This
+confirms 2026-09-14's −19.7%-to−24.3%-range measurement (the two prior numbers used slightly different
+reference arms — plain layer-1 vs layer-1+mult128 — this run's reference is the exact current locked
+config) to within 1-2 points. **The throughput cost is real, large, and not a fluke.**
+
+**Per-step quality: raw as-run delta is 1.066135 − 1.069576 = −0.003441 (arm better)**, but the arm has
+7 more steps, so correcting to equal steps at the −0.077/ln(steps) slope: `−0.003441 + 0.077·ln(860/853)
+= −0.003441 + 0.000629 = **−0.002812**`. So at equal step count the arm is genuinely better by
+**~0.0028 bpb** — above the 0.001 noise floor, just under the 0.003 same-day-repeat threshold.
+
+### 4. Break-even arithmetic (same method as the width=1024 spot-check closure, §"1800s arithmetic" above)
+
+At the real 1800 s official budget, extrapolating each arm's own measured dt:
+- control: 1800 / 0.8308 ≈ **2167 steps** (consistent with the locked config's previously-measured
+  2135–2164 range at 1800 s — good agreement with the historical record)
+- arm: 1800 / 1.0290 ≈ **1749 steps**
+
+Forgone-steps penalty: `0.077 × ln(2167/1749) = 0.077 × 0.21418 = **+0.01649 bpb**`.
+
+Net at 1800 s: `+0.01649 − 0.00281 = **+0.01368 bpb WORSE**` than shipping the locked config as-is.
+
+**Throughput needed to break even**: solving `0.077 × ln(2167/x) = 0.00281` gives `x ≈ 2089` steps
+needed at 1800 s, versus the ~1749 actually measured — i.e. the arm would need **+19.4% more
+throughput than it currently has** (dt 1.029 → 0.862 s/step) just to reach break-even, which is
+essentially "eliminate almost the entire measured −19.25% throughput gap and keep the quality edge."
+There is no known lever on this stack that buys anywhere near that (the largest single throughput win
+in the whole n-gram-VE track, `--ngram-ve-layers "1,-1"` itself, was −5.86%; nothing has ever bought
++19%).
+
+### 5. Verdict: CLOSE NEGATIVE, do not adopt — no 1800 s confirming pair needed
+
+Per this week's decision rule (step 4 of the assigned task): the throughput cost is unambiguous and
+does not come close to clearing break-even (net +0.0137 bpb worse, ~5× the size of the quality gain it
+would need to repay), so the escalation to a confirming 1800 s paired run is **not warranted** — that
+gate is only for candidates that clear break-even at the spot-check. This also means the small
+uncertainty in the exact quality-delta number (0.0028, technically under the 0.003 same-day-repeat
+threshold) doesn't matter for the verdict: even the unadjusted raw delta (−0.0034) or a hypothetical
+2× larger number would still be an order of magnitude short of the 0.0165 bar.
+
+**This independently reproduces, with a higher-fidelity method, the 2026-09-14 closure**
+(`l1w-dim256-m128`, DISCARD, "24.3% slower on top of layer 1 → 1736 steps → +0.0177 bpb penalty").
+The task's premise that this exact combination had "never been tested at the current locked
+two-injection-site config" does not hold — it was tested the day before, on the 120-step proxy
+instrument, and closed the same way. **No change to `train.py` defaults.** `NGRAM_VE_DIM` stays locked
+at 128; `--ngram-ve-dim 256` remains available as a flag but is confirmed, twice now, not worth
+shipping on top of the two-injection-site config.
+
+**Scripts added**: `research/scratch/ngramdim256_calib.sh` (120-step calibration),
+`research/scratch/ngramdim256_900s_pair.sh` (the paired real-`val_bpb` spot-check). Logs:
+`research/run-logs/probe-ngd256-{ctrl,arm}.log`, `research/run-logs/ngd256-{ctrl,arm}-900.log`.
+
 ## 2026-09-15 — `--muon-lr-fp32`, the type-promotion side-finding from the sched-tricks block above: measured, and **CLOSED NEGATIVE** — real (~0.4%) precision recovered on every Muon lr, throughput genuinely unchanged, per-step effect a wash inside the control's own noise band
 
 **Context.** The sched-tricks block earlier today found that `_muon_lr_g`'s locked 0-dim path
