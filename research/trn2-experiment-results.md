@@ -9355,6 +9355,73 @@ than noise. That call is left to the lock-in decision, not made in this section.
 untouched. This section only gathers a second data point for seed 3, feeding the same still-pending
 lock-in decision as the seed-42 repeat above.
 
+## Confirming repeat of seed 3000, the seed-hunt's closest non-42 result
+
+**Motivation.** Box 1 batch 3's single measurement for seed 3000 (`1.004900`) was the closest any seed
+had come to seed 42's average (`1.004702`) without being seed 42 itself — only `+0.000198` off — but it
+was still just one measurement, sitting well inside the established `~0.0007`-`0.0012` same-seed noise
+band (seeds 5, 13, 42, and 3 have all shown repeat spreads in that range). Exactly like seed 42 and seed
+3 each got a confirming repeat earlier in this hunt, seed 3000 gets one here, on box 2
+(`ec2-16-26-154-27`) since box 1 was still finishing its own batch-3 tail (seed 3500).
+
+**Defaults reconfirmed unchanged before the run.** `train.py` sha256 on box 2
+(`464dc62e12e4097ce5015a36c345f624e50cba9e968a23a45b4017be64a2f965`) verified byte-identical to the
+local repo's `train.py` (same hash both sides) before launching — no edits made, none needed. `--seed`
+default is still `42` at `train.py:5328`
+(`parser.add_argument("--seed", type=int, default=int(os.environ.get("NEURON_COMPETITION_R1_SEED",
+"42")))`), consumed once in weight-init via `torch.manual_seed(seed)` before model construction, before
+this run overrides it with `--seed 3000`, same as documented in every earlier seed section in this
+file.
+
+**Launch.** Literal bare command, no wrapper, no `--no-eval-public` (so `public_val_bpb` is read
+directly from the in-process eval), run inside `tmux` (session `seed3000confirm`) so the ~35-minute run
+survives SSH disconnects, full stdout+stderr captured to
+`research/run-logs/seed3000-confirm-repeat-20260915.log`:
+
+```
+NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 1000000 --seed 3000
+```
+
+### Result
+
+| seed | num_steps | training_seconds | total_seconds | total_tokens_M | causality_passed | causality_max_abs | over_budget | `public_val_bpb` |
+|---|---|---|---|---|---|---|---|---|
+| 3000 (repeat) | 2125 | 1784.4 | 1847.5 | 278.5 | True | 0.000000 | False | **1.005650** |
+
+Log: `research/run-logs/seed3000-confirm-repeat-20260915.log`.
+
+**Comparison to the first seed-3000 measurement.** First measurement (box1 batch3, commit `d9367f0`):
+`public_val_bpb=1.004900`. This repeat: `1.005650`. Delta = `1.005650 − 1.004900 = 0.000750`, i.e. the
+repeat came in slightly worse (higher bpb). That delta sits squarely inside the `0.0007`-`0.0012`
+same-seed noise band already established for seeds 5, 13, 42, and 3 — an unremarkable, expected amount
+of run-to-run noise, not a sign that either measurement was an outlier.
+
+**Where this places seed 3000 relative to seed 42, now that both repeats are in.** Averaging seed
+3000's two points: mean `1.005275`. Seed 42's two points (confirming-repeat section above) average to
+mean `1.004702`. Gap between the two means: `1.005275 − 1.004702 = 0.000573` — smaller than seed 3's
+own gap to seed 42 (`1.005572 − 1.004702 = 0.000870`), so seed 3000's two-point average is now *closer*
+to seed 42 than seed 3's two-point average is, making seed 3000 the strongest non-42 contender measured
+so far. But `0.000573` is still inside the `0.0007`-`0.0012` same-seed noise band itself — smaller than
+that band's lower edge, in fact — so this remains a **statistical tie with seed 42, not a win**. Seed 42
+still leads on both single measurements and on the two-point average; nothing here argues for switching
+away from it, but nothing here rules seed 3000 out either. Four data points (two per seed) are not
+enough to call the 42-vs-3000 gap statistically real rather than noise — same caveat as the 42-vs-3 gap
+above.
+
+**Updated top-of-ranking snapshot (two-point averages where available):**
+
+| rank | seed | `public_val_bpb` | measurements |
+|---|---|---|---|
+| 1 (best) | 42 | 1.004702 | avg of 1.004355, 1.005049 |
+| 2 | 3000 | 1.005275 | avg of 1.004900, 1.005650 |
+| 3 | 3 | 1.005572 | avg of 1.005730, 1.005414 |
+| 4 | 300 | 1.005664 | 1 (box2 batch2) |
+
+**Verdict: pure measurement, no code changes, no default changed.** `train.py`'s `SEED` default is
+untouched. This section only gathers a second data point for seed 3000, feeding the same still-pending
+lock-in decision as the seed-42 and seed-3 repeats above. The lock-in decision itself remains the
+user's call.
+
 ## Seed hunt batch 3 — box1 (seeds 1000,1500,2000,2500,3000,3500)
 
 **Motivation.** Architecture/hyperparameter tuning on this model is thoroughly exhausted (see the many
