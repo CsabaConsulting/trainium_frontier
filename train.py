@@ -3539,8 +3539,27 @@ def _muon_math(w, g, momentum_buffer, second, mom, one_mom, lr, lrwd,
     v_norm_new = scaled.sum(dim=(-2, -1), keepdim=True).sqrt()
     g = g * (step_size * (v_norm / v_norm_new.clamp_min(1e-10))).to(g.dtype)
     mask = (g * w) >= 0
-    w = w - (lr * g + lrwd * w * mask)
+    w = w - (_muon_lr_g(lr, g) + lrwd * w * mask)
     return w, momentum_buffer, second
+
+
+def _muon_lr_g(lr, g):
+    """`lr * g`, with the result dtype pinned to g's.
+
+    Plan §11.1 item 3 makes `lr` a [K, 1, 1] operand instead of a 0-dim one, and that flips
+    PyTorch's type promotion: a 0-dim fp32 tensor is DEMOTED to the bf16 of the dimensioned operand
+    (result bf16), a dimensioned fp32 tensor is not (result fp32). Left alone, per-depth scaling
+    would therefore also silently upgrade the precision of this one product -- a second, unintended
+    change riding along with the one being measured, on the arm least able to afford a confound.
+
+    Rounding back to g's dtype reproduces the 0-dim path bit for bit rather than approximately:
+    both forms compute the product with fp32 opmath and round once at the end. With a 0-dim `lr`
+    the cast is a no-op that returns `self`, so the default path is untouched -- checked by the
+    bitwise neutral-multiplier case in research/scratch/sched_tricks_equiv.py, which would fail on
+    exactly this if the cast were missing.
+    """
+    out = lr * g
+    return out if out.dtype == g.dtype else out.to(g.dtype)
 
 
 def _cautious_weight_decay_(params, update, lr, wd) -> None:
@@ -3646,13 +3665,22 @@ class MuonAdamW(torch.optim.Optimizer):
         return dev[0], dev[1]
 
     def _muon_depth_dev(self, group, ref: torch.Tensor):
-        """Plan §11.1 item 3: the group's per-parameter (lr, one-minus-momentum) multipliers as two
-        persistent [K, 1, 1] fp32 tensors -- one host pair, one device pair, built once.
+        """Plan §11.1 item 3: the group's per-parameter multipliers, built once.
 
-        [K, 1, 1] is the shape that broadcasts over the group's stacked [K, rows, cols] buffers, so
-        a per-LAYER multiplier costs nothing structural: the (shape, transposed) grouping, the
-        batched Newton-Schulz and the one-compiled-graph-per-shape all stay exactly as they are.
-        Returns None when the feature is off, which is the signal every call site branches on.
+        Returns `(host_lr_f32, host_mom_f64, dev_lr_f32)`, all [K, 1, 1]. [K, 1, 1] is the shape
+        that broadcasts over the group's stacked [K, rows, cols] buffers, so a per-LAYER multiplier
+        costs nothing structural: the (shape, transposed) grouping, the batched Newton-Schulz and
+        the one-compiled-graph-per-shape all stay exactly as they are. Returns None when the
+        feature is off, which is the signal every call site branches on.
+
+        The MOMENTUM multiplier is kept in float64 on purpose. The momentum operands have to be
+        derived as `1 - (1-m)*c` and `(1-m)*c`, and doing that subtraction in fp32 costs up to one
+        ulp -- which would mean a multiplier of exactly 1.0 did NOT reproduce the 0-dim path
+        bit-for-bit, and the neutral-multiplier equivalence check (the one thing that proves this
+        plumbing correct) would fail for a reason that has nothing to do with per-depth scaling.
+        In float64 it is exact: c == 1.0 gives back `fp32(1.0 - m)` and `fp32(m)`, which is
+        literally what the OFF path fills. The LR multiplier needs no such care: it enters as an
+        fp32 multiply by 1.0, which is exact.
         """
         mults = group.get("depth_mults")
         if mults is None:
@@ -3662,10 +3690,23 @@ class MuonAdamW(torch.optim.Optimizer):
         if entry is None:
             lr_mult, mom_mult = mults
             host_lr = torch.tensor(lr_mult, dtype=torch.float32).view(-1, 1, 1)
-            host_mom = torch.tensor(mom_mult, dtype=torch.float32).view(-1, 1, 1)
-            entry = (host_lr, host_mom, host_lr.to(ref.device), host_mom.to(ref.device))
+            host_mom = torch.tensor(mom_mult, dtype=torch.float64).view(-1, 1, 1)
+            entry = (host_lr, host_mom, host_lr.to(ref.device))
             cache["depth_mults"] = entry
         return entry
+
+    @staticmethod
+    def _fill_depth_momentum(host_mom64, mom: float, out_mom, out_one_mom) -> None:
+        """Write the per-parameter (momentum, 1-momentum) pair into two fp32 [K, 1, 1] rows.
+
+        Both products are formed in float64 and rounded once, so a multiplier of exactly 1.0 gives
+        `fp32(mom)` / `fp32(1.0 - mom)` -- the same two floats the non-depth path fills, and the
+        same two the eager `lerp_.Scalar` weight would have been. Clamped before the round because
+        the momentum a layer ends up at must stay a valid lerp weight for any multiplier a sweep
+        might try, not just the ones that happen to be safe."""
+        one = (host_mom64 * (1.0 - mom)).clamp_(0.0, 1.0)
+        out_one_mom.copy_(one)
+        out_mom.copy_(1.0 - one)
 
     def _muon_depth_mom(self, group, ref: torch.Tensor):
         """Plan §11.1 item 3, eager path: (momentum, 1-momentum) per parameter as two [K, 1, 1]
@@ -3689,9 +3730,7 @@ class MuonAdamW(torch.optim.Optimizer):
                      torch.zeros(2, k, 1, 1, dtype=torch.float32, device=ref.device))
             cache["depth_mom_step"] = entry
         host, dev = entry
-        torch.mul(host_mom, 1.0 - float(group["momentum"]), out=host[1])
-        host[1].clamp_(0.0, 1.0)
-        host[0].copy_(host[1]).neg_().add_(1.0)
+        self._fill_depth_momentum(host_mom, float(group["momentum"]), host[0], host[1])
         dev.copy_(host)
         return dev[0], dev[1]
 
@@ -3721,7 +3760,7 @@ class MuonAdamW(torch.optim.Optimizer):
         depth = self._muon_depth_dev(group, ref)
         cache = self._scalar_cache.setdefault(id(group), {})
         if depth is not None:
-            host_lr, host_mom, _dev_lr, _dev_mom = depth
+            host_lr, host_mom, _dev_lr = depth
             entry = cache.get("muon_compile_depth")
             if entry is None:
                 k = host_lr.shape[0]
@@ -3734,13 +3773,10 @@ class MuonAdamW(torch.optim.Optimizer):
             tmp.mul_(ratio)                  # fp32(fp32(lr) * fp32(ratio)) == device
             torch.mul(host_lr, float(tmp), out=host[0])
             torch.mul(host[0], float(group["weight_decay"]), out=host[1])
-            mom = float(group["momentum"])
-            # (1 - momentum) first (float64 subtraction, like lerp_.Scalar's), then the per-depth
-            # multiplier, then back to the momentum the buffer keeps -- so the two operands stay
-            # exactly complementary and no layer's momentum can drift outside (0, 1).
-            torch.mul(host_mom, 1.0 - mom, out=host[3])
-            host[3].clamp_(0.0, 1.0)
-            host[2].copy_(host[3]).neg_().add_(1.0)
+            # (1 - momentum) * per-depth multiplier in float64, then back to the momentum the
+            # buffer keeps -- the two operands stay exactly complementary, no layer's momentum can
+            # drift outside (0, 1), and a multiplier of 1.0 reproduces the 0-dim path bit for bit.
+            self._fill_depth_momentum(host_mom, float(group["momentum"]), host[2], host[3])
             host[4].fill_(1.0 - float(group["beta2"]))
             dev.copy_(host)
             return dev[0], dev[1], dev[2], dev[3], dev[4]
@@ -4162,7 +4198,9 @@ class MuonAdamW(torch.optim.Optimizer):
                 lr = lr * depth[2]
             wd = group["weight_decay"]
             mask = (g * w) >= 0
-            w.sub_(lr * g + lr * wd * w * mask)
+            # _muon_lr_g, not `lr * g`: see its docstring. With per-depth scaling off `lr` is 0-dim
+            # and the helper returns the identical tensor, so this line is unchanged.
+            w.sub_(_muon_lr_g(lr, g) + lr * wd * w * mask)
         torch._foreach_copy_(params, list(w.unbind(0)))
 
     @torch.no_grad()

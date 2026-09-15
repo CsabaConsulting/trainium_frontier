@@ -30,7 +30,11 @@ model at the locked config, CPU fp32, bitwise where bitwise is the standard:
           in the direction the multipliers say, and the depth map must assign every block matrix
           its own block index.
 
-Run: python research/scratch/sched_tricks_equiv.py [git-ref-for-the-pre-edit-file]
+Run: python research/scratch/sched_tricks_equiv.py [git-ref-or-path-of-the-pre-edit-train.py]
+
+The argument defaults to the git ref "HEAD~1". A PATH is accepted too, because the Trn2 box's
+checkout is not a clone of origin (no remote; files arrive by scp), so `git show` there would
+resolve against an unrelated history.
 """
 import copy
 import importlib.util
@@ -39,7 +43,7 @@ import subprocess
 import sys
 
 os.environ.setdefault("NEURON_COMPILE_CACHE_DIR", "/tmp/neuron_cache")
-_ref = sys.argv[1] if len(sys.argv) > 1 else "HEAD"
+_ref = sys.argv[1] if len(sys.argv) > 1 else "HEAD~1"
 sys.argv = ["equiv"]  # keep train.py's argparse out of this
 
 import torch
@@ -53,11 +57,18 @@ SEED = 1234
 
 
 def load_preedit(ref: str):
-    """Import `git show <ref>:train.py` as a separate module so the OFF path can be compared
-    against the real previous file instead of a hand-copied approximation."""
-    src = subprocess.run(["git", "show", f"{ref}:train.py"], cwd=REPO,
-                         capture_output=True, text=True, check=True).stdout
+    """Import the pre-edit train.py as a separate module so the OFF path can be compared against
+    the real previous file instead of a hand-copied approximation.
+
+    `ref` is a path if one exists at that name, otherwise a git ref resolved with `git show`.
+    """
     path = "/tmp/train_preedit_sched.py"
+    if os.path.exists(ref):
+        with open(ref) as f:
+            src = f.read()
+    else:
+        src = subprocess.run(["git", "show", f"{ref}:train.py"], cwd=REPO,
+                             capture_output=True, text=True, check=True).stdout
     with open(path, "w") as f:
         f.write(src)
     spec = importlib.util.spec_from_file_location("train_preedit_sched", path)
@@ -255,13 +266,21 @@ all_ok &= compare("(4a) per-depth ON with neutral multipliers vs OFF -- must be 
                   m_off, m_neutral, opt_off, opt_neutral)
 
 # ---- (4b) a uniform lr multiplier == scaling MATRIX_LR ------------------------------------
+# Run in fp32 COMPUTE_DTYPE. The claim being tested is "the [K,1,1] lr operand carries the same
+# number the 0-dim one does", whose only slack is fp32 reassociation (lr*ratio*c vs (lr*c)*ratio) --
+# ~1e-7 relative. Under the default bf16 compute dtype the Newton-Schulz iterate and hence the whole
+# update carry an 8-bit mantissa, which is ~1e-3 relative and would swamp the thing under test: the
+# check would then pass at a tolerance loose enough to hide a real per-parameter-operand bug.
 reset_flags()
 C = 1.3
+saved_dtype = T.COMPUTE_DTYPE
+T.COMPUTE_DTYPE = torch.float32
 m_mult = build(T)
 grads = [make_grads(m_mult, s) for s in range(STEPS)]
 T.MUON_DEPTH_LR_BOTTOM = T.MUON_DEPTH_LR_TOP = C
 opt_mult = run(T, m_mult, grads)
 reset_flags()
+T.COMPUTE_DTYPE = torch.float32
 saved_lr = T.MATRIX_LR
 T.MATRIX_LR = saved_lr * C
 m_lr = build(T)
@@ -269,6 +288,7 @@ opt_lr = run(T, m_lr, grads)
 T.MATRIX_LR = saved_lr
 all_ok &= compare(f"(4b) uniform depth lr x{C} vs MATRIX_LR x{C} -- equal to fp32 rounding",
                   m_lr, m_mult, opt_lr, opt_mult, tol=2e-7)
+T.COMPUTE_DTYPE = saved_dtype
 
 # ---- (4c) a real ramp ramps, and the depth map is right -----------------------------------
 print("\n--- (4c) the depth map and the ramp's direction ---")
