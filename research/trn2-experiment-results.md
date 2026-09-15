@@ -9295,3 +9295,62 @@ alone.
 **Verdict: pure measurement, no code changes, no default changed.** `train.py`'s `SEED` default is
 untouched. This section only gathers a second data point for seed 42, feeding the still-pending
 lock-in decision (which also awaits box 1's final 2 seeds).
+
+## Confirming repeat of seed 3, the seed-hunt runner-up
+
+**Motivation.** Complementing the section directly above (box 2's confirming repeat of seed 42, the
+overall leader): seed 3 is the 2nd-best point in the full seed-hunt set, `public_val_bpb=1.005730`
+(single measurement, box2's "Seed hunt batch" section, commit `39c27f4`) — only `0.001375` behind
+seed 42's original `1.004355`, a gap on the same order as the `0.000973`-`0.001192` same-seed spread
+already established from seeds 5 and 13. With box 2 re-running seed 42, this section re-runs seed 3
+once more, on box 1 (`ec2-16-26-246-98`, idle), to get a second independent measurement for the
+runner-up as well, so both top contenders have a second data point before any lock-in decision.
+
+**Defaults reconfirmed unchanged before the run.** `train.py` md5 on box 1
+(`24cce227d3bcf9750f6ea07f9d58a8d1`) verified byte-identical to the local repo's `train.py` (same hash
+both sides) before launching — no edits made, none needed. `--seed` default is still `42` at
+`train.py:5328` (`type=int, default=int(os.environ.get("NEURON_COMPETITION_R1_SEED", "42"))`),
+consumed once in weight-init via `torch.manual_seed(seed)` (train.py:1335-1337) before model
+construction, before this run overrides it with `--seed 3`, same as documented in every earlier seed
+section in this file. Other locked config unchanged: `DEPTH=6`, `NGRAM_VE_LAYERS="1,-1"`,
+`NGRAM_VE_TABLE_MULT=128`.
+
+**Launch.** Literal bare command, no wrapper, no `--no-eval-public` (so `public_val_bpb` is read
+directly from the in-process eval), run inside `tmux` (session `seed3repeat`) so the ~35-minute run
+survives SSH disconnects, full stdout+stderr captured to
+`research/run-logs/seedhunt-box1-seed3-repeat-20260915.log`:
+
+```
+NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 1000000 --seed 3
+```
+
+### Result
+
+| seed | num_steps | training_seconds | total_seconds | total_tokens_M | causality_passed | causality_max_abs | over_budget | `public_val_bpb` |
+|---|---|---|---|---|---|---|---|---|
+| 3 (repeat) | 2134 | 1784.3 | 1846.9 | 279.7 | True | 0.000000 | False | **1.005414** |
+
+Log: `research/run-logs/seedhunt-box1-seed3-repeat-20260915.log`.
+
+**Comparison to the first seed-3 measurement.** First measurement (commit `39c27f4`):
+`public_val_bpb=1.005730`. This repeat: `1.005414`. Delta = `1.005414 − 1.005730 = -0.000316`, i.e. the
+repeat came in slightly better (lower bpb) this time. That delta is smaller than — tighter than — the
+`0.000973`-`0.001192` same-seed spread already observed for seeds 5 and 13, and also tighter than seed
+42's own repeat delta (`0.000694`, previous section). Conclusion: seed 3's original `1.005730` was
+**not** an outlier fluke either; the two seed-3 measurements (`1.005730`, `1.005414`) sit even closer
+together than the established same-seed noise floor, reinforcing that seed 3 is a solid, reproducible
+runner-up rather than a lucky single draw.
+
+**Where this places seed 3 relative to seed 42, now that both repeats are in.** Averaging seed 3's two
+points: mean `1.005572`. Seed 42's two points (previous section) average to mean `1.004702`. Gap between
+the two means: `1.005572 − 1.004702 = 0.000870` — smaller than the original single-measurement gap
+(`0.001375`) and now squarely inside the `0.001`-`0.0012` same-seed noise band itself. Put plainly: with
+both top contenders confirmed reproducible individually, the *margin between them* has shrunk to a size
+the measurement noise floor cannot reliably resolve. Seed 42 still leads on both single measurements and
+on the two-point average, so it remains the front-runner and nothing here argues for switching away from
+it — but four data points (two per seed) are not enough to call the 42-vs-3 gap statistically real rather
+than noise. That call is left to the lock-in decision, not made in this section.
+
+**Verdict: pure measurement, no code changes, no default changed.** `train.py`'s `SEED` default is
+untouched. This section only gathers a second data point for seed 3, feeding the same still-pending
+lock-in decision as the seed-42 repeat above.
