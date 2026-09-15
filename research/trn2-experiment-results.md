@@ -9354,3 +9354,49 @@ than noise. That call is left to the lock-in decision, not made in this section.
 **Verdict: pure measurement, no code changes, no default changed.** `train.py`'s `SEED` default is
 untouched. This section only gathers a second data point for seed 3, feeding the same still-pending
 lock-in decision as the seed-42 repeat above.
+
+## Seed hunt batch 2 — box2 (seeds 200,300,400,500,600,700), widening the search past the noise-floor tie at the top
+
+**Motivation.** With both top contenders now confirmed reproducible (seed 42: two measurements
+`1.004355`/`1.005049`, mean `1.004702`; seed 3: two measurements `1.005730`/`1.005414`, mean
+`1.005572`) and their mean gap (`0.000870`) sitting squarely inside the established same-seed noise
+band (`~0.0007`-`0.0012`), architecture/hyperparameter tuning on this model is otherwise exhausted for
+the week. Seed selection remains a cheap, zero-engineering-risk lever — the real graded submission
+uses `train.py`'s literal bare launch command with no `--seed` flag, so whatever `SEED` default is
+locked in *is* what the grader's own training run uses. This batch widens the seed search past the
+14 seeds already tested (`1,2,3,5,7,8,13,34,42,43,44,55,89,144`) with 6 new, previously-untested
+seeds: `200, 300, 400, 500, 600, 700`.
+
+**Defaults reconfirmed unchanged before the batch started.** `train.py` sha256 on box 2
+(`464dc62e12e4097ce5015a36c345f624e50cba9e968a23a45b4017be64a2f965`) verified byte-identical to the
+local repo's `train.py` before launching — no edits made, none needed. `--seed`
+(`train.py:5328`, `type=int, default=int(os.environ.get("NEURON_COMPETITION_R1_SEED", "42"))`) is
+consumed once, in `init_runtime` (`train.py:1335-1337`) via `torch.manual_seed(seed)`, called before
+model construction — weight-init only, same conclusion as every earlier seed section in this file.
+Locked config unchanged: `DEPTH=6`, `ASPECT_RATIO=96`, `TOTAL_BATCH_SIZE=131072`, `--compile`,
+`--compile-muon`, qk-shift frozen, n-gram VE 4×1,048,576×128, `GRAD_CLIP=1.0`, `WARMDOWN_RATIO=0.75`.
+
+**Launch.** Each seed run sequentially at the real full 1800s budget, using the literal bare launch
+command (no `run_experiment.py` wrapper, no `--no-eval-public`, so `public_val_bpb` is read directly
+from the in-process eval):
+
+```
+NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 1000000 --seed <N>
+```
+
+Driver: `research/scratch/seedhunt_batch2.sh`, run inside `tmux` (session `seedhunt2`) so the sequence
+survives SSH disconnects; each seed's full stdout+stderr captured to
+`research/run-logs/seedhunt-box2-batch2-seed<N>-20260915.log`, with start/end markers in
+`research/scratch/seedhunt_batch2_progress.log`.
+
+### Running table (filled in as each run completes)
+
+| seed | num_steps | training_seconds | total_seconds | total_tokens_M | causality_passed | causality_max_abs | over_budget | `public_val_bpb` | note |
+|---|---|---|---|---|---|---|---|---|---|
+| 200 | 2121 | 1784.3 | 1848.2 | 278.0 | True | 0.000000 | False | **1.012070** | new coverage |
+
+Logs: `research/run-logs/seedhunt-box2-batch2-seed{200,300,400,500,600,700}-20260915.log` (filled in
+as each completes); start/end markers in `research/scratch/seedhunt_batch2_progress.log`.
+
+**Batch in progress** — this section is updated and committed incrementally after each seed
+completes.
