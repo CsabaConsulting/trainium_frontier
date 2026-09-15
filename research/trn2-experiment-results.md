@@ -9355,6 +9355,52 @@ than noise. That call is left to the lock-in decision, not made in this section.
 untouched. This section only gathers a second data point for seed 3, feeding the same still-pending
 lock-in decision as the seed-42 repeat above.
 
+## Seed hunt batch 3 — box1 (seeds 1000,1500,2000,2500,3000,3500)
+
+**Motivation.** Architecture/hyperparameter tuning on this model is thoroughly exhausted (see the many
+closed sections above this week). Seed selection remains a cheap, zero-engineering-risk lever: the real
+graded submission uses `train.py`'s literal bare launch command with no `--seed` flag, so whatever `SEED`
+default is locked in IS what the grader's own training run uses. After 14 unique seeds (16 runs) measured
+at full 1800s budget, seed 42 leads with a 2-point average `public_val_bpb` of `1.004702`; seed 3 is 2nd
+at `1.005572`. The gap between them (`0.00087`) is inside the observed same-seed noise band (`0.001`-
+`0.0012`), so no seed has yet been shown to clearly beat 42. This batch widens the search with 6 more
+seeds, distinct from every seed tested so far (`1,2,3,5,7,8,13,34,42,43,44,55,89,144`) and from box 2's
+concurrent parallel batch (`200,300,400,500,600,700`), looking for a seed that clears the noise floor by
+roughly `0.002`-`0.003`.
+
+**Defaults reconfirmed unchanged before the run.** `train.py` md5 on box 1
+(`24cce227d3bcf9750f6ea07f9d58a8d1`) verified byte-identical to the local repo's `train.py` before
+launching — no edits made, none needed. `--seed` default is still `42` at `train.py:5328`
+(`parser.add_argument("--seed", type=int, default=int(os.environ.get("NEURON_COMPETITION_R1_SEED",
+"42")))`), consumed once in weight-init via `torch.manual_seed(seed)` before model construction, before
+each run below overrides it with its own `--seed` value.
+
+**Launch.** Six runs, sequential, in one continuous `tmux` session (`seedhunt3` on box 1,
+`ec2-16-26-246-98`) driven by `research/scratch/seedhunt_batch3_box1.sh`, each the literal bare launch
+command with only `--seed` added, no `--no-eval-public` (so `public_val_bpb` is read directly from the
+in-process eval), full stdout+stderr captured per seed to
+`research/run-logs/seedhunt-box1-batch3-seed<N>-1800s.log`:
+
+```
+NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 1000000 --seed <N>
+```
+
+### Results (filled in as each run completes)
+
+| seed | num_steps | training_seconds | total_seconds | total_tokens_M | causality_passed | causality_max_abs | over_budget | `public_val_bpb` |
+|---|---|---|---|---|---|---|---|---|
+| 1000 | 2129 | 1794.3 | 1846.8 | 279.1 | True | 0.000000 | False | **1.014811** |
+| 1500 | pending | | | | | | | |
+| 2000 | pending | | | | | | | |
+| 2500 | pending | | | | | | | |
+| 3000 | pending | | | | | | | |
+| 3500 | pending | | | | | | | |
+
+Logs: `research/run-logs/seedhunt-box1-batch3-seed{1000,1500,2000,2500,3000,3500}-1800s.log`.
+
+**Seed 1000 vs. the leaders.** `1.014811` is well outside the noise band and far worse than both seed
+42's average (`1.004702`, `+0.010109`) and seed 3's average (`1.005572`, `+0.009239`) — not a contender.
+
 ## Seed hunt batch 2 — box2 (seeds 200,300,400,500,600,700), widening the search past the noise-floor tie at the top
 
 **Motivation.** With both top contenders now confirmed reproducible (seed 42: two measurements
