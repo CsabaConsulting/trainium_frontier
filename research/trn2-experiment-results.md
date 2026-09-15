@@ -8135,3 +8135,100 @@ same margin.
 Rows `ngm256-ctrl-900s-r{1,2,3,4}` / `ngm256-arm-900s{,−r2}` in `research/experiment-log.jsonl`. No
 `train.py` changes — `--ngram-ve-table-mult` is a pre-existing flag; `NGRAM_VE_TABLE_MULT=128` stays
 locked.
+
+## 2026-09-15 — `--ngram-ve-lr` (the n-gram tables' own lr, distinct from box1's concurrent `--ngram-ve-beta2` sweep on the same param group): half/double the locked implicit 0.30 both measured, and it's **CLOSED NEUTRAL** — both arms land inside the control's own noise band, throughput genuinely unchanged (track: n-gram-VE optimizer)
+
+**Context.** `NGRAM_VE_LR = 0.0` (`train.py:699`) is a sentinel meaning "use `EMBEDDING_LR`
+instead" (currently `0.30`, `train.py:308`) — the n-gram value-embedding tables (537M of the
+model's 592.9M total params, the dominant mass) have never had their own lr tuned; they silently
+inherit whatever the much smaller token/positional embedding tables use. Same "never tuned,
+inherited default, on the dominant param group" pattern that produced this week's real
+`EMBED_ADAMW_BETA2` win (0.995→0.95, `+21` steps/`0.009453` bpb better, see the "`EMBED_ADAMW_BETA2`"
+section near line 493) — this section is the analogous-but-distinct lr question, box1's concurrent
+`research/scratch/ngram_ve_beta2_900s.sh` sweep covers the same tables' `NGRAM_VE_BETA2` in
+parallel on a different box.
+
+### 1. Confirmed current locked defaults, read directly from `train.py`
+
+```
+NGRAM_VE_LAYERS = "1,-1"        (line 599)
+NGRAM_VE_TABLE_MULT = 128       (line 661)
+NGRAM_VE_LR = 0.0                (line 699, sentinel -> EMBEDDING_LR)
+EMBEDDING_LR = 0.30              (line 308)
+NGRAM_VE_OPT = "rmsprop"         (line 703)
+NGRAM_VE_FLAT_LR = True          (line 701, no warmdown -- flag applied flat throughout)
+```
+`--ngram-ve-lr` (`train.py:4988`) and `--ngram-ve-beta2` (`train.py:4990`) are both pre-existing
+CLI flags — no `train.py` changes needed for this section.
+
+### 2. Why no calibration script: this is a PURE hyperparameter change
+
+Unlike the `ngram-ve-layers`/`table-mult`/`dim` axes (which change tensor shapes or injection
+sites and need step-matching via a 120-step calibration before a paired run), `--ngram-ve-lr` only
+changes an optimizer constant — same param count, same tensors, same ops. `NGRAM_VE_FLAT_LR=True`
+means that constant is applied flat for the whole run, no warmdown schedule to complicate the
+comparison. Same discipline as `muon_lr_fp32_900s.sh` / box1's `ngram_ve_beta2_900s.sh` (also
+pure-hyperparameter changes with no new tensors): flat 900s for every arm, bracketed by a fresh
+same-commit control before and after, one 4-rank job owning the box, serial, and **throughput
+verified rather than assumed** — if the arms don't land within the controls' own step-count
+spread, that's a signal something is wrong before trusting the bpb numbers.
+
+### 3. Paired 900s spot-check, real `val_bpb`, box 2 (`ec2-16-26-154-27`), `--eval-seq-len 1024`
+
+`research/scratch/ngram_ve_lr_900s.sh`, via `research/run_experiment.py`, 4 ranks, LNC=2. Two
+arms bracketing the locked implicit `0.30`: half (`0.15`) and double (`0.60`). Locked config
+otherwise (`DEPTH=6`, `ASPECT_RATIO=96`, `--ngram-ve-layers 1,-1`, `--ngram-ve-table-mult 128`,
+`--ngram-ve-beta2 0.999`, box1's axis) untouched — only `--ngram-ve-lr` varies. All four runs:
+`num_params_M=592.9`, `world_size=4`, `lnc=2`, `seq_len=2048`, `causality_passed=True`,
+`causality_max_abs=0.0` — config matches throughout, no new tensors.
+
+| arm | `--ngram-ve-lr` | `training_seconds` | steps | `val_bpb`@2048 | `val_bpb`@1024 |
+|---|---|---|---|---|---|
+| `ngmlr-ctrl-900s-r1` | (default, 0.30 via sentinel) | 884.5 | 1056 | 1.052631 | 1.067923 |
+| `ngmlr-arm-015-900s` | 0.15 | 884.3 | 1055 | 1.052302 | 1.067673 |
+| `ngmlr-arm-060-900s` | 0.60 | 884.6 | 1056 | 1.053012 | 1.068339 |
+| `ngmlr-ctrl-900s-r2` | (default, 0.30 via sentinel) | 884.4 | 1053 | 1.052543 | 1.067877 |
+
+**Throughput really is unchanged, verified rather than assumed**: all four runs trained
+884.3–884.6 s (a 0.3 s / 0.034% spread) and produced 1053–1056 steps (a 3-step / 0.28% spread) —
+neither arm sits outside the two same-commit controls' own range. No new tensors, no new ops,
+exactly the throughput a pure optimizer-constant change predicts: none. Nothing here needed
+investigating before trusting the bpb numbers.
+
+### 4. Decomposition against the pooled control
+
+Pooling the two controls (mean 1054.5 steps, `val_bpb`@2048 1.052587, @1024 1.067900; the
+controls' own spread — this block's noise band — is 0.000088 @2048 / 0.000046 @1024, tighter than
+either arm's raw delta below), step-correcting each arm at the same `0.077 · ln(steps_arm /
+steps_ctrl-mean)` slope used throughout this doc's other 2026-09-15 closures:
+
+| | `--ngram-ve-lr 0.15` | `--ngram-ve-lr 0.60` |
+|---|---|---|
+| raw Δ (arm − control mean), @2048 | −0.000285 | +0.000425 |
+| raw Δ, @1024 | −0.000227 | +0.000439 |
+| step correction (arm ran ±0.5/+1.5 steps) | −0.0000365 | +0.0001095 |
+| **step-normalised Δ, @2048** | **−0.000322** | **+0.000316** |
+| **step-normalised Δ, @1024** | **−0.000264** | **+0.000330** |
+
+Both step-normalised deltas sit at roughly **±0.0003** — under a third of the standing `0.001`
+noise floor in both directions, and 0.15's delta is the same sign but smaller magnitude than the
+control pair's own spread would allow if it were real. Per the task's own noise-floor rule
+(`|delta| < 0.001` is noise outright; the `0.001`–`0.003` same-day-repeat gate only applies above
+that), neither arm clears the threshold for a repeat, let alone a confirming 1800 s pair (reserved
+for a real, reproducible win ≥ the noise floor, which neither of these is).
+
+### 5. Verdict: CLOSED NEUTRAL, `NGRAM_VE_LR` stays at the sentinel (effective `0.30`)
+
+Half (`0.15`) trends very slightly better and double (`0.60`) trends very slightly worse than the
+locked implicit `0.30`, but both trends are smaller than the noise this exact block measured on
+its own two same-commit controls — i.e. statistically indistinguishable from a third control, not
+a signal in either direction. Unlike `EMBED_ADAMW_BETA2` (whose analogous inherited-default
+question turned out to matter, `+5.2%`/`0.0095` bpb), the n-gram tables' own lr does not: `0.30`
+(inherited from `EMBEDDING_LR`) is already a fine value for this param group at this shape and
+budget, at least across a 2× bracket in either direction. `NGRAM_VE_LR` stays locked at `0.0`
+(the sentinel); `--ngram-ve-lr` remains available as a pre-existing flag, confirmed not worth
+overriding. No `train.py` changes were needed or made.
+
+**Scripts added**: `research/scratch/ngram_ve_lr_900s.sh` (the paired 900 s driver). Logs:
+`research/run-logs/ngmlr-{ctrl-900s-r1,arm-015-900s,arm-060-900s,ctrl-900s-r2}.log`. Rows
+`ngmlr-{ctrl-900s-r1,arm-015-900s,arm-060-900s,ctrl-900s-r2}` in `research/experiment-log.jsonl`.
