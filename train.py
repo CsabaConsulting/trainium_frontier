@@ -373,6 +373,74 @@ MUON_MOMENTUM_WARMUP_STEPS = 300  # Tier-0 resweep, confirmed still correct desp
 MUON_MOMENTUM_COOLDOWN_FRAC = 0.045
 MUON_MOMENTUM_FINAL = 0.85  # momentum at the very end of the cooldown (only read when FRAC > 0)
 MUON_NS_STEPS = 5  # Newton-Schulz iterations in Muon's orthogonalization (3 matmuls each)
+# ---------------------------------------------------------------------------
+# Plan §11.1: three SCHEDULE-LEVEL tricks from Recursive's optimized_from_karpathy.py (0.9109 on
+# the nanochat autoresearch task, the strongest external evidence in this competition). All three
+# are pure optimizer-schedule changes -- they add no new tensors, no new ops, and no new parameters
+# -- so their throughput term is expected to be exactly zero and any delta they produce is a
+# per-step-quality delta. All three default to EXACTLY the current behaviour (see each knob).
+#
+# The shared implementation discipline for all three is the USE_TENSOR_LR_SCALARS lesson: a per-step
+# CHANGING Python float that reaches a device op is baked into the Neuron graph as a constant and
+# forces a fresh neuronx-cc compile every step. Which ops actually bake is op-specific and MEASURED,
+# not assumed (see the muon_momentum docstring: `lerp_.Scalar`'s weight demonstrably does NOT bake,
+# while `add_(alpha=)` and `mul_(1 - lr*wd)` do). Inside a COMPILED region (USE_COMPILE_MUON) the
+# rule is absolute: under dynamic=False Dynamo guards on every Python float argument, so anything
+# that changes per step must arrive as a device tensor. That is why (2) below routes `1 - beta2`
+# through _muon_compile_scalars instead of passing it as the Python float it is today.
+#
+# (1) Adam "Demon" beta1 decay. Recursive anneals Adam's beta1 from 0.8 down to 0.55 across the
+# run's warmdown. Our AdamW groups already start at beta1 = 0.8 for the embedding family (wte,
+# lm_head, value embeddings, the adamw fallback for the n-gram tables) and 0.9 for the scalar and
+# gate/conv groups, so the anneal is expressed as a MULTIPLICATIVE shrink on each group's own
+# initial beta1, calibrated so a group at DEMON_BETA1_REF lands exactly on DEMON_BETA1_FINAL. The
+# rmsprop group (n-gram tables) has no first moment at all and is excluded by its `kind`.
+DEMON_BETA1 = False
+DEMON_BETA1_FINAL = 0.55  # target beta1 at progress == 1 for a group whose initial beta1 is REF
+DEMON_BETA1_REF = 0.8     # the initial beta1 the FINAL above is quoted against (Recursive's value)
+# Progress fraction at which the anneal starts. Negative (the default) means "start where the LR
+# warmdown starts", i.e. 1 - WARMDOWN_RATIO, which is Recursive's "across its warmdown". Set 0.0 to
+# anneal across the whole run instead.
+DEMON_BETA1_START_FRAC = -1.0
+#
+# (2) NorMuon beta2 ramp. Recursive ramps their Muon variant's second-moment beta2 from 0.95 to
+# 0.97 across the run. This repo's Muon ALREADY carries exactly that mechanism: `beta2` in the muon
+# groups is the decay of `second_momentum_buffer`, a per-row second moment of the ORTHOGONALIZED
+# update used to rescale it -- that is NorMuon's neuron-wise adaptive normalization, not Adam's
+# beta2 on the raw gradient. So the port is 1:1 in shape. It is NOT 1:1 in value: our tuned
+# constant is 0.90, not 0.95, so what transfers is "ramp beta2 UP over the run", and the endpoints
+# have to be swept here rather than copied. MUON_BETA2 replaces what used to be a `beta2=0.90`
+# literal in setup_optimizer (pure refactor, same value).
+MUON_BETA2 = 0.90
+MUON_BETA2_FINAL = 0.0  # 0.0 (default) = OFF: hold MUON_BETA2 flat, and keep passing `1 - beta2`
+                        # to the compiled body as the Python float it is today. > 0 ramps linearly
+                        # from MUON_BETA2 to this over elapsed/max_train_seconds.
+#
+# (3) Per-depth LR / momentum scaling. Recursive scales LR by x1.15 at the bottom (earliest) layer
+# down to x0.85 at the top, and momentum from 0.90 at the bottom to 0.97 at the top. Our Muon param
+# groups are keyed by (shape, transposed) and STACK every param of that shape across layers into one
+# [K, rows, cols] buffer, which is what makes the batched Newton-Schulz worth having -- splitting
+# them per layer would give 30-odd single-parameter groups and throw that away. So the multiplier is
+# carried as a per-parameter [K, 1, 1] fp32 device tensor that broadcasts over the stacked buffer:
+# the group structure, the launch count and the compiled graph count are all unchanged, and the only
+# added device work is that lr/momentum arrive as [K,1,1] instead of 0-dim operands.
+#
+# LR is scaled multiplicatively (BOTTOM at layer 0, TOP at layer n_layer-1, linear in between).
+# Momentum CANNOT be: 0.95 x 1.15 > 1 diverges, and the momentum here is itself scheduled (0.85 ->
+# 0.95 warmup, then optionally back down). So per-depth momentum is expressed as a multiplier on
+# (1 - momentum), i.e. on the update's weight, derived from the two target momenta at the reference
+# global momentum: mult = (1 - target) / (1 - REF). Recursive's 0.90/0.97 at REF 0.95 gives 2.0 at
+# the bottom and 0.6 at the top, and the whole global schedule keeps its shape underneath.
+# Params outside a transformer block (the n-gram up-projections, Engram's W_K/W_V/W_Q) have no
+# depth and get multiplier 1.0.
+MUON_DEPTH_LR_BOTTOM = 1.0   # LR multiplier at layer 0. Recursive: 1.15. 1.0 = OFF.
+MUON_DEPTH_LR_TOP = 1.0      # LR multiplier at the last layer. Recursive: 0.85. 1.0 = OFF.
+MUON_DEPTH_MOM_BOTTOM = 0.0  # target momentum at layer 0 when global momentum == REF. Recursive:
+                             # 0.90. 0.0 = OFF (both BOTTOM and TOP must be > 0 to enable).
+MUON_DEPTH_MOM_TOP = 0.0     # ... at the last layer. Recursive: 0.97. 0.0 = OFF.
+MUON_DEPTH_MOM_REF = 0.95    # the global momentum the two targets above are quoted against; this is
+                             # muon_momentum()'s warmed-up plateau value.
+# ---------------------------------------------------------------------------
 # T1.4: run the AdamW parameter groups (wte, lm_head, value-embedding tables, scalars and the T0.1
 # local_conv group) only every Nth optimizer step, letting their gradients ACCUMULATE across the
 # skipped steps rather than being zeroed. 1 = every step (the historical behaviour, bit-identical).
@@ -3220,16 +3288,37 @@ class GPT(nn.Module):
         # set is empty and the grouping is byte-for-byte the previous `sorted({p.shape})`.
         transposed_ids = {id(m.weight) for m in self.modules()
                           if isinstance(m, Linear) and m.weight_transposed}
+        # Plan §11.1 item 3: parameter -> transformer-block index, so a Muon group that stacks one
+        # shape across layers can still carry a PER-LAYER lr/momentum multiplier. Built by walking
+        # the block list rather than parsing names, so it cannot drift from the grouping above.
+        # Parameters outside the block stack (ngram_proj, Engram's projections) are simply absent
+        # and get a neutral multiplier -- see muon_depth_mults.
+        depth_of: dict[int, int] = {}
+        for _i, _block in enumerate(self.transformer.h):
+            for _p in _block.parameters():
+                depth_of[id(_p)] = _i
+        depth_on = any(muon_depth_enabled())
         for shape, transposed in sorted({(p.shape, id(p) in transposed_ids) for p in matrix_params},
                                         key=lambda st: (st[0], st[1])):
             params = [p for p in matrix_params
                       if p.shape == shape and (id(p) in transposed_ids) == transposed]
-            param_groups.append(dict(kind="muon", params=params, lr=MATRIX_LR, momentum=0.95, beta2=0.90,
-                                     ns_steps=MUON_NS_STEPS, weight_decay=WEIGHT_DECAY,
-                                     transposed=transposed))
+            group = dict(kind="muon", params=params, lr=MATRIX_LR, momentum=0.95, beta2=MUON_BETA2,
+                         ns_steps=MUON_NS_STEPS, weight_decay=WEIGHT_DECAY,
+                         transposed=transposed)
+            if depth_on:
+                # Only set when the feature is on, so with it off the group dicts -- and therefore
+                # everything keyed on them in MuonAdamW -- are byte-for-byte what they were.
+                group["depth_mults"] = muon_depth_mults(
+                    [depth_of.get(id(p)) for p in params], self.config.n_layer)
+            param_groups.append(group)
         opt = MuonAdamW(param_groups)
         for group in opt.param_groups:
             group["initial_lr"] = group["lr"]
+            # Plan §11.1 item 1: Demon anneals beta1 relative to the group's ORIGINAL value, so
+            # that value has to survive the per-step rewrite of group["betas"]. Muon groups have
+            # no "betas" key at all (they carry `momentum` and `beta2` separately), hence .get.
+            if group.get("betas") is not None:
+                group["initial_betas"] = tuple(group["betas"])
         return opt
 
     def forward(self, idx: torch.Tensor, targets: torch.Tensor | None = None, loss_reduction: str = "mean"):
@@ -3380,7 +3469,7 @@ _MUON_COMPILED: dict[tuple, object] = {}
 
 def _muon_math(w, g, momentum_buffer, second, mom, one_mom, lr, lrwd,
                tall: bool, ns_steps: int, red_dim: int, red_dim_size: int,
-               one_beta2: float, to_bf16: bool):
+               one_beta2, to_bf16: bool):
     """Muon's per-group math body, as a pure tensors-in/tensors-out function.
 
     This is the ONLY form of the Muon step that `torch.compile(backend="neuron")` can
@@ -3403,9 +3492,15 @@ def _muon_math(w, g, momentum_buffer, second, mom, one_mom, lr, lrwd,
       would force a fresh neuronx-cc compile on every single step. This is the
       USE_TENSOR_LR_SCALARS lesson applied to a compiled region, where it is much worse
       than in eager -- eager only bakes `alpha=`-style scalars, Dynamo bakes all of them.
-      `tall` / `ns_steps` / `red_dim` / `red_dim_size` / `one_beta2` / `to_bf16` ARE
+      `tall` / `ns_steps` / `red_dim` / `red_dim_size` / `to_bf16` ARE
       Python constants on purpose: they are fixed per group for the whole run, so
       guarding on them is free and it keeps the traced graph straight-line.
+      `one_beta2` is in that class only while the plan-§11.1 NorMuon ramp is OFF, which is
+      the default; when MUON_BETA2_FINAL > 0 it changes every step and arrives as a 0-dim
+      fp32 device tensor instead, for exactly the reason `lr` does. `torch.lerp` takes
+      either overload, so the body is written once. Under plan-§11.1 per-depth scaling
+      `mom` / `one_mom` / `lr` / `lrwd` arrive as [K, 1, 1] instead of 0-dim and broadcast
+      over the stacked [K, rows, cols] buffers; nothing in this body needs to know.
 
     Bit-exactness against the eager body is the standard, and these are the three places
     it could have been lost:
@@ -3550,9 +3645,59 @@ class MuonAdamW(torch.optim.Optimizer):
         dev.copy_(host)
         return dev[0], dev[1]
 
+    def _muon_depth_dev(self, group, ref: torch.Tensor):
+        """Plan §11.1 item 3: the group's per-parameter (lr, one-minus-momentum) multipliers as two
+        persistent [K, 1, 1] fp32 tensors -- one host pair, one device pair, built once.
+
+        [K, 1, 1] is the shape that broadcasts over the group's stacked [K, rows, cols] buffers, so
+        a per-LAYER multiplier costs nothing structural: the (shape, transposed) grouping, the
+        batched Newton-Schulz and the one-compiled-graph-per-shape all stay exactly as they are.
+        Returns None when the feature is off, which is the signal every call site branches on.
+        """
+        mults = group.get("depth_mults")
+        if mults is None:
+            return None
+        cache = self._scalar_cache.setdefault(id(group), {})
+        entry = cache.get("depth_mults")
+        if entry is None:
+            lr_mult, mom_mult = mults
+            host_lr = torch.tensor(lr_mult, dtype=torch.float32).view(-1, 1, 1)
+            host_mom = torch.tensor(mom_mult, dtype=torch.float32).view(-1, 1, 1)
+            entry = (host_lr, host_mom, host_lr.to(ref.device), host_mom.to(ref.device))
+            cache["depth_mults"] = entry
+        return entry
+
+    def _muon_depth_mom(self, group, ref: torch.Tensor):
+        """Plan §11.1 item 3, eager path: (momentum, 1-momentum) per parameter as two [K, 1, 1]
+        fp32 device views behind ONE host->device copy, exactly like _muon_compile_scalars does for
+        the compiled path.
+
+        Formed on the HOST rather than as `dev_mult * (1 - group["momentum"])` on device, for the
+        USE_TENSOR_LR_SCALARS reason: `1 - momentum` changes every step of the warmup and the
+        cooldown, and a Python float multiplied into a device tensor is the exact construct that
+        gets baked into the Neuron graph as a constant. Staging it means the graph never sees it.
+        """
+        depth = self._muon_depth_dev(group, ref)
+        if depth is None:
+            return None
+        host_mom = depth[1]
+        cache = self._scalar_cache.setdefault(id(group), {})
+        entry = cache.get("depth_mom_step")
+        if entry is None:
+            k = host_mom.shape[0]
+            entry = (torch.empty(2, k, 1, 1, dtype=torch.float32),
+                     torch.zeros(2, k, 1, 1, dtype=torch.float32, device=ref.device))
+            cache["depth_mom_step"] = entry
+        host, dev = entry
+        torch.mul(host_mom, 1.0 - float(group["momentum"]), out=host[1])
+        host[1].clamp_(0.0, 1.0)
+        host[0].copy_(host[1]).neg_().add_(1.0)
+        dev.copy_(host)
+        return dev[0], dev[1]
+
     def _muon_compile_scalars(self, group, ref: torch.Tensor, ratio: float):
-        """T1.7: (lr*ratio, lr*ratio*wd, momentum, 1-momentum) as four 0-dim fp32 device
-        views behind ONE host->device copy of a (4,) staging tensor.
+        """T1.7: (lr*ratio, lr*ratio*wd, momentum, 1-momentum, 1-beta2) as five 0-dim fp32
+        device views behind ONE host->device copy of a (5,) staging tensor.
 
         Replaces `_device_scalar("lr")` for the compiled path at strictly lower cost --
         one copy instead of one per scalar -- and it is the reason the compiled graph has
@@ -3562,12 +3707,47 @@ class MuonAdamW(torch.optim.Optimizer):
         The two products are formed in float32 (see `_muon_lrwd`) and `1-momentum` in
         float64 (see `_muon_math`), each matching what the eager path's arithmetic does
         at that point. This distinction is load-bearing, not stylistic.
+
+        Plan §11.1 items 2-3 extend this without changing its cost:
+          * a FIFTH slot carries `1 - beta2`, used only when MUON_BETA2_FINAL > 0. With the ramp
+            off the caller keeps passing the Python float, so the compiled graph is unchanged; with
+            it on the value changes every step and would otherwise be a Dynamo guard, i.e. a full
+            recompile per step. Staging one extra float costs nothing -- it is the same single
+            host->device copy either way.
+          * with per-depth scaling on, the staging tensor is [5, K, 1, 1] instead of (5,) and the
+            first four rows carry the per-parameter multipliers pre-applied. Still ONE copy, and
+            the returned operands broadcast over the group's stacked [K, rows, cols] buffers.
         """
+        depth = self._muon_depth_dev(group, ref)
         cache = self._scalar_cache.setdefault(id(group), {})
+        if depth is not None:
+            host_lr, host_mom, _dev_lr, _dev_mom = depth
+            entry = cache.get("muon_compile_depth")
+            if entry is None:
+                k = host_lr.shape[0]
+                entry = (torch.empty(5, k, 1, 1, dtype=torch.float32),
+                         torch.zeros(5, k, 1, 1, dtype=torch.float32, device=ref.device),
+                         torch.empty((), dtype=torch.float32))
+                cache["muon_compile_depth"] = entry
+            host, dev, tmp = entry
+            tmp.fill_(float(group["lr"]))
+            tmp.mul_(ratio)                  # fp32(fp32(lr) * fp32(ratio)) == device
+            torch.mul(host_lr, float(tmp), out=host[0])
+            torch.mul(host[0], float(group["weight_decay"]), out=host[1])
+            mom = float(group["momentum"])
+            # (1 - momentum) first (float64 subtraction, like lerp_.Scalar's), then the per-depth
+            # multiplier, then back to the momentum the buffer keeps -- so the two operands stay
+            # exactly complementary and no layer's momentum can drift outside (0, 1).
+            torch.mul(host_mom, 1.0 - mom, out=host[3])
+            host[3].clamp_(0.0, 1.0)
+            host[2].copy_(host[3]).neg_().add_(1.0)
+            host[4].fill_(1.0 - float(group["beta2"]))
+            dev.copy_(host)
+            return dev[0], dev[1], dev[2], dev[3], dev[4]
         entry = cache.get("muon_compile")
         if entry is None:
-            entry = (torch.empty(4, dtype=torch.float32),
-                     torch.zeros(4, dtype=torch.float32, device=ref.device),
+            entry = (torch.empty(5, dtype=torch.float32),
+                     torch.zeros(5, dtype=torch.float32, device=ref.device),
                      torch.empty((), dtype=torch.float32))
             cache["muon_compile"] = entry
         host, dev, tmp = entry
@@ -3579,8 +3759,9 @@ class MuonAdamW(torch.optim.Optimizer):
         mom = float(group["momentum"])
         host[2].fill_(mom)
         host[3].fill_(1.0 - mom)             # float64 subtraction, like lerp_.Scalar's
+        host[4].fill_(1.0 - float(group["beta2"]))
         dev.copy_(host)
-        return dev[0], dev[1], dev[2], dev[3]
+        return dev[0], dev[1], dev[2], dev[3], dev[4]
 
     def _adamw_state(self, group):
         """Shared prologue for both AdamW paths: filter to params that actually have a
@@ -3877,11 +4058,18 @@ class MuonAdamW(torch.optim.Optimizer):
                 print0(f"muon step: COMPILED body for {tuple(g.shape)} "
                        f"(tall={key[0]} ns_steps={ns_steps} red_dim={red_dim}) "
                        f"[specialisations so far: {len(_MUON_COMPILED)}]")
-            lr_t, lrwd_t, mom_t, one_mom_t = self._muon_compile_scalars(group, p0, ratio)
+            lr_t, lrwd_t, mom_t, one_mom_t, one_b2_t = \
+                self._muon_compile_scalars(group, p0, ratio)
+            # Plan §11.1 item 2: with the beta2 ramp OFF this stays the Python float it has always
+            # been (so the traced graph and its single specialisation are unchanged); with it ON the
+            # value changes every step, and under dynamic=False a Python float is a Dynamo guard --
+            # i.e. a full neuronx-cc recompile of the whole Muon body per step. The device tensor
+            # is the same operand `mom`/`one_mom` already are.
+            one_beta2 = one_b2_t if MUON_BETA2_FINAL > 0.0 else 1 - group["beta2"]
             w, momentum_buffer, second = fn(
                 w, g, momentum_buffer, second, mom_t, one_mom_t, lr_t, lrwd_t,
                 key[0], ns_steps, red_dim, g.size(red_dim),
-                1 - group["beta2"], COMPUTE_DTYPE == torch.bfloat16)
+                one_beta2, COMPUTE_DTYPE == torch.bfloat16)
             # All three are scratch or state the caller owns, so rebinding is free --
             # no copy back (see the _muon_math docstring).
             state["stacked_params"] = w
@@ -3894,13 +4082,27 @@ class MuonAdamW(torch.optim.Optimizer):
         # USE_TENSOR_LR_SCALARS because the fused update always carries lr as an fp32
         # device operand, which is the tensor-lr semantics; with the flag off eager
         # would fold lr*ratio in float64 instead and the two would not be bit-equal.
+        # Plan §11.1 item 3: the NKI update kernel flattens the stacked buffer to [K*rows, cols]
+        # and takes lr as a [128, 1] broadcast operand, so a PER-PARAMETER lr cannot be expressed
+        # through it. Excluded rather than silently ignored -- a silent fall-through would make the
+        # per-depth arm measure the baseline. (In the locked config the compiled path above already
+        # takes precedence over NKI, so this only matters with --no-compile-muon.)
+        depth = self._muon_depth_dev(group, p0)
         use_nki = (USE_NKI_MUON and _HAS_NKI and p0.device.type == "neuron"
                    and USE_TENSOR_LR_SCALARS and COMPUTE_DTYPE == torch.bfloat16
                    and w.dtype == torch.float32 and shape[-1] <= 8192
-                   and min(shape[-2], shape[-1]) <= 8192)
+                   and min(shape[-2], shape[-1]) <= 8192
+                   and depth is None)
 
-        momentum_buffer.lerp_(g, 1 - group["momentum"])
-        g = g.lerp_(momentum_buffer, group["momentum"])
+        if depth is None:
+            momentum_buffer.lerp_(g, 1 - group["momentum"])
+            g = g.lerp_(momentum_buffer, group["momentum"])
+        else:
+            # [K, 1, 1] weights broadcast over the stacked buffers; `lerp_.Tensor` instead of
+            # `lerp_.Scalar`, verified equal for a uniform weight in compile_optim_equiv.py.
+            mom_d, one_mom_d = self._muon_depth_mom(group, p0)
+            momentum_buffer.lerp_(g, one_mom_d)
+            g = g.lerp_(momentum_buffer, mom_d)
         x = g.bfloat16() if COMPUTE_DTYPE == torch.bfloat16 else g
         x = x / (x.norm(dim=(-2, -1), keepdim=True) * 1.01 + 1e-6)
         if use_nki:
@@ -3954,6 +4156,10 @@ class MuonAdamW(torch.optim.Optimizer):
             if USE_TENSOR_LR_SCALARS:
                 lr_base = self._device_scalar(group, "lr", lr_base, p0)
             lr = lr_base * ratio
+            if depth is not None:
+                # Plan §11.1 item 3. [K, 1, 1] broadcast over the stacked [K, rows, cols] update,
+                # so the wd term below scales with lr exactly as it already does.
+                lr = lr * depth[2]
             wd = group["weight_decay"]
             mask = (g * w) >= 0
             w.sub_(lr * g + lr * wd * w * mask)
@@ -4119,6 +4325,13 @@ ARCH_TOGGLE_NAMES = [
     "LOGIT_SOFTCAP", "ATTN_CPROJ_INIT_SCALE", "MUON_NS_STEPS",
     "MUON_MOMENTUM_COOLDOWN_FRAC", "MUON_MOMENTUM_FINAL",
     "ADAM_EVERY_N", "ADAM_EVERY_N_LR_COMP",
+    # Plan §11.1 items 1-3 (Recursive's schedule tricks). Exactly the silent class this snapshot
+    # exists for: none of them changes a tensor's name, shape or dtype, so a checkpoint trained
+    # with a different beta1 anneal / beta2 ramp / per-depth LR loads without a murmur.
+    "DEMON_BETA1", "DEMON_BETA1_FINAL", "DEMON_BETA1_REF", "DEMON_BETA1_START_FRAC",
+    "MUON_BETA2", "MUON_BETA2_FINAL",
+    "MUON_DEPTH_LR_BOTTOM", "MUON_DEPTH_LR_TOP",
+    "MUON_DEPTH_MOM_BOTTOM", "MUON_DEPTH_MOM_TOP", "MUON_DEPTH_MOM_REF",
     # T0.2/T0.3. DEPTH/N_EMBD/HEAD_DIM/MLP_RATIO are all *also* recoverable from
     # model_config (n_layer / n_embd / n_embd//n_head / mlp_ratio), which is what
     # load_for_eval actually rebuilds from -- they are listed here only so a mismatch
@@ -4404,6 +4617,92 @@ def muon_momentum(step: int, progress: float = 0.0) -> float:
     return m
 
 
+def demon_beta1_scale(progress: float) -> float:
+    """Plan §11.1 item 1: the multiplicative shrink applied to every AdamW group's INITIAL beta1.
+
+    `progress` is elapsed/max_train_seconds, the same 0..1 wall-clock fraction the LR schedule,
+    wd_progress and muon_momentum's cooldown all key on. Returns exactly 1.0 when DEMON_BETA1 is
+    off, so the caller's `betas` tuple is left untouched and the AdamW step sees the same floats it
+    always has.
+
+    Linear in progress across [start, 1], where start defaults to the LR warmdown's own start
+    (1 - WARMDOWN_RATIO). Recursive quotes "beta1 0.8 -> 0.55 across its warmdown"; the shrink form
+    means a group already at 0.8 lands exactly on DEMON_BETA1_FINAL while the 0.9 groups (scalars,
+    gates, the conv groups) move proportionally rather than being left out or over-shrunk.
+
+    NOT routed through _device_scalar, and that is a measured call rather than an oversight: the
+    only place beta1 reaches a device op in the AdamW path is `_foreach_lerp_`'s / `lerp_`'s weight
+    (`1 - beta1`) and the `_foreach_div` bias-correction ScalarLists, and BOTH already take
+    per-step-CHANGING values on every historical run -- the 300-step momentum warmup feeds 300
+    distinct `lerp_.Scalar` weights with dt flat at ~0.86s, and `1 - beta**step` is a different
+    float every step until it saturates. The ops that do bake are `add_(alpha=)` and
+    `mul_(1 - lr*wd)`, neither of which touches beta1. Confirmed by watching dt over a device smoke
+    with the schedule on, not inferred: see research/scratch/schedule_tricks_smoke.sh.
+    """
+    if not DEMON_BETA1:
+        return 1.0
+    start = DEMON_BETA1_START_FRAC if DEMON_BETA1_START_FRAC >= 0.0 else (1.0 - WARMDOWN_RATIO)
+    start = min(max(start, 0.0), 0.999)
+    frac = min(1.0, max(0.0, (progress - start) / max(1e-6, 1.0 - start)))
+    return 1.0 + frac * (DEMON_BETA1_FINAL / DEMON_BETA1_REF - 1.0)
+
+
+def muon_beta2(progress: float) -> float:
+    """Plan §11.1 item 2: the Muon/NorMuon second-moment beta2, ramped over the run.
+
+    Returns MUON_BETA2 unchanged when the ramp is off (MUON_BETA2_FINAL <= 0), which is what keeps
+    the default path passing the identical Python float it always has -- important because this
+    value is consumed INSIDE the compiled Muon body, where a per-step Python float is a Dynamo
+    guard and therefore a per-step recompile of the whole optimizer graph. When the ramp IS on,
+    _muon_step routes `1 - beta2` through _muon_compile_scalars as a device tensor instead.
+    """
+    if MUON_BETA2_FINAL <= 0.0:
+        return MUON_BETA2
+    p = min(1.0, max(0.0, progress))
+    return MUON_BETA2 + p * (MUON_BETA2_FINAL - MUON_BETA2)
+
+
+def muon_depth_enabled() -> tuple[bool, bool]:
+    """Plan §11.1 item 3: (per-depth LR on, per-depth momentum on).
+
+    Both halves are independently gateable so the two axes Recursive changed together can be
+    measured apart -- LR x1.15->x0.85 and momentum 0.90->0.97 are not the same claim.
+    """
+    lr_on = not (MUON_DEPTH_LR_BOTTOM == 1.0 and MUON_DEPTH_LR_TOP == 1.0)
+    mom_on = MUON_DEPTH_MOM_BOTTOM > 0.0 and MUON_DEPTH_MOM_TOP > 0.0
+    return lr_on, mom_on
+
+
+def muon_depth_mults(depths: list[int | None], n_layer: int) -> tuple[list[float], list[float]]:
+    """Per-parameter (lr multiplier, one-minus-momentum multiplier) for one Muon group.
+
+    `depths[i]` is the transformer-block index of the group's i-th parameter, or None for a
+    parameter that lives outside the block stack (the n-gram up-projections, Engram's projections)
+    and therefore has no depth -- those get a neutral 1.0 on both axes rather than being forced to
+    an arbitrary end of the ramp.
+
+    The momentum multiplier is on (1 - momentum), see the MUON_DEPTH_MOM_* comments: scaling
+    momentum itself would push it past 1.0 and diverge, and would also flatten the global
+    warmup/cooldown schedule this rides on top of.
+    """
+    lr_on, mom_on = muon_depth_enabled()
+    span = max(1, n_layer - 1)
+    lr_mult, mom_mult = [], []
+    for d in depths:
+        if d is None or not lr_on:
+            lr_mult.append(1.0)
+        else:
+            f = d / span
+            lr_mult.append(MUON_DEPTH_LR_BOTTOM + f * (MUON_DEPTH_LR_TOP - MUON_DEPTH_LR_BOTTOM))
+        if d is None or not mom_on:
+            mom_mult.append(1.0)
+        else:
+            f = d / span
+            target = MUON_DEPTH_MOM_BOTTOM + f * (MUON_DEPTH_MOM_TOP - MUON_DEPTH_MOM_BOTTOM)
+            mom_mult.append((1.0 - target) / max(1e-6, 1.0 - MUON_DEPTH_MOM_REF))
+    return lr_mult, mom_mult
+
+
 def main() -> None:
     global USE_LOCAL_CONV, LRM_QUANTUM, USE_TENSOR_LR_SCALARS, USE_FOREACH_OPTIM  # flags below default off these constants
     global LOCAL_CONV_KERNEL, TRAIN_LOCAL_CONV
@@ -4464,6 +4763,14 @@ def main() -> None:
     global USE_BYTE_WTE_INIT, BYTE_WTE_INIT_MIX, BYTE_WTE_INIT_NGRAM, BYTE_WTE_INIT_STD
     global USE_COALESCED_SWIGLU, COALESCED_SWIGLU_HIDDEN
     global USE_CAUTIOUS_WD, SCALAR_BETA1, SCALAR_BETA2
+    # Plan §11.1 items 1-3 (Recursive's schedule tricks). Same rule as the block above: every one
+    # of these is read by its own argparse default line, so the `global` must precede the parser.
+    # All of them are read either by setup_optimizer() or once per step in the training loop, so
+    # none of them can add a per-step graph constant (see each knob's comment for the discipline).
+    global DEMON_BETA1, DEMON_BETA1_FINAL, DEMON_BETA1_REF, DEMON_BETA1_START_FRAC
+    global MUON_BETA2, MUON_BETA2_FINAL
+    global MUON_DEPTH_LR_BOTTOM, MUON_DEPTH_LR_TOP
+    global MUON_DEPTH_MOM_BOTTOM, MUON_DEPTH_MOM_TOP, MUON_DEPTH_MOM_REF
     parser = argparse.ArgumentParser(description="Neuron Competition R1 baseline")
     parser.add_argument("--device-type", type=str, default="")
     parser.add_argument("--num-steps", type=int, default=int(os.environ.get("NEURON_COMPETITION_R1_NUM_STEPS", NUM_STEPS)))
@@ -4660,6 +4967,53 @@ def main() -> None:
     _hp("--scalar-beta2", SCALAR_BETA2, float,
         "T2.4 (modded #52): Adam beta2 for the scalar/skip group. Default 0.95 = historical; "
         "record #52's 'smoothed scalars' uses 0.99, usually with a lower --scalar-lr.")
+    # Plan §11.1 items 1-3: Recursive's three schedule-level tricks. All zero-new-op, all default
+    # to exactly the current behaviour.
+    parser.add_argument("--demon-beta1", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_DEMON_BETA1",
+                                               "1" if DEMON_BETA1 else "0") != "0",
+                        help="plan 11.1 (Recursive): anneal the AdamW groups' beta1 down across the "
+                             "LR warmdown ('Demon'), as a multiplicative shrink on each group's own "
+                             "initial beta1 calibrated so a 0.8 group lands on --demon-beta1-final. "
+                             "The rmsprop n-gram group has no first moment and is unaffected.")
+    _hp("--demon-beta1-final", DEMON_BETA1_FINAL, float,
+        "plan 11.1: beta1 at the end of the run for a group whose initial beta1 is "
+        "--demon-beta1-ref. Recursive uses 0.55 from 0.8. Only read with --demon-beta1.")
+    _hp("--demon-beta1-ref", DEMON_BETA1_REF, float,
+        "plan 11.1: the initial beta1 that --demon-beta1-final is quoted against (Recursive: 0.8, "
+        "which is also this repo's embedding-family beta1).")
+    _hp("--demon-beta1-start-frac", DEMON_BETA1_START_FRAC, float,
+        "plan 11.1: wall-clock progress fraction at which the beta1 anneal starts. Negative "
+        "(default) = start where the LR warmdown starts, i.e. 1 - WARMDOWN_RATIO = 0.25, which is "
+        "Recursive's 'across its warmdown'. 0.0 = anneal across the whole run.")
+    _hp("--muon-beta2", MUON_BETA2, float,
+        "plan 11.1 / NorMuon: the Muon groups' second-moment beta2, i.e. the decay of the per-row "
+        "second moment of the ORTHOGONALIZED update that rescales it. Default 0.90 = the tuned "
+        "historical literal. Recursive's variant sits at 0.95->0.97; SkyPilot's autoresearch found "
+        "0.95->0.98 worth ~0.001 at their setting -- neither transfers as a VALUE here, only as a "
+        "direction, so sweep it.")
+    _hp("--muon-beta2-final", MUON_BETA2_FINAL, float,
+        "plan 11.1 / NorMuon: ramp the Muon beta2 linearly from --muon-beta2 to this over "
+        "elapsed/max_train_seconds. 0.0 (default) = OFF, and specifically = keep handing the "
+        "compiled Muon body `1-beta2` as the Python float it is today, so the traced graph is "
+        "byte-identical. Recursive ramps 0.95 -> 0.97.")
+    _hp("--muon-depth-lr-bottom", MUON_DEPTH_LR_BOTTOM, float,
+        "plan 11.1: Muon LR multiplier for layer 0's matrices, ramped linearly to "
+        "--muon-depth-lr-top at the last layer. Recursive: 1.15 -> 0.85. Both 1.0 (default) = OFF. "
+        "Carried as a per-parameter [K,1,1] operand inside the existing per-shape groups, so the "
+        "batched Newton-Schulz and the compiled-graph count are unchanged.")
+    _hp("--muon-depth-lr-top", MUON_DEPTH_LR_TOP, float,
+        "plan 11.1: Muon LR multiplier for the LAST layer's matrices. Recursive: 0.85.")
+    _hp("--muon-depth-mom-bottom", MUON_DEPTH_MOM_BOTTOM, float,
+        "plan 11.1: target Muon momentum for layer 0 when the global scheduled momentum is at "
+        "--muon-depth-mom-ref. Recursive: 0.90 (bottom) -> 0.97 (top). Applied as a multiplier on "
+        "(1 - momentum) so it rides ON TOP of the global warmup/cooldown schedule and can never "
+        "push momentum past 1. 0.0 (default, either endpoint) = OFF.")
+    _hp("--muon-depth-mom-top", MUON_DEPTH_MOM_TOP, float,
+        "plan 11.1: target Muon momentum for the LAST layer. Recursive: 0.97.")
+    _hp("--muon-depth-mom-ref", MUON_DEPTH_MOM_REF, float,
+        "plan 11.1: the global momentum the two --muon-depth-mom-* targets are quoted against. "
+        "0.95 (default) = muon_momentum()'s warmed-up plateau.")
     # T4.2: Aster's output bigram logit table.
     parser.add_argument("--out-bigram", action=argparse.BooleanOptionalAction,
                         default=os.environ.get("NEURON_COMPETITION_R1_OUT_BIGRAM", "1" if USE_OUT_BIGRAM else "0") != "0",
@@ -5069,6 +5423,24 @@ def main() -> None:
     USE_CAUTIOUS_WD = args.cautious_wd
     SCALAR_BETA1 = args.scalar_beta1
     SCALAR_BETA2 = args.scalar_beta2
+    # Plan §11.1 items 1-3. MUON_BETA2 and the MUON_DEPTH_* knobs are read by setup_optimizer();
+    # DEMON_* and MUON_BETA2_FINAL are read once per step by the schedule block in the loop.
+    DEMON_BETA1 = args.demon_beta1
+    DEMON_BETA1_FINAL = args.demon_beta1_final
+    DEMON_BETA1_REF = args.demon_beta1_ref
+    DEMON_BETA1_START_FRAC = args.demon_beta1_start_frac
+    MUON_BETA2 = args.muon_beta2
+    MUON_BETA2_FINAL = args.muon_beta2_final
+    MUON_DEPTH_LR_BOTTOM = args.muon_depth_lr_bottom
+    MUON_DEPTH_LR_TOP = args.muon_depth_lr_top
+    MUON_DEPTH_MOM_BOTTOM = args.muon_depth_mom_bottom
+    MUON_DEPTH_MOM_TOP = args.muon_depth_mom_top
+    MUON_DEPTH_MOM_REF = args.muon_depth_mom_ref
+    if MUON_BETA2_FINAL > 0.0 and not (0.0 < MUON_BETA2_FINAL < 1.0):
+        parser.error(f"--muon-beta2-final must be in (0, 1) when set, got {MUON_BETA2_FINAL}")
+    if (MUON_DEPTH_MOM_BOTTOM > 0.0) != (MUON_DEPTH_MOM_TOP > 0.0):
+        parser.error("--muon-depth-mom-bottom and --muon-depth-mom-top must both be set or "
+                     "both left at 0.0 (the OFF sentinel is the pair, not either one)")
     # T4.2 / T3.9. All read by GPT/Block/CausalSelfAttention.__init__ or setup_optimizer() below,
     # i.e. before the first device op.
     USE_OUT_BIGRAM = args.out_bigram
@@ -5405,6 +5777,13 @@ def main() -> None:
         # exactly one value after WARMUP_STEPS, so it costs no extra graph constants.
         lrm_flat = min(1.0, (step + 1) / max(1, WARMUP_STEPS))
         wd_progress = min(1.0, elapsed / max(1e-6, args.max_train_seconds))
+        # Plan §11.1 items 1-2. Both are keyed on exactly the same wall-clock progress fraction the
+        # LR warmdown, the WD decay and the Muon momentum cooldown already use, and both are
+        # computed ONCE per step here rather than per group. demon_beta1_scale returns exactly 1.0
+        # and muon_beta2 returns exactly MUON_BETA2 when the respective feature is off, so the
+        # assignments below are then provably the identity on the default path.
+        demon_b1 = demon_beta1_scale(wd_progress)
+        muon_b2 = muon_beta2(wd_progress)
         for group in optimizer.param_groups:
             # T2.1: batch_lr_scale is 1.0 unless BATCH_RAMP is on, so this multiplication is the
             # identity on the default path. It costs nothing even when it is not: group["lr"] is
@@ -5414,6 +5793,14 @@ def main() -> None:
             if group["kind"] == "muon":
                 group["momentum"] = muon_momentum(step, wd_progress)
                 group["weight_decay"] = WEIGHT_DECAY * (1.0 - wd_progress) if WD_DECAY_TO_ZERO else WEIGHT_DECAY
+                group["beta2"] = muon_b2
+            elif group["kind"] == "adamw" and DEMON_BETA1:
+                # Plan §11.1 item 1. Relative to the group's INITIAL beta1, so the 0.8 embedding
+                # family lands on DEMON_BETA1_FINAL and the 0.9 groups move proportionally. The
+                # rmsprop group is excluded by this `kind` test, which is correct rather than
+                # incidental: it has no first moment for beta1 to decay.
+                _b1, _b2 = group["initial_betas"]
+                group["betas"] = (_b1 * demon_b1, _b2)
         optimizer.step(update_adamw=adam_step_now)
         # T2.2: after the step, so the average is over post-update weights. Eager by construction
         # (this is the same region as optimizer.step, which torch.compile never sees) because
@@ -5672,6 +6059,15 @@ def main() -> None:
         print(f"weight_ema:        {USE_WEIGHT_EMA} decays={WEIGHT_EMA_DECAYS} "
               f"start_frac={WEIGHT_EMA_START_FRAC} seeded={ema_shadows is not None} "
               f"updates={ema_updates}")
+        # Plan §11.1 items 1-3, same one-line convention: every knob of the three schedule tricks
+        # on one line so two arms are distinguishable in experiment-log.jsonl without re-reading
+        # the run log (SUMMARY_KEYS in research/run_experiment.py has the matching entry).
+        print(f"sched_tricks:      demon_b1={DEMON_BETA1} demon_final={DEMON_BETA1_FINAL} "
+              f"demon_ref={DEMON_BETA1_REF} demon_start={DEMON_BETA1_START_FRAC} "
+              f"muon_b2={MUON_BETA2} muon_b2_final={MUON_BETA2_FINAL} "
+              f"depth_lr={MUON_DEPTH_LR_BOTTOM}->{MUON_DEPTH_LR_TOP} "
+              f"depth_mom={MUON_DEPTH_MOM_BOTTOM}->{MUON_DEPTH_MOM_TOP} "
+              f"depth_mom_ref={MUON_DEPTH_MOM_REF}")
         print(f"num_steps:         {step}")
         print(f"total_tokens_M:    {total_train_tokens / 1e6:.1f}")
         print(f"world_size:        {world_size}")

@@ -72,6 +72,9 @@ SUMMARY_KEYS = {
     # the whole result of the experiment, so it belongs in the log row, not just the run log.
     "weight_ema", "public_val_bpb_ema", "ema_delta", "eval_ema_seconds",
     "public_val_bpb_ema_alt", "ema_delta_alt", "weight_ema_arms",
+    # Plan 11.1 (2026-09-14): Recursive's three schedule tricks (Demon beta1, NorMuon beta2 ramp,
+    # per-depth Muon LR/momentum) on one line, same reasoning as ngram_ve above.
+    "sched_tricks",
 }
 LINE_RE = re.compile(r"^(" + "|".join(SUMMARY_KEYS) + r"):\s*(.+)$")
 
