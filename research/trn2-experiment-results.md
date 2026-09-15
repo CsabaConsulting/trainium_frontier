@@ -8004,3 +8004,134 @@ to catch.
 `research/run-logs/probe-d8w640-{ctrl,arm}.log`, `research/run-logs/depth8w640-{ctrl,arm}-900.log`.
 No `train.py` changes — `--depth` and `--n-embd` are pre-existing flags; `DEPTH=6`/`ASPECT_RATIO=96`
 stay locked.
+
+## 2026-09-15 — `--ngram-ve-table-mult 256` on top of the CURRENT locked two-injection-site config: the OTHER half of the dim/mult grid, and it CLOSES NEGATIVE by almost exactly the same margin as `--ngram-ve-dim 256` (track: capacity)
+
+Box 2 (`ec2-16-26-154-27`, trn2.3xlarge, LNC=2, 4 ranks), same commit as the `--ngram-ve-dim 256`
+re-measurement above (`train.py` unchanged between `df82d08` and this session's HEAD — confirmed by
+`md5sum` before running anything). This isolates the TABLE WIDTH axis alone
+(`--ngram-ve-table-mult 256`, `NGRAM_VE_DIM` left at its locked 128) — the other point on the same
+2-variable grid the section above probes with `--ngram-ve-dim 256` (table-mult left at its locked
+128). Together the two arms answer whether the historical pre-layer-1 "dim 256 + mult 128 runs at
+essentially base speed with 3.1× capacity" precedent survives, on either axis alone, at the now-locked
+two-site config.
+
+### 1. Confirmed current locked defaults, read directly from `train.py`
+
+```
+NGRAM_VE_LAYERS = "1,-1"        (line 599)
+NGRAM_VE_TABLE_MULT = 128       (line 661)
+NGRAM_VE_DIM = 128              (line 679)
+NGRAM_VE_TRIGRAM = True         (line 674)
+```
+All bare module-level defaults, so `ctrl` passes no `--ngram-ve-*` flags; `arm` adds exactly one:
+`--ngram-ve-table-mult 256`.
+
+### 2. Fresh 120-step calibration (`research/scratch/ngrammult256_calib.sh`)
+
+| arm | num_params | steady-state s/step (steps 40-110, n=8) | tok/s | step-110 loss |
+|---|---|---|---|---|
+| `ngm256-ctrl` (locked defaults) | 592,916,844 | 0.8438 (sd 0.26%) | 155,327 | 3.9372 |
+| `ngm256-arm` (+ `--ngram-ve-table-mult 256`) | 1,129,787,756 | 1.0371 (sd 0.32%) | 126,380 | 3.9351 |
+
+Control param count reproduces the locked config exactly (592.9M). The arm's table rows go
+`1,048,576 → 2,097,152` (`256 × padded_vocab_size` vs `128 ×`), dim unchanged at 128, for
+**+536.9M** parameters, all in the bigram+trigram tables at layers 1 and −1. `+22.9%` s/step /
+`−18.6%` tok/s at the 120-step proxy — a first sign this is a much bigger cost than the old
+single-site mult-128 precedent (`−3.64%`, 2026-09-12) and bigger than the two-site mult 64→128
+upgrade that got locked in (`+7.0%` s/step, from the 2026-09-14 "Item 6" table: 1723s/2187 steps →
+1800s/2135 steps).
+
+### 3. Paired ~900 s spot-check, step-matched via the calibration above, real `val_bpb`
+
+`research/scratch/ngrammult256_900s.sh`, via `research/run_experiment.py`, 4 ranks, LNC=2,
+`--eval-seq-len 1024`. Target: land the control at its natural flat 900 s (which the calibration
+puts at ~1066 steps), and pre-scale the arm's `--max-train-seconds` to `1066 × 1.0371 ≈ 1106 s` so
+both land at (approximately) the same step count "by construction" — the same convention items
+3/4/6 of the 2026-09-14 T1.7 section and the dim256 re-measurement above use. Bracketed by two
+fresh same-commit controls (first and last), one 4-rank job owning the box, serial.
+
+| arm | `max-train-seconds` | `training_seconds` | steps | `val_bpb`@2048 | `val_bpb`@1024 | params |
+|---|---|---|---|---|---|---|
+| `ngm256-ctrl-900s-r1` | 900 | 884.8 | 1048 | 1.053042 | 1.068291 | 592.9M |
+| `ngm256-arm-900s` | 1106 | 1091.0 | **1053** | 1.050478 | 1.065729 | 1129.8M |
+| `ngm256-ctrl-900s-r2` | 900 | 884.3 | 1052 | 1.052750 | 1.068017 | 592.9M |
+
+Raw delta (arm − control mean of r1/r2) is **−0.002418** (@2048) / **−0.002425** (@1024) — inside the
+0.001–0.003 band the standing noise-floor rule flags for a same-day paired repeat before trusting.
+
+### 4. Same-day paired repeat (`research/scratch/ngrammult256_900s_repeat.sh`), same discipline
+
+| arm | `max-train-seconds` | `training_seconds` | steps | `val_bpb`@2048 | `val_bpb`@1024 | params |
+|---|---|---|---|---|---|---|
+| `ngm256-ctrl-900s-r3` | 900 | 884.5 | 1053 | 1.052425 | 1.067721 | 592.9M |
+| `ngm256-arm-900s-r2` | 1106 | 1090.9 | **1053** | 1.050501 | 1.065690 | 1129.8M |
+| `ngm256-ctrl-900s-r4` | 900 | 884.5 | 1054 | 1.052783 | 1.067995 | 592.9M |
+
+**The two arm reps reproduce to 0.000023 (@2048) / 0.000039 (@1024)** — tighter than the four
+controls' own spread (0.000617 / 0.000570 max−min, sd 0.22% of the mean step count) — so this is a
+real, reproducible per-step effect, not noise riding on run-to-run drift.
+
+Pooling all four controls (mean 1051.75 steps, `val_bpb`@2048 1.052750, @1024 1.068006) against both
+arm reps (mean 1053.0 steps, @2048 1.050489, @1024 1.065710):
+
+- raw delta: **−0.002261** (@2048) / **−0.002296** (@1024)
+- step correction (arm ran 1.25 more steps on average, `0.077 × ln(1053.0/1051.75)`): **+0.0000915**
+- **step-normalised delta: −0.002169 (@2048) / −0.002205 (@1024)**
+
+**Real measured throughput cost, pooled across all 6 runs**: control mean dt **0.8410** s/step
+(155,700 tok/s equivalent), arm mean dt **1.0360** s/step — a **+23.19% s/step / −18.82% tok/s**
+cost, confirming the calibration's +22.9%/−18.6% to within 0.5 points. **This is ~3.3× the cost of
+the mult 64→128 upgrade that shipped** (+7.0% s/step) — table-mult's cost curve at the two-site
+config is not a flat multiplicative constant per doubling (unlike the `n_embd` width axis, which the
+2026-09-15 width=1024 section found to be exactly that); it accelerates.
+
+### 5. Break-even arithmetic (same method as the width=1024 and dim256 closures above)
+
+At the real 1800 s official budget, extrapolating each arm's own measured dt:
+- control: 1800 / 0.8410 ≈ **2140 steps**
+- arm: 1800 / 1.0360 ≈ **1737 steps**
+
+Forgone-steps penalty: `0.077 × ln(2140/1737) = 0.077 × 0.2086 = `**+0.01606 bpb**`.
+
+Net at 1800 s: `+0.01606 − 0.00221 = `**+0.01386 bpb WORSE**` than shipping the locked config as-is.
+
+**Throughput needed to break even**: solving `0.077 × ln(2140/x) = 0.00221` gives `x ≈ 2080` steps
+needed at 1800 s versus the ~1737 actually measured — the arm would need **+19.7% more throughput
+than it currently has** (dt 1.036 → 0.865 s/step) just to reach break-even. Nothing in this repo's
+queue is anywhere near that; the largest single throughput win in the whole n-gram-VE track
+(`--ngram-ve-layers "1,-1"` itself) was −5.86%, in the *wrong* direction for this comparison.
+
+**This is, to within noise, the SAME shortfall as `--ngram-ve-dim 256` measured in the section
+above**: dim256 needed +19.4% more throughput to break even (net +0.0137 worse), mult256 needs
++19.7% (net +0.0139 worse). The two axes cost almost the same (−19.25% vs −18.82% throughput) and
+fall short of break-even by almost the same margin, which is exactly what a cost model proportional
+to `rows × width` (the mechanism the `NGRAM_VE_DIM` train.py comment already documents for the
+gather/scatter/all-reduce cost) predicts: doubling either factor alone doubles the same product, so
+either axis alone should — and does — cost about the same and buy about the same capacity-per-bpb.
+The pre-layer-1 "capacity is nearly free" precedent (dim 256 + mult 128 together, one injection
+site) does not survive on EITHER axis alone at the two-site config, confirming §7's 2026-09-14
+lesson generalizes: a capacity axis's affordability at one injection site does not transfer to two,
+regardless of which factor (rows or width) supplies the capacity.
+
+### 6. Verdict: CLOSE NEGATIVE, do not adopt — no 1800 s confirming pair needed
+
+Per the assigned task's decision rule: the quality gain is real and reproducible (confirmed by a
+same-day paired repeat, since the raw single-block delta sat in the 0.001–0.003 band) but the
+throughput cost is large, real, and measured twice at two independent 120-step-to-decisive
+resolutions to agree within 0.5 points. `+0.01386` net worse at the real 1800 s budget is **~6.3×**
+the size of the quality gain it would need to repay, so the escalation to a confirming 1800 s paired
+run is **not warranted** — that gate is only for candidates that clear break-even at the spot-check,
+and this does not come close. `NGRAM_VE_TABLE_MULT` stays locked at 128; `--ngram-ve-table-mult 256`
+remains available as a flag but is confirmed not worth shipping on top of the two-injection-site
+config, same conclusion as `--ngram-ve-dim 256` above and by (as it turns out) almost exactly the
+same margin.
+
+**Scripts added**: `research/scratch/ngrammult256_calib.sh` (120-step calibration),
+`research/scratch/ngrammult256_900s.sh` (first paired real-`val_bpb` spot-check),
+`research/scratch/ngrammult256_900s_repeat.sh` (same-day confirming repeat). Logs:
+`research/run-logs/probe-ngm256-{ctrl,arm}.log`,
+`research/run-logs/ngm256-{ctrl-900s-r1,arm-900s,ctrl-900s-r2,ctrl-900s-r3,arm-900s-r2,ctrl-900s-r4}.log`.
+Rows `ngm256-ctrl-900s-r{1,2,3,4}` / `ngm256-arm-900s{,−r2}` in `research/experiment-log.jsonl`. No
+`train.py` changes — `--ngram-ve-table-mult` is a pre-existing flag; `NGRAM_VE_TABLE_MULT=128` stays
+locked.
