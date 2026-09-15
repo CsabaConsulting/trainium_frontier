@@ -9139,12 +9139,12 @@ survives SSH disconnects; each seed's full stdout+stderr is captured to
 |---|---|---|---|---|---|---|---|---|
 | 1  | 2118 | 1784.3 | 1847.7 | True | 0.000000 | False | **1.006380** | new coverage |
 | 2  | 2117 | 1784.2 | 1848.5 | True | 0.000000 | False | **1.006220** | new coverage |
-| 3  | pending | | | | | | | new coverage |
+| 3  | 2123 | 1784.6 | 1849.6 | True | 0.000000 | False | **1.005730** | new coverage |
 | 5  | pending | | | | | | | cross-box overlap with box 1's cheap-screen-BEST seed |
 | 8  | pending | | | | | | | new coverage |
 | 13 | pending | | | | | | | cross-box overlap with box 1's cheap-screen-WORST seed |
 
-Logs: `research/run-logs/seedhunt-box2-seed{1,2}-20260915.log` (seeds 1-2, done); remaining per-seed
-logs land as each run finishes.
+Logs: `research/run-logs/seedhunt-box2-seed{1,2,3}-20260915.log` (seeds 1-3, done); remaining
+per-seed logs land as each run finishes.
 
 *(Batch started; this section is updated and committed after each seed completes.)*
