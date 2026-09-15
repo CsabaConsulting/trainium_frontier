@@ -9453,6 +9453,7 @@ survives SSH disconnects; each seed's full stdout+stderr captured to
 | 300 | 2122 | 1784.8 | 1847.9 | 278.1 | True | 0.000000 | False | **1.005664** | new coverage — competitive with seed 3's runner-up range |
 | 400 | 2122 | 1784.7 | 1848.3 | 278.1 | True | 0.000000 | False | **1.006610** | new coverage |
 | 500 | 2119 | 1784.7 | 1849.3 | 277.7 | True | 0.000000 | False | **1.007222** | new coverage |
+| 600 | 2119 | 1784.5 | 1848.5 | 277.7 | True | 0.000000 | False | **1.008295** | new coverage |
 
 Logs: `research/run-logs/seedhunt-box2-batch2-seed{200,300,400,500,600,700}-20260915.log` (filled in
 as each completes); start/end markers in `research/scratch/seedhunt_batch2_progress.log`.
