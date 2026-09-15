@@ -7281,9 +7281,11 @@ never 84 ms of gather to recover, whatever the address mode.
 
 ### 5. What this does to the two escalation targets named in the brief
 
-- **Layer 3 affordability (`--ngram-ve-layers "1,3,-1"`)**: already affordable — +1.5 ms micro, ~1%,
-  at 4 ranks. Nothing needed to be made affordable. It remains rejected on **quality** (proxy 3.9973 /
-  3.9855 vs 3.9608 control) and no throughput work can change that.
+- **Layer 3 affordability (`--ngram-ve-layers "1,3,-1"`)**: already affordable without any fix — +1.5
+  ms micro (~1%) in single-table isolation at 4 ranks, and **+1.6% micro / +4.4% step in the real
+  six-table shipped shape** (§9). Nothing needed to be made affordable. It stays rejected because it
+  is **both slower than the data wall can absorb and worse per step** (proxy 3.9973 / 3.9855 vs 3.9608
+  control), which no throughput work can change.
 - **width = 768 break-even (needs +8.82% after `--no-nki-rope-norm` on both arms)**: the reshard hunt
   delivers **0%** toward it, because the dynamic address was worth 0 ms. The gap is untouched.
 
@@ -7441,3 +7443,32 @@ trade worth making. **No flag was added.**
 The kernel is kept in `research/scratch/` as a working, verified reference for the one thing it
 established that is genuinely reusable: **on Trn2 / NKI 0.5.0, indirect *gather* is expressible and
 fast, indirect *scatter* is not expressible at all.**
+
+### 9. Block G — layer 3 priced in the config that would actually ship it, and it loses on BOTH axes
+
+§2 Result 2 showed layer 3 costs ~1% with **one** bigram table in isolation. §7b then showed
+single-table isolation is not predictive of the shipped shape, so that number does not license a claim
+about `NGRAM_VE_LAYERS="1,3,-1"`. Block G (`research/scratch/reshard_probe_g.sh`,
+`research/run-logs/reshard-g/`) measures the real thing — bigram **and** trigram on layers 1, 3 and 5,
+six tables:
+
+| arm | tables | positions | num_params | fwd ms | micro ms (r0..r3) | rank-mean micro | step s |
+|---|---|---|---|---|---|---|---|
+| **`g1-l135-tri`** | **6 (bi+tri)** | **{1,3,5}** = `"1,3,-1"` | 727,216,652 | 56.59 | 168 170 168 169 | **168.6** | **0.9022** |
+| `g2-l15-tri` | 4 (bi+tri) | {1,5} = shipped | **592,916,844** | 55.66 | 167 167 165 165 | **166.0** | **0.8641** |
+| `g3-l135-bi` | 3 (bi) | {1,3,5} | 458,617,036 | 55.68 | 162 163 162 162 | **162.1** | 0.8347 |
+
+`g2` reproduces `f4` to **0.1 ms on micro and 0.3% on step** (166.0 / 0.8641 vs 166.1 / 0.8666) — a
+fourth independent measurement of the shipped configuration across three separate sessions.
+
+**Adding layer 3 to the shipped config costs +2.6 ms micro (+1.6%) and +0.0381 s/step (+4.4%)**, where
+the step-side share is mostly optimizer work on 134.3 M extra parameters rather than the injection
+itself (the forward window moves only +0.93 ms). The bigram-only pair `g3` vs `f3` agrees: +2.8 ms
+(+1.8%).
+
+**So layer 3 is affordable — and it still loses, now on both axes at 4 ranks in the shipped shape.** It
+costs **+4.4% of step time**, which is *more than the entire +2.8% the data wall can absorb* (§5), and
+it buys **worse** per-step quality (120-step proxy 3.9855 with layer 1, 3.9973 alone, against a 3.9608
+control). A config that is both slower and worse per step needs no further arbitration.
+`NGRAM_VE_LAYERS` stays `"1,-1"`. The brief's escalation question is closed with the number it asked
+for, and the answer is that the +47.7 ms it was premised on never existed at 4 ranks anyway.
