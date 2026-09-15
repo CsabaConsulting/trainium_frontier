@@ -24,8 +24,10 @@ model at the locked config, CPU fp32, bitwise where bitwise is the standard:
      (4a) plumbing: with NEUTRAL multipliers (mom bottom == top == ref, lr 1.0) the [K,1,1]
           operand path is bitwise identical to the 0-dim path it replaces. This is the one that
           catches a broadcasting or rounding mistake, because the answer is known exactly.
-     (4b) a UNIFORM lr multiplier c equals scaling MATRIX_LR by c (to fp32 rounding, not bitwise:
-          lr*ratio*c and (lr*c)*ratio round differently).
+     (4b) a UNIFORM lr multiplier c equals scaling the Muon groups' lr by c (to fp32 rounding, not
+          bitwise: lr*ratio*c and (lr*c)*ratio round differently). The Muon groups' lr, NOT the
+          module-level MATRIX_LR -- that constant is also the lr of three AdamW groups per-depth
+          Muon scaling cannot reach, so scaling it is not the same experiment.
      (4c) a real ramp actually ramps: per-layer parameter deltas must be monotone in layer index
           in the direction the multipliers say, and the depth map must assign every block matrix
           its own block index.
@@ -89,11 +91,17 @@ def make_grads(model, step):
             for n, p in model.named_parameters()}
 
 
-def run(mod, model, grads_per_step, *, progress_of_step=None):
+def run(mod, model, grads_per_step, *, progress_of_step=None, muon_lr_scale=1.0):
     """STEPS optimizer steps, driving the per-step schedule writes the training loop does.
 
     `progress_of_step(s)` supplies the wall-clock progress fraction; the default sweeps 0 -> 1 so
     every schedule under test is actually exercised over its whole range within STEPS steps.
+
+    `muon_lr_scale` multiplies ONLY the Muon groups' lr. Used by (4b) as the reference for a uniform
+    per-depth lr multiplier. Scaling the module-level MATRIX_LR would NOT be a valid reference:
+    MATRIX_LR is also the lr of three AdamW groups (the qk/ve gates, local_conv, engram_conv --
+    train.py:3234/3278/3283), which per-depth Muon scaling cannot reach, so that comparison would
+    fail on parameters the feature does not touch.
     """
     if progress_of_step is None:
         def progress_of_step(s):
@@ -109,6 +117,7 @@ def run(mod, model, grads_per_step, *, progress_of_step=None):
         for grp in opt.param_groups:
             grp["lr"] = grp["initial_lr"] * (1.0 - 0.3 * prog)
             if grp["kind"] == "muon":
+                grp["lr"] *= muon_lr_scale
                 grp["momentum"] = mod.muon_momentum(s, prog)
                 if mb2 is not None:
                     grp["beta2"] = mb2
@@ -265,7 +274,7 @@ opt_neutral = run(T, m_neutral, grads)
 all_ok &= compare("(4a) per-depth ON with neutral multipliers vs OFF -- must be bitwise equal",
                   m_off, m_neutral, opt_off, opt_neutral)
 
-# ---- (4b) a uniform lr multiplier == scaling MATRIX_LR ------------------------------------
+# ---- (4b) a uniform lr multiplier == scaling the Muon groups' lr --------------------------
 # Run in fp32 COMPUTE_DTYPE. The claim being tested is "the [K,1,1] lr operand carries the same
 # number the 0-dim one does", whose only slack is fp32 reassociation (lr*ratio*c vs (lr*c)*ratio) --
 # ~1e-7 relative. Under the default bf16 compute dtype the Newton-Schulz iterate and hence the whole
@@ -281,25 +290,31 @@ T.MUON_DEPTH_LR_BOTTOM = T.MUON_DEPTH_LR_TOP = C
 opt_mult = run(T, m_mult, grads)
 reset_flags()
 T.COMPUTE_DTYPE = torch.float32
-saved_lr = T.MATRIX_LR
-T.MATRIX_LR = saved_lr * C
 m_lr = build(T)
-opt_lr = run(T, m_lr, grads)
-T.MATRIX_LR = saved_lr
-all_ok &= compare(f"(4b) uniform depth lr x{C} vs MATRIX_LR x{C} -- equal to fp32 rounding",
-                  m_lr, m_mult, opt_lr, opt_mult, tol=2e-7)
+opt_lr = run(T, m_lr, grads, muon_lr_scale=C)
+# The Muon groups also hold matrices that are not inside a block (the n-gram up-projections), and
+# muon_depth_mults deliberately gives those a multiplier of 1.0 -- "bottom" and "top" are layer
+# indices, and a table that belongs to no layer has no depth to interpolate. So they MUST differ
+# here, and requiring them to differ is the check that the exclusion is real rather than accidental.
+non_block = sorted(n for n in group_names(m_lr)[0].get("muon", ())
+                   if not n.startswith("transformer.h."))
+print(f"\nMuon-group params outside the blocks (multiplier pinned to 1.0): {non_block}")
+all_ok &= compare(f"(4b) uniform depth lr x{C} vs Muon-group lr x{C} -- equal to fp32 rounding "
+                  f"on the block matrices, and the non-block matrices must NOT follow",
+                  m_lr, m_mult, opt_lr, opt_mult, expect_differ=tuple(non_block), tol=2e-7)
 T.COMPUTE_DTYPE = saved_dtype
 
 # ---- (4c) a real ramp ramps, and the depth map is right -----------------------------------
 print("\n--- (4c) the depth map and the ramp's direction ---")
 reset_flags()
 m_base = build(T)
-_, opt_probe = group_names(m_base)
-ids = {id(p): n for n, p in m_base.named_parameters()}
 T.MUON_DEPTH_LR_BOTTOM, T.MUON_DEPTH_LR_TOP = 1.15, 0.85
 T.MUON_DEPTH_MOM_BOTTOM, T.MUON_DEPTH_MOM_TOP = 0.90, 0.97
 m_depth = build(T)
 opt_depth = m_depth.setup_optimizer()
+# ids must come from m_depth: opt_depth's groups hold m_depth's parameter objects, and id() of a
+# same-named parameter in m_base is a different object.
+ids = {id(p): n for n, p in m_depth.named_parameters()}
 map_ok, ramp_ok = True, True
 for g in opt_depth.param_groups:
     if g["kind"] != "muon":

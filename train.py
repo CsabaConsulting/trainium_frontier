@@ -3544,22 +3544,35 @@ def _muon_math(w, g, momentum_buffer, second, mom, one_mom, lr, lrwd,
 
 
 def _muon_lr_g(lr, g):
-    """`lr * g`, with the result dtype pinned to g's.
+    """`lr * g`, computed the way a 0-dim `lr` computes it whatever `lr`'s shape.
 
     Plan §11.1 item 3 makes `lr` a [K, 1, 1] operand instead of a 0-dim one, and that flips
-    PyTorch's type promotion: a 0-dim fp32 tensor is DEMOTED to the bf16 of the dimensioned operand
-    (result bf16), a dimensioned fp32 tensor is not (result fp32). Left alone, per-depth scaling
-    would therefore also silently upgrade the precision of this one product -- a second, unintended
-    change riding along with the one being measured, on the arm least able to afford a confound.
+    PyTorch's type promotion. `g` is bf16 here (the Newton-Schulz iterate) while `lr` is fp32:
 
-    Rounding back to g's dtype reproduces the 0-dim path bit for bit rather than approximately:
-    both forms compute the product with fp32 opmath and round once at the end. With a 0-dim `lr`
-    the cast is a no-op that returns `self`, so the default path is untouched -- checked by the
-    bitwise neutral-multiplier case in research/scratch/sched_tricks_equiv.py, which would fail on
-    exactly this if the cast were missing.
+      * 0-dim `lr`  -> same-category, so the 0-dim operand's dtype loses. Common dtype is bf16, and
+        TensorIterator CASTS lr to bf16 before multiplying. The product is bf16 of a bf16 lr.
+      * [K,1,1] `lr` -> both dimensioned, so common dtype is fp32: lr keeps its full precision and
+        the product comes out fp32.
+
+    Left alone, the per-depth arm would therefore also carry a silent precision UPGRADE of the
+    weight update -- roughly 0.4% of relative lr accuracy recovered -- riding along with the change
+    being measured, on the arm least able to afford a confound. Measured, not theorised:
+    research/scratch/sched_tricks_probe.py intercepts `_muon_math` and shows every scalar operand
+    bit-identical and only `w_out` differing, by ~3e-5 on fp32 weights, with neutral multipliers.
+
+    So the cast happens BEFORE the multiply, not after: rounding the fp32 product back to bf16 is
+    NOT the same number, because the 0-dim path rounds lr first and the product second. This is what
+    makes the neutral-multiplier case in research/scratch/sched_tricks_equiv.py bitwise.
+
+    Recorded while here, as a separate matter: the locked path really does round lr to bf16 before
+    scaling the update, i.e. every Muon group's effective lr carries up to ~0.4% quantisation error.
+    It is uniform per group per step, so it acts as tiny lr jitter rather than as noise on the
+    direction -- but keeping lr in fp32 is a candidate free win in its own right, and it must be its
+    own flag and its own A/B, not something smuggled in under per-depth scaling.
     """
-    out = lr * g
-    return out if out.dtype == g.dtype else out.to(g.dtype)
+    if isinstance(lr, torch.Tensor) and lr.dim() > 0 and lr.dtype != g.dtype:
+        lr = lr.to(g.dtype)
+    return lr * g
 
 
 def _cautious_weight_decay_(params, update, lr, wd) -> None:
