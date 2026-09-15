@@ -9095,7 +9095,7 @@ checkout re-verified byte-identical to the local repo before the batch started.
 |---|---|---|---|---|---|---|---|---|---|
 | 5   | 2135 | 1785.0 | 1847.3 | 279.8 | True | 0.000000 | False | 1.009551 | cheap-screen BEST (300-step proxy 1.221123) |
 | 13  | 2135 | 1784.7 | 1847.5 | 279.8 | True | 0.000000 | False | 1.010303 | cheap-screen WORST (300-step proxy 1.228437) |
-| 34  | pending | | | | | | | | new coverage |
+| 34  | 2133 | 1784.6 | 1846.9 | 279.6 | True | 0.000000 | False | 1.010748 | new coverage |
 | 55  | pending | | | | | | | | new coverage |
 | 89  | pending | | | | | | | | new coverage |
 | 144 | pending | | | | | | | | new coverage |
