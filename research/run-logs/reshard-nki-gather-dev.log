@@ -1,0 +1,35 @@
+[W915 03:19:28.458219590 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[nkg] device=neuron V=1048576 D=128 BT=8192
+[nkg] CHECK1/2 vector_offset=    rows: ran OK, exact=True
+2026-Sep-15 03:19:40.252766 285138:285156 ERROR  TDRV:exec_process_custom_notification        nd0:nc4:h_model.id1005: Received notification generated at runtime: scatter/gather (indirect memory copy via vector DGE) out-of-bound access. model name = module.neff. device IP = 0x00008005c0669080, neff instruction index = 4
+2026-Sep-15 03:19:40.257536 285138:285156 ERROR  TDRV:oob_debug_log_source_info               
+scatter/gather (indirect memory copy via vector DGE) out-of-bound access
+model=module.neff
+nd0:nc4 neff_idx=4 subgraph=0 engine=GPSIMD
+Source location: /home/ubuntu/trainium_frontier/research/scratch/nki_ngram_gather_dev.py:112
+No stack trace found for neff_idx=4
+IR trace:
+  [backend] I-1_inst__I-4-0
+For more debug info, try recompiling the model with:
+  export DEBUG_KERNEL=True
+  export XLA_IR_DEBUG=1
+  export XLA_HLO_DEBUG=1
+  export NEURON_FRAMEWORK_DEBUG=1
+
+2026-Sep-15 03:19:40.257560 285138:285156 ERROR  TDRV:exec_process_custom_notification        nd0:nc4:h_model.id1005: Received notification generated at runtime: scatter/gather (indirect memory copy via vector DGE) out-of-bound access. model name = module.neff. device IP = 0x00008005c06690c0, neff instruction index = 5
+2026-Sep-15 03:19:40.261913 285138:285156 ERROR  TDRV:exec_request_process_errors             [ND 0][NC 4] Out of bounds access on model module.neff
+[nkg] CHECK1/2 vector_offset=elements: FAILED RuntimeError: NRT Execution error occurred on Neuron for operation=nki_kernel_global
+error message="NRT EXECUTION FAILED: Async execution failed with NRT status: 1006, one or more indirect memcopies and/or embedding updates are out of bound"
+Note: Neuron errors are reported asynchronously. The Python traceback shows where the
+error was detected (synchronization point), not necessarily where the failing operatio
+[nkg] => vector_offset convention is ROWS
+[nkg] CHECK3 forward @ V=1048576 D=128 BT=8192: exact=True max|diff|=0.000e+00
+[nkg] CHECK4 backward: exact=True max|diff|=0.000e+00
+[nkg] CHECK5 isolated fwd: reference table[idx]   0.434 ms   NKI kernel   0.066 ms   ratio 0.15x
+[nkg] done

@@ -7090,7 +7090,7 @@ checkpoint, do not scale with `n_embd`), so `CHECKPOINT_RESERVE_SECONDS = 15.0` 
   Part A copy (see the correction note there). Committing raw run logs is what made that recoverable;
   keep doing it.
 
-## 2026-09-15 — The LNC=2 resharding mechanism is a **one-rank artefact** and does not exist at the competition shape; the one-hot matmul is priced at **1234×**; NKI's indirect-scatter wall is documented. Reshard hunt CLOSED NEGATIVE, and it hands back a **new, larger, unattributed +53% layer-1 penalty**
+## 2026-09-15 — The LNC=2 resharding mechanism is a **one-rank artefact** and does not exist at the competition shape; the one-hot matmul is priced at **1234×**; the NKI indirect gather works and is bit-exact but is worth 0.0005 bpb. Reshard hunt CLOSED NEGATIVE on all four options, with the mechanism **falsified rather than merely unprofitable**
 
 Box 2 (`ec2-16-26-154-27`, trn2.3xlarge, LNC=2, 4 ranks). Drivers
 `research/scratch/reshard_probe.sh` (Block A), `research/scratch/onehot_gather_bench.py`,
@@ -7292,26 +7292,152 @@ never 84 ms of gather to recover, whatever the address mode.
 steps, worth `0.077 · ln(2195/2135) ≈ 0.0021 bpb` — at the edge of the 0.003 paired-repeat floor.
 Anything past +2.8% must be spent on capacity, and the measured capacity spends are tiny per-step
 (l1+dim256+mult128 proxy 3.9325 vs locked 3.9343 for −18.6% throughput). This is the arithmetic that
-should gate any future throughput hunt on this config, including the layer-1 penalty in §2 Result 3:
-even collapsing all 83.4 ms would mostly have to be spent on capacity, not steps.
+should gate any future throughput hunt on this config: **+2.8% is the entire step-side prize, and it
+is worth 0.0021 bpb.** It is the reason the NKI gather's verified 0.68% projection in §8 is not worth
+shipping, and it would have capped the value of the layer-1 penalty in §2 Result 3 even if §7b had not
+shown the shipped config does not pay it.
 
-### 6. Verdict, and the target this hands back
+### 6. Verdict
 
 **Reshard hunt: CLOSED NEGATIVE, with the mechanism falsified rather than merely unprofitable.** No
 change to `train.py`; no flag added, because there is nothing to gate. The specific technical reasons
-are §2 Result 1 (static == dynamic at 4 ranks in all three positions), §3 (one-hot loses by ≥26× at
-every R, with no crossover above R ≈ 1024), and §4 (Trn2 has no indirect scatter, so the backward is
-inexpressible, and the forward's DMA floor is already met by `table[idx]` at 0.484 ms).
+are §2 Result 1 (static == dynamic at 4 ranks in all three positions, so there is no resharding cost
+to remove), §3 (the one-hot matmul loses by ≥26× at every R, with no crossover above R ≈ 1024), and §4
+(Trn2 has no indirect scatter, so a NKI n-gram path is necessarily forward-only). The forward gather
+*was* then built and does work — §8 — but its verified win is 0.68% of a step, worth 0.0005 bpb,
+i.e. below the noise floor and far below the +2.8% the data wall can even absorb (§5).
 
-**Three corrections this leaves in the document:** the 2026-09-12 resharding root-cause is a 1-rank
+**Four corrections this leaves in the document:** the 2026-09-12 resharding root-cause is a 1-rank
 artefact and should not be cited for the competition shape; the "one burst per downstream boundary"
-law never fitted its own `{1}` datapoint; and the `static` gather arm was never evidence about
-one-hot matmuls.
+law never fitted its own `{1}` datapoint; the `static` gather arm was never evidence about one-hot
+matmuls; and Probe 3 Part D's rope-kernel "inversion" is real but its sign and 396 ms magnitude are a
+property of *single-early-injection* configs (§7a), not of the shipped one.
 
-**The live target it hands back**, strictly better than the one it closed: **+83.4 ms/micro (+53.6%)
-for injecting at layer 1 instead of layer 5, at identical parameters, not caused by the dynamic
-address, and 175× larger than the gather op itself** — plus its likely twin, **one table making the
-model 27.7% faster than no table**. Both are whole-graph scheduling effects of injection *position*,
-which means no change to how the gather is *spelled* can touch either. That is being investigated
-next (Blocks E and F: NKI-island interaction, and whether the shipped `1,-1` pair pays the penalty at
-all).
+**The live target it appeared to hand back** — +83.4 ms/micro (+53.6%) for injecting at layer 1
+instead of layer 5, not caused by the dynamic address, 175× larger than the gather op itself — turned
+out on investigation (Blocks E/F below) to be **a property of layer 1 being the *only* injection
+position**, which the shipped config is not. §7 closes it. So the reshard hunt hands back no live
+throughput target at all.
+
+### 7. Blocks E and F: the layer-1 penalty is real, is a compiler *scheduling* effect, and **the shipped config does not pay it**
+
+Two follow-up blocks, same instrument and same isolation, `research/scratch/reshard_probe_e.sh` and
+`reshard_probe_f.sh`, JSON in `research/run-logs/reshard-{e,f}/`.
+
+#### 7a. Block E — the rope+QK-norm NKI kernel is not the *carrier* of the penalty, it is the *mitigator*
+
+Probe 3 Part D (2026-09-14) found the hand-written rope+QK-norm NKI kernel **inverts** in the presence
+of a layer-1 n-gram injection: worth +7.92% without it, −1.34% with it. Its stated explanation was
+resharding making each NKI island a forced materialisation point — now falsified. The 2×2 tests
+whether the *observation* survives, and in which direction. Rank-mean of min-of-3, all four ranks:
+
+| arm | position | rope+norm kernel | softcap+CE kernel | fwd ms | micro ms (r0..r3) | rank-mean micro | step s |
+|---|---|---|---|---|---|---|---|
+| `e1-l5-kon` | 5 | **on** | on | 52.92 | 157 157 159 158 | **157.6** | 0.7520 |
+| `e2-l5-koff` | 5 | off | on | 52.15 | 149 150 148 150 | **149.3** | 0.7125 |
+| `e3-l1-kon` | 1 | **on** | on | 136.64 | 239 239 240 240 | **239.4** | 1.0819 |
+| `e4-l1-koff` | 1 | off | on | **524.02** | 625 629 626 630 | **627.5** | 2.6307 |
+| `e5-l1-nosc` | 1 | on | off | 142.04 | 245 243 243 245 | **243.9** | 1.1037 |
+| `e6-l1-nokern` | 1 | off | off | 531.32 | 635 634 635 635 | **634.9** | 2.6566 |
+
+**The interaction is enormous and its sign is position-dependent:**
+
+| | rope kernel ON | rope kernel OFF | what the kernel is worth |
+|---|---|---|---|
+| injection at layer 5 | 157.6 ms | 149.3 ms | **−8.3 ms** (the kernel *costs* 5.6%) |
+| injection at layer 1 | 239.4 ms | 627.5 ms | **+388.1 ms** (the kernel *saves* 2.62×) |
+
+So the kernel's value swings by **396 ms**, from −5.3% to +162%, purely on where the n-gram table is
+injected. Part D's 9.4-point swing was a shadow of this, measured in the shipped config where — per
+§7b — the pathology is already suppressed.
+
+Read the other way: the raw layer-1-vs-layer-5 position penalty is **+478.2 ms** with the kernel off,
+and the NKI island absorbs **396.4 ms of it, 82.9%**, leaving the +81.8 ms that Block A saw. The
+kernel was never the problem; it was already most of the fix.
+
+**The softcap+CE island is innocent**, and this is a clean control rather than an assumption:
+`e5` costs +4.5 ms (+1.9%) over `e3`, and `e6` costs +7.4 ms over `e4` — the *same small magnitude in
+both regimes*, i.e. it does not interact with position at all. The two NKI islands are independent and
+only the rope+norm one participates.
+
+`e4`/`e6` also carry an operational tell: their cold compiles took **250 s and 431 s** against 60–90 s
+for every other arm. Whatever `neuronx-cc` does with an early injection and no NKI island is
+pathological at compile time as well as at run time.
+
+#### 7b. Block F — the shipped `1,-1` config does not pay the penalty, because the layer-5 table rescues layer 1
+
+Every Block A/E arm is a config nobody ships: one table, one position. The locked config is
+`NGRAM_VE_LAYERS="1,-1"` with `NGRAM_VE_TRIGRAM=True`, i.e. bigram **and** trigram on layers 1 **and**
+5 — four tables. Block F measures the sets:
+
+| arm | tables | positions | num_params | fwd ms | micro ms (r0..r3) | rank-mean micro | step s |
+|---|---|---|---|---|---|---|---|
+| `f1-l5-only` | 1 (bi) | {5} | 190,017,420 | 54.81 | 159 158 158 158 | **158.1** | 0.7537 |
+| `f2-l1-only` | 1 (bi) | {1} | 190,017,420 | 137.76 | 241 240 241 239 | **240.3** | 1.0785 |
+| `f3-l15-both` | 2 (bi) | {1,5} | 324,317,228 | 54.98 | 159 160 159 158 | **159.3** | 0.7903 |
+| **`f4-l15-tri`** | **4 (bi+tri)** | **{1,5}** | **592,916,844** | **55.40** | 167 166 166 165 | **166.1** | **0.8666** |
+| `f5-l5-tri` | 2 (bi+tri) | {5} | 324,317,228 | 55.97 | 159 161 159 160 | **160.0** | 0.7890 |
+
+`f4`'s `num_params` is **592,916,844**, which is exactly the locked config's own parameter count (cf.
+the `w1024-ctrl-r1` row in the width sweep above). **`f4` is the shipped configuration.**
+
+**Result — adding a layer-5 table makes the layer-1 pathology vanish.** `f2` ({1} alone) is 240.3 ms;
+`f3` ({1,5}) is **159.3 ms**, i.e. **81 ms FASTER while carrying an additional 134 M-param table**.
+And `{1,5}` costs only **+1.2 ms (+0.8%)** over `{5}` alone. At the real table set, `f4` vs `f5` — the
+marginal cost of *adding the layer-1 position* to the shipped layer-5 set — is **+6.1 ms micro
+(+3.8%)** and +9.8% on step time, where the step delta is mostly optimizer work on 268.6 M extra
+parameters rather than the injection.
+
+**This independently reproduces T1.7's −5.86%** throughput for adding layer 1, measured on 2026-09-14
+with `train.py`'s own tok/s instrument on a completely different code path. Two instruments, same
+answer.
+
+**So the +53.6% layer-1 penalty is real but unshippable-config-only, and the shipped config pays
++3.8%.** There is no live throughput target here.
+
+**What the effect actually is, stated only as far as the data supports.** The graph's schedule depends
+on the **set** of injection positions and is **not monotone** in count, position, parameters or bytes:
+{} = 215.2 ms (slow), {1} = 240.3 (slow), {3} = 157.2 (fast), {5} = 155.7 (fast), {1,5} = 159.3
+(fast). Adding a table can remove 81 ms; removing all tables costs 59 ms. This is a `neuronx-cc`
+scheduling lottery, and the honest statement is that **the shipped set happens to sit in the fast
+regime** — the same conclusion the 1-rank `{1}` = +5.3 ms vs `{3}` = +47.7 ms anomaly in §1 was
+already pointing at, before it was fitted to a per-boundary law. Anything that perturbs the injection
+set should be re-timed rather than reasoned about.
+
+Note also that `--no-nki-rope-norm` on the *shipped* config was already priced independently at
+**+1.36%** throughput and per-step-neutral (Probe 3, `ab-norope` ×3, and declined at −0.0010 bpb).
+That small number is exactly what §7a predicts: in a config containing a layer-5 table, the kernel is
+near-neutral. It is only in the pathological single-early-injection regime that it is worth 2.62×.
+
+### 8. The NKI gather kernel was built and it works — bit-exact both directions, 6.6× faster in isolation, and still not worth shipping
+
+`research/scratch/nki_ngram_gather_dev.py` ran to completion. Since §2 had already removed the reason
+to want it, this is reported as a capability result rather than a candidate.
+
+- **`vector_offset` is in ROWS, not elements.** The two candidate kernels discriminate unambiguously
+  (small table pre-filled so `table[r,:] == r`): the rows variant returned `exact=True`; the
+  element-scaled variant hard-faulted with
+  `scatter/gather (indirect memory copy via vector DGE) out-of-bound access ... NRT status: 1006`
+  from `engine=GPSIMD` — which also confirms the SWDGE/GpSimdE lowering predicted in §4.
+- **Forward is bit-exact at the real locked shape** (`V=1048576, D=128, BT=8192`, bf16):
+  `exact=True max|diff|=0.000e+00`.
+- **Backward is bit-exact** through the autograd wrapper (`index_put_(accumulate=True)`, the same
+  aten call `index_backward` makes): `exact=True max|diff|=0.000e+00`.
+- **In isolation the kernel is 6.6× FASTER than `table[idx]`**: 0.066 ms vs 0.434 ms (ratio 0.15×).
+
+So the "hard NKI expressiveness wall" of §4 is real for the *backward* but the forward not only works,
+it wins — the single-instruction indirect `dma_copy` beats aten's gather, presumably by skipping index
+dtype promotion and bounds checking.
+
+**And it is still not worth putting in `train.py`.** The isolated saving is 0.368 ms per table. Even
+assuming it composes perfectly across all four shipped tables, that is ~1.5 ms of a 166.1 ms
+micro-step, ~5.9 ms of an 866.6 ms step = **0.68%**, worth `0.077 · ln(1.0068) ≈ 0.0005 bpb` — below
+the 0.001 single-run noise floor, before any of it is even claimed to survive `torch.compile`
+scheduling. And §2 Result 1 is the direct in-graph measurement that address handling is worth 0.0 ±
+1.6 ms, so the isolated eager win should not be expected to transfer at all. Adding a hand-written
+kernel plus a custom autograd `Function` to the submission surface for a projected 0.0005 bpb is not a
+trade worth making. **No flag was added.**
+
+The kernel is kept in `research/scratch/` as a working, verified reference for the one thing it
+established that is genuinely reusable: **on Trn2 / NKI 0.5.0, indirect *gather* is expressible and
+fast, indirect *scatter* is not expressible at all.**
