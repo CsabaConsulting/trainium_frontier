@@ -9142,9 +9142,23 @@ survives SSH disconnects; each seed's full stdout+stderr is captured to
 | 3  | 2123 | 1784.6 | 1849.6 | True | 0.000000 | False | **1.005730** | new coverage |
 | 5  | 2123 | 1784.2 | 1847.5 | True | 0.000000 | False | **1.010524** | cross-box overlap with box 1's cheap-screen-BEST seed |
 | 8  | 2123 | 1784.7 | 1847.6 | True | 0.000000 | False | **1.006441** | new coverage |
-| 13 | pending | | | | | | | cross-box overlap with box 1's cheap-screen-WORST seed |
+| 13 | 2123 | 1784.2 | 1847.1 | True | 0.000000 | False | **1.011495** | cross-box overlap with box 1's cheap-screen-WORST seed |
 
-Logs: `research/run-logs/seedhunt-box2-seed{1,2,3,5,8}-20260915.log` (seeds 1-3,5,8 done); remaining
-per-seed logs land as each run finishes.
+Logs: `research/run-logs/seedhunt-box2-seed{1,2,3,5,8,13}-20260915.log` (all 6 seeds done); start/end
+markers in `research/scratch/seedhunt_progress.log`.
 
-*(Batch started; this section is updated and committed after each seed completes.)*
+### Batch complete
+
+All 6 seeds ran to completion, causality clean (`causality_max_abs=0.000000`) and `over_budget=False`
+on every run. Within this batch: **best = seed 3, `public_val_bpb=1.005730`**; **worst = seed 13,
+`public_val_bpb=1.011495`** — a spread of 0.005765 bpb across just these 6 seeds, consistent with
+(slightly under) box 1's earlier-measured 3-seed floor of max−min 0.006136 (seeds 42/43/44). Combined
+with the pre-existing points (42→1.004355, 43→1.008910, 44→1.010491, 7→1.006322), the full known set
+across both boxes is now 10 seeds: `{1:1.006380, 2:1.006220, 3:1.005730, 5:1.010524, 7:1.006322,
+8:1.006441, 13:1.011495, 42:1.004355, 43:1.008910, 44:1.010491}` — current best overall remains **seed
+42 at 1.004355** (the existing default), with this batch's seed 3 a close second at 1.005730. No
+`train.py` changes made; box 1's own concurrent batch (5,13,34,55,89,144) still needs to land and be
+reconciled before any final "best of ~10-20" lock-in decision.
+
+**Verdict: pure measurement, no code changes, no default changed.** `train.py`'s `SEED` default is
+untouched, per the task brief — this section only gathers data for a later, separate lock-in decision.
