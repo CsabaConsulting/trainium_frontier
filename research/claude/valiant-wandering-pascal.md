@@ -169,6 +169,39 @@ flagged, default OFF; locked config bit-identical (proven, not argued). Control 
   The historical scalar-group NaN is now structurally unreachable: `setup_optimizer` raises on any
   `ndim > 1` member of `scalar_params` (currently 12 shape-(1,) tensors and nothing else).
 
+## 2026-09-15 — width sweep extended to `n_embd=1024`: CLOSED NEGATIVE, and the width axis is closed with a mechanism
+One 120-step spot-check on box 2, bracketed by two 640×6 controls (driver
+`research/scratch/tc_probe3f_width1024.sh`, dated section in `research/trn2-experiment-results.md`).
+`train.py` **untouched** — `--n-embd`/`--depth` already existed from T0.2.
+- **The new row**: 1024×6, 654.9M params, 8.086e8 flops/token, **1.35420 s/step** (96789 tok/s,
+  **−37.55%** vs the screen control), **1329 steps @1800 s**, step-110 loss **3.8633**, 120-step
+  `val_bpb`(1024) **1.357624**, `causality_max_abs` **0.000000**. Best per-step shape ever measured
+  here on both quality instruments; nothing had to be forced (no OOM, no flags, no assertion —
+  `NGRAM_VE_DIM=128` is absolute so the tables do not scale with `n_embd`, and the whole 592.9M→654.9M
+  is dense backbone 55.7M→117.5M).
+- **The cost per +128 of width is a flat ×1.17 on step time** (×1.1716 / ×1.1786 / ×1.1598) ⇒ a
+  constant **≈ +0.0121 bpb** of forgone steps. It does **not** accelerate; the "−14.65% → −27.58% →
+  −37.55%" sequence only *looks* decelerating because a "% of control" metric saturates. Utilisation
+  actually improves with width (+11.5% → +19.4% → **+26.5%** flops/s), which is why the cost is
+  sublinear in FLOPs.
+- **The benefit curve turned over at 896.** Marginal quality per +128 peaks at the 768→896 step
+  (−0.0350 train loss / −0.0144 120-step bpb) and is smaller at 896→1024 (−0.0288 / −0.0050) at the
+  same cost. Extrapolating from the 896 anchor, 1024 needs **+11.6% to +18.8%** throughput to break
+  even against 768's 9.46% and 896's **11.63%** — tied at best, probably worse. **Decision rule not
+  met; no A/B run, no escalation.**
+- **Reusable**: even the *best* width step in the curve is net-negative (−0.0111 real bpb bought for
+  +0.0126 of forgone steps), so the whole curve is underwater and the gap is *narrowest at 768*. If a
+  large throughput win ever appears, **768 is the shape it rescues first**, not the bigger ones.
+- **Reusable**: a wide arm cannot finish an epoch (1024×6 reaches 174.2M of ~288M tokens, 60% of one),
+  so the −0.077 bpb/ln(steps) slope — fitted near one epoch — *understates* the penalty for every wide
+  arm, increasingly with width. All the width arithmetic in the log is optimistic in that direction.
+- **Do not re-run**: `--n-embd 1024` at any budget; any width point ≥1152 (cost constant does not
+  improve, benefit already decelerating).
+- Housekeeping: the Part-A width table in `trn2-experiment-results.md` §1 had **four transcription
+  errors** (768's `num_params`, 768's and 896's step-110 loss, 896's s/step); all four fixed from the
+  committed `tc-probe-sh-*.log` files. The earlier copy of the same table was correct and no
+  downstream conclusion moves.
+
 ## Small/cheap, still unimplemented
 - `lr_multiplier` defense-in-depth against step-capping (optional hardening on top of the
   NUM_STEPS fix; cheap, low priority since the actual cap is already gone).
@@ -193,7 +226,10 @@ robustness, T2.1 batch-size ramp, T2.2 EMA, T4.1 count-based n-gram output mixer
 output bigram table, T3.9 grab-bag (shifted ReLU², head-gate, out-pool — sandwich-norm/qk-shift
 were real but only via throughput, now devalued by the data wall), x0-gate, parallel attn+MLP
 block, partial RoPE (scoped, not worth the risk), `--epoch-shuffle` (made the data wall worse), byte-feature `wte` init (dose-response negative),
-parameter-matched coalesced SwiGLU, T2.3 cautious weight decay (null), T2.4 smoothed scalar betas.
+parameter-matched coalesced SwiGLU, T2.3 cautious weight decay (null), T2.4 smoothed scalar betas,
+**model width above 640** (768/896/**1024** × 6 all measured, all underwater at 1800 s; benefit
+marginal-rate peaks at 896 while cost is a flat ×1.17 per +128 — the axis is closed with a mechanism,
+not just three points).
 Full detail for all of the above: `research/trn2-experiment-results.md` (git-tracked, the real
 source of truth) and git history.
 

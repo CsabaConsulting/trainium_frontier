@@ -5643,6 +5643,7 @@ pass `--n-embd` explicitly or it is sweeping two axes at once.**
 | `sh-640x6` (= locked) | 640 × 6 | 592.9M | 3.992e8 | **0.84565** | 154995 | — | **2128** | 3.9346 |
 | `sh-768x6` | 768 × 6 | 611.2M | 5.215e8 | **0.99075** | 132296 | **−14.65%** | 1817 | 3.9271 |
 | `sh-896x6` | 896 × 6 | 631.9M | 6.580e8 | **1.16765** | 112253 | **−27.58%** | 1542 | **3.8921** |
+| `w1024-1024x6` *(added 2026-09-15)* | **1024 × 6** | 654.9M | 8.086e8 | **1.35420** | 96789 | **−37.55%** | **1329** | **3.8633** |
 | `sh-640x8`→768×8 | 768 × 8 | 631.7M | 6.820e8 | **1.91950** | 68284 | **−55.95%** | 938 | 3.9480 |
 | `sh-768x8` (repeat) | 768 × 8 | 631.7M | 6.820e8 | **1.92466** | 68102 | −56.06% | 935 | 3.9465 |
 
@@ -5886,14 +5887,25 @@ Fixed-step instrument, `--num-steps 120 --eval-seq-len 1024`, s/step read as the
 steps 40–110 (step 0 carries the cold compile and must be excluded — including it was an early error
 in this track and it contaminated the first pass of these numbers).
 
-| arm | shape | num_params | s/step | vs control | step-110 loss |
-|---|---|---|---|---|---|
-| `sh-640x6` | 640×6 (control) | 592,916,844 | **0.8457** | — | 3.9346 |
-| `sh-768x6` | 768×6 | 631,655,952 *see note* | **0.9908** | −14.65% | 3.9159 |
-| `sh-896x6` | 896×6 | — | **1.1646** | −27.38% | 3.9046 |
-| `sh-640x8` (as launched) | **768×8** | 631,655,952 | **1.9195** | −55.94% | 3.9480 |
-| `sh-768x8` | 768×8 | 631,655,952 | **1.9247** | −56.06% | 3.9465 |
-| `sh-640x8-real` | 640×8 | — | **1.6335** | −48.23% | 4.0120 |
+| arm | shape | num_params | flops/token | s/step | vs control | step-110 loss | 120-step `val_bpb`(1024) |
+|---|---|---|---|---|---|---|---|
+| `sh-640x6` | 640×6 (control) | 592,916,844 | 3.991901e8 | **0.84565** | — | 3.9346 | 1.374278 |
+| `sh-768x6` | 768×6 | 611,203,916 | 5.214954e8 | **0.99075** | −14.65% | 3.9271 | 1.376967 |
+| `sh-896x6` | 896×6 | 631,850,284 | 6.579565e8 | **1.16765** | −27.58% | **3.8921** | 1.362588 |
+| `w1024-1024x6` *(added 2026-09-15)* | **1024×6** | 654,855,948 | 8.085734e8 | **1.35420** | **−37.55%** | **3.8633** | **1.357624** |
+| `sh-640x8` (as launched) | **768×8** | 631,655,952 | 6.819564e8 | **1.91950** | −55.95% | 3.9480 | 1.376703 |
+| `sh-768x8` | 768×8 | 631,655,952 | 6.819564e8 | **1.92466** | −56.06% | 3.9465 | 1.378762 |
+| `sh-640x8-real` | 640×8 | 607,994,128 | 5.211110e8 | **1.63441** | −48.23% | 4.0120 | 1.396175 |
+
+**Correction, 2026-09-15.** Four cells of this table were transcription errors and are fixed above,
+re-derived directly from `research/run-logs/tc-probe-sh-*.log` (which are committed, so this is
+checkable): `sh-768x6`'s `num_params` was the depth-8 arm's number (611,203,916, not 631,655,952 — the
+"*see note*" was pointing at a copy error, not a real coincidence); `sh-768x6`'s step-110 loss was
+3.9271, not 3.9159; `sh-896x6`'s was **3.8921**, not 3.9046; and `sh-896x6`'s s/step is 1.16765
+(−27.58%), not 1.1646 (−27.38%). The *earlier* copy of this table, in the "Probe 2 … Probe 3's shape
+screen" section above, was log-accurate all along and is the one to trust; every conclusion in §2/§5
+below used the correct 896 s/step, so nothing downstream moves. `flops/token` and the 120-step
+`val_bpb` column are new, added because the 2026-09-15 width point needed both.
 
 **A `--depth` trap, recorded because it cost a run.** `--depth 8` alone does *not* give 640×8:
 `n_embd = round_up(DEPTH * ASPECT_RATIO(96), HEAD_DIM(128))` when `N_EMBD == 0`, which is 640 at depth
@@ -6898,3 +6910,182 @@ lowering the LR both move *away* from that failure, so none of these three arms 
 Rows: `ti-ctrl-900s-r{1,2}`, `ti-bytewte-900s`, `ti-bytewte-mix0{50,25}-900s`, `ti-swiglu-900s`,
 `ti-cwd-900s`, `ti-sbeta99-lr0{20,10,05}-900s` in `research/experiment-log.jsonl`; logs of the same
 names plus `smoke-*.log` in `research/run-logs/`.
+
+## 2026-09-15 — Width sweep, one more point: `n_embd=1024, DEPTH=6` is the best per-step shape ever measured here, and the *worst* buy at 1800 s (track: throughput→capacity, width axis)
+
+Box 2 (`ec2-16-26-154-27`, trn2.3xlarge, LNC=2, 4 ranks). Driver
+`research/scratch/tc_probe3f_width1024.sh`; logs
+`research/run-logs/tc-probe-w1024-{ctrl-r1,1024x6,ctrl-r2}.log` and `tc-probe3f-driver.log`.
+Same 120-step instrument as Part A (`--num-steps 120 --max-train-seconds 1800 --eval-seq-len 1024`,
+tok/s = the 8-point mean of the printed steps 40–110, step 0 excluded because it carries the cold
+compile), bare flags — every flag the original screen passed explicitly is now a module-level default
+and `USE_NKI_ROPE_NORM` is still `True`, so the launch conditions are identical.
+
+Measured on `train.py` md5 `af76a4e9218df233a8f9b10b5e32b041` (= commit `cd931f8`). The next commit,
+`111494a`, touches `train.py` only in comments, so these numbers stand unchanged at HEAD.
+
+### 0. Why this point exists, and the one-line answer
+
+The width-only curve (640/768/896 × 6) improved *monotonically* in quality-per-step and had a
+*superlinear* real-bpb gain at equal steps (−0.0056 at 768, −0.0167 at 896), while the throughput cost
+also grew. The open question was whether the quality curve's superlinearity keeps outrunning the cost
+curve at the next clean multiple of `HEAD_DIM=128`.
+
+**It does not. The quality curve is still going the right way but its *marginal* rate turned over at
+896, while the cost per width step is a flat multiplicative constant. So 1024 is not closer to
+break-even than 896 — it is tied at best and probably worse.** No escalation; the width axis stays
+closed.
+
+### 1. The new row, and this session's own control band
+
+The row is in the Part A table above. In full, with the two bracketing control re-runs:
+
+| arm | shape | num_params | flops/token | tok/s (n=8) | s/step | spread | steps @1800 s | step-110 loss | 120-step `val_bpb`(1024) | `causality_max_abs` |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `w1024-ctrl-r1` | 640×6 | 592,916,844 | 3.991901e8 | 155630 | **0.84220** | 0.66% | 2137 | 3.9359 | 1.373710 | 0.000000 |
+| **`w1024-1024x6`** | **1024×6** | **654,855,948** | **8.085734e8** | **96789** | **1.35420** | 1.05% | **1329** | **3.8633** | **1.357624** | **0.000000** |
+| `w1024-ctrl-r2` | 640×6 | 592,916,844 | 3.991901e8 | 156376 | **0.83818** | 0.99% | 2148 | 3.9341 | 1.374195 | 0.000000 |
+
+**Nothing about 1024 needed forcing.** `--n-embd 1024 --depth 6` builds and runs on the bare stack:
+`n_head = 1024/128 = 8`, no OOM (no `DEVICE_BATCH_SIZE`/`PACK_FACTOR` change needed), no assertion
+tripped, and `causality_max_abs` is exactly **0.000000** at a never-before-tested `n_embd`. The one
+component that *could* have assumed a width relationship does not: `NGRAM_VE_DIM = 128` is absolute,
+so the four 1048576×128 tables (536,870,912 params) are **byte-identical in size at every width** and
+each table's own `Linear(128, n_embd)` is the only part that grows. The entire 592.9M → 654.9M delta
+is dense backbone: **55.7M → 117.5M, ×2.11**, exactly the ×(1024/640)² = ×2.56 attenuated by the
+vocab-sized tensors that scale linearly.
+
+**Control bracketing.** The two controls are 0.48% apart on the 8-point mean and bracket the new arm in
+time, so box drift cannot be masquerading as the width effect. Their mean (0.84019 s/step, 156003
+tok/s) reproduces the original screen's `sh-640x6` (0.84565, 154995) to **+0.65%** — slightly outside
+the 0.27% figure the accidental depth-8 repeat gave, so **treat this instrument's cross-session band as
+~0.5–0.7%, not 0.3%**, and note that a single 8-point mean's own within-window spread is 0.7–1.1%. The
+controls' *quality* numbers reproduce far tighter: step-110 loss 3.9359/3.9341 (mean 3.9350) against
+the original 3.9346, and 120-step `val_bpb`(1024) 1.373710/1.374195 (mean 1.373953) against 1.374278.
+The three new items that landed in `train.py` since the original screen (byte-`wte` init, coalesced
+SwiGLU, cautious WD) therefore cost **nothing** at their default OFF, which is the second thing this
+control pair buys.
+
+`--n-embd 640 --depth 6` was passed explicitly on both controls, and `--depth 6` explicitly on the
+1024 arm, so the `--depth`-moves-both-axes trap recorded in Part A cannot recur: every arm's shape is
+readable off its own command line.
+
+### 2. Decomposition — the throughput cost is NOT accelerating, it is a flat multiplicative constant
+
+The "vs control %" column *looks* like it is decelerating (−14.65% → −27.58% → −37.55%, i.e. steps of
++14.65 / +12.93 / +9.97 points), but that is an artefact of a metric that saturates at −100%. In the
+scale-invariant metric it is dead flat:
+
+| width step | s/step | ratio to previous | steps @1800 s | forgone-steps penalty at −0.077 bpb/ln(steps) | flops/s index | vs 640 |
+|---|---|---|---|---|---|---|
+| 640 | 0.84565 | — | 2128 | — | 4.7205 | — |
+| 640→**768** | 0.99075 | **×1.1716** | 1817 | **+0.01217** | 5.2636 | +11.50% |
+| 768→**896** | 1.16765 | **×1.1786** | 1542 | **+0.01264** | 5.6349 | +19.37% |
+| 896→**1024** | **1.35420** | **×1.1598** | **1329** | **+0.01145** | **5.9709** | **+26.49%** |
+
+Three facts fall out, and the third is the one that decides the question.
+
+1. **Each +128 of width costs a constant ~×1.17 on step time**, hence a constant **≈ +0.0121 bpb** of
+   forgone steps. The cost curve is *linear in log-steps*, not superlinear. (This corrects the working
+   assumption going in, which was "+13 points of cost per width step, watch for acceleration". There is
+   no acceleration to watch for.)
+2. **Hardware utilisation improves monotonically with width** — flops/token/s rises +11.5% → +19.4% →
+   **+26.5%**. At 1024 the model does **2.026×** the control's FLOPs/token for only **1.601×** the step
+   time. That is the *good* news about width on this box and it is why the cost is sublinear in FLOPs;
+   it is also an upper bound on how much better it can get, since utilisation cannot keep rising
+   forever.
+3. **The benefit curve turned over at 896 while the cost curve did not.** Marginal per +128 width, on
+   both quality instruments the 120-step run reports:
+
+   | width step | Δ step-110 train loss | Δ 120-step `val_bpb`(1024) | Δ forgone-steps penalty |
+   |---|---|---|---|
+   | 640→768 | −0.0075 | **+0.0027** (worse) | +0.01217 |
+   | 768→896 | **−0.0350** | **−0.0144** | +0.01264 |
+   | 896→1024 | −0.0288 | −0.0050 | +0.01145 |
+
+   768→896 is the peak marginal step on *both* instruments; 896→1024 is smaller on both (18% smaller on
+   train loss, 65% smaller on eval bpb) at the same cost. Cumulatively 1024 is still the best shape
+   ever measured here per step — step-110 loss **3.8633** and 120-step `val_bpb`(1024) **1.357624** are
+   both the best numbers in the whole screen — but "best cumulative, worse marginal" is precisely the
+   shape of a purchase that has stopped paying.
+
+   (`sh-768x6`'s 120-step `val_bpb` is *worse* than the control's, which contradicts its real
+   −0.005594 at 2138 steps. Its 120-step log is a known outlier — step-10 loss **7.95** against
+   6.55–6.58 for every other arm, i.e. an unlucky init trajectory from the changed RNG stream at
+   `n_head=6`. So 768 is not usable as a proxy→real calibration anchor and only 896 is.)
+
+### 3. The 1800 s arithmetic, three ways, and why the answer is "no"
+
+The equal-step bpb gain at 1024 has *not* been measured — that would be the paired fixed-step run this
+spot-check is explicitly not authorised to launch. It can only be extrapolated from the 896 anchor
+(proxy delta ↔ real −0.016700 at 2138 steps). The forgone-steps penalty *is* measured:
+`0.077 × ln(2138/1329) = ` **+0.03661**.
+
+| extrapolation | implied Δ`val_bpb` at equal steps | net at 1800 s | throughput needed to break even |
+|---|---|---|---|
+| **A** — scale the 120-step `val_bpb`(1024) delta by 896's proxy→real ratio (×1.429) | −0.02333 | **+0.01327 worse** | **+18.81%** |
+| **B** — scale the step-110 train-loss delta by 896's proxy→real ratio (×0.393) | −0.02817 | **+0.00842 worse** | **+11.56%** |
+| **C** — extrapolate the *real* deltas' second difference (−0.00559, −0.01111, →−0.01662) | −0.03332 | +0.00328 worse | +4.35% |
+| for comparison: measured `sh-768x6` | −0.005594 | +0.006960 worse | 9.46% |
+| for comparison: measured `sh-896x6` | −0.016700 | +0.008475 worse | 11.63% |
+
+**C is the only estimate that would make 1024 interesting, and C is the one the data contradicts.** C
+assumes the real gain keeps accelerating with width; both 120-step instruments say the marginal gain
+*decelerated* from 896→1024. Discard it. That leaves A (needs +18.8%, clearly worse than 896's 11.63%)
+and B (needs +11.56%, a dead tie with 896's 11.63%). **On no defensible reading is 1024 closer to
+break-even than 896.** The decision rule for escalating was "closer to break-even than 896×6's own
+tradeoff"; it is not met.
+
+Two further reasons the table above is, if anything, *optimistic* about 1024:
+
+- **The −0.077 bpb/ln(steps) slope was fitted near one epoch and is being extrapolated to 0.60 of
+  one.** 1024×6 at 1329 steps sees 1329 × 131,072 = **174.2M tokens** of the ~288M corpus (~2197
+  steps), so it never finishes an epoch. Further from convergence the marginal value of a step is
+  *larger* than the near-convergence slope, so a constant-slope model **understates** the penalty for
+  cutting 2138 → 1329 steps. Every wide arm has this bias and it grows with width; 640×6's 2128 steps
+  land essentially *on* the wall, which is exactly why the locked shape is the one that exploits all
+  the data.
+- **The only constant-capacity throughput win this track ever found is +1.36%** (`--no-nki-rope-norm`),
+  and §5 above already showed it applies to *both* arms and therefore moves the target rather than
+  closing it. There is no 11–19% anywhere on the block.
+
+### 4. Verdict, and the shape of the width curve as now known
+
+**Width at 1024 is CLOSED NEGATIVE, on the same arithmetic that closed 768 and 896, and the axis is
+now closed with a mechanism rather than three data points.** The full picture:
+
+- **Cost side**: constant, ~×1.17 step time per +128 width ⇒ constant ≈ +0.0121 bpb of forgone steps
+  per width step. Bounded below by FLOPs (×1.23–1.31 per +128 at these shapes) and softened by rising
+  utilisation, which is why it is a clean geometric constant rather than something worse.
+- **Benefit side**: rises, peaks at the 768→896 step (−0.0111 real bpb at equal steps, against a
+  +0.0126 cost — so **even the best width step in the curve is net-negative**), and is measurably
+  smaller by 896→1024.
+- Therefore the *whole* width curve is underwater at 1800 s, the gap is narrowest at 768 (needs
+  +9.46%), and it widens in both directions from there. **768, not 896 and not 1024, is the shape a
+  future throughput win would rescue first** — a mildly counter-intuitive conclusion, since 896 and
+  1024 are the better models, and worth remembering if a large throughput win ever appears.
+
+**Do not re-run**: `--n-embd 1024` at any budget, and any further width point (1152+ is strictly worse
+on both terms by the two trends above — the cost constant does not improve and the benefit is already
+decelerating).
+
+**Recorded for anyone who does escalate a wide shape later** (nothing here requires it): the 1024 arm's
+cold `torch.compile` cost **285.1 s** at step 0 and `startup_allowance_est` **513.6 s**, against
+241.9 s / 428.5 s for the 640 control cold and 29.6 s warm. Both are comfortably inside the 900 s
+`TRAIN_STARTUP_ALLOWANCE_CAP_SECONDS`, so a full-budget 1024 run *is* legal — it is simply not worth
+the box time. The checkpoint would also grow only slightly (the four tables, which are 82% of the
+checkpoint, do not scale with `n_embd`), so `CHECKPOINT_RESERVE_SECONDS = 15.0` would still hold.
+
+### 5. Method notes worth keeping
+
+- **Bracketing the arm with two controls, rather than trusting a table from a previous session, was
+  the right call and cost ~4 minutes of device time.** It produced the +0.65% cross-session band (the
+  0.27% figure quoted elsewhere in this track is a *within*-session, same-shape number and should not
+  be used across sessions), and it independently re-verified that three newly landed default-OFF items
+  cost nothing.
+- **A saturating metric can hide a flat trend.** "vs control %" made the cost look like it was
+  decelerating; the s/step ratio showed it was constant. Any cost trend in this notebook expressed as
+  a percentage of a control should be re-read as a ratio before a trend is claimed from it.
+- **Re-deriving an existing table from its committed logs caught four transcription errors** in the
+  Part A copy (see the correction note there). Committing raw run logs is what made that recoverable;
+  keep doing it.
