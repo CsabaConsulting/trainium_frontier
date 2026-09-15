@@ -9390,7 +9390,7 @@ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n
 | seed | num_steps | training_seconds | total_seconds | total_tokens_M | causality_passed | causality_max_abs | over_budget | `public_val_bpb` |
 |---|---|---|---|---|---|---|---|---|
 | 1000 | 2129 | 1794.3 | 1846.8 | 279.1 | True | 0.000000 | False | **1.014811** |
-| 1500 | pending | | | | | | | |
+| 1500 | 2135 | 1794.2 | 1847.1 | 279.8 | True | 0.000000 | False | **1.008106** |
 | 2000 | pending | | | | | | | |
 | 2500 | pending | | | | | | | |
 | 3000 | pending | | | | | | | |
@@ -9400,6 +9400,10 @@ Logs: `research/run-logs/seedhunt-box1-batch3-seed{1000,1500,2000,2500,3000,3500
 
 **Seed 1000 vs. the leaders.** `1.014811` is well outside the noise band and far worse than both seed
 42's average (`1.004702`, `+0.010109`) and seed 3's average (`1.005572`, `+0.009239`) — not a contender.
+
+**Seed 1500 vs. the leaders.** `1.008106` is also worse than both leaders (`+0.003404` vs seed 42's
+average, `+0.002534` vs seed 3's average) — outside the ~`0.001`-`0.0012` noise band but on the wrong
+side (worse, not better); not a contender.
 
 ## Seed hunt batch 2 — box2 (seeds 200,300,400,500,600,700), widening the search past the noise-floor tie at the top
 
