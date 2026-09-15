@@ -820,10 +820,16 @@ paper: memory helps most when the backbone is small and undertrained — exactly
 3. **Cheap one-liners from Recursive to A/B in the T0.4 sweep:** `relu(h−0.5)²`; sandwich norm on
    the MLP; per-head output norm + head gate (T3.6); last-3-layer output pooling (T3.5 variant);
    softcap 16.5/15; `x0_lambda` init 0.1; rotary base 1e6; causal Q/K token shift
-   (`x + β·x_prev`, β init 0.3 — complements the trained local conv, T0.1); Demon β1 for Adam
-   groups; Muon momentum warmdown; NorMuon β2 ramp 0.95→0.97; **WARMDOWN_RATIO up to 0.9–0.95**
+   (`x + β·x_prev`, β init 0.3 — complements the trained local conv, T0.1); ~~Demon β1 for Adam
+   groups~~; Muon momentum warmdown; ~~NorMuon β2 ramp 0.95→0.97~~; **WARMDOWN_RATIO up to 0.9–0.95**
    (three independent groups — Recursive, modded-nanogpt's 0.6, Karpathy's 0.75 — disagree, so
    sweep {0.6, 0.75, 0.9, 0.95} rather than trust any one).
+   **2026-09-15 — the three schedule-level items are CLOSED NEGATIVE** (results doc, same date):
+   Demon β1 (warmdown window +0.00003, whole run +0.00026), the NorMuon β2 ramp (0.90→0.95
+   +0.00002, 0.90→0.97 +0.00001, and flat at Recursive's 0.95 +0.00008 — so our 0.90 is already on
+   the flat top of that curve), and per-depth LR/momentum scaling (LR alone +0.00072, momentum
+   alone +0.00017, both together +0.00003 — non-additive, and no arm wins). All ported behind
+   flags that default OFF, all bitwise-neutral when off, all throughput-neutral by measurement.
 4. **EMA with decay 0.98/step starting at 50%** (Recursive) is a concrete setting for T2.2.
 5. **Batch ramp 131072 → 262144** (Recursive from-vanilla) is a concrete setting for T2.1.
 6. **MTP (T3.7) demoted**: Recursive removed it for step-count reasons; keep it last.
