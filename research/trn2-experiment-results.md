@@ -9464,9 +9464,87 @@ survives SSH disconnects; each seed's full stdout+stderr captured to
 | 400 | 2122 | 1784.7 | 1848.3 | 278.1 | True | 0.000000 | False | **1.006610** | new coverage |
 | 500 | 2119 | 1784.7 | 1849.3 | 277.7 | True | 0.000000 | False | **1.007222** | new coverage |
 | 600 | 2119 | 1784.5 | 1848.5 | 277.7 | True | 0.000000 | False | **1.008295** | new coverage |
+| 700 | 2120 | 1784.9 | 1847.9 | 277.9 | True | 0.000000 | False | **1.012181** | new coverage |
 
-Logs: `research/run-logs/seedhunt-box2-batch2-seed{200,300,400,500,600,700}-20260915.log` (filled in
-as each completes); start/end markers in `research/scratch/seedhunt_batch2_progress.log`.
+Logs: `research/run-logs/seedhunt-box2-batch2-seed{200,300,400,500,600,700}-20260915.log` (all 6 done);
+start/end markers in `research/scratch/seedhunt_batch2_progress.log`.
 
-**Batch in progress** — this section is updated and committed incrementally after each seed
-completes.
+### Batch complete
+
+All 6 seeds ran to completion sequentially in `tmux` (session `seedhunt2`), 19:43:06 UTC start to
+22:50:30 UTC finish (~3h07m for 6 runs, matching the ~35min/run × 6 ≈ 3.5h estimate). All 6:
+`num_params_M=592.9`, `causality_passed=True`, `causality_max_abs=0.000000`, `over_budget=False` — no
+config drift, no correctness failures.
+
+Sorted by `public_val_bpb` ascending, this batch's 6 seeds:
+
+| rank | seed | `public_val_bpb` |
+|---|---|---|
+| 1 (best)  | 300 | 1.005664 |
+| 2         | 400 | 1.006610 |
+| 3         | 500 | 1.007222 |
+| 4         | 600 | 1.008295 |
+| 5         | 200 | 1.012070 |
+| 6 (worst) | 700 | 1.012181 |
+
+**None of the 6 new seeds beats seed 42's average (`1.004702`) — let alone by the ~`0.002` margin that
+would flag a real candidate.** The closest is seed 300 at `1.005664` (`+0.000962` vs. seed 42's
+average) — competitive with, but not better than, seed 3's average (`1.005572`); every other new seed
+(400, 500, 600, 200, 700) is worse than seed 42's average by `0.0019`-`0.0075`, and two of them (200:
+`1.012070`, 700: `1.012181`) are among the worst results seen anywhere in the hunt so far.
+
+**Verdict for this batch: no new leader, no new close contender beyond seed 300 (which itself doesn't
+clear seed 42).** Consistent with the pattern already established in box 1's concurrent batch 3
+(seeds 1000/1500/2000/2500/3000/3500): most freshly-sampled seeds land solidly worse than seed 42/seed
+3, and only rare draws (box 1's seed 3000 at `1.004900`; this batch's seed 300 at `1.005664`) land
+close to the existing leaders — none has yet clearly beaten seed 42 by a margin outside the noise
+floor. `train.py`'s `SEED` default is untouched throughout this batch; no code changes made.
+
+### Updated full ranking across all seeds measured so far (both boxes, all batches)
+
+Using the average where a seed has 2+ measurements, single value otherwise. 25 seeds with a landed
+result as of this writing (box 1's concurrent batch 3 seed 3500 still pending, not included):
+
+| rank | seed | `public_val_bpb` | measurements |
+|---|---|---|---|
+| 1 (best) | **42** | **1.004702** | avg of 1.004355, 1.005049 |
+| 2 | 3000 | 1.004900 | 1 (box1 batch3) |
+| 3 | 3 | 1.005572 | avg of 1.005730, 1.005414 |
+| 4 | 300 | 1.005664 | 1 (this batch) |
+| 5 | 2 | 1.006220 | 1 |
+| 6 | 7 | 1.006322 | 1 |
+| 7 | 1 | 1.006380 | 1 |
+| 8 | 8 | 1.006441 | 1 |
+| 9 | 400 | 1.006610 | 1 (this batch) |
+| 10 | 500 | 1.007222 | 1 (this batch) |
+| 11 | 55 | 1.007353 | 1 |
+| 12 | 1500 | 1.008106 | 1 (box1 batch3) |
+| 13 | 600 | 1.008295 | 1 (this batch) |
+| 14 | 144 | 1.008352 | 1 |
+| 15 | 43 | 1.008910 | 1 |
+| 16 | 5 | 1.010038 | avg of 1.009551, 1.010524 |
+| 17 | 44 | 1.010491 | 1 |
+| 18 | 34 | 1.010748 | 1 |
+| 19 | 89 | 1.010848 | 1 |
+| 20 | 13 | 1.010899 | avg of 1.010303, 1.011495 |
+| 21 | 2000 | 1.011087 | 1 (box1 batch3) |
+| 22 | 200 | 1.012070 | 1 (this batch) |
+| 23 | 2500 | 1.012127 | 1 (box1 batch3) |
+| 24 | 700 | 1.012181 | 1 (this batch) |
+| 25 (worst) | 1000 | 1.014811 | 1 (box1 batch3) |
+
+Seed 42 remains the clear overall leader. Seed 3000 (a single measurement from box 1's concurrent
+batch 3) is the closest any seed has come without being seed 42 itself, `+0.000198` behind seed 42's
+average — inside the noise band, flagged in that section as worth a confirming repeat but not yet a
+proven win. This batch's contribution (seeds 200/300/400/500/600/700) adds one more seed inside the
+top-10 (seed 300) but does not change the ranking's leader or displace any of the existing top-3.
+
+**Caveats**, same scope limitations as every other seed section in this file:
+- This remains weight-init noise only (`USE_EPOCH_SHUFFLE=False`, no run anywhere near epoch 2).
+- No seed is adopted or recommended here; `train.py`'s `SEED` default is untouched. The lock-in
+  decision remains the user's, informed by this and every other seed section in this file.
+- Single measurements dominate this ranking (only 42, 3, 5, 13 have 2+ points) — treat rank order
+  among closely-spaced single-measurement seeds as approximate, not a settled statistical ranking.
+
+**Verdict: pure measurement, no code changes, no default changed.** `train.py`'s `SEED` default is
+untouched throughout. This section only gathers more data for the still-pending lock-in decision.
