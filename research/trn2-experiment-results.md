@@ -9098,12 +9098,93 @@ checkout re-verified byte-identical to the local repo before the batch started.
 | 34  | 2133 | 1784.6 | 1846.9 | 279.6 | True | 0.000000 | False | 1.010748 | new coverage |
 | 55  | 2139 | 1784.8 | 1846.8 | 280.4 | True | 0.000000 | False | 1.007353 | new coverage |
 | 89  | 2137 | 1784.5 | 1847.0 | 280.1 | True | 0.000000 | False | 1.010848 | new coverage |
-| 144 | pending | | | | | | | | new coverage |
+| 144 | 2134 | 1784.5 | 1847.0 | 279.7 | True | 0.000000 | False | 1.008352 | new coverage |
 
 Log: `research/run-logs/seedhunt-box1-driver.log` (combined driver output, timestamps per seed
 start/end); per-seed logs `research/run-logs/seedhunt-box1-seed{5,13,34,55,89,144}-1800s.log`.
 
-*(Batch started; this section is updated and committed after each seed completes.)*
+**Batch complete** (all 6 seeds finished, box 1, sequentially in `tmux`, ~19:07:49 UTC total elapsed
+from 16:00:31 UTC start — ~3h07m for 6 runs, close to the ~35min/run × 6 ≈ 3.5h estimate). All 6:
+`num_params_M=592.9`, `causality_passed=True`, `causality_max_abs=0.000000`, `over_budget=False` —
+no config drift, no correctness failures, none tripped the wall-clock guard.
+
+### Spread across this batch's 6 seeds (full 1800s budget)
+
+Sorted by `public_val_bpb` ascending:
+
+| rank | seed | `public_val_bpb` |
+|---|---|---|
+| 1 (best)  | 55  | 1.007353 |
+| 2         | 144 | 1.008352 |
+| 3         | 5   | 1.009551 |
+| 4         | 13  | 1.010303 |
+| 5         | 34  | 1.010748 |
+| 6 (worst) | 89  | 1.010848 |
+
+max−min = **0.003495**; mean **1.009526**; population std (n) **≈0.00129**, sample std (n−1)
+**≈0.00141**. For reference, the earlier 3-seed check (42/43/44, same box, same full-1800s budget)
+found max−min 0.006136 / sample std ≈0.0032 — this batch's 6-seed spread is smaller in both range and
+std, though at n=6 vs n=3 that is still a small-sample comparison, not a settled "the true floor is
+narrower" claim. Combining all 9 box-1 full-budget seeds measured so far (42,43,44,5,13,34,55,89,144)
+would widen the picture further but is left as a numbers-are-here-if-wanted note, not computed as a
+combined statistic in this section (the two batches used different seed *sets* chosen for different
+reasons, so pooling them naively isn't obviously the right thing to do without deciding on a weighting
+first — a follow-up question, not resolved here).
+
+### Cheap-proxy-vs-full-budget check: did the 300-step screen's best/worst call it right?
+
+This was the specific methodological question this batch was designed to answer for seeds 5 and 13.
+
+| seed | 300-step proxy `public_val_bpb` (cheap screen) | proxy rank (of 8) | full-1800s `public_val_bpb` (this batch) | full-budget rank (of 6, this batch) |
+|---|---|---|---|---|
+| 5  | 1.221123 | 1st (best)  | 1.009551 | 3rd |
+| 13 | 1.228437 | 8th (worst) | 1.010303 | 4th |
+
+**Pairwise direction: correct.** Seed 5 beat seed 13 at the 300-step proxy (1.221123 < 1.228437) and
+seed 5 also beat seed 13 at the full 1800s budget (1.009551 < 1.010303) — same direction, a gap of
+0.000752 bpb at full budget vs. 0.007314 (the proxy's full best-to-worst range) at 300 steps. So for
+this one pair, the cheap proxy's *relative call* (5 better than 13) held up under a full-budget
+re-test.
+
+**But the proxy's absolute ranking did not hold up, and shouldn't be over-read from n=2.** Seed 5 was
+the single best of the cheap screen's 8 seeds, yet at full budget it ranks only 3rd of this batch's 6
+(behind 55 and 144, two seeds the cheap screen never tested at all). Seed 13 was the single worst of
+the cheap screen's 8, yet at full budget it ranks 4th of 6 — closer to the middle than to the bottom,
+and it is *not* this batch's worst (seed 89 is, at 1.010848, a seed the cheap screen also never
+tested). In other words: **the cheap 300-step proxy correctly ordered this one pair relative to each
+other, but did not correctly identify either the eventual full-budget best or worst seed** — those
+turned out to be 55 and 89, both new-coverage seeds outside the original 8-seed cheap screen. With
+n=2 confirmed pairs this is nowhere near enough to certify the proxy as a reliable ranking tool in
+general; it is one data point in favor of *pairwise* directional agreement and one clear caution
+against trusting the proxy's *absolute* best/worst calls.
+
+### Cross-box confirmation, seeds 5 and 13 (box 1 vs. box 2)
+
+Box 2 ran its own concurrent batch (`1,2,3,5,8,13`) covering the same two seeds independently. As of
+this writing box 2's seed 1 result was visible in this file (`research/trn2-experiment-results.md`,
+"Seed hunt batch — box2" section, 1.006380 for seed 1); box 2's own seed 5 / seed 13 numbers, if
+landed by the time this is read, are the direct cross-box check for this batch's seed 5
+(1.009551) and seed 13 (1.010303) — deliberately not reconciled here (box 2's own section is the
+right place for that comparison once both sides have landed), consistent with this file's existing
+convention of leaving cross-box reconciliation to a dedicated follow-up pass.
+
+### Caveats
+
+- **This remains weight-init noise only** (`USE_EPOCH_SHUFFLE=False`, no run anywhere near epoch 2)
+  — same scope limitation as every other seed section in this file.
+- **No seed is adopted or recommended here.** This batch answers a methodology question (does a
+  cheap proxy predict full-budget ranking) and adds more full-budget spread data; it does not by
+  itself justify picking any of 5/13/34/55/89/144 (or 42, the current default) for a real submission.
+  That decision remains the user's, informed by this and the other seed sections in this file.
+- n=6 (this batch) / n=2 (the proxy-vs-full pairwise check) are both small; treat the "proxy got the
+  pairwise direction right but missed the extremes" read as directional, not a validated rule for
+  future cheap screens.
+
+**Verdict: pure measurement, no code changes, no seed adopted.** `train.py` untouched throughout —
+box 1's checkout re-verified byte-identical to the local repo before the batch started, and the bare
+launch command (no wrapper) was used for all 6 runs, matching the 3-seed section's convention. Rows
+not added to `research/experiment-log.jsonl` (bare launch, same as the 3-seed and box-2 sections
+above).
 
 ## Seed hunt batch — box2 (seeds 1,2,3,5,8,13)
 
