@@ -9097,7 +9097,7 @@ checkout re-verified byte-identical to the local repo before the batch started.
 | 13  | 2135 | 1784.7 | 1847.5 | 279.8 | True | 0.000000 | False | 1.010303 | cheap-screen WORST (300-step proxy 1.228437) |
 | 34  | 2133 | 1784.6 | 1846.9 | 279.6 | True | 0.000000 | False | 1.010748 | new coverage |
 | 55  | 2139 | 1784.8 | 1846.8 | 280.4 | True | 0.000000 | False | 1.007353 | new coverage |
-| 89  | pending | | | | | | | | new coverage |
+| 89  | 2137 | 1784.5 | 1847.0 | 280.1 | True | 0.000000 | False | 1.010848 | new coverage |
 | 144 | pending | | | | | | | | new coverage |
 
 Log: `research/run-logs/seedhunt-box1-driver.log` (combined driver output, timestamps per seed
