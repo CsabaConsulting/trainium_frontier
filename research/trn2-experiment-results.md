@@ -9094,7 +9094,7 @@ checkout re-verified byte-identical to the local repo before the batch started.
 | seed | num_steps | training_seconds | total_seconds | total_tokens_M | causality_passed | causality_max_abs | over_budget | `public_val_bpb` | note |
 |---|---|---|---|---|---|---|---|---|---|
 | 5   | 2135 | 1785.0 | 1847.3 | 279.8 | True | 0.000000 | False | 1.009551 | cheap-screen BEST (300-step proxy 1.221123) |
-| 13  | pending | | | | | | | | cheap-screen WORST (300-step proxy 1.228437) |
+| 13  | 2135 | 1784.7 | 1847.5 | 279.8 | True | 0.000000 | False | 1.010303 | cheap-screen WORST (300-step proxy 1.228437) |
 | 34  | pending | | | | | | | | new coverage |
 | 55  | pending | | | | | | | | new coverage |
 | 89  | pending | | | | | | | | new coverage |
