@@ -7472,3 +7472,167 @@ it buys **worse** per-step quality (120-step proxy 3.9855 with layer 1, 3.9973 a
 control). A config that is both slower and worse per step needs no further arbitration.
 `NGRAM_VE_LAYERS` stays `"1,-1"`. The brief's escalation question is closed with the number it asked
 for, and the answer is that the +47.7 ms it was premised on never existed at 4 ranks anyway.
+
+## 2026-09-15 — Recursive's three schedule tricks (plan §11.1) all ported behind flags and all **CLOSED NEGATIVE**: Demon β1 neutral, the NorMuon β2 ramp neutral (and β2 0.90 is already at the top of its curve), per-depth LR a consistent small loss — plus a PyTorch type-promotion trap that made "neutral plumbing" not neutral
+
+**Context.** `optimized_from_karpathy.py` (0.9109 val_bpb) is the strongest external evidence in this
+competition, and three of its schedule-level items had never been tried here: Adam **Demon β1**
+(0.8 → 0.55 across the warmdown), a **NorMuon β2 ramp** (0.95 → 0.97 across the run), and **per-depth
+LR/momentum scaling** (LR ×1.15 bottom → ×0.85 top, momentum 0.90 → 0.97 bottom → top). All three are
+pure optimizer-schedule changes: no new parameters (`num_params=592,916,844` in every arm), no new ops.
+All three are now in `train.py` behind flags that default to exactly the previous behaviour.
+
+### What each item actually maps onto in this repo (the ports are not all 1:1)
+
+* **Demon β1** — `DEMON_BETA1` (default `False`), with `DEMON_BETA1_FINAL=0.55` quoted against
+  `DEMON_BETA1_REF=0.8`, applied as a *multiplicative* scale `β1 ← β1 · s(progress)` so a group at 0.8
+  lands exactly on 0.55 while the 0.9 groups (scalars, lm_head) anneal proportionally. Reaches the
+  **AdamW groups only** — the n-gram tables are RMSProp and are untouched, verified bitwise.
+  `DEMON_BETA1_START_FRAC` defaults to `1 - WARMDOWN_RATIO` (= 0.25, i.e. Recursive's "across its
+  warmdown"); setting it to 0.0 anneals across the whole run instead. Both were measured.
+* **NorMuon β2** — the brief flagged this as needing verification before assuming a 1:1 port, and it
+  did. This repo's Muon `beta2` *is* NorMuon: it is the decay of `second_momentum_buffer`, a per-row
+  second moment of the **orthogonalized** update, i.e. genuinely the neuron-wise adaptive
+  normalization. So the *shape* of the port is 1:1 — but the **value is not**: ours is **0.90**, and
+  Recursive's ramp runs **0.95 → 0.97**. A ramp from 0.90 to 0.97 is therefore a different experiment
+  from Recursive's, so all three of "ramp to 0.95", "ramp to 0.97" and "flat at 0.95" were measured.
+  `MUON_BETA2` (0.90) and `MUON_BETA2_FINAL` (0.0 = OFF, hold flat and keep passing a Python `1-β2`).
+* **Per-depth scaling** — the tension the brief predicted is real: Muon groups are keyed by
+  `(shape, transposed)` and stack `K` parameters into one `[K, rows, cols]` buffer for the batched
+  Newton–Schulz, so a *layer*-keyed multiplier cuts across the grouping. Neither of the brief's two
+  suggested shapes (one group per `(shape, depth-bucket)`, or a per-parameter multiplier) needed the
+  group structure changed: the multiplier is a **per-parameter `[K,1,1]` fp32 tensor broadcasting over
+  the stacked buffers**. Grouping, batched NS and the compiled-graph count are all unchanged (still
+  exactly **5** `muon step: COMPILED body` lines per run, in every arm). `MUON_DEPTH_LR_{BOTTOM,TOP}`
+  (1.0/1.0 = OFF) and `MUON_DEPTH_MOM_{BOTTOM,TOP}` (0.0/0.0 = OFF) with `MUON_DEPTH_MOM_REF=0.95`.
+  The momentum multiplier acts on `(1 - momentum)`, not on momentum, so it **rides on top of** the
+  existing global momentum warmup/cooldown instead of overwriting it. Muon-group matrices that live
+  outside a block (the n-gram up-projections) have no depth and are pinned to multiplier 1.0.
+
+All three schedules update via `copy_` into persistent device tensors keyed on the same
+`elapsed/max_train_seconds` progress fraction the LR schedule uses — the `USE_TENSOR_LR_SCALARS`
+discipline. Verified by measurement, not by inspection: see the throughput row below.
+
+### The pre-flight that mattered: a type-promotion asymmetry, found by probe after reasoning failed
+
+`research/scratch/sched_tricks_equiv.py` check (4a) — *per-depth ON with neutral multipliers must be
+bitwise identical to the 0-dim path it replaces* — **failed at ~3.8e-5**. Reading the code could not
+find it (every `lerp_`, every promotion site, every buffer dtype checked and correct). It took a
+purpose-built instrumentation probe, `research/scratch/sched_tricks_probe.py`, which monkeypatches
+`_muon_math` and diffs all five scalar operands plus every input and output tensor per group per step.
+Result: **every scalar operand identical, `momentum_buffer` and `second_momentum_buffer` identical,
+only `w_out` differing**. That localised it to the weight update, and the cause is a genuine PyTorch
+type-promotion asymmetry in `lr * g` with `g` bf16 and `lr` fp32:
+
+* **0-dim `lr`** — a scalar-vs-dimensioned mix, so the common dtype is **bf16**, and TensorIterator
+  **casts `lr` to bf16 *before* the multiply**. The product is bf16-of-a-bf16-lr.
+* **`[K,1,1]` `lr`** — both operands dimensioned, so the common dtype is **fp32**; `lr` keeps full
+  precision and the product is fp32.
+
+Rounding the fp32 product afterwards is **not the same number**. Fixed by `_muon_lr_g`, which casts a
+dimensioned `lr` to `g.dtype` *first*, reproducing the 0-dim path exactly. (4a) then passed at
+`0.000e+00`.
+
+> **Side finding, recorded but NOT acted on.** The above means the locked path really does round
+> every Muon group's lr to bf16 before scaling the update — up to **~0.4% relative quantisation** on
+> the effective lr of every matrix parameter. Keeping full fp32 lr precision there might be free
+> quality, but it is a **behaviour change to a locked default**, so it needs its own flag and its own
+> A/B and is not part of this block.
+
+Two other exactness details worth keeping: the per-depth **momentum** multiplier is staged in
+**float64** on purpose, because at multiplier 1.0 float64 gives back `fp32(1-m)` and `fp32(m)`
+*exactly* (Sterbenz: for `m ∈ [0.85, 0.95]`, `1.0 - m` is exact and `1.0 - (1.0 - m) == m`), which is
+what makes the neutral case bitwise-neutral. And the probe only worked after clearing
+`T._MUON_COMPILED`, which caches the function object per `(shape, tall, ns_steps, red_dim)` — without
+the clear, run 2 keeps calling run 1's instrumented wrapper and logs into the wrong sink.
+
+Harness status before any device time: **(1)** all three flags OFF is **bitwise identical** to the
+true pre-edit `train.py` (`git show beca054:train.py`, md5 `63fad3abfa72998f96696ef3b5b2460d`) over
+`foreach ∈ {T,F}` × `tensor_lr ∈ {T,F}`; **(2)** Demon reaches AdamW groups only; **(3)** the β2 ramp
+reaches Muon groups only; **(4a)** exact; **(4b)** a uniform depth multiplier equals scaling the Muon
+groups' lr, worst 2.98e-08; **(4c)** the depth map is exact and per-layer |Δ| ratios are strictly
+decreasing 1.0170 → 0.9968 → 0.9754 → 0.9509 → 0.9251 → 0.8945.
+
+### Throughput: exactly the predicted zero, verified three ways rather than assumed
+
+The 8-arm device smoke (`research/scratch/sched_tricks_smoke.sh`, 200 steps, `--max-train-seconds 180`
+so progress sweeps 0 → 1 inside the probe) gives mean dt over steps 40–190: **control 0.841 s, all
+eight arms 0.8406–0.8425 s**, identical min 0.840 / max 0.850, and exactly 5 compiled-Muon-body lines
+per arm. In the 900 s arms below, the two *identical* controls differ in dt by **0.0044 s** (0.8401 vs
+0.8357) — more than any arm differs from either of them. And in the decomposition the throughput term
+never exceeds **±0.00034 bpb**. No item here turns a per-step value into a per-step `neuronx-cc`
+recompile. `causality_max_abs = 0.000000` and `causality_passed` in **every** arm, verified rather
+than assumed.
+
+### The paired 900 s numbers (`--eval-seq-len 1024` gives the second column)
+
+`thr = -0.077·ln(tokens/ctrl tokens)`; `per-step = delta - thr`.
+
+**Block A, box 1** (`ec2-16-50-61-34`). This box **lost all network** 7 arms in (SSH timeout, ping
+100% loss, port 22 closed; box 2 fine, so box-1-specific; `aws ec2 describe-instances` blocked by
+`AuthFailure` so the instance state could not even be read). The closing control never ran, so these
+six arms rest on a **single opening control** — read them with that discount.
+
+| arm | tokM | bpb@2048 | Δ | thr | **per-step** | bpb@1024 | Δ | **per-step** |
+|---|---|---|---|---|---|---|---|---|
+| `st-ctrl-900s-r1` | 138.3 | 1.052603 | — | — | — | 1.067923 | — | — |
+| `st-demon-900s` (warmdown) | 138.0 | 1.052797 | +0.000194 | +0.000167 | **+0.000027** | 1.068046 | +0.000123 | **−0.000044** |
+| `st-demonfull-900s` (whole run) | 138.3 | 1.052858 | +0.000255 | −0.000000 | **+0.000255** | 1.068168 | +0.000245 | **+0.000245** |
+| `st-b2ramp95-900s` (0.90→0.95) | 138.1 | 1.052737 | +0.000134 | +0.000111 | **+0.000023** | 1.067969 | +0.000046 | **−0.000065** |
+| `st-b2ramp97-900s` (0.90→0.97) | 138.3 | 1.052614 | +0.000011 | −0.000000 | **+0.000011** | 1.067880 | −0.000043 | **−0.000043** |
+| `st-b2flat95-900s` (flat 0.95) | 138.1 | 1.052798 | +0.000195 | +0.000111 | **+0.000084** | 1.068070 | +0.000147 | **+0.000036** |
+| `st-depthlr-900s` (×1.15→×0.85) | 138.1 | 1.053433 | +0.000830 | +0.000111 | **+0.000719** | 1.068710 | +0.000787 | **+0.000676** |
+
+**Block B, box 2** (`ec2-16-26-154-27`), the recovery block for the two per-depth arms box 1 never
+reached. A 900 s number is only comparable *inside* its own block, so this ran with its **own
+bracketing control pair** and is read entirely against those — never spliced into Block A.
+Control mean 1.052446 / 1.067684 at 138.6 M tokens; **raw pair spread +0.000193 / +0.000117**, which is
+this block's noise band, and after removing the controls' own 0.6 M-token throughput difference their
+per-step spread is only **±0.00007 / ±0.00011**.
+
+| arm | tokM | bpb@2048 | Δ | thr | **per-step** | bpb@1024 | Δ | **per-step** |
+|---|---|---|---|---|---|---|---|---|
+| `st-ctrl-b2-r1` | 138.3 | 1.052543 | +0.000097 | +0.000167 | −0.000070 | 1.067743 | +0.000059 | −0.000108 |
+| `st-ctrl-b2-r2` | 138.9 | 1.052350 | −0.000096 | −0.000166 | +0.000070 | 1.067626 | −0.000058 | +0.000108 |
+| `st-depthmom-b2` (0.90→0.97) | 138.0 | 1.052954 | +0.000508 | +0.000334 | **+0.000173** | 1.068200 | +0.000516 | **+0.000181** |
+| `st-depthboth-b2` (LR + mom) | 138.1 | 1.052750 | +0.000304 | +0.000278 | **+0.000025** | 1.068007 | +0.000323 | **+0.000044** |
+
+Cross-block sanity (not a comparison, just a check that neither box is broken): the two blocks'
+controls sit **0.00006 / 0.00018 apart** at identical step counts, i.e. inside one block's own spread.
+
+### Verdicts — all three DISCARDED, all flags stay default OFF
+
+| item | per-step effect (2048 / 1024) | verdict |
+|---|---|---|
+| Demon β1 across the warmdown | +0.000027 / −0.000044 | **neutral.** Sign flips between eval lengths, magnitude below the control band. Nothing there. |
+| Demon β1 across the whole run | +0.000255 / +0.000245 | **no.** Consistent tiny loss; the wider window is worse than the narrow one, so more Demon is not better. |
+| NorMuon β2 0.90 → 0.95 | +0.000023 / −0.000065 | **neutral.** |
+| NorMuon β2 0.90 → 0.97 | +0.000011 / −0.000043 | **neutral** — the flattest arm of the nine. |
+| NorMuon β2 flat 0.95 | +0.000084 / +0.000036 | **neutral, and informative:** moving β2 from our 0.90 to *Recursive's* 0.95 does nothing either, so our 0.90 is already on the flat top of that curve. The ramp has nothing to ramp *toward*. |
+| per-depth **LR** ×1.15→×0.85 | +0.000719 / +0.000676 | **no.** The only signed effect in nine arms: same sign, same size at both eval lengths, ~7× the control pair's per-step band — but still inside the ±0.001 single-run floor, so this is "not a keeper", not "proven harmful". |
+| per-depth **momentum** 0.90→0.97 | +0.000173 / +0.000181 | **no.** Consistent small loss, at the edge of the band. |
+| per-depth **both** | +0.000025 / +0.000044 | **neutral — and NOT additive.** LR alone +0.00072 and momentum alone +0.00017 would predict +0.00089; measured +0.00003. |
+
+That last row is this competition's non-additivity lesson again, in the *other* direction from the
+usual one: two independently-negative changes cancelled rather than compounded. No stack was pursued,
+because stacking is only worth measuring when something wins alone, and nothing did.
+
+**Why 900 s is a fair budget for these particular items** (it is not, for capacity items): all three
+schedules key on `elapsed/max_train_seconds`, so a 900 s run sweeps each schedule over its *entire*
+range — Demon starts at progress 0.25 and reaches exactly 0.55 at progress 1.0 either way. A 900 s
+arm therefore under-samples *steps*, not *schedule*, which is the opposite of the usual 900 s caveat.
+The step counts (~1055) are also well below the ~2195-step data wall, so the −0.077 slope applies.
+
+**What this says about the source.** Recursive's 0.9109 is not coming from these three items — at
+least not at this shape, this depth (6), this budget, and against this repo's already-tuned schedules
+(our Muon momentum cooldown, warmdown ratio and β2 0.90 are all locally optimal enough that
+Recursive's values are neutral-to-worse drop-ins). The remaining §11.1 items are the ones to spend
+device time on; the schedule layer is now measured and closed.
+
+**Kept in the tree** (all defaults OFF, so submission behaviour is bitwise unchanged): the five flag
+groups above, plus `research/scratch/sched_tricks_equiv.py` (bitwise harness),
+`sched_tricks_probe.py` (the `_muon_math` operand differ — reusable for any future Muon change),
+`sched_tricks_smoke.sh` (recompile/dt screen, now with the cold-cache trap documented: with an empty
+`neuronx-cc` cache step 0 costs ~206 s and step 1 ~161 s, both land in `recent_step_times`, and the
+predictive stop then halts a 180 s arm at **5 steps** — the symptom is `num_steps: 5`, not an error),
+`sched_tricks_report.py` (the decomposition, in code), and the two 900 s drivers.
