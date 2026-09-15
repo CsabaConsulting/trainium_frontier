@@ -9058,3 +9058,49 @@ used box 1's already-current, unmodified checkout of the locked default config (
 the local repo's `train.py`, confirmed via `sha256sum` before launching). Whether/how to act on the
 combined evidence (this screen plus the 3-seed and box-2 sections above) is a separate decision, not
 made here.
+
+## Seed hunt batch — box1 (seeds 5,13,34,55,89,144), includes cheap-proxy-vs-full-budget check for seeds 5/13
+
+**User-approved real seed hunt, full 1800s budget.** Following the exploratory 3-seed check and the
+cheap 8-seed 300-step screen above, the user gave explicit go-ahead to spend real full-budget box
+time on more seeds. This section runs 6 seeds sequentially on box 1, each at the real full 1800s
+budget, using the literal bare launch command (no `run_experiment.py` wrapper, no
+`--no-eval-public`, so `public_val_bpb` comes directly from the in-process eval):
+
+```
+NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 1000000 --seed <N>
+```
+
+Driver: `research/scratch/seedhunt_1800s_box1.sh`, run inside `tmux` (session `seedhunt`) so the
+sequence survives SSH disconnects; each seed's full stdout+stderr is captured to
+`research/run-logs/seedhunt-box1-seed<N>-1800s.log`.
+
+**Seeds and why:** `5, 13, 34, 55, 89, 144`. Seeds **5** and **13** are deliberately the best and
+worst of the earlier same-day 8-seed 300-step cheap screen (best: seed 5, 1.221123; worst: seed 13,
+1.228437) — re-running them at full 1800s budget answers a real methodological question: does the
+cheap 300-step proxy ranking predict the full-budget ranking, or not? `34, 55, 89, 144` are new
+coverage (all distinct from every seed used anywhere else in this file: 42/43/44, 7, and the cheap
+screen's 1/2/3/8/21/100). Box 2 is concurrently running its own full-budget batch
+(`1,2,3,5,8,13`) — seeds 5 and 13 therefore also get an independent cross-box confirmation point,
+separate from this box's own numbers.
+
+Defaults: same locked config as every other full-budget section in this file (`DEPTH=6`,
+`ASPECT_RATIO=96`, `TOTAL_BATCH_SIZE=131072`, `--compile`, `--compile-muon`, qk-shift frozen, n-gram
+VE 4×1,048,576×128, `GRAD_CLIP=1.0`, `WARMDOWN_RATIO=0.75`, etc.) — no `train.py` changes, box 1's
+checkout re-verified byte-identical to the local repo before the batch started.
+
+### Running table (filled in as each run completes)
+
+| seed | num_steps | training_seconds | total_seconds | total_tokens_M | causality_passed | causality_max_abs | over_budget | `public_val_bpb` | note |
+|---|---|---|---|---|---|---|---|---|---|
+| 5   | pending | | | | | | | | cheap-screen BEST (300-step proxy 1.221123) |
+| 13  | pending | | | | | | | | cheap-screen WORST (300-step proxy 1.228437) |
+| 34  | pending | | | | | | | | new coverage |
+| 55  | pending | | | | | | | | new coverage |
+| 89  | pending | | | | | | | | new coverage |
+| 144 | pending | | | | | | | | new coverage |
+
+Log: `research/run-logs/seedhunt-box1-driver.log` (combined driver output, timestamps per seed
+start/end); per-seed logs `research/run-logs/seedhunt-box1-seed{5,13,34,55,89,144}-1800s.log`.
+
+*(Batch started; this section is updated and committed after each seed completes.)*
