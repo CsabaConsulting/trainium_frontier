@@ -8625,3 +8625,73 @@ or made.
 `research/run-logs/probe-ngmveopt-{ctrl,arm}.log`, `research/run-logs/ngmveopt-{ctrl-900s-r1,
 arm-900s,ctrl-900s-r2,ctrl-900s-r3,arm-900s-r2,ctrl-900s-r4}.log`. Rows `ngmveopt-{ctrl-900s-r1,
 arm-900s,ctrl-900s-r2,ctrl-900s-r3,arm-900s-r2,ctrl-900s-r4}` in `research/experiment-log.jsonl`.
+
+## 2026-09-15 (later) — Regression-check dress rehearsal: this week's accumulated changes (through `4e740ee`) reproduce the locked number, no interaction found
+
+Standing rule again: before recommending a real submission, run the literal bare launch command
+once — not through `research/run_experiment.py` — and let it run to completion. This was not a new
+experiment: every commit since the last full dress rehearsal (2026-09-14, `## 2026-09-14 — dead-code
+removal...` section above, ending in `1.004550`/2122 steps) had already been individually verified to
+leave the locked defaults' *behaviour* unchanged — `df82d08` added `--muon-lr-fp32` (default OFF),
+`dffa5ee` added the step-cap defense-in-depth guard (a pure `stop_after_step` refactor plus a
+non-fatal warning path, verified on-box in its own commit) — but the two had never been re-confirmed
+*together*, end-to-end, on the actual submission command. Box 2 (`ec2-16-26-154-27`), commit `4e740ee`
+(verified `HEAD` == `origin/main` before starting; local repo's untracked `.memsearch/*` files are
+unrelated tooling state, not code).
+
+**Defaults re-verified in `train.py` before running** (all as expected, none touched by this week's
+five commits): `DEPTH=6`, `ASPECT_RATIO=96` (→ `n_embd=640`), `NGRAM_VE_LAYERS="1,-1"`,
+`NGRAM_VE_TABLE_MULT=128`, `NGRAM_VE_TRIGRAM=True`, `USE_COMPILE_MUON=True`, `USE_QK_SHIFT=True` /
+`QK_SHIFT_BETA=0.0` / `QK_SHIFT_FREEZE=True`, `NUM_STEPS=1_000_000`, `USE_MUON_LR_FP32=False`,
+`USE_TRANSPOSED_LINEAR=False`, `USE_BYTE_WTE_INIT=False`, `USE_COALESCED_SWIGLU=False`,
+`USE_CAUTIOUS_WD=False`, `DEMON_BETA1=False` (Demon β1 anneal), `MUON_BETA2_FINAL=0.0` (NorMuon β2
+ramp), `MUON_DEPTH_LR_BOTTOM=MUON_DEPTH_LR_TOP=1.0` and `MUON_DEPTH_MOM_BOTTOM=MUON_DEPTH_MOM_TOP=0.0`
+(per-depth LR/momentum scaling) — every new knob added this week defaults to its OFF/unchanged state.
+
+**Run**: `train.py` rsynced to the box first (its `train.py` predated `dffa5ee` — md5 confirmed
+matching the local file, `24cce227d3bcf9750f6ea07f9d58a8d1`, after the copy), then
+
+```
+NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --no-eval-public --num-steps 1000000
+```
+
+run directly in `tmux` (not through `run_experiment.py`), full budget, log
+`research/run-logs/regcheck-dress-rehearsal-20260915.log`. Note this session's given command carries
+`--no-eval-public` (an older form of the standing-rule command — the more recent 2026-09-14 rehearsal,
+and the "real leaderboard submission" description earlier in this doc, both use the truly flagless
+`train.py`/`--num-steps 1000000`-only form, since `NUM_STEPS` defaulting to 1,000,000 already makes
+the explicit `--num-steps` a no-op); `--no-eval-public` only suppresses the *in-process* causality/bpb
+print, so — exactly as done for the 2026-09-10 rehearsal's "Eval calibration" step — `public_val_bpb`
+and `causality_max_abs` were recovered from the same checkpoint afterward via `prepare.py eval-public`
+and a `causality_check` standalone call, both using `train.py`'s own `load_for_eval`. This is the same
+methodology already cross-validated in this doc to agree with the in-process number to ~2e-5.
+
+| | last known-good (2026-09-14, cleaned file, box 1) | this regression check (2026-09-15, box 2, commit `4e740ee`) |
+|---|---|---|
+| `num_params` | 592,916,844 | 592,916,844 |
+| steps | 2122 | 2119 |
+| `training_seconds` / `over_budget` | — / False | 1784.9 / **False** |
+| `causality_max_abs` | 0.000000 | **0.000000** (`causality_passed: True`) |
+| `public_val_bpb` (seq_len=2048, 2M tokens) | 1.004550 | **1.003408** |
+
+−3 steps and **−0.001142 bpb** (i.e. slightly *better*, despite slightly fewer steps) — comfortably
+inside this repo's informal noise conventions (e.g. the immediately preceding checkpoint-size dress
+rehearsal treated a −0.00036 bpb / −1 step delta as "inside the noise floor in both directions"; this
+delta is larger but still in the *favourable* direction on fewer steps, which is not the shape a real
+regression takes — a regression would cost bpb at equal-or-more steps, not gain it at fewer). Box 2's
+throughput parity with box 1 (~0.11% apart) was already established in the Probe 2/3 sections above,
+so the cross-box comparison is licensed. The exact noise band for this delta size is still being
+tightened by the concurrent 3-seed variance check on box 1 (different topic — measuring the noise
+floor itself, not a regression check) and should be folded in when it lands, but nothing here needs
+it to reach a verdict.
+
+**Verdict: clean, no regression, no interaction found.** All five of this week's commits
+(`df82d08`, `8810a71`, `98eed62`, `7e62330`, `512b43e`, `5e8a079`, `dffa5ee`, `4e740ee`) are safe to
+have live on top of the locked config for a real submission — `causality_max_abs` is exactly 0.0,
+`over_budget` is `False`, `num_params` is byte-identical, and `public_val_bpb` reproduces the last
+known-good full-1800s number within (favourable) noise. No `train.py` changes were made in this
+session.
+
+Log: `research/run-logs/regcheck-dress-rehearsal-20260915.log` (training),
+`research/run-logs/regcheck-dress-rehearsal-20260915-evalpublic.log` (post-hoc `public_val_bpb`),
+`research/run-logs/regcheck-dress-rehearsal-20260915-causality.log` (post-hoc causality check).
