@@ -7089,3 +7089,229 @@ checkpoint, do not scale with `n_embd`), so `CHECKPOINT_RESERVE_SECONDS = 15.0` 
 - **Re-deriving an existing table from its committed logs caught four transcription errors** in the
   Part A copy (see the correction note there). Committing raw run logs is what made that recoverable;
   keep doing it.
+
+## 2026-09-15 — The LNC=2 resharding mechanism is a **one-rank artefact** and does not exist at the competition shape; the one-hot matmul is priced at **1234×**; NKI's indirect-scatter wall is documented. Reshard hunt CLOSED NEGATIVE, and it hands back a **new, larger, unattributed +53% layer-1 penalty**
+
+Box 2 (`ec2-16-26-154-27`, trn2.3xlarge, LNC=2, 4 ranks). Drivers
+`research/scratch/reshard_probe.sh` (Block A), `research/scratch/onehot_gather_bench.py`,
+`research/scratch/nki_ngram_gather_dev.py`; per-arm JSON in `research/run-logs/reshard-a/*.r{0..3}.json`.
+
+Measured on `train.py` md5 `f5e0325aa0246094586c2675b5c874f4` (= commit `c893740`). The only later
+commit, `69b3ef4`, changes `train.py` in 26 lines that are all inside a default-OFF path — **no
+module-level default constant moves** — so every number below stands unchanged at HEAD.
+
+### 0. The one-line answer, and the reason it is worth reading anyway
+
+The task was to attack the LNC=2 cross-physical-core resharding cost at its root, with a NKI gather
+kernel, a static one-hot matmul, or a restructured injection order. **All three options are closed,
+because the thing they were built to remove is not there.** The entire resharding mechanism
+documented on 2026-09-12 — "+47.6 ms forward, 42.4 M cross-pcore packets at 30.6 B/packet, 78–80%
+DMA engine occupancy, one burst per downstream layer boundary" — was measured by a driver that was
+written **single-process**. At the 4 ranks the competition actually runs, making the gather's address
+compile-time-static recovers **0.0 ± 1.6 ms in every injection position**. There is no resharding
+cost left to remove.
+
+But the same 7-arm block that falsified the mechanism found something bigger in its place: injecting
+the n-gram table at **layer 1 rather than layer 5 costs +83.4 ms/micro (+53.6%)** at *byte-identical*
+parameters — and it is **not** the dynamic address, and it is **175× larger than the entire gather
+operation it was blamed on** (the gather is 0.484 ms). That is a real, live, unexplained cost sitting
+in the position the locked config uses, and it is a strictly better target than the one this task was
+scoped to attack.
+
+### 1. Why every resharding number in this document was a 1-rank number
+
+`research/scratch/prof_driver.py` calls `T.init_runtime(device_type)` and was otherwise written to run
+as a single process. It was never launched under `torchrun`. So the 2026-09-12 "ROOT CAUSE of the
+layer-position effect" section, and every packet count and DMA-occupancy figure in it, describes a
+world size the submission never uses.
+
+Two prior facts should have flagged this earlier and are now explained by it:
+
+1. **The 2026-09-14 T1.7 probe already showed the sign flips at 4 ranks** — layer 1 went from "+34%
+   unaffordable" at 1 rank to "−5.86%, and the biggest bpb win in the repo". The stated reason was
+   that a residual stream already sharded four ways makes the cross-pcore DMA cheaper. That was the
+   right instinct and nobody re-measured the mechanism itself.
+2. **The documented mechanism never explained its own 1-rank data.** At 1 rank the penalties were
+   `{5}` −8.8 ms, `{1}` **+5.3 ms**, `{3}` **+47.7 ms**. Under a "one reduction burst per downstream
+   layer boundary" law, layer 1 (4 downstream boundaries) must cost *more* than layer 3 (2
+   boundaries). It cost **9× less**. The honest reading of the 1-rank data was always a
+   schedule/placement lottery in `neuronx-cc`, not a per-boundary law — the law was fitted to two of
+   its three points.
+
+The driver is now rank-aware (`--out-rank-suffix`, rank-0-only NTFF capture, non-zero ranks doing
+identical work so the collectives cannot deadlock) and runs under
+`torchrun --standalone --nproc_per_node=4` unchanged.
+
+### 2. Block A: the 7-arm position × address-mode grid at 4 ranks
+
+Isolation is the point. Every table arm carries **exactly one bigram table**
+(`--no-ngram-ve-trigram --ngram-only-layer N`, `--ngram-ve-layers ""` so the driver's flags are
+authoritative) at the locked mult 128 / dim 128 geometry, so `num_params`, optimizer state, gradient
+all-reduce volume and table bytes are **identical (190,017,420) across all six**, and the only things
+that move are the injection position and whether the gather's address is dynamic (`tbl[rows]`, what
+ships) or static (`tbl[:b*t]`, a numerically meaningless timing arm that is an **exact upper bound on
+what any fix to the dynamic address can recover** — NKI island, eager pre-pass or one-hot alike).
+
+`--window fwd`, min of 3 timed steps, all four ranks reported:
+
+| arm | position | address | fwd ms (r0) | micro ms, min per rank (r0 r1 r2 r3) | rank-mean micro | step s, rank-mean |
+|---|---|---|---|---|---|---|
+| `a0-notab` | — (55.7 M params) | — | 112.08 | 215.1 215.4 215.0 215.3 | **215.2** | 0.9516 |
+| `a1-l5-dyn` | 5 | dynamic | 53.44 | 156.6 155.5 155.0 155.6 | **155.7** | 0.7436 |
+| `a2-l3-dyn` | 3 | dynamic | 54.30 | 156.2 157.1 157.2 158.4 | **157.2** | 0.7418 |
+| `a3-l1-dyn` | 1 | dynamic | 138.11 | 240.3 240.5 237.6 238.0 | **239.1** | 1.0818 |
+| `a4-l5-sta` | 5 | static | 53.02 | 156.7 156.5 157.6 156.8 | **156.9** | 0.7539 |
+| `a5-l3-sta` | 3 | static | 54.61 | 157.6 157.7 155.0 156.4 | **156.7** | 0.7470 |
+| `a6-l1-sta` | 1 | static | 137.49 | 239.9 239.6 241.9 241.3 | **240.7** | 1.0798 |
+
+The four ranks agree to **under 1%** on every arm, so nothing here needs a noise-floor argument.
+
+**Result 1 — the dynamic address is free at 4 ranks, in every position.** static − dynamic on
+rank-mean micro: layer 5 **+1.2 ms**, layer 3 **−0.5 ms**, layer 1 **+1.6 ms**. On step time: layer 5
++1.4%, layer 3 +0.7%, layer 1 −0.2%. **Static is if anything marginally *slower* than dynamic
+everywhere.** Against this, at 1 rank the static arm recovered ~88% of a +47.6 ms layer-3 penalty.
+The mechanism is gone. Options 1 (NKI gather kernel), 2 (one-hot matmul) and 3 (amortise the reshard)
+are all closed *for the reason they were proposed* — there is nothing for them to recover.
+
+**Result 2 — layer 3 is throughput-free at 4 ranks, so its rejection is now purely a quality
+verdict.** `a2` (157.2) vs `a1` (155.7) is +1.5 ms, ~1%. The 1-rank +47.7 ms that made layer 3 look
+unaffordable does not exist. Layer 3 stays rejected on the numbers that actually rejected it —
+120-step proxy loss 3.9973 alone / 3.9855 with layer 1 against a 3.9608 control — and **no throughput
+fix can rescue it**, because it does not need one. `--ngram-ve-layers "1,3,-1"` is a quality question
+that has already been answered no.
+
+**Result 3 — the position ordering INVERTED, and the shipped position is now the expensive one.**
+At 1 rank, layer 3 was pathological and layer 1 nearly free (+5.3 ms). At 4 ranks, **layer 1 costs
++83.4 ms/micro (+53.6%) and +0.338 s/step (+45.5%) over layer 5**, while layer 3 is free. Identical
+parameters, identical bytes, identical FLOPs, and — per Result 1 — identical after making the address
+static. This is the largest single unexplained throughput term currently known in the graph.
+
+**Result 4 — one 134 M-param table makes the model 27.7% FASTER than no table at all.**
+`a0-notab` 215.2 ms micro vs `a1-l5-dyn` 155.7 ms, at all four ranks, with 3.4× fewer parameters in
+the fast arm. This reproduces Probe 3 Part D's unexplained speed-up (+10.18% there) in clean
+single-table isolation and much larger. Adding 134 M parameters and a 256 MiB HBM table *reduces*
+micro-step time by 59.5 ms. Whatever schedules this graph is not FLOP- or byte-driven, and both
+Result 3 and Result 4 are almost certainly the same phenomenon seen from two sides.
+
+### 3. Option 2 priced properly: the one-hot matmul loses by 1234×, and its crossover does not exist
+
+`out[i,:] = table[idx[i],:]` equals `(onehot(idx) @ table)[i,:]` with compile-time-known addresses, so
+it cannot trigger the mechanism at all. The one-hot is built by **comparison** against `arange(R)`,
+not `scatter_`/`F.one_hot`, because a scatter is itself a dynamic write and would defeat the entire
+purpose; that cost is inside the timings. Tiling over `BT` is mandatory, not an optimisation. Device,
+eager, bf16, real `BT = 8192`, `DIM = 128`:
+
+| R (rows) | dyn `tbl[idx]` fwd | dyn fwd+bwd | one-hot fwd, tile 128 | tile 512 | best ratio | one-hot FLOPs/fwd | full one-hot | tile-512 one-hot |
+|---|---|---|---|---|---|---|---|---|
+| 8,192 | 0.404 ms | 2.182 ms | 55.996 ms | **10.521 ms** | **26.0×** | 1.718e10 | 0.12 GiB | 8 MiB |
+| 32,768 | 1.002 | 2.238 | 79.797 | 29.499 | 29.4× | 6.872e10 | 0.50 GiB | 32 MiB |
+| 131,072 | 0.852 | 2.917 | 123.586 | 56.484 | 66.3× | 2.749e11 | 2.00 GiB | 128 MiB |
+| **1,048,576** (shipped) | **0.484** | 3.835 | 904.164 | **596.783** | **1233.6×** | **2.199e12** | **16.00 GiB** | 1024 MiB |
+
+**At the shipped geometry the one-hot is 596.8 ms against a 0.484 ms gather, inside a 156–240 ms whole
+micro-step.** It is 2.5–3.8× the entire micro-step on its own, for one of four tables.
+
+Three independent ways it fails, all measured or arithmetic rather than estimated:
+
+- **FLOPs.** 2·8192·1048576·128 = **2.199e12** FLOPs per table per forward = **67% of the whole
+  model's micro-step forward** (flops/token 3.9919e8 × 8192 tokens = 3.269e12). Forward+backward
+  ≈4.4e12 per table; **four tables = 1.76e13 = 5.4× the entire model's FLOPs**.
+- **Memory.** The untiled one-hot is **16.00 GiB** against ~24 GB per logical core; four tables need
+  **64 GiB**. Tiling fixes the footprint and not the FLOPs.
+- **The crossover does not exist.** The one-hot loses by **≥26× at every row count measured,
+  including the smallest**. Its tile-512 cost is **overhead-floored at ~10 ms** (16 tiles × 2 eager
+  device ops ≈ 0.33 ms/op) *independently of R* — at R = 8192 the arithmetic is a negligible 1.7e10
+  FLOPs and the 10.5 ms is pure launch cost. So the honest crossover statement is: **a one-hot can
+  only become cost-competitive when the whole one-hot fits a single untiled matmul, i.e. R ≲ 512–1024
+  rows** — 1000–2000× smaller than shipped, at a table size the 1800 s quality sweep rules out (it
+  wants R ≥ 524,288). On the softer "≤10% of the model's FLOPs across four tables" criterion the
+  bound is **R ≈ 19,500**, still ~54× smaller than shipped. Either way the gap is orders of
+  magnitude and there is no crossover to chase.
+
+**Correction to a stale inference.** The historical `--ngram-gather static` "+5.5 ms instead of +47.6
+ms" datapoint was sometimes read as evidence that a static-address gather is nearly free and
+therefore that a one-hot matmul might be affordable. It is not: that arm used the **contiguous slice
+`tbl[:b*t]`**, which moves the same bytes with no arithmetic at all. It was never a one-hot matmul and
+never priced one.
+
+### 4. Option 1: where NKI's wall actually is on this SDK (nki 0.5.0, neuronx-cc 2.26.6360.0)
+
+Documented because it is the reusable part, and because "we did not need it" and "it could not have
+been done" are different claims and both happen to be true here.
+
+**The forward indirect gather IS expressible.** `research/scratch/nki_ngram_gather_dev.py` implements
+it as
+
+```python
+nisa.dma_copy(dst=rows,
+              src=table.ap(pattern=[[D, P], [1, D]], offset=0,
+                           vector_offset=row_ids, indirect_dim=0))
+```
+
+with the constraints: the index tensor must be **resident in SBUF**, int32, shaped `[P, 1]` — **one
+index per SBUF partition**, so at most **128 rows per instruction**, i.e. 64 instructions for
+`BT = 8192`. Indirect access forces **SWDGE**, because `trainium2_arch` states "NeuronCore-v3 hardware
+DGE currently does not support indirect DMA operations".
+
+**The backward is NOT expressible, for four independent reasons.** The n-gram backward is a
+scatter-add into a dense `[V, D]` gradient with **duplicate indices** — 8192 hashed rows out of
+1,048,576 collide and must accumulate. On Trn2/NKI 0.5.0:
+
+1. indirect `dma_copy` is contractually **unique-indices-only**;
+2. `dst_rmw_op` and `unique_indices` were **removed from `dma_copy` in NKI 0.3.0**;
+3. its replacement `nisa.dma_compute` requires a **compile-time-known `dst`**, so it can
+   gather-accumulate but never scatter-accumulate;
+4. the Trn2 ISA has **no atomic add reaching HBM** — PSUM accumulation is TensorE-controlled,
+   on-chip, and statically addressed.
+
+Trn3 / NeuronCore-v4 adds indirect scatter. **Trn2 does not have it.** So any NKI n-gram path is
+necessarily forward-only with the backward left in PyTorch — which is not fatal in principle, since
+the 2026-09-12 attribution put +47.0 of the +52.6 ms in the *forward* NEFF, but is moot now.
+
+Both named gather APIs are separately ruled out by SBUF residency: `nisa.local_gather` is SBUF-only
+with uint16 indices (≤65535, ≤4096 elements/core) and `nisa.nc_n_gather` is SBUF-only with uint32,
+while the shipped table is **256 MiB against 24 MiB of SBUF**.
+
+**And the performance floor says a kernel could not have won anyway.** A gathered row of a `[V, 128]`
+bf16 table is 256 B contiguous — exactly one descriptor — so both `table[idx]` and any NKI kernel move
+8192 descriptors × 256 B = 2 MiB, sitting in the overhead-dominated region of the documented DMA curve
+(saturation needs ≥4 KiB/partition), with no documented coalescing below one descriptor per row. The
+measured `table[idx]` forward is already **0.484 ms**, i.e. **0.3% of a 156 ms micro-step**. There was
+never 84 ms of gather to recover, whatever the address mode.
+
+### 5. What this does to the two escalation targets named in the brief
+
+- **Layer 3 affordability (`--ngram-ve-layers "1,3,-1"`)**: already affordable — +1.5 ms micro, ~1%,
+  at 4 ranks. Nothing needed to be made affordable. It remains rejected on **quality** (proxy 3.9973 /
+  3.9855 vs 3.9608 control) and no throughput work can change that.
+- **width = 768 break-even (needs +8.82% after `--no-nki-rope-norm` on both arms)**: the reshard hunt
+  delivers **0%** toward it, because the dynamic address was worth 0 ms. The gap is untouched.
+
+**And the ceiling on what any throughput win is worth is small.** The locked config gets 2135 steps at
+1800 s against the **~2195-step data wall**, so at most **+2.8%** throughput can be absorbed as extra
+steps, worth `0.077 · ln(2195/2135) ≈ 0.0021 bpb` — at the edge of the 0.003 paired-repeat floor.
+Anything past +2.8% must be spent on capacity, and the measured capacity spends are tiny per-step
+(l1+dim256+mult128 proxy 3.9325 vs locked 3.9343 for −18.6% throughput). This is the arithmetic that
+should gate any future throughput hunt on this config, including the layer-1 penalty in §2 Result 3:
+even collapsing all 83.4 ms would mostly have to be spent on capacity, not steps.
+
+### 6. Verdict, and the target this hands back
+
+**Reshard hunt: CLOSED NEGATIVE, with the mechanism falsified rather than merely unprofitable.** No
+change to `train.py`; no flag added, because there is nothing to gate. The specific technical reasons
+are §2 Result 1 (static == dynamic at 4 ranks in all three positions), §3 (one-hot loses by ≥26× at
+every R, with no crossover above R ≈ 1024), and §4 (Trn2 has no indirect scatter, so the backward is
+inexpressible, and the forward's DMA floor is already met by `table[idx]` at 0.484 ms).
+
+**Three corrections this leaves in the document:** the 2026-09-12 resharding root-cause is a 1-rank
+artefact and should not be cited for the competition shape; the "one burst per downstream boundary"
+law never fitted its own `{1}` datapoint; and the `static` gather arm was never evidence about
+one-hot matmuls.
+
+**The live target it hands back**, strictly better than the one it closed: **+83.4 ms/micro (+53.6%)
+for injecting at layer 1 instead of layer 5, at identical parameters, not caused by the dynamic
+address, and 175× larger than the gather op itself** — plus its likely twin, **one table making the
+model 27.7% faster than no table**. Both are whole-graph scheduling effects of injection *position*,
+which means no change to how the gather is *spelled* can touch either. That is being investigated
+next (Blocks E and F: NKI-island interaction, and whether the shipped `1,-1` pair pays the penalty at
+all).

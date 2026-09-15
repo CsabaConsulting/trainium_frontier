@@ -108,6 +108,9 @@ def build_args():
                          "the number that matters is dt, not the trace (and where a 1.4 GB "
                          "NTFF per arm is pure cost).")
     ap.add_argument("--json-out", type=str, default="")
+    ap.add_argument("--out-rank-suffix", action=argparse.BooleanOptionalAction, default=True,
+                    help="Under torchrun, append /r<rank> to --out and --json-out so the four "
+                         "ranks cannot overwrite each other's driver JSON.")
     return ap.parse_args()
 
 
@@ -384,6 +387,20 @@ def main():
     T.COMPUTE_DTYPE = T.compute_dtype_for(device)
     print(f"[drv] device={device} dtype={T.COMPUTE_DTYPE} world_size={world_size} "
           f"device_type={device_type}", flush=True)
+    # 2026-09-15 reshard hunt: this driver was written single-process, but every mechanism
+    # conclusion drawn from it (the LNC=2 resharding cost) was therefore measured at ONE rank
+    # -- a shape the competition does not run, and the 2026-09-14 T1.7 probe showed the sign of
+    # affordability flips at four. So the driver now runs under `torchrun --nproc_per_node=4`
+    # unchanged (init_runtime already handles it); only the NTFF capture has to be rank-scoped,
+    # because four processes each opening a NeuronProfiler on the same device fight over the
+    # same trace files. Non-zero ranks keep doing identical work (they must, or the collectives
+    # deadlock) and just report their clean wall-clock dt.
+    if args.capture and rank != 0:
+        args.capture = False
+        print(f"[drv] rank {rank}: capture disabled (rank 0 captures)", flush=True)
+    if args.out_rank_suffix:
+        args.out = f"{args.out}/r{rank}"
+        os.makedirs(args.out, exist_ok=True)
 
     config = T.build_config()
     model = T.GPT(config)
@@ -593,8 +610,12 @@ def main():
         "ngram_hoist": args.ngram_hoist,
         "capture": args.capture,
     }
+    info["rank"] = rank
     print("[drv] INFO " + json.dumps(info), flush=True)
     if args.json_out:
+        if args.out_rank_suffix and world_size > 1:
+            base, _, ext = args.json_out.rpartition(".")
+            args.json_out = f"{base}.r{rank}.{ext}" if base else f"{args.json_out}.r{rank}"
         with open(args.json_out, "w") as fh:
             json.dump(info, fh, indent=2)
     T.cleanup_runtime()
