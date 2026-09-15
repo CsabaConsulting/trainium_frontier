@@ -228,6 +228,15 @@ NUM_STEPS = 1_000_000  # Deliberately unreachable: the wall-clock budget (MAX_TR
 # restarts its budget clock at that boundary so it can use the full charged
 # budget even when compilation makes the first steps slow.
 
+# Defense-in-depth for the 2026-09-10 failure mode above, in case a future edit reintroduces a
+# step cap that binds before the clock does: below MIN, a step-cap exit is treated as an
+# intentional short/smoke run (this week's research/scratch/*.sh runs stay under ~20%
+# elapsed/max_train_seconds) and is not warned about; at/above MAX it is close enough to the
+# deadline to count as an on-time exit rather than the clock never getting to run its cooldown.
+# See the step_cap_hit/time_budget_hit check in the training loop below.
+STEP_CAP_GUARD_MIN_PROGRESS = 0.5
+STEP_CAP_GUARD_MAX_PROGRESS = 0.98
+
 # T2.1 batch-size ramp. TOTAL_BATCH_SIZE above is a single fixed value for the whole run, and
 # the Tier-0 resweep showed both neighbours lose -- but that sweep could only ask "which ONE
 # batch size is best on average", and the answer to that is a compromise. Early training is
@@ -5942,19 +5951,44 @@ def main() -> None:
         # Gate the time-based stop behind reaching the excluded-step count so the
         # run is always scorable; an explicit num_steps budget still stops early.
         reached_min_steps = step + 1 >= TRAIN_STARTUP_STEPS_EXCLUDED
-        stop_after_step = (
-            step + 1 >= args.num_steps
-            or (
-                reached_min_steps
-                and (
-                    elapsed_after_step >= args.max_train_seconds
-                    or elapsed_after_step
-                    + max(recent_step_times[-20:])
-                    + CHECKPOINT_RESERVE_SECONDS
-                    >= args.max_train_seconds
-                )
-            )
+        step_cap_hit = step + 1 >= args.num_steps
+        time_budget_hit = reached_min_steps and (
+            elapsed_after_step >= args.max_train_seconds
+            or elapsed_after_step
+            + max(recent_step_times[-20:])
+            + CHECKPOINT_RESERVE_SECONDS
+            >= args.max_train_seconds
         )
+        stop_after_step = step_cap_hit or time_budget_hit
+        if step_cap_hit and not time_budget_hit and rank == 0:
+            # Defense-in-depth for the exact 2026-09-10 failure mode (NUM_STEPS default of 1000
+            # silently capped the bare-launch submission at step 1000, ~815s into an 1800s budget,
+            # before lr_multiplier's wall-clock cooldown ever ran -- see
+            # research/submission-gap-analysis-2026-09-10.md, fixed in ba37f86 by making NUM_STEPS
+            # unreachable). NUM_STEPS is unreachable today, so this only fires if some future edit
+            # reintroduces a step cap (a lowered NUM_STEPS, a stray --num-steps on a real launch,
+            # or a new bound entirely) that binds before the clock does.
+            #
+            # Banded on elapsed/max_train_seconds so it does NOT fire on this week's intentional
+            # short --num-steps runs (research/scratch/*.sh): those stay well under
+            # STEP_CAP_GUARD_MIN_PROGRESS (fixed-step probes are ~120/1800=6.7%, calibration sweeps
+            # top out around 300/1500=20%). A step cap that instead binds deep into a run that was
+            # clearly aiming for its full max_train_seconds budget -- exactly what happened on
+            # 2026-09-10 -- lands above the band and is not a normal on-time exit (that's
+            # time_budget_hit above), so it is the specific case worth a loud warning.
+            progress_at_exit = elapsed_after_step / max(1e-6, args.max_train_seconds)
+            if STEP_CAP_GUARD_MIN_PROGRESS <= progress_at_exit < STEP_CAP_GUARD_MAX_PROGRESS:
+                print(
+                    f"WARNING: --num-steps {args.num_steps} step cap stopped training at step "
+                    f"{step + 1}, elapsed={elapsed_after_step:.0f}s -- only "
+                    f"{progress_at_exit:.1%} of max_train_seconds={args.max_train_seconds:.0f}s. "
+                    f"The wall-clock LR cooldown (lr_multiplier) did NOT run to completion. This "
+                    f"is the 2026-09-10 submission-gap failure mode "
+                    f"(research/submission-gap-analysis-2026-09-10.md) -- if this is meant to be "
+                    f"a real/scored run, raise --num-steps (default {NUM_STEPS}); if this is an "
+                    f"intentional short/smoke run, ignore.",
+                    flush=True,
+                )
         control = torch.tensor(
             [
                 1 if (math.isnan(train_loss) or train_loss > 100) else 0,

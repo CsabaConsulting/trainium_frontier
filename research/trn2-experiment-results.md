@@ -8378,3 +8378,82 @@ flag, now confirmed NOT worth lowering at this shape. No `train.py` changes were
 Logs: `research/run-logs/ngmbeta2-{ctrl-900s-r1,arm-095-900s,arm-099-900s,ctrl-900s-r2,ctrl-900s-r3,arm-095-900s-r2}.log`.
 Rows `ngmbeta2-{ctrl-900s-r1,arm-095-900s,arm-099-900s,ctrl-900s-r2,ctrl-900s-r3,arm-095-900s-r2}`
 in `research/experiment-log.jsonl`.
+
+## 2026-09-15 — Defense-in-depth guard against a reintroduced step cap (code-safety hardening from the plan queue, not a quality experiment)
+
+`NUM_STEPS = 1_000_000` (`train.py:221`) already fixed the 2026-09-10 submission-gap bug
+(`research/submission-gap-analysis-2026-09-10.md`, commit `ba37f86`): the starter kit's
+`NUM_STEPS=1000` default silently capped the bare-launch submission at step 1000 (~815s into the
+1800s budget) before `lr_multiplier`'s wall-clock LR cooldown ever ran, costing 1.1495 on the board
+against a real ~1.0384. That commit also already added two *predictive* warnings (`train.py:5657`
+comparing `--num-steps` to `--max-train-seconds` at startup, and a step-50 throughput projection at
+`train.py:5988`) that fire *before* the fact if a step cap looks likely to bind early. Neither of
+those fires exactly *at* the loop's actual exit, and neither can tell "the step cap genuinely cut a
+real run short" apart from "this is an intentional short/smoke run with a small `--num-steps` and a
+much larger `--max-train-seconds`" — the second pattern is everywhere in
+`research/scratch/*.sh` (fixed-step probes default `STEPS=120` against `--max-train-seconds 1800`,
+i.e. ~6.7% of budget; calibration sweeps like `mamba2_lever1_sweep.sh` use `--num-steps 300
+--max-train-seconds 1500`, ~20%; deliberate tiny smoke tests like `rwkv_chunk_sweep.sh` use
+`--num-steps 8 --max-train-seconds 1800`).
+
+**What was added.** A third check, right at the loop's actual stop decision (`train.py`, inside
+`main()`'s training loop, immediately after `stop_after_step` is computed, ~line 5951-5983):
+
+- The existing `stop_after_step` boolean was split into its two named causes,
+  `step_cap_hit = step + 1 >= args.num_steps` and `time_budget_hit = reached_min_steps and (...)`
+  (same disjuncts as before, `stop_after_step = step_cap_hit or time_budget_hit` — behaviour is
+  unchanged).
+- When `step_cap_hit and not time_budget_hit` (rank 0 only), compute
+  `progress_at_exit = elapsed_after_step / max_train_seconds` and print a loud `WARNING` (matching
+  this file's existing non-fatal, `print`-based style for schedule/budget anomalies — e.g.
+  `over_budget`, the two ba37f86 warnings above — rather than an `assert`/`raise`, since a false
+  positive should not be able to kill a real run) when
+  `STEP_CAP_GUARD_MIN_PROGRESS <= progress_at_exit < STEP_CAP_GUARD_MAX_PROGRESS`.
+- Two new module-level constants next to `NUM_STEPS` (`train.py:~232`):
+  `STEP_CAP_GUARD_MIN_PROGRESS = 0.5`, `STEP_CAP_GUARD_MAX_PROGRESS = 0.98`. Below MIN, a
+  step-cap exit is treated as one of the intentional short/smoke patterns above and stays silent;
+  at/above MAX it's close enough to the deadline to count as an on-time exit. Only a step-cap exit
+  that lands deep into a run that was clearly aiming at its full `--max-train-seconds` — exactly
+  what happened on 2026-09-10 — is in the band and gets the warning.
+
+The warning text names the exact failure mode, points at
+`research/submission-gap-analysis-2026-09-10.md`, and tells the reader whether to raise
+`--num-steps` (real/scored run) or ignore it (intentional short run).
+
+**Verification, both runs on the Trn2 box (`ec2-16-26-246-98...`, current locked defaults —
+`--compile`, `--compile-muon`, `--qk-shift(-freeze)`, `--ngram-ve-layers 1,-1`,
+`--ngram-ve-table-mult 128` are all defaults now, so nothing extra needed passing):**
+
+1. **`py_compile`**: `python3 -m py_compile train.py` clean, both before and after rsync to the
+   box.
+2. **Normal run, guard must NOT fire** — current locked defaults (`--num-steps` left at its
+   1,000,000 default), `--max-train-seconds 300`, `--out-dir out/guard-verify-normal`. Ran 345
+   steps at a steady ~0.83s/step, exited via the time budget (`training_seconds: 284.6`,
+   `over_budget: False`, `causality_passed: True`, `causality_max_abs: 0.000000`,
+   `public_val_bpb: 1.165207`). No new-guard warning printed (grepped the full log for `WARNING`:
+   only the unrelated `torch_neuronx` int64-autocast notices). Confirms the guard does not spam
+   on-time exits or the fixed-step-probe pattern.
+3. **Deliberate repro, guard must fire** — same shape/budget, `--num-steps 250
+   --max-train-seconds 300`, `--out-dir out/guard-verify-repro` (tiny cap chosen from run 2's
+   measured ~0.83s/step so the step cap binds at ~68% of the 300s budget, inside the
+   [0.5, 0.98) band with margin either way). Result: step cap hit at step 250,
+   `elapsed=205s` (`training_seconds: 205.0`, `over_budget: False`), and the new guard printed
+   exactly as designed:
+   `WARNING: --num-steps 250 step cap stopped training at step 250, elapsed=205s -- only 68.3%
+   of max_train_seconds=300s. The wall-clock LR cooldown (lr_multiplier) did NOT run to
+   completion. This is the 2026-09-10 submission-gap failure mode
+   (research/submission-gap-analysis-2026-09-10.md) -- if this is meant to be a real/scored run,
+   raise --num-steps (default 1000000); if this is an intentional short/smoke run, ignore.`
+   The two pre-existing ba37f86 predictive warnings also fired on this run (startup coarse check
+   and the step-50 projection), as expected — they are unrelated, complementary checks and still
+   work.
+4. Both `out/guard-verify-{normal,repro}` scratch dirs and their logs were removed from the box
+   after verification; no test config (the `--num-steps 250` repro) was left in any script or
+   default.
+
+**Verdict**: guard added, both runs behave exactly as intended (silent on an on-time exit and on
+the intentional-short-run pattern used throughout this week's `research/scratch/*.sh`, loud on a
+step-cap exit deep into a run aimed at its full budget). `NUM_STEPS` itself is untouched
+(stays `1_000_000`); this is pure defense-in-depth for if it is ever lowered again, or a different
+step-bound is added, without the wall-clock budget being raised to match. No quality/throughput
+claim is made or implied — this is a code-safety item, not an A/B.
