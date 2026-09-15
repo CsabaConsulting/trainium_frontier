@@ -1,0 +1,37 @@
+######## seedscreen-s1-300 ########
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 300 --max-train-seconds 3600 --out-dir out/seedscreen-s1-300 --seed 1
+--- logged: status=keep public_val_bpb=1.225206 num_steps=300 total_seconds=300.2 -> research/experiment-log.jsonl
+######## seedscreen-s2-300 ########
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 300 --max-train-seconds 3600 --out-dir out/seedscreen-s2-300 --seed 2
+--- logged: status=keep public_val_bpb=1.223903 num_steps=300 total_seconds=300.3 -> research/experiment-log.jsonl
+######## seedscreen-s3-300 ########
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 300 --max-train-seconds 3600 --out-dir out/seedscreen-s3-300 --seed 3
+--- logged: status=keep public_val_bpb=1.226761 num_steps=300 total_seconds=300.5 -> research/experiment-log.jsonl
+######## seedscreen-s5-300 ########
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 300 --max-train-seconds 3600 --out-dir out/seedscreen-s5-300 --seed 5
+--- logged: status=keep public_val_bpb=1.221123 num_steps=300 total_seconds=300.1 -> research/experiment-log.jsonl
+######## seedscreen-s8-300 ########
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 300 --max-train-seconds 3600 --out-dir out/seedscreen-s8-300 --seed 8
+--- logged: status=keep public_val_bpb=1.225259 num_steps=300 total_seconds=300.3 -> research/experiment-log.jsonl
+######## seedscreen-s13-300 ########
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 300 --max-train-seconds 3600 --out-dir out/seedscreen-s13-300 --seed 13
+--- logged: status=keep public_val_bpb=1.228437 num_steps=300 total_seconds=300.5 -> research/experiment-log.jsonl
+######## seedscreen-s21-300 ########
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 300 --max-train-seconds 3600 --out-dir out/seedscreen-s21-300 --seed 21
+--- logged: status=keep public_val_bpb=1.226908 num_steps=300 total_seconds=301.2 -> research/experiment-log.jsonl
+######## seedscreen-s100-300 ########
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 300 --max-train-seconds 3600 --out-dir out/seedscreen-s100-300 --seed 100
+--- logged: status=keep public_val_bpb=1.226983 num_steps=300 total_seconds=300.3 -> research/experiment-log.jsonl
+
+===== summary (seedscreen-prelim, fixed 300 steps) =====
+Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)

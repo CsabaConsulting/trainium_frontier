@@ -8914,3 +8914,147 @@ cross-box hardware variance vs. the already-measured seed variance) is left for 
 **Verdict: pure measurement, no code changes.** `train.py` untouched. Row not yet added to
 `research/experiment-log.jsonl` (this run bypassed `run_experiment.py` by design, same as both
 dress-rehearsal sections and box 1's 3-seed section above).
+
+## 2026-09-15 (later still) — PRELIMINARY/EXPLORATORY 8-seed short-budget screen, box 1: shape check only, NOT a substitute for full-budget confirmation, NO seed adopted
+
+**Framing, stated plainly up front.** This section is a cheap, wider *screen*, not a repeat or an
+extension of the 3-seed full-1800s variance check two sections above. It draws no conclusion and
+adopts no seed. Its only purpose is to spend a little box time cheaply to see whether the *shape* of
+the seed-noise distribution measured there (is seed 42 an outlier, is there a fat tail, is the
+spread proportionally similar at a much shorter budget) looks like more of the same or looks
+different, so that whatever decision eventually gets made about seeds has more data points behind
+it. Any decision about whether/how to act on this is explicitly out of scope here.
+
+### Seed mechanism (re-confirmed directly from `train.py` on box 1, no drift since the 3-seed section)
+
+`--seed` (`train.py:5328`, `type=int, default=int(os.environ.get("NEURON_COMPETITION_R1_SEED",
+"42"))`) is consumed exactly once, in `init_runtime` (`train.py:1335-1337`) via
+`torch.manual_seed(seed)`, called before model construction and before `dist.init_process_group`.
+The model has no `nn.Dropout`; every stochastic op is a weight-init call (`normal_`/`uniform_`/
+`zeros_`) drawing from the seeded global RNG — so, exactly as established in the 3-seed section
+above, `--seed`'s entire effect is weight-init noise only, at byte-identical data order
+(`USE_EPOCH_SHUFFLE=False`). Box 1's `train.py` was re-verified byte-identical to the local repo's
+copy (`sha256sum`, matching in full) before launching any of the 8 runs below, and
+`research/run_experiment.py` likewise matched byte-for-byte — no code drift between this screen and
+the 3-seed check.
+
+### Method: fixed-step, not fixed-wall-clock, so every run lands at the same LR-schedule position
+
+Driver script: `research/scratch/seedscreen_300s.sh`. Each of the 8 runs used:
+
+```
+python research/run_experiment.py --label seedscreen-s<N>-300 --solution seedscreen-prelim \
+    --num-steps 300 --max-train-seconds 3600 \
+    --nproc-per-node 4 --lnc 2 --no-commit --extra-args --seed <N>
+```
+
+i.e. `NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 300
+--max-train-seconds 3600 --out-dir out/seedscreen-s<N>-300 --seed <N>`, with everything else left at
+the file's current locked defaults (same `DEPTH=6`, `ASPECT_RATIO=96`, `TOTAL_BATCH_SIZE=131072`,
+`--compile`, `--compile-muon`, qk-shift frozen, n-gram VE 4×1,048,576×128, `GRAD_CLIP=1.0`,
+`WARMDOWN_RATIO=0.75`, etc. — `num_params_M=592.9` on every run, confirmed, no config drift).
+`--eval-public` was left at its default `True` (the `--no-eval-public` mistake flagged in the 3-seed
+section above was not repeated).
+
+The `--num-steps 300 --max-train-seconds 3600` combination is deliberate and is the same fixed-step
+convention this week's other cheap screens use (e.g. `research/scratch/mamba2_lever1_sweep.sh`,
+`mamba2_lowm_cheap.sh`: `--num-steps 300 --max-train-seconds 1500`) — a wall-clock ceiling large
+enough that it is never actually reached, so every run is stopped by the **step cap**, not the
+clock. At the locked config's measured ~0.82 s/step, 300 steps costs ~247s of training
+(`training_seconds` was 246.7–247.7s across all 8 runs, essentially identical); 300/3600 =
+elapsed/max_train_seconds ≈ 7%, far below the `WARMDOWN_RATIO=0.75` cooldown threshold, so every run
+sits at `lrm=1.0` (schedule multiplier 1.0, no cooldown at all) for its entire duration. This
+isolates early-training weight-init variance from any budget/schedule-position confound, at the
+cost of measuring a `public_val_bpb` that is **not comparable in absolute terms** to any full-1800s
+number in this file (the model is barely trained at 300 steps — bpb here is ~1.22, vs. ~1.00–1.01 at
+1800s) — only the **spread across seeds** is the object of interest, not the absolute level.
+
+### Seeds
+
+8 new values, distinct from 42/43/44 (box 1's 3-seed check above) and from 7 (box 2's cross-box
+point): **1, 2, 3, 5, 8, 13, 21, 100**.
+
+### The 8 runs
+
+All 8: `num_steps=300`, `num_params_M=592.9`, `causality_passed=True`, `causality_max_abs=0.000000`,
+`over_budget=False` (none tripped the wall-clock guard or failed the causality check).
+
+| seed | training_seconds | total_seconds | total_tokens_M | `public_val_bpb` |
+|---|---|---|---|---|
+| 5   | 246.7 | 300.1 | 39.3 | 1.221123 |
+| 2   | 246.9 | 300.3 | 39.3 | 1.223903 |
+| 1   | 246.7 | 300.2 | 39.3 | 1.225206 |
+| 8   | 246.8 | 300.3 | 39.3 | 1.225259 |
+| 3   | 246.9 | 300.5 | 39.3 | 1.226761 |
+| 21  | 247.7 | 301.2 | 39.3 | 1.226908 |
+| 100 | 246.8 | 300.3 | 39.3 | 1.226983 |
+| 13  | 246.9 | 300.5 | 39.3 | 1.228437 |
+
+(Sorted by `public_val_bpb` ascending; original run order was 1, 2, 3, 5, 8, 13, 21, 100.)
+
+Logs: `research/run-logs/seedscreen-s{1,2,3,5,8,13,21,100}-300.log` (per-seed, via
+`run_experiment.py`), `research/run-logs/seedscreen_300s.driver.log` (combined driver output). Log
+rows appended to `research/experiment-log.jsonl` with `label=seedscreen-s<N>-300`,
+`solution=seedscreen-prelim` (run with `--no-commit`; rows were pulled back and appended to the
+local copy of the log directly, not via an on-box git commit, consistent with this week's
+box-is-not-the-source-of-truth convention).
+
+### Spread
+
+- **`public_val_bpb`**: max 1.228437 (seed 13), min 1.221123 (seed 5) → **max−min = 0.007314**;
+  mean 1.225573; population std (n) **≈0.00213**, sample std (n−1) **≈0.00227**.
+- No single seed stands far outside the rest: the 8 values sit in a fairly tight, roughly
+  symmetric-looking band (1.2211–1.2284), with the min (seed 5, −0.0044 from the mean) sitting
+  slightly further from the mean than the max (seed 13, +0.0029) — a mild low-side lean rather than a
+  clear fat tail on either side. With n=8 this is far too small to characterize tail shape with any
+  confidence; it is offered only as "no dramatic outlier jumped out," not as evidence of normality.
+- `training_seconds`/`total_seconds`/`total_tokens_M` are essentially identical across all 8 seeds
+  (246.7–247.7s / 300.1–301.2s / 39.3M) — the step cap did its job; none of the spread above is a
+  step-count or throughput artifact.
+
+### Qualitative comparison to the 3-seed full-1800s spread (box 1, section above)
+
+| | 3-seed, full 1800s budget | 8-seed, short 300-step probe (this section) |
+|---|---|---|
+| n | 3 | 8 |
+| seeds | 42, 43, 44 | 1, 2, 3, 5, 8, 13, 21, 100 |
+| `public_val_bpb` range | [1.004355, 1.010491] | [1.221123, 1.228437] |
+| max−min | 0.006136 | 0.007314 |
+| sample std (n−1) | ≈0.0032 | ≈0.00227 |
+| population std (n) | ≈0.0026 | ≈0.00213 |
+
+The absolute `public_val_bpb` levels are of course not comparable (300 steps vs. ~2138 steps of
+training) — only the spread is. Taken at face value, **the short-probe spread is the same order of
+magnitude as the full-budget spread, if anything slightly wider in raw range** (0.0073 vs. 0.0061)
+though slightly narrower in sample std (0.0023 vs. 0.0032, an n=8 vs. n=3 comparison that is itself
+noisy in both directions). Nothing here suggests the short probe is systematically *tighter* than
+the full-budget noise floor in a way that would make it an unsafe (falsely reassuring) cheap proxy
+for spread magnitude — if anything the opposite, mild caution the other way. Seed 42 was not
+re-tested in this screen (deliberately excluded, already measured), so this section cannot directly
+say whether 42 is "still relatively good" among these 8 new seeds; that would require a follow-up
+screen that includes 42 itself at the same short budget as a bridge point, which was out of scope
+here.
+
+**No fat tail evident at n=8, no seed adopted, no full-budget claim made.** This is exactly what the
+task asked for: more, cheaper data points on the shape of the distribution, explicitly not a
+replacement for the full-1800s measurement above and not a basis for picking a seed.
+
+### Caveats
+
+- **Preliminary/exploratory, short-budget proxy — NOT a substitute for full-budget confirmation.**
+  300 steps at `lrm=1.0` measures early-training weight-init variance only; it says nothing about
+  how that variance evolves once the LR schedule enters cooldown (`WARMDOWN_RATIO=0.75`) or accrues
+  over a full ~2140-step run. The apparent similarity in spread magnitude between this screen and the
+  3-seed full-budget check is a qualitative observation from n=3 and n=8, not a validated
+  "short probes reliably predict full-budget noise" claim.
+- Same weight-init-only scope caveat as the 3-seed section: no run here reached anywhere near epoch 2
+  (39.3M tokens vs. a much larger epoch), so this remains a lower bound on the true noise floor,
+  excluding any data-order or epoch-shuffle-driven variance.
+- n=8 is still small for characterizing tail shape; treat the "no dramatic outlier" read above as
+  directional, not definitive.
+
+**Verdict: pure measurement, no code changes, no seed adopted.** `train.py` untouched — all 8 runs
+used box 1's already-current, unmodified checkout of the locked default config (byte-identical to
+the local repo's `train.py`, confirmed via `sha256sum` before launching). Whether/how to act on the
+combined evidence (this screen plus the 3-seed and box-2 sections above) is a separate decision, not
+made here.
