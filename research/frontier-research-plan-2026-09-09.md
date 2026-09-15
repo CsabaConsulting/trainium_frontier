@@ -524,13 +524,31 @@ Low priority; try last.
 Even if T4.1 is disallowed, hashed bigram/trigram embeddings are plain model parameters trained
 by gradient descent (Engram, modded-nanogpt #62). Prioritize T3.1 above every other Tier-3 item.
 
-### T4.3 Use of the excluded startup window (ask before relying on it)
-The runner excludes launch→5th step (≤ 900 s). Legitimate uses: compile *all* graphs the run will
-need (a second sequence-length shape for T2.1's curriculum; the eval shape), warm the kernel
-cache, and — arguably — pre-tokenize/pre-pack the data or build T4.1's count tables. Anything
-that looks like *training* in that window (giant early steps) would be read as exploitation of
-the evaluation infrastructure and must not be done. Ask on the forum whether data preprocessing
-in the startup window is acceptable; do not assume.
+### T4.3 Use of the excluded startup window — RULED, CLOSED (organizers answered directly, 2026-09-14)
+
+**Ruling received from the organizers, verbatim intent (user asked directly): the excluded
+launch→5th-step window (≤900s) may NOT be used to (a) pre-fill the n-gram tables (or build any
+count-based asset) ahead of the charged training loop, and (b) may NOT be exploited via uneven
+step construction — i.e. deliberately engineering the first 5 steps to run long and carry a
+disproportionate share of real learning, with the remaining charged steps paced faster once the
+clock resets.** Both were exactly the two risky variants flagged below before this ruling arrived
+("build T4.1's count tables" in the window, and the "prop up the 900s with padded early steps"
+idea raised and refused earlier this competition) — the organizers confirmed both are prohibited,
+not merely risky.
+
+**Verified clean against this ruling, 2026-09-14**: `train.py` only reads
+`TRAIN_STARTUP_STEPS_EXCLUDED`/`TRAIN_STARTUP_ALLOWANCE_CAP_SECONDS` (both from `prepare.py`, the
+organizers' own harness) to re-base its *own* internal logging clock to match the harness's
+exclusion — it never inflates batch size, compute, or table-building work specifically for steps
+0-4. Every one of the first 5 steps runs through the identical code path as every later step; the
+only real asymmetry is natural, legitimate compile time on step 0.
+
+**Still legitimate, per the ruling's own framing (ordinary compile/cache warmup, not training or
+data-asset construction)**: compiling additional graph shapes the run will need (a second
+sequence-length shape for a curriculum, the eval shape), warming the kernel/compiler cache. T4.1
+(the count-based n-gram mixer) is separately closed on the merits already (2026-09-12, +0.0006
+bpb, below threshold) so this ruling is now moot for it specifically, but the ruling stands as a
+general, permanent constraint on any future idea in this family — do not revisit either variant.
 
 ### T4.4 What not to spend time on (closed with real hardware evidence in the notebook)
 Mamba2/SSD hybrids (best M=1 still +0.013), RWKV x051a (2.05× slower and worse per step), SLAY/
