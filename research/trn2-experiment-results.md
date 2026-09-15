@@ -7636,3 +7636,114 @@ groups above, plus `research/scratch/sched_tricks_equiv.py` (bitwise harness),
 `neuronx-cc` cache step 0 costs ~206 s and step 1 ~161 s, both land in `recent_step_times`, and the
 predictive stop then halts a 180 s arm at **5 steps** — the symptom is `num_steps: 5`, not an error),
 `sched_tricks_report.py` (the decomposition, in code), and the two 900 s drivers.
+
+## 2026-09-15 — `--muon-lr-fp32`, the type-promotion side-finding from the sched-tricks block above: measured, and **CLOSED NEGATIVE** — real (~0.4%) precision recovered on every Muon lr, throughput genuinely unchanged, per-step effect a wash inside the control's own noise band
+
+**Context.** The sched-tricks block earlier today found that `_muon_lr_g`'s locked 0-dim path
+multiplies a 0-dim fp32 `lr` against the bf16 Newton-Schulz iterate `g`, and PyTorch's 0-dim-vs-
+dimensioned type-promotion rule casts `lr` **down to bf16 before the multiply** — up to ~0.4%
+relative quantisation on every Muon group's effective lr, every step. That was recorded but
+explicitly deferred as "a candidate free win in its own right... must be its own flag and its own
+A/B, not something smuggled in under per-depth scaling." This is that flag and that A/B.
+
+### Implementation
+
+`USE_MUON_LR_FP32` / `--muon-lr-fp32` (default `False`, current behaviour unchanged). Both call
+sites of `_muon_lr_g` — the compiled/eager `_muon_math` body (`train.py` ~3552, reached via
+`--compile-muon`, the locked default) and the plain-eager per-group path (~4240, reached with
+`--no-compile-muon` or a non-fp32 `w`) — now pass an `lr_fp32` bool through. Inside `_muon_lr_g`,
+the existing `lr.dim() > 0` branch (the per-depth `[K,1,1]` path, which deliberately reproduces the
+0-dim path's bf16 rounding so plan-§11.1's neutral-multiplier equivalence check stays bitwise) is
+completely untouched. A new, mutually-exclusive branch only fires when `lr_fp32` is on **and** `lr`
+is the 0-dim locked-default shape: instead of letting `lr * g`'s own type promotion cast `lr` down
+to `g.dtype` first, `g` is upcast to fp32 and the product is formed and returned in fp32. Both
+call sites add that product to another fp32 term and subtract from an fp32 `w`, so the precision
+that used to get thrown away before the multiply now survives all the way to the final subtract,
+exactly as the deferred note specified. `_muon_math` gained `lr_fp32: bool = False` as one more
+Python constant in the same class as `to_bf16` (fixed per run, so `torch.compile`'s guard is free).
+
+### CPU sanity check: `research/scratch/muon_lr_fp32_equiv.py` — flag demonstrably changes the rounding path, and by the predicted amount
+
+Two parts, both PASS:
+
+1. **Unit check on `_muon_lr_g` directly.** Flag OFF reproduces the original 2-argument function
+   **bit for bit** (`torch.equal=True`) on a synthetic 0-dim fp32 `lr` / bf16 `g` pair — no
+   regression. Flag ON returns an fp32 tensor exactly equal to `lr * g.float()` (the full-precision
+   ceiling), differing from the OFF (bf16-of-a-bf16-lr) result by **up to 0.4566% relative** — right
+   at the bf16-ULP scale the deferred note predicted (2⁻⁸ = 0.3906%; the extra headroom is because
+   the *specific* `lr` value used doesn't sit exactly on a bf16 rounding boundary).
+2. **Integration check through the real `_muon_math` on the real GPT**, CPU, with `COMPUTE_DTYPE`
+   forced to `bfloat16` even though the device is CPU (the only way to reproduce the locked
+   Neuron config's bf16-`g` case on a CPU box — `compute_dtype_for` otherwise returns fp32 on CPU
+   and the bug simply doesn't exist there). 3 steps, all 5 Muon groups, per-step-varying lr/momentum.
+   Every scalar operand and every tensor computed upstream of the lr\*g term (`mom`, `one_mom`,
+   `lr`, `lrwd`, `one_beta2`, `g_in`, `mbuf_in`, `mbuf_out`, `second_out`) is **bit-identical**
+   between flag OFF and flag ON — the flag touches nothing else. `w_out` differs in **every one of
+   the 15 (group × step) cells**, never zero, by a **median 0.11%–0.39% of that step's own update
+   size** (`|w_in - w_out|`, the right denominator — a diff-over-`w_out` ratio is dominated by `w`'s
+   own much larger pre-existing value and is meaningless, which is what the first version of this
+   script's spurious 6-figure-percent readings turned out to be measuring). Growing from ~0.11% at
+   step 0 to ~0.39% at step 2 is itself consistent with the fix compounding slightly as momentum
+   carries it forward, and every value sits inside the bf16-ULP envelope, not beyond it.
+
+Conclusion: the flag is not a no-op and not a bug — it changes exactly the one thing it claims to,
+by exactly the magnitude the sched-tricks note predicted, and nothing else.
+
+### Hardware A/B: paired 900 s, box 2, same commit
+
+`research/scratch/muon_lr_fp32_900s.sh`, same discipline as `sched_tricks_900s.sh` — a fresh
+same-commit control before and after the single arm, `--nproc-per-node 4 --lnc 2
+--eval-seq-len 1024`, locked config otherwise (`DEPTH=6`, `ASPECT_RATIO=96`,
+`--ngram-ve-layers 1,-1`, `--ngram-ve-table-mult 128`, `--compile-muon`, qk-shift frozen — none of
+these were touched, only `--muon-lr-fp32` was added for the arm). `causality_passed=True`,
+`causality_max_abs=0.0` on all three runs; `num_params_M=592.9` unchanged (no new tensors).
+
+(Note: box 2's `~/trainium_frontier` had no `.git` at the time of this run — a bare rsync copy, not
+the tracked repo — so `run_experiment.py`'s `git rev-parse` crashed the *opening* control's own
+logging step after training had already finished. No data was lost: it writes the raw run log to
+disk before touching git, and `research/run-logs/mlrfp32-ctrl-900s-r1.log` has the full summary
+block. A bare local `git init` on the box fixed logging for the remaining two runs; this box has no
+tracked history and nothing here was ever pushed from it.)
+
+| arm | tokM | steps | training_s | bpb@2048 | bpb@1024 |
+|---|---|---|---|---|---|
+| `mlrfp32-ctrl-900s-r1` (OFF) | 138.7 | 1058 | 884.7 | 1.052438 | 1.067705 |
+| `mlrfp32-arm-900s` (ON, `--muon-lr-fp32`) | 137.8 | 1051 | 884.5 | 1.052845 | 1.068078 |
+| `mlrfp32-ctrl-900s-r2` (OFF) | 138.0 | 1053 | 884.7 | 1.052748 | 1.067972 |
+
+**Throughput really is unchanged, verified rather than assumed** — this is the one thing worth
+checking twice on a claimed zero-cost precision fix. All three runs trained for **884.5–884.7 s**
+(a 0.2 s spread) and produced **1051–1058 steps** (a 7-step, 0.66% spread) — the arm sits inside the
+two same-commit controls' own step-count range, not below it. No new tensors, no new ops, exactly
+the throughput the change predicted: none.
+
+Decomposition (`thr = -0.077 · ln(tokens_arm / tokens_ctrl-mean)`, `per-step = delta - thr`, the
+same slope the sched-tricks block used, all runs well below the ~2195-step data wall):
+
+| | value |
+|---|---|
+| control mean | 138.35 M tok / 1055.5 steps, bpb@2048 1.052593, bpb@1024 1.067839 |
+| control pair's own spread (this block's noise band) | 0.000310 (@2048) / 0.000267 (@1024) |
+| Δ (arm − control mean) | **+0.000252** (@2048) / **+0.000240** (@1024) |
+| throughput term | +0.000307 (@2048) / +0.000307 (@1024) — arm trained 0.65 M tokens fewer |
+| **per-step residual** | **−0.0000547** (@2048) / **−0.0000672** (@1024) |
+
+The per-step residual is roughly **1/15th of the noise floor** (0.001) in both directions, and the
+raw, undecomposed delta itself (+0.00025 / +0.00024) is **smaller than the control pair's own
+spread** (0.00031 / 0.00027) — i.e. flag ON cannot be distinguished from a third same-commit
+control, before any throughput correction is even applied. Per standing rule, |delta| < 0.001 is
+noise outright; no same-day repeat is triggered (that threshold is 0.001–0.003) and no confirming
+1800 s pair is warranted (reserved for a real, reproducible per-step win ≥ the noise floor, which
+this is not).
+
+### Verdict — CLOSED NEGATIVE, flag stays default OFF
+
+The precision recovery is real and was directly measured on-device via its mechanism (the CPU
+check above), not just inferred from a flat end-to-end number — but at this shape, this budget, and
+against this repo's already-tuned Muon schedule, ~0.4% of lr precision on a quantity that already
+carries plenty of other noise (bf16 activations, bf16 Newton-Schulz, per-step lr jitter from the
+schedule itself) buys nothing measurable. Consistent with the sched-tricks block's broader theme
+this week: small precision/schedule tweaks around an already-tuned optimizer are neutral here.
+`USE_MUON_LR_FP32` stays `False`; kept in the tree as a flag (bitwise-unchanged default) plus
+`research/scratch/muon_lr_fp32_equiv.py` (the CPU mechanism check, reusable for any future
+`_muon_lr_g` change) and `muon_lr_fp32_900s.sh` (the A/B driver).

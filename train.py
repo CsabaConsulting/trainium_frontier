@@ -3461,6 +3461,16 @@ ADAM_LIKE_KINDS = ("adamw", "rmsprop")
 # 1.018982 against the locked config's 1.018985 -- per-step neutral to 3e-6.
 USE_COMPILE_MUON = True
 
+# Candidate free win flagged (not adopted) in the _muon_lr_g docstring: the locked default
+# path multiplies a 0-dim fp32 `lr` by a bf16 Newton-Schulz iterate `g`, and PyTorch's type
+# promotion rule for a 0-dim operand against a dimensioned one casts `lr` DOWN to bf16 before
+# the multiply -- quantising every Muon group's effective lr by up to ~0.4% relative error,
+# uniformly per group per step, every step. ON here keeps that product in fp32 instead (see
+# _muon_lr_g). Its own flag and its own A/B, per that docstring -- never smuggled in under the
+# per-depth-lr work that surfaced it, and never touching that work's intentional bf16-matching
+# behaviour for `lr.dim() > 0`. Default OFF = current shipped behaviour, unchanged.
+USE_MUON_LR_FP32 = False
+
 # One compiled callable per (tall, ns_steps, red_dim) specialisation, built lazily.
 # Dynamo re-guards on the tensor shapes by itself, so a single entry can still hold
 # several NEFFs -- this cache only exists so the wrapper object is not rebuilt per step.
@@ -3469,7 +3479,7 @@ _MUON_COMPILED: dict[tuple, object] = {}
 
 def _muon_math(w, g, momentum_buffer, second, mom, one_mom, lr, lrwd,
                tall: bool, ns_steps: int, red_dim: int, red_dim_size: int,
-               one_beta2, to_bf16: bool):
+               one_beta2, to_bf16: bool, lr_fp32: bool = False):
     """Muon's per-group math body, as a pure tensors-in/tensors-out function.
 
     This is the ONLY form of the Muon step that `torch.compile(backend="neuron")` can
@@ -3492,7 +3502,7 @@ def _muon_math(w, g, momentum_buffer, second, mom, one_mom, lr, lrwd,
       would force a fresh neuronx-cc compile on every single step. This is the
       USE_TENSOR_LR_SCALARS lesson applied to a compiled region, where it is much worse
       than in eager -- eager only bakes `alpha=`-style scalars, Dynamo bakes all of them.
-      `tall` / `ns_steps` / `red_dim` / `red_dim_size` / `to_bf16` ARE
+      `tall` / `ns_steps` / `red_dim` / `red_dim_size` / `to_bf16` / `lr_fp32` ARE
       Python constants on purpose: they are fixed per group for the whole run, so
       guarding on them is free and it keeps the traced graph straight-line.
       `one_beta2` is in that class only while the plan-§11.1 NorMuon ramp is OFF, which is
@@ -3539,11 +3549,11 @@ def _muon_math(w, g, momentum_buffer, second, mom, one_mom, lr, lrwd,
     v_norm_new = scaled.sum(dim=(-2, -1), keepdim=True).sqrt()
     g = g * (step_size * (v_norm / v_norm_new.clamp_min(1e-10))).to(g.dtype)
     mask = (g * w) >= 0
-    w = w - (_muon_lr_g(lr, g) + lrwd * w * mask)
+    w = w - (_muon_lr_g(lr, g, lr_fp32) + lrwd * w * mask)
     return w, momentum_buffer, second
 
 
-def _muon_lr_g(lr, g):
+def _muon_lr_g(lr, g, lr_fp32: bool = False):
     """`lr * g`, computed the way a 0-dim `lr` computes it whatever `lr`'s shape.
 
     Plan §11.1 item 3 makes `lr` a [K, 1, 1] operand instead of a 0-dim one, and that flips
@@ -3569,9 +3579,23 @@ def _muon_lr_g(lr, g):
     It is uniform per group per step, so it acts as tiny lr jitter rather than as noise on the
     direction -- but keeping lr in fp32 is a candidate free win in its own right, and it must be its
     own flag and its own A/B, not something smuggled in under per-depth scaling.
+
+    `lr_fp32` (USE_MUON_LR_FP32 / --muon-lr-fp32) is that flag, and it is that A/B. Default False
+    reproduces the paragraph above byte for byte -- this branch is only reached when the dimensioned
+    (`lr.dim() > 0`) branch above was NOT taken, which is exactly the 0-dim locked-default case, so
+    it can never touch the per-depth path's intentional bf16-matching behaviour. When on, instead of
+    letting the multiply's own type promotion cast the fp32 `lr` down to `g`'s dtype first, `g` is
+    upcast to fp32 and the product is formed and returned in fp32. Both call sites add that product
+    to another fp32 term (`lrwd * w * mask`) and subtract the fp32 sum from an fp32 `w`, so the
+    lower-precision cast that used to happen to `lr` before the multiply now simply does not happen
+    anywhere before the final fp32 subtract -- there is no dtype for `g.float() * lr` to be cast
+    down to here, unlike the `lr.dim() > 0` branch above where the cast is the point.
     """
     if isinstance(lr, torch.Tensor) and lr.dim() > 0 and lr.dtype != g.dtype:
         lr = lr.to(g.dtype)
+        return lr * g
+    if lr_fp32 and isinstance(lr, torch.Tensor) and lr.dim() == 0 and lr.dtype != g.dtype:
+        return lr * g.float()
     return lr * g
 
 
@@ -4118,7 +4142,7 @@ class MuonAdamW(torch.optim.Optimizer):
             w, momentum_buffer, second = fn(
                 w, g, momentum_buffer, second, mom_t, one_mom_t, lr_t, lrwd_t,
                 key[0], ns_steps, red_dim, g.size(red_dim),
-                one_beta2, COMPUTE_DTYPE == torch.bfloat16)
+                one_beta2, COMPUTE_DTYPE == torch.bfloat16, USE_MUON_LR_FP32)
             # All three are scratch or state the caller owns, so rebinding is free --
             # no copy back (see the _muon_math docstring).
             state["stacked_params"] = w
@@ -4212,8 +4236,9 @@ class MuonAdamW(torch.optim.Optimizer):
             wd = group["weight_decay"]
             mask = (g * w) >= 0
             # _muon_lr_g, not `lr * g`: see its docstring. With per-depth scaling off `lr` is 0-dim
-            # and the helper returns the identical tensor, so this line is unchanged.
-            w.sub_(_muon_lr_g(lr, g) + lr * wd * w * mask)
+            # and the helper returns the identical tensor when USE_MUON_LR_FP32 is off (the
+            # locked default), so this line is unchanged unless that flag is on.
+            w.sub_(_muon_lr_g(lr, g, USE_MUON_LR_FP32) + lr * wd * w * mask)
         torch._foreach_copy_(params, list(w.unbind(0)))
 
     @torch.no_grad()
@@ -4863,6 +4888,19 @@ def main() -> None:
                              "(research/scratch/muon_nki_equiv.py: 0 differing elements). Real paired 900s "
                              "A/B: 1019 steps/1.089758 vs 1004/1.090677 -- pass --no-nki-muon for the plain "
                              "eager comparison path.")
+    parser.add_argument("--muon-lr-fp32", action=argparse.BooleanOptionalAction,
+                        # literal default, like --nki-muon above: this function rebinds
+                        # USE_MUON_LR_FP32 as a global, so it cannot also read it here.
+                        default=os.environ.get("NEURON_COMPETITION_R1_MUON_LR_FP32", "0") != "0",
+                        help="see the _muon_lr_g docstring. Default OFF (the locked, current "
+                             "behaviour): a 0-dim fp32 lr multiplied against the bf16 Newton-Schulz "
+                             "iterate g gets CAST DOWN to bf16 before the multiply, by PyTorch's own "
+                             "0-dim type-promotion rule -- quantising every Muon group's effective lr "
+                             "by up to ~0.4%% relative error, every step. ON keeps that product in "
+                             "fp32 instead (g upcast, lr untouched, cast down to w's dtype only at the "
+                             "final subtract). Zero-cost precision fix, no expected throughput impact; "
+                             "does not touch the per-depth [K,1,1] lr path's intentional bf16-matching "
+                             "behaviour. Its own flag and its own A/B, per that docstring.")
     parser.add_argument("--compile-muon", action=argparse.BooleanOptionalAction,
                         default=os.environ.get("NEURON_COMPETITION_R1_COMPILE_MUON",
                                                "1" if USE_COMPILE_MUON else "0") != "0",
@@ -5398,7 +5436,7 @@ def main() -> None:
                      "standing to accumulate. (--grad-bucket is also a known hang on this hardware; "
                      "see trn2-experiment-results.md.)")
 
-    global USE_NKI_RELU2, USE_NKI_ROPE_NORM, USE_NKI_SOFTCAP_CE, USE_NKI_MUON
+    global USE_NKI_RELU2, USE_NKI_ROPE_NORM, USE_NKI_SOFTCAP_CE, USE_NKI_MUON, USE_MUON_LR_FP32
     # (USE_COMPILE_MUON's `global` is at the top of main(); see the note there.)
     # T0.4/T1.4 resweep knobs (see the _hp block above; declared global at the top of main()).
     # Assigned here, i.e. before GPT(config) and before setup_optimizer(), which is where every
@@ -5594,6 +5632,7 @@ def main() -> None:
     USE_NKI_ROPE_NORM = args.nki_rope_norm
     USE_NKI_SOFTCAP_CE = args.nki_softcap_ce
     USE_NKI_MUON = args.nki_muon
+    USE_MUON_LR_FP32 = args.muon_lr_fp32
     USE_TRANSPOSED_LINEAR = args.transposed_linear
     USE_COMPILE_MUON = args.compile_muon
     if USE_COMPILE_MUON and USE_NKI_MUON:
@@ -6068,6 +6107,7 @@ def main() -> None:
         # should say which Muon step actually ran rather than which one was requested.
         print(f"nki_muon:          {USE_NKI_MUON}")
         print(f"compile_muon:      {USE_COMPILE_MUON}")
+        print(f"muon_lr_fp32:      {USE_MUON_LR_FP32}")
         # T3.1. Printed as one line so the experiment log can tell two n-gram arms apart
         # (SUMMARY_KEYS in research/run_experiment.py has the matching entry).
         print(f"ngram_ve:          {args.ngram_ve} tables={len(orig_model.ngram_embeds)} "
