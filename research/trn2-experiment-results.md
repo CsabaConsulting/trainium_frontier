@@ -7863,3 +7863,144 @@ this week: small precision/schedule tweaks around an already-tuned optimizer are
 `USE_MUON_LR_FP32` stays `False`; kept in the tree as a flag (bitwise-unchanged default) plus
 `research/scratch/muon_lr_fp32_equiv.py` (the CPU mechanism check, reusable for any future
 `_muon_lr_g` change) and `muon_lr_fp32_900s.sh` (the A/B driver).
+
+## 2026-09-15 — Depth=8 at FIXED width n_embd=640 (decoupled from the confounded 768×8 result): a pure depth increase, and it is **CLOSED NEGATIVE** by a wide margin, even though the real per-step quality delta turns out to be a genuine (if small) win
+
+**Why this point is not the same as the existing `768×8` row.** Part A's shape screen (§3 above)
+already has a `768×8` row (631.7M params, −55.95%/−56.06% throughput, worse 120-step proxy loss) —
+but that arm was launched as `--depth 8` alone, which silently also bumps `n_embd` via
+`round_up(DEPTH*ASPECT_RATIO=96, HEAD_DIM=128)` = 768 at depth 8 (96 at depth 6 gives 640, the
+locked width). So every "depth=8" number on record so far is actually a simultaneous depth-*and*-
+width change. Nobody had tested depth=8 holding width at the locked 640 fixed — a pure depth
+increase, orthogonal to the whole width axis this week's track already closed. This section is that
+test, using `--depth 8 --n-embd 640` explicitly so the shape is unambiguous from the command line
+alone, on box 1 (`ec2-16-26-246-98`), same commit as the width=1024 and `--ngram-ve-dim 256`
+closures above (`8810a71`).
+
+### 0. Confirmed locked defaults, read directly from `train.py`
+
+```
+DEPTH = 6, ASPECT_RATIO = 96 -> n_embd = round_up(6*96, 128) = 640     (lines 202-206)
+NGRAM_VE_LAYERS = "1,-1"                                                (line 599)
+NGRAM_VE_TABLE_MULT = 128                                               (line 661)
+```
+The plain launch command with no extra flags *is* the locked config; `ctrl` below passes nothing
+extra, `arm` adds exactly `--depth 8 --n-embd 640`.
+
+### 1. `NGRAM_VE_LAYERS="1,-1"` resolution at depth=8 — confirmed from the code, not assumed
+
+`ngram_layer_set(n_layer)` (line 1116) parses `"1,-1"` as `{int(tok) % n_layer for tok in ...}`.
+At `n_layer=8`: `{1 % 8, -1 % 8} = {1, 7}`. `has_ve(layer_idx, n_layer)` (line 571) is
+`layer_idx % 2 == (n_layer - 1) % 2`; at `n_layer=8`, `(8-1) % 2 = 1`, so VE layers are the odd
+ones — `{1, 3, 5, 7}` — and both `1` and `7` are members, so `has_ngram_bigram`/`has_ngram_trigram`
+resolve exactly as intended: **layer 1 and the new last layer (7), unchanged from the depth=6
+behaviour of "layer 1 and the last layer (5)".** Empirically this also shows up as a fixed
+`tables=4 rows=1,048,576 dim=128` in both arms' logged `ngram_ve` line — the table *count and size*
+never depend on depth or on how many layers reference them, only the *injection sites* do, and those
+resolved correctly.
+
+### 2. Fresh 120-step calibration (`research/scratch/depth8w640_calib.sh`)
+
+| arm | shape | num_params | steady-state dt (steps 10-110) | tok/s | step-110 loss |
+|---|---|---|---|---|---|
+| `d8w640-ctrl` (locked defaults) | 640×6 | 592,916,844 | 0.8336 s | ~157,000 | 3.9350 |
+| `d8w640-arm` (`--depth 8 --n-embd 640`) | 640×8 | 607,994,128 | 1.6309 s | ~80,300 | **4.0099** |
+
+Cold-compile cost: control 29.6s (warm re-measure of a known shape), arm **200.3s** (first-ever
+compile of this exact shape). Ratio of steady-state dt is **×1.9564** for +2 layers (+33.3% layer
+count) — already visibly superlinear, and consistent with Part A's mechanism note (§3 above): the
+layer-1 n-gram gather's dynamic address forces re-sharding of every layer *downstream* of the
+injection site, and that downstream span grows from layers 2-5 (4 layers) at depth 6/sites `{1,5}`
+to layers 2-7 (6 layers) at depth 8/sites `{1,7}` — a +50% downstream span for a step-time cost far
+larger than either the +33% layer count or the +30.5% FLOPs/token (`5.211110e8` vs `3.991901e8`).
+**The 120-step proxy loss is *worse* for the arm (4.0099 vs 3.9350)** — the same direction as the
+confounded `768×8` row's proxy loss (3.9465-3.9480 vs the 640×6 control's 3.9346) — which, taken at
+face value, would suggest depth hurts quality even before paying the throughput bill. Per this
+week's own standing rule, a 120-step proxy is not trusted for the quality call; §3 below uses real
+paired `val_bpb`, and it tells a different (though ultimately irrelevant, see §4) story.
+
+### 3. Paired ~900s spot-check (`research/scratch/depth8w640_900s_pair.sh`, via `research/run_experiment.py`), real `val_bpb`
+
+Step-matched via the calibration above: target N≈552 steps for both (arm's calibrated dt puts
+900s at ≈552 steps; control's `--max-train-seconds` shortened to 552×0.8336≈460s so both land near
+the same step count "by construction"). 4 ranks, LNC=2, `--eval-seq-len 1024` for the alt-context
+cross-check column.
+
+| arm | `max-train-seconds` | `training_seconds` | steps | num_params | tok/s | `val_bpb`(2048) | `val_bpb`(1024, alt) | causality |
+|---|---|---|---|---|---|---|---|---|
+| `depth8w640-ctrl-900` (locked defaults) | 460 | 444.7 | **537** | 592.9M | 158,265 | **1.112144** | 1.127645 | 0.0 / passed |
+| `depth8w640-arm-900` (`--depth 8 --n-embd 640`) | 900 | 884.3 | **548** | 608.0M | 81,197 | **1.107724** | 1.123059 | 0.0 / passed |
+
+Real dt reproduces the calibration closely: control 444.7/537 = 0.82812 s/step (vs 0.8336
+calibrated), arm 884.3/548 = 1.61369 s/step (vs 1.6309 calibrated) — both within ~1%, and the real
+ratio (**×1.94876**) reproduces the calibration ratio (×1.9564) to within 0.4%.
+
+**Throughput delta: −48.70%** (158,265 → 81,197 tok/s). This is the largest single-technique
+throughput cost measured on this whole track — bigger than any width step (896×6 was −27.58%,
+1024×6 was −37.55%) and bigger than `--ngram-ve-dim 256` on top of the locked config (−19.25%) —
+and it lands at *fixed width*, so it cannot be blamed on the extra FLOPs from a wider model; it is
+the depth-below-injection resharding mechanism alone.
+
+**Per-step quality: the arm has 11 more steps (548 vs 537, +2.05%), so the raw delta needs the
+usual equal-step correction at the standing −0.077 bpb/ln(steps) slope.** Raw:
+`1.107724 − 1.112144 = −0.004420` (arm better). Equal-step corrected:
+`−0.004420 + 0.077·ln(548/537) = −0.004420 + 0.001561 = **−0.002859**`. The alt-context (1024)
+column cross-checks the same sign and a similar size: raw `1.123059 − 1.127645 = −0.004586`,
+corrected `−0.004586 + 0.001561 = **−0.003025**`. **So at equal step count, depth=8 at fixed width
+640 is a genuine, reproducible ~0.0029-0.0030 bpb per-step improvement** — just over the 0.001 noise
+floor and just under the 0.003 same-day-repeat threshold, and, notably, the *opposite sign* from
+what the 120-step proxy loss predicted. (Contrast with `768×8`, which was worse on *both* axes; a
+pure depth increase at fixed width is evidently a real, if small, capacity win per step — it is the
+throughput side that kills it, not the model.)
+
+### 4. Break-even arithmetic at 1800s (same method as the width=1024 and `--ngram-ve-dim 256` closures above)
+
+Extrapolating each arm's own measured real dt to the full 1800s budget:
+- control: 1800 / 0.82812 ≈ **2173.9 steps**
+- arm: 1800 / 1.61369 ≈ **1115.5 steps**
+
+Forgone-steps penalty: `0.077 × ln(2173.9/1115.5) = 0.077 × 0.66707 = **+0.05136 bpb**`.
+
+Net at 1800s: `+0.05136 − 0.00286 = **+0.04850 bpb WORSE**` than shipping the locked config as-is
+— roughly **17× the size of the quality gain it would need to repay**, the widest miss of any item
+this track has priced (wider than `--ngram-ve-dim 256`'s +0.0137, and wider than any single width
+step).
+
+**Throughput needed to break even**: solving `0.077 × ln(2173.9/x) = 0.00286` gives `x ≈ 2094`
+steps needed at 1800s (dt ≈ 0.8596 s/step, tok/s ≈ 152,467), against the ~1115.5 steps (dt 1.6137
+s/step, tok/s 81,197) actually measured — i.e. the arm would need **+87.8% more throughput than it
+currently has**, essentially requiring step time to nearly halve. Nothing on this stack has ever
+delivered anywhere close: the single largest throughput win this whole project has found is
+`--ngram-ve-layers "1,-1"` itself (−5.86% *cost*, i.e. a win of that size in the other direction),
+and `--no-nki-rope-norm`'s +1.36% is the largest pure-throughput lever. **Neither is remotely in the
+same order of magnitude as +87.8%.**
+
+### 5. Verdict: CLOSED NEGATIVE, no 1800s confirming pair warranted
+
+Per this week's decision rule: escalation to a confirming 1800s paired run is reserved for
+candidates that clear break-even at the spot-check, and this arm misses by roughly an order of
+magnitude (net +0.0485 bpb worse, needing +87.8% more throughput it has no plausible path to). The
+small residual uncertainty in the exact per-step delta (0.0029 vs 0.0030 across the two eval
+contexts, both under the 0.003 repeat threshold) does not matter for the verdict — even a
+hypothetical 5× larger quality gain would still fall short of the break-even bar.
+
+**The mechanism generalises rather than being a width artefact.** The superlinear depth-injection
+cost that Part A first flagged at the confounded 768×8 shape (1.33× the layers, 2.27× the step time)
+reproduces at fixed width 640 (1.33× the layers, **1.95×** the step time) — so the anti-synergy
+between `--ngram-ve-layers "1,-1"` and `--depth` is a property of the injection-site placement and
+downstream resharding, not of width. **This closes the depth axis cleanly for the current locked
+n-gram-VE configuration: no depth point beyond 6 is worth testing further** unless the resharding
+mechanism itself is fixed (the LNC=2 resharding investigation above, §"reshard hunt", already found
+and closed the available mitigations).
+
+**One genuine finding to keep**: unlike `768×8`, a pure depth increase at fixed width is a real
+small per-step quality win (~0.003 bpb), not a loss — the 120-step proxy loss said the opposite, a
+useful reminder that the proxy is not just noisy but can be *sign-flipped* relative to the real
+paired `val_bpb`, exactly the kind of case the task's real-`val_bpb`-not-proxy instruction exists
+to catch.
+
+**Scripts added**: `research/scratch/depth8w640_calib.sh` (120-step calibration),
+`research/scratch/depth8w640_900s_pair.sh` (the paired real-`val_bpb` spot-check). Logs:
+`research/run-logs/probe-d8w640-{ctrl,arm}.log`, `research/run-logs/depth8w640-{ctrl,arm}-900.log`.
+No `train.py` changes — `--depth` and `--n-embd` are pre-existing flags; `DEPTH=6`/`ASPECT_RATIO=96`
+stay locked.
