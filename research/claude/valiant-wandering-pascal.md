@@ -1,21 +1,12 @@
 # Trainium Frontier — active plan
 
-## Status (2026-09-14)
-- **Locked config**: hashed n-gram value embeddings on **layers 1 AND the last layer**
-  (`USE_NGRAM_VE=True`, `NGRAM_VE_LAYERS="1,-1"`, bigram+trigram, **mult=128**, dim=128) plus the two
-  free throughput changes — T1.7 compiled Muon (`USE_COMPILE_MUON=True`) and the frozen Q/K-shift
-  identity (`USE_QK_SHIFT=True`, `QK_SHIFT_BETA=0.0`, `QK_SHIFT_FREEZE=True`). 592.9M params.
-  Local: **1.004910 bpb / 2123 steps at the full 1800s**, dress-rehearsed on the bare command with
-  `over_budget False`, `causality_max_abs 0.0`, `epoch 1` (was 1.018985 / 2139 with the previous
-  last-layer-only, mult-64, no-throughput-flags config: **−0.014075**). All of it is in `train.py`'s
-  module-level defaults, so the launch command is still flagless:
+## Status (2026-09-13)
+- **Locked config**: T3.1 last-layer hashed n-gram value embeddings (`USE_NGRAM_VE=True`,
+  `NGRAM_VE_LAYERS="-1"`, bigram+trigram, mult=64, dim=128; 190.1M params). Local: 1.018985 bpb /
+  2139 steps at 1800s. Launch command (no flags needed, all defaults):
   ```
   NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --no-eval-public --num-steps 1000000
   ```
-  **Heads-up for anything else running experiments: those defaults CHANGED on 2026-09-14.** A bare
-  `train.py` is no longer the 190.1M last-layer-only config, so any A/B that treats "no flags" as the
-  old baseline must now pass `--ngram-ve-layers "-1" --ngram-ve-table-mult 64 --no-compile-muon
-  --no-qk-shift` explicitly.
 - **Real board score**: 1.0384 (sub-c23baa39, 9/12/26 1:05 PM) — predicted 1.039, off by 0.0006,
   tightest calibration match yet. Trust the calibration chain.
 - **Leaderboard** (2026-09-12 snapshot): top 10 span 0.9683–1.0303; we'd sit just outside at
@@ -34,8 +25,298 @@
   not on letting steps grow.
 
 ## In progress
-- Nothing running from the T1.7 / n-gram-layer track. Locked config is the 2026-09-14 one above
-  (1.004910 bpb / 2123 steps at 1800s), dress-rehearsed and ready to submit as-is.
+- Box1: 3-seed variance check on the locked config, full 1800s budget each (pulled forward from
+  the freeze-period schedule). Still running.
+- Box2: cross-box variance point (seed 7, different hardware) vs box1's 3-seed check below.
+
+## Closed 2026-09-15: 3-seed variance check — real noise floor is bigger than assumed, WITH a key caveat
+`--seed` (default 42, env `NEURON_COMPETITION_R1_SEED`) controls weight-init only (no dropout in
+this model; data order is separately controlled by inert `EPOCH_SHUFFLE_SEED`). Full 1800s, 3
+seeds: 42→1.004355/2139 steps, 43→1.008910/2136, 44→1.010491/2140. **Spread: max-min 0.006136,
+std ≈0.0026-0.0032** — 3-6x bigger than this week's informal 0.001/0.003 convention.
+**Important caveat/clarification (mine, not the agent's — read carefully before re-litigating any
+closure)**: this spread is CROSS-SEED (different weight init each run). Nearly every closure this
+week was a SAME-SEED paired A/B (control and arm both at the untouched default seed=42, varying
+only the tested flag) — and this week's own same-seed control-pair reruns have consistently shown
+a MUCH tighter spread (~0.0001-0.0009, matching the old convention almost exactly). That ~30x gap
+between same-seed and cross-seed spread means most of the newly-measured variance comes from
+weight-init itself, not generic thermal/compile jitter — so **same-seed paired closures this week
+(layer-1 injection, table-mult 64→128, EMBED_ADAMW_BETA2, NGRAM_VE_BETA2, etc.) do NOT need to be
+re-opened**; their own internal noise floor is the right one to judge them against, and it's the
+tight one. What the cross-seed number DOES mean: **any single real-submission run carries ~0.003-
+0.006 of pure weight-init luck**, which is bigger than several of the smaller "real" deltas found
+this week and comparable to the gap to the next leaderboard rank. Commit `01182ff`.
+
+### Box2 cross-box point (seed 7, full 1800s): 1.006322 — sits INSIDE box1's [1.004355, 1.010491]
+No box-to-box hardware/thermal confound found; the spread is genuinely seed-driven, not a
+per-machine effect. Commit `2575872`.
+
+### Seed hunt: full batch complete (14 unique seeds, 16 full-1800s-budget runs), box2's confirming repeat of 42 still pending
+Sorted best to worst (`public_val_bpb`, full 1800s each; 5/13 averaged across their two
+measurements): **42=1.004355**, 3=1.005730, 2=1.006220, 7=1.006322, 1=1.006380, 8=1.006441,
+55=1.007353, 144=1.008352, 43=1.008910, 5=1.010038(avg of 1.009551/1.010524), 44=1.010491,
+34=1.010748, 89=1.010848, 13=1.010899(avg of 1.010303/1.011495).
+
+**Seed 42 (the untouched current default) is still the best of all 14**, but its lead over 2nd
+place (seed 3, gap 0.001375) is roughly the SAME SIZE as the same-seed noise band the 5/13
+duplicate measurements revealed (~0.001-0.0012 between two runs of the identical seed). So on
+current evidence, **42's lead over 3 is not yet clearly distinguishable from noise** — box2's
+confirming repeat of 42 (still running) is exactly the data point needed to settle this.
+
+**Real, useful side finding (box1's cheap-proxy-vs-full-budget check, seeds 5/13)**: the 300-step
+proxy got the one PAIRWISE call right (5 beats 13 at both proxy and full budget) but the ABSOLUTE
+ranking did not hold — at full budget neither 5 nor 13 was the best or worst of their batch; the
+actual extremes (55 best, 89 worst) were seeds the proxy never even tested. **Conclusion: the
+cheap 300-step proxy is not a reliable seed-picker on its own** — pairwise comparisons might
+transfer, but "find the best/worst seed" does not. Any future seed screening should go straight
+to full budget, not through this proxy.
+
+All commits: box2 `de062fb`,`ec9e73a`,`39c27f4`,`de5c7fe`,`d269254`,`ddb0b7f` (batch) + `417457c`
+(seed-42 repeat: 1.005049, avg 1.004702); box1 `26e4500`,`994124c`,`afae61d`,`a29f4b4`,`cb91730`,
+`b4bdfde`,`e126d26` (batch, complete) + `98b81d4` (seed-3 repeat: 1.005414, avg 1.005572, delta
+from first measurement -0.000316, tighter than the noise band). **42-vs-3 gap now down to 0.00087
+on 2 points each — squarely inside the observed same-seed noise band.** Seed 42 still leads on
+every individual measurement and both averages, so nothing argues for switching, but with only 4
+total data points the gap can no longer be called "clearly outside noise" the way the 1-point
+comparison suggested. **Working conclusion, still holding**: keep seed 42 (no downside — it's
+already the default and still the best-measured average).
+
+### Widened search, batch 2/3 (25 of ~26 seeds measured): still no clear winner, one near-miss
+Batch 2 (box2, seeds 200/300/400/500/600/700, commits `fd51d9e`,`7bbb3bb`,`85680f5`,`9051660`,
+`2541431`,`a77899a`): best was 300 (1.005664, competitive with seed 3's average but not better),
+worst two (200, 700) ~1.0121, among the worst of the whole hunt. Batch 3 (box1, seeds
+1000/1500/2000/2500/3000/3500, commits `a60daf7`,`79bc565`,`58edb94`,`e2e9c58`, +3000/3500
+pending): 1000/1500/2000/2500 all clearly worse than both leaders. **Seed 3000 = 1.004900 — the
+closest non-42 result of the entire hunt, only 0.0002 off seed 42's 1.004702 average, still
+inside the noise band but worth a confirming repeat.** No seed has yet cleared 42 by the ~0.002
+bar across 25 measurements. Box1's batch 3 now fully complete (commits `a60daf7`,`79bc565`,
+`58edb94`,`e2e9c58`,`d9367f0`,`7881d38`): 1000/1500/2000/2500/3500 all clearly worse (+0.0034 to
++0.0101 vs seed 42's average); seed 3000 confirmed as the standout at +0.000198 vs seed 42's
+average, inside the noise band, still not a win. Seed 3000's confirming repeat (box2, commit
+`77f6b7d`) landed at 1.005650, avg 1.005275 — still behind seed 42's 1.004702, gap 0.000573, a
+statistical tie at best, not a real win.
+
+### CLOSED 2026-09-15: seed hunt concluded — KEEP SEED 42, NO CHANGE
+26 unique seeds measured at full 1800s budget (32 total runs incl. repeats). Seed 42 (the
+untouched current default) won every single comparison and every average across the whole hunt.
+**Clarifying insight from the user, confirmed correct**: `SEED` only drives `torch.manual_seed()`
+before weight init (no dropout in this model, data order is separately fixed) — so this whole
+exercise was pure max-of-N luck-hunting over a noise distribution with std ~0.003, not an
+algorithmic lever. With std this size, beating the incumbent by a real (non-noise) margin needs
+either far more draws than 26 or genuine luck; returns are provably diminishing per additional
+draw. **User's explicit call: stop here, keep seed 42.** No `train.py` change — the file was
+never touched during the entire hunt, so there is nothing to revert. Both boxes free.
+**Reusable finding for later, if anyone revisits this**: don't bother re-litigating the seed
+question with fewer than ~20-30 draws; the noise floor here is real and substantial.
+
+## 2026-09-15 — deep research pass for fresh ideas, one item closed same-day
+A fork did a deeper literature scan + re-audit of "closed for good" items for stale assumptions.
+Confirmed still-correctly-closed: T4.1/T4.2 n-gram output mixers, value-residual, coalesced
+SwiGLU, epoch-shuffle — none were closed on assumptions the current 592.9M/2-injection-site regime
+invalidates. Flagged then CLOSED same-day: whether our dev venv (custom `native_venv`, not the
+README's named `neurips-torchneuronx-native-beta-2.11.3-20260824`) risks silently differing from
+the real grading environment, given several real wins are compiler-scheduling quirks. Resolved via
+web search: this is the user's OWN forum post from days ago
+(`trainium-frontier.devpost.com/forum_topics/45051`) — the named venv doesn't exist even on the
+officially-specified AMI, nobody (including the competition manager) flagged a fix, and it's the
+same environment already used for every number in this notebook, already implicitly validated by
+real board scores matching local predictions to ~0.0006 across multiple past submissions. No
+action needed, no new instance spun up.
+
+**Remaining candidate, not acted on, low priority**: model ensembling (split the 30-min budget
+across N concurrent shorter/smaller runs) — a real technique in the Slowrun community, connects to
+this session's own measured seed variance, but every throughput-vs-capacity result this week says
+splitting compute this way loses badly (nothing clears breakeven above ~10% cost, let alone a 50%+
+split). User approved a small deliberate 2-way-split check at 900s to settle it — now CLOSED:
+equal-total-compute comparison (control world_size=4 vs 2x world_size=2 replicas, wall-clock
+matched at 900s each since batch size auto-scales with world_size): control alone 1.051295,
+replica A/B alone 1.108744/1.108619, ensemble(A,B) via averaged logits 1.088441. Ensemble beats
+either solo replica (recovers ~35% of the standalone degradation) but loses to the control by
+**+0.037146** — 10-35x the noise floor, decisive and unambiguous. Confirms the strong prior.
+Commit `7a74a8f`, train.py untouched. Not worth pursuing further.
+
+## Closed 2026-09-16: final wrap-up dress rehearsal — CLEAN
+Literal bare launch command, box2, post seed-hunt conclusion (nothing in train.py changed).
+2131 steps, `public_val_bpb=1.003045`, causality clean, over_budget False, 592.9M params — vs
+last known-good (`fac0efc`: 2119 steps, 1.003408): +12 steps, -0.000363, both favorable, delta
+well inside the established same-seed noise band. No regression. Commit `190412c`, train.py
+untouched. Box2 now idle per the user's approved plan — no new work there without checking in.
+
+### Preliminary 8-seed short-budget screen (box1, 300-step proxy, exploratory, no seed adopted)
+Seeds 1,2,3,5,8,13,21,100 at fixed 300 steps (`lrm=1.0`, no cooldown). Range 0.007314, std
+~0.0021-0.0023 — same order of magnitude as the full-budget 3-seed spread, no dramatic outlier.
+Best: seed 5 (1.221123). Worst: seed 13 (1.228437). Doesn't include 42, so can't say if 42 still
+looks good among these. Commit `21fb193`, train.py/SEED untouched.
+
+### User decision (2026-09-15): YES, run the real seed hunt
+Asked the user directly given this is a strategic call, not a technical one. **Approved**: screen
+~10-20 seeds at full 1800s budget, lock in the best as the new `SEED` default, verify+document
+like any other closure. 4 full-budget seeds already in hand (42/43/44 on box1, 7 on box2). Launching
+the remainder across both boxes now.
+
+### Live idea, needs a decision before spending real box-hours on it (SUPERSEDED by the above)
+Seed 42 (our unmodified default) already beat 43 and 44 in this one-sample test. Since the actual
+graded run is the literal bare launch command with NO `--seed` flag, whatever `SEED` module
+default sits in train.py IS what the grader's own from-scratch training run will use — meaning
+**we can pick a good default seed and it directly, deterministically carries into the real
+submission** (same-seed reproducibility is tight, ~0.0001-0.001, so a locally-measured good seed
+should reproduce close to itself at grading time regardless of whether its advantage is "real" or
+one-off luck). This is a legitimate, low-risk, non-architectural lever worth potentially 0.003-
+0.006 bpb — on the same order as several of this week's real wins — for the cost of running a
+batch of candidate seeds. Flagged to the user before committing serious box-hours to it (is this
+within the spirit of the rules the user wants to play by); a cheap preliminary screen is running
+on box1 in the meantime, non-committal, changes nothing yet.
+
+## Closed 2026-09-15: regression-check dress rehearsal — CLEAN
+Full bare-launch run on box2, post this week's 5 train.py-touching commits (incl. the step-cap
+guard, `dffa5ee`). 2119 steps, `public_val_bpb 1.003408`, causality clean, over_budget False,
+592.9M params — vs the 2026-09-14 known-good (2122 steps, 1.004550): −3 steps, **−0.001142**
+(slightly better, inside noise, not regression-shaped). No interaction found between this week's
+changes. **Note for next dress rehearsal**: use the truly flagless launch command (no
+`--no-eval-public`) — that flag suppresses the in-process causality/bpb print and forced a
+post-hoc recovery via `prepare.py eval-public` this time (worked, cross-validated to ~2e-5, but
+adds unnecessary steps). Commit `fac0efc`, docs-only, train.py untouched.
+
+## 2026-09-15 — quick external-research pass, no action taken
+Ran a short web-search scan for fresh techniques (Muon-descendant optimizer benchmarks, recent
+sparse-embedding papers, nanogpt-speedrun record list) after the n-gram-VE-table hyperparameter
+line closed out. Findings, for the record, not acted on:
+- **Muon remains undefeated.** Keller Jordan's public optimizer benchmark (Shampoo, spectral
+  descent, MARS, SWAN, AdaMuon, etc. vs Muon) still has "Muon with aux Adam" on top — which is
+  exactly our current setup (Muon for hidden weights, AdamW for embeddings/scalars/lm_head). No
+  optimizer swap to chase.
+- **Multi-head hashing (2026 ACL "Deep Sparse Embedding" paper)** uses K parallel small hash
+  heads per n-gram order instead of one big table, reducing collision correlation at fixed param
+  count. Real, structurally distinct from anything tried here — but deprioritized: our own
+  mult=256 result this week (quadrupling effective rows) bought only -0.0022 bpb, i.e. collision
+  rate is already shown NOT to be the bottleneck at our table size, so a smarter hash likely
+  wouldn't unlock much more. Also plausibly costs extra op-count (K small gathers vs 1 big one),
+  which is the exact lever the Engram-lite closure already flagged as the real cost driver, not
+  parameter count. Not pursued.
+- **Attention-window warmup** (nanogpt speedrun record #13, growing the attention window over
+  training) — deprioritized: static sliding-window attention is already in the "closed for good"
+  list here as a real loss at our seq_len=2048, so restricting attention early is unlikely to help
+  either, and full attention likely isn't even the bottleneck now (n-gram gather is).
+
+## Closed 2026-09-15: `NGRAM_VE_OPT` rmsprop-vs-adamw — CLOSED NEGATIVE
+First empirical test of Recursive's stated rmsprop rationale (rare hashed-row updates get damped
+by Adam's m/sqrt(v)) on this stack at the current locked shape. adamw costs +1.52% s/step AND is
+worse on quality (+0.00225/step, reproduced twice, well above noise). Break-even moot — both axes
+point negative. Net at 1800s: +0.00343 worse. `NGRAM_VE_OPT` stays "rmsprop". Commit `4e740ee`,
+train.py untouched. Together with the beta2/lr closures: **all three untested n-gram-VE-table
+optimizer knobs are now closed** (lr neutral, beta2 lost, optimizer-family lost) — this whole line
+of attack on the table group is exhausted, not just under-explored.
+
+## Closed 2026-09-15: step-cap defense-in-depth guard — SHIPPED
+Adds `STEP_CAP_GUARD_MIN_PROGRESS=0.5`/`MAX=0.98` (train.py:237-238) and a loud rank-0 WARNING
+(non-fatal print, not an assert) when the loop exits via the step cap while
+`0.5 <= elapsed/max_train_seconds < 0.98` — catches a reintroduced 2026-09-10-style bug (step cap
+binds well before the real wall-clock budget) without spamming on this week's many intentional
+short `--num-steps` probes (fixed at ~6.7%/~20% of budget, well under the 0.5 floor). Verified:
+normal 300s run at locked defaults (345 steps, time-budget exit) — silent, no false positive.
+Deliberate repro (`--num-steps 250 --max-train-seconds 300`, cap binds at 68.3%) — fired exactly
+as designed. `py_compile` clean. Commit `dffa5ee`, md5 `24cce227d3bcf9750f6ea07f9d58a8d1` (train.py
+genuinely changed — this is a real code change, not a flag-only run).
+
+## Closed 2026-09-15: `NGRAM_VE_BETA2` sweep — CLOSED NEGATIVE
+Tested 0.95 (mirrors EMBED_ADAMW_BETA2's winning value) and 0.99 (midpoint) against locked 0.999.
+Throughput unaffected (pure hyperparameter, 0.19%/0.04% spread). 0.99: +0.0002, clear noise.
+0.95: +0.0016 on first pass, escalated to a same-day repeat per the 0.001-0.003 rule → +0.0025;
+both pairs agree in sign/magnitude (mean +0.0020, 7-18x the noise band) — a **real, reproducible
+loss**, opposite sign from the EMBED_ADAMW_BETA2 precedent this was modeled on. `NGRAM_VE_BETA2`
+stays 0.999. Plausible mechanism (speculative, not separately measured): RMSProp's no-first-moment
+design for rarely-touched hashed rows means a lower β2 decays the lone second-moment estimate
+faster between rare visits — opposite of the dense, always-visited two-moment case
+EMBED_ADAMW_BETA2 governs. Commit `5e8a079`, train.py untouched. Together with the `NGRAM_VE_LR`
+neutral result: **the "never-tuned inherited default" heuristic is now 1-for-3** on this table
+group (won for EMBED_ADAMW_BETA2, neutral for lr, lost for beta2) — a real, useful calibration on
+how much further to push this specific line of attack.
+
+## Closed 2026-09-15: `NGRAM_VE_LR` sweep — CLOSED NEUTRAL
+Tested whether the n-gram VE tables' own lr (sentinel 0.0 → inherits `EMBEDDING_LR=0.30`, never
+tuned standalone) matters, same pattern that won for `EMBED_ADAMW_BETA2` this week. Bracketed
+0.15/0.60 vs 0.30 control, paired 900s, throughput confirmed unaffected (pure hyperparameter,
+0.034% spread across all 4 runs). Quality delta: lr=0.15 −0.00032, lr=0.60 +0.00032 (both well
+under the 0.001 noise floor; control's own pair spread was 0.000088). No repeat/1800s triggered.
+`NGRAM_VE_LR` stays at its 0.0 sentinel. Commit `512b43e`, train.py untouched. Unlike beta2 (still
+running on box1) or the earlier EMBED_ADAMW_BETA2 win, this specific knob doesn't need tuning —
+the "never-tuned inherited default" heuristic doesn't universally pay off, good to know before
+trying it on any more knobs.
+
+## Closed 2026-09-15: `--ngram-ve-table-mult 256` (dim unchanged) — CLOSE NEGATIVE
+Isolates the other axis of the dim/mult grid from the dim=256 closure above. Control 592.9M/
+0.8410 s-step; arm (mult=256) 1129.8M/1.0360 s-step, **+23.2% s/step**. Per-step quality −0.0022
+(real, reproduced to 0.00002-0.00004 across 2 reps). Break-even bar +0.0161 at 1800s → net
+**+0.0139 worse**, needs +19.7% more throughput than measured. `NGRAM_VE_TABLE_MULT` stays 128.
+**Notable**: shortfall (+19.7% needed, net +0.0139) is nearly identical to dim=256's isolated
+result (+19.4% needed, net +0.0137) — consistent with table cost ∝ rows×width, so doubling
+EITHER factor alone costs/buys about the same; the pre-layer-1-era "dim256+mult128 together
+nearly free" precedent does not transfer to either axis alone at the two-site config. (A combined
+dim=256+mult=256 probe would likely also lose, by the same ∝rows×width logic, but wasn't run —
+low priority given both marginal axes already miss break-even by ~6x.) Commit `7e62330`,
+train.py untouched.
+
+## Closed 2026-09-15: `--depth 8 --n-embd 640` (fixed-width depth increase) — CLOSED NEGATIVE
+Decoupled the earlier confounded 768×8 result (which also bumped width) from a pure depth
+increase. Confirmed `NGRAM_VE_LAYERS="1,-1"` still resolves correctly at depth=8 (`{1,7}`, both
+odd, matches `has_ve`'s parity rule). Paired 900s, real val_bpb: control 592.9M/537 steps/
+val_bpb 1.112144; arm 608.0M/548 steps/val_bpb 1.107724. **Throughput −48.70%** — the largest
+single-technique cost measured on this whole track (the layer-1 n-gram gather's downstream-
+resharding cost scales with depth below the injection site: span grows 4→6 layers). Per-step
+quality −0.00286 to −0.00303 (real win, opposite sign from a misleading 120-step proxy). Breakeven
+bar: forgone-steps penalty +0.05136 vs −0.00286 gain → net **+0.0485 worse**, needs +87.8% more
+throughput than measured (biggest lever ever found on this stack is ~5.86%). `DEPTH`/
+`ASPECT_RATIO` stay locked. Commit `98eed62`, train.py untouched (no code changes needed).
+
+## Closed 2026-09-15: `--ngram-ve-dim 256` on the locked two-injection-site config — CLOSE NEGATIVE
+Re-tested the pre-layer-1-era "dim256+mult128 nearly free" precedent at the real current config
+(`layers="1,-1"`, mult=128 locked). Paired 900s, real val_bpb (not proxy loss): control 592.9M/
+157724 tok/s/0.8308 s-step/val_bpb 1.069576; arm (+dim256) 1130.1M/127359 tok/s/1.0290 s-step/
+val_bpb 1.066135. Throughput −19.25%, step-matched per-step quality −0.00281 (real, above noise).
+Break-even bar: forgone-steps penalty +0.01649 at 1800s budget vs only −0.00281 gain → net
+**+0.01368 worse**, would need ~+19.4% more throughput than measured to break even — no lever
+this whole track has found buys anywhere near that (biggest win, layer-1 itself, cost only
+−5.86%). `NGRAM_VE_DIM` stays 128. Confirms/supersedes the earlier 120-step-proxy 2026-09-14
+closure on firmer (real val_bpb) footing. Commit `8810a71`, verified clean, py_compile OK.
+
+## Closed 2026-09-15: `--muon-lr-fp32` (the bf16-lr-quantization side finding) — CLOSED NEGATIVE
+Added `USE_MUON_LR_FP32`/`--muon-lr-fp32` (default False, unchanged behavior), threaded through
+both `_muon_lr_g` call sites. CPU check confirmed the flag does what it claims (flag off is
+bit-identical to before; flag on differs by up to 0.4566% relative, matching the expected bf16-ULP
+envelope, touching only `w_out`) — mechanistically real, not a no-op. Paired 900s hardware A/B
+(control-r1/arm/control-r2): throughput genuinely unchanged (884.7/884.5/884.7s, ~1055 steps all
+three) confirming the zero-cost prediction, but per-step-quality residual after throughput
+decomposition is -0.0000547 (@2048) / -0.0000672 (@1024) — ~1/15th of the 0.001 noise floor. No
+repeat or 1800s run triggered (reserved for signals ≥ noise floor). `USE_MUON_LR_FP32` stays False.
+Commit `df82d08`, verified: HEAD=origin/main, py_compile OK, md5 `ec7bc96b66904431d3717fdaef4856d8`.
+
+## Closed 2026-09-15: Recursive's remaining schedule tricks (Demon β1, NorMuon β2 ramp, per-depth LR/momentum)
+All three closed negative/neutral. Demon β1: neutral at warmdown window, worse over full run.
+NorMuon β2 ramp: our `beta2`=0.90 already sits on the flat top of the curve, confirmed our
+`MUON_BETA2` IS the NorMuon mechanism — nothing to ramp toward, all 3 variants neutral. Per-depth
+LR/momentum: LR-only +0.000719 (inside noise floor), momentum-only worse, combined NOT additive
+(worse than LR-only alone). Real catch: the equivalence gate caught a genuine bf16 `lr`-cast
+type-promotion bug (0-dim fp32 `lr` vs `[K,1,1]` `lr` round differently against bf16 `g` —
+different common-dtype rule). Fixed in `_muon_lr_g` (train.py:3546) so the per-depth path can't
+smuggle in a precision confound. Side finding this surfaced: the locked path itself quantizes
+every Muon group's effective lr to bf16 (~0.4% relative) every step — flagged as its own
+candidate free win, now being tested standalone on box2 (see In progress above). Verified clean:
+`b1eaf3b`, py_compile OK, md5 matches box2.
+
+## Closed 2026-09-14: dead-code sweep of `train.py` — 7,275 → 5,191 lines (−2,084, −28.6%)
+Motivated by the `REJECTED_BY_REVIEW` false positive (the judge's "unsafe `torch.load`" claim is
+simply wrong — `weights_only=True` has always been there) plus `README.md`'s "simpler code"
+tie-break. Nine closed families deleted outright, not defaulted to `False`: RWKV, Mamba2/SSD (incl.
+its NKI kernel pair), DCMHA, MUDD, XSA, value-residual, `Fp8Linear`, stochastic rounding, requeue
+packer — 20 toggles and 3 CLI flags gone. `make_dataloader_requeue()` is KEPT (`USE_EPOCH_SHUFFLE`
+needs it) and its body is now byte-for-byte `prepare.make_dataloader()`'s. Nothing on the locked
+path touched. One commit per family (`d4abc14`, `73a1700`, `39efdc9`, `b93426a`, `8fd47d9`,
+`796a223`, `2c38d23`), each gated on a CPU fingerprint probe proving bit-exactness against the
+pre-cleanup file (loss to 12 s.f., all 80 param md5s, all 74 grad md5s, optimizer group structure).
+Hardware: `load_for_eval` on the real `out/final.pt` gives an identical `val_bpb`
+(1.0035637044807473) under old and new, `causality_max_abs 0.0` under both, `prepare.py check`
+passes, and a 110-step same-command run sits inside the old binary's own run-to-run band. Full
+write-up + verification table: the 2026-09-14 section of `research/trn2-experiment-results.md`.
 
 ## Closed 2026-09-13 (evening): the capacity-per-step pivot — Engram-lite DISCARDED
 Full write-up in `research/trn2-experiment-results.md` (T3.2 section). Implemented behind
@@ -62,145 +343,43 @@ arms green.
   Engram cost 1 step out of 1129 (nothing) and was 0.0016 better. That rule is specific to
   injecting into attention's V inside a block. Measure the site; don't inherit it.
 
-## 2026-09-14 — torch_xla graph mode: CLOSED NEGATIVE. T1.7 unblocked with a measured 8.18×
-Probes 0–1 of `research/throughput-to-capacity-track-2026-09-13.md` are done (full detail in
-`research/trn2-experiment-results.md`, dated section). `train.py` untouched; all work lives in
-`research/scratch/xla_probe/`.
-- **The "we run at 8% of peak so a 2–3× loop must exist" premise does not survive contact.** At the
-  locked shape (depth 6, 640, seq 2048, dbs 4, 4 ranks, LNC=2) torch_xla graph mode is **0.997× at
-  ga=4 (0.7975 vs 0.7952 s/step) and 1.114× at ga=1 (0.2283 vs 0.2544 s/step)**. Gate floor was 1.2×.
-  **Nothing ported.** The 2.44× at the *upstream starter's* shape (dbs 1, seq 1024, ga 16: 0.6084 vs
-  1.4816 s/step) is a small-micro-batch artefact — graph mode only wins while per-op work is too small
-  to amortize dispatch, and our fat 8192-token-per-rank micro-step already amortizes it. **Rule: below
-  ~8k tokens per micro-step, graph mode is worth revisiting; at or above it, it is not.**
-- **XLA has a silent correctness bug we would have shipped into:** `index_add_` across a `mark_step()`
-  boundary keeps only the **last** call, so gradient accumulation computes wrong embedding gradients
-  (ours has three embedding-family tables). Exact without the per-micro `mark_step()`, but that single
-  unrolled graph did not finish compiling in 17 minutes at a *toy* shape. Also: XLA compile cost
-  235–638 s of the 900 s allowance versus native's 3.7 s warm.
-- **T1.7 is unblocked and measured: `torch.compile(backend="neuron")` runs the Muon step 8.18× faster**
-  (9.51 → 1.16 ms at `[6,640,640]` bf16) once `torch._foreach_copy_` is gone. With it present the
-  neuron backend fails Torch-MLIR legalization — that op *is* the T1.7 blocker, now named. Sizing:
-  native `0.2544 s` (ga=1) vs `0.7952 s` (ga=4) decomposes to one micro-step = 0.1803 s and
-  **collective + optimizer = 0.0741 s = 9.3% of the step**, so ~6% throughput. Spend it as width at
-  fixed steps, not as extra steps (2139 × 1.06 ≈ 2270 > 2195 wall).
-- Two environment traps worth not re-paying: `islpy 2026.2.2` (allowed by neuronx-cc's `~=2026.1`)
-  breaks **every** XLA compile with `[NCC_ISMP902] Simplifier error: is_subset()` — pin `islpy==2026.1`,
-  and clear `/var/tmp/neuron-compile-cache` because the failure is cached. And torch_xla 2.11 defines
-  but never calls `_aws_ec2_inf_trn_init()`, so 4-rank `torchrun` under PJRT NEURON must set
-  `NEURON_RT_VISIBLE_CORES`/`NEURON_PJRT_*`/`NEURON_RT_ROOT_COMM_ID` itself or every rank requests all
-  four logical cores and three of them die with `NRT_FAILURE`.
-- Incidental, applies to the native path: the starter kit's `dt` halves at step 20 exactly when `lrm`
-  hits 1.000 — **the per-step-Python-scalar recompile hazard is native-backend too**, worth ~2× for the
-  first 20 steps. Our `USE_TENSOR_LR_SCALARS` discipline already covers it; do not relax it.
-- Probes 2 and 3 of that track are **not started** (scope was 0–1).
+## Queue as of 2026-09-14 evening — all of the previous "queued next" is now resolved
+T1.7 shipped (compiled Muon, real +3.38%). N-gram VE layer-1 addition shipped (real -0.0118).
+T1.6 (transposed weights) and T1.8 (NKI kernel tracing) both closed negative this week, with
+real numbers (see the dated 2026-09-14 sections in `research/trn2-experiment-results.md`).
+**LNC=1: corrected same evening** — this morning's "runtime-level deadlock, nothing to fix"
+verdict was measured against a stale compile cache. Clearing every Neuron cache dir turns the
+silent hang into a real, narrow, informative compile error (`nkilib`'s `foreach_norm`'s
+`l2_norm_kernel_lnc0`, invalid `CollectiveKind::SendRecv` on Trn2 — the same bug from months ago,
+never actually fixed). `--no-clip-foreach` (or `--grad-clip 0`) routes around it and LNC=1 *runs*
+real training steps again at world_size=1. **Full closure, same evening**: at the real 4-rank
+shape, with both software bugs routed around (fresh cache, explicit `--lnc=1`, `--no-clip-foreach`),
+LNC=1 gets further than ever (real `torch.compile`, real Muon specializations) then hits a **real
+device OOM** (`ret=-12`/`ENOMEM`, `Failed to allocate DEVICE memory`) — LNC=1's HBM isn't pooled
+across cores the way LNC=2's is, and the current 592.9M-param model (537M of it n-gram tables, 10x
+the 55.7M-param model that produced the old cliff number) plausibly doesn't fit one core's share.
+**All four causes from the user's own research (`research/gemini_ai_mode_lnc_1_failure.md`) are
+now accounted for** — compile/runtime mismatch (fixed), NKI-kernel bug (fixed), device OOM
+(confirmed, real, not fixable by a flag), old SDK version (confirmed real, not chased, out of
+scope). LNC=1 is closed for good with a complete answer, not an assumption. Still curiosity-tier,
+still submitting at LNC=2. **New standing rule**: clear caches before trusting any "X doesn't
+work at all" conclusion on this stack, not just before a cold dress rehearsal.
 
-## 2026-09-14 (afternoon) — T1.7 SHIPPED, and the budget bought n-gram VE on layer 1: **1.004363 (−0.0146)**
-Full detail in the dated `research/trn2-experiment-results.md` section. New defaults are in `train.py`.
-- **T1.7 `--compile-muon` KEEP: +3.38%**, not the ~6% the isolated 8.18× predicted — that estimate was
-  priced against a non-NKI optimizer and the shipped path already had the NKI Muon fusion, which the
-  compiled body *replaces* (a compiled region cannot hold an `nki.jit` call). The source rewrite is
-  bit-exact on CPU; the *compiled* execution is not (3.25e-03 max|diff| over 3 steps, bf16-ULP scale in
-  the Newton-Schulz chain, same order as the shipped rope+norm and softcap+CE kernels). Verified where
-  it counts: the step-matched control with it ON reproduces 1.018985 to 3e-6.
-- **Stacks slightly SUPER-additively with the frozen qk-shift: +13.67% combined** (13.19% predicted
-  multiplicatively). Both now default ON.
-- **The T3.1 "early n-gram layer costs +34%" penalty is a ONE-RANK ARTEFACT.** At 4 ranks layer 1 costs
-  5.86%, layer 3 costs 3.04%. Generalise: any "this is unaffordable" verdict measured at 1 rank must be
-  re-measured at 4 before it closes a door, because the cross-pcore reshard is much cheaper when the
-  residual is already sharded four ways.
-- **Layer 1 is the win: −0.0118 bpb at an exact step match**, −0.0130 including the leftover steps its
-  budget buys. Layer 3 is *harmful* (worse than control on the proxy, twice) and `{1,3,5}` is worse than
-  `{1,5}`. **The position space is closed**: `has_ve()` = `i % 2 == (n_layer-1) % 2`, so at DEPTH 6 only
-  {1,3,5} exist and `"0,-1"`/`"2,-1"`/`"1,2,-1"` are silently degenerate no-ops (measured).
-- **mult 64 → 128 is now worth −0.0016**, reversing the 2026-09-12 "capacity saturates at 64" verdict.
-  Lesson: *a capacity axis measured as saturated at one injection site is not saturated at two.*
-  dim 256 and dim256+mult128 stay discarded (dominated / +0.0177 step penalty).
-- Dress-rehearsed with the literal bare command, twice. The first rehearsal printed **`over_budget:
-  True`** — not from training but from the **checkpoint**: the new config's `final.pt` is 1.30 GB (was
-  0.49 GB) and `torch.save` takes a reproducible 9.9 s against a 5.0 s `CHECKPOINT_RESERVE_SECONDS`.
-  Raised to 15.0; rehearsal 2 is `over_budget: False` at 1794.7 charged seconds, 2123 steps, 72 below
-  the wall, `causality_max_abs 0.0`, `epoch 1`, **1.004910**. **Standing lesson: a capacity win that
-  lands in embedding-style tables also grows the checkpoint, and the save is charged.** Re-check the
-  reserve on any future table widening (another 2× ≈ 20 s).
-- Cold-cache startup for this config is ~390 s (159 s first step) against the 900 s allowance cap, and
-  any `train.py` edit invalidates the `torch.compile` cache, so every post-edit rehearsal pays it.
+**Currently running**: small/cheap items (byte-feature `wte` init, coalesced SwiGLU, T2.3/T2.4
+cautious WD/scalar betas) on box 1.
 
-## Queued next, in order (real, not discarded — just sequenced behind the capacity work)
-1. T1.6/T1.8 throughput (transposed weights, `@nki_op` traceable kernels). **T1.7 is DONE** (shipped
-   2026-09-14, +3.38%). Any further win here should be spent the same way T1.7's was: on capacity at a
-   fixed step count. Note there is now ~0 slack left — the locked config uses the full 1800 s and lands
-   60 steps under the wall — so the *next* speedup has to be paired with a capacity spend to be worth
-   anything at all.
-2. ~~N-gram VE cost reduction on layers 1/3~~ — **partly obsolete**: layer 1 is affordable as-is at
-   4 ranks and is now shipped; layer 3 is harmful on quality, so making it *cheaper* buys nothing. What
-   remains is only "make layer 1 cheaper", worth ~5.9% of a step, and there is nothing left to spend it
-   on that has been measured positive.
-3. LNC=1 quality-cliff mystery (curiosity-tier, lowest priority of the three).
-
-Note: any future throughput win from 1-3 should be spent the same way as the current pivot —
-on capacity at fixed step count, not on more steps, until/unless the data-wall situation changes
+Note: any future throughput win should be spent the same way as the T1.7/qk-shift pivot — on
+capacity at fixed step count, not on more steps, until/unless the data-wall situation changes
 (e.g. more train data ever becomes available, which it won't under the rules).
 
-## 2026-09-15 — the three small/cheap items are DONE and all three are OFF (10-arm paired 900s block)
-Full write-up in the dated `research/trn2-experiment-results.md` section. All three implemented,
-flagged, default OFF; locked config bit-identical (proven, not argued). Control pair spread 0.000148,
-`causality_max_abs 0.0` on all ten arms plus five hardware smokes, both eval lengths agree.
-- **Byte-feature `wte` init: DISCARD, +0.00219 per-step**, and a monotone dose-response on
-  `--byte-wte-init-mix` (0.25 → +0.00124, 0.50 → +0.00147, 1.00 → +0.00219) makes it a real mechanism
-  rather than noise. Reusable: **a structured prior imposed on `wte` at init is a constraint the
-  optimizer pays to escape — only worth it where the table is undertrained, and ours is the
-  best-trained tensor in the model.** Cheap kill test for any future embedding-init idea: if mix 0.25
-  already hurts, stop. (Host-side finding worth keeping: hashed byte features MUST be column-centered
-  — raw counts gave +0.224 mean random-pair cosine, centering drops it to +0.003 while
-  shared-3-byte-prefix pairs stay at +0.615.)
-- **Parameter-matched coalesced SwiGLU: DISCARD, +0.00416 per-step AND 1.09% slower**, at
-  592.43M vs 592.92M params and 0.7% *fewer* FLOPs/token. The ReLU²≥SwiGLU consensus holds on Trn2.
-  Reusable: **"same launch count, fewer FLOPs" is not a throughput guarantee** — suspects are the two
-  non-contiguous last-dim slices and 3328 being a worse output tile than 2560.
-- **T2.3 cautious weight decay: exact null (−0.000087, inside the control spread).** Stays OFF; tie
-  goes to the incumbent. The reusable part is the discipline: restructuring a locked default (the
-  decay multiply had to move below `update`) was only acceptable because
-  `research/scratch/cautious_wd_equiv.py` runs the OLD code and demands 0.0 diff on all 80 params and
-  60 state tensors across all four (foreach, tensor-lr) combinations.
-- **T2.4 smoothed scalar betas: DISCARD**, and it closes the axis from both ends — beta2 0.99 at the
-  current SCALAR_LR 0.20 is a null (+0.0002), and lowering the LR on top of it is monotonically worse
-  (0.10 → +0.00119, 0.05 → +0.00183). **SCALAR_LR 0.20 re-confirmed as at/past the top of the curve.**
-  The historical scalar-group NaN is now structurally unreachable: `setup_optimizer` raises on any
-  `ndim > 1` member of `scalar_params` (currently 12 shape-(1,) tensors and nothing else).
-
-## 2026-09-15 — width sweep extended to `n_embd=1024`: CLOSED NEGATIVE, and the width axis is closed with a mechanism
-One 120-step spot-check on box 2, bracketed by two 640×6 controls (driver
-`research/scratch/tc_probe3f_width1024.sh`, dated section in `research/trn2-experiment-results.md`).
-`train.py` **untouched** — `--n-embd`/`--depth` already existed from T0.2.
-- **The new row**: 1024×6, 654.9M params, 8.086e8 flops/token, **1.35420 s/step** (96789 tok/s,
-  **−37.55%** vs the screen control), **1329 steps @1800 s**, step-110 loss **3.8633**, 120-step
-  `val_bpb`(1024) **1.357624**, `causality_max_abs` **0.000000**. Best per-step shape ever measured
-  here on both quality instruments; nothing had to be forced (no OOM, no flags, no assertion —
-  `NGRAM_VE_DIM=128` is absolute so the tables do not scale with `n_embd`, and the whole 592.9M→654.9M
-  is dense backbone 55.7M→117.5M).
-- **The cost per +128 of width is a flat ×1.17 on step time** (×1.1716 / ×1.1786 / ×1.1598) ⇒ a
-  constant **≈ +0.0121 bpb** of forgone steps. It does **not** accelerate; the "−14.65% → −27.58% →
-  −37.55%" sequence only *looks* decelerating because a "% of control" metric saturates. Utilisation
-  actually improves with width (+11.5% → +19.4% → **+26.5%** flops/s), which is why the cost is
-  sublinear in FLOPs.
-- **The benefit curve turned over at 896.** Marginal quality per +128 peaks at the 768→896 step
-  (−0.0350 train loss / −0.0144 120-step bpb) and is smaller at 896→1024 (−0.0288 / −0.0050) at the
-  same cost. Extrapolating from the 896 anchor, 1024 needs **+11.6% to +18.8%** throughput to break
-  even against 768's 9.46% and 896's **11.63%** — tied at best, probably worse. **Decision rule not
-  met; no A/B run, no escalation.**
-- **Reusable**: even the *best* width step in the curve is net-negative (−0.0111 real bpb bought for
-  +0.0126 of forgone steps), so the whole curve is underwater and the gap is *narrowest at 768*. If a
-  large throughput win ever appears, **768 is the shape it rescues first**, not the bigger ones.
-- **Reusable**: a wide arm cannot finish an epoch (1024×6 reaches 174.2M of ~288M tokens, 60% of one),
-  so the −0.077 bpb/ln(steps) slope — fitted near one epoch — *understates* the penalty for every wide
-  arm, increasingly with width. All the width arithmetic in the log is optimistic in that direction.
-- **Do not re-run**: `--n-embd 1024` at any budget; any width point ≥1152 (cost constant does not
-  improve, benefit already decelerating).
-- Housekeeping: the Part-A width table in `trn2-experiment-results.md` §1 had **four transcription
-  errors** (768's `num_params`, 768's and 896's step-110 loss, 896's s/step); all four fixed from the
-  committed `tc-probe-sh-*.log` files. The earlier copy of the same table was correct and no
-  downstream conclusion moves.
+## Closed 2026-09-15: small/cheap batch — all four DISCARD/neutral
+Byte-feature `wte` init: DISCARD, monotone dose-response the wrong way (+0.0022 worse at mix 1.0,
+still +0.0012 worse at mix 0.25). Coalesced SwiGLU: DISCARD, worse on both per-step (+0.0042) AND
+throughput. T2.3 cautious WD: exactly neutral (−0.00009, noise), stays OFF; refactor proven
+bitwise-free via `research/scratch/cautious_wd_equiv.py`. T2.4 smoothed scalar betas: neutral/
+negative, re-confirms `SCALAR_LR=0.20` is already the top of the curve. All four kept in tree
+behind their flags, default OFF, zero cost at default. Full write-up:
+`research/trn2-experiment-results.md` 2026-09-15 "three small items" section.
 
 ## Small/cheap, still unimplemented
 - `lr_multiplier` defense-in-depth against step-capping (optional hardening on top of the
@@ -210,9 +389,28 @@ One 120-step spot-check on box 2, bracketed by two 640×6 controls (driver
 - Any Devpost forum post (external/visible action) — currently nothing queued to post; the one
   drafted question (frozen n-gram count-mixer rules check) is moot since that idea died.
 
+## RULED, permanent hard constraint (organizers answered directly, 2026-09-14)
+The excluded launch→5th-step (≤900s) startup window may **not** be used to (a) pre-fill n-gram
+tables or any count-based asset ahead of the charged loop, or (b) via uneven step construction —
+engineering the first 5 steps to run long and carry disproportionate real learning, pacing faster
+once the clock resets. Both confirmed prohibited, not merely risky. Verified `train.py` is clean
+against this (only reads the harness's own exclusion constants to re-base internal logging, never
+inflates steps 0-4's compute). Legitimate uses remain: compiling extra graph shapes, cache warmup.
+Permanent — do not revisit either variant. Full detail: `research/frontier-research-plan-2026-09-09.md` T4.3.
+
 ## Scheduled
-- Week 3 (Sep 23-30): freeze the stack, 3-seed confirm at 1800s, eval at seq_len 1024 and 2048,
-  final submissions on the most robust config, one fallback slot held in reserve.
+- Keep actively researching/experimenting through ~Sep 27. Only the **last 2-3 days** (~Sep
+  28-30) are a real freeze — one final dress-rehearsed submission of whatever's best-known-good
+  by then, plus a quick 3-seed variance check (~1.5h box time, not a big undertaking). The
+  current board score stays on the leaderboard regardless of what happens after it, so there's
+  no need for a long freeze — just enough runway to not risk a broken last-minute submission.
+  (Revised down from the original "freeze all of Week 3" text, which was inherited from the
+  Sep 9 plan and was more conservative than the actual risk warrants.)
+
+## Distance to the leaderboard (2026-09-12 snapshot, will have moved — live race)
+- To 10th (1.0303): **0.0081** — plausibly one more real win (the n-gram-layers-1/3 fix alone
+  is estimated ~0.007). Realistic near-term target.
+- To 1st (0.9683): **0.0701** — needs several more structural wins, a much bigger ask.
 
 ## Closed for good (real hardware/evidence verdicts — do not revisit without new evidence)
 Mamba2/SSD, RWKV x051a, SLAY/YAT, MUDD, DCMHA, XSA, value-residual, FP8 (`_scaled_mm`),
@@ -225,15 +423,13 @@ host-sync/weight-cache, T0.2 depth/width decoupling, T0.3 MLP-ratio/attn-scale, 
 robustness, T2.1 batch-size ramp, T2.2 EMA, T4.1 count-based n-gram output mixer, T4.2 Aster
 output bigram table, T3.9 grab-bag (shifted ReLU², head-gate, out-pool — sandwich-norm/qk-shift
 were real but only via throughput, now devalued by the data wall), x0-gate, parallel attn+MLP
-block, partial RoPE (scoped, not worth the risk), `--epoch-shuffle` (made the data wall worse), byte-feature `wte` init (dose-response negative),
-parameter-matched coalesced SwiGLU, T2.3 cautious weight decay (null), T2.4 smoothed scalar betas,
-**model width above 640** (768/896/**1024** × 6 all measured, all underwater at 1800 s; benefit
-marginal-rate peaks at 896 while cost is a flat ×1.17 per +128 — the axis is closed with a mechanism,
-not just three points).
+block, partial RoPE (scoped, not worth the risk), `--epoch-shuffle` (made the data wall worse).
 Full detail for all of the above: `research/trn2-experiment-results.md` (git-tracked, the real
 source of truth) and git history.
 
 ## Discipline (standing rules, unchanged)
+- **Keep both boxes occupied whenever possible.** They cost the same whether idle or busy —
+  whenever one frees up, launch the next queued item immediately rather than waiting.
 - Local repo is the only git source of truth; the Trn2 box is disposable — rsync out, run, pull
   `research/experiment-log.jsonl` + run-logs back, commit+push locally, every time.
 - **One owner of `train.py` at a time.** No exceptions.
@@ -245,12 +441,7 @@ source of truth) and git history.
   it (several false reads this week came from skipping this).
 - New per-step Python scalars must be device tensors updated via `copy_` — never a bare Python
   float reaching a compiled op (the tensor-lr-scalars lesson).
-- `torch._foreach_*` is eager-only — never inside anything `torch.compile`d. (Confirmed 2026-09-14:
-  the neuron backend fails Torch-MLIR legalization on `_foreach_copy_`; `openxla` accepts it.)
-- **Gradient accumulation + graph-mode boundaries is a correctness trap, not just a perf question**
-  (2026-09-14: `index_add_` across `mark_step()` keeps only the last call). If any future work puts a
-  graph boundary inside the accumulation loop on any backend, verify per-group grad L2 against the
-  eager path before believing a loss curve.
+- `torch._foreach_*` is eager-only — never inside anything `torch.compile`d.
 - **Dress rehearsal before every submission recommendation**: run the literal bare launch command
   once, not through `research/run_experiment.py` (which forces its own `--num-steps`).
 - **tmux for any box command that outlives a possible SSH disconnect** (every 900s/1800s run):
