@@ -9633,3 +9633,54 @@ top-10 (seed 300) but does not change the ranking's leader or displace any of th
 
 **Verdict: pure measurement, no code changes, no default changed.** `train.py`'s `SEED` default is
 untouched throughout. This section only gathers more data for the still-pending lock-in decision.
+
+## 2026-09-16 — Final wrap-up dress rehearsal: closing the loop after the seed hunt, `train.py` still byte-identical
+
+Standing rule one more time before calling the session's work done for now: run the literal bare
+launch command to completion, no `run_experiment.py`, no extra flags. This follows a 26+-seed hunt
+(full 1800s budget each) that confirmed seed 42 — the untouched default — as the winner; no change
+was made to `train.py`'s `SEED` or anything else as a result. Purpose here is purely to close the
+loop: confirm `train.py` is still exactly what it was for the last full dress rehearsal
+(`fac0efc`, 2026-09-15, `2119` steps, `public_val_bpb=1.003408`) and that one more independent
+full-budget run reproduces that number within noise.
+
+**Defaults/md5 confirmed directly from `train.py` on box 2** (`ec2-16-26-154-27`) before running:
+`--seed` default `42` (`train.py:5328`, `int(os.environ.get("NEURON_COMPETITION_R1_SEED", "42"))`),
+`md5sum train.py` = `24cce227d3bcf9750f6ea07f9d58a8d1` — byte-identical to every dress rehearsal
+since `dffa5ee`, including `fac0efc`. Re-checked again immediately after the run completed: still
+`24cce227d3bcf9750f6ea07f9d58a8d1` (no in-run mutation, as expected — `train.py` never writes to
+itself).
+
+**Run**, literal bare launch command, full budget, in `tmux` (session `finalwrap`, not
+`run_experiment.py`):
+
+```
+NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --no-eval-public --num-steps 1000000
+```
+
+Log: `research/run-logs/finalwrap-dress-rehearsal-20260916.log`. As with every other
+`--no-eval-public` rehearsal in this doc, the in-process `public_val_bpb`/causality print is
+suppressed by that flag, so both were recovered post-hoc from the same checkpoint (`out/final.pt`)
+via `prepare.py eval-public --seq-len 2048 --eval-tokens 2097152` and a standalone call to
+`train.py`'s own `causality_check` (same pattern as `fac0efc`'s "Eval calibration" recovery step) —
+logs `research/run-logs/finalwrap-dress-rehearsal-20260916-evalpublic.log` and
+`research/run-logs/finalwrap-dress-rehearsal-20260916-causality.log`.
+
+| | last known-good (`fac0efc`, 2026-09-15, box 2) | this final wrap-up check (2026-09-16, box 2) |
+|---|---|---|
+| `num_params` | 592,916,844 | 592,916,844 |
+| steps | 2119 | 2131 |
+| `training_seconds` / `over_budget` | 1784.9 / False | 1784.4 / **False** |
+| `causality_max_abs` | 0.000000 (`causality_passed: True`) | **0.000000** (`causality_passed: True`) |
+| `public_val_bpb` (seq_len=2048, 2M tokens) | 1.003408 | **1.003045** |
+
++12 steps and **−0.000363 bpb** (slightly better, on slightly more steps) — comfortably inside the
+now-well-characterized same-seed noise band (~0.0007-0.0012) established across this repo's seed-hunt
+and repeat-confirmation work, and in fact smaller than that band. Both deltas point the same
+(favorable) direction, which is not the shape a real regression takes.
+
+**Verdict: clean, no regression, no anomaly.** `train.py`'s md5 is unchanged, `causality_max_abs` is
+exactly `0.0`, `over_budget` is `False`, `num_params` is byte-identical, and `public_val_bpb`
+reproduces the last known-good full-1800s number within noise. No `train.py` changes were made in
+this session. This closes the loop on the current wrap-up; nothing further is pending from this
+check.
