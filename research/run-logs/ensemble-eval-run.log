@@ -1,0 +1,28 @@
+[W916 06:16:15.059895042 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+device=neuron seq_len=2048 batch_size=1 eval_tokens=2097152 split=public_val
+[control] loaded out/ensemble-control/final.pt: causality_passed=True max_abs_diff=0.000000
+[replica-A] loaded out/ensemble-repA/final.pt: causality_passed=True max_abs_diff=0.000000
+[replica-B] loaded out/ensemble-repB/final.pt: causality_passed=True max_abs_diff=0.000000
+--- (a) control alone ---
+WARNING:torch_neuronx.python_ops.dtype_autocast:Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
+control_val_bpb    = 1.051295  (tokens=2097152, 45.2s)
+--- (b) replica A alone ---
+replica_a_val_bpb  = 1.108744  (tokens=2097152, 45.5s)
+--- (b) replica B alone ---
+replica_b_val_bpb  = 1.108619  (tokens=2097152, 45.8s)
+--- (c) TRUE ensemble: average LOGITS of A and B, then cross-entropy ---
+ensemble_ab_val_bpb = 1.088441  (tokens=2097152, 81.4s)
+=== SUMMARY ===
+control_val_bpb:     1.051295
+replica_a_val_bpb:   1.108744
+replica_b_val_bpb:   1.108619
+ensemble_ab_val_bpb: 1.088441
+ensemble_minus_control: +0.037146
+total_eval_wall_seconds: 231.0
+wrote research/run-logs/ensemble-eval-result.json

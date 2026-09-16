@@ -9634,6 +9634,140 @@ top-10 (seed 300) but does not change the ranking's leader or displace any of th
 **Verdict: pure measurement, no code changes, no default changed.** `train.py`'s `SEED` default is
 untouched throughout. This section only gathers more data for the still-pending lock-in decision.
 
+## 2026-09-15 — Model ensembling spot-check: 2x half-compute replicas vs 1 full-compute model, equal total compute
+
+**Motivation.** A deep-research pass this week flagged "model ensembling" (train N smaller/shorter
+models concurrently, average their PREDICTIONS) as a real technique in the sister Slowrun
+(data-constrained-pretraining) community, tying it to this repo's own measured seed-init variance
+(~0.003 std across seeds, per the seed-hunt sections above). Against that, this week's whole
+throughput-vs-capacity thread has established that spending compute on more steps at the locked
+config beats nearly every alternative use of the same compute, and that halving throughput (a
+2-way split) needs an enormous quality win to break even
+(forgone-steps penalty ≈ `0.077 * ln(step_ratio)`). This is the ONE cheap check asked for to settle
+whether ensembling is worth pursuing further, given that strong prior — not a change to any locked
+default, and `train.py`'s training path is untouched.
+
+**The question.** At EQUAL TOTAL COMPUTE, does averaging the LOGITS of two independently-seeded
+HALF-compute replicas beat one FULL-compute replica? (Not "does ensembling help" in general — that's
+trivially yes if it gets 2x the compute. The fair comparison is against the same total compute spent
+on one continuous run.)
+
+**Compute-accounting subtlety, resolved before launching anything.** `train.py` auto-scales
+`grad_accum_steps = TOTAL_BATCH_SIZE // world_tokens_per_micro` (`train.py:5704`), where
+`world_tokens_per_micro` is proportional to `world_size`. That means `TOTAL_BATCH_SIZE` (hence
+tokens processed, hence FLOPs) per *step* is **independent of `world_size`** — reducing
+`world_size` from 4 to 2 does not halve a step's compute, it just spreads the same per-step compute
+over fewer cores, taking roughly 2x as long per step. So running the two `world_size=2` treatment
+replicas for the SAME `--num-steps` as the control would NOT be an equal-compute comparison: each
+replica would do the control's FULL per-step compute (not half), and the pair together would burn
+~2x the control's total compute — exactly the "ensembling only wins because it used more compute"
+confound this check exists to rule out. The fix: hold **`--max-train-seconds` fixed and identical**
+across all three runs (900s, this repo's established cheap-but-real "`*_900s.sh`" probe convention,
+with real cooldown, not the no-cooldown 300-step convention) and let each side's step count fall out
+of its own real hardware throughput. That guarantees equal wall-clock time and equal total
+core-seconds (4 cores × 900s either way), which is the correct equal-total-compute design. Verified
+empirically, not just derived: a smoke test at `--num-steps 3` measured `world_size=2` steady-state
+`dt≈1.56s` vs the control's `dt≈0.83s` at `world_size=4` — a ~1.87x slowdown per step, matching the
+"halved throughput" framing this repo already uses for 2-way splits.
+
+**Launch mechanism.** `trn2.3xlarge`, `NEURON_LOGICAL_NC_CONFIG=2`, 4 logical NeuronCores (`0-3`).
+Two concurrent `torchrun --nproc_per_node=2` processes, each pinned to a disjoint pair of logical
+cores via `NEURON_RT_VISIBLE_CORES`, so they don't contend for the same hardware:
+
+```
+# Control (world_size=4, all 4 cores, current locked defaults, seed=42 default)
+NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py \
+    --num-steps 5000 --max-train-seconds 900 --no-eval-public --out-dir out/ensemble-control
+
+# Treatment replica A (cores 0-1) and replica B (cores 2-3), launched concurrently
+NEURON_RT_VISIBLE_CORES=0-1 NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=2 \
+    --master-port=29511 train.py --num-steps 5000 --max-train-seconds 900 --no-eval-public \
+    --seed 9001 --out-dir out/ensemble-repA
+NEURON_RT_VISIBLE_CORES=2-3 NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=2 \
+    --master-port=29512 train.py --num-steps 5000 --max-train-seconds 900 --no-eval-public \
+    --seed 9002 --out-dir out/ensemble-repB
+```
+
+Seeds 9001/9002 are new, distinct from every seed already tested in the seed-hunt sections above
+(1,2,3,5,7,8,13,34,42,43,44,55,89,144,200,300,400,500,600,700,1000,1500,2000,2500,3000,3500).
+`--no-eval-public` on all three training launches (the eval below is done standalone, not
+in-process, so there's no point paying for train.py's own eval and no risk of its cost differing
+between `world_size=4` and `world_size=2` distorting the wall-clock match). This ran on the
+**native torch-neuronx path** (the one `train.py` actually uses, no XLA) — the known "4-rank
+`torchrun` under PJRT NEURON can't start without explicitly setting
+`NEURON_RT_VISIBLE_CORES`/`NEURON_PJRT_*`" failure documented elsewhere in this file (2026-09-14,
+the torch_xla graph-mode probe) is specific to the XLA/PJRT path and does not apply here; a smoke
+test (3-step, both processes) confirmed the two concurrent native `torchrun` jobs on disjoint core
+pairs start and finish cleanly with no hang, no crash, no coordination issue.
+
+**Results.**
+
+| run | world_size | seed | `--max-train-seconds` | `num_steps` completed | `training_seconds` | `total_tokens_M` |
+|---|---|---|---|---|---|---|
+| control | 4 | 42 (default) | 900 | 1060 | 884.3 | 138.9 |
+| replica A | 2 | 9001 | 900 | 570 | 884.5 | 74.7 |
+| replica B | 2 | 9002 | 900 | 570 | 883.9 | 74.7 |
+
+Wall-clock is matched almost exactly (`training_seconds` 883.9–884.5 across all three). Total tokens
+processed: control 138.9M vs. replica A + replica B combined 149.4M — the treatment pair actually
+got **~7.6% MORE total compute** than the control in the same wall time (the 2-way split's real
+per-step slowdown was ~1.86x, not exactly 2x, so splitting into `2+2` was mildly *less* efficient at
+converting wall-clock into per-replica steps than `1x4`, but the shortfall was smaller than assumed
+going in). If anything this is a small bias **in favor of** the treatment/ensemble arm, not against
+it — the comparison below is not being unfairly starved of compute.
+
+All three checkpoints were evaluated by a new standalone script,
+`research/scratch/ensemble_eval.py`, which does **not** touch `train.py`'s training path. It loads
+each checkpoint with `train.py`'s own `load_for_eval`, reuses `prepare.py`'s own `evaluate_bpb` /
+`make_eval_dataloader` / `get_token_bytes` (the exact trusted CE-from-logits path every
+`public_val_bpb` number in this file already uses) for the three solo-model numbers, and adds one
+new mirrored function, `evaluate_ensemble_bpb`, that averages replica A's and replica B's **logits**
+(post-softcap, pre-cross-entropy) before computing the loss — the actual ensembling mechanism under
+test, not an average of losses. `make_eval_dataloader` has no RNG and defaults to `world_size=1`
+outside `torchrun`, so all four numbers below are read off the exact same deterministic
+`public_val` batch stream (2,097,152 tokens, `train.py`'s own `--eval-tokens` default,
+`--seq-len 2048`), byte-identical across all four evaluations. Causality check passed
+(`max_abs_diff=0.0`) for all three loaded models.
+
+| | `public_val_bpb` |
+|---|---|
+| (a) control alone (full compute, 1060 steps) | **1.051295** |
+| (b) replica A alone (half compute, 570 steps) | 1.108744 |
+| (b) replica B alone (half compute, 570 steps) | 1.108619 |
+| (c) **ensemble(A, B)** — average logits, then CE | **1.088441** |
+
+`ensemble_ab − control = +0.037146` (worse). `ensemble_ab` is `0.020241` **better** than the
+average of the two solo half-compute replicas (`1.108682`) — ensembling recovered about
+**35% of the single-replica-vs-control gap** (`0.057387` avg solo gap → `0.037146` ensemble gap),
+which is a real, non-trivial effect, not nothing. It is also nowhere close to breaking even: this
+repo's own noise floor for same-seed reruns is `~0.001`–`0.003`, and the seed-init std measured
+above is `~0.003` — the `+0.037146` ensemble-vs-control gap is **roughly 10–35x that noise floor**,
+an unambiguous, decisive loss, not a coin-flip needing a repeat.
+
+**Sanity cross-check against the forgone-steps formula.** step_ratio (control steps / replica
+steps) = `1060 / 570 = 1.86`; the repo's forgone-steps penalty `0.077 * ln(1.86) ≈ 0.0477` predicts
+roughly what a single half-compute model should lose to the control from fewer steps alone. The
+measured solo-replica gap (`~0.0574` avg) is a bit worse than that pure-throughput prediction, consistent
+with the extra ~0.003–0.01 coming from this being a genuinely under-trained/under-annealed model
+(higher `lrm` at stop) rather than only "fewer steps of the same schedule shape" — expected, since
+`--max-train-seconds` also compresses the whole warmup/cooldown schedule into a shorter wall-clock
+window for the treatment replicas relative to the same *step budget* the control would need for a
+literal apples-to-apples step-for-step comparison; here it's an apples-to-apples *compute* comparison
+instead, which is the one the task asked for.
+
+**Verdict: negative, as the strong prior predicted, but not vacuously so.** Ensembling two
+half-compute replicas' logits is a real, measurable improvement over either replica alone (`-0.0202`
+bpb, i.e., not just averaging noise — it recovers over a third of the standalone-degradation gap),
+so the mechanism is not fake. But at equal total compute it still loses to spending that same
+compute on one continuous full run by `+0.037` bpb — several times the size of anything this repo's
+seed-hunt or same-seed noise-floor sections have found `real`, and larger than most of the
+capacity/architecture wins closed positive this week. **Not worth pursuing further as a lever for
+this competition's compute-constrained setting.** No `train.py` default touched, no code path
+changed; this is a pure side-measurement, same discipline as every other section in this file.
+Full result JSON: `research/run-logs/ensemble-eval-result.json`; training logs:
+`research/run-logs/ensemble-{control,repA,repB}-900s.log`; eval log:
+`research/run-logs/ensemble-eval-run.log`; eval script: `research/scratch/ensemble_eval.py`.
+
 ## 2026-09-16 — Final wrap-up dress rehearsal: closing the loop after the seed hunt, `train.py` still byte-identical
 
 Standing rule one more time before calling the session's work done for now: run the literal bare
