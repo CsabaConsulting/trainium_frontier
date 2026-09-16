@@ -40,7 +40,8 @@ def plan_cells(custom: list[dict]) -> list[dict]:
     return cells
 
 
-def run(checkpoint: str, cells: list[dict], batch_size: int, device: torch.device) -> list[dict]:
+def run(checkpoint: str, cells: list[dict], batch_size: int, device: torch.device,
+        args_max_tokens: int | None = None, args_timeout: int = 1200) -> list[dict]:
     tokenizer = ensure_tokenizer(build_if_missing=False)
     payload = T.torch_load_weights(checkpoint, map_location="cpu")
     has_ema = "ema_state" in payload
@@ -60,9 +61,9 @@ def run(checkpoint: str, cells: list[dict], batch_size: int, device: torch.devic
             w = "raw(no-ema)"  # label honestly: nothing to prefer
         r = evaluate_bpb(model, tokenizer, batch_size, cell.get("seq_len", 2048),
                          device, split=cell.get("split", "public_val"),
-                         max_tokens=cell.get("max_tokens"),
+                         max_tokens=cell.get("max_tokens", args_max_tokens),
                          shard_ids=cell.get("shard_ids"),
-                         timeout_seconds=cell.get("timeout_seconds", 600))
+                         timeout_seconds=cell.get("timeout_seconds", args_timeout))
         rows.append({"def": cell.get("name", "?"), "weights": w,
                      "seq_len": cell.get("seq_len", 2048),
                      "val_bpb": r["val_bpb"], "num_tokens": r["num_tokens"],
@@ -76,6 +77,11 @@ def main() -> None:
     ap.add_argument("--checkpoint", help="checkpoint path (remote: checkpoints/<run>/ckpt.pt)")
     ap.add_argument("--batch-size", type=int, default=1)
     ap.add_argument("--device-type", default="neuron")
+    ap.add_argument("--max-tokens", type=int, default=524288,
+                    help="tokens per cell (default 524288 = exactly one rank's share of the "
+                         "historical 4-rank in-process eval, whose --eval-tokens is 2M; all "
+                         "cells see the same window, so cross-def deltas are apples-to-apples)")
+    ap.add_argument("--timeout-seconds", type=int, default=1200)
     ap.add_argument("--defs", default="[]",
                     help="JSON list of extra cells, e.g. '[{\"name\":\"sidecar-4096\","
                          " \"weights\":\"ema\", \"seq_len\":4096}]'")
@@ -90,7 +96,8 @@ def main() -> None:
     if not args.checkpoint:
         ap.error("--checkpoint required (or --dry-run)")
     device = torch.device(args.device_type)
-    rows = run(args.checkpoint, cells, args.batch_size, device)
+    rows = run(args.checkpoint, cells, args.batch_size, device,
+               args_max_tokens=args.max_tokens, args_timeout=args.timeout_seconds)
     print(f"{'def':22s} {'wts':5s} {'seq':5s} {'bpb':>10s} {'tokens':>10s} "
           f"{'bytes':>10s} {'sec':>7s} {'overT'}")
     for r in rows:
