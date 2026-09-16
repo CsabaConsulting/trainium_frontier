@@ -1,0 +1,16 @@
+[W916 17:22:28.093610616 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_frontier/research/average_checkpoints.py", line 149, in <module>
+    main()
+  File "/home/ubuntu/trainium_frontier/research/average_checkpoints.py", line 142, in main
+    out = average_checkpoints([Path(p) for p in args.inputs], use_ema=args.use_ema)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/trainium_frontier/research/average_checkpoints.py", line 62, in average_checkpoints
+    raise ValueError(f"shape mismatch on {k}: {paths[0]} vs {p}")
+ValueError: shape mismatch on ngram_embeds.b1.weight: out/t17-l1-m128/final.pt vs out/t17-l1-2150/final.pt
