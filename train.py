@@ -88,6 +88,7 @@ from prepare import (
     ensure_tokenizer,
     evaluate_bpb,
     get_dist_info,
+    get_token_bytes,
     make_dataloader,
     print0,
     record_step_boundary,
@@ -215,6 +216,12 @@ ATTN_SCALE = 0.0  # T0.3: explicit softmax scale for F.scaled_dot_product_attent
 # every previous run. QK-norm (rope_norm on both q and k) already fixes |q|,|k| to sqrt(D) per head,
 # which decouples the useful logit temperature from the 1/sqrt(D) convention, so this is a real free
 # knob rather than a redundant reparameterisation of the init scale.
+N_KV_HEADS = 0  # Sub-1.0 plan P2 (2026-09-16): grouped-query attention KV-head count. 0 (default) =
+# dense attention (n_kv_heads = n_head), bit-identical to every previous run. Set to a divisor of
+# n_head to shrink the K/V projections (the QK^T + softmax work stays full-width by design, see
+# CausalSelfAttention.forward). NOTE the granularity limit: at the locked width (n_head=5) the
+# only nontrivial choice is 1 (MQA); richer choices (2, 4) need a width with a composite n_head
+# (e.g. n_embd=768 -> 6 heads -> kv 2/3; n_embd=1024 -> 8 heads -> kv 2/4).
 
 DEVICE_BATCH_SIZE = 1
 TOTAL_BATCH_SIZE = 131072  # Tier-0 resweep confirmed still correct at full 1800s: 65536 (3544/1.048832) and 262144 (1038/1.051031) both lose. See trn2-experiment-results.md
@@ -313,6 +320,12 @@ CHECKPOINT_RESERVE_SECONDS = 15.0
 STARTUP_LAUNCH_MARGIN_SECONDS = 30.0
 
 LOGIT_SOFTCAP = 15.0
+LOSS_BYTE_WEIGHT = False  # Sub-1.0 plan P4 (2026-09-16): weight each token's training loss by
+# its byte length, aligning the objective with the bpb metric (rare long tokens dominate bpb but
+# not mean CE). Default OFF = plain mean, bit-identical to every previous run. Read-only w.r.t.
+# the rules: the weights come from the provided tokenizer artifact's id->bytes map (same source
+# as prepare.py's token_bytes.pt), no external data, no extra state, eval path untouched.
+BYTE_LOSS_W: torch.Tensor | None = None  # mean-normalized float32 weights, built once in main()
 
 EMBEDDING_LR = 0.30
 UNEMBEDDING_LR = 0.006
@@ -1391,6 +1404,11 @@ class GPTConfig:
     # (same reasoning as mlp_ratio) because it changes what the trained weights MEAN without
     # changing any shape, so a checkpoint evaluated with the wrong value would fail silently.
     attn_scale: float = 0.0
+    # Sub-1.0 plan P2 (2026-09-16): grouped-query attention KV-head count. 0 (default) =
+    # dense (n_kv_heads = n_head), bit-identical to every previous run. Defaulted (and
+    # appended last) so GPTConfig(**payload["model_config"]) still loads every checkpoint
+    # written before this field existed -- same pattern as mlp_ratio above.
+    n_kv_heads: int = 0
 
 
 COMPUTE_DTYPE: torch.dtype = torch.bfloat16
@@ -2136,7 +2154,21 @@ def softcap_cross_entropy(logits: torch.Tensor, targets: torch.Tensor,
     own `reduction` argument did -- reduction semantics are unchanged either way,
     and the eager branch is the original chain verbatim so flipping the knob off
     restores the previous numerics exactly.
+
+    LOSS_BYTE_WEIGHT (default OFF): when on and loss_reduction == "mean", the
+    per-token losses are combined as sum(w_i * l_i)/sum(w_i) with w = the token's
+    byte length (mean-normalized in main(), so the loss scale -- and hence every
+    LR -- is unchanged). Works through BOTH the NKI and eager paths: the flag
+    only reroutes "mean" to per-token + weighting; "none" still returns the raw
+    per-token losses unweighted.
     """
+    weight = None
+    if loss_reduction == "mean" and LOSS_BYTE_WEIGHT and BYTE_LOSS_W is not None:
+        # .to() on an already-placed tensor is a no-op returning self, so this is
+        # free after the first step's host-to-device copy. No ignore_index exists on
+        # this path (the calls below never pass one), so every target is a valid id.
+        weight = BYTE_LOSS_W.to(device=logits.device, dtype=torch.float32)[targets.reshape(-1)]
+        loss_reduction = "none"
     if USE_NKI_SOFTCAP_CE and _HAS_NKI and logits.device.type == "neuron" \
             and loss_reduction in ("mean", "none") and logits.dtype == torch.float32 \
             and logits.is_contiguous():
@@ -2147,8 +2179,12 @@ def softcap_cross_entropy(logits: torch.Tensor, targets: torch.Tensor,
             tgt = targets.reshape(-1, 1).to(torch.float32)
             per_token = _SoftcapCrossEntropyNKI.apply(z, tgt)
             if loss_reduction == "none":
-                return per_token.view_as(targets)
-            return per_token.mean()
+                out = per_token.view_as(targets)
+            else:
+                out = per_token.mean()
+            if weight is not None:
+                return (out.reshape(-1) * weight).sum() / weight.sum()
+            return out
     capped = LOGIT_SOFTCAP * torch.tanh(logits / LOGIT_SOFTCAP)
     loss = F.cross_entropy(
         capped.reshape(-1, capped.size(-1)),
@@ -2156,8 +2192,12 @@ def softcap_cross_entropy(logits: torch.Tensor, targets: torch.Tensor,
         reduction=loss_reduction,
     )
     if loss_reduction == "none":
-        return loss.view_as(targets)
-    return loss
+        out = loss.view_as(targets)
+    else:
+        out = loss
+    if weight is not None:
+        return (out.reshape(-1) * weight).sum() / weight.sum()
+    return out
 
 
 def relu_squared(x: torch.Tensor) -> torch.Tensor:
@@ -2388,6 +2428,18 @@ class CausalSelfAttention(nn.Module):
         self.n_embd = config.n_embd
         self.head_dim = config.n_embd // config.n_head
         assert self.head_dim * self.n_head == self.n_embd
+        # Sub-1.0 plan P2: grouped-query attention. 0/None => dense (n_kv = n_head).
+        self.n_kv_heads = config.n_kv_heads or config.n_head
+        self.kv_repeat = 1
+        if self.n_kv_heads != self.n_head:
+            if USE_FUSED_QKV or coalesced != "none":
+                raise ValueError("GQA (n_kv_heads != n_head) needs the standard separate q/k/v "
+                                 "projections: incompatible with USE_FUSED_QKV (one fused 3-way "
+                                 "matmul) and with parallel-block coalescing (one c_in matmul).")
+            if self.n_head % self.n_kv_heads != 0:
+                raise ValueError(f"n_kv_heads={self.n_kv_heads} must divide "
+                                 f"n_head={self.n_head}")
+            self.kv_repeat = self.n_head // self.n_kv_heads
         # `coalesced` (parallel block only): which of this module's input projections live in the
         # OWNING BLOCK's single c_in matmul instead of here. "all" = q, k and v; "vfc" = v only
         # (q and k stay separate so their outputs are contiguous and the rope+QK-norm NKI kernel
@@ -2403,8 +2455,10 @@ class CausalSelfAttention(nn.Module):
             self.c_qkv = Linear(config.n_embd, 3 * config.n_embd, bias=False)
         else:
             self.c_q = Linear(config.n_embd, config.n_embd, bias=False)
-            self.c_k = Linear(config.n_embd, config.n_embd, bias=False)
-            self.c_v = Linear(config.n_embd, config.n_embd, bias=False)
+            # GQA: K/V project to n_kv_heads * head_dim (== n_embd when dense, so the
+            # default shapes -- and inits -- are exactly the historical ones).
+            self.c_k = Linear(config.n_embd, self.n_kv_heads * self.head_dim, bias=False)
+            self.c_v = Linear(config.n_embd, self.n_kv_heads * self.head_dim, bias=False)
         self.c_proj = Linear(config.n_embd, config.n_embd, bias=False)
         # T0.3: None => SDPA's own 1/sqrt(head_dim). Snapshotted here (not read from the global
         # per forward) so it is a single compile-time constant in the graph, identical every step.
@@ -2462,8 +2516,18 @@ class CausalSelfAttention(nn.Module):
             v = v.view(b, t, self.n_head, self.head_dim)
         else:
             q = self.c_q(x_q).view(b, t, self.n_head, self.head_dim)
-            k = self.c_k(x_k).view(b, t, self.n_head, self.head_dim)
-            v = self.c_v(x_v).view(b, t, self.n_head, self.head_dim)
+            k = self.c_k(x_k).view(b, t, self.n_kv_heads, self.head_dim)
+            v = self.c_v(x_v).view(b, t, self.n_kv_heads, self.head_dim)
+            if self.n_kv_heads != self.n_head:
+                # GQA: expand KV heads to full n_head BEFORE rope_norm, so the fused
+                # rope+QK-norm NKI kernel sees exactly the shapes it was built for and
+                # every downstream consumer (VE views, SDPA, head gate) is untouched.
+                # The matmul saving (smaller c_k/c_v) is preserved; only rope and QK^T
+                # stay at full width, as in the dense baseline. .contiguous() because
+                # repeat_interleave yields a strided view and the NKI kernel needs
+                # contiguous inputs (same requirement the "vfc" coalesce mode serves).
+                k = k.repeat_interleave(self.kv_repeat, dim=2).contiguous()
+                v = v.repeat_interleave(self.kv_repeat, dim=2).contiguous()
         if ve is not None:
             ve = ve.view(b, t, self.n_head, self.head_dim)
             gate = 2 * torch.sigmoid(self.ve_gate(x_v[..., :VE_GATE_CHANNELS]))
@@ -3423,6 +3487,11 @@ def build_config(depth: int | None = None) -> GPTConfig:
         base_dim = depth * ASPECT_RATIO
         n_embd = ((base_dim + HEAD_DIM - 1) // HEAD_DIM) * HEAD_DIM
     n_head = n_embd // HEAD_DIM
+    if N_KV_HEADS < 0 or N_KV_HEADS > n_head:
+        raise ValueError(f"N_KV_HEADS={N_KV_HEADS} must be 0 (dense) or in [1, n_head={n_head}]")
+    if N_KV_HEADS > 0 and n_head % N_KV_HEADS != 0:
+        raise ValueError(f"N_KV_HEADS={N_KV_HEADS} must divide n_head={n_head} "
+                         f"(locked width: n_head=5, so only 1/MQA or 5/dense)")
     return GPTConfig(
         sequence_len=SEQ_LEN,
         vocab_size=TOKENIZER_VOCAB_SIZE,
@@ -3431,6 +3500,7 @@ def build_config(depth: int | None = None) -> GPTConfig:
         n_embd=n_embd,
         mlp_ratio=MLP_RATIO,
         attn_scale=ATTN_SCALE,
+        n_kv_heads=N_KV_HEADS,
     )
 
 
@@ -4407,7 +4477,7 @@ ARCH_TOGGLE_NAMES = [
     # catch -- ATTN_CPROJ_INIT_SCALE and LOGIT_SOFTCAP especially, since they change what the
     # weights MEAN without changing what they look like.
     "MATRIX_LR", "EMBEDDING_LR", "UNEMBEDDING_LR", "SCALAR_LR", "WEIGHT_DECAY", "GRAD_CLIP",
-    "LOGIT_SOFTCAP", "ATTN_CPROJ_INIT_SCALE", "MUON_NS_STEPS",
+    "LOGIT_SOFTCAP", "LOSS_BYTE_WEIGHT", "ATTN_CPROJ_INIT_SCALE", "MUON_NS_STEPS",
     "MUON_MOMENTUM_COOLDOWN_FRAC", "MUON_MOMENTUM_FINAL",
     "ADAM_EVERY_N", "ADAM_EVERY_N_LR_COMP",
     # Plan §11.1 items 1-3 (Recursive's schedule tricks). Exactly the silent class this snapshot
@@ -4423,7 +4493,7 @@ ARCH_TOGGLE_NAMES = [
     # is reported by name rather than as a wall of shape errors. ATTN_SCALE is the one
     # that is NOT in model_config and changes what the weights mean without changing
     # any shape, i.e. exactly the silent class this snapshot exists for.
-    "DEPTH", "N_EMBD", "HEAD_DIM", "MLP_RATIO", "ATTN_SCALE",
+    "DEPTH", "N_EMBD", "HEAD_DIM", "MLP_RATIO", "ATTN_SCALE", "N_KV_HEADS",
     # T3.1 hashed n-gram value embeddings. NGRAM_VE_BF16 is the interesting one to list
     # here: load_state_dict silently CASTS a mismatched dtype rather than erroring, so a
     # bf16-vs-fp32 mismatch is exactly the quiet class this snapshot exists for. The
@@ -4513,6 +4583,9 @@ SHAPE_CRITICAL_TOGGLES = {"USE_VE", "USE_LOCAL_CONV", "USE_GATED_MLP", "USE_SELE
                           "USE_ENGRAM", "ENGRAM_ORDERS", "ENGRAM_HEADS", "ENGRAM_TABLE_MULT",
                           "ENGRAM_MEM_DIM", "ENGRAM_KEY_DIM", "ENGRAM_CONV_KERNEL",
                           "ENGRAM_SHARE_NGRAM_TABLES",
+                          # Sub-1.0 P2: N_KV_HEADS resizes attn.c_k/c_v (n_embd -> n_kv*head_dim),
+                          # so a cross-setting strict load errors loudly, which is what we want.
+                          "N_KV_HEADS",
                           # Coalesced SwiGLU resizes mlp.c_fc's output (hidden -> 2*hidden) and
                           # mlp.c_proj's input (2560 -> COALESCED_SWIGLU_HIDDEN), so a cross-setting
                           # strict load errors loudly, which is what we want. HIDDEN is listed for
@@ -4805,7 +4878,7 @@ def main() -> None:
     global ADAM_EVERY_N, ADAM_EVERY_N_LR_COMP, PACK_FACTOR, GRAD_CLIP
     # T0.2/T0.3 capacity-shape knobs. All read inside build_config()/GPT(config), i.e. well before
     # the first step, so none of them can add a per-step graph constant.
-    global DEPTH, N_EMBD, HEAD_DIM, MLP_RATIO, ATTN_SCALE, SEQ_LEN
+    global DEPTH, N_EMBD, HEAD_DIM, MLP_RATIO, ATTN_SCALE, SEQ_LEN, N_KV_HEADS
     # T3.1. USE_NGRAM_VE / NGRAM_VE_TABLE_MULT / NGRAM_VE_TRIGRAM / NGRAM_VE_BF16 are read by
     # GPT.__init__ and CausalSelfAttention.__init__ (before GPT(config)); the rest are read by
     # setup_optimizer() or once per step in the training loop, all well before any device op
@@ -4876,7 +4949,7 @@ def main() -> None:
     parser.add_argument("--nki-rope-norm", action=argparse.BooleanOptionalAction,
                         default=os.environ.get("NEURON_COMPETITION_R1_NKI_ROPE_NORM", "1") != "0",
                         help="fuse norm(apply_rotary_emb(x)) into one NKI kernel for q/k (Neuron only). "
-                             "Default ON (Solution 12, real ~15-18% step-time win, verified to 1-bf16-ULP "
+                             "Default ON (Solution 12, real ~15-18%% step-time win, verified to 1-bf16-ULP "
                              "against eager) -- pass --no-nki-rope-norm for the plain eager comparison path.")
     parser.add_argument("--nki-softcap-ce", action=argparse.BooleanOptionalAction,
                         default=os.environ.get("NEURON_COMPETITION_R1_NKI_SOFTCAP_CE", "1") != "0",
@@ -4885,6 +4958,15 @@ def main() -> None:
                              "verified numerically offline (research/scratch/softcap_ce_equiv.py) and confirmed "
                              "on real hardware at the final locked shape -- pass --no-nki-softcap-ce for the "
                              "plain eager comparison path.")
+    parser.add_argument("--byte-loss-weight", action=argparse.BooleanOptionalAction,
+                        # Literal default, like the other --nki-* flags: main() rebinds
+                        # LOSS_BYTE_WEIGHT as a global below, so it cannot also read it here.
+                        default=os.environ.get("NEURON_COMPETITION_R1_BYTE_LOSS_WEIGHT",
+                                               "0") != "0",
+                        help="Sub-1.0 plan P4: weight each token's training loss by its byte length "
+                             "(sum(w*l)/sum(w), mean-normalized so the loss scale is unchanged), "
+                             "aligning the objective with bpb. Weights come from the provided "
+                             "tokenizer artifact only. Default OFF = plain mean, bit-identical.")
     parser.add_argument("--nki-muon", action=argparse.BooleanOptionalAction,
                         # literal default, like the other --nki-* flags: this function
                         # rebinds USE_NKI_MUON as a global, so it cannot also read it here.
@@ -4935,9 +5017,9 @@ def main() -> None:
                              "(TRAIN_LOCAL_CONV=True), so --no-local-conv now REMOVES 7,680 TRAINED "
                              "parameters and is a real capacity ablation, not the bit-identical no-op "
                              "this help text used to claim. Measured on the promoted stack (120-step "
-                             "instrument, throughput->capacity track): --no-local-conv is +2.65% faster "
+                             "instrument, throughput->capacity track): --no-local-conv is +2.65%% faster "
                              "(161,075 vs 156,917 tok/s) but its step-110 loss is 4.2054 vs the "
-                             "control's 3.9380 -- a huge quality cost for 2.65%, so DO NOT ablate it "
+                             "control's 3.9380 -- a huge quality cost for 2.65%%, so DO NOT ablate it "
                              "for speed. (This also reverses the older 'turning the compute off "
                              "measured 6.9x-compiled-graph SLOWER' note in the USE_LOCAL_CONV comment: "
                              "that was the pre-NKI eager stack.) Kept as a flag so an A/B runs from "
@@ -5370,6 +5452,9 @@ def main() -> None:
         "ASPECT_RATIO unless --n-embd is given). Currently 6.")
     _hp("--n-embd", N_EMBD, int, "T0.2: force n_embd (must be a multiple of --head-dim), decoupling "
         "width from DEPTH*ASPECT_RATIO. 0 (default) = historical derived width, bit-identical.")
+    _hp("--n-kv-heads", N_KV_HEADS, int, "Sub-1.0 plan P2: grouped-query attention KV-head count. "
+        "0 (default) = dense, bit-identical. Must divide n_head; at the locked width (n_head=5) "
+        "the only nontrivial choice is 1 (MQA). Shrinks the K/V projections; QK^T stays full-width.")
     _hp("--head-dim", HEAD_DIM, int, "T0.2: per-head width; n_head = n_embd / head_dim. Also the "
         "rounding granularity of the derived n_embd. Currently 128. The fused rope+QK-norm NKI "
         "kernel is written generically in D (it only requires D even), so 64 stays on the kernel.")
@@ -5446,6 +5531,7 @@ def main() -> None:
                      "see trn2-experiment-results.md.)")
 
     global USE_NKI_RELU2, USE_NKI_ROPE_NORM, USE_NKI_SOFTCAP_CE, USE_NKI_MUON, USE_MUON_LR_FP32
+    global LOSS_BYTE_WEIGHT, BYTE_LOSS_W
     # (USE_COMPILE_MUON's `global` is at the top of main(); see the note there.)
     # T0.4/T1.4 resweep knobs (see the _hp block above; declared global at the top of main()).
     # Assigned here, i.e. before GPT(config) and before setup_optimizer(), which is where every
@@ -5461,6 +5547,7 @@ def main() -> None:
     HEAD_DIM = args.head_dim
     MLP_RATIO = args.mlp_ratio
     ATTN_SCALE = args.attn_scale
+    N_KV_HEADS = args.n_kv_heads
     MATRIX_LR = args.matrix_lr
     EMBEDDING_LR = args.embedding_lr
     UNEMBEDDING_LR = args.unembedding_lr
@@ -5640,6 +5727,7 @@ def main() -> None:
     USE_NKI_RELU2 = args.nki_relu2
     USE_NKI_ROPE_NORM = args.nki_rope_norm
     USE_NKI_SOFTCAP_CE = args.nki_softcap_ce
+    LOSS_BYTE_WEIGHT = args.byte_loss_weight
     USE_NKI_MUON = args.nki_muon
     USE_MUON_LR_FP32 = args.muon_lr_fp32
     USE_TRANSPOSED_LINEAR = args.transposed_linear
@@ -5688,6 +5776,17 @@ def main() -> None:
     if args.init_from:
         warm_start_from(args.init_from, model)
     model.to(device)
+    if LOSS_BYTE_WEIGHT:
+        # Build once, host-side, before the first step: per-token byte lengths from the
+        # provided tokenizer artifact (prepare.get_token_bytes == token_bytes.pt). Specials
+        # record 0 bytes -- clamp to 1 so BOS/specials keep ~mean-CE weight instead of
+        # dropping out of the loss entirely. Mean-normalized so the loss (and every LR
+        # tuned against its scale) is unchanged in expectation.
+        tb = get_token_bytes("cpu").to(torch.float32)
+        tb = torch.clamp(tb, min=1.0)
+        BYTE_LOSS_W = tb / tb.mean()
+        print0(f"byte-loss-weight: mean_bytes={tb.mean().item():.3f} max_bytes={tb.max().item():.0f} "
+               f"weight_range=({BYTE_LOSS_W.min().item():.3f}, {BYTE_LOSS_W.max().item():.3f})")
     num_params = sum(p.numel() for p in model.parameters())
     flops_per_token = model.estimate_flops()
     print0(f"num_params={num_params:,} flops_per_token={flops_per_token:e}")
