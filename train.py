@@ -373,6 +373,15 @@ VE_WD = 0.0  # weight decay for the value_embeds AdamW group (separate from the 
 EMBED_ADAMW_BETA2 = 0.95  # Tier-0 resweep confirms still correct at the new ~2000-step regime: 0.95 (995/1.094327) beats 0.995 (977/1.097342) again. See trn2-experiment-results.md
 WARMUP_STEPS = 0
 GRAD_CLIP = 1.0  # Scavenger hunt real win, locked: never tested on Trn2 before ("deferred, not GPU-retested"). HLAT (real 7B/70B Trainium pretrain) used clip=1.0. Real repeat-confirmed win at 900s (999/1.0912, 1002/1.090864 vs 0.0-baseline cluster 1002-1004/1.09367-1.09399) and full 1800s (2000/1.042278 vs prior best 1987/1.043651). See trn2-experiment-results.md
+LOSS_SCALE_DYNAMIC = False  # Sub-1.0 plan P2: DYNAMIC loss scaling companion.
+# Static --loss-scale unfreezes fp8 (9.01->7.71 by step 10) but a fixed scale
+# eventually overflows (NaN guard trips). Dynamic mode adapts: skip+halve on
+# overflow, double every LOSS_SCALE_GROWTH_INTERVAL clean steps (cap MAX).
+# Default OFF; static --loss-scale path untouched when off.
+LOSS_SCALE_GROWTH_INTERVAL = 500
+LOSS_SCALE_MAX = 8192.0
+loss_scale_clean = 0
+loss_scale_skips = 0
 LOSS_SCALE = 1.0  # Sub-1.0 plan P2 (2026-09-17): STATIC loss scaling for compiler
 # fp8 auto-cast. Full-model grads (~1e-6/elt over 593M params) underflow fp8_e4m3
 # (min normal ~0.0156) without it; the tiny-probe grads survived only because few
@@ -4451,6 +4460,35 @@ def sync_gradients_flat(flat_grad_buffer: torch.Tensor) -> None:
     dist.all_reduce(flat_grad_buffer, op=dist.ReduceOp.AVG)
 
 
+def loss_scale_transition(scale: float, clean: int, finite: bool,
+                          growth_interval: int, max_scale: float):
+    """One dynamic-loss-scaling step. Pure function (CPU-tested).
+
+    Overflow (non-finite scaled grads): halve (floor 1.0), reset streak, skip.
+    Clean: bump streak; double (cap max_scale) every growth_interval steps.
+    Returns (new_scale, new_clean, skip: bool).
+    """
+    if not finite:
+        return (max(1.0, scale / 2.0), 0, True)
+    clean += 1
+    if clean >= growth_interval and scale < max_scale:
+        return (min(max_scale, scale * 2.0), 0, False)
+    return (scale, clean, False)
+
+
+def grads_finite_(model: nn.Module, grad_flat_buffer: torch.Tensor | None) -> bool:
+    """True iff every accumulated (still scaled) grad is finite. One scalar
+    sync in the buffer path; used by dynamic loss scaling to detect overflow
+    BEFORE unscale/clip (standard placement: scaled grads overflow first)."""
+    if grad_flat_buffer is not None:
+        return bool(torch.isfinite(grad_flat_buffer).all().item())
+    for p in model.parameters():
+        g = p.grad
+        if g is not None and not bool(torch.isfinite(g).all().item()):
+            return False
+    return True
+
+
 def unscale_grads_(model: nn.Module, grad_flat_buffer: torch.Tensor | None,
                    scale: float) -> None:
     """Divide accumulated grads by the LOSS_SCALE factor (static loss scaling).
@@ -4504,7 +4542,8 @@ ARCH_TOGGLE_NAMES = [
     # catch -- ATTN_CPROJ_INIT_SCALE and LOGIT_SOFTCAP especially, since they change what the
     # weights MEAN without changing what they look like.
     "MATRIX_LR", "EMBEDDING_LR", "UNEMBEDDING_LR", "SCALAR_LR", "WEIGHT_DECAY", "GRAD_CLIP",
-    "LOGIT_SOFTCAP", "LOSS_BYTE_WEIGHT", "LOSS_SCALE", "ATTN_CPROJ_INIT_SCALE", "MUON_NS_STEPS",
+    "LOGIT_SOFTCAP", "LOSS_BYTE_WEIGHT", "LOSS_SCALE", "LOSS_SCALE_DYNAMIC",
+    "ATTN_CPROJ_INIT_SCALE", "MUON_NS_STEPS",
     "MUON_MOMENTUM_COOLDOWN_FRAC", "MUON_MOMENTUM_FINAL",
     "ADAM_EVERY_N", "ADAM_EVERY_N_LR_COMP",
     # Plan §11.1 items 1-3 (Recursive's schedule tricks). Exactly the silent class this snapshot
@@ -4903,6 +4942,7 @@ def main() -> None:
     global FINAL_LR_FRAC, WARMDOWN_RATIO, INIT_SCALE, ATTN_CPROJ_INIT_SCALE, LOGIT_SOFTCAP
     global MUON_NS_STEPS, MUON_MOMENTUM_COOLDOWN_FRAC, MUON_MOMENTUM_FINAL
     global ADAM_EVERY_N, ADAM_EVERY_N_LR_COMP, PACK_FACTOR, GRAD_CLIP, LOSS_SCALE
+    global LOSS_SCALE_DYNAMIC, loss_scale_clean, loss_scale_skips
     # T0.2/T0.3 capacity-shape knobs. All read inside build_config()/GPT(config), i.e. well before
     # the first step, so none of them can add a per-step graph constant.
     global DEPTH, N_EMBD, HEAD_DIM, MLP_RATIO, ATTN_SCALE, SEQ_LEN, N_KV_HEADS
@@ -5529,6 +5569,15 @@ def main() -> None:
         "clip/sync/step, so backward grads stay representable under compiler fp8 "
         "auto-cast (full-model grads underflow fp8_e4m3 otherwise). 1.0 (default) = "
         "off, bit-identical. Use powers of 2 (128/1024).")
+    parser.add_argument("--loss-scale-dynamic", action=argparse.BooleanOptionalAction,
+                        # Literal default: main() rebinds LOSS_SCALE_DYNAMIC as a global below,
+                        # so it cannot also read it here (same pattern as --byte-loss-weight).
+                        default=os.environ.get("NEURON_COMPETITION_R1_LOSS_SCALE_DYNAMIC",
+                                               "0") != "0",
+                        help="Dynamic loss scaling for fp8 auto-cast: skip+halve the update on "
+                             "grad overflow (all ranks agree via all-reduce), double the scale "
+                             "every 500 clean steps (cap 8192). Starts from --loss-scale. "
+                             "Default OFF.")
     _hp("--pack-factor", PACK_FACTOR, int, "T1.5: dataloader packing-bin multiplier. The loader "
         "fetches DEVICE_BATCH_SIZE rows of PACK_FACTOR*SEQ_LEN tokens and reshapes them to "
         "DEVICE_BATCH_SIZE*PACK_FACTOR rows of SEQ_LEN, so this is the micro-batch ROW COUNT and "
@@ -5574,6 +5623,9 @@ def main() -> None:
     LOSS_SCALE = args.loss_scale
     if not (LOSS_SCALE > 0):
         raise ValueError(f"--loss-scale must be positive, got {LOSS_SCALE}")
+    LOSS_SCALE_DYNAMIC = args.loss_scale_dynamic
+    loss_scale_clean = 0
+    loss_scale_skips = 0
     PACK_FACTOR = args.pack_factor
     # T0.2/T0.3: all four are read by build_config()/MLP.__init__/CausalSelfAttention.__init__ below.
     SEQ_LEN = args.seq_len
@@ -5992,8 +6044,35 @@ def main() -> None:
             ((loss * inv_gas_dev if BATCH_RAMP else loss / grad_accum_steps) * LOSS_SCALE).backward()
             x, y, loader_state = fetch()
 
-        # Static loss scaling: restore true grad units before clip/sync/step.
-        unscale_grads_(model, grad_flat_buffer, LOSS_SCALE)
+        # Loss scaling: static unscale, plus the dynamic controller (default off).
+        # The overflow check runs on the SCALED grads (they overflow first), and
+        # all ranks agree on the skip via MAX all-reduce (same pattern as the
+        # bad-loss collective below) so no rank steps while its peers skip.
+        # Growth takes effect NEXT step: unscale uses the scale the grads were
+        # built with, never the just-grown one.
+        skip_step = False
+        unscale_with = LOSS_SCALE
+        if LOSS_SCALE_DYNAMIC:
+            finite = grads_finite_(model, grad_flat_buffer)
+            ov = torch.tensor([0.0 if finite else 1.0], device=device)
+            if dist.is_available() and dist.is_initialized():
+                dist.all_reduce(ov, op=dist.ReduceOp.MAX)
+            new_scale, new_clean, skip_step = loss_scale_transition(
+                LOSS_SCALE, loss_scale_clean, bool(ov[0].item() == 0.0),
+                LOSS_SCALE_GROWTH_INTERVAL, LOSS_SCALE_MAX)
+            if skip_step:
+                loss_scale_skips += 1
+                print0(f"loss-scale: overflow at step {step}, skipping update "
+                       f"(scale {LOSS_SCALE:g} -> {new_scale:g}, "
+                       f"skips {loss_scale_skips})", flush=True)
+                if grad_flat_buffer is not None:
+                    grad_flat_buffer.zero_()
+                else:
+                    for p in model.parameters():
+                        if p.grad is not None:
+                            p.grad.detach().zero_()
+            LOSS_SCALE, loss_scale_clean = new_scale, new_clean
+        unscale_grads_(model, grad_flat_buffer, unscale_with)
         if grad_flat_buffer is not None:
             if GRAD_CLIP > 0:
                 clip_grad_norm_flat_(grad_flat_buffer, GRAD_CLIP)
@@ -6038,7 +6117,8 @@ def main() -> None:
                 # incidental: it has no first moment for beta1 to decay.
                 _b1, _b2 = group["initial_betas"]
                 group["betas"] = (_b1 * demon_b1, _b2)
-        optimizer.step(update_adamw=adam_step_now)
+        if not skip_step:
+            optimizer.step(update_adamw=adam_step_now)
         # T2.2: after the step, so the average is over post-update weights. Eager by construction
         # (this is the same region as optimizer.step, which torch.compile never sees) because
         # torch._foreach_* cannot be lowered by backend="neuron".
