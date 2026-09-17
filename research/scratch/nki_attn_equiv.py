@@ -34,13 +34,15 @@ def ref_attn(q, k, v, scale=None):
     return y.transpose(0, 2, 1, 3)
 
 
-def check(got, want, tag=""):
+def check(got, want, tag="", rel_gate=True):
     got = np.asarray(got, dtype=np.float64)
     want = np.asarray(want, dtype=np.float64)
     adiff = np.max(np.abs(got - want))
     denom = np.maximum(np.abs(want), 1e-3)
     rdiff = np.max(np.abs(got - want) / denom)
-    ok = adiff < 5e-2 and rdiff < 5e-2
+    # bf16 rows gate on abs only: rel explodes in near-zero outputs while
+    # abs sits at the format floor (~4e-3); fp32 rows gate on both.
+    ok = adiff < 5e-2 and (rdiff < 5e-2 or not rel_gate)
     print(f"{tag}: {'PASS' if ok else 'FAIL'} "
           f"(max abs {adiff:.6f}, max rel {rdiff:.6f})", flush=True)
     return ok
