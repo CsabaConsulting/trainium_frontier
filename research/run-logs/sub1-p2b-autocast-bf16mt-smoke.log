@@ -1,0 +1,141 @@
+muon step: --compile-muon supersedes --nki-muon (a compiled region cannot contain an nki.jit call); NKI Muon disabled for this run
+device=neuron dtype=torch.bfloat16 world_size=4
+training target=300 steps max_seconds=3600 official_budget=1800s
+WARNING: --num-steps 300 is below max_train_seconds=3600s and will almost certainly stop training before the time budget (the LR schedule would end without cooldown). For a scored submission leave --num-steps at its default (1000000).
+model_config={
+  "sequence_len": 2048,
+  "vocab_size": 8192,
+  "n_layer": 6,
+  "n_head": 5,
+  "n_embd": 640,
+  "mlp_ratio": 4,
+  "attn_scale": 0.0,
+  "n_kv_heads": 0
+}
+num_params=592,916,844 flops_per_token=3.991901e+08
+torch.compile enabled (backend=neuron)
+micro_tokens=32,768 grad_accum_steps=4 pack_factor=4
+muon step: COMPILED body for (7, 5, 32) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 1]
+muon step: COMPILED body for (4, 640, 128) (tall=True ns_steps=5 red_dim=-1) [specialisations so far: 2]
+muon step: COMPILED body for (24, 640, 640) (tall=False ns_steps=5 red_dim=-1) [specialisations so far: 3]
+muon step: COMPILED body for (6, 640, 2560) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 4]
+muon step: COMPILED body for (6, 2560, 640) (tall=True ns_steps=5 red_dim=-1) [specialisations so far: 5]
+step 00000 | loss 9.0100 | lrm 1.000 | dt 436.30s | tok/s 300 | remaining_steps 299 | remaining_time 3161s | epoch 1
+step 00001 | loss 8.7974 | lrm 1.000 | dt 329.96s | tok/s 397 | remaining_steps 298 | remaining_time 2831s | epoch 1
+step 00002 | loss 8.4196 | lrm 1.000 | dt 1.23s | tok/s 106,618 | remaining_steps 297 | remaining_time 2830s | epoch 1
+step 00003 | loss 8.0923 | lrm 1.000 | dt 1.24s | tok/s 106,047 | remaining_steps 296 | remaining_time 2828s | epoch 1
+step 00004 | loss 7.7341 | lrm 1.000 | dt 1.23s | tok/s 106,588 | remaining_steps 295 | remaining_time 3600s | epoch 1
+step 00010 | loss 6.5587 | lrm 1.000 | dt 1.23s | tok/s 106,639 | remaining_steps 289 | remaining_time 3593s | epoch 1
+step 00020 | loss 5.9052 | lrm 1.000 | dt 1.24s | tok/s 105,799 | remaining_steps 279 | remaining_time 3580s | epoch 1
+step 00030 | loss 5.5799 | lrm 1.000 | dt 1.23s | tok/s 106,507 | remaining_steps 269 | remaining_time 3568s | epoch 1
+step 00040 | loss 5.3685 | lrm 1.000 | dt 1.24s | tok/s 105,974 | remaining_steps 259 | remaining_time 3556s | epoch 1
+step 00050 | loss 5.1213 | lrm 1.000 | dt 1.23s | tok/s 106,155 | remaining_steps 249 | remaining_time 3543s | epoch 1
+WARNING: at 1.23s/step the --num-steps 300 cap will stop training ~3236s BEFORE max_train_seconds=3600s; the wall-clock LR schedule will end without cooldown. Intentional for fixed-step sweeps, wrong for a scored submission.
+step 00060 | loss 4.8159 | lrm 1.000 | dt 1.24s | tok/s 105,296 | remaining_steps 239 | remaining_time 3531s | epoch 1
+step 00070 | loss 4.5402 | lrm 1.000 | dt 1.23s | tok/s 106,173 | remaining_steps 229 | remaining_time 3519s | epoch 1
+step 00080 | loss 4.3202 | lrm 1.000 | dt 1.24s | tok/s 106,044 | remaining_steps 219 | remaining_time 3506s | epoch 1
+step 00090 | loss 4.0919 | lrm 1.000 | dt 1.24s | tok/s 105,989 | remaining_steps 209 | remaining_time 3494s | epoch 1
+step 00100 | loss 3.9759 | lrm 1.000 | dt 1.23s | tok/s 106,506 | remaining_steps 199 | remaining_time 3482s | epoch 1
+step 00110 | loss 3.9411 | lrm 1.000 | dt 1.23s | tok/s 106,745 | remaining_steps 189 | remaining_time 3469s | epoch 1
+step 00120 | loss 3.8493 | lrm 1.000 | dt 1.23s | tok/s 106,645 | remaining_steps 179 | remaining_time 3457s | epoch 1
+step 00130 | loss 3.7885 | lrm 1.000 | dt 1.23s | tok/s 106,573 | remaining_steps 169 | remaining_time 3445s | epoch 1
+step 00140 | loss 3.6625 | lrm 1.000 | dt 1.25s | tok/s 105,110 | remaining_steps 159 | remaining_time 3432s | epoch 1
+step 00150 | loss 3.6237 | lrm 1.000 | dt 1.24s | tok/s 105,424 | remaining_steps 149 | remaining_time 3420s | epoch 1
+step 00160 | loss 3.6603 | lrm 1.000 | dt 1.24s | tok/s 106,113 | remaining_steps 139 | remaining_time 3407s | epoch 1
+step 00170 | loss 3.6170 | lrm 1.000 | dt 1.23s | tok/s 106,248 | remaining_steps 129 | remaining_time 3395s | epoch 1
+step 00180 | loss 3.6217 | lrm 1.000 | dt 1.24s | tok/s 106,083 | remaining_steps 119 | remaining_time 3383s | epoch 1
+step 00190 | loss 3.5075 | lrm 1.000 | dt 1.23s | tok/s 106,651 | remaining_steps 109 | remaining_time 3370s | epoch 1
+step 00200 | loss 3.5256 | lrm 1.000 | dt 1.23s | tok/s 106,551 | remaining_steps 99 | remaining_time 3358s | epoch 1
+step 00210 | loss 3.4964 | lrm 1.000 | dt 1.24s | tok/s 105,987 | remaining_steps 89 | remaining_time 3346s | epoch 1
+step 00220 | loss 3.5173 | lrm 1.000 | dt 1.24s | tok/s 105,435 | remaining_steps 79 | remaining_time 3333s | epoch 1
+step 00230 | loss 3.4533 | lrm 1.000 | dt 1.23s | tok/s 106,618 | remaining_steps 69 | remaining_time 3321s | epoch 1
+step 00240 | loss 3.5622 | lrm 1.000 | dt 1.24s | tok/s 105,562 | remaining_steps 59 | remaining_time 3309s | epoch 1
+step 00250 | loss 3.5425 | lrm 1.000 | dt 1.23s | tok/s 106,430 | remaining_steps 49 | remaining_time 3296s | epoch 1
+step 00260 | loss 3.4727 | lrm 1.000 | dt 1.24s | tok/s 105,982 | remaining_steps 39 | remaining_time 3284s | epoch 1
+step 00270 | loss 3.4265 | lrm 1.000 | dt 1.23s | tok/s 106,437 | remaining_steps 29 | remaining_time 3272s | epoch 1
+step 00280 | loss 3.5127 | lrm 1.000 | dt 1.23s | tok/s 106,583 | remaining_steps 19 | remaining_time 3259s | epoch 1
+step 00290 | loss 3.5189 | lrm 1.000 | dt 1.23s | tok/s 106,591 | remaining_steps 9 | remaining_time 3247s | epoch 1
+---
+checkpoint_path:    out/sub1-p2b-autocast-bf16mt-smoke/final.pt
+training_seconds:  364.2
+budget_seconds:    1800
+target_steps:      300
+max_train_seconds: 3600
+startup_allowance_est: 793.6
+charged_seconds_est:   365.3
+over_budget:       False
+total_seconds:     1191.5
+compiled:          True
+nki_relu2:         False
+nki_rope_norm:     True
+nki_softcap_ce:    True
+transposed_linear: False
+nki_muon:          False
+compile_muon:      True
+muon_lr_fp32:      False
+ngram_ve:          True tables=4 rows=1048576 dim=128 index_gather=True trigram=True opt=rmsprop flat_lr=True bf16=True
+out_bigram:        False bf16=True gate_bias=-2.0 lr=0.0
+oneliners:         relu2_tau=0.0 mlp_sandwich=False head_gate=False hg_norm=True hg_ch=32 hg_mul=2.0 hg_bias=0.0 out_pool=False pool_layers=3 qk_shift=True qk_beta=0.0 qk_freeze=True x0_gate=False block_nudge=False nudge_site=qk qkv_norm_cse=False parallel_block=False par_coalesce=none epoch_shuffle=False epoch_shuffle_seed=1234
+engram:            False site=-1 orders=2,3 heads=1 tables=0 mult=32 mem_dim=128 e_dim=0 key_dim=0 conv_k=4 share=False bf16=True
+batch_ramp:        False grad_accum=(2, 4, 8) bounds=(0.35, 0.75) lr_exp=0.5 ref_grad_accum=4 last_grad_accum=4
+weight_ema:        False decays=(0.995,) start_frac=0.75 seeded=False updates=0
+sched_tricks:      demon_b1=False demon_final=0.55 demon_ref=0.8 demon_start=-1.0 muon_b2=0.9 muon_b2_final=0.0 depth_lr=1.0->1.0 depth_mom=0.0->0.0 depth_mom_ref=0.95
+num_steps:         300
+total_tokens_M:    39.3
+world_size:        4
+lnc:               2
+seq_len:           2048
+num_params_M:      592.9
+causality_passed:  True
+causality_max_abs: 0.000000
+public_val_bpb:    1.222752
+eval_seconds:      33.5
+eval_timeout:      1200
+eval_over_timeout: False
+[W917 08:14:53.202172447 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+W0917 08:14:53.762000 613424 torch/distributed/run.py:851] 
+W0917 08:14:53.762000 613424 torch/distributed/run.py:851] *****************************************
+W0917 08:14:53.762000 613424 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0917 08:14:53.762000 613424 torch/distributed/run.py:851] *****************************************
+[W917 08:14:55.355515652 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W917 08:14:55.355532288 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W917 08:14:55.363096371 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W917 08:14:55.366971707 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+WARNING:torch_neuronx.python_ops.dtype_autocast:Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
+WARNING:torch_neuronx.python_ops.dtype_autocast:Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
+WARNING:torch_neuronx.python_ops.dtype_autocast:Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
+WARNING:torch_neuronx.python_ops.dtype_autocast:Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
