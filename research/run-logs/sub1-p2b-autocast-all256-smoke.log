@@ -1,0 +1,139 @@
+muon step: --compile-muon supersedes --nki-muon (a compiled region cannot contain an nki.jit call); NKI Muon disabled for this run
+device=neuron dtype=torch.bfloat16 world_size=4
+training target=300 steps max_seconds=3600 official_budget=1800s
+WARNING: --num-steps 300 is below max_train_seconds=3600s and will almost certainly stop training before the time budget (the LR schedule would end without cooldown). For a scored submission leave --num-steps at its default (1000000).
+model_config={
+  "sequence_len": 2048,
+  "vocab_size": 8192,
+  "n_layer": 6,
+  "n_head": 5,
+  "n_embd": 640,
+  "mlp_ratio": 4,
+  "attn_scale": 0.0,
+  "n_kv_heads": 0
+}
+num_params=592,916,844 flops_per_token=3.991901e+08
+torch.compile enabled (backend=neuron)
+micro_tokens=32,768 grad_accum_steps=4 pack_factor=4
+loss-scale: overflow at step 0, skipping update (scale 256 -> 128, skips 1)
+[W917 07:19:59.797958835 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+W0917 07:19:59.606000 952338 torch/distributed/run.py:851] 
+W0917 07:19:59.606000 952338 torch/distributed/run.py:851] *****************************************
+W0917 07:19:59.606000 952338 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0917 07:19:59.606000 952338 torch/distributed/run.py:851] *****************************************
+[W917 07:20:01.912592487 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W917 07:20:01.913209116 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W917 07:20:01.913356604 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W917 07:20:01.914381086 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+[rank1]: Traceback (most recent call last):
+[rank1]:   File "/home/ubuntu/trainium_frontier/train.py", line 6460, in <module>
+[rank1]:     main()
+[rank1]:   File "/home/ubuntu/trainium_frontier/train.py", line 6221, in main
+[rank1]:     raise RuntimeError(f"bad loss detected: {train_loss}")
+[rank1]: RuntimeError: bad loss detected: nan
+[rank2]: Traceback (most recent call last):
+[rank2]:   File "/home/ubuntu/trainium_frontier/train.py", line 6460, in <module>
+[rank2]:     main()
+[rank2]:   File "/home/ubuntu/trainium_frontier/train.py", line 6221, in main
+[rank2]:     raise RuntimeError(f"bad loss detected: {train_loss}")
+[rank2]: RuntimeError: bad loss detected: nan
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "/home/ubuntu/trainium_frontier/train.py", line 6460, in <module>
+[rank0]:     main()
+[rank0]:   File "/home/ubuntu/trainium_frontier/train.py", line 6221, in main
+[rank0]:     raise RuntimeError(f"bad loss detected: {train_loss}")
+[rank0]: RuntimeError: bad loss detected: nan
+[rank3]: Traceback (most recent call last):
+[rank3]:   File "/home/ubuntu/trainium_frontier/train.py", line 6460, in <module>
+[rank3]:     main()
+[rank3]:   File "/home/ubuntu/trainium_frontier/train.py", line 6221, in main
+[rank3]:     raise RuntimeError(f"bad loss detected: {train_loss}")
+[rank3]: RuntimeError: bad loss detected: nan
+W0917 07:26:47.199000 952338 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 952353 closing signal SIGTERM
+W0917 07:26:47.199000 952338 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 952354 closing signal SIGTERM
+W0917 07:26:47.199000 952338 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 952356 closing signal SIGTERM
+E0917 07:26:47.377000 952338 torch/distributed/elastic/multiprocessing/api.py:986] failed (exitcode: 1) local_rank: 2 (pid: 952355) of binary: /home/ubuntu/workspace/native_venv/bin/python3
+Traceback (most recent call last):
+  File "/home/ubuntu/workspace/native_venv/bin/torchrun", line 10, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 362, in wrapper
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/run.py", line 990, in main
+    run(args)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/run.py", line 981, in run
+    elastic_launch(
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 170, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 317, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+============================================================
+train.py FAILED
+------------------------------------------------------------
+Failures:
+[1]:
+  time      : 2026-09-17_07:26:47
+  host      : ip-172-31-32-253.ap-southeast-4.compute.internal
+  rank      : 0 (local_rank: 0)
+  exitcode  : 1 (pid: 952353)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+[2]:
+  time      : 2026-09-17_07:26:47
+  host      : ip-172-31-32-253.ap-southeast-4.compute.internal
+  rank      : 1 (local_rank: 1)
+  exitcode  : 1 (pid: 952354)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+[3]:
+  time      : 2026-09-17_07:26:47
+  host      : ip-172-31-32-253.ap-southeast-4.compute.internal
+  rank      : 3 (local_rank: 3)
+  exitcode  : -15 (pid: 952356)
+  error_file: <N/A>
+  traceback : Signal 15 (SIGTERM) received by PID 952356
+------------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2026-09-17_07:26:47
+  host      : ip-172-31-32-253.ap-southeast-4.compute.internal
+  rank      : 2 (local_rank: 2)
+  exitcode  : 1 (pid: 952355)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+============================================================
