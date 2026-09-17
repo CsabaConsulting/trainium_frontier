@@ -18,9 +18,14 @@ speed-collapse incident showed an undocumented environment variable
    sync by file copy, md5-verified, when pull is impossible.)
 5. **Env capture.** The full launch environment goes INTO the record:
    `NEURON_CC_FLAGS` verbatim plus box id (`trn21`/`trn22`) appended to the
-   `--description` string, e.g. `"... [trn21] CC='--auto-cast matmult
-   --auto-cast-type bf16'"`. Rationale: speed-collapse post-mortem was
-   blocked for hours because no record tied runs to flag strings.
+   `--description` string, e.g. `"... [trn21] CC='--optlevel=1 --auto-cast
+   matmult --auto-cast-type bf16'"`. Rationale: speed-collapse post-mortem
+   was blocked for hours because no record tied runs to flag strings.
+   MANDATORY: every `NEURON_CC_FLAGS` MUST contain `--optlevel=1`
+   (Day-2 winner, adopted campaign-wide). `train.py` sets it as the
+   in-code default via `setdefault` — any external export WITHOUT it
+   silently demotes the run to optlevel=2 (incident 2026-09-17: six
+   consecutive 2x-slow runs from reconstructed flag strings).
 6. **Seed.** 42 for all comparisons (no seed hunt — selection bias).
 
 ## 2. Launch
