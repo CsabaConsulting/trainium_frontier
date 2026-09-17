@@ -373,6 +373,12 @@ VE_WD = 0.0  # weight decay for the value_embeds AdamW group (separate from the 
 EMBED_ADAMW_BETA2 = 0.95  # Tier-0 resweep confirms still correct at the new ~2000-step regime: 0.95 (995/1.094327) beats 0.995 (977/1.097342) again. See trn2-experiment-results.md
 WARMUP_STEPS = 0
 GRAD_CLIP = 1.0  # Scavenger hunt real win, locked: never tested on Trn2 before ("deferred, not GPU-retested"). HLAT (real 7B/70B Trainium pretrain) used clip=1.0. Real repeat-confirmed win at 900s (999/1.0912, 1002/1.090864 vs 0.0-baseline cluster 1002-1004/1.09367-1.09399) and full 1800s (2000/1.042278 vs prior best 1987/1.043651). See trn2-experiment-results.md
+LOSS_SCALE = 1.0  # Sub-1.0 plan P2 (2026-09-17): STATIC loss scaling for compiler
+# fp8 auto-cast. Full-model grads (~1e-6/elt over 593M params) underflow fp8_e4m3
+# (min normal ~0.0156) without it; the tiny-probe grads survived only because few
+# params concentrate the norm. 1.0 (default) = unscaled, bit-identical to every
+# previous run (x*1.0 and x/1.0 are IEEE-exact, and the unscale call is skipped
+# entirely at 1.0). Use power-of-2 values (128/1024): exact in fp32, no rounding.
 WARMDOWN_RATIO = 0.75   # fraction of max_train_seconds spent on LR cooldown (0 = old flat-after-warmup)
 FINAL_LR_FRAC = 0.05    # LR floor as a fraction of peak LR at the end of cooldown (1.0 = no floor effect)
 USE_TENSOR_LR_SCALARS = True   # LOCKED ON. Carry the per-step lr in a device tensor instead of a Python float so the optimizer graph is compiled once, not once per lr value (see MuonAdamW._device_scalar). Biggest single win measured on Trn2 so far: dt stays 0.90s through the whole cooldown instead of 2.2-4.3s, giving 1995 steps/1.043489 at 1800s vs 847/1.108697, and 995/1.094327 at 900s vs 427/1.180633. Model math unchanged; causality exact.
@@ -4445,6 +4451,27 @@ def sync_gradients_flat(flat_grad_buffer: torch.Tensor) -> None:
     dist.all_reduce(flat_grad_buffer, op=dist.ReduceOp.AVG)
 
 
+def unscale_grads_(model: nn.Module, grad_flat_buffer: torch.Tensor | None,
+                   scale: float) -> None:
+    """Divide accumulated grads by the LOSS_SCALE factor (static loss scaling).
+
+    Call once per optimizer step, after the grad-accum loop and BEFORE clip /
+    sync / step, so clipping and the update see true units. No-op (returns
+    before touching anything) when scale == 1.0, which keeps the default path
+    literally the old code. With the flat buffer the division is one op;
+    otherwise every p.grad is divided in place (covers the main + ngram clip
+    param lists, which are p.grad views).
+    """
+    if scale == 1.0:
+        return
+    if grad_flat_buffer is not None:
+        grad_flat_buffer.div_(scale)
+        return
+    for p in model.parameters():
+        if p.grad is not None:
+            p.grad.div_(scale)
+
+
 def clip_grad_norm_flat_(flat_grad_buffer: torch.Tensor, max_norm: float) -> torch.Tensor:
     """T1.3: the flat-buffer equivalent of torch.nn.utils.clip_grad_norm_(params, max_norm) --
     one norm + one mul instead of one norm + one mul PER TENSOR. Mathematically identical to the
@@ -4477,7 +4504,7 @@ ARCH_TOGGLE_NAMES = [
     # catch -- ATTN_CPROJ_INIT_SCALE and LOGIT_SOFTCAP especially, since they change what the
     # weights MEAN without changing what they look like.
     "MATRIX_LR", "EMBEDDING_LR", "UNEMBEDDING_LR", "SCALAR_LR", "WEIGHT_DECAY", "GRAD_CLIP",
-    "LOGIT_SOFTCAP", "LOSS_BYTE_WEIGHT", "ATTN_CPROJ_INIT_SCALE", "MUON_NS_STEPS",
+    "LOGIT_SOFTCAP", "LOSS_BYTE_WEIGHT", "LOSS_SCALE", "ATTN_CPROJ_INIT_SCALE", "MUON_NS_STEPS",
     "MUON_MOMENTUM_COOLDOWN_FRAC", "MUON_MOMENTUM_FINAL",
     "ADAM_EVERY_N", "ADAM_EVERY_N_LR_COMP",
     # Plan §11.1 items 1-3 (Recursive's schedule tricks). Exactly the silent class this snapshot
@@ -4875,7 +4902,7 @@ def main() -> None:
     global MATRIX_LR, EMBEDDING_LR, UNEMBEDDING_LR, SCALAR_LR, WEIGHT_DECAY, WD_DECAY_TO_ZERO
     global FINAL_LR_FRAC, WARMDOWN_RATIO, INIT_SCALE, ATTN_CPROJ_INIT_SCALE, LOGIT_SOFTCAP
     global MUON_NS_STEPS, MUON_MOMENTUM_COOLDOWN_FRAC, MUON_MOMENTUM_FINAL
-    global ADAM_EVERY_N, ADAM_EVERY_N_LR_COMP, PACK_FACTOR, GRAD_CLIP
+    global ADAM_EVERY_N, ADAM_EVERY_N_LR_COMP, PACK_FACTOR, GRAD_CLIP, LOSS_SCALE
     # T0.2/T0.3 capacity-shape knobs. All read inside build_config()/GPT(config), i.e. well before
     # the first step, so none of them can add a per-step graph constant.
     global DEPTH, N_EMBD, HEAD_DIM, MLP_RATIO, ATTN_SCALE, SEQ_LEN, N_KV_HEADS
@@ -5497,6 +5524,11 @@ def main() -> None:
         "the per-rank token count, and therefore on world_size. 0 disables it. Currently 1.0; a "
         "flag so the T0.6 LNC=1 quality-cliff mechanism (clip-then-average vs average-then-clip) "
         "is testable without editing the constant.")
+    _hp("--loss-scale", LOSS_SCALE, float, "Sub-1.0 plan P2: static loss-scale factor. "
+        "Multiplies the training loss before backward and divides grads back before "
+        "clip/sync/step, so backward grads stay representable under compiler fp8 "
+        "auto-cast (full-model grads underflow fp8_e4m3 otherwise). 1.0 (default) = "
+        "off, bit-identical. Use powers of 2 (128/1024).")
     _hp("--pack-factor", PACK_FACTOR, int, "T1.5: dataloader packing-bin multiplier. The loader "
         "fetches DEVICE_BATCH_SIZE rows of PACK_FACTOR*SEQ_LEN tokens and reshapes them to "
         "DEVICE_BATCH_SIZE*PACK_FACTOR rows of SEQ_LEN, so this is the micro-batch ROW COUNT and "
@@ -5539,6 +5571,9 @@ def main() -> None:
     ADAM_EVERY_N = args.adam_every_n
     ADAM_EVERY_N_LR_COMP = args.adam_every_n_lr_comp
     GRAD_CLIP = args.grad_clip
+    LOSS_SCALE = args.loss_scale
+    if not (LOSS_SCALE > 0):
+        raise ValueError(f"--loss-scale must be positive, got {LOSS_SCALE}")
     PACK_FACTOR = args.pack_factor
     # T0.2/T0.3: all four are read by build_config()/MLP.__init__/CausalSelfAttention.__init__ below.
     SEQ_LEN = args.seq_len
@@ -5952,9 +5987,13 @@ def main() -> None:
             loss = model(x, y)
             last_loss = loss.detach()
             # See inv_gas_dev above: device scalar under BATCH_RAMP, literal float otherwise.
-            (loss * inv_gas_dev if BATCH_RAMP else loss / grad_accum_steps).backward()
+            # LOSS_SCALE (default 1.0, IEEE-exact no-op): static loss scaling so backward
+            # grads stay representable under fp8 auto-cast; unscaled below before clip.
+            ((loss * inv_gas_dev if BATCH_RAMP else loss / grad_accum_steps) * LOSS_SCALE).backward()
             x, y, loader_state = fetch()
 
+        # Static loss scaling: restore true grad units before clip/sync/step.
+        unscale_grads_(model, grad_flat_buffer, LOSS_SCALE)
         if grad_flat_buffer is not None:
             if GRAD_CLIP > 0:
                 clip_grad_norm_flat_(grad_flat_buffer, GRAD_CLIP)
