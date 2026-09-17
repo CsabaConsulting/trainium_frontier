@@ -38,8 +38,14 @@ def main() -> None:
     model.init_weights()
     model.to(device)
     model.train()
-    opt = torch.optim.AdamW(model.parameters(), lr=3e-4)
+    import os
+    use_muon = os.environ.get("MUON_PROBE", "0") == "1"
+    if use_muon:
+        opt = model.setup_optimizer()
+    else:
+        opt = torch.optim.AdamW(model.parameters(), lr=3e-4)
     B, Tm, V = 1, 256, cfg.vocab_size
+    prev = {n: p.detach().float().clone() for n, p in model.named_parameters()}
     for step in range(3):
         x = torch.randint(0, V, (B, Tm), dtype=torch.int32).to(device)
         y = torch.randint(0, V, (B, Tm)).to(device)
@@ -63,6 +69,12 @@ def main() -> None:
               f"grad_norm={math.sqrt(total_sq):.6f} none={n_none} zero={n_zero}",
               flush=True)
         opt.step()
+        up_sq = 0.0
+        for n, p in model.named_parameters():
+            d = (p.detach().float() - prev[n])
+            up_sq += float((d * d).sum().item())
+            prev[n] = p.detach().float().clone()
+        print(f"step {step}: update_norm={math.sqrt(up_sq):.6f}", flush=True)
     print("PROBE DONE", flush=True)
 
 
