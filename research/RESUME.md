@@ -1,5 +1,17 @@
 # Restart the Trainium kernel campaign here
 
+Update2026-09-18 after the full-access restart: actual active permissions are
+`danger-full-access`, approval `never`. The saved checkpoint was recovered cleanly.
+Wave40 is being prepared: a saved-profile baseline/fused spill comparison on
+trn22 and actual master-weight/cache/autograd gates for grouped MLP I/O on trn21.
+The integration now exposes token tiles128/256/512 and grouped I/O as scratch
+options; production `train.py` is unchanged. No new training result is claimed.
+Use `fs-w40-*.dispatch.json` for launch state and exact source identity.
+The bulk artifact uploader did not survive the restart; the scheduled artifact
+backup can resume its immutable verified queue at minutes5/35. Do not interpret
+its stale `latest.json` current item as proof that a process is still running.
+
+
 Updated2026-09-18 at17:52UTC. The user is choosing a deliberate restart to
 activate full-access/no-prompts mode. This is a safe research checkpoint.
 
