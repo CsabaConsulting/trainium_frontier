@@ -1,0 +1,38 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave76",
+    "expected_commit": "e13a223d51ae8b7dc443f749ecab9a45fd419c4a",
+    "label": "fs-w76-compact-joint-table-real-gate-r1",
+    "purpose": "Small/exhaustive finite-BF16 and row/core-boundary gates passed on this immutable source. Repeat them, gate real16384x8192 outputs against table/tails and stratified FP64 truth, then compare complete primitive with Scalar tanh/exp/derivative. Includes table loads, indexing/gather/tails and output traffic. No full loss or training claim.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1800s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "/home/ubuntu/trainium_freshstart_20260918_wave76/research/scratch/compact_ce_table_probe.py",
+      "--real-shape",
+      "--steps",
+      "10"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/compact_ce_table_nki.py",
+      "research/scratch/compact_ce_table_probe.py",
+      "research/scratch/compact_ce_table_study.py",
+      "research/scratch/mlp_fused_bf16_probe.py"
+    ]
+  },
+  "requested_at": "2026-09-18T23:44:20.231750+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w76-compact-joint-table-real-gate-r1\", \"pid\": 1531936, \"commit\": \"e13a223d51ae8b7dc443f749ecab9a45fd419c4a\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave76/research/run-logs/fs-w76-compact-joint-table-real-gate-r1.log\", \"started_at\": \"2026-09-18T23:44:26.554533+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

@@ -19,9 +19,9 @@ def emit(kind, record):
     print(kind + ' ' + json.dumps(record), flush=True)
 
 
-def gate(shape, case, island, calibrate, quantize, steps, benchmark):
+def gate(shape, case, island, calibrate, quantize, steps, benchmark, token_rows=False):
     tokens, channels, hidden = shape
-    tile = min(512, tokens // 2)
+    tile = 128 if token_rows else min(512, tokens // 2)
     x, up, down = make_inputs(shape, case)
     generator = torch.Generator().manual_seed(9073 + tokens + channels)
     gradients = [(torch.randn(x.shape, generator=generator) * .03125).bfloat16()
@@ -35,10 +35,13 @@ def gate(shape, case, island, calibrate, quantize, steps, benchmark):
     def call(xx, uu, dd, um, dm):
         return island[2](xx, uu, dd, um, dm, 2, tile, False)
 
-    apply = torch.compile(make_autograd(call), backend='neuron', fullgraph=True, dynamic=False)
+    apply = torch.compile(make_autograd(call, relu_token_major=token_rows),
+                          backend='neuron', fullgraph=True, dynamic=False)
     with torch.no_grad():
         saved = tuple(value.cpu() for value in call(leaves[0], *caches))
     y, relu_t, xq, hq = saved
+    if token_rows:
+        relu_t = relu_t.T
     individual = []
     for index, gradient in enumerate(gradients):
         for leaf in leaves:
@@ -67,6 +70,7 @@ def gate(shape, case, island, calibrate, quantize, steps, benchmark):
     assert not any(t.requires_grad for t in caches)
     emit('FP8_ISLAND_TRAINING_GATE', dict(shape=list(shape), case=case, passed=True,
          fp32_master_gradients=True, two_microbatch_accumulation_exact=True,
+         token_row_output_layout=token_rows,
          fp8_forward=True, bf16_backward=True, identity_quantizer_surrogate=True,
          forward_quality_not_established=True))
 
@@ -74,16 +78,17 @@ def gate(shape, case, island, calibrate, quantize, steps, benchmark):
         bf16_kernel = build_bf16()
         from torch_neuronx import wrap_nki
         bf16_kernel = wrap_nki(bf16_kernel)
+        control_tile = min(512, tokens // 2)
 
         def native_forward(xx, uu, dd, um, dm):
             result, relu = reference_forward(xx, uu, dd)
             return result, relu.T
 
         def bf16_forward(xx, uu, dd, um, dm):
-            return bf16_kernel[2](xx, uu, dd, 2, tile, True, True, True, True, 0)
+            return bf16_kernel[2](xx, uu, dd, 2, control_tile, True, True, True, True, 0)
 
         def fp8_storage_forward(xx, uu, dd, um, dm):
-            return bf16_kernel[2](xx, uu, dd, 2, tile, True, True, True, True, 0, True, um, dm)
+            return bf16_kernel[2](xx, uu, dd, 2, control_tile, True, True, True, True, 0, True, um, dm)
 
         control = {name: torch.compile(make_cached_autograd(function), backend='neuron',
                                       fullgraph=True, dynamic=False)
@@ -105,6 +110,28 @@ def gate(shape, case, island, calibrate, quantize, steps, benchmark):
                        tuple(leaf.grad for leaf in leaves), reference, bounds)
             del reference, bounds
 
+        if token_rows:
+            # Retain a fresh original FP8 orientation as a paired timing arm.
+            # Its unchanged kernel passed the wave73 forward-stage contract.
+            original = wrap_nki(build_kernel())
+
+            def original_call(xx, uu, dd, um, dm):
+                return original[2](xx, uu, dd, um, dm, 2, control_tile, False)
+
+            original_apply = torch.compile(make_autograd(original_call), backend='neuron',
+                                           fullgraph=True, dynamic=False)
+            with torch.no_grad():
+                original_saved = tuple(v.cpu() for v in original_call(leaves[0], *caches))
+            for leaf in leaves:
+                leaf.grad = None
+            original_output = original_apply(*leaves, *caches)
+            original_output.backward(device_gradient)
+            require_exact(case + ':original_fp8_timing_control_forward', original_output, original_saved[0])
+            reference, bounds = reference_and_bounds(original_saved[2], up_cache.cpu(), down_cache.cpu(),
+                                                    original_saved[1], original_saved[3], gradients[0])
+            audit(case + ':original_fp8_timing_control', tuple(leaf.grad for leaf in leaves), reference, bounds)
+            del reference, bounds, original_saved, original_output
+
         def update(function, quantized):
             for leaf in leaves:
                 leaf.grad = None
@@ -122,14 +149,18 @@ def gate(shape, case, island, calibrate, quantize, steps, benchmark):
             'native_bf16_original': lambda: update(control['native'], False),
             'nki_bf16_cache_original': lambda: update(control['bf16_cache'], False),
             'nki_fp8_storage_bf16_math': lambda: update(control['fp8_storage'], True),
-            'nki_fp8_island_bf16_backward': lambda: update(apply, True),
+            ('nki_fp8_token_rows_bf16_backward' if token_rows else
+             'nki_fp8_island_bf16_backward'): lambda: update(apply, True),
         }
+        if token_rows:
+            arms['nki_fp8_original_layout_bf16_backward'] = lambda: update(original_apply, True)
         measured = timing(arms, steps, torch.neuron.synchronize)
         emit('FP8_ISLAND_TRAINING_BENCH', dict(shape=list(shape), **measured,
              microbatches_per_update=2, units='ms per weight-cache refresh plus two FW/BW microbatches',
              online_weight_calibration_and_master_casts_included=True,
              online_per_token_activation_scaling_and_all_saved_values_included=True,
              gradient_accumulation_included=True, fp8_forward=True, bf16_backward=True,
+             token_row_output_layout=token_rows,
              optimizer_collectives_and_surrounding_model_included=False,
              timing_control_backward_bounds_gated=True,
              control_arithmetic_differs_because_quantization_is_part_of_candidate=True))
@@ -141,25 +172,31 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--real-shape', action='store_true')
     parser.add_argument('--steps', type=int, default=10)
+    parser.add_argument('--token-rows', action='store_true')
     args = parser.parse_args()
     import torch_neuronx
     from torch_neuronx import wrap_nki
     torch.set_num_threads(4)
-    island = wrap_nki(build_kernel())
+    selected_builder = build_kernel
+    if args.token_rows:
+        from fp8_mlp_token_rows_nki import build_kernel as selected_builder
+    island = wrap_nki(selected_builder())
     calibrate, quantize = (wrap_nki(kernel) for kernel in build_kernels())
     emit('FP8_ISLAND_BACKWARD_CONTRACT', dict(
         forward_gates_required_before_launch=True, surrogate='identity for casts, quantizers and pair rounding',
+        token_row_output_layout=args.token_rows,
         reference='independent FP64 autograd with forward-audited saved values',
         error_bound='FP32 gamma_K accumulation and propagated BF16 u=2**-8 boundaries',
         gradients='BF16 input; FP32 master weights exactly once; detached caches'))
     for case in ('random', 'zero_up', 'zero_down', 'outliers', 'changed_weights'):
-        gate((512, 256, 512), case, island, calibrate, quantize, args.steps, False)
+        gate((512, 256, 512), case, island, calibrate, quantize, args.steps, False, args.token_rows)
     if args.real_shape:
         # The larger forward has not been authorized by small-shape evidence
         # alone. Audit every new stage shape before any real-shape backward/timing.
-        run_case((16384, 1024, 4096), 'real_random', island, calibrate, quantize)
-        gate((16384, 1024, 4096), 'real_random', island, calibrate, quantize, args.steps, True)
+        run_case((16384, 1024, 4096), 'real_random', island, calibrate, quantize, args.token_rows)
+        gate((16384, 1024, 4096), 'real_random', island, calibrate, quantize, args.steps, True, args.token_rows)
     emit('FP8_ISLAND_TRAINING_RESULT', dict(passed=True, real_shape=args.real_shape,
+         token_row_output_layout=args.token_rows,
          fp8_forward=True, bf16_backward=True, promoted_into_training=False))
 
 

@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated2026-09-18,23:39UTC. Authorization: danger-full-access, approval never.
+Updated2026-09-18,23:53UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
 ## Current result and active work
@@ -39,34 +39,35 @@ loss5.064923286437988 matches exactly. No complete parameter-equality claim.
 Combined gain versus earlier owned T2048/pack8 control528.3530275ms is5.2958%.
 The phase clips before averaging; quality clips after. Protected trainer unchanged.
 
-**trn22 CLEAN after wave74 profile:** actual FP8 up/down forward GEMMs with causal
-per-token scales pass all seven small cases (193 exact/14 pair-stage gates),
-real16384x1024x4096 forward and six STE backward/accumulation cases. Masters
-receive FP32 gradients once; caches detached, BF16 backward independently
-checked against FP64 autograd with propagated rounding bounds. This establishes
-implementation correctness under the declared surrogate, not training quality.
-Real-shape forward differs from original BF16 by5.7677% RMS.
+**trn22 CLEAN after wave76:** the compact joint table passes all finite BF16
+codes, boundary shapes, repeated calls and row independence on hardware. At
+real16384x8192 it passes all-coordinate table/tail checks and sampled FP64
+truth, but loses47.2007497ms versus2.4788306ms Scalar composition (19.04x).
+Close this full-value/GpSIMD-gather layout; no full loss or training promotion.
+The first scalar-source validator failure was fixed with a prefilled ones tile;
+all original bounds were retained. Watcher follows wave76.
 
-Complete component medians (cache refresh plus TWO FW/BW calls): native
-15.6627304ms, NKI BF16 cache14.6533632ms, FP8 storage/BF16 math17.8966452ms,
-actual FP8 forward/BF16 backward18.1811702ms (16.0792% slower than native).
-Online calibration/master casts, per-token scales, saved values and gradient
-accumulation are charged; optimizer, collectives and caller spills are absent.
-No training promotion. Real-shape preparation/forward/backward profile
-`fs-w74-fp8-causal-island-component-profile-r1` completed clean23:37:47UTC,
-source4d4f55d. It preserves6 compiled and9 eager NEFFs; retrieval/ingestion is
-next. Trace phase synchronization makes unprofiled wave73 timing authoritative. Full FP8 backward remains
-open; precision-specific layouts must be assessed in their intended precision.
+Actual FP8 up/down forward plus BF16 backward passed wave73 numerical gates,
+but lost complete-component timing18.1811702vs15.6627304ms native. The wave74
+profile is now local/hash-verified, ingested and registered for artifact backup.
+All31 runtime dispatches map to ingested binaries. Analysis:
+`research/run-logs/fs-w74-fp8-component-profile-analysis-r1.json`.
+Forward device times: native2.63ms, NKI BF16 cache2.08ms, FP8 island3.68ms;
+backward approximately4.8ms for all. Profile times are attribution, not new
+unprofiled speed results. Reported SBUF peak drops0.7734→0.5080 with FP8;
+Scalar/Vector activity rises sharply and Tensor transpose activity rises to
+about0.98ms/core. Missing dynamic DMA metadata prevents exact bandwidth claims.
+No populated spill counters for either NKI component does not prove zero spills
+in a surrounding training graph. The profile is isolated, not full-model.
 
-Wave71 frontend helper lookup and wave72 FP8 transpose failures remain recorded.
-The fixes register NKI-parsed helper names globally and use padded128x256 FP8
-PSUM with stride2; all original gates pass afterward, without relaxed tolerances.
-trn22 watcher currently follows wave75 and must move when new source is deployed.
-The compact-table device primitive/probe is written, CPU clamped-tail exhaustive
-gate passes unchanged2e-7/1e-7 bounds; commit/deploy before its first device gate.
-It returns exponential and derivative together, charges5MiB table loads and
-index/gather/tail/output work, and checks all finite BF16 codes and changed rows.
-No loss reduction/log/reciprocal/autograd or training integration is claimed.
+Next source implements `fp8_mlp_token_rows_nki.py`: swap both GEMM orientations
+to output token rows, use per-partition scale operands, keep ReLU/squared hidden/
+output in that layout, and omit the proven-unnecessary hidden minimum reduction.
+Keep two separate inverse rescalings to avoid premature underflow. The saved
+ReLU layout changes, so the explicit BF16 backward, independent FP64 surrogate
+bounds and complete component cost must be re-gated. A fresh original-FP8 arm
+is retained alongside native/BF16-cache/storage-only controls. Small forward
+stage gates come first; commit/deploy before launching. No speed claim yet.
 
 ## Latest numerical findings
 
@@ -106,8 +107,8 @@ Standalone degree5/7 exp polynomials pass accuracy but are3.57–4.19times slowe
 exp(15*tanh(x/15)) and derivative tables with analytic tails pass CPU bounds:
 max exponential relative error6.37e-8, derivative absolute error2.98e-8.
 4/5/6MiB replicated-table designs and13 loss/gradient cases pass, including a
-stable tiny-loss log1p path. CPU division/log are ideal FP32; device lookup,
-reduction, reciprocal/log error, backward and timing are still untested.
+stable tiny-loss log1p path. CPU division/log are ideal FP32; device lookup primitive is now correct but19.04x slower than Scalar functions;
+full loss reduction/reciprocal/log/backward remains unimplemented.
 All13 user retro links and primary-source research are in the retro-numerics note.
 
 See `fresh-start-kernel-queue-2026-09-18.md`, results ledger and source/log summaries.
@@ -135,7 +136,7 @@ Local Devuan/SystemV, usercsaba cron; no root/systemd:
   zero errors, including both new quality checkpoints. State is
   out/fresh-start-artifact-backup/latest.json; receipts under research/run-logs.
   Newly produced remote checkpoints still need retrieval to checkpoints/ first.
-- Local log watchers currently follow trn21/wave70 and trn22/wave75,90rounds at
+- Local log watchers currently follow trn21/wave70 and trn22/wave76,90rounds at
  45seconds. Repoint when the active remote worktree changes. Only stop exact
   owned watcher PID/UID/cwd/argv/startticks; remote training jobs are separate.
 

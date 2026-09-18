@@ -92,14 +92,23 @@ def make_inputs(shape, case):
     return x, up, down
 
 
-def run_case(shape, case, kernel, calibrate, quantize):
+def run_case(shape, case, kernel, calibrate, quantize, token_rows=False):
     tokens, channels, hidden = shape
-    tile = min(512, tokens // 2)
+    tile = 128 if token_rows else min(512, tokens // 2)
+
+    def to_reference_layout(values):
+        result = [value.cpu() for value in values]
+        if token_rows:
+            result[1] = result[1].T
+            if len(result) > 4:
+                result[4] = result[4].T
+        return tuple(result)
+
     x, up, down = make_inputs(shape, case)
     meta_up, uq = calibration_gate(case + ':up', up, calibrate, quantize)
     meta_down, dq = calibration_gate(case + ':down', down, calibrate, quantize)
     inputs = x.to("neuron"), uq, dq, meta_up, meta_down
-    outputs = tuple(value.cpu() for value in kernel[2](*inputs, 2, tile, True))
+    outputs = to_reference_layout(kernel[2](*inputs, 2, tile, True))
     y, relu_t, xq, hq, up_stage_t, down_stage, x_meta, h_meta = outputs
     expected_x_meta, expected_xq = row_reference(x)
     require_exact(case + ':per_token_x_metadata', x_meta, expected_x_meta)
@@ -119,8 +128,8 @@ def run_case(shape, case, kernel, calibrate, quantize):
     pair_gate(case + ':down', down_stage, raw_h, raw_down.T,
               h_meta[:, 1:2], down_meta[0, 1], full=tokens <= 512)
     require_exact(case + ':output_rounding', y, down_stage.bfloat16())
-    normal = tuple(value.cpu() for value in kernel[2](*inputs, 2, tile, False))
-    repeat = tuple(value.cpu() for value in kernel[2](*inputs, 2, tile, False))
+    normal = to_reference_layout(kernel[2](*inputs, 2, tile, False))
+    repeat = to_reference_layout(kernel[2](*inputs, 2, tile, False))
     for index, (value, expected, again) in enumerate(zip(normal, outputs[:4], repeat)):
         require_exact(case + f':diagnostic_vs_normal{index}', value, expected)
         require_exact(case + f':repeat{index}', again, value)
@@ -130,7 +139,7 @@ def run_case(shape, case, kernel, calibrate, quantize):
     # Changing either side of a128-token boundary must not affect other rows.
     if case in ('random', 'real_random'):
         changed = x.clone(); changed[127] = -changed[127] * 7; changed[128] += 11
-        varied = tuple(value.cpu() for value in kernel[2](changed.to('neuron'), *inputs[1:], 2, tile, False))
+        varied = to_reference_layout(kernel[2](changed.to('neuron'), *inputs[1:], 2, tile, False))
         keep = torch.ones(tokens, dtype=torch.bool); keep[127:129] = False
         for index, (before, after) in enumerate(zip(normal, varied)):
             if index == 1:
@@ -138,6 +147,7 @@ def run_case(shape, case, kernel, calibrate, quantize):
             require_exact(case + f':row_independence{index}', after[keep], before[keep])
     emit('FP8_ISLAND_CASE', dict(case=case, shape=list(shape), passed=True,
          actual_fp8_up_and_down_matmuls=True, per_token_activation_scales=True,
+         token_row_output_layout=token_rows,
          backward_gated=False, training_speed_claimed=False))
     del inputs, outputs, normal, repeat
     gc.collect()
@@ -146,24 +156,30 @@ def run_case(shape, case, kernel, calibrate, quantize):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--real-shape', action='store_true')
+    parser.add_argument('--token-rows', action='store_true')
     args = parser.parse_args()
     import torch_neuronx
     from torch_neuronx import wrap_nki
     torch.set_num_threads(4)
-    kernel = wrap_nki(build_kernel())
+    selected_builder = build_kernel
+    if args.token_rows:
+        from fp8_mlp_token_rows_nki import build_kernel as selected_builder
+    kernel = wrap_nki(selected_builder())
     calibrate, quantize = (wrap_nki(k) for k in build_kernels())
     emit('FP8_ISLAND_CONTRACT', dict(
         pair_significand_bits=11, accumulation_bound='FP32 gamma_(K/2)',
+        token_row_output_layout=args.token_rows,
         diagnostic_intermediates=True, backward_gated=False, timing_allowed=False,
         activation_scales='per-token, same-row channels only',
         weight_scales='per-matrix online calibration charged once per update',
         accuracy_gate_is_not_a_quality_gate=True))
     for case in ('random', 'zero_input', 'zero_up', 'zero_down', 'outliers',
                  'changed_weights', 'token_scale_range'):
-        run_case((512, 256, 512), case, kernel, calibrate, quantize)
+        run_case((512, 256, 512), case, kernel, calibrate, quantize, args.token_rows)
     if args.real_shape:
-        run_case((16384, 1024, 4096), 'real_random', kernel, calibrate, quantize)
+        run_case((16384, 1024, 4096), 'real_random', kernel, calibrate, quantize, args.token_rows)
     emit('FP8_ISLAND_RESULT', dict(passed=True, real_shape=args.real_shape,
+         token_row_output_layout=args.token_rows,
          actual_fp8_matmuls=True, backward_gated=False, promoted_into_training=False))
 
 

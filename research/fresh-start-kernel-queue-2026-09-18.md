@@ -175,3 +175,23 @@ validation in tensor_copy_predicated, before execution. Installed source
 confirms unconditional src.shape access despite scalar support in its docstring.
 The next version uses one prefilled FP32 ones tile outside the loops. Clean
 postflight, original numerical bounds retained, small gates must rerun.
+
+Wave76 compact table passes exhaustive finite BF16, boundary, row-independence
+and real16384x8192 gates. Joint primitive47.200750ms versus2.478831ms Scalar
+composition:19.04x slower. Close this replicated full-value/GpSIMD-gather layout;
+this does not test every possible coarse table/interpolation representation.
+
+FP8 wave74 trace is local/ingested with every dispatch/binary matched. It shows
+forward3.68ms vs2.08ms NKI BF16 cache, approximately equal4.8ms backward, and
+SBUF peak0.5080 vs0.7734. The extra Scalar/Vector work and roughly0.98ms/core
+transpose activity motivate a token-row GEMM orientation. Prototype is written:
+`fp8_mlp_token_rows_nki.py`. It keeps per-token scaling/causality, saves ReLU in
+token rows, removes the unnecessary minimum reduction for squared ReLU, and
+keeps sequential inverse rescaling. Forward/BF16-backward/accumulation/full
+component gates must pass again. Full FP8 backward remains a later design.
+
+Historical memory expansion and raw logs confirm that depth8/width768 WAS tried
+under earlier recipes; the implicit depth-to-width rule confounded some labels.
+Any revisit requires the new kernel/ownership/packing stack and verified actual
+parameter dimensions. It is a reserve capacity experiment, not the next kernel
+trial or an assumption of untapped TensorEngine FLOPs.

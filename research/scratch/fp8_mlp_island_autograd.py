@@ -8,19 +8,20 @@ Forward gates separately validate every saved value and token independence.
 import torch
 
 
-def make_autograd(forward):
+def make_autograd(forward, relu_token_major=False):
     class FP8Island(torch.autograd.Function):
         @staticmethod
         def forward(ctx, x, up_master, down_master, up_cache, down_cache, up_meta, down_meta):
-            result, relu_t, quantized_x, quantized_hidden = forward(
+            result, saved_relu, quantized_x, quantized_hidden = forward(
                 x, up_cache, down_cache, up_meta, down_meta)
-            ctx.save_for_backward(quantized_x, up_cache, down_cache, relu_t, quantized_hidden)
+            ctx.save_for_backward(quantized_x, up_cache, down_cache, saved_relu, quantized_hidden)
             ctx.up_dtype, ctx.down_dtype = up_master.dtype, down_master.dtype
             return result
 
         @staticmethod
         def backward(ctx, gradient):
-            x, up, down, relu_t, activated = ctx.saved_tensors
+            x, up, down, saved_relu, activated = ctx.saved_tensors
+            relu_t = saved_relu.T if relu_token_major else saved_relu
             derivative_hidden_t = down.T @ gradient.T
             derivative_pre_t = derivative_hidden_t * (relu_t * 2.0)
             dx = derivative_pre_t.T @ up

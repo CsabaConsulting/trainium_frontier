@@ -308,3 +308,11 @@ Exponent-bit scaling is now exercised inside actual FP8 up/down MLP GEMMs with
 per-token independence and STE backward checks. This implementation loses
 complete-component timing (18.181170vs15.662730ms native); attribution profiling
 follows. Compact joint-function tables still have CPU, not device, evidence.
+
+Compact table now has device evidence: every finite BF16 input and real logits
+shape pass the predeclared2e-7 exponential-relative/1e-7 derivative-absolute
+bounds. Peak exponential error is5.98e-8. Its complete primitive takes47.20ms
+versus2.48ms Scalar composition, so that layout is closed as a speed candidate.
+The new FP8 orientation also applies exact work elimination: squared ReLU is
+nonnegative, making its calibration minimum reduction redundant. This identity
+needs unchanged metadata/output gates before any claimed performance benefit.
