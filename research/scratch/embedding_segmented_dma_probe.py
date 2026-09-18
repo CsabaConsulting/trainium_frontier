@@ -10,18 +10,26 @@ from embedding_segmented_nki import cpu_scan, metadata
 from embedding_segmented_probe import check, gradient_for, indices_for, reference, time_arms
 
 
+def prepare_metadata(ids, vocabulary, contiguous_metadata=False):
+    permutation, continuation, mapping = dma_metadata(ids, vocabulary)
+    if contiguous_metadata:
+        mapping = mapping.T.contiguous()
+    return permutation, continuation, mapping
+
+
 def run_case(args, kernels, shape, kind):
     tokens, channels, vocabulary = shape
     ids = indices_for(kind, tokens, vocabulary, 731)
     gradient = gradient_for(kind, tokens, channels, 732)
     rounded = gradient.bfloat16().float()
-    meta = dma_metadata(ids, vocabulary)
+    meta = prepare_metadata(ids, vocabulary, args.contiguous_metadata)
     exact, bound, counts = reference(rounded, ids, vocabulary)
     cpu_result = cpu_scan(rounded, metadata(ids, vocabulary))
     check(cpu_result, exact, bound, counts, f'dma_cpu:{kind}:{shape}')
     print('DMA_SCAN_CASE '+json.dumps(dict(kind=kind, shape=shape,
           tiled_io=args.tiled_io,
           fused_permutation_scan_expansion=args.fused,
+          contiguous_metadata=args.contiguous_metadata,
           metadata_bytes=sum(t.numel()*t.element_size() for t in meta),
           arithmetic='BF16-rounded input gradients, FP32 sums, FP32 output')) ,flush=True)
     if args.device == 'cpu':
@@ -33,7 +41,8 @@ def run_case(args, kernels, shape, kind):
     pp, cc, mm = md
     # Stage1 is a pure permutation and cast: bit equality is required.
     if args.fused:
-        eager, ordered, scanned = kernels[3][2](gd, pp, cc, mm, vocabulary, 2, True)
+        eager, ordered, scanned = kernels[3][2](gd, pp, cc, mm, vocabulary, 2, True,
+                                               args.contiguous_metadata)
     else:
         ordered = permute[2](gd, pp, 2, args.tiled_io)
     ordered_ref = gradient[meta[0].reshape(-1).long()].bfloat16()
@@ -69,13 +78,14 @@ def run_case(args, kernels, shape, kind):
         eager = expand[2](scanned, mm, vocabulary, 2)
     check(eager, exact, bound, counts, f'dma_eager:{kind}:{shape}')
     if args.fused:
-        plain = kernels[3][2](gd, pp, cc, mm, vocabulary, 2, False)
+        plain = kernels[3][2](gd, pp, cc, mm, vocabulary, 2, False, args.contiguous_metadata)
         check(plain, exact, bound, counts, f'dma_eager_uninstrumented:{kind}:{shape}')
     wrapped = tuple(torch_neuronx.wrap_nki(k) for k in kernels)
 
     def compose(gg, permutation, continuation, mapping):
         if args.fused:
-            return wrapped[3][2](gg, permutation, continuation, mapping, vocabulary, 2, False)
+            return wrapped[3][2](gg, permutation, continuation, mapping, vocabulary, 2, False,
+                                 args.contiguous_metadata)
         ordered_inner = wrapped[0][2](gg, permutation, 2, args.tiled_io)
         scanned_inner = wrapped[1][2](ordered_inner, continuation, 2, args.tiled_io)
         return wrapped[2][2](scanned_inner, mapping, vocabulary, 2)
@@ -101,7 +111,7 @@ def run_case(args, kernels, shape, kind):
         return
 
     def complete():
-        new_meta = dma_metadata(ids, vocabulary)
+        new_meta = prepare_metadata(ids, vocabulary, args.contiguous_metadata)
         return compiled(gd, *(t.to('neuron') for t in new_meta))
 
     timed = time_arms(dict(native_full_vocab=lambda:native(gd, idd),
@@ -113,6 +123,7 @@ def run_case(args, kernels, shape, kind):
     print('DMA_SCAN_BENCH '+json.dumps(dict(kind=kind,shape=shape,**timed,
           tiled_io=args.tiled_io,
           fused_permutation_scan_expansion=args.fused,
+          contiguous_metadata=args.contiguous_metadata,
           normal_intermediate_hbm_bytes=0 if args.fused else tokens*channels*6,
           estimated_four_table_amortized_ms=estimate,input_id_d2h_included=False,
           all_intermediate_hbm_and_kernel_costs_included=True,
@@ -129,7 +140,11 @@ def main():
                     help='Move dtype conversion intoSBUF and use explicit128x128 transposes.')
     ap.add_argument('--fused',action='store_true',
                     help='Fuse permutation, scan and512-output end gathers without intermediate HBM.')
+    ap.add_argument('--contiguous-metadata',action='store_true',
+                    help='Transfer separate contiguous index/presence rows, casting presence in SBUF.')
     args=ap.parse_args()
+    if args.contiguous_metadata and not args.fused:
+        ap.error('--contiguous-metadata requires --fused')
     torch.set_num_threads(4)
     kernels=None
     if args.device=='neuron':

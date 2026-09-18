@@ -1,0 +1,39 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave36",
+    "expected_commit": "55383db4788946dc872e0ec03026ec552115133c",
+    "label": "fs-w36-mlp-grouped-io-component-r1",
+    "purpose": "Test grouped contiguous row transfers after2560 DMA instructions remain in the isolated raw-HxT MLP forward. Same arithmetic/backward, numerical and gradient gates before complete component timing; whole-model regression still under separate investigation.",
+    "fingerprint_paths": [
+      "research/scratch/mlp_fused_bf16.py",
+      "research/scratch/mlp_fused_bf16_probe.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1500s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "--real-shape",
+      "--contiguous-weights",
+      "--tiled-io",
+      "--cached-bf16-weights",
+      "--transposed-relu",
+      "--grouped-io"
+    ]
+  },
+  "requested_at": "2026-09-18T15:27:19.424824+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w36-mlp-grouped-io-component-r1\", \"pid\": 970541, \"commit\": \"55383db4788946dc872e0ec03026ec552115133c\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave36/research/run-logs/fs-w36-mlp-grouped-io-component-r1.log\", \"started_at\": \"2026-09-18T15:27:26.064802+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

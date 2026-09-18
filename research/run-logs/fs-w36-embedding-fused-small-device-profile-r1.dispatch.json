@@ -1,0 +1,39 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave36",
+    "expected_commit": "55383db4788946dc872e0ec03026ec552115133c",
+    "label": "fs-w36-embedding-fused-small-device-profile-r1",
+    "purpose": "Attribute reproducible small fused-embedding slowdown after all numerical gates pass; compare warmed native/fused device instructions and DMA packets. Profile timing is not throughput evidence.",
+    "fingerprint_paths": [
+      "research/scratch/embedding_fused_dma.py",
+      "research/scratch/embedding_segmented_dma_probe.py",
+      "research/scratch/embedding_segmented_dma.py",
+      "research/scratch/embedding_compact_probe.py",
+      "research/scratch/embedding_fused_dma_profile.py",
+      "research/scratch/preserve_native_trace_neffs.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "900s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/embedding_fused_dma_profile.py",
+      "--trace-dir",
+      "out/fs-w36-embedding-fused-small-device-profile-r1"
+    ]
+  },
+  "requested_at": "2026-09-18T15:25:07.351976+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w36-embedding-fused-small-device-profile-r1\", \"pid\": 969729, \"commit\": \"55383db4788946dc872e0ec03026ec552115133c\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave36/research/run-logs/fs-w36-embedding-fused-small-device-profile-r1.log\", \"started_at\": \"2026-09-18T15:25:13.710471+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

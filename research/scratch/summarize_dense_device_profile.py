@@ -22,6 +22,8 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("directory", type=Path)
     ap.add_argument("--output", type=Path, required=True)
+    ap.add_argument("--minimum-graph-ns", type=int, default=1_000_000,
+                    help="Keep the historical1ms default; set0 for small component captures.")
     args = ap.parse_args()
     root = args.directory
     read = lambda name, **kw: pq.read_table(root / (name + ".parquet"), **kw)
@@ -45,7 +47,7 @@ def main():
     for execution in executions:
         start, end = execution["execution_start_ts"], execution["execution_end_ts"]
         duration = end - start
-        if duration < 1_000_000:
+        if duration < args.minimum_graph_ns:
             continue
         selected = active.filter(pc.and_(pc.less(active["start_ts"], end),
                                           pc.greater(active["end_ts"], start)))

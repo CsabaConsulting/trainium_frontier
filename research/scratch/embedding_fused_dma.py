@@ -16,16 +16,18 @@ def build_kernel():
 
     @nki.jit
     def fused_gradient(gradient, permutation, continuation, mapping,
-                       vocabulary: int, lanes: int = 2, debug: bool = False):
+                       vocabulary: int, lanes: int = 2, debug: bool = False,
+                       contiguous_metadata: bool = False):
         tokens, channels = gradient.shape
         assert 0 < tokens <= 8192 and tokens % 128 == 0
         assert channels % (128 * lanes) == 0 and vocabulary % 128 == 0
         assert gradient.dtype == nl.float32 and permutation.shape == (tokens, 1)
-        assert continuation.shape == (1, tokens) and mapping.shape == (vocabulary, 2)
+        assert continuation.shape == (1, tokens)
+        assert mapping.shape == ((2, vocabulary) if contiguous_metadata else (vocabulary, 2))
         vt = min(vocabulary, 512)
         assert vocabulary % vt == 0
         base = 10 * tokens + 1024
-        assert base + 14 * vt <= nl.tile_size.sbuf_fmax_bytes
+        assert base + (18 if contiguous_metadata else 14) * vt <= nl.tile_size.sbuf_fmax_bytes
         result = nl.ndarray((vocabulary, channels), dtype=nl.float32, buffer=nl.shared_hbm)
         if debug:
             ordered_debug = nl.ndarray((tokens, channels), dtype=nl.bfloat16, buffer=nl.shared_hbm)
@@ -42,12 +44,15 @@ def build_kernel():
         indices = nl.ndarray((128, 1), dtype=nl.uint32, buffer=nl.sbuf,
                              address=(0, 10 * tokens + 768))
         ends = nl.ndarray((128, vt), dtype=nl.uint32, buffer=nl.sbuf, address=(0, base))
+        if contiguous_metadata:
+            valid_raw = nl.ndarray((128, vt), dtype=nl.int32, buffer=nl.sbuf,
+                                   address=(0, base + 4 * vt))
         valid = nl.ndarray((128, vt), dtype=nl.bfloat16, buffer=nl.sbuf,
-                           address=(0, base + 4 * vt))
+                           address=(0, base + (8 if contiguous_metadata else 4) * vt))
         sums = nl.ndarray((128, vt), dtype=nl.float32, buffer=nl.sbuf,
-                          address=(0, base + 6 * vt))
+                          address=(0, base + (10 if contiguous_metadata else 6) * vt))
         masked = nl.ndarray((128, vt), dtype=nl.float32, buffer=nl.sbuf,
-                            address=(0, base + 10 * vt))
+                            address=(0, base + (14 if contiguous_metadata else 10) * vt))
         nisa.dma_copy(dst=flags, src=continuation.ap(pattern=[[0, 128], [1, tokens]], offset=0))
         for ci in nl.sequential_range(channels // (128 * lanes)):
             c0 = (ci * lanes + nl.program_id(0)) * 128
@@ -73,10 +78,21 @@ def build_kernel():
                     nisa.tensor_copy(dst=rows, src=scan_t)
                     nisa.dma_copy(dst=scanned_debug[ti * 128:(ti + 1) * 128, c0:c0 + 128], src=rows)
             for vi in nl.sequential_range(vocabulary // vt):
-                nisa.dma_copy(dst=ends, src=mapping.ap(pattern=[[0, 128], [2, vt]],
-                                                      offset=vi * vt * 2))
-                nisa.dma_copy(dst=valid, src=mapping.ap(pattern=[[0, 128], [2, vt]],
-                                                       offset=vi * vt * 2 + 1))
+                if contiguous_metadata:
+                    # The small device trace found131072 scalar metadata
+                    # packets in the interleaved/casting path below. Transfer
+                    # each contiguous column at its original32-bit width, then
+                    # cast the presence flag in SBUF.
+                    nisa.dma_copy(dst=ends, src=mapping.ap(pattern=[[0, 128], [1, vt]],
+                                                          offset=vi * vt))
+                    nisa.dma_copy(dst=valid_raw, src=mapping.ap(pattern=[[0, 128], [1, vt]],
+                                                               offset=vocabulary + vi * vt))
+                    nisa.tensor_copy(dst=valid, src=valid_raw)
+                else:
+                    nisa.dma_copy(dst=ends, src=mapping.ap(pattern=[[0, 128], [2, vt]],
+                                                          offset=vi * vt * 2))
+                    nisa.dma_copy(dst=valid, src=mapping.ap(pattern=[[0, 128], [2, vt]],
+                                                           offset=vi * vt * 2 + 1))
                 nisa.nc_n_gather(dst=sums, data=scanned, indices=ends)
                 nisa.tensor_tensor(dst=masked, data1=sums, data2=valid, op=nl.multiply)
                 for ti in nl.sequential_range(vt // 128):

@@ -23,6 +23,7 @@ from preserve_native_trace_neffs import preserve_trace_neffs
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--trace-dir', type=Path, required=True)
+    ap.add_argument('--contiguous-metadata', action='store_true')
     args = ap.parse_args()
     torch.set_num_threads(4)
     trace = args.trace_dir.resolve()
@@ -34,12 +35,15 @@ def main():
     tokens = channels = vocabulary = 256
     ids = torch.randint(vocabulary, (tokens,), dtype=torch.int32)
     gradient = (torch.randn(tokens, channels) * .01).to('neuron')
-    metadata = tuple(t.to('neuron') for t in dma_metadata(ids, vocabulary))
+    permutation, continuation, mapping = dma_metadata(ids, vocabulary)
+    if args.contiguous_metadata:
+        mapping = mapping.T.contiguous()
+    metadata = tuple(t.to('neuron') for t in (permutation, continuation, mapping))
     device_ids = ids.to('neuron')
     kernel = torch_neuronx.wrap_nki(build_kernel())
 
     def call(g, p, c, m):
-        return kernel[2](g, p, c, m, vocabulary, 2, False)
+        return kernel[2](g, p, c, m, vocabulary, 2, False, args.contiguous_metadata)
 
     def ordinary(g, i):
         return torch.ops.aten.embedding_dense_backward.default(g, i, vocabulary, -1, False)
@@ -83,6 +87,7 @@ def main():
     assert not missing and not eager['unresolved']
     print('EMBED_PROFILE_ARTIFACT '+json.dumps(dict(trace=str(trace),
           shape=[tokens,channels,vocabulary], compiled_neffs=len(entries),
+          contiguous_metadata=args.contiguous_metadata,
           eager_neffs=len(eager['files']), profiled_latency_is_performance_evidence=False)),flush=True)
 
 

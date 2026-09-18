@@ -1233,3 +1233,23 @@ and 22 associated files are locally hash-verified, totaling 63,183,126 bytes.
 The new forward-only capture leaves the real timed-step gradients in place for
 postchecks, performs no additional update, and reports a forward count separately
 from microsteps. All completed wave35 jobs have healthy automatic postflights.
+
+
+### Wave36: scalar metadata DMA explains the fused embedding regression
+
+The small-shape capture is locally hash-verified (6,706,919 bytes). Its fused
+window is 0.202802 ms versus native 0.026004 ms. Within the fused window,
+metadata input3 produces **65,536 four-byte and 65,536 two-byte DMA packets**.
+The aggregated transfers identify the strided interleaved metadata loads and
+int32-to-BF16 presence cast. This is direct packet evidence, not an inference
+from peak bandwidth. Missing dynamic DMA metadata still limits total-bandwidth
+claims. Next: transpose the CPU metadata once, preserving preparation cost,
+load each contiguous column at its original32-bit width, cast presence in SBUF,
+and repeat every instrumented/uninstrumented numerical and performance gate.
+
+Grouped MLP row transfers pass all16 stage and24 native numerical/gradient
+gates. Real-shape forward is 1.133791 ms versus native 1.332775 ms; complete
+forward/backward 3.651568 ms versus 4.219335 ms (13.46% component saving). The
+full-model forward regression still needs attribution before any promotion.
+The forward-only device capture is running on the other host. Completed jobs
+have healthy automatic postflights; neither changes the best BPB checkpoint.
