@@ -1,6 +1,6 @@
 # Fresh-start synthesis: repeatable gains toward a competitive BPB
 
-**Current evidence, 2026-09-18 21:12 UTC.** Working competitive target remains
+**Current evidence, 2026-09-18 21:59 UTC.** Working competitive target remains
 roughly0.9749 BPB. The best matched larger public result is **1.001017243**,
 from dense6×1024 without hashed n-grams. NKI causal convolution, BF16 normalized
 branch inputs with FP32 residuals, native-forward/custom-backward MLP, pack8 and
@@ -17,18 +17,29 @@ are specific negatives, not proof against larger fused islands or better kernels
 
 A newly measured opening is redundant optimizer computation. The existing
 replicated optimizer takes55.6ms/558.6ms per step. Exact FP32 weight exchange,
-including packing and copyback, costs6.4ms. Whole-matrix ownership is exact on
-CPU; hardware agrees everywhere except two singleton tall Muon batches. A
-zero-matrix padding experiment tests whether the already matching batch-two
-path preserves all original updates. Exact checks remain; ownership is not yet
-a training or speed result. See the optimizer-ownership and AdamW-rounding notes.
+including packing and copyback, costs6.4ms. Whole-matrix ownership with independent
+zero padding for singleton Muon groups now passes exact CPU and native update,
+cache, schedule and restore checks. The matched whole step falls from554.873ms
+to526.783ms (5.06245%). Its30-minute quality run is active on trn21; quality
+is still pending. The failed unpadded batch-one path and its diagnosis remain
+recorded. See the optimizer-ownership and AdamW-rounding notes.
 
 Fused FP32 AdamW now passes repeated updates, cache and checkpoint integration.
 Its isolated-table saving69.3% becomes only1.2% in the complete model, below the
-training threshold alone. The next batch-layout probe usesT1024/pack16 to keep
-microstep tokens and loader reads fixed while reducing attention context cost.
-This intentionally changes learned context boundaries, so quality cannot be
-inferred from speed or from a smaller validation prefix.
+training threshold alone. T1024/pack16 keeps microstep tokens and loader reads
+fixed while reducing attention context cost. Combining it with original fused
+AdamW passes the3% full-step gate (540.481 versus558.627ms); that30-minute
+quality run is active on trn22. Context boundaries change, so quality cannot
+be inferred from speed or from a smaller validation prefix.
+
+The broader retro-numerics investigation now has device evidence. A Scalar
+reciprocal seed plus Newton correction passes34 component checks and is16.77%
+faster than original fused AdamW in a paired test. Raw Scalar sqrt and a scaled
+rsqrt variant fail unchanged weight bounds; intermediate-stage diagnostics are
+prepared. Degree5/7 exp polynomials are accurate but3.57–4.19times slower than
+hardware exp, which already uses an approximation. No new approximation is in
+the active quality runs. Next exact loss probes target unnecessary target-mask
+work and physical-core scheduling. See the retro-numerics research note.
 
 The public scorer, tokenizer and loader remain unchanged and match the
 organizer's authenticated repository. Matched larger evaluation uses20,971,520

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Check repeated real-table updates, skipped gradients, caches and state restore."""
+import argparse
 import io
 import json
 from pathlib import Path
@@ -27,7 +28,7 @@ def cpu_tree(value):
     return value
 
 
-def make_optimizer(initial, fused):
+def make_optimizer(initial, fused, math_mode=0):
     params = [torch.nn.Parameter(x.to("neuron")) for x in initial]
     groups = [dict(kind="adamw", params=params[:2], lr=.02, betas=(.8, .96),
                    eps=1e-10, weight_decay=.01),
@@ -35,7 +36,7 @@ def make_optimizer(initial, fused):
                    eps=1e-10, weight_decay=0.0)]
     opt = T.MuonAdamW(groups)
     if fused:
-        install_optimizer(opt, T)
+        install_optimizer(opt, T, math_mode=math_mode)
     return params, opt
 
 
@@ -116,6 +117,10 @@ def diagnose_update(p, gradient, old_m, old_v, new_p, new_m, new_v, values, step
 
 
 def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--math-mode", type=int, choices=(0, 2), default=0)
+    args = ap.parse_args()
+    print("ADAMW_INTEGRATION_MATH_MODE " + json.dumps(dict(math_mode=args.math_mode)), flush=True)
     import torch_neuronx
     torch.set_num_threads(4)
     T.USE_FOREACH_OPTIM = T.USE_TENSOR_LR_SCALARS = True
@@ -125,7 +130,7 @@ def main():
     gen = torch.Generator().manual_seed(7183)
     initial = [torch.randn(8192, 1024, generator=gen) * .03,
                torch.zeros(8192, 1024), torch.randn(12, generator=gen) * .03]
-    params, candidate = make_optimizer(initial, True)
+    params, candidate = make_optimizer(initial, True, math_mode=args.math_mode)
     native_params, native = make_optimizer(initial, False)
     ids = [id(p) for p in params]
     trajectory = [(p.double(), torch.zeros_like(p).double(), torch.zeros_like(p).double())
@@ -239,7 +244,7 @@ def main():
     torch.save(dict(weights=weights, optimizer=saved), buffer)
     buffer.seek(0)
     payload = torch.load(buffer, map_location="cpu", weights_only=True)
-    restored_params, restored = make_optimizer(payload["weights"], True)
+    restored_params, restored = make_optimizer(payload["weights"], True, math_mode=args.math_mode)
     restored.load_state_dict(payload["optimizer"])
     for opt, ps in ((candidate, params), (restored, restored_params)):
         for p, g in zip(ps, last_gradients):

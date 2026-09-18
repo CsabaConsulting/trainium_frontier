@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-18, 21:48 UTC. Active permissions: danger-full-access, approval never.
+Updated 2026-09-18, 21:59 UTC. Active permissions: danger-full-access, approval never.
 This replaces the accumulated stale resume instructions; their history remains
 in Git. Do not restart completed experiments from earlier revisions.
 
@@ -14,19 +14,21 @@ in Git. Do not restart completed experiments from earlier revisions.
   is finite near0.54s/update. Wait for the real1800s result and postflight;
   preserve checkpoint locally/cloud, then evaluate at the same20M/T1024/O1
   public settings if promising. It contains none of the new approximations.
-- **trn21 active:** `fs-w65-adamw-scaled-rsqrt-newton-gate-r1`, source5dcbf6a,
-  remote wave65. Mode4 uses a power-of-two-scaled Scalar rsqrt seed and Newton
-  refinement, plus refined Scalar reciprocal. Original34 numerical gates and
-  a same-job mode0 NKI timing control. Inspect completion before launching more.
-- **Next trn21 quality run:** padded optimizer ownership with the wave50 geometry
-  (T2048/pack8/GA2) and clip-after-reduce. It has passed exact CPU/Gloo and native
-  optimizer/cache/restore/schedule gates and the matched full-model phase:
-  **526.782934 vs554.873134ms (5.06245%)**,30timed/5warmups, all four model checks,
-  clean postflight. Control/candidate last loss and six attention-weight norms
-  also match exactly. These checks are not a checksum of every full-model weight.
-  The wrapper flag `--experimental-optimizer-ownership` installs singleton
-  padding. Combine with `--experimental-native-mlp`; do not combine with NKI
-  AdamW yet. Preserve seed42, loader, global batch, scorer and timing hooks.
+- **trn21 active:** `fs-w65-dense1024-native-mlp-pack8-owned-1800-r1`,
+  source5dcbf6a, remote wave65, started21:52:43UTC. Padded optimizer ownership,
+  native-MLP, T2048/pack8/GA2, seed42, clip-after-reduce and131072targets/update.
+  Exact native optimizer/cache/restore/schedule gates and matched full-model
+  phase passed: **526.782934 vs554.873134ms (5.06245%)**,30timed/5warmups,
+  all four model checks and clean postflights. Control/candidate last loss and
+  six attention-weight norms match; this is not a checksum of every weight.
+  No new arithmetic approximations or NKI AdamW combination. Await full quality,
+  preserve checkpoint and compare larger public eval when justified.
+- **Next available host:** `rsqrt_refinement_probe.py` stage diagnostic;
+  `adamw_fused_integration_check.py --math-mode 2` repeated/cache/restore gate;
+  `softcap_ce_parallel_probe.py --real-shape --steps 20` exact loss/gather/core
+  experiment. These source files are prepared locally, not yet hardware-tested.
+  Commit/deploy a new immutable wave before launching. Do not interrupt either
+  training run to run these diagnostics. Source5dcb contains none of these changes.
 - Ownership wave61 failure was batch-one tall Muon numerics, fixed by appending
   an independent zero matrix. Wave62 passed28 exact native records, including
  63extra timing/warmup updates. Full optimizer inclFP32 exchange25.35–25.38ms
@@ -42,7 +44,11 @@ in Git. Do not restart completed experiments from earlier revisions.
   weight at g=-7.8730639785e-9, the same value that exposed the native sqrt error.
   Moments/finite checks pass; no tolerance relaxation. Reciprocal-only mode2
   **passes all34 gates**, functional component1.188021ms vsforeach4.968162ms,
-  but that run lacks a paired mode0 NKI control. No integration/promotion yet.
+  and wave65 adds a paired mode0 NKI control: **1.085410 vs1.304101ms**,16.77%
+  component gain, all34gates pass. No whole-optimizer/step claim or promotion.
+  Wave65 mode4 fails12 large-gradient weights, moments/finite checks pass;
+  one rsqrt Newton step is insufficient there. Preserve failure and diagnose
+  stages across its bounded range; do not loosen thresholds.
 - Wave65 polynomial exp degree5/7 both pass boundary, exp0, repeat and FP64
   accuracy gates. Real8M maxrelative errors1.366e-5/1.183e-7 vsScalar1.134e-5.
   **They lose timing:** .446690/.524650ms vsScalar.125238ms, including HBM.
@@ -55,8 +61,8 @@ in Git. Do not restart completed experiments from earlier revisions.
   local and GitHub-digest-verified. Wave50 completed3183updates/417.2Mtargets,
   1784.7s charged. Its small-public .983219/T2048 is not a larger/private score.
 - Source and receipts are committed regularly; cron pushes canonical research
-  and recovery refs every10minutes. Source commits through92b8ad6 were available
-  by21:40; verify last-success for the latest exact pushed hash. Latest artifact
+  and recovery refs every10minutes. Source commits through5dcbf6a were available
+  by21:50; verify last-success for the latest exact pushed hash. Latest artifact
   cycle21:35:18 verified31/31 assets with zero errors. No automatic host-source
   merges. Latest detached sources differ by host by design.
 - Whole-model MLP fusion variants, standalone branch norms and separate FP8
@@ -115,7 +121,7 @@ Local OS **Devuan/SystemV**. Usercsaba cron, no sudo/root, no systemd:
   recovery branch `backup/fresh-start-20260918`, atomically pushes source+WIP and
   verifies both refs. Skips merge/rebase/cherry-pick/index locks, does not pull,
   merge, force-push or change active HEAD/index. Latest verified source
-  `92b8ad63ee58ea134249a1e7a44122616297f2e8` is the expected21:40 source;
+  `5dcbf6aad2840d96b4620710d8542217b67e0f63` is the verified21:50 source;
   inspect last-success to verify the latest exact hash before reporting it.
 - Minutes5/35: `research/fresh_start_artifact_backup_cron.sh`, own lock, nice10,
   bounded uploader, digest-verified immutable assets in draft release

@@ -12,9 +12,10 @@ import torch
 from adamw_fused_fp32 import build_kernel, scalar_values
 
 
-def make_step(train_module, native):
+def make_step(train_module, native, math_mode=0):
     from torch_neuronx import wrap_nki
 
+    assert math_mode in (0, 2), "only original or component-gated reciprocal refinement"
     kernel = wrap_nki(build_kernel())
 
     @torch.no_grad()
@@ -51,7 +52,7 @@ def make_step(train_module, native):
             device.copy_(host)
             new_p, new_m, new_v = kernel[2](
                 p.view(4096, 2048), g.view(4096, 2048),
-                m.view(4096, 2048), v.view(4096, 2048), device, 2, False)
+                m.view(4096, 2048), v.view(4096, 2048), device, 2, False, math_mode)
             p.copy_(new_p.view_as(p))
             state["exp_avg"] = new_m.view_as(p)
             state["exp_avg_sq"] = new_v.view_as(p)
@@ -60,16 +61,17 @@ def make_step(train_module, native):
     return fused_step
 
 
-def install_optimizer(optimizer, train_module):
+def install_optimizer(optimizer, train_module, math_mode=0):
     """Patch only this instance for isolated native/candidate comparisons."""
     assert "_adamw_step_foreach" not in optimizer.__dict__, "already installed"
     native = type(optimizer)._adamw_step_foreach
-    optimizer._adamw_step_foreach = types.MethodType(make_step(train_module, native), optimizer)
+    optimizer._adamw_step_foreach = types.MethodType(make_step(train_module, native, math_mode), optimizer)
+    optimizer._fresh_start_adamw_math_mode = math_mode
 
 
-def install(train_module):
+def install(train_module, math_mode=0):
     """Patch future and existing instances only in an explicit scratch process."""
     assert not getattr(train_module, "_fresh_start_fused_adamw", False), "already installed"
     native = train_module.MuonAdamW._adamw_step_foreach
-    train_module.MuonAdamW._adamw_step_foreach = make_step(train_module, native)
+    train_module.MuonAdamW._adamw_step_foreach = make_step(train_module, native, math_mode)
     train_module._fresh_start_fused_adamw = True
