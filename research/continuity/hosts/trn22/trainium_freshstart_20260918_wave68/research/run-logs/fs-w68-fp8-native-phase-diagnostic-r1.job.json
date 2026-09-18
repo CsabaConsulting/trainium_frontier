@@ -1,0 +1,49 @@
+{
+  "host": "trn22",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave68",
+  "expected_commit": "4c809fe008dc63367afdc81b7031b2e84e24b868",
+  "label": "fs-w68-fp8-native-phase-diagnostic-r1",
+  "purpose": "Preserve the failed exact native inference/training comparison; expose mismatching dots against FP64, check unchanged native bounds, full independent CPU surrogate gradients and exact paired NKI storage training outputs/gradients. Diagnostic only, no timing or promotion.",
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1",
+    "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+    "NEURON_RT_VISIBLE_CORES": "0"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1500s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "/home/ubuntu/trainium_freshstart_20260918_wave68/research/scratch/fp8_weight_cache_probe.py",
+    "--diagnose-phase-drift"
+  ],
+  "fingerprint_paths": [
+    "research/scratch/fp8_weight_cache_nki.py",
+    "research/scratch/fp8_weight_cache_probe.py",
+    "research/scratch/fresh_start_fp8_probe.py",
+    "research/scratch/mlp_fused_bf16.py",
+    "research/scratch/mlp_fused_bf16_probe.py"
+  ],
+  "started_at": "2026-09-18T22:40:01.641420+00:00",
+  "hostname": "ip-172-31-32-253",
+  "git_commit": "4c809fe008dc63367afdc81b7031b2e84e24b868",
+  "source_dirty": false,
+  "preflight_free_bytes": 17151250432,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+    "research/fresh_start_host.py": "8c597adea7c48114bed8f50aa161fdc79b36b49c86c7315e6a58c3ca4e8f5f79",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/fresh_start_backup.py": "c978fd20b6620d0d80c25f8982974e8c4b2ad009edd9da376d784f5cecc3ead3",
+    "research/scratch/fp8_weight_cache_nki.py": "8b75b2ea70f9fd3206f75c27116b00455b4788c179d1a32d5a98a70851d518c7",
+    "research/scratch/fp8_weight_cache_probe.py": "fcbe763e1b901967f97455c3ca8da14716a503f54328dc7e7a646ef9e6dc75c2",
+    "research/scratch/fresh_start_fp8_probe.py": "2235560590e9f3d07d76e1ee3fb4167bee9f59b75110032a6c3ab8b20d7b41e2",
+    "research/scratch/mlp_fused_bf16.py": "450b5b63c60a6c182a516a5748409426439e6616f8754b76f1b8659a44b00c9b",
+    "research/scratch/mlp_fused_bf16_probe.py": "565991e1fb29dcf41c6db58e098891a5e59685b231d6475bed66e465242483ed"
+  }
+}

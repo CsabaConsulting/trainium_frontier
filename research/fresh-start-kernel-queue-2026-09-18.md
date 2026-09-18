@@ -1,6 +1,6 @@
 # Kernel queue and precision-specific experiments
 
-Updated22:30UTC,2026-09-18. This is the executable/design queue, not a list of
+Updated22:37UTC,2026-09-18. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
@@ -9,9 +9,9 @@ Every device request retains immutable source, cleanup and numerical gates.
 | Item | State | Next action / evidence |
 | --- | --- | --- |
 | T1024/pack16 + original fused AdamW | 3282updates; small public0.992175; checkpoint local and cloud verified | Larger20.97M/T1024/O1 evaluation **0.9974687136975224**, clean; first larger public sub1.0, not private leaderboard |
-| Padded optimizer ownership | Exact optimizer gates;5.06245% matched full-step gain | Full30-minute quality run active on trn21, `fs-w65-dense1024-native-mlp-pack8-owned-1800-r1` |
+| Padded optimizer ownership |3377updates/442.6Mtargets; small public0.979318/T2048,0.992072/T1024; checkpoint local | Matched larger evaluation active on trn21, `fs-w65-eval-owned-pack8-s1024-20m-o1-r1` |
 | Scalar reciprocal + Newton | 34component gates,16.77% component gain; repeated optimizer/cache/restore gate now passes | Optional whole-step combination after the active quality runs; no approximation is in those runs |
-| Scalar rsqrt correction | Seed error/root cause measured, not a NaN | Modes5(two Newton) and6(quadratic correction) implemented locally; commit/deploy, original34gates and paired mode0 timing |
+| Scalar rsqrt correction | Mode5 passes34 gates but loses:1.363799vs1.262366ms; no promotion | Mode6 also passes34 gates but loses1.25%; both closed for this component; mode2 remains faster |
 | Exact CE core/gather changes | One-core mask port exact; two-core arms exact at real shape but fail small general-FP32 stress inputs | Wave66 completed; diagnose loop-length/dtype/stages and add one-core gather; do not promote failed variants |
 | Polynomial exponential | Nine device records pass;3.57–4.19times slower | Closed as a standalone speed replacement; retain the accurate implementation for diagnostics |
 
@@ -77,8 +77,12 @@ The storage-only prototype is implemented in `fp8_weight_cache_nki.py`,
 the calibration-only gate, then full16384x1024x4096 FW/BW. Online calibration,
 FP32 master casts, quantized-cache preparation and two accumulated backward
 calls are charged per timed update. CPU autograd and sampled FP64 GEMMs supply
-independent controls; storage variants must agree exactly. It has no device
-result yet. FP8 GEMM islands remain in design, not submitted jobs.
+independent controls; storage variants must agree exactly. Calibration now
+passes42 exact gates across7 cases. The first small inference comparison also
+passes exact NKI BF16/FP8-storage/native outputs. The full gate stopped on a
+native inference-versus-training output difference of0.0009765625, before
+gradient/timing gates. A diagnostic preserves that failure while checking
+FP64 dot products and both NKI training paths. FP8 GEMM islands remain in design.
 
 ## Additional retro-search ideas retained
 

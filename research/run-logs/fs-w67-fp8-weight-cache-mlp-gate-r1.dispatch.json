@@ -1,0 +1,39 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave67",
+    "expected_commit": "dc2373b6a197cb63ca69328597072254eb6b6cf5",
+    "label": "fs-w67-fp8-weight-cache-mlp-gate-r1",
+    "purpose": "Storage-only FP8 control with BF16 GEMMs and explicit straight-through FP32 master gradients. Exact paired NKI storage outputs/gradients, native/CPU autograd and FP64 stage gates. Charge online calibration, master casts, cache refresh and two accumulated FW/BW calls. No whole-model claim.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "2700s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "/home/ubuntu/trainium_freshstart_20260918_wave67/research/scratch/fp8_weight_cache_probe.py",
+      "--real-shape",
+      "--steps",
+      "10"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/fp8_weight_cache_nki.py",
+      "research/scratch/fp8_weight_cache_probe.py",
+      "research/scratch/fresh_start_fp8_probe.py",
+      "research/scratch/mlp_fused_bf16.py",
+      "research/scratch/mlp_fused_bf16_probe.py"
+    ]
+  },
+  "requested_at": "2026-09-18T22:32:35.878800+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w67-fp8-weight-cache-mlp-gate-r1\", \"pid\": 1506685, \"commit\": \"dc2373b6a197cb63ca69328597072254eb6b6cf5\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave67/research/run-logs/fs-w67-fp8-weight-cache-mlp-gate-r1.log\", \"started_at\": \"2026-09-18T22:32:41.495493+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

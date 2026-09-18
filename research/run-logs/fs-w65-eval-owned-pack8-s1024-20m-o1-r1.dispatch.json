@@ -1,0 +1,41 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave65",
+    "expected_commit": "5dcbf6aad2840d96b4620710d8542217b67e0f63",
+    "label": "fs-w65-eval-owned-pack8-s1024-20m-o1-r1",
+    "purpose": "Matched larger public evaluation of completed padded-ownership quality run. Small-world4/T1024 BPB0.992072. Hold world1/B1/T1024/20,971,520tokens/O1/no-autocast protected scorer geometry, confirm83,462,186bytes. No private leaderboard claim.",
+    "fingerprint_paths": [],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1800s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "prepare.py",
+      "eval-public",
+      "--train-py",
+      "train.py",
+      "--checkpoint",
+      "/home/ubuntu/trainium_freshstart_20260918_wave65/out/fs-w65-dense1024-native-mlp-pack8-owned-1800-r1/final.pt",
+      "--seq-len",
+      "1024",
+      "--eval-tokens",
+      "20971520",
+      "--timeout-seconds",
+      "1200"
+    ]
+  },
+  "requested_at": "2026-09-18T22:33:18.647475+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w65-eval-owned-pack8-s1024-20m-o1-r1\", \"pid\": 1142890, \"commit\": \"5dcbf6aad2840d96b4620710d8542217b67e0f63\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave65/research/run-logs/fs-w65-eval-owned-pack8-s1024-20m-o1-r1.log\", \"started_at\": \"2026-09-18T22:33:25.301280+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

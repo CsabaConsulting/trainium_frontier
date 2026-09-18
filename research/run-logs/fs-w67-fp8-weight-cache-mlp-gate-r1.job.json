@@ -1,0 +1,51 @@
+{
+  "host": "trn22",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave67",
+  "expected_commit": "dc2373b6a197cb63ca69328597072254eb6b6cf5",
+  "label": "fs-w67-fp8-weight-cache-mlp-gate-r1",
+  "purpose": "Storage-only FP8 control with BF16 GEMMs and explicit straight-through FP32 master gradients. Exact paired NKI storage outputs/gradients, native/CPU autograd and FP64 stage gates. Charge online calibration, master casts, cache refresh and two accumulated FW/BW calls. No whole-model claim.",
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1",
+    "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+    "NEURON_RT_VISIBLE_CORES": "0"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "2700s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "/home/ubuntu/trainium_freshstart_20260918_wave67/research/scratch/fp8_weight_cache_probe.py",
+    "--real-shape",
+    "--steps",
+    "10"
+  ],
+  "fingerprint_paths": [
+    "research/scratch/fp8_weight_cache_nki.py",
+    "research/scratch/fp8_weight_cache_probe.py",
+    "research/scratch/fresh_start_fp8_probe.py",
+    "research/scratch/mlp_fused_bf16.py",
+    "research/scratch/mlp_fused_bf16_probe.py"
+  ],
+  "started_at": "2026-09-18T22:32:41.495493+00:00",
+  "hostname": "ip-172-31-32-253",
+  "git_commit": "dc2373b6a197cb63ca69328597072254eb6b6cf5",
+  "source_dirty": false,
+  "preflight_free_bytes": 17244975104,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+    "research/fresh_start_host.py": "8c597adea7c48114bed8f50aa161fdc79b36b49c86c7315e6a58c3ca4e8f5f79",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/fresh_start_backup.py": "c978fd20b6620d0d80c25f8982974e8c4b2ad009edd9da376d784f5cecc3ead3",
+    "research/scratch/fp8_weight_cache_nki.py": "8b75b2ea70f9fd3206f75c27116b00455b4788c179d1a32d5a98a70851d518c7",
+    "research/scratch/fp8_weight_cache_probe.py": "9213d17e1789c049d9c5bae9ffcef002c3ff8b33cf1b9131f56b1c5631bf50bc",
+    "research/scratch/fresh_start_fp8_probe.py": "2235560590e9f3d07d76e1ee3fb4167bee9f59b75110032a6c3ab8b20d7b41e2",
+    "research/scratch/mlp_fused_bf16.py": "450b5b63c60a6c182a516a5748409426439e6616f8754b76f1b8659a44b00c9b",
+    "research/scratch/mlp_fused_bf16_probe.py": "565991e1fb29dcf41c6db58e098891a5e59685b231d6475bed66e465242483ed"
+  }
+}
