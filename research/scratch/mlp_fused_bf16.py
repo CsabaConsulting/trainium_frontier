@@ -28,7 +28,8 @@ def build_kernel():
     def fused_mlp(x, up, down, lanes: int = 2, token_tile: int = 512,
                   contiguous_weights: bool = False, tiled_io: bool = False,
                   transposed_relu: bool = False, grouped_io: bool = False,
-                  weight_mode: int = 0):
+                  weight_mode: int = 0, fp8_weight_cache: bool = False,
+                  up_scales=None, down_scales=None):
         tokens, channels = x.shape
         if weight_mode == 3:
             # Weight cache layout is [contract128, out_blocks, in_blocks,
@@ -50,10 +51,23 @@ def build_kernel():
         if grouped_io:
             assert contiguous_weights and tiled_io and transposed_relu
             assert up.dtype == nl.bfloat16
+        if fp8_weight_cache:
+            # Storage-only FP8 control: retain compressed weights, dequantize
+            # each consumed tile, and keep all matmuls/activations in BF16.
+            # Callers supply calibrated, quantized BF16 weights also used by
+            # backward; cache preparation must be charged separately.
+            assert grouped_io and weight_mode == 0
+            assert up_scales.shape == (128, 3) and down_scales.shape == (128, 3)
+            up_meta = nl.ndarray((128, 3), dtype=nl.float32, buffer=nl.sbuf)
+            down_meta = nl.ndarray((128, 3), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.dma_copy(dst=up_meta, src=up_scales)
+            nisa.dma_copy(dst=down_meta, src=down_scales)
+        cache_dtype = nl.float8_e4m3 if fp8_weight_cache else nl.bfloat16
         nc, nh = channels // 128, hidden // 128
         # Capacity estimate excludes allocator overhead/spills, which must be
         # checked in the actual profile. Reserve two MiB beyond live caches.
-        live_bytes = 4 * channels * hidden + 2 * (channels + hidden) * token_tile
+        weight_bytes = 2 if fp8_weight_cache else 4
+        live_bytes = weight_bytes * channels * hidden + 2 * (channels + hidden) * token_tile
         if weight_mode:
             live_bytes = 2 * (channels + hidden) * token_tile + 4 * 128 * (channels + hidden)
             if weight_mode == 1:
@@ -68,9 +82,9 @@ def build_kernel():
         saved_shape = (hidden, tokens) if transposed_relu else (tokens, hidden)
         saved_relu = nl.ndarray(saved_shape, dtype=nl.bfloat16, buffer=nl.shared_hbm)
         if weight_mode < 2:
-            up_cache = nl.ndarray((128, nh, nc, 128), dtype=nl.bfloat16, buffer=nl.sbuf)
+            up_cache = nl.ndarray((128, nh, nc, 128), dtype=cache_dtype, buffer=nl.sbuf)
         if weight_mode == 0:
-            down_cache = nl.ndarray((128, nc, nh, 128), dtype=nl.bfloat16, buffer=nl.sbuf)
+            down_cache = nl.ndarray((128, nc, nh, 128), dtype=cache_dtype, buffer=nl.sbuf)
         if grouped_io:
             if weight_mode < 2:
                 for hi in nl.affine_range(nh):
@@ -79,7 +93,11 @@ def build_kernel():
                     for ci in nl.affine_range(nc):
                         up_t = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.psum)
                         nisa.nc_transpose(dst=up_t, data=up_rows[:, ci * 128:(ci + 1) * 128])
-                        nisa.tensor_copy(dst=up_cache[:, hi, ci, :], src=up_t)
+                        if fp8_weight_cache:
+                            nisa.tensor_scalar(dst=up_cache[:, hi, ci, :], data=up_t,
+                                               op0=nl.multiply, operand0=up_meta[:, 0:1])
+                        else:
+                            nisa.tensor_copy(dst=up_cache[:, hi, ci, :], src=up_t)
             if weight_mode == 0:
                 for ci in nl.affine_range(nc):
                     down_rows = nl.ndarray((128, hidden), dtype=nl.bfloat16, buffer=nl.sbuf)
@@ -87,7 +105,11 @@ def build_kernel():
                     for hi in nl.affine_range(nh):
                         down_t = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.psum)
                         nisa.nc_transpose(dst=down_t, data=down_rows[:, hi * 128:(hi + 1) * 128])
-                        nisa.tensor_copy(dst=down_cache[:, ci, hi, :], src=down_t)
+                        if fp8_weight_cache:
+                            nisa.tensor_scalar(dst=down_cache[:, ci, hi, :], data=down_t,
+                                               op0=nl.multiply, operand0=down_meta[:, 0:1])
+                        else:
+                            nisa.tensor_copy(dst=down_cache[:, ci, hi, :], src=down_t)
         if not grouped_io:
             for hi in nl.affine_range(nh):
                 for ci in nl.affine_range(nc):
@@ -173,8 +195,15 @@ def build_kernel():
                         nisa.nc_matmul(dst=up_acc, stationary=up_block[:, ci, :],
                                        moving=inputs[:, ci, :], accumulate=(ci > 0))
                     else:
-                        nisa.nc_matmul(dst=up_acc, stationary=up_cache[:, hi, ci, :],
-                                       moving=inputs[:, ci, :], accumulate=(ci > 0))
+                        if fp8_weight_cache:
+                            up_dequantized = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.sbuf)
+                            nisa.tensor_scalar(dst=up_dequantized, data=up_cache[:, hi, ci, :],
+                                               op0=nl.multiply, operand0=up_meta[:, 1:2])
+                            nisa.nc_matmul(dst=up_acc, stationary=up_dequantized,
+                                           moving=inputs[:, ci, :], accumulate=(ci > 0))
+                        else:
+                            nisa.nc_matmul(dst=up_acc, stationary=up_cache[:, hi, ci, :],
+                                           moving=inputs[:, ci, :], accumulate=(ci > 0))
                 rounded = nl.ndarray((128, token_tile), dtype=nl.bfloat16, buffer=nl.sbuf)
                 relu = nl.ndarray((128, token_tile), dtype=nl.bfloat16, buffer=nl.sbuf)
                 nisa.tensor_copy(dst=rounded, src=up_acc)
@@ -220,8 +249,15 @@ def build_kernel():
                         nisa.nc_matmul(dst=down_acc, stationary=down_block[:, hi, :],
                                        moving=activated[:, hi, :], accumulate=(hi > 0))
                     else:
-                        nisa.nc_matmul(dst=down_acc, stationary=down_cache[:, ci, hi, :],
-                                       moving=activated[:, hi, :], accumulate=(hi > 0))
+                        if fp8_weight_cache:
+                            down_dequantized = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.sbuf)
+                            nisa.tensor_scalar(dst=down_dequantized, data=down_cache[:, ci, hi, :],
+                                               op0=nl.multiply, operand0=down_meta[:, 1:2])
+                            nisa.nc_matmul(dst=down_acc, stationary=down_dequantized,
+                                           moving=activated[:, hi, :], accumulate=(hi > 0))
+                        else:
+                            nisa.nc_matmul(dst=down_acc, stationary=down_cache[:, ci, hi, :],
+                                           moving=activated[:, hi, :], accumulate=(hi > 0))
                 output = nl.ndarray((128, token_tile), dtype=nl.bfloat16, buffer=nl.sbuf)
                 nisa.tensor_copy(dst=output, src=down_acc)
                 if grouped_io:

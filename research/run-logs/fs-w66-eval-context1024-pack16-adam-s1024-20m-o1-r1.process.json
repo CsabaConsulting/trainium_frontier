@@ -1,0 +1,26 @@
+{
+  "label": "fs-w66-eval-context1024-pack16-adam-s1024-20m-o1-r1",
+  "guard_pid": 1499886,
+  "child_pid": 1499887,
+  "child_session": 1499887,
+  "started_at": "2026-09-18T22:12:03.211569+00:00",
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1800s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "prepare.py",
+    "eval-public",
+    "--train-py",
+    "train.py",
+    "--checkpoint",
+    "/home/ubuntu/trainium_freshstart_20260918_wave63/out/fs-w63-dense1024-native-mlp-context1024-pack16-adam-1800-r1/final.pt",
+    "--seq-len",
+    "1024",
+    "--eval-tokens",
+    "20971520",
+    "--timeout-seconds",
+    "1200"
+  ]
+}

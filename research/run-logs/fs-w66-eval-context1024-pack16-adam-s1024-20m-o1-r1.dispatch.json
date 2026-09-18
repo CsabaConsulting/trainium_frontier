@@ -1,0 +1,41 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave66",
+    "expected_commit": "a1625d936b8650e8ec61e4c13d303a9af7d4085d",
+    "label": "fs-w66-eval-context1024-pack16-adam-s1024-20m-o1-r1",
+    "purpose": "Matched larger public evaluation of completed3282-update T1024pack16+original fused AdamW quality checkpoint. Small4rank/T1024 BPB0.992175 improves on baseline0.995565. Hold world1/B1/T1024/20,971,520tokens/O1/no-autocast scorer geometry and protected prepare/train unchanged; confirm byte count83,462,186. No private/leaderboard claim.",
+    "fingerprint_paths": [],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1800s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "prepare.py",
+      "eval-public",
+      "--train-py",
+      "train.py",
+      "--checkpoint",
+      "/home/ubuntu/trainium_freshstart_20260918_wave63/out/fs-w63-dense1024-native-mlp-context1024-pack16-adam-1800-r1/final.pt",
+      "--seq-len",
+      "1024",
+      "--eval-tokens",
+      "20971520",
+      "--timeout-seconds",
+      "1200"
+    ]
+  },
+  "requested_at": "2026-09-18T22:11:56.963189+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w66-eval-context1024-pack16-adam-s1024-20m-o1-r1\", \"pid\": 1499886, \"commit\": \"a1625d936b8650e8ec61e4c13d303a9af7d4085d\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave66/research/run-logs/fs-w66-eval-context1024-pack16-adam-s1024-20m-o1-r1.log\", \"started_at\": \"2026-09-18T22:12:03.183141+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

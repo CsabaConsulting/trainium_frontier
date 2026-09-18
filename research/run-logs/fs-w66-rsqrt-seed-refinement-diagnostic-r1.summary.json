@@ -1,0 +1,221 @@
+{
+  "label": "fs-w66-rsqrt-seed-refinement-diagnostic-r1",
+  "source_commit": "a1625d936b8650e8ec61e4c13d303a9af7d4085d",
+  "records": {
+    "RSQRT_STAGE_ACCURACY": [
+      {
+        "stage": "scaled_scalar_seed",
+        "count": 786432,
+        "finite_count": 786432,
+        "positive_count": 786432,
+        "max_relative_error": 0.0031982445782854363,
+        "relative_rms": 0.0003796776061563881,
+        "worst": {
+          "variance": 167772160.0,
+          "scaled_argument": 7.205759403792794e+17,
+          "actual": 7.695712702115998e-05,
+          "expected": 7.720404443770458e-05
+        },
+        "numerical_range_diagnostic": true,
+        "production_timing": false
+      },
+      {
+        "stage": "one_newton",
+        "count": 786432,
+        "finite_count": 786432,
+        "positive_count": 786432,
+        "max_relative_error": 1.5274123159714215e-05,
+        "relative_rms": 4.5035238740531536e-07,
+        "worst": {
+          "variance": 167772160.0,
+          "scaled_argument": 7.205759403792794e+17,
+          "actual": 7.720286521362141e-05,
+          "expected": 7.720404443770458e-05
+        },
+        "numerical_range_diagnostic": true,
+        "production_timing": false
+      },
+      {
+        "stage": "two_newton",
+        "count": 786432,
+        "finite_count": 786432,
+        "positive_count": 786432,
+        "max_relative_error": 1.3826867051314196e-07,
+        "relative_rms": 4.123481656549573e-08,
+        "worst": {
+          "variance": 52658176.0,
+          "scaled_argument": 2.261651437870121e+17,
+          "actual": 0.00013780569133814424,
+          "expected": 0.00013780567228393714
+        },
+        "numerical_range_diagnostic": true,
+        "production_timing": false
+      },
+      {
+        "stage": "gpsimd_rsqrt",
+        "count": 786432,
+        "finite_count": 786432,
+        "positive_count": 786432,
+        "max_relative_error": 7.408326119229258e-08,
+        "relative_rms": 2.7273703659581444e-08,
+        "worst": {
+          "variance": 4.7807355247942433e-35,
+          "scaled_argument": 2.0533102729816672e-25,
+          "actual": 1.44628075890475e+17,
+          "expected": 1.4462808660499533e+17
+        },
+        "numerical_range_diagnostic": true,
+        "production_timing": false
+      },
+      {
+        "stage": "scalar_sqrt",
+        "count": 786432,
+        "finite_count": 786432,
+        "positive_count": 786432,
+        "max_relative_error": 0.006230592727661133,
+        "relative_rms": 2.970182134012712e-06,
+        "worst": {
+          "variance": 1.2037062152420224e-35,
+          "scaled_argument": 5.169878828456423e-26,
+          "actual": 3.4910636629014625e-18,
+          "expected": 3.469446951953614e-18
+        },
+        "numerical_range_diagnostic": true,
+        "production_timing": false
+      }
+    ],
+    "RSQRT_NEWTON_ARITHMETIC": [
+      {
+        "max_relative_difference_from_fp64_recurrence": 1.5031017753445607e-07,
+        "fp64_recurrence_max_relative_error": 1.5326795522296877e-05,
+        "purpose": "separate initial estimate error from correction arithmetic"
+      }
+    ],
+    "RSQRT_POINT": [
+      {
+        "name": "small_first_step_variance_cpu_fp32",
+        "variance": 6.198513654368575e-17,
+        "scaled_argument": 2.662241342932248e-07,
+        "fp64_rsqrt": 127015352.80913061,
+        "fp64_sqrt": 7.87306398701838e-09,
+        "scaled_scalar_seed": 127015352.0,
+        "seed_squared": 1.6132900038639616e+16,
+        "variance_times_seed_squared": 1.0,
+        "one_newton": 127015352.0,
+        "two_newton": 127015352.0,
+        "gpsimd_rsqrt": 127015352.0,
+        "scalar_sqrt": 7.873002694225306e-09
+      },
+      {
+        "name": "large_failure_variance_cpu_fp32",
+        "variance": 2098635.5,
+        "scaled_argument": 9013570838724608.0,
+        "fp64_rsqrt": 0.0006902898578098487,
+        "fp64_sqrt": 1448.6668008897009,
+        "scaled_scalar_seed": 0.0006884328322485089,
+        "seed_squared": 4.739397638786613e-07,
+        "variance_times_seed_squared": 0.9946268200874329,
+        "one_newton": 0.0006902823806740344,
+        "two_newton": 0.0006902898894622922,
+        "gpsimd_rsqrt": 0.0006902898312546313,
+        "scalar_sqrt": 1448.66748046875
+      },
+      {
+        "name": "contract_lower_endpoint",
+        "variance": 1.2037062152420224e-35,
+        "scaled_argument": 5.169878828456423e-26,
+        "fp64_rsqrt": 2.8823037615171174e+17,
+        "fp64_sqrt": 3.469446951953614e-18,
+        "scaled_scalar_seed": 2.8784879407726592e+17,
+        "seed_squared": 8.285692624790126e+34,
+        "variance_times_seed_squared": 0.9973539710044861,
+        "one_newton": 2.8822962023746765e+17,
+        "two_newton": 2.8823037615171174e+17,
+        "gpsimd_rsqrt": 2.8823037615171174e+17,
+        "scalar_sqrt": 3.4910636629014625e-18
+      },
+      {
+        "name": "contract_upper_endpoint",
+        "variance": 1.8446744073709552e+19,
+        "scaled_argument": 7.922816251426434e+28,
+        "fp64_rsqrt": 2.3283064365386963e-10,
+        "fp64_sqrt": 4294967296.0,
+        "scaled_scalar_seed": 2.3270010918174933e-10,
+        "seed_squared": 5.4149339929820984e-20,
+        "variance_times_seed_squared": 0.9988790154457092,
+        "one_newton": 2.3283054650935497e-10,
+        "two_newton": 2.3283064365386963e-10,
+        "gpsimd_rsqrt": 2.3283064365386963e-10,
+        "scalar_sqrt": 4295387136.0
+      },
+      {
+        "name": "unit_variance",
+        "variance": 1.0,
+        "scaled_argument": 4294967296.0,
+        "fp64_rsqrt": 1.0,
+        "fp64_sqrt": 1.0,
+        "scaled_scalar_seed": 0.9999563694000244,
+        "seed_squared": 0.9999127388000488,
+        "variance_times_seed_squared": 0.9999127388000488,
+        "one_newton": 1.0,
+        "two_newton": 1.0,
+        "gpsimd_rsqrt": 1.0,
+        "scalar_sqrt": 1.000006914138794
+      },
+      {
+        "name": "worst_scaled_scalar_seed",
+        "variance": 167772160.0,
+        "scaled_argument": 7.205759403792794e+17,
+        "fp64_rsqrt": 7.720404443770458e-05,
+        "fp64_sqrt": 12952.689296049683,
+        "scaled_scalar_seed": 7.695712702115998e-05,
+        "seed_squared": 5.922399459734606e-09,
+        "variance_times_seed_squared": 0.9936137199401855,
+        "one_newton": 7.720286521362141e-05,
+        "two_newton": 7.72040439187549e-05,
+        "gpsimd_rsqrt": 7.72040439187549e-05,
+        "scalar_sqrt": 12952.6923828125
+      },
+      {
+        "name": "worst_one_newton",
+        "variance": 167772160.0,
+        "scaled_argument": 7.205759403792794e+17,
+        "fp64_rsqrt": 7.720404443770458e-05,
+        "fp64_sqrt": 12952.689296049683,
+        "scaled_scalar_seed": 7.695712702115998e-05,
+        "seed_squared": 5.922399459734606e-09,
+        "variance_times_seed_squared": 0.9936137199401855,
+        "one_newton": 7.720286521362141e-05,
+        "two_newton": 7.72040439187549e-05,
+        "gpsimd_rsqrt": 7.72040439187549e-05,
+        "scalar_sqrt": 12952.6923828125
+      },
+      {
+        "name": "worst_two_newton",
+        "variance": 52658176.0,
+        "scaled_argument": 2.261651437870121e+17,
+        "fp64_rsqrt": 0.00013780567228393714,
+        "fp64_sqrt": 7256.595344925883,
+        "scaled_scalar_seed": 0.00013773280079476535,
+        "seed_squared": 1.897032397835119e-08,
+        "variance_times_seed_squared": 0.9989426732063293,
+        "one_newton": 0.0001378056185785681,
+        "two_newton": 0.00013780569133814424,
+        "gpsimd_rsqrt": 0.00013780567678622901,
+        "scalar_sqrt": 7256.59521484375
+      }
+    ],
+    "RSQRT_DIAGNOSTIC_DONE": [
+      {
+        "repeated_exact": true,
+        "input_unchanged": true,
+        "training_changed": false,
+        "timed": false
+      }
+    ]
+  },
+  "command_returncode": 0,
+  "host_clean": true,
+  "cause": "The Scalar rsqrt seed has up to0.00319824 relative error on the sampled range. One exact Newton recurrence itself retains1.53268e-5 error; measured correction arithmetic differs by at most1.50310e-7. This explains the large-gradient AdamW failure without invoking a NaN, moment-update bug or tolerance change.",
+  "decision": "Test two Newton steps and a quadratic inverse-sqrt correction inside the unchanged AdamW gate. Diagnostic HBM stages are not a performance measurement."
+}
