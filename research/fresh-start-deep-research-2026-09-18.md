@@ -1,48 +1,45 @@
 # Fresh-start synthesis: repeatable gains toward a competitive BPB
 
-**Current evidence, 2026-09-18 15:08 UTC.** Competitive target remains roughly
-**0.9749 BPB**, with margin for leaderboard movement. Best larger public result
-is **1.001551299**, from dense6×1024 without hashed n-grams, custom NKI two-tap
-convolution, BF16 normalized branch inputs with FP32 residuals, and clipping
-after gradient averaging. It completes3,005 updates/393.87M target presentations
-within the30-minute allowance. The single predeclared seed43 repeat is complete,
-locally hash-preserved, and worse on the smaller public diagnostic with46fewer
-updates on the other host. It is a variability check, not seed selection.
+**Current evidence, 2026-09-18 21:12 UTC.** Working competitive target remains
+roughly0.9749 BPB. The best matched larger public result is **1.001017243**,
+from dense6×1024 without hashed n-grams. NKI causal convolution, BF16 normalized
+branch inputs with FP32 residuals, native-forward/custom-backward MLP, pack8 and
+clipping after gradient averaging complete3,183updates/417.2Mtarget presentations
+within the30-minute allowance. The earlier3,005-update model scores1.001551299.
+The difference is small; increased throughput alone has not closed the gap.
 
-The successful NKI convolution/normalization path already improved the same
-dense model from1,805 to2,977 budgeted updates before the clipping-order run.
-This is evidence that kernel work can improve final learning, not a claim that
-all custom kernels beat the native compiler. Six layers currently beat the
-full-budget eight-layer control. Other batch geometry and isolated FP8 projection
-probes failed their advancement gates after charging layouts and casts.
+The largest demonstrated improvements came from diagnosing actual execution
+and precision boundaries. Replacing every operator with a handwritten kernel
+has not paid off: several correct fused MLP implementations spill or integrate
+poorly, and standalone NKI normalization remains slower after two improvements.
+FP8 projection gains disappear when conversion/layout costs are charged. These
+are specific negatives, not proof against larger fused islands or better kernels.
 
-**Current kernel frontier:** the ordinary embedding backward now has a correct
-three-kernel NKI implementation: stable-ID permutation, resetting FP32 scan, and
-dense gradient expansion. The tiled-DMA revision passes every staged/compiled
-numerical check and reduces a real-row component from3.133ms to0.856ms prepared,
-or1.303ms including metadata creation/upload. Input-ID D2H and four-table shared
-metadata must still be charged in a whole-model gate. This is the first candidate
-from that investigation with a substantial component advantage. The prior local
-gather corruption was narrowed to output width/address-sensitive behavior;
-512-output gathers repair correctness but that scan variant stays too slow.
-A failed compiler/kernel attempt is therefore not treated as a closed algorithm.
+A newly measured opening is redundant optimizer computation. The existing
+replicated optimizer takes55.6ms/558.6ms per step. Exact FP32 weight exchange,
+including packing and copyback, costs6.4ms. Whole-matrix ownership is exact on
+CPU; hardware agrees everywhere except two singleton tall Muon batches. A
+zero-matrix padding experiment tests whether the already matching batch-two
+path preserves all original updates. Exact checks remain; ownership is not yet
+a training or speed result. See the optimizer-ownership and AdamW-rounding notes.
 
-The fused BF16 MLP now preserves HxT ReLU through backward: real-shape complete
-forward/backward3.961ms versus native4.243ms, with forward and gradient gates
-passing. FP32 master weights, differentiable BF16 cache refresh, accumulation
-and ordinary evaluation/checkpoint behavior are being tested on hardware before
-full-chip timing. These component results have **no new BPB claim**. Both hosts
-use automatic preflight, ownership-scoped cleanup, postflight, immutable commits
-and live local log preservation. Heavy artifacts have independent SHA256 receipts.
+Fused FP32 AdamW now passes repeated updates, cache and checkpoint integration.
+Its isolated-table saving69.3% becomes only1.2% in the complete model, below the
+training threshold alone. The next batch-layout probe usesT1024/pack16 to keep
+microstep tokens and loader reads fixed while reducing attention context cost.
+This intentionally changes learned context boundaries, so quality cannot be
+inferred from speed or from a smaller validation prefix.
 
-The public scorer, tokenizer and loader are unchanged and freshly match the
-organizer's authenticated repository. The larger comparison uses20,971,520public
-tokens at B1/T1024 and scores83,462,186bytes; the private pinned data is disjoint
-and unavailable. Smaller four-rank/T2048 sub-1.0 diagnostics do not establish a
-private leaderboard score. There is no verified evidence of the leaders' kernel
-or architecture choices. See the current [results ledger](fresh-start-results-2026-09-18.md),
+The public scorer, tokenizer and loader remain unchanged and match the
+organizer's authenticated repository. Matched larger evaluation uses20,971,520
+public tokens at B1/T1024, scoring83,462,186bytes. Private data is disjoint and
+unavailable. No verified evidence establishes the leaders' kernel or architecture
+choices. Every job has guarded pre/postflight and source provenance; checkpoints,
+profiles, failures and restart notes are preserved locally and on GitHub.
+
+See the current [results ledger](fresh-start-results-2026-09-18.md),
 [execution plan](fresh-start-plan-2026-09-18.md), and
-[audited primary-source kernel research](fresh-start-kernel-primary-research-2026-09-18.md).
+[primary-source kernel research](fresh-start-kernel-primary-research-2026-09-18.md).
 
 The sections below retain the initial audit and its supporting reasoning; their
 historical reference configuration is not the current dense best. Each proposed

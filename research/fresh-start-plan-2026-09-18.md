@@ -1,47 +1,43 @@
 # Fresh-start campaign — 2026-09-18
 
-**Current status,19:53UTC.** Minimize official30-minute BPB on a full Trainium2
-chip. Working competitive target approximately0.9749; best larger public
-check remains **1.0015512989000874**,20,971,520tokens/B1/T1024. This is a different
-dataset from the private leaderboard. Reference dense6x1024,117.45Mparameters,
-no hashed n-grams, NKI causal convolution and BF16 normalization outputs.
-No seed sweep; no new full-budget training result since the preserved wave16
-3,005-update checkpoint.
+**Current status, 21:12 UTC.** Minimize official30-minute BPB on a full Trainium2
+chip. Working competitive target approximately0.9749; best larger public check
+is **1.0010172426032236**, 20,971,520tokens/B1/T1024. The private dataset differs.
+Dense6×1024 without hashed n-grams now completes3,183updates/417.2Mtargets using
+NKI causal convolution, BF16 normalized branches, native-forward/custom-backward
+MLP and pack8. Its small public gain over the3,005-update reference is measured;
+its checkpoint is local and cloud-digest-verified. No seed sweep.
 
-Every device job has an immutable source/environment manifest, host-wide lock,
-bounded command, owned-process cleanup and automatic pre/postflight. Source and
-logs are pushed every10minutes through a separate-index recovery path; heavy
-artifacts have verified GitHub draft-release receipts. The19:40 source and
-recovery refs are verified. See `RESUME.md` for actual running jobs.
+Every device job uses immutable source, a host-wide lock, bounded command,
+owned-process cleanup and automatic pre/postflight. Source and logs are pushed
+through a separate-index recovery path; all31 heavy artifacts have verified
+GitHub draft-release receipts. Source458d1f8 and its recovery snapshot were
+verified at21:06. See RESUME.md for exact jobs and newer backup receipts.
 
 Current priorities:
 
-1. Gate the native-forward/custom-backward MLP atB8/T2048 before a full-budget
-   quality test. The complete-step phase is559.975ms versus the predeclared
-   native588.186ms reference, a4.796% saving with the same global token batch.
-   Compilation/cache costs and all four model postchecks are included. The
-   larger packing bin changes data ordering; speed alone establishes no BPB win.
-2. Test an NKI branch RMSNorm that preserves the already validated precision
-   policy: FP32 statistics/input gradients, BF16 branch outputs. Require analytic
-   numerical and token-independence gates and a20% component saving before
-   full-model measurement. Analyze the newly captured full-step runtime trace
-   to target optimizer/dispatch cost. No speculative full-operator rewrite.
-3. Retain the MLP integration findings: explicit SBUF705.225ms, one-layer-only
-   packed814.094ms, separated packed688.923ms, and separated native700.450ms
-   all lose. The failed numerical comparison was compiled versus eager after
-   an execution-path change in the harness; isolated-process checks pass the
-   original bounds. Smaller buffers or a compiler boundary alone do not repair
-   the full-model cost. The precise allocation cause remains unresolved.
-4. Preserve the NKI convolution/BF16 normalization reference. Embedding DMA
-   wins its component but only1.42% in the full model; its two-kernel follow-up
-   provides no component advantage. Do not spend a training run on either.
-   FP8 remains open only as an end-to-end island with casts, layout preparation,
-   backward and cache refresh charged. Separate projection probes already lost.
+1. Complete optimizer-ownership gates. FP32 pack/gather/copyback costs6.40ms,
+   much less than the55.61ms replicated optimizer phase. CPU source equivalence
+   is exact; native singleton tall Muon groups differ while batch-two groups
+   match. Pad singletons with independent zero matrices, retain exact checks,
+   and measure all added compute/communication before a full-model test.
+2. Keep the fused FP32 AdamW component optional. It passes independent moments,
+   conditional weight arithmetic, trajectory, cache and state-restoration gates.
+   Its full-step benefit is1.205%, below the3% training threshold by itself.
+   Its corrected rounding contract and preserved failures are documented.
+3. Test T1024/pack16 at the same16384tokens/rank/microstep and GA2 as the current
+   T2048/pack8 model. Earlier T1024/pack8 paid for GA4. Any speed win must then
+   survive quality testing; context boundaries change even though loader reads
+   and global token batch remain the same.
+4. Stop advancing isolated kernels that fail complete-step gates. The packed/
+   streaming MLP variants, standalone normalization and embedding paths retain
+   useful diagnostics but have no new quality claim. FP8 remains a moonshot
+   requiring a complete forward/backward island with layout/cast costs charged.
 
 Require numerical gates and at least3% complete-step improvement before a
-30-minute quality comparison. Then use the unchanged larger public scorer at
-identical geometry. Private validation is inaccessible; no leaderboard claim
-follows from a small public prefix. Full historical evidence follows below.
+30-minute quality comparison. Evaluate with the unchanged larger public scorer
+at identical geometry. Private validation is inaccessible. Kernel work that
+changes rounding must disclose and test it, not relabel a failed comparison.
 
 The live hypotheses, failures and advancement decisions are recorded in
 [fresh-start-results-2026-09-18.md](fresh-start-results-2026-09-18.md). The broader

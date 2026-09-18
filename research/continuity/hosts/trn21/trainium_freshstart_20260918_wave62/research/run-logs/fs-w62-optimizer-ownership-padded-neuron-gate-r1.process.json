@@ -1,0 +1,22 @@
+{
+  "label": "fs-w62-optimizer-ownership-padded-neuron-gate-r1",
+  "guard_pid": 1087329,
+  "child_pid": 1087330,
+  "child_session": 1087330,
+  "started_at": "2026-09-18T21:15:21.221005+00:00",
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1500s",
+    "/home/ubuntu/workspace/native_venv/bin/torchrun",
+    "--standalone",
+    "--nproc_per_node=4",
+    "/home/ubuntu/trainium_freshstart_20260918_wave62/research/scratch/optimizer_ownership_check.py",
+    "--device",
+    "neuron",
+    "--real-shape",
+    "--steps",
+    "20",
+    "--pad-singleton-muon"
+  ]
+}

@@ -47,21 +47,32 @@ def make_plan(groups, world_size):
 
 
 class OwnedOptimizer:
-    def __init__(self, optimizer):
+    def __init__(self, optimizer, pad_singleton_muon=False):
         if not dist.is_initialized():
             raise ValueError("optimizer ownership requires an initialized process group")
         if optimizer.state:
             raise ValueError("install ownership before the first update; use its checkpoint loader to resume")
         self.optimizer = optimizer
+        self.pad_singleton_muon = bool(pad_singleton_muon)
         self.rank, self.world_size = dist.get_rank(), dist.get_world_size()
         self.entries, self.parameters, self.summary = make_plan(optimizer.param_groups, self.world_size)
         self.parameter_ids = [id(p) for p in self.parameters]
-        self.groups, self.positions = [], []
+        self.groups, self.positions, self.padding = [], [], {}
         for group_index, source in enumerate(optimizer.param_groups):
             positions = [e["position"] for e in self.entries
                          if e["group"] == group_index and e["owner"] == self.rank]
             self.positions.append(positions)
             self.groups.append({**source, "params": [source["params"][i] for i in positions]})
+            if self.pad_singleton_muon and source["kind"] == "muon" and len(positions) == 1:
+                # Native batch-one tall Muon differs from batches two/six on
+                # this stack. The original math is per matrix; a zero dummy
+                # keeps the real matrix on the already matching batched path.
+                # It is never exchanged, trained by the model or serialized as
+                # a model Parameter. Its grouped moment rows remain explicit.
+                dummy = torch.nn.Parameter(torch.zeros_like(self.groups[-1]["params"][0]))
+                dummy.grad = torch.zeros_like(dummy)
+                self.groups[-1]["params"].append(dummy)
+                self.padding[group_index] = dummy
         device = self.parameters[0].device
         if any(p.device != device for p in self.parameters):
             raise ValueError("all Parameters must share a device")
@@ -110,24 +121,26 @@ class OwnedOptimizer:
                                  if name not in ("stacked_params", "stacked_grads")}
                           for key, fields in state["state"].items()}
         return dict(schema="fresh-start-owned-optimizer-v1", rank=self.rank,
-                    world_size=self.world_size, entries=self.entries, optimizer=state)
+                    world_size=self.world_size, entries=self.entries,
+                    pad_singleton_muon=self.pad_singleton_muon, optimizer=state)
 
     def load_state_dict(self, payload):
         if (payload.get("schema") != "fresh-start-owned-optimizer-v1"
                 or payload.get("rank") != self.rank
                 or payload.get("world_size") != self.world_size
+                or payload.get("pad_singleton_muon") != self.pad_singleton_muon
                 or payload.get("entries") != self.entries):
             raise ValueError("optimizer checkpoint ownership/schema mismatch")
         self.raw_load_state_dict(payload["optimizer"])
         self.optimizer._scalar_cache.clear()
 
 
-def install_optimizer(optimizer, train_module):
+def install_optimizer(optimizer, train_module, pad_singleton_muon=False):
     if not train_module.USE_FOREACH_OPTIM or not train_module.USE_TENSOR_LR_SCALARS:
         raise ValueError("ownership gate requires the current foreach/runtime-scalar policy")
     if hasattr(optimizer, "_fresh_start_owned"):
         raise ValueError("ownership already installed")
-    adapter = OwnedOptimizer(optimizer)
+    adapter = OwnedOptimizer(optimizer, pad_singleton_muon=pad_singleton_muon)
     optimizer._fresh_start_owned = adapter
     optimizer.step = MethodType(lambda self, update_adamw=True: adapter.step(update_adamw), optimizer)
     optimizer.state_dict = MethodType(lambda self: adapter.state_dict(), optimizer)

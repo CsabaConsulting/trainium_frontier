@@ -4,15 +4,22 @@ This ledger separates full training, standalone evaluation, numerical tests and
 microbenchmarks. A successful process is not automatically a promoted model.
 Public diagnostics do not establish a private competition score.
 
-**Larger-sample result, 13:35 UTC:** the optimized dense6×1024 checkpoint,
-without hashed n-gram tables and clipping after gradient averaging, scores
-**1.0015512989000874 BPB** at context1024 on20,971,520 public tokens. The earlier
-clipping-before dense reference scores1.0020666867349943; the difference is
--0.0005153878349069, with28 more budgeted updates and the same training seed42.
-This remains above1.0 and does not establish an independent-seed algorithmic
-advantage. The best similarly evaluated width896 table model scores
-1.004452861885313. Prefer the larger fixed-sample results over the small-prefix
-diagnostics. One predeclared seed43 repeat is running, not a seed sweep.
+**Current larger public result, 21:12 UTC:** **1.0010172426032236 BPB**, from the
+native-forward/custom-backward MLP with pack8, dense6×1024, no hashed n-grams,
+NKI causal convolution, BF16 branch normalization and clipping after gradient
+averaging. The 30-minute run completed 3,183 updates and 417.2M target
+presentations. Its matched evaluation uses 20,971,520 tokens, B1/T1024 and
+83,462,186 bytes, versus 1.0015512989000874 for the prior 3,005-update model.
+The checkpoint is local and GitHub-digest-verified. This is a small public gain,
+not sub1.0 or a private-leaderboard score. The predeclared seed43 variability
+check finished worse; no seed sweep is active.
+
+Fused FP32 AdamW passes its corrected stage/integration gates but saves only
+1.205% of the whole step (551.895 versus 558.627ms), below the training gate.
+Optimizer ownership passes exact CPU equivalence and cheap native exchange;
+real hardware finds a batch-one Muon numerical difference. Zero padding that
+singleton batch is the next exact-equivalence test. A separate T1024/pack16
+phase keeps tokens per microstep fixed to investigate attention layout cost.
 
 ## First completed training wave
 
@@ -1765,3 +1772,32 @@ patterns, tiny collective and repeated-call checks. Worst rank median is
 optimizer or training gain. Wave61 implements whole-matrix owner updates and
 requires exact CPU/Gloo equivalence, then exact real-shape native equivalence
 before benchmarking the full optimizer. Full gradient reduction is unchanged.
+
+## 21:12 UTC — full-step AdamW result and singleton Muon diagnosis
+
+Wave60 fused AdamW completes 30 timed steps/5 warmups at **551.895444ms**
+median versus the predeclared same-host558.627329ms control: **1.205076%**
+whole-step reduction. Optimizer55.612527→48.112483ms; microsteps stay
+474.322530→474.173319ms. Exactly175 table updates were executed, all four
+model postchecks passed, and postflight is clean. Keep the optional component,
+but do not claim the69% isolated-table result transfers to the whole optimizer
+or spend a30-minute quality run on this alone.
+
+Wave61 ownership CPU/Gloo gate is exact across four iterations, schedules,
+None/zero gradients, skipped AdamW, BF16 cache and restored continuation on all
+four ranks. Native FP32 exchange is exact. The native update gate fails at its
+first iteration only for MLP matrices58/59, owned in singleton tall Muon groups
+on ranks3/0. Their second moments differ as well; batch-two tall groups and
+every other state/parameter match the replicated control exactly. All four
+ranks agree on every weight byte. Both jobs cleanly terminate.
+
+This isolates a batch-one numerical-path difference, not a communication error.
+Wave62 pads singleton owner Muon batches with a separate zero matrix, retaining
+all exact gates and checking dummy state remains zero. The existing equations
+normalize each matrix independently. Padding adds compute and therefore must
+still pass optimizer and full-step speed tests. No tolerance change is planned.
+
+The separate native-MLP T1024/pack16 phase keeps16384tokens/rank/microstep, GA2
+and the same immutable loader read length as T2048/pack8. The older T1024/pack8
+probe used GA4, paying extra dispatches. This new layout is a deliberate context
+boundary change and requires matched large-public quality testing if it wins.

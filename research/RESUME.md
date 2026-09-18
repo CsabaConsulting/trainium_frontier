@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-18, 21:04 UTC. Active permissions: danger-full-access, approval never.
+Updated 2026-09-18, 21:12 UTC. Active permissions: danger-full-access, approval never.
 This replaces the accumulated stale resume instructions; their history remains
 in Git. Do not restart completed experiments from earlier revisions.
 
@@ -15,8 +15,11 @@ in Git. Do not restart completed experiments from earlier revisions.
   83,462,186byte denominator as the previous best. This is a small public gain,
   not sub1.0 or a private-leaderboard score. Wave60 native FP32 pack/all-gather/
   copyback passes all four ranks and costs6.403158ms worst-rank median.
-  Wave61 prepares CPU/Gloo exact ownership equivalence before native real-shape
-  equivalence and optimizer timing. No owner-update speedup has been measured.
+  Wave61 CPU/Gloo ownership is exact through cache/restore on all ranks. Native
+  fails only singleton tall Muon batches (matrices58/59 on ranks3/0); all other
+  parameters/states and cross-rank byte equality pass. Both postflights clean.
+  Wave62 prepares zero-matrix padding of singleton groups, keeping exact gates.
+  No owner-update speedup has been measured.
 - **trn22:** wave58 Scalar square+reduction norm passed but loses
   (.543885ms vs native .440652ms); neither normalization variant is promoted.
   AdamW functional component passes all34 original cases and saves69.277%.
@@ -29,8 +32,11 @@ in Git. Do not restart completed experiments from earlier revisions.
   Wave59 failed before integration because the two selected cancellation values
   are not a full-table RMS sample. Wave60 corrects that fixture and **passes the
   complete integration/cache/skip/restore gate**, clean postflight.
-  `fs-w60-native-mlp-pack8-adam-fused-phase-r1` is active from20:59:51UTC,
-  sourceefaebf1, against the predeclared558.627329ms control (30steps/5warmups).
+  `fs-w60-native-mlp-pack8-adam-fused-phase-r1` completes551.895444ms median,
+  1.205076% below558.627329ms, all four postchecks and clean postflight. Below3%
+  gate; no30minute AdamW-only run. New `fs-w60-native-mlp-context1024-pack16-phase-r1`
+  is active from21:09:59UTC, sourceefaebf1. Same16384tokens/microstep and GA2,
+  shorter attention context, native AdamW. Check quality separately if it wins.
   See fresh-start-adamw-rounding-2026-09-18.md for the corrected contract.
   The same-host30-step native-MLP/pack8 control is558.627329ms median, clean.
 - Preflight backup false positive is fixed by exact-script recognition, with
@@ -112,7 +118,7 @@ Local OS **Devuan/SystemV**. Usercsaba cron, no sudo/root, no systemd:
   recovery branch `backup/fresh-start-20260918`, atomically pushes source+WIP and
   verifies both refs. Skips merge/rebase/cherry-pick/index locks, does not pull,
   merge, force-push or change active HEAD/index. Latest verified source
-  `efaebf192d5e32d2386353970142e1597821cf33` at21:00, with both refs verified.
+  `458d1f8e3faf161f5b2aef58538d2aff4a0e7b39` at21:06, with both refs verified.
 - Minutes5/35: `research/fresh_start_artifact_backup_cron.sh`, own lock, nice10,
   bounded uploader, digest-verified immutable assets in draft release
   `research-backup-20260918`. The latest manual cycle completed at20:40:19UTC: **31of31
