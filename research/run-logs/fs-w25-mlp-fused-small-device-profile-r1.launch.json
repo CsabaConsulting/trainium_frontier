@@ -1,0 +1,45 @@
+{
+  "host": "trn21",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave25",
+  "expected_commit": "0aeeb54ca1cb4b21f46e802ba69c4bcb7ad2f278",
+  "label": "fs-w25-mlp-fused-small-device-profile-r1",
+  "purpose": "Capture one warmed native and one fused BF16 MLP forward at256x256x512. Small shape already reproduces74x regression, isolating transfer/layout from large cache capacity. Profile for attribution only.",
+  "fingerprint_paths": [
+    "research/scratch/mlp_fused_bf16.py",
+    "research/scratch/mlp_fused_bf16_profile.py",
+    "research/scratch/preserve_native_trace_neffs.py"
+  ],
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_RT_VISIBLE_CORES": "0",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "900s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "research/scratch/mlp_fused_bf16_profile.py",
+    "--trace-dir",
+    "out/fs-w25-mlp-fused-small-device-profile-r1"
+  ],
+  "started_at": "2026-09-18T14:14:18.254021+00:00",
+  "hostname": "ip-172-31-34-85",
+  "git_commit": "0aeeb54ca1cb4b21f46e802ba69c4bcb7ad2f278",
+  "source_dirty": false,
+  "preflight_free_bytes": 40511930368,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "4c14ac6ec14fd52e31ee06d91540707083c48a93ec4687fbaa35bc7106a823f3",
+    "research/fresh_start_host.py": "df01707b8ca2ffc8f4b798467e58b81c6fd8417f7aa1c26c4ecf6c080c659600",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/scratch/mlp_fused_bf16.py": "3be0132e7fb513ce6c523f2efb025b2b7b9d552f0ca66597becaa93ea9b1c642",
+    "research/scratch/mlp_fused_bf16_profile.py": "b45a5793a60a3eff4ef1d7a3ad42db3e5d6efe96a35dab5ae47dd7ca2283e31a",
+    "research/scratch/preserve_native_trace_neffs.py": "117d8f53c274c04b8996fe7fff72d84283cab7efb95ca371dfe577fa6ba3147b"
+  }
+}
