@@ -51,7 +51,7 @@ def errors(actual, expected, absolute_sum, terms):
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--large", action="store_true")
-    ap.add_argument("--kernel", choices=["shift", "nki"], default="shift")
+    ap.add_argument("--kernel", choices=["shift", "nki", "train-nki"], default="shift")
     ap.add_argument("--eager", action="store_true",
                     help="Isolate kernel execution from whole-function graph compilation.")
     args = ap.parse_args()
@@ -60,9 +60,19 @@ def main():
     torch.manual_seed(481)
     cases = [(2, 128, 128, 1), (2, 128, 128, 2), (2, 128, 128, 4)]
     variant = shifted
-    if args.kernel == "nki":
-        from causal_conv_nki2 import Conv2NKI
-        variant = lambda x, w: Conv2NKI.apply(x, w)
+    if args.kernel in ("nki", "train-nki"):
+        if args.kernel == "nki":
+            from causal_conv_nki2 import Conv2NKI
+            variant = lambda x, w: Conv2NKI.apply(x, w)
+        else:
+            import sys
+            from pathlib import Path
+            sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+            import train as T
+            T.USE_NKI_LOCAL_CONV = True
+            assert T._HAS_NKI, "integrated native kernels were not imported"
+            variant = lambda x, w: T.CausalConv.forward(
+                SimpleNamespace(weight=w, kernel_size=2, n_embd=w.shape[0]), x)
         cases = [(1, 128, 128, 2), (2, 128, 128, 2), (2, 256, 256, 2)]
     if args.large:
         cases.append((4, 2048, 1024, 2))

@@ -1333,6 +1333,14 @@ class CausalConv(nn.Module):
         self.weight = nn.Parameter(torch.zeros(n_embd, 1, kernel_size))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # Keep arbitrary scorer sequence lengths and other precisions on the
+        # original path. Only the gated FP32 two-tap geometry enters this kernel.
+        if (USE_NKI_LOCAL_CONV and x.device.type == "neuron"
+                and x.dtype == torch.float32 and self.kernel_size == 2
+                and x.shape[1] % 128 == 0 and x.shape[2] % 128 == 0):
+            if not _HAS_NKI:
+                raise RuntimeError("--nki-local-conv requires the installed native NKI stack")
+            return _Conv2NKI.apply(x, self.weight)
         xt = x.transpose(1, 2)
         xt = F.pad(xt, (self.kernel_size - 1, 0))
         y = F.conv1d(xt, self.weight.to(dtype=x.dtype), groups=self.n_embd)
@@ -2466,6 +2474,160 @@ try:
             return (dq3.view(b, h, t, d), dk3.view(b, h, t, d),
                     dv3.view(b, h, t, d), None)
 
+
+    # Native BTC-layout two-tap convolution. Same trained parameters; FP32-input
+    # forward/dX/dW validated against FP64, then timed in the full dense model.
+    from torch_neuronx import wrap_nki as _wrap_conv2_nki
+
+    def _conv2_taps(wt, channels):
+        prev = nl.ndarray((128, channels), dtype=wt.dtype, buffer=nl.sbuf)
+        curr = nl.ndarray((128, channels), dtype=wt.dtype, buffer=nl.sbuf)
+        pattern = [[0, 128], [1, channels]]
+        nisa.dma_copy(dst=prev, src=wt.ap(pattern=pattern, offset=0))
+        nisa.dma_copy(dst=curr, src=wt.ap(pattern=pattern, offset=channels))
+        return prev, curr
+
+
+    def _conv2_fwd_tile(x, out, prev_w, curr_w, batch, start, channels, first):
+        prev = nl.ndarray((128, channels), dtype=x.dtype, buffer=nl.sbuf)
+        curr = nl.ndarray((128, channels), dtype=x.dtype, buffer=nl.sbuf)
+        nisa.dma_copy(dst=curr, src=x[batch, start:start + 128, :])
+        if first:
+            nisa.memset(dst=prev[0:1, :], value=0.0)
+            nisa.dma_copy(dst=prev[1:128, :], src=x[batch, 0:127, :])
+        else:
+            nisa.dma_copy(dst=prev, src=x[batch, start - 1:start + 127, :])
+        acc = nl.ndarray((128, channels), dtype=nl.float32, buffer=nl.sbuf)
+        prod = nl.ndarray((128, channels), dtype=nl.float32, buffer=nl.sbuf)
+        result = nl.ndarray((128, channels), dtype=x.dtype, buffer=nl.sbuf)
+        nisa.tensor_tensor(dst=acc, data1=prev, data2=prev_w, op=nl.multiply)
+        nisa.tensor_tensor(dst=prod, data1=curr, data2=curr_w, op=nl.multiply)
+        nisa.tensor_tensor(dst=result, data1=acc, data2=prod, op=nl.add)
+        nisa.dma_copy(dst=out[batch, start:start + 128, :], src=result)
+
+
+    @nki.jit
+    def _conv2_forward(x, wt, lanes: int = 1):
+        batch, length, channels = x.shape
+        assert length % 128 == 0 and channels % 128 == 0
+        assert wt.shape == (2, channels)
+        assert lanes in (1, 2) and batch % lanes == 0
+        out = nl.ndarray(x.shape, dtype=x.dtype, buffer=nl.shared_hbm)
+        prev_w, curr_w = _conv2_taps(wt, channels)
+        lane = nl.program_id(0)
+        for b in nl.affine_range(batch // lanes):
+            bi = b * lanes + lane
+            _conv2_fwd_tile(x, out, prev_w, curr_w, bi, 0, channels, True)
+            if length > 128:
+                for t in nl.affine_range(length // 128 - 1):
+                    _conv2_fwd_tile(x, out, prev_w, curr_w, bi, (t + 1) * 128, channels, False)
+        return out
+
+
+    def _conv2_dw_partial(xpart, grad, ones, partials, batch, tile, tap, channels):
+        prod = nl.ndarray((128, channels), dtype=nl.float32, buffer=nl.sbuf)
+        nisa.tensor_tensor(dst=prod, data1=xpart, data2=grad, op=nl.multiply)
+        for c in nl.affine_range(channels // 128):
+            summed = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.psum)
+            result = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.nc_matmul(dst=summed, stationary=prod[:, c * 128:(c + 1) * 128],
+                           moving=ones, accumulate=False)
+            nisa.tensor_copy(dst=result, src=summed)
+            nisa.dma_copy(dst=partials[batch, tile, tap, c * 128:(c + 1) * 128, :], src=result)
+
+
+    def _conv2_bwd_tile(x, grad, dx, partials, prev_w, curr_w, ones,
+                  batch, tile, length, channels, first, last):
+        start = tile * 128
+        xp = nl.ndarray((128, channels), dtype=x.dtype, buffer=nl.sbuf)
+        xc = nl.ndarray((128, channels), dtype=x.dtype, buffer=nl.sbuf)
+        gc = nl.ndarray((128, channels), dtype=grad.dtype, buffer=nl.sbuf)
+        gn = nl.ndarray((128, channels), dtype=grad.dtype, buffer=nl.sbuf)
+        nisa.dma_copy(dst=xc, src=x[batch, start:start + 128, :])
+        nisa.dma_copy(dst=gc, src=grad[batch, start:start + 128, :])
+        if first:
+            nisa.memset(dst=xp[0:1, :], value=0.0)
+            nisa.dma_copy(dst=xp[1:128, :], src=x[batch, 0:127, :])
+        else:
+            nisa.dma_copy(dst=xp, src=x[batch, start - 1:start + 127, :])
+        if last:
+            # A memset confined to partition 127 failed SBUF allocation in both write
+            # orders on the installed compiler. Initialize the full tile, then fill
+            # the prefix. Only its final row remains zero; no gradient crosses B/T.
+            nisa.memset(dst=gn, value=0.0)
+            nisa.dma_copy(dst=gn[0:127, :], src=grad[batch, start + 1:length, :])
+        else:
+            nisa.dma_copy(dst=gn, src=grad[batch, start + 1:start + 129, :])
+        acc = nl.ndarray((128, channels), dtype=nl.float32, buffer=nl.sbuf)
+        prod = nl.ndarray((128, channels), dtype=nl.float32, buffer=nl.sbuf)
+        result = nl.ndarray((128, channels), dtype=x.dtype, buffer=nl.sbuf)
+        nisa.tensor_tensor(dst=acc, data1=gc, data2=curr_w, op=nl.multiply)
+        nisa.tensor_tensor(dst=prod, data1=gn, data2=prev_w, op=nl.multiply)
+        nisa.tensor_tensor(dst=result, data1=acc, data2=prod, op=nl.add)
+        nisa.dma_copy(dst=dx[batch, start:start + 128, :], src=result)
+        _conv2_dw_partial(xp, gc, ones, partials, batch, tile, 0, channels)
+        _conv2_dw_partial(xc, gc, ones, partials, batch, tile, 1, channels)
+
+
+    @nki.jit
+    def _conv2_backward(x, grad, wt, lanes: int = 1):
+        batch, length, channels = x.shape
+        assert length % 128 == 0 and channels % 128 == 0
+        assert grad.shape == x.shape and wt.shape == (2, channels)
+        assert lanes in (1, 2) and batch % lanes == 0
+        tiles = length // 128
+        dx = nl.ndarray(x.shape, dtype=x.dtype, buffer=nl.shared_hbm)
+        partials = nl.ndarray((batch, tiles, 2, channels, 1), dtype=nl.float32,
+                              buffer=nl.shared_hbm)
+        prev_w, curr_w = _conv2_taps(wt, channels)
+        ones = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
+        nisa.memset(dst=ones, value=1.0)
+        lane = nl.program_id(0)
+        for b in nl.affine_range(batch // lanes):
+            bi = b * lanes + lane
+            if tiles == 1:
+                _conv2_bwd_tile(x, grad, dx, partials, prev_w, curr_w, ones,
+                          bi, 0, length, channels, True, True)
+            else:
+                _conv2_bwd_tile(x, grad, dx, partials, prev_w, curr_w, ones,
+                          bi, 0, length, channels, True, False)
+                if tiles > 2:
+                    for t in nl.affine_range(tiles - 2):
+                        _conv2_bwd_tile(x, grad, dx, partials, prev_w, curr_w, ones,
+                                  bi, t + 1, length, channels, False, False)
+                _conv2_bwd_tile(x, grad, dx, partials, prev_w, curr_w, ones,
+                          bi, tiles - 1, length, channels, False, True)
+        return dx, partials
+
+
+    # Resolve the native higher-order operator before Dynamo enters autograd.forward.
+    # Constructing a raw nki.Kernel grid inside the traced function hits the installed
+    # NKI 0.5 / Torch 2.11 dataclass-hash path before that kernel has its func field.
+    # wrap_nki is the installed backend's explicit, graph-capturable interface.
+    _conv2_forward_native = _wrap_conv2_nki(_conv2_forward)
+    _conv2_backward_native = _wrap_conv2_nki(_conv2_backward)
+
+
+    class _Conv2NKI(torch.autograd.Function):
+        @staticmethod
+        def forward(ctx, x, weight):
+            assert weight.shape == (x.shape[-1], 1, 2)
+            lanes = 2 if x.shape[0] % 2 == 0 else 1
+            wt = weight[:, 0, :].T.contiguous().to(x.dtype)
+            xx = x.contiguous()
+            y = _conv2_forward_native[lanes](xx, wt, lanes)
+            ctx.save_for_backward(xx, wt)
+            ctx.lanes = lanes
+            ctx.weight_dtype = weight.dtype
+            return y
+
+        @staticmethod
+        def backward(ctx, grad):
+            x, wt = ctx.saved_tensors
+            dx, partials = _conv2_backward_native[ctx.lanes](x, grad.contiguous(), wt, ctx.lanes)
+            dw = partials.sum(dim=(0, 1)).squeeze(-1).to(wt.dtype)
+            return dx, dw.T.unsqueeze(1).to(ctx.weight_dtype)
+
     _HAS_NKI = True
 except Exception:  # nki unavailable (e.g. CPU/GPU dev box) — eager path still works
     _HAS_NKI = False
@@ -2551,6 +2713,9 @@ USE_NKI_MUON = True
 # (research/scratch/nki_attn_fwd.py + nki_attn_bwd.py, hw-validated
 # 2026-09-17 -- fp32 ~1e-6, bf16 fwd format floor, bwd dQ/dK ~4e-4) for q/k/v.
 USE_NKI_ATTN = False
+# Full-model native gate and timing: fs-w7-conv2-nki-native-gate-r5 and
+# fs-w7-dense1024-noqk-nki-conv-phase-r1. Default off for controlled comparisons.
+USE_NKI_LOCAL_CONV = False
 # Opt-in restoration of traceable SDPA when the custom attention kernel is OFF.
 # The historical nki_attention wrapper disables Dynamo even on its plain-SDPA fallback,
 # which changes graph partitioning. Keep that path as the default for reproducible A/Bs;
@@ -2805,9 +2970,9 @@ def transpose_linear_weights(root: nn.Module) -> int:
     layout. `state_dict` keys are UNCHANGED (still ".weight"); only the shape flips. That makes
     USE_TRANSPOSED_LINEAR shape-critical, hence its entry in SHAPE_CRITICAL_TOGGLES: a
     checkpoint written with it on will not strict-load with it off, and vice versa. That is
-    acceptable and needs no back-compat shim because load_for_eval() reads the LIVE module-level
-    toggles and never consults payload["toggles"] -- exactly how USE_NGRAM_VE and every other
-    shape-critical toggle already behave -- and no submission reuses a previous run's checkpoint.
+    load_for_eval() restores the saved, explicitly whitelisted architecture
+    toggles before construction, so a CLI-selected layout also survives scoring
+    in a fresh process without repeating the training command line.
 
     `.t().contiguous()` and not just `.t()`: a non-contiguous parameter would leave the compiler
     to materialize the transpose anyway, which is the entire cost this change exists to remove.
@@ -5071,7 +5236,7 @@ ARCH_TOGGLE_NAMES = [
     "WD_DECAY_TO_ZERO", "MUON_MOMENTUM_WARMUP_STEPS", "USE_DOC_MASK", "VE_WD",
     "USE_SELECTIVE_GATE", "SELECTIVE_GATE_CHANNELS", "USE_FUSED_QKV",
     "USE_CAUSAL_FASTPATH", "USE_TRN2_COMPILER_FLAGS",
-    "COMPILE_SDPA_DIRECT", "USE_NKI_ATTN",
+    "COMPILE_SDPA_DIRECT", "USE_NKI_ATTN", "USE_NKI_LOCAL_CONV",
     # T0.4 resweep knobs. None of these changes a tensor's name or shape, so every one of them
     # is exactly the "loads silently with quietly wrong behavior" class this snapshot exists to
     # catch -- ATTN_CPROJ_INIT_SCALE and LOGIT_SOFTCAP especially, since they change what the
@@ -5200,6 +5365,26 @@ def current_toggles() -> dict:
     return {name: g[name] for name in ARCH_TOGGLE_NAMES}
 
 
+# Capture import-time defaults once. A legacy checkpoint lacking a new toggle
+# must not inherit it from a different checkpoint loaded earlier in this process.
+_EVAL_TOGGLE_DEFAULTS = current_toggles()
+
+
+def restore_eval_toggles(payload: dict) -> None:
+    """Restore only known model/training settings from a weights-only checkpoint.
+
+    Architecture and arithmetic flags are part of the frozen model definition;
+    the standalone scorer supplies no training CLI arguments. Unknown payload
+    keys cannot replace arbitrary module globals. No data-dependent adaptation
+    or evaluation state is introduced.
+    """
+    saved = payload.get("toggles", {})
+    if not isinstance(saved, dict):
+        raise ValueError("checkpoint toggles must be a dictionary")
+    for name in ARCH_TOGGLE_NAMES:
+        globals()[name] = saved.get(name, _EVAL_TOGGLE_DEFAULTS[name])
+
+
 def save_checkpoint(path: Path, model: GPT, meta: dict, ema_state: dict | None = None) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
@@ -5257,9 +5442,10 @@ def load_for_eval(checkpoint_path: str, device: torch.device) -> nn.Module:
     """
     global COMPUTE_DTYPE, BOS_TOKEN_ID
     COMPUTE_DTYPE = compute_dtype_for(device)
+    payload = torch_load_weights(checkpoint_path, map_location="cpu")
+    restore_eval_toggles(payload)
     if USE_DOC_MASK:
         BOS_TOKEN_ID = ensure_tokenizer(build_if_missing=False).get_bos_token_id()
-    payload = torch_load_weights(checkpoint_path, map_location="cpu")
     config = GPTConfig(**payload["model_config"])
     if config.sequence_len < EVAL_MIN_SEQ_LEN:
         config.sequence_len = EVAL_MIN_SEQ_LEN
@@ -5465,7 +5651,7 @@ def muon_depth_mults(depths: list[int | None], n_layer: int) -> tuple[list[float
 
 def main() -> None:
     global USE_LOCAL_CONV, LRM_QUANTUM, USE_TENSOR_LR_SCALARS, USE_FOREACH_OPTIM  # flags below default off these constants
-    global LOCAL_CONV_KERNEL, TRAIN_LOCAL_CONV
+    global LOCAL_CONV_KERNEL, TRAIN_LOCAL_CONV, USE_NKI_LOCAL_CONV
     # Throughput->capacity track, Probe 3: USE_VE needs to be reachable from the CLI so the
     # "maximally plain block" ablate-down arm can be measured. Default is the locked True, so
     # passing nothing changes nothing. Declared here because --ve's argparse default reads it.
@@ -5641,6 +5827,12 @@ def main() -> None:
                              "measured 6.9x-compiled-graph SLOWER' note in the USE_LOCAL_CONV comment: "
                              "that was the pre-NKI eager stack.) Kept as a flag so an A/B runs from "
                              "one identical binary.")
+    parser.add_argument("--nki-local-conv", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_NKI_LOCAL_CONV",
+                                               "1" if USE_NKI_LOCAL_CONV else "0") != "0",
+                        help="Use the gated BTC-layout native NKI two-tap convolution for "
+                             "FP32 residuals with time/channels divisible by 128. Other "
+                             "shapes and precisions retain the original causal convolution.")
     parser.add_argument("--ve", action=argparse.BooleanOptionalAction,
                         default=os.environ.get("NEURON_COMPETITION_R1_VE", "1" if USE_VE else "0") != "0",
                         help="ResFormer-style value embeddings on alternating layers (has_ve), "
@@ -6226,6 +6418,7 @@ def main() -> None:
     MUON_MOMENTUM_FINAL = args.muon_momentum_final
     USE_VE = args.ve                         # read by Block/CausalSelfAttention/GPT.__init__, i.e. before GPT(config) below
     USE_LOCAL_CONV = args.local_conv         # read by Block.__init__, i.e. before GPT(config) below
+    USE_NKI_LOCAL_CONV = args.nki_local_conv
     LOCAL_CONV_KERNEL = args.local_conv_kernel  # ditto (CausalConv.__init__ reads it via the global default)
     TRAIN_LOCAL_CONV = args.train_local_conv  # read by GPT.setup_optimizer(), called after GPT(config) below
     # T3.1: the first four are read by GPT.__init__/CausalSelfAttention.__init__ below, the
