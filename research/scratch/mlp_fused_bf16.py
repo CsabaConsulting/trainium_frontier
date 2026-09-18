@@ -1,0 +1,109 @@
+"""Experimental training MLP fusion for installed NKI0.5/Trainium2.
+
+Normal PyTorch layouts enter the kernel: X[T,C] BF16 and FP32 weights[H,C]
+and[C,H]. Weight loading/casting and all layout movement are included. Both
+BF16 weight matrices remain in SBUF across token tiles. The up projection,
+BF16 rounding, ReLU, square and down projection are fused. ReLU activations
+are saved to HBM for backward, so this is not an inference-only benchmark.
+
+Backward initially uses native compiled BF16 matmuls, preserving FP32 parameter
+gradient types. This scratch implementation does not modify the training model.
+API: https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/api/generated/nki.isa.nc_matmul.html
+"""
+import torch
+import torch.nn.functional as F
+
+
+def build_kernel():
+    global nl, nisa
+    import nki
+    import nki.language as nl
+    import nki.isa as nisa
+
+    @nki.jit
+    def fused_mlp(x, up, down, lanes: int = 2, token_tile: int = 512):
+        tokens, channels = x.shape
+        hidden, up_channels = up.shape
+        assert up_channels == channels and down.shape == (channels, hidden)
+        assert x.dtype == nl.bfloat16 and up.dtype == nl.float32 and down.dtype == nl.float32
+        assert channels % 128 == 0 and hidden % 128 == 0 and lanes in (1, 2)
+        assert token_tile <= 512 and token_tile % 128 == 0
+        assert tokens % (token_tile * lanes) == 0
+        nc, nh = channels // 128, hidden // 128
+        # Capacity estimate excludes allocator overhead/spills, which must be
+        # checked in the actual profile. Reserve two MiB beyond live caches.
+        live_bytes = 4 * channels * hidden + 2 * (channels + hidden) * token_tile
+        assert live_bytes + 2 * 1024**2 <= nl.tile_size.sbuf_size_bytes
+        result = nl.ndarray((tokens, channels), dtype=nl.bfloat16, buffer=nl.shared_hbm)
+        saved_relu = nl.ndarray((tokens, hidden), dtype=nl.bfloat16, buffer=nl.shared_hbm)
+        up_cache = nl.ndarray((128, nh, nc, 128), dtype=nl.bfloat16, buffer=nl.sbuf)
+        down_cache = nl.ndarray((128, nc, nh, 128), dtype=nl.bfloat16, buffer=nl.sbuf)
+        for hi in nl.affine_range(nh):
+            for ci in nl.affine_range(nc):
+                # P is the contracting dimension, F the stationary output
+                # dimension. The DMA reads ordinary row-major weight tensors.
+                nisa.dma_copy(dst=up_cache[:, hi, ci, :],
+                              src=up.ap(pattern=[[1, 128], [channels, 128]],
+                                        offset=hi * 128 * channels + ci * 128))
+                nisa.dma_copy(dst=down_cache[:, ci, hi, :],
+                              src=down.ap(pattern=[[1, 128], [hidden, 128]],
+                                          offset=ci * 128 * hidden + hi * 128))
+        for mi in nl.affine_range(tokens // (token_tile * lanes)):
+            m0 = (mi * lanes + nl.program_id(0)) * token_tile
+            inputs = nl.ndarray((128, nc, token_tile), dtype=nl.bfloat16, buffer=nl.sbuf)
+            activated = nl.ndarray((128, nh, token_tile), dtype=nl.bfloat16, buffer=nl.sbuf)
+            for ci in nl.affine_range(nc):
+                nisa.dma_copy(dst=inputs[:, ci, :],
+                              src=x.ap(pattern=[[1, 128], [channels, token_tile]],
+                                       offset=m0 * channels + ci * 128))
+            for hi in nl.affine_range(nh):
+                up_acc = nl.ndarray((128, token_tile), dtype=nl.float32, buffer=nl.psum)
+                for ci in nl.affine_range(nc):
+                    nisa.nc_matmul(dst=up_acc, stationary=up_cache[:, hi, ci, :],
+                                   moving=inputs[:, ci, :], accumulate=(ci > 0))
+                rounded = nl.ndarray((128, token_tile), dtype=nl.bfloat16, buffer=nl.sbuf)
+                relu = nl.ndarray((128, token_tile), dtype=nl.bfloat16, buffer=nl.sbuf)
+                nisa.tensor_copy(dst=rounded, src=up_acc)
+                nisa.tensor_scalar(dst=relu, data=rounded, op0=nl.maximum, operand0=0.0)
+                nisa.tensor_tensor(dst=activated[:, hi, :], data1=relu, data2=relu, op=nl.multiply)
+                nisa.dma_copy(dst=saved_relu.ap(pattern=[[1, 128], [hidden, token_tile]],
+                                                offset=m0 * hidden + hi * 128), src=relu)
+            for ci in nl.affine_range(nc):
+                down_acc = nl.ndarray((128, token_tile), dtype=nl.float32, buffer=nl.psum)
+                for hi in nl.affine_range(nh):
+                    nisa.nc_matmul(dst=down_acc, stationary=down_cache[:, ci, hi, :],
+                                   moving=activated[:, hi, :], accumulate=(hi > 0))
+                output = nl.ndarray((128, token_tile), dtype=nl.bfloat16, buffer=nl.sbuf)
+                nisa.tensor_copy(dst=output, src=down_acc)
+                nisa.dma_copy(dst=result.ap(pattern=[[1, 128], [channels, token_tile]],
+                                            offset=m0 * channels + ci * 128), src=output)
+        return result, saved_relu
+
+    return fused_mlp
+
+
+def reference_forward(x, up, down):
+    relu = F.relu(F.linear(x, up.to(x.dtype)))
+    return F.linear(relu.square(), down.to(x.dtype)), relu
+
+
+def make_autograd(kernel_call):
+    class FusedMLP(torch.autograd.Function):
+        @staticmethod
+        def forward(ctx, x, up, down):
+            result, relu = kernel_call(x, up, down)
+            ctx.save_for_backward(x, up, down, relu)
+            return result
+
+        @staticmethod
+        def backward(ctx, grad):
+            x, up, down, relu = ctx.saved_tensors
+            activated = relu.square()
+            dhidden = grad @ down.to(x.dtype)
+            dpre = dhidden * (relu * 2.0)
+            dx = dpre @ up.to(x.dtype)
+            dup = (dpre.T @ x).to(up.dtype)
+            ddown = (grad.T @ activated).to(down.dtype)
+            return dx, dup, ddown
+
+    return FusedMLP.apply

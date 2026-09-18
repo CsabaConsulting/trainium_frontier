@@ -1,0 +1,33 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave23",
+    "expected_commit": "7b0888456a511f2a2c44bd8f276612d00e225c5e",
+    "label": "fs-w23-embedding-gather-lifetime-r2",
+    "purpose": "Isolate first incorrect nc_n_gather stage at actual shape: deterministic row/channel encoded data, dependent index reads, explicit scratch reuse versus loop-local allocation, eager versus compiled. No speed or training claim. Independent Dynamo reset between configurations corrects harness specialization-limit interruption.",
+    "fingerprint_paths": [
+      "research/scratch/embedding_gather_lifetime_probe.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "900s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/embedding_gather_lifetime_probe.py",
+      "--compiled"
+    ]
+  },
+  "requested_at": "2026-09-18T14:04:49.271620+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w23-embedding-gather-lifetime-r2\", \"pid\": 936869, \"commit\": \"7b0888456a511f2a2c44bd8f276612d00e225c5e\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave23/research/run-logs/fs-w23-embedding-gather-lifetime-r2.log\", \"started_at\": \"2026-09-18T14:04:55.298245+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

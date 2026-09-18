@@ -896,3 +896,42 @@ the old power-of-two rounding unnecessarily expanded3072 back to4096. All16 CPU
 autograd cases pass, including exact-bucket and one-ID-overflow boundaries,
 changed inputs, ordinary checkpoint loading and evaluation. Native gates and
 charged full-model timing remain required before promotion.
+
+`fs-w23-embedding-compact-b3072-autograd-r1`, source `7b08884`, passes all16
+compiled device cases. Tested outputs and gradients match native exactly,
+including3072 distinct IDs and3073-ID fallback. Automatic postflight is healthy.
+The full-chip phase is running; a nearby same-host native control is required
+because the prior4096-row phase and baseline were measured on the other host.
+
+`fs-w23-embedding-gather-lifetime-r2` completes all20 diagnostics. At8192 tokens,
+gathered values remain incorrect in both eager and compiled modes and both
+scratch-allocation variants, while every dependent index read is unchanged.
+This narrows the reproducer but does not establish a particular compiler defect.
+
+### Seed43 repeat preserved, without seed selection
+
+`fs-w18-dense1024-nki-norm-clipafter-seed43-1800-r1`, source `e1f120f`, completes
+2,959 updates/387,842,048 targets in1,785.0 charged seconds. The four-rank small
+public checks give0.986019BPB@2048/1.000259@1024, versus the predeclared seed42
+run's0.981174/0.996049. Differences are+0.004845/+0.004210, with46 fewer updates
+on a different host. This is a full-budget repeatability observation, not an
+isolated seed or hardware effect. No further seed search or selected-seed claim
+follows. The469,834,849-byte checkpoint is independently hash-verified locally
+and remotely: `2245d799b6f39dd5f8ef8adb2f5f77f263c0c1ae967b966c3426adfed02192b7`.
+The legacy postflight is healthy. No larger public score was measured for this
+repeat, so its small score must not be compared with20.97M-token results.
+
+### BF16 MLP fusion enters component development
+
+The next larger target fuses the ordinary up projection, BF16 output rounding,
+ReLU-square and down projection. Normal FP32 weight layouts enter the kernel;
+weight reads/casts and transposed access costs are included. Both weight matrices
+remain in SBUF across512-token tiles. The kernel also saves BF16 ReLU activations
+to HBM for backward; this cost cannot be omitted from a training comparison.
+Backward initially uses native BF16 GEMMs with FP32 parameter gradients.
+
+All18 small CPU output/gradient checks pass on random, changed-weight and zero
+inputs. The NKI forward is not yet validated. Device gates will check both fused
+GEMMs against FP64 references, compiled native gradients, and actual8192×1024
+inputs with4096 hidden channels before any component speed claim. Full-model
+timing and training remain separate later gates.
