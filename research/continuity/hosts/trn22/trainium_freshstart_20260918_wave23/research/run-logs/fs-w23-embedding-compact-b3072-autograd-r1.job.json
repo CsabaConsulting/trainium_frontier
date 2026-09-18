@@ -1,0 +1,50 @@
+{
+  "host": "trn22",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave23",
+  "expected_commit": "7b0888456a511f2a2c44bd8f276612d00e225c5e",
+  "label": "fs-w23-embedding-compact-b3072-autograd-r1",
+  "purpose": "Native compiled four-table autograd gate for fixed3072-row workspace; exact-boundary, boundary-overflow, changed-input, fallback/re-entry and checkpoint tests; CPU16case gate passed. No speed or BPB claim.",
+  "fingerprint_paths": [
+    "research/scratch/embedding_compact_autograd.py",
+    "research/scratch/embedding_compact_autograd_check.py",
+    "research/scratch/embedding_compact_probe.py",
+    "research/scratch/embedding_segmented_probe.py",
+    "research/scratch/embedding_segmented_nki.py"
+  ],
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_RT_VISIBLE_CORES": "0",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1200s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "research/scratch/embedding_compact_autograd_check.py",
+    "--real-shape",
+    "--bucket",
+    "3072"
+  ],
+  "started_at": "2026-09-18T14:04:56.479147+00:00",
+  "hostname": "ip-172-31-32-253",
+  "git_commit": "7b0888456a511f2a2c44bd8f276612d00e225c5e",
+  "source_dirty": false,
+  "preflight_free_bytes": 34008252416,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "4c14ac6ec14fd52e31ee06d91540707083c48a93ec4687fbaa35bc7106a823f3",
+    "research/fresh_start_host.py": "df01707b8ca2ffc8f4b798467e58b81c6fd8417f7aa1c26c4ecf6c080c659600",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/scratch/embedding_compact_autograd.py": "045c1e1f8c292ebf918ce6a12ec18bf634917dc7cb3a2112113f645971921ffd",
+    "research/scratch/embedding_compact_autograd_check.py": "772f9069feb1ab0fa6b579197d5eed81f590ed08f17247763a21ea950ca064a2",
+    "research/scratch/embedding_compact_probe.py": "1705f28027497d374f74fe2fcc541c665e5c564537aa87f33cb70f8ce5df0fd8",
+    "research/scratch/embedding_segmented_probe.py": "2821a88e7f15dfce72e2887a67625579d4f54e617cb9590084ca36442238a5e6",
+    "research/scratch/embedding_segmented_nki.py": "2a8a250e8b9cd72074acb1abab6cf133bbe3b86a9d521e8b0501c292bdc87c00"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "host": "trn22",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave16",
+  "expected_commit": "8704139d074d94201192108329966fd1c574cf47",
+  "label": "fs-w16-dense1024-device-summary-r1",
+  "purpose": "CPU-only attribution of the successfully ingested current dense trace; clip engine-active intervals per physical core and graph, preserve missing-DMA warnings, no throughput claim",
+  "fingerprint_paths": [
+    "research/scratch/summarize_dense_device_profile.py"
+  ],
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1",
+    "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave16",
+    "GOMAXPROCS": "4",
+    "GOMEMLIMIT": "40GiB"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "600s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "research/scratch/summarize_dense_device_profile.py",
+    "/home/ubuntu/trainium_freshstart_20260918_wave16/out/fresh-start-explorer/profiles/global/dense1024-nki-norm-current-complete_i-0329acb9a6244986b_pid_879863_nc_0_session_0@latest",
+    "--output",
+    "research/run-logs/fs-w16-dense1024-nki-norm-device-micro-r1.device-summary.json"
+  ],
+  "started_at": "2026-09-18T12:43:35.863020+00:00",
+  "hostname": "ip-172-31-32-253",
+  "git_commit": "8704139d074d94201192108329966fd1c574cf47",
+  "source_dirty": false,
+  "preflight_free_bytes": 35989024768,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "4c14ac6ec14fd52e31ee06d91540707083c48a93ec4687fbaa35bc7106a823f3",
+    "research/scratch/summarize_dense_device_profile.py": "d4885f89f79d5ecdbaacad717e587daa5ae0bd45c4d1ae6e0a649f4c9b07d047"
+  }
+}

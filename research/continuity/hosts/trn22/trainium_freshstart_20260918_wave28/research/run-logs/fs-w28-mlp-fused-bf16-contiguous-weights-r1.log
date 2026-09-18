@@ -1,0 +1,79 @@
+[W918 14:24:53.808578112 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/isa/_validation.py:1512:13: error: assertion failed: nc_matmul (transpose mode) dst dtype must match input dtype on gen3+, got dst=float32 but input=bfloat16
+            assert dst.dtype == input_dtype, (
+            ^
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/isa/_matmul.py:240:5: note: called from here
+    validate_tensor_engine_output_dtype(
+    ^
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/isa/_transpose.py:110:5: note: called from here
+    nc_matmul(
+    ^
+/home/ubuntu/trainium_freshstart_20260918_wave28/research/scratch/mlp_fused_bf16.py:62:21: note: called from here
+                    nisa.nc_transpose(dst=up_t, data=up_bf16)
+                    ^
+/home/ubuntu/trainium_freshstart_20260918_wave28/research/scratch/mlp_fused_bf16.py:24:5: note: when tracing NKI kernel
+    def fused_mlp(x, up, down, lanes: int = 2, token_tile: int = 512,
+    ^
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/isa/_validation.py:1512:13: error: assertion failed: nc_matmul (transpose mode) dst dtype must match input dtype on gen3+, got dst=float32 but input=bfloat16
+            assert dst.dtype == input_dtype, (
+            ^
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/isa/_matmul.py:240:5: note: called from here
+    validate_tensor_engine_output_dtype(
+    ^
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/isa/_transpose.py:110:5: note: called from here
+    nc_matmul(
+    ^
+/home/ubuntu/trainium_freshstart_20260918_wave28/research/scratch/mlp_fused_bf16.py:62:21: note: called from here
+                    nisa.nc_transpose(dst=up_t, data=up_bf16)
+                    ^
+/home/ubuntu/trainium_freshstart_20260918_wave28/research/scratch/mlp_fused_bf16.py:24:5: note: when tracing NKI kernel
+    def fused_mlp(x, up, down, lanes: int = 2, token_tile: int = 512,
+    ^
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_freshstart_20260918_wave28/research/scratch/mlp_fused_bf16_probe.py", line 180, in <module>
+    main()
+  File "/home/ubuntu/trainium_freshstart_20260918_wave28/research/scratch/mlp_fused_bf16_probe.py", line 173, in main
+    run_case(args.device, (256, 256, 512), kind, kernel, args.steps, args.contiguous_weights)
+  File "/home/ubuntu/trainium_freshstart_20260918_wave28/research/scratch/mlp_fused_bf16_probe.py", line 108, in run_case
+    eager = kernel[2](*inputs, 2, tile, contiguous_weights)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/kernel.py", line 239, in __call__
+    return torch_hop(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_hop.py", line 515, in __call__
+    return _C._nki_dispatch_eager(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py", line 1263, in _fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+RuntimeError: [NkiDispatch] Python lower_func failed for cache_key=nki_call:21:(('contiguous_weights', True), ('lanes', 2), ('token_tile', 128)):g2|[256,256]:BFloat16:S(C)|[512,256]:Float:S(C)|[256,512]:Float:S(C): AssertionError: error: failed to compile NKI kernel:
+Collected 1 different diagnostics:
+- [x2] error: assertion failed: nc_matmul (transpose mode) dst dtype must match input dtype on gen3+, got dst=float32 but input=bfloat16
+
+
+At:
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/compiler/frontend.py(300): _compile
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/compiler/frontend.py(171): compile
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/compiler/driver.py(47): compile_to_bir
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/compiled.py(42): compile_kernel_to_nir
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/compiled.py(197): _cached_compile_to_bir
+  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_kernel.py(211): _compile_dump_config
+  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_kernel.py(202): dump_config
+  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_hop.py(198): get_dumped_config
+  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/python_ops/neuron_nki_call_lowering.py(53): _lower_custom_nki
+  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/python_ops/neuron_nki_call_lowering.py(36): nki_call_lower_func
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py(1267): _fn
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py(1263): _fn
+  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_hop.py(515): __call__
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/kernel.py(239): __call__
+  /home/ubuntu/trainium_freshstart_20260918_wave28/research/scratch/mlp_fused_bf16_probe.py(108): run_case
+  /home/ubuntu/trainium_freshstart_20260918_wave28/research/scratch/mlp_fused_bf16_probe.py(173): main
+  /home/ubuntu/trainium_freshstart_20260918_wave28/research/scratch/mlp_fused_bf16_probe.py(180): <module>
+
+EXPERIMENT_POSTFLIGHT {"label": "fs-w28-mlp-fused-bf16-contiguous-weights-r1", "returncode": 1, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave28/research/run-logs/fs-w28-mlp-fused-bf16-contiguous-weights-r1.postflight.json"}

@@ -1,0 +1,22 @@
+{
+  "label": "fs-w33-mlp-transposed-device-profile-r1",
+  "guard_pid": 1323313,
+  "child_pid": 1323314,
+  "child_session": 1323314,
+  "started_at": "2026-09-18T15:04:05.323738+00:00",
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "900s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "research/scratch/mlp_fused_bf16_profile.py",
+    "--trace-dir",
+    "out/fs-w33-mlp-transposed-device-profile-r1",
+    "--contiguous-weights",
+    "--tiled-io",
+    "--cached-bf16-weights",
+    "--real-shape",
+    "--transposed-relu"
+  ]
+}

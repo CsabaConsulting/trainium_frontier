@@ -1,0 +1,11 @@
+[W918 14:44:52.266656344 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/profiler/profiler.py:224: UserWarning: Warning: Profiler clears events at the end of each cycle.Only events from the current cycle will be reported.To keep events across cycles, set acc_events=True.
+  _warn_once(
+MLP_PROFILE_ARTIFACT {"trace": "/home/ubuntu/trainium_freshstart_20260918_wave31/out/fs-w31-mlp-tiled-full-device-profile-r1", "shape": [8192, 1024, 4096], "contiguous_weights": true, "tiled_io": true, "cached_bf16_weights": true, "compiled_neffs": 2, "eager_neffs": 0, "profiled_latency_is_performance_evidence": false}
+EXPERIMENT_POSTFLIGHT {"label": "fs-w31-mlp-tiled-full-device-profile-r1", "returncode": 0, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave31/research/run-logs/fs-w31-mlp-tiled-full-device-profile-r1.postflight.json"}

@@ -1,0 +1,24 @@
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_freshstart_20260918_wave16/research/scratch/summarize_dense_device_profile.py", line 128, in <module>
+    main()
+  File "/home/ubuntu/trainium_freshstart_20260918_wave16/research/scratch/summarize_dense_device_profile.py", line 117, in main
+    annotations=read("TimelineAnnotation").to_pylist(),
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/trainium_freshstart_20260918_wave16/research/scratch/summarize_dense_device_profile.py", line 27, in <lambda>
+    read = lambda name, **kw: pq.read_table(root / (name + ".parquet"), **kw)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/pyarrow/parquet/core.py", line 1896, in read_table
+    dataset = ParquetDataset(
+              ^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/pyarrow/parquet/core.py", line 1476, in __init__
+    self._dataset = ds.dataset(path_or_paths, filesystem=filesystem,
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/pyarrow/dataset.py", line 790, in dataset
+    return _filesystem_dataset(source, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/pyarrow/dataset.py", line 472, in _filesystem_dataset
+    fs, paths_or_selector = _ensure_single_source(source, filesystem)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/pyarrow/dataset.py", line 437, in _ensure_single_source
+    raise FileNotFoundError(path)
+FileNotFoundError: /home/ubuntu/trainium_freshstart_20260918_wave16/out/fresh-start-explorer/profiles/global/dense1024-nki-norm-current-complete_i-0329acb9a6244986b_pid_879863_nc_0_session_0@latest/TimelineAnnotation.parquet

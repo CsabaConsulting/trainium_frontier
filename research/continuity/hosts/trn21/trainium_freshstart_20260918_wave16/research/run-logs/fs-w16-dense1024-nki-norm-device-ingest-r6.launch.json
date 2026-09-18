@@ -1,0 +1,37 @@
+{
+  "host": "trn21",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave16",
+  "expected_commit": "8704139d074d94201192108329966fd1c574cf47",
+  "label": "fs-w16-dense1024-nki-norm-device-ingest-r6",
+  "purpose": "Resolve the actual persistent NEFF keys recorded in trace.json, preserve those profile-time binaries, and ingest the completed system/device trace. Post-profile exported binaries differ from the captured runtime variants.",
+  "fingerprint_paths": [
+    "research/scratch/phase_timer.py"
+  ],
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1",
+    "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave16"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1200s",
+    "python3",
+    "-c",
+    "from pathlib import Path\nimport datetime,hashlib,json,re,shutil,subprocess\nroot=Path(\"/home/ubuntu/trainium_freshstart_20260918_wave16\")\nraw=root/\"out/fs-w16-dense1024-nki-norm-device-micro-r1/rank0\"\ntrace=next(raw.rglob(\"trace.json\"))\nevents=json.loads(trace.read_text())[\"traceEvents\"]\nkeys=sorted({e.get(\"args\",{}).get(\"persistent_cache_key\") for e in events if e.get(\"args\",{}).get(\"persistent_cache_key\")})\nextra=root/\"out/fs-w16-profile-trace-neffs\"\nextra.mkdir(exist_ok=False)\nstaged=root/\"out/fs-w16-dense-norm-ingest-input-r2\"\nleaf=next(staged.rglob(\"*.ntff\")).parent\nrecords=[]\nfor key in keys:\n assert re.fullmatch(r\"[0-9a-f]{32}\",key),key\n src=Path(\"/tmp/neff_cache\")/key[:2]/key[2:4]/(key+\".neff\")\n assert src.is_file(),str(src)\n dst=extra/(key+\".neff\");shutil.copyfile(src,dst)\n data=dst.read_bytes()\n rec=dict(persistent_cache_key=key,source=str(src),file=dst.name,bytes=len(data),sha256=hashlib.sha256(data).hexdigest(),body_md5=hashlib.md5(data[1024:]).hexdigest())\n records.append(rec)\n shutil.copyfile(dst,leaf/(\"trace_cache_\"+dst.name))\nmanifest=dict(created_at_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),source_trace=str(trace),files=records,raw_capture_unchanged=True)\n(extra/\"manifest.json\").write_text(json.dumps(manifest,indent=2)+\"\\n\")\n(root/\"research/run-logs/fs-w16-dense1024-nki-norm-device-micro-r1.trace-neffs.json\").write_text(json.dumps(manifest,indent=2)+\"\\n\")\nprint(\"TRACE_NEFFS \"+json.dumps(manifest),flush=True)\np=subprocess.run([\"/opt/aws/neuron/bin/neuron-explorer\",\"view\",\"--session-dir\",str(staged),\"--data-path\",str(root/\"out/fresh-start-explorer\"),\"--display-name\",\"dense1024-nki-norm-device-micro-r6-complete\",\"--ingest-only\"])\nraise SystemExit(p.returncode)\n"
+  ],
+  "started_at": "2026-09-18T12:27:10.145760+00:00",
+  "hostname": "ip-172-31-34-85",
+  "git_commit": "8704139d074d94201192108329966fd1c574cf47",
+  "source_dirty": false,
+  "preflight_free_bytes": 42430361600,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "4c14ac6ec14fd52e31ee06d91540707083c48a93ec4687fbaa35bc7106a823f3",
+    "research/scratch/phase_timer.py": "290ba05e1aa1635b864f6edcee532de8645b7412a15ed1eb42f603c6e2afe732"
+  }
+}

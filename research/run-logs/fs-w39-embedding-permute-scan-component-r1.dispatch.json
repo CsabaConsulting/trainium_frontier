@@ -1,0 +1,41 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave39",
+    "expected_commit": "fb6f0b719524dc6b00ed77b7058ca694707e104e",
+    "label": "fs-w39-embedding-permute-scan-component-r1",
+    "purpose": "Resume crash-preserved two-kernel prototype: wide indirect permutation and segmented scan fused, existing DMA expansion separate. All 11 staged FP64/eager/compiled/native/zero/repeat gates before speed claims.",
+    "fingerprint_paths": [
+      "research/scratch/embedding_permute_scan_nki.py",
+      "research/scratch/embedding_segmented_dma_probe.py",
+      "research/scratch/embedding_segmented_dma.py",
+      "research/scratch/embedding_compact_probe.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1500s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/embedding_segmented_dma_probe.py",
+      "--real-shape",
+      "--training-row",
+      "--tiled-io",
+      "--fused-permute-scan",
+      "--steps",
+      "8"
+    ]
+  },
+  "requested_at": "2026-09-18T17:27:32.918800+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w39-embedding-permute-scan-component-r1\", \"pid\": 975514, \"commit\": \"fb6f0b719524dc6b00ed77b7058ca694707e104e\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave39/research/run-logs/fs-w39-embedding-permute-scan-component-r1.log\", \"started_at\": \"2026-09-18T17:27:39.279159+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

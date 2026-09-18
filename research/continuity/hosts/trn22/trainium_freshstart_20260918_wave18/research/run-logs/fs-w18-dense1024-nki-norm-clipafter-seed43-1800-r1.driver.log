@@ -1,0 +1,2 @@
+$ NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 1000000 --max-train-seconds 1800 --out-dir out/fs-w18-dense1024-nki-norm-clipafter-seed43-1800-r1 --eval-tokens 2097152 --depth 6 --n-embd 1024 --seed 43 --compile-muon --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --eval-seq-len 1024 --pack-factor 4 --clip-after-reduce
+--- logged: status=keep public_val_bpb=0.986019 num_steps=2959 total_seconds=2116.8 -> research/experiment-log.jsonl

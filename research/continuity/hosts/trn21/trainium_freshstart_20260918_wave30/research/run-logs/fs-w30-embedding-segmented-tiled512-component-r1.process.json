@@ -1,0 +1,24 @@
+{
+  "label": "fs-w30-embedding-segmented-tiled512-component-r1",
+  "guard_pid": 951409,
+  "child_pid": 951410,
+  "child_session": 951410,
+  "started_at": "2026-09-18T14:38:03.694512+00:00",
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1500s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "research/scratch/embedding_segmented_probe.py",
+    "--manual-sbuf",
+    "--reuse-sbuf",
+    "--compiled-kernel",
+    "--real-shape",
+    "--training-row",
+    "--gather-tile",
+    "512",
+    "--steps",
+    "6"
+  ]
+}
