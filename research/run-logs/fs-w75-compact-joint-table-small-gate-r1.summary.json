@@ -1,0 +1,11 @@
+{
+  "label": "fs-w75-compact-joint-table-small-gate-r1",
+  "source_commit": "f0e93889b4f7237c1851ed7236925f5952d2a675",
+  "command_returncode": 1,
+  "host_clean": true,
+  "completed_at": "2026-09-18T23:40:18.850068+00:00",
+  "failure_stage": "NKI frontend validation, before joint primitive execution",
+  "root_cause": "Installed nki.isa.tensor_copy_predicated calls validate_partition_dim(src) unconditionally, so scalar src1.0 has no shape despite the docstring permitting a scalar. Verified installed source.",
+  "fix": "Prefill one FP32 tensor with1.0 outside all tile loops; pass that tensor to predicated derivative tail copy.",
+  "numerical_bounds_changed": false
+}

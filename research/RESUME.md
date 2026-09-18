@@ -61,7 +61,7 @@ open; precision-specific layouts must be assessed in their intended precision.
 Wave71 frontend helper lookup and wave72 FP8 transpose failures remain recorded.
 The fixes register NKI-parsed helper names globally and use padded128x256 FP8
 PSUM with stride2; all original gates pass afterward, without relaxed tolerances.
-trn22 watcher currently follows wave74 and must move when new source is deployed.
+trn22 watcher currently follows wave75 and must move when new source is deployed.
 The compact-table device primitive/probe is written, CPU clamped-tail exhaustive
 gate passes unchanged2e-7/1e-7 bounds; commit/deploy before its first device gate.
 It returns exponential and derivative together, charges5MiB table loads and
@@ -135,7 +135,7 @@ Local Devuan/SystemV, usercsaba cron; no root/systemd:
   zero errors, including both new quality checkpoints. State is
   out/fresh-start-artifact-backup/latest.json; receipts under research/run-logs.
   Newly produced remote checkpoints still need retrieval to checkpoints/ first.
-- Local log watchers currently follow trn21/wave70 and trn22/wave74,90rounds at
+- Local log watchers currently follow trn21/wave70 and trn22/wave75,90rounds at
  45seconds. Repoint when the active remote worktree changes. Only stop exact
   owned watcher PID/UID/cwd/argv/startticks; remote training jobs are separate.
 
@@ -171,3 +171,9 @@ Closed kernel variants and profiling details are in the MLP spill, norm,
 embedding and optimizer notes. Smaller source-level buffers do not establish
 smaller caller allocation. Full-graph profiling remains mandatory before a
 component win can be treated as a whole-training speedup.
+
+Compact-table wave75 stops before execution at the installed predicated-copy
+scalar-source validator. Clean postflight; no numerical gate ran. The installed
+source unconditionally accesses src.shape despite documenting scalar support.
+The fix preloads one FP32 ones tile and keeps the original accuracy gates.
+Commit/deploy this fix before rerunning the small gate.

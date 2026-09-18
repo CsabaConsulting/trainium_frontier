@@ -1,0 +1,46 @@
+{
+  "host": "trn22",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave76",
+  "expected_commit": "e13a223d51ae8b7dc443f749ecab9a45fd419c4a",
+  "label": "fs-w76-compact-joint-table-small-gate-r1",
+  "purpose": "Repair the installed scalar-source validation mismatch with one prefilled ones tile, then repeat unchanged exhaustive finite BF16/FP64/exact-tail/repeat/row-independence/shape gates. Prior failed run clean; no bounds changed.",
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1",
+    "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+    "NEURON_RT_VISIBLE_CORES": "0"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "900s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "/home/ubuntu/trainium_freshstart_20260918_wave76/research/scratch/compact_ce_table_probe.py"
+  ],
+  "fingerprint_paths": [
+    "research/scratch/compact_ce_table_nki.py",
+    "research/scratch/compact_ce_table_probe.py",
+    "research/scratch/compact_ce_table_study.py",
+    "research/scratch/mlp_fused_bf16_probe.py"
+  ],
+  "started_at": "2026-09-18T23:43:11.810573+00:00",
+  "hostname": "ip-172-31-32-253",
+  "git_commit": "e13a223d51ae8b7dc443f749ecab9a45fd419c4a",
+  "source_dirty": false,
+  "preflight_free_bytes": 15682150400,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+    "research/fresh_start_host.py": "8c597adea7c48114bed8f50aa161fdc79b36b49c86c7315e6a58c3ca4e8f5f79",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/fresh_start_backup.py": "c978fd20b6620d0d80c25f8982974e8c4b2ad009edd9da376d784f5cecc3ead3",
+    "research/scratch/compact_ce_table_nki.py": "e79ab0112aa4e574a3dc6607fedc279f9407305406ed90eaa0aff1d1b43344d7",
+    "research/scratch/compact_ce_table_probe.py": "ff8bdcd7425349be715a85e65f0675dc53ea2ebc8b14371bb5cf70eaf1006e56",
+    "research/scratch/compact_ce_table_study.py": "a56e2d332e6bee679c70a6242561d0e265238a76b4a7c2037f6739944cccfeec",
+    "research/scratch/mlp_fused_bf16_probe.py": "565991e1fb29dcf41c6db58e098891a5e59685b231d6475bed66e465242483ed"
+  }
+}

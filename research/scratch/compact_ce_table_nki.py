@@ -32,10 +32,15 @@ def build_kernel():
         assert tables.shape == (128, 2, 5120) and tables.dtype == nl.float32
         exponential = nl.ndarray(x.shape, dtype=nl.float32, buffer=nl.shared_hbm)
         derivative = nl.ndarray(x.shape, dtype=nl.float32, buffer=nl.shared_hbm)
+        chunk = min(512, cols)
         if use_table:
             lookup = nl.ndarray((128, 2, 5120), dtype=nl.float32, buffer=nl.sbuf)
             nisa.dma_copy(dst=lookup, src=tables)
-        chunk = min(512, cols)
+            # Installed NKI0.5 validates src.shape even though its docstring
+            # permits a scalar source. A prefilled tensor uses the supported
+            # path and is shared across all row/column iterations.
+            ones = nl.ndarray((128, chunk), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.memset(dst=ones, value=1.0)
         for row in nl.affine_range(rows // (128 * lanes)):
             row_start = (row * lanes + nl.program_id(0)) * 128
             rr = nl.ds(row_start, 128)
@@ -66,7 +71,7 @@ def build_kernel():
                     nisa.tensor_scalar(dst=tiny, data=magnitude, op0=nl.less, operand0=14720)
                     nisa.tensor_scalar(dst=linear, data=source, op0=nl.add, operand0=1.0)
                     nisa.tensor_copy_predicated(dst=exps, src=linear, predicate=tiny)
-                    nisa.tensor_copy_predicated(dst=derivs, src=1.0, predicate=tiny)
+                    nisa.tensor_copy_predicated(dst=derivs, src=ones, predicate=tiny)
                 else:
                     tangent = nl.ndarray((128, chunk), dtype=nl.float32, buffer=nl.sbuf)
                     nisa.activation(dst=tangent, data=source, op=nl.tanh, scale=1.0 / 15.0)

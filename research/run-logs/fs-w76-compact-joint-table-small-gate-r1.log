@@ -1,0 +1,25 @@
+[W918 23:43:13.012466934 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+COMPACT_TABLE_CONTRACT {"finite_bf16_codes": 65280, "exp_relative_bound": 2e-07, "derivative_absolute_bound": 1e-07, "replicated_table_bytes": 5242880, "no_fit_to_training_or_validation_data": true, "softcap": 15, "loss_reduction_log_reciprocal_and_autograd_not_tested": true}
+COMPACT_TABLE_GATE {"name": "all_finite_codes", "shape": [512, 512], "lanes": 2, "finite": true, "table_and_tail_exact": [true, true], "repeat_exact": [true, true], "fp64_all_coordinates": true, "errors": {"exponential_relative": 5.971744772204116e-08, "derivative_absolute": 2.9786490940431065e-08}, "input_unchanged": true, "passed": true}
+COMPACT_TABLE_SCALAR_DIAGNOSTIC {"name": "all_finite_codes", "errors": {"exponential_relative": 1.3061996156237984e-05, "derivative_absolute": 5.143444999117908e-07}, "finite": true, "baseline_is_existing_scalar_math": true, "quality_gate": false}
+COMPACT_TABLE_INDEPENDENCE {"name": "all_finite_codes", "passed": true, "unchanged_rows_exact": true, "changed_outputs_exact": true}
+COMPACT_TABLE_GATE {"name": "random_rows256_lanes1", "shape": [256, 512], "lanes": 1, "finite": true, "table_and_tail_exact": [true, true], "repeat_exact": [true, true], "fp64_all_coordinates": true, "errors": {"exponential_relative": 5.866956782385118e-08, "derivative_absolute": 2.9770674592199953e-08}, "input_unchanged": true, "passed": true}
+COMPACT_TABLE_SCALAR_DIAGNOSTIC {"name": "random_rows256_lanes1", "errors": {"exponential_relative": 1.1376577772269516e-05, "derivative_absolute": 1.5622994781194777e-07}, "finite": true, "baseline_is_existing_scalar_math": true, "quality_gate": false}
+COMPACT_TABLE_INDEPENDENCE {"name": "random_rows256_lanes1", "passed": true, "unchanged_rows_exact": true, "changed_outputs_exact": true}
+COMPACT_TABLE_GATE {"name": "random_rows256_lanes2", "shape": [256, 512], "lanes": 2, "finite": true, "table_and_tail_exact": [true, true], "repeat_exact": [true, true], "fp64_all_coordinates": true, "errors": {"exponential_relative": 5.922872012234975e-08, "derivative_absolute": 2.9770674592199953e-08}, "input_unchanged": true, "passed": true}
+COMPACT_TABLE_SCALAR_DIAGNOSTIC {"name": "random_rows256_lanes2", "errors": {"exponential_relative": 1.1376577772269516e-05, "derivative_absolute": 1.5622994781194777e-07}, "finite": true, "baseline_is_existing_scalar_math": true, "quality_gate": false}
+COMPACT_TABLE_INDEPENDENCE {"name": "random_rows256_lanes2", "passed": true, "unchanged_rows_exact": true, "changed_outputs_exact": true}
+COMPACT_TABLE_GATE {"name": "random_rows512_lanes2", "shape": [512, 512], "lanes": 2, "finite": true, "table_and_tail_exact": [true, true], "repeat_exact": [true, true], "fp64_all_coordinates": true, "errors": {"exponential_relative": 5.922872012234975e-08, "derivative_absolute": 2.9770674592199953e-08}, "input_unchanged": true, "passed": true}
+COMPACT_TABLE_SCALAR_DIAGNOSTIC {"name": "random_rows512_lanes2", "errors": {"exponential_relative": 1.1376577772269516e-05, "derivative_absolute": 1.5622994781194777e-07}, "finite": true, "baseline_is_existing_scalar_math": true, "quality_gate": false}
+COMPACT_TABLE_INDEPENDENCE {"name": "random_rows512_lanes2", "passed": true, "unchanged_rows_exact": true, "changed_outputs_exact": true}
+COMPACT_TABLE_GATE {"name": "random_rows1024_lanes2", "shape": [1024, 512], "lanes": 2, "finite": true, "table_and_tail_exact": [true, true], "repeat_exact": [true, true], "fp64_all_coordinates": true, "errors": {"exponential_relative": 5.8969861809538124e-08, "derivative_absolute": 2.9786490940431065e-08}, "input_unchanged": true, "passed": true}
+COMPACT_TABLE_SCALAR_DIAGNOSTIC {"name": "random_rows1024_lanes2", "errors": {"exponential_relative": 1.1376577772269516e-05, "derivative_absolute": 1.5622994781194777e-07}, "finite": true, "baseline_is_existing_scalar_math": true, "quality_gate": false}
+COMPACT_TABLE_INDEPENDENCE {"name": "random_rows1024_lanes2", "passed": true, "unchanged_rows_exact": true, "changed_outputs_exact": true}
+COMPACT_TABLE_RESULT {"passed": true, "real_shape": false, "training_promotion": false}
+EXPERIMENT_POSTFLIGHT {"label": "fs-w76-compact-joint-table-small-gate-r1", "returncode": 0, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave76/research/run-logs/fs-w76-compact-joint-table-small-gate-r1.postflight.json"}
