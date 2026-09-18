@@ -32,7 +32,7 @@ def build_kernels():
         output = nl.ndarray((128, 3), dtype=nl.float32, buffer=nl.shared_hbm)
         maxima = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
         nisa.memset(dst=maxima, value=0.0)
-        for row in nl.affine_range(rows // 128):
+        for row in nl.sequential_range(rows // 128):
             tile = nl.ndarray((128, cols), dtype=nl.bfloat16, buffer=nl.sbuf)
             high = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
             low = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)

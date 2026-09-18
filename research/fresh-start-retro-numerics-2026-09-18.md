@@ -1,6 +1,6 @@
 # Retro numerical techniques on Trainium
 
-Research started 2026-09-18; hardware evidence updated at21:59UTC.
+Research started 2026-09-18; hardware evidence updated at22:28UTC.
 The user's scope is **all useful functions and arithmetic transformations**, not
 only square root or lookup tables. The objective remains better BPB within the
 fixed training time. A faster primitive alone is not a training result.
@@ -117,7 +117,8 @@ preserving kernel replacement, and needs its own quality comparison.
 
 `adamw_fused_fp32.py` now has explicit math modes:0 existing GpSIMD-rsqrt/Vector-
 reciprocal;1 Scalar sqrt;2 Scalar reciprocal with one Newton step;3 both;
-4 power-of-two-scaled Scalar rsqrt plus one Newton correction and mode2 reciprocal.
+4 power-of-two-scaled Scalar rsqrt plus one Newton correction and mode2 reciprocal;
+5 two rsqrt Newton corrections;6 quadratic inverse-root correction.
 The step is `y <- y*(2-d*y)` for denominator d. A dead gradient tile is reused
 as workspace; gradient HBM remains unchanged.
 
@@ -141,8 +142,21 @@ variance1034481.4375. One Newton correction is not sufficient there. The
 documented activation input range does not promise uniformly small relative
 error. `rsqrt_refinement_probe.py` now exposes seed, square/product and two
 successive corrections across180 exponents and4096 mantissas per exponent,
-plus the recorded counterexamples. Its hardware diagnostic is pending; seed
-inaccuracy is a hypothesis until those intermediate results identify the cause.
+plus the recorded counterexamples. Wave66 now measures a maximum relative seed
+error0.0031982446; after one correction1.5274123e-5, after two1.3826867e-7.
+All786432 values are finite/positive and repeat exactly. FP64 recurrence using
+the actual seed predicts the failure; arithmetic differs from that recurrence
+by at most1.5031e-7. The seed's accuracy explains why one correction fails.
+The probe stores intermediate stages and establishes no production timing.
+
+Modes5/6 are implemented but not yet hardware-gated. Mode6 uses q=x*r*r and
+`r *= 1.875 - 1.25*q + 0.375*q*q`, the quadratic inverse-root expansion about
+q=1. It needs fewer elementwise instructions than two Newton corrections and
+reuses dead variance workspace. It is not Halley's rational iteration. A
+million-point local FP32 seed-error sweep[-.004,.004] at x=1 stays below2.981e-7
+relative error; this is sampled arithmetic evidence, not a full-range proof.
+Both candidates retain the original34 FP64 moment/weight gates and will be
+timed against mode0 before any optimizer integration.
 
 Reciprocal-only mode2 passes all34 unchanged numerical gates. The wave65
 paired/interleaved test measures **1.085410ms versus1.304101ms** for mode0
@@ -150,12 +164,26 @@ functional NKI AdamW, **16.7695%** faster for this8M-element component, with
 scalar staging and weight copyback charged. The three mode2 samples are
 1.0854/1.0933/1.0732ms; controls1.2274/1.3252/1.3041ms. Both use identical
 scheduled scalar updates. This is not a whole-optimizer or training gain.
-An explicit mode2 integration test is prepared; training still uses mode0.
+Wave66's explicit mode2 integration test passes repeated scheduled updates,
+None/zero/scalar fallback, Parameter identity, real BF16 Linear cache refresh,
+CPU checkpoint serialization/restore and exact continuation. It records17
+numerical checks,13 trajectory checks and7 fallback checks. Training still
+uses mode0; there is no full-step gain claim for mode2 yet.
 
 Evidence: `fs-w64-adamw-scalar-sqrt-reciprocal-newton-gate-r1`,
 `fs-w65-adamw-scaled-rsqrt-newton-gate-r1`, and
-`fs-w65-adamw-refined-reciprocal-paired-gate-r1`. All postflights are clean;
+`fs-w65-adamw-refined-reciprocal-paired-gate-r1`,
+`fs-w66-rsqrt-seed-refinement-diagnostic-r1` and
+`fs-w66-adamw-refined-reciprocal-integration-gate-r1`. All postflights are clean;
 failures and original bounds are preserved.
+
+The executable/design queue is now in
+`fresh-start-kernel-queue-2026-09-18.md`. New `fp8_weight_cache_nki.py` implements
+online power-of-two scaling through exponent bits, avoiding log2/floor/exp2
+while retaining the necessary amax reduction. Its storage-only MLP control
+requires exact output/gradient agreement for identical quantized BF16 weights,
+before charging calibration, master casts and two forward/backward calls.
+This is a prototype awaiting hardware gates, not an FP8 GEMM result.
 
 ### Polynomial exponential probe
 

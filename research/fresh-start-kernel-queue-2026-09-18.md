@@ -1,6 +1,6 @@
 # Kernel queue and precision-specific experiments
 
-Updated22:16UTC,2026-09-18. This is the executable/design queue, not a list of
+Updated22:30UTC,2026-09-18. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
@@ -8,11 +8,11 @@ Every device request retains immutable source, cleanup and numerical gates.
 
 | Item | State | Next action / evidence |
 | --- | --- | --- |
-| T1024/pack16 + original fused AdamW | 3282updates; small public0.992175; checkpoint local and cloud verified | Larger20.97M/T1024/O1 evaluation active on trn22, `fs-w66-eval-context1024-pack16-adam-s1024-20m-o1-r1` |
+| T1024/pack16 + original fused AdamW | 3282updates; small public0.992175; checkpoint local and cloud verified | Larger20.97M/T1024/O1 evaluation **0.9974687136975224**, clean; first larger public sub1.0, not private leaderboard |
 | Padded optimizer ownership | Exact optimizer gates;5.06245% matched full-step gain | Full30-minute quality run active on trn21, `fs-w65-dense1024-native-mlp-pack8-owned-1800-r1` |
 | Scalar reciprocal + Newton | 34component gates,16.77% component gain; repeated optimizer/cache/restore gate now passes | Optional whole-step combination after the active quality runs; no approximation is in those runs |
 | Scalar rsqrt correction | Seed error/root cause measured, not a NaN | Modes5(two Newton) and6(quadratic correction) implemented locally; commit/deploy, original34gates and paired mode0 timing |
-| Exact CE core/gather changes | Code and request ready, no device result yet | `out/fs-w66-softcap-ce-parallel-gather-gate-r1.request.json`, sourcea1625d9; run on trn22 after larger evaluation |
+| Exact CE core/gather changes | One-core mask port exact; two-core arms exact at real shape but fail small general-FP32 stress inputs | Wave66 completed; diagnose loop-length/dtype/stages and add one-core gather; do not promote failed variants |
 | Polynomial exponential | Nine device records pass;3.57–4.19times slower | Closed as a standalone speed replacement; retain the accurate implementation for diagnostics |
 
 The CE experiment compares original, explicit one-core mask, two-core mask,
@@ -72,15 +72,20 @@ initial/trained weight regimes. Declare bounds before hardware results; do
 not retrofit a failed BF16 tolerance into an FP8 pass. End-to-end BPB still
 requires the full30-minute comparison after a complete-step gain of at least3%.
 
-The FP8 island is currently **in design/implementation**, not a submitted
-device job. This distinction must remain explicit in status reports.
+The storage-only prototype is implemented in `fp8_weight_cache_nki.py`,
+`mlp_fused_bf16.py` and `fp8_weight_cache_probe.py`. Syntax checks pass; start
+the calibration-only gate, then full16384x1024x4096 FW/BW. Online calibration,
+FP32 master casts, quantized-cache preparation and two accumulated backward
+calls are charged per timed update. CPU autograd and sampled FP64 GEMMs supply
+independent controls; storage variants must agree exactly. It has no device
+result yet. FP8 GEMM islands remain in design, not submitted jobs.
 
 ## Additional retro-search ideas retained
 
 | Family | Concrete use | Stage / gate |
 | --- | --- | --- |
 | Newton / polynomial correction | Reciprocal update; rsqrt seed correction with fewer multiplies than two Newton steps | Reciprocal integrated gate passes; rsqrt modes5/6 ready for component gates |
-| Exponent-bit range reduction | Power-of-two FP8 scales without per-tile log2/floor/exp2 | Design next to FP8 island; exact exponent-policy and zero/underflow checks |
+| Exponent-bit range reduction | Power-of-two FP8 scales without log2/floor/exp2 | Implemented; calibration-only gate covers zero, underflow, outlier, endpoints and all declared finite BF16 codes |
 | Compact finite-domain tables | Joint softcap/exponential/derivative values for BF16 logits | CPU full-code/domain study first; no hardware request yet |
 | Polynomial/rational composition | Evaluate multiple required outputs together, reuse shared intermediates | Design; compare complete loss FW/BW, not standalone approximants only |
 | Representation / traffic elimination | Let loss consume existing BF16 logits and return correctly rounded BF16 head gradients | Exact dtype-boundary probe after FP32 CE scheduling result; caller integration required |
