@@ -185,7 +185,7 @@ def fp16_pair_reference(a, b, inverse):
 
 def run_case(fp8, bf16, roundtrip, shape, steps, diagnostic_only=False,
              check_accumulation=False, save_diagnostic_dir=None,
-             pairwise_reference=False, seed_offset=17):
+             pairwise_reference=False, seed_offset=17, correctness_only=False):
     m, k, n = shape
     torch.manual_seed(seed_offset + k)
     a = (torch.randn(m, k) * 0.5).bfloat16()
@@ -279,6 +279,8 @@ def run_case(fp8, bf16, roundtrip, shape, steps, diagnostic_only=False,
                           fp8_vs_quant_reference_relative_rms=relative_rms(y8, quant_reference),
                           fp8_vs_fp32_relative_rms=relative_rms(y8, full_reference),
                           bf16_vs_fp32_relative_rms=relative_rms(y16, full_reference))), flush=True)
+    if correctness_only:
+        return
     arms = {"native_torch_bf16": lambda: ad @ bd,
             "nki_bf16_layout_included": lambda: bf16[lanes](ad.T.contiguous(), bd, lanes),
             "nki_fp8_layout_cast_included": lambda: fp8[lanes](ad.T.contiguous(), bd, scalars, lanes),
@@ -315,6 +317,8 @@ def main():
                              "not the tolerance; restricted to finite calibrated partials.")
     parser.add_argument("--seed-offset", type=int, default=17,
                         help="Independent seed family: actual seed is offset plus K")
+    parser.add_argument("--correctness-only", action="store_true",
+                        help="Run and enforce all numerical gates, then skip latency benchmarks")
     parser.add_argument("--save-diagnostic-dir", type=Path,
                         help="Save CPU operands and measured outputs for independent offline "
                              "analysis; requires --check-accumulation and a new directory")
@@ -332,11 +336,11 @@ def main():
     for shape in ((128, 256, 128), (256, 768, 512)):
         run_case(fp8, bf16, roundtrip, shape, args.steps, args.diagnostic_only,
                  args.check_accumulation, args.save_diagnostic_dir,
-                 args.pairwise_reference, args.seed_offset)
+                 args.pairwise_reference, args.seed_offset, args.correctness_only)
     if args.large:
         run_case(fp8, bf16, roundtrip, (8192, 768, 512), args.steps, args.diagnostic_only,
                  args.check_accumulation, args.save_diagnostic_dir,
-                 args.pairwise_reference, args.seed_offset)
+                 args.pairwise_reference, args.seed_offset, args.correctness_only)
     print("COMPLETED: FP8 characterization only; numerical gate still required" if args.diagnostic_only
           else "PASS: native FP8 primitive probes completed", flush=True)
 
