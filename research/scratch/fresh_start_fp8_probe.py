@@ -51,7 +51,7 @@ def build_kernels():
         return out
 
     @nki.jit
-    def native_fp8_gemm(a_t, b, scales):
+    def native_fp8_gemm(a_t, b, scales, lanes: int = 1):
         """[K,M] BF16 and [K,N] BF16 -> [M,N] BF16 via scaled legacy FP8.
 
         M multiple128; K multiple256; N multiple128 and <=512 in this first probe.
@@ -60,7 +60,8 @@ def build_kernels():
         """
         k, m = a_t.shape
         _, n = b.shape
-        assert m % 128 == 0 and k % 256 == 0 and n % 128 == 0 and n <= 512
+        assert lanes in (1, 2) and m % (128 * lanes) == 0
+        assert k % 256 == 0 and n % 128 == 0 and n <= 512
         a_view = a_t.reshape((k // 2, 2, m))
         b_view = b.reshape((k // 2, 2, n))
         out = nl.ndarray((m, n), dtype=nl.bfloat16, buffer=nl.shared_hbm)
@@ -70,7 +71,9 @@ def build_kernels():
         nisa.dma_copy(dst=sa, src=scales[:, 0:1])
         nisa.dma_copy(dst=sb, src=scales[:, 1:2])
         nisa.dma_copy(dst=inverse, src=scales[:, 2:3])
-        for mi in nl.affine_range(m // 128):
+        lane = nl.program_id(0)
+        for tile in nl.affine_range(m // (128 * lanes)):
+            mi = tile * lanes + lane
             acc = nl.ndarray((128, n), dtype=nl.float32, buffer=nl.psum)
             for ki in nl.affine_range(k // 256):
                 ab = nl.ndarray((128, 2, 128), dtype=nl.bfloat16, buffer=nl.sbuf)
@@ -91,13 +94,16 @@ def build_kernels():
         return out
 
     @nki.jit
-    def nki_bf16_gemm(a_t, b):
+    def nki_bf16_gemm(a_t, b, lanes: int = 1):
         """Comparable simple BF16 tiling; same transposed input and output shape."""
         k, m = a_t.shape
         _, n = b.shape
-        assert m % 128 == 0 and k % 128 == 0 and n % 128 == 0 and n <= 512
+        assert lanes in (1, 2) and m % (128 * lanes) == 0
+        assert k % 128 == 0 and n % 128 == 0 and n <= 512
         out = nl.ndarray((m, n), dtype=nl.bfloat16, buffer=nl.shared_hbm)
-        for mi in nl.affine_range(m // 128):
+        lane = nl.program_id(0)
+        for tile in nl.affine_range(m // (128 * lanes)):
+            mi = tile * lanes + lane
             acc = nl.ndarray((128, n), dtype=nl.float32, buffer=nl.psum)
             for ki in nl.affine_range(k // 128):
                 ab = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.sbuf)
@@ -122,7 +128,7 @@ def relative_rms(actual, reference):
                  / reference.float().square().mean().sqrt().clamp_min(1e-20))
 
 
-def run_case(fp8, bf16, roundtrip, shape, steps):
+def run_case(fp8, bf16, roundtrip, shape, steps, diagnostic_only=False):
     m, k, n = shape
     torch.manual_seed(17 + k)
     a = (torch.randn(m, k) * 0.5).bfloat16()
@@ -136,12 +142,19 @@ def run_case(fp8, bf16, roundtrip, shape, steps):
     full_reference = a.float() @ b.float()
     ad, bd = a.to("neuron"), b.to("neuron")
     at = ad.T.contiguous()
-    y8 = fp8(at, bd, scalars).cpu()
-    y16 = bf16(at, bd).cpu()
+    lanes = 2 if m % 256 == 0 else 1
+    y8 = fp8[lanes](at, bd, scalars, lanes).cpu()
+    y16 = bf16[lanes](at, bd, lanes).cpu()
     # Isolate conversion from layout/accumulation before interpreting tolerance.
     aq = roundtrip(at, scalars[:, 0:1].contiguous()).cpu().float().T
     bq = roundtrip(bd, scalars[:, 1:2].contiguous()).cpu().float()
     device_quant_reference = (aq @ bq) / (sa * sb)
+    # A predeclared second model characterizes flush-to-zero behavior, if any.
+    # This is a hypothesis until measured, not an assertion from documentation.
+    # Do not relax the numerical gate merely because a discrepancy is small.
+    aq_ftz = torch.where(aq.abs() < 2.0 ** -6, 0.0, aq)
+    bq_ftz = torch.where(bq.abs() < 2.0 ** -6, 0.0, bq)
+    ftz_reference = (aq_ftz @ bq_ftz) / (sa * sb)
     conversions = []
     for name, actual, expected, source in (
         ("a", aq, e4m3_legacy(a.float() * sa), a.float() * sa),
@@ -151,14 +164,20 @@ def run_case(fp8, bf16, roundtrip, shape, steps):
         where = mismatch.nonzero()[:8]
         examples = [dict(input=float(source[i, j]), actual=float(actual[i, j]),
                          expected=float(expected[i, j])) for i, j in where]
+        expected_ftz = torch.where(expected.abs() < 2.0 ** -6, 0.0, expected)
         conversions.append(dict(operand=name, mismatches=int(mismatch.sum()),
+                                mismatches_if_flush_subnormal=int((actual != expected_ftz).sum()),
                                 elements=actual.numel(), examples=examples))
-    print(json.dumps(dict(check="fp8_rounding_diagnostic", shape=shape,
+    print(json.dumps(dict(check="fp8_rounding_diagnostic", shape=shape, lanes=lanes,
                           conversions=conversions,
                           fp8_vs_quant_reference_relative_rms=relative_rms(y8, quant_reference),
                           fp8_vs_device_quant_reference_relative_rms=relative_rms(y8, device_quant_reference),
+                          fp8_vs_flush_subnormal_matmul_relative_rms=relative_rms(y8, ftz_reference),
+                          fp8_max_abs_vs_flush_subnormal_matmul=float((y8.float() - ftz_reference.bfloat16().float()).abs().max()),
                           fp8_max_abs_vs_device_quant_reference=float((y8.float() - device_quant_reference.bfloat16().float()).abs().max()),
                           bf16_vs_fp32_relative_rms=relative_rms(y16, full_reference))), flush=True)
+    if diagnostic_only:
+        return
     assert all(x["mismatches"] == 0 for x in conversions), "FP8 conversion differs from independent reference"
     torch.testing.assert_close(y8.float(), quant_reference.bfloat16().float(), rtol=0.009, atol=1e-5)
     torch.testing.assert_close(y16.float(), full_reference.bfloat16().float(), rtol=0.009, atol=1e-5)
@@ -168,9 +187,9 @@ def run_case(fp8, bf16, roundtrip, shape, steps):
                           fp8_vs_fp32_relative_rms=relative_rms(y8, full_reference),
                           bf16_vs_fp32_relative_rms=relative_rms(y16, full_reference))), flush=True)
     arms = {"native_torch_bf16": lambda: ad @ bd,
-            "nki_bf16_layout_included": lambda: bf16(ad.T.contiguous(), bd),
-            "nki_fp8_layout_cast_included": lambda: fp8(ad.T.contiguous(), bd, scalars),
-            "nki_fp8_pretransposed_lower_bound": lambda: fp8(at, bd, scalars)}
+            "nki_bf16_layout_included": lambda: bf16[lanes](ad.T.contiguous(), bd, lanes),
+            "nki_fp8_layout_cast_included": lambda: fp8[lanes](ad.T.contiguous(), bd, scalars, lanes),
+            "nki_fp8_pretransposed_lower_bound": lambda: fp8[lanes](at, bd, scalars, lanes)}
     for fn in arms.values():
         for _ in range(3):
             fn()
@@ -185,7 +204,7 @@ def run_case(fp8, bf16, roundtrip, shape, steps):
                 arms[name]()
             sync()
             samples[name].append((time.perf_counter() - start) * 1000 / steps)
-    print(json.dumps(dict(check="fp8_benchmark", shape=shape, calibration_amax_included=False,
+    print(json.dumps(dict(check="fp8_benchmark", shape=shape, lanes=lanes, calibration_amax_included=False,
                           samples_ms=samples, median_ms={k: statistics.median(v) for k, v in samples.items()},
                           training_speed_or_quality_claim=False)), flush=True)
 
@@ -194,15 +213,19 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--steps", type=int, default=12)
     parser.add_argument("--large", action="store_true", help="also test an8192-token projection tile")
+    parser.add_argument("--diagnostic-only", action="store_true",
+                        help="Characterize rounding/accumulation on every shape without "
+                             "claiming correctness or running performance benchmarks")
     args = parser.parse_args()
     torch.set_num_threads(2)
     import torch_neuronx  # noqa: F401
     fp8, bf16, roundtrip = build_kernels()
     for shape in ((128, 256, 128), (256, 768, 512)):
-        run_case(fp8, bf16, roundtrip, shape, args.steps)
+        run_case(fp8, bf16, roundtrip, shape, args.steps, args.diagnostic_only)
     if args.large:
-        run_case(fp8, bf16, roundtrip, (8192, 768, 512), args.steps)
-    print("PASS: native FP8 primitive probes completed", flush=True)
+        run_case(fp8, bf16, roundtrip, (8192, 768, 512), args.steps, args.diagnostic_only)
+    print("COMPLETED: FP8 characterization only; numerical gate still required" if args.diagnostic_only
+          else "PASS: native FP8 primitive probes completed", flush=True)
 
 
 if __name__ == "__main__":
