@@ -1,6 +1,6 @@
 # Kernel queue and precision-specific experiments
 
-Updated22:37UTC,2026-09-18. This is the executable/design queue, not a list of
+Updated22:57UTC,2026-09-18. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
@@ -9,10 +9,10 @@ Every device request retains immutable source, cleanup and numerical gates.
 | Item | State | Next action / evidence |
 | --- | --- | --- |
 | T1024/pack16 + original fused AdamW | 3282updates; small public0.992175; checkpoint local and cloud verified | Larger20.97M/T1024/O1 evaluation **0.9974687136975224**, clean; first larger public sub1.0, not private leaderboard |
-| Padded optimizer ownership |3377updates/442.6Mtargets; small public0.979318/T2048,0.992072/T1024; checkpoint local | Matched larger evaluation active on trn21, `fs-w65-eval-owned-pack8-s1024-20m-o1-r1` |
+| Padded optimizer ownership |3377updates/442.6Mtargets; checkpoint local and cloud verified | Larger public **0.9973302213667847**, clean; current best. T1024/pack16 ownership combination phase now active against fresh528.353028ms owned control |
 | Scalar reciprocal + Newton | 34component gates,16.77% component gain; repeated optimizer/cache/restore gate now passes | Optional whole-step combination after the active quality runs; no approximation is in those runs |
 | Scalar rsqrt correction | Mode5 passes34 gates but loses:1.363799vs1.262366ms; no promotion | Mode6 also passes34 gates but loses1.25%; both closed for this component; mode2 remains faster |
-| Exact CE core/gather changes | One-core mask port exact; two-core arms exact at real shape but fail small general-FP32 stress inputs | Wave66 completed; diagnose loop-length/dtype/stages and add one-core gather; do not promote failed variants |
+| Exact CE core/gather changes | Wave68 isolates discrepancy to forward outer-loop trip count1, for both input precisions; cores agree and native-lse backward is exact | Adaptive dispatch keeps one core for small/odd tile counts; re-run original exact gates plus128/384/512/768/1024 boundaries, then real timing |
 | Polynomial exponential | Nine device records pass;3.57–4.19times slower | Closed as a standalone speed replacement; retain the accurate implementation for diagnostics |
 
 The CE experiment compares original, explicit one-core mask, two-core mask,
@@ -90,7 +90,7 @@ FP64 dot products and both NKI training paths. FP8 GEMM islands remain in design
 | --- | --- | --- |
 | Newton / polynomial correction | Reciprocal update; rsqrt seed correction with fewer multiplies than two Newton steps | Reciprocal integrated gate passes; rsqrt modes5/6 ready for component gates |
 | Exponent-bit range reduction | Power-of-two FP8 scales without log2/floor/exp2 | Implemented; calibration-only gate covers zero, underflow, outlier, endpoints and all declared finite BF16 codes |
-| Compact finite-domain tables | Joint softcap/exponential/derivative values for BF16 logits | CPU full-code/domain study first; no hardware request yet |
+| Compact finite-domain tables | Joint softcapped exponential and derivative, with analytic tails | CPU study passes all65280 finite BF16 codes and13 loss/gradient scenarios;4/5/6MiB alternatives. Device gather/reduction/reciprocal/log and timing pending |
 | Polynomial/rational composition | Evaluate multiple required outputs together, reuse shared intermediates | Design; compare complete loss FW/BW, not standalone approximants only |
 | Representation / traffic elimination | Let loss consume existing BF16 logits and return correctly rounded BF16 head gradients | Exact dtype-boundary probe after FP32 CE scheduling result; caller integration required |
 | Work elimination | SBUF target gather; optimizer compute ownership; precomputed symmetry | CE ready; ownership full training active; RoPE trig already precomputed |

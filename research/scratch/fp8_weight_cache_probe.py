@@ -22,6 +22,7 @@ from fp8_weight_cache_nki import build_kernels
 from fresh_start_fp8_probe import e4m3_legacy
 from mlp_fused_bf16 import build_kernel, reference_forward
 from mlp_fused_bf16_probe import compare, gemm_gate, timing
+from mlp_backward_rounding_bounds import reference_and_bounds, audit as backward_bound_audit
 
 
 def emit(kind, record):
@@ -104,7 +105,7 @@ def quantization_diagnostic(name, actual, original):
 
 
 def mlp_gate(shape, case, kernel, calibrate, quantize, steps, benchmark,
-             diagnose_phase_drift=False):
+             diagnose_phase_drift=False, reference_contract='legacy_cpu_bf16'):
     tokens, channels, hidden = shape
     tile = min(512, tokens // 2)
     generator = torch.Generator().manual_seed(5291 + tokens + channels)
@@ -165,6 +166,7 @@ def mlp_gate(shape, case, kernel, calibrate, quantize, steps, benchmark,
     cpu_leaves = tuple(a.detach().clone().requires_grad_() for a in (x, uq_cpu, dq_cpu))
     cpu_y = reference_forward(*cpu_leaves)[0]
     cpu_y.backward(gradient)
+    fp64_reference, fp64_bounds = reference_and_bounds(x, uq_cpu, dq_cpu, gradient)
     train = {name: torch.compile(make_cached_autograd(function), backend='neuron',
                                  fullgraph=True, dynamic=False)
              for name, function in dict(native=native_call, bf16_cache=bf16_call,
@@ -182,10 +184,12 @@ def mlp_gate(shape, case, kernel, calibrate, quantize, steps, benchmark,
     gradients = {}
     training_outputs = {}
     phase_exact = True
+    legacy_cpu_diagnostic_passed = True
     for name, function in train.items():
         result = backward_call(function)
         phase = require_exact(f'{case}:{name}:training_forward', result, outputs[name][0],
-                              fatal=not (diagnose_phase_drift and name == 'native'))
+                              fatal=not (name == 'native' and
+                                         (diagnose_phase_drift or reference_contract == 'fp64_propagated')))
         phase_exact &= phase['passed']
         training_outputs[name] = result.detach().cpu()
         compare(f'{case}:{name}:training_vs_cpu_forward', result, cpu_y)
@@ -212,7 +216,13 @@ def mlp_gate(shape, case, kernel, calibrate, quantize, steps, benchmark,
         gradients[name] = tuple(a.grad.cpu() for a in leaves)
         assert leaves[1].grad.dtype == leaves[2].grad.dtype == torch.float32
         for i in range(3):
-            compare(f'{case}:{name}:cpu_surrogate_gradient{i}', gradients[name][i], cpu_leaves[i].grad)
+            try:
+                compare(f'{case}:{name}:cpu_surrogate_gradient{i}', gradients[name][i], cpu_leaves[i].grad)
+            except AssertionError:
+                legacy_cpu_diagnostic_passed = False
+                if not diagnose_phase_drift and reference_contract == 'legacy_cpu_bf16':
+                    raise
+        backward_bound_audit(f'{case}:{name}', gradients[name], fp64_reference, fp64_bounds)
     for i in range(3):
         require_exact(f'{case}:storage_only:gradient{i}', gradients['fp8_cache'][i], gradients['bf16_cache'][i])
     require_exact(f'{case}:storage_only:training_output', training_outputs['fp8_cache'],
@@ -221,7 +231,11 @@ def mlp_gate(shape, case, kernel, calibrate, quantize, steps, benchmark,
     original_y = forward['native'](device_x, leaves[1].detach().bfloat16(),
                                     leaves[2].detach().bfloat16(), up_meta, down_meta)[0]
     quantization_diagnostic(case + ':forward_model_drift', outputs['fp8_cache'][0], original_y)
-    emit('FP8_CACHE_MLP_GATE', dict(shape=shape, case=case, passed=phase_exact,
+    emit('FP8_CACHE_MLP_GATE', dict(shape=shape, case=case,
+         passed=(reference_contract == 'fp64_propagated' or phase_exact) and not diagnose_phase_drift,
+         reference_contract=reference_contract,
+         legacy_cpu_bf16_reference_diagnostic_passed=legacy_cpu_diagnostic_passed,
+         native_cross_compilation_exact=phase_exact,
          fp8_matmuls=False, fp32_master_gradient_types=True,
          straight_through_weight_quantizer=True, exact_storage_control=True,
          original_model_equivalence_claimed=False))
@@ -263,6 +277,9 @@ def main():
     parser.add_argument('--calibration-only', action='store_true')
     parser.add_argument('--diagnose-phase-drift', action='store_true',
                         help='Preserve native phase exactness failure, inspect dots/gradients; no timing.')
+    parser.add_argument('--reference-contract', choices=('legacy_cpu_bf16', 'fp64_propagated'),
+                        default='legacy_cpu_bf16',
+                        help='Explicitly select CPU rounded-path comparison or analytical FP64 propagation.')
     args = parser.parse_args()
     import torch_neuronx
     torch.set_num_threads(4)
@@ -285,11 +302,13 @@ def main():
         kernel = torch_neuronx.wrap_nki(build_kernel())
         for case in (('random',) if args.diagnose_phase_drift else ('random', 'changed', 'zero')):
             mlp_gate((256, 256, 512), case, kernel, calibrate, quantize, args.steps, False,
-                     args.diagnose_phase_drift)
+                     args.diagnose_phase_drift, args.reference_contract)
         if args.real_shape and not args.diagnose_phase_drift:
-            mlp_gate((16384, 1024, 4096), 'real_random', kernel, calibrate, quantize, args.steps, True)
+            mlp_gate((16384, 1024, 4096), 'real_random', kernel, calibrate, quantize, args.steps, True,
+                     False, args.reference_contract)
     emit('FP8_CACHE_RESULT', dict(passed=not args.diagnose_phase_drift,
          diagnostic_only=args.diagnose_phase_drift, calibration_only=args.calibration_only,
+         reference_contract=args.reference_contract,
          real_shape=args.real_shape, promoted_into_training=False, fp8_matmuls=False))
 
 
