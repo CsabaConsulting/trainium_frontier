@@ -1,0 +1,43 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave50",
+    "expected_commit": "eeb49432dbd202da5a79defb3eeac8c2c738aa9d",
+    "label": "fs-w50-native-mlp-pack8-integration-gate-r1",
+    "purpose": "Require compiled native/candidate calls and unchanged numerical bounds at actual B8/T2048 before full-budget quality testing. Validate FP32 masters, BF16 cache refresh, accumulation, updates, native evaluation and checkpoint structure.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1"
+    },
+    "fingerprint_paths": [
+      "research/scratch/mlp_fused_integration_check.py",
+      "research/scratch/mlp_fused_integration.py",
+      "research/scratch/mlp_fused_bf16.py"
+    ],
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/mlp_fused_integration_check.py",
+      "--forward-backend",
+      "native",
+      "--real-shape",
+      "--real-tokens",
+      "16384",
+      "--batch-size",
+      "8",
+      "--require-compiled"
+    ]
+  },
+  "requested_at": "2026-09-18T19:52:17.769827+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w50-native-mlp-pack8-integration-gate-r1\", \"pid\": 1038809, \"commit\": \"eeb49432dbd202da5a79defb3eeac8c2c738aa9d\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave50/research/run-logs/fs-w50-native-mlp-pack8-integration-gate-r1.log\", \"started_at\": \"2026-09-18T19:52:24.137939+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

@@ -5,7 +5,7 @@ import json
 
 import torch
 
-from branch_norm_nki import EPS, make_function, reference
+from branch_norm_nki import EPS, build_kernels, make_function, reference
 from mlp_fused_bf16_probe import timing
 from mlp_separate_diagnose import autograd_nodes
 
@@ -35,12 +35,38 @@ def numerical(name, output, gradient, x, g):
     assert record["passed"], record
 
 
-def run(rows, channels, steps):
+def diagnose_inverse():
+    """Read the actual saved statistic; do not infer accuracy from its dtype."""
+    from torch_neuronx import wrap_nki
+    forward, _ = build_kernels()
+    kernel = wrap_nki(forward)
+    generator = torch.Generator().manual_seed(391)
+    base = torch.randn(256, 128, generator=generator)
+    for scale in (0.0, 1e-6, 1.0, 1e4):
+        x = base * scale
+        expected = (x.double().square().mean(-1, keepdim=True) + EPS).rsqrt()
+        device_x = x.to("neuron")
+        records = []
+        for mode, name in ((0, "scalar_raw"), (1, "scalar_newton"), (2, "gpsimd")):
+            _, inverse = kernel[2](device_x, 2, mode)
+            actual = inverse.cpu().double()
+            relative = ((actual - expected) / expected).abs()
+            records.append(dict(mode=name, actual_first=float(actual[0, 0]),
+                                expected_first=float(expected[0, 0]),
+                                max_relative=float(relative.max()),
+                                relative_rms=float((actual - expected).norm() / expected.norm())))
+            if mode:
+                assert bool(torch.isfinite(actual).all()) and float(relative.max()) < 3e-6
+        print("BRANCH_NORM_INVERSE_DIAGNOSIS " + json.dumps(dict(
+            shape=list(x.shape), scale=scale, results=records)), flush=True)
+
+
+def run(rows, channels, steps, inverse_mode):
     torch.manual_seed(871 + rows + channels)
     base = torch.randn(rows, channels)
     grad = torch.randn(rows, channels).bfloat16()
     native = torch.compile(reference, backend="neuron", fullgraph=True, dynamic=False)
-    candidate = torch.compile(make_function(), backend="neuron", fullgraph=True, dynamic=False)
+    candidate = torch.compile(make_function(inverse_mode), backend="neuron", fullgraph=True, dynamic=False)
     gd = grad.to("neuron")
     for scale in (0.0, 1e-6, 1e-3, 1.0, 1e4):
         xx = base * scale
@@ -79,7 +105,7 @@ def run(rows, channels, steps):
                        "nki_forward_backward": lambda: call("nki", candidate)},
                       steps, torch.neuron.synchronize)
     print("BRANCH_NORM_BENCH " + json.dumps(dict(
-        rows=rows, channels=channels, **measured, same_precision_policy=True,
+        rows=rows, channels=channels, inverse_mode=inverse_mode, **measured, same_precision_policy=True,
         untouched_tokens_and_repeated_calls_exact=True, whole_model=False)), flush=True)
 
 
@@ -87,13 +113,18 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--real-shape", action="store_true")
     ap.add_argument("--steps", type=int, default=20)
+    ap.add_argument("--diagnose-inverse", action="store_true")
+    ap.add_argument("--inverse-mode", type=int, choices=(1, 2), default=2,
+                    help="1=Scalar rsqrt plus FP32 Newton step; 2=higher-precision GpSIMD rsqrt")
     args = ap.parse_args()
     import torch_neuronx  # noqa:F401
     torch.set_num_threads(4)
-    run(256, 128, args.steps)
-    run(256, 1024, args.steps)
+    if args.diagnose_inverse:
+        diagnose_inverse()
+    run(256, 128, args.steps, args.inverse_mode)
+    run(256, 1024, args.steps, args.inverse_mode)
     if args.real_shape:
-        run(8192, 1024, args.steps)
+        run(8192, 1024, args.steps, args.inverse_mode)
     print("PASS: branch RMS normalization numerical and independence gates", flush=True)
 
 

@@ -1,0 +1,21 @@
+[W918 19:52:27.285820670 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+BRANCH_NORM_NUMERICAL {"name": "native:256:128:0.0", "finite": true, "forward_one_ulp_failures": 0, "backward_bound_failures": 0, "backward_relative_rms": 3.088023481023387e-08, "backward_max_abs": 0.0006376219425874297, "passed": true}
+BRANCH_NORM_NUMERICAL {"name": "nki:256:128:0.0", "finite": true, "forward_one_ulp_failures": 0, "backward_bound_failures": 32768, "backward_relative_rms": 4.368240305577e-05, "backward_max_abs": 0.5575227923091006, "passed": false}
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_freshstart_20260918_wave50/research/scratch/branch_norm_nki_probe.py", line 101, in <module>
+    main()
+  File "/home/ubuntu/trainium_freshstart_20260918_wave50/research/scratch/branch_norm_nki_probe.py", line 93, in main
+    run(256, 128, args.steps)
+  File "/home/ubuntu/trainium_freshstart_20260918_wave50/research/scratch/branch_norm_nki_probe.py", line 56, in run
+    numerical(f"{name}:{rows}:{channels}:{scale}", cpu_output, cpu_gradient, xx, grad)
+  File "/home/ubuntu/trainium_freshstart_20260918_wave50/research/scratch/branch_norm_nki_probe.py", line 35, in numerical
+    assert record["passed"], record
+           ~~~~~~^^^^^^^^^^
+AssertionError: {'name': 'nki:256:128:0.0', 'finite': True, 'forward_one_ulp_failures': 0, 'backward_bound_failures': 32768, 'backward_relative_rms': 4.368240305577e-05, 'backward_max_abs': 0.5575227923091006, 'passed': False}
+EXPERIMENT_POSTFLIGHT {"label": "fs-w50-branch-norm-component-r1", "returncode": 1, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave50/research/run-logs/fs-w50-branch-norm-component-r1.postflight.json"}

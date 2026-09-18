@@ -1,0 +1,49 @@
+{
+  "host": "trn22",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave50",
+  "expected_commit": "eeb49432dbd202da5a79defb3eeac8c2c738aa9d",
+  "label": "fs-w50-branch-norm-component-r1",
+  "purpose": "New NKI branch RMSNorm preserving FP32 statistics/input gradients and BF16 outputs. Require FP64 analytic, finite, compiled-autograd, token independence and repeatability gates at changed scales and actual8192x1024, then measure forward/backward. No full model until correctness and20% component gain.",
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1",
+    "NEURON_RT_VISIBLE_CORES": "0",
+    "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1"
+  },
+  "fingerprint_paths": [
+    "research/scratch/branch_norm_nki.py",
+    "research/scratch/branch_norm_nki_probe.py",
+    "research/scratch/mlp_fused_bf16_probe.py",
+    "research/scratch/mlp_separate_diagnose.py"
+  ],
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1200s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "research/scratch/branch_norm_nki_probe.py",
+    "--real-shape",
+    "--steps",
+    "20"
+  ],
+  "started_at": "2026-09-18T19:52:25.096449+00:00",
+  "hostname": "ip-172-31-32-253",
+  "git_commit": "eeb49432dbd202da5a79defb3eeac8c2c738aa9d",
+  "source_dirty": false,
+  "preflight_free_bytes": 22241013760,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+    "research/fresh_start_host.py": "df01707b8ca2ffc8f4b798467e58b81c6fd8417f7aa1c26c4ecf6c080c659600",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/scratch/branch_norm_nki.py": "3fc7b9da9c7617825be7bc3d1af7d1c01ac285368e9d7089c9a7367a20400648",
+    "research/scratch/branch_norm_nki_probe.py": "2ddb78940d1fb47c70a734bd9117b0987105ac1d7186ffeef3b1bc7f934517ff",
+    "research/scratch/mlp_fused_bf16_probe.py": "565991e1fb29dcf41c6db58e098891a5e59685b231d6475bed66e465242483ed",
+    "research/scratch/mlp_separate_diagnose.py": "e5810cbd3d887e2a88669a7d0d4856f76acf7342e4b4794e6591bf0ea0f8faad"
+  }
+}

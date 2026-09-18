@@ -21,10 +21,11 @@ def build_kernels():
     import nki.isa as nisa
 
     @nki.jit
-    def forward(x, lanes: int = 2):
+    def forward(x, lanes: int = 2, inverse_mode: int = 2):
         rows, channels = x.shape
         assert x.dtype == nl.float32 and channels % 128 == 0
         assert lanes in (1, 2) and rows % (128 * lanes) == 0
+        assert inverse_mode in (0, 1, 2)
         y = nl.ndarray(x.shape, dtype=nl.bfloat16, buffer=nl.shared_hbm)
         inverse = nl.ndarray((rows, 1), dtype=nl.float32, buffer=nl.shared_hbm)
         for i in nl.affine_range(rows // (128 * lanes)):
@@ -40,7 +41,25 @@ def build_kernels():
             nisa.tensor_reduce(dst=summed, op=nl.add, data=squared, axis=(1,))
             nisa.tensor_scalar(dst=mean_eps, data=summed, op0=nl.multiply,
                                operand0=1.0 / channels, op1=nl.add, operand1=EPS)
-            nisa.activation(dst=inv, op=nl.rsqrt, data=mean_eps)
+            if inverse_mode == 2:
+                # Documented higher-precision GpSIMD instruction. Each token
+                # has only one statistic; bulk rsqrt throughput is irrelevant.
+                nisa.tensor_scalar(dst=inv, data=mean_eps, op0=nl.rsqrt, operand0=0.0)
+            else:
+                nisa.activation(dst=inv, op=nl.rsqrt, data=mean_eps)
+            if inverse_mode == 1:
+                # Independent correction control for the scale-like4.37e-5
+                # zero-input gradient error observed in wave50:
+                # r <- r * (1.5 - 0.5 * a * r * r), entirely in FP32.
+                # Mode0 is the original unrefined diagnostic, never installed.
+                inv_squared = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
+                residual = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
+                refinement = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
+                nisa.tensor_tensor(dst=inv_squared, data1=inv, data2=inv, op=nl.multiply)
+                nisa.tensor_tensor(dst=residual, data1=mean_eps, data2=inv_squared, op=nl.multiply)
+                nisa.tensor_scalar(dst=refinement, data=residual, op0=nl.multiply,
+                                   operand0=-0.5, op1=nl.add, operand1=1.5)
+                nisa.tensor_tensor(dst=inv, data1=inv, data2=refinement, op=nl.multiply)
             nisa.tensor_scalar(dst=output, data=values, op0=nl.multiply, operand0=inv)
             nisa.dma_copy(dst=y[start:start + 128, :], src=output)
             nisa.dma_copy(dst=inverse[start:start + 128, :], src=inv)
@@ -83,7 +102,8 @@ def build_kernels():
     return forward, backward
 
 
-def make_function():
+def make_function(inverse_mode=2):
+    assert inverse_mode in (1, 2), "unrefined inverse is diagnostic-only"
     from torch_neuronx import wrap_nki
     forward, backward = (wrap_nki(kernel) for kernel in build_kernels())
 
@@ -92,7 +112,7 @@ def make_function():
         def forward(ctx, x):
             shape = x.shape
             flat = x.reshape(-1, shape[-1])
-            y, inv = forward[2](flat, 2)
+            y, inv = forward[2](flat, 2, inverse_mode)
             ctx.save_for_backward(flat, inv)
             ctx.shape = shape
             return y.reshape(shape)

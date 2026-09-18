@@ -1523,3 +1523,29 @@ and source-fingerprinted; production train.py and prepare.py remain unchanged.
 
 The19:35artifact backup completed at19:37:36UTC with **27of27 verified** and no
 errors, including the isolated native numerical reference tensors.
+
+Wave50 actual B8/T2048 native-MLP integration gate passes every original bound,
+FP32 master/cache/accumulation/update/evaluation/checkpoint check, with compiled
+autograd asserted throughout. The full1800s quality run launched ontrn21 at
+19:54:51UTC, sourceeeb4943, `fs-w50-dense1024-native-mlp-pack8-1800-r1`.
+
+The first NKI branch-norm gate fails at all-zero input before timing. Outputs
+are finite/exact zero; the backward has32768 bound violations at256x128 and
+relative RMS4.3682403e-5, while native passes at3.0880235e-8. Both use identical
+FP32 epsilon. This scale-like error suggests the inverse statistic; it is not
+evidence of a race. Wave51 directly returns and compares raw/refined inverse
+RMS and applies one FP32 Newton iteration, r*(1.5-0.5*a*r*r). The original
+forward and backward error bounds are unchanged. The initial failure has a
+clean postflight and is retained in full.
+
+AWS documents FP32 arithmetic in the Scalar Engine and separate input domains
+for its activation functions; this does not state correctly rounded rsqrt.
+The diagnosis will use measured saved statistics rather than infer accuracy
+from dtype. Sources: [activation API](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/api/generated/nki.isa.activation.html)
+and [activation domains](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/api/nki.api.shared.html).
+
+The same primary API guide explicitly distinguishes approximate Scalar rsqrt
+from higher-precision GpSIMD rsqrt via tensor_scalar(op0=rsqrt,operand0=0.0).
+Wave51 tests all three inverse paths directly, including the independent Newton
+control, and selects GpSIMD for the full unchanged numerical gate and timing.
+One statistic per token avoids making bulk rsqrt throughput the relevant limit.

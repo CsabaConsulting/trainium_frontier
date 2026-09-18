@@ -1,26 +1,29 @@
 # Resume the Trainium kernel campaign
 
-Updated2026-09-18,19:53UTC. Active permissions: danger-full-access, approval never.
+Updated2026-09-18,19:56UTC. Active permissions: danger-full-access, approval never.
 This replaces the accumulated stale resume instructions; their history remains
 in Git. Do not restart completed experiments from earlier revisions.
 
 ## Live work
 
-- **trn21:** latest pack8/native-forward/custom-backward MLP phase completed
-  cleanly at559.975452ms, versus the predeclared longer native reference
-  588.185841ms (4.796% saving). B8/T2048/GA2, unchanged131,072targets/update;
-  no segmented embedding. Next is the actual16,384-token master/cache/gradient
-  gate, with compiled execution asserted on every call. Only a pass authorizes
-  the proposed1800s quality run through the explicit scratch training wrapper.
-- **trn22:** current native full-step runtime trace completed cleanly at19:46:33
-  inwave49: `fs-w49-dense1024-current-step-runtime-r1`. Raw trace/73NEFFs require
-  local retrieval, hashes, and off-machine artifact backup. Next is a new NKI
-  branch RMSNorm component gate: preserve FP32 statistics/gradients and BF16
-  outputs; numerical/independence checks precede any whole-model timing.
-- **Wave50 prepared:** branch_norm_nki.py and its analytic probe, the larger
-  native-MLP gate, and fresh_start_train.py. The runner accepts an explicit
-  repository-local --entrypoint and fingerprints it. Production train.py and
-  prepare.py are unchanged. Commit/deploy the new source before either launch.
+- **trn21:** `fs-w50-dense1024-native-mlp-pack8-1800-r1` launched at19:54:51UTC,
+  wave50/sourceeeb4943, through the explicit scratch training wrapper. Actual
+  B8/T2048 compiled master/cache/gradient/accumulation/update/checkpoint gates
+  passed with unchanged bounds, after559.975452ms full-step timing (4.796%
+  saving). The quality run keeps seed42,131,072targets/update, clip-after-reduce,
+  and the best dense6x1024 precision policy. No new branch norm or segmented
+  embedding. Preserve its checkpoint immediately after completion.
+- **trn22:** branch RMSNorm failed its initial zero-input gradient gate, finite
+  but4.36824e-5 relative error, versus native3.08802e-8. Postflight is clean.
+  Wave51 compares raw Scalar, FP32 Newton-refined Scalar, and documented
+  higher-precision GpSIMD rsqrt, selecting GpSIMD for the full gate. Bounds remain unchanged;
+  no whole-model use until the complete component gate passes.
+- The wave49 native full-step runtime trace is now local and hash-verified:
+  88files/68,923,863bytes, `out/fresh-start-profiles/` plus its label directory.
+  Artifact cloud backup is queued through its preservation receipt, not yet
+  claimed complete. A trace summary is inrun-logs/.
+- The runner's explicit repository-local --entrypoint is source-fingerprinted.
+  Production train.py and prepare.py remain unchanged by these experiments.
 - Separated packed MLP688.922656ms and native-forward separated control
   700.449689ms both lose, despite passing the isolated numerical gates and
   all four whole-model checks. Do not train either separated variant.
