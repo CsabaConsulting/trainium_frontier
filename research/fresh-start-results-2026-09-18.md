@@ -1621,3 +1621,39 @@ The normalization trace was ingested locally into 23 Parquet tables in 3.48s
 with a 4GiB Go memory limit. The first attempt failed before execution because
 libnrt.so.1 was not on the process-local library path; the retry used the already
 preserved library and changed no packages. Raw inputs remain unchanged.
+
+### Wave55 FP32 AdamW passes; functional form wins the component comparison
+
+All 34 functional/in-place NKI case checks pass unchanged FP64 analytic bounds,
+including real 4096x2048 first-update, zero-gradient and decaying-moment cases.
+The native foreach and compiled-control violation is localized to flat index
+3538528, gradient -7.873063978536265e-9 with zero initial weights and moments.
+Expected weight is 0.01974915496084242; foreach gives 0.01974930800497532 and
+compiled gives 0.01974930614233017. The compiled control remains ineligible.
+A stage-level sqrt diagnosis is prepared for wave56.
+
+Three interleaved 20-update timing blocks, including varying LR, bias correction,
+scalar staging/upload and weight copy-back, give medians: actual foreach
+4.004879450ms, functional NKI 1.230406400ms, in-place NKI 2.436494900ms. The
+functional path saves 69.2773% of this component; in-place is not automatically
+faster. Whole-optimizer and full-step improvement remain unmeasured. Clean
+postflight. A same-host native-MLP/pack8 control with 30 measured updates and
+5 warmups was launched at 20:23:54 UTC on trn22. It retains the explicitly
+documented clip-before-reduce phase convention; both arms must match.
+
+Wave56 adds opt-in integration only for the five dense1024 FP32 tables. The
+native state prologue retains per-parameter counters and missing-gradient rules;
+copy-back preserves Parameter identity and advances its version. Unsupported
+groups and Muon remain native. Planned gates cover repeated analytic updates,
+FP64 trajectories, sparse/zero/None gradients, changing LR/beta, skipped ticks,
+BF16 cache refresh, and bit-exact restored optimizer continuation. No training
+wrapper enables this candidate yet.
+
+Normalization profile attribution: native forward/backward windows are
+0.143663/0.233735ms, NKI Newton forward/backward 0.314677/0.216177ms. These are
+profiled attribution windows, not throughput estimates. Forward is the main
+regression, despite backward being slightly shorter in this capture. Many
+small inverse-statistic DMA stores and loop dependencies are a next hypothesis;
+missing dynamic DMA metadata prevents claiming exact bandwidth or spill costs.
+Local analysis now uses an isolated Python3.12 environment with pyarrow25.0.0,
+matching the existing remote reader; requirements are recorded in scratch/.
