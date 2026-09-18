@@ -49,6 +49,8 @@ def cpu_decay_check():
 
 
 def build_kernel():
+    # NKI 0.5 resolves names from module globals, not this factory's closure.
+    global nisa, nl
     import nki
     import nki.isa as nisa
     import nki.language as nl
