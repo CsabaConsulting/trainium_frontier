@@ -1,0 +1,36 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave40",
+    "expected_commit": "8860a7f99e01045bc1db92a9d0cfab182dc82201",
+    "label": "fs-w40-mlp-grouped-master-cache-integration-r1",
+    "purpose": "Gate previously component-validated grouped MLP I/O in actual Linear module: FP32 master gradients, cached/uncached paths, two accumulated microbatches, refresh after reference updates, native evaluation and checkpoint identity before full-model timing.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "NEURON_RT_VISIBLE_CORES": "0"
+    },
+    "fingerprint_paths": [
+      "research/scratch/mlp_fused_integration.py",
+      "research/scratch/mlp_fused_integration_check.py",
+      "research/scratch/mlp_fused_bf16.py"
+    ],
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1500s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/mlp_fused_integration_check.py",
+      "--real-shape",
+      "--grouped-io"
+    ]
+  },
+  "requested_at": "2026-09-18T18:02:48.802427+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w40-mlp-grouped-master-cache-integration-r1\", \"pid\": 978455, \"commit\": \"8860a7f99e01045bc1db92a9d0cfab182dc82201\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave40/research/run-logs/fs-w40-mlp-grouped-master-cache-integration-r1.log\", \"started_at\": \"2026-09-18T18:02:55.391201+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

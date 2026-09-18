@@ -1,0 +1,25 @@
+{
+  "label": "fs-w40-mlp-spill-comparison-r1",
+  "guard_pid": 1343321,
+  "child_pid": 1343322,
+  "child_session": 1343322,
+  "started_at": "2026-09-18T18:02:56.531444+00:00",
+  "command": [
+    "timeout",
+    "--kill-after=15s",
+    "300s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "research/scratch/compare_mlp_profile_spills.py",
+    "--reference",
+    "out/dense1024-nki-norm-current-parquet",
+    "--candidate",
+    "/home/ubuntu/trainium_freshstart_20260918_wave39/out/fs-w39-mlp-forward-parquet-r2/i-0673e54d9d66e6a1e_pid_1335537_nc_0_session_0",
+    "--reference-neff",
+    "e496117f74af27424b6c982ea962b625.neff",
+    "--candidate-neff",
+    "6ec5dd5b3e70cf667b3952ff25804a5c.neff",
+    "--output",
+    "research/run-logs/fs-w40-mlp-spill-comparison-r1.analysis.json"
+  ]
+}

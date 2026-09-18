@@ -212,13 +212,18 @@ def upload(config, rel, folder, manifest):
     verified = []
     for item in required:
         name = item['name']
-        if name in inventory and inventory[name]['state'] == 'starter' and inventory[name]['size'] == 0:
-            # GitHub can retain an empty placeholder after an interrupted upload.
-            # Scope is this draft release and this exact content-addressed name.
+        if (name in inventory and inventory[name]['state'] == 'starter'
+                and inventory[name].get('digest') is None
+                and inventory[name]['size'] in (0, item['bytes'])):
+            # An interrupted upload can retain the declared Content-Length even
+            # when GitHub has no completed asset/digest. Our uploader lock is
+            # held, the exact content-addressed payload is verified locally,
+            # and this branch never replaces an uploaded asset.
+            assert digest(folder/name) == item['sha256'], 'Local retry payload changed: '+name
             abandoned = inventory[name]
             atomic_json(DIRECTORY/'interrupted-uploads'/f"{abandoned['id']}.json",
                         dict(recorded_at=now(),asset=abandoned,expected_sha256=item['sha256'],
-                             reason='Owned zero-byte starter; contains no completed artifact'))
+                             reason='Owned incomplete starter without a digest; declared size may be nonzero'))
             gh('api','--method','DELETE',f"repos/{config['repository']}/releases/assets/{abandoned['id']}")
             del inventory[name]
         if name not in inventory:
