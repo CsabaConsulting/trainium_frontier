@@ -20,6 +20,7 @@ def run_case(args, kernels, shape, kind):
     cpu_result = cpu_scan(rounded, metadata(ids, vocabulary))
     check(cpu_result, exact, bound, counts, f'dma_cpu:{kind}:{shape}')
     print('DMA_SCAN_CASE '+json.dumps(dict(kind=kind, shape=shape,
+          tiled_io=args.tiled_io,
           metadata_bytes=sum(t.numel()*t.element_size() for t in meta),
           arithmetic='BF16-rounded input gradients, FP32 sums, FP32 output')) ,flush=True)
     if args.device == 'cpu':
@@ -30,10 +31,10 @@ def run_case(args, kernels, shape, kind):
     md = tuple(t.to('neuron') for t in meta)
     pp, cc, mm = md
     # Stage1 is a pure permutation and cast: bit equality is required.
-    ordered = permute[2](gd, pp, 2)
+    ordered = permute[2](gd, pp, 2, args.tiled_io)
     ordered_ref = gradient[meta[0].reshape(-1).long()].bfloat16()
     assert torch.equal(ordered.cpu(), ordered_ref), 'DMA permutation/cast mismatch'
-    scanned = scan[2](ordered, cc, 2)
+    scanned = scan[2](ordered, cc, 2, args.tiled_io)
     # Independent CPU recurrence checks ALL scan positions, not only group ends.
     arr = ordered_ref.double().numpy()
     flags = meta[1].numpy().reshape(-1)
@@ -64,8 +65,8 @@ def run_case(args, kernels, shape, kind):
     wrapped = tuple(torch_neuronx.wrap_nki(k) for k in kernels)
 
     def compose(gg, permutation, continuation, mapping):
-        ordered_inner = wrapped[0][2](gg, permutation, 2)
-        scanned_inner = wrapped[1][2](ordered_inner, continuation, 2)
+        ordered_inner = wrapped[0][2](gg, permutation, 2, args.tiled_io)
+        scanned_inner = wrapped[1][2](ordered_inner, continuation, 2, args.tiled_io)
         return wrapped[2][2](scanned_inner, mapping, vocabulary, 2)
 
     torch._dynamo.reset()
@@ -99,6 +100,7 @@ def run_case(args, kernels, shape, kind):
     med = timed['median_ms']
     estimate = med['dma_scan_prepared_metadata'] + max(0,med['dma_scan_metadata_creation_upload_included']-med['dma_scan_prepared_metadata'])/4
     print('DMA_SCAN_BENCH '+json.dumps(dict(kind=kind,shape=shape,**timed,
+          tiled_io=args.tiled_io,
           estimated_four_table_amortized_ms=estimate,input_id_d2h_included=False,
           all_intermediate_hbm_and_kernel_costs_included=True,
           estimate_is_not_whole_model_timing=True)),flush=True)
@@ -110,6 +112,8 @@ def main():
     ap.add_argument('--real-shape', action='store_true')
     ap.add_argument('--training-row', action='store_true')
     ap.add_argument('--steps',type=int,default=12)
+    ap.add_argument('--tiled-io',action='store_true',
+                    help='Move dtype conversion intoSBUF and use explicit128x128 transposes.')
     args=ap.parse_args()
     torch.set_num_threads(4)
     kernels=None

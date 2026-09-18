@@ -27,7 +27,7 @@ def build_permutation():
     import nki.isa as nisa
 
     @nki.jit
-    def permute_gradient(gradient, permutation, lanes: int = 2):
+    def permute_gradient(gradient, permutation, lanes: int = 2, tiled_io: bool = False):
         tokens, channels = gradient.shape
         assert tokens % 128 == 0 and channels % lanes == 0
         assert permutation.shape == (tokens, 1) and gradient.dtype == nl.float32
@@ -38,10 +38,20 @@ def build_permutation():
             indices = nl.ndarray((128, 1), dtype=nl.uint32, buffer=nl.sbuf)
             values = nl.ndarray((128, width), dtype=nl.bfloat16, buffer=nl.sbuf)
             nisa.dma_copy(dst=indices, src=permutation[ti * 128:(ti + 1) * 128, :])
-            nisa.dma_copy(dst=values,
-                          src=gradient.ap(pattern=[[channels, 128], [1, width]], offset=c0,
-                                          vector_offset=indices, indirect_dim=0),
-                          dge_mode=nisa.dge_mode.swdge)
+            if tiled_io:
+                # Keep DMA source/destination FP32; perform the BF16 cast on
+                # chip instead of combining it with indirect DMA lowering.
+                rows = nl.ndarray((128, width), dtype=nl.float32, buffer=nl.sbuf)
+                nisa.dma_copy(dst=rows,
+                              src=gradient.ap(pattern=[[channels, 128], [1, width]], offset=c0,
+                                              vector_offset=indices, indirect_dim=0),
+                              dge_mode=nisa.dge_mode.swdge)
+                nisa.tensor_copy(dst=values, src=rows)
+            else:
+                nisa.dma_copy(dst=values,
+                              src=gradient.ap(pattern=[[channels, 128], [1, width]], offset=c0,
+                                              vector_offset=indices, indirect_dim=0),
+                              dge_mode=nisa.dge_mode.swdge)
             nisa.dma_copy(dst=output[ti * 128:(ti + 1) * 128, c0:c0 + width], src=values)
         return output
 
@@ -55,7 +65,7 @@ def build_scan():
     import nki.isa as nisa
 
     @nki.jit
-    def segmented_scan(ordered, continuation, lanes: int = 2):
+    def segmented_scan(ordered, continuation, lanes: int = 2, tiled_io: bool = False):
         tokens, channels = ordered.shape
         assert tokens <= 8192 and channels % (128 * lanes) == 0
         assert continuation.shape == (1, tokens) and ordered.dtype == nl.bfloat16
@@ -66,10 +76,27 @@ def build_scan():
         nisa.dma_copy(dst=flags, src=continuation.ap(pattern=[[0, 128], [1, tokens]], offset=0))
         for ci in nl.sequential_range(channels // (128 * lanes)):
             c0 = (ci * lanes + nl.program_id(0)) * 128
-            nisa.dma_copy(dst=raw, src=ordered.ap(pattern=[[1, 128], [channels, tokens]], offset=c0))
+            if tiled_io:
+                assert tokens % 128 == 0
+                for ti in nl.affine_range(tokens // 128):
+                    rows = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.sbuf)
+                    transposed = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.psum)
+                    nisa.dma_copy(dst=rows, src=ordered[ti * 128:(ti + 1) * 128, c0:c0 + 128])
+                    nisa.nc_transpose(dst=transposed, data=rows)
+                    nisa.tensor_copy(dst=raw[:, ti * 128:(ti + 1) * 128], src=transposed)
+            else:
+                nisa.dma_copy(dst=raw, src=ordered.ap(pattern=[[1, 128], [channels, tokens]], offset=c0))
             nisa.tensor_tensor_scan(dst=scanned, data0=flags, data1=raw,
                                     initial=0.0, op0=nl.multiply, op1=nl.add)
-            nisa.dma_copy(dst=output.ap(pattern=[[1, 128], [channels, tokens]], offset=c0), src=scanned)
+            if tiled_io:
+                for ti in nl.affine_range(tokens // 128):
+                    transposed_out = nl.ndarray((128, 128), dtype=nl.float32, buffer=nl.psum)
+                    output_rows = nl.ndarray((128, 128), dtype=nl.float32, buffer=nl.sbuf)
+                    nisa.nc_transpose(dst=transposed_out, data=scanned[:, ti * 128:(ti + 1) * 128])
+                    nisa.tensor_copy(dst=output_rows, src=transposed_out)
+                    nisa.dma_copy(dst=output[ti * 128:(ti + 1) * 128, c0:c0 + 128], src=output_rows)
+            else:
+                nisa.dma_copy(dst=output.ap(pattern=[[1, 128], [channels, tokens]], offset=c0), src=scanned)
         return output
 
     return segmented_scan

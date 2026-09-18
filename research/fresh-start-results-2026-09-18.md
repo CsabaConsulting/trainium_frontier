@@ -1115,3 +1115,28 @@ if the corrected kernel still misses the native bound.
 
 All completed device jobs have automatic healthy postflights; the address-only
   control failure is numerical, not an unclean host or driver reset failure.
+
+
+### Wave32: precision and saved-layout controls remain below advancement gates
+
+Source52f9dae. Both completed jobs are numerically valid and have healthy
+automatic postflights; no owned cleanup kills or unfinished resets.
+
+- Segmented scan with BF16-rounded gradient inputs passes independent FP64
+  bounds, including long repeated-ID accumulation, and the native control's
+  corresponding bounds. Actual training-row prepared4.59307ms versus native
+ 3.16469ms; complete metadata arm5.62263ms. This is effectively unchanged from
+  the FP32-input4.60680ms result. Merely halving these buffers does not solve
+  the remaining cost. Revisit the already-correct three-kernel DMA alternative
+  with casts in SBUF and contiguous transpose tiles; it bypasses local gather.
+- Saved HxT ReLU with immediate wrapper transpose back to TxH passes all
+  component gates but regresses: forward1.80912ms/native1.33358ms, complete
+  forward/backward4.47432ms/native4.23321ms. The follow-up preserves HxT through
+  the autograd boundary and forms hidden derivatives in that layout. All18
+  independent small CPU output/gradient controls pass, including changed weights
+  and zero input. Native actual-shape gating remains required.
+- The Tavily Pro report completed and is audited. Several old-allocation and
+  hardware-generation suggestions are unsuitable; no documented cause of our
+  gather corruption was established. The reviewed research note links current
+  primary APIs and ties accepted directions to measured evidence. Raw provider
+  JSON is hash-preserved locally.

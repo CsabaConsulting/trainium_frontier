@@ -1,0 +1,52 @@
+{
+  "host": "trn21",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave32",
+  "expected_commit": "52f9dae1ce030286983aa4d2c24133aa5a2b3846",
+  "label": "fs-w32-embedding-segmented-bf16-input-r1",
+  "purpose": "Round input gradients toBF16 inSBUF before permutation gather while retainingFP32 scan and output. Match observed native arithmetic; all independentFP64 bounds use same rounded inputs. Gate long repeated-ID,zero,cancellation,actual training rows and original compiled composition before timing.",
+  "fingerprint_paths": [
+    "research/scratch/embedding_segmented_nki.py",
+    "research/scratch/embedding_segmented_probe.py"
+  ],
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_RT_VISIBLE_CORES": "0",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1500s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "research/scratch/embedding_segmented_probe.py",
+    "--manual-sbuf",
+    "--reuse-sbuf",
+    "--compiled-kernel",
+    "--real-shape",
+    "--training-row",
+    "--gather-tile",
+    "512",
+    "--steps",
+    "6",
+    "--tiled-io",
+    "--bf16-input-gradients"
+  ],
+  "started_at": "2026-09-18T14:52:06.614861+00:00",
+  "hostname": "ip-172-31-34-85",
+  "git_commit": "52f9dae1ce030286983aa4d2c24133aa5a2b3846",
+  "source_dirty": false,
+  "preflight_free_bytes": 40055517184,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "4c14ac6ec14fd52e31ee06d91540707083c48a93ec4687fbaa35bc7106a823f3",
+    "research/fresh_start_host.py": "df01707b8ca2ffc8f4b798467e58b81c6fd8417f7aa1c26c4ecf6c080c659600",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/scratch/embedding_segmented_nki.py": "a31d1b891d86f31754e8c1e0bdfb94ee6dbaaae5a770364a20a61e1685dc7aee",
+    "research/scratch/embedding_segmented_probe.py": "b117729ec68206ed3c7c9c24bc7de4f77830184fb78f8adb5db841790703a8c3"
+  }
+}

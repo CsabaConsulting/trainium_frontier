@@ -1,0 +1,44 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave32",
+    "expected_commit": "52f9dae1ce030286983aa4d2c24133aa5a2b3846",
+    "label": "fs-w32-embedding-segmented-bf16-input-r1",
+    "purpose": "Round input gradients toBF16 inSBUF before permutation gather while retainingFP32 scan and output. Match observed native arithmetic; all independentFP64 bounds use same rounded inputs. Gate long repeated-ID,zero,cancellation,actual training rows and original compiled composition before timing.",
+    "fingerprint_paths": [
+      "research/scratch/embedding_segmented_nki.py",
+      "research/scratch/embedding_segmented_probe.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1500s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/embedding_segmented_probe.py",
+      "--manual-sbuf",
+      "--reuse-sbuf",
+      "--compiled-kernel",
+      "--real-shape",
+      "--training-row",
+      "--gather-tile",
+      "512",
+      "--steps",
+      "6",
+      "--tiled-io",
+      "--bf16-input-gradients"
+    ]
+  },
+  "requested_at": "2026-09-18T14:52:00.489813+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w32-embedding-segmented-bf16-input-r1\", \"pid\": 956500, \"commit\": \"52f9dae1ce030286983aa4d2c24133aa5a2b3846\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave32/research/run-logs/fs-w32-embedding-segmented-bf16-input-r1.log\", \"started_at\": \"2026-09-18T14:52:06.614861+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

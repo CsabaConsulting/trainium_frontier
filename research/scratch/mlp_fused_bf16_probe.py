@@ -102,30 +102,37 @@ def run_case(device, shape, kind, kernel, steps, contiguous_weights=False, tiled
         wrapped = torch_neuronx.wrap_nki(kernel)
 
         def kernel_call(xx, uu, dd):
-            output, saved = wrapped[2](xx, uu, dd, 2, tile, contiguous_weights, tiled_io,
-                                       transposed_relu)
-            return output, saved.T if transposed_relu else saved
+            return wrapped[2](xx, uu, dd, 2, tile, contiguous_weights, tiled_io, transposed_relu)
 
         torch._dynamo.reset()
         fused_forward = torch.compile(kernel_call, backend='neuron', fullgraph=True, dynamic=False)
         native_forward = torch.compile(reference_forward, backend='neuron', fullgraph=True, dynamic=False)
     else:
-        kernel_call = fused_forward = native_forward = reference_forward
+        native_forward = reference_forward
+        def kernel_call(xx, uu, dd):
+            output, saved = reference_forward(xx, uu, dd)
+            return output, saved.T if transposed_relu else saved
+        fused_forward = kernel_call
     inputs = tuple(t.to(device) for t in cpu_inputs)
     if device == 'neuron':
         eager_y, eager_saved = kernel[2](*inputs, 2, tile, contiguous_weights, tiled_io,
                                          transposed_relu)
-        eager = (eager_y, eager_saved.T if transposed_relu else eager_saved)
+        eager_saved_cpu = eager_saved.cpu()
+        eager = (eager_y, eager_saved_cpu.T if transposed_relu else eager_saved_cpu)
         gemm_gate(f'eager:up:{shape}:{kind}', eager[1], x, up.bfloat16().T, relu=True)
         gemm_gate(f'eager:down:{shape}:{kind}', eager[0], eager[1].cpu().square(), down.bfloat16().T)
     output, relu = fused_forward(*inputs)
     expected_output, expected_relu = native_forward(*inputs)
+    # Canonicalize ONLY the detached CPU comparison, never the timed forward.
+    relu_cpu = relu.detach().cpu()
+    if transposed_relu:
+        relu_cpu = relu_cpu.T
     if device == 'neuron':
-        gemm_gate(f'compiled:up:{shape}:{kind}', relu, x, up.bfloat16().T, relu=True)
-        gemm_gate(f'compiled:down:{shape}:{kind}', output, relu.cpu().square(), down.bfloat16().T)
+        gemm_gate(f'compiled:up:{shape}:{kind}', relu_cpu, x, up.bfloat16().T, relu=True)
+        gemm_gate(f'compiled:down:{shape}:{kind}', output, relu_cpu.square(), down.bfloat16().T)
     compare(f'forward:{shape}:{kind}', output, expected_output)
-    compare(f'saved_relu:{shape}:{kind}', relu, expected_relu)
-    fused = make_autograd(kernel_call)
+    compare(f'saved_relu:{shape}:{kind}', relu_cpu, expected_relu)
+    fused = make_autograd(kernel_call, transposed_relu)
 
     def native(xx, uu, dd):
         return reference_forward(xx, uu, dd)[0]
@@ -154,6 +161,7 @@ def run_case(device, shape, kind, kernel, steps, contiguous_weights=False, tiled
                               contiguous_weights=contiguous_weights, tiled_io=tiled_io,
                               cached_bf16_weights=cached_bf16_weights,
                               transposed_relu=transposed_relu,
+                              saved_layout_consumed_directly_in_backward=True,
                               token_tile=tile, all_gates_passed=True,
                               saved_activation_bytes=2*tokens*hidden,
                               weight_input_bytes=2*up.element_size()*channels*hidden,
@@ -167,6 +175,7 @@ def run_case(device, shape, kind, kernel, steps, contiguous_weights=False, tiled
                                    contiguous_weights=contiguous_weights, tiled_io=tiled_io,
                                    cached_bf16_weights=cached_bf16_weights,
                                    transposed_relu=transposed_relu,
+                                   saved_layout_consumed_directly_in_backward=True,
                                    weight_reads_casts_layout_and_relu_save_included=True,
                                    includes_optimizer_or_whole_model=False))
 

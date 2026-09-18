@@ -1,0 +1,38 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave32",
+    "expected_commit": "52f9dae1ce030286983aa4d2c24133aa5a2b3846",
+    "label": "fs-w32-mlp-fused-transposed-relu-r1",
+    "purpose": "Full-shape profile identifies8x DMA instruction count and1.34msGpSIMD active: preserve savedReLU inHxT kernel layout, remove its explicit transposes/four-piece stores. Charge view and layout consumption in backward. SameBF16 weights/native controls; no master refresh/optimizer in this component.",
+    "fingerprint_paths": [
+      "research/scratch/mlp_fused_bf16.py",
+      "research/scratch/mlp_fused_bf16_probe.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1500s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "--real-shape",
+      "--contiguous-weights",
+      "--tiled-io",
+      "--cached-bf16-weights",
+      "--transposed-relu"
+    ]
+  },
+  "requested_at": "2026-09-18T14:52:15.111228+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w32-mlp-fused-transposed-relu-r1\", \"pid\": 1319665, \"commit\": \"52f9dae1ce030286983aa4d2c24133aa5a2b3846\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave32/research/run-logs/fs-w32-mlp-fused-transposed-relu-r1.log\", \"started_at\": \"2026-09-18T14:52:21.562679+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

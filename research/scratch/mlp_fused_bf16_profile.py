@@ -44,9 +44,8 @@ def main():
     wrapped = torch_neuronx.wrap_nki(build_kernel())
 
     def call(xx, uu, dd):
-        output, saved = wrapped[2](xx, uu, dd, 2, tile, args.contiguous_weights, args.tiled_io,
-                                   args.transposed_relu)
-        return output, saved.T if args.transposed_relu else saved
+        return wrapped[2](xx, uu, dd, 2, tile, args.contiguous_weights, args.tiled_io,
+                           args.transposed_relu)
 
     fused = torch.compile(call, backend='neuron', fullgraph=True, dynamic=False)
     native = torch.compile(reference_forward, backend='neuron', fullgraph=True, dynamic=False)

@@ -1,0 +1,26 @@
+{
+  "label": "fs-w32-embedding-segmented-bf16-input-r1",
+  "guard_pid": 956500,
+  "child_pid": 956501,
+  "child_session": 956501,
+  "started_at": "2026-09-18T14:52:06.643001+00:00",
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1500s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "research/scratch/embedding_segmented_probe.py",
+    "--manual-sbuf",
+    "--reuse-sbuf",
+    "--compiled-kernel",
+    "--real-shape",
+    "--training-row",
+    "--gather-tile",
+    "512",
+    "--steps",
+    "6",
+    "--tiled-io",
+    "--bf16-input-gradients"
+  ]
+}

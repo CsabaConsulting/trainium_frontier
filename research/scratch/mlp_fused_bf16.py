@@ -151,7 +151,7 @@ def reference_forward(x, up, down):
     return F.linear(relu.square(), down.to(x.dtype)), relu
 
 
-def make_autograd(kernel_call):
+def make_autograd(kernel_call, transposed_relu=False):
     class FusedMLP(torch.autograd.Function):
         @staticmethod
         def forward(ctx, x, up, down):
@@ -162,12 +162,23 @@ def make_autograd(kernel_call):
         @staticmethod
         def backward(ctx, grad):
             x, up, down, relu = ctx.saved_tensors
-            activated = relu.square()
-            dhidden = grad @ down.to(x.dtype)
-            dpre = dhidden * (relu * 2.0)
-            dx = dpre @ up.to(x.dtype)
-            dup = (dpre.T @ x).to(up.dtype)
-            ddown = (grad.T @ activated).to(down.dtype)
+            if transposed_relu:
+                # Keep HxT saved activation and hidden derivatives throughout
+                # backward. The previous wrapper eagerly restored TxH, paying
+                # a layout conversion before the autograd boundary.
+                activated_t = relu.square()
+                dhidden_t = down.to(x.dtype).T @ grad.T
+                dpre_t = dhidden_t * (relu * 2.0)
+                dx = (up.to(x.dtype).T @ dpre_t).T
+                dup = (dpre_t @ x).to(up.dtype)
+                ddown = (grad.T @ activated_t.T).to(down.dtype)
+            else:
+                activated = relu.square()
+                dhidden = grad @ down.to(x.dtype)
+                dpre = dhidden * (relu * 2.0)
+                dx = dpre @ up.to(x.dtype)
+                dup = (dpre.T @ x).to(up.dtype)
+                ddown = (grad.T @ activated).to(down.dtype)
             return dx, dup, ddown
 
     return FusedMLP.apply
