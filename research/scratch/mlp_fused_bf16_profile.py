@@ -27,7 +27,11 @@ def main():
     ap.add_argument('--cached-bf16-weights', action='store_true')
     ap.add_argument('--real-shape', action='store_true')
     ap.add_argument('--transposed-relu', action='store_true')
+    ap.add_argument('--grouped-io', action='store_true')
     args = ap.parse_args()
+    if args.grouped_io and not (args.contiguous_weights and args.tiled_io
+                               and args.cached_bf16_weights and args.transposed_relu):
+        ap.error('--grouped-io requires contiguous/tiled I/O, BF16 cached weights and transposed ReLU')
     torch.set_num_threads(4)
     trace = args.trace_dir.resolve()
     trace.mkdir(parents=True, exist_ok=False)
@@ -45,7 +49,7 @@ def main():
 
     def call(xx, uu, dd):
         return wrapped[2](xx, uu, dd, 2, tile, args.contiguous_weights, args.tiled_io,
-                           args.transposed_relu)
+                           args.transposed_relu, args.grouped_io)
 
     fused = torch.compile(call, backend='neuron', fullgraph=True, dynamic=False)
     native = torch.compile(reference_forward, backend='neuron', fullgraph=True, dynamic=False)
@@ -88,6 +92,7 @@ def main():
           contiguous_weights=args.contiguous_weights, tiled_io=args.tiled_io,
           cached_bf16_weights=args.cached_bf16_weights,
           transposed_relu=args.transposed_relu,
+          grouped_io=args.grouped_io,
           compiled_neffs=len(entries),eager_neffs=len(eager['files']),
           profiled_latency_is_performance_evidence=False)),flush=True)
 

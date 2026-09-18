@@ -24,7 +24,7 @@ def build_kernel():
     @nki.jit
     def fused_mlp(x, up, down, lanes: int = 2, token_tile: int = 512,
                   contiguous_weights: bool = False, tiled_io: bool = False,
-                  transposed_relu: bool = False):
+                  transposed_relu: bool = False, grouped_io: bool = False):
         tokens, channels = x.shape
         hidden, up_channels = up.shape
         assert up_channels == channels and down.shape == (channels, hidden)
@@ -33,68 +33,102 @@ def build_kernel():
         assert channels % 128 == 0 and hidden % 128 == 0 and lanes in (1, 2)
         assert token_tile <= 512 and token_tile % 128 == 0
         assert tokens % (token_tile * lanes) == 0
+        if grouped_io:
+            assert contiguous_weights and tiled_io and transposed_relu
+            assert up.dtype == nl.bfloat16
         nc, nh = channels // 128, hidden // 128
         # Capacity estimate excludes allocator overhead/spills, which must be
         # checked in the actual profile. Reserve two MiB beyond live caches.
         live_bytes = 4 * channels * hidden + 2 * (channels + hidden) * token_tile
+        if grouped_io:
+            # Collect the output across channel blocks before a single row
+            # transfer. Input and output buffers need not overlap in lifetime;
+            # conservatively count both here, then check real spills in profile.
+            live_bytes += 2 * channels * token_tile
         assert live_bytes + 2 * 1024**2 <= nl.tile_size.sbuf_size_bytes
         result = nl.ndarray((tokens, channels), dtype=nl.bfloat16, buffer=nl.shared_hbm)
         saved_shape = (hidden, tokens) if transposed_relu else (tokens, hidden)
         saved_relu = nl.ndarray(saved_shape, dtype=nl.bfloat16, buffer=nl.shared_hbm)
         up_cache = nl.ndarray((128, nh, nc, 128), dtype=nl.bfloat16, buffer=nl.sbuf)
         down_cache = nl.ndarray((128, nc, nh, 128), dtype=nl.bfloat16, buffer=nl.sbuf)
-        for hi in nl.affine_range(nh):
-            for ci in nl.affine_range(nc):
-                # P is the contracting dimension, F the stationary output
-                # dimension. The DMA reads ordinary row-major weight tensors.
-                if contiguous_weights:
-                    # Combining strided transpose and FP32->BF16 DMA produced
-                    # scalar two-byte packets. Read normal contiguous rows,
-                    # transpose the input dtype on TensorEngine, then cache in SBUF.
-                    # Gen3 transpose requires matching source/destination
-                    # dtypes; it is bit-preserving rather than an accumulation.
-                    up_raw = nl.ndarray((128, 128), dtype=up.dtype, buffer=nl.sbuf)
-                    down_raw = nl.ndarray((128, 128), dtype=down.dtype, buffer=nl.sbuf)
-                    up_t = nl.ndarray((128, 128), dtype=up.dtype, buffer=nl.psum)
-                    down_t = nl.ndarray((128, 128), dtype=down.dtype, buffer=nl.psum)
-                    nisa.dma_copy(dst=up_raw, src=up[hi * 128:(hi + 1) * 128,
-                                                    ci * 128:(ci + 1) * 128])
-                    nisa.dma_copy(dst=down_raw, src=down[ci * 128:(ci + 1) * 128,
-                                                        hi * 128:(hi + 1) * 128])
-                    nisa.nc_transpose(dst=up_t, data=up_raw)
-                    nisa.nc_transpose(dst=down_t, data=down_raw)
+        if grouped_io:
+            for hi in nl.affine_range(nh):
+                up_rows = nl.ndarray((128, channels), dtype=nl.bfloat16, buffer=nl.sbuf)
+                nisa.dma_copy(dst=up_rows, src=up[hi * 128:(hi + 1) * 128, :])
+                for ci in nl.affine_range(nc):
+                    up_t = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.psum)
+                    nisa.nc_transpose(dst=up_t, data=up_rows[:, ci * 128:(ci + 1) * 128])
                     nisa.tensor_copy(dst=up_cache[:, hi, ci, :], src=up_t)
+            for ci in nl.affine_range(nc):
+                down_rows = nl.ndarray((128, hidden), dtype=nl.bfloat16, buffer=nl.sbuf)
+                nisa.dma_copy(dst=down_rows, src=down[ci * 128:(ci + 1) * 128, :])
+                for hi in nl.affine_range(nh):
+                    down_t = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.psum)
+                    nisa.nc_transpose(dst=down_t, data=down_rows[:, hi * 128:(hi + 1) * 128])
                     nisa.tensor_copy(dst=down_cache[:, ci, hi, :], src=down_t)
-                else:
-                    # Retained failed control: the small profile measured
-                    #524288 two-byte packets for the two weight inputs.
-                    nisa.dma_copy(dst=up_cache[:, hi, ci, :],
-                                  src=up.ap(pattern=[[1, 128], [channels, 128]],
-                                            offset=hi * 128 * channels + ci * 128))
-                    nisa.dma_copy(dst=down_cache[:, ci, hi, :],
-                                  src=down.ap(pattern=[[1, 128], [hidden, 128]],
-                                              offset=ci * 128 * hidden + hi * 128))
+        if not grouped_io:
+            for hi in nl.affine_range(nh):
+                for ci in nl.affine_range(nc):
+                    # P is the contracting dimension, F the stationary output
+                    # dimension. The DMA reads ordinary row-major weight tensors.
+                    if contiguous_weights:
+                        # Combining strided transpose and FP32->BF16 DMA produced
+                        # scalar two-byte packets. Read normal contiguous rows,
+                        # transpose the input dtype on TensorEngine, then cache in SBUF.
+                        # Gen3 transpose requires matching source/destination
+                        # dtypes; it is bit-preserving rather than an accumulation.
+                        up_raw = nl.ndarray((128, 128), dtype=up.dtype, buffer=nl.sbuf)
+                        down_raw = nl.ndarray((128, 128), dtype=down.dtype, buffer=nl.sbuf)
+                        up_t = nl.ndarray((128, 128), dtype=up.dtype, buffer=nl.psum)
+                        down_t = nl.ndarray((128, 128), dtype=down.dtype, buffer=nl.psum)
+                        nisa.dma_copy(dst=up_raw, src=up[hi * 128:(hi + 1) * 128,
+                                                        ci * 128:(ci + 1) * 128])
+                        nisa.dma_copy(dst=down_raw, src=down[ci * 128:(ci + 1) * 128,
+                                                            hi * 128:(hi + 1) * 128])
+                        nisa.nc_transpose(dst=up_t, data=up_raw)
+                        nisa.nc_transpose(dst=down_t, data=down_raw)
+                        nisa.tensor_copy(dst=up_cache[:, hi, ci, :], src=up_t)
+                        nisa.tensor_copy(dst=down_cache[:, ci, hi, :], src=down_t)
+                    else:
+                        # Retained failed control: the small profile measured
+                        #524288 two-byte packets for the two weight inputs.
+                        nisa.dma_copy(dst=up_cache[:, hi, ci, :],
+                                      src=up.ap(pattern=[[1, 128], [channels, 128]],
+                                                offset=hi * 128 * channels + ci * 128))
+                        nisa.dma_copy(dst=down_cache[:, ci, hi, :],
+                                      src=down.ap(pattern=[[1, 128], [hidden, 128]],
+                                                  offset=ci * 128 * hidden + hi * 128))
         for mi in nl.affine_range(tokens // (token_tile * lanes)):
             m0 = (mi * lanes + nl.program_id(0)) * token_tile
             inputs = nl.ndarray((128, nc, token_tile), dtype=nl.bfloat16, buffer=nl.sbuf)
             activated = nl.ndarray((128, nh, token_tile), dtype=nl.bfloat16, buffer=nl.sbuf)
-            for ci in nl.affine_range(nc):
-                if tiled_io:
-                    # Read whole contiguous BF16 rows before exchanging the
-                    # token and channel axes on TensorEngine. Direct strided
-                    # dma_copy is retained below as the measured control.
-                    for ti in nl.affine_range(token_tile // 128):
-                        input_rows = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.sbuf)
+            if grouped_io:
+                for ti in nl.affine_range(token_tile // 128):
+                    input_wide = nl.ndarray((128, channels), dtype=nl.bfloat16, buffer=nl.sbuf)
+                    nisa.dma_copy(dst=input_wide,
+                                  src=x[m0 + ti * 128:m0 + (ti + 1) * 128, :])
+                    for ci in nl.affine_range(nc):
                         input_t = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.psum)
-                        nisa.dma_copy(dst=input_rows,
-                                      src=x[m0 + ti * 128:m0 + (ti + 1) * 128,
-                                            ci * 128:(ci + 1) * 128])
-                        nisa.nc_transpose(dst=input_t, data=input_rows)
+                        nisa.nc_transpose(dst=input_t, data=input_wide[:, ci * 128:(ci + 1) * 128])
                         nisa.tensor_copy(dst=inputs[:, ci, ti * 128:(ti + 1) * 128], src=input_t)
-                else:
-                    nisa.dma_copy(dst=inputs[:, ci, :],
-                                  src=x.ap(pattern=[[1, 128], [channels, token_tile]],
-                                           offset=m0 * channels + ci * 128))
+            if not grouped_io:
+                for ci in nl.affine_range(nc):
+                    if tiled_io:
+                        # Read whole contiguous BF16 rows before exchanging the
+                        # token and channel axes on TensorEngine. Direct strided
+                        # dma_copy is retained below as the measured control.
+                        for ti in nl.affine_range(token_tile // 128):
+                            input_rows = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.sbuf)
+                            input_t = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.psum)
+                            nisa.dma_copy(dst=input_rows,
+                                          src=x[m0 + ti * 128:m0 + (ti + 1) * 128,
+                                                ci * 128:(ci + 1) * 128])
+                            nisa.nc_transpose(dst=input_t, data=input_rows)
+                            nisa.tensor_copy(dst=inputs[:, ci, ti * 128:(ti + 1) * 128], src=input_t)
+                    else:
+                        nisa.dma_copy(dst=inputs[:, ci, :],
+                                      src=x.ap(pattern=[[1, 128], [channels, token_tile]],
+                                               offset=m0 * channels + ci * 128))
             for hi in nl.affine_range(nh):
                 up_acc = nl.ndarray((128, token_tile), dtype=nl.float32, buffer=nl.psum)
                 for ci in nl.affine_range(nc):
@@ -123,6 +157,9 @@ def build_kernel():
                 else:
                     nisa.dma_copy(dst=saved_relu.ap(pattern=[[1, 128], [hidden, token_tile]],
                                                     offset=m0 * hidden + hi * 128), src=relu)
+            if grouped_io:
+                wide_output_rows = nl.ndarray((128, token_tile // 128, channels),
+                                               dtype=nl.bfloat16, buffer=nl.sbuf)
             for ci in nl.affine_range(nc):
                 down_acc = nl.ndarray((128, token_tile), dtype=nl.float32, buffer=nl.psum)
                 for hi in nl.affine_range(nh):
@@ -130,7 +167,13 @@ def build_kernel():
                                    moving=activated[:, hi, :], accumulate=(hi > 0))
                 output = nl.ndarray((128, token_tile), dtype=nl.bfloat16, buffer=nl.sbuf)
                 nisa.tensor_copy(dst=output, src=down_acc)
-                if tiled_io:
+                if grouped_io:
+                    for ti in nl.affine_range(token_tile // 128):
+                        output_t = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.psum)
+                        nisa.nc_transpose(dst=output_t, data=output[:, ti * 128:(ti + 1) * 128])
+                        nisa.tensor_copy(dst=wide_output_rows[:, ti, ci * 128:(ci + 1) * 128],
+                                         src=output_t)
+                elif tiled_io:
                     for ti in nl.affine_range(token_tile // 128):
                         output_t = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.psum)
                         output_rows = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.sbuf)
@@ -141,6 +184,10 @@ def build_kernel():
                 else:
                     nisa.dma_copy(dst=result.ap(pattern=[[1, 128], [channels, token_tile]],
                                                 offset=m0 * channels + ci * 128), src=output)
+            if grouped_io:
+                for ti in nl.affine_range(token_tile // 128):
+                    nisa.dma_copy(dst=result[m0 + ti * 128:m0 + (ti + 1) * 128, :],
+                                  src=wide_output_rows[:, ti, :])
         return result, saved_relu
 
     return fused_mlp
@@ -151,7 +198,7 @@ def reference_forward(x, up, down):
     return F.linear(relu.square(), down.to(x.dtype)), relu
 
 
-def make_autograd(kernel_call, transposed_relu=False):
+def make_autograd(kernel_call, transposed_relu=False, normal_input_gradient=False):
     class FusedMLP(torch.autograd.Function):
         @staticmethod
         def forward(ctx, x, up, down):
@@ -169,7 +216,13 @@ def make_autograd(kernel_call, transposed_relu=False):
                 activated_t = relu.square()
                 dhidden_t = down.to(x.dtype).T @ grad.T
                 dpre_t = dhidden_t * (relu * 2.0)
-                dx = (up.to(x.dtype).T @ dpre_t).T
+                if normal_input_gradient:
+                    # Produce TxC directly for the upstream normalization. An
+                    # isolated leaf-gradient timer does not exercise that
+                    # consumer, so a fast HxT path can regress the full model.
+                    dx = dpre_t.T @ up.to(x.dtype)
+                else:
+                    dx = (up.to(x.dtype).T @ dpre_t).T
                 dup = (dpre_t @ x).to(up.dtype)
                 ddown = (grad.T @ activated_t.T).to(down.dtype)
             else:

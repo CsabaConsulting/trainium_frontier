@@ -1171,3 +1171,39 @@ Next: native autograd integration checks on both hosts, then separate full-chip
   real-data phase tests with metadata/caches/optimizer charged. Embedding keeps
   the predeclared570ms advancement threshold; the MLP needs a reproducible whole-
   model saving before combining it with another change. No seed sweep.
+
+
+### Wave34: integration gains do not equal full-model gains
+
+Source b0128d1. Both actual-shape integrations pass output/gradient checks,
+accumulation, cache or metadata lifetime, native evaluation, and strict native
+checkpoint restore. Completed phase jobs have healthy automatic postflights.
+
+- Segmented DMA: full-step median **578.1483 ms**, microsteps total 491.8118 ms.
+  All four ranks use the segmented path on all 44 measured/warmup preparations,
+  including input-ID D2H, CPU sort, uploads and ordinary gradient accumulation.
+  Nearby same-host native control: **586.4605 ms**, microsteps 502.1890 ms.
+  The improvement is **1.417%**, below the predeclared 570 ms advancement gate.
+  No 30-minute run is justified yet. Isolated per-table speedups overestimate
+  the full-model benefit; shared native lowering, transfers and synchronization
+  remain suspects, not established attribution.
+- Fused MLP: full-step median **681.9695 ms**, microsteps 597.5696 ms. This is a
+  clear regression despite the isolated forward/backward advantage. Finite and
+  causal/batch/repeated-call checks pass on every rank. A runtime trace is being
+  captured. A targeted alternative forms dX in ordinary TxC directly, preserving
+  saved HxT activations; the current formulation returns a transposed result
+  that the upstream normalization must consume. This layout explanation is a
+  hypothesis. Independent CPU master/cache/accumulation gates for the alternate
+  derivative pass; native and full-model gates remain required.
+- Raw HxT MLP forward profile is locally hash-verified (19,046,466 bytes). Native
+  device window 1.281745 ms; fused 1.343830 ms. GpSIMD DMA_DIRECT2D count falls
+  from 4,096 in the prior TxH kernel to 2,560, with GpSIMD active about 0.836 ms
+  per physical core versus the prior 1.341 ms. TensorEngine active about 1.096 ms
+  versus native 1.12 ms. These are diagnostic active windows, not additive costs
+  or throughput evidence; missing DMA metadata precludes exact bandwidth claims.
+
+Next bounded designs, varied separately: group MLP row transfers across channel
+tiles; test normal-layout dX without that forward change; fuse embedding indirect
+loads, FP32 segmented scan and 512-output end gathers into one kernel, eliminating
+intermediate HBM tensors. The new fused embedding must pass all original staged
+FP64, instrumented/uninstrumented, compiled, zero/repeat and native-control gates.

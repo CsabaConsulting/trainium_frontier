@@ -92,6 +92,8 @@ def main():
                          "input D2H, stable CPU sort and metadata upload are timed.")
     ap.add_argument("--fused-mlp", action="store_true",
                     help="Scratch fused BF16 MLP with HxT saved activation consumed in backward.")
+    ap.add_argument("--fused-mlp-normal-dx", action="store_true",
+                    help="Form the fused MLP input gradient in TxC directly for upstream normalization.")
     ap.add_argument("--check-seq-len", type=int, default=256,
                     help="Sequence length for --post-checks, at least 128 and a multiple of 128.")
     ap.add_argument("--grad-clip", type=float, default=1.0,
@@ -180,6 +182,8 @@ def main():
     args = ap.parse_args()
     if args.compact_embedding and args.segmented_dma_embedding:
         ap.error("select only one ordinary embedding backward implementation")
+    if args.fused_mlp_normal_dx and not args.fused_mlp:
+        ap.error("--fused-mlp-normal-dx requires --fused-mlp")
     if args.trace_dir and args.micro_only:
         ap.error("--trace-dir captures after full-step timing; do not combine it with --micro-only")
     if args.post_checks and (args.micro_only or args.check_seq_len < 128
@@ -289,7 +293,7 @@ def main():
         print("[pt] segmented DMA embeddings; all metadata preparation inside timing", flush=True)
     if args.fused_mlp:
         from mlp_fused_integration import install
-        install(model, device, T)
+        install(model, device, T, normal_input_gradient=args.fused_mlp_normal_dx)
         print("[pt] fused BF16 MLP; shared ordinary Linear caches/parameters preserved", flush=True)
     if args.ngram_ve_freeze:
         for p in model.ngram_embeds.parameters():
@@ -596,6 +600,7 @@ def main():
             integrated_bf16_sdpa_input=T.USE_BF16_SDPA_INPUT,
             segmented_dma_embedding=args.segmented_dma_embedding,
             fused_mlp=args.fused_mlp,
+            fused_mlp_normal_dx=args.fused_mlp_normal_dx,
             last_loss=float(last_loss.item()),
             compile=args.compile, foreach_optim=args.foreach_optim,
             compile_optim=args.compile_optim, grad_bucket=args.grad_bucket,

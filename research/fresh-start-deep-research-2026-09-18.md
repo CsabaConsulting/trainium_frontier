@@ -1,93 +1,52 @@
 # Fresh-start synthesis: repeatable gains toward a competitive BPB
 
-**Competitive target clarified by user:** aim near **0.9749 BPB** (current
-mid-table), with margin for further leaderboard movement. The numerical gap
-from1.001551299 public BPB is0.026651299; public/private differences prevent an
-exact leaderboard prediction. Prioritize sustained custom-kernel development,
-not seed selection. The single already-running repeat is retained as a
-variability check; no additional seed sweep is planned.
+**Current evidence, 2026-09-18 15:08 UTC.** Competitive target remains roughly
+**0.9749 BPB**, with margin for leaderboard movement. Best larger public result
+is **1.001551299**, from dense6×1024 without hashed n-grams, custom NKI two-tap
+convolution, BF16 normalized branch inputs with FP32 residuals, and clipping
+after gradient averaging. It completes3,005 updates/393.87M target presentations
+within the30-minute allowance. The single predeclared seed43 repeat is complete,
+locally hash-preserved, and worse on the smaller public diagnostic with46fewer
+updates on the other host. It is a variability check, not seed selection.
 
-**Kernel gate,13:36UTC:** compact native4096-row backward plus NKI gather
-expansion passes all component gates. The real training row matches the native
-gradient exactly:3.115ms baseline,1.802ms prepared,2.553ms including metadata;
-the estimated four-table shared-preparation cost is1.990ms. Advance to an
-actual four-rank autograd/timing gate with D2H metadata acquisition included.
-This is not yet a whole-model speedup. The scan metadata reload still fails;
-a final narrow-call variant will charge slicing/concatenation explicitly.
+The successful NKI convolution/normalization path already improved the same
+dense model from1,805 to2,977 budgeted updates before the clipping-order run.
+This is evidence that kernel work can improve final learning, not a claim that
+all custom kernels beat the native compiler. Six layers currently beat the
+full-budget eight-layer control. Other batch geometry and isolated FP8 projection
+probes failed their advancement gates after charging layouts and casts.
 
-**13:35 UTC current decision:** the best larger public score is **1.001551299**,
-from dense6×1024 without hashed n-grams, NKI convolution, BF16 normalized branch
-inputs and clipping after averaging. That last change improves the same-seed
-larger score by0.000515388 with28 extra budgeted updates; its causal contribution
-is not isolated. A single predeclared seed43 repeat checks robustness. There
-will be no broad seed sweep. The user's current tenth-place leaderboard score
-is0.9847, requiring an indicative0.01685BPB improvement from our public result;
-the public and private datasets differ, so this is not an exact leaderboard gap.
+**Current kernel frontier:** the ordinary embedding backward now has a correct
+three-kernel NKI implementation: stable-ID permutation, resetting FP32 scan, and
+dense gradient expansion. The tiled-DMA revision passes every staged/compiled
+numerical check and reduces a real-row component from3.133ms to0.856ms prepared,
+or1.303ms including metadata creation/upload. Input-ID D2H and four-table shared
+metadata must still be charged in a whole-model gate. This is the first candidate
+from that investigation with a substantial component advantage. The prior local
+gather corruption was narrowed to output width/address-sensitive behavior;
+512-output gathers repair correctness but that scan variant stays too slow.
+A failed compiler/kernel attempt is therefore not treated as a closed algorithm.
 
-The narrower BF16-at-SDPA-only precision path loses full-budget quality while
-making377 fewer updates. Retain BF16 normalized activations. A constant mask for
-the tokenizer's four zero-byte special classes improves a paired small public
-evaluation by0.000357046; do not add that improvement to another dataset's score.
-The ordinary-embedding profile opportunity remains concrete, but the first
-segmented scan and compact scatter implementations both fail native correctness.
-Fresh scan metadata per channel block and single-write gather expansion are
-bounded fixes pending native gates. Their performance benefit is still unknown.
+The fused BF16 MLP now preserves HxT ReLU through backward: real-shape complete
+forward/backward3.961ms versus native4.243ms, with forward and gradient gates
+passing. FP32 master weights, differentiable BF16 cache refresh, accumulation
+and ordinary evaluation/checkpoint behavior are being tested on hardware before
+full-chip timing. These component results have **no new BPB claim**. Both hosts
+use automatic preflight, ownership-scoped cleanup, postflight, immutable commits
+and live local log preservation. Heavy artifacts have independent SHA256 receipts.
 
-The official scorer is public; the leaderboard's pinned validation shard is
-private and disjoint from the public dev shard (`README.md:245–257`). Public
-20.97M-token checks reproduce the metric and a fixed evaluation geometry, not
-the private data or a guaranteed leaderboard score. A fixed seed can reproduce
-pseudorandom choices, but selecting the best seed can select public-data luck
-and does not remove runtime nondeterminism. Use matched-seed comparisons and
-limited independent repeats, reporting all outcomes. Sections below preserve
-the research progression and superseded intermediate hypotheses.
+The public scorer, tokenizer and loader are unchanged and freshly match the
+organizer's authenticated repository. The larger comparison uses20,971,520public
+tokens at B1/T1024 and scores83,462,186bytes; the private pinned data is disjoint
+and unavailable. Smaller four-rank/T2048 sub-1.0 diagnostics do not establish a
+private leaderboard score. There is no verified evidence of the leaders' kernel
+or architecture choices. See the current [results ledger](fresh-start-results-2026-09-18.md),
+[execution plan](fresh-start-plan-2026-09-18.md), and
+[audited primary-source kernel research](fresh-start-kernel-primary-research-2026-09-18.md).
 
-This is a living research argument, with falsifiable experiments. It separates
-results in existing logs, facts verified in source/numerical probes, and proposals
-whose BPB benefit is unknown. The completed width896 direct-attention control
-now reaches **0.987568 BPB at context 2048** and **0.999880 at context 1024**
-on four-rank, 2,097,152-token public diagnostics. It completed 2,188 updates
-within the 30-minute allowance. The earlier width896 checkpoint's larger
-20.97M-token standalone result at context 1024 was **1.009889**; the new
-checkpoint still needs that larger check. The newer fused-FP32-table-optimizer
-checkpoint has now completed the identical 20.97M-token standalone check:
-**1.004452862 BPB**, versus 1.009889395 for the first wave. The small-sample
-sub-1.0 result therefore does not establish robust sub-1.0 quality at context1024.
-These are public measurements, not a private leaderboard score. See the [measured results](fresh-start-results-2026-09-18.md)
-for source commits, timing, numerical gates and limitations.
-
-The strongest opportunity is to recover useful capacity and optimization quality
-from the existing transformer. A wider version now learns below 1.0 on the public
-context 2048 diagnostic within the budget. Meanwhile the current code and
-measurement history contain concrete changes that previous high-level conclusions
-do not account for. A complete replacement with an SSM or all-FP8 stack would make
-these mechanisms harder to isolate.
-
-**12:58 UTC update:** the dense6×1024 path, without hashed n-gram tables,
-now completes2,977updates/390.2M target presentations in budget at **0.981710
-BPB@2048 /0.996689@1024**, versus1.012886/1.027777 for the1,805-update dense
-control. Custom NKI convolution plus BF16 normalized branch inputs reduces the
-gated update from0.986s to0.588s; residuals stay FP32. The combined change
-therefore improves real full-budget quality, not just throughput. Its checkpoint
-is locally hash-verified. These are four-rank2.1M-token public diagnostics. The
-identical20.97M-token standalone check now gives **1.002066687 BPB**, versus
-**1.004452862** for the table model, with the same83,462,186bytes scored. The
-dense implementation is a competitive full-budget route; it is still above1.0
-on the larger sample and has no independent-seed confirmation. Eight-layer dense capacity passed a
-0.744s phase gate but finishes at1.004083 on the small1024 diagnostic, worse than
-six layers'0.996689 because the extra capacity comes with fewer budgeted updates.
-That mechanism is an interpretation, not a matched-update ablation. There is still no verified information
-about the leading teams' architectures.
-
-The real-shape cached-weight FP8 probe passes its numerical gates but does not
-beat native BF16 after layout preparation; the MLP output projection is the
-clear negative. The B8 microbatch phase saves only1.9%, below its full-run gate;
-B16 regresses to615ms, so this packing sweep is closed. A fresh current-graph device capture is preserved
-locally, and its unprofiled585ms update agrees with the earlier588ms result.
-The next full-budget algorithm control changes only clipping order to average
-gradients before clipping. These are measured decisions and a pending test,
-not evidence that the remaining0.00207BPB gap has been solved.
-
+The sections below retain the initial audit and its supporting reasoning; their
+historical reference configuration is not the current dense best. Each proposed
+direction must be checked against the newer results ledger before relaunching it.
 
 Supporting audits:
 

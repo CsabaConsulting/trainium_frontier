@@ -10,7 +10,7 @@ import torch
 from mlp_fused_bf16 import build_kernel, make_autograd, reference_forward
 
 
-def make_forward(device, native_forward, use_weight_cache):
+def make_forward(device, native_forward, use_weight_cache, normal_input_gradient=False):
     if str(device).startswith("neuron"):
         from torch_neuronx import wrap_nki
         kernel = wrap_nki(build_kernel())
@@ -23,7 +23,8 @@ def make_forward(device, native_forward, use_weight_cache):
             result, relu = reference_forward(x, up, down)
             return result, relu.T
 
-    fused = make_autograd(kernel_call, transposed_relu=True)
+    fused = make_autograd(kernel_call, transposed_relu=True,
+                          normal_input_gradient=normal_input_gradient)
 
     def weight(linear, dtype):
         cached = linear._cached_weight
@@ -44,7 +45,7 @@ def make_forward(device, native_forward, use_weight_cache):
     return forward
 
 
-def install(model, device, train_module):
+def install(model, device, train_module, normal_input_gradient=False):
     assert train_module.RELU2_TAU == 0.0
     keys = tuple(model.state_dict())
     parameter_ids = tuple(id(p) for p in model.parameters())
@@ -57,7 +58,8 @@ def install(model, device, train_module):
         assert module.c_proj.weight.shape == (channels, hidden)
         assert channels % 128 == 0 and hidden % 128 == 0
         assert 4 * channels * hidden + 2 * (channels + hidden) * 512 + 2 * 1024**2 <= 24 * 1024**2
-        forward = make_forward(device, type(module).forward, train_module.USE_WEIGHT_CACHE)
+        forward = make_forward(device, type(module).forward, train_module.USE_WEIGHT_CACHE,
+                               normal_input_gradient)
         module.forward = types.MethodType(forward, module)
     assert tuple(model.state_dict()) == keys
     assert tuple(id(p) for p in model.parameters()) == parameter_ids

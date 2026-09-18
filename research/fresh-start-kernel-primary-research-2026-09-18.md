@@ -79,3 +79,13 @@ For run identities, failures, exact timings and health receipts, use the
 [measured-results ledger](fresh-start-results-2026-09-18.md). The broader model,
 optimizer, corpus-exposure and scoring analysis remains in the
 [deep research report](fresh-start-deep-research-2026-09-18.md).
+
+
+## Device follow-up, 15:19 UTC
+
+The two primary-source-informed layout directions now have actual integration
+results. DMA/scan embedding is 1.42% faster in a nearby whole-step comparison,
+short of promotion. HxT MLP backward is faster in isolation but slower in the
+whole model. This reinforces the need to test the surrounding graph and upstream
+gradient consumers. New fused-transfer and input-gradient-layout controls are
+justified; a 30-minute quality win has not been established for either component.

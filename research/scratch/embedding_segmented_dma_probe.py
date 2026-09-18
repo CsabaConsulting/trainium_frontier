@@ -21,20 +21,25 @@ def run_case(args, kernels, shape, kind):
     check(cpu_result, exact, bound, counts, f'dma_cpu:{kind}:{shape}')
     print('DMA_SCAN_CASE '+json.dumps(dict(kind=kind, shape=shape,
           tiled_io=args.tiled_io,
+          fused_permutation_scan_expansion=args.fused,
           metadata_bytes=sum(t.numel()*t.element_size() for t in meta),
           arithmetic='BF16-rounded input gradients, FP32 sums, FP32 output')) ,flush=True)
     if args.device == 'cpu':
         return
     import torch_neuronx
-    permute, scan, expand = kernels
+    permute, scan, expand = kernels[:3]
     gd, idd = gradient.to('neuron'), ids.to('neuron')
     md = tuple(t.to('neuron') for t in meta)
     pp, cc, mm = md
     # Stage1 is a pure permutation and cast: bit equality is required.
-    ordered = permute[2](gd, pp, 2, args.tiled_io)
+    if args.fused:
+        eager, ordered, scanned = kernels[3][2](gd, pp, cc, mm, vocabulary, 2, True)
+    else:
+        ordered = permute[2](gd, pp, 2, args.tiled_io)
     ordered_ref = gradient[meta[0].reshape(-1).long()].bfloat16()
     assert torch.equal(ordered.cpu(), ordered_ref), 'DMA permutation/cast mismatch'
-    scanned = scan[2](ordered, cc, 2, args.tiled_io)
+    if not args.fused:
+        scanned = scan[2](ordered, cc, 2, args.tiled_io)
     # Independent CPU recurrence checks ALL scan positions, not only group ends.
     arr = ordered_ref.double().numpy()
     flags = meta[1].numpy().reshape(-1)
@@ -60,11 +65,17 @@ def run_case(args, kernels, shape, kind):
           finite=bool(torch.isfinite(actual_scan).all()), bound_failures=bad_scan,
           max_abs=float(error.max()))),flush=True)
     assert torch.isfinite(actual_scan).all() and bad_scan == 0, 'FP32 scan mismatch'
-    eager = expand[2](scanned, mm, vocabulary, 2)
+    if not args.fused:
+        eager = expand[2](scanned, mm, vocabulary, 2)
     check(eager, exact, bound, counts, f'dma_eager:{kind}:{shape}')
+    if args.fused:
+        plain = kernels[3][2](gd, pp, cc, mm, vocabulary, 2, False)
+        check(plain, exact, bound, counts, f'dma_eager_uninstrumented:{kind}:{shape}')
     wrapped = tuple(torch_neuronx.wrap_nki(k) for k in kernels)
 
     def compose(gg, permutation, continuation, mapping):
+        if args.fused:
+            return wrapped[3][2](gg, permutation, continuation, mapping, vocabulary, 2, False)
         ordered_inner = wrapped[0][2](gg, permutation, 2, args.tiled_io)
         scanned_inner = wrapped[1][2](ordered_inner, continuation, 2, args.tiled_io)
         return wrapped[2][2](scanned_inner, mapping, vocabulary, 2)
@@ -101,6 +112,8 @@ def run_case(args, kernels, shape, kind):
     estimate = med['dma_scan_prepared_metadata'] + max(0,med['dma_scan_metadata_creation_upload_included']-med['dma_scan_prepared_metadata'])/4
     print('DMA_SCAN_BENCH '+json.dumps(dict(kind=kind,shape=shape,**timed,
           tiled_io=args.tiled_io,
+          fused_permutation_scan_expansion=args.fused,
+          normal_intermediate_hbm_bytes=0 if args.fused else tokens*channels*6,
           estimated_four_table_amortized_ms=estimate,input_id_d2h_included=False,
           all_intermediate_hbm_and_kernel_costs_included=True,
           estimate_is_not_whole_model_timing=True)),flush=True)
@@ -114,12 +127,17 @@ def main():
     ap.add_argument('--steps',type=int,default=12)
     ap.add_argument('--tiled-io',action='store_true',
                     help='Move dtype conversion intoSBUF and use explicit128x128 transposes.')
+    ap.add_argument('--fused',action='store_true',
+                    help='Fuse permutation, scan and512-output end gathers without intermediate HBM.')
     args=ap.parse_args()
     torch.set_num_threads(4)
     kernels=None
     if args.device=='neuron':
         import torch_neuronx  # noqa:F401
         kernels=build_kernels()
+        if args.fused:
+            from embedding_fused_dma import build_kernel
+            kernels=(*kernels, build_kernel())
     for shape in [(256,256,256)]+([(8192,1024,8192)] if args.real_shape else []):
         kinds=['uniform','zipf','one_id','zero','cancellation']
         if args.training_row and shape[0]==8192:kinds.append('training')

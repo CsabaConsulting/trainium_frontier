@@ -34,7 +34,7 @@ def refresh(model):
             module.refresh_weight_cache(torch.bfloat16)
 
 
-def run(device, tokens, channels):
+def run(device, tokens, channels, normal_input_gradient=False):
     torch.manual_seed(1023)
     T.USE_WEIGHT_CACHE = True
     T.USE_GATED_MLP = T.USE_COALESCED_SWIGLU = T.USE_NKI_RELU2 = False
@@ -42,7 +42,7 @@ def run(device, tokens, channels):
     baseline = Probe(channels).to(device)
     candidate = copy.deepcopy(baseline)
     before_rng = torch.get_rng_state().clone()
-    install(candidate, device, T)
+    install(candidate, device, T, normal_input_gradient=normal_input_gradient)
     assert torch.equal(before_rng, torch.get_rng_state())
     if device == "neuron":
         native = torch.compile(baseline, backend="neuron", fullgraph=True, dynamic=False)
@@ -94,6 +94,7 @@ def run(device, tokens, channels):
         torch.testing.assert_close(restored(xx).cpu(), candidate(xx).cpu(), rtol=0, atol=0)
     print("FUSED_MLP_INTEGRATION_GATE " + json.dumps(dict(
         tokens=tokens, channels=channels, passed=True, fp32_master_gradients=True,
+        normal_input_gradient=normal_input_gradient,
         cached_and_uncached_paths=True, accumulation_and_refresh=True,
         eval_exact=True, strict_native_checkpoint_load_passed=True)), flush=True)
 
@@ -102,13 +103,14 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--device", choices=("cpu", "neuron"), default="neuron")
     ap.add_argument("--real-shape", action="store_true")
+    ap.add_argument("--normal-dx", action="store_true")
     args = ap.parse_args()
     torch.set_num_threads(4)
     if args.device == "neuron":
         import torch_neuronx  # noqa:F401
-    run(args.device, 256, 256)
+    run(args.device, 256, 256, args.normal_dx)
     if args.real_shape:
-        run(args.device, 8192, 1024)
+        run(args.device, 8192, 1024, args.normal_dx)
     print("PASS: fused MLP master parameter, cache, accumulation and checkpoint gates", flush=True)
 
 

@@ -1,6 +1,6 @@
 # Fresh-start campaign — 2026-09-18
 
-**Current campaign status, 14:47 UTC.** Minimize official30-minute BPB on a
+**Current campaign status, 15:19 UTC.** Minimize official30-minute BPB on a
 full Trainium2 chip. The working competitive target is around **0.9749**, with
 margin for leaderboard movement. Our best larger public check is
 **1.001551299**, on20,971,520 tokens/B1/T1024; public/private data differences
@@ -24,26 +24,23 @@ freshly read through GitHub and match the local copies exactly.
 
 **Kernel priorities and current evidence:**
 
-1. Ordinary embedding backward: compact3072-row native accumulation plus NKI
-   expansion gives only1.09% whole-step improvement (582.43ms vs588.84ms nearby
-   same-host control), below the570ms advancement gate. It is not promoted.
-   The alternative custom segmented scan is now numerically repaired: explicit
-   gathers of512 outputs pass all original/uninstrumented shape/distribution
-   tests, including actual training IDs. Tiled FP32 transfers reduce its prepared
-   cost from151ms to4.61ms, but native is3.17ms. Next gate: BF16-rounded input
-   gradients matching native, FP32 accumulation, followed by profiling if still
-   slow. CPU metadata and its transfers must remain charged and shared honestly.
-2. Fused BF16 MLP training forward: numerical and backward gates pass. Replacing
-   scalar weight DMA and strided activation transfers cut the flawed785ms
-   implementation to1.69ms, yet native forward is1.35ms. Cached BF16 weights do
-   not repair this gap (1.68ms; complete forward/backward also slower). Inspect
-   the newly captured actual-shape profile before choosing another layout. No
-   whole-model integration or speed claim yet.
-3. Preserve validated production improvements and prioritize genuinely material
-   full-chip gains. Component timings omit optimizer/control costs; every
-   candidate must pass whole-model finite/causal/batch/repeatability checks and
-   measured full-step speed before a30-minute quality comparison. Small public
-   prefixes, context lengths and private leaderboard numbers are not interchangeable.
+1. Ordinary embedding backward: the revised three-kernel DMA/scan path passes
+   all component and actual autograd gates. Real-row prepared cost is 0.856 ms
+   versus native 3.133 ms, but full-chip timing with all metadata costs gives
+   578.15 ms versus a nearby same-host 586.46 ms control: only 1.42%, below the
+   570 ms gate. Next fuse the intermediate HBM permutation/scan tensors away,
+   retaining explicit scratch placement and the validated 512-output gathers.
+2. Fused BF16 MLP: HxT saved ReLU consumed directly by backward improves the
+   isolated component by 6.65%, yet full-model timing regresses to 681.97 ms.
+   Numerical and independence checks pass. Capture the actual runtime graph and
+   test a direct TxC input gradient to isolate its handoff to upstream norm. A
+   separate grouped-transfer kernel targets the remaining 2,560 DMA instructions.
+   Neither variant is promoted to a 30-minute run without a full-model gain.
+3. Preserve the validated NKI convolution/BF16 normalization implementation.
+   Continue meaningful full-chip gates before quality runs; no seed selection.
+   Fused FP8 remains open after transfer overhead is controlled, with scaling,
+   casts, backward and refresh costs included. Small public prefixes, context
+   lengths and private leaderboard values remain distinct measurements.
 
 The live hypotheses, failures and advancement decisions are recorded in
 [fresh-start-results-2026-09-18.md](fresh-start-results-2026-09-18.md). The broader
