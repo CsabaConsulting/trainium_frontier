@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated2026-09-18,23:10UTC. Authorization: danger-full-access, approval never.
+Updated2026-09-18,23:19UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
 ## Current result and active work
@@ -23,12 +23,14 @@ The previous T1024/pack16/original-fused-AdamW result is0.9974687136975224,
 9eabd33e6925052091f0238629f9192096c42f1310cf3127286898621932cd27 and is also
 local/cloud verified. Earlier native pack8 result1.0010172426032236 is retained.
 
-**Both hosts are clean after wave69/sourcef3a67c9e28028150cab07751ba89d29981448975.**
-trn21 adaptive/gather CE passes original exact gates, shape boundaries and row
-independence.16384x8192 FW+BW is5.679064700962044ms versus12.339531350880861ms
-original (53.9767% component gain). Next source adds a scratch adapter and
-compiled installed-autograd gate before whole-model timing. It preserves the
-original loss, reduction and checkpoint interfaces; train.py remains untouched.
+**trn21:** wave70/source785c294e4ef70b222915a7d464df2cbc1ba08a56. The installed
+CE/autograd gate passes all36 eager/compiled exact loss and gradient checks,
+including16384x8192. Fresh same-source T1024/pack16+ownership control phase
+`fs-w70-native-mlp-context1024-pack16-owned-control-phase-r1` is active; the
+prepared candidate request adds only `--adaptive-nki-ce`. Run it after clean
+postflight, then require full-step gains before quality. The component result
+is5.679064700962044ms versus12.339531350880861ms,53.9767%. Protected trainer is
+unchanged. trn21 watcher follows wave70.
 
 trn22 FP8-storage/BF16-math full gate passes under explicit FP64-propagated
 bounds and exact paired NKI outputs/gradients. It loses isolated timing:
@@ -36,13 +38,17 @@ bounds and exact paired NKI outputs/gradients. It loses isolated timing:
 15.641983901150525ms native original per cache refresh plus two FW/BW calls.
 No actual FP8 matmuls, optimizer, collectives or caller spill measurements.
 Full FP8 forward/backward islands remain open; no training promotion here.
+The next immutable source adds actual FP8 up/down GEMMs with per-token scaling
+in `fp8_mlp_island_nki.py`, and an independent stage/pair-rounding/row-isolation
+gate. Syntax passes. Deploy on trn22 and run the small gate first; no backward
+or timing claim yet. trn22 watcher must be moved from wave69 to the new source.
 
 The T1024/pack16+ownership phase finished clean at515.4737504781224ms versus
 fresh owned T2048/pack8 control528.353027504636ms:2.4376%, below predeclared3%.
 All four model checks pass. Combine gated CE before another30-minute quality
 run. These phases clip before averaging; real quality recipes clip after.
-Current source changes include adapter/check, phase flag and explicit training
-flag, all default off. Commit/deploy before any launch; requests in ignored out/.
+Adapter/check, phase flag and explicit training flag are committed and default
+off. Commit/deploy FP8 source before its launch; requests remain in ignored out/.
 
 ## Latest numerical findings
 
@@ -111,7 +117,7 @@ Local Devuan/SystemV, usercsaba cron; no root/systemd:
   zero errors, including both new quality checkpoints. State is
   out/fresh-start-artifact-backup/latest.json; receipts under research/run-logs.
   Newly produced remote checkpoints still need retrieval to checkpoints/ first.
-- Local log watchers currently follow trn21/wave69 and trn22/wave69,90rounds at
+- Local log watchers currently follow trn21/wave70 and trn22/wave69,90rounds at
  45seconds. Repoint when the active remote worktree changes. Only stop exact
   owned watcher PID/UID/cwd/argv/startticks; remote training jobs are separate.
 

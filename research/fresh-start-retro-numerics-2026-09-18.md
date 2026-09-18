@@ -283,3 +283,21 @@ The raw two-core single-iteration shape failure remains documented and
 ineligible; adaptive dispatch preserves one core there. This is a work/layout
 change without new approximations. Compiled installed-autograd and whole-step
 gates are required next; no training gain is claimed from the component timer.
+
+### FP8 layout and causal scale policy
+
+The actual-FP8 forward prototype uses per-token activation amax and exponent-bit
+power-of-two scaling. Current-block global activation calibration would let
+future tokens alter earlier outputs through the quantizer; per-token scales
+avoid that dependence directly. Weights still use per-matrix calibration once
+per update. The full hidden activation stays on chip, with explicit token-major
+transposes for calibration and contraction-major FP8 tiles for the next GEMM.
+This trades more layout instructions for smaller caches and actual FP8 compute.
+No BF16 timing veto applies; actual compilation, stage gates, backward and
+complete costs remain to be measured.
+
+AWS's [double-row layout/type contract](https://awsdocs-neuron.readthedocs-hosted.com/en/v2.29.1/nki/api/generated/nki.isa.nc_matmul.html)
+specifies packed128x2 contraction tiles and FP8 operands. The empirically
+characterized11-bit pair-rounding reference is our measured behavior on the
+installed stack, not an AWS guarantee. The new layout pairs corresponding
+positions in adjacent128-channel blocks and validates that order explicitly.

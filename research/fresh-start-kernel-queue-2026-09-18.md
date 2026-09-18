@@ -1,6 +1,6 @@
 # Kernel queue and precision-specific experiments
 
-Updated23:10UTC,2026-09-18. This is the executable/design queue, not a list of
+Updated23:19UTC,2026-09-18. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
@@ -12,7 +12,7 @@ Every device request retains immutable source, cleanup and numerical gates.
 | Padded optimizer ownership |3377updates/442.6Mtargets; checkpoint local and cloud verified | Larger public **0.9973302213667847**, clean; current best. T1024/pack16 ownership phase passes at515.473750ms versus528.353028ms:2.4376%, below3% gate; combine gated CE before another quality run |
 | Scalar reciprocal + Newton | 34component gates,16.77% component gain; repeated optimizer/cache/restore gate now passes | Optional whole-step combination after the active quality runs; no approximation is in those runs |
 | Scalar rsqrt correction | Mode5 passes34 gates but loses:1.363799vs1.262366ms; no promotion | Mode6 also passes34 gates but loses1.25%; both closed for this component; mode2 remains faster |
-| Exact CE core/gather changes | Wave68 isolates discrepancy to forward outer-loop trip count1, for both input precisions; cores agree and native-lse backward is exact | Adaptive/gather passes all original/boundary/row-independence gates;5.679065vs12.339531ms FW+BW,53.9767% component gain. Compiled autograd integration gate next, then full model |
+| Exact CE core/gather changes | Wave68 isolates discrepancy to forward outer-loop trip count1, for both input precisions; cores agree and native-lse backward is exact | Adaptive/gather passes all original/boundary/row-independence gates;5.679065vs12.339531ms FW+BW,53.9767% component gain. Compiled installed-autograd gate passes all36 checks; fresh whole-step control now active, candidate follows |
 | Polynomial exponential | Nine device records pass;3.57–4.19times slower | Closed as a standalone speed replacement; retain the accurate implementation for diagnostics |
 
 The CE experiment compares original, explicit one-core mask, two-core mask,
@@ -86,7 +86,18 @@ The quantized real-shape model differs from original BF16 by4.111% forward RMS;
 passing implementation gates does not establish acceptable training quality.
 No optimizer, collectives or surrounding-model spill savings are included.
 Do not promote this storage-only variant from these measurements. Actual FP8
-GEMM forward/backward islands remain distinct queued designs.
+GEMM forward/backward islands remain distinct candidates. A forward prototype
+now exists in `fp8_mlp_island_nki.py`, with its stage gate in
+`fp8_mlp_island_probe.py`. It has not yet passed hardware compilation or accuracy.
+It quantizes activations per token, avoiding future-token and cross-row scale
+dependence, and uses both projections in double-row mode. Token-major hidden
+tiles make row calibration straightforward; explicit transposes return the
+matmul layout. The per-token scales, extra transposes and backward saves all
+belong in later complete timing. First gate covers seven small cases plus an
+optional real shape: exact calibration/casts, FP32 projection stages against
+the independently characterized11-bit pair rule in the new contraction order,
+rounding, repeated calls and row independence. Backward and timing follow only
+after the forward contract passes.
 
 ## Additional retro-search ideas retained
 
