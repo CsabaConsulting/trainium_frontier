@@ -4,21 +4,30 @@ Objective: minimize **official 30-minute validation bits per byte** on one full
 Trainium2 chip. Sub-1.0 on public validation is an engineering milestone, not a
 claim about the private leaderboard. The metric is lower-is-better.
 
-**Current update:** the width896 direct-attention control completed 2,188
-updates within budget, at **0.987568 public BPB @2048 / 0.999880 @1024**
-(four ranks, 2,097,152 tokens). Its checkpoint is locally preserved; the larger
-standalone evaluation remains pending. The earlier checkpoint scored 1.009889
-on 20.97M public tokens at context1024. See the
+**Current update, 10:06 UTC:** the width896 direct-attention control completed
+2,188 updates at **0.987568 public BPB @2048 / 0.999880 @1024**. Its fused
+FP32 table-optimizer counterpart completed 2,204 updates at **0.986947 /
+0.999735**. Both fit the budget and use four ranks and 2,097,152 evaluation
+tokens. Both checkpoints are locally preserved. The small difference does not
+establish an optimizer quality win; larger evaluation and repeatability remain
+necessary. The earlier checkpoint scored 1.009889 on 20.97M public tokens at
+context1024. See the
 [measured-results ledger](fresh-start-results-2026-09-18.md).
 
-Trn21 is training the full-budget fused FP32 table-optimizer counterpart.
-Trn22's dense 6×1024 trace shows a slow forward dominated by transfers/synchronization,
-with only about 17% TensorEngine activity per physical core. The current probe
-re-expresses its learned causal convolution as static shifts while retaining all
-parameters. The separate transformer track without hashed n-grams remains a
-first-priority full-training experiment. No public evidence establishes which
+Trn22 is now training dense 6×1024 **without hashed n-grams** for 1,800 seconds
+(`fs-w6-dense1024-noqk-1800-r2`, source `c333adb`). Removing the frozen zero Q/K
+shift reduced measured step time from **1.417s to 0.986s**; the full run is
+showing roughly 1.00s steps. The ordinary PyTorch static-shift convolution was
+rejected at **3.083s**, with the zero Q/K shift still present. Trn21 is checking
+a custom NKI convolution before timing it, then will evaluate the saved models
+on the larger fixed public sample. No public evidence establishes which
 architectures the leaderboard teams use. N-gram capacity is optional.
 The original launch plan below remains as provenance.
+
+The first dense full-run dispatch (`r1`) pre-created the runner's own log and
+manifest. Its duplicate-label guard refused to launch training. The failure is
+preserved; `r2` routes outer stdout to a separate `.driver.log` and lets the
+runner own its official artifacts. No device work from r1 overlapped r2.
 
 ## Evidence that changes the next experiments
 

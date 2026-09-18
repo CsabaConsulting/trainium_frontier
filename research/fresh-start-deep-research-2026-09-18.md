@@ -115,7 +115,11 @@ The two-core fused FP32 update measured 10.28ms per full table including copy-ba
 versus 11.28ms for the legacy BF16 path and 23.38ms for ordinary FP32 arithmetic.
 Repeated updates through the actual native optimizer also pass CPU-reference
 checks, including varying LR, sparse/zero/None gradients and two decay constants.
-Whole-model throughput and full-run BPB remain unmeasured for the new optimizer.
+The full width896 run now completes 2,204 steps versus 2,188 for the legacy
+control, with 0.999735 versus 0.999880 BPB at context1024 on the same four-rank
+2.1M-token sample. It retains whole-model throughput. The quality difference
+is too small, and exposure differs, to conclude that optimizer fidelity improves
+generalization. Larger fixed evaluation and a repeat remain necessary.
 
 This is a numerical fact, **not yet an explanation for poor BPB**. The accidental
 history dependence may act like useful regularization or AdaGrad-like damping.
@@ -175,12 +179,15 @@ to a `multiply.21`/transpose intermediate, but no high-level source mapping yet.
 Missing DMA notifications prevent an exact byte-bound claim. These facts favor
 layout and convolution work ahead of a wholesale FP8 training rewrite.
 
-The next two clean probes retain the model's mathematical function: spell the
-trained depthwise convolution as static shifts, and remove the frozen zero Q/K
-shift at this wider shape. The latter is a compiler perturbation that previously
-helped width640; that does not guarantee it helps width1024. The former keeps
-parameters and causal behavior but can change finite-precision gradient summation.
-Neither should be credited with a BPB improvement before a budgeted training run.
+Those two probes have now separated sharply. Replacing the trained convolution
+with static PyTorch shifts makes the step **3.083s**, about 2.18× slower.
+Removing only the frozen zero Q/K shift makes it **0.986s**, saving 30.39% of
+step time with the optimizer/tail nearly unchanged. Both retain the intended
+trainable function, although finite-precision paths can change. This is concrete
+evidence against generalizing a compiler perturbation's width640 benefit to
+width1024. The faster dense candidate is in full-budget training; its BPB is
+not yet known. A custom NKI convolution is undergoing a separate forward,
+gradient and causality gate before any timing or integration.
 
 A distinct mixed-precision candidate is to keep the residual accumulation in
 FP32 but store normalized branch inputs in BF16. The historical dtype trace

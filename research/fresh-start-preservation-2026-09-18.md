@@ -84,3 +84,19 @@ Selected ingested r3 Parquet tables are already local under
 `out/fresh-start-profiles/dense1024-device-micro-r3-parquet/`, with hashes in
 `run-logs/fs-w5-dense1024-device-micro-r3.summary.json`. The raw r3 trace and
 same-process NEFFs are still remote; their complete archival is pending.
+
+The completed fused-FP32-optimizer width896 checkpoint is preserved at
+`checkpoints/fs-w4-w896-nki-rms-fp32-r1/final.pt` (1,453,684,039 bytes).
+Source `a62df2734b5de7e33afa40d74a690fae6404fefc`; remote source:
+`/home/ubuntu/trainium_freshstart_20260918_wave4/out/fs-w4-w896-nki-rms-fp32-r1/final.pt`.
+Independent local/remote SHA256 values match:
+
+```
+6a16f3d490964c201a488e487d407ca18e94b9b23a82a2a97abd35c5ecfd64aa
+```
+
+After the final successful wave4 log/record synchronization, its old background
+mirror was stopped. Separate wave6 mirrors remain active for the current host
+checkouts. The raw r3 profile plus its same-process NEFFs are being copied to
+`out/fresh-start-profiles/fs-w5-dense1024-device-micro-r3/`, with transfer capped
+at 8 MiB/s; completion and per-file verification are still pending.

@@ -1,0 +1,28 @@
+{
+  "label": "fs-w6-conv2-nki-native-gate-r1",
+  "started_at": "2026-09-18T10:00:32.848237+00:00",
+  "hostname": "ip-172-31-34-85",
+  "git_commit": "c333adbc5583449940a106729f6b8faf312c98c1",
+  "command": [
+    "timeout",
+    "900s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "research/scratch/causal_conv_shift_device_check.py",
+    "--kernel",
+    "nki",
+    "--large"
+  ],
+  "description": "Native FP32 arithmetic and causality gate for NKI two-tap convolution; no speed claim",
+  "environment": {
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_RT_VISIBLE_CORES": "0",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16"
+  },
+  "source_sha256": {
+    "research/scratch/causal_conv_shift_device_check.py": "3b314cff6c9d00492d3b8a4b06052441dcd63610edd8251d5a9fc9175c3ba7ec",
+    "research/scratch/causal_conv_nki2.py": "fa2fbd7ea6d3f9f4c98564de982ababa655643ea144cf9e9fb29f3f2b709de5d",
+    "research/scratch/causal_conv_shift.py": "4c8387cc7c5143c7da38f49cd88268aa5c32558ee74982b3278709b5b4d542b8"
+  }
+}

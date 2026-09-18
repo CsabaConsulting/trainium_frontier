@@ -143,6 +143,21 @@ difference was 0.000244140625. Original gradients and skipped parameters remaine
 unchanged. This broader test has different scales from the small-gradient probe
 above. See [actual optimizer check](run-logs/fs-w3-nki-rms-integration-r1.log).
 
+The **full-budget** counterpart `fs-w4-w896-nki-rms-fp32-r1` has completed,
+source `a62df27`, with the same training-source SHA256 as its direct-SDPA control.
+It reached **2,204 steps / 288,882,688 target positions**, training 1,784.8s,
+charged estimate 1,785.9s, startup allowance 475.2s, total 2,267.2s, and
+`over_budget=False`. Causality passed exactly. Four-rank public evaluation over
+2,097,152 tokens gives **0.986947 BPB @2048 / 0.999735 @1024**.
+
+Relative to the legacy BF16-state control, that is 16 more steps and BPB changes
+of -0.000621 / -0.000145. State/update arithmetic and token exposure both change;
+this is not step-matched, and the small advantage does not establish a reliable
+quality improvement. The useful confirmed result is that faithful FP32 optimizer
+state is feasible without losing the full-model throughput. Its checkpoint is
+locally preserved with matching independent SHA256. See
+[completed run](run-logs/fs-w4-w896-nki-rms-fp32-r1.log).
+
 ## Exact corpus and exposure audit
 
 The diagnostic reads only the five allowed training shards and the fixed tokenizer.
@@ -316,12 +331,10 @@ frozen scales or appropriate per-token scales, with perturbation checks.
 
 ## Next controlled full runs
 
-The user explicitly requested keeping a serious route without n-grams. The
-direct-attention control above is complete. Trn21 is running its same-seed full
-counterpart with the fused FP32-state table optimizer
-(`fs-w4-w896-nki-rms-fp32-r1`). Trn22 is testing the dense profile's concrete
-layout/convolution leads, then will train a candidate without hashed tables
-under the same 30-minute limit. Existing unigram value
+The user explicitly requested keeping a serious route without n-grams. Both
+width896 table-model runs above are complete. Trn22 is training the dense
+width1024 candidate with the frozen-zero Q/K shift removed, under the same
+30-minute limit (`fs-w6-dense1024-noqk-1800-r2`, source `c333adb`). Existing unigram value
 embeddings and trained local convolutions are retained initially; removing all
 three together is a distinct architectural experiment.
 
@@ -330,3 +343,35 @@ graph. That is a reason to inspect actual phases, not a permanent ban on removin
 tables. The FP32-state NKI optimizer is available for a later table-model arm;
 it is not a commitment to that architecture. Record both 1024/2048 evaluation
 contexts, then step-match any promising difference that changes throughput.
+
+## Dense model: two compiler-graph ablations
+
+Both completed probes use source `fe038e8`, the same unchanged `train.py`, four
+ranks/LNC2, BF16 matmult flags, depth6/width1024, no hashed tables, the real
+loader, B4×T2048 per rank, four accumulation microbatches and global 131,072
+targets/update. Eight unprofiled steady steps follow three warmup steps.
+
+| Convolution | Frozen-zero Q/K shift | Median step ms | Microbatches ms | Optimizer ms |
+|---|---|---:|---:|---:|
+| Native `F.conv1d`, earlier control |present|1,417.096|1,331.151|55.292|
+| Static PyTorch shifts |present|3,083.145|2,998.892|55.162|
+| Native `F.conv1d` |removed|986.485|900.022|55.629|
+
+The static-shift version is **2.18× slower**, despite passing an independent
+FP64 CPU forward/gradient check. Reject its current lowering. Removing the zero
+Q/K shift saves **30.39% step time / 43.65% throughput**, with an approximately
+unchanged optimizer/tail. It removes 6,144 frozen zero parameters, leaving
+117,453,580 parameters and the same intended trainable function. Native compiled
+rounding can still differ. The older width640 result favoring the zero-shift
+graph does not transfer to this shape.
+
+Logs and median records:
+[static shift](run-logs/fs-w5-dense1024-shift-conv-phase-r1.log),
+[zero-shift removal](run-logs/fs-w5-dense1024-noqkshift-phase-r1.log).
+The ablation does not by itself identify the trace's 84ms region with certainty;
+that attribution would require a new trace. Full-budget BPB remains pending.
+
+Full-run r1 was stopped by the duplicate-log guard before spawning training;
+its artifacts are retained. R2 uses a distinct outer `.driver.log`. During r2,
+an 8 MiB/s capped read-only transfer is recovering the older raw device profile;
+this is recorded background I/O, not part of an accepted microbenchmark.
