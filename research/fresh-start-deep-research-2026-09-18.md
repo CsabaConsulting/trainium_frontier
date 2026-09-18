@@ -1,4 +1,31 @@
-# Fresh-start synthesis: the most credible routes below 1.0 BPB
+# Fresh-start synthesis: repeatable gains toward a competitive BPB
+
+**13:35 UTC current decision:** the best larger public score is **1.001551299**,
+from dense6×1024 without hashed n-grams, NKI convolution, BF16 normalized branch
+inputs and clipping after averaging. That last change improves the same-seed
+larger score by0.000515388 with28 extra budgeted updates; its causal contribution
+is not isolated. A single predeclared seed43 repeat checks robustness. There
+will be no broad seed sweep. The user's current tenth-place leaderboard score
+is0.9847, requiring an indicative0.01685BPB improvement from our public result;
+the public and private datasets differ, so this is not an exact leaderboard gap.
+
+The narrower BF16-at-SDPA-only precision path loses full-budget quality while
+making377 fewer updates. Retain BF16 normalized activations. A constant mask for
+the tokenizer's four zero-byte special classes improves a paired small public
+evaluation by0.000357046; do not add that improvement to another dataset's score.
+The ordinary-embedding profile opportunity remains concrete, but the first
+segmented scan and compact scatter implementations both fail native correctness.
+Fresh scan metadata per channel block and single-write gather expansion are
+bounded fixes pending native gates. Their performance benefit is still unknown.
+
+The official scorer is public; the leaderboard's pinned validation shard is
+private and disjoint from the public dev shard (`README.md:245–257`). Public
+20.97M-token checks reproduce the metric and a fixed evaluation geometry, not
+the private data or a guaranteed leaderboard score. A fixed seed can reproduce
+pseudorandom choices, but selecting the best seed can select public-data luck
+and does not remove runtime nondeterminism. Use matched-seed comparisons and
+limited independent repeats, reporting all outcomes. Sections below preserve
+the research progression and superseded intermediate hypotheses.
 
 This is a living research argument, with falsifiable experiments. It separates
 results in existing logs, facts verified in source/numerical probes, and proposals

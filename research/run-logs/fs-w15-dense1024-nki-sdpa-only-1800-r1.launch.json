@@ -1,0 +1,21 @@
+{
+  "label": "fs-w15-dense1024-nki-sdpa-only-1800-r1",
+  "started_at": "2026-09-18T12:45:24+00:00",
+  "hostname": "ip-172-31-32-253",
+  "git_commit": "4f0e77a7f0539d65cfe1d8b39cfdb10d1ff27490",
+  "git_dirty": true,
+  "source_dirty": false,
+  "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 1000000 --max-train-seconds 1800 --out-dir out/fs-w15-dense1024-nki-sdpa-only-1800-r1 --eval-tokens 2097152 --depth 6 --n-embd 1024 --seed 42 --compile-muon --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --eval-seq-len 1024 --pack-factor 4 --bf16-sdpa-input",
+  "description": "Full-budget precision/throughput comparison: dense6x1024 NKI convolution and BF16 SDPA inputs only, retain FP32 normalization outputs and residuals, baseline clip-before-reduce. Native eight-update median678.258ms and all four updated-model checks pass.",
+  "environment": {
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "4c14ac6ec14fd52e31ee06d91540707083c48a93ec4687fbaa35bc7106a823f3"
+  }
+}

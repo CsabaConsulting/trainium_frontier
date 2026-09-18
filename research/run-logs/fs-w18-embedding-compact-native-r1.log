@@ -1,0 +1,21 @@
+[W918 13:22:58.165292625 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+EMBED_SEGMENT_GATE {"name": "compact_cpu:uniform:(256, 256, 256)", "finite": true, "max_abs": 5.587935447692871e-09, "bound_failures": 0, "absent_rows_exact_zero": true, "relative_rms": 2.5373849363672617e-08, "passed": true}
+EMBED_COMPACT_CASE {"kind": "uniform", "shape": [256, 256, 256], "bucket": 256, "unique": 164, "metadata_bytes": 2048}
+EMBED_SEGMENT_GATE {"name": "compact_scatter:uniform:(256, 256, 256)", "finite": true, "max_abs": 0.08541121077723801, "bound_failures": 16384, "absent_rows_exact_zero": true, "relative_rms": 0.6287521204785579, "passed": false}
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_freshstart_20260918_wave18/research/scratch/embedding_compact_probe.py", line 151, in <module>
+    main()
+  File "/home/ubuntu/trainium_freshstart_20260918_wave18/research/scratch/embedding_compact_probe.py", line 146, in main
+    run_case(args, scatter, kind, shape)
+  File "/home/ubuntu/trainium_freshstart_20260918_wave18/research/scratch/embedding_compact_probe.py", line 81, in run_case
+    check(scatter_only, exact, bound, counts, f"compact_scatter:{kind}:{shape}")
+  File "/home/ubuntu/trainium_freshstart_20260918_wave18/research/scratch/embedding_segmented_probe.py", line 46, in check
+    assert result["passed"], result
+           ~~~~~~^^^^^^^^^^
+AssertionError: {'name': 'compact_scatter:uniform:(256, 256, 256)', 'finite': True, 'max_abs': 0.08541121077723801, 'bound_failures': 16384, 'absent_rows_exact_zero': True, 'relative_rms': 0.6287521204785579, 'passed': False}

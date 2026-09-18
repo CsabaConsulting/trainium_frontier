@@ -4,13 +4,15 @@ This ledger separates full training, standalone evaluation, numerical tests and
 microbenchmarks. A successful process is not automatically a promoted model.
 Public diagnostics do not establish a private competition score.
 
-**Larger-sample result, 11:57 UTC:** the optimized dense6×1024 checkpoint,
-without hashed n-gram tables, scores **1.0020666867349943 BPB** at context1024
-on20,971,520 public tokens. The best similarly evaluated width896 table model
-scores1.004452861885313. The dense result improves by0.002386175 under the
-same evaluation geometry; it does not establish robust sub-1.0 quality or
-independent-seed repeatability. Its earlier four-rank2.1M-token diagnostic was
-0.996689. Prefer the larger fixed-sample result for current model selection.
+**Larger-sample result, 13:35 UTC:** the optimized dense6×1024 checkpoint,
+without hashed n-gram tables and clipping after gradient averaging, scores
+**1.0015512989000874 BPB** at context1024 on20,971,520 public tokens. The earlier
+clipping-before dense reference scores1.0020666867349943; the difference is
+-0.0005153878349069, with28 more budgeted updates and the same training seed42.
+This remains above1.0 and does not establish an independent-seed algorithmic
+advantage. The best similarly evaluated width896 table model scores
+1.004452861885313. Prefer the larger fixed-sample results over the small-prefix
+diagnostics. One predeclared seed43 repeat is running, not a seed sweep.
 
 ## First completed training wave
 
@@ -756,7 +758,10 @@ six-layer dense NKI/BF16 reference with clipping before averaging scored
 -0.000640, with 28 additional updates; this is not a step-matched comparison
 or sufficient evidence of a reproducible algorithmic quality improvement.
 The 469,834,849-byte checkpoint is locally hash-verified. Its fixed 20.97M-token
-evaluation started on trn21 at13:08; no larger-sample result is available yet.
+evaluation completed at **1.0015512989000874 BPB**:20,971,520tokens,83,462,186bytes,
+57,941,324nats,694.709s,world1/B1/context1024/O1. Relative to the similarly
+evaluated before-clipping reference, the difference is-0.000515387835. The
+checkpoint is preserved and one independent seed43 repeat is running.
 
 ### Ordinary-embedding segmented scan: real-shape numerical failure
 
@@ -771,3 +776,48 @@ the cause is not yet established. Small native-control results confirm that
 production autocasting rounds gradient inputs to BF16, so a working FP32 scan
 would also be an arithmetic change. Raw eager-NKI small-shape call timings do
 not establish what a captured training graph would cost.
+
+
+### Full-budget precision control: FP32 normalization loses
+
+`fs-w15-dense1024-nki-sdpa-only-1800-r1`, source `4f0e77a`, finishes2,600updates/
+340,787,200targets in1,785.1 charged seconds, at0.989128BPB@2048/1.004102@1024.
+The four-rank2.1M-token diagnostics are0.007418/0.007413 worse than the broad
+BF16-normalization reference, with377 fewer updates. Causality difference0,
+in budget. Preserve the469,834,849-byte checkpoint, but do not promote a larger
+evaluation of this weaker control. This is a combined precision/throughput
+comparison, not a matched-update numerical study.
+
+### Fixed zero-byte output classes: small paired gain
+
+`fs-w17-dense1024-zero-byte-paired-eval-r1`, source `f9f4196`, evaluates the
+frozen earlier dense baseline, SHA256 `d05929eddd9a0dc313ebb750b01008f6c3f83386f371114532291a42c5e48755`.
+The constant mask removes tokenizer IDs8188–8191 after softcap with finite-10000
+logits. It is derived from tokenizer byte lengths, not validation observations.
+All finite/reference/future/other-row/repeated/batch-size gates pass, with exact
+zero differences; no positive-byte target's loss increases. At identical
+world1/B1/context1024,2,097,152tokens/8,418,678bytes, the unchanged scorer gives
+0.996184154485097 raw versus0.9958271085073683 masked: **-0.0003570459777287 BPB**.
+The two calls take145.0795s combined. This is a modest diagnostic, not a full
+20.97M-token result or evidence that the new clipping checkpoint crosses1.0.
+
+### Embedding stage isolation and compact scatter: correctness negatives
+
+`fs-w18-embedding-segmented-stage-debug-r1`, source `e1f120f`, confirms that the
+actual-shape load/transpose is exact but permutation-gather errors appear in
+later channel blocks. The original two-program kernel fails in channels512–767;
+the instrumented permutation stage fails in channels256–1023. One-program and
+shorter-shape failures also occur; FP32 continuation flags do not fix them.
+Instrumentation changes allocation/lifetimes. These observations motivate
+reloading indices inside each block, but do not prove an API mutation contract
+or compiler defect. No actual-shape speed is established.
+
+`fs-w18-embedding-compact-native-r1`, same source, fails its first independent
+FP32 scatter check atT256/C256/V256: maxabs0.0854112,relativeRMS0.628752,
+16,384 bound violations, absent rows zero. It stops before compact native
+matmul or timing. Clear/scatter ordering and indirect DMA remain unisolated;
+no speedup or training integration is promoted. Wave19 will instead gather
+compact rows into each output row once, with valid-row masking. CPU tests pass
+all11cases, including actual-shape distributions and a provided-training row.
+The current fixed4096 bucket has a correct8192 fallback. Captured NKI timing
+and all host metadata/upload costs are required before any performance claim.

@@ -200,3 +200,14 @@ file, verifies size and SHA256, then creates the final path without overwriting
 an existing preserved file. Wave16's completed mirror was stopped after a
 successful final sync. Wave17's mirror covers the active larger evaluation and
 the completed numerical-failure diagnostic.
+
+
+At13:20:44UTC the FP32-normalization/SDPA-only checkpoint is locally preserved:
+`checkpoints/fs-w15-dense1024-nki-sdpa-only-1800-r1/final.pt`,469,834,849bytes,
+SHA256 `2ddaf0ca2364d4245ce807b41c60eada111e576c21d7bef4fb04f0dd4102a184`.
+The independent remote/local hash comparison and source commit `4f0e77a` are
+recorded in its preservation receipt. Both completed larger clipping and
+zero-byte paired evaluation logs are local. Wave15/17 mirrors were stopped
+only after their final successful synchronization. Wave18 mirrors cover both
+hosts, including the active seed43 repeat on trn22; raw kernels and completed
+negative diagnostics are retained. No original artifact was deleted.

@@ -1,0 +1,41 @@
+{
+  "host": "trn21",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave18",
+  "expected_commit": "e1f120f36a1aeeb041cb7affe4975c2acc39f6f1",
+  "label": "fs-w18-embedding-segmented-stage-debug-r1",
+  "purpose": "Locate original real-shape segmented-gradient failure by shape and intermediate stage; diagnostic outputs change allocation, keep original-kernel checks; no timing or training claim",
+  "fingerprint_paths": [
+    "research/scratch/embedding_segmented_debug.py",
+    "research/scratch/embedding_segmented_probe.py",
+    "research/scratch/embedding_segmented_nki.py"
+  ],
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_RT_VISIBLE_CORES": "0",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1200s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "research/scratch/embedding_segmented_debug.py"
+  ],
+  "started_at": "2026-09-18T13:21:06.086601+00:00",
+  "hostname": "ip-172-31-34-85",
+  "git_commit": "e1f120f36a1aeeb041cb7affe4975c2acc39f6f1",
+  "source_dirty": false,
+  "preflight_free_bytes": 41425928192,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "4c14ac6ec14fd52e31ee06d91540707083c48a93ec4687fbaa35bc7106a823f3",
+    "research/scratch/embedding_segmented_debug.py": "470b3b81a4fee96662349a73fdbf957aa0c35bb54882d946fc908a4547e11a4f",
+    "research/scratch/embedding_segmented_probe.py": "edbedfc0b6d442a7529b21f717af36b7e1c5cd59b6577dfd9a6bfc63c3282032",
+    "research/scratch/embedding_segmented_nki.py": "24059363bd12d3afdd5acbdfa8a789724b177e6e7d89c6bcaf3fd79a154ac2c0"
+  }
+}

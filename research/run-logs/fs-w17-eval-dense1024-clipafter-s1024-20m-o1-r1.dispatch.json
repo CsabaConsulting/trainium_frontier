@@ -1,0 +1,41 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave17",
+    "expected_commit": "f9f4196ba8a02a69901877fe14a5ad5097d24c2b",
+    "label": "fs-w17-eval-dense1024-clipafter-s1024-20m-o1-r1",
+    "purpose": "Fixed larger public check of modestly improved clipping-after-average dense checkpoint; identical world1/B1/T1024/20.97M/O1 geometry, no private score claim",
+    "fingerprint_paths": [],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1800s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "prepare.py",
+      "eval-public",
+      "--train-py",
+      "train.py",
+      "--checkpoint",
+      "/home/ubuntu/trainium_freshstart_20260918_wave16/out/fs-w16-dense1024-nki-norm-clipafter-1800-r1/final.pt",
+      "--seq-len",
+      "1024",
+      "--eval-tokens",
+      "20971520",
+      "--timeout-seconds",
+      "1200"
+    ]
+  },
+  "requested_at": "2026-09-18T13:08:09.331420+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w17-eval-dense1024-clipafter-s1024-20m-o1-r1\", \"pid\": 913170, \"commit\": \"f9f4196ba8a02a69901877fe14a5ad5097d24c2b\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave17/research/run-logs/fs-w17-eval-dense1024-clipafter-s1024-20m-o1-r1.log\", \"started_at\": \"2026-09-18T13:08:12.445655+00:00\"}\n",
+  "stderr": ""
+}

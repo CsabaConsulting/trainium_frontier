@@ -65,13 +65,17 @@ def build_kernel():
         result = nl.ndarray((vocabulary, channels), dtype=nl.float32, buffer=nl.shared_hbm)
         # Compact HBM metadata is broadcast to the partition lanes by zero
         # source stride. This charges only O(T+V) host-to-device bytes.
-        perm = nl.ndarray((128, tokens), dtype=nl.uint32, buffer=nl.sbuf)
-        cont = nl.ndarray((128, tokens), dtype=nl.bfloat16, buffer=nl.sbuf)
-        nisa.dma_copy(dst=perm, src=permutation.ap(pattern=[[0, 128], [1, tokens]], offset=0))
-        nisa.dma_copy(dst=cont, src=continuation.ap(pattern=[[0, 128], [1, tokens]], offset=0))
         lane = nl.program_id(0)
         for block in nl.sequential_range(channels // (128 * lanes)):
             c0 = (block * lanes + lane) * 128
+            # The installed stack fails when the gather reuses cached index
+            # tiles across channel blocks. Reload within each block; this is
+            # a candidate fix pending the original real-shape numerical gate,
+            # not a claim about a documented API mutation contract.
+            perm = nl.ndarray((128, tokens), dtype=nl.uint32, buffer=nl.sbuf)
+            cont = nl.ndarray((128, tokens), dtype=nl.bfloat16, buffer=nl.sbuf)
+            nisa.dma_copy(dst=perm, src=permutation.ap(pattern=[[0, 128], [1, tokens]], offset=0))
+            nisa.dma_copy(dst=cont, src=continuation.ap(pattern=[[0, 128], [1, tokens]], offset=0))
             raw = nl.ndarray((128, tokens), dtype=nl.float32, buffer=nl.sbuf)
             ordered = nl.ndarray((128, tokens), dtype=nl.float32, buffer=nl.sbuf)
             scanned = nl.ndarray((128, tokens), dtype=nl.float32, buffer=nl.sbuf)

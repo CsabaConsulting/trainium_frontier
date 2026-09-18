@@ -106,6 +106,7 @@ def run_case(args, kernel, kind, shape):
         ids_sha256=hashlib.sha256(ids.numpy().tobytes()).hexdigest(),
         metadata_bytes=sum(m.numel() * m.element_size() for m in meta),
         seed=args.seed, compiler_flags=os.environ.get("NEURON_CC_FLAGS"),
+        compiled_kernel=args.compiled_kernel,
         gradient_dtype="float32", preparation_uses_training_only=(kind == "training"))), flush=True)
     if args.device == "cpu":
         return
@@ -113,12 +114,22 @@ def run_case(args, kernel, kind, shape):
     gd, idd = gradient.to("neuron"), ids.to("neuron")
     md = tuple(m.to("neuron") for m in meta)
     lanes = 2 if channels % 256 == 0 else 1
-    candidate = lambda: kernel[lanes](gd, *md, lanes)
+    invoke = lambda gg, *metadata_args: kernel[lanes](gg, *metadata_args, lanes)
+    if args.compiled_kernel:
+        check(invoke(gd, *md), ref, bound, counts, f"nki_eager:{kind}:{shape}")
+        from torch_neuronx import wrap_nki
+        wrapped = wrap_nki(kernel)
+
+        def captured(gg, pp, cc, ee, vv):
+            return wrapped[lanes](gg, pp, cc, ee, vv, lanes)
+
+        invoke = torch.compile(captured, backend="neuron", fullgraph=True, dynamic=False)
+    candidate = lambda: invoke(gd, *md)
     result = candidate()
     check(result, ref, bound, counts, f"nki:{kind}:{shape}")
     # A second different input through the same compiled shape tests that no
     # scratch state from the preceding call enters the result.
-    zero = kernel[lanes](torch.zeros_like(gd), *md, lanes).cpu()
+    zero = invoke(torch.zeros_like(gd), *md).cpu()
     assert (zero == 0).all()
     assert torch.equal(result.cpu(), candidate().cpu())
     if kind in ("zero", "cancellation", "one_id"):
@@ -143,7 +154,7 @@ def run_case(args, kernel, kind, shape):
 
     def complete():
         fresh = tuple(m.to("neuron") for m in metadata(ids, vocabulary))
-        return kernel[lanes](gd, *fresh, lanes)
+        return invoke(gd, *fresh)
 
     arms = dict(native_compiled_backward=lambda: native(gd, idd),
                 nki_prepared_metadata=candidate,
@@ -189,6 +200,8 @@ def main():
     ap.add_argument("--seed", type=int, default=731)
     ap.add_argument("--real-shape", action="store_true")
     ap.add_argument("--training-row", action="store_true")
+    ap.add_argument("--compiled-kernel", action="store_true",
+                    help="Gate eager and captured NKI, then time the captured wrapper like native.")
     args = ap.parse_args()
     torch.set_num_threads(4)
     kernel = None

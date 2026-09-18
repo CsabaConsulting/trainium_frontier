@@ -3,9 +3,9 @@
 
 The fixed tokenizer and model table stay unchanged. Map present token IDs to
 local rows, use native dense backward for a smaller fixed bucket, then NKI
-scatter unique rows into the ordinary dense gradient. Padding uses out-of-bound
-rows with DMA skip; no two valid rows have the same destination. Metadata
-creation/upload and output clearing/scatter are included in complete timings.
+gather the ordinary dense gradient, writing each output row once. The earlier
+clear-and-scatter implementation remains as an explicit failed control.
+Metadata creation/upload and output expansion are included in complete timings.
 """
 import argparse
 import json
@@ -60,6 +60,49 @@ def build_scatter():
     return scatter_unique
 
 
+def dense_mapping(rows, unique, vocabulary):
+    mapping = torch.zeros(vocabulary, 2, dtype=torch.int32)
+    ids = rows[:unique, 0].long()
+    mapping[ids, 0] = torch.arange(unique, dtype=torch.int32)
+    mapping[ids, 1] = 1
+    return mapping
+
+
+def build_gather():
+    """Write every output row once; avoids clear-versus-scatter ordering."""
+    global nl, nisa
+    import nki
+    import nki.language as nl
+    import nki.isa as nisa
+
+    @nki.jit
+    def expand_gather(compact, mapping, vocabulary: int, lanes: int = 2):
+        bucket, channels = compact.shape
+        assert vocabulary % 128 == 0 and channels % lanes == 0
+        assert mapping.shape == (vocabulary, 2)
+        width = channels // lanes
+        c0 = nl.program_id(0) * width
+        out = nl.ndarray((vocabulary, channels), dtype=nl.float32, buffer=nl.shared_hbm)
+        for vi in nl.sequential_range(vocabulary // 128):
+            rows = nl.ndarray((128, 1), dtype=nl.uint32, buffer=nl.sbuf)
+            valid = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
+            values = nl.ndarray((128, width), dtype=nl.float32, buffer=nl.sbuf)
+            masked = nl.ndarray((128, width), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.dma_copy(dst=rows, src=mapping[vi * 128:(vi + 1) * 128, 0:1])
+            nisa.dma_copy(dst=valid, src=mapping[vi * 128:(vi + 1) * 128, 1:2])
+            # Absent vocabulary entries read valid compact row0, then mask to
+            # zero. No skipped DMA or uninitialized destination is involved.
+            nisa.dma_copy(dst=values,
+                          src=compact.ap(pattern=[[channels, 128], [1, width]], offset=c0,
+                                          vector_offset=rows, indirect_dim=0),
+                          dge_mode=nisa.dge_mode.swdge)
+            nisa.tensor_scalar(dst=masked, data=values, op0=nl.multiply, operand0=valid)
+            nisa.dma_copy(dst=out[vi * 128:(vi + 1) * 128, c0:c0 + width], src=masked)
+        return out
+
+    return expand_gather
+
+
 def run_case(args, scatter, kind, shape):
     tokens, channels, vocabulary = shape
     ids = indices_for(kind, tokens, vocabulary, 731)
@@ -70,16 +113,22 @@ def run_case(args, scatter, kind, shape):
     local = torch.zeros(bucket, channels).index_add_(0, inv.long(), g)
     cpu_out = torch.zeros(vocabulary, channels)
     cpu_out[rows[:unique, 0].long()] = local[:unique]
+    expansion_meta = dense_mapping(rows, unique, vocabulary) if args.expansion == "gather" else rows
+    if args.expansion == "gather":
+        mapped = local[expansion_meta[:, 0].long()] * expansion_meta[:, 1:2]
+        assert torch.equal(mapped, cpu_out)
     check(cpu_out, exact, bound, counts, f"compact_cpu:{kind}:{shape}")
     print("EMBED_COMPACT_CASE " + json.dumps(dict(kind=kind, shape=shape, bucket=bucket,
-                                                unique=unique, metadata_bytes=inv.numel()*4+rows.numel()*4)), flush=True)
+                                                unique=unique, expansion=args.expansion,
+                                                metadata_bytes=inv.numel()*4+expansion_meta.numel()*4)), flush=True)
     if args.device == "cpu":
         return
-    gd, idd, invd, rowsd = (x.to("neuron") for x in (g, ids, inv, rows))
-    # Check scatter independently with FP32 CPU sums, before native BF16 math.
-    scatter_only = scatter[2](local.to("neuron"), rowsd, vocabulary, 2)
-    check(scatter_only, exact, bound, counts, f"compact_scatter:{kind}:{shape}")
-    assert torch.equal(scatter_only.cpu(), cpu_out), "unique scatter changed FP32 values"
+    gd, idd, invd, rowsd = (x.to("neuron") for x in (g, ids, inv, expansion_meta))
+    # Check expansion independently with FP32 CPU sums, before native BF16 math.
+    for lanes in (1, 2):
+        scatter_only = scatter[lanes](local.to("neuron"), rowsd, vocabulary, lanes)
+        check(scatter_only, exact, bound, counts, f"compact_{args.expansion}:lanes{lanes}:{kind}:{shape}")
+        assert torch.equal(scatter_only.cpu(), cpu_out), "gradient expansion changed FP32 values"
 
     from torch_neuronx import wrap_nki
     wrapped = wrap_nki(scatter)
@@ -106,8 +155,10 @@ def run_case(args, scatter, kind, shape):
         return
 
     def complete():
-        new_inv, new_rows, _ = compact_metadata(ids, vocabulary, args.minimum_bucket)
+        new_inv, new_rows, new_unique = compact_metadata(ids, vocabulary, args.minimum_bucket)
         assert len(new_rows) == bucket
+        if args.expansion == "gather":
+            new_rows = dense_mapping(new_rows, new_unique, vocabulary)
         return compact_fn(gd, new_inv.to("neuron"), new_rows.to("neuron"))
 
     timed = time_arms(dict(native_full_vocab=lambda: base(gd, idd),
@@ -120,7 +171,7 @@ def run_case(args, scatter, kind, shape):
     print("EMBED_COMPACT_BENCH " + json.dumps(dict(kind=kind, shape=shape, bucket=bucket, **timed,
         estimated_four_table_amortized_ms=estimate, estimate_is_not_whole_model_timing=True,
         provisional_speed_gate=(estimate < 0.8 * med["native_full_vocab"]),
-        output_zeroing_and_scatter_included=True, training_speed_or_quality_claim=False)), flush=True)
+        expansion=args.expansion, output_expansion_included=True, training_speed_or_quality_claim=False)), flush=True)
 
 
 def main():
@@ -131,12 +182,13 @@ def main():
     ap.add_argument("--steps", type=int, default=12)
     ap.add_argument("--minimum-bucket", type=int, default=4096,
                     help="Fixed ordinary-case workspace; overflow grows to the full vocabulary.")
+    ap.add_argument("--expansion", choices=("scatter", "gather"), default="gather")
     args = ap.parse_args()
     torch.set_num_threads(4)
     scatter = None
     if args.device == "neuron":
         import torch_neuronx  # noqa: F401
-        scatter = build_scatter()
+        scatter = build_gather() if args.expansion == "gather" else build_scatter()
     shapes = [(256, 256, 256)] + ([(8192, 1024, 8192)] if args.real_shape else [])
     for shape in shapes:
         kinds = ["uniform", "zipf", "one_id", "zero", "cancellation"]

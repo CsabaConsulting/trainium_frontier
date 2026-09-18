@@ -4,7 +4,29 @@ Objective: minimize **official 30-minute validation bits per byte** on one full
 Trainium2 chip. Sub-1.0 on public validation is an engineering milestone, not a
 claim about the private leaderboard. The metric is lower-is-better.
 
-**Current update, 13:15 UTC:** the width896 direct-attention control completed
+**Current update, 13:35 UTC:** dense6×1024 without hashed n-grams, with clipping
+after gradient averaging, scores **1.001551299** on the fixed20.97M public-token
+evaluation, versus1.002066687 for clipping before averaging. The difference is
+-0.000515388, with3,005 versus2,977 budgeted updates; this is a provisional
+same-seed improvement, not an isolated algorithmic effect. One predeclared seed43
+repeat is running on trn22. Do not expand this into a seed sweep. Seed selection
+can overfit public evaluation; an independent repeat checks robustness but does
+not by itself establish an advantage over the alternative at that seed.
+
+The user's13:30 leaderboard snapshot has a tenth-place score of0.9847. That is
+0.016851299 below our best larger public score, on different validation data.
+The research target is a material, repeatable improvement with margin below the
+moving cutoff. Sub-1.0 alone is no longer a useful competitive endpoint.
+
+FP32 normalized activations with BF16 only at SDPA loses the full-budget test:
+2,600updates,0.989128/1.004102 small-prefix BPB. Keep the faster BF16-normalized
+path. A fixed zero-byte output-class mask gives a paired0.000357046 improvement
+on2.1M public tokens; it is a small secondary opportunity, not a gap-closing
+result. Both current ordinary-embedding gradient prototypes failed native
+numerical gates. Wave19 will test a per-channel-block scan metadata reload and
+a compact-gradient gather expansion. No unvalidated kernel enters training.
+
+**Earlier update, 13:15 UTC:** the width896 direct-attention control completed
 2,188 updates at **0.987568 public BPB @2048 / 0.999880 @1024**. Its fused
 FP32 table-optimizer counterpart completed 2,204 updates at **0.986947 /
 0.999735**. Both fit the budget and use four ranks and 2,097,152 evaluation

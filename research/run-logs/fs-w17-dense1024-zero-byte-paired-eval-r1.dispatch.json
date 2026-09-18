@@ -1,0 +1,38 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave17",
+    "expected_commit": "f9f4196ba8a02a69901877fe14a5ad5097d24c2b",
+    "label": "fs-w17-dense1024-zero-byte-paired-eval-r1",
+    "purpose": "Frozen dense reference, constant tokenizer-derived reserved-output mask; paired unchanged scorer at identical world1/B1/context1024/2.1M geometry; no validation-fitting or training change",
+    "fingerprint_paths": [
+      "research/scratch/zero_byte_mask_eval.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1800s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/zero_byte_mask_eval.py",
+      "--checkpoint",
+      "/home/ubuntu/trainium_freshstart_20260918_wave12/out/fs-w12-dense1024-nki-norm-1800-r1/final.pt",
+      "--seq-len",
+      "1024",
+      "--eval-tokens",
+      "2097152"
+    ]
+  },
+  "requested_at": "2026-09-18T13:21:06.563852+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w17-dense1024-zero-byte-paired-eval-r1\", \"pid\": 1272124, \"commit\": \"f9f4196ba8a02a69901877fe14a5ad5097d24c2b\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave17/research/run-logs/fs-w17-dense1024-zero-byte-paired-eval-r1.log\", \"started_at\": \"2026-09-18T13:21:10.607579+00:00\"}\n",
+  "stderr": ""
+}
