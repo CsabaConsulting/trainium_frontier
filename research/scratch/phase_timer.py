@@ -361,12 +361,14 @@ def main():
         # the stop/NaN logic itself.
         train_loss = float(last_loss.item()) if last_loss is not None else 0.0
         control = torch.tensor(
-            [1 if math.isnan(train_loss) else 0, 0], device=device, dtype=torch.int32)
+            [1 if not math.isfinite(train_loss) else 0, 0], device=device, dtype=torch.int32)
         if ddp:
             import torch.distributed as dist
             dist.all_reduce(control, op=dist.ReduceOp.MAX)
-        _ = int(control[0].item())
+        bad_loss = int(control[0].item())
         _ = int(control[1].item())
+        if bad_loss:
+            raise RuntimeError(f"phase probe loss became nonfinite: {train_loss}; timing invalid")
 
     def set_lr(step):
         lrm = 1.0 - 0.001 * step
@@ -558,6 +560,10 @@ def main():
             local_conv=args.local_conv, conv_mode=args.conv_mode,
             norm_output_dtype=args.norm_output_dtype,
             sdpa_input_dtype=args.sdpa_input_dtype,
+            integrated_nki_local_conv=T.USE_NKI_LOCAL_CONV,
+            integrated_bf16_norm_output=T.USE_BF16_NORM_OUTPUT,
+            integrated_bf16_sdpa_input=T.USE_BF16_SDPA_INPUT,
+            last_loss=float(last_loss.item()),
             compile=args.compile, foreach_optim=args.foreach_optim,
             compile_optim=args.compile_optim, grad_bucket=args.grad_bucket,
             clip_foreach=args.clip_foreach, dataloader=args.dataloader,

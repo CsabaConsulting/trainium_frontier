@@ -1333,10 +1333,11 @@ class CausalConv(nn.Module):
         self.weight = nn.Parameter(torch.zeros(n_embd, 1, kernel_size))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # Keep arbitrary scorer sequence lengths and other precisions on the
-        # original path. Only the gated FP32 two-tap geometry enters this kernel.
+        # Keep arbitrary scorer sequence lengths and unsupported precisions on
+        # the original path. FP32 and BF16 inputs have independent arithmetic
+        # gates, including zero weights and the full training microbatch.
         if (USE_NKI_LOCAL_CONV and x.device.type == "neuron"
-                and x.dtype == torch.float32 and self.kernel_size == 2
+                and x.dtype in (torch.float32, torch.bfloat16) and self.kernel_size == 2
                 and x.shape[1] % 128 == 0 and x.shape[2] % 128 == 0):
             if not _HAS_NKI:
                 raise RuntimeError("--nki-local-conv requires the installed native NKI stack")
@@ -5745,6 +5746,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Neuron Competition R1 baseline")
     parser.add_argument("--device-type", type=str, default="")
     parser.add_argument("--num-steps", type=int, default=int(os.environ.get("NEURON_COMPETITION_R1_NUM_STEPS", NUM_STEPS)))
+    parser.add_argument("--debug-numerics-steps", type=int, default=0,
+                        help="Diagnostic only: synchronize and inspect loss/parameters/gradients "
+                             "at each stage of the first N steps. Invalidates speed measurements.")
     parser.add_argument("--max-train-seconds", type=int, default=int(os.environ.get("NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS", MAX_TRAIN_SECONDS)))
     parser.add_argument("--out-dir", type=str, default=os.environ.get("NEURON_COMPETITION_R1_OUT_DIR", "out"))
     parser.add_argument("--eval-public", action=argparse.BooleanOptionalAction, default=os.environ.get("NEURON_COMPETITION_R1_EVAL_PUBLIC", "1") != "0")
@@ -6778,6 +6782,28 @@ def main() -> None:
         "--grad-bucket clips one flat buffer and cannot exclude the n-gram tables; " \
         "use --no-ngram-ve-clip-exclude to combine them"
 
+    def debug_numerics(stage, step_number, loss, inspect_tensors=False):
+        # Outside the compiled forward/backward. These added synchronizations
+        # deliberately change scheduling, so diagnostics must never be scored
+        # or used for throughput comparisons.
+        if step_number >= args.debug_numerics_steps:
+            return
+        synchronize(device)
+        record = dict(rank=rank, step=step_number, stage=stage,
+                      loss=None if loss is None else float(loss.item()),
+                      timing_valid=False)
+        if inspect_tensors:
+            named = [(n, p) for n, p in orig_model.named_parameters() if p.requires_grad]
+            names = ["param:" + n for n, _ in named]
+            tensors = [p.detach() for _, p in named]
+            names += ["grad:" + n for n, p in named if p.grad is not None]
+            tensors += [p.grad.detach() for _, p in named if p.grad is not None]
+            flags = torch.stack([torch.isfinite(t).all() for t in tensors]).cpu().tolist()
+            record["nonfinite"] = [n for n, ok in zip(names, flags) if not ok]
+            record["missing_gradients"] = [n for n, p in named if p.grad is None]
+            record["checked_tensors"] = len(tensors)
+        print("NUMERICS_JSON " + json.dumps(record), flush=True)
+
     loop_started = time.monotonic()
     budget_started = loop_started
 
@@ -6846,13 +6872,16 @@ def main() -> None:
         else:
             optimizer.zero_grad_selective(zero_adamw=False)
         last_loss = None
-        for _ in range(grad_accum_now):
+        for micro_index in range(grad_accum_now):
             loss = model(x, y)
             last_loss = loss.detach()
+            debug_numerics(f"micro{micro_index}_forward", step, last_loss)
             # See inv_gas_dev above: device scalar under BATCH_RAMP, literal float otherwise.
             # LOSS_SCALE (default 1.0, IEEE-exact no-op): static loss scaling so backward
             # grads stay representable under fp8 auto-cast; unscaled below before clip.
             ((loss * inv_gas_dev if BATCH_RAMP else loss / grad_accum_steps) * LOSS_SCALE).backward()
+            debug_numerics(f"micro{micro_index}_backward", step, last_loss,
+                           inspect_tensors=micro_index + 1 == grad_accum_now)
             x, y, loader_state = fetch()
 
         # Loss scaling: static unscale, plus the dynamic controller (default off).
@@ -6890,6 +6919,7 @@ def main() -> None:
             foreach=args.clip_foreach,
             skip_param_ids=None if adam_step_now else adamw_skip_ids,
         )
+        debug_numerics("clip_and_reduce", step, last_loss, inspect_tensors=True)
 
         lrm = lr_multiplier(step, elapsed=elapsed, max_train_seconds=args.max_train_seconds)
         # T3.1: warmup-only multiplier for the groups that opt out of the warmdown (the
@@ -6924,6 +6954,7 @@ def main() -> None:
                 group["betas"] = (_b1 * demon_b1, _b2)
         if not skip_step:
             optimizer.step(update_adamw=adam_step_now)
+        debug_numerics("optimizer", step, last_loss, inspect_tensors=True)
         # T2.2: after the step, so the average is over post-update weights. Eager by construction
         # (this is the same region as optimizer.step, which torch.compile never sees) because
         # torch._foreach_* cannot be lowered by backend="neuron".
@@ -6943,6 +6974,7 @@ def main() -> None:
                     ema_updates += 1
         for m in cached_linears:  # T1.10: prebuilt list; empty when USE_WEIGHT_CACHE is off
             m.refresh_weight_cache(COMPUTE_DTYPE)
+        debug_numerics("weight_cache", step, last_loss)
 
         synchronize(device)
         record_step_boundary(step)
