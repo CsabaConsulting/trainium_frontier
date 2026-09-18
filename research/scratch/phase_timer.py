@@ -83,8 +83,10 @@ def main():
                          "future-token, cross-batch and repeated-call independence on the "
                          "updated eager evaluation model. These checks are outside timing.")
     ap.add_argument("--compact-embedding", action="store_true",
-                    help="Scratch shared4096-row embedding backward plus gated NKI gather. "
+                    help="Scratch shared compact embedding backward plus gated NKI gather. "
                          "Includes per-microstep input D2H, CPU mapping and metadata upload.")
+    ap.add_argument("--compact-embedding-bucket", type=int, default=4096,
+                    help="Fixed embedding-gradient rows, a multiple of128; native overflow fallback.")
     ap.add_argument("--check-seq-len", type=int, default=256,
                     help="Sequence length for --post-checks, at least 128 and a multiple of 128.")
     ap.add_argument("--grad-clip", type=float, default=1.0,
@@ -272,7 +274,7 @@ def main():
     embedding_state = None
     if args.compact_embedding:
         from embedding_compact_autograd import install
-        embedding_state = install(model, device)
+        embedding_state = install(model, device, args.compact_embedding_bucket)
         print("[pt] compact ordinary embeddings; all metadata preparation inside timing", flush=True)
     if args.ngram_ve_freeze:
         for p in model.ngram_embeds.parameters():

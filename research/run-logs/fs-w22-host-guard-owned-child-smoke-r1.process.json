@@ -1,0 +1,16 @@
+{
+  "label": "fs-w22-host-guard-owned-child-smoke-r1",
+  "guard_pid": 934119,
+  "child_pid": 934120,
+  "child_session": 934120,
+  "started_at": "2026-09-18T14:00:14.870702+00:00",
+  "command": [
+    "timeout",
+    "--kill-after=10s",
+    "120s",
+    "/usr/bin/python3",
+    "-u",
+    "-c",
+    "import subprocess,sys,json; p=subprocess.Popen([sys.executable,'-c','import time; time.sleep(60)']); print(json.dumps(dict(orphan_child_pid=p.pid,parent_exits=0)),flush=True)"
+  ]
+}

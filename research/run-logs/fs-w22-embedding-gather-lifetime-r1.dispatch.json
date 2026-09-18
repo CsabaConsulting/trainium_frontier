@@ -1,0 +1,33 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave22",
+    "expected_commit": "cae3cae585254e37980246dbd2a26052cd7f4886",
+    "label": "fs-w22-embedding-gather-lifetime-r1",
+    "purpose": "Isolate first incorrect nc_n_gather stage at actual shape: deterministic row/channel encoded data, dependent index reads, explicit scratch reuse versus loop-local allocation, eager versus compiled. No speed or training claim.",
+    "fingerprint_paths": [
+      "research/scratch/embedding_gather_lifetime_probe.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "900s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/embedding_gather_lifetime_probe.py",
+      "--compiled"
+    ]
+  },
+  "requested_at": "2026-09-18T14:01:25.240939+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w22-embedding-gather-lifetime-r1\", \"pid\": 934707, \"commit\": \"cae3cae585254e37980246dbd2a26052cd7f4886\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave22/research/run-logs/fs-w22-embedding-gather-lifetime-r1.log\", \"started_at\": \"2026-09-18T14:01:30.641651+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

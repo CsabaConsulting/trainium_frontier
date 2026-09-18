@@ -53,13 +53,18 @@ def run(device, tokens, channels, vocabulary, bucket):
         ("one_id", indices_for("one_id", tokens, vocabulary, 731), "uniform"),
         ("zero", first_ids, "zero"),
     ]
+    if tokens > bucket and vocabulary > bucket:
+        cases.extend([
+            ("bucket_boundary", torch.arange(tokens).int() % bucket, "uniform"),
+            ("boundary_overflow", torch.arange(tokens).int() % (bucket + 1), "uniform"),
+        ])
     for number, (name, ids, grad_kind) in enumerate(cases):
         x = ids.reshape(shape).to(device)
         g = gradient_for(grad_kind, tokens, channels, 840 + number)
         baseline.zero_grad(set_to_none=True)
         candidate.zero_grad(set_to_none=True)
         state.prepare(x)
-        if name == "native_overflow":
+        if name in ("native_overflow", "boundary_overflow"):
             assert not state.enabled
         else:
             assert state.enabled
@@ -97,7 +102,9 @@ def run(device, tokens, channels, vocabulary, bucket):
     restored.eval()
     with torch.no_grad():
         torch.testing.assert_close(restored(xx).cpu(), candidate(xx).cpu(), rtol=0, atol=0)
-    assert state.compact_calls == 5 and state.fallback_calls == 1
+    expected_fallback = sum(name in ("native_overflow", "boundary_overflow") for name, _, _ in cases)
+    assert state.compact_calls == len(cases) - expected_fallback
+    assert state.fallback_calls == expected_fallback
     print("EMBED_AUTOGRAD_STATE " + json.dumps(state.statistics()), flush=True)
 
 
@@ -105,13 +112,14 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--device", choices=("cpu", "neuron"), default="neuron")
     ap.add_argument("--real-shape", action="store_true")
+    ap.add_argument("--bucket", type=int, default=4096)
     args = ap.parse_args()
     torch.set_num_threads(4)
     if args.device == "neuron":
         import torch_neuronx  # noqa: F401
     run(args.device, 256, 256, 256, 128)
     if args.real_shape:
-        run(args.device, 8192, 1024, 8192, 4096)
+        run(args.device, 8192, 1024, 8192, args.bucket)
     print("PASS: shared compact embedding autograd, fallback and checkpoint gates", flush=True)
 
 

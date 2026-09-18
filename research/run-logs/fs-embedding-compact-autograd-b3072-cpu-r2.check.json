@@ -1,0 +1,186 @@
+{
+  "command": [
+    "python3",
+    "-u",
+    "research/scratch/embedding_compact_autograd_check.py",
+    "--device",
+    "cpu",
+    "--real-shape",
+    "--bucket",
+    "3072"
+  ],
+  "environment": {
+    "NEURON_COMPETITION_R1_CACHE_DIR": "/home/csaba/repos/AWS/TrainiumFrontierCompetition/trainium_frontier/out/corpus-audit-assets"
+  },
+  "source_sha256": {
+    "research/scratch/embedding_compact_autograd.py": "045c1e1f8c292ebf918ce6a12ec18bf634917dc7cb3a2112113f645971921ffd",
+    "research/scratch/embedding_compact_probe.py": "1705f28027497d374f74fe2fcc541c665e5c564537aa87f33cb70f8ce5df0fd8",
+    "research/scratch/embedding_compact_autograd_check.py": "772f9069feb1ab0fa6b579197d5eed81f590ed08f17247763a21ea950ca064a2",
+    "research/scratch/phase_timer.py": "9ded3a13b34b6c6947bc415c8c3507e87062449c239c1ad9fe1fa881c20834b7"
+  },
+  "cases": [
+    {
+      "case": "compact",
+      "tokens": 256,
+      "channels": 256,
+      "vocabulary": 256,
+      "compact_enabled": true,
+      "max_abs_gradient_difference": 0.0,
+      "forward_exact": true,
+      "passed": true
+    },
+    {
+      "case": "changed_ids",
+      "tokens": 256,
+      "channels": 256,
+      "vocabulary": 256,
+      "compact_enabled": true,
+      "max_abs_gradient_difference": 0.0,
+      "forward_exact": true,
+      "passed": true
+    },
+    {
+      "case": "native_overflow",
+      "tokens": 256,
+      "channels": 256,
+      "vocabulary": 256,
+      "compact_enabled": false,
+      "max_abs_gradient_difference": 0.0,
+      "forward_exact": true,
+      "passed": true
+    },
+    {
+      "case": "return_compact",
+      "tokens": 256,
+      "channels": 256,
+      "vocabulary": 256,
+      "compact_enabled": true,
+      "max_abs_gradient_difference": 0.0,
+      "forward_exact": true,
+      "passed": true
+    },
+    {
+      "case": "one_id",
+      "tokens": 256,
+      "channels": 256,
+      "vocabulary": 256,
+      "compact_enabled": true,
+      "max_abs_gradient_difference": 0.0,
+      "forward_exact": true,
+      "passed": true
+    },
+    {
+      "case": "zero",
+      "tokens": 256,
+      "channels": 256,
+      "vocabulary": 256,
+      "compact_enabled": true,
+      "max_abs_gradient_difference": 0.0,
+      "forward_exact": true,
+      "passed": true
+    },
+    {
+      "case": "bucket_boundary",
+      "tokens": 256,
+      "channels": 256,
+      "vocabulary": 256,
+      "compact_enabled": true,
+      "max_abs_gradient_difference": 0.0,
+      "forward_exact": true,
+      "passed": true
+    },
+    {
+      "case": "boundary_overflow",
+      "tokens": 256,
+      "channels": 256,
+      "vocabulary": 256,
+      "compact_enabled": false,
+      "max_abs_gradient_difference": 0.0,
+      "forward_exact": true,
+      "passed": true
+    },
+    {
+      "case": "compact",
+      "tokens": 8192,
+      "channels": 1024,
+      "vocabulary": 8192,
+      "compact_enabled": true,
+      "max_abs_gradient_difference": 0.0,
+      "forward_exact": true,
+      "passed": true
+    },
+    {
+      "case": "changed_ids",
+      "tokens": 8192,
+      "channels": 1024,
+      "vocabulary": 8192,
+      "compact_enabled": true,
+      "max_abs_gradient_difference": 0.0,
+      "forward_exact": true,
+      "passed": true
+    },
+    {
+      "case": "native_overflow",
+      "tokens": 8192,
+      "channels": 1024,
+      "vocabulary": 8192,
+      "compact_enabled": false,
+      "max_abs_gradient_difference": 0.0,
+      "forward_exact": true,
+      "passed": true
+    },
+    {
+      "case": "return_compact",
+      "tokens": 8192,
+      "channels": 1024,
+      "vocabulary": 8192,
+      "compact_enabled": true,
+      "max_abs_gradient_difference": 0.0,
+      "forward_exact": true,
+      "passed": true
+    },
+    {
+      "case": "one_id",
+      "tokens": 8192,
+      "channels": 1024,
+      "vocabulary": 8192,
+      "compact_enabled": true,
+      "max_abs_gradient_difference": 0.0,
+      "forward_exact": true,
+      "passed": true
+    },
+    {
+      "case": "zero",
+      "tokens": 8192,
+      "channels": 1024,
+      "vocabulary": 8192,
+      "compact_enabled": true,
+      "max_abs_gradient_difference": 0.0,
+      "forward_exact": true,
+      "passed": true
+    },
+    {
+      "case": "bucket_boundary",
+      "tokens": 8192,
+      "channels": 1024,
+      "vocabulary": 8192,
+      "compact_enabled": true,
+      "max_abs_gradient_difference": 0.0,
+      "forward_exact": true,
+      "passed": true
+    },
+    {
+      "case": "boundary_overflow",
+      "tokens": 8192,
+      "channels": 1024,
+      "vocabulary": 8192,
+      "compact_enabled": false,
+      "max_abs_gradient_difference": 0.0,
+      "forward_exact": true,
+      "passed": true
+    }
+  ],
+  "passed": true,
+  "prior_attempt": "r1 lacked local data-cache environment; small cases passed, actual-shape case stopped before running",
+  "native_required": true
+}

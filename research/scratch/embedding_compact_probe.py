@@ -19,8 +19,11 @@ from embedding_segmented_probe import (check, gradient_for, indices_for, referen
 
 def compact_metadata(ids, vocabulary, minimum_bucket=128):
     unique, inverse = np.unique(ids.numpy().reshape(-1), return_inverse=True)
-    assert minimum_bucket >= 128 and minimum_bucket & (minimum_bucket - 1) == 0
-    bucket = min(vocabulary, max(minimum_bucket, 2 ** math.ceil(math.log2(len(unique)))))
+    assert minimum_bucket >= 128 and minimum_bucket % 128 == 0
+    # A fixed workspace need only match the TensorEngine tile multiple. Keep
+    # that exact size when it fits; rounding3072 up to4096 loses the saving.
+    requested = minimum_bucket if len(unique) <= minimum_bucket else 2 ** math.ceil(math.log2(len(unique)))
+    bucket = min(vocabulary, requested)
     rows = np.full(bucket, vocabulary, dtype=np.int32)
     rows[:len(unique)] = unique
     assert len(np.unique(rows[:len(unique)])) == len(unique)

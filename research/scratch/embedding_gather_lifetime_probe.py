@@ -93,6 +93,10 @@ def main():
             name = f"T{tokens}:C{channels}:lanes{lanes}:reuse{reuse}"
             summarize("eager:" + name, kernel[lanes](dd, ii, lanes, reuse), expected, permutation)
             if args.compiled:
+                # Each configuration is an independent diagnostic, not a
+                # dynamic-shape workload. Avoid exhausting the default eight
+                # Dynamo specializations of this shared Python code object.
+                torch._dynamo.reset()
                 def call(a, b):
                     return wrapped[lanes](a, b, lanes, reuse)
                 compiled = torch.compile(call, backend="neuron", fullgraph=True, dynamic=False)

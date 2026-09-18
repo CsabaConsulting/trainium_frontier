@@ -871,3 +871,28 @@ The separate scan split-call test, source `83d5cae`, passes actual-shape eager
 checks but fails compiled composition. Later-block wrong values can be matched
 to different original rows. A dependent-index-read and scratch-lifetime probe
 is prepared; the cause is not yet established. No unstable scan enters training.
+
+### Automatic host cleanup validated; gather failure narrowed
+
+The version2 guardian is deployed on both hosts at `cae3cae`. The trn21 smoke
+test deliberately leaves a harmless child after its parent exits. The guardian
+terminates exactly that marked child, leaves no descendants or device holders,
+and records a healthy postflight. Local ownership/exclusive-receipt tests also
+pass. The previous compact phase and seed43 repeat receive explicitly labeled
+legacy postflights, without retroactively claiming automatic preflights.
+
+`fs-w22-embedding-gather-lifetime-r1` finds unchanged dependent index reads
+despite incorrect gather values at8192 tokens. Explicit reuse of scratch buffers
+does not repair the failure. Smaller256/512/1024-token cases pass. The harness
+stops at Dynamo's eighth specialization before all final configurations run;
+resetting Dynamo between independent diagnostics addresses that harness limit,
+not the incorrect gather. Automatic failure cleanup completes and host checks
+pass. The captured initialization TPB reset request completes after seven seconds;
+there is no unfinished reset or fatal/OOM message in the captured interval.
+
+The next compact-backward candidate uses3072 rows instead of4096, retaining
+native overflow fallback. The fixed workspace need only be a multiple of128;
+the old power-of-two rounding unnecessarily expanded3072 back to4096. All16 CPU
+autograd cases pass, including exact-bucket and one-ID-overflow boundaries,
+changed inputs, ordinary checkpoint loading and evaluation. Native gates and
+charged full-model timing remain required before promotion.

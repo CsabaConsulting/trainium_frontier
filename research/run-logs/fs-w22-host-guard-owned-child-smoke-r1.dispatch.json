@@ -1,0 +1,31 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave22",
+    "expected_commit": "cae3cae585254e37980246dbd2a26052cd7f4886",
+    "label": "fs-w22-host-guard-owned-child-smoke-r1",
+    "purpose": "Validate automatic cleanup on an idle host: harmless child inherits the ownership marker, parent exits zero, guardian must terminate only that child and record healthy postflight.",
+    "fingerprint_paths": [],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=10s",
+      "120s",
+      "/usr/bin/python3",
+      "-u",
+      "-c",
+      "import subprocess,sys,json; p=subprocess.Popen([sys.executable,'-c','import time; time.sleep(60)']); print(json.dumps(dict(orphan_child_pid=p.pid,parent_exits=0)),flush=True)"
+    ]
+  },
+  "requested_at": "2026-09-18T14:00:08.637739+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w22-host-guard-owned-child-smoke-r1\", \"pid\": 934119, \"commit\": \"cae3cae585254e37980246dbd2a26052cd7f4886\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave22/research/run-logs/fs-w22-host-guard-owned-child-smoke-r1.log\", \"started_at\": \"2026-09-18T14:00:14.844038+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

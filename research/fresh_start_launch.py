@@ -28,8 +28,9 @@ from fresh_start_host import HOST_DIRECTORY, HOST_LOCK, preflight
 HOST_DIRECTORY.mkdir(parents=True, exist_ok=True)
 host_lock = HOST_LOCK.open('a')
 fcntl.flock(host_lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-holders = subprocess.run(['fuser', '/dev/neuron0'], capture_output=True, text=True)
-assert holders.returncode == 1, 'device busy or fuser failed: ' + holders.stdout + holders.stderr
+# preflight first cleans only descendants of the previously completed marked
+# job, then checks all device holders. An early fuser assertion would prevent
+# that authorized cleanup if a stale owned descendant still held the device.
 free = shutil.disk_usage(r).free
 assert free >= 8 * 1024**3, 'less than 8 GiB free'
 source_paths = ['train.py', 'prepare.py', 'research/scratch', 'research/run_experiment.py',

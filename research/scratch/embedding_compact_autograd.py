@@ -43,7 +43,7 @@ def make_function(device):
 
 class MetadataState:
     def __init__(self, vocabulary, device, bucket=4096):
-        assert 128 <= bucket <= vocabulary and bucket & (bucket - 1) == 0
+        assert 128 <= bucket <= vocabulary and bucket % 128 == 0
         self.vocabulary = vocabulary
         self.bucket = bucket
         self.device = device
