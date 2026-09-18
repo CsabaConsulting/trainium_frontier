@@ -1,0 +1,33 @@
+Traceback (most recent call last):
+  File "/home/csaba/repos/AWS/TrainiumFrontierCompetition/trainium_frontier/research/scratch/checkpoint_eval_config_check.py", line 98, in <module>
+    main()
+    ~~~~^^
+  File "/home/csaba/repos/AWS/TrainiumFrontierCompetition/trainium_frontier/research/scratch/checkpoint_eval_config_check.py", line 56, in main
+    expected = model.eval()(x)
+  File "/home/csaba/anaconda3/lib/python3.14/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/csaba/anaconda3/lib/python3.14/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/csaba/repos/AWS/TrainiumFrontierCompetition/trainium_frontier/train.py", line 4069, in forward
+    x = block(x, x0, ve, cos, sin, attn_mask, ve_bi, ve_tri)
+  File "/home/csaba/anaconda3/lib/python3.14/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/csaba/anaconda3/lib/python3.14/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/csaba/repos/AWS/TrainiumFrontierCompetition/trainium_frontier/train.py", line 3370, in forward
+    attn_out = self.attn(norm(q_in), norm(k_in), norm(v_in), ve, cos, sin, attn_mask, ve_bi, ve_tri)
+  File "/home/csaba/anaconda3/lib/python3.14/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/csaba/anaconda3/lib/python3.14/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/csaba/repos/AWS/TrainiumFrontierCompetition/trainium_frontier/train.py", line 3179, in forward
+    y = nki_attention(q, k, v, self.attn_scale)
+  File "/home/csaba/anaconda3/lib/python3.14/site-packages/torch/_dynamo/eval_frame.py", line 1263, in _fn
+    return fn(*args, **kwargs)
+  File "/home/csaba/repos/AWS/TrainiumFrontierCompetition/trainium_frontier/train.py", line 3042, in nki_attention
+    return F.scaled_dot_product_attention(q, k, v, is_causal=True, scale=scale)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Expected query, key, and value to have the same dtype, but got query.dtype: c10::BFloat16 key.dtype: c10::BFloat16 and value.dtype: float instead.

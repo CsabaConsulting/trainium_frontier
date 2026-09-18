@@ -1447,7 +1447,15 @@ class GPTConfig:
 COMPUTE_DTYPE: torch.dtype = torch.bfloat16
 
 
+USE_BF16_NORM_OUTPUT = False
+USE_BF16_SDPA_INPUT = False
+
+
 def norm(x: torch.Tensor) -> torch.Tensor:
+    if USE_BF16_NORM_OUTPUT:
+        # Preserve FP32 statistics/epsilon and residual accumulation. This stores
+        # branch inputs (including the final head) in BF16 intentionally.
+        return F.rms_norm(x.float(), (x.size(-1),), eps=_RMS_EPS).to(torch.bfloat16)
     return F.rms_norm(x, (x.size(-1),))
 
 
@@ -3154,11 +3162,21 @@ class CausalSelfAttention(nn.Module):
         if ve_tri is not None:
             g_tri = 2 * torch.sigmoid(self.ve_gate_tri(x_v[..., 2 * VE_GATE_CHANNELS:3 * VE_GATE_CHANNELS]))
             v = v + g_tri.unsqueeze(-1) * ve_tri.view(b, t, self.n_head, self.head_dim)
+        if USE_BF16_NORM_OUTPUT:
+            # CPU evaluation keeps embedding storage/lookup in FP32, so adding
+            # VE can promote V after a BF16 projection. Match Q/K at the attention
+            # boundary there too; on the gated native path this is already BF16.
+            v = v.to(q.dtype)
         q = rope_norm(q, cos, sin)
         k = rope_norm(k, cos, sin)
         q = q.transpose(1, 2)
         k = k.transpose(1, 2)
         v = v.transpose(1, 2)
+        sdpa_output_dtype = q.dtype
+        if USE_BF16_SDPA_INPUT and not USE_NKI_ATTN:
+            # The installed native NKI backward selects matrix operand precision
+            # from Q's dtype, independently of HLO matmult compiler autocast.
+            q, k, v = q.to(torch.bfloat16), k.to(torch.bfloat16), v.to(torch.bfloat16)
         if attn_mask is None:
             if COMPILE_SDPA_DIRECT and not USE_NKI_ATTN:
                 y = F.scaled_dot_product_attention(q, k, v, is_causal=True, scale=self.attn_scale)
@@ -3166,6 +3184,8 @@ class CausalSelfAttention(nn.Module):
                 y = nki_attention(q, k, v, self.attn_scale)
         else:
             y = F.scaled_dot_product_attention(q, k, v, attn_mask=attn_mask[..., :t, :t], scale=self.attn_scale)
+        if USE_BF16_SDPA_INPUT and not USE_NKI_ATTN:
+            y = y.to(sdpa_output_dtype)
         y = y.transpose(1, 2).contiguous().view(b, t, c)
         if self.head_gate is not None:
             # T3.6 / T3.9. Per-head, per-POSITION: reshape to [b, t, H, D], optionally RMS-norm
@@ -5237,6 +5257,7 @@ ARCH_TOGGLE_NAMES = [
     "USE_SELECTIVE_GATE", "SELECTIVE_GATE_CHANNELS", "USE_FUSED_QKV",
     "USE_CAUSAL_FASTPATH", "USE_TRN2_COMPILER_FLAGS",
     "COMPILE_SDPA_DIRECT", "USE_NKI_ATTN", "USE_NKI_LOCAL_CONV",
+    "USE_BF16_NORM_OUTPUT", "USE_BF16_SDPA_INPUT",
     # T0.4 resweep knobs. None of these changes a tensor's name or shape, so every one of them
     # is exactly the "loads silently with quietly wrong behavior" class this snapshot exists to
     # catch -- ATTN_CPROJ_INIT_SCALE and LOGIT_SOFTCAP especially, since they change what the
@@ -5665,7 +5686,7 @@ def main() -> None:
     global MUON_NS_STEPS, MUON_MOMENTUM_COOLDOWN_FRAC, MUON_MOMENTUM_FINAL
     global ADAM_EVERY_N, ADAM_EVERY_N_LR_COMP, PACK_FACTOR, GRAD_CLIP, LOSS_SCALE
     global CLIP_AFTER_REDUCE
-    global COMPILE_SDPA_DIRECT
+    global COMPILE_SDPA_DIRECT, USE_BF16_NORM_OUTPUT, USE_BF16_SDPA_INPUT
     global LOSS_SCALE_DYNAMIC, loss_scale_clean, loss_scale_skips
     # T0.2/T0.3 capacity-shape knobs. All read inside build_config()/GPT(config), i.e. well before
     # the first step, so none of them can add a per-step graph constant.
@@ -5833,6 +5854,18 @@ def main() -> None:
                         help="Use the gated BTC-layout native NKI two-tap convolution for "
                              "FP32 residuals with time/channels divisible by 128. Other "
                              "shapes and precisions retain the original causal convolution.")
+    parser.add_argument("--bf16-norm-output", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_BF16_NORM_OUTPUT",
+                                               "1" if USE_BF16_NORM_OUTPUT else "0") != "0",
+                        help="Keep FP32 RMS statistics/epsilon and residuals, but store "
+                             "normalized branch inputs in BF16, including the final head. "
+                             "This is an opt-in arithmetic change, saved for standalone eval.")
+    parser.add_argument("--bf16-sdpa-input", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_BF16_SDPA_INPUT",
+                                               "1" if USE_BF16_SDPA_INPUT else "0") != "0",
+                        help="Cast Q/K/V only at the native SDPA boundary, restoring its "
+                             "output dtype. Independent of --bf16-norm-output; does not "
+                             "modify the alternative --nki-attn implementation.")
     parser.add_argument("--ve", action=argparse.BooleanOptionalAction,
                         default=os.environ.get("NEURON_COMPETITION_R1_VE", "1" if USE_VE else "0") != "0",
                         help="ResFormer-style value embeddings on alternating layers (has_ve), "
@@ -6588,6 +6621,8 @@ def main() -> None:
     USE_NKI_MUON = args.nki_muon
     USE_NKI_ATTN = args.nki_attn
     COMPILE_SDPA_DIRECT = args.compile_sdpa_direct
+    USE_BF16_NORM_OUTPUT = args.bf16_norm_output
+    USE_BF16_SDPA_INPUT = args.bf16_sdpa_input
     USE_MUON_LR_FP32 = args.muon_lr_fp32
     USE_TRANSPOSED_LINEAR = args.transposed_linear
     USE_COMPILE_MUON = args.compile_muon
@@ -6611,7 +6646,10 @@ def main() -> None:
     print0(f"device={device} dtype={COMPUTE_DTYPE} world_size={world_size}")
     print0(f"training target={args.num_steps} steps max_seconds={args.max_train_seconds} official_budget={TRAIN_TIME_BUDGET_SECONDS}s")
     print0(f"gradient_clip={GRAD_CLIP:g} clip_after_reduce={CLIP_AFTER_REDUCE}")
-    print0(f"attention: nki_attn={USE_NKI_ATTN} compile_sdpa_direct={COMPILE_SDPA_DIRECT}")
+    print0(f"attention: nki_attn={USE_NKI_ATTN} compile_sdpa_direct={COMPILE_SDPA_DIRECT} "
+           f"bf16_sdpa_input={USE_BF16_SDPA_INPUT}")
+    print0(f"branch_precision: bf16_norm_output={USE_BF16_NORM_OUTPUT} "
+           f"nki_local_conv={USE_NKI_LOCAL_CONV}")
     # Guard against the 2026-09-10 failure mode (a step cap that binds before the time budget leaves the
     # wall-clock LR schedule uncooled). Coarse check here; the precise projection runs at step 50 below.
     if args.num_steps < args.max_train_seconds:

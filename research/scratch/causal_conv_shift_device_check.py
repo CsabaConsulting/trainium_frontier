@@ -71,8 +71,11 @@ def main():
             import train as T
             T.USE_NKI_LOCAL_CONV = True
             assert T._HAS_NKI, "integrated native kernels were not imported"
-            variant = lambda x, w: T.CausalConv.forward(
-                SimpleNamespace(weight=w, kernel_size=2, n_embd=w.shape[0]), x)
+            # Compile the production autograd operation directly. Constructing
+            # SimpleNamespace inside a fullgraph lambda is unsupported by this
+            # Dynamo version and fails before reaching the operation. The real
+            # CausalConv module/shape guard is exercised in the full-model probe.
+            variant = lambda x, w: T._Conv2NKI.apply(x, w)
         cases = [(1, 128, 128, 2), (2, 128, 128, 2), (2, 256, 256, 2)]
     if args.large:
         cases.append((4, 2048, 1024, 2))

@@ -5,6 +5,7 @@ This uses real nonzero model branches and deliberately changes live module
 defaults before loading. It catches both strict-load failures and silent changes
 to logits. CPU checks do not substitute for native checkpoint evaluation.
 """
+import argparse
 import json
 from pathlib import Path
 import sys
@@ -17,6 +18,9 @@ import train as T  # noqa: E402
 
 
 def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--policy", choices=["baseline", "norm", "attention"], default="baseline")
+    args = ap.parse_args()
     torch.set_num_threads(2)
     torch.manual_seed(937)
     T.COMPUTE_DTYPE = torch.float32
@@ -37,6 +41,8 @@ def main():
         for tables in (False, True):
             T.USE_NGRAM_VE = T.USE_QK_SHIFT = tables
             T.USE_NKI_LOCAL_CONV = True
+            T.USE_BF16_NORM_OUTPUT = args.policy == "norm"
+            T.USE_BF16_SDPA_INPUT = args.policy == "attention"
             T.LOGIT_SOFTCAP = 7.0
             model = T.GPT(cfg)
             model.init_weights()
@@ -56,6 +62,8 @@ def main():
             # Opposite parameter layout plus a same-shape silent behavior change.
             T.USE_NGRAM_VE = T.USE_QK_SHIFT = not tables
             T.USE_NKI_LOCAL_CONV = False
+            T.USE_BF16_NORM_OUTPUT = not saved["USE_BF16_NORM_OUTPUT"]
+            T.USE_BF16_SDPA_INPUT = not saved["USE_BF16_SDPA_INPUT"]
             T.NGRAM_VE_TABLE_MULT = 3
             T.LOGIT_SOFTCAP = 15.0
             loaded = T.load_for_eval(str(path), torch.device("cpu"))
@@ -78,7 +86,7 @@ def main():
             assert T.USE_NKI_LOCAL_CONV is False and callable(T.norm)
             with torch.no_grad():
                 torch.testing.assert_close(legacy_model(x), expected, rtol=0, atol=0)
-            reports.append(dict(tables=tables, table_keys=sorted(expected_tables),
+            reports.append(dict(policy=args.policy, tables=tables, table_keys=sorted(expected_tables),
                                 qk_shift=tables, max_abs=0.0,
                                 changed_live_defaults_restored=True,
                                 legacy_missing_flag_uses_import_default=True,
