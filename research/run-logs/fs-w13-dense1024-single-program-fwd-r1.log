@@ -1,0 +1,228 @@
+[W918 11:08:16.855551574 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+FORWARD_PROBE_CONFIG {"conv": "integrated", "programs": 1, "precision": "baseline", "capture": false, "eager": false, "repeats": 2, "rank": 0, "world_size": 1, "model": {"sequence_len": 2048, "vocab_size": 8192, "n_layer": 6, "n_head": 8, "n_embd": 1024, "mlp_ratio": 4, "attn_scale": 0.0, "n_kv_heads": 0}, "toggles": {"PACK_FACTOR": 4, "INIT_SCALE": 0.5, "USE_VE": true, "WINDOW_PATTERN": "L", "SHORT_WINDOW_FRAC": 0.5, "ROPE_BASE": 100000, "USE_LOCAL_CONV": true, "LOCAL_CONV_KERNEL": 2, "TRAIN_LOCAL_CONV": true, "USE_GATED_MLP": false, "USE_WEIGHT_CACHE": true, "USE_TRANSPOSED_LINEAR": false, "WARMDOWN_RATIO": 0.75, "FINAL_LR_FRAC": 0.05, "WARMUP_STEPS": 0, "WD_DECAY_TO_ZERO": true, "MUON_MOMENTUM_WARMUP_STEPS": 300, "USE_DOC_MASK": false, "VE_WD": 0.0, "USE_SELECTIVE_GATE": false, "SELECTIVE_GATE_CHANNELS": 32, "USE_FUSED_QKV": false, "USE_CAUSAL_FASTPATH": true, "USE_TRN2_COMPILER_FLAGS": false, "COMPILE_SDPA_DIRECT": true, "USE_NKI_ATTN": false, "USE_NKI_LOCAL_CONV": true, "USE_BF16_NORM_OUTPUT": false, "USE_BF16_SDPA_INPUT": false, "MATRIX_LR": 0.02, "EMBEDDING_LR": 0.3, "UNEMBEDDING_LR": 0.006, "SCALAR_LR": 0.2, "WEIGHT_DECAY": 0.2, "GRAD_CLIP": 1.0, "CLIP_AFTER_REDUCE": false, "LOGIT_SOFTCAP": 15.0, "LOSS_BYTE_WEIGHT": false, "LOSS_SCALE": 1.0, "LOSS_SCALE_DYNAMIC": false, "ATTN_CPROJ_INIT_SCALE": 0.1, "MUON_NS_STEPS": 5, "MUON_MOMENTUM_COOLDOWN_FRAC": 0.045, "MUON_MOMENTUM_FINAL": 0.85, "ADAM_EVERY_N": 1, "ADAM_EVERY_N_LR_COMP": false, "DEMON_BETA1": false, "DEMON_BETA1_FINAL": 0.55, "DEMON_BETA1_REF": 0.8, "DEMON_BETA1_START_FRAC": -1.0, "MUON_BETA2": 0.9, "MUON_BETA2_FINAL": 0.0, "MUON_DEPTH_LR_BOTTOM": 1.0, "MUON_DEPTH_LR_TOP": 1.0, "MUON_DEPTH_MOM_BOTTOM": 0.0, "MUON_DEPTH_MOM_TOP": 0.0, "MUON_DEPTH_MOM_REF": 0.95, "DEPTH": 6, "N_EMBD": 1024, "HEAD_DIM": 128, "MLP_RATIO": 4, "ATTN_SCALE": 0.0, "N_KV_HEADS": 0, "USE_NGRAM_VE": false, "NGRAM_VE_LAYERS": "1,-1", "NGRAM_VE_TABLE_MULT": 128, "NGRAM_VE_TRIGRAM": true, "NGRAM_VE_DIM": 128, "NGRAM_VE_BF16": true, "NGRAM_RMS_FP32": false, "USE_NKI_NGRAM_RMS": false, "NGRAM_VE_LR": 0.0, "NGRAM_VE_BETA2": 0.999, "NGRAM_VE_FLAT_LR": true, "NGRAM_VE_OPT": "rmsprop", "NGRAM_VE_CLIP_EXCLUDE": true, "USE_OUT_BIGRAM": false, "OUT_BIGRAM_BF16": true, "OUT_BIGRAM_GATE_BIAS": -2.0, "OUT_BIGRAM_LR": 0.0, "RELU2_TAU": 0.0, "USE_MLP_SANDWICH_NORM": false, "USE_HEAD_GATE": false, "HEAD_GATE_NORM": true, "HEAD_GATE_CHANNELS": 32, "HEAD_GATE_MUL": 2.0, "HEAD_GATE_BIAS": 0.0, "USE_OUT_POOL": false, "OUT_POOL_LAYERS": 3, "USE_QK_SHIFT": false, "QK_SHIFT_BETA": 0.0, "QK_SHIFT_FREEZE": true, "USE_X0_GATE": false, "USE_BLOCK_NUDGE": false, "BLOCK_NUDGE_SITE": "qk", "USE_QKV_NORM_CSE": false, "USE_PARALLEL_BLOCK": false, "PARALLEL_BLOCK_COALESCE": "none", "USE_ENGRAM": false, "ENGRAM_SITE": "2", "ENGRAM_ORDERS": "2,3", "ENGRAM_HEADS": 1, "ENGRAM_TABLE_MULT": 32, "ENGRAM_MEM_DIM": 128, "ENGRAM_KEY_DIM": 0, "ENGRAM_CONV_KERNEL": 4, "ENGRAM_SHARE_NGRAM_TABLES": false, "ENGRAM_BF16": true, "USE_EPOCH_SHUFFLE": false, "EPOCH_SHUFFLE_SEED": 1234, "BATCH_RAMP": false, "BATCH_RAMP_GRAD_ACCUM": [2, 4, 8], "BATCH_RAMP_BOUNDS": [0.35, 0.75], "BATCH_RAMP_LR_EXP": 0.5, "USE_WEIGHT_EMA": false, "WEIGHT_EMA_DECAYS": [0.995], "WEIGHT_EMA_START_FRAC": 0.75, "USE_BYTE_WTE_INIT": false, "BYTE_WTE_INIT_MIX": 1.0, "BYTE_WTE_INIT_NGRAM": 3, "BYTE_WTE_INIT_STD": 0.8, "USE_COALESCED_SWIGLU": false, "COALESCED_SWIGLU_HIDDEN": 0, "USE_CAUTIOUS_WD": false, "SCALAR_BETA1": 0.9, "SCALAR_BETA2": 0.95}, "input_shape": [4, 2048], "timing_valid": false}
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_freshstart_20260918_wave13/research/scratch/native_forward_finiteness_probe.py", line 125, in <module>
+    main()
+  File "/home/ubuntu/trainium_freshstart_20260918_wave13/research/scratch/native_forward_finiteness_probe.py", line 106, in main
+    loss = fn(x, y)
+           ^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py", line 472, in __call__
+    return super().__call__(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py", line 1024, in compile_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 2316, in __call__
+    result = self._torchdynamo_orig_backend(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 2052, in __call__
+    result = self._inner_convert(
+             ^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 729, in __call__
+    result = _compile(
+             ^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 1827, in _compile
+    guarded_code, tracer_output = compile_inner(code, one_graph, hooks)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_utils_internal.py", line 96, in wrapper_function
+    return function(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 1500, in compile_inner
+    return _compile_inner(code, one_graph, hooks)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 1534, in _compile_inner
+    dynamo_output = compile_frame(
+                    ^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 1408, in compile_frame
+    bytecode, tracer_output = transform_code_object(code, transform)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/bytecode_transformation.py", line 1608, in transform_code_object
+    tracer_output = transformations(instructions, code_options)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 1380, in transform
+    tracer_output = trace_frame(
+                    ^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 341, in _fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 863, in trace_frame
+    run_tracer()
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 844, in run_tracer
+    tracer.run()
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 1794, in run
+    while self.step():
+          ^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 1459, in step
+    self.dispatch_table[inst.opcode](self, inst)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 1001, in wrapper
+    return inner_fn(self, inst)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 4093, in CALL
+    self._call(inst)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 4084, in _call
+    self.call_function(fn, args, kwargs)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 1360, in call_function
+    self.push(fn.call_function(self, args, kwargs))  # type: ignore[arg-type]
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/lazy.py", line 294, in realize_and_forward
+    return getattr(self.realize(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/nn_module.py", line 1146, in call_function
+    return variables.UserFunctionVariable(fn, source=source).call_function(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/functions.py", line 691, in call_function
+    return super().call_function(tx, args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/functions.py", line 403, in call_function
+    return tx.inline_user_function_return(self, [*self.self_args(), *args], kwargs)  # type: ignore[attr-defined]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 1387, in inline_user_function_return
+    return InliningInstructionTranslator.inline_call(self, fn, args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 5668, in inline_call
+    return tracer.inline_call_()
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 5882, in inline_call_
+    self.run()
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 1794, in run
+    while self.step():
+          ^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 1459, in step
+    self.dispatch_table[inst.opcode](self, inst)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 1001, in wrapper
+    return inner_fn(self, inst)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 4093, in CALL
+    self._call(inst)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 4084, in _call
+    self.call_function(fn, args, kwargs)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 1360, in call_function
+    self.push(fn.call_function(self, args, kwargs))  # type: ignore[arg-type]
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/lazy.py", line 294, in realize_and_forward
+    return getattr(self.realize(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/nn_module.py", line 1146, in call_function
+    return variables.UserFunctionVariable(fn, source=source).call_function(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/functions.py", line 691, in call_function
+    return super().call_function(tx, args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/functions.py", line 403, in call_function
+    return tx.inline_user_function_return(self, [*self.self_args(), *args], kwargs)  # type: ignore[attr-defined]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 1387, in inline_user_function_return
+    return InliningInstructionTranslator.inline_call(self, fn, args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 5668, in inline_call
+    return tracer.inline_call_()
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 5882, in inline_call_
+    self.run()
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 1794, in run
+    while self.step():
+          ^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 1459, in step
+    self.dispatch_table[inst.opcode](self, inst)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 1001, in wrapper
+    return inner_fn(self, inst)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 4093, in CALL
+    self._call(inst)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 4084, in _call
+    self.call_function(fn, args, kwargs)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 1360, in call_function
+    self.push(fn.call_function(self, args, kwargs))  # type: ignore[arg-type]
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/misc.py", line 1340, in call_function
+    return self.obj.call_method(tx, self.name, list(args), kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/misc.py", line 1023, in call_method
+    return self.call_apply(tx, args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/misc.py", line 935, in call_apply
+    ).call_function(tx, args, kwargs)
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/higher_order_ops.py", line 2053, in wrapped_call_function
+    return original_call_function(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/higher_order_ops.py", line 4327, in call_function
+    self.trace_backward_graph(tx, ctx, fwd_tracer, fwd_out, fwd_fn)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/higher_order_ops.py", line 4577, in trace_backward_graph
+    speculate_subgraph_with_auto_output_flattening(
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/higher_order_ops.py", line 1658, in speculate_subgraph_with_auto_output_flattening
+    output = trace_hop_function_with_auto_output_flattening(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/higher_order_ops.py", line 1422, in trace_hop_function_with_auto_output_flattening
+    output = f.call_function(tx, args, sub_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/functions.py", line 691, in call_function
+    return super().call_function(tx, args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/functions.py", line 403, in call_function
+    return tx.inline_user_function_return(self, [*self.self_args(), *args], kwargs)  # type: ignore[attr-defined]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 1387, in inline_user_function_return
+    return InliningInstructionTranslator.inline_call(self, fn, args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 5668, in inline_call
+    return tracer.inline_call_()
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 5882, in inline_call_
+    self.run()
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 1794, in run
+    while self.step():
+          ^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 1459, in step
+    self.dispatch_table[inst.opcode](self, inst)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 1001, in wrapper
+    return inner_fn(self, inst)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 4093, in CALL
+    self._call(inst)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 4084, in _call
+    self.call_function(fn, args, kwargs)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 1360, in call_function
+    self.push(fn.call_function(self, args, kwargs))  # type: ignore[arg-type]
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/misc.py", line 1340, in call_function
+    return self.obj.call_method(tx, self.name, list(args), kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/misc.py", line 1026, in call_method
+    return self.call_backward(tx, args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/misc.py", line 985, in call_backward
+    assert type(args[0].value) is torch._dynamo.external_utils.FakeBackwardCFunction
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 
+
+from user code:
+   File "/home/ubuntu/trainium_freshstart_20260918_wave13/train.py", line 4075, in forward
+    x = block(x, x0, ve, cos, sin, attn_mask, ve_bi, ve_tri)
+  File "/home/ubuntu/trainium_freshstart_20260918_wave13/train.py", line 3329, in forward
+    x = x + self.local_conv(norm(x))
+  File "/home/ubuntu/trainium_freshstart_20260918_wave13/research/scratch/native_forward_finiteness_probe.py", line 68, in single_program
+    return OneProgramConv.apply(x, self.weight)
+  File "/home/ubuntu/trainium_freshstart_20260918_wave13/research/scratch/native_forward_finiteness_probe.py", line 64, in backward
+    return T._Conv2NKI.backward(ctx, grad)
+
+Set TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you're reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS="+dynamo"
+

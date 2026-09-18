@@ -1,0 +1,37 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave13",
+    "expected_commit": "a3800b108d5c2aac8bbdfb3afe30f44764b35f00",
+    "label": "fs-w13-dense1024-single-program-fwd-r1",
+    "purpose": "First-forward NaN diagnosis: single-program integrated NKI convolution, baseline precision, no hooks or timing claim",
+    "fingerprint_paths": [
+      "research/scratch/native_forward_finiteness_probe.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "research/scratch/native_forward_finiteness_probe.py",
+      "--conv",
+      "integrated",
+      "--programs",
+      "1",
+      "--repeats",
+      "2"
+    ]
+  },
+  "requested_at": "2026-09-18T11:08:11.430253+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w13-dense1024-single-program-fwd-r1\", \"pid\": 836583, \"commit\": \"a3800b108d5c2aac8bbdfb3afe30f44764b35f00\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave13/research/run-logs/fs-w13-dense1024-single-program-fwd-r1.log\", \"started_at\": \"2026-09-18T11:08:14.608801+00:00\"}\n",
+  "stderr": ""
+}

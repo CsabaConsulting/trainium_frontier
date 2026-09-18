@@ -61,7 +61,13 @@ def main():
 
             @staticmethod
             def backward(ctx, grad):
-                return T._Conv2NKI.backward(ctx, grad)
+                # Calling another autograd.Function.backward directly makes
+                # Dynamo expect that class's FakeBackwardCFunction. Spell the
+                # same pure tensor body here for the diagnostic context.
+                xx, wt = ctx.saved_tensors
+                dx, partials = T._conv2_backward_native[1](xx, grad.contiguous(), wt, 1)
+                dw = partials.sum(dim=(0, 1)).squeeze(-1).to(wt.dtype)
+                return dx, dw.T.unsqueeze(1).to(ctx.weight_dtype)
 
         def single_program(self, x):
             assert self.kernel_size == 2
