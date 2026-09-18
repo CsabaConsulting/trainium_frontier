@@ -1,0 +1,38 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave54",
+    "expected_commit": "d3191c6f7560494f4d5dc332a8d3e80278803601",
+    "label": "fs-w54-adamw-fp32-component-r1",
+    "purpose": "Independent FP64 analytic, zero-gradient, state, alias and no-mutation gates for fused FP32 AdamW; compare actual foreach, compiled tensors, functional and in-place NKI at 8M elements with per-step LR/bias/scalar upload/weight copy costs. No training integration.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1"
+    },
+    "fingerprint_paths": [
+      "research/scratch/adamw_fused_fp32.py",
+      "research/scratch/adamw_fused_fp32_probe.py",
+      "research/scratch/mlp_fused_bf16_probe.py"
+    ],
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1500s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/adamw_fused_fp32_probe.py",
+      "--real-shape",
+      "--steps",
+      "20"
+    ]
+  },
+  "requested_at": "2026-09-18T20:16:53.582137+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w54-adamw-fp32-component-r1\", \"pid\": 1417349, \"commit\": \"d3191c6f7560494f4d5dc332a8d3e80278803601\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave54/research/run-logs/fs-w54-adamw-fp32-component-r1.log\", \"started_at\": \"2026-09-18T20:16:59.218568+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

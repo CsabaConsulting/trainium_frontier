@@ -1583,3 +1583,41 @@ asynchronous Muon finishes. The resulting targeted hypothesis is fused FP32
 AdamW, preserving the existing per-parameter counters and arithmetic policy.
 Compare both NKI and a pure-tensor compiled control against the actual foreach
 implementation before any integration. See the optimizer-attribution JSON.
+
+
+Wave54 prepares an isolated FP32 AdamW fusion. It keeps the model's1e-10
+epsilon, FP32 weights/moments, each parameter's bias corrections, and scheduled
+learning rate. GpSIMD rsqrt plus high-precision reciprocal avoids repeating the
+raw Scalar rsqrt error. A smallest-normal variance guard avoids0*inf; below
+that guard, sqrt variance is below an ULP of the original epsilon.
+
+Compare actual foreach, pure-tensor compilation, functional NKI with charged
+weight write-back, and explicit in-place NKI. Numerical cases include fresh/zero/
+sparse/tiny/large gradients, nonzero old moments with zero gradient, and zero LR.
+Use independent FP64 bounds, a2e-6 relative-RMS gate, and input-mutation checks.
+Native error is reported independently and cannot relax the candidate bounds.
+At the real8,388,608-element table, time all scalar preparation/upload, changing
+bias/LR values, and required write-back. This is not yet an installed optimizer.
+
+The20:05artifact cycle verified28of28 queued artifacts, zero errors, including
+the current full-step runtime trace. New wave53 profile backup remains pending.
+
+### Wave54 AdamW control failure and normalization trace ingestion
+
+The FP32 AdamW component probe completed all small-shape NKI gates, including
+zero/sparse/tiny gradients and functional/in-place state checks. At the real
+8,388,608-element shape, the compiled tensor control failed the predeclared FP64
+weight-update bound at one element; existing foreach failed the same bound.
+The relative RMS errors were 9.0033e-7 and 8.9959e-7, respectively. Both moment
+states passed. The run stopped before real-size NKI, so no timing or real-size
+NKI correctness claim is justified. Postflight was clean at 20:17:40 UTC.
+
+Wave55 preserves the bound, reports the failing element and original inputs,
+and runs the independent NKI gates even if the compiled control is ineligible.
+An ineligible compiled control is excluded from candidate timing. Approximate
+native sqrt/division is a hypothesis to diagnose, not yet an established cause.
+
+The normalization trace was ingested locally into 23 Parquet tables in 3.48s
+with a 4GiB Go memory limit. The first attempt failed before execution because
+libnrt.so.1 was not on the process-local library path; the retry used the already
+preserved library and changed no packages. Raw inputs remain unchanged.

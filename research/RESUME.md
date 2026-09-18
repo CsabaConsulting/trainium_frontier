@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated2026-09-18,20:06UTC. Active permissions: danger-full-access, approval never.
+Updated 2026-09-18, 20:19 UTC. Active permissions: danger-full-access, approval never.
 This replaces the accumulated stale resume instructions; their history remains
 in Git. Do not restart completed experiments from earlier revisions.
 
@@ -13,12 +13,15 @@ in Git. Do not restart completed experiments from earlier revisions.
   saving). The quality run keeps seed42,131,072targets/update, clip-after-reduce,
   and the best dense6x1024 precision policy. No new branch norm or segmented
   embedding. Preserve its checkpoint immediately after completion.
-- **trn22:** wave52 confirms the inverse-statistic diagnosis. GpSIMD and one
-  FP32 Newton correction both pass all original numerical/independence gates.
-  Real-shape forward/backward remains slower:0.627415/0.619859ms versus native
-  0.481725/0.462018ms. Both postflights clean. Wave53 prepares one warmed
-  real-shape native/NKI forward/backward device trace to locate the regression.
-  No branch-norm implementation is promoted to training.
+- **trn22:** both corrected branch-norm variants pass all gates but remain
+  slower than native. Wave53 native/NKI device profile completed cleanly at
+  20:07:29UTC: 13 files / 5,274,556 bytes, all copied locally with matching
+  remote/local hashes at 20:13. Local ingestion succeeded: 23 tables in 3.48s.
+  Wave54 AdamW NKI passed small shapes, but the compiled native control stopped
+  the real-shape probe at one failing weight bound (foreach fails it too).
+  Clean postflight; no real-size NKI or timing claim. Wave55 retains all bounds,
+  diagnoses the offending element and tests NKI independently, excluding an
+  ineligible compiled control from candidate timing.
 - Preflight backup false positive is fixed by exact-script recognition, with
   five passing regression checks. Device-holder and runtime checks are intact.
 - Next implementation target: fused FP32 AdamW. Current full-step trace has
@@ -27,8 +30,8 @@ in Git. Do not restart completed experiments from earlier revisions.
   actual foreach math, including state/bias/LR and all copy costs.
 - The wave49 native full-step runtime trace is now local and hash-verified:
   88files/68,923,863bytes, `out/fresh-start-profiles/` plus its label directory.
-  Artifact cloud backup is queued through its preservation receipt, not yet
-  claimed complete. A trace summary is inrun-logs/.
+  The 20:05 artifact backup verified its GitHub asset. A trace summary and
+  optimizer dispatch attribution are in run-logs/.
 - The runner's explicit repository-local --entrypoint is source-fingerprinted.
   Production train.py and prepare.py remain unchanged by these experiments.
 - Separated packed MLP688.922656ms and native-forward separated control
@@ -44,7 +47,8 @@ in Git. Do not restart completed experiments from earlier revisions.
   or tolerances.
 - Layer5-only packed MLP814.094ms loses even to all-six678.042ms; all checks clean.
   Longer combined native-MLP+embedding pair remains588.186/571.188ms,2.889898%,
-  below3%. No new full-budget training has been launched.
+  below3%. That combination was not advanced; the active quality run tests the
+  separately gated native-MLP + pack8 candidate.
 
 Use each `.dispatch.json`, `.job.json`, `.log`, `.postflight.json` under
 `research/run-logs/` for exact launch state. Requests are local under `out/`.
@@ -96,10 +100,10 @@ Local OS **Devuan/SystemV**. Usercsaba cron, no sudo/root, no systemd:
   recovery branch `backup/fresh-start-20260918`, atomically pushes source+WIP and
   verifies both refs. Skips merge/rebase/cherry-pick/index locks, does not pull,
   merge, force-push or change active HEAD/index. Latest verified source
-  `c88df7ff15cd508bf4b95853d933bfd446ecb3c9` at19:40, with both refs verified.
+  `a094e5a8091731733efbf4c75ca30d14b0f59056` at20:10, with both refs verified.
 - Minutes5/35: `research/fresh_start_artifact_backup_cron.sh`, own lock, nice10,
   bounded uploader, digest-verified immutable assets in draft release
-  `research-backup-20260918`. The19:35cycle completed at19:37:36UTC: **27of27
+  `research-backup-20260918`. The20:05cycle completed at20:05:34UTC: **28of28
   artifacts verified, zero errors**, including the isolated numerical references.
   All queued
   checkpoints/profiles have actual GitHub assets and matching digests. New ignored
