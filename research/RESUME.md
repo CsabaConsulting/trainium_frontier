@@ -1,24 +1,36 @@
 # Resume the Trainium kernel campaign
 
-Updated2026-09-18,19:34UTC. Active permissions: danger-full-access, approval never.
+Updated2026-09-18,19:56UTC. Active permissions: danger-full-access, approval never.
 This replaces the accumulated stale resume instructions; their history remains
 in Git. Do not restart completed experiments from earlier revisions.
 
 ## Live work
 
-- **trn21:** `fs-w48-dense1024-separated-packed-mlp-phase-r1` is running in
-  wave48/source314e8d8 after the isolated numerical gate passed. Eight timed
-  steps/three warmups, all boundary/cache/layout/dispatch costs charged. Native
-  reference588.186ms;3% gate and four updated-model checks required.
-- **trn22:** isolated native capture and NKI separated comparison completed
-  cleanly, all48 comparisons pass unchanged tolerances at both actual shapes.
-  Native+candidate calls remain compiled; all output bounds pass, not all bit-exact. Reference
-  tensors are inwave48/out/fs-w48-mlp-isolated-reference-r1 and are hash-verified in
-  localout/fresh-start-profiles/fs-w48-mlp-isolated-reference-r1 with hashes.
-- **Next:** native-forward boundary control. New checker option
-  `--forward-backend native` preserves the custom backward/region boundary.
-  Deploywave49 and compare against the existingwave48 native references in a
-  fresh guarded process; then phase only if it passes. No SDK changes.
+- **trn21:** `fs-w50-dense1024-native-mlp-pack8-1800-r1` launched at19:54:51UTC,
+  wave50/sourceeeb4943, through the explicit scratch training wrapper. Actual
+  B8/T2048 compiled master/cache/gradient/accumulation/update/checkpoint gates
+  passed with unchanged bounds, after559.975452ms full-step timing (4.796%
+  saving). The quality run keeps seed42,131,072targets/update, clip-after-reduce,
+  and the best dense6x1024 precision policy. No new branch norm or segmented
+  embedding. Preserve its checkpoint immediately after completion.
+- **trn22:** branch RMSNorm failed its initial zero-input gradient gate, finite
+  but4.36824e-5 relative error, versus native3.08802e-8. Postflight is clean.
+  Wave51 compares raw Scalar, FP32 Newton-refined Scalar, and documented
+  higher-precision GpSIMD rsqrt, selecting GpSIMD for the full gate. Bounds remain unchanged;
+  no whole-model use until the complete component gate passes.
+- The wave49 native full-step runtime trace is now local and hash-verified:
+  88files/68,923,863bytes, `out/fresh-start-profiles/` plus its label directory.
+  Artifact cloud backup is queued through its preservation receipt, not yet
+  claimed complete. A trace summary is inrun-logs/.
+- The runner's explicit repository-local --entrypoint is source-fingerprinted.
+  Production train.py and prepare.py remain unchanged by these experiments.
+- Separated packed MLP688.922656ms and native-forward separated control
+  700.449689ms both lose, despite passing the isolated numerical gates and
+  all four whole-model checks. Do not train either separated variant.
+- Native references inwave48/out/fs-w48-mlp-isolated-reference-r1 are preserved
+  locally underout/fresh-start-profiles/ and cloud-digest-verified. All48
+  comparisons pass unchanged tolerance; all real-shape outputs are exact,
+  while small-shape outputs are within bounds, not all exact.
 - The native comparison's old failure came from switching to eager execution
   after another model compiled in the same process. See the boundary-rounding
   note. Separate-process gates fix the comparison without changing derivatives
@@ -77,11 +89,12 @@ Local OS **Devuan/SystemV**. Usercsaba cron, no sudo/root, no systemd:
   recovery branch `backup/fresh-start-20260918`, atomically pushes source+WIP and
   verifies both refs. Skips merge/rebase/cherry-pick/index locks, does not pull,
   merge, force-push or change active HEAD/index. Latest verified source
-  `e895e2879907a1a07260e18922fe7d3bc7403ab1` at19:20, with both refs verified.
+  `c88df7ff15cd508bf4b95853d933bfd446ecb3c9` at19:40, with both refs verified.
 - Minutes5/35: `research/fresh_start_artifact_backup_cron.sh`, own lock, nice10,
   bounded uploader, digest-verified immutable assets in draft release
-  `research-backup-20260918`.The detached18:52retry completed at19:12:14UTC: **26of26 artifacts verified,
-  zero errors**, including the old interrupted trace archive. All queued
+  `research-backup-20260918`. The19:35cycle completed at19:37:36UTC: **27of27
+  artifacts verified, zero errors**, including the isolated numerical references.
+  All queued
   checkpoints/profiles have actual GitHub assets and matching digests. New ignored
   artifacts still require discovery/retrieval before a future backup receipt.
 

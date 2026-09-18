@@ -1487,3 +1487,65 @@ The wave48 isolated native-reference integration gate passes all48 comparisons
 with unchanged tolerance at256x256 and8192x1024. All output bounds pass, but not all outputs are bit-exact; maximum relative RMS
 is0.001178439 across all48 comparisons. All calls retain compiled autograd. Source314e8d8. The separately compiled packed
 MLP full-model phase is now running ontrn21; native-boundary control is prepared.
+
+
+## Waves48–50: reject separated regions; advance native MLP plus pack8
+
+The separated packed NKI MLP completes at **688.922656ms** ontrn21, and the
+separated native-forward control at **700.449689ms** ontrn22. Both retain the
+same custom backward and pass isolated master/cache/gradient gates, all four
+updated-model checks, and automatic cleanup. Neither is a training candidate.
+The boundary itself is expensive even without an opaque NKI forward.
+
+The joined native-forward/custom-backward MLP with B8/T2048/GA2 completes at
+**559.975452ms**, versus the predeclared longer native B4 reference588.185841ms:
+**4.79617%** saving, with unchanged131,072targets/update. All four whole-model
+checks and cleanup pass. No segmented embedding is used at this larger shape.
+Next is a compiled-only actual16,384-token master/cache/accumulation/update/
+checkpoint gate. A pass advances this combination to a1800s quality run using
+the best reference's clip-after-reduce setting. Packing changes data ordering,
+so throughput alone cannot establish a BPB gain. Exact evidence and limitations
+are in `run-logs/fs-w50-advancement-plan.json`.
+
+The current dense native full-step runtime capture completed cleanly ontrn22
+at19:46:33UTC, sourcec88df7f, label
+`fs-w49-dense1024-current-step-runtime-r1`. It includes73exported NEFFs and
+will support optimizer/dispatch attribution. Its raw artifacts still require
+local retrieval and independent cloud verification.
+
+Wave50 also prepares an NKI RMSNorm component preserving the existing FP32
+statistics/input-gradient and BF16-output policy. Forward and backward use
+per-token rows, save the FP32 inverse RMS, and never combine token statistics.
+Analytic FP64, compiled-execution, changed-token and repeated-call gates come
+before timing; require20% component and3% full-step improvement before training.
+This kernel is untested at this checkpoint. The new training wrapper is explicit
+and source-fingerprinted; production train.py and prepare.py remain unchanged.
+
+The19:35artifact backup completed at19:37:36UTC with **27of27 verified** and no
+errors, including the isolated native numerical reference tensors.
+
+Wave50 actual B8/T2048 native-MLP integration gate passes every original bound,
+FP32 master/cache/accumulation/update/evaluation/checkpoint check, with compiled
+autograd asserted throughout. The full1800s quality run launched ontrn21 at
+19:54:51UTC, sourceeeb4943, `fs-w50-dense1024-native-mlp-pack8-1800-r1`.
+
+The first NKI branch-norm gate fails at all-zero input before timing. Outputs
+are finite/exact zero; the backward has32768 bound violations at256x128 and
+relative RMS4.3682403e-5, while native passes at3.0880235e-8. Both use identical
+FP32 epsilon. This scale-like error suggests the inverse statistic; it is not
+evidence of a race. Wave51 directly returns and compares raw/refined inverse
+RMS and applies one FP32 Newton iteration, r*(1.5-0.5*a*r*r). The original
+forward and backward error bounds are unchanged. The initial failure has a
+clean postflight and is retained in full.
+
+AWS documents FP32 arithmetic in the Scalar Engine and separate input domains
+for its activation functions; this does not state correctly rounded rsqrt.
+The diagnosis will use measured saved statistics rather than infer accuracy
+from dtype. Sources: [activation API](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/api/generated/nki.isa.activation.html)
+and [activation domains](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/api/nki.api.shared.html).
+
+The same primary API guide explicitly distinguishes approximate Scalar rsqrt
+from higher-precision GpSIMD rsqrt via tensor_scalar(op0=rsqrt,operand0=0.0).
+Wave51 tests all three inverse paths directly, including the independent Newton
+control, and selects GpSIMD for the full unchanged numerical gate and timing.
+One statistic per token avoids making bulk rsqrt throughput the relevant limit.

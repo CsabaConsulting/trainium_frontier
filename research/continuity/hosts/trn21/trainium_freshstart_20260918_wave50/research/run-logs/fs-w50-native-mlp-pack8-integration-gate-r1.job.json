@@ -1,0 +1,52 @@
+{
+  "host": "trn21",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave50",
+  "expected_commit": "eeb49432dbd202da5a79defb3eeac8c2c738aa9d",
+  "label": "fs-w50-native-mlp-pack8-integration-gate-r1",
+  "purpose": "Require compiled native/candidate calls and unchanged numerical bounds at actual B8/T2048 before full-budget quality testing. Validate FP32 masters, BF16 cache refresh, accumulation, updates, native evaluation and checkpoint structure.",
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1",
+    "NEURON_RT_VISIBLE_CORES": "0",
+    "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1"
+  },
+  "fingerprint_paths": [
+    "research/scratch/mlp_fused_integration_check.py",
+    "research/scratch/mlp_fused_integration.py",
+    "research/scratch/mlp_fused_bf16.py"
+  ],
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1200s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "research/scratch/mlp_fused_integration_check.py",
+    "--forward-backend",
+    "native",
+    "--real-shape",
+    "--real-tokens",
+    "16384",
+    "--batch-size",
+    "8",
+    "--require-compiled"
+  ],
+  "started_at": "2026-09-18T19:52:24.137939+00:00",
+  "hostname": "ip-172-31-34-85",
+  "git_commit": "eeb49432dbd202da5a79defb3eeac8c2c738aa9d",
+  "source_dirty": false,
+  "preflight_free_bytes": 31561011200,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+    "research/fresh_start_host.py": "df01707b8ca2ffc8f4b798467e58b81c6fd8417f7aa1c26c4ecf6c080c659600",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/scratch/mlp_fused_integration_check.py": "d21dbc903fea85c21840cf85deae93ca7a3136d4a7100819c3dab72357bc294d",
+    "research/scratch/mlp_fused_integration.py": "f85e0d744b1d4b8c330d35383a931af651facf784ca484deaa29fbf11efb4e04",
+    "research/scratch/mlp_fused_bf16.py": "08977b5ebd8e550c53713e6c3222f4270245df51b6692ab6ce8cf4ee6fc91455"
+  }
+}
