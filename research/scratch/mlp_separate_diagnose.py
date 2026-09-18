@@ -52,6 +52,8 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--output", type=Path, required=True)
     ap.add_argument("--normal-dx", action="store_true")
+    ap.add_argument("--accumulate", action=argparse.BooleanOptionalAction, default=True,
+                    help="Retain parameter gradients between cases, matching the failing second microbatch.")
     args = ap.parse_args()
     import torch_neuronx  # noqa:F401
     torch.set_num_threads(4)
@@ -86,19 +88,23 @@ def main():
     cpu_grad = grad.detach().cpu().reshape(256, 256)
     state = dict(purpose=__doc__, shape=[4, 64, 256], normal_input_gradient=args.normal_dx,
                  numerical_tolerance_changed=False, promotion_allowed=False,
-                 diagnostic_recompile_limit=32, cases=[], repeats=[])
+                 diagnostic_recompile_limit=32, accumulate=args.accumulate, cases=[], repeats=[])
     args.output.parent.mkdir(parents=True, exist_ok=True)
     for cached in (False, True):
         if cached:
             for model in models.values():
                 refresh(model)
+        for model in models.values():
+            model.zero_grad(set_to_none=True)
         previous = {}
+        reference_gradient_sums = {}
         for case in ("base", "changed", "base_again", "changed_again", "zero", "changed_after_zero"):
             kind = "base" if case.startswith("base") else "zero" if case == "zero" else "changed"
             xx = torch.zeros_like(x) if kind == "zero" else x + (0.03125 if kind == "changed" else 0.0)
             actual = {}
             for name, model in models.items():
-                model.zero_grad(set_to_none=True)
+                if not args.accumulate:
+                    model.zero_grad(set_to_none=True)
                 leaf = xx.detach().clone().requires_grad_()
                 output = compiled[name](leaf)
                 output.backward(grad)
@@ -114,6 +120,13 @@ def main():
                 "unrounded_pre": rounded_reference(cpu_x, up, down, cpu_grad, True, False),
                 "unrounded_both": rounded_reference(cpu_x, up, down, cpu_grad, False, False),
             }
+            if args.accumulate:
+                for ref, values in references.items():
+                    previous_sums = reference_gradient_sums.setdefault(ref, {})
+                    for key in ("dup", "ddown"):
+                        if key in previous_sums:
+                            values[key] = (values[key].float() + previous_sums[key].float()).double()
+                        previous_sums[key] = values[key]
             for name, values in actual.items():
                 record = dict(cached=cached, case=case, variant=name,
                               versus_native={k: metrics(v, actual["native"][k]) for k, v in values.items()},
@@ -123,8 +136,11 @@ def main():
                 print("MLP_BOUNDARY_DIAG " + json.dumps(record), flush=True)
                 key = (name, kind)
                 if key in previous:
+                    # Parameter gradients intentionally accumulate; only their
+                    # native/reference comparisons above apply in that mode.
                     repeated = dict(cached=cached, case=case, variant=name,
-                                    exact={k: torch.equal(v, previous[key][k]) for k, v in values.items()})
+                                    exact={k: torch.equal(v, previous[key][k]) for k, v in values.items()
+                                           if not args.accumulate or k in ("output", "dx")})
                     state["repeats"].append(repeated)
                     print("MLP_BOUNDARY_REPEAT " + json.dumps(repeated), flush=True)
                 else:
