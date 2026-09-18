@@ -1140,3 +1140,34 @@ automatic postflights; no owned cleanup kills or unfinished resets.
   gather corruption was established. The reviewed research note links current
   primary APIs and ties accepted directions to measured evidence. Raw provider
   JSON is hash-preserved locally.
+
+
+### Wave33: both corrected transfer/layout designs earn full-model gates
+
+Source0428ecb; three completed device jobs have healthy automatic postflights.
+All component comparisons include kernel calls, intermediate HBM traffic and
+layout movement; no scored training claim is made from component timing.
+
+- DMA permutation plus segmented scan and expansion passes every eager stage,
+  compiled composition, FP64 bound, zero/repeated-call and native-control gate.
+  Actual training row native3.132663ms versus prepared0.855589ms and including
+  CPU metadata creation/upload1.303211ms. Four-table amortization estimates
+ 0.967494ms each, but excludes input-ID D2H; only whole-model timing can establish
+  the real saving. The revision separates DMA dtype conversion into SBUF and
+  uses contiguous128x128 scan transfers. Largest real-row difference from native
+  is2.98e-8. Scratch shared-metadata autograd now also has CPU accumulation,
+  outstanding-forward metadata lifetime, unsupported-shape and checkpoint gates.
+- Raw HxT saved ReLU consumed directly by layout-aware backward passes all16
+  independent stage bounds and24 native forward/gradient controls. Actual shape
+  native forward1.342891ms/fused1.419571ms; complete forward/backward4.242960ms
+  versus3.960757ms (6.65% component saving). The previous immediate TxH conversion
+  is removed from the timed forward. An actual-native-module integration preserves
+  FP32 master Parameters, differentiable BF16 caches and native evaluation; CPU
+  cached/uncached accumulated-gradient, cache-refresh and checkpoint gates pass.
+- A new full-shape raw-layout device profile is complete; preservation/analysis
+  follows independently of the unprofiled full-model gate.
+
+Next: native autograd integration checks on both hosts, then separate full-chip
+  real-data phase tests with metadata/caches/optimizer charged. Embedding keeps
+  the predeclared570ms advancement threshold; the MLP needs a reproducible whole-
+  model saving before combining it with another change. No seed sweep.

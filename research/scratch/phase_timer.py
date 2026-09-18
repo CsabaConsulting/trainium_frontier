@@ -87,6 +87,11 @@ def main():
                          "Includes per-microstep input D2H, CPU mapping and metadata upload.")
     ap.add_argument("--compact-embedding-bucket", type=int, default=4096,
                     help="Fixed embedding-gradient rows, a multiple of128; native overflow fallback.")
+    ap.add_argument("--segmented-dma-embedding", action="store_true",
+                    help="Scratch three-kernel ordinary embedding backward; per-microstep "
+                         "input D2H, stable CPU sort and metadata upload are timed.")
+    ap.add_argument("--fused-mlp", action="store_true",
+                    help="Scratch fused BF16 MLP with HxT saved activation consumed in backward.")
     ap.add_argument("--check-seq-len", type=int, default=256,
                     help="Sequence length for --post-checks, at least 128 and a multiple of 128.")
     ap.add_argument("--grad-clip", type=float, default=1.0,
@@ -173,6 +178,8 @@ def main():
                          "typo'd NAME or an uncoercible VALUE is an error rather than a silent "
                          "no-op. Applied AFTER the explicit flags above, so it wins.")
     args = ap.parse_args()
+    if args.compact_embedding and args.segmented_dma_embedding:
+        ap.error("select only one ordinary embedding backward implementation")
     if args.trace_dir and args.micro_only:
         ap.error("--trace-dir captures after full-step timing; do not combine it with --micro-only")
     if args.post_checks and (args.micro_only or args.check_seq_len < 128
@@ -276,6 +283,14 @@ def main():
         from embedding_compact_autograd import install
         embedding_state = install(model, device, args.compact_embedding_bucket)
         print("[pt] compact ordinary embeddings; all metadata preparation inside timing", flush=True)
+    if args.segmented_dma_embedding:
+        from embedding_segmented_dma_autograd import install
+        embedding_state = install(model, device)
+        print("[pt] segmented DMA embeddings; all metadata preparation inside timing", flush=True)
+    if args.fused_mlp:
+        from mlp_fused_integration import install
+        install(model, device, T)
+        print("[pt] fused BF16 MLP; shared ordinary Linear caches/parameters preserved", flush=True)
     if args.ngram_ve_freeze:
         for p in model.ngram_embeds.parameters():
             p.requires_grad_(False)
@@ -579,6 +594,8 @@ def main():
             integrated_nki_local_conv=T.USE_NKI_LOCAL_CONV,
             integrated_bf16_norm_output=T.USE_BF16_NORM_OUTPUT,
             integrated_bf16_sdpa_input=T.USE_BF16_SDPA_INPUT,
+            segmented_dma_embedding=args.segmented_dma_embedding,
+            fused_mlp=args.fused_mlp,
             last_loss=float(last_loss.item()),
             compile=args.compile, foreach_optim=args.foreach_optim,
             compile_optim=args.compile_optim, grad_bucket=args.grad_bucket,

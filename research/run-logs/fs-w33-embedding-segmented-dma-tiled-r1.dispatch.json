@@ -1,0 +1,40 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave33",
+    "expected_commit": "0428ecb97a98f2a1ecbc517848498a80148ebaa7",
+    "label": "fs-w33-embedding-segmented-dma-tiled-r1",
+    "purpose": "Revisit mathematically correct DMA alternative after the measured MLP transfer lesson: keep indirect DMA dtypes equal, cast inSBUF, use128x128 on-chip transpose for scan I/O. Gate all staged intermediates and compiled composition, zero/repeat/nativeFP64 bounds, then complete metadata timing.",
+    "fingerprint_paths": [
+      "research/scratch/embedding_segmented_dma.py",
+      "research/scratch/embedding_segmented_dma_probe.py",
+      "research/scratch/embedding_compact_probe.py",
+      "research/scratch/embedding_segmented_nki.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1500s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/embedding_segmented_dma_probe.py",
+      "--real-shape",
+      "--training-row",
+      "--steps",
+      "8",
+      "--tiled-io"
+    ]
+  },
+  "requested_at": "2026-09-18T14:59:12.220901+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w33-embedding-segmented-dma-tiled-r1\", \"pid\": 958378, \"commit\": \"0428ecb97a98f2a1ecbc517848498a80148ebaa7\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave33/research/run-logs/fs-w33-embedding-segmented-dma-tiled-r1.log\", \"started_at\": \"2026-09-18T14:59:18.341275+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

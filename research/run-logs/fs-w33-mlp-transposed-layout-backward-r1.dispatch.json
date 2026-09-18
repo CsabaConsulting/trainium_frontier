@@ -1,0 +1,38 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave33",
+    "expected_commit": "0428ecb97a98f2a1ecbc517848498a80148ebaa7",
+    "label": "fs-w33-mlp-transposed-layout-backward-r1",
+    "purpose": "Preserve rawHxT savedReLU through the autograd boundary and form hidden gradients in that layout; previous immediateTxH restoration regressed. All18 independentCPU derivative gates pass. Gate actual eager/compiled stages,3nativegradients and complete component timings with sameBF16 cached weights.",
+    "fingerprint_paths": [
+      "research/scratch/mlp_fused_bf16.py",
+      "research/scratch/mlp_fused_bf16_probe.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1500s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "--real-shape",
+      "--contiguous-weights",
+      "--tiled-io",
+      "--cached-bf16-weights",
+      "--transposed-relu"
+    ]
+  },
+  "requested_at": "2026-09-18T14:59:27.451517+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w33-mlp-transposed-layout-backward-r1\", \"pid\": 1321666, \"commit\": \"0428ecb97a98f2a1ecbc517848498a80148ebaa7\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave33/research/run-logs/fs-w33-mlp-transposed-layout-backward-r1.log\", \"started_at\": \"2026-09-18T14:59:33.900672+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

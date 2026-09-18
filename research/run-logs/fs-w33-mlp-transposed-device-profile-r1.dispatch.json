@@ -1,0 +1,41 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave33",
+    "expected_commit": "0428ecb97a98f2a1ecbc517848498a80148ebaa7",
+    "label": "fs-w33-mlp-transposed-device-profile-r1",
+    "purpose": "Profile the now-correct raw HxT saved-activation forward after complete component backward improves6.65%; quantify DMA instruction and TensorEngine overhead before another kernel revision. Profiling is diagnostic only.",
+    "fingerprint_paths": [
+      "research/scratch/mlp_fused_bf16.py",
+      "research/scratch/mlp_fused_bf16_profile.py",
+      "research/scratch/preserve_native_trace_neffs.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "900s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/mlp_fused_bf16_profile.py",
+      "--trace-dir",
+      "out/fs-w33-mlp-transposed-device-profile-r1",
+      "--contiguous-weights",
+      "--tiled-io",
+      "--cached-bf16-weights",
+      "--real-shape",
+      "--transposed-relu"
+    ]
+  },
+  "requested_at": "2026-09-18T15:03:58.855712+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w33-mlp-transposed-device-profile-r1\", \"pid\": 1323313, \"commit\": \"0428ecb97a98f2a1ecbc517848498a80148ebaa7\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave33/research/run-logs/fs-w33-mlp-transposed-device-profile-r1.log\", \"started_at\": \"2026-09-18T15:04:05.295828+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}
