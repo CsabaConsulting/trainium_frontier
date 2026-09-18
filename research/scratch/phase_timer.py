@@ -7,6 +7,7 @@ so the fixed-overhead-vs-compute split can be read directly, at any world_size/L
 """
 
 import argparse
+from dataclasses import asdict
 import json
 import math
 import os
@@ -20,6 +21,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--steps", type=int, default=3)
     ap.add_argument("--warmup-steps", type=int, default=2)
+    ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--compile", action=argparse.BooleanOptionalAction, default=True)
     ap.add_argument("--local-conv", action=argparse.BooleanOptionalAction, default=True)
     ap.add_argument("--per-micro", action=argparse.BooleanOptionalAction, default=False,
@@ -177,6 +179,9 @@ def main():
     ddp, rank, local_rank, world_size, device = T.init_runtime(device_type)
     T.COMPUTE_DTYPE = T.compute_dtype_for(device)
 
+    if T.CLIP_AFTER_REDUCE:
+        raise ValueError("phase_timer splits clip then sync; use train.py for clip-after-reduce timing")
+    torch.manual_seed(args.seed)
     config = T.build_config()
     model = T.GPT(config)
     model.init_weights()
@@ -201,6 +206,9 @@ def main():
     micro_tokens = T.DEVICE_BATCH_SIZE * T.PACK_FACTOR * T.SEQ_LEN * world_size
     grad_accum = max(1, T.TOTAL_BATCH_SIZE // micro_tokens)
     if rank == 0:
+        print("PROFILE_CONFIG " + json.dumps(dict(
+            seed=args.seed, model=asdict(config), toggles=T.current_toggles(),
+            compiler_flags=os.environ.get("NEURON_CC_FLAGS"))), flush=True)
         print(f"[pt] world_size={world_size} LNC={os.environ.get('NEURON_LOGICAL_NC_CONFIG')} "
               f"micro_tokens={micro_tokens:,} grad_accum={grad_accum} "
               f"local_conv={args.local_conv} conv_mode={args.conv_mode} compile={args.compile} "
@@ -286,7 +294,7 @@ def main():
         lrm = 1.0 - 0.001 * step
         wd_progress = min(1.0, step / 1000.0)
         for group in optimizer.param_groups:
-            group["lr"] = group["initial_lr"] * lrm
+            group["lr"] = group["initial_lr"] * (1.0 if group.get("no_lr_decay") else lrm)
             if group["kind"] == "muon":
                 group["momentum"] = T.muon_momentum(step)
                 group["weight_decay"] = (T.WEIGHT_DECAY * (1.0 - wd_progress)
@@ -406,8 +414,12 @@ def main():
                 T.clip_grad_norm_flat_(grad_flat_buffer, args.grad_clip)
         else:
             if args.grad_clip > 0:
-                torch.nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip,
-                                               foreach=True if args.clip_foreach else None)
+                # Same two groups as warmup and train.py. The previous timed path
+                # accidentally included the enormous table grads in the dense norm.
+                for plist in (clip_main, clip_ngram):
+                    if plist:
+                        torch.nn.utils.clip_grad_norm_(
+                            plist, args.grad_clip, foreach=True if args.clip_foreach else None)
         T.synchronize(device)
         rec["clip_ms"] = (time.monotonic() - t) * 1e3
 
