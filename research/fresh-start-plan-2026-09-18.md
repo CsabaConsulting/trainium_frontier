@@ -4,7 +4,7 @@ Objective: minimize **official 30-minute validation bits per byte** on one full
 Trainium2 chip. Sub-1.0 on public validation is an engineering milestone, not a
 claim about the private leaderboard. The metric is lower-is-better.
 
-**Current update, 11:57 UTC:** the width896 direct-attention control completed
+**Current update, 12:05 UTC:** the width896 direct-attention control completed
 2,188 updates at **0.987568 public BPB @2048 / 0.999880 @1024**. Its fused
 FP32 table-optimizer counterpart completed 2,204 updates at **0.986947 /
 0.999735**. Both fit the budget and use four ranks and 2,097,152 evaluation
@@ -46,8 +46,12 @@ losses; the larger evaluation is required before a robust sub-1.0 claim.
 Trn21 passed the **8×1024 dense capacity** gate at the same BF16/NKI policy,
 four ranks, and131,072 targets/update: **743.742ms median**, all four updated
 finite/causal/batch/repetition gates pass,151,012,368parameters. Its full1,800s
-run launched11:27 as `fs-w14-dense1024-depth8-nki-norm-1800-r1`, source`e6f6139`.
-Initial loss is finite. The predeclared speed gate was <=0.95s median update. This is
+run `fs-w14-dense1024-depth8-nki-norm-1800-r1`, source`e6f6139`, completed
+**2,365updates/309,985,280targets**,1785.3s charged, at **0.990702BPB@2048 /
+1.004083@1024**, four-rank2.1M-token diagnostics. This is0.007394 worse than
+six layers at1024, so six layers remains the reference. The604,075,069-byte
+checkpoint is locally hash-verified; a larger eight-layer evaluation is not
+prioritized. The predeclared speed gate was <=0.95s median update. This is
 not a repeat of the old table-model depth sweep: that implementation paid nearly
 2× step time for 33% more layers and used a different activation/layout path.
 The old short matched-exposure depth result actually favored depth by ~0.003 BPB;
@@ -57,16 +61,19 @@ A separate CPU research probe examines conservative canonical-BPE continuation
 constraints using only the fixed tokenizer and provided training shard0. It
 does not change the tokenizer, data loader, trainer, or scorer. A generic GPT-2
 mask is not safe to transplant because the regex differs. The native paired
-diagnostic `fs-w15-dense1024-canonical-paired-eval-r1` launched on trn22 at11:57,
-source`4f0e77a`, using the preserved dense checkpoint, fresh tokenizer-only mask,
-and unchanged scorer. Native causal/reference gates precede any BPB measurement.
+diagnostic `fs-w15-dense1024-canonical-paired-eval-r1`, source`4f0e77a`, passed
+all causal/reference gates and scored0.996184154 unmodified versus0.996108324
+constrained, identical2.1M-token/world1/B1/context1024 geometry. The **0.0000758305
+BPB gain** is small; this conservative mask is deprioritized without a training
+integration. This does not close every stronger tokenizer constraint.
 
 The cached-weight FP8 component probe is prepared on trn21's immutable wave16
-checkout, source`8704139`, but has not run. It covers actual MLP shapes, native
+checkout, source`8704139`, and launched at12:04. It covers actual MLP shapes, native
 matmul and F.linear controls, and both operand layout costs. Keep its empirical
 pair-rounding reference separate from a hardware-specification claim. An
-updated dense device trace, B8/GA2 phase gate and SDPA-only precision gate are
-also prepared; launch only when the corresponding host is idle.
+updated dense device trace and SDPA-only precision gate are also prepared.
+Trn22's B8/GA2 phase gate launched12:02; a full run requires updated-model gates
+and <=570ms median update (at least about3% saving against587.999ms).
 
 ### Next decisions after the active dense runs
 

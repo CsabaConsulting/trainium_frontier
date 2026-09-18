@@ -21,7 +21,7 @@ measurement history contain concrete changes that previous high-level conclusion
 do not account for. A complete replacement with an SSM or all-FP8 stack would make
 these mechanisms harder to isolate.
 
-**11:57 UTC update:** the dense6×1024 path, without hashed n-gram tables,
+**12:05 UTC update:** the dense6×1024 path, without hashed n-gram tables,
 now completes2,977updates/390.2M target presentations in budget at **0.981710
 BPB@2048 /0.996689@1024**, versus1.012886/1.027777 for the1,805-update dense
 control. Custom NKI convolution plus BF16 normalized branch inputs reduces the
@@ -32,7 +32,9 @@ identical20.97M-token standalone check now gives **1.002066687 BPB**, versus
 **1.004452862** for the table model, with the same83,462,186bytes scored. The
 dense implementation is a competitive full-budget route; it is still above1.0
 on the larger sample and has no independent-seed confirmation. Eight-layer dense capacity passed a
-0.744s phase gate and is in full training. There is still no verified information
+0.744s phase gate but finishes at1.004083 on the small1024 diagnostic, worse than
+six layers'0.996689 because the extra capacity comes with fewer budgeted updates.
+That mechanism is an interpretation, not a matched-update ablation. There is still no verified information
 about the leading teams' architectures.
 
 
@@ -451,7 +453,7 @@ impossible. The derived mask rejects **zero** observed canonical pairs over
 context cases. It uses no validation observations, learned table, or external
 training text. This empirical falsification check supports the restricted seam
 argument; it does not prove a general pretokenizer mask correct. Build time was
-11.52s locally, and quality has not been measured. Generated matrices stay in
+11.52s locally; that narrower first version was not quality-tested. Generated matrices stay in
 `out/`; source, counts, tokenizer hash and training-shard hash are preserved.
 
 The `ascii-word` extension permits one ASCII non-letter/non-number prefix before
@@ -459,18 +461,17 @@ at least three letters, excluding apostrophe and CR/LF. It tests16,852,392pairs
 and marks1,166,945, again with zero violations on the same63.3M training tokens
 and200,012 synthetic contexts. Build time is41.75s locally. A frozen dense
 checkpoint passes CPU finite-output, exact mask-reference, future-token, other-
-batch, repeated-call and batch-size checks; native validation remains pending.
+batch, repeated-call and batch-size checks. The native result is recorded below.
 The mask uses the current input token to constrain the next-token distribution;
 it never reads a future token. Special-token rows and columns remain unrestricted.
 
-Next gate: measure a paired public BPB change through the unchanged trusted
-scorer on one existing checkpoint, with exact causality/batch/repeat checks and
-finite logits. This is an inference diagnostic, not yet a submission candidate.
-If useful, integrate the same constrained distribution into training and saved
-evaluation, charge deterministic construction to the run, and measure its
-whole-step overhead before committing a30-minute run. Never repair the table
-by inspecting validation failures. Stop if the gain cannot repay runtime or any
-correctness counterexample defeats the seam argument.
+The native paired check now passes exact future/batch/repetition/CPU-reference
+checks and gives **0.996184154→0.996108324 BPB**, an improvement of only
+**0.0000758305** on the same world1/B1/context1024/2.1M-token prefix. It used the
+new dense checkpoint and a freshly tokenizer-derived `ascii-word` mask. This
+conservative version is deprioritized; there is no training integration or
+larger-sample projection. The raw log and summary in the measured-results ledger
+preserve both scorer outputs and the20.425s construction cost.
 
 The separate modded-nanogpt PR reports roughly0.0017 nats/token improvement from
 canonical masking across20 paired runs, with about3.15s CPU table construction.
@@ -520,7 +521,7 @@ These proposals are conditional experiments, not measured wins:
 |---|---|---|
 | The new dense graph benefits from fewer, larger microbatches | B8/GA2 versus B4/GA4 at fixed131,072 global targets andT2048, then B16/GA1 only if justified | full-step timing and updated-model gates; real-loader geometry changes packing/order, so quality needs a full run |
 | The current FP8 negative is partly a layout/shape problem | repeat cast-inclusive native BF16/NKI BF16/NKI FP8 comparisons at actual MLP shapes M8192,K1024,N4096 and M8192,K4096,N1024; amortize weight layouts once per update | stop if no end-to-end matrix win including preparation; do not substitute kernel-only timing or peak FLOPs |
-| Four LNC2 ranks are no longer the best full-chip mapping after removing hashed gathers | compare eight LNC1 ranks with adjusted accumulation and the same global batch, only after each custom kernel supports that mapping | require all chip cores, finite/causal/gradient gates and lower full-update time; more host launches/all-reduce replication can erase gains |
+| Four LNC2 ranks are no longer the best full-chip mapping after removing hashed gathers | deferred: the earlier LNC1 audit records initialization/synchronization hangs even without model compilation on this native stack | no training retry merely because the architecture changed; first require evidence of a working runtime mapping and compatible custom kernels, without SDK/driver changes |
 | NKI convolution changes a compiled buffer/graph assumption in the FP32 path | preserve the failing uninstrumented graph, then a minimal eager/compiled pair and owned NEFFs; instrument only one boundary at a time | finite hooked/eager execution is evidence to localize, not a production workaround; never promote a fast NaN graph |
 
 For an FP8 MLP island, RMS-normalized inputs make a causal static or per-token
@@ -538,6 +539,27 @@ microbatch quality effect may combine execution efficiency, reduction rounding,
 and changed document presentation. Reuse the existing immutable loader and report
 actual geometry/exposure rather than calling every such trial an exact arithmetic
 equivalence test.
+
+The older sequence-length result also needs a precise scope. The900s pair in
+`trn2-experiment-results.md:2663` compared T1024/pack8 with T2048/pack4, matching
+loader length8192 and global batch, and found1.096998 versus1.097033BPB when both
+were scored at1024. The shorter context was1.6% slower in that implementation;
+at2048 evaluation it suffered the expected untrained-context extrapolation loss.
+This supports retaining2048 for that implementation. A single near-tie does not
+bound every curriculum's potential gain to0.000035. On the changed dense graph,
+an optional phase gate can ask whether halving attention length now buys useful
+time while keeping the same8192-token loader rows. Advance only with a material
+whole-step saving and then a full-budget common-context quality comparison;
+do not extrapolate a1024-only model's score to longer contexts. This is behind
+the current B8/T2048 gate and current-graph profile, not a new broad sweep.
+
+The LNC1 exclusion above is stronger than an unexplored parallelism proposal:
+the prior audit at `trn2-experiment-results.md:6465` records hangs with one worker,
+without compilation, with explicit`--lnc=1`, and even without distributed init.
+It names the same compiler/native-framework/runtime versions now installed
+(driver patch versions differ in the records). Removing hashed tables does not
+address those failures. Do not spend either productive instance on another
+unbounded runtime-hang investigation or alter its driver configuration.
 
 Three asynchronous external research reports were collected under
 `fresh-start-literature-2026-09-18/`. They are discovery aids, not accepted evidence.

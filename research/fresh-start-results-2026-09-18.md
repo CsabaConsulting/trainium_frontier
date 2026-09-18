@@ -578,7 +578,17 @@ Rank0 loss after the short probe is7.295557; this is not a quality ranking.
 The predeclared <=950ms/finite/causal gate is satisfied. The full30-minute run
 launched on trn21 at11:27 as `fs-w14-dense1024-depth8-nki-norm-1800-r1`. Its
 training source hash matches the active six-layer run; the depth and host differ.
-Initial loss9.0118 is finite. Full-budget BPB is pending.
+Initial loss9.0118 is finite. The completed run reaches **2,365updates** and
+**309,985,280target presentations**, **0.990702BPB@2048 /1.004083@1024**,
+charged1785.3s, training1784.8s, excluded startup279.8s, total2090.5s.
+Causality_max_abs is0 and over_budget isFalse. The same four-rank2.1M-token
+diagnostic is0.008992/0.007394 worse than six layers. Keep six layers as the
+reference; the larger capacity does not win this full-budget comparison.
+The8-layer checkpoint is locally preserved (604,075,069bytes, matched SHA256).
+This negative does not establish a general depth optimum or isolate the cause:
+both capacity and update count change, and the standard depth setting also
+adds an ordinary value-embedding table. No large standalone8-layer evaluation
+is prioritized given the current gap.
 
 
 ### Optimized dense full-budget result: public small-sample sub-1.0 without hashed tables
@@ -603,5 +613,29 @@ contains117,453,580parameters and is locally preserved with matching SHA256
 `d05929eddd9a0dc313ebb750b01008f6c3f83386f371114532291a42c5e48755`.
 
 The standalone20,971,520-token/context1024/B1/O1 evaluation started11:43 UTC as
-`fs-w12-eval-dense1024-nki-norm-s1024-20m-o1-r1`. It is pending. The small result
-is not a private leaderboard score or a repeatability claim.
+`fs-w12-eval-dense1024-nki-norm-s1024-20m-o1-r1`. It completes at **1.002066687BPB**;
+see the standalone section above for exact counts and comparison. The small
+sub-1.0 diagnostic is not a private leaderboard score or a repeatability claim.
+
+### Conservative canonical-token constraint: native paired quality test
+
+`fs-w15-dense1024-canonical-paired-eval-r1`, source`4f0e77a`, evaluates the frozen
+optimized dense checkpoint with a freshly built, tokenizer-only `ascii-word`
+constraint. Native finite/base-finite checks pass; CPU mask-reference, future,
+other-row, repeated-call and B1-versus-B2 differences are all exactly0.
+The table contains1,166,945forbidden pairs and builds in20.425s on trn22; its SHA
+matches the independently built/falsified CPU artifact. No validation data
+enters construction, no model parameters are updated, and `prepare.py` is unchanged.
+
+| Same frozen model and world1/B1/context1024/2,097,152-token prefix | BPB | Total nats | Evaluation seconds |
+|---|---:|---:|---:|
+| Original logits |0.996184154485097|5,813,116.0|70.592|
+| Conservative impossible-pair mask |0.9961083239858673|5,812,673.5|72.022|
+
+Both calls score8,418,678bytes. The paired improvement is **0.0000758304992BPB**,
+or442.5total nats on this prefix. Deprioritize this conservative mask: its measured
+gain is small relative to the campaign's remaining gap, and a consistent training
+implementation would need its own cost/gradient/full-budget gates. This is not a
+claim that a broader constraint cannot help, or a projection onto20.97M tokens.
+The one fixed-order timing pair is not an interleaved warmed speed benchmark.
+Raw log and structured result are retained beside the source manifest.

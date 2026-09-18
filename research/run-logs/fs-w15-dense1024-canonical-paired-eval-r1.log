@@ -1,0 +1,25 @@
+[W918 11:57:27.810251856 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+CANONICAL_BUILD_PROGRESS {"rows": 500, "total_rows": 6984, "elapsed": 1.3475543140084483}
+CANONICAL_BUILD_PROGRESS {"rows": 1000, "total_rows": 6984, "elapsed": 2.735371476970613}
+CANONICAL_BUILD_PROGRESS {"rows": 1500, "total_rows": 6984, "elapsed": 4.124584442004561}
+CANONICAL_BUILD_PROGRESS {"rows": 2000, "total_rows": 6984, "elapsed": 5.514170031005051}
+CANONICAL_BUILD_PROGRESS {"rows": 2500, "total_rows": 6984, "elapsed": 6.938340105989482}
+CANONICAL_BUILD_PROGRESS {"rows": 3000, "total_rows": 6984, "elapsed": 8.408168718975503}
+CANONICAL_BUILD_PROGRESS {"rows": 3500, "total_rows": 6984, "elapsed": 9.892169307975564}
+CANONICAL_BUILD_PROGRESS {"rows": 4000, "total_rows": 6984, "elapsed": 11.385861655988265}
+CANONICAL_BUILD_PROGRESS {"rows": 4500, "total_rows": 6984, "elapsed": 12.887057290994562}
+CANONICAL_BUILD_PROGRESS {"rows": 5000, "total_rows": 6984, "elapsed": 14.3908367229742}
+CANONICAL_BUILD_PROGRESS {"rows": 5500, "total_rows": 6984, "elapsed": 15.907770261983387}
+CANONICAL_BUILD_PROGRESS {"rows": 6000, "total_rows": 6984, "elapsed": 17.42216479999479}
+CANONICAL_BUILD_PROGRESS {"rows": 6500, "total_rows": 6984, "elapsed": 18.937709121964872}
+CANONICAL_EVAL_CONFIG {"checkpoint": "/home/ubuntu/trainium_freshstart_20260918_wave12/out/fs-w12-dense1024-nki-norm-1800-r1/final.pt", "checkpoint_sha256": "d05929eddd9a0dc313ebb750b01008f6c3f83386f371114532291a42c5e48755", "tokenizer_sha256": "aacd6c6a838eaec2c662a7d0cba0b5412f930a6ddee95b9ecb2c8fac53f3dafc", "mask_sha256": "7b63557dc7f1da3656f9ed3bb669ecb968965747fdafdaddb0242e8c8f128cbd", "source_sha256": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c", "scope": "ascii-word", "construction": {"previous_tokens": 6984, "following_tokens": 2413, "tested_pairs": 16852392, "forbidden_pairs": 1166945, "build_seconds": 20.42537559795892}, "seq_len": 1024, "batch_size": 1, "world_size": 1, "max_tokens": 2097152, "inference_diagnostic_only": true}
+CANONICAL_MASK_GATE_JSON {"logits_finite": true, "base_logits_finite": true, "device_mask_reference_max_abs": 0.0, "future_max_abs": 0.0, "other_batch_max_abs": 0.0, "repeated_call_max_abs": 0.0, "batch_size_max_abs": 0.0, "batch_size_tolerance": 0.01, "passed": true}
+WARNING:torch_neuronx.python_ops.dtype_autocast:Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
+CANONICAL_BASELINE_JSON {"val_bpb": 0.996184154485097, "eval_seconds": 70.59185427101329, "eval_timeout": 1200, "eval_over_timeout": false, "num_tokens": 2097152, "num_bytes": 8418678, "total_nats": 5813116.0}
+CANONICAL_EVAL_RESULT {"config": {"checkpoint": "/home/ubuntu/trainium_freshstart_20260918_wave12/out/fs-w12-dense1024-nki-norm-1800-r1/final.pt", "checkpoint_sha256": "d05929eddd9a0dc313ebb750b01008f6c3f83386f371114532291a42c5e48755", "tokenizer_sha256": "aacd6c6a838eaec2c662a7d0cba0b5412f930a6ddee95b9ecb2c8fac53f3dafc", "mask_sha256": "7b63557dc7f1da3656f9ed3bb669ecb968965747fdafdaddb0242e8c8f128cbd", "source_sha256": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c", "scope": "ascii-word", "construction": {"previous_tokens": 6984, "following_tokens": 2413, "tested_pairs": 16852392, "forbidden_pairs": 1166945, "build_seconds": 20.42537559795892}, "seq_len": 1024, "batch_size": 1, "world_size": 1, "max_tokens": 2097152, "inference_diagnostic_only": true}, "checks": {"logits_finite": true, "base_logits_finite": true, "device_mask_reference_max_abs": 0.0, "future_max_abs": 0.0, "other_batch_max_abs": 0.0, "repeated_call_max_abs": 0.0, "batch_size_max_abs": 0.0, "batch_size_tolerance": 0.01, "passed": true}, "baseline": {"val_bpb": 0.996184154485097, "eval_seconds": 70.59185427101329, "eval_timeout": 1200, "eval_over_timeout": false, "num_tokens": 2097152, "num_bytes": 8418678, "total_nats": 5813116.0}, "constrained": {"val_bpb": 0.9961083239858673, "eval_seconds": 72.0224407989881, "eval_timeout": 1200, "eval_over_timeout": false, "num_tokens": 2097152, "num_bytes": 8418678, "total_nats": 5812673.5}, "bpb_delta": -7.583049922965657e-05, "paired_eval_seconds": 142.61813596100546}

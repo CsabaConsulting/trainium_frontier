@@ -1,0 +1,60 @@
+{
+  "config": {
+    "checkpoint": "/home/ubuntu/trainium_freshstart_20260918_wave12/out/fs-w12-dense1024-nki-norm-1800-r1/final.pt",
+    "checkpoint_sha256": "d05929eddd9a0dc313ebb750b01008f6c3f83386f371114532291a42c5e48755",
+    "tokenizer_sha256": "aacd6c6a838eaec2c662a7d0cba0b5412f930a6ddee95b9ecb2c8fac53f3dafc",
+    "mask_sha256": "7b63557dc7f1da3656f9ed3bb669ecb968965747fdafdaddb0242e8c8f128cbd",
+    "source_sha256": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "scope": "ascii-word",
+    "construction": {
+      "previous_tokens": 6984,
+      "following_tokens": 2413,
+      "tested_pairs": 16852392,
+      "forbidden_pairs": 1166945,
+      "build_seconds": 20.42537559795892
+    },
+    "seq_len": 1024,
+    "batch_size": 1,
+    "world_size": 1,
+    "max_tokens": 2097152,
+    "inference_diagnostic_only": true
+  },
+  "checks": {
+    "logits_finite": true,
+    "base_logits_finite": true,
+    "device_mask_reference_max_abs": 0.0,
+    "future_max_abs": 0.0,
+    "other_batch_max_abs": 0.0,
+    "repeated_call_max_abs": 0.0,
+    "batch_size_max_abs": 0.0,
+    "batch_size_tolerance": 0.01,
+    "passed": true
+  },
+  "baseline": {
+    "val_bpb": 0.996184154485097,
+    "eval_seconds": 70.59185427101329,
+    "eval_timeout": 1200,
+    "eval_over_timeout": false,
+    "num_tokens": 2097152,
+    "num_bytes": 8418678,
+    "total_nats": 5813116.0
+  },
+  "constrained": {
+    "val_bpb": 0.9961083239858673,
+    "eval_seconds": 72.0224407989881,
+    "eval_timeout": 1200,
+    "eval_over_timeout": false,
+    "num_tokens": 2097152,
+    "num_bytes": 8418678,
+    "total_nats": 5812673.5
+  },
+  "bpb_delta": -7.583049922965657e-05,
+  "paired_eval_seconds": 142.61813596100546,
+  "label": "fs-w15-dense1024-canonical-paired-eval-r1",
+  "kind": "paired_frozen_checkpoint_inference_diagnostic",
+  "source_commit": "4f0e77a7f0539d65cfe1d8b39cfdb10d1ff27490",
+  "log_sha256": "44b5c2ae34891d0807d2aca5b597ea0e33d7b799ddba2330748fdea240eb3f65",
+  "decision": "deprioritize this conservative mask: measured benefit is small; no training integration or score extrapolation",
+  "training_claim": false,
+  "inference_timing_caveat": "one baseline-then-constrained pair; not an interleaved warmed performance benchmark"
+}

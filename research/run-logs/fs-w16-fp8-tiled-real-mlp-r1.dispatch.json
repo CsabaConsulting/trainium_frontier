@@ -1,0 +1,38 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave16",
+    "expected_commit": "8704139d074d94201192108329966fd1c574cf47",
+    "label": "fs-w16-fp8-tiled-real-mlp-r1",
+    "purpose": "Forward-only cached-weight NKI FP8 versus BF16 at actual dense MLP shapes, including operand layouts and casts; finite and empirical pair-rounding reference gates before timing; no training speed or quality claim",
+    "fingerprint_paths": [
+      "research/scratch/fresh_start_fp8_tiled_probe.py",
+      "research/scratch/fresh_start_fp8_probe.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1800s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/fresh_start_fp8_tiled_probe.py",
+      "--mlp-shapes",
+      "--steps",
+      "12",
+      "--seed",
+      "71"
+    ]
+  },
+  "requested_at": "2026-09-18T12:04:51.445338+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w16-fp8-tiled-real-mlp-r1\", \"pid\": 876996, \"commit\": \"8704139d074d94201192108329966fd1c574cf47\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave16/research/run-logs/fs-w16-fp8-tiled-real-mlp-r1.log\", \"started_at\": \"2026-09-18T12:04:54.826396+00:00\"}\n",
+  "stderr": ""
+}

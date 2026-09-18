@@ -1,0 +1,51 @@
+{
+  "label": "fs-w14-dense1024-depth8-nki-norm-1800-r1",
+  "kind": "completed_full_budget_training",
+  "source_commit": "e6f6139a7df171a6beb30bf4fe5b25099f9a48bd",
+  "log_sha256": "b1b9313d34a7d27ba89ab0109567b5abe96968810dee2d1a2e930a13426e5d96",
+  "model": {
+    "depth": 8,
+    "width": 1024,
+    "parameters": 151012368,
+    "hashed_ngram_tables": false,
+    "ordinary_value_embeddings": true,
+    "nki_local_convolution": true,
+    "bf16_normalized_outputs": true,
+    "fp32_residuals": true
+  },
+  "training": {
+    "seed": 42,
+    "world_size": 4,
+    "lnc": 2,
+    "sequence_length": 2048,
+    "microbatch_rows": 4,
+    "gradient_accumulation": 4,
+    "global_tokens_per_update": 131072,
+    "completed_updates": 2365,
+    "target_presentations": 309985280,
+    "training_seconds": 1784.8,
+    "charged_seconds_estimate": 1785.3,
+    "startup_allowance_estimate": 279.8,
+    "total_model_seconds": 2090.5,
+    "over_budget": false
+  },
+  "evaluation": {
+    "world_size": 4,
+    "batch_size_per_rank": 1,
+    "total_target_tokens": 2097152,
+    "bpb_at_2048": 0.990702,
+    "bpb_at_1024": 1.004083,
+    "causality_passed": true,
+    "causality_max_abs": 0
+  },
+  "comparison": {
+    "label": "fs-w12-dense1024-nki-norm-1800-r1",
+    "bpb_delta_at_2048": 0.008992,
+    "bpb_delta_at_1024": 0.007394000000000012,
+    "step_matched": false,
+    "same_training_budget": true,
+    "same_evaluation_geometry": true
+  },
+  "decision": "Keep dense6 reference; eight-layer candidate is worse under this budget. No larger evaluation queued.",
+  "checkpoint_preservation_receipt": "fs-w14-dense1024-depth8-nki-norm-1800-r1.preservation.json"
+}

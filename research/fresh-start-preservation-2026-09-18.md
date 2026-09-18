@@ -137,3 +137,17 @@ active mirrors now cover wave12 evaluation and wave14 depth8 training; old
 wave8–11/13 mirrors were finally synced and stopped at11:11. The new wave15
 checkout contains committed follow-up diagnostics and does not change either
 active source checkout.
+
+The completed dense8×1024 checkpoint is local at
+`checkpoints/fs-w14-dense1024-depth8-nki-norm-1800-r1/final.pt`, **604,075,069bytes**.
+Its remote source is trn21 wave14's corresponding `out/` path, commit`e6f6139`.
+Independent hashes matched at12:04:51UTC:
+
+```
+35403faa4249323ecb91e071c0af5f99f0bb1028588dcbcd2946eb8743115f8b
+```
+
+See its [receipt](run-logs/fs-w14-dense1024-depth8-nki-norm-1800-r1.preservation.json).
+This weaker candidate is preserved just as the winning candidate is. The completed
+wave12 mirror was stopped after a final successful sync; wave15 and wave16 mirrors
+now retrieve the new diagnostics. No active source checkout was modified.
