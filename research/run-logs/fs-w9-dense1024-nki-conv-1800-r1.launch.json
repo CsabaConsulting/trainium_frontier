@@ -1,0 +1,21 @@
+{
+  "label": "fs-w9-dense1024-nki-conv-1800-r1",
+  "started_at": "2026-09-18T10:45:38+00:00",
+  "hostname": "ip-172-31-34-85",
+  "git_commit": "ccf22c067eaab4d188bf2a97aefddc6e2eb8431e",
+  "git_dirty": true,
+  "source_dirty": false,
+  "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 1000000 --max-train-seconds 1800 --out-dir out/fs-w9-dense1024-nki-conv-1800-r1 --eval-tokens 2097152 --depth 6 --n-embd 1024 --seed 42 --compile-muon --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --eval-seq-len 1024",
+  "description": "Full 1800s dense 6x1024 with integrated NKI two-tap convolution only; original FP32 norm and SDPA boundary, no hashed ngrams or QK shift [trn21]",
+  "environment": {
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "source_sha256": {
+    "train.py": "90ce771231c2412c865e98c07ffcc78c1cf48bc4fba9db69fca0deeb46135761",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "4c14ac6ec14fd52e31ee06d91540707083c48a93ec4687fbaa35bc7106a823f3"
+  }
+}

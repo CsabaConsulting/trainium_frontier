@@ -455,12 +455,26 @@ same-host no-QK control. Every precision row passes checks on all four ranks aft
 real updates: finite parameters/available gradients/logits, nonzero attention
 output branches, exact future-token, cross-batch and repeated-call independence.
 These evaluation checks use B2T256 and are outside timing; native kernel arithmetic
-was separately checked at B4T2048C1024. Full-training BPB is still pending.
+was separately checked at B4T2048C1024 **for FP32 convolution inputs only**. In the
+BF16 norm combination, the convolution receives `norm(x)` in BF16 even though the
+residual stream is FP32. Its independent BF16 arithmetic gate is still pending.
+Full-training BPB is still pending.
 
 The NKI-only full-budget run launched on trn21 at10:45 UTC as
-`fs-w9-dense1024-nki-conv-1800-r1`, source`ccf22c0`. Trn22 is verifying the norm
-combination through the actual integrated training entrypoint at`18ab710`, with
-no scratch forward monkeypatches, before its full-budget run.
+`fs-w9-dense1024-nki-conv-1800-r1`, source`ccf22c0`, **failed before step0 was
+logged**, with NaN loss reported by all four ranks. It has no quality result.
+The failure is preserved and promotion is blocked pending localization of the
+first bad value. The component arithmetic and scratch-model gates do not overrule
+this integration failure.
+
+`fs-w10-dense1024-integrated-nki-norm-phase-r1` at`18ab710` passes the four-rank
+updated-model checks but measures about782ms, not589ms. Inspection found the
+production convolution guard accepts only FP32 inputs, so BF16 norm makes it
+fall back to the original convolution. Its attention branch weight norms exactly
+match the norm-only probe. This is a dispatch gap, not a successful integrated
+NKI measurement. The BF16 dtype must be independently gated before opening that
+guard. An integrated FP32 full-model phase probe is running separately on trn21
+to distinguish the kernel integration from the full trainer's step ordering.
 
 ### Checkpoint configuration repair
 
