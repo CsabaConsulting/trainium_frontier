@@ -1,0 +1,169 @@
+#!/usr/bin/env python3
+"""Native Trainium2 FP8 double-row feasibility, with explicit scale/layout costs.
+
+This is NOT an FP8 training implementation. It probes a forward-only island using
+legacy E4M3, not OCP E4M3FN or MXFP8. Scalars use a fixed supplied calibration for
+the repeated benchmark; finding amax online is additional unmeasured work. Both
+NKI variants include the input transpose in the headline timings. CPU FP32 and an
+independent legacy-E4M3 quantizer supply the numerical references.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import statistics
+import time
+
+import torch
+
+
+def e4m3_legacy(x):
+    """IEEE-style E4M3 round-to-nearest-even, finite input saturated to +/-240."""
+    magnitude = x.abs().clamp(max=240.0)
+    exponent = torch.floor(torch.log2(magnitude.clamp_min(2.0 ** -9)))
+    spacing = torch.pow(2.0, exponent - 3).clamp_min(2.0 ** -9)
+    rounded = (torch.round(magnitude / spacing) * spacing).clamp(max=240.0)
+    return x.sign() * rounded
+
+
+def build_kernels():
+    global nisa, nl
+    import nki
+    import nki.isa as nisa
+    import nki.language as nl
+
+    @nki.jit
+    def native_fp8_gemm(a_t, b, scales):
+        """[K,M] BF16 and [K,N] BF16 -> [M,N] BF16 via scaled legacy FP8.
+
+        M multiple128; K multiple256; N multiple128 and <=512 in this first probe.
+        Scales [128,3] contain scale_A, scale_B, inverse_product, all runtime FP32.
+        K is packed as [128,2] for each TensorEngine double-row instruction.
+        """
+        k, m = a_t.shape
+        _, n = b.shape
+        assert m % 128 == 0 and k % 256 == 0 and n % 128 == 0 and n <= 512
+        a_view = a_t.reshape((k // 2, 2, m))
+        b_view = b.reshape((k // 2, 2, n))
+        out = nl.ndarray((m, n), dtype=nl.bfloat16, buffer=nl.shared_hbm)
+        sa = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
+        sb = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
+        inverse = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
+        nisa.dma_copy(dst=sa, src=scales[:, 0:1])
+        nisa.dma_copy(dst=sb, src=scales[:, 1:2])
+        nisa.dma_copy(dst=inverse, src=scales[:, 2:3])
+        for mi in nl.affine_range(m // 128):
+            acc = nl.ndarray((128, n), dtype=nl.float32, buffer=nl.psum)
+            for ki in nl.affine_range(k // 256):
+                ab = nl.ndarray((128, 2, 128), dtype=nl.bfloat16, buffer=nl.sbuf)
+                bb = nl.ndarray((128, 2, n), dtype=nl.bfloat16, buffer=nl.sbuf)
+                nisa.dma_copy(dst=ab, src=a_view[ki * 128:(ki + 1) * 128, :, mi * 128:(mi + 1) * 128])
+                nisa.dma_copy(dst=bb, src=b_view[ki * 128:(ki + 1) * 128, :, :])
+                aq = nl.ndarray((128, 2, 128), dtype=nl.float8_e4m3, buffer=nl.sbuf)
+                bq = nl.ndarray((128, 2, n), dtype=nl.float8_e4m3, buffer=nl.sbuf)
+                nisa.tensor_scalar(dst=aq, data=ab, op0=nl.multiply, operand0=sa)
+                nisa.tensor_scalar(dst=bq, data=bb, op0=nl.multiply, operand0=sb)
+                nisa.nc_matmul(dst=acc, stationary=aq, moving=bq, accumulate=(ki > 0),
+                               perf_mode=nisa.matmul_perf_mode.double_row)
+            acc_sb = nl.ndarray((128, n), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.tensor_copy(dst=acc_sb, src=acc)
+            result = nl.ndarray((128, n), dtype=nl.bfloat16, buffer=nl.sbuf)
+            nisa.tensor_scalar(dst=result, data=acc_sb, op0=nl.multiply, operand0=inverse)
+            nisa.dma_copy(dst=out[mi * 128:(mi + 1) * 128, :], src=result)
+        return out
+
+    @nki.jit
+    def nki_bf16_gemm(a_t, b):
+        """Comparable simple BF16 tiling; same transposed input and output shape."""
+        k, m = a_t.shape
+        _, n = b.shape
+        assert m % 128 == 0 and k % 128 == 0 and n % 128 == 0 and n <= 512
+        out = nl.ndarray((m, n), dtype=nl.bfloat16, buffer=nl.shared_hbm)
+        for mi in nl.affine_range(m // 128):
+            acc = nl.ndarray((128, n), dtype=nl.float32, buffer=nl.psum)
+            for ki in nl.affine_range(k // 128):
+                ab = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.sbuf)
+                bb = nl.ndarray((128, n), dtype=nl.bfloat16, buffer=nl.sbuf)
+                nisa.dma_copy(dst=ab, src=a_t[ki * 128:(ki + 1) * 128, mi * 128:(mi + 1) * 128])
+                nisa.dma_copy(dst=bb, src=b[ki * 128:(ki + 1) * 128, :])
+                nisa.nc_matmul(dst=acc, stationary=ab, moving=bb, accumulate=(ki > 0))
+            result = nl.ndarray((128, n), dtype=nl.bfloat16, buffer=nl.sbuf)
+            nisa.tensor_copy(dst=result, src=acc)
+            nisa.dma_copy(dst=out[mi * 128:(mi + 1) * 128, :], src=result)
+        return out
+
+    return native_fp8_gemm, nki_bf16_gemm
+
+
+def sync():
+    torch.neuron.synchronize()
+
+
+def relative_rms(actual, reference):
+    return float((actual.float() - reference.float()).square().mean().sqrt()
+                 / reference.float().square().mean().sqrt().clamp_min(1e-20))
+
+
+def run_case(fp8, bf16, shape, steps):
+    m, k, n = shape
+    torch.manual_seed(17 + k)
+    a = (torch.randn(m, k) * 0.5).bfloat16()
+    b = (torch.randn(k, n) * k ** -0.5).bfloat16()
+    # Calibration is intentionally separate: amax overhead is NOT included below.
+    # Powers of two make the dequantization reference unambiguous.
+    sa = float(2.0 ** torch.floor(torch.log2(128.0 / a.float().abs().max())))
+    sb = float(2.0 ** torch.floor(torch.log2(128.0 / b.float().abs().max())))
+    scalars = torch.tensor([sa, sb, 1.0 / (sa * sb)]).repeat(128, 1).to("neuron")
+    quant_reference = (e4m3_legacy(a.float() * sa) @ e4m3_legacy(b.float() * sb)) / (sa * sb)
+    full_reference = a.float() @ b.float()
+    ad, bd = a.to("neuron"), b.to("neuron")
+    at = ad.T.contiguous()
+    y8 = fp8(at, bd, scalars).cpu()
+    y16 = bf16(at, bd).cpu()
+    torch.testing.assert_close(y8.float(), quant_reference.bfloat16().float(), rtol=0.009, atol=1e-5)
+    torch.testing.assert_close(y16.float(), full_reference.bfloat16().float(), rtol=0.009, atol=1e-5)
+    assert torch.isfinite(y8).all() and torch.isfinite(y16).all()
+    print(json.dumps(dict(check="fp8_correctness", shape=shape, scale_a=sa, scale_b=sb,
+                          fp8_vs_quant_reference_relative_rms=relative_rms(y8, quant_reference),
+                          fp8_vs_fp32_relative_rms=relative_rms(y8, full_reference),
+                          bf16_vs_fp32_relative_rms=relative_rms(y16, full_reference))), flush=True)
+    arms = {"native_torch_bf16": lambda: ad @ bd,
+            "nki_bf16_layout_included": lambda: bf16(ad.T.contiguous(), bd),
+            "nki_fp8_layout_cast_included": lambda: fp8(ad.T.contiguous(), bd, scalars),
+            "nki_fp8_pretransposed_lower_bound": lambda: fp8(at, bd, scalars)}
+    for fn in arms.values():
+        for _ in range(3):
+            fn()
+        sync()
+    samples = {name: [] for name in arms}
+    for rep in range(3):
+        order = list(arms) if rep % 2 == 0 else list(reversed(arms))
+        for name in order:
+            sync()
+            start = time.perf_counter()
+            for _ in range(steps):
+                arms[name]()
+            sync()
+            samples[name].append((time.perf_counter() - start) * 1000 / steps)
+    print(json.dumps(dict(check="fp8_benchmark", shape=shape, calibration_amax_included=False,
+                          samples_ms=samples, median_ms={k: statistics.median(v) for k, v in samples.items()},
+                          training_speed_or_quality_claim=False)), flush=True)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--steps", type=int, default=12)
+    parser.add_argument("--large", action="store_true", help="also test an8192-token projection tile")
+    args = parser.parse_args()
+    torch.set_num_threads(2)
+    import torch_neuronx  # noqa: F401
+    fp8, bf16 = build_kernels()
+    for shape in ((128, 256, 128), (256, 768, 512)):
+        run_case(fp8, bf16, shape, args.steps)
+    if args.large:
+        run_case(fp8, bf16, (8192, 768, 512), args.steps)
+    print("PASS: native FP8 primitive probes completed", flush=True)
+
+
+if __name__ == "__main__":
+    main()
