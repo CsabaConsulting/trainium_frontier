@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated2026-09-18,23:19UTC. Authorization: danger-full-access, approval never.
+Updated2026-09-18,23:22UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
 ## Current result and active work
@@ -40,8 +40,12 @@ No actual FP8 matmuls, optimizer, collectives or caller spill measurements.
 Full FP8 forward/backward islands remain open; no training promotion here.
 The next immutable source adds actual FP8 up/down GEMMs with per-token scaling
 in `fp8_mlp_island_nki.py`, and an independent stage/pair-rounding/row-isolation
-gate. Syntax passes. Deploy on trn22 and run the small gate first; no backward
-or timing claim yet. trn22 watcher must be moved from wave69 to the new source.
+gate. Wave71 small gate stops before MLP execution: unbound `calibrate_rows` helper
+in the NKI frontend; calibration12checks pass and postflight is clean. The
+next source registers undecorated helpers in module globals and repeats the
+unchanged forward gates. A BF16 STE backward/reference/bounds helper is written
+but not yet hardware-gated. No backward or timing claim. trn22 watcher currently
+follows wave71 and must move to the fixed immutable source.
 
 The T1024/pack16+ownership phase finished clean at515.4737504781224ms versus
 fresh owned T2048/pack8 control528.353027504636ms:2.4376%, below predeclared3%.
@@ -117,7 +121,7 @@ Local Devuan/SystemV, usercsaba cron; no root/systemd:
   zero errors, including both new quality checkpoints. State is
   out/fresh-start-artifact-backup/latest.json; receipts under research/run-logs.
   Newly produced remote checkpoints still need retrieval to checkpoints/ first.
-- Local log watchers currently follow trn21/wave70 and trn22/wave69,90rounds at
+- Local log watchers currently follow trn21/wave70 and trn22/wave71,90rounds at
  45seconds. Repoint when the active remote worktree changes. Only stop exact
   owned watcher PID/UID/cwd/argv/startticks; remote training jobs are separate.
 

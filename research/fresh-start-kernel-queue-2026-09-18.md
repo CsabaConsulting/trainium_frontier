@@ -130,3 +130,10 @@ reintroduce cancellation. Any table must also supply a tested backward path.
 Primary sources and the13 user links are recorded in
 `fresh-start-retro-numerics-2026-09-18.md`. No claim is made that a leaderboard
 team uses any of these techniques.
+
+Wave71 actual-FP8 first run fails at frontend helper lookup, before MLP device
+execution. Calibration12checks pass and postflight is clean. The factory now
+registers its undecorated helper names in module globals; the same forward
+gates will be rerun on a new immutable source. No tolerance changes. The STE
+BF16 backward and independent FP64 surrogate-reference/bounds helper are written,
+but hardware backward gating and complete timing remain outstanding.

@@ -13,7 +13,9 @@ That order must be validated against its own empirical11-bit pair reference.
 
 
 def build_kernel():
-    global nl, nisa
+    # The installed NKI parser resolves callees through module globals, not
+    # Python closure cells. Keep these undecorated helpers in that namespace.
+    global nl, nisa, calibrate_rows, transpose_broadcast_inverse
     import nki
     import nki.language as nl
     import nki.isa as nisa
