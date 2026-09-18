@@ -97,3 +97,18 @@ evaluation and strict checkpoint load checks. Every call must contain a compiled
 autograd node. The old failed comparisons remain recorded; this gate is pending.
 Source: `scratch/mlp_isolated_integration_check.py`. Evidence labels
 `fs-w47-mlp-{native-only,nki-separate-only,native-plus-separated}-diagnosis-r1`.
+
+## Wave48: unchanged gates pass with isolated compiled references
+
+Native capture and candidate comparison completed cleanly as separate guarded
+jobs ontrn22. All48 output/dx/accumulated-master-gradient comparisons pass the
+original bounds at256x256 and8192x1024. Every reference and candidate call has
+compiled autograd; cache refresh, matched updates, exact native evaluation and
+strict ordinary checkpoint loading pass. Forward outputs pass the unchanged bounds at both shapes; they are not all
+bit-exact. Maximum relative RMS over all comparisons is0.001178439, below0.004. See `fs-w48-mlp-isolated-gate-summary.json` for maxima. Both reference files (21,277,665 and604,119,159bytes) are now local with matching
+remote SHA256s and queued for GitHub artifact backup.
+
+The former failed gate was comparing different execution paths. The same NKI
+implementation now qualifies for a complete-step phase; this is not a speed
+result and does not establish a full-training quality win. A native-forward
+control behind the same boundary is the next mechanism comparison.
