@@ -6,6 +6,7 @@ computation and returns raw/permuted/scanned intermediates alongside its dense
 result. Extra DMA stores still change scheduling, so compare the uninstrumented
 arm too. These are diagnostic records, not a timing or training correctness pass.
 """
+import argparse
 import json
 
 import numpy as np
@@ -17,6 +18,10 @@ from embedding_segmented_probe import gradient_for, indices_for
 
 
 def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument('--aligned-sbuf', action='store_true')
+    ap.add_argument('--gather-tile', type=int, default=8192)
+    args = ap.parse_args()
     torch.set_num_threads(4)
     import torch_neuronx
     tokens, channels, vocabulary = 8192, 1024, 8192
@@ -42,13 +47,16 @@ def main():
         torch._dynamo.reset()
 
         def captured(gg, pp, cc, ll, vv):
-            return wrapped[2](gg, pp, cc, ll, vv, 2, True, debug, reuse)
+            return wrapped[2](gg, pp, cc, ll, vv, 2, True, debug, reuse,
+                              args.aligned_sbuf, args.gather_tile)
 
         compiled = torch.compile(captured, backend='neuron', fullgraph=True, dynamic=False)
-        for mode, call in [('eager',lambda:kernel[2](gd,*md,2,True,debug,reuse)),
+        for mode, call in [('eager',lambda:kernel[2](gd,*md,2,True,debug,reuse,
+                                                  args.aligned_sbuf,args.gather_tile)),
                            ('compiled',lambda:compiled(gd,*md))]:
             output = call()
-            name = f'{mode}:manual_sbuf:debug{debug}:reuse{reuse}'
+            name = (f'{mode}:manual_sbuf:debug{debug}:reuse{reuse}'
+                    f':aligned{args.aligned_sbuf}:gather_tile{args.gather_tile}')
             if debug:
                 final, *stages = output
                 for stage, (actual, expected) in enumerate(zip(stages,refs)):

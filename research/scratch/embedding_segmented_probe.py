@@ -109,6 +109,7 @@ def run_case(args, kernel, kind, shape):
         compiled_kernel=args.compiled_kernel,
         manual_sbuf=args.manual_sbuf,
         reuse_sbuf=args.reuse_sbuf,
+        aligned_sbuf=args.aligned_sbuf, gather_tile=args.gather_tile,
         gradient_dtype="float32", preparation_uses_training_only=(kind == "training"))), flush=True)
     if args.device == "cpu":
         return
@@ -121,7 +122,8 @@ def run_case(args, kernel, kind, shape):
 
     def invoke(gg, *metadata_args):
         parts = [kernel[lanes](gg[:, start:start + chunk].contiguous(), *metadata_args,
-                              lanes, args.manual_sbuf, False, args.reuse_sbuf)
+                              lanes, args.manual_sbuf, False, args.reuse_sbuf,
+                              args.aligned_sbuf, args.gather_tile)
                  for start in range(0, channels, chunk)]
         return parts[0] if len(parts) == 1 else torch.cat(parts, dim=1)
     if args.compiled_kernel:
@@ -131,7 +133,8 @@ def run_case(args, kernel, kind, shape):
 
         def captured(gg, pp, cc, ee, vv):
             parts = [wrapped[lanes](gg[:, start:start + chunk].contiguous(), pp, cc, ee, vv,
-                                   lanes, args.manual_sbuf, False, args.reuse_sbuf)
+                                   lanes, args.manual_sbuf, False, args.reuse_sbuf,
+                                   args.aligned_sbuf, args.gather_tile)
                      for start in range(0, channels, chunk)]
             return parts[0] if len(parts) == 1 else torch.cat(parts, dim=1)
 
@@ -218,6 +221,10 @@ def main():
                     help="Use explicit disjoint byte addresses for every scratch tile.")
     ap.add_argument("--reuse-sbuf", action="store_true",
                     help="Allocate scratch outside loops and reuse the same tensor identities.")
+    ap.add_argument("--aligned-sbuf", action="store_true",
+                    help="Place FP32/uint32 tiles on4*T-byte boundaries before BF16 scratch.")
+    ap.add_argument("--gather-tile", type=int, default=8192,
+                    help="Maximum outputs per permutation gather; source keeps full token range.")
     ap.add_argument("--split-channels", type=int, default=0,
                     help="Use independent narrow kernels, including input copies and output concatenation.")
     args = ap.parse_args()

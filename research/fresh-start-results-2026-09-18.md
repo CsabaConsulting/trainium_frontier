@@ -1011,3 +1011,39 @@ validation: gen3 transpose source/destination dtypes must match. It attempted
 BF16-to-FP32 transpose. The correction transposes FP32-to-FP32 first, then casts
 the cache value to BF16. There is no device timing for the failed version.
 Both failure postflights are healthy and all evidence is retained.
+
+
+### 14:35 UTC — wave29 narrows gather and MLP failures
+
+All four completed wave29 jobs have healthy automatic pre/postflight receipts,
+no leftover device holders, and no cleanup kills. Kernel reset messages are
+paired initiation/completion during ordinary process attachment; no unfinished
+reset or ECC error was observed. Their exact source is06215d3.
+
+- Full manual scan: reusing tensor identities outside loops does **not** fix the
+  result. Both eager/compiled and instrumented/uninstrumented variants reproduce
+  1,283,061 final violations. Raw loads are exact; permutation gathering first
+  fails for channels768–1023. The first three paired channel blocks are exact.
+- Independent gather tiling:512 outputs per call is **exact**, including all
+  dependent index reads, in eager and compiled actual-shape probes. Width1024
+  produces57,344 wrong values,2048 produces190,976,8192 produces1,966,080. The
+  source retains its full8192-row index range. This is a concrete boundary to
+  test in the full computation, not validation of that computation.
+- Revised contiguous-weight MLP passes all16 FP64 GEMM stage bounds and24 native
+  forward/gradient comparisons. Actual shape8192×1024×4096 forward is554.088ms
+  versus native1.36410ms; forward/backward555.364ms versus4.34585ms. This is an
+  improvement on the flawed785ms kernel, but still a large regression. A second
+  small device profile was captured to attribute remaining costs.
+
+Next controlled variants preserve the failed controls: (1) constrain permutation
+  gathers to512 outputs in the complete scan; (2) reorder mixed-dtype explicit
+  scratch so every FP32/uint32 tile starts at a4*T-byte boundary, as in the
+  passing manual-address reproducer; (3) replace transposed activation DMA in
+  the MLP with contiguous128×128 loads/stores plus on-chip transpose. Address
+  alignment and compiler dependency behavior remain hypotheses. All variants
+  need original, uninstrumented correctness gates before timing/promotion.
+
+The evaluation contract audit confirms public CLI defaults B1/T1024, with the
+  exact trusted metric. The private runner configuration is not completely
+  exposed here. Continue reporting context length, token count and public shard
+  explicitly; do not equate the better T2048 score with the private leaderboard.

@@ -23,6 +23,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--trace-dir', type=Path, required=True)
     ap.add_argument('--contiguous-weights', action='store_true')
+    ap.add_argument('--tiled-io', action='store_true')
     args = ap.parse_args()
     torch.set_num_threads(4)
     trace = args.trace_dir.resolve()
@@ -37,7 +38,7 @@ def main():
     wrapped = torch_neuronx.wrap_nki(build_kernel())
 
     def call(xx, uu, dd):
-        return wrapped[2](xx, uu, dd, 2, 128, args.contiguous_weights)
+        return wrapped[2](xx, uu, dd, 2, 128, args.contiguous_weights, args.tiled_io)
 
     fused = torch.compile(call, backend='neuron', fullgraph=True, dynamic=False)
     native = torch.compile(reference_forward, backend='neuron', fullgraph=True, dynamic=False)
@@ -77,7 +78,7 @@ def main():
     eager = preserve_trace_neffs(trace, Path('/tmp/neff_cache'), export)
     assert not missing and not eager['unresolved']
     print('MLP_PROFILE_ARTIFACT '+json.dumps(dict(trace=str(trace),shape=[256,256,512],
-          contiguous_weights=args.contiguous_weights,
+          contiguous_weights=args.contiguous_weights, tiled_io=args.tiled_io,
           compiled_neffs=len(entries),eager_neffs=len(eager['files']),
           profiled_latency_is_performance_evidence=False)),flush=True)
 

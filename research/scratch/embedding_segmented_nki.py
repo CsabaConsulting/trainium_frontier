@@ -53,7 +53,8 @@ def build_kernel():
     @nki.jit
     def segmented_gradient(gradient, permutation, continuation, last, present,
                            lanes: int = 2, manual_sbuf: bool = False,
-                           debug_intermediates: bool = False, reuse_sbuf: bool = False):
+                           debug_intermediates: bool = False, reuse_sbuf: bool = False,
+                           aligned_sbuf: bool = False, gather_tile: int = 8192):
         tokens, channels = gradient.shape
         vocabulary = last.shape[1]
         assert gradient.dtype == nl.float32
@@ -61,6 +62,8 @@ def build_kernel():
         assert tokens <= 8192 and vocabulary % 128 == 0
         assert permutation.shape == (1, tokens) and continuation.shape == (1, tokens)
         assert present.shape == (1, vocabulary)
+        gt = min(tokens, gather_tile)
+        assert gt > 0 and tokens % gt == 0
         vt = min(vocabulary, 512)
         assert vocabulary % vt == 0
         # Actual-shape gather diagnostics pass with disjoint explicit scratch
@@ -76,6 +79,18 @@ def build_kernel():
         valid_address = (0, 18 * tokens + 4 * vt) if manual_sbuf else None
         sums_address = (0, 18 * tokens + 6 * vt) if manual_sbuf else None
         masked_address = (0, 18 * tokens + 10 * vt) if manual_sbuf else None
+        if aligned_sbuf:
+            assert manual_sbuf
+            # The passing gather reproducer placed every FP32/uint32 tile
+            # at a multiple of4*T bytes. The previous mixed-dtype layout put
+            # raw/scanned at6*T/14*T, crossing32KiB boundaries atT8192.
+            # This reordering tests address alignment without changing live
+            # bytes, operations, input values or loop identities.
+            raw_address = (0, 0)
+            ordered_address = (0, 4 * tokens)
+            scanned_address = (0, 8 * tokens)
+            perm_address = (0, 12 * tokens)
+            cont_address = (0, 16 * tokens)
         result = nl.ndarray((vocabulary, channels), dtype=nl.float32, buffer=nl.shared_hbm)
         if debug_intermediates:
             raw_debug = nl.ndarray((channels, tokens), dtype=nl.float32, buffer=nl.shared_hbm)
@@ -115,7 +130,12 @@ def build_kernel():
                           src=gradient.ap(pattern=[[1, 128], [channels, tokens]], offset=c0))
             if debug_intermediates:
                 nisa.dma_copy(dst=raw_debug[c0:c0 + 128, :], src=raw)
-            nisa.nc_n_gather(dst=ordered, data=raw, indices=perm)
+            # The independent tiled reproducer is exact with512 outputs per
+            # gather and fails with larger output widths. Preserve the full
+            # source index range while making that boundary explicit here.
+            for gi in nl.sequential_range(tokens // gt):
+                nisa.nc_n_gather(dst=ordered[:, gi * gt:(gi + 1) * gt], data=raw,
+                                 indices=perm[:, gi * gt:(gi + 1) * gt])
             if debug_intermediates:
                 nisa.dma_copy(dst=ordered_debug[c0:c0 + 128, :], src=ordered)
             nisa.tensor_tensor_scan(dst=scanned, data0=cont, data1=ordered,

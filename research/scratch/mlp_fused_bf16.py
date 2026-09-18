@@ -22,7 +22,7 @@ def build_kernel():
 
     @nki.jit
     def fused_mlp(x, up, down, lanes: int = 2, token_tile: int = 512,
-                  contiguous_weights: bool = False):
+                  contiguous_weights: bool = False, tiled_io: bool = False):
         tokens, channels = x.shape
         hidden, up_channels = up.shape
         assert up_channels == channels and down.shape == (channels, hidden)
@@ -75,9 +75,22 @@ def build_kernel():
             inputs = nl.ndarray((128, nc, token_tile), dtype=nl.bfloat16, buffer=nl.sbuf)
             activated = nl.ndarray((128, nh, token_tile), dtype=nl.bfloat16, buffer=nl.sbuf)
             for ci in nl.affine_range(nc):
-                nisa.dma_copy(dst=inputs[:, ci, :],
-                              src=x.ap(pattern=[[1, 128], [channels, token_tile]],
-                                       offset=m0 * channels + ci * 128))
+                if tiled_io:
+                    # Read whole contiguous BF16 rows before exchanging the
+                    # token and channel axes on TensorEngine. Direct strided
+                    # dma_copy is retained below as the measured control.
+                    for ti in nl.affine_range(token_tile // 128):
+                        input_rows = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.sbuf)
+                        input_t = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.psum)
+                        nisa.dma_copy(dst=input_rows,
+                                      src=x[m0 + ti * 128:m0 + (ti + 1) * 128,
+                                            ci * 128:(ci + 1) * 128])
+                        nisa.nc_transpose(dst=input_t, data=input_rows)
+                        nisa.tensor_copy(dst=inputs[:, ci, ti * 128:(ti + 1) * 128], src=input_t)
+                else:
+                    nisa.dma_copy(dst=inputs[:, ci, :],
+                                  src=x.ap(pattern=[[1, 128], [channels, token_tile]],
+                                           offset=m0 * channels + ci * 128))
             for hi in nl.affine_range(nh):
                 up_acc = nl.ndarray((128, token_tile), dtype=nl.float32, buffer=nl.psum)
                 for ci in nl.affine_range(nc):
@@ -88,8 +101,17 @@ def build_kernel():
                 nisa.tensor_copy(dst=rounded, src=up_acc)
                 nisa.tensor_scalar(dst=relu, data=rounded, op0=nl.maximum, operand0=0.0)
                 nisa.tensor_tensor(dst=activated[:, hi, :], data1=relu, data2=relu, op=nl.multiply)
-                nisa.dma_copy(dst=saved_relu.ap(pattern=[[1, 128], [hidden, token_tile]],
-                                                offset=m0 * hidden + hi * 128), src=relu)
+                if tiled_io:
+                    for ti in nl.affine_range(token_tile // 128):
+                        relu_t = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.psum)
+                        relu_rows = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.sbuf)
+                        nisa.nc_transpose(dst=relu_t, data=relu[:, ti * 128:(ti + 1) * 128])
+                        nisa.tensor_copy(dst=relu_rows, src=relu_t)
+                        nisa.dma_copy(dst=saved_relu[m0 + ti * 128:m0 + (ti + 1) * 128,
+                                                    hi * 128:(hi + 1) * 128], src=relu_rows)
+                else:
+                    nisa.dma_copy(dst=saved_relu.ap(pattern=[[1, 128], [hidden, token_tile]],
+                                                    offset=m0 * hidden + hi * 128), src=relu)
             for ci in nl.affine_range(nc):
                 down_acc = nl.ndarray((128, token_tile), dtype=nl.float32, buffer=nl.psum)
                 for hi in nl.affine_range(nh):
@@ -97,8 +119,17 @@ def build_kernel():
                                    moving=activated[:, hi, :], accumulate=(hi > 0))
                 output = nl.ndarray((128, token_tile), dtype=nl.bfloat16, buffer=nl.sbuf)
                 nisa.tensor_copy(dst=output, src=down_acc)
-                nisa.dma_copy(dst=result.ap(pattern=[[1, 128], [channels, token_tile]],
-                                            offset=m0 * channels + ci * 128), src=output)
+                if tiled_io:
+                    for ti in nl.affine_range(token_tile // 128):
+                        output_t = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.psum)
+                        output_rows = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.sbuf)
+                        nisa.nc_transpose(dst=output_t, data=output[:, ti * 128:(ti + 1) * 128])
+                        nisa.tensor_copy(dst=output_rows, src=output_t)
+                        nisa.dma_copy(dst=result[m0 + ti * 128:m0 + (ti + 1) * 128,
+                                                ci * 128:(ci + 1) * 128], src=output_rows)
+                else:
+                    nisa.dma_copy(dst=result.ap(pattern=[[1, 128], [channels, token_tile]],
+                                                offset=m0 * channels + ci * 128), src=output)
         return result, saved_relu
 
     return fused_mlp
