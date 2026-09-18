@@ -1,0 +1,290 @@
+[W918 09:02:21.881595144 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+W0918 09:02:21.690000 1121430 torch/distributed/run.py:851] 
+W0918 09:02:21.690000 1121430 torch/distributed/run.py:851] *****************************************
+W0918 09:02:21.690000 1121430 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0918 09:02:21.690000 1121430 torch/distributed/run.py:851] *****************************************
+[W918 09:02:23.157285395 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W918 09:02:23.157511814 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W918 09:02:23.157943402 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W918 09:02:23.163504465 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[pt] set DEPTH = 6 (was 6)[pt] set DEPTH = 6 (was 6)[pt] set DEPTH = 6 (was 6)
+
+
+[pt] set N_EMBD = 1024 (was 0)[pt] set N_EMBD = 1024 (was 0)[pt] set N_EMBD = 1024 (was 0)
+
+
+[pt] set USE_QK_SHIFT = True (was True)
+[pt] set USE_QK_SHIFT = True (was True)[pt] set USE_QK_SHIFT = True (was True)
+
+[pt] set QK_SHIFT_BETA = 0.0 (was 0.0)
+[pt] set QK_SHIFT_BETA = 0.0 (was 0.0)[pt] set QK_SHIFT_BETA = 0.0 (was 0.0)
+
+[pt] set QK_SHIFT_FREEZE = True (was True)
+[pt] set QK_SHIFT_FREEZE = True (was True)[pt] set QK_SHIFT_FREEZE = True (was True)
+[pt] set USE_COMPILE_MUON = True (was True)
+
+[pt] set USE_COMPILE_MUON = True (was True)
+[pt] set USE_COMPILE_MUON = True (was True)[pt] set USE_NKI_MUON = False (was True)
+
+[pt] set USE_NKI_MUON = False (was True)[pt] set USE_NKI_MUON = False (was True)
+
+[pt] set COMPILE_SDPA_DIRECT = True (was False)[pt] set COMPILE_SDPA_DIRECT = True (was False)
+[pt] set COMPILE_SDPA_DIRECT = True (was False)
+
+[pt] set DEPTH = 6 (was 6)
+[pt] set N_EMBD = 1024 (was 0)
+[pt] set USE_QK_SHIFT = True (was True)
+[pt] set QK_SHIFT_BETA = 0.0 (was 0.0)
+[pt] set QK_SHIFT_FREEZE = True (was True)
+[pt] set USE_COMPILE_MUON = True (was True)
+[pt] set USE_NKI_MUON = False (was True)
+[pt] set COMPILE_SDPA_DIRECT = True (was False)
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+PROFILE_CONFIG {"seed": 42, "model": {"sequence_len": 2048, "vocab_size": 8192, "n_layer": 6, "n_head": 8, "n_embd": 1024, "mlp_ratio": 4, "attn_scale": 0.0, "n_kv_heads": 0}, "toggles": {"PACK_FACTOR": 4, "INIT_SCALE": 0.5, "USE_VE": true, "WINDOW_PATTERN": "L", "SHORT_WINDOW_FRAC": 0.5, "ROPE_BASE": 100000, "USE_LOCAL_CONV": true, "LOCAL_CONV_KERNEL": 2, "TRAIN_LOCAL_CONV": true, "USE_GATED_MLP": false, "USE_WEIGHT_CACHE": true, "USE_TRANSPOSED_LINEAR": false, "WARMDOWN_RATIO": 0.75, "FINAL_LR_FRAC": 0.05, "WARMUP_STEPS": 0, "WD_DECAY_TO_ZERO": true, "MUON_MOMENTUM_WARMUP_STEPS": 300, "USE_DOC_MASK": false, "VE_WD": 0.0, "USE_SELECTIVE_GATE": false, "SELECTIVE_GATE_CHANNELS": 32, "USE_FUSED_QKV": false, "USE_CAUSAL_FASTPATH": true, "USE_TRN2_COMPILER_FLAGS": false, "COMPILE_SDPA_DIRECT": true, "USE_NKI_ATTN": false, "MATRIX_LR": 0.02, "EMBEDDING_LR": 0.3, "UNEMBEDDING_LR": 0.006, "SCALAR_LR": 0.2, "WEIGHT_DECAY": 0.2, "GRAD_CLIP": 1.0, "CLIP_AFTER_REDUCE": false, "LOGIT_SOFTCAP": 15.0, "LOSS_BYTE_WEIGHT": false, "LOSS_SCALE": 1.0, "LOSS_SCALE_DYNAMIC": false, "ATTN_CPROJ_INIT_SCALE": 0.1, "MUON_NS_STEPS": 5, "MUON_MOMENTUM_COOLDOWN_FRAC": 0.045, "MUON_MOMENTUM_FINAL": 0.85, "ADAM_EVERY_N": 1, "ADAM_EVERY_N_LR_COMP": false, "DEMON_BETA1": false, "DEMON_BETA1_FINAL": 0.55, "DEMON_BETA1_REF": 0.8, "DEMON_BETA1_START_FRAC": -1.0, "MUON_BETA2": 0.9, "MUON_BETA2_FINAL": 0.0, "MUON_DEPTH_LR_BOTTOM": 1.0, "MUON_DEPTH_LR_TOP": 1.0, "MUON_DEPTH_MOM_BOTTOM": 0.0, "MUON_DEPTH_MOM_TOP": 0.0, "MUON_DEPTH_MOM_REF": 0.95, "DEPTH": 6, "N_EMBD": 1024, "HEAD_DIM": 128, "MLP_RATIO": 4, "ATTN_SCALE": 0.0, "N_KV_HEADS": 0, "USE_NGRAM_VE": false, "NGRAM_VE_LAYERS": "1,-1", "NGRAM_VE_TABLE_MULT": 8, "NGRAM_VE_TRIGRAM": true, "NGRAM_VE_DIM": 0, "NGRAM_VE_BF16": true, "NGRAM_RMS_FP32": false, "USE_NKI_NGRAM_RMS": false, "NGRAM_VE_LR": 0.0, "NGRAM_VE_BETA2": 0.999, "NGRAM_VE_FLAT_LR": true, "NGRAM_VE_OPT": "rmsprop", "NGRAM_VE_CLIP_EXCLUDE": true, "USE_OUT_BIGRAM": false, "OUT_BIGRAM_BF16": true, "OUT_BIGRAM_GATE_BIAS": -2.0, "OUT_BIGRAM_LR": 0.0, "RELU2_TAU": 0.0, "USE_MLP_SANDWICH_NORM": false, "USE_HEAD_GATE": false, "HEAD_GATE_NORM": true, "HEAD_GATE_CHANNELS": 32, "HEAD_GATE_MUL": 2.0, "HEAD_GATE_BIAS": 0.0, "USE_OUT_POOL": false, "OUT_POOL_LAYERS": 3, "USE_QK_SHIFT": true, "QK_SHIFT_BETA": 0.0, "QK_SHIFT_FREEZE": true, "USE_X0_GATE": false, "USE_BLOCK_NUDGE": false, "BLOCK_NUDGE_SITE": "qk", "USE_QKV_NORM_CSE": false, "USE_PARALLEL_BLOCK": false, "PARALLEL_BLOCK_COALESCE": "none", "USE_ENGRAM": false, "ENGRAM_SITE": "2", "ENGRAM_ORDERS": "2,3", "ENGRAM_HEADS": 1, "ENGRAM_TABLE_MULT": 32, "ENGRAM_MEM_DIM": 128, "ENGRAM_KEY_DIM": 0, "ENGRAM_CONV_KERNEL": 4, "ENGRAM_SHARE_NGRAM_TABLES": false, "ENGRAM_BF16": true, "USE_EPOCH_SHUFFLE": false, "EPOCH_SHUFFLE_SEED": 1234, "BATCH_RAMP": false, "BATCH_RAMP_GRAD_ACCUM": [2, 4, 8], "BATCH_RAMP_BOUNDS": [0.35, 0.75], "BATCH_RAMP_LR_EXP": 0.5, "USE_WEIGHT_EMA": false, "WEIGHT_EMA_DECAYS": [0.995], "WEIGHT_EMA_START_FRAC": 0.75, "USE_BYTE_WTE_INIT": false, "BYTE_WTE_INIT_MIX": 1.0, "BYTE_WTE_INIT_NGRAM": 3, "BYTE_WTE_INIT_STD": 0.8, "USE_COALESCED_SWIGLU": false, "COALESCED_SWIGLU_HIDDEN": 0, "USE_CAUTIOUS_WD": false, "SCALAR_BETA1": 0.9, "SCALAR_BETA2": 0.95}, "compiler_flags": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16"}
+[pt] world_size=4 LNC=2 micro_tokens=32,768 grad_accum=4 local_conv=True conv_mode=normal compile=True foreach_optim=True weight_cache=True ngram_ve=False ngram_tables=0 ngram_rows=65536 ngram_dim=1024 ngram_index_gather=True params=117,459,724
+2026-Sep-18 09:03:42.125331 1121445:1121529 ERROR  TDRV:exec_request_process_errors             [ND 0][NC 4] notification queue overflow on model module.neff. Too many notifications generated during execution.
+2026-Sep-18 09:03:42.128449 1121445:1121529 ERROR  TDRV:exec_request_progress_one_step          [LNC 0] Failed to progress Neuron Core Exec State, error: 1204
+2026-Sep-18 09:03:42.130585 1121445:1121529 ERROR  NMGR:tpb_xu_step                             Failed to progress exec state, Execution Unit[1] encountered fatal error [NRT_EXEC_SW_NQ_OVERFLOW].
+2026-Sep-18 09:03:42.133097 1121445:1121529 ERROR   NRT:nrt_infodump                            Neuron runtime information - please include in any support request:
+2026-Sep-18 09:03:42.135184 1121445:1121529 ERROR   NRT:nrt_infodump                            ------------->8------------[ cut here ]------------>8-------------
+2026-Sep-18 09:03:42.137193 1121445:1121529 ERROR   NRT:nrt_infodump                            NRT version: 2.34.10.0 (ac18d186d3198d7152096c3a8fa77e1ab1424c39)
+2026-Sep-18 09:03:42.139235 1121445:1121529 ERROR   NRT:nrt_infodump                            Embedded FW version: 1.24.1.0 (b0a1a5cc148a4e8a48e1889d2982f465280f3d0a) loaded from "libnrtucode_extisa.so"
+2026-Sep-18 09:03:42.141807 1121445:1121529 ERROR   NRT:nrt_infodump                            CCOM version: 2.34.10.0- (compat 92)
+2026-Sep-18 09:03:42.144539 1121445:1121529 ERROR   NRT:nrt_infodump                            NCFW version: 2.34.1.0 (23a4b43d43c9755014be657d2853735b1551cfbe)
+2026-Sep-18 09:03:42.146584 1121445:1121529 ERROR   NRT:nrt_infodump                            Instance ID: i-0673e54d9d66e6a1e
+2026-Sep-18 09:03:42.148213 1121445:1121529 ERROR   NRT:nrt_infodump                            Cluster ID: 13821315585481131339
+2026-Sep-18 09:03:42.149844 1121445:1121529 ERROR   NRT:nrt_infodump                            Kernel: Linux 6.17.0-1019-aws #19~24.04.1-Ubuntu SMP Tue Jun 23 18:53:06 UTC 2026
+2026-Sep-18 09:03:42.152096 1121445:1121529 ERROR   NRT:nrt_infodump                            Nodename: ip-172-31-32-253
+2026-Sep-18 09:03:42.153657 1121445:1121529 ERROR   NRT:nrt_infodump                            Driver version: 2.30.2.0
+
+2026-Sep-18 09:03:42.155480 1121445:1121529 ERROR   NRT:nrt_infodump                            Failure: NRT_EXEC_SW_NQ_OVERFLOW in tpb_xu_step
+2026-Sep-18 09:03:42.157872 1121445:1121529 ERROR   NRT:nrt_infodump                            LNC: 0
+2026-Sep-18 09:03:42.159168 1121445:1121529 ERROR   NRT:nrt_infodump                            Visible cores: 0
+2026-Sep-18 09:03:42.160564 1121445:1121529 ERROR   NRT:nrt_infodump                            Environment:
+2026-Sep-18 09:03:42.161851 1121445:1121529 ERROR   NRT:nrt_infodump                                NEURON_LOGICAL_NC_CONFIG=2
+2026-Sep-18 09:03:42.163413 1121445:1121529 ERROR   NRT:nrt_infodump                                NEURON_CC_FLAGS=--optlevel=1 --auto-cast matmult --auto-cast-type bf16
+2026-Sep-18 09:03:42.166057 1121445:1121529 ERROR   NRT:nrt_infodump                                NEURON_RT_ENABLE_DGE_NOTIFICATIONS=1
+2026-Sep-18 09:03:42.167736 1121445:1121529 ERROR   NRT:nrt_infodump                                NEURON_LAUNCH_BLOCKING=0
+2026-Sep-18 09:03:42.169277 1121445:1121529 ERROR   NRT:nrt_infodump                                NEURON_RT_ALLOW_LEGACY_NEFF=1
+2026-Sep-18 09:03:42.170841 1121445:1121529 ERROR   NRT:nrt_infodump                                NEURON_RT_DBG_ZEROCOPY=1
+2026-Sep-18 09:03:42.172316 1121445:1121529 ERROR   NRT:nrt_infodump                                NEURON_RT_MAP_HBM=1
+2026-Sep-18 09:03:42.173679 1121445:1121529 ERROR   NRT:nrt_infodump                                NEURON_RT_DISABLE_EXECUTION_BARRIER=0
+2026-Sep-18 09:03:42.175377 1121445:1121529 ERROR   NRT:nrt_infodump                                NEURON_COMPILE_CACHE_DIR=/tmp/neuron_cache
+2026-Sep-18 09:03:42.177133 1121445:1121529 ERROR   NRT:nrt_infodump                                NEURON_RT_ROOT_COMM_ID=ip-172-31-32-253.ap-southeast-4.compute.internal:48749
+2026-Sep-18 09:03:42.179296 1121445:1121529 ERROR   NRT:nrt_infodump                                NEURON_RT_ENABLE_DEVICE_MEMORY_OOM_LOG=0
+2026-Sep-18 09:03:42.181070 1121445:1121529 ERROR   NRT:nrt_infodump                            -------------8<-----------[ cut to here ]-----------8<------------
+2026-Sep-18 09:03:43.167876 1121446:1121530 ERROR  TDRV:exec_request_process_errors             [ND 0][NC 6] notification queue overflow on model module.neff. Too many notifications generated during execution.
+2026-Sep-18 09:03:43.170912 1121446:1121530 ERROR  TDRV:exec_request_progress_one_step          [LNC 1] Failed to progress Neuron Core Exec State, error: 1204
+2026-Sep-18 09:03:43.173058 1121446:1121530 ERROR  NMGR:tpb_xu_step                             Failed to progress exec state, Execution Unit[101] encountered fatal error [NRT_EXEC_SW_NQ_OVERFLOW].
+2026-Sep-18 09:03:43.175526 1121446:1121530 ERROR   NRT:nrt_infodump                            Neuron runtime information - please include in any support request:
+2026-Sep-18 09:03:43.177551 1121446:1121530 ERROR   NRT:nrt_infodump                            ------------->8------------[ cut here ]------------>8-------------
+2026-Sep-18 09:03:43.179569 1121446:1121530 ERROR   NRT:nrt_infodump                            NRT version: 2.34.10.0 (ac18d186d3198d7152096c3a8fa77e1ab1424c39)
+2026-Sep-18 09:03:43.181576 1121446:1121530 ERROR   NRT:nrt_infodump                            Embedded FW version: 1.24.1.0 (b0a1a5cc148a4e8a48e1889d2982f465280f3d0a) loaded from "libnrtucode_extisa.so"
+2026-Sep-18 09:03:43.184182 1121446:1121530 ERROR   NRT:nrt_infodump                            CCOM version: 2.34.10.0- (compat 92)
+2026-Sep-18 09:03:43.185853 1121446:1121530 ERROR   NRT:nrt_infodump                            NCFW version: 2.34.1.0 (23a4b43d43c9755014be657d2853735b1551cfbe)
+2026-Sep-18 09:03:43.187928 1121446:1121530 ERROR   NRT:nrt_infodump                            Instance ID: i-0673e54d9d66e6a1e
+2026-Sep-18 09:03:43.189758 1121446:1121530 ERROR   NRT:nrt_infodump                            Cluster ID: 13821315585481131339
+2026-Sep-18 09:03:43.191375 1121446:1121530 ERROR   NRT:nrt_infodump                            Kernel: Linux 6.17.0-1019-aws #19~24.04.1-Ubuntu SMP Tue Jun 23 18:53:06 UTC 2026
+2026-Sep-18 09:03:43.193577 1121446:1121530 ERROR   NRT:nrt_infodump                            Nodename: ip-172-31-32-253
+2026-Sep-18 09:03:43.195210 1121446:1121530 ERROR   NRT:nrt_infodump                            Driver version: 2.30.2.0
+
+2026-Sep-18 09:03:43.197141 1121446:1121530 ERROR   NRT:nrt_infodump                            Failure: NRT_EXEC_SW_NQ_OVERFLOW in tpb_xu_step
+2026-Sep-18 09:03:43.199011 1121446:1121530 ERROR   NRT:nrt_infodump                            LNC: 0
+2026-Sep-18 09:03:43.200246 1121446:1121530 ERROR   NRT:nrt_infodump                            Visible cores: 1
+2026-Sep-18 09:03:43.202333 1121446:1121530 ERROR   NRT:nrt_infodump                            Environment:
+2026-Sep-18 09:03:43.203674 1121446:1121530 ERROR   NRT:nrt_infodump                                NEURON_LOGICAL_NC_CONFIG=2
+2026-Sep-18 09:03:43.205276 1121446:1121530 ERROR   NRT:nrt_infodump                                NEURON_CC_FLAGS=--optlevel=1 --auto-cast matmult --auto-cast-type bf16
+2026-Sep-18 09:03:43.207406 1121446:1121530 ERROR   NRT:nrt_infodump                                NEURON_RT_ENABLE_DGE_NOTIFICATIONS=1
+2026-Sep-18 09:03:43.209192 1121446:1121530 ERROR   NRT:nrt_infodump                                NEURON_LAUNCH_BLOCKING=0
+2026-Sep-18 09:03:43.210809 1121446:1121530 ERROR   NRT:nrt_infodump                                NEURON_RT_ALLOW_LEGACY_NEFF=1
+2026-Sep-18 09:03:43.213180 1121446:1121530 ERROR   NRT:nrt_infodump                                NEURON_RT_DBG_ZEROCOPY=1
+2026-Sep-18 09:03:43.214768 1121446:1121530 ERROR   NRT:nrt_infodump                                NEURON_RT_MAP_HBM=1
+2026-Sep-18 09:03:43.216276 1121446:1121530 ERROR   NRT:nrt_infodump                                NEURON_RT_DISABLE_EXECUTION_BARRIER=0
+2026-Sep-18 09:03:43.218048 1121446:1121530 ERROR   NRT:nrt_infodump                                NEURON_COMPILE_CACHE_DIR=/tmp/neuron_cache
+2026-Sep-18 09:03:43.219833 1121446:1121530 ERROR   NRT:nrt_infodump                                NEURON_RT_ROOT_COMM_ID=ip-172-31-32-253.ap-southeast-4.compute.internal:48749
+2026-Sep-18 09:03:43.222087 1121446:1121530 ERROR   NRT:nrt_infodump                                NEURON_RT_ENABLE_DEVICE_MEMORY_OOM_LOG=0
+2026-Sep-18 09:03:43.223956 1121446:1121530 ERROR   NRT:nrt_infodump                            -------------8<-----------[ cut to here ]-----------8<------------
+2026-Sep-18 09:03:43.253864 1121448:1121459 ERROR  TDRV:exec_request_process_errors             [ND 0][NC 0] notification queue overflow on model module.neff. Too many notifications generated during execution.
+2026-Sep-18 09:03:43.256538 1121448:1121459 ERROR  TDRV:exec_request_progress_one_step          [LNC 3] Failed to progress Neuron Core Exec State, error: 1204
+2026-Sep-18 09:03:43.258519 1121448:1121459 ERROR  NMGR:tpb_xu_step                             Failed to progress exec state, Execution Unit[301] encountered fatal error [NRT_EXEC_SW_NQ_OVERFLOW].
+2026-Sep-18 09:03:43.261144 1121448:1121459 ERROR   NRT:nrt_infodump                            Neuron runtime information - please include in any support request:
+2026-Sep-18 09:03:43.263384 1121448:1121459 ERROR   NRT:nrt_infodump                            ------------->8------------[ cut here ]------------>8-------------
+2026-Sep-18 09:03:43.265514 1121448:1121459 ERROR   NRT:nrt_infodump                            NRT version: 2.34.10.0 (ac18d186d3198d7152096c3a8fa77e1ab1424c39)
+2026-Sep-18 09:03:43.267731 1121448:1121459 ERROR   NRT:nrt_infodump                            Embedded FW version: 1.24.1.0 (b0a1a5cc148a4e8a48e1889d2982f465280f3d0a) loaded from "libnrtucode_extisa.so"
+2026-Sep-18 09:03:43.270443 1121448:1121459 ERROR   NRT:nrt_infodump                            CCOM version: 2.34.10.0- (compat 92)
+2026-Sep-18 09:03:43.272238 1121448:1121459 ERROR   NRT:nrt_infodump                            NCFW version: 2.34.1.0 (23a4b43d43c9755014be657d2853735b1551cfbe)
+2026-Sep-18 09:03:43.275199 1121448:1121459 ERROR   NRT:nrt_infodump                            Instance ID: i-0673e54d9d66e6a1e
+2026-Sep-18 09:03:43.276839 1121448:1121459 ERROR   NRT:nrt_infodump                            Cluster ID: 13821315585481131339
+2026-Sep-18 09:03:43.278446 1121448:1121459 ERROR   NRT:nrt_infodump                            Kernel: Linux 6.17.0-1019-aws #19~24.04.1-Ubuntu SMP Tue Jun 23 18:53:06 UTC 2026
+2026-Sep-18 09:03:43.280629 1121448:1121459 ERROR   NRT:nrt_infodump                            Nodename: ip-172-31-32-253
+2026-Sep-18 09:03:43.282181 1121448:1121459 ERROR   NRT:nrt_infodump                            Driver version: 2.30.2.0
+
+2026-Sep-18 09:03:43.285481 1121448:1121459 ERROR   NRT:nrt_infodump                            Failure: NRT_EXEC_SW_NQ_OVERFLOW in tpb_xu_step
+2026-Sep-18 09:03:43.287495 1121448:1121459 ERROR   NRT:nrt_infodump                            LNC: 0
+2026-Sep-18 09:03:43.288713 1121448:1121459 ERROR   NRT:nrt_infodump                            Visible cores: 3
+2026-Sep-18 09:03:43.290144 1121448:1121459 ERROR   NRT:nrt_infodump                            Environment:
+2026-Sep-18 09:03:43.291439 1121448:1121459 ERROR   NRT:nrt_infodump                                NEURON_LOGICAL_NC_CONFIG=2
+2026-Sep-18 09:03:43.293082 1121448:1121459 ERROR   NRT:nrt_infodump                                NEURON_CC_FLAGS=--optlevel=1 --auto-cast matmult --auto-cast-type bf16
+2026-Sep-18 09:03:43.295647 1121448:1121459 ERROR   NRT:nrt_infodump                                NEURON_RT_ENABLE_DGE_NOTIFICATIONS=1
+2026-Sep-18 09:03:43.298134 1121448:1121459 ERROR   NRT:nrt_infodump                                NEURON_LAUNCH_BLOCKING=0
+2026-Sep-18 09:03:43.299688 1121448:1121459 ERROR   NRT:nrt_infodump                                NEURON_RT_ALLOW_LEGACY_NEFF=1
+2026-Sep-18 09:03:43.301308 1121448:1121459 ERROR   NRT:nrt_infodump                                NEURON_RT_DBG_ZEROCOPY=1
+2026-Sep-18 09:03:43.302892 1121448:1121459 ERROR   NRT:nrt_infodump                                NEURON_RT_MAP_HBM=1
+2026-Sep-18 09:03:43.304371 1121448:1121459 ERROR   NRT:nrt_infodump                                NEURON_RT_DISABLE_EXECUTION_BARRIER=0
+2026-Sep-18 09:03:43.306175 1121448:1121459 ERROR   NRT:nrt_infodump                                NEURON_COMPILE_CACHE_DIR=/tmp/neuron_cache
+2026-Sep-18 09:03:43.307995 1121448:1121459 ERROR   NRT:nrt_infodump                                NEURON_RT_ROOT_COMM_ID=ip-172-31-32-253.ap-southeast-4.compute.internal:48749
+2026-Sep-18 09:03:43.310177 1121448:1121459 ERROR   NRT:nrt_infodump                                NEURON_RT_ENABLE_DEVICE_MEMORY_OOM_LOG=0
+2026-Sep-18 09:03:43.312579 1121448:1121459 ERROR   NRT:nrt_infodump                            -------------8<-----------[ cut to here ]-----------8<------------
+2026-Sep-18 09:03:43.425852 1121445:1121566 ERROR  NMGR:tpb_xu_schedule_exec                    [XU 1] Failed to schedule execution request for model 10004
+2026-Sep-18 09:03:43.430475 1121445:1121566 ERROR  NMGR:tpb_xu_schedule_exec                    [XU 1] Failed to schedule execution request for model 10005
+2026-Sep-18 09:03:43.432748 1121445:1121566 ERROR  NMGR:tpb_xu_schedule_exec                    [XU 1] Failed to schedule execution request for model 10004
+2026-Sep-18 09:03:44.281557 1121446:1121565 ERROR  NMGR:tpb_xu_schedule_exec                    [XU 101] Failed to schedule execution request for model 10004
+2026-Sep-18 09:03:44.286428 1121446:1121565 ERROR  NMGR:tpb_xu_schedule_exec                    [XU 101] Failed to schedule execution request for model 10005
+2026-Sep-18 09:03:44.288759 1121446:1121565 ERROR  NMGR:tpb_xu_schedule_exec                    [XU 101] Failed to schedule execution request for model 10004
+2026-Sep-18 09:03:44.416761 1121448:1121477 ERROR  NMGR:tpb_xu_schedule_exec                    [XU 301] Failed to schedule execution request for model 10004
+2026-Sep-18 09:03:44.421250 1121448:1121477 ERROR  NMGR:tpb_xu_schedule_exec                    [XU 301] Failed to schedule execution request for model 10005
+2026-Sep-18 09:03:44.423546 1121448:1121477 ERROR  NMGR:tpb_xu_schedule_exec                    [XU 301] Failed to schedule execution request for model 10004
+2026-Sep-18 09:03:45.535213 1121445:1121566 ERROR  NMGR:tpb_xu_schedule_exec                    [XU 1] Failed to schedule execution request for model 10006
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "/home/ubuntu/trainium_freshstart_20260918_wave4/research/scratch/phase_timer.py", line 570, in <module>
+[rank0]:     main()
+[rank0]:   File "/home/ubuntu/trainium_freshstart_20260918_wave4/research/scratch/phase_timer.py", line 403, in main
+[rank0]:     micro()
+[rank0]:   File "/home/ubuntu/trainium_freshstart_20260918_wave4/research/scratch/phase_timer.py", line 290, in micro
+[rank0]:     x, y = fetch()
+[rank0]:            ^^^^^^^
+[rank0]:   File "/home/ubuntu/trainium_freshstart_20260918_wave4/research/scratch/phase_timer.py", line 265, in fetch
+[rank0]:     xb, yb, state = next(train_loader)
+[rank0]:                     ^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/trainium_freshstart_20260918_wave4/prepare.py", line 516, in make_dataloader
+[rank0]:     inputs.copy_(cpu_inputs, non_blocking=pin_memory)
+[rank0]: RuntimeError: NRT Execution error occurred on Neuron for operation=model_default
+[rank0]: error message="NRT EXECUTION FAILED: Async execution failed with NRT status: 1204, Software notification queue overflow"
+[rank0]: Note: Neuron errors are reported asynchronously. The Python traceback shows where the
+[rank0]: error was detected (synchronization point), not necessarily where the failing operation
+[rank0]: was dispatched. For synchronous error reporting, set NEURON_LAUNCH_BLOCKING=1.
+2026-Sep-18 09:03:46.382599 1121446:1121565 ERROR  NMGR:tpb_xu_schedule_exec                    [XU 101] Failed to schedule execution request for model 10006
+[rank1]: Traceback (most recent call last):
+[rank1]:   File "/home/ubuntu/trainium_freshstart_20260918_wave4/research/scratch/phase_timer.py", line 570, in <module>
+[rank1]:     main()
+[rank1]:   File "/home/ubuntu/trainium_freshstart_20260918_wave4/research/scratch/phase_timer.py", line 403, in main
+[rank1]:     micro()
+[rank1]:   File "/home/ubuntu/trainium_freshstart_20260918_wave4/research/scratch/phase_timer.py", line 290, in micro
+[rank1]:     x, y = fetch()
+[rank1]:            ^^^^^^^
+[rank1]:   File "/home/ubuntu/trainium_freshstart_20260918_wave4/research/scratch/phase_timer.py", line 265, in fetch
+[rank1]:     xb, yb, state = next(train_loader)
+[rank1]:                     ^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/ubuntu/trainium_freshstart_20260918_wave4/prepare.py", line 516, in make_dataloader
+[rank1]:     inputs.copy_(cpu_inputs, non_blocking=pin_memory)
+[rank1]: RuntimeError: NRT Execution error occurred on Neuron for operation=model_default
+[rank1]: error message="NRT EXECUTION FAILED: Async execution failed with NRT status: 1204, Software notification queue overflow"
+[rank1]: Note: Neuron errors are reported asynchronously. The Python traceback shows where the
+[rank1]: error was detected (synchronization point), not necessarily where the failing operation
+[rank1]: was dispatched. For synchronous error reporting, set NEURON_LAUNCH_BLOCKING=1.
+2026-Sep-18 09:03:46.512163 1121448:1121477 ERROR  NMGR:tpb_xu_schedule_exec                    [XU 301] Failed to schedule execution request for model 10006
+[rank3]: Traceback (most recent call last):
+[rank3]:   File "/home/ubuntu/trainium_freshstart_20260918_wave4/research/scratch/phase_timer.py", line 570, in <module>
+[rank3]:     main()
+[rank3]:   File "/home/ubuntu/trainium_freshstart_20260918_wave4/research/scratch/phase_timer.py", line 403, in main
+[rank3]:     micro()
+[rank3]:   File "/home/ubuntu/trainium_freshstart_20260918_wave4/research/scratch/phase_timer.py", line 290, in micro
+[rank3]:     x, y = fetch()
+[rank3]:            ^^^^^^^
+[rank3]:   File "/home/ubuntu/trainium_freshstart_20260918_wave4/research/scratch/phase_timer.py", line 265, in fetch
+[rank3]:     xb, yb, state = next(train_loader)
+[rank3]:                     ^^^^^^^^^^^^^^^^^^
+[rank3]:   File "/home/ubuntu/trainium_freshstart_20260918_wave4/prepare.py", line 516, in make_dataloader
+[rank3]:     inputs.copy_(cpu_inputs, non_blocking=pin_memory)
+[rank3]: RuntimeError: NRT Execution error occurred on Neuron for operation=model_default
+[rank3]: error message="NRT EXECUTION FAILED: Async execution failed with NRT status: 1204, Software notification queue overflow"
+[rank3]: Note: Neuron errors are reported asynchronously. The Python traceback shows where the
+[rank3]: error was detected (synchronization point), not necessarily where the failing operation
+[rank3]: was dispatched. For synchronous error reporting, set NEURON_LAUNCH_BLOCKING=1.
+W0918 09:03:47.783000 1121430 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 1121446 closing signal SIGTERM
+W0918 09:03:47.783000 1121430 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 1121447 closing signal SIGTERM
+W0918 09:03:47.783000 1121430 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 1121448 closing signal SIGTERM
+E0918 09:03:48.182000 1121430 torch/distributed/elastic/multiprocessing/api.py:986] failed (exitcode: 1) local_rank: 0 (pid: 1121445) of binary: /home/ubuntu/workspace/native_venv/bin/python3
+Traceback (most recent call last):
+  File "/home/ubuntu/workspace/native_venv/bin/torchrun", line 10, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 362, in wrapper
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/run.py", line 990, in main
+    run(args)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/run.py", line 981, in run
+    elastic_launch(
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 170, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 317, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+============================================================
+/home/ubuntu/trainium_freshstart_20260918_wave4/research/scratch/phase_timer.py FAILED
+------------------------------------------------------------
+Failures:
+[1]:
+  time      : 2026-09-18_09:03:48
+  host      : ip-172-31-32-253.ap-southeast-4.compute.internal
+  rank      : 1 (local_rank: 1)
+  exitcode  : -15 (pid: 1121446)
+  error_file: <N/A>
+  traceback : Signal 15 (SIGTERM) received by PID 1121446
+[2]:
+  time      : 2026-09-18_09:03:48
+  host      : ip-172-31-32-253.ap-southeast-4.compute.internal
+  rank      : 2 (local_rank: 2)
+  exitcode  : -15 (pid: 1121447)
+  error_file: <N/A>
+  traceback : Signal 15 (SIGTERM) received by PID 1121447
+[3]:
+  time      : 2026-09-18_09:03:48
+  host      : ip-172-31-32-253.ap-southeast-4.compute.internal
+  rank      : 3 (local_rank: 3)
+  exitcode  : -15 (pid: 1121448)
+  error_file: <N/A>
+  traceback : Signal 15 (SIGTERM) received by PID 1121448
+------------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2026-09-18_09:03:47
+  host      : ip-172-31-32-253.ap-southeast-4.compute.internal
+  rank      : 0 (local_rank: 0)
+  exitcode  : 1 (pid: 1121445)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+============================================================

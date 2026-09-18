@@ -159,7 +159,55 @@ Files: [audit script](scratch/corpus_exposure_audit.py),
 [complete counts](run-logs/fs-corpus-exposure-20260918.json),
 [audit log](run-logs/fs-corpus-exposure-20260918.log).
 
-## FP8 feasibility: unresolved numerical gate
+## Dense transformer without hashed n-grams: measured bottleneck
+
+`fs-w3-dense1024-phase-r1`, source `00f82d8`, uses depth 6, width 1024,
+117,459,724 parameters, direct compiled SDPA, compiled Muon and the same BF16
+matmult flags. Four ranks, LNC2, four 8192-token microbatches per rank, the real
+allowed loader and all training control/gradient collectives are included.
+Unigram value embeddings and trained local convolutions remain enabled.
+
+After three warmups, eight unprofiled steps give these medians:
+
+| Phase | Milliseconds |
+|---|---:|
+| Complete step |1,417.096|
+| Four forward/backward microbatches |1,331.151|
+| Optimizer |55.292|
+| Gradient all-reduce |18.362|
+| Gradient clipping |6.750|
+| Weight-cache refresh |2.619|
+| Control collective |2.214|
+
+The model microbatches account for about 94% of step time. Even eliminating the
+entire optimizer would save only about 3.9% at this geometry. This is a concrete
+reason to investigate the model kernels rather than prioritize optimizer work
+for the dense track. This short timing probe does not measure trained quality.
+
+The subsequent native runtime trace, `fs-w4-dense1024-native-trace-r1`, identifies
+the forward and backward graphs by correlating driver events' `External id`
+with CPU `CompiledFunction` / `CompiledFunctionBackward` events. Across four ranks,
+median execution spans are **222.76–223.82 ms forward** and **100.58–101.11 ms
+backward**, four calls each per step. CPU dispatch is much shorter. These are
+profiled spans for attribution; the unprofiled timings above establish throughput.
+They do not yet identify the operations inside the slow forward graph.
+
+Do not sum the CPU/runtime/driver views: they overlap, and large apparent
+`aten::add.out` or copy durations include queued execution waits. The
+[trace summary](run-logs/fs-w4-dense1024-native-trace-r1.summary.json) records NEFF
+identities, correlations and SHA256 hashes of all 20 raw profile artifacts
+(25,547,468 bytes). Reproduce with [the summarizer](scratch/summarize_native_trace.py).
+The raw traces are preserved locally under
+`out/fresh-start-profiles/fs-w4-dense1024-native-trace-r1/`, outside Git.
+
+Instruction capture `fs-w4-dense1024-device-micro-r1` failed during warmup with
+NRT status 1204, software notification queue overflow. Optional
+`NEURON_RT_ENABLE_DGE_NOTIFICATIONS=1` was enabled. The failure is preserved, not
+a training result; r2 retries the same source without that optional setting.
+This retry can still expose device instructions, but missing DMA packet tables
+will limit memory-bound analysis. It is not evidence of model numerical failure.
+
+## FP8 feasibility: conversion verified, accumulation gate unresolved
 
 The native Trainium2 legacy-E4M3 double-row primitive compiles and runs. The first
 128×256×128 test failed the strict quantized-reference comparison: 98/16,384
@@ -168,6 +216,21 @@ outputs mismatched the selected tolerance, with maximum absolute difference
 separates device FP8 conversion from accumulation/layout. No speed or training
 claim is accepted before resolving this check. Online scaling, backward matmuls,
 gradient accuracy and end-to-end time remain additional gates.
+
+`fs-w4-fp8-characterization-r2`, source `65a70a5`, completed three shapes:
+128×256×128, 256×768×512 and 8192×768×512. The latter two use both LNC2 cores.
+Device E4M3 conversions match the independent quantizer **exactly** for both
+operands at every shape, including 6,291,456 activation elements in the largest
+case. Nonzero subnormals survive conversion. A predeclared flush-to-zero matmul
+reference is slightly worse, providing no support for that proposed explanation.
+
+FP8 output RMS error against the unrounded quantized reference is
+0.001644–0.001666 relative; the BF16 control is 0.001662–0.001676 against FP32.
+These aggregate errors resemble the BF16 output-rounding floor, but that alone
+does **not** close the failed elementwise numerical check. The next diagnostic
+returns FP32 outputs and compares them to independent FP64 dot products under
+the declared FP32 sequential-accumulation bound. It will separate accumulation
+from final BF16 rounding without quietly relaxing the original tolerance.
 
 ## Next controlled full runs
 

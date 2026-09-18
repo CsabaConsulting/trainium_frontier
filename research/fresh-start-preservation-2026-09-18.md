@@ -47,3 +47,10 @@ field checks the three hashed launch sources independently. Subsequent runs in
 the same immutable checkout may have dirty result files while all training code
 still matches its recorded commit. Device-holder/process preflight remains
 host-wide; a checkout lock alone cannot prevent overlap from another checkout.
+
+The first complete dense-model native trace is also copied locally to
+`out/fresh-start-profiles/fs-w4-dense1024-native-trace-r1/`. Its 20 files total
+25,547,468 bytes. Per-file SHA256 hashes and source-relative locations are in
+`research/run-logs/fs-w4-dense1024-native-trace-r1.summary.json`; the raw profile
+files stay outside Git. The source run's launch manifest records the installed
+checkout and command. Captures are diagnostic artifacts, not trained checkpoints.

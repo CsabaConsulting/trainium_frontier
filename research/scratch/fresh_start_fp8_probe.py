@@ -51,7 +51,7 @@ def build_kernels():
         return out
 
     @nki.jit
-    def native_fp8_gemm(a_t, b, scales, lanes: int = 1):
+    def native_fp8_gemm(a_t, b, scales, lanes: int = 1, fp32_output: bool = False):
         """[K,M] BF16 and [K,N] BF16 -> [M,N] BF16 via scaled legacy FP8.
 
         M multiple128; K multiple256; N multiple128 and <=512 in this first probe.
@@ -64,7 +64,8 @@ def build_kernels():
         assert k % 256 == 0 and n % 128 == 0 and n <= 512
         a_view = a_t.reshape((k // 2, 2, m))
         b_view = b.reshape((k // 2, 2, n))
-        out = nl.ndarray((m, n), dtype=nl.bfloat16, buffer=nl.shared_hbm)
+        output_dtype = nl.float32 if fp32_output else nl.bfloat16
+        out = nl.ndarray((m, n), dtype=output_dtype, buffer=nl.shared_hbm)
         sa = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
         sb = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
         inverse = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
@@ -88,19 +89,20 @@ def build_kernels():
                                perf_mode=nisa.matmul_perf_mode.double_row)
             acc_sb = nl.ndarray((128, n), dtype=nl.float32, buffer=nl.sbuf)
             nisa.tensor_copy(dst=acc_sb, src=acc)
-            result = nl.ndarray((128, n), dtype=nl.bfloat16, buffer=nl.sbuf)
+            result = nl.ndarray((128, n), dtype=output_dtype, buffer=nl.sbuf)
             nisa.tensor_scalar(dst=result, data=acc_sb, op0=nl.multiply, operand0=inverse)
             nisa.dma_copy(dst=out[mi * 128:(mi + 1) * 128, :], src=result)
         return out
 
     @nki.jit
-    def nki_bf16_gemm(a_t, b, lanes: int = 1):
+    def nki_bf16_gemm(a_t, b, lanes: int = 1, fp32_output: bool = False):
         """Comparable simple BF16 tiling; same transposed input and output shape."""
         k, m = a_t.shape
         _, n = b.shape
         assert lanes in (1, 2) and m % (128 * lanes) == 0
         assert k % 128 == 0 and n % 128 == 0 and n <= 512
-        out = nl.ndarray((m, n), dtype=nl.bfloat16, buffer=nl.shared_hbm)
+        output_dtype = nl.float32 if fp32_output else nl.bfloat16
+        out = nl.ndarray((m, n), dtype=output_dtype, buffer=nl.shared_hbm)
         lane = nl.program_id(0)
         for tile in nl.affine_range(m // (128 * lanes)):
             mi = tile * lanes + lane
@@ -111,7 +113,7 @@ def build_kernels():
                 nisa.dma_copy(dst=ab, src=a_t[ki * 128:(ki + 1) * 128, mi * 128:(mi + 1) * 128])
                 nisa.dma_copy(dst=bb, src=b[ki * 128:(ki + 1) * 128, :])
                 nisa.nc_matmul(dst=acc, stationary=ab, moving=bb, accumulate=(ki > 0))
-            result = nl.ndarray((128, n), dtype=nl.bfloat16, buffer=nl.sbuf)
+            result = nl.ndarray((128, n), dtype=output_dtype, buffer=nl.sbuf)
             nisa.tensor_copy(dst=result, src=acc)
             nisa.dma_copy(dst=out[mi * 128:(mi + 1) * 128, :], src=result)
         return out
@@ -128,7 +130,32 @@ def relative_rms(actual, reference):
                  / reference.float().square().mean().sqrt().clamp_min(1e-20))
 
 
-def run_case(fp8, bf16, roundtrip, shape, steps, diagnostic_only=False):
+def accumulation_error(actual, a, b, inverse=1.0):
+    """Compare FP32 output against FP64 dot products and a declared FP32 bound.
+
+    FP8/BF16 products are exactly representable in FP32. The conservative
+    sequential-accumulation bound is gamma_K * sum(abs(a*b)), u=2**-24.
+    Power-of-two rescaling introduces no normal-range rounding. This diagnostic
+    deliberately removes BF16 output rounding; a failed bound is not waived.
+    """
+    ad, bd = a.double(), b.double()
+    reference = (ad @ bd) * inverse
+    absolute_products = (ad.abs() @ bd.abs()) * abs(inverse)
+    k = a.shape[1]
+    gamma_k = (k * 2.0 ** -24) / (1.0 - k * 2.0 ** -24)
+    # The reference itself sums in FP64. Include its conservative error bound.
+    gamma64 = (k * 2.0 ** -53) / (1.0 - k * 2.0 ** -53)
+    bound = (gamma_k + gamma64) * absolute_products
+    error = (actual.double() - reference).abs()
+    return dict(elements=actual.numel(), finite=bool(torch.isfinite(actual).all()),
+                failures=int((error > bound).sum()), max_absolute_error=float(error.max()),
+                max_error_over_bound=float((error / bound.clamp_min(1e-300)).max()),
+                relative_rms=relative_rms(actual, reference), gamma_k=gamma_k,
+                reference_dtype="float64", output_dtype=str(actual.dtype))
+
+
+def run_case(fp8, bf16, roundtrip, shape, steps, diagnostic_only=False,
+             check_accumulation=False):
     m, k, n = shape
     torch.manual_seed(17 + k)
     a = (torch.randn(m, k) * 0.5).bfloat16()
@@ -176,6 +203,19 @@ def run_case(fp8, bf16, roundtrip, shape, steps, diagnostic_only=False):
                           fp8_max_abs_vs_flush_subnormal_matmul=float((y8.float() - ftz_reference.bfloat16().float()).abs().max()),
                           fp8_max_abs_vs_device_quant_reference=float((y8.float() - device_quant_reference.bfloat16().float()).abs().max()),
                           bf16_vs_fp32_relative_rms=relative_rms(y16, full_reference))), flush=True)
+    if check_accumulation:
+        y8_float = fp8[lanes](at, bd, scalars, lanes, True).cpu()
+        y16_float = bf16[lanes](at, bd, lanes, True).cpu()
+        fp8_error = accumulation_error(y8_float, aq, bq, 1.0 / (sa * sb))
+        bf16_error = accumulation_error(y16_float, a.float(), b.float())
+        print(json.dumps(dict(check="fp32_accumulation_bound", shape=shape, lanes=lanes,
+                              fp8=fp8_error, bf16=bf16_error,
+                              fp8_bf16_output_equals_rounded_fp32=int((y8 == y8_float.bfloat16()).sum()),
+                              bf16_output_equals_rounded_fp32=int((y16 == y16_float.bfloat16()).sum()),
+                              elements=y8.numel())), flush=True)
+        if not diagnostic_only:
+            assert fp8_error["finite"] and fp8_error["failures"] == 0
+            assert bf16_error["finite"] and bf16_error["failures"] == 0
     if diagnostic_only:
         return
     assert all(x["mismatches"] == 0 for x in conversions), "FP8 conversion differs from independent reference"
@@ -212,7 +252,10 @@ def run_case(fp8, bf16, roundtrip, shape, steps, diagnostic_only=False):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--steps", type=int, default=12)
-    parser.add_argument("--large", action="store_true", help="also test an8192-token projection tile")
+    parser.add_argument("--large", action="store_true", help="also test an 8192-token projection tile")
+    parser.add_argument("--check-accumulation", action="store_true",
+                        help="Also return FP32 outputs and compare with FP64 dot products "
+                             "using a declared FP32 accumulation error bound")
     parser.add_argument("--diagnostic-only", action="store_true",
                         help="Characterize rounding/accumulation on every shape without "
                              "claiming correctness or running performance benchmarks")
@@ -221,9 +264,11 @@ def main():
     import torch_neuronx  # noqa: F401
     fp8, bf16, roundtrip = build_kernels()
     for shape in ((128, 256, 128), (256, 768, 512)):
-        run_case(fp8, bf16, roundtrip, shape, args.steps, args.diagnostic_only)
+        run_case(fp8, bf16, roundtrip, shape, args.steps, args.diagnostic_only,
+                 args.check_accumulation)
     if args.large:
-        run_case(fp8, bf16, roundtrip, (8192, 768, 512), args.steps, args.diagnostic_only)
+        run_case(fp8, bf16, roundtrip, (8192, 768, 512), args.steps, args.diagnostic_only,
+                 args.check_accumulation)
     print("COMPLETED: FP8 characterization only; numerical gate still required" if args.diagnostic_only
           else "PASS: native FP8 primitive probes completed", flush=True)
 
