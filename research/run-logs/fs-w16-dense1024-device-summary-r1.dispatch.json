@@ -1,0 +1,36 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave16",
+    "expected_commit": "8704139d074d94201192108329966fd1c574cf47",
+    "label": "fs-w16-dense1024-device-summary-r1",
+    "purpose": "CPU-only attribution of the successfully ingested current dense trace; clip engine-active intervals per physical core and graph, preserve missing-DMA warnings, no throughput claim",
+    "fingerprint_paths": [
+      "research/scratch/summarize_dense_device_profile.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave16",
+      "GOMAXPROCS": "4",
+      "GOMEMLIMIT": "40GiB"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "600s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "research/scratch/summarize_dense_device_profile.py",
+      "/home/ubuntu/trainium_freshstart_20260918_wave16/out/fresh-start-explorer/profiles/global/dense1024-nki-norm-current-complete_i-0329acb9a6244986b_pid_879863_nc_0_session_0@latest",
+      "--output",
+      "research/run-logs/fs-w16-dense1024-nki-norm-device-micro-r1.device-summary.json"
+    ]
+  },
+  "requested_at": "2026-09-18T12:43:32.300002+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w16-dense1024-device-summary-r1\", \"pid\": 1246877, \"commit\": \"8704139d074d94201192108329966fd1c574cf47\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave16/research/run-logs/fs-w16-dense1024-device-summary-r1.log\", \"started_at\": \"2026-09-18T12:43:35.863020+00:00\"}\n",
+  "stderr": ""
+}

@@ -1,0 +1,38 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave16",
+    "expected_commit": "8704139d074d94201192108329966fd1c574cf47",
+    "label": "fs-w16-dense1024-nki-norm-device-ingest-r1",
+    "purpose": "CPU-only ingestion of completed current dense device profile with all exported compiled and eager NEFFs; no training timing overlaps",
+    "fingerprint_paths": [
+      "research/scratch/phase_timer.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave16"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/opt/aws/neuron/bin/neuron-explorer",
+      "view",
+      "--session-dir",
+      "/home/ubuntu/trainium_freshstart_20260918_wave16/out/fs-w16-dense1024-nki-norm-device-micro-r1/rank0",
+      "--data-path",
+      "/home/ubuntu/trainium_freshstart_20260918_wave16/out/fresh-start-explorer",
+      "--display-name",
+      "dense1024-nki-norm-device-micro-r1",
+      "--ingest-only"
+    ]
+  },
+  "requested_at": "2026-09-18T12:19:33.344991+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w16-dense1024-nki-norm-device-ingest-r1\", \"pid\": 883842, \"commit\": \"8704139d074d94201192108329966fd1c574cf47\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave16/research/run-logs/fs-w16-dense1024-nki-norm-device-ingest-r1.log\", \"started_at\": \"2026-09-18T12:19:36.476424+00:00\"}\n",
+  "stderr": ""
+}

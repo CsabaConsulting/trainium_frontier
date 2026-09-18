@@ -43,6 +43,10 @@ def main():
                     help="Export actual native compiled graphs from the in-process cache "
                          "after timing. Device captures also export these beside their traces; "
                          "the installed profiler alone may omit pre-warmed graph binaries.")
+    ap.add_argument("--trace-neff-cache-dir", type=Path,
+                    default=Path(os.environ.get("TORCH_NEURONX_NEFF_CACHE_DIR", "/tmp/neff_cache")),
+                    help="Native persistent NEFF cache used to preserve warmed eager "
+                         "operations referenced by trace.json, outside timed work.")
     ap.add_argument("--compile", action=argparse.BooleanOptionalAction, default=True)
     ap.add_argument("--local-conv", action=argparse.BooleanOptionalAction, default=True)
     ap.add_argument("--per-micro", action=argparse.BooleanOptionalAction, default=False,
@@ -652,6 +656,14 @@ def main():
         (export_path / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
         print("NEFF_ARTIFACT " + json.dumps(dict(rank=rank, directory=str(export_path),
                                                 exported=len(exported), missing=missing)), flush=True)
+        if trace_config is not None:
+            from preserve_native_trace_neffs import preserve_trace_neffs
+            eager = preserve_trace_neffs(trace_path, args.trace_neff_cache_dir, export_path)
+            print("TRACE_NEFF_ARTIFACT " + json.dumps(dict(
+                rank=rank, directory=str(export_path), exported=len(eager["files"]),
+                unresolved=eager["unresolved"],
+                compiled_aliases=len(eager["compiled_logical_key_aliases"]),
+                uuid_coverage_verified=False)), flush=True)
     if args.post_checks:
         # Exercise the actual native eager model that a standalone scorer uses,
         # after real optimizer updates have made initially-zero branches nonzero.

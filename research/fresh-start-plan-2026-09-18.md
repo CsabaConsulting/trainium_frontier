@@ -4,7 +4,7 @@ Objective: minimize **official 30-minute validation bits per byte** on one full
 Trainium2 chip. Sub-1.0 on public validation is an engineering milestone, not a
 claim about the private leaderboard. The metric is lower-is-better.
 
-**Current update, 12:20 UTC:** the width896 direct-attention control completed
+**Current update, 12:58 UTC:** the width896 direct-attention control completed
 2,188 updates at **0.987568 public BPB @2048 / 0.999880 @1024**. Its fused
 FP32 table-optimizer counterpart completed 2,204 updates at **0.986947 /
 0.999735**. Both fit the budget and use four ranks and 2,097,152 evaluation
@@ -78,13 +78,27 @@ are not included, so this is not evidence for an end-to-end FP8 speedup.
 The updated dense device capture is complete, with an unprofiled585.183ms
 control agreeing with the earlier587.999ms. All63raw trace/binary files
 (1,198,602,679bytes) are locally preserved with independently matched SHA256s;
-CPU ingestion is running before the next training job. The old FP32 attention
+The reader additionally required seven warmed eager scalar/cast binaries,
+now separately recovered and hash-verified. Local ingestion was SIGKILLed during
+severe memory pressure; trn22 completed processing the trace between device
+jobs with a40GiB Go memory target. The current backward graph has only
+0.199 GFLOPs of regular FP32 matrix work across its two physical cores; the
+old approximately614 GFLOPs attention-backward problem is removed. Ordinary
+input/value embeddings now account for587.204 GFLOPs of attributed regular
+matrix work. This is a FLOP attribution, not an exclusive elapsed-time share.
+It motivates a bounded segmented-gradient component comparison, including
+sorting, metadata upload and layouts, before any model integration.
+The old FP32 attention
 trace cannot identify the current bottleneck after changing activation precision.
 
 Trn22's B8/GA2 phase passes all four updated-model checks but measures576.865ms,
-only about1.9% faster. It misses the predeclared <=570ms full-run gate. One
-B16/GA1 phase is active; do not launch the prepared B8 full run. A gradient
-clipping-order full-budget control is prepared on trn21: reduce/average gradients
+only about1.9% faster. It misses the predeclared <=570ms full-run gate. The
+B16/GA1 phase also passes but regresses to614.578ms; close this packing sweep
+and retain B4. The T1024/pack8/GA4 phase passes correctness but measures577.148ms,
+missing its predeclared558.6ms gate. No shorter-context full run is launched.
+The SDPA-only BF16/NKI production arm passes all four gates at678.258ms and is
+running its full-budget quality comparison since12:45 on trn22. The
+clipping-order full-budget control launched12:30 on trn21: reduce/average gradients
 before clipping, with the successful six-layer dense configuration otherwise
 unchanged. This is an algorithm comparison, not a presumed bug correction.
 
@@ -97,21 +111,21 @@ unchanged. This is an algorithm comparison, not a presumed bug correction.
    the conservative canonical-token mask deprioritized following its measured
    0.00007583BPB paired improvement. A broader constraint would be a separate
    hypothesis with its own proof and training-cost requirements.
-3. Gate the integrated **SDPA-only BF16 + NKI convolution** precision arm. The
-   earlier scratch composition measured670ms and passed four-rank postchecks;
-   production integration and full-budget BPB still need testing. Use it if
-   the broader norm policy loses too much quality, or as the next precision
-   comparison if the gain warrants confirmation. Do not infer quality from dtype.
-4. Recheck dense microbatch B8/GA2, then B16/GA1 only if warranted, with fixed
-   T2048 and131,072 targets/update. Old table/native-convolution negatives are
-   not the new implementation. Accept only full-step savings with updated-model
-   checks; a new packed loader geometry also changes data ordering, so a full
-   run is a budgeted candidate, not an exact same-input optimization control.
-5. Profile one winning graph before another kernel project. Attention's
-   precision and the old convolution bottleneck have changed; the old trace
-   cannot identify the current largest avoidable cost. Optimizer time is now
-   ~55ms/588ms, so even eliminating it saves only9.4% overall. A cast-inclusive
-   FP8 island must beat the current BF16 path, not the old slow graph.
+3. Run the gated **SDPA-only BF16 + NKI convolution** precision arm after CPU
+   ingestion completes on trn22. Retaining FP32 normalization costs about15%
+   per update; only full-budget BPB can justify that cost. Do not infer quality
+   from dtype or the short phase's training loss.
+4. Keep B4/T2048/GA4 as the geometry reference. B8/GA2, B16/GA1 and
+   B8/T1024/GA4 phases did not meet their full-run speed gates. Further geometry
+   tests need a new measured mechanism, not another broad sweep.
+5. Test ordinary-embedding backward with stable token sorting and an NKI FP32
+   segmented scan. The current graph supplies the motivation; the old width640
+   benchmark favored native embedding over indexing and remains a negative
+   result for that shape. The new width1024 probe must pass duplicate/zero/
+   cancellation/real-training-row references and beat current native backward
+   by20% after estimating shared preparation across four tables before an
+   integrated phase is justified. All actual integrated preparation will be
+   charged. Optimizer time remains~55ms/588ms, limiting its overall upside.
 
 The earlier FP32 device trace identifies approximately614 GFLOPs of attention-backward
 matrix work in one profiled microbatch across rank0's two physical cores. BF16

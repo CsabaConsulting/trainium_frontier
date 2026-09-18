@@ -158,7 +158,30 @@ All **63files,1,198,602,679bytes** independently match their remote SHA256s and
 sizes, verified12:19:22UTC. This includes the eight exported compiled graph
 NEFFs and the raw NTFF; the remote originals remain. See its
 [receipt](run-logs/fs-w16-dense1024-nki-norm-device-micro-r1.preservation.json)
-and per-file remote manifest. Explorer's system-directory ingestion missed
-the separately exported compiled NEFFs, including in a second input tree with
-hard links beside the NTFF. A direct NTFF ingestion with explicit NEFF arguments
-is now being checked; neither analysis attempt changed the preserved raw capture.
+and per-file remote manifest. The initial ingestion failures actually came from
+seven warmed eager scalar/cast binaries, not the main compiled exports. These
+are now local at`out/fresh-start-profiles/fs-w16-profile-trace-neffs/`, with all
+**7files/82,442bytes** independently SHA256-matched. See the
+[additional receipt](run-logs/fs-w16-dense1024-nki-norm-device-micro-r1.trace-neffs-preservation.json).
+Their body hashes exactly match Explorer's seven missing UUIDs. Two compiled
+events' trace persistent keys have no matching cache file; their logical cache
+keys map to the already preserved compiled exports. Do not conflate those names.
+
+The local reader was SIGKILLed under severe memory pressure. Original captures
+were untouched; a separate analysis tree used hard links. The completed input
+tree was ingested successfully on trn22 between device jobs, validating all
+required binary UUIDs. The profiling
+helper has been updated to preserve warmed eager binaries at capture time and
+record compiled aliases, leaving final UUID coverage to Explorer. A replay on
+the actual trace resolves seven eager files/two compiled aliases; repeat copying
+is idempotent and replacing a distinct preserved file is refused.
+
+The eleven selected current-profile Parquet tables are local under
+`out/fresh-start-profiles/dense1024-nki-norm-current-parquet/`, totaling
+84,116,399 bytes. Their SHA256s are recorded in the
+[device summary](run-logs/fs-w16-dense1024-nki-norm-device-micro-r1.device-summary.json).
+The optional TimelineAnnotation table was absent; the summarizer now records
+that absence instead of failing after reading all other tables. The retained
+ingestion warnings include dropped DMA notifications and missing dynamic DMA
+metadata; successful ingestion does not make those counters complete. No raw
+profile, checkpoint or binary was deleted to make room for this analysis.

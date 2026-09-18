@@ -25,6 +25,8 @@ def main():
     args = ap.parse_args()
     root = args.directory
     read = lambda name, **kw: pq.read_table(root / (name + ".parquet"), **kw)
+    missing_optional_tables = [name for name in ("TimelineAnnotation",)
+                               if not (root / (name + ".parquet")).is_file()]
     metadata = read("Metadata").to_pylist()
     executions = sorted(read("ExecutionInfo").to_pylist(), key=lambda x: x["execution_index"])
     active = read("ActiveTime")
@@ -114,7 +116,9 @@ def main():
                            "Missing DMA notifications and dropped packets preclude an exact HBM bound.",
                            "HLO/kernel attribution requires nonempty source fields; no names are inferred from DMA counts."],
                   source_attribution_nonempty_rows=attribution,
-                  annotations=read("TimelineAnnotation").to_pylist(),
+                  annotations=(read("TimelineAnnotation").to_pylist()
+                               if "TimelineAnnotation" not in missing_optional_tables else []),
+                  missing_optional_tables=missing_optional_tables,
                   executions=executions, graphs=graphs, files=files)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, indent=2) + "\n")

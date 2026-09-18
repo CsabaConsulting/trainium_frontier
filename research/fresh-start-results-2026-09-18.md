@@ -677,9 +677,15 @@ and the same131,072global targets/update as the B4/T2048/GA4 reference. All four
 updated-model finite/causal/repetition checks pass. Across eight warmed updates,
 the median is **576.865ms**, range574.518–579.311ms, versus587.999ms for B4.
 The roughly1.9% saving misses the predeclared570ms full-budget promotion gate;
-the prepared B8 full run is not launched. One B16/GA1 phase is warranted by
-the small positive trend and is active. Packing changes loader row geometry
-and token order, so eventual full-budget quality would need measurement.
+the prepared B8 full run is not launched. One B16/GA1 phase was warranted by
+the small positive trend. `fs-w15-dense1024-pack16-nki-norm-phase-r1` now
+completes at **614.578ms** median, range600.769–627.696ms, with all four
+updated-model gates passing. The rank0 microbatch total remains486–492ms,
+but the measured synchronization interval grows to43–72ms. This localizes the
+observed regression to the update tail; it does not isolate a communication
+or rank-imbalance cause. Do not run full B16 training. Keep B4 and close this
+packing sweep. Packing changes loader row geometry and token order, so even
+a phase speedup would not establish a quality win.
 
 ### Current dense profile preservation and throughput control
 
@@ -690,4 +696,51 @@ all four updated-model gates pass. This agrees with the587.999ms earlier gate;
 it does not show the large throughput deterioration reported for some older
 campaign runs. Profiled execution duration is not used as throughput evidence.
 All63raw files, including the eight compiled graph binaries, are locally
-SHA256-verified (1,198,602,679bytes). Ingestion/attribution is pending.
+SHA256-verified (1,198,602,679bytes). Seven additional warmed eager cast/scalar
+NEFFs (82,442bytes) have been recovered with body hashes matching exactly the
+seven UUIDs reported missing by Explorer. The main compiled graphs were already
+present: the earlier missing-compiled-graph diagnosis was incorrect. The compiled
+events' trace persistent keys differ from their exported keys, while their
+logical cache keys match. Keep these identifiers separate. Full UUID validation
+still belongs to ingestion.
+
+Local Explorer2.32 ingestion was killed with signal9 during severe memory
+pressure (31GiB used,149MiB available), before completing its Parquet output.
+The raw capture and recovered binaries remain intact. Ingestion completes
+successfully on idle trn22, with GOMAXPROCS4/GOMEMLIMIT40GiB, outside device timing. The
+runtime trace independently attributes38.734ms to the forward graph and77.557ms
+to backward; those are profiled attribution spans, not new throughput results.
+
+The successfully ingested device windows are36.514939ms forward and74.308579ms
+backward. Tensor Engine activity covers approximately51% of each window on each
+physical core; engine overlaps must not be summed into wall time. The backward
+graph's regular FP32 matrix work is only0.199166720 GFLOPs across the two physical
+cores, versus approximately614 GFLOPs in the older FP32 attention capture.
+The current attention precision change has removed that particular bottleneck.
+
+Regular Tensor instructions attributed to input embedding `train.py:4043`
+account for154.174226432 GFLOPs and the three unigram value embeddings at
+`train.py:4060` for433.029906432 GFLOPs. General linear layers at2853 account
+for3503.427321856 GFLOPs. These are hardware instruction/source attributions,
+not exclusive runtime shares or proof of a particular speedup. The profile
+contains dropped DMA notifications and lacks dynamic DMA metadata/HLO stats,
+so it cannot support an exact HBM bound or HLO-based MFU claim. Layer labels
+are empty/Unknown; NKI source paths are the usable attribution. See the
+separate device, runtime and embedding-attribution JSON receipts.
+
+### Shorter attention and narrower precision gates
+
+`fs-w15-dense1024-context1024-pack8-nki-norm-phase-r1`, source`4f0e77a`, keeps
+the8192-token loader row and131,072global targets/update while changing from
+B4/T2048/GA4 toB8/T1024/GA4. All four updated-model gates pass. Its eight-update
+median is **577.148ms**, range571.877–581.206ms; this misses the predeclared
+558.6ms/5%-saving threshold. The small timing difference cannot justify assuming
+shorter-context quality transfers. No full run is promoted.
+
+`fs-w15-dense1024-nki-sdpa-only-phase-r1`, same source, retains FP32 normalized
+branch outputs/residuals and casts only the SDPA boundary to BF16, using NKI
+convolution. All four updated-model gates pass. Its median is **678.258ms**,
+range673.746–682.743ms, consistent with the earlier670ms scratch arm. It is
+about15% slower per update than broad BF16 normalized outputs. This is a valid
+precision/throughput candidate for one full-budget quality comparison; it is
+not an operator speedup or a measured BPB improvement.

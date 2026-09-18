@@ -1,0 +1,45 @@
+{
+  "host": "trn21",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave16",
+  "expected_commit": "8704139d074d94201192108329966fd1c574cf47",
+  "label": "fs-w16-dense1024-nki-norm-device-ingest-r4",
+  "purpose": "CPU-only direct NTFF ingestion with NEFF directory; repeated --neff-path is scalar in installed Explorer and only loaded the last file",
+  "fingerprint_paths": [
+    "research/scratch/phase_timer.py"
+  ],
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1",
+    "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave16"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1200s",
+    "/opt/aws/neuron/bin/neuron-explorer",
+    "view",
+    "--session-file",
+    "/home/ubuntu/trainium_freshstart_20260918_wave16/out/fs-w16-dense-norm-ingest-input-r2/i-0329acb9a6244986b_pid_879863/1789733527764763501/profile_nc_0_session_0.ntff",
+    "--neff-path",
+    "/home/ubuntu/trainium_freshstart_20260918_wave16/out/fs-w16-dense-norm-ingest-input-r2/i-0329acb9a6244986b_pid_879863/1789733527764763501",
+    "--data-path",
+    "/home/ubuntu/trainium_freshstart_20260918_wave16/out/fresh-start-explorer",
+    "--display-name",
+    "dense1024-nki-norm-device-micro-r4-complete",
+    "--ingest-only"
+  ],
+  "started_at": "2026-09-18T12:24:00.377927+00:00",
+  "hostname": "ip-172-31-34-85",
+  "git_commit": "8704139d074d94201192108329966fd1c574cf47",
+  "source_dirty": false,
+  "preflight_free_bytes": 42439364608,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "4c14ac6ec14fd52e31ee06d91540707083c48a93ec4687fbaa35bc7106a823f3",
+    "research/scratch/phase_timer.py": "290ba05e1aa1635b864f6edcee532de8645b7412a15ed1eb42f603c6e2afe732"
+  }
+}

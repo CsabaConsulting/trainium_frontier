@@ -21,7 +21,7 @@ measurement history contain concrete changes that previous high-level conclusion
 do not account for. A complete replacement with an SSM or all-FP8 stack would make
 these mechanisms harder to isolate.
 
-**12:22 UTC update:** the dense6×1024 path, without hashed n-gram tables,
+**12:58 UTC update:** the dense6×1024 path, without hashed n-gram tables,
 now completes2,977updates/390.2M target presentations in budget at **0.981710
 BPB@2048 /0.996689@1024**, versus1.012886/1.027777 for the1,805-update dense
 control. Custom NKI convolution plus BF16 normalized branch inputs reduces the
@@ -40,7 +40,7 @@ about the leading teams' architectures.
 The real-shape cached-weight FP8 probe passes its numerical gates but does not
 beat native BF16 after layout preparation; the MLP output projection is the
 clear negative. The B8 microbatch phase saves only1.9%, below its full-run gate;
-one B16 phase remains active. A fresh current-graph device capture is preserved
+B16 regresses to615ms, so this packing sweep is closed. A fresh current-graph device capture is preserved
 locally, and its unprofiled585ms update agrees with the earlier588ms result.
 The next full-budget algorithm control changes only clipping order to average
 gradients before clipping. These are measured decisions and a pending test,
@@ -89,6 +89,61 @@ shifts the final cooldown onto a different corpus prefix. A short run that ranks
 architectures at five minutes can select the wrong capacity for thirty minutes.
 
 ## 2. Three assumptions that the audit overturns
+
+### Current ordinary-embedding gradient: a specific new kernel hypothesis
+
+The successfully ingested NKI/BF16 dense capture now attributes 587.204 GFLOPs
+of regular Tensor work to input and unigram value embeddings, even with all
+hashed tables disabled. The former FP32 attention-backward matrix bottleneck
+is gone: total regular FP32 work in the current backward graph is only
+0.199 GFLOPs. These are instruction FLOPs, not exclusive runtime fractions.
+The unchanged model uses one input table and three value tables at vocabulary
+8192 and width1024; all four see the same token IDs in a microbatch.
+
+This was not wholly missed in earlier work. The September11 benchmark at
+8192×640 and BF16 weights measured native embedding forward/backward at3.18ms
+versus advanced indexing5.20ms and index_select5.12ms. That negative result
+justified retaining native ordinary embeddings. It used uniform IDs and a
+best-of-five timer. The current width, table precision and device trace justify
+a focused retest, including a different algorithm, rather than blindly enabling
+the already rejected indexing change.
+
+The proposed algorithm stable-sorts IDs once, shares compact metadata across
+the four tables, and uses NKI's FP32 scan with reset flags to accumulate each
+ID's gradient. Per-ID end indices select the sums and absent vocabulary rows
+are explicitly zero. A scan with resets avoids subtracting two large prefix
+sums. Each output row/channel has one writer, so duplicate-ID scatter races do
+not arise. The initial kernel includes gradient load/transposition, local
+gathers and the final standard [vocabulary,channels] output layout. CPU sorting
+and 81,920 bytes of metadata upload at the actual shape must be charged.
+This training-only metadata never changes inference or the tokenizer.
+
+The installed NKI0.5 API and AWS's
+[scan documentation](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/api/generated/nki.isa.tensor_tensor_scan.html)
+support the recurrence. The
+[per-partition gather](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/api/generated/nki.isa.nc_n_gather.html)
+selects input order and group ends. API availability establishes feasibility,
+not speed; vector scan or layout costs may still lose to dense Tensor work.
+FP32 accumulation may also change gradients relative to compiler BF16
+autocasting and therefore requires a full-budget quality comparison.
+
+`embedding_segmented_probe.py --device cpu --real-shape --training-row`
+passes eleven FP64-reference/error-bound cases: small/actual-shape uniform,
+Zipf-like, one repeated ID, zero gradients, cancellation, and a real shard0
+training row. That row has1,867 unique IDs and a maximum count279 among8,192
+tokens. All absent rows are exactly zero. The first CPU attempt passed synthetic
+checks but failed to locate shard0 in the default cache; the second uses a
+dedicated cache linking the already preserved training shard/tokenizer. Both
+logs are retained. This validates the mathematical reference, not the unrun
+NKI kernel.
+
+Advance only after device numerical checks and a measured component saving
+of20% over current native backward, including an explicitly labeled estimate
+for preparation shared across four tables. Compare native embedding and
+advanced-index autograd at the real shape as controls. Then require an actual
+four-rank whole-step saving with all metadata preparation charged, updated-model
+contract checks, and full-budget BPB. Do not claim a whole-model gain from the
+FLOP count, a kernel-only timing, or a host-side preparation estimate.
 
 ### Current default attention is not the historical compiled graph
 
@@ -539,6 +594,36 @@ the existing fused CE means its upside must come from head/logit traffic; it nee
 both dX and dW, not just an attractive forward benchmark.
 
 ## 7. Research quality and stopping rules
+
+### Fixed reserved-output mask and a matching objective
+
+The unchanged scorer masks all targets with zero token-byte count. The fixed,
+SHA-verified tokenizer has exactly four such IDs:8188–8191. The trainer still
+includes these targets in ordinary CE. A fixed output mask derived only from
+that metadata provides a bounded diagnostic before changing training.
+
+For a positive-byte target, removing zero-byte-class mass q and renormalizing
+changes its NLL by ln(1-q), which is nonpositive. This predicts the direction
+of a frozen-checkpoint diagnostic, not its magnitude or the quality of a newly
+trained model. Keep masked logits finite: the trusted scorer computes all CE
+values before multiplying by its target mask, so an infinite loss would risk
+0*infinity producing NaN.
+
+`research/scratch/zero_byte_mask_eval.py` uses a fixed-10000logit sentinel after
+softcap and two unchanged scorer calls. It neither fits a scalar to validation
+nor selects forbidden tokens from validation observations. Its CPU gate on the
+preserved dense checkpoint passes finite, exact future/other-row/repetition,
+B1-versus-B2 and CPU-reference checks. Synthetic positive-target NLL never
+increases; excluded-target CE remains finite and becomes zero after masking.
+Native checks and a paired BPB measurement are pending. No training/submission
+change is promoted. A promising training arm would both mask these output
+classes and omit their targets from the training loss, with an explicitly
+defined reduction and checked NKI backward.
+
+The existing [rules/metric audit](fresh-start-rules-research-2026-09-18.md)
+already proposed zero-byte target masking. The fixed output-normalizer probe
+is an additional way to measure the current wasted probability mass without
+changing the data loader, tokenizer or trusted scoring implementation.
 
 ### Next systems hypotheses after the current quality checks
 

@@ -1,0 +1,32 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave16",
+    "expected_commit": "8704139d074d94201192108329966fd1c574cf47",
+    "label": "fs-w16-dense1024-nki-norm-device-ingest-r2",
+    "purpose": "CPU-only complete profile ingestion: hard-link exported compiled NEFFs beside the NTFF in a separate analysis input tree; preserve raw capture unchanged. Initial system-directory discovery omitted compiled binaries.",
+    "fingerprint_paths": [
+      "research/scratch/phase_timer.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave16"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "python3",
+      "-c",
+      "from pathlib import Path\nimport os, subprocess\nroot=Path(\"/home/ubuntu/trainium_freshstart_20260918_wave16\")\nraw=root/\"out/fs-w16-dense1024-nki-norm-device-micro-r1/rank0\"\nstaged=root/\"out/fs-w16-dense-norm-ingest-input-r2\"\nstaged.mkdir(exist_ok=False)\nfor src in raw.rglob(\"*\"):\n if src.is_file():\n  dst=staged/src.relative_to(raw);dst.parent.mkdir(parents=True,exist_ok=True);os.link(src,dst)\nfor ntff in staged.rglob(\"*.ntff\"):\n for src in (raw/\"neffs\").glob(\"*.neff\"):\n  os.link(src,ntff.parent/(\"compiled_\"+src.name))\nprint(\"Staged original capture plus exported compiled NEFFs beside each NTFF\",flush=True)\np=subprocess.run([\"/opt/aws/neuron/bin/neuron-explorer\",\"view\",\"--session-dir\",str(staged),\"--data-path\",str(root/\"out/fresh-start-explorer\"),\"--display-name\",\"dense1024-nki-norm-device-micro-r2-complete\",\"--ingest-only\"])\nraise SystemExit(p.returncode)\n"
+    ]
+  },
+  "requested_at": "2026-09-18T12:20:56.968569+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w16-dense1024-nki-norm-device-ingest-r2\", \"pid\": 884298, \"commit\": \"8704139d074d94201192108329966fd1c574cf47\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave16/research/run-logs/fs-w16-dense1024-nki-norm-device-ingest-r2.log\", \"started_at\": \"2026-09-18T12:20:59.847259+00:00\"}\n",
+  "stderr": ""
+}
