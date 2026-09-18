@@ -1,30 +1,31 @@
 # Resume the Trainium kernel campaign
 
-Updated2026-09-18,19:28UTC. Active permissions: danger-full-access, approval never.
+Updated2026-09-18,19:34UTC. Active permissions: danger-full-access, approval never.
 This replaces the accumulated stale resume instructions; their history remains
 in Git. Do not restart completed experiments from earlier revisions.
 
 ## Live work
 
-- **trn21:** `fs-w44-dense1024-last-layer-packed-mlp-phase-r1` is compiling/running
-  in wave44/sourceaec170f. It replaces only layer5 to distinguish per-layer
-  overhead from global compiler planning effects. Native timing reference is588.186ms.
-- **trn22:** wave47 native-only and NKI-separated-only diagnostics completed
-  cleanly with exact repeats and unchanged weights. The minimal two-model
-  diagnostic reveals native changes from compiled autograd to ordinary eager
-  Linear/ReLU/Pow autograd after the separated model runs. NKI stays compiled.
-  See `fresh-start-mlp-boundary-rounding-2026-09-18.md`; do not implement a
-  different derivative to compensate for this comparison-harness transition.
-- **Next:** deploy the new isolated integration checker aswave48 totrn22. First
-  `--action capture --real-shape`, then `--action compare --real-shape` in
-  separate guarded processes with one shared reference directory. The script
-  asserts compiled autograd on every call and retains all original tolerances,
-  master/cache/update/eval/checkpoint checks. Only after passing consider a
-  separated full-model phase. No numerical tolerance has been loosened.
-- Longer fixed timing pair is complete: native588.185841ms versus combined
-  native-forward/custom-MLP-backward and embedding571.187868ms,2.889898% gain,
-  below3%. All four postchecks and cleanup passed. Retain for combination,
-  no full-budget training launched. Do not cherry-pick a different control.
+- **trn21:** `fs-w48-dense1024-separated-packed-mlp-phase-r1` is running in
+  wave48/source314e8d8 after the isolated numerical gate passed. Eight timed
+  steps/three warmups, all boundary/cache/layout/dispatch costs charged. Native
+  reference588.186ms;3% gate and four updated-model checks required.
+- **trn22:** isolated native capture and NKI separated comparison completed
+  cleanly, all48 comparisons pass unchanged tolerances at both actual shapes.
+  Native+candidate calls remain compiled; forward outputs exact. Reference
+  tensors are inwave48/out/fs-w48-mlp-isolated-reference-r1 and being copied to
+  localout/fresh-start-profiles/fs-w48-mlp-isolated-reference-r1 with hashes.
+- **Next:** native-forward boundary control. New checker option
+  `--forward-backend native` preserves the custom backward/region boundary.
+  Deploywave49 and compare against the existingwave48 native references in a
+  fresh guarded process; then phase only if it passes. No SDK changes.
+- The native comparison's old failure came from switching to eager execution
+  after another model compiled in the same process. See the boundary-rounding
+  note. Separate-process gates fix the comparison without changing derivatives
+  or tolerances.
+- Layer5-only packed MLP814.094ms loses even to all-six678.042ms; all checks clean.
+  Longer combined native-MLP+embedding pair remains588.186/571.188ms,2.889898%,
+  below3%. No new full-budget training has been launched.
 
 Use each `.dispatch.json`, `.job.json`, `.log`, `.postflight.json` under
 `research/run-logs/` for exact launch state. Requests are local under `out/`.

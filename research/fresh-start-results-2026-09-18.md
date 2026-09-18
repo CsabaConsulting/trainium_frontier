@@ -1476,3 +1476,14 @@ real compiled-to-eager transition in the comparison harness. The separated
 model stays compiled. The backend exception-fallback switch does not cover this
 Dynamo-level change. See the boundary-rounding note; a separate-process
 master/cache/update gate with the original numerical bounds is prepared.
+
+The layer5-only packed NKI MLP full-model control completed at814.094342495ms
+(microbatches729.169144499ms, cache3.067710029ms), all four postchecks and cleanup
+passing. It is slower than replacing all six layers678.041824ms and native
+588.185841ms. This is evidence against a simple additive per-layer kernel cost;
+it does not by itself identify the compiler's allocation decision.
+
+The wave48 isolated native-reference integration gate passes all48 comparisons
+with unchanged tolerance at256x256 and8192x1024. Forward outputs are exact; all
+calls retain compiled autograd. Source314e8d8. The separately compiled packed
+MLP full-model phase is now running ontrn21; native-boundary control is prepared.

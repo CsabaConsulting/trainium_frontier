@@ -60,8 +60,9 @@ def run(args, tokens, channels):
         torch.testing.assert_close(x.cpu(), reference["input"], rtol=0, atol=0)
         torch.testing.assert_close(grad.cpu(), reference["gradient"], rtol=0, atol=0)
         before_rng = torch.get_rng_state().clone()
-        install(model, "neuron", T, grouped_io=True, weight_mode=3,
-                separate_region=True)
+        install(model, "neuron", T, grouped_io=args.forward_backend == "nki",
+                weight_mode=3 if args.forward_backend == "nki" else 0,
+                forward_backend=args.forward_backend, separate_region=True)
         assert torch.equal(before_rng, torch.get_rng_state())
 
     compiled = torch.compile(model, backend="neuron", dynamic=False, fullgraph=capture)
@@ -136,6 +137,7 @@ def run(args, tokens, channels):
             torch.testing.assert_close(restored(x[:2, :31]).cpu(), evaluated, rtol=0, atol=0)
         print("ISOLATED_MLP_INTEGRATION_GATE " + json.dumps(dict(
             tokens=tokens, channels=channels, passed=True, numerical_tolerance_changed=False,
+            forward_backend=args.forward_backend,
             reference_from_separate_process=True, fp32_master_gradients=True,
             cached_and_uncached_paths=True, accumulated_microbatches=2,
             updates_per_cache_state=2, eval_exact=True, strict_native_checkpoint_load=True)), flush=True)
@@ -146,6 +148,8 @@ def main():
     ap.add_argument("--action", choices=("capture", "compare"), required=True)
     ap.add_argument("--reference-directory", type=Path, required=True)
     ap.add_argument("--real-shape", action="store_true")
+    ap.add_argument("--forward-backend", choices=("nki", "native"), default="nki",
+                    help="Native control retains the same region boundary and custom backward.")
     args = ap.parse_args()
     import torch_neuronx  # noqa:F401
     torch.set_num_threads(4)

@@ -1,0 +1,60 @@
+[W918 19:28:17.358975085 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+ISOLATED_MLP_EXECUTION {"action": "capture", "tokens": 256, "channels": 256, "cached": false, "step": 0, "micro": 0, "autograd_nodes": {"CompiledFunctionBackward": 1, "AccumulateGrad": 3}}
+ISOLATED_MLP_EXECUTION {"action": "capture", "tokens": 256, "channels": 256, "cached": false, "step": 0, "micro": 1, "autograd_nodes": {"CompiledFunctionBackward": 1, "AccumulateGrad": 3}}
+ISOLATED_MLP_EXECUTION {"action": "capture", "tokens": 256, "channels": 256, "cached": false, "step": 1, "micro": 0, "autograd_nodes": {"CompiledFunctionBackward": 1, "AccumulateGrad": 3}}
+ISOLATED_MLP_EXECUTION {"action": "capture", "tokens": 256, "channels": 256, "cached": false, "step": 1, "micro": 1, "autograd_nodes": {"CompiledFunctionBackward": 1, "AccumulateGrad": 3}}
+V0918 19:28:27.592000 1385154 torch/_dynamo/guards.py:4760] [0/1] [__recompiles] Recompiling function forward in /home/ubuntu/trainium_freshstart_20260918_wave48/research/scratch/mlp_fused_integration_check.py:27
+V0918 19:28:27.592000 1385154 torch/_dynamo/guards.py:4760] [0/1] [__recompiles]     triggered by the following guard failure(s):
+V0918 19:28:27.592000 1385154 torch/_dynamo/guards.py:4760] [0/1] [__recompiles]     - 0/0: self._modules['transformer']._modules['h']._modules['0']._modules['mlp']._modules['c_fc']._cached_weight is None  # if USE_WEIGHT_CACHE and self._cached_weight is not None and self._cached_weight.dtype == x.dtype:  # trainium_freshstart_20260918_wave48/train.py:2847 in forward
+V0918 19:28:27.592000 1385154 torch/_dynamo/guards.py:4760] [0/1] [__recompiles]     - User stack trace:
+V0918 19:28:27.592000 1385154 torch/_dynamo/guards.py:4760] [0/1] [__recompiles]     -   File "/home/ubuntu/trainium_freshstart_20260918_wave48/research/scratch/mlp_fused_integration_check.py", line 28, in forward
+V0918 19:28:27.592000 1385154 torch/_dynamo/guards.py:4760] [0/1] [__recompiles]     -     return self.transformer.h[0].mlp(x)
+V0918 19:28:27.592000 1385154 torch/_dynamo/guards.py:4760] [0/1] [__recompiles]     -   File "/home/ubuntu/trainium_freshstart_20260918_wave48/train.py", line 3237, in forward
+V0918 19:28:27.592000 1385154 torch/_dynamo/guards.py:4760] [0/1] [__recompiles]     -     h = self.c_fc(x) if fc is None else fc
+V0918 19:28:27.592000 1385154 torch/_dynamo/guards.py:4760] [0/1] [__recompiles]     -   File "/home/ubuntu/trainium_freshstart_20260918_wave48/train.py", line 2847, in forward
+V0918 19:28:27.592000 1385154 torch/_dynamo/guards.py:4760] [0/1] [__recompiles]     -     if USE_WEIGHT_CACHE and self._cached_weight is not None and self._cached_weight.dtype == x.dtype:
+ISOLATED_MLP_EXECUTION {"action": "capture", "tokens": 256, "channels": 256, "cached": true, "step": 0, "micro": 0, "autograd_nodes": {"CompiledFunctionBackward": 1, "ToCopyBackward0": 2, "AccumulateGrad": 3}}
+ISOLATED_MLP_EXECUTION {"action": "capture", "tokens": 256, "channels": 256, "cached": true, "step": 0, "micro": 1, "autograd_nodes": {"CompiledFunctionBackward": 1, "ToCopyBackward0": 2, "AccumulateGrad": 3}}
+ISOLATED_MLP_EXECUTION {"action": "capture", "tokens": 256, "channels": 256, "cached": true, "step": 1, "micro": 0, "autograd_nodes": {"CompiledFunctionBackward": 1, "ToCopyBackward0": 2, "AccumulateGrad": 3}}
+ISOLATED_MLP_EXECUTION {"action": "capture", "tokens": 256, "channels": 256, "cached": true, "step": 1, "micro": 1, "autograd_nodes": {"CompiledFunctionBackward": 1, "ToCopyBackward0": 2, "AccumulateGrad": 3}}
+ISOLATED_MLP_CAPTURE {"path": "out/fs-w48-mlp-isolated-reference-r1/native-256-256.pt", "bytes": 21277665, "sha256": "ea5d94f53954414e65381424d34ebc80871b697564bd98b0a018c12edca1f072", "tokens": 256, "channels": 256, "native_only": true}
+V0918 19:28:29.898000 1385154 torch/_dynamo/guards.py:4760] [0/2] [__recompiles] Recompiling function forward in /home/ubuntu/trainium_freshstart_20260918_wave48/research/scratch/mlp_fused_integration_check.py:27
+V0918 19:28:29.898000 1385154 torch/_dynamo/guards.py:4760] [0/2] [__recompiles]     triggered by the following guard failure(s):
+V0918 19:28:29.898000 1385154 torch/_dynamo/guards.py:4760] [0/2] [__recompiles]     - 0/1: tensor 'x' size mismatch at index 1. expected 64, actual 2048
+V0918 19:28:29.898000 1385154 torch/_dynamo/guards.py:4760] [0/2] [__recompiles]     - 0/0: tensor 'self._modules['transformer']._modules['h']._modules['0']._modules['mlp']._modules['c_fc']._parameters['weight']' size mismatch at index 0. expected 1024, actual 4096. Guard failed on a parameter, consider using torch._dynamo.config.force_parameter_static_shapes = False to allow dynamism on parameters.
+ISOLATED_MLP_EXECUTION {"action": "capture", "tokens": 8192, "channels": 1024, "cached": false, "step": 0, "micro": 0, "autograd_nodes": {"CompiledFunctionBackward": 1, "AccumulateGrad": 3}}
+ISOLATED_MLP_EXECUTION {"action": "capture", "tokens": 8192, "channels": 1024, "cached": false, "step": 0, "micro": 1, "autograd_nodes": {"CompiledFunctionBackward": 1, "AccumulateGrad": 3}}
+ISOLATED_MLP_EXECUTION {"action": "capture", "tokens": 8192, "channels": 1024, "cached": false, "step": 1, "micro": 0, "autograd_nodes": {"CompiledFunctionBackward": 1, "AccumulateGrad": 3}}
+ISOLATED_MLP_EXECUTION {"action": "capture", "tokens": 8192, "channels": 1024, "cached": false, "step": 1, "micro": 1, "autograd_nodes": {"CompiledFunctionBackward": 1, "AccumulateGrad": 3}}
+V0918 19:28:34.408000 1385154 torch/_dynamo/guards.py:4760] [0/3] [__recompiles] Recompiling function forward in /home/ubuntu/trainium_freshstart_20260918_wave48/research/scratch/mlp_fused_integration_check.py:27
+V0918 19:28:34.408000 1385154 torch/_dynamo/guards.py:4760] [0/3] [__recompiles]     triggered by the following guard failure(s):
+V0918 19:28:34.408000 1385154 torch/_dynamo/guards.py:4760] [0/3] [__recompiles]     - 0/2: self._modules['transformer']._modules['h']._modules['0']._modules['mlp']._modules['c_fc']._cached_weight is None  # if USE_WEIGHT_CACHE and self._cached_weight is not None and self._cached_weight.dtype == x.dtype:  # trainium_freshstart_20260918_wave48/train.py:2847 in forward
+V0918 19:28:34.408000 1385154 torch/_dynamo/guards.py:4760] [0/3] [__recompiles]     - User stack trace:
+V0918 19:28:34.408000 1385154 torch/_dynamo/guards.py:4760] [0/3] [__recompiles]     -   File "/home/ubuntu/trainium_freshstart_20260918_wave48/research/scratch/mlp_fused_integration_check.py", line 28, in forward
+V0918 19:28:34.408000 1385154 torch/_dynamo/guards.py:4760] [0/3] [__recompiles]     -     return self.transformer.h[0].mlp(x)
+V0918 19:28:34.408000 1385154 torch/_dynamo/guards.py:4760] [0/3] [__recompiles]     -   File "/home/ubuntu/trainium_freshstart_20260918_wave48/train.py", line 3237, in forward
+V0918 19:28:34.408000 1385154 torch/_dynamo/guards.py:4760] [0/3] [__recompiles]     -     h = self.c_fc(x) if fc is None else fc
+V0918 19:28:34.408000 1385154 torch/_dynamo/guards.py:4760] [0/3] [__recompiles]     -   File "/home/ubuntu/trainium_freshstart_20260918_wave48/train.py", line 2847, in forward
+V0918 19:28:34.408000 1385154 torch/_dynamo/guards.py:4760] [0/3] [__recompiles]     -     if USE_WEIGHT_CACHE and self._cached_weight is not None and self._cached_weight.dtype == x.dtype:
+V0918 19:28:34.408000 1385154 torch/_dynamo/guards.py:4760] [0/3] [__recompiles]     - 0/1: tensor 'x' size mismatch at index 1. expected 64, actual 2048
+V0918 19:28:34.408000 1385154 torch/_dynamo/guards.py:4760] [0/3] [__recompiles]     - 0/0: self._modules['transformer']._modules['h']._modules['0']._modules['mlp']._modules['c_fc']._cached_weight is None  # if USE_WEIGHT_CACHE and self._cached_weight is not None and self._cached_weight.dtype == x.dtype:  # trainium_freshstart_20260918_wave48/train.py:2847 in forward
+V0918 19:28:34.408000 1385154 torch/_dynamo/guards.py:4760] [0/3] [__recompiles]     - User stack trace:
+V0918 19:28:34.408000 1385154 torch/_dynamo/guards.py:4760] [0/3] [__recompiles]     -   File "/home/ubuntu/trainium_freshstart_20260918_wave48/research/scratch/mlp_fused_integration_check.py", line 28, in forward
+V0918 19:28:34.408000 1385154 torch/_dynamo/guards.py:4760] [0/3] [__recompiles]     -     return self.transformer.h[0].mlp(x)
+V0918 19:28:34.408000 1385154 torch/_dynamo/guards.py:4760] [0/3] [__recompiles]     -   File "/home/ubuntu/trainium_freshstart_20260918_wave48/train.py", line 3237, in forward
+V0918 19:28:34.408000 1385154 torch/_dynamo/guards.py:4760] [0/3] [__recompiles]     -     h = self.c_fc(x) if fc is None else fc
+V0918 19:28:34.408000 1385154 torch/_dynamo/guards.py:4760] [0/3] [__recompiles]     -   File "/home/ubuntu/trainium_freshstart_20260918_wave48/train.py", line 2847, in forward
+V0918 19:28:34.408000 1385154 torch/_dynamo/guards.py:4760] [0/3] [__recompiles]     -     if USE_WEIGHT_CACHE and self._cached_weight is not None and self._cached_weight.dtype == x.dtype:
+ISOLATED_MLP_EXECUTION {"action": "capture", "tokens": 8192, "channels": 1024, "cached": true, "step": 0, "micro": 0, "autograd_nodes": {"CompiledFunctionBackward": 1, "ToCopyBackward0": 2, "AccumulateGrad": 3}}
+ISOLATED_MLP_EXECUTION {"action": "capture", "tokens": 8192, "channels": 1024, "cached": true, "step": 0, "micro": 1, "autograd_nodes": {"CompiledFunctionBackward": 1, "ToCopyBackward0": 2, "AccumulateGrad": 3}}
+ISOLATED_MLP_EXECUTION {"action": "capture", "tokens": 8192, "channels": 1024, "cached": true, "step": 1, "micro": 0, "autograd_nodes": {"CompiledFunctionBackward": 1, "ToCopyBackward0": 2, "AccumulateGrad": 3}}
+ISOLATED_MLP_EXECUTION {"action": "capture", "tokens": 8192, "channels": 1024, "cached": true, "step": 1, "micro": 1, "autograd_nodes": {"CompiledFunctionBackward": 1, "ToCopyBackward0": 2, "AccumulateGrad": 3}}
+ISOLATED_MLP_CAPTURE {"path": "out/fs-w48-mlp-isolated-reference-r1/native-8192-1024.pt", "bytes": 604119159, "sha256": "1873400055fac613ba075b17ccef81adf465c011d06a4220fd1ce5582e023e50", "tokens": 8192, "channels": 1024, "native_only": true}
+PASS: isolated MLP capture
+EXPERIMENT_POSTFLIGHT {"label": "fs-w48-mlp-isolated-capture-r1", "returncode": 0, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave48/research/run-logs/fs-w48-mlp-isolated-capture-r1.postflight.json"}
