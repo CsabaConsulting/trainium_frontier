@@ -59,10 +59,13 @@ def main():
                          "step, which is the same graph-constant/recompile trap "
                          "USE_TENSOR_LR_SCALARS was introduced to fix for the lr. Measured "
                          "rather than assumed.")
-    ap.add_argument("--conv-mode", choices=["normal", "zeros"], default="normal",
+    ap.add_argument("--conv-mode", choices=["normal", "zeros", "shift"], default="normal",
                     help="zeros: monkeypatch CausalConv.forward to return zeros_like(x). "
                          "Mathematically identical because the weight is provably all-zero, "
-                         "but skips pad+conv1d+2 transposes. train.py is NOT modified.")
+                         "but skips pad+conv1d+2 transposes. Only valid as an equivalence "
+                         "diagnostic while weights are actually zero. shift: same trained "
+                         "causal convolution using static slices and FP32 elementwise sums. "
+                         "train.py is NOT modified.")
     ap.add_argument("--grad-clip", type=float, default=1.0,
                     help="T1.1 re-profile: include torch.nn.utils.clip_grad_norm_(model.parameters(), "
                          "this) in the timed window, matching train.py's real per-step order "
@@ -197,6 +200,10 @@ def main():
             return torch.zeros_like(x)
         T.CausalConv.forward = _zero_forward
         print("[pt] MONKEYPATCH: CausalConv.forward -> zeros_like(x)", flush=True)
+    elif args.conv_mode == "shift":
+        from causal_conv_shift import shift_causal_conv
+        T.CausalConv.forward = shift_causal_conv
+        print("[pt] LOWERING DIAGNOSTIC: CausalConv.forward -> static shifts, same parameters", flush=True)
 
     device_type = T.detect_device_type("")
     ddp, rank, local_rank, world_size, device = T.init_runtime(device_type)
