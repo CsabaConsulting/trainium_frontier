@@ -4,6 +4,15 @@ Objective: minimize **official 30-minute validation bits per byte** on one full
 Trainium2 chip. Sub-1.0 on public validation is an engineering milestone, not a
 claim about the private leaderboard. The metric is lower-is-better.
 
+**Current update:** the first width 896 run completed within budget at 0.992245
+public BPB (context 2048); standalone O1 evaluation gives 0.990534 at 2048/2M
+tokens and 1.009889 at 1024/20.97M tokens. See the
+[measured-results ledger](fresh-start-results-2026-09-18.md). The next full control
+uses direct compiled SDPA. Per the user's clarification, a separate transformer
+track without hashed n-gram tables is now a first-priority experiment; trn22 is
+profiling a width 1024, depth 6 candidate. N-gram capacity is optional, not a
+constraint on the campaign. The original launch plan below remains as provenance.
+
 ## Evidence that changes the next experiments
 
 1. The current public record is reproducible around 1.004–1.006 at ~2,100 steps,

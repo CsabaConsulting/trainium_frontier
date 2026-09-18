@@ -1,0 +1,19 @@
+[W918 08:14:11.013508569 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+{"check": "cpu_decay", "unchanged_bf16": 1001, "tested": 1001, "zero_steps": 1000, "bf16_value": 1.0, "fp32_value": 0.3676954209804535}
+{"check": "nki_correctness", "rows": 128, "cols": 1024, "case": "zero", "weight_exact_fraction": 1.0, "max_weight_abs": 0.0, "max_moment_abs": 9.094947017729282e-13}
+{"check": "nki_correctness", "rows": 128, "cols": 1024, "case": "sparse", "weight_exact_fraction": 1.0, "max_weight_abs": 0.0, "max_moment_abs": 0.0}
+{"check": "nki_correctness", "rows": 128, "cols": 1024, "case": "dense", "weight_exact_fraction": 0.99993896484375, "max_weight_abs": 1.52587890625e-05, "max_moment_abs": 9.094947017729282e-13}
+{"check": "nki_correctness", "rows": 128, "cols": 1024, "case": "late", "weight_exact_fraction": 1.0, "max_weight_abs": 0.0, "max_moment_abs": 9.094947017729282e-13}
+{"check": "nki_correctness", "rows": 256, "cols": 2048, "case": "zero", "weight_exact_fraction": 1.0, "max_weight_abs": 0.0, "max_moment_abs": 9.094947017729282e-13}
+{"check": "nki_correctness", "rows": 256, "cols": 2048, "case": "sparse", "weight_exact_fraction": 1.0, "max_weight_abs": 0.0, "max_moment_abs": 0.0}
+{"check": "nki_correctness", "rows": 256, "cols": 2048, "case": "dense", "weight_exact_fraction": 0.9999294281005859, "max_weight_abs": 6.103515625e-05, "max_moment_abs": 9.094947017729282e-13}
+{"check": "nki_correctness", "rows": 256, "cols": 2048, "case": "late", "weight_exact_fraction": 1.0, "max_weight_abs": 0.0, "max_moment_abs": 9.094947017729282e-13}
+{"check": "native_decay", "zero_steps": 1000, "bf16_value": 1.0, "fp32_value": 0.3676954209804535, "nki_cases": 8}
+{"check": "optimizer_benchmark", "elements": 134217728, "logical_cores": "2", "visible_cores": "0", "samples_ms": {"legacy_bf16": [11.806990660261363, 11.781022670523575, 11.686419340549037], "fp32_math": [23.994044167920947, 23.99970050707149, 24.00498483135986], "nki_fp32_copyback": [17.841852008132264, 17.816872500892107, 17.826407003061224]}, "median_ms": {"legacy_bf16": 11.781022670523575, "fp32_math": 23.99970050707149, "nki_fp32_copyback": 17.826407003061224}}
+PASS: requested RMSProp probes completed

@@ -1,0 +1,35 @@
+[W918 08:23:59.872172519 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+{"check": "cpu_decay", "unchanged_bf16": 1001, "tested": 1001, "zero_steps": 1000, "bf16_value": 1.0, "fp32_value": 0.3676954209804535}
+{"check": "nki_correctness", "rows": 128, "cols": 1024, "case": "zero", "lanes": 1, "inplace": false, "weight_exact_fraction": 1.0, "max_weight_abs": 0.0, "max_moment_abs": 9.094947017729282e-13}
+{"check": "nki_correctness", "rows": 128, "cols": 1024, "case": "zero", "lanes": 1, "inplace": true, "weight_exact_fraction": 1.0, "max_weight_abs": 0.0, "max_moment_abs": 9.094947017729282e-13}
+{"check": "nki_correctness", "rows": 128, "cols": 1024, "case": "sparse", "lanes": 1, "inplace": false, "weight_exact_fraction": 1.0, "max_weight_abs": 0.0, "max_moment_abs": 0.0}
+{"check": "nki_correctness", "rows": 128, "cols": 1024, "case": "sparse", "lanes": 1, "inplace": true, "weight_exact_fraction": 1.0, "max_weight_abs": 0.0, "max_moment_abs": 0.0}
+{"check": "nki_correctness", "rows": 128, "cols": 1024, "case": "dense", "lanes": 1, "inplace": false, "weight_exact_fraction": 0.99993896484375, "max_weight_abs": 1.52587890625e-05, "max_moment_abs": 9.094947017729282e-13}
+{"check": "nki_correctness", "rows": 128, "cols": 1024, "case": "dense", "lanes": 1, "inplace": true, "weight_exact_fraction": 0.99993896484375, "max_weight_abs": 1.52587890625e-05, "max_moment_abs": 9.094947017729282e-13}
+{"check": "nki_correctness", "rows": 128, "cols": 1024, "case": "late", "lanes": 1, "inplace": false, "weight_exact_fraction": 1.0, "max_weight_abs": 0.0, "max_moment_abs": 9.094947017729282e-13}
+{"check": "nki_correctness", "rows": 128, "cols": 1024, "case": "late", "lanes": 1, "inplace": true, "weight_exact_fraction": 1.0, "max_weight_abs": 0.0, "max_moment_abs": 9.094947017729282e-13}
+{"check": "nki_correctness", "rows": 256, "cols": 2048, "case": "zero", "lanes": 1, "inplace": false, "weight_exact_fraction": 1.0, "max_weight_abs": 0.0, "max_moment_abs": 9.094947017729282e-13}
+{"check": "nki_correctness", "rows": 256, "cols": 2048, "case": "zero", "lanes": 1, "inplace": true, "weight_exact_fraction": 1.0, "max_weight_abs": 0.0, "max_moment_abs": 9.094947017729282e-13}
+{"check": "nki_correctness", "rows": 256, "cols": 2048, "case": "zero", "lanes": 2, "inplace": false, "weight_exact_fraction": 1.0, "max_weight_abs": 0.0, "max_moment_abs": 9.094947017729282e-13}
+{"check": "nki_correctness", "rows": 256, "cols": 2048, "case": "zero", "lanes": 2, "inplace": true, "weight_exact_fraction": 1.0, "max_weight_abs": 0.0, "max_moment_abs": 9.094947017729282e-13}
+{"check": "nki_correctness", "rows": 256, "cols": 2048, "case": "sparse", "lanes": 1, "inplace": false, "weight_exact_fraction": 1.0, "max_weight_abs": 0.0, "max_moment_abs": 0.0}
+{"check": "nki_correctness", "rows": 256, "cols": 2048, "case": "sparse", "lanes": 1, "inplace": true, "weight_exact_fraction": 1.0, "max_weight_abs": 0.0, "max_moment_abs": 0.0}
+{"check": "nki_correctness", "rows": 256, "cols": 2048, "case": "sparse", "lanes": 2, "inplace": false, "weight_exact_fraction": 1.0, "max_weight_abs": 0.0, "max_moment_abs": 0.0}
+{"check": "nki_correctness", "rows": 256, "cols": 2048, "case": "sparse", "lanes": 2, "inplace": true, "weight_exact_fraction": 1.0, "max_weight_abs": 0.0, "max_moment_abs": 0.0}
+{"check": "nki_correctness", "rows": 256, "cols": 2048, "case": "dense", "lanes": 1, "inplace": false, "weight_exact_fraction": 0.9999294281005859, "max_weight_abs": 6.103515625e-05, "max_moment_abs": 9.094947017729282e-13}
+{"check": "nki_correctness", "rows": 256, "cols": 2048, "case": "dense", "lanes": 1, "inplace": true, "weight_exact_fraction": 0.9999294281005859, "max_weight_abs": 6.103515625e-05, "max_moment_abs": 9.094947017729282e-13}
+{"check": "nki_correctness", "rows": 256, "cols": 2048, "case": "dense", "lanes": 2, "inplace": false, "weight_exact_fraction": 0.9999294281005859, "max_weight_abs": 6.103515625e-05, "max_moment_abs": 9.094947017729282e-13}
+{"check": "nki_correctness", "rows": 256, "cols": 2048, "case": "dense", "lanes": 2, "inplace": true, "weight_exact_fraction": 0.9999294281005859, "max_weight_abs": 6.103515625e-05, "max_moment_abs": 9.094947017729282e-13}
+{"check": "nki_correctness", "rows": 256, "cols": 2048, "case": "late", "lanes": 1, "inplace": false, "weight_exact_fraction": 1.0, "max_weight_abs": 0.0, "max_moment_abs": 9.094947017729282e-13}
+{"check": "nki_correctness", "rows": 256, "cols": 2048, "case": "late", "lanes": 1, "inplace": true, "weight_exact_fraction": 1.0, "max_weight_abs": 0.0, "max_moment_abs": 9.094947017729282e-13}
+{"check": "nki_correctness", "rows": 256, "cols": 2048, "case": "late", "lanes": 2, "inplace": false, "weight_exact_fraction": 1.0, "max_weight_abs": 0.0, "max_moment_abs": 9.094947017729282e-13}
+{"check": "nki_correctness", "rows": 256, "cols": 2048, "case": "late", "lanes": 2, "inplace": true, "weight_exact_fraction": 1.0, "max_weight_abs": 0.0, "max_moment_abs": 9.094947017729282e-13}
+{"check": "native_decay", "zero_steps": 1000, "bf16_value": 1.0, "fp32_value": 0.3676954209804535, "nki_cases": 24}
+{"check": "optimizer_benchmark", "elements": 134217728, "logical_cores": "2", "visible_cores": "0", "samples_ms": {"legacy_bf16": [11.329289001878351, 11.284174329678839, 11.215448001166806], "fp32_math": [23.370613004469003, 23.537909000879154, 23.383738996926695], "nki_1_copyback": [17.86571783789744, 17.804269504267722, 17.829132829016697], "nki_2_copyback": [10.300844005541876, 10.28304366627708, 10.277390994209176], "nki_1_inplace": [24.993158333624404, 24.98070549336262, 24.96602166017207], "nki_2_inplace": [17.572330669887986, 17.542400668996077, 17.568544833920896]}, "median_ms": {"legacy_bf16": 11.284174329678839, "fp32_math": 23.383738996926695, "nki_1_copyback": 17.829132829016697, "nki_2_copyback": 10.28304366627708, "nki_1_inplace": 24.98070549336262, "nki_2_inplace": 17.568544833920896}}
+PASS: requested RMSProp probes completed

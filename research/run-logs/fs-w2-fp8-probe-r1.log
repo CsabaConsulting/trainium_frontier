@@ -1,0 +1,21 @@
+[W918 08:26:28.189564989 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_freshstart_20260918_wave2/research/scratch/fresh_start_fp8_probe.py", line 169, in <module>
+    main()
+  File "/home/ubuntu/trainium_freshstart_20260918_wave2/research/scratch/fresh_start_fp8_probe.py", line 162, in main
+    run_case(fp8, bf16, shape, args.steps)
+  File "/home/ubuntu/trainium_freshstart_20260918_wave2/research/scratch/fresh_start_fp8_probe.py", line 123, in run_case
+    torch.testing.assert_close(y8.float(), quant_reference.bfloat16().float(), rtol=0.009, atol=1e-5)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/testing/_comparison.py", line 1600, in assert_close
+    raise error_metas[0].to_error(msg)
+AssertionError: Tensor-likes are not close!
+
+Mismatched elements: 98 / 16384 (0.6%)
+Greatest absolute difference: 0.000244140625 at index (86, 87) (up to 1e-05 allowed)
+Greatest relative difference: 1.1363636255264282 at index (38, 13) (up to 0.009 allowed)

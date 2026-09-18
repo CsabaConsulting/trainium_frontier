@@ -2,12 +2,17 @@
 
 This is a living research argument, with falsifiable experiments. It separates
 results in existing logs, facts verified in source/numerical probes, and proposals
-whose BPB benefit is unknown. The first two new training runs are still in flight
-at this revision. A sub-1.0 result has **not** been established by this campaign.
+whose BPB benefit is unknown. The first budgeted width896 run reached **0.992245**
+on the two-million-token public diagnostic at context 2048; loading its saved
+checkpoint through `prepare.py eval-public` with default O1 compiler precision
+gave **0.990534**. Its in-process context 1024 score was **1.005110**; the larger
+20.97M-token standalone evaluation at context 1024 gave **1.009889**. These are
+public measurements, not a private leaderboard score. See the [measured results](fresh-start-results-2026-09-18.md)
+for source commits, timing, numerical gates and limitations.
 
 The strongest opportunity is to recover useful capacity and optimization quality
-from the existing transformer. There is already direct evidence that a wider
-version learns below 1.0 when given too much time. Meanwhile the current code and
+from the existing transformer. A wider version now learns below 1.0 on the public
+context 2048 diagnostic within the budget. Meanwhile the current code and
 measurement history contain concrete changes that previous high-level conclusions
 do not account for. A complete replacement with an SSM or all-FP8 stack would make
 these mechanisms harder to isolate.
@@ -69,6 +74,11 @@ proof that the default is using a slow unfused attention implementation. The
 effect could be small, or compiler fusion/resharding could make it substantial.
 Measure it at full four-rank geometry before promoting it.
 
+The first 60-step four-rank smoke measured approximately 0.66–0.67 s/step with
+direct compiled SDPA versus about 0.70s in the first width640 BF16 run. This is a
+throughput lead, not a completed quality comparison: the smoke intentionally
+stopped before cooldown. Outputs passed the in-run causality check.
+
 Git history places the disabled wrapper after the historical record, width896,
 and BF16-autocast comparisons. The first new wave inherited it. Those runs remain
 useful results for their exact source, but historical comparisons are confounded
@@ -99,7 +109,12 @@ the downward BF16 spacing of normal positive values. Round-to-nearest can return
 exactly `v` forever. The CPU test used 1,001 positive values over many orders of
 magnitude: every BF16 value stayed fixed after the decay, whereas FP32 values
 changed. After 1,000 zero-gradient updates, 1.0 remained 1.0 in BF16 but became
-approximately 0.367695 in FP32. Native-device confirmation is a separate gate.
+approximately 0.367695 in FP32. The native-device probe has now reproduced this.
+The two-core fused FP32 update measured 10.28ms per full table including copy-back,
+versus 11.28ms for the legacy BF16 path and 23.38ms for ordinary FP32 arithmetic.
+Repeated updates through the actual native optimizer also pass CPU-reference
+checks, including varying LR, sparse/zero/None gradients and two decay constants.
+Whole-model throughput and full-run BPB remain unmeasured for the new optimizer.
 
 This is a numerical fact, **not yet an explanation for poor BPB**. The accidental
 history dependence may act like useful regularization or AdaGrad-like damping.
@@ -114,6 +129,7 @@ it is not an all-FP32-table experiment with doubled gradient communication.
 | --- | --- | --- | --- |
 | A | Restore direct compiled SDPA | CPU outputs/gradients and graph capture; short full-chip timing/causality | Same-source no-autocast and BF16 controls; speed without loss divergence advances |
 | A | Use recovered throughput for width896 or768 | Short stable run, memory, compile/startup margin | Full 1800s BPB at both contexts, charged time and saved-model evaluation |
+| A | Independent transformer track without hashed n-gram tables | Reprofile current BF16/direct-SDPA graph; do not assume removing tables speeds it up | Spend measured savings on dense capacity; compare full-budget BPB and then matched-exposure table ablation |
 | A | FP32 n-gram second moments and update math, BF16 weights/grads | CPU and native sparse/zero/outlier update tests; memory and time | Full-budget quality; if promising, separate state decay from weight rounding and retune table LR narrowly |
 | A | Fuse table RMSProp in NKI | CPU reference, native output/state checks, runtime scalar changes | Include copy-back/layout cost and all-rank whole-step time; reject microkernel-only wins |
 | B | Clip after gradient averaging | Real distributed CPU reference already passes | Paired full budget at the same graph/precision, then another seed if useful |
@@ -217,6 +233,12 @@ counter is tied to document ingestion and buffering, not exact unique-token
 coverage. The fixed packer can discard tails. An audit can count these effects
 without changing the pipeline. Replacing that pipeline is outside this campaign's
 current run slate because the rules explicitly prohibit data-pipeline changes.
+
+The audit is now complete: raw training text has 315.5M tokens. At 2,800 optimizer
+steps, only 288.5M first-pass text tokens have been retained; 24.7M encoded tokens
+remain buffered in 1,570 long documents, while a second pass over shorter
+documents has begun. At 2,026 steps, first-pass retained text is 265.2M tokens.
+See the results ledger and full count JSON before making an epoch-based claim.
 
 The width640 BF16 shortened run approximately matches the old exposure, but its
 actual step count and schedule must be checked; wall time is not exact step matching.

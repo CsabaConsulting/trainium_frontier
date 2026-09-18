@@ -18,6 +18,18 @@ Original remote path: `/home/ubuntu/trainium_frontier/out/t17-l1-m128/final.pt`.
 Weights remain outside Git under the existing checkpoint ignore rule. This note
 records their recovery location; code, logs, research and provenance are committed.
 
+The new width896 checkpoint is also preserved locally at
+`checkpoints/fs-w896-bf16-1800-r1/final.pt` (1,453,683,975 bytes). Its remote
+source is `/home/ubuntu/trainium_freshstart_20260918/out/fs-w896-bf16-1800-r1/final.pt`.
+Independent local and remote SHA256 calculations match:
+
+```
+fe4a2bcb153a3a4920cb92bda15f05b5030da8a391742dd92092e68910828c6d
+```
+
+Its source commit is `ca635670f67b067201fb9b6167eccf414b70bacd`. See the
+[results note](fresh-start-results-2026-09-18.md) for the exact evaluation geometry.
+
 Fresh training wave1 uses `/home/ubuntu/trainium_freshstart_20260918`, source
 commit `ca635670f67b067201fb9b6167eccf414b70bacd`. It was installed from a locally
 created Git bundle. Source files are not changed while a run is active. New waves

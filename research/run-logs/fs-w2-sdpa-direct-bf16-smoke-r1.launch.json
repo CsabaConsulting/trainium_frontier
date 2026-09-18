@@ -1,0 +1,21 @@
+{
+  "label": "fs-w2-sdpa-direct-bf16-smoke-r1",
+  "started_at": "2026-09-18T08:15:33+00:00",
+  "hostname": "ip-172-31-32-253",
+  "git_commit": "ad3060e89aa06e6c4d8f012375da315d1f4c903b",
+  "git_dirty": true,
+  "source_dirty": false,
+  "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 60 --max-train-seconds 1800 --out-dir out/fs-w2-sdpa-direct-bf16-smoke-r1 --eval-tokens 262144 --depth 6 --n-embd 640 --seed 42 --compile-muon --qk-shift --qk-shift-beta 0.0 --qk-shift-freeze --ngram-ve-layers 1,-1 --ngram-ve-table-mult 128 --compile-sdpa-direct --eval-seq-len 1024",
+  "description": "SMOKE only: direct compiled SDPA, w640 BF16; source-matched graph timing [trn22]",
+  "environment": {
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "source_sha256": {
+    "train.py": "5255db11fa45a440d2f8ca399bc80c2b422bc9ddff8bc1e49db109ab1f81c7b2",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "4c14ac6ec14fd52e31ee06d91540707083c48a93ec4687fbaa35bc7106a823f3"
+  }
+}
