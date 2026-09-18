@@ -35,7 +35,8 @@ def refresh(model):
 
 
 def run(device, tokens, channels, normal_input_gradient=False, token_tile=512, grouped_io=False,
-        weight_mode=0, forward_backend="nki", separate_region=False):
+        weight_mode=0, forward_backend="nki", separate_region=False, batch_size=4,
+        require_compiled=False):
     torch.manual_seed(1023)
     T.USE_WEIGHT_CACHE = True
     T.USE_GATED_MLP = T.USE_COALESCED_SWIGLU = T.USE_NKI_RELU2 = False
@@ -52,8 +53,9 @@ def run(device, tokens, channels, normal_input_gradient=False, token_tile=512, g
         optimized = torch.compile(candidate, backend="neuron", fullgraph=not separate_region, dynamic=False)
     else:
         native, optimized = baseline, candidate
-    x = torch.randn(4, tokens // 4, channels).bfloat16().to(device)
-    g = (torch.randn(4, tokens // 4, channels) * .01).bfloat16().to(device)
+    assert tokens % batch_size == 0
+    x = torch.randn(batch_size, tokens // batch_size, channels).bfloat16().to(device)
+    g = (torch.randn(batch_size, tokens // batch_size, channels) * .01).bfloat16().to(device)
     # Refresh is differentiable and every microbatch must accumulate into the
     # original FP32 master Parameter, including after a real parameter update.
     for cached in (False, True):
@@ -68,6 +70,11 @@ def run(device, tokens, channels, normal_input_gradient=False, token_tile=512, g
                 bx = xx.detach().clone().requires_grad_()
                 cx = xx.detach().clone().requires_grad_()
                 expected, output = native(bx), optimized(cx)
+                if require_compiled:
+                    # Joined calls return this node directly. Region-separated
+                    # gates use the isolated checker and its graph traversal.
+                    assert type(expected.grad_fn).__name__ == "CompiledFunctionBackward"
+                    assert type(output.grad_fn).__name__ == "CompiledFunctionBackward"
                 compare(f"integration_output:{tokens}:{channels}:{cached}:{step}:{micro}", output, expected)
                 expected.backward(g)
                 output.backward(g)
@@ -97,6 +104,7 @@ def run(device, tokens, channels, normal_input_gradient=False, token_tile=512, g
         torch.testing.assert_close(restored(xx).cpu(), candidate(xx).cpu(), rtol=0, atol=0)
     print("FUSED_MLP_INTEGRATION_GATE " + json.dumps(dict(
         tokens=tokens, channels=channels, passed=True, fp32_master_gradients=True,
+        batch_size=batch_size, compiled_execution_asserted=require_compiled,
         normal_input_gradient=normal_input_gradient,
         token_tile=token_tile, grouped_io=grouped_io, weight_mode=weight_mode,
         forward_backend=forward_backend,
@@ -109,6 +117,9 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--device", choices=("cpu", "neuron"), default="neuron")
     ap.add_argument("--real-shape", action="store_true")
+    ap.add_argument("--real-tokens", type=int, default=8192)
+    ap.add_argument("--batch-size", type=int, default=4)
+    ap.add_argument("--require-compiled", action="store_true")
     ap.add_argument("--normal-dx", action="store_true")
     ap.add_argument("--token-tile", type=int, choices=(128, 256, 512), default=512)
     ap.add_argument("--grouped-io", action="store_true")
@@ -119,6 +130,12 @@ def main():
     ap.add_argument("--separate-region", action="store_true",
                     help="Compile MLP forward/backward separately behind an explicit graph boundary.")
     args = ap.parse_args()
+    if args.batch_size < 1 or 256 % args.batch_size or args.real_tokens % (2 * 128):
+        ap.error("batch size must divide256; real tokens must be a positive multiple of256")
+    if args.real_tokens < 256 or args.real_tokens % args.batch_size:
+        ap.error("real tokens must be >=256 and divisible by batch size")
+    if args.require_compiled and (args.device != "neuron" or args.separate_region):
+        ap.error("--require-compiled is for joined Neuron calls; use isolated checker for regions")
     if args.weight_mode and not args.grouped_io:
         ap.error("streaming weight modes require --grouped-io")
     if args.forward_backend == "native" and args.weight_mode:
@@ -127,10 +144,11 @@ def main():
     if args.device == "neuron":
         import torch_neuronx  # noqa:F401
     run(args.device, 256, 256, args.normal_dx, args.token_tile, args.grouped_io, args.weight_mode,
-        args.forward_backend, args.separate_region)
+        args.forward_backend, args.separate_region, args.batch_size, args.require_compiled)
     if args.real_shape:
-        run(args.device, 8192, 1024, args.normal_dx, args.token_tile, args.grouped_io, args.weight_mode,
-            args.forward_backend, args.separate_region)
+        run(args.device, args.real_tokens, 1024, args.normal_dx, args.token_tile, args.grouped_io,
+            args.weight_mode, args.forward_backend, args.separate_region, args.batch_size,
+            args.require_compiled)
     print("PASS: fused MLP master parameter, cache, accumulation and checkpoint gates", flush=True)
 
 

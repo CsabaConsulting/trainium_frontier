@@ -136,12 +136,21 @@ def main() -> None:
                     help="NEURON_LOGICAL_NC_CONFIG; no-op on CUDA, read only by Neuron")
     p.add_argument("--eval-tokens", type=int, default=None,
                     help="override train.py's --eval-tokens for faster early iteration")
+    p.add_argument("--entrypoint", type=Path, default=Path("train.py"),
+                    help="Explicit repository-local training wrapper; default unchanged train.py.")
     p.add_argument("--extra-args", nargs=argparse.REMAINDER, default=[],
                     help="anything else to pass through to train.py")
     p.add_argument("--no-commit", action="store_true", help="skip git-committing the log row")
     args = p.parse_args()
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", args.label):
         p.error("--label must be a filename-safe slug (letters, digits, _, -, .)")
+    entrypoint = (REPO_ROOT / args.entrypoint).resolve()
+    if (not entrypoint.is_relative_to(REPO_ROOT) or not entrypoint.is_file()
+            or entrypoint.suffix != ".py"):
+        p.error("--entrypoint must name a Python file inside this repository")
+    entrypoint_name = str(entrypoint.relative_to(REPO_ROOT))
+    source_paths = list(dict.fromkeys(("train.py", "prepare.py", "research/run_experiment.py",
+                                      entrypoint_name)))
 
     # The lock is inherited by torchrun: killing just this wrapper cannot permit
     # a second run to overlap surviving workers. A new checkout still needs the
@@ -155,7 +164,7 @@ def main() -> None:
         p.error("another experiment owns this checkout's run lock")
 
     launch_cmd = [
-        "torchrun", "--standalone", f"--nproc_per_node={args.nproc_per_node}", "train.py",
+        "torchrun", "--standalone", f"--nproc_per_node={args.nproc_per_node}", entrypoint_name,
         "--num-steps", str(args.num_steps),
         "--max-train-seconds", str(args.max_train_seconds),
         "--out-dir", f"out/{args.label}",
@@ -178,8 +187,7 @@ def main() -> None:
     # every successful run as dirty because it has just written a new log.
     source_commit = git("rev-parse", "HEAD")
     source_dirty = bool(git("status", "--porcelain"))
-    training_source_dirty = bool(git("status", "--porcelain", "--",
-                                     "train.py", "prepare.py", "research/run_experiment.py"))
+    training_source_dirty = bool(git("status", "--porcelain", "--", *source_paths))
     manifest = {
         "label": args.label,
         "started_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -189,11 +197,12 @@ def main() -> None:
         "source_dirty": training_source_dirty,
         "launch_command": launch_cmd_str,
         "description": args.description,
+        "entrypoint": entrypoint_name,
         "environment": {k: v for k, v in env.items()
                         if k.startswith(("NEURON_", "NKI_", "XLA_"))
                         or k in ("OMP_NUM_THREADS", "MALLOC_ARENA_MAX", "PYTHONUNBUFFERED")},
         "source_sha256": {name: hashlib.sha256((REPO_ROOT / name).read_bytes()).hexdigest()
-                          for name in ("train.py", "prepare.py", "research/run_experiment.py")},
+                          for name in source_paths},
     }
     with manifest_path.open("x") as manifest_file:
         json.dump(manifest, manifest_file, indent=2)
