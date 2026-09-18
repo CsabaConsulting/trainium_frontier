@@ -1,0 +1,35 @@
+{
+  "label": "fs-w12-integrated-conv2-fp32-zero-gate-r1",
+  "purpose": "Compiled FP32 integrated convolution arithmetic gate including zero-initialized weights; localize first-forward NaN independently of attention and whole-model graph",
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1",
+    "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave12",
+    "NEURON_RT_VISIBLE_CORES": "0"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1200s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "research/scratch/causal_conv_shift_device_check.py",
+    "--kernel",
+    "train-nki",
+    "--dtype",
+    "fp32",
+    "--large",
+    "--zero-weights"
+  ],
+  "started_at": "2026-09-18T11:06:43.188611+00:00",
+  "hostname": "ip-172-31-34-85",
+  "git_commit": "c61bfca7f2ea2c75cb177c0793c08649065e2a3a",
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/scratch/causal_conv_shift_device_check.py": "03a9b1e918dde3b93bf0c4a70f09b363ae76816e453e31172501b75a63041c17",
+    "research/run_experiment.py": "4c14ac6ec14fd52e31ee06d91540707083c48a93ec4687fbaa35bc7106a823f3"
+  }
+}

@@ -21,6 +21,16 @@ measurement history contain concrete changes that previous high-level conclusion
 do not account for. A complete replacement with an SSM or all-FP8 stack would make
 these mechanisms harder to isolate.
 
+**11:22 UTC update:** the independent dense6×1024 path, without hashed n-gram
+tables, now has a gated **0.588s** update versus0.986s for its no-QK control.
+Custom NKI convolution and BF16 normalized branch inputs provide the additional
+40.4% reduction; residual accumulation remains FP32. Its full-budget run is in
+progress, with finite losses and ~0.60s ordinary updates. Its BPB is unknown.
+The first dense control finished at1.027777 at context1024, so throughput alone
+does not yet establish competitive dense quality. Eight-layer dense capacity is
+now being gated under the faster implementation. N-gram tables are optional;
+there is no verified information about the leading teams' architectures.
+
 Supporting audits:
 
 - [Experiment evidence and source-history audit](fresh-start-evidence-2026-09-18.md)
@@ -188,10 +198,16 @@ Removing only the frozen zero Q/K shift makes it **0.986s**, saving 30.39% of
 step time with the optimizer/tail nearly unchanged. Both retain the intended
 trainable function, although finite-precision paths can change. This is concrete
 evidence against generalizing a compiler perturbation's width640 benefit to
-width1024. The faster dense candidate is in full-budget training; its BPB is
-not yet known. The custom NKI convolution now passes separate native FP32
-forward, gradient and causality gates through the full B4×T2048×C1024 shape.
-Its full-model timing is running against a new same-host 0.979s control.
+width1024. That dense control completed1,805updates, at1.012886BPB@2048 and
+1.027777@1024. Custom NKI convolution passes separate native FP32 and BF16
+forward, gradient and causality gates through B4×T2048×C1024, including zero
+initial weights. The BF16-norm/NKI composition measures0.588s and passes updated
+four-rank model gates. However, the NKI-only FP32 model produces NaN on its first
+compiled forward, even with one kernel program. The eager full model and a
+compiled graph retaining intermediate tensors are finite. Therefore the earlier
+713ms FP32 timing is withdrawn as usable training evidence; the graph interaction
+must be resolved before that arm is promoted. The BF16 composition's full-budget
+run is separately in progress.
 
 A distinct mixed-precision candidate is to keep the residual accumulation in
 FP32 but store normalized branch inputs in BF16. The historical dtype trace
@@ -385,7 +401,10 @@ results on a different dense model are weak evidence against table-only averagin
 
 Recent 150M/300M language-model work finds that averaging can make simple schedules
 competitive across training horizons. Our table-only proposal is an extrapolation,
-not a tested result from that paper. Predeclare one short tail window and count
+not a tested result from that paper. The inspected setup uses3.3B/6.6B minimum
+tokens, explicitly no data repetition, and AdamW without weight decay; this is
+not direct evidence for a ~315M-token corpus and our Muon/table optimizer.
+Predeclare one short tail window and count
 all averaging/finalization within the budget. [Anytime Pretraining](https://arxiv.org/html/2602.03702v1).
 
 BF16 round-to-nearest can also cancel nonzero parameter updates. Work on BF16
@@ -404,6 +423,62 @@ benchmark if Muon is still a significant fraction of step time. Square groups
 may be better left unchanged. Neither the CUDA kernels nor their published
 speedups apply directly to this installed native backend.
 [Algorithm and stability discussion](https://tridao.me/blog/2026/gram-newton-schulz/).
+
+### New bounded candidate: canonical-token continuation constraints
+
+Deterministic BPE leaves some token continuations impossible. A causal output
+constraint could stop allocating probability to them without adding learned
+memory. The ICML2025 paper proves useful BPE locality properties but explicitly
+warns that pretokenization can create false negatives. Our fixed regex differs
+from GPT-2, so a generic table or isolated decode/re-encode test is insufficient.
+[Canonical BPE paper](https://arxiv.org/abs/2506.07956).
+
+The first local probe considers only an ASCII-letter previous token at least
+three bytes long followed by an ASCII-letter candidate. Such a seam cannot end
+one of the regex's contractions, whose letter suffix has length at most two.
+Within this restricted letter run, use the fixed tokenizer's re-encoding test;
+leave every uncertain Unicode, numeric, whitespace, punctuation, short-left,
+and special-token case unrestricted. This is deliberately incomplete.
+
+`canonical_token_mask_probe.py` tests4,854,956 eligible pairs and marks343,128
+impossible. The derived mask rejects **zero** observed canonical pairs over
+63,336,106 training tokens in86,016 provided shard0 documents and50,012 synthetic
+context cases. It uses no validation observations, learned table, or external
+training text. This empirical falsification check supports the restricted seam
+argument; it does not prove a general pretokenizer mask correct. Build time was
+11.52s locally, and quality has not been measured. Generated matrices stay in
+`out/`; source, counts, tokenizer hash and training-shard hash are preserved.
+
+Next gate: measure a paired public BPB change through the unchanged trusted
+scorer on one existing checkpoint, with exact causality/batch/repeat checks and
+finite logits. This is an inference diagnostic, not yet a submission candidate.
+If useful, integrate the same constrained distribution into training and saved
+evaluation, charge deterministic construction to the run, and measure its
+whole-step overhead before committing a30-minute run. Never repair the table
+by inspecting validation failures. Stop if the gain cannot repay runtime or any
+correctness counterexample defeats the seam argument.
+
+The separate modded-nanogpt PR reports roughly0.0017 nats/token improvement from
+canonical masking across20 paired runs, with about3.15s CPU table construction.
+That establishes a practical precedent on its GPT-2/GPU workload, not an expected
+gain for our8K vocabulary. Its current implementation handles regex boundary
+exceptions explicitly. [Author's experiment](https://github.com/KellerJordan/modded-nanogpt/pull/350).
+
+### Regime checks on the latest outside research
+
+The fourth automated report (`small-corpus-research-status.json`) supplied useful
+leads but no accepted recipe. Primary-source inspection changes its conclusions:
+
+| Source | What transfers as a hypothesis | Why its headline is not a recipe here |
+|---|---|---|
+| [One Epoch Is All You Need](https://arxiv.org/abs/1906.06669) | model size and token supply must be optimized jointly | its one-pass argument replaces repeated data with more fresh data; our corpus is fixed |
+| [Best Sequence Length for BabyLM](https://arxiv.org/abs/2510.19493) | context length can change optimization and inductive bias |125M models and100M words, downstream tasks and changed batch/LR; not our paired BPB objective |
+| [Pre-training under infinite compute](https://proceedings.iclr.cc/paper_files/paper/2026/hash/79682ef54677a2cb3dfb8383b372037f-Abstract-Conference.html) | finite-data regularization and averaging may have more headroom than one pass | compute-rich repetition, ensembles and distillation do not fit a30-minute budget without an explicit costed design |
+| [modded-nanogpt PR344](https://github.com/KellerJordan/modded-nanogpt/pull/344) | amortize FP8 weight conversion/layouts once per update; consider separate QK/V dimensions | its ~5.15% measured total speed gain is on H100; Trn2's128-wide tiles can erase QK96 savings, and our first cast-inclusive FP8 GEMM is slower than native BF16 |
+
+The report's suggested BatchNorm update is irrelevant to this RMSNorm model;
+its reshuffling proposal conflicts with the immutable-pipeline constraint.
+No architectural claim about Trainium leaderboard teams was verified.
 
 ## 6. Keep exotic ideas behind cheaper tests
 

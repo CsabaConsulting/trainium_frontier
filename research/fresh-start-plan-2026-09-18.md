@@ -4,7 +4,7 @@ Objective: minimize **official 30-minute validation bits per byte** on one full
 Trainium2 chip. Sub-1.0 on public validation is an engineering milestone, not a
 claim about the private leaderboard. The metric is lower-is-better.
 
-**Current update, 10:32 UTC:** the width896 direct-attention control completed
+**Current update, 11:22 UTC:** the width896 direct-attention control completed
 2,188 updates at **0.987568 public BPB @2048 / 0.999880 @1024**. Its fused
 FP32 table-optimizer counterpart completed 2,204 updates at **0.986947 /
 0.999735**. Both fit the budget and use four ranks and 2,097,152 evaluation
@@ -15,19 +15,47 @@ for the first-wave checkpoint at the identical evaluation geometry. This is a
 useful improvement but not a robust sub-1.0 result. Repeatability remains necessary. See the
 [measured-results ledger](fresh-start-results-2026-09-18.md).
 
-Trn22 is now training dense 6×1024 **without hashed n-grams** for 1,800 seconds
-(`fs-w6-dense1024-noqk-1800-r2`, source `c333adb`). Removing the frozen zero Q/K
-shift reduced measured step time from **1.417s to 0.986s**; the full run is
-showing roughly 1.00s steps. The ordinary PyTorch static-shift convolution was
-rejected at **3.083s**, with the zero Q/K shift still present. Trn21's same-host
-no-QK control now measures **0.979s**. The custom NKI convolution passed native
-FP32 forward, both gradients and causality through the full B4×T2048×C1024 shape;
-its whole-model timing is running. The device trace also identifies approximately
-614 GFLOPs of FP32 attention-backward matrix work in one profiled microbatch,
-across rank0's two physical cores. Separate BF16-at-attention and BF16-after-norm
-probes are ready in immutable wave8 checkouts, with checks on updated native
-evaluation models after timing. No public evidence establishes which
-architectures the leaderboard teams use. N-gram capacity is optional.
+The dense 6×1024 control **without hashed n-grams** completed 1,805 updates at
+**1.012886 BPB @2048 / 1.027777 @1024**, in budget, with its checkpoint locally
+preserved. Removing the frozen zero Q/K shift reduced step time from1.417s to
+0.986s; the same-host repeat on trn21 measured0.979s. Custom NKI convolution with
+BF16 normalized activations now measures **0.588s** through the corrected
+integrated entrypoint and passes finite parameters/gradients/logits and exact
+causality/repetition checks on all four ranks. Its full1,800s quality run launched
+on trn22 at11:06 as `fs-w12-dense1024-nki-norm-1800-r1`, source`c61bfca`.
+
+The NKI-only configuration with original FP32 normalized activations is **not
+promoted**: its full run and integrated phase fail with NaNs, localized before
+the very first backward/update. The earlier713ms scratch timing lacked the
+newer finite-value gate and cannot establish a usable speedup. Independent FP32
+and BF16 component gates, including zero weights at B4T2048C1024, both pass.
+The uninstrumented one-program compiled forward also fails; the two-program
+eager forward and the compiled forward retaining intermediate tensors are finite.
+This points to a full compiled-graph interaction, not an isolated arithmetic or
+two-program-only failure. Retaining tensors changes lifetimes and compilation;
+it is diagnostic evidence, not a production fix. No scored FP32 run is promoted.
+The BF16 combination is separately gated; its full run is healthy at ~0.60s/update
+through step980, and its full-budget BPB remains unknown.
+
+Trn21 now tests **8×1024 dense capacity** at the same BF16/NKI policy, four ranks,
+and 131,072 targets/update (`fs-w14-dense1024-depth8-nki-norm-phase-r1`). The
+predeclared advancement gate is finite updated parameters/gradients/logits, exact
+causal/batch/repetition checks on every rank, and <=0.95s median update. This is
+not a repeat of the old table-model depth sweep: that implementation paid nearly
+2× step time for 33% more layers and used a different activation/layout path.
+The old short matched-exposure depth result actually favored depth by ~0.003 BPB;
+the throughput cost defeated it. If the new gate passes, run the full 1,800s.
+
+A separate CPU research probe examines conservative canonical-BPE continuation
+constraints using only the fixed tokenizer and provided training shard0. It
+does not change the tokenizer, data loader, trainer, or scorer, and has no BPB
+claim. A generic GPT-2 mask is not safe to transplant because the regex differs.
+
+The device trace identifies approximately614 GFLOPs of FP32 attention-backward
+matrix work in one profiled microbatch across rank0's two physical cores. BF16
+at the SDPA boundary alone also passes updated-model checks and is an independent
+candidate. No public evidence establishes which architectures the leaderboard
+teams use. N-gram capacity is optional.
 The original launch plan below remains as provenance.
 
 The first dense full-run dispatch (`r1`) pre-created the runner's own log and

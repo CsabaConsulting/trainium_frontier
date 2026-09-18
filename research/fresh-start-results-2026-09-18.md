@@ -418,10 +418,13 @@ Native `wrap_nki` integration, rather than a raw grid-specialized kernel inside
 Dynamo, also proved necessary on this installed stack. Full-model NKI timing is
 completed as `fs-w7-dense1024-noqk-nki-conv-phase-r1`: **713.340ms median**,
 range709.777–719.308ms, microbatches632.614ms, optimizer52.580ms, tail81.110ms.
-This is **27.15% less step time / 37.27% more throughput** than its same-host
-979.203ms control. It includes forward, both gradients, weight conversion and
-partial-gradient reduction. The kernel is now opt-in in `train.py`; a separate
-native gate of the integrated implementation passed at all four shapes.
+The raw timing is27.15% lower than its same-host979.203ms control and includes
+forward, both gradients, weight conversion and partial-gradient reduction.
+**Promotion withdrawn:** this first scratch run lacked the updated-model finite
+gate; later integrated FP32 runs produce NaNs. It cannot establish a usable
+whole-model speedup. Independent component gates pass but do not supersede the
+whole-model failure. The kernel remains opt-in, with separate BF16 integration
+checks described below.
 
 ### Completed full dense control, without hashed tables
 
@@ -440,25 +443,26 @@ four ranks/LNC2, B4T2048/rank, GA4, BF16 matmult compiler flags and seed42.
 Eight unprofiled steady steps follow three warmup updates. Precision policies
 are intentional arithmetic changes, not exact replacements of the baseline.
 
-| Host | Convolution | Precision policy | Median step ms | Microbatches ms |
-|---|---|---|---:|---:|
-|trn21|native|baseline|979.203|894.632|
-|trn21|NKI|baseline|713.340|632.614|
-|trn21|native|BF16 at SDPA only|907.584|823.416|
-|trn21|NKI|BF16 at SDPA only|670.093|585.410|
-|trn22|native|baseline, earlier same-host control|986.485|900.022|
-|trn22|native|BF16 norm outputs|785.120|701.778|
-|trn22|NKI|BF16 norm outputs|588.743|502.273|
+| Host | Convolution | Precision policy | Median step ms | Microbatches ms | Whole-model gate |
+|---|---|---|---:|---:|---|
+|trn21|native|baseline|979.203|894.632|control|
+|trn21|NKI|baseline|713.340|632.614|ungated initially; later FP32 integration fails|
+|trn21|native|BF16 at SDPA only|907.584|823.416|four ranks pass|
+|trn21|NKI|BF16 at SDPA only|670.093|585.410|four ranks pass|
+|trn22|native|baseline, earlier same-host control|986.485|900.022|full budget completed|
+|trn22|native|BF16 norm outputs|785.120|701.778|four ranks pass|
+|trn22|NKI scratch|BF16 norm outputs|588.743|502.273|four ranks pass|
+|trn22|NKI integrated, corrected|BF16 norm outputs|587.999|504.238|four ranks pass|
 
 The norm/convolution combination saves **40.32%** of step time against the earlier
 same-host no-QK control. Every precision row passes checks on all four ranks after
 real updates: finite parameters/available gradients/logits, nonzero attention
 output branches, exact future-token, cross-batch and repeated-call independence.
 These evaluation checks use B2T256 and are outside timing; native kernel arithmetic
-was separately checked at B4T2048C1024 **for FP32 convolution inputs only**. In the
+was initially checked at B4T2048C1024 **for FP32 convolution inputs only**. In the
 BF16 norm combination, the convolution receives `norm(x)` in BF16 even though the
-residual stream is FP32. Its independent BF16 arithmetic gate is still pending.
-Full-training BPB is still pending.
+residual stream is FP32. The later independent BF16 gate passes, as recorded
+below. Full-training BPB is still pending.
 
 The NKI-only full-budget run launched on trn21 at10:45 UTC as
 `fs-w9-dense1024-nki-conv-1800-r1`, source`ccf22c0`, **failed before step0 was
@@ -473,8 +477,59 @@ production convolution guard accepts only FP32 inputs, so BF16 norm makes it
 fall back to the original convolution. Its attention branch weight norms exactly
 match the norm-only probe. This is a dispatch gap, not a successful integrated
 NKI measurement. The BF16 dtype must be independently gated before opening that
-guard. An integrated FP32 full-model phase probe is running separately on trn21
-to distinguish the kernel integration from the full trainer's step ordering.
+guard. The subsequent integrated FP32 full-model probe also fails, as recorded
+below; the full trainer's optimizer ordering is not responsible.
+
+### Follow-up: first-forward localization and corrected BF16 promotion
+
+`fs-w10-dense1024-integrated-nki-fp32-phase-r1` completes its timing region at
+713.998ms but fails the finite-parameter/gradient gate on all four ranks. Those
+timings are invalid as evidence of usable training. The phase harness now rejects
+a nonfinite loss immediately instead of merely timing its health collective.
+
+`fs-w12-dense1024-nki-nan-diagnostic-r1` adds explicit stage synchronizations to
+the real trainer. Every rank reports NaN on **micro0 forward**, before backward,
+clipping, reduction, optimizer or cache refresh. Initially created CPU parameters
+were not changed by an optimizer at that point. Thus learning-rate or optimizer
+instability and loss-buffer corruption *after* the forward cannot explain this
+failure. This diagnostic changes scheduling and makes no timing claim.
+
+`fs-w11-integrated-conv2-bf16-zero-gate-r1` and
+`fs-w12-integrated-conv2-fp32-zero-gate-r1` pass compiled component arithmetic and
+future/cross-batch checks at four shapes, with random and zero weights. The BF16
+forward and dX match rounded independent FP64 references exactly in these cases.
+Its compiled master-weight gradients retain FP32-level accuracy, despite the
+source's BF16-to-FP32 cast pair; do not describe the compiled gradient as a
+bit-exact BF16-rounded reference. The original native BF16 convolution has larger
+rounding differences. This is a numerical-policy change requiring quality checks.
+
+Opening the production guard to the now-gated BF16 dtype yields
+`fs-w12-dense1024-integrated-nki-norm-phase-r2`, source`c61bfca`: **587.999ms**
+median, range584.964–591.660ms, microbatches504.238ms, tail84.152ms. All four
+updated-model gates pass; branch weight-square sums exactly reproduce the scratch
+norm/NKI probe. Final rank0 training loss is5.793033. The corrected integration
+actually executes the NKI convolution, whose input is BF16 while residuals stay
+FP32. This full-budget candidate launched11:06 UTC on trn22 as
+`fs-w12-dense1024-nki-norm-1800-r1`. Its BPB is pending.
+
+### Compiled-forward localization, wave14
+
+All three probes below use the actual dense6×1024 model, seed42, the real first
+training microbatch B4T2048, original FP32 normalized activations, and integrated
+NKI convolution. Initial CPU parameters are asserted finite. They do not execute
+an optimizer and make no timing or training-quality claim.
+
+| Probe at source `e6f6139` | Result | Meaning |
+|---|---|---|
+| `fs-w14-dense1024-single-program-fwd-r2` | loss NaN on both identical forwards | the failure does not require a two-program kernel |
+| `fs-w14-dense1024-forward-capture-r1` | finite loss and all retained module inputs/outputs | hooks change lifetimes and graph outputs; not a fix or proof the normal graph is correct |
+| `fs-w14-dense1024-eager-fwd-r1` | finite loss9.010475159 on both identical forwards | the uninstrumented eager full model is finite; compiled integration is implicated |
+
+The preceding r1 one-program wrapper failed in Dynamo while directly calling a
+different autograd class's backward; no device arithmetic verdict came from it.
+Inlining the same tensor body repairs that diagnostic, not the model NaNs.
+At11:21 the bounded FP32 investigation was paused in favor of a useful BF16/NKI
+depth8 full-chip phase gate. The original failure remains preserved and unresolved.
 
 ### Checkpoint configuration repair
 

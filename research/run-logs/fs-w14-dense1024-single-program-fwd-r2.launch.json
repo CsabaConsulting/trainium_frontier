@@ -1,0 +1,42 @@
+{
+  "host": "trn21",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave14",
+  "expected_commit": "e6f6139a7df171a6beb30bf4fe5b25099f9a48bd",
+  "label": "fs-w14-dense1024-single-program-fwd-r2",
+  "purpose": "First-forward NaN diagnosis: single-program integrated NKI convolution, baseline precision, no hooks or timing claim",
+  "fingerprint_paths": [
+    "research/scratch/native_forward_finiteness_probe.py"
+  ],
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_RT_VISIBLE_CORES": "0",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1200s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "research/scratch/native_forward_finiteness_probe.py",
+    "--conv",
+    "integrated",
+    "--programs",
+    "1",
+    "--repeats",
+    "2"
+  ],
+  "started_at": "2026-09-18T11:11:04.150524+00:00",
+  "hostname": "ip-172-31-34-85",
+  "git_commit": "e6f6139a7df171a6beb30bf4fe5b25099f9a48bd",
+  "source_dirty": false,
+  "preflight_free_bytes": 46014984192,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "4c14ac6ec14fd52e31ee06d91540707083c48a93ec4687fbaa35bc7106a823f3",
+    "research/scratch/native_forward_finiteness_probe.py": "a46ba970b825825780c1eb795eaf3a4340cf15bd1f30b3e6cd8ec62eb6bf12fd"
+  }
+}

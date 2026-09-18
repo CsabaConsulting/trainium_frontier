@@ -1,0 +1,35 @@
+{
+  "previous_tokens": 2012,
+  "following_tokens": 2413,
+  "tested_pairs": 4854956,
+  "forbidden_pairs": 343128,
+  "build_seconds": 11.524466417002259,
+  "fuzz_tokens": 284220,
+  "fuzz_documents": 50012,
+  "training_tokens_checked": 63336106,
+  "training_documents_checked": 86016,
+  "training_sources": [
+    {
+      "path": "out/fresh-start-canonical-data/shard_00000.parquet",
+      "sha256": "054ddbd98abf30d773c54de578fc9d579bafeb6c14e04e97bd36aa90e825bf9b",
+      "documents": 86016,
+      "tokens": 63336106
+    }
+  ],
+  "tokenizer_sha256": "aacd6c6a838eaec2c662a7d0cba0b5412f930a6ddee95b9ecb2c8fac53f3dafc",
+  "tokenizer_pattern": "'(?i:[sdmt]|ll|ve|re)|[^\\r\\n\\p{L}\\p{N}]?+\\p{L}+|\\p{N}{1,2}| ?[^\\s\\p{L}\\p{N}]++[\\r\\n]*|\\s*[\\r\\n]|\\s+(?!\\S)|\\s+",
+  "bos_id": 8188,
+  "mask_shape": [
+    8192,
+    8192
+  ],
+  "mask_sha256": "38a370de2b1b626eb6c895e57aa94540b3af6daa40b9323f620172cd406f41a0",
+  "forbidden_valid_pairs": 0,
+  "quality_measured": false,
+  "scope": "ASCII alphabetic previous token >=3 bytes; ASCII alphabetic next token",
+  "recorded_at": "2026-09-18T11:25:20.900025+00:00",
+  "source_file": "research/scratch/canonical_token_mask_probe.py",
+  "source_sha256": "a5de69812e9560e20d43001837a9e092a2ab22427d7653e66f220276cc22f6a0",
+  "source_note": "After the run, corrected a Python invalid-escape warning without changing the tested string, and added an output-suffix argument guard; mask algorithm unchanged.",
+  "command": "python3 research/scratch/canonical_token_mask_probe.py --output out/fresh-start-canonical-data/ascii-mask-r1.npy --parquet out/fresh-start-canonical-data/shard_00000.parquet --max-training-tokens 70000000"
+}
