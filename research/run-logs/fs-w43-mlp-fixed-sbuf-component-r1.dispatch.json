@@ -1,0 +1,44 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave43",
+    "expected_commit": "7c99d57437c2ce6d2de5acbca44581fc6f431234",
+    "label": "fs-w43-mlp-fixed-sbuf-component-r1",
+    "purpose": "Explicit SBUF MLP gate: five disjoint reusable buffers,7.125MiB declared extent at actual shape, sequential outer loops. Gate lossless prepacked stationary weight layout and streamed MLP: exact CPU pack/unpack, FP64 GEMM stage bounds, eager and compiled outputs, zero/changed data, native backward. Component timings explicitly separate weight layout refresh from kernel execution; full-step cache cost remains required.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "NEURON_RT_VISIBLE_CORES": "0"
+    },
+    "fingerprint_paths": [
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "research/scratch/mlp_fused_bf16.py",
+      "research/scratch/mlp_prepacked_fixed_sbuf.py"
+    ],
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1500s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "--device",
+      "neuron",
+      "--real-shape",
+      "--contiguous-weights",
+      "--tiled-io",
+      "--cached-bf16-weights",
+      "--transposed-relu",
+      "--grouped-io",
+      "--weight-mode",
+      "4"
+    ]
+  },
+  "requested_at": "2026-09-18T18:41:09.729634+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w43-mlp-fixed-sbuf-component-r1\", \"pid\": 1361593, \"commit\": \"7c99d57437c2ce6d2de5acbca44581fc6f431234\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave43/research/run-logs/fs-w43-mlp-fixed-sbuf-component-r1.log\", \"started_at\": \"2026-09-18T18:41:16.618303+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

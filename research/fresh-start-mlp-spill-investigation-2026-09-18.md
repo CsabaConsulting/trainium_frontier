@@ -117,3 +117,28 @@ as excluding packing. Actual full-step timing includes each packed-cache refresh
 inside `wcache_ms`. An isolated packed-input time cannot authorize promotion.
 This layout work may later be reusable in an FP8 island, but mode3 itself does
 not change numerical precision or training/evaluation arithmetic.
+
+
+## Results through18:44UTC and the next causal controls
+
+Streaming-down673.017 ms, streaming-both693.391 ms and prepacked678.042 ms all
+lose to the same-host590.315/599.575 ms controls despite passed numerical and
+postflight gates. No variant is promoted. Prepacking substantially improves
+isolated forward/backward but leaves the full model slow. It weakens the claim
+that repeated weight transposes inside the kernel explain the full regression.
+
+Wave43 explicitly places five reusable SBUF buffers (7.125MiB declared extent)
+with sequential outer loops. It passes the component gate but is slower there.
+A full-model test is justified only as a direct allocation hypothesis test.
+
+The shared Linear source line was additionally grouped by Penguin ID. Three
+large groups span most of the graph, so this does not identify a single LM-head
+problem. Do not label the5.386GB as LM-head reloads or add overlapping durations.
+The source/counter association remains incomplete.
+
+Wave44 will hold the custom autograd, flat inputs and contiguous HxT saved ReLU
+constant while replacing only NKI forward with native PyTorch projections. It
+also supports selecting individual MLP layers. These controls distinguish a
+saved-layout/autograd issue from an opaque-kernel integration issue and a local
+per-layer effect from a graph-wide layout/allocation change. No claimed SDK bug
+or promotion follows until those measurements exist.
