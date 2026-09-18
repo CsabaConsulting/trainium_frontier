@@ -36,9 +36,13 @@ Run from the repo root (same directory as train.py).
 from __future__ import annotations
 
 import argparse
+import fcntl
+import hashlib
 import json
 import os
 import re
+import shlex
+import socket
 import subprocess
 import sys
 import time
@@ -77,6 +81,17 @@ SUMMARY_KEYS = {
     "sched_tricks",
 }
 LINE_RE = re.compile(r"^(" + "|".join(SUMMARY_KEYS) + r"):\s*(.+)$")
+
+
+def run_to_log(command: list[str], path: Path, *, cwd: Path, env: dict,
+               pass_fds: tuple[int, ...] = ()) -> int:
+    """Persist child output while it runs, including output preceding a crash."""
+    with path.open("x") as log:
+        proc = subprocess.run(command, cwd=cwd, env=env, stdout=log,
+                              stderr=subprocess.STDOUT, pass_fds=pass_fds)
+        log.flush()
+        os.fsync(log.fileno())
+    return proc.returncode
 
 
 def git(*args: str) -> str:
@@ -125,6 +140,19 @@ def main() -> None:
                     help="anything else to pass through to train.py")
     p.add_argument("--no-commit", action="store_true", help="skip git-committing the log row")
     args = p.parse_args()
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", args.label):
+        p.error("--label must be a filename-safe slug (letters, digits, _, -, .)")
+
+    # The lock is inherited by torchrun: killing just this wrapper cannot permit
+    # a second run to overlap surviving workers. A new checkout still needs the
+    # protocol's host-wide process/device-holder preflight.
+    lock_path = REPO_ROOT / "out" / ".experiment.lock"
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    lock_file = lock_path.open("a")
+    try:
+        fcntl.flock(lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        p.error("another experiment owns this checkout's run lock")
 
     launch_cmd = [
         "torchrun", "--standalone", f"--nproc_per_node={args.nproc_per_node}", "train.py",
@@ -138,24 +166,53 @@ def main() -> None:
 
     env = os.environ.copy()
     env["NEURON_LOGICAL_NC_CONFIG"] = str(args.lnc)
-    launch_cmd_str = f"NEURON_LOGICAL_NC_CONFIG={args.lnc} " + " ".join(launch_cmd)
+    env["PYTHONUNBUFFERED"] = "1"
+    launch_cmd_str = f"NEURON_LOGICAL_NC_CONFIG={args.lnc} " + shlex.join(launch_cmd)
 
     run_log_path = Path(__file__).resolve().parent / f"run-logs/{args.label}.log"
     run_log_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest_path = run_log_path.with_suffix(".launch.json")
+    if run_log_path.exists() or manifest_path.exists():
+        p.error(f"refusing to overwrite existing experiment {args.label}; use a new label")
+    # Capture provenance BEFORE creating run artifacts, rather than diagnosing
+    # every successful run as dirty because it has just written a new log.
+    source_commit = git("rev-parse", "HEAD")
+    source_dirty = bool(git("status", "--porcelain"))
+    manifest = {
+        "label": args.label,
+        "started_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "hostname": socket.gethostname(),
+        "git_commit": source_commit,
+        "git_dirty": source_dirty,
+        "launch_command": launch_cmd_str,
+        "description": args.description,
+        "environment": {k: v for k, v in env.items()
+                        if k.startswith(("NEURON_", "NKI_", "XLA_"))
+                        or k in ("OMP_NUM_THREADS", "MALLOC_ARENA_MAX", "PYTHONUNBUFFERED")},
+        "source_sha256": {name: hashlib.sha256((REPO_ROOT / name).read_bytes()).hexdigest()
+                          for name in ("train.py", "prepare.py", "research/run_experiment.py")},
+    }
+    with manifest_path.open("x") as manifest_file:
+        json.dump(manifest, manifest_file, indent=2)
+        manifest_file.write("\n")
+        manifest_file.flush()
+        os.fsync(manifest_file.fileno())
 
     print(f"$ {launch_cmd_str}", flush=True)
     started = time.monotonic()
     status = "keep"  # default; overwritten below on crash/timeout
     try:
-        proc = subprocess.run(launch_cmd, cwd=REPO_ROOT, env=env, capture_output=True, text=True)
-        log_text = proc.stdout + proc.stderr
-        crashed = proc.returncode != 0
+        returncode = run_to_log(launch_cmd, run_log_path, cwd=REPO_ROOT, env=env,
+                                pass_fds=(lock_file.fileno(),))
+        crashed = returncode != 0
     except Exception as e:  # e.g. subprocess-level failure, not train.py's own crash handling
-        log_text = f"<run_experiment.py failed to launch train.py: {e}>"
+        with run_log_path.open("a") as log:
+            log.write(f"\n<run_experiment.py failed to launch train.py: {e}>\n")
+        returncode = None
         crashed = True
     wall_elapsed = time.monotonic() - started
 
-    run_log_path.write_text(log_text)
+    log_text = run_log_path.read_text(errors="replace")
     summary = parse_summary(log_text)
 
     if crashed or "public_val_bpb" not in summary:
@@ -167,8 +224,12 @@ def main() -> None:
         "solution": args.solution,
         "description": args.description,
         "launch_command": launch_cmd_str,
-        "git_commit": git("rev-parse", "--short", "HEAD"),
-        "git_dirty": bool(git("status", "--porcelain")),
+        "git_commit": source_commit,
+        "git_dirty": source_dirty,
+        "hostname": manifest["hostname"],
+        "environment": manifest["environment"],
+        "source_sha256": manifest["source_sha256"],
+        "returncode": returncode,
         "status": status,
         "wall_elapsed_seconds": round(wall_elapsed, 1),
         "run_log": str(run_log_path.relative_to(REPO_ROOT)),
@@ -177,6 +238,8 @@ def main() -> None:
 
     with LOG_PATH.open("a") as f:
         f.write(json.dumps(row) + "\n")
+        f.flush()
+        os.fsync(f.fileno())
 
     print(f"--- logged: status={status} public_val_bpb={summary.get('public_val_bpb')} "
           f"num_steps={summary.get('num_steps')} total_seconds={summary.get('total_seconds')} "

@@ -373,6 +373,10 @@ VE_WD = 0.0  # weight decay for the value_embeds AdamW group (separate from the 
 EMBED_ADAMW_BETA2 = 0.95  # Tier-0 resweep confirms still correct at the new ~2000-step regime: 0.95 (995/1.094327) beats 0.995 (977/1.097342) again. See trn2-experiment-results.md
 WARMUP_STEPS = 0
 GRAD_CLIP = 1.0  # Scavenger hunt real win, locked: never tested on Trn2 before ("deferred, not GPU-retested"). HLAT (real 7B/70B Trainium pretrain) used clip=1.0. Real repeat-confirmed win at 900s (999/1.0912, 1002/1.090864 vs 0.0-baseline cluster 1002-1004/1.09367-1.09399) and full 1800s (2000/1.042278 vs prior best 1987/1.043651). See trn2-experiment-results.md
+CLIP_AFTER_REDUCE = False  # Fresh-start audit: opt-in global-batch clipping after gradient AVG.
+# Default keeps the historical per-rank clip-before-AVG update. These are different algorithms:
+# averaging locally clipped gradients can change direction, not just the effective learning rate.
+# The new order is an experiment, not an assumed quality win; compare at the full 1800s budget.
 LOSS_SCALE_DYNAMIC = False  # Sub-1.0 plan P2: DYNAMIC loss scaling companion.
 # Static --loss-scale unfreezes fp8 (9.01->7.71 by step 10) but a fixed scale
 # eventually overflows (NaN guard trips). Dynamic mode adapts: skip+halve on
@@ -4828,6 +4832,46 @@ def sync_gradients_flat(flat_grad_buffer: torch.Tensor) -> None:
     dist.all_reduce(flat_grad_buffer, op=dist.ReduceOp.AVG)
 
 
+def clip_and_sync_gradients(
+    model: nn.Module,
+    clip_main_params: list[torch.nn.Parameter],
+    clip_ngram_params: list[torch.nn.Parameter],
+    *,
+    max_norm: float,
+    clip_after_reduce: bool = False,
+    grad_flat_buffer: torch.Tensor | None = None,
+    foreach: bool | None = None,
+    skip_param_ids: frozenset[int] | None = None,
+) -> None:
+    """Apply the selected clipping order, preserving the separate n-gram norm.
+
+    Call after every micro-batch has accumulated and loss scaling has been undone.
+    With clip_after_reduce=True every included gradient must be averaged this step;
+    deferred Adam gradients would mix local and averaged quantities in the same norm.
+    """
+    if clip_after_reduce and skip_param_ids:
+        raise ValueError("clip-after-reduce requires all gradients to be reduced every step")
+    if grad_flat_buffer is not None and clip_ngram_params:
+        raise ValueError("a flat gradient buffer cannot represent separate n-gram clipping")
+
+    if grad_flat_buffer is not None:
+        if clip_after_reduce:
+            sync_gradients_flat(grad_flat_buffer)
+        if max_norm > 0:
+            clip_grad_norm_flat_(grad_flat_buffer, max_norm)
+        if not clip_after_reduce:
+            sync_gradients_flat(grad_flat_buffer)
+    else:
+        if clip_after_reduce:
+            sync_gradients(model)
+        if max_norm > 0:
+            torch.nn.utils.clip_grad_norm_(clip_main_params, max_norm, foreach=foreach)
+            if clip_ngram_params:
+                torch.nn.utils.clip_grad_norm_(clip_ngram_params, max_norm, foreach=foreach)
+        if not clip_after_reduce:
+            sync_gradients(model, skip_param_ids=skip_param_ids)
+
+
 def loss_scale_transition(scale: float, clean: int, finite: bool,
                           growth_interval: int, max_scale: float):
     """One dynamic-loss-scaling step. Pure function (CPU-tested).
@@ -4910,6 +4954,7 @@ ARCH_TOGGLE_NAMES = [
     # catch -- ATTN_CPROJ_INIT_SCALE and LOGIT_SOFTCAP especially, since they change what the
     # weights MEAN without changing what they look like.
     "MATRIX_LR", "EMBEDDING_LR", "UNEMBEDDING_LR", "SCALAR_LR", "WEIGHT_DECAY", "GRAD_CLIP",
+    "CLIP_AFTER_REDUCE",
     "LOGIT_SOFTCAP", "LOSS_BYTE_WEIGHT", "LOSS_SCALE", "LOSS_SCALE_DYNAMIC",
     "ATTN_CPROJ_INIT_SCALE", "MUON_NS_STEPS",
     "MUON_MOMENTUM_COOLDOWN_FRAC", "MUON_MOMENTUM_FINAL",
@@ -5310,6 +5355,7 @@ def main() -> None:
     global FINAL_LR_FRAC, WARMDOWN_RATIO, INIT_SCALE, ATTN_CPROJ_INIT_SCALE, LOGIT_SOFTCAP
     global MUON_NS_STEPS, MUON_MOMENTUM_COOLDOWN_FRAC, MUON_MOMENTUM_FINAL
     global ADAM_EVERY_N, ADAM_EVERY_N_LR_COMP, PACK_FACTOR, GRAD_CLIP, LOSS_SCALE
+    global CLIP_AFTER_REDUCE
     global LOSS_SCALE_DYNAMIC, loss_scale_clean, loss_scale_skips
     # T0.2/T0.3 capacity-shape knobs. All read inside build_config()/GPT(config), i.e. well before
     # the first step, so none of them can add a per-step graph constant.
@@ -5931,11 +5977,15 @@ def main() -> None:
                                                "1" if WD_DECAY_TO_ZERO else "0") != "0",
                         help="T0.4: decay Muon's weight_decay linearly to 0 over the run instead of "
                              "holding it constant. Currently ON.")
-    _hp("--grad-clip", GRAD_CLIP, float, "Global gradient-norm clip, applied to each rank's LOCAL "
-        "gradients BEFORE sync_gradients' all_reduce(AVG) -- so its effective strength depends on "
-        "the per-rank token count, and therefore on world_size. 0 disables it. Currently 1.0; a "
-        "flag so the T0.6 LNC=1 quality-cliff mechanism (clip-then-average vs average-then-clip) "
-        "is testable without editing the constant.")
+    _hp("--grad-clip", GRAD_CLIP, float, "Gradient-norm clip threshold. By default clips each "
+        "rank's local gradients before all_reduce(AVG); --clip-after-reduce clips the averaged "
+        "global-batch gradients. 0 disables clipping. Separate n-gram clipping is preserved.")
+    parser.add_argument("--clip-after-reduce", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_CLIP_AFTER_REDUCE",
+                                               "1" if CLIP_AFTER_REDUCE else "0") != "0",
+                        help="Average all accumulated gradients before clipping. Default OFF "
+                             "preserves the historical local-clip-then-average update. Requires "
+                             "--adam-every-n 1; supports separate n-gram clipping.")
     _hp("--loss-scale", LOSS_SCALE, float, "Sub-1.0 plan P2: static loss-scale factor. "
         "Multiplies the training loss before backward and divides grads back before "
         "clip/sync/step, so backward grads stay representable under compiler fp8 "
@@ -5977,6 +6027,9 @@ def main() -> None:
             parser.error("--eval-seq-len must be a multiple of 128 (NKI tiling).")
     if args.adam_every_n < 1:
         parser.error("--adam-every-n must be >= 1")
+    if args.clip_after_reduce and args.adam_every_n > 1:
+        parser.error("--clip-after-reduce requires --adam-every-n 1: deferred Adam gradients "
+                     "would mix unreduced local gradients with averaged gradients in the norm.")
     if args.adam_every_n > 1 and args.grad_bucket:
         parser.error("--adam-every-n > 1 is incompatible with --grad-bucket: the flat buffer is "
                      "zeroed wholesale every step, so it cannot leave the AdamW groups' gradients "
@@ -5992,6 +6045,7 @@ def main() -> None:
     ADAM_EVERY_N = args.adam_every_n
     ADAM_EVERY_N_LR_COMP = args.adam_every_n_lr_comp
     GRAD_CLIP = args.grad_clip
+    CLIP_AFTER_REDUCE = args.clip_after_reduce
     LOSS_SCALE = args.loss_scale
     if not (LOSS_SCALE > 0):
         raise ValueError(f"--loss-scale must be positive, got {LOSS_SCALE}")
@@ -6209,6 +6263,7 @@ def main() -> None:
 
     print0(f"device={device} dtype={COMPUTE_DTYPE} world_size={world_size}")
     print0(f"training target={args.num_steps} steps max_seconds={args.max_train_seconds} official_budget={TRAIN_TIME_BUDGET_SECONDS}s")
+    print0(f"gradient_clip={GRAD_CLIP:g} clip_after_reduce={CLIP_AFTER_REDUCE}")
     # Guard against the 2026-09-10 failure mode (a step cap that binds before the time budget leaves the
     # wall-clock LR schedule uncooled). Coarse check here; the precise projection runs at step 50 below.
     if args.num_steps < args.max_train_seconds:
@@ -6271,12 +6326,9 @@ def main() -> None:
         for _ in range(grad_accum_steps):
             loss = model(synthetic_x, synthetic_y)
             (loss / grad_accum_steps).backward()
-        if GRAD_CLIP > 0:
-            clip_main, clip_ngram = split_clip_params(orig_model)
-            torch.nn.utils.clip_grad_norm_(clip_main, GRAD_CLIP, foreach=args.clip_foreach)
-            if clip_ngram:
-                torch.nn.utils.clip_grad_norm_(clip_ngram, GRAD_CLIP, foreach=args.clip_foreach)
-        sync_gradients(model)
+        clip_main, clip_ngram = split_clip_params(orig_model)
+        clip_and_sync_gradients(model, clip_main, clip_ngram, max_norm=GRAD_CLIP,
+                                clip_after_reduce=CLIP_AFTER_REDUCE, foreach=args.clip_foreach)
         optimizer.step()
         synchronize(device)
         print0("compile-only synthetic training step completed")
@@ -6446,18 +6498,12 @@ def main() -> None:
                             p.grad.detach().zero_()
             LOSS_SCALE, loss_scale_clean = new_scale, new_clean
         unscale_grads_(model, grad_flat_buffer, unscale_with)
-        if grad_flat_buffer is not None:
-            if GRAD_CLIP > 0:
-                clip_grad_norm_flat_(grad_flat_buffer, GRAD_CLIP)
-            sync_gradients_flat(grad_flat_buffer)
-        else:
-            if GRAD_CLIP > 0:
-                torch.nn.utils.clip_grad_norm_(clip_main_params, GRAD_CLIP,
-                                               foreach=args.clip_foreach)
-                if clip_ngram_params:
-                    torch.nn.utils.clip_grad_norm_(clip_ngram_params, GRAD_CLIP,
-                                                   foreach=args.clip_foreach)
-            sync_gradients(model, skip_param_ids=None if adam_step_now else adamw_skip_ids)
+        clip_and_sync_gradients(
+            model, clip_main_params, clip_ngram_params, max_norm=GRAD_CLIP,
+            clip_after_reduce=CLIP_AFTER_REDUCE, grad_flat_buffer=grad_flat_buffer,
+            foreach=args.clip_foreach,
+            skip_param_ids=None if adam_step_now else adamw_skip_ids,
+        )
 
         lrm = lr_multiplier(step, elapsed=elapsed, max_train_seconds=args.max_train_seconds)
         # T3.1: warmup-only multiplier for the groups that opt out of the warmdown (the
