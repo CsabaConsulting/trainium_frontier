@@ -71,6 +71,9 @@ def main():
     ap.add_argument("--norm-output-dtype", choices=["baseline", "bf16"], default="baseline",
                     help="bf16: FP32 RMS statistics and residuals, BF16 normalized inputs "
                          "including the final head. An intentional precision change; scratch only.")
+    ap.add_argument("--sdpa-input-dtype", choices=["baseline", "bf16"], default="baseline",
+                    help="bf16: cast Q/K/V only at the native SDPA boundary and restore "
+                         "its output dtype. Independent of the normalization-output policy.")
     ap.add_argument("--grad-clip", type=float, default=1.0,
                     help="T1.1 re-profile: include torch.nn.utils.clip_grad_norm_(model.parameters(), "
                          "this) in the timed window, matching train.py's real per-step order "
@@ -217,6 +220,10 @@ def main():
         from bf16_branch_norm import bf16_branch_norm
         T.norm = bf16_branch_norm
         print("[pt] PRECISION DIAGNOSTIC: FP32 RMS statistics, BF16 normalization output", flush=True)
+    if args.sdpa_input_dtype == "bf16":
+        from bf16_sdpa_boundary import bf16_sdpa
+        T.F.scaled_dot_product_attention = bf16_sdpa
+        print("[pt] PRECISION DIAGNOSTIC: BF16 Q/K/V at the SDPA boundary only", flush=True)
 
     device_type = T.detect_device_type("")
     ddp, rank, local_rank, world_size, device = T.init_runtime(device_type)
@@ -272,7 +279,8 @@ def main():
         print(f"[pt] world_size={world_size} LNC={os.environ.get('NEURON_LOGICAL_NC_CONFIG')} "
               f"micro_tokens={micro_tokens:,} grad_accum={grad_accum} "
               f"local_conv={args.local_conv} conv_mode={args.conv_mode} "
-              f"norm_output_dtype={args.norm_output_dtype} compile={args.compile} "
+              f"norm_output_dtype={args.norm_output_dtype} sdpa_input_dtype={args.sdpa_input_dtype} "
+              f"compile={args.compile} "
               f"foreach_optim={T.USE_FOREACH_OPTIM} "
               f"weight_cache={T.USE_WEIGHT_CACHE} "
               f"ngram_ve={T.USE_NGRAM_VE} ngram_tables={len(orig_model.ngram_embeds)} "
@@ -540,6 +548,7 @@ def main():
             grad_accum=grad_accum, micro_tokens=micro_tokens,
             local_conv=args.local_conv, conv_mode=args.conv_mode,
             norm_output_dtype=args.norm_output_dtype,
+            sdpa_input_dtype=args.sdpa_input_dtype,
             compile=args.compile, foreach_optim=args.foreach_optim,
             compile_optim=args.compile_optim, grad_bucket=args.grad_bucket,
             clip_foreach=args.clip_foreach, dataloader=args.dataloader,

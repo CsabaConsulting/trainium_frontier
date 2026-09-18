@@ -6,6 +6,7 @@ model with nonzero attention/MLP/conv branches. Cache-on/off must preserve maste
 gradients and two updates across three independent backward calls per update.
 Native compilation, throughput, and trained BPB are separate gates.
 """
+import argparse
 import json
 from pathlib import Path
 import sys
@@ -58,14 +59,20 @@ def normalization_checks():
     return reports
 
 
-def model_checks():
+def model_checks(policy="norm"):
     T.USE_NGRAM_VE = T.USE_ENGRAM = T.USE_OUT_BIGRAM = False
     T.USE_QK_SHIFT = T.USE_NKI_ROPE_NORM = T.USE_NKI_SOFTCAP_CE = False
     T.USE_NKI_RELU2 = False
     T.USE_LOCAL_CONV = T.TRAIN_LOCAL_CONV = True
     T.LOCAL_CONV_KERNEL = 2
     T.COMPUTE_DTYPE = torch.bfloat16
-    T.norm = bf16_branch_norm
+    if policy == "norm":
+        T.norm = bf16_branch_norm
+        expected_input_dtype = torch.bfloat16
+    else:
+        from bf16_sdpa_boundary import bf16_sdpa
+        T.F.scaled_dot_product_attention = bf16_sdpa
+        expected_input_dtype = torch.float32
     cfg = T.GPTConfig(sequence_len=128, vocab_size=256, n_layer=2, n_head=1, n_embd=128)
     torch.manual_seed(923)
     initial = T.GPT(cfg)
@@ -109,7 +116,7 @@ def model_checks():
                 for p in model.parameters():
                     if p.grad is not None:
                         p.add_(p.grad, alpha=-0.01)
-        assert set(branch_dtypes) == {torch.bfloat16}, set(branch_dtypes)
+        assert set(branch_dtypes) == {expected_input_dtype}, set(branch_dtypes)
         assert set(residual_dtypes) == {torch.float32}, set(residual_dtypes)
         for hook in hooks:
             hook.remove()
@@ -131,16 +138,20 @@ def model_checks():
         assert before.keys() == after.keys()
         for name in before:
             torch.testing.assert_close(before[name], after[name], rtol=0, atol=0, msg=name)
-    return dict(steps=2, microbatches_per_step=3, cache_gradients_and_updates_exact=True,
-                linear_input_dtype="bfloat16", block_residual_dtype="float32",
+    return dict(policy=policy, steps=2, microbatches_per_step=3, cache_gradients_and_updates_exact=True,
+                linear_input_dtype=str(expected_input_dtype), block_residual_dtype="float32",
                 future_and_cross_batch_exact=True, losses=outcomes[0][0])
 
 
 def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--policy", choices=["norm", "attention"], default="norm")
+    args = ap.parse_args()
     torch.set_num_threads(2)
     torch.manual_seed(571)
-    print(json.dumps(dict(check="normalization", cases=normalization_checks())), flush=True)
-    print(json.dumps(dict(check="model_and_cache", **model_checks())), flush=True)
+    if args.policy == "norm":
+        print(json.dumps(dict(check="normalization", cases=normalization_checks())), flush=True)
+    print(json.dumps(dict(check="model_and_cache", **model_checks(args.policy))), flush=True)
     print("PASS: CPU precision-policy and cache gates; no native speed or BPB claim", flush=True)
 
 
