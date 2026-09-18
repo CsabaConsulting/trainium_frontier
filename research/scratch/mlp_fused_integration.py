@@ -10,8 +10,15 @@ import torch
 from mlp_fused_bf16 import build_kernel, make_autograd, prepack_weight, reference_forward, unpack_weight
 
 
+@torch.compiler.disable(recursive=False)
+def call_separate_region(compiled_function, *inputs):
+    """A deliberate graph boundary; the inner training function still compiles."""
+    return compiled_function(*inputs)
+
+
 def make_forward(device, native_forward, use_weight_cache, normal_input_gradient=False,
-                 token_tile=512, grouped_io=False, weight_mode=0, forward_backend="nki"):
+                 token_tile=512, grouped_io=False, weight_mode=0, forward_backend="nki",
+                 separate_region=False):
     assert forward_backend in ("nki", "native")
     if forward_backend == "native":
         assert weight_mode == 0
@@ -43,6 +50,20 @@ def make_forward(device, native_forward, use_weight_cache, normal_input_gradient
     fused = make_autograd(kernel_call, transposed_relu=True,
                           normal_input_gradient=normal_input_gradient,
                           packed_weight_inputs=(weight_mode >= 3))
+    if separate_region:
+        def training_call(x, up, down, up_packed=None, down_packed=None):
+            if weight_mode >= 3:
+                return fused(x, up, down, up_packed, down_packed)
+            return fused(x, up, down)
+
+        compiled_training = torch.compile(
+            training_call, backend="neuron" if str(device).startswith("neuron") else "inductor",
+            fullgraph=True, dynamic=False)
+
+        def apply_fused(*inputs):
+            return call_separate_region(compiled_training, *inputs)
+    else:
+        apply_fused = fused
 
     def weight(linear, dtype):
         cached = linear._cached_weight
@@ -66,9 +87,9 @@ def make_forward(device, native_forward, use_weight_cache, normal_input_gradient
                 down_packed = self.c_proj._nki_packed_weight
             else:
                 up_packed, down_packed = prepack_weight(up), prepack_weight(down)
-            result = fused(x.reshape(tokens, x.shape[-1]), up, down, up_packed, down_packed)
+            result = apply_fused(x.reshape(tokens, x.shape[-1]), up, down, up_packed, down_packed)
         else:
-            result = fused(x.reshape(tokens, x.shape[-1]), up, down)
+            result = apply_fused(x.reshape(tokens, x.shape[-1]), up, down)
         return result.reshape(x.shape)
 
     return forward
@@ -76,7 +97,7 @@ def make_forward(device, native_forward, use_weight_cache, normal_input_gradient
 
 def install(model, device, train_module, normal_input_gradient=False,
             token_tile=512, grouped_io=False, weight_mode=0, forward_backend="nki",
-            layer_indices=None):
+            layer_indices=None, separate_region=False):
     assert train_module.RELU2_TAU == 0.0
     assert token_tile in (128, 256, 512)
     assert weight_mode in (0, 1, 2, 3, 4) and (weight_mode == 0 or grouped_io)
@@ -87,6 +108,7 @@ def install(model, device, train_module, normal_input_gradient=False,
     selected = tuple(range(len(model.transformer.h))) if layer_indices is None else tuple(layer_indices)
     assert selected and len(set(selected)) == len(selected)
     assert all(0 <= i < len(model.transformer.h) for i in selected)
+    shared_forwards = {}
     for index, block in enumerate(model.transformer.h):
         if index not in selected:
             continue
@@ -117,9 +139,16 @@ def install(model, device, train_module, normal_input_gradient=False,
                 # Installation is also valid after a native cache exists.
                 linear._nki_packed_weight = (prepack_weight(linear._cached_weight)
                                              if linear._cached_weight is not None else None)
-        forward = make_forward(device, type(module).forward, train_module.USE_WEIGHT_CACHE,
-                               normal_input_gradient, token_tile, grouped_io, weight_mode,
-                               forward_backend)
+        if separate_region and type(module) in shared_forwards:
+            forward = shared_forwards[type(module)]
+        else:
+            forward = make_forward(device, type(module).forward, train_module.USE_WEIGHT_CACHE,
+                                   normal_input_gradient, token_tile, grouped_io, weight_mode,
+                                   forward_backend, separate_region)
+            if separate_region:
+                # Tensor-only inner function is shared across layers, so six
+                # otherwise identical closures do not consume guard variants.
+                shared_forwards[type(module)] = forward
         module.forward = types.MethodType(forward, module)
     assert tuple(model.state_dict()) == keys
     assert tuple(id(p) for p in model.parameters()) == parameter_ids

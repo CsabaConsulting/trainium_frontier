@@ -105,6 +105,8 @@ def main():
                     help="Native control keeps the custom backward and contiguous HxT save, removing NKI forward.")
     ap.add_argument("--fused-mlp-layers", type=str, default=None,
                     help="Comma-separated zero-based layers to replace; default all. Diagnostic for graph-wide effects.")
+    ap.add_argument("--fused-mlp-separate-region", action="store_true",
+                    help="Compile the MLP forward/backward separately; charge all graph-boundary/dispatch costs.")
     ap.add_argument("--check-seq-len", type=int, default=256,
                     help="Sequence length for --post-checks, at least 128 and a multiple of 128.")
     ap.add_argument("--grad-clip", type=float, default=1.0,
@@ -195,7 +197,8 @@ def main():
         ap.error("select only one ordinary embedding backward implementation")
     if (args.fused_mlp_normal_dx or args.fused_mlp_grouped_io
             or args.fused_mlp_token_tile != 512 or args.fused_mlp_weight_mode
-            or args.fused_mlp_forward_backend != "nki" or args.fused_mlp_layers is not None) and not args.fused_mlp:
+            or args.fused_mlp_forward_backend != "nki" or args.fused_mlp_layers is not None
+            or args.fused_mlp_separate_region) and not args.fused_mlp:
         ap.error("fused MLP options require --fused-mlp")
     if args.fused_mlp_weight_mode and not args.fused_mlp_grouped_io:
         ap.error("streaming MLP weights requires --fused-mlp-grouped-io")
@@ -321,9 +324,11 @@ def main():
         install(model, device, T, normal_input_gradient=args.fused_mlp_normal_dx,
                 token_tile=args.fused_mlp_token_tile, grouped_io=args.fused_mlp_grouped_io,
                 weight_mode=args.fused_mlp_weight_mode,
-                forward_backend=args.fused_mlp_forward_backend, layer_indices=mlp_layer_indices)
+                forward_backend=args.fused_mlp_forward_backend, layer_indices=mlp_layer_indices,
+                separate_region=args.fused_mlp_separate_region)
         print(f"[pt] fused BF16 MLP forward={args.fused_mlp_forward_backend} "
               f"layers={mlp_layer_indices if mlp_layer_indices is not None else 'all'}; "
+              f"separate_region={args.fused_mlp_separate_region}; "
               "shared ordinary Linear caches/parameters preserved", flush=True)
     if args.ngram_ve_freeze:
         for p in model.ngram_embeds.parameters():
@@ -636,6 +641,7 @@ def main():
             fused_mlp_weight_mode=args.fused_mlp_weight_mode,
             fused_mlp_forward_backend=args.fused_mlp_forward_backend,
             fused_mlp_layers=mlp_layer_indices,
+            fused_mlp_separate_region=args.fused_mlp_separate_region,
             last_loss=float(last_loss.item()),
             compile=args.compile, foreach_optim=args.foreach_optim,
             compile_optim=args.compile_optim, grad_bucket=args.grad_bucket,

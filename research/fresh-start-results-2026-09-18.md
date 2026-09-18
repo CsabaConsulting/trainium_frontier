@@ -1401,3 +1401,21 @@ if it is also slow, investigate the saved layout/backward boundary before more
 kernel tiling work. A separate layer-selection option allows replacing only
 one MLP to distinguish local per-layer cost from a graph-wide discontinuity.
 These options are scratch-only and have no quality result yet.
+
+
+Wave43 final: actual master/cache gate passes both shapes and all accumulated
+gradients, updates, evaluation and checkpoint checks. Full-chip phase is
+**705.225310 ms** versus trn22 native599.574587 ms,17.62% slower. All four updated
+model checks and automatic postflight pass. Explicit7.125MiB placement did not
+repair the full-model regression; reject for training. Receipt
+`run-logs/fs-w43-fixed-sbuf-phase-comparison.json`.
+
+Wave44 native-forward/custom-backward gate passes at both shapes, including
+cached and uncached FP32 master gradients. Its full-model phase is running.
+
+Wave45 adds a deliberate compiler boundary around the same packed NKI MLP and
+compiled native backward. Shared tensor-only inner graph; fullgraph remains
+required inside, while the outer graph permits the explicit boundary. Dispatch
+and cache preparation remain timed. Numerical/master/cache gates precede the
+full-model test. This is an integration experiment, not a kernel arithmetic
+change or a reason to suppress compiler errors.
