@@ -1,0 +1,102 @@
+{
+  "label": "fs-w62-optimizer-ownership-padded-neuron-gate-r1",
+  "source_commit": "c18305edd57da9e780ed5d80e953bd06c25f9b9f",
+  "completed_at": "2026-09-18T21:17:09.960751+00:00",
+  "passed": true,
+  "native_fallback_disabled": true,
+  "equivalence_records": 28,
+  "strict_exact_weights_and_owned_states": true,
+  "cross_rank_weight_bytes_exact": true,
+  "dummy_weight_gradient_and_states_zero": true,
+  "checkpoint_cache_none_zero_skip_schedule_gates_passed": true,
+  "after_timing_weight_sha256": "43420a0537483b49f99b6e864c2d31342e863b8f7aa54585492dc31fd158bb0e",
+  "rank_benchmarks": [
+    {
+      "rank": 3,
+      "samples_ms": {
+        "replicated_optimizer": [
+          52.47281094780192,
+          52.61155689950101,
+          52.69146494974848
+        ],
+        "owned_optimizer_with_exchange": [
+          25.508297901251353,
+          25.3466058493359,
+          25.252161049866118
+        ]
+      },
+      "median_ms": {
+        "replicated_optimizer": 52.61155689950101,
+        "owned_optimizer_with_exchange": 25.3466058493359
+      },
+      "full_optimizer_including_exchange": true,
+      "whole_model": false
+    },
+    {
+      "rank": 0,
+      "samples_ms": {
+        "replicated_optimizer": [
+          52.38001274992712,
+          52.85321819828823,
+          52.35136490082368
+        ],
+        "owned_optimizer_with_exchange": [
+          25.521279699751176,
+          25.37134470185265,
+          25.270091198035516
+        ]
+      },
+      "median_ms": {
+        "replicated_optimizer": 52.38001274992712,
+        "owned_optimizer_with_exchange": 25.37134470185265
+      },
+      "full_optimizer_including_exchange": true,
+      "whole_model": false
+    },
+    {
+      "rank": 2,
+      "samples_ms": {
+        "replicated_optimizer": [
+          52.2360747505445,
+          52.91859989811201,
+          52.8447591495933
+        ],
+        "owned_optimizer_with_exchange": [
+          25.531354200211354,
+          25.381327400100417,
+          25.2672620001249
+        ]
+      },
+      "median_ms": {
+        "replicated_optimizer": 52.8447591495933,
+        "owned_optimizer_with_exchange": 25.381327400100417
+      },
+      "full_optimizer_including_exchange": true,
+      "whole_model": false
+    },
+    {
+      "rank": 1,
+      "samples_ms": {
+        "replicated_optimizer": [
+          52.204688350320794,
+          52.291508999769576,
+          52.68275534908753
+        ],
+        "owned_optimizer_with_exchange": [
+          25.53672915091738,
+          25.380230150767602,
+          25.27968365175184
+        ]
+      },
+      "median_ms": {
+        "replicated_optimizer": 52.291508999769576,
+        "owned_optimizer_with_exchange": 25.380230150767602
+      },
+      "full_optimizer_including_exchange": true,
+      "whole_model": false
+    }
+  ],
+  "whole_optimizer_including_exchange": true,
+  "whole_model": false,
+  "postflight_clean": true
+}

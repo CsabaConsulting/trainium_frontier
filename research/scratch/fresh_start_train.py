@@ -20,10 +20,15 @@ def main():
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--experimental-native-mlp", action="store_true")
     parser.add_argument("--experimental-branch-norm", action="store_true")
+    parser.add_argument("--experimental-adamw-fp32", action="store_true")
+    parser.add_argument("--experimental-optimizer-ownership", action="store_true")
     args, remaining = parser.parse_known_args()
-    if not (args.experimental_native_mlp or args.experimental_branch_norm):
+    if not any(vars(args).values()):
         parser.error("select an explicit scratch integration")
+    if args.experimental_adamw_fp32 and args.experimental_optimizer_ownership:
+        parser.error("combined ownership and NKI AdamW has not passed its integration gate")
     original_init = T.GPT.init_weights
+    original_setup_optimizer = T.GPT.setup_optimizer
     norm_installed = False
 
     def initialize(model):
@@ -42,10 +47,34 @@ def main():
         print("FRESH_START_TRAIN_INTEGRATION " + json.dumps(dict(
             native_forward_custom_mlp_backward=args.experimental_native_mlp,
             nki_branch_norm=args.experimental_branch_norm,
+            nki_adamw_fp32=args.experimental_adamw_fp32,
+            optimizer_ownership=args.experimental_optimizer_ownership,
             loader_and_timing_hooks_unchanged=True,
             native_evaluation_and_checkpoint_structure=True)), flush=True)
 
+    def setup_optimizer(model, *setup_args, **setup_kwargs):
+        optimizer = original_setup_optimizer(model, *setup_args, **setup_kwargs)
+        if args.experimental_adamw_fp32 or args.experimental_optimizer_ownership:
+            assert T.USE_FOREACH_OPTIM and T.USE_TENSOR_LR_SCALARS
+            assert not T.USE_CAUTIOUS_WD
+            if args.experimental_adamw_fp32:
+                from adamw_fused_integration import install_optimizer
+                install_optimizer(optimizer, T)
+                print("FRESH_START_OPTIMIZER_INTEGRATION " + json.dumps(dict(
+                    nki_adamw_fp32=True, owner_partitioning=False,
+                    fp32_parameters_and_moments=True)), flush=True)
+            else:
+                import torch.distributed as dist
+                assert dist.is_initialized() and dist.get_world_size() == 4
+                from optimizer_ownership import install_optimizer
+                ownership = install_optimizer(optimizer, T, pad_singleton_muon=True)
+                print("FRESH_START_OPTIMIZER_INTEGRATION " + json.dumps(dict(
+                    nki_adamw_fp32=False, owner_partitioning=True,
+                    rank=dist.get_rank(), **ownership.summary)), flush=True)
+        return optimizer
+
     T.GPT.init_weights = initialize
+    T.GPT.setup_optimizer = setup_optimizer
     sys.argv = [sys.argv[0], *remaining]
     T.main()
 
