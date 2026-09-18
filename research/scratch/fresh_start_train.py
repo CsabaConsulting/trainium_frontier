@@ -22,6 +22,7 @@ def main():
     parser.add_argument("--experimental-branch-norm", action="store_true")
     parser.add_argument("--experimental-adamw-fp32", action="store_true")
     parser.add_argument("--experimental-optimizer-ownership", action="store_true")
+    parser.add_argument("--experimental-adaptive-ce", action="store_true")
     args, remaining = parser.parse_known_args()
     if not any(vars(args).values()):
         parser.error("select an explicit scratch integration")
@@ -30,9 +31,10 @@ def main():
     original_init = T.GPT.init_weights
     original_setup_optimizer = T.GPT.setup_optimizer
     norm_installed = False
+    ce_installed = False
 
     def initialize(model):
-        nonlocal norm_installed
+        nonlocal norm_installed, ce_installed
         original_init(model)
         assert T.USE_BF16_NORM_OUTPUT and T.COMPUTE_DTYPE == torch.bfloat16
         before_rng = torch.get_rng_state().clone()
@@ -43,12 +45,17 @@ def main():
             from branch_norm_nki import install as install_norm
             install_norm(T)
             norm_installed = True
+        if args.experimental_adaptive_ce and not ce_installed:
+            from softcap_ce_parallel_integration import install as install_ce
+            install_ce(T)
+            ce_installed = True
         assert torch.equal(before_rng, torch.get_rng_state())
         print("FRESH_START_TRAIN_INTEGRATION " + json.dumps(dict(
             native_forward_custom_mlp_backward=args.experimental_native_mlp,
             nki_branch_norm=args.experimental_branch_norm,
             nki_adamw_fp32=args.experimental_adamw_fp32,
             optimizer_ownership=args.experimental_optimizer_ownership,
+            adaptive_nki_ce=args.experimental_adaptive_ce,
             loader_and_timing_hooks_unchanged=True,
             native_evaluation_and_checkpoint_structure=True)), flush=True)
 
