@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-18, 20:17 UTC. Active permissions: danger-full-access, approval never.
+Updated 2026-09-18, 20:19 UTC. Active permissions: danger-full-access, approval never.
 This replaces the accumulated stale resume instructions; their history remains
 in Git. Do not restart completed experiments from earlier revisions.
 
@@ -16,10 +16,12 @@ in Git. Do not restart completed experiments from earlier revisions.
 - **trn22:** both corrected branch-norm variants pass all gates but remain
   slower than native. Wave53 native/NKI device profile completed cleanly at
   20:07:29UTC: 13 files / 5,274,556 bytes, all copied locally with matching
-  remote/local hashes at 20:13. Ingestion and cloud artifact backup remain.
-  Wave54 prepares fused FP32 AdamW with functional/in-place NKI and compiled
-  tensor controls, compared with actual foreach and independent FP64 references.
-  Strict numerical/zero-gradient/state/no-mutation gates precede component timing.
+  remote/local hashes at 20:13. Local ingestion succeeded: 23 tables in 3.48s.
+  Wave54 AdamW NKI passed small shapes, but the compiled native control stopped
+  the real-shape probe at one failing weight bound (foreach fails it too).
+  Clean postflight; no real-size NKI or timing claim. Wave55 retains all bounds,
+  diagnoses the offending element and tests NKI independently, excluding an
+  ineligible compiled control from candidate timing.
 - Preflight backup false positive is fixed by exact-script recognition, with
   five passing regression checks. Device-holder and runtime checks are intact.
 - Next implementation target: fused FP32 AdamW. Current full-step trace has

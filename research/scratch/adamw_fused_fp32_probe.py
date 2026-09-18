@@ -25,7 +25,7 @@ def expected64(p, g, m, v, values):
     return (out, nm, nv), envelopes
 
 
-def check(name, actual, expected, envelopes, enforce=True):
+def check(name, actual, expected, envelopes, enforce=True, inputs=None):
     results = []
     for field, a, e, envelope in zip(("weight", "first_moment", "second_moment"),
                                     actual, expected, envelopes):
@@ -39,11 +39,24 @@ def check(name, actual, expected, envelopes, enforce=True):
                    bound_failures=int((error > bound).sum()),
                    relative_rms=relative, max_abs=float(error.max()))
         row["passed"] = row["finite"] and not row["bound_failures"] and relative < 2e-6
+        if not row["passed"]:
+            index = int((error / bound).flatten().argmax())
+            row["worst_bound"] = dict(
+                flat_index=index, actual=float(a.flatten()[index]),
+                expected=float(e.flatten()[index]),
+                error=float(error.flatten()[index]),
+                bound=float(bound.flatten()[index]),
+                envelope=float(envelope.flatten()[index]))
+            if inputs is not None:
+                row["worst_bound"]["inputs"] = {
+                    key: float(value.flatten()[index])
+                    for key, value in zip(("p", "g", "m", "v"), inputs)}
         results.append(row)
     record = dict(name=name, enforced=enforce, passed=all(r["passed"] for r in results), results=results)
     print("ADAMW_FP32_NUMERICAL " + json.dumps(record), flush=True)
     if enforce:
         assert record["passed"], record
+    return record
 
 
 def optimizer_for(p, g, m, v, step, lr, beta1, beta2, wd):
@@ -57,6 +70,7 @@ def optimizer_for(p, g, m, v, step, lr, beta1, beta2, wd):
 
 def gates(kernel, compiled, rows, cols, cases):
     generator = torch.Generator().manual_seed(1063 + rows + cols)
+    compiled_eligible = True
     for case in cases:
         p = torch.randn(rows, cols, generator=generator) * .03
         g = torch.randn(rows, cols, generator=generator) * .003
@@ -88,7 +102,7 @@ def gates(kernel, compiled, rows, cols, cases):
         state = opt.state[pd]
         assert state["step"] == step
         check(f"foreach:{rows}:{cols}:{case}", (pd, state["exp_avg"], state["exp_avg_sq"]),
-              expected, envelopes, enforce=False)
+              expected, envelopes, enforce=False, inputs=(p, g, m, v))
         # Native precision is measured independently, not used to relax the
         # candidate's predeclared analytic bounds.
         for name in ("compiled", "nki_functional", "nki_inplace"):
@@ -98,7 +112,13 @@ def gates(kernel, compiled, rows, cols, cases):
                     outputs = compiled(*inputs, scalar_device)
                 else:
                     outputs = kernel[2](*inputs, scalar_device, 2, name == "nki_inplace")
-            check(f"{name}:{rows}:{cols}:{case}", outputs, expected, envelopes)
+            # The native compiled sqrt path failed the original real-shape
+            # analytic bound in wave54. Keep that bound and disqualify this
+            # control if it fails, while still running independent NKI gates.
+            record = check(f"{name}:{rows}:{cols}:{case}", outputs, expected, envelopes,
+                           enforce=name != "compiled", inputs=(p, g, m, v))
+            if name == "compiled":
+                compiled_eligible &= record["passed"]
             assert torch.equal(inputs[1].cpu(), g), "gradient input was mutated"
             if name == "nki_inplace":
                 for mutated, result in zip((inputs[0], inputs[2], inputs[3]), outputs):
@@ -108,9 +128,10 @@ def gates(kernel, compiled, rows, cols, cases):
                     assert torch.equal(value.cpu(), original), "functional call mutated input"
             if case in ("zero", "late"):
                 assert torch.equal(outputs[0].cpu(), p)
+    return compiled_eligible
 
 
-def benchmark(kernel, compiled, rows, cols, steps):
+def benchmark(kernel, compiled, rows, cols, steps, compiled_eligible):
     generator = torch.Generator().manual_seed(553)
     initial = (torch.randn(rows, cols, generator=generator) * .03,
                torch.randn(rows, cols, generator=generator) * .003,
@@ -126,7 +147,10 @@ def benchmark(kernel, compiled, rows, cols, steps):
         native.step()
 
     arms = {"actual_foreach": foreach}
-    for name in ("compiled", "nki_functional", "nki_inplace"):
+    candidates = ["nki_functional", "nki_inplace"]
+    if compiled_eligible:
+        candidates.insert(0, "compiled")
+    for name in candidates:
         state = list(x.to("neuron") for x in initial)
         staging = torch.empty(128, 7, dtype=torch.float32)
         device_scalars = torch.empty_like(staging, device="neuron")
@@ -155,6 +179,7 @@ def benchmark(kernel, compiled, rows, cols, steps):
     print("ADAMW_FP32_BENCH " + json.dumps(dict(
         rows=rows, columns=cols, elements=rows * cols, **measured,
         scheduled_lr_bias_updates_scalar_upload_and_weight_copy_charged=True,
+        compiled_control_eligible=compiled_eligible,
         parameter_and_moment_dtype="float32", whole_optimizer=False)), flush=True)
 
 
@@ -169,12 +194,15 @@ def main():
     assert not T.USE_CAUTIOUS_WD
     kernel = torch_neuronx.wrap_nki(build_kernel())
     compiled = torch.compile(reference, backend="neuron", fullgraph=True, dynamic=False)
+    compiled_eligible = True
     for rows, cols in ((256, 128), (256, 2048)):
-        gates(kernel, compiled, rows, cols, ("first", "zero", "decay", "sparse", "tiny", "late", "large"))
+        compiled_eligible &= gates(kernel, compiled, rows, cols,
+                                   ("first", "zero", "decay", "sparse", "tiny", "late", "large"))
     if args.real_shape:
-        gates(kernel, compiled, 4096, 2048, ("first", "zero", "decay"))
-        benchmark(kernel, compiled, 4096, 2048, args.steps)
-    print("PASS: FP32 AdamW analytic, state, no-mutation and component gates", flush=True)
+        compiled_eligible &= gates(kernel, compiled, 4096, 2048, ("first", "zero", "decay"))
+        benchmark(kernel, compiled, 4096, 2048, args.steps, compiled_eligible)
+    print("PASS: NKI FP32 AdamW analytic, state and no-mutation gates; "
+          f"compiled control eligible={compiled_eligible}", flush=True)
 
 
 if __name__ == "__main__":
