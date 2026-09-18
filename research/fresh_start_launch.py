@@ -35,7 +35,7 @@ free = shutil.disk_usage(r).free
 assert free >= 8 * 1024**3, 'less than 8 GiB free'
 source_paths = ['train.py', 'prepare.py', 'research/scratch', 'research/run_experiment.py',
                 'research/fresh_start_host.py', 'research/fresh_start_guard.py',
-                'research/fresh_start_launch.py']
+                'research/fresh_start_launch.py', 'research/fresh_start_backup.py']
 dirty = subprocess.check_output(['git', 'diff', '--name-only', 'HEAD', '--', *source_paths], cwd=r)
 new = subprocess.check_output(['git', 'ls-files', '--others', '--exclude-standard', '--', *source_paths], cwd=r)
 assert not dirty.strip() and not new.strip(), 'experiment source is not committed'
@@ -50,7 +50,8 @@ if m.get('runner_owns_manifest'):
 assert not log.exists(), 'driver label already exists'
 pre = preflight(r, m['label'])
 paths = ['train.py', 'prepare.py', 'research/run_experiment.py',
-         'research/fresh_start_host.py', 'research/fresh_start_guard.py'] + m.get('fingerprint_paths', [])
+         'research/fresh_start_host.py', 'research/fresh_start_guard.py',
+         'research/fresh_start_backup.py'] + m.get('fingerprint_paths', [])
 m.update(started_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),
          hostname=socket.gethostname(), git_commit=commit, source_dirty=False,
          preflight_free_bytes=free,

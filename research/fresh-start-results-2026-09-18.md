@@ -1549,3 +1549,12 @@ from higher-precision GpSIMD rsqrt via tensor_scalar(op0=rsqrt,operand0=0.0).
 Wave51 tests all three inverse paths directly, including the independent Newton
 control, and selects GpSIMD for the full unchanged numerical gate and timing.
 One statistic per token avoids making bulk rsqrt throughput the relevant limit.
+
+The wave51 kernel was not executed: preflight identified the concurrent read-only
+backup inventory as compute because its inline source lists train.py. PID1406049
+was the exact REMOTE_DISCOVERY program; device holders and runtime process counts
+were zero, and the inventory exited normally. Wave52 recognizes only that exact
+program and retains every device/runtime check. Five regression checks replay
+the failure and verify altered code, real training/compiler commands, and device
+holders still block. The launcher fingerprints the inventory source dependency.
+No unknown process was killed or cleanup check bypassed.

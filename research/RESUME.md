@@ -15,8 +15,11 @@ in Git. Do not restart completed experiments from earlier revisions.
   embedding. Preserve its checkpoint immediately after completion.
 - **trn22:** branch RMSNorm failed its initial zero-input gradient gate, finite
   but4.36824e-5 relative error, versus native3.08802e-8. Postflight is clean.
-  Wave51 compares raw Scalar, FP32 Newton-refined Scalar, and documented
-  higher-precision GpSIMD rsqrt, selecting GpSIMD for the full gate. Bounds remain unchanged;
+  Wave51's launch was blocked by a preflight false positive: the read-only
+  backup inventory's inline script mentions train.py. No kernel ran in that
+  attempt. Wave52 fixes exact-script classification (five regression checks
+  pass) and retries the unchanged kernel comparison: raw Scalar, Newton-refined
+  Scalar, and higher-precision GpSIMD, selecting GpSIMD for the full gate. Bounds remain unchanged;
   no whole-model use until the complete component gate passes.
 - The wave49 native full-step runtime trace is now local and hash-verified:
   88files/68,923,863bytes, `out/fresh-start-profiles/` plus its label directory.
