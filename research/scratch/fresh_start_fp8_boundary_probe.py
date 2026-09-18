@@ -10,7 +10,7 @@ import json
 import torch
 import torch_neuronx  # noqa: F401
 
-from fresh_start_fp8_probe import build_kernels
+from fresh_start_fp8_probe import build_kernels, round_pair_significand
 
 
 def main():
@@ -22,6 +22,8 @@ def main():
         ("unit", (1.0, 1.0), (1.0, 1.0)),
         ("min_subnormal", (2.0 ** -9, 2.0 ** -9), (2.0 ** -9, 2.0 ** -9)),
         ("fp16_halfway_even", (1.0, 2.0 ** -6), (1.0, 2.0 ** -5)),
+        ("halfway_odd", (1.0, 3.0 * 2.0 ** -6), (1.0, 2.0 ** -5)),
+        ("above_halfway", (1.0, 3.0 * 2.0 ** -7), (1.0, 2.0 ** -5)),
         ("large_plus_small", (128.0, 1.0), (128.0, 1.0)),
         ("max_cancel", (240.0, 240.0), (240.0, -240.0)),
         ("max_same_sign", (240.0, 240.0), (240.0, 240.0)),
@@ -32,10 +34,12 @@ def main():
         y = fp8[1](a.T.contiguous().to("neuron"), b.to("neuron"), scales, 1, True).cpu()
         ideal_pair = av[0] * bv[0] + av[1] * bv[1]
         fp16_pair = float(torch.tensor(ideal_pair).half())
+        eleven_bit_pair = float(round_pair_significand(torch.tensor(ideal_pair, dtype=torch.float64)))
         print(json.dumps(dict(
             check="fp8_pair_boundary", case=name, operands_a=av, operands_b=bv,
             ideal_dot=ideal_pair * 128,
             fp16_pair_model=str(fp16_pair * 128),
+            eleven_bit_pair_model=eleven_bit_pair * 128,
             actual_unique=[str(float(v)) for v in y.unique()],
             finite_elements=int(torch.isfinite(y).sum()), elements=y.numel(),
         )), flush=True)

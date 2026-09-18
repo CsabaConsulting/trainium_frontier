@@ -157,12 +157,23 @@ def accumulation_error(actual, a, b, inverse=1.0):
                 reference_dtype="float64", output_dtype=str(actual.dtype))
 
 
-def fp16_pair_reference(a, b, inverse):
-    """Empirical double-row model, valid only where the FP16 partials are finite.
+def round_pair_significand(x):
+    """Eleven-bit RNE precision with no FP16 exponent restriction.
+
+    The device preserves 240*240 + 240*240, which overflows FP16. All products
+    of finite legacy E4M3 values fit comfortably in FP32's exponent range.
+    """
+    mantissa, exponent = torch.frexp(x)
+    return torch.ldexp(torch.round(mantissa * 2048.0) / 2048.0, exponent)
+
+
+def eleven_bit_pair_reference(a, b, inverse):
+    """Empirical double-row model: eleven-bit pair addition, FP32 accumulation.
 
     Each processing element combines the two K values packed into its row.
-    This rounding model was inferred from saved outputs, not from an AWS promise
-    about the internal adder. Keep it explicit and test unseen inputs separately.
+    This rounding model was inferred from saved outputs and exact boundary cases,
+    not from an AWS promise about the internal adder. It has FP16-like precision
+    but a wider exponent range. Keep it explicit and test unseen inputs separately.
     """
     ad, bd = a.double(), b.double()
     m, k = a.shape
@@ -172,8 +183,8 @@ def fp16_pair_reference(a, b, inverse):
     for start in range(0, m, 8):
         aa = ad[start:start + 8]
         products = aa[:, :, None] * bd[None, :, :]
-        partials = products.reshape(len(aa), k // 2, 2, n).sum(2).half().double()
-        assert torch.isfinite(partials).all(), "Outside the tested finite FP16-pair range"
+        partials = round_pair_significand(products.reshape(len(aa), k // 2, 2, n).sum(2))
+        assert torch.isfinite(partials).all()
         reference[start:start + len(aa)] = partials.sum(1) * inverse
         absolute_sum[start:start + len(aa)] = partials.abs().sum(1) * abs(inverse)
     # FP32 accumulation and FP64 reference summation, with power-of-two scaling.
@@ -246,10 +257,10 @@ def run_case(fp8, bf16, roundtrip, shape, steps, diagnostic_only=False,
                               bf16_output_equals_rounded_fp32=int((y16 == y16_float.bfloat16()).sum()),
                               elements=y8.numel())), flush=True)
         if pairwise_reference:
-            verification_reference, bound = fp16_pair_reference(aq, bq, 1.0 / (sa * sb))
+            verification_reference, bound = eleven_bit_pair_reference(aq, bq, 1.0 / (sa * sb))
             error = (y8_float.double() - verification_reference).abs()
             pair_error = dict(
-                check="empirical_fp16_pair_accumulation_bound", shape=shape, seed_offset=seed_offset,
+                check="empirical_11bit_pair_accumulation_bound", shape=shape, seed_offset=seed_offset,
                 failures=int((error > bound).sum()), max_absolute_error=float(error.max()),
                 max_error_over_bound=float((error / bound.clamp_min(1e-300)).max()),
                 finite=bool(torch.isfinite(y8_float).all()),
@@ -275,7 +286,7 @@ def run_case(fp8, bf16, roundtrip, shape, steps, diagnostic_only=False,
     assert torch.isfinite(y8).all() and torch.isfinite(y16).all()
     print(json.dumps(dict(check="fp8_correctness", shape=shape, scale_a=sa, scale_b=sb,
                           seed_offset=seed_offset,
-                          reference="empirical_fp16_pairs" if pairwise_reference else "fp32_dot",
+                          reference="empirical_11bit_pairs" if pairwise_reference else "fp32_dot",
                           fp8_vs_quant_reference_relative_rms=relative_rms(y8, quant_reference),
                           fp8_vs_fp32_relative_rms=relative_rms(y8, full_reference),
                           bf16_vs_fp32_relative_rms=relative_rms(y16, full_reference))), flush=True)
@@ -312,9 +323,9 @@ def main():
                         help="Also return FP32 outputs and compare with FP64 dot products "
                              "using a declared FP32 accumulation error bound")
     parser.add_argument("--pairwise-reference", action="store_true",
-                        help="Explicitly test the empirically identified FP16-rounded-pair "
+                        help="Explicitly test the empirically identified eleven-bit-pair "
                              "model with FP32 accumulation. This changes the reference, "
-                             "not the tolerance; restricted to finite calibrated partials.")
+                             "not the tolerance; the pair adder has wider range than FP16.")
     parser.add_argument("--seed-offset", type=int, default=17,
                         help="Independent seed family: actual seed is offset plus K")
     parser.add_argument("--correctness-only", action="store_true",
