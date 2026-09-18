@@ -1,29 +1,32 @@
 # Resume the Trainium kernel campaign
 
-Updated2026-09-18,18:51UTC. Active permissions: danger-full-access, approval never.
+Updated2026-09-18,19:00UTC. Active permissions: danger-full-access, approval never.
 This replaces the accumulated stale resume instructions; their history remains
 in Git. Do not restart completed experiments from earlier revisions.
 
 ## Live work
 
-- **trn21:** wave44 native-forward/custom-autograd phase is running:
-  `fs-w44-dense1024-mlp-native-forward-phase-r1`, source
-  `aec170ff810424a98841a59ee5ffe7c5f9362351`, worktree
-  `/home/ubuntu/trainium_freshstart_20260918_wave44`. Its actual master/cache/
-  accumulation/eval/checkpoint gate passes both shapes. This control retains
-  flat inputs, contiguous HxT saved ReLU and custom backward without NKI forward.
-- **trn22:** wave43 explicit-SBUF phase completed705.225310 ms,17.62% slower
-  than its599.574587 ms native control. All four updated-model checks pass;
-  clean postflight18:49:52UTC. Latest worktree wave43/source7c99d574.
-- **Next:** deploy newly committed wave45 to trn22 and gate the separate-region
-  packed MLP. `--separate-region` in integration check and
-  `--fused-mlp-separate-region` in phase timer create a deliberate outer graph
-  boundary but compile the tensor-only inner forward/backward in fullgraph mode.
-  All layers share the inner function. Timing must include dispatch and packing.
-- Wave44 also supports `--fused-mlp-layers 5` for a last-layer-only NKI control
-  using the already validated prepacked mode3. This distinguishes local cost
-  from a graph-wide discontinuity. Do not launch over an active host lock.
-- Source scripts: `scratch/mlp_prepacked_fixed_sbuf.py`,
+- **trn21:** `fs-w44-dense1024-native-control-phase-r2` is running after the
+  native-forward/custom-autograd phase completed574.075248 ms with all checks
+  and cleanup passing. Earlier native590.315111 ms makes this2.751% faster,
+  short of3%. Sourceaec170ff810424a98841a59ee5ffe7c5f9362351, remote wave44.
+  After the fresh control, the prepared request
+  `out/fs-w44-dense1024-native-mlp-embedding-phase-r1.request.json` combines
+  this formulation with the previously validated three-kernel embedding path.
+  Check clean postflight before launching, and require3% full-step gain.
+- **trn22:** wave45 separated MLP gate failed on changed microbatch1/small shape.
+  Native forward inside the same separated region fails identically:9 input
+  gradient elements exceed the unchanged bound, relative RMS0.003586663.
+  Both jobs cleaned automatically. No separate-region full-model job launched.
+  Latest deployed worktree wave45/sourcefa9ca234fb0ef41e612c90d75e51675e79e0e333.
+- **Next:** deploy newly committed wave46 diagnostic to trn22 and run
+  `scratch/mlp_separate_diagnose.py`. Keep calls uninstrumented; compare repeated
+  base/changed/zero inputs, CPU FP64 GEMMs with explicit BF16 rounding and other
+  rounding hypotheses. It records failures, never relaxes the existing gate and
+  cannot authorize promotion on its own. Inspect whether repeats are exact.
+- Wave43 explicit7.125MiB SBUF phase finished705.225310 ms versus599.574587 ms;
+  rejected, clean. Wave42 prepacked phase678.041824 ms also rejected, clean.
+- Source scripts: `scratch/mlp_separate_diagnose.py`,
   `scratch/mlp_fused_integration.py`, `scratch/mlp_fused_integration_check.py`,
   `scratch/phase_timer.py`. Production train.py is unchanged.
 
@@ -80,11 +83,11 @@ Local OS **Devuan/SystemV**. Usercsaba cron, no sudo/root, no systemd:
   `aec170ff810424a98841a59ee5ffe7c5f9362351` at18:50, with both refs verified.
 - Minutes5/35: `research/fresh_start_artifact_backup_cron.sh`, own lock, nice10,
   bounded uploader, digest-verified immutable assets in draft release
-  `research-backup-20260918`.18:05 uploader survived independently and at18:44
-  verified24of26queueitems; current fs-w5 trace. One interrupted old wave4 trace
-  placeholder remains unverified. Do not describe that old archive as backed up.
-  The source fix accepts owned starter placeholders with declared nonzero size;
-  the next uploader process will use it. Do not kill the active uploader.
+  `research-backup-20260918`.18:05 uploader finished25of26items at18:46. A detached retry started18:52
+  using the committed fix for owned starter placeholders with declared nonzero
+  size. It passed the previous failure and is reuploading the old wave4 archive.
+  The archive is still unverified; do not describe it as backed up. Do not kill
+  the active uploader. Receiptfs-artifact-uploader-restart-20260918T1852.json.
 
 States `out/fresh-start-backup/{latest,last-success}.json` and
 `out/fresh-start-artifact-backup/latest.json`; check process/lock if status stale.

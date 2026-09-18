@@ -1419,3 +1419,23 @@ required inside, while the outer graph permits the explicit boundary. Dispatch
 and cache preparation remain timed. Numerical/master/cache gates precede the
 full-model test. This is an integration experiment, not a kernel arithmetic
 change or a reason to suppress compiler errors.
+
+
+Wave44 native-forward/custom-backward full model: **574.075248 ms** versus
+earlier same-host590.315111 ms,2.751% faster. All four updated-model checks and
+automatic postflight pass. This does not yet clear the3% advancement threshold.
+A fresh native control runs next, followed by a bounded combination with the
+already validated three-kernel embedding backward (previous full-model1.42%).
+No claim that the gains add linearly or that a quality gain is established.
+
+Wave45 separate-region gate **fails** on changed microbatch1 at the small shape:
+input-gradient9 elements exceed the original bound, max abs6.103515625e-5,
+relative RMS0.003586663. The same failure appears with native forward inside
+the separated region. Thus it does not require NKI forward. Both failed jobs
+have clean automatic postflights; no full-model phase was launched.
+
+Wave46 diagnostic keeps calls uninstrumented and compares complete outputs and
+gradients after return. It uses FP64 matmul references with explicit BF16 stage
+rounding, alternate rounding hypotheses, and repeated base/changed/zero inputs
+to distinguish rounding from saved-data reuse. Gate tolerances are unchanged;
+the diagnostic cannot promote a kernel even if its process exits successfully.

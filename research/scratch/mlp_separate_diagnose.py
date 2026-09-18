@@ -1,0 +1,141 @@
+#!/usr/bin/env python3
+"""Diagnose a failed MLP region-boundary gate without relaxing its tolerances.
+
+Keep the forward/backward implementations uninstrumented. Compare returned
+outputs and gradients after execution, repeat changed/zero inputs, and use
+independent FP64 GEMMs with explicit BF16 rounding as a numerical reference.
+This is a diagnostic: it records gate failures and never authorizes promotion.
+"""
+import argparse
+import copy
+import json
+from pathlib import Path
+
+import torch
+
+from mlp_fused_integration import install
+from mlp_fused_integration_check import Probe, T, refresh
+
+
+def metrics(actual, expected):
+    a, b = actual.double(), expected.double()
+    error = (a - b).abs()
+    rms = b.square().mean().sqrt()
+    relative = float(error.square().mean().sqrt() / rms.clamp_min(1e-30))
+    failures = int((error > .03 * b.abs() + .008 * rms + 1e-30).sum())
+    return dict(finite=bool(torch.isfinite(a).all()), exact=bool(torch.equal(a, b)),
+                bound_failures=failures, relative_rms=relative,
+                max_abs=float(error.max()), reference_rms=float(rms),
+                original_gate_passed=bool(torch.isfinite(a).all()) and not failures and relative < .004)
+
+
+def rounded_reference(x, up, down, grad, round_hidden=True, round_pre=True):
+    """Exact sums of BF16 operands; quantization locations are explicit."""
+    def bf(value):
+        return value.bfloat16().double()
+
+    x, up, down, grad = (v.double() for v in (x, up, down, grad))
+    relu = bf(x @ up.T).clamp_min(0)
+    activated = bf(relu.square())
+    output = bf(activated @ down.T)
+    hidden = grad @ down
+    if round_hidden:
+        hidden = bf(hidden)
+    pre = hidden * (2 * relu)
+    if round_pre:
+        pre = bf(pre)
+    return dict(output=output, dx=bf(pre @ up), dup=bf(pre.T @ x),
+                ddown=bf(grad.T @ activated))
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--output", type=Path, required=True)
+    ap.add_argument("--normal-dx", action="store_true")
+    args = ap.parse_args()
+    import torch_neuronx  # noqa:F401
+    torch.set_num_threads(4)
+    # Five models times two cache states intentionally need more guard variants
+    # than the usual default. Keep compilation enabled; do not suppress errors.
+    torch._dynamo.config.recompile_limit = 32
+    torch.manual_seed(1023)
+    T.USE_WEIGHT_CACHE = True
+    T.USE_GATED_MLP = T.USE_COALESCED_SWIGLU = T.USE_NKI_RELU2 = False
+    T.RELU2_TAU = 0.0
+    original = Probe(256).to("neuron")
+    models = {"native": original}
+    specifications = (("native_autograd_joined", "native", False),
+                      ("native_autograd_separate", "native", True),
+                      ("nki_joined", "nki", False),
+                      ("nki_separate", "nki", True))
+    before_rng = torch.get_rng_state().clone()
+    for name, backend, separate in specifications:
+        model = copy.deepcopy(original)
+        install(model, "neuron", T, normal_input_gradient=args.normal_dx,
+                grouped_io=backend == "nki", weight_mode=3 if backend == "nki" else 0,
+                forward_backend=backend, separate_region=separate)
+        models[name] = model
+    assert torch.equal(before_rng, torch.get_rng_state())
+    compiled = {name: torch.compile(model, backend="neuron", dynamic=False,
+                                     fullgraph="separate" not in name)
+                for name, model in models.items()}
+    x = torch.randn(4, 64, 256).bfloat16().to("neuron")
+    grad = (torch.randn(4, 64, 256) * .01).bfloat16().to("neuron")
+    up = original.transformer.h[0].mlp.c_fc.weight.detach().cpu().bfloat16()
+    down = original.transformer.h[0].mlp.c_proj.weight.detach().cpu().bfloat16()
+    cpu_grad = grad.detach().cpu().reshape(256, 256)
+    state = dict(purpose=__doc__, shape=[4, 64, 256], normal_input_gradient=args.normal_dx,
+                 numerical_tolerance_changed=False, promotion_allowed=False,
+                 diagnostic_recompile_limit=32, cases=[], repeats=[])
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    for cached in (False, True):
+        if cached:
+            for model in models.values():
+                refresh(model)
+        previous = {}
+        for case in ("base", "changed", "base_again", "changed_again", "zero", "changed_after_zero"):
+            kind = "base" if case.startswith("base") else "zero" if case == "zero" else "changed"
+            xx = torch.zeros_like(x) if kind == "zero" else x + (0.03125 if kind == "changed" else 0.0)
+            actual = {}
+            for name, model in models.items():
+                model.zero_grad(set_to_none=True)
+                leaf = xx.detach().clone().requires_grad_()
+                output = compiled[name](leaf)
+                output.backward(grad)
+                mlp = model.transformer.h[0].mlp
+                actual[name] = dict(output=output.detach().cpu().reshape(256, 256).clone(),
+                                    dx=leaf.grad.detach().cpu().reshape(256, 256).clone(),
+                                    dup=mlp.c_fc.weight.grad.detach().cpu().clone(),
+                                    ddown=mlp.c_proj.weight.grad.detach().cpu().clone())
+            cpu_x = xx.detach().cpu().reshape(256, 256)
+            references = {
+                "strict_bf16": rounded_reference(cpu_x, up, down, cpu_grad),
+                "unrounded_hidden": rounded_reference(cpu_x, up, down, cpu_grad, False, True),
+                "unrounded_pre": rounded_reference(cpu_x, up, down, cpu_grad, True, False),
+                "unrounded_both": rounded_reference(cpu_x, up, down, cpu_grad, False, False),
+            }
+            for name, values in actual.items():
+                record = dict(cached=cached, case=case, variant=name,
+                              versus_native={k: metrics(v, actual["native"][k]) for k, v in values.items()},
+                              versus_cpu={ref: {k: metrics(v, expected[k]) for k, v in values.items()}
+                                          for ref, expected in references.items()})
+                state["cases"].append(record)
+                print("MLP_BOUNDARY_DIAG " + json.dumps(record), flush=True)
+                key = (name, kind)
+                if key in previous:
+                    repeated = dict(cached=cached, case=case, variant=name,
+                                    exact={k: torch.equal(v, previous[key][k]) for k, v in values.items()})
+                    state["repeats"].append(repeated)
+                    print("MLP_BOUNDARY_REPEAT " + json.dumps(repeated), flush=True)
+                else:
+                    previous[key] = values
+            args.output.write_text(json.dumps(state, indent=2) + "\n")
+    state["all_repeats_exact"] = all(all(r["exact"].values()) for r in state["repeats"])
+    args.output.write_text(json.dumps(state, indent=2) + "\n")
+    print("MLP_BOUNDARY_DIAG_COMPLETE " + json.dumps(dict(
+        all_repeats_exact=state["all_repeats_exact"], promotion_allowed=False,
+        output=str(args.output))), flush=True)
+
+
+if __name__ == "__main__":
+    main()
