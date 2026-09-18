@@ -1,19 +1,24 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-18, 21:59 UTC. Active permissions: danger-full-access, approval never.
+Updated 2026-09-18, 22:30 UTC. Active permissions: danger-full-access, approval never.
 This replaces the accumulated stale resume instructions; their history remains
 in Git. Do not restart completed experiments from earlier revisions.
 
 ## Live work
 
-- **trn22 active:** `fs-w63-dense1024-native-mlp-context1024-pack16-adam-1800-r1`,
-  source18b416d, remote wave63, started21:25:56UTC. Dense6x1024, no n-grams,
-  native-forward/custom-backward MLP, T1024/pack16/GA2, original fused FP32
-  AdamW mode0, seed42, clip-after-reduce, unchanged131072targets/update.
-  Predeclared phase gate passed:540.481049 vs558.627329ms (3.24837%). Training
-  is finite near0.54s/update. Wait for the real1800s result and postflight;
-  preserve checkpoint locally/cloud, then evaluate at the same20M/T1024/O1
-  public settings if promising. It contains none of the new approximations.
+- **trn22 latest completed:** `fs-w66-eval-context1024-pack16-adam-s1024-20m-o1-r1`,
+  sourcea1625d9, remote wave66, clean22:24:04UTC. Protected public evaluation:
+ 20,971,520tokens, B1/T1024/world1/O1, no global autocast. **0.9974687136975224
+  BPB**,57,705,140nats/83,462,186bytes,705.573659s. First sub1.0 on this larger
+  public check; not a private score or the competitive target.
+  Training wave63 finished clean22:04:07:3282updates/430.2Mtargets, small public
+  BPB0.992175, exact causality check. Dense6x1024, no n-grams, native-forward/
+  custom-backward MLP, T1024/pack16/GA2, original fused AdamW mode0, seed42,
+  clip-after-reduce and unchanged131072targets/update. Its checkpoint is local
+  and GitHub-digest-verified (32/32 artifact cycle22:11:55). SHA256
+ 9eabd33e6925052091f0238629f9192096c42f1310cf3127286898621932cd27.
+  It contains none of the new approximations. Do not label the small score as
+  the larger/public or private leaderboard score.
 - **trn21 active:** `fs-w65-dense1024-native-mlp-pack8-owned-1800-r1`,
   source5dcbf6a, remote wave65, started21:52:43UTC. Padded optimizer ownership,
   native-MLP, T2048/pack8/GA2, seed42, clip-after-reduce and131072targets/update.
@@ -23,12 +28,28 @@ in Git. Do not restart completed experiments from earlier revisions.
   six attention-weight norms match; this is not a checksum of every weight.
   No new arithmetic approximations or NKI AdamW combination. Await full quality,
   preserve checkpoint and compare larger public eval when justified.
-- **Next available host:** `rsqrt_refinement_probe.py` stage diagnostic;
-  `adamw_fused_integration_check.py --math-mode 2` repeated/cache/restore gate;
-  `softcap_ce_parallel_probe.py --real-shape --steps 20` exact loss/gather/core
-  experiment. These source files are prepared locally, not yet hardware-tested.
-  Commit/deploy a new immutable wave before launching. Do not interrupt either
-  training run to run these diagnostics. Source5dcb contains none of these changes.
+- **trn22 CE probe also complete:** `fs-w66-softcap-ce-parallel-gather-gate-r1`.
+  One-core mask port agrees exactly;12.2223ms vs original12.3398ms FW+BW.
+  Both two-core arms agree exactly at real16384x8192 BF16-valued logits but
+  fail the256-row general-FP32 stress cases, loss differences up to about4e-4.
+  They were excluded from timing, not promoted. Diagnose dtype/loop-length/
+  stage differences and add the missing one-core gather arm. Keep strict gates.
+  Host environment remains LNC2; no host-wide LNC1 retry.
+- **Completed wave66 diagnostics:** reciprocal mode2 integration passes all
+  repeated optimizer/None+zero+scalar fallback/real cache/CPU checkpoint restore
+  checks. The stagewise rsqrt diagnostic measures raw scaled Scalar seed error
+ 0.00319824, one correction1.52741e-5, two corrections1.38269e-7. The discrepancy
+  from FP64 recurrence is only1.50e-7; seed accuracy explains the earlier failure.
+  Both jobs have clean postflights. Do not rerun them as if pending.
+- **Local next-wave code:** Adam modes5(two Newton corrections) and6(quadratic
+  inverse-root correction) need the original34 device gates and paired mode0
+  timing. FP8 weight-storage/BF16-compute control and online exponent-bit scale
+  calibration and its independent probe driver are implemented as prototypes.
+  Syntax checks pass; device gates are pending. Neither is a hardware result
+  or active training change. Start calibration-only before the full MLP probe.
+  See `fresh-start-kernel-queue-2026-09-18.md` for the full precision-specific
+  investigation and compact-table/composed-function queue. A BF16 timing loss
+  is not a veto on a layout whose FP8 storage fits on chip differently.
 - Ownership wave61 failure was batch-one tall Muon numerics, fixed by appending
   an independent zero matrix. Wave62 passed28 exact native records, including
  63extra timing/warmup updates. Full optimizer inclFP32 exchange25.35–25.38ms
@@ -47,23 +68,24 @@ in Git. Do not restart completed experiments from earlier revisions.
   and wave65 adds a paired mode0 NKI control: **1.085410 vs1.304101ms**,16.77%
   component gain, all34gates pass. No whole-optimizer/step claim or promotion.
   Wave65 mode4 fails12 large-gradient weights, moments/finite checks pass;
-  one rsqrt Newton step is insufficient there. Preserve failure and diagnose
-  stages across its bounded range; do not loosen thresholds.
+  one rsqrt Newton step is insufficient there. Wave66 diagnosed the seed across
+ 786432 values; preserve the failures and unchanged thresholds for modes5/6.
 - Wave65 polynomial exp degree5/7 both pass boundary, exp0, repeat and FP64
   accuracy gates. Real8M maxrelative errors1.366e-5/1.183e-7 vsScalar1.134e-5.
   **They lose timing:** .446690/.524650ms vsScalar.125238ms, including HBM.
   Do not replace standalone exp or run training with it. Retain as a precise
   diagnostic and evidence that hardware already approximates this function.
   Composed functions, layout/traffic and engine balance remain separate questions.
-- Best larger public result remains **1.0010172426032236 BPB** from wave50,
-  20,971,520tokens/B1/T1024/O1,83,462,186bytes, clean. The checkpoint SHA is
+- Best larger public result is now **0.9974687136975224 BPB** from wave63,
+  20,971,520tokens/B1/T1024/O1,83,462,186bytes, clean (details above). The prior
+  wave50 result1.0010172426032236 and its checkpoint are retained; its SHA is
  9399bc62561cec110856424701a40fc628db48a63bca37006cb033544fec6289,
   local and GitHub-digest-verified. Wave50 completed3183updates/417.2Mtargets,
   1784.7s charged. Its small-public .983219/T2048 is not a larger/private score.
 - Source and receipts are committed regularly; cron pushes canonical research
-  and recovery refs every10minutes. Source commits through5dcbf6a were available
-  by21:50; verify last-success for the latest exact pushed hash. Latest artifact
-  cycle21:35:18 verified31/31 assets with zero errors. No automatic host-source
+  and recovery refs every10minutes. Sourcea1625d9 and WIP recoveryfb95f39 were
+  verified22:20:32; verify last-success for later exact hashes. Latest artifact
+  cycle22:11:55 verified32/32 assets with zero errors. No automatic host-source
   merges. Latest detached sources differ by host by design.
 - Whole-model MLP fusion variants, standalone branch norms and separate FP8
   projections have recorded losses. Do not restart closed variants blindly.
@@ -79,8 +101,9 @@ A launch receipt is not a completion; postflight uses `command_returncode` and
 
 Reference dense6x1024,117,453,580parameters, no hashed n-grams, NKI causal conv
 and BF16 normalization outputs. Best larger public BPB is
-**1.0010172426032236**,20,971,520tokens/B1/T1024 from wave50's native-MLP/pack8
-checkpoint; this is not the private leaderboard. Working target approximately0.9749.
+**0.9974687136975224**,20,971,520tokens/B1/T1024 from wave63's native-MLP/T1024/
+pack16/original-fused-AdamW checkpoint; this is not the private leaderboard.
+Working target approximately0.9749.
 No seed sweep. Previous wave16 result1.0015512989000874 is retained; its
 checkpoint469,834,849bytes is local and cloud-digest-verified:
 `checkpoints/fs-w16-dense1024-nki-norm-clipafter-1800-r1/final.pt`, SHA256
@@ -121,12 +144,12 @@ Local OS **Devuan/SystemV**. Usercsaba cron, no sudo/root, no systemd:
   recovery branch `backup/fresh-start-20260918`, atomically pushes source+WIP and
   verifies both refs. Skips merge/rebase/cherry-pick/index locks, does not pull,
   merge, force-push or change active HEAD/index. Latest verified source
-  `5dcbf6aad2840d96b4620710d8542217b67e0f63` is the verified21:50 source;
+  `a1625d936b8650e8ec61e4c13d303a9af7d4085d` is the verified22:20 source;
   inspect last-success to verify the latest exact hash before reporting it.
 - Minutes5/35: `research/fresh_start_artifact_backup_cron.sh`, own lock, nice10,
   bounded uploader, digest-verified immutable assets in draft release
-  `research-backup-20260918`. The latest cycle completed at21:35:18UTC: **31of31
-  artifacts verified, zero errors**, including the new wave50 checkpoint.
+  `research-backup-20260918`. The latest cycle completed at22:11:55UTC: **32of32
+  artifacts verified, zero errors**, including the new wave63 checkpoint.
   All queued
   checkpoints/profiles have actual GitHub assets and matching digests. New ignored
   artifacts still require discovery/retrieval before a future backup receipt.
