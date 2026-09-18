@@ -35,7 +35,7 @@ def numerical(name, output, gradient, x, g):
     assert record["passed"], record
 
 
-def diagnose_inverse(packed_inverse=False):
+def diagnose_inverse(packed_inverse=False, fused_square_reduce=False):
     """Read the actual saved statistic; do not infer accuracy from its dtype."""
     from torch_neuronx import wrap_nki
     forward, _ = build_kernels()
@@ -48,7 +48,7 @@ def diagnose_inverse(packed_inverse=False):
         device_x = x.to("neuron")
         records = []
         for mode, name in ((0, "scalar_raw"), (1, "scalar_newton"), (2, "gpsimd")):
-            _, inverse = kernel[2](device_x, 2, mode, packed_inverse)
+            _, inverse = kernel[2](device_x, 2, mode, packed_inverse, fused_square_reduce)
             actual = inverse.cpu().double()
             if packed_inverse:
                 actual = actual.reshape(128, 2, -1).permute(2, 1, 0).reshape(-1, 1)
@@ -60,15 +60,16 @@ def diagnose_inverse(packed_inverse=False):
             if mode:
                 assert bool(torch.isfinite(actual).all()) and float(relative.max()) < 3e-6
         print("BRANCH_NORM_INVERSE_DIAGNOSIS " + json.dumps(dict(
-            shape=list(x.shape), scale=scale, packed_inverse=packed_inverse, results=records)), flush=True)
+            shape=list(x.shape), scale=scale, packed_inverse=packed_inverse,
+            fused_square_reduce=fused_square_reduce, results=records)), flush=True)
 
 
-def run(rows, channels, steps, inverse_mode, packed_inverse=False):
+def run(rows, channels, steps, inverse_mode, packed_inverse=False, fused_square_reduce=False):
     torch.manual_seed(871 + rows + channels)
     base = torch.randn(rows, channels)
     grad = torch.randn(rows, channels).bfloat16()
     native = torch.compile(reference, backend="neuron", fullgraph=True, dynamic=False)
-    candidate = torch.compile(make_function(inverse_mode, packed_inverse), backend="neuron",
+    candidate = torch.compile(make_function(inverse_mode, packed_inverse, fused_square_reduce), backend="neuron",
                               fullgraph=True, dynamic=False)
     gd = grad.to("neuron")
     for scale in (0.0, 1e-6, 1e-3, 1.0, 1e4):
@@ -109,7 +110,7 @@ def run(rows, channels, steps, inverse_mode, packed_inverse=False):
                       steps, torch.neuron.synchronize)
     print("BRANCH_NORM_BENCH " + json.dumps(dict(
         rows=rows, channels=channels, inverse_mode=inverse_mode, packed_inverse=packed_inverse,
-        **measured, same_precision_policy=True,
+        fused_square_reduce=fused_square_reduce, **measured, same_precision_policy=True,
         untouched_tokens_and_repeated_calls_exact=True, whole_model=False)), flush=True)
 
 
@@ -120,17 +121,19 @@ def main():
     ap.add_argument("--diagnose-inverse", action="store_true")
     ap.add_argument("--packed-inverse", action="store_true",
                     help="Batch saved token statistics into one DMA per core in each direction.")
+    ap.add_argument("--fused-square-reduce", action="store_true",
+                    help="Use Scalar activation with square plus reduction and explicit accumulator reset.")
     ap.add_argument("--inverse-mode", type=int, choices=(1, 2), default=2,
                     help="1=Scalar rsqrt plus FP32 Newton step; 2=higher-precision GpSIMD rsqrt")
     args = ap.parse_args()
     import torch_neuronx  # noqa:F401
     torch.set_num_threads(4)
     if args.diagnose_inverse:
-        diagnose_inverse(args.packed_inverse)
-    run(256, 128, args.steps, args.inverse_mode, args.packed_inverse)
-    run(256, 1024, args.steps, args.inverse_mode, args.packed_inverse)
+        diagnose_inverse(args.packed_inverse, args.fused_square_reduce)
+    run(256, 128, args.steps, args.inverse_mode, args.packed_inverse, args.fused_square_reduce)
+    run(256, 1024, args.steps, args.inverse_mode, args.packed_inverse, args.fused_square_reduce)
     if args.real_shape:
-        run(8192, 1024, args.steps, args.inverse_mode, args.packed_inverse)
+        run(8192, 1024, args.steps, args.inverse_mode, args.packed_inverse, args.fused_square_reduce)
     print("PASS: branch RMS normalization numerical and independence gates", flush=True)
 
 
