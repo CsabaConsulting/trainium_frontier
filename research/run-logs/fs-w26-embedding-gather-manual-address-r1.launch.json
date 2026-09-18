@@ -1,0 +1,41 @@
+{
+  "host": "trn21",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave26",
+  "expected_commit": "da8c7b8e215b825a95912d225c8f21ab44448cd3",
+  "label": "fs-w26-embedding-gather-manual-address-r1",
+  "purpose": "Actual-shape gather root-cause diagnostic: five disjoint explicitly allocated SBUF buffers, low versus high source address. Installed allocator source verifies byte units. Same valid indices and dependent index-read check; eager and compiled. No training or speed claim.",
+  "fingerprint_paths": [
+    "research/scratch/embedding_gather_lifetime_probe.py"
+  ],
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_RT_VISIBLE_CORES": "0",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "900s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "research/scratch/embedding_gather_lifetime_probe.py",
+    "--compiled",
+    "--manual-addresses"
+  ],
+  "started_at": "2026-09-18T14:16:45.909824+00:00",
+  "hostname": "ip-172-31-34-85",
+  "git_commit": "da8c7b8e215b825a95912d225c8f21ab44448cd3",
+  "source_dirty": false,
+  "preflight_free_bytes": 40420487168,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "4c14ac6ec14fd52e31ee06d91540707083c48a93ec4687fbaa35bc7106a823f3",
+    "research/fresh_start_host.py": "df01707b8ca2ffc8f4b798467e58b81c6fd8417f7aa1c26c4ecf6c080c659600",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/scratch/embedding_gather_lifetime_probe.py": "224387e1b5fd479e6272ca07d7456707872096ca17468b591218ddc800291a5b"
+  }
+}

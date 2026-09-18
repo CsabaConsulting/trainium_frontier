@@ -1,0 +1,286 @@
+{
+  "label": "fs-w25-mlp-fused-small-device-profile-r1",
+  "capture_shape": [
+    256,
+    256,
+    512
+  ],
+  "packet_size_counts": [
+    {
+      "execution": "fused",
+      "transfer_bytes": 2,
+      "packets": 524288
+    },
+    {
+      "execution": "fused",
+      "transfer_bytes": 4,
+      "packets": 898
+    },
+    {
+      "execution": "fused",
+      "transfer_bytes": 128,
+      "packets": 4096
+    },
+    {
+      "execution": "fused",
+      "transfer_bytes": 16384,
+      "packets": 4
+    },
+    {
+      "execution": "native",
+      "transfer_bytes": 4,
+      "packets": 194
+    },
+    {
+      "execution": "native",
+      "transfer_bytes": 8,
+      "packets": 2
+    },
+    {
+      "execution": "native",
+      "transfer_bytes": 256,
+      "packets": 256
+    },
+    {
+      "execution": "native",
+      "transfer_bytes": 512,
+      "packets": 1024
+    },
+    {
+      "execution": "native",
+      "transfer_bytes": 1024,
+      "packets": 518
+    },
+    {
+      "execution": "native",
+      "transfer_bytes": 4096,
+      "packets": 128
+    },
+    {
+      "execution": "native",
+      "transfer_bytes": 16384,
+      "packets": 12
+    }
+  ],
+  "packet_variables": [
+    {
+      "execution": "fused",
+      "variable": "input0",
+      "packets": 1088,
+      "bytes": 131328
+    },
+    {
+      "execution": "fused",
+      "variable": "input1",
+      "packets": 262400,
+      "bytes": 525312
+    },
+    {
+      "execution": "fused",
+      "variable": "input2",
+      "packets": 262400,
+      "bytes": 525312
+    },
+    {
+      "execution": "fused",
+      "variable": "output0",
+      "packets": 1088,
+      "bytes": 131328
+    },
+    {
+      "execution": "fused",
+      "variable": "output1",
+      "packets": 2176,
+      "bytes": 262656
+    },
+    {
+      "execution": "fused",
+      "variable": "unknown",
+      "packets": 134,
+      "bytes": 66056
+    },
+    {
+      "execution": "native",
+      "variable": "unknown",
+      "packets": 2134,
+      "bytes": 1841944
+    }
+  ],
+  "spill_save_bytes": 0,
+  "spill_reload_bytes": 0,
+  "execution_windows": [
+    {
+      "execution_index": 0,
+      "neff_name": "compiled_b9ccf2581cd484157ab910dfe1680108.neff",
+      "execution_start_ts": 0,
+      "execution_end_ts": 32375,
+      "num_subgraphs": 2,
+      "row_count": 4593
+    },
+    {
+      "execution_index": 1,
+      "neff_name": "compiled_2e6ae5bd6ae5462c783e29194c1540b5.neff",
+      "execution_start_ts": 10721256,
+      "execution_end_ts": 11608037,
+      "num_subgraphs": 2,
+      "row_count": 1027134
+    }
+  ],
+  "warnings": [
+    {
+      "message": "Missing additional dynamic DMA metadata, reported DMA values may be inaccurate. To enable more accurate DMA data, re-capture with --enable-dge-notifs flag or set NEURON_RT_ENABLE_DGE_NOTIFICATIONS=1 before running. Note: DGE notifications are disabled by default as they can cause execution timeouts on some models.",
+      "category": "Missing Data"
+    },
+    {
+      "message": "Current NEFF is missing compiler metrics. Please re-compile using latest version of the compiler",
+      "category": "Missing Data"
+    },
+    {
+      "message": "Missing HLO stats in the NEFF, `model_flops` and `mfu_hlo_estimated_percent` summary metrics will not be available. Consider the metrics (hardware_flops - transpose_flops) and mfu_inst_estimated_percent instead.",
+      "category": "Missing Data"
+    }
+  ],
+  "local_derived_files": [
+    {
+      "path": "i-0329acb9a6244986b_pid_941697_nc_0_session_0/ActiveTime.parquet",
+      "bytes": 4748,
+      "sha256": "9103249d246991eb00a33e0d7403280e24870ccdaa97be9b59d10821e3558b4a"
+    },
+    {
+      "path": "i-0329acb9a6244986b_pid_941697_nc_0_session_0/DmaPacket.parquet",
+      "bytes": 8019508,
+      "sha256": "06da91b8bed0928d3cd995f3464a67f7dbd7a70054c3fe00158a3a59fa715ca1"
+    },
+    {
+      "path": "i-0329acb9a6244986b_pid_941697_nc_0_session_0/DmaPacketAggregated.parquet",
+      "bytes": 9561,
+      "sha256": "9179b8d925b7ce594aaefcdcd96379005b1f9a095ee7b9f7d14263fb54c6674d"
+    },
+    {
+      "path": "i-0329acb9a6244986b_pid_941697_nc_0_session_0/DmaQueuesInfo.parquet",
+      "bytes": 1612,
+      "sha256": "013853a739a288c86a94d951c9fd1e258e4d3352414ebc68f22b693ab6dc6a2f"
+    },
+    {
+      "path": "i-0329acb9a6244986b_pid_941697_nc_0_session_0/DmaUsage.parquet",
+      "bytes": 1986353,
+      "sha256": "2be396492570de421e1c2f53f4f9689013e2600b94842104e586fe285c8b056c"
+    },
+    {
+      "path": "i-0329acb9a6244986b_pid_941697_nc_0_session_0/ExecutionInfo.parquet",
+      "bytes": 1551,
+      "sha256": "2e4a3f8bf8df75ba1991371a778e1c8779b0f6319f178b09b7ac3d10f7f90a98"
+    },
+    {
+      "path": "i-0329acb9a6244986b_pid_941697_nc_0_session_0/Flow.parquet",
+      "bytes": 11497,
+      "sha256": "6d8001de7c31f169d7c432b730db38229c28ebacd896abb5dd56accf12017c2e"
+    },
+    {
+      "path": "i-0329acb9a6244986b_pid_941697_nc_0_session_0/HbmUsage.parquet",
+      "bytes": 1990932,
+      "sha256": "308b05759eab0f3af79b1fc5a36532f0099087dd70123476c83e028f43752862"
+    },
+    {
+      "path": "i-0329acb9a6244986b_pid_941697_nc_0_session_0/HbmUsageSummaryByType.parquet",
+      "bytes": 1622,
+      "sha256": "5fbb0c04146e7a09bc9980cee64c805db6aa0670c5aa978b4cdd317d2c6d2277"
+    },
+    {
+      "path": "i-0329acb9a6244986b_pid_941697_nc_0_session_0/Instruction.parquet",
+      "bytes": 50524,
+      "sha256": "b4f9638d6babc1991f9e791e57409e87902e0d2c083ef1234d76cdbc1402c8d2"
+    },
+    {
+      "path": "i-0329acb9a6244986b_pid_941697_nc_0_session_0/Metadata.parquet",
+      "bytes": 8260,
+      "sha256": "bfa528469d9200aa59abf43259344882f6a8c0cb65b027ac841310805f7084c2"
+    },
+    {
+      "path": "i-0329acb9a6244986b_pid_941697_nc_0_session_0/NeffHeader.parquet",
+      "bytes": 3465,
+      "sha256": "87432c975800d53b04d1e9cfa81c773b96cb0d3d367275e66f2a68eab66138a9"
+    },
+    {
+      "path": "i-0329acb9a6244986b_pid_941697_nc_0_session_0/OpcodeSummary.parquet",
+      "bytes": 2716,
+      "sha256": "74e85abf76f00064804bda20d86750fc6cf0306fc0ad71beb590e2b2ae8f3ed8"
+    },
+    {
+      "path": "i-0329acb9a6244986b_pid_941697_nc_0_session_0/PendingDma.parquet",
+      "bytes": 1177,
+      "sha256": "673a1a2e2506e4ae010a0c1d24fa1c1d5669e8027ac8d605fd1b0f8f228e748e"
+    },
+    {
+      "path": "i-0329acb9a6244986b_pid_941697_nc_0_session_0/PsumUsage.parquet",
+      "bytes": 3081,
+      "sha256": "69f22c2e651ebbfd6105da59fc67937062cc5c42a7f9cdb95d5f1756ec2f8eff"
+    },
+    {
+      "path": "i-0329acb9a6244986b_pid_941697_nc_0_session_0/SbufUsage.parquet",
+      "bytes": 3160,
+      "sha256": "e2d06f3a12c0d4a4716c7dc62d2d592398ac58f8c55cb1615d84974654b18834"
+    },
+    {
+      "path": "i-0329acb9a6244986b_pid_941697_nc_0_session_0/SchemaFields.parquet",
+      "bytes": 43195,
+      "sha256": "2b98a2b58dcf88162440a1a2b2a9b56dd0f376d63c156fbff042599af4daa2e6"
+    },
+    {
+      "path": "i-0329acb9a6244986b_pid_941697_nc_0_session_0/SemaphoreUpdate.parquet",
+      "bytes": 15271,
+      "sha256": "b09df576583556ddc9f290297db188d74846f9b1e2a872e7d0fbb087a8e878c7"
+    },
+    {
+      "path": "i-0329acb9a6244986b_pid_941697_nc_0_session_0/Summary.parquet",
+      "bytes": 20431,
+      "sha256": "7fa63b26e404674ba03845969ace296287ea922a96f0fdf21529af3675de305b"
+    },
+    {
+      "path": "i-0329acb9a6244986b_pid_941697_nc_0_session_0/TensorInfo.parquet",
+      "bytes": 2876,
+      "sha256": "c57d7e419a77d237b71b32804cfab4c6ae221b2bfb3c4e3a298296626f44f851"
+    },
+    {
+      "path": "i-0329acb9a6244986b_pid_941697_nc_0_session_0/Throttle.parquet",
+      "bytes": 1252,
+      "sha256": "be4fd064d58349637ff4dd817e61061afefccc7b72793291835f6282f026b550"
+    },
+    {
+      "path": "i-0329acb9a6244986b_pid_941697_nc_0_session_0/ThrottleSummary.parquet",
+      "bytes": 1200,
+      "sha256": "9170c489bc5cdf4966479ddf71c56e1c4fb750993bb9c8c549a91e96c041057f"
+    },
+    {
+      "path": "i-0329acb9a6244986b_pid_941697_nc_0_session_0/Warning.parquet",
+      "bytes": 1504,
+      "sha256": "b733a13aa428c4ecb39a1937a19e1731abea775994a9c8cf48309beef61c2aac"
+    },
+    {
+      "path": "system_profile/DeviceProfileList.parquet",
+      "bytes": 1463,
+      "sha256": "b8a833efe5b3d87395b5f3fec4302e720a838f60a2fc36ad1569ed22d3d55669"
+    },
+    {
+      "path": "system_profile/SchemaFields.parquet",
+      "bytes": 43410,
+      "sha256": "9ea4034eef0b24701b3c4d5fd3692a075a28e2a8dc27baf6cf05dd54b4fd392a"
+    },
+    {
+      "path": "system_profile/SystemProfileEvents.parquet",
+      "bytes": 11367,
+      "sha256": "78899a47604cf412371548544bcf9e19d647eb5c9b6794e198b68f7d0aa4eb48"
+    },
+    {
+      "path": "system_profile/SystemProfileHbmUsage.parquet",
+      "bytes": 7338,
+      "sha256": "0d545d26fba47e32850051fddda16f4c10b27e93ccb637f70b15fd14d38297c8"
+    },
+    {
+      "path": "system_profile/SystemProfileMetadata.parquet",
+      "bytes": 1942,
+      "sha256": "658ba9ea32182848fdbe62b52dbb0074f5b09b621cc525c53b47bbe26a8486ac"
+    }
+  ],
+  "interpretation": "Fused graph emits524288 two-byte DMA packets in this small case; native transfers are coarser. No recorded spills. This identifies pathological transfer granularity; runtime descriptor construction may explain additional host/driver time, but is an inference requiring a revised layout benchmark. Dynamic DMA metadata is incomplete; do not infer exact bandwidth, MFU or full-model speed from this trace."
+}

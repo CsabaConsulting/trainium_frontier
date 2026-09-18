@@ -950,3 +950,33 @@ gathers with indirect DMA: BF16 permutation, FP32 segmented scan, FP32 dense
 group-end expansion. This matches the native input-rounding policy and charges
 all intermediate HBM traffic. All11 CPU distribution/training-row gates pass;
 native stage and composition checks are still required.
+
+### Gather root-cause progress and nearby compact control
+
+`fs-w26-embedding-gather-manual-address-r1`, source `da8c7b8`, replaces automatic
+scratch placement with five disjoint explicit addresses. All four actual-shape
+eager/compiled, low/high-source-address cases are exact: zero wrong values and
+zero changed dependent index reads. The installed allocator passes byte offsets
+to `bind_memloc`; units were verified before use. This implicates automatic
+allocation/scheduling, not bad input indices or simply a high-address limit.
+It does not yet validate the uninstrumented segmented-gradient composition;
+the next kernel assigns every one of its scratch buffers explicitly and reruns
+the original gates.
+
+The same-host compact3072 phase gives582.432747ms versus the nearby native
+control's588.844843ms: **1.088928% saving**. Both automatic postflights and all
+updated-model checks pass. This still misses570ms, so no full training run is
+promoted. Shrinking the workspace has not produced the hoped-for substantial
+whole-model gain.
+
+### MLP profile identifies tiny DMA packets
+
+The small paired device trace is hash-preserved locally:11 files/25,932,677bytes.
+Its derived Parquet contains524,288 two-byte DMA packets for the fused graph,
+while the native graph uses coarser transfers. Recorded spill save/reload bytes
+are zero. This points to transfer granularity rather than capacity spilling in
+the small reproducer. Runtime descriptor construction is a plausible additional
+source of host/driver delay, not yet a measured attribution. Dynamic DMA metadata
+and compiler metrics are incomplete, so do not claim exact bandwidth or MFU.
+The next MLP version must use contiguous transfers and explicit transposes,
+then repeat correctness and unprofiled timing with layout conversion included.
