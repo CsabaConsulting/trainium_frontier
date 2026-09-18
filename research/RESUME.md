@@ -4,8 +4,10 @@ Update2026-09-18 after the full-access restart: actual active permissions are
 `danger-full-access`, approval `never`. The saved checkpoint was recovered cleanly.
 Wave40 spill analysis and both grouped/tile256 integration gates completed
 cleanly. Recorded spill reloads rise2.340GB to7.265GB, mostly in surrounding
-Linear ops. Both hosts now run nearby full-chip native phase controls before
-the grouped/tile256 candidates. See `fresh-start-mlp-spill-investigation-2026-09-18.md`.
+Linear ops. Nearby native controls completed at590.315ms/trn21 and599.575ms/trn22.
+Grouped MLP is665.457ms,12.73percent slower, with all postchecks/cleanup passing.
+Tile256 is still running on trn22. Trn21 now runs wave41 stream-down component
+gates from7886eab in `/home/ubuntu/trainium_freshstart_20260918_wave41`. See `fresh-start-mlp-spill-investigation-2026-09-18.md`.
 The integration now exposes token tiles128/256/512 and grouped I/O as scratch
 options; production `train.py` is unchanged. No new training result is claimed.
 Use `fs-w40-*.dispatch.json` for launch state and exact source identity.

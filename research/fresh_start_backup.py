@@ -342,11 +342,12 @@ def main():
             status = {} if args.skip_remote else retrieve(ROOT, directory)
             result = create_snapshot(ROOT, directory, config['source_branch'],
                                      config['recovery_branch'], status)
-            receipt.update(result,remote_status=status)
+            receipt.update(result,remote_status=status,remote_retrieval_skipped=args.skip_remote)
             if not args.local_only:
                 receipt['verified_remote_refs'] = push_snapshot(ROOT, config['remote'], result)
                 receipt['pushed'] = True
-            receipt['remote_retrieval_complete'] = all(s['ok'] and not s.get('errors') for s in status.values())
+            receipt['remote_retrieval_complete'] = (not args.skip_remote and bool(status)
+                and all(s['ok'] and not s.get('errors') for s in status.values()))
         except GitBusy as error:
             receipt.update(skipped=True,skipped_reason=str(error))
         except Exception as error:
@@ -360,7 +361,8 @@ def main():
         print(json.dumps(receipt), flush=True)
         if receipt.get('skipped'):
             return
-        if 'error' in receipt or not receipt.get('remote_retrieval_complete', False):
+        if ('error' in receipt or (not args.skip_remote
+                and not receipt.get('remote_retrieval_complete', False))):
             raise SystemExit(1)
 
 

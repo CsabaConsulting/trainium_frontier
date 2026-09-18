@@ -1,0 +1,66 @@
+{
+  "input_analysis": "research/run-logs/fs-w40-mlp-spill-comparison-r1.analysis.json",
+  "bounds": {
+    "reference": [
+      {
+        "pcore": 0,
+        "metadata_peak_tflops_per_second": 78.643203125,
+        "wall_ms": 36.514939,
+        "tensor_active_ms": 18.862251,
+        "ideal_all_tensor_ms": 12.952226581678925,
+        "ideal_without_transposes_ms": 10.459560482811908,
+        "ideal_regular_matmul_ms": 10.457693816219416,
+        "tensor_active_minus_ideal_all_ms": 5.9100244183210755,
+        "measured_compute_engine_max_ms": 18.862251,
+        "exact_memory_bound_ms": null,
+        "complete_pipeline_bound_ms": null
+      },
+      {
+        "pcore": 1,
+        "metadata_peak_tflops_per_second": 78.643203125,
+        "wall_ms": 36.514939,
+        "tensor_active_ms": 18.71045,
+        "ideal_all_tensor_ms": 12.95218656865968,
+        "ideal_without_transposes_ms": 10.387804587225732,
+        "ideal_regular_matmul_ms": 10.380644587510245,
+        "tensor_active_minus_ideal_all_ms": 5.758263431340321,
+        "measured_compute_engine_max_ms": 18.71045,
+        "exact_memory_bound_ms": null,
+        "complete_pipeline_bound_ms": null
+      }
+    ],
+    "candidate": [
+      {
+        "pcore": 0,
+        "metadata_peak_tflops_per_second": 78.643203125,
+        "wall_ms": 58.761415,
+        "tensor_active_ms": 27.382495,
+        "ideal_all_tensor_ms": 11.4861199732701,
+        "ideal_without_transposes_ms": 10.419695510437668,
+        "ideal_regular_matmul_ms": 10.418468843819744,
+        "tensor_active_minus_ideal_all_ms": 15.896375026729899,
+        "measured_compute_engine_max_ms": 27.382495,
+        "exact_memory_bound_ms": null,
+        "complete_pipeline_bound_ms": null
+      },
+      {
+        "pcore": 1,
+        "metadata_peak_tflops_per_second": 78.643203125,
+        "wall_ms": 58.761415,
+        "tensor_active_ms": 27.359848,
+        "ideal_all_tensor_ms": 11.486079960250857,
+        "ideal_without_transposes_ms": 10.41412344034658,
+        "ideal_regular_matmul_ms": 10.412736773735016,
+        "tensor_active_minus_ideal_all_ms": 15.873768039749143,
+        "measured_compute_engine_max_ms": 27.359848,
+        "exact_memory_bound_ms": null,
+        "complete_pipeline_bound_ms": null
+      }
+    ]
+  },
+  "caveats": [
+    "Peak rate uses captured hardware metadata; this is an ideal bound, not measured sustained bandwidth or frequency.",
+    "Missing DMA records prevent complete memory/pipeline bounds. The maximum compute-engine active time excludes DMA and is explicitly incomplete.",
+    "Adjusted TensorEngine FLOPs account for transpose precision; raw instruction-duration sums are not active time."
+  ]
+}
