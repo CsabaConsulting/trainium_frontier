@@ -95,3 +95,20 @@ chunk manifest when splitting a larger archive. See GitHub's
 [release storage limits](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases)
 and [release asset digest fields](https://docs.github.com/en/rest/releases/assets).
 Do not label a pending or failed upload as protected against SSD failure.
+
+`fresh_start_artifact_backup.py` uses a draft release with immutable filenames
+containing content hashes, inventories every source file, and verifies GitHub's
+SHA256 digest and size after each upload. Every retained checkpoint and raw
+profile identified by a preservation receipt is discovered automatically; the
+priority catalog also covers both original EC2 snapshots and older raw captures.
+Archives exceeding1.5GiB are streamed into ordered chunks. Preparation and verified
+uploads are cached so a restart resumes the remaining items. Only an owned,
+zero-byte `starter` placeholder from an interrupted upload can be removed; its
+metadata is recorded first. Completed or differing assets are never overwritten.
+
+After a real upload is verified, the installer can add a second user cron entry
+at minutes5 and35 of each hour. It runs at nice10, has its own overlap lock and
+3500second bound, and does not manipulate Git. Upload receipts are picked up by
+the ten-minute Git recovery backup. Status is in
+`out/fresh-start-artifact-backup/latest.json`; files are protected only when their
+tracked receipt has `all_github_digests_match: true`.
