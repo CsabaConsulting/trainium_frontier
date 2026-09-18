@@ -1,0 +1,47 @@
+{
+  "host": "trn21",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave41",
+  "expected_commit": "7886eab03caf235155621bf9b404e2609bf80acc",
+  "label": "fs-w41-mlp-stream1-master-cache-integration-r1",
+  "purpose": "After the streaming component stage/gradient gates, verify actual Linear FP32 masters, cached/uncached paths, accumulated microbatches, cache refresh, native evaluation and checkpoint identity before full-model timing. Stream mode1.",
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1",
+    "NEURON_RT_VISIBLE_CORES": "0"
+  },
+  "fingerprint_paths": [
+    "research/scratch/mlp_fused_integration.py",
+    "research/scratch/mlp_fused_integration_check.py",
+    "research/scratch/mlp_fused_bf16.py"
+  ],
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1500s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "research/scratch/mlp_fused_integration_check.py",
+    "--real-shape",
+    "--grouped-io",
+    "--weight-mode",
+    "1"
+  ],
+  "started_at": "2026-09-18T18:20:50.578307+00:00",
+  "hostname": "ip-172-31-34-85",
+  "git_commit": "7886eab03caf235155621bf9b404e2609bf80acc",
+  "source_dirty": false,
+  "preflight_free_bytes": 37350400000,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "4c14ac6ec14fd52e31ee06d91540707083c48a93ec4687fbaa35bc7106a823f3",
+    "research/fresh_start_host.py": "df01707b8ca2ffc8f4b798467e58b81c6fd8417f7aa1c26c4ecf6c080c659600",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/scratch/mlp_fused_integration.py": "991ca8af56154c998aa4469cda320fd7fe6b522787416ee86c58bb4cc0cc6ac2",
+    "research/scratch/mlp_fused_integration_check.py": "8a1aecc65ebe2feafefe531e33cae9c09f4827c320c20268baa2cac03de87677",
+    "research/scratch/mlp_fused_bf16.py": "df9cc47b1ca6cdc30c3615be0dbc2ec40c8543b4158dd520845ec94067f570f5"
+  }
+}

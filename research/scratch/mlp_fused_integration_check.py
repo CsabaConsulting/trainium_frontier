@@ -109,8 +109,8 @@ def main():
     ap.add_argument("--normal-dx", action="store_true")
     ap.add_argument("--token-tile", type=int, choices=(128, 256, 512), default=512)
     ap.add_argument("--grouped-io", action="store_true")
-    ap.add_argument("--weight-mode", type=int, choices=(0, 1, 2), default=0,
-                    help="0: cache both;1: stream down;2: stream both weight matrices.")
+    ap.add_argument("--weight-mode", type=int, choices=(0, 1, 2, 3), default=0,
+                    help="0: cache both;1: stream down;2: stream both;3: stream prepacked weights.")
     args = ap.parse_args()
     if args.weight_mode and not args.grouped_io:
         ap.error("streaming weight modes require --grouped-io")

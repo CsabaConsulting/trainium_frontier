@@ -1324,3 +1324,34 @@ The2026-09-18 deliberate-restart checkpoint is documented in `RESUME.md`.
 Code/results are now regularly pushed, and the best model and key raw captures
 have verified off-laptop backups. No experiment is active on either accelerator
 at the checkpoint; the remaining local artifact-upload queue is resumable.
+
+
+### Wave40: full-graph spill evidence and two negative integration controls
+
+The CPU-only trace comparison completes cleanly: recorded SBUF reloads rise
+from2.3395GB to7.2645GB in the fused forward. Most candidate reload bytes are
+attributed to ordinary Linear operations, while regular matrix FLOPs remain
+nearly unchanged. The isolated kernel's timing therefore misses a substantial
+surrounding-graph effect. Names containing `spill` alone do not reveal it.
+See `fresh-start-mlp-spill-investigation-2026-09-18.md` for graph windows,
+source attribution, population counts, compute bounds and data-quality limits.
+
+Actual native-module gates pass for grouped I/O and tile256. Fresh same-host
+full-chip controls measure590.315ms/trn21 and599.575ms/trn22. Grouped I/O gives
+665.457ms (+12.73%); tile256 gives686.590ms (+14.51%). All numerical independence
+postchecks and automatic cleanups pass. Neither reaches the3percent improvement
+gate; neither enters training. Reducing token tiles alone does not repair the
+integration regression. These tests do not invalidate the separate weight
+residency hypothesis.
+
+### Wave41: streamed weights are numerically valid, whole-model gate pending
+
+Mode1 retains only the up matrix; mode2 streams both weight matrices in
+contiguous blocks. All16 stage and24 native gradient gates pass for both.
+Mode1 real-shape forward1.304021ms/native1.338066ms; forward/backward
+3.817119ms/native4.224694ms (9.65% component saving). Mode2 forward
+1.493931ms/native1.335086ms; forward/backward4.013717ms/native4.239976ms
+(5.34% component saving). Repeated weight reads and transposes are included.
+Actual FP32-master/cache/accumulation/evaluation/checkpoint gates pass for mode1;
+mode2 integration is running. Mode1 full-chip phase is now running on trn21.
+No training throughput or BPB improvement is claimed yet.

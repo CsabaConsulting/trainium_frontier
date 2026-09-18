@@ -30,14 +30,21 @@ def build_kernel():
                   transposed_relu: bool = False, grouped_io: bool = False,
                   weight_mode: int = 0):
         tokens, channels = x.shape
-        hidden, up_channels = up.shape
-        assert up_channels == channels and down.shape == (channels, hidden)
+        if weight_mode == 3:
+            # Weight cache layout is [contract128, out_blocks, in_blocks,
+            # out128]. Each streamed block is already stationary-ready.
+            hidden = up.shape[1] * 128
+            assert up.shape == (128, hidden // 128, channels // 128, 128)
+            assert down.shape == (128, channels // 128, hidden // 128, 128)
+        else:
+            hidden, up_channels = up.shape
+            assert up_channels == channels and down.shape == (channels, hidden)
         assert x.dtype == nl.bfloat16 and up.dtype in (nl.float32, nl.bfloat16)
         assert down.dtype == up.dtype
         assert channels % 128 == 0 and hidden % 128 == 0 and lanes in (1, 2)
         assert token_tile <= 512 and token_tile % 128 == 0
         assert tokens % (token_tile * lanes) == 0
-        assert weight_mode in (0, 1, 2)
+        assert weight_mode in (0, 1, 2, 3)
         if weight_mode:
             assert grouped_io
         if grouped_io:
@@ -145,21 +152,24 @@ def build_kernel():
                                       src=x.ap(pattern=[[1, 128], [channels, token_tile]],
                                                offset=m0 * channels + ci * 128))
             for hi in nl.affine_range(nh):
-                if weight_mode == 2:
+                if weight_mode >= 2:
                     # A block is reused across this token tile, never retained
                     # as a full8MiB matrix. Matching-dtype row DMA avoids scalar
                     # packets; the stationary layout is formed on TensorEngine.
                     up_block = nl.ndarray((128, nc, 128), dtype=nl.bfloat16, buffer=nl.sbuf)
-                    up_stream_rows = nl.ndarray((128, channels), dtype=nl.bfloat16, buffer=nl.sbuf)
-                    nisa.dma_copy(dst=up_stream_rows, src=up[hi * 128:(hi + 1) * 128, :])
-                    for ci in nl.affine_range(nc):
-                        up_stream_t = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.psum)
-                        nisa.nc_transpose(dst=up_stream_t,
-                                          data=up_stream_rows[:, ci * 128:(ci + 1) * 128])
-                        nisa.tensor_copy(dst=up_block[:, ci, :], src=up_stream_t)
+                    if weight_mode == 3:
+                        nisa.dma_copy(dst=up_block, src=up[:, hi, :, :])
+                    else:
+                        up_stream_rows = nl.ndarray((128, channels), dtype=nl.bfloat16, buffer=nl.sbuf)
+                        nisa.dma_copy(dst=up_stream_rows, src=up[hi * 128:(hi + 1) * 128, :])
+                        for ci in nl.affine_range(nc):
+                            up_stream_t = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.psum)
+                            nisa.nc_transpose(dst=up_stream_t,
+                                              data=up_stream_rows[:, ci * 128:(ci + 1) * 128])
+                            nisa.tensor_copy(dst=up_block[:, ci, :], src=up_stream_t)
                 up_acc = nl.ndarray((128, token_tile), dtype=nl.float32, buffer=nl.psum)
                 for ci in nl.affine_range(nc):
-                    if weight_mode == 2:
+                    if weight_mode >= 2:
                         nisa.nc_matmul(dst=up_acc, stationary=up_block[:, ci, :],
                                        moving=inputs[:, ci, :], accumulate=(ci > 0))
                     else:
@@ -194,13 +204,16 @@ def build_kernel():
             for ci in nl.affine_range(nc):
                 if weight_mode:
                     down_block = nl.ndarray((128, nh, 128), dtype=nl.bfloat16, buffer=nl.sbuf)
-                    down_stream_rows = nl.ndarray((128, hidden), dtype=nl.bfloat16, buffer=nl.sbuf)
-                    nisa.dma_copy(dst=down_stream_rows, src=down[ci * 128:(ci + 1) * 128, :])
-                    for hi in nl.affine_range(nh):
-                        down_stream_t = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.psum)
-                        nisa.nc_transpose(dst=down_stream_t,
-                                          data=down_stream_rows[:, hi * 128:(hi + 1) * 128])
-                        nisa.tensor_copy(dst=down_block[:, hi, :], src=down_stream_t)
+                    if weight_mode == 3:
+                        nisa.dma_copy(dst=down_block, src=down[:, ci, :, :])
+                    else:
+                        down_stream_rows = nl.ndarray((128, hidden), dtype=nl.bfloat16, buffer=nl.sbuf)
+                        nisa.dma_copy(dst=down_stream_rows, src=down[ci * 128:(ci + 1) * 128, :])
+                        for hi in nl.affine_range(nh):
+                            down_stream_t = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.psum)
+                            nisa.nc_transpose(dst=down_stream_t,
+                                              data=down_stream_rows[:, hi * 128:(hi + 1) * 128])
+                            nisa.tensor_copy(dst=down_block[:, hi, :], src=down_stream_t)
                 down_acc = nl.ndarray((128, token_tile), dtype=nl.float32, buffer=nl.psum)
                 for hi in nl.affine_range(nh):
                     if weight_mode:
@@ -242,11 +255,32 @@ def reference_forward(x, up, down):
     return F.linear(relu.square(), down.to(x.dtype)), relu
 
 
-def make_autograd(kernel_call, transposed_relu=False, normal_input_gradient=False):
+def prepack_weight(weight):
+    """Lossless BF16 layout cache; call after every master-weight update.
+
+    Moving this outside the microbatch is an optimization only when the caller
+    measures refresh cost. It creates no new Parameter or checkpoint entry.
+    """
+    out_features, in_features = weight.shape
+    assert out_features % 128 == 0 and in_features % 128 == 0
+    return weight.reshape(out_features // 128, 128, in_features // 128, 128).permute(
+        3, 0, 2, 1).contiguous()
+
+
+def unpack_weight(weight):
+    return weight.permute(1, 3, 2, 0).reshape(weight.shape[1] * 128, weight.shape[2] * 128)
+
+
+def make_autograd(kernel_call, transposed_relu=False, normal_input_gradient=False,
+                  packed_weight_inputs=False):
     class FusedMLP(torch.autograd.Function):
         @staticmethod
-        def forward(ctx, x, up, down):
-            result, relu = kernel_call(x, up, down)
+        def forward(ctx, x, up, down, up_packed=None, down_packed=None):
+            if packed_weight_inputs:
+                assert up_packed is not None and down_packed is not None
+                result, relu = kernel_call(x, up_packed, down_packed)
+            else:
+                result, relu = kernel_call(x, up, down)
             ctx.save_for_backward(x, up, down, relu)
             return result
 
@@ -276,6 +310,11 @@ def make_autograd(kernel_call, transposed_relu=False, normal_input_gradient=Fals
                 dx = dpre @ up.to(x.dtype)
                 dup = (dpre.T @ x).to(up.dtype)
                 ddown = (grad.T @ activated).to(down.dtype)
+            # Packed copies are auxiliary caches of these same ordinary
+            # weights. Route each gradient exactly once through the normal
+            # input, never through both the cache and the master-weight path.
+            if packed_weight_inputs:
+                return dx, dup, ddown, None, None
             return dx, dup, ddown
 
     return FusedMLP.apply

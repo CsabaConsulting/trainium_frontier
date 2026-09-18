@@ -117,11 +117,27 @@ def analyze(root, neff):
         ["pcore_idx", "tensor_instruction_type"]).aggregate(
             [("raw_flops", "sum"), ("adjusted_flops", "sum"),
              ("adjusted_flops_transpose", "sum")]).to_pylist()
+    linear = ins.filter(pc.fill_null(pc.ends_with(ins["nki_source_location"],
+                                                  "/train.py:2853"), False))
+    linear_groups = linear.group_by(["penguin_id"]).aggregate(
+        [("start_ts", "count"), ("start_ts", "min"), ("end_ts", "max"),
+         ("spill_reload_bytes", "sum"), ("spill_save_bytes", "sum"),
+         ("raw_flops", "sum"), ("adjusted_flops", "sum")]).to_pylist()
+    # All native Linear instances share one Python source line. Penguin IDs
+    # separate lowered operators without guessing a module name from that line.
+    leading_linear = sorted(linear_groups,
+                             key=lambda r: r["spill_reload_bytes_sum"] or 0, reverse=True)[:20]
+    for row in leading_linear:
+        part = linear.filter(pc.equal(linear["penguin_id"], row["penguin_id"]))
+        row["activity"] = merged_activity(part, lower, upper)
+        row["examples"] = part.select(["bir_instruction_name", "opcode",
+                                        "tensor_instruction_type"]).slice(0, 3).to_pylist()
     return dict(directory=str(root), execution=execution, wall_ms=(upper - lower) / 1e6,
                 instruction_rows=len(ins), counters=totals(ins), metadata=metadata,
                 installed_counter_schema=schema, warnings=read("Warning").to_pylist(),
                 active_by_core_engine=merged_activity(active, lower, upper),
                 subsets=subsets, matmul_flops_by_core_type=flop_groups,
+                linear_penguin_groups=leading_linear,
                 top_sources=top_groups(ins, ["nki_source_location"], lower, upper),
                 input_sha256={name: hashlib.file_digest((root / (name + ".parquet")).open("rb"),
                                                        "sha256").hexdigest()

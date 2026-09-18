@@ -4,11 +4,20 @@ Update2026-09-18 after the full-access restart: actual active permissions are
 `danger-full-access`, approval `never`. The saved checkpoint was recovered cleanly.
 Wave40 spill analysis and both grouped/tile256 integration gates completed
 cleanly. Recorded spill reloads rise2.340GB to7.265GB, mostly in surrounding
-Linear ops. Both hosts now run nearby full-chip native phase controls before
-the grouped/tile256 candidates. See `fresh-start-mlp-spill-investigation-2026-09-18.md`.
+Linear ops. Nearby native controls completed at590.315ms/trn21 and599.575ms/trn22.
+Grouped MLP is665.457ms,12.73percent slower, with all postchecks/cleanup passing.
+Tile256 completed686.590ms,14.51percent slower; clean and not promoted.
+Both streaming modes passed component gates. Stream-down also passed actual
+master/cache integration and now runs its full-chip phase on trn21. Trn22 passed
+stream-both master/cache integration and now runs its full-chip phase. Wave41 source7886eab; worktree
+`/home/ubuntu/trainium_freshstart_20260918_wave41`. All labels are fs-w41-*. See `fresh-start-mlp-spill-investigation-2026-09-18.md`.
 The integration now exposes token tiles128/256/512 and grouped I/O as scratch
 options; production `train.py` is unchanged. No new training result is claimed.
-Use `fs-w40-*.dispatch.json` for launch state and exact source identity.
+Use `fs-w40-*.dispatch.json` and `fs-w41-*.dispatch.json` for exact launch state.
+Wave42 prepares a lossless prepacked-weight cache: same gradients go through
+ordinary weights, while auxiliary packed inputs receive no duplicate gradient.
+Packing is charged once per optimizer update in full-step timing. It is still
+unvalidated; require stage and actual-cache gates before whole-model timing.
 The bulk artifact uploader did not survive the restart; the scheduled artifact
 backup resumed at18:05UTC and is uploading the remaining queue. One interrupted
 old trace chunk is still unverified; inspect its GitHub state before retrying. Do not interpret

@@ -70,3 +70,50 @@ gradients, then actual master/cache/accumulation tests before full-step timing.
 A slower isolated kernel may still merit one bounded full-model test when the
 explicit hypothesis is reduced caller spill cost. Reject it if that whole-model
 measurement fails; do not infer success from a smaller declared buffer alone.
+
+## Primary-source cross-check
+
+AWS explicitly describes the tradeoff between keeping inputs in SBUF and
+spilling other live intermediates, and recommends checking oversized blocks and
+buffer scope. This supports the experiment design; it does not diagnose our
+specific caller graph. [NKI performance guide](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/deep-dives/nki_perf_guide.html).
+
+The current compiler overview describes separately compiled NKI artifacts
+inserted late into the graph. Allocation interactions remain a plausible
+mechanism, but the page alone does not establish the reservation behavior of
+our installed NKI0.5 build. We retain the installed API/SDK and measure the
+model; older `nki.compiler.sbuf.alloc` search results are not a reason to use
+removed APIs. [NKI compiler overview](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/deep-dives/nki-compiler.html).
+
+## Compute bounds from the same captured instructions
+
+The recorded128x128 TensorEngine and2.4GHz metadata imply78.643TFLOP/s per
+physical core for the BF16-equivalent bound. On core0, native Tensor active time
+is18.862ms versus a12.952ms ideal including transposes; fused is27.382ms versus
+11.486ms ideal. On core1 the corresponding values are18.710/12.952ms and
+27.360/11.486ms. Exact values are in
+`run-logs/fs-w40-mlp-compute-bounds.json`.
+
+The candidate has less adjusted transpose work but more transpose active time,
+and roughly the same regular matmul work. The Tensor active-minus-ideal gap
+therefore grows substantially. This is an efficiency/scheduling lead in
+addition to the increased recorded reloads, not an arithmetic-work increase.
+Exact memory and complete pipeline bounds are explicitly unavailable because
+DMA notifications are incomplete. The maximum measured compute-engine activity
+is not substituted for a complete DMA-inclusive pipeline bound.
+
+## Next isolated change: prepack weight layout once per optimizer update
+
+Streaming changes the weight-read/SBUF tradeoff but repeats an on-chip transpose
+for every token tile. Mode3 prepares each BF16 weight as
+`[contract128, out_blocks, in_blocks, out128]` and streams contiguous stationary
+blocks directly. Normal FP32 Parameters and ordinary BF16 caches remain intact;
+custom backward uses those ordinary weights and routes their gradients once.
+The packed copies are auxiliary values, refreshed after every update, with no
+new checkpoint keys. Exact pack/unpack and stale-cache tests are mandatory.
+
+The component probe reports packing cost separately and labels its fused timing
+as excluding packing. Actual full-step timing includes each packed-cache refresh
+inside `wcache_ms`. An isolated packed-input time cannot authorize promotion.
+This layout work may later be reusable in an FP8 island, but mode3 itself does
+not change numerical precision or training/evaluation arithmetic.

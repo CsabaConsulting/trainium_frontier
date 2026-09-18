@@ -7,7 +7,7 @@ import types
 
 import torch
 
-from mlp_fused_bf16 import build_kernel, make_autograd, reference_forward
+from mlp_fused_bf16 import build_kernel, make_autograd, prepack_weight, reference_forward, unpack_weight
 
 
 def make_forward(device, native_forward, use_weight_cache, normal_input_gradient=False,
@@ -21,11 +21,14 @@ def make_forward(device, native_forward, use_weight_cache, normal_input_gradient
             return kernel[2](x, up, down, 2, tile, True, True, True, grouped_io, weight_mode)
     else:
         def kernel_call(x, up, down):
+            if weight_mode == 3:
+                up, down = unpack_weight(up), unpack_weight(down)
             result, relu = reference_forward(x, up, down)
             return result, relu.T
 
     fused = make_autograd(kernel_call, transposed_relu=True,
-                          normal_input_gradient=normal_input_gradient)
+                          normal_input_gradient=normal_input_gradient,
+                          packed_weight_inputs=(weight_mode == 3))
 
     def weight(linear, dtype):
         cached = linear._cached_weight
@@ -40,7 +43,18 @@ def make_forward(device, native_forward, use_weight_cache, normal_input_gradient
                 or tile < 128 or tile % 128 or tokens % (2 * tile)):
             return native_forward(self, x, fc)
         up, down = weight(self.c_fc, x.dtype), weight(self.c_proj, x.dtype)
-        result = fused(x.reshape(tokens, x.shape[-1]), up, down)
+        if weight_mode == 3:
+            if (use_weight_cache and self.c_fc._cached_weight is not None
+                    and self.c_proj._cached_weight is not None
+                    and self.c_fc._cached_weight.dtype == x.dtype
+                    and self.c_proj._cached_weight.dtype == x.dtype):
+                up_packed = self.c_fc._nki_packed_weight
+                down_packed = self.c_proj._nki_packed_weight
+            else:
+                up_packed, down_packed = prepack_weight(up), prepack_weight(down)
+            result = fused(x.reshape(tokens, x.shape[-1]), up, down, up_packed, down_packed)
+        else:
+            result = fused(x.reshape(tokens, x.shape[-1]), up, down)
         return result.reshape(x.shape)
 
     return forward
@@ -50,7 +64,7 @@ def install(model, device, train_module, normal_input_gradient=False,
             token_tile=512, grouped_io=False, weight_mode=0):
     assert train_module.RELU2_TAU == 0.0
     assert token_tile in (128, 256, 512)
-    assert weight_mode in (0, 1, 2) and (weight_mode == 0 or grouped_io)
+    assert weight_mode in (0, 1, 2, 3) and (weight_mode == 0 or grouped_io)
     keys = tuple(model.state_dict())
     parameter_ids = tuple(id(p) for p in model.parameters())
     for block in model.transformer.h:
@@ -69,6 +83,18 @@ def install(model, device, train_module, normal_input_gradient=False,
         if grouped_io:
             live_bytes += 2 * channels * token_tile
         assert live_bytes + 2 * 1024**2 <= 24 * 1024**2
+        if weight_mode == 3:
+            for linear in (module.c_fc, module.c_proj):
+                native_refresh = type(linear).refresh_weight_cache
+
+                def refresh(self, dtype, _native_refresh=native_refresh):
+                    _native_refresh(self, dtype)
+                    self._nki_packed_weight = prepack_weight(self._cached_weight)
+
+                linear.refresh_weight_cache = types.MethodType(refresh, linear)
+                # Installation is also valid after a native cache exists.
+                linear._nki_packed_weight = (prepack_weight(linear._cached_weight)
+                                             if linear._cached_weight is not None else None)
         forward = make_forward(device, type(module).forward, train_module.USE_WEIGHT_CACHE,
                                normal_input_gradient, token_tile, grouped_io, weight_mode)
         module.forward = types.MethodType(forward, module)
