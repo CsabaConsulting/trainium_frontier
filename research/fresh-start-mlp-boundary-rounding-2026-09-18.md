@@ -1,6 +1,6 @@
 # MLP compilation boundary and gradient rounding
 
-Updated2026-09-18,19:15UTC. This is a diagnosis of a failed gate, not an accepted
+Updated2026-09-18,19:28UTC. This is a diagnosis of a failed gate, not an accepted
 precision change or an SDK bug claim. Production code is unchanged.
 
 ## Observations
@@ -67,3 +67,33 @@ The installed SDK has not been modified.
 
 Raw evidence: `run-logs/fs-w45-mlp-*-integration-r1.log` and
 `run-logs/fs-w46-mlp-boundary-{rounding,noaccum,strict-compile}-diagnosis-r1.analysis.json`.
+
+## Wave47: the alternating reference becomes eager
+
+The isolated native process and isolated separated-NKI process each completed
+all12 cases with exact repeats, unchanged FP32 weights, and compiled autograd
+nodes. Both fit the unrounded-dHidden numerical reference. The minimal two-model
+process reproduces the original discrepancy and reveals a more direct cause:
+
+- Native first call: `CompiledFunctionBackward`, matching unrounded dHidden.
+- After the separated model is called, native's next call: `LinearBackward0`,
+  `PowBackward0`, and `ReluBackward0`, with no compiled autograd node. It fits
+  strict BF16 intermediate rounding.
+- The separated NKI model retains two `CompiledFunctionBackward` nodes and
+  exact repeated results throughout.
+
+Thus the original comparison changed from compiled-versus-compiled to
+compiled-versus-eager inside the alternating-model harness. Disabling the
+backend's exception fallback does not prevent this Dynamo-level execution-path
+change. Shared forward code and an explicit graph break are involved; the exact
+Dynamo implementation mechanism is not yet established, so this is not a
+specific SDK bug attribution. No NKI derivative change is justified by the old
+rounding discrepancy alone.
+
+A new isolated integration gate captures native tensors in one guarded process
+and compares the candidate in a second. It retains the original bounds,
+accumulated microbatches, FP32 masters, BF16 caches, matched reference updates,
+evaluation and strict checkpoint load checks. Every call must contain a compiled
+autograd node. The old failed comparisons remain recorded; this gate is pending.
+Source: `scratch/mlp_isolated_integration_check.py`. Evidence labels
+`fs-w47-mlp-{native-only,nki-separate-only,native-plus-separated}-diagnosis-r1`.
