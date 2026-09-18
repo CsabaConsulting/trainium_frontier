@@ -68,7 +68,7 @@ def optimizer_for(p, g, m, v, step, lr, beta1, beta2, wd):
     return parameter, opt
 
 
-def gates(kernel, compiled, rows, cols, cases):
+def gates(kernel, compiled, rows, cols, cases, math_mode=0):
     generator = torch.Generator().manual_seed(1063 + rows + cols)
     compiled_eligible = True
     for case in cases:
@@ -111,7 +111,7 @@ def gates(kernel, compiled, rows, cols, cases):
                 if name == "compiled":
                     outputs = compiled(*inputs, scalar_device)
                 else:
-                    outputs = kernel[2](*inputs, scalar_device, 2, name == "nki_inplace")
+                    outputs = kernel[2](*inputs, scalar_device, 2, name == "nki_inplace", math_mode)
             # The native compiled sqrt path failed the original real-shape
             # analytic bound in wave54. Keep that bound and disqualify this
             # control if it fails, while still running independent NKI gates.
@@ -131,7 +131,7 @@ def gates(kernel, compiled, rows, cols, cases):
     return compiled_eligible
 
 
-def benchmark(kernel, compiled, rows, cols, steps, compiled_eligible):
+def benchmark(kernel, compiled, rows, cols, steps, compiled_eligible, math_mode=0):
     generator = torch.Generator().manual_seed(553)
     initial = (torch.randn(rows, cols, generator=generator) * .03,
                torch.randn(rows, cols, generator=generator) * .003,
@@ -167,7 +167,7 @@ def benchmark(kernel, compiled, rows, cols, steps, compiled_eligible):
                 if arm == "compiled":
                     new = compiled(*tensors, device)
                 else:
-                    new = kernel[2](*tensors, device, 2, arm == "nki_inplace")
+                    new = kernel[2](*tensors, device, 2, arm == "nki_inplace", math_mode)
                 if arm != "nki_inplace":
                     tensors[0].copy_(new[0])
                     tensors[2], tensors[3] = new[1], new[2]
@@ -177,7 +177,7 @@ def benchmark(kernel, compiled, rows, cols, steps, compiled_eligible):
     with torch.no_grad():
         measured = timing(arms, steps, torch.neuron.synchronize)
     print("ADAMW_FP32_BENCH " + json.dumps(dict(
-        rows=rows, columns=cols, elements=rows * cols, **measured,
+        rows=rows, columns=cols, elements=rows * cols, math_mode=math_mode, **measured,
         scheduled_lr_bias_updates_scalar_upload_and_weight_copy_charged=True,
         compiled_control_eligible=compiled_eligible,
         parameter_and_moment_dtype="float32", whole_optimizer=False)), flush=True)
@@ -187,7 +187,9 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--real-shape", action="store_true")
     ap.add_argument("--steps", type=int, default=20)
+    ap.add_argument("--math-mode", type=int, choices=(0, 1, 2, 3), default=0)
     args = ap.parse_args()
+    print("ADAMW_FP32_MATH_MODE " + json.dumps(dict(math_mode=args.math_mode)), flush=True)
     import torch_neuronx
     torch.set_num_threads(4)
     T.USE_FOREACH_OPTIM = T.USE_TENSOR_LR_SCALARS = True
@@ -197,10 +199,12 @@ def main():
     compiled_eligible = True
     for rows, cols in ((256, 128), (256, 2048)):
         compiled_eligible &= gates(kernel, compiled, rows, cols,
-                                   ("first", "zero", "decay", "sparse", "tiny", "late", "large"))
+                                   ("first", "zero", "decay", "sparse", "tiny", "late", "large"),
+                                   args.math_mode)
     if args.real_shape:
-        compiled_eligible &= gates(kernel, compiled, 4096, 2048, ("first", "zero", "decay"))
-        benchmark(kernel, compiled, 4096, 2048, args.steps, compiled_eligible)
+        compiled_eligible &= gates(kernel, compiled, 4096, 2048, ("first", "zero", "decay"),
+                                   args.math_mode)
+        benchmark(kernel, compiled, 4096, 2048, args.steps, compiled_eligible, args.math_mode)
     print("PASS: NKI FP32 AdamW analytic, state and no-mutation gates; "
           f"compiled control eligible={compiled_eligible}", flush=True)
 
