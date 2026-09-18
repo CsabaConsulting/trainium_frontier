@@ -32,6 +32,14 @@ lock and does not acquire device ownership. Explicit log synchronization uses
 another lock when adding provenance-keyed records to the experiment registry;
 that JSON-record reconciliation is not a Git source merge.
 
+An observed overlap at19:58UTC exposed a preflight false positive: the inline
+backup inventory source contains the filename train.py and matched the old
+process-name heuristic. The launch was refused before device work began. The
+updated host check recognizes only the exact read-only inventory script under
+Python; arbitrary inline programs and altered scripts stay conservative. Device
+holder and Neuron-runtime checks remain mandatory even for a recognized backup.
+The regression check replays the actual failed receipt and verifies those cases.
+
 ## What runs independently of the GUI
 
 `fresh_start_backup_cron.sh` runs `fresh_start_backup.py` every10minutes from the

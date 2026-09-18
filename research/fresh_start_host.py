@@ -122,6 +122,20 @@ def cleanup_owned(label):
                 artifacts_deleted=[], caches_deleted=[], driver_modified=False)
 
 
+def known_read_only_backup(argv):
+    """Recognize only our exact inventory command, not arbitrary python -c.
+
+    Its literal source-path list contains train.py, which used to trip the
+    conservative compute-process heuristic during an overlapping backup.
+    Device-holder/runtime checks remain independent of this classification.
+    """
+    if (len(argv) != 3 or argv[1] != '-c'
+            or not re.fullmatch(r'python(?:3(?:\.\d+)?)?', Path(argv[0]).name)):
+        return False
+    from fresh_start_backup import REMOTE_DISCOVERY
+    return argv[2] == REMOTE_DISCOVERY
+
+
 def snapshot(remote, since=None):
     started = utc_now()
     memory = {}
@@ -152,6 +166,7 @@ def snapshot(remote, since=None):
             record = process_record(int(root.name))
             if record and any(any(term in arg for term in ('torchrun', 'neuronx-cc', 'phase_timer.py', 'train.py'))
                               for arg in record['argv'][:3]):
+                record['known_read_only_backup'] = known_read_only_backup(record['argv'])
                 relevant_processes.append(record)
         except (OSError, ValueError, IndexError):
             continue
@@ -198,6 +213,7 @@ def health_failures(record, exclude_pids=()):
         failures.append('less than10000 free filesystem inodes')
     pending = [p for p in record['relevant_processes']
                if p['pid'] not in exclude_pids and p['state'] != 'Z'
+               and not known_read_only_backup(p['argv'])
                and 'fresh_start_' not in Path(p['argv'][0]).name]
     if pending:
         failures.append('training/compiler processes remain: ' + ','.join(str(p['pid']) for p in pending))
