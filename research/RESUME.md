@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-18, 20:56 UTC. Active permissions: danger-full-access, approval never.
+Updated 2026-09-18, 20:59 UTC. Active permissions: danger-full-access, approval never.
 This replaces the accumulated stale resume instructions; their history remains
 in Git. Do not restart completed experiments from earlier revisions.
 
@@ -13,7 +13,8 @@ in Git. Do not restart completed experiments from earlier revisions.
   `fs-w57-eval-native-mlp-pack8-s1024-20m-o1-r1` completed cleanly:
   **1.0010172426032236 BPB**, 20,971,520tokens, 694.054s, same settings and
   83,462,186byte denominator as the previous best. This is a small public gain,
-  not sub1.0 or a private-leaderboard score. Host idle after clean postflight.
+  not sub1.0 or a private-leaderboard score. Wave60 prepares a bounded native
+  FP32 pack/all-gather/copyback probe for dividing optimizer work among ranks.
 - **trn22:** wave58 Scalar square+reduction norm passed but loses
   (.543885ms vs native .440652ms); neither normalization variant is promoted.
   AdamW functional component passes all34 original cases and saves69.277%.
@@ -23,6 +24,9 @@ in Git. Do not restart completed experiments from earlier revisions.
   stage conditioned on actual stored moments, with unchanged constants and
   whole-update/trajectory RMS gates. CPU counterexamples and negative controls
   must pass, then the full integration/cache/restore gate before full-model timing.
+  Wave59 failed before integration because the two selected cancellation values
+  are not a full-table RMS sample. Wave60 makes their fixture check the specific
+  elementwise bounds and keeps every full-table RMS limit enforced.
   See fresh-start-adamw-rounding-2026-09-18.md for the corrected contract.
   The same-host30-step native-MLP/pack8 control is558.627329ms median, clean.
 - Preflight backup false positive is fixed by exact-script recognition, with

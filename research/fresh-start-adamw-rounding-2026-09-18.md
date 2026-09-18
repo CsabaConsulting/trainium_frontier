@@ -45,6 +45,16 @@ actual FP32 variance. Stored-state propagation does not explain that case.
 The NKI GpSIMD inverse-square-root/Vector reciprocal path passed those original
 component gates.
 
+Wave59 stopped in the two-element CPU fixture, before any optimizer integration
+update. Its first-moment relative RMS is 5.85e-5 because this fixture deliberately
+selects only two near-cancellation outputs; that is not a representative sample
+of the 8M-element table, whose observed first-moment RMS passed. The fixture now
+explicitly checks the original and corrected elementwise bounds and reports its
+RMS without treating it as a full-table sample. Its two negative controls must
+fail the relevant elementwise state/weight bound. Every full-table stage and
+trajectory RMS limit remains enforced without a bypass parameter. This fixture
+correction does not change kernel, optimizer or full-table gate arithmetic.
+
 Evidence: `run-logs/fs-w58-adamw-rounding-diagnosis-r1.log`, especially
 `ADAMW_FAILED_ELEMENT_DIAG`; clean postflight despite the intentional assertion
 failure. Next requirement: all repeated-update, cache, skip, restore and
