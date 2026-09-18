@@ -1271,3 +1271,26 @@ A four-rank synchronized MLP component test is prepared to separate whole-chip
 contention from surrounding-graph effects. It reports per-rank times, starts
 all ranks in the same arm, and excludes the closing barrier from timing. It
 does not change optimizer/model arithmetic or constitute a whole-model result.
+
+
+### Wave38 and GUI crash recovery: whole-chip contention is not the main MLP regression
+
+Source052c839; all four ranks pass actual-shape numerical and gradient gates.
+Concurrent native forward/backward medians are4.7006–4.7367ms, versus
+fused4.3795–4.3942ms. Native forward medians1.5136–1.5275ms, fused1.5712–1.5962ms.
+The component advantage survives four-rank contention, while the full-model
+forward regression is much larger. Surrounding graph layout and scratchpad
+pressure remain hypotheses requiring the full device trace. All jobs completed
+with clean automatic postflights; both hosts were idle when recovered17:07UTC.
+
+The wave36 full-forward raw capture is locally verified (1,020,828,335 bytes),
+but local ingestion hit its300-second timeout at15:39:32UTC, returncode124.
+Its52 partially written Parquet files are not a valid analysis; the main
+Instruction table is zero bytes. Preserve the raw capture and ingest elsewhere
+with adequate resources. The wave37 corrected-metadata small capture also
+completed cleanly; its remote raw data still needs retrieval and analysis.
+
+The surviving two-kernel embedding edit is preserved as a prototype, not a
+correctness/speed claim. It fuses wide DMA permutation and scan while retaining
+the separately validated DMA expansion. The crash recovery and next actions
+are recorded in `RESUME.md`; regular GitHub backup is now explicitly authorized.

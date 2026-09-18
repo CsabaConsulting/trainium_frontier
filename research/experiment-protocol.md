@@ -1,6 +1,6 @@
 # Experiment protocol — Trainium Frontier research
 
-Version2,2026-09-18. Applies to every device training run, phase probe, standalone
+Version3,2026-09-18. Applies to every device training run, phase probe, standalone
 evaluation and kernel diagnostic on both provisioned hosts. The user explicitly
 requires setup and cleanup before and after every experiment, and preservation
 of work locally. Kernel failures require diagnosis, not blind repetition.
@@ -72,9 +72,16 @@ of work locally. Kernel failures require diagnosis, not blind repetition.
    remote files; preserve failures and useful reproducers too. Temporary artifacts
    may be removed only after the needed evidence is local and verified, with the
    removed paths recorded. Valid retained caches/checkpoints are not debris.
-4. Commit source, protocol changes, notes, logs and receipts locally. Heavyweight
-   checkpoints/profiles remain outside Git with tracked hash receipts. Pushing or
-   submitting is separate from this authorized local research campaign.
+4. Commit source, protocol changes, notes, logs and receipts locally, then push
+   the research branch to `origin` (the user's CsabaConsulting fork). The user
+   explicitly authorized regular GitHub backups after the local GUI crash on
+   September18. Verify the remote ref after pushing. Keep a current
+   `research/RESUME.md` with completed jobs, unresolved failures, next commands
+   and artifact locations. Heavyweight checkpoints/profiles remain outside Git
+   with tracked hash receipts and require a separate off-machine artifact backup;
+   a receipt alone is not a backup of the data. Competition submission remains
+   a separate action. Preserve original EC2 snapshots instead of blindly merging
+   stale files over the canonical checkout.
 5. Read the result and failure mechanism before choosing the next experiment. A
    completed process is not a correctness pass; a component speedup is not a
    training speedup; a small public prefix is not the private leaderboard score.

@@ -29,6 +29,7 @@ def run_case(args, kernels, shape, kind):
     print('DMA_SCAN_CASE '+json.dumps(dict(kind=kind, shape=shape,
           tiled_io=args.tiled_io,
           fused_permutation_scan_expansion=args.fused,
+          fused_permutation_scan=args.fused_permute_scan,
           contiguous_metadata=args.contiguous_metadata,
           metadata_bytes=sum(t.numel()*t.element_size() for t in meta),
           arithmetic='BF16-rounded input gradients, FP32 sums, FP32 output')) ,flush=True)
@@ -43,11 +44,13 @@ def run_case(args, kernels, shape, kind):
     if args.fused:
         eager, ordered, scanned = kernels[3][2](gd, pp, cc, mm, vocabulary, 2, True,
                                                args.contiguous_metadata)
+    elif args.fused_permute_scan:
+        scanned, ordered = kernels[3][2](gd, pp, cc, 2, True)
     else:
         ordered = permute[2](gd, pp, 2, args.tiled_io)
     ordered_ref = gradient[meta[0].reshape(-1).long()].bfloat16()
     assert torch.equal(ordered.cpu(), ordered_ref), 'DMA permutation/cast mismatch'
-    if not args.fused:
+    if not args.fused and not args.fused_permute_scan:
         scanned = scan[2](ordered, cc, 2, args.tiled_io)
     # Independent CPU recurrence checks ALL scan positions, not only group ends.
     arr = ordered_ref.double().numpy()
@@ -80,12 +83,19 @@ def run_case(args, kernels, shape, kind):
     if args.fused:
         plain = kernels[3][2](gd, pp, cc, mm, vocabulary, 2, False, args.contiguous_metadata)
         check(plain, exact, bound, counts, f'dma_eager_uninstrumented:{kind}:{shape}')
+    elif args.fused_permute_scan:
+        plain_scan = kernels[3][2](gd, pp, cc, 2, False)
+        plain = expand[2](plain_scan, mm, vocabulary, 2)
+        check(plain, exact, bound, counts, f'dma_eager_uninstrumented:{kind}:{shape}')
     wrapped = tuple(torch_neuronx.wrap_nki(k) for k in kernels)
 
     def compose(gg, permutation, continuation, mapping):
         if args.fused:
             return wrapped[3][2](gg, permutation, continuation, mapping, vocabulary, 2, False,
                                  args.contiguous_metadata)
+        if args.fused_permute_scan:
+            scanned_inner = wrapped[3][2](gg, permutation, continuation, 2, False)
+            return wrapped[2][2](scanned_inner, mapping, vocabulary, 2)
         ordered_inner = wrapped[0][2](gg, permutation, 2, args.tiled_io)
         scanned_inner = wrapped[1][2](ordered_inner, continuation, 2, args.tiled_io)
         return wrapped[2][2](scanned_inner, mapping, vocabulary, 2)
@@ -123,8 +133,10 @@ def run_case(args, kernels, shape, kind):
     print('DMA_SCAN_BENCH '+json.dumps(dict(kind=kind,shape=shape,**timed,
           tiled_io=args.tiled_io,
           fused_permutation_scan_expansion=args.fused,
+          fused_permutation_scan=args.fused_permute_scan,
           contiguous_metadata=args.contiguous_metadata,
-          normal_intermediate_hbm_bytes=0 if args.fused else tokens*channels*6,
+          normal_intermediate_hbm_bytes=(0 if args.fused else
+                                         tokens*channels*(4 if args.fused_permute_scan else 6)),
           estimated_four_table_amortized_ms=estimate,input_id_d2h_included=False,
           all_intermediate_hbm_and_kernel_costs_included=True,
           estimate_is_not_whole_model_timing=True)),flush=True)
@@ -142,9 +154,13 @@ def main():
                     help='Fuse permutation, scan and512-output end gathers without intermediate HBM.')
     ap.add_argument('--contiguous-metadata',action='store_true',
                     help='Transfer separate contiguous index/presence rows, casting presence in SBUF.')
+    ap.add_argument('--fused-permute-scan',action='store_true',
+                    help='Wide indirect loads and scan fused; retain the fast DMA expansion kernel.')
     args=ap.parse_args()
     if args.contiguous_metadata and not args.fused:
         ap.error('--contiguous-metadata requires --fused')
+    if args.fused_permute_scan and args.fused:
+        ap.error('select either two-kernel permutation/scan fusion or one-kernel full fusion')
     torch.set_num_threads(4)
     kernels=None
     if args.device=='neuron':
@@ -152,6 +168,9 @@ def main():
         kernels=build_kernels()
         if args.fused:
             from embedding_fused_dma import build_kernel
+            kernels=(*kernels, build_kernel())
+        elif args.fused_permute_scan:
+            from embedding_permute_scan_nki import build_kernel
             kernels=(*kernels, build_kernel())
     for shape in [(256,256,256)]+([(8192,1024,8192)] if args.real_shape else []):
         kinds=['uniform','zipf','one_id','zero','cancellation']

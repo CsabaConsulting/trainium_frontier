@@ -1,0 +1,36 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave38",
+    "expected_commit": "052c83966456e37335dfe42d14fa016e4290944f",
+    "label": "fs-w38-mlp-four-rank-component-r1",
+    "purpose": "Isolate chip contention from surrounding-model effects: run the previously validated raw-HxT MLP component concurrently on4ranks, barrier before each paired timing arm, per-rank completion before closing barrier. Preserve full native numerical gates.",
+    "fingerprint_paths": [
+      "research/scratch/mlp_fused_bf16.py",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "research/scratch/mlp_fused_distributed_probe.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1500s",
+      "/home/ubuntu/workspace/native_venv/bin/torchrun",
+      "--standalone",
+      "--nproc_per_node=4",
+      "research/scratch/mlp_fused_distributed_probe.py",
+      "--steps",
+      "12"
+    ]
+  },
+  "requested_at": "2026-09-18T15:34:40.285751+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w38-mlp-four-rank-component-r1\", \"pid\": 1339157, \"commit\": \"052c83966456e37335dfe42d14fa016e4290944f\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave38/research/run-logs/fs-w38-mlp-four-rank-component-r1.log\", \"started_at\": \"2026-09-18T15:34:46.213664+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}
