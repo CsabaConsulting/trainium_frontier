@@ -744,6 +744,7 @@ NGRAM_VE_FLAT_LR = True   # no warmdown for these tables ("sparse tables benefit
 NGRAM_VE_OPT = "rmsprop"  # "rmsprop" (no first moment, Recursive's choice) or "adamw"
 NGRAM_VE_BF16 = True      # store tables/gradients in bf16; state follows unless overridden below
 NGRAM_RMS_FP32 = False   # opt-in FP32 RMSProp STATE AND ARITHMETIC; BF16 tables/grads stay BF16.
+USE_NKI_NGRAM_RMS = False  # opt-in fused FP32 table update; requires NGRAM_RMS_FP32.
 # With beta2=.999, a zero-gradient step's 0.1% moment decay can round away in BF16.
 # Cast gradients BEFORE squaring, keep second moments/denominators/updates in FP32,
 # and round only when subtracting the FP32 update into the existing BF16 parameter.
@@ -2090,6 +2091,56 @@ try:
             nisa.tensor_tensor(dst=s2, data1=wb, data2=s1, op=nl.subtract)
             nisa.dma_copy(dst=out[start:start + size, 0:N], src=s2)
         return out
+
+    @nki.jit
+    def _ngram_rmsprop_fp32_nki(p, grad, moment, scalars,
+                               beta2: float, eps: float, lanes: int):
+        """BF16 table/gradient, FP32 moment and arithmetic; explicit copy-back outside.
+
+        Inputs are contiguous [M,2048] views, with M divisible by 128*lanes.
+        scalars[128,2] holds runtime LR and inverse bias correction. Separate
+        output buffers were faster than mutable-input alias handling on the
+        installed native backend. Two programs use the two physical cores of LNC2.
+        """
+        m, f = p.shape
+        assert lanes in (1, 2) and m % (128 * lanes) == 0 and f == 2048
+        out_p = nl.ndarray(p.shape, dtype=p.dtype, buffer=nl.shared_hbm)
+        out_v = nl.ndarray(moment.shape, dtype=nl.float32, buffer=nl.shared_hbm)
+        lr = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
+        inv_bias = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
+        nisa.dma_copy(dst=lr, src=scalars[:, 0:1])
+        nisa.dma_copy(dst=inv_bias, src=scalars[:, 1:2])
+        lane = nl.program_id(0)
+        for tile in nl.affine_range(m // (128 * lanes)):
+            start = (tile * lanes + lane) * 128
+            ps = nl.ndarray((128, f), dtype=p.dtype, buffer=nl.sbuf)
+            gs = nl.ndarray((128, f), dtype=grad.dtype, buffer=nl.sbuf)
+            vs = nl.ndarray((128, f), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.dma_copy(dst=ps, src=p[start:start + 128, :])
+            nisa.dma_copy(dst=gs, src=grad[start:start + 128, :])
+            nisa.dma_copy(dst=vs, src=moment[start:start + 128, :])
+            gg = nl.ndarray((128, f), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.tensor_tensor(dst=gg, data1=gs, data2=gs, op=nl.multiply)
+            dv = nl.ndarray((128, f), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.tensor_tensor(dst=dv, data1=gg, data2=vs, op=nl.subtract)
+            nv = nl.ndarray((128, f), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.scalar_tensor_tensor(dst=nv, data=dv, op0=nl.multiply,
+                                      operand0=1.0 - beta2, op1=nl.add, operand1=vs)
+            debiased = nl.ndarray((128, f), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.tensor_scalar(dst=debiased, data=nv, op0=nl.multiply, operand0=inv_bias)
+            denom = nl.ndarray((128, f), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.activation(dst=denom, data=debiased, op=nl.sqrt)
+            nisa.tensor_scalar(dst=denom, data=denom, op0=nl.add, operand0=eps)
+            inv_denom = nl.ndarray((128, f), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.reciprocal(dst=inv_denom, data=denom)
+            update = nl.ndarray((128, f), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.tensor_tensor(dst=update, data1=gs, data2=inv_denom, op=nl.multiply)
+            nisa.tensor_scalar(dst=update, data=update, op0=nl.multiply, operand0=lr)
+            np = nl.ndarray((128, f), dtype=p.dtype, buffer=nl.sbuf)
+            nisa.tensor_tensor(dst=np, data1=ps, data2=update, op=nl.subtract)
+            nisa.dma_copy(dst=out_p[start:start + 128, :], src=np)
+            nisa.dma_copy(dst=out_v[start:start + 128, :], src=nv)
+        return out_p, out_v
 
     # ---- Fused causal SDPA (P1 NKI port, research/scratch/nki_attn_fwd.py +
     # ---- nki_attn_bwd.py, hw-validated 2026-09-17: fp32 ~1e-6, bf16 fwd
@@ -3737,7 +3788,7 @@ class GPT(nn.Module):
             if rmsprop:
                 table_dtypes = sorted({str(p.dtype) for p in ngram_params})
                 math_dtypes = ["torch.float32"] if NGRAM_RMS_FP32 else table_dtypes
-                print0(f"ngram_rmsprop: fp32_state_math={NGRAM_RMS_FP32} "
+                print0(f"ngram_rmsprop: fp32_state_math={NGRAM_RMS_FP32} nki={USE_NKI_NGRAM_RMS} "
                        f"parameter_gradient_dtypes={table_dtypes} state_math_dtypes={math_dtypes}")
         if self.out_bigram is not None:
             # T4.2. Its own AdamW group mirroring lm_head's, which is the right reference: this
@@ -4452,7 +4503,7 @@ class MuonAdamW(torch.optim.Optimizer):
             else:
                 p.add_(update, alpha=-lr)
 
-    def _rmsprop_state(self, group):
+    def _rmsprop_state(self, group, *, cast_grads=True):
         """Prologue for the RMSProp path -- the same contract as _adamw_state, minus the
         first moment (that is the whole point of this kind) and minus its bias correction."""
         beta2 = group["betas"][1]
@@ -4477,10 +4528,43 @@ class MuonAdamW(torch.optim.Optimizer):
                 )
             state["step"] += 1
             params.append(p)
-            grads.append(p.grad.float() if NGRAM_RMS_FP32 else p.grad)
+            grads.append(p.grad.float() if NGRAM_RMS_FP32 and cast_grads else p.grad)
             exp_avg_sqs.append(state["exp_avg_sq"])
             bias2.append(1 - beta2 ** state["step"])
         return params, grads, exp_avg_sqs, bias2
+
+    @torch.no_grad()
+    def _rmsprop_step_nki(self, group):
+        if not NGRAM_RMS_FP32 or not _HAS_NKI:
+            raise ValueError("NKI table RMSProp requires FP32 moments and an available NKI backend")
+        lanes = 2 if os.environ.get("NEURON_LOGICAL_NC_CONFIG", "1") == "2" else 1
+        for p in group["params"]:
+            if p.grad is None:
+                continue
+            if (p.device.type != "neuron" or p.dtype != torch.bfloat16
+                    or not p.is_contiguous() or not p.grad.is_contiguous()
+                    or p.numel() % (2048 * 128 * lanes) != 0):
+                raise ValueError("NKI table RMSProp requires contiguous Neuron BF16 tables/grads "
+                                 "with element count divisible by 2048*128*LNC")
+        # The kernel promotes in SBUF. Casting entire gradients to FP32 here
+        # would add full-table HBM traffic and undo the benefit of fusion.
+        params, grads, moments, biases = self._rmsprop_state(group, cast_grads=False)
+        for p, grad, moment, bias in zip(params, grads, moments, biases):
+            state = self.state[p]
+            if "nki_rms_scalars_cpu" not in state:
+                state["nki_rms_scalars_cpu"] = torch.empty((128, 2), dtype=torch.float32)
+                state["nki_rms_scalars_device"] = torch.empty((128, 2), dtype=torch.float32,
+                                                             device=p.device)
+            scalars_cpu = state["nki_rms_scalars_cpu"]
+            scalars_cpu[:, 0].fill_(group["lr"])
+            scalars_cpu[:, 1].fill_(1.0 / bias)
+            scalars = state["nki_rms_scalars_device"]
+            scalars.copy_(scalars_cpu)
+            p_view, grad_view, v_view = (x.view(-1, 2048) for x in (p, grad, moment))
+            next_p, next_v = _ngram_rmsprop_fp32_nki[lanes](
+                p_view, grad_view, v_view, scalars, group["betas"][1], group["eps"], lanes)
+            p_view.copy_(next_p)
+            v_view.copy_(next_v)
 
     @torch.no_grad()
     def _rmsprop_step(self, group):
@@ -4506,6 +4590,9 @@ class MuonAdamW(torch.optim.Optimizer):
         Both foreach and scalar-tensor paths use the same promotion contract.
         """
         assert group["weight_decay"] == 0.0, "rmsprop groups are weight-decay free by design"
+        if USE_NKI_NGRAM_RMS:
+            self._rmsprop_step_nki(group)
+            return
         params, grads, exp_avg_sqs, bias2 = self._rmsprop_state(group)
         if not params:
             return
@@ -5015,7 +5102,7 @@ ARCH_TOGGLE_NAMES = [
     # optimizer-side knobs (LR/BETA2/FLAT_LR/OPT/CLIP_EXCLUDE) leave no trace in the
     # weights at all, which is the other half of the same reason.
     "USE_NGRAM_VE", "NGRAM_VE_LAYERS", "NGRAM_VE_TABLE_MULT", "NGRAM_VE_TRIGRAM", "NGRAM_VE_DIM",
-    "NGRAM_VE_BF16", "NGRAM_RMS_FP32",
+    "NGRAM_VE_BF16", "NGRAM_RMS_FP32", "USE_NKI_NGRAM_RMS",
     "NGRAM_VE_LR", "NGRAM_VE_BETA2", "NGRAM_VE_FLAT_LR", "NGRAM_VE_OPT",
     "NGRAM_VE_CLIP_EXCLUDE",
     # T4.2 Aster output bigram logit table, T3.9 Recursive one-liners. RELU2_TAU,
@@ -5403,7 +5490,7 @@ def main() -> None:
     # that could bake them in as a per-step graph constant.
     global USE_NGRAM_VE, NGRAM_VE_TABLE_MULT, NGRAM_VE_TRIGRAM, NGRAM_VE_BF16, NGRAM_VE_DIM
     global NGRAM_VE_LAYERS
-    global NGRAM_RMS_FP32
+    global NGRAM_RMS_FP32, USE_NKI_NGRAM_RMS
     global NGRAM_VE_LR, NGRAM_VE_BETA2, NGRAM_VE_FLAT_LR, NGRAM_VE_OPT, NGRAM_VE_CLIP_EXCLUDE
     # T4.2 / T3.9. USE_OUT_BIGRAM, OUT_BIGRAM_BF16, OUT_BIGRAM_GATE_BIAS, USE_HEAD_GATE,
     # HEAD_GATE_CHANNELS, HEAD_GATE_BIAS, USE_OUT_POOL, OUT_POOL_LAYERS, USE_QK_SHIFT and
@@ -5626,6 +5713,12 @@ def main() -> None:
                              "n-gram tables, retaining their parameter/gradient dtype. Casts "
                              "grads before squaring and rounds at the final parameter write. "
                              "Requires --ngram-ve-opt rmsprop. Default OFF.")
+    parser.add_argument("--nki-ngram-rms", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_NKI_NGRAM_RMS",
+                                               "1" if USE_NKI_NGRAM_RMS else "0") != "0",
+                        help="Fuse FP32 table RMSProp in NKI, using both cores under LNC2. "
+                             "Requires --ngram-rms-fp32 and contiguous BF16 Neuron tables. "
+                             "Default OFF; test quality and whole-run time before promotion.")
     parser.add_argument("--ngram-ve-clip-exclude", action=argparse.BooleanOptionalAction,
                         default=os.environ.get("NEURON_COMPETITION_R1_NGRAM_VE_CLIP_EXCLUDE", "1" if NGRAM_VE_CLIP_EXCLUDE else "0") != "0",
                         help="keep the n-gram tables out of the GLOBAL clip_grad_norm_ and clip them "
@@ -6072,6 +6165,8 @@ def main() -> None:
     args = parser.parse_args()
     if args.ngram_rms_fp32 and args.ngram_ve_opt != "rmsprop":
         parser.error("--ngram-rms-fp32 requires --ngram-ve-opt rmsprop")
+    if args.nki_ngram_rms and not args.ngram_rms_fp32:
+        parser.error("--nki-ngram-rms requires --ngram-rms-fp32")
     if args.eval_seq_len:
         if args.eval_seq_len > args.seq_len:
             parser.error(f"--eval-seq-len {args.eval_seq_len} > --seq-len {args.seq_len}: the live "
@@ -6142,6 +6237,7 @@ def main() -> None:
     NGRAM_VE_TRIGRAM = args.ngram_ve_trigram
     NGRAM_VE_BF16 = args.ngram_ve_bf16
     NGRAM_RMS_FP32 = args.ngram_rms_fp32
+    USE_NKI_NGRAM_RMS = args.nki_ngram_rms
     NGRAM_VE_OPT = args.ngram_ve_opt
     NGRAM_VE_LR = args.ngram_ve_lr
     NGRAM_VE_BETA2 = args.ngram_ve_beta2
@@ -6313,6 +6409,8 @@ def main() -> None:
                "an nki.jit call); NKI Muon disabled for this run")
 
     device_type = detect_device_type(args.device_type)
+    if USE_NKI_NGRAM_RMS and (device_type != "neuron" or not _HAS_NKI):
+        parser.error("--nki-ngram-rms requires a Neuron device and available NKI backend")
     ddp, rank, _local_rank, world_size, device = init_runtime(device_type, seed=args.seed)
     global COMPUTE_DTYPE
     COMPUTE_DTYPE = compute_dtype_for(device)
@@ -6843,7 +6941,7 @@ def main() -> None:
               f"index_gather={NGRAM_VE_INDEX_GATHER} "
               f"trigram={args.ngram_ve_trigram} opt={args.ngram_ve_opt} "
               f"flat_lr={args.ngram_ve_flat_lr} bf16={args.ngram_ve_bf16} "
-              f"rms_fp32_state_math={NGRAM_RMS_FP32}")
+              f"rms_fp32_state_math={NGRAM_RMS_FP32} nki_rms={USE_NKI_NGRAM_RMS}")
         # T4.2 / T3.9, same reason: one line carrying every knob of this block, so two arms are
         # distinguishable in experiment-log.jsonl without re-reading the run log
         # (SUMMARY_KEYS in research/run_experiment.py has the matching entries).
