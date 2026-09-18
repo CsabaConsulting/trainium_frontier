@@ -35,7 +35,7 @@ def refresh(model):
 
 
 def run(device, tokens, channels, normal_input_gradient=False, token_tile=512, grouped_io=False,
-        weight_mode=0):
+        weight_mode=0, forward_backend="nki", separate_region=False):
     torch.manual_seed(1023)
     T.USE_WEIGHT_CACHE = True
     T.USE_GATED_MLP = T.USE_COALESCED_SWIGLU = T.USE_NKI_RELU2 = False
@@ -44,11 +44,12 @@ def run(device, tokens, channels, normal_input_gradient=False, token_tile=512, g
     candidate = copy.deepcopy(baseline)
     before_rng = torch.get_rng_state().clone()
     install(candidate, device, T, normal_input_gradient=normal_input_gradient,
-            token_tile=token_tile, grouped_io=grouped_io, weight_mode=weight_mode)
+            token_tile=token_tile, grouped_io=grouped_io, weight_mode=weight_mode,
+            forward_backend=forward_backend, separate_region=separate_region)
     assert torch.equal(before_rng, torch.get_rng_state())
     if device == "neuron":
         native = torch.compile(baseline, backend="neuron", fullgraph=True, dynamic=False)
-        optimized = torch.compile(candidate, backend="neuron", fullgraph=True, dynamic=False)
+        optimized = torch.compile(candidate, backend="neuron", fullgraph=not separate_region, dynamic=False)
     else:
         native, optimized = baseline, candidate
     x = torch.randn(4, tokens // 4, channels).bfloat16().to(device)
@@ -98,6 +99,8 @@ def run(device, tokens, channels, normal_input_gradient=False, token_tile=512, g
         tokens=tokens, channels=channels, passed=True, fp32_master_gradients=True,
         normal_input_gradient=normal_input_gradient,
         token_tile=token_tile, grouped_io=grouped_io, weight_mode=weight_mode,
+        forward_backend=forward_backend,
+        separate_region=separate_region, outer_fullgraph=not separate_region,
         cached_and_uncached_paths=True, accumulation_and_refresh=True,
         eval_exact=True, strict_native_checkpoint_load_passed=True)), flush=True)
 
@@ -111,15 +114,23 @@ def main():
     ap.add_argument("--grouped-io", action="store_true")
     ap.add_argument("--weight-mode", type=int, choices=(0, 1, 2, 3, 4), default=0,
                     help="0: cache both;1: stream down;2: stream both;3: stream prepacked weights;4: explicit SBUF reuse.")
+    ap.add_argument("--forward-backend", choices=("nki", "native"), default="nki",
+                    help="Native control keeps the custom autograd and contiguous HxT saved activation.")
+    ap.add_argument("--separate-region", action="store_true",
+                    help="Compile MLP forward/backward separately behind an explicit graph boundary.")
     args = ap.parse_args()
     if args.weight_mode and not args.grouped_io:
         ap.error("streaming weight modes require --grouped-io")
+    if args.forward_backend == "native" and args.weight_mode:
+        ap.error("native forward control requires weight mode0")
     torch.set_num_threads(4)
     if args.device == "neuron":
         import torch_neuronx  # noqa:F401
-    run(args.device, 256, 256, args.normal_dx, args.token_tile, args.grouped_io, args.weight_mode)
+    run(args.device, 256, 256, args.normal_dx, args.token_tile, args.grouped_io, args.weight_mode,
+        args.forward_backend, args.separate_region)
     if args.real_shape:
-        run(args.device, 8192, 1024, args.normal_dx, args.token_tile, args.grouped_io, args.weight_mode)
+        run(args.device, 8192, 1024, args.normal_dx, args.token_tile, args.grouped_io, args.weight_mode,
+            args.forward_backend, args.separate_region)
     print("PASS: fused MLP master parameter, cache, accumulation and checkpoint gates", flush=True)
 
 

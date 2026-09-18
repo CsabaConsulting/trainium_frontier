@@ -1,0 +1,25 @@
+{
+  "label": "fs-w43-mlp-fixed-sbuf-component-r1",
+  "guard_pid": 1361593,
+  "child_pid": 1361594,
+  "child_session": 1361594,
+  "started_at": "2026-09-18T18:41:16.646947+00:00",
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1500s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "research/scratch/mlp_fused_bf16_probe.py",
+    "--device",
+    "neuron",
+    "--real-shape",
+    "--contiguous-weights",
+    "--tiled-io",
+    "--cached-bf16-weights",
+    "--transposed-relu",
+    "--grouped-io",
+    "--weight-mode",
+    "4"
+  ]
+}

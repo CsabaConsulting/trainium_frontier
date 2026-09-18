@@ -1,46 +1,39 @@
 # Fresh-start campaign — 2026-09-18
 
-**Current campaign status, 15:19 UTC.** Minimize official30-minute BPB on a
-full Trainium2 chip. The working competitive target is around **0.9749**, with
-margin for leaderboard movement. Our best larger public check is
-**1.001551299**, on20,971,520 tokens/B1/T1024; public/private data differences
-prevent an exact leaderboard prediction. Lower BPB is better.
+**Current status,18:44UTC.** Minimize official30-minute BPB on a full Trainium2
+chip. Working competitive target approximately0.9749; best larger public
+check remains **1.0015512989000874**,20,971,520tokens/B1/T1024. This is a different
+dataset from the private leaderboard. Reference dense6x1024,117.45Mparameters,
+no hashed n-grams, NKI causal convolution and BF16 normalization outputs.
+No seed sweep; no new full-budget training result since the preserved wave16
+3,005-update checkpoint.
 
-The reference is dense6×1024 without hashed n-grams,117.45M parameters, NKI
-causal convolution and BF16 normalization outputs. Clipping after gradient
-averaging completed3,005 budgeted updates versus2,977 for the earlier control.
-Its larger score improves by0.000515388, with exposure also differing. One
-predeclared seed43 repeat is complete and its checkpoint is local/hash-verified:
-2,959 updates, small-prefix1.000259@1024 versus seed42's0.996049. Different
-hosts and46 fewer updates confound a seed-only attribution. **No seed sweep or
-selection is planned.** See the measured-results ledger for exact manifests.
+Every device job has an immutable source/environment manifest, host-wide lock,
+bounded command, owned-process cleanup and automatic pre/postflight. Source and
+logs are pushed every10minutes through a separate-index recovery path; heavy
+artifacts have verified GitHub draft-release receipts. The18:40 source and
+recovery refs are verified. See `RESUME.md` for actual running jobs.
 
-**Enforced experiment protocol:** every new device job uses the host-wide lock,
-owned-process cleanup, immutable source/environment manifest, bounded command,
-automatic pre/postflight health checks and local log mirror. Failures receive
-the same preservation and cleanup as successes. Heavy artifacts have tracked
-hash receipts. The current organizer README and protected prepare.py were
-freshly read through GitHub and match the local copies exactly.
+Current priorities:
 
-**Kernel priorities and current evidence:**
+1. Resolve the MLP integration regression. Native controls590.315/599.575 ms
+   beat grouped665.457, tile256686.590, streaming673.017/693.391 and prepacked
+   678.042 ms. All pass correctness. Recorded forward spill reloads rise2.340GB
+   to7.265GB, but incomplete counters and shared source lines prevent exact
+   causal attribution. Smaller source-level buffers are not proof of fewer spills.
+2. Finish the explicit7.125MiB SBUF candidate, then test native projections
+   inside the same custom autograd/saved-layout boundary and single-layer
+   replacements. These are causal controls before more variants or full training.
+3. Preserve the NKI convolution/BF16 normalization reference. Embedding DMA
+   wins its component but only1.42% in the full model; its two-kernel follow-up
+   provides no component advantage. Do not spend a training run on either.
+   FP8 remains open only as an end-to-end island with casts, layout preparation,
+   backward and cache refresh charged. Separate projection probes already lost.
 
-1. Ordinary embedding backward: the revised three-kernel DMA/scan path passes
-   all component and actual autograd gates. Real-row prepared cost is 0.856 ms
-   versus native 3.133 ms, but full-chip timing with all metadata costs gives
-   578.15 ms versus a nearby same-host 586.46 ms control: only 1.42%, below the
-   570 ms gate. Next fuse the intermediate HBM permutation/scan tensors away,
-   retaining explicit scratch placement and the validated 512-output gathers.
-2. Fused BF16 MLP: HxT saved ReLU consumed directly by backward improves the
-   isolated component by 6.65%, yet full-model timing regresses to 681.97 ms.
-   Numerical and independence checks pass. Capture the actual runtime graph and
-   test a direct TxC input gradient to isolate its handoff to upstream norm. A
-   separate grouped-transfer kernel targets the remaining 2,560 DMA instructions.
-   Neither variant is promoted to a 30-minute run without a full-model gain.
-3. Preserve the validated NKI convolution/BF16 normalization implementation.
-   Continue meaningful full-chip gates before quality runs; no seed selection.
-   Fused FP8 remains open after transfer overhead is controlled, with scaling,
-   casts, backward and refresh costs included. Small public prefixes, context
-   lengths and private leaderboard values remain distinct measurements.
+Require numerical gates and at least3% complete-step improvement before a
+30-minute quality comparison. Then use the unchanged larger public scorer at
+identical geometry. Private validation is inaccessible; no leaderboard claim
+follows from a small public prefix. Full historical evidence follows below.
 
 The live hypotheses, failures and advancement decisions are recorded in
 [fresh-start-results-2026-09-18.md](fresh-start-results-2026-09-18.md). The broader

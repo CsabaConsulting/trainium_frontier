@@ -1,0 +1,39 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave43",
+    "expected_commit": "7c99d57437c2ce6d2de5acbca44581fc6f431234",
+    "label": "fs-w43-mlp-fixed-sbuf-master-cache-integration-r1",
+    "purpose": "Explicit SBUF MLP gate: five disjoint reusable buffers,7.125MiB declared extent at actual shape, sequential outer loops. After prepacked component gates, verify cache lifetime after real reference updates, two accumulated microbatches, FP32 master gradients exactly once, exact native eval and checkpoint identity. All packed refreshes must follow ordinary cache refreshes.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "NEURON_RT_VISIBLE_CORES": "0"
+    },
+    "fingerprint_paths": [
+      "research/scratch/mlp_fused_integration.py",
+      "research/scratch/mlp_fused_integration_check.py",
+      "research/scratch/mlp_fused_bf16.py",
+      "research/scratch/mlp_prepacked_fixed_sbuf.py"
+    ],
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1500s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/mlp_fused_integration_check.py",
+      "--real-shape",
+      "--grouped-io",
+      "--weight-mode",
+      "4"
+    ]
+  },
+  "requested_at": "2026-09-18T18:42:34.197447+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w43-mlp-fixed-sbuf-master-cache-integration-r1\", \"pid\": 1363474, \"commit\": \"7c99d57437c2ce6d2de5acbca44581fc6f431234\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave43/research/run-logs/fs-w43-mlp-fixed-sbuf-master-cache-integration-r1.log\", \"started_at\": \"2026-09-18T18:42:40.014212+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

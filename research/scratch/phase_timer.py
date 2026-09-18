@@ -101,6 +101,12 @@ def main():
                     help="Load/store contiguous full rows in the scratch MLP, including weight rows.")
     ap.add_argument("--fused-mlp-weight-mode", type=int, choices=(0, 1, 2, 3, 4), default=0,
                     help="0: cache both MLP weights;1: stream down;2: stream both;3: stream prepacked;4: explicit SBUF reuse.")
+    ap.add_argument("--fused-mlp-forward-backend", choices=("nki", "native"), default="nki",
+                    help="Native control keeps the custom backward and contiguous HxT save, removing NKI forward.")
+    ap.add_argument("--fused-mlp-layers", type=str, default=None,
+                    help="Comma-separated zero-based layers to replace; default all. Diagnostic for graph-wide effects.")
+    ap.add_argument("--fused-mlp-separate-region", action="store_true",
+                    help="Compile the MLP forward/backward separately; charge all graph-boundary/dispatch costs.")
     ap.add_argument("--check-seq-len", type=int, default=256,
                     help="Sequence length for --post-checks, at least 128 and a multiple of 128.")
     ap.add_argument("--grad-clip", type=float, default=1.0,
@@ -190,10 +196,22 @@ def main():
     if args.compact_embedding and args.segmented_dma_embedding:
         ap.error("select only one ordinary embedding backward implementation")
     if (args.fused_mlp_normal_dx or args.fused_mlp_grouped_io
-            or args.fused_mlp_token_tile != 512 or args.fused_mlp_weight_mode) and not args.fused_mlp:
+            or args.fused_mlp_token_tile != 512 or args.fused_mlp_weight_mode
+            or args.fused_mlp_forward_backend != "nki" or args.fused_mlp_layers is not None
+            or args.fused_mlp_separate_region) and not args.fused_mlp:
         ap.error("fused MLP options require --fused-mlp")
     if args.fused_mlp_weight_mode and not args.fused_mlp_grouped_io:
         ap.error("streaming MLP weights requires --fused-mlp-grouped-io")
+    if args.fused_mlp_forward_backend == "native" and args.fused_mlp_weight_mode:
+        ap.error("native MLP forward control requires weight mode0")
+    mlp_layer_indices = None
+    if args.fused_mlp_layers is not None:
+        try:
+            mlp_layer_indices = tuple(int(value) for value in args.fused_mlp_layers.split(","))
+        except ValueError:
+            ap.error("--fused-mlp-layers requires comma-separated integers")
+        if min(mlp_layer_indices) < 0 or len(set(mlp_layer_indices)) != len(mlp_layer_indices):
+            ap.error("--fused-mlp-layers requires unique nonnegative indices")
     if args.trace_dir and args.micro_only:
         ap.error("--trace-dir captures after full-step timing; do not combine it with --micro-only")
     if args.post_checks and (args.micro_only or args.check_seq_len < 128
@@ -305,8 +323,13 @@ def main():
         from mlp_fused_integration import install
         install(model, device, T, normal_input_gradient=args.fused_mlp_normal_dx,
                 token_tile=args.fused_mlp_token_tile, grouped_io=args.fused_mlp_grouped_io,
-                weight_mode=args.fused_mlp_weight_mode)
-        print("[pt] fused BF16 MLP; shared ordinary Linear caches/parameters preserved", flush=True)
+                weight_mode=args.fused_mlp_weight_mode,
+                forward_backend=args.fused_mlp_forward_backend, layer_indices=mlp_layer_indices,
+                separate_region=args.fused_mlp_separate_region)
+        print(f"[pt] fused BF16 MLP forward={args.fused_mlp_forward_backend} "
+              f"layers={mlp_layer_indices if mlp_layer_indices is not None else 'all'}; "
+              f"separate_region={args.fused_mlp_separate_region}; "
+              "shared ordinary Linear caches/parameters preserved", flush=True)
     if args.ngram_ve_freeze:
         for p in model.ngram_embeds.parameters():
             p.requires_grad_(False)
@@ -616,6 +639,9 @@ def main():
             fused_mlp_token_tile=args.fused_mlp_token_tile,
             fused_mlp_grouped_io=args.fused_mlp_grouped_io,
             fused_mlp_weight_mode=args.fused_mlp_weight_mode,
+            fused_mlp_forward_backend=args.fused_mlp_forward_backend,
+            fused_mlp_layers=mlp_layer_indices,
+            fused_mlp_separate_region=args.fused_mlp_separate_region,
             last_loss=float(last_loss.item()),
             compile=args.compile, foreach_optim=args.foreach_optim,
             compile_optim=args.compile_optim, grad_bucket=args.grad_bucket,

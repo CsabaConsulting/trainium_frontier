@@ -1344,7 +1344,7 @@ gate; neither enters training. Reducing token tiles alone does not repair the
 integration regression. These tests do not invalidate the separate weight
 residency hypothesis.
 
-### Wave41: streamed weights are numerically valid, whole-model gate pending
+### Wave41: streamed weights pass correctness but lose the whole-model gate
 
 Mode1 retains only the up matrix; mode2 streams both weight matrices in
 contiguous blocks. All16 stage and24 native gradient gates pass for both.
@@ -1355,3 +1355,49 @@ Mode1 real-shape forward1.304021ms/native1.338066ms; forward/backward
 Actual FP32-master/cache/accumulation/evaluation/checkpoint gates pass for mode1;
 mode2 integration is running. Mode1 full-chip phase is now running on trn21.
 No training throughput or BPB improvement is claimed yet.
+
+
+Wave41 final full-step results: mode1 on trn21 is **673.016550 ms**, 14.01%
+slower than its 590.315111 ms native control; mode2 on trn22 is **693.390713 ms**,
+15.65% slower than its 599.574587 ms control. All four updated-model checks and
+automatic postflights pass. Neither variant advances. Source-level reductions
+in declared weight residency have not established a reduction in caller spills.
+
+### Wave42: prepacked BF16 weights improve the component, not the model
+
+Source `df6fa725868ea36d460d3fef97b453eb7ac1bd32`. Mode3 caches each BF16
+weight in stationary-ready blocks once per optimizer update; ordinary master
+weights and gradient paths remain unchanged. Exact pack/unpack, all16 FP64
+stage gates,24 native output/gradient gates and actual master/cache/accumulation/
+checkpoint gates pass. At8192x1024x4096, component forward/backward is3.541410 ms
+versus native4.229880 ms; this excludes the separately measured0.287952 ms
+layout refresh per MLP.
+
+The full-chip phase includes all cache preparation and measures **678.041824 ms**
+versus the same-host590.315111 ms control. Median microbatch total593.152004 ms;
+cache refresh4.385946 ms. All four updated-model independence/finite checks and
+automatic postflight pass. **Reject for full-budget training.** Faster on-chip
+weight handling alone does not fix the surrounding graph regression.
+Receipt: `run-logs/fs-w42-prepacked-phase-comparison.json`.
+
+### Wave43: explicit SBUF reuse passes its component gate
+
+Source `7c99d57437c2ce6d2de5acbca44581fc6f431234`. Mode4 uses five disjoint
+explicitly placed SBUF tensors, reusing each logical tensor in sequential outer
+loops; declared extent7.125MiB per physical core at the real shape. All FP64 and
+native stage/output/gradient gates pass, including changed and zero inputs.
+Forward2.013316 ms versus native1.335363 ms; forward/backward4.555887 ms versus
+native4.237448 ms; packed-layout refresh0.303469 ms is separate here. The
+actual cache/master gate and then a bounded full-model test decide whether the
+larger component cost buys a reduction in graph-wide allocation pressure.
+
+### Wave44 diagnostic plan: separate the autograd boundary from NKI forward
+
+The new native-forward control retains input flattening, contiguous HxT saved
+ReLU and the exact custom backward, while executing the two projections in
+ordinary PyTorch. Gate master gradients/cache refresh first, then measure the
+same full model. If it is fast, the regression needs the opaque NKI forward;
+if it is also slow, investigate the saved layout/backward boundary before more
+kernel tiling work. A separate layer-selection option allows replacing only
+one MLP to distinguish local per-layer cost from a graph-wide discontinuity.
+These options are scratch-only and have no quality result yet.
