@@ -1047,3 +1047,39 @@ The evaluation contract audit confirms public CLI defaults B1/T1024, with the
   exact trusted metric. The private runner configuration is not completely
   exposed here. Continue reporting context length, token count and public shard
   explicitly; do not equate the better T2048 score with the private leaderboard.
+
+
+### 14:41 UTC — gather repaired; MLP transfer regression removed
+
+Wave30 source3e08b9f passes healthy postflight for all three completed jobs.
+
+- Explicit512-output permutation gathers make every one of20 complete-kernel
+  stage/final checks exact. This includes uninstrumented eager and compiled
+  outputs, both loop-local and reused scratch. The follow-up component suite
+  passes all eleven distributions/shapes, including actual training IDs,
+  repeated calls, zero input after nonzero input and all absent vocabulary rows.
+  FP32 accumulation is closer to the FP64 reference than the native operation
+  which rounds gradients to BF16. No model-quality claim follows from this.
+- The repaired embedding is currently slow: actual training row native3.1621ms
+  versus151.124ms with prepared metadata. Metadata creation/upload arm median
+ 46.744ms has large18.55–47.23ms variation and is unexpectedly faster than the
+  prepared arm. Do not infer a preparation speed benefit or trustworthy additive
+  decomposition from this. Investigate transfer geometry and queued execution.
+- MLP contiguous activation transfers cut actual forward from554.088ms to
+ 1.69012ms. All16 stage bounds and24 native gradient/forward gates pass. Native
+  forward is still faster at1.35026ms; full forward/backward4.24574ms versus
+ 4.33462ms is only a2.05% component improvement. No full-model promotion yet.
+- The preserved intermediate MLP profile confirms scalar weight packets were
+  eliminated: previous524,288 two-byte packets are absent. Remaining activation
+  transfers are4,096 packets of128 bytes in the small shape. Its device window
+  is635,344ns, with only~11us TensorEngine active per physical core and waits
+  dominating. No spills are recorded. Missing dynamic DMA metadata still
+  precludes exact bandwidth/MFU claims. New raw profile799,229bytes is local
+  and hash-verified; derived Parquet/analysis receipts are retained.
+
+Next: apply contiguous FP32 I/O transposes to the now-correct embedding scan.
+For the MLP, measure ordinary BF16 cached-weight inputs, which training already
+refreshes each optimizer step, with corresponding native controls. Cache
+refresh/master updates remain excluded from this component arm and must be
+charged by any eventual full-model gate. A full-shape profile option is ready
+if the corrected kernel still misses the native bound.

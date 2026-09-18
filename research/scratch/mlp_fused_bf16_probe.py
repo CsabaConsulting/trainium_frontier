@@ -77,7 +77,8 @@ def timing(arms, steps, sync):
     return dict(samples_ms=samples, median_ms={name: statistics.median(v) for name, v in samples.items()})
 
 
-def run_case(device, shape, kind, kernel, steps, contiguous_weights=False, tiled_io=False):
+def run_case(device, shape, kind, kernel, steps, contiguous_weights=False, tiled_io=False,
+             cached_bf16_weights=False):
     tokens, channels, hidden = shape
     tile = min(512, tokens // 2)
     torch.manual_seed(941 + tokens + channels + (kind == 'changed'))
@@ -89,6 +90,11 @@ def run_case(device, shape, kind, kernel, steps, contiguous_weights=False, tiled
     if kind == 'changed':
         up *= 0.5
         down *= 1.5
+    if cached_bf16_weights:
+        # Model training already refreshes BF16 Linear caches once per step.
+        # This arm checks the kernel with that input dtype, with normal weight
+        # layouts. It does not include master parameter updates/cache refresh.
+        up, down = up.bfloat16(), down.bfloat16()
     g = (torch.randn(tokens, channels) * 0.01).bfloat16()
     cpu_inputs = (x, up, down)
     if device == 'neuron':
@@ -142,9 +148,11 @@ def run_case(device, shape, kind, kernel, steps, contiguous_weights=False, tiled
         compare(f'gradient:{key}:{shape}:{kind}', candidate.grad, control.grad)
     emit('FUSED_MLP_CASE', dict(shape=shape, kind=kind, device=device,
                               contiguous_weights=contiguous_weights, tiled_io=tiled_io,
+                              cached_bf16_weights=cached_bf16_weights,
                               token_tile=tile, all_gates_passed=True,
                               saved_activation_bytes=2*tokens*hidden,
-                              fp32_weight_bytes=8*channels*hidden))
+                              weight_input_bytes=2*up.element_size()*channels*hidden,
+                              master_parameter_updates_and_cache_refresh_included=False))
     if device == 'neuron' and kind == 'random':
         arms = dict(native_forward_saved_relu=lambda: native_forward(*inputs),
                     fused_forward_saved_relu=lambda: fused_forward(*inputs),
@@ -152,6 +160,7 @@ def run_case(device, shape, kind, kernel, steps, contiguous_weights=False, tiled
                     fused_forward_native_backward=lambda: train_call(fused, candidates))
         emit('FUSED_MLP_BENCH', dict(shape=shape, **timing(arms, steps, torch.neuron.synchronize),
                                    contiguous_weights=contiguous_weights, tiled_io=tiled_io,
+                                   cached_bf16_weights=cached_bf16_weights,
                                    weight_reads_casts_layout_and_relu_save_included=True,
                                    includes_optimizer_or_whole_model=False))
 
@@ -165,6 +174,8 @@ def main():
                     help='Fix scalar weight DMA packets via contiguous reads and on-chip transpose.')
     ap.add_argument('--tiled-io', action='store_true',
                     help='Contiguous activation transfers with explicit128x128 on-chip transposes.')
+    ap.add_argument('--cached-bf16-weights', action='store_true',
+                    help='Compare BF16 cached weight inputs; master updates/refresh excluded from both arms.')
     args = ap.parse_args()
     torch.set_num_threads(4)
     kernel = None
@@ -172,9 +183,11 @@ def main():
         import torch_neuronx  # noqa:F401
         kernel = build_kernel()
     for kind in ('random', 'changed', 'zero'):
-        run_case(args.device, (256, 256, 512), kind, kernel, args.steps, args.contiguous_weights, args.tiled_io)
+        run_case(args.device, (256, 256, 512), kind, kernel, args.steps,
+                 args.contiguous_weights, args.tiled_io, args.cached_bf16_weights)
     if args.real_shape:
-        run_case(args.device, (8192, 1024, 4096), 'random', kernel, args.steps, args.contiguous_weights, args.tiled_io)
+        run_case(args.device, (8192, 1024, 4096), 'random', kernel, args.steps,
+                 args.contiguous_weights, args.tiled_io, args.cached_bf16_weights)
     print('PASS: fused BF16 MLP component gates; no full-model claim', flush=True)
 
 

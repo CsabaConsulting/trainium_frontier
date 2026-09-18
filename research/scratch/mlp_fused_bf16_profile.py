@@ -24,6 +24,8 @@ def main():
     ap.add_argument('--trace-dir', type=Path, required=True)
     ap.add_argument('--contiguous-weights', action='store_true')
     ap.add_argument('--tiled-io', action='store_true')
+    ap.add_argument('--cached-bf16-weights', action='store_true')
+    ap.add_argument('--real-shape', action='store_true')
     args = ap.parse_args()
     torch.set_num_threads(4)
     trace = args.trace_dir.resolve()
@@ -32,13 +34,16 @@ def main():
                           profile_output_dir=str(trace), max_events_per_nc=1000000,
                           precache_node_info=True)
     torch.manual_seed(941)
-    x = torch.randn(256, 256).bfloat16().to('neuron')
-    up = (torch.randn(512, 256)/16).to('neuron')
-    down = (torch.randn(256, 512)/512**0.5).to('neuron')
+    tokens, channels, hidden = (8192, 1024, 4096) if args.real_shape else (256, 256, 512)
+    tile = min(512, tokens // 2)
+    weight_dtype = torch.bfloat16 if args.cached_bf16_weights else torch.float32
+    x = torch.randn(tokens, channels).bfloat16().to('neuron')
+    up = (torch.randn(hidden, channels)/channels**0.5).to(dtype=weight_dtype,device='neuron')
+    down = (torch.randn(channels, hidden)/hidden**0.5).to(dtype=weight_dtype,device='neuron')
     wrapped = torch_neuronx.wrap_nki(build_kernel())
 
     def call(xx, uu, dd):
-        return wrapped[2](xx, uu, dd, 2, 128, args.contiguous_weights, args.tiled_io)
+        return wrapped[2](xx, uu, dd, 2, tile, args.contiguous_weights, args.tiled_io)
 
     fused = torch.compile(call, backend='neuron', fullgraph=True, dynamic=False)
     native = torch.compile(reference_forward, backend='neuron', fullgraph=True, dynamic=False)
@@ -77,8 +82,9 @@ def main():
     (export/'manifest.json').write_text(json.dumps(dict(exported=entries,missing=missing),indent=2)+'\n')
     eager = preserve_trace_neffs(trace, Path('/tmp/neff_cache'), export)
     assert not missing and not eager['unresolved']
-    print('MLP_PROFILE_ARTIFACT '+json.dumps(dict(trace=str(trace),shape=[256,256,512],
+    print('MLP_PROFILE_ARTIFACT '+json.dumps(dict(trace=str(trace),shape=[tokens,channels,hidden],
           contiguous_weights=args.contiguous_weights, tiled_io=args.tiled_io,
+          cached_bf16_weights=args.cached_bf16_weights,
           compiled_neffs=len(entries),eager_neffs=len(eager['files']),
           profiled_latency_is_performance_evidence=False)),flush=True)
 

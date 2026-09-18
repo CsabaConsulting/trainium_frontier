@@ -54,7 +54,8 @@ def build_kernel():
     def segmented_gradient(gradient, permutation, continuation, last, present,
                            lanes: int = 2, manual_sbuf: bool = False,
                            debug_intermediates: bool = False, reuse_sbuf: bool = False,
-                           aligned_sbuf: bool = False, gather_tile: int = 8192):
+                           aligned_sbuf: bool = False, gather_tile: int = 8192,
+                           tiled_io: bool = False):
         tokens, channels = gradient.shape
         vocabulary = last.shape[1]
         assert gradient.dtype == nl.float32
@@ -79,6 +80,12 @@ def build_kernel():
         valid_address = (0, 18 * tokens + 4 * vt) if manual_sbuf else None
         sums_address = (0, 18 * tokens + 6 * vt) if manual_sbuf else None
         masked_address = (0, 18 * tokens + 10 * vt) if manual_sbuf else None
+        if tiled_io:
+            # Keep every SBUF allocation disjoint when explicit placement is
+            # selected. One row tile is reused for both load/store phases.
+            assert 18 * tokens + 14 * vt + 512 <= nl.tile_size.sbuf_fmax_bytes
+            io_address = (0, 18 * tokens + 14 * vt) if manual_sbuf else None
+            io_rows = nl.ndarray((128, 128), dtype=nl.float32, buffer=nl.sbuf, address=io_address)
         if aligned_sbuf:
             assert manual_sbuf
             # The passing gather reproducer placed every FP32/uint32 tile
@@ -126,8 +133,17 @@ def build_kernel():
                 ordered = nl.ndarray((128, tokens), dtype=nl.float32, buffer=nl.sbuf, address=ordered_address)
                 scanned = nl.ndarray((128, tokens), dtype=nl.float32, buffer=nl.sbuf, address=scanned_address)
             # Load [T,C] directly into [128,T], including this layout cost.
-            nisa.dma_copy(dst=raw,
-                          src=gradient.ap(pattern=[[1, 128], [channels, tokens]], offset=c0))
+            if tiled_io:
+                assert tokens % 128 == 0
+                for ti in nl.affine_range(tokens // 128):
+                    input_t = nl.ndarray((128, 128), dtype=nl.float32, buffer=nl.psum)
+                    nisa.dma_copy(dst=io_rows,
+                                  src=gradient[ti * 128:(ti + 1) * 128, c0:c0 + 128])
+                    nisa.nc_transpose(dst=input_t, data=io_rows)
+                    nisa.tensor_copy(dst=raw[:, ti * 128:(ti + 1) * 128], src=input_t)
+            else:
+                nisa.dma_copy(dst=raw,
+                              src=gradient.ap(pattern=[[1, 128], [channels, tokens]], offset=c0))
             if debug_intermediates:
                 nisa.dma_copy(dst=raw_debug[c0:c0 + 128, :], src=raw)
             # The independent tiled reproducer is exact with512 outputs per
@@ -154,8 +170,16 @@ def build_kernel():
                 nisa.tensor_tensor(dst=masked, data1=sums, data2=valid, op=nl.multiply)
                 # Each output vocabulary row/channel belongs to exactly one
                 # writer. Return the normal [V,C] weight-gradient layout.
-                nisa.dma_copy(dst=result.ap(pattern=[[1, 128], [channels, vt]],
-                                             offset=c0 + vi * vt * channels), src=masked)
+                if tiled_io:
+                    for ti in nl.affine_range(vt // 128):
+                        output_t = nl.ndarray((128, 128), dtype=nl.float32, buffer=nl.psum)
+                        nisa.nc_transpose(dst=output_t, data=masked[:, ti * 128:(ti + 1) * 128])
+                        nisa.tensor_copy(dst=io_rows, src=output_t)
+                        nisa.dma_copy(dst=result[vi * vt + ti * 128:vi * vt + (ti + 1) * 128,
+                                                c0:c0 + 128], src=io_rows)
+                else:
+                    nisa.dma_copy(dst=result.ap(pattern=[[1, 128], [channels, vt]],
+                                                 offset=c0 + vi * vt * channels), src=masked)
         if debug_intermediates:
             return result, raw_debug, ordered_debug, scanned_debug
         return result

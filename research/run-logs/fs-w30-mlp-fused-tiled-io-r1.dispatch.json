@@ -1,0 +1,36 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave30",
+    "expected_commit": "3e08b9f812c9dfa223383cf16fbc6dfb9343daf6",
+    "label": "fs-w30-mlp-fused-tiled-io-r1",
+    "purpose": "Replace strided activation loads/stores with contiguous128x128 transfers and same-dtype TensorEngine transposes after contiguous weight correction. Eager/compiled FP64 GEMM bounds, native gradients, full-cost actual-shape forward/backward timing; preserve normal FP32 parameter layouts.",
+    "fingerprint_paths": [
+      "research/scratch/mlp_fused_bf16.py",
+      "research/scratch/mlp_fused_bf16_probe.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1500s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "--real-shape",
+      "--contiguous-weights",
+      "--tiled-io"
+    ]
+  },
+  "requested_at": "2026-09-18T14:37:00.808268+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w30-mlp-fused-tiled-io-r1\", \"pid\": 1314141, \"commit\": \"3e08b9f812c9dfa223383cf16fbc6dfb9343daf6\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave30/research/run-logs/fs-w30-mlp-fused-tiled-io-r1.log\", \"started_at\": \"2026-09-18T14:37:06.844357+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

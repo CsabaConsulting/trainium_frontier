@@ -1,0 +1,36 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave30",
+    "expected_commit": "3e08b9f812c9dfa223383cf16fbc6dfb9343daf6",
+    "label": "fs-w30-embedding-segmented-tiled512-stages-r1",
+    "purpose": "Carry exact512-output independent gather into complete segmented gradient, unaligned manual scratch control. Gate all raw/permutation/scan/final stages, eager/compiled, with and without debug stores and reused tensor identities. No timing or production claim.",
+    "fingerprint_paths": [
+      "research/scratch/embedding_segmented_nki.py",
+      "research/scratch/embedding_segmented_manual_stage_probe.py",
+      "research/scratch/embedding_segmented_debug.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "900s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/embedding_segmented_manual_stage_probe.py",
+      "--gather-tile",
+      "512"
+    ]
+  },
+  "requested_at": "2026-09-18T14:36:47.085415+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w30-embedding-segmented-tiled512-stages-r1\", \"pid\": 950345, \"commit\": \"3e08b9f812c9dfa223383cf16fbc6dfb9343daf6\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave30/research/run-logs/fs-w30-embedding-segmented-tiled512-stages-r1.log\", \"started_at\": \"2026-09-18T14:36:53.215307+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

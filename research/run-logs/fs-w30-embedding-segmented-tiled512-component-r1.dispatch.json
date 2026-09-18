@@ -1,0 +1,42 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave30",
+    "expected_commit": "3e08b9f812c9dfa223383cf16fbc6dfb9343daf6",
+    "label": "fs-w30-embedding-segmented-tiled512-component-r1",
+    "purpose": "Full uninstrumented correctness/performance gates after512-output tiling repaired all actual-shape diagnostic stages. Independent FP64 bounds across uniform,Zipf,one-ID,zero,cancellation and actual training row; compiled/eager, zero-repeat and native timings including metadata.",
+    "fingerprint_paths": [
+      "research/scratch/embedding_segmented_nki.py",
+      "research/scratch/embedding_segmented_probe.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1500s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/embedding_segmented_probe.py",
+      "--manual-sbuf",
+      "--reuse-sbuf",
+      "--compiled-kernel",
+      "--real-shape",
+      "--training-row",
+      "--gather-tile",
+      "512",
+      "--steps",
+      "6"
+    ]
+  },
+  "requested_at": "2026-09-18T14:37:57.354118+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w30-embedding-segmented-tiled512-component-r1\", \"pid\": 951409, \"commit\": \"3e08b9f812c9dfa223383cf16fbc6dfb9343daf6\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave30/research/run-logs/fs-w30-embedding-segmented-tiled512-component-r1.log\", \"started_at\": \"2026-09-18T14:38:03.666584+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

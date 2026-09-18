@@ -1,7 +1,8 @@
 """Experimental training MLP fusion for installed NKI0.5/Trainium2.
 
-Normal PyTorch layouts enter the kernel: X[T,C] BF16 and FP32 weights[H,C]
-and[C,H]. Weight loading/casting and all layout movement are included. Both
+Normal PyTorch layouts enter the kernel: X[T,C] BF16 and weights[H,C]
+and[C,H], either FP32 or an explicitly measured BF16 cache. Weight loading/casting
+and all layout movement are included; cache creation/refresh is separate. Both
 BF16 weight matrices remain in SBUF across token tiles. The up projection,
 BF16 rounding, ReLU, square and down projection are fused. ReLU activations
 are saved to HBM for backward, so this is not an inference-only benchmark.
@@ -26,7 +27,8 @@ def build_kernel():
         tokens, channels = x.shape
         hidden, up_channels = up.shape
         assert up_channels == channels and down.shape == (channels, hidden)
-        assert x.dtype == nl.bfloat16 and up.dtype == nl.float32 and down.dtype == nl.float32
+        assert x.dtype == nl.bfloat16 and up.dtype in (nl.float32, nl.bfloat16)
+        assert down.dtype == up.dtype
         assert channels % 128 == 0 and hidden % 128 == 0 and lanes in (1, 2)
         assert token_tile <= 512 and token_tile % 128 == 0
         assert tokens % (token_tile * lanes) == 0
@@ -46,13 +48,13 @@ def build_kernel():
                 if contiguous_weights:
                     # Combining strided transpose and FP32->BF16 DMA produced
                     # scalar two-byte packets. Read normal contiguous rows,
-                    # transpose FP32 on TensorEngine, then cast/cache in SBUF.
+                    # transpose the input dtype on TensorEngine, then cache in SBUF.
                     # Gen3 transpose requires matching source/destination
                     # dtypes; it is bit-preserving rather than an accumulation.
-                    up_raw = nl.ndarray((128, 128), dtype=nl.float32, buffer=nl.sbuf)
-                    down_raw = nl.ndarray((128, 128), dtype=nl.float32, buffer=nl.sbuf)
-                    up_t = nl.ndarray((128, 128), dtype=nl.float32, buffer=nl.psum)
-                    down_t = nl.ndarray((128, 128), dtype=nl.float32, buffer=nl.psum)
+                    up_raw = nl.ndarray((128, 128), dtype=up.dtype, buffer=nl.sbuf)
+                    down_raw = nl.ndarray((128, 128), dtype=down.dtype, buffer=nl.sbuf)
+                    up_t = nl.ndarray((128, 128), dtype=up.dtype, buffer=nl.psum)
+                    down_t = nl.ndarray((128, 128), dtype=down.dtype, buffer=nl.psum)
                     nisa.dma_copy(dst=up_raw, src=up[hi * 128:(hi + 1) * 128,
                                                     ci * 128:(ci + 1) * 128])
                     nisa.dma_copy(dst=down_raw, src=down[ci * 128:(ci + 1) * 128,
