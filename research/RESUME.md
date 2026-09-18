@@ -1,34 +1,32 @@
 # Resume the Trainium kernel campaign
 
-Updated2026-09-18,19:00UTC. Active permissions: danger-full-access, approval never.
+Updated2026-09-18,19:15UTC. Active permissions: danger-full-access, approval never.
 This replaces the accumulated stale resume instructions; their history remains
 in Git. Do not restart completed experiments from earlier revisions.
 
 ## Live work
 
-- **trn21:** `fs-w44-dense1024-native-control-phase-r2` is running after the
-  native-forward/custom-autograd phase completed574.075248 ms with all checks
-  and cleanup passing. Earlier native590.315111 ms makes this2.751% faster,
-  short of3%. Sourceaec170ff810424a98841a59ee5ffe7c5f9362351, remote wave44.
-  After the fresh control, the prepared request
-  `out/fs-w44-dense1024-native-mlp-embedding-phase-r1.request.json` combines
-  this formulation with the previously validated three-kernel embedding path.
-  Check clean postflight before launching, and require3% full-step gain.
-- **trn22:** wave45 separated MLP gate failed on changed microbatch1/small shape.
-  Native forward inside the same separated region fails identically:9 input
-  gradient elements exceed the unchanged bound, relative RMS0.003586663.
-  Both jobs cleaned automatically. No separate-region full-model job launched.
-  Latest deployed worktree wave45/sourcefa9ca234fb0ef41e612c90d75e51675e79e0e333.
-- **Next:** deploy newly committed wave46 diagnostic to trn22 and run
-  `scratch/mlp_separate_diagnose.py`. Keep calls uninstrumented; compare repeated
-  base/changed/zero inputs, CPU FP64 GEMMs with explicit BF16 rounding and other
-  rounding hypotheses. It records failures, never relaxes the existing gate and
-  cannot authorize promotion on its own. Inspect whether repeats are exact.
-- Wave43 explicit7.125MiB SBUF phase finished705.225310 ms versus599.574587 ms;
-  rejected, clean. Wave42 prepacked phase678.041824 ms also rejected, clean.
-- Source scripts: `scratch/mlp_separate_diagnose.py`,
-  `scratch/mlp_fused_integration.py`, `scratch/mlp_fused_integration_check.py`,
-  `scratch/phase_timer.py`. Production train.py is unchanged.
+- **trn21:** `fs-w44-dense1024-native-mlp-embedding-40steps-r1` is running in
+  wave44/sourceaec170ff810424a98841a59ee5ffe7c5f9362351. Its predeclared40-step
+  native control completed588.185841 ms with all checks and cleanup passing.
+  The earlier8-step pair was native587.177431 versus combined570.755620 ms,
+  a2.797% gain, below3%. This one longer matched pair resolves borderline timing;
+  do not cherry-pick repeats or launch quality training without the speed gate.
+- **trn22:** wave46 diagnosis finished and cleaned. The separate-region gradient
+  failure tracks a different dHidden rounding policy, persists without gradient
+  accumulation and with exception-driven backend fallback disabled. The native
+  reference changes after its first call in the five-model diagnostic; NKI
+  separated repeats exactly. Do not call this stale NKI data or a proven SDK bug.
+  See `fresh-start-mlp-boundary-rounding-2026-09-18.md`.
+- **Next:** deploy newly committed wave47 to trn22 and run the diagnostic with
+  `--variants native` and then `--variants nki_separate` in separate processes,
+  with fallback disabled. It now records autograd-node types, compiled-cache keys
+  and whether weights remain identical. This isolates cross-model compiler state.
+  Script `scratch/mlp_separate_diagnose.py`; latest deployed trn22 iswave46,
+  sourcec0a11150d58b25d2f584f9a56b2d2def04be9b77.
+- No separated MLP full-model run has occurred: original numerical gates remain
+  failed, never weakened. Grouped/streamed/prepacked/fixed-SBUF full-model variants
+  all lose and remain rejected. Production train.py remains unchanged.
 
 Use each `.dispatch.json`, `.job.json`, `.log`, `.postflight.json` under
 `research/run-logs/` for exact launch state. Requests are local under `out/`.
@@ -83,11 +81,10 @@ Local OS **Devuan/SystemV**. Usercsaba cron, no sudo/root, no systemd:
   `aec170ff810424a98841a59ee5ffe7c5f9362351` at18:50, with both refs verified.
 - Minutes5/35: `research/fresh_start_artifact_backup_cron.sh`, own lock, nice10,
   bounded uploader, digest-verified immutable assets in draft release
-  `research-backup-20260918`.18:05 uploader finished25of26items at18:46. A detached retry started18:52
-  using the committed fix for owned starter placeholders with declared nonzero
-  size. It passed the previous failure and is reuploading the old wave4 archive.
-  The archive is still unverified; do not describe it as backed up. Do not kill
-  the active uploader. Receiptfs-artifact-uploader-restart-20260918T1852.json.
+  `research-backup-20260918`.The detached18:52retry completed at19:12:14UTC: **26of26 artifacts verified,
+  zero errors**, including the old interrupted trace archive. All queued
+  checkpoints/profiles have actual GitHub assets and matching digests. New ignored
+  artifacts still require discovery/retrieval before a future backup receipt.
 
 States `out/fresh-start-backup/{latest,last-success}.json` and
 `out/fresh-start-artifact-backup/latest.json`; check process/lock if status stale.
