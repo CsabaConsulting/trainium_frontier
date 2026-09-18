@@ -49,7 +49,7 @@ def template_groups(real):
     return groups
 
 
-def make_optimizer(groups, initial, device, owned):
+def make_optimizer(groups, initial, device, owned, pad_singleton_muon=False):
     parameters = [torch.nn.Parameter(x.clone().to(device)) for x in initial]
     copied, offset = [], 0
     for group in groups:
@@ -57,7 +57,7 @@ def make_optimizer(groups, initial, device, owned):
         copied.append({**group, "params": parameters[offset:offset + size]})
         offset += size
     optimizer = T.MuonAdamW(copied)
-    adapter = install_optimizer(optimizer, T) if owned else None
+    adapter = install_optimizer(optimizer, T, pad_singleton_muon=pad_singleton_muon) if owned else None
     return parameters, optimizer, adapter
 
 
@@ -95,7 +95,15 @@ def compare(reference_params, reference, parameters, candidate, adapter, device,
             state = candidate.state[owned["params"][0]]
             expected = reference.state[full["params"][0]]
             for key in ("momentum_buffer", "second_momentum_buffer"):
-                equal(f"muon:{group_index}:{key}", state[key], expected[key].detach().cpu()[positions])
+                actual = state[key].detach().cpu()
+                equal(f"muon:{group_index}:{key}", actual[:len(positions)],
+                      expected[key].detach().cpu()[positions])
+                if group_index in adapter.padding:
+                    assert torch.equal(actual[len(positions):], torch.zeros_like(actual[len(positions):]))
+            if group_index in adapter.padding:
+                dummy = adapter.padding[group_index]
+                assert torch.equal(dummy.detach().cpu(), torch.zeros_like(dummy, device="cpu"))
+                assert torch.equal(dummy.grad.cpu(), torch.zeros_like(dummy, device="cpu"))
     # A digest collective checks every weight byte without an unsupported CPU
     # object collective on the Neuron backend. No reduction can hide disagreement.
     local_digest = torch.tensor(list(digest.digest()), dtype=torch.float32).to(device)
@@ -117,6 +125,7 @@ def main():
     parser.add_argument("--device", choices=("cpu", "neuron"), required=True)
     parser.add_argument("--real-shape", action="store_true")
     parser.add_argument("--steps", type=int, default=20)
+    parser.add_argument("--pad-singleton-muon", action="store_true")
     args = parser.parse_args()
     if args.device == "neuron":
         import torch_neuronx
@@ -131,9 +140,11 @@ def main():
         generator = torch.Generator().manual_seed(9407)
         initial = [torch.randn(p.shape, generator=generator) * .03 for g in groups for p in g["params"]]
         reference_params, reference, _ = make_optimizer(groups, initial, device, False)
-        parameters, candidate, adapter = make_optimizer(groups, initial, device, True)
+        parameters, candidate, adapter = make_optimizer(groups, initial, device, True, args.pad_singleton_muon)
         del initial
-        print("OPTIMIZER_OWNERSHIP_PLAN " + json.dumps(dict(rank=rank, **adapter.summary)), flush=True)
+        print("OPTIMIZER_OWNERSHIP_PLAN " + json.dumps(dict(
+            rank=rank, pad_singleton_muon=args.pad_singleton_muon,
+            padded_groups=list(adapter.padding), **adapter.summary)), flush=True)
         # Exercise the actual Linear cache after owner updates and all-gather.
         cache_parameter = next(p for p in parameters if p.ndim == 2)
         linear = T.Linear(cache_parameter.shape[1], cache_parameter.shape[0], bias=False)
@@ -179,7 +190,8 @@ def main():
         torch.save(payload, stream)
         stream.seek(0)
         payload = torch.load(stream, map_location="cpu", weights_only=True)
-        restored_params, restored, restored_adapter = make_optimizer(groups, payload["weights"], device, True)
+        restored_params, restored, restored_adapter = make_optimizer(
+            groups, payload["weights"], device, True, args.pad_singleton_muon)
         restored.load_state_dict(payload["optimizer"])
         invalid = {**payload["optimizer"], "rank": (rank + 1) % world}
         try:

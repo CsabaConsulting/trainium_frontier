@@ -95,6 +95,11 @@ def main():
                     help="Scratch FP32-statistic RMSNorm with the existing BF16 branch outputs.")
     ap.add_argument("--nki-adamw-fp32", action="store_true",
                     help="Scratch gated functional FP32 AdamW for dense1024 tables; other groups stay native.")
+    ap.add_argument("--optimizer-ownership", action="store_true",
+                    help="Scratch whole-matrix owner updates and exact FP32 weight exchange; "
+                         "requires independent CPU/native optimizer gates first.")
+    ap.add_argument("--optimizer-ownership-pad-singletons", action="store_true",
+                    help="Keep singleton Muon owner groups on the batch-two numerical path using a zero dummy.")
     ap.add_argument("--fused-mlp", action="store_true",
                     help="Scratch fused BF16 MLP with HxT saved activation consumed in backward.")
     ap.add_argument("--fused-mlp-normal-dx", action="store_true",
@@ -356,6 +361,15 @@ def main():
         model = torch.compile(model, backend="neuron" if device_type == "neuron" else "inductor",
                               dynamic=False)
     optimizer = model.setup_optimizer()
+    optimizer_ownership = None
+    if args.optimizer_ownership:
+        if world_size != 4 or args.compile_optim:
+            raise ValueError("ownership phase requires four ranks and an uncompiled step dispatcher")
+        from optimizer_ownership import install_optimizer as install_ownership
+        optimizer_ownership = install_ownership(
+            optimizer, T, pad_singleton_muon=args.optimizer_ownership_pad_singletons)
+        print("[pt] whole-matrix optimizer ownership " + json.dumps(dict(
+            rank=rank, **optimizer_ownership.summary)), flush=True)
     if args.compile_optim:
         _raw_step = optimizer.step
         optimizer.step = torch.compile(
@@ -653,6 +667,9 @@ def main():
             nki_branch_norm=args.nki_branch_norm,
             nki_adamw_fp32=args.nki_adamw_fp32,
             nki_adamw_parameter_updates=getattr(optimizer, "_fresh_start_adamw_calls", 0),
+            optimizer_ownership=args.optimizer_ownership,
+            optimizer_ownership_pad_singletons=args.optimizer_ownership_pad_singletons,
+            optimizer_owner_calls=(optimizer_ownership.calls if optimizer_ownership is not None else 0),
             fused_mlp=args.fused_mlp,
             fused_mlp_normal_dx=args.fused_mlp_normal_dx,
             fused_mlp_token_tile=args.fused_mlp_token_tile,
