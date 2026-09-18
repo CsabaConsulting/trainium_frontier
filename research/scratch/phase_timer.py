@@ -74,6 +74,12 @@ def main():
     ap.add_argument("--sdpa-input-dtype", choices=["baseline", "bf16"], default="baseline",
                     help="bf16: cast Q/K/V only at the native SDPA boundary and restore "
                          "its output dtype. Independent of the normalization-output policy.")
+    ap.add_argument("--post-checks", action="store_true",
+                    help="After timing, require finite parameters/gradients and exact "
+                         "future-token, cross-batch and repeated-call independence on the "
+                         "updated eager evaluation model. These checks are outside timing.")
+    ap.add_argument("--check-seq-len", type=int, default=256,
+                    help="Sequence length for --post-checks, at least 128 and a multiple of 128.")
     ap.add_argument("--grad-clip", type=float, default=1.0,
                     help="T1.1 re-profile: include torch.nn.utils.clip_grad_norm_(model.parameters(), "
                          "this) in the timed window, matching train.py's real per-step order "
@@ -160,6 +166,9 @@ def main():
     args = ap.parse_args()
     if args.trace_dir and args.micro_only:
         ap.error("--trace-dir captures after full-step timing; do not combine it with --micro-only")
+    if args.post_checks and (args.micro_only or args.check_seq_len < 128
+                            or args.check_seq_len % 128):
+        ap.error("--post-checks requires full steps and --check-seq-len a positive multiple of 128")
 
     sys.path.insert(0, REPO)
     os.chdir(REPO)
@@ -637,6 +646,49 @@ def main():
         (export_path / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
         print("NEFF_ARTIFACT " + json.dumps(dict(rank=rank, directory=str(export_path),
                                                 exported=len(exported), missing=missing)), flush=True)
+    if args.post_checks:
+        # Exercise the actual native eager model that a standalone scorer uses,
+        # after real optimizer updates have made initially-zero branches nonzero.
+        # Keep all checks outside both unprofiled timing and optional profiling.
+        if args.check_seq_len > config.sequence_len:
+            raise ValueError("check sequence length exceeds the model's rotary tables")
+        with torch.no_grad():
+            params = [p for p in orig_model.parameters() if p.requires_grad]
+            gradients = [p.grad for p in params if p.grad is not None]
+            if not gradients:
+                raise AssertionError("post-checks require gradients from a completed update")
+            finite = torch.stack([torch.isfinite(p).all() for p in params + gradients]).all()
+            assert bool(finite.item()), "nonfinite parameter or gradient after timing"
+            assert last_loss is not None and math.isfinite(float(last_loss.item()))
+            branch_norms = [float(block.attn.c_proj.weight.float().square().sum().item())
+                            for block in orig_model.transformer.h]
+            assert all(value > 0 for value in branch_norms), "vacuous zero attention branch"
+            check_gen = torch.Generator().manual_seed(3197)
+            check_x = torch.randint(config.vocab_size, (2, args.check_seq_len),
+                                    generator=check_gen, dtype=torch.int32)
+            cut = args.check_seq_len // 2
+            future_x = check_x.clone()
+            future_x[:, cut:] = (future_x[:, cut:] + 19) % config.vocab_size
+            batch_x = check_x.clone()
+            batch_x[0] = (batch_x[0] + 27) % config.vocab_size
+            orig_model.eval()
+            a = orig_model(check_x.to(device)).float().cpu()
+            b = orig_model(future_x.to(device)).float().cpu()
+            c = orig_model(batch_x.to(device)).float().cpu()
+            d = orig_model(check_x.to(device)).float().cpu()
+            for logits in (a, b, c, d):
+                assert torch.isfinite(logits).all(), "nonfinite evaluation logits"
+            torch.testing.assert_close(a[:, :cut], b[:, :cut], rtol=0, atol=0)
+            torch.testing.assert_close(a[1:], c[1:], rtol=0, atol=0)
+            torch.testing.assert_close(a, d, rtol=0, atol=0)
+            print("NATIVE_POST_CHECK_JSON " + json.dumps(dict(
+                rank=rank, passed=True, sequence_len=args.check_seq_len, batch_size=2,
+                parameters_and_gradients_finite=True, logits_finite=True,
+                attention_output_weight_square_sums=branch_norms,
+                future_max_abs=float((a[:, :cut] - b[:, :cut]).abs().max()),
+                other_batch_max_abs=float((a[1:] - c[1:]).abs().max()),
+                repeated_call_max_abs=float((a - d).abs().max()),
+                outside_timing=True, evaluation_path="updated eager model")), flush=True)
     if ddp:
         try:
             import torch.distributed as dist
