@@ -79,7 +79,7 @@ def timing(arms, steps, sync):
 
 def run_case(device, shape, kind, kernel, steps, contiguous_weights=False, tiled_io=False,
              cached_bf16_weights=False, transposed_relu=False, grouped_io=False,
-             normal_input_gradient=False):
+             normal_input_gradient=False, weight_mode=0):
     tokens, channels, hidden = shape
     tile = min(512, tokens // 2)
     torch.manual_seed(941 + tokens + channels + (kind == 'changed'))
@@ -104,7 +104,7 @@ def run_case(device, shape, kind, kernel, steps, contiguous_weights=False, tiled
 
         def kernel_call(xx, uu, dd):
             return wrapped[2](xx, uu, dd, 2, tile, contiguous_weights, tiled_io, transposed_relu,
-                               grouped_io)
+                               grouped_io, weight_mode)
 
         torch._dynamo.reset()
         fused_forward = torch.compile(kernel_call, backend='neuron', fullgraph=True, dynamic=False)
@@ -118,7 +118,7 @@ def run_case(device, shape, kind, kernel, steps, contiguous_weights=False, tiled
     inputs = tuple(t.to(device) for t in cpu_inputs)
     if device == 'neuron':
         eager_y, eager_saved = kernel[2](*inputs, 2, tile, contiguous_weights, tiled_io,
-                                         transposed_relu, grouped_io)
+                                         transposed_relu, grouped_io, weight_mode)
         eager_saved_cpu = eager_saved.cpu()
         eager = (eager_y, eager_saved_cpu.T if transposed_relu else eager_saved_cpu)
         gemm_gate(f'eager:up:{shape}:{kind}', eager[1], x, up.bfloat16().T, relu=True)
@@ -164,6 +164,7 @@ def run_case(device, shape, kind, kernel, steps, contiguous_weights=False, tiled
                               cached_bf16_weights=cached_bf16_weights,
                               transposed_relu=transposed_relu,
                               grouped_io=grouped_io,
+                              weight_mode=weight_mode,
                               normal_input_gradient=normal_input_gradient,
                               saved_layout_consumed_directly_in_backward=True,
                               token_tile=tile, all_gates_passed=True,
@@ -180,6 +181,7 @@ def run_case(device, shape, kind, kernel, steps, contiguous_weights=False, tiled
                                    cached_bf16_weights=cached_bf16_weights,
                                    transposed_relu=transposed_relu,
                                    grouped_io=grouped_io,
+                                   weight_mode=weight_mode,
                                    normal_input_gradient=normal_input_gradient,
                                    saved_layout_consumed_directly_in_backward=True,
                                    weight_reads_casts_layout_and_relu_save_included=True,
@@ -203,7 +205,11 @@ def main():
                     help='Group contiguous row transfers across channel tiles to reduce DMA instructions.')
     ap.add_argument('--normal-dx', action='store_true',
                     help='Produce the upstream input gradient in TxC directly, retaining saved HxT ReLU.')
+    ap.add_argument('--weight-mode', type=int, choices=(0, 1, 2), default=0,
+                    help='0: cache both;1: stream down;2: stream both weight matrices.')
     args = ap.parse_args()
+    if args.weight_mode and not args.grouped_io:
+        ap.error('streaming weight modes require --grouped-io')
     if args.grouped_io and not (args.contiguous_weights and args.tiled_io
                                and args.cached_bf16_weights and args.transposed_relu):
         ap.error('--grouped-io requires contiguous/tiled I/O, BF16 cached weights and transposed ReLU')
@@ -215,11 +221,11 @@ def main():
     for kind in ('random', 'changed', 'zero'):
         run_case(args.device, (256, 256, 512), kind, kernel, args.steps,
                  args.contiguous_weights, args.tiled_io, args.cached_bf16_weights, args.transposed_relu,
-                 args.grouped_io, args.normal_dx)
+                 args.grouped_io, args.normal_dx, args.weight_mode)
     if args.real_shape:
         run_case(args.device, (8192, 1024, 4096), 'random', kernel, args.steps,
                  args.contiguous_weights, args.tiled_io, args.cached_bf16_weights, args.transposed_relu,
-                 args.grouped_io, args.normal_dx)
+                 args.grouped_io, args.normal_dx, args.weight_mode)
     print('PASS: fused BF16 MLP component gates; no full-model claim', flush=True)
 
 

@@ -99,6 +99,8 @@ def main():
                     help="Token tile for the scratch MLP; smaller values reduce live activations in SBUF.")
     ap.add_argument("--fused-mlp-grouped-io", action="store_true",
                     help="Load/store contiguous full rows in the scratch MLP, including weight rows.")
+    ap.add_argument("--fused-mlp-weight-mode", type=int, choices=(0, 1, 2), default=0,
+                    help="0: cache both MLP weights;1: stream down;2: stream both.")
     ap.add_argument("--check-seq-len", type=int, default=256,
                     help="Sequence length for --post-checks, at least 128 and a multiple of 128.")
     ap.add_argument("--grad-clip", type=float, default=1.0,
@@ -188,8 +190,10 @@ def main():
     if args.compact_embedding and args.segmented_dma_embedding:
         ap.error("select only one ordinary embedding backward implementation")
     if (args.fused_mlp_normal_dx or args.fused_mlp_grouped_io
-            or args.fused_mlp_token_tile != 512) and not args.fused_mlp:
+            or args.fused_mlp_token_tile != 512 or args.fused_mlp_weight_mode) and not args.fused_mlp:
         ap.error("fused MLP options require --fused-mlp")
+    if args.fused_mlp_weight_mode and not args.fused_mlp_grouped_io:
+        ap.error("streaming MLP weights requires --fused-mlp-grouped-io")
     if args.trace_dir and args.micro_only:
         ap.error("--trace-dir captures after full-step timing; do not combine it with --micro-only")
     if args.post_checks and (args.micro_only or args.check_seq_len < 128
@@ -300,7 +304,8 @@ def main():
     if args.fused_mlp:
         from mlp_fused_integration import install
         install(model, device, T, normal_input_gradient=args.fused_mlp_normal_dx,
-                token_tile=args.fused_mlp_token_tile, grouped_io=args.fused_mlp_grouped_io)
+                token_tile=args.fused_mlp_token_tile, grouped_io=args.fused_mlp_grouped_io,
+                weight_mode=args.fused_mlp_weight_mode)
         print("[pt] fused BF16 MLP; shared ordinary Linear caches/parameters preserved", flush=True)
     if args.ngram_ve_freeze:
         for p in model.ngram_embeds.parameters():
@@ -610,6 +615,7 @@ def main():
             fused_mlp_normal_dx=args.fused_mlp_normal_dx,
             fused_mlp_token_tile=args.fused_mlp_token_tile,
             fused_mlp_grouped_io=args.fused_mlp_grouped_io,
+            fused_mlp_weight_mode=args.fused_mlp_weight_mode,
             last_loss=float(last_loss.item()),
             compile=args.compile, foreach_optim=args.foreach_optim,
             compile_optim=args.compile_optim, grad_bucket=args.grad_bucket,
