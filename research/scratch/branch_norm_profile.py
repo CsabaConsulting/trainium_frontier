@@ -19,6 +19,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--trace-dir", type=Path, required=True)
     parser.add_argument("--inverse-mode", type=int, choices=(1, 2), default=1)
+    parser.add_argument("--packed-inverse", action="store_true")
     args = parser.parse_args()
     torch.set_num_threads(4)
     torch.manual_seed(784)
@@ -30,7 +31,7 @@ def main():
     base = torch.randn(8192, 1024)
     gradient = torch.randn_like(base).bfloat16().to("neuron")
     functions = {"native": torch.compile(reference, backend="neuron", fullgraph=True, dynamic=False),
-                 "nki": torch.compile(make_function(args.inverse_mode), backend="neuron",
+                 "nki": torch.compile(make_function(args.inverse_mode, args.packed_inverse), backend="neuron",
                                       fullgraph=True, dynamic=False)}
     leaves = {name: base.to("neuron").requires_grad_() for name in functions}
 
@@ -78,6 +79,7 @@ def main():
     assert not missing and not eager["unresolved"]
     print("BRANCH_NORM_PROFILE_ARTIFACT " + json.dumps(dict(
         trace=str(trace), shape=[8192, 1024], inverse_mode=args.inverse_mode,
+        packed_inverse=args.packed_inverse,
         compiled_neffs=len(entries), eager_neffs=len(eager["files"]),
         profiled_latency_is_performance_evidence=False)), flush=True)
 

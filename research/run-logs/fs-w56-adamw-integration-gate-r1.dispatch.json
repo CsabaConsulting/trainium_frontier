@@ -1,0 +1,37 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave56",
+    "expected_commit": "a532823c1aac3378529fbcd9468d7b74c9043325",
+    "label": "fs-w56-adamw-integration-gate-r1",
+    "purpose": "After the component gate passes, check repeated real-table analytic and FP64 trajectory accuracy, per-parameter counters, sparse/zero/None gradients, LR/beta changes, native fallback, Parameter identity/version, BF16 cache refresh, skipped ticks and bit-exact checkpoint continuation. Also diagnose native sqrt on the wave55 offending value. No training.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1"
+    },
+    "fingerprint_paths": [
+      "research/scratch/adamw_fused_fp32.py",
+      "research/scratch/adamw_fused_fp32_probe.py",
+      "research/scratch/adamw_fused_integration.py",
+      "research/scratch/adamw_fused_integration_check.py",
+      "research/scratch/mlp_fused_bf16_probe.py"
+    ],
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/adamw_fused_integration_check.py"
+    ]
+  },
+  "requested_at": "2026-09-18T20:31:39.197002+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w56-adamw-integration-gate-r1\", \"pid\": 1434116, \"commit\": \"a532823c1aac3378529fbcd9468d7b74c9043325\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave56/research/run-logs/fs-w56-adamw-integration-gate-r1.log\", \"started_at\": \"2026-09-18T20:31:45.044757+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

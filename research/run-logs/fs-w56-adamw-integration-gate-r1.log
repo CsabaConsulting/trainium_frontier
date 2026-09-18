@@ -1,0 +1,23 @@
+[W918 20:31:47.255059318 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+ADAMW_NATIVE_SQRT_DIAG {"gradient": -7.873063978536265e-09, "variance": 6.198513654368575e-17, "native_sqrt": 7.873002694225306e-09, "exact_sqrt_of_actual_fp32_variance": 7.87306398701838e-09, "sqrt_relative_error": 7.785125737008373e-06, "denominator": 7.973002702499343e-09, "update": -0.01974930614233017}
+ADAMW_NATIVE_SQRT_DIAG {"gradient": -1e-09, "variance": 9.999998390185518e-19, "native_sqrt": 1.000001526030303e-09, "exact_sqrt_of_actual_fp32_variance": 9.999999195092727e-10, "sqrt_relative_error": 1.6065211595822913e-06, "denominator": 1.1000015343043401e-09, "update": -0.01818179152905941}
+ADAMW_NATIVE_SQRT_DIAG {"gradient": -1e-06, "variance": 9.999999960041972e-13, "native_sqrt": 9.999999974752427e-07, "exact_sqrt_of_actual_fp32_variance": 9.999999980020987e-07, "sqrt_relative_error": 5.268559765524388e-10, "denominator": 1.0001000418924377e-06, "update": -0.01999799907207489}
+ADAMW_NATIVE_SQRT_DIAG {"gradient": -0.003, "variance": 9.000000318337698e-06, "native_sqrt": 0.0030000002589076757, "exact_sqrt_of_actual_fp32_variance": 0.0030000000530562825, "sqrt_relative_error": 6.861712986078784e-08, "denominator": 0.0030000002589076757, "update": -0.019999997690320015}
+ADAMW_NATIVE_SQRT_DIAG {"gradient": 0.0, "variance": 0.0, "native_sqrt": 0.0, "exact_sqrt_of_actual_fp32_variance": 0.0, "sqrt_relative_error": 0.0, "denominator": 1.000000013351432e-10, "update": 0.0}
+ADAMW_NATIVE_SQRT_DIAG {"gradient": 0.003, "variance": 9.000000318337698e-06, "native_sqrt": 0.0030000002589076757, "exact_sqrt_of_actual_fp32_variance": 0.0030000000530562825, "sqrt_relative_error": 6.861712986078784e-08, "denominator": 0.0030000002589076757, "update": 0.019999997690320015}
+ADAMW_FP32_NUMERICAL {"name": "integration:iteration1:parameter0", "enforced": true, "passed": true, "results": [{"field": "weight", "finite": true, "bound_failures": 0, "relative_rms": 7.474564602749145e-08, "max_abs": 1.0748029699580997e-07, "passed": true}, {"field": "first_moment", "finite": true, "bound_failures": 0, "relative_rms": 2.515321047417969e-08, "max_abs": 1.10593492697042e-10, "passed": true}, {"field": "second_moment", "finite": true, "bound_failures": 0, "relative_rms": 3.580481407998449e-08, "max_abs": 7.471332241575611e-13, "passed": true}]}
+ADAMW_TRAJECTORY {"iteration": 1, "parameter": 0, "updates": 1, "relative_rms": [7.474564602749145e-08, 2.515321047417969e-08, 3.580481407998449e-08], "bound_failures": 0}
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_freshstart_20260918_wave56/research/scratch/adamw_fused_integration_check.py", line 205, in <module>
+    main()
+  File "/home/ubuntu/trainium_freshstart_20260918_wave56/research/scratch/adamw_fused_integration_check.py", line 134, in main
+    assert p._version > version, "Parameter version did not advance"
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError: Parameter version did not advance
+EXPERIMENT_POSTFLIGHT {"label": "fs-w56-adamw-integration-gate-r1", "returncode": 1, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave56/research/run-logs/fs-w56-adamw-integration-gate-r1.postflight.json"}
