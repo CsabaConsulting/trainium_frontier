@@ -1,0 +1,23 @@
+[W918 20:55:24.777079931 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+ADAMW_FP32_NUMERICAL {"name": "cpu_counterexample:original", "enforced": false, "passed": false, "results": [{"field": "weight", "finite": true, "bound_failures": 2, "relative_rms": 1.429168186202907e-05, "max_abs": 4.9195320980701795e-09, "passed": false, "worst_bound": {"flat_index": 1, "actual": 0.0001624152937438339, "expected": 0.00016242021327593197, "error": 4.9195320980701795e-09, "bound": 1.239170250461537e-09, "envelope": 0.00016242021327593197}}, {"field": "first_moment", "finite": true, "bound_failures": 0, "relative_rms": 5.847121381364119e-05, "max_abs": 4.4629244310562255e-11, "passed": false, "worst_bound": {"flat_index": 1, "actual": -1.3282988220453262e-07, "expected": -1.3287451144884319e-07, "error": 4.4629244310562255e-11, "bound": 3.971924637762934e-08, "envelope": 0.005206071131397039}}, {"field": "second_moment", "finite": true, "bound_failures": 0, "relative_rms": 2.584901675026971e-08, "max_abs": 4.835318834916927e-14, "passed": true}]}
+ADAMW_FP32_NUMERICAL {"name": "staged:cpu_counterexample:correct_fp32", "enforced": true, "passed": false, "results": [{"field": "weight", "finite": true, "bound_failures": 0, "relative_rms": 1.3609727978108753e-08, "max_abs": 4.9277776141293944e-12, "passed": true}, {"field": "first_moment", "finite": true, "bound_failures": 0, "relative_rms": 5.847121381364119e-05, "max_abs": 4.4629244310562255e-11, "passed": false, "worst_bound": {"flat_index": 1, "actual": -1.3282988220453262e-07, "expected": -1.3287451144884319e-07, "error": 4.4629244310562255e-11, "bound": 3.971924637762934e-08, "envelope": 0.005206071131397039, "inputs": {"p": 0.00014795362949371338, "g": 0.0046853311359882355, "m": -0.0005207399954088032, "v": 4.700442559624207e-07}}}, {"field": "second_moment", "finite": true, "bound_failures": 0, "relative_rms": 2.584901675026971e-08, "max_abs": 4.835318834916927e-14, "passed": true}]}
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_freshstart_20260918_wave59/research/scratch/adamw_fused_integration_check.py", line 261, in <module>
+    main()
+  File "/home/ubuntu/trainium_freshstart_20260918_wave59/research/scratch/adamw_fused_integration_check.py", line 123, in main
+    cpu_counterexamples()
+  File "/home/ubuntu/trainium_freshstart_20260918_wave59/research/scratch/adamw_stage_accuracy.py", line 53, in cpu_counterexamples
+    check_stages("cpu_counterexample:correct_fp32", (w, nm, nv), (p, g, m, v), values)
+  File "/home/ubuntu/trainium_freshstart_20260918_wave59/research/scratch/adamw_stage_accuracy.py", line 26, in check_stages
+    check("staged:" + name, actual, (conditional_weight, ideal[1], ideal[2]),
+  File "/home/ubuntu/trainium_freshstart_20260918_wave59/research/scratch/adamw_fused_fp32_probe.py", line 58, in check
+    assert record["passed"], record
+           ~~~~~~^^^^^^^^^^
+AssertionError: {'name': 'staged:cpu_counterexample:correct_fp32', 'enforced': True, 'passed': False, 'results': [{'field': 'weight', 'finite': True, 'bound_failures': 0, 'relative_rms': 1.3609727978108753e-08, 'max_abs': 4.9277776141293944e-12, 'passed': True}, {'field': 'first_moment', 'finite': True, 'bound_failures': 0, 'relative_rms': 5.847121381364119e-05, 'max_abs': 4.4629244310562255e-11, 'passed': False, 'worst_bound': {'flat_index': 1, 'actual': -1.3282988220453262e-07, 'expected': -1.3287451144884319e-07, 'error': 4.4629244310562255e-11, 'bound': 3.971924637762934e-08, 'envelope': 0.005206071131397039, 'inputs': {'p': 0.00014795362949371338, 'g': 0.0046853311359882355, 'm': -0.0005207399954088032, 'v': 4.700442559624207e-07}}}, {'field': 'second_moment', 'finite': True, 'bound_failures': 0, 'relative_rms': 2.584901675026971e-08, 'max_abs': 4.835318834916927e-14, 'passed': True}]}
+EXPERIMENT_POSTFLIGHT {"label": "fs-w59-adamw-staged-integration-gate-r1", "returncode": 1, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave59/research/run-logs/fs-w59-adamw-staged-integration-gate-r1.postflight.json"}

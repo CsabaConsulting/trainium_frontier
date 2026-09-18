@@ -1,0 +1,88 @@
+{
+  "label": "fs-w58-branch-norm-scalar-reduce-gate-r1",
+  "benchmarks": [
+    {
+      "rows": 256,
+      "channels": 128,
+      "inverse_mode": 1,
+      "packed_inverse": true,
+      "fused_square_reduce": true,
+      "samples_ms": {
+        "native_forward_backward": [
+          0.28620423399843276,
+          0.29235513453992706,
+          0.29809129967664677
+        ],
+        "nki_forward_backward": [
+          0.3198159664558868,
+          0.32867706613615155,
+          0.3265324669579665
+        ]
+      },
+      "median_ms": {
+        "native_forward_backward": 0.29235513453992706,
+        "nki_forward_backward": 0.3265324669579665
+      },
+      "same_precision_policy": true,
+      "untouched_tokens_and_repeated_calls_exact": true,
+      "whole_model": false
+    },
+    {
+      "rows": 256,
+      "channels": 1024,
+      "inverse_mode": 1,
+      "packed_inverse": true,
+      "fused_square_reduce": true,
+      "samples_ms": {
+        "native_forward_backward": [
+          0.385249633109197,
+          0.3503920995475103,
+          0.3276002670948704
+        ],
+        "nki_forward_backward": [
+          0.4317209667836626,
+          0.39533906771490973,
+          0.3851190345206608
+        ]
+      },
+      "median_ms": {
+        "native_forward_backward": 0.3503920995475103,
+        "nki_forward_backward": 0.39533906771490973
+      },
+      "same_precision_policy": true,
+      "untouched_tokens_and_repeated_calls_exact": true,
+      "whole_model": false
+    },
+    {
+      "rows": 8192,
+      "channels": 1024,
+      "inverse_mode": 1,
+      "packed_inverse": true,
+      "fused_square_reduce": true,
+      "samples_ms": {
+        "native_forward_backward": [
+          0.4405290334640692,
+          0.44189120138374466,
+          0.44065229982758564
+        ],
+        "nki_forward_backward": [
+          0.5413356004282832,
+          0.5438850319478661,
+          0.5468606657814234
+        ]
+      },
+      "median_ms": {
+        "native_forward_backward": 0.44065229982758564,
+        "nki_forward_backward": 0.5438850319478661
+      },
+      "same_precision_policy": true,
+      "untouched_tokens_and_repeated_calls_exact": true,
+      "whole_model": false
+    }
+  ],
+  "numerical_gate_passed": true,
+  "command_returncode": 0,
+  "host_clean": true,
+  "promoted": false,
+  "reason": "Real-shape NKI forward/backward remains slower than native."
+}

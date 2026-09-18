@@ -1,0 +1,51 @@
+{
+  "host": "trn22",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave59",
+  "expected_commit": "598ea8b443f361ecf456a2effdaa34d905f00a3f",
+  "label": "fs-w59-adamw-staged-integration-gate-r1",
+  "purpose": "Correctly account for FP32 stored-moment rounding with independent moment and conditional-weight gates. Original constants and whole-update/trajectory RMS remain, CPU counterexamples and corruption controls first. Kernel/adapter unchanged. Require cache, identity/version, skip and bit-exact state restore checks before full-step timing.",
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1",
+    "NEURON_RT_VISIBLE_CORES": "0",
+    "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1"
+  },
+  "fingerprint_paths": [
+    "research/scratch/adamw_fused_fp32.py",
+    "research/scratch/adamw_fused_fp32_probe.py",
+    "research/scratch/adamw_fused_integration.py",
+    "research/scratch/adamw_fused_integration_check.py",
+    "research/scratch/mlp_fused_bf16_probe.py",
+    "research/scratch/adamw_stage_accuracy.py"
+  ],
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1200s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "research/scratch/adamw_fused_integration_check.py"
+  ],
+  "started_at": "2026-09-18T20:55:22.577529+00:00",
+  "hostname": "ip-172-31-32-253",
+  "git_commit": "598ea8b443f361ecf456a2effdaa34d905f00a3f",
+  "source_dirty": false,
+  "preflight_free_bytes": 20715700224,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+    "research/fresh_start_host.py": "8c597adea7c48114bed8f50aa161fdc79b36b49c86c7315e6a58c3ca4e8f5f79",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/fresh_start_backup.py": "c978fd20b6620d0d80c25f8982974e8c4b2ad009edd9da376d784f5cecc3ead3",
+    "research/scratch/adamw_fused_fp32.py": "d5e6b973a95c0dfd447b5fdd7d6ee111d48da151e1a8bb5b696b80650b859240",
+    "research/scratch/adamw_fused_fp32_probe.py": "a16525b922dcdf939fe13c6923a405f7c9e3248e2759bf16a84880658bb8af5f",
+    "research/scratch/adamw_fused_integration.py": "deabe2388bd0c28fbd8a39cb787980d6025d3070412b53e389311e3039490daf",
+    "research/scratch/adamw_fused_integration_check.py": "60189eaefeaf742ae0fd5b76aea809634b7992bf2429adfc6256b057ee98e2b6",
+    "research/scratch/mlp_fused_bf16_probe.py": "565991e1fb29dcf41c6db58e098891a5e59685b231d6475bed66e465242483ed",
+    "research/scratch/adamw_stage_accuracy.py": "10dfa143fa6c4c11cb4499ef16c7233861302848197a5a5a1317c62d5532e048"
+  }
+}

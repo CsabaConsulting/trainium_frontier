@@ -1,0 +1,36 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave60",
+    "expected_commit": "efaebf192d5e32d2386353970142e1597821cf33",
+    "label": "fs-w60-optimizer-weight-exchange-r1",
+    "purpose": "Native 4-rank FP32 all-gather feasibility and actual dense6x1024 parameter pack/gather/copyback cost. Exact rank/parameter/element patterns, deterministic whole-matrix ownership. No optimizer update, no training quality or full-step claim.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "900s",
+      "/home/ubuntu/workspace/native_venv/bin/torchrun",
+      "--standalone",
+      "--nproc_per_node=4",
+      "/home/ubuntu/trainium_freshstart_20260918_wave60/research/scratch/optimizer_weight_exchange_probe.py",
+      "--steps",
+      "20",
+      "--blocks",
+      "3"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/optimizer_weight_exchange_probe.py"
+    ]
+  },
+  "requested_at": "2026-09-18T20:58:21.154219+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w60-optimizer-weight-exchange-r1\", \"pid\": 1076868, \"commit\": \"efaebf192d5e32d2386353970142e1597821cf33\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave60/research/run-logs/fs-w60-optimizer-weight-exchange-r1.log\", \"started_at\": \"2026-09-18T20:58:27.523751+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}
