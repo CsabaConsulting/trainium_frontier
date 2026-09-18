@@ -4,7 +4,7 @@ Objective: minimize **official 30-minute validation bits per byte** on one full
 Trainium2 chip. Sub-1.0 on public validation is an engineering milestone, not a
 claim about the private leaderboard. The metric is lower-is-better.
 
-**Current update, 11:45 UTC:** the width896 direct-attention control completed
+**Current update, 11:57 UTC:** the width896 direct-attention control completed
 2,188 updates at **0.987568 public BPB @2048 / 0.999880 @1024**. Its fused
 FP32 table-optimizer counterpart completed 2,204 updates at **0.986947 /
 0.999735**. Both fit the budget and use four ranks and 2,097,152 evaluation
@@ -25,7 +25,10 @@ causality/repetition checks on all four ranks. Its full1,800s run `fs-w12-dense1
 completed2,977updates/390,201,344targets at **0.981710BPB@2048 /0.996689@1024**,
 using the same four-rank2.1M-token diagnostic geometry as the dense control.
 Estimated charged time1785.3s, causality0, checkpoint locally hash-verified.
-The standalone20.97M-token/context1024/O1 check started on trn22 at11:43.
+The standalone20.97M-token/context1024/O1 check completed at **1.002066687 BPB**,
+83,462,186bytes,709.243s. This improves on the similarly evaluated table model
+by0.002386175 but remains above1.0. The larger sample, rather than the small
+diagnostic's0.996689, is the current dense quality reference.
 
 The NKI-only configuration with original FP32 normalized activations is **not
 promoted**: its full run and integrated phase fail with NaNs, localized before
@@ -52,8 +55,18 @@ the throughput cost defeated it. Full-budget BPB is now the decision gate.
 
 A separate CPU research probe examines conservative canonical-BPE continuation
 constraints using only the fixed tokenizer and provided training shard0. It
-does not change the tokenizer, data loader, trainer, or scorer, and has no BPB
-claim. A generic GPT-2 mask is not safe to transplant because the regex differs.
+does not change the tokenizer, data loader, trainer, or scorer. A generic GPT-2
+mask is not safe to transplant because the regex differs. The native paired
+diagnostic `fs-w15-dense1024-canonical-paired-eval-r1` launched on trn22 at11:57,
+source`4f0e77a`, using the preserved dense checkpoint, fresh tokenizer-only mask,
+and unchanged scorer. Native causal/reference gates precede any BPB measurement.
+
+The cached-weight FP8 component probe is prepared on trn21's immutable wave16
+checkout, source`8704139`, but has not run. It covers actual MLP shapes, native
+matmul and F.linear controls, and both operand layout costs. Keep its empirical
+pair-rounding reference separate from a hardware-specification claim. An
+updated dense device trace, B8/GA2 phase gate and SDPA-only precision gate are
+also prepared; launch only when the corresponding host is idle.
 
 ### Next decisions after the active dense runs
 

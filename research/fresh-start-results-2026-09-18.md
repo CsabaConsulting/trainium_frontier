@@ -4,12 +4,13 @@ This ledger separates full training, standalone evaluation, numerical tests and
 microbenchmarks. A successful process is not automatically a promoted model.
 Public diagnostics do not establish a private competition score.
 
-**Larger-sample result, 10:23 UTC:** the completed width896 fused-FP32-optimizer
-checkpoint scores **1.004452861885313 BPB** at context1024 on 20,971,520 public
-tokens. Its earlier four-rank two-million-token diagnostic was 0.999735. The
-larger result, using the fixed standalone sample and geometry below, is the
-stronger current quality evidence; the campaign has not established a robust
-sub-1.0 result at context1024.
+**Larger-sample result, 11:57 UTC:** the optimized dense6×1024 checkpoint,
+without hashed n-gram tables, scores **1.0020666867349943 BPB** at context1024
+on20,971,520 public tokens. The best similarly evaluated width896 table model
+scores1.004452861885313. The dense result improves by0.002386175 under the
+same evaluation geometry; it does not establish robust sub-1.0 quality or
+independent-seed repeatability. Its earlier four-rank2.1M-token diagnostic was
+0.996689. Prefer the larger fixed-sample result for current model selection.
 
 ## First completed training wave
 
@@ -82,6 +83,19 @@ matches the first-wave evaluation exactly. This improves BPB by 0.005436533;
 training changed direct SDPA, table-optimizer arithmetic and completed updates,
 so this is not an isolated optimizer comparison. See
 [larger newer-checkpoint evaluation](run-logs/fs-w6-eval-w896-nki-rms-s1024-20m-o1-r1.log).
+
+The optimized dense `fs-w12-dense1024-nki-norm-1800-r1` checkpoint now completes
+the identical standalone configuration: **1.0020666867349943 BPB**,
+**20,971,520 tokens**, **83,462,186 bytes**, **57,971,140 total nats**,
+709.243 evaluation seconds, no timeout. Source`c61bfca`; unchanged scorer,
+world1/B1/context1024/O1 without global autocast. Its checkpoint SHA256 is
+`d05929eddd9a0dc313ebb750b01008f6c3f83386f371114532291a42c5e48755`.
+Both model families were freshly trained within the same1,800s budget, seed42;
+architecture, update count and precision differ, so this is a budgeted candidate
+comparison, not an isolated n-gram ablation. The dense checkpoint still has
+ordinary unigram value embeddings and trained causal local convolutions.
+See [dense larger evaluation](run-logs/fs-w12-eval-dense1024-nki-norm-s1024-20m-o1-r1.log)
+and its structured summary. No private leaderboard result is inferred.
 
 ## Direct compiled SDPA: completed 30-minute width896 control
 

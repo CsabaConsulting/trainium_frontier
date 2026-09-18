@@ -21,14 +21,17 @@ measurement history contain concrete changes that previous high-level conclusion
 do not account for. A complete replacement with an SSM or all-FP8 stack would make
 these mechanisms harder to isolate.
 
-**11:45 UTC update:** the dense6×1024 path, without hashed n-gram tables,
+**11:57 UTC update:** the dense6×1024 path, without hashed n-gram tables,
 now completes2,977updates/390.2M target presentations in budget at **0.981710
 BPB@2048 /0.996689@1024**, versus1.012886/1.027777 for the1,805-update dense
 control. Custom NKI convolution plus BF16 normalized branch inputs reduces the
 gated update from0.986s to0.588s; residuals stay FP32. The combined change
 therefore improves real full-budget quality, not just throughput. Its checkpoint
-is locally hash-verified. These are four-rank2.1M-token public diagnostics; the
-20.97M-token standalone result is pending. Eight-layer dense capacity passed a
+is locally hash-verified. These are four-rank2.1M-token public diagnostics. The
+identical20.97M-token standalone check now gives **1.002066687 BPB**, versus
+**1.004452862** for the table model, with the same83,462,186bytes scored. The
+dense implementation is a competitive full-budget route; it is still above1.0
+on the larger sample and has no independent-seed confirmation. Eight-layer dense capacity passed a
 0.744s phase gate and is in full training. There is still no verified information
 about the leading teams' architectures.
 
