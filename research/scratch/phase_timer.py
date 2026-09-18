@@ -539,6 +539,11 @@ def main():
                                     experimental_config=trace_config)
                             if trace_config is not None else nullcontext())
         with profiler_context as prof:
+            if ddp:
+                # Profiler startup can be slow. Align all ranks after startup
+                # so unrecorded ranks still provide the usual chip contention.
+                dist.barrier()
+                T.synchronize(device)
             if args.trace_target == "microstep":
                 with record_function("fresh_start_single_forward_backward_microstep"):
                     micro()
