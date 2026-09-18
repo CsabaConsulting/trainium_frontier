@@ -151,3 +151,14 @@ See its [receipt](run-logs/fs-w14-dense1024-depth8-nki-norm-1800-r1.preservation
 This weaker candidate is preserved just as the winning candidate is. The completed
 wave12 mirror was stopped after a final successful sync; wave15 and wave16 mirrors
 now retrieve the new diagnostics. No active source checkout was modified.
+
+The current NKI/BF16-normalization dense device capture is locally preserved at
+`out/fresh-start-profiles/fs-w16-dense1024-nki-norm-device-micro-r1/`.
+All **63files,1,198,602,679bytes** independently match their remote SHA256s and
+sizes, verified12:19:22UTC. This includes the eight exported compiled graph
+NEFFs and the raw NTFF; the remote originals remain. See its
+[receipt](run-logs/fs-w16-dense1024-nki-norm-device-micro-r1.preservation.json)
+and per-file remote manifest. Explorer's system-directory ingestion missed
+the separately exported compiled NEFFs, including in a second input tree with
+hard links beside the NTFF. A direct NTFF ingestion with explicit NEFF arguments
+is now being checked; neither analysis attempt changed the preserved raw capture.

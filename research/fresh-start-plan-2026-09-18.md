@@ -4,7 +4,7 @@ Objective: minimize **official 30-minute validation bits per byte** on one full
 Trainium2 chip. Sub-1.0 on public validation is an engineering milestone, not a
 claim about the private leaderboard. The metric is lower-is-better.
 
-**Current update, 12:05 UTC:** the width896 direct-attention control completed
+**Current update, 12:20 UTC:** the width896 direct-attention control completed
 2,188 updates at **0.987568 public BPB @2048 / 0.999880 @1024**. Its fused
 FP32 table-optimizer counterpart completed 2,204 updates at **0.986947 /
 0.999735**. Both fit the budget and use four ranks and 2,097,152 evaluation
@@ -67,24 +67,36 @@ constrained, identical2.1M-token/world1/B1/context1024 geometry. The **0.0000758
 BPB gain** is small; this conservative mask is deprioritized without a training
 integration. This does not close every stronger tokenizer constraint.
 
-The cached-weight FP8 component probe is prepared on trn21's immutable wave16
-checkout, source`8704139`, and launched at12:04. It covers actual MLP shapes, native
-matmul and F.linear controls, and both operand layout costs. Keep its empirical
-pair-rounding reference separate from a hardware-specification claim. An
-updated dense device trace and SDPA-only precision gate are also prepared.
-Trn22's B8/GA2 phase gate launched12:02; a full run requires updated-model gates
-and <=570ms median update (at least about3% saving against587.999ms).
+The cached-weight FP8 component probe on trn21, source`8704139`, completed all
+four numerical gates. At the real MLP input/output projection shapes, native
+BF16 matmul measures0.556/0.548ms; FP8 including both operand layouts and casts
+measures0.633/1.096ms. Even with pretransposed weights, the second projection
+loses. Do not integrate this implementation. Its empirical pair-rounding
+reference is not a hardware specification; online scale reduction and backward
+are not included, so this is not evidence for an end-to-end FP8 speedup.
+
+The updated dense device capture is complete, with an unprofiled585.183ms
+control agreeing with the earlier587.999ms. All63raw trace/binary files
+(1,198,602,679bytes) are locally preserved with independently matched SHA256s;
+CPU ingestion is running before the next training job. The old FP32 attention
+trace cannot identify the current bottleneck after changing activation precision.
+
+Trn22's B8/GA2 phase passes all four updated-model checks but measures576.865ms,
+only about1.9% faster. It misses the predeclared <=570ms full-run gate. One
+B16/GA1 phase is active; do not launch the prepared B8 full run. A gradient
+clipping-order full-budget control is prepared on trn21: reduce/average gradients
+before clipping, with the successful six-layer dense configuration otherwise
+unchanged. This is an algorithm comparison, not a presumed bug correction.
 
 ### Next decisions after the active dense runs
 
 1. Preserve each completed checkpoint locally with size/SHA receipts. Run the
    unchanged standalone scorer at B1/context1024/20,971,520tokens with O1 and no
    global autocast for a promising model; compare only identical geometry.
-2. Test canonical masking on one frozen checkpoint using two unchanged scorer
-   calls and a freshly tokenizer-derived mask. Require native finite/causal/
-   batch/repetition and CPU-reference mask checks first. This is a research
-   diagnostic; any promoted version must train the same distribution and pay
-   its construction/step cost within the budget.
+2. Complete the clipping-order full-budget control after trace ingestion. Keep
+   the conservative canonical-token mask deprioritized following its measured
+   0.00007583BPB paired improvement. A broader constraint would be a separate
+   hypothesis with its own proof and training-cost requirements.
 3. Gate the integrated **SDPA-only BF16 + NKI convolution** precision arm. The
    earlier scratch composition measured670ms and passed four-rank postchecks;
    production integration and full-budget BPB still need testing. Use it if
@@ -101,7 +113,7 @@ and <=570ms median update (at least about3% saving against587.999ms).
    ~55ms/588ms, so even eliminating it saves only9.4% overall. A cast-inclusive
    FP8 island must beat the current BF16 path, not the old slow graph.
 
-The device trace identifies approximately614 GFLOPs of FP32 attention-backward
+The earlier FP32 device trace identifies approximately614 GFLOPs of attention-backward
 matrix work in one profiled microbatch across rank0's two physical cores. BF16
 at the SDPA boundary alone also passes updated-model checks and is an independent
 candidate. No public evidence establishes which architectures the leaderboard

@@ -639,3 +639,55 @@ implementation would need its own cost/gradient/full-budget gates. This is not a
 claim that a broader constraint cannot help, or a projection onto20.97M tokens.
 The one fixed-order timing pair is not an interleaved warmed speed benchmark.
 Raw log and structured result are retained beside the source manifest.
+
+### Cached-weight FP8 at actual MLP shapes: numerical pass, no promotion
+
+`fs-w16-fp8-tiled-real-mlp-r1`, source`8704139`, caches the complete weight tile
+in SBUF once per GEMM call and reuses each quantized activation tile across
+output tiles. It includes a BF16 kernel with the same tiling, native matmul and
+F.linear controls, and separate operand-layout arms. Three interleaved timing
+repetitions each contain12calls after warmup. All four shape gates pass finite
+checks, quantized/unquantized error bounds and sampled pair-reference checks.
+The roughly3.77% relative RMS difference from unquantized matmul is a real
+FP8 quantization change; the empirical pair-rounding reference is not an AWS
+hardware specification.
+
+| Median milliseconds, M=8192 | K1024/N4096 | K4096/N1024 |
+|---|---:|---:|
+| Native BF16 matmul |0.556214|0.548434|
+| Native BF16 F.linear, original NK weights |0.556833|0.588618|
+| Weight layout refresh alone |0.083793|0.085504|
+| Cached NKI BF16, activation layout included |0.705372|1.286571|
+| Cached NKI FP8, activation layout and casts included |0.550498|1.001536|
+| Cached NKI FP8, both layouts and casts included |0.633388|1.096418|
+| FP8 pretransposed operands, lower bound |0.384483|0.550813|
+
+Static CPU-calibrated scales are held fixed during timing; online amax and
+backward are excluded. Weight caching here lasts one GEMM invocation, not an
+optimizer step. Amortizing the separately measured weight layout over four
+calls would estimate0.571/1.023ms, but this is not a measured training result.
+Do not integrate this implementation: one projection only ties the native
+path before weight-layout cost, and the other loses. Fused layout production
+or a persistent cache would require a new implementation and new evidence.
+
+### Dense microbatch packing with the successful NKI/BF16 path
+
+`fs-w15-dense1024-pack8-nki-norm-phase-r1`, source`4f0e77a`, uses B8/T2048/GA2
+and the same131,072global targets/update as the B4/T2048/GA4 reference. All four
+updated-model finite/causal/repetition checks pass. Across eight warmed updates,
+the median is **576.865ms**, range574.518–579.311ms, versus587.999ms for B4.
+The roughly1.9% saving misses the predeclared570ms full-budget promotion gate;
+the prepared B8 full run is not launched. One B16/GA1 phase is warranted by
+the small positive trend and is active. Packing changes loader row geometry
+and token order, so eventual full-budget quality would need measurement.
+
+### Current dense profile preservation and throughput control
+
+`fs-w16-dense1024-nki-norm-device-micro-r1`, source`8704139`, captures one
+rank0 microbatch of the current six-layer NKI/BF16-normalization graph at
+B4/T2048/GA4 on four ranks. Its unprofiled update median is **585.183ms** and
+all four updated-model gates pass. This agrees with the587.999ms earlier gate;
+it does not show the large throughput deterioration reported for some older
+campaign runs. Profiled execution duration is not used as throughput evidence.
+All63raw files, including the eight compiled graph binaries, are locally
+SHA256-verified (1,198,602,679bytes). Ingestion/attribution is pending.

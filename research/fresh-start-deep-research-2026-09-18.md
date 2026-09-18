@@ -21,7 +21,7 @@ measurement history contain concrete changes that previous high-level conclusion
 do not account for. A complete replacement with an SSM or all-FP8 stack would make
 these mechanisms harder to isolate.
 
-**12:05 UTC update:** the dense6×1024 path, without hashed n-gram tables,
+**12:22 UTC update:** the dense6×1024 path, without hashed n-gram tables,
 now completes2,977updates/390.2M target presentations in budget at **0.981710
 BPB@2048 /0.996689@1024**, versus1.012886/1.027777 for the1,805-update dense
 control. Custom NKI convolution plus BF16 normalized branch inputs reduces the
@@ -36,6 +36,15 @@ on the larger sample and has no independent-seed confirmation. Eight-layer dense
 six layers'0.996689 because the extra capacity comes with fewer budgeted updates.
 That mechanism is an interpretation, not a matched-update ablation. There is still no verified information
 about the leading teams' architectures.
+
+The real-shape cached-weight FP8 probe passes its numerical gates but does not
+beat native BF16 after layout preparation; the MLP output projection is the
+clear negative. The B8 microbatch phase saves only1.9%, below its full-run gate;
+one B16 phase remains active. A fresh current-graph device capture is preserved
+locally, and its unprofiled585ms update agrees with the earlier588ms result.
+The next full-budget algorithm control changes only clipping order to average
+gradients before clipping. These are measured decisions and a pending test,
+not evidence that the remaining0.00207BPB gap has been solved.
 
 
 Supporting audits:
@@ -355,6 +364,15 @@ alone do not justify integrating it. Full-sequence adaptive scaling at evaluatio
 could also introduce future-token dependence; the scale policy needs a separate
 causality check.
 
+The second implementation removes repeated weight loading within a GEMM and
+tests the actual dense MLP shapes. At M8192/K1024/N4096 and M8192/K4096/N1024,
+native BF16 measures0.556/0.548ms, while cached FP8 including both operand
+layouts and casts measures0.633/1.096ms. Even the activation-layout-only arm is
+0.550/1.002ms. All numerical gates pass, but no training integration is justified.
+Static scales and excluded backward make these component bounds, not a full FP8
+pipeline test. The [results ledger](fresh-start-results-2026-09-18.md) retains
+all controls, including native F.linear and pretransposed lower bounds.
+
 DeepSeek-V3 demonstrates carefully scaled low-precision training, but its large
 model and GPU-specific engineering do not transfer as a recipe. It is a source
 of hypotheses about scaling granularity and sensitive paths, not evidence that
@@ -430,6 +448,15 @@ benchmark if Muon is still a significant fraction of step time. Square groups
 may be better left unchanged. Neither the CUDA kernels nor their published
 speedups apply directly to this installed native backend.
 [Algorithm and stability discussion](https://tridao.me/blog/2026/gram-newton-schulz/).
+
+The reference code uses FP16, FP32 normalization, and a restart after two
+iterations. Our optimizer uses BF16 normalization with a1.01 safety factor and
+different polynomial coefficients. A transplant would therefore change several
+algorithms at once. First derive the recurrence with our existing coefficients,
+check exact-arithmetic equivalence and low-rank/ill-conditioned cases, then
+measure the actual native optimizer. Its present55ms of a588ms update bounds
+the total upside even before engineering costs. No Gram implementation has been
+promoted. [Author implementation](https://github.com/Dao-AILab/gram-newton-schulz/blob/main/gram_newton_schulz/gram_newton_schulz.py).
 
 ### New bounded candidate: canonical-token continuation constraints
 
@@ -520,7 +547,7 @@ These proposals are conditional experiments, not measured wins:
 | Hypothesis | Smallest useful test | Advancement/stop criterion |
 |---|---|---|
 | The new dense graph benefits from fewer, larger microbatches | B8/GA2 versus B4/GA4 at fixed131,072 global targets andT2048, then B16/GA1 only if justified | full-step timing and updated-model gates; real-loader geometry changes packing/order, so quality needs a full run |
-| The current FP8 negative is partly a layout/shape problem | repeat cast-inclusive native BF16/NKI BF16/NKI FP8 comparisons at actual MLP shapes M8192,K1024,N4096 and M8192,K4096,N1024; amortize weight layouts once per update | stop if no end-to-end matrix win including preparation; do not substitute kernel-only timing or peak FLOPs |
+| The first FP8 negative is partly a layout/shape problem | completed cached-weight real-MLP-shape probe; all numerical checks pass | still loses after preparation, especially the output projection; no training integration |
 | Four LNC2 ranks are no longer the best full-chip mapping after removing hashed gathers | deferred: the earlier LNC1 audit records initialization/synchronization hangs even without model compilation on this native stack | no training retry merely because the architecture changed; first require evidence of a working runtime mapping and compatible custom kernels, without SDK/driver changes |
 | NKI convolution changes a compiled buffer/graph assumption in the FP32 path | preserve the failing uninstrumented graph, then a minimal eager/compiled pair and owned NEFFs; instrument only one boundary at a time | finite hooked/eager execution is evidence to localize, not a production workaround; never promote a fast NaN graph |
 
