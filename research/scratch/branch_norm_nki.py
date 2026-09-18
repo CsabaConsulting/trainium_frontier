@@ -21,14 +21,21 @@ def build_kernels():
     import nki.isa as nisa
 
     @nki.jit
-    def forward(x, lanes: int = 2, inverse_mode: int = 2):
+    def forward(x, lanes: int = 2, inverse_mode: int = 2, packed_inverse: bool = False):
         rows, channels = x.shape
         assert x.dtype == nl.float32 and channels % 128 == 0
         assert lanes in (1, 2) and rows % (128 * lanes) == 0
         assert inverse_mode in (0, 1, 2)
         y = nl.ndarray(x.shape, dtype=nl.bfloat16, buffer=nl.shared_hbm)
-        inverse = nl.ndarray((rows, 1), dtype=nl.float32, buffer=nl.shared_hbm)
-        for i in nl.affine_range(rows // (128 * lanes)):
+        tiles = rows // (128 * lanes)
+        if packed_inverse:
+            # Batch the tiny row statistics into one contiguous DMA per core.
+            # Column pid*tiles+i corresponds to the original interleaved tile.
+            inverse = nl.ndarray((128, lanes * tiles), dtype=nl.float32, buffer=nl.shared_hbm)
+            saved_inverse = nl.ndarray((128, tiles), dtype=nl.float32, buffer=nl.sbuf)
+        else:
+            inverse = nl.ndarray((rows, 1), dtype=nl.float32, buffer=nl.shared_hbm)
+        for i in nl.affine_range(tiles):
             start = (i * lanes + nl.program_id(0)) * 128
             values = nl.ndarray((128, channels), dtype=nl.float32, buffer=nl.sbuf)
             squared = nl.ndarray((128, channels), dtype=nl.float32, buffer=nl.sbuf)
@@ -62,17 +69,31 @@ def build_kernels():
                 nisa.tensor_tensor(dst=inv, data1=inv, data2=refinement, op=nl.multiply)
             nisa.tensor_scalar(dst=output, data=values, op0=nl.multiply, operand0=inv)
             nisa.dma_copy(dst=y[start:start + 128, :], src=output)
-            nisa.dma_copy(dst=inverse[start:start + 128, :], src=inv)
+            if packed_inverse:
+                nisa.tensor_copy(dst=saved_inverse[:, i:i + 1], src=inv)
+            else:
+                nisa.dma_copy(dst=inverse[start:start + 128, :], src=inv)
+        if packed_inverse:
+            first = nl.program_id(0) * tiles
+            nisa.dma_copy(dst=inverse[:, first:first + tiles], src=saved_inverse)
         return y, inverse
 
     @nki.jit
-    def backward(x, gradient, inverse, lanes: int = 2):
+    def backward(x, gradient, inverse, lanes: int = 2, packed_inverse: bool = False):
         rows, channels = x.shape
         assert x.dtype == nl.float32 and gradient.dtype == nl.bfloat16
-        assert gradient.shape == x.shape and inverse.shape == (rows, 1)
+        assert gradient.shape == x.shape
         assert lanes in (1, 2) and rows % (128 * lanes) == 0
+        tiles = rows // (128 * lanes)
+        if packed_inverse:
+            assert inverse.shape == (128, lanes * tiles)
+            saved_inverse = nl.ndarray((128, tiles), dtype=nl.float32, buffer=nl.sbuf)
+            first = nl.program_id(0) * tiles
+            nisa.dma_copy(dst=saved_inverse, src=inverse[:, first:first + tiles])
+        else:
+            assert inverse.shape == (rows, 1)
         dx = nl.ndarray(x.shape, dtype=nl.float32, buffer=nl.shared_hbm)
-        for i in nl.affine_range(rows // (128 * lanes)):
+        for i in nl.affine_range(tiles):
             start = (i * lanes + nl.program_id(0)) * 128
             values = nl.ndarray((128, channels), dtype=nl.float32, buffer=nl.sbuf)
             gb = nl.ndarray((128, channels), dtype=nl.bfloat16, buffer=nl.sbuf)
@@ -87,7 +108,10 @@ def build_kernels():
             nisa.dma_copy(dst=values, src=x[start:start + 128, :])
             nisa.dma_copy(dst=gb, src=gradient[start:start + 128, :])
             nisa.tensor_copy(dst=grad, src=gb)
-            nisa.dma_copy(dst=inv, src=inverse[start:start + 128, :])
+            if packed_inverse:
+                nisa.tensor_copy(dst=inv, src=saved_inverse[:, i:i + 1])
+            else:
+                nisa.dma_copy(dst=inv, src=inverse[start:start + 128, :])
             nisa.tensor_tensor(dst=products, data1=grad, data2=values, op=nl.multiply)
             nisa.tensor_reduce(dst=dot, op=nl.add, data=products, axis=(1,))
             nisa.tensor_tensor(dst=r2, data1=inv, data2=inv, op=nl.multiply)
@@ -102,7 +126,7 @@ def build_kernels():
     return forward, backward
 
 
-def make_function(inverse_mode=2):
+def make_function(inverse_mode=2, packed_inverse=False):
     assert inverse_mode in (1, 2), "unrefined inverse is diagnostic-only"
     from torch_neuronx import wrap_nki
     forward, backward = (wrap_nki(kernel) for kernel in build_kernels())
@@ -112,7 +136,7 @@ def make_function(inverse_mode=2):
         def forward(ctx, x):
             shape = x.shape
             flat = x.reshape(-1, shape[-1])
-            y, inv = forward[2](flat, 2, inverse_mode)
+            y, inv = forward[2](flat, 2, inverse_mode, packed_inverse)
             ctx.save_for_backward(flat, inv)
             ctx.shape = shape
             return y.reshape(shape)
@@ -121,7 +145,7 @@ def make_function(inverse_mode=2):
         def backward(ctx, grad):
             values, inv = ctx.saved_tensors
             gradient = grad.reshape(values.shape).contiguous()
-            return backward[2](values, gradient, inv, 2).reshape(ctx.shape)
+            return backward[2](values, gradient, inv, 2, packed_inverse).reshape(ctx.shape)
 
     return BranchNorm.apply
 

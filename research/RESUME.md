@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-18, 20:19 UTC. Active permissions: danger-full-access, approval never.
+Updated 2026-09-18, 20:28 UTC. Active permissions: danger-full-access, approval never.
 This replaces the accumulated stale resume instructions; their history remains
 in Git. Do not restart completed experiments from earlier revisions.
 
@@ -17,11 +17,12 @@ in Git. Do not restart completed experiments from earlier revisions.
   slower than native. Wave53 native/NKI device profile completed cleanly at
   20:07:29UTC: 13 files / 5,274,556 bytes, all copied locally with matching
   remote/local hashes at 20:13. Local ingestion succeeded: 23 tables in 3.48s.
-  Wave54 AdamW NKI passed small shapes, but the compiled native control stopped
-  the real-shape probe at one failing weight bound (foreach fails it too).
-  Clean postflight; no real-size NKI or timing claim. Wave55 retains all bounds,
-  diagnoses the offending element and tests NKI independently, excluding an
-  ineligible compiled control from candidate timing.
+  Wave55 AdamW passed all 34 NKI case checks, including real 8M-element tables.
+  Foreach 4.004879ms / functional NKI 1.230406ms / in-place 2.436495ms. Original
+  bounds remain unchanged; native compiled control fails one element and is
+  excluded. The same-host 30-step native-MLP/pack8 full-step control is active
+  at wave55, fs-w55-native-mlp-pack8-adam-control-phase-r1. Wave56 integration
+  gates are prepared; wait for clean control postflight before launching them.
 - Preflight backup false positive is fixed by exact-script recognition, with
   five passing regression checks. Device-holder and runtime checks are intact.
 - Next implementation target: fused FP32 AdamW. Current full-step trace has
@@ -100,7 +101,7 @@ Local OS **Devuan/SystemV**. Usercsaba cron, no sudo/root, no systemd:
   recovery branch `backup/fresh-start-20260918`, atomically pushes source+WIP and
   verifies both refs. Skips merge/rebase/cherry-pick/index locks, does not pull,
   merge, force-push or change active HEAD/index. Latest verified source
-  `a094e5a8091731733efbf4c75ca30d14b0f59056` at20:10, with both refs verified.
+  `f65283eb2a67e09d021f2cf3e7c8218d4160146e` at20:20, with both refs verified.
 - Minutes5/35: `research/fresh_start_artifact_backup_cron.sh`, own lock, nice10,
   bounded uploader, digest-verified immutable assets in draft release
   `research-backup-20260918`. The20:05cycle completed at20:05:34UTC: **28of28
@@ -141,6 +142,6 @@ Fused forward raw profile: local `out/fresh-start-profiles/fs-w36-dense1024-fuse
 Ingested32tables299,505,407bytes under local `out/fresh-start-profiles/fs-w39-mlp-forward-parquet-r2/`;
 remote wave39/out/fs-w39-mlp-forward-parquet-r2/i-0673e54d9d66e6a1e_pid_1335537_nc_0_session_0.
 Baseline tables local `out/fresh-start-profiles/dense1024-nki-norm-current-parquet`,
-remote trn22 wave40/out/dense1024-nki-norm-current-parquet. LocalPy3.14 lacks
-pyarrow; remote venv has it. Avoid memory-heavy local re-ingestion. Explorer is
+remote trn22 wave40/out/dense1024-nki-norm-current-parquet. Use local out/fresh-start-tools/profile-analysis-venv/bin/python (Python3.12,
+pyarrow25.0.0) for bounded analysis. Avoid memory-heavy local re-ingestion. Explorer is
 `/opt/aws/neuron/bin/neuron-explorer`, not venv/bin.

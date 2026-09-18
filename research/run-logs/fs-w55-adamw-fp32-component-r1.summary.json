@@ -1,0 +1,130 @@
+{
+  "label": "fs-w55-adamw-fp32-component-r1",
+  "nki_checks": 34,
+  "all_nki_checks_pass": true,
+  "control_failures": [
+    {
+      "name": "foreach:4096:2048:first",
+      "enforced": false,
+      "passed": false,
+      "results": [
+        {
+          "field": "weight",
+          "finite": true,
+          "bound_failures": 1,
+          "relative_rms": 8.995879159621726e-07,
+          "max_abs": 1.5304413289798924e-07,
+          "passed": false,
+          "worst_bound": {
+            "flat_index": 3538528,
+            "actual": 0.01974930800497532,
+            "expected": 0.01974915496084242,
+            "error": 1.5304413289798924e-07,
+            "bound": 1.5067438224363696e-07,
+            "envelope": 0.01974915496084242,
+            "inputs": {
+              "p": 0.0,
+              "g": -7.873063978536265e-09,
+              "m": 0.0,
+              "v": 0.0
+            }
+          }
+        },
+        {
+          "field": "first_moment",
+          "finite": true,
+          "bound_failures": 0,
+          "relative_rms": 2.516301499342026e-08,
+          "max_abs": 1.1059306248561995e-10,
+          "passed": true
+        },
+        {
+          "field": "second_moment",
+          "finite": true,
+          "bound_failures": 0,
+          "relative_rms": 3.5773641986815097e-08,
+          "max_abs": 6.659737848403692e-13,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "name": "compiled:4096:2048:first",
+      "enforced": false,
+      "passed": false,
+      "results": [
+        {
+          "field": "weight",
+          "finite": true,
+          "bound_failures": 1,
+          "relative_rms": 9.00328963644087e-07,
+          "max_abs": 1.5118148774875828e-07,
+          "passed": false,
+          "worst_bound": {
+            "flat_index": 3538528,
+            "actual": 0.01974930614233017,
+            "expected": 0.01974915496084242,
+            "error": 1.5118148774875828e-07,
+            "bound": 1.5067438224363696e-07,
+            "envelope": 0.01974915496084242,
+            "inputs": {
+              "p": 0.0,
+              "g": -7.873063978536265e-09,
+              "m": 0.0,
+              "v": 0.0
+            }
+          }
+        },
+        {
+          "field": "first_moment",
+          "finite": true,
+          "bound_failures": 0,
+          "relative_rms": 2.516301499342026e-08,
+          "max_abs": 1.1059306248561995e-10,
+          "passed": true
+        },
+        {
+          "field": "second_moment",
+          "finite": true,
+          "bound_failures": 0,
+          "relative_rms": 3.5773641986815097e-08,
+          "max_abs": 6.659737848403692e-13,
+          "passed": true
+        }
+      ]
+    }
+  ],
+  "benchmark": {
+    "rows": 4096,
+    "columns": 2048,
+    "elements": 8388608,
+    "samples_ms": {
+      "actual_foreach": [
+        3.46067679929547,
+        4.00487945007626,
+        4.063147198758088
+      ],
+      "nki_functional": [
+        1.230406400281936,
+        1.3157412991859019,
+        1.2144605512730777
+      ],
+      "nki_inplace": [
+        2.463518749573268,
+        2.421240651165135,
+        2.436494900030084
+      ]
+    },
+    "median_ms": {
+      "actual_foreach": 4.00487945007626,
+      "nki_functional": 1.230406400281936,
+      "nki_inplace": 2.436494900030084
+    },
+    "scheduled_lr_bias_updates_scalar_upload_and_weight_copy_charged": true,
+    "compiled_control_eligible": false,
+    "parameter_and_moment_dtype": "float32",
+    "whole_optimizer": false
+  },
+  "functional_component_saving_percent": 69.27731744188937,
+  "decision": "Advance functional NKI to optimizer integration gates, then predeclared same-host full-step comparison. No training promotion or speedup claim from component results alone."
+}
