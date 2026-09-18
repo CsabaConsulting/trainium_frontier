@@ -1,0 +1,40 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave53",
+    "expected_commit": "a094e5a8091731733efbf4c75ca30d14b0f59056",
+    "label": "fs-w53-branch-norm-device-profile-r1",
+    "purpose": "One warmed native/NKI real8192x1024 forward/backward device trace after full correctness passes but component timing loses30percent. Attribute remaining DMA/engine/dispatch cost; profile latency is not throughput evidence.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1"
+    },
+    "fingerprint_paths": [
+      "research/scratch/branch_norm_profile.py",
+      "research/scratch/branch_norm_nki.py",
+      "research/scratch/preserve_native_trace_neffs.py",
+      "research/scratch/mlp_separate_diagnose.py"
+    ],
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/branch_norm_profile.py",
+      "--inverse-mode",
+      "1",
+      "--trace-dir",
+      "out/fs-w53-branch-norm-device-profile-r1"
+    ]
+  },
+  "requested_at": "2026-09-18T20:07:04.613534+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w53-branch-norm-device-profile-r1\", \"pid\": 1411685, \"commit\": \"a094e5a8091731733efbf4c75ca30d14b0f59056\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave53/research/run-logs/fs-w53-branch-norm-device-profile-r1.log\", \"started_at\": \"2026-09-18T20:07:11.087134+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

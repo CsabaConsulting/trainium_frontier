@@ -1583,3 +1583,21 @@ asynchronous Muon finishes. The resulting targeted hypothesis is fused FP32
 AdamW, preserving the existing per-parameter counters and arithmetic policy.
 Compare both NKI and a pure-tensor compiled control against the actual foreach
 implementation before any integration. See the optimizer-attribution JSON.
+
+
+Wave54 prepares an isolated FP32 AdamW fusion. It keeps the model's1e-10
+epsilon, FP32 weights/moments, each parameter's bias corrections, and scheduled
+learning rate. GpSIMD rsqrt plus high-precision reciprocal avoids repeating the
+raw Scalar rsqrt error. A smallest-normal variance guard avoids0*inf; below
+that guard, sqrt variance is below an ULP of the original epsilon.
+
+Compare actual foreach, pure-tensor compilation, functional NKI with charged
+weight write-back, and explicit in-place NKI. Numerical cases include fresh/zero/
+sparse/tiny/large gradients, nonzero old moments with zero gradient, and zero LR.
+Use independent FP64 bounds, a2e-6 relative-RMS gate, and input-mutation checks.
+Native error is reported independently and cannot relax the candidate bounds.
+At the real8,388,608-element table, time all scalar preparation/upload, changing
+bias/LR values, and required write-back. This is not yet an installed optimizer.
+
+The20:05artifact cycle verified28of28 queued artifacts, zero errors, including
+the current full-step runtime trace. New wave53 profile backup remains pending.
