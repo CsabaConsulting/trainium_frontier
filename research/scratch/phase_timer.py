@@ -8,6 +8,7 @@ so the fixed-overhead-vs-compute split can be read directly, at any world_size/L
 
 import argparse
 from dataclasses import asdict
+import hashlib
 import json
 import math
 import os
@@ -34,6 +35,10 @@ def main():
                     help="step captures the complete optimizer step; microstep captures one "
                          "forward/backward pair with real warmed-up inputs. Both captures run "
                          "after the unprofiled measurements and are diagnostic only.")
+    ap.add_argument("--dump-neffs-dir", type=str, default=None,
+                    help="Export actual native compiled graphs from the in-process cache "
+                         "after timing. Device captures also export these beside their traces; "
+                         "the installed profiler alone may omit pre-warmed graph binaries.")
     ap.add_argument("--compile", action=argparse.BooleanOptionalAction, default=True)
     ap.add_argument("--local-conv", action=argparse.BooleanOptionalAction, default=True)
     ap.add_argument("--per-micro", action=argparse.BooleanOptionalAction, default=False,
@@ -557,6 +562,38 @@ def main():
             target=args.trace_target, profiled_steps=int(args.trace_target == "step"),
             profiled_microsteps=grad_accum if args.trace_target == "step" else 1,
             profiled_latency_is_performance_evidence=False)), flush=True)
+    if trace_config is not None or args.dump_neffs_dir:
+        if device_type != "neuron":
+            raise ValueError("NEFF export requires native Neuron")
+        import torch_neuronx
+        from torch_neuronx.neuron_dynamo_backend.cache_artifact import ArtifactType
+        from torch_neuronx.neuron_dynamo_backend.compile import get_compiled_cache_keys
+        export_path = (Path(args.dump_neffs_dir).resolve() / f"rank{rank}"
+                       if args.dump_neffs_dir else trace_path / "neffs")
+        export_path.mkdir(parents=True, exist_ok=True)
+        exported = []
+        missing = []
+        for key in sorted(get_compiled_cache_keys(ArtifactType.NEURON_NEFF)):
+            info = torch_neuronx._C.get_neff_info(key)
+            if info is None:
+                missing.append(key)
+                continue
+            persistent_key, data = info
+            destination = export_path / f"{persistent_key}.neff"
+            # A capture may already have copied this exact binary. Never replace
+            # a distinct artifact silently.
+            if destination.exists():
+                assert destination.read_bytes() == data, str(destination)
+            else:
+                destination.write_bytes(data)
+            exported.append(dict(cache_key=key, persistent_cache_key=persistent_key,
+                                 file=destination.name, bytes=len(data),
+                                 sha256=hashlib.sha256(data).hexdigest()))
+        manifest = dict(rank=rank, exported=exported, missing=missing,
+                        source="installed native in-process compilation cache")
+        (export_path / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
+        print("NEFF_ARTIFACT " + json.dumps(dict(rank=rank, directory=str(export_path),
+                                                exported=len(exported), missing=missing)), flush=True)
     if ddp:
         try:
             import torch.distributed as dist
