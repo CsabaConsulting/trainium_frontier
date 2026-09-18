@@ -7,6 +7,7 @@ so the fixed-overhead-vs-compute split can be read directly, at any world_size/L
 """
 
 import argparse
+from contextlib import nullcontext
 from dataclasses import asdict
 import hashlib
 import json
@@ -35,6 +36,9 @@ def main():
                     help="step captures the complete optimizer step; microstep captures one "
                          "forward/backward pair with real warmed-up inputs. Both captures run "
                          "after the unprofiled measurements and are diagnostic only.")
+    ap.add_argument("--trace-rank", type=int, default=None,
+                    help="Record only this rank while every rank executes the same capture "
+                         "workload. Defaults to all ranks; limits large device trace artifacts.")
     ap.add_argument("--dump-neffs-dir", type=str, default=None,
                     help="Export actual native compiled graphs from the in-process cache "
                          "after timing. Device captures also export these beside their traces; "
@@ -199,7 +203,9 @@ def main():
     T.COMPUTE_DTYPE = T.compute_dtype_for(device)
 
     trace_config = None
-    if args.trace_dir:
+    if args.trace_rank is not None and not 0 <= args.trace_rank < world_size:
+        raise ValueError("--trace-rank must be a rank in this process group")
+    if args.trace_dir and (args.trace_rank is None or args.trace_rank == rank):
         if device_type != "neuron":
             raise ValueError("--trace-dir uses the native Neuron profiler")
         from torch_neuronx.profiling import NeuronConfig, ProfileMode
@@ -517,7 +523,7 @@ def main():
             clip_foreach=args.clip_foreach, dataloader=args.dataloader,
             wcache_mode=args.wcache_mode, time_loss_item=args.time_loss_item,
             device_batch_size=T.DEVICE_BATCH_SIZE, pack_factor=T.PACK_FACTOR, steps=out)))
-    if trace_config is not None:
+    if args.trace_dir:
         from torch.profiler import ProfilerActivity, profile, record_function
         from torch_neuronx.profiling import NeuronProfiler
         T.synchronize(device)
@@ -529,8 +535,10 @@ def main():
             # real step. Keep allocation/zeroing outside the device capture.
             zero_grads()
             T.synchronize(device)
-        with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.PrivateUse1],
-                     experimental_config=trace_config) as prof:
+        profiler_context = (profile(activities=[ProfilerActivity.CPU, ProfilerActivity.PrivateUse1],
+                                    experimental_config=trace_config)
+                            if trace_config is not None else nullcontext())
+        with profiler_context as prof:
             if args.trace_target == "microstep":
                 with record_function("fresh_start_single_forward_backward_microstep"):
                     micro()
@@ -553,15 +561,14 @@ def main():
                     with record_function("refresh_weight_cache"):
                         refresh_cache()
                     T.synchronize(device)
-        NeuronProfiler(trace_config).export_trace(prof)
-        # A stable path is convenient for offline inspection; the native session
-        # directory contains the matching runtime/device artifacts.
-        # Export only once: Kineto's profiler does not support repeated exports.
-        print("PROFILE_ARTIFACT " + json.dumps(dict(
-            rank=rank, mode=args.trace_mode, directory=str(trace_path),
-            target=args.trace_target, profiled_steps=int(args.trace_target == "step"),
-            profiled_microsteps=grad_accum if args.trace_target == "step" else 1,
-            profiled_latency_is_performance_evidence=False)), flush=True)
+        if trace_config is not None:
+            NeuronProfiler(trace_config).export_trace(prof)
+            # Export only once: Kineto does not support repeated exports.
+            print("PROFILE_ARTIFACT " + json.dumps(dict(
+                rank=rank, mode=args.trace_mode, directory=str(trace_path),
+                target=args.trace_target, profiled_steps=int(args.trace_target == "step"),
+                profiled_microsteps=grad_accum if args.trace_target == "step" else 1,
+                profiled_latency_is_performance_evidence=False)), flush=True)
     if trace_config is not None or args.dump_neffs_dir:
         if device_type != "neuron":
             raise ValueError("NEFF export requires native Neuron")
