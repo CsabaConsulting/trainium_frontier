@@ -1,6 +1,6 @@
 # Retro numerical techniques on Trainium
 
-Research started 2026-09-18; hardware evidence updated at23:10UTC.
+Research started 2026-09-18; hardware evidence updated at23:39UTC.
 The user's scope is **all useful functions and arithmetic transformations**, not
 only square root or lookup tables. The objective remains better BPB within the
 fixed training time. A faster primitive alone is not a training result.
@@ -301,3 +301,10 @@ specifies packed128x2 contraction tiles and FP8 operands. The empirically
 characterized11-bit pair-rounding reference is our measured behavior on the
 installed stack, not an AWS guarantee. The new layout pairs corresponding
 positions in adjacent128-channel blocks and validates that order explicitly.
+
+Latest complete gates: the exact adaptive CE/gather change improves the whole
+step3.6625% (500.372595vs519.395419ms) and has advanced to fresh30-minute quality.
+Exponent-bit scaling is now exercised inside actual FP8 up/down MLP GEMMs with
+per-token independence and STE backward checks. This implementation loses
+complete-component timing (18.181170vs15.662730ms native); attribution profiling
+follows. Compact joint-function tables still have CPU, not device, evidence.

@@ -1,5 +1,14 @@
 # Fresh-start measured results — 2026-09-18
 
+**23:39UTC update:** exact adaptive CE/target gather passes the whole-model gate
+at500.372595ms versus519.395419ms (3.6625% gain). Fresh30-minute seed42 quality
+run with T1024/pack16 and optimizer ownership is active on trn21. Actual FP8
+forward/BF16-backward passes the declared small/real numerical and accumulation
+gates, but loses complete-component timing18.181170vs15.662730ms native.
+Profile its preparation/layout/saves/backward before redesign. Full FP8 backward
+and compact joint-table device trials remain separate queued hypotheses.
+
+
 This ledger separates full training, standalone evaluation, numerical tests and
 microbenchmarks. A successful process is not automatically a promoted model.
 Public diagnostics do not establish a private competition score.
