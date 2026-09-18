@@ -4,7 +4,7 @@ Objective: minimize **official 30-minute validation bits per byte** on one full
 Trainium2 chip. Sub-1.0 on public validation is an engineering milestone, not a
 claim about the private leaderboard. The metric is lower-is-better.
 
-**Current update, 11:31 UTC:** the width896 direct-attention control completed
+**Current update, 11:45 UTC:** the width896 direct-attention control completed
 2,188 updates at **0.987568 public BPB @2048 / 0.999880 @1024**. Its fused
 FP32 table-optimizer counterpart completed 2,204 updates at **0.986947 /
 0.999735**. Both fit the budget and use four ranks and 2,097,152 evaluation
@@ -21,8 +21,11 @@ preserved. Removing the frozen zero Q/K shift reduced step time from1.417s to
 0.986s; the same-host repeat on trn21 measured0.979s. Custom NKI convolution with
 BF16 normalized activations now measures **0.588s** through the corrected
 integrated entrypoint and passes finite parameters/gradients/logits and exact
-causality/repetition checks on all four ranks. Its full1,800s quality run launched
-on trn22 at11:06 as `fs-w12-dense1024-nki-norm-1800-r1`, source`c61bfca`.
+causality/repetition checks on all four ranks. Its full1,800s run `fs-w12-dense1024-nki-norm-1800-r1` (source`c61bfca`)
+completed2,977updates/390,201,344targets at **0.981710BPB@2048 /0.996689@1024**,
+using the same four-rank2.1M-token diagnostic geometry as the dense control.
+Estimated charged time1785.3s, causality0, checkpoint locally hash-verified.
+The standalone20.97M-token/context1024/O1 check started on trn22 at11:43.
 
 The NKI-only configuration with original FP32 normalized activations is **not
 promoted**: its full run and integrated phase fail with NaNs, localized before
@@ -34,8 +37,8 @@ eager forward and the compiled forward retaining intermediate tensors are finite
 This points to a full compiled-graph interaction, not an isolated arithmetic or
 two-program-only failure. Retaining tensors changes lifetimes and compilation;
 it is diagnostic evidence, not a production fix. No scored FP32 run is promoted.
-The BF16 combination is separately gated; its full run is healthy at ~0.60s/update
-through step980, and its full-budget BPB remains unknown.
+The BF16 combination is separately gated and completes the full run with finite
+losses; the larger evaluation is required before a robust sub-1.0 claim.
 
 Trn21 passed the **8×1024 dense capacity** gate at the same BF16/NKI policy,
 four ranks, and131,072 targets/update: **743.742ms median**, all four updated

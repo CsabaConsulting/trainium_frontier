@@ -1,0 +1,45 @@
+{
+  "host": "trn22",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave12",
+  "expected_commit": "c61bfca7f2ea2c75cb177c0793c08649065e2a3a",
+  "label": "fs-w12-eval-dense1024-nki-norm-s1024-20m-o1-r1",
+  "purpose": "Trusted fixed standalone 20.97M-token public evaluation of full 30-minute optimized dense6x1024; world1 B1 T1024 O1, matching earlier large-sample geometry",
+  "fingerprint_paths": [],
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_RT_VISIBLE_CORES": "0",
+    "NEURON_CC_FLAGS": "--optlevel=1",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1800s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "prepare.py",
+    "eval-public",
+    "--train-py",
+    "train.py",
+    "--checkpoint",
+    "/home/ubuntu/trainium_freshstart_20260918_wave12/out/fs-w12-dense1024-nki-norm-1800-r1/final.pt",
+    "--seq-len",
+    "1024",
+    "--eval-tokens",
+    "20971520",
+    "--timeout-seconds",
+    "1200"
+  ],
+  "started_at": "2026-09-18T11:43:50.330404+00:00",
+  "hostname": "ip-172-31-32-253",
+  "git_commit": "c61bfca7f2ea2c75cb177c0793c08649065e2a3a",
+  "source_dirty": false,
+  "preflight_free_bytes": 41134190592,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "4c14ac6ec14fd52e31ee06d91540707083c48a93ec4687fbaa35bc7106a823f3"
+  }
+}

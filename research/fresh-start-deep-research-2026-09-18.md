@@ -21,15 +21,17 @@ measurement history contain concrete changes that previous high-level conclusion
 do not account for. A complete replacement with an SSM or all-FP8 stack would make
 these mechanisms harder to isolate.
 
-**11:22 UTC update:** the independent dense6×1024 path, without hashed n-gram
-tables, now has a gated **0.588s** update versus0.986s for its no-QK control.
-Custom NKI convolution and BF16 normalized branch inputs provide the additional
-40.4% reduction; residual accumulation remains FP32. Its full-budget run is in
-progress, with finite losses and ~0.60s ordinary updates. Its BPB is unknown.
-The first dense control finished at1.027777 at context1024, so throughput alone
-does not yet establish competitive dense quality. Eight-layer dense capacity is
-now being gated under the faster implementation. N-gram tables are optional;
-there is no verified information about the leading teams' architectures.
+**11:45 UTC update:** the dense6×1024 path, without hashed n-gram tables,
+now completes2,977updates/390.2M target presentations in budget at **0.981710
+BPB@2048 /0.996689@1024**, versus1.012886/1.027777 for the1,805-update dense
+control. Custom NKI convolution plus BF16 normalized branch inputs reduces the
+gated update from0.986s to0.588s; residuals stay FP32. The combined change
+therefore improves real full-budget quality, not just throughput. Its checkpoint
+is locally hash-verified. These are four-rank2.1M-token public diagnostics; the
+20.97M-token standalone result is pending. Eight-layer dense capacity passed a
+0.744s phase gate and is in full training. There is still no verified information
+about the leading teams' architectures.
+
 
 Supporting audits:
 
@@ -506,6 +508,33 @@ the existing fused CE means its upside must come from head/logit traffic; it nee
 both dX and dW, not just an attractive forward benchmark.
 
 ## 7. Research quality and stopping rules
+
+### Next systems hypotheses after the current quality checks
+
+These proposals are conditional experiments, not measured wins:
+
+| Hypothesis | Smallest useful test | Advancement/stop criterion |
+|---|---|---|
+| The new dense graph benefits from fewer, larger microbatches | B8/GA2 versus B4/GA4 at fixed131,072 global targets andT2048, then B16/GA1 only if justified | full-step timing and updated-model gates; real-loader geometry changes packing/order, so quality needs a full run |
+| The current FP8 negative is partly a layout/shape problem | repeat cast-inclusive native BF16/NKI BF16/NKI FP8 comparisons at actual MLP shapes M8192,K1024,N4096 and M8192,K4096,N1024; amortize weight layouts once per update | stop if no end-to-end matrix win including preparation; do not substitute kernel-only timing or peak FLOPs |
+| Four LNC2 ranks are no longer the best full-chip mapping after removing hashed gathers | compare eight LNC1 ranks with adjusted accumulation and the same global batch, only after each custom kernel supports that mapping | require all chip cores, finite/causal/gradient gates and lower full-update time; more host launches/all-reduce replication can erase gains |
+| NKI convolution changes a compiled buffer/graph assumption in the FP32 path | preserve the failing uninstrumented graph, then a minimal eager/compiled pair and owned NEFFs; instrument only one boundary at a time | finite hooked/eager execution is evidence to localize, not a production workaround; never promote a fast NaN graph |
+
+For an FP8 MLP island, RMS-normalized inputs make a causal static or per-token
+scale plausible; a scale derived from the whole future-containing sequence is
+not acceptable. Keep residuals/statistics/optimizer in FP32 and initially retain
+BF16 backward. Precisely specify the intended surrogate gradient before an
+arithmetic gate: quantized forward plus higher-precision backward is a numerical
+algorithm change, not bit-exact operator replacement. Cached row/transpose weight
+layouts must be refreshed once per update and paid for. The first prototype's
+M8192,K768,N512 negative remains valid for that implementation and shape.
+
+Larger packing bins can also change which long documents fit. The old corpus
+audit found24.7M first-pass tokens still buffered at2,800 updates. Thus an apparent
+microbatch quality effect may combine execution efficiency, reduction rounding,
+and changed document presentation. Reuse the existing immutable loader and report
+actual geometry/exposure rather than calling every such trial an exact arithmetic
+equivalence test.
 
 Three asynchronous external research reports were collected under
 `fresh-start-literature-2026-09-18/`. They are discovery aids, not accepted evidence.

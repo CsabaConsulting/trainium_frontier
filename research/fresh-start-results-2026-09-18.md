@@ -565,3 +565,29 @@ The predeclared <=950ms/finite/causal gate is satisfied. The full30-minute run
 launched on trn21 at11:27 as `fs-w14-dense1024-depth8-nki-norm-1800-r1`. Its
 training source hash matches the active six-layer run; the depth and host differ.
 Initial loss9.0118 is finite. Full-budget BPB is pending.
+
+
+### Optimized dense full-budget result: public small-sample sub-1.0 without hashed tables
+
+`fs-w12-dense1024-nki-norm-1800-r1`, source`c61bfca`, completes **2,977updates**
+and **390,201,344target presentations**, versus1,805updates/236,584,960targets for
+the earlier dense no-QK control. Both are dense6×1024 without hashed tables; the
+new run uses integrated NKI convolution and BF16 normalized branch inputs while
+retaining FP32 residuals. This is a combined precision/implementation/exposure
+comparison, not evidence of identical numerical updates.
+
+| Full-budget dense model | Updates | BPB@2048 | BPB@1024 | Estimated charged seconds |
+|---|---:|---:|---:|---:|
+| No-QK control, native convolution/original norm outputs |1,805|1.012886|1.027777|1,785.3|
+| NKI convolution + BF16 norm outputs |2,977|**0.981710**|**0.996689**|1,785.3|
+
+Both rows use four ranks and2,097,152public evaluation tokens at each context.
+The new run has64.93% more updates and improves the context1024 diagnostic by
+0.031088BPB. In-run causality_max_abs is0; over_budget isFalse. Training1784.9s,
+excluded startup estimate289.1s, model-reported total2091.0s. The checkpoint
+contains117,453,580parameters and is locally preserved with matching SHA256
+`d05929eddd9a0dc313ebb750b01008f6c3f83386f371114532291a42c5e48755`.
+
+The standalone20,971,520-token/context1024/B1/O1 evaluation started11:43 UTC as
+`fs-w12-eval-dense1024-nki-norm-s1024-20m-o1-r1`. It is pending. The small result
+is not a private leaderboard score or a repeatability claim.

@@ -120,3 +120,20 @@ See its [receipt](run-logs/fs-w6-dense1024-noqk-1800-r2.preservation.json).
 After final successful sync at10:39 UTC, the trn22-wave6 and trn21-wave7 mirror
 processes were stopped. Wave8/9/10 mirrors cover the subsequent diagnostic and
 training checkouts; each wave retains its immutable source commit.
+
+
+The optimized dense6×1024 checkpoint is now local at
+`checkpoints/fs-w12-dense1024-nki-norm-1800-r1/final.pt`, **469,834,849bytes**.
+Remote source is trn22 wave12's corresponding `out/` path, training source
+`c61bfca7f2ea2c75cb177c0793c08649065e2a3a`. Independent hashes match:
+
+```
+d05929eddd9a0dc313ebb750b01008f6c3f83386f371114532291a42c5e48755
+```
+
+The [receipt](run-logs/fs-w12-dense1024-nki-norm-1800-r1.preservation.json) was
+written11:43:47UTC, before dispatching the larger standalone evaluation. The
+active mirrors now cover wave12 evaluation and wave14 depth8 training; old
+wave8–11/13 mirrors were finally synced and stopped at11:11. The new wave15
+checkout contains committed follow-up diagnostics and does not change either
+active source checkout.
