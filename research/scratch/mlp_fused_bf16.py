@@ -23,7 +23,8 @@ def build_kernel():
 
     @nki.jit
     def fused_mlp(x, up, down, lanes: int = 2, token_tile: int = 512,
-                  contiguous_weights: bool = False, tiled_io: bool = False):
+                  contiguous_weights: bool = False, tiled_io: bool = False,
+                  transposed_relu: bool = False):
         tokens, channels = x.shape
         hidden, up_channels = up.shape
         assert up_channels == channels and down.shape == (channels, hidden)
@@ -38,7 +39,8 @@ def build_kernel():
         live_bytes = 4 * channels * hidden + 2 * (channels + hidden) * token_tile
         assert live_bytes + 2 * 1024**2 <= nl.tile_size.sbuf_size_bytes
         result = nl.ndarray((tokens, channels), dtype=nl.bfloat16, buffer=nl.shared_hbm)
-        saved_relu = nl.ndarray((tokens, hidden), dtype=nl.bfloat16, buffer=nl.shared_hbm)
+        saved_shape = (hidden, tokens) if transposed_relu else (tokens, hidden)
+        saved_relu = nl.ndarray(saved_shape, dtype=nl.bfloat16, buffer=nl.shared_hbm)
         up_cache = nl.ndarray((128, nh, nc, 128), dtype=nl.bfloat16, buffer=nl.sbuf)
         down_cache = nl.ndarray((128, nc, nh, 128), dtype=nl.bfloat16, buffer=nl.sbuf)
         for hi in nl.affine_range(nh):
@@ -103,7 +105,14 @@ def build_kernel():
                 nisa.tensor_copy(dst=rounded, src=up_acc)
                 nisa.tensor_scalar(dst=relu, data=rounded, op0=nl.maximum, operand0=0.0)
                 nisa.tensor_tensor(dst=activated[:, hi, :], data1=relu, data2=relu, op=nl.multiply)
-                if tiled_io:
+                if transposed_relu:
+                    # Preserve the accumulator's channel-major layout across
+                    # the autograd boundary. One contiguous512-wide store
+                    # replaces four transposes/stores for a normal token tile.
+                    # Backward must consume the transposed view in its timing.
+                    nisa.dma_copy(dst=saved_relu[hi * 128:(hi + 1) * 128,
+                                                 m0:m0 + token_tile], src=relu)
+                elif tiled_io:
                     for ti in nl.affine_range(token_tile // 128):
                         relu_t = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.psum)
                         relu_rows = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.sbuf)

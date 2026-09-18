@@ -1,0 +1,43 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave31",
+    "expected_commit": "01003e218429455b7060f3f4053757ad00a8dded",
+    "label": "fs-w31-embedding-segmented-tiled-io-r1",
+    "purpose": "After full512-output scan gates pass, replace strided FP32 gradient DMA with contiguous128x128 transfers and matching FP32 TensorEngine transposes. All SBUF addresses explicit/disjoint. Gate all actual distributions and original compiled composition before full-cost timing.",
+    "fingerprint_paths": [
+      "research/scratch/embedding_segmented_nki.py",
+      "research/scratch/embedding_segmented_probe.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1500s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/embedding_segmented_probe.py",
+      "--manual-sbuf",
+      "--reuse-sbuf",
+      "--compiled-kernel",
+      "--real-shape",
+      "--training-row",
+      "--gather-tile",
+      "512",
+      "--steps",
+      "6",
+      "--tiled-io"
+    ]
+  },
+  "requested_at": "2026-09-18T14:42:55.186041+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w31-embedding-segmented-tiled-io-r1\", \"pid\": 953559, \"commit\": \"01003e218429455b7060f3f4053757ad00a8dded\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave31/research/run-logs/fs-w31-embedding-segmented-tiled-io-r1.log\", \"started_at\": \"2026-09-18T14:43:01.350573+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

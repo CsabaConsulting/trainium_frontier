@@ -55,7 +55,7 @@ def build_kernel():
                            lanes: int = 2, manual_sbuf: bool = False,
                            debug_intermediates: bool = False, reuse_sbuf: bool = False,
                            aligned_sbuf: bool = False, gather_tile: int = 8192,
-                           tiled_io: bool = False):
+                           tiled_io: bool = False, bf16_input_gradients: bool = False):
         tokens, channels = gradient.shape
         vocabulary = last.shape[1]
         assert gradient.dtype == nl.float32
@@ -63,6 +63,7 @@ def build_kernel():
         assert tokens <= 8192 and vocabulary % 128 == 0
         assert permutation.shape == (1, tokens) and continuation.shape == (1, tokens)
         assert present.shape == (1, vocabulary)
+        input_dtype = nl.bfloat16 if bf16_input_gradients else nl.float32
         gt = min(tokens, gather_tile)
         assert gt > 0 and tokens % gt == 0
         vt = min(vocabulary, 512)
@@ -112,8 +113,8 @@ def build_kernel():
             # have different compiler dependency behavior.
             perm = nl.ndarray((128, tokens), dtype=nl.uint32, buffer=nl.sbuf, address=perm_address)
             cont = nl.ndarray((128, tokens), dtype=nl.bfloat16, buffer=nl.sbuf, address=cont_address)
-            raw = nl.ndarray((128, tokens), dtype=nl.float32, buffer=nl.sbuf, address=raw_address)
-            ordered = nl.ndarray((128, tokens), dtype=nl.float32, buffer=nl.sbuf, address=ordered_address)
+            raw = nl.ndarray((128, tokens), dtype=input_dtype, buffer=nl.sbuf, address=raw_address)
+            ordered = nl.ndarray((128, tokens), dtype=input_dtype, buffer=nl.sbuf, address=ordered_address)
             scanned = nl.ndarray((128, tokens), dtype=nl.float32, buffer=nl.sbuf, address=scanned_address)
             ends = nl.ndarray((128, vt), dtype=nl.uint32, buffer=nl.sbuf, address=ends_address)
             valid = nl.ndarray((128, vt), dtype=nl.bfloat16, buffer=nl.sbuf, address=valid_address)
@@ -129,8 +130,8 @@ def build_kernel():
             nisa.dma_copy(dst=perm, src=permutation.ap(pattern=[[0, 128], [1, tokens]], offset=0))
             nisa.dma_copy(dst=cont, src=continuation.ap(pattern=[[0, 128], [1, tokens]], offset=0))
             if not reuse_sbuf:
-                raw = nl.ndarray((128, tokens), dtype=nl.float32, buffer=nl.sbuf, address=raw_address)
-                ordered = nl.ndarray((128, tokens), dtype=nl.float32, buffer=nl.sbuf, address=ordered_address)
+                raw = nl.ndarray((128, tokens), dtype=input_dtype, buffer=nl.sbuf, address=raw_address)
+                ordered = nl.ndarray((128, tokens), dtype=input_dtype, buffer=nl.sbuf, address=ordered_address)
                 scanned = nl.ndarray((128, tokens), dtype=nl.float32, buffer=nl.sbuf, address=scanned_address)
             # Load [T,C] directly into [128,T], including this layout cost.
             if tiled_io:

@@ -1083,3 +1083,35 @@ refreshes each optimizer step, with corresponding native controls. Cache
 refresh/master updates remain excluded from this component arm and must be
 charged by any eventual full-model gate. A full-shape profile option is ready
 if the corrected kernel still misses the native bound.
+
+
+### Wave31: quantify remaining descriptor work and address-dependent gather behavior
+
+- Tiled FP32 scan transfers pass the full component suite. Actual training row:
+  native3.17135ms, prepared4.60680ms, including metadata5.52020ms. The gross
+  transfer regression is repaired; speed still fails the advancement gate.
+  Next input-precision arm rounds to BF16 before gathering, matching native
+  arithmetic, and keeps FP32 accumulation. Reference bounds use those same
+  rounded inputs, including the long single-ID accumulation case.
+- Address-only full scan control is mixed: aligned scratch with8192-output
+  gathers passes the uninstrumented eager/compiled final result, but adding
+  intermediate HBM stores reproduces1,283,061 final violations. Both tensor
+  identity variants behave alike. Alignment alone is therefore not a robust
+  fix. The512-output variant passed both instrumented and uninstrumented arms.
+- BF16 cached-weight MLP numerical gates pass, yet forward1.67965ms versus
+  native1.34390ms and forward/backward4.37851ms versus4.25577ms remain negative.
+  Its full-shape profile is local/hash-verified,22,670,829bytes. Native device
+  window1.286966ms versus fused1.604594ms; GpSIMD active~0.181ms versus~1.341ms
+  per physical core. Fused emits4,096 DMA_DIRECT2D instructions versus512, and
+  TensorEngine active~1.217ms versus native~1.124ms. These are attribution
+  metrics, not a replacement for unprofiled timing; overlapping instruction
+  sums cannot be added, and missing DMA/compile metadata prevents exact MFU.
+  Next: preserve saved ReLU in the kernel's channel-major HxT layout, reducing
+  its transpose/store count, and include view consumption in backward timing.
+- Current official README/prepare.py were fetched read-only through authenticated
+  GitHub; both match our local files. prepare.py hash remains5807c46e. The first
+  Tavily research invocation hit a CLI syntax mismatch (stdin needs research run);
+  the corrected request is running. All failed invocation records are preserved.
+
+All completed device jobs have automatic healthy postflights; the address-only
+  control failure is numerical, not an unclean host or driver reset failure.

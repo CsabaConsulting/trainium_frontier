@@ -1,32 +1,55 @@
 # Fresh-start campaign — 2026-09-18
 
-**Competitive target clarified by user:** aim near **0.9749 BPB** (current
-mid-table), with margin for further leaderboard movement. The numerical gap
-from1.001551299 public BPB is0.026651299; public/private differences prevent an
-exact leaderboard prediction. Prioritize sustained custom-kernel development,
-not seed selection. The single already-running repeat is retained as a
-variability check; no additional seed sweep is planned.
+**Current campaign status, 14:47 UTC.** Minimize official30-minute BPB on a
+full Trainium2 chip. The working competitive target is around **0.9749**, with
+margin for leaderboard movement. Our best larger public check is
+**1.001551299**, on20,971,520 tokens/B1/T1024; public/private data differences
+prevent an exact leaderboard prediction. Lower BPB is better.
 
-**Kernel gate,13:36UTC:** compact native4096-row backward plus NKI gather
-expansion passes all component gates. The real training row matches the native
-gradient exactly:3.115ms baseline,1.802ms prepared,2.553ms including metadata;
-the estimated four-table shared-preparation cost is1.990ms. Advance to an
-actual four-rank autograd/timing gate with D2H metadata acquisition included.
-This is not yet a whole-model speedup. The scan metadata reload still fails;
-a final narrow-call variant will charge slicing/concatenation explicitly.
+The reference is dense6×1024 without hashed n-grams,117.45M parameters, NKI
+causal convolution and BF16 normalization outputs. Clipping after gradient
+averaging completed3,005 budgeted updates versus2,977 for the earlier control.
+Its larger score improves by0.000515388, with exposure also differing. One
+predeclared seed43 repeat is complete and its checkpoint is local/hash-verified:
+2,959 updates, small-prefix1.000259@1024 versus seed42's0.996049. Different
+hosts and46 fewer updates confound a seed-only attribution. **No seed sweep or
+selection is planned.** See the measured-results ledger for exact manifests.
 
-Objective: minimize **official 30-minute validation bits per byte** on one full
-Trainium2 chip. Sub-1.0 on public validation is an engineering milestone, not a
-claim about the private leaderboard. The metric is lower-is-better.
+**Enforced experiment protocol:** every new device job uses the host-wide lock,
+owned-process cleanup, immutable source/environment manifest, bounded command,
+automatic pre/postflight health checks and local log mirror. Failures receive
+the same preservation and cleanup as successes. Heavy artifacts have tracked
+hash receipts. The current organizer README and protected prepare.py were
+freshly read through GitHub and match the local copies exactly.
 
-**Current update, 13:35 UTC:** dense6×1024 without hashed n-grams, with clipping
-after gradient averaging, scores **1.001551299** on the fixed20.97M public-token
-evaluation, versus1.002066687 for clipping before averaging. The difference is
--0.000515388, with3,005 versus2,977 budgeted updates; this is a provisional
-same-seed improvement, not an isolated algorithmic effect. One predeclared seed43
-repeat is running on trn22. Do not expand this into a seed sweep. Seed selection
-can overfit public evaluation; an independent repeat checks robustness but does
-not by itself establish an advantage over the alternative at that seed.
+**Kernel priorities and current evidence:**
+
+1. Ordinary embedding backward: compact3072-row native accumulation plus NKI
+   expansion gives only1.09% whole-step improvement (582.43ms vs588.84ms nearby
+   same-host control), below the570ms advancement gate. It is not promoted.
+   The alternative custom segmented scan is now numerically repaired: explicit
+   gathers of512 outputs pass all original/uninstrumented shape/distribution
+   tests, including actual training IDs. Tiled FP32 transfers reduce its prepared
+   cost from151ms to4.61ms, but native is3.17ms. Next gate: BF16-rounded input
+   gradients matching native, FP32 accumulation, followed by profiling if still
+   slow. CPU metadata and its transfers must remain charged and shared honestly.
+2. Fused BF16 MLP training forward: numerical and backward gates pass. Replacing
+   scalar weight DMA and strided activation transfers cut the flawed785ms
+   implementation to1.69ms, yet native forward is1.35ms. Cached BF16 weights do
+   not repair this gap (1.68ms; complete forward/backward also slower). Inspect
+   the newly captured actual-shape profile before choosing another layout. No
+   whole-model integration or speed claim yet.
+3. Preserve validated production improvements and prioritize genuinely material
+   full-chip gains. Component timings omit optimizer/control costs; every
+   candidate must pass whole-model finite/causal/batch/repeatability checks and
+   measured full-step speed before a30-minute quality comparison. Small public
+   prefixes, context lengths and private leaderboard numbers are not interchangeable.
+
+The live hypotheses, failures and advancement decisions are recorded in
+[fresh-start-results-2026-09-18.md](fresh-start-results-2026-09-18.md). The broader
+[deep research report](fresh-start-deep-research-2026-09-18.md) retains the earlier
+architecture, precision, data-exposure and optimizer evidence. The following
+sections are historical context and the campaign's original predeclared gates.
 
 The user's13:30 leaderboard snapshot has a tenth-place score of0.9847. That is
 0.016851299 below our best larger public score, on different validation data.
@@ -37,9 +60,9 @@ FP32 normalized activations with BF16 only at SDPA loses the full-budget test:
 2,600updates,0.989128/1.004102 small-prefix BPB. Keep the faster BF16-normalized
 path. A fixed zero-byte output-class mask gives a paired0.000357046 improvement
 on2.1M public tokens; it is a small secondary opportunity, not a gap-closing
-result. Both current ordinary-embedding gradient prototypes failed native
-numerical gates. Wave19 will test a per-channel-block scan metadata reload and
-a compact-gradient gather expansion. No unvalidated kernel enters training.
+result. The early ordinary-embedding gradient prototypes failed native numerical gates;
+subsequent debugging and compact-gradient outcomes are summarized above.
+No unvalidated kernel enters training.
 
 **Earlier update, 13:15 UTC:** the width896 direct-attention control completed
 2,188 updates at **0.987568 public BPB @2048 / 0.999880 @1024**. Its fused

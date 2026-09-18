@@ -1,0 +1,1737 @@
+{
+  "directory": "out/fresh-start-profiles/fs-w31-mlp-full-parquet-r1/i-0673e54d9d66e6a1e_pid_1318441_nc_0_session_0",
+  "metadata": [
+    {
+      "profile_schema_version": "7.13.0",
+      "ntff_version": 7,
+      "num_physical_cores": 2,
+      "vnc_enabled": true,
+      "first_hw_timestamp": 0,
+      "last_hw_timestamp": 3901874,
+      "first_ts": "1969-12-31 16:00:00 -0800 PST",
+      "last_ts": "1969-12-31 16:00:00.003901874 -0800 PST",
+      "dma_ddr_bandwidth": 434999984128.0,
+      "num_dma_engines_per_neuroncore": 16,
+      "hbm_ddr_bandwidth": 716000002048.0,
+      "tensor_engine_num_rows": 128,
+      "tensor_engine_num_cols": 128,
+      "tensor_engine_clock_freq": 2.4000000953674316,
+      "vector_engine_clock_freq": 0.9600000381469727,
+      "vector_engine_num_channels": 128,
+      "scalar_engine_clock_freq": 1.2000000476837158,
+      "scalar_engine_num_channels": 128,
+      "gpsimd_engine_clock_freq": 1.2000000476837158,
+      "gpsimd_engine_num_channels": 128,
+      "neuroncore_clock_freq": 1.2000000476837158,
+      "ticks_per_nanosec": 1000,
+      "instance_type": "trn2.3xlarge",
+      "runtime_version": "2.34.10 (ac18d)",
+      "collectives_version": "2.34.10 ()",
+      "driver_version": "2.30.0 ()",
+      "explorer_version": "2.32.0.498-b1f3998",
+      "compiler_version": null,
+      "nki_version": null,
+      "neuroncore_idx": 2,
+      "neuron_device_idx": 0,
+      "ultraserver_id": null,
+      "ultraserver_type": null,
+      "ultraserver_size": null,
+      "ultraserver_instance_index": null,
+      "s3_bucket_path": null,
+      "profile_name": "profile_nc_0_session_0",
+      "explorer_build_time": "2026-08-10T05:09:49Z",
+      "is_simulation": false
+    }
+  ],
+  "warnings": [
+    {
+      "message": "Missing additional dynamic DMA metadata, reported DMA values may be inaccurate. To enable more accurate DMA data, re-capture with --enable-dge-notifs flag or set NEURON_RT_ENABLE_DGE_NOTIFICATIONS=1 before running. Note: DGE notifications are disabled by default as they can cause execution timeouts on some models.",
+      "category": "Missing Data"
+    },
+    {
+      "message": "Current NEFF is missing compiler metrics. Please re-compile using latest version of the compiler",
+      "category": "Missing Data"
+    },
+    {
+      "message": "Missing HLO stats in the NEFF, `model_flops` and `mfu_hlo_estimated_percent` summary metrics will not be available. Consider the metrics (hardware_flops - transpose_flops) and mfu_inst_estimated_percent instead.",
+      "category": "Missing Data"
+    }
+  ],
+  "summary_as_reported": [
+    {
+      "total_time": 0.0039018739480525255,
+      "neuroncore_cycle_count": 6226566,
+      "model_flops": 0,
+      "hardware_flops": 315680096256,
+      "transpose_flops": 49375346688,
+      "adjusted_hardware_flops": 315680096256,
+      "adjusted_transpose_flops": 49375346688,
+      "mm_arithmetic_intensity": 1426.1136474609375,
+      "peak_flops_bandwidth_ratio": 219.67373657226562,
+      "trace_count": 384294,
+      "event_count": 90318,
+      "total_row_count": 525482,
+      "dma_active_cycles": 2162099,
+      "dma_active_time": 0.0018017501570284367,
+      "dma_active_time_percent": 0.3472379446029663,
+      "static_dma_active_time": 8.494692156091332e-05,
+      "dynamic_dma_active_time_percent": 0.3408586084842682,
+      "static_dma_active_time_percent": 0.016371190547943115,
+      "dma_transfer_average_bytes": 0.0,
+      "dma_packet_time": 0.024235229939222336,
+      "dma_transfer_time": 0.0,
+      "dma_transfer_count": null,
+      "dma_transfer_total_bytes": null,
+      "dma_queue_count": 136,
+      "inputs_and_weights_size_bytes": 67174400,
+      "inputs_outputs_weights_size_bytes": 234946560,
+      "weight_size_bytes": 65536,
+      "static_dma_packet_count": 127,
+      "static_dma_size": 1611840,
+      "dynamic_dma_packet_percent": 0.9994262456893921,
+      "static_dma_packet_percent": 0.0005737701430916786,
+      "dynamic_dma_size_percent": 0.9964699149131775,
+      "static_dma_size_percent": 0.003530070185661316,
+      "mbu_estimated_percent": 0.12238658219575882,
+      "mbu_min_read_util_percent": 0.01808103919029236,
+      "hbm_write_bytes": 259522560,
+      "hbm_read_bytes": 195166208,
+      "sbuf_write_bytes": 950272512,
+      "sbuf_read_bytes": 3917021184,
+      "spill_save_bytes": 58195968,
+      "spill_reload_bytes": 60817408,
+      "psum_write_bytes": 4932501504,
+      "psum_read_bytes": 654311424,
+      "psum_read_sbuf_write_count": 6080,
+      "psum_read_sbuf_write_bytes": 486539264,
+      "input_queue_bytes": 0,
+      "output_queue_bytes": 0,
+      "weight_queue_bytes": 0,
+      "software_dynamic_dma_active_time": 0.0016932633006945252,
+      "software_dynamic_dma_active_time_percent": 0.3263300657272339,
+      "software_dynamic_dma_packet_count": 204800,
+      "software_dynamic_dma_size": 402948096,
+      "software_dynamic_dma_packet_percent": 0.9252607822418213,
+      "software_dynamic_dma_size_percent": 0.8824914693832397,
+      "hardware_dynamic_dma_active_time": 0.00018905734759755433,
+      "hardware_dynamic_dma_active_time_percent": 0.03643562272191048,
+      "hardware_dynamic_dma_packet_count": 16416,
+      "hardware_dynamic_dma_size": 52042880,
+      "hardware_dynamic_dma_packet_percent": 0.07416543364524841,
+      "hardware_dynamic_dma_size_percent": 0.11397844552993774,
+      "tensor_engine_instruction_time": 0.011331871151924133,
+      "tensor_engine_active_time": 0.002545783529058099,
+      "tensor_engine_active_time_percent": 0.49062997102737427,
+      "tensor_engine_instruction_count": 54357,
+      "matmul_instruction_count": 26112,
+      "mfu_estimated_percent": 0.3263024687767029,
+      "mfu_max_achievable_estimated_percent": 1.0,
+      "mfu_hlo_estimated_percent": 0.0,
+      "mfu_hlo_max_achievable_estimated_percent": 0.0,
+      "mfu_inst_estimated_percent": 0.3263024687767029,
+      "mfu_inst_max_achievable_estimated_percent": 1.0,
+      "hfu_estimated_percent": 0.38680192828178406,
+      "vector_engine_instruction_time": 0.001713119214400649,
+      "vector_engine_active_time": 0.0011763239745050669,
+      "vector_engine_active_time_percent": 0.2267041951417923,
+      "vector_engine_instruction_count": 4640,
+      "scalar_engine_instruction_time": 0.0018317920621484518,
+      "scalar_engine_active_time": 0.001039900933392346,
+      "scalar_engine_active_time_percent": 0.20041239261627197,
+      "scalar_engine_instruction_count": 6407,
+      "activate_instruction_time": 0.0003925568889826536,
+      "activate_instruction_count": 512,
+      "sync_engine_instruction_time": 4.9239093641517684e-05,
+      "sync_engine_active_time": 4.342909960541874e-05,
+      "sync_engine_active_time_percent": 0.008369768038392067,
+      "sync_engine_instruction_count": 291,
+      "gpsimd_engine_instruction_time": 0.003058052621781826,
+      "gpsimd_engine_active_time": 0.0017070890171453357,
+      "gpsimd_engine_active_time_percent": 0.32899460196495056,
+      "gpsimd_engine_instruction_count": 6938,
+      "cc_op_time": 0.0,
+      "cc_op_active_time": 0.0,
+      "cc_op_active_time_percent": 0.0,
+      "cc_op_count": 0,
+      "cc_cores_instruction_time": 0.0,
+      "cc_cores_instruction_active_time": 0.0,
+      "cc_cores_instruction_active_time_percent": 0.0,
+      "cc_cores_instruction_count": 0,
+      "total_exec_time": 0.0028691350016742945,
+      "total_active_time": 0.002878207014873624,
+      "total_active_time_percent": 0.5546954870223999
+    }
+  ],
+  "instruction_flop_schema": [
+    {
+      "table_name": "Instruction",
+      "table_description": "Instructions executed on NeuronCore compute engines.",
+      "field_name": "raw_flops",
+      "field_description": "Number of floating-point operations (FLOPs) performed by this instruction. Each MAC (multiply-accumulate) operation counts as 2 FLOPs (one multiply, one add). Note that as each FP32 matmul lowers to two FP32_LO_HI instructions, each FP32_LO_HI matmul records half the logical FLOPs.\n",
+      "field_example": null,
+      "field_type": "integer",
+      "field_required": false,
+      "field_format": "int64",
+      "field_unit": null,
+      "field_minimum": 0.0,
+      "field_maximum": null,
+      "field_enum_values": null
+    },
+    {
+      "table_name": "Instruction",
+      "table_description": "Instructions executed on NeuronCore compute engines.",
+      "field_name": "adjusted_flops",
+      "field_description": "BF16-equivalent FLOPs for this instruction. Scales FLOPs to the BF16 throughput equivalent so the result can be used with BF16 peak throughput as the denominator for PE utilization calculations. BF16, FP16, and TF32 use a 1.0x multiplier. FP32 uses 4.0x. On Trn2/Trn3, FP8@FP8 and UINT8@UINT8 matmuls use 0.5x; FP8 or UINT8 mixed with a higher-precision operand uses 1.0x (executes at BF16 throughput). FP8 uses 1.0x on Trn1/Inf2. MXFP8 and MXFP4 use 0.25x on Trn3.\n",
+      "field_example": null,
+      "field_type": "integer",
+      "field_required": false,
+      "field_format": "int64",
+      "field_unit": null,
+      "field_minimum": 0.0,
+      "field_maximum": null,
+      "field_enum_values": null
+    },
+    {
+      "table_name": "Instruction",
+      "table_description": "Instructions executed on NeuronCore compute engines.",
+      "field_name": "tensor_instruction_type",
+      "field_description": "Instruction type name from the debug info.",
+      "field_example": "[REGULAR TRANSPOSE]",
+      "field_type": "string",
+      "field_required": false,
+      "field_format": null,
+      "field_unit": null,
+      "field_minimum": null,
+      "field_maximum": null,
+      "field_enum_values": null
+    }
+  ],
+  "caveats": [
+    "Profiled execution is for attribution; use unprofiled phase timing for throughput.",
+    "Active fractions are independently derived for each physical core and graph.",
+    "Instruction-duration sums overlap and cannot be treated as operation wall times.",
+    "Missing DMA notifications and dropped packets preclude an exact HBM bound.",
+    "HLO/kernel attribution requires nonempty source fields; no names are inferred from DMA counts."
+  ],
+  "source_attribution_nonempty_rows": {
+    "hlo_name": 0,
+    "layer": 71798,
+    "nki_source_location": 57048,
+    "kernel_instruction_name": 0
+  },
+  "annotations": [],
+  "missing_optional_tables": [
+    "TimelineAnnotation"
+  ],
+  "executions": [
+    {
+      "execution_index": 0,
+      "neff_name": "bd71da5d103c2a0f8a9c860649407f2c.neff",
+      "execution_start_ts": 0,
+      "execution_end_ts": 1286966,
+      "num_subgraphs": 2,
+      "row_count": 192779
+    },
+    {
+      "execution_index": 1,
+      "neff_name": "88c730aa928cc358c00a58bfd8efbbe0.neff",
+      "execution_start_ts": 2297280,
+      "execution_end_ts": 3901874,
+      "num_subgraphs": 2,
+      "row_count": 332815
+    }
+  ],
+  "graphs": [
+    {
+      "execution_index": 0,
+      "neff_name": "bd71da5d103c2a0f8a9c860649407f2c.neff",
+      "execution_start_ts": 0,
+      "execution_end_ts": 1286966,
+      "num_subgraphs": 2,
+      "row_count": 192779,
+      "wall_ms": 1.286966,
+      "active_by_physical_core": [
+        {
+          "pcore_idx": 0,
+          "engine": "gpsimd",
+          "active_ms": 0.181223,
+          "fraction_of_graph_wall_time": 0.14081413184186684
+        },
+        {
+          "pcore_idx": 0,
+          "engine": "scalar",
+          "active_ms": 0.357017,
+          "fraction_of_graph_wall_time": 0.27740981502230827
+        },
+        {
+          "pcore_idx": 0,
+          "engine": "sync",
+          "active_ms": 0.022959,
+          "fraction_of_graph_wall_time": 0.01783963212703366
+        },
+        {
+          "pcore_idx": 0,
+          "engine": "tensor",
+          "active_ms": 1.124285,
+          "fraction_of_graph_wall_time": 0.8735933971837639
+        },
+        {
+          "pcore_idx": 0,
+          "engine": "vector",
+          "active_ms": 0.356395,
+          "fraction_of_graph_wall_time": 0.2769265077709901
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "gpsimd",
+          "active_ms": 0.181035,
+          "fraction_of_graph_wall_time": 0.14066805183664524
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "scalar",
+          "active_ms": 0.355053,
+          "fraction_of_graph_wall_time": 0.27588374518052533
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "sync",
+          "active_ms": 0.022777,
+          "fraction_of_graph_wall_time": 0.017698214249638296
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "tensor",
+          "active_ms": 1.124584,
+          "fraction_of_graph_wall_time": 0.8738257265537707
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "vector",
+          "active_ms": 0.356547,
+          "fraction_of_graph_wall_time": 0.2770446150092543
+        }
+      ],
+      "instructions_by_type": [
+        {
+          "engine": "Tensor",
+          "pcore_idx": 0,
+          "performance_mode": null,
+          "tensor_instruction_type": "",
+          "duration_ns_sum": 50674,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 59
+        },
+        {
+          "engine": "Vector",
+          "pcore_idx": 0,
+          "performance_mode": null,
+          "tensor_instruction_type": "",
+          "duration_ns_sum": 32968,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 58
+        },
+        {
+          "engine": "GpSimd",
+          "pcore_idx": 0,
+          "performance_mode": null,
+          "tensor_instruction_type": "",
+          "duration_ns_sum": 14652,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 58
+        },
+        {
+          "engine": "Sync",
+          "pcore_idx": 0,
+          "performance_mode": null,
+          "tensor_instruction_type": "",
+          "duration_ns_sum": 21420,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 49
+        },
+        {
+          "engine": "Scalar",
+          "pcore_idx": 0,
+          "performance_mode": null,
+          "tensor_instruction_type": "",
+          "duration_ns_sum": 99939,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 57
+        },
+        {
+          "engine": "Sync",
+          "pcore_idx": 0,
+          "performance_mode": null,
+          "tensor_instruction_type": "REGULAR",
+          "duration_ns_sum": 20269,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 74
+        },
+        {
+          "engine": "Scalar",
+          "pcore_idx": 0,
+          "performance_mode": null,
+          "tensor_instruction_type": "REGULAR",
+          "duration_ns_sum": 406986,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 550
+        },
+        {
+          "engine": "GpSimd",
+          "pcore_idx": 0,
+          "performance_mode": null,
+          "tensor_instruction_type": "REGULAR",
+          "duration_ns_sum": 249070,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 437
+        },
+        {
+          "engine": "Tensor",
+          "pcore_idx": 0,
+          "performance_mode": null,
+          "tensor_instruction_type": "TRANSPOSE",
+          "duration_ns_sum": 1101893,
+          "raw_flops_sum": 16097738752,
+          "adjusted_flops_sum": 16097738752,
+          "flops_transpose_sum": 16097738752,
+          "adjusted_flops_transpose_sum": 16097738752,
+          "start_ts_count": 6020
+        },
+        {
+          "engine": "Tensor",
+          "pcore_idx": 0,
+          "performance_mode": null,
+          "tensor_instruction_type": "REGULAR",
+          "duration_ns_sum": 1865017,
+          "raw_flops_sum": 64349011968,
+          "adjusted_flops_sum": 64349011968,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 7910
+        },
+        {
+          "engine": "Vector",
+          "pcore_idx": 0,
+          "performance_mode": "2x",
+          "tensor_instruction_type": "REGULAR",
+          "duration_ns_sum": 275923,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 400
+        },
+        {
+          "engine": "Scalar",
+          "pcore_idx": 0,
+          "performance_mode": null,
+          "tensor_instruction_type": "SPILL",
+          "duration_ns_sum": 14517,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 21
+        },
+        {
+          "engine": "Vector",
+          "pcore_idx": 0,
+          "performance_mode": null,
+          "tensor_instruction_type": "REGULAR",
+          "duration_ns_sum": 8011,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 98
+        },
+        {
+          "engine": "Vector",
+          "pcore_idx": 0,
+          "performance_mode": "4x",
+          "tensor_instruction_type": "REGULAR",
+          "duration_ns_sum": 105172,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 301
+        },
+        {
+          "engine": "GpSimd",
+          "pcore_idx": 0,
+          "performance_mode": null,
+          "tensor_instruction_type": "SPILL",
+          "duration_ns_sum": 4905,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 4
+        },
+        {
+          "engine": "Tensor",
+          "pcore_idx": 0,
+          "performance_mode": null,
+          "tensor_instruction_type": "SPILL",
+          "duration_ns_sum": 2381,
+          "raw_flops_sum": 83886080,
+          "adjusted_flops_sum": 83886080,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 10
+        },
+        {
+          "engine": "Tensor",
+          "pcore_idx": 1,
+          "performance_mode": null,
+          "tensor_instruction_type": "",
+          "duration_ns_sum": 51359,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 68
+        },
+        {
+          "engine": "Vector",
+          "pcore_idx": 1,
+          "performance_mode": null,
+          "tensor_instruction_type": "",
+          "duration_ns_sum": 31425,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 60
+        },
+        {
+          "engine": "GpSimd",
+          "pcore_idx": 1,
+          "performance_mode": null,
+          "tensor_instruction_type": "",
+          "duration_ns_sum": 11361,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 60
+        },
+        {
+          "engine": "Scalar",
+          "pcore_idx": 1,
+          "performance_mode": null,
+          "tensor_instruction_type": "",
+          "duration_ns_sum": 99690,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 60
+        },
+        {
+          "engine": "Sync",
+          "pcore_idx": 1,
+          "performance_mode": null,
+          "tensor_instruction_type": "",
+          "duration_ns_sum": 21936,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 51
+        },
+        {
+          "engine": "Sync",
+          "pcore_idx": 1,
+          "performance_mode": null,
+          "tensor_instruction_type": "REGULAR",
+          "duration_ns_sum": 20145,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 74
+        },
+        {
+          "engine": "Scalar",
+          "pcore_idx": 1,
+          "performance_mode": null,
+          "tensor_instruction_type": "REGULAR",
+          "duration_ns_sum": 409596,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 550
+        },
+        {
+          "engine": "GpSimd",
+          "pcore_idx": 1,
+          "performance_mode": null,
+          "tensor_instruction_type": "REGULAR",
+          "duration_ns_sum": 246737,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 437
+        },
+        {
+          "engine": "Tensor",
+          "pcore_idx": 1,
+          "performance_mode": null,
+          "tensor_instruction_type": "REGULAR",
+          "duration_ns_sum": 1868321,
+          "raw_flops_sum": 64349011968,
+          "adjusted_flops_sum": 64349011968,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 7910
+        },
+        {
+          "engine": "Tensor",
+          "pcore_idx": 1,
+          "performance_mode": null,
+          "tensor_instruction_type": "TRANSPOSE",
+          "duration_ns_sum": 1095493,
+          "raw_flops_sum": 16097738752,
+          "adjusted_flops_sum": 16097738752,
+          "flops_transpose_sum": 16097738752,
+          "adjusted_flops_transpose_sum": 16097738752,
+          "start_ts_count": 6020
+        },
+        {
+          "engine": "Vector",
+          "pcore_idx": 1,
+          "performance_mode": "2x",
+          "tensor_instruction_type": "REGULAR",
+          "duration_ns_sum": 275805,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 400
+        },
+        {
+          "engine": "Scalar",
+          "pcore_idx": 1,
+          "performance_mode": null,
+          "tensor_instruction_type": "SPILL",
+          "duration_ns_sum": 12558,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 21
+        },
+        {
+          "engine": "Vector",
+          "pcore_idx": 1,
+          "performance_mode": null,
+          "tensor_instruction_type": "REGULAR",
+          "duration_ns_sum": 7721,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 98
+        },
+        {
+          "engine": "Vector",
+          "pcore_idx": 1,
+          "performance_mode": "4x",
+          "tensor_instruction_type": "REGULAR",
+          "duration_ns_sum": 104868,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 301
+        },
+        {
+          "engine": "GpSimd",
+          "pcore_idx": 1,
+          "performance_mode": null,
+          "tensor_instruction_type": "SPILL",
+          "duration_ns_sum": 8000,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 4
+        },
+        {
+          "engine": "Tensor",
+          "pcore_idx": 1,
+          "performance_mode": null,
+          "tensor_instruction_type": "SPILL",
+          "duration_ns_sum": 2382,
+          "raw_flops_sum": 83886080,
+          "adjusted_flops_sum": 83886080,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 10
+        }
+      ],
+      "regular_matmul_precision_by_core": [
+        {
+          "pcore_idx": 0,
+          "bf16_cost_multiplier": 1,
+          "raw_flops_sum": 64349011968,
+          "adjusted_flops_sum": 64349011968,
+          "start_ts_count": 3897
+        },
+        {
+          "pcore_idx": 1,
+          "bf16_cost_multiplier": 1,
+          "raw_flops_sum": 64349011968,
+          "adjusted_flops_sum": 64349011968,
+          "start_ts_count": 3897
+        }
+      ],
+      "fp32_regular_matmul_sources": [],
+      "top_instruction_duration_sums": [
+        {
+          "engine": "Tensor",
+          "opcode": "MATMUL",
+          "duration_ns_sum": 4493258,
+          "start_ts_count": 13824
+        },
+        {
+          "engine": "Tensor",
+          "opcode": "LDWEIGHTS",
+          "duration_ns_sum": 1427354,
+          "start_ts_count": 13824
+        },
+        {
+          "engine": "Vector",
+          "opcode": "CAST",
+          "duration_ns_sum": 425877,
+          "start_ts_count": 616
+        },
+        {
+          "engine": "Scalar",
+          "opcode": "COPY",
+          "duration_ns_sum": 394760,
+          "start_ts_count": 430
+        },
+        {
+          "engine": "Scalar",
+          "opcode": "ACTIVATE",
+          "duration_ns_sum": 392505,
+          "start_ts_count": 512
+        },
+        {
+          "engine": "GpSimd",
+          "opcode": "DMA_DIRECT2D",
+          "duration_ns_sum": 356424,
+          "start_ts_count": 512
+        },
+        {
+          "engine": "Vector",
+          "opcode": "COPY",
+          "duration_ns_sum": 187437,
+          "start_ts_count": 274
+        },
+        {
+          "engine": "Scalar",
+          "opcode": "EVENT_SEMAPHORE",
+          "duration_ns_sum": 185462,
+          "start_ts_count": 166
+        },
+        {
+          "engine": "GpSimd",
+          "opcode": "EVENT_SEMAPHORE",
+          "duration_ns_sum": 167295,
+          "start_ts_count": 402
+        },
+        {
+          "engine": "Vector",
+          "opcode": "TENSOR_SCALAR",
+          "duration_ns_sum": 148454,
+          "start_ts_count": 512
+        },
+        {
+          "engine": "Tensor",
+          "opcode": "EVENT_SEMAPHORE",
+          "duration_ns_sum": 70341,
+          "start_ts_count": 270
+        },
+        {
+          "engine": "Vector",
+          "opcode": "EVENT_SEMAPHORE",
+          "duration_ns_sum": 68062,
+          "start_ts_count": 230
+        },
+        {
+          "engine": "Sync",
+          "opcode": "DMA_DIRECT2D",
+          "duration_ns_sum": 38640,
+          "start_ts_count": 72
+        },
+        {
+          "engine": "Sync",
+          "opcode": "EVENT_SEMAPHORE",
+          "duration_ns_sum": 37999,
+          "start_ts_count": 94
+        },
+        {
+          "engine": "Scalar",
+          "opcode": "DMA_DIRECT2D",
+          "duration_ns_sum": 27075,
+          "start_ts_count": 42
+        },
+        {
+          "engine": "Tensor",
+          "opcode": "COMPARE_BRANCH",
+          "duration_ns_sum": 20629,
+          "start_ts_count": 10
+        },
+        {
+          "engine": "Tensor",
+          "opcode": "DRAIN",
+          "duration_ns_sum": 17952,
+          "start_ts_count": 44
+        },
+        {
+          "engine": "Scalar",
+          "opcode": "CAST",
+          "duration_ns_sum": 14301,
+          "start_ts_count": 24
+        },
+        {
+          "engine": "Scalar",
+          "opcode": "COMPARE_BRANCH",
+          "duration_ns_sum": 10426,
+          "start_ts_count": 11
+        },
+        {
+          "engine": "Scalar",
+          "opcode": "DRAIN",
+          "duration_ns_sum": 6565,
+          "start_ts_count": 46
+        }
+      ],
+      "source_instruction_duration_sums": [
+        {
+          "nki_source_location": null,
+          "duration_ns_sum": 4166259,
+          "start_ts_count": 15330
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave31/research/scratch/mlp_fused_bf16.py:142",
+          "duration_ns_sum": 2355194,
+          "start_ts_count": 9650
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave31/research/scratch/mlp_fused_bf16.py:141",
+          "duration_ns_sum": 2019741,
+          "start_ts_count": 7250
+        }
+      ],
+      "top_dma_instruction_groups": [
+        {
+          "penguin_id": "128",
+          "duration_ns_sum": 84566,
+          "start_ts_count": 128,
+          "start_ts_min": 236556,
+          "end_ts_max": 533141,
+          "example_bir_instruction": "I-128-0"
+        },
+        {
+          "penguin_id": "194",
+          "duration_ns_sum": 79470,
+          "start_ts_count": 120,
+          "start_ts_min": 571356,
+          "end_ts_max": 1225048,
+          "example_bir_instruction": "I-194-0"
+        },
+        {
+          "penguin_id": "185",
+          "duration_ns_sum": 77620,
+          "start_ts_count": 120,
+          "start_ts_min": 547119,
+          "end_ts_max": 1064109,
+          "example_bir_instruction": "I-185-0"
+        },
+        {
+          "penguin_id": "",
+          "duration_ns_sum": 63459,
+          "start_ts_count": 110,
+          "start_ts_min": 27925,
+          "end_ts_max": 1122894,
+          "example_bir_instruction": "-t131_i1_RematSpillSave1_SpillSave"
+        },
+        {
+          "penguin_id": "145",
+          "duration_ns_sum": 30215,
+          "start_ts_count": 32,
+          "start_ts_min": 17430,
+          "end_ts_max": 30726,
+          "example_bir_instruction": "I-145-0"
+        },
+        {
+          "penguin_id": "133",
+          "duration_ns_sum": 25263,
+          "start_ts_count": 30,
+          "start_ts_min": 15823,
+          "end_ts_max": 466725,
+          "example_bir_instruction": "I-133-0"
+        },
+        {
+          "penguin_id": "181",
+          "duration_ns_sum": 24892,
+          "start_ts_count": 30,
+          "start_ts_min": 661899,
+          "end_ts_max": 1274271,
+          "example_bir_instruction": "I-181-0"
+        },
+        {
+          "penguin_id": "202",
+          "duration_ns_sum": 20616,
+          "start_ts_count": 32,
+          "start_ts_min": 552296,
+          "end_ts_max": 598779,
+          "example_bir_instruction": "I-202-0"
+        },
+        {
+          "penguin_id": "127",
+          "duration_ns_sum": 12178,
+          "start_ts_count": 18,
+          "start_ts_min": 771100,
+          "end_ts_max": 1055657,
+          "example_bir_instruction": "I-127-123-tc-dve"
+        },
+        {
+          "penguin_id": "173",
+          "duration_ns_sum": 1604,
+          "start_ts_count": 2,
+          "start_ts_min": 83789,
+          "end_ts_max": 84644,
+          "example_bir_instruction": "I-173-63"
+        }
+      ]
+    },
+    {
+      "execution_index": 1,
+      "neff_name": "88c730aa928cc358c00a58bfd8efbbe0.neff",
+      "execution_start_ts": 2297280,
+      "execution_end_ts": 3901874,
+      "num_subgraphs": 2,
+      "row_count": 332815,
+      "wall_ms": 1.604594,
+      "active_by_physical_core": [
+        {
+          "pcore_idx": 0,
+          "engine": "gpsimd",
+          "active_ms": 1.340781,
+          "fraction_of_graph_wall_time": 0.835588940255292
+        },
+        {
+          "pcore_idx": 0,
+          "engine": "scalar",
+          "active_ms": 0.401051,
+          "fraction_of_graph_wall_time": 0.24993923696586176
+        },
+        {
+          "pcore_idx": 0,
+          "engine": "sync",
+          "active_ms": 0.001799,
+          "fraction_of_graph_wall_time": 0.0011211558811761728
+        },
+        {
+          "pcore_idx": 0,
+          "engine": "tensor",
+          "active_ms": 1.217643,
+          "fraction_of_graph_wall_time": 0.7588480325864362
+        },
+        {
+          "pcore_idx": 0,
+          "engine": "vector",
+          "active_ms": 0.438977,
+          "fraction_of_graph_wall_time": 0.27357512242972365
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "gpsimd",
+          "active_ms": 1.340635,
+          "fraction_of_graph_wall_time": 0.8354979515067362
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "scalar",
+          "active_ms": 0.40211,
+          "fraction_of_graph_wall_time": 0.25059921699819393
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "sync",
+          "active_ms": 0.001706,
+          "fraction_of_graph_wall_time": 0.0010631972947673992
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "tensor",
+          "active_ms": 1.216459,
+          "fraction_of_graph_wall_time": 0.7581101512282857
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "vector",
+          "active_ms": 0.438817,
+          "fraction_of_graph_wall_time": 0.2734754087326763
+        }
+      ],
+      "instructions_by_type": [
+        {
+          "engine": "Sync",
+          "pcore_idx": 0,
+          "performance_mode": null,
+          "tensor_instruction_type": "",
+          "duration_ns_sum": 1603340,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 21
+        },
+        {
+          "engine": "GpSimd",
+          "pcore_idx": 0,
+          "performance_mode": null,
+          "tensor_instruction_type": "",
+          "duration_ns_sum": 7952,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 26
+        },
+        {
+          "engine": "Scalar",
+          "pcore_idx": 0,
+          "performance_mode": null,
+          "tensor_instruction_type": "",
+          "duration_ns_sum": 16571,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 25
+        },
+        {
+          "engine": "Vector",
+          "pcore_idx": 0,
+          "performance_mode": null,
+          "tensor_instruction_type": "",
+          "duration_ns_sum": 16739,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 26
+        },
+        {
+          "engine": "Tensor",
+          "pcore_idx": 0,
+          "performance_mode": null,
+          "tensor_instruction_type": "",
+          "duration_ns_sum": 13521,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 29
+        },
+        {
+          "engine": "Scalar",
+          "pcore_idx": 0,
+          "performance_mode": null,
+          "tensor_instruction_type": "REGULAR",
+          "duration_ns_sum": 516357,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 2549
+        },
+        {
+          "engine": "Vector",
+          "pcore_idx": 0,
+          "performance_mode": null,
+          "tensor_instruction_type": "REGULAR",
+          "duration_ns_sum": 25159,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 314
+        },
+        {
+          "engine": "GpSimd",
+          "pcore_idx": 0,
+          "performance_mode": null,
+          "tensor_instruction_type": "REGULAR",
+          "duration_ns_sum": 1360067,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 2943
+        },
+        {
+          "engine": "Tensor",
+          "pcore_idx": 0,
+          "performance_mode": null,
+          "tensor_instruction_type": "TRANSPOSE",
+          "duration_ns_sum": 685712,
+          "raw_flops_sum": 8589934592,
+          "adjusted_flops_sum": 8589934592,
+          "flops_transpose_sum": 8589934592,
+          "adjusted_flops_transpose_sum": 8589934592,
+          "start_ts_count": 4096
+        },
+        {
+          "engine": "Tensor",
+          "pcore_idx": 0,
+          "performance_mode": null,
+          "tensor_instruction_type": "REGULAR",
+          "duration_ns_sum": 2043908,
+          "raw_flops_sum": 68719476736,
+          "adjusted_flops_sum": 68719476736,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 9050
+        },
+        {
+          "engine": "Vector",
+          "pcore_idx": 0,
+          "performance_mode": "4x",
+          "tensor_instruction_type": "REGULAR",
+          "duration_ns_sum": 143128,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 553
+        },
+        {
+          "engine": "Vector",
+          "pcore_idx": 0,
+          "performance_mode": "2x",
+          "tensor_instruction_type": "REGULAR",
+          "duration_ns_sum": 324552,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 569
+        },
+        {
+          "engine": "GpSimd",
+          "pcore_idx": 1,
+          "performance_mode": null,
+          "tensor_instruction_type": "",
+          "duration_ns_sum": 8020,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 26
+        },
+        {
+          "engine": "Sync",
+          "pcore_idx": 1,
+          "performance_mode": null,
+          "tensor_instruction_type": "",
+          "duration_ns_sum": 1600386,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 22
+        },
+        {
+          "engine": "Scalar",
+          "pcore_idx": 1,
+          "performance_mode": null,
+          "tensor_instruction_type": "",
+          "duration_ns_sum": 16659,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 25
+        },
+        {
+          "engine": "Vector",
+          "pcore_idx": 1,
+          "performance_mode": null,
+          "tensor_instruction_type": "",
+          "duration_ns_sum": 16821,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 26
+        },
+        {
+          "engine": "Tensor",
+          "pcore_idx": 1,
+          "performance_mode": null,
+          "tensor_instruction_type": "",
+          "duration_ns_sum": 13290,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 29
+        },
+        {
+          "engine": "Scalar",
+          "pcore_idx": 1,
+          "performance_mode": null,
+          "tensor_instruction_type": "REGULAR",
+          "duration_ns_sum": 517161,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 2549
+        },
+        {
+          "engine": "GpSimd",
+          "pcore_idx": 1,
+          "performance_mode": null,
+          "tensor_instruction_type": "REGULAR",
+          "duration_ns_sum": 1360057,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 2943
+        },
+        {
+          "engine": "Vector",
+          "pcore_idx": 1,
+          "performance_mode": null,
+          "tensor_instruction_type": "REGULAR",
+          "duration_ns_sum": 27078,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 314
+        },
+        {
+          "engine": "Tensor",
+          "pcore_idx": 1,
+          "performance_mode": null,
+          "tensor_instruction_type": "TRANSPOSE",
+          "duration_ns_sum": 685874,
+          "raw_flops_sum": 8589934592,
+          "adjusted_flops_sum": 8589934592,
+          "flops_transpose_sum": 8589934592,
+          "adjusted_flops_transpose_sum": 8589934592,
+          "start_ts_count": 4096
+        },
+        {
+          "engine": "Tensor",
+          "pcore_idx": 1,
+          "performance_mode": null,
+          "tensor_instruction_type": "REGULAR",
+          "duration_ns_sum": 2038717,
+          "raw_flops_sum": 68719476736,
+          "adjusted_flops_sum": 68719476736,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 9050
+        },
+        {
+          "engine": "Vector",
+          "pcore_idx": 1,
+          "performance_mode": "4x",
+          "tensor_instruction_type": "REGULAR",
+          "duration_ns_sum": 143031,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 553
+        },
+        {
+          "engine": "Vector",
+          "pcore_idx": 1,
+          "performance_mode": "2x",
+          "tensor_instruction_type": "REGULAR",
+          "duration_ns_sum": 324465,
+          "raw_flops_sum": null,
+          "adjusted_flops_sum": null,
+          "flops_transpose_sum": null,
+          "adjusted_flops_transpose_sum": null,
+          "start_ts_count": 569
+        }
+      ],
+      "regular_matmul_precision_by_core": [
+        {
+          "pcore_idx": 0,
+          "bf16_cost_multiplier": 1,
+          "raw_flops_sum": 68719476736,
+          "adjusted_flops_sum": 68719476736,
+          "start_ts_count": 4096
+        },
+        {
+          "pcore_idx": 1,
+          "bf16_cost_multiplier": 1,
+          "raw_flops_sum": 68719476736,
+          "adjusted_flops_sum": 68719476736,
+          "start_ts_count": 4096
+        }
+      ],
+      "fp32_regular_matmul_sources": [],
+      "top_instruction_duration_sums": [
+        {
+          "engine": "Tensor",
+          "opcode": "MATMUL",
+          "duration_ns_sum": 4138505,
+          "start_ts_count": 12288
+        },
+        {
+          "engine": "Sync",
+          "opcode": "EVENT_SEMAPHORE",
+          "duration_ns_sum": 3200216,
+          "start_ts_count": 10
+        },
+        {
+          "engine": "GpSimd",
+          "opcode": "DMA_DIRECT2D",
+          "duration_ns_sum": 2685126,
+          "start_ts_count": 4096
+        },
+        {
+          "engine": "Tensor",
+          "opcode": "LDWEIGHTS",
+          "duration_ns_sum": 1224884,
+          "start_ts_count": 12288
+        },
+        {
+          "engine": "Scalar",
+          "opcode": "COPY",
+          "duration_ns_sum": 959437,
+          "start_ts_count": 3502
+        },
+        {
+          "engine": "Vector",
+          "opcode": "CAST",
+          "duration_ns_sum": 432699,
+          "start_ts_count": 626
+        },
+        {
+          "engine": "Vector",
+          "opcode": "TENSOR_TENSOR",
+          "duration_ns_sum": 216318,
+          "start_ts_count": 512
+        },
+        {
+          "engine": "Vector",
+          "opcode": "TENSOR_SCALAR",
+          "duration_ns_sum": 155474,
+          "start_ts_count": 512
+        },
+        {
+          "engine": "Vector",
+          "opcode": "COPY",
+          "duration_ns_sum": 130685,
+          "start_ts_count": 594
+        },
+        {
+          "engine": "Tensor",
+          "opcode": "EVENT_SEMAPHORE",
+          "duration_ns_sum": 112447,
+          "start_ts_count": 1738
+        },
+        {
+          "engine": "Scalar",
+          "opcode": "EVENT_SEMAPHORE",
+          "duration_ns_sum": 92534,
+          "start_ts_count": 1600
+        },
+        {
+          "engine": "Vector",
+          "opcode": "EVENT_SEMAPHORE",
+          "duration_ns_sum": 81177,
+          "start_ts_count": 646
+        },
+        {
+          "engine": "GpSimd",
+          "opcode": "EVENT_SEMAPHORE",
+          "duration_ns_sum": 46413,
+          "start_ts_count": 1804
+        },
+        {
+          "engine": "Scalar",
+          "opcode": "CAST",
+          "duration_ns_sum": 8315,
+          "start_ts_count": 14
+        },
+        {
+          "engine": "Vector",
+          "opcode": "TENSOR_LOAD",
+          "duration_ns_sum": 2596,
+          "start_ts_count": 2
+        },
+        {
+          "engine": "Scalar",
+          "opcode": "ACT_TABLE_LOAD",
+          "duration_ns_sum": 2566,
+          "start_ts_count": 2
+        },
+        {
+          "engine": "Sync",
+          "opcode": "TENSOR_LOAD",
+          "duration_ns_sum": 2494,
+          "start_ts_count": 2
+        },
+        {
+          "engine": "GpSimd",
+          "opcode": "TENSOR_LOAD",
+          "duration_ns_sum": 2414,
+          "start_ts_count": 2
+        },
+        {
+          "engine": "Tensor",
+          "opcode": "TENSOR_LOAD",
+          "duration_ns_sum": 2389,
+          "start_ts_count": 2
+        },
+        {
+          "engine": "Scalar",
+          "opcode": "TENSOR_LOAD",
+          "duration_ns_sum": 2273,
+          "start_ts_count": 2
+        }
+      ],
+      "source_instruction_duration_sums": [
+        {
+          "nki_source_location": null,
+          "duration_ns_sum": 3313299,
+          "start_ts_count": 255
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave31/research/scratch/mlp_fused_bf16.py:99",
+          "duration_ns_sum": 2031995,
+          "start_ts_count": 8204
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave31/research/scratch/mlp_fused_bf16.py:120",
+          "duration_ns_sum": 1960444,
+          "start_ts_count": 8192
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave31/research/scratch/mlp_fused_bf16.py:112",
+          "duration_ns_sum": 1372550,
+          "start_ts_count": 3340
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave31/research/scratch/mlp_fused_bf16.py:110",
+          "duration_ns_sum": 667033,
+          "start_ts_count": 4348
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave31/research/scratch/mlp_fused_bf16.py:111",
+          "duration_ns_sum": 611146,
+          "start_ts_count": 3546
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave31/research/scratch/mlp_fused_bf16.py:103",
+          "duration_ns_sum": 381036,
+          "start_ts_count": 640
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave31/research/scratch/mlp_fused_bf16.py:130",
+          "duration_ns_sum": 343710,
+          "start_ts_count": 884
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave31/research/scratch/mlp_fused_bf16.py:60",
+          "duration_ns_sum": 334684,
+          "start_ts_count": 568
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave31/research/scratch/mlp_fused_bf16.py:58",
+          "duration_ns_sum": 334298,
+          "start_ts_count": 536
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave31/research/scratch/mlp_fused_bf16.py:87",
+          "duration_ns_sum": 334200,
+          "start_ts_count": 554
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave31/research/scratch/mlp_fused_bf16.py:105",
+          "duration_ns_sum": 216521,
+          "start_ts_count": 518
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave31/research/scratch/mlp_fused_bf16.py:62",
+          "duration_ns_sum": 216071,
+          "start_ts_count": 1508
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave31/research/scratch/mlp_fused_bf16.py:63",
+          "duration_ns_sum": 215749,
+          "start_ts_count": 1516
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave31/research/scratch/mlp_fused_bf16.py:90",
+          "duration_ns_sum": 198933,
+          "start_ts_count": 1462
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave31/research/scratch/mlp_fused_bf16.py:104",
+          "duration_ns_sum": 170827,
+          "start_ts_count": 690
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave31/research/scratch/mlp_fused_bf16.py:128",
+          "duration_ns_sum": 164892,
+          "start_ts_count": 1068
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave31/research/scratch/mlp_fused_bf16.py:129",
+          "duration_ns_sum": 145906,
+          "start_ts_count": 870
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave31/research/scratch/mlp_fused_bf16.py:64",
+          "duration_ns_sum": 139054,
+          "start_ts_count": 514
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave31/research/scratch/mlp_fused_bf16.py:65",
+          "duration_ns_sum": 136450,
+          "start_ts_count": 512
+        }
+      ],
+      "top_dma_instruction_groups": [
+        {
+          "penguin_id": "3354",
+          "duration_ns_sum": 1419,
+          "start_ts_count": 2,
+          "start_ts_min": 2899512,
+          "end_ts_max": 2901187,
+          "example_bir_instruction": "I-3354_inst__I-6-0"
+        },
+        {
+          "penguin_id": "5367",
+          "duration_ns_sum": 1414,
+          "start_ts_count": 2,
+          "start_ts_min": 3173113,
+          "end_ts_max": 3174024,
+          "example_bir_instruction": "I-5367_inst__I-6-0"
+        },
+        {
+          "penguin_id": "9150",
+          "duration_ns_sum": 1414,
+          "start_ts_count": 2,
+          "start_ts_min": 3637517,
+          "end_ts_max": 3638491,
+          "example_bir_instruction": "I-9150_inst__I-6-0"
+        },
+        {
+          "penguin_id": "6608",
+          "duration_ns_sum": 1406,
+          "start_ts_count": 2,
+          "start_ts_min": 3328636,
+          "end_ts_max": 3330114,
+          "example_bir_instruction": "I-6608_inst__I-6-0"
+        },
+        {
+          "penguin_id": "8854",
+          "duration_ns_sum": 1406,
+          "start_ts_count": 2,
+          "start_ts_min": 3606201,
+          "end_ts_max": 3607178,
+          "example_bir_instruction": "I-8854_inst__I-6-0"
+        },
+        {
+          "penguin_id": "2",
+          "duration_ns_sum": 1392,
+          "start_ts_count": 2,
+          "start_ts_min": 2305491,
+          "end_ts_max": 2306247,
+          "example_bir_instruction": "I-2_inst__I-6-0"
+        },
+        {
+          "penguin_id": "7662",
+          "duration_ns_sum": 1390,
+          "start_ts_count": 2,
+          "start_ts_min": 3459812,
+          "end_ts_max": 3462149,
+          "example_bir_instruction": "I-7662_inst__I-6-0"
+        },
+        {
+          "penguin_id": "7958",
+          "duration_ns_sum": 1386,
+          "start_ts_count": 2,
+          "start_ts_min": 3491129,
+          "end_ts_max": 3493408,
+          "example_bir_instruction": "I-7958_inst__I-6-0"
+        },
+        {
+          "penguin_id": "8992",
+          "duration_ns_sum": 1386,
+          "start_ts_count": 2,
+          "start_ts_min": 3622959,
+          "end_ts_max": 3623922,
+          "example_bir_instruction": "I-8992_inst__I-6-0"
+        },
+        {
+          "penguin_id": "6766",
+          "duration_ns_sum": 1382,
+          "start_ts_count": 2,
+          "start_ts_min": 3343201,
+          "end_ts_max": 3344668,
+          "example_bir_instruction": "I-6766_inst__I-6-0"
+        }
+      ]
+    }
+  ],
+  "files": [
+    {
+      "name": "ActiveTime.parquet",
+      "bytes": 44186,
+      "sha256": "e8be770f10b4e1fe8168676893f27270e9293ee2e87e5c91eb3d66f664251ccc"
+    },
+    {
+      "name": "CoreBarriers.parquet",
+      "bytes": 2597,
+      "sha256": "e0eea38d4f3735b5945966c2a65acbb91ce8ba053072efc5ac21639b4c9a0a45"
+    },
+    {
+      "name": "DmaPacket.parquet",
+      "bytes": 4583677,
+      "sha256": "28549555980fe77f7f75a4b8d7cf925fa1e875ea78e12b3cadbab366d4b58179"
+    },
+    {
+      "name": "DmaQueuesInfo.parquet",
+      "bytes": 1613,
+      "sha256": "faa78d370f62a83d5b846619ba7cc3c9a37d7295e7f81bb6134e8c1d3e7a9c9a"
+    },
+    {
+      "name": "DmaUsage.parquet",
+      "bytes": 943294,
+      "sha256": "c4b8648a344b59f491f09595f953fecd1ef964ef45326ba6a239eea4589ae3f5"
+    },
+    {
+      "name": "ExecutionInfo.parquet",
+      "bytes": 1514,
+      "sha256": "2dc528cd412c2d1c4cc1c40c728d43dd126822340ab8d320d469d54accf4900e"
+    },
+    {
+      "name": "Flow.parquet",
+      "bytes": 2727510,
+      "sha256": "1ae1468b426e30ea246b0adb32ed6f8169de889fd8f497954a85a8e8aa3b5f55"
+    },
+    {
+      "name": "HbmUsageSummaryByType.parquet",
+      "bytes": 1667,
+      "sha256": "752cc981b0f85b2168cb61368682af827816c8fb1a6462205d591c1692bb8f8c"
+    },
+    {
+      "name": "Instruction.parquet",
+      "bytes": 3654219,
+      "sha256": "7c17c02a84e22f87edfb57394220fb361da0bea20183834cae8374b9a85b9b65"
+    },
+    {
+      "name": "Metadata.parquet",
+      "bytes": 8260,
+      "sha256": "5e88cee38ddf7ef3d81a455a607ee11c03d39cacf8fc30a38adef982df2a56c9"
+    },
+    {
+      "name": "NeffHeader.parquet",
+      "bytes": 3506,
+      "sha256": "164b083489261ee1371b6fe564b349518c7e390fa330146fc7953e0dc61cc0d3"
+    },
+    {
+      "name": "OpcodeSummary.parquet",
+      "bytes": 3148,
+      "sha256": "25ba3b06906b17d51b5e542c068fafbc8a2a3df6b2053401463b1749f910c7dc"
+    },
+    {
+      "name": "PendingDma.parquet",
+      "bytes": 21139,
+      "sha256": "691821c4d76bf489dbdd7b1094e75141d9d0c9599ebe7155b9b4791613692315"
+    },
+    {
+      "name": "PsumUsage.parquet",
+      "bytes": 125604,
+      "sha256": "aaed8d69e3e9f1d836f55cbaa67b89cfc1759bf1bb85934ddbb10dc9a86b1d69"
+    },
+    {
+      "name": "SbufUsage.parquet",
+      "bytes": 155585,
+      "sha256": "e81478c6e9a388f9fa9a35dd4b7a86b03d191841c7769ada382d8ff6bda064e0"
+    },
+    {
+      "name": "SchemaFields.parquet",
+      "bytes": 42997,
+      "sha256": "e68eee4af56d9f459c8fa49c86bd6a3c96a55a71a2dd3c70cbf3a5f3c02f6ceb"
+    },
+    {
+      "name": "SemaphoreUpdate.parquet",
+      "bytes": 363897,
+      "sha256": "9edd579d8fb43e5b95807c0d7bc9b4808a8210b2614259d7576378e524a07828"
+    },
+    {
+      "name": "Summary.parquet",
+      "bytes": 20417,
+      "sha256": "9a2689eae4b9ad154cb7eff540ebeea65e72252fbd70e1204bfaf3036418517c"
+    },
+    {
+      "name": "TensorInfo.parquet",
+      "bytes": 3197,
+      "sha256": "bc5580927b9751db67ffc78f2cbabb8731533724c66f6e90b78ceea793daec99"
+    },
+    {
+      "name": "Throttle.parquet",
+      "bytes": 2222,
+      "sha256": "f4845cfaf1fb2dc7755c2d520e59f647c0d3bc972979a2898684d7da9751a1d8"
+    },
+    {
+      "name": "ThrottleSummary.parquet",
+      "bytes": 1254,
+      "sha256": "51112a994597aaf049470cca35e4ec70d1bf1892552679c0e2de5f99c6b20eb6"
+    },
+    {
+      "name": "Warning.parquet",
+      "bytes": 1504,
+      "sha256": "b733a13aa428c4ecb39a1937a19e1731abea775994a9c8cf48309beef61c2aac"
+    }
+  ]
+}

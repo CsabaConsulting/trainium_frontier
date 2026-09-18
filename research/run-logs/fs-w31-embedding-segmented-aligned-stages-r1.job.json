@@ -1,0 +1,44 @@
+{
+  "host": "trn21",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave31",
+  "expected_commit": "01003e218429455b7060f3f4053757ad00a8dded",
+  "label": "fs-w31-embedding-segmented-aligned-stages-r1",
+  "purpose": "Independent address-only root-cause control: reorderFP32/uint32 tiles on4*T-byte boundaries but retain full8192-output gather, with no tiling workaround. Complete intermediate/uninstrumented eager/compiled checks. Tests whether alignment alone explains failure; no speed or training claim.",
+  "fingerprint_paths": [
+    "research/scratch/embedding_segmented_nki.py",
+    "research/scratch/embedding_segmented_manual_stage_probe.py",
+    "research/scratch/embedding_segmented_debug.py"
+  ],
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_RT_VISIBLE_CORES": "0",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "900s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "research/scratch/embedding_segmented_manual_stage_probe.py",
+    "--aligned-sbuf"
+  ],
+  "started_at": "2026-09-18T14:45:43.197039+00:00",
+  "hostname": "ip-172-31-34-85",
+  "git_commit": "01003e218429455b7060f3f4053757ad00a8dded",
+  "source_dirty": false,
+  "preflight_free_bytes": 40128335872,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "4c14ac6ec14fd52e31ee06d91540707083c48a93ec4687fbaa35bc7106a823f3",
+    "research/fresh_start_host.py": "df01707b8ca2ffc8f4b798467e58b81c6fd8417f7aa1c26c4ecf6c080c659600",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/scratch/embedding_segmented_nki.py": "97f37357a5d607b122519342412235e15cdd00ab910c466fb90a73bcb7630f1d",
+    "research/scratch/embedding_segmented_manual_stage_probe.py": "86ffcf9a7f8ad7b293d5ec83e9656d8ba6a1f21f557950e38f547b491f952d95",
+    "research/scratch/embedding_segmented_debug.py": "470b3b81a4fee96662349a73fdbf957aa0c35bb54882d946fc908a4547e11a4f"
+  }
+}

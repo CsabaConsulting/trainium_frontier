@@ -1,0 +1,35 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave31",
+    "expected_commit": "01003e218429455b7060f3f4053757ad00a8dded",
+    "label": "fs-w31-embedding-segmented-aligned-stages-r1",
+    "purpose": "Independent address-only root-cause control: reorderFP32/uint32 tiles on4*T-byte boundaries but retain full8192-output gather, with no tiling workaround. Complete intermediate/uninstrumented eager/compiled checks. Tests whether alignment alone explains failure; no speed or training claim.",
+    "fingerprint_paths": [
+      "research/scratch/embedding_segmented_nki.py",
+      "research/scratch/embedding_segmented_manual_stage_probe.py",
+      "research/scratch/embedding_segmented_debug.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "900s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/embedding_segmented_manual_stage_probe.py",
+      "--aligned-sbuf"
+    ]
+  },
+  "requested_at": "2026-09-18T14:45:36.997212+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w31-embedding-segmented-aligned-stages-r1\", \"pid\": 954865, \"commit\": \"01003e218429455b7060f3f4053757ad00a8dded\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave31/research/run-logs/fs-w31-embedding-segmented-aligned-stages-r1.log\", \"started_at\": \"2026-09-18T14:45:43.197039+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

@@ -78,7 +78,7 @@ def timing(arms, steps, sync):
 
 
 def run_case(device, shape, kind, kernel, steps, contiguous_weights=False, tiled_io=False,
-             cached_bf16_weights=False):
+             cached_bf16_weights=False, transposed_relu=False):
     tokens, channels, hidden = shape
     tile = min(512, tokens // 2)
     torch.manual_seed(941 + tokens + channels + (kind == 'changed'))
@@ -102,7 +102,9 @@ def run_case(device, shape, kind, kernel, steps, contiguous_weights=False, tiled
         wrapped = torch_neuronx.wrap_nki(kernel)
 
         def kernel_call(xx, uu, dd):
-            return wrapped[2](xx, uu, dd, 2, tile, contiguous_weights, tiled_io)
+            output, saved = wrapped[2](xx, uu, dd, 2, tile, contiguous_weights, tiled_io,
+                                       transposed_relu)
+            return output, saved.T if transposed_relu else saved
 
         torch._dynamo.reset()
         fused_forward = torch.compile(kernel_call, backend='neuron', fullgraph=True, dynamic=False)
@@ -111,7 +113,9 @@ def run_case(device, shape, kind, kernel, steps, contiguous_weights=False, tiled
         kernel_call = fused_forward = native_forward = reference_forward
     inputs = tuple(t.to(device) for t in cpu_inputs)
     if device == 'neuron':
-        eager = kernel[2](*inputs, 2, tile, contiguous_weights, tiled_io)
+        eager_y, eager_saved = kernel[2](*inputs, 2, tile, contiguous_weights, tiled_io,
+                                         transposed_relu)
+        eager = (eager_y, eager_saved.T if transposed_relu else eager_saved)
         gemm_gate(f'eager:up:{shape}:{kind}', eager[1], x, up.bfloat16().T, relu=True)
         gemm_gate(f'eager:down:{shape}:{kind}', eager[0], eager[1].cpu().square(), down.bfloat16().T)
     output, relu = fused_forward(*inputs)
@@ -149,6 +153,7 @@ def run_case(device, shape, kind, kernel, steps, contiguous_weights=False, tiled
     emit('FUSED_MLP_CASE', dict(shape=shape, kind=kind, device=device,
                               contiguous_weights=contiguous_weights, tiled_io=tiled_io,
                               cached_bf16_weights=cached_bf16_weights,
+                              transposed_relu=transposed_relu,
                               token_tile=tile, all_gates_passed=True,
                               saved_activation_bytes=2*tokens*hidden,
                               weight_input_bytes=2*up.element_size()*channels*hidden,
@@ -161,6 +166,7 @@ def run_case(device, shape, kind, kernel, steps, contiguous_weights=False, tiled
         emit('FUSED_MLP_BENCH', dict(shape=shape, **timing(arms, steps, torch.neuron.synchronize),
                                    contiguous_weights=contiguous_weights, tiled_io=tiled_io,
                                    cached_bf16_weights=cached_bf16_weights,
+                                   transposed_relu=transposed_relu,
                                    weight_reads_casts_layout_and_relu_save_included=True,
                                    includes_optimizer_or_whole_model=False))
 
@@ -176,6 +182,8 @@ def main():
                     help='Contiguous activation transfers with explicit128x128 on-chip transposes.')
     ap.add_argument('--cached-bf16-weights', action='store_true',
                     help='Compare BF16 cached weight inputs; master updates/refresh excluded from both arms.')
+    ap.add_argument('--transposed-relu', action='store_true',
+                    help='Save ReLU in HxT kernel layout and charge its view/layout use in backward.')
     args = ap.parse_args()
     torch.set_num_threads(4)
     kernel = None
@@ -184,10 +192,10 @@ def main():
         kernel = build_kernel()
     for kind in ('random', 'changed', 'zero'):
         run_case(args.device, (256, 256, 512), kind, kernel, args.steps,
-                 args.contiguous_weights, args.tiled_io, args.cached_bf16_weights)
+                 args.contiguous_weights, args.tiled_io, args.cached_bf16_weights, args.transposed_relu)
     if args.real_shape:
         run_case(args.device, (8192, 1024, 4096), 'random', kernel, args.steps,
-                 args.contiguous_weights, args.tiled_io, args.cached_bf16_weights)
+                 args.contiguous_weights, args.tiled_io, args.cached_bf16_weights, args.transposed_relu)
     print('PASS: fused BF16 MLP component gates; no full-model claim', flush=True)
 
 

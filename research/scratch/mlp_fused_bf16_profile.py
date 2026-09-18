@@ -26,6 +26,7 @@ def main():
     ap.add_argument('--tiled-io', action='store_true')
     ap.add_argument('--cached-bf16-weights', action='store_true')
     ap.add_argument('--real-shape', action='store_true')
+    ap.add_argument('--transposed-relu', action='store_true')
     args = ap.parse_args()
     torch.set_num_threads(4)
     trace = args.trace_dir.resolve()
@@ -43,7 +44,9 @@ def main():
     wrapped = torch_neuronx.wrap_nki(build_kernel())
 
     def call(xx, uu, dd):
-        return wrapped[2](xx, uu, dd, 2, tile, args.contiguous_weights, args.tiled_io)
+        output, saved = wrapped[2](xx, uu, dd, 2, tile, args.contiguous_weights, args.tiled_io,
+                                   args.transposed_relu)
+        return output, saved.T if args.transposed_relu else saved
 
     fused = torch.compile(call, backend='neuron', fullgraph=True, dynamic=False)
     native = torch.compile(reference_forward, backend='neuron', fullgraph=True, dynamic=False)
@@ -85,6 +88,7 @@ def main():
     print('MLP_PROFILE_ARTIFACT '+json.dumps(dict(trace=str(trace),shape=[tokens,channels,hidden],
           contiguous_weights=args.contiguous_weights, tiled_io=args.tiled_io,
           cached_bf16_weights=args.cached_bf16_weights,
+          transposed_relu=args.transposed_relu,
           compiled_neffs=len(entries),eager_neffs=len(eager['files']),
           profiled_latency_is_performance_evidence=False)),flush=True)
 

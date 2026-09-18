@@ -1,0 +1,12 @@
+{
+  "started_at": "2026-09-18T14:45:09.547690+00:00",
+  "purpose": "Fresh primary-source research alongside device probes; external report is unverified until source audit.",
+  "prompt": "Research public PRIMARY documentation, official AWS Neuron repositories, and research papers for practical custom NKI TRAINING-kernel optimization on Trainium2/NeuronCore-v3. The installed stack to target is native PyTorch plus NKI0.5 (not XLA, not Trainium3). Focus tightly on: (1) nc_n_gather correctness constraints, indexed source read footprint, SBUF alignment, output widths beyond512, compiler allocation/dependency pitfalls, and documented fixes or official code examples; (2) fused BF16 ReLU-squared MLP training forward for X[8192,1024], up[4096,1024], down[1024,4096], including saved activations and backward: data layout, contiguous DMA versus strided DMA, TensorEngine transpose, weight-stationary reuse, LNC2, and SBUF24MiB; (3) whether genuine legacy FP8 double-row TensorEngine kernels can beat BF16 for these dimensions when all casts/layouts/scales are included, with gradient/accumulation accuracy preserved. Give an evidence-backed shortlist of implementation experiments and discriminating measurements, not generic advice. Distinguish known documented constraints from hypotheses. Clearly label APIs only available after NKI0.5 or on Trainium3. Cite direct primary source URLs for every concrete API/hardware claim. Do not speculate about competition leaderboard teams or private validation. Aim for a focused report under2000 words; if no source establishes a claimed bug, explicitly say so.",
+  "output": "research/fresh-start-kernel-primary-research-2026-09-18.md",
+  "provider": "Tavily",
+  "model": "pro",
+  "correction": "Installed CLI stdin requires research run subcommand, confirmed by help.",
+  "returncode": 0,
+  "completed_at": "2026-09-18T14:49:43.391430+00:00",
+  "report_exists": true
+}

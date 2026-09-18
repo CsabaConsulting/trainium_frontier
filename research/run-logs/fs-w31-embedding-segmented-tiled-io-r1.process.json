@@ -1,0 +1,25 @@
+{
+  "label": "fs-w31-embedding-segmented-tiled-io-r1",
+  "guard_pid": 953559,
+  "child_pid": 953560,
+  "child_session": 953560,
+  "started_at": "2026-09-18T14:43:01.377800+00:00",
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1500s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "research/scratch/embedding_segmented_probe.py",
+    "--manual-sbuf",
+    "--reuse-sbuf",
+    "--compiled-kernel",
+    "--real-shape",
+    "--training-row",
+    "--gather-tile",
+    "512",
+    "--steps",
+    "6",
+    "--tiled-io"
+  ]
+}

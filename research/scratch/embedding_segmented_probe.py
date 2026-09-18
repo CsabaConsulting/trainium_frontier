@@ -98,8 +98,9 @@ def run_case(args, kernel, kind, shape):
     ids = indices_for(kind, tokens, vocabulary, args.seed)
     gradient = gradient_for(kind, tokens, channels, args.seed + 1)
     meta = metadata(ids, vocabulary)
-    ref, bound, counts = reference(gradient, ids, vocabulary)
-    literal = cpu_scan(gradient, meta)
+    accumulated = gradient.bfloat16().float() if args.bf16_input_gradients else gradient
+    ref, bound, counts = reference(accumulated, ids, vocabulary)
+    literal = cpu_scan(accumulated, meta)
     check(literal, ref, bound, counts, f"cpu:{kind}:{shape}")
     print("EMBED_SEGMENT_CASE " + json.dumps(dict(
         kind=kind, shape=shape, unique_ids=int((counts > 0).sum()), max_count=int(counts.max()),
@@ -110,6 +111,7 @@ def run_case(args, kernel, kind, shape):
         manual_sbuf=args.manual_sbuf,
         reuse_sbuf=args.reuse_sbuf,
         aligned_sbuf=args.aligned_sbuf, gather_tile=args.gather_tile, tiled_io=args.tiled_io,
+        bf16_input_gradients=args.bf16_input_gradients,
         gradient_dtype="float32", preparation_uses_training_only=(kind == "training"))), flush=True)
     if args.device == "cpu":
         return
@@ -123,7 +125,7 @@ def run_case(args, kernel, kind, shape):
     def invoke(gg, *metadata_args):
         parts = [kernel[lanes](gg[:, start:start + chunk].contiguous(), *metadata_args,
                               lanes, args.manual_sbuf, False, args.reuse_sbuf,
-                              args.aligned_sbuf, args.gather_tile, args.tiled_io)
+                              args.aligned_sbuf, args.gather_tile, args.tiled_io, args.bf16_input_gradients)
                  for start in range(0, channels, chunk)]
         return parts[0] if len(parts) == 1 else torch.cat(parts, dim=1)
     if args.compiled_kernel:
@@ -134,7 +136,7 @@ def run_case(args, kernel, kind, shape):
         def captured(gg, pp, cc, ee, vv):
             parts = [wrapped[lanes](gg[:, start:start + chunk].contiguous(), pp, cc, ee, vv,
                                    lanes, args.manual_sbuf, False, args.reuse_sbuf,
-                                   args.aligned_sbuf, args.gather_tile, args.tiled_io)
+                                   args.aligned_sbuf, args.gather_tile, args.tiled_io, args.bf16_input_gradients)
                      for start in range(0, channels, chunk)]
             return parts[0] if len(parts) == 1 else torch.cat(parts, dim=1)
 
@@ -161,7 +163,12 @@ def run_case(args, kernel, kind, shape):
         max_abs_to_fp64=float(native_error.max()),
         relative_rms_to_fp64=float(native_error.square().mean().sqrt() / ref.square().mean().sqrt().clamp_min(1e-30)),
         max_abs_to_bf16_inputs=float((native_result.double() - bf16_ref).abs().max()),
-        arithmetic_may_differ_from_fp32_scan=True)), flush=True)
+        arithmetic_may_differ_from_fp32_scan=not args.bf16_input_gradients,
+        fp64_reference_uses_bf16_inputs=args.bf16_input_gradients)), flush=True)
+    if args.bf16_input_gradients:
+        # Native accumulation and scan may order FP32 sums differently, but
+        # both must satisfy bounds against exactly the same rounded inputs.
+        check(native_result, ref, bound, counts, f"native_bf16:{kind}:{shape}")
     assert torch.isfinite(native_result).all()
 
     def upload_only():
@@ -227,6 +234,8 @@ def main():
                     help="Maximum outputs per permutation gather; source keeps full token range.")
     ap.add_argument("--tiled-io", action="store_true",
                     help="Contiguous FP32 gradient transfers plus128x128 on-chip transposes.")
+    ap.add_argument("--bf16-input-gradients", action="store_true",
+                    help="Match native input rounding before gather, retain FP32 scan/output.")
     ap.add_argument("--split-channels", type=int, default=0,
                     help="Use independent narrow kernels, including input copies and output concatenation.")
     args = ap.parse_args()
