@@ -91,6 +91,8 @@ def main():
     ap.add_argument("--segmented-dma-embedding", action="store_true",
                     help="Scratch three-kernel ordinary embedding backward; per-microstep "
                          "input D2H, stable CPU sort and metadata upload are timed.")
+    ap.add_argument("--nki-branch-norm", action="store_true",
+                    help="Scratch FP32-statistic RMSNorm with the existing BF16 branch outputs.")
     ap.add_argument("--fused-mlp", action="store_true",
                     help="Scratch fused BF16 MLP with HxT saved activation consumed in backward.")
     ap.add_argument("--fused-mlp-normal-dx", action="store_true",
@@ -285,6 +287,12 @@ def main():
     device_type = T.detect_device_type("")
     ddp, rank, local_rank, world_size, device = T.init_runtime(device_type)
     T.COMPUTE_DTYPE = T.compute_dtype_for(device)
+    if args.nki_branch_norm:
+        if device_type != "neuron":
+            raise ValueError("--nki-branch-norm requires Neuron")
+        from branch_norm_nki import install as install_branch_norm
+        install_branch_norm(T)
+        print("[pt] NKI branch RMSNorm; FP32 statistics/gradients and BF16 output unchanged", flush=True)
 
     trace_config = None
     if args.trace_rank is not None and not 0 <= args.trace_rank < world_size:
@@ -634,6 +642,7 @@ def main():
             integrated_bf16_norm_output=T.USE_BF16_NORM_OUTPUT,
             integrated_bf16_sdpa_input=T.USE_BF16_SDPA_INPUT,
             segmented_dma_embedding=args.segmented_dma_embedding,
+            nki_branch_norm=args.nki_branch_norm,
             fused_mlp=args.fused_mlp,
             fused_mlp_normal_dx=args.fused_mlp_normal_dx,
             fused_mlp_token_tile=args.fused_mlp_token_tile,

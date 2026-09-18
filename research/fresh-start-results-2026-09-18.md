@@ -1487,3 +1487,39 @@ The wave48 isolated native-reference integration gate passes all48 comparisons
 with unchanged tolerance at256x256 and8192x1024. All output bounds pass, but not all outputs are bit-exact; maximum relative RMS
 is0.001178439 across all48 comparisons. All calls retain compiled autograd. Source314e8d8. The separately compiled packed
 MLP full-model phase is now running ontrn21; native-boundary control is prepared.
+
+
+## Waves48–50: reject separated regions; advance native MLP plus pack8
+
+The separated packed NKI MLP completes at **688.922656ms** ontrn21, and the
+separated native-forward control at **700.449689ms** ontrn22. Both retain the
+same custom backward and pass isolated master/cache/gradient gates, all four
+updated-model checks, and automatic cleanup. Neither is a training candidate.
+The boundary itself is expensive even without an opaque NKI forward.
+
+The joined native-forward/custom-backward MLP with B8/T2048/GA2 completes at
+**559.975452ms**, versus the predeclared longer native B4 reference588.185841ms:
+**4.79617%** saving, with unchanged131,072targets/update. All four whole-model
+checks and cleanup pass. No segmented embedding is used at this larger shape.
+Next is a compiled-only actual16,384-token master/cache/accumulation/update/
+checkpoint gate. A pass advances this combination to a1800s quality run using
+the best reference's clip-after-reduce setting. Packing changes data ordering,
+so throughput alone cannot establish a BPB gain. Exact evidence and limitations
+are in `run-logs/fs-w50-advancement-plan.json`.
+
+The current dense native full-step runtime capture completed cleanly ontrn22
+at19:46:33UTC, sourcec88df7f, label
+`fs-w49-dense1024-current-step-runtime-r1`. It includes73exported NEFFs and
+will support optimizer/dispatch attribution. Its raw artifacts still require
+local retrieval and independent cloud verification.
+
+Wave50 also prepares an NKI RMSNorm component preserving the existing FP32
+statistics/input-gradient and BF16-output policy. Forward and backward use
+per-token rows, save the FP32 inverse RMS, and never combine token statistics.
+Analytic FP64, compiled-execution, changed-token and repeated-call gates come
+before timing; require20% component and3% full-step improvement before training.
+This kernel is untested at this checkpoint. The new training wrapper is explicit
+and source-fingerprinted; production train.py and prepare.py remain unchanged.
+
+The19:35artifact backup completed at19:37:36UTC with **27of27 verified** and no
+errors, including the isolated native numerical reference tensors.

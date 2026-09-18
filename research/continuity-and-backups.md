@@ -7,6 +7,31 @@ preserve original EC2 files, without independent Git histories. Do not overlay
 them on newer canonical code. Reconcile a genuinely new remote source change
 with a reviewed patch; immutable experiment sources normally need no merge.
 
+## Host ordering and promotion policy
+
+The ten-minute job retrieves trn21 first, then trn22, sequentially. Each host and
+immutable worktree has a separate destination; the second retrieval cannot
+overlay the first. These are evidence retrievals, not Git merges. The helper
+then assembles one recovery snapshot and atomically pushes the source and
+backup refs. It never merges either host into the canonical checkout.
+
+All experiment source is authored and committed in the canonical research
+branch before deployment. Each host receives a detached worktree at an exact
+commit; device jobs never share a mutable source checkout. Failed candidates
+and their evidence remain on the research branch, normally behind explicit
+scratch entrypoints or opt-in flags. They do not become the main branch merely
+because a backup ran. A winning change requires deliberate integration and
+validation before promotion. A genuinely new remote edit is retrieved into its
+own recovery path, reviewed, and applied one patch at a time. Separate feature
+branches are appropriate for competing production implementations; separate
+per-host branches are unnecessary for immutable experiment deployments.
+
+Host-wide device locks serialize experiments on each individual instance while
+allowing the two instances to run independently. The backup has its own overlap
+lock and does not acquire device ownership. Explicit log synchronization uses
+another lock when adding provenance-keyed records to the experiment registry;
+that JSON-record reconciliation is not a Git source merge.
+
 ## What runs independently of the GUI
 
 `fresh_start_backup_cron.sh` runs `fresh_start_backup.py` every10minutes from the

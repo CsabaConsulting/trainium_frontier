@@ -1,24 +1,33 @@
 # Resume the Trainium kernel campaign
 
-Updated2026-09-18,19:34UTC. Active permissions: danger-full-access, approval never.
+Updated2026-09-18,19:53UTC. Active permissions: danger-full-access, approval never.
 This replaces the accumulated stale resume instructions; their history remains
 in Git. Do not restart completed experiments from earlier revisions.
 
 ## Live work
 
-- **trn21:** `fs-w48-dense1024-separated-packed-mlp-phase-r1` is running in
-  wave48/source314e8d8 after the isolated numerical gate passed. Eight timed
-  steps/three warmups, all boundary/cache/layout/dispatch costs charged. Native
-  reference588.186ms;3% gate and four updated-model checks required.
-- **trn22:** isolated native capture and NKI separated comparison completed
-  cleanly, all48 comparisons pass unchanged tolerances at both actual shapes.
-  Native+candidate calls remain compiled; all output bounds pass, not all bit-exact. Reference
-  tensors are inwave48/out/fs-w48-mlp-isolated-reference-r1 and are hash-verified in
-  localout/fresh-start-profiles/fs-w48-mlp-isolated-reference-r1 with hashes.
-- **Next:** native-forward boundary control. New checker option
-  `--forward-backend native` preserves the custom backward/region boundary.
-  Deploywave49 and compare against the existingwave48 native references in a
-  fresh guarded process; then phase only if it passes. No SDK changes.
+- **trn21:** latest pack8/native-forward/custom-backward MLP phase completed
+  cleanly at559.975452ms, versus the predeclared longer native reference
+  588.185841ms (4.796% saving). B8/T2048/GA2, unchanged131,072targets/update;
+  no segmented embedding. Next is the actual16,384-token master/cache/gradient
+  gate, with compiled execution asserted on every call. Only a pass authorizes
+  the proposed1800s quality run through the explicit scratch training wrapper.
+- **trn22:** current native full-step runtime trace completed cleanly at19:46:33
+  inwave49: `fs-w49-dense1024-current-step-runtime-r1`. Raw trace/73NEFFs require
+  local retrieval, hashes, and off-machine artifact backup. Next is a new NKI
+  branch RMSNorm component gate: preserve FP32 statistics/gradients and BF16
+  outputs; numerical/independence checks precede any whole-model timing.
+- **Wave50 prepared:** branch_norm_nki.py and its analytic probe, the larger
+  native-MLP gate, and fresh_start_train.py. The runner accepts an explicit
+  repository-local --entrypoint and fingerprints it. Production train.py and
+  prepare.py are unchanged. Commit/deploy the new source before either launch.
+- Separated packed MLP688.922656ms and native-forward separated control
+  700.449689ms both lose, despite passing the isolated numerical gates and
+  all four whole-model checks. Do not train either separated variant.
+- Native references inwave48/out/fs-w48-mlp-isolated-reference-r1 are preserved
+  locally underout/fresh-start-profiles/ and cloud-digest-verified. All48
+  comparisons pass unchanged tolerance; all real-shape outputs are exact,
+  while small-shape outputs are within bounds, not all exact.
 - The native comparison's old failure came from switching to eager execution
   after another model compiled in the same process. See the boundary-rounding
   note. Separate-process gates fix the comparison without changing derivatives
@@ -77,11 +86,12 @@ Local OS **Devuan/SystemV**. Usercsaba cron, no sudo/root, no systemd:
   recovery branch `backup/fresh-start-20260918`, atomically pushes source+WIP and
   verifies both refs. Skips merge/rebase/cherry-pick/index locks, does not pull,
   merge, force-push or change active HEAD/index. Latest verified source
-  `e895e2879907a1a07260e18922fe7d3bc7403ab1` at19:20, with both refs verified.
+  `c88df7ff15cd508bf4b95853d933bfd446ecb3c9` at19:40, with both refs verified.
 - Minutes5/35: `research/fresh_start_artifact_backup_cron.sh`, own lock, nice10,
   bounded uploader, digest-verified immutable assets in draft release
-  `research-backup-20260918`.The detached18:52retry completed at19:12:14UTC: **26of26 artifacts verified,
-  zero errors**, including the old interrupted trace archive. All queued
+  `research-backup-20260918`. The19:35cycle completed at19:37:36UTC: **27of27
+  artifacts verified, zero errors**, including the isolated numerical references.
+  All queued
   checkpoints/profiles have actual GitHub assets and matching digests. New ignored
   artifacts still require discovery/retrieval before a future backup receipt.
 

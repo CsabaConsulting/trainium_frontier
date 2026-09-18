@@ -1,6 +1,6 @@
 # Fresh-start campaign — 2026-09-18
 
-**Current status,18:44UTC.** Minimize official30-minute BPB on a full Trainium2
+**Current status,19:53UTC.** Minimize official30-minute BPB on a full Trainium2
 chip. Working competitive target approximately0.9749; best larger public
 check remains **1.0015512989000874**,20,971,520tokens/B1/T1024. This is a different
 dataset from the private leaderboard. Reference dense6x1024,117.45Mparameters,
@@ -11,20 +11,28 @@ No seed sweep; no new full-budget training result since the preserved wave16
 Every device job has an immutable source/environment manifest, host-wide lock,
 bounded command, owned-process cleanup and automatic pre/postflight. Source and
 logs are pushed every10minutes through a separate-index recovery path; heavy
-artifacts have verified GitHub draft-release receipts. The18:40 source and
+artifacts have verified GitHub draft-release receipts. The19:40 source and
 recovery refs are verified. See `RESUME.md` for actual running jobs.
 
 Current priorities:
 
-1. Resolve the MLP integration regression. Native controls590.315/599.575 ms
-   beat grouped665.457, tile256686.590, streaming673.017/693.391 and prepacked
-   678.042 ms. All pass correctness. Recorded forward spill reloads rise2.340GB
-   to7.265GB, but incomplete counters and shared source lines prevent exact
-   causal attribution. Smaller source-level buffers are not proof of fewer spills.
-2. Finish the explicit7.125MiB SBUF candidate, then test native projections
-   inside the same custom autograd/saved-layout boundary and single-layer
-   replacements. These are causal controls before more variants or full training.
-3. Preserve the NKI convolution/BF16 normalization reference. Embedding DMA
+1. Gate the native-forward/custom-backward MLP atB8/T2048 before a full-budget
+   quality test. The complete-step phase is559.975ms versus the predeclared
+   native588.186ms reference, a4.796% saving with the same global token batch.
+   Compilation/cache costs and all four model postchecks are included. The
+   larger packing bin changes data ordering; speed alone establishes no BPB win.
+2. Test an NKI branch RMSNorm that preserves the already validated precision
+   policy: FP32 statistics/input gradients, BF16 branch outputs. Require analytic
+   numerical and token-independence gates and a20% component saving before
+   full-model measurement. Analyze the newly captured full-step runtime trace
+   to target optimizer/dispatch cost. No speculative full-operator rewrite.
+3. Retain the MLP integration findings: explicit SBUF705.225ms, one-layer-only
+   packed814.094ms, separated packed688.923ms, and separated native700.450ms
+   all lose. The failed numerical comparison was compiled versus eager after
+   an execution-path change in the harness; isolated-process checks pass the
+   original bounds. Smaller buffers or a compiler boundary alone do not repair
+   the full-model cost. The precise allocation cause remains unresolved.
+4. Preserve the NKI convolution/BF16 normalization reference. Embedding DMA
    wins its component but only1.42% in the full model; its two-kernel follow-up
    provides no component advantage. Do not spend a training run on either.
    FP8 remains open only as an end-to-end island with casts, layout preparation,

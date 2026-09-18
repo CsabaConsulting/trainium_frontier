@@ -1,0 +1,45 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave49",
+    "expected_commit": "c88df7ff15cd508bf4b95853d933bfd446ecb3c9",
+    "label": "fs-w49-mlp-native-separated-isolated-gate-r1",
+    "purpose": "Native-forward control behind the same separated MLP boundary. Compare against hash-identified golden tensors from a different native process, unchanged bounds; FP32 masters, BF16 caches, accumulation/updates/eval/checkpoint at both small and real shapes. If passed, phase isolates costs of region splitting from NKI forward.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "TORCH_LOGS": "recompiles"
+    },
+    "fingerprint_paths": [
+      "research/scratch/mlp_separate_diagnose.py",
+      "research/scratch/mlp_fused_integration.py",
+      "research/scratch/mlp_fused_integration_check.py",
+      "research/scratch/mlp_fused_bf16.py",
+      "research/scratch/mlp_isolated_integration_check.py"
+    ],
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/mlp_isolated_integration_check.py",
+      "--action",
+      "compare",
+      "--reference-directory",
+      "/home/ubuntu/trainium_freshstart_20260918_wave48/out/fs-w48-mlp-isolated-reference-r1",
+      "--real-shape",
+      "--forward-backend",
+      "native"
+    ]
+  },
+  "requested_at": "2026-09-18T19:34:22.187934+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w49-mlp-native-separated-isolated-gate-r1\", \"pid\": 1389573, \"commit\": \"c88df7ff15cd508bf4b95853d933bfd446ecb3c9\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave49/research/run-logs/fs-w49-mlp-native-separated-isolated-gate-r1.log\", \"started_at\": \"2026-09-18T19:34:27.694172+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}
