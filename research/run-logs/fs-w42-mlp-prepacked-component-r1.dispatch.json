@@ -1,0 +1,43 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave42",
+    "expected_commit": "df6fa725868ea36d460d3fef97b453eb7ac1bd32",
+    "label": "fs-w42-mlp-prepacked-component-r1",
+    "purpose": "Gate lossless prepacked stationary weight layout and streamed MLP: exact CPU pack/unpack, FP64 GEMM stage bounds, eager and compiled outputs, zero/changed data, native backward. Component timings explicitly separate weight layout refresh from kernel execution; full-step cache cost remains required.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "NEURON_RT_VISIBLE_CORES": "0"
+    },
+    "fingerprint_paths": [
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "research/scratch/mlp_fused_bf16.py"
+    ],
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1500s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "--device",
+      "neuron",
+      "--real-shape",
+      "--contiguous-weights",
+      "--tiled-io",
+      "--cached-bf16-weights",
+      "--transposed-relu",
+      "--grouped-io",
+      "--weight-mode",
+      "3"
+    ]
+  },
+  "requested_at": "2026-09-18T18:31:32.291012+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w42-mlp-prepacked-component-r1\", \"pid\": 995861, \"commit\": \"df6fa725868ea36d460d3fef97b453eb7ac1bd32\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave42/research/run-logs/fs-w42-mlp-prepacked-component-r1.log\", \"started_at\": \"2026-09-18T18:31:37.760735+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

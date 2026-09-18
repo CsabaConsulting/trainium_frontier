@@ -99,8 +99,8 @@ def main():
                     help="Token tile for the scratch MLP; smaller values reduce live activations in SBUF.")
     ap.add_argument("--fused-mlp-grouped-io", action="store_true",
                     help="Load/store contiguous full rows in the scratch MLP, including weight rows.")
-    ap.add_argument("--fused-mlp-weight-mode", type=int, choices=(0, 1, 2, 3), default=0,
-                    help="0: cache both MLP weights;1: stream down;2: stream both;3: stream prepacked.")
+    ap.add_argument("--fused-mlp-weight-mode", type=int, choices=(0, 1, 2, 3, 4), default=0,
+                    help="0: cache both MLP weights;1: stream down;2: stream both;3: stream prepacked;4: explicit SBUF reuse.")
     ap.add_argument("--check-seq-len", type=int, default=256,
                     help="Sequence length for --post-checks, at least 128 and a multiple of 128.")
     ap.add_argument("--grad-clip", type=float, default=1.0,
