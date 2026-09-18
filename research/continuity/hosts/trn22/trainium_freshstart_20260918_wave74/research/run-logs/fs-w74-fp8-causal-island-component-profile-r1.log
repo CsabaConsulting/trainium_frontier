@@ -1,0 +1,11 @@
+[W918 23:36:41.479917909 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/profiler/profiler.py:224: UserWarning: Warning: Profiler clears events at the end of each cycle.Only events from the current cycle will be reported.To keep events across cycles, set acc_events=True.
+  _warn_once(
+FP8_ISLAND_PROFILE_ARTIFACT {"trace": "/home/ubuntu/trainium_freshstart_20260918_wave74/out/fs-w74-fp8-causal-island-component-profile-r1", "shape": [16384, 1024, 4096], "arms": ["native_bf16", "nki_bf16_cache", "nki_fp8_island"], "microbatches": 2, "compiled_neffs": 6, "eager_neffs": 9, "phase_boundary_synchronization": true, "profiled_latency_is_speed_evidence": false, "numerical_authority": "fs-w73-fp8-causal-island-training-component-gate-r1", "whole_model_or_optimizer_included": false}
+EXPERIMENT_POSTFLIGHT {"label": "fs-w74-fp8-causal-island-component-profile-r1", "returncode": 0, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave74/research/run-logs/fs-w74-fp8-causal-island-component-profile-r1.postflight.json"}

@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated2026-09-18,23:26UTC. Authorization: danger-full-access, approval never.
+Updated2026-09-18,23:39UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
 ## Current result and active work
@@ -23,41 +23,50 @@ The previous T1024/pack16/original-fused-AdamW result is0.9974687136975224,
 9eabd33e6925052091f0238629f9192096c42f1310cf3127286898621932cd27 and is also
 local/cloud verified. Earlier native pack8 result1.0010172426032236 is retained.
 
-**trn21:** wave70/source785c294e4ef70b222915a7d464df2cbc1ba08a56. The installed
-CE/autograd gate passes all36 eager/compiled exact loss and gradient checks,
-including16384x8192. Fresh same-source T1024/pack16+ownership control phase
-`fs-w70-native-mlp-context1024-pack16-owned-control-phase-r1` passed all4 checks
-at519.3954189890064ms. Candidate
-`fs-w70-native-mlp-context1024-pack16-owned-ce-phase-r1` is now active with only
-`--adaptive-nki-ce` added. Require full-step gains before quality. The component result
-is5.679064700962044ms versus12.339531350880861ms,53.9767%. Protected trainer is
-unchanged. trn21 watcher follows wave70.
+**trn21 ACTIVE:** `fs-w70-dense1024-context1024-pack16-owned-ce-1800-r1`,
+wave70/source785c294e4ef70b222915a7d464df2cbc1ba08a56, launched23:29:08UTC.
+Fresh30-minute seed42 quality run combines T1024/pack16/GA2, padded optimizer
+ownership and exact adaptive two-core CE/target gather. Clip AFTER averaging.
+Expected training completion around00:01UTC, then small public evaluation.
+Preserve/hash its checkpoint after clean postflight, then run matched larger
+20,971,520-token/world1/B1/T1024/O1 evaluation. No quality result yet.
 
-trn22 FP8-storage/BF16-math full gate passes under explicit FP64-propagated
-bounds and exact paired NKI outputs/gradients. It loses isolated timing:
-17.898401897400618ms versus14.989582099951804ms NKI BF16 storage and
-15.641983901150525ms native original per cache refresh plus two FW/BW calls.
-No actual FP8 matmuls, optimizer, collectives or caller spill measurements.
-Full FP8 forward/backward islands remain open; no training promotion here.
-The next immutable source adds actual FP8 up/down GEMMs with per-token scaling
-in `fp8_mlp_island_nki.py`, and an independent stage/pair-rounding/row-isolation
-gate. Wave71 small gate stops before MLP execution: unbound `calibrate_rows` helper
-in the NKI frontend; calibration12checks pass and postflight is clean. The
-helper-global fix progressed past the frontend. Wave72 then exposed an FP8
-transpose constraint: PSUM output needs free stride2. Both failed runs are clean.
-Next source uses padded128x256 FP8 PSUM and compacts only initialized elements;
-repeat the same small forward gates. BF16 STE backward with independent FP64
-surrogate bounds and a complete-component timing driver is prepared but must
-wait for forward gates. It checks two-microbatch accumulation and detached
-caches/FP32 masters, includes all scale/cast/save costs, and gates controls.
-trn22 watcher follows wave72 and must move to the next immutable source.
+The installed CE/autograd gate passes36 eager/compiled exact loss/gradient
+checks. Fresh same-source whole-step control519.3954189890064ms versus candidate
+500.372594979126ms:3.6624936% incremental gain, above the predeclared3% gate.
+All four ranks pass finite/causality/batch/repetition checks; final measured
+loss5.064923286437988 matches exactly. No complete parameter-equality claim.
+Combined gain versus earlier owned T2048/pack8 control528.3530275ms is5.2958%.
+The phase clips before averaging; quality clips after. Protected trainer unchanged.
 
-The T1024/pack16+ownership phase finished clean at515.4737504781224ms versus
-fresh owned T2048/pack8 control528.353027504636ms:2.4376%, below predeclared3%.
-All four model checks pass. Combine gated CE before another30-minute quality
-run. These phases clip before averaging; real quality recipes clip after.
-Adapter/check, phase flag and explicit training flag are committed and default
-off. Commit/deploy FP8 source before its launch; requests remain in ignored out/.
+**trn22 CLEAN after wave74 profile:** actual FP8 up/down forward GEMMs with causal
+per-token scales pass all seven small cases (193 exact/14 pair-stage gates),
+real16384x1024x4096 forward and six STE backward/accumulation cases. Masters
+receive FP32 gradients once; caches detached, BF16 backward independently
+checked against FP64 autograd with propagated rounding bounds. This establishes
+implementation correctness under the declared surrogate, not training quality.
+Real-shape forward differs from original BF16 by5.7677% RMS.
+
+Complete component medians (cache refresh plus TWO FW/BW calls): native
+15.6627304ms, NKI BF16 cache14.6533632ms, FP8 storage/BF16 math17.8966452ms,
+actual FP8 forward/BF16 backward18.1811702ms (16.0792% slower than native).
+Online calibration/master casts, per-token scales, saved values and gradient
+accumulation are charged; optimizer, collectives and caller spills are absent.
+No training promotion. Real-shape preparation/forward/backward profile
+`fs-w74-fp8-causal-island-component-profile-r1` completed clean23:37:47UTC,
+source4d4f55d. It preserves6 compiled and9 eager NEFFs; retrieval/ingestion is
+next. Trace phase synchronization makes unprofiled wave73 timing authoritative. Full FP8 backward remains
+open; precision-specific layouts must be assessed in their intended precision.
+
+Wave71 frontend helper lookup and wave72 FP8 transpose failures remain recorded.
+The fixes register NKI-parsed helper names globally and use padded128x256 FP8
+PSUM with stride2; all original gates pass afterward, without relaxed tolerances.
+trn22 watcher currently follows wave74 and must move when new source is deployed.
+The compact-table device primitive/probe is written, CPU clamped-tail exhaustive
+gate passes unchanged2e-7/1e-7 bounds; commit/deploy before its first device gate.
+It returns exponential and derivative together, charges5MiB table loads and
+index/gather/tail/output work, and checks all finite BF16 codes and changed rows.
+No loss reduction/log/reciprocal/autograd or training integration is claimed.
 
 ## Latest numerical findings
 
@@ -81,7 +90,7 @@ is exact for every case.512/768/1024-row variants are exact, as is the earlier
 16384-row test. This localizes a forward shape/loop compilation effect; the
 specific generated instruction is not identified. Do not attribute it to input
 quantization or hardware-core variation. Adaptive dispatch now passes the fresh exact gates without changing tolerances;
-compiled public-autograd integration and whole-model measurement are next.
+compiled public-autograd integration and whole-model gates now pass; quality run is active.
 
 Reciprocal-only Adam mode2 passes34 original component gates and full repeated
 optimizer/cache/checkpoint-restore integration. Paired component1.085410 vs
@@ -103,8 +112,8 @@ All13 user retro links and primary-source research are in the retro-numerics not
 
 See `fresh-start-kernel-queue-2026-09-18.md`, results ledger and source/log summaries.
 Never veto an FP8 layout solely because its BF16 version lost: compressed storage
-can change allocation/spills. Current test isolates that capacity effect with
-BF16 math. Full FP8 forward/backward islands remain a distinct queued direction.
+can change allocation/spills. The storage-only and actual-FP8-forward component variants both lose so far.
+Profile their costs before choosing the next layout; full FP8 backward is separate.
 
 ## Operational protocol and backups
 
@@ -118,15 +127,15 @@ checkpoints, then commit/push. No automatic host-source merge.
 Local Devuan/SystemV, usercsaba cron; no root/systemd:
 - Every10minutes: source/recovery backup with alternate Git index and atomic
   fast-forward pushes. Skips merge/rebase/cherry-pick/index locks; no pull,
-  force push, merge or active HEAD/index mutation. Sourcef3a67c9 and recovery
-  0fe8ae883de1c4b2947ba9113399698f98237ca6 were verified23:00:30. Check newer
+  force push, merge or active HEAD/index mutation. Source585a983 and recovery
+  dcfc3a0bf5789eecea316fb70c2432e8e9ace847 were verified23:30:35. Check newer
   exact refs in out/fresh-start-backup/{latest,last-success}.json.
 - Minutes5/35: bounded digest-verified heavy-artifact upload to draft release
   research-backup-20260918. Latest completed23:05:18:33/33 artifacts verified,
   zero errors, including both new quality checkpoints. State is
   out/fresh-start-artifact-backup/latest.json; receipts under research/run-logs.
   Newly produced remote checkpoints still need retrieval to checkpoints/ first.
-- Local log watchers currently follow trn21/wave70 and trn22/wave72,90rounds at
+- Local log watchers currently follow trn21/wave70 and trn22/wave74,90rounds at
  45seconds. Repoint when the active remote worktree changes. Only stop exact
   owned watcher PID/UID/cwd/argv/startticks; remote training jobs are separate.
 

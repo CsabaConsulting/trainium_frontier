@@ -1,5 +1,14 @@
 # Fresh-start synthesis: repeatable gains toward a competitive BPB
 
+**23:39UTC update:** exact adaptive CE/target gather passes the whole-model gate
+at500.372595ms versus519.395419ms (3.6625% gain). Fresh30-minute seed42 quality
+run with T1024/pack16 and optimizer ownership is active on trn21. Actual FP8
+forward/BF16-backward passes the declared small/real numerical and accumulation
+gates, but loses complete-component timing18.181170vs15.662730ms native.
+Profile its preparation/layout/saves/backward before redesign. Full FP8 backward
+and compact joint-table device trials remain separate queued hypotheses.
+
+
 **Current evidence,2026-09-18 23:10UTC:** larger public BPB
 **0.9973302213667847** after3377updates with exact padded optimizer ownership,
 T2048/pack8 and native-forward/custom-backward MLP, no n-grams or seed search.
