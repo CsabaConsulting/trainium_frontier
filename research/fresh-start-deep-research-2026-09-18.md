@@ -1,5 +1,20 @@
 # Fresh-start synthesis: repeatable gains toward a competitive BPB
 
+**Competitive target clarified by user:** aim near **0.9749 BPB** (current
+mid-table), with margin for further leaderboard movement. The numerical gap
+from1.001551299 public BPB is0.026651299; public/private differences prevent an
+exact leaderboard prediction. Prioritize sustained custom-kernel development,
+not seed selection. The single already-running repeat is retained as a
+variability check; no additional seed sweep is planned.
+
+**Kernel gate,13:36UTC:** compact native4096-row backward plus NKI gather
+expansion passes all component gates. The real training row matches the native
+gradient exactly:3.115ms baseline,1.802ms prepared,2.553ms including metadata;
+the estimated four-table shared-preparation cost is1.990ms. Advance to an
+actual four-rank autograd/timing gate with D2H metadata acquisition included.
+This is not yet a whole-model speedup. The scan metadata reload still fails;
+a final narrow-call variant will charge slicing/concatenation explicitly.
+
 **13:35 UTC current decision:** the best larger public score is **1.001551299**,
 from dense6×1024 without hashed n-grams, NKI convolution, BF16 normalized branch
 inputs and clipping after averaging. That last change improves the same-seed

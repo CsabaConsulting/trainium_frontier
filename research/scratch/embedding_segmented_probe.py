@@ -114,14 +114,22 @@ def run_case(args, kernel, kind, shape):
     gd, idd = gradient.to("neuron"), ids.to("neuron")
     md = tuple(m.to("neuron") for m in meta)
     lanes = 2 if channels % 256 == 0 else 1
-    invoke = lambda gg, *metadata_args: kernel[lanes](gg, *metadata_args, lanes)
+    chunk = args.split_channels or channels
+    assert channels % chunk == 0 and chunk % (128 * lanes) == 0
+
+    def invoke(gg, *metadata_args):
+        parts = [kernel[lanes](gg[:, start:start + chunk].contiguous(), *metadata_args, lanes)
+                 for start in range(0, channels, chunk)]
+        return parts[0] if len(parts) == 1 else torch.cat(parts, dim=1)
     if args.compiled_kernel:
         check(invoke(gd, *md), ref, bound, counts, f"nki_eager:{kind}:{shape}")
         from torch_neuronx import wrap_nki
         wrapped = wrap_nki(kernel)
 
         def captured(gg, pp, cc, ee, vv):
-            return wrapped[lanes](gg, pp, cc, ee, vv, lanes)
+            parts = [wrapped[lanes](gg[:, start:start + chunk].contiguous(), pp, cc, ee, vv, lanes)
+                     for start in range(0, channels, chunk)]
+            return parts[0] if len(parts) == 1 else torch.cat(parts, dim=1)
 
         invoke = torch.compile(captured, backend="neuron", fullgraph=True, dynamic=False)
     candidate = lambda: invoke(gd, *md)
@@ -202,6 +210,8 @@ def main():
     ap.add_argument("--training-row", action="store_true")
     ap.add_argument("--compiled-kernel", action="store_true",
                     help="Gate eager and captured NKI, then time the captured wrapper like native.")
+    ap.add_argument("--split-channels", type=int, default=0,
+                    help="Use independent narrow kernels, including input copies and output concatenation.")
     args = ap.parse_args()
     torch.set_num_threads(4)
     kernel = None

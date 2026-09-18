@@ -1,5 +1,20 @@
 # Fresh-start campaign — 2026-09-18
 
+**Competitive target clarified by user:** aim near **0.9749 BPB** (current
+mid-table), with margin for further leaderboard movement. The numerical gap
+from1.001551299 public BPB is0.026651299; public/private differences prevent an
+exact leaderboard prediction. Prioritize sustained custom-kernel development,
+not seed selection. The single already-running repeat is retained as a
+variability check; no additional seed sweep is planned.
+
+**Kernel gate,13:36UTC:** compact native4096-row backward plus NKI gather
+expansion passes all component gates. The real training row matches the native
+gradient exactly:3.115ms baseline,1.802ms prepared,2.553ms including metadata;
+the estimated four-table shared-preparation cost is1.990ms. Advance to an
+actual four-rank autograd/timing gate with D2H metadata acquisition included.
+This is not yet a whole-model speedup. The scan metadata reload still fails;
+a final narrow-call variant will charge slicing/concatenation explicitly.
+
 Objective: minimize **official 30-minute validation bits per byte** on one full
 Trainium2 chip. Sub-1.0 on public validation is an engineering milestone, not a
 claim about the private leaderboard. The metric is lower-is-better.

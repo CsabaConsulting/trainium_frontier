@@ -1,0 +1,42 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave19",
+    "expected_commit": "9f455b66a3ca1a9101a4cf772ad5fcb44a4223bd",
+    "label": "fs-w19-embedding-compact-gather-native-r1",
+    "purpose": "Compact ordinary embedding backward plus single-write dense gather expansion; independent FP32 expansion gates on one/two programs, then production BF16 comparison with all host metadata costs; no training integration.",
+    "fingerprint_paths": [
+      "research/scratch/embedding_compact_probe.py",
+      "research/scratch/embedding_segmented_probe.py",
+      "research/scratch/embedding_segmented_nki.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/embedding_compact_probe.py",
+      "--real-shape",
+      "--training-row",
+      "--steps",
+      "12",
+      "--minimum-bucket",
+      "4096",
+      "--expansion",
+      "gather"
+    ]
+  },
+  "requested_at": "2026-09-18T13:33:13.542004+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w19-embedding-compact-gather-native-r1\", \"pid\": 921734, \"commit\": \"9f455b66a3ca1a9101a4cf772ad5fcb44a4223bd\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave19/research/run-logs/fs-w19-embedding-compact-gather-native-r1.log\", \"started_at\": \"2026-09-18T13:33:16.633072+00:00\"}\n",
+  "stderr": ""
+}

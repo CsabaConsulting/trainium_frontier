@@ -1,0 +1,195 @@
+{
+  "label": "fs-w19-embedding-compact-gather-native-r1",
+  "source_commit": "9f455b66a3ca1a9101a4cf772ad5fcb44a4223bd",
+  "log_sha256": "f5243807ef823ee648abdc13ae0b2b24ab8b4b6d7bb0a6762a384b01559cb278",
+  "numerical_gates": 44,
+  "all_numerical_gates_passed": true,
+  "benchmarks": [
+    {
+      "kind": "uniform",
+      "shape": [
+        256,
+        256,
+        256
+      ],
+      "bucket": 256,
+      "samples_ms": {
+        "native_full_vocab": [
+          0.09655283550576617,
+          0.08323066867887974,
+          0.07901300462738921
+        ],
+        "compact_prepared_metadata": [
+          0.09053900430444628,
+          0.10198750048099707,
+          0.08777550344044964
+        ],
+        "compact_metadata_creation_upload_included": [
+          0.4073925034996743,
+          0.3718187508638948,
+          0.6423297503109401
+        ]
+      },
+      "median_ms": {
+        "native_full_vocab": 0.08323066867887974,
+        "compact_prepared_metadata": 0.09053900430444628,
+        "compact_metadata_creation_upload_included": 0.4073925034996743
+      },
+      "estimated_four_table_amortized_ms": 0.1697523791032533,
+      "estimate_is_not_whole_model_timing": true,
+      "provisional_speed_gate": false,
+      "expansion": "gather",
+      "output_expansion_included": true,
+      "training_speed_or_quality_claim": false
+    },
+    {
+      "kind": "zipf",
+      "shape": [
+        256,
+        256,
+        256
+      ],
+      "bucket": 256,
+      "samples_ms": {
+        "native_full_vocab": [
+          0.09676483750808984,
+          0.0802552531240508,
+          0.08055083647680779
+        ],
+        "compact_prepared_metadata": [
+          0.08896983733090262,
+          0.09488683523765455,
+          0.0967846669179077
+        ],
+        "compact_metadata_creation_upload_included": [
+          0.6058702516990403,
+          0.6362971665415292,
+          0.6204275850905105
+        ]
+      },
+      "median_ms": {
+        "native_full_vocab": 0.08055083647680779,
+        "compact_prepared_metadata": 0.09488683523765455,
+        "compact_metadata_creation_upload_included": 0.6204275850905105
+      },
+      "estimated_four_table_amortized_ms": 0.22627202270086855,
+      "estimate_is_not_whole_model_timing": true,
+      "provisional_speed_gate": false,
+      "expansion": "gather",
+      "output_expansion_included": true,
+      "training_speed_or_quality_claim": false
+    },
+    {
+      "kind": "uniform",
+      "shape": [
+        8192,
+        1024,
+        8192
+      ],
+      "bucket": 8192,
+      "samples_ms": {
+        "native_full_vocab": [
+          3.0986625012398386,
+          3.1087692477740347,
+          3.117079749548187
+        ],
+        "compact_prepared_metadata": [
+          3.3004170836647972,
+          3.3006849989760667,
+          3.315676333537946
+        ],
+        "compact_metadata_creation_upload_included": [
+          3.940907083839799,
+          4.072953752862911,
+          4.004178748194438
+        ]
+      },
+      "median_ms": {
+        "native_full_vocab": 3.1087692477740347,
+        "compact_prepared_metadata": 3.3006849989760667,
+        "compact_metadata_creation_upload_included": 4.004178748194438
+      },
+      "estimated_four_table_amortized_ms": 3.4765584362806594,
+      "estimate_is_not_whole_model_timing": true,
+      "provisional_speed_gate": false,
+      "expansion": "gather",
+      "output_expansion_included": true,
+      "training_speed_or_quality_claim": false
+    },
+    {
+      "kind": "zipf",
+      "shape": [
+        8192,
+        1024,
+        8192
+      ],
+      "bucket": 4096,
+      "samples_ms": {
+        "native_full_vocab": [
+          3.1163936655502766,
+          3.124397165568856,
+          3.1246306656006104
+        ],
+        "compact_prepared_metadata": [
+          1.8350263320220013,
+          1.7971899991001312,
+          1.8377182520149897
+        ],
+        "compact_metadata_creation_upload_included": [
+          2.5446922469806545,
+          2.5004647516955933,
+          2.531807331251912
+        ]
+      },
+      "median_ms": {
+        "native_full_vocab": 3.124397165568856,
+        "compact_prepared_metadata": 1.8350263320220013,
+        "compact_metadata_creation_upload_included": 2.531807331251912
+      },
+      "estimated_four_table_amortized_ms": 2.009221581829479,
+      "estimate_is_not_whole_model_timing": true,
+      "provisional_speed_gate": true,
+      "expansion": "gather",
+      "output_expansion_included": true,
+      "training_speed_or_quality_claim": false
+    },
+    {
+      "kind": "training",
+      "shape": [
+        8192,
+        1024,
+        8192
+      ],
+      "bucket": 4096,
+      "samples_ms": {
+        "native_full_vocab": [
+          3.115153085673228,
+          3.1174475831600525,
+          3.1029646682630605
+        ],
+        "compact_prepared_metadata": [
+          1.8014229135587811,
+          1.8023167503997684,
+          1.8192235002061352
+        ],
+        "compact_metadata_creation_upload_included": [
+          2.5527593340181434,
+          2.4691948347026482,
+          2.5556202502533174
+        ]
+      },
+      "median_ms": {
+        "native_full_vocab": 3.115153085673228,
+        "compact_prepared_metadata": 1.8023167503997684,
+        "compact_metadata_creation_upload_included": 2.5527593340181434
+      },
+      "estimated_four_table_amortized_ms": 1.989927396304362,
+      "estimate_is_not_whole_model_timing": true,
+      "provisional_speed_gate": true,
+      "expansion": "gather",
+      "output_expansion_included": true,
+      "training_speed_or_quality_claim": false
+    }
+  ],
+  "decision": "Advance shared-metadata autograd integration to full four-rank phase gate; no training throughput or BPB claim."
+}
