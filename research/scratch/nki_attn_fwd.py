@@ -39,7 +39,11 @@ def build_causal_mask(t):
 
 
 @nki.jit
-def nki_attn_fwd(q, k, v, mask, scale, T=2048, D=128):
+# NOTE: T/D are REQUIRED params (no defaults), matching all train.py NKI
+# kernels. (A no-defaults copy compiled first-try during the 2026-09-17
+# backend hunt, but the M-probe later cleared defaulted params — the live
+# theory is the invocation path, not the signature. Keep explicit anyway.)
+def nki_attn_fwd(q, k, v, mask, scale, T, D):
     """q/k/v: [BH*T, D] bf16 HBM. mask: [T, T] bf16 HBM. Returns [BH*T, D]."""
     BH = q.shape[0] // T
     out = nl.ndarray((BH * T, D), dtype=q.dtype, buffer=nl.shared_hbm)
