@@ -31,13 +31,20 @@ def build_kernel():
     import nki.isa as nisa
 
     @nki.jit
-    def adamw(p, g, m, v, scalars, lanes: int = 2, inplace: bool = False):
+    def adamw(p, g, m, v, scalars, lanes: int = 2, inplace: bool = False,
+              math_mode: int = 0):
         rows, cols = p.shape
         assert p.dtype == nl.float32 and g.dtype == nl.float32
         assert m.dtype == nl.float32 and v.dtype == nl.float32
         assert p.shape == g.shape and p.shape == m.shape and p.shape == v.shape
         assert lanes in (1, 2) and rows % (128 * lanes) == 0 and cols <= 2048
         assert scalars.shape == (128, 7) and scalars.dtype == nl.float32
+        # Experimental modes: 1=Scalar sqrt, 2=refined Scalar reciprocal,
+        # 3=both. Mode0 is the previously gated implementation. Fast modes
+        # have a bounded input contract: debiased variance <=2**84 (strictly
+        # below that endpoint when reciprocal is selected). Clipped gradients
+        # and zero-initialized moments in this model are far inside the range.
+        assert math_mode in (0, 1, 2, 3)
         if inplace:
             out_p, out_m, out_v = p, m, v
         else:
@@ -73,16 +80,36 @@ def build_kernel():
             nisa.dma_copy(dst=out_m[start:start + 128, :], src=ms)
             nisa.dma_copy(dst=out_v[start:start + 128, :], src=vs)
             nisa.tensor_scalar(dst=work, data=vs, op0=nl.multiply, operand0=ib2)
-            # Avoid 0*inf at an untouched row. Below the smallest normal FP32
-            # variance, sqrt(var) is <1.1e-19, below one ULP of the model's
-            # 1e-10 Adam epsilon. The numerator remains the actual variance.
-            nisa.tensor_scalar(dst=reciprocal, data=work, op0=nl.maximum,
-                               operand0=1.1754943508222875e-38)
-            nisa.tensor_scalar(dst=reciprocal, data=reciprocal,
-                               op0=nl.rsqrt, operand0=0.0)
-            nisa.tensor_tensor(dst=work, data1=work, data2=reciprocal, op=nl.multiply)
+            if math_mode == 1 or math_mode == 3:
+                # Scalar sqrt is valid only on [2**-116,2**118]. Raising
+                # smaller variances to its lower endpoint changes sqrt by
+                # at most2**-58=3.47e-18, half one FP32 ULP of epsilon=1e-10.
+                # This is a denominator approximation, not a general sqrt.
+                # Its induced update error remains subject to the unchanged
+                # FP64 stage and trajectory gates, including zero/tiny inputs.
+                nisa.tensor_scalar(dst=work, data=work, op0=nl.maximum,
+                                   operand0=1.2037062152420224e-35)
+                nisa.activation(dst=work, op=nl.sqrt, data=work)
+            else:
+                # Avoid 0*inf at an untouched row. Below the smallest normal
+                # variance, sqrt(var) is below one ULP of Adam epsilon.
+                nisa.tensor_scalar(dst=reciprocal, data=work, op0=nl.maximum,
+                                   operand0=1.1754943508222875e-38)
+                nisa.tensor_scalar(dst=reciprocal, data=reciprocal,
+                                   op0=nl.rsqrt, operand0=0.0)
+                nisa.tensor_tensor(dst=work, data1=work, data2=reciprocal, op=nl.multiply)
             nisa.tensor_scalar(dst=work, data=work, op0=nl.add, operand0=meta[:, 6:7])
-            nisa.reciprocal(dst=reciprocal, data=work)
+            if math_mode == 2 or math_mode == 3:
+                # One Newton correction: y <- y*(2-d*y). The gradient tile
+                # is dead after the moments are stored, so reuse it without
+                # increasing the SBUF footprint. Never mutate gradient HBM.
+                nisa.activation(dst=reciprocal, op=nl.reciprocal, data=work)
+                nisa.tensor_tensor(dst=gs, data1=work, data2=reciprocal, op=nl.multiply)
+                nisa.tensor_scalar(dst=gs, data=gs, op0=nl.multiply,
+                                   operand0=-1.0, op1=nl.add, operand1=2.0)
+                nisa.tensor_tensor(dst=reciprocal, data1=reciprocal, data2=gs, op=nl.multiply)
+            else:
+                nisa.reciprocal(dst=reciprocal, data=work)
             nisa.tensor_scalar(dst=ms, data=ms, op0=nl.multiply, operand0=ib1)
             nisa.tensor_tensor(dst=ms, data1=ms, data2=reciprocal, op=nl.multiply)
             nisa.tensor_scalar(dst=ms, data=ms, op0=nl.multiply, operand0=meta[:, 0:1])

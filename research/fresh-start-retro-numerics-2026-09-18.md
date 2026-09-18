@@ -1,0 +1,201 @@
+# Retro numerical techniques on Trainium
+
+Research started 2026-09-18; initial implementation checkpoint at21:40UTC.
+The user's scope is **all useful functions and arithmetic transformations**, not
+only square root or lookup tables. The objective remains better BPB within the
+fixed training time. A faster primitive alone is not a training result.
+
+## What transfers
+
+The useful family includes range reduction, polynomial and rational
+approximation, exponent-bit manipulation, Newton refinement, precomputation,
+symmetry, a representation chosen to make indexing cheap, and eliminating
+work through an invariant. Multiplication/addition may still use FP32; the
+trade is an expensive operation or data movement for cheaper arithmetic.
+
+The [original Doom tables header](https://github.com/id-Software/DOOM/blob/master/linuxdoom-1.10/tables.h)
+declares the sine, tangent and angle tables and reuse of sine storage for
+cosine. [Quake III's source](https://github.com/id-Software/Quake-III-Arena/blob/master/code/game/q_math.c)
+contains the well-known inverse-square-root bit seed followed by Newton
+refinement. These are distinct examples. For this accelerator, the hardware
+estimate is also a candidate seed; the historical integer constant need not
+be the fastest or most accurate starting point.
+
+[David Given's Bogomandel implementation account](http://cowlark.com/2018-05-26-bogomandel/index.html)
+is particularly relevant: algebra replaces a general product with squares,
+then the number representation makes each value useful as a table address.
+That suggests looking for identities and layout changes together. Replacing
+Trainium matrix multiplies with square-table accesses would have a very
+different cost balance and has no demonstrated advantage.
+
+[David Aramant's Buddhabrot work](https://davidaramant.github.io/post/the-buddhabrot-part-3/)
+uses domain tests and repeated-state detection to avoid iterations. The
+transferable idea is proving that work can be omitted. Fractal escape and
+periodicity tests themselves do not apply to ordinary dense transformer
+activations. Likewise, the fixed-point Mandelbrot articles show that changing
+representation has scale-dependent costs; they do not establish integer
+arithmetic as universally faster than floating point.
+
+Modern primary references:
+
+- [Schraudolph's 1999 exponential approximation](https://nic.schraudolph.org/bib2html/b2hd-Schraudolph99.html)
+  uses the IEEE754 representation to approximate exponentiation without a
+  conventional transcendental routine. It is a lead for range/bit arithmetic,
+  not a reason to accept its raw approximation error for training.
+- [SLEEF](https://sleef.org/) develops vectorized elementary functions with
+  explicit accuracy choices and high-precision reference checks. Its focus
+  on reducing branches and gathers is relevant when comparing tables with
+  arithmetic on this machine.
+- [Sollya fpminimax](https://www.sollya.org/sollya-5.0/help.php?name=fpminimax)
+  considers representable polynomial coefficients. Optimizing an FP64
+  polynomial and then blindly rounding its coefficients is not the complete
+  numerical design problem.
+
+## Hardware changes the trade
+
+AWS documents [piecewise polynomial Scalar Engine activations](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/api/nki.api.shared.html).
+It also documents different precision/throughput for Scalar versus Vector
+reciprocal and Scalar versus GpSIMD inverse square root. Scalar functions have
+limited ranges: sqrt[2^-116,2^118], rsqrt[2^-87,2^97], reciprocal
+±[2^-42,2^42]. Inputs outside their supported ranges can produce invalid results.
+This makes both engine selection and range handling part of the experiment.
+
+My inference: a hand polynomial can still help if it avoids another operation,
+reuses intermediates, shifts work away from a busy engine, or improves a fused
+pipeline. A standalone polynomial with more instructions may lose to the
+existing hardware approximation. We will measure this instead of assuming a
+CPU speedup transfers.
+
+The installed NKI0.5 API supports zero-copy tensor dtype views and bitwise
+operators, useful for exponent/mantissa manipulation. Tensor-scalar arithmetic
+converts integer inputs to FP32 internally; that distinction matters when
+claiming an integer-only fast path. Full-tile Horner products also need explicit
+tensor operations; they cannot all be counted as one scalar FMA instruction.
+
+For tables, [nc_n_gather](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/api/generated/nki.isa.nc_n_gather.html)
+selects within each partition. A naive65,536-entry FP32 table replicated over
+128partitions occupies32MiB **per function**, before working buffers. This is
+our storage calculation, not a measured allocation. Symmetry, restricting the
+active interval, interpolation and polynomial tails could reduce it.
+[local_gather](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/api/generated/nki.isa.local_gather.html)
+has different grouped-index semantics; it is not a transparent shared cache
+that makes that replication cost disappear.
+
+## Audit of existing code: avoid repeating completed work
+
+- RoPE already precomputes sine/cosine in `GPT._precompute_rotary_embeddings`.
+  Replacing runtime sine calls is therefore not a new training-loop saving.
+- The existing NKI softcap/CE already omits row-max subtraction using the
+  softcap bound. It shifts by the target logit, avoiding subtraction of two
+  close numbers for confident predictions. It also chunks exponent sums to
+  control FP32 accumulation error. Preserve those properties.
+- Norm's Scalar rsqrt plus one Newton correction already passed numerical
+  gates but lost in the complete normalization. A normalization has one
+  inverse statistic per token; bulk reciprocal throughput is not its dominant
+  issue. Packed statistic DMA helped, but the native operation still won.
+- Causal attention, fused softcap/CE, compiled Muon and BF16 weight caches are
+  already enabled in the current dense reference. A proposal to merely enable
+  them would duplicate existing work.
+
+## Prioritized experiments
+
+| Target | Candidate | Why it may help | Required check |
+| --- | --- | --- | --- |
+| AdamW denominator | Scalar sqrt and Scalar reciprocal plus Newton correction | Replace two slower bulk operations without more SBUF buffers | FP64 moment/weight stages, zeros/tiny values, schedules, checkpoint/cache tests, complete optimizer/step timing |
+| exp in bounded loss | Range-reduced degree5/7 polynomial on Vector Engine | Test arithmetic substitution and moving work off Scalar Engine | Boundary/positive/exp(0)/repeat checks, normalized probability and gradient sensitivity, then fused loss timing |
+| Softcap + exp + derivative | Approximate the composition or compact BF16-domain tables with polynomial tails | Remove repeated transforms and intermediate traffic | Actual input dtype, all finite BF16 codes or certified interval, target-shift stability, backward and full-model tests |
+| log near1 | log1p-style reduction or a small-interval polynomial | Avoid cancellation/approximation error for very small losses | Confident correct/wrong tokens and FP64 reference; row-level frequency may make speed impact small |
+| tanh/sigmoid/SiLU | Rational/minimax alternatives; share exp/reciprocal intermediates | Useful where several requested outputs reuse the same value | Saturation, sign/symmetry, derivative error and denominator range; architecture changes labeled separately |
+| Matrix/optimizer pipeline | Reuse data and eliminate repeated work | Potentially larger savings than a faster scalar function | Exact state/weight gates and whole-step measurement |
+
+The first two probes are implemented in scratch. No proposed exp/table/tanh
+replacement has been installed into training. A coarse hard-sigmoid or other
+large activation change is an architecture experiment, not an equivalence
+preserving kernel replacement, and needs its own quality comparison.
+
+### AdamW arithmetic probe
+
+`adamw_fused_fp32.py` now has explicit math modes:0 existing GpSIMD-rsqrt/Vector-
+reciprocal;1 Scalar sqrt;2 Scalar reciprocal with one Newton step;3 both.
+The step is `y <- y*(2-d*y)` for denominator d. A dead gradient tile is reused
+as workspace; gradient HBM remains unchanged.
+
+Scalar sqrt's minimum input is2^-116. Clamping smaller variances to that
+endpoint changes the square root by at most2^-58, about3.47e-18, half an FP32
+ULP of the model's1e-10 epsilon. This is a bounded AdamW-denominator approximation,
+**not** a correct general square-root routine at zero. The unchanged numerical
+gates decide whether the complete update is accurate enough. Clipped gradients,
+zero-initialized variance and the current betas keep the training values far
+below the upper hardware range; unsupported uses need separate range handling.
+
+Wave64 runs mode3 with the original zero/tiny/sparse/first/late/large cases,
+real8M-element shape, input-mutation checks and scalar-upload/copyback-inclusive
+timing. It is a component experiment. Source92b8ad6; label
+`fs-w64-adamw-scalar-sqrt-reciprocal-newton-gate-r1`.
+
+### Polynomial exponential probe
+
+Use `x = n*ln(2) + r`, then `exp(x) ≈ 2^n P(r)` for x∈[-30,30]. Construct
+2^n through exponent bits; use split ln2 constants to preserve the small
+remainder. Both nearest and directed integer rounding leave r in the fitted
+[-.694,.694] interval. Degree5/7 coefficients were generated by Chebyshev
+interpolation; the constant is set to1 so exp(0) stays exact. These are initial
+coefficients, not claimed minimax optima.
+
+Local FP32 arithmetic over2,000,001 points, checking truncation/floor/nearest,
+found maximum relative errors1.85e-5 for degree5 and2.22e-7 for degree7, with
+no decreasing steps on that grid. This sampled result is not a proof or a
+Trainium result. The device probe separately declares2.5e-5/2e-6 relative
+budgets, covers exponent boundaries and confident/uniform loss patterns, and
+includes HBM traffic in the timing. Probability/gradient diagnostics normalize
+on the CPU in FP64 to isolate the exp error; they do not replace a device
+softmax/backward integration gate.
+
+Files: `exp_polynomial_nki.py`, `exp_polynomial_probe.py`. Hardware results are
+pending. Even a correctness pass will not promote a slower primitive.
+
+### Composed loss function and BF16 indexing
+
+With the current BF16 branch-norm option and no output bigram bias, the final
+Linear receives BF16 and produces BF16 before the explicit FP32 upcast.
+Verify this in the compiled path before specializing a replacement. The
+finite input set offers a different table opportunity from an arbitrary FP32
+function. However, target-relative exponentiation depends on a row value, so
+it cannot simply become a unary table without reorganizing the loss.
+
+A possible design tables a bounded composition, folds sign/saturation, uses
+small-argument polynomial tails, and preserves a cancellation-resistant loss
+and gradient. Keep the current target-shifted implementation as the reference.
+First measure the present head+loss and its dtype/traffic; then compare total
+costs, including table loading, index conversion, gathers and backward.
+
+## Experimental discipline and stopping criteria
+
+Keep all approximations explicit and default-off. Use isolated component gates
+before an adapter, then a complete-step measurement against a matched control.
+Preserve the loader, scorer and evaluation implementation. Require at least3%
+total-step improvement before another30-minute quality run. Approximation
+accuracy and training quality are separate claims; a pointwise relative error
+does not prove unchanged convergence.
+
+For NaNs, identify the first nonfinite stage and examine range, zero times
+infinity, reciprocal poles, negative variance, overflow/underflow and uninitialized
+SBUF. Preserve failed evidence and correct the cause. Do not loosen a tolerance
+to make an inaccurate kernel pass. Pre/post device cleanup and immutable source
+manifests apply to every hardware probe.
+
+The independent work-elimination experiment provides a concrete example of
+the broader principle: padded whole-matrix optimizer ownership preserved exact
+component weights/states and reduced the matched full step from554.873ms to
+526.783ms (5.062%). Its30-minute quality test is still pending. It avoids
+redundant optimizer work rather than approximating it.
+
+## Retrieval record
+
+All13 user URLs were attempted. Tavily extracted7; the web tool opened the6
+Stack Exchange/Reddit fallbacks. Their discussions were used as leads;
+technical implementation claims above cite original source, authors, tools
+or AWS documentation. The special-functions Math Stack Exchange question was
+closed and has no substantive answer to import as evidence. Raw retrievals
+are in ignored `out/retro-approximations-20260918/`. No downloaded web content
+is treated as an instruction or executed.
