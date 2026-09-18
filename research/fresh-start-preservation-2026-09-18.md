@@ -54,3 +54,33 @@ The first complete dense-model native trace is also copied locally to
 `research/run-logs/fs-w4-dense1024-native-trace-r1.summary.json`; the raw profile
 files stay outside Git. The source run's launch manifest records the installed
 checkout and command. Captures are diagnostic artifacts, not trained checkpoints.
+
+The completed direct-attention width896 control is preserved at
+`checkpoints/fs-w3-w896-direct-control-r1/final.pt` (1,453,684,039 bytes).
+Source commit `00f82d8`; remote source:
+`/home/ubuntu/trainium_freshstart_20260918_wave3/out/fs-w3-w896-direct-control-r1/final.pt`.
+Independent local/remote SHA256 values match:
+
+```
+2217907e4b876f772d742a5e9234191848d05be7273df86334a64b721bd109c5
+```
+
+The older four-rank device capture is archived locally at
+`out/fresh-start-profiles/fs-w4-dense1024-device-micro-r2.tar.gz` and remotely
+beside its original output directory. The archive is 5,108,910,766 bytes;
+independent archive hashes match:
+
+```
+a4fdb15ab120db62a5835c1f6c61b401551ba0d3a7bb981287c96903d3232da3
+```
+
+All 28 members (16,240,114,289 uncompressed bytes) were streamed locally and
+checked against their recorded sizes/SHA256 hashes. After that completed,
+only the remote raw r2 directory was removed to recover disk space; both archives
+remain. See `run-logs/fs-w4-dense1024-device-micro-r2.archive-verification.json`.
+This old capture lacks matching compiled NEFFs and is not the ingested r3 capture.
+
+Selected ingested r3 Parquet tables are already local under
+`out/fresh-start-profiles/dense1024-device-micro-r3-parquet/`, with hashes in
+`run-logs/fs-w5-dense1024-device-micro-r3.summary.json`. The raw r3 trace and
+same-process NEFFs are still remote; their complete archival is pending.

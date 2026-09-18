@@ -1,0 +1,30 @@
+{
+  "label": "fs-w5-fp8-accumulation-r1",
+  "started_at": "2026-09-18T09:06:32.554689+00:00",
+  "hostname": "ip-172-31-32-253",
+  "git_commit": "23e0eca6663043d23252ac5b815553e24ba89ff2",
+  "command": [
+    "timeout",
+    "900s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "/home/ubuntu/trainium_freshstart_20260918_wave5/research/scratch/fresh_start_fp8_probe.py",
+    "--large",
+    "--diagnostic-only",
+    "--check-accumulation"
+  ],
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_RT_VISIBLE_CORES": "0",
+    "NEURON_CC_FLAGS": "--optlevel=1",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "source_sha256": {
+    "train.py": "ad7d18fde75c24ef33769f386199d096f0acbbacf926325053e813b001dc514a",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/scratch/fresh_start_fp8_probe.py": "4a20039aad38a3141a44b00d8036e56e02730f4a1d29913cef1a533d5b396a06"
+  },
+  "purpose": "Remove BF16 output rounding and compare actual FP32 accumulation against an independent FP64 reference; not a speed or trained-model result"
+}

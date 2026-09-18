@@ -1,0 +1,74 @@
+{
+  "query": "Trainium frontier training nanoGPT bits per byte NKI FP8 competition submission",
+  "follow_up_questions": null,
+  "answer": null,
+  "images": [],
+  "results": [
+    {
+      "url": "https://www.amazon.science/news/aws-trainium-frontier-competition-co-design-models-and-kernels-on-purpose-built-ai-chips",
+      "title": "AWS Trainium Frontier competition: Co-design models and kernels on purpose-built AI chips - Amazon Science",
+      "content": "The research question is open: What does an optimal model look like when the hardware constraints are fundamentally different? The AWS Trainium Frontier is a competition designed to answer this question empirically: participants train language models from scratch on Trainium, exploring the full design space from model architecture to custom kernels. The core task is training a language model from scratch, starting from a provided ~50M parameter baseline (nanochat-derived, GPT-style dense LLM with RMSNorm, rotary embeddings, and ReLU² MLP). Participants modify everything: architecture, optimizer, training loop, and optionally custom NKI kernels. The baseline is a starting point, not a ceiling. [...] The AWS Trainium Frontier competition rewards full-stack thinking under a fixed time and compute budget. Participants optimize the model architecture, the optimizer, the training loop, and, if they choose, custom hardware kernels. This enables innovation on a combination of objectives: within the allotted training budget, how low can you drive validation bits-per-byte, and how high can you drive downstream in-context learning capability? The fixed budget creates a direct tradeoff between model capacity (better architecture = fewer steps needed) and training throughput (faster kernels = more steps in the same time). The winning solution finds the balance: the most intelligent model trained most efficiently within the time constraint. [...] Phase 1 gives every team a single Trainium2 chip and a 30-minute training budget, fast enough to test dozens of hypotheses in a single day. Phase 1 scores on a single number: validation bits-per-byte (val\\_bpb) after exactly 30 minutes of training on a single Trn2 chip. Lower is better. Any improvement that fits within that wall-clock budget counts, whether it comes from architecture, optimizer, kernel, or all three. Phase 2 promotes the top 10 teams to a full Trainium2 server with a four-hour budget, opening the door to distributed parallelism and communication-aware model shaping. Phase 2 adds a second axis — inference performance on CORE, an aggregate score across in-context learning tasks spanning reasoning, comprehension, and world knowledge. Your final score is a 50/50 composite:",
+      "score": 0.6882385,
+      "raw_content": null,
+      "id": "877bbd-00"
+    },
+    {
+      "url": "https://trainium-frontier.devpost.com/rules",
+      "title": "AWS Trainium Frontier Competition: Co-design models and kernels on purpose-built AI chips - Devpost",
+      "content": "Round 1 Evaluation Criteria\n\nSubmissions must pass a correctness gate before becoming eligible for evaluation. To pass the correctness gate, submissions must: (1) complete training within the applicable time budget (30 minutes), (2) produce a valid score (no NaN, no crashes), (3) run on the provided hardware and software environment without modifications to the evaluation harness, (4) use the full chip, and (5) use only the provided training data without pre-trained weights, external data, or CORE eval bundle content in training.\n\nRound 1 Scoring: Pure val\\_bpb (validation bits per byte)\n\n·       Scoring metric: val\\_bpb (validation bits per byte) on a pinned validation shard, computed over ~20M tokens. Lower is better. [...] Round 2 Scoring: Weighted val\\_bpb + CORE (50% / 50%)\n\n·       Training metric (50%) — val\\_bpb: validation bits per byte on the pinned validation shard, computed on the final trained model. Lower is better.\n\n·       Capability metric (50%) — CORE: the CORE metric as defined in the nanochat evaluation suite. CORE is an aggregate score across a pinned battery of in-context learning tasks spanning reading comprehension, commonsense reasoning, language understanding, world knowledge, and symbolic problem-solving. [...] Round 2 Evaluation Criteria\n\nSubmissions must pass a correctness gate before becoming eligible for evaluation. To pass the correctness gate, submissions must: (1) complete training within the applicable time budget (4 hours), (2) produce a valid score (no NaN, no crashes), (3) run on the provided hardware and software environment without modifications to the evaluation harness, (4) use the full server, and (5) use only the provided training data without pre-trained weights, external data, or CORE eval bundle content in training. In Round 2, submissions must produce an inference path consistent with the trained model and complete the CORE evaluation pass within the 60-minute scoring timeout.\n\nRound 2 Scoring: Weighted val\\_bpb + CORE (50% / 50%)",
+      "score": 0.59796065,
+      "raw_content": null,
+      "id": "764c87-01"
+    },
+    {
+      "url": "https://www.linkedin.com/posts/goutamkurumella_aws-trainium-neurips2026-activity-7495046262598156288-Sra5",
+      "title": "AWS Trainium Frontier 2026 Competition Now Open for ...",
+      "content": "The competition features two phases: Phase 1 (30 minutes on a single Trainium2 chip optimizing validation bits-per-byte) and Phase 2 (4 hours",
+      "score": 0.5815176,
+      "raw_content": null,
+      "id": "16a438-02"
+    },
+    {
+      "url": "https://trainium-frontier.devpost.com",
+      "title": "AWS Trainium Frontier Competition: Co-design models and kernels on purpose-built AI chips - Devpost",
+      "content": "All submissions must use the provided nanochat-derived training pipeline as a starting point. Teams may modify any component, including model architecture, attention mechanisms, learning rate schedules, optimizer configurations, data mixing strategies, and custom NKI kernels, but training must complete within the fixed compute envelope.\n\nSubmissions are scored automatically via the leaderboard. The top 10 teams at the close of Phase 1 (September 30, 2026) advance to Phase 2, where they receive access to full Trn2 servers for scaled training.\n\n### Hackathon Sponsors\n\nAWS Annapurna Labs\n\n### Prizes\n\n$40,000 in prizes\n\n###### First Place\n\n$25,000 in cash\n\n1 winner\n\n###### Second Place\n\n$10,000 in cash\n\n1 winner\n\n###### Third Place\n\n$5,000 in cash\n\n1 winner\n\n### Devpost Achievements [...] ### Requirements\n\nPhase 1 requires each team to register here, and train a language model on a single Trainium2 chip within a strict 30-minute wall-clock training budget. Submissions are ranked on the public leaderboard by model quality as measured by the evaluation harness provided in the starter kit.\n\nSpecifically, teams must submit:\n\n A trained model checkpoint produced within the 30-minute training window on a single Trainium2 chip.\n A reproducible training script that can be re-run by organizers to verify results. The script must execute end-to-end without manual intervention.\n A brief technical write-up (recommended) describing the approach, including any architectural modifications, custom NKI kernels, optimizer changes, or training recipe innovations. [...] Machine Learning/AI\n\n#### About the challenge\n\nThe AWS Trainium Frontier competition invites ML researchers, systems engineers, and AI-agent builders to co-design models and custom kernels on purpose-built Trainium2 silicon. Teams of one to four receive a complete training pipeline, NKI documentation, and profiling tools, then race to maximize model capability within a fixed 30-minute, single-chip training budget in Phase 1. Top 10 advance to full Trn2 servers in Phase 2, competing for a $40,000 prize pool and the opportunity to present findings alongside Annapurna Labs researchers at NeurIPS 2026 in Sydney.\n\n#### Registration required to qualify and to gain access to private Github\n\n### Requirements",
+      "score": 0.5063723,
+      "raw_content": null,
+      "id": "c93291-03"
+    },
+    {
+      "url": "https://www.linkedin.com/posts/bashir-mohammed_aws-trainium-frontier-competition-co-design-activity-7495185184779026432-madr",
+      "title": "AWS Trainium Frontier 2026 Competition Now Open for ML ...",
+      "content": "The AWS Trainium Frontier 2026 Competition is now open. Co-design the model architecture and the custom NKI kernels on AWS Trainium.",
+      "score": 0.48323447,
+      "raw_content": null,
+      "id": "21ea4c-04"
+    },
+    {
+      "url": "https://github.com/aws-neuron/nki-moe",
+      "title": "aws-neuron/nki-moe: MLSys competition for the best ...",
+      "content": "The contest organizers will execute each team's submission across the twenty withheld benchmarks on a dedicated Trainium instance. The submissions will be",
+      "score": 0.46293488,
+      "raw_content": null,
+      "id": "991f69-05"
+    },
+    {
+      "url": "https://www.aboutamazon.com/news/aws/trainium-3-ultraserver-faster-ai-training-lower-cost",
+      "title": "Trainium3 UltraServer delivers faster AI training at lower cost",
+      "content": "We are already working on Trainium4, which is being designed to bring significant performance improvements across all dimensions, including at least 6x the processing performance (FP4), 3x the FP8 performance, and 4x more memory bandwidth to support the next generation of frontier training and inference. Combined with continued hardware and software optimizations, you can expect performance gains that scale well beyond baseline improvements. The 3x FP8 performance improvement in Trainium4 represents a foundational leap—you can train AI models at least three times faster or run at least three times more inference requests, with additional gains realized through ongoing software enhancements and workload-specific optimizations. FP8 is the industry-standard precision format that balances [...] FP8 is the industry-standard precision format that balances model accuracy with computational efficiency for modern AI workloads. [...] 4 min read\n\n## Key takeaways\n\n Trainium3 UltraServers deliver high performance for AI workloads with up to 4.4x more compute performance, 4x greater energy efficiency, and almost 4x more memory bandwidth than Trainium2 UltraServers—enabling faster AI development with lower operational costs.\n Trn3 UltraServers scale up to 144 Trainium3 chips, delivering up to 362 FP8 PFLOPs with 4x lower latency to train larger models faster and serve inference at scale.\n Customers including Anthropic, Karakuri, Metagenomi, NetoAI, Ricoh, and Splash Music are reducing training and inference costs by up to 50% with Trainium, while Decart is achieving 4x faster inference for real-time generative video at half the cost of GPUs, and Amazon Bedrock is already serving production workloads on Trainium3.",
+      "score": 0.41762826,
+      "raw_content": null,
+      "id": "6ad451-06"
+    },
+    {
+      "url": "https://aws.amazon.com/ai/machine-learning/trainium",
+      "title": "AI Accelerator - AWS Trainium",
+      "content": "Neuron Kernel Interface (NKI) gives you unparalleled access to the chip ISA. Up to 2x MXFP8 compute throughput compared to Trainium2. frontier AI workloads.",
+      "score": 0.37634858,
+      "raw_content": null,
+      "id": "a7ea82-07"
+    }
+  ],
+  "response_time": 1.89,
+  "request_id": "5fb6d1af-4ec7-493a-bccd-4a85dbc631a4"
+}

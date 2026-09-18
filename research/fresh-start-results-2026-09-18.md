@@ -67,7 +67,28 @@ batch size 1. Both in-process first-wave evaluations use world size 4, batch siz
 The checkpoint has been copied locally and its SHA256 verified against the remote
 file; see [preservation record](fresh-start-preservation-2026-09-18.md).
 
-## Direct compiled SDPA: promising throughput, quality comparison pending
+## Direct compiled SDPA: completed 30-minute width896 control
+
+`fs-w3-w896-direct-control-r1`, source `00f82d8`, completed **2,188 steps**
+and 286,785,536 target-token presentations. The four-rank 2,097,152-token
+public evaluations give **0.987568 BPB at context 2048** and **0.999880 at
+context 1024**. Causality passed with maximum difference 0. Training took
+1,784.5s, charged estimate 1,785.6s, startup allowance 463.4s, total 2,263.7s;
+`over_budget=False`. Steady steps take approximately 0.81–0.82s.
+
+Width, tables, seed, batch geometry and BF16 matmult flags match the first
+width896 wave. This run uses the direct compiled attention route and the legacy
+BF16 table optimizer. It reaches 162 additional updates and improves the two
+in-process context scores by 0.004677 / 0.005230. This is a practical budgeted
+improvement, **not a step-matched numerical comparison or an independent seed**.
+The 1024 result is only barely below 1.0 on this partial public sample; a larger
+standalone evaluation is still required. No private leaderboard claim follows.
+
+The checkpoint is copied locally with an independently matched SHA256. See
+[raw training/evaluation log](run-logs/fs-w3-w896-direct-control-r1.log) and the
+[preservation record](fresh-start-preservation-2026-09-18.md).
+
+### Earlier width640 smoke
 
 `fs-w2-sdpa-direct-bf16-smoke-r1`, source `ad3060e`, trains width 640 for 60 steps
 with `--compile-sdpa-direct`. Steps after cold compilation took about 0.66–0.67s,
@@ -207,7 +228,35 @@ a training result; r2 retries the same source without that optional setting.
 This retry can still expose device instructions, but missing DMA packet tables
 will limit memory-bound analysis. It is not evidence of model numerical failure.
 
-## FP8 feasibility: conversion verified, accumulation gate unresolved
+Instruction capture r3 has now ingested successfully with the **same-process
+compiled NEFFs** plus two eager NEFFs named by the runtime trace's persistent
+cache keys. The installed profiler alone omitted these pre-warmed binaries.
+One rank captured instructions while all four ranks performed the same synchronized
+microbatch. Metadata confirms two physical cores per logical core.
+
+The forward and backward execution windows are **218.575 ms** and **97.757 ms**.
+Independent unions of `ActiveTime`, clipped to each window and normalized per
+physical core, give forward TensorEngine activity **17.18% / 17.21%** and backward
+**56.63% / 56.57%**. Forward sync-engine activity is **67.19% / 65.66%**.
+Engine times overlap and must not be summed. These are profiled attribution
+measurements, not replacements for unprofiled step timings.
+
+Explorer marks six roughly 13–15ms regions and one **84.35ms** region for many
+small DMA transfers; the latter contains roughly 262K `DMA_DIRECT2D` instructions.
+Several repeated regions have source attribution to `train.py:1338`, the ordinary
+depthwise `F.conv1d`. The large 84ms region has mostly absent source labels, so
+its operator identity is not inferred from transfer count. This justifies a
+same-architecture static-shift convolution probe before an FP8 training rewrite.
+
+Data-quality limits: optional DGE metadata is missing, DMA notifications were
+dropped, and HLO/compiler metrics are absent. Consequently no exact HBM byte
+bound or HLO MFU is claimed. NKI/source locations are partially available; the
+nonempty layer field is often only `Unknown`. The
+[device summary](run-logs/fs-w5-dense1024-device-micro-r3.summary.json) retains
+warnings, physical-core metrics, execution identities and copied-artifact hashes.
+Reproduce it with [the summarizer](scratch/summarize_dense_device_profile.py).
+
+## FP8 feasibility: empirical arithmetic understood, prototype slower than BF16
 
 The native Trainium2 legacy-E4M3 double-row primitive compiles and runs. The first
 128×256×128 test failed the strict quantized-reference comparison: 98/16,384
@@ -227,18 +276,52 @@ reference is slightly worse, providing no support for that proposed explanation.
 FP8 output RMS error against the unrounded quantized reference is
 0.001644–0.001666 relative; the BF16 control is 0.001662–0.001676 against FP32.
 These aggregate errors resemble the BF16 output-rounding floor, but that alone
-does **not** close the failed elementwise numerical check. The next diagnostic
-returns FP32 outputs and compares them to independent FP64 dot products under
-the declared FP32 sequential-accumulation bound. It will separate accumulation
-from final BF16 rounding without quietly relaxing the original tolerance.
+did not explain the failed elementwise numerical check. Returning FP32 outputs
+revealed an additional relative RMS error of about 0.000106 against an FP64 dot
+product of the quantized operands; the BF16 control was around 7e-8. At K=256,
+2,216/16,384 outputs exceeded the declared FP32 sequential-accumulation bound.
+
+Saved operands distinguish the cause: rounding each adjacent **pair of FP8
+products to 11 significand bits**, followed by FP32 accumulation, explains the
+observed outputs. This is an **empirical arithmetic model, not an AWS hardware
+specification**. Held-out seed-offset 53 passes all declared bounds at all three
+shapes, including 4,194,304 outputs in the largest. Exact boundary patterns show
+round-to-even behavior and preservation of `240*240 + 240*240 = 115200`, so the
+pair adder has FP16-like precision but a wider exponent range. Treating it as a
+literal FP16 intermediate would incorrectly predict overflow. The reference is
+explicitly named; the original output tolerance was not enlarged.
+
+`fs-w5-fp8-11bit-bench-r1`, source `4c6d258`, includes activation transpose and
+BF16→FP8 casts, using both LNC2 cores where the shape permits. Interleaved warmed
+median measurements for 8192×768×512 are:
+
+| Implementation | ms |
+|---|---:|
+| Native Torch BF16 |0.09558|
+| Prototype NKI BF16, layout included |0.33685|
+| Prototype NKI FP8, layout/casts included |0.36113|
+| Prototype NKI FP8, already-transposed input |0.21976|
+
+Online amax/scaling calibration is **excluded**, so even these numbers are
+optimistic for a full FP8 pipeline. The prototype is not a speed win and has not
+entered training. Its tile structure repeatedly reloads/converts weights;
+better reuse and output tiling are still valid engineering questions. Backward
+accuracy, scaling policy and BPB remain untested. Against an unquantized FP32
+matmul, FP8 relative RMS error is about 3.77% at the large shape.
+
+Scaling must also preserve the evaluation contract: a current whole-sequence
+activation amax can let future tokens affect earlier predictions. A training
+implementation needs an explicit causal/stateless evaluation policy, such as
+frozen scales or appropriate per-token scales, with perturbation checks.
 
 ## Next controlled full runs
 
-The user explicitly requested keeping a serious route without n-grams. The next
-full control is width 896 with direct compiled SDPA and the existing tables
-(`fs-w3-w896-direct-control-r1`, trn21). Trn22 first profiles width 1024, depth 6
-without hashed n-gram tables (`fs-w3-dense1024-phase-r1`), then will train a
-table-free candidate under the same 30-minute limit. Existing unigram value
+The user explicitly requested keeping a serious route without n-grams. The
+direct-attention control above is complete. Trn21 is running its same-seed full
+counterpart with the fused FP32-state table optimizer
+(`fs-w4-w896-nki-rms-fp32-r1`). Trn22 is testing the dense profile's concrete
+layout/convolution leads, then will train a candidate without hashed tables
+under the same 30-minute limit. Existing unigram value
 embeddings and trained local convolutions are retained initially; removing all
 three together is a distinct architectural experiment.
 

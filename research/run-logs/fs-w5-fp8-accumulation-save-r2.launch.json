@@ -1,0 +1,31 @@
+{
+  "label": "fs-w5-fp8-accumulation-save-r2",
+  "started_at": "2026-09-18T09:14:30.439736+00:00",
+  "hostname": "ip-172-31-32-253",
+  "git_commit": "3b7c26a18ca415e4250ff2c632ec2f572ad2cecc",
+  "command": [
+    "timeout",
+    "900s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "/home/ubuntu/trainium_freshstart_20260918_wave5/research/scratch/fresh_start_fp8_probe.py",
+    "--diagnostic-only",
+    "--check-accumulation",
+    "--save-diagnostic-dir",
+    "/home/ubuntu/trainium_freshstart_20260918_wave5/out/fs-w5-fp8-accumulation-save-r2"
+  ],
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_RT_VISIBLE_CORES": "0",
+    "NEURON_CC_FLAGS": "--optlevel=1",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "source_sha256": {
+    "train.py": "ad7d18fde75c24ef33769f386199d096f0acbbacf926325053e813b001dc514a",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/scratch/fresh_start_fp8_probe.py": "91c36ecdd17fe3b71d8b67a0c92f4dc3915ed20982c471b525dbaeff05073a9c"
+  },
+  "purpose": "Save measured FP8 and BF16 FP32-output cases for elementwise testing of independently proposed pairwise-product rounding models"
+}

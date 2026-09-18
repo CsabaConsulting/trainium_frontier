@@ -1,0 +1,14 @@
+[W918 09:24:29.761314717 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+{"check": "fp8_pair_boundary", "case": "unit", "operands_a": [1.0, 1.0], "operands_b": [1.0, 1.0], "ideal_dot": 256.0, "fp16_pair_model": "256.0", "actual_unique": ["256.0"], "finite_elements": 16384, "elements": 16384}
+{"check": "fp8_pair_boundary", "case": "min_subnormal", "operands_a": [0.001953125, 0.001953125], "operands_b": [0.001953125, 0.001953125], "ideal_dot": 0.0009765625, "fp16_pair_model": "0.0009765625", "actual_unique": ["0.0009765625"], "finite_elements": 16384, "elements": 16384}
+{"check": "fp8_pair_boundary", "case": "fp16_halfway_even", "operands_a": [1.0, 0.015625], "operands_b": [1.0, 0.03125], "ideal_dot": 128.0625, "fp16_pair_model": "128.0", "actual_unique": ["128.0"], "finite_elements": 16384, "elements": 16384}
+{"check": "fp8_pair_boundary", "case": "large_plus_small", "operands_a": [128.0, 1.0], "operands_b": [128.0, 1.0], "ideal_dot": 2097280.0, "fp16_pair_model": "2097152.0", "actual_unique": ["2097152.0"], "finite_elements": 16384, "elements": 16384}
+{"check": "fp8_pair_boundary", "case": "max_cancel", "operands_a": [240.0, 240.0], "operands_b": [240.0, -240.0], "ideal_dot": 0.0, "fp16_pair_model": "0.0", "actual_unique": ["0.0"], "finite_elements": 16384, "elements": 16384}
+{"check": "fp8_pair_boundary", "case": "max_same_sign", "operands_a": [240.0, 240.0], "operands_b": [240.0, 240.0], "ideal_dot": 14745600.0, "fp16_pair_model": "inf", "actual_unique": ["14745600.0"], "finite_elements": 16384, "elements": 16384}
+COMPLETED: boundary observations only; no speed or training claim

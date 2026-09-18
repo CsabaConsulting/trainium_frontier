@@ -4,14 +4,21 @@ Objective: minimize **official 30-minute validation bits per byte** on one full
 Trainium2 chip. Sub-1.0 on public validation is an engineering milestone, not a
 claim about the private leaderboard. The metric is lower-is-better.
 
-**Current update:** the first width 896 run completed within budget at 0.992245
-public BPB (context 2048); standalone O1 evaluation gives 0.990534 at 2048/2M
-tokens and 1.009889 at 1024/20.97M tokens. See the
-[measured-results ledger](fresh-start-results-2026-09-18.md). The next full control
-uses direct compiled SDPA. Per the user's clarification, a separate transformer
-track without hashed n-gram tables is now a first-priority experiment; trn22 is
-profiling a width 1024, depth 6 candidate. N-gram capacity is optional, not a
-constraint on the campaign. The original launch plan below remains as provenance.
+**Current update:** the width896 direct-attention control completed 2,188
+updates within budget, at **0.987568 public BPB @2048 / 0.999880 @1024**
+(four ranks, 2,097,152 tokens). Its checkpoint is locally preserved; the larger
+standalone evaluation remains pending. The earlier checkpoint scored 1.009889
+on 20.97M public tokens at context1024. See the
+[measured-results ledger](fresh-start-results-2026-09-18.md).
+
+Trn21 is training the full-budget fused FP32 table-optimizer counterpart.
+Trn22's dense 6×1024 trace shows a slow forward dominated by transfers/synchronization,
+with only about 17% TensorEngine activity per physical core. The current probe
+re-expresses its learned causal convolution as static shifts while retaining all
+parameters. The separate transformer track without hashed n-grams remains a
+first-priority full-training experiment. No public evidence establishes which
+architectures the leaderboard teams use. N-gram capacity is optional.
+The original launch plan below remains as provenance.
 
 ## Evidence that changes the next experiments
 

@@ -1,0 +1,74 @@
+{
+  "query": "Trainium Frontier leaderboard architecture kernels",
+  "follow_up_questions": null,
+  "answer": null,
+  "images": [],
+  "results": [
+    {
+      "url": "https://www.amazon.science/news/aws-trainium-frontier-competition-co-design-models-and-kernels-on-purpose-built-ai-chips",
+      "title": "AWS Trainium Frontier competition: Co-design models and ...",
+      "content": "The research question is open: What does an optimal model look like when the hardware constraints are fundamentally different? The AWS Trainium Frontier is a competition designed to answer this question empirically: participants train language models from scratch on Trainium, exploring the full design space from model architecture to custom kernels. The core task is training a language model from scratch, starting from a provided ~50M parameter baseline (nanochat-derived, GPT-style dense LLM with RMSNorm, rotary embeddings, and ReLU² MLP). Participants modify everything: architecture, optimizer, training loop, and optionally custom NKI kernels. The baseline is a starting point, not a ceiling. [...] The AWS Trainium Frontier competition rewards full-stack thinking under a fixed time and compute budget. Participants optimize the model architecture, the optimizer, the training loop, and, if they choose, custom hardware kernels. This enables innovation on a combination of objectives: within the allotted training budget, how low can you drive validation bits-per-byte, and how high can you drive downstream in-context learning capability? The fixed budget creates a direct tradeoff between model capacity (better architecture = fewer steps needed) and training throughput (faster kernels = more steps in the same time). The winning solution finds the balance: the most intelligent model trained most efficiently within the time constraint. [...] # AWS Trainium Frontier competition: Co-design models and kernels on purpose-built AI chips\n\n## A competition with a finalist ceremony during NeurIPS 2026, challenging researchers to train language models from scratch on Trainium, exploring what optimal architectures look like when the hardware changes.",
+      "score": 0.7927375,
+      "raw_content": null,
+      "id": "031d38-00"
+    },
+    {
+      "url": "https://trainium-frontier.devpost.com",
+      "title": "AWS Trainium Frontier Competition: Co-design models and ...",
+      "content": "All submissions must use the provided nanochat-derived training pipeline as a starting point. Teams may modify any component, including model architecture, attention mechanisms, learning rate schedules, optimizer configurations, data mixing strategies, and custom NKI kernels, but training must complete within the fixed compute envelope.\n\nSubmissions are scored automatically via the leaderboard. The top 10 teams at the close of Phase 1 (September 30, 2026) advance to Phase 2, where they receive access to full Trn2 servers for scaled training.\n\n### Hackathon Sponsors\n\nAWS Annapurna Labs\n\n### Prizes\n\n$40,000 in prizes\n\n###### First Place\n\n$25,000 in cash\n\n1 winner\n\n###### Second Place\n\n$10,000 in cash\n\n1 winner\n\n###### Third Place\n\n$5,000 in cash\n\n1 winner\n\n### Devpost Achievements [...] ### Requirements\n\nPhase 1 requires each team to register here, and train a language model on a single Trainium2 chip within a strict 30-minute wall-clock training budget. Submissions are ranked on the public leaderboard by model quality as measured by the evaluation harness provided in the starter kit.\n\nSpecifically, teams must submit:\n\n A trained model checkpoint produced within the 30-minute training window on a single Trainium2 chip.\n A reproducible training script that can be re-run by organizers to verify results. The script must execute end-to-end without manual intervention.\n A brief technical write-up (recommended) describing the approach, including any architectural modifications, custom NKI kernels, optimizer changes, or training recipe innovations. [...] Machine Learning/AI\n\n#### About the challenge\n\nThe AWS Trainium Frontier competition invites ML researchers, systems engineers, and AI-agent builders to co-design models and custom kernels on purpose-built Trainium2 silicon. Teams of one to four receive a complete training pipeline, NKI documentation, and profiling tools, then race to maximize model capability within a fixed 30-minute, single-chip training budget in Phase 1. Top 10 advance to full Trn2 servers in Phase 2, competing for a $40,000 prize pool and the opportunity to present findings alongside Annapurna Labs researchers at NeurIPS 2026 in Sydney.\n\n#### Registration required to qualify and to gain access to private Github\n\n### Requirements",
+      "score": 0.7463059,
+      "raw_content": null,
+      "id": "cf0420-01"
+    },
+    {
+      "url": "https://newsletter.semianalysis.com/p/amazons-ai-self-sufficiency-trainium2-architecture-networking",
+      "title": "Amazon's AI Self Sufficiency | Trainium2 Architecture &amp",
+      "content": "## NKI Kernel Language\n\nThe Neuron Kernel Language (NKI) - pronounced “Nicky” – is Trainium domain specific language for writing kernels similar to NVIDIA’s CUDA and OpenAI’s Triton language. Unlike Nvidia’s CUDA language, NKI is based on tiles programming like OpenAI’s Triton programming language. NKI will allow expert programmers to be able to achieve near speed of light (SOL) performance on the Trainium2 chip. [...] Previously, on Trainium, the only path to using the AI chip was through the Pytorch XLA Lazy Tensor ML Compiler which is a very poor API that gives rise to a considerable number of bugs and suffers from a lack of portability. We believe that the AWS Trainium team has since course corrected by offering direct access to writing Kernels in a Triton-like tile programming language. Furthermore, the Trainium software team now has beta support for JAX which is an ML framework more oriented towards XLA ML compilers and torus topology statically compiled AI chips. Trainium and Trainium2 is very similar to TPU in the sense all are giant systolic array chips with torus topologies so Trainium software now supporting JAX through XLA will be a more fitting software stack. [...] So far, Amazon’s Trainium1 and Inferentia2 based instances have not been competitive for GenAI frontier model training or inference due to weak hardware specs and poor software integration. With the release of Trainium2, Amazon has made a significant course correction and is on a path to eventually providing a competitive custom silicon in training and inference on the chip, system, and the software compiler/frameworks level.",
+      "score": 0.53648347,
+      "raw_content": null,
+      "id": "3b9f19-02"
+    },
+    {
+      "url": "https://www.amazon.science/research-awards/call-for-proposals/build-on-trainium-kernels-for-ml-acceleration-call-for-proposals-spring-2026",
+      "title": "Build on Trainium: Kernels for ML Acceleration call for proposals — Spring 2026 - Amazon Science",
+      "content": "AWS Trainium is an AI chip developed by AWS for accelerating building and deploying machine learning models. Built on a specialized architecture designed for deep learning, Trainium accelerates the training and inference of complex models with high output and scalability, making it ideal for academic researchers looking to optimize performance and costs. This architecture also emphasizes sustainability through energy-efficient design, reducing environmental impact. Amazon has established a dedicated Trainium research cluster featuring up to 40,000 Trainium chips, accessible via Amazon EC2 Trn1 instances. These instances are connected through a non-blocking, petabit-scale network using Amazon EC2 UltraClusters, enabling seamless high-performance ML training. The Trn1 instance family is [...] Build on Trainium is a $110MM credit program focused on AI research and university education to support the next generation of innovation and development on AWS Trainium. AWS Trainium chips are purpose-built for high-performance deep learning (DL) training of generative AI models, including large language models (LLMs) and latent diffusion models. Build on Trainium provides compute credits to novel AI research on Trainium, investing in leading academic teams to build innovations in critical areas including new model architectures, ML libraries, optimizations, large-scale distributed systems, and more. This multi-year initiative lays the foundation for the future of AI by inspiring the academic community to utilize, invest in, and contribute to the open-source community around Trainium.",
+      "score": 0.528461,
+      "raw_content": null,
+      "id": "473fc0-03"
+    },
+    {
+      "url": "https://www.linkedin.com/posts/charlie-lee-phd-aba20043_aws-trainium-frontier-competition-co-design-activity-7492749572109180929-5U5s",
+      "title": "AWS Trainium Frontier Competition Challenges AI ...",
+      "content": "We have an open source architecture to do just that, and benchmarks that prove that it's cheap and works super well! Here's a link to the github",
+      "score": 0.47373086,
+      "raw_content": null,
+      "id": "21cec2-04"
+    },
+    {
+      "url": "https://www.linkedin.com/posts/cidnei_aws-trainium-frontier-competition-co-design-activity-7495220401329950720-_gr7",
+      "title": "Co-design models and kernels on purpose-built AI chips | Cidnei R.",
+      "content": "A great opportunity for researchers to optimize model architecture and kernel runtimes on Trainium, and explore what optimal performance looks",
+      "score": 0.46191534,
+      "raw_content": null,
+      "id": "0fb98a-05"
+    },
+    {
+      "url": "https://www.youtube.com/watch?v=rtOYVvP1H74",
+      "title": "How to Build High-Performance Kernels on AWS Trainium ...",
+      "content": "and 32 gigs of memory. So, we're ready to get started. The kernel we're going to walk through today is a simple tiled matrix multiplication kernel. Here, we're going to show you how you can use Nikki to perform a matrix multiplication of two matrices. Matrix A, which is 64x 128, and matrix B 128x 512. So, let's walk through the code of our kernel. First, we define a kernel function and we add this Nikki JIT decorator at the top. This tells our compiler that this function is going to be a kernel uh written in Nikki. The first thing we do is we set up array an array. We use this Nikki language API to set up a n dimensional array. The result of this operation is going to be 64x 512. So we set those dimensions. We set our associated dtype and then we also say where we're going to initialize [...] for the lefth hand side and right hand side. And then we once we load these we multiply these tiles together using this NLN command. So here, Nikki is going to feed these tiles through our tensor engine, multiply them together, and write the results out to our partial sum buffer. Next, we copy from our partial sum buffer back into SBUFF so that we can write back to HBM. And lastly, we restore our results in HBM. So, we've walked through the kernel source code. Now, let's actually run it. So here we initialize two random tensors just for the sake of this demonstration. We've got our A transpose tensor. We're actually transposing it to make it a little bit easier to work with with our indexes. So it's 128x 64. We have our B tensor which is 128 x 512. And here we feed these to our kernel and [...] just directly. And so kernels are a way for you to identify performance bottlenecks and then address the performance bottleneck by developing your own algorithm that is built for a hardware set to improve and then optimize performance of your models. Really kernels are what it's all about. Like kernels are how you get good performance on your language models. Kernels are what makes your language inferencing faster. Kernels are what makes your training jobs faster and more efficient. Kernels are how you get better utilization. Kernels are how you get better uh memory utilization. And it's not the case that when you write a kernel you get better performance out of the box. That's not the case because there are many different stages of kernel development. You might start with something that",
+      "score": 0.45536873,
+      "raw_content": null,
+      "id": "fe43f7-06"
+    },
+    {
+      "url": "https://awsdocs-neuron.readthedocs-hosted.com/en/latest/about-neuron/arch/neuron-hardware/trainium.html",
+      "title": "Trainium Architecture — AWS Neuron Documentation",
+      "content": "|  |  |\n --- |\n| Compute | Two NeuronCore-v2 delivering 380 INT8 TOPS, 190 FP16/BF16/cFP8/TF32 TFLOPS, and 47.5 FP32 TFLOP. |\n| Device Memory | 32 GiB of device memory (for storing model state), with 820 GiB/sec of bandwidth. |\n| Data Movement | 1 TB/sec of DMA bandwidth, with inline memory compression/decompression. |\n| NeuronLink | NeuronLink-v2 for chip-to-chip interconnect enables efficient scale-out training, as well as memory pooling between the different Trainium chips. |\n| Programmability | Trainium supports dynamic shapes and control flow, via ISA extensions of NeuronCore-v2. In addition, Trainium also allows for user-programmable rounding mode (Round Nearest Even Stochastic Rounding), and custom operators via the deeply embedded GPSIMD engines. | [...] Neuron 2.32.0 is released! Check the What's New and Release Notes for more details.\n\nLogo image\n\nSearch Engine: Default Google\n\n Repository\n Suggest edit\n Open issue\n\n .rst\n\n# Trainium Architecture\n\nThis document is relevant for: `Trn1`\n\n# Trainium Architecture#\n\nAt the heart of the Trn1 instance are 16 x Trainium chips (each Trainium include 2 x NeuronCore-v2). Trainium is the second generation purpose-built Machine Learning accelerator from AWS. The Trainium chip architecture is depicted below:\n\n../../../_images/trainium-neurondevice.png\n\nEach Trainium chip consists of: [...] For a detailed description of all the hardware engines, see NeuronCore-v2\n\nThis document is relevant for: `Trn1`",
+      "score": 0.45464227,
+      "raw_content": null,
+      "id": "b45c2a-07"
+    }
+  ],
+  "response_time": 2.11,
+  "request_id": "a44b41b9-d41f-4ebb-9b8e-5fef3d6e70d0"
+}

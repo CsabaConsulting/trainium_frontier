@@ -74,8 +74,8 @@ model.
 
 | Component | Source behavior | Implication |
 | --- | --- | --- |
-| Model residuals and linear inputs | `compute_dtype_for` selects BF16 on Neuron (`:1400`); embedding result converts to that dtype (`:3785`) | Model compute was already substantially BF16 before compiler autocast was enabled. |
-| Linear weights | FP32 parameters are cached/cast to each input dtype (`:2588–2619`) | Dense forward GEMMs are ordinarily BF16 at the PyTorch boundary; FP32 master weights remain. |
+| Model residuals and linear inputs | The embedding is cast to BF16, but rank-one FP32 `resid_lambda`/`x0_lambda` parameters promote the residual from block0 onward | Most block inputs/activations are FP32 in the current graph. `COMPUTE_DTYPE=BF16` alone is not an activation-dtype audit. |
+| Linear weights | `Linear.forward` uses the cached BF16 weight only when it matches the input dtype; otherwise it casts the FP32 master weight to the input dtype | FP32 normalized residuals bypass the BF16 cache. Global compiler BF16 matmult flags change arithmetic without necessarily changing the FP32 tensor representation. |
 | Final logits | BF16 linear output is converted to FP32 (`:3842`) | Softcap/CE sees FP32 logits even though the head matrix multiply consumed BF16. |
 | RoPE + Q/K RMSNorm | NKI pair enabled, subject to shape/device/contiguity guards (`:2428`, `:2774`) | This is an existing successful fusion, not missing work. |
 | Softcap + cross entropy | NKI pair enabled for contiguous FP32 logits with row count divisible by 128 (`:2514`) | Replacing generic CE alone repeats an implemented optimization. |

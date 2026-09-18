@@ -2,12 +2,13 @@
 
 This is a living research argument, with falsifiable experiments. It separates
 results in existing logs, facts verified in source/numerical probes, and proposals
-whose BPB benefit is unknown. The first budgeted width896 run reached **0.992245**
-on the two-million-token public diagnostic at context 2048; loading its saved
-checkpoint through `prepare.py eval-public` with default O1 compiler precision
-gave **0.990534**. Its in-process context 1024 score was **1.005110**; the larger
-20.97M-token standalone evaluation at context 1024 gave **1.009889**. These are
-public measurements, not a private leaderboard score. See the [measured results](fresh-start-results-2026-09-18.md)
+whose BPB benefit is unknown. The completed width896 direct-attention control
+now reaches **0.987568 BPB at context 2048** and **0.999880 at context 1024**
+on four-rank, 2,097,152-token public diagnostics. It completed 2,188 updates
+within the 30-minute allowance. The earlier width896 checkpoint's larger
+20.97M-token standalone result at context 1024 was **1.009889**; the new
+checkpoint still needs that larger check. These are public measurements, not
+a private leaderboard score. See the [measured results](fresh-start-results-2026-09-18.md)
 for source commits, timing, numerical gates and limitations.
 
 The strongest opportunity is to recover useful capacity and optimization quality
@@ -164,6 +165,32 @@ Separate forward/backward, gradient clipping/reduction, table optimizer, Muon,
 weight-cache refresh and exposed host time. A synchronized phase profile changes
 overlap; follow it with ordinary unsynchronized whole-step timings.
 
+The separate dense 6×1024 track has now been profiled at four ranks and the real
+loader geometry. Its 1.417s unprofiled step spends 94% in model microbatches;
+the optimizer accounts for only 3.9%. The device trace localizes the problem
+further: a 218.6ms forward versus 97.8ms backward, with only about 17% forward
+TensorEngine activity per physical core. Repeated small-DMA regions map to the
+depthwise convolution. Another 84ms region has roughly 262K tiny transfers tied
+to a `multiply.21`/transpose intermediate, but no high-level source mapping yet.
+Missing DMA notifications prevent an exact byte-bound claim. These facts favor
+layout and convolution work ahead of a wholesale FP8 training rewrite.
+
+The next two clean probes retain the model's mathematical function: spell the
+trained depthwise convolution as static shifts, and remove the frozen zero Q/K
+shift at this wider shape. The latter is a compiler perturbation that previously
+helped width640; that does not guarantee it helps width1024. The former keeps
+parameters and causal behavior but can change finite-precision gradient summation.
+Neither should be credited with a BPB improvement before a budgeted training run.
+
+A distinct mixed-precision candidate is to keep the residual accumulation in
+FP32 but store normalized branch inputs in BF16. The historical dtype trace
+already established that FP32 residual scalars promote the block stream; the
+initial version of our dtype table missed that implication and has been corrected.
+This is a real arithmetic change, unlike the frozen-zero graph probe. It may
+activate the BF16 weight cache and reduce activation traffic without using FP8.
+RMSNorm epsilon/reduction, attention input dtypes and the final loss must be
+audited explicitly; a variable named `COMPUTE_DTYPE` is insufficient evidence.
+
 ### Fused table optimizer
 
 The four tables contain 536.9M elements. BF16 gradients alone total about 1.07GB
@@ -179,11 +206,12 @@ copy-back costs. A returned-buffer prototype needs additional copy-back traffic,
 which must be counted. It is a sensible first custom kernel because the mathematical
 reference is simple and its effect on precision is explicit.
 
-The prototype is deliberately separate from training. It uses runtime scalar
-tensors for learning rate and bias correction to avoid recompilation every step.
-Correctness must include zero moments, untouched rows, rare gradients, outliers,
-changed scalar values, and multiple consecutive updates. Fusion with different
-rounding points is not bit-exact equivalence to the old BF16 algorithm.
+The prototype now passes the native repeated-update gate and is opt-in in training.
+It uses runtime scalar tensors for learning rate and bias correction to avoid
+recompilation every step. Tests include zero moments, untouched rows, rare gradients,
+outliers, changed scalar values and multiple consecutive updates. The full run is
+in progress. Fusion with different rounding points is not bit-exact equivalence
+to the old BF16 algorithm.
 
 ### Sparse tables: promising but substantially harder
 
@@ -213,12 +241,38 @@ layouts must be charged, and the BF16 control must have comparable boundaries.
 See the [official Trainium2 architecture guide](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/guides/architecture/trainium2_arch.html)
 and [matmul API](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/api/generated/nki.isa.nc_matmul.html).
 
+The native numerical probe found an additional nuance: the tested double-row
+outputs match 11-significand-bit rounding of each two-product partial followed
+by FP32 accumulation. Exact ties and exponent-boundary patterns, plus a held-out
+seed family, support this empirical model; it is not documented as an AWS
+specification. Naively demanding a pure FP32 dot of the quantized inputs failed
+for a reason distinct from input quantization or output BF16 rounding.
+
+The first honest throughput test is negative: 0.361ms for the FP8 prototype
+versus 0.0956ms for native BF16 at 8192×768×512, including transpose/casts but
+excluding online amax. Even pretransposed FP8 takes 0.220ms. Its repeated weight
+loads/conversions and limited tiling leave engineering room, but peak FP8 FLOPs
+alone do not justify integrating it. Full-sequence adaptive scaling at evaluation
+could also introduce future-token dependence; the scale policy needs a separate
+causality check.
+
 DeepSeek-V3 demonstrates carefully scaled low-precision training, but its large
 model and GPU-specific engineering do not transfer as a recipe. It is a source
 of hypotheses about scaling granularity and sensitive paths, not evidence that
 compiler-wide FP8 should work here. [Technical report](https://arxiv.org/html/2412.19437v1).
 
 ## 5. Reopen data and optimizer conclusions carefully
+
+Historical exclusions should retain their actual scope. The paired 900s
+1024/PF8 versus 2048/PF4 trial held global micro-token count fixed and tied at
+the 1024 scorer (difference 0.000035); that is good evidence against that exact
+short-context switch, not a bound on every position weighting or length curriculum.
+Likewise the expensive one-hot study used eager tiled lookups and primarily
+million-row tables. Its negative result is strong for that geometry, but its
+claim that an untiled 8192-row one-hot cannot fit is inconsistent with its own
+0.12GiB footprint. An older compiled 8192×640 lookup also lost in isolation.
+Reopen a lookup spelling only if a current whole-model trace identifies a
+layout cost it can remove; no such attribution is established for `multiply.21`.
 
 ### A second pass is not universally wasted compute
 
