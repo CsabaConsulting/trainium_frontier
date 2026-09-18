@@ -4,7 +4,7 @@ Objective: minimize **official 30-minute validation bits per byte** on one full
 Trainium2 chip. Sub-1.0 on public validation is an engineering milestone, not a
 claim about the private leaderboard. The metric is lower-is-better.
 
-**Current update, 11:22 UTC:** the width896 direct-attention control completed
+**Current update, 11:31 UTC:** the width896 direct-attention control completed
 2,188 updates at **0.987568 public BPB @2048 / 0.999880 @1024**. Its fused
 FP32 table-optimizer counterpart completed 2,204 updates at **0.986947 /
 0.999735**. Both fit the budget and use four ranks and 2,097,152 evaluation
@@ -37,19 +37,46 @@ it is diagnostic evidence, not a production fix. No scored FP32 run is promoted.
 The BF16 combination is separately gated; its full run is healthy at ~0.60s/update
 through step980, and its full-budget BPB remains unknown.
 
-Trn21 now tests **8×1024 dense capacity** at the same BF16/NKI policy, four ranks,
-and 131,072 targets/update (`fs-w14-dense1024-depth8-nki-norm-phase-r1`). The
-predeclared advancement gate is finite updated parameters/gradients/logits, exact
-causal/batch/repetition checks on every rank, and <=0.95s median update. This is
+Trn21 passed the **8×1024 dense capacity** gate at the same BF16/NKI policy,
+four ranks, and131,072 targets/update: **743.742ms median**, all four updated
+finite/causal/batch/repetition gates pass,151,012,368parameters. Its full1,800s
+run launched11:27 as `fs-w14-dense1024-depth8-nki-norm-1800-r1`, source`e6f6139`.
+Initial loss is finite. The predeclared speed gate was <=0.95s median update. This is
 not a repeat of the old table-model depth sweep: that implementation paid nearly
 2× step time for 33% more layers and used a different activation/layout path.
 The old short matched-exposure depth result actually favored depth by ~0.003 BPB;
-the throughput cost defeated it. If the new gate passes, run the full 1,800s.
+the throughput cost defeated it. Full-budget BPB is now the decision gate.
 
 A separate CPU research probe examines conservative canonical-BPE continuation
 constraints using only the fixed tokenizer and provided training shard0. It
 does not change the tokenizer, data loader, trainer, or scorer, and has no BPB
 claim. A generic GPT-2 mask is not safe to transplant because the regex differs.
+
+### Next decisions after the active dense runs
+
+1. Preserve each completed checkpoint locally with size/SHA receipts. Run the
+   unchanged standalone scorer at B1/context1024/20,971,520tokens with O1 and no
+   global autocast for a promising model; compare only identical geometry.
+2. Test canonical masking on one frozen checkpoint using two unchanged scorer
+   calls and a freshly tokenizer-derived mask. Require native finite/causal/
+   batch/repetition and CPU-reference mask checks first. This is a research
+   diagnostic; any promoted version must train the same distribution and pay
+   its construction/step cost within the budget.
+3. Gate the integrated **SDPA-only BF16 + NKI convolution** precision arm. The
+   earlier scratch composition measured670ms and passed four-rank postchecks;
+   production integration and full-budget BPB still need testing. Use it if
+   the broader norm policy loses too much quality, or as the next precision
+   comparison if the gain warrants confirmation. Do not infer quality from dtype.
+4. Recheck dense microbatch B8/GA2, then B16/GA1 only if warranted, with fixed
+   T2048 and131,072 targets/update. Old table/native-convolution negatives are
+   not the new implementation. Accept only full-step savings with updated-model
+   checks; a new packed loader geometry also changes data ordering, so a full
+   run is a budgeted candidate, not an exact same-input optimization control.
+5. Profile one winning graph before another kernel project. Attention's
+   precision and the old convolution bottleneck have changed; the old trace
+   cannot identify the current largest avoidable cost. Optimizer time is now
+   ~55ms/588ms, so even eliminating it saves only9.4% overall. A cast-inclusive
+   FP8 island must beat the current BF16 path, not the old slow graph.
 
 The device trace identifies approximately614 GFLOPs of FP32 attention-backward
 matrix work in one profiled microbatch across rank0's two physical cores. BF16

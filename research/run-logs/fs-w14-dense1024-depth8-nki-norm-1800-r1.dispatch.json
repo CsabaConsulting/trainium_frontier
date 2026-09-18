@@ -1,0 +1,63 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave14",
+    "expected_commit": "e6f6139a7df171a6beb30bf4fe5b25099f9a48bd",
+    "label": "fs-w14-dense1024-depth8-nki-norm-1800-r1",
+    "purpose": "Full-budget dense capacity comparison: 8x1024 without hashed tables; same gated NKI convolution and BF16 norm-output policy as 6x1024; four-rank phase finite/causal gates passed at about0.75s",
+    "fingerprint_paths": [
+      "research/scratch/phase_timer.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "4200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "research/run_experiment.py",
+      "--label",
+      "fs-w14-dense1024-depth8-nki-norm-1800-r1",
+      "--solution",
+      "fresh-start-dense-capacity",
+      "--description",
+      "Full-budget dense capacity comparison: 8x1024 without hashed tables; same gated NKI convolution and BF16 norm-output policy as 6x1024; four-rank phase finite/causal gates passed at about0.75s",
+      "--num-steps",
+      "1000000",
+      "--max-train-seconds",
+      "1800",
+      "--nproc-per-node",
+      "4",
+      "--lnc",
+      "2",
+      "--eval-tokens",
+      "2097152",
+      "--no-commit",
+      "--extra-args",
+      "--depth",
+      "8",
+      "--n-embd",
+      "1024",
+      "--seed",
+      "42",
+      "--compile-muon",
+      "--no-ngram-ve",
+      "--no-qk-shift",
+      "--compile-sdpa-direct",
+      "--nki-local-conv",
+      "--bf16-norm-output",
+      "--eval-seq-len",
+      "1024"
+    ],
+    "runner_owns_manifest": true
+  },
+  "requested_at": "2026-09-18T11:27:06.972229+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w14-dense1024-depth8-nki-norm-1800-r1\", \"pid\": 850207, \"commit\": \"e6f6139a7df171a6beb30bf4fe5b25099f9a48bd\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave14/research/run-logs/fs-w14-dense1024-depth8-nki-norm-1800-r1.driver.log\", \"started_at\": \"2026-09-18T11:27:10.549546+00:00\"}\n",
+  "stderr": ""
+}

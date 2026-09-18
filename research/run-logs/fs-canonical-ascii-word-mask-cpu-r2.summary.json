@@ -1,0 +1,41 @@
+{
+  "recorded_at": "2026-09-18T11:31:09.042496+00:00",
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/scratch/canonical_mask_eval.py": "4811625f0788bef45a675997bacc3dad198d23f5b61b19c05e5d7199069b6df7",
+    "research/scratch/canonical_token_mask_probe.py": "23a3fe9fb46a0654bdc07e7e346378a77d6094630af596c63e244605afe6822b"
+  },
+  "result": {
+    "previous_tokens": 6984,
+    "following_tokens": 2413,
+    "tested_pairs": 16852392,
+    "forbidden_pairs": 1166945,
+    "build_seconds": 41.75105520299985,
+    "fuzz_tokens": 1137659,
+    "fuzz_documents": 200012,
+    "training_tokens_checked": 63336106,
+    "training_documents_checked": 86016,
+    "training_sources": [
+      {
+        "path": "out/fresh-start-canonical-data/shard_00000.parquet",
+        "sha256": "054ddbd98abf30d773c54de578fc9d579bafeb6c14e04e97bd36aa90e825bf9b",
+        "documents": 86016,
+        "tokens": 63336106
+      }
+    ],
+    "tokenizer_sha256": "aacd6c6a838eaec2c662a7d0cba0b5412f930a6ddee95b9ecb2c8fac53f3dafc",
+    "tokenizer_pattern": "'(?i:[sdmt]|ll|ve|re)|[^\\r\\n\\p{L}\\p{N}]?+\\p{L}+|\\p{N}{1,2}| ?[^\\s\\p{L}\\p{N}]++[\\r\\n]*|\\s*[\\r\\n]|\\s+(?!\\S)|\\s+",
+    "bos_id": 8188,
+    "mask_shape": [
+      8192,
+      8192
+    ],
+    "mask_sha256": "7b63557dc7f1da3656f9ed3bb669ecb968965747fdafdaddb0242e8c8f128cbd",
+    "forbidden_valid_pairs": 0,
+    "quality_measured": false,
+    "scope": "ascii-word",
+    "previous_rule": "at least three ASCII letters; ascii-word optionally permits one non-alphanumeric prefix except apostrophe/CR/LF",
+    "following_rule": "one or more ASCII letters"
+  }
+}

@@ -449,6 +449,15 @@ argument; it does not prove a general pretokenizer mask correct. Build time was
 11.52s locally, and quality has not been measured. Generated matrices stay in
 `out/`; source, counts, tokenizer hash and training-shard hash are preserved.
 
+The `ascii-word` extension permits one ASCII non-letter/non-number prefix before
+at least three letters, excluding apostrophe and CR/LF. It tests16,852,392pairs
+and marks1,166,945, again with zero violations on the same63.3M training tokens
+and200,012 synthetic contexts. Build time is41.75s locally. A frozen dense
+checkpoint passes CPU finite-output, exact mask-reference, future-token, other-
+batch, repeated-call and batch-size checks; native validation remains pending.
+The mask uses the current input token to constrain the next-token distribution;
+it never reads a future token. Special-token rows and columns remain unrestricted.
+
 Next gate: measure a paired public BPB change through the unchanged trusted
 scorer on one existing checkpoint, with exact causality/batch/repeat checks and
 finite logits. This is an inference diagnostic, not yet a submission candidate.

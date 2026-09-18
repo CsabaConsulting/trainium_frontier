@@ -3,11 +3,13 @@
 
 This is a research probe, not a change to the tokenizer, trainer, or scorer.
 Only an ASCII-letter token of length >=3 followed by another ASCII-letter token
-is considered. Under the fixed pretokenizer these must be in one letter run:
+is considered. The ascii-word extension also permits a single ASCII non-letter/
+non-number prefix, excluding apostrophe and CR/LF. Under the fixed pretokenizer
+these pairs must be in one letter run:
 the previous token cannot be a suffix of a contraction (at most two letters).
 The substring property of ordinary BPE then permits a two-token re-encoding test.
-All Unicode, punctuation, whitespace, numeric, special, and ambiguous short-left
-cases remain unrestricted. Empirical checks supplement, not replace, that argument.
+Unicode, numeric, special, ambiguous short-left, and other unproven boundary cases
+remain unrestricted. Empirical checks supplement, not replace, that argument.
 
 Motivation: Vieira et al., https://arxiv.org/abs/2506.07956 (ICML 2025).
 The general GPT-2 mask in modded-nanogpt PR350 is not copied: its pretokenizer
@@ -27,14 +29,24 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import prepare
 
 
-def build_mask(tokenizer):
+def build_mask(tokenizer, scope="ascii-long"):
     enc = tokenizer.enc
     if enc._pat_str != prepare.SPLIT_PATTERN:
         raise ValueError("the conservative seam argument requires the fixed split pattern")
     letters = [(b.decode("ascii"), tid) for b, tid in enc._mergeable_ranks.items()
                if b.isascii() and b.isalpha()]
     previous = [(s, tid) for s, tid in letters if len(s) >= 3]
-    for s, tid in letters:
+    if scope == "ascii-word":
+        # One ASCII non-letter/non-number prefix is permitted by the exact
+        # letter-run regex. Exclude apostrophes and newlines altogether rather
+        # than attempting to model contextual contraction/boundary behavior.
+        for b, tid in enc._mergeable_ranks.items():
+            if (b.isascii() and len(b) >= 4 and b[1:].isalpha()
+                    and not b[:1].isalnum() and b[:1] not in (b"'", b"\r", b"\n")):
+                previous.append((b.decode("ascii"), tid))
+    elif scope != "ascii-long":
+        raise ValueError(scope)
+    for s, tid in letters + previous:
         assert enc.encode_ordinary(s) == [tid], (s, tid)
     mask = np.zeros((enc.n_vocab, enc.n_vocab), dtype=np.bool_)
     encode = enc.encode_ordinary
@@ -68,6 +80,8 @@ def check_texts(tokenizer, mask, texts, source):
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--output", type=Path, required=True)
+    ap.add_argument("--scope", choices=["ascii-long", "ascii-word"], default="ascii-long",
+                    help="ascii-word also permits one unambiguous non-letter/non-digit prefix")
     ap.add_argument("--parquet", type=Path, action="append", default=[])
     ap.add_argument("--max-training-tokens", type=int, default=5_000_000)
     ap.add_argument("--fuzz-documents", type=int, default=50_000)
@@ -80,7 +94,7 @@ def main():
     if any(p.name not in allowed_names for p in args.parquet):
         ap.error("this probe accepts only filenames from the provided training shards")
     tokenizer = prepare.ensure_tokenizer(build_if_missing=False)
-    mask, result = build_mask(tokenizer)
+    mask, result = build_mask(tokenizer, args.scope)
     special_ids = list(tokenizer.enc._special_tokens.values())
     assert not mask[special_ids].any() and not mask[:, special_ids].any()
     rng = random.Random(42)
@@ -122,7 +136,10 @@ def main():
                   tokenizer_pattern=tokenizer.enc._pat_str, bos_id=tokenizer.bos_token_id,
                   mask_shape=list(mask.shape), mask_sha256=hashlib.sha256(mask.tobytes()).hexdigest(),
                   forbidden_valid_pairs=0, quality_measured=False,
-                  scope="ASCII alphabetic previous token >=3 bytes; ASCII alphabetic next token")
+                  scope=args.scope,
+                  previous_rule="at least three ASCII letters; ascii-word optionally permits one "
+                                "non-alphanumeric prefix except apostrophe/CR/LF",
+                  following_rule="one or more ASCII letters")
     args.output.with_suffix(".json").write_text(json.dumps(result, indent=2) + "\n")
     print("CANONICAL_PROBE_RESULT " + json.dumps(result), flush=True)
 

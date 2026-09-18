@@ -550,3 +550,18 @@ checkpoint check caught that CPU mixed-dtype SDPA issue. The first integrated
 native kernel checker failed on constructing `SimpleNamespace` inside Dynamo;
 the eager native check passes, and the compiled checker now calls the production
 autograd operation directly. These were not kernel accuracy failures.
+
+
+### Dense depth8 gate and full-budget promotion
+
+`fs-w14-dense1024-depth8-nki-norm-phase-r1`, source`e6f6139`, uses151,012,368
+parameters, no hashed tables, BF16 norm outputs and NKI convolution. The real
+four-rank B4T2048/GA4 phase measures **743.742ms** median, range740.304–748.787ms;
+microbatches638.517ms and optimizer67.912ms. All four updated-model gates pass
+with finite parameters/gradients/logits and exact future/batch/repetition checks.
+Rank0 loss after the short probe is7.295557; this is not a quality ranking.
+
+The predeclared <=950ms/finite/causal gate is satisfied. The full30-minute run
+launched on trn21 at11:27 as `fs-w14-dense1024-depth8-nki-norm-1800-r1`. Its
+training source hash matches the active six-layer run; the depth and host differ.
+Initial loss9.0118 is finite. Full-budget BPB is pending.
