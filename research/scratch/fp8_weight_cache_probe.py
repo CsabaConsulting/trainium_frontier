@@ -39,7 +39,7 @@ def calibration_reference(weight):
     return metadata, quantized
 
 
-def require_exact(name, actual, expected):
+def require_exact(name, actual, expected, fatal=True):
     actual, expected = actual.detach().cpu(), expected.detach().cpu()
     record = dict(name=name, shape=list(actual.shape), dtype=str(actual.dtype),
                   finite=bool(torch.isfinite(actual).all()),
@@ -47,7 +47,9 @@ def require_exact(name, actual, expected):
                   max_abs=float((actual.float() - expected.float()).abs().max()))
     record['passed'] = record['finite'] and record['exact']
     emit('FP8_CACHE_EXACT_GATE', record)
-    assert record['passed'], record
+    if fatal:
+        assert record['passed'], record
+    return record
 
 
 def calibration_gate(name, weight, calibrate, quantize):
@@ -101,7 +103,8 @@ def quantization_diagnostic(name, actual, original):
          quality_gate=False, quantized_model_differs_from_original=True))
 
 
-def mlp_gate(shape, case, kernel, calibrate, quantize, steps, benchmark):
+def mlp_gate(shape, case, kernel, calibrate, quantize, steps, benchmark,
+             diagnose_phase_drift=False):
     tokens, channels, hidden = shape
     tile = min(512, tokens // 2)
     generator = torch.Generator().manual_seed(5291 + tokens + channels)
@@ -177,25 +180,53 @@ def mlp_gate(shape, case, kernel, calibrate, quantize, steps, benchmark):
         return result
 
     gradients = {}
+    training_outputs = {}
+    phase_exact = True
     for name, function in train.items():
         result = backward_call(function)
-        require_exact(f'{case}:{name}:training_forward', result, outputs[name][0])
+        phase = require_exact(f'{case}:{name}:training_forward', result, outputs[name][0],
+                              fatal=not (diagnose_phase_drift and name == 'native'))
+        phase_exact &= phase['passed']
+        training_outputs[name] = result.detach().cpu()
+        compare(f'{case}:{name}:training_vs_cpu_forward', result, cpu_y)
+        gemm_gate(f'{case}:{name}:training_down_fp64_sample', result[:sample],
+                  outputs[name][1][:, :sample].T.contiguous().square(), dq_cpu.T)
+        if not phase['passed']:
+            # Keep the failed exact check. Characterize changed BF16 outputs
+            # against an independently summed dot product of the same saved
+            # activation. No timing or promotion is permitted in this mode.
+            changed = torch.nonzero(training_outputs[name] != outputs[name][0])
+            points = []
+            for row, column in changed[:16].tolist():
+                products = outputs[name][1][:, row].square().double() * dq_cpu[column].double()
+                truth = products.sum()
+                gamma = hidden * 2.0**-24 / (1 - hidden * 2.0**-24)
+                points.append(dict(row=row, column=column,
+                    inference=float(outputs[name][0][row, column]),
+                    training=float(training_outputs[name][row, column]),
+                    fp64_dot=float(truth), correctly_rounded_bf16=float(truth.bfloat16()),
+                    fp32_accumulation_bound=float(gamma * products.abs().sum())))
+            emit('FP8_CACHE_NATIVE_PHASE_DIAGNOSTIC', dict(case=case, arm=name,
+                 changed_elements=len(changed), points=points,
+                 exact_gate_still_failed=True, timed=False))
         gradients[name] = tuple(a.grad.cpu() for a in leaves)
         assert leaves[1].grad.dtype == leaves[2].grad.dtype == torch.float32
         for i in range(3):
             compare(f'{case}:{name}:cpu_surrogate_gradient{i}', gradients[name][i], cpu_leaves[i].grad)
     for i in range(3):
         require_exact(f'{case}:storage_only:gradient{i}', gradients['fp8_cache'][i], gradients['bf16_cache'][i])
+    require_exact(f'{case}:storage_only:training_output', training_outputs['fp8_cache'],
+                  training_outputs['bf16_cache'])
     # Characterize precision change separately; it is not implementation error.
     original_y = forward['native'](device_x, leaves[1].detach().bfloat16(),
                                     leaves[2].detach().bfloat16(), up_meta, down_meta)[0]
     quantization_diagnostic(case + ':forward_model_drift', outputs['fp8_cache'][0], original_y)
-    emit('FP8_CACHE_MLP_GATE', dict(shape=shape, case=case, passed=True,
+    emit('FP8_CACHE_MLP_GATE', dict(shape=shape, case=case, passed=phase_exact,
          fp8_matmuls=False, fp32_master_gradient_types=True,
          straight_through_weight_quantizer=True, exact_storage_control=True,
          original_model_equivalence_claimed=False))
 
-    if benchmark:
+    if benchmark and not diagnose_phase_drift:
         def update(function, quantized):
             for value in leaves:
                 value.grad = None
@@ -230,6 +261,8 @@ def main():
     parser.add_argument('--real-shape', action='store_true')
     parser.add_argument('--steps', type=int, default=10)
     parser.add_argument('--calibration-only', action='store_true')
+    parser.add_argument('--diagnose-phase-drift', action='store_true',
+                        help='Preserve native phase exactness failure, inspect dots/gradients; no timing.')
     args = parser.parse_args()
     import torch_neuronx
     torch.set_num_threads(4)
@@ -250,11 +283,13 @@ def main():
             calibration_gate(name, value, calibrate, quantize)
     if not args.calibration_only:
         kernel = torch_neuronx.wrap_nki(build_kernel())
-        for case in ('random', 'changed', 'zero'):
-            mlp_gate((256, 256, 512), case, kernel, calibrate, quantize, args.steps, False)
-        if args.real_shape:
+        for case in (('random',) if args.diagnose_phase_drift else ('random', 'changed', 'zero')):
+            mlp_gate((256, 256, 512), case, kernel, calibrate, quantize, args.steps, False,
+                     args.diagnose_phase_drift)
+        if args.real_shape and not args.diagnose_phase_drift:
             mlp_gate((16384, 1024, 4096), 'real_random', kernel, calibrate, quantize, args.steps, True)
-    emit('FP8_CACHE_RESULT', dict(passed=True, calibration_only=args.calibration_only,
+    emit('FP8_CACHE_RESULT', dict(passed=not args.diagnose_phase_drift,
+         diagnostic_only=args.diagnose_phase_drift, calibration_only=args.calibration_only,
          real_shape=args.real_shape, promoted_into_training=False, fp8_matmuls=False))
 
 

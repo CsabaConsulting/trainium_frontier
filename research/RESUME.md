@@ -1,10 +1,37 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-18, 22:30 UTC. Active permissions: danger-full-access, approval never.
+Updated 2026-09-18, 22:37 UTC. Active permissions: danger-full-access, approval never.
 This replaces the accumulated stale resume instructions; their history remains
 in Git. Do not restart completed experiments from earlier revisions.
 
 ## Live work
+
+- **Latest live override,22:37:** trn21 is evaluating the completed ownership
+  checkpoint under label `fs-w65-eval-owned-pack8-s1024-20m-o1-r1`, source5dcbf6a,
+  remote wave65, started22:33:25. Training finished3377updates/442.6Mtargets,
+ 1784.8seconds/1785.2charged estimate, clean, small BPB0.979318/T2048 and
+ 0.992072/T1024. Checkpoint469834849bytes preserved locally at22:33:18, SHA256
+ a8a2c91e1886681d03996f7930710c944d1b0fd71e7c6a7936f35bd343745743.
+  GitHub artifact cycle22:37:08 verified33/33 assets with zero errors, including
+  this checkpoint. Do not restart training.
+- **trn22 current source dc2373b/wave67:** online exponent-bit calibration and
+  FP8 conversion pass42 exact gates across7 cases. Storage-only MLP inference
+  agrees exactly between NKI BF16/FP8 caches and native on the first small case.
+  The job stopped on a native inference-versus-training exactness difference
+ 0.0009765625, before timing. New diagnostic code preserves this failure and
+  inspects independently summed dots, paired NKI training outputs and gradients.
+  Do not bypass it or claim a complete MLP pass.
+- Adam mode5(two rsqrt Newton corrections) passes all34 original gates but loses
+  paired component timing:1.363799 vs1.262366ms. Mode6(quadratic correction) also
+  passes34 gates but loses:1.255049vs1.239520ms. Both postflights are clean;
+  neither is promoted, and reciprocal-only mode2 remains the math winner.
+  Next source adds `softcap_ce_shape_diagnostic.py`, repeating128-row blocks
+  across256/512/768/1024 rows and FP32/BF16-valued inputs, plus one-core gather.
+  This distinguishes a shape/loop effect from a physical-core difference.
+  Local log watchers were replaced at22:32:57 for90rounds/45seconds on both
+  current waves. Remote jobs were unchanged. Commitdc2373b and recoveryf7fc797
+  were GitHub-ref-verified22:31:45. The older bullets below retain earlier
+  milestone detail; completed wave65 training must not be treated as active.
 
 - **trn22 latest completed:** `fs-w66-eval-context1024-pack16-adam-s1024-20m-o1-r1`,
   sourcea1625d9, remote wave66, clean22:24:04UTC. Protected public evaluation:
