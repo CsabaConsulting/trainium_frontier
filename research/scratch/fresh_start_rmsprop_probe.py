@@ -50,34 +50,40 @@ def cpu_decay_check():
 
 def build_kernel():
     # NKI 0.5 resolves names from module globals, not this factory's closure.
-    global nisa, nl
+    global nisa, nl, nt
     import nki
     import nki.isa as nisa
     import nki.language as nl
+    import neuronxcc.nki.typing as nt
 
     @nki.jit
-    def fused_table_rmsprop(p, grad, moment, scalars):
-        """Return an updated BF16 table and FP32 second moment, without mutation.
+    def fused_table_rmsprop(p: nt.tensor, grad, moment: nt.tensor, scalars,
+                           lanes: int = 1, inplace: bool = False):
+        """Return an updated BF16 table and FP32 moment, with optional aliasing.
 
         Args: p/grad [M,F] BF16 HBM, moment [M,F] FP32 HBM,
               scalars [128,2] FP32 HBM (lr and inverse bias correction).
-        Constraints: M divisible by 128; F <= 4096; all arrays contiguous.
+        Constraints: M divisible by 128*lanes; F <= 4096; all arrays contiguous.
         Each element: v=lerp(v,g*g,.001); p=BF16(p-lr*g/(sqrt(v/bias)+eps)).
         One tile retains optimizer intermediates in SBUF; there are no intermediate
-        full-table HBM writes. This first prototype returns new buffers, so a real
-        in-place integration must include the cost of copy-back in its benchmark.
+        full-table HBM writes. Compare explicit copy-back with a mutable-input
+        variant; benchmark native alias handling rather than assuming it is free.
         """
         m, f = p.shape
-        assert m % 128 == 0 and f <= 4096
+        assert lanes in (1, 2) and m % (128 * lanes) == 0 and f <= 4096
         assert grad.shape == p.shape and moment.shape == p.shape
-        out_p = nl.ndarray(p.shape, dtype=p.dtype, buffer=nl.shared_hbm)
-        out_v = nl.ndarray(moment.shape, dtype=nl.float32, buffer=nl.shared_hbm)
+        if inplace:
+            out_p, out_v = p, moment
+        else:
+            out_p = nl.ndarray(p.shape, dtype=p.dtype, buffer=nl.shared_hbm)
+            out_v = nl.ndarray(moment.shape, dtype=nl.float32, buffer=nl.shared_hbm)
         lr = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
         inv_bias = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
         nisa.dma_copy(dst=lr, src=scalars[:, 0:1])
         nisa.dma_copy(dst=inv_bias, src=scalars[:, 1:2])
-        for tile in nl.affine_range(m // 128):
-            start = tile * 128
+        lane = nl.program_id(0)
+        for tile in nl.affine_range(m // (128 * lanes)):
+            start = (tile * lanes + lane) * 128
             ps = nl.ndarray((128, f), dtype=p.dtype, buffer=nl.sbuf)
             gs = nl.ndarray((128, f), dtype=grad.dtype, buffer=nl.sbuf)
             vs = nl.ndarray((128, f), dtype=nl.float32, buffer=nl.sbuf)
@@ -136,23 +142,31 @@ def hardware_checks(kernel, device):
                 g *= 0.001
             lr, bias = (0.012, 0.001) if case == "sparse" else (0.001, 0.865)
             expected_p, expected_v = reference(p, g, v, lr, bias)
-            pd, gd, vd = p.to(device), g.to(device), v.to(device)
-            actual_pd, actual_vd = kernel(pd, gd, vd, scalar_tensor(lr, bias, device))
-            actual_p, actual_v = actual_pd.cpu(), actual_vd.cpu()
-            torch.testing.assert_close(actual_v, expected_v, rtol=2e-5, atol=1e-14)
-            # One output BF16 ULP can differ at a rounding boundary after reciprocal.
-            # Measure exact-match fraction as well; do not describe this as bit-exact.
-            torch.testing.assert_close(actual_p, expected_p, rtol=0.009, atol=2e-7)
-            assert torch.isfinite(actual_p).all() and torch.isfinite(actual_v).all()
-            assert torch.equal(pd.cpu(), p) and torch.equal(vd.cpu(), v), "input mutation"
-            if case == "zero":
-                assert torch.equal(actual_p, p)
-                assert (actual_v[1:] < v[1:]).all()
-            print(json.dumps(dict(check="nki_correctness", rows=rows, cols=cols, case=case,
-                                  weight_exact_fraction=float((actual_p == expected_p).float().mean()),
-                                  max_weight_abs=float((actual_p.float() - expected_p.float()).abs().max()),
-                                  max_moment_abs=float((actual_v - expected_v).abs().max()))), flush=True)
-            cases += 1
+            for lanes in ((1, 2) if rows % 256 == 0 else (1,)):
+                for inplace in (False, True):
+                    pd, gd, vd = p.to(device), g.to(device), v.to(device)
+                    actual_pd, actual_vd = kernel[lanes](
+                        pd, gd, vd, scalar_tensor(lr, bias, device), lanes, inplace)
+                    actual_p, actual_v = actual_pd.cpu(), actual_vd.cpu()
+                    torch.testing.assert_close(actual_v, expected_v, rtol=2e-5, atol=1e-14)
+                    # One output BF16 ULP can differ at a rounding boundary after reciprocal.
+                    # Measure exact-match fraction too; do not claim bit-exact equivalence.
+                    torch.testing.assert_close(actual_p, expected_p, rtol=0.009, atol=2e-7)
+                    assert torch.isfinite(actual_p).all() and torch.isfinite(actual_v).all()
+                    if inplace:
+                        assert torch.equal(pd.cpu(), actual_p) and torch.equal(vd.cpu(), actual_v)
+                    else:
+                        assert torch.equal(pd.cpu(), p) and torch.equal(vd.cpu(), v), "input mutation"
+                    assert torch.equal(gd.cpu(), g), "gradient mutation"
+                    if case == "zero":
+                        assert torch.equal(actual_p, p)
+                        assert (actual_v[1:] < v[1:]).all()
+                    print(json.dumps(dict(check="nki_correctness", rows=rows, cols=cols, case=case,
+                                          lanes=lanes, inplace=inplace,
+                                          weight_exact_fraction=float((actual_p == expected_p).float().mean()),
+                                          max_weight_abs=float((actual_p.float() - expected_p.float()).abs().max()),
+                                          max_moment_abs=float((actual_v - expected_v).abs().max()))), flush=True)
+                    cases += 1
     # The exact legacy native operation, not the new NKI kernel, must be checked too.
     b = torch.ones(128, dtype=torch.bfloat16, device=device)
     f = torch.ones(128, dtype=torch.float32, device=device)
@@ -178,10 +192,11 @@ def benchmark(kernel, device, elements, steps):
     vb = v.bfloat16()
     scalars = scalar_tensor(0.001, 0.865, device)
 
-    def nki_step():
-        pn, vn = kernel(p, g, v, scalars)
-        p.copy_(pn)
-        v.copy_(vn)
+    def nki_step(lanes, inplace):
+        pn, vn = kernel[lanes](p, g, v, scalars, lanes, inplace)
+        if not inplace:
+            p.copy_(pn)
+            v.copy_(vn)
 
     def fp32_step():
         gf = g.float()
@@ -200,7 +215,11 @@ def benchmark(kernel, device, elements, steps):
         u = torch._foreach_div([g], d)
         torch._foreach_add_([p], u, alpha=-0.001)
 
-    arms = {"legacy_bf16": legacy_step, "fp32_math": fp32_step, "nki_fp32_copyback": nki_step}
+    arms = {"legacy_bf16": legacy_step, "fp32_math": fp32_step,
+            "nki_1_copyback": lambda: nki_step(1, False),
+            "nki_2_copyback": lambda: nki_step(2, False),
+            "nki_1_inplace": lambda: nki_step(1, True),
+            "nki_2_inplace": lambda: nki_step(2, True)}
     for fn in arms.values():
         for _ in range(3):
             fn()
