@@ -157,10 +157,37 @@ def accumulation_error(actual, a, b, inverse=1.0):
                 reference_dtype="float64", output_dtype=str(actual.dtype))
 
 
+def fp16_pair_reference(a, b, inverse):
+    """Empirical double-row model, valid only where the FP16 partials are finite.
+
+    Each processing element combines the two K values packed into its row.
+    This rounding model was inferred from saved outputs, not from an AWS promise
+    about the internal adder. Keep it explicit and test unseen inputs separately.
+    """
+    ad, bd = a.double(), b.double()
+    m, k = a.shape
+    n = b.shape[1]
+    reference = torch.empty((m, n), dtype=torch.float64)
+    absolute_sum = torch.empty_like(reference)
+    for start in range(0, m, 8):
+        aa = ad[start:start + 8]
+        products = aa[:, :, None] * bd[None, :, :]
+        partials = products.reshape(len(aa), k // 2, 2, n).sum(2).half().double()
+        assert torch.isfinite(partials).all(), "Outside the tested finite FP16-pair range"
+        reference[start:start + len(aa)] = partials.sum(1) * inverse
+        absolute_sum[start:start + len(aa)] = partials.abs().sum(1) * abs(inverse)
+    # FP32 accumulation and FP64 reference summation, with power-of-two scaling.
+    terms = k // 2
+    gamma = terms * 2.0 ** -24 / (1.0 - terms * 2.0 ** -24)
+    gamma64 = terms * 2.0 ** -53 / (1.0 - terms * 2.0 ** -53)
+    return reference, (gamma + gamma64) * absolute_sum
+
+
 def run_case(fp8, bf16, roundtrip, shape, steps, diagnostic_only=False,
-             check_accumulation=False, save_diagnostic_dir=None):
+             check_accumulation=False, save_diagnostic_dir=None,
+             pairwise_reference=False, seed_offset=17):
     m, k, n = shape
-    torch.manual_seed(17 + k)
+    torch.manual_seed(seed_offset + k)
     a = (torch.randn(m, k) * 0.5).bfloat16()
     b = (torch.randn(k, n) * k ** -0.5).bfloat16()
     # Calibration is intentionally separate: amax overhead is NOT included below.
@@ -206,7 +233,9 @@ def run_case(fp8, bf16, roundtrip, shape, steps, diagnostic_only=False,
                           fp8_max_abs_vs_flush_subnormal_matmul=float((y8.float() - ftz_reference.bfloat16().float()).abs().max()),
                           fp8_max_abs_vs_device_quant_reference=float((y8.float() - device_quant_reference.bfloat16().float()).abs().max()),
                           bf16_vs_fp32_relative_rms=relative_rms(y16, full_reference))), flush=True)
-    if check_accumulation:
+    verification_reference = quant_reference
+    pair_error = None
+    if check_accumulation or pairwise_reference:
         y8_float = fp8[lanes](at, bd, scalars, lanes, True).cpu()
         y16_float = bf16[lanes](at, bd, lanes, True).cpu()
         fp8_error = accumulation_error(y8_float, aq, bq, 1.0 / (sa * sb))
@@ -216,6 +245,17 @@ def run_case(fp8, bf16, roundtrip, shape, steps, diagnostic_only=False,
                               fp8_bf16_output_equals_rounded_fp32=int((y8 == y8_float.bfloat16()).sum()),
                               bf16_output_equals_rounded_fp32=int((y16 == y16_float.bfloat16()).sum()),
                               elements=y8.numel())), flush=True)
+        if pairwise_reference:
+            verification_reference, bound = fp16_pair_reference(aq, bq, 1.0 / (sa * sb))
+            error = (y8_float.double() - verification_reference).abs()
+            pair_error = dict(
+                check="empirical_fp16_pair_accumulation_bound", shape=shape, seed_offset=seed_offset,
+                failures=int((error > bound).sum()), max_absolute_error=float(error.max()),
+                max_error_over_bound=float((error / bound.clamp_min(1e-300)).max()),
+                finite=bool(torch.isfinite(y8_float).all()),
+                elements=error.numel(), hardware_specification_claim=False,
+            )
+            print(json.dumps(pair_error), flush=True)
         if save_diagnostic_dir:
             destination = save_diagnostic_dir / ("x".join(map(str, shape)) + ".pt")
             torch.save(dict(a=a, b=b, aq=aq, bq=bq, y8=y8, y16=y16,
@@ -224,15 +264,18 @@ def run_case(fp8, bf16, roundtrip, shape, steps, diagnostic_only=False,
             print(json.dumps(dict(check="fp8_diagnostic_saved", path=str(destination),
                                   bytes=destination.stat().st_size)), flush=True)
         if not diagnostic_only:
-            assert fp8_error["finite"] and fp8_error["failures"] == 0
+            accepted_error = pair_error if pairwise_reference else fp8_error
+            assert accepted_error["finite"] and accepted_error["failures"] == 0
             assert bf16_error["finite"] and bf16_error["failures"] == 0
     if diagnostic_only:
         return
     assert all(x["mismatches"] == 0 for x in conversions), "FP8 conversion differs from independent reference"
-    torch.testing.assert_close(y8.float(), quant_reference.bfloat16().float(), rtol=0.009, atol=1e-5)
+    torch.testing.assert_close(y8.float(), verification_reference.bfloat16().float(), rtol=0.009, atol=1e-5)
     torch.testing.assert_close(y16.float(), full_reference.bfloat16().float(), rtol=0.009, atol=1e-5)
     assert torch.isfinite(y8).all() and torch.isfinite(y16).all()
     print(json.dumps(dict(check="fp8_correctness", shape=shape, scale_a=sa, scale_b=sb,
+                          seed_offset=seed_offset,
+                          reference="empirical_fp16_pairs" if pairwise_reference else "fp32_dot",
                           fp8_vs_quant_reference_relative_rms=relative_rms(y8, quant_reference),
                           fp8_vs_fp32_relative_rms=relative_rms(y8, full_reference),
                           bf16_vs_fp32_relative_rms=relative_rms(y16, full_reference))), flush=True)
@@ -266,6 +309,12 @@ def main():
     parser.add_argument("--check-accumulation", action="store_true",
                         help="Also return FP32 outputs and compare with FP64 dot products "
                              "using a declared FP32 accumulation error bound")
+    parser.add_argument("--pairwise-reference", action="store_true",
+                        help="Explicitly test the empirically identified FP16-rounded-pair "
+                             "model with FP32 accumulation. This changes the reference, "
+                             "not the tolerance; restricted to finite calibrated partials.")
+    parser.add_argument("--seed-offset", type=int, default=17,
+                        help="Independent seed family: actual seed is offset plus K")
     parser.add_argument("--save-diagnostic-dir", type=Path,
                         help="Save CPU operands and measured outputs for independent offline "
                              "analysis; requires --check-accumulation and a new directory")
@@ -282,10 +331,12 @@ def main():
     fp8, bf16, roundtrip = build_kernels()
     for shape in ((128, 256, 128), (256, 768, 512)):
         run_case(fp8, bf16, roundtrip, shape, args.steps, args.diagnostic_only,
-                 args.check_accumulation, args.save_diagnostic_dir)
+                 args.check_accumulation, args.save_diagnostic_dir,
+                 args.pairwise_reference, args.seed_offset)
     if args.large:
         run_case(fp8, bf16, roundtrip, (8192, 768, 512), args.steps, args.diagnostic_only,
-                 args.check_accumulation, args.save_diagnostic_dir)
+                 args.check_accumulation, args.save_diagnostic_dir,
+                 args.pairwise_reference, args.seed_offset)
     print("COMPLETED: FP8 characterization only; numerical gate still required" if args.diagnostic_only
           else "PASS: native FP8 primitive probes completed", flush=True)
 
