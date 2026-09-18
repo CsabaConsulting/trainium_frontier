@@ -88,7 +88,8 @@ def main():
     # All 180 exponents in the contract, with 4096 mantissas per exponent.
     fractions = 1 + torch.arange(4096, dtype=torch.float32) / 4096
     exponents = torch.arange(-116, 64, dtype=torch.int32)
-    grid = torch.ldexp(fractions[None, :], exponents[:, None]).flatten()
+    grid = torch.ldexp(fractions[None, :].expand(exponents.numel(), -1).contiguous(),
+                      exponents[:, None].expand(-1, fractions.numel())).flatten()
     # Variance estimates use CPU FP32 arithmetic to place the recorded failing
     # updates in the diagnostic. They are labelled as reconstructions, not as
     # a claim of bit-identical device moment accumulation.

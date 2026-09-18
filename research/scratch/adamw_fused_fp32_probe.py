@@ -190,7 +190,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--real-shape", action="store_true")
     ap.add_argument("--steps", type=int, default=20)
-    ap.add_argument("--math-mode", type=int, choices=(0, 1, 2, 3, 4), default=0)
+    ap.add_argument("--math-mode", type=int, choices=(0, 1, 2, 3, 4, 5, 6), default=0)
     args = ap.parse_args()
     print("ADAMW_FP32_MATH_MODE " + json.dumps(dict(math_mode=args.math_mode)), flush=True)
     import torch_neuronx
