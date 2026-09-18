@@ -1,0 +1,43 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave57",
+    "expected_commit": "8be6a5cba6d23f9354a6f9673c87113fc5dd7bdf",
+    "label": "fs-w57-branch-norm-packed-stat-gate-r1",
+    "purpose": "Profile-guided test of batching saved token inverse statistics into one DMA per core, retaining exact row mapping, original epsilon/precision/backward math and all unchanged numerical/causality/repeat gates. Compare fresh native component timing; no model integration.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1"
+    },
+    "fingerprint_paths": [
+      "research/scratch/branch_norm_nki.py",
+      "research/scratch/branch_norm_nki_probe.py",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "research/scratch/mlp_separate_diagnose.py"
+    ],
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/branch_norm_nki_probe.py",
+      "--real-shape",
+      "--steps",
+      "30",
+      "--inverse-mode",
+      "1",
+      "--packed-inverse",
+      "--diagnose-inverse"
+    ]
+  },
+  "requested_at": "2026-09-18T20:39:52.078084+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w57-branch-norm-packed-stat-gate-r1\", \"pid\": 1443346, \"commit\": \"8be6a5cba6d23f9354a6f9673c87113fc5dd7bdf\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave57/research/run-logs/fs-w57-branch-norm-packed-stat-gate-r1.log\", \"started_at\": \"2026-09-18T20:39:58.280447+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

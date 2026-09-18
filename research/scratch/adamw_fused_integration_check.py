@@ -113,6 +113,7 @@ def main():
         before = [p.detach().cpu().clone() for p in params]
         states = [state_cpu(candidate, p) for p in params]
         versions = [p._version for p in params]
+        native_versions = [p._version for p in native_params]
         lr = 0.0 if iteration == 5 else .3 * (9 - iteration) / 8
         betas = (.8 if iteration < 5 else .9, .96)
         for opt, ps in ((candidate, params), (native, native_params)):
@@ -131,12 +132,21 @@ def main():
                 continue
             assert torch.equal(p.grad.cpu(), g), "gradient mutated"
             assert new_state["step"] == state["step"] + 1
-            assert p._version > version, "Parameter version did not advance"
             if index == 2:
+                # This group deliberately uses the original native foreach
+                # implementation. Require its exact native version behavior;
+                # do not impose copy_'s contract on a different backend op.
+                delta = p._version - version
+                native_delta = native_params[index]._version - native_versions[index]
+                assert delta == native_delta, (iteration, index, delta, native_delta)
+                print("ADAMW_FALLBACK_VERSION " + json.dumps(dict(
+                    iteration=iteration, parameter=index, version_delta=delta,
+                    native_version_delta=native_delta, native_equivalent=True)), flush=True)
                 assert torch.equal(p.detach().cpu(), native_params[index].detach().cpu())
                 ns = state_cpu(native, native_params[index])
                 assert all(torch.equal(new_state[k], ns[k]) for k in ("exp_avg", "exp_avg_sq"))
                 continue
+            assert p._version > version, ("fused Parameter version did not advance", iteration, index)
             values = scalar_values(lr, new_state["step"], *betas, .01)
             expected, envelope = expected64(old, g, state["exp_avg"], state["exp_avg_sq"], values)
             check(f"integration:iteration{iteration}:parameter{index}",

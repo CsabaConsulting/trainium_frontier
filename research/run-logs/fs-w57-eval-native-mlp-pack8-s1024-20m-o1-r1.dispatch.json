@@ -1,0 +1,41 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave57",
+    "expected_commit": "8be6a5cba6d23f9354a6f9673c87113fc5dd7bdf",
+    "label": "fs-w57-eval-native-mlp-pack8-s1024-20m-o1-r1",
+    "purpose": "Fixed larger public check of native-forward/custom-backward MLP plus pack8 full-budget checkpoint: identical world1/B1/T1024/20.97M/O1/no-autocast scorer geometry as wave17 best. Score under original train.py with protected prepare.py. No private or leaderboard claim.",
+    "fingerprint_paths": [],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1800s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "prepare.py",
+      "eval-public",
+      "--train-py",
+      "train.py",
+      "--checkpoint",
+      "/home/ubuntu/trainium_freshstart_20260918_wave50/out/fs-w50-dense1024-native-mlp-pack8-1800-r1/final.pt",
+      "--seq-len",
+      "1024",
+      "--eval-tokens",
+      "20971520",
+      "--timeout-seconds",
+      "1200"
+    ]
+  },
+  "requested_at": "2026-09-18T20:38:07.300669+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w57-eval-native-mlp-pack8-s1024-20m-o1-r1\", \"pid\": 1071061, \"commit\": \"8be6a5cba6d23f9354a6f9673c87113fc5dd7bdf\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave57/research/run-logs/fs-w57-eval-native-mlp-pack8-s1024-20m-o1-r1.log\", \"started_at\": \"2026-09-18T20:38:13.479791+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

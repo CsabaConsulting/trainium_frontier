@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-18, 20:28 UTC. Active permissions: danger-full-access, approval never.
+Updated 2026-09-18, 20:35 UTC. Active permissions: danger-full-access, approval never.
 This replaces the accumulated stale resume instructions; their history remains
 in Git. Do not restart completed experiments from earlier revisions.
 
@@ -20,9 +20,12 @@ in Git. Do not restart completed experiments from earlier revisions.
   Wave55 AdamW passed all 34 NKI case checks, including real 8M-element tables.
   Foreach 4.004879ms / functional NKI 1.230406ms / in-place 2.436495ms. Original
   bounds remain unchanged; native compiled control fails one element and is
-  excluded. The same-host 30-step native-MLP/pack8 full-step control is active
-  at wave55, fs-w55-native-mlp-pack8-adam-control-phase-r1. Wave56 integration
-  gates are prepared; wait for clean control postflight before launching them.
+  excluded; wave56 localizes it to native sqrt (7.785ppm error). The same-host
+  30-step native-MLP/pack8 control completed cleanly: 558.627329ms median.
+  Wave56 first fused-table update passed; its harness then wrongly required a
+  version increment from the untouched scalar fallback. Wave57 corrects this
+  to exact native fallback behavior, keeping all fused/numerical gates. Launch
+  its integration retry next, then matched full-step candidate if all pass.
 - Preflight backup false positive is fixed by exact-script recognition, with
   five passing regression checks. Device-holder and runtime checks are intact.
 - Next implementation target: fused FP32 AdamW. Current full-step trace has

@@ -1657,3 +1657,35 @@ small inverse-statistic DMA stores and loop dependencies are a next hypothesis;
 missing dynamic DMA metadata prevents claiming exact bandwidth or spill costs.
 Local analysis now uses an isolated Python3.12 environment with pyarrow25.0.0,
 matching the existing remote reader; requirements are recorded in scratch/.
+
+### Wave57 prepared normalization layout hypothesis
+
+The packed-statistic variant retains each token's same FP32 inverse and exact
+row mapping but accumulates the saved statistics in a small SBUF tile, then
+uses one DMA per physical core. Backward loads that compact tile once. This
+replaces many tiny HBM transfers without changing epsilon, output precision,
+backward math, or token independence. The default remains the previously gated
+layout. Original numerical/causality/repeat gates and a fresh interleaved native
+component comparison must pass before any model integration. This is a profile-
+guided hypothesis, not a measured improvement.
+
+### Wave56 native sqrt diagnosis and integration-harness correction
+
+The native compiled stage reproduces the wave55 error: for the actual FP32
+variance 6.198513654368575e-17, sqrt returns 7.873002694225306e-9 rather than
+the FP64 square root 7.87306398701838e-9, relative error 7.785125737e-6. The
+resulting denominator explains the earlier overly large first update. This
+localizes the native-control violation without changing any NKI tolerance.
+
+The first real-table integration update passes every original analytic and
+trajectory bound and its Parameter version advances. The subsequent version
+assertion fails on index2, the deliberately untouched native scalar fallback.
+Thus it is not a fused-table copy-back failure. The initial brief status was
+too broad; the complete log distinguishes these. Wave57 requires exact native
+version behavior for fallback parameters, while retaining advancing versions
+for every fused update. The adapter itself is unchanged. Postflight is clean.
+
+The same-host 30-step control finished cleanly with all four model checks:
+558.627328981ms median total (559.013842960ms mean), 55.612526514ms optimizer,
+474.322530034ms microsteps, 16.202244995ms gradient sync, 6.970608520ms clip.
+This is the predeclared full-step comparator for the upcoming AdamW candidate.
