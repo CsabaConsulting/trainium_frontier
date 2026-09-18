@@ -1,0 +1,51 @@
+{
+  "host": "trn22",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave41",
+  "expected_commit": "7886eab03caf235155621bf9b404e2609bf80acc",
+  "label": "fs-w41-mlp-stream2-component-r1",
+  "purpose": "Bounded streaming-weight MLP numerical and component cost probe after full-graph spill attribution. Gate each GEMM against FP64 BF16-input sums, saved ReLU, eager and compiled paths, native gradients, changed/zero inputs. Weight mode2: read smaller weight blocks repeatedly to reduce SBUF residency; no model/BPB claim.",
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1",
+    "NEURON_RT_VISIBLE_CORES": "0"
+  },
+  "fingerprint_paths": [
+    "research/scratch/mlp_fused_bf16_probe.py",
+    "research/scratch/mlp_fused_bf16.py"
+  ],
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1500s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "research/scratch/mlp_fused_bf16_probe.py",
+    "--device",
+    "neuron",
+    "--real-shape",
+    "--contiguous-weights",
+    "--tiled-io",
+    "--cached-bf16-weights",
+    "--transposed-relu",
+    "--grouped-io",
+    "--weight-mode",
+    "2"
+  ],
+  "started_at": "2026-09-18T18:20:51.593474+00:00",
+  "hostname": "ip-172-31-32-253",
+  "git_commit": "7886eab03caf235155621bf9b404e2609bf80acc",
+  "source_dirty": false,
+  "preflight_free_bytes": 26507554816,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "4c14ac6ec14fd52e31ee06d91540707083c48a93ec4687fbaa35bc7106a823f3",
+    "research/fresh_start_host.py": "df01707b8ca2ffc8f4b798467e58b81c6fd8417f7aa1c26c4ecf6c080c659600",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/scratch/mlp_fused_bf16_probe.py": "4f9ba502754f16f7992c5d1fa943cb72ff0be6cc9afae2cfb14c478eaefedbe8",
+    "research/scratch/mlp_fused_bf16.py": "df9cc47b1ca6cdc30c3615be0dbc2ec40c8543b4158dd520845ec94067f570f5"
+  }
+}

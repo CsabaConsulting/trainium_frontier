@@ -15,7 +15,7 @@ import time
 
 import torch
 
-from mlp_fused_bf16 import build_kernel, make_autograd, reference_forward
+from mlp_fused_bf16 import build_kernel, make_autograd, prepack_weight, reference_forward, unpack_weight
 
 
 def emit(kind, value):
@@ -112,18 +112,25 @@ def run_case(device, shape, kind, kernel, steps, contiguous_weights=False, tiled
     else:
         native_forward = reference_forward
         def kernel_call(xx, uu, dd):
+            if weight_mode == 3:
+                uu, dd = unpack_weight(uu), unpack_weight(dd)
             output, saved = reference_forward(xx, uu, dd)
             return output, saved.T if transposed_relu else saved
         fused_forward = kernel_call
     inputs = tuple(t.to(device) for t in cpu_inputs)
+    kernel_inputs = inputs
+    if weight_mode == 3:
+        kernel_inputs = (inputs[0], prepack_weight(inputs[1]), prepack_weight(inputs[2]))
+        for packed, original in zip(kernel_inputs[1:], inputs[1:]):
+            torch.testing.assert_close(unpack_weight(packed.cpu()), original.cpu(), rtol=0, atol=0)
     if device == 'neuron':
-        eager_y, eager_saved = kernel[2](*inputs, 2, tile, contiguous_weights, tiled_io,
+        eager_y, eager_saved = kernel[2](*kernel_inputs, 2, tile, contiguous_weights, tiled_io,
                                          transposed_relu, grouped_io, weight_mode)
         eager_saved_cpu = eager_saved.cpu()
         eager = (eager_y, eager_saved_cpu.T if transposed_relu else eager_saved_cpu)
         gemm_gate(f'eager:up:{shape}:{kind}', eager[1], x, up.bfloat16().T, relu=True)
         gemm_gate(f'eager:down:{shape}:{kind}', eager[0], eager[1].cpu().square(), down.bfloat16().T)
-    output, relu = fused_forward(*inputs)
+    output, relu = fused_forward(*kernel_inputs)
     expected_output, expected_relu = native_forward(*inputs)
     # Canonicalize ONLY the detached CPU comparison, never the timed forward.
     relu_cpu = relu.detach().cpu()
@@ -134,7 +141,8 @@ def run_case(device, shape, kind, kernel, steps, contiguous_weights=False, tiled
         gemm_gate(f'compiled:down:{shape}:{kind}', output, relu_cpu.square(), down.bfloat16().T)
     compare(f'forward:{shape}:{kind}', output, expected_output)
     compare(f'saved_relu:{shape}:{kind}', relu_cpu, expected_relu)
-    fused = make_autograd(kernel_call, transposed_relu, normal_input_gradient)
+    fused = make_autograd(kernel_call, transposed_relu, normal_input_gradient,
+                          packed_weight_inputs=(weight_mode == 3))
 
     def native(xx, uu, dd):
         return reference_forward(xx, uu, dd)[0]
@@ -144,6 +152,9 @@ def run_case(device, shape, kind, kernel, steps, contiguous_weights=False, tiled
         native = torch.compile(native, backend='neuron', fullgraph=True, dynamic=False)
     controls = tuple(t.to(device).detach().clone().requires_grad_() for t in cpu_inputs)
     candidates = tuple(t.to(device).detach().clone().requires_grad_() for t in cpu_inputs)
+    candidate_args = candidates
+    if weight_mode == 3:
+        candidate_args = (*candidates, prepack_weight(candidates[1]), prepack_weight(candidates[2]))
     gd = g.to(device)
 
     def train_call(fn, values):
@@ -154,7 +165,7 @@ def run_case(device, shape, kind, kernel, steps, contiguous_weights=False, tiled
         return y
 
     expected_y = train_call(native, controls)
-    actual_y = train_call(fused, candidates)
+    actual_y = train_call(fused, candidate_args)
     compare(f'train_forward:{shape}:{kind}', actual_y, expected_y)
     for key, candidate, control in zip(('input', 'up_weight', 'down_weight'), candidates, controls):
         assert candidate.grad.dtype == control.grad.dtype == candidate.dtype
@@ -165,6 +176,7 @@ def run_case(device, shape, kind, kernel, steps, contiguous_weights=False, tiled
                               transposed_relu=transposed_relu,
                               grouped_io=grouped_io,
                               weight_mode=weight_mode,
+                              weight_layout_preparation_included=(weight_mode != 3),
                               normal_input_gradient=normal_input_gradient,
                               saved_layout_consumed_directly_in_backward=True,
                               token_tile=tile, all_gates_passed=True,
@@ -173,9 +185,11 @@ def run_case(device, shape, kind, kernel, steps, contiguous_weights=False, tiled
                               master_parameter_updates_and_cache_refresh_included=False))
     if device == 'neuron' and kind == 'random':
         arms = dict(native_forward_saved_relu=lambda: native_forward(*inputs),
-                    fused_forward_saved_relu=lambda: fused_forward(*inputs),
+                    fused_forward_saved_relu=lambda: fused_forward(*kernel_inputs),
                     native_forward_backward=lambda: train_call(native, controls),
-                    fused_forward_native_backward=lambda: train_call(fused, candidates))
+                    fused_forward_native_backward=lambda: train_call(fused, candidate_args))
+        if weight_mode == 3:
+            arms['packed_weight_layout_refresh'] = lambda: (prepack_weight(inputs[1]), prepack_weight(inputs[2]))
         emit('FUSED_MLP_BENCH', dict(shape=shape, **timing(arms, steps, torch.neuron.synchronize),
                                    contiguous_weights=contiguous_weights, tiled_io=tiled_io,
                                    cached_bf16_weights=cached_bf16_weights,
@@ -184,7 +198,9 @@ def run_case(device, shape, kind, kernel, steps, contiguous_weights=False, tiled
                                    weight_mode=weight_mode,
                                    normal_input_gradient=normal_input_gradient,
                                    saved_layout_consumed_directly_in_backward=True,
-                                   weight_reads_casts_layout_and_relu_save_included=True,
+                                   weight_reads_casts_layout_and_relu_save_included=(weight_mode != 3),
+                                   weight_reads_and_relu_save_included=True,
+                                   weight_layout_preparation_included=(weight_mode != 3),
                                    includes_optimizer_or_whole_model=False))
 
 
@@ -205,8 +221,8 @@ def main():
                     help='Group contiguous row transfers across channel tiles to reduce DMA instructions.')
     ap.add_argument('--normal-dx', action='store_true',
                     help='Produce the upstream input gradient in TxC directly, retaining saved HxT ReLU.')
-    ap.add_argument('--weight-mode', type=int, choices=(0, 1, 2), default=0,
-                    help='0: cache both;1: stream down;2: stream both weight matrices.')
+    ap.add_argument('--weight-mode', type=int, choices=(0, 1, 2, 3), default=0,
+                    help='0: cache both;1: stream down;2: stream both;3: stream prepacked weights.')
     args = ap.parse_args()
     if args.weight_mode and not args.grouped_io:
         ap.error('streaming weight modes require --grouped-io')

@@ -101,3 +101,19 @@ addition to the increased recorded reloads, not an arithmetic-work increase.
 Exact memory and complete pipeline bounds are explicitly unavailable because
 DMA notifications are incomplete. The maximum measured compute-engine activity
 is not substituted for a complete DMA-inclusive pipeline bound.
+
+## Next isolated change: prepack weight layout once per optimizer update
+
+Streaming changes the weight-read/SBUF tradeoff but repeats an on-chip transpose
+for every token tile. Mode3 prepares each BF16 weight as
+`[contract128, out_blocks, in_blocks, out128]` and streams contiguous stationary
+blocks directly. Normal FP32 Parameters and ordinary BF16 caches remain intact;
+custom backward uses those ordinary weights and routes their gradients once.
+The packed copies are auxiliary values, refreshed after every update, with no
+new checkpoint keys. Exact pack/unpack and stale-cache tests are mandatory.
+
+The component probe reports packing cost separately and labels its fused timing
+as excluding packing. Actual full-step timing includes each packed-cache refresh
+inside `wcache_ms`. An isolated packed-input time cannot authorize promotion.
+This layout work may later be reusable in an FP8 island, but mode3 itself does
+not change numerical precision or training/evaluation arithmetic.

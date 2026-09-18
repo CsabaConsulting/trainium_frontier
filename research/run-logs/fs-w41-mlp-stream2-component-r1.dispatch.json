@@ -1,0 +1,43 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave41",
+    "expected_commit": "7886eab03caf235155621bf9b404e2609bf80acc",
+    "label": "fs-w41-mlp-stream2-component-r1",
+    "purpose": "Bounded streaming-weight MLP numerical and component cost probe after full-graph spill attribution. Gate each GEMM against FP64 BF16-input sums, saved ReLU, eager and compiled paths, native gradients, changed/zero inputs. Weight mode2: read smaller weight blocks repeatedly to reduce SBUF residency; no model/BPB claim.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "NEURON_RT_VISIBLE_CORES": "0"
+    },
+    "fingerprint_paths": [
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "research/scratch/mlp_fused_bf16.py"
+    ],
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1500s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "--device",
+      "neuron",
+      "--real-shape",
+      "--contiguous-weights",
+      "--tiled-io",
+      "--cached-bf16-weights",
+      "--transposed-relu",
+      "--grouped-io",
+      "--weight-mode",
+      "2"
+    ]
+  },
+  "requested_at": "2026-09-18T18:20:46.087675+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w41-mlp-stream2-component-r1\", \"pid\": 1351945, \"commit\": \"7886eab03caf235155621bf9b404e2609bf80acc\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave41/research/run-logs/fs-w41-mlp-stream2-component-r1.log\", \"started_at\": \"2026-09-18T18:20:51.593474+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}
