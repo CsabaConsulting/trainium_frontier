@@ -40,11 +40,14 @@ def build_kernel():
         assert lanes in (1, 2) and rows % (128 * lanes) == 0 and cols <= 2048
         assert scalars.shape == (128, 7) and scalars.dtype == nl.float32
         # Experimental modes: 1=Scalar sqrt, 2=refined Scalar reciprocal,
-        # 3=both. Mode0 is the previously gated implementation. Fast modes
+        # 3=both, 4=scaled Scalar rsqrt + Newton and refined reciprocal.
+        # Mode0 is the previously gated implementation. Fast modes
         # have a bounded input contract: debiased variance <=2**84 (strictly
         # below that endpoint when reciprocal is selected). Clipped gradients
         # and zero-initialized moments in this model are far inside the range.
-        assert math_mode in (0, 1, 2, 3)
+        # Mode4 restricts variance to <=2**64 so its power-of-two scaled
+        # argument stays strictly inside Scalar rsqrt's upper range.
+        assert math_mode in (0, 1, 2, 3, 4)
         if inplace:
             out_p, out_m, out_v = p, m, v
         else:
@@ -80,7 +83,26 @@ def build_kernel():
             nisa.dma_copy(dst=out_m[start:start + 128, :], src=ms)
             nisa.dma_copy(dst=out_v[start:start + 128, :], src=vs)
             nisa.tensor_scalar(dst=work, data=vs, op0=nl.multiply, operand0=ib2)
-            if math_mode == 1 or math_mode == 3:
+            if math_mode == 4:
+                # The raw Scalar sqrt failed one real-shape first-step value
+                # (g=-7.8730639785e-9), reproducing the native sqrt's error.
+                # Start from Scalar rsqrt instead and refine it. Fixed exact
+                # power-of-two scaling maps [2**-116,2**64] into [2**-84,2**96],
+                # inside the documented [2**-87,2**97] activation interval.
+                # Rescale before refinement; r*r cannot overflow on this range.
+                nisa.tensor_scalar(dst=work, data=work, op0=nl.maximum,
+                                   operand0=1.2037062152420224e-35)
+                nisa.activation(dst=reciprocal, op=nl.rsqrt, data=work,
+                                scale=4294967296.0)
+                nisa.tensor_scalar(dst=reciprocal, data=reciprocal,
+                                   op0=nl.multiply, operand0=65536.0)
+                nisa.tensor_tensor(dst=gs, data1=reciprocal, data2=reciprocal, op=nl.multiply)
+                nisa.tensor_tensor(dst=gs, data1=work, data2=gs, op=nl.multiply)
+                nisa.tensor_scalar(dst=gs, data=gs, op0=nl.multiply,
+                                   operand0=-0.5, op1=nl.add, operand1=1.5)
+                nisa.tensor_tensor(dst=reciprocal, data1=reciprocal, data2=gs, op=nl.multiply)
+                nisa.tensor_tensor(dst=work, data1=work, data2=reciprocal, op=nl.multiply)
+            elif math_mode == 1 or math_mode == 3:
                 # Scalar sqrt is valid only on [2**-116,2**118]. Raising
                 # smaller variances to its lower endpoint changes sqrt by
                 # at most2**-58=3.47e-18, half one FP32 ULP of epsilon=1e-10.
@@ -99,7 +121,7 @@ def build_kernel():
                                    op0=nl.rsqrt, operand0=0.0)
                 nisa.tensor_tensor(dst=work, data1=work, data2=reciprocal, op=nl.multiply)
             nisa.tensor_scalar(dst=work, data=work, op0=nl.add, operand0=meta[:, 6:7])
-            if math_mode == 2 or math_mode == 3:
+            if math_mode == 2 or math_mode == 3 or math_mode == 4:
                 # One Newton correction: y <- y*(2-d*y). The gradient tile
                 # is dead after the moments are stored, so reuse it without
                 # increasing the SBUF footprint. Never mutate gradient HBM.

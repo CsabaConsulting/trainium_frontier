@@ -1,0 +1,55 @@
+{
+  "label": "fs-w64-adamw-scalar-sqrt-reciprocal-newton-gate-r1",
+  "passed": false,
+  "math_mode": 3,
+  "completed_at": "2026-09-18T21:37:26.188298+00:00",
+  "enforced_failure": {
+    "name": "nki_functional:4096:2048:first",
+    "enforced": true,
+    "passed": false,
+    "results": [
+      {
+        "field": "weight",
+        "finite": true,
+        "bound_failures": 1,
+        "relative_rms": 9.007034886211168e-07,
+        "max_abs": 1.5304413289798924e-07,
+        "passed": false,
+        "worst_bound": {
+          "flat_index": 3538528,
+          "actual": 0.01974930800497532,
+          "expected": 0.01974915496084242,
+          "error": 1.5304413289798924e-07,
+          "bound": 1.5067438224363696e-07,
+          "envelope": 0.01974915496084242,
+          "inputs": {
+            "p": 0.0,
+            "g": -7.873063978536265e-09,
+            "m": 0.0,
+            "v": 0.0
+          }
+        }
+      },
+      {
+        "field": "first_moment",
+        "finite": true,
+        "bound_failures": 0,
+        "relative_rms": 2.516301499342026e-08,
+        "max_abs": 1.1059306248561995e-10,
+        "passed": true
+      },
+      {
+        "field": "second_moment",
+        "finite": true,
+        "bound_failures": 0,
+        "relative_rms": 3.5773641986815097e-08,
+        "max_abs": 6.659737848403692e-13,
+        "passed": true
+      }
+    ]
+  },
+  "numerical_records": 59,
+  "postflight_clean": true,
+  "tolerances_unchanged": true,
+  "hypothesis": "Scalar sqrt reproduces the previously diagnosed native first-step tiny-gradient approximation error; isolate reciprocal-only then refine sqrt. Variance in the failing element is far above the lower clamp."
+}

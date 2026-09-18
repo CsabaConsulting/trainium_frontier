@@ -1,0 +1,39 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave64",
+    "expected_commit": "92b8ad63ee58ea134249a1e7a44122616297f2e8",
+    "label": "fs-w64-adamw-refined-reciprocal-only-gate-r1",
+    "purpose": "Isolate the refined Scalar reciprocal after mode3 failed at the known native Scalar sqrt tiny-gradient case. Keep the original higher-precision GpSIMD sqrt path; same original FP64 thresholds and cases, mutation checks and8M timing. This is diagnosis, not tolerance relaxation.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1500s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "/home/ubuntu/trainium_freshstart_20260918_wave64/research/scratch/adamw_fused_fp32_probe.py",
+      "--real-shape",
+      "--steps",
+      "30",
+      "--math-mode",
+      "2"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/adamw_fused_fp32.py",
+      "research/scratch/adamw_fused_fp32_probe.py",
+      "research/scratch/mlp_fused_bf16_probe.py"
+    ]
+  },
+  "requested_at": "2026-09-18T21:41:28.786336+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w64-adamw-refined-reciprocal-only-gate-r1\", \"pid\": 1105202, \"commit\": \"92b8ad63ee58ea134249a1e7a44122616297f2e8\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave64/research/run-logs/fs-w64-adamw-refined-reciprocal-only-gate-r1.log\", \"started_at\": \"2026-09-18T21:41:34.959761+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}
