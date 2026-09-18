@@ -1439,3 +1439,21 @@ gradients after return. It uses FP64 matmul references with explicit BF16 stage
 rounding, alternate rounding hypotheses, and repeated base/changed/zero inputs
 to distinguish rounding from saved-data reuse. Gate tolerances are unchanged;
 the diagnostic cannot promote a kernel even if its process exits successfully.
+
+
+Wave44 fresh native control587.177431 ms; combined native-forward/custom-MLP
+backward plus segmented-DMA embedding570.755620 ms. Both pass all updated-model
+checks and cleanup. The2.797% saving is near, but below, the3% gate. One longer
+40-step native/candidate pair was predeclared before launch; do not select the
+best repeat. Its native half completed **588.185841 ms**, clean; candidate is
+running. See fs-w44-longer-pair-plan.json and preliminary comparison receipt.
+
+Wave46 rounding diagnosis excludes accumulated parameter gradients and the
+installed backend's exception-driven fallback as necessary causes. Separated
+NKI/native variants repeat exactly and align with an unrounded dHidden CPU
+reference. Native alone has not yet been tested in its own process. Details and
+limits are in `fresh-start-mlp-boundary-rounding-2026-09-18.md`.
+
+The detached artifact retry completed at19:12:14UTC: **26of26 artifacts verified,
+no errors**, including the interrupted old trace archive. This is an actual
+GitHub asset/digest verification, not merely local preservation.
