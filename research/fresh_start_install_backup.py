@@ -28,7 +28,9 @@ def main():
     new = directory / f'crontab-installed-{stamp}.txt'
     old.write_text(before)
     new.write_text(after)
-    subprocess.run(['crontab', str(new)], check=True)
+    # This host's crontab truncates a long input pathname. Standard input also
+    # avoids depending on the workspace path length; retain the exact file above.
+    subprocess.run(['crontab', '-'], input=after, text=True, check=True)
     actual = subprocess.check_output(['crontab', '-l'], text=True)
     assert actual == after, 'Installed crontab differs from reviewed entry'
     result = dict(installed_at=stamp,entry=entry,
