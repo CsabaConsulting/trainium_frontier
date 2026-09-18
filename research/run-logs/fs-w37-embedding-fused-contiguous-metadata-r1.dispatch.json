@@ -1,0 +1,42 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave37",
+    "expected_commit": "a1729bcdd6362a095cd2e6d8b2cadfcc4fd356a8",
+    "label": "fs-w37-embedding-fused-contiguous-metadata-r1",
+    "purpose": "The small profile directly identifies131072 scalar metadata DMA packets. Use contiguous columns and cast presence inSBUF; preserve charged metadata construction and all staged/uninstrumented/compiled/native/zero/repeat numerical gates.",
+    "fingerprint_paths": [
+      "research/scratch/embedding_fused_dma.py",
+      "research/scratch/embedding_segmented_dma_probe.py",
+      "research/scratch/embedding_segmented_dma.py",
+      "research/scratch/embedding_compact_probe.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1500s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/embedding_segmented_dma_probe.py",
+      "--real-shape",
+      "--training-row",
+      "--tiled-io",
+      "--fused",
+      "--steps",
+      "8",
+      "--contiguous-metadata"
+    ]
+  },
+  "requested_at": "2026-09-18T15:30:10.564852+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w37-embedding-fused-contiguous-metadata-r1\", \"pid\": 972558, \"commit\": \"a1729bcdd6362a095cd2e6d8b2cadfcc4fd356a8\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave37/research/run-logs/fs-w37-embedding-fused-contiguous-metadata-r1.log\", \"started_at\": \"2026-09-18T15:30:17.254818+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

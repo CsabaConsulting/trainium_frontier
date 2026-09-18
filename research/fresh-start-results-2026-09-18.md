@@ -1239,7 +1239,7 @@ from microsteps. All completed wave35 jobs have healthy automatic postflights.
 
 The small-shape capture is locally hash-verified (6,706,919 bytes). Its fused
 window is 0.202802 ms versus native 0.026004 ms. Within the fused window,
-metadata input3 produces **65,536 four-byte and 65,536 two-byte DMA packets**.
+metadata input3 produces **65,600 four-byte and 65,536 two-byte DMA packets**.
 The aggregated transfers identify the strided interleaved metadata loads and
 int32-to-BF16 presence cast. This is direct packet evidence, not an inference
 from peak bandwidth. Missing dynamic DMA metadata still limits total-bandwidth
@@ -1253,3 +1253,21 @@ forward/backward 3.651568 ms versus 4.219335 ms (13.46% component saving). The
 full-model forward regression still needs attribution before any promotion.
 The forward-only device capture is running on the other host. Completed jobs
 have healthy automatic postflights; neither changes the best BPB checkpoint.
+
+
+### Wave37: contiguous metadata repairs the gross regression, not the final speed
+
+Source a1729bc. All 11 fused embedding shape/distribution cases, full scan
+positions, instrumented/uninstrumented eager calls, compiled calls, native
+controls and zero/repeat checks pass. Actual training row: prepared **3.878788 ms**
+and including metadata **4.797906 ms**, versus native **3.135013 ms**. This is
+much faster than the 31.479 ms strided-metadata kernel but still loses to both
+native and the three-kernel 0.856 ms implementation. Fusion alone is not a win;
+remaining local gather and narrow indirect-DMA costs must be charged. Automatic
+postflight is healthy. The prior profile count is corrected to 65,600 four-byte
+packets and 65,536 two-byte packets within the fused execution window.
+
+A four-rank synchronized MLP component test is prepared to separate whole-chip
+contention from surrounding-graph effects. It reports per-rank times, starts
+all ranks in the same arm, and excludes the closing barrier from timing. It
+does not change optimizer/model arithmetic or constitute a whole-model result.

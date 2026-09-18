@@ -79,7 +79,7 @@ def build_kernel():
                     nisa.dma_copy(dst=scanned_debug[ti * 128:(ti + 1) * 128, c0:c0 + 128], src=rows)
             for vi in nl.sequential_range(vocabulary // vt):
                 if contiguous_metadata:
-                    # The small device trace found131072 scalar metadata
+                    # The small device trace found more than131000 scalar metadata
                     # packets in the interleaved/casting path below. Transfer
                     # each contiguous column at its original32-bit width, then
                     # cast the presence flag in SBUF.
