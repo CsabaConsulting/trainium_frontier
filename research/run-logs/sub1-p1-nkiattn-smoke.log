@@ -1,0 +1,323 @@
+muon step: --compile-muon supersedes --nki-muon (a compiled region cannot contain an nki.jit call); NKI Muon disabled for this run
+[W918 00:30:50.406421643 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+W0918 00:30:50.215000 1044191 torch/distributed/run.py:851] 
+W0918 00:30:50.215000 1044191 torch/distributed/run.py:851] *****************************************
+W0918 00:30:50.215000 1044191 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0918 00:30:50.215000 1044191 torch/distributed/run.py:851] *****************************************
+[W918 00:30:52.721827341 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W918 00:30:52.721850300 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W918 00:30:52.722590065 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W918 00:30:52.723074499 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+2026-Sep-18 00:30:52.566178 1044208:1044208 ERROR   NRT:nrt_allocate_neuron_cores               Logical Neuron Core(s) not available - Requested:lnc2-lnc2 Available:0 Logical Core size:2 (cores busy, ret=-16)
+2026-Sep-18 00:30:52.566173 1044207:1044207 ERROR   NRT:nrt_allocate_neuron_cores               Logical Neuron Core(s) not available - Requested:lnc1-lnc1 Available:0 Logical Core size:2 (cores busy, ret=-16)
+2026-Sep-18 00:30:52.566515 1044208:1044208 ERROR   NRT:nrt_infodump                            Neuron runtime information - please include in any support request:
+2026-Sep-18 00:30:52.566524 1044208:1044208 ERROR   NRT:nrt_infodump                            ------------->8------------[ cut here ]------------>8-------------
+2026-Sep-18 00:30:52.566539 1044208:1044208 ERROR   NRT:nrt_infodump                            NRT version: 2.34.10.0 (ac18d186d3198d7152096c3a8fa77e1ab1424c39)
+2026-Sep-18 00:30:52.566548 1044208:1044208 ERROR   NRT:nrt_infodump                            Embedded FW version: unknown (unknown)
+2026-Sep-18 00:30:52.566556 1044208:1044208 ERROR   NRT:nrt_infodump                            CCOM not loaded
+2026-Sep-18 00:30:52.566563 1044208:1044208 ERROR   NRT:nrt_infodump                            NCFW version: 2.34.1.0 (23a4b43d43c9755014be657d2853735b1551cfbe)
+2026-Sep-18 00:30:52.566571 1044208:1044208 ERROR   NRT:nrt_infodump                            Instance ID: i-0673e54d9d66e6a1e
+2026-Sep-18 00:30:52.566578 1044208:1044208 ERROR   NRT:nrt_infodump                            Cluster ID: N/A
+2026-Sep-18 00:30:52.566586 1044208:1044208 ERROR   NRT:nrt_infodump                            Kernel: Linux 6.17.0-1019-aws #19~24.04.1-Ubuntu SMP Tue Jun 23 18:53:06 UTC 2026
+2026-Sep-18 00:30:52.566594 1044208:1044208 ERROR   NRT:nrt_infodump                            Nodename: ip-172-31-32-253
+2026-Sep-18 00:30:52.566608 1044208:1044208 ERROR   NRT:nrt_infodump                            Driver version: 2.30.2.0
+
+2026-Sep-18 00:30:52.566617 1044208:1044208 ERROR   NRT:nrt_infodump                            Failure: NRT_FAILURE in nrt_init()
+2026-Sep-18 00:30:52.566625 1044208:1044208 ERROR   NRT:nrt_infodump                            Visible cores: 2
+2026-Sep-18 00:30:52.566623 1044207:1044207 ERROR   NRT:nrt_infodump                            Neuron runtime information - please include in any support request:
+2026-Sep-18 00:30:52.566632 1044208:1044208 ERROR   NRT:nrt_infodump                            Environment:
+2026-Sep-18 00:30:52.566640 1044207:1044207 ERROR   NRT:nrt_infodump                            ------------->8------------[ cut here ]------------>8-------------
+2026-Sep-18 00:30:52.566641 1044208:1044208 ERROR   NRT:nrt_infodump                                NEURON_LOGICAL_NC_CONFIG=2
+2026-Sep-18 00:30:52.566649 1044208:1044208 ERROR   NRT:nrt_infodump                                NEURON_LAUNCH_BLOCKING=0
+2026-Sep-18 00:30:52.566648 1044207:1044207 ERROR   NRT:nrt_infodump                            NRT version: 2.34.10.0 (ac18d186d3198d7152096c3a8fa77e1ab1424c39)
+2026-Sep-18 00:30:52.566658 1044208:1044208 ERROR   NRT:nrt_infodump                                NEURON_RT_ALLOW_LEGACY_NEFF=1
+2026-Sep-18 00:30:52.566658 1044207:1044207 ERROR   NRT:nrt_infodump                            Embedded FW version: unknown (unknown)
+2026-Sep-18 00:30:52.566665 1044208:1044208 ERROR   NRT:nrt_infodump                                NEURON_RT_DBG_ZEROCOPY=1
+2026-Sep-18 00:30:52.566667 1044207:1044207 ERROR   NRT:nrt_infodump                            CCOM not loaded
+2026-Sep-18 00:30:52.566674 1044208:1044208 ERROR   NRT:nrt_infodump                                NEURON_RT_MAP_HBM=1
+2026-Sep-18 00:30:52.566675 1044207:1044207 ERROR   NRT:nrt_infodump                            NCFW version: 2.34.1.0 (23a4b43d43c9755014be657d2853735b1551cfbe)
+2026-Sep-18 00:30:52.566682 1044208:1044208 ERROR   NRT:nrt_infodump                                NEURON_RT_DISABLE_EXECUTION_BARRIER=0
+2026-Sep-18 00:30:52.566683 1044207:1044207 ERROR   NRT:nrt_infodump                            Instance ID: i-0673e54d9d66e6a1e
+2026-Sep-18 00:30:52.566690 1044208:1044208 ERROR   NRT:nrt_infodump                                NEURON_COMPILE_CACHE_DIR=/tmp/neuron_cache
+2026-Sep-18 00:30:52.566691 1044207:1044207 ERROR   NRT:nrt_infodump                            Cluster ID: N/A
+2026-Sep-18 00:30:52.566699 1044208:1044208 ERROR   NRT:nrt_infodump                                NEURON_CC_FLAGS=--optlevel=1
+2026-Sep-18 00:30:52.566700 1044207:1044207 ERROR   NRT:nrt_infodump                            Kernel: Linux 6.17.0-1019-aws #19~24.04.1-Ubuntu SMP Tue Jun 23 18:53:06 UTC 2026
+2026-Sep-18 00:30:52.566706 1044208:1044208 ERROR   NRT:nrt_infodump                                NEURON_RT_ROOT_COMM_ID=ip-172-31-32-253.ap-southeast-4.compute.internal:54759
+2026-Sep-18 00:30:52.566707 1044207:1044207 ERROR   NRT:nrt_infodump                            Nodename: ip-172-31-32-253
+2026-Sep-18 00:30:52.566713 1044208:1044208 ERROR   NRT:nrt_infodump                                NEURON_RT_ENABLE_DEVICE_MEMORY_OOM_LOG=0
+2026-Sep-18 00:30:52.566720 1044207:1044207 ERROR   NRT:nrt_infodump                            Driver version: 2.30.2.0
+
+2026-Sep-18 00:30:52.566719 1044208:1044208 ERROR   NRT:nrt_infodump                            -------------8<-----------[ cut to here ]-----------8<------------
+2026-Sep-18 00:30:52.566729 1044207:1044207 ERROR   NRT:nrt_infodump                            Failure: NRT_FAILURE in nrt_init()
+2026-Sep-18 00:30:52.566737 1044207:1044207 ERROR   NRT:nrt_infodump                            Visible cores: 1
+2026-Sep-18 00:30:52.566744 1044207:1044207 ERROR   NRT:nrt_infodump                            Environment:
+2026-Sep-18 00:30:52.566750 1044207:1044207 ERROR   NRT:nrt_infodump                                NEURON_LOGICAL_NC_CONFIG=2
+2026-Sep-18 00:30:52.566757 1044207:1044207 ERROR   NRT:nrt_infodump                                NEURON_LAUNCH_BLOCKING=0
+2026-Sep-18 00:30:52.566765 1044207:1044207 ERROR   NRT:nrt_infodump                                NEURON_RT_ALLOW_LEGACY_NEFF=1
+2026-Sep-18 00:30:52.566772 1044207:1044207 ERROR   NRT:nrt_infodump                                NEURON_RT_DBG_ZEROCOPY=1
+2026-Sep-18 00:30:52.566779 1044207:1044207 ERROR   NRT:nrt_infodump                                NEURON_RT_MAP_HBM=1
+2026-Sep-18 00:30:52.566787 1044207:1044207 ERROR   NRT:nrt_infodump                                NEURON_RT_DISABLE_EXECUTION_BARRIER=0
+2026-Sep-18 00:30:52.566813 1044207:1044207 ERROR   NRT:nrt_infodump                                NEURON_COMPILE_CACHE_DIR=/tmp/neuron_cache
+2026-Sep-18 00:30:52.566821 1044207:1044207 ERROR   NRT:nrt_infodump                                NEURON_CC_FLAGS=--optlevel=1
+2026-Sep-18 00:30:52.566829 1044207:1044207 ERROR   NRT:nrt_infodump                                NEURON_RT_ROOT_COMM_ID=ip-172-31-32-253.ap-southeast-4.compute.internal:54759
+2026-Sep-18 00:30:52.566837 1044207:1044207 ERROR   NRT:nrt_infodump                                NEURON_RT_ENABLE_DEVICE_MEMORY_OOM_LOG=0
+2026-Sep-18 00:30:52.566844 1044207:1044207 ERROR   NRT:nrt_infodump                            -------------8<-----------[ cut to here ]-----------8<------------
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_frontier/train.py", line 6829, in <module>
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_frontier/train.py", line 6829, in <module>
+2026-Sep-18 00:30:52.566082 1044206:1044206 ERROR   NRT:nrt_allocate_neuron_cores               Logical Neuron Core(s) not available - Requested:lnc0-lnc0 Available:0 Logical Core size:2 (cores busy, ret=-16)
+    main()
+  File "/home/ubuntu/trainium_frontier/train.py", line 6202, in main
+    main()    
+ddp, rank, _local_rank, world_size, device = init_runtime(device_type, seed=args.seed)
+                          File "/home/ubuntu/trainium_frontier/train.py", line 6202, in main
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/trainium_frontier/train.py", line 1372, in init_runtime
+    dist.init_process_group("neuron")
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py", line 83, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py", line 97, in wrapper
+    func_return = func(*args, **kwargs)
+                  ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/distributed_c10d.py", line 1838, in init_process_group
+    default_pg, _ = _new_process_group_helper(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/distributed_c10d.py", line 2177, in _new_process_group_helper
+    backend_class = creator_fn(dist_backend_opts, backend_options)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/distributed/backend.py", line 32, in _create_neuron_process_group
+    _neuron_runtime_setup(rank, size, prefix_store)
+  File "/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/distributed/backend.py", line 162, in _neuron_runtime_setup
+    torch_neuronx._lazy_init()
+  File "/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/__init__.py", line 233, in _lazy_init
+    _C._neuron_init()
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py", line 1263, in _fn
+    ddp, rank, _local_rank, world_size, device = init_runtime(device_type, seed=args.seed)
+                                                 ^^^^^^^^^^^^^^^^    ^return fn(*args, **kwargs)^
+^^^^^^^^^^^^^^^ ^ ^ ^ ^ ^ ^ ^ ^ 
+  ^^^  File "/home/ubuntu/trainium_frontier/train.py", line 1372, in init_runtime
+^^^^^^^^^^^^^^^^
+RuntimeError: Failed to initialize Neuron Runtime: status code 1
+    dist.init_process_group("neuron")
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py", line 83, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py", line 97, in wrapper
+    func_return = func(*args, **kwargs)
+                  ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/distributed_c10d.py", line 1838, in init_process_group
+2026-Sep-18 00:30:52.566175 1044209:1044209 ERROR   NRT:nrt_allocate_neuron_cores               Logical Neuron Core(s) not available - Requested:lnc3-lnc3 Available:0 Logical Core size:2 (cores busy, ret=-16)
+    default_pg, _ = _new_process_group_helper(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/distributed_c10d.py", line 2177, in _new_process_group_helper
+    backend_class = creator_fn(dist_backend_opts, backend_options)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/distributed/backend.py", line 32, in _create_neuron_process_group
+    _neuron_runtime_setup(rank, size, prefix_store)
+  File "/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/distributed/backend.py", line 162, in _neuron_runtime_setup
+    torch_neuronx._lazy_init()
+  File "/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/__init__.py", line 233, in _lazy_init
+    _C._neuron_init()
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py", line 1263, in _fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+RuntimeError: Failed to initialize Neuron Runtime: status code 1
+2026-Sep-18 00:30:52.664984 1044209:1044209 ERROR   NRT:nrt_infodump                            Neuron runtime information - please include in any support request:
+2026-Sep-18 00:30:52.665135 1044206:1044206 ERROR   NRT:nrt_infodump                            Neuron runtime information - please include in any support request:
+2026-Sep-18 00:30:52.666748 1044209:1044209 ERROR   NRT:nrt_infodump                            ------------->8------------[ cut here ]------------>8-------------
+2026-Sep-18 00:30:52.668571 1044206:1044206 ERROR   NRT:nrt_infodump                            ------------->8------------[ cut here ]------------>8-------------
+2026-Sep-18 00:30:52.670354 1044209:1044209 ERROR   NRT:nrt_infodump                            NRT version: 2.34.10.0 (ac18d186d3198d7152096c3a8fa77e1ab1424c39)
+2026-Sep-18 00:30:52.672176 1044206:1044206 ERROR   NRT:nrt_infodump                            NRT version: 2.34.10.0 (ac18d186d3198d7152096c3a8fa77e1ab1424c39)
+2026-Sep-18 00:30:52.673969 1044209:1044209 ERROR   NRT:nrt_infodump                            Embedded FW version: unknown (unknown)
+2026-Sep-18 00:30:52.675759 1044206:1044206 ERROR   NRT:nrt_infodump                            Embedded FW version: unknown (unknown)
+2026-Sep-18 00:30:52.677235 1044209:1044209 ERROR   NRT:nrt_infodump                            CCOM not loaded
+2026-Sep-18 00:30:52.678708 1044206:1044206 ERROR   NRT:nrt_infodump                            CCOM not loaded
+2026-Sep-18 00:30:52.679910 1044209:1044209 ERROR   NRT:nrt_infodump                            NCFW version: 2.34.1.0 (23a4b43d43c9755014be657d2853735b1551cfbe)
+2026-Sep-18 00:30:52.681116 1044206:1044206 ERROR   NRT:nrt_infodump                            NCFW version: 2.34.1.0 (23a4b43d43c9755014be657d2853735b1551cfbe)
+2026-Sep-18 00:30:52.682908 1044209:1044209 ERROR   NRT:nrt_infodump                            Instance ID: i-0673e54d9d66e6a1e
+2026-Sep-18 00:30:52.684695 1044206:1044206 ERROR   NRT:nrt_infodump                            Instance ID: i-0673e54d9d66e6a1e
+2026-Sep-18 00:30:52.686111 1044209:1044209 ERROR   NRT:nrt_infodump                            Cluster ID: N/A
+2026-Sep-18 00:30:52.687518 1044206:1044206 ERROR   NRT:nrt_infodump                            Cluster ID: N/A
+2026-Sep-18 00:30:52.688719 1044209:1044209 ERROR   NRT:nrt_infodump                            Kernel: Linux 6.17.0-1019-aws #19~24.04.1-Ubuntu SMP Tue Jun 23 18:53:06 UTC 2026
+2026-Sep-18 00:30:52.689920 1044206:1044206 ERROR   NRT:nrt_infodump                            Kernel: Linux 6.17.0-1019-aws #19~24.04.1-Ubuntu SMP Tue Jun 23 18:53:06 UTC 2026
+2026-Sep-18 00:30:52.691907 1044209:1044209 ERROR   NRT:nrt_infodump                            Nodename: ip-172-31-32-253
+2026-Sep-18 00:30:52.693896 1044206:1044206 ERROR   NRT:nrt_infodump                            Nodename: ip-172-31-32-253
+2026-Sep-18 00:30:52.695252 1044209:1044209 ERROR   NRT:nrt_infodump                            Driver version: 2.30.2.0
+
+2026-Sep-18 00:30:52.696581 1044206:1044206 ERROR   NRT:nrt_infodump                            Driver version: 2.30.2.0
+
+2026-Sep-18 00:30:52.698094 1044209:1044209 ERROR   NRT:nrt_infodump                            Failure: NRT_FAILURE in nrt_init()
+2026-Sep-18 00:30:52.699615 1044206:1044206 ERROR   NRT:nrt_infodump                            Failure: NRT_FAILURE in nrt_init()
+2026-Sep-18 00:30:52.701032 1044209:1044209 ERROR   NRT:nrt_infodump                            Visible cores: 3
+2026-Sep-18 00:30:52.702467 1044206:1044206 ERROR   NRT:nrt_infodump                            Visible cores: 0
+2026-Sep-18 00:30:52.703671 1044209:1044209 ERROR   NRT:nrt_infodump                            Environment:
+2026-Sep-18 00:30:52.704888 1044206:1044206 ERROR   NRT:nrt_infodump                            Environment:
+2026-Sep-18 00:30:52.706072 1044209:1044209 ERROR   NRT:nrt_infodump                                NEURON_LOGICAL_NC_CONFIG=2
+2026-Sep-18 00:30:52.707236 1044206:1044206 ERROR   NRT:nrt_infodump                                NEURON_LOGICAL_NC_CONFIG=2
+2026-Sep-18 00:30:52.708609 1044209:1044209 ERROR   NRT:nrt_infodump                                NEURON_LAUNCH_BLOCKING=0
+2026-Sep-18 00:30:52.709998 1044206:1044206 ERROR   NRT:nrt_infodump                                NEURON_LAUNCH_BLOCKING=0
+2026-Sep-18 00:30:52.711341 1044209:1044209 ERROR   NRT:nrt_infodump                                NEURON_RT_ALLOW_LEGACY_NEFF=1
+2026-Sep-18 00:30:52.712712 1044206:1044206 ERROR   NRT:nrt_infodump                                NEURON_RT_ALLOW_LEGACY_NEFF=1
+2026-Sep-18 00:30:52.714133 1044209:1044209 ERROR   NRT:nrt_infodump                                NEURON_RT_DBG_ZEROCOPY=1
+2026-Sep-18 00:30:52.715541 1044206:1044206 ERROR   NRT:nrt_infodump                                NEURON_RT_DBG_ZEROCOPY=1
+2026-Sep-18 00:30:52.716905 1044209:1044209 ERROR   NRT:nrt_infodump                                NEURON_RT_MAP_HBM=1
+2026-Sep-18 00:30:52.718262 1044206:1044206 ERROR   NRT:nrt_infodump                                NEURON_RT_MAP_HBM=1
+2026-Sep-18 00:30:52.719550 1044209:1044209 ERROR   NRT:nrt_infodump                                NEURON_RT_DISABLE_EXECUTION_BARRIER=0
+2026-Sep-18 00:30:52.720858 1044206:1044206 ERROR   NRT:nrt_infodump                                NEURON_RT_DISABLE_EXECUTION_BARRIER=0
+2026-Sep-18 00:30:52.722367 1044209:1044209 ERROR   NRT:nrt_infodump                                NEURON_COMPILE_CACHE_DIR=/tmp/neuron_cache
+2026-Sep-18 00:30:52.723885 1044206:1044206 ERROR   NRT:nrt_infodump                                NEURON_COMPILE_CACHE_DIR=/tmp/neuron_cache
+2026-Sep-18 00:30:52.725438 1044209:1044209 ERROR   NRT:nrt_infodump                                NEURON_CC_FLAGS=--optlevel=1
+2026-Sep-18 00:30:52.727016 1044206:1044206 ERROR   NRT:nrt_infodump                                NEURON_CC_FLAGS=--optlevel=1
+2026-Sep-18 00:30:52.728414 1044209:1044209 ERROR   NRT:nrt_infodump                                NEURON_RT_ROOT_COMM_ID=ip-172-31-32-253.ap-southeast-4.compute.internal:54759
+2026-Sep-18 00:30:52.729837 1044206:1044206 ERROR   NRT:nrt_infodump                                NEURON_RT_ROOT_COMM_ID=ip-172-31-32-253.ap-southeast-4.compute.internal:54759
+2026-Sep-18 00:30:52.731819 1044209:1044209 ERROR   NRT:nrt_infodump                                NEURON_RT_ENABLE_DEVICE_MEMORY_OOM_LOG=0
+2026-Sep-18 00:30:52.733804 1044206:1044206 ERROR   NRT:nrt_infodump                                NEURON_RT_ENABLE_DEVICE_MEMORY_OOM_LOG=0
+2026-Sep-18 00:30:52.735346 1044209:1044209 ERROR   NRT:nrt_infodump                            -------------8<-----------[ cut to here ]-----------8<------------
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_frontier/train.py", line 6829, in <module>
+    main()
+  File "/home/ubuntu/trainium_frontier/train.py", line 6202, in main
+    ddp, rank, _local_rank, world_size, device = init_runtime(device_type, seed=args.seed)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/trainium_frontier/train.py", line 1372, in init_runtime
+    dist.init_process_group("neuron")
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py", line 83, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py", line 97, in wrapper
+    func_return = func(*args, **kwargs)
+                  ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/distributed_c10d.py", line 1838, in init_process_group
+    default_pg, _ = _new_process_group_helper(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/distributed_c10d.py", line 2177, in _new_process_group_helper
+    backend_class = creator_fn(dist_backend_opts, backend_options)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/distributed/backend.py", line 32, in _create_neuron_process_group
+    _neuron_runtime_setup(rank, size, prefix_store)
+  File "/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/distributed/backend.py", line 162, in _neuron_runtime_setup
+    torch_neuronx._lazy_init()
+  File "/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/__init__.py", line 233, in _lazy_init
+    _C._neuron_init()
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py", line 1263, in _fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+RuntimeError: Failed to initialize Neuron Runtime: status code 1
+2026-Sep-18 00:30:52.736887 1044206:1044206 ERROR   NRT:nrt_infodump                            -------------8<-----------[ cut to here ]-----------8<------------
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_frontier/train.py", line 6829, in <module>
+    main()
+  File "/home/ubuntu/trainium_frontier/train.py", line 6202, in main
+    ddp, rank, _local_rank, world_size, device = init_runtime(device_type, seed=args.seed)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/trainium_frontier/train.py", line 1372, in init_runtime
+    dist.init_process_group("neuron")
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py", line 83, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py", line 97, in wrapper
+    func_return = func(*args, **kwargs)
+                  ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/distributed_c10d.py", line 1838, in init_process_group
+    default_pg, _ = _new_process_group_helper(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/distributed_c10d.py", line 2177, in _new_process_group_helper
+    backend_class = creator_fn(dist_backend_opts, backend_options)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/distributed/backend.py", line 32, in _create_neuron_process_group
+    _neuron_runtime_setup(rank, size, prefix_store)
+  File "/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/distributed/backend.py", line 162, in _neuron_runtime_setup
+    torch_neuronx._lazy_init()
+  File "/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/__init__.py", line 233, in _lazy_init
+    _C._neuron_init()
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py", line 1263, in _fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+RuntimeError: Failed to initialize Neuron Runtime: status code 1
+W0918 00:30:53.226000 1044191 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 1044206 closing signal SIGTERM
+W0918 00:30:53.226000 1044191 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 1044209 closing signal SIGTERM
+E0918 00:30:53.258000 1044191 torch/distributed/elastic/multiprocessing/api.py:986] failed (exitcode: 1) local_rank: 1 (pid: 1044207) of binary: /home/ubuntu/workspace/native_venv/bin/python3
+Traceback (most recent call last):
+  File "/home/ubuntu/workspace/native_venv/bin/torchrun", line 10, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 362, in wrapper
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/run.py", line 990, in main
+    run(args)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/run.py", line 981, in run
+    elastic_launch(
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 170, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 317, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+============================================================
+train.py FAILED
+------------------------------------------------------------
+Failures:
+[1]:
+  time      : 2026-09-18_00:30:53
+  host      : ip-172-31-32-253.ap-southeast-4.compute.internal
+  rank      : 2 (local_rank: 2)
+  exitcode  : 1 (pid: 1044208)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+[2]:
+  time      : 2026-09-18_00:30:53
+  host      : ip-172-31-32-253.ap-southeast-4.compute.internal
+  rank      : 0 (local_rank: 0)
+  exitcode  : -15 (pid: 1044206)
+  error_file: <N/A>
+  traceback : Signal 15 (SIGTERM) received by PID 1044206
+[3]:
+  time      : 2026-09-18_00:30:53
+  host      : ip-172-31-32-253.ap-southeast-4.compute.internal
+  rank      : 3 (local_rank: 3)
+  exitcode  : -15 (pid: 1044209)
+  error_file: <N/A>
+  traceback : Signal 15 (SIGTERM) received by PID 1044209
+------------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2026-09-18_00:30:53
+  host      : ip-172-31-32-253.ap-southeast-4.compute.internal
+  rank      : 1 (local_rank: 1)
+  exitcode  : 1 (pid: 1044207)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+============================================================
