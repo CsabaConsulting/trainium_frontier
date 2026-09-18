@@ -1,6 +1,6 @@
 # Fresh-start campaign — 2026-09-18
 
-**Current status, 21:12 UTC.** Minimize official30-minute BPB on a full Trainium2
+**Current status, 21:59 UTC.** Minimize official30-minute BPB on a full Trainium2
 chip. Working competitive target approximately0.9749; best larger public check
 is **1.0010172426032236**, 20,971,520tokens/B1/T1024. The private dataset differs.
 Dense6×1024 without hashed n-grams now completes3,183updates/417.2Mtargets using
@@ -11,25 +11,29 @@ its checkpoint is local and cloud-digest-verified. No seed sweep.
 Every device job uses immutable source, a host-wide lock, bounded command,
 owned-process cleanup and automatic pre/postflight. Source and logs are pushed
 through a separate-index recovery path; all31 heavy artifacts have verified
-GitHub draft-release receipts. Source458d1f8 and its recovery snapshot were
-verified at21:06. See RESUME.md for exact jobs and newer backup receipts.
+GitHub draft-release receipts. Source5dcbf6a and its recovery snapshot were
+verified at21:50. See RESUME.md for exact jobs and newer backup receipts.
 
 Current priorities:
 
-1. Complete optimizer-ownership gates. FP32 pack/gather/copyback costs6.40ms,
-   much less than the55.61ms replicated optimizer phase. CPU source equivalence
-   is exact; native singleton tall Muon groups differ while batch-two groups
-   match. Pad singletons with independent zero matrices, retain exact checks,
-   and measure all added compute/communication before a full-model test.
-2. Keep the fused FP32 AdamW component optional. It passes independent moments,
-   conditional weight arithmetic, trajectory, cache and state-restoration gates.
-   Its full-step benefit is1.205%, below the3% training threshold by itself.
-   Its corrected rounding contract and preserved failures are documented.
-3. Test T1024/pack16 at the same16384tokens/rank/microstep and GA2 as the current
-   T2048/pack8 model. Earlier T1024/pack8 paid for GA4. Any speed win must then
-   survive quality testing; context boundaries change even though loader reads
-   and global token batch remain the same.
-4. Stop advancing isolated kernels that fail complete-step gates. The packed/
+1. Complete both active quality runs and preserve their checkpoints. Exact
+   padded ownership saves5.06245% of the matched whole step; its T2048/pack8
+   run is on trn21. T1024/pack16 plus original fused AdamW saves3.24837%; its
+   run is on trn22. Both keep seed42,131072targets/update and clip-after-reduce.
+   Evaluate promising outcomes using the same larger public configuration.
+2. Gate the mode2 reciprocal refinement through repeated optimizer updates,
+   schedules, BF16 caches and restore. It passes34 component checks and is
+   16.77% faster than original fused AdamW in a paired test; it has no whole-step
+   claim. Diagnose the failed scaled-rsqrt variant by exposing its seed and
+   correction stages. Do not relax the original numerical bounds.
+3. Test exact loss work elimination: explicit two-core row partitioning and
+   SBUF target gather, keeping current primitives, reduction width and backward
+   math. Require exact current-kernel agreement, real-shape timing, then complete
+   compiled-model gates. Follow up composed approximations only with measured
+   costs and an explicit forward/backward accuracy contract.
+4. Stop advancing isolated kernels that fail complete-step gates. Degree5/7
+   exp polynomials pass sampled accuracy but cost3.57–4.19times the built-in exp.
+   The packed/
    streaming MLP variants, standalone normalization and embedding paths retain
    useful diagnostics but have no new quality claim. FP8 remains a moonshot
    requiring a complete forward/backward island with layout/cast costs charged.

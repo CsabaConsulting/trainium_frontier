@@ -1,10 +1,11 @@
 # Reopen optimizer ownership as a compute question
 
-Status at 21:26 UTC, 2026-09-18: the padded ownership implementation passes
+Status at 21:59 UTC, 2026-09-18: the padded ownership implementation passes
 all CPU/Gloo and native gates with **exact weights and owned optimizer states**.
 The native complete optimizer, including FP32 packing, exchange and copyback,
-costs **25.35–25.38 ms versus 52.29–52.84 ms** on the four ranks. A matched
-full-model control is running; this is not yet a whole-model or quality gain.
+costs **25.35–25.38 ms versus 52.29–52.84 ms** on the four ranks. The matched
+full-model phase also passes: **526.782934 versus554.873134ms, a5.06245% gain**.
+The full30-minute quality run is active; BPB improvement is not yet established.
 
 The older assessment in `trn2-optimization-research.md:295` and
 `experiment-rollout-plan.md:295` rejected ZeRO-1 because optimizer memory fits.
@@ -98,8 +99,22 @@ The all-rank post-timing weight digest is
 `43420a0537483b49f99b6e864c2d31342e863b8f7aa54585492dc31fd158bb0e`.
 
 The 3×20-update interleaved benchmark includes all exchange costs. It is a
-synthetic-gradient optimizer test, not a full training step. The next gate is
-`fs-w62-native-mlp-pack8-owned-control-phase-r1` on trn21, followed by the same
-30-step/5-warmup phase with ownership enabled. The earlier wave44 control had
-only eight timed steps; it is retained as history rather than used as a matched
-control for this decision.
+synthetic-gradient optimizer test, not a full training step.
+
+The matched trn21 full-step runs are
+`fs-w62-native-mlp-pack8-owned-control-phase-r1` and
+`fs-w62-native-mlp-pack8-owned-phase-r1`, both sourcec18305e,30timed/5warmups,
+same dense6×1024/native-MLP/T2048/pack8/GA2/seed42 geometry. Their whole-step
+medians are554.8731335 and526.7829345ms; optimizer54.9657165 and26.0838685ms;
+microstep windows471.3633375 and472.8148310ms. Ownership dispatches35times.
+Both pass all four post-model finite/causal/batch/repetition checks with clean
+postflight. Last loss5.145325183868408 and all six attention-weight norms are
+identical; these metrics are not a checksum of every model weight.
+
+The phase uses clip-before-reduce, like its matched control. The quality run
+`fs-w65-dense1024-native-mlp-pack8-owned-1800-r1` uses the best wave50 model's
+clip-after-reduce configuration, unchanged131072targets/update, seed42 and
+protected timing/scorer. Started21:52:43UTC on trn21, source5dcbf6a. It contains
+no new arithmetic approximation or NKI AdamW combination. That combination
+still needs separate interaction gates. The earlier eight-step wave44 phase
+is retained as history and was not used as the matched promotion control.

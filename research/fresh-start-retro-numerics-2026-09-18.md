@@ -1,6 +1,6 @@
 # Retro numerical techniques on Trainium
 
-Research started 2026-09-18; initial implementation checkpoint at21:40UTC.
+Research started 2026-09-18; hardware evidence updated at21:59UTC.
 The user's scope is **all useful functions and arithmetic transformations**, not
 only square root or lookup tables. The objective remains better BPB within the
 fixed training time. A faster primitive alone is not a training result.
@@ -116,7 +116,8 @@ preserving kernel replacement, and needs its own quality comparison.
 ### AdamW arithmetic probe
 
 `adamw_fused_fp32.py` now has explicit math modes:0 existing GpSIMD-rsqrt/Vector-
-reciprocal;1 Scalar sqrt;2 Scalar reciprocal with one Newton step;3 both.
+reciprocal;1 Scalar sqrt;2 Scalar reciprocal with one Newton step;3 both;
+4 power-of-two-scaled Scalar rsqrt plus one Newton correction and mode2 reciprocal.
 The step is `y <- y*(2-d*y)` for denominator d. A dead gradient tile is reused
 as workspace; gradient HBM remains unchanged.
 
@@ -128,10 +129,33 @@ gates decide whether the complete update is accurate enough. Clipped gradients,
 zero-initialized variance and the current betas keep the training values far
 below the upper hardware range; unsupported uses need separate range handling.
 
-Wave64 runs mode3 with the original zero/tiny/sparse/first/late/large cases,
-real8M-element shape, input-mutation checks and scalar-upload/copyback-inclusive
-timing. It is a component experiment. Source92b8ad6; label
-`fs-w64-adamw-scalar-sqrt-reciprocal-newton-gate-r1`.
+Wave64 mode3 fails one8M-table first-step weight at gradient
+-7.873063978536265e-9. Its error1.53044e-7 exceeds the unchanged1.50674e-7
+bound. This reproduces the previously measured native Scalar-sqrt error,
+far above the lower clamp; moments and finite checks pass. The tiny-gradient
+failure is not explained by zero handling or NaNs.
+
+Mode4 fixes that small-input path but fails12 weights in the large-gradient
+case. The worst recorded update has gradient-1194.599609375 and initial
+variance1034481.4375. One Newton correction is not sufficient there. The
+documented activation input range does not promise uniformly small relative
+error. `rsqrt_refinement_probe.py` now exposes seed, square/product and two
+successive corrections across180 exponents and4096 mantissas per exponent,
+plus the recorded counterexamples. Its hardware diagnostic is pending; seed
+inaccuracy is a hypothesis until those intermediate results identify the cause.
+
+Reciprocal-only mode2 passes all34 unchanged numerical gates. The wave65
+paired/interleaved test measures **1.085410ms versus1.304101ms** for mode0
+functional NKI AdamW, **16.7695%** faster for this8M-element component, with
+scalar staging and weight copyback charged. The three mode2 samples are
+1.0854/1.0933/1.0732ms; controls1.2274/1.3252/1.3041ms. Both use identical
+scheduled scalar updates. This is not a whole-optimizer or training gain.
+An explicit mode2 integration test is prepared; training still uses mode0.
+
+Evidence: `fs-w64-adamw-scalar-sqrt-reciprocal-newton-gate-r1`,
+`fs-w65-adamw-scaled-rsqrt-newton-gate-r1`, and
+`fs-w65-adamw-refined-reciprocal-paired-gate-r1`. All postflights are clean;
+failures and original bounds are preserved.
 
 ### Polynomial exponential probe
 
@@ -151,8 +175,13 @@ includes HBM traffic in the timing. Probability/gradient diagnostics normalize
 on the CPU in FP64 to isolate the exp error; they do not replace a device
 softmax/backward integration gate.
 
-Files: `exp_polynomial_nki.py`, `exp_polynomial_probe.py`. Hardware results are
-pending. Even a correctness pass will not promote a slower primitive.
+Files: `exp_polynomial_nki.py`, `exp_polynomial_probe.py`. Wave65 passes all9
+device records. Real8M-element maximum relative errors are1.36600e-5/1.18306e-7
+for degree5/7, versus1.13351e-5 for Scalar exp. The higher degree is about96times
+more accurate on this sampled range, but **slower**:0.446690/0.524650ms versus
+0.125238ms, including HBM transfers, over3×30 interleaved calls. These are
+3.57×/4.19× the original latency. Close this standalone performance path;
+retain the precise approximation as a diagnostic. No training integration.
 
 ### Composed loss function and BF16 indexing
 
@@ -168,6 +197,19 @@ small-argument polynomial tails, and preserves a cancellation-resistant loss
 and gradient. Keep the current target-shifted implementation as the reference.
 First measure the present head+loss and its dtype/traffic; then compare total
 costs, including table loading, index conversion, gathers and backward.
+
+The next loss probe is deliberately exact: `softcap_ce_parallel_nki.py` and
+`softcap_ce_parallel_probe.py` retain all primitive approximations and reduction
+widths. They compare the original kernel with an explicit one-core control,
+two-core row partitioning, and a one-element-per-row SBUF target gather that
+removes the full-vocabulary target mask/multiply/reduction. AWS documents the
+[LNC launch grid](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/get-started/about/lnc.html)
+and the [per-partition gather contract](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/api/generated/nki.isa.nc_n_gather.html).
+The installed original kernel's LNC metadata and actual native timings will be
+recorded; no assumed twofold speedup. Require exact loss, saved logsumexp and
+backward gradients, repetition and row independence at the real16384×8192
+shape. One gather output per partition avoids the large-output grouping used
+by the earlier failing embedding prototype; it still needs its own device gate.
 
 ## Experimental discipline and stopping criteria
 
@@ -187,7 +229,8 @@ manifests apply to every hardware probe.
 The independent work-elimination experiment provides a concrete example of
 the broader principle: padded whole-matrix optimizer ownership preserved exact
 component weights/states and reduced the matched full step from554.873ms to
-526.783ms (5.062%). Its30-minute quality test is still pending. It avoids
+526.783ms (5.062%). Its30-minute quality test started on trn21 at21:52:43UTC.
+Quality is pending. It avoids
 redundant optimizer work rather than approximating it.
 
 ## Retrieval record

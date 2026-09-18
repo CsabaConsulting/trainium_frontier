@@ -1,0 +1,49 @@
+{
+  "label": "fs-w65-exp-polynomial-vector-gate-r1",
+  "source_commit": "5dcbf6aad2840d96b4620710d8542217b67e0f63",
+  "postflight_clean": true,
+  "all_numerical_gates_passed": true,
+  "gate_count": 9,
+  "real_shape_errors": {
+    "scalar_exp": 1.133509932593757e-05,
+    "vector_polynomial5": 1.3660043960195267e-05,
+    "vector_polynomial7": 1.1830580470828522e-07
+  },
+  "benchmark": {
+    "shape": [
+      4096,
+      2048
+    ],
+    "samples_ms": {
+      "scalar_exp": [
+        0.12523813444810608,
+        0.1257286329443256,
+        0.12454233365133405
+      ],
+      "vector_polynomial5": [
+        0.4466897322951506,
+        0.44643519989525277,
+        0.44706643287402886
+      ],
+      "vector_polynomial7": [
+        0.527789800738295,
+        0.5246499320492148,
+        0.5242031009402126
+      ]
+    },
+    "median_ms": {
+      "scalar_exp": 0.12523813444810608,
+      "vector_polynomial5": 0.4466897322951506,
+      "vector_polynomial7": 0.5246499320492148
+    },
+    "hbm_load_and_store_included": true,
+    "whole_loss_or_training_step": false,
+    "eligible": {
+      "0": true,
+      "1": true,
+      "2": true
+    }
+  },
+  "decision": "Do not integrate standalone polynomial exp: degree5 and7 cost3.567x and4.189x of Scalar exp including HBM. This does not rule out composed functions, engine balancing or eliminating memory passes.",
+  "quality_evidence": false
+}

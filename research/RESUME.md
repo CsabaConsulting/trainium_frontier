@@ -1,82 +1,74 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-18, 21:26 UTC. Active permissions: danger-full-access, approval never.
+Updated 2026-09-18, 21:59 UTC. Active permissions: danger-full-access, approval never.
 This replaces the accumulated stale resume instructions; their history remains
 in Git. Do not restart completed experiments from earlier revisions.
 
 ## Live work
 
-- **trn21:** wave50 native-MLP/pack8 full-budget run finished cleanly: 3,183
-  updates, 417.2M targets, 1,784.7s charged. Small public .983219/T2048 and
-  .995565/T1024 are not larger-eval or private scores. Its checkpoint is local
-  and GitHub-digest-verified (SHA9399bc62561cec110856424701a40fc628db48a63bca37006cb033544fec6289).
-  `fs-w57-eval-native-mlp-pack8-s1024-20m-o1-r1` completed cleanly:
-  **1.0010172426032236 BPB**, 20,971,520tokens, 694.054s, same settings and
-  83,462,186byte denominator as the previous best. This is a small public gain,
-  not sub1.0 or a private-leaderboard score. Wave60 native FP32 pack/all-gather/
-  copyback passes all four ranks and costs6.403158ms worst-rank median.
-  Wave61 CPU/Gloo ownership is exact through cache/restore on all ranks. Native
-  fails only singleton tall Muon batches (matrices58/59 on ranks3/0); all other
-  parameters/states and cross-rank byte equality pass. Both postflights clean.
-  Wave62 zero-matrix padding of singleton groups passes CPU and native gates,
-  exact weights/states through restore and 63 further updates, zero dummy state.
-  Full optimizer including FP32 exchange:25.35–25.38ms vs52.29–52.84ms.
-  **Active:** `fs-w62-native-mlp-pack8-owned-control-phase-r1`, sourcec18305e,
-  started21:21:49UTC. After clean completion, run the same30-step/5-warmup phase
-  with `--optimizer-ownership --optimizer-ownership-pad-singletons`; require3%
-  total-step gain and all model checks before quality training.
-- **trn22:** wave58 Scalar square+reduction norm passed but loses
-  (.543885ms vs native .440652ms); neither normalization variant is promoted.
-  AdamW functional component passes all34 original cases and saves69.277%.
-  Wave58 proves the original iteration6 weight bound omitted propagated moment
-  rounding: native and CPU FP32 reproduce the flagged values. Kernel/adapter
-  unchanged. Wave59 introduces independently checked moment stages and a weight
-  stage conditioned on actual stored moments, with unchanged constants and
-  whole-update/trajectory RMS gates. CPU counterexamples and negative controls
-  must pass, then the full integration/cache/restore gate before full-model timing.
-  Wave59 failed before integration because the two selected cancellation values
-  are not a full-table RMS sample. Wave60 corrects that fixture and **passes the
-  complete integration/cache/skip/restore gate**, clean postflight.
-  `fs-w60-native-mlp-pack8-adam-fused-phase-r1` completes551.895444ms median,
-  1.205076% below558.627329ms, all four postchecks and clean postflight. Below3%
-  gate; no30minute AdamW-only run. `fs-w60-native-mlp-context1024-pack16-phase-r1`
-  completes547.712253ms,1.953910% gain, all checks and clean postflight. Same
-  16384tokens/microstep and GA2, shorter context. **Active:** combined geometry
-  plus NKI AdamW `fs-w60-native-mlp-context1024-pack16-adam-phase-r1`, sourceefaebf1,
-  started21:21:55UTC. Predeclared control558.627329ms,3% total-step gate.
-  See fresh-start-adamw-rounding-2026-09-18.md for the corrected contract.
-  The same-host30-step native-MLP/pack8 control is558.627329ms median, clean.
-- Preflight backup false positive is fixed by exact-script recognition, with
-  five passing regression checks. Device-holder and runtime checks are intact.
-- Latest user steering: investigate retro lookup/interpolation, approximation,
-  DOOM and Mandelbrot techniques. All13 supplied links attempted; Tavily fetched
-  seven, web fallback opened the remaining six. Primary Doom/Quake sources and
-  NKI ISA docs retrieved. Raw research in ignored out/retro-approximations-20260918.
-  RoPE already precomputes sine/cosine. Scalar hardware already uses piecewise
-  polynomials; valid ranges matter. Existing norm Newton variant passed but lost
-  to native. Next numerical target is bulk AdamW sqrt/reciprocal, with range
-  reduction, error gates and end-to-end cost measured before promotion.
-- The wave49 native full-step runtime trace is now local and hash-verified:
-  88files/68,923,863bytes, `out/fresh-start-profiles/` plus its label directory.
-  The 20:05 artifact backup verified its GitHub asset. A trace summary and
-  optimizer dispatch attribution are in run-logs/.
-- The runner's explicit repository-local --entrypoint is source-fingerprinted.
-  Production train.py and prepare.py remain unchanged by these experiments.
-- Separated packed MLP688.922656ms and native-forward separated control
-  700.449689ms both lose, despite passing the isolated numerical gates and
-  all four whole-model checks. Do not train either separated variant.
-- Native references inwave48/out/fs-w48-mlp-isolated-reference-r1 are preserved
-  locally underout/fresh-start-profiles/ and cloud-digest-verified. All48
-  comparisons pass unchanged tolerance; all real-shape outputs are exact,
-  while small-shape outputs are within bounds, not all exact.
-- The native comparison's old failure came from switching to eager execution
-  after another model compiled in the same process. See the boundary-rounding
-  note. Separate-process gates fix the comparison without changing derivatives
-  or tolerances.
-- Layer5-only packed MLP814.094ms loses even to all-six678.042ms; all checks clean.
-  Longer combined native-MLP+embedding pair remains588.186/571.188ms,2.889898%,
-  below3%. That combination was not advanced; the active quality run tests the
-  separately gated native-MLP + pack8 candidate.
+- **trn22 active:** `fs-w63-dense1024-native-mlp-context1024-pack16-adam-1800-r1`,
+  source18b416d, remote wave63, started21:25:56UTC. Dense6x1024, no n-grams,
+  native-forward/custom-backward MLP, T1024/pack16/GA2, original fused FP32
+  AdamW mode0, seed42, clip-after-reduce, unchanged131072targets/update.
+  Predeclared phase gate passed:540.481049 vs558.627329ms (3.24837%). Training
+  is finite near0.54s/update. Wait for the real1800s result and postflight;
+  preserve checkpoint locally/cloud, then evaluate at the same20M/T1024/O1
+  public settings if promising. It contains none of the new approximations.
+- **trn21 active:** `fs-w65-dense1024-native-mlp-pack8-owned-1800-r1`,
+  source5dcbf6a, remote wave65, started21:52:43UTC. Padded optimizer ownership,
+  native-MLP, T2048/pack8/GA2, seed42, clip-after-reduce and131072targets/update.
+  Exact native optimizer/cache/restore/schedule gates and matched full-model
+  phase passed: **526.782934 vs554.873134ms (5.06245%)**,30timed/5warmups,
+  all four model checks and clean postflights. Control/candidate last loss and
+  six attention-weight norms match; this is not a checksum of every weight.
+  No new arithmetic approximations or NKI AdamW combination. Await full quality,
+  preserve checkpoint and compare larger public eval when justified.
+- **Next available host:** `rsqrt_refinement_probe.py` stage diagnostic;
+  `adamw_fused_integration_check.py --math-mode 2` repeated/cache/restore gate;
+  `softcap_ce_parallel_probe.py --real-shape --steps 20` exact loss/gather/core
+  experiment. These source files are prepared locally, not yet hardware-tested.
+  Commit/deploy a new immutable wave before launching. Do not interrupt either
+  training run to run these diagnostics. Source5dcb contains none of these changes.
+- Ownership wave61 failure was batch-one tall Muon numerics, fixed by appending
+  an independent zero matrix. Wave62 passed28 exact native records, including
+ 63extra timing/warmup updates. Full optimizer inclFP32 exchange25.35–25.38ms
+  versus52.29–52.84ms. Dummy parameter/grad/state remain zero. All owner states
+  need explicit rank-local checkpoints for optimizer resume; ordinary full model
+  checkpoint format remains unchanged. See ownership note and run summaries.
+- User steering explicitly covers **all useful arithmetic approximations and
+  function compositions**, not only sqrt or tables. Read
+  `fresh-start-retro-numerics-2026-09-18.md`. All13 provided links attempted;
+  primary Doom/Quake source, author papers/blogs, SLEEF/Sollya and AWS docs read.
+  Raw web data stays in ignored out/retro-approximations-20260918.
+- Wave64 raw Scalar sqrt + refined reciprocal failed one8M-table first-step
+  weight at g=-7.8730639785e-9, the same value that exposed the native sqrt error.
+  Moments/finite checks pass; no tolerance relaxation. Reciprocal-only mode2
+  **passes all34 gates**, functional component1.188021ms vsforeach4.968162ms,
+  and wave65 adds a paired mode0 NKI control: **1.085410 vs1.304101ms**,16.77%
+  component gain, all34gates pass. No whole-optimizer/step claim or promotion.
+  Wave65 mode4 fails12 large-gradient weights, moments/finite checks pass;
+  one rsqrt Newton step is insufficient there. Preserve failure and diagnose
+  stages across its bounded range; do not loosen thresholds.
+- Wave65 polynomial exp degree5/7 both pass boundary, exp0, repeat and FP64
+  accuracy gates. Real8M maxrelative errors1.366e-5/1.183e-7 vsScalar1.134e-5.
+  **They lose timing:** .446690/.524650ms vsScalar.125238ms, including HBM.
+  Do not replace standalone exp or run training with it. Retain as a precise
+  diagnostic and evidence that hardware already approximates this function.
+  Composed functions, layout/traffic and engine balance remain separate questions.
+- Best larger public result remains **1.0010172426032236 BPB** from wave50,
+  20,971,520tokens/B1/T1024/O1,83,462,186bytes, clean. The checkpoint SHA is
+ 9399bc62561cec110856424701a40fc628db48a63bca37006cb033544fec6289,
+  local and GitHub-digest-verified. Wave50 completed3183updates/417.2Mtargets,
+  1784.7s charged. Its small-public .983219/T2048 is not a larger/private score.
+- Source and receipts are committed regularly; cron pushes canonical research
+  and recovery refs every10minutes. Source commits through5dcbf6a were available
+  by21:50; verify last-success for the latest exact pushed hash. Latest artifact
+  cycle21:35:18 verified31/31 assets with zero errors. No automatic host-source
+  merges. Latest detached sources differ by host by design.
+- Whole-model MLP fusion variants, standalone branch norms and separate FP8
+  projections have recorded losses. Do not restart closed variants blindly.
+  Current native MLP with custom backward passed real-shape boundary/cache gates;
+  old same-process equivalence failures were compiler fallback artifacts.
 
 Use each `.dispatch.json`, `.job.json`, `.log`, `.postflight.json` under
 `research/run-logs/` for exact launch state. Requests are local under `out/`.
@@ -129,10 +121,11 @@ Local OS **Devuan/SystemV**. Usercsaba cron, no sudo/root, no systemd:
   recovery branch `backup/fresh-start-20260918`, atomically pushes source+WIP and
   verifies both refs. Skips merge/rebase/cherry-pick/index locks, does not pull,
   merge, force-push or change active HEAD/index. Latest verified source
-  `c18305edd57da9e780ed5d80e953bd06c25f9b9f` at21:20, with both refs verified.
+  `5dcbf6aad2840d96b4620710d8542217b67e0f63` is the verified21:50 source;
+  inspect last-success to verify the latest exact hash before reporting it.
 - Minutes5/35: `research/fresh_start_artifact_backup_cron.sh`, own lock, nice10,
   bounded uploader, digest-verified immutable assets in draft release
-  `research-backup-20260918`. The latest cycle completed at21:05:17UTC: **31of31
+  `research-backup-20260918`. The latest cycle completed at21:35:18UTC: **31of31
   artifacts verified, zero errors**, including the new wave50 checkpoint.
   All queued
   checkpoints/profiles have actual GitHub assets and matching digests. New ignored

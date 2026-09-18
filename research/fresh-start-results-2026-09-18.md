@@ -4,7 +4,7 @@ This ledger separates full training, standalone evaluation, numerical tests and
 microbenchmarks. A successful process is not automatically a promoted model.
 Public diagnostics do not establish a private competition score.
 
-**Current larger public result, 21:12 UTC:** **1.0010172426032236 BPB**, from the
+**Current larger public result, 21:59 UTC:** **1.0010172426032236 BPB**, from the
 native-forward/custom-backward MLP with pack8, dense6×1024, no hashed n-grams,
 NKI causal convolution, BF16 branch normalization and clipping after gradient
 averaging. The 30-minute run completed 3,183 updates and 417.2M target
@@ -14,12 +14,14 @@ The checkpoint is local and GitHub-digest-verified. This is a small public gain,
 not sub1.0 or a private-leaderboard score. The predeclared seed43 variability
 check finished worse; no seed sweep is active.
 
-Fused FP32 AdamW passes its corrected stage/integration gates but saves only
-1.205% of the whole step (551.895 versus 558.627ms), below the training gate.
-Optimizer ownership passes exact CPU equivalence and cheap native exchange;
-real hardware finds a batch-one Muon numerical difference. Zero padding that
-singleton batch is the next exact-equivalence test. A separate T1024/pack16
-phase keeps tokens per microstep fixed to investigate attention layout cost.
+Padded optimizer ownership passes exact native optimizer/cache/restore gates
+and saves5.06245% of the matched whole step (526.783 versus554.873ms). Its
+30-minute quality run is active on trn21. T1024/pack16 with original fused FP32
+AdamW saves3.24837% (540.481 versus558.627ms); its quality run is active on trn22.
+Both retain seed42 and131072globaltargets/update. New arithmetic approximations
+are separate: reciprocal refinement passes34 numerical checks and saves16.77%
+of the fused AdamW component; polynomial exp is correct but3.57–4.19times
+slower. No new approximation has entered either full training run.
 
 ## First completed training wave
 
@@ -1801,3 +1803,49 @@ The separate native-MLP T1024/pack16 phase keeps16384tokens/rank/microstep, GA2
 and the same immutable loader read length as T2048/pack8. The older T1024/pack8
 probe used GA4, paying extra dispatches. This new layout is a deliberate context
 boundary change and requires matched large-public quality testing if it wins.
+
+
+## 21:59 UTC — ownership, arithmetic approximations and two quality runs
+
+Padded ownership passes28 exact native records, including63additional timing
+updates, cache refresh, schedules and owner-state restore. Matched trn21
+full-step control/candidate (sourcec18305e,30timed/5warmups) measure
+554.8731335/526.7829345ms, **5.06245% gain**. Optimizer windows54.9657165/
+26.0838685ms; microstep windows471.3633375/472.8148310ms. All four model checks
+pass, and last loss5.145325183868408 plus all six attention norms match.
+The T2048/pack8/clip-after quality run started21:52:43, source5dcbf6a,
+`fs-w65-dense1024-native-mlp-pack8-owned-1800-r1`. No NKI AdamW combination yet.
+
+The combined T1024/pack16 plus original fused AdamW phase costs540.481049ms
+versus558.627329ms (**3.24837% gain**), all checks pass and postflight is clean.
+The corresponding quality run started21:25:56 on trn22, source18b416d,
+`fs-w63-dense1024-native-mlp-context1024-pack16-adam-1800-r1`. It is finite near
+0.54s/update; quality and final postflight are pending. It shares the same
+131072globaltargets/update and seed42 with the reference but changes context.
+
+New arithmetic probes are isolated from both quality runs. Raw Scalar sqrt
+(mode3 including reciprocal refinement) fails one first-step weight in8M values;
+this is the recorded native sqrt counterexample at gradient-7.8730639785e-9.
+Scaled Scalar rsqrt with one Newton correction (mode4) fails12large-gradient
+weights. Both preserve the original FP64 bounds and pass finite/moment checks;
+no NaNs and no tolerance relaxation. A stage-by-stage seed/correction diagnostic
+is prepared to identify the latter cause.
+
+Reciprocal-only refinement (mode2) passes all34 component checks. Wave65's
+same-process interleaved comparison gives1.085410ms vs1.304101ms for original
+fused NKI mode0, **16.7695% component gain**, with scalar staging, schedules
+and weight copyback charged. Three candidate samples1.0854/1.0933/1.0732ms;
+controls1.2274/1.3252/1.3041ms. Repeated optimizer/cache/restore gate is prepared;
+no complete-step or quality claim follows yet.
+
+The exp polynomial probe passes9records. Degree5/7 maxrelative errors on8M
+values are1.36600e-5/1.18306e-7 vsScalar1.13351e-5. Latencies0.446690/0.524650ms
+lose to Scalar0.125238ms, HBM-inclusive3×30 interleaved calls. Close standalone
+exp replacement; the more accurate polynomial remains useful diagnostically.
+All completed probe postflights are clean. Raw logs and summary JSON use the
+wave64/65 labels in the retro-numerics note.
+
+Source5dcbf6a and recovery snapshot9d0ccc48 were verified on GitHub at21:50:31;
+artifact cycle21:35:18 verified31/31 assets. New source prepares exact loss
+work-elimination probes (row partitioning and SBUF target gather), preserving
+current transcendental approximations and512-wide exponent reductions.
