@@ -1,32 +1,30 @@
 # Resume the Trainium kernel campaign
 
-Updated2026-09-18,19:15UTC. Active permissions: danger-full-access, approval never.
+Updated2026-09-18,19:28UTC. Active permissions: danger-full-access, approval never.
 This replaces the accumulated stale resume instructions; their history remains
 in Git. Do not restart completed experiments from earlier revisions.
 
 ## Live work
 
-- **trn21:** `fs-w44-dense1024-native-mlp-embedding-40steps-r1` is running in
-  wave44/sourceaec170ff810424a98841a59ee5ffe7c5f9362351. Its predeclared40-step
-  native control completed588.185841 ms with all checks and cleanup passing.
-  The earlier8-step pair was native587.177431 versus combined570.755620 ms,
-  a2.797% gain, below3%. This one longer matched pair resolves borderline timing;
-  do not cherry-pick repeats or launch quality training without the speed gate.
-- **trn22:** wave46 diagnosis finished and cleaned. The separate-region gradient
-  failure tracks a different dHidden rounding policy, persists without gradient
-  accumulation and with exception-driven backend fallback disabled. The native
-  reference changes after its first call in the five-model diagnostic; NKI
-  separated repeats exactly. Do not call this stale NKI data or a proven SDK bug.
-  See `fresh-start-mlp-boundary-rounding-2026-09-18.md`.
-- **Next:** deploy newly committed wave47 to trn22 and run the diagnostic with
-  `--variants native` and then `--variants nki_separate` in separate processes,
-  with fallback disabled. It now records autograd-node types, compiled-cache keys
-  and whether weights remain identical. This isolates cross-model compiler state.
-  Script `scratch/mlp_separate_diagnose.py`; latest deployed trn22 iswave46,
-  sourcec0a11150d58b25d2f584f9a56b2d2def04be9b77.
-- No separated MLP full-model run has occurred: original numerical gates remain
-  failed, never weakened. Grouped/streamed/prepacked/fixed-SBUF full-model variants
-  all lose and remain rejected. Production train.py remains unchanged.
+- **trn21:** `fs-w44-dense1024-last-layer-packed-mlp-phase-r1` is compiling/running
+  in wave44/sourceaec170f. It replaces only layer5 to distinguish per-layer
+  overhead from global compiler planning effects. Native timing reference is588.186ms.
+- **trn22:** wave47 native-only and NKI-separated-only diagnostics completed
+  cleanly with exact repeats and unchanged weights. The minimal two-model
+  diagnostic reveals native changes from compiled autograd to ordinary eager
+  Linear/ReLU/Pow autograd after the separated model runs. NKI stays compiled.
+  See `fresh-start-mlp-boundary-rounding-2026-09-18.md`; do not implement a
+  different derivative to compensate for this comparison-harness transition.
+- **Next:** deploy the new isolated integration checker aswave48 totrn22. First
+  `--action capture --real-shape`, then `--action compare --real-shape` in
+  separate guarded processes with one shared reference directory. The script
+  asserts compiled autograd on every call and retains all original tolerances,
+  master/cache/update/eval/checkpoint checks. Only after passing consider a
+  separated full-model phase. No numerical tolerance has been loosened.
+- Longer fixed timing pair is complete: native588.185841ms versus combined
+  native-forward/custom-MLP-backward and embedding571.187868ms,2.889898% gain,
+  below3%. All four postchecks and cleanup passed. Retain for combination,
+  no full-budget training launched. Do not cherry-pick a different control.
 
 Use each `.dispatch.json`, `.job.json`, `.log`, `.postflight.json` under
 `research/run-logs/` for exact launch state. Requests are local under `out/`.
@@ -78,7 +76,7 @@ Local OS **Devuan/SystemV**. Usercsaba cron, no sudo/root, no systemd:
   recovery branch `backup/fresh-start-20260918`, atomically pushes source+WIP and
   verifies both refs. Skips merge/rebase/cherry-pick/index locks, does not pull,
   merge, force-push or change active HEAD/index. Latest verified source
-  `aec170ff810424a98841a59ee5ffe7c5f9362351` at18:50, with both refs verified.
+  `e895e2879907a1a07260e18922fe7d3bc7403ab1` at19:20, with both refs verified.
 - Minutes5/35: `research/fresh_start_artifact_backup_cron.sh`, own lock, nice10,
   bounded uploader, digest-verified immutable assets in draft release
   `research-backup-20260918`.The detached18:52retry completed at19:12:14UTC: **26of26 artifacts verified,

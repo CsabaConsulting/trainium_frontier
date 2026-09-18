@@ -1,0 +1,2199 @@
+{
+  "purpose": "Diagnose a failed MLP region-boundary gate without relaxing its tolerances.\n\nKeep the forward/backward implementations uninstrumented. Compare returned\noutputs and gradients after execution, repeat changed/zero inputs, and use\nindependent FP64 GEMMs with explicit BF16 rounding as a numerical reference.\nThis is a diagnostic: it records gate failures and never authorizes promotion.\n",
+  "shape": [
+    4,
+    64,
+    256
+  ],
+  "normal_input_gradient": false,
+  "numerical_tolerance_changed": false,
+  "promotion_allowed": false,
+  "diagnostic_recompile_limit": 32,
+  "accumulate": false,
+  "variants": [
+    "nki_separate"
+  ],
+  "cases": [
+    {
+      "cached": false,
+      "case": "base",
+      "variant": "nki_separate",
+      "execution": {
+        "autograd_nodes": {
+          "ViewBackward0": 2,
+          "CompiledFunctionBackward": 2,
+          "AccumulateGrad": 3
+        },
+        "compiled_cache_keys": [
+          "656a7b0a059db1e43b9855491ddcf1805a048040204d0ac25bdd10282b184f15:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "92a10b5fbb81d6ad18fe85fd43fddfbec736aa38afb8f5cb09ec00e5e9aa312a:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "b23e94b955d88171da3dd42490888f25a7650f01cf699d07efc4de29729110b1:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "e394811678ab916ea73de37f887e668de57ee26c7116b0cb5e67e7a46a9eda9a:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "fe11a94042f557252d6d1bc2fb2266918ee9ac6295429609bc1df369bd182980:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433"
+        ],
+        "master_weights_unchanged": true
+      },
+      "versus_native": null,
+      "versus_cpu": {
+        "strict_bf16": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 9.378469280070341e-05,
+            "max_abs": 0.001953125,
+            "reference_rms": 0.23410861154548446,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 6,
+            "relative_rms": 0.0035622803813921016,
+            "max_abs": 6.103515625e-05,
+            "reference_rms": 0.0027320823900866134,
+            "original_gate_passed": false
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 80,
+            "relative_rms": 0.0035707881874028026,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.03782912857138495,
+            "original_gate_passed": false
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 5.858435680482662e-05,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.06494304127251337,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_hidden": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 9.378469280070341e-05,
+            "max_abs": 0.001953125,
+            "reference_rms": 0.23410861154548446,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.00011397507392871427,
+            "max_abs": 3.0517578125e-05,
+            "reference_rms": 0.002732237465181482,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.59837271943706e-05,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.03783113566197711,
+            "original_gate_passed": true
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 5.858435680482662e-05,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.06494304127251337,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_pre": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 9.378469280070341e-05,
+            "max_abs": 0.001953125,
+            "reference_rms": 0.23410861154548446,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.00315474419306592,
+            "max_abs": 6.103515625e-05,
+            "reference_rms": 0.0027322402689426463,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 10,
+            "relative_rms": 0.0031669264427622106,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.03783097613640699,
+            "original_gate_passed": false
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 5.858435680482662e-05,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.06494304127251337,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_both": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 9.378469280070341e-05,
+            "max_abs": 0.001953125,
+            "reference_rms": 0.23410861154548446,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.002533047543338802,
+            "max_abs": 6.103515625e-05,
+            "reference_rms": 0.0027321908062474766,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.0025619909163405266,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.037830463304229955,
+            "original_gate_passed": true
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 5.858435680482662e-05,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.06494304127251337,
+            "original_gate_passed": true
+          }
+        }
+      }
+    },
+    {
+      "cached": false,
+      "case": "changed",
+      "variant": "nki_separate",
+      "execution": {
+        "autograd_nodes": {
+          "ViewBackward0": 2,
+          "CompiledFunctionBackward": 2,
+          "AccumulateGrad": 3
+        },
+        "compiled_cache_keys": [
+          "656a7b0a059db1e43b9855491ddcf1805a048040204d0ac25bdd10282b184f15:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "92a10b5fbb81d6ad18fe85fd43fddfbec736aa38afb8f5cb09ec00e5e9aa312a:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "b23e94b955d88171da3dd42490888f25a7650f01cf699d07efc4de29729110b1:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "e394811678ab916ea73de37f887e668de57ee26c7116b0cb5e67e7a46a9eda9a:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "fe11a94042f557252d6d1bc2fb2266918ee9ac6295429609bc1df369bd182980:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433"
+        ],
+        "master_weights_unchanged": true
+      },
+      "versus_native": null,
+      "versus_cpu": {
+        "strict_bf16": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.28208658346218e-06,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.23433938943340993,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 9,
+            "relative_rms": 0.0035867368473178883,
+            "max_abs": 6.103515625e-05,
+            "reference_rms": 0.0027337462951984503,
+            "original_gate_passed": false
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 74,
+            "relative_rms": 0.003578751925449071,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.03787019837885397,
+            "original_gate_passed": false
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.49846143171752e-06,
+            "max_abs": 0.000244140625,
+            "reference_rms": 0.0650443265991981,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_hidden": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.28208658346218e-06,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.23433938943340993,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 5.4446924545938634e-05,
+            "max_abs": 1.52587890625e-05,
+            "reference_rms": 0.002733872446700549,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 4.4246953265216624e-05,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.03787257780946308,
+            "original_gate_passed": true
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.49846143171752e-06,
+            "max_abs": 0.000244140625,
+            "reference_rms": 0.0650443265991981,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_pre": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.28208658346218e-06,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.23433938943340993,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.003166773542957119,
+            "max_abs": 6.103515625e-05,
+            "reference_rms": 0.002733967277884447,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 12,
+            "relative_rms": 0.003182237502118474,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.037872226443367074,
+            "original_gate_passed": false
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.49846143171752e-06,
+            "max_abs": 0.000244140625,
+            "reference_rms": 0.0650443265991981,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_both": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.28208658346218e-06,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.23433938943340993,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.0025684655297488644,
+            "max_abs": 6.103515625e-05,
+            "reference_rms": 0.0027339439915085454,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.0025728988553295833,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.0378721582425829,
+            "original_gate_passed": true
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.49846143171752e-06,
+            "max_abs": 0.000244140625,
+            "reference_rms": 0.0650443265991981,
+            "original_gate_passed": true
+          }
+        }
+      }
+    },
+    {
+      "cached": false,
+      "case": "base_again",
+      "variant": "nki_separate",
+      "execution": {
+        "autograd_nodes": {
+          "ViewBackward0": 2,
+          "CompiledFunctionBackward": 2,
+          "AccumulateGrad": 3
+        },
+        "compiled_cache_keys": [
+          "656a7b0a059db1e43b9855491ddcf1805a048040204d0ac25bdd10282b184f15:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "92a10b5fbb81d6ad18fe85fd43fddfbec736aa38afb8f5cb09ec00e5e9aa312a:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "b23e94b955d88171da3dd42490888f25a7650f01cf699d07efc4de29729110b1:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "e394811678ab916ea73de37f887e668de57ee26c7116b0cb5e67e7a46a9eda9a:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "fe11a94042f557252d6d1bc2fb2266918ee9ac6295429609bc1df369bd182980:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433"
+        ],
+        "master_weights_unchanged": true
+      },
+      "versus_native": null,
+      "versus_cpu": {
+        "strict_bf16": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 9.378469280070341e-05,
+            "max_abs": 0.001953125,
+            "reference_rms": 0.23410861154548446,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 6,
+            "relative_rms": 0.0035622803813921016,
+            "max_abs": 6.103515625e-05,
+            "reference_rms": 0.0027320823900866134,
+            "original_gate_passed": false
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 80,
+            "relative_rms": 0.0035707881874028026,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.03782912857138495,
+            "original_gate_passed": false
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 5.858435680482662e-05,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.06494304127251337,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_hidden": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 9.378469280070341e-05,
+            "max_abs": 0.001953125,
+            "reference_rms": 0.23410861154548446,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.00011397507392871427,
+            "max_abs": 3.0517578125e-05,
+            "reference_rms": 0.002732237465181482,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.59837271943706e-05,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.03783113566197711,
+            "original_gate_passed": true
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 5.858435680482662e-05,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.06494304127251337,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_pre": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 9.378469280070341e-05,
+            "max_abs": 0.001953125,
+            "reference_rms": 0.23410861154548446,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.00315474419306592,
+            "max_abs": 6.103515625e-05,
+            "reference_rms": 0.0027322402689426463,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 10,
+            "relative_rms": 0.0031669264427622106,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.03783097613640699,
+            "original_gate_passed": false
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 5.858435680482662e-05,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.06494304127251337,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_both": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 9.378469280070341e-05,
+            "max_abs": 0.001953125,
+            "reference_rms": 0.23410861154548446,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.002533047543338802,
+            "max_abs": 6.103515625e-05,
+            "reference_rms": 0.0027321908062474766,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.0025619909163405266,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.037830463304229955,
+            "original_gate_passed": true
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 5.858435680482662e-05,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.06494304127251337,
+            "original_gate_passed": true
+          }
+        }
+      }
+    },
+    {
+      "cached": false,
+      "case": "changed_again",
+      "variant": "nki_separate",
+      "execution": {
+        "autograd_nodes": {
+          "ViewBackward0": 2,
+          "CompiledFunctionBackward": 2,
+          "AccumulateGrad": 3
+        },
+        "compiled_cache_keys": [
+          "656a7b0a059db1e43b9855491ddcf1805a048040204d0ac25bdd10282b184f15:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "92a10b5fbb81d6ad18fe85fd43fddfbec736aa38afb8f5cb09ec00e5e9aa312a:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "b23e94b955d88171da3dd42490888f25a7650f01cf699d07efc4de29729110b1:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "e394811678ab916ea73de37f887e668de57ee26c7116b0cb5e67e7a46a9eda9a:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "fe11a94042f557252d6d1bc2fb2266918ee9ac6295429609bc1df369bd182980:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433"
+        ],
+        "master_weights_unchanged": true
+      },
+      "versus_native": null,
+      "versus_cpu": {
+        "strict_bf16": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.28208658346218e-06,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.23433938943340993,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 9,
+            "relative_rms": 0.0035867368473178883,
+            "max_abs": 6.103515625e-05,
+            "reference_rms": 0.0027337462951984503,
+            "original_gate_passed": false
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 74,
+            "relative_rms": 0.003578751925449071,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.03787019837885397,
+            "original_gate_passed": false
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.49846143171752e-06,
+            "max_abs": 0.000244140625,
+            "reference_rms": 0.0650443265991981,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_hidden": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.28208658346218e-06,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.23433938943340993,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 5.4446924545938634e-05,
+            "max_abs": 1.52587890625e-05,
+            "reference_rms": 0.002733872446700549,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 4.4246953265216624e-05,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.03787257780946308,
+            "original_gate_passed": true
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.49846143171752e-06,
+            "max_abs": 0.000244140625,
+            "reference_rms": 0.0650443265991981,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_pre": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.28208658346218e-06,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.23433938943340993,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.003166773542957119,
+            "max_abs": 6.103515625e-05,
+            "reference_rms": 0.002733967277884447,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 12,
+            "relative_rms": 0.003182237502118474,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.037872226443367074,
+            "original_gate_passed": false
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.49846143171752e-06,
+            "max_abs": 0.000244140625,
+            "reference_rms": 0.0650443265991981,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_both": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.28208658346218e-06,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.23433938943340993,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.0025684655297488644,
+            "max_abs": 6.103515625e-05,
+            "reference_rms": 0.0027339439915085454,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.0025728988553295833,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.0378721582425829,
+            "original_gate_passed": true
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.49846143171752e-06,
+            "max_abs": 0.000244140625,
+            "reference_rms": 0.0650443265991981,
+            "original_gate_passed": true
+          }
+        }
+      }
+    },
+    {
+      "cached": false,
+      "case": "zero",
+      "variant": "nki_separate",
+      "execution": {
+        "autograd_nodes": {
+          "ViewBackward0": 2,
+          "CompiledFunctionBackward": 2,
+          "AccumulateGrad": 3
+        },
+        "compiled_cache_keys": [
+          "656a7b0a059db1e43b9855491ddcf1805a048040204d0ac25bdd10282b184f15:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "92a10b5fbb81d6ad18fe85fd43fddfbec736aa38afb8f5cb09ec00e5e9aa312a:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "b23e94b955d88171da3dd42490888f25a7650f01cf699d07efc4de29729110b1:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "e394811678ab916ea73de37f887e668de57ee26c7116b0cb5e67e7a46a9eda9a:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "fe11a94042f557252d6d1bc2fb2266918ee9ac6295429609bc1df369bd182980:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433"
+        ],
+        "master_weights_unchanged": true
+      },
+      "versus_native": null,
+      "versus_cpu": {
+        "strict_bf16": {
+          "output": {
+            "finite": true,
+            "exact": true,
+            "bound_failures": 0,
+            "relative_rms": 0.0,
+            "max_abs": 0.0,
+            "reference_rms": 0.0,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": true,
+            "bound_failures": 0,
+            "relative_rms": 0.0,
+            "max_abs": 0.0,
+            "reference_rms": 0.0,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": true,
+            "bound_failures": 0,
+            "relative_rms": 0.0,
+            "max_abs": 0.0,
+            "reference_rms": 0.0,
+            "original_gate_passed": true
+          },
+          "ddown": {
+            "finite": true,
+            "exact": true,
+            "bound_failures": 0,
+            "relative_rms": 0.0,
+            "max_abs": 0.0,
+            "reference_rms": 0.0,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_hidden": {
+          "output": {
+            "finite": true,
+            "exact": true,
+            "bound_failures": 0,
+            "relative_rms": 0.0,
+            "max_abs": 0.0,
+            "reference_rms": 0.0,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": true,
+            "bound_failures": 0,
+            "relative_rms": 0.0,
+            "max_abs": 0.0,
+            "reference_rms": 0.0,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": true,
+            "bound_failures": 0,
+            "relative_rms": 0.0,
+            "max_abs": 0.0,
+            "reference_rms": 0.0,
+            "original_gate_passed": true
+          },
+          "ddown": {
+            "finite": true,
+            "exact": true,
+            "bound_failures": 0,
+            "relative_rms": 0.0,
+            "max_abs": 0.0,
+            "reference_rms": 0.0,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_pre": {
+          "output": {
+            "finite": true,
+            "exact": true,
+            "bound_failures": 0,
+            "relative_rms": 0.0,
+            "max_abs": 0.0,
+            "reference_rms": 0.0,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": true,
+            "bound_failures": 0,
+            "relative_rms": 0.0,
+            "max_abs": 0.0,
+            "reference_rms": 0.0,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": true,
+            "bound_failures": 0,
+            "relative_rms": 0.0,
+            "max_abs": 0.0,
+            "reference_rms": 0.0,
+            "original_gate_passed": true
+          },
+          "ddown": {
+            "finite": true,
+            "exact": true,
+            "bound_failures": 0,
+            "relative_rms": 0.0,
+            "max_abs": 0.0,
+            "reference_rms": 0.0,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_both": {
+          "output": {
+            "finite": true,
+            "exact": true,
+            "bound_failures": 0,
+            "relative_rms": 0.0,
+            "max_abs": 0.0,
+            "reference_rms": 0.0,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": true,
+            "bound_failures": 0,
+            "relative_rms": 0.0,
+            "max_abs": 0.0,
+            "reference_rms": 0.0,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": true,
+            "bound_failures": 0,
+            "relative_rms": 0.0,
+            "max_abs": 0.0,
+            "reference_rms": 0.0,
+            "original_gate_passed": true
+          },
+          "ddown": {
+            "finite": true,
+            "exact": true,
+            "bound_failures": 0,
+            "relative_rms": 0.0,
+            "max_abs": 0.0,
+            "reference_rms": 0.0,
+            "original_gate_passed": true
+          }
+        }
+      }
+    },
+    {
+      "cached": false,
+      "case": "changed_after_zero",
+      "variant": "nki_separate",
+      "execution": {
+        "autograd_nodes": {
+          "ViewBackward0": 2,
+          "CompiledFunctionBackward": 2,
+          "AccumulateGrad": 3
+        },
+        "compiled_cache_keys": [
+          "656a7b0a059db1e43b9855491ddcf1805a048040204d0ac25bdd10282b184f15:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "92a10b5fbb81d6ad18fe85fd43fddfbec736aa38afb8f5cb09ec00e5e9aa312a:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "b23e94b955d88171da3dd42490888f25a7650f01cf699d07efc4de29729110b1:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "e394811678ab916ea73de37f887e668de57ee26c7116b0cb5e67e7a46a9eda9a:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "fe11a94042f557252d6d1bc2fb2266918ee9ac6295429609bc1df369bd182980:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433"
+        ],
+        "master_weights_unchanged": true
+      },
+      "versus_native": null,
+      "versus_cpu": {
+        "strict_bf16": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.28208658346218e-06,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.23433938943340993,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 9,
+            "relative_rms": 0.0035867368473178883,
+            "max_abs": 6.103515625e-05,
+            "reference_rms": 0.0027337462951984503,
+            "original_gate_passed": false
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 74,
+            "relative_rms": 0.003578751925449071,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.03787019837885397,
+            "original_gate_passed": false
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.49846143171752e-06,
+            "max_abs": 0.000244140625,
+            "reference_rms": 0.0650443265991981,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_hidden": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.28208658346218e-06,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.23433938943340993,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 5.4446924545938634e-05,
+            "max_abs": 1.52587890625e-05,
+            "reference_rms": 0.002733872446700549,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 4.4246953265216624e-05,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.03787257780946308,
+            "original_gate_passed": true
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.49846143171752e-06,
+            "max_abs": 0.000244140625,
+            "reference_rms": 0.0650443265991981,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_pre": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.28208658346218e-06,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.23433938943340993,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.003166773542957119,
+            "max_abs": 6.103515625e-05,
+            "reference_rms": 0.002733967277884447,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 12,
+            "relative_rms": 0.003182237502118474,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.037872226443367074,
+            "original_gate_passed": false
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.49846143171752e-06,
+            "max_abs": 0.000244140625,
+            "reference_rms": 0.0650443265991981,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_both": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.28208658346218e-06,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.23433938943340993,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.0025684655297488644,
+            "max_abs": 6.103515625e-05,
+            "reference_rms": 0.0027339439915085454,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.0025728988553295833,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.0378721582425829,
+            "original_gate_passed": true
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.49846143171752e-06,
+            "max_abs": 0.000244140625,
+            "reference_rms": 0.0650443265991981,
+            "original_gate_passed": true
+          }
+        }
+      }
+    },
+    {
+      "cached": true,
+      "case": "base",
+      "variant": "nki_separate",
+      "execution": {
+        "autograd_nodes": {
+          "ViewBackward0": 2,
+          "CompiledFunctionBackward": 1,
+          "ToCopyBackward0": 2,
+          "AccumulateGrad": 3
+        },
+        "compiled_cache_keys": [
+          "22226a3a038f92dcc1d776ccfaeb67a58f69107017ea870dd8ff51e7bfc70b2e:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "656a7b0a059db1e43b9855491ddcf1805a048040204d0ac25bdd10282b184f15:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "92a10b5fbb81d6ad18fe85fd43fddfbec736aa38afb8f5cb09ec00e5e9aa312a:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "b23e94b955d88171da3dd42490888f25a7650f01cf699d07efc4de29729110b1:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "e394811678ab916ea73de37f887e668de57ee26c7116b0cb5e67e7a46a9eda9a:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "fe11a94042f557252d6d1bc2fb2266918ee9ac6295429609bc1df369bd182980:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433"
+        ],
+        "master_weights_unchanged": true
+      },
+      "versus_native": null,
+      "versus_cpu": {
+        "strict_bf16": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 9.378469280070341e-05,
+            "max_abs": 0.001953125,
+            "reference_rms": 0.23410861154548446,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 6,
+            "relative_rms": 0.0035622803813921016,
+            "max_abs": 6.103515625e-05,
+            "reference_rms": 0.0027320823900866134,
+            "original_gate_passed": false
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 80,
+            "relative_rms": 0.0035707881874028026,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.03782912857138495,
+            "original_gate_passed": false
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 5.858435680482662e-05,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.06494304127251337,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_hidden": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 9.378469280070341e-05,
+            "max_abs": 0.001953125,
+            "reference_rms": 0.23410861154548446,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.00011397507392871427,
+            "max_abs": 3.0517578125e-05,
+            "reference_rms": 0.002732237465181482,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.59837271943706e-05,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.03783113566197711,
+            "original_gate_passed": true
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 5.858435680482662e-05,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.06494304127251337,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_pre": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 9.378469280070341e-05,
+            "max_abs": 0.001953125,
+            "reference_rms": 0.23410861154548446,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.00315474419306592,
+            "max_abs": 6.103515625e-05,
+            "reference_rms": 0.0027322402689426463,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 10,
+            "relative_rms": 0.0031669264427622106,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.03783097613640699,
+            "original_gate_passed": false
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 5.858435680482662e-05,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.06494304127251337,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_both": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 9.378469280070341e-05,
+            "max_abs": 0.001953125,
+            "reference_rms": 0.23410861154548446,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.002533047543338802,
+            "max_abs": 6.103515625e-05,
+            "reference_rms": 0.0027321908062474766,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.0025619909163405266,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.037830463304229955,
+            "original_gate_passed": true
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 5.858435680482662e-05,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.06494304127251337,
+            "original_gate_passed": true
+          }
+        }
+      }
+    },
+    {
+      "cached": true,
+      "case": "changed",
+      "variant": "nki_separate",
+      "execution": {
+        "autograd_nodes": {
+          "ViewBackward0": 2,
+          "CompiledFunctionBackward": 1,
+          "ToCopyBackward0": 2,
+          "AccumulateGrad": 3
+        },
+        "compiled_cache_keys": [
+          "22226a3a038f92dcc1d776ccfaeb67a58f69107017ea870dd8ff51e7bfc70b2e:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "656a7b0a059db1e43b9855491ddcf1805a048040204d0ac25bdd10282b184f15:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "92a10b5fbb81d6ad18fe85fd43fddfbec736aa38afb8f5cb09ec00e5e9aa312a:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "b23e94b955d88171da3dd42490888f25a7650f01cf699d07efc4de29729110b1:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "e394811678ab916ea73de37f887e668de57ee26c7116b0cb5e67e7a46a9eda9a:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "fe11a94042f557252d6d1bc2fb2266918ee9ac6295429609bc1df369bd182980:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433"
+        ],
+        "master_weights_unchanged": true
+      },
+      "versus_native": null,
+      "versus_cpu": {
+        "strict_bf16": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.28208658346218e-06,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.23433938943340993,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 9,
+            "relative_rms": 0.0035867368473178883,
+            "max_abs": 6.103515625e-05,
+            "reference_rms": 0.0027337462951984503,
+            "original_gate_passed": false
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 74,
+            "relative_rms": 0.003578751925449071,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.03787019837885397,
+            "original_gate_passed": false
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.49846143171752e-06,
+            "max_abs": 0.000244140625,
+            "reference_rms": 0.0650443265991981,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_hidden": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.28208658346218e-06,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.23433938943340993,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 5.4446924545938634e-05,
+            "max_abs": 1.52587890625e-05,
+            "reference_rms": 0.002733872446700549,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 4.4246953265216624e-05,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.03787257780946308,
+            "original_gate_passed": true
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.49846143171752e-06,
+            "max_abs": 0.000244140625,
+            "reference_rms": 0.0650443265991981,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_pre": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.28208658346218e-06,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.23433938943340993,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.003166773542957119,
+            "max_abs": 6.103515625e-05,
+            "reference_rms": 0.002733967277884447,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 12,
+            "relative_rms": 0.003182237502118474,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.037872226443367074,
+            "original_gate_passed": false
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.49846143171752e-06,
+            "max_abs": 0.000244140625,
+            "reference_rms": 0.0650443265991981,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_both": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.28208658346218e-06,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.23433938943340993,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.0025684655297488644,
+            "max_abs": 6.103515625e-05,
+            "reference_rms": 0.0027339439915085454,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.0025728988553295833,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.0378721582425829,
+            "original_gate_passed": true
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.49846143171752e-06,
+            "max_abs": 0.000244140625,
+            "reference_rms": 0.0650443265991981,
+            "original_gate_passed": true
+          }
+        }
+      }
+    },
+    {
+      "cached": true,
+      "case": "base_again",
+      "variant": "nki_separate",
+      "execution": {
+        "autograd_nodes": {
+          "ViewBackward0": 2,
+          "CompiledFunctionBackward": 1,
+          "ToCopyBackward0": 2,
+          "AccumulateGrad": 3
+        },
+        "compiled_cache_keys": [
+          "22226a3a038f92dcc1d776ccfaeb67a58f69107017ea870dd8ff51e7bfc70b2e:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "656a7b0a059db1e43b9855491ddcf1805a048040204d0ac25bdd10282b184f15:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "92a10b5fbb81d6ad18fe85fd43fddfbec736aa38afb8f5cb09ec00e5e9aa312a:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "b23e94b955d88171da3dd42490888f25a7650f01cf699d07efc4de29729110b1:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "e394811678ab916ea73de37f887e668de57ee26c7116b0cb5e67e7a46a9eda9a:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "fe11a94042f557252d6d1bc2fb2266918ee9ac6295429609bc1df369bd182980:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433"
+        ],
+        "master_weights_unchanged": true
+      },
+      "versus_native": null,
+      "versus_cpu": {
+        "strict_bf16": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 9.378469280070341e-05,
+            "max_abs": 0.001953125,
+            "reference_rms": 0.23410861154548446,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 6,
+            "relative_rms": 0.0035622803813921016,
+            "max_abs": 6.103515625e-05,
+            "reference_rms": 0.0027320823900866134,
+            "original_gate_passed": false
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 80,
+            "relative_rms": 0.0035707881874028026,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.03782912857138495,
+            "original_gate_passed": false
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 5.858435680482662e-05,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.06494304127251337,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_hidden": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 9.378469280070341e-05,
+            "max_abs": 0.001953125,
+            "reference_rms": 0.23410861154548446,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.00011397507392871427,
+            "max_abs": 3.0517578125e-05,
+            "reference_rms": 0.002732237465181482,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.59837271943706e-05,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.03783113566197711,
+            "original_gate_passed": true
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 5.858435680482662e-05,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.06494304127251337,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_pre": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 9.378469280070341e-05,
+            "max_abs": 0.001953125,
+            "reference_rms": 0.23410861154548446,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.00315474419306592,
+            "max_abs": 6.103515625e-05,
+            "reference_rms": 0.0027322402689426463,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 10,
+            "relative_rms": 0.0031669264427622106,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.03783097613640699,
+            "original_gate_passed": false
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 5.858435680482662e-05,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.06494304127251337,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_both": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 9.378469280070341e-05,
+            "max_abs": 0.001953125,
+            "reference_rms": 0.23410861154548446,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.002533047543338802,
+            "max_abs": 6.103515625e-05,
+            "reference_rms": 0.0027321908062474766,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.0025619909163405266,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.037830463304229955,
+            "original_gate_passed": true
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 5.858435680482662e-05,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.06494304127251337,
+            "original_gate_passed": true
+          }
+        }
+      }
+    },
+    {
+      "cached": true,
+      "case": "changed_again",
+      "variant": "nki_separate",
+      "execution": {
+        "autograd_nodes": {
+          "ViewBackward0": 2,
+          "CompiledFunctionBackward": 1,
+          "ToCopyBackward0": 2,
+          "AccumulateGrad": 3
+        },
+        "compiled_cache_keys": [
+          "22226a3a038f92dcc1d776ccfaeb67a58f69107017ea870dd8ff51e7bfc70b2e:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "656a7b0a059db1e43b9855491ddcf1805a048040204d0ac25bdd10282b184f15:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "92a10b5fbb81d6ad18fe85fd43fddfbec736aa38afb8f5cb09ec00e5e9aa312a:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "b23e94b955d88171da3dd42490888f25a7650f01cf699d07efc4de29729110b1:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "e394811678ab916ea73de37f887e668de57ee26c7116b0cb5e67e7a46a9eda9a:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "fe11a94042f557252d6d1bc2fb2266918ee9ac6295429609bc1df369bd182980:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433"
+        ],
+        "master_weights_unchanged": true
+      },
+      "versus_native": null,
+      "versus_cpu": {
+        "strict_bf16": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.28208658346218e-06,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.23433938943340993,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 9,
+            "relative_rms": 0.0035867368473178883,
+            "max_abs": 6.103515625e-05,
+            "reference_rms": 0.0027337462951984503,
+            "original_gate_passed": false
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 74,
+            "relative_rms": 0.003578751925449071,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.03787019837885397,
+            "original_gate_passed": false
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.49846143171752e-06,
+            "max_abs": 0.000244140625,
+            "reference_rms": 0.0650443265991981,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_hidden": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.28208658346218e-06,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.23433938943340993,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 5.4446924545938634e-05,
+            "max_abs": 1.52587890625e-05,
+            "reference_rms": 0.002733872446700549,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 4.4246953265216624e-05,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.03787257780946308,
+            "original_gate_passed": true
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.49846143171752e-06,
+            "max_abs": 0.000244140625,
+            "reference_rms": 0.0650443265991981,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_pre": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.28208658346218e-06,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.23433938943340993,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.003166773542957119,
+            "max_abs": 6.103515625e-05,
+            "reference_rms": 0.002733967277884447,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 12,
+            "relative_rms": 0.003182237502118474,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.037872226443367074,
+            "original_gate_passed": false
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.49846143171752e-06,
+            "max_abs": 0.000244140625,
+            "reference_rms": 0.0650443265991981,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_both": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.28208658346218e-06,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.23433938943340993,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.0025684655297488644,
+            "max_abs": 6.103515625e-05,
+            "reference_rms": 0.0027339439915085454,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.0025728988553295833,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.0378721582425829,
+            "original_gate_passed": true
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.49846143171752e-06,
+            "max_abs": 0.000244140625,
+            "reference_rms": 0.0650443265991981,
+            "original_gate_passed": true
+          }
+        }
+      }
+    },
+    {
+      "cached": true,
+      "case": "zero",
+      "variant": "nki_separate",
+      "execution": {
+        "autograd_nodes": {
+          "ViewBackward0": 2,
+          "CompiledFunctionBackward": 1,
+          "ToCopyBackward0": 2,
+          "AccumulateGrad": 3
+        },
+        "compiled_cache_keys": [
+          "22226a3a038f92dcc1d776ccfaeb67a58f69107017ea870dd8ff51e7bfc70b2e:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "656a7b0a059db1e43b9855491ddcf1805a048040204d0ac25bdd10282b184f15:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "92a10b5fbb81d6ad18fe85fd43fddfbec736aa38afb8f5cb09ec00e5e9aa312a:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "b23e94b955d88171da3dd42490888f25a7650f01cf699d07efc4de29729110b1:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "e394811678ab916ea73de37f887e668de57ee26c7116b0cb5e67e7a46a9eda9a:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "fe11a94042f557252d6d1bc2fb2266918ee9ac6295429609bc1df369bd182980:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433"
+        ],
+        "master_weights_unchanged": true
+      },
+      "versus_native": null,
+      "versus_cpu": {
+        "strict_bf16": {
+          "output": {
+            "finite": true,
+            "exact": true,
+            "bound_failures": 0,
+            "relative_rms": 0.0,
+            "max_abs": 0.0,
+            "reference_rms": 0.0,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": true,
+            "bound_failures": 0,
+            "relative_rms": 0.0,
+            "max_abs": 0.0,
+            "reference_rms": 0.0,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": true,
+            "bound_failures": 0,
+            "relative_rms": 0.0,
+            "max_abs": 0.0,
+            "reference_rms": 0.0,
+            "original_gate_passed": true
+          },
+          "ddown": {
+            "finite": true,
+            "exact": true,
+            "bound_failures": 0,
+            "relative_rms": 0.0,
+            "max_abs": 0.0,
+            "reference_rms": 0.0,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_hidden": {
+          "output": {
+            "finite": true,
+            "exact": true,
+            "bound_failures": 0,
+            "relative_rms": 0.0,
+            "max_abs": 0.0,
+            "reference_rms": 0.0,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": true,
+            "bound_failures": 0,
+            "relative_rms": 0.0,
+            "max_abs": 0.0,
+            "reference_rms": 0.0,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": true,
+            "bound_failures": 0,
+            "relative_rms": 0.0,
+            "max_abs": 0.0,
+            "reference_rms": 0.0,
+            "original_gate_passed": true
+          },
+          "ddown": {
+            "finite": true,
+            "exact": true,
+            "bound_failures": 0,
+            "relative_rms": 0.0,
+            "max_abs": 0.0,
+            "reference_rms": 0.0,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_pre": {
+          "output": {
+            "finite": true,
+            "exact": true,
+            "bound_failures": 0,
+            "relative_rms": 0.0,
+            "max_abs": 0.0,
+            "reference_rms": 0.0,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": true,
+            "bound_failures": 0,
+            "relative_rms": 0.0,
+            "max_abs": 0.0,
+            "reference_rms": 0.0,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": true,
+            "bound_failures": 0,
+            "relative_rms": 0.0,
+            "max_abs": 0.0,
+            "reference_rms": 0.0,
+            "original_gate_passed": true
+          },
+          "ddown": {
+            "finite": true,
+            "exact": true,
+            "bound_failures": 0,
+            "relative_rms": 0.0,
+            "max_abs": 0.0,
+            "reference_rms": 0.0,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_both": {
+          "output": {
+            "finite": true,
+            "exact": true,
+            "bound_failures": 0,
+            "relative_rms": 0.0,
+            "max_abs": 0.0,
+            "reference_rms": 0.0,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": true,
+            "bound_failures": 0,
+            "relative_rms": 0.0,
+            "max_abs": 0.0,
+            "reference_rms": 0.0,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": true,
+            "bound_failures": 0,
+            "relative_rms": 0.0,
+            "max_abs": 0.0,
+            "reference_rms": 0.0,
+            "original_gate_passed": true
+          },
+          "ddown": {
+            "finite": true,
+            "exact": true,
+            "bound_failures": 0,
+            "relative_rms": 0.0,
+            "max_abs": 0.0,
+            "reference_rms": 0.0,
+            "original_gate_passed": true
+          }
+        }
+      }
+    },
+    {
+      "cached": true,
+      "case": "changed_after_zero",
+      "variant": "nki_separate",
+      "execution": {
+        "autograd_nodes": {
+          "ViewBackward0": 2,
+          "CompiledFunctionBackward": 1,
+          "ToCopyBackward0": 2,
+          "AccumulateGrad": 3
+        },
+        "compiled_cache_keys": [
+          "22226a3a038f92dcc1d776ccfaeb67a58f69107017ea870dd8ff51e7bfc70b2e:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "656a7b0a059db1e43b9855491ddcf1805a048040204d0ac25bdd10282b184f15:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "92a10b5fbb81d6ad18fe85fd43fddfbec736aa38afb8f5cb09ec00e5e9aa312a:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "b23e94b955d88171da3dd42490888f25a7650f01cf699d07efc4de29729110b1:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "e394811678ab916ea73de37f887e668de57ee26c7116b0cb5e67e7a46a9eda9a:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+          "fe11a94042f557252d6d1bc2fb2266918ee9ac6295429609bc1df369bd182980:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433"
+        ],
+        "master_weights_unchanged": true
+      },
+      "versus_native": null,
+      "versus_cpu": {
+        "strict_bf16": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.28208658346218e-06,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.23433938943340993,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 9,
+            "relative_rms": 0.0035867368473178883,
+            "max_abs": 6.103515625e-05,
+            "reference_rms": 0.0027337462951984503,
+            "original_gate_passed": false
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 74,
+            "relative_rms": 0.003578751925449071,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.03787019837885397,
+            "original_gate_passed": false
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.49846143171752e-06,
+            "max_abs": 0.000244140625,
+            "reference_rms": 0.0650443265991981,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_hidden": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.28208658346218e-06,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.23433938943340993,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 5.4446924545938634e-05,
+            "max_abs": 1.52587890625e-05,
+            "reference_rms": 0.002733872446700549,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 4.4246953265216624e-05,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.03787257780946308,
+            "original_gate_passed": true
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.49846143171752e-06,
+            "max_abs": 0.000244140625,
+            "reference_rms": 0.0650443265991981,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_pre": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.28208658346218e-06,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.23433938943340993,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.003166773542957119,
+            "max_abs": 6.103515625e-05,
+            "reference_rms": 0.002733967277884447,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 12,
+            "relative_rms": 0.003182237502118474,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.037872226443367074,
+            "original_gate_passed": false
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.49846143171752e-06,
+            "max_abs": 0.000244140625,
+            "reference_rms": 0.0650443265991981,
+            "original_gate_passed": true
+          }
+        },
+        "unrounded_both": {
+          "output": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.28208658346218e-06,
+            "max_abs": 0.00048828125,
+            "reference_rms": 0.23433938943340993,
+            "original_gate_passed": true
+          },
+          "dx": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.0025684655297488644,
+            "max_abs": 6.103515625e-05,
+            "reference_rms": 0.0027339439915085454,
+            "original_gate_passed": true
+          },
+          "dup": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 0.0025728988553295833,
+            "max_abs": 0.0009765625,
+            "reference_rms": 0.0378721582425829,
+            "original_gate_passed": true
+          },
+          "ddown": {
+            "finite": true,
+            "exact": false,
+            "bound_failures": 0,
+            "relative_rms": 8.49846143171752e-06,
+            "max_abs": 0.000244140625,
+            "reference_rms": 0.0650443265991981,
+            "original_gate_passed": true
+          }
+        }
+      }
+    }
+  ],
+  "repeats": [
+    {
+      "cached": false,
+      "case": "base_again",
+      "variant": "nki_separate",
+      "exact": {
+        "output": true,
+        "dx": true,
+        "dup": true,
+        "ddown": true
+      }
+    },
+    {
+      "cached": false,
+      "case": "changed_again",
+      "variant": "nki_separate",
+      "exact": {
+        "output": true,
+        "dx": true,
+        "dup": true,
+        "ddown": true
+      }
+    },
+    {
+      "cached": false,
+      "case": "changed_after_zero",
+      "variant": "nki_separate",
+      "exact": {
+        "output": true,
+        "dx": true,
+        "dup": true,
+        "ddown": true
+      }
+    },
+    {
+      "cached": true,
+      "case": "base_again",
+      "variant": "nki_separate",
+      "exact": {
+        "output": true,
+        "dx": true,
+        "dup": true,
+        "ddown": true
+      }
+    },
+    {
+      "cached": true,
+      "case": "changed_again",
+      "variant": "nki_separate",
+      "exact": {
+        "output": true,
+        "dx": true,
+        "dup": true,
+        "ddown": true
+      }
+    },
+    {
+      "cached": true,
+      "case": "changed_after_zero",
+      "variant": "nki_separate",
+      "exact": {
+        "output": true,
+        "dx": true,
+        "dup": true,
+        "ddown": true
+      }
+    }
+  ],
+  "all_repeats_exact": true
+}

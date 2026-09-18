@@ -1457,3 +1457,22 @@ limits are in `fresh-start-mlp-boundary-rounding-2026-09-18.md`.
 The detached artifact retry completed at19:12:14UTC: **26of26 artifacts verified,
 no errors**, including the interrupted old trace archive. This is an actual
 GitHub asset/digest verification, not merely local preservation.
+
+## Wave44 longer pair and wave47 execution-path diagnosis
+
+The predeclared40-step pair, with3warmups at sourceaec170f ontrn21, is
+native588.185840519ms versus native-forward/custom-backward plus segmented
+embedding571.187867521ms: **2.889898%** median step-time saving. Mean timings
+588.134229442/572.133884151ms agree in direction. All four model checks and both
+postflights passed. This remains below the3% gate; retain the combination, do not
+select a more favorable earlier control or launch a new quality run on this result.
+
+Wave47 isolates the separated MLP numerical discrepancy: both native alone and
+NKI separate alone repeat exactly and preserve master weights. In the minimal
+two-model process, the native reference loses its `CompiledFunctionBackward`
+node after the NKI-separated model runs and returns ordinary Linear/ReLU/Pow
+autograd nodes instead. The changed backward rounding therefore accompanies a
+real compiled-to-eager transition in the comparison harness. The separated
+model stays compiled. The backend exception-fallback switch does not cover this
+Dynamo-level change. See the boundary-rounding note; a separate-process
+master/cache/update gate with the original numerical bounds is prepared.
