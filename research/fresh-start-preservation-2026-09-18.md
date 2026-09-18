@@ -185,3 +185,18 @@ that absence instead of failing after reading all other tables. The retained
 ingestion warnings include dropped DMA notifications and missing dynamic DMA
 metadata; successful ingestion does not make those counters complete. No raw
 profile, checkpoint or binary was deleted to make room for this analysis.
+
+The clipping-after-average checkpoint is local at
+`checkpoints/fs-w16-dense1024-nki-norm-clipafter-1800-r1/final.pt`, 469,834,849 bytes.
+Independent remote/local hashes match at13:07:06 UTC:
+
+```
+f5c32a4a61bd5adff168e6a74e0f85da8b2f9580b6d89a3348f069ebf5fd7c06
+```
+
+Its source is trn21 wave16, commit `8704139`; the per-file receipt is retained.
+The new `fresh_start_preserve.py` performs this retrieval using a partial local
+file, verifies size and SHA256, then creates the final path without overwriting
+an existing preserved file. Wave16's completed mirror was stopped after a
+successful final sync. Wave17's mirror covers the active larger evaluation and
+the completed numerical-failure diagnostic.

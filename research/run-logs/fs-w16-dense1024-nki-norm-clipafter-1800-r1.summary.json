@@ -1,0 +1,53 @@
+{
+  "label": "fs-w16-dense1024-nki-norm-clipafter-1800-r1",
+  "kind": "completed_full_budget_training",
+  "source_commit": "8704139d074d94201192108329966fd1c574cf47",
+  "log_sha256": "30bf998653a7cbdd518acb0ea3babd899d3ce0a7ce8b07cb79cad5921cd28a2e",
+  "model": {
+    "depth": 6,
+    "width": 1024,
+    "parameters": 117453580,
+    "hashed_ngram_tables": false,
+    "ordinary_value_embeddings": true,
+    "nki_local_convolution": true,
+    "bf16_normalized_outputs": true,
+    "fp32_residuals": true
+  },
+  "training": {
+    "seed": 42,
+    "world_size": 4,
+    "lnc": 2,
+    "sequence_length": 2048,
+    "microbatch_rows": 4,
+    "gradient_accumulation": 4,
+    "global_tokens_per_update": 131072,
+    "completed_updates": 3005,
+    "target_presentations": 393871360,
+    "training_seconds": 1784.5,
+    "charged_seconds_estimate": 1784.9,
+    "startup_allowance_estimate": 282.0,
+    "total_model_seconds": 2067.7,
+    "over_budget": false,
+    "clip_after_gradient_average": true
+  },
+  "evaluation": {
+    "world_size": 4,
+    "batch_size_per_rank": 1,
+    "total_target_tokens": 2097152,
+    "bpb_at_2048": 0.981174,
+    "bpb_at_1024": 0.996049,
+    "causality_passed": true,
+    "causality_max_abs": 0.0
+  },
+  "comparison": {
+    "label": "fs-w12-dense1024-nki-norm-1800-r1",
+    "bpb_delta_at_2048": -0.0005359999999999809,
+    "bpb_delta_at_1024": -0.0006400000000000849,
+    "step_matched": false,
+    "same_training_budget": true,
+    "same_evaluation_geometry": true,
+    "baseline_completed_updates": 2977
+  },
+  "decision": "Modest small-prefix improvement with 28 additional updates; larger fixed evaluation prepared after bounded kernel probe, no robust or private sub-1.0 claim",
+  "checkpoint_preservation_receipt": "fs-w16-dense1024-nki-norm-clipafter-1800-r1.preservation.json"
+}

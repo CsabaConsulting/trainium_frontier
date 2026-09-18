@@ -4,7 +4,7 @@ Objective: minimize **official 30-minute validation bits per byte** on one full
 Trainium2 chip. Sub-1.0 on public validation is an engineering milestone, not a
 claim about the private leaderboard. The metric is lower-is-better.
 
-**Current update, 12:58 UTC:** the width896 direct-attention control completed
+**Current update, 13:15 UTC:** the width896 direct-attention control completed
 2,188 updates at **0.987568 public BPB @2048 / 0.999880 @1024**. Its fused
 FP32 table-optimizer counterpart completed 2,204 updates at **0.986947 /
 0.999735**. Both fit the budget and use four ranks and 2,097,152 evaluation
@@ -98,9 +98,12 @@ and retain B4. The T1024/pack8/GA4 phase passes correctness but measures577.148m
 missing its predeclared558.6ms gate. No shorter-context full run is launched.
 The SDPA-only BF16/NKI production arm passes all four gates at678.258ms and is
 running its full-budget quality comparison since12:45 on trn22. The
-clipping-order full-budget control launched12:30 on trn21: reduce/average gradients
-before clipping, with the successful six-layer dense configuration otherwise
-unchanged. This is an algorithm comparison, not a presumed bug correction.
+clipping-order full-budget control completes3,005 updates at0.981174/0.996049 BPB,
+with1784.9s charged and causality0. This is a modest small-prefix improvement
+with28 more updates; the larger evaluation is active on trn21. The checkpoint
+is locally preserved. The segmented-gradient device probe passes small cases
+but fails the real shape, so it is not integrated. Next isolate its stages and
+test a distinct compact-row/native-matmul/unique-NKI-scatter implementation.
 
 ### Next decisions after the active dense runs
 

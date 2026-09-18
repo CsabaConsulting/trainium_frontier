@@ -1,0 +1,254 @@
+{
+  "source_commit": "f9f4196ba8a02a69901877fe14a5ad5097d24c2b",
+  "log_sha256": "50df074d370b82c12f2dc10eeaba15822158571cfa288bddf78381e6b9d07f6b",
+  "status": "failed_real_shape_numerical_gate",
+  "records": [
+    {
+      "tag": "EMBED_SEGMENT_GATE",
+      "name": "cpu:uniform:(256, 256, 256)",
+      "finite": true,
+      "max_abs": 5.587935447692871e-09,
+      "bound_failures": 0,
+      "absent_rows_exact_zero": true,
+      "relative_rms": 2.5373849363672617e-08,
+      "passed": true
+    },
+    {
+      "tag": "EMBED_SEGMENT_GATE",
+      "name": "nki:uniform:(256, 256, 256)",
+      "finite": true,
+      "max_abs": 5.587935447692871e-09,
+      "bound_failures": 0,
+      "absent_rows_exact_zero": true,
+      "relative_rms": 2.5373849363672617e-08,
+      "passed": true
+    },
+    {
+      "tag": "EMBED_NATIVE_REFERENCE",
+      "kind": "uniform",
+      "shape": [
+        256,
+        256,
+        256
+      ],
+      "finite": true,
+      "max_abs_to_fp64": 0.00015319883823394775,
+      "relative_rms_to_fp64": 0.0016604154655029046,
+      "max_abs_to_bf16_inputs": 0.0,
+      "arithmetic_may_differ_from_fp32_scan": true
+    },
+    {
+      "tag": "EMBED_SEGMENT_BENCH",
+      "kind": "uniform",
+      "shape": [
+        256,
+        256,
+        256
+      ],
+      "samples_ms": {
+        "native_compiled_backward": [
+          0.07120733304570119,
+          0.07832883663165073,
+          0.05494649910057584
+        ],
+        "nki_prepared_metadata": [
+          1.9757104164455086,
+          1.9509355818930392,
+          1.9673872496544693
+        ],
+        "metadata_cpu_only": [
+          0.03784258539477984,
+          0.03294874719964961,
+          0.03913425219555696
+        ],
+        "metadata_upload_only": [
+          0.639865417421485,
+          0.4430278349900618,
+          0.355738666257821
+        ],
+        "nki_metadata_creation_upload_included": [
+          1.346155166781197,
+          1.265457419018882,
+          1.3473031625229244
+        ]
+      },
+      "median_ms": {
+        "native_compiled_backward": 0.07120733304570119,
+        "nki_prepared_metadata": 1.9673872496544693,
+        "metadata_cpu_only": 0.03784258539477984,
+        "metadata_upload_only": 0.4430278349900618,
+        "nki_metadata_creation_upload_included": 1.346155166781197
+      },
+      "nki_all_gradient_layouts_included": true,
+      "estimated_four_table_amortized_ms": 1.9673872496544693,
+      "amortization_is_estimate_not_training_measurement": true,
+      "provisional_speed_gate": false,
+      "training_speed_or_quality_claim": false
+    },
+    {
+      "tag": "EMBED_SEGMENT_GATE",
+      "name": "cpu:zipf:(256, 256, 256)",
+      "finite": true,
+      "max_abs": 3.7369318306446075e-08,
+      "bound_failures": 0,
+      "absent_rows_exact_zero": true,
+      "relative_rms": 7.36522067029977e-08,
+      "passed": true
+    },
+    {
+      "tag": "EMBED_SEGMENT_GATE",
+      "name": "nki:zipf:(256, 256, 256)",
+      "finite": true,
+      "max_abs": 3.7369318306446075e-08,
+      "bound_failures": 0,
+      "absent_rows_exact_zero": true,
+      "relative_rms": 7.36522067029977e-08,
+      "passed": true
+    },
+    {
+      "tag": "EMBED_NATIVE_REFERENCE",
+      "kind": "zipf",
+      "shape": [
+        256,
+        256,
+        256
+      ],
+      "finite": true,
+      "max_abs_to_fp64": 0.0003510147798806429,
+      "relative_rms_to_fp64": 0.0016493841463777043,
+      "max_abs_to_bf16_inputs": 1.862645149230957e-09,
+      "arithmetic_may_differ_from_fp32_scan": true
+    },
+    {
+      "tag": "EMBED_SEGMENT_BENCH",
+      "kind": "zipf",
+      "shape": [
+        256,
+        256,
+        256
+      ],
+      "samples_ms": {
+        "native_compiled_backward": [
+          0.08369633481682588,
+          0.07186783477663994,
+          0.05496333081585666
+        ],
+        "nki_prepared_metadata": [
+          1.9414350002383192,
+          1.9433196672859292,
+          1.9492444165128593
+        ],
+        "metadata_cpu_only": [
+          0.03530158331462493,
+          0.029523415529790025,
+          0.04099141612338523
+        ],
+        "metadata_upload_only": [
+          0.7115454985372102,
+          0.42029324686154723,
+          0.35098033549729735
+        ],
+        "nki_metadata_creation_upload_included": [
+          1.2770917528541759,
+          1.20722333182736,
+          1.3483292520201455
+        ]
+      },
+      "median_ms": {
+        "native_compiled_backward": 0.07186783477663994,
+        "nki_prepared_metadata": 1.9433196672859292,
+        "metadata_cpu_only": 0.03530158331462493,
+        "metadata_upload_only": 0.42029324686154723,
+        "nki_metadata_creation_upload_included": 1.2770917528541759
+      },
+      "nki_all_gradient_layouts_included": true,
+      "estimated_four_table_amortized_ms": 1.9433196672859292,
+      "amortization_is_estimate_not_training_measurement": true,
+      "provisional_speed_gate": false,
+      "training_speed_or_quality_claim": false
+    },
+    {
+      "tag": "EMBED_SEGMENT_GATE",
+      "name": "cpu:one_id:(256, 256, 256)",
+      "finite": true,
+      "max_abs": 1.7975253285840154e-07,
+      "bound_failures": 0,
+      "absent_rows_exact_zero": true,
+      "relative_rms": 2.979084092269948e-07,
+      "passed": true
+    },
+    {
+      "tag": "EMBED_SEGMENT_GATE",
+      "name": "nki:one_id:(256, 256, 256)",
+      "finite": true,
+      "max_abs": 1.7975253285840154e-07,
+      "bound_failures": 0,
+      "absent_rows_exact_zero": true,
+      "relative_rms": 2.979084092269948e-07,
+      "passed": true
+    },
+    {
+      "tag": "EMBED_SEGMENT_GATE",
+      "name": "cpu:zero:(256, 256, 256)",
+      "finite": true,
+      "max_abs": 0.0,
+      "bound_failures": 0,
+      "absent_rows_exact_zero": true,
+      "relative_rms": 0.0,
+      "passed": true
+    },
+    {
+      "tag": "EMBED_SEGMENT_GATE",
+      "name": "nki:zero:(256, 256, 256)",
+      "finite": true,
+      "max_abs": 0.0,
+      "bound_failures": 0,
+      "absent_rows_exact_zero": true,
+      "relative_rms": 0.0,
+      "passed": true
+    },
+    {
+      "tag": "EMBED_SEGMENT_GATE",
+      "name": "cpu:cancellation:(256, 256, 256)",
+      "finite": true,
+      "max_abs": 0.0,
+      "bound_failures": 0,
+      "absent_rows_exact_zero": true,
+      "relative_rms": 0.0,
+      "passed": true
+    },
+    {
+      "tag": "EMBED_SEGMENT_GATE",
+      "name": "nki:cancellation:(256, 256, 256)",
+      "finite": true,
+      "max_abs": 0.0,
+      "bound_failures": 0,
+      "absent_rows_exact_zero": true,
+      "relative_rms": 0.0,
+      "passed": true
+    },
+    {
+      "tag": "EMBED_SEGMENT_GATE",
+      "name": "cpu:uniform:(8192, 1024, 8192)",
+      "finite": true,
+      "max_abs": 1.1175870895385742e-08,
+      "bound_failures": 0,
+      "absent_rows_exact_zero": true,
+      "relative_rms": 2.5427753298662578e-08,
+      "passed": true
+    },
+    {
+      "tag": "EMBED_SEGMENT_GATE",
+      "name": "nki:uniform:(8192, 1024, 8192)",
+      "finite": true,
+      "max_abs": 0.09872971172444522,
+      "bound_failures": 1283056,
+      "absent_rows_exact_zero": true,
+      "relative_rms": 0.5076860698299467,
+      "passed": false
+    }
+  ],
+  "real_shape_latency_measured": false,
+  "production_integration": false,
+  "next_gate": "Stage and shape isolation; retain separate original-kernel check because debug outputs change allocation and lifetimes"
+}

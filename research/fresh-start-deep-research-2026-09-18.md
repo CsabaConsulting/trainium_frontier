@@ -145,6 +145,32 @@ four-rank whole-step saving with all metadata preparation charged, updated-model
 contract checks, and full-budget BPB. Do not claim a whole-model gain from the
 FLOP count, a kernel-only timing, or a host-side preparation estimate.
 
+**Device outcome, 13:08:** the scan passes the small cases but fails the first
+actual T8192/C1024/V8192 case (relative RMS0.507686, over1.28M error-bound
+violations). It stops before timing that shape. Do not integrate it. The next
+diagnostic separates load/transpose, permutation gather, scan and group-end
+gather, varying channel-loop count and token length. Instrumentation can change
+buffer lifetimes, so the original kernel remains a separate check.
+
+A distinct algorithm keeps native BF16 matrix accumulation but remaps present
+IDs to a compact local vocabulary. It then clears the ordinary dense output
+and scatters each unique accumulated row exactly once with NKI. Channel-based
+program ownership is shared by clearing and scattering, avoiding a cross-core
+clear/scatter race. All preparation, upload, zeroing and scatter costs belong
+in the comparison. The tokenizer, output vocabulary and model parameters are
+unchanged. CPU checks cover duplicates, zero gradients, cancellation, the full
+8192-ID fallback and a real training row. Device checks are still pending.
+
+The first row's1,867 unique IDs is not representative enough to set workspace
+size. A fixed-loader audit of2,048 rows /16,777,216 shard0 training tokens finds
+median2,186, p99=2,457.12, maximum2,544 unique IDs. Of those rows,1,633 need a
+4096-row bucket,414 fit2048, and one fits1024. None needs8192 in this sample;
+this is not a guarantee for the whole corpus or arbitrary training input.
+Use a fixed4096 ordinary workspace for the component test, with a full8192
+fallback for overflow. A future integration must handle that fallback without
+silently losing rows and must charge any recompilation. Local CPU metadata
+construction median0.730ms is not an EC2 timing. The audit changes no data.
+
 ### Current default attention is not the historical compiled graph
 
 The newly introduced `nki_attention` helper is unconditionally Dynamo-disabled.

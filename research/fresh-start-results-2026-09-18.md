@@ -744,3 +744,30 @@ range673.746–682.743ms, consistent with the earlier670ms scratch arm. It is
 about15% slower per update than broad BF16 normalized outputs. This is a valid
 precision/throughput candidate for one full-budget quality comparison; it is
 not an operator speedup or a measured BPB improvement.
+
+### Clipping after gradient averaging: modest small-prefix improvement
+
+`fs-w16-dense1024-nki-norm-clipafter-1800-r1`, source `8704139`, completes
+3,005 updates / 393,871,360 target presentations in 1,784.9 estimated charged
+seconds. It scores **0.981174 BPB @2048 / 0.996049 @1024**, with four ranks,
+2,097,152 evaluation tokens and zero measured causality difference. The
+six-layer dense NKI/BF16 reference with clipping before averaging scored
+0.981710 / 0.996689 with 2,977 updates. The new differences are -0.000536 /
+-0.000640, with 28 additional updates; this is not a step-matched comparison
+or sufficient evidence of a reproducible algorithmic quality improvement.
+The 469,834,849-byte checkpoint is locally hash-verified. Its fixed 20.97M-token
+evaluation started on trn21 at13:08; no larger-sample result is available yet.
+
+### Ordinary-embedding segmented scan: real-shape numerical failure
+
+`fs-w17-embedding-segmented-native-r1`, source `f9f4196`, passes all five
+small-shape device checks: uniform, Zipf-like, one repeated ID, zeros and
+cancellation, at T256/C256/V256. At T8192/C1024/V8192, the first uniform-ID
+case fails: maximum absolute difference0.09873, relative RMS0.507686, and
+1,283,056 FP32 error-bound failures. Absent vocabulary rows remain exactly zero.
+The run stops before timing the actual shape. **No kernel speedup or training
+integration is promoted.** Stage and shape isolation is the next diagnostic;
+the cause is not yet established. Small native-control results confirm that
+production autocasting rounds gradient inputs to BF16, so a working FP32 scan
+would also be an arithmetic change. Raw eager-NKI small-shape call timings do
+not establish what a captured training graph would cost.
