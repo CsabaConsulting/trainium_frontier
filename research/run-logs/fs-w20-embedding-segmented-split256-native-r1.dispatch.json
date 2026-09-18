@@ -1,0 +1,41 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave20",
+    "expected_commit": "83d5caeabd68b1b6cc1dd58e97cba5549a63732c",
+    "label": "fs-w20-embedding-segmented-split256-native-r1",
+    "purpose": "Avoid multi-channel-block scan allocation by independent256-channel calls; gate actual shape, time captured path including all input slicing/copies/output concatenation and host metadata, no training claim.",
+    "fingerprint_paths": [
+      "research/scratch/embedding_compact_probe.py",
+      "research/scratch/embedding_segmented_probe.py",
+      "research/scratch/embedding_segmented_nki.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/embedding_segmented_probe.py",
+      "--real-shape",
+      "--training-row",
+      "--compiled-kernel",
+      "--steps",
+      "12",
+      "--split-channels",
+      "256"
+    ]
+  },
+  "requested_at": "2026-09-18T13:36:47.072707+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w20-embedding-segmented-split256-native-r1\", \"pid\": 923762, \"commit\": \"83d5caeabd68b1b6cc1dd58e97cba5549a63732c\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave20/research/run-logs/fs-w20-embedding-segmented-split256-native-r1.log\", \"started_at\": \"2026-09-18T13:36:50.570767+00:00\"}\n",
+  "stderr": ""
+}

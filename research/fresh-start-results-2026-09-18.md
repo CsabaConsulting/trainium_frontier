@@ -848,3 +848,26 @@ locate the first invalid stage, distinguish eager/composed execution and test
 hypotheses. A failed implementation is not evidence that its whole approach is
 impossible. The running seed43 repeat is a single variability observation; no
 seed sweep will follow it.
+
+
+### Shared compact embedding: full-model gain is modest
+
+`fs-w21-embedding-compact-autograd-native-r1`, source `0db0db3`, passes all12
+small/actual-shape native autograd cases. Every tested forward and gradient
+matches its native control exactly, including overflow and return to compact
+mode; checkpoint loading into the ordinary model passes.
+
+`fs-w21-dense1024-compact-embedding-phase-r1`, same source, passes all four
+updated-model finite/causal/batch/repetition gates. All176 microbatches across
+four ranks use the4096 bucket, with observed maximum distinct-ID count2529.
+Input-ID D2H, metadata construction/upload and output expansion are timed. The
+8-update median is **581.098882ms**, range576.183356–583.387608ms,
+versus587.999ms reference. This misses the predeclared570ms full-run gate. The
+component improvement only partially transfers to the full graph; do not promote
+a30-minute run yet. Improving the exact backward, metadata costs or bucket size
+remains a concrete kernel question, not a closed architecture hypothesis.
+
+The separate scan split-call test, source `83d5cae`, passes actual-shape eager
+checks but fails compiled composition. Later-block wrong values can be matched
+to different original rows. A dependent-index-read and scratch-lifetime probe
+is prepared; the cause is not yet established. No unstable scan enters training.

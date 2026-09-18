@@ -1,0 +1,46 @@
+{
+  "host": "trn21",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave21",
+  "expected_commit": "0db0db3a0779cd133fd25688a457cd54120e8407",
+  "label": "fs-w21-embedding-compact-autograd-native-r1",
+  "purpose": "Native compiled autograd gate for four shared-map ordinary embeddings: changed inputs, zero/repeated IDs, native overflow fallback and re-entry; CPU math and checkpoint-name gates passed. No training claim.",
+  "fingerprint_paths": [
+    "research/scratch/embedding_compact_autograd.py",
+    "research/scratch/embedding_compact_autograd_check.py",
+    "research/scratch/embedding_compact_probe.py",
+    "research/scratch/embedding_segmented_probe.py",
+    "research/scratch/embedding_segmented_nki.py"
+  ],
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_RT_VISIBLE_CORES": "0",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1200s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "research/scratch/embedding_compact_autograd_check.py",
+    "--real-shape"
+  ],
+  "started_at": "2026-09-18T13:40:21.269962+00:00",
+  "hostname": "ip-172-31-34-85",
+  "git_commit": "0db0db3a0779cd133fd25688a457cd54120e8407",
+  "source_dirty": false,
+  "preflight_free_bytes": 41215717376,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "4c14ac6ec14fd52e31ee06d91540707083c48a93ec4687fbaa35bc7106a823f3",
+    "research/scratch/embedding_compact_autograd.py": "b8961341df66e87d5e243f142295ef69c4038eeedfca32492b12ea136f6cf137",
+    "research/scratch/embedding_compact_autograd_check.py": "96aaeba955d5e6b0fa633795fb97b3e5f9547646c619fbac65237a78da470888",
+    "research/scratch/embedding_compact_probe.py": "153ad16d658675dbbb92a1e6cf648f76e78f76db03f32a598be6a4a14d809015",
+    "research/scratch/embedding_segmented_probe.py": "2821a88e7f15dfce72e2887a67625579d4f54e617cb9590084ca36442238a5e6",
+    "research/scratch/embedding_segmented_nki.py": "2a8a250e8b9cd72074acb1abab6cf133bbe3b86a9d521e8b0501c292bdc87c00"
+  }
+}

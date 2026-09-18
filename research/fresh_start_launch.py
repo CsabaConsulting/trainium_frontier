@@ -19,15 +19,22 @@ from fresh_start_sync import HOSTS, ROOT, SSH
 
 
 REMOTE_SCRIPT = r'''
-import datetime, hashlib, json, os, pathlib, shutil, socket, subprocess, sys
+import datetime, fcntl, hashlib, json, os, pathlib, shutil, socket, subprocess, sys
 m = json.load(sys.stdin)
 r = pathlib.Path(m['remote'])
 assert r.is_dir(), 'checkout missing'
+sys.path.insert(0, str(r / 'research'))
+from fresh_start_host import HOST_DIRECTORY, HOST_LOCK, preflight
+HOST_DIRECTORY.mkdir(parents=True, exist_ok=True)
+host_lock = HOST_LOCK.open('a')
+fcntl.flock(host_lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
 holders = subprocess.run(['fuser', '/dev/neuron0'], capture_output=True, text=True)
 assert holders.returncode == 1, 'device busy or fuser failed: ' + holders.stdout + holders.stderr
 free = shutil.disk_usage(r).free
 assert free >= 8 * 1024**3, 'less than 8 GiB free'
-source_paths = ['train.py', 'prepare.py', 'research/scratch', 'research/run_experiment.py']
+source_paths = ['train.py', 'prepare.py', 'research/scratch', 'research/run_experiment.py',
+                'research/fresh_start_host.py', 'research/fresh_start_guard.py',
+                'research/fresh_start_launch.py']
 dirty = subprocess.check_output(['git', 'diff', '--name-only', 'HEAD', '--', *source_paths], cwd=r)
 new = subprocess.check_output(['git', 'ls-files', '--others', '--exclude-standard', '--', *source_paths], cwd=r)
 assert not dirty.strip() and not new.strip(), 'experiment source is not committed'
@@ -40,7 +47,9 @@ assert not manifest.exists() and not log.exists(), 'label already exists'
 if m.get('runner_owns_manifest'):
     log = fdir / (m['label'] + '.driver.log')
 assert not log.exists(), 'driver label already exists'
-paths = ['train.py', 'prepare.py', 'research/run_experiment.py'] + m.get('fingerprint_paths', [])
+pre = preflight(r, m['label'])
+paths = ['train.py', 'prepare.py', 'research/run_experiment.py',
+         'research/fresh_start_host.py', 'research/fresh_start_guard.py'] + m.get('fingerprint_paths', [])
 m.update(started_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),
          hostname=socket.gethostname(), git_commit=commit, source_dirty=False,
          preflight_free_bytes=free,
@@ -52,11 +61,17 @@ env.update(m['environment'])
 if not m.get('runner_owns_manifest'):
     with manifest.open('x') as f:
         json.dump(m, f, indent=2)
+job = fdir / (m['label'] + '.job.json')
+with job.open('x') as f:
+    json.dump(m, f, indent=2)
 with log.open('x') as f:
-    p = subprocess.Popen(m['command'], cwd=r, env=env, stdout=f,
-                         stderr=subprocess.STDOUT, start_new_session=True)
+    p = subprocess.Popen([sys.executable, str(r / 'research/fresh_start_guard.py'),
+                          str(job), '--lock-fd', str(host_lock.fileno())],
+                         cwd=r, env=env, stdout=f, stderr=subprocess.STDOUT,
+                         start_new_session=True, pass_fds=(host_lock.fileno(),))
 print(json.dumps(dict(label=m['label'], pid=p.pid, commit=commit,
-                     hostname=m['hostname'], log=str(log), started_at=m['started_at'])))
+                     hostname=m['hostname'], log=str(log), started_at=m['started_at'],
+                     protocol_version=2, preflight_passed=pre['passed'])))
 '''
 
 
@@ -84,7 +99,7 @@ def main():
         output.flush()
     completed = subprocess.run(
         [*SSH, HOSTS[request["host"]], "python3 -c " + shlex.quote(REMOTE_SCRIPT)],
-        input=json.dumps(request), text=True, capture_output=True, timeout=45)
+        input=json.dumps(request), text=True, capture_output=True, timeout=90)
     payload.update(returncode=completed.returncode, stdout=completed.stdout, stderr=completed.stderr)
     receipt.write_text(json.dumps(payload, indent=2) + "\n")
     print(completed.stdout, end="")

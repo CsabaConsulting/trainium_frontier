@@ -1,0 +1,37 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave21",
+    "expected_commit": "0db0db3a0779cd133fd25688a457cd54120e8407",
+    "label": "fs-w21-embedding-compact-autograd-native-r1",
+    "purpose": "Native compiled autograd gate for four shared-map ordinary embeddings: changed inputs, zero/repeated IDs, native overflow fallback and re-entry; CPU math and checkpoint-name gates passed. No training claim.",
+    "fingerprint_paths": [
+      "research/scratch/embedding_compact_autograd.py",
+      "research/scratch/embedding_compact_autograd_check.py",
+      "research/scratch/embedding_compact_probe.py",
+      "research/scratch/embedding_segmented_probe.py",
+      "research/scratch/embedding_segmented_nki.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/embedding_compact_autograd_check.py",
+      "--real-shape"
+    ]
+  },
+  "requested_at": "2026-09-18T13:40:18.231862+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w21-embedding-compact-autograd-native-r1\", \"pid\": 925665, \"commit\": \"0db0db3a0779cd133fd25688a457cd54120e8407\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave21/research/run-logs/fs-w21-embedding-compact-autograd-native-r1.log\", \"started_at\": \"2026-09-18T13:40:21.269962+00:00\"}\n",
+  "stderr": ""
+}
