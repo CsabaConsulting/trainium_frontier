@@ -1746,3 +1746,22 @@ contract to independent moment and conditional-weight stages; constants and
 global/trajectory RMS checks remain. The kernel and adapter are unchanged.
 See `fresh-start-adamw-rounding-2026-09-18.md`; do not misreport this as passing
 the original incomplete whole-chain envelope.
+
+## 21:04 UTC — AdamW integration passes; optimizer exchange is affordable
+
+Wave60 AdamW passes all repeated real-table stage/trajectory, gradient integrity,
+None/sparse/zero gradients, scheduled LR/beta, native fallback, Parameter identity
+and version, BF16 cache, skipped update, and bit-exact optimizer restoration
+gates. Clean postflight. The original incomplete weight bound still has flagged
+values explicitly reported in the log; the corrected stage contract is documented.
+The matched 30-step full-model timing runs on trn22 against its predeclared
+558.627329ms control; no full-step speedup is claimed yet.
+
+Wave60 native FP32 weight exchange passes all four ranks' exact parameter/index
+patterns, tiny collective and repeated-call checks. Worst rank median is
+**6.403158ms** for packing, gathering and copying back 469,814,320 parameter bytes
+(486,639,616 padded communication-buffer bytes). Gather-only medians are
+4.690–4.696ms. Clean postflight. This is communication feasibility, not an
+optimizer or training gain. Wave61 implements whole-matrix owner updates and
+requires exact CPU/Gloo equivalence, then exact real-shape native equivalence
+before benchmarking the full optimizer. Full gradient reduction is unchanged.
