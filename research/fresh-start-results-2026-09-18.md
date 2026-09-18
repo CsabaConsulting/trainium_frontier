@@ -1401,3 +1401,41 @@ if it is also slow, investigate the saved layout/backward boundary before more
 kernel tiling work. A separate layer-selection option allows replacing only
 one MLP to distinguish local per-layer cost from a graph-wide discontinuity.
 These options are scratch-only and have no quality result yet.
+
+
+Wave43 final: actual master/cache gate passes both shapes and all accumulated
+gradients, updates, evaluation and checkpoint checks. Full-chip phase is
+**705.225310 ms** versus trn22 native599.574587 ms,17.62% slower. All four updated
+model checks and automatic postflight pass. Explicit7.125MiB placement did not
+repair the full-model regression; reject for training. Receipt
+`run-logs/fs-w43-fixed-sbuf-phase-comparison.json`.
+
+Wave44 native-forward/custom-backward gate passes at both shapes, including
+cached and uncached FP32 master gradients. Its full-model phase is running.
+
+Wave45 adds a deliberate compiler boundary around the same packed NKI MLP and
+compiled native backward. Shared tensor-only inner graph; fullgraph remains
+required inside, while the outer graph permits the explicit boundary. Dispatch
+and cache preparation remain timed. Numerical/master/cache gates precede the
+full-model test. This is an integration experiment, not a kernel arithmetic
+change or a reason to suppress compiler errors.
+
+
+Wave44 native-forward/custom-backward full model: **574.075248 ms** versus
+earlier same-host590.315111 ms,2.751% faster. All four updated-model checks and
+automatic postflight pass. This does not yet clear the3% advancement threshold.
+A fresh native control runs next, followed by a bounded combination with the
+already validated three-kernel embedding backward (previous full-model1.42%).
+No claim that the gains add linearly or that a quality gain is established.
+
+Wave45 separate-region gate **fails** on changed microbatch1 at the small shape:
+input-gradient9 elements exceed the original bound, max abs6.103515625e-5,
+relative RMS0.003586663. The same failure appears with native forward inside
+the separated region. Thus it does not require NKI forward. Both failed jobs
+have clean automatic postflights; no full-model phase was launched.
+
+Wave46 diagnostic keeps calls uninstrumented and compares complete outputs and
+gradients after return. It uses FP64 matmul references with explicit BF16 stage
+rounding, alternate rounding hypotheses, and repeated base/changed/zero inputs
+to distinguish rounding from saved-data reuse. Gate tolerances are unchanged;
+the diagnostic cannot promote a kernel even if its process exits successfully.

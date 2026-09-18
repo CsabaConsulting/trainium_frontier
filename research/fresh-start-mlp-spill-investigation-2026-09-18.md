@@ -142,3 +142,18 @@ also supports selecting individual MLP layers. These controls distinguish a
 saved-layout/autograd issue from an opaque-kernel integration issue and a local
 per-layer effect from a graph-wide layout/allocation change. No claimed SDK bug
 or promotion follows until those measurements exist.
+
+
+A second bounded diagnostic compiles the MLP forward/backward as a separate
+region behind `torch.compiler.disable(recursive=False)`. This intentionally
+breaks the surrounding graph but permits the inner tensor-only MLP function to
+compile. All layers share that inner function; packing and dispatch remain in
+full-step timing. The actual cache/gradient gate uses an outer graph that allows
+this deliberate boundary, while the inner graph remains fullgraph. No errors
+are suppressed and no fallback is interpreted as a speedup.
+
+[PyTorch's documented recursive=False behavior](https://docs.pytorch.org/docs/main/user_guide/torch_compiler/compile/programming_model.compiler_disable.html)
+supports this construction; it does not predict whether the Neuron backend
+benefits. The installed native wrapper comes from
+`/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_hop.py`, not the
+venv site-packages tree. Read it for integration details; do not modify the SDK.
