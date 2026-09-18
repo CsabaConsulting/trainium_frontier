@@ -30,6 +30,10 @@ def main():
     ap.add_argument("--trace-mode", choices=("runtime", "device"), default="runtime",
                     help="runtime: CPU and Neuron Runtime events; device additionally records "
                          "device instructions. Device traces can be substantially larger.")
+    ap.add_argument("--trace-target", choices=("step", "microstep"), default="step",
+                    help="step captures the complete optimizer step; microstep captures one "
+                         "forward/backward pair with real warmed-up inputs. Both captures run "
+                         "after the unprofiled measurements and are diagnostic only.")
     ap.add_argument("--compile", action=argparse.BooleanOptionalAction, default=True)
     ap.add_argument("--local-conv", action=argparse.BooleanOptionalAction, default=True)
     ap.add_argument("--per-micro", action=argparse.BooleanOptionalAction, default=False,
@@ -135,7 +139,7 @@ def main():
                          "no-op. Applied AFTER the explicit flags above, so it wins.")
     args = ap.parse_args()
     if args.trace_dir and args.micro_only:
-        ap.error("--trace-dir captures a complete step; do not combine it with --micro-only")
+        ap.error("--trace-dir captures after full-step timing; do not combine it with --micro-only")
 
     sys.path.insert(0, REPO)
     os.chdir(REPO)
@@ -515,32 +519,44 @@ def main():
         if ddp:
             import torch.distributed as dist
             dist.barrier()
+        if args.trace_target == "microstep":
+            # Start with the same gradient state as the first microbatch of a
+            # real step. Keep allocation/zeroing outside the device capture.
+            zero_grads()
+            T.synchronize(device)
         with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.PrivateUse1],
                      experimental_config=trace_config) as prof:
-            with record_function("fresh_start_complete_training_step"):
-                with record_function("zero_grad"):
-                    zero_grads()
-                for i in range(grad_accum):
-                    with record_function(f"forward_backward_microstep_{i}"):
-                        micro()
-                with record_function("clip_then_all_reduce_gradients"):
-                    clip_and_sync()
-                with record_function("training_control_collective"):
-                    control_collective()
-                with record_function("set_optimizer_scalars"):
-                    set_lr(args.warmup_steps + args.steps + 1)
-                with record_function("optimizer_step"):
-                    optimizer.step()
-                with record_function("refresh_weight_cache"):
-                    refresh_cache()
-                T.synchronize(device)
+            if args.trace_target == "microstep":
+                with record_function("fresh_start_single_forward_backward_microstep"):
+                    micro()
+                    T.synchronize(device)
+            else:
+                with record_function("fresh_start_complete_training_step"):
+                    with record_function("zero_grad"):
+                        zero_grads()
+                    for i in range(grad_accum):
+                        with record_function(f"forward_backward_microstep_{i}"):
+                            micro()
+                    with record_function("clip_then_all_reduce_gradients"):
+                        clip_and_sync()
+                    with record_function("training_control_collective"):
+                        control_collective()
+                    with record_function("set_optimizer_scalars"):
+                        set_lr(args.warmup_steps + args.steps + 1)
+                    with record_function("optimizer_step"):
+                        optimizer.step()
+                    with record_function("refresh_weight_cache"):
+                        refresh_cache()
+                    T.synchronize(device)
         NeuronProfiler(trace_config).export_trace(prof)
         # A stable path is convenient for offline inspection; the native session
         # directory contains the matching runtime/device artifacts.
         # Export only once: Kineto's profiler does not support repeated exports.
         print("PROFILE_ARTIFACT " + json.dumps(dict(
             rank=rank, mode=args.trace_mode, directory=str(trace_path),
-            profiled_steps=1, profiled_latency_is_performance_evidence=False)), flush=True)
+            target=args.trace_target, profiled_steps=int(args.trace_target == "step"),
+            profiled_microsteps=grad_accum if args.trace_target == "step" else 1,
+            profiled_latency_is_performance_evidence=False)), flush=True)
     if ddp:
         try:
             import torch.distributed as dist
