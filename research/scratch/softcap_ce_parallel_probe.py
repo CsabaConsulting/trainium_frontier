@@ -27,12 +27,22 @@ def calls():
         return loss, lse, T._softcap_ce_bwd(z, target, lse, gradient)
 
     result = {"original": original}
-    for name, lanes, gather in (("mask_one_core", 1, False),
-                                 ("mask_two_cores", 2, False),
-                                 ("gather_two_cores", 2, True)):
-        def call(z, target, gradient, lanes=lanes, gather=gather):
-            loss, lse = forward[lanes](z, target, lanes, gather)
-            return loss, lse, backward[lanes](z, target, lse, gradient, lanes)
+    for name, lanes, gather, adaptive in (("mask_one_core", 1, False, False),
+                                           ("gather_one_core", 1, True, False),
+                                           ("mask_two_cores", 2, False, False),
+                                           ("gather_two_cores", 2, True, False),
+                                           ("mask_adaptive", 2, False, True),
+                                           ("gather_adaptive", 2, True, True)):
+        def call(z, target, gradient, lanes=lanes, gather=gather, adaptive=adaptive):
+            # Wave68 isolates the discrepancy to forward's single outer-loop
+            # iteration (256rows/grid2), in both FP32 and BF16-valued inputs.
+            # Identical rows agree across physical cores; fixed-lse backward
+            # is exact. Preserve the original one-core path for this shape.
+            selected = lanes
+            if adaptive and (z.shape[0] < 512 or z.shape[0] % 256):
+                selected = 1
+            loss, lse = forward[selected](z, target, selected, gather)
+            return loss, lse, backward[selected](z, target, lse, gradient, selected)
         result[name] = call
     return result
 
@@ -78,24 +88,24 @@ def check(arms, z, labels, gradient, case, eligible):
     gc.collect()
 
 
-def row_independence(arms, eligible):
+def row_independence(arms, eligible, rows=256):
     generator = torch.Generator().manual_seed(1755)
-    z = torch.randn(256, 8192, generator=generator) * 6
-    target = (torch.arange(256) * 31) % 8192
-    gradient = torch.linspace(-1., 1., 256)
+    z = torch.randn(rows, 8192, generator=generator) * 6
+    target = (torch.arange(rows) * 31) % 8192
+    gradient = torch.linspace(-1., 1., rows)
     original = (z.to("neuron"), target.float().reshape(-1, 1).to("neuron"),
                 gradient.reshape(-1, 1).to("neuron"))
     z[127] = -z[127] + 13
     z[128] *= 2
     changed = (z.to("neuron"), original[1], original[2])
-    keep = torch.ones(256, dtype=torch.bool)
+    keep = torch.ones(rows, dtype=torch.bool)
     keep[127:129] = False
     for name, function in arms.items():
         before = tuple(a.cpu() for a in function(*original))
         after = tuple(a.cpu() for a in function(*changed))
         passed = all(torch.equal(a[keep], b[keep]) for a, b in zip(before, after))
         eligible[name] &= passed
-        emit("CE_PARALLEL_ROW_INDEPENDENCE", dict(arm=name, passed=passed,
+        emit("CE_PARALLEL_ROW_INDEPENDENCE", dict(arm=name, passed=passed, rows=rows,
                                                  changed_rows=[127, 128]))
 
 
@@ -138,6 +148,16 @@ def main():
             g = torch.zeros_like(gradient) if name == "zero_gradient" else gradient
             check(arms, z, labels, g, name, eligible)
         row_independence(arms, eligible)
+        row_independence(arms, eligible, rows=512)
+        # Exercise both sides of the shape-dispatch boundary without calling
+        # the deliberately retained raw two-core arms on unsupported odd tiles.
+        adaptive_arms = {name: fn for name, fn in arms.items()
+                         if name not in ('mask_two_cores', 'gather_two_cores')}
+        for rows in (128, 384, 512, 768, 1024):
+            z = torch.randn(rows, 8192, generator=generator) * 6
+            target = torch.randint(8192, (rows,), generator=generator)
+            g = torch.randn(rows, generator=generator) * .5
+            check(adaptive_arms, z, target, g, f'adaptive_boundary_{rows}_fp32', eligible)
         if args.real_shape:
             # B8*T2048 and B16*T1024 have this same loss shape. Round logits
             # through BF16 as the current final Linear does, then upcast.
