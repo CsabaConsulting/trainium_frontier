@@ -1,0 +1,34 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave24",
+    "expected_commit": "1fa91655a3e335806898531617487f498287ea10",
+    "label": "fs-w24-mlp-fused-bf16-component-r1",
+    "purpose": "Fused BF16 ReLU-square MLP training component. CPU derivative18gates passed. Check eager and compiled GEMM stages against FP64, input/FP32-weight gradients against native, then full-cost saved-activation forward and forward/backward timing at actual8192x1024x4096. No model or BPB claim.",
+    "fingerprint_paths": [
+      "research/scratch/mlp_fused_bf16.py",
+      "research/scratch/mlp_fused_bf16_probe.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1500s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "--real-shape"
+    ]
+  },
+  "requested_at": "2026-09-18T14:08:32.162545+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w24-mlp-fused-bf16-component-r1\", \"pid\": 938550, \"commit\": \"1fa91655a3e335806898531617487f498287ea10\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave24/research/run-logs/fs-w24-mlp-fused-bf16-component-r1.log\", \"started_at\": \"2026-09-18T14:08:38.775099+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

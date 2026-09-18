@@ -1,0 +1,615 @@
+{
+  "label": "fs-w24-mlp-fused-bf16-component-r1",
+  "source_commit": "1fa91655a3e335806898531617487f498287ea10",
+  "host_clean": true,
+  "stages": [
+    {
+      "name": "eager:up:(256, 256, 512):random",
+      "shape": [
+        256,
+        512
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.01519768312573433,
+      "relative_rms": 0.0016638537349658567,
+      "passed": true
+    },
+    {
+      "name": "eager:down:(256, 256, 512):random",
+      "shape": [
+        256,
+        256
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.015420721683767624,
+      "relative_rms": 0.001660004757616263,
+      "passed": true
+    },
+    {
+      "name": "compiled:up:(256, 256, 512):random",
+      "shape": [
+        256,
+        512
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.01519768312573433,
+      "relative_rms": 0.0016638537349658567,
+      "passed": true
+    },
+    {
+      "name": "compiled:down:(256, 256, 512):random",
+      "shape": [
+        256,
+        256
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.015420721683767624,
+      "relative_rms": 0.001660004757616263,
+      "passed": true
+    },
+    {
+      "name": "eager:up:(256, 256, 512):changed",
+      "shape": [
+        256,
+        512
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.006988873239606619,
+      "relative_rms": 0.001667593542111794,
+      "passed": true
+    },
+    {
+      "name": "eager:down:(256, 256, 512):changed",
+      "shape": [
+        256,
+        256
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.006994224772142843,
+      "relative_rms": 0.0016668053788912408,
+      "passed": true
+    },
+    {
+      "name": "compiled:up:(256, 256, 512):changed",
+      "shape": [
+        256,
+        512
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.006988873239606619,
+      "relative_rms": 0.001667593542111794,
+      "passed": true
+    },
+    {
+      "name": "compiled:down:(256, 256, 512):changed",
+      "shape": [
+        256,
+        256
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.006994224772142843,
+      "relative_rms": 0.0016668053788912408,
+      "passed": true
+    },
+    {
+      "name": "eager:up:(256, 256, 512):zero",
+      "shape": [
+        256,
+        512
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.0,
+      "relative_rms": 0.0,
+      "passed": true
+    },
+    {
+      "name": "eager:down:(256, 256, 512):zero",
+      "shape": [
+        256,
+        256
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.0,
+      "relative_rms": 0.0,
+      "passed": true
+    },
+    {
+      "name": "compiled:up:(256, 256, 512):zero",
+      "shape": [
+        256,
+        512
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.0,
+      "relative_rms": 0.0,
+      "passed": true
+    },
+    {
+      "name": "compiled:down:(256, 256, 512):zero",
+      "shape": [
+        256,
+        256
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.0,
+      "relative_rms": 0.0,
+      "passed": true
+    },
+    {
+      "name": "eager:up:(8192, 1024, 4096):random",
+      "shape": [
+        8192,
+        4096
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.015614341478794813,
+      "relative_rms": 0.0016620667481834811,
+      "passed": true
+    },
+    {
+      "name": "eager:down:(8192, 1024, 4096):random",
+      "shape": [
+        8192,
+        1024
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.015622314869389697,
+      "relative_rms": 0.0016599563658115228,
+      "passed": true
+    },
+    {
+      "name": "compiled:up:(8192, 1024, 4096):random",
+      "shape": [
+        8192,
+        4096
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.015614341478794813,
+      "relative_rms": 0.0016620667481834811,
+      "passed": true
+    },
+    {
+      "name": "compiled:down:(8192, 1024, 4096):random",
+      "shape": [
+        8192,
+        1024
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.015622314869389697,
+      "relative_rms": 0.0016599563658115228,
+      "passed": true
+    }
+  ],
+  "native_comparisons": [
+    {
+      "name": "forward:(256, 256, 512):random",
+      "shape": [
+        256,
+        256
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.0,
+      "reference_rms": 1.2495618748062205,
+      "relative_rms": 0.0,
+      "exact": true,
+      "passed": true
+    },
+    {
+      "name": "saved_relu:(256, 256, 512):random",
+      "shape": [
+        256,
+        512
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.0,
+      "reference_rms": 0.7144790362324405,
+      "relative_rms": 0.0,
+      "exact": true,
+      "passed": true
+    },
+    {
+      "name": "train_forward:(256, 256, 512):random",
+      "shape": [
+        256,
+        256
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.0,
+      "reference_rms": 1.2495618748062205,
+      "relative_rms": 0.0,
+      "exact": true,
+      "passed": true
+    },
+    {
+      "name": "gradient:input:(256, 256, 512):random",
+      "shape": [
+        256,
+        256
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.0,
+      "reference_rms": 0.014399023378388606,
+      "relative_rms": 0.0,
+      "exact": true,
+      "passed": true
+    },
+    {
+      "name": "gradient:up_weight:(256, 256, 512):random",
+      "shape": [
+        512,
+        256
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.0,
+      "reference_rms": 0.16288989767405776,
+      "relative_rms": 0.0,
+      "exact": true,
+      "passed": true
+    },
+    {
+      "name": "gradient:down_weight:(256, 256, 512):random",
+      "shape": [
+        256,
+        512
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.0,
+      "reference_rms": 0.20611036362026233,
+      "relative_rms": 0.0,
+      "exact": true,
+      "passed": true
+    },
+    {
+      "name": "forward:(256, 256, 512):changed",
+      "shape": [
+        256,
+        256
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.0,
+      "reference_rms": 0.4573947160811422,
+      "relative_rms": 0.0,
+      "exact": true,
+      "passed": true
+    },
+    {
+      "name": "saved_relu:(256, 256, 512):changed",
+      "shape": [
+        256,
+        512
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.0,
+      "reference_rms": 0.35230548439634934,
+      "relative_rms": 0.0,
+      "exact": true,
+      "passed": true
+    },
+    {
+      "name": "train_forward:(256, 256, 512):changed",
+      "shape": [
+        256,
+        256
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.0,
+      "reference_rms": 0.4573947160811422,
+      "relative_rms": 0.0,
+      "exact": true,
+      "passed": true
+    },
+    {
+      "name": "gradient:input:(256, 256, 512):changed",
+      "shape": [
+        256,
+        256
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.0,
+      "reference_rms": 0.005260460497089424,
+      "relative_rms": 0.0,
+      "exact": true,
+      "passed": true
+    },
+    {
+      "name": "gradient:up_weight:(256, 256, 512):changed",
+      "shape": [
+        512,
+        256
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.0,
+      "reference_rms": 0.1188192026471026,
+      "relative_rms": 0.0,
+      "exact": true,
+      "passed": true
+    },
+    {
+      "name": "gradient:down_weight:(256, 256, 512):changed",
+      "shape": [
+        256,
+        512
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.0,
+      "reference_rms": 0.04816871824057634,
+      "relative_rms": 0.0,
+      "exact": true,
+      "passed": true
+    },
+    {
+      "name": "forward:(256, 256, 512):zero",
+      "shape": [
+        256,
+        256
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.0,
+      "reference_rms": 0.0,
+      "relative_rms": 0.0,
+      "exact": true,
+      "passed": true
+    },
+    {
+      "name": "saved_relu:(256, 256, 512):zero",
+      "shape": [
+        256,
+        512
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.0,
+      "reference_rms": 0.0,
+      "relative_rms": 0.0,
+      "exact": true,
+      "passed": true
+    },
+    {
+      "name": "train_forward:(256, 256, 512):zero",
+      "shape": [
+        256,
+        256
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.0,
+      "reference_rms": 0.0,
+      "relative_rms": 0.0,
+      "exact": true,
+      "passed": true
+    },
+    {
+      "name": "gradient:input:(256, 256, 512):zero",
+      "shape": [
+        256,
+        256
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.0,
+      "reference_rms": 0.0,
+      "relative_rms": 0.0,
+      "exact": true,
+      "passed": true
+    },
+    {
+      "name": "gradient:up_weight:(256, 256, 512):zero",
+      "shape": [
+        512,
+        256
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.0,
+      "reference_rms": 0.0,
+      "relative_rms": 0.0,
+      "exact": true,
+      "passed": true
+    },
+    {
+      "name": "gradient:down_weight:(256, 256, 512):zero",
+      "shape": [
+        256,
+        512
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.0,
+      "reference_rms": 0.0,
+      "relative_rms": 0.0,
+      "exact": true,
+      "passed": true
+    },
+    {
+      "name": "forward:(8192, 1024, 4096):random",
+      "shape": [
+        8192,
+        1024
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.0,
+      "reference_rms": 1.2248606817260608,
+      "relative_rms": 0.0,
+      "exact": true,
+      "passed": true
+    },
+    {
+      "name": "saved_relu:(8192, 1024, 4096):random",
+      "shape": [
+        8192,
+        4096
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.0,
+      "reference_rms": 0.7071474512818697,
+      "relative_rms": 0.0,
+      "exact": true,
+      "passed": true
+    },
+    {
+      "name": "train_forward:(8192, 1024, 4096):random",
+      "shape": [
+        8192,
+        1024
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.0,
+      "reference_rms": 1.2248606817260608,
+      "relative_rms": 0.0,
+      "exact": true,
+      "passed": true
+    },
+    {
+      "name": "gradient:input:(8192, 1024, 4096):random",
+      "shape": [
+        8192,
+        1024
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.0,
+      "reference_rms": 0.014151361851076742,
+      "relative_rms": 0.0,
+      "exact": true,
+      "passed": true
+    },
+    {
+      "name": "gradient:up_weight:(8192, 1024, 4096):random",
+      "shape": [
+        4096,
+        1024
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 0.0,
+      "reference_rms": 0.6401067015523796,
+      "relative_rms": 0.0,
+      "exact": true,
+      "passed": true
+    },
+    {
+      "name": "gradient:down_weight:(8192, 1024, 4096):random",
+      "shape": [
+        1024,
+        4096
+      ],
+      "finite": true,
+      "bound_failures": 0,
+      "max_abs": 1.6689300537109375e-06,
+      "reference_rms": 1.1099545950852578,
+      "relative_rms": 1.7284500160462555e-07,
+      "exact": false,
+      "passed": true
+    }
+  ],
+  "benchmarks": [
+    {
+      "shape": [
+        256,
+        256,
+        512
+      ],
+      "samples_ms": {
+        "native_forward_saved_relu": [
+          0.1225614978466183,
+          0.13394633424468338,
+          0.09965800078740965
+        ],
+        "fused_forward_saved_relu": [
+          9.069987417509159,
+          9.255481500683041,
+          8.980292249664975
+        ],
+        "native_forward_backward": [
+          0.8965593345540886,
+          0.8749926637392491,
+          0.8487649174639955
+        ],
+        "fused_forward_native_backward": [
+          8.547478331214128,
+          9.12319808655108,
+          9.336587749809647
+        ]
+      },
+      "median_ms": {
+        "native_forward_saved_relu": 0.1225614978466183,
+        "fused_forward_saved_relu": 9.069987417509159,
+        "native_forward_backward": 0.8749926637392491,
+        "fused_forward_native_backward": 9.12319808655108
+      },
+      "weight_reads_casts_layout_and_relu_save_included": true,
+      "includes_optimizer_or_whole_model": false
+    },
+    {
+      "shape": [
+        8192,
+        1024,
+        4096
+      ],
+      "samples_ms": {
+        "native_forward_saved_relu": [
+          1.3833890843670815,
+          1.3836889168790851,
+          1.3446291656388591
+        ],
+        "fused_forward_saved_relu": [
+          784.9651598323059,
+          785.8096131628068,
+          785.821077748551
+        ],
+        "native_forward_backward": [
+          4.3285702510426445,
+          4.330819332002041,
+          4.360899334036124
+        ],
+        "fused_forward_native_backward": [
+          785.8525296663478,
+          785.9106404163564,
+          785.1221084177572
+        ]
+      },
+      "median_ms": {
+        "native_forward_saved_relu": 1.3833890843670815,
+        "fused_forward_saved_relu": 785.8096131628068,
+        "native_forward_backward": 4.330819332002041,
+        "fused_forward_native_backward": 785.8525296663478
+      },
+      "weight_reads_casts_layout_and_relu_save_included": true,
+      "includes_optimizer_or_whole_model": false
+    }
+  ],
+  "promote_to_training": false,
+  "next_step": "Small shape already regresses~74x despite tiny cache; profile transfer/layout before blaming large-shape SBUF capacity. All gradient and forward gates passed."
+}

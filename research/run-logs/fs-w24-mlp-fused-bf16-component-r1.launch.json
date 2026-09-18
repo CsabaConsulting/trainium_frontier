@@ -1,0 +1,42 @@
+{
+  "host": "trn21",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave24",
+  "expected_commit": "1fa91655a3e335806898531617487f498287ea10",
+  "label": "fs-w24-mlp-fused-bf16-component-r1",
+  "purpose": "Fused BF16 ReLU-square MLP training component. CPU derivative18gates passed. Check eager and compiled GEMM stages against FP64, input/FP32-weight gradients against native, then full-cost saved-activation forward and forward/backward timing at actual8192x1024x4096. No model or BPB claim.",
+  "fingerprint_paths": [
+    "research/scratch/mlp_fused_bf16.py",
+    "research/scratch/mlp_fused_bf16_probe.py"
+  ],
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_RT_VISIBLE_CORES": "0",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1500s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "research/scratch/mlp_fused_bf16_probe.py",
+    "--real-shape"
+  ],
+  "started_at": "2026-09-18T14:08:38.775099+00:00",
+  "hostname": "ip-172-31-34-85",
+  "git_commit": "1fa91655a3e335806898531617487f498287ea10",
+  "source_dirty": false,
+  "preflight_free_bytes": 40604409856,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "4c14ac6ec14fd52e31ee06d91540707083c48a93ec4687fbaa35bc7106a823f3",
+    "research/fresh_start_host.py": "df01707b8ca2ffc8f4b798467e58b81c6fd8417f7aa1c26c4ecf6c080c659600",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/scratch/mlp_fused_bf16.py": "3be0132e7fb513ce6c523f2efb025b2b7b9d552f0ca66597becaa93ea9b1c642",
+    "research/scratch/mlp_fused_bf16_probe.py": "299f8187af88019c4a8cc9e015d8c02037aab5d8f8f113a6145e04553cde3fe3"
+  }
+}

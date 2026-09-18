@@ -935,3 +935,18 @@ inputs. The NKI forward is not yet validated. Device gates will check both fused
 GEMMs against FP64 references, compiled native gradients, and actual8192×1024
 inputs with4096 hidden channels before any component speed claim. Full-model
 timing and training remain separate later gates.
+
+The first fused MLP device probe, `fs-w24-mlp-fused-bf16-component-r1` at
+`1fa9165`, passes all16 eager/compiled GEMM stage checks and24 native comparisons.
+At the actual shape, forward, saved ReLU, input gradient and up-weight gradient
+are bit-exact to native; down-weight relative RMS difference is1.73e-7.
+However, forward costs785.810ms versus1.383ms native, and forward/backward costs
+785.853ms versus4.331ms. The small shape also regresses9.070ms versus0.123ms,
+so large-shape cache pressure alone cannot explain the pathology. Do not promote.
+Capture a small device trace first to locate transfer/layout overhead and spills.
+
+A separate segmented embedding implementation replaces the suspect on-chip
+gathers with indirect DMA: BF16 permutation, FP32 segmented scan, FP32 dense
+group-end expansion. This matches the native input-rounding policy and charges
+all intermediate HBM traffic. All11 CPU distribution/training-row gates pass;
+native stage and composition checks are still required.

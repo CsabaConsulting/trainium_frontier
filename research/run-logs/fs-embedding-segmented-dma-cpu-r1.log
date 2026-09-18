@@ -1,0 +1,23 @@
+EMBED_SEGMENT_GATE {"name": "dma_cpu:uniform:(256, 256, 256)", "finite": true, "max_abs": 0.0, "bound_failures": 0, "absent_rows_exact_zero": true, "relative_rms": 0.0, "passed": true}
+DMA_SCAN_CASE {"kind": "uniform", "shape": [256, 256, 256], "metadata_bytes": 3328, "arithmetic": "BF16-rounded input gradients, FP32 sums, FP32 output"}
+EMBED_SEGMENT_GATE {"name": "dma_cpu:zipf:(256, 256, 256)", "finite": true, "max_abs": 1.862645149230957e-09, "bound_failures": 0, "absent_rows_exact_zero": true, "relative_rms": 7.312617620012833e-10, "passed": true}
+DMA_SCAN_CASE {"kind": "zipf", "shape": [256, 256, 256], "metadata_bytes": 3328, "arithmetic": "BF16-rounded input gradients, FP32 sums, FP32 output"}
+EMBED_SEGMENT_GATE {"name": "dma_cpu:one_id:(256, 256, 256)", "finite": true, "max_abs": 1.4901161193847656e-08, "bound_failures": 0, "absent_rows_exact_zero": true, "relative_rms": 9.139855919341393e-09, "passed": true}
+DMA_SCAN_CASE {"kind": "one_id", "shape": [256, 256, 256], "metadata_bytes": 3328, "arithmetic": "BF16-rounded input gradients, FP32 sums, FP32 output"}
+EMBED_SEGMENT_GATE {"name": "dma_cpu:zero:(256, 256, 256)", "finite": true, "max_abs": 0.0, "bound_failures": 0, "absent_rows_exact_zero": true, "relative_rms": 0.0, "passed": true}
+DMA_SCAN_CASE {"kind": "zero", "shape": [256, 256, 256], "metadata_bytes": 3328, "arithmetic": "BF16-rounded input gradients, FP32 sums, FP32 output"}
+EMBED_SEGMENT_GATE {"name": "dma_cpu:cancellation:(256, 256, 256)", "finite": true, "max_abs": 0.0, "bound_failures": 0, "absent_rows_exact_zero": true, "relative_rms": 0.0, "passed": true}
+DMA_SCAN_CASE {"kind": "cancellation", "shape": [256, 256, 256], "metadata_bytes": 3328, "arithmetic": "BF16-rounded input gradients, FP32 sums, FP32 output"}
+EMBED_SEGMENT_GATE {"name": "dma_cpu:uniform:(8192, 1024, 8192)", "finite": true, "max_abs": 1.862645149230957e-09, "bound_failures": 0, "absent_rows_exact_zero": true, "relative_rms": 1.3424874855039394e-10, "passed": true}
+DMA_SCAN_CASE {"kind": "uniform", "shape": [8192, 1024, 8192], "metadata_bytes": 106496, "arithmetic": "BF16-rounded input gradients, FP32 sums, FP32 output"}
+EMBED_SEGMENT_GATE {"name": "dma_cpu:zipf:(8192, 1024, 8192)", "finite": true, "max_abs": 5.960464477539063e-08, "bound_failures": 0, "absent_rows_exact_zero": true, "relative_rms": 1.1886711138536463e-08, "passed": true}
+DMA_SCAN_CASE {"kind": "zipf", "shape": [8192, 1024, 8192], "metadata_bytes": 106496, "arithmetic": "BF16-rounded input gradients, FP32 sums, FP32 output"}
+EMBED_SEGMENT_GATE {"name": "dma_cpu:one_id:(8192, 1024, 8192)", "finite": true, "max_abs": 3.734603524208069e-07, "bound_failures": 0, "absent_rows_exact_zero": true, "relative_rms": 8.078537717589246e-08, "passed": true}
+DMA_SCAN_CASE {"kind": "one_id", "shape": [8192, 1024, 8192], "metadata_bytes": 106496, "arithmetic": "BF16-rounded input gradients, FP32 sums, FP32 output"}
+EMBED_SEGMENT_GATE {"name": "dma_cpu:zero:(8192, 1024, 8192)", "finite": true, "max_abs": 0.0, "bound_failures": 0, "absent_rows_exact_zero": true, "relative_rms": 0.0, "passed": true}
+DMA_SCAN_CASE {"kind": "zero", "shape": [8192, 1024, 8192], "metadata_bytes": 106496, "arithmetic": "BF16-rounded input gradients, FP32 sums, FP32 output"}
+EMBED_SEGMENT_GATE {"name": "dma_cpu:cancellation:(8192, 1024, 8192)", "finite": true, "max_abs": 0.0, "bound_failures": 0, "absent_rows_exact_zero": true, "relative_rms": 0.0, "passed": true}
+DMA_SCAN_CASE {"kind": "cancellation", "shape": [8192, 1024, 8192], "metadata_bytes": 106496, "arithmetic": "BF16-rounded input gradients, FP32 sums, FP32 output"}
+EMBED_SEGMENT_GATE {"name": "dma_cpu:training:(8192, 1024, 8192)", "finite": true, "max_abs": 2.9802322387695312e-08, "bound_failures": 0, "absent_rows_exact_zero": true, "relative_rms": 3.9138033302649915e-09, "passed": true}
+DMA_SCAN_CASE {"kind": "training", "shape": [8192, 1024, 8192], "metadata_bytes": 106496, "arithmetic": "BF16-rounded input gradients, FP32 sums, FP32 output"}
+PASS: segmented DMA component; no full-model or BPB claim
