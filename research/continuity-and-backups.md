@@ -29,6 +29,8 @@ The helper:
    file); ignored weights/profiles and unsupported new files are not silently
    treated as backed up. Skipped new files are listed in the snapshot manifest.
    The active branch, working files, real index and staged changes are untouched.
+   Newly staged files are included; `research/continuity/staged.patch` separately
+   preserves the staging intent as a binary-safe patch against the source commit.
 3. Records remote evidence under `research/continuity/hosts/` in the recovery
    commit. These files cannot overwrite canonical source or the canonical
    experiment log. `research/continuity/latest.json` records source identity,
@@ -40,9 +42,22 @@ The helper:
    Verifies both remote hashes using `git ls-remote`. A dead EC2 host does not
    prevent backing up available local work; the incomplete retrieval is explicit.
 
+Merge/rebase/cherry-pick/revert/sequencer/bisect state and Git index/ref locks
+cause the cycle to skip and retry later. These are checked before the cycle,
+after snapshot assembly, before publishing its local recovery ref, and before
+pushing. The real index identity and HEAD must remain stable during assembly.
+The helper does not acquire or delete Git's own locks. A merge beginning after
+the final check can at most overlap a push of an already captured commit; the
+helper still cannot edit the merge's working files/index, and ordinary remote
+fast-forward checks remain enforced. Recovery snapshots are WIP, not an atomic
+transaction covering arbitrary edits by an editor that does not cooperate with
+Git locks.
+
 Manual run: `python3 research/fresh_start_backup.py`.
 Local verification/status: `out/fresh-start-backup/latest.json`, historical
-`receipts/*.json`, and `cron.log`. Scheduler inspection: `crontab -l`.
+`receipts/*.json`, `last-success.json`, and `cron.log`. Scheduler inspection:
+`crontab -l`. The installed entry belongs to user `csaba`; installation uses
+neither `sudo` nor a root shell. Codex sandbox escalation does not change UID.
 Committed config: `research/continuity.json`. The cron installation receipt and
 subsequent successful runs are recorded separately; this document alone does
 not prove the scheduler is installed or a push succeeded.

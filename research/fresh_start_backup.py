@@ -9,6 +9,7 @@ force push, process termination, or deletion of remote files is performed.
 import argparse
 from datetime import datetime, timezone
 import fcntl
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -23,6 +24,37 @@ from fresh_start_sync import HOSTS, ROOT, SSH
 TEXT_SUFFIXES = {'.py', '.md', '.rst', '.txt', '.json', '.jsonl', '.log', '.csv',
                  '.tsv', '.sh', '.toml', '.yaml', '.yml', '.patch', '.diff'}
 MAX_BLOB = 50 * 1024**2
+
+
+class GitBusy(RuntimeError):
+    """Skip this cycle while the user is changing repository history/staging."""
+
+
+def git_path(repo, name):
+    path = Path(git(repo, 'rev-parse', '--git-path', name).decode().strip())
+    return path if path.is_absolute() else repo / path
+
+
+def require_idle_git(repo, branch):
+    markers = ['index.lock', 'HEAD.lock', 'packed-refs.lock', 'MERGE_HEAD',
+               'rebase-merge', 'rebase-apply', 'CHERRY_PICK_HEAD', 'REVERT_HEAD',
+               'sequencer', 'BISECT_LOG', 'refs/heads/' + branch + '.lock']
+    busy = [name for name in markers if git_path(repo, name).exists()]
+    if busy:
+        raise GitBusy('Repository operation in progress: ' + ', '.join(busy))
+
+
+def index_identity(repo):
+    path = git_path(repo, 'index')
+    if not path.exists():
+        return None
+    before = path.stat()
+    sha = hashlib.sha256(path.read_bytes()).hexdigest()
+    after = path.stat()
+    fields = lambda s: (s.st_ino, s.st_size, s.st_mtime_ns)
+    if fields(before) != fields(after):
+        raise GitBusy('Real Git index changed during inspection')
+    return (*fields(after), sha)
 
 
 def now():
@@ -185,6 +217,8 @@ def index_blob(repo, env, path, data, mode='100644'):
 
 
 def create_snapshot(repo, directory, branch, backup_branch, remote_status):
+    require_idle_git(repo, branch)
+    original_index = index_identity(repo)
     ref = 'refs/heads/' + backup_branch
     if git(repo, 'branch', '--show-current').decode().strip() != branch:
         raise ValueError('Active branch changed; refusing to back up the wrong campaign')
@@ -205,14 +239,19 @@ def create_snapshot(repo, directory, branch, backup_branch, remote_status):
             if path.is_file() and not path.is_symlink() and path.stat().st_size > MAX_BLOB:
                 raise ValueError(f'Tracked file exceeds Git backup limit: {path}')
         git(repo, 'add', '-u', '--', '.', env=env)
-        new = git(repo, 'ls-files', '--others', '--exclude-standard', '-z').split(b'\0')
+        # Compare against the temporary HEAD index, so newly staged files in the
+        # real index are captured too. Preserve the exact staged patch separately.
+        new = git(repo, 'ls-files', '--others', '--exclude-standard', '-z', env=env).split(b'\0')
+        real_tracked = set(git(repo, 'ls-files', '-z').split(b'\0'))
         selected = []
         for raw in new:
             if not raw:
                 continue
             name = os.fsdecode(raw)
             path = repo / name
-            if (path.is_file() and not path.is_symlink() and path.suffix in TEXT_SUFFIXES
+            if (raw in real_tracked and path.is_file() and path.stat().st_size <= MAX_BLOB):
+                selected.append(raw)
+            elif (path.is_file() and not path.is_symlink() and path.suffix in TEXT_SUFFIXES
                     and path.stat().st_size <= MAX_BLOB
                     and (len(Path(name).parts) == 1 or name.startswith(
                         ('research/', 'articles/', '.memsearch/memory/')))):
@@ -222,6 +261,8 @@ def create_snapshot(repo, directory, branch, backup_branch, remote_status):
         if selected:
             git(repo, 'add', '--pathspec-from-file=-', '--pathspec-file-nul', env=env,
                 input=b'\0'.join(selected) + b'\0')
+        staged = git(repo, 'diff', '--cached', '--binary', '--full-index', head, '--')
+        index_blob(repo, env, 'research/continuity/staged.patch', staged)
         # Remote evidence is kept under a distinct path in the recovery commit;
         # stale remote files cannot replace canonical source, logs or the registry.
         remote_files = 0
@@ -244,13 +285,17 @@ def create_snapshot(repo, directory, branch, backup_branch, remote_status):
         index_blob(repo, env, 'research/continuity/latest.json',
                    (json.dumps(manifest, indent=2) + '\n').encode())
         tree = git(repo, 'write-tree', env=env).decode().strip()
+        require_idle_git(repo, branch)
+        if index_identity(repo) != original_index:
+            raise GitBusy('Real Git index changed during snapshot; retry next cycle')
         if git(repo, 'rev-parse', 'HEAD').decode().strip() != head:
-            raise RuntimeError('HEAD changed during backup; leave work untouched and retry next cycle')
+            raise GitBusy('HEAD changed during backup; retry next cycle')
         parents = ['-p', previous] if previous else []
         if head != previous:
             parents += ['-p', head]
         snapshot = git(repo, 'commit-tree', tree, *parents,
                        input=f'Recovery snapshot {now()} from {head[:12]} (WIP)\n'.encode()).decode().strip()
+        require_idle_git(repo, branch)
         git(repo, 'update-ref', ref, snapshot, previous or '0' * 40)
     return dict(source_commit=head,snapshot_commit=snapshot,source_branch=branch,
                 snapshot_branch=backup_branch,excluded_new_files=skipped,
@@ -258,6 +303,7 @@ def create_snapshot(repo, directory, branch, backup_branch, remote_status):
 
 
 def push_snapshot(repo, remote, result):
+    require_idle_git(repo, result['source_branch'])
     expected = {'refs/heads/' + result['source_branch']: result['source_commit'],
                 'refs/heads/' + result['snapshot_branch']: result['snapshot_commit']}
     # --atomic prevents a half-updated pair; normal fast-forward checks protect
@@ -289,6 +335,7 @@ def main():
             return
         receipt = dict(started_at=now(),remote=config['remote'],pushed=False)
         try:
+            require_idle_git(ROOT, config['source_branch'])
             url = git(ROOT, 'remote', 'get-url', '--push', config['remote']).decode().strip()
             if url != config['expected_remote_url']:
                 raise ValueError('Push remote changed; refusing an unintended destination')
@@ -300,13 +347,19 @@ def main():
                 receipt['verified_remote_refs'] = push_snapshot(ROOT, config['remote'], result)
                 receipt['pushed'] = True
             receipt['remote_retrieval_complete'] = all(s['ok'] and not s.get('errors') for s in status.values())
+        except GitBusy as error:
+            receipt.update(skipped=True,skipped_reason=str(error))
         except Exception as error:
             receipt['error'] = str(error)
         receipt['completed_at'] = now()
         name = receipt['started_at'].replace(':', '').replace('+', '_') + '.json'
         atomic_json(directory / 'receipts' / name, receipt)
         atomic_json(directory / 'latest.json', receipt)
+        if receipt['pushed']:
+            atomic_json(directory / 'last-success.json', receipt)
         print(json.dumps(receipt), flush=True)
+        if receipt.get('skipped'):
+            return
         if 'error' in receipt or not receipt.get('remote_retrieval_complete', False):
             raise SystemExit(1)
 

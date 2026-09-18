@@ -1,0 +1,15 @@
+{
+  "completed_at": "2026-09-18T17:45:05.260991+00:00",
+  "passed": true,
+  "installer_account": "csaba",
+  "uid": 1000,
+  "test_environment": "temporary repository with a real conflicted merge and bare Git remote",
+  "cases": [
+    "conflicted merge skipped without changing index, worktree or HEAD",
+    "index lock, rebase, cherry-pick, revert and sequencer skipped",
+    "newly staged file captured despite distinct unstaged content",
+    "staging intent preserved in staged.patch",
+    "normal atomic two-branch push still passes"
+  ],
+  "race_limit": "Checks do not lock the user index; overlapping operations cannot mutate it because all snapshot writes use a separate index."
+}
