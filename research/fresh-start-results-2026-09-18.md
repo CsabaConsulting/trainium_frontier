@@ -1484,6 +1484,6 @@ passing. It is slower than replacing all six layers678.041824ms and native
 it does not by itself identify the compiler's allocation decision.
 
 The wave48 isolated native-reference integration gate passes all48 comparisons
-with unchanged tolerance at256x256 and8192x1024. Forward outputs are exact; all
-calls retain compiled autograd. Source314e8d8. The separately compiled packed
+with unchanged tolerance at256x256 and8192x1024. All output bounds pass, but not all outputs are bit-exact; maximum relative RMS
+is0.001178439 across all48 comparisons. All calls retain compiled autograd. Source314e8d8. The separately compiled packed
 MLP full-model phase is now running ontrn21; native-boundary control is prepared.

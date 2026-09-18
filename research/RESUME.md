@@ -12,8 +12,8 @@ in Git. Do not restart completed experiments from earlier revisions.
   reference588.186ms;3% gate and four updated-model checks required.
 - **trn22:** isolated native capture and NKI separated comparison completed
   cleanly, all48 comparisons pass unchanged tolerances at both actual shapes.
-  Native+candidate calls remain compiled; forward outputs exact. Reference
-  tensors are inwave48/out/fs-w48-mlp-isolated-reference-r1 and being copied to
+  Native+candidate calls remain compiled; all output bounds pass, not all bit-exact. Reference
+  tensors are inwave48/out/fs-w48-mlp-isolated-reference-r1 and are hash-verified in
   localout/fresh-start-profiles/fs-w48-mlp-isolated-reference-r1 with hashes.
 - **Next:** native-forward boundary control. New checker option
   `--forward-backend native` preserves the custom backward/region boundary.

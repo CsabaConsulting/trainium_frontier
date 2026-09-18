@@ -104,9 +104,9 @@ Native capture and candidate comparison completed cleanly as separate guarded
 jobs ontrn22. All48 output/dx/accumulated-master-gradient comparisons pass the
 original bounds at256x256 and8192x1024. Every reference and candidate call has
 compiled autograd; cache refresh, matched updates, exact native evaluation and
-strict ordinary checkpoint loading pass. Forward outputs match exactly at both
-shapes. See `fs-w48-mlp-isolated-gate-summary.json` for maxima. The605MB-class
-reference tensor artifacts are being preserved locally with hashes.
+strict ordinary checkpoint loading pass. Forward outputs pass the unchanged bounds at both shapes; they are not all
+bit-exact. Maximum relative RMS over all comparisons is0.001178439, below0.004. See `fs-w48-mlp-isolated-gate-summary.json` for maxima. Both reference files (21,277,665 and604,119,159bytes) are now local with matching
+remote SHA256s and queued for GitHub artifact backup.
 
 The former failed gate was comparing different execution paths. The same NKI
 implementation now qualifies for a complete-step phase; this is not a speed
