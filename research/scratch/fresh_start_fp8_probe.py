@@ -33,6 +33,24 @@ def build_kernels():
     import nki.language as nl
 
     @nki.jit
+    def roundtrip_e4m3(x, scale):
+        """Expose the actual device conversion, independently of matrix multiply."""
+        rows, cols = x.shape
+        assert rows % 128 == 0 and cols <= 8192
+        out = nl.ndarray(x.shape, dtype=nl.bfloat16, buffer=nl.shared_hbm)
+        s = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
+        nisa.dma_copy(dst=s, src=scale)
+        for tile in nl.affine_range(rows // 128):
+            v = nl.ndarray((128, cols), dtype=nl.bfloat16, buffer=nl.sbuf)
+            q = nl.ndarray((128, cols), dtype=nl.float8_e4m3, buffer=nl.sbuf)
+            r = nl.ndarray((128, cols), dtype=nl.bfloat16, buffer=nl.sbuf)
+            nisa.dma_copy(dst=v, src=x[tile * 128:(tile + 1) * 128, :])
+            nisa.tensor_scalar(dst=q, data=v, op0=nl.multiply, operand0=s)
+            nisa.tensor_copy(dst=r, src=q)
+            nisa.dma_copy(dst=out[tile * 128:(tile + 1) * 128, :], src=r)
+        return out
+
+    @nki.jit
     def native_fp8_gemm(a_t, b, scales):
         """[K,M] BF16 and [K,N] BF16 -> [M,N] BF16 via scaled legacy FP8.
 
@@ -92,7 +110,7 @@ def build_kernels():
             nisa.dma_copy(dst=out[mi * 128:(mi + 1) * 128, :], src=result)
         return out
 
-    return native_fp8_gemm, nki_bf16_gemm
+    return native_fp8_gemm, nki_bf16_gemm, roundtrip_e4m3
 
 
 def sync():
@@ -104,7 +122,7 @@ def relative_rms(actual, reference):
                  / reference.float().square().mean().sqrt().clamp_min(1e-20))
 
 
-def run_case(fp8, bf16, shape, steps):
+def run_case(fp8, bf16, roundtrip, shape, steps):
     m, k, n = shape
     torch.manual_seed(17 + k)
     a = (torch.randn(m, k) * 0.5).bfloat16()
@@ -120,6 +138,28 @@ def run_case(fp8, bf16, shape, steps):
     at = ad.T.contiguous()
     y8 = fp8(at, bd, scalars).cpu()
     y16 = bf16(at, bd).cpu()
+    # Isolate conversion from layout/accumulation before interpreting tolerance.
+    aq = roundtrip(at, scalars[:, 0:1].contiguous()).cpu().float().T
+    bq = roundtrip(bd, scalars[:, 1:2].contiguous()).cpu().float()
+    device_quant_reference = (aq @ bq) / (sa * sb)
+    conversions = []
+    for name, actual, expected, source in (
+        ("a", aq, e4m3_legacy(a.float() * sa), a.float() * sa),
+        ("b", bq, e4m3_legacy(b.float() * sb), b.float() * sb),
+    ):
+        mismatch = actual != expected
+        where = mismatch.nonzero()[:8]
+        examples = [dict(input=float(source[i, j]), actual=float(actual[i, j]),
+                         expected=float(expected[i, j])) for i, j in where]
+        conversions.append(dict(operand=name, mismatches=int(mismatch.sum()),
+                                elements=actual.numel(), examples=examples))
+    print(json.dumps(dict(check="fp8_rounding_diagnostic", shape=shape,
+                          conversions=conversions,
+                          fp8_vs_quant_reference_relative_rms=relative_rms(y8, quant_reference),
+                          fp8_vs_device_quant_reference_relative_rms=relative_rms(y8, device_quant_reference),
+                          fp8_max_abs_vs_device_quant_reference=float((y8.float() - device_quant_reference.bfloat16().float()).abs().max()),
+                          bf16_vs_fp32_relative_rms=relative_rms(y16, full_reference))), flush=True)
+    assert all(x["mismatches"] == 0 for x in conversions), "FP8 conversion differs from independent reference"
     torch.testing.assert_close(y8.float(), quant_reference.bfloat16().float(), rtol=0.009, atol=1e-5)
     torch.testing.assert_close(y16.float(), full_reference.bfloat16().float(), rtol=0.009, atol=1e-5)
     assert torch.isfinite(y8).all() and torch.isfinite(y16).all()
@@ -157,11 +197,11 @@ def main():
     args = parser.parse_args()
     torch.set_num_threads(2)
     import torch_neuronx  # noqa: F401
-    fp8, bf16 = build_kernels()
+    fp8, bf16, roundtrip = build_kernels()
     for shape in ((128, 256, 128), (256, 768, 512)):
-        run_case(fp8, bf16, shape, args.steps)
+        run_case(fp8, bf16, roundtrip, shape, args.steps)
     if args.large:
-        run_case(fp8, bf16, (8192, 768, 512), args.steps)
+        run_case(fp8, bf16, roundtrip, (8192, 768, 512), args.steps)
     print("PASS: native FP8 primitive probes completed", flush=True)
 
 
