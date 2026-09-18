@@ -1452,6 +1452,11 @@ def norm(x: torch.Tensor) -> torch.Tensor:
 # derivative in `_relu_sq_bwd`), or fuse a different elementwise op.
 
 _NKI_PARTITION = 128  # NeuronCore SBUF partition limit (== nki.language.tile_size.pmax)
+# Fused-attention tile sizes (P1 NKI port). Column-0 on purpose: kernel bodies
+# reference these and the NKI tracer only resolves module-top-level globals.
+_NKI_ATTN_P = 128  # == head dim; also the SBUF partition dim
+_NKI_ATTN_KV_TILE = 512
+_NKI_ATTN_Q_TILE = 128
 # torch's F.rms_norm default eps: measured empirically to be float32 eps (the
 # accumulation dtype's epsilon), NOT double eps -- see research notes. Getting
 # this wrong is invisible for O(1) inputs and a 6% error for small ones.
@@ -2077,6 +2082,330 @@ try:
             nisa.dma_copy(dst=out[start:start + size, 0:N], src=s2)
         return out
 
+    # ---- Fused causal SDPA (P1 NKI port, research/scratch/nki_attn_fwd.py +
+    # ---- nki_attn_bwd.py, hw-validated 2026-09-17: fp32 ~1e-6, bf16 fwd
+    # ---- format-floor / bwd dQ/dK ~4e-4, dV ~2.5e-3). T/D required params.
+    # ---- Tile sizes live as column-0 module constants below (next to
+    # ---- _NKI_PARTITION): the NKI tracer does not resolve try-block-level
+    # ---- globals (take-2 crash: unbound _NKI_ATTN_Q_TILE).
+    @nki.jit
+    def _attn_nki_fwd(q, k, v, mask, scale, T, D):
+        """q/k/v: [BH*T, D] bf16 HBM. mask: [T, T] bf16 HBM. Returns [BH*T, D]."""
+        BH = q.shape[0] // T
+        out = nl.ndarray((BH * T, D), dtype=q.dtype, buffer=nl.shared_hbm)
+
+        for bh in nl.affine_range(BH):
+            base = bh * T
+            # --- assemble [_NKI_ATTN_P, T] tiles (_NKI_ATTN_P == D == 128) from [T, D] row chunks
+            q_sbuf = nl.ndarray((_NKI_ATTN_P, T), dtype=q.dtype, buffer=nl.sbuf)
+            k_sbuf = nl.ndarray((_NKI_ATTN_P, T), dtype=q.dtype, buffer=nl.sbuf)
+            for c in range(T // _NKI_ATTN_P):
+                qc = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=q.dtype, buffer=nl.sbuf)
+                nisa.dma_copy(dst=qc, src=q[base + c * _NKI_ATTN_P:base + (c + 1) * _NKI_ATTN_P, :])
+                qt = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=q.dtype, buffer=nl.psum)
+                nisa.nc_transpose(dst=qt, data=qc)
+                nisa.tensor_copy(dst=q_sbuf[0:_NKI_ATTN_P, c * _NKI_ATTN_P:(c + 1) * _NKI_ATTN_P], src=qt)
+                kc = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=q.dtype, buffer=nl.sbuf)
+                nisa.dma_copy(dst=kc, src=k[base + c * _NKI_ATTN_P:base + (c + 1) * _NKI_ATTN_P, :])
+                kt = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=q.dtype, buffer=nl.psum)
+                nisa.nc_transpose(dst=kt, data=kc)
+                nisa.tensor_copy(dst=k_sbuf[0:_NKI_ATTN_P, c * _NKI_ATTN_P:(c + 1) * _NKI_ATTN_P], src=kt)
+            for qi in range(T // _NKI_ATTN_Q_TILE):
+                r0 = qi * _NKI_ATTN_Q_TILE
+                # --- QK tiles: [_NKI_ATTN_P, _NKI_ATTN_KV_TILE] fp32 PSUM
+                n_kv = T // _NKI_ATTN_KV_TILE
+                qk_tiles = []
+                for _i in range(n_kv):
+                    qk_tiles.append(nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_KV_TILE), dtype=nl.float32,
+                                               buffer=nl.psum))
+                for ki in range(n_kv):
+                    # each dst written ONCE: default accumulate=False (first write
+                    # initializes PSUM); the flag is only for same-dst K-loops.
+                    nisa.nc_matmul(
+                        dst=qk_tiles[ki],
+                        stationary=q_sbuf[0:_NKI_ATTN_P, r0:r0 + _NKI_ATTN_Q_TILE],
+                        moving=k_sbuf[0:_NKI_ATTN_P, ki * _NKI_ATTN_KV_TILE:(ki + 1) * _NKI_ATTN_KV_TILE])
+                qk_full = nl.ndarray((_NKI_ATTN_P, T), dtype=nl.float32, buffer=nl.sbuf)
+                for ki in range(n_kv):
+                    nisa.tensor_copy(
+                        dst=qk_full[0:_NKI_ATTN_P, ki * _NKI_ATTN_KV_TILE:(ki + 1) * _NKI_ATTN_KV_TILE],
+                        src=qk_tiles[ki])
+                # --- scale + softmax (v1-style explicit fp32)
+                nisa.tensor_scalar(dst=qk_full, data=qk_full, op0=nl.multiply,
+                                   operand0=scale)
+                row_max = nl.max(qk_full, axis=1, keepdims=True)
+                # separate dst (NOT in-place): tensor operands broadcast, and the
+                # v1 reference uses a distinct output for the subtract.
+                sub_full = nl.ndarray((_NKI_ATTN_P, T), dtype=nl.float32, buffer=nl.sbuf)
+                nisa.tensor_scalar(dst=sub_full, data=qk_full, op0=nl.subtract,
+                                   operand0=row_max)
+                exp_full = nl.exp(sub_full)
+                mb = nl.ndarray((_NKI_ATTN_P, T), dtype=q.dtype, buffer=nl.sbuf)
+                nisa.dma_copy(dst=mb, src=mask[r0:r0 + _NKI_ATTN_Q_TILE, :])
+                m = nl.ndarray((_NKI_ATTN_P, T), dtype=nl.float32, buffer=nl.sbuf)
+                nisa.tensor_copy(dst=m, src=mb)
+                nisa.tensor_tensor(dst=exp_full, data1=exp_full, data2=m,
+                                   op=nl.multiply)
+                sum_row = nl.sum(exp_full, axis=1, keepdims=True)
+                inv = nl.reciprocal(sum_row)
+                norm_full = nl.ndarray((_NKI_ATTN_P, T), dtype=nl.float32, buffer=nl.sbuf)
+                nisa.tensor_scalar(dst=norm_full, data=exp_full, op0=nl.multiply,
+                                   operand0=inv)
+                scores = nl.ndarray((_NKI_ATTN_P, T), dtype=q.dtype, buffer=nl.sbuf)
+                nisa.tensor_copy(dst=scores, src=norm_full)
+                # --- AV over kv chunks of 128. scores chunk transposed on-chip;
+                # V chunk DMA'd straight from HBM rows (native [kv, d] order) --
+                # delibrately NO 3D SBUF buffer: indexed-3D SBUF slices
+                # miscompile (partition descriptor), found 2026-09-17.
+                acc = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=nl.float32, buffer=nl.psum)
+                for c in range(T // _NKI_ATTN_P):
+                    st = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=q.dtype, buffer=nl.psum)
+                    nisa.nc_transpose(dst=st, data=scores[0:_NKI_ATTN_P, c * _NKI_ATTN_P:(c + 1) * _NKI_ATTN_P])
+                    st_s = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=q.dtype, buffer=nl.sbuf)
+                    nisa.tensor_copy(dst=st_s, src=st)
+                    vc = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=q.dtype, buffer=nl.sbuf)
+                    nisa.dma_copy(dst=vc, src=v[base + c * _NKI_ATTN_P:base + (c + 1) * _NKI_ATTN_P, :])
+                    nisa.nc_matmul(dst=acc, accumulate=(c > 0),
+                                   stationary=st_s, moving=vc)
+                ob = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=nl.float32, buffer=nl.sbuf)
+                nisa.tensor_copy(dst=ob, src=acc)
+                # NOTE: nl.store does NOT downcast fp32->bf16 on store (garbage
+                # out, found 2026-09-17): explicit downcast copy + dma instead.
+                ob16 = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=q.dtype, buffer=nl.sbuf)
+                nisa.tensor_copy(dst=ob16, src=ob)
+                nisa.dma_copy(dst=out[base + r0:base + r0 + _NKI_ATTN_Q_TILE, :], src=ob16)
+        return out
+
+    @nki.jit
+    def _attn_nki_bwd(q, k, v, do, mask, scale, dq, dk, dv, dk_buf, dv_buf,
+                     T, D):
+        """q/k/v/do: [BH*T, D] bf16 HBM. mask: [T, T] bf16 HBM.
+        dq/dk/dv: [BH*T, D] bf16 HBM outputs. dk_buf/dv_buf: [BH*T, D]
+        fp32 HBM scratch, zeroed by host (cross-qi accumulation)."""
+        BH = q.shape[0] // T
+        for bh in nl.affine_range(BH):
+            base = bh * T
+            # --- assemble [_NKI_ATTN_P, T] Q^T / K^T (verbatim fwd path)
+            q_sbuf = nl.ndarray((_NKI_ATTN_P, T), dtype=q.dtype, buffer=nl.sbuf)
+            k_sbuf = nl.ndarray((_NKI_ATTN_P, T), dtype=q.dtype, buffer=nl.sbuf)
+            for c in range(T // _NKI_ATTN_P):
+                qc = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=q.dtype, buffer=nl.sbuf)
+                nisa.dma_copy(dst=qc, src=q[base + c * _NKI_ATTN_P:base + (c + 1) * _NKI_ATTN_P, :])
+                qt = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=q.dtype, buffer=nl.psum)
+                nisa.nc_transpose(dst=qt, data=qc)
+                nisa.tensor_copy(dst=q_sbuf[0:_NKI_ATTN_P, c * _NKI_ATTN_P:(c + 1) * _NKI_ATTN_P], src=qt)
+                kc = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=q.dtype, buffer=nl.sbuf)
+                nisa.dma_copy(dst=kc, src=k[base + c * _NKI_ATTN_P:base + (c + 1) * _NKI_ATTN_P, :])
+                kt = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=q.dtype, buffer=nl.psum)
+                nisa.nc_transpose(dst=kt, data=kc)
+                nisa.tensor_copy(dst=k_sbuf[0:_NKI_ATTN_P, c * _NKI_ATTN_P:(c + 1) * _NKI_ATTN_P], src=kt)
+            for qi in range(T // _NKI_ATTN_Q_TILE):
+                r0 = qi * _NKI_ATTN_Q_TILE
+                # --- recompute fp32 _NKI_ATTN_P block (verbatim fwd path)
+                n_kv = T // _NKI_ATTN_KV_TILE
+                qk_tiles = []
+                for _i in range(n_kv):
+                    qk_tiles.append(nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_KV_TILE), dtype=nl.float32,
+                                               buffer=nl.psum))
+                for ki in range(n_kv):
+                    nisa.nc_matmul(
+                        dst=qk_tiles[ki],
+                        stationary=q_sbuf[0:_NKI_ATTN_P, r0:r0 + _NKI_ATTN_Q_TILE],
+                        moving=k_sbuf[0:_NKI_ATTN_P, ki * _NKI_ATTN_KV_TILE:(ki + 1) * _NKI_ATTN_KV_TILE])
+                qk_full = nl.ndarray((_NKI_ATTN_P, T), dtype=nl.float32, buffer=nl.sbuf)
+                for ki in range(n_kv):
+                    nisa.tensor_copy(
+                        dst=qk_full[0:_NKI_ATTN_P, ki * _NKI_ATTN_KV_TILE:(ki + 1) * _NKI_ATTN_KV_TILE],
+                        src=qk_tiles[ki])
+                nisa.tensor_scalar(dst=qk_full, data=qk_full, op0=nl.multiply,
+                                   operand0=scale)
+                row_max = nl.max(qk_full, axis=1, keepdims=True)
+                sub_full = nl.ndarray((_NKI_ATTN_P, T), dtype=nl.float32, buffer=nl.sbuf)
+                nisa.tensor_scalar(dst=sub_full, data=qk_full, op0=nl.subtract,
+                                   operand0=row_max)
+                exp_full = nl.exp(sub_full)
+                mb = nl.ndarray((_NKI_ATTN_P, T), dtype=q.dtype, buffer=nl.sbuf)
+                nisa.dma_copy(dst=mb, src=mask[r0:r0 + _NKI_ATTN_Q_TILE, :])
+                m = nl.ndarray((_NKI_ATTN_P, T), dtype=nl.float32, buffer=nl.sbuf)
+                nisa.tensor_copy(dst=m, src=mb)
+                nisa.tensor_tensor(dst=exp_full, data1=exp_full, data2=m,
+                                   op=nl.multiply)
+                sum_row = nl.sum(exp_full, axis=1, keepdims=True)
+                inv = nl.reciprocal(sum_row)
+                p_full = nl.ndarray((_NKI_ATTN_P, T), dtype=nl.float32, buffer=nl.sbuf)
+                nisa.tensor_scalar(dst=p_full, data=exp_full, op0=nl.multiply,
+                                   operand0=inv)
+                p16 = nl.ndarray((_NKI_ATTN_P, T), dtype=q.dtype, buffer=nl.sbuf)
+                nisa.tensor_copy(dst=p16, src=p_full)
+                # --- dO rows for this block
+                do_b = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=q.dtype, buffer=nl.sbuf)
+                nisa.dma_copy(dst=do_b, src=do[base + r0:base + r0 + _NKI_ATTN_Q_TILE, :])
+                # --- recompute O block (fwd AV pattern, fp32 PSUM accum)
+                o_acc = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=nl.float32, buffer=nl.psum)
+                for c in range(T // _NKI_ATTN_P):
+                    st = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=q.dtype, buffer=nl.psum)
+                    nisa.nc_transpose(dst=st, data=p16[0:_NKI_ATTN_P, c * _NKI_ATTN_P:(c + 1) * _NKI_ATTN_P])
+                    st_s = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=q.dtype, buffer=nl.sbuf)
+                    nisa.tensor_copy(dst=st_s, src=st)
+                    vc = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=q.dtype, buffer=nl.sbuf)
+                    nisa.dma_copy(dst=vc,
+                                  src=v[base + c * _NKI_ATTN_P:base + (c + 1) * _NKI_ATTN_P, :])
+                    nisa.nc_matmul(dst=o_acc, accumulate=(c > 0),
+                                   stationary=st_s, moving=vc)
+                o_b = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=nl.float32, buffer=nl.sbuf)
+                nisa.tensor_copy(dst=o_b, src=o_acc)
+                # --- D = rowsum(dO * O)
+                do_f = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=nl.float32, buffer=nl.sbuf)
+                nisa.tensor_copy(dst=do_f, src=do_b)
+                do_o = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=nl.float32, buffer=nl.sbuf)
+                nisa.tensor_tensor(dst=do_o, data1=do_f, data2=o_b,
+                                   op=nl.multiply)
+                d_row = nl.sum(do_o, axis=1, keepdims=True)
+                # --- Q rows for the dK contributions of this block
+                q_b = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=q.dtype, buffer=nl.sbuf)
+                nisa.dma_copy(dst=q_b, src=q[base + r0:base + r0 + _NKI_ATTN_Q_TILE, :])
+                # --- dQ accumulates over kv chunks in PSUM
+                dq_acc = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=nl.float32, buffer=nl.psum)
+                for c in range(T // _NKI_ATTN_P):
+                    vc = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=q.dtype, buffer=nl.sbuf)
+                    nisa.dma_copy(dst=vc,
+                                  src=v[base + c * _NKI_ATTN_P:base + (c + 1) * _NKI_ATTN_P, :])
+                    # dV contrib: _NKI_ATTN_P^T @ dO -> fp32 HBM scratch add.
+                    # Contraction is over q (the shared partition dim),
+                    # so stationary is the _NKI_ATTN_P block NATIVE [q, k] rows --
+                    # a transpose here contracts k against q (silent
+                    # garbage: hw FAIL dV 1.16, found 2026-09-17).
+                    dv_c = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=nl.float32, buffer=nl.psum)
+                    nisa.nc_matmul(dst=dv_c,
+                                   stationary=p16[0:_NKI_ATTN_P, c * _NKI_ATTN_P:(c + 1) * _NKI_ATTN_P],
+                                   moving=do_b)
+                    dv_old = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=nl.float32,
+                                        buffer=nl.sbuf)
+                    nisa.dma_copy(dst=dv_old,
+                                  src=dv_buf[base + c * _NKI_ATTN_P:base + (c + 1) * _NKI_ATTN_P, :])
+                    dv_new = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=nl.float32,
+                                        buffer=nl.sbuf)
+                    nisa.tensor_copy(dst=dv_new, src=dv_c)
+                    nisa.tensor_tensor(dst=dv_new, data1=dv_new, data2=dv_old,
+                                       op=nl.add)
+                    nisa.dma_copy(dst=dv_buf[base + c * _NKI_ATTN_P:base + (c + 1) * _NKI_ATTN_P, :],
+                                  src=dv_new)
+                    # dP = dO @ V^T: contraction is over d, so V MUST
+                    # be transposed to [d, k] rows (native [k, d] rows
+                    # contract k against d: silent garbage poisons dS
+                    # and through it dQ/dK, found 2026-09-17).
+                    do_t = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=q.dtype, buffer=nl.psum)
+                    nisa.nc_transpose(dst=do_t, data=do_b)
+                    do_ts = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=q.dtype, buffer=nl.sbuf)
+                    nisa.tensor_copy(dst=do_ts, src=do_t)
+                    vc_t = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=q.dtype, buffer=nl.psum)
+                    nisa.nc_transpose(dst=vc_t, data=vc)
+                    vc_ts = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=q.dtype, buffer=nl.sbuf)
+                    nisa.tensor_copy(dst=vc_ts, src=vc_t)
+                    dp = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=nl.float32, buffer=nl.psum)
+                    nisa.nc_matmul(dst=dp, stationary=do_ts, moving=vc_ts)
+                    dp_s = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=nl.float32, buffer=nl.sbuf)
+                    nisa.tensor_copy(dst=dp_s, src=dp)
+                    # dS = _NKI_ATTN_P * (dP - D), pre-scaled by s (serves dQ and dK)
+                    ds = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=nl.float32, buffer=nl.sbuf)
+                    nisa.tensor_scalar(dst=ds, data=dp_s, op0=nl.subtract,
+                                       operand0=d_row)
+                    pblk = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=nl.float32, buffer=nl.sbuf)
+                    nisa.tensor_copy(dst=pblk,
+                                     src=p_full[0:_NKI_ATTN_P, c * _NKI_ATTN_P:(c + 1) * _NKI_ATTN_P])
+                    nisa.tensor_tensor(dst=ds, data1=ds, data2=pblk,
+                                       op=nl.multiply)
+                    nisa.tensor_scalar(dst=ds, data=ds, op0=nl.multiply,
+                                       operand0=scale)
+                    ds16 = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=q.dtype, buffer=nl.sbuf)
+                    nisa.tensor_copy(dst=ds16, src=ds)
+                    # dQ contrib: dS^T @ K
+                    kc = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=q.dtype, buffer=nl.sbuf)
+                    nisa.dma_copy(dst=kc,
+                                  src=k[base + c * _NKI_ATTN_P:base + (c + 1) * _NKI_ATTN_P, :])
+                    dst_t = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=q.dtype, buffer=nl.psum)
+                    nisa.nc_transpose(dst=dst_t, data=ds16)
+                    dst_s = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=q.dtype, buffer=nl.sbuf)
+                    nisa.tensor_copy(dst=dst_s, src=dst_t)
+                    nisa.nc_matmul(dst=dq_acc, accumulate=(c > 0),
+                                   stationary=dst_s, moving=kc)
+                    # dK contrib: dS @ Q -> fp32 HBM scratch add
+                    dk_c = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=nl.float32, buffer=nl.psum)
+                    nisa.nc_matmul(dst=dk_c, stationary=ds16, moving=q_b)
+                    dk_old = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=nl.float32,
+                                        buffer=nl.sbuf)
+                    nisa.dma_copy(dst=dk_old,
+                                  src=dk_buf[base + c * _NKI_ATTN_P:base + (c + 1) * _NKI_ATTN_P, :])
+                    dk_new = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=nl.float32,
+                                        buffer=nl.sbuf)
+                    nisa.tensor_copy(dst=dk_new, src=dk_c)
+                    nisa.tensor_tensor(dst=dk_new, data1=dk_new, data2=dk_old,
+                                       op=nl.add)
+                    nisa.dma_copy(dst=dk_buf[base + c * _NKI_ATTN_P:base + (c + 1) * _NKI_ATTN_P, :],
+                                  src=dk_new)
+                dq_s = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=nl.float32, buffer=nl.sbuf)
+                nisa.tensor_copy(dst=dq_s, src=dq_acc)
+                dq16 = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=q.dtype, buffer=nl.sbuf)
+                nisa.tensor_copy(dst=dq16, src=dq_s)
+                nisa.dma_copy(dst=dq[base + r0:base + r0 + _NKI_ATTN_Q_TILE, :], src=dq16)
+            # --- epilogue: downcast fp32 scratch bufs to bf16 outputs
+            # (unrolled x2: the compiler rejects tuple-destructuring loops
+            # over kernel tensors with "expecting simple variable").
+            for c in range(T // _NKI_ATTN_P):
+                fblk = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=nl.float32, buffer=nl.sbuf)
+                nisa.dma_copy(
+                    dst=fblk, src=dk_buf[base + c * _NKI_ATTN_P:base + (c + 1) * _NKI_ATTN_P, :])
+                hblk = nl.ndarray((_NKI_ATTN_P, _NKI_ATTN_P), dtype=q.dtype, buffer=nl.sbuf)
+                nisa.tensor_copy(dst=hblk, src=fblk)
+                nisa.dma_copy(
+                    dst=dk[base + c * _NKI_ATTN_P:base + (c + 1) * _NKI_ATTN_P, :], src=hblk)
+                nisa.dma_copy(
+                    dst=fblk, src=dv_buf[base + c * _NKI_ATTN_P:base + (c + 1) * _NKI_ATTN_P, :])
+                nisa.tensor_copy(dst=hblk, src=fblk)
+                nisa.dma_copy(
+                    dst=dv[base + c * _NKI_ATTN_P:base + (c + 1) * _NKI_ATTN_P, :], src=hblk)
+        return dq, dk, dv
+
+    class _AttnNKI(torch.autograd.Function):
+        """Causal SDPA via the fused NKI fwd/bwd pair above.
+
+        q/k/v are [B, H, T, D] (transpose views OK -- reshape materializes
+        bh-major row order); returns y [B, H, T, D]. Validated dtypes
+        bf16/fp32, head dim 128, T a multiple of 512 (checked by the caller).
+        """
+
+        @staticmethod
+        def forward(ctx, q, k, v, scale):
+            b, h, t, d = q.shape
+            q3 = q.reshape(b * h * t, d).contiguous()
+            k3 = k.reshape(b * h * t, d).contiguous()
+            v3 = v.reshape(b * h * t, d).contiguous()
+            mask = _attn_nki_mask(t, q.device, q.dtype)
+            y3 = _attn_nki_fwd(q3, k3, v3, mask, scale, t, d)
+            ctx.save_for_backward(q3, k3, v3)
+            ctx.bhtd = (b, h, t, d)
+            ctx.scale = scale
+            return y3.view(b, h, t, d)
+
+        @staticmethod
+        def backward(ctx, grad_out):
+            q3, k3, v3 = ctx.saved_tensors
+            b, h, t, d = ctx.bhtd
+            scale = ctx.scale
+            g3 = grad_out.reshape(b * h * t, d).contiguous()
+            mask = _attn_nki_mask(t, q3.device, q3.dtype)
+            n = b * h * t
+            dev = q3.device
+            dq3 = torch.zeros((n, d), dtype=q3.dtype, device=dev)
+            dk3 = torch.zeros((n, d), dtype=q3.dtype, device=dev)
+            dv3 = torch.zeros((n, d), dtype=q3.dtype, device=dev)
+            dk_buf = torch.zeros((n, d), dtype=torch.float32, device=dev)
+            dv_buf = torch.zeros((n, d), dtype=torch.float32, device=dev)
+            dq3, dk3, dv3 = _attn_nki_bwd(q3, k3, v3, g3, mask, scale,
+                                          dq3, dk3, dv3, dk_buf, dv_buf, t, d)
+            return (dq3.view(b, h, t, d), dk3.view(b, h, t, d),
+                    dv3.view(b, h, t, d), None)
+
     _HAS_NKI = True
 except Exception:  # nki unavailable (e.g. CPU/GPU dev box) — eager path still works
     _HAS_NKI = False
@@ -2158,6 +2487,24 @@ USE_NKI_SOFTCAP_CE = True
 # in research/experiment-log.jsonl and the "Muon's elementwise wrapper ops in NKI"
 # section of research/trn2-experiment-results.md.
 USE_NKI_MUON = True
+# Toggled by the --nki-attn flag in main(). Default OFF: fused causal SDPA
+# (research/scratch/nki_attn_fwd.py + nki_attn_bwd.py, hw-validated
+# 2026-09-17 -- fp32 ~1e-6, bf16 fwd format floor, bwd dQ/dK ~4e-4) for q/k/v.
+USE_NKI_ATTN = False
+# Pure-torch helper, intentionally outside the nki try-block so CPU imports
+# (and this file's scratch equiv test) can reach it without a device.
+_NKI_ATTN_MASK_CACHE: dict = {}
+
+
+def _attn_nki_mask(t, device, dtype):
+    """[T, T] causal mask (1.0 keep / 0.0 drop), cached per (T, device, dtype)."""
+    key = (t, str(device), str(dtype))
+    m = _NKI_ATTN_MASK_CACHE.get(key)
+    if m is None:
+        keep = torch.arange(t).unsqueeze(1) >= torch.arange(t).unsqueeze(0)
+        m = torch.where(keep, torch.tensor(1.0), torch.tensor(0.0)).to(dtype).to(device)
+        _NKI_ATTN_MASK_CACHE[key] = m
+    return m
 
 
 def softcap_cross_entropy(logits: torch.Tensor, targets: torch.Tensor,
@@ -2436,6 +2783,27 @@ def rope_norm(x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor) -> torch.Te
     return norm(apply_rotary_emb(x, cos, sin))
 
 
+@torch._dynamo.disable
+def nki_attention(q: torch.Tensor, k: torch.Tensor, v: torch.Tensor,
+                  scale: float | None) -> torch.Tensor:
+    """Causal SDPA on post-rope [B, H, T, D] q/k/v. With --nki-attn on Neuron
+    hardware (and only when the validated kernel geometry holds: bf16/fp32,
+    head dim 128, T a multiple of 512, q/k/v same shape), runs the fused NKI
+    fwd/bwd pair; otherwise the original eager SDPA line verbatim, so the
+    knob is always safe to flip.
+    Dynamo is disabled around this node on purpose: tracing through the
+    functorch autograd.Function wrapper poisoned a neighboring (rope)
+    kernel's lowering (take-2 crash). Opaque node, kernels still on device.
+    """
+    if (USE_NKI_ATTN and _HAS_NKI and q.device.type == "neuron" and q.ndim == 4
+            and q.shape == k.shape == v.shape
+            and q.dtype in (torch.bfloat16, torch.float32)
+            and q.shape[-1] == 128 and q.shape[2] % 512 == 0):
+        s = 1.0 / math.sqrt(q.shape[-1]) if scale is None else float(scale)
+        return _AttnNKI.apply(q, k, v, s)
+    return F.scaled_dot_product_attention(q, k, v, is_causal=True, scale=scale)
+
+
 class CausalSelfAttention(nn.Module):
     def __init__(self, config: GPTConfig, layer_idx: int = 0, coalesced: str = "none"):
         super().__init__()
@@ -2562,7 +2930,7 @@ class CausalSelfAttention(nn.Module):
         k = k.transpose(1, 2)
         v = v.transpose(1, 2)
         if attn_mask is None:
-            y = F.scaled_dot_product_attention(q, k, v, is_causal=True, scale=self.attn_scale)
+            y = nki_attention(q, k, v, self.attn_scale)
         else:
             y = F.scaled_dot_product_attention(q, k, v, attn_mask=attn_mask[..., :t, :t], scale=self.attn_scale)
         y = y.transpose(1, 2).contiguous().view(b, t, c)
@@ -5046,6 +5414,10 @@ def main() -> None:
                              "(research/scratch/muon_nki_equiv.py: 0 differing elements). Real paired 900s "
                              "A/B: 1019 steps/1.089758 vs 1004/1.090677 -- pass --no-nki-muon for the plain "
                              "eager comparison path.")
+    parser.add_argument("--nki-attn", action="store_true",
+                        default=os.environ.get("NEURON_COMPETITION_R1_NKI_ATTN", "0") != "0",
+                        help="run causal SDPA through the fused NKI fwd/bwd pair (Neuron only). "
+                             "Default OFF.")
     parser.add_argument("--muon-lr-fp32", action=argparse.BooleanOptionalAction,
                         # literal default, like --nki-muon above: this function rebinds
                         # USE_MUON_LR_FP32 as a global, so it cannot also read it here.
@@ -5611,7 +5983,7 @@ def main() -> None:
                      "standing to accumulate. (--grad-bucket is also a known hang on this hardware; "
                      "see trn2-experiment-results.md.)")
 
-    global USE_NKI_RELU2, USE_NKI_ROPE_NORM, USE_NKI_SOFTCAP_CE, USE_NKI_MUON, USE_MUON_LR_FP32
+    global USE_NKI_RELU2, USE_NKI_ROPE_NORM, USE_NKI_SOFTCAP_CE, USE_NKI_MUON, USE_MUON_LR_FP32, USE_NKI_ATTN
     global LOSS_BYTE_WEIGHT, BYTE_LOSS_W
     # (USE_COMPILE_MUON's `global` is at the top of main(); see the note there.)
     # T0.4/T1.4 resweep knobs (see the _hp block above; declared global at the top of main()).
@@ -5816,6 +6188,7 @@ def main() -> None:
     USE_NKI_SOFTCAP_CE = args.nki_softcap_ce
     LOSS_BYTE_WEIGHT = args.byte_loss_weight
     USE_NKI_MUON = args.nki_muon
+    USE_NKI_ATTN = args.nki_attn
     USE_MUON_LR_FP32 = args.muon_lr_fp32
     USE_TRANSPOSED_LINEAR = args.transposed_linear
     USE_COMPILE_MUON = args.compile_muon
