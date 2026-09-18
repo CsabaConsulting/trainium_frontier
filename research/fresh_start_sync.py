@@ -42,13 +42,13 @@ def identity(row):
                  ("label", "timestamp", "hostname", "git_commit", "launch_command"))
 
 
-def sync_once(remote=REMOTE, prefix="fs-"):
+def sync_once(remote=REMOTE, prefix="fs-", hosts=None):
     incoming = ROOT / "out" / "fresh-start-sync"
     incoming.mkdir(parents=True, exist_ok=True)
     index = ROOT / "research" / "experiment-log.jsonl"
     count = 0
     failures = []
-    for label, host in HOSTS.items():
+    for label, host in (HOSTS if hosts is None else hosts).items():
         try:
             subprocess.run(
                 ["rsync", "-az", "--timeout=45", "-e", " ".join(SSH),
@@ -86,11 +86,14 @@ def main():
                         help="immutable remote checkout to retrieve")
     parser.add_argument("--prefix", default="fs-",
                         help="labels owned by this checkout; use a new prefix each wave")
+    parser.add_argument("--host", action="append", choices=tuple(HOSTS), default=None,
+                        help="retrieve only these hosts; repeatable, defaults to both")
     args = parser.parse_args()
     if args.rounds < 1 or args.interval < 1:
         parser.error("rounds and interval must be positive")
+    selected = {key: HOSTS[key] for key in args.host} if args.host else HOSTS
     for round_number in range(args.rounds):
-        sync_once(args.remote, args.prefix)
+        sync_once(args.remote, args.prefix, selected)
         if round_number + 1 < args.rounds:
             time.sleep(min(args.interval, 60))
 

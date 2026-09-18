@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from pathlib import Path
 import statistics
 import time
 
@@ -150,12 +151,14 @@ def accumulation_error(actual, a, b, inverse=1.0):
     return dict(elements=actual.numel(), finite=bool(torch.isfinite(actual).all()),
                 failures=int((error > bound).sum()), max_absolute_error=float(error.max()),
                 max_error_over_bound=float((error / bound.clamp_min(1e-300)).max()),
-                relative_rms=relative_rms(actual, reference), gamma_k=gamma_k,
+                relative_rms=float(error.square().mean().sqrt()
+                                   / reference.square().mean().sqrt().clamp_min(1e-300)),
+                gamma_k=gamma_k,
                 reference_dtype="float64", output_dtype=str(actual.dtype))
 
 
 def run_case(fp8, bf16, roundtrip, shape, steps, diagnostic_only=False,
-             check_accumulation=False):
+             check_accumulation=False, save_diagnostic_dir=None):
     m, k, n = shape
     torch.manual_seed(17 + k)
     a = (torch.randn(m, k) * 0.5).bfloat16()
@@ -213,6 +216,13 @@ def run_case(fp8, bf16, roundtrip, shape, steps, diagnostic_only=False,
                               fp8_bf16_output_equals_rounded_fp32=int((y8 == y8_float.bfloat16()).sum()),
                               bf16_output_equals_rounded_fp32=int((y16 == y16_float.bfloat16()).sum()),
                               elements=y8.numel())), flush=True)
+        if save_diagnostic_dir:
+            destination = save_diagnostic_dir / ("x".join(map(str, shape)) + ".pt")
+            torch.save(dict(a=a, b=b, aq=aq, bq=bq, y8=y8, y16=y16,
+                            y8_float=y8_float, y16_float=y16_float,
+                            scale_a=sa, scale_b=sb, lanes=lanes), destination)
+            print(json.dumps(dict(check="fp8_diagnostic_saved", path=str(destination),
+                                  bytes=destination.stat().st_size)), flush=True)
         if not diagnostic_only:
             assert fp8_error["finite"] and fp8_error["failures"] == 0
             assert bf16_error["finite"] and bf16_error["failures"] == 0
@@ -256,19 +266,26 @@ def main():
     parser.add_argument("--check-accumulation", action="store_true",
                         help="Also return FP32 outputs and compare with FP64 dot products "
                              "using a declared FP32 accumulation error bound")
+    parser.add_argument("--save-diagnostic-dir", type=Path,
+                        help="Save CPU operands and measured outputs for independent offline "
+                             "analysis; requires --check-accumulation and a new directory")
     parser.add_argument("--diagnostic-only", action="store_true",
                         help="Characterize rounding/accumulation on every shape without "
                              "claiming correctness or running performance benchmarks")
     args = parser.parse_args()
+    if args.save_diagnostic_dir:
+        if not args.check_accumulation:
+            parser.error("--save-diagnostic-dir requires --check-accumulation")
+        args.save_diagnostic_dir.mkdir(parents=True, exist_ok=False)
     torch.set_num_threads(2)
     import torch_neuronx  # noqa: F401
     fp8, bf16, roundtrip = build_kernels()
     for shape in ((128, 256, 128), (256, 768, 512)):
         run_case(fp8, bf16, roundtrip, shape, args.steps, args.diagnostic_only,
-                 args.check_accumulation)
+                 args.check_accumulation, args.save_diagnostic_dir)
     if args.large:
         run_case(fp8, bf16, roundtrip, (8192, 768, 512), args.steps, args.diagnostic_only,
-                 args.check_accumulation)
+                 args.check_accumulation, args.save_diagnostic_dir)
     print("COMPLETED: FP8 characterization only; numerical gate still required" if args.diagnostic_only
           else "PASS: native FP8 primitive probes completed", flush=True)
 
