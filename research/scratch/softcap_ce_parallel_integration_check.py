@@ -40,6 +40,9 @@ def main():
     args = parser.parse_args()
     import torch_neuronx
     torch.set_num_threads(4)
+    # This gate intentionally compiles six static shapes and two reductions.
+    # Raising the diagnostic specialization cap does not enable graph fallback.
+    torch._dynamo.config.recompile_limit = 32
     assert not T.LOSS_BYTE_WEIGHT and T.LOGIT_SOFTCAP == 15.0
     native = native_loss_factory(T._softcap_ce_fwd, T._softcap_ce_bwd)
     before_rng = torch.get_rng_state().clone()

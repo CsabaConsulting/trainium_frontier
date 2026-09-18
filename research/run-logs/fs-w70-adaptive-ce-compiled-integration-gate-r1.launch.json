@@ -1,0 +1,46 @@
+{
+  "host": "trn21",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave70",
+  "expected_commit": "785c294e4ef70b222915a7d464df2cbc1ba08a56",
+  "label": "fs-w70-adaptive-ce-compiled-integration-gate-r1",
+  "purpose": "Gate installed public CE/autograd interface against captured original primitives in eager and fullgraph compiled mode, all declared shapes and stress cases, mean/none reductions and arbitrary upstream gradients. Require exact loss and logits-gradient agreement before full-model timing.",
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1",
+    "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+    "NEURON_RT_VISIBLE_CORES": "0"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1500s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "/home/ubuntu/trainium_freshstart_20260918_wave70/research/scratch/softcap_ce_parallel_integration_check.py",
+    "--real-shape"
+  ],
+  "fingerprint_paths": [
+    "research/scratch/softcap_ce_parallel_integration_check.py",
+    "research/scratch/softcap_ce_parallel_integration.py",
+    "research/scratch/softcap_ce_parallel_nki.py",
+    "train.py"
+  ],
+  "started_at": "2026-09-18T23:11:46.249999+00:00",
+  "hostname": "ip-172-31-34-85",
+  "git_commit": "785c294e4ef70b222915a7d464df2cbc1ba08a56",
+  "source_dirty": false,
+  "preflight_free_bytes": 25674002432,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+    "research/fresh_start_host.py": "8c597adea7c48114bed8f50aa161fdc79b36b49c86c7315e6a58c3ca4e8f5f79",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/fresh_start_backup.py": "c978fd20b6620d0d80c25f8982974e8c4b2ad009edd9da376d784f5cecc3ead3",
+    "research/scratch/softcap_ce_parallel_integration_check.py": "c44538d600a8603f4fb698560f75bf00973fcf3939cc84c840825b63c8b84668",
+    "research/scratch/softcap_ce_parallel_integration.py": "b76edf10c434cb345ffafe9361b8f15371ec7f3b06ee07366694c4f694479e70",
+    "research/scratch/softcap_ce_parallel_nki.py": "11e7a9797f889530b1efc5c4e50f9383119f3a357d2a04815a3d950ea4f876df"
+  }
+}

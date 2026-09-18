@@ -4,38 +4,34 @@ This ledger separates full training, standalone evaluation, numerical tests and
 microbenchmarks. A successful process is not automatically a promoted model.
 Public diagnostics do not establish a private competition score.
 
-**Current larger public result, 22:28 UTC:** **0.9974687136975224 BPB**, from the
-native-forward/custom-backward MLP with T1024/pack16 and original fused AdamW,
-dense6×1024, no hashed n-grams,
-NKI causal convolution, BF16 branch normalization and clipping after gradient
-averaging. The 30-minute run completed 3,282 updates and 430.2M target
-presentations. Its matched evaluation uses 20,971,520 tokens, B1/T1024 and
-83,462,186 bytes, versus1.0010172426032236 for the prior3,183-update model and
-1.0015512989000874 for the3,005-update model. The checkpoint is local and
-GitHub-digest-verified. This is sub1.0 on the larger public diagnostic, not a
-private-leaderboard score. The predeclared seed43 variability
-check finished worse; no seed sweep is active.
+**Current larger public result,23:10UTC:** **0.9973302213667847 BPB** from
+3377updates/442.6Mtargets,1784.8training seconds/1785.2charged estimate.
+Dense6x1024,117453580parameters, no n-grams, BF16 branch normalization, NKI causal
+conv, native-forward/custom-backward MLP, T2048/pack8/GA2, padded exact optimizer
+ownership, seed42, clip after averaging. Matched public evaluation uses
+20,971,520tokens,83,462,186bytes,57,697,128nats, world1/B1/T1024/O1 without global
+autocast. This is public evidence, not a private-leaderboard score.
 
-Padded optimizer ownership passes exact native optimizer/cache/restore gates
-and saves5.06245% of the matched whole step (526.783 versus554.873ms). Its
-30-minute quality run is active on trn21. T1024/pack16 with original fused FP32
-AdamW saves3.24837% (540.481 versus558.627ms); its quality run and larger
-evaluation have now completed cleanly on trn22.
-Both retain seed42 and131072globaltargets/update. New arithmetic approximations
-are separate: reciprocal refinement passes34 numerical checks and saves16.77%
-of the fused AdamW component; polynomial exp is correct but3.57–4.19times
-slower. No new approximation has entered either full training run.
+Training `fs-w65-dense1024-native-mlp-pack8-owned-1800-r1` and larger evaluation
+`fs-w65-eval-owned-pack8-s1024-20m-o1-r1` are clean. The469834849B checkpoint is
+local and cloud-digest-verified, SHA256
+`a8a2c91e1886681d03996f7930710c944d1b0fd71e7c6a7936f35bd343745743`.
+Previous T1024/pack16 plus original fused AdamW scored0.9974687136975224 after
+3282updates/430.2Mtargets. Its checkpoint is also local/cloud verified. Earlier
+native pack8 scored1.0010172426032236 after3183updates. No seed sweep or new
+math approximation is involved in these results. The different geometry and
+optimizer combinations do not isolate either factor's quality effect.
 
-Latest evidence: training `fs-w63-dense1024-native-mlp-context1024-pack16-adam-1800-r1`,
-source18b416d,1784.6training seconds/1784.9charged estimate,474.6startup allowance,
-2257.2total, exact causality, small public0.992175/world4. Larger evaluation
-`fs-w66-eval-context1024-pack16-adam-s1024-20m-o1-r1`, sourcea1625d9,705.573659s,
-57,705,140nats, protected scorer/world1/B1/T1024/O1 with no global autocast.
-The checkpoint SHA256 is
-`9eabd33e6925052091f0238629f9192096c42f1310cf3127286898621932cd27`.
-Both postflights are clean. The combination changes sequence context and
-optimizer execution together; the BPB gain is not attributed to either alone.
-See the [kernel queue](fresh-start-kernel-queue-2026-09-18.md) for active probes.
+The latest T1024/pack16+ownership phase passes all four model checks at
+515.473750ms versus528.353028ms owned control:2.4376%, below the3% advancement
+gate. Adaptive CE/gather now passes exact component gates at5.679065 versus
+12.339531ms FW+BW; compiled-autograd integration and full-step timing follow.
+FP8 storage with BF16 math passes explicit FP64 backward bounds and exact
+paired NKI storage checks, but loses component timing17.898402 versus
+14.989582ms. Full FP8 arithmetic remains a separate queued design. Reciprocal
+refinement passed optimizer integration; stronger rsqrt corrections and
+standalone exponential polynomials passed accuracy but lost timing.
+See the [kernel queue](fresh-start-kernel-queue-2026-09-18.md) for live stages.
 
 ## First completed training wave
 

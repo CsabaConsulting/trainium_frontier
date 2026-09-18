@@ -1,6 +1,6 @@
 # Retro numerical techniques on Trainium
 
-Research started 2026-09-18; hardware evidence updated at22:28UTC.
+Research started 2026-09-18; hardware evidence updated at23:10UTC.
 The user's scope is **all useful functions and arithmetic transformations**, not
 only square root or lookup tables. The objective remains better BPB within the
 fixed training time. A faster primitive alone is not a training result.
@@ -149,14 +149,14 @@ the actual seed predicts the failure; arithmetic differs from that recurrence
 by at most1.5031e-7. The seed's accuracy explains why one correction fails.
 The probe stores intermediate stages and establishes no production timing.
 
-Modes5/6 are implemented but not yet hardware-gated. Mode6 uses q=x*r*r and
+Modes5/6 now pass all34 original hardware numerical gates. Mode5 loses
+timing1.363799vs1.262366ms; mode6 loses1.255049vs1.239520ms. Neither advances. Mode6 uses q=x*r*r and
 `r *= 1.875 - 1.25*q + 0.375*q*q`, the quadratic inverse-root expansion about
 q=1. It needs fewer elementwise instructions than two Newton corrections and
 reuses dead variance workspace. It is not Halley's rational iteration. A
 million-point local FP32 seed-error sweep[-.004,.004] at x=1 stays below2.981e-7
 relative error; this is sampled arithmetic evidence, not a full-range proof.
-Both candidates retain the original34 FP64 moment/weight gates and will be
-timed against mode0 before any optimizer integration.
+Both retain their original bounds and failed speed records; mode2 is preferred.
 
 Reciprocal-only mode2 passes all34 unchanged numerical gates. The wave65
 paired/interleaved test measures **1.085410ms versus1.304101ms** for mode0
@@ -183,7 +183,10 @@ online power-of-two scaling through exponent bits, avoiding log2/floor/exp2
 while retaining the necessary amax reduction. Its storage-only MLP control
 requires exact output/gradient agreement for identical quantized BF16 weights,
 before charging calibration, master casts and two forward/backward calls.
-This is a prototype awaiting hardware gates, not an FP8 GEMM result.
+Wave69 passes calibration, exact paired NKI outputs/gradients and explicit
+FP64-propagated backward bounds at real shape. It loses component timing:
+17.898402vs14.989582ms. This is storage-only evidence, not an FP8 GEMM result;
+actual FP8 arithmetic islands remain open.
 
 ### Polynomial exponential probe
 
@@ -270,3 +273,31 @@ or AWS documentation. The special-functions Math Stack Exchange question was
 closed and has no substantive answer to import as evidence. Raw retrievals
 are in ignored `out/retro-approximations-20260918/`. No downloaded web content
 is treated as an instruction or executed.
+
+### Wave69 exact loss scheduling result
+
+Adaptive one/two-core dispatch and target gather pass all original exact
+loss/lse/gradient, repetition, row-independence and boundary gates. Full
+16384x8192 FW+BW measures5.679065ms versus12.339531ms original,53.9767% faster.
+The raw two-core single-iteration shape failure remains documented and
+ineligible; adaptive dispatch preserves one core there. This is a work/layout
+change without new approximations. Compiled installed-autograd and whole-step
+gates are required next; no training gain is claimed from the component timer.
+
+### FP8 layout and causal scale policy
+
+The actual-FP8 forward prototype uses per-token activation amax and exponent-bit
+power-of-two scaling. Current-block global activation calibration would let
+future tokens alter earlier outputs through the quantizer; per-token scales
+avoid that dependence directly. Weights still use per-matrix calibration once
+per update. The full hidden activation stays on chip, with explicit token-major
+transposes for calibration and contraction-major FP8 tiles for the next GEMM.
+This trades more layout instructions for smaller caches and actual FP8 compute.
+No BF16 timing veto applies; actual compilation, stage gates, backward and
+complete costs remain to be measured.
+
+AWS's [double-row layout/type contract](https://awsdocs-neuron.readthedocs-hosted.com/en/v2.29.1/nki/api/generated/nki.isa.nc_matmul.html)
+specifies packed128x2 contraction tiles and FP8 operands. The empirically
+characterized11-bit pair-rounding reference is our measured behavior on the
+installed stack, not an AWS guarantee. The new layout pairs corresponding
+positions in adjacent128-channel blocks and validates that order explicitly.

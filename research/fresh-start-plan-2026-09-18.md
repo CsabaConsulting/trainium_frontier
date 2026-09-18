@@ -1,16 +1,22 @@
 # Fresh-start campaign — 2026-09-18
 
-**Current status,22:30UTC:** larger public BPB **0.9974687136975224** after
-3282updates/430.2Mtargets in1784.6training seconds. Dense6x1024, no n-grams,
-native-forward/custom-backward MLP, T1024/pack16, original fused AdamW and seed42.
-Matched20.97M/T1024/O1 scoring and clean postflight; checkpoint local/cloud verified.
-The target remains roughly0.9749; this does not establish a private score.
-Optimizer ownership's full run remains active on trn21. Reciprocal integration
-passes; rsqrt seed root cause is measured. Next device work is stronger rsqrt
-corrections and online FP8 cache calibration/storage controls. The loss two-core
-probe needs small-shape precision diagnosis before advancement. See the current
-[kernel queue](fresh-start-kernel-queue-2026-09-18.md) and `RESUME.md` for commands.
-All32 heavy artifacts are verified in GitHub; the source/WIP cron remains active.
+**Current evidence,2026-09-18 23:10UTC:** larger public BPB
+**0.9973302213667847** after3377updates with exact padded optimizer ownership,
+T2048/pack8 and native-forward/custom-backward MLP, no n-grams or seed search.
+Matched20.97M/T1024/O1 evaluation is clean; checkpoint local/cloud verified.
+The prior short-context/fused-Adam combination scored0.9974687136975224.
+The competitive target remains roughly0.9749; private validation still differs.
+
+Adaptive CE/gather passes exact component gates and saves53.98%; installed
+compiled-autograd and full-model gates are next. Short-context+ownership alone
+saves2.44%, below3%, so combine the gated loss change before new full training.
+FP8 storage/BF16 math passes explicit numerical gates but loses component
+speed. Actual FP8 forward/backward islands remain distinct candidates, including
+layouts that lost in BF16. Rsqrt modes5/6 now pass accuracy but lose timing;
+reciprocal mode2 passes integrated gates. Compact joint-function tables pass
+CPU finite-domain bounds; device tests are pending. All33 heavy artifacts are
+GitHub-digest-verified. Current commands and decisions are in `RESUME.md` and
+the [kernel queue](fresh-start-kernel-queue-2026-09-18.md).
 
 **Earlier status, 21:59 UTC.** Minimize official30-minute BPB on a full Trainium2
 chip. Working competitive target approximately0.9749; best larger public check
