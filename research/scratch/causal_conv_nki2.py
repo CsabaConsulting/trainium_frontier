@@ -85,8 +85,11 @@ def _bwd_tile(x, grad, dx, partials, prev_w, curr_w, ones,
     else:
         nisa.dma_copy(dst=xp, src=x[batch, start - 1:start + 127, :])
     if last:
-        nisa.dma_copy(dst=gn[0:127, :], src=grad[batch, start + 1:length, :])
+        # Initialize the boundary before its partial DMA, matching the established
+        # local convolution prototype. DMA-then-memset failed SBUF allocation in
+        # this backward even for a single FP32 tile on the installed compiler.
         nisa.memset(dst=gn[127:128, :], value=0.0)
+        nisa.dma_copy(dst=gn[0:127, :], src=grad[batch, start + 1:length, :])
     else:
         nisa.dma_copy(dst=gn, src=grad[batch, start + 1:start + 129, :])
     acc = nl.ndarray((128, channels), dtype=nl.float32, buffer=nl.sbuf)
