@@ -1,0 +1,39 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave65",
+    "expected_commit": "5dcbf6aad2840d96b4620710d8542217b67e0f63",
+    "label": "fs-w65-adamw-refined-reciprocal-paired-gate-r1",
+    "purpose": "Same34 numerical gates for reciprocal-only mode2, now with explicit interleaved NKI mode0 functional timing on the same host/process. This resolves whether a real benefit remains relative to the already fused implementation. Do not compare the native foreach speedup to the original fused NKI kernel.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1500s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "/home/ubuntu/trainium_freshstart_20260918_wave65/research/scratch/adamw_fused_fp32_probe.py",
+      "--real-shape",
+      "--steps",
+      "30",
+      "--math-mode",
+      "2"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/adamw_fused_fp32.py",
+      "research/scratch/adamw_fused_fp32_probe.py",
+      "research/scratch/mlp_fused_bf16_probe.py"
+    ]
+  },
+  "requested_at": "2026-09-18T21:49:17.070879+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w65-adamw-refined-reciprocal-paired-gate-r1\", \"pid\": 1109319, \"commit\": \"5dcbf6aad2840d96b4620710d8542217b67e0f63\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave65/research/run-logs/fs-w65-adamw-refined-reciprocal-paired-gate-r1.log\", \"started_at\": \"2026-09-18T21:49:23.357280+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

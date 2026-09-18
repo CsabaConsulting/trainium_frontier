@@ -1,0 +1,52 @@
+{
+  "label": "fs-w65-adamw-scaled-rsqrt-newton-gate-r1",
+  "passed": false,
+  "math_mode": 4,
+  "enforced_failure": {
+    "name": "nki_functional:256:128:large",
+    "enforced": true,
+    "passed": false,
+    "results": [
+      {
+        "field": "weight",
+        "finite": true,
+        "bound_failures": 12,
+        "relative_rms": 4.277197442396526e-07,
+        "max_abs": 3.9877394469867156e-07,
+        "passed": false,
+        "worst_bound": {
+          "flat_index": 2893,
+          "actual": 0.009996308945119381,
+          "expected": 0.00999619869425523,
+          "error": 1.102508641517147e-07,
+          "bound": 8.050585472818686e-08,
+          "envelope": 0.010552043264469227,
+          "inputs": {
+            "p": -0.0002779778733383864,
+            "g": -1194.599609375,
+            "m": -610.6392211914062,
+            "v": 1034481.4375
+          }
+        }
+      },
+      {
+        "field": "first_moment",
+        "finite": true,
+        "bound_failures": 0,
+        "relative_rms": 3.482085582424503e-08,
+        "max_abs": 0.0002292990807291062,
+        "passed": true
+      },
+      {
+        "field": "second_moment",
+        "finite": true,
+        "bound_failures": 0,
+        "relative_rms": 2.6795572942940353e-08,
+        "max_abs": 0.7975227646529675,
+        "passed": true
+      }
+    ]
+  },
+  "postflight_clean": true,
+  "decision": "Retain failure; diagnose raw scaled-rsqrt seed accuracy and refinement residuals. One Newton step did not meet the unchanged weight bound on12 large-gradient elements. Reciprocal-only mode2 independently passed the same input cases."
+}

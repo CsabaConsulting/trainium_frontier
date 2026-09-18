@@ -148,6 +148,8 @@ def benchmark(kernel, compiled, rows, cols, steps, compiled_eligible, math_mode=
 
     arms = {"actual_foreach": foreach}
     candidates = ["nki_functional", "nki_inplace"]
+    if math_mode:
+        candidates.insert(0, "nki_control_functional")
     if compiled_eligible:
         candidates.insert(0, "compiled")
     for name in candidates:
@@ -167,7 +169,8 @@ def benchmark(kernel, compiled, rows, cols, steps, compiled_eligible, math_mode=
                 if arm == "compiled":
                     new = compiled(*tensors, device)
                 else:
-                    new = kernel[2](*tensors, device, 2, arm == "nki_inplace", math_mode)
+                    mode = 0 if arm == "nki_control_functional" else math_mode
+                    new = kernel[2](*tensors, device, 2, arm == "nki_inplace", mode)
                 if arm != "nki_inplace":
                     tensors[0].copy_(new[0])
                     tensors[2], tensors[3] = new[1], new[2]
@@ -187,7 +190,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--real-shape", action="store_true")
     ap.add_argument("--steps", type=int, default=20)
-    ap.add_argument("--math-mode", type=int, choices=(0, 1, 2, 3), default=0)
+    ap.add_argument("--math-mode", type=int, choices=(0, 1, 2, 3, 4), default=0)
     args = ap.parse_args()
     print("ADAMW_FP32_MATH_MODE " + json.dumps(dict(math_mode=args.math_mode)), flush=True)
     import torch_neuronx
