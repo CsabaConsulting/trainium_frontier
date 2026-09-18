@@ -14,6 +14,7 @@ from pathlib import Path
 import re
 import subprocess
 import tarfile
+import time
 
 from fresh_start_backup import ROOT, atomic_json, desktop_keyring_environment, now
 
@@ -177,16 +178,26 @@ def release(config):
         gh('release','create',config['tag'],'--repo',config['repository'],'--draft',
            '--target',config['target_branch'],'--title','Trainium research recovery — 2026-09-18',
            '--notes-file',str(ROOT/'research/artifact-backup-release-notes.md'))
-        rows = json.loads(gh('api',endpoint+'?per_page=100'))
-        matches = [r for r in rows if r['tag_name'] == config['tag']]
+        # Creation can precede visibility in the release-list API by a moment.
+        for attempt in range(5):
+            rows = json.loads(gh('api',endpoint+'?per_page=100'))
+            matches = [r for r in rows if r['tag_name'] == config['tag']]
+            if matches:
+                break
+            time.sleep(2)
     assert len(matches) == 1 and matches[0]['draft'], 'Expected one draft backup release'
     return matches[0]
 
 
 def assets(config, release_id):
-    pages = json.loads(gh('api',f"repos/{config['repository']}/releases/{release_id}/assets?per_page=100",
-                         '--paginate','--slurp'))
-    return {item['name']:item for page in pages for item in page}
+    # The installed gh predates --slurp; explicit REST pagination works on it.
+    result = {}
+    for page in range(1, 12):
+        items = json.loads(gh('api',f"repos/{config['repository']}/releases/{release_id}/assets?per_page=100&page={page}"))
+        result.update({item['name']:item for item in items})
+        if len(items) < 100:
+            return result
+    raise RuntimeError('Release asset pagination exceeded the documented limit')
 
 
 def upload(config, rel, folder, manifest):
