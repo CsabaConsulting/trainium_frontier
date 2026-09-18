@@ -673,6 +673,7 @@ def main():
             integrated_bf16_sdpa_input=T.USE_BF16_SDPA_INPUT,
             segmented_dma_embedding=args.segmented_dma_embedding,
             nki_branch_norm=args.nki_branch_norm,
+            adaptive_nki_ce=args.adaptive_nki_ce,
             nki_adamw_fp32=args.nki_adamw_fp32,
             nki_adamw_parameter_updates=getattr(optimizer, "_fresh_start_adamw_calls", 0),
             optimizer_ownership=args.optimizer_ownership,

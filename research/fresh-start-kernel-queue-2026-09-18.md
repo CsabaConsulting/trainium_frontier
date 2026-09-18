@@ -137,3 +137,12 @@ registers its undecorated helper names in module globals; the same forward
 gates will be rerun on a new immutable source. No tolerance changes. The STE
 BF16 backward and independent FP64 surrogate-reference/bounds helper are written,
 but hardware backward gating and complete timing remain outstanding.
+
+Wave72 resolves helper lookup and reaches backend compilation. The first FP8
+transpose reports that its PSUM output must have element step2. The next source
+allocates128x256 FP8 temporary storage and views every second element as the
+logical128x128 transpose, then compacts into SBUF. Numerical gates are unchanged.
+The BF16 STE backward/full-component driver is prepared, but dispatch waits
+for the small forward-stage gate. It includes FP32 master gradients, two
+microbatch accumulation and all calibration/cast/save costs; no full-FP8
+backward, optimizer, collectives or whole-model timing is claimed.

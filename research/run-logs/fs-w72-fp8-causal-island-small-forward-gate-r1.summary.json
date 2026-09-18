@@ -1,0 +1,13 @@
+{
+  "label": "fs-w72-fp8-causal-island-small-forward-gate-r1",
+  "source_commit": "1baa9cdae8c15c804fabe2c1c913425c95747409",
+  "command_returncode": 1,
+  "host_clean": true,
+  "completed_at": "2026-09-18T23:22:49.248576+00:00",
+  "calibration_checks_passed": 12,
+  "stage": "backend compilation of first FP8 transpose",
+  "error": "FP8 transpose mode must have output element step of2",
+  "diagnosis": "The compact FP8 PSUM transpose destination has step1; this installed NC-v3 backend requires step2. Helper resolution has progressed successfully.",
+  "change": "Allocate128x256 FP8 PSUM, write/read the logical128x128 view with free stride2, compact initialized entries into FP8 SBUF. No new arithmetic and no tolerance change.",
+  "next": "Rerun same small forward gate on immutable source; then full FP8-forward/BF16-backward component gate."
+}

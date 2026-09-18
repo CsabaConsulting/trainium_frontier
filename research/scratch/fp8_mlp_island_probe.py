@@ -68,9 +68,8 @@ def pair_gate(name, actual, left, right, inverse_rows, inverse_weight, full):
     assert record["passed"], record
 
 
-def run_case(shape, case, kernel, calibrate, quantize):
+def make_inputs(shape, case):
     tokens, channels, hidden = shape
-    tile = min(512, tokens // 2)
     generator = torch.Generator().manual_seed(8107 + channels + tokens)
     x = torch.randn(tokens, channels, generator=generator).bfloat16()
     up = (torch.randn(hidden, channels, generator=generator) / channels**.5).bfloat16()
@@ -90,6 +89,13 @@ def run_case(shape, case, kernel, calibrate, quantize):
     elif case == "token_scale_range":
         exponents = torch.linspace(-30, 30, tokens).round().int()
         x = torch.ldexp(x.float(), exponents[:, None]).bfloat16()
+    return x, up, down
+
+
+def run_case(shape, case, kernel, calibrate, quantize):
+    tokens, channels, hidden = shape
+    tile = min(512, tokens // 2)
+    x, up, down = make_inputs(shape, case)
     meta_up, uq = calibration_gate(case + ':up', up, calibrate, quantize)
     meta_down, dq = calibration_gate(case + ':down', down, calibrate, quantize)
     inputs = x.to("neuron"), uq, dq, meta_up, meta_down

@@ -1,0 +1,40 @@
+[W918 23:22:34.855405396 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+FP8_ISLAND_CONTRACT {"pair_significand_bits": 11, "accumulation_bound": "FP32 gamma_(K/2)", "diagnostic_intermediates": true, "backward_gated": false, "timing_allowed": false, "activation_scales": "per-token, same-row channels only", "weight_scales": "per-matrix online calibration charged once per update", "accuracy_gate_is_not_a_quality_gate": true}
+FP8_CACHE_EXACT_GATE {"name": "random:up:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:up:quantized", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:up:metadata_repeat", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:up:quantized_repeat", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:up:input_unchanged", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:up:idempotent", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_CALIBRATION {"name": "random:up", "shape": [512, 256], "maximum": 0.28515625, "scale": 256.0, "scaled_maximum": 73.0, "online_calibration": true, "all_gates_passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:down:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:down:quantized", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:down:metadata_repeat", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:down:quantized_repeat", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:down:input_unchanged", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:down:idempotent", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_CALIBRATION {"name": "random:down", "shape": [256, 512], "maximum": 0.21484375, "scale": 512.0, "scaled_maximum": 110.0, "online_calibration": true, "all_gates_passed": true}
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_freshstart_20260918_wave72/research/scratch/fp8_mlp_island_probe.py", line 165, in <module>
+    main()
+  File "/home/ubuntu/trainium_freshstart_20260918_wave72/research/scratch/fp8_mlp_island_probe.py", line 157, in main
+    run_case((512, 256, 512), case, kernel, calibrate, quantize)
+  File "/home/ubuntu/trainium_freshstart_20260918_wave72/research/scratch/fp8_mlp_island_probe.py", line 96, in run_case
+    outputs = tuple(value.cpu() for value in kernel[2](*inputs, 2, tile, True))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/trainium_freshstart_20260918_wave72/research/scratch/fp8_mlp_island_probe.py", line 96, in <genexpr>
+    outputs = tuple(value.cpu() for value in kernel[2](*inputs, 2, tile, True))
+                    ^^^^^^^^^^^
+RuntimeError: Compilation error occurred on Neuron for operation=nki_kernel_global;
+error message="COMPILATION FAILED: (Matmult: I-68_inst__I-14-0)Source Kernel "fp8_mlp_island_nki.build_kernel.<locals>.forward_lnc0"File "/home/ubuntu/trainium_freshstart_20260918_wave72/research/scratch/fp8_mlp_island_nki.py",line 141 Instruction Matmult I-68_inst__I-14-0: FP8 transpose mode must have output element step of 2 - Please open a support ticket at https://github.com/aws-neuron/aws-neuron-sdk/issues/new. You may also be able to obtain more information using the 'XLA_IR_DEBUG' and 'XLA_HLO_DEBUG' environment variables."
+neff cache key=nki_20_build_kernel.<locals>.forward_faa22e07450f1bc6_(('diagnostic', True), ('lanes', 2), ('token_tile', 256))_[2]_((torch.Size([512, 256]), torch.bfloat16), (torch.Size([512, 256]), torch.bfloat16), (torch.Size([256, 512]), torch.bfloat16), (torch.Size([128, 3]), torch.float32), (torch.Size([128, 3]), torch.float32)):cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433
+Note: Neuron errors are reported asynchronously. The Python traceback shows where the
+error was detected (synchronization point), not necessarily where the failing operation
+was dispatched. For synchronous error reporting, set NEURON_LAUNCH_BLOCKING=1.
+EXPERIMENT_POSTFLIGHT {"label": "fs-w72-fp8-causal-island-small-forward-gate-r1", "returncode": 1, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave72/research/run-logs/fs-w72-fp8-causal-island-small-forward-gate-r1.postflight.json"}
