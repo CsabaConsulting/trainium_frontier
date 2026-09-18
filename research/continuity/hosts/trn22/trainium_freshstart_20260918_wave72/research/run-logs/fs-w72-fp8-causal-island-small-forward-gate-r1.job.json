@@ -1,0 +1,48 @@
+{
+  "host": "trn22",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave72",
+  "expected_commit": "1baa9cdae8c15c804fabe2c1c913425c95747409",
+  "label": "fs-w72-fp8-causal-island-small-forward-gate-r1",
+  "purpose": "Fix NKI helper name resolution only; rerun all unchanged FP8 forward-stage/causality gates after the cleanly terminated frontend failure. First actual FP8 up/down fused MLP: per-token activation scales preserve future-token and cross-row independence, full weights retained as legacy E4M3. Seven small stage cases gate calibration/casts and corresponding128-block double-row FP32 accumulations against independent empirical11-bit pair reference; rounding, zero/outlier/changed weights/range, diagnostic-vs-normal, repeat and row isolation. No backward or training-speed claim.",
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1",
+    "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+    "NEURON_RT_VISIBLE_CORES": "0"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1500s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "/home/ubuntu/trainium_freshstart_20260918_wave72/research/scratch/fp8_mlp_island_probe.py"
+  ],
+  "fingerprint_paths": [
+    "research/scratch/fp8_mlp_island_nki.py",
+    "research/scratch/fp8_mlp_island_probe.py",
+    "research/scratch/fp8_weight_cache_nki.py",
+    "research/scratch/fp8_weight_cache_probe.py",
+    "research/scratch/fresh_start_fp8_probe.py"
+  ],
+  "started_at": "2026-09-18T23:22:32.662936+00:00",
+  "hostname": "ip-172-31-32-253",
+  "git_commit": "1baa9cdae8c15c804fabe2c1c913425c95747409",
+  "source_dirty": false,
+  "preflight_free_bytes": 16720605184,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+    "research/fresh_start_host.py": "8c597adea7c48114bed8f50aa161fdc79b36b49c86c7315e6a58c3ca4e8f5f79",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/fresh_start_backup.py": "c978fd20b6620d0d80c25f8982974e8c4b2ad009edd9da376d784f5cecc3ead3",
+    "research/scratch/fp8_mlp_island_nki.py": "251734e90f671f7a3a72adbb3dcb4e178c2776aa38d0549916b18f1fc3cbacb7",
+    "research/scratch/fp8_mlp_island_probe.py": "dbcf69f23ba66503648097cbb6de72256af6cb26a1920d38d3e7c28edb752662",
+    "research/scratch/fp8_weight_cache_nki.py": "8b75b2ea70f9fd3206f75c27116b00455b4788c179d1a32d5a98a70851d518c7",
+    "research/scratch/fp8_weight_cache_probe.py": "30a35d08366ccada51f5c6d87795bb8b5fd076b3e7f1c6ca18aba398e306a559",
+    "research/scratch/fresh_start_fp8_probe.py": "2235560590e9f3d07d76e1ee3fb4167bee9f59b75110032a6c3ab8b20d7b41e2"
+  }
+}

@@ -1,0 +1,72 @@
+[W918 23:19:36.483295315 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+FP8_ISLAND_CONTRACT {"pair_significand_bits": 11, "accumulation_bound": "FP32 gamma_(K/2)", "diagnostic_intermediates": true, "backward_gated": false, "timing_allowed": false, "activation_scales": "per-token, same-row channels only", "weight_scales": "per-matrix online calibration charged once per update", "accuracy_gate_is_not_a_quality_gate": true}
+FP8_CACHE_EXACT_GATE {"name": "random:up:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:up:quantized", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:up:metadata_repeat", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:up:quantized_repeat", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:up:input_unchanged", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:up:idempotent", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_CALIBRATION {"name": "random:up", "shape": [512, 256], "maximum": 0.28515625, "scale": 256.0, "scaled_maximum": 73.0, "online_calibration": true, "all_gates_passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:down:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:down:quantized", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:down:metadata_repeat", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:down:quantized_repeat", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:down:input_unchanged", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:down:idempotent", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_CALIBRATION {"name": "random:down", "shape": [256, 512], "maximum": 0.21484375, "scale": 512.0, "scaled_maximum": 110.0, "online_calibration": true, "all_gates_passed": true}
+/home/ubuntu/trainium_freshstart_20260918_wave71/research/scratch/fp8_mlp_island_nki.py:128:24: error: unbound variable 'calibrate_rows'
+                meta = calibrate_rows(raw)
+                       ^
+/home/ubuntu/trainium_freshstart_20260918_wave71/research/scratch/fp8_mlp_island_nki.py:63:5: note: when tracing NKI kernel
+    def forward(x, up, down, up_scales, down_scales, lanes: int = 2,
+    ^
+/home/ubuntu/trainium_freshstart_20260918_wave71/research/scratch/fp8_mlp_island_nki.py:128:24: error: unbound variable 'calibrate_rows'
+                meta = calibrate_rows(raw)
+                       ^
+/home/ubuntu/trainium_freshstart_20260918_wave71/research/scratch/fp8_mlp_island_nki.py:63:5: note: when tracing NKI kernel
+    def forward(x, up, down, up_scales, down_scales, lanes: int = 2,
+    ^
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_freshstart_20260918_wave71/research/scratch/fp8_mlp_island_probe.py", line 165, in <module>
+    main()
+  File "/home/ubuntu/trainium_freshstart_20260918_wave71/research/scratch/fp8_mlp_island_probe.py", line 157, in main
+    run_case((512, 256, 512), case, kernel, calibrate, quantize)
+  File "/home/ubuntu/trainium_freshstart_20260918_wave71/research/scratch/fp8_mlp_island_probe.py", line 96, in run_case
+    outputs = tuple(value.cpu() for value in kernel[2](*inputs, 2, tile, True))
+                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_hop.py", line 515, in __call__
+    return _C._nki_dispatch_eager(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py", line 1263, in _fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+RuntimeError: [NkiDispatch] Python lower_func failed for cache_key=nki_call:20:(('diagnostic', True), ('lanes', 2), ('token_tile', 256)):g2|[512,256]:BFloat16:S(C)|[512,256]:BFloat16:S(C)|[256,512]:BFloat16:S(C)|[128,3]:Float:S(C)|[128,3]:Float:S(C): RuntimeError: error: failed to compile NKI kernel:
+Collected 1 different diagnostics:
+- [x2] error: unbound variable 'calibrate_rows'
+
+
+At:
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/compiler/frontend.py(300): _compile
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/compiler/frontend.py(171): compile
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/compiler/driver.py(47): compile_to_bir
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/compiled.py(42): compile_kernel_to_nir
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/compiled.py(197): _cached_compile_to_bir
+  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_kernel.py(211): _compile_dump_config
+  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_kernel.py(202): dump_config
+  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_hop.py(198): get_dumped_config
+  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/python_ops/neuron_nki_call_lowering.py(53): _lower_custom_nki
+  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/python_ops/neuron_nki_call_lowering.py(36): nki_call_lower_func
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py(1267): _fn
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py(1263): _fn
+  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_hop.py(515): __call__
+  /home/ubuntu/trainium_freshstart_20260918_wave71/research/scratch/fp8_mlp_island_probe.py(96): run_case
+  /home/ubuntu/trainium_freshstart_20260918_wave71/research/scratch/fp8_mlp_island_probe.py(157): main
+  /home/ubuntu/trainium_freshstart_20260918_wave71/research/scratch/fp8_mlp_island_probe.py(165): <module>
+
+EXPERIMENT_POSTFLIGHT {"label": "fs-w71-fp8-causal-island-small-forward-gate-r1", "returncode": 1, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave71/research/run-logs/fs-w71-fp8-causal-island-small-forward-gate-r1.postflight.json"}

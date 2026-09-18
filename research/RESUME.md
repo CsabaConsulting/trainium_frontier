@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated2026-09-18,23:19UTC. Authorization: danger-full-access, approval never.
+Updated2026-09-18,23:26UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
 ## Current result and active work
@@ -26,9 +26,10 @@ local/cloud verified. Earlier native pack8 result1.0010172426032236 is retained.
 **trn21:** wave70/source785c294e4ef70b222915a7d464df2cbc1ba08a56. The installed
 CE/autograd gate passes all36 eager/compiled exact loss and gradient checks,
 including16384x8192. Fresh same-source T1024/pack16+ownership control phase
-`fs-w70-native-mlp-context1024-pack16-owned-control-phase-r1` is active; the
-prepared candidate request adds only `--adaptive-nki-ce`. Run it after clean
-postflight, then require full-step gains before quality. The component result
+`fs-w70-native-mlp-context1024-pack16-owned-control-phase-r1` passed all4 checks
+at519.3954189890064ms. Candidate
+`fs-w70-native-mlp-context1024-pack16-owned-ce-phase-r1` is now active with only
+`--adaptive-nki-ce` added. Require full-step gains before quality. The component result
 is5.679064700962044ms versus12.339531350880861ms,53.9767%. Protected trainer is
 unchanged. trn21 watcher follows wave70.
 
@@ -40,8 +41,16 @@ No actual FP8 matmuls, optimizer, collectives or caller spill measurements.
 Full FP8 forward/backward islands remain open; no training promotion here.
 The next immutable source adds actual FP8 up/down GEMMs with per-token scaling
 in `fp8_mlp_island_nki.py`, and an independent stage/pair-rounding/row-isolation
-gate. Syntax passes. Deploy on trn22 and run the small gate first; no backward
-or timing claim yet. trn22 watcher must be moved from wave69 to the new source.
+gate. Wave71 small gate stops before MLP execution: unbound `calibrate_rows` helper
+in the NKI frontend; calibration12checks pass and postflight is clean. The
+helper-global fix progressed past the frontend. Wave72 then exposed an FP8
+transpose constraint: PSUM output needs free stride2. Both failed runs are clean.
+Next source uses padded128x256 FP8 PSUM and compacts only initialized elements;
+repeat the same small forward gates. BF16 STE backward with independent FP64
+surrogate bounds and a complete-component timing driver is prepared but must
+wait for forward gates. It checks two-microbatch accumulation and detached
+caches/FP32 masters, includes all scale/cast/save costs, and gates controls.
+trn22 watcher follows wave72 and must move to the next immutable source.
 
 The T1024/pack16+ownership phase finished clean at515.4737504781224ms versus
 fresh owned T2048/pack8 control528.353027504636ms:2.4376%, below predeclared3%.
@@ -117,7 +126,7 @@ Local Devuan/SystemV, usercsaba cron; no root/systemd:
   zero errors, including both new quality checkpoints. State is
   out/fresh-start-artifact-backup/latest.json; receipts under research/run-logs.
   Newly produced remote checkpoints still need retrieval to checkpoints/ first.
-- Local log watchers currently follow trn21/wave70 and trn22/wave69,90rounds at
+- Local log watchers currently follow trn21/wave70 and trn22/wave72,90rounds at
  45seconds. Repoint when the active remote worktree changes. Only stop exact
   owned watcher PID/UID/cwd/argv/startticks; remote training jobs are separate.
 

@@ -13,7 +13,9 @@ That order must be validated against its own empirical11-bit pair reference.
 
 
 def build_kernel():
-    global nl, nisa
+    # The installed NKI parser resolves callees through module globals, not
+    # Python closure cells. Keep these undecorated helpers in that namespace.
+    global nl, nisa, calibrate_rows, transpose_broadcast_inverse
     import nki
     import nki.language as nl
     import nki.isa as nisa
@@ -135,9 +137,14 @@ def build_kernel():
                 if diagnostic:
                     nisa.dma_copy(dst=x_metadata[rows, :], src=meta)
                 for ci in nl.affine_range(nc):
-                    transposed = nl.ndarray((128, 128), dtype=nl.float8_e4m3, buffer=nl.psum)
-                    nisa.nc_transpose(dst=transposed, data=quantized[:, ci * 128:(ci + 1) * 128])
-                    nisa.tensor_copy(dst=inputs[:, ci, ti * 128:(ti + 1) * 128], src=transposed)
+                    # NC-v3's FP8 transpose requires a two-element output
+                    # stride in PSUM. Allocate that layout explicitly, then
+                    # compact only the initialized elements into the FP8 cache.
+                    transposed = nl.ndarray((128, 256), dtype=nl.float8_e4m3, buffer=nl.psum)
+                    nisa.nc_transpose(dst=transposed.ap(pattern=[[256, 128], [2, 128]]),
+                                      data=quantized[:, ci * 128:(ci + 1) * 128])
+                    nisa.tensor_copy(dst=inputs[:, ci, ti * 128:(ti + 1) * 128],
+                                     src=transposed.ap(pattern=[[256, 128], [2, 128]]))
 
             for hi in nl.affine_range(nh):
                 accumulator = nl.ndarray((128, token_tile), dtype=nl.float32, buffer=nl.psum)
@@ -181,9 +188,11 @@ def build_kernel():
                 if diagnostic:
                     nisa.dma_copy(dst=h_metadata[rows, :], src=meta)
                 for hi in nl.affine_range(nh):
-                    transposed = nl.ndarray((128, 128), dtype=nl.float8_e4m3, buffer=nl.psum)
-                    nisa.nc_transpose(dst=transposed, data=quantized[:, hi * 128:(hi + 1) * 128])
-                    nisa.tensor_copy(dst=hidden_cache[:, hi, ti * 128:(ti + 1) * 128], src=transposed)
+                    transposed = nl.ndarray((128, 256), dtype=nl.float8_e4m3, buffer=nl.psum)
+                    nisa.nc_transpose(dst=transposed.ap(pattern=[[256, 128], [2, 128]]),
+                                      data=quantized[:, hi * 128:(hi + 1) * 128])
+                    nisa.tensor_copy(dst=hidden_cache[:, hi, ti * 128:(ti + 1) * 128],
+                                     src=transposed.ap(pattern=[[256, 128], [2, 128]]))
 
             output_rows = nl.ndarray((128, token_tile // 128, channels),
                                      dtype=nl.bfloat16, buffer=nl.sbuf)
