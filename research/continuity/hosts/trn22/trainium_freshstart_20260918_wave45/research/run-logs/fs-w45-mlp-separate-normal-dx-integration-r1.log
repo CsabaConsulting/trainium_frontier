@@ -1,0 +1,23 @@
+[W918 19:00:54.973296225 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+FUSED_MLP_NATIVE_GATE {"name": "integration_output:256:256:False:0:0", "shape": [4, 64, 256], "finite": true, "bound_failures": 0, "max_abs": 6.103515625e-05, "reference_rms": 0.2341087645777745, "relative_rms": 1.0184094539628234e-06, "exact": false, "passed": true}
+FUSED_MLP_NATIVE_GATE {"name": "integration_dx:256:256:False:0:0", "shape": [4, 64, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0, "reference_rms": 0.0027322377841449315, "relative_rms": 0.0, "exact": true, "passed": true}
+FUSED_MLP_NATIVE_GATE {"name": "integration_output:256:256:False:0:1", "shape": [4, 64, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0, "reference_rms": 0.23433938569357066, "relative_rms": 0.0, "exact": true, "passed": true}
+FUSED_MLP_NATIVE_GATE {"name": "integration_dx:256:256:False:0:1", "shape": [4, 64, 256], "finite": true, "bound_failures": 9, "max_abs": 6.103515625e-05, "reference_rms": 0.002733746573391803, "relative_rms": 0.0035866631616470876, "exact": false, "passed": false}
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_freshstart_20260918_wave45/research/scratch/mlp_fused_integration_check.py", line 138, in <module>
+    main()
+  File "/home/ubuntu/trainium_freshstart_20260918_wave45/research/scratch/mlp_fused_integration_check.py", line 129, in main
+    run(args.device, 256, 256, args.normal_dx, args.token_tile, args.grouped_io, args.weight_mode,
+  File "/home/ubuntu/trainium_freshstart_20260918_wave45/research/scratch/mlp_fused_integration_check.py", line 74, in run
+    compare(f"integration_dx:{tokens}:{channels}:{cached}:{step}:{micro}", cx.grad, bx.grad)
+  File "/home/ubuntu/trainium_freshstart_20260918_wave45/research/scratch/mlp_fused_bf16_probe.py", line 59, in compare
+    assert record['passed'], record
+           ~~~~~~^^^^^^^^^^
+AssertionError: {'name': 'integration_dx:256:256:False:0:1', 'shape': [4, 64, 256], 'finite': True, 'bound_failures': 9, 'max_abs': 6.103515625e-05, 'reference_rms': 0.002733746573391803, 'relative_rms': 0.0035866631616470876, 'exact': False, 'passed': False}
+EXPERIMENT_POSTFLIGHT {"label": "fs-w45-mlp-separate-normal-dx-integration-r1", "returncode": 1, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave45/research/run-logs/fs-w45-mlp-separate-normal-dx-integration-r1.postflight.json"}
