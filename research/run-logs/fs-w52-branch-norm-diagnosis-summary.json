@@ -1,0 +1,207 @@
+{
+  "source": "fs-w52-branch-norm-rsqrt-gate-r1",
+  "records": [
+    {
+      "kind": "BRANCH_NORM_INVERSE_DIAGNOSIS",
+      "shape": [
+        256,
+        128
+      ],
+      "scale": 0.0,
+      "results": [
+        {
+          "mode": "scalar_raw",
+          "actual_first": 2896.182861328125,
+          "expected_first": 2896.3093757400984,
+          "max_relative": 4.368124932823337e-05,
+          "relative_rms": 4.36812493282334e-05
+        },
+        {
+          "mode": "scalar_newton",
+          "actual_first": 2896.309326171875,
+          "expected_first": 2896.3093757400984,
+          "max_relative": 1.7114270947149224e-08,
+          "relative_rms": 1.7114270947149214e-08
+        },
+        {
+          "mode": "gpsimd",
+          "actual_first": 2896.309326171875,
+          "expected_first": 2896.3093757400984,
+          "max_relative": 1.7114270947149224e-08,
+          "relative_rms": 1.7114270947149214e-08
+        }
+      ]
+    },
+    {
+      "kind": "BRANCH_NORM_INVERSE_DIAGNOSIS",
+      "shape": [
+        256,
+        128
+      ],
+      "scale": 1e-06,
+      "results": [
+        {
+          "mode": "scalar_raw",
+          "actual_first": 2896.17138671875,
+          "expected_first": 2896.2977773165935,
+          "max_relative": 4.374580737781251e-05,
+          "relative_rms": 4.367820187395541e-05
+        },
+        {
+          "mode": "scalar_newton",
+          "actual_first": 2896.2978515625,
+          "expected_first": 2896.2977773165935,
+          "max_relative": 6.624645396254783e-08,
+          "relative_rms": 2.978658758286497e-08
+        },
+        {
+          "mode": "gpsimd",
+          "actual_first": 2896.2978515625,
+          "expected_first": 2896.2977773165935,
+          "max_relative": 6.964825995647428e-08,
+          "relative_rms": 3.0699994160044554e-08
+        }
+      ]
+    },
+    {
+      "kind": "BRANCH_NORM_INVERSE_DIAGNOSIS",
+      "shape": [
+        256,
+        128
+      ],
+      "scale": 1.0,
+      "results": [
+        {
+          "mode": "scalar_raw",
+          "actual_first": 1.0234144926071167,
+          "expected_first": 1.0234146067491061,
+          "max_relative": 4.2735055722985494e-05,
+          "relative_rms": 9.128625246042022e-06
+        },
+        {
+          "mode": "scalar_newton",
+          "actual_first": 1.0234144926071167,
+          "expected_first": 1.0234146067491061,
+          "max_relative": 2.3355677992385028e-07,
+          "relative_rms": 8.990346375456074e-08
+        },
+        {
+          "mode": "gpsimd",
+          "actual_first": 1.0234144926071167,
+          "expected_first": 1.0234146067491061,
+          "max_relative": 2.6105060252830285e-07,
+          "relative_rms": 8.537571998360897e-08
+        }
+      ]
+    },
+    {
+      "kind": "BRANCH_NORM_INVERSE_DIAGNOSIS",
+      "shape": [
+        256,
+        128
+      ],
+      "scale": 10000.0,
+      "results": [
+        {
+          "mode": "scalar_raw",
+          "actual_first": 0.00010234141518594697,
+          "expected_first": 0.00010234146749619468,
+          "max_relative": 3.393485925419338e-05,
+          "relative_rms": 6.9446088976413614e-06
+        },
+        {
+          "mode": "scalar_newton",
+          "actual_first": 0.00010234146611765027,
+          "expected_first": 0.00010234146749619468,
+          "max_relative": 2.734822499572405e-07,
+          "relative_rms": 9.73582604791162e-08
+        },
+        {
+          "mode": "gpsimd",
+          "actual_first": 0.00010234146611765027,
+          "expected_first": 0.00010234146749619468,
+          "max_relative": 2.4020838235270765e-07,
+          "relative_rms": 8.76142268452433e-08
+        }
+      ]
+    },
+    {
+      "kind": "BRANCH_NORM_BENCH",
+      "rows": 256,
+      "channels": 128,
+      "inverse_mode": 2,
+      "samples_ms": {
+        "native_forward_backward": [
+          0.2790327009279281,
+          0.28046490042470396,
+          0.2669244015123695
+        ],
+        "nki_forward_backward": [
+          0.3321757016237825,
+          0.30377845105249435,
+          0.2997829986270517
+        ]
+      },
+      "median_ms": {
+        "native_forward_backward": 0.2790327009279281,
+        "nki_forward_backward": 0.30377845105249435
+      },
+      "same_precision_policy": true,
+      "untouched_tokens_and_repeated_calls_exact": true,
+      "whole_model": false
+    },
+    {
+      "kind": "BRANCH_NORM_BENCH",
+      "rows": 256,
+      "channels": 1024,
+      "inverse_mode": 2,
+      "samples_ms": {
+        "native_forward_backward": [
+          0.2871340489946306,
+          0.27031675272155553,
+          0.2880448999349028
+        ],
+        "nki_forward_backward": [
+          0.3044601995497942,
+          0.32892989984247833,
+          0.3066371020395309
+        ]
+      },
+      "median_ms": {
+        "native_forward_backward": 0.2871340489946306,
+        "nki_forward_backward": 0.3066371020395309
+      },
+      "same_precision_policy": true,
+      "untouched_tokens_and_repeated_calls_exact": true,
+      "whole_model": false
+    },
+    {
+      "kind": "BRANCH_NORM_BENCH",
+      "rows": 8192,
+      "channels": 1024,
+      "inverse_mode": 2,
+      "samples_ms": {
+        "native_forward_backward": [
+          0.48743349907454103,
+          0.48172459937632084,
+          0.4654685501009226
+        ],
+        "nki_forward_backward": [
+          0.6274151994148269,
+          0.6289893994107842,
+          0.6257482513319701
+        ]
+      },
+      "median_ms": {
+        "native_forward_backward": 0.48172459937632084,
+        "nki_forward_backward": 0.6274151994148269
+      },
+      "same_precision_policy": true,
+      "untouched_tokens_and_repeated_calls_exact": true,
+      "whole_model": false
+    }
+  ],
+  "numerical_bounds_unchanged": true,
+  "full_model_promotion": false,
+  "reason": "GpSIMD restores accuracy but real-shape0.627415ms exceeds native0.481725ms. Next bounded control tests the independently verified Scalar+Newton inverse path."
+}
