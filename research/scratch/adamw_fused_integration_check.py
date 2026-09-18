@@ -10,7 +10,7 @@ import torch
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import train as T
 from adamw_fused_fp32 import scalar_values
-from adamw_fused_fp32_probe import check, expected64
+from adamw_fused_fp32_probe import check, expected64, optimizer_for
 from adamw_fused_integration import install_optimizer
 
 
@@ -75,6 +75,43 @@ def diagnose_native_sqrt():
             native_sqrt=float(root[0, column]), exact_sqrt_of_actual_fp32_variance=float(exact),
             sqrt_relative_error=float((root[0, column] - exact).abs() / exact.clamp_min(1e-30)),
             denominator=float(denominator[0, column]), update=float(update[0, column]))), flush=True)
+
+
+def diagnose_update(p, gradient, old_m, old_v, new_p, new_m, new_v, values, step, betas):
+    """Preserve evidence for the original failing bound; never turn it into a pass."""
+    expected, envelope = expected64(p, gradient, old_m, old_v, values)
+    actual = new_p.detach().cpu().double()
+    u = 2.0 ** -24
+    bound = 4 * (32 * u / (1 - 32 * u)) * envelope[0] + 32 * 2.0 ** -149
+    indices = ((actual - expected[0]).abs() > bound).flatten().nonzero().flatten()[:8].tolist()
+    lr, b1, b2, om1, om2, decay, eps = values.double().unbind()
+    for index in indices:
+        old, g, m, v = [x.flatten()[index].clone() for x in (p, gradient, old_m, old_v)]
+        nm, nv = [x.flatten()[index].double() for x in (new_m, new_v)]
+        conditional = old.double() * decay - lr * (nm / b1) / ((nv / b2).sqrt() + eps)
+        cpu_m = m + (g - m) * values[3]
+        cpu_v = v + (g.square() - v) * values[4]
+        cpu_weight = old * values[5] - values[0] * (cpu_m / values[1]) / (
+            (cpu_v / values[2]).sqrt() + values[6])
+        replicated = [x.expand(256, 128).contiguous().to("neuron") for x in (old, g, m, v)]
+        baseline, opt = optimizer_for(*replicated, step, float(values[0]), *betas, .01)
+        with torch.no_grad():
+            opt.step()
+        native_state = opt.state[baseline]
+        print("ADAMW_FAILED_ELEMENT_DIAG " + json.dumps(dict(
+            flat_index=index, inputs=dict(p=float(old), g=float(g), m=float(m), v=float(v)),
+            metadata=values.tolist(), step=step,
+            ideal_fp64_weight=float(expected[0].flatten()[index]),
+            actual_weight=float(actual.flatten()[index]), original_bound=float(bound.flatten()[index]),
+            actual_m=float(nm), ideal_m=float(expected[1].flatten()[index]),
+            actual_v=float(nv), ideal_v=float(expected[2].flatten()[index]),
+            fp64_weight_using_actual_fp32_states=float(conditional),
+            conditional_weight_error=float((actual.flatten()[index] - conditional).abs()),
+            propagated_state_rounding=float((conditional - expected[0].flatten()[index]).abs()),
+            cpu_ordered_fp32_weight=float(cpu_weight), cpu_m=float(cpu_m), cpu_v=float(cpu_v),
+            native_fresh_weight=float(baseline.detach().cpu()[0, 0]),
+            native_fresh_m=float(native_state["exp_avg"].cpu()[0, 0]),
+            native_fresh_v=float(native_state["exp_avg_sq"].cpu()[0, 0]))), flush=True)
 
 
 def main():
@@ -149,8 +186,15 @@ def main():
             assert p._version > version, ("fused Parameter version did not advance", iteration, index)
             values = scalar_values(lr, new_state["step"], *betas, .01)
             expected, envelope = expected64(old, g, state["exp_avg"], state["exp_avg_sq"], values)
-            check(f"integration:iteration{iteration}:parameter{index}",
-                  (p, new_state["exp_avg"], new_state["exp_avg_sq"]), expected, envelope)
+            try:
+                check(f"integration:iteration{iteration}:parameter{index}",
+                      (p, new_state["exp_avg"], new_state["exp_avg_sq"]), expected, envelope,
+                      inputs=(old, g, state["exp_avg"], state["exp_avg_sq"]))
+            except AssertionError:
+                diagnose_update(old, g, state["exp_avg"], state["exp_avg_sq"], p,
+                                new_state["exp_avg"], new_state["exp_avg_sq"], values,
+                                new_state["step"], betas)
+                raise
             tp, tm, tv = trajectory[index]
             expected_trajectory, _ = expected64(tp, g, tm, tv, values)
             trajectory_envelope[index] += (expected_trajectory[0] - tp * float(values[5])).abs()

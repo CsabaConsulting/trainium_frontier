@@ -21,7 +21,8 @@ def build_kernels():
     import nki.isa as nisa
 
     @nki.jit
-    def forward(x, lanes: int = 2, inverse_mode: int = 2, packed_inverse: bool = False):
+    def forward(x, lanes: int = 2, inverse_mode: int = 2, packed_inverse: bool = False,
+                fused_square_reduce: bool = False):
         rows, channels = x.shape
         assert x.dtype == nl.float32 and channels % 128 == 0
         assert lanes in (1, 2) and rows % (128 * lanes) == 0
@@ -44,8 +45,13 @@ def build_kernels():
             inv = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
             output = nl.ndarray((128, channels), dtype=nl.bfloat16, buffer=nl.sbuf)
             nisa.dma_copy(dst=values, src=x[start:start + 128, :])
-            nisa.tensor_tensor(dst=squared, data1=values, data2=values, op=nl.multiply)
-            nisa.tensor_reduce(dst=summed, op=nl.add, data=squared, axis=(1,))
+            if fused_square_reduce:
+                nisa.activation(dst=squared, op=nl.square, data=values,
+                                reduce_op=nl.add, reduce_res=summed,
+                                reduce_cmd=nisa.reduce_cmd.reset_reduce)
+            else:
+                nisa.tensor_tensor(dst=squared, data1=values, data2=values, op=nl.multiply)
+                nisa.tensor_reduce(dst=summed, op=nl.add, data=squared, axis=(1,))
             nisa.tensor_scalar(dst=mean_eps, data=summed, op0=nl.multiply,
                                operand0=1.0 / channels, op1=nl.add, operand1=EPS)
             if inverse_mode == 2:
@@ -126,7 +132,7 @@ def build_kernels():
     return forward, backward
 
 
-def make_function(inverse_mode=2, packed_inverse=False):
+def make_function(inverse_mode=2, packed_inverse=False, fused_square_reduce=False):
     assert inverse_mode in (1, 2), "unrefined inverse is diagnostic-only"
     from torch_neuronx import wrap_nki
     forward, backward = (wrap_nki(kernel) for kernel in build_kernels())
@@ -136,7 +142,7 @@ def make_function(inverse_mode=2, packed_inverse=False):
         def forward(ctx, x):
             shape = x.shape
             flat = x.reshape(-1, shape[-1])
-            y, inv = forward[2](flat, 2, inverse_mode, packed_inverse)
+            y, inv = forward[2](flat, 2, inverse_mode, packed_inverse, fused_square_reduce)
             ctx.save_for_backward(flat, inv)
             ctx.shape = shape
             return y.reshape(shape)

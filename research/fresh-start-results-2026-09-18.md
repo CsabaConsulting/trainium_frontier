@@ -1689,3 +1689,38 @@ The same-host 30-step control finished cleanly with all four model checks:
 558.627328981ms median total (559.013842960ms mean), 55.612526514ms optimizer,
 474.322530034ms microsteps, 16.202244995ms gradient sync, 6.970608520ms clip.
 This is the predeclared full-step comparator for the upcoming AdamW candidate.
+
+### Wave57 repeated-update failure remains under diagnosis
+
+Native scalar fallback versions are confirmed unchanged in both optimizers; the
+corrected fallback comparison passes. Fused table versions advance. Integration
+then fails the original per-element FP64 weight bound at iteration6/parameter1,
+with two violations among8M elements: overall weight relative RMS3.7971e-8.
+At index6021746, actual0.0001624152937438339 vs ideal0.00016242021327593197,
+error4.91953e-9 exceeds the1.23917e-9 bound. Both state fields still pass.
+
+One hypothesis is missing propagation of first-moment cancellation/rounding
+through the weight bound, which currently uses only the final weight/update
+magnitudes. Wave58 adds an on-failure diagnostic of original inputs, ideal and
+actual FP32 moment states, weight calculated in FP64 from the actual states,
+ordered CPU FP32 arithmetic, and a fresh native update on identical inputs.
+The original assertion remains enforced; no test target or tolerance changes
+until the mechanism is established. No full-model AdamW run is authorized by
+these incomplete gates. Clean postflight.
+
+The packed-statistic branch norm passes all original gates at all three shapes.
+At8192x1024 its30-update medians are native0.453905433ms, NKI0.551386601ms.
+It improves the old Newton implementation but does not beat native. Wave58
+prepares Scalar square+reduction in one activation instruction with explicit
+reset_reduce, based on the installed NKI0.5 signature/docs and the official
+[nisa.activation documentation](https://awsdocs-neuron.readthedocs-hosted.com/en/v2.31.1/nki/api/generated/nki.isa.activation.html).
+Precision and independence gates remain unchanged.
+
+The native-MLP/pack8 full-budget run finished cleanly:3,183updates,417.2M token
+presentations,1,784.7charged seconds,519.8s startup allowance. Small public
+checks:0.983219 at2048 and0.995565 at1024 (four-rank2.097M sample); neither is
+a leaderboard claim. Larger20.97M/B1/T1024/O1/no-autocast eval launched at
+20:38:13UTC ontrn21. Checkpoint469,834,849bytes SHA256
+9399bc62561cec110856424701a40fc628db48a63bca37006cb033544fec6289
+is local and now GitHub-digest-verified:31of31artifact backups, no errors,
+completed20:40:19UTC.

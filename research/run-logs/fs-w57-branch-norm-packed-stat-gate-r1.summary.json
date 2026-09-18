@@ -1,0 +1,83 @@
+{
+  "label": "fs-w57-branch-norm-packed-stat-gate-r1",
+  "all_numerical_checks_pass": true,
+  "checks": 30,
+  "benchmarks": [
+    {
+      "rows": 256,
+      "channels": 128,
+      "inverse_mode": 1,
+      "packed_inverse": true,
+      "samples_ms": {
+        "native_forward_backward": [
+          0.27157550017970306,
+          0.280040199868381,
+          0.2718620332113157
+        ],
+        "nki_forward_backward": [
+          0.30377253230350715,
+          0.40512510070887703,
+          0.30015563243068755
+        ]
+      },
+      "median_ms": {
+        "native_forward_backward": 0.2718620332113157,
+        "nki_forward_backward": 0.30377253230350715
+      },
+      "same_precision_policy": true,
+      "untouched_tokens_and_repeated_calls_exact": true,
+      "whole_model": false
+    },
+    {
+      "rows": 256,
+      "channels": 1024,
+      "inverse_mode": 1,
+      "packed_inverse": true,
+      "samples_ms": {
+        "native_forward_backward": [
+          0.2780749346129596,
+          0.2878131325511883,
+          0.2731583993105839
+        ],
+        "nki_forward_backward": [
+          0.31952276670684415,
+          0.30717256595380604,
+          0.3177450329530984
+        ]
+      },
+      "median_ms": {
+        "native_forward_backward": 0.2780749346129596,
+        "nki_forward_backward": 0.3177450329530984
+      },
+      "same_precision_policy": true,
+      "untouched_tokens_and_repeated_calls_exact": true,
+      "whole_model": false
+    },
+    {
+      "rows": 8192,
+      "channels": 1024,
+      "inverse_mode": 1,
+      "packed_inverse": true,
+      "samples_ms": {
+        "native_forward_backward": [
+          0.4464590339921415,
+          0.4956215658846001,
+          0.4539054333387564
+        ],
+        "nki_forward_backward": [
+          0.5494044996642818,
+          0.5549249006435275,
+          0.5513866005154947
+        ]
+      },
+      "median_ms": {
+        "native_forward_backward": 0.4539054333387564,
+        "nki_forward_backward": 0.5513866005154947
+      },
+      "same_precision_policy": true,
+      "untouched_tokens_and_repeated_calls_exact": true,
+      "whole_model": false
+    }
+  ],
+  "decision": "Packed statistics improve the custom path but still lose to native. No model integration. Test one further Scalar square+reduce fusion with the original gates."
+}

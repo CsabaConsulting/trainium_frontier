@@ -1,31 +1,25 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-18, 20:35 UTC. Active permissions: danger-full-access, approval never.
+Updated 2026-09-18, 20:45 UTC. Active permissions: danger-full-access, approval never.
 This replaces the accumulated stale resume instructions; their history remains
 in Git. Do not restart completed experiments from earlier revisions.
 
 ## Live work
 
-- **trn21:** `fs-w50-dense1024-native-mlp-pack8-1800-r1` launched at19:54:51UTC,
-  wave50/sourceeeb4943, through the explicit scratch training wrapper. Actual
-  B8/T2048 compiled master/cache/gradient/accumulation/update/checkpoint gates
-  passed with unchanged bounds, after559.975452ms full-step timing (4.796%
-  saving). The quality run keeps seed42,131,072targets/update, clip-after-reduce,
-  and the best dense6x1024 precision policy. No new branch norm or segmented
-  embedding. Preserve its checkpoint immediately after completion.
-- **trn22:** both corrected branch-norm variants pass all gates but remain
-  slower than native. Wave53 native/NKI device profile completed cleanly at
-  20:07:29UTC: 13 files / 5,274,556 bytes, all copied locally with matching
-  remote/local hashes at 20:13. Local ingestion succeeded: 23 tables in 3.48s.
-  Wave55 AdamW passed all 34 NKI case checks, including real 8M-element tables.
-  Foreach 4.004879ms / functional NKI 1.230406ms / in-place 2.436495ms. Original
-  bounds remain unchanged; native compiled control fails one element and is
-  excluded; wave56 localizes it to native sqrt (7.785ppm error). The same-host
-  30-step native-MLP/pack8 control completed cleanly: 558.627329ms median.
-  Wave56 first fused-table update passed; its harness then wrongly required a
-  version increment from the untouched scalar fallback. Wave57 corrects this
-  to exact native fallback behavior, keeping all fused/numerical gates. Launch
-  its integration retry next, then matched full-step candidate if all pass.
+- **trn21:** wave50 native-MLP/pack8 full-budget run finished cleanly: 3,183
+  updates, 417.2M targets, 1,784.7s charged. Small public .983219/T2048 and
+  .995565/T1024 are not larger-eval or private scores. Its checkpoint is local
+  and GitHub-digest-verified (SHA9399bc62561cec110856424701a40fc628db48a63bca37006cb033544fec6289).
+  `fs-w57-eval-native-mlp-pack8-s1024-20m-o1-r1` is active from20:38:13UTC,
+  wave57/source8be6a5c, matching the previous best's full public evaluation.
+- **trn22:** wave57 packed-statistic norm passed but loses (.551387ms vs
+  native .453905ms). Wave58 prepares Scalar square+reduction fusion.
+  AdamW functional component passes all34 original cases and saves69.277%.
+  The integration gate passes native fallback/version checks, then two elements
+  fail its weight bound at iteration6/parameter1. State fields pass, RMS3.8e-8.
+  Wave58 adds a diagnostic of propagated moment rounding while retaining the
+  failing assertion. Diagnose before changing any contract or running a full model.
+  The same-host30-step native-MLP/pack8 control is558.627329ms median, clean.
 - Preflight backup false positive is fixed by exact-script recognition, with
   five passing regression checks. Device-holder and runtime checks are intact.
 - Next implementation target: fused FP32 AdamW. Current full-step trace has
@@ -104,11 +98,11 @@ Local OS **Devuan/SystemV**. Usercsaba cron, no sudo/root, no systemd:
   recovery branch `backup/fresh-start-20260918`, atomically pushes source+WIP and
   verifies both refs. Skips merge/rebase/cherry-pick/index locks, does not pull,
   merge, force-push or change active HEAD/index. Latest verified source
-  `f65283eb2a67e09d021f2cf3e7c8218d4160146e` at20:20, with both refs verified.
+  `8be6a5cba6d23f9354a6f9673c87113fc5dd7bdf` at20:40, with both refs verified.
 - Minutes5/35: `research/fresh_start_artifact_backup_cron.sh`, own lock, nice10,
   bounded uploader, digest-verified immutable assets in draft release
-  `research-backup-20260918`. The20:05cycle completed at20:05:34UTC: **28of28
-  artifacts verified, zero errors**, including the isolated numerical references.
+  `research-backup-20260918`. The latest manual cycle completed at20:40:19UTC: **31of31
+  artifacts verified, zero errors**, including the new wave50 checkpoint.
   All queued
   checkpoints/profiles have actual GitHub assets and matching digests. New ignored
   artifacts still require discovery/retrieval before a future backup receipt.
