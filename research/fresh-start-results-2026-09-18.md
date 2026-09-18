@@ -47,8 +47,13 @@ Result: **0.9905338826086015 BPB**, 2,097,152 tokens, 8,418,678 bytes,
 5,780,144.5 total nats, 68.851 evaluation seconds, no timeout.
 See [standalone log](run-logs/fs-eval-w896-r1-s2048-o1.log).
 This evaluation omits training's global BF16 matmult autocast. It is a separate
-inference-precision measurement; the 0.001711 improvement is not additional
-training progress or an independent seed replication.
+evaluation configuration, not additional training progress or an independent seed
+replication. **The 0.001711 difference is not an isolated precision effect:**
+in-process evaluation uses four ranks, whereas this standalone command uses one.
+`prepare.py` assigns row groups by rank and caps tokens per rank, so a partial
+evaluation samples different document prefixes when world size changes. Precision,
+sample membership and packing boundaries can all contribute. Future precision
+comparisons must hold rank count, batch size, token limit and context constant.
 
 A **20,971,520-token** standalone evaluation at context **1024** has completed:
 **1.009889394576897 BPB**, 83,462,186 bytes, 58,423,696 total nats,
@@ -56,7 +61,9 @@ A **20,971,520-token** standalone evaluation at context **1024** has completed:
 See [larger evaluation log](run-logs/fs-eval-w896-r1-s1024-20m-o1.log).
 This is closer to the formal rules' approximate validation size, but remains
 public data. The shorter-context result is above 1.0 and is not interchangeable
-with the context 2048 diagnostic.
+with the context 2048 diagnostic. Both standalone commands use world size 1 and
+batch size 1. Both in-process first-wave evaluations use world size 4, batch size
+1 per rank. Neither is claimed to reproduce the private validation data.
 The checkpoint has been copied locally and its SHA256 verified against the remote
 file; see [preservation record](fresh-start-preservation-2026-09-18.md).
 

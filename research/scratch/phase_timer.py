@@ -11,6 +11,7 @@ from dataclasses import asdict
 import json
 import math
 import os
+from pathlib import Path
 import sys
 import time
 
@@ -22,6 +23,13 @@ def main():
     ap.add_argument("--steps", type=int, default=3)
     ap.add_argument("--warmup-steps", type=int, default=2)
     ap.add_argument("--seed", type=int, default=42)
+    ap.add_argument("--trace-dir", type=str, default=None,
+                    help="After unprofiled timing, capture one extra complete step with the "
+                         "installed native torch_neuronx profiler. Separate directory per rank; "
+                         "not a scored training run and profiled latency is not a speed result.")
+    ap.add_argument("--trace-mode", choices=("runtime", "device"), default="runtime",
+                    help="runtime: CPU and Neuron Runtime events; device additionally records "
+                         "device instructions. Device traces can be substantially larger.")
     ap.add_argument("--compile", action=argparse.BooleanOptionalAction, default=True)
     ap.add_argument("--local-conv", action=argparse.BooleanOptionalAction, default=True)
     ap.add_argument("--per-micro", action=argparse.BooleanOptionalAction, default=False,
@@ -126,6 +134,8 @@ def main():
                          "typo'd NAME or an uncoercible VALUE is an error rather than a silent "
                          "no-op. Applied AFTER the explicit flags above, so it wins.")
     args = ap.parse_args()
+    if args.trace_dir and args.micro_only:
+        ap.error("--trace-dir captures a complete step; do not combine it with --micro-only")
 
     sys.path.insert(0, REPO)
     os.chdir(REPO)
@@ -178,6 +188,21 @@ def main():
     device_type = T.detect_device_type("")
     ddp, rank, local_rank, world_size, device = T.init_runtime(device_type)
     T.COMPUTE_DTYPE = T.compute_dtype_for(device)
+
+    trace_config = None
+    if args.trace_dir:
+        if device_type != "neuron":
+            raise ValueError("--trace-dir uses the native Neuron profiler")
+        from torch_neuronx.profiling import NeuronConfig, ProfileMode
+        trace_path = Path(args.trace_dir).resolve() / f"rank{rank}"
+        trace_path.mkdir(parents=True, exist_ok=False)
+        modes = [ProfileMode.RUNTIME]
+        if args.trace_mode == "device":
+            modes.append(ProfileMode.DEVICE)
+        # Enable metadata caching before compilation/warmup. The measured step
+        # loop below runs with no active profiler; capture is an additional step.
+        trace_config = NeuronConfig(modes=modes, profile_output_dir=str(trace_path),
+                                    max_events_per_nc=1000000, precache_node_info=True)
 
     if T.CLIP_AFTER_REDUCE:
         raise ValueError("phase_timer splits clip then sync; use train.py for clip-after-reduce timing")
@@ -483,6 +508,39 @@ def main():
             clip_foreach=args.clip_foreach, dataloader=args.dataloader,
             wcache_mode=args.wcache_mode, time_loss_item=args.time_loss_item,
             device_batch_size=T.DEVICE_BATCH_SIZE, pack_factor=T.PACK_FACTOR, steps=out)))
+    if trace_config is not None:
+        from torch.profiler import ProfilerActivity, profile, record_function
+        from torch_neuronx.profiling import NeuronProfiler
+        T.synchronize(device)
+        if ddp:
+            import torch.distributed as dist
+            dist.barrier()
+        with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.PrivateUse1],
+                     experimental_config=trace_config) as prof:
+            with record_function("fresh_start_complete_training_step"):
+                with record_function("zero_grad"):
+                    zero_grads()
+                for i in range(grad_accum):
+                    with record_function(f"forward_backward_microstep_{i}"):
+                        micro()
+                with record_function("clip_then_all_reduce_gradients"):
+                    clip_and_sync()
+                with record_function("training_control_collective"):
+                    control_collective()
+                with record_function("set_optimizer_scalars"):
+                    set_lr(args.warmup_steps + args.steps + 1)
+                with record_function("optimizer_step"):
+                    optimizer.step()
+                with record_function("refresh_weight_cache"):
+                    refresh_cache()
+                T.synchronize(device)
+        NeuronProfiler(trace_config).export_trace(prof)
+        # A stable path is convenient for offline inspection; the native session
+        # directory contains the matching runtime/device artifacts.
+        # Export only once: Kineto's profiler does not support repeated exports.
+        print("PROFILE_ARTIFACT " + json.dumps(dict(
+            rank=rank, mode=args.trace_mode, directory=str(trace_path),
+            profiled_steps=1, profiled_latency_is_performance_evidence=False)), flush=True)
     if ddp:
         try:
             import torch.distributed as dist
