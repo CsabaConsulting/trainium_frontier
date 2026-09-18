@@ -1,0 +1,28 @@
+{
+  "label": "fs-w6-conv2-nki-native-gate-r4",
+  "started_at": "2026-09-18T10:06:16.243942+00:00",
+  "hostname": "ip-172-31-34-85",
+  "git_commit": "8c6946e0c0e13e8b7db85256f7cd570baa8dbf9a",
+  "command": [
+    "timeout",
+    "900s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "research/scratch/causal_conv_shift_device_check.py",
+    "--kernel",
+    "nki",
+    "--large"
+  ],
+  "description": "NKI convolution compiled arithmetic gate after reversing backward boundary write order",
+  "environment": {
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_RT_VISIBLE_CORES": "0",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16"
+  },
+  "source_sha256": {
+    "research/scratch/causal_conv_shift_device_check.py": "172015bf3cb4b71399c77c874b96722482f5ec5a88ca48db2be297425d44728f",
+    "research/scratch/causal_conv_nki2.py": "26b37dc5072291ed63b55ec69a65a68b28f363f3a72b4d5587caac826eb9da90",
+    "research/scratch/causal_conv_shift.py": "4c8387cc7c5143c7da38f49cd88268aa5c32558ee74982b3278709b5b4d542b8"
+  }
+}

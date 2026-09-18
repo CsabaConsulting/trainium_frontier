@@ -85,10 +85,10 @@ def _bwd_tile(x, grad, dx, partials, prev_w, curr_w, ones,
     else:
         nisa.dma_copy(dst=xp, src=x[batch, start - 1:start + 127, :])
     if last:
-        # Initialize the boundary before its partial DMA, matching the established
-        # local convolution prototype. DMA-then-memset failed SBUF allocation in
-        # this backward even for a single FP32 tile on the installed compiler.
-        nisa.memset(dst=gn[127:128, :], value=0.0)
+        # A memset confined to partition 127 failed SBUF allocation in both write
+        # orders on the installed compiler. Initialize the full tile, then fill
+        # the prefix. Only its final row remains zero; no gradient crosses B/T.
+        nisa.memset(dst=gn, value=0.0)
         nisa.dma_copy(dst=gn[0:127, :], src=grad[batch, start + 1:length, :])
     else:
         nisa.dma_copy(dst=gn, src=grad[batch, start + 1:start + 129, :])

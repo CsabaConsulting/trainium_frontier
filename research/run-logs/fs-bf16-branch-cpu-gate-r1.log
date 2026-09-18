@@ -1,0 +1,12 @@
+{"source_sha256": {"research/scratch/bf16_branch_norm.py": "b832b7cb06d21039691a333d4625c8eb41b84c153a7ae538492088518cc1b42d", "research/scratch/bf16_branch_norm_check.py": "2ba0fd7a20f0cc8b35d369afb7c0306732a8209a38aca8340dd550049f3be909", "train.py": "ad7d18fde75c24ef33769f386199d096f0acbbacf926325053e813b001dc514a"}, "command": ["/home/csaba/anaconda3/bin/python", "-u", "research/scratch/bf16_branch_norm_check.py"]}
+Traceback (most recent call last):
+  File "/home/csaba/repos/AWS/TrainiumFrontierCompetition/trainium_frontier/research/scratch/bf16_branch_norm_check.py", line 142, in <module>
+    main()
+    ~~~~^^
+  File "/home/csaba/repos/AWS/TrainiumFrontierCompetition/trainium_frontier/research/scratch/bf16_branch_norm_check.py", line 136, in main
+    print(json.dumps(dict(check="normalization", cases=normalization_checks())), flush=True)
+                                                       ~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/csaba/repos/AWS/TrainiumFrontierCompetition/trainium_frontier/research/scratch/bf16_branch_norm_check.py", line 46, in normalization_checks
+    assert ((dx.double() - dxd).abs() <= 3e-5 * envelope + 1e-30).all()
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+AssertionError

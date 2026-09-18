@@ -68,6 +68,9 @@ def main():
                          "nki: experimental two-tap native NKI forward/backward; run the "
                          "separate arithmetic/causality gate before using its timings. "
                          "train.py is NOT modified.")
+    ap.add_argument("--norm-output-dtype", choices=["baseline", "bf16"], default="baseline",
+                    help="bf16: FP32 RMS statistics and residuals, BF16 normalized inputs "
+                         "including the final head. An intentional precision change; scratch only.")
     ap.add_argument("--grad-clip", type=float, default=1.0,
                     help="T1.1 re-profile: include torch.nn.utils.clip_grad_norm_(model.parameters(), "
                          "this) in the timed window, matching train.py's real per-step order "
@@ -210,6 +213,10 @@ def main():
         from causal_conv_nki2 import nki_causal_conv
         T.CausalConv.forward = nki_causal_conv
         print("[pt] LOWERING DIAGNOSTIC: CausalConv.forward -> NKI two-tap, same parameters", flush=True)
+    if args.norm_output_dtype == "bf16":
+        from bf16_branch_norm import bf16_branch_norm
+        T.norm = bf16_branch_norm
+        print("[pt] PRECISION DIAGNOSTIC: FP32 RMS statistics, BF16 normalization output", flush=True)
 
     device_type = T.detect_device_type("")
     ddp, rank, local_rank, world_size, device = T.init_runtime(device_type)
@@ -264,7 +271,8 @@ def main():
             compiler_flags=os.environ.get("NEURON_CC_FLAGS"))), flush=True)
         print(f"[pt] world_size={world_size} LNC={os.environ.get('NEURON_LOGICAL_NC_CONFIG')} "
               f"micro_tokens={micro_tokens:,} grad_accum={grad_accum} "
-              f"local_conv={args.local_conv} conv_mode={args.conv_mode} compile={args.compile} "
+              f"local_conv={args.local_conv} conv_mode={args.conv_mode} "
+              f"norm_output_dtype={args.norm_output_dtype} compile={args.compile} "
               f"foreach_optim={T.USE_FOREACH_OPTIM} "
               f"weight_cache={T.USE_WEIGHT_CACHE} "
               f"ngram_ve={T.USE_NGRAM_VE} ngram_tables={len(orig_model.ngram_embeds)} "
@@ -531,6 +539,7 @@ def main():
             world_size=world_size, lnc=os.environ.get("NEURON_LOGICAL_NC_CONFIG"),
             grad_accum=grad_accum, micro_tokens=micro_tokens,
             local_conv=args.local_conv, conv_mode=args.conv_mode,
+            norm_output_dtype=args.norm_output_dtype,
             compile=args.compile, foreach_optim=args.foreach_optim,
             compile_optim=args.compile_optim, grad_bucket=args.grad_bucket,
             clip_foreach=args.clip_foreach, dataloader=args.dataloader,

@@ -1,0 +1,24 @@
+[W918 10:06:18.509264965 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+{"stage": "forward", "implementation": "normal", "eager": false, "shape": [1, 128, 128, 2]}
+{"stage": "backward", "implementation": "normal", "eager": false, "shape": [1, 128, 128, 2]}
+{"check": "conv_native_arithmetic", "implementation": "normal", "shape": [1, 128, 128, 2], "forward_dx_dw": [{"finite": true, "max_abs": 9.85510739681672e-08, "relative_rms": 3.7166461686457267e-08, "bound_failures": 0, "max_error_over_bound": 0.47823069411471664, "terms": 2}, {"finite": true, "max_abs": 5.516596335297663e-08, "relative_rms": 3.672020218683175e-08, "bound_failures": 0, "max_error_over_bound": 0.4562936722547826, "terms": 2}, {"finite": true, "max_abs": 1.5515038697344607e-05, "relative_rms": 1.9905399845686567e-07, "bound_failures": 0, "max_error_over_bound": 0.011851781246815955, "terms": 128}]}
+{"stage": "forward", "implementation": "nki", "eager": false, "shape": [1, 128, 128, 2]}
+{"stage": "backward", "implementation": "nki", "eager": false, "shape": [1, 128, 128, 2]}
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_freshstart_20260918_wave6/research/scratch/causal_conv_shift_device_check.py", line 117, in <module>
+    main()
+  File "/home/ubuntu/trainium_freshstart_20260918_wave6/research/scratch/causal_conv_shift_device_check.py", line 92, in main
+    actual = (y_cpu, dx.detach().cpu(), dw.detach().cpu())
+                     ^^^^^^^^^^^^^^^^^
+RuntimeError: Compilation error occurred on Neuron for operation=torch_compile;
+error message="COMPILATION FAILED: Memory Location: {inst__I-6-0:_mem_8_6}@SB<0,0>(128x512)#Internal DebugInfo: <_mem_8_6||[128, 128]>"
+neff cache key=f05a0582c27d00e3a6df1a4cb0c38a6a2ca3acb3e8251697b082812f3b07abc6:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433
+Note: Neuron errors are reported asynchronously. The Python traceback shows where the
+error was detected (synchronization point), not necessarily where the failing operation
+was dispatched. For synchronous error reporting, set NEURON_LAUNCH_BLOCKING=1.
