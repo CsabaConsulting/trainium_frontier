@@ -1,0 +1,16 @@
+{
+  "label": "fs-w39-mlp-forward-remote-ingest-r2",
+  "guard_pid": 1341420,
+  "child_pid": 1341421,
+  "child_session": 1341421,
+  "started_at": "2026-09-18T17:41:49.802278+00:00",
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "900s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "-c",
+    "import pathlib,os,hashlib,subprocess,json,time\nroot=pathlib.Path.cwd()\nsource=pathlib.Path('/home/ubuntu/trainium_freshstart_20260918_wave36/out/fs-w36-dense1024-fused-mlp-forward-device-r1')\nstage=root/'out/fs-w39-mlp-forward-ingest-input-r2'\noutput=root/'out/fs-w39-mlp-forward-parquet-r2'\nassert source.is_dir() and not stage.exists() and not output.exists()\nstage.mkdir(parents=True)\nfor p in source.rglob('*'):\n if p.is_file():\n  target=stage/p.relative_to(source);target.parent.mkdir(parents=True,exist_ok=True);os.link(p,target)\nneffs=list(stage.rglob('*.neff'))\nfor trace in list(stage.rglob('*.ntff')):\n for neff in neffs:\n  target=trace.parent/neff.name\n  if not target.exists():os.link(neff,target)\n  elif target.stat().st_ino!=neff.stat().st_ino:\n   assert hashlib.file_digest(target.open('rb'),'sha256').hexdigest()==hashlib.file_digest(neff.open('rb'),'sha256').hexdigest()\ncommand=['/opt/aws/neuron/bin/neuron-explorer','view','--session-dir',str(stage),'--ingest-only','--output-format','parquet','--output-file',str(output)]\nprint('INGEST_START '+json.dumps({'source':str(source),'stage':str(stage),'output':str(output),'command':command,'raw_preserved':True}),flush=True)\nstart=time.monotonic();completed=subprocess.run(command,cwd=stage)\nprint('INGEST_COMPLETE '+json.dumps({'returncode':completed.returncode,'seconds':time.monotonic()-start,'tables':len(list(output.rglob('*.parquet'))),'instruction_files':[(str(p),p.stat().st_size) for p in output.rglob('Instruction.parquet')]}),flush=True)\nraise SystemExit(completed.returncode)\n"
+  ]
+}

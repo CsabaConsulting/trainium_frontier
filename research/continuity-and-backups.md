@@ -29,6 +29,8 @@ The helper:
    file); ignored weights/profiles and unsupported new files are not silently
    treated as backed up. Skipped new files are listed in the snapshot manifest.
    The active branch, working files, real index and staged changes are untouched.
+   Newly staged files are included; `research/continuity/staged.patch` separately
+   preserves the staging intent as a binary-safe patch against the source commit.
 3. Records remote evidence under `research/continuity/hosts/` in the recovery
    commit. These files cannot overwrite canonical source or the canonical
    experiment log. `research/continuity/latest.json` records source identity,
@@ -40,9 +42,22 @@ The helper:
    Verifies both remote hashes using `git ls-remote`. A dead EC2 host does not
    prevent backing up available local work; the incomplete retrieval is explicit.
 
+Merge/rebase/cherry-pick/revert/sequencer/bisect state and Git index/ref locks
+cause the cycle to skip and retry later. These are checked before the cycle,
+after snapshot assembly, before publishing its local recovery ref, and before
+pushing. The real index identity and HEAD must remain stable during assembly.
+The helper does not acquire or delete Git's own locks. A merge beginning after
+the final check can at most overlap a push of an already captured commit; the
+helper still cannot edit the merge's working files/index, and ordinary remote
+fast-forward checks remain enforced. Recovery snapshots are WIP, not an atomic
+transaction covering arbitrary edits by an editor that does not cooperate with
+Git locks.
+
 Manual run: `python3 research/fresh_start_backup.py`.
 Local verification/status: `out/fresh-start-backup/latest.json`, historical
-`receipts/*.json`, and `cron.log`. Scheduler inspection: `crontab -l`.
+`receipts/*.json`, `last-success.json`, and `cron.log`. Scheduler inspection:
+`crontab -l`. The installed entry belongs to user `csaba`; installation uses
+neither `sudo` nor a root shell. Codex sandbox escalation does not change UID.
 Committed config: `research/continuity.json`. The cron installation receipt and
 subsequent successful runs are recorded separately; this document alone does
 not prove the scheduler is installed or a push succeeded.
@@ -80,3 +95,20 @@ chunk manifest when splitting a larger archive. See GitHub's
 [release storage limits](https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases)
 and [release asset digest fields](https://docs.github.com/en/rest/releases/assets).
 Do not label a pending or failed upload as protected against SSD failure.
+
+`fresh_start_artifact_backup.py` uses a draft release with immutable filenames
+containing content hashes, inventories every source file, and verifies GitHub's
+SHA256 digest and size after each upload. Every retained checkpoint and raw
+profile identified by a preservation receipt is discovered automatically; the
+priority catalog also covers both original EC2 snapshots and older raw captures.
+Archives exceeding1.5GiB are streamed into ordered chunks. Preparation and verified
+uploads are cached so a restart resumes the remaining items. Only an owned,
+zero-byte `starter` placeholder from an interrupted upload can be removed; its
+metadata is recorded first. Completed or differing assets are never overwritten.
+
+After a real upload is verified, the installer can add a second user cron entry
+at minutes5 and35 of each hour. It runs at nice10, has its own overlap lock and
+3500second bound, and does not manipulate Git. Upload receipts are picked up by
+the ten-minute Git recovery backup. Status is in
+`out/fresh-start-artifact-backup/latest.json`; files are protected only when their
+tracked receipt has `all_github_digests_match: true`.

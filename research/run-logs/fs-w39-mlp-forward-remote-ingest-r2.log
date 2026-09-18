@@ -1,0 +1,11 @@
+INGEST_START {"source": "/home/ubuntu/trainium_freshstart_20260918_wave36/out/fs-w36-dense1024-fused-mlp-forward-device-r1", "stage": "/home/ubuntu/trainium_freshstart_20260918_wave39/out/fs-w39-mlp-forward-ingest-input-r2", "output": "/home/ubuntu/trainium_freshstart_20260918_wave39/out/fs-w39-mlp-forward-parquet-r2", "command": ["/opt/aws/neuron/bin/neuron-explorer", "view", "--session-dir", "/home/ubuntu/trainium_freshstart_20260918_wave39/out/fs-w39-mlp-forward-ingest-input-r2", "--ingest-only", "--output-format", "parquet", "--output-file", "/home/ubuntu/trainium_freshstart_20260918_wave39/out/fs-w39-mlp-forward-parquet-r2"], "raw_preserved": true}
+All of the available Neuron Explorer metrics are viewable as Parquet files.
+These are saved to: /home/ubuntu/trainium_freshstart_20260918_wave39/out/fs-w39-mlp-forward-parquet-r2
+Schema info is available in these places:
+  1. Installed-version schema: run `neuron-explorer --show-profile-schema`
+  2. The SchemaFields table in the output Parquet (one row per table/field, queryable via DuckDB, the Database Viewer widget, or the API server)
+  3. Online reference: https://awsdocs-neuron.readthedocs-hosted.com/en/latest/tools/neuron-explorer/profile-schema-reference.html
+  Note: the online reference may not exactly match your installed neuron-explorer version.
+Processing complete
+INGEST_COMPLETE {"returncode": 0, "seconds": 95.2767557289917, "tables": 32, "instruction_files": [["/home/ubuntu/trainium_freshstart_20260918_wave39/out/fs-w39-mlp-forward-parquet-r2/i-0673e54d9d66e6a1e_pid_1335537_nc_0_session_0/Instruction.parquet", 42323258]]}
+EXPERIMENT_POSTFLIGHT {"label": "fs-w39-mlp-forward-remote-ingest-r2", "returncode": 0, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave39/research/run-logs/fs-w39-mlp-forward-remote-ingest-r2.postflight.json"}

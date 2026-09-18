@@ -1,0 +1,35 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave39",
+    "expected_commit": "fb6f0b719524dc6b00ed77b7058ca694707e104e",
+    "label": "fs-w39-mlp-forward-profile-analysis-r1",
+    "purpose": "Summarize the successfully ingested full-model fused MLP forward, using recorded graph windows and per-core engine activity. CPU-only analysis under the same cleanup protocol.",
+    "fingerprint_paths": [
+      "research/scratch/summarize_dense_device_profile.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "GOMEMLIMIT": "24GiB"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=15s",
+      "300s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/summarize_dense_device_profile.py",
+      "out/fs-w39-mlp-forward-parquet-r2/i-0673e54d9d66e6a1e_pid_1335537_nc_0_session_0",
+      "--output",
+      "research/run-logs/fs-w39-mlp-forward-profile-analysis-r1.analysis.json"
+    ]
+  },
+  "requested_at": "2026-09-18T17:47:56.777741+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w39-mlp-forward-profile-analysis-r1\", \"pid\": 1341815, \"commit\": \"fb6f0b719524dc6b00ed77b7058ca694707e104e\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave39/research/run-logs/fs-w39-mlp-forward-profile-analysis-r1.log\", \"started_at\": \"2026-09-18T17:48:02.469268+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

@@ -1,0 +1,42 @@
+{
+  "host": "trn22",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave39",
+  "expected_commit": "fb6f0b719524dc6b00ed77b7058ca694707e104e",
+  "label": "fs-w39-mlp-forward-profile-analysis-r1",
+  "purpose": "Summarize the successfully ingested full-model fused MLP forward, using recorded graph windows and per-core engine activity. CPU-only analysis under the same cleanup protocol.",
+  "fingerprint_paths": [
+    "research/scratch/summarize_dense_device_profile.py"
+  ],
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1",
+    "GOMEMLIMIT": "24GiB"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=15s",
+    "300s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "research/scratch/summarize_dense_device_profile.py",
+    "out/fs-w39-mlp-forward-parquet-r2/i-0673e54d9d66e6a1e_pid_1335537_nc_0_session_0",
+    "--output",
+    "research/run-logs/fs-w39-mlp-forward-profile-analysis-r1.analysis.json"
+  ],
+  "started_at": "2026-09-18T17:48:02.469268+00:00",
+  "hostname": "ip-172-31-32-253",
+  "git_commit": "fb6f0b719524dc6b00ed77b7058ca694707e104e",
+  "source_dirty": false,
+  "preflight_free_bytes": 28244672512,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "4c14ac6ec14fd52e31ee06d91540707083c48a93ec4687fbaa35bc7106a823f3",
+    "research/fresh_start_host.py": "df01707b8ca2ffc8f4b798467e58b81c6fd8417f7aa1c26c4ecf6c080c659600",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/scratch/summarize_dense_device_profile.py": "1840dbd8587db8fbaaae4ac0e4820c9e9ec42e5ab9403ca02ced8b690cd08aea"
+  }
+}

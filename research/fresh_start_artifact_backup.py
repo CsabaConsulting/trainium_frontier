@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 """Back up preserved weights/profiles as immutable, digest-verified draft assets.
 
-Uses the user's existing GitHub authentication. No assets are replaced or deleted;
-completed uploads are reusable after interruption. Actual artifact bytes, source
+Uses the user's existing GitHub authentication. Completed assets are never
+replaced; an owned zero-byte unfinished upload may be cleared before retrying.
+Completed uploads are reusable after interruption. Actual artifact bytes, source
 inventory and chunk hashes are retained separately from ordinary Git history.
 """
 import argparse
-from datetime import datetime, timezone
 import fcntl
 import hashlib
 import json
 import os
 from pathlib import Path
 import re
-import shutil
 import subprocess
 import tarfile
+import time
 
 from fresh_start_backup import ROOT, atomic_json, desktop_keyring_environment, now
 
@@ -89,7 +89,8 @@ def split_asset(source, directory, name, chunk_bytes=CHUNK_BYTES):
     chunks = []
     if source.stat().st_size <= chunk_bytes:
         sha = digest(source)
-        target = directory / f'{name}--{sha[:16]}{source.suffix}'
+        suffix = '.tar.gz' if source.name.endswith('.tar.gz') else source.suffix
+        target = directory / f'{name}--{sha[:16]}{suffix}'
         if not target.exists():
             os.link(source, target)
         chunks.append(dict(name=target.name,bytes=target.stat().st_size,sha256=sha))
@@ -178,16 +179,26 @@ def release(config):
         gh('release','create',config['tag'],'--repo',config['repository'],'--draft',
            '--target',config['target_branch'],'--title','Trainium research recovery — 2026-09-18',
            '--notes-file',str(ROOT/'research/artifact-backup-release-notes.md'))
-        rows = json.loads(gh('api',endpoint+'?per_page=100'))
-        matches = [r for r in rows if r['tag_name'] == config['tag']]
+        # Creation can precede visibility in the release-list API by a moment.
+        for attempt in range(5):
+            rows = json.loads(gh('api',endpoint+'?per_page=100'))
+            matches = [r for r in rows if r['tag_name'] == config['tag']]
+            if matches:
+                break
+            time.sleep(2)
     assert len(matches) == 1 and matches[0]['draft'], 'Expected one draft backup release'
     return matches[0]
 
 
 def assets(config, release_id):
-    pages = json.loads(gh('api',f"repos/{config['repository']}/releases/{release_id}/assets?per_page=100",
-                         '--paginate','--slurp'))
-    return {item['name']:item for page in pages for item in page}
+    # The installed gh predates --slurp; explicit REST pagination works on it.
+    result = {}
+    for page in range(1, 12):
+        items = json.loads(gh('api',f"repos/{config['repository']}/releases/{release_id}/assets?per_page=100&page={page}"))
+        result.update({item['name']:item for item in items})
+        if len(items) < 100:
+            return result
+    raise RuntimeError('Release asset pagination exceeded the documented limit')
 
 
 def upload(config, rel, folder, manifest):
@@ -201,7 +212,17 @@ def upload(config, rel, folder, manifest):
     verified = []
     for item in required:
         name = item['name']
+        if name in inventory and inventory[name]['state'] == 'starter' and inventory[name]['size'] == 0:
+            # GitHub can retain an empty placeholder after an interrupted upload.
+            # Scope is this draft release and this exact content-addressed name.
+            abandoned = inventory[name]
+            atomic_json(DIRECTORY/'interrupted-uploads'/f"{abandoned['id']}.json",
+                        dict(recorded_at=now(),asset=abandoned,expected_sha256=item['sha256'],
+                             reason='Owned zero-byte starter; contains no completed artifact'))
+            gh('api','--method','DELETE',f"repos/{config['repository']}/releases/assets/{abandoned['id']}")
+            del inventory[name]
         if name not in inventory:
+            assert digest(folder/name) == item['sha256'], 'Local upload payload changed: '+name
             print(json.dumps(dict(event='uploading',artifact=manifest['entry']['id'],asset=name,bytes=item['bytes'])),flush=True)
             gh('release','upload',config['tag'],str(folder/name),'--repo',config['repository'],timeout=1800)
             inventory = assets(config,rel['id'])
