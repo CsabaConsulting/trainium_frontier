@@ -198,7 +198,8 @@ def mlp_gate(shape, case, kernel, calibrate, quantize, steps, benchmark,
         if not phase['passed']:
             # Keep the failed exact check. Characterize changed BF16 outputs
             # against an independently summed dot product of the same saved
-            # activation. No timing or promotion is permitted in this mode.
+            # activation. The diagnosis-only mode never times; the explicit
+            # FP64 contract separately gates every backward and paired NKI result.
             changed = torch.nonzero(training_outputs[name] != outputs[name][0])
             points = []
             for row, column in changed[:16].tolist():
@@ -212,7 +213,8 @@ def mlp_gate(shape, case, kernel, calibrate, quantize, steps, benchmark,
                     fp32_accumulation_bound=float(gamma * products.abs().sum())))
             emit('FP8_CACHE_NATIVE_PHASE_DIAGNOSTIC', dict(case=case, arm=name,
                  changed_elements=len(changed), points=points,
-                 exact_gate_still_failed=True, timed=False))
+                 exact_gate_still_failed=True, diagnostic_record_not_timed=True,
+                 active_reference_contract=reference_contract))
         gradients[name] = tuple(a.grad.cpu() for a in leaves)
         assert leaves[1].grad.dtype == leaves[2].grad.dtype == torch.float32
         for i in range(3):

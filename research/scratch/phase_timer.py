@@ -93,6 +93,8 @@ def main():
                          "input D2H, stable CPU sort and metadata upload are timed.")
     ap.add_argument("--nki-branch-norm", action="store_true",
                     help="Scratch FP32-statistic RMSNorm with the existing BF16 branch outputs.")
+    ap.add_argument("--adaptive-nki-ce", action="store_true",
+                    help="Gated CE target gather and one/two-core shape dispatch; unchanged loss math.")
     ap.add_argument("--nki-adamw-fp32", action="store_true",
                     help="Scratch gated functional FP32 AdamW for dense1024 tables; other groups stay native.")
     ap.add_argument("--optimizer-ownership", action="store_true",
@@ -294,6 +296,12 @@ def main():
     device_type = T.detect_device_type("")
     ddp, rank, local_rank, world_size, device = T.init_runtime(device_type)
     T.COMPUTE_DTYPE = T.compute_dtype_for(device)
+    if args.adaptive_nki_ce:
+        if device_type != "neuron":
+            raise ValueError("--adaptive-nki-ce requires Neuron")
+        from softcap_ce_parallel_integration import install as install_ce
+        install_ce(T)
+        print("[pt] Adaptive NKI CE row scheduling and target gather; unchanged loss math", flush=True)
     if args.nki_branch_norm:
         if device_type != "neuron":
             raise ValueError("--nki-branch-norm requires Neuron")

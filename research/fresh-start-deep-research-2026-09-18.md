@@ -1,22 +1,22 @@
 # Fresh-start synthesis: repeatable gains toward a competitive BPB
 
-**Current evidence,2026-09-18 22:30UTC:** T1024/pack16 plus original fused AdamW
-completed3282updates and scores **0.9974687136975224** on the matched larger
-public diagnostic, improving on1.0010172426032236. The checkpoint is locally
-and GitHub-digest-verified. Target roughly0.9749 and private-data uncertainty
-remain. This combination changes both context geometry and optimizer execution;
-the quality gain is not attributed to either alone. No seed search or new
-arithmetic approximation is involved. Optimizer ownership's full run is ongoing.
+**Current evidence,2026-09-18 23:10UTC:** larger public BPB
+**0.9973302213667847** after3377updates with exact padded optimizer ownership,
+T2048/pack8 and native-forward/custom-backward MLP, no n-grams or seed search.
+Matched20.97M/T1024/O1 evaluation is clean; checkpoint local/cloud verified.
+The prior short-context/fused-Adam combination scored0.9974687136975224.
+The competitive target remains roughly0.9749; private validation still differs.
 
-The user's FP8 hypothesis is explicitly retained: smaller storage can change
-which layout wins, including a BF16 loser. A storage-only FP8/BF16-math control
-with online exponent-bit calibration is implemented and awaits hardware gates;
-complete FP8 forward/backward islands follow separately. Reciprocal refinement
-now passes optimizer/cache/restore integration. The rsqrt failure is explained
-by the hardware seed's0.32% maximum error; stronger corrections await the same
-unchanged gates. Exact loss two-core variants agree at the real shape but fail
-small general-FP32 inputs, which need stagewise diagnosis. See the
-[kernel queue](fresh-start-kernel-queue-2026-09-18.md) and updated results ledger.
+Adaptive CE/gather passes exact component gates and saves53.98%; installed
+compiled-autograd and full-model gates are next. Short-context+ownership alone
+saves2.44%, below3%, so combine the gated loss change before new full training.
+FP8 storage/BF16 math passes explicit numerical gates but loses component
+speed. Actual FP8 forward/backward islands remain distinct candidates, including
+layouts that lost in BF16. Rsqrt modes5/6 now pass accuracy but lose timing;
+reciprocal mode2 passes integrated gates. Compact joint-function tables pass
+CPU finite-domain bounds; device tests are pending. All33 heavy artifacts are
+GitHub-digest-verified. Current commands and decisions are in `RESUME.md` and
+the [kernel queue](fresh-start-kernel-queue-2026-09-18.md).
 
 **Earlier evidence, 2026-09-18 21:59 UTC.** Working competitive target remains
 roughly0.9749 BPB. The best matched larger public result is **1.001017243**,

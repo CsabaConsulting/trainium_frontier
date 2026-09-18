@@ -1,6 +1,6 @@
 # Kernel queue and precision-specific experiments
 
-Updated22:57UTC,2026-09-18. This is the executable/design queue, not a list of
+Updated23:10UTC,2026-09-18. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
@@ -9,10 +9,10 @@ Every device request retains immutable source, cleanup and numerical gates.
 | Item | State | Next action / evidence |
 | --- | --- | --- |
 | T1024/pack16 + original fused AdamW | 3282updates; small public0.992175; checkpoint local and cloud verified | Larger20.97M/T1024/O1 evaluation **0.9974687136975224**, clean; first larger public sub1.0, not private leaderboard |
-| Padded optimizer ownership |3377updates/442.6Mtargets; checkpoint local and cloud verified | Larger public **0.9973302213667847**, clean; current best. T1024/pack16 ownership combination phase now active against fresh528.353028ms owned control |
+| Padded optimizer ownership |3377updates/442.6Mtargets; checkpoint local and cloud verified | Larger public **0.9973302213667847**, clean; current best. T1024/pack16 ownership phase passes at515.473750ms versus528.353028ms:2.4376%, below3% gate; combine gated CE before another quality run |
 | Scalar reciprocal + Newton | 34component gates,16.77% component gain; repeated optimizer/cache/restore gate now passes | Optional whole-step combination after the active quality runs; no approximation is in those runs |
 | Scalar rsqrt correction | Mode5 passes34 gates but loses:1.363799vs1.262366ms; no promotion | Mode6 also passes34 gates but loses1.25%; both closed for this component; mode2 remains faster |
-| Exact CE core/gather changes | Wave68 isolates discrepancy to forward outer-loop trip count1, for both input precisions; cores agree and native-lse backward is exact | Adaptive dispatch keeps one core for small/odd tile counts; re-run original exact gates plus128/384/512/768/1024 boundaries, then real timing |
+| Exact CE core/gather changes | Wave68 isolates discrepancy to forward outer-loop trip count1, for both input precisions; cores agree and native-lse backward is exact | Adaptive/gather passes all original/boundary/row-independence gates;5.679065vs12.339531ms FW+BW,53.9767% component gain. Compiled autograd integration gate next, then full model |
 | Polynomial exponential | Nine device records pass;3.57–4.19times slower | Closed as a standalone speed replacement; retain the accurate implementation for diagnostics |
 
 The CE experiment compares original, explicit one-core mask, two-core mask,
@@ -72,28 +72,32 @@ initial/trained weight regimes. Declare bounds before hardware results; do
 not retrofit a failed BF16 tolerance into an FP8 pass. End-to-end BPB still
 requires the full30-minute comparison after a complete-step gain of at least3%.
 
-The storage-only prototype is implemented in `fp8_weight_cache_nki.py`,
-`mlp_fused_bf16.py` and `fp8_weight_cache_probe.py`. Syntax checks pass; start
-the calibration-only gate, then full16384x1024x4096 FW/BW. Online calibration,
-FP32 master casts, quantized-cache preparation and two accumulated backward
-calls are charged per timed update. CPU autograd and sampled FP64 GEMMs supply
-independent controls; storage variants must agree exactly. Calibration now
-passes42 exact gates across7 cases. The first small inference comparison also
-passes exact NKI BF16/FP8-storage/native outputs. The full gate stopped on a
-native inference-versus-training output difference of0.0009765625, before
-gradient/timing gates. A diagnostic preserves that failure while checking
-FP64 dot products and both NKI training paths. FP8 GEMM islands remain in design.
+The storage-only prototype passes its full wave69 gate under the explicitly
+selected FP64-propagated backward contract. Four cases include the real
+16384x1024x4096 shape; compressed/uncompressed NKI outputs and gradients match
+exactly. The original CPU-BF16/cross-compilation discrepancies remain recorded
+as diagnostics, not erased. Online calibration, FP32 master casts, cache
+preparation and two accumulated forward/backward calls are charged per update.
+
+It **loses** isolated timing:17.898402ms FP8 storage/BF16 math versus14.989582ms
+paired NKI BF16 cache and15.641984ms native original. Repeated tile
+conversion is a plausible cost to investigate, not a profiled attribution.
+The quantized real-shape model differs from original BF16 by4.111% forward RMS;
+passing implementation gates does not establish acceptable training quality.
+No optimizer, collectives or surrounding-model spill savings are included.
+Do not promote this storage-only variant from these measurements. Actual FP8
+GEMM forward/backward islands remain distinct queued designs.
 
 ## Additional retro-search ideas retained
 
 | Family | Concrete use | Stage / gate |
 | --- | --- | --- |
-| Newton / polynomial correction | Reciprocal update; rsqrt seed correction with fewer multiplies than two Newton steps | Reciprocal integrated gate passes; rsqrt modes5/6 ready for component gates |
+| Newton / polynomial correction | Reciprocal update; rsqrt seed correction with fewer multiplies than two Newton steps | Reciprocal integrated gate passes; rsqrt modes5/6 pass all34 numerical gates but lose timing; no promotion |
 | Exponent-bit range reduction | Power-of-two FP8 scales without log2/floor/exp2 | Implemented; calibration-only gate covers zero, underflow, outlier, endpoints and all declared finite BF16 codes |
 | Compact finite-domain tables | Joint softcapped exponential and derivative, with analytic tails | CPU study passes all65280 finite BF16 codes and13 loss/gradient scenarios;4/5/6MiB alternatives. Device gather/reduction/reciprocal/log and timing pending |
 | Polynomial/rational composition | Evaluate multiple required outputs together, reuse shared intermediates | Design; compare complete loss FW/BW, not standalone approximants only |
 | Representation / traffic elimination | Let loss consume existing BF16 logits and return correctly rounded BF16 head gradients | Exact dtype-boundary probe after FP32 CE scheduling result; caller integration required |
-| Work elimination | SBUF target gather; optimizer compute ownership; precomputed symmetry | CE ready; ownership full training active; RoPE trig already precomputed |
+| Work elimination | SBUF target gather; optimizer compute ownership; precomputed symmetry | CE component passes with53.98% gain; ownership full training/evaluation complete; RoPE trig already precomputed |
 
 For power-of-two scaling, a useful candidate policy for positive normal amax
 with biased exponent b is scale=2**(133-b), so scaled amax lies in[64,128).

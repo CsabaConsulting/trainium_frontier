@@ -1,0 +1,38 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave69",
+    "expected_commit": "f3a67c9e28028150cab07751ba89d29981448975",
+    "label": "fs-w69-softcap-ce-adaptive-gather-trn21-gate-r1",
+    "purpose": "Re-pass original exact CE forward/lse/backward gates plus128/384/512/768/1024 boundary and row-independence checks. Use one core when a two-core launch has only one outer iteration or row tiling is odd; keep raw failed controls. Time only eligible arms on16384x8192 FW+BW, including HBM. Run on trn21 while trn22 performs the independent FP8 MLP gate.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1800s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "/home/ubuntu/trainium_freshstart_20260918_wave69/research/scratch/softcap_ce_parallel_probe.py",
+      "--real-shape",
+      "--steps",
+      "20"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/softcap_ce_parallel_probe.py",
+      "research/scratch/softcap_ce_parallel_nki.py",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "research/scratch/mlp_fused_bf16.py"
+    ]
+  },
+  "requested_at": "2026-09-18T23:03:56.202881+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w69-softcap-ce-adaptive-gather-trn21-gate-r1\", \"pid\": 1153078, \"commit\": \"f3a67c9e28028150cab07751ba89d29981448975\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave69/research/run-logs/fs-w69-softcap-ce-adaptive-gather-trn21-gate-r1.log\", \"started_at\": \"2026-09-18T23:04:02.102185+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}
