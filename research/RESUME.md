@@ -39,7 +39,7 @@ loss5.064923286437988 matches exactly. No complete parameter-equality claim.
 Combined gain versus earlier owned T2048/pack8 control528.3530275ms is5.2958%.
 The phase clips before averaging; quality clips after. Protected trainer unchanged.
 
-**trn22 CLEAN/IDLE after wave73:** actual FP8 up/down forward GEMMs with causal
+**trn22 CLEAN after wave74 profile:** actual FP8 up/down forward GEMMs with causal
 per-token scales pass all seven small cases (193 exact/14 pair-stage gates),
 real16384x1024x4096 forward and six STE backward/accumulation cases. Masters
 receive FP32 gradients once; caches detached, BF16 backward independently
@@ -52,14 +52,21 @@ Complete component medians (cache refresh plus TWO FW/BW calls): native
 actual FP8 forward/BF16 backward18.1811702ms (16.0792% slower than native).
 Online calibration/master casts, per-token scales, saved values and gradient
 accumulation are charged; optimizer, collectives and caller spills are absent.
-No training promotion. Next diagnostic profiles preparation/forward/backward
-on the real shape using `fp8_mlp_island_profile.py`. Full FP8 backward remains
+No training promotion. Real-shape preparation/forward/backward profile
+`fs-w74-fp8-causal-island-component-profile-r1` completed clean23:37:47UTC,
+source4d4f55d. It preserves6 compiled and9 eager NEFFs; retrieval/ingestion is
+next. Trace phase synchronization makes unprofiled wave73 timing authoritative. Full FP8 backward remains
 open; precision-specific layouts must be assessed in their intended precision.
 
 Wave71 frontend helper lookup and wave72 FP8 transpose failures remain recorded.
 The fixes register NKI-parsed helper names globally and use padded128x256 FP8
 PSUM with stride2; all original gates pass afterward, without relaxed tolerances.
-trn22 watcher currently follows wave73 and must move when new source is deployed.
+trn22 watcher currently follows wave74 and must move when new source is deployed.
+The compact-table device primitive/probe is written, CPU clamped-tail exhaustive
+gate passes unchanged2e-7/1e-7 bounds; commit/deploy before its first device gate.
+It returns exponential and derivative together, charges5MiB table loads and
+index/gather/tail/output work, and checks all finite BF16 codes and changed rows.
+No loss reduction/log/reciprocal/autograd or training integration is claimed.
 
 ## Latest numerical findings
 
@@ -128,7 +135,7 @@ Local Devuan/SystemV, usercsaba cron; no root/systemd:
   zero errors, including both new quality checkpoints. State is
   out/fresh-start-artifact-backup/latest.json; receipts under research/run-logs.
   Newly produced remote checkpoints still need retrieval to checkpoints/ first.
-- Local log watchers currently follow trn21/wave70 and trn22/wave73,90rounds at
+- Local log watchers currently follow trn21/wave70 and trn22/wave74,90rounds at
  45seconds. Repoint when the active remote worktree changes. Only stop exact
   owned watcher PID/UID/cwd/argv/startticks; remote training jobs are separate.
 

@@ -161,3 +161,11 @@ and transpose overhead, but current-batch/global activation calibration would
 break token independence. It needs its own state/causality/overflow/quality gates
 and is not part of the current implementation. Weight-gradient FP8 products
 also need a scale policy compatible with their token contraction dimension.
+
+The actual-FP8 profile (wave74) completed clean and exported its compiled and
+eager binaries. Ingestion/cost attribution is pending. The compact table now
+has an executable `compact_ce_table_nki.py` and `compact_ce_table_probe.py`: a
+5MiB joint exp/derivative table, exponent-bit indexing and linear tiny tail.
+Clamping the large tail at BF16 magnitude255 passes an additional exhaustive
+CPU gate. Device numerical gates precede real16384x8192 primitive timing;
+full-loss integration remains a later stage.

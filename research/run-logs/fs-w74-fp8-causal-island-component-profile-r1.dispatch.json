@@ -1,0 +1,45 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave74",
+    "expected_commit": "4d4f55d4f69eca309adf95b32a85290a2f65cff3",
+    "label": "fs-w74-fp8-causal-island-component-profile-r1",
+    "purpose": "After all wave73 forward, STE backward and accumulation gates passed but complete component timing lost16.08%, attribute native/BF16-cache/actual-FP8 costs on real dimensions. Trace master casts/cache refresh, two forwards and backwards; preserve NEFF/NTFF. Phase synchronization affects timing: use wave73 unprofiled benchmark for speed claims. No quality or full-model promotion.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1800s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "/home/ubuntu/trainium_freshstart_20260918_wave74/research/scratch/fp8_mlp_island_profile.py",
+      "--trace-dir",
+      "/home/ubuntu/trainium_freshstart_20260918_wave74/out/fs-w74-fp8-causal-island-component-profile-r1"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/fp8_mlp_island_nki.py",
+      "research/scratch/fp8_mlp_island_probe.py",
+      "research/scratch/fp8_weight_cache_nki.py",
+      "research/scratch/fp8_weight_cache_probe.py",
+      "research/scratch/fresh_start_fp8_probe.py",
+      "research/scratch/fp8_mlp_island_autograd.py",
+      "research/scratch/fp8_mlp_island_training_probe.py",
+      "research/scratch/mlp_backward_rounding_bounds.py",
+      "research/scratch/mlp_fused_bf16.py",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "research/scratch/fp8_mlp_island_profile.py",
+      "research/scratch/preserve_native_trace_neffs.py"
+    ]
+  },
+  "requested_at": "2026-09-18T23:36:33.386445+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w74-fp8-causal-island-component-profile-r1\", \"pid\": 1528076, \"commit\": \"4d4f55d4f69eca309adf95b32a85290a2f65cff3\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave74/research/run-logs/fs-w74-fp8-causal-island-component-profile-r1.log\", \"started_at\": \"2026-09-18T23:36:39.281269+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}
