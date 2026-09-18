@@ -52,6 +52,8 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--large", action="store_true")
     ap.add_argument("--kernel", choices=["shift", "nki"], default="shift")
+    ap.add_argument("--eager", action="store_true",
+                    help="Isolate kernel execution from whole-function graph compilation.")
     args = ap.parse_args()
     import torch_neuronx  # noqa: F401
     torch.set_num_threads(2)
@@ -64,8 +66,10 @@ def main():
         cases = [(1, 128, 128, 2), (2, 128, 128, 2), (2, 256, 256, 2)]
     if args.large:
         cases.append((4, 2048, 1024, 2))
-    compiled = {"normal": torch.compile(normal, backend="neuron", dynamic=False, fullgraph=True),
-                args.kernel: torch.compile(variant, backend="neuron", dynamic=False, fullgraph=True)}
+    compiled = {"normal": normal, args.kernel: variant}
+    if not args.eager:
+        compiled = {name: torch.compile(fn, backend="neuron", dynamic=False, fullgraph=True)
+                    for name, fn in compiled.items()}
     for batch, length, width, taps in cases:
         x = torch.randn(batch, length, width, dtype=torch.float32)
         w = torch.randn(width, 1, taps, dtype=torch.float32) * 0.1
@@ -74,11 +78,18 @@ def main():
         absolute = cpu_reference(x, w, grad, absolute=True)
         results = {}
         for name, fn in compiled.items():
+            print(json.dumps(dict(stage="forward", implementation=name, eager=args.eager,
+                                  shape=[batch, length, width, taps])), flush=True)
             xx = x.to("neuron").requires_grad_()
             ww = w.to("neuron").requires_grad_()
             y = fn(xx, ww)
+            # Synchronize at the logical boundary so an asynchronous compiler
+            # failure is attributed to forward or backward rather than a later CPU copy.
+            y_cpu = y.detach().cpu()
+            print(json.dumps(dict(stage="backward", implementation=name, eager=args.eager,
+                                  shape=[batch, length, width, taps])), flush=True)
             dx, dw = torch.autograd.grad(y, (xx, ww), grad.to("neuron"))
-            actual = tuple(t.detach().cpu() for t in (y, dx, dw))
+            actual = (y_cpu, dx.detach().cpu(), dw.detach().cpu())
             report = [errors(a, e, ab, n) for a, e, ab, n in
                       zip(actual, expected, absolute, [taps, taps, batch * length])]
             results[name] = report
