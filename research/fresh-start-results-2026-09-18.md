@@ -416,5 +416,68 @@ boundary. A partition127-only memset failed even at the tiny shape; its generic
 MemoryLocation error did not establish a large-tensor SBUF-capacity problem.
 Native `wrap_nki` integration, rather than a raw grid-specialized kernel inside
 Dynamo, also proved necessary on this installed stack. Full-model NKI timing is
-running as `fs-w7-dense1024-noqk-nki-conv-phase-r1`; kernel arithmetic alone is
-not a throughput result.
+completed as `fs-w7-dense1024-noqk-nki-conv-phase-r1`: **713.340ms median**,
+range709.777–719.308ms, microbatches632.614ms, optimizer52.580ms, tail81.110ms.
+This is **27.15% less step time / 37.27% more throughput** than its same-host
+979.203ms control. It includes forward, both gradients, weight conversion and
+partial-gradient reduction. The kernel is now opt-in in `train.py`; a separate
+native gate of the integrated implementation passed at all four shapes.
+
+### Completed full dense control, without hashed tables
+
+`fs-w6-dense1024-noqk-1800-r2`, source `c333adb`, completed **1,805 updates**
+and **236,584,960 targets**. Public BPB is **1.012886 @2048 / 1.027777 @1024**,
+four ranks, 2,097,152 tokens per context. Causality is exact. Training1784.9s,
+charged estimate1785.3s, startup237.7s, total2041.6s, `over_budget=False`.
+Steady steps were about0.99s. The checkpoint is locally preserved with matching
+remote SHA256; its receipt is beside the raw log. This establishes the control
+for the faster dense candidates, not a conclusion that every no-table model loses.
+
+### Native precision probes and composition
+
+All rows use dense6×1024, no hashed tables or QK shift, the same real loader,
+four ranks/LNC2, B4T2048/rank, GA4, BF16 matmult compiler flags and seed42.
+Eight unprofiled steady steps follow three warmup updates. Precision policies
+are intentional arithmetic changes, not exact replacements of the baseline.
+
+| Host | Convolution | Precision policy | Median step ms | Microbatches ms |
+|---|---|---|---:|---:|
+|trn21|native|baseline|979.203|894.632|
+|trn21|NKI|baseline|713.340|632.614|
+|trn21|native|BF16 at SDPA only|907.584|823.416|
+|trn21|NKI|BF16 at SDPA only|670.093|585.410|
+|trn22|native|baseline, earlier same-host control|986.485|900.022|
+|trn22|native|BF16 norm outputs|785.120|701.778|
+|trn22|NKI|BF16 norm outputs|588.743|502.273|
+
+The norm/convolution combination saves **40.32%** of step time against the earlier
+same-host no-QK control. Every precision row passes checks on all four ranks after
+real updates: finite parameters/available gradients/logits, nonzero attention
+output branches, exact future-token, cross-batch and repeated-call independence.
+These evaluation checks use B2T256 and are outside timing; native kernel arithmetic
+was separately checked at B4T2048C1024. Full-training BPB is still pending.
+
+The NKI-only full-budget run launched on trn21 at10:45 UTC as
+`fs-w9-dense1024-nki-conv-1800-r1`, source`ccf22c0`. Trn22 is verifying the norm
+combination through the actual integrated training entrypoint at`18ab710`, with
+no scratch forward monkeypatches, before its full-budget run.
+
+### Checkpoint configuration repair
+
+`load_for_eval` previously rebuilt from live source defaults, ignoring saved
+architecture/arithmetic toggles. That can fail strict loading when a CLI disables
+tables/QK parameters, or silently change same-shaped behavior. It now restores
+only the explicit `ARCH_TOGGLE_NAMES` allowlist before model construction, using
+import-time defaults for legacy missing keys. Unknown keys cannot replace code
+globals. `prepare.py` and its two-argument scoring hook are unchanged.
+
+CPU gates deliberately reverse live table/QK/precision flags and change softcap
+before loading; saved logits are reproduced exactly, with and without tables.
+Legacy missing flags use import defaults. The BF16 norm policy also needed to
+align V with Q's dtype after CPU FP32 value-embedding addition; the native tested
+BF16 path already had matching dtypes. Failed test logs remain preserved: the
+first table-count assertion assumed every layer carried VE, and the first norm
+checkpoint check caught that CPU mixed-dtype SDPA issue. The first integrated
+native kernel checker failed on constructing `SimpleNamespace` inside Dynamo;
+the eager native check passes, and the compiled checker now calls the production
+autograd operation directly. These were not kernel accuracy failures.

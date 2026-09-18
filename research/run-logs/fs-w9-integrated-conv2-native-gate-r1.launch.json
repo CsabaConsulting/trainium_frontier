@@ -1,0 +1,30 @@
+{
+  "label": "fs-w9-integrated-conv2-native-gate-r1",
+  "started_at": "2026-09-18T10:41:44.094850+00:00",
+  "hostname": "ip-172-31-34-85",
+  "git_commit": "ccf22c067eaab4d188bf2a97aefddc6e2eb8431e",
+  "command": [
+    "timeout",
+    "900s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "/home/ubuntu/trainium_freshstart_20260918_wave9/research/scratch/causal_conv_shift_device_check.py",
+    "--kernel",
+    "train-nki",
+    "--large"
+  ],
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_RT_VISIBLE_CORES": "0",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "source_sha256": {
+    "train.py": "90ce771231c2412c865e98c07ffcc78c1cf48bc4fba9db69fca0deeb46135761",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/scratch/causal_conv_shift_device_check.py": "ec9fa130baee3fd95d11dfdb7257fc80939250d55da833e41d15d95866a6f1e8"
+  },
+  "purpose": "Native full-shape numerical and causality gate for the exact NKI implementation now embedded in the standalone training entrypoint"
+}

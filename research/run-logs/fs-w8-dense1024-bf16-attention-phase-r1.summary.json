@@ -1,0 +1,108 @@
+{
+  "label": "fs-w8-dense1024-bf16-attention-phase-r1",
+  "metrics_ms": {
+    "zero_grad_ms": 0.67453648080118,
+    "micro_total_ms": 823.4156409744173,
+    "micro_mean_ms": 205.85391024360433,
+    "clip_ms": 6.642894528340548,
+    "sync_grad_ms": 14.599707996239886,
+    "control_ms": 2.363613515626639,
+    "set_lr_ms": 0.027277012122794986,
+    "opt_step_ms": 54.90349151659757,
+    "wcache_ms": 2.683111000806093,
+    "step_total_ms": 907.5836954871193,
+    "tail_ms": 82.88151951273903
+  },
+  "aggregation": "median of 8 unprofiled synchronized steady steps",
+  "native_post_checks": [
+    {
+      "rank": 1,
+      "passed": true,
+      "sequence_len": 256,
+      "batch_size": 2,
+      "parameters_and_gradients_finite": true,
+      "logits_finite": true,
+      "attention_output_weight_square_sums": [
+        7.285409450531006,
+        4.499776363372803,
+        6.795673847198486,
+        4.39434814453125,
+        5.81536865234375,
+        3.997288703918457
+      ],
+      "future_max_abs": 0.0,
+      "other_batch_max_abs": 0.0,
+      "repeated_call_max_abs": 0.0,
+      "outside_timing": true,
+      "evaluation_path": "updated eager model"
+    },
+    {
+      "rank": 2,
+      "passed": true,
+      "sequence_len": 256,
+      "batch_size": 2,
+      "parameters_and_gradients_finite": true,
+      "logits_finite": true,
+      "attention_output_weight_square_sums": [
+        7.285409450531006,
+        4.499776363372803,
+        6.795673847198486,
+        4.39434814453125,
+        5.81536865234375,
+        3.997288703918457
+      ],
+      "future_max_abs": 0.0,
+      "other_batch_max_abs": 0.0,
+      "repeated_call_max_abs": 0.0,
+      "outside_timing": true,
+      "evaluation_path": "updated eager model"
+    },
+    {
+      "rank": 3,
+      "passed": true,
+      "sequence_len": 256,
+      "batch_size": 2,
+      "parameters_and_gradients_finite": true,
+      "logits_finite": true,
+      "attention_output_weight_square_sums": [
+        7.285409450531006,
+        4.499776363372803,
+        6.795673847198486,
+        4.39434814453125,
+        5.81536865234375,
+        3.997288703918457
+      ],
+      "future_max_abs": 0.0,
+      "other_batch_max_abs": 0.0,
+      "repeated_call_max_abs": 0.0,
+      "outside_timing": true,
+      "evaluation_path": "updated eager model"
+    },
+    {
+      "rank": 0,
+      "passed": true,
+      "sequence_len": 256,
+      "batch_size": 2,
+      "parameters_and_gradients_finite": true,
+      "logits_finite": true,
+      "attention_output_weight_square_sums": [
+        7.285409450531006,
+        4.499776363372803,
+        6.795673847198486,
+        4.39434814453125,
+        5.81536865234375,
+        3.997288703918457
+      ],
+      "future_max_abs": 0.0,
+      "other_batch_max_abs": 0.0,
+      "repeated_call_max_abs": 0.0,
+      "outside_timing": true,
+      "evaluation_path": "updated eager model"
+    }
+  ],
+  "same_host_control": "fs-w7-dense1024-noqk-control-phase-r2",
+  "step_time_reduction_percent": 7.314070744907064,
+  "throughput_increase_percent": 7.891241749086908,
+  "precision_changed": true,
+  "training_quality_tested": false
+}

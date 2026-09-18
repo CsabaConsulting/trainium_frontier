@@ -1,0 +1,35 @@
+[W918 10:41:45.352335066 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+{"stage": "forward", "implementation": "normal", "eager": false, "shape": [1, 128, 128, 2]}
+{"stage": "backward", "implementation": "normal", "eager": false, "shape": [1, 128, 128, 2]}
+{"check": "conv_native_arithmetic", "implementation": "normal", "shape": [1, 128, 128, 2], "forward_dx_dw": [{"finite": true, "max_abs": 9.85510739681672e-08, "relative_rms": 3.7166461686457267e-08, "bound_failures": 0, "max_error_over_bound": 0.47823069411471664, "terms": 2}, {"finite": true, "max_abs": 5.516596335297663e-08, "relative_rms": 3.672020218683175e-08, "bound_failures": 0, "max_error_over_bound": 0.4562936722547826, "terms": 2}, {"finite": true, "max_abs": 1.5515038697344607e-05, "relative_rms": 1.9905399845686567e-07, "bound_failures": 0, "max_error_over_bound": 0.011851781246815955, "terms": 128}]}
+{"stage": "forward", "implementation": "train-nki", "eager": false, "shape": [1, 128, 128, 2]}
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_freshstart_20260918_wave9/research/scratch/causal_conv_shift_device_check.py", line 127, in <module>
+    main()
+  File "/home/ubuntu/trainium_freshstart_20260918_wave9/research/scratch/causal_conv_shift_device_check.py", line 95, in main
+    y = fn(xx, ww)
+        ^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py", line 1034, in compile_wrapper
+    raise e.with_traceback(None) from e.__cause__  # User compiler error
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch._dynamo.exc.Unsupported: Unsupported function call
+  Explanation: Dynamo does not know how to trace the function `<class 'types.SimpleNamespace'>`
+  Hint: Avoid calling `<class 'types.SimpleNamespace'>` in your code.
+  Hint: Please report an issue to PyTorch.
+
+  Developer debug context: call_function UserDefinedClassVariable(<class 'types.SimpleNamespace'>) [] {'weight': LazyVariableTracker(realized: TensorVariable()), 'kernel_size': ConstantVariable(int: 2), 'n_embd': ConstantVariable(int: 128)}
+
+ For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0147.html
+
+from user code:
+   File "/home/ubuntu/trainium_freshstart_20260918_wave9/research/scratch/causal_conv_shift_device_check.py", line 75, in <lambda>
+    SimpleNamespace(weight=w, kernel_size=2, n_embd=w.shape[0]), x)
+
+Set TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you're reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS="+dynamo"
+

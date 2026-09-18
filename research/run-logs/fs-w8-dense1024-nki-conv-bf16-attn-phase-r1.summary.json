@@ -1,0 +1,106 @@
+{
+  "label": "fs-w8-dense1024-nki-conv-bf16-attn-phase-r1",
+  "metrics_ms": {
+    "zero_grad_ms": 0.6037980201654136,
+    "micro_total_ms": 585.4102724697441,
+    "micro_mean_ms": 146.35256811743602,
+    "clip_ms": 6.625262001762167,
+    "sync_grad_ms": 16.67023650952615,
+    "control_ms": 2.8663569828495383,
+    "set_lr_ms": 0.033215503208339214,
+    "opt_step_ms": 55.043763015419245,
+    "wcache_ms": 2.696690004086122,
+    "step_total_ms": 670.0928479549475,
+    "tail_ms": 83.9601180923637
+  },
+  "aggregation": "median of 8 synchronized unprofiled steady steps",
+  "native_post_checks": [
+    {
+      "rank": 0,
+      "passed": true,
+      "sequence_len": 256,
+      "batch_size": 2,
+      "parameters_and_gradients_finite": true,
+      "logits_finite": true,
+      "attention_output_weight_square_sums": [
+        7.298812389373779,
+        4.514072418212891,
+        6.808497428894043,
+        4.4073166847229,
+        5.838797569274902,
+        4.0062103271484375
+      ],
+      "future_max_abs": 0.0,
+      "other_batch_max_abs": 0.0,
+      "repeated_call_max_abs": 0.0,
+      "outside_timing": true,
+      "evaluation_path": "updated eager model"
+    },
+    {
+      "rank": 1,
+      "passed": true,
+      "sequence_len": 256,
+      "batch_size": 2,
+      "parameters_and_gradients_finite": true,
+      "logits_finite": true,
+      "attention_output_weight_square_sums": [
+        7.298812389373779,
+        4.514072418212891,
+        6.808497428894043,
+        4.4073166847229,
+        5.838797569274902,
+        4.0062103271484375
+      ],
+      "future_max_abs": 0.0,
+      "other_batch_max_abs": 0.0,
+      "repeated_call_max_abs": 0.0,
+      "outside_timing": true,
+      "evaluation_path": "updated eager model"
+    },
+    {
+      "rank": 2,
+      "passed": true,
+      "sequence_len": 256,
+      "batch_size": 2,
+      "parameters_and_gradients_finite": true,
+      "logits_finite": true,
+      "attention_output_weight_square_sums": [
+        7.298812389373779,
+        4.514072418212891,
+        6.808497428894043,
+        4.4073166847229,
+        5.838797569274902,
+        4.0062103271484375
+      ],
+      "future_max_abs": 0.0,
+      "other_batch_max_abs": 0.0,
+      "repeated_call_max_abs": 0.0,
+      "outside_timing": true,
+      "evaluation_path": "updated eager model"
+    },
+    {
+      "rank": 3,
+      "passed": true,
+      "sequence_len": 256,
+      "batch_size": 2,
+      "parameters_and_gradients_finite": true,
+      "logits_finite": true,
+      "attention_output_weight_square_sums": [
+        7.298812389373779,
+        4.514072418212891,
+        6.808497428894043,
+        4.4073166847229,
+        5.838797569274902,
+        4.0062103271484375
+      ],
+      "future_max_abs": 0.0,
+      "other_batch_max_abs": 0.0,
+      "repeated_call_max_abs": 0.0,
+      "outside_timing": true,
+      "evaluation_path": "updated eager model"
+    }
+  ],
+  "step_time_reduction_percent_vs_indicated_control": 6.062568419850722,
+  "control_step_ms": 713.3395459968597,
+  "training_quality_tested": false
+}

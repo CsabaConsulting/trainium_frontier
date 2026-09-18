@@ -1,0 +1,107 @@
+{
+  "label": "fs-w8-dense1024-nki-conv-bf16-norm-phase-r1",
+  "metrics_ms": {
+    "zero_grad_ms": 0.6934030388947576,
+    "micro_total_ms": 502.27300997357816,
+    "micro_mean_ms": 125.56825249339454,
+    "clip_ms": 6.642674008617178,
+    "sync_grad_ms": 17.00998147134669,
+    "control_ms": 2.379923505941406,
+    "set_lr_ms": 0.02754802699200809,
+    "opt_step_ms": 55.3049665177241,
+    "wcache_ms": 2.6939175149891526,
+    "step_total_ms": 588.7432960153092,
+    "tail_ms": 84.81391350505874
+  },
+  "aggregation": "median of 8 synchronized unprofiled steady steps",
+  "native_post_checks": [
+    {
+      "rank": 0,
+      "passed": true,
+      "sequence_len": 256,
+      "batch_size": 2,
+      "parameters_and_gradients_finite": true,
+      "logits_finite": true,
+      "attention_output_weight_square_sums": [
+        7.290562629699707,
+        4.508971691131592,
+        6.792835235595703,
+        4.402292251586914,
+        5.8279337882995605,
+        4.002081394195557
+      ],
+      "future_max_abs": 0.0,
+      "other_batch_max_abs": 0.0,
+      "repeated_call_max_abs": 0.0,
+      "outside_timing": true,
+      "evaluation_path": "updated eager model"
+    },
+    {
+      "rank": 2,
+      "passed": true,
+      "sequence_len": 256,
+      "batch_size": 2,
+      "parameters_and_gradients_finite": true,
+      "logits_finite": true,
+      "attention_output_weight_square_sums": [
+        7.290562629699707,
+        4.508971691131592,
+        6.792835235595703,
+        4.402292251586914,
+        5.8279337882995605,
+        4.002081394195557
+      ],
+      "future_max_abs": 0.0,
+      "other_batch_max_abs": 0.0,
+      "repeated_call_max_abs": 0.0,
+      "outside_timing": true,
+      "evaluation_path": "updated eager model"
+    },
+    {
+      "rank": 3,
+      "passed": true,
+      "sequence_len": 256,
+      "batch_size": 2,
+      "parameters_and_gradients_finite": true,
+      "logits_finite": true,
+      "attention_output_weight_square_sums": [
+        7.290562629699707,
+        4.508971691131592,
+        6.792835235595703,
+        4.402292251586914,
+        5.8279337882995605,
+        4.002081394195557
+      ],
+      "future_max_abs": 0.0,
+      "other_batch_max_abs": 0.0,
+      "repeated_call_max_abs": 0.0,
+      "outside_timing": true,
+      "evaluation_path": "updated eager model"
+    },
+    {
+      "rank": 1,
+      "passed": true,
+      "sequence_len": 256,
+      "batch_size": 2,
+      "parameters_and_gradients_finite": true,
+      "logits_finite": true,
+      "attention_output_weight_square_sums": [
+        7.290562629699707,
+        4.508971691131592,
+        6.792835235595703,
+        4.402292251586914,
+        5.8279337882995605,
+        4.002081394195557
+      ],
+      "future_max_abs": 0.0,
+      "other_batch_max_abs": 0.0,
+      "repeated_call_max_abs": 0.0,
+      "outside_timing": true,
+      "evaluation_path": "updated eager model"
+    }
+  ],
+  "same_host_baseline": "fs-w5-dense1024-noqkshift-phase-r1",
+  "baseline_step_ms": 986.4848135,
+  "step_time_reduction_percent": 40.31907151956281,
+  "training_quality_tested": false
+}

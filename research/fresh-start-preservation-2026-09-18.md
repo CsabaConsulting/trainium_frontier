@@ -106,3 +106,17 @@ After final successful synchronization, the old wave4 and trn21-wave6 mirrors
 were stopped. Separate mirrors cover active trn22-wave6 and trn21-wave7 work.
 New wave8 checkouts at `0016ef8` contain the two precision candidates and post-timing
 native evaluation checks; no active run's source was overwritten.
+
+The first completed no-table dense1024 checkpoint is local at
+`checkpoints/fs-w6-dense1024-noqk-1800-r2/final.pt`, **469,834,785 bytes**.
+Remote source is trn22 wave6's `out/fs-w6-dense1024-noqk-1800-r2/final.pt`,
+source commit`c333adb`. Independent hashes match:
+
+```
+d4baf47851ecf46100f45de306d5c13e8939c6d06e69a4f1717710aeef659c33
+```
+
+See its [receipt](run-logs/fs-w6-dense1024-noqk-1800-r2.preservation.json).
+After final successful sync at10:39 UTC, the trn22-wave6 and trn21-wave7 mirror
+processes were stopped. Wave8/9/10 mirrors cover the subsequent diagnostic and
+training checkouts; each wave retains its immutable source commit.
