@@ -1724,3 +1724,25 @@ a leaderboard claim. Larger20.97M/B1/T1024/O1/no-autocast eval launched at
 9399bc62561cec110856424701a40fc628db48a63bca37006cb033544fec6289
 is local and now GitHub-digest-verified:31of31artifact backups, no errors,
 completed20:40:19UTC.
+
+## 20:56 UTC — larger public result and two numerical investigations
+
+Wave50 native-MLP/pack8 completed 3,183 updates and its checkpoint is local and
+GitHub-digest-verified. The matched larger public evaluation (wave57, B1/T1024,
+O1, 20,971,520 tokens and 83,462,186 bytes) returned **1.0010172426032236 BPB**
+in 694.054s, a reduction of 0.000534056297 from the prior 1.0015512989000874.
+Both training and evaluation have clean postflights. This small public gain
+does not establish a sub1.0 or private-leaderboard result.
+
+Wave58 Scalar square plus sum-reduction normalization passes all numerical and
+independence gates, but real-shape medians are NKI 0.543885ms versus native
+0.440652ms. Packed inverse statistics and Scalar reduction helped the isolated
+NKI path but have not made it competitive. No full training run is justified.
+
+Wave58 AdamW diagnosis preserved the failing original assertion and showed
+that stored-moment rounding explains the two repeated-update weight failures.
+Fresh native and CPU FP32 arithmetic reproduce them. Wave59 corrects the
+contract to independent moment and conditional-weight stages; constants and
+global/trajectory RMS checks remain. The kernel and adapter are unchanged.
+See `fresh-start-adamw-rounding-2026-09-18.md`; do not misreport this as passing
+the original incomplete whole-chain envelope.

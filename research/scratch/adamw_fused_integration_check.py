@@ -12,6 +12,7 @@ import train as T
 from adamw_fused_fp32 import scalar_values
 from adamw_fused_fp32_probe import check, expected64, optimizer_for
 from adamw_fused_integration import install_optimizer
+from adamw_stage_accuracy import check_stages, cpu_counterexamples
 
 
 def cpu_tree(value):
@@ -119,6 +120,7 @@ def main():
     torch.set_num_threads(4)
     T.USE_FOREACH_OPTIM = T.USE_TENSOR_LR_SCALARS = True
     T.USE_CAUTIOUS_WD = False
+    cpu_counterexamples()
     diagnose_native_sqrt()
     gen = torch.Generator().manual_seed(7183)
     initial = [torch.randn(8192, 1024, generator=gen) * .03,
@@ -185,11 +187,10 @@ def main():
                 continue
             assert p._version > version, ("fused Parameter version did not advance", iteration, index)
             values = scalar_values(lr, new_state["step"], *betas, .01)
-            expected, envelope = expected64(old, g, state["exp_avg"], state["exp_avg_sq"], values)
             try:
-                check(f"integration:iteration{iteration}:parameter{index}",
-                      (p, new_state["exp_avg"], new_state["exp_avg_sq"]), expected, envelope,
-                      inputs=(old, g, state["exp_avg"], state["exp_avg_sq"]))
+                check_stages(f"integration:iteration{iteration}:parameter{index}",
+                             (p, new_state["exp_avg"], new_state["exp_avg_sq"]),
+                             (old, g, state["exp_avg"], state["exp_avg_sq"]), values)
             except AssertionError:
                 diagnose_update(old, g, state["exp_avg"], state["exp_avg_sq"], p,
                                 new_state["exp_avg"], new_state["exp_avg_sq"], values,
@@ -203,8 +204,9 @@ def main():
                       new_state["exp_avg_sq"].double())
             errors = [float((a - e).norm() / e.norm().clamp_min(1e-30))
                       for a, e in zip(actual, expected_trajectory)]
-            # A separately declared accumulated-rounding bound; the original
-            # per-update analytic bound above remains unchanged at every step.
+            # The separately declared accumulated-trajectory bound is unchanged.
+            # Per-update checks now account for stored-state rounding explicitly;
+            # the derivation and original counterexamples remain in the ledger.
             u = 2.0 ** -24
             operations = 32 * new_state["step"]
             gamma = operations * u / (1 - operations * u)

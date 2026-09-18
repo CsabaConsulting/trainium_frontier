@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-18, 20:45 UTC. Active permissions: danger-full-access, approval never.
+Updated 2026-09-18, 20:56 UTC. Active permissions: danger-full-access, approval never.
 This replaces the accumulated stale resume instructions; their history remains
 in Git. Do not restart completed experiments from earlier revisions.
 
@@ -10,15 +10,20 @@ in Git. Do not restart completed experiments from earlier revisions.
   updates, 417.2M targets, 1,784.7s charged. Small public .983219/T2048 and
   .995565/T1024 are not larger-eval or private scores. Its checkpoint is local
   and GitHub-digest-verified (SHA9399bc62561cec110856424701a40fc628db48a63bca37006cb033544fec6289).
-  `fs-w57-eval-native-mlp-pack8-s1024-20m-o1-r1` is active from20:38:13UTC,
-  wave57/source8be6a5c, matching the previous best's full public evaluation.
-- **trn22:** wave57 packed-statistic norm passed but loses (.551387ms vs
-  native .453905ms). Wave58 prepares Scalar square+reduction fusion.
+  `fs-w57-eval-native-mlp-pack8-s1024-20m-o1-r1` completed cleanly:
+  **1.0010172426032236 BPB**, 20,971,520tokens, 694.054s, same settings and
+  83,462,186byte denominator as the previous best. This is a small public gain,
+  not sub1.0 or a private-leaderboard score. Host idle after clean postflight.
+- **trn22:** wave58 Scalar square+reduction norm passed but loses
+  (.543885ms vs native .440652ms); neither normalization variant is promoted.
   AdamW functional component passes all34 original cases and saves69.277%.
-  The integration gate passes native fallback/version checks, then two elements
-  fail its weight bound at iteration6/parameter1. State fields pass, RMS3.8e-8.
-  Wave58 adds a diagnostic of propagated moment rounding while retaining the
-  failing assertion. Diagnose before changing any contract or running a full model.
+  Wave58 proves the original iteration6 weight bound omitted propagated moment
+  rounding: native and CPU FP32 reproduce the flagged values. Kernel/adapter
+  unchanged. Wave59 introduces independently checked moment stages and a weight
+  stage conditioned on actual stored moments, with unchanged constants and
+  whole-update/trajectory RMS gates. CPU counterexamples and negative controls
+  must pass, then the full integration/cache/restore gate before full-model timing.
+  See fresh-start-adamw-rounding-2026-09-18.md for the corrected contract.
   The same-host30-step native-MLP/pack8 control is558.627329ms median, clean.
 - Preflight backup false positive is fixed by exact-script recognition, with
   five passing regression checks. Device-holder and runtime checks are intact.
@@ -57,9 +62,10 @@ A launch receipt is not a completion; postflight uses `command_returncode` and
 
 Reference dense6x1024,117,453,580parameters, no hashed n-grams, NKI causal conv
 and BF16 normalization outputs. Best larger public BPB is
-**1.0015512989000874**,20,971,520tokens/B1/T1024; this is not the private
-leaderboard. Working target approximately0.9749. No seed sweep, no new training
-claim. Wave16 best checkpoint469,834,849bytes is local and cloud-digest-verified:
+**1.0010172426032236**,20,971,520tokens/B1/T1024 from wave50's native-MLP/pack8
+checkpoint; this is not the private leaderboard. Working target approximately0.9749.
+No seed sweep. Previous wave16 result1.0015512989000874 is retained; its
+checkpoint469,834,849bytes is local and cloud-digest-verified:
 `checkpoints/fs-w16-dense1024-nki-norm-clipafter-1800-r1/final.pt`, SHA256
 `f5c32a4a61bd5adff168e6a74e0f85da8b2f9580b6d89a3348f069ebf5fd7c06`.
 It completed3,005updates; larger evaluation label
@@ -98,7 +104,7 @@ Local OS **Devuan/SystemV**. Usercsaba cron, no sudo/root, no systemd:
   recovery branch `backup/fresh-start-20260918`, atomically pushes source+WIP and
   verifies both refs. Skips merge/rebase/cherry-pick/index locks, does not pull,
   merge, force-push or change active HEAD/index. Latest verified source
-  `8be6a5cba6d23f9354a6f9673c87113fc5dd7bdf` at20:40, with both refs verified.
+  `f98dd810ec9fc6d1d4a854eae41142dec563e8df` at20:50, with both refs verified.
 - Minutes5/35: `research/fresh_start_artifact_backup_cron.sh`, own lock, nice10,
   bounded uploader, digest-verified immutable assets in draft release
   `research-backup-20260918`. The latest manual cycle completed at20:40:19UTC: **31of31

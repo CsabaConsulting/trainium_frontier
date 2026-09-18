@@ -1,0 +1,44 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave58",
+    "expected_commit": "f98dd810ec9fc6d1d4a854eae41142dec563e8df",
+    "label": "fs-w58-branch-norm-scalar-reduce-gate-r1",
+    "purpose": "After packed statistics improve but remain slower, fuse square and summation on Scalar Engine with explicit accumulator reset. Keep all numerical/inverse/independence gates and a fresh native comparison. No model integration.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1"
+    },
+    "fingerprint_paths": [
+      "research/scratch/branch_norm_nki.py",
+      "research/scratch/branch_norm_nki_probe.py",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "research/scratch/mlp_separate_diagnose.py"
+    ],
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/branch_norm_nki_probe.py",
+      "--real-shape",
+      "--steps",
+      "30",
+      "--inverse-mode",
+      "1",
+      "--packed-inverse",
+      "--diagnose-inverse",
+      "--fused-square-reduce"
+    ]
+  },
+  "requested_at": "2026-09-18T20:50:05.005179+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w58-branch-norm-scalar-reduce-gate-r1\", \"pid\": 1452524, \"commit\": \"f98dd810ec9fc6d1d4a854eae41142dec563e8df\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave58/research/run-logs/fs-w58-branch-norm-scalar-reduce-gate-r1.log\", \"started_at\": \"2026-09-18T20:50:11.515454+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}
