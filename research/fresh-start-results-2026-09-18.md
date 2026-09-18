@@ -1558,3 +1558,28 @@ program and retains every device/runtime check. Five regression checks replay
 the failure and verify altered code, real training/compiler commands, and device
 holders still block. The launcher fingerprints the inventory source dependency.
 No unknown process was killed or cleanup check bypassed.
+
+
+## Wave52: normalization accuracy solved; no timing promotion
+
+The saved inverse at zero input is2896.182861328125 from raw Scalar rsqrt,
+versus FP64 reference2896.3093757400984. Its4.3681249e-5 relative error matches
+the initial gradient failure. Both one Newton correction and GpSIMD produce
+2896.309326171875 (1.7114271e-8 relative error). All original full numerical,
+compiled execution, token-independence and repeatability gates now pass at all
+three shapes and five input scales. Both postflights are clean.
+
+GpSIMD forward/backward is0.627415ms versus paired native0.481725ms; Newton
+variant0.619859ms versus paired native0.462018ms. Neither clears the20% saving
+gate. Profile the warmed real-shape forward and backward once to locate the
+remaining regression; do not send either variant to full training.
+
+The wave49 full-step runtime trace correlates72 optimizer NEFF dispatches:
+56 for five AdamW groups, then16 for four Muon groups (12copies and4compiled
+math bodies). The first Muon copy is submitted18.631ms after optimizer entry.
+This is stage/dispatch evidence, not a sum of exclusive device durations: eager
+driver spans overlap and the CPU optimizer annotation returns before the last
+asynchronous Muon finishes. The resulting targeted hypothesis is fused FP32
+AdamW, preserving the existing per-parameter counters and arithmetic policy.
+Compare both NKI and a pure-tensor compiled control against the actual foreach
+implementation before any integration. See the optimizer-attribution JSON.

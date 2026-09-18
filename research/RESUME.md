@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated2026-09-18,19:56UTC. Active permissions: danger-full-access, approval never.
+Updated2026-09-18,20:06UTC. Active permissions: danger-full-access, approval never.
 This replaces the accumulated stale resume instructions; their history remains
 in Git. Do not restart completed experiments from earlier revisions.
 
@@ -13,14 +13,18 @@ in Git. Do not restart completed experiments from earlier revisions.
   saving). The quality run keeps seed42,131,072targets/update, clip-after-reduce,
   and the best dense6x1024 precision policy. No new branch norm or segmented
   embedding. Preserve its checkpoint immediately after completion.
-- **trn22:** branch RMSNorm failed its initial zero-input gradient gate, finite
-  but4.36824e-5 relative error, versus native3.08802e-8. Postflight is clean.
-  Wave51's launch was blocked by a preflight false positive: the read-only
-  backup inventory's inline script mentions train.py. No kernel ran in that
-  attempt. Wave52 fixes exact-script classification (five regression checks
-  pass) and retries the unchanged kernel comparison: raw Scalar, Newton-refined
-  Scalar, and higher-precision GpSIMD, selecting GpSIMD for the full gate. Bounds remain unchanged;
-  no whole-model use until the complete component gate passes.
+- **trn22:** wave52 confirms the inverse-statistic diagnosis. GpSIMD and one
+  FP32 Newton correction both pass all original numerical/independence gates.
+  Real-shape forward/backward remains slower:0.627415/0.619859ms versus native
+  0.481725/0.462018ms. Both postflights clean. Wave53 prepares one warmed
+  real-shape native/NKI forward/backward device trace to locate the regression.
+  No branch-norm implementation is promoted to training.
+- Preflight backup false positive is fixed by exact-script recognition, with
+  five passing regression checks. Device-holder and runtime checks are intact.
+- Next implementation target: fused FP32 AdamW. Current full-step trace has
+  56AdamW NEFF dispatches before16Muon dispatches; do not sum overlapping driver
+  waits as device time. Compare NKI and pure-tensor compiled controls against
+  actual foreach math, including state/bias/LR and all copy costs.
 - The wave49 native full-step runtime trace is now local and hash-verified:
   88files/68,923,863bytes, `out/fresh-start-profiles/` plus its label directory.
   Artifact cloud backup is queued through its preservation receipt, not yet

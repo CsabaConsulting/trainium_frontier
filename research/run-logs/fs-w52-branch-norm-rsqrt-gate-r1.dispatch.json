@@ -1,0 +1,42 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave52",
+    "expected_commit": "5db784d125bcc4fbbf59af453c04b3f66bd2c074",
+    "label": "fs-w52-branch-norm-rsqrt-gate-r1",
+    "purpose": "Diagnose raw Scalar versus FP32 Newton-refined versus documented higher-precision GpSIMD rsqrt using actual saved inverse statistics, then original analytic gradient/output and independence gates plus timing of GpSIMD variant. Same tolerances as failed wave50; no other source or precision-policy changes. Retry after correcting preflight false identification of the exact read-only backup inventory; kernel source is unchanged from wave51.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1"
+    },
+    "fingerprint_paths": [
+      "research/scratch/branch_norm_nki.py",
+      "research/scratch/branch_norm_nki_probe.py",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "research/scratch/mlp_separate_diagnose.py"
+    ],
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/branch_norm_nki_probe.py",
+      "--real-shape",
+      "--steps",
+      "20",
+      "--diagnose-inverse",
+      "--inverse-mode",
+      "2"
+    ]
+  },
+  "requested_at": "2026-09-18T20:01:20.115100+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w52-branch-norm-rsqrt-gate-r1\", \"pid\": 1407828, \"commit\": \"5db784d125bcc4fbbf59af453c04b3f66bd2c074\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave52/research/run-logs/fs-w52-branch-norm-rsqrt-gate-r1.log\", \"started_at\": \"2026-09-18T20:01:26.717899+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}
