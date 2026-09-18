@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-18, 21:12 UTC. Active permissions: danger-full-access, approval never.
+Updated 2026-09-18, 21:26 UTC. Active permissions: danger-full-access, approval never.
 This replaces the accumulated stale resume instructions; their history remains
 in Git. Do not restart completed experiments from earlier revisions.
 
@@ -18,8 +18,13 @@ in Git. Do not restart completed experiments from earlier revisions.
   Wave61 CPU/Gloo ownership is exact through cache/restore on all ranks. Native
   fails only singleton tall Muon batches (matrices58/59 on ranks3/0); all other
   parameters/states and cross-rank byte equality pass. Both postflights clean.
-  Wave62 prepares zero-matrix padding of singleton groups, keeping exact gates.
-  No owner-update speedup has been measured.
+  Wave62 zero-matrix padding of singleton groups passes CPU and native gates,
+  exact weights/states through restore and 63 further updates, zero dummy state.
+  Full optimizer including FP32 exchange:25.35–25.38ms vs52.29–52.84ms.
+  **Active:** `fs-w62-native-mlp-pack8-owned-control-phase-r1`, sourcec18305e,
+  started21:21:49UTC. After clean completion, run the same30-step/5-warmup phase
+  with `--optimizer-ownership --optimizer-ownership-pad-singletons`; require3%
+  total-step gain and all model checks before quality training.
 - **trn22:** wave58 Scalar square+reduction norm passed but loses
   (.543885ms vs native .440652ms); neither normalization variant is promoted.
   AdamW functional component passes all34 original cases and saves69.277%.
@@ -34,17 +39,23 @@ in Git. Do not restart completed experiments from earlier revisions.
   complete integration/cache/skip/restore gate**, clean postflight.
   `fs-w60-native-mlp-pack8-adam-fused-phase-r1` completes551.895444ms median,
   1.205076% below558.627329ms, all four postchecks and clean postflight. Below3%
-  gate; no30minute AdamW-only run. New `fs-w60-native-mlp-context1024-pack16-phase-r1`
-  is active from21:09:59UTC, sourceefaebf1. Same16384tokens/microstep and GA2,
-  shorter attention context, native AdamW. Check quality separately if it wins.
+  gate; no30minute AdamW-only run. `fs-w60-native-mlp-context1024-pack16-phase-r1`
+  completes547.712253ms,1.953910% gain, all checks and clean postflight. Same
+  16384tokens/microstep and GA2, shorter context. **Active:** combined geometry
+  plus NKI AdamW `fs-w60-native-mlp-context1024-pack16-adam-phase-r1`, sourceefaebf1,
+  started21:21:55UTC. Predeclared control558.627329ms,3% total-step gate.
   See fresh-start-adamw-rounding-2026-09-18.md for the corrected contract.
   The same-host30-step native-MLP/pack8 control is558.627329ms median, clean.
 - Preflight backup false positive is fixed by exact-script recognition, with
   five passing regression checks. Device-holder and runtime checks are intact.
-- Next implementation target: fused FP32 AdamW. Current full-step trace has
-  56AdamW NEFF dispatches before16Muon dispatches; do not sum overlapping driver
-  waits as device time. Compare NKI and pure-tensor compiled controls against
-  actual foreach math, including state/bias/LR and all copy costs.
+- Latest user steering: investigate retro lookup/interpolation, approximation,
+  DOOM and Mandelbrot techniques. All13 supplied links attempted; Tavily fetched
+  seven, web fallback opened the remaining six. Primary Doom/Quake sources and
+  NKI ISA docs retrieved. Raw research in ignored out/retro-approximations-20260918.
+  RoPE already precomputes sine/cosine. Scalar hardware already uses piecewise
+  polynomials; valid ranges matter. Existing norm Newton variant passed but lost
+  to native. Next numerical target is bulk AdamW sqrt/reciprocal, with range
+  reduction, error gates and end-to-end cost measured before promotion.
 - The wave49 native full-step runtime trace is now local and hash-verified:
   88files/68,923,863bytes, `out/fresh-start-profiles/` plus its label directory.
   The 20:05 artifact backup verified its GitHub asset. A trace summary and
@@ -118,10 +129,10 @@ Local OS **Devuan/SystemV**. Usercsaba cron, no sudo/root, no systemd:
   recovery branch `backup/fresh-start-20260918`, atomically pushes source+WIP and
   verifies both refs. Skips merge/rebase/cherry-pick/index locks, does not pull,
   merge, force-push or change active HEAD/index. Latest verified source
-  `458d1f8e3faf161f5b2aef58538d2aff4a0e7b39` at21:06, with both refs verified.
+  `c18305edd57da9e780ed5d80e953bd06c25f9b9f` at21:20, with both refs verified.
 - Minutes5/35: `research/fresh_start_artifact_backup_cron.sh`, own lock, nice10,
   bounded uploader, digest-verified immutable assets in draft release
-  `research-backup-20260918`. The latest manual cycle completed at20:40:19UTC: **31of31
+  `research-backup-20260918`. The latest cycle completed at21:05:17UTC: **31of31
   artifacts verified, zero errors**, including the new wave50 checkpoint.
   All queued
   checkpoints/profiles have actual GitHub assets and matching digests. New ignored

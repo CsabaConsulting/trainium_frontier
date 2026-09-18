@@ -1,9 +1,10 @@
 # Reopen optimizer ownership as a compute question
 
-Status at 21:04 UTC: exact FP32 communication feasibility passed on all four
-ranks, worst-rank median6.403158ms including packing and copyback. A scratch
-ownership implementation is ready for CPU/Gloo and native numerical gates.
-It has not yet produced an optimizer or whole-model timing result. 2026-09-18.
+Status at 21:26 UTC, 2026-09-18: the padded ownership implementation passes
+all CPU/Gloo and native gates with **exact weights and owned optimizer states**.
+The native complete optimizer, including FP32 packing, exchange and copyback,
+costs **25.35–25.38 ms versus 52.29–52.84 ms** on the four ranks. A matched
+full-model control is running; this is not yet a whole-model or quality gain.
 
 The older assessment in `trn2-optimization-research.md:295` and
 `experiment-rollout-plan.md:295` rejected ZeRO-1 because optimizer memory fits.
@@ -72,3 +73,33 @@ Unsupported kinds and per-depth metadata fail explicitly. Each owner retains
 its own group state. Optimizer serialization uses an explicit rank/world/plan
 schema, removes only reproducible stacked scratch, and rejects a wrong-owner
 checkpoint. The existing model checkpoint remains a complete set of weights.
+
+## Singleton Muon root cause and strict correction
+
+The unpadded wave61 native gate failed only the two tall Muon matrices whose
+owners had a singleton batch. Other owners held two such matrices and matched
+the replicated reference exactly; communication and cross-rank byte equality
+passed. The batch-one numerical path changed those matrices' second moments
+and updates. We have localized this to batch geometry, not yet a particular
+lowered instruction. No tolerance was relaxed.
+
+Wave62 appends an independent zero matrix to a singleton owner group, retaining
+the batch-two path. Muon operates independently per matrix; the dummy never
+enters the model or parameter exchange. Its parameter, gradient, momentum and
+second-moment rows must remain zero. Rank-local optimizer checkpoints explicitly
+record this padding policy, while model checkpoints remain standard full weights.
+
+`fs-w62-optimizer-ownership-padded-neuron-gate-r1` passes 28 equivalence records
+(seven checkpoints on four ranks), including scheduled scalars, None and zero
+gradients, skipped AdamW, actual BF16 Linear cache use, checkpoint restore and
+wrong-owner rejection. Exactness still holds after the additional timing updates.
+CPU/Gloo and native postflights are clean. Native fallback execution was disabled.
+The all-rank post-timing weight digest is
+`43420a0537483b49f99b6e864c2d31342e863b8f7aa54585492dc31fd158bb0e`.
+
+The 3×20-update interleaved benchmark includes all exchange costs. It is a
+synthetic-gradient optimizer test, not a full training step. The next gate is
+`fs-w62-native-mlp-pack8-owned-control-phase-r1` on trn21, followed by the same
+30-step/5-warmup phase with ownership enabled. The earlier wave44 control had
+only eight timed steps; it is retained as history rather than used as a matched
+control for this decision.

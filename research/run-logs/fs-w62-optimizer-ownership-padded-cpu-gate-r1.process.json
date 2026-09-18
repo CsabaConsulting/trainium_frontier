@@ -1,0 +1,21 @@
+{
+  "label": "fs-w62-optimizer-ownership-padded-cpu-gate-r1",
+  "guard_pid": 1086737,
+  "child_pid": 1086738,
+  "child_session": 1086738,
+  "started_at": "2026-09-18T21:14:04.114350+00:00",
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "600s",
+    "/home/ubuntu/workspace/native_venv/bin/torchrun",
+    "--standalone",
+    "--nproc_per_node=4",
+    "/home/ubuntu/trainium_freshstart_20260918_wave62/research/scratch/optimizer_ownership_check.py",
+    "--device",
+    "cpu",
+    "--steps",
+    "0",
+    "--pad-singleton-muon"
+  ]
+}
