@@ -59,12 +59,14 @@ def main():
                          "step, which is the same graph-constant/recompile trap "
                          "USE_TENSOR_LR_SCALARS was introduced to fix for the lr. Measured "
                          "rather than assumed.")
-    ap.add_argument("--conv-mode", choices=["normal", "zeros", "shift"], default="normal",
+    ap.add_argument("--conv-mode", choices=["normal", "zeros", "shift", "nki"], default="normal",
                     help="zeros: monkeypatch CausalConv.forward to return zeros_like(x). "
                          "Mathematically identical because the weight is provably all-zero, "
                          "but skips pad+conv1d+2 transposes. Only valid as an equivalence "
                          "diagnostic while weights are actually zero. shift: same trained "
                          "causal convolution using static slices and FP32 elementwise sums. "
+                         "nki: experimental two-tap native NKI forward/backward; run the "
+                         "separate arithmetic/causality gate before using its timings. "
                          "train.py is NOT modified.")
     ap.add_argument("--grad-clip", type=float, default=1.0,
                     help="T1.1 re-profile: include torch.nn.utils.clip_grad_norm_(model.parameters(), "
@@ -204,6 +206,10 @@ def main():
         from causal_conv_shift import shift_causal_conv
         T.CausalConv.forward = shift_causal_conv
         print("[pt] LOWERING DIAGNOSTIC: CausalConv.forward -> static shifts, same parameters", flush=True)
+    elif args.conv_mode == "nki":
+        from causal_conv_nki2 import nki_causal_conv
+        T.CausalConv.forward = nki_causal_conv
+        print("[pt] LOWERING DIAGNOSTIC: CausalConv.forward -> NKI two-tap, same parameters", flush=True)
 
     device_type = T.detect_device_type("")
     ddp, rank, local_rank, world_size, device = T.init_runtime(device_type)

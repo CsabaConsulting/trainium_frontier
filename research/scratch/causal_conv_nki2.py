@@ -10,6 +10,7 @@ import torch
 import nki
 import nki.isa as nisa
 import nki.language as nl
+from torch_neuronx import wrap_nki
 
 
 def _taps(wt, channels):
@@ -130,6 +131,14 @@ def conv2_backward(x, grad, wt, lanes: int = 1):
     return dx, partials
 
 
+# Resolve the native higher-order operator before Dynamo enters autograd.forward.
+# Constructing a raw nki.Kernel grid inside the traced function hits the installed
+# NKI 0.5 / Torch 2.11 dataclass-hash path before that kernel has its func field.
+# wrap_nki is the installed backend's explicit, graph-capturable interface.
+_forward = wrap_nki(conv2_forward)
+_backward = wrap_nki(conv2_backward)
+
+
 class Conv2NKI(torch.autograd.Function):
     @staticmethod
     def forward(ctx, x, weight):
@@ -137,7 +146,7 @@ class Conv2NKI(torch.autograd.Function):
         lanes = 2 if x.shape[0] % 2 == 0 else 1
         wt = weight[:, 0, :].T.contiguous().to(x.dtype)
         xx = x.contiguous()
-        y = conv2_forward[lanes](xx, wt, lanes)
+        y = _forward[lanes](xx, wt, lanes)
         ctx.save_for_backward(xx, wt)
         ctx.lanes = lanes
         ctx.weight_dtype = weight.dtype
@@ -146,7 +155,7 @@ class Conv2NKI(torch.autograd.Function):
     @staticmethod
     def backward(ctx, grad):
         x, wt = ctx.saved_tensors
-        dx, partials = conv2_backward[ctx.lanes](x, grad.contiguous(), wt, ctx.lanes)
+        dx, partials = _backward[ctx.lanes](x, grad.contiguous(), wt, ctx.lanes)
         dw = partials.sum(dim=(0, 1)).squeeze(-1).to(wt.dtype)
         return dx, dw.T.unsqueeze(1).to(ctx.weight_dtype)
 
