@@ -1,0 +1,48 @@
+{
+  "host": "trn21",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave61",
+  "expected_commit": "458d1f8e3faf161f5b2aef58538d2aff4a0e7b39",
+  "label": "fs-w61-optimizer-ownership-neuron-gate-r1",
+  "purpose": "After exact four-rank CPU/Gloo gate, require exact replicated-vs-owned real dense6x1024 weights and owner states, byte-exact cross-rank weights, None/zero/skip/schedule behavior, cache and restored continuation on Neuron. Only after all gates pass measure interleaved full optimizer including FP32 exchange, 3x20 updates; no whole-model claim.",
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1",
+    "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1500s",
+    "/home/ubuntu/workspace/native_venv/bin/torchrun",
+    "--standalone",
+    "--nproc_per_node=4",
+    "/home/ubuntu/trainium_freshstart_20260918_wave61/research/scratch/optimizer_ownership_check.py",
+    "--device",
+    "neuron",
+    "--real-shape",
+    "--steps",
+    "20"
+  ],
+  "fingerprint_paths": [
+    "research/scratch/optimizer_ownership.py",
+    "research/scratch/optimizer_ownership_check.py"
+  ],
+  "started_at": "2026-09-18T21:07:27.377257+00:00",
+  "hostname": "ip-172-31-34-85",
+  "git_commit": "458d1f8e3faf161f5b2aef58538d2aff4a0e7b39",
+  "source_dirty": false,
+  "preflight_free_bytes": 30053195776,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+    "research/fresh_start_host.py": "8c597adea7c48114bed8f50aa161fdc79b36b49c86c7315e6a58c3ca4e8f5f79",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/fresh_start_backup.py": "c978fd20b6620d0d80c25f8982974e8c4b2ad009edd9da376d784f5cecc3ead3",
+    "research/scratch/optimizer_ownership.py": "5b25f16d1689ce40f7a362888a2a545b8e9b4fae1eee4d3a45fcd96beb0b45b7",
+    "research/scratch/optimizer_ownership_check.py": "13f32ed0c903cdeb1a5d319d6a27dd8505f3bcee61376d1295e1d3296e65265d"
+  }
+}
