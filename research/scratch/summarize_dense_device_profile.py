@@ -65,6 +65,21 @@ def main():
             [("duration_ns", "sum"), ("start_ts", "count")]).to_pylist()
         sources = ins.group_by(["nki_source_location"]).aggregate(
             [("duration_ns", "sum"), ("start_ts", "count")]).to_pylist()
+        # Use the installed schema's BF16-equivalent multiplier to separate
+        # arithmetic precision. Exclude transpose/spill work and LDWEIGHTS.
+        # FP32_LO_HI instructions already report half their logical FLOPs, so
+        # summing raw_flops accounts for each two-instruction pair once.
+        regular = ins.filter(pc.and_(
+            pc.and_(pc.equal(ins["opcode"], "MATMUL"),
+                    pc.equal(ins["tensor_instruction_type"], "REGULAR")),
+            pc.and_(pc.greater(ins["raw_flops"], 0), pc.less_equal(ins["end_ts"], end))))
+        regular = regular.append_column("bf16_cost_multiplier",
+                                         pc.divide(regular["adjusted_flops"], regular["raw_flops"]))
+        precision = regular.group_by(["pcore_idx", "bf16_cost_multiplier"]).aggregate(
+            [("raw_flops", "sum"), ("adjusted_flops", "sum"), ("start_ts", "count")]).to_pylist()
+        fp32 = regular.filter(pc.equal(regular["bf16_cost_multiplier"], 4.0))
+        fp32_sources = fp32.group_by(["nki_source_location"]).aggregate(
+            [("raw_flops", "sum"), ("adjusted_flops", "sum"), ("start_ts", "count")]).to_pylist()
         dma = ins.filter(pc.equal(ins["opcode"], "DMA_DIRECT2D"))
         dma_groups = dma.group_by(["penguin_id"]).aggregate(
             [("duration_ns", "sum"), ("start_ts", "count"),
@@ -76,6 +91,8 @@ def main():
         graphs.append(dict(**execution, wall_ms=duration / 1e6,
                            active_by_physical_core=sorted(busy, key=lambda x: (x["pcore_idx"], x["engine"])),
                            instructions_by_type=counts,
+                           regular_matmul_precision_by_core=precision,
+                           fp32_regular_matmul_sources=sorted(fp32_sources, key=lambda x: x["raw_flops_sum"], reverse=True),
                            top_instruction_duration_sums=sorted(opcodes, key=lambda x: x["duration_ns_sum"], reverse=True)[:20],
                            source_instruction_duration_sums=sorted(sources, key=lambda x: x["duration_ns_sum"], reverse=True)[:20],
                            top_dma_instruction_groups=dma_groups))
@@ -88,6 +105,9 @@ def main():
         files.append(dict(name=path.name, bytes=path.stat().st_size, sha256=digest.hexdigest()))
     result = dict(directory=str(root), metadata=metadata,
                   warnings=read("Warning").to_pylist(), summary_as_reported=read("Summary").to_pylist(),
+                  instruction_flop_schema=[row for row in read("SchemaFields").to_pylist()
+                                           if row["table_name"] == "Instruction" and
+                                           row["field_name"] in ("raw_flops", "adjusted_flops", "tensor_instruction_type")],
                   caveats=["Profiled execution is for attribution; use unprofiled phase timing for throughput.",
                            "Active fractions are independently derived for each physical core and graph.",
                            "Instruction-duration sums overlap and cannot be treated as operation wall times.",

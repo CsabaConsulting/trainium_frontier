@@ -1,0 +1,28 @@
+{
+  "label": "fs-w7-conv2-nki-native-gate-r5",
+  "started_at": "2026-09-18T10:23:21.120208+00:00",
+  "hostname": "ip-172-31-34-85",
+  "git_commit": "7262c89e6768342f95c24b5ed14b577200176e92",
+  "command": [
+    "timeout",
+    "900s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "research/scratch/causal_conv_shift_device_check.py",
+    "--kernel",
+    "nki",
+    "--large"
+  ],
+  "description": "Compiled NKI conv gate with full gradient tile initialized before boundary prefix DMA",
+  "environment": {
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_RT_VISIBLE_CORES": "0",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16"
+  },
+  "source_sha256": {
+    "research/scratch/causal_conv_shift_device_check.py": "172015bf3cb4b71399c77c874b96722482f5ec5a88ca48db2be297425d44728f",
+    "research/scratch/causal_conv_nki2.py": "54cb1fcb6035822978078cc1304f67735a2110edcfc04de5df5e35206a5bf409",
+    "research/scratch/causal_conv_shift.py": "4c8387cc7c5143c7da38f49cd88268aa5c32558ee74982b3278709b5b4d542b8"
+  }
+}

@@ -4,23 +4,29 @@ Objective: minimize **official 30-minute validation bits per byte** on one full
 Trainium2 chip. Sub-1.0 on public validation is an engineering milestone, not a
 claim about the private leaderboard. The metric is lower-is-better.
 
-**Current update, 10:06 UTC:** the width896 direct-attention control completed
+**Current update, 10:32 UTC:** the width896 direct-attention control completed
 2,188 updates at **0.987568 public BPB @2048 / 0.999880 @1024**. Its fused
 FP32 table-optimizer counterpart completed 2,204 updates at **0.986947 /
 0.999735**. Both fit the budget and use four ranks and 2,097,152 evaluation
 tokens. Both checkpoints are locally preserved. The small difference does not
-establish an optimizer quality win; larger evaluation and repeatability remain
-necessary. The earlier checkpoint scored 1.009889 on 20.97M public tokens at
-context1024. See the
+establish an optimizer quality win. The fused optimizer checkpoint now scores
+**1.004452862** on 20.97M public tokens at context1024, versus **1.009889395**
+for the first-wave checkpoint at the identical evaluation geometry. This is a
+useful improvement but not a robust sub-1.0 result. Repeatability remains necessary. See the
 [measured-results ledger](fresh-start-results-2026-09-18.md).
 
 Trn22 is now training dense 6×1024 **without hashed n-grams** for 1,800 seconds
 (`fs-w6-dense1024-noqk-1800-r2`, source `c333adb`). Removing the frozen zero Q/K
 shift reduced measured step time from **1.417s to 0.986s**; the full run is
 showing roughly 1.00s steps. The ordinary PyTorch static-shift convolution was
-rejected at **3.083s**, with the zero Q/K shift still present. Trn21 is checking
-a custom NKI convolution before timing it, then will evaluate the saved models
-on the larger fixed public sample. No public evidence establishes which
+rejected at **3.083s**, with the zero Q/K shift still present. Trn21's same-host
+no-QK control now measures **0.979s**. The custom NKI convolution passed native
+FP32 forward, both gradients and causality through the full B4×T2048×C1024 shape;
+its whole-model timing is running. The device trace also identifies approximately
+614 GFLOPs of FP32 attention-backward matrix work in one profiled microbatch,
+across rank0's two physical cores. Separate BF16-at-attention and BF16-after-norm
+probes are ready in immutable wave8 checkouts, with checks on updated native
+evaluation models after timing. No public evidence establishes which
 architectures the leaderboard teams use. N-gram capacity is optional.
 The original launch plan below remains as provenance.
 

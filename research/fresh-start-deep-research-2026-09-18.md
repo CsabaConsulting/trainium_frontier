@@ -7,8 +7,11 @@ now reaches **0.987568 BPB at context 2048** and **0.999880 at context 1024**
 on four-rank, 2,097,152-token public diagnostics. It completed 2,188 updates
 within the 30-minute allowance. The earlier width896 checkpoint's larger
 20.97M-token standalone result at context 1024 was **1.009889**; the new
-checkpoint still needs that larger check. These are public measurements, not
-a private leaderboard score. See the [measured results](fresh-start-results-2026-09-18.md)
+checkpoint still needs that larger check. The newer fused-FP32-table-optimizer
+checkpoint has now completed the identical 20.97M-token standalone check:
+**1.004452862 BPB**, versus 1.009889395 for the first wave. The small-sample
+sub-1.0 result therefore does not establish robust sub-1.0 quality at context1024.
+These are public measurements, not a private leaderboard score. See the [measured results](fresh-start-results-2026-09-18.md)
 for source commits, timing, numerical gates and limitations.
 
 The strongest opportunity is to recover useful capacity and optimization quality
@@ -186,8 +189,9 @@ step time with the optimizer/tail nearly unchanged. Both retain the intended
 trainable function, although finite-precision paths can change. This is concrete
 evidence against generalizing a compiler perturbation's width640 benefit to
 width1024. The faster dense candidate is in full-budget training; its BPB is
-not yet known. A custom NKI convolution is undergoing a separate forward,
-gradient and causality gate before any timing or integration.
+not yet known. The custom NKI convolution now passes separate native FP32
+forward, gradient and causality gates through the full B4×T2048×C1024 shape.
+Its full-model timing is running against a new same-host 0.979s control.
 
 A distinct mixed-precision candidate is to keep the residual accumulation in
 FP32 but store normalized branch inputs in BF16. The historical dtype trace
@@ -197,6 +201,68 @@ This is a real arithmetic change, unlike the frozen-zero graph probe. It may
 activate the BF16 weight cache and reduce activation traffic without using FP8.
 RMSNorm epsilon/reduction, attention input dtypes and the final loss must be
 audited explicitly; a variable named `COMPUTE_DTYPE` is insufficient evidence.
+
+### Attention precision is an observed kernel issue, not only a dtype hypothesis
+
+The installed profile schema defines FP32 work as four adjusted FLOPs per raw
+FLOP. Counting **regular MATMUL** instructions, excluding transposes, spills and
+weight loads, the captured backward graph contains **656.091 GFLOPs of FP32
+work** across its two physical cores. Approximately **613.97 GFLOPs (94%)** map
+to five source lines in the installed native `attention_bwd.py`: dQ, dK, dV,
+recomputed QK and the probability-gradient matmul. The instruction operands also
+identify FP32 inputs. The remaining regular backward matrix work totals
+3,270.316 GFLOPs at the schema's BF16/FP16/TF32 cost ratio. This is one rank's
+profiled microbatch, not a complete four-rank optimizer update.
+
+The installed native decomposition passes the original query dtype to NKI
+attention backward with `mixed_precision=True`. In that kernel, `kernel_dtype`
+follows `q_ref.dtype`, while the statistics dtype stays FP32. This explains why
+compiler-wide BF16 matmult autocast alone leaves this work in FP32. Installed
+file hashes and version identity are in the
+[source audit](run-logs/fs-native-attention-precision-source-audit-r1.json);
+the expanded [profile summary](run-logs/fs-w5-dense1024-device-micro-r3.summary.json)
+retains the missing-DMA/HLO-metadata warnings. FLOP counts do not require summing
+overlapping engine durations, and do not establish a speedup by themselves.
+
+Two independent experiments now isolate the options:
+
+1. Cast Q/K/V only at the SDPA boundary to BF16, returning its output to the
+   original query dtype. Keep FP32 normalization outputs, residuals, MLP inputs
+   and Linear input/cache behavior otherwise unchanged.
+2. Use FP32 RMSNorm statistics with explicit FP32 epsilon, then store normalized
+   branch inputs in BF16, including the final head. Keep residual accumulation
+   FP32. This also activates the existing BF16 Linear weight cache and changes
+   more of the forward/backward arithmetic than the attention-only arm.
+
+CPU gates exercise the real model with nonzero attention/MLP/conv branches,
+three accumulation microbatches per update and two updates. Cache-on/off losses,
+master gradients and updates match exactly for each policy. Future and batch
+perturbations also match exactly. The normalization policy separately passes
+15 FP64-reference cases, including tiny and large inputs. Its initial checker's
+cancellation bound was corrected from `abs(sum(products))` to
+`sum(abs(products))`; the unchanged RMS-error threshold still passes. These are
+CPU gates only. Native phase probes additionally check finite parameters and
+gradients and exact future/batch/repeated-call independence after real updates.
+Full-budget trained quality remains the final promotion gate.
+
+### Compute estimates put precision work in perspective
+
+The no-table 6×1024 model has 117.454M parameters, but only 83.887M are Linear
+weights; 33.554M are lookup embeddings. Applying `6*N*tokens` to every parameter
+would overstate dense arithmetic. At 131,072 targets/update the linear work is
+approximately 65.971 TFLOPs. Ideal causal versus full-square attention adds
+9.900–19.791 TFLOPs, before FlashAttention recomputation and other operations.
+At the measured 0.9865s step, that is **76.9–86.9 TFLOPs/s of useful model
+arithmetic**, an analytical estimate, not measured hardware MFU.
+
+AWS lists one Trainium2 chip at **667 TFLOPs/s dense BF16/FP16/TF32** and
+**1,299 TFLOPs/s FP8**, plus 181 TFLOPs/s FP32. Do not mistake the FP8 number for
+the BF16 peak. The roughly 11.5–13% useful-arithmetic/advertised-BF16-peak ratio
+is only context: the present workload mixes precisions, recomputation, padding,
+layout movement and non-matrix work. It is not a promise of the remaining
+speedup. Sources: [Trainium2 chip specifications](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/about-neuron/arch/neuron-hardware/trainium2.html),
+[NKI hardware guide](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/guides/architecture/trainium2_arch.html),
+[model arithmetic estimate](run-logs/fs-dense1024-analytical-flops-r1.json).
 
 ### Fused table optimizer
 
@@ -216,9 +282,12 @@ reference is simple and its effect on precision is explicit.
 The prototype now passes the native repeated-update gate and is opt-in in training.
 It uses runtime scalar tensors for learning rate and bias correction to avoid
 recompilation every step. Tests include zero moments, untouched rows, rare gradients,
-outliers, changed scalar values and multiple consecutive updates. The full run is
-in progress. Fusion with different rounding points is not bit-exact equivalence
-to the old BF16 algorithm.
+outliers, changed scalar values and multiple consecutive updates. The full run
+completed 2,204 updates versus 2,188 for the legacy direct-attention control,
+scoring 0.999735 versus 0.999880 at the small context1024 diagnostic. This near
+tie does not establish a quality win. Its larger standalone result is 1.004453.
+Fusion with different rounding points is not bit-exact equivalence to the old
+BF16 algorithm.
 
 ### Sparse tables: promising but substantially harder
 

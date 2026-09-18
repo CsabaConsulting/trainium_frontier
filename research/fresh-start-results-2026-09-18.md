@@ -4,6 +4,13 @@ This ledger separates full training, standalone evaluation, numerical tests and
 microbenchmarks. A successful process is not automatically a promoted model.
 Public diagnostics do not establish a private competition score.
 
+**Larger-sample result, 10:23 UTC:** the completed width896 fused-FP32-optimizer
+checkpoint scores **1.004452861885313 BPB** at context1024 on 20,971,520 public
+tokens. Its earlier four-rank two-million-token diagnostic was 0.999735. The
+larger result, using the fixed standalone sample and geometry below, is the
+stronger current quality evidence; the campaign has not established a robust
+sub-1.0 result at context1024.
+
 ## First completed training wave
 
 Both runs use depth 6, four learned n-gram tables of 1,048,576×128 elements,
@@ -66,6 +73,15 @@ batch size 1. Both in-process first-wave evaluations use world size 4, batch siz
 1 per rank. Neither is claimed to reproduce the private validation data.
 The checkpoint has been copied locally and its SHA256 verified against the remote
 file; see [preservation record](fresh-start-preservation-2026-09-18.md).
+
+The newer `fs-w4-w896-nki-rms-fp32-r1` checkpoint was evaluated through the same
+unchanged `prepare.py`, world size1, batch size1, context1024, O1 inference flags
+and 20,971,520-token cap. Result: **1.004452861885313 BPB**, **83,462,186 bytes**,
+**58,109,184 total nats**, 839.739 evaluation seconds, no timeout. The byte count
+matches the first-wave evaluation exactly. This improves BPB by 0.005436533;
+training changed direct SDPA, table-optimizer arithmetic and completed updates,
+so this is not an isolated optimizer comparison. See
+[larger newer-checkpoint evaluation](run-logs/fs-w6-eval-w896-nki-rms-s1024-20m-o1-r1.log).
 
 ## Direct compiled SDPA: completed 30-minute width896 control
 
@@ -373,5 +389,32 @@ that attribution would require a new trace. Full-budget BPB remains pending.
 
 Full-run r1 was stopped by the duplicate-log guard before spawning training;
 its artifacts are retained. R2 uses a distinct outer `.driver.log`. During r2,
-an 8 MiB/s capped read-only transfer is recovering the older raw device profile;
-this is recorded background I/O, not part of an accepted microbenchmark.
+an 8 MiB/s capped read-only transfer recovered the older raw device profile
+(10:03–10:14 UTC); this is recorded background I/O, not part of an accepted
+microbenchmark. All 17 raw artifacts and same-process binaries are locally
+preserved and their hashes match the remote originals.
+
+### Same-host dense control and native convolution gate
+
+`fs-w7-dense1024-noqk-control-phase-r2`, source `7262c89`, repeats the no-QK
+control on trn21 before the NKI candidate. Eight steady steps after three warmup
+updates give **979.203ms median**, range 976.070–986.621ms; microbatches
+894.632ms, optimizer54.519ms, tail84.433ms. The earlier 986.485ms result was on
+trn22. Use the trn21 repeat for its NKI comparison instead of claiming a cross-host
+speed difference.
+
+`fs-w7-conv2-nki-native-gate-r5`, same source, passes independent CPU-FP64
+forward/dX/dW references and exact future-token/cross-batch perturbations on the
+native compiled device. Shapes include B1T128C128, B2T128C128, B2T256C256 and
+B4T2048C1024, all FP32 residual inputs. At the largest shape, relative RMS errors
+are 3.67e-8 (forward), 3.67e-8 (dX), and 5.50e-8 (dW). No FP32 rounding-bound
+failures or nonfinite values occur. This is not yet a BF16-input kernel gate.
+
+The prior four failures remain recorded. The working compiler fix zeros the
+whole next-gradient SBUF tile before loading its first 127 rows at the sequence
+boundary. A partition127-only memset failed even at the tiny shape; its generic
+MemoryLocation error did not establish a large-tensor SBUF-capacity problem.
+Native `wrap_nki` integration, rather than a raw grid-specialized kernel inside
+Dynamo, also proved necessary on this installed stack. Full-model NKI timing is
+running as `fs-w7-dense1024-noqk-nki-conv-phase-r1`; kernel arithmetic alone is
+not a throughput result.

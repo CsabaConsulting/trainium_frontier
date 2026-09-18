@@ -1,0 +1,46 @@
+{
+  "observed_at_utc": "2026-09-18T10:31:00Z",
+  "host": "trn22",
+  "stack": {
+    "torch": "2.11.0+cpu",
+    "torch_neuronx": "2.11.3.0.0+unknown.dev",
+    "neuronx_cc": "2.26.6360.0+6f180f47",
+    "nki": "0.5.0+28631259367.ga768afa6"
+  },
+  "sdk_git_commit": null,
+  "git_note": "Editable torch-neuronx source directory is not a Git checkout; individual installed source files are hashed.",
+  "source_files": [
+    {
+      "path": "/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/neuron_dynamo_backend/decompositions.py",
+      "sha256": "dade52fe56f74518c469b526b2f12b4c5efa23aa0576836df089a762edc98f72",
+      "finding": "_compute_attention_backward_nki passes query dtype into wrapped flash_attn_bwd with mixed_precision=True; the global HLO matmult flag does not change opaque NKI internals."
+    },
+    {
+      "path": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/core/attention/attention_bwd.py",
+      "sha256": "915e75f68df95e954c91928bf34366d492d8e2cbe9bae52fb491a1d1ada1585a",
+      "lines": [
+        460,
+        461,
+        972,
+        1117,
+        1836,
+        1864,
+        1894
+      ],
+      "finding": "kernel_dtype follows q_ref.dtype; mixed_dtype is float32 when mixed_precision is enabled. BF16 Q/K/V can therefore select BF16 matrix operands while keeping FP32 statistics."
+    }
+  ],
+  "profile": "fs-w5-dense1024-device-micro-r3",
+  "precision_counting": "Regular MATMUL only; adjusted_flops/raw_flops=4 identifies FP32 per installed schema. Sum raw_flops; do not add overlapping engine durations. Counts cover both physical cores of the recorded rank0 logical core.",
+  "backward_regular_fp32_flops": 656091016960,
+  "five_attention_backward_source_lines_fp32_flops_approximately": 613970000000,
+  "hypotheses_not_results": [
+    "Cast Q/K/V at SDPA only; keep all other normalized activations and FP32 residuals unchanged.",
+    "Cast RMSNorm outputs to BF16 with explicit FP32 statistics and epsilon; retain FP32 residuals and enable existing Linear BF16 cache."
+  ],
+  "caveats": [
+    "Profile is from the earlier zero-QK-shift-on dense graph. It is attribution, not accepted throughput.",
+    "Missing DMA notifications and HLO statistics remain; these precision counts do not establish a bandwidth bound.",
+    "Both proposed policies change arithmetic and need native gates, full-budget BPB and standalone checkpoint validation."
+  ]
+}

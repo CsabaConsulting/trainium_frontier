@@ -1,0 +1,37 @@
+{
+  "label": "fs-w6-eval-w896-nki-rms-s1024-20m-o1-r1",
+  "started_at": "2026-09-18T10:08:22.073798+00:00",
+  "hostname": "ip-172-31-34-85",
+  "git_commit": "8c6946e0c0e13e8b7db85256f7cd570baa8dbf9a",
+  "command": [
+    "timeout",
+    "1800s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "prepare.py",
+    "eval-public",
+    "--train-py",
+    "train.py",
+    "--checkpoint",
+    "/home/ubuntu/trainium_freshstart_20260918_wave4/out/fs-w4-w896-nki-rms-fp32-r1/final.pt",
+    "--seq-len",
+    "1024",
+    "--eval-tokens",
+    "20971520",
+    "--timeout-seconds",
+    "1200"
+  ],
+  "description": "Trusted 20.97M public-token standalone evaluation, world1 B1 context1024 O1, matching first-wave standalone geometry",
+  "environment": {
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_RT_VISIBLE_CORES": "0",
+    "NEURON_CC_FLAGS": "--optlevel=1"
+  },
+  "source_sha256": {
+    "train.py": "ad7d18fde75c24ef33769f386199d096f0acbbacf926325053e813b001dc514a",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb"
+  },
+  "checkpoint_sha256": "6a16f3d490964c201a488e487d407ca18e94b9b23a82a2a97abd35c5ecfd64aa",
+  "checkpoint_training_commit": "a62df2734b5de7e33afa40d74a690fae6404fefc"
+}
