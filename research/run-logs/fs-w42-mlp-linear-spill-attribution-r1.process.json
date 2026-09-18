@@ -1,0 +1,25 @@
+{
+  "label": "fs-w42-mlp-linear-spill-attribution-r1",
+  "guard_pid": 1359799,
+  "child_pid": 1359800,
+  "child_session": 1359800,
+  "started_at": "2026-09-18T18:33:37.803678+00:00",
+  "command": [
+    "timeout",
+    "--kill-after=15s",
+    "300s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "research/scratch/compare_mlp_profile_spills.py",
+    "--reference",
+    "/home/ubuntu/trainium_freshstart_20260918_wave40/out/dense1024-nki-norm-current-parquet",
+    "--candidate",
+    "/home/ubuntu/trainium_freshstart_20260918_wave39/out/fs-w39-mlp-forward-parquet-r2/i-0673e54d9d66e6a1e_pid_1335537_nc_0_session_0",
+    "--reference-neff",
+    "e496117f74af27424b6c982ea962b625.neff",
+    "--candidate-neff",
+    "6ec5dd5b3e70cf667b3952ff25804a5c.neff",
+    "--output",
+    "research/run-logs/fs-w42-mlp-linear-spill-attribution-r1.analysis.json"
+  ]
+}

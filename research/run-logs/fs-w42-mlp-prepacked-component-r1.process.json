@@ -1,0 +1,25 @@
+{
+  "label": "fs-w42-mlp-prepacked-component-r1",
+  "guard_pid": 995861,
+  "child_pid": 995862,
+  "child_session": 995862,
+  "started_at": "2026-09-18T18:31:37.788469+00:00",
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1500s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "research/scratch/mlp_fused_bf16_probe.py",
+    "--device",
+    "neuron",
+    "--real-shape",
+    "--contiguous-weights",
+    "--tiled-io",
+    "--cached-bf16-weights",
+    "--transposed-relu",
+    "--grouped-io",
+    "--weight-mode",
+    "3"
+  ]
+}

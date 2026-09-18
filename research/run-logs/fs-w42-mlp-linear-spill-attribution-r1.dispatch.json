@@ -1,0 +1,41 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave42",
+    "expected_commit": "df6fa725868ea36d460d3fef97b453eb7ac1bd32",
+    "label": "fs-w42-mlp-linear-spill-attribution-r1",
+    "purpose": "CPU-only refinement on saved profiles: group native Linear spill traffic by Penguin operator ID without inventing module identities from shared source lines.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "fingerprint_paths": [
+      "research/scratch/compare_mlp_profile_spills.py"
+    ],
+    "command": [
+      "timeout",
+      "--kill-after=15s",
+      "300s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/compare_mlp_profile_spills.py",
+      "--reference",
+      "/home/ubuntu/trainium_freshstart_20260918_wave40/out/dense1024-nki-norm-current-parquet",
+      "--candidate",
+      "/home/ubuntu/trainium_freshstart_20260918_wave39/out/fs-w39-mlp-forward-parquet-r2/i-0673e54d9d66e6a1e_pid_1335537_nc_0_session_0",
+      "--reference-neff",
+      "e496117f74af27424b6c982ea962b625.neff",
+      "--candidate-neff",
+      "6ec5dd5b3e70cf667b3952ff25804a5c.neff",
+      "--output",
+      "research/run-logs/fs-w42-mlp-linear-spill-attribution-r1.analysis.json"
+    ]
+  },
+  "requested_at": "2026-09-18T18:33:32.301174+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w42-mlp-linear-spill-attribution-r1\", \"pid\": 1359799, \"commit\": \"df6fa725868ea36d460d3fef97b453eb7ac1bd32\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave42/research/run-logs/fs-w42-mlp-linear-spill-attribution-r1.log\", \"started_at\": \"2026-09-18T18:33:37.774737+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}
