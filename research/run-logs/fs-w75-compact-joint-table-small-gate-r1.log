@@ -1,0 +1,70 @@
+[W918 23:40:05.913318226 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+COMPACT_TABLE_CONTRACT {"finite_bf16_codes": 65280, "exp_relative_bound": 2e-07, "derivative_absolute_bound": 1e-07, "replicated_table_bytes": 5242880, "no_fit_to_training_or_validation_data": true, "softcap": 15, "loss_reduction_log_reciprocal_and_autograd_not_tested": true}
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/isa/_validation.py:232:12: error: failed to resolve name 'tensor.shape'
+    assert tensor.shape[0] <= max_size, (
+           ^
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/isa/_advanced.py:748:5: note: called from here
+    validate_partition_dim(src, name="tensor_copy_predicated src")
+    ^
+/home/ubuntu/trainium_freshstart_20260918_wave75/research/scratch/compact_ce_table_nki.py:69:21: note: called from here
+                    nisa.tensor_copy_predicated(dst=derivs, src=1.0, predicate=tiny)
+                    ^
+/home/ubuntu/trainium_freshstart_20260918_wave75/research/scratch/compact_ce_table_nki.py:17:5: note: when tracing NKI kernel
+    def joint_functions(x, tables, use_table: bool = True, lanes: int = 2):
+    ^
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/isa/_validation.py:232:12: error: failed to resolve name 'tensor.shape'
+    assert tensor.shape[0] <= max_size, (
+           ^
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/isa/_advanced.py:748:5: note: called from here
+    validate_partition_dim(src, name="tensor_copy_predicated src")
+    ^
+/home/ubuntu/trainium_freshstart_20260918_wave75/research/scratch/compact_ce_table_nki.py:69:21: note: called from here
+                    nisa.tensor_copy_predicated(dst=derivs, src=1.0, predicate=tiny)
+                    ^
+/home/ubuntu/trainium_freshstart_20260918_wave75/research/scratch/compact_ce_table_nki.py:17:5: note: when tracing NKI kernel
+    def joint_functions(x, tables, use_table: bool = True, lanes: int = 2):
+    ^
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_freshstart_20260918_wave75/research/scratch/compact_ce_table_probe.py", line 130, in <module>
+    main()
+  File "/home/ubuntu/trainium_freshstart_20260918_wave75/research/scratch/compact_ce_table_probe.py", line 107, in main
+    gate('all_finite_codes', exhaustive, table, device_table, kernel, 2)
+  File "/home/ubuntu/trainium_freshstart_20260918_wave75/research/scratch/compact_ce_table_probe.py", line 41, in gate
+    outputs = tuple(v.cpu() for v in kernel[lanes](xd, device_table, True, lanes))
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_hop.py", line 515, in __call__
+    return _C._nki_dispatch_eager(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py", line 1263, in _fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+RuntimeError: [NkiDispatch] Python lower_func failed for cache_key=nki_call:20:(('lanes', 2), ('use_table', True)):g2|[512,512]:BFloat16:S(C)|[128,2,5120]:Float:S(C): RuntimeError: error: failed to compile NKI kernel:
+Collected 1 different diagnostics:
+- [x2] error: failed to resolve name 'tensor.shape'
+
+
+At:
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/compiler/frontend.py(300): _compile
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/compiler/frontend.py(171): compile
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/compiler/driver.py(47): compile_to_bir
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/compiled.py(42): compile_kernel_to_nir
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/compiled.py(197): _cached_compile_to_bir
+  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_kernel.py(211): _compile_dump_config
+  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_kernel.py(202): dump_config
+  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_hop.py(198): get_dumped_config
+  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/python_ops/neuron_nki_call_lowering.py(53): _lower_custom_nki
+  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/python_ops/neuron_nki_call_lowering.py(36): nki_call_lower_func
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py(1267): _fn
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py(1263): _fn
+  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_hop.py(515): __call__
+  /home/ubuntu/trainium_freshstart_20260918_wave75/research/scratch/compact_ce_table_probe.py(41): gate
+  /home/ubuntu/trainium_freshstart_20260918_wave75/research/scratch/compact_ce_table_probe.py(107): main
+  /home/ubuntu/trainium_freshstart_20260918_wave75/research/scratch/compact_ce_table_probe.py(130): <module>
+
+EXPERIMENT_POSTFLIGHT {"label": "fs-w75-compact-joint-table-small-gate-r1", "returncode": 1, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave75/research/run-logs/fs-w75-compact-joint-table-small-gate-r1.postflight.json"}

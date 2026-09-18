@@ -1,0 +1,35 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave75",
+    "expected_commit": "f0e93889b4f7237c1851ed7236925f5952d2a675",
+    "label": "fs-w75-compact-joint-table-small-gate-r1",
+    "purpose": "First device gate for joint exp(15*tanh(x/15)) and softcap derivative on finite BF16 logits. All65280 finite codes,2e-7 exponential relative/1e-7 derivative absolute FP64 bounds, exact table/tail outputs, repeat/no-mutation/row-independence and shape/core boundaries. Charge5MiB table load. No loss reduction or training integration; no timing until numerical gates pass.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "900s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "/home/ubuntu/trainium_freshstart_20260918_wave75/research/scratch/compact_ce_table_probe.py"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/compact_ce_table_nki.py",
+      "research/scratch/compact_ce_table_probe.py",
+      "research/scratch/compact_ce_table_study.py",
+      "research/scratch/mlp_fused_bf16_probe.py"
+    ]
+  },
+  "requested_at": "2026-09-18T23:39:57.370636+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w75-compact-joint-table-small-gate-r1\", \"pid\": 1529832, \"commit\": \"f0e93889b4f7237c1851ed7236925f5952d2a675\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave75/research/run-logs/fs-w75-compact-joint-table-small-gate-r1.log\", \"started_at\": \"2026-09-18T23:40:03.686533+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

@@ -169,3 +169,9 @@ has an executable `compact_ce_table_nki.py` and `compact_ce_table_probe.py`: a
 Clamping the large tail at BF16 magnitude255 passes an additional exhaustive
 CPU gate. Device numerical gates precede real16384x8192 primitive timing;
 full-loss integration remains a later stage.
+
+Wave75 compact-table first device attempt fails at frontend scalar-source
+validation in tensor_copy_predicated, before execution. Installed source
+confirms unconditional src.shape access despite scalar support in its docstring.
+The next version uses one prefilled FP32 ones tile outside the loops. Clean
+postflight, original numerical bounds retained, small gates must rerun.
