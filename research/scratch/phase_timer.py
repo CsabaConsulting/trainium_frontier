@@ -32,10 +32,11 @@ def main():
     ap.add_argument("--trace-mode", choices=("runtime", "device"), default="runtime",
                     help="runtime: CPU and Neuron Runtime events; device additionally records "
                          "device instructions. Device traces can be substantially larger.")
-    ap.add_argument("--trace-target", choices=("step", "microstep"), default="step",
+    ap.add_argument("--trace-target", choices=("step", "microstep", "forward"), default="step",
                     help="step captures the complete optimizer step; microstep captures one "
                          "forward/backward pair with real warmed-up inputs. Both captures run "
-                         "after the unprofiled measurements and are diagnostic only.")
+                         "after the unprofiled measurements and are diagnostic only. "
+                         "forward isolates the training forward without a device backward trace.")
     ap.add_argument("--trace-rank", type=int, default=None,
                     help="Record only this rank while every rank executes the same capture "
                          "workload. Defaults to all ranks; limits large device trace artifacts.")
@@ -632,6 +633,15 @@ def main():
                 with record_function("fresh_start_single_forward_backward_microstep"):
                     micro()
                     T.synchronize(device)
+            elif args.trace_target == "forward":
+                with record_function("fresh_start_single_training_forward"):
+                    if embedding_state is not None:
+                        embedding_state.prepare(x)
+                    profile_loss = model(x, y)
+                    T.synchronize(device)
+                # The preceding measured steps retain real gradients for the
+                # postchecks. Releasing this graph performs no backward/update.
+                del profile_loss
             else:
                 with record_function("fresh_start_complete_training_step"):
                     with record_function("zero_grad"):
@@ -656,7 +666,9 @@ def main():
             print("PROFILE_ARTIFACT " + json.dumps(dict(
                 rank=rank, mode=args.trace_mode, directory=str(trace_path),
                 target=args.trace_target, profiled_steps=int(args.trace_target == "step"),
-                profiled_microsteps=grad_accum if args.trace_target == "step" else 1,
+                profiled_microsteps=(grad_accum if args.trace_target == "step"
+                                    else int(args.trace_target == "microstep")),
+                profiled_forwards=int(args.trace_target == "forward"),
                 profiled_latency_is_performance_evidence=False)), flush=True)
     if trace_config is not None or args.dump_neffs_dir:
         if device_type != "neuron":

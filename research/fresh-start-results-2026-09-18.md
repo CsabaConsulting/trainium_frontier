@@ -1207,3 +1207,29 @@ tiles; test normal-layout dX without that forward change; fuse embedding indirec
 loads, FP32 segmented scan and 512-output end gathers into one kernel, eliminating
 intermediate HBM tensors. The new fused embedding must pass all original staged
 FP64, instrumented/uninstrumented, compiled, zero/repeat and native-control gates.
+
+
+### Wave35: runtime attribution changes the MLP diagnosis
+
+Source 357b785. Fused embedding passes all 11 cases including every FP64 scan
+position, instrumented and uninstrumented eager outputs, compiled composition,
+zero/repeated calls and native controls. It nevertheless regresses: real-row
+prepared median 31.479 ms (10.91–31.72 ms samples) and metadata-inclusive
+52.851 ms versus native 3.157 ms. Small 256×256 case also reproduces the slowdown
+(0.404 ms prepared versus native 0.071 ms). An on-device small-shape trace will
+distinguish the narrow indirect reads, interleaved metadata loads/casts and local
+gather cost. No model integration follows this failed speed gate.
+
+MLP ordinary-layout dX passes the actual-native-module master/cache/accumulation
+and checkpoint tests. However, the preceding full-model runtime trace weakens
+the original upstream-gradient hypothesis: the fused model forward is 61.353 ms
+versus the earlier baseline capture's 38.734 ms, while backward is 76.210 versus
+77.557 ms. Each is still one compiled graph, not many extra host launches.
+These diagnostic captures are different runs and are not paired throughput
+evidence, but they locate the large regression in forward. Capture that forward
+on device before spending another full-step test on dX alone. The runtime trace
+and 22 associated files are locally hash-verified, totaling 63,183,126 bytes.
+
+The new forward-only capture leaves the real timed-step gradients in place for
+postchecks, performs no additional update, and reports a forward count separately
+from microsteps. All completed wave35 jobs have healthy automatic postflights.
