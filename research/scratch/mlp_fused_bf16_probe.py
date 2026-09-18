@@ -77,7 +77,7 @@ def timing(arms, steps, sync):
     return dict(samples_ms=samples, median_ms={name: statistics.median(v) for name, v in samples.items()})
 
 
-def run_case(device, shape, kind, kernel, steps):
+def run_case(device, shape, kind, kernel, steps, contiguous_weights=False):
     tokens, channels, hidden = shape
     tile = min(512, tokens // 2)
     torch.manual_seed(941 + tokens + channels + (kind == 'changed'))
@@ -96,7 +96,7 @@ def run_case(device, shape, kind, kernel, steps):
         wrapped = torch_neuronx.wrap_nki(kernel)
 
         def kernel_call(xx, uu, dd):
-            return wrapped[2](xx, uu, dd, 2, tile)
+            return wrapped[2](xx, uu, dd, 2, tile, contiguous_weights)
 
         torch._dynamo.reset()
         fused_forward = torch.compile(kernel_call, backend='neuron', fullgraph=True, dynamic=False)
@@ -105,7 +105,7 @@ def run_case(device, shape, kind, kernel, steps):
         kernel_call = fused_forward = native_forward = reference_forward
     inputs = tuple(t.to(device) for t in cpu_inputs)
     if device == 'neuron':
-        eager = kernel[2](*inputs, 2, tile)
+        eager = kernel[2](*inputs, 2, tile, contiguous_weights)
         gemm_gate(f'eager:up:{shape}:{kind}', eager[1], x, up.bfloat16().T, relu=True)
         gemm_gate(f'eager:down:{shape}:{kind}', eager[0], eager[1].cpu().square(), down.bfloat16().T)
     output, relu = fused_forward(*inputs)
@@ -141,6 +141,7 @@ def run_case(device, shape, kind, kernel, steps):
         assert candidate.grad.dtype == control.grad.dtype == candidate.dtype
         compare(f'gradient:{key}:{shape}:{kind}', candidate.grad, control.grad)
     emit('FUSED_MLP_CASE', dict(shape=shape, kind=kind, device=device,
+                              contiguous_weights=contiguous_weights,
                               token_tile=tile, all_gates_passed=True,
                               saved_activation_bytes=2*tokens*hidden,
                               fp32_weight_bytes=8*channels*hidden))
@@ -150,6 +151,7 @@ def run_case(device, shape, kind, kernel, steps):
                     native_forward_backward=lambda: train_call(native, controls),
                     fused_forward_native_backward=lambda: train_call(fused, candidates))
         emit('FUSED_MLP_BENCH', dict(shape=shape, **timing(arms, steps, torch.neuron.synchronize),
+                                   contiguous_weights=contiguous_weights,
                                    weight_reads_casts_layout_and_relu_save_included=True,
                                    includes_optimizer_or_whole_model=False))
 
@@ -159,6 +161,8 @@ def main():
     ap.add_argument('--device', choices=('cpu', 'neuron'), default='neuron')
     ap.add_argument('--real-shape', action='store_true')
     ap.add_argument('--steps', type=int, default=12)
+    ap.add_argument('--contiguous-weights', action='store_true',
+                    help='Fix scalar weight DMA packets via contiguous reads and on-chip transpose.')
     args = ap.parse_args()
     torch.set_num_threads(4)
     kernel = None
@@ -166,9 +170,9 @@ def main():
         import torch_neuronx  # noqa:F401
         kernel = build_kernel()
     for kind in ('random', 'changed', 'zero'):
-        run_case(args.device, (256, 256, 512), kind, kernel, args.steps)
+        run_case(args.device, (256, 256, 512), kind, kernel, args.steps, args.contiguous_weights)
     if args.real_shape:
-        run_case(args.device, (8192, 1024, 4096), 'random', kernel, args.steps)
+        run_case(args.device, (8192, 1024, 4096), 'random', kernel, args.steps, args.contiguous_weights)
     print('PASS: fused BF16 MLP component gates; no full-model claim', flush=True)
 
 

@@ -1,0 +1,40 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave25",
+    "expected_commit": "0aeeb54ca1cb4b21f46e802ba69c4bcb7ad2f278",
+    "label": "fs-w25-embedding-segmented-dma-r1",
+    "purpose": "Root-cause workaround using already-gated indirect DMA around a FP32 segmented scan: stagewise permutation, per-position scan, dense expansion and compiled composition at actual shape. BF16 input-gradient rounding matches native. Include all HBM intermediates and metadata costs; no model claim.",
+    "fingerprint_paths": [
+      "research/scratch/embedding_segmented_dma.py",
+      "research/scratch/embedding_segmented_dma_probe.py",
+      "research/scratch/embedding_segmented_nki.py",
+      "research/scratch/embedding_segmented_probe.py",
+      "research/scratch/embedding_compact_probe.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "900s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/embedding_segmented_dma_probe.py",
+      "--real-shape",
+      "--training-row",
+      "--steps",
+      "6"
+    ]
+  },
+  "requested_at": "2026-09-18T14:20:08.575026+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w25-embedding-segmented-dma-r1\", \"pid\": 1308651, \"commit\": \"0aeeb54ca1cb4b21f46e802ba69c4bcb7ad2f278\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave25/research/run-logs/fs-w25-embedding-segmented-dma-r1.log\", \"started_at\": \"2026-09-18T14:20:14.999897+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

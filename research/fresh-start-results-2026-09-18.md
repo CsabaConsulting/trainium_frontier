@@ -980,3 +980,17 @@ source of host/driver delay, not yet a measured attribution. Dynamic DMA metadat
 and compiler metrics are incomplete, so do not claim exact bandwidth or MFU.
 The next MLP version must use contiguous transfers and explicit transposes,
 then repeat correctness and unprofiled timing with layout conversion included.
+
+Packet attribution isolates the tiny transfers to the two weight inputs:
+262,400 packets each, including262,144 two-byte packets per matrix. The input
+activation and two outputs use substantially fewer packets. The revised kernel
+loads ordinary contiguous FP32 weight tiles, casts in SBUF and transposes via
+TensorEngine before caching. The old direct-transpose/cast DMA remains an
+explicit failed control. Native gates and complete timings are required again.
+
+`fs-w25-embedding-segmented-dma-r1`, source `0aeeb54`, passes all11 CPU, eager,
+per-position scan and compiled-composition cases. The real training-row dense
+gradient differs from native by at most2.98e-8. However, prepared DMA/scan costs
+18.920ms versus3.218ms native, and metadata-included cost is19.909ms. This is a
+correct reference/workaround, not a training candidate. Its cast/layout costs
+remain a target if the manual-scratch original kernel also misses the speed gate.

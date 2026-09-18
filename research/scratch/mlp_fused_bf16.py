@@ -21,7 +21,8 @@ def build_kernel():
     import nki.isa as nisa
 
     @nki.jit
-    def fused_mlp(x, up, down, lanes: int = 2, token_tile: int = 512):
+    def fused_mlp(x, up, down, lanes: int = 2, token_tile: int = 512,
+                  contiguous_weights: bool = False):
         tokens, channels = x.shape
         hidden, up_channels = up.shape
         assert up_channels == channels and down.shape == (channels, hidden)
@@ -42,12 +43,35 @@ def build_kernel():
             for ci in nl.affine_range(nc):
                 # P is the contracting dimension, F the stationary output
                 # dimension. The DMA reads ordinary row-major weight tensors.
-                nisa.dma_copy(dst=up_cache[:, hi, ci, :],
-                              src=up.ap(pattern=[[1, 128], [channels, 128]],
-                                        offset=hi * 128 * channels + ci * 128))
-                nisa.dma_copy(dst=down_cache[:, ci, hi, :],
-                              src=down.ap(pattern=[[1, 128], [hidden, 128]],
-                                          offset=ci * 128 * hidden + hi * 128))
+                if contiguous_weights:
+                    # Combining strided transpose and FP32->BF16 DMA produced
+                    # scalar two-byte packets. Read normal contiguous rows,
+                    # cast in SBUF, transpose on TensorEngine, then cache.
+                    up_raw = nl.ndarray((128, 128), dtype=nl.float32, buffer=nl.sbuf)
+                    down_raw = nl.ndarray((128, 128), dtype=nl.float32, buffer=nl.sbuf)
+                    up_bf16 = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.sbuf)
+                    down_bf16 = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.sbuf)
+                    up_t = nl.ndarray((128, 128), dtype=nl.float32, buffer=nl.psum)
+                    down_t = nl.ndarray((128, 128), dtype=nl.float32, buffer=nl.psum)
+                    nisa.dma_copy(dst=up_raw, src=up[hi * 128:(hi + 1) * 128,
+                                                    ci * 128:(ci + 1) * 128])
+                    nisa.dma_copy(dst=down_raw, src=down[ci * 128:(ci + 1) * 128,
+                                                        hi * 128:(hi + 1) * 128])
+                    nisa.tensor_copy(dst=up_bf16, src=up_raw)
+                    nisa.tensor_copy(dst=down_bf16, src=down_raw)
+                    nisa.nc_transpose(dst=up_t, data=up_bf16)
+                    nisa.nc_transpose(dst=down_t, data=down_bf16)
+                    nisa.tensor_copy(dst=up_cache[:, hi, ci, :], src=up_t)
+                    nisa.tensor_copy(dst=down_cache[:, ci, hi, :], src=down_t)
+                else:
+                    # Retained failed control: the small profile measured
+                    #524288 two-byte packets for the two weight inputs.
+                    nisa.dma_copy(dst=up_cache[:, hi, ci, :],
+                                  src=up.ap(pattern=[[1, 128], [channels, 128]],
+                                            offset=hi * 128 * channels + ci * 128))
+                    nisa.dma_copy(dst=down_cache[:, ci, hi, :],
+                                  src=down.ap(pattern=[[1, 128], [hidden, 128]],
+                                              offset=ci * 128 * hidden + hi * 128))
         for mi in nl.affine_range(tokens // (token_tile * lanes)):
             m0 = (mi * lanes + nl.program_id(0)) * token_tile
             inputs = nl.ndarray((128, nc, token_tile), dtype=nl.bfloat16, buffer=nl.sbuf)
