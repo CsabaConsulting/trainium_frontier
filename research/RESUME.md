@@ -1,6 +1,92 @@
 # Restart the Trainium kernel campaign here
 
-Updated2026-09-18, after the local GUI crash; recovery began17:07UTC.
+Updated2026-09-18 at17:52UTC. The user is choosing a deliberate restart to
+activate full-access/no-prompts mode. This is a safe research checkpoint.
+
+## Current state for the next session
+
+- Both Trn2 hosts are idle after completed, automatically cleaned wave39 jobs.
+  Both latest worktrees are `/home/ubuntu/trainium_freshstart_20260918_wave39`,
+  source `fb6f0b719524dc6b00ed77b7058ca694707e104e`. No training job needs
+  interruption or relaunch. Still check the host lock/status before new work.
+- All source history is now on GitHub, branch `research/fresh-start-20260918`.
+  A separate `backup/fresh-start-20260918` preserves WIP and remote evidence.
+  Cron has actually run successfully at17:40 and17:50, with both refs verified.
+  See `continuity-and-backups.md`, `continuity.json`, and
+  `out/fresh-start-backup/{latest,last-success}.json`.
+- The local machine is **Devuan/SystemV**, not systemd. User `csaba`'s crontab
+  has two entries: Git recovery every10minutes; artifact backup at minutes5/35.
+  No sudo/root shell was used. Backups skip merges/rebases/cherry-picks/index
+  locks, use a separate Git index, preserve staged additions and staged.patch,
+  never merge/pull/force-push, and leave the active branch/index alone. A real
+  conflicted-merge test passed. Do not replace this with systemd instructions.
+- The best checkpoint, both original EC2 snapshots, the full MLP forward raw
+  capture, baseline raw capture and extra NEFFs, and the early runtime trace
+  already have actual GitHub draft-release assets with matching SHA256 digests.
+  Draft tag `research-backup-20260918`; receipts `fs-artifact-backup-*.json`.
+  A real download/restore check verified all1550 files of the trn21 snapshot.
+- A bulk artifact uploader started17:47UTC, command
+  `python3 research/fresh_start_artifact_backup.py`. At17:52 it had verified
+  7 of24 queued artifacts and was processing the older5.1GB wave4 archive.
+  Check `out/fresh-start-artifact-backup/latest.json` and its lock; do not
+  assume it died with the GUI or start a concurrent upload. Cron resumes the
+  queue if interrupted. Only completed digest receipts mean off-laptop backup;
+  the remaining archive/checkpoint queue is not all uploaded yet. Newly retrieved
+  wave37/wave39 profiles will be discovered on the next artifact cycle.
+- User-requested defaults were saved in `/home/csaba/.codex/config.toml`:
+  `approval_policy="never"`, `sandbox_mode="danger-full-access"`. Previous
+  config is `/home/csaba/.codex/config.toml.before-full-access-20260918`.
+  Installed CLI0.155.0 accepts `--yolo` (verified with `codex --yolo --version`).
+  The old active GUI session still had managed permissions. After restart,
+  inspect the actual supplied permission policy; never assume a config edit
+  changed permissions of a running session.
+
+## Immediate scientific resume point
+
+The interrupted full-model MLP trace **has now ingested successfully** on trn22
+with installed `/opt/aws/neuron/bin/neuron-explorer`, GOMEMLIMIT24GiB,95.28s.
+The first retry used an incorrect venv executable path and failed before
+ingestion; its failure and clean postflight are preserved. Successful retry:
+`fs-w39-mlp-forward-remote-ingest-r2`. All32 Parquet files (299,505,407 bytes)
+are locally hash-verified under
+`out/fresh-start-profiles/fs-w39-mlp-forward-parquet-r2/` and remain remotely in
+wave39's corresponding `out/` directory. There are879,720 instruction rows.
+
+The initial summary is
+`run-logs/fs-w39-mlp-forward-profile-analysis-r1.analysis.json`.
+Fused forward graph `6ec5dd5b3e70cf667b3952ff25804a5c.neff` takes58.761415ms
+in this device capture; the baseline forward
+`e496117f74af27424b6c982ea962b625.neff` took36.514939ms. Fused per-core Tensor
+active~27.37ms versus baseline~18.8ms; Scalar24.41/21.19ms versus12.33/9.44;
+GpSIMD10.75/9.32ms versus6.21/4.78. One leading DMA instruction explicitly has
+`SpillSave` in its name. **This is a lead, not a quantified spill attribution.**
+Do not add overlapping engine/instruction durations or claim total bandwidth:
+the trace warns about dropped DMA packets and missing dynamic DMA metadata.
+
+Next: compare `Instruction.spill_save_bytes`, `spill_reload_bytes`, source lines,
+layer/BIR names and graph windows with the baseline, and inspect descriptor
+patterns. Local baseline tables are
+`out/fresh-start-profiles/dense1024-nki-norm-current-parquet/` (11 files), with
+summary `fs-w16-dense1024-nki-norm-device-micro-r1.device-summary.json`.
+The fresh local system Python3.14 lacks pyarrow; the remote native venv has it.
+Analyze on a clean remote host or use a known existing analysis environment;
+do not reinstall device packages or retry the memory-heavy local ingestion.
+If spill pressure is confirmed, test reduced SBUF footprint/streamed weight
+tiles or smaller token tiles against the full-step control. Grouped MLP I/O
+remains only an isolated component win, not an integrated training improvement.
+
+The resumed two-kernel embedding passed all11 numerical cases, including every
+FP64 scan position, instrumented/uninstrumented eager and compiled composition,
+native controls and zero/repeat. Training-row median0.902076ms prepared and
+1.734378ms with metadata, versus native3.150630ms. The existing three-kernel
+version was0.855589ms prepared and1.303211ms with metadata. These are different
+runs; the new version has no promotion-worthy component advantage. No full
+training run follows it. Label `fs-w39-embedding-permute-scan-component-r1`.
+The corrected-metadata small trace from wave37 is also now locally verified:
+11 files/420,881 bytes under its matching `out/fresh-start-profiles/` directory.
+
+The rest of this note records the original crash context and invariants; where
+it describes then-pending recovery, the completed status above takes precedence.
 
 The canonical checkout is `trainium_frontier`, branch
 `research/fresh-start-20260918`, remote `origin` =

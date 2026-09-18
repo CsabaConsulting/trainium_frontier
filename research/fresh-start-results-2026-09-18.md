@@ -1294,3 +1294,33 @@ The surviving two-kernel embedding edit is preserved as a prototype, not a
 correctness/speed claim. It fuses wide DMA permutation and scan while retaining
 the separately validated DMA expansion. The crash recovery and next actions
 are recorded in `RESUME.md`; regular GitHub backup is now explicitly authorized.
+
+
+### Wave39: recovered kernel gate and completed MLP profile ingestion
+
+The two-kernel wide-DMA permutation/scan prototype passes all11 stage/final
+cases, including the real training row, full FP64 scan recurrence, debug and
+uninstrumented eager outputs, compiled composition, native controls and
+zero/repeat checks. Real-row prepared0.902076ms, metadata-inclusive1.734378ms,
+native3.150630ms. It has no demonstrated advantage over the three-kernel
+0.855589/1.303211ms result from the earlier run and is not promoted. Automatic
+postflight is healthy. The prior wave37 small profile is now locally verified:
+11files/420,881bytes.
+
+Local full-model MLP ingestion had timed out. The first remote retry failed
+before analysis because Explorer is installed under `/opt/aws/neuron/bin`,
+not the native Python venv. The failure was preserved and cleanup passed.
+Retry2, fresh output and GOMEMLIMIT24GiB, succeeds in95.28s;32 Parquet files,
+299,505,407bytes, independently hash-matched locally. The summary job also
+completes cleanly. Device forward58.761415ms versus baseline36.514939ms;
+Tensor active~27.37ms/core versus~18.8ms, with increased Scalar and GpSIMD
+activity. The leading DMA groups include a `SpillSave` instruction. Quantify
+spill bytes and attribution against the baseline before claiming a mechanism
+or implementing a lower-scratchpad kernel. Dropped/missing DMA metadata still
+prevents reliable total bandwidth claims. These are diagnostic captures,
+not a fresh paired throughput experiment or a BPB improvement.
+
+The2026-09-18 deliberate-restart checkpoint is documented in `RESUME.md`.
+Code/results are now regularly pushed, and the best model and key raw captures
+have verified off-laptop backups. No experiment is active on either accelerator
+at the checkpoint; the remaining local artifact-upload queue is resumable.
