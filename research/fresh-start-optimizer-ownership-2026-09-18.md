@@ -1,6 +1,9 @@
 # Reopen optimizer ownership as a compute question
 
-Status: hypothesis, not implemented or measured. 2026-09-18.
+Status at 21:04 UTC: exact FP32 communication feasibility passed on all four
+ranks, worst-rank median6.403158ms including packing and copyback. A scratch
+ownership implementation is ready for CPU/Gloo and native numerical gates.
+It has not yet produced an optimizer or whole-model timing result. 2026-09-18.
 
 The older assessment in `trn2-optimization-research.md:295` and
 `experiment-rollout-plan.md:295` rejected ZeRO-1 because optimizer memory fits.
@@ -53,3 +56,19 @@ least3% total-step reduction before a30-minute quality run. Retain the same
 loader, global batch, seed, clipping order, schedules and public scorer. If
 collective overhead consumes the available margin, record that compute result
 and close this path for the measured configuration.
+
+Wave60 communication evidence: `run-logs/fs-w60-optimizer-weight-exchange-r1`.
+The actual 117,453,580-parameter grouping is covered exactly once; owner
+element counts are 27,265,796 / 30,414,851 / 30,412,805 / 29,360,128.
+Padding yields486,639,616bytes reconstructed per rank. All weights use FP32
+transport, with exact rank/parameter/element patterns checked before and after
+timing. Gather alone costs about4.69ms; full pack/gather/copyback about6.40ms.
+
+The scratch adapter keeps complete public optimizer groups so scheduling,
+gradient reduction, clipping and selective zeroing retain all parameters.
+Persistent owner views dispatch the existing AdamW/Muon methods; Muon's None
+gradient handling stays zero-filled rows with continued momentum/decay.
+Unsupported kinds and per-depth metadata fail explicitly. Each owner retains
+its own group state. Optimizer serialization uses an explicit rank/world/plan
+schema, removes only reproducible stacked scratch, and rejects a wrong-owner
+checkpoint. The existing model checkpoint remains a complete set of weights.
