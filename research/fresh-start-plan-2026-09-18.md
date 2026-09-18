@@ -1,6 +1,18 @@
 # Fresh-start campaign — 2026-09-18
 
-**Current status, 21:59 UTC.** Minimize official30-minute BPB on a full Trainium2
+**Current status,22:30UTC:** larger public BPB **0.9974687136975224** after
+3282updates/430.2Mtargets in1784.6training seconds. Dense6x1024, no n-grams,
+native-forward/custom-backward MLP, T1024/pack16, original fused AdamW and seed42.
+Matched20.97M/T1024/O1 scoring and clean postflight; checkpoint local/cloud verified.
+The target remains roughly0.9749; this does not establish a private score.
+Optimizer ownership's full run remains active on trn21. Reciprocal integration
+passes; rsqrt seed root cause is measured. Next device work is stronger rsqrt
+corrections and online FP8 cache calibration/storage controls. The loss two-core
+probe needs small-shape precision diagnosis before advancement. See the current
+[kernel queue](fresh-start-kernel-queue-2026-09-18.md) and `RESUME.md` for commands.
+All32 heavy artifacts are verified in GitHub; the source/WIP cron remains active.
+
+**Earlier status, 21:59 UTC.** Minimize official30-minute BPB on a full Trainium2
 chip. Working competitive target approximately0.9749; best larger public check
 is **1.0010172426032236**, 20,971,520tokens/B1/T1024. The private dataset differs.
 Dense6×1024 without hashed n-grams now completes3,183updates/417.2Mtargets using
@@ -14,7 +26,7 @@ through a separate-index recovery path; all31 heavy artifacts have verified
 GitHub draft-release receipts. Source5dcbf6a and its recovery snapshot were
 verified at21:50. See RESUME.md for exact jobs and newer backup receipts.
 
-Current priorities:
+Earlier priorities (completion states superseded by the queue above):
 
 1. Complete both active quality runs and preserve their checkpoints. Exact
    padded ownership saves5.06245% of the matched whole step; its T2048/pack8
