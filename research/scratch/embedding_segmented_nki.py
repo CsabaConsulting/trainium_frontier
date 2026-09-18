@@ -52,7 +52,8 @@ def build_kernel():
 
     @nki.jit
     def segmented_gradient(gradient, permutation, continuation, last, present,
-                           lanes: int = 2, manual_sbuf: bool = False):
+                           lanes: int = 2, manual_sbuf: bool = False,
+                           debug_intermediates: bool = False, reuse_sbuf: bool = False):
         tokens, channels = gradient.shape
         vocabulary = last.shape[1]
         assert gradient.dtype == nl.float32
@@ -76,31 +77,57 @@ def build_kernel():
         sums_address = (0, 18 * tokens + 6 * vt) if manual_sbuf else None
         masked_address = (0, 18 * tokens + 10 * vt) if manual_sbuf else None
         result = nl.ndarray((vocabulary, channels), dtype=nl.float32, buffer=nl.shared_hbm)
+        if debug_intermediates:
+            raw_debug = nl.ndarray((channels, tokens), dtype=nl.float32, buffer=nl.shared_hbm)
+            ordered_debug = nl.ndarray((channels, tokens), dtype=nl.float32, buffer=nl.shared_hbm)
+            scanned_debug = nl.ndarray((channels, tokens), dtype=nl.float32, buffer=nl.shared_hbm)
         # Compact HBM metadata is broadcast to the partition lanes by zero
         # source stride. This charges only O(T+V) host-to-device bytes.
         lane = nl.program_id(0)
+        if reuse_sbuf:
+            # Keep the SAME tensor identities across loops as well as fixed
+            # addresses. Distinct inside-loop allocations at one address can
+            # have different compiler dependency behavior.
+            perm = nl.ndarray((128, tokens), dtype=nl.uint32, buffer=nl.sbuf, address=perm_address)
+            cont = nl.ndarray((128, tokens), dtype=nl.bfloat16, buffer=nl.sbuf, address=cont_address)
+            raw = nl.ndarray((128, tokens), dtype=nl.float32, buffer=nl.sbuf, address=raw_address)
+            ordered = nl.ndarray((128, tokens), dtype=nl.float32, buffer=nl.sbuf, address=ordered_address)
+            scanned = nl.ndarray((128, tokens), dtype=nl.float32, buffer=nl.sbuf, address=scanned_address)
+            ends = nl.ndarray((128, vt), dtype=nl.uint32, buffer=nl.sbuf, address=ends_address)
+            valid = nl.ndarray((128, vt), dtype=nl.bfloat16, buffer=nl.sbuf, address=valid_address)
+            sums = nl.ndarray((128, vt), dtype=nl.float32, buffer=nl.sbuf, address=sums_address)
+            masked = nl.ndarray((128, vt), dtype=nl.float32, buffer=nl.sbuf, address=masked_address)
         for block in nl.sequential_range(channels // (128 * lanes)):
             c0 = (block * lanes + lane) * 128
             # Reloading alone previously failed; retain the auto-allocation
             # control while optionally assigning every live scratch address.
-            perm = nl.ndarray((128, tokens), dtype=nl.uint32, buffer=nl.sbuf, address=perm_address)
-            cont = nl.ndarray((128, tokens), dtype=nl.bfloat16, buffer=nl.sbuf, address=cont_address)
+            if not reuse_sbuf:
+                perm = nl.ndarray((128, tokens), dtype=nl.uint32, buffer=nl.sbuf, address=perm_address)
+                cont = nl.ndarray((128, tokens), dtype=nl.bfloat16, buffer=nl.sbuf, address=cont_address)
             nisa.dma_copy(dst=perm, src=permutation.ap(pattern=[[0, 128], [1, tokens]], offset=0))
             nisa.dma_copy(dst=cont, src=continuation.ap(pattern=[[0, 128], [1, tokens]], offset=0))
-            raw = nl.ndarray((128, tokens), dtype=nl.float32, buffer=nl.sbuf, address=raw_address)
-            ordered = nl.ndarray((128, tokens), dtype=nl.float32, buffer=nl.sbuf, address=ordered_address)
-            scanned = nl.ndarray((128, tokens), dtype=nl.float32, buffer=nl.sbuf, address=scanned_address)
+            if not reuse_sbuf:
+                raw = nl.ndarray((128, tokens), dtype=nl.float32, buffer=nl.sbuf, address=raw_address)
+                ordered = nl.ndarray((128, tokens), dtype=nl.float32, buffer=nl.sbuf, address=ordered_address)
+                scanned = nl.ndarray((128, tokens), dtype=nl.float32, buffer=nl.sbuf, address=scanned_address)
             # Load [T,C] directly into [128,T], including this layout cost.
             nisa.dma_copy(dst=raw,
                           src=gradient.ap(pattern=[[1, 128], [channels, tokens]], offset=c0))
+            if debug_intermediates:
+                nisa.dma_copy(dst=raw_debug[c0:c0 + 128, :], src=raw)
             nisa.nc_n_gather(dst=ordered, data=raw, indices=perm)
+            if debug_intermediates:
+                nisa.dma_copy(dst=ordered_debug[c0:c0 + 128, :], src=ordered)
             nisa.tensor_tensor_scan(dst=scanned, data0=cont, data1=ordered,
                                     initial=0.0, op0=nl.multiply, op1=nl.add)
+            if debug_intermediates:
+                nisa.dma_copy(dst=scanned_debug[c0:c0 + 128, :], src=scanned)
             for vi in nl.sequential_range(vocabulary // vt):
-                ends = nl.ndarray((128, vt), dtype=nl.uint32, buffer=nl.sbuf, address=ends_address)
-                valid = nl.ndarray((128, vt), dtype=nl.bfloat16, buffer=nl.sbuf, address=valid_address)
-                sums = nl.ndarray((128, vt), dtype=nl.float32, buffer=nl.sbuf, address=sums_address)
-                masked = nl.ndarray((128, vt), dtype=nl.float32, buffer=nl.sbuf, address=masked_address)
+                if not reuse_sbuf:
+                    ends = nl.ndarray((128, vt), dtype=nl.uint32, buffer=nl.sbuf, address=ends_address)
+                    valid = nl.ndarray((128, vt), dtype=nl.bfloat16, buffer=nl.sbuf, address=valid_address)
+                    sums = nl.ndarray((128, vt), dtype=nl.float32, buffer=nl.sbuf, address=sums_address)
+                    masked = nl.ndarray((128, vt), dtype=nl.float32, buffer=nl.sbuf, address=masked_address)
                 nisa.dma_copy(dst=ends, src=last.ap(pattern=[[0, 128], [1, vt]], offset=vi * vt))
                 nisa.dma_copy(dst=valid, src=present.ap(pattern=[[0, 128], [1, vt]], offset=vi * vt))
                 nisa.nc_n_gather(dst=sums, data=scanned, indices=ends)
@@ -109,6 +136,8 @@ def build_kernel():
                 # writer. Return the normal [V,C] weight-gradient layout.
                 nisa.dma_copy(dst=result.ap(pattern=[[1, 128], [channels, vt]],
                                              offset=c0 + vi * vt * channels), src=masked)
+        if debug_intermediates:
+            return result, raw_debug, ordered_debug, scanned_debug
         return result
 
     return segmented_gradient

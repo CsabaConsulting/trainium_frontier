@@ -1,0 +1,35 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave28",
+    "expected_commit": "3ec4f93b9df64873f60e5ec64631fc79c3d12a02",
+    "label": "fs-w28-mlp-fused-bf16-contiguous-weights-r1",
+    "purpose": "Profile-guided correction of fused MLP weight DMA: normal contiguous FP32 reads, SBUF cast, TensorEngine transpose. Failed control had524288 two-byte weight packets even at small shape. Recheck eager/compiled FP64 stages, native gradients and full-cost actual-shape component timing.",
+    "fingerprint_paths": [
+      "research/scratch/mlp_fused_bf16.py",
+      "research/scratch/mlp_fused_bf16_probe.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1500s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "--real-shape",
+      "--contiguous-weights"
+    ]
+  },
+  "requested_at": "2026-09-18T14:24:45.174983+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w28-mlp-fused-bf16-contiguous-weights-r1\", \"pid\": 1310445, \"commit\": \"3ec4f93b9df64873f60e5ec64631fc79c3d12a02\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave28/research/run-logs/fs-w28-mlp-fused-bf16-contiguous-weights-r1.log\", \"started_at\": \"2026-09-18T14:24:51.681452+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

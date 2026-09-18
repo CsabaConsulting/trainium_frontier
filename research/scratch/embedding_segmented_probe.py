@@ -108,6 +108,7 @@ def run_case(args, kernel, kind, shape):
         seed=args.seed, compiler_flags=os.environ.get("NEURON_CC_FLAGS"),
         compiled_kernel=args.compiled_kernel,
         manual_sbuf=args.manual_sbuf,
+        reuse_sbuf=args.reuse_sbuf,
         gradient_dtype="float32", preparation_uses_training_only=(kind == "training"))), flush=True)
     if args.device == "cpu":
         return
@@ -119,7 +120,8 @@ def run_case(args, kernel, kind, shape):
     assert channels % chunk == 0 and chunk % (128 * lanes) == 0
 
     def invoke(gg, *metadata_args):
-        parts = [kernel[lanes](gg[:, start:start + chunk].contiguous(), *metadata_args, lanes, args.manual_sbuf)
+        parts = [kernel[lanes](gg[:, start:start + chunk].contiguous(), *metadata_args,
+                              lanes, args.manual_sbuf, False, args.reuse_sbuf)
                  for start in range(0, channels, chunk)]
         return parts[0] if len(parts) == 1 else torch.cat(parts, dim=1)
     if args.compiled_kernel:
@@ -128,7 +130,8 @@ def run_case(args, kernel, kind, shape):
         wrapped = wrap_nki(kernel)
 
         def captured(gg, pp, cc, ee, vv):
-            parts = [wrapped[lanes](gg[:, start:start + chunk].contiguous(), pp, cc, ee, vv, lanes, args.manual_sbuf)
+            parts = [wrapped[lanes](gg[:, start:start + chunk].contiguous(), pp, cc, ee, vv,
+                                   lanes, args.manual_sbuf, False, args.reuse_sbuf)
                      for start in range(0, channels, chunk)]
             return parts[0] if len(parts) == 1 else torch.cat(parts, dim=1)
 
@@ -213,6 +216,8 @@ def main():
                     help="Gate eager and captured NKI, then time the captured wrapper like native.")
     ap.add_argument("--manual-sbuf", action="store_true",
                     help="Use explicit disjoint byte addresses for every scratch tile.")
+    ap.add_argument("--reuse-sbuf", action="store_true",
+                    help="Allocate scratch outside loops and reuse the same tensor identities.")
     ap.add_argument("--split-channels", type=int, default=0,
                     help="Use independent narrow kernels, including input copies and output concatenation.")
     args = ap.parse_args()

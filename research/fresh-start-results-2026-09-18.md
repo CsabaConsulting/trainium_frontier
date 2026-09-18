@@ -994,3 +994,20 @@ gradient differs from native by at most2.98e-8. However, prepared DMA/scan costs
 18.920ms versus3.218ms native, and metadata-included cost is19.909ms. This is a
 correct reference/workaround, not a training candidate. Its cast/layout costs
 remain a target if the manual-scratch original kernel also misses the speed gate.
+
+### Two failed implementations narrowed, neither silently promoted
+
+`fs-w27-embedding-segmented-manual-sbuf-r1`, source `7af6de9`, still fails the
+full actual-shape gradient despite the passing standalone gather. Next check:
+the standalone passing arm reused the same scratch tensor objects outside its
+loop, while the full kernel creates different objects at the same addresses
+inside loops. Address overlap does not necessarily establish compiler dependency
+identity. A composed diagnostic now returns raw/permuted/scanned intermediates
+and compares allocating inside versus outside loops, with an uninstrumented
+control retained. This is a hypothesis under test, not a confirmed compiler bug.
+
+`fs-w28-mlp-fused-bf16-contiguous-weights-r1`, source `3ec4f93`, stops at compile
+validation: gen3 transpose source/destination dtypes must match. It attempted
+BF16-to-FP32 transpose. The correction transposes FP32-to-FP32 first, then casts
+the cache value to BF16. There is no device timing for the failed version.
+Both failure postflights are healthy and all evidence is retained.

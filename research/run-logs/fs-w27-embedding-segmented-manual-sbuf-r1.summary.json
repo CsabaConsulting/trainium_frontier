@@ -1,0 +1,162 @@
+{
+  "label": "fs-w27-embedding-segmented-manual-sbuf-r1",
+  "source_commit": "7af6de9d00783addb676b0c94ca46ab95ee219bf",
+  "host_clean": true,
+  "returncode": 1,
+  "interpretation": "Manual addresses alone do not fix the full original gradient. Passing gather reproducer also allocated/reused the same tensor identities outside loops; next diagnostics isolate that distinction and full intermediate stages.",
+  "gates": [
+    {
+      "name": "cpu:uniform:(256, 256, 256)",
+      "finite": true,
+      "max_abs": 5.587935447692871e-09,
+      "bound_failures": 0,
+      "absent_rows_exact_zero": true,
+      "relative_rms": 2.5373849363672617e-08,
+      "passed": true
+    },
+    {
+      "name": "nki_eager:uniform:(256, 256, 256)",
+      "finite": true,
+      "max_abs": 5.587935447692871e-09,
+      "bound_failures": 0,
+      "absent_rows_exact_zero": true,
+      "relative_rms": 2.5373849363672617e-08,
+      "passed": true
+    },
+    {
+      "name": "nki:uniform:(256, 256, 256)",
+      "finite": true,
+      "max_abs": 5.587935447692871e-09,
+      "bound_failures": 0,
+      "absent_rows_exact_zero": true,
+      "relative_rms": 2.5373849363672617e-08,
+      "passed": true
+    },
+    {
+      "name": "cpu:zipf:(256, 256, 256)",
+      "finite": true,
+      "max_abs": 3.7369318306446075e-08,
+      "bound_failures": 0,
+      "absent_rows_exact_zero": true,
+      "relative_rms": 7.36522067029977e-08,
+      "passed": true
+    },
+    {
+      "name": "nki_eager:zipf:(256, 256, 256)",
+      "finite": true,
+      "max_abs": 3.7369318306446075e-08,
+      "bound_failures": 0,
+      "absent_rows_exact_zero": true,
+      "relative_rms": 7.36522067029977e-08,
+      "passed": true
+    },
+    {
+      "name": "nki:zipf:(256, 256, 256)",
+      "finite": true,
+      "max_abs": 3.7369318306446075e-08,
+      "bound_failures": 0,
+      "absent_rows_exact_zero": true,
+      "relative_rms": 7.36522067029977e-08,
+      "passed": true
+    },
+    {
+      "name": "cpu:one_id:(256, 256, 256)",
+      "finite": true,
+      "max_abs": 1.7975253285840154e-07,
+      "bound_failures": 0,
+      "absent_rows_exact_zero": true,
+      "relative_rms": 2.979084092269948e-07,
+      "passed": true
+    },
+    {
+      "name": "nki_eager:one_id:(256, 256, 256)",
+      "finite": true,
+      "max_abs": 1.7975253285840154e-07,
+      "bound_failures": 0,
+      "absent_rows_exact_zero": true,
+      "relative_rms": 2.979084092269948e-07,
+      "passed": true
+    },
+    {
+      "name": "nki:one_id:(256, 256, 256)",
+      "finite": true,
+      "max_abs": 1.7975253285840154e-07,
+      "bound_failures": 0,
+      "absent_rows_exact_zero": true,
+      "relative_rms": 2.979084092269948e-07,
+      "passed": true
+    },
+    {
+      "name": "cpu:zero:(256, 256, 256)",
+      "finite": true,
+      "max_abs": 0.0,
+      "bound_failures": 0,
+      "absent_rows_exact_zero": true,
+      "relative_rms": 0.0,
+      "passed": true
+    },
+    {
+      "name": "nki_eager:zero:(256, 256, 256)",
+      "finite": true,
+      "max_abs": 0.0,
+      "bound_failures": 0,
+      "absent_rows_exact_zero": true,
+      "relative_rms": 0.0,
+      "passed": true
+    },
+    {
+      "name": "nki:zero:(256, 256, 256)",
+      "finite": true,
+      "max_abs": 0.0,
+      "bound_failures": 0,
+      "absent_rows_exact_zero": true,
+      "relative_rms": 0.0,
+      "passed": true
+    },
+    {
+      "name": "cpu:cancellation:(256, 256, 256)",
+      "finite": true,
+      "max_abs": 0.0,
+      "bound_failures": 0,
+      "absent_rows_exact_zero": true,
+      "relative_rms": 0.0,
+      "passed": true
+    },
+    {
+      "name": "nki_eager:cancellation:(256, 256, 256)",
+      "finite": true,
+      "max_abs": 0.0,
+      "bound_failures": 0,
+      "absent_rows_exact_zero": true,
+      "relative_rms": 0.0,
+      "passed": true
+    },
+    {
+      "name": "nki:cancellation:(256, 256, 256)",
+      "finite": true,
+      "max_abs": 0.0,
+      "bound_failures": 0,
+      "absent_rows_exact_zero": true,
+      "relative_rms": 0.0,
+      "passed": true
+    },
+    {
+      "name": "cpu:uniform:(8192, 1024, 8192)",
+      "finite": true,
+      "max_abs": 1.1175870895385742e-08,
+      "bound_failures": 0,
+      "absent_rows_exact_zero": true,
+      "relative_rms": 2.5427753298662578e-08,
+      "passed": true
+    },
+    {
+      "name": "nki_eager:uniform:(8192, 1024, 8192)",
+      "finite": true,
+      "max_abs": 0.0921527473255992,
+      "bound_failures": 1283061,
+      "absent_rows_exact_zero": true,
+      "relative_rms": 0.5071788905223905,
+      "passed": false
+    }
+  ]
+}

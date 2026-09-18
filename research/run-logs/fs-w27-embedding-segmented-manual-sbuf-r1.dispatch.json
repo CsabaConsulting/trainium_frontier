@@ -1,0 +1,39 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave27",
+    "expected_commit": "7af6de9d00783addb676b0c94ca46ab95ee219bf",
+    "label": "fs-w27-embedding-segmented-manual-sbuf-r1",
+    "purpose": "Validate original full segmented FP32 embedding gradient with every scratch buffer explicitly and disjointly placed. Actual gather reproducer passed low/high manual addresses; reload/reuse/auto allocation previously failed. Gate full eager/compiled gradient, zero/repeated calls, then complete timing. No model claim.",
+    "fingerprint_paths": [
+      "research/scratch/embedding_segmented_nki.py",
+      "research/scratch/embedding_segmented_probe.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/embedding_segmented_probe.py",
+      "--real-shape",
+      "--training-row",
+      "--compiled-kernel",
+      "--manual-sbuf",
+      "--steps",
+      "6"
+    ]
+  },
+  "requested_at": "2026-09-18T14:22:34.257794+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w27-embedding-segmented-manual-sbuf-r1\", \"pid\": 946015, \"commit\": \"7af6de9d00783addb676b0c94ca46ab95ee219bf\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave27/research/run-logs/fs-w27-embedding-segmented-manual-sbuf-r1.log\", \"started_at\": \"2026-09-18T14:22:40.640232+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

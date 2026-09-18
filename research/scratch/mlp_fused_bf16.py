@@ -46,21 +46,19 @@ def build_kernel():
                 if contiguous_weights:
                     # Combining strided transpose and FP32->BF16 DMA produced
                     # scalar two-byte packets. Read normal contiguous rows,
-                    # cast in SBUF, transpose on TensorEngine, then cache.
+                    # transpose FP32 on TensorEngine, then cast/cache in SBUF.
+                    # Gen3 transpose requires matching source/destination
+                    # dtypes; it is bit-preserving rather than an accumulation.
                     up_raw = nl.ndarray((128, 128), dtype=nl.float32, buffer=nl.sbuf)
                     down_raw = nl.ndarray((128, 128), dtype=nl.float32, buffer=nl.sbuf)
-                    up_bf16 = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.sbuf)
-                    down_bf16 = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.sbuf)
                     up_t = nl.ndarray((128, 128), dtype=nl.float32, buffer=nl.psum)
                     down_t = nl.ndarray((128, 128), dtype=nl.float32, buffer=nl.psum)
                     nisa.dma_copy(dst=up_raw, src=up[hi * 128:(hi + 1) * 128,
                                                     ci * 128:(ci + 1) * 128])
                     nisa.dma_copy(dst=down_raw, src=down[ci * 128:(ci + 1) * 128,
                                                         hi * 128:(hi + 1) * 128])
-                    nisa.tensor_copy(dst=up_bf16, src=up_raw)
-                    nisa.tensor_copy(dst=down_bf16, src=down_raw)
-                    nisa.nc_transpose(dst=up_t, data=up_bf16)
-                    nisa.nc_transpose(dst=down_t, data=down_bf16)
+                    nisa.nc_transpose(dst=up_t, data=up_raw)
+                    nisa.nc_transpose(dst=down_t, data=down_raw)
                     nisa.tensor_copy(dst=up_cache[:, hi, ci, :], src=up_t)
                     nisa.tensor_copy(dst=down_cache[:, ci, hi, :], src=down_t)
                 else:
