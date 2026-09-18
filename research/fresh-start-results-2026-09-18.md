@@ -821,3 +821,30 @@ compact rows into each output row once, with valid-row masking. CPU tests pass
 all11cases, including actual-shape distributions and a provided-training row.
 The current fixed4096 bucket has a correct8192 fallback. Captured NKI timing
 and all host metadata/upload costs are required before any performance claim.
+
+
+### Compact gather succeeds at the component gate
+
+`fs-w19-embedding-compact-gather-native-r1`, source `9f455b6`, passes all44
+numerical gates, including one/two-program FP32 output expansion, actual shapes,
+repeated IDs, zeros, cancellation and the first provided-training row. The
+compiled compact BF16 gradient matches the native control exactly on that row.
+Median native backward is3.115153ms, compact prepared1.802317ms, complete
+metadata creation/upload2.552759ms. Shared across four tables, the estimated
+component cost is1.989927ms. The latter is an estimate, not an integrated timing;
+input-ID D2H and graph interactions remain for the next four-rank phase gate.
+
+A scratch autograd wrapper now shares metadata across ordinary WTE/VE tables,
+preserves parameter identities/checkpoint names and falls back to native backward
+when more than4096 IDs are present. CPU actual-shape checks pass changed inputs,
+native overflow and return to compact mode, repeated IDs, zero gradients,
+evaluation with a different shape and loading into an unmodified model. Native
+compiled-autograd checks and the timed full model are the next gates. The phase
+probe places D2H metadata acquisition and preparation inside every microstep.
+
+The user explicitly prioritizes sustained kernel/root-cause work over seed
+selection and sets a competitive target near0.9749. Preserve failing artifacts,
+locate the first invalid stage, distinguish eager/composed execution and test
+hypotheses. A failed implementation is not evidence that its whole approach is
+impossible. The running seed43 repeat is a single variability observation; no
+seed sweep will follow it.

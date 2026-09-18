@@ -82,6 +82,9 @@ def main():
                     help="After timing, require finite parameters/gradients and exact "
                          "future-token, cross-batch and repeated-call independence on the "
                          "updated eager evaluation model. These checks are outside timing.")
+    ap.add_argument("--compact-embedding", action="store_true",
+                    help="Scratch shared4096-row embedding backward plus gated NKI gather. "
+                         "Includes per-microstep input D2H, CPU mapping and metadata upload.")
     ap.add_argument("--check-seq-len", type=int, default=256,
                     help="Sequence length for --post-checks, at least 128 and a multiple of 128.")
     ap.add_argument("--grad-clip", type=float, default=1.0,
@@ -266,6 +269,11 @@ def main():
     model = T.GPT(config)
     model.init_weights()
     model.to(device)
+    embedding_state = None
+    if args.compact_embedding:
+        from embedding_compact_autograd import install
+        embedding_state = install(model, device)
+        print("[pt] compact ordinary embeddings; all metadata preparation inside timing", flush=True)
     if args.ngram_ve_freeze:
         for p in model.ngram_embeds.parameters():
             p.requires_grad_(False)
@@ -336,6 +344,8 @@ def main():
 
     def micro():
         nonlocal x, y, last_loss
+        if embedding_state is not None:
+            embedding_state.prepare(x)
         loss = model(x, y)
         last_loss = loss.detach()
         (loss / grad_accum).backward()
@@ -664,6 +674,9 @@ def main():
                 unresolved=eager["unresolved"],
                 compiled_aliases=len(eager["compiled_logical_key_aliases"]),
                 uuid_coverage_verified=False)), flush=True)
+    if embedding_state is not None:
+        print("EMBEDDING_METADATA_JSON " + json.dumps(dict(
+            rank=rank, **embedding_state.statistics())), flush=True)
     if args.post_checks:
         # Exercise the actual native eager model that a standalone scorer uses,
         # after real optimizer updates have made initially-zero branches nonzero.
