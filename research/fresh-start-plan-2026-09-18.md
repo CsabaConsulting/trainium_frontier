@@ -22,8 +22,9 @@ claim about the private leaderboard. The metric is lower-is-better.
    controlled experiment, not an automatic correction to a proven winner.
 5. NKI softcap/cross-entropy and RoPE/QK normalization already run by default.
    Existing NKI attention passes numerical and causality checks but is slower;
-   enabling every NKI flag is not an optimization strategy. Global autocast also
-   reaches optimizer GEMMs, which motivates narrower precision experiments.
+   enabling every NKI flag is not an optimization strategy. The baseline Muon
+   Newton–Schulz GEMMs are already BF16. Find the actual changed matrix products
+   before attributing the global compiler-autocast penalty to optimizer precision.
 6. Byte-weighting each token loss is not an exact BPB objective. For a fixed
    evaluation corpus, total bytes is a constant denominator; ordinary summed
    token NLL already minimizes the numerator. Do not reopen that flag as a
@@ -51,6 +52,14 @@ BF16 flags: `--optlevel=1 --auto-cast matmult --auto-cast-type bf16`.
 Ordinary control flags: `--optlevel=1` (in-code default).
 Use an unreachable step cap and the time limit to ensure a completed cooldown.
 
+**Follow-up audit correction:** the attention wrapper was introduced after the
+historical record and BF16 comparisons. Both first-wave runs use the newer
+disabled wrapper even with custom attention off. Their historical comparisons
+therefore change compiler graph boundaries as well as the advertised geometry or
+duration. Preserve these runs, but do not use them as a causal matched-source
+precision experiment. The next available host first tests the direct-SDPA option
+against the same current source. See the code audit and evidence-history appendix.
+
 ## Systems experiments after first-wave launch
 
 Measure the **current full model**, not the old phase-timer defaults (which remove
@@ -58,9 +67,13 @@ the large n-gram tables). Profile forward, backward, collectives, optimizer and
 table refresh separately. Optimize the largest avoidable component, and evaluate
 whole-step time including layout changes and compilation.
 
-1. **Scoped BF16:** preserve FP32 Muon/Newton–Schulz and sensitive gradient paths
-   while retaining faster model GEMMs. Compare updates at equal inputs and step
-   count before inferring a numerical explanation from final BPB.
+1. **Attention graph and scoped precision:** current `nki_attention` is always
+   Dynamo-disabled, including its ordinary SDPA fallback. Restore direct SDPA
+   behind an opt-in flag and measure graph capture, actual native kernel selection,
+   throughput and gradients. The installed backend has no per-region compiler
+   flag override; unsupported `torch.compile(options=...)` is not a solution.
+   Baseline Muon Newton–Schulz already uses BF16. Localize any other precision
+   differences at matched inputs/updates before changing arithmetic.
 2. **Native Trainium2 FP8 GEMM:** independent of failed global compiler autocast.
    Probe native NKI e4m3/e5m2 casting with explicit scaling, FP32 accumulation,
    supported double-row contraction. Start with MLP forward only; retain BF16

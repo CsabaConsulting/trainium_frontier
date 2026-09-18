@@ -1,0 +1,94 @@
+{
+  "content": "# High\u2011throughput decoder training on a single Trainium2 chip (NeuronCore\u2011v3, LNC=2, NKI0.5, torch\u2011neuronx 2.11 native path)\n\n## Executive summary\nFor the exact decoder workload described, the evidence supports a single\u2011chip strategy that (a) uses the native TorchNeuron/Torch\u2011NeuronX toolchain that targets Trainium2, (b) compiles long, stable forward/backward regions (attention+MLP+norm) into fused NKI kernels where available, and (c) compiles optimizer/scale/update steps with conservative casting to preserve FP32 numerics. Practical levers with documented effect are neuronx-cc/CLI auto\u2011cast options, per\u2011region compile boundaries (mark_step/graph delimiting), NKI fused attention/RMSNorm kernels, and environment/runtime controls for logical NeuronCores and asynchronous model load/execution. The referenced documentation and NKI samples below provide the concrete files and flags to reproduce and iterate. [2]\n\n## Required SDK / framework targets and critical compiler flags\n- Use the native TorchNeuron/TorchNeuronX training flow that AWS documents as the recommended Trainium path and that supports eager/torch.compile and standard distributed APIs; pick a Neuron SDK release that includes TorchNeuron support for Trainium2 (see SDK release notes for exact compatibility). [2], [1]  \n- Key neuronx-cc / CLI flags that affect correctness vs performance are the auto\u2011cast family and the fp32\u2011cast/fast\u2011relayout options. Valid --auto-cast-type values include bf16 and fp8_e4m3 and --auto-cast can be none, matmult, or all; the fp32\u2011cast\u2011all option casts all FP32 ops to BF16 for maximum speed while fp32\u2011cast\u2011none preserves FP32. Use these flags per compiled region to trade precision vs speed. [3], [4]  \n- Default compiler behavior (common on Trn2) is to cast matmuls to BF16 while leaving non\u2011matmul ops in FP32 and to keep accumulations in FP32 \u2014 this is a practical baseline that preserves numeric range for reductions while accelerating matmuls. Use --auto-cast=matmult/--auto-cast-type=bf16 for compute regions where BF16 matmul is acceptable; compile optimizer update regions with --auto-cast=none / fp32 preservation. [5]\n\n## Per\u2011region compilation and model layout recommendations\n- Delimit compilation regions so fused kernels cover compute\u2011heavy forward+backward for each layer block and exclude optimizer updates from those regions. Use the Torch\u2011Neuron mark_step/graph demarcation semantics to create large stable graphs for attention+MLP+norm and compile optimizer updates separately with conservative casts. This reduces host\u2192neuron round trips and preserves FP32 sensitive math in updates. [6]  \n- Replace naive attention and elementwise chains with NKI fused kernels where possible: the Neuron NKI fused self\u2011attention tutorial provides sd_attention examples and the NKI library exposes Attention CTE and Attention TKG kernels optimized for long sequences and token\u2011generation respectively; these kernels support LNC sharding and flash\u2011attention style tiling and are the primary path to improve throughput over a naive attention implementation. Use the TKG kernel for decoder generation patterns (small active seq length, large KV caches). [8], [9], [10]  \n- Fuse MLP GEMMs with prologue/postlayernorm when possible; the PyTorch \"free normalization\" design pattern documents that fusing LayerNorm/RMSNorm into GEMM/attention kernels reduces IO without sacrificing accuracy and is supported as a pattern to implement in NKI kernels. Use NKI fused RMSNorm where available. [7]\n\n## Collectives, gradient exchange and intra\u2011chip topology\n- TorchNeuron advertises support for standard distributed primitives (FSDP/DDP/DTensor); per\u2011core mapping and LNC control is exposed through environment variables (NEURON_RT_VISIBLE_CORES, NEURON_RT_NUM_CORES) and by the runtime mapping of logical NeuronCores\u2014use these to pin logical cores and to control LNC sharding inside compiled NKI kernels. For gradient fusion, the documented path is to keep large compute kernels local to the Neuron and control host dispatch frequency to batch gradient exchange; explicit intra\u2011chip gradient\u2011fusion primitives are not documented in the available material. [2], [11]\n\n## Sparse embeddings and optimizer (RMSProp) path \u2014 evidence and gaps\n- NKI and the OSS repos expose kernel sources and NKI samples for fused attention and other custom kernels, but the available documentation does not state whether sparse embedding gradients or RMSProp for large sparse BF16 embeddings are executed in native Neuron kernels or fall back to host/CPU. The NKI samples and library are the authoritative code locations to inspect/implement a native sparse path if needed. This is an evidence gap: no primary doc confirms a native Trainium sparse optimizer kernel for large embedding tables. [12]\n\n## FP8 / mixed precision guidance (Trn2)\n- Neuron compiler accepts fp8_e4m3 as an auto\u2011cast\u2011type and the NKI datatype guide documents float8_e5m2 support; general FP8 properties (E4M3 vs E5M2) and scaling constraints are described in FP8 explainer material. The combined evidence supports that Neuron provides FP8 modes (with distinct formats) but requires per\u2011tensor scaling and selective casting \u2014 unsafe operations should remain in higher precision; preserve accumulators/optimizer states in FP32 to avoid numeric instability. The specific double\u2011row nc_matmul variants and exact Trn2 vs Trn3 format differences are not fully specified in the available material (evidence gap). [4], [13], [14]\n\n## Host dispatch, async loading and profiling\n- Host\u2192neuron overhead can be reduced by (a) compiling longer running regions so fewer mark_step boundaries are crossed, and (b) using torch_neuronx.async_load / lazy_load to overlap model load/dispatch with host work. The toolchain provides profiling hooks (torch_neuronx profiler and NEURON_RT_INSPECT environment controls) to measure kernel timelines; use these to measure dispatcher latency and kernel occupancy. The documentation shows async_load reduces synchronous load cost, and NEURON_RT_INSPECT enables device traces. [15], [16], [11]\n\n## Numerical correctness traps (conservative rules)\n- Avoid global aggressive auto\u2011cast/all\u2011BF16 if optimizer updates and scaling steps must preserve FP32; use per\u2011region --auto-cast=none for optimizer/scale/update kernels and --auto-cast=matmult for compute kernels to retain accumulation FP32 while accelerating matmuls. The fp32\u2011cast and fast\u2011relayout options change transpose/data\u2011layout precision and can affect bit\u2011exactness \u2014 use no\u2011fast\u2011relayout when bit\u2011accurate transpose is required. Track CLI deprecations (fp32\u2011cast slated to be subsumed by --fast\u2011math) in release notes when pinning SDK versions. [3], [4], [5]\n\n## Quantitative bottlenecks and Amdahl\u2011style bounds (what the evidence permits)\n- DMA/transposes can become the bottleneck: Trainium2 HBM\u2192SBUF DMA transpose can reach up to ~90% throughput for DMA copies and ~50% of max DMA throughput for SBUF2SBUF transpose; this shows that workloads with heavy KV transpose/relayout can become memory/DMA bound rather than compute bound once matmuls are fused to BF16. Use fused kernels and fast\u2011relayout where safe to move the bottleneck back to matmul compute; conversely, disable fast\u2011relayout when transpose bit\u2011accuracy is required. The evidence does not provide absolute FLOPS or tokens/sec numbers, so numeric speedup bounds must be measured on\u2011hardware by profiling. [17], [5]\n\n## Prioritized actionable changes (short list)\n1. Use TorchNeuron native stack and a Neuron SDK that includes TorchNeuron support for Trn2; verify with the programming guide. Compile large compute graphs (attention+MLP+norm) with --auto-cast=matmult / --auto-cast-type=bf16 for matmul speed and accum FP32. [2], [4], [6]  \n2. Adopt NKI fused self\u2011attention and TKG kernels for decoder steps (use sd_attention_nki_kernels.py examples) to replace naive attention. Compile those regions to NEFF artifacts. [8], [9], [10]  \n3. Compile optimizer update/scale/RMSProp steps separately with --auto-cast=none (or fp32\u2011cast none) and no\u2011fast\u2011relayout to preserve FP32 math for sensitive accumulators. [3], [5]  \n4. Use NEURON_RT_VISIBLE_CORES / NEURON_RT_NUM_CORES to pin logical cores and reduce host scheduling variance; use async_load to hide model load latency. Profile with torch_neuronx profiler and NEURON_RT_INSPECT. [11], [15], [16]\n\n## Testing plan and evidence gaps\n- Required verification steps: (a) microbench fused attention vs naive attention using NKI sd_attention examples, (b) per\u2011region compilation experiments toggling --auto-cast and fast\u2011relayout to validate optimizer numeric equivalence, (c) profiling host\u2192neuron dispatch latency with NEURON_RT_INSPECT and torch_neuronx profiler. The documentation provides the profiling APIs and sample kernels but does not specify sample sizes, warm\u2011up iterations, or wall\u2011clock cost estimates \u2014 these are evidence gaps and must be determined empirically on the target instance. [8], [16], [11], [12]\n\n## Evidence gaps (noted)\n- No primary doc confirms whether large sparse embedding gradients + RMSProp for BF16 embeddings are executed natively on Trainium2 or whether they fall back to host; kernel availability must be checked in the aws-neuron/nki-library and nki-samples code. [12]  \n- Absolute performance numbers (tokens/sec, FLOPS, memory bandwidth figures for Trn2), detailed Trn2 vs Trn3 float8 hardware differences, and standard test harness sizes/warmup iteration guidance are not present in the provided evidence and must be measured on hardware. [13], [17]\n\n## Works Cited\n[1] https://aws.amazon.com/about-aws/whats-new/2025/09/aws-neuron-2-26-announce  \n[2] https://awsdocs-neuron.readthedocs-hosted.com/en/latest/frameworks/torch/index.html  \n[3] https://awsdocs-neuron.readthedocs-hosted.com/en/latest/compiler/neuron-cc/command-line-reference.html  \n[4] https://awsdocs-neuron.readthedocs-hosted.com/en/v2.27.0/compiler/neuronx-cc/api-reference-guide/neuron-compiler-cli-reference-guide.html  \n[5] https://pierredemalliard.com/neuron-performance-book/part4/ch12-casting-neuron.html  \n[6] https://awsdocs-neuron.readthedocs-hosted.com/en/v2.30.0/frameworks/torch/torch-neuronx/programming-guide/training/pytorch-neuron-programming-guide.html  \n[7] https://pytorch.org/blog/towards-free-normalization-fusing-normalization-into-gemm-and-attention-kernels  \n[8] https://awsdocs-neuron.readthedocs-hosted.com/en/v2.26.1/nki/tutorials/fused-self-attn.html  \n[9] https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/library/api/attention-cte.html  \n[10] https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/library/api/attention-tkg.html  \n[11] https://awsdocs-neuron.readthedocs-hosted.com/en/latest/tools/neuron-explorer/environment-variables.html  \n[12] https://awsdocs-neuron.readthedocs-hosted.com/en/latest/about-neuron/oss/index.html  \n[13] https://awsdocs-neuron.readthedocs-hosted.com/en/latest/release-notes/documentation/neuron-documentation.html  \n[14] https://medium.com/@noelakkidas/understanding-fp8-and-mixed-precision-training-0a76c7f2c3ac  \n[15] https://awsdocs-neuron.readthedocs-hosted.com/en/latest/frameworks/torch/torch-neuronx/api-reference-guide/inference/api-torch-neuronx-async-lazy-load.html  \n[16] https://awsdocs-neuron.readthedocs-hosted.com/en/v2.25.0/tools/tutorials/torch-neuronx-profiling-with-tb.html  \n[17] https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/guides/architecture/trainium2_arch.html",
+  "sources": [
+    {
+      "url": "https://aws.amazon.com/about-aws/whats-new/2025/09/aws-neuron-2-26-announce",
+      "title": "Announcing AWS Neuron SDK 2.26.0 - AWS",
+      "favicon": "https://a0.awsstatic.com/libra-css/images/site/touch-icon-ipad-144-smile.png"
+    },
+    {
+      "url": "https://awsdocs-neuron.readthedocs-hosted.com/en/latest/frameworks/torch/index.html",
+      "title": "PyTorch Support on Neuron \u2014 AWS Neuron Documentation",
+      "favicon": "https://awsdocs-neuron.readthedocs-hosted.com/favicon.ico"
+    },
+    {
+      "url": "https://awsdocs-neuron.readthedocs-hosted.com/en/latest/compiler/neuron-cc/command-line-reference.html",
+      "title": "Neuron compiler CLI Reference Guide (neuron-cc) \u2014 AWS Neuron Documentation",
+      "favicon": "https://awsdocs-neuron.readthedocs-hosted.com/favicon.ico"
+    },
+    {
+      "url": "https://awsdocs-neuron.readthedocs-hosted.com/en/v2.27.0/compiler/neuronx-cc/api-reference-guide/neuron-compiler-cli-reference-guide.html",
+      "title": "Neuron Compiler CLI Reference Guide (neuronx-cc) \u2014 AWS Neuron Documentation",
+      "favicon": "https://awsdocs-neuron.readthedocs-hosted.com/favicon.ico"
+    },
+    {
+      "url": "https://pierredemalliard.com/neuron-performance-book/part4/ch12-casting-neuron.html",
+      "title": "Casting on Neuron \u2014 From Data Scientist to Performance Engineer",
+      "favicon": null
+    },
+    {
+      "url": "https://awsdocs-neuron.readthedocs-hosted.com/en/latest/tools/neuron-explorer/environment-variables.html",
+      "title": "Neuron Explorer Environment Variables \u2014 AWS Neuron Documentation",
+      "favicon": "https://awsdocs-neuron.readthedocs-hosted.com/favicon.ico"
+    },
+    {
+      "url": "https://awsdocs-neuron.readthedocs-hosted.com/en/v2.30.0/frameworks/torch/torch-neuronx/programming-guide/training/pytorch-neuron-programming-guide.html",
+      "title": "Developer Guide for Training with PyTorch NeuronX \u2014 AWS Neuron Documentation",
+      "favicon": "https://awsdocs-neuron.readthedocs-hosted.com/favicon.ico"
+    },
+    {
+      "url": "https://pytorch.org/blog/towards-free-normalization-fusing-normalization-into-gemm-and-attention-kernels",
+      "title": "Towards Free Normalization: Fusing Normalization into GEMM and Attention Kernels \u2013 PyTorch",
+      "favicon": "https://pytorch.org/wp-content/uploads/2024/10/cropped-favicon-180x180.webp"
+    },
+    {
+      "url": "https://medium.com/@noelakkidas/understanding-fp8-and-mixed-precision-training-0a76c7f2c3ac",
+      "title": "Understanding FP8 and Mixed Precision Training",
+      "favicon": "https://miro.medium.com/v2/resize:fill:152:152/10fd5c419ac61637245384e7099e131627900034828f4f386bdaa47a74eae156"
+    },
+    {
+      "url": "https://awsdocs-neuron.readthedocs-hosted.com/en/v2.25.0/tools/tutorials/torch-neuronx-profiling-with-tb.html",
+      "title": "Profiling PyTorch Neuron (torch-neuronx) with TensorBoard \u2014 AWS Neuron Documentation",
+      "favicon": "https://awsdocs-neuron.readthedocs-hosted.com/favicon.ico"
+    },
+    {
+      "url": "https://awsdocs-neuron.readthedocs-hosted.com/en/latest/frameworks/torch/torch-neuronx/api-reference-guide/inference/api-torch-neuronx-async-lazy-load.html",
+      "title": "PyTorch NeuronX Lazy and Asynchronous Loading API \u2014 AWS Neuron Documentation",
+      "favicon": "https://awsdocs-neuron.readthedocs-hosted.com/favicon.ico"
+    },
+    {
+      "url": "https://awsdocs-neuron.readthedocs-hosted.com/en/latest/release-notes/documentation/neuron-documentation.html",
+      "title": "Neuron Documentation Release Notes",
+      "favicon": "https://awsdocs-neuron.readthedocs-hosted.com/favicon.ico"
+    },
+    {
+      "url": "https://awsdocs-neuron.readthedocs-hosted.com/en/v2.26.1/nki/tutorials/fused-self-attn.html",
+      "title": "Fused Self Attention \u2014 AWS Neuron Documentation",
+      "favicon": "https://awsdocs-neuron.readthedocs-hosted.com/favicon.ico"
+    },
+    {
+      "url": "https://awsdocs-neuron.readthedocs-hosted.com/en/latest/about-neuron/oss/index.html",
+      "title": "Neuron Open Source Repositories and Contribution \u2014 AWS Neuron Documentation",
+      "favicon": "https://awsdocs-neuron.readthedocs-hosted.com/favicon.ico"
+    },
+    {
+      "url": "https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/library/api/attention-cte.html",
+      "title": "Attention CTE Kernel API Reference",
+      "favicon": "https://awsdocs-neuron.readthedocs-hosted.com/favicon.ico"
+    },
+    {
+      "url": "https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/library/api/attention-tkg.html",
+      "title": "Attention TKG Kernel API Reference \u2014 AWS Neuron Documentation",
+      "favicon": "https://awsdocs-neuron.readthedocs-hosted.com/favicon.ico"
+    },
+    {
+      "url": "https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/guides/architecture/trainium2_arch.html",
+      "title": "Trainium2 Architecture Guide for NKI \u2014 AWS Neuron Documentation",
+      "favicon": "https://awsdocs-neuron.readthedocs-hosted.com/favicon.ico"
+    }
+  ],
+  "status": "completed",
+  "created_at": "2026-09-18T07:47:15.556588+00:00",
+  "response_time": 392.72,
+  "request_id": "173114cb-1b13-4960-9883-50770d640f72"
+}

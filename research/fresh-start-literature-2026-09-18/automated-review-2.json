@@ -1,0 +1,244 @@
+{
+  "content": "# Optimizer and low\u2011precision state as a quality bottleneck \u2014 short\u2011training, Muon + BF16/FP8 setting\n\nSummary (one paragraph)\nFor the target short\u2011run setting (~2.1k updates, 4 data\u2011parallel ranks, ~300M tokens) the primary evidence shows Newton\u2013Schulz (NS) polar/orthogonalization can be run in BF16 and be computationally attractive, but its numerical safety depends strongly on matrix conditioning, accumulation precision, and input scaling; mixed results in the literature mean concrete numeric thresholds and mitigation prescriptions are available and testable from the cited sources below. RMSProp/hashed table updates, clipping placement, and low\u2011precision accumulators are identified as common failure points (loss/grad spikes, broken orthogonality, parameter\u2011SGD drift) with specific measurable signatures and straightforward mitigation costs (FP32 master copies, FP32 accumulation for critical ops, moving some NS math to FP32, or adding preconditioning). [1], [3], [14], [18], [36], [39].\n\n## 1. When BF16 Newton\u2011Schulz is acceptable vs dangerous\n- What the evidence shows: NS in BF16 can match SVD accuracy and run substantially faster (2\u20133\u00d7 speed and ~half the memory versus FP32 SVD) in Muon\u2011style use when matrices are well\u2011conditioned and when a modest step count (Muon defaults \u22485 steps) is used; several Muon/Turbo\u2011Muon papers and implementers report stable bf16 NS in practice [3], [12], [16]. Empirical matrix experiments show tiny relative orthogonality errors (\u22485\u00d710\u207b\u2076) for small condition numbers (\u03ba\u2082\u22481\u2013100) but catastrophic orthogonality failure (err_ort \u22487.6) when \u03ba\u2082\u224810\u2074 with the CUDA POLAR method [1]. BF16 NS relative error vs FP32 ground truth can be O(10\u207b\u00b2) for 5\u2011step bf16 NS; switching to FP32 accumulation for matmuls reduces that error by \u22484\u00d7 in a KBench implementation [18]. Algorithmic mitigations such as restart strategies and preconditioning (AOL normalization) reduce BF16 instability on small singular values and allow fewer iterations [9], [11].\n- Concrete thresholds and failure signatures (testable): monitor relative orthogonality error err_ort = max{\u2016U\u1d40U\u2212I\u2016_F/\u2016I\u2016_F, \u2026}; values above ~1e\u20113\u20131e\u20112 are indicative of degraded orthogonality (empirical bf16 5\u2011step errors reported 6.6e\u20113 with fp32 matmul accumulation and 2.79e\u20112 for pure bf16 ref) and values >>1 signal catastrophic breakdown [1], [18]. NS failures correlate with matrix condition numbers: expect safe behavior for \u03ba\u2082 \u2272 10\u00b2 and growing risk as \u03ba\u2082 \u2192 10\u2074 (reported catastrophic case) [1]. Also watch for growth in the NS residual across iterations (noncontractive behavior) and for downstream training signatures (loss/grad spikes, garbage outputs) reported in mixed\u2011precision runs [13], [14], [19].\n- Operational rule (synthesized from evidence): run NS in BF16 only when (a) input Gram matrices show \u03ba\u2082 well below 1e3, or (b) BF16 matmul accumulation is elevated to FP32 (reduction in relative NS error), or (c) preconditioning/normalization (AOL) is applied to control spectral scale; otherwise run critical NS steps in FP32 or add restarts [1], [9], [11], [18].\n\n## 2. Quantitative effects of precision / implementation choices (synthesis + testable hypotheses)\n- FP32 vs BF16 accumulation and FP32 master weights: canonical mixed\u2011precision practice keeps an FP32 master weight and FP32 optimizer accumulators to avoid vanishing small updates and accumulator error; this reduces numerical error versus pure BF16 update paths and is a low\u2011ambiguity mitigation supported by classic mixed\u2011precision guidance [21], [29]. Testable hypothesis: introducing FP32 master/accumulators reduces matched\u2011parameter drift (L2 difference vs FP32 reference) and reduces NS relative error (expect direction: lower errors) [18], [21].\n- Scalar casting rules: BF16 preserves dynamic range but has fewer mantissa bits; when scalars used in denominators/epsilons are BF16, small denominators may be noisier \u2014 monitor scalar\u2011level stability and consider keeping optimizer scalars (eps, decay) in FP32 [33], [45].\n- Stochastic rounding vs nearest: hardware/platform papers show stochastic rounding for FP8/BF16 quantization can reduce quantization bias and sometimes improve robustness; evidence shows stochastic rounding was used successfully for low\u2011precision embedding updates and in FP8 quantization flows, though effects vary by hardware (Gaudi hardware supports stochastic rounding) [22], [39], [23]. Hypothesis: enabling stochastic rounding for table casts reduces rare\u2011row underflow/quantization bias, improving final loss (direction: improvement or neutral).\n- Epsilon placement in RMSProp: implementations differ (TensorFlow: epsilon inside sqrt; PyTorch: outside); adjusting epsilon in 16\u2011bit contexts materially affects stability and should be validated \u2014 hypothesis: placing epsilon inside sqrt or increasing epsilon magnitude reduces zero\u2011division/overflow risk in BF16 RMSProp on sparse tables [24], [25], [44].\n- Rare\u2011row moment decay / bias correction for hashed sparse tables: low\u2011precision states for rare rows accumulate rounding error; Facebook\u2019s embedding work ran SGD updates in single precision then cast back with stochastic rounding with preserved convergence [39]. Hypothesis: using FP32 moments for rare rows prevents biased moment collapse and improves tail token accuracy (direction: reduce moment histogram skew).\n- Clipping placement: gradient clipping should be performed after all\u2011reduce (after averaging); clipping before all\u2011reduce can produce divergent norms across ranks and degrade convergence [36]. Test: per\u2011rank clipping before averaging increases inter\u2011rank norm variance and may worsen loss trajectory versus clipping after averaging (direction: worse).\n- Constant\u2011LR table updates: low\u2011precision constant LR updates have been used successfully when updates were computed in FP32 then stochastic\u2011rounded to BF16 for storage; pure BF16 updates are reported riskier for rare/sparse tables [39]. Hypothesis: constant LR updates in BF16 without FP32 accumulation increase chance of underflow/quantization bias on rare rows (direction: worse).\n\n## 3. Tail averaging / EMA tradeoffs and evidence gaps\n- Evidence gap: primary sources do not provide direct, quantitative comparisons between applying EMA only to sparse tables versus whole\u2011model EMA in the Muon + BF16 setting; no primary evidence for numeric tradeoffs when parts of model remain in lower precision. (This is an evidence gap.)\n\n## 4. Masked/lazy sparse optimizer exactness and diagnostics\n- What is supported: low\u2011precision embedding/table systems have succeeded by performing SGD updates in single precision and stochastic rounding to low\u2011precision storage, preserving convergence in tested workloads [39]. Sparse/masked lazy updates risk moment and parameter drift if per\u2011row moments remain low\u2011precision and rarely accessed; measuring per\u2011row moment histograms and per\u2011row update frequency is recommended as diagnostics [39], [30].\n- Diagnostic recommendations (testable): log per\u2011row update counts, per\u2011row moment histograms (FP32 view), matched\u2011token diffs (per\u2011token loss or logits difference versus FP32 reference) where feasible; look for heavy tails, zeroed moments, or persistent bias. Evidence does not supply a matched\u2011token diff recipe \u2014 that is an evidence gap.\n\n## 5. FP8 scoping in practice\n- Evidence of successful FP8 use is concentrated on forward GEMMs with dynamic/scaled FP8 and (optionally) stochastic rounding (Gaudi/FP8 work, HuggingFace FP8 reports), with small relative errors versus BF16 when properly scaled; these sources document forward GEMM use but do not demonstrate safe FP8 use for backward or optimizer/state math [22], [47], [23]. Recommendation supported by evidence: restrict FP8 to selected forward GEMMs with per\u2011tensor/row scaling and prefer FP32/BF16 for backward and optimizer/state computations; this conservative scoping matches available positive evidence and avoids unsupported claims about optimizer FP8 safety.\n\n## Implementation cost, monitoring metrics, and experiment matrix\n- Implementation cost: keeping FP32 master copies and optimizer accumulators is standard and increases memory; mixed\u2011precision strategies and FP32 masters are long\u2011standing mitigations in the literature [21], [29]. Running NS in FP32 increases wall\u2011clock per\u2011step cost versus BF16 NS (reports show BF16 NS is several\u00d7 faster than FP32 SVD; adaptive strategies trade occasional FP32 observation steps for speed) [3], [16], [12].\n- Key monitoring metrics and thresholds to log every step (testable): relative orthogonality error err_ort (alert if >1e\u20113; critical if >1e\u20111), NS residual per iteration (noncontractive behavior), matched\u2011parameter L2 drift vs a FP32 reference snapshot (use periodic rollback tests), gradient norm and per\u2011rank norm variance (clipping placement test), per\u2011row moment histograms and rare\u2011row zeroing, and loss/validation jumps (watch for spikes reported in bf16 runs) [1], [18], [19], [13], [14], [36].\n- Small orthogonal experiment matrix (minimal reproducible configs): vary (A) NS steps q\u2208{0,1,3,5}; (B) matmul accumulation \u2208{BF16, BF16 with FP32 accumulation}; (C) optimizer state precision \u2208{BF16 moments, FP32 moments}; (D) clipping placement \u2208{per\u2011rank before all\u2011reduce, after all\u2011reduce}; (E) RMSProp epsilon placement \u2208{inside sqrt, outside sqrt}. Run the matrix on the target short schedule (~2100 updates, 4 ranks) with identical data/shuffle; measure the monitoring metrics above and compare loss/validation trajectories, err_ort, and per\u2011row moment histograms. (Evidence does not prescribe seeds/sample counts for significance \u2014 that is an evidence gap.)\n\n## Evidence gaps\n- No primary quantitative comparisons of EMA applied only to sparse tables vs whole\u2011model EMA in this mixed\u2011precision Muon setting.\n- No primary-source matched\u2011token diagnostic recipes or seed/sample size guidance for the short (~2.1k update) regime.\n\n## References\n[1] https://iclr-blogposts.github.io/2026/blog/2026/polar-svd  \n[2] https://arxiv.org/html/2506.10935v1  \n[3] https://josedavidbaena.com/blog/nanochat/muon-optimizer-explained  \n[4] https://docs.modula.systems/algorithms/newton-schulz  \n[5] https://arxiv.org/html/2601.19156v1  \n[6] https://github.com/marin-community/marin/issues/6505  \n[7] https://emergentmind.com/topics/newton-schulz-iteration  \n[8] https://arxiv.org/html/2609.14845v1  \n[9] https://arxiv.org/html/2505.16932v2  \n[10] https://github.com/abaybektursun/parameter-golf-kernels  \n[11] https://huggingface.co/tboissin/newton_schulz_triton  \n[12] https://arxiv.org/html/2606.27216v1  \n[13] https://github.com/NVlabs/Sana/issues/47  \n[14] https://arxiv.org/html/2510.04212v1  \n[15] https://github.com/JiwenJ/Awesome-Optimizers/blob/main/README.md  \n[16] https://arxiv.org/html/2605.17806v1  \n[17] https://ayushgarg.ca/notes/Newton-Schulz-Iteration  \n[18] https://huggingface.co/datasets/ZMC2019/KBench/blob/ef0b4aee9a5ce31685ab68890431a938dd2ce774/tasks/training-optimizer-rl/muon-newton-schulz/instruction.md  \n[19] https://github.com/Mu-L/DeepSpeed/pull/483  \n[20] https://github.com/deepspeedai/DeepSpeed/pull/8384  \n[21] https://ar5iv.labs.arxiv.org/html/1710.03740  \n[22] https://arxiv.org/html/2502.01070v1  \n[23] https://arxiv.org/html/2412.04787v3  \n[24] https://github.com/pytorch/pytorch/issues/23796  \n[25] https://community.deeplearning.ai/t/c2w2-rmsprop-has-the-epsilon-term-within-the-square-root-while-adam-optimization-has-it-outside-why-this-difference/313152  \n[26] https://arxiv.org/html/2511.20626v1  \n[27] https://arxiv.org/html/2608.02502v1  \n[28] https://kellerjordan.github.io/posts/muon  \n[29] https://discuss.pytorch.org/t/bfloat16-training/222382  \n[30] https://arxiv.org/html/2602.03839v2  \n[31] https://apxml.com/courses/advanced-diffusion-architectures/chapter-4-advanced-diffusion-training/mixed-precision-training  \n[32] https://kunwar.page/chapter/013-mixed-precision-training-fp16-bf16-fp8-loss-scaling  \n[33] https://bitfern.com/blog/bf16-vs-fp16  \n[34] https://dev.to/elise_moreau/the-bf16-grad-accumulator-that-killed-our-sdxl-lora-training-nc8  \n[35] https://optimization.cbe.cornell.edu/index.php?title=RMSProp  \n[36] https://mbrenndoerfer.com/writing/data-parallelism-ddp-gradient-synchronization-all-reduce  \n[37] https://arxiv.org/html/2309.12381v1  \n[38] https://zeroentropy.dev/concepts/mixed-precision-training  \n[39] https://research.facebook.com/publications/training-with-low-precision-embedding-tables  \n[40] https://huggingface.co/papers?q=Muon+optimizer  \n[41] https://github.com/vukrosic/muon-optimizer-research  \n[42] https://arxiv.org/html/2605.26929v1  \n[43] https://docs.nvidia.com/deeplearning/tensorrt/latest/inference-library/accuracy-considerations.html  \n[44] https://arxiv.org/pdf/2307.16189  \n[45] https://scalarlm.com/blog/scalarlm-benchmarking-mi300x-bf16-gemm  \n[46] https://arxiv.org/html/2510.26788v1  \n[47] https://huggingface.co/blog/im0qianqian/ling-mini-2-fp8-mixed-precision-training-solution",
+  "sources": [
+    {
+      "url": "https://iclr-blogposts.github.io/2026/blog/2026/polar-svd",
+      "title": "Faster SVD via Accelerated Newton-Schulz Iteration",
+      "favicon": "https://iclr-blogposts.github.io/2026/assets/img/iclr_favicon.ico?0a8a3afdb0dbe139723b24dba3052a4f"
+    },
+    {
+      "url": "https://arxiv.org/html/2506.10935v1",
+      "title": "Accelerating Newton-Schulz Iteration for Orthogonalization via Chebyshev-type Polynomials",
+      "favicon": "https://arxiv.org/static/browse/0.3.4/images/icons/favicon-32x32.png"
+    },
+    {
+      "url": "https://josedavidbaena.com/blog/nanochat/muon-optimizer-explained",
+      "title": "The Muon Optimizer Explained: Why Orthogonal Gradients Work",
+      "favicon": "https://josedavidbaena.com/static/favicons/favicon.png"
+    },
+    {
+      "url": "https://docs.modula.systems/algorithms/newton-schulz",
+      "title": "Newton-Schulz - docs.modula.systems",
+      "favicon": "https://docs.modula.systems/_static/favicon.ico"
+    },
+    {
+      "url": "https://arxiv.org/html/2601.19156v1",
+      "title": "Convergence of Muon with Newton\u2013Schulz",
+      "favicon": "https://arxiv.org/static/browse/0.3.4/images/icons/favicon-32x32.png"
+    },
+    {
+      "url": "https://github.com/marin-community/marin/issues/6505",
+      "title": "Agent MoE Experiment: bf16 Newton-Schulz (modded-nanogpt ...",
+      "favicon": "https://github.githubassets.com/favicons/favicon.svg"
+    },
+    {
+      "url": "https://www.emergentmind.com/topics/newton-schulz-iteration",
+      "title": "Newton\u2013Schulz Iteration in Matrix Computations",
+      "favicon": "https://assets.emergentmind.com/assets/logo/apple-touch-icon-0ef99efd1c30df096babcedaba91e194f5e1f64e010d9866253ec734c731ce23.png"
+    },
+    {
+      "url": "https://arxiv.org/html/2609.14845v1",
+      "title": "Accurate Models of AMD Matrix Cores",
+      "favicon": "https://arxiv.org/static/browse/0.3.4/images/icons/favicon-32x32.png"
+    },
+    {
+      "url": "https://arxiv.org/html/2505.16932v2",
+      "title": "The Polar Express: Optimal Matrix Sign Methods and Their ...",
+      "favicon": "https://arxiv.org/static/browse/0.3.4/images/icons/favicon-32x32.png"
+    },
+    {
+      "url": "https://huggingface.co/tboissin/newton_schulz_triton",
+      "title": "tboissin/newton_schulz_triton \u00b7 Hugging Face",
+      "favicon": "https://huggingface.co/favicon.ico"
+    },
+    {
+      "url": "https://arxiv.org/html/2606.27216v1",
+      "title": "Tiled Newton\u2013Schulz Updates for Efficient Muon Optimization - arXiv",
+      "favicon": "https://arxiv.org/static/browse/0.3.4/images/icons/favicon-32x32.png"
+    },
+    {
+      "url": "https://github.com/NVlabs/Sana/issues/47",
+      "title": "bf16 training \u00b7 Issue #47 \u00b7 NVlabs/Sana",
+      "favicon": "https://github.githubassets.com/favicons/favicon.svg"
+    },
+    {
+      "url": "https://arxiv.org/html/2510.04212v1",
+      "title": "Why Low-Precision Transformer Training Fails: An Analysis on Flash ...",
+      "favicon": "https://arxiv.org/static/browse/0.3.4/images/icons/favicon-32x32.png"
+    },
+    {
+      "url": "https://github.com/JiwenJ/Awesome-Optimizers/blob/main/README.md",
+      "title": "Awesome-Optimizers/README.md at main",
+      "favicon": "https://github.githubassets.com/favicons/favicon.svg"
+    },
+    {
+      "url": "https://arxiv.org/html/2605.17806v1",
+      "title": "AMO: Adaptive Muon Orthogonalization",
+      "favicon": "https://arxiv.org/static/browse/0.3.4/images/icons/favicon-32x32.png"
+    },
+    {
+      "url": "https://github.com/abaybektursun/parameter-golf-kernels",
+      "title": "GitHub - abaybektursun/parameter-golf-kernels: Custom H100-tuned kernel library for Parameter Golf: Triton + CUTLASS kernels for 11L/512d transformer training in 10 minutes \u00b7 GitHub",
+      "favicon": "https://github.githubassets.com/favicons/favicon.svg"
+    },
+    {
+      "url": "https://github.com/Mu-L/DeepSpeed/pull/483",
+      "title": "[pull] master from deepspeedai:master by pull[bot] \u00b7 Pull Request #483 \u00b7 Mu-L/DeepSpeed",
+      "favicon": "https://github.githubassets.com/favicons/favicon.svg"
+    },
+    {
+      "url": "https://github.com/deepspeedai/DeepSpeed/pull/8384",
+      "title": "[muon] Per-head Newton-Schulz for attention projections by alanhuangyoo \u00b7 Pull Request #8384 \u00b7 deepspeedai/DeepSpeed",
+      "favicon": "https://github.githubassets.com/favicons/favicon.svg"
+    },
+    {
+      "url": "https://ayushgarg.ca/notes/Newton-Schulz-Iteration",
+      "title": "Newton-Schulz Iteration - Ayush Garg",
+      "favicon": "https://ayushgarg.ca/static/icon.png"
+    },
+    {
+      "url": "https://huggingface.co/datasets/ZMC2019/KBench/blob/ef0b4aee9a5ce31685ab68890431a938dd2ce774/tasks/training-optimizer-rl/muon-newton-schulz/instruction.md",
+      "title": "tasks/training-optimizer-rl/muon-newton-schulz/instruction.md \u00b7 ZMC2019/KBench at ef0b4aee9a5ce31685ab68890431a938dd2ce774",
+      "favicon": "https://huggingface.co/favicon.ico"
+    },
+    {
+      "url": "https://ar5iv.labs.arxiv.org/html/1710.03740",
+      "title": "[1710.03740] Mixed Precision Training",
+      "favicon": "https://ar5iv.labs.arxiv.org/favicon.ico"
+    },
+    {
+      "url": "https://arxiv.org/html/2502.01070v1",
+      "title": "An Investigation of FP8 Across Accelerators for LLM Inference",
+      "favicon": "https://arxiv.org/static/browse/0.3.4/images/icons/favicon-32x32.png"
+    },
+    {
+      "url": "https://arxiv.org/html/2412.04787v3",
+      "title": "Direct Quantized Training of Language Models with Stochastic Rounding",
+      "favicon": "https://arxiv.org/static/browse/0.3.4/images/icons/favicon-32x32.png"
+    },
+    {
+      "url": "https://github.com/pytorch/pytorch/issues/23796",
+      "title": "Difference in the implementation of rmsprop with Tensorflow",
+      "favicon": "https://github.githubassets.com/favicons/favicon.svg"
+    },
+    {
+      "url": "https://community.deeplearning.ai/t/c2w2-rmsprop-has-the-epsilon-term-within-the-square-root-while-adam-optimization-has-it-outside-why-this-difference/313152",
+      "title": "C2W2: RMSprop has the epsilon term within the square root, while Adam optimization has it outside, why this difference? - Improving Deep Neural Networks: Hyperparameter tun - DeepLearning.AI",
+      "favicon": "https://global.discourse-cdn.com/dlai/optimized/1X/7ffdac4759e95c8945939943bd85b8aca342d961_2_180x180.png"
+    },
+    {
+      "url": "https://arxiv.org/html/2511.20626v1",
+      "title": "ROOT: Robust Orthogonalized Optimizer for Neural ...",
+      "favicon": "https://arxiv.org/static/browse/0.3.4/images/icons/favicon-32x32.png"
+    },
+    {
+      "url": "https://arxiv.org/html/2608.02502v1",
+      "title": "CMuon: Accelerating and Stabilizing Diffusion Transformer Training via Chunked Momentum Orthogonalization",
+      "favicon": "https://arxiv.org/static/browse/0.3.4/images/icons/favicon-32x32.png"
+    },
+    {
+      "url": "https://kellerjordan.github.io/posts/muon",
+      "title": "Muon: An optimizer for hidden layers in neural networks",
+      "favicon": null
+    },
+    {
+      "url": "https://discuss.pytorch.org/t/bfloat16-training/222382",
+      "title": "Bfloat16 training - mixed-precision",
+      "favicon": "https://discuss.pytorch.org/uploads/default/optimized/2X/b/bb2eeaba4e9f7e4a5944a0d83f52c4f2bf1b6a85_2_32x32.png"
+    },
+    {
+      "url": "https://arxiv.org/html/2602.03839v2",
+      "title": "Understanding and Exploiting Weight Update Sparsity for ...",
+      "favicon": "https://arxiv.org/static/browse/0.3.4/images/icons/favicon-32x32.png"
+    },
+    {
+      "url": "https://apxml.com/courses/advanced-diffusion-architectures/chapter-4-advanced-diffusion-training/mixed-precision-training",
+      "title": "Mixed-Precision Training for Diffusion Models",
+      "favicon": "https://apxml.com/favicon.ico"
+    },
+    {
+      "url": "https://www.kunwar.page/chapter/013-mixed-precision-training-fp16-bf16-fp8-loss-scaling",
+      "title": "Chapter 13: Mixed precision training: fp16, bf16, fp8, loss scaling \u2014 The Holy Grail",
+      "favicon": "https://www.kunwar.page/favicon.svg"
+    },
+    {
+      "url": "https://bitfern.com/blog/bf16-vs-fp16",
+      "title": "BF16 vs FP16: Key Differences, Precision, and Best Use Cases",
+      "favicon": "https://bitfern.com/favicon.ico"
+    },
+    {
+      "url": "https://dev.to/elise_moreau/the-bf16-grad-accumulator-that-killed-our-sdxl-lora-training-nc8",
+      "title": "The bf16 grad accumulator that killed our SDXL LoRA ...",
+      "favicon": "https://media2.dev.to/dynamic/image/width=128,height=,fit=scale-down,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F8j7kvp660rqzt99zui8e.png"
+    },
+    {
+      "url": "https://optimization.cbe.cornell.edu/index.php?title=RMSProp",
+      "title": "RMSProp - Cornell University Computational Optimization Open Textbook - Optimization Wiki",
+      "favicon": null
+    },
+    {
+      "url": "https://mbrenndoerfer.com/writing/data-parallelism-ddp-gradient-synchronization-all-reduce",
+      "title": "Data Parallelism: DDP, Gradient Synchronization & All- ...",
+      "favicon": "https://mbrenndoerfer.com/apple-icon.png"
+    },
+    {
+      "url": "https://arxiv.org/html/2309.12381v1",
+      "title": "Memory Efficient Mixed Precision Optimizers",
+      "favicon": "https://arxiv.org/static/browse/0.3.4/images/icons/favicon-32x32.png"
+    },
+    {
+      "url": "https://zeroentropy.dev/concepts/mixed-precision-training",
+      "title": "Mixed-precision training: bf16 activations, fp32 masters",
+      "favicon": "https://zeroentropy.dev/assets/images/favicon.svg"
+    },
+    {
+      "url": "https://research.facebook.com/publications/training-with-low-precision-embedding-tables",
+      "title": "Training with Low-precision Embedding Tables - Meta Research",
+      "favicon": "https://static.xx.fbcdn.net/rsrc.php/yB/r/2sFJRNmJ5OP.ico"
+    },
+    {
+      "url": "https://huggingface.co/papers?q=Muon+optimizer",
+      "title": "Daily Papers",
+      "favicon": "https://huggingface.co/favicon.ico"
+    },
+    {
+      "url": "https://github.com/vukrosic/muon-optimizer-research",
+      "title": "vukrosic/muon-optimizer-research",
+      "favicon": "https://github.githubassets.com/favicons/favicon.svg"
+    },
+    {
+      "url": "https://arxiv.org/html/2605.26929v1",
+      "title": "When Muon Optimizer Meets Adversarial Training:A Theoretical and Empirical Study",
+      "favicon": "https://arxiv.org/static/browse/0.3.4/images/icons/favicon-32x32.png"
+    },
+    {
+      "url": "https://docs.nvidia.com/deeplearning/tensorrt/latest/inference-library/accuracy-considerations.html",
+      "title": "Accuracy Considerations \u2014 NVIDIA TensorRT",
+      "favicon": "https://docs.nvidia.com/apple-touch-icon.png"
+    },
+    {
+      "url": "https://arxiv.org/pdf/2307.16189",
+      "title": "Stabilizing Backpropagation in 16-bit Neural Training with ...",
+      "favicon": "https://arxiv.org/static/browse/0.3.4/images/icons/favicon-32x32.png"
+    },
+    {
+      "url": "https://www.scalarlm.com/blog/scalarlm-benchmarking-mi300x-bf16-gemm",
+      "title": "ScalarLM Benchmarking BF16 GEMM on MI300X",
+      "favicon": "https://www.scalarlm.com/favicon.ico"
+    },
+    {
+      "url": "https://arxiv.org/html/2510.26788v1",
+      "title": "Defeating the Training-Inference Mismatch via FP16 - arXiv",
+      "favicon": "https://arxiv.org/static/browse/0.3.4/images/icons/favicon-32x32.png"
+    },
+    {
+      "url": "https://huggingface.co/blog/im0qianqian/ling-mini-2-fp8-mixed-precision-training-solution",
+      "title": "Native FP8 Mixed Precision Training for Ling 2.0, Open Sourced\uff01",
+      "favicon": "https://huggingface.co/favicon.ico"
+    }
+  ],
+  "status": "completed",
+  "created_at": "2026-09-18T07:47:16.154381+00:00",
+  "response_time": 258.93,
+  "request_id": "75c45536-1948-4e3f-92b8-aed9ec0ff0ec"
+}

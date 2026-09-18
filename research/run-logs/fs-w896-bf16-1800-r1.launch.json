@@ -1,0 +1,20 @@
+{
+  "label": "fs-w896-bf16-1800-r1",
+  "started_at": "2026-09-18T07:45:44+00:00",
+  "hostname": "ip-172-31-34-85",
+  "git_commit": "ca635670f67b067201fb9b6167eccf414b70bacd",
+  "git_dirty": false,
+  "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 1000000 --max-train-seconds 1800 --out-dir out/fs-w896-bf16-1800-r1 --depth 6 --n-embd 896 --seed 42 --compile-muon --qk-shift --qk-shift-beta 0.0 --qk-shift-freeze --ngram-ve-layers 1,-1 --ngram-ve-table-mult 128 --eval-seq-len 1024",
+  "description": "Width896 capacity with BF16 matmult; full budget [trn21] CC=O1,matmult,bf16",
+  "environment": {
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "source_sha256": {
+    "train.py": "55e22919d688f5d32f2fe38f1fe709551fb9713715d28e338fd999ab2975df39",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "f3de69a99e9471cfa36aad70b57a76967541b11b24d1fe18750548f82d520cf3"
+  }
+}

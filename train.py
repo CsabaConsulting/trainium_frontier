@@ -742,7 +742,12 @@ NGRAM_VE_BETA2 = 0.999    # RMSProp second-moment decay
 NGRAM_VE_FLAT_LR = True   # no warmdown for these tables ("sparse tables benefit from full-rate
                           # training"). Warmup still applies -- only the cooldown is skipped.
 NGRAM_VE_OPT = "rmsprop"  # "rmsprop" (no first moment, Recursive's choice) or "adamw"
-NGRAM_VE_BF16 = True      # store the tables (and their optimizer state) in bf16
+NGRAM_VE_BF16 = True      # store tables/gradients in bf16; state follows unless overridden below
+NGRAM_RMS_FP32 = False   # opt-in FP32 RMSProp STATE AND ARITHMETIC; BF16 tables/grads stay BF16.
+# With beta2=.999, a zero-gradient step's 0.1% moment decay can round away in BF16.
+# Cast gradients BEFORE squaring, keep second moments/denominators/updates in FP32,
+# and round only when subtracting the FP32 update into the existing BF16 parameter.
+# This changes arithmetic as well as state storage and requires a quality/time A/B.
 NGRAM_VE_CLIP_EXCLUDE = True  # keep the tables OUT of the global clip_grad_norm_ and clip them as
 # their own group instead. GRAD_CLIP=1.0 is a GLOBAL norm, so folding ~200M extra parameters'
 # gradients into it would shrink clip_coef and thereby change the effective LR of every OTHER
@@ -2495,6 +2500,11 @@ USE_NKI_MUON = True
 # (research/scratch/nki_attn_fwd.py + nki_attn_bwd.py, hw-validated
 # 2026-09-17 -- fp32 ~1e-6, bf16 fwd format floor, bwd dQ/dK ~4e-4) for q/k/v.
 USE_NKI_ATTN = False
+# Opt-in restoration of traceable SDPA when the custom attention kernel is OFF.
+# The historical nki_attention wrapper disables Dynamo even on its plain-SDPA fallback,
+# which changes graph partitioning. Keep that path as the default for reproducible A/Bs;
+# this flag tests the direct call without changing the custom kernel's guarded wrapper.
+COMPILE_SDPA_DIRECT = False
 # Pure-torch helper, intentionally outside the nki try-block so CPU imports
 # (and this file's scratch equiv test) can reach it without a device.
 _NKI_ATTN_MASK_CACHE: dict = {}
@@ -2934,7 +2944,10 @@ class CausalSelfAttention(nn.Module):
         k = k.transpose(1, 2)
         v = v.transpose(1, 2)
         if attn_mask is None:
-            y = nki_attention(q, k, v, self.attn_scale)
+            if COMPILE_SDPA_DIRECT and not USE_NKI_ATTN:
+                y = F.scaled_dot_product_attention(q, k, v, is_causal=True, scale=self.attn_scale)
+            else:
+                y = nki_attention(q, k, v, self.attn_scale)
         else:
             y = F.scaled_dot_product_attention(q, k, v, attn_mask=attn_mask[..., :t, :t], scale=self.attn_scale)
         y = y.transpose(1, 2).contiguous().view(b, t, c)
@@ -3721,6 +3734,11 @@ class GPT(nn.Module):
                 kind="rmsprop" if rmsprop else "adamw", params=ngram_params, lr=ngram_lr,
                 betas=(0.0, NGRAM_VE_BETA2) if rmsprop else (0.8, EMBED_ADAMW_BETA2),
                 eps=1e-10, weight_decay=0.0, no_lr_decay=NGRAM_VE_FLAT_LR))
+            if rmsprop:
+                table_dtypes = sorted({str(p.dtype) for p in ngram_params})
+                math_dtypes = ["torch.float32"] if NGRAM_RMS_FP32 else table_dtypes
+                print0(f"ngram_rmsprop: fp32_state_math={NGRAM_RMS_FP32} "
+                       f"parameter_gradient_dtypes={table_dtypes} state_math_dtypes={math_dtypes}")
         if self.out_bigram is not None:
             # T4.2. Its own AdamW group mirroring lm_head's, which is the right reference: this
             # table's output is an additive term on the same logits lm_head produces, so its
@@ -4443,12 +4461,23 @@ class MuonAdamW(torch.optim.Optimizer):
             if p.grad is None:
                 continue
             state = self.state[p]
+            state_dtype = torch.float32 if NGRAM_RMS_FP32 else p.dtype
             if not state:
                 state["step"] = 0
-                state["exp_avg_sq"] = torch.zeros_like(p)
+                state["exp_avg_sq"] = torch.zeros_like(p, dtype=state_dtype)
+            elif state["exp_avg_sq"].dtype != state_dtype:
+                # Optimizer.load_state_dict may cast state to the parameter dtype.
+                # Reject lost precision or a mid-run mode change before any update;
+                # scored training starts fresh, so no lossy migration is required.
+                raise ValueError(
+                    f"RMSProp second-moment dtype {state['exp_avg_sq'].dtype} does not match "
+                    f"NGRAM_RMS_FP32={NGRAM_RMS_FP32} (expected {state_dtype}). "
+                    "Start with fresh optimizer state or restore its original precision; "
+                    "load_state_dict may have cast FP32 state to the parameter dtype."
+                )
             state["step"] += 1
             params.append(p)
-            grads.append(p.grad)
+            grads.append(p.grad.float() if NGRAM_RMS_FP32 else p.grad)
             exp_avg_sqs.append(state["exp_avg_sq"])
             bias2.append(1 - beta2 ** state["step"])
         return params, grads, exp_avg_sqs, bias2
@@ -4469,6 +4498,12 @@ class MuonAdamW(torch.optim.Optimizer):
         No NaN on an untouched row: its grad and exp_avg_sq are both exactly 0.0, and eps
         (1e-10) is representable in bf16 as well as fp32 -- bf16 shares fp32's 8-bit
         exponent -- so the denominator is 1e-10, not 0, and 0/1e-10 = 0.
+
+        NGRAM_RMS_FP32 changes BOTH state storage and optimizer arithmetic. The state
+        helper casts grads before their square, leaving the original p.grad unchanged.
+        All subsequent operands are FP32 through the denominator and LR multiplication;
+        subtracting that FP32 update into p rounds to p.dtype only at the final write.
+        Both foreach and scalar-tensor paths use the same promotion contract.
         """
         assert group["weight_decay"] == 0.0, "rmsprop groups are weight-decay free by design"
         params, grads, exp_avg_sqs, bias2 = self._rmsprop_state(group)
@@ -4949,6 +4984,7 @@ ARCH_TOGGLE_NAMES = [
     "WD_DECAY_TO_ZERO", "MUON_MOMENTUM_WARMUP_STEPS", "USE_DOC_MASK", "VE_WD",
     "USE_SELECTIVE_GATE", "SELECTIVE_GATE_CHANNELS", "USE_FUSED_QKV",
     "USE_CAUSAL_FASTPATH", "USE_TRN2_COMPILER_FLAGS",
+    "COMPILE_SDPA_DIRECT", "USE_NKI_ATTN",
     # T0.4 resweep knobs. None of these changes a tensor's name or shape, so every one of them
     # is exactly the "loads silently with quietly wrong behavior" class this snapshot exists to
     # catch -- ATTN_CPROJ_INIT_SCALE and LOGIT_SOFTCAP especially, since they change what the
@@ -4979,7 +5015,7 @@ ARCH_TOGGLE_NAMES = [
     # optimizer-side knobs (LR/BETA2/FLAT_LR/OPT/CLIP_EXCLUDE) leave no trace in the
     # weights at all, which is the other half of the same reason.
     "USE_NGRAM_VE", "NGRAM_VE_LAYERS", "NGRAM_VE_TABLE_MULT", "NGRAM_VE_TRIGRAM", "NGRAM_VE_DIM",
-    "NGRAM_VE_BF16",
+    "NGRAM_VE_BF16", "NGRAM_RMS_FP32",
     "NGRAM_VE_LR", "NGRAM_VE_BETA2", "NGRAM_VE_FLAT_LR", "NGRAM_VE_OPT",
     "NGRAM_VE_CLIP_EXCLUDE",
     # T4.2 Aster output bigram logit table, T3.9 Recursive one-liners. RELU2_TAU,
@@ -5356,6 +5392,7 @@ def main() -> None:
     global MUON_NS_STEPS, MUON_MOMENTUM_COOLDOWN_FRAC, MUON_MOMENTUM_FINAL
     global ADAM_EVERY_N, ADAM_EVERY_N_LR_COMP, PACK_FACTOR, GRAD_CLIP, LOSS_SCALE
     global CLIP_AFTER_REDUCE
+    global COMPILE_SDPA_DIRECT
     global LOSS_SCALE_DYNAMIC, loss_scale_clean, loss_scale_skips
     # T0.2/T0.3 capacity-shape knobs. All read inside build_config()/GPT(config), i.e. well before
     # the first step, so none of them can add a per-step graph constant.
@@ -5366,6 +5403,7 @@ def main() -> None:
     # that could bake them in as a per-step graph constant.
     global USE_NGRAM_VE, NGRAM_VE_TABLE_MULT, NGRAM_VE_TRIGRAM, NGRAM_VE_BF16, NGRAM_VE_DIM
     global NGRAM_VE_LAYERS
+    global NGRAM_RMS_FP32
     global NGRAM_VE_LR, NGRAM_VE_BETA2, NGRAM_VE_FLAT_LR, NGRAM_VE_OPT, NGRAM_VE_CLIP_EXCLUDE
     # T4.2 / T3.9. USE_OUT_BIGRAM, OUT_BIGRAM_BF16, OUT_BIGRAM_GATE_BIAS, USE_HEAD_GATE,
     # HEAD_GATE_CHANNELS, HEAD_GATE_BIAS, USE_OUT_POOL, OUT_POOL_LAYERS, USE_QK_SHIFT and
@@ -5464,6 +5502,13 @@ def main() -> None:
                         default=os.environ.get("NEURON_COMPETITION_R1_NKI_ATTN", "0") != "0",
                         help="run causal SDPA through the fused NKI fwd/bwd pair (Neuron only). "
                              "Default OFF.")
+    parser.add_argument("--compile-sdpa-direct", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_COMPILE_SDPA_DIRECT",
+                                               "1" if COMPILE_SDPA_DIRECT else "0") != "0",
+                        help="Call causal SDPA directly when --nki-attn is off, allowing Dynamo "
+                             "to trace it instead of entering the disabled attention wrapper. "
+                             "Default OFF preserves the historical graph partitioning. The "
+                             "custom NKI attention path retains its wrapper when enabled.")
     parser.add_argument("--muon-lr-fp32", action=argparse.BooleanOptionalAction,
                         # literal default, like --nki-muon above: this function rebinds
                         # USE_MUON_LR_FP32 as a global, so it cannot also read it here.
@@ -5572,8 +5617,15 @@ def main() -> None:
                              "--no-ngram-ve-flat-lr puts them back on the normal cooldown.")
     parser.add_argument("--ngram-ve-bf16", action=argparse.BooleanOptionalAction,
                         default=os.environ.get("NEURON_COMPETITION_R1_NGRAM_VE_BF16", "1" if NGRAM_VE_BF16 else "0") != "0",
-                        help="store the n-gram tables (and their optimizer state) in bf16 rather "
-                             "than fp32 -- halves their HBM footprint and all-reduce volume.")
+                        help="store n-gram tables and gradients in bf16 rather than fp32. "
+                             "Optimizer state follows that dtype unless --ngram-rms-fp32 is on.")
+    parser.add_argument("--ngram-rms-fp32", action=argparse.BooleanOptionalAction,
+                        default=os.environ.get("NEURON_COMPETITION_R1_NGRAM_RMS_FP32",
+                                               "1" if NGRAM_RMS_FP32 else "0") != "0",
+                        help="Use FP32 second moments AND FP32 RMSProp update arithmetic for "
+                             "n-gram tables, retaining their parameter/gradient dtype. Casts "
+                             "grads before squaring and rounds at the final parameter write. "
+                             "Requires --ngram-ve-opt rmsprop. Default OFF.")
     parser.add_argument("--ngram-ve-clip-exclude", action=argparse.BooleanOptionalAction,
                         default=os.environ.get("NEURON_COMPETITION_R1_NGRAM_VE_CLIP_EXCLUDE", "1" if NGRAM_VE_CLIP_EXCLUDE else "0") != "0",
                         help="keep the n-gram tables out of the GLOBAL clip_grad_norm_ and clip them "
@@ -6018,6 +6070,8 @@ def main() -> None:
                              "otherwise moves those tensors ~N times less far in total; this "
                              "separates 'less often' from 'less far'. Default OFF.")
     args = parser.parse_args()
+    if args.ngram_rms_fp32 and args.ngram_ve_opt != "rmsprop":
+        parser.error("--ngram-rms-fp32 requires --ngram-ve-opt rmsprop")
     if args.eval_seq_len:
         if args.eval_seq_len > args.seq_len:
             parser.error(f"--eval-seq-len {args.eval_seq_len} > --seq-len {args.seq_len}: the live "
@@ -6087,6 +6141,7 @@ def main() -> None:
     NGRAM_VE_DIM = args.ngram_ve_dim
     NGRAM_VE_TRIGRAM = args.ngram_ve_trigram
     NGRAM_VE_BF16 = args.ngram_ve_bf16
+    NGRAM_RMS_FP32 = args.ngram_rms_fp32
     NGRAM_VE_OPT = args.ngram_ve_opt
     NGRAM_VE_LR = args.ngram_ve_lr
     NGRAM_VE_BETA2 = args.ngram_ve_beta2
@@ -6243,6 +6298,7 @@ def main() -> None:
     LOSS_BYTE_WEIGHT = args.byte_loss_weight
     USE_NKI_MUON = args.nki_muon
     USE_NKI_ATTN = args.nki_attn
+    COMPILE_SDPA_DIRECT = args.compile_sdpa_direct
     USE_MUON_LR_FP32 = args.muon_lr_fp32
     USE_TRANSPOSED_LINEAR = args.transposed_linear
     USE_COMPILE_MUON = args.compile_muon
@@ -6264,6 +6320,7 @@ def main() -> None:
     print0(f"device={device} dtype={COMPUTE_DTYPE} world_size={world_size}")
     print0(f"training target={args.num_steps} steps max_seconds={args.max_train_seconds} official_budget={TRAIN_TIME_BUDGET_SECONDS}s")
     print0(f"gradient_clip={GRAD_CLIP:g} clip_after_reduce={CLIP_AFTER_REDUCE}")
+    print0(f"attention: nki_attn={USE_NKI_ATTN} compile_sdpa_direct={COMPILE_SDPA_DIRECT}")
     # Guard against the 2026-09-10 failure mode (a step cap that binds before the time budget leaves the
     # wall-clock LR schedule uncooled). Coarse check here; the precise projection runs at step 50 below.
     if args.num_steps < args.max_train_seconds:
@@ -6785,7 +6842,8 @@ def main() -> None:
               f"rows={orig_model.ngram_rows} dim={orig_model.ngram_dim} "
               f"index_gather={NGRAM_VE_INDEX_GATHER} "
               f"trigram={args.ngram_ve_trigram} opt={args.ngram_ve_opt} "
-              f"flat_lr={args.ngram_ve_flat_lr} bf16={args.ngram_ve_bf16}")
+              f"flat_lr={args.ngram_ve_flat_lr} bf16={args.ngram_ve_bf16} "
+              f"rms_fp32_state_math={NGRAM_RMS_FP32}")
         # T4.2 / T3.9, same reason: one line carrying every knob of this block, so two arms are
         # distinguishable in experiment-log.jsonl without re-reading the run log
         # (SUMMARY_KEYS in research/run_experiment.py has the matching entries).

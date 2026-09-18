@@ -1,0 +1,28 @@
+{
+  "kind": "CPU diagnostic summary, transcribed from successful tool output",
+  "host": "ec2-16-26-154-27.ap-southeast-4.compute.amazonaws.com",
+  "source_dir": "/tmp/fresh-start-rms-cpu-R9q3sqGq",
+  "command": "OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 TORCH_DEVICE_BACKEND_AUTOLOAD=0 /home/ubuntu/workspace/native_venv/bin/python /tmp/fresh-start-rms-cpu-R9q3sqGq/research/scratch/fresh_start_rms_fp32_check.py",
+  "exit_code": 0,
+  "status": "PASS",
+  "device": "cpu",
+  "optimizer_configurations": 16,
+  "steps_per_configuration": 32,
+  "axes": {
+    "fp32_state_math": [false, true],
+    "foreach": [false, true],
+    "tensor_lr": [false, true],
+    "parameter_dtype": ["torch.bfloat16", "torch.float32"]
+  },
+  "default_off_bit_exact": true,
+  "gradients_preserved": true,
+  "maximum_fp32_state_absolute_error_vs_independent_recurrence": 4.76837158203125e-7,
+  "zero_gradient_decay": [
+    {"fp32_state_math": false, "zero_steps": 256, "moment_ratio": 1.0},
+    {"fp32_state_math": true, "zero_steps": 256, "moment_ratio": 0.7740430828241762}
+  ],
+  "mathematical_moment_decay_ratio": 0.7740428188605081,
+  "restored_state": "parameter-dtype-cast state rejected before update",
+  "adamw_unchanged": true,
+  "hardware_quality_or_speed_claim": false
+}

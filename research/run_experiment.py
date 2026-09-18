@@ -178,12 +178,15 @@ def main() -> None:
     # every successful run as dirty because it has just written a new log.
     source_commit = git("rev-parse", "HEAD")
     source_dirty = bool(git("status", "--porcelain"))
+    training_source_dirty = bool(git("status", "--porcelain", "--",
+                                     "train.py", "prepare.py", "research/run_experiment.py"))
     manifest = {
         "label": args.label,
         "started_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "hostname": socket.gethostname(),
         "git_commit": source_commit,
         "git_dirty": source_dirty,
+        "source_dirty": training_source_dirty,
         "launch_command": launch_cmd_str,
         "description": args.description,
         "environment": {k: v for k, v in env.items()
@@ -226,6 +229,7 @@ def main() -> None:
         "launch_command": launch_cmd_str,
         "git_commit": source_commit,
         "git_dirty": source_dirty,
+        "source_dirty": training_source_dirty,
         "hostname": manifest["hostname"],
         "environment": manifest["environment"],
         "source_sha256": manifest["source_sha256"],

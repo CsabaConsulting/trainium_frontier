@@ -1,0 +1,22 @@
+{
+  "kind": "CPU diagnostic summary, transcribed from successful tool output",
+  "host": "ec2-16-26-154-27.ap-southeast-4.compute.amazonaws.com",
+  "source_dir": "/tmp/fresh-start-attn-cpu-hP73cjhG",
+  "command": "OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 TORCH_DEVICE_BACKEND_AUTOLOAD=0 /home/ubuntu/workspace/native_venv/bin/python /tmp/fresh-start-attn-cpu-hP73cjhG/research/scratch/fresh_start_attention_graph_check.py",
+  "exit_code": 0,
+  "status": "PASS",
+  "numerical_cases": 16,
+  "outputs_and_gradients_bit_exact": true,
+  "causal_graphs": [
+    {"direct": false, "custom": false, "graph_count": 2, "graph_break_count": 1, "break_reason": "Skip calling torch.compiler.disable function nki_attention"},
+    {"direct": true, "custom": false, "graph_count": 1, "graph_break_count": 0},
+    {"direct": true, "custom": true, "graph_count": 2, "graph_break_count": 1, "break_reason": "Skip calling torch.compiler.disable function nki_attention"}
+  ],
+  "explicit_mask_graphs": [
+    {"direct": false, "graph_count": 1, "graph_break_count": 0},
+    {"direct": true, "graph_count": 1, "graph_break_count": 0}
+  ],
+  "direct_fullgraph_eager_backend": "PASS",
+  "device": "cpu",
+  "hardware_speed_claim": false
+}
