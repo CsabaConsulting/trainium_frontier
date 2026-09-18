@@ -5,8 +5,8 @@ The previous prototype was limited to N<=512 and requantized weights for every
 128-row activation tile. Here each physical core loads/quantizes its complete
 weight operand once per call, and each activation tile once across output tiles.
 This is NOT a training implementation or an update-amortized weight cache.
-Headline timings include the caller's activation transpose and in-kernel casts;
-the separately reported pretransposed arm is only a lower bound. Online amax
+Separate arms include activation layout only, both activation/weight layouts,
+and no layout conversion. Native matmul AND F.linear are controls. Online amax
 calibration and backward are excluded and remain necessary future work.
 
 API: installed NKI0.5, NC-v3 legacy E4M3, double_row, 512-wide PSUM tiles.
@@ -137,6 +137,7 @@ def run_case(kernel, shape, steps, seed):
     aq, bq = e4m3_legacy(a.float() * sa), e4m3_legacy(b.float() * sb)
     scales = torch.tensor([sa, sb, inverse]).repeat(128, 1).to("neuron")
     ad, bd = a.to("neuron"), b.to("neuron")
+    native_weight = bd.T.contiguous()
     at = ad.T.contiguous()
     lanes = 2 if m % 256 == 0 else 1
     y8 = kernel[lanes](at, bd, scales, lanes, True, False).cpu()
@@ -170,8 +171,11 @@ def run_case(kernel, shape, steps, seed):
     assert check["fp8_quantized_relative_rms"] < 0.0025 and check["bf16_relative_rms"] < 0.0025
     arms = {
         "native_bf16": lambda: ad @ bd,
+        "native_bf16_linear_nk_weight": lambda: torch.nn.functional.linear(ad, native_weight),
+        "weight_layout_refresh_only": lambda: native_weight.T.contiguous(),
         "cached_nki_bf16_layout_included": lambda: kernel[lanes](ad.T.contiguous(), bd, scales, lanes, False, False),
         "cached_nki_fp8_layout_cast_included": lambda: kernel[lanes](ad.T.contiguous(), bd, scales, lanes, True, False),
+        "cached_nki_fp8_both_layouts_cast_included": lambda: kernel[lanes](ad.T.contiguous(), native_weight.T.contiguous(), scales, lanes, True, False),
         "cached_nki_fp8_pretransposed_lower_bound": lambda: kernel[lanes](at, bd, scales, lanes, True, False),
     }
     for fn in arms.values():
@@ -188,10 +192,14 @@ def run_case(kernel, shape, steps, seed):
                 arms[name]()
             sync()
             samples[name].append((time.perf_counter() - start) * 1000 / steps)
+    medians = {name: statistics.median(v) for name, v in samples.items()}
     print("TILED_FP8_BENCH " + json.dumps(dict(
-        shape=shape, samples_ms=samples, median_ms={name: statistics.median(v) for name, v in samples.items()},
+        shape=shape, samples_ms=samples, median_ms=medians,
         online_amax_included=False, activation_transpose_in_headline=True,
         weight_quantization_in_headline=True, weight_reuse_scope="one GEMM call",
+        estimated_fp8_ms_if_weight_layout_amortized_over_four_calls=(
+            medians["cached_nki_fp8_layout_cast_included"] + medians["weight_layout_refresh_only"] / 4),
+        amortized_layout_is_estimate_not_training_measurement=True,
         training_speed_or_quality_claim=False)), flush=True)
 
 
