@@ -1,6 +1,6 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19, 04:48 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19 04:57 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
@@ -684,3 +684,18 @@ BF16 boundary. Charge the gradient transpose/scale producer and any duplicated
 loads. Only afterwards consider producing that layout inside data-backward;
 never treat an unmeasured transpose or saved output as free. Compare all4
 products and complete FW/BW again before model integration. Not implemented.
+
+### Profile-driven priority before another precision change
+
+Source125/126 full-path attribution matches all8/16 native/FP8 runtime
+executions to their binaries. FP8 backward TensorEngine activity is much lower,
+but Scalar/synchronization activity and current-weight preparation are higher.
+Cache preparation has8 extra dispatches and0.757ms of instrumented device time
+vs0.112ms native. Cross-host/phase-synchronized traces are attribution only;
+source124 still loses2.9186% under matched unprofiled timing.
+
+Prioritize an exactly gated compiled cache-preparation graph, with a compiled
+native-cast control. Then test a fused NKI current-weight calibration/dual-layout
+producer if needed. Charge all work and gate metadata/bytes/cache refresh after
+updates. Both are DESIGN, not implemented. Keep the per-output-gradient
+calibration design independent. See fresh-start-full-fp8-mlp-diagnosis-2026-09-19.md.
