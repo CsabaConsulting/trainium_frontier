@@ -1,0 +1,48 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave85",
+    "expected_commit": "4ef6530d8bc2ca5c98e4a26a7832f0df0d75e37f",
+    "label": "fs-w85-fp8-packed-mlp-forward-gate-r1",
+    "purpose": "After wave84 packed-cache boundary passes, gate complete packed-cache FP8 MLP stages against independent CPU quantizer/pair arithmetic, saved values, repetition and row independence; all small cases and real16384x1024x4096. No speed/quality promotion.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1800s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "/home/ubuntu/trainium_freshstart_20260918_wave85/research/scratch/fp8_packed_mlp_probe.py",
+      "--stage",
+      "forward",
+      "--real-shape"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/fp8_packed_weight_cache_nki.py",
+      "research/scratch/fp8_packed_weight_cache_probe.py",
+      "research/scratch/fp8_weight_cache_nki.py",
+      "research/scratch/fp8_weight_cache_probe.py",
+      "research/scratch/fresh_start_fp8_probe.py",
+      "research/scratch/mlp_fused_bf16.py",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "research/scratch/mlp_backward_rounding_bounds.py",
+      "research/scratch/fp8_mlp_token_rows_nki.py",
+      "research/scratch/fp8_mlp_island_probe.py",
+      "research/scratch/fp8_mlp_island_autograd.py",
+      "research/scratch/fp8_rms_scale_contract.py",
+      "research/scratch/fp8_packed_mlp_probe.py",
+      "research/scratch/fp8_mlp_island_nki.py"
+    ]
+  },
+  "requested_at": "2026-09-19T00:54:47.069169+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w85-fp8-packed-mlp-forward-gate-r1\", \"pid\": 1555060, \"commit\": \"4ef6530d8bc2ca5c98e4a26a7832f0df0d75e37f\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave85/research/run-logs/fs-w85-fp8-packed-mlp-forward-gate-r1.log\", \"started_at\": \"2026-09-19T00:54:52.703111+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}
