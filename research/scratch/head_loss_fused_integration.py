@@ -19,7 +19,10 @@ def call_separate_region(compiled_function, *inputs):
     return compiled_function(*inputs)
 
 
-def install(model, train_module, separate_region=False, save_softcap=False):
+def install(model, train_module, separate_region=False, save_softcap=False,
+            fp32_carrier=False):
+    if fp32_carrier and not separate_region:
+        raise ValueError("FP32 carrier is restricted to the explicit head/body boundary")
     if getattr(model, "_fresh_start_cached_head_installed", False):
         raise RuntimeError("Cached head adapter already installed")
     if (not train_module.USE_BF16_NORM_OUTPUT or not train_module.USE_WEIGHT_CACHE
@@ -31,7 +34,7 @@ def install(model, train_module, separate_region=False, save_softcap=False):
     if not getattr(train_module, "_fresh_start_adaptive_ce_installed", False):
         raise ValueError("Install the exact adaptive CE reference before the cached head")
     from head_loss_fused_autograd import loss_factory
-    fused_loss = loss_factory(save_softcap=save_softcap)
+    fused_loss = loss_factory(save_softcap=save_softcap, fp32_carrier=fp32_carrier)
     if separate_region:
         compiled_loss = torch.compile(fused_loss, backend="neuron",
                                       fullgraph=True, dynamic=False)
@@ -56,6 +59,8 @@ def install(model, train_module, separate_region=False, save_softcap=False):
         weight = current.lm_head._cached_weight
         if weight is None or weight.dtype != x.dtype:
             weight = current.lm_head.weight.to(x.dtype)
+        if fp32_carrier:
+            x = x.float()
         return fused_loss(x.reshape(-1, x.shape[-1]), weight, targets, reduction)
 
     guard = ast.parse('''
@@ -85,4 +90,5 @@ if (targets is not None and self.training and torch.compiler.is_compiling()
                 transpose_every_forward=True, parameter_identity_unchanged=True,
                 separate_compiled_region=bool(separate_region),
                 saved_softcap=bool(save_softcap),
+                fp32_carrier=bool(fp32_carrier),
                 eager_and_evaluation_use_original=True)

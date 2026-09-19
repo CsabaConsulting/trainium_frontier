@@ -48,3 +48,24 @@ or training quality improvement is established until those tests complete.
 Evidence: run-logs/fs-w118-head-loss-cached-caller-local-analysis-r1.analysis.json,
 run-logs/fs-w97-native-bf16-caller-analysis-r3.analysis.json,
 run-logs/fs-w112-head-loss-cached-whole-step-comparison-r1.json.
+
+## First boundary gate fails; precision diagnosis before timing
+
+Source120's BF16 head/body interface produces the intended two compiled backward
+nodes and identical first two losses. The ORIGINAL exact all-master gate fails
+on the256-wide token embedding gradient after two microbatches: max absolute
+difference2.86102294921875e-6. Command1, clean postflight04:07:19. This is not a
+passed numerical gate and no full-step run is dispatched from it.
+
+Source121 adds a separate diagnostic with native/cached heads in monolithic
+and split graphs. Exact native/cached agreement within each allocation scope
+would localize the discrepancy to the boundary rather than cached-head math;
+all cross-scope differences are reported, never accepted by a looser tolerance.
+
+A separately gated candidate carries BF16-valued activations in an FP32 head
+interface and returns an FP32 input-gradient accumulator. This tests whether
+materializing the BF16 gradient at the new boundary introduced rounding that
+the original compiler elides. The head still consumes BF16 inputs/weights;
+all extra conversion/traffic must be charged. Require the20component checks and
+then the unchanged196GPT checks before complete timing. Diagnosis and repair
+are hypotheses until those results exist. The failed source120 gate is retained.

@@ -349,3 +349,12 @@ stage outputs, tiny/subnormal/signed-zero gradients, row independence and the
 actual shape. Timing charges transpose/packing once plus two data-gradient
 chains, paired with original fused FP8 and native BF16. No quality promotion
 without complete composition and whole-step evidence.
+
+Source119 fused per-row calibration COMPLETE and clean04:07:05. All11 cases
+pass exact original eight-stage comparisons, independent quantizers/pair bounds,
+subnormal/signed-zero cases and actual16384x1024x4096 shape. Two data chains plus
+extra weight transpose/packing:5.654671ms versus original fused6.200740ms
+(8.8065% faster), still slower than native5.510375ms. No all-four-gradient
+composition/autograd or full training claim. Further backward work must also
+reuse quantized activations produced by forward, charging any additional saves;
+repacking those from BF16 is currently an explicit cost, not a free input.

@@ -1,7 +1,21 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 04:06 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 04:10 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
+
+## Boundary failure and next diagnostic — 2026-09-19 04:10 UTC
+
+- Source120 split-head exact gate FAILED: same loss, token-embedding gradient
+  difference2.861e-6; command1 but clean04:07:19. Do not run its phase requests.
+  Next source121 diagnostic compares original native heads across the same
+  boundary, then a separately gated FP32 carrier tests extra gradient rounding.
+  Original196 exact GPT checks and failed evidence remain unchanged.
+- Source119 per-row fused abs data backward COMPLETE/clean04:07:05: all11cases
+  pass.5.654671ms versus original6.200740ms and native5.510375ms. No fullFP8 gain.
+- Source120/snapshot pushed and remote-ref verified04:07:36. Artifact uploader
+  continues under its lock. Both current hosts clean; source121 two independent
+  bounded component/diagnostic requests are being prepared. Verify their actual
+  dispatch and postflight before relying on this prose.
 
 ## Active trials — 2026-09-19 04:06 UTC
 
