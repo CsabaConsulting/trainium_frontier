@@ -1,0 +1,303 @@
+{
+  "label": "fs-w76-compact-joint-table-real-gate-r1",
+  "source_commit": "e13a223d51ae8b7dc443f749ecab9a45fd419c4a",
+  "completed_at": "2026-09-18T23:45:11.008956+00:00",
+  "command_returncode": 0,
+  "host_clean": true,
+  "records": {
+    "COMPACT_TABLE_CONTRACT": [
+      {
+        "finite_bf16_codes": 65280,
+        "exp_relative_bound": 2e-07,
+        "derivative_absolute_bound": 1e-07,
+        "replicated_table_bytes": 5242880,
+        "no_fit_to_training_or_validation_data": true,
+        "softcap": 15,
+        "loss_reduction_log_reciprocal_and_autograd_not_tested": true
+      }
+    ],
+    "COMPACT_TABLE_GATE": [
+      {
+        "name": "all_finite_codes",
+        "shape": [
+          512,
+          512
+        ],
+        "lanes": 2,
+        "finite": true,
+        "table_and_tail_exact": [
+          true,
+          true
+        ],
+        "repeat_exact": [
+          true,
+          true
+        ],
+        "fp64_all_coordinates": true,
+        "errors": {
+          "exponential_relative": 5.971744772204116e-08,
+          "derivative_absolute": 2.9786490940431065e-08
+        },
+        "input_unchanged": true,
+        "passed": true
+      },
+      {
+        "name": "random_rows256_lanes1",
+        "shape": [
+          256,
+          512
+        ],
+        "lanes": 1,
+        "finite": true,
+        "table_and_tail_exact": [
+          true,
+          true
+        ],
+        "repeat_exact": [
+          true,
+          true
+        ],
+        "fp64_all_coordinates": true,
+        "errors": {
+          "exponential_relative": 5.866956782385118e-08,
+          "derivative_absolute": 2.9770674592199953e-08
+        },
+        "input_unchanged": true,
+        "passed": true
+      },
+      {
+        "name": "random_rows256_lanes2",
+        "shape": [
+          256,
+          512
+        ],
+        "lanes": 2,
+        "finite": true,
+        "table_and_tail_exact": [
+          true,
+          true
+        ],
+        "repeat_exact": [
+          true,
+          true
+        ],
+        "fp64_all_coordinates": true,
+        "errors": {
+          "exponential_relative": 5.922872012234975e-08,
+          "derivative_absolute": 2.9770674592199953e-08
+        },
+        "input_unchanged": true,
+        "passed": true
+      },
+      {
+        "name": "random_rows512_lanes2",
+        "shape": [
+          512,
+          512
+        ],
+        "lanes": 2,
+        "finite": true,
+        "table_and_tail_exact": [
+          true,
+          true
+        ],
+        "repeat_exact": [
+          true,
+          true
+        ],
+        "fp64_all_coordinates": true,
+        "errors": {
+          "exponential_relative": 5.922872012234975e-08,
+          "derivative_absolute": 2.9770674592199953e-08
+        },
+        "input_unchanged": true,
+        "passed": true
+      },
+      {
+        "name": "random_rows1024_lanes2",
+        "shape": [
+          1024,
+          512
+        ],
+        "lanes": 2,
+        "finite": true,
+        "table_and_tail_exact": [
+          true,
+          true
+        ],
+        "repeat_exact": [
+          true,
+          true
+        ],
+        "fp64_all_coordinates": true,
+        "errors": {
+          "exponential_relative": 5.8969861809538124e-08,
+          "derivative_absolute": 2.9786490940431065e-08
+        },
+        "input_unchanged": true,
+        "passed": true
+      },
+      {
+        "name": "real_logits_shape",
+        "shape": [
+          16384,
+          8192
+        ],
+        "lanes": 2,
+        "finite": true,
+        "table_and_tail_exact": [
+          true,
+          true
+        ],
+        "repeat_exact": [
+          true,
+          true
+        ],
+        "fp64_all_coordinates": false,
+        "errors": {
+          "exponential_relative": 5.837522222959904e-08,
+          "derivative_absolute": 2.9770674592199953e-08
+        },
+        "input_unchanged": true,
+        "passed": true
+      }
+    ],
+    "COMPACT_TABLE_SCALAR_DIAGNOSTIC": [
+      {
+        "name": "all_finite_codes",
+        "errors": {
+          "exponential_relative": 1.3061996156237984e-05,
+          "derivative_absolute": 5.143444999117908e-07
+        },
+        "finite": true,
+        "baseline_is_existing_scalar_math": true,
+        "quality_gate": false
+      },
+      {
+        "name": "random_rows256_lanes1",
+        "errors": {
+          "exponential_relative": 1.1376577772269516e-05,
+          "derivative_absolute": 1.5622994781194777e-07
+        },
+        "finite": true,
+        "baseline_is_existing_scalar_math": true,
+        "quality_gate": false
+      },
+      {
+        "name": "random_rows256_lanes2",
+        "errors": {
+          "exponential_relative": 1.1376577772269516e-05,
+          "derivative_absolute": 1.5622994781194777e-07
+        },
+        "finite": true,
+        "baseline_is_existing_scalar_math": true,
+        "quality_gate": false
+      },
+      {
+        "name": "random_rows512_lanes2",
+        "errors": {
+          "exponential_relative": 1.1376577772269516e-05,
+          "derivative_absolute": 1.5622994781194777e-07
+        },
+        "finite": true,
+        "baseline_is_existing_scalar_math": true,
+        "quality_gate": false
+      },
+      {
+        "name": "random_rows1024_lanes2",
+        "errors": {
+          "exponential_relative": 1.1376577772269516e-05,
+          "derivative_absolute": 1.5622994781194777e-07
+        },
+        "finite": true,
+        "baseline_is_existing_scalar_math": true,
+        "quality_gate": false
+      },
+      {
+        "name": "real_logits_shape",
+        "errors": {
+          "exponential_relative": 1.1376577772269516e-05,
+          "derivative_absolute": 1.3551365990460695e-07
+        },
+        "finite": true,
+        "baseline_is_existing_scalar_math": true,
+        "quality_gate": false
+      }
+    ],
+    "COMPACT_TABLE_INDEPENDENCE": [
+      {
+        "name": "all_finite_codes",
+        "passed": true,
+        "unchanged_rows_exact": true,
+        "changed_outputs_exact": true
+      },
+      {
+        "name": "random_rows256_lanes1",
+        "passed": true,
+        "unchanged_rows_exact": true,
+        "changed_outputs_exact": true
+      },
+      {
+        "name": "random_rows256_lanes2",
+        "passed": true,
+        "unchanged_rows_exact": true,
+        "changed_outputs_exact": true
+      },
+      {
+        "name": "random_rows512_lanes2",
+        "passed": true,
+        "unchanged_rows_exact": true,
+        "changed_outputs_exact": true
+      },
+      {
+        "name": "random_rows1024_lanes2",
+        "passed": true,
+        "unchanged_rows_exact": true,
+        "changed_outputs_exact": true
+      },
+      {
+        "name": "real_logits_shape",
+        "passed": true,
+        "unchanged_rows_exact": true,
+        "changed_outputs_exact": true
+      }
+    ],
+    "COMPACT_TABLE_BENCH": [
+      {
+        "shape": [
+          16384,
+          8192
+        ],
+        "samples_ms": {
+          "scalar_tanh_exp_derivative": [
+            2.447261003544554,
+            2.4788305978290737,
+            2.4803492007777095
+          ],
+          "compact_joint_table": [
+            47.20074970391579,
+            47.19714419916272,
+            47.212149103870615
+          ]
+        },
+        "median_ms": {
+          "scalar_tanh_exp_derivative": 2.4788305978290737,
+          "compact_joint_table": 47.20074970391579
+        },
+        "table_load_and_index_gather_tail_and_output_costs_included": true,
+        "units": "ms per joint primitive call",
+        "whole_loss_speed_claim": false
+      }
+    ],
+    "COMPACT_TABLE_RESULT": [
+      {
+        "passed": true,
+        "real_shape": true,
+        "training_promotion": false
+      }
+    ]
+  },
+  "table_over_scalar_time_ratio": 19.041539081070553,
+  "decision": "Correct but19.04x slower joint primitive. Close this replicated full-value/GpSIMD-gather layout; no full-loss or training integration.",
+  "training_promotion": false
+}
