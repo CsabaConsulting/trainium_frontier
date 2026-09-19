@@ -226,3 +226,17 @@ result: the absolute forward saving is4.3443ms, under1% of a500ms whole update.
 Next gate: exact compiled original Linear-head loss/input/master gradients,
 master accumulation/cache refresh across updates, then charged full FW/BW.
 No approximate special function, head BF16-logit rounding or quality claim.
+
+### Source107 autograd gate contract
+
+The scratch adapter retains original BF16 activation/weight-cache operands,
+saves ordinary FP32 logits, and uses exact CE backward with BF16 gradient
+output at the existing head boundary. Normal autograd carries the BF16 cache
+gradient to its FP32 master. A real transpose is charged on EVERY forward,
+without persistent cached weights between calls. Compare compiled original
+Linear (whose FP32 accumulator is preserved into loss) exactly for loss,
+input gradient and master gradient. Include zero/tiny/outlier/saturated inputs,
+arbitrary upstream gradients, mean/none reductions, two distinct accumulated
+microbatches and a deterministic master update followed by cache refresh.
+Independent FP64 projection and frozen-CE gates remain in the previous probe.
+No GPT installation, eager-logit equivalence, optimizer or quality claim.
