@@ -1,16 +1,19 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19, 01:26 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19, 01:40 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
 ## Ready requests and active work
 
-Latest: packed FP8 model integration passes. Fresh native BF16 whole-step control
-is running on trn21; FP8 candidate waits for its clean postflight. trn22 is clean
-after the gradient GEMM's repack-byte diagnostic failure; wave92 will classify
-signed zeros and retain all arithmetic bounds. Watchers: trn21 wave89, trn22
-wave91 until repointed. New source and recovery push at01:21:59 is verified.
+Latest: packed FP8 integration passes but the whole step loses17.7363%:
+587.956385 versus499.384107 ms on the same trn21/source/configuration. Caller
+FP8 microstep trace finished clean01:38:13; matching native trace launched on
+trn22 at01:40:07. Preserve/ingest/map their binaries, then localize the extra
+85.0014 ms in two-microbatch compute. No FP8 quality promotion. Wave92 gradient
+dots pass but gain only0.56–1.65%; wave93 fused FP8 data backward passes but
+loses12.72% to native BF16. Watchers both wave89. Latest source and heavy backup
+receipts are under out/fresh-start-{backup,artifact-backup}/latest.json.
 
 Measured FP8 progress and the BF16 layout reversal are summarized at the top of
 `fresh-start-results-2026-09-18.md`. No FP8 quality gain is established.
@@ -546,3 +549,27 @@ independence. A compiled BF16 chain has its own independent FP64 propagated
 rounding bound before timing. Charge both extra transposed caches and two data
 backward calls per update. Weight-gradient products/master accumulation and
 model integration are still excluded; this is not full FP8 backward.
+
+## 2026-09-19 01:40 UTC — Caller regression and backward-stage result
+
+Wave89 clean paired phase runs establish a17.7363% complete-step regression,
+mostly in microstep compute (+85.0014 ms), not just refresh (+2.52845 ms).
+All actual wrapper/cache/FP32 accumulation and FP8 training-independence gates
+passed before this comparison. Native BF16 evaluation remains the declared
+prediction path. Keep the independently correct candidate as diagnostic source;
+no quality run until a new complete-step improvement crosses3%.
+
+Wave92 proves both gradient GEMMs against independent quantizers/FP8 pair
+bounds, including tiny, cancelling and outlier gradients. The signed-zero
+repack mismatch is fully classified, not numerically relaxed. Wave93 fuses
+G@Wdown, BF16 ReLU-square derivative and dPre@Wup. It passes9 cases, exact
+agreement with separate FP8 stages, and saves9.54% versus those separate calls;
+it still loses12.72% to the BF16 chain. Weight-gradient products and autograd
+integration remain ungated. Diagnose complete caller dataflow before continuing
+small FP8 product variants.
+
+Both caller trace jobs use source dcd6b80 and rank0 device/runtime recording
+with all ranks active. Same-host non-profiled timing is already preserved;
+cross-host trace durations do not replace it. The older wave5 remote duplicate
+was pruned under the host lock only after local, remote and GitHub preservation
+verification; exact maintenance manifest retained.
