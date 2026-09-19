@@ -1,9 +1,9 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 17:36 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 17:40 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## FP8 output-rank gates and native control running — CURRENT
+## FP8 output-rank timing active; pack32 optimizer comparison prepared — CURRENT
 
 - Source147 streaming completed clean13:34:10.966945 while the session was
   idle. Median570.476580ms versus same-source resident562.968046ms,1.334%
@@ -16,14 +16,13 @@ Use current manifests/postflights before dispatch; do not restart completed jobs
   gradient shape restored explicitly; short padded calls retain the FP8 row
   path. Original11-case numerical and real-Linear gates extended, no relaxed
   tolerances. Local syntax passes; hardware checks and speed remain pending.
-- trn21 ACTIVE `fs-w148-native-control-phase-r1`, guard1526371, started
-  17:26:38.603375 with clean preflight;5warmups+30timed complete-model updates
-  and four model postchecks. Native control is independent of candidate gates.
-- trn22 ACTIVE `fs-w148-fp8-output-rank-gates-r1`, guard1837442, started
-  17:28:26.323710 with clean preflight. The11-case independent numerical gate
-  including real32768 tokens PASSES, exact retained outputs/gradients/cache
-  checks. Real-Linear integration and final clean postflight remain pending.
-  No whole-model hardware completion or speed claim yet.
+- trn21 native control COMPLETE/clean17:36:34.847072,488.035319ms median,
+  5warmups/30timed updates and all four model postchecks. Its summary links
+  raw-log/postflight hashes; the native coordinator completed17:36:45.898.
+- trn22 output-rank gates COMPLETE/clean17:36:47.362014:11 independent cases
+  including32768 tokens and real-Linear cached/uncached widths256/1024, exact
+  retained outputs/master/input gradients, accumulation, cache refresh, short
+  padding/row independence and native evaluation/restore. Summary preserved.
 - Prepared fixed trn22 sequence: adopt those gates, then source148 resident
   compact FP8 control, then direct-rank FP8 candidate. These two timings share
   host/source; trn21 native is not a matched FP8 reference. Each request has a
@@ -32,17 +31,31 @@ Use current manifests/postflights before dispatch; do not restart completed jobs
   `fresh_start_sequence.py` and two exact request-digest plans are locally
   validated against completed hardware records and21 invalid cases. Coordinator
   source975ef2a is committed. Detached local coordinators STARTED17:35:45UTC:
-  native PID6907 (30-minute limit), trn22 PID6908 (90-minute limit). Both adopted
-  the existing dispatches and synced successfully17:35:52. Exact plan/helper
+  native PID6907 (completed), trn22 PID6908 (90-minute limit). Both adopted
+  the existing dispatches and synced successfully17:35:52. The trn22 coordinator
+  verified gate completion and launched resident control with clean preflight:
+  `fs-w148-fp8-resident-control-phase-r1`, guard1842012,17:37:46.858660.
+  Direct-output-rank candidate remains queued behind its clean/four-check result.
+  Exact plan/helper
   hashes, PIDs, logs and state are recorded in their coordinator-launch/sequence
   receipts. Do not change a running plan, prepared request or coordinator/launch/
   sync helper: hash mismatch stops advancement. The native sequence only
   collects/verifies its one control and stops. Backup cron does not select jobs.
+- New trn21 three-step plan adopts the completed native control, then runs
+  current-inventory reciprocal/ownership gates and the pack32/GA1 candidate.
+  Source98's prior reciprocal comparison usedpack16/GA2 (1.128% improvement);
+  no pack32 reciprocal timing was found. Kernel/adapter bytes match source98.
+  The new real-inventory gate must pass24 rank/stage checks plus four composition
+  records before timing. Plan/wrapper checks pass locally; commit before launch.
+  See `fresh-start-reciprocal-pack32-2026-09-19.md`. This is bounded composition
+  alongside FP8, not a seed sweep or automatic quality promotion.
 - Remaining priorities: serial QKV preserving Parameters/Muon states/fast RoPE,
   then wider FP8 projection coverage and measured optimizer/loss combinations.
   NLP ideas remain feasibility candidates alongside the kernel campaign.
-- Last verified source push60f5374, snapshota6c80f07,17:30:50UTC, includes
-  source148 and stream completion, both remote retrievals complete. Frozen public best
+- Last verified source push884645a, snapshot660e20bc,17:36:53UTC, includes
+  bounded coordinators and early numerical gates. That deliberate checkpoint
+  skipped remote retrieval; live coordinators continue mirroring exact job logs
+  and the next cron cycle retrieves both hosts. Frozen public best
   remains0.9928513116311253; no competition submission or seed sweep.
 
 ## Matched width1152 evaluation and FP8 consumer comparison — 13:28 UTC

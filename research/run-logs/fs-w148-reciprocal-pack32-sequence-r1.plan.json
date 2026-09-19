@@ -1,0 +1,179 @@
+{
+  "label": "fs-w148-reciprocal-pack32-sequence-r1",
+  "max_seconds": 3600,
+  "purpose": "Adopt completed native trn21 control, run current-inventory exact ownership/reciprocal gate, then one matched pack32 candidate. Stop on any failed gate or unclean postflight. No automatic quality trial.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w148-native-control-phase-r1.request.json",
+      "sha256": "dca476d77a73e3cdd37f3326940090e6f2cb8ccc7a35013726fdccc5d5c1a1be",
+      "requirements": [
+        {
+          "marker": "PHASE_JSON",
+          "count": 1,
+          "fields": {
+            "world_size": 4,
+            "lnc": "2",
+            "grad_accum": 1,
+            "micro_tokens": 131072,
+            "compile": true,
+            "adaptive_nki_ce": true,
+            "optimizer_ownership": true,
+            "optimizer_owner_calls": 35,
+            "pack_factor": 32,
+            "fp8_mlp_full": false,
+            "fp8_mlp_packed": false,
+            "fp8_mlp_compact_saves": false,
+            "fp8_mlp_stream_packed_weights": false,
+            "fp8_mlp_preserve_output_rank": false,
+            "integrated_nki_local_conv": true,
+            "integrated_bf16_norm_output": true
+          },
+          "lengths": {
+            "steps": 30
+          },
+          "phase_timing": true
+        },
+        {
+          "marker": "NATIVE_POST_CHECK_JSON",
+          "count": 4,
+          "fields": {
+            "passed": true,
+            "parameters_and_gradients_finite": true,
+            "logits_finite": true,
+            "future_max_abs": 0.0,
+            "other_batch_max_abs": 0.0,
+            "repeated_call_max_abs": 0.0
+          },
+          "unique_field": "rank",
+          "values": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w148-owned-reciprocal-current-gates-r1.request.json",
+      "sha256": "5577e205c426ccfb1f69678a1c5634f99ac8c5ebdec9d6319a369c71f73f2c39",
+      "requirements": [
+        {
+          "marker": "OPTIMIZER_OWNERSHIP_EQUIVALENCE",
+          "count": 24,
+          "fields": {
+            "exact_reference": true,
+            "failure_count": 0,
+            "all_rank_weight_bytes_exact": true
+          },
+          "unique_field": "rank",
+          "values": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            2,
+            2,
+            2,
+            2,
+            2,
+            2,
+            3,
+            3,
+            3,
+            3,
+            3,
+            3
+          ]
+        },
+        {
+          "marker": "OPTIMIZER_OWNERSHIP_ADAMW_COMPOSITION",
+          "count": 4,
+          "fields": {
+            "math_mode": 2,
+            "replicated_same_math_exact": true,
+            "cross_rank_weights_exact": true,
+            "wrong_math_checkpoint_rejected": true
+          },
+          "unique_field": "rank",
+          "values": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w148-owned-reciprocal-pack32-phase-r1.request.json",
+      "sha256": "d2acb2b00aaf4c24b98d9208349b322f15c9b1adfa56dbec48e8f0c9ffd274fe",
+      "requirements": [
+        {
+          "marker": "PHASE_JSON",
+          "count": 1,
+          "fields": {
+            "world_size": 4,
+            "lnc": "2",
+            "grad_accum": 1,
+            "micro_tokens": 131072,
+            "compile": true,
+            "adaptive_nki_ce": true,
+            "optimizer_ownership": true,
+            "optimizer_owner_calls": 35,
+            "pack_factor": 32,
+            "fp8_mlp_full": false,
+            "fp8_mlp_packed": false,
+            "fp8_mlp_compact_saves": false,
+            "fp8_mlp_stream_packed_weights": false,
+            "fp8_mlp_preserve_output_rank": false,
+            "integrated_nki_local_conv": true,
+            "integrated_bf16_norm_output": true,
+            "nki_adamw_fp32": true,
+            "nki_adamw_math_mode": 2
+          },
+          "lengths": {
+            "steps": 30
+          },
+          "phase_timing": true
+        },
+        {
+          "marker": "NATIVE_POST_CHECK_JSON",
+          "count": 4,
+          "fields": {
+            "passed": true,
+            "parameters_and_gradients_finite": true,
+            "logits_finite": true,
+            "future_max_abs": 0.0,
+            "other_batch_max_abs": 0.0,
+            "repeated_call_max_abs": 0.0
+          },
+          "unique_field": "rank",
+          "values": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "marker": "RECIPROCAL_PACK32_PHASE_COMPLETE",
+          "count": 1,
+          "fields": {
+            "candidate_updates_positive": true,
+            "full_model_timing_complete": true,
+            "quality_promotion": false
+          }
+        }
+      ]
+    }
+  ]
+}

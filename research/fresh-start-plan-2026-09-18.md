@@ -1,6 +1,6 @@
 # Fresh-start campaign — 2026-09-18
 
-**Current result, 2026-09-19 17:36 UTC:** best matched public BPB is
+**Current result, 2026-09-19 17:40 UTC:** best matched public BPB is
 **0.9928513116311253**, source98 dense 6x1024 with pack32/GA1, no ngrams and
 seed42. The frozen standalone source129 package reproduces those checkpoint
 logits exactly; an independent cold 30-minute rehearsal scored 0.9938556748843932
@@ -21,8 +21,9 @@ reproduces562.968ms with all four model checks; its streamed whole-model
 comparison is complete/clean570.477ms,1.334% slower with identical diagnostic
 loss and all four checks. Source148 implements direct BxTxC output while
 preserving the same arithmetic, saves and four backward products. Its independent
-numerical/real-Linear gates are running on trn22, while trn21 runs a fresh native
-control. A fixed bounded trn22 resident-then-direct-rank comparison is prepared;
+numerical/real-Linear gates passed with clean postflight on trn22. A fresh native
+control on trn21 is clean488.035319ms with four numerical postchecks. The fixed
+bounded trn22 resident-then-direct-rank comparison is running;
 source-matched numerical results and clean postflight gate every transition.
 Ordinary BF16 Linear
 tiles shrink around FP8 in the observed profile; weight lifetime and output
@@ -45,6 +46,11 @@ The user's dictionary/parser/classic-NLP ideas, active-venv dependency audit,
 20K-training-document structure sample and bounded alternative probability
 models are documented in `fresh-start-structured-priors-and-fp8-scope-2026-09-19.md`.
 No new language assets, pretrained NLP models or grammar masks were installed.
+The freed trn21 has a prepared current-inventory reciprocal/ownership gate and
+pack32/GA1 candidate against its nearby native control; the former reciprocal
+comparison usedpack16/GA2. No new approximation, seed sweep or automatic quality
+trial is involved. Exact preparation and sequence receipts are in the kernel
+queue and reciprocal-pack32 note.
 
 **Earlier result, 2026-09-19 00:21 UTC:** matched larger public BPB is
 **0.9938106631483421**, improved from0.9973302213667847. The dense6x1024 model
