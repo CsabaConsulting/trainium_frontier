@@ -18,17 +18,20 @@ CE alone. The previous larger results0.9973302214 (T2048/pack8/ownership) and
 0.9974687137 (T1024/pack16/original fused AdamW) remain reproducible checkpoints.
 No seed sweep or new function approximation is in the winning run.
 
-FP8 token-row and fixed-input-scale variants pass declared forward/STE backward
-and master-accumulation gates, but still lose complete component timing. Fixed
-input gives17.926315ms versus18.019795ms adaptive token rows (0.519% gain),
-15.672957ms native BF16 and14.629534ms NKI BF16 cache. The trace exposes an
-additional compiler-generated transpose and reported spills around the token-row
-kernel; a matching backward orientation is the next bounded experiment.
-A separate BF16 head/loss memory-boundary probe keeps FP32 arithmetic and
-requires exactly matching loss/gradients. Full FP8 backward remains unimplemented.
-Compact full-value tables passed accuracy but lost19.04x; stronger rsqrt
+FP8 token-row backward passes the declared numerical gates and reduces complete
+component time from 17.920212 to 16.515157 ms (7.84%). Native BF16 is 15.675626 ms,
+so there is still no FP8 speed promotion. Its new paired trace is being ingested.
+Packed legacy-FP8 weight layouts prepared once per update are the next prototype.
+
+The BF16 loss boundary passes component gates on pre-rounded logits, but fails
+the compiled head integration gate. The follow-up diagnostic isolates the cause:
+original compiled head logits retain FP32 accumulator values, while the proposed
+boundary rounds them to BF16. The next candidate retains those logits and tests
+only the head's backward cast boundary. The failed exact gate is not relaxed.
+
+Compact full-value tables passed accuracy but lost 19.04x. Stronger rsqrt
 corrections and standalone exponential polynomials also lost timing. Reciprocal
-refinement passed optimizer integration but is absent from the quality run.
+refinement passed optimizer integration but is absent from the best quality run.
 
 Current requests and recovery steps are in `RESUME.md` and the kernel queue.
 

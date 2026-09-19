@@ -39,8 +39,9 @@ described as exactly differentiating the previous saved-value surrogate.
    boundary; a framework dtype named E4M3 does not establish identical encoding.
 3. **Producer/statistic fusion:** investigate producing squared ReLU and its
    range statistic together. Ordinary `nisa.activation` reduction is sum-only
-   in the skill reference. `activation_reduce`/`activate2` have different
-   contracts; inspect the installed SDK before coding. A maximum of unrounded
+   in the skill reference. `activation_reduce` wraps the same sum-only operation. Installed SDK
+   inspection confirms `activate2` is NC-v4-only, so it is unavailable on Trn2.
+   A fused maximum needs another documented NC-v3 route. A maximum of unrounded
    squares must be rounded consistently with the saved BF16 hidden values.
    Retain exact metadata/quantizer and stage tests; an unsupported API is not a
    valid implementation. Moving work to Scalar Engine can also lose throughput.

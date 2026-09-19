@@ -90,17 +90,21 @@ def build_kernels():
         return loss, lse
 
     @nki.jit
-    def backward(z, tgt, lse, g, lanes: int = 2):
-        """Return [N, V] gradients in the logits dtype, partitioning rows.
+    def backward(z, tgt, lse, g, lanes: int = 2, round_bf16_output: bool = False):
+        """Return [N, V] gradients, normally in the logits dtype.
 
         Args:
             z, tgt, lse: Same inputs and saved logsumexp as forward.
             g: Arbitrary FP32 [N, 1] upstream loss gradient.
             lanes: Physical cores in the matching launch grid.
+            round_bf16_output: Separately gated head-only contract. Preserve
+                FP32 logits/arithmetic, but round the output to BF16 for a
+                consumer that already has that backward cast boundary.
         Returns:
-            Original FP32 softcap15/CE derivative, rounded to BF16 only at
-            the output when the input was BF16. This replaces the caller's
-            existing cast boundary, not the internal gradient arithmetic.
+            Original FP32 softcap15/CE derivative, rounded at the output when
+            the input was BF16 or round_bf16_output is enabled. The latter
+            requires a matching consumer boundary; it is not exact for an
+            arbitrary FP32-logit leaf's gradient.
         """
         rows_count, vocab = z.shape
         partitions = 128
@@ -110,7 +114,8 @@ def build_kernels():
         assert lse.dtype == nl.float32 and g.dtype == nl.float32
         assert tgt.shape == (rows_count, 1) and lse.shape == (rows_count, 1)
         assert g.shape == (rows_count, 1)
-        dz = nl.ndarray(z.shape, dtype=z.dtype, buffer=nl.shared_hbm)
+        output_dtype = nl.bfloat16 if round_bf16_output else z.dtype
+        dz = nl.ndarray(z.shape, dtype=output_dtype, buffer=nl.shared_hbm)
         indices = nl.ndarray((partitions, vocab), dtype=nl.float32, buffer=nl.sbuf)
         nisa.iota(dst=indices, pattern=[[1, vocab]], offset=0, channel_multiplier=0)
         for tile in nl.affine_range(rows_count // (partitions * lanes)):
@@ -143,7 +148,7 @@ def build_kernels():
             nisa.scalar_tensor_tensor(dst=capped_unit, data=temporary,
                                       op0=nl.subtract, operand0=1.0, reverse0=True,
                                       op1=nl.multiply, operand1=logits)
-            if z.dtype == nl.bfloat16:
+            if output_dtype == nl.bfloat16:
                 rounded = nl.ndarray((partitions, vocab), dtype=nl.bfloat16, buffer=nl.sbuf)
                 nisa.tensor_copy(dst=rounded, src=capped_unit)
                 nisa.dma_copy(dst=dz[rows], src=rounded)

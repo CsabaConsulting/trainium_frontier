@@ -8,14 +8,20 @@ Forward gates separately validate every saved value and token independence.
 import torch
 
 
-def make_autograd(forward, relu_token_major=False, token_row_backward=False):
+def make_autograd(forward, relu_token_major=False, token_row_backward=False,
+                  packed_weights=False):
     if token_row_backward and not relu_token_major:
         raise ValueError('Token-row backward requires token-row saved ReLU')
     class FP8Island(torch.autograd.Function):
         @staticmethod
-        def forward(ctx, x, up_master, down_master, up_cache, down_cache, up_meta, down_meta):
-            result, saved_relu, quantized_x, quantized_hidden = forward(
-                x, up_cache, down_cache, up_meta, down_meta)
+        def forward(ctx, x, up_master, down_master, up_cache, down_cache, up_meta, down_meta,
+                    packed_up=None, packed_down=None):
+            if packed_weights:
+                result, saved_relu, quantized_x, quantized_hidden = forward(
+                    x, up_cache, down_cache, up_meta, down_meta, packed_up, packed_down)
+            else:
+                result, saved_relu, quantized_x, quantized_hidden = forward(
+                    x, up_cache, down_cache, up_meta, down_meta)
             ctx.save_for_backward(quantized_x, up_cache, down_cache, saved_relu, quantized_hidden)
             ctx.up_dtype, ctx.down_dtype = up_master.dtype, down_master.dtype
             return result
@@ -38,7 +44,8 @@ def make_autograd(forward, relu_token_major=False, token_row_backward=False):
                 dx = derivative_pre_t.T @ up
                 dup = (derivative_pre_t @ x).to(ctx.up_dtype)
             ddown = (gradient.T @ activated).to(ctx.down_dtype)
-            return dx, dup, ddown, None, None, None, None
+            gradients = (dx, dup, ddown, None, None, None, None)
+            return gradients + (None, None) if packed_weights else gradients
     return FP8Island.apply
 
 

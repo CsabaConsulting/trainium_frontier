@@ -1,6 +1,6 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19, 00:21 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19, 00:41 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
@@ -325,3 +325,46 @@ The follow-on precision/cache/gradient contracts are now detailed in
 input scaling can factor out of the token contraction in weight gradients;
 per-token scales cannot. Packed FP8 caches, producer/statistic fusion, data
 gradients and weight gradients remain separately gated design candidates.
+
+### Compiled head boundary mismatch (00:41 UTC)
+
+Wave82's exact Linear/head integration gate fails on the first nonzero compiled
+case (256 rows, 256 channels, weight std 0.001). Eager loss and gradients agree;
+compiled maximum differences are 0.000121117 in loss, 0.00000762939 in input
+gradient and 0.001953125 in FP32 master gradient. The host is clean. Both
+prepared whole-step requests are blocked by this gate, not queued for automatic
+execution. The component's pre-rounded-logit result remains valid in its domain.
+
+A separate rounding diagnostic captures compiler-input MLIR and compares
+loss-only, exposed-logit, standalone-head and frozen-logit CE paths. Fresh heads
+and checked cache values distinguish arithmetic changes from stale weights.
+Exposing logits can itself change compilation, so its effect is measured.
+No numerical bound is loosened and no training promotion follows from this test.
+
+Installed SDK inspection also establishes that `activate2` is NC-v4-only; it
+cannot implement a fused max reduction on these NC-v3 instances. Ordinary
+`activation` has a sum reduction, and `activation_reduce` wraps it. Producer/max
+fusion needs a different documented NC-v3 route or remains a design idea.
+
+### Root cause and two narrower experiments (00:47 UTC)
+
+Wave83 isolates the head mismatch across six width/weight-scale cases. Compiled
+original logits retain FP32 accumulator values; the candidate equals their BF16
+rounding exactly. Exposing logits changes neither loss, and frozen-logit CE
+reproduces each result exactly. The full BF16 forward boundary is therefore
+closed as an exact optimization of this compiled head. Its standalone component
+speed result remains limited to pre-rounded inputs. Do not promote that result.
+
+The new **gradient-only boundary** retains the original FP32 logits and forward
+loss, but emits a BF16 CE derivative for the head's existing backward cast.
+An arbitrary FP32-logit leaf would have a different gradient, so this is a
+head-consumer contract requiring exact input and FP32-master gradients under
+eager and compiled execution. It is separately gated; the earlier failed gate
+is unchanged. The ready probe charges the real head/loss FW/BW after exact gates.
+
+The new **packed FP8 cache** prototype produces both the existing BF16 backward
+cache and a raw-byte legacy-FP8 GEMM layout once per update. Its first probe checks
+CPU-decoded values, contraction layout, repeated bytes, cache versions, finite
+BF16 alphabet, tiny/outlier/zero values and real dimensions. This is only the
+cache boundary; full MLP stages, backward and charged update timing come next.
+PyTorch E4M3FN encoding is not assumed to match these raw legacy-E4M3 bytes.

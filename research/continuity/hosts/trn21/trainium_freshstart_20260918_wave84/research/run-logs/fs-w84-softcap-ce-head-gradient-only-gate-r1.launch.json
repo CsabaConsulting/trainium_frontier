@@ -1,0 +1,56 @@
+{
+  "host": "trn21",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave84",
+  "expected_commit": "c82d388d3b3668c9f61006a252c6ec693b3b4386",
+  "label": "fs-w84-softcap-ce-head-gradient-only-gate-r1",
+  "purpose": "Preserve original compiled FP32 logits; gate separately the BF16 derivative output at the existing head backward cast. Exact loss, BF16 input gradients and FP32 master gradients across weight scales and real dimensions, eager/compiled; benchmark full head/loss only after every gate.",
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1",
+    "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+    "NEURON_RT_VISIBLE_CORES": "0"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1500s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "/home/ubuntu/trainium_freshstart_20260918_wave84/research/scratch/softcap_ce_head_integration_check.py",
+    "--real-shape",
+    "--gradient-boundary-only",
+    "--benchmark"
+  ],
+  "fingerprint_paths": [
+    "train.py",
+    "research/scratch/softcap_ce_parallel_nki.py",
+    "research/scratch/softcap_ce_parallel_integration.py",
+    "research/scratch/softcap_ce_parallel_integration_check.py",
+    "research/scratch/softcap_ce_bf16_boundary_probe.py",
+    "research/scratch/mlp_fused_bf16_probe.py",
+    "research/scratch/softcap_ce_bf16_integration.py",
+    "research/scratch/softcap_ce_head_integration_check.py"
+  ],
+  "started_at": "2026-09-19T00:48:18.074338+00:00",
+  "hostname": "ip-172-31-34-85",
+  "git_commit": "c82d388d3b3668c9f61006a252c6ec693b3b4386",
+  "source_dirty": false,
+  "preflight_free_bytes": 23063486464,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+    "research/fresh_start_host.py": "8c597adea7c48114bed8f50aa161fdc79b36b49c86c7315e6a58c3ca4e8f5f79",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/fresh_start_backup.py": "c978fd20b6620d0d80c25f8982974e8c4b2ad009edd9da376d784f5cecc3ead3",
+    "research/scratch/softcap_ce_parallel_nki.py": "6b94635b11b3e15239738ff6062d73186466f9bb4e7462771ead0e7f58723959",
+    "research/scratch/softcap_ce_parallel_integration.py": "b76edf10c434cb345ffafe9361b8f15371ec7f3b06ee07366694c4f694479e70",
+    "research/scratch/softcap_ce_parallel_integration_check.py": "c44538d600a8603f4fb698560f75bf00973fcf3939cc84c840825b63c8b84668",
+    "research/scratch/softcap_ce_bf16_boundary_probe.py": "89354f5e0138cc9c9d915ee38a9475c609fca1c4909e0d4f41546496e271b3da",
+    "research/scratch/mlp_fused_bf16_probe.py": "565991e1fb29dcf41c6db58e098891a5e59685b231d6475bed66e465242483ed",
+    "research/scratch/softcap_ce_bf16_integration.py": "c50529c6db09a22ad2302c9c406b18c930e6f93345da04cab3f5b77a6c88787a",
+    "research/scratch/softcap_ce_head_integration_check.py": "f44aefcaf97b113e0b6c098e1faa6c9ec5e5dd7d8f26884d2b355b62ecd1c0a8"
+  }
+}
