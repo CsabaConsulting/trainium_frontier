@@ -1,7 +1,17 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 07:15 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 07:18 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
+
+Current dispatch update: trn21 source140
+2a6f267b443e262bb9d7955e06d539f603dc4edc is running
+fs-w140-full-fp8-native-control-phase-r1, PID1383339, started07:16:23, clean
+preflight. Candidate request out/fs-w140-full-fp8-candidate-phase-r1.request.json
+is prepared; launch only after control completes clean with four postchecks.
+Watcher trn21=140 from07:16:23, trn22=129. GitHub source140/snapshot22cd791
+verified07:16:04. Heavy backup completed07:14:17:57 artifacts verified, no errors.
+New dead-BF16-output investigation is recorded in the full-FP8 diagnosis note;
+it is queued behind current comparison, not yet implemented or measured.
 
 ## Submission cold launch passes; fresh public evaluation active — 2026-09-19 07:15 UTC
 
