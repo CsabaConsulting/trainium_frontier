@@ -56,7 +56,7 @@ def build_kernels():
 
     @nki.jit
     def weight_product(left_bytes, right_bytes, left_metadata, right_metadata,
-                       lanes: int = 2, grouped_io: bool = False):
+                       lanes: int = 2, grouped_io: bool = False, balanced_io: bool = False):
         """[T,M].T @ [T,N], double-row FP8 with sequential inverse scaling.
 
         The contraction pairs corresponding positions in adjacent128-token
@@ -70,6 +70,7 @@ def build_kernels():
         assert tokens == other_tokens and tokens % 256 == 0
         assert outputs % (128 * lanes) == 0 and inputs % 256 == 0
         assert lanes in (1, 2)
+        assert not balanced_io or grouped_io
         assert left_metadata.shape == right_metadata.shape == (128, 3)
         assert left_metadata.dtype == right_metadata.dtype == nl.float32
         width = min(512, inputs)
@@ -81,8 +82,11 @@ def build_kernels():
         nisa.dma_copy(dst=left_meta, src=left_metadata)
         nisa.dma_copy(dst=right_meta, src=right_metadata)
         if grouped_io:
-            block_m = min(256, outputs // lanes)
-            block_n = min(2048, inputs)
+            # A512x1024 output group uses all eight banks with a smaller
+            # summed operand-panel width than256x2048. It also fills the four
+            # otherwise idle banks of the original up-projection layout.
+            block_m = min(512 if balanced_io else 256, outputs // lanes)
+            block_n = min(1024 if balanced_io else 2048, inputs)
             row_groups, column_groups = block_m // 128, block_n // width
             assert outputs % (block_m * lanes) == 0 and inputs % block_n == 0
             assert row_groups * column_groups <= 8

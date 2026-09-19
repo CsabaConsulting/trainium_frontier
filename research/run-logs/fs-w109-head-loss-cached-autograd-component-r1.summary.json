@@ -1,0 +1,33 @@
+{
+  "shape": [
+    16384,
+    1024,
+    8192
+  ],
+  "samples_ms": {
+    "native": [
+      18.202053834102117,
+      18.196211831915814,
+      18.2201505813282
+    ],
+    "cached": [
+      14.09543983269638,
+      14.057903666980565,
+      14.107473665111078
+    ]
+  },
+  "median_ms": {
+    "native": 18.202053834102117,
+    "cached": 14.09543983269638
+  },
+  "units": "ms per head/loss forward and backward",
+  "transpose_per_forward_charged": true,
+  "fp32_master_gradient": true,
+  "optimizer_or_whole_model_included": false,
+  "source_commit": "8d566670d95630eab6d9e49f1cc9a46fe392689a",
+  "host_clean": true,
+  "completed_at": "2026-09-19T03:15:40.142026+00:00",
+  "exact_checks": 20,
+  "improvement_pct": 22.561267200033587,
+  "decision": "Exact complete head FW/BW component passes and wins. Actual GPT/all-parameter gradient gate and whole-step timing required; no quality promotion."
+}

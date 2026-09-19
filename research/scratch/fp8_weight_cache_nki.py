@@ -15,7 +15,7 @@ def build_kernels():
     import nki.isa as nisa
 
     @nki.jit
-    def calibrate(weight):
+    def calibrate(weight, parallel_tiles: bool = False):
         """Return repeated [scale,inverse,amax] metadata for one BF16 matrix.
 
         Args:
@@ -31,18 +31,36 @@ def build_kernels():
         assert weight.dtype == nl.bfloat16 and rows % 128 == 0 and cols <= 4096
         output = nl.ndarray((128, 3), dtype=nl.float32, buffer=nl.shared_hbm)
         maxima = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
-        nisa.memset(dst=maxima, value=0.0)
-        for row in nl.sequential_range(rows // 128):
-            tile = nl.ndarray((128, cols), dtype=nl.bfloat16, buffer=nl.sbuf)
-            high = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
-            low = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
-            nisa.dma_copy(dst=tile, src=weight[row * 128:(row + 1) * 128, :])
-            # Two reductions avoid materializing a full FP32 abs tile.
-            nisa.tensor_reduce(dst=high, data=tile, op=nl.maximum, axis=(1,))
-            nisa.tensor_reduce(dst=low, data=tile, op=nl.minimum, axis=(1,))
-            nisa.tensor_scalar(dst=low, data=low, op0=nl.multiply, operand0=-1.0)
-            nisa.tensor_tensor(dst=high, data1=high, data2=low, op=nl.maximum)
-            nisa.tensor_tensor(dst=maxima, data1=maxima, data2=high, op=nl.maximum)
+        if parallel_tiles:
+            assert rows // 128 <= 512
+            # Independent local maxima permit DMA/reduction overlap. Exact
+            # maximum is associative for the declared finite-input contract;
+            # original exponent policy and final cross-partition reduction stay.
+            local_maxima = nl.ndarray((128, rows // 128), dtype=nl.float32, buffer=nl.sbuf)
+            for row in nl.affine_range(rows // 128):
+                tile = nl.ndarray((128, cols), dtype=nl.bfloat16, buffer=nl.sbuf)
+                high = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
+                low = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
+                nisa.dma_copy(dst=tile, src=weight[row * 128:(row + 1) * 128, :])
+                nisa.tensor_reduce(dst=high, data=tile, op=nl.maximum, axis=(1,))
+                nisa.tensor_reduce(dst=low, data=tile, op=nl.minimum, axis=(1,))
+                nisa.tensor_scalar(dst=low, data=low, op0=nl.multiply, operand0=-1.0)
+                nisa.tensor_tensor(dst=local_maxima[:, nl.ds(row, 1)],
+                                   data1=high, data2=low, op=nl.maximum)
+            nisa.tensor_reduce(dst=maxima, data=local_maxima, op=nl.maximum, axis=(1,))
+        else:
+            nisa.memset(dst=maxima, value=0.0)
+            for row in nl.sequential_range(rows // 128):
+                tile = nl.ndarray((128, cols), dtype=nl.bfloat16, buffer=nl.sbuf)
+                high = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
+                low = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
+                nisa.dma_copy(dst=tile, src=weight[row * 128:(row + 1) * 128, :])
+                # Two reductions avoid materializing a full FP32 abs tile.
+                nisa.tensor_reduce(dst=high, data=tile, op=nl.maximum, axis=(1,))
+                nisa.tensor_reduce(dst=low, data=tile, op=nl.minimum, axis=(1,))
+                nisa.tensor_scalar(dst=low, data=low, op0=nl.multiply, operand0=-1.0)
+                nisa.tensor_tensor(dst=high, data1=high, data2=low, op=nl.maximum)
+                nisa.tensor_tensor(dst=maxima, data1=maxima, data2=high, op=nl.maximum)
         transposed = nl.ndarray((1, 128), dtype=nl.float32, buffer=nl.psum)
         flat = nl.ndarray((1, 128), dtype=nl.float32, buffer=nl.sbuf)
         maximum = nl.ndarray((1, 1), dtype=nl.float32, buffer=nl.sbuf)

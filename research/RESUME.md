@@ -374,3 +374,11 @@ product0.856747/native1.085396ms. Preparation erases down's product advantage.
 Source109 head exact-autograd/component rerun active trn21, watcher109.
 Source110 per-instance GPT training adapter/full caller gate prepared; do not
 run phases before autograd and caller gates pass.
+
+Source109 head autograd COMPLETE clean03:15:40.142026:20exact comparisons,
+real16384x1024head FW/BW14.095440ms versus18.202054native (22.5613% gain),
+every transpose charged. Source110 actual GPT/all-master-gradient gate launched
+trn21, watcher110. Pack32 quality should finish around03:17–03:19; preserve
+checkpoint after clean postflight then launch prepared matched larger eval.
+Source111 FP8 parallel-tile calibration and balanced8-bank grouping are prepared
+for separate controlled stage/component tests after head work.
