@@ -1,6 +1,6 @@
 # Fresh-start campaign — 2026-09-18
 
-**Current result, 2026-09-19 08:26 UTC:** best matched public BPB is
+**Current result, 2026-09-19 09:12 UTC:** best matched public BPB is
 **0.9928513116311253**, source98 dense 6x1024 with pack32/GA1, no ngrams and
 seed42. The frozen standalone source129 package reproduces those checkpoint
 logits exactly; an independent cold 30-minute rehearsal scored 0.9938556748843932
@@ -11,16 +11,22 @@ Source137's complete isolated FP8 MLP is 3.006% faster than its native component
 control after exact dual-cache preparation. Real-Linear integration passed.
 Source140's complete model instead takes 567.095 ms/step versus native 488.702 ms;
 all four numerical checks pass, but its disk-reserve failure is retained. The
-next investigation is actual caller allocation/traffic and unused BF16 saves,
-not an FP8 quality run. Both source140 native/FP8 caller profiles are now active
-under the host protocol. Native profile-r1 hit NRT1204 with extra DMA notification
-logging; its cleanly recovered r2 removes only that optional flag.
+caller profiles now locate most additional time in forward and confirm unused
+BF16 saved activations are still written. The compact-output version passes
+all11 numerical cases and real-Linear cache/master/restore gates. Its nearby
+same-host native/legacy/compact full-step comparison is active on trn22.
+No FP8 speed or BPB promotion. Dropped profile notifications prohibit exact
+traffic/bandwidth claims; raw captures and parquet are preserved locally.
 
-trn21 now has 25.48 GB free after 16 GiB of old compiler diagnostics were fully
-archived and hash-verified locally and on GitHub before remote retirement.
-Shared compilation caches remain intact. The kernel queue, capacity revisit
+Both hosts recovered disk reserve by archiving old compiler diagnostics locally
+and on GitHub, verifying every file before remote retirement. Shared caches
+remain intact. trn21 now gates measured optimizer ownership for width1152:
+native MLP gates and13 actual optimizer-cost cases passed, including the current
+pack32 shape. The kernel queue, capacity revisit
 and `RESUME.md` record the executable next steps and exact job identities.
 The competitive target remains about 0.9749; no seed sweep is planned.
+Serial QKV execution with unchanged Parameters/Muon states and contiguous
+RoPE inputs is queued separately from the older negative architecture trials.
 
 **Earlier result, 2026-09-19 00:21 UTC:** matched larger public BPB is
 **0.9938106631483421**, improved from0.9973302213667847. The dense6x1024 model

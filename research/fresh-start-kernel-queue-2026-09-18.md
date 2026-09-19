@@ -1,6 +1,6 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19 09:01 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19 09:12 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
@@ -26,17 +26,24 @@ No FP8 speed/BPB promotion.
    Cached source hashes match. Keep ordinary-Linear allocation/source attribution
    open; one shared Python line does not identify an individual layer.
 2. Source145 removes the two discarded BF16 outputs in an opt-in full-VJP mode.
-   Its independent byte/four-product and real-Linear lifecycle gates are ACTIVE
-   on trn22. Require exact equivalence before a whole-step speed measurement.
+   Its independent byte/four-product and real-Linear lifecycle gates PASS,
+   including32768 tokens and both256/1024 widths; clean09:09:36.852509. The nearby
+   same-host source145 native/legacy/compact phase comparison starts with the
+   native control ACTIVE on trn22. No whole-step gain is established yet.
 3. Native width guard is corrected; actual pack32/T1024 MLP gates now pass for
    both1024 and1152 channels with clean postflight. Measure new optimizer groups
    before a bounded capacity comparison with the current kernel stack. The new
-   cost probe uses the recorded real model inventory and is ACTIVE on trn21.
-   See the capacity revisit
+   cost probe uses the recorded real model inventory; all13 cases are COMPLETE
+   and clean. Source146 adds measured shape costs and its four-rank exact
+   ownership/state/restore gate is ACTIVE on trn21. See the capacity revisit
    note; old generic ownership costs are not trustworthy at new widths.
 4. Keep reciprocal optimizer composition, reduced calibration work and compact
    function approximations available for measured bottlenecks. The standalone
    polynomial/full-value-table losses remain closed for their tested layouts.
+5. Serial QKV execution is a separate candidate from the old fused-Parameter
+   and parallel-block trials. Preserve three Parameters/Muon states and the
+   contiguous RoPE fast path. The source audit and bounded gates are in
+   `fresh-start-serial-qkv-revisit-2026-09-19.md`; implementation is queued.
 
 Compiler scratch archives now have a staged preservation/retirement procedure,
 so disk reserve does not repeatedly interrupt these comparisons. Every original

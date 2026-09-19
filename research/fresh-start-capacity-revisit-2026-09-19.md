@@ -51,7 +51,13 @@ The existing ownership checker now accepts the exact recorded configuration
 and width1152. It must pass replicated/owned parameter and state equality,
 None/zero gradients, schedules, cache refresh, padding, cross-rank hashes and
 checkpoint continuation before the new plan is used for a complete model phase.
-The broader accuracy gate is prepared, not yet passed.
+Source146 (`1c70da11`) passed that gate at09:11:01.480307 with clean postflight:
+all28 comparisons across four ranks and seven stages are exact, including the
+after-timing state. Owned optimizer plus exchange measured31.90–31.92ms versus
+replicated68.67–69.33ms. This is not a comparison against the former unknown-
+shape ownership plan or a complete-model speed measurement. A nearby same-host
+source146 D1024 control is active; the D1152 whole-model phase follows only
+after its four numerical postchecks and clean postflight.
 
 ## Two implementation restrictions can bias a future width comparison
 

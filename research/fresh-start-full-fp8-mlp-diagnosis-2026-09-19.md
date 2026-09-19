@@ -1,6 +1,6 @@
 # Complete FP8 MLP: component gains and full-model validation
 
-Updated 2026-09-19 09:01 UTC. The original profile below identified online
+Updated 2026-09-19 09:18 UTC. The original profile below identified online
 weight preparation as a concrete cost. Both proposed preparation changes have
 now been implemented and gated; the original profile is retained as evidence.
 
@@ -69,8 +69,11 @@ its file is byte-identical to source140, and the exact Instruction parquet
 hash matches the caller analysis. Rescaling instructions at lines148/185 also
 remain. The five-output forward mode now has a bounded correctness gate on
 trn22 source145 (`63f6cce`), started09:00:04.923393 with clean preflight. The
-source change removes only these unused saves/dequantizations; hardware
-equivalence and whole-model speed are still pending. The frozen submission
+source change removes only these unused saves/dequantizations. Hardware
+equivalence now passes all11 cases and the two real-Linear integration widths,
+with clean postflight09:09:36.852509. The nearby same-host source145
+native/legacy/compact phase sequence has started; whole-model speed is still
+pending. The frozen submission
 is unchanged. Evidence: `run-logs/fs-w140-full-fp8-retained-forward-saves-r1.json`
 and `run-logs/fs-w144-pack32-caller-comparison-r1.json`.
 
@@ -128,7 +131,8 @@ independent CPU quantizer/four-product gates. Ten small cases and optional
 changed masters, accumulation and refreshed caches. The real-Linear checker
 adds `--compact-forward-saves`; the phase timer adds `--fp8-mlp-compact-saves`
 only under the full FP8 mode. These are prepared validation paths, not passed
-hardware results. Source syntax is checked; no tolerances were changed.
+hardware results in their initial preparation record. They subsequently passed
+on source145 as recorded above; no tolerances were changed.
 
 ## Original source124/source125 diagnosis
 
