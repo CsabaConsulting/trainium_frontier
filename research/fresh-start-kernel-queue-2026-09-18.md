@@ -20,7 +20,7 @@ failure and clean recovery are preserved; the larger evaluation is clean.
 | Cached vocabulary head and exact CE |14forward/20head/196GPT checks pass; FW/BW14.095440vs18.202054ms, but whole step689.956164vs500.726543ms |37.79% regression; caller device trace active ontrn21, no quality promotion |
 | Save exact softcap intermediate | Source113 prototype saves FP32 tanh instead of FP32 logits and skips repeated backward tanh | Original20head/loss/dx/master/update/cache checks before timing; request ready |
 | Reciprocal refinement + optimizer ownership |24composition checks; component16.77% faster, whole step1.128% faster | Retain for independently gated combinations; below3% advancement threshold |
-| BF16 integer magnitude maximum | CPU certificate covers all65280finite BF16 encodings; no device implementation yet | Preserve tiny/subnormal metadata, gate exact scales and benchmark before using |
+| BF16 magnitude maximum / fused abs | Source115 fused abs/max passes13cases, including pure subnormals; calibration0.197/0.650ms vs0.344/1.184ms | Gate full weight-product composition; sign masking also passes but is slower than fused abs; integer-code maximum active |
 | Smaller tables / rational composed functions | Design candidates; full-value LUT and standalone polynomial timings lose | Test full producer/consumer costs with independent range/gradient gates |
 
 The following ideas from the retro-computing search have already reached device
@@ -638,3 +638,13 @@ toFP32; all16-bit codes fit exactly. Compare original metadata and zero/tiny/
 subnormal behavior explicitly before use. Reference: installed skill's primary
 API copy `neuron-nki-docs/references/programming/api/api-nki-isa-tensor.md`,
 tensor_reduce and tensor_scalar dtype rules. Not implemented or timed.
+
+
+Source115 amax update,03:48UTC: fused Vector abs/max passes all13CPU/original/
+quantizer/repeat/nonmutation cases. Exact scale policy retained, including pure
+subnormal values. Median calibration falls42.82% at16384x1024 and45.12% at
+16384x4096. Sign-bit masking also passes13cases; large-shape0.755972ms is slower
+than fused abs0.649855ms. Integer magnitude-code reduction is running. The
+source116 composition flag reruns the original10FP8 gradient-product cases and
+charges rescaling, calibration, both byte preparations and the product. No
+speed benefit from these calibration components is yet claimed for a full model.

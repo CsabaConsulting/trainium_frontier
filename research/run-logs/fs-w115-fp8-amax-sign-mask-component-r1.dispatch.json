@@ -1,0 +1,44 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave115",
+    "expected_commit": "93ec0d68f23f157b418c56fc1f9ba70e8ccf8514",
+    "label": "fs-w115-fp8-amax-sign-mask-component-r1",
+    "purpose": "Exact amax implementation alternative. Original/CPU scale and quantizer metadata, pure subnormal/range/real-shape repeat and nonmutation gates before calibration-only timing. No whole-pipeline speed or quality claim.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave115"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "900s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/fp8_amax_probe.py",
+      "--mode",
+      "1",
+      "--real-shape",
+      "--benchmark",
+      "--steps",
+      "12"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/fp8_amax_probe.py",
+      "research/scratch/fp8_weight_cache_nki.py",
+      "research/scratch/fp8_weight_cache_probe.py",
+      "research/scratch/fresh_start_fp8_probe.py",
+      "research/scratch/mlp_fused_bf16_probe.py"
+    ]
+  },
+  "requested_at": "2026-09-19T03:46:32.193977+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w115-fp8-amax-sign-mask-component-r1\", \"pid\": 1641646, \"commit\": \"93ec0d68f23f157b418c56fc1f9ba70e8ccf8514\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave115/research/run-logs/fs-w115-fp8-amax-sign-mask-component-r1.log\", \"started_at\": \"2026-09-19T03:46:37.834942+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

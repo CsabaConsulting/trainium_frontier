@@ -1,0 +1,60 @@
+{
+  "host": "trn22",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave113",
+  "expected_commit": "bcd317f1c86bf4855659b7dc23e5f88492048a51",
+  "label": "fs-w113-fp8-weight-gradient-combined-component-r1",
+  "purpose": "Controlled combined scheduling variant, exact original calibration and FP8 product plus independent10case gates before composed/stage timing. No autograd/quality promotion.",
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1",
+    "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+    "NEURON_RT_VISIBLE_CORES": "0",
+    "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave113"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1200s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "research/scratch/fp8_weight_gradient_probe.py",
+    "--real-shape",
+    "--grouped-io",
+    "--benchmark",
+    "--steps",
+    "12",
+    "--stage-timings",
+    "--parallel-calibration",
+    "--balanced-io"
+  ],
+  "fingerprint_paths": [
+    "research/scratch/fp8_weight_gradient_nki.py",
+    "research/scratch/fp8_weight_gradient_probe.py",
+    "research/scratch/fp8_weight_cache_nki.py",
+    "research/scratch/fp8_mlp_island_probe.py",
+    "research/scratch/fresh_start_fp8_probe.py",
+    "research/scratch/fp8_packed_weight_cache_probe.py"
+  ],
+  "started_at": "2026-09-19T03:41:29.722000+00:00",
+  "hostname": "ip-172-31-32-253",
+  "git_commit": "bcd317f1c86bf4855659b7dc23e5f88492048a51",
+  "source_dirty": false,
+  "preflight_free_bytes": 10163499008,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+    "research/fresh_start_host.py": "8c597adea7c48114bed8f50aa161fdc79b36b49c86c7315e6a58c3ca4e8f5f79",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/fresh_start_backup.py": "c978fd20b6620d0d80c25f8982974e8c4b2ad009edd9da376d784f5cecc3ead3",
+    "research/scratch/fp8_weight_gradient_nki.py": "67b348623ed5b3b0f1c21e30389efcc4c5869dbfb96c0d3499943bf3f74ae8de",
+    "research/scratch/fp8_weight_gradient_probe.py": "8cef07131c61a3c936cff05194ffd006e12f213e428a5398e36e7945715774ac",
+    "research/scratch/fp8_weight_cache_nki.py": "01fe9585ed85dcbca6cd83a5c9443622f83e25c233817faa59ec6c40a49906fc",
+    "research/scratch/fp8_mlp_island_probe.py": "18f1d50186e5df3b7d9efd50adae6125538cb689d7ded7d153bb255f716cd357",
+    "research/scratch/fresh_start_fp8_probe.py": "2235560590e9f3d07d76e1ee3fb4167bee9f59b75110032a6c3ab8b20d7b41e2",
+    "research/scratch/fp8_packed_weight_cache_probe.py": "30f053ee3af0e5bb250a1d0f11c7d9e61c6c6854f14c001b033c30547324b281"
+  }
+}

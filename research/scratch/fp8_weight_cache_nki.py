@@ -15,7 +15,7 @@ def build_kernels():
     import nki.isa as nisa
 
     @nki.jit
-    def calibrate(weight, parallel_tiles: bool = False):
+    def calibrate(weight, parallel_tiles: bool = False, magnitude_mode: int = 0):
         """Return repeated [scale,inverse,amax] metadata for one BF16 matrix.
 
         Args:
@@ -29,9 +29,41 @@ def build_kernels():
         """
         rows, cols = weight.shape
         assert weight.dtype == nl.bfloat16 and rows % 128 == 0 and cols <= 4096
+        assert magnitude_mode in (0, 1, 2, 3)
         output = nl.ndarray((128, 3), dtype=nl.float32, buffer=nl.shared_hbm)
         maxima = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
-        if parallel_tiles:
+        if magnitude_mode:
+            # Independently gated alternatives to the original max/min pair.
+            # 1: clear the BF16 sign bit, then reduce BF16 magnitudes.
+            # 2: reduce unsigned magnitude encodings, decode only the maximum.
+            # 3: fuse arithmetic abs and maximum using one Vector instruction.
+            # Mode2's code integers are <=32639, hence exactly representable
+            # by tensor_reduce's FP32 arithmetic. Subnormal behavior still
+            # needs device comparison with the original; CPU ordering is not
+            # permission to change the calibration contract.
+            assert rows // 128 <= 512
+            local_maxima = nl.ndarray((128, rows // 128), dtype=nl.float32, buffer=nl.sbuf)
+            for row in nl.affine_range(rows // 128):
+                tile = nl.ndarray((128, cols), dtype=nl.bfloat16, buffer=nl.sbuf)
+                nisa.dma_copy(dst=tile, src=weight[row * 128:(row + 1) * 128, :])
+                if magnitude_mode == 3:
+                    magnitudes = nl.ndarray((128, cols), dtype=nl.bfloat16, buffer=nl.sbuf)
+                    nisa.tensor_scalar_reduce(
+                        dst=magnitudes, data=tile, op0=nl.abs, operand0=0.0,
+                        reduce_op=nl.maximum, reduce_res=local_maxima[:, nl.ds(row, 1)])
+                else:
+                    magnitude_bits = nl.ndarray((128, cols), dtype=nl.uint16, buffer=nl.sbuf)
+                    nisa.tensor_scalar(dst=magnitude_bits, data=tile.view(nl.uint16),
+                                       op0=nl.bitwise_and, operand0=32767)
+                    if magnitude_mode == 1:
+                        nisa.tensor_reduce(dst=local_maxima[:, nl.ds(row, 1)],
+                                           data=magnitude_bits.view(nl.bfloat16),
+                                           op=nl.maximum, axis=(1,))
+                    else:
+                        nisa.tensor_reduce(dst=local_maxima[:, nl.ds(row, 1)],
+                                           data=magnitude_bits, op=nl.maximum, axis=(1,))
+            nisa.tensor_reduce(dst=maxima, data=local_maxima, op=nl.maximum, axis=(1,))
+        elif parallel_tiles:
             assert rows // 128 <= 512
             # Independent local maxima permit DMA/reduction overlap. Exact
             # maximum is associative for the declared finite-input contract;
@@ -71,6 +103,10 @@ def build_kernels():
         nisa.nc_transpose(dst=transposed, data=maxima)
         nisa.tensor_copy(dst=flat, src=transposed)
         nisa.tensor_reduce(dst=maximum, data=flat, op=nl.maximum, axis=(1,))
+        if magnitude_mode == 2:
+            maximum_bits = nl.ndarray((1, 1), dtype=nl.uint16, buffer=nl.sbuf)
+            nisa.tensor_copy(dst=maximum_bits, src=maximum)
+            nisa.tensor_copy(dst=maximum, src=maximum_bits.view(nl.bfloat16))
         nisa.tensor_scalar(dst=clamped, data=maximum, op0=nl.maximum,
                            operand0=7.888609052210118e-31)  #2**-100
         nisa.tensor_scalar(dst=exponent, data=clamped.view(nl.uint32),

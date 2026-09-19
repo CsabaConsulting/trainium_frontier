@@ -23,7 +23,7 @@ from mlp_fused_bf16_probe import timing
 
 
 def run(kind, shape, case, functions, calibrate, benchmark, steps, grouped_io=False,
-        stage_timings=False, parallel_calibration=False, balanced_io=False):
+        stage_timings=False, parallel_calibration=False, balanced_io=False, calibration_mode=0):
     tokens, outputs, inputs = shape
     multiply, quantize, product = functions
     generator = torch.Generator().manual_seed(9231 + outputs + inputs)
@@ -64,10 +64,10 @@ def run(kind, shape, case, functions, calibrate, benchmark, steps, grouped_io=Fa
     fdev = factors.to('neuron') if factors is not None else None
     gprime = multiply[2](gdev, fdev, 2) if kind == 'down' else gdev
     require_exact(case + ':' + kind + ':scale_transfer_bf16_boundary', gprime, rescaled)
-    metadata = calibrate[1](gprime, parallel_calibration)
+    metadata = calibrate[1](gprime, parallel_calibration, calibration_mode)
     require_exact(case + ':' + kind + ':gradient_metadata', metadata, left_meta)
-    if parallel_calibration:
-        require_exact(case + ':' + kind + ':parallel_vs_sequential_calibration',
+    if parallel_calibration or calibration_mode:
+        require_exact(case + ':' + kind + ':candidate_vs_original_calibration',
                       metadata, calibrate[1](gprime, False))
     left_bytes = quantize[2](gprime, metadata, 2, False)
     right_bytes = quantize[2](hdev, rmeta_dev, 2, kind == 'down')
@@ -97,7 +97,7 @@ def run(kind, shape, case, functions, calibrate, benchmark, steps, grouped_io=Fa
     original = gradient[:, oi].double().T @ saved[:, ii].double()
     quantization_diagnostic(case + ':' + kind + ':original_bf16_surrogate_fp64', actual[oi][:, ii], original)
     record = dict(kind=kind, case=case, shape=list(shape), passed=True, grouped_io=grouped_io,
-        parallel_calibration=parallel_calibration, balanced_io=balanced_io,
+        parallel_calibration=parallel_calibration, balanced_io=balanced_io, calibration_mode=calibration_mode,
         fp32_master_output=True, exact_previous_bf16_vjp=False,
         scale_transfer_underflow_count=int(((gradient != 0) & (rescaled == 0)).sum()),
         gradient_quantizer_zeroed_nonzero_count=int(((rescaled != 0) & (raw_left == 0)).sum()),
@@ -116,7 +116,7 @@ def run(kind, shape, case, functions, calibrate, benchmark, steps, grouped_io=Fa
             # preparations, long reduction and FP32 master stores. No hidden
             # assumption that forward already returns our byte representation.
             current = multiply[2](gdev, fdev, 2) if kind == 'down' else gdev
-            meta = calibrate[1](current, parallel_calibration)
+            meta = calibrate[1](current, parallel_calibration, calibration_mode)
             a = quantize[2](current, meta, 2, False)
             b = quantize[2](hdev, rmeta_dev, 2, kind == 'down')
             return product[2](a, b, meta, product_meta_dev, 2, grouped_io, balanced_io)
@@ -130,13 +130,13 @@ def run(kind, shape, case, functions, calibrate, benchmark, steps, grouped_io=Fa
                           steps, torch.neuron.synchronize)
         print('FP8_WEIGHT_GRADIENT_BENCH ' + json.dumps(dict(
             kind=kind, shape=list(shape), grouped_io=grouped_io, **measured,
-            parallel_calibration=parallel_calibration, balanced_io=balanced_io,
+            parallel_calibration=parallel_calibration, balanced_io=balanced_io, calibration_mode=calibration_mode,
             current_gradient_scale_and_both_byte_preparations_charged=True,
             saved_forward_scales_assumed=True, extra_forward_scale_stores_not_included=True,
             data_gradients_activation_derivative_optimizer_or_whole_model_included=False)), flush=True)
         if stage_timings:
             stages = {
-                'gradient_calibration': lambda: calibrate[1](gprime, parallel_calibration),
+                'gradient_calibration': lambda: calibrate[1](gprime, parallel_calibration, calibration_mode),
                 'gradient_bytes': lambda: quantize[2](gprime, metadata, 2, False),
                 'activation_bytes': lambda: quantize[2](hdev, rmeta_dev, 2, kind == 'down'),
                 'fp8_product_prepared_operands': lambda: product[2](
@@ -148,7 +148,7 @@ def run(kind, shape, case, functions, calibrate, benchmark, steps, grouped_io=Fa
             separated = timing(stages, steps, torch.neuron.synchronize)
             print('FP8_WEIGHT_GRADIENT_STAGE_TIMINGS ' + json.dumps(dict(
                 kind=kind, shape=list(shape), grouped_io=grouped_io, **separated,
-                parallel_calibration=parallel_calibration, balanced_io=balanced_io,
+                parallel_calibration=parallel_calibration, balanced_io=balanced_io, calibration_mode=calibration_mode,
                 diagnostic_only=True, prepared_inputs_exclude_producer_cost=True,
                 isolated_times_not_additive=True, full_component_above_is_speed_authority=True)), flush=True)
     del actual, repeated, gprime, left_bytes, right_bytes, gdev, hdev
@@ -164,6 +164,7 @@ def main():
     parser.add_argument('--stage-timings', action='store_true')
     parser.add_argument('--parallel-calibration', action='store_true')
     parser.add_argument('--balanced-io', action='store_true')
+    parser.add_argument('--calibration-mode', type=int, choices=(0, 1, 2, 3), default=0)
     args = parser.parse_args()
     assert not args.benchmark or args.real_shape
     assert not args.stage_timings or args.benchmark
@@ -184,20 +185,20 @@ def main():
     for case in ('random', 'zero_gradient', 'zero_activation', 'tiny_gradient',
                  'row_scale_range', 'outliers', 'signed_cancellation'):
         run('down', (512, 256, 512), case, functions, calibrate, False, args.steps,
-            args.grouped_io, False, args.parallel_calibration, args.balanced_io)
+            args.grouped_io, False, args.parallel_calibration, args.balanced_io, args.calibration_mode)
         count += 1
     run('up', (512, 512, 256), 'random', functions, calibrate, False, args.steps,
-        args.grouped_io, False, args.parallel_calibration, args.balanced_io)
+        args.grouped_io, False, args.parallel_calibration, args.balanced_io, args.calibration_mode)
     count += 1
     if args.real_shape:
         for kind, shape in [('down', (16384, 1024, 4096)), ('up', (16384, 4096, 1024))]:
             run(kind, shape, 'real_random', functions, calibrate, args.benchmark,
                 args.steps, args.grouped_io, args.stage_timings,
-                args.parallel_calibration, args.balanced_io)
+                args.parallel_calibration, args.balanced_io, args.calibration_mode)
             count += 1
     print('FP8_WEIGHT_GRADIENT_RESULT ' + json.dumps(dict(
         passed=True, cases=count, real_shape=args.real_shape, grouped_io=args.grouped_io,
-        parallel_calibration=args.parallel_calibration, balanced_io=args.balanced_io,
+        parallel_calibration=args.parallel_calibration, balanced_io=args.balanced_io, calibration_mode=args.calibration_mode,
         full_fp8_backward_or_autograd_integration=False, quality_gain_established=False)), flush=True)
 
 

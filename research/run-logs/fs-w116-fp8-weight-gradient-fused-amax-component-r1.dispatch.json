@@ -1,0 +1,51 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave116",
+    "expected_commit": "b435826feb6c7cfd9316605e22a7a0e84fba1250",
+    "label": "fs-w116-fp8-weight-gradient-fused-amax-component-r1",
+    "purpose": "Compose13case-gated exact fused abs/max with balanced8bank FP8 products. Repeat original10gradient/quantizer/pair/product/nonmutation gates; all scale/calibrate/two byte preparations charged. No whole FP8 autograd/model speed or quality claim.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave116"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/fp8_weight_gradient_probe.py",
+      "--real-shape",
+      "--grouped-io",
+      "--benchmark",
+      "--steps",
+      "12",
+      "--stage-timings",
+      "--parallel-calibration",
+      "--balanced-io",
+      "--calibration-mode",
+      "3"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/fp8_weight_gradient_nki.py",
+      "research/scratch/fp8_weight_gradient_probe.py",
+      "research/scratch/fp8_weight_cache_nki.py",
+      "research/scratch/fp8_mlp_island_probe.py",
+      "research/scratch/fresh_start_fp8_probe.py",
+      "research/scratch/fp8_packed_weight_cache_probe.py",
+      "research/scratch/fp8_amax_probe.py",
+      "research/scratch/fp8_weight_cache_probe.py"
+    ]
+  },
+  "requested_at": "2026-09-19T03:50:09.111547+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w116-fp8-weight-gradient-fused-amax-component-r1\", \"pid\": 1643620, \"commit\": \"b435826feb6c7cfd9316605e22a7a0e84fba1250\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave116/research/run-logs/fs-w116-fp8-weight-gradient-fused-amax-component-r1.log\", \"started_at\": \"2026-09-19T03:50:15.240949+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}
