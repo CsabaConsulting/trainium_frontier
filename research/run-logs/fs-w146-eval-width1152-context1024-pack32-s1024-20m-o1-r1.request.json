@@ -1,0 +1,42 @@
+{
+  "host": "trn21",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave146",
+  "expected_commit": "1c70da11c4dd9bb789afca0fa3088842874a1efd",
+  "label": "fs-w146-eval-width1152-context1024-pack32-s1024-20m-o1-r1",
+  "purpose": "Matched20,971,520-token public evaluation of one seed42 width1152 quality trial. Training3046updates/1784.7s/charged1785.2s, clean postflight. Checkpoint independently hashed locally and verified by GitHub asset digest. Protected scorer/world1/B1/T1024/O1/no global autocast, expected83,462,186bytes. No private score or submission.",
+  "fingerprint_paths": [],
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_RT_VISIBLE_CORES": "0",
+    "NEURON_CC_FLAGS": "--optlevel=1",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1800s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "prepare.py",
+    "eval-public",
+    "--train-py",
+    "train.py",
+    "--checkpoint",
+    "/home/ubuntu/trainium_freshstart_20260918_wave146/out/fs-w146-dense1152-context1024-pack32-owned-ce-1800-r1/final.pt",
+    "--seq-len",
+    "1024",
+    "--eval-tokens",
+    "20971520",
+    "--timeout-seconds",
+    "1200"
+  ],
+  "prerequisite_receipts": {
+    "training": "fs-w146-dense1152-context1024-pack32-owned-ce-1800-r1.summary.json",
+    "postflight": "fs-w146-dense1152-context1024-pack32-owned-ce-1800-r1.postflight.json",
+    "preservation": "fs-w146-dense1152-context1024-pack32-owned-ce-1800-r1.preservation.json",
+    "cloud": "fs-artifact-backup-fs-w146-dense1152-context1024-pack32-owned-ce-1800-r1.json"
+  },
+  "checkpoint_sha256": "aa57fe35f10ca2070499b68a3d3fc38a5d04d8bac0bae4d0722ab907d3a0afb3"
+}
