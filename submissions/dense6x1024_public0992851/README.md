@@ -33,6 +33,8 @@ standalone scorer calls `load_for_eval` and computes its own score.
 Packaging validation: the static checker has no warnings; CPU and Trainium
 checkpoint-contract gates pass exactly, including original B1 logits, causality,
 batch independence, repeatability, frozen parameters and unchanged buffers.
-The isolated cold-cache 30-minute launch and 20M public-score replay are running.
+The isolated 20M public-score replay reproduced **0.9928513116311253** exactly
+in 692.86 evaluation seconds, with a clean postflight. The isolated cold-cache
+30-minute training rehearsal is running; see `validation.json` for its status.
 The organizer README and prepare.py were authenticated against upstream commit
 `c907da4c74bbaafeca7d13765c49610b7e77436c` on 2026-09-19 UTC; both match this repo.
