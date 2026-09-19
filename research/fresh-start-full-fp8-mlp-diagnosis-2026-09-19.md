@@ -1,6 +1,6 @@
 # Complete FP8 MLP: component gains and full-model validation
 
-Updated 2026-09-19 07:39 UTC. The original profile below identified online
+Updated 2026-09-19 08:20 UTC. The original profile below identified online
 weight preparation as a concrete cost. Both proposed preparation changes have
 now been implemented and gated; the original profile is retained as evidence.
 
@@ -17,11 +17,29 @@ now been implemented and gated; the original profile is retained as evidence.
   FP32 masters, four updates, two microbatches, cache lifecycle, short-row
   padding, row independence and original native evaluation/checkpoint restore.
   Its per-Linear preparation dispatch differs from the paired component probe.
-- Source140 now compares the complete model at T1024/pack32/GA1 on trn21.
+- Source140 compared the complete model at T1024/pack32/GA1 on trn21.
   Native control and candidate use the same source, data, optimizer ownership
   and clean host protocol. The phase timer clips before reduction in both arms;
   the production quality loop clips after reduction. A component gain is not
-  yet a whole-model gain or a BPB result.
+  a whole-model gain or a BPB result.
+
+The full FP8 candidate has now completed all 35 updates and four numerical
+postchecks. Its median step is **567.094872 ms**, versus the native control's
+**488.701909 ms** (16.041% slower). Median forward/backward rises from
+433.514570 to 508.181582 ms; cache refresh rises from 2.856698 to 4.927452 ms.
+The dominant gap is therefore inside the model call, not weight preparation.
+This locates the next measurement; it does not yet establish a compiler cause.
+The candidate's postflight failed only the 8 GiB disk reserve after compilation.
+It left no device holders or compiler/training workers. Preserve that failure,
+restore headroom and collect a clean caller diagnostic before further changes.
+Records: `run-logs/fs-w140-full-fp8-phase-comparison-r1.json`.
+
+Native and full-FP8 microstep profiles use the same source140, pack32 geometry,
+data, seed and 35 preceding updates. Different hosts are acceptable for source,
+engine and allocation attribution; the same-host unprofiled phase remains the
+speed comparison. The profile requests retain all four numerical postchecks,
+actual runtime binaries and pre/post cleanup. The next source change remains
+conditional on those traces, particularly the dead BF16 outputs below.
 
 The native source140 control-r1 passed all numerical gates but failed the final
 8GiB disk reserve. Its 489.273ms median remains a diagnostic. After verified

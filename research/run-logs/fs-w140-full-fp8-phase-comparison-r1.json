@@ -1,0 +1,89 @@
+{
+  "label": "fs-w140-full-fp8-phase-comparison-r1",
+  "prepared_at": "2026-09-19T08:18:25.155683+00:00",
+  "arms": [
+    {
+      "label": "fs-w140-full-fp8-native-control-phase-r2",
+      "source_commit": "2a6f267b443e262bb9d7955e06d539f603dc4edc",
+      "completed_at": "2026-09-19T07:35:36.482392+00:00",
+      "command_returncode": 0,
+      "host_clean": true,
+      "health_failures": [],
+      "free_bytes": 10251476992,
+      "steps": 30,
+      "last_loss": 5.126208782196045,
+      "median_ms": {
+        "zero_grad_ms": 0.658978009596467,
+        "micro_total_ms": 433.5145700315479,
+        "micro_mean_ms": 433.5145700315479,
+        "clip_ms": 6.9940449902787805,
+        "sync_grad_ms": 15.174359490629286,
+        "control_ms": 2.103565988363698,
+        "set_lr_ms": 0.02825201954692602,
+        "opt_step_ms": 26.4438605227042,
+        "wcache_ms": 2.856697974493727,
+        "step_total_ms": 488.7019089946989,
+        "tail_ms": 54.9529790005181
+      },
+      "range_step_ms": [
+        484.9959349958226,
+        492.877596989274
+      ],
+      "postcheck_ranks": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "sha256": {
+        "research/run-logs/fs-w140-full-fp8-native-control-phase-r2.log": "003edb408f570db20e276d63b9e9e3e1d016bef73451c88791e7f1fb0d972c2e",
+        "research/run-logs/fs-w140-full-fp8-native-control-phase-r2.postflight.json": "5fe0601f447020fc8dc72de95c4843dc585d3af9fc5d85cfb785a5233d7bf86e"
+      }
+    },
+    {
+      "label": "fs-w140-full-fp8-candidate-phase-r1",
+      "source_commit": "2a6f267b443e262bb9d7955e06d539f603dc4edc",
+      "completed_at": "2026-09-19T07:50:45.127206+00:00",
+      "command_returncode": 0,
+      "host_clean": false,
+      "health_failures": [
+        "less than8GiB disk space available"
+      ],
+      "free_bytes": 8224735232,
+      "steps": 30,
+      "last_loss": 5.120891094207764,
+      "median_ms": {
+        "zero_grad_ms": 0.6916415295563638,
+        "micro_total_ms": 508.18158249603584,
+        "micro_mean_ms": 508.18158249603584,
+        "clip_ms": 6.979659490752965,
+        "sync_grad_ms": 16.551633510971442,
+        "control_ms": 2.3494769993703812,
+        "set_lr_ms": 0.02551451325416565,
+        "opt_step_ms": 26.203092507785186,
+        "wcache_ms": 4.927451984258369,
+        "step_total_ms": 567.0948719780426,
+        "tail_ms": 57.5381530507002
+      },
+      "range_step_ms": [
+        562.3658949625678,
+        576.5561470179819
+      ],
+      "postcheck_ranks": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "sha256": {
+        "research/run-logs/fs-w140-full-fp8-candidate-phase-r1.log": "5e0cd378dc5b3779297756fe82f44c1213f3a2c30f7a84595869c4ce49b5bfe0",
+        "research/run-logs/fs-w140-full-fp8-candidate-phase-r1.postflight.json": "640123a9daa0d0cb89a15c959b015fbf100321281e5dc13081c593106fde2fcc"
+      }
+    }
+  ],
+  "candidate_step_regression_percent": 16.041059292075353,
+  "median_forward_backward_delta_ms": 74.66701246448793,
+  "candidate_has_clean_postflight": false,
+  "promoted": false,
+  "next": "Restore disk headroom and capture the complete native/FP8 caller; verify dead outputs and precision/layout effects before kernel edits. No FP8 quality run from these timings."
+}
