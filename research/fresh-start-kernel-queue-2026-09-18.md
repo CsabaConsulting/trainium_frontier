@@ -1,6 +1,6 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19 08:40 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19 09:01 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
@@ -10,23 +10,29 @@ Source137's exact dual producer improved the complete isolated FP8 MLP by
 3.006%. Source139 passed real-Linear/master/cache lifecycle gates. Source140's
 complete model nevertheless takes 567.095 ms/step versus 488.702 ms for native
 BF16. All four numerical postchecks pass. The subsequent paired caller captures
-also pass, reproduce the same losses/timings, and are being preserved/decoded.
+also pass, reproduce the same losses/timings, and are now decoded with all
+runtime-to-binary identities matched. Their forward intervals are137.157ms
+native versus209.748ms FP8; backward intervals are272.922/275.310ms. Observed
+ordinary-Linear spilling rises strongly. Both traces have dropped notifications,
+so counters support attribution but not exact traffic/bandwidth claims.
 A native capture overflowed its notification queue with optional DGE notifications;
 the otherwise unchanged flag-removed repeat completes. trn21's verified
 archive/retirement restored headroom; trn22's
-disk-only postflight failure is retained while the same staged recovery runs.
+disk-only postflight failure is retained after its verified staged recovery.
 No FP8 speed/BPB promotion.
 
-1. Decode the completed source140 native and full-FP8 callers at pack32/GA1. Attribute the
-   extra 74.667 ms in forward/backward using matched binary identities; inspect
-   unused BF16 outputs and model-wide precision/layout/allocation effects.
-2. If unused writes survive, implement a full-VJP-only output mode. Preserve
-   exact outputs, saved bytes/scales and all four derivatives; rerun cache and
-   master lifecycle gates before measuring the complete step.
+1. Caller attribution is complete enough to confirm retained unused BF16 stores:
+   3,013 DMA rows at source135/source140 lines149/186,1.973GB observed writes.
+   Cached source hashes match. Keep ordinary-Linear allocation/source attribution
+   open; one shared Python line does not identify an individual layer.
+2. Source145 removes the two discarded BF16 outputs in an opt-in full-VJP mode.
+   Its independent byte/four-product and real-Linear lifecycle gates are ACTIVE
+   on trn22. Require exact equivalence before a whole-step speed measurement.
 3. Native width guard is corrected; actual pack32/T1024 MLP gates now pass for
    both1024 and1152 channels with clean postflight. Measure new optimizer groups
    before a bounded capacity comparison with the current kernel stack. The new
-   cost probe uses the recorded real model inventory. See the capacity revisit
+   cost probe uses the recorded real model inventory and is ACTIVE on trn21.
+   See the capacity revisit
    note; old generic ownership costs are not trustworthy at new widths.
 4. Keep reciprocal optimizer composition, reduced calibration work and compact
    function approximations available for measured bottlenecks. The standalone

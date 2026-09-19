@@ -1,6 +1,6 @@
 # Complete FP8 MLP: component gains and full-model validation
 
-Updated 2026-09-19 08:53 UTC. The original profile below identified online
+Updated 2026-09-19 09:01 UTC. The original profile below identified online
 weight preparation as a concrete cost. Both proposed preparation changes have
 now been implemented and gated; the original profile is retained as evidence.
 
@@ -41,14 +41,38 @@ speed comparison. The profile requests retain all four numerical postchecks,
 actual runtime binaries and pre/post cleanup. Both captures have completed their
 four numerical checks. The full-FP8 trace is local/cloud verified (70files,
 4,941,989,339bytes); its CPU ingestion completed clean at08:51:43.042083 and
-source-family analysis is now running on immutable source144. The native trace's
+source-family analysis is complete on immutable source144. The native trace's
 disk-only postflight failure is retained, with verified archive/retirement
 recovery restoring33.03GB free before ingestion. No bandwidth claim is valid
-from the captures' incomplete dynamic DMA timing metadata.
+from the captures' incomplete dynamic DMA timing metadata. Native ingestion
+also completed clean at08:55:36; its source144 analysis completed clean at08:57:06.
+All33 runtime dispatches and the preserved startup barrier match in both arms.
 
-An opt-in compact forward interface is now prepared locally while attribution
-runs. Its hardware validation and promotion remain conditional on the actual
-trace evidence. It is not enabled in an experiment or the frozen submission.
+| Instrumented graph interval | Native BF16 | Full FP8 |
+| --- | ---: | ---: |
+| Forward, ms |137.156557|209.748307|
+| Backward, ms |272.922323|275.310033|
+
+The additional time is concentrated in forward in these captures. Ordinary
+`Linear.forward` at `train.py:2853` reports0.592GB of spill reloads in native
+versus13.448GB in FP8. These are observed counters, not exact traffic or proof
+of which Linear layer causes the problem. The FP8 trace reports dropped EVENT
+and DMA notifications; native reports dropped DMA notifications. Both lack
+dynamic DMA metadata. Do not treat absence of an event as absence of work or
+turn these counters into bandwidth. Unprofiled same-host phase timings remain
+the speed evidence.
+
+The retained-write hypothesis is confirmed by observed instructions:3,013
+`DMA_DIRECT2D` rows cite the BF16 saved-X/saved-hidden stores at lines149/186,
+with1,973,157,888 observed HBM-write bytes. The cached kernel cites source135;
+its file is byte-identical to source140, and the exact Instruction parquet
+hash matches the caller analysis. Rescaling instructions at lines148/185 also
+remain. The five-output forward mode now has a bounded correctness gate on
+trn22 source145 (`63f6cce`), started09:00:04.923393 with clean preflight. The
+source change removes only these unused saves/dequantizations; hardware
+equivalence and whole-model speed are still pending. The frozen submission
+is unchanged. Evidence: `run-logs/fs-w140-full-fp8-retained-forward-saves-r1.json`
+and `run-logs/fs-w144-pack32-caller-comparison-r1.json`.
 
 The native source140 control-r1 passed all numerical gates but failed the final
 8GiB disk reserve. Its 489.273ms median remains a diagnostic. After verified
