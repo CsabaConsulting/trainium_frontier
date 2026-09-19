@@ -189,3 +189,28 @@ tiny/zero rows, signed cancellation, broad row ranges, overflow/underflow,
 outliers and arbitrary upstream gradients. Global gradient scaling may lose
 small but useful contributions; finite outputs alone are insufficient. Full
 model speed and30-minute BPB remain required.
+
+
+## First weight-gradient implementation, 2026-09-19 02:52 UTC
+
+`fp8_weight_gradient_nki.py` now implements row-scale multiplication, row-major
+legacy FP8 byte preparation and a long-token double-row weight product.
+Down gradient uses BF16(G*inverse_hidden_scale), one online global calibration
+and the existing hidden bytes; up gradient uses the fixed input scale. The
+product pairs corresponding positions in adjacent128-token blocks and rescales
+sequentially into FP32. Shared data-gradient consumers are not implemented.
+
+The probe declares exact decoded quantizers and rescaled BF16 inputs, the
+existing independent11-bit-pair/FP32 accumulation bound, repeated calls and
+input integrity. Eight small cases include zero/tiny/outlier/range/cancellation
+behavior; two optional real shapes exercise16384-token reductions in both
+orientations. Report scale-transfer underflow, quantized-away nonzero gradients
+and error against the original BF16 surrogate separately from implementation
+checks. Wide per-row activation ranges can make global scale transfer lose
+useful contributions; an accurate implementation would not remove that risk.
+
+Optional timing charges current-gradient transfer/calibration, both operand
+byte preparations, reduction and FP32 stores. It assumes saved forward scales;
+extra forward metadata stores, activation derivative, shared data products,
+master accumulation/optimizer and whole-model costs are absent. Stage gates
+precede any timer; no full-FP8 or training quality result is claimed.

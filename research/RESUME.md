@@ -107,6 +107,14 @@ separates native forward, weight transpose and fused forward; source102 pending.
 trn21 clean, watcher101.
 
 
+
+Source102 head profile clean02:47:40 and CPU ingestion clean02:49:12. Raw12files/
+87,043,943B is local/hash-verified; parquet26tables retrieving. Profile-script
+actual-shape native/candidate logits/loss/lse all exactly match. Local analysis
+is next. Source103 FP8 weight-gradient stages/probe prepared: row-scale transfer,
+current global calibration, both byte preparations and long-token FP32 outputs.
+Eight small/two real cases; no backward-autograd integration. Gate before timing.
+
 Wave92 generic FP8 gradient GEMMs pass all9 independent cases. Repacked byte
 mismatches are only107/103 signed-zero encodings under the ORIGINAL zero
 contract; no changed nonzero value. Extra packing plus two products saves only

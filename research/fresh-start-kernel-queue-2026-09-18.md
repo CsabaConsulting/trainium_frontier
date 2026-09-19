@@ -39,7 +39,7 @@ Current next actions, in dependency order:
 | --- | --- | --- |
 | Separate compiled FP8 MLP region | Integration passes; whole step loses24.08% to native | Include launch/cache/gradient costs; require at least3% whole-step gain before quality |
 | Reciprocal refinement plus optimizer ownership | Composition passes; whole step gains1.13%, below3% | Exact owned-versus-replicated same-math weights/states/rank exchange/cache/restore; then fresh paired whole-step timing |
-| FP8 gradient scale sharing | Algebra and contracts recorded in backward design; not implemented | Independent quantizer/FP64 stage gates, then all four gradient products with all packing charged |
+| FP8 gradient scale sharing | Weight-gradient stages/probe prepared; shared data consumers unimplemented | Independent quantizer/FP64 stage gates, then all four gradient products with all packing charged |
 | Fused vocabulary head and exact loss | 14fixtures and actual-row gates pass; forward loses26.79%; profile prepared | Preserve original FP32 head accumulation and all gradient terms; profile complete caller |
 | Smaller range-reduced tables / rational composed functions | Design candidates; full-value LUT and standalone polynomial timings lost | Benchmark the full producer/consumer pipeline after accuracy/range gates |
 

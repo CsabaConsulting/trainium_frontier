@@ -1,0 +1,12 @@
+[W919 02:47:04.287756251 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+FUSED_HEAD_PROFILE_BOUNDARY {"exact_native_logits_loss_lse_diagnostic": [true, true, true], "finite": [true, true, true], "exact_frozen_logit_loss_lse": true, "numerical_authority": "fs-w101-fused-head-loss-forward-component-r1"}
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/profiler/profiler.py:224: UserWarning: Warning: Profiler clears events at the end of each cycle.Only events from the current cycle will be reported.To keep events across cycles, set acc_events=True.
+  _warn_once(
+FUSED_HEAD_PROFILE_ARTIFACT {"trace": "/home/ubuntu/trainium_freshstart_20260918_wave102/out/fs-w102-fused-head-loss-forward-device-profile-r1", "shape": [16384, 1024, 8192], "compiled_neffs": 2, "eager_neffs": 1, "phase_boundary_synchronization": true, "numerical_authority": "fs-w101-fused-head-loss-forward-component-r1", "native_and_candidate_logits_saved": true, "weight_transpose_separately_captured": true, "profiled_latency_is_speed_evidence": false, "backward_or_whole_model_included": false}
+EXPERIMENT_POSTFLIGHT {"label": "fs-w102-fused-head-loss-forward-device-profile-r1", "returncode": 0, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave102/research/run-logs/fs-w102-fused-head-loss-forward-device-profile-r1.postflight.json"}
