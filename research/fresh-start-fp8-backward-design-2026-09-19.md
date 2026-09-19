@@ -301,3 +301,24 @@ dHidden product by sH cannot restore those lost values. A small weight-gradient
 RMS error does not establish acceptable data gradients. Delayed state must be
 charged, device-resident, advanced only at optimizer boundaries, checkpointed
 and frozen for evaluation. These remain separate design candidates.
+
+
+## Source116 composition and source117 preparation prototype,03:53UTC
+
+Fused abs/max retains all10full-product gates. Up projection falls from2.515716
+(combined original calibration) to1.987077ms, including calibration and both
+byte preparations. Native BF16 is1.080190ms in the new run, so FP8 still loses.
+The source117 prototype computes per-core partial maxima, combines them in a
+second kernel and quantizes there using the exact existing exponent policy.
+For the down projection it recomputes BF16(G*inverse_hidden_scale) locally in
+both passes, avoiding its full HBM temporary. Both kernel calls are charged.
+Disjoint partial writes and one owner for final metadata avoid write races;
+completion between kernels provides the necessary synchronization.
+
+The new18case gate includes maxima on either physical core, each with/without
+scale transfer, zero/sign/tiny/pure subnormal/all-declared-code cases and both
+actual shapes. It checks each partial maximum against CPU, exact original scale
+metadata and byte encodings, decoded independent quantization, repeats and input
+preservation. This preparation-only probe must pass before integrating it with
+matrix products or claiming whole-backward improvement. Saved forward byte
+reuse and shared data gradients remain later explicit costs/gates.
