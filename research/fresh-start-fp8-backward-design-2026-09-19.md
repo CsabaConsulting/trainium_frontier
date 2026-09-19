@@ -322,3 +322,13 @@ metadata and byte encodings, decoded independent quantization, repeats and input
 preservation. This preparation-only probe must pass before integrating it with
 matrix products or claiming whole-backward improvement. Saved forward byte
 reuse and shared data gradients remain later explicit costs/gates.
+
+
+Source117 completes clean03:54:47. All18cases pass, including exact partial
+maxima, metadata and raw FP8 byte encodings. Full gradient preparation costs
+0.346830ms down and0.750925ms up, versus the already improved fused-amax path
+0.535401/1.035930ms (original0.683044/1.564552ms). Both kernel calls and the
+recomputed BF16 row multiplication are charged. Source118 now composes this
+preparation with the balanced product; repeat all10product gates and include
+activation preparation before any component promotion. Full autograd/quality
+remain untested; do not call these numbers full FP8 training speedups.
