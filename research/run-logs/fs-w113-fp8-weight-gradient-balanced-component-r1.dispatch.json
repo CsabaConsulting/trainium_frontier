@@ -1,0 +1,46 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave113",
+    "expected_commit": "bcd317f1c86bf4855659b7dc23e5f88492048a51",
+    "label": "fs-w113-fp8-weight-gradient-balanced-component-r1",
+    "purpose": "Controlled balanced scheduling variant, exact original calibration and FP8 product plus independent10case gates before composed/stage timing. No autograd/quality promotion.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave113"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/fp8_weight_gradient_probe.py",
+      "--real-shape",
+      "--grouped-io",
+      "--benchmark",
+      "--steps",
+      "12",
+      "--stage-timings",
+      "--balanced-io"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/fp8_weight_gradient_nki.py",
+      "research/scratch/fp8_weight_gradient_probe.py",
+      "research/scratch/fp8_weight_cache_nki.py",
+      "research/scratch/fp8_mlp_island_probe.py",
+      "research/scratch/fresh_start_fp8_probe.py",
+      "research/scratch/fp8_packed_weight_cache_probe.py"
+    ]
+  },
+  "requested_at": "2026-09-19T03:39:45.307861+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w113-fp8-weight-gradient-balanced-component-r1\", \"pid\": 1638161, \"commit\": \"bcd317f1c86bf4855659b7dc23e5f88492048a51\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave113/research/run-logs/fs-w113-fp8-weight-gradient-balanced-component-r1.log\", \"started_at\": \"2026-09-19T03:39:51.537577+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

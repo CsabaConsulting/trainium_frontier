@@ -272,3 +272,20 @@ and the BF16 head gradient boundary are unchanged. The original forward/logit
 save and backward remain the default. The20original exact head/autograd
 comparisons apply without altered tolerances, before timing. This is a work
 reuse experiment; no approximation/table, model integration or gain is claimed.
+
+
+## Whole caller result, 2026-09-19 03:40 UTC
+
+Source112 whole-step control500.726543ms versus cached head689.956164ms:
+37.791% slower, with188.376055ms extra in the two-microbatch compute phase.
+All4native-evaluation postchecks pass. Last losses5.064923 versus5.068909
+are different; the earlier exact component/model fixtures are not a claim
+that every full-model compiler decision remains bitwise identical. Candidate
+command succeeded; original postflight failed8GiB disk reserve only. Verified
+local/GitHub wave89 profile removal restores clean health; original failure
+is not rewritten. Same-source rank0 microstep trace is active to distinguish
+head cost, surrounding allocation/spills, layouts and dispatch. No BPB run.
+
+The saved-softcap prototype remains separately queued. Removing its second
+tanh evaluation is useful work elimination, but it cannot be assumed to repair
+a189ms caller regression. Obtain allocation evidence before promoting it.

@@ -1,0 +1,17 @@
+{
+  "recorded_at": "2026-09-19T03:38:45.554682+00:00",
+  "control": "fs-w112-head-loss-cached-control-phase-r1",
+  "candidate": "fs-w112-head-loss-cached-candidate-phase-r1",
+  "source_commit": "5abe6708fbc29ff9c1ec5f0d0ca2c9e58f96a5ec",
+  "control_median_ms": 500.72654348332435,
+  "candidate_median_ms": 689.9561644531786,
+  "candidate_slowdown_percent": 37.79101056905647,
+  "microphase_increase_ms": 188.37605544831604,
+  "postchecks_both_pass": true,
+  "candidate_original_host_clean": false,
+  "candidate_postflight_failures": [
+    "less than8GiB disk space available"
+  ],
+  "scope": "same-source same-host full training phase; numerical postchecks pass, disk-reserve postflight fails",
+  "decision": "Fails speed advancement by a wide margin. Do not run quality. Recover disk reserve with verified artifacts, then profile caller for allocation/dispatch/spills before redesign. Component22.56percent improvement does not establish model speed."
+}

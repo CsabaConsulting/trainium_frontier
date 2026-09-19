@@ -1,47 +1,54 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 03:24 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 03:40 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## Dispatch state — 2026-09-19 03:24 UTC
+## Dispatch state — 2026-09-19 03:40 UTC
 
 - trn21: source112 `5abe6708fbc29ff9c1ec5f0d0ca2c9e58f96a5ec`, watcher112.
-  Cached-head GPT gate PASSED196 exact checks at widths256/1024, including
-  every master gradient/update, native evaluation and checkpoint restoration.
-  `fs-w112-head-loss-cached-control-phase-r1` active (compilation/warmup).
-  Candidate request with `--cached-head-loss` is ready; run after clean control.
-  Compare30timed/5warmup paired phases and all4postchecks before promotion.
-- trn22: source98, watcher98, matched20.97M-token public evaluation active:
-  `fs-w98-eval-context1024-pack32-owned-ce-s1024-20m-o1-r1`, started03:21:29.
-  Pack32 quality completed3660updates/479,723,520targets in1784.6seconds;
-  charged1785.0, small public0.987784. Larger BPB pending.
-  Original postflight is command0 but disk-reserve failure (8,386,404,352B).
-  Maintenance `fs-maintenance-preserved-wave89-staging-trn22-20260919T032024Z`
-  reverified local/cloud hashes and removed only matching redundant trace
-  hardlinks. Clean03:20:35, free10,453,393,408B. Keep original failure record.
-  Checkpoint469,834,849B SHA80fab9b63c935d54638cf3eb07d884c9b6e869550297bbcfe6b2f4f13991029d
-  is local and GitHub-digest-verified03:23:36. No new-best promotion yet.
-- Cached head component source109: all20exact tests pass; FW/BW14.095440ms
-  versus18.202054ms native (22.56%), including transpose every forward.
-- FP8 source112 requests ready for separate parallel-calibration and balanced
-  8-bank product tests, then composition. All repeat unchanged10case gates.
-  Do not start while the host's head phase owns the device.
-- Source113 prepared locally: save exact FP32 tanh output instead of raw
-  logits, remove backward tanh recomputation at unchanged saved-tensor size.
-  Must pass original20head/autograd checks before timing or model integration.
+  `fs-w112-head-loss-cached-micro-device-profile-r1` active, started03:39:24.
+  Complete cached-head component gained22.56%, but the matched model step
+  regresses37.791%:689.956164 versus500.726543ms. All4native postchecks pass;
+  last losses5.068909/5.064923 differ. No quality promotion. Profile caller
+  allocation/spills/dispatch before redesign; root cause not established.
+  Original candidate postflight command0/disk-reserve-only failure is retained.
+  `fs-maintenance-preserved-wave89-trn21-20260919T033824Z` reverified local and
+  cloud copies, removed only matching raw/parquet/staging files, restored clean
+  host03:38:38; free8,356,802,560→12,027,482,112B. No shared cache purge.
+  Source113 is also deployed. Saved-softcap20gate component request waits
+  until this profile completes and has a clean postflight.
+- trn22: source113 `bcd317f1c86bf4855659b7dc23e5f88492048a51`, watcher113.
+  FP8 parallel-calibration experiment passed10cases and exact original scales;
+  full down1.909484/up3.167645ms still lose native1.090103/1.108476ms.
+  `fs-w113-fp8-weight-gradient-balanced-component-r1` is dispatched next;
+  combined calibration/balanced request waits for its clean numerical result.
+  These component gates do not establish full FP8 backward/autograd quality.
+- Pack32 quality and larger public evaluation are COMPLETE. New matched best
+  is0.9928513116311253. Source98/checkpoint/evaluation identity and the original
+  training disk failure plus clean recovery are in fresh-start-best-public.json.
+  No additional30minute run is justified solely by component speed.
+- Source113 saved-softcap prototype saves exact FP32 tanh values instead of
+  logits, removes backward tanh recomputation at unchanged tensor bytes. It
+  remains untested on hardware; run its original20head checks before promotion.
+- Latest source113 and snapshot were pushed/remote-ref-verified03:30:42.
+  All50inventoried heavy artifacts were GitHub-digest-verified03:24:02, no errors.
 
 ## Current result and active work
 
-**Current result, 2026-09-19 00:21 UTC:** matched larger public BPB is
-**0.9938106631483421**, improved from0.9973302213667847. The dense6x1024 model
-uses no n-grams and seed42, T1024/pack16/GA2, padded exact optimizer ownership,
-native-forward/custom-backward MLP and exact adaptive two-core CE/target gather.
-It completed3,548 updates /465,043,456 targets in1,784.9 training seconds; charged
-estimate1,785.3 is within1,800. The matched evaluation uses20,971,520 tokens,
-83,462,186 bytes and57,493,516 nats, world1/B1/T1024/O1 without global autocast;
-688.38 seconds, clean. This is a public result, not a private leaderboard score.
-Checkpoint local and GitHub-digest-verified. Exact source/checkpoint/evaluation
-identity is in `fresh-start-best-public.json`. Working target remains0.9749.
+**Current result, 2026-09-19 03:38 UTC:** matched larger public BPB is
+**0.9928513116311253**, improved from0.9938106631483421. Dense6x1024, no ngrams,
+seed42, T1024/pack32/GA1,131072global targets/update, padded exact optimizer
+ownership, native-forward/custom-backward MLP, exact adaptive two-core CE and
+clip-after-gradient-averaging. Native AdamW; no reciprocal approximation or FP8.
+It completed3660updates /479,723,520targets in1784.6training seconds; charged
+estimate1785.0 is within1800. Matched evaluation:20,971,520tokens,83,462,186bytes,
+57,438,016nats, world1/B1/T1024/O1 without global autocast;702.43seconds, clean.
+This is a public result, not a private leaderboard score. The training command
+succeeded, but its original postflight failed the8GiB disk reserve; verified
+redundant-profile cleanup restored clean health before evaluation. The original
+failure remains recorded. Checkpoint SHA80fab9b63c935d54638cf3eb07d884c9b6e869550297bbcfe6b2f4f13991029d
+is locally and GitHub-digest verified. Full identity: fresh-start-best-public.json.
+Working target remains0.9749; the public improvement is0.0009593515172168221.
 
 The CE change passed exact compiled-autograd gates and improved a same-source
 whole step500.372595ms versus519.395419ms (3.6625%). Quality combines CE with
