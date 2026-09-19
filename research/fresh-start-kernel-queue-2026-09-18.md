@@ -1,6 +1,6 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19, 00:08 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19, 00:21 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
@@ -9,10 +9,10 @@ Every device request retains immutable source, cleanup and numerical gates.
 | Item | State | Next action / evidence |
 | --- | --- | --- |
 | T1024/pack16 + original fused AdamW | 3282updates; small public0.992175; checkpoint local and cloud verified | Larger20.97M/T1024/O1 evaluation **0.9974687136975224**, clean; first larger public sub1.0, not private leaderboard |
-| Padded optimizer ownership |3377updates/442.6Mtargets; checkpoint local and cloud verified | Larger public **0.9973302213667847**, clean; current best. T1024/pack16 ownership phase passes at515.473750ms versus528.353028ms:2.4376%, below3% gate; combine gated CE before another quality run |
+| Padded optimizer ownership |3377updates/442.6Mtargets; checkpoint local and cloud verified | Larger public **0.9973302213667847**, clean; earlier best, now superseded by0.9938106631483421. T1024/pack16 ownership phase passes at515.473750ms versus528.353028ms:2.4376%, below3% gate; combine gated CE before another quality run |
 | Scalar reciprocal + Newton | 34component gates,16.77% component gain; repeated optimizer/cache/restore gate now passes | Optional whole-step combination after the active quality runs; no approximation is in those runs |
 | Scalar rsqrt correction | Mode5 passes34 gates but loses:1.363799vs1.262366ms; no promotion | Mode6 also passes34 gates but loses1.25%; both closed for this component; mode2 remains faster |
-| Exact CE core/gather changes | Wave68 isolates discrepancy to forward outer-loop trip count1, for both input precisions; cores agree and native-lse backward is exact | Adaptive/gather passes all original/boundary/row-independence gates;5.679065vs12.339531ms FW+BW,53.9767% component gain. Compiled installed-autograd gate passes all36 checks; whole step500.372595vs519.395419ms,3.6625% faster. Fresh 30-minute T1024/pack16/ownership/CE run completed clean: 3,548 updates / 465.04M targets, small public 0.988605; checkpoint locally hash-verified. Matched larger evaluation requested on trn21 |
+| Exact CE core/gather changes | Wave68 isolates discrepancy to forward outer-loop trip count1, for both input precisions; cores agree and native-lse backward is exact | Adaptive/gather passes all original/boundary/row-independence gates;5.679065vs12.339531ms FW+BW,53.9767% component gain. Compiled installed-autograd gate passes all36 checks; whole step500.372595vs519.395419ms,3.6625% faster. Fresh 30-minute T1024/pack16/ownership/CE run completed clean: 3,548 updates / 465.04M targets, small public 0.988605; checkpoint local/cloud verified. Matched larger public **0.9938106631483421**, new best; no private leaderboard result |
 | Polynomial exponential | Nine device records pass;3.57–4.19times slower | Closed as a standalone speed replacement; retain the accurate implementation for diagnostics |
 
 The CE experiment compares original, explicit one-core mask, two-core mask,
@@ -276,3 +276,28 @@ codes, both compiled norm contracts and all9 small forward cases. Real forward
 also passes; full backward and complete timing are currently in progress.
 Tiny normalized inputs can quantize to zero under this policy, with the change
 explicitly retained in diagnostics rather than called BF16-model equivalence.
+
+### Caller-layout investigation after wave78/79 (00:21 UTC)
+
+The token-row FP8 profile has44 matched runtime dispatches. Its first FW is
+3.603983ms versus3.686925ms old FP8; BF16 BW stays approximately4.8ms.
+Outside the custom FP8 kernel, compiler private_nkl/transpose.py contributes
+8,704 Tensor transpose instructions on core0. Reported spill saves67,108,864B
+and reloads134,217,728B are now populated. NKI source-level buffer reductions
+did not eliminate caller allocation/layout costs. Missing dynamic DMA metadata
+means these counters do not establish exact bandwidth. Saved ReLU layout is a
+plausible cause, not a proven attribution to a specific tensor.
+
+`make_autograd(..., token_row_backward=True)` is the next test: compute
+`dH=G@Wdown`, `dPre=dH*(2*ReLU)` in token rows, then `dX=dPre@Wup` and
+`dWup=dPre.T@X`. This keeps the existing BF16 rounding boundaries and the
+independent FP64 propagated-error contract; it changes logical GEMM orientation.
+Gate all gradients and accumulated FP32 masters, compare a fresh same-forward
+old-backward control, and profile any gain before whole-model promotion.
+
+Wave79 fixed-input component passes but only improves0.519% versus adaptive
+input (17.926315vs18.019795ms). Its native control is15.672957ms. Do not call
+the fixed scale a training speed win. Full FP8 backward and a full-model
+allocation probe remain distinct: an isolated loss need not veto a justified
+caller-allocation experiment, but must be recorded and all numerical/state/
+causality gates must precede it. No such caller probe is implemented yet.

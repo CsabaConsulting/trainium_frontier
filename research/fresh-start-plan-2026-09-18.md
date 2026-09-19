@@ -1,31 +1,36 @@
 # Fresh-start campaign — 2026-09-18
 
-**23:39UTC update:** exact adaptive CE/target gather passes the whole-model gate
-at500.372595ms versus519.395419ms (3.6625% gain). Fresh30-minute seed42 quality
-run with T1024/pack16 and optimizer ownership is active on trn21. Actual FP8
-forward/BF16-backward passes the declared small/real numerical and accumulation
-gates, but loses complete-component timing18.181170vs15.662730ms native.
-Profile its preparation/layout/saves/backward before redesign. Full FP8 backward
-and compact joint-table device trials remain separate queued hypotheses.
+**Current result, 2026-09-19 00:21 UTC:** matched larger public BPB is
+**0.9938106631483421**, improved from0.9973302213667847. The dense6x1024 model
+uses no n-grams and seed42, T1024/pack16/GA2, padded exact optimizer ownership,
+native-forward/custom-backward MLP and exact adaptive two-core CE/target gather.
+It completed3,548 updates /465,043,456 targets in1,784.9 training seconds; charged
+estimate1,785.3 is within1,800. The matched evaluation uses20,971,520 tokens,
+83,462,186 bytes and57,493,516 nats, world1/B1/T1024/O1 without global autocast;
+688.38 seconds, clean. This is a public result, not a private leaderboard score.
+Checkpoint local and GitHub-digest-verified. Exact source/checkpoint/evaluation
+identity is in `fresh-start-best-public.json`. Working target remains0.9749.
 
+The CE change passed exact compiled-autograd gates and improved a same-source
+whole step500.372595ms versus519.395419ms (3.6625%). Quality combines CE with
+shorter context/packing and optimizer ownership; its gain is not attributed to
+CE alone. The previous larger results0.9973302214 (T2048/pack8/ownership) and
+0.9974687137 (T1024/pack16/original fused AdamW) remain reproducible checkpoints.
+No seed sweep or new function approximation is in the winning run.
 
-**Current evidence,2026-09-18 23:10UTC:** larger public BPB
-**0.9973302213667847** after3377updates with exact padded optimizer ownership,
-T2048/pack8 and native-forward/custom-backward MLP, no n-grams or seed search.
-Matched20.97M/T1024/O1 evaluation is clean; checkpoint local/cloud verified.
-The prior short-context/fused-Adam combination scored0.9974687136975224.
-The competitive target remains roughly0.9749; private validation still differs.
+FP8 token-row and fixed-input-scale variants pass declared forward/STE backward
+and master-accumulation gates, but still lose complete component timing. Fixed
+input gives17.926315ms versus18.019795ms adaptive token rows (0.519% gain),
+15.672957ms native BF16 and14.629534ms NKI BF16 cache. The trace exposes an
+additional compiler-generated transpose and reported spills around the token-row
+kernel; a matching backward orientation is the next bounded experiment.
+A separate BF16 head/loss memory-boundary probe keeps FP32 arithmetic and
+requires exactly matching loss/gradients. Full FP8 backward remains unimplemented.
+Compact full-value tables passed accuracy but lost19.04x; stronger rsqrt
+corrections and standalone exponential polynomials also lost timing. Reciprocal
+refinement passed optimizer integration but is absent from the quality run.
 
-Adaptive CE/gather passes exact component gates and saves53.98%; installed
-compiled-autograd and full-model gates are next. Short-context+ownership alone
-saves2.44%, below3%, so combine the gated loss change before new full training.
-FP8 storage/BF16 math passes explicit numerical gates but loses component
-speed. Actual FP8 forward/backward islands remain distinct candidates, including
-layouts that lost in BF16. Rsqrt modes5/6 now pass accuracy but lose timing;
-reciprocal mode2 passes integrated gates. Compact joint-function tables pass
-CPU finite-domain bounds; device tests are pending. All33 heavy artifacts are
-GitHub-digest-verified. Current commands and decisions are in `RESUME.md` and
-the [kernel queue](fresh-start-kernel-queue-2026-09-18.md).
+Current requests and recovery steps are in `RESUME.md` and the kernel queue.
 
 **Earlier status, 21:59 UTC.** Minimize official30-minute BPB on a full Trainium2
 chip. Working competitive target approximately0.9749; best larger public check
