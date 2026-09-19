@@ -5,6 +5,15 @@ submission remains source129, reproducing source98 public BPB0.9928513116311253.
 The cold training and evaluation rehearsal passed. The caller-profile diagnosis
 remains active; capacity preparation proceeds independently of the frozen package.
 
+Current2026-09-19 09:51UTC: the width1152 phase is COMPLETE/clean with all four
+model postchecks. Median587.591986ms versus nearby same-source width1024
+487.434961ms, a20.55% step-time increase for21.54% more parameters. It passes
+the predeclared700ms threshold below. The single seed42 quality run
+`fs-w146-dense1152-context1024-pack32-owned-ce-1800-r1` started09:45:14.368755
+with clean preflight; finite losses and about0.59s/step are observed after
+compilation. Training, checkpoint preservation and matched public evaluation
+are still pending. The diagnostic phase's final loss is not a quality forecast.
+
 The research installer now scopes the resident-SBUF assertion to the NKI forward
 backend. Native installation can reach its actual compiler at width1152/1280;
 all module/parameter/shape/cache assertions are retained. The existing full

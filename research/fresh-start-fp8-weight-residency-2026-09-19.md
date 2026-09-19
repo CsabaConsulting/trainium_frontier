@@ -1,7 +1,9 @@
 # FP8 packed-weight residency experiment
 
-Prepared2026-09-19; hardware correctness and speed are pending. Default OFF.
-The source145 native/legacy/compact full-model comparison takes priority.
+Updated2026-09-19 09:51UTC; hardware correctness gates ACTIVE, speed pending.
+Default OFF. The source145 native/legacy/compact comparison is complete and
+clean:488.702/568.354/562.902ms. Source147ac4f789 is deployed on trn22;
+`fs-w147-fp8-streamed-weight-gates-r1` started09:50:09 with clean preflight.
 
 The complete FP8 MLP has a small isolated advantage but the source140 full
 model loses16.04%. Matched caller identities put most of the added device time

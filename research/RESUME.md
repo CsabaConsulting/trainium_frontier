@@ -1,9 +1,46 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 09:39 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 09:51 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## Compact FP8 and width1152 phases active — CURRENT
+## Width1152 quality and streamed FP8 correctness active — CURRENT
+
+- trn21 ACTIVE `fs-w146-dense1152-context1024-pack32-owned-ce-1800-r1`,
+  source1c70da11, guard1442054, started09:45:14.368755, clean preflight.
+  Compilation finished; finite training losses and about0.59s/step observed.
+  One seed42,1800-second capacity trial; no ngrams. Preserve/check budget and
+  postflight when finished, then retrieve/hash/cloud-backup final.pt and run
+  the matched20,971,520-token public evaluation. No BPB claim before that.
+- The source146 width1152 phase completed clean09:44:32.092383, all four
+  numerical checks. Median587.591986ms versus width1024 control487.434961ms:
+  20.55% more time for21.54% more parameters (142,752,108). This meets the
+  predeclared700ms capacity-trial threshold; it is not a pure speed win.
+- Source145 same-host three-arm sequence is COMPLETE, all clean/four checks:
+  native488.702096ms, legacy FP8568.353812ms, compact FP8562.901787ms.
+  Compact is0.959% faster than legacy but15.183% slower than native. Both FP8
+  final diagnostic losses are exactly5.120891094207764. Unused-save removal
+  helps only slightly; it does not repair the full-model regression.
+  Compact postflight completed09:48:00.203536 with25.22GB free.
+- trn22 source147 (`ac4f7899a17904591f9a02d1a30fcd4017fc79e9`) deployed clean
+  at09:50:01.100742. ACTIVE `fs-w147-fp8-streamed-weight-gates-r1`,
+  guard1769835, started09:50:09.448909, clean preflight. Early fixture outputs
+  pass; wait for ALL11 cases, real-Linear gates and clean postflight.
+  NEXT only after those pass: prepared source147 compact resident phase,
+  then streamed phase on the same host/source, each5warmups+30timed updates.
+  No speed or allocation gain claimed for streamed storage yet.
+- Source140 caller analysis finds observed ordinary BF16 Linear tiles changing
+  from mostly128x128 to128x32/32x128 around FP8. Weight lifetime and output
+  layout are separate hypotheses. A rank-preserving output-layout control is
+  designed, not implemented; see `fresh-start-fp8-output-layout-2026-09-19.md`.
+- Watchers now retrieve trn21=146 and trn22=147 every45s for120 rounds each.
+  Their replaced local processes were identity-checked and idle; remote device
+  jobs were untouched. The10-minute cron recovery push remains separate.
+- Source7629ffed and recovery snapshot03f9c12a pushed/ref-verified09:40:19.
+  Current results/active manifests/design note await the next source push.
+  All four raw/decoded caller datasets and maintenance archives are already
+  local/cloud verified. Frozen best0.99285131 and cold replay0.99385567 stand.
+
+## Compact FP8 and width1152 phases active — 09:39 UTC
 
 - trn22 source145 legacy full-FP8 phase COMPLETE/clean09:34:54.637342:
   median568.353812ms, FW/BW509.880698ms, cache refresh5.257469ms,

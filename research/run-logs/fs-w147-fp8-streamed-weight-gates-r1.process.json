@@ -1,0 +1,16 @@
+{
+  "label": "fs-w147-fp8-streamed-weight-gates-r1",
+  "guard_pid": 1769835,
+  "child_pid": 1769836,
+  "child_session": 1769836,
+  "started_at": "2026-09-19T09:50:09.476588+00:00",
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1800s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "-c",
+    "import sys,subprocess,json\nsubprocess.run([sys.executable,'-u','research/scratch/fp8_compact_forward_saves_probe.py','--real-shape','--real-tokens','32768','--stream-packed-weights'],check=True)\nsubprocess.run([sys.executable,'-u','research/scratch/fp8_full_mlp_integration_check.py','--real-width','--compact-forward-saves','--stream-packed-weights'],check=True)\nprint('STREAMED_WEIGHT_GATES_COMPLETE '+json.dumps(dict(independent_numerical_gate=True,real_linear_integration_gate=True,whole_model_phase_pending=True)),flush=True)\n"
+  ]
+}

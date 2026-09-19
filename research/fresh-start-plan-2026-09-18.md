@@ -1,6 +1,6 @@
 # Fresh-start campaign — 2026-09-18
 
-**Current result, 2026-09-19 09:12 UTC:** best matched public BPB is
+**Current result, 2026-09-19 09:51 UTC:** best matched public BPB is
 **0.9928513116311253**, source98 dense 6x1024 with pack32/GA1, no ngrams and
 seed42. The frozen standalone source129 package reproduces those checkpoint
 logits exactly; an independent cold 30-minute rehearsal scored 0.9938556748843932
@@ -14,15 +14,20 @@ all four numerical checks pass, but its disk-reserve failure is retained. The
 caller profiles now locate most additional time in forward and confirm unused
 BF16 saved activations are still written. The compact-output version passes
 all11 numerical cases and real-Linear cache/master/restore gates. Its nearby
-same-host native/legacy/compact full-step comparison is active on trn22.
+same-host comparison is clean: native488.702ms, legacy FP8568.354ms and compact
+FP8562.902ms. That small gain leaves15.18% of full-step regression. Source147
+streamed-weight correctness gates are now active on trn22. Ordinary BF16 Linear
+tiles shrink around FP8 in the observed profile; weight lifetime and output
+layout are separate follow-up hypotheses, not proven compiler causes.
 No FP8 speed or BPB promotion. Dropped profile notifications prohibit exact
 traffic/bandwidth claims; raw captures and parquet are preserved locally.
 
 Both hosts recovered disk reserve by archiving old compiler diagnostics locally
 and on GitHub, verifying every file before remote retirement. Shared caches
-remain intact. trn21 now gates measured optimizer ownership for width1152:
-native MLP gates and13 actual optimizer-cost cases passed, including the current
-pack32 shape. The kernel queue, capacity revisit
+remain intact. Width1152 native MLP and exact measured optimizer-ownership
+gates passed, followed by a clean587.592ms whole-model phase. Its single seed42
+30-minute quality trial is active on trn21, with matched public evaluation still
+required. The kernel queue, capacity revisit
 and `RESUME.md` record the executable next steps and exact job identities.
 The competitive target remains about 0.9749; no seed sweep is planned.
 Serial QKV execution with unchanged Parameters/Muon states and contiguous
