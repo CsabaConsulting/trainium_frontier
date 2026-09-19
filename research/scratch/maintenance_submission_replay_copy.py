@@ -51,7 +51,10 @@ with HOST_LOCK.open('a') as lock:
  fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
  previous=json.loads(HOST_STATE.read_text())
  assert previous['label']==m['expected_previous_label'] and previous['host_clean']
- assert previous['command_returncode']==0
+ post_path=base/'research/run-logs'/(m['expected_previous_label']+'.postflight.json')
+ assert previous['postflight']==str(post_path)
+ post=json.loads(post_path.read_text())
+ assert post['command_returncode']==0 and post['host_clean']
  before=snapshot(base,previous['completed_at'])
  assert not health_failures(before,(os.getpid(),os.getppid()))
  p=pathlib.Path(m['copy']['destination'])
