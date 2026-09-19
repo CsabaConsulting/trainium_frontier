@@ -1,0 +1,58 @@
+{
+  "request": {
+    "purpose": "Gate fused current calibration and both legacy FP8 packed weight orientations with an8MiB resident BF16 cache; exact independent metadata/QDQ/bytes, eager/compiled full gradients, two-micro accumulation and changed masters. Pack32 one-micro timing includes all online costs and previous compiled/native controls. Source135 independent32768-token arithmetic prerequisite passed; no whole-model/BPB claim.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave137"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/fp8_dual_weight_cache_probe.py",
+      "--real-shape",
+      "--resident",
+      "--steps",
+      "20"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/fp8_mlp_token_rows_nki.py",
+      "research/scratch/fp8_forward_saved_bytes_probe.py",
+      "research/scratch/fp8_mlp_island_probe.py",
+      "research/scratch/fp8_packed_weight_cache_nki.py",
+      "research/scratch/fp8_packed_weight_cache_probe.py",
+      "research/scratch/fp8_rms_scale_contract.py",
+      "research/scratch/fp8_weight_cache_nki.py",
+      "research/scratch/fp8_weight_cache_probe.py",
+      "research/scratch/fp8_weight_gradient_nki.py",
+      "research/scratch/fresh_start_fp8_probe.py",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "research/scratch/fp8_complete_mlp_autograd.py",
+      "research/scratch/fp8_complete_mlp_probe.py",
+      "research/scratch/fp8_mlp_island_autograd.py",
+      "research/scratch/fp8_mlp_data_backward_nki.py",
+      "research/scratch/fp8_gradient_prepare_nki.py",
+      "research/scratch/mlp_backward_rounding_bounds.py",
+      "research/scratch/mlp_fused_bf16.py",
+      "research/scratch/fp8_compiled_cache_probe.py",
+      "research/scratch/fp8_dual_weight_cache_nki.py",
+      "research/scratch/fp8_dual_weight_cache_probe.py"
+    ],
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave137",
+    "expected_commit": "552672ff705f30662f230d1c30c165a5404909c7",
+    "label": "fs-w137-fp8-dual-weight-cache-resident-r1"
+  },
+  "requested_at": "2026-09-19T06:57:15.169777+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w137-fp8-dual-weight-cache-resident-r1\", \"pid\": 1374202, \"commit\": \"552672ff705f30662f230d1c30c165a5404909c7\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave137/research/run-logs/fs-w137-fp8-dual-weight-cache-resident-r1.log\", \"started_at\": \"2026-09-19T06:57:21.284105+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}
