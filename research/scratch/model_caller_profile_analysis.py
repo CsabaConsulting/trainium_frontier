@@ -129,6 +129,8 @@ def main():
                 ('fp8_surrogate', 'fp8_mlp_island_autograd.py'),
                 ('bf16_mlp', 'mlp_fused_bf16.py'),
                 ('softcap_ce', 'softcap_ce_parallel_nki.py'),
+                ('cached_head', 'head_loss_fused_nki.py'),
+                ('cached_head_autograd', 'head_loss_fused_autograd.py'),
                 ('attention', '/attention/'),
                 ('functional', '/torch/nn/functional.py'),
                 ('private_transpose', 'private_nkl/transpose.py')):
