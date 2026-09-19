@@ -1,13 +1,16 @@
 # Reopen optimizer ownership as a compute question
 
-Current02:21 UTC,2026-09-19: mode2 reciprocal AdamW plus ownership passes its
+Current02:43 UTC,2026-09-19: mode2 reciprocal AdamW plus ownership passes its
 actual-model composition gate (`fs-w98-owned-reciprocal-adamw-integration-gate-r1`).
 All24 parameter/state/rank checks match replicated identical NKI math exactly.
 All13 expected table updates occur once across owners; cache, skip/schedule
 and checkpoint continuation pass. Rank-local checkpoints record/reject a
 different AdamW arithmetic policy. Native checkpoints without that field stay
 compatible with native math. Independent FP64 authority remains wave66.
-Whole-step control/candidate comparison is active; no new quality gain claimed.
+Whole-step comparison completes clean:497.650549ms versus503.328809ms control,
+a1.12814% gain. Optimizer23.619889 versus26.362835ms; all four postchecks pass.
+Below3%: retain for combinations without a standalone quality run. No BPB gain
+is attributed to this arithmetic change.
 
 
 Earlier status at 21:59 UTC, 2026-09-18: the padded ownership implementation passes

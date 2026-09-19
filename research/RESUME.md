@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 02:43 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 02:45 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
 ## Current result and active work
@@ -76,10 +76,16 @@ table updates, cache/skip/schedule/restore and wrong-math rejection. Its whole
 step is497.650549ms versus503.328809ms control (1.12814% gain), optimizer
 23.619889 versus26.362835ms. Both clean/all four postchecks pass. Rank0 performs
 70 NKI table updates. Below3%: retain for combination, no standalone quality.
-**trn22 ACTIVE:** `fs-w98-native-owned-context1024-pack32-phase-r1`, started02:32:40.
-Same source/configuration, pack32/GA1 versus control pack16/GA2, unchanged131072
-training targets per update. No prior matching pack32 result found in reviewed
-records. Require complete phase/memory/postchecks before promotion. Watcher98.
+**Pack32 phase complete clean02:42:22:**487.405374 versus503.328809ms control,
+3.16362% gain. All four postchecks pass; same131072 global targets/update.
+trn22 quality request `fs-w98-dense1024-context1024-pack32-owned-ce-1800-r1`
+launched with source98, seed42, no ngrams, nativeMLP/ownership/adaptiveCE and
+clip-after-reduce, changing only pack32/GA1. Watcher98. No BPB result yet.
+Maintenance02:44:11 removed two verified redundant wave89 remote trace/parquet
+directories under host lock, after102 local/remote file hashes and four GitHub
+asset digests passed. Logical files total2,945,029,866B; observed free space
+rose8,806,248,448 to9,684,447,232B. Ingestion hardlinks retain raw trace blocks;
+local/GitHub files and remote staging remain. No cache/source/checkpoint purge.
 
 Source99 `94fa40ae3c5b5b93ba27f8f53d318ff14b07afaa` head/CE forward gate FAILED
 clean02:30:35 on confident-correct loss sign. All preceding projection/CE cases
@@ -91,10 +97,14 @@ The fused15*u+bias retains a multiplication residual against the rounded target
 bias; at strength80 this is-5.96046e-8, yielding exp/denominator0.9999999404
 and loss-5.7742e-8. Separately centered exp is1; runtime log(1) is positive.
 Four cases reproduce negative original losses. Kernel math is unchanged.
-Prepared source101 corrects the incompatible sign assertion to exact reference
+Source101 corrects the incompatible sign assertion to exact reference
 signs/values, retaining negative counts/minima and FP64 diagnostics. No equality
-tolerance or projection bound changes. Rerun all14 cases before timing; original
-failed run stays in ledger. trn21 clean, watcher100 pending101.
+tolerance or projection bound changes. All14 fixtures pass, clean02:41:17;
+actual-row gates also pass. Forward-only timing clean02:42:38: native two
+forwards12.819835ms versus16.254153ms candidate including transpose and saves,
+26.7891% slower. No backward or quality promotion. Prepared head device profile
+separates native forward, weight transpose and fused forward; source102 pending.
+trn21 clean, watcher101.
 
 
 Wave92 generic FP8 gradient GEMMs pass all9 independent cases. Repacked byte

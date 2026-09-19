@@ -1,0 +1,34 @@
+{
+  "shape": [
+    16384,
+    1024,
+    8192
+  ],
+  "samples_ms": {
+    "native_two_forwards": [
+      12.819834829618534,
+      12.824391330165477,
+      12.804580663214438
+    ],
+    "fused_transpose_and_two_forwards": [
+      16.25415266607888,
+      16.260080752545036,
+      16.25211466550051
+    ]
+  },
+  "median_ms": {
+    "native_two_forwards": 12.819834829618534,
+    "fused_transpose_and_two_forwards": 16.25415266607888
+  },
+  "weight_transpose_charged": true,
+  "logits_save_included": true,
+  "forward_only": true,
+  "backward_optimizer_or_whole_model_included": false,
+  "regression_pct": 26.789095819907203,
+  "source_commit": "9cdfca3ec1f22619a141381658577e6c950a3de6",
+  "host": "trn21",
+  "completed_at": "2026-09-19T02:42:38.467495+00:00",
+  "host_clean": true,
+  "numerical_cases": 14,
+  "decision": "Reject present forward layout for speed. Profile native head/CE, candidate and transpose before another layout; no backward or quality promotion."
+}
