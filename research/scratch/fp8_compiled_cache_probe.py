@@ -12,7 +12,7 @@ import json
 
 import torch
 
-from fp8_complete_mlp_probe import build_functions, prepare_caches
+from fp8_complete_mlp_probe import build_functions, prepare_caches, run as independent_complete_gate
 from fp8_gradient_prepare_nki import build_kernels as build_gradient_prepare
 from fp8_mlp_data_backward_nki import build_kernel as build_backward
 from fp8_mlp_island_probe import make_inputs
@@ -77,7 +77,8 @@ def exact_tuple(name, actual, expected):
         require_exact(name + ":" + str(i), a, b)
 
 
-def run_case(shape, case, producers, functions, steps, benchmark=False):
+def run_case(shape, case, producers, functions, steps, benchmark=False, microbatches=2):
+    assert microbatches in (1, 2)
     tokens, channels, hidden = shape
     x, up, down = make_inputs(shape, case, True)
     if case == "tiny_weights":
@@ -108,10 +109,10 @@ def run_case(shape, case, producers, functions, steps, benchmark=False):
         return
 
     generator = torch.Generator().manual_seed(97151 + channels + tokens)
-    xs = (x, normalize(torch.randn(x.shape, generator=generator).bfloat16()))
+    xs = (x, normalize(torch.randn(x.shape, generator=generator).bfloat16()))[:microbatches]
     inputs = tuple(v.to("neuron").requires_grad_() for v in xs)
     gradients = tuple((torch.randn(x.shape, generator=generator) * .03125).bfloat16().to("neuron")
-                      for _ in range(2))
+                      for _ in range(microbatches))
     native, complete = functions
 
     def update(mode, keep=False):
@@ -150,15 +151,17 @@ def run_case(shape, case, producers, functions, steps, benchmark=False):
     exact_tuple(case + ":restore", producers["full_compiled"](*masters, *fixed), caches["full_compiled"])
     emit("FP8_COMPILED_CACHE_GATE", case=case, shape=list(shape), passed=True,
          independent_metadata_qdq_bytes=True, component_gradient_checked=True,
-         exact_complete_outputs_and_gradients=True, two_distinct_microbatches=True,
-         fp32_master_accumulation=True, updated_and_restored_master_caches=True)
+         exact_complete_outputs_and_gradients=True, microbatches=microbatches,
+         two_distinct_microbatches=microbatches == 2,
+         fp32_master_gradients=True, fp32_master_accumulation=microbatches == 2,
+         updated_and_restored_master_caches=True)
     if benchmark:
         prep = timing({name: (lambda key=name: producers[key](*masters, *fixed))
                        for name in producers}, steps, torch.neuron.synchronize)
         full = timing({name: (lambda key=name: update(key)) for name in producers},
                       steps, torch.neuron.synchronize)
         emit("FP8_COMPILED_CACHE_BENCH", shape=list(shape), cache_preparation=prep,
-             complete_component=full, units="ms", full_microbatches=2,
+             complete_component=full, units="ms", full_microbatches=microbatches,
              all_online_casts_calibration_transposes_packing_charged=True,
              same_compiled_forward_backward_in_each_precision_pair=True,
              native_compiled_cache_control=True, new_quantization_policy=False,
@@ -169,15 +172,21 @@ def run_case(shape, case, producers, functions, steps, benchmark=False):
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--real-shape", action="store_true")
+    ap.add_argument("--real-tokens", type=int, choices=(16384, 32768), default=16384)
+    ap.add_argument("--real-microbatches", type=int, choices=(1, 2), default=2)
+    ap.add_argument("--independent-real-gates", action="store_true",
+                    help="Repeat independent forward/quantizer/four-product gates at the actual shape")
     ap.add_argument("--steps", type=int, default=20)
     args = ap.parse_args()
+    if args.real_shape and args.real_tokens != 16384 and not args.independent_real_gates:
+        ap.error("A new token shape requires --independent-real-gates before timing")
     import torch_neuronx
     from torch_neuronx import wrap_nki
     torch.set_num_threads(4)
     forward, backward, pack = (wrap_nki(fn()) for fn in (build_forward, build_backward, build_pack))
     partial, finish = (wrap_nki(k) for k in build_gradient_prepare())
-    product = wrap_nki(build_weight_gradient()[2])
-    calibrate = wrap_nki(build_calibration()[0])
+    _, byte_pack, product = (wrap_nki(k) for k in build_weight_gradient())
+    calibrate, quantize = (wrap_nki(k) for k in build_calibration())
     producers = make_producers(calibrate, pack)
 
     def functions(channels):
@@ -190,9 +199,24 @@ def main():
     for case in cases:
         run_case((512, 256, 512), case, producers, small, args.steps)
     if args.real_shape:
-        run_case((16384, 1024, 4096), "real_random", producers, functions(1024), args.steps, True)
+        shape = (args.real_tokens, 1024, 4096)
+        applications = build_functions(1024, forward, backward, partial, finish, product)
+        if args.independent_real_gates:
+            kernels = (forward, backward, partial, finish, product, calibrate, quantize,
+                       pack, byte_pack)
+            # This prerequisite retains the established two-microbatch
+            # accumulation test and native FP64 rounding-bound control. Its
+            # two-microbatch timings are separate from the requested shape's
+            # measurement below (the winning pack32 model uses one microbatch).
+            independent_complete_gate(shape, "real_random", kernels, applications,
+                                      min(args.steps, 5), True)
+        run_case(shape, "real_random", producers, (applications[3], applications[1]),
+                 args.steps, True, args.real_microbatches)
     emit("FP8_COMPILED_CACHE_RESULT", passed=True, cases=len(cases) + int(args.real_shape),
-         real_shape=args.real_shape, fullgraph=True, full_model_or_quality_claim=False)
+         real_shape=args.real_shape, real_tokens=args.real_tokens,
+         real_microbatches=args.real_microbatches,
+         independent_real_gates=args.independent_real_gates,
+         fullgraph=True, full_model_or_quality_claim=False)
 
 
 if __name__ == "__main__":

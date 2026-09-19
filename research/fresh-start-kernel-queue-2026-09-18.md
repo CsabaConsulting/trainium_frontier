@@ -1,6 +1,6 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19 06:30 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19 06:44 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
@@ -14,7 +14,7 @@ failure and clean recovery are preserved; the larger evaluation is clean.
 
 | Idea | Measured state | Next action |
 | --- | --- | --- |
-| Compile online FP8 cache preparation | `fp8_compiled_cache_probe.py` prepared; hardware gates pending | Exact CPU calibration/decoded layouts, eager-versus-compiled bytes and complete gradients; include compiled native control, updated masters and all preparation costs |
+| Compile unchanged online FP8 cache preparation | Source132 all8 gates pass; preparation1.0066→0.5496ms, complete FP8 MLP15.8636→15.4436ms; compiled native15.3691ms | Gate32768tokens/one microbatch with independent all-four-product bounds before judging the current model shape |
 | FP8-specific packing | One layout improves FP8 component about2.95% while worsening BF16 by11.63%; FP8 whole model still17.74% slower | Continue FP8-specific development; BF16 ranking is not a veto |
 | FP8 grouped weight-gradient products | Balanced banks + fused abs + two-core preparation pass10cases: down1.548/up1.695ms vs native1.095/1.075ms | Complete full FP8 MLP passes11cases but15.938ms vs15.486ms BF16; profile full derivative costs |
 | Reuse forward-produced FP8 bytes | All10cases pass; online cache work +2forward producers6.899→5.919ms (14.20%); preserves existing saves | Composed in complete FP8 MLP; saves do not yet make it faster than BF16 |
