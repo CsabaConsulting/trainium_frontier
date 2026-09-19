@@ -49,6 +49,27 @@ def main():
             return float((a - b).abs().max())
         with torch.inference_mode():
             actual = model(tokens)
+            def difference(a, b):
+                return float((a.detach().float().cpu() - b.detach().float().cpu()).abs().max())
+            single = model(tokens[:1])
+            ref_single = reference(tokens[:1])
+            altered_batch = tokens.clone()
+            altered_batch[1] = (altered_batch[1] + 139) % 8192
+            diagnostic = dict(
+                device=args.device,
+                source_batch2_max_abs=difference(actual, reference(tokens)),
+                source_batch1_max_abs=difference(single, ref_single),
+                original_batch_size_max_abs=difference(reference(tokens)[:1], ref_single),
+                candidate_batch_size_max_abs=difference(actual[:1], single),
+                other_row_content_max_abs=difference(actual[:1], model(altered_batch)[:1]),
+            )
+            if args.device == "cpu":
+                saved = candidate.USE_BF16_NORM_OUTPUT
+                candidate.USE_BF16_NORM_OUTPUT = False
+                diagnostic["fp32_norm_diagnostic_batch_size_max_abs"] = difference(
+                    model(tokens)[:1], model(tokens[:1]))
+                candidate.USE_BF16_NORM_OUTPUT = saved
+            print("SUBMISSION_CONTRACT_DIAGNOSTIC " + json.dumps(diagnostic), flush=True)
             report = dict(
                 source_checkpoint_logits_max_abs=close(actual, reference(tokens), exact=True),
                 repeat_max_abs=close(actual, model(tokens), exact=True),

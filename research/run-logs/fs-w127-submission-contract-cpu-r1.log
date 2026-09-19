@@ -1,0 +1,23 @@
+[W919 06:18:10.590141524 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_freshstart_20260918_wave127/research/scratch/submission_contract_check.py", line 75, in <module>
+    main()
+  File "/home/ubuntu/trainium_freshstart_20260918_wave127/research/scratch/submission_contract_check.py", line 56, in main
+    batch_independence_max_abs=close(actual[:1], model(tokens[:1])),
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/trainium_freshstart_20260918_wave127/research/scratch/submission_contract_check.py", line 48, in close
+    torch.testing.assert_close(a, b, rtol=0, atol=0 if exact else 1e-5)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/testing/_comparison.py", line 1600, in assert_close
+    raise error_metas[0].to_error(msg)
+AssertionError: Tensor-likes are not close!
+
+Mismatched elements: 657620 / 1048576 (62.7%)
+Greatest absolute difference: 0.08724379539489746 at index (0, 14, 886) (up to 1e-05 allowed)
+Greatest relative difference: 10841.349609375 at index (0, 43, 6842) (up to 0 allowed)
+EXPERIMENT_POSTFLIGHT {"label": "fs-w127-submission-contract-cpu-r1", "returncode": 1, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave127/research/run-logs/fs-w127-submission-contract-cpu-r1.postflight.json"}
