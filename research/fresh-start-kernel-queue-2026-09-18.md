@@ -1,6 +1,6 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19, 01:40 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19, 01:50 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
@@ -8,8 +8,9 @@ Every device request retains immutable source, cleanup and numerical gates.
 
 Latest: packed FP8 integration passes but the whole step loses17.7363%:
 587.956385 versus499.384107 ms on the same trn21/source/configuration. Caller
-FP8 microstep trace finished clean01:38:13; matching native trace launched on
-trn22 at01:40:07. Preserve/ingest/map their binaries, then localize the extra
+FP8 microstep trace finished clean01:38:13; native trace finished clean01:46:33.
+Packed trace is locally verified; native preservation and both CPU ingests
+are active. Map their binaries after complete ingestion, then localize the extra
 85.0014 ms in two-microbatch compute. No FP8 quality promotion. Wave92 gradient
 dots pass but gain only0.56–1.65%; wave93 fused FP8 data backward passes but
 loses12.72% to native BF16. Watchers both wave89. Latest source and heavy backup
@@ -573,3 +574,16 @@ with all ranks active. Same-host non-profiled timing is already preserved;
 cross-host trace durations do not replace it. The older wave5 remote duplicate
 was pruned under the host lock only after local, remote and GitHub preservation
 verification; exact maintenance manifest retained.
+
+## Additional fusion candidate: vocabulary head and loss
+
+`fresh-start-fused-head-loss-design-2026-09-19.md` records the primary-source
+review and staged gates for eliminating the FP32 logits intermediate. Apple
+CCE offers the algorithmic precedent; AWS experimental CE offers an LNC2 tiling
+reference but takes materialized logits and does not preserve our default
+softcap/precision contract. Start without gradient filtering and retain the
+FP32 head accumulators that the failed wave83 boundary exposed. Separate simple
+forward fusion from backward recomputation and charge every extra GEMM.
+Priority depends on the current native caller profile; no speed or quality
+gain is established. This is work reuse/traffic elimination from the broad
+retro-computing search, not another standalone polynomial benchmark.

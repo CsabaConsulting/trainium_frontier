@@ -1,0 +1,33 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave89",
+    "expected_commit": "dcd6b80a4199339333d93a8e005aa746d3fd28d2",
+    "label": "fs-w89-packed-fp8-caller-remote-ingest-r1",
+    "purpose": "CPU-only full-model FP8 caller trace ingestion between device jobs. Preserve raw source hashes, hardlink only into fresh staging, match all retained binaries, bounded24GiB Go memory/4threads and whole-host pre/post protocol.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave89",
+      "GOMEMLIMIT": "24GiB",
+      "GOMAXPROCS": "4"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "-c",
+      "import pathlib,os,hashlib,subprocess,json,time\nroot=pathlib.Path.cwd()\nsource=pathlib.Path('/home/ubuntu/trainium_freshstart_20260918_wave89/out/fs-w89-packed-fp8-owned-micro-device-profile-r1')\nstage=root/('out/'+'fs-w89-packed-fp8-caller-remote-ingest-r1'+'-input')\noutput=root/('out/'+'fs-w89-packed-fp8-caller-remote-ingest-r1'+'-parquet')\npost=json.loads((root/'research/run-logs/fs-w89-packed-fp8-owned-micro-device-profile-r1.postflight.json').read_text())\nassert post['host_clean'] and post['command_returncode']==0\nassert source.is_dir() and not stage.exists() and not output.exists()\ndef digest(p):\n with p.open('rb') as f: return hashlib.file_digest(f,'sha256').hexdigest()\nfiles=sorted(p for p in source.rglob('*') if p.is_file())\nassert files and all(not p.is_symlink() for p in files)\nbefore={str(p.relative_to(source)):digest(p) for p in files}\nstage.mkdir(parents=True)\nfor p in files:\n target=stage/p.relative_to(source);target.parent.mkdir(parents=True,exist_ok=True);os.link(p,target)\nneffs=list(stage.rglob('*.neff'))\nfor trace in list(stage.rglob('*.ntff')):\n for neff in neffs:\n  target=trace.parent/neff.name\n  if not target.exists(): os.link(neff,target)\n  elif target.stat().st_ino!=neff.stat().st_ino: assert digest(target)==digest(neff)\ncommand=['/opt/aws/neuron/bin/neuron-explorer','view','--session-dir',str(stage),'--ingest-only','--output-format','parquet','--output-file',str(output)]\nprint('INGEST_START '+json.dumps({'source':str(source),'stage':str(stage),'output':str(output),'command':command,'raw_preserved':True,'source_sha256':before}),flush=True)\nstart=time.monotonic();completed=subprocess.run(command,cwd=stage)\nafter={str(p.relative_to(source)):digest(p) for p in files}\nassert before==after\nprint('INGEST_COMPLETE '+json.dumps({'returncode':completed.returncode,'seconds':time.monotonic()-start,'tables':len(list(output.rglob('*.parquet'))),'raw_hashes_unchanged':True,'instruction_files':[(str(p),p.stat().st_size) for p in output.rglob('Instruction.parquet')]}),flush=True)\nraise SystemExit(completed.returncode)\n"
+    ],
+    "fingerprint_paths": []
+  },
+  "requested_at": "2026-09-19T01:42:14.350664+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w89-packed-fp8-caller-remote-ingest-r1\", \"pid\": 1244202, \"commit\": \"dcd6b80a4199339333d93a8e005aa746d3fd28d2\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave89/research/run-logs/fs-w89-packed-fp8-caller-remote-ingest-r1.log\", \"started_at\": \"2026-09-19T01:42:19.949941+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}
