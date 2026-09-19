@@ -1,5 +1,13 @@
 # FP8 caller output-layout control
 
+Completed update,2026-09-19 23:35UTC: source148 resident/direct-rank whole-step
+comparison finished cleanly on trn22. Resident564.075656ms, direct-rank
+561.903786ms:0.3850% improvement, below3%. Both have all four model checks and
+identical diagnostic loss5.120891094207764. No speed/BPB promotion. Exact
+summaries/raw logs/postflight hashes are preserved under
+`fs-w148-fp8-{resident-control,direct-rank}-phase-r1`. The preparation below is
+historical; the queue is complete, not running.
+
 Source148 deployed,2026-09-19 17:40UTC. The compact-save and streamed-weight
 controls are complete. Streaming is numerically exact under the existing gates
 but slower in the whole model:570.476580ms versus resident562.968046ms,1.334%

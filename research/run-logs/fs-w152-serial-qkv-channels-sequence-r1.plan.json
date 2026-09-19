@@ -1,0 +1,76 @@
+{
+  "label": "fs-w152-serial-qkv-channels-sequence-r1",
+  "max_seconds": 2400,
+  "purpose": "Bounded real-attention integration gate and complete caller timing; preserve and stop after one request. No quality run.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w152-serial-qkv-channels-attention-r1.request.json",
+      "sha256": "5ef95884ad427f1a6411b6678e0f8d9075033eb1301fa79cfeea965d15a60fd0",
+      "requirements": [
+        {
+          "marker": "SERIAL_QKV_COMPONENT_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "source_commit": "85addadd2ade1d0eb37fa9a5294b598bfe2ba9b4"
+          }
+        },
+        {
+          "marker": "SERIAL_QKV_ATTENTION_GATE",
+          "count": 2,
+          "unique_field": "channels",
+          "values": [
+            256,
+            1024
+          ],
+          "fields": {
+            "layout": "channels",
+            "passed": true,
+            "compiled_forward_backward": true,
+            "cached_and_uncached": true,
+            "original_separate_parameters": true,
+            "accumulation_and_refresh": true,
+            "distinct_input_gradients": true,
+            "causal_and_batch_independence_exact": true,
+            "padded_projection_rows": true,
+            "native_evaluation_and_restore_exact": true
+          }
+        },
+        {
+          "marker": "SERIAL_QKV_ATTENTION_TIMING",
+          "count": 1,
+          "fields": {
+            "layout": "channels",
+            "batch": 32,
+            "length": 1024,
+            "channels": 1024,
+            "passed": true,
+            "real_shape_output_input_and_master_gradients_gated": true,
+            "steps_per_block": 10,
+            "complete_attention_forward_backward": true,
+            "weight_cache_refresh_timed": true,
+            "compiled_native_control": true,
+            "all_layout_and_dispatch_costs_timed": true,
+            "whole_model_or_quality_claim": false
+          }
+        },
+        {
+          "marker": "SERIAL_QKV_INTEGRATION_RESULT",
+          "count": 1,
+          "fields": {
+            "layout": "channels",
+            "widths": [
+              256,
+              1024
+            ],
+            "passed": true,
+            "paired_native_bounds_unchanged": true,
+            "native_rope_geometry_preserved": true,
+            "real_shape_attention_timing_complete": true,
+            "whole_model_or_quality_claim": false
+          }
+        }
+      ]
+    }
+  ]
+}

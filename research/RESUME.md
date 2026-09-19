@@ -1,40 +1,36 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 23:15 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 23:38 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## Source148 complete; serial QKV kernels prepared — CURRENT
+## Serial QKV attention discrepancy under diagnosis — CURRENT
 
-- Live SSH checked both hosts at23:05:46UTC: no device holders or Neuron
-  processes, both device locks free, trn21 disk26.80GB and trn22 disk16.11GB.
-  Their bounded queues completed normally: trn21 at17:46:20UTC and trn22 at
-  18:04:16UTC. They have been idle for roughly five hours. The backup cron
-  preserved results but did not launch further experiments. Do not describe
-  a completed finite queue as continuing research or continuously busy hosts.
-- Source148 FP8 resident/direct-rank comparison is complete with clean
-  postflights and all four checks:564.075656ms versus561.903786ms (0.3850%
-  improvement), identical loss5.120891094207764. No promotion.
-- Source148 pack32 reciprocal/ownership gate passes all24 equivalence and
-  four composition records. Whole-step candidate487.780576ms versus same-host
-  native488.035319ms (0.0522% improvement), all four checks/clean. Optimizer
-  component26.761235 ->23.836373ms does not establish a full-step win. No
-  quality run or seed sweep; both candidates miss the3% threshold.
-- Source149 is being prepared: independent Q/K/V NKI projections, three
-  separate ordinary weights and contiguous outputs, native six-product VJP.
-  Token-stationary and weight-stationary layouts will each receive a native
-  control on their own host. Both charge all weight loads/transposes/stores.
-  Original parameter shapes/Muon states and serial attention remain intact.
-  The existing attention qkv argument provides the later integration boundary.
-- New component probe has independent FP64 bounds for forward/all six
-  gradients, negative controls, distinct streams, repeated calls/nonmutation,
-  row independence, changed weights and two-microbatch FP32 accumulation.
-  It gates32768x1024 before alternating complete component timings including
-  cache casts. Local AST passes; hardware correctness and speed are pending.
-  Actual attention integration and whole-model timing are still pending.
-- Last verified backup: source67d4e88, snapshotf760e360,23:00:49UTC, both
-  remote retrievals complete. Source148 completion summaries and source149
-  preparation need a deliberate source commit/push. Frozen matched public
-  best remains0.9928513116311253. No competition submission.
+- Source152 attention gates STOPPED on both hosts after the same unchanged
+  width256/uncached/VE output bound failure:190 elements, relative RMS
+  0.0041420266. Token postflight clean23:35:01UTC; channels clean23:35:18UTC.
+  Both coordinators stopped normally; no hardware/compiler crash and no timed
+  attention result. Do not describe source152 as still running or passing.
+- Source153 diagnostic is prepared: original native forward remains the
+  authority; native-preprojected, NKI-all and Q-only/K-only/V-only replacements
+  isolate the first difference. It crosses VE enabled/disabled and cached/
+  uncached weights, with token layout width256 and channel layout width1024.
+  Frozen stored-BF16 projections and CPU-FP64-derived unrounded FP32 V are
+  explicit precision hypotheses, not replacement acceptance references.
+  The unchanged integration bound remains failed until the original gate is
+  rerun successfully. A compiler-retained V/addition intermediate is only a
+  hypothesis. Diagnostics cannot promote a whole-model or quality run.
+- Source151 primitive remains fully gated but slower: tokens4.947391 versus
+  native4.695781ms (5.358% slower); channels5.208927 versus native4.714912ms
+  (10.478% slower). All9 cases, real32768x1024 and cache/master lifecycle pass.
+  Kernel source85addadd; primitive/gate bytes are checked before integrations.
+- Source149 helper-resolution and source150 logger failures were fixed without
+  altering math/bounds; all attempts and clean postflights are preserved.
+  Source148 FP8 direct-rank0.385% and pack32 reciprocal0.052% improvements
+  remain below3%, with no promotion. Frozen public best0.9928513116311253.
+- Last verified backup23:30:47UTC: source71350a2, recoverybac58753, both
+  remote retrievals complete. Later source152/153 work needs the next push.
+  Read current dispatch/sequence records for live activity. All experiment
+  queues are bounded; the backup cron does not choose or launch experiments.
 
 ## FP8 output-rank timing and pack32 optimizer gates — 17:42 UTC
 

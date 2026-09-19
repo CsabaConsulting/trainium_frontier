@@ -1,17 +1,22 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19 23:15 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19 23:33 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
-Source148's finite queues completed cleanly while the session was idle. Direct
-FP8 output rank is0.385% faster than its same-host resident control; pack32
-reciprocal optimization is0.052% faster than its same-host native control.
-Both miss the3% advancement gate; detailed summaries and original logs are
-preserved. Source149's two serial-QKV kernel layouts are now implemented for
-independent forward/gradient/cache/row gates and complete component timing.
-Read current dispatch/state records before assuming a host is busy. Full-model
-integration and any speed or quality promotion remain pending.
+Source148's complete direct FP8 output-rank and pack32 reciprocal comparisons
+improve0.385% and0.052% respectively: below3%, no promotion. Source151's two
+serial QKV layouts now pass every independent component/lifecycle gate but are
+5.358% (tokens) and10.478% (channels) slower than their paired native controls.
+Compiler helper-resolution and logger failures from sources149/150 were fixed
+without changing numerical bounds; failed raw evidence and cleanups retained.
+The source152 real-attention gate fails identically on both layouts
+(190 bound failures, relative RMS0.0041420266); both cleanups pass. Source153
+partial Q/K/V and VE/cache/materialization diagnostics are the next step,
+keeping the original acceptance bounds and native authority unchanged. The original Parameters, three normalized streams,
+Muon groups and RoPE layout are preserved. No whole-model/quality promotion.
+Read current dispatch/state records before assuming a host is busy; all queues
+are bounded, and backup cron does not launch research.
 
 Scope clarification: full FP8 here means the complete MLP forward/backward,
 not all transformer projections/attention/optimizer arithmetic. A broader

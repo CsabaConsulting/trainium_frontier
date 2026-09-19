@@ -1,5 +1,13 @@
 # Reciprocal optimizer with the current larger microbatch
 
+Completed update,2026-09-19 23:35UTC: all24 rank/stage and four composition gates
+passed, followed by clean pack32 timing and all four whole-model checks.
+Candidate487.780576ms versus same-host/source native488.035319ms is0.0522%
+faster, below3%. The optimizer component26.761235 ->23.836373ms does not
+translate into a meaningful whole-step gain. No quality run or seed sweep.
+Source148 raw records and summary hashes are preserved; its coordinator is
+complete. The launch/queue description below is historical.
+
 Started2026-09-19 17:41UTC. This is a bounded composition experiment alongside
 the FP8 output-layout comparison. No new approximation or quality result.
 
