@@ -1,7 +1,24 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 06:34 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 06:40 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
+
+## Standalone scorer replay exact; cold training underway — 2026-09-19 06:40 UTC
+
+- Packaged source129 replay COMPLETE on trn21, clean06:35:54.439321:
+  20,971,520tokens,83,462,186bytes,57,438,016nats, BPB0.9928513116311253
+  EXACT to source98, scorer692.860s. Protected scorer, B1/T1024/O1. The
+  standalone train.py reproduces the score; this is not a private submission.
+- trn22 cold training reached fifth boundary within900s and is now steady at
+  about0.49s/update. First step474.47s; subsequent startup compilation is over.
+  Final independently observed allowance/checkpoint deadline await completion.
+  Original source98 training loop unchanged, including its early wall-clock LR
+  behavior. Cold startup can change early LR; do not claim identical weights.
+- One-off maintenance script may retire ONLY the redundant source98 checkpoint
+  transferred to trn21 after verifying local/current cloud/remote hashes and
+  exact successful replay state under host lock. Original source98 preserved.
+- Source131 probe prepared; plan deploy after replay cleanup. Both wave129
+  watchers still live. Source13159120a8 and snapshot6e11d0b pushed06:34:47.
 
 ## Cold startup underway — 2026-09-19 06:34 UTC
 
