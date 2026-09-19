@@ -1,0 +1,45 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave117",
+    "expected_commit": "026e9f3ef952e0363cd3bc0e43e493bb6aad0433",
+    "label": "fs-w117-fp8-two-core-gradient-prepare-component-r1",
+    "purpose": "Exact current-scale two-core partial maximum then fused final scale/byte preparation. Recompute BF16 row-scale transfer in SBUF rather than save Gprime. Eighteen partial/metadata/byte/CPU/repeat/nonmutation gates, then all preparation costs versus original and fused-amax controls. No full product, autograd or quality claim.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave117"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/fp8_gradient_prepare_probe.py",
+      "--real-shape",
+      "--benchmark",
+      "--steps",
+      "12"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/fp8_gradient_prepare_nki.py",
+      "research/scratch/fp8_gradient_prepare_probe.py",
+      "research/scratch/fp8_weight_gradient_nki.py",
+      "research/scratch/fp8_weight_cache_nki.py",
+      "research/scratch/fp8_weight_cache_probe.py",
+      "research/scratch/fp8_packed_weight_cache_probe.py",
+      "research/scratch/fresh_start_fp8_probe.py",
+      "research/scratch/mlp_fused_bf16_probe.py"
+    ]
+  },
+  "requested_at": "2026-09-19T03:54:03.649746+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w117-fp8-two-core-gradient-prepare-component-r1\", \"pid\": 1645269, \"commit\": \"026e9f3ef952e0363cd3bc0e43e493bb6aad0433\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave117/research/run-logs/fs-w117-fp8-two-core-gradient-prepare-component-r1.log\", \"started_at\": \"2026-09-19T03:54:09.219561+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

@@ -3,6 +3,25 @@
 Updated 2026-09-19 03:40 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
+## New dispatch update — 2026-09-19 03:53 UTC
+
+- trn22 source116 `b435826feb6c7cfd9316605e22a7a0e84fba1250`, watcher116,
+  fused-amax gradient composition COMPLETE/clean; all10cases pass, up1.987077ms
+  still loses native1.080190ms. All three source115 amax alternatives passed13
+  exact cases including subnormals; fused abs is fastest (0.197/0.650ms).
+  Source117 two-core calibration/recomputed row scaling prototype is prepared.
+- trn21 source112, watcher112, caller ingestion retry2 ACTIVE with64GiB Go soft
+  limit/4threads/GC trace. Retry1 was deliberately SIGQUIT-interrupted at440.58s
+  after>300s empty outputs and22GiB RSS under24GiB limit. Exact UID/job marker/
+  argv/cwd/start_ticks match is recorded. Stack shows processing workers in
+  gcAssistAlloc; command2, raw hashes unchanged, postflight clean03:50:20.
+  Retry1 stack/log/empty output preserved, no cache or source purge.
+- Raw cached-head trace70files/2,384,899,172B is locally hash verified and now
+  GitHub-digest verified as729,901,043B tar asset. All51heavy artifacts verified
+  with no errors03:52:35. Once ingestion completes, preserve/analyze parquet;
+  expect disk-reserve check and reclaim only backed-up redundant files if needed.
+- Current public best remains0.9928513116311253; identity in best manifest.
+
 ## Dispatch state — 2026-09-19 03:40 UTC
 
 - trn21: source112 `5abe6708fbc29ff9c1ec5f0d0ca2c9e58f96a5ec`, watcher112.

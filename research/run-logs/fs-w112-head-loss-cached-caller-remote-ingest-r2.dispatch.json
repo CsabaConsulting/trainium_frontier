@@ -1,0 +1,34 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave112",
+    "expected_commit": "5abe6708fbc29ff9c1ec5f0d0ca2c9e58f96a5ec",
+    "label": "fs-w112-head-loss-cached-caller-remote-ingest-r2",
+    "purpose": "CPU-only retry after scope-verified diagnostic SIGQUIT of24GiB ingestion. Original interrupted log/stack/empty tables retained; raw hashes unchanged and postflight clean. Use64GiB Go soft heap limit and4threads with GC trace to test suspected memory-limit thrashing. No training/SDK changes.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave112",
+      "GOMEMLIMIT": "64GiB",
+      "GOMAXPROCS": "4",
+      "GODEBUG": "gctrace=1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "-c",
+      "import pathlib,os,hashlib,subprocess,json,time\nroot=pathlib.Path.cwd()\nsource=pathlib.Path('/home/ubuntu/trainium_freshstart_20260918_wave112/out/fs-w112-head-loss-cached-micro-device-profile-r1')\nstage=root/('out/'+'fs-w112-head-loss-cached-caller-remote-ingest-r2'+'-input')\noutput=root/('out/'+'fs-w112-head-loss-cached-caller-remote-ingest-r2'+'-parquet')\npost=json.loads((root/'research/run-logs/fs-w112-head-loss-cached-micro-device-profile-r1.postflight.json').read_text())\nassert post['host_clean'] and post['command_returncode']==0\nassert source.is_dir() and not stage.exists() and not output.exists()\ndef digest(p):\n with p.open('rb') as f: return hashlib.file_digest(f,'sha256').hexdigest()\nfiles=sorted(p for p in source.rglob('*') if p.is_file())\nassert files and all(not p.is_symlink() for p in files)\nbefore={str(p.relative_to(source)):digest(p) for p in files}\nstage.mkdir(parents=True)\nfor p in files:\n target=stage/p.relative_to(source);target.parent.mkdir(parents=True,exist_ok=True);os.link(p,target)\nneffs=list(stage.rglob('*.neff'))\nfor trace in list(stage.rglob('*.ntff')):\n for neff in neffs:\n  target=trace.parent/neff.name\n  if not target.exists(): os.link(neff,target)\n  elif target.stat().st_ino!=neff.stat().st_ino: assert digest(target)==digest(neff)\ncommand=['/opt/aws/neuron/bin/neuron-explorer','view','--session-dir',str(stage),'--ingest-only','--output-format','parquet','--output-file',str(output)]\nprint('INGEST_START '+json.dumps({'source':str(source),'stage':str(stage),'output':str(output),'command':command,'raw_preserved':True,'source_sha256':before}),flush=True)\nstart=time.monotonic();completed=subprocess.run(command,cwd=stage)\nafter={str(p.relative_to(source)):digest(p) for p in files}\nassert before==after\nprint('INGEST_COMPLETE '+json.dumps({'returncode':completed.returncode,'seconds':time.monotonic()-start,'tables':len(list(output.rglob('*.parquet'))),'raw_hashes_unchanged':True,'instruction_files':[(str(p),p.stat().st_size) for p in output.rglob('Instruction.parquet')]}),flush=True)\nraise SystemExit(completed.returncode)\n"
+    ],
+    "fingerprint_paths": []
+  },
+  "requested_at": "2026-09-19T03:51:07.410403+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w112-head-loss-cached-caller-remote-ingest-r2\", \"pid\": 1308207, \"commit\": \"5abe6708fbc29ff9c1ec5f0d0ca2c9e58f96a5ec\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave112/research/run-logs/fs-w112-head-loss-cached-caller-remote-ingest-r2.log\", \"started_at\": \"2026-09-19T03:51:13.520104+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

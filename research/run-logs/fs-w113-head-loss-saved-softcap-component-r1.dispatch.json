@@ -1,0 +1,44 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave113",
+    "expected_commit": "bcd317f1c86bf4855659b7dc23e5f88492048a51",
+    "label": "fs-w113-head-loss-saved-softcap-component-r1",
+    "purpose": "Test exact work reuse: save FP32 tanh unit values instead of raw FP32 logits at identical storage size; backward skips repeated tanh. Unchanged20compiled original head loss/dx/master/update/cache gates before complete FW/BW timing, every transpose charged. No model/quality claim.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave113"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/head_loss_fused_autograd_probe.py",
+      "--real-shape",
+      "--benchmark",
+      "--steps",
+      "12",
+      "--saved-softcap"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/head_loss_fused_nki.py",
+      "research/scratch/head_loss_fused_autograd.py",
+      "research/scratch/head_loss_fused_autograd_probe.py",
+      "research/scratch/softcap_ce_parallel_nki.py",
+      "research/scratch/softcap_ce_parallel_integration.py",
+      "research/scratch/mlp_fused_bf16_probe.py"
+    ]
+  },
+  "requested_at": "2026-09-19T03:58:49.799795+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w113-head-loss-saved-softcap-component-r1\", \"pid\": 1309810, \"commit\": \"bcd317f1c86bf4855659b7dc23e5f88492048a51\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave113/research/run-logs/fs-w113-head-loss-saved-softcap-component-r1.log\", \"started_at\": \"2026-09-19T03:58:55.483725+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

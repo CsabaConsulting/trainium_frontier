@@ -1,0 +1,54 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave118",
+    "expected_commit": "355bd5ea0743188a318385fd5979f119321ddeab",
+    "label": "fs-w118-fp8-weight-gradient-two-core-prepare-component-r1",
+    "purpose": "Compose18case-gated exact two-core/recomputed gradient preparation with balanced8bank FP8 products. Repeat10product/quantizer/original-byte/metadata/pair/nonmutation gates and charge preparation of both operands. No full autograd/model quality claim.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave118"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/fp8_weight_gradient_probe.py",
+      "--real-shape",
+      "--grouped-io",
+      "--benchmark",
+      "--steps",
+      "12",
+      "--stage-timings",
+      "--parallel-calibration",
+      "--balanced-io",
+      "--calibration-mode",
+      "3",
+      "--two-core-gradient-prepare"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/fp8_weight_gradient_nki.py",
+      "research/scratch/fp8_weight_gradient_probe.py",
+      "research/scratch/fp8_weight_cache_nki.py",
+      "research/scratch/fp8_mlp_island_probe.py",
+      "research/scratch/fresh_start_fp8_probe.py",
+      "research/scratch/fp8_packed_weight_cache_probe.py",
+      "research/scratch/fp8_amax_probe.py",
+      "research/scratch/fp8_weight_cache_probe.py",
+      "research/scratch/fp8_gradient_prepare_nki.py",
+      "research/scratch/fp8_gradient_prepare_probe.py"
+    ]
+  },
+  "requested_at": "2026-09-19T03:56:50.389939+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w118-fp8-weight-gradient-two-core-prepare-component-r1\", \"pid\": 1647668, \"commit\": \"355bd5ea0743188a318385fd5979f119321ddeab\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave118/research/run-logs/fs-w118-fp8-weight-gradient-two-core-prepare-component-r1.log\", \"started_at\": \"2026-09-19T03:56:56.977266+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}
