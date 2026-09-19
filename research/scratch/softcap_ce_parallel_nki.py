@@ -90,7 +90,8 @@ def build_kernels():
         return loss, lse
 
     @nki.jit
-    def backward(z, tgt, lse, g, lanes: int = 2, round_bf16_output: bool = False):
+    def backward(z, tgt, lse, g, lanes: int = 2, round_bf16_output: bool = False,
+                 input_is_softcap: bool = False):
         """Return [N, V] gradients, normally in the logits dtype.
 
         Args:
@@ -100,6 +101,9 @@ def build_kernels():
             round_bf16_output: Separately gated head-only contract. Preserve
                 FP32 logits/arithmetic, but round the output to BF16 for a
                 consumer that already has that backward cast boundary.
+            input_is_softcap: Separately gated producer/consumer contract:
+                z holds the exact FP32 tanh result saved by the fused head.
+                Skip recomputing tanh; all subsequent arithmetic is unchanged.
         Returns:
             Original FP32 softcap15/CE derivative, rounded at the output when
             the input was BF16 or round_bf16_output is enabled. The latter
@@ -111,6 +115,7 @@ def build_kernels():
         softcap = 15.0
         assert lanes in (1, 2) and rows_count % (partitions * lanes) == 0
         assert z.dtype in (nl.float32, nl.bfloat16) and tgt.dtype == nl.float32
+        assert not input_is_softcap or z.dtype == nl.float32
         assert lse.dtype == nl.float32 and g.dtype == nl.float32
         assert tgt.shape == (rows_count, 1) and lse.shape == (rows_count, 1)
         assert g.shape == (rows_count, 1)
@@ -121,10 +126,13 @@ def build_kernels():
         for tile in nl.affine_range(rows_count // (partitions * lanes)):
             rows = nl.ds((tile * lanes + nl.program_id(0)) * partitions, partitions)
             logits = nl.ndarray((partitions, vocab), dtype=nl.float32, buffer=nl.sbuf)
+            capped_unit = nl.ndarray((partitions, vocab), dtype=nl.float32, buffer=nl.sbuf)
             labels = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
             gradient = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
             negative_lse = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
-            if z.dtype == nl.bfloat16:
+            if input_is_softcap:
+                nisa.dma_copy(dst=capped_unit, src=z[rows])
+            elif z.dtype == nl.bfloat16:
                 source = nl.ndarray((partitions, vocab), dtype=nl.bfloat16, buffer=nl.sbuf)
                 nisa.dma_copy(dst=source, src=z[rows])
                 nisa.tensor_copy(dst=logits, src=source)
@@ -135,8 +143,8 @@ def build_kernels():
             nisa.dma_copy(dst=negative_lse, src=lse[rows])
             nisa.tensor_scalar(dst=negative_lse, data=negative_lse,
                                op0=nl.multiply, operand0=-1.0)
-            capped_unit = nl.ndarray((partitions, vocab), dtype=nl.float32, buffer=nl.sbuf)
-            nisa.activation(dst=capped_unit, op=nl.tanh, data=logits, scale=1.0 / softcap)
+            if not input_is_softcap:
+                nisa.activation(dst=capped_unit, op=nl.tanh, data=logits, scale=1.0 / softcap)
             nisa.activation(dst=logits, op=nl.exp, data=capped_unit,
                             scale=softcap, bias=negative_lse)
             temporary = nl.ndarray((partitions, vocab), dtype=nl.float32, buffer=nl.sbuf)

@@ -1,7 +1,34 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 03:08 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 03:24 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
+
+## Dispatch state — 2026-09-19 03:24 UTC
+
+- trn21: source112 `5abe6708fbc29ff9c1ec5f0d0ca2c9e58f96a5ec`, watcher112.
+  Cached-head GPT gate PASSED196 exact checks at widths256/1024, including
+  every master gradient/update, native evaluation and checkpoint restoration.
+  `fs-w112-head-loss-cached-control-phase-r1` active (compilation/warmup).
+  Candidate request with `--cached-head-loss` is ready; run after clean control.
+  Compare30timed/5warmup paired phases and all4postchecks before promotion.
+- trn22: source98, watcher98, matched20.97M-token public evaluation active:
+  `fs-w98-eval-context1024-pack32-owned-ce-s1024-20m-o1-r1`, started03:21:29.
+  Pack32 quality completed3660updates/479,723,520targets in1784.6seconds;
+  charged1785.0, small public0.987784. Larger BPB pending.
+  Original postflight is command0 but disk-reserve failure (8,386,404,352B).
+  Maintenance `fs-maintenance-preserved-wave89-staging-trn22-20260919T032024Z`
+  reverified local/cloud hashes and removed only matching redundant trace
+  hardlinks. Clean03:20:35, free10,453,393,408B. Keep original failure record.
+  Checkpoint469,834,849B SHA80fab9b63c935d54638cf3eb07d884c9b6e869550297bbcfe6b2f4f13991029d
+  is local and GitHub-digest-verified03:23:36. No new-best promotion yet.
+- Cached head component source109: all20exact tests pass; FW/BW14.095440ms
+  versus18.202054ms native (22.56%), including transpose every forward.
+- FP8 source112 requests ready for separate parallel-calibration and balanced
+  8-bank product tests, then composition. All repeat unchanged10case gates.
+  Do not start while the host's head phase owns the device.
+- Source113 prepared locally: save exact FP32 tanh output instead of raw
+  logits, remove backward tanh recomputation at unchanged saved-tensor size.
+  Must pass original20head/autograd checks before timing or model integration.
 
 ## Current result and active work
 

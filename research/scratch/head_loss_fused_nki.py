@@ -15,7 +15,8 @@ def build_kernel():
 
     @nki.jit
     def forward(x, weight_t, target, lanes: int = 2,
-                inplace_softcap: bool = False, cache_weights: bool = False):
+                inplace_softcap: bool = False, cache_weights: bool = False,
+                save_softcap: bool = False):
         """Return FP32 logits[N,V], loss[N,1] and saved logsumexp[N,1].
 
         x is BF16[N,C]; weight_t is contiguous BF16[C,V]. Targets are exact
@@ -24,6 +25,8 @@ def build_kernel():
         This is not an autograd integration or a recomputing backward kernel.
         Optional in-place softcap reuses logits only after its ordinary save;
         optional full weight residency then fits the declared SBUF estimate.
+        save_softcap returns the FP32 tanh result as the first output instead
+        of raw logits, for a separately gated backward that consumes it.
         """
         tokens, channels = x.shape
         weight_channels, vocab = weight_t.shape
@@ -71,12 +74,15 @@ def build_kernel():
                 nisa.tensor_copy(dst=logits[:, columns], src=accumulator)
             # Preserve the original FP32 accumulator boundary into loss and
             # the ordinary backward save. No BF16 rounding of the logits.
-            nisa.dma_copy(dst=logits_out[rows, :], src=logits)
+            if not save_softcap:
+                nisa.dma_copy(dst=logits_out[rows, :], src=logits)
             if inplace_softcap:
                 capped = logits
             else:
                 capped = nl.ndarray((128, vocab), dtype=nl.float32, buffer=nl.sbuf)
             nisa.activation(dst=capped, data=logits, op=nl.tanh, scale=1.0 / 15.0)
+            if save_softcap:
+                nisa.dma_copy(dst=logits_out[rows, :], src=capped)
             labels = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
             indices = nl.ndarray((128, 1), dtype=nl.uint32, buffer=nl.sbuf)
             target_unit = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)

@@ -1,0 +1,47 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave98",
+    "expected_commit": "1da6c0714c0755fd3b078e972fbb0aefbb43bf6d",
+    "label": "fs-w98-eval-context1024-pack32-owned-ce-s1024-20m-o1-r1",
+    "purpose": "Matched larger public evaluation after successful in-budget3660-update pack32 training, SHA-verified local checkpoint preservation and clean recovery maintenance for original disk-reserve-only postflight failure. Protected scorer/world1/B1/T1024/20,971,520tokens/O1/no-autocast; expected83,462,186bytes. No private leaderboard claim.",
+    "fingerprint_paths": [],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1800s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "prepare.py",
+      "eval-public",
+      "--train-py",
+      "train.py",
+      "--checkpoint",
+      "/home/ubuntu/trainium_freshstart_20260918_wave98/out/fs-w98-dense1024-context1024-pack32-owned-ce-1800-r1/final.pt",
+      "--seq-len",
+      "1024",
+      "--eval-tokens",
+      "20971520",
+      "--timeout-seconds",
+      "1200"
+    ],
+    "prerequisite_receipts": {
+      "training": "fs-w98-dense1024-context1024-pack32-owned-ce-1800-r1.summary.json",
+      "preservation": "fs-w98-dense1024-context1024-pack32-owned-ce-1800-r1.preservation.json",
+      "maintenance": "fs-maintenance-preserved-wave89-staging-trn22-20260919T032024Z.json"
+    },
+    "checkpoint_sha256": "80fab9b63c935d54638cf3eb07d884c9b6e869550297bbcfe6b2f4f13991029d"
+  },
+  "requested_at": "2026-09-19T03:21:23.086052+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w98-eval-context1024-pack32-owned-ce-s1024-20m-o1-r1\", \"pid\": 1632403, \"commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave98/research/run-logs/fs-w98-eval-context1024-pack32-owned-ce-s1024-20m-o1-r1.log\", \"started_at\": \"2026-09-19T03:21:29.378604+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

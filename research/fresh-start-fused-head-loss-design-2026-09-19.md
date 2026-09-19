@@ -261,3 +261,14 @@ microbatches, two updates, nonzero head/output branches, original evaluation,
 causality/batch/repetition and serialized native checkpoint restoration. Exact
 equality is required; no claim before hardware completion. The phase timer
 gets an explicit flag, unused unless that caller gate passes.
+
+### Source113 saved softcap value
+
+Opt-in `save_softcap` writes FP32 `u=tanh(z/15)` after the existing forward
+activation in place of the ordinary FP32 logits save. Both have the same
+[N,V] shape/dtype/byte count. A separately selected CE backward reads `u`
+directly and skips its repeated tanh; probability/derivative/upstream arithmetic
+and the BF16 head gradient boundary are unchanged. The original forward/logit
+save and backward remain the default. The20original exact head/autograd
+comparisons apply without altered tolerances, before timing. This is a work
+reuse experiment; no approximation/table, model integration or gain is claimed.

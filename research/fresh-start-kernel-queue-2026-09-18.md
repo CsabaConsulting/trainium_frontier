@@ -1,6 +1,6 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19, 03:09 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19, 03:24 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
@@ -51,8 +51,8 @@ Current next actions, in dependency order:
 | --- | --- | --- |
 | Separate compiled FP8 MLP region | Integration passes; whole step loses24.08% to native | Include launch/cache/gradient costs; require at least3% whole-step gain before quality |
 | Reciprocal refinement plus optimizer ownership | Composition passes; whole step gains1.13%, below3% | Exact owned-versus-replicated same-math weights/states/rank exchange/cache/restore; then fresh paired whole-step timing |
-| FP8 gradient scale sharing | Original10stage gates pass, component5.7–6.5x slower; grouped layout debugging; shared data consumers unimplemented | Independent quantizer/FP64 stage gates, then all four gradient products with all packing charged |
-| Fused vocabulary head and exact loss | Resident-weight variant wins33.97% forward-only; complete autograd gate prepared | Preserve original FP32 head accumulation and all gradient terms; profile complete caller |
+| FP8 gradient scale sharing | Correct grouped products improve to1.919/3.177ms, still slower than native1.095/1.093; calibration/balanced-bank trials ready | Independent quantizer/FP64 stage gates, then all four gradient products with all packing charged |
+| Fused vocabulary head and exact loss | Complete head FW/BW22.56% faster;20head and196GPT exact gates pass; whole-step phases active | Preserve original FP32 head accumulation and all gradient terms; profile complete caller |
 | Smaller range-reduced tables / rational composed functions | Design candidates; full-value LUT and standalone polynomial timings lost | Benchmark the full producer/consumer pipeline after accuracy/range gates |
 
 | Item | State | Next action / evidence |
@@ -656,3 +656,14 @@ postchecks, memory/cleanup and the3% gate precede any quality experiment.
 The phase still clips before averaging, like its control. Quality must keep
 the best run's clip-after-average policy. Changed reduction grouping is not
 claimed bitwise equivalent, even though token count and context are preserved.
+
+Latest dispatch state is at the top of RESUME.md. Pack32 quality has completed
+within budget, checkpoint local/cloud verified, matched larger evaluation active.
+New exact-work reuse candidate: save FP32 softcap unit values for backward at
+the same byte count, removing its repeated tanh. Source113 gate prepared.
+Further design candidate: mask the BF16 sign bit and reduce ordered unsigned
+magnitudes for exact amax. NKI tensor_reduce arithmetic widens integer values
+toFP32; all16-bit codes fit exactly. Compare original metadata and zero/tiny/
+subnormal behavior explicitly before use. Reference: installed skill's primary
+API copy `neuron-nki-docs/references/programming/api/api-nki-isa-tensor.md`,
+tensor_reduce and tensor_scalar dtype rules. Not implemented or timed.
