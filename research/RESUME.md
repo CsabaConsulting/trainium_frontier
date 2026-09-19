@@ -1,7 +1,47 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 04:48 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 04:57 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
+
+## Complete profile attribution — 2026-09-19 04:57 UTC
+
+- Both source125 captures and ingestions COMPLETE and clean. trn21 ingestion
+  finished04:52:25, free8,907,345,920B; trn22 finished04:52:24,
+  free9,371,713,536B. No device job is currently active; both watchers are125.
+  Native raw15files/108,307,982B; full raw21files/93,192,642B. Parquet native
+  27files/63,518,360B, full26files/50,996,951B. All local/remote hashes match.
+- Local source126 analysis now supports all annotated phases. All8native and
+  16FP8 runtime dispatches match their binaries. Cache preparation has8extra
+  FP8 dispatches; device intervals0.757307 vs0.112367ms. Micro0 backward Tensor
+  activity/core0 drops4.059482→2.181706ms, while Scalar activity rises
+  0.987601→2.436987ms and sync activity0.038757→0.815935ms. Different hosts and
+  phase barriers make these attribution evidence, not speed certification.
+- Next DESIGN: compile the unchanged cache producer as one graph, with exact
+  metadata/byte/refresh gates and a compiled-native control; then fuse current
+  calibration plus both weight orientations in NKI if justified. Gradient
+  per-output calibration stays a separate later precision experiment. Nothing
+  beyond source124 has earned a full-model FP8 or30minute quality trial.
+- Detailed evidence: fresh-start-full-fp8-mlp-diagnosis-2026-09-19.md.
+  Raw captures are now cloud verified; all54inventoried assets passed04:53:20.
+  New parquet receipts are locally verified and discovered by the next backup.
+  Source125/snapshot were verified04:49:51; latest analysis/notes await commit.
+  Protected train.py/prepare.py hashes are unchanged. Public best0.99285131.
+
+## Active profile captures — 2026-09-19 04:50 UTC
+
+- Source1255029bd01c85202b2334c5aa8ae8d8fd3780cd1e9 deployed to both hosts
+  with Git automatic maintenance disabled. Both preflights passed. trn21 runs
+  `fs-w125-native-complete-mlp-component-profile-r1`, PID1334147; trn22 runs
+  `fs-w125-full-complete-mlp-component-profile-r1`, PID1667900. Both started
+  04:49:29, under900second bounds. Watchers repointed to125 at04:49:35.
+- Capture one current-cache/two-distinct-microbatch update per arm, exporting
+  every compiled/eager NEFF. Extra headroom checks before/after compilation.
+  Numerical and speed authority remains source124 (same host, unprofiled).
+  Once clean complete, preserve raw files immediately, then ingest/analyze.
+  No full-model FP8 or quality trial is justified by the current numbers.
+- Source125 and snapshot169429bd09b671bab25a6e0fe9173b3112568cc0 pushed and
+  remote-ref verified04:49:51. Original failed postflights and clean maintenance
+  receipts are committed; do not rerun either one-off maintenance script.
 
 ## Completed comparisons and clean recovery — 2026-09-19 04:48 UTC
 

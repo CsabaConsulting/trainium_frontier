@@ -69,6 +69,8 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--source-pattern', default='fp8_mlp_',
                         help='NKI source substring for per-line attribution; defaults to the FP8 MLP')
+    parser.add_argument('--all-phases', action='store_true',
+                        help='Also attribute current-cache preparation and complete backward/accumulation')
     args = parser.parse_args()
     pa.set_cpu_count(4)
     root = next(args.parquet.glob('*nc_0_session_0'))
@@ -98,7 +100,7 @@ def main():
     usage = pq.read_table(root / 'SbufUsage.parquet')
     analyses = []
     for execution in executions:
-        if not execution['phase'].endswith('/forward'):
+        if not args.all_phases and not execution['phase'].endswith('/forward'):
             continue
         lo, hi = execution['execution_start_ts'], execution['execution_end_ts']
         overlaps = [other['execution_index'] for other in executions
@@ -136,7 +138,10 @@ def main():
               or row['table_name'] == 'SbufUsage']
     report = dict(trace=str(args.trace), parquet=str(root), source_pattern=args.source_pattern,
                   all_runtime_dispatches_match_ingested_binaries=True,
-                  executions=executions, forward_analyses=analyses,
+                  executions=executions, all_phases_requested=args.all_phases,
+                  phase_analyses=analyses,
+                  forward_analyses=[a for a in analyses
+                                    if a['execution']['phase'].endswith('/forward')],
                   warnings=pq.read_table(root / 'Warning.parquet').to_pylist(),
                   installed_schema=schema, profiled_times_are_not_speed_benchmarks=True,
                   source_group_activity_overlaps_and_is_not_additive=True,

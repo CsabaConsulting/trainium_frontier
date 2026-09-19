@@ -1,0 +1,33 @@
+{
+  "arms": {
+    "native": {
+      "verified_dispatches": 8,
+      "all_dispatches_match": true,
+      "phase_device_ms": {
+        "native/current_master_cache_preparation": 0.112367,
+        "native/micro0/forward": 2.654745,
+        "native/micro0/backward_and_accumulation": 4.868031,
+        "native/micro1/forward": 2.623891,
+        "native/micro1/backward_and_accumulation": 5.017071
+      },
+      "source_analysis": "research/run-logs/fs-w126-native-complete-mlp-local-analysis-r1.analysis.json"
+    },
+    "full": {
+      "verified_dispatches": 16,
+      "all_dispatches_match": true,
+      "phase_device_ms": {
+        "full/current_master_cache_preparation": 0.757307,
+        "full/micro0/forward": 2.608986,
+        "full/micro0/backward_and_accumulation": 4.663893,
+        "full/micro1/forward": 2.599783,
+        "full/micro1/backward_and_accumulation": 4.833382
+      },
+      "source_analysis": "research/run-logs/fs-w126-full-complete-mlp-local-analysis-r1.analysis.json"
+    }
+  },
+  "profiled_cross_host_intervals_are_not_speed_benchmarks": true,
+  "same_host_unprofiled_authority": "fs-w124-fp8-complete-mlp-component-r1",
+  "inference": "Additional cache dispatches and Scalar/Vector/synchronization costs offset the lower TensorEngine activity; quantify a compiled/fused preparation variant next.",
+  "dynamic_dma_metadata_missing": true,
+  "engine_activity_overlaps_and_is_not_additive": true
+}
