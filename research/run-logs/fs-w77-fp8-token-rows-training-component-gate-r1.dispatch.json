@@ -1,0 +1,46 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave77",
+    "expected_commit": "0eae485b38dc3aef07ea87137025f881002e7ab6",
+    "label": "fs-w77-fp8-token-rows-training-component-gate-r1",
+    "purpose": "Token-row small forward gates passed on this source. Gate real forward, adapted saved-ReLU BF16 backward with independent FP64 bounds and two-microbatch accumulation. Time complete per-update scale/cache preparation plus two FW/BW calls against native, BF16-cache, storage-only and fresh original FP8 orientation. Old FP8 control receives a fresh backward-bound check. No optimizer/collective/fullmodel/quality claim.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1800s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "/home/ubuntu/trainium_freshstart_20260918_wave77/research/scratch/fp8_mlp_island_training_probe.py",
+      "--real-shape",
+      "--steps",
+      "10",
+      "--token-rows"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/fp8_mlp_island_nki.py",
+      "research/scratch/fp8_mlp_island_probe.py",
+      "research/scratch/fp8_weight_cache_nki.py",
+      "research/scratch/fp8_weight_cache_probe.py",
+      "research/scratch/fresh_start_fp8_probe.py",
+      "research/scratch/fp8_mlp_island_autograd.py",
+      "research/scratch/fp8_mlp_island_training_probe.py",
+      "research/scratch/mlp_backward_rounding_bounds.py",
+      "research/scratch/mlp_fused_bf16.py",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "research/scratch/fp8_mlp_token_rows_nki.py"
+    ]
+  },
+  "requested_at": "2026-09-18T23:56:32.157267+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w77-fp8-token-rows-training-component-gate-r1\", \"pid\": 1534833, \"commit\": \"0eae485b38dc3aef07ea87137025f881002e7ab6\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave77/research/run-logs/fs-w77-fp8-token-rows-training-component-gate-r1.log\", \"started_at\": \"2026-09-18T23:56:38.636643+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

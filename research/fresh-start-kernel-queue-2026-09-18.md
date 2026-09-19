@@ -1,6 +1,6 @@
 # Kernel queue and precision-specific experiments
 
-Updated23:39UTC,2026-09-18. This is the executable/design queue, not a list of
+Updated 2026-09-19, 00:08 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
@@ -12,7 +12,7 @@ Every device request retains immutable source, cleanup and numerical gates.
 | Padded optimizer ownership |3377updates/442.6Mtargets; checkpoint local and cloud verified | Larger public **0.9973302213667847**, clean; current best. T1024/pack16 ownership phase passes at515.473750ms versus528.353028ms:2.4376%, below3% gate; combine gated CE before another quality run |
 | Scalar reciprocal + Newton | 34component gates,16.77% component gain; repeated optimizer/cache/restore gate now passes | Optional whole-step combination after the active quality runs; no approximation is in those runs |
 | Scalar rsqrt correction | Mode5 passes34 gates but loses:1.363799vs1.262366ms; no promotion | Mode6 also passes34 gates but loses1.25%; both closed for this component; mode2 remains faster |
-| Exact CE core/gather changes | Wave68 isolates discrepancy to forward outer-loop trip count1, for both input precisions; cores agree and native-lse backward is exact | Adaptive/gather passes all original/boundary/row-independence gates;5.679065vs12.339531ms FW+BW,53.9767% component gain. Compiled installed-autograd gate passes all36 checks; whole step500.372595vs519.395419ms,3.6625% faster. Fresh30-minute T1024/pack16/ownership/CE quality run is active on trn21 |
+| Exact CE core/gather changes | Wave68 isolates discrepancy to forward outer-loop trip count1, for both input precisions; cores agree and native-lse backward is exact | Adaptive/gather passes all original/boundary/row-independence gates;5.679065vs12.339531ms FW+BW,53.9767% component gain. Compiled installed-autograd gate passes all36 checks; whole step500.372595vs519.395419ms,3.6625% faster. Fresh 30-minute T1024/pack16/ownership/CE run completed clean: 3,548 updates / 465.04M targets, small public 0.988605; checkpoint locally hash-verified. Matched larger evaluation requested on trn21 |
 | Polynomial exponential | Nine device records pass;3.57–4.19times slower | Closed as a standalone speed replacement; retain the accurate implementation for diagnostics |
 
 The CE experiment compares original, explicit one-core mask, two-core mask,
@@ -107,7 +107,7 @@ backward separately is next. Actual FP8 backward is still unimplemented/ungated.
 | --- | --- | --- |
 | Newton / polynomial correction | Reciprocal update; rsqrt seed correction with fewer multiplies than two Newton steps | Reciprocal integrated gate passes; rsqrt modes5/6 pass all34 numerical gates but lose timing; no promotion |
 | Exponent-bit range reduction | Power-of-two FP8 scales without log2/floor/exp2 | Implemented; calibration-only gate covers zero, underflow, outlier, endpoints and all declared finite BF16 codes |
-| Compact finite-domain tables | Joint softcapped exponential and derivative, with analytic tails | CPU study passes all65280 finite BF16 codes and13 loss/gradient scenarios;4/5/6MiB alternatives. Device gather/reduction/reciprocal/log and timing pending |
+| Compact finite-domain tables | Joint softcapped exponential and derivative, with analytic tails | CPU study passes all65280 finite BF16 codes and13 loss/gradient scenarios;4/5/6MiB alternatives. Device joint primitive passes but loses 19.04x; this full-value gather layout is closed. Full loss not integrated |
 | Polynomial/rational composition | Evaluate multiple required outputs together, reuse shared intermediates | Design; compare complete loss FW/BW, not standalone approximants only |
 | Representation / traffic elimination | Let loss consume existing BF16 logits and return correctly rounded BF16 head gradients | Exact dtype-boundary probe after FP32 CE scheduling result; caller integration required |
 | Work elimination | SBUF target gather; optimizer compute ownership; precomputed symmetry | CE component passes with53.98% gain; ownership full training/evaluation complete; RoPE trig already precomputed |
@@ -195,3 +195,33 @@ under earlier recipes; the implicit depth-to-width rule confounded some labels.
 Any revisit requires the new kernel/ownership/packing stack and verified actual
 parameter dimensions. It is a reserve capacity experiment, not the next kernel
 trial or an assumption of untapped TensorEngine FLOPs.
+
+## Wave77 result and next invariant experiment (00:08 UTC)
+
+The token-row FP8 layout passes all small and real forward, declared STE
+backward and two-microbatch master-accumulation gates. Complete component
+medians: native BF16 15.673194 ms, NKI BF16 cache 14.643596 ms, FP8 storage
+with BF16 math 17.935752 ms, token-row FP8 forward/BF16 backward 17.979725 ms,
+original FP8 layout 18.161799 ms. All calibration/cast/save costs are charged.
+The new layout improves only 1.0025% over original FP8 and remains 14.7164%
+slower than native. No full-model or quality promotion. Attribute both FP8
+layouts in a fresh trace; their saved-ReLU/backward layout differs.
+
+**Queued invariant-based reduction elimination:** current MLP input is
+`norm(x)` without a learned gain. In exact arithmetic RMS normalization gives
+`||x||_infinity <= sqrt(D)`. Investigate a fixed power-of-two input FP8 scale
+(4 for D=1024, 8 for D=256), with explicit FP32/BF16 rounding headroom, to
+remove per-token input maximum/minimum reductions. This is a new restricted
+input contract, not a pass for arbitrary unnormalized inputs. Test the actual
+norm boundary, zero/tiny/spike inputs, all finite BF16 values in the declared
+range, clipping/overflow and row independence. Quantization may change near
+FP8 subnormals; retain an independent CPU quantizer reference and report error
+against both adaptive FP8 and original BF16. Hidden-activation calibration
+remains adaptive. Training promotion still requires backward/accumulation,
+complete-step speed and full-budget BPB gates. This experiment is not yet run.
+
+A weight-norm-derived fixed hidden scale is a later design only: its conservative
+bound could be much looser and damage subnormal precision. Current-batch global
+activation scales remain disallowed because predictions would depend on other
+tokens. Full FP8 backward and BF16 CE input/output boundaries remain distinct
+queued candidates. Historical `_scaled_mm` failure does not veto these NKI paths.

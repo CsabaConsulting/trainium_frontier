@@ -316,3 +316,18 @@ versus2.48ms Scalar composition, so that layout is closed as a speed candidate.
 The new FP8 orientation also applies exact work elimination: squared ReLU is
 nonnegative, making its calibration minimum reduction redundant. This identity
 needs unchanged metadata/output gates before any claimed performance benefit.
+
+### 2026-09-19, 00:08 UTC — completed gates and invariant queue
+
+Wave77 token-row FP8 passes the unchanged stagewise and FP64 STE backward
+contracts, including real dimensions and accumulated FP32 master gradients.
+Its complete component is 17.979725 ms versus 18.161799 ms original FP8,
+15.673194 ms native BF16 and 14.643596 ms NKI BF16 cache. The 1.0025% layout
+gain is insufficient; profile attribution follows, with no quality promotion.
+RMS-normalized input bounds now motivate a restricted fixed-scale FP8 input
+experiment that can eliminate max/min reductions. Its overflow/subnormal/
+causality/quality contract is separate and documented in the kernel queue.
+
+The exact-CE/ownership/T1024-pack16 quality run completed within budget at
+3,548 updates and small public 0.988605 BPB. Checkpoint locally hash-verified;
+matched larger public evaluation pending. No private leaderboard claim.

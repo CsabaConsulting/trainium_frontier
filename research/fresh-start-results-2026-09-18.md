@@ -1868,3 +1868,18 @@ Source5dcbf6a and recovery snapshot9d0ccc48 were verified on GitHub at21:50:31;
 artifact cycle21:35:18 verified31/31 assets. New source prepares exact loss
 work-elimination probes (row partitioning and SBUF target gather), preserving
 current transcendental approximations and512-wide exponent reductions.
+
+### 2026-09-19, 00:08 UTC — completed gates and invariant queue
+
+Wave77 token-row FP8 passes the unchanged stagewise and FP64 STE backward
+contracts, including real dimensions and accumulated FP32 master gradients.
+Its complete component is 17.979725 ms versus 18.161799 ms original FP8,
+15.673194 ms native BF16 and 14.643596 ms NKI BF16 cache. The 1.0025% layout
+gain is insufficient; profile attribution follows, with no quality promotion.
+RMS-normalized input bounds now motivate a restricted fixed-scale FP8 input
+experiment that can eliminate max/min reductions. Its overflow/subnormal/
+causality/quality contract is separate and documented in the kernel queue.
+
+The exact-CE/ownership/T1024-pack16 quality run completed within budget at
+3,548 updates and small public 0.988605 BPB. Checkpoint locally hash-verified;
+matched larger public evaluation pending. No private leaderboard claim.
