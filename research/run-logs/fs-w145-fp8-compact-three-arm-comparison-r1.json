@@ -1,0 +1,51 @@
+{
+  "host": "trn22",
+  "source_commit": "63f6cceca2e70bafaa747c0c9901844276433403",
+  "timed_steps_per_arm": 30,
+  "arm_order": [
+    "native",
+    "legacy",
+    "compact"
+  ],
+  "arms": {
+    "native": {
+      "label": "fs-w145-native-control-phase-r1",
+      "source_commit": "63f6cceca2e70bafaa747c0c9901844276433403",
+      "median_ms": 488.7020959868096,
+      "micro_ms": 433.85129648959264,
+      "last_loss": 5.126208782196045,
+      "host_clean": true,
+      "numerical_postchecks": 4,
+      "log_sha256": "305592811b1bec88fa2005c433d15db9270e717305db959d3618469e238c3643"
+    },
+    "legacy": {
+      "label": "fs-w145-full-fp8-legacy-phase-r1",
+      "source_commit": "63f6cceca2e70bafaa747c0c9901844276433403",
+      "median_ms": 568.3538115117699,
+      "micro_ms": 509.88069802406244,
+      "last_loss": 5.120891094207764,
+      "host_clean": true,
+      "numerical_postchecks": 4,
+      "log_sha256": "2376e069dc74014577f4a6b09006a255262a946444b8adbfd6c7472c8779facf"
+    },
+    "compact": {
+      "label": "fs-w145-full-fp8-compact-phase-r1",
+      "source_commit": "63f6cceca2e70bafaa747c0c9901844276433403",
+      "median_ms": 562.9017874889541,
+      "micro_ms": 504.6802890137769,
+      "last_loss": 5.120891094207764,
+      "host_clean": true,
+      "numerical_postchecks": 4,
+      "log_sha256": "15f143a5a1f7147d747273674814975977b54271f3036c98f3b33cbc77516eb5"
+    }
+  },
+  "compact_step_improvement_over_legacy_pct": 0.9592658503184581,
+  "compact_step_regression_over_native_pct": 15.18301069536383,
+  "same_last_fp8_loss": true,
+  "classification": "Unused saves are a small observed improvement, insufficient to repair the full-model FP8 regression; no quality trial promoted.",
+  "limits": [
+    "One sequential paired run per arm; not a confidence interval.",
+    "Phase timing is a performance diagnostic with different clipping/schedule from final quality training.",
+    "Finite/causal/evaluation postchecks passed; no new BPB measured."
+  ]
+}

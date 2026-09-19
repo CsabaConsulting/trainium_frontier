@@ -1,0 +1,46 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave147",
+    "expected_commit": "ac4f7899a17904591f9a02d1a30fcd4017fc79e9",
+    "label": "fs-w147-fp8-streamed-weight-gates-r1",
+    "purpose": "Correctness-only sequential packed weight-group consumer with compact saves. Original independent quantizers/four-product bounds and exact resident seven-output/compact five-output authorities, ten edge cases plus real32768x1024x4096; then real-Linear masters/cache/row-padding/eval-restore gate. Extra loads/scheduling are intentional; no speed/allocation/BPB claim. Only after the source145 native/legacy/compact comparison finishes cleanly.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave147"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1800s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "-c",
+      "import sys,subprocess,json\nsubprocess.run([sys.executable,'-u','research/scratch/fp8_compact_forward_saves_probe.py','--real-shape','--real-tokens','32768','--stream-packed-weights'],check=True)\nsubprocess.run([sys.executable,'-u','research/scratch/fp8_full_mlp_integration_check.py','--real-width','--compact-forward-saves','--stream-packed-weights'],check=True)\nprint('STREAMED_WEIGHT_GATES_COMPLETE '+json.dumps(dict(independent_numerical_gate=True,real_linear_integration_gate=True,whole_model_phase_pending=True)),flush=True)\n"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/fp8_mlp_token_rows_nki.py",
+      "research/scratch/fp8_complete_mlp_autograd.py",
+      "research/scratch/fp8_compact_forward_saves_probe.py",
+      "research/scratch/fp8_full_mlp_integration.py",
+      "research/scratch/fp8_full_mlp_integration_check.py",
+      "research/scratch/fp8_complete_mlp_probe.py",
+      "research/scratch/fp8_mlp_data_backward_nki.py",
+      "research/scratch/fp8_gradient_prepare_nki.py",
+      "research/scratch/fp8_weight_gradient_nki.py",
+      "research/scratch/fp8_rms_scale_contract.py",
+      "research/scratch/fp8_dual_weight_cache_nki.py",
+      "research/scratch/phase_timer.py"
+    ]
+  },
+  "requested_at": "2026-09-19T09:50:03.386462+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w147-fp8-streamed-weight-gates-r1\", \"pid\": 1769835, \"commit\": \"ac4f7899a17904591f9a02d1a30fcd4017fc79e9\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave147/research/run-logs/fs-w147-fp8-streamed-weight-gates-r1.log\", \"started_at\": \"2026-09-19T09:50:09.448909+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

@@ -47,7 +47,11 @@ No FP8 speed/BPB promotion.
 5. Keep reciprocal optimizer composition, reduced calibration work and compact
    function approximations available for measured bottlenecks. The standalone
    polynomial/full-value-table losses remain closed for their tested layouts.
-6. Serial QKV execution is a separate candidate from the old fused-Parameter
+6. Output-shape propagation is a separate follow-up if compact saves/streamed
+   weights do not fix the observed smaller ordinary-Linear tiles. The SDK Meta
+   output contract and bounded rank-preserving/channel-major controls are in
+   `fresh-start-fp8-output-layout-2026-09-19.md`; design only, no SDK changes.
+7. Serial QKV execution is a separate candidate from the old fused-Parameter
    and parallel-block trials. Preserve three Parameters/Muon states and the
    contiguous RoPE fast path. The source audit and bounded gates are in
    `fresh-start-serial-qkv-revisit-2026-09-19.md`; implementation is queued.
