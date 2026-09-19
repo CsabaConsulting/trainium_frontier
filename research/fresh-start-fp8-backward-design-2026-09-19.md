@@ -332,3 +332,20 @@ recomputed BF16 row multiplication are charged. Source118 now composes this
 preparation with the balanced product; repeat all10product gates and include
 activation preparation before any component promotion. Full autograd/quality
 remain untested; do not call these numbers full FP8 training speedups.
+
+## Two-core preparation composition result and per-row follow-up
+
+Source118 passed all10 gradient-product cases with unchanged original FP8 bytes,
+metadata and products. Both operand preparations are charged: down1.547501ms
+versus native1.094661ms; up1.695063ms versus1.074635ms. Neither clears BF16.
+This does not establish a full FP8 backward path or trainable quality gain.
+
+Next bounded test applies the already verified fused abs/max instruction to the
+per-row calibrations at BOTH data-backward boundaries. This retains the existing
+per-row quantizer, sequential inverse scaling, BF16 ReLU derivative and saved
+BF16 dPre; it does not substitute the weight product's global scale. Eleven
+fixtures include independent quantizer/FP64 pair bounds, exact original eight
+stage outputs, tiny/subnormal/signed-zero gradients, row independence and the
+actual shape. Timing charges transpose/packing once plus two data-gradient
+chains, paired with original fused FP8 and native BF16. No quality promotion
+without complete composition and whole-step evidence.

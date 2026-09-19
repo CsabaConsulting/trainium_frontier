@@ -36,9 +36,23 @@ def equal(name, first, second):
     assert passed, record
 
 
+def compiled_nodes(value):
+    pending, seen, names = [value.grad_fn], set(), []
+    while pending:
+        node = pending.pop()
+        if node is None or node in seen:
+            continue
+        seen.add(node)
+        names.append(type(node).__name__)
+        pending.extend(child for child, _ in node.next_functions)
+    return names
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--real-width", action="store_true")
+    ap.add_argument("--separate-region", action="store_true")
+    ap.add_argument("--saved-softcap", action="store_true")
     args = ap.parse_args()
     import torch_neuronx
     torch.set_num_threads(4)
@@ -73,12 +87,16 @@ def main():
         for model in (baseline, candidate):
             install_mlp(model, "neuron", T, forward_backend="native")
         before_rng = torch.get_rng_state().clone()
-        contract = install(candidate, T)
+        contract = install(candidate, T, separate_region=args.separate_region,
+                           save_softcap=args.saved_softcap)
         assert torch.equal(before_rng, torch.get_rng_state())
         before_keys = tuple(baseline.state_dict())
         assert before_keys == tuple(candidate.state_dict())
-        native, fused = (torch.compile(model, backend="neuron", fullgraph=True, dynamic=False)
-                         for model in (baseline, candidate))
+        native = torch.compile(baseline, backend="neuron", fullgraph=True, dynamic=False)
+        # Only the explicit boundary permits a caller graph break. Its head
+        # compiles fullgraph=True, while all existing numerical gates remain.
+        fused = torch.compile(candidate, backend="neuron",
+                              fullgraph=not args.separate_region, dynamic=False)
         ids = torch.randint(8192, (2, 256), generator=generator, dtype=torch.int32).to("neuron")
         targets = torch.randint(8192, (2, 256), generator=generator, dtype=torch.int64).to("neuron")
         for step in range(2):
@@ -87,9 +105,16 @@ def main():
             for micro in range(2):
                 tokens = (ids + micro * 7) % 8192
                 values = []
-                for function in (native, fused):
+                for is_candidate, function in enumerate((native, fused)):
                     value = function(tokens, targets)
                     assert type(value.grad_fn).__name__ == "CompiledFunctionBackward"
+                    if is_candidate and args.separate_region:
+                        names = compiled_nodes(value)
+                        count = names.count("CompiledFunctionBackward")
+                        assert count >= 2, ("head/body boundary absent", names)
+                        emit("CACHED_HEAD_MODEL_COMPILED_BOUNDARY", dict(
+                            channels=channels, step=step, micro=micro,
+                            compiled_backward_nodes=count, passed=True))
                     value.backward()
                     values.append(value)
                 equal(f"{channels}:{step}:{micro}:loss", *values)
@@ -134,6 +159,7 @@ def main():
             contract["restore"]()
             equal(f"{channels}:explicit_adapter_restore", b, candidate(short))
         emit("CACHED_HEAD_MODEL_RESULT", dict(channels=channels, passed=True,
+            separate_region=args.separate_region, saved_softcap=args.saved_softcap,
             two_microbatch_accumulation=True, two_master_updates=True,
             cache_refresh=True, exact_native_gradients=True, original_eval=True,
             checkpoint_roundtrip=True, causality_batch_repeat=True,

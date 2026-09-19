@@ -101,6 +101,10 @@ def main():
                     help="Keep original FP32 head logits; compress CE derivative at the BF16 head boundary.")
     ap.add_argument("--cached-head-loss", action="store_true",
                     help="Experimental cached BF16 head/exact CE; charge transpose every forward.")
+    ap.add_argument("--cached-head-separate-region", action="store_true",
+                    help="Compile the cached head separately; charge all head/body boundary work.")
+    ap.add_argument("--cached-head-saved-softcap", action="store_true",
+                    help="Save the exact FP32 tanh result for head backward; unchanged save bytes.")
     ap.add_argument("--nki-adamw-fp32", action="store_true",
                     help="Scratch gated functional FP32 AdamW for dense1024 tables; other groups stay native.")
     ap.add_argument("--nki-adamw-math-mode", type=int, choices=(0, 2), default=0,
@@ -218,6 +222,8 @@ def main():
     args = ap.parse_args()
     if args.bf16_ce_boundary and args.bf16_ce_gradient_only:
         ap.error("select at most one head/loss boundary candidate")
+    if (args.cached_head_separate_region or args.cached_head_saved_softcap) and not args.cached_head_loss:
+        ap.error("cached head options require --cached-head-loss")
     if args.fp8_mlp_packed and args.fused_mlp:
         ap.error("select either the BF16 or packed FP8 MLP implementation")
     if args.fp8_mlp_separate_region and not args.fp8_mlp_packed:
@@ -402,8 +408,10 @@ def main():
                 or args.bf16_ce_boundary or args.bf16_ce_gradient_only):
             raise ValueError("Cached head requires compiled Neuron/adaptive CE and its original boundaries")
         from head_loss_fused_integration import install as install_cached_head
-        install_cached_head(model, T)
-        print("[pt] cached head/exact CE; ordinary FP32 logits save and charged per-forward transpose", flush=True)
+        install_cached_head(model, T, separate_region=args.cached_head_separate_region,
+                            save_softcap=args.cached_head_saved_softcap)
+        print(f"[pt] cached head/exact CE; separate_region={args.cached_head_separate_region}; "
+              f"saved_softcap={args.cached_head_saved_softcap}; charged per-forward transpose", flush=True)
     if args.ngram_ve_freeze:
         for p in model.ngram_embeds.parameters():
             p.requires_grad_(False)
@@ -722,6 +730,8 @@ def main():
             bf16_ce_boundary=args.bf16_ce_boundary,
             bf16_ce_gradient_only=args.bf16_ce_gradient_only,
             cached_head_loss=args.cached_head_loss,
+            cached_head_separate_region=args.cached_head_separate_region,
+            cached_head_saved_softcap=args.cached_head_saved_softcap,
             nki_adamw_fp32=args.nki_adamw_fp32,
             nki_adamw_math_mode=(args.nki_adamw_math_mode if args.nki_adamw_fp32 else None),
             nki_adamw_parameter_updates=getattr(optimizer, "_fresh_start_adamw_calls", 0),

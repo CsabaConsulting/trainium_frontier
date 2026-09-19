@@ -1,7 +1,51 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 03:40 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 04:06 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
+
+## Active trials — 2026-09-19 04:06 UTC
+
+- trn22 source119 `3ae1861f48094429d842ac79a493c022ee846d02`, watcher119:
+  `fs-w119-fp8-data-backward-fused-abs-component-r1` ACTIVE since04:05:03.
+  Both per-row calibrations use fused abs/max. Eleven fixtures retain original
+  stage equality and independent CPU bounds; actual timing charges cache work.
+- trn21 source113 saved-softcap component completed clean. Source120 prepares
+  a SINGLE separate compiled head region, leaving cached-head arithmetic alone.
+  First require all196 GPT exact checks plus explicit compiled-boundary checks;
+  only then same-source native/monolithic/separate full phases. Original model
+  evaluation/checkpoint behavior and protected train.py remain unchanged.
+- Caller diagnosis is recorded in fresh-start-head-caller-diagnosis-2026-09-19.md.
+  The head's residency coincides with much slower native body matmuls. This is
+  a hypothesis for the boundary experiment, not a proven allocator mechanism.
+- Artifact uploader is already active under its lock at04:05; the attempted
+  second uploader safely skipped. Latest source commit awaits the next source
+  push; retain the existing regular backup schedule.
+
+## Current dispatch update — 2026-09-19 04:04 UTC
+
+- Both hosts have clean completed postflights; check live manifests before new
+  dispatch. trn21 watcher113, trn22 watcher118. Source118 is pushed and tracked.
+- Saved-softcap head passed all20 component/autograd checks;13.850659ms versus
+  native18.219967ms (24.0% component gain), clean03:59:53. Not integrated into
+  the model. The older cached head still loses37.791% whole-step.
+- Head caller ingestion retry2 completed345.61s,32tables/1,076,930,574B;
+  original command0 disk-reserve failure retained. Verified maintenance restored
+  clean health03:57:40 after pruning only locally/cloud-backed-up raw/hardlink
+  copies. Parquet retrieval matched all32 hashes. Recovery receipt is explicit,
+  canonical-hash matched locally/remotely; original postflight is never rewritten.
+- Local head caller analysis accounts for45 runtime dispatches plus the preserved
+  startup barrier. Forward161.379941ms versus prior native68.001178ms;
+  backward135.365241 versus138.211172ms. The forward reports14.26GB spill reloads,
+  including6.52GB attributed to ordinary Linear.forward. These cross-host profiles
+  locate a compiler/layout problem; only same-host unprofiled runs measure speed.
+- Two-core FP8 gradient preparation passed18 cases and composition passed10:
+  down1.547501ms/up1.695063ms versus native1.094661/1.074635ms. Still loses BF16;
+  no full backward/autograd or training integration. Fused per-row magnitude/max
+  is the next data-backward trial; retain all original independent stage checks.
+- Public best remains0.9928513116311253. All51 raw/checkpoint artifacts were
+  cloud-digest verified03:52:35; new head parquet is locally verified and pending
+  the next artifact backup. No30-minute FP8 or head-quality run is authorized
+  by these component numbers alone.
 
 ## New dispatch update — 2026-09-19 03:53 UTC
 

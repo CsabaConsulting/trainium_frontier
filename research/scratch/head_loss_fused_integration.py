@@ -13,7 +13,13 @@ import types
 import torch
 
 
-def install(model, train_module):
+@torch.compiler.disable(recursive=False)
+def call_separate_region(compiled_function, *inputs):
+    """Keep head scratch allocation outside the compiled transformer body."""
+    return compiled_function(*inputs)
+
+
+def install(model, train_module, separate_region=False, save_softcap=False):
     if getattr(model, "_fresh_start_cached_head_installed", False):
         raise RuntimeError("Cached head adapter already installed")
     if (not train_module.USE_BF16_NORM_OUTPUT or not train_module.USE_WEIGHT_CACHE
@@ -25,7 +31,13 @@ def install(model, train_module):
     if not getattr(train_module, "_fresh_start_adaptive_ce_installed", False):
         raise ValueError("Install the exact adaptive CE reference before the cached head")
     from head_loss_fused_autograd import loss_factory
-    fused_loss = loss_factory()
+    fused_loss = loss_factory(save_softcap=save_softcap)
+    if separate_region:
+        compiled_loss = torch.compile(fused_loss, backend="neuron",
+                                      fullgraph=True, dynamic=False)
+
+        def fused_loss(*inputs):
+            return call_separate_region(compiled_loss, *inputs)
     original = model.forward
     before_ids = {name: id(p) for name, p in model.named_parameters()}
     before_keys = tuple(model.state_dict())
@@ -71,4 +83,6 @@ if (targets is not None and self.training and torch.compiler.is_compiling()
     return dict(restore=restore, original_forward=original,
                 source_edit="one guarded training return before original head projection",
                 transpose_every_forward=True, parameter_identity_unchanged=True,
+                separate_compiled_region=bool(separate_region),
+                saved_softcap=bool(save_softcap),
                 eager_and_evaluation_use_original=True)
