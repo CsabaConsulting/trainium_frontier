@@ -130,6 +130,8 @@ def main():
                     help="Full FP8 forward returns only the five tensors consumed by its complete backward.")
     ap.add_argument("--fp8-mlp-stream-packed-weights", action="store_true",
                     help="Load one packed output group at a time; requires compact full-FP8 saves")
+    ap.add_argument("--fp8-mlp-preserve-output-rank", action="store_true",
+                    help="Return unpadded MLP output directly as BxTxC across the opaque NKI boundary.")
     ap.add_argument("--fp8-mlp-separate-region", action="store_true",
                     help="Compile the same packed FP8 MLP separately; include all graph-boundary costs.")
     ap.add_argument("--fused-mlp-normal-dx", action="store_true",
@@ -251,6 +253,8 @@ def main():
         ap.error("--fp8-mlp-full requires --fp8-mlp-packed")
     if args.fp8_mlp_stream_packed_weights and not args.fp8_mlp_compact_saves:
         ap.error("--fp8-mlp-stream-packed-weights requires --fp8-mlp-compact-saves")
+    if args.fp8_mlp_preserve_output_rank and not args.fp8_mlp_compact_saves:
+        ap.error("--fp8-mlp-preserve-output-rank requires --fp8-mlp-compact-saves")
     if args.fp8_mlp_compact_saves and not args.fp8_mlp_full:
         ap.error("--fp8-mlp-compact-saves requires --fp8-mlp-full")
     if args.compact_embedding and args.segmented_dma_embedding:
@@ -430,7 +434,8 @@ def main():
             fp8_mlp_contract = install(model, device, T,
                 separate_region=args.fp8_mlp_separate_region,
                 compact_forward_saves=args.fp8_mlp_compact_saves,
-                stream_packed_weights=args.fp8_mlp_stream_packed_weights)
+                stream_packed_weights=args.fp8_mlp_stream_packed_weights,
+                preserve_output_rank=args.fp8_mlp_preserve_output_rank)
         else:
             from fp8_mlp_integration import install
             fp8_mlp_contract = install(model, device, T, separate_region=args.fp8_mlp_separate_region)
@@ -784,6 +789,7 @@ def main():
             fp8_mlp_full=args.fp8_mlp_full,
             fp8_mlp_compact_saves=args.fp8_mlp_compact_saves,
             fp8_mlp_stream_packed_weights=args.fp8_mlp_stream_packed_weights,
+            fp8_mlp_preserve_output_rank=args.fp8_mlp_preserve_output_rank,
             fp8_mlp_separate_region=args.fp8_mlp_separate_region,
             fp8_mlp_contract=fp8_mlp_contract,
             fp8_mlp_cache_refresh_counts=[getattr(m, "_fp8_refresh_count", 0)

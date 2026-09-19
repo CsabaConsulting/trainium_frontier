@@ -1,6 +1,6 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19 13:28 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19 17:22 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
@@ -54,11 +54,12 @@ No FP8 speed/BPB promotion.
 4. Optional packed-weight-group streaming is deployed on trn22 source147 and
    its bounded correctness gate PASSES all11 cases and both real-Linear widths,
    clean09:59:18. Resident compact whole-model control is clean/four checks,
-   median562.968ms, consistent with source145. Streamed compact is ACTIVE
-   since13:22:11 after clean preflight and explicit prerequisite verification.
+   median562.968ms, consistent with source145. Streamed compact is complete
+   clean13:34:10 with four checks,570.477ms,1.334% slower than resident and
+   identical loss. No speed or quality promotion.
    Its source-level weight
    footprint falls8MiB to2.5MiB, with repeated HBM reads/sequential group costs.
-   Actual caller allocation/speed remain pending; see
+   Actual caller allocation remains unmeasured; see
    `fresh-start-fp8-weight-residency-2026-09-19.md`.
 5. Keep reciprocal optimizer composition, reduced calibration work and compact
    function approximations available for measured bottlenecks. The standalone
@@ -66,7 +67,9 @@ No FP8 speed/BPB promotion.
 6. Output-shape propagation is a separate follow-up if compact saves/streamed
    weights do not fix the observed smaller ordinary-Linear tiles. The SDK Meta
    output contract and bounded rank-preserving/channel-major controls are in
-   `fresh-start-fp8-output-layout-2026-09-19.md`; design only, no SDK changes.
+   `fresh-start-fp8-output-layout-2026-09-19.md`. Source148 implements direct
+   rank-three output behind a flag and extends the unchanged numerical gates;
+   hardware testing pending. No SDK changes or speed claim.
 7. Serial QKV execution is a separate candidate from the old fused-Parameter
    and parallel-block trials. Preserve three Parameters/Muon states and the
    contiguous RoPE fast path. The source audit and bounded gates are in

@@ -21,7 +21,7 @@ def call_separate_region(compiled_function, *inputs):
     return compiled_function(*inputs)
 
 
-def make_ops(compact_forward_saves=False, stream_packed_weights=False):
+def make_ops(compact_forward_saves=False, stream_packed_weights=False, preserve_output_rank=False):
     """Use the source137 exact dual producer and source135 full FP8 derivative."""
     from torch_neuronx import wrap_nki
     from fp8_dual_weight_cache_nki import build_kernel as build_dual
@@ -47,17 +47,27 @@ def make_ops(compact_forward_saves=False, stream_packed_weights=False):
     compiled_prepare = torch.compile(prepare, backend='neuron', fullgraph=True, dynamic=False)
 
     def forward(x, up, down, up_meta, down_meta, packed_up, packed_down):
+        if preserve_output_rank:
+            if x.ndim not in (2, 3):
+                raise ValueError('Output-rank control supports token rows or BxTxC input')
+            batch = x.shape[0] if x.ndim == 3 else 0
+            rows = x.reshape(-1, x.shape[-1])
+            scale = policy(x.shape[-1])[0]
+            return kernel[2](rows, up, down, up_meta, down_meta, 2, 128, False,
+                             scale, packed_up, packed_down, True, False,
+                             compact_forward_saves, stream_packed_weights, batch)
         scale = policy(x.shape[1])[0]
         return kernel[2](x, up, down, up_meta, down_meta, 2, 128, False,
                          scale, packed_up, packed_down, True, False, compact_forward_saves, stream_packed_weights)
 
     apply = make_autograd(forward, backward, partial, finish, product,
-                          compact_forward_saves=compact_forward_saves)
+                          compact_forward_saves=compact_forward_saves,
+                          preserve_input_rank=preserve_output_rank)
     return compiled_prepare, apply
 
 
 def install(model, device, train_module, separate_region=False, compact_forward_saves=False,
-            stream_packed_weights=False):
+            stream_packed_weights=False, preserve_output_rank=False):
     """Attach per-instance methods without adding parameters, buffers or RNG draws.
 
     A missing initial cache is prepared from current masters inside the forward
@@ -67,6 +77,8 @@ def install(model, device, train_module, separate_region=False, compact_forward_
     """
     if stream_packed_weights and not compact_forward_saves:
         raise ValueError('Streaming packed weights requires compact full-FP8 saves')
+    if preserve_output_rank and not compact_forward_saves:
+        raise ValueError('Output-rank control requires compact full-FP8 saves')
     if not str(device).startswith('neuron'):
         raise ValueError('Packed FP8 integration requires Neuron')
     if not train_module.USE_WEIGHT_CACHE or not train_module.USE_BF16_NORM_OUTPUT:
@@ -79,7 +91,8 @@ def install(model, device, train_module, separate_region=False, compact_forward_
     before_ids = tuple(id(p) for p in model.parameters())
     before_rng = torch.get_rng_state().clone()
     prepare, apply = make_ops(compact_forward_saves=compact_forward_saves,
-                              stream_packed_weights=stream_packed_weights)
+                              stream_packed_weights=stream_packed_weights,
+                              preserve_output_rank=preserve_output_rank)
     if separate_region:
         # One shared callable across layers avoids six Python closure guards.
         # This changes the compiler's allocation scope, not the FP8 algorithm.
@@ -145,9 +158,16 @@ def install(model, device, train_module, separate_region=False, compact_forward_
                 down = prepare(self.c_proj.weight)
             uq, um, pu, put = up
             dq, dm, pd, pdt = down
-            value = apply(flat, self.c_fc.weight, self.c_proj.weight,
+            keep_rank = preserve_output_rank and x.ndim == 3 and padded_tokens == tokens
+            # Real pack32/T1024 calls keep BxTxC across the opaque output.
+            # Short padded calls retain the gated token-row slicing path; this
+            # changes only output shape, never the FP8 arithmetic or precision.
+            training_input = x if keep_rank else flat
+            value = apply(training_input, self.c_fc.weight, self.c_proj.weight,
                           uq, dq, um, dm, pu, pd, put, pdt,
                           self._fp8_activation_meta, self._fp8_one_meta)
+            if keep_rank:
+                return value
             return value[:tokens].reshape(x.shape)
 
         module.forward = types.MethodType(forward, module)
@@ -162,5 +182,8 @@ def install(model, device, train_module, separate_region=False, compact_forward_
                 separate_compiled_region=bool(separate_region),
                 compact_forward_saves=bool(compact_forward_saves),
                 stream_packed_weights=bool(stream_packed_weights),
+                preserve_output_rank=bool(preserve_output_rank),
+                output_rank_policy=('BxTxC for unpadded rank-three training calls; padded calls use token rows'
+                                    if preserve_output_rank else 'token rows then reshape at caller'),
                 input_contract='gain-free RMS norm, BF16, widths256/1024',
                 short_input_policy='zero-pad inside MLP to multiple512; discard padded rows')
