@@ -121,3 +121,36 @@ cancellation, outliers and confident correct/wrong targets. Exposed native
 output precision is audited; a rounded baseline cannot become speed evidence.
 The timer charges one transpose plus two forwards including logits saves.
 Backward, autograd and optimizer costs are absent; no quality promotion follows.
+
+
+## Exact saved-intermediate follow-up
+
+The existing CE backward needs `u=tanh(z/15)` and saved logsumexp, not raw logits
+itself: `dz=g*(exp(15*u-lse)-one_hot(y))*(1-u*u)`. After the first FP32 logits
+prototype passes, test saving the FP32 `u` tile in place of the equally sized
+raw-logit save. Fused head/CE can write it directly. This avoids a backward
+tanh evaluation without gradient filtering or a new approximation, provided
+saved and recomputed hardware `u` values match exactly. The complete head's
+input/weight gradients still need their independent gates and original cast
+boundaries; this algebra does not establish whole-autograd correctness.
+
+For the original nonfused head, writing a separate `u` tensor adds a full HBM
+write and may lose. For a fused producer it replaces an existing save of the
+same size. Time the complete forward/backward with all saves, not just the
+removed Scalar instruction. Prototype status: proposed; not implemented.
+
+
+## First hardware result: preserve the original failed sign gate
+
+Source99 gate ends clean02:30:35 with a failed nonnegative-loss check on the
+confident-correct fixture (vocabulary1024). Candidate logits/loss/lse match the
+compiled native head and exact CE on frozen logits. All projection bounds pass.
+The negative value is only about5.8e-8; the independent FP64 loss is tiny and
+positive. Zero/tiny/random/cancellation/outlier fixtures preceding it pass.
+The sign assertion remains failed, unmodified; no speed result exists yet.
+
+Next diagnostic exposes target softcap, affine argument, exponential,
+denominator and logarithm, plus runtime exp(0)/log(1) controls. It must match
+the original CE loss/lse exactly. This distinguishes a fusion error from the
+reference primitive/reduction behavior before any compatibility-contract change.
+No production clamp or approximation change is proposed to hide the failure.

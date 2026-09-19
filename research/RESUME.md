@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 02:21 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 02:34 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
 ## Current result and active work
@@ -62,32 +62,36 @@ is canonicalized. Checks: fs-w97-packed-fp8-caller-local-analysis-r3.checks.json
 Source95 d14298ea22ab33ff8be47afc9cba4a81ca8967ac separate compiled FP8 region
 passes BOTH real-Linear widths256/1024, numerical/master-gradient/cache/update/
 row-independence/native-restore checks. Clean02:00:13. No speed promotion yet.
-Native source95 control COMPLETE clean02:13:26:499.641620ms, loss5.0649232864,
-all four postchecks pass. **trn21 ACTIVE:**
-`fs-w95-packed-fp8-monolithic-control-phase-r1`, started02:14:41. Then run
-`fs-w95-packed-fp8-separate-candidate-phase-r1` only after clean postflight.
-Source95 worktree, identical real data/seed/geometry,5 warmup +30 timed updates.
-Requests are in out/. This isolates compilation, keeping math/caches unchanged.
-Watcher trn21/wave95.
+Source95 paired phases COMPLETE and clean. Native499.641620ms, monolithic
+FP8586.422830ms, separate-region FP8619.975017ms. Separate adds5.7215% versus
+monolithic and loses24.0839% versus native. All three pass four postchecks and
+FP8 cache counts are35x12. Last losses5.064923/5.067037/5.063094 differ; no
+full-model bitwise-equivalence claim. Reject this boundary strategy for speed;
+no FP8 quality run. It does not falsify the original source-level spill lead.
+See fs-w95-fp8-compilation-boundary-comparison-r1.json.
 
-Source98 `1da6c0714c0755fd3b078e972fbb0aefbb43bf6d` passes reciprocal-refined
-AdamW(mode2) plus padded ownership:24 exact parameter/state/cross-rank checks,
-schedules/skips/cache/continuation, and rejection of wrong math on restore.
-All13 expected table updates are assigned exactly once across owners.
-Clean02:15:34. Independent arithmetic authority remains the earlier wave66 gate.
-**trn22 ACTIVE:** `fs-w98-owned-reciprocal-adamw-control-phase-r1`, started02:17:50.
-Then run `fs-w98-owned-reciprocal-adamw-candidate-phase-r1` after clean postflight.
-Same source/host/30steps/5warmups; no quality promotion. Watcher trn22/wave98.
+Source98 `1da6c0714c0755fd3b078e972fbb0aefbb43bf6d` mode2 AdamW/ownership
+composition passes24 exact same-math parameter/state/rank checks,13 total owner
+table updates, cache/skip/schedule/restore and wrong-math rejection. Its whole
+step is497.650549ms versus503.328809ms control (1.12814% gain), optimizer
+23.619889 versus26.362835ms. Both clean/all four postchecks pass. Rank0 performs
+70 NKI table updates. Below3%: retain for combination, no standalone quality.
+**trn22 ACTIVE:** `fs-w98-native-owned-context1024-pack32-phase-r1`, started02:32:40.
+Same source/configuration, pack32/GA1 versus control pack16/GA2, unchanged131072
+training targets per update. No prior matching pack32 result found in reviewed
+records. Require complete phase/memory/postchecks before promotion. Watcher98.
 
-Head/loss forward prototype and gate are prepared under research/scratch:
-`head_loss_fused_nki.py` and `head_loss_fused_probe.py`. BF16 inputs, FP32 head
-accumulation, unchanged exact target-relative CE, ordinary FP32 logits save;
-streamed weights in a transpose whose preparation must be timed. The first gate
-requires FP64 accumulation bounds WITHOUT a BF16-output allowance, exact
-frozen-logit loss/lse, repetition, row independence and no mutation. Native
-output precision is audited before benchmarking. This is forward-only; no
-backward/autograd adapter/quality trainer integration. Source99 will be deployed
-and requests queued after current phase pairs, only on clean idle hosts.
+Source99 `94fa40ae3c5b5b93ba27f8f53d318ff14b07afaa` head/CE forward gate FAILED
+clean02:30:35 on confident-correct loss sign. All preceding projection/CE cases
+pass; candidate/native/frozen-reference logits/loss/lse agree exactly. Tiny
+negative CE appears in the original too (about-5.8e-8 versus tiny positive
+FP64). The original nonnegative gate is STILL UNCHANGED and failed. No timing
+or autograd integration follows yet. Prepared source100 diagnostic
+`softcap_ce_negative_diagnostic.py` exposes target affine/exponential/reduction/
+log plus runtime exp(0)/log(1) controls and checks original CE exactly. Diagnose
+before correcting any compatibility contract; do not clamp production loss.
+trn21 is clean and ready for this bounded diagnostic; watcher99 needs moving
+when100 is deployed. Source99 forward prototype has no backward adapter.
 
 Wave92 generic FP8 gradient GEMMs pass all9 independent cases. Repacked byte
 mismatches are only107/103 signed-zero encodings under the ORIGINAL zero
@@ -266,7 +270,7 @@ Local Devuan/SystemV, usercsaba cron; no root/systemd:
   wave82 raw/parquet plus wave83 compiler inputs, without errors. State is
   out/fresh-start-artifact-backup/latest.json; receipts under research/run-logs.
   Newly produced remote checkpoints still need retrieval to checkpoints/ first.
-- Local log watchers currently follow trn21/wave95 and trn22/wave98,90rounds at
+- Local log watchers currently follow trn21/wave99 and trn22/wave98,90rounds at
  45seconds. Repoint when the active remote worktree changes. Only stop exact
   owned watcher PID/UID/cwd/argv/startticks; remote training jobs are separate.
 
