@@ -126,6 +126,8 @@ def main():
                     help="Gated packed FP8 MLP forward/BF16 surrogate backward; all cache work timed.")
     ap.add_argument("--fp8-mlp-full", action="store_true",
                     help="Use the independently gated four-product FP8 backward and fused dual weight caches.")
+    ap.add_argument("--fp8-mlp-compact-saves", action="store_true",
+                    help="Full FP8 forward returns only the five tensors consumed by its complete backward.")
     ap.add_argument("--fp8-mlp-separate-region", action="store_true",
                     help="Compile the same packed FP8 MLP separately; include all graph-boundary costs.")
     ap.add_argument("--fused-mlp-normal-dx", action="store_true",
@@ -245,6 +247,8 @@ def main():
         ap.error("--fp8-mlp-separate-region requires --fp8-mlp-packed")
     if args.fp8_mlp_full and not args.fp8_mlp_packed:
         ap.error("--fp8-mlp-full requires --fp8-mlp-packed")
+    if args.fp8_mlp_compact_saves and not args.fp8_mlp_full:
+        ap.error("--fp8-mlp-compact-saves requires --fp8-mlp-full")
     if args.compact_embedding and args.segmented_dma_embedding:
         ap.error("select only one ordinary embedding backward implementation")
     if (args.fused_mlp_normal_dx or args.fused_mlp_grouped_io
@@ -419,9 +423,12 @@ def main():
     if args.fp8_mlp_packed:
         if args.fp8_mlp_full:
             from fp8_full_mlp_integration import install
+            fp8_mlp_contract = install(model, device, T,
+                separate_region=args.fp8_mlp_separate_region,
+                compact_forward_saves=args.fp8_mlp_compact_saves)
         else:
             from fp8_mlp_integration import install
-        fp8_mlp_contract = install(model, device, T, separate_region=args.fp8_mlp_separate_region)
+            fp8_mlp_contract = install(model, device, T, separate_region=args.fp8_mlp_separate_region)
         print("[pt] packed FP8 MLP contract " + json.dumps(fp8_mlp_contract), flush=True)
     if args.cached_head_loss:
         if (device_type != "neuron" or not args.compile or not args.adaptive_nki_ce
@@ -770,6 +777,7 @@ def main():
             fused_mlp=args.fused_mlp,
             fp8_mlp_packed=args.fp8_mlp_packed,
             fp8_mlp_full=args.fp8_mlp_full,
+            fp8_mlp_compact_saves=args.fp8_mlp_compact_saves,
             fp8_mlp_separate_region=args.fp8_mlp_separate_region,
             fp8_mlp_contract=fp8_mlp_contract,
             fp8_mlp_cache_refresh_counts=[getattr(m, "_fp8_refresh_count", 0)

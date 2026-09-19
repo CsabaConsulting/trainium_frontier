@@ -1,0 +1,28 @@
+{
+  "host": "trn22",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave144",
+  "expected_commit": "b291b930ca07da483bde0746d0ddce2d1627048c",
+  "label": "fs-w144-native-pack32-caller-analysis-r1",
+  "purpose": "CPU-only source/engine/precision/spill attribution of the exact source140 pack32 caller, only after clean ingestion. Match every runtime dispatch and barrier to preserved NEFFs. Source-family and engine interval unions overlap; not additive wall shares. Missing dynamic DMA metadata prohibits exact bandwidth claims. Raw and ingested profile preservation proceed independently without mutating inputs.",
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1",
+    "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave144"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "900s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "-c",
+    "import pathlib,subprocess,sys,json\nsource=pathlib.Path('/home/ubuntu/trainium_freshstart_20260918_wave140')\npost=json.loads((source/'research/run-logs/fs-w140-native-pack32-caller-remote-ingest-r1.postflight.json').read_text())\nassert post['command_returncode']==0 and post['host_clean']\nsubprocess.run([sys.executable,'-u','research/scratch/model_caller_profile_analysis.py','--trace',str(source/'out/fs-w140-native-pack32-micro-device-profile-r2/rank0'),'--parquet',str(source/'out/fs-w140-native-pack32-caller-remote-ingest-r1-parquet'),'--output','/home/ubuntu/trainium_freshstart_20260918_wave144/research/run-logs/fs-w144-native-pack32-caller-analysis-r1.json'],check=True)\n"
+  ],
+  "fingerprint_paths": [
+    "research/scratch/model_caller_profile_analysis.py",
+    "research/scratch/fp8_mlp_profile_analysis.py"
+  ]
+}

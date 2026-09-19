@@ -1,0 +1,16 @@
+{
+  "label": "fs-w140-native-pack32-caller-remote-ingest-r1",
+  "guard_pid": 1745363,
+  "child_pid": 1745364,
+  "child_session": 1745364,
+  "started_at": "2026-09-19T08:45:05.314903+00:00",
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1200s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "-c",
+    "import pathlib,os,hashlib,subprocess,json,time\nroot=pathlib.Path.cwd()\nsource=pathlib.Path('/home/ubuntu/trainium_freshstart_20260918_wave140/out/fs-w140-native-pack32-micro-device-profile-r2')\nstage=root/('out/'+'fs-w140-native-pack32-caller-remote-ingest-r1'+'-input')\noutput=root/('out/'+'fs-w140-native-pack32-caller-remote-ingest-r1'+'-parquet')\npost=json.loads((root/'research/run-logs/fs-w140-native-pack32-micro-device-profile-r2.postflight.json').read_text())\nassert post['command_returncode']==0\nassert post['failures']==['less than8GiB disk space available'] and not post['host_clean']\nrecovery=json.loads((root/'research/run-logs/fs-maintenance-nki-scratch-trn22-20260919-r1.json').read_text())\nassert hashlib.sha256(json.dumps(recovery,sort_keys=True,separators=(',',':')).encode()).hexdigest()=='ac1fe75a56c48ae1313012039c5824d7a0dac594d5a45bec0ce3b958d2025cb2'\nassert recovery['host_clean'] and recovery['host_lock_held'] and recovery['failures']==[]\nassert recovery['host']=='trn22' and recovery['expected_previous_label']=='fs-w140-native-pack32-micro-device-profile-r2'\nassert recovery['completed_at']>=post['completed_at']\nassert source.is_dir() and not stage.exists() and not output.exists()\ndef digest(p):\n with p.open('rb') as f: return hashlib.file_digest(f,'sha256').hexdigest()\nfiles=sorted(p for p in source.rglob('*') if p.is_file())\nassert files and all(not p.is_symlink() for p in files)\nbefore={str(p.relative_to(source)):digest(p) for p in files}\nstage.mkdir(parents=True)\nfor p in files:\n target=stage/p.relative_to(source);target.parent.mkdir(parents=True,exist_ok=True);os.link(p,target)\nneffs=list(stage.rglob('*.neff'))\nfor trace in list(stage.rglob('*.ntff')):\n for neff in neffs:\n  target=trace.parent/neff.name\n  if not target.exists(): os.link(neff,target)\n  elif target.stat().st_ino!=neff.stat().st_ino: assert digest(target)==digest(neff)\ncommand=['/opt/aws/neuron/bin/neuron-explorer','view','--session-dir',str(stage),'--ingest-only','--output-format','parquet','--output-file',str(output)]\nprint('INGEST_START '+json.dumps({'source':str(source),'stage':str(stage),'output':str(output),'command':command,'raw_preserved':False,'local_raw_transfer_in_progress':True,'source_sha256':before}),flush=True)\nstart=time.monotonic();completed=subprocess.run(command,cwd=stage)\nafter={str(p.relative_to(source)):digest(p) for p in files}\nassert before==after\nprint('INGEST_COMPLETE '+json.dumps({'returncode':completed.returncode,'seconds':time.monotonic()-start,'tables':len(list(output.rglob('*.parquet'))),'raw_hashes_unchanged':True,'instruction_files':[(str(p),p.stat().st_size) for p in output.rglob('Instruction.parquet')]}),flush=True)\nraise SystemExit(completed.returncode)\n"
+  ]
+}
