@@ -1,0 +1,36 @@
+{
+  "host": "trn21",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave146",
+  "expected_commit": "1c70da11c4dd9bb789afca0fa3088842874a1efd",
+  "label": "fs-w146-dense1152-context1024-pack32-owned-ce-1800-r1",
+  "purpose": "One fixed-seed42 width1152 capacity trial after exact real-MLP and optimizer-ownership gates plus clean whole-model phase/four numerical checks. Preserve depth6,T1024,pack32/GA1,no ngrams,current native MLP/ownership/exact CE and winning clip-after-reduce training. Wider model has142,752,108 parameters. Advance only if the already specified phase median is <=700ms; this is a bounded capacity/time tradeoff, not a pure kernel speed claim. Preserve fixed1800s training budget/checkpoint protocol and public scorer; larger matched public evaluation required before comparing BPB.",
+  "fingerprint_paths": [
+    "research/scratch/fresh_start_train.py",
+    "research/scratch/mlp_fused_integration.py",
+    "research/scratch/mlp_fused_bf16.py",
+    "research/scratch/optimizer_ownership.py",
+    "research/scratch/softcap_ce_parallel_integration.py",
+    "research/scratch/softcap_ce_parallel_nki.py",
+    "research/scratch/optimizer_ownership_check.py",
+    "research/scratch/optimizer_group_cost_probe.py",
+    "research/scratch/mlp_fused_integration_check.py",
+    "research/scratch/phase_timer.py"
+  ],
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "4200s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "-c",
+    "REMOTE='/home/ubuntu/trainium_freshstart_20260918_wave146'\nSOURCE='1c70da11c4dd9bb789afca0fa3088842874a1efd'\nCOMMAND=['/home/ubuntu/workspace/native_venv/bin/python', 'research/run_experiment.py', '--label', 'fs-w146-dense1152-context1024-pack32-owned-ce-1800-r1', '--solution', 'fresh-start-dense-capacity', '--description', 'Dense6x1152 T1024 pack32/GA1 with measured and exactly gated ownership; fixedseed42, current nativeMLP/adaptiveCE, winning clip-after-reduce; one bounded capacity trial', '--num-steps', '1000000', '--max-train-seconds', '1800', '--nproc-per-node', '4', '--lnc', '2', '--eval-tokens', '2097152', '--no-commit', '--entrypoint', 'research/scratch/fresh_start_train.py', '--extra-args', '--depth', '6', '--n-embd', '1152', '--seed', '42', '--compile-muon', '--no-ngram-ve', '--no-qk-shift', '--compile-sdpa-direct', '--nki-local-conv', '--bf16-norm-output', '--eval-seq-len', '1024', '--pack-factor', '32', '--clip-after-reduce', '--experimental-native-mlp', '--experimental-optimizer-ownership', '--seq-len', '1024', '--experimental-adaptive-ce']\nimport pathlib,json,re,statistics,subprocess,math\nr=pathlib.Path(REMOTE)\np=json.loads((r/'research/run-logs/fs-w146-native-width1152-phase-r1.postflight.json').read_text())\nassert p['source_commit']==SOURCE and p['host_clean'] and p['command_returncode']==0\nraw=(r/'research/run-logs/fs-w146-native-width1152-phase-r1.log').read_text()\ndef records(tag): return [json.JSONDecoder().raw_decode(raw[m.end():])[0] for m in re.finditer(re.escape(tag)+' ',raw)]\nchecks=records('NATIVE_POST_CHECK_JSON');phase=records('PHASE_JSON');config=records('PROFILE_CONFIG')\nassert len(checks)==4 and {c['rank'] for c in checks}==set(range(4)) and all(c['passed'] for c in checks)\nassert len(phase)==1 and len(config)==1 and config[0]['seed']==42\nassert config[0]['model']['n_embd']==1152 and config[0]['model']['n_layer']==6 and config[0]['model']['sequence_len']==1024\nassert phase[0]['pack_factor']==32 and phase[0]['grad_accum']==1 and phase[0]['micro_tokens']==131072\nassert phase[0]['fused_mlp_forward_backend']=='native' and phase[0]['optimizer_ownership'] and phase[0]['adaptive_nki_ce']\nassert math.isfinite(phase[0]['last_loss']) and len(phase[0]['steps'])==30\nmedian=statistics.median(s['step_total_ms'] for s in phase[0]['steps'])\nassert median<=700.0,('outside predeclared bounded capacity timing gate',median)\nprint('CAPACITY_QUALITY_ADVANCE '+json.dumps(dict(phase_median_ms=median,maximum_phase_ms=700.0,seed=42,parameters=142752108,training_clip_after_reduce=True,phase_clip_before_reduce=True,phase_not_full_training_schedule=True)),flush=True)\nsubprocess.run(COMMAND,check=True)\n"
+  ],
+  "runner_owns_manifest": true
+}
