@@ -1,0 +1,46 @@
+{
+  "host": "trn21",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave149",
+  "expected_commit": "6757a772f9f0be3ec86889c6bf02bc05eff41363",
+  "label": "fs-w149-serial-qkv-tokens-component-r1",
+  "purpose": "Independent QKV tokens layout: original three FP32 masters, three separate BF16 input streams and contiguous outputs. Run declared FP64 forward/all-six-gradient gates, lifecycle/accumulation/repeat/nonmutation/row independence and actual32768x1024 gates before paired same-host complete-component timing. No whole-model or quality promotion.",
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_RT_VISIBLE_CORES": "0",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1800s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "/home/ubuntu/trainium_freshstart_20260918_wave149/research/scratch/serial_qkv_probe.py",
+    "--layout",
+    "tokens",
+    "--steps",
+    "10"
+  ],
+  "fingerprint_paths": [
+    "research/scratch/serial_qkv_nki.py",
+    "research/scratch/serial_qkv_probe.py"
+  ],
+  "started_at": "2026-09-19T23:17:01.943253+00:00",
+  "hostname": "ip-172-31-34-85",
+  "git_commit": "6757a772f9f0be3ec86889c6bf02bc05eff41363",
+  "source_dirty": false,
+  "preflight_free_bytes": 26681925632,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+    "research/fresh_start_host.py": "8c597adea7c48114bed8f50aa161fdc79b36b49c86c7315e6a58c3ca4e8f5f79",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/fresh_start_backup.py": "c978fd20b6620d0d80c25f8982974e8c4b2ad009edd9da376d784f5cecc3ead3",
+    "research/scratch/serial_qkv_nki.py": "b7affc2a3c771643d9b5248f1322539bf5d657d0143b8db3fab8eeecd77c8f88",
+    "research/scratch/serial_qkv_probe.py": "3b9e59ae86a202625d5f725a1b92785b993526fe62d54d05af7a5db36b851cd2"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "label": "fs-w149-serial-qkv-tokens-component-r1",
+  "source_commit": "6757a772f9f0be3ec86889c6bf02bc05eff41363",
+  "completed_at": "2026-09-19T23:17:18.956907+00:00",
+  "command_returncode": 1,
+  "host_clean": true,
+  "passed": false,
+  "failure_stage": "NKI frontend helper resolution",
+  "diagnostic": "unbound variable 'kernel_assert'",
+  "root_cause": "Helper was only in the kernel-builder closure; the installed parser resolves helper functions through module globals.",
+  "fix": "Module-level kernel_assert and global declarations for load_weight/project, matching the already working FP8 helper pattern. Arithmetic, layouts, references and tolerances unchanged.",
+  "log_sha256": "f8d9cdefad402d6e3e156ab4e1c90adc53f76fee10d6daef6ca7913392046d69",
+  "hardware_speed_or_quality_claim": false
+}

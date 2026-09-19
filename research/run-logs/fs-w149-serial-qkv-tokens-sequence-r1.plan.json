@@ -1,0 +1,76 @@
+{
+  "label": "fs-w149-serial-qkv-tokens-sequence-r1",
+  "max_seconds": 2400,
+  "purpose": "Run and preserve this one new bounded kernel probe; stop after validated completion or failure. No quality or full-model promotion.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w149-serial-qkv-tokens-component-r1.request.json",
+      "sha256": "f5c8e28253ac16c9da243a2e6105da21ae4e87f64357e3c5bae9321cb6e99dfa",
+      "requirements": [
+        {
+          "marker": "SERIAL_QKV_RESULT",
+          "count": 1,
+          "fields": {
+            "layout": "tokens",
+            "cases": 9,
+            "passed": true,
+            "real_tokens": 32768,
+            "real_channels": 1024,
+            "independent_fp64_gates": true,
+            "lifecycle_passed": true,
+            "whole_model_or_quality_claim": false
+          }
+        },
+        {
+          "marker": "SERIAL_QKV_CASE",
+          "count": 9,
+          "fields": {
+            "passed": true,
+            "independent_fp64_forward_and_six_gradients": true,
+            "distinct_inputs": true,
+            "contiguous_outputs": true,
+            "fp32_master_gradients": true,
+            "repeat_and_nonmutation": true,
+            "stream_and_row_independence": true
+          },
+          "unique_field": "kind",
+          "values": [
+            "random",
+            "zero_input",
+            "zero_weight",
+            "zero_gradient",
+            "tiny_gradient",
+            "outliers",
+            "changed_weights",
+            "cancellation",
+            "real_random"
+          ]
+        },
+        {
+          "marker": "SERIAL_QKV_LIFECYCLE",
+          "count": 1,
+          "fields": {
+            "cached_and_uncached": true,
+            "master_updates": 2,
+            "microbatches_per_update": 2,
+            "fp32_accumulation": true,
+            "passed": true
+          }
+        },
+        {
+          "marker": "SERIAL_QKV_COMPONENT_TIMING",
+          "count": 1,
+          "fields": {
+            "tokens": 32768,
+            "channels": 1024,
+            "steps_per_block": 10,
+            "includes_three_forward_six_backward_products": true,
+            "includes_fp32_master_cache_cast_and_accumulation": true,
+            "all_layout_and_dispatch_costs_timed": true,
+            "whole_model_or_quality_claim": false
+          }
+        }
+      ]
+    }
+  ]
+}
