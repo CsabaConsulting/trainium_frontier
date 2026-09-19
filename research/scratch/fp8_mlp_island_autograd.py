@@ -8,7 +8,9 @@ Forward gates separately validate every saved value and token independence.
 import torch
 
 
-def make_autograd(forward, relu_token_major=False):
+def make_autograd(forward, relu_token_major=False, token_row_backward=False):
+    if token_row_backward and not relu_token_major:
+        raise ValueError('Token-row backward requires token-row saved ReLU')
     class FP8Island(torch.autograd.Function):
         @staticmethod
         def forward(ctx, x, up_master, down_master, up_cache, down_cache, up_meta, down_meta):
@@ -21,11 +23,20 @@ def make_autograd(forward, relu_token_major=False):
         @staticmethod
         def backward(ctx, gradient):
             x, up, down, saved_relu, activated = ctx.saved_tensors
-            relu_t = saved_relu.T if relu_token_major else saved_relu
-            derivative_hidden_t = down.T @ gradient.T
-            derivative_pre_t = derivative_hidden_t * (relu_t * 2.0)
-            dx = derivative_pre_t.T @ up
-            dup = (derivative_pre_t @ x).to(ctx.up_dtype)
+            if token_row_backward:
+                # Keep the saved ReLU and its derivative in token rows.
+                # The alternative logical GEMM orientation retains all BF16
+                # rounding boundaries and uses the same independent FP64 bound.
+                derivative_hidden = gradient @ down
+                derivative_pre = derivative_hidden * (saved_relu * 2.0)
+                dx = derivative_pre @ up
+                dup = (derivative_pre.T @ x).to(ctx.up_dtype)
+            else:
+                relu_t = saved_relu.T if relu_token_major else saved_relu
+                derivative_hidden_t = down.T @ gradient.T
+                derivative_pre_t = derivative_hidden_t * (relu_t * 2.0)
+                dx = derivative_pre_t.T @ up
+                dup = (derivative_pre_t @ x).to(ctx.up_dtype)
             ddown = (gradient.T @ activated).to(ctx.down_dtype)
             return dx, dup, ddown, None, None, None, None
     return FP8Island.apply

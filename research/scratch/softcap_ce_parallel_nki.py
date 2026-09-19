@@ -17,7 +17,8 @@ def build_kernels():
         """Compute unreduced loss and saved logsumexp with unchanged softcap15.
 
         Args:
-            z: Contiguous FP32 [N, V] logits.
+            z: Contiguous FP32 or BF16 [N, V] logits. BF16 is widened in
+                SBUF; all loss arithmetic and saved statistics remain FP32.
             tgt: FP32 [N, 1] class indices, exact integers in [0, V).
             lanes: Physical cores in the matching launch grid.
             target_gather: Gather one SBUF element per row instead of mask/sum.
@@ -28,7 +29,7 @@ def build_kernels():
         partitions = 128
         softcap = 15.0
         assert lanes in (1, 2) and rows_count % (partitions * lanes) == 0
-        assert z.dtype == nl.float32 and tgt.dtype == nl.float32
+        assert z.dtype in (nl.float32, nl.bfloat16) and tgt.dtype == nl.float32
         assert tgt.shape == (rows_count, 1) and vocab % 512 == 0
         loss = nl.ndarray((rows_count, 1), dtype=nl.float32, buffer=nl.shared_hbm)
         lse = nl.ndarray((rows_count, 1), dtype=nl.float32, buffer=nl.shared_hbm)
@@ -42,7 +43,12 @@ def build_kernels():
             rows = nl.ds(first, partitions)
             logits = nl.ndarray((partitions, vocab), dtype=nl.float32, buffer=nl.sbuf)
             labels = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
-            nisa.dma_copy(dst=logits, src=z[rows])
+            if z.dtype == nl.bfloat16:
+                source = nl.ndarray((partitions, vocab), dtype=nl.bfloat16, buffer=nl.sbuf)
+                nisa.dma_copy(dst=source, src=z[rows])
+                nisa.tensor_copy(dst=logits, src=source)
+            else:
+                nisa.dma_copy(dst=logits, src=z[rows])
             nisa.dma_copy(dst=labels, src=tgt[rows])
             capped_unit = nl.ndarray((partitions, vocab), dtype=nl.float32, buffer=nl.sbuf)
             nisa.activation(dst=capped_unit, op=nl.tanh, data=logits, scale=1.0 / softcap)
@@ -85,24 +91,26 @@ def build_kernels():
 
     @nki.jit
     def backward(z, tgt, lse, g, lanes: int = 2):
-        """Return FP32 [N, V] logits gradients, partitioning independent rows.
+        """Return [N, V] gradients in the logits dtype, partitioning rows.
 
         Args:
             z, tgt, lse: Same inputs and saved logsumexp as forward.
             g: Arbitrary FP32 [N, 1] upstream loss gradient.
             lanes: Physical cores in the matching launch grid.
         Returns:
-            Original softcap15/CE derivative, with unchanged rounding points.
+            Original FP32 softcap15/CE derivative, rounded to BF16 only at
+            the output when the input was BF16. This replaces the caller's
+            existing cast boundary, not the internal gradient arithmetic.
         """
         rows_count, vocab = z.shape
         partitions = 128
         softcap = 15.0
         assert lanes in (1, 2) and rows_count % (partitions * lanes) == 0
-        assert z.dtype == nl.float32 and tgt.dtype == nl.float32
+        assert z.dtype in (nl.float32, nl.bfloat16) and tgt.dtype == nl.float32
         assert lse.dtype == nl.float32 and g.dtype == nl.float32
         assert tgt.shape == (rows_count, 1) and lse.shape == (rows_count, 1)
         assert g.shape == (rows_count, 1)
-        dz = nl.ndarray(z.shape, dtype=nl.float32, buffer=nl.shared_hbm)
+        dz = nl.ndarray(z.shape, dtype=z.dtype, buffer=nl.shared_hbm)
         indices = nl.ndarray((partitions, vocab), dtype=nl.float32, buffer=nl.sbuf)
         nisa.iota(dst=indices, pattern=[[1, vocab]], offset=0, channel_multiplier=0)
         for tile in nl.affine_range(rows_count // (partitions * lanes)):
@@ -111,7 +119,12 @@ def build_kernels():
             labels = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
             gradient = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
             negative_lse = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
-            nisa.dma_copy(dst=logits, src=z[rows])
+            if z.dtype == nl.bfloat16:
+                source = nl.ndarray((partitions, vocab), dtype=nl.bfloat16, buffer=nl.sbuf)
+                nisa.dma_copy(dst=source, src=z[rows])
+                nisa.tensor_copy(dst=logits, src=source)
+            else:
+                nisa.dma_copy(dst=logits, src=z[rows])
             nisa.dma_copy(dst=labels, src=tgt[rows])
             nisa.dma_copy(dst=gradient, src=g[rows])
             nisa.dma_copy(dst=negative_lse, src=lse[rows])
@@ -130,7 +143,12 @@ def build_kernels():
             nisa.scalar_tensor_tensor(dst=capped_unit, data=temporary,
                                       op0=nl.subtract, operand0=1.0, reverse0=True,
                                       op1=nl.multiply, operand1=logits)
-            nisa.dma_copy(dst=dz[rows], src=capped_unit)
+            if z.dtype == nl.bfloat16:
+                rounded = nl.ndarray((partitions, vocab), dtype=nl.bfloat16, buffer=nl.sbuf)
+                nisa.tensor_copy(dst=rounded, src=capped_unit)
+                nisa.dma_copy(dst=dz[rows], src=rounded)
+            else:
+                nisa.dma_copy(dst=dz[rows], src=capped_unit)
         return dz
 
     return forward, backward

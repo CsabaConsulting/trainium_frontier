@@ -40,7 +40,8 @@ def build_kernel():
 
     @nki.jit
     def forward(x, up, down, up_scales, down_scales, lanes: int = 2,
-                token_tile: int = 128, diagnostic: bool = False):
+                token_tile: int = 128, diagnostic: bool = False,
+                fixed_x_scale: float = 0.0):
         """Return Y[T,C], ReLU[T,H], QDQ-X[T,C], QDQ-hidden[T,H].
 
         Diagnostic mode additionally returns FP32 up[T,H], down[T,C] and
@@ -57,6 +58,17 @@ def build_kernel():
         assert tokens % (128 * lanes) == 0
         assert up_scales.shape == down_scales.shape == (128, 3)
         assert up_scales.dtype == down_scales.dtype == nl.float32
+        # Restricted alternative: |x| <= 130/fixed_x_scale, established by
+        # the caller's RMS-normalization contract. No runtime reduction here.
+        # Hidden calibration remains per token. Zero preserves the old policy.
+        if fixed_x_scale != 0.0:
+            assert channels in (256, 1024)
+            assert fixed_x_scale * fixed_x_scale * channels == 16384.0
+            fixed_meta = nl.ndarray((128, 3), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.memset(dst=fixed_meta[:, 0:1], value=fixed_x_scale)
+            nisa.memset(dst=fixed_meta[:, 1:2], value=1.0 / fixed_x_scale)
+            # Third column is an input bound, not an observed maximum.
+            nisa.memset(dst=fixed_meta[:, 2:3], value=130.0 / fixed_x_scale)
         up_width, down_width = min(512, hidden), min(512, channels)
         assert hidden % up_width == 0 and channels % down_width == 0
         nc, nh = channels // 128, hidden // 128
@@ -102,7 +114,10 @@ def build_kernel():
             rows = nl.ds(first, 128)
             raw = nl.ndarray((128, channels), dtype=nl.bfloat16, buffer=nl.sbuf)
             nisa.dma_copy(dst=raw, src=x[rows, :])
-            x_meta = calibrate_token_rows(raw)
+            if fixed_x_scale != 0.0:
+                x_meta = fixed_meta
+            else:
+                x_meta = calibrate_token_rows(raw)
             x_fp8 = nl.ndarray((128, channels), dtype=nl.float8_e4m3, buffer=nl.sbuf)
             x_restored = nl.ndarray((128, channels), dtype=nl.bfloat16, buffer=nl.sbuf)
             nisa.tensor_scalar(dst=x_fp8, data=raw, op0=nl.multiply, operand0=x_meta[:, 0:1])
