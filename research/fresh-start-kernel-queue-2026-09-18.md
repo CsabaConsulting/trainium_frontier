@@ -345,3 +345,26 @@ Installed SDK inspection also establishes that `activate2` is NC-v4-only; it
 cannot implement a fused max reduction on these NC-v3 instances. Ordinary
 `activation` has a sum reduction, and `activation_reduce` wraps it. Producer/max
 fusion needs a different documented NC-v3 route or remains a design idea.
+
+### Root cause and two narrower experiments (00:47 UTC)
+
+Wave83 isolates the head mismatch across six width/weight-scale cases. Compiled
+original logits retain FP32 accumulator values; the candidate equals their BF16
+rounding exactly. Exposing logits changes neither loss, and frozen-logit CE
+reproduces each result exactly. The full BF16 forward boundary is therefore
+closed as an exact optimization of this compiled head. Its standalone component
+speed result remains limited to pre-rounded inputs. Do not promote that result.
+
+The new **gradient-only boundary** retains the original FP32 logits and forward
+loss, but emits a BF16 CE derivative for the head's existing backward cast.
+An arbitrary FP32-logit leaf would have a different gradient, so this is a
+head-consumer contract requiring exact input and FP32-master gradients under
+eager and compiled execution. It is separately gated; the earlier failed gate
+is unchanged. The ready probe charges the real head/loss FW/BW after exact gates.
+
+The new **packed FP8 cache** prototype produces both the existing BF16 backward
+cache and a raw-byte legacy-FP8 GEMM layout once per update. Its first probe checks
+CPU-decoded values, contraction layout, repeated bytes, cache versions, finite
+BF16 alphabet, tiny/outlier/zero values and real dimensions. This is only the
+cache boundary; full MLP stages, backward and charged update timing come next.
+PyTorch E4M3FN encoding is not assumed to match these raw legacy-E4M3 bytes.

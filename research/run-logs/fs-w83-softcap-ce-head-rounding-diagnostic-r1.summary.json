@@ -1,0 +1,811 @@
+{
+  "source_commit": "d5406c0da46844f9288af5cd2e52459449c9fd8f",
+  "command_returncode": 0,
+  "host_clean": true,
+  "completed_at": "2026-09-19T00:42:24.599533+00:00",
+  "label": "fs-w83-softcap-ce-head-rounding-diagnostic-r1",
+  "records": [
+    {
+      "rows": 256,
+      "channels": 256,
+      "weight_std": 0.001,
+      "comparisons": {
+        "loss_only_original_vs_candidate": {
+          "exact": false,
+          "different": 245,
+          "elements": 256,
+          "max_abs": 0.0001201629638671875,
+          "rms": 2.7657711276192956e-05,
+          "finite": true
+        },
+        "expose_original_loss": {
+          "exact": true,
+          "different": 0,
+          "elements": 256,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "expose_candidate_loss": {
+          "exact": true,
+          "different": 0,
+          "elements": 256,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "original_exposed_vs_frozen_loss": {
+          "exact": true,
+          "different": 0,
+          "elements": 256,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "candidate_exposed_vs_frozen_loss": {
+          "exact": true,
+          "different": 0,
+          "elements": 256,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "compiled_original_vs_eager_loss": {
+          "exact": false,
+          "different": 245,
+          "elements": 256,
+          "max_abs": 0.0001201629638671875,
+          "rms": 2.7657711276192956e-05,
+          "finite": true
+        },
+        "compiled_candidate_vs_eager_loss": {
+          "exact": true,
+          "different": 0,
+          "elements": 256,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "original_float_logits_vs_bf16_roundtrip": {
+          "exact": false,
+          "different": 2096972,
+          "elements": 2097152,
+          "max_abs": 0.00024406611919403076,
+          "rms": 2.6536571620057147e-05,
+          "finite": true
+        },
+        "candidate_logits_vs_rounded_original": {
+          "exact": true,
+          "different": 0,
+          "elements": 2097152,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "original_exposed_vs_head_only": {
+          "exact": true,
+          "different": 0,
+          "elements": 2097152,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "candidate_exposed_vs_head_only": {
+          "exact": true,
+          "different": 0,
+          "elements": 2097152,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "original_float_logits_vs_eager": {
+          "exact": false,
+          "different": 2096972,
+          "elements": 2097152,
+          "max_abs": 0.00024406611919403076,
+          "rms": 2.6536571620057147e-05,
+          "finite": true
+        },
+        "candidate_bf16_logits_vs_eager": {
+          "exact": true,
+          "different": 0,
+          "elements": 2097152,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        }
+      },
+      "sampled_fp64_dots": {
+        "original_fp32": {
+          "exact": false,
+          "different": 499,
+          "elements": 512,
+          "max_abs": 4.307366907596588e-09,
+          "rms": 9.35451320044365e-10,
+          "finite": true
+        },
+        "candidate_bf16": {
+          "exact": false,
+          "different": 512,
+          "elements": 512,
+          "max_abs": 0.00012172048445791006,
+          "rms": 2.681663046097342e-05,
+          "finite": true
+        }
+      },
+      "original_dtype": "torch.float32",
+      "candidate_dtype": "torch.bfloat16",
+      "production_exact_gate_changed": false,
+      "exposure_can_change_graph": true
+    },
+    {
+      "rows": 256,
+      "channels": 256,
+      "weight_std": 0.03,
+      "comparisons": {
+        "loss_only_original_vs_candidate": {
+          "exact": false,
+          "different": 256,
+          "elements": 256,
+          "max_abs": 0.0037260055541992188,
+          "rms": 0.0007213019146950944,
+          "finite": true
+        },
+        "expose_original_loss": {
+          "exact": true,
+          "different": 0,
+          "elements": 256,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "expose_candidate_loss": {
+          "exact": true,
+          "different": 0,
+          "elements": 256,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "original_exposed_vs_frozen_loss": {
+          "exact": true,
+          "different": 0,
+          "elements": 256,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "candidate_exposed_vs_frozen_loss": {
+          "exact": true,
+          "different": 0,
+          "elements": 256,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "compiled_original_vs_eager_loss": {
+          "exact": false,
+          "different": 256,
+          "elements": 256,
+          "max_abs": 0.0037260055541992188,
+          "rms": 0.0007213019146950944,
+          "finite": true
+        },
+        "compiled_candidate_vs_eager_loss": {
+          "exact": true,
+          "different": 0,
+          "elements": 256,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "original_float_logits_vs_bf16_roundtrip": {
+          "exact": false,
+          "different": 2096970,
+          "elements": 2097152,
+          "max_abs": 0.007681369781494141,
+          "rms": 0.0007929512450963348,
+          "finite": true
+        },
+        "candidate_logits_vs_rounded_original": {
+          "exact": true,
+          "different": 0,
+          "elements": 2097152,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "original_exposed_vs_head_only": {
+          "exact": true,
+          "different": 0,
+          "elements": 2097152,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "candidate_exposed_vs_head_only": {
+          "exact": true,
+          "different": 0,
+          "elements": 2097152,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "original_float_logits_vs_eager": {
+          "exact": false,
+          "different": 2096970,
+          "elements": 2097152,
+          "max_abs": 0.007681369781494141,
+          "rms": 0.0007929512450963348,
+          "finite": true
+        },
+        "candidate_bf16_logits_vs_eager": {
+          "exact": true,
+          "different": 0,
+          "elements": 2097152,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        }
+      },
+      "sampled_fp64_dots": {
+        "original_fp32": {
+          "exact": false,
+          "different": 506,
+          "elements": 512,
+          "max_abs": 1.1362135410308838e-07,
+          "rms": 2.7478071876761804e-08,
+          "finite": true
+        },
+        "candidate_bf16": {
+          "exact": false,
+          "different": 512,
+          "elements": 512,
+          "max_abs": 0.0038799867033958435,
+          "rms": 0.0007625774229507499,
+          "finite": true
+        }
+      },
+      "original_dtype": "torch.float32",
+      "candidate_dtype": "torch.bfloat16",
+      "production_exact_gate_changed": false,
+      "exposure_can_change_graph": true
+    },
+    {
+      "rows": 256,
+      "channels": 256,
+      "weight_std": 0.3,
+      "comparisons": {
+        "loss_only_original_vs_candidate": {
+          "exact": false,
+          "different": 256,
+          "elements": 256,
+          "max_abs": 0.023181438446044922,
+          "rms": 0.006673061371482185,
+          "finite": true
+        },
+        "expose_original_loss": {
+          "exact": true,
+          "different": 0,
+          "elements": 256,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "expose_candidate_loss": {
+          "exact": true,
+          "different": 0,
+          "elements": 256,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "original_exposed_vs_frozen_loss": {
+          "exact": true,
+          "different": 0,
+          "elements": 256,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "candidate_exposed_vs_frozen_loss": {
+          "exact": true,
+          "different": 0,
+          "elements": 256,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "compiled_original_vs_eager_loss": {
+          "exact": false,
+          "different": 256,
+          "elements": 256,
+          "max_abs": 0.023181438446044922,
+          "rms": 0.006673061371482185,
+          "finite": true
+        },
+        "compiled_candidate_vs_eager_loss": {
+          "exact": true,
+          "different": 0,
+          "elements": 256,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "original_float_logits_vs_bf16_roundtrip": {
+          "exact": false,
+          "different": 2096973,
+          "elements": 2097152,
+          "max_abs": 0.062480926513671875,
+          "rms": 0.007899106149735935,
+          "finite": true
+        },
+        "candidate_logits_vs_rounded_original": {
+          "exact": true,
+          "different": 0,
+          "elements": 2097152,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "original_exposed_vs_head_only": {
+          "exact": true,
+          "different": 0,
+          "elements": 2097152,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "candidate_exposed_vs_head_only": {
+          "exact": true,
+          "different": 0,
+          "elements": 2097152,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "original_float_logits_vs_eager": {
+          "exact": false,
+          "different": 2096973,
+          "elements": 2097152,
+          "max_abs": 0.062480926513671875,
+          "rms": 0.007899106149735935,
+          "finite": true
+        },
+        "candidate_bf16_logits_vs_eager": {
+          "exact": true,
+          "different": 0,
+          "elements": 2097152,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        }
+      },
+      "sampled_fp64_dots": {
+        "original_fp32": {
+          "exact": false,
+          "different": 505,
+          "elements": 512,
+          "max_abs": 1.1026859283447266e-06,
+          "rms": 2.8121167321818684e-07,
+          "finite": true
+        },
+        "candidate_bf16": {
+          "exact": false,
+          "different": 512,
+          "elements": 512,
+          "max_abs": 0.029933534562587738,
+          "rms": 0.007699189737713568,
+          "finite": true
+        }
+      },
+      "original_dtype": "torch.float32",
+      "candidate_dtype": "torch.bfloat16",
+      "production_exact_gate_changed": false,
+      "exposure_can_change_graph": true
+    },
+    {
+      "rows": 512,
+      "channels": 1024,
+      "weight_std": 0.001,
+      "comparisons": {
+        "loss_only_original_vs_candidate": {
+          "exact": false,
+          "different": 501,
+          "elements": 512,
+          "max_abs": 0.000240325927734375,
+          "rms": 5.547785362907408e-05,
+          "finite": true
+        },
+        "expose_original_loss": {
+          "exact": true,
+          "different": 0,
+          "elements": 512,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "expose_candidate_loss": {
+          "exact": true,
+          "different": 0,
+          "elements": 512,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "original_exposed_vs_frozen_loss": {
+          "exact": true,
+          "different": 0,
+          "elements": 512,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "candidate_exposed_vs_frozen_loss": {
+          "exact": true,
+          "different": 0,
+          "elements": 512,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "compiled_original_vs_eager_loss": {
+          "exact": false,
+          "different": 501,
+          "elements": 512,
+          "max_abs": 0.000240325927734375,
+          "rms": 5.547785362907408e-05,
+          "finite": true
+        },
+        "compiled_candidate_vs_eager_loss": {
+          "exact": true,
+          "different": 0,
+          "elements": 512,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "original_float_logits_vs_bf16_roundtrip": {
+          "exact": false,
+          "different": 4194030,
+          "elements": 4194304,
+          "max_abs": 0.0004846900701522827,
+          "rms": 5.315376908389205e-05,
+          "finite": true
+        },
+        "candidate_logits_vs_rounded_original": {
+          "exact": true,
+          "different": 0,
+          "elements": 4194304,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "original_exposed_vs_head_only": {
+          "exact": true,
+          "different": 0,
+          "elements": 4194304,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "candidate_exposed_vs_head_only": {
+          "exact": true,
+          "different": 0,
+          "elements": 4194304,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "original_float_logits_vs_eager": {
+          "exact": false,
+          "different": 4194030,
+          "elements": 4194304,
+          "max_abs": 0.0004846900701522827,
+          "rms": 5.315376908389205e-05,
+          "finite": true
+        },
+        "candidate_bf16_logits_vs_eager": {
+          "exact": true,
+          "different": 0,
+          "elements": 4194304,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        }
+      },
+      "sampled_fp64_dots": {
+        "original_fp32": {
+          "exact": false,
+          "different": 511,
+          "elements": 512,
+          "max_abs": 9.546056389808655e-09,
+          "rms": 2.3153460338987716e-09,
+          "finite": true
+        },
+        "candidate_bf16": {
+          "exact": false,
+          "different": 512,
+          "elements": 512,
+          "max_abs": 0.00022097586042946205,
+          "rms": 5.074137801279363e-05,
+          "finite": true
+        }
+      },
+      "original_dtype": "torch.float32",
+      "candidate_dtype": "torch.bfloat16",
+      "production_exact_gate_changed": false,
+      "exposure_can_change_graph": true
+    },
+    {
+      "rows": 512,
+      "channels": 1024,
+      "weight_std": 0.03,
+      "comparisons": {
+        "loss_only_original_vs_candidate": {
+          "exact": false,
+          "different": 512,
+          "elements": 512,
+          "max_abs": 0.007686138153076172,
+          "rms": 0.0016254646490135184,
+          "finite": true
+        },
+        "expose_original_loss": {
+          "exact": true,
+          "different": 0,
+          "elements": 512,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "expose_candidate_loss": {
+          "exact": true,
+          "different": 0,
+          "elements": 512,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "original_exposed_vs_frozen_loss": {
+          "exact": true,
+          "different": 0,
+          "elements": 512,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "candidate_exposed_vs_frozen_loss": {
+          "exact": true,
+          "different": 0,
+          "elements": 512,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "compiled_original_vs_eager_loss": {
+          "exact": false,
+          "different": 512,
+          "elements": 512,
+          "max_abs": 0.007686138153076172,
+          "rms": 0.0016254646490135184,
+          "finite": true
+        },
+        "compiled_candidate_vs_eager_loss": {
+          "exact": true,
+          "different": 0,
+          "elements": 512,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "original_float_logits_vs_bf16_roundtrip": {
+          "exact": false,
+          "different": 4194012,
+          "elements": 4194304,
+          "max_abs": 0.015535354614257812,
+          "rms": 0.0015943495560870231,
+          "finite": true
+        },
+        "candidate_logits_vs_rounded_original": {
+          "exact": true,
+          "different": 0,
+          "elements": 4194304,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "original_exposed_vs_head_only": {
+          "exact": true,
+          "different": 0,
+          "elements": 4194304,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "candidate_exposed_vs_head_only": {
+          "exact": true,
+          "different": 0,
+          "elements": 4194304,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "original_float_logits_vs_eager": {
+          "exact": false,
+          "different": 4194012,
+          "elements": 4194304,
+          "max_abs": 0.015535354614257812,
+          "rms": 0.0015943495560870231,
+          "finite": true
+        },
+        "candidate_bf16_logits_vs_eager": {
+          "exact": true,
+          "different": 0,
+          "elements": 4194304,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        }
+      },
+      "sampled_fp64_dots": {
+        "original_fp32": {
+          "exact": false,
+          "different": 511,
+          "elements": 512,
+          "max_abs": 2.3352913558483124e-07,
+          "rms": 6.782851668426198e-08,
+          "finite": true
+        },
+        "candidate_bf16": {
+          "exact": false,
+          "different": 512,
+          "elements": 512,
+          "max_abs": 0.006533816922456026,
+          "rms": 0.0015063130026738562,
+          "finite": true
+        }
+      },
+      "original_dtype": "torch.float32",
+      "candidate_dtype": "torch.bfloat16",
+      "production_exact_gate_changed": false,
+      "exposure_can_change_graph": true
+    },
+    {
+      "rows": 512,
+      "channels": 1024,
+      "weight_std": 0.3,
+      "comparisons": {
+        "loss_only_original_vs_candidate": {
+          "exact": false,
+          "different": 512,
+          "elements": 512,
+          "max_abs": 0.023261070251464844,
+          "rms": 0.008545778801179632,
+          "finite": true
+        },
+        "expose_original_loss": {
+          "exact": true,
+          "different": 0,
+          "elements": 512,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "expose_candidate_loss": {
+          "exact": true,
+          "different": 0,
+          "elements": 512,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "original_exposed_vs_frozen_loss": {
+          "exact": true,
+          "different": 0,
+          "elements": 512,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "candidate_exposed_vs_frozen_loss": {
+          "exact": true,
+          "different": 0,
+          "elements": 512,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "compiled_original_vs_eager_loss": {
+          "exact": false,
+          "different": 512,
+          "elements": 512,
+          "max_abs": 0.023261070251464844,
+          "rms": 0.008545778801179632,
+          "finite": true
+        },
+        "compiled_candidate_vs_eager_loss": {
+          "exact": true,
+          "different": 0,
+          "elements": 512,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "original_float_logits_vs_bf16_roundtrip": {
+          "exact": false,
+          "different": 4194076,
+          "elements": 4194304,
+          "max_abs": 0.124969482421875,
+          "rms": 0.015939976171725417,
+          "finite": true
+        },
+        "candidate_logits_vs_rounded_original": {
+          "exact": true,
+          "different": 0,
+          "elements": 4194304,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "original_exposed_vs_head_only": {
+          "exact": true,
+          "different": 0,
+          "elements": 4194304,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "candidate_exposed_vs_head_only": {
+          "exact": true,
+          "different": 0,
+          "elements": 4194304,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        },
+        "original_float_logits_vs_eager": {
+          "exact": false,
+          "different": 4194076,
+          "elements": 4194304,
+          "max_abs": 0.124969482421875,
+          "rms": 0.015939976171725417,
+          "finite": true
+        },
+        "candidate_bf16_logits_vs_eager": {
+          "exact": true,
+          "different": 0,
+          "elements": 4194304,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "finite": true
+        }
+      },
+      "sampled_fp64_dots": {
+        "original_fp32": {
+          "exact": false,
+          "different": 512,
+          "elements": 512,
+          "max_abs": 3.8053840398788452e-06,
+          "rms": 7.336360286277518e-07,
+          "finite": true
+        },
+        "candidate_bf16": {
+          "exact": false,
+          "different": 512,
+          "elements": 512,
+          "max_abs": 0.08329708687961102,
+          "rms": 0.01567262664379454,
+          "finite": true
+        }
+      },
+      "original_dtype": "torch.float32",
+      "candidate_dtype": "torch.bfloat16",
+      "production_exact_gate_changed": false,
+      "exposure_can_change_graph": true
+    }
+  ],
+  "diagnostic_completed": true,
+  "conclusion": "Compiled original preserves FP32 head accumulator values; BF16-input candidate adds a rounding boundary. All six exposed and frozen CE comparisons isolate the difference to the logits. No stale-cache or CE arithmetic discrepancy observed.",
+  "exact_forward_compression_candidate_rejected": true,
+  "gradient_only_candidate_not_yet_gated": true
+}

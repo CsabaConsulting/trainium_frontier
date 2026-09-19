@@ -1,0 +1,42 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave83",
+    "expected_commit": "d5406c0da46844f9288af5cd2e52459449c9fd8f",
+    "label": "fs-w83-softcap-ce-head-rounding-diagnostic-r1",
+    "purpose": "Locate the failed exact compiled head/loss integration without loosening its gate. Expose logits, compare frozen-input CE and eager/compiled standalone heads, check fresh caches, sample independent FP64 dot products and preserve compiler-input MLIR.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "/home/ubuntu/trainium_freshstart_20260918_wave83/research/scratch/softcap_ce_head_rounding_diagnostic.py",
+      "--dump-dir",
+      "/home/ubuntu/trainium_freshstart_20260918_wave83/out/fs-w83-softcap-ce-head-rounding-diagnostic-r1"
+    ],
+    "fingerprint_paths": [
+      "train.py",
+      "research/scratch/softcap_ce_parallel_nki.py",
+      "research/scratch/softcap_ce_parallel_integration.py",
+      "research/scratch/softcap_ce_parallel_integration_check.py",
+      "research/scratch/softcap_ce_bf16_boundary_probe.py",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "research/scratch/softcap_ce_bf16_integration.py",
+      "research/scratch/softcap_ce_head_integration_check.py",
+      "research/scratch/softcap_ce_head_rounding_diagnostic.py"
+    ]
+  },
+  "requested_at": "2026-09-19T00:41:53.383963+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w83-softcap-ce-head-rounding-diagnostic-r1\", \"pid\": 1214937, \"commit\": \"d5406c0da46844f9288af5cd2e52459449c9fd8f\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave83/research/run-logs/fs-w83-softcap-ce-head-rounding-diagnostic-r1.log\", \"started_at\": \"2026-09-19T00:41:59.068497+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

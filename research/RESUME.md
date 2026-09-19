@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19, 00:41 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19, 00:47 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
 ## Current result and active work
@@ -28,15 +28,17 @@ FP8 token-row backward improves complete component time to 16.515157 ms from
 15.675626 ms, so this still loses by 5.36%. The wave82 paired trace finished
 clean and awaits preservation/ingestion. Full FP8 backward is unimplemented.
 
-**trn21 CLEAN after a failed wave82 head gate:** the BF16 CE component is exact
-on pre-rounded logits, but compiled Linear + loss differs at the first nonzero
-weight case. Eager execution is exact. Loss/input/master maximum differences
-are 0.000121117 / 0.00000762939 / 0.001953125. Do not launch either prepared
-wave82 phase request: integration must be understood first. The new
-`softcap_ce_head_rounding_diagnostic.py` compares exposed/standalone head logits,
-frozen-input CE, and CPU FP64 sample dots; it captures compiler-input MLIR.
-Compiler fusion changing the rounding boundary is a hypothesis, not yet a
-finding. Keep the exact gate unchanged. The local watcher follows wave82.
+**trn21 CLEAN after wave83 diagnostic:** all six width/scale cases show that
+compiled original logits preserve FP32 accumulator precision. The BF16-input
+candidate equals the original rounded to BF16 exactly. Exposing logits leaves
+both losses unchanged; CE on frozen logits reproduces each loss exactly. Thus
+the full BF16 boundary is not an exact optimization of this compiled head.
+Do not run the prepared wave82 phases. Original exact gate remains failed.
+Compiler-input MLIR is being preserved. The next candidate keeps FP32 logits
+and rounds only the backward output for the existing BF16 consumer boundary.
+`softcap_ce_head_integration_check.py --gradient-boundary-only --real-shape
+--benchmark` must pass exact loss/input/master gradients before any integration.
+The local trn21 watcher follows wave83.
 
 The installed CE/autograd gate passes36 eager/compiled exact loss/gradient
 checks. Fresh same-source whole-step control519.3954189890064ms versus candidate
@@ -48,8 +50,8 @@ The phase clips before averaging; quality clips after. Protected trainer unchang
 
 **trn22 CLEAN after wave82 profile:** all five paired arms completed, including
 old and token-row backward with the same fixed-input FP8 forward. Ten compiled
-and nine eager NEFFs are exported. Preserve the raw directory, ingest locally,
-and check whether the earlier 8,704 compiler transpose instructions and spill
+and nine eager NEFFs are exported. Raw profile (429,091,735 bytes) is local/hash-verified; local ingestion is
+running. Check whether the earlier 8,704 compiler transpose instructions and spill
 traffic disappear. Watcher follows wave82. This trace is attribution, not a
 replacement for wave81's unprofiled component benchmark.
 
