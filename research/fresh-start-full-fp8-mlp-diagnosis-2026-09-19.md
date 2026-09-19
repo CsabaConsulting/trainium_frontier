@@ -1,4 +1,59 @@
-# Complete FP8 MLP: correctness passes, preparation still costs too much
+# Complete FP8 MLP: component gains and full-model validation
+
+Updated 2026-09-19 07:18 UTC. The original profile below identified online
+weight preparation as a concrete cost. Both proposed preparation changes have
+now been implemented and gated; the original profile is retained as evidence.
+
+- Source132 compiled the existing preparation: 1.006624 -> 0.549580ms. At the
+  original 16,384-token/two-microbatch geometry, complete FP8 remained 0.485%
+  slower than compiled native. Source135 independently gated the current
+  32,768-token/one-microbatch shape and measured a 1.764% component gain.
+- Source137's fused dual-orientation producer quantizes each weight once and
+  avoids the intermediate BF16 HBM transpose. Resident preparation measured
+  0.294823ms; complete MLP 14.886892ms versus native 15.348333ms (3.006% gain).
+  The streamed variant also passed and gained 2.920%. All preparation is timed;
+  the CPU metadata/bytes references and full derivative gates remain intact.
+- Source139 passed the real-Linear integration at widths 256 and 1024, including
+  FP32 masters, four updates, two microbatches, cache lifecycle, short-row
+  padding, row independence and original native evaluation/checkpoint restore.
+  Its per-Linear preparation dispatch differs from the paired component probe.
+- Source140 now compares the complete model at T1024/pack32/GA1 on trn21.
+  Native control and candidate use the same source, data, optimizer ownership
+  and clean host protocol. The phase timer clips before reduction in both arms;
+  the production quality loop clips after reduction. A component gain is not
+  yet a whole-model gain or a BPB result.
+
+Evidence: run-logs/fs-w132-fp8-compiled-cache-component-r1.log,
+run-logs/fs-w135-fp8-compiled-cache-pack32-component-r1.log,
+run-logs/fs-w137-fp8-dual-weight-cache-resident-r1.analysis.json,
+run-logs/fs-w137-fp8-dual-weight-cache-streamed-r1.analysis.json, and
+run-logs/fs-w139-fp8-full-mlp-real-linear-gate-r1.analysis.json.
+
+## Next bounded investigation: retained BF16 outputs
+
+The source140 full-VJP adapter saves ReLU, raw FP8 activation bytes and metadata.
+It discards the forward kernel's BF16 QDQ-X and QDQ-hidden outputs. The NKI
+source still allocates and writes those outputs. At 32,768 tokens, width1024
+and hidden4096, those two arrays contain 320MiB per layer, or 1.875GiB across
+six layers per rank. These are source-level byte counts, not measured DMA
+traffic: compiler elimination must be checked before predicting a gain.
+
+The packed forward branch also uses BF16 up/down cache arguments only for
+shape/dtype checks; its values come from the packed bytes. The full backward
+uses both packed orientations. The dual producer still returns BF16 QDQ weight
+arrays to preserve the old ABI. That is another 16MiB per MLP, separate from
+the ordinary native weight cache used by evaluation.
+
+After the current full-model comparison, inspect the actual compiled caller
+before changing these paths. If the dead writes remain, introduce one explicit
+full-VJP-only output mode while preserving the existing reference path. Require
+exact logits, ReLU, saved bytes, metadata and all four products against the
+current gated implementation, then repeat the master/cache lifecycle gate.
+Charge all layouts and refresh costs in the full-model timing. This is an
+elimination of unused work; it does not require a different quantizer or a
+weaker error bound. Leave the frozen BF16 submission unchanged.
+
+## Original source124/source125 diagnosis
 
 The complete FP8 MLP passes all11 cases, including the actual16384x1024x4096
 shape, independent CPU scales/quantizers/pair arithmetic, exact compiled/staged
