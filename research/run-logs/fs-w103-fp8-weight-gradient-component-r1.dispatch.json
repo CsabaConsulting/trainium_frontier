@@ -1,0 +1,43 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave103",
+    "expected_commit": "d7b17a7736d9aeddcb4568c2e07006c0c31f0a25",
+    "label": "fs-w103-fp8-weight-gradient-component-r1",
+    "purpose": "After all10 source103 numerical gates pass clean, time current-gradient transfer/calibration,both operand byte preparations and FP32 long-token weight products against native BF16. Saved forward scales assumed; their extra forward stores,data gradients,activation derivative,master accumulation,optimizer and model costs absent. No full-FP8 or quality promotion.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave103"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/fp8_weight_gradient_probe.py",
+      "--real-shape",
+      "--benchmark",
+      "--steps",
+      "12"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/fp8_weight_gradient_nki.py",
+      "research/scratch/fp8_weight_gradient_probe.py",
+      "research/scratch/fp8_weight_cache_nki.py",
+      "research/scratch/fp8_mlp_island_probe.py",
+      "research/scratch/fresh_start_fp8_probe.py",
+      "research/scratch/fp8_packed_weight_cache_probe.py"
+    ]
+  },
+  "requested_at": "2026-09-19T02:57:08.329195+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w103-fp8-weight-gradient-component-r1\", \"pid\": 1275773, \"commit\": \"d7b17a7736d9aeddcb4568c2e07006c0c31f0a25\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave103/research/run-logs/fs-w103-fp8-weight-gradient-component-r1.log\", \"started_at\": \"2026-09-19T02:57:14.769316+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

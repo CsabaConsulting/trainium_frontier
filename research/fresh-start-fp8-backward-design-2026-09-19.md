@@ -214,3 +214,20 @@ byte preparations, reduction and FP32 stores. It assumes saved forward scales;
 extra forward metadata stores, activation derivative, shared data products,
 master accumulation/optimizer and whole-model costs are absent. Stage gates
 precede any timer; no full-FP8 or training quality result is claimed.
+
+
+Source103 all10 stage gates pass clean02:55:33. Ordinary real-shape gradients
+differ from the original BF16 surrogate by2.6504% RMS down and2.7312% up.
+The first charged layout loses: down6.431302 versus1.125327ms native;
+up7.069405 versus1.084679ms. Clean02:58:04. No autograd or quality promotion.
+These timers include current gradient calibration/transfer and both byte
+preparations, but not extra forward scale stores or other backward products.
+
+Code-level next candidate: compute a256x2048 output block using eight128x512
+PSUM tiles (smaller groups for smaller shapes), loading the whole256-token
+operand panels once per contraction block. This reduces repeated small DMA
+requests and improves contiguous free extents. The original128x512 layout
+reloads the same gradient panel for each output-column tile. That is an
+algorithmic traffic observation, not a profiled latency attribution. Require
+exact results versus the first FP8 product and the original independent pair
+bound. If successful, measure all calibration/packing costs again.

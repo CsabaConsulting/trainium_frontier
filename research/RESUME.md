@@ -116,7 +116,13 @@ fused spills, sampled SBUF0.507. Both raw and45,027,599B parquet are local and
 GitHub-digest-verified; all49 artifacts verified02:54:08. Source104 head layout
 options are prepared: in-place softcap/exp after logits save; then full16MiB
 BF16 weight cache. Gate separately; no forward/backward promotion.
-Source103 FP8 weight-gradient gate ACTIVE trn21 since02:54:28; watcher103: row-scale transfer,
+Source103 FP8 weight-gradient gate PASS10cases, clean02:55:33. Component
+down6.431302/native1.125327ms; up7.069405/native1.084679ms, clean02:58:04.
+Ordinary real gradients differ2.65/2.73% RMS from BF16 surrogate. No promotion.
+Grouped operand/PSUM layout prepared for another exact stage gate.
+Source104 in-place head gates14fixtures/actual rows, but loses16.606820 versus
+12.764331ms native two forwards, clean03:01:12. Cached-weight variant now
+launched trn21, watcher104. Source103 implementation contract: row-scale transfer,
 current global calibration, both byte preparations and long-token FP32 outputs.
 Eight small/two real cases; no backward-autograd integration. Gate before timing.
 
