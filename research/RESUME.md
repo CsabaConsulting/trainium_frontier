@@ -110,8 +110,13 @@ trn21 clean, watcher101.
 
 Source102 head profile clean02:47:40 and CPU ingestion clean02:49:12. Raw12files/
 87,043,943B is local/hash-verified; parquet26tables retrieving. Profile-script
-actual-shape native/candidate logits/loss/lse all exactly match. Local analysis
-is next. Source103 FP8 weight-gradient stages/probe prepared: row-scale transfer,
+actual-shape native/candidate logits/loss/lse all exactly match. Local analysis maps all3 dispatches: native6.444392ms, transpose0.118419ms,
+fused8.322044ms; weight-load GpSIMD source activity5.388/5.381ms. No populated
+fused spills, sampled SBUF0.507. Both raw and45,027,599B parquet are local and
+GitHub-digest-verified; all49 artifacts verified02:54:08. Source104 head layout
+options are prepared: in-place softcap/exp after logits save; then full16MiB
+BF16 weight cache. Gate separately; no forward/backward promotion.
+Source103 FP8 weight-gradient gate ACTIVE trn21 since02:54:28; watcher103: row-scale transfer,
 current global calibration, both byte preparations and long-token FP32 outputs.
 Eight small/two real cases; no backward-autograd integration. Gate before timing.
 

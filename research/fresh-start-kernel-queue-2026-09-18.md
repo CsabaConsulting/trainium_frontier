@@ -27,8 +27,11 @@ all10 diagnostic cases match. Retain the failed wave99 sign assertion. Source101
 requires exact original signs/values, retains negativity diagnostics, and changes
 no math or numerical bounds. All14 fixtures and actual-row gates now pass.
 Forward-only native12.819835ms versus fused16.254153ms including transpose and
-saves (26.79% slower). Profile native/transpose/fused phases before another
-layout; no backward or quality promotion. trn21 clean, watcher101.
+saves (26.79% slower). Profile maps all3 dispatches: native6.444ms, transpose0.118ms, fused8.322ms.
+Repeated small weight loads show5.38ms/core GpSIMD source activity; fused has
+no populated spills. Source104 will gate in-place logits reuse and a full
+16MiB BF16 weight cache separately. No backward or quality promotion.
+trn21 currently gates source103 FP8 weight products; watcher103.
 
 Measured FP8 progress and the BF16 layout reversal are summarized at the top of
 `fresh-start-results-2026-09-18.md`. No FP8 quality gain is established.
