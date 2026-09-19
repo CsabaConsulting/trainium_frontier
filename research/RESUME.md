@@ -1,7 +1,30 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 04:20 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 04:34 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
+
+## Complete FP8 component and split-head controls — 2026-09-19 04:34 UTC
+
+- Source123 separate native/cached head gate COMPLETE/clean04:21:33:196 exact
+  checks across D256/D1024 and two master updates. This proves equivalence only
+  within the same separate region, not to the original monolithic model.
+- trn21 original native phase COMPLETE/clean04:30:56, all4 postchecks pass:
+  mean501.265347ms for30 timed updates. Split-native control ACTIVE since04:32:12,
+  PID1326730, source123. Only after its clean/pass run split-cached request.
+  Three arms separate boundary overhead from the kernel's contribution.
+- trn22 source122 forward saved-byte probe COMPLETE/clean04:19:53, all10cases
+  pass. Complete online cache preparation plus two producers:6.898546ms with
+  repacking versus5.918992ms directly saving bytes (14.20% reduction). Ordinary
+  forward5.793787ms does not supply the required backward inputs. No BPB claim.
+- Source124 prototype composes FP8 forward and all four backward products with
+  these saved bytes. Exact compiled/staged gradients plus independent CPU
+  quantizers/pair bounds, two different microbatches and cache refresh precede
+  timing. All current casts/calibration/transposes/packing and accumulation are
+  charged. The VJP is explicitly new; no original-BF16 equivalence or quality.
+  Prototype is prepared locally; inspect its eventual dispatch/postflight.
+- Source123/snapshot were explicitly pushed and remote-ref verified04:24:18.
+  All52 heavy assets were GitHub-digest verified04:10:10 with zero errors.
+  Both host watchers continue123/122. Canonical best remains0.9928513116311253.
 
 ## Separate precision variant — 2026-09-19 04:20 UTC
 
