@@ -414,3 +414,61 @@ before measurement; paired exactness is reported separately, not fitted.
 The installed gradient-only loss adapter also passes its 32 exact head cases.
 A fresh full-step control completed clean, and the paired candidate is active.
 No step-speed or quality conclusion is available until that comparison finishes.
+
+## 2026-09-19 01:12 UTC: full-step CE decision and packed FP8 attribution
+
+Wave85 head-gradient-only CE keeps original FP32 logits and passed all32 exact
+head gates. Its same-source four-rank phase finished clean: median complete step
+497.864910ms versus500.517682ms, a0.5300% improvement. All four finite/causality/
+batch/repetition postchecks pass and last loss is identical5.0649232864. This
+misses the predeclared3% advancement gate; park for a later compatible combination,
+with no dedicated quality run and no complete parameter-equality claim.
+
+Wave86 native BF16 token-row component gate is active on trn22, source03a9d902.
+On trn21, add a trace of the already-gated packed FP8 consumer/cache refresh.
+This is attribution, not a replacement for the unprofiled wave85 timing. The
+next model wrapper must preserve FP32 master identities, charge all cache work,
+pass updated-cache/accumulation/restore tests, and check FP8 training row
+independence even though checkpoint evaluation intentionally uses native BF16.
+
+Source03a9d902 and recoveryfbd7f48a were verified on GitHub at01:10:40 UTC.
+All41 inventoried heavy artifacts verified by01:05:25, with no errors.
+
+## 2026-09-19 01:15 UTC: BF16 layout reversal and FP8 model-integration contract
+
+Wave86 native BF16 gate passes five small/real cases, independent FP64 bounds
+and exact master accumulation. Component HxT view15.605782ms, deployed contiguous
+HxT15.618884ms, token-row save/backward17.434858ms (11.6268% slower). Thus the
+layout that helped FP8 is a loss for BF16 at identical geometry. Keep the
+deployed BF16 control; do not use this BF16 loss to veto the FP8 candidate.
+
+Wave87 packed FP8 six-arm trace is active on trn21, sourcee1173d13. trn22 is clean
+and ready for wave88 integration. New fp8_mlp_integration keeps native FP32
+parameters/checkpoints, uses explicitly quantized training with native BF16
+evaluation, and prepares packed/QDQ caches in each ordinary timed refresh.
+Initial uncached calls also charge preparation. All short training shapes
+zero-pad *inside the per-token MLP* to a multiple of512; there is no token-count
+fallback to a different training algorithm. No attention sequence is extended.
+
+Before phase timing, require actual Linear master/cache accumulation and refresh
+against the prior FP8 algorithm with independent CPU-prepared cache values,
+FP8 training future/batch/repeat/padding independence, and exact native checkpoint
+restore. The preexisting wave85 stages remain the numerical authority. No full
+FP8 backward, complete-step gain, or quality claim is established yet.
+
+## 2026-09-19 01:19 UTC: integration harness limit, retained failure
+
+Wave88 passes every D256 integration gate and D1024 cached/uncached forward,
+input/master gradients, accumulated updates and fresh/unchanged cache checks.
+It then hits Dynamo's default eight-specialization limit at the first D1024
+no-grad prediction call: both widths share Probe.forward's code object, and
+each deliberately exercises multiple shapes/cache states. Postflight is clean.
+The gate remains incomplete and cannot authorize FP8 phase timing.
+
+Wave89 resets only process-local inactive Dynamo guards *between* independent
+width tests. Fullgraph=True, the default specialization limit, all numerical
+bounds and every prediction/restore check remain. No shared device cache purge.
+The same-source native BF16 control can run independently on trn21 while this
+rerun runs on trn22. FP8 phase remains dependent on a complete passing gate.
+Wave87 raw trace32files/499268795B is local and every remote/local SHA matches;
+local parquet ingestion is underway, with bounded memory/time.

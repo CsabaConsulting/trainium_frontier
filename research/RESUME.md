@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19, 01:07 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 01:19 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
 ## Current result and active work
@@ -23,24 +23,45 @@ CE alone. The previous larger results0.9973302214 (T2048/pack8/ownership) and
 0.9974687137 (T1024/pack16/original fused AdamW) remain reproducible checkpoints.
 No seed sweep or new function approximation is in the winning run.
 
-FP8 token-row backward improves complete component time to 16.515157 ms from
-17.920212 ms with the same fixed-input FP8 forward (7.84%). Native BF16 is
-15.675626 ms, so this still loses by 5.36%. The wave82 paired trace finished
-clean and awaits preservation/ingestion. Full FP8 backward is unimplemented.
+Packed FP8 forward/BF16 backward now takes15.957811ms per complete component
+(cache calibration/packing plus two FW/BW microbatches), versus prior FP8
+16.442287ms and native BF1615.625856ms. All independent forward/backward and
+FP32 accumulation gates pass. It still loses2.1244% in isolation; a bounded
+whole-model allocation probe is justified after wrapper/cache/prediction gates.
+Full FP8 backward is unimplemented.
 
-**trn21 ACTIVE wave85 gradient-only phase candidate:** installed public loss
-adapter passed all 32 exact head checks. Fresh same-source control completed
-clean (summary beside its log); candidate has been dispatched. Compare the
-median complete step and all four postchecks after it finishes. Keep the 3%
-whole-step advancement gate. Original failed forward-boundary requests remain
-blocked. The local watcher follows wave85.
+**trn21 CLEAN wave87:** packed FP8 six-arm trace finished01:15:14. All32files /
+499268795B are local/hash-verified. Local parquet ingestion is active under
+fs-w87-fp8-packed-weights-local-ingest-r1; trace is attribution only.
+Wave89 same-source native BF16 full-step control is next.
+
+**trn22 CLEAN after failed wave88 harness:** D256 all gates pass; D1024 all
+cache/master update checks pass, then shared Probe.forward exceeds Dynamo's
+default eight-specialization limit at no-grad prediction. This is incomplete,
+not a passing integration gate. Wave89 resets process-local inactive Dynamo
+guards between independent widths, preserving all checks/default limits and
+fullgraph=True. No device cache purge. FP8 phase remains blocked until pass.
+
+Wave85 exact head-gradient-only CE complete step497.864910ms versus500.517682ms
+control (0.5300% improvement), all four postchecks pass, last loss matches. Below
+3% advancement gate: no quality run. Original failed full BF16 boundary remains
+blocked.
+
+Wave86 native BF16 token-row gate passes all five cases and FP32 accumulation,
+but token rows17.434858ms lose11.6268% versus deployed contiguous HxT15.618884ms
+(view15.605782ms). Keep original BF16 control. The same layout direction helped
+FP8; this BF16 result is not an FP8 veto.
+
+FP8 wrapper explicitly uses quantized training and original BF16 evaluation.
+All calibration and packing are charged in ordinary refresh; missing initial
+caches are charged in forward. Short calls pad inside MLP to512 multiples,
+preserving per-token independence. No quality-trainer change yet.
 
 Wave83's six diagnostic cases establish the failed forward-boundary cause:
 compiled original head logits retain FP32 accumulator precision. The BF16-input
 candidate adds rounding. Exposing logits leaves both losses unchanged, and
 frozen-input CE reproduces each result exactly. MLIR and diagnostic output are
-local/hash-verified; the exact gate remains failed. Watcher currently follows
-wave84 on both hosts.
+local/hash-verified; the exact gate remains failed. Trace inputs and all41 inventoried heavy artifacts are offsite verified.
 
 The installed CE/autograd gate passes36 eager/compiled exact loss/gradient
 checks. Fresh same-source whole-step control519.3954189890064ms versus candidate
@@ -50,7 +71,7 @@ loss5.064923286437988 matches exactly. No complete parameter-equality claim.
 Combined gain versus earlier owned T2048/pack8 control528.3530275ms is5.2958%.
 The phase clips before averaging; quality clips after. Protected trainer unchanged.
 
-**trn22 CLEAN after wave85 packed MLP:** all ten forward cases and eight
+**Completed wave85 packed MLP:** all ten forward cases and eight
 training cases pass, with exact packed-versus-old saves/gradients, independent
 FP64 bounds and FP32 master accumulation. Packed complete update 15.957811 ms,
 previous token-row FP8 16.442287 ms, native BF16 15.625856 ms. Packing improves
@@ -165,15 +186,15 @@ checkpoints, then commit/push. No automatic host-source merge.
 Local Devuan/SystemV, usercsaba cron; no root/systemd:
 - Every10minutes: source/recovery backup with alternate Git index and atomic
   fast-forward pushes. Skips merge/rebase/cherry-pick/index locks; no pull,
-  force push, merge or active HEAD/index mutation. Source0eae485 and recovery
-  259e0491cfeb1f392bd19d713b29c0a7f315d42b were verified00:00:42. Check newer
+  force push, merge or active HEAD/index mutation. Source03a9d902e10212e671e4918a261d1b71cf4e87e1 and recovery
+  fbd7f48a0f1eb7f573abc72e1ecc629c46b40de3 were verified01:10:40. Check newer
   exact refs in out/fresh-start-backup/{latest,last-success}.json.
 - Minutes5/35: bounded digest-verified heavy-artifact upload to draft release
-  research-backup-20260918. The00:05 backup planned35 artifacts including the new FP8 raw trace/parquet;
-  inspect its completion. The new wave70 checkpoint arrived after that inventory. State is
+  research-backup-20260918. The01:05 backup verified all41 artifacts, including wave70 checkpoint and
+  wave82 raw/parquet plus wave83 compiler inputs, without errors. State is
   out/fresh-start-artifact-backup/latest.json; receipts under research/run-logs.
   Newly produced remote checkpoints still need retrieval to checkpoints/ first.
-- Local log watchers currently follow trn21/wave80 and trn22/wave81,90rounds at
+- Local log watchers currently follow trn21/wave87 and trn22/wave86,90rounds at
  45seconds. Repoint when the active remote worktree changes. Only stop exact
   owned watcher PID/UID/cwd/argv/startticks; remote training jobs are separate.
 

@@ -32,8 +32,11 @@ def main():
                         help='Also attribute the wave77-gated token-row layout')
     parser.add_argument('--rms-fixed-input', action='store_true')
     parser.add_argument('--token-row-backward', action='store_true')
+    parser.add_argument('--packed-weights', action='store_true',
+                        help='Attribute wave85-gated online weight packing and its consumer')
     args = parser.parse_args()
     assert not (args.rms_fixed_input or args.token_row_backward) or args.token_rows
+    assert not args.packed_weights or (args.rms_fixed_input and args.token_row_backward)
     torch.set_num_threads(4)
     trace = args.trace_dir.resolve()
     trace.mkdir(parents=True, exist_ok=False)
@@ -79,6 +82,17 @@ def main():
             arms['nki_fp8_token_row_backward'] = (
                 make_autograd(token_rows_forward, relu_token_major=True,
                               token_row_backward=True), True)
+        if args.packed_weights:
+            from fp8_packed_weight_cache_nki import build_kernel as build_packer
+            from fp8_packed_weight_cache_probe import selected_lanes
+            prepare = wrap_nki(build_packer())
+
+            def packed_forward(xx, uu, dd, um, dm, pu, pd):
+                return token_rows[2](xx, uu, dd, um, dm, 2, 128, False, *fixed_args, pu, pd)
+
+            arms['nki_fp8_packed_weights'] = (
+                make_autograd(packed_forward, relu_token_major=True,
+                              token_row_backward=True, packed_weights=True), True)
     arms = {name: (torch.compile(function, backend='neuron', fullgraph=True, dynamic=False), q)
             for name, (function, q) in arms.items()}
     # Native/BF16 arms ignore these arguments, as in the gated timing probe.
@@ -91,14 +105,21 @@ def main():
         with record_function(name + '/master_cast_and_cache_refresh'):
             ub, db = leaves[1].detach().bfloat16(), leaves[2].detach().bfloat16()
             um, dm = dummy_meta, dummy_meta
+            extra = ()
             if quantized:
                 um, dm = calibrate[1](ub), calibrate[1](db)
-                ub, db = quantize[2](ub, um, 2), quantize[2](db, dm, 2)
+                if name == 'nki_fp8_packed_weights':
+                    ul, dl = selected_lanes(shape[2]), selected_lanes(shape[1])
+                    ub, pu = prepare[ul](ub, um, ul)
+                    db, pd = prepare[dl](db, dm, dl)
+                    extra = (pu, pd)
+                else:
+                    ub, db = quantize[2](ub, um, 2), quantize[2](db, dm, 2)
             if instrument:
                 torch.neuron.synchronize()
         for index in range(2):
             with record_function(name + f'/microbatch{index}/forward'):
-                output = function(*leaves, ub, db, um, dm)
+                output = function(*leaves, ub, db, um, dm, *extra)
                 if instrument:
                     torch.neuron.synchronize()
             with record_function(name + f'/microbatch{index}/backward_and_accumulation'):
@@ -149,7 +170,10 @@ def main():
         compiled_neffs=len(entries), eager_neffs=len(eager['files']),
         phase_boundary_synchronization=True, profiled_latency_is_speed_evidence=False,
         fixed_rms_input_scale=args.rms_fixed_input, token_row_backward=args.token_row_backward,
-        numerical_authority=('fs-w81-fp8-token-row-backward-training-component-gate-r1'
+        packed_weights=args.packed_weights,
+        numerical_authority=('fs-w85-fp8-packed-mlp-training-component-gate-r1'
+                             if args.packed_weights else
+                             'fs-w81-fp8-token-row-backward-training-component-gate-r1'
                              if args.token_row_backward else
                              'fs-w79-fp8-rms-fixed-input-training-component-gate-r1'
                              if args.rms_fixed_input else
