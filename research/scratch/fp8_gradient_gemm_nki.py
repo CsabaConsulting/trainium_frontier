@@ -14,8 +14,7 @@ def build_kernel():
     import nki.isa as nisa
 
     def kernel_assert(condition, message):
-        if not condition:
-            raise ValueError(message)
+        assert condition, f'[NCC_INKI016] Kernel validation exception: {message}'
 
     @nki.jit
     def gradient_gemm(gradient, packed_weight, weight_metadata,

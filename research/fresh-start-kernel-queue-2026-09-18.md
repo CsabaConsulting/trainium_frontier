@@ -491,3 +491,11 @@ Timing charges the EXTRA transposed-weight packing per update plus two dots;
 existing forward-prepared weight metadata/cache is shared, not magically free
 new work. No derivative fusion, weight-gradient products or autograd install
 yet; this is one backward stage, not full FP8 training.
+
+## 2026-09-19 01:23 UTC: gradient probe frontend correction
+
+Wave90 stopped before gradient arithmetic: the new validation helper contained
+a Python raise, which this NKI frontend does not support. The compiler points
+directly to that statement and recommends assert. Use the installed skill's
+assertion-helper template in wave91; retain the same shapes, math and checks.
+The failed label/log is preserved. This is not evidence against FP8 gradients.
