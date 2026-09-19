@@ -1,6 +1,6 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19 08:20 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19 08:40 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
@@ -9,18 +9,25 @@ Every device request retains immutable source, cleanup and numerical gates.
 Source137's exact dual producer improved the complete isolated FP8 MLP by
 3.006%. Source139 passed real-Linear/master/cache lifecycle gates. Source140's
 complete model nevertheless takes 567.095 ms/step versus 488.702 ms for native
-BF16. All four numerical postchecks pass; the final disk-reserve failure is
-retained and needs maintenance before another job. No FP8 speed/BPB promotion.
+BF16. All four numerical postchecks pass. The subsequent paired caller captures
+also pass, reproduce the same losses/timings, and are being preserved/decoded.
+A native capture overflowed its notification queue with optional DGE notifications;
+the otherwise unchanged flag-removed repeat completes. trn21's verified
+archive/retirement restored headroom; trn22's
+disk-only postflight failure is retained while the same staged recovery runs.
+No FP8 speed/BPB promotion.
 
-1. Capture the source140 native and full-FP8 caller at pack32/GA1. Attribute the
+1. Decode the completed source140 native and full-FP8 callers at pack32/GA1. Attribute the
    extra 74.667 ms in forward/backward using matched binary identities; inspect
    unused BF16 outputs and model-wide precision/layout/allocation effects.
 2. If unused writes survive, implement a full-VJP-only output mode. Preserve
    exact outputs, saved bytes/scales and all four derivatives; rerun cache and
    master lifecycle gates before measuring the complete step.
-3. Correct the native width guard and measure new optimizer groups before a
-   bounded capacity comparison with the current kernel stack. See the capacity
-   revisit note; old generic ownership costs are not trustworthy at new widths.
+3. Native width guard is corrected; actual pack32/T1024 MLP gates now pass for
+   both1024 and1152 channels with clean postflight. Measure new optimizer groups
+   before a bounded capacity comparison with the current kernel stack. The new
+   cost probe uses the recorded real model inventory. See the capacity revisit
+   note; old generic ownership costs are not trustworthy at new widths.
 4. Keep reciprocal optimizer composition, reduced calibration work and compact
    function approximations available for measured bottlenecks. The standalone
    polynomial/full-value-table losses remain closed for their tested layouts.
@@ -40,8 +47,8 @@ failure and clean recovery are preserved; the larger evaluation is clean.
 
 | Idea | Measured state | Next action |
 | --- | --- | --- |
-| Compile unchanged online FP8 cache preparation | Source135 pack32 complete MLP15.1108ms vs compiled native15.3822ms:1.76% faster; independent32768-token product/gradient gates pass | Prepared fused calibration plus both packed orientations; gate exact cache bytes/complete gradients, then time against previous compiled producer |
-| FP8-specific packing | One layout improves FP8 component about2.95% while worsening BF16 by11.63%; FP8 whole model still17.74% slower | Continue FP8-specific development; BF16 ranking is not a veto |
+| Compile unchanged online FP8 cache preparation | Source137 resident dual producer0.294823ms; complete MLP14.886892vs15.348333ms native,3.006% component gain; real-Linear gates pass | Full model is16.04% slower; inspect actual caller before further promotion |
+| FP8-specific packing | One layout improves FP8 component about2.95% while worsening BF16 by11.63%; former FP8-forward caller17.74% slower, current full-FP8 caller16.04% slower | Continue FP8-specific development; BF16 ranking is not a veto |
 | FP8 grouped weight-gradient products | Balanced banks + fused abs + two-core preparation pass10cases: down1.548/up1.695ms vs native1.095/1.075ms | Complete full FP8 MLP passes11cases but15.938ms vs15.486ms BF16; profile full derivative costs |
 | Reuse forward-produced FP8 bytes | All10cases pass; online cache work +2forward producers6.899→5.919ms (14.20%); preserves existing saves | Composed in complete FP8 MLP; saves do not yet make it faster than BF16 |
 | Fused per-row FP8 data-backward calibration |11cases pass;5.655ms vs original6.201ms and native5.510ms |8.81% same-algorithm gain; compose shared producers and weight gradients before full-model use |
@@ -68,8 +75,9 @@ CPU metadata/QDQ/layout references and exact complete gradients. The prior
 compiled producer and compiled native control remain in the comparison. Resident
 preparation0.294823ms vs previous compiled0.541435ms; complete FP8 MLP14.886892ms
 vs native15.348333ms (~3.01% component gain). Streaming14.906892ms also passes.
-Next: gate real Linear masters/cache refresh/eval restoration with the full FP8
-VJP, then measure the complete four-rank model. No whole-model/BPB promotion.
+Source139 subsequently passed real Linear masters/cache refresh/eval restoration
+with the full FP8 VJP. Source140's complete four-rank model loses16.04% as recorded
+above. No whole-model/BPB promotion; caller attribution remains the next decision.
 
 The following ideas from the retro-computing search have already reached device
 experiments. This distinguishes a negative measured layout from an untested idea.
