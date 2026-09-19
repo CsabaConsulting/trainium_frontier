@@ -1,0 +1,36 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave144",
+    "expected_commit": "b291b930ca07da483bde0746d0ddce2d1627048c",
+    "label": "fs-w144-width1152-optimizer-group-costs-r1",
+    "purpose": "Measure actual width1152 optimizer groups after the pack32 MLP width gate. Derive inventory from the exact source140 native configuration, override only width, then measure each full group and a representative per-owner Muon count in separate processes. Native dispatch/stack/copy/update costs include five warmups then five blocks of ten updates. Synthetic fixed gradients, no model training/quality claim. This prepares measured costs only; planner unchanged and exact ownership/state/all-gather gate remains mandatory. Dispatch after caller analysis and raw transfers on this host complete. Input log is the byte-verified committed source144 mirror of the trn22 capture, so the trn21 job does not assume a cross-host source140 path exists.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave144"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1800s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "-c",
+      "import json,subprocess,sys,pathlib,math,hashlib\nassert hashlib.sha256(pathlib.Path('/home/ubuntu/trainium_freshstart_20260918_wave144/research/run-logs/fs-w140-native-pack32-micro-device-profile-r2.log').read_bytes()).hexdigest()=='8efb3566ac976a7aff6b958186aca004a5f03be661c12eaae0c578bc877e3235'\npost=json.loads(pathlib.Path('/home/ubuntu/trainium_freshstart_20260918_wave143/research/run-logs/fs-w143-native-mlp-widths1024-1152-integration-r1.postflight.json').read_text())\nassert post['host_clean'] and post['command_returncode']==0\nbase=[sys.executable,'-u','research/scratch/optimizer_group_cost_probe.py','--config-log','/home/ubuntu/trainium_freshstart_20260918_wave144/research/run-logs/fs-w140-native-pack32-micro-device-profile-r2.log','--width','1152']\ninventory=subprocess.run(base+['--inventory-only'],capture_output=True,text=True,check=True)\nprint(inventory.stdout,flush=True)\nrecords=[json.loads(line.split(' ',1)[1]) for line in inventory.stdout.splitlines() if line.startswith('OPTIMIZER_ACTUAL_INVENTORY ')]\nassert len(records)==1\ncases=[]\nfor group in records[0]['groups']:\n if not group['count']:continue\n counts=[group['count']]\n if group['kind']=='muon':counts.append(min(group['count'],max(2,math.ceil(group['count']/4))))\n for count in sorted(set(counts)):\n  cases.append(dict(group_index=group['index'],kind=group['kind'],count=count))\nprint('COST_CASES '+json.dumps(cases),flush=True)\nassert 4<=len(cases)<=18\nfor case in cases:\n print('COST_CASE_START '+json.dumps(case),flush=True)\n subprocess.run(base+['--group-index',str(case['group_index']),'--count',str(case['count'])],check=True)\nprint('COST_GRID_COMPLETE '+json.dumps(dict(width=1152,cases=len(cases),ownership_plan_unchanged=True,exact_ownership_gate_pending=True)),flush=True)\n"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/optimizer_group_cost_probe.py",
+      "research/run-logs/fs-w140-native-pack32-micro-device-profile-r2.log"
+    ]
+  },
+  "requested_at": "2026-09-19T08:58:29.821963+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w144-width1152-optimizer-group-costs-r1\", \"pid\": 1417752, \"commit\": \"b291b930ca07da483bde0746d0ddce2d1627048c\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave144/research/run-logs/fs-w144-width1152-optimizer-group-costs-r1.log\", \"started_at\": \"2026-09-19T08:58:35.465128+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

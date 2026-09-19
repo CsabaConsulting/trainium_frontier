@@ -1,7 +1,47 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 08:36 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 08:53 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
+
+## FP8 caller analysis active; native decode and compact preparation — 08:53 UTC
+
+- trn21 source140 full-FP8 ingest COMPLETE/clean08:51:43.042083. Raw capture
+  (70files/4,941,989,339bytes) is local and GitHub asset-digest verified. Ingest
+  retained source hashes. Its parquet directory is now copying locally.
+- trn21 source144 `fs-w144-full-fp8-pack32-caller-analysis-r1` is dispatching/running;
+  verify its exact process/postflight before another job. It uses the exact
+  source140 trace and parquet, checking every binary dispatch and startup barrier
+  before attributing source families, engine unions, precision and spill counts.
+  The added families include all current FP8 backward/preparation kernels.
+- trn22 source140 `fs-w140-native-pack32-caller-remote-ingest-r1` ACTIVE,
+  guard1745363, started08:45:05.285630, clean preflight. Its raw profile is
+  copying locally with the explicit clean maintenance receipt; the original
+  disk-only failed profile postflight remains intact. Native analysis request
+  `fs-w144-native-pack32-caller-analysis-r1.request.json` is ready AFTER clean
+  ingestion. Do not skip its runtime/NEFF identity checks.
+- trn22 maintenance `fs-maintenance-nki-scratch-trn22-20260919-r1` COMPLETE/clean
+  08:43:38.274715.12,549 files/25,775,762,804 original bytes were reverified
+  locally and in current GitHub assets before remote retirement. Free disk
+  7,152,185,344 -> 33,026,797,568bytes. Shared caches/newest profile/compile remain.
+- Width1024 and1152 pack32/T1024 native MLP integration BOTH PASS on source143,
+  clean08:35:45.433370. Source144 `b291b930ca07da483bde0746d0ddce2d1627048c`
+  is deployed on both hosts; its real-inventory optimizer cost probe and bounded
+  request `fs-w144-width1152-optimizer-group-costs-r1.request.json` are ready.
+  Launch on trn21 after caller analysis and profile transfers there finish.
+  No new optimizer costs or ownership plan have yet been validated.
+- Compact full-FP8 forward saves are prepared locally, default OFF. The new
+  five-output mode removes only discarded BF16 activation saves. Independent
+  four-product/byte gates and real-Linear gates are prepared, not run. Inspect
+  the source140 trace for retained writes before spending device time on it;
+  commit/deploy the new source before a gate. No FP8/BPB promotion.
+- Both ingests report incomplete DMA timing metadata. Do not report exact
+  bandwidth. Full-FP8 ingestion took about13minutes but completed within its
+ 1200s limit; do not terminate the still-progressing native ingest. The installed
+  Explorer also documents `--ignore-instruction-hierarchy` if future decoding
+  needs a bounded alternative. It is not enabled in these captures/ingests.
+- Watchers: trn21=144, trn22=140. Source144 and snapshot79592171 were pushed
+  and ref-verified08:43:13; newer prepared source/receipts need the next commit.
+  Frozen package/public best0.99285131 and cold replay0.99385567 are unchanged.
 
 ## Both caller captures complete; width gate and preservation — 08:36 UTC
 

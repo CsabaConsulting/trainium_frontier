@@ -1,0 +1,16 @@
+{
+  "label": "fs-w144-full-fp8-pack32-caller-analysis-r1",
+  "guard_pid": 1416751,
+  "child_pid": 1416752,
+  "child_session": 1416752,
+  "started_at": "2026-09-19T08:52:45.370539+00:00",
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "900s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "-c",
+    "import pathlib,subprocess,sys,json\nsource=pathlib.Path('/home/ubuntu/trainium_freshstart_20260918_wave140')\npost=json.loads((source/'research/run-logs/fs-w140-full-fp8-pack32-caller-remote-ingest-r1.postflight.json').read_text())\nassert post['command_returncode']==0 and post['host_clean']\nsubprocess.run([sys.executable,'-u','research/scratch/model_caller_profile_analysis.py','--trace',str(source/'out/fs-w140-full-fp8-pack32-micro-device-profile-r1/rank0'),'--parquet',str(source/'out/fs-w140-full-fp8-pack32-caller-remote-ingest-r1-parquet'),'--output','/home/ubuntu/trainium_freshstart_20260918_wave144/research/run-logs/fs-w144-full-fp8-pack32-caller-analysis-r1.json'],check=True)\n"
+  ]
+}

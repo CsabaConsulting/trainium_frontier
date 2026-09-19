@@ -1,6 +1,6 @@
 # Complete FP8 MLP: component gains and full-model validation
 
-Updated 2026-09-19 08:20 UTC. The original profile below identified online
+Updated 2026-09-19 08:53 UTC. The original profile below identified online
 weight preparation as a concrete cost. Both proposed preparation changes have
 now been implemented and gated; the original profile is retained as evidence.
 
@@ -38,8 +38,17 @@ Native and full-FP8 microstep profiles use the same source140, pack32 geometry,
 data, seed and 35 preceding updates. Different hosts are acceptable for source,
 engine and allocation attribution; the same-host unprofiled phase remains the
 speed comparison. The profile requests retain all four numerical postchecks,
-actual runtime binaries and pre/post cleanup. The next source change remains
-conditional on those traces, particularly the dead BF16 outputs below.
+actual runtime binaries and pre/post cleanup. Both captures have completed their
+four numerical checks. The full-FP8 trace is local/cloud verified (70files,
+4,941,989,339bytes); its CPU ingestion completed clean at08:51:43.042083 and
+source-family analysis is now running on immutable source144. The native trace's
+disk-only postflight failure is retained, with verified archive/retirement
+recovery restoring33.03GB free before ingestion. No bandwidth claim is valid
+from the captures' incomplete dynamic DMA timing metadata.
+
+An opt-in compact forward interface is now prepared locally while attribution
+runs. Its hardware validation and promotion remain conditional on the actual
+trace evidence. It is not enabled in an experiment or the frozen submission.
 
 The native source140 control-r1 passed all numerical gates but failed the final
 8GiB disk reserve. Its 489.273ms median remains a diagnostic. After verified
@@ -80,6 +89,22 @@ current gated implementation, then repeat the master/cache lifecycle gate.
 Charge all layouts and refresh costs in the full-model timing. This is an
 elimination of unused work; it does not require a different quantizer or a
 weaker error bound. Leave the frozen BF16 submission unchanged.
+
+The prepared `compact_full_vjp` kernel mode returns exactly five tensors:
+result, ReLU, input bytes, hidden bytes and hidden metadata. It omits only the
+two unused BF16 QDQ reconstructions/allocations/stores. The default seven-output
+path and diagnostic interfaces remain available; quantization, matmul tiling,
+cache preparation and backward products are unchanged. BF16 QDQ weight-cache
+outputs are deliberately a separate hypothesis.
+
+`fp8_compact_forward_saves_probe.py` compares every retained tensor and repeated
+call exactly, then substitutes the compact compiled autograd into the existing
+independent CPU quantizer/four-product gates. Ten small cases and optional
+32768-token real shape cover zeros, outliers, tiny gradients, norm extremes,
+changed masters, accumulation and refreshed caches. The real-Linear checker
+adds `--compact-forward-saves`; the phase timer adds `--fp8-mlp-compact-saves`
+only under the full FP8 mode. These are prepared validation paths, not passed
+hardware results. Source syntax is checked; no tolerances were changed.
 
 ## Original source124/source125 diagnosis
 
