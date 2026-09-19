@@ -115,7 +115,10 @@ def main():
             x.grad = x2.grad = None
             head.refresh_weight_cache(torch.bfloat16)
             first = function(x, target, "mean")
-            first.backward(retain_graph=True)
+            # Each microbatch has a fresh compiled graph. Match the actual
+            # trainer's ordinary backward; retain_graph is incompatible with
+            # AOT donated buffers and is unnecessary for the shared cast.
+            first.backward()
             second = function(x2, target, "mean")
             second.backward()
             accumulated.append((first.detach(), second.detach(), x.grad.clone(), x2.grad.clone(),

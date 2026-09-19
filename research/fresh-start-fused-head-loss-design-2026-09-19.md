@@ -240,3 +240,11 @@ arbitrary upstream gradients, mean/none reductions, two distinct accumulated
 microbatches and a deterministic master update followed by cache refresh.
 Independent FP64 projection and frozen-CE gates remain in the previous probe.
 No GPT installation, eager-logit equivalence, optimizer or quality claim.
+
+Source107 first autograd run passes all14small loss/input/master-gradient
+comparisons exactly. It then fails in the test harness: `retain_graph=True`
+conflicts with AOT donated buffers, before the two-microbatch assertion. The
+actual trainer and existing integration gates use ordinary backward on each
+fresh forward. Source109 removes that unnecessary retention flag; donation
+settings, kernel math, exact comparisons and cache reuse remain unchanged.
+Retain the failed source107 postflight; it is not a numerical failure.

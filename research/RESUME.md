@@ -361,3 +361,9 @@ Source106 grouped component COMPLETE clean03:10:51: down1.919147/native1.095259m
 up3.177483/native1.093426ms. Exact10case gate passes. No promotion.
 Source107 cached-head autograd gate launched trn21, watcher107.
 FP8 per-stage cost diagnostic is prepared locally; source108 pending.
+
+Source107 all14small head loss/dx/master gradients exactly match original.
+Accumulation harness fails on unsupported retain_graph=True with AOT donated
+buffers (clean). Correct harness to ordinary backward, matching trainer; no
+compiler setting or equality changes. Source109 rerun prepared; source108 FP8
+component stage-cost diagnostic now active trn21, watcher108.
