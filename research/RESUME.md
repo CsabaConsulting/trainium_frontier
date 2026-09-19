@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19, 00:54 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19, 01:07 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
 ## Current result and active work
@@ -28,13 +28,12 @@ FP8 token-row backward improves complete component time to 16.515157 ms from
 15.675626 ms, so this still loses by 5.36%. The wave82 paired trace finished
 clean and awaits preservation/ingestion. Full FP8 backward is unimplemented.
 
-**trn21 CLEAN after wave84:** the narrower head-gradient boundary passes all
-32 exact eager/compiled head checks plus the timing-input check. It keeps the
-original FP32 logits. Complete head/loss FW/BW is 14.992966 ms versus 18.200297 ms
-(17.62% gain). The public loss adapter is prepared and requires its installed
-head gate next, followed by fresh same-source phase control and candidate with
-`--bf16-ce-gradient-only`. Do not use the failed `--bf16-ce-boundary` forward
-candidate or either old wave82 phase request. No training promotion yet.
+**trn21 ACTIVE wave85 gradient-only phase candidate:** installed public loss
+adapter passed all 32 exact head checks. Fresh same-source control completed
+clean (summary beside its log); candidate has been dispatched. Compare the
+median complete step and all four postchecks after it finishes. Keep the 3%
+whole-step advancement gate. Original failed forward-boundary requests remain
+blocked. The local watcher follows wave85.
 
 Wave83's six diagnostic cases establish the failed forward-boundary cause:
 compiled original head logits retain FP32 accumulator precision. The BF16-input
@@ -51,12 +50,19 @@ loss5.064923286437988 matches exactly. No complete parameter-equality claim.
 Combined gain versus earlier owned T2048/pack8 control528.3530275ms is5.2958%.
 The phase clips before averaging; quality clips after. Protected trainer unchanged.
 
-**trn22 CLEAN after wave84:** packed legacy-FP8 raw bytes and the paired BF16
-backward cache pass all eight cases, including the declared finite BF16 alphabet
-and both real weight matrices. The next source has a packed-cache consumer and
-full MLP forward/backward probes. Run forward stages first, then the complete
-training-component gate/benchmark. Calibration, packing, both caches and two
-microbatches are charged. Full-model integration is still absent.
+**trn22 CLEAN after wave85 packed MLP:** all ten forward cases and eight
+training cases pass, with exact packed-versus-old saves/gradients, independent
+FP64 bounds and FP32 master accumulation. Packed complete update 15.957811 ms,
+previous token-row FP8 16.442287 ms, native BF16 15.625856 ms. Packing improves
+2.9465% versus the previous FP8 layout but remains 2.1244% slower than native.
+No quality promotion. This small isolated loss does justify a bounded whole-
+model allocation probe after wrapper/cache/prediction gates; it is not a veto.
+
+The next bounded control is `mlp_native_token_rows_probe.py`: test whether the
+same layout lesson also improves native BF16. It distinguishes the deployed
+contiguous HxT save from the isolated benchmark's HxT view and a natural TxH
+save/backward. Independent FP64 forward/backward bounds and exact master
+accumulation precede timing. No full-model native-layout change is installed yet.
 
 Wave82 profile raw 429,091,735 bytes and parquet 262,392,836 bytes are locally
 hash-verified. All 57 dispatches map to their binaries. Same fixed-input FP8

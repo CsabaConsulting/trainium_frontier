@@ -72,7 +72,7 @@ def calibration_gate(name, weight, calibrate, quantize):
     return metadata, actual
 
 
-def make_cached_autograd(forward):
+def make_cached_autograd(forward, token_rows=False):
     """BF16 backward with declared identity surrogate to FP32 master weights."""
     class CachedMLP(torch.autograd.Function):
         @staticmethod
@@ -85,12 +85,20 @@ def make_cached_autograd(forward):
         @staticmethod
         def backward(ctx, gradient):
             x, up, down, relu_t = ctx.saved_tensors
-            activated_t = relu_t.square()
-            dhidden_t = down.T @ gradient.T
-            dpre_t = dhidden_t * (relu_t * 2.0)
-            dx = dpre_t.T @ up
-            dup = (dpre_t @ x).to(ctx.up_dtype)
-            ddown = (gradient.T @ activated_t.T).to(ctx.down_dtype)
+            if token_rows:
+                activated = relu_t.square()
+                dhidden = gradient @ down
+                dpre = dhidden * (relu_t * 2.0)
+                dx = dpre @ up
+                dup = (dpre.T @ x).to(ctx.up_dtype)
+                ddown = (gradient.T @ activated).to(ctx.down_dtype)
+            else:
+                activated_t = relu_t.square()
+                dhidden_t = down.T @ gradient.T
+                dpre_t = dhidden_t * (relu_t * 2.0)
+                dx = dpre_t.T @ up
+                dup = (dpre_t @ x).to(ctx.up_dtype)
+                ddown = (gradient.T @ activated_t.T).to(ctx.down_dtype)
             return dx, dup, ddown, None, None, None, None
     return CachedMLP.apply
 

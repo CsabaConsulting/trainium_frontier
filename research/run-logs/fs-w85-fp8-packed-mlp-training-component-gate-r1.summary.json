@@ -1,0 +1,178 @@
+{
+  "source_commit": "4ef6530d8bc2ca5c98e4a26a7832f0df0d75e37f",
+  "command_returncode": 0,
+  "host_clean": true,
+  "completed_at": "2026-09-19T00:59:16.925148+00:00",
+  "label": "fs-w85-fp8-packed-mlp-training-component-gate-r1",
+  "records": {
+    "FP8_PACKED_MLP_TRAINING_GATE": [
+      {
+        "case": "random",
+        "shape": [
+          512,
+          256,
+          512
+        ],
+        "passed": true,
+        "packed_vs_previous_exact": true,
+        "independent_fp64_surrogate_bounds": true,
+        "fp32_master_accumulation_exact": true,
+        "detached_caches": true,
+        "full_fp8_backward": false,
+        "training_quality_not_established": true
+      },
+      {
+        "case": "zero_up",
+        "shape": [
+          512,
+          256,
+          512
+        ],
+        "passed": true,
+        "packed_vs_previous_exact": true,
+        "independent_fp64_surrogate_bounds": true,
+        "fp32_master_accumulation_exact": true,
+        "detached_caches": true,
+        "full_fp8_backward": false,
+        "training_quality_not_established": true
+      },
+      {
+        "case": "zero_down",
+        "shape": [
+          512,
+          256,
+          512
+        ],
+        "passed": true,
+        "packed_vs_previous_exact": true,
+        "independent_fp64_surrogate_bounds": true,
+        "fp32_master_accumulation_exact": true,
+        "detached_caches": true,
+        "full_fp8_backward": false,
+        "training_quality_not_established": true
+      },
+      {
+        "case": "outliers",
+        "shape": [
+          512,
+          256,
+          512
+        ],
+        "passed": true,
+        "packed_vs_previous_exact": true,
+        "independent_fp64_surrogate_bounds": true,
+        "fp32_master_accumulation_exact": true,
+        "detached_caches": true,
+        "full_fp8_backward": false,
+        "training_quality_not_established": true
+      },
+      {
+        "case": "changed_weights",
+        "shape": [
+          512,
+          256,
+          512
+        ],
+        "passed": true,
+        "packed_vs_previous_exact": true,
+        "independent_fp64_surrogate_bounds": true,
+        "fp32_master_accumulation_exact": true,
+        "detached_caches": true,
+        "full_fp8_backward": false,
+        "training_quality_not_established": true
+      },
+      {
+        "case": "norm_spikes",
+        "shape": [
+          512,
+          256,
+          512
+        ],
+        "passed": true,
+        "packed_vs_previous_exact": true,
+        "independent_fp64_surrogate_bounds": true,
+        "fp32_master_accumulation_exact": true,
+        "detached_caches": true,
+        "full_fp8_backward": false,
+        "training_quality_not_established": true
+      },
+      {
+        "case": "norm_tiny",
+        "shape": [
+          512,
+          256,
+          512
+        ],
+        "passed": true,
+        "packed_vs_previous_exact": true,
+        "independent_fp64_surrogate_bounds": true,
+        "fp32_master_accumulation_exact": true,
+        "detached_caches": true,
+        "full_fp8_backward": false,
+        "training_quality_not_established": true
+      },
+      {
+        "case": "real_random",
+        "shape": [
+          16384,
+          1024,
+          4096
+        ],
+        "passed": true,
+        "packed_vs_previous_exact": true,
+        "independent_fp64_surrogate_bounds": true,
+        "fp32_master_accumulation_exact": true,
+        "detached_caches": true,
+        "full_fp8_backward": false,
+        "training_quality_not_established": true
+      }
+    ],
+    "FP8_PACKED_MLP_TRAINING_BENCH": [
+      {
+        "shape": [
+          16384,
+          1024,
+          4096
+        ],
+        "samples_ms": {
+          "native_bf16_original": [
+            15.614377598588666,
+            15.652941601971785,
+            15.625856133798758
+          ],
+          "nki_fp8_token_row_backward": [
+            16.444944601971656,
+            16.436485934536904,
+            16.442287135093164
+          ],
+          "nki_fp8_packed_weights": [
+            15.956582664512098,
+            15.957810865559926,
+            15.96666380064562
+          ]
+        },
+        "median_ms": {
+          "native_bf16_original": 15.625856133798758,
+          "nki_fp8_token_row_backward": 16.442287135093164,
+          "nki_fp8_packed_weights": 15.957810865559926
+        },
+        "units": "ms per online cache refresh plus two FW/BW microbatches",
+        "microbatches_per_update": 2,
+        "online_calibration_master_casts_and_packing_charged": true,
+        "bf16_backward_cache_and_saved_values_charged": true,
+        "normalization_shared_caller_precondition_not_in_component": true,
+        "optimizer_collectives_and_surrounding_model_included": false,
+        "numerical_gates_precede_timing": true
+      }
+    ],
+    "FP8_PACKED_MLP_RESULT": [
+      {
+        "passed": true,
+        "stage": "training",
+        "real_shape": true,
+        "cases": 8,
+        "full_model_or_quality_promoted": false
+      }
+    ]
+  }
+}

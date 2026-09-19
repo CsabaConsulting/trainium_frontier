@@ -109,3 +109,28 @@ Whole-model allocation can change the ranking of isolated components. A
 numerically gated FP8 component that loses slightly may still justify a bounded
 caller-profile experiment, provided the isolated loss is recorded. A full
 training promotion still needs complete-step evidence and matched-budget BPB.
+
+## Additional algebraic candidate: move activation scales into the gradient
+
+A common activation scale is not the only way to handle a token contraction.
+For saved hidden values `H[t,h] = QH[t,h] / sH[t]`, the exact algebra is
+
+`dWdown[c,h] = sum_t (G[t,c] / sH[t]) * QH[t,h]`.
+
+Rescale the gradient rows by the already saved inverse hidden scales, then
+quantize that rescaled gradient with one scale (or one scale per output channel).
+Those new scales factor outside the contraction. This retains the original
+FP8 activation bytes and avoids a second activation quantization solely to make
+its scale constant. The earlier statement about per-token scales remaining
+inside an *unmodified* dot product still holds; changing the other operand is
+a distinct route. The same transfer applies to adaptive input scales in dWup;
+fixed RMS input scaling remains the simpler special case.
+
+This is an unimplemented algebraic candidate, not a demonstrated FP8 VJP. The
+rescaled gradient can have a different dynamic range, and quantizing it changes
+the gradient approximation. Charge its rescaling, maximum reduction, layout,
+quantization and master output. Test extreme scale ratios, zero/subnormal and
+outlier gradients, overflow/underflow, long-token pair sums and accumulation.
+Use an independent CPU reference for the specified gradient algorithm; report
+error against the BF16 surrogate separately. Current-gradient statistics are
+training work and must not become prediction-time state or validation calibration.
