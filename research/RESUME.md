@@ -1,43 +1,36 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 23:33 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 23:38 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## Serial QKV component gates complete; attention integration prepared — CURRENT
+## Serial QKV attention discrepancy under diagnosis — CURRENT
 
-- Source148 finite queues completed cleanly: FP8 direct-rank improvement0.385%
-  (564.075656 ->561.903786ms), reciprocal pack32 improvement0.052%
-  (488.035319 ->487.780576ms). Both below3% whole-step advancement gate.
-  No new quality run. Hosts were idle until work resumed during this turn;
-  the backup cron preserves work but does not select or launch experiments.
-- Source149 both layouts failed at NKI helper resolution: `kernel_assert` was
-  a closure symbol the installed parser could not resolve. Source150 made it
-  module-global and declared the nested helpers global, matching the working
-  MLP kernel pattern. Both then passed initial forward/all-gradient bounds but
-  stopped at a Python logger argument collision (`kind`). Source151 renames
-  that positional argument to `marker`; arithmetic and bounds are unchanged.
-  All failed attempts have clean postflights and preserved raw evidence.
-- Source151 (`85addadd`) is COMPLETE on both hosts: token layout clean
-  23:27:15UTC; channel layout clean23:27:37UTC. Both pass all9 independent
-  FP64 projection/all-six-gradient cases, master/cache refresh/accumulation,
-  repeat/nonmutation and stream/row independence, including32768x1024.
-  Alternating same-host complete component timings: tokens4.947391 versus
+- Source152 attention gates STOPPED on both hosts after the same unchanged
+  width256/uncached/VE output bound failure:190 elements, relative RMS
+  0.0041420266. Token postflight clean23:35:01UTC; channels clean23:35:18UTC.
+  Both coordinators stopped normally; no hardware/compiler crash and no timed
+  attention result. Do not describe source152 as still running or passing.
+- Source153 diagnostic is prepared: original native forward remains the
+  authority; native-preprojected, NKI-all and Q-only/K-only/V-only replacements
+  isolate the first difference. It crosses VE enabled/disabled and cached/
+  uncached weights, with token layout width256 and channel layout width1024.
+  Frozen stored-BF16 projections and CPU-FP64-derived unrounded FP32 V are
+  explicit precision hypotheses, not replacement acceptance references.
+  The unchanged integration bound remains failed until the original gate is
+  rerun successfully. A compiler-retained V/addition intermediate is only a
+  hypothesis. Diagnostics cannot promote a whole-model or quality run.
+- Source151 primitive remains fully gated but slower: tokens4.947391 versus
   native4.695781ms (5.358% slower); channels5.208927 versus native4.714912ms
-  (10.478% slower). These are valid negatives, not speed/quality wins.
-- New attention adapter/gate is prepared locally. It uses the original
-  attention's qkv argument, preserves each Parameter and cache, keeps Q/K/V
-  contiguous for RoPE and retains native evaluation/checkpoint loading.
-  Prerequisite checks require the completed source151 postflight/results and
-  identical primitive/gate bytes. Attention tests cover cached/uncached
-  accumulation/refresh, distinct input/master gradients, exact causal/batch
-  independence and native restore, then real32x1024x1024 attention timing.
-  Local syntax/prerequisite checks pass. Hardware integration remains pending.
-  No full-model timing or30-minute quality promotion is authorized by these
-  component results alone. Read current dispatch/sequence records for activity.
-- Last verified backup at23:30:47UTC pushed source71350a2 and recovery
-  snapshotbac58753, both remote retrievals complete. New summaries/adapter
-  need the next source commit/push. Frozen matched public best remains
-  0.9928513116311253; no competition submission or seed sweep.
+  (10.478% slower). All9 cases, real32768x1024 and cache/master lifecycle pass.
+  Kernel source85addadd; primitive/gate bytes are checked before integrations.
+- Source149 helper-resolution and source150 logger failures were fixed without
+  altering math/bounds; all attempts and clean postflights are preserved.
+  Source148 FP8 direct-rank0.385% and pack32 reciprocal0.052% improvements
+  remain below3%, with no promotion. Frozen public best0.9928513116311253.
+- Last verified backup23:30:47UTC: source71350a2, recoverybac58753, both
+  remote retrievals complete. Later source152/153 work needs the next push.
+  Read current dispatch/sequence records for live activity. All experiment
+  queues are bounded; the backup cron does not choose or launch experiments.
 
 ## FP8 output-rank timing and pack32 optimizer gates — 17:42 UTC
 

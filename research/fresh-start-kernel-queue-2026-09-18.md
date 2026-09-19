@@ -10,8 +10,10 @@ serial QKV layouts now pass every independent component/lifecycle gate but are
 5.358% (tokens) and10.478% (channels) slower than their paired native controls.
 Compiler helper-resolution and logger failures from sources149/150 were fixed
 without changing numerical bounds; failed raw evidence and cleanups retained.
-Real-attention integration/causality/cache/restore gates and matched caller
-timing are prepared next. The original Parameters, three normalized streams,
+The source152 real-attention gate fails identically on both layouts
+(190 bound failures, relative RMS0.0041420266); both cleanups pass. Source153
+partial Q/K/V and VE/cache/materialization diagnostics are the next step,
+keeping the original acceptance bounds and native authority unchanged. The original Parameters, three normalized streams,
 Muon groups and RoPE layout are preserved. No whole-model/quality promotion.
 Read current dispatch/state records before assuming a host is busy; all queues
 are bounded, and backup cron does not launch research.

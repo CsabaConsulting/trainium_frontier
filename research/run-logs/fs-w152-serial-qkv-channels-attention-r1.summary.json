@@ -1,0 +1,25 @@
+{
+  "label": "fs-w152-serial-qkv-channels-attention-r1",
+  "source_commit": "f58c2c0befe1a76225f250ba39503c6318f472b8",
+  "command_returncode": 1,
+  "host_clean": true,
+  "completed_at": "2026-09-19T23:35:18.683471+00:00",
+  "log_sha256": "5bc06e01b4be870872b5d8eb4ab91074db0aababa125028610348f58d4a7c1f6",
+  "postflight_sha256": "90bd65eb0b266815e6ccc6c3016630ef1e9cdb92727b3232a363cd33369a4b78",
+  "first_failed_gate": {
+    "name": "qkv_attention:256:False:0:0:output",
+    "shape": [
+      4,
+      128,
+      256
+    ],
+    "finite": true,
+    "bound_failures": 190,
+    "max_abs": 0.0078125,
+    "reference_rms": 0.09581861875799262,
+    "relative_rms": 0.004142026605657797,
+    "exact": false,
+    "passed": false
+  },
+  "decision": "Retain the failed whole-attention gate and its unchanged bounds. Diagnose Q/K/V replacement, VE and cache/compiler materialization independently; no integration/speed/quality promotion."
+}

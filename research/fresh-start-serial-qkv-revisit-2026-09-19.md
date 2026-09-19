@@ -12,7 +12,18 @@ used `kind` for both marker argument and case payload. Source151 fixes only the
 logger after source150 fixed symbol visibility. Neither math nor bounds changed.
 All three waves have clean per-job postflights and local raw logs.
 
-The real-attention adapter and gate are now prepared. They keep the existing
+Source152's real-attention gate then failed on both layouts with identical
+width256/uncached/VE output differences:190 coordinates outside the unchanged
+bound, relative RMS0.0041420266. Both exited cleanly at23:35:01/23:35:18UTC.
+This is a failed integrated numerical gate; no attention speed was measured.
+
+Source153 diagnoses partial Q/K/V replacement versus native preprojection,
+with/without VE and caches. Materialized BF16 and CPU-derived FP32 V controls
+isolate a possible retained-precision boundary. Returning/fixing intermediates
+can change fusion, so those controls are hypotheses, not new acceptance targets.
+No tolerance is relaxed and the original failed gate must be rerun after a fix.
+
+The real-attention adapter and gate are implemented. They keep the existing
 attention body, use its preprojected qkv argument and preserve contiguous
 outputs, independent Parameter/cache identities and native evaluation. The gate
 requires the source151 component evidence and identical primitive bytes, then
@@ -20,7 +31,8 @@ checks real nonlinear attention, causal/batch independence, cache/master
 lifecycle and strict native restore. A matched real32x1024x1024 attention timing
 includes refresh, forward/backward, gradients and all layout/dispatch costs.
 This diagnoses whether complete caller behavior differs from the component;
-it does not justify a full-budget quality trial in advance. Hardware pending.
+it does not justify a full-budget quality trial. Its original hardware gate
+currently FAILS as above; the diagnostic does not bypass that result.
 
 `serial_qkv_nki.py` supplies two BF16 layouts: weight-stationary with up to512
 tokens across the TensorEngine free dimension, and token-stationary with up to512

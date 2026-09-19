@@ -1,0 +1,21 @@
+[W919 23:34:59.920368881 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+SERIAL_QKV_COMPONENT_PREREQUISITE {"passed": true, "source_commit": "85addadd2ade1d0eb37fa9a5294b598bfe2ba9b4", "label": "fs-w151-serial-qkv-channels-component-r1", "component_log_sha256": "d8385762fbdcd45df63eac6225cc07f54bb1f027ba4637b6bad4fcd02ca6758c", "postflight_sha256": "c1a2343f0c7eaffe11f6fd79aab0a31876ee513156f57e265a2c0c6afeae9114", "current_primitive_and_gate_sha256": {"serial_qkv_nki.py": "1a251b155e909ccf654f1074a8437e75fb8a41caf94cc06f27abb6351a26ccec", "serial_qkv_probe.py": "afc901db49acfeff4809ea4a2138e34548b97ac1258e7f22253f39be21ec6286"}}
+FUSED_MLP_NATIVE_GATE {"name": "qkv_attention:256:False:0:0:output", "shape": [4, 128, 256], "finite": true, "bound_failures": 190, "max_abs": 0.0078125, "reference_rms": 0.09581861875799262, "relative_rms": 0.004142026605657797, "exact": false, "passed": false}
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_freshstart_20260918_wave152/research/scratch/serial_qkv_integration_check.py", line 255, in <module>
+    main()
+  File "/home/ubuntu/trainium_freshstart_20260918_wave152/research/scratch/serial_qkv_integration_check.py", line 238, in main
+    run(256, args.layout)
+  File "/home/ubuntu/trainium_freshstart_20260918_wave152/research/scratch/serial_qkv_integration_check.py", line 115, in run
+    compare(tag + ':output', output, expected)
+  File "/home/ubuntu/trainium_freshstart_20260918_wave152/research/scratch/mlp_fused_bf16_probe.py", line 59, in compare
+    assert record['passed'], record
+           ~~~~~~^^^^^^^^^^
+AssertionError: {'name': 'qkv_attention:256:False:0:0:output', 'shape': [4, 128, 256], 'finite': True, 'bound_failures': 190, 'max_abs': 0.0078125, 'reference_rms': 0.09581861875799262, 'relative_rms': 0.004142026605657797, 'exact': False, 'passed': False}
+EXPERIMENT_POSTFLIGHT {"label": "fs-w152-serial-qkv-channels-attention-r1", "returncode": 1, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave152/research/run-logs/fs-w152-serial-qkv-channels-attention-r1.postflight.json"}
