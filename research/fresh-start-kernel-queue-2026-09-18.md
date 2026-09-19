@@ -455,3 +455,20 @@ against the prior FP8 algorithm with independent CPU-prepared cache values,
 FP8 training future/batch/repeat/padding independence, and exact native checkpoint
 restore. The preexisting wave85 stages remain the numerical authority. No full
 FP8 backward, complete-step gain, or quality claim is established yet.
+
+## 2026-09-19 01:19 UTC: integration harness limit, retained failure
+
+Wave88 passes every D256 integration gate and D1024 cached/uncached forward,
+input/master gradients, accumulated updates and fresh/unchanged cache checks.
+It then hits Dynamo's default eight-specialization limit at the first D1024
+no-grad prediction call: both widths share Probe.forward's code object, and
+each deliberately exercises multiple shapes/cache states. Postflight is clean.
+The gate remains incomplete and cannot authorize FP8 phase timing.
+
+Wave89 resets only process-local inactive Dynamo guards *between* independent
+width tests. Fullgraph=True, the default specialization limit, all numerical
+bounds and every prediction/restore check remain. No shared device cache purge.
+The same-source native BF16 control can run independently on trn21 while this
+rerun runs on trn22. FP8 phase remains dependent on a complete passing gate.
+Wave87 raw trace32files/499268795B is local and every remote/local SHA matches;
+local parquet ingestion is underway, with bounded memory/time.

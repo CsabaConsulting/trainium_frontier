@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 01:16 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 01:19 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
 ## Current result and active work
@@ -30,27 +30,32 @@ FP32 accumulation gates pass. It still loses2.1244% in isolation; a bounded
 whole-model allocation probe is justified after wrapper/cache/prediction gates.
 Full FP8 backward is unimplemented.
 
-**trn21 ACTIVE wave87:** packed FP8 six-arm component trace, sourcee1173d13,
-launched01:13:14. Watcher follows wave87. All component numerical gates already
-passed; trace is attribution only and must be preserved before ingestion.
+**trn21 CLEAN wave87:** packed FP8 six-arm trace finished01:15:14. All32files /
+499268795B are local/hash-verified. Local parquet ingestion is active under
+fs-w87-fp8-packed-weights-local-ingest-r1; trace is attribution only.
+Wave89 same-source native BF16 full-step control is next.
+
+**trn22 CLEAN after failed wave88 harness:** D256 all gates pass; D1024 all
+cache/master update checks pass, then shared Probe.forward exceeds Dynamo's
+default eight-specialization limit at no-grad prediction. This is incomplete,
+not a passing integration gate. Wave89 resets process-local inactive Dynamo
+guards between independent widths, preserving all checks/default limits and
+fullgraph=True. No device cache purge. FP8 phase remains blocked until pass.
 
 Wave85 exact head-gradient-only CE complete step497.864910ms versus500.517682ms
 control (0.5300% improvement), all four postchecks pass, last loss matches. Below
 3% advancement gate: no quality run. Original failed full BF16 boundary remains
 blocked.
 
-**trn22 CLEAN wave86:** native BF16 token-row gate passed all five cases and
-FP32 accumulation, but token rows17.434858ms lose11.6268% versus deployed
-contiguous HxT15.618884ms (view15.605782ms). Keep original BF16 control. The same
-layout direction helped FP8; this BF16 result is not an FP8 veto.
+Wave86 native BF16 token-row gate passes all five cases and FP32 accumulation,
+but token rows17.434858ms lose11.6268% versus deployed contiguous HxT15.618884ms
+(view15.605782ms). Keep original BF16 control. The same layout direction helped
+FP8; this BF16 result is not an FP8 veto.
 
-Wave88 FP8 model-integration gate is next. Source adds an opt-in phase flag only;
-no quality-trainer change. Require wrapper/cache/FP32 accumulation/training row
-independence/native checkpoint gates before any phase launch. The wrapper
-explicitly uses quantized training and original BF16 evaluation. All calibration
-and packing are charged in ordinary refresh; missing initial caches are charged
-in forward. Short calls pad inside MLP to512 multiples, preserving per-token
-independence. Watcher will move from wave86 to wave88 after deployment.
+FP8 wrapper explicitly uses quantized training and original BF16 evaluation.
+All calibration and packing are charged in ordinary refresh; missing initial
+caches are charged in forward. Short calls pad inside MLP to512 multiples,
+preserving per-token independence. No quality-trainer change yet.
 
 Wave83's six diagnostic cases establish the failed forward-boundary cause:
 compiled original head logits retain FP32 accumulator precision. The BF16-input

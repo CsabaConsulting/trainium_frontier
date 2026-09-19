@@ -166,6 +166,15 @@ def main():
     torch.set_num_threads(4)
     run(256)
     if args.real_width:
+        # Each independent model width exercises cached/uncached training and
+        # four no-grad prediction shapes. Their shared Probe.forward code object
+        # otherwise exhausts Dynamo's eight-specialization limit across widths.
+        # Drop only this process's inactive Python graph guards between models;
+        # keep fullgraph=True, the default limit, all checks and device caches.
+        torch._dynamo.reset()
+        print('FP8_INTEGRATION_HARNESS_RESET ' + json.dumps(dict(
+            completed_width=256, next_width=1024, process_local_dynamo_guards_only=True,
+            numerical_contract_changed=False, shared_device_cache_purged=False)), flush=True)
         run(1024)
     print('FP8_MLP_INTEGRATION_RESULT ' + json.dumps(dict(passed=True, real_width=args.real_width,
           full_fp8_backward=False, full_model_or_quality_promotion=False)), flush=True)
