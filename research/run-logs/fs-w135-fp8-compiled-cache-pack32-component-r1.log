@@ -1,0 +1,933 @@
+[W919 06:46:28.172897216 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+FP8_CACHE_EXACT_GATE {"name": "random:eager:up:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:eager:up:bf16_qdq", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:eager:up:forward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:eager:up:backward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:eager:down:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:eager:down:bf16_qdq", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:eager:down:forward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:eager:down:backward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:eager:fixed0", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:eager:fixed1", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:compiled:up:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:compiled:up:bf16_qdq", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:compiled:up:forward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:compiled:up:backward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:compiled:down:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:compiled:down:bf16_qdq", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:compiled:down:forward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:compiled:down:backward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:compiled:fixed0", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:compiled:fixed1", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:full_same_bytes:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:full_same_bytes:1", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:full_same_bytes:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:full_same_bytes:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:full_same_bytes:4", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:full_same_bytes:5", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:full_same_bytes:6", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:full_same_bytes:7", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:full_same_bytes:8", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:full_same_bytes:9", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:native_same_casts:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:native_same_casts:1", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:native_same_casts:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:native_same_casts:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:repeat:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:repeat:1", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:repeat:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:repeat:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:repeat:4", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:repeat:5", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:repeat:6", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:repeat:7", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:repeat:8", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:repeat:9", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:master_unchanged0", "shape": [512, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:master_unchanged1", "shape": [256, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:component_native:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:component_native:1", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:component_native:2", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:component_native:3", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:component_native:4", "shape": [512, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:component_native:5", "shape": [256, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:component_full:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:component_full:1", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:component_full:2", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:component_full:3", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:component_full:4", "shape": [512, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:component_full:5", "shape": [256, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:updated:up:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:updated:up:bf16_qdq", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:updated:up:forward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:updated:up:backward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:updated:down:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:updated:down:bf16_qdq", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:updated:down:forward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:updated:down:backward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:updated:fixed0", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:updated:fixed1", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:updated_compilation:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:updated_compilation:1", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:updated_compilation:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:updated_compilation:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:updated_compilation:4", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:updated_compilation:5", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:updated_compilation:6", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:updated_compilation:7", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:updated_compilation:8", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:updated_compilation:9", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:updated_component:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:updated_component:1", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:updated_component:2", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:updated_component:3", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:updated_component:4", "shape": [512, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:updated_component:5", "shape": [256, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:restore:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:restore:1", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:restore:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:restore:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:restore:4", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:restore:5", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:restore:6", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:restore:7", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:restore:8", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:restore:9", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_COMPILED_CACHE_GATE {"case": "random", "shape": [512, 256, 512], "passed": true, "independent_metadata_qdq_bytes": true, "component_gradient_checked": true, "exact_complete_outputs_and_gradients": true, "microbatches": 2, "two_distinct_microbatches": true, "fp32_master_gradients": true, "fp32_master_accumulation": true, "updated_and_restored_master_caches": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:eager:up:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:eager:up:bf16_qdq", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:eager:up:forward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:eager:up:backward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:eager:down:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:eager:down:bf16_qdq", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:eager:down:forward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:eager:down:backward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:eager:fixed0", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:eager:fixed1", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:compiled:up:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:compiled:up:bf16_qdq", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:compiled:up:forward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:compiled:up:backward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:compiled:down:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:compiled:down:bf16_qdq", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:compiled:down:forward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:compiled:down:backward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:compiled:fixed0", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:compiled:fixed1", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:full_same_bytes:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:full_same_bytes:1", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:full_same_bytes:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:full_same_bytes:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:full_same_bytes:4", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:full_same_bytes:5", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:full_same_bytes:6", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:full_same_bytes:7", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:full_same_bytes:8", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:full_same_bytes:9", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:native_same_casts:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:native_same_casts:1", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:native_same_casts:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:native_same_casts:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:repeat:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:repeat:1", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:repeat:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:repeat:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:repeat:4", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:repeat:5", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:repeat:6", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:repeat:7", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:repeat:8", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:repeat:9", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:master_unchanged0", "shape": [512, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:master_unchanged1", "shape": [256, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:component_native:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:component_native:1", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:component_native:2", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:component_native:3", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:component_native:4", "shape": [512, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:component_native:5", "shape": [256, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:component_full:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:component_full:1", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:component_full:2", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:component_full:3", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:component_full:4", "shape": [512, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:component_full:5", "shape": [256, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:updated:up:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:updated:up:bf16_qdq", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:updated:up:forward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:updated:up:backward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:updated:down:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:updated:down:bf16_qdq", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:updated:down:forward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:updated:down:backward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:updated:fixed0", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:updated:fixed1", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:updated_compilation:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:updated_compilation:1", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:updated_compilation:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:updated_compilation:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:updated_compilation:4", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:updated_compilation:5", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:updated_compilation:6", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:updated_compilation:7", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:updated_compilation:8", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:updated_compilation:9", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:updated_component:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:updated_component:1", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:updated_component:2", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:updated_component:3", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:updated_component:4", "shape": [512, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:updated_component:5", "shape": [256, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:restore:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:restore:1", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:restore:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:restore:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:restore:4", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:restore:5", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:restore:6", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:restore:7", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:restore:8", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_up:restore:9", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_COMPILED_CACHE_GATE {"case": "zero_up", "shape": [512, 256, 512], "passed": true, "independent_metadata_qdq_bytes": true, "component_gradient_checked": true, "exact_complete_outputs_and_gradients": true, "microbatches": 2, "two_distinct_microbatches": true, "fp32_master_gradients": true, "fp32_master_accumulation": true, "updated_and_restored_master_caches": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:eager:up:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:eager:up:bf16_qdq", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:eager:up:forward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:eager:up:backward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:eager:down:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:eager:down:bf16_qdq", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:eager:down:forward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:eager:down:backward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:eager:fixed0", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:eager:fixed1", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:compiled:up:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:compiled:up:bf16_qdq", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:compiled:up:forward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:compiled:up:backward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:compiled:down:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:compiled:down:bf16_qdq", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:compiled:down:forward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:compiled:down:backward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:compiled:fixed0", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:compiled:fixed1", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:full_same_bytes:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:full_same_bytes:1", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:full_same_bytes:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:full_same_bytes:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:full_same_bytes:4", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:full_same_bytes:5", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:full_same_bytes:6", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:full_same_bytes:7", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:full_same_bytes:8", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:full_same_bytes:9", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:native_same_casts:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:native_same_casts:1", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:native_same_casts:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:native_same_casts:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:repeat:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:repeat:1", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:repeat:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:repeat:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:repeat:4", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:repeat:5", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:repeat:6", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:repeat:7", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:repeat:8", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:repeat:9", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:master_unchanged0", "shape": [512, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:master_unchanged1", "shape": [256, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:component_native:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:component_native:1", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:component_native:2", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:component_native:3", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:component_native:4", "shape": [512, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:component_native:5", "shape": [256, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:component_full:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:component_full:1", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:component_full:2", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:component_full:3", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:component_full:4", "shape": [512, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:component_full:5", "shape": [256, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:updated:up:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:updated:up:bf16_qdq", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:updated:up:forward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:updated:up:backward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:updated:down:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:updated:down:bf16_qdq", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:updated:down:forward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:updated:down:backward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:updated:fixed0", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:updated:fixed1", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:updated_compilation:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:updated_compilation:1", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:updated_compilation:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:updated_compilation:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:updated_compilation:4", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:updated_compilation:5", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:updated_compilation:6", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:updated_compilation:7", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:updated_compilation:8", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:updated_compilation:9", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:updated_component:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:updated_component:1", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:updated_component:2", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:updated_component:3", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:updated_component:4", "shape": [512, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:updated_component:5", "shape": [256, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:restore:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:restore:1", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:restore:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:restore:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:restore:4", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:restore:5", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:restore:6", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:restore:7", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:restore:8", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "zero_down:restore:9", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_COMPILED_CACHE_GATE {"case": "zero_down", "shape": [512, 256, 512], "passed": true, "independent_metadata_qdq_bytes": true, "component_gradient_checked": true, "exact_complete_outputs_and_gradients": true, "microbatches": 2, "two_distinct_microbatches": true, "fp32_master_gradients": true, "fp32_master_accumulation": true, "updated_and_restored_master_caches": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:eager:up:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:eager:up:bf16_qdq", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:eager:up:forward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:eager:up:backward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:eager:down:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:eager:down:bf16_qdq", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:eager:down:forward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:eager:down:backward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:eager:fixed0", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:eager:fixed1", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:compiled:up:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:compiled:up:bf16_qdq", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:compiled:up:forward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:compiled:up:backward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:compiled:down:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:compiled:down:bf16_qdq", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:compiled:down:forward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:compiled:down:backward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:compiled:fixed0", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:compiled:fixed1", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:full_same_bytes:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:full_same_bytes:1", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:full_same_bytes:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:full_same_bytes:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:full_same_bytes:4", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:full_same_bytes:5", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:full_same_bytes:6", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:full_same_bytes:7", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:full_same_bytes:8", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:full_same_bytes:9", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:native_same_casts:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:native_same_casts:1", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:native_same_casts:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:native_same_casts:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:repeat:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:repeat:1", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:repeat:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:repeat:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:repeat:4", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:repeat:5", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:repeat:6", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:repeat:7", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:repeat:8", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:repeat:9", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:master_unchanged0", "shape": [512, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:master_unchanged1", "shape": [256, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:component_native:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:component_native:1", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:component_native:2", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:component_native:3", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:component_native:4", "shape": [512, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:component_native:5", "shape": [256, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:component_full:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:component_full:1", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:component_full:2", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:component_full:3", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:component_full:4", "shape": [512, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:component_full:5", "shape": [256, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:updated:up:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:updated:up:bf16_qdq", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:updated:up:forward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:updated:up:backward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:updated:down:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:updated:down:bf16_qdq", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:updated:down:forward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:updated:down:backward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:updated:fixed0", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:updated:fixed1", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:updated_compilation:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:updated_compilation:1", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:updated_compilation:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:updated_compilation:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:updated_compilation:4", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:updated_compilation:5", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:updated_compilation:6", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:updated_compilation:7", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:updated_compilation:8", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:updated_compilation:9", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:updated_component:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:updated_component:1", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:updated_component:2", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:updated_component:3", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:updated_component:4", "shape": [512, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:updated_component:5", "shape": [256, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:restore:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:restore:1", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:restore:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:restore:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:restore:4", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:restore:5", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:restore:6", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:restore:7", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:restore:8", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "outliers:restore:9", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_COMPILED_CACHE_GATE {"case": "outliers", "shape": [512, 256, 512], "passed": true, "independent_metadata_qdq_bytes": true, "component_gradient_checked": true, "exact_complete_outputs_and_gradients": true, "microbatches": 2, "two_distinct_microbatches": true, "fp32_master_gradients": true, "fp32_master_accumulation": true, "updated_and_restored_master_caches": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:eager:up:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:eager:up:bf16_qdq", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:eager:up:forward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:eager:up:backward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:eager:down:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:eager:down:bf16_qdq", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:eager:down:forward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:eager:down:backward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:eager:fixed0", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:eager:fixed1", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:compiled:up:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:compiled:up:bf16_qdq", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:compiled:up:forward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:compiled:up:backward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:compiled:down:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:compiled:down:bf16_qdq", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:compiled:down:forward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:compiled:down:backward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:compiled:fixed0", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:compiled:fixed1", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:full_same_bytes:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:full_same_bytes:1", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:full_same_bytes:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:full_same_bytes:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:full_same_bytes:4", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:full_same_bytes:5", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:full_same_bytes:6", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:full_same_bytes:7", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:full_same_bytes:8", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:full_same_bytes:9", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:native_same_casts:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:native_same_casts:1", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:native_same_casts:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:native_same_casts:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:repeat:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:repeat:1", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:repeat:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:repeat:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:repeat:4", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:repeat:5", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:repeat:6", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:repeat:7", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:repeat:8", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:repeat:9", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:master_unchanged0", "shape": [512, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:master_unchanged1", "shape": [256, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:component_native:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:component_native:1", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:component_native:2", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:component_native:3", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:component_native:4", "shape": [512, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:component_native:5", "shape": [256, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:component_full:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:component_full:1", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:component_full:2", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:component_full:3", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:component_full:4", "shape": [512, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:component_full:5", "shape": [256, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:updated:up:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:updated:up:bf16_qdq", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:updated:up:forward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:updated:up:backward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:updated:down:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:updated:down:bf16_qdq", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:updated:down:forward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:updated:down:backward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:updated:fixed0", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:updated:fixed1", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:updated_compilation:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:updated_compilation:1", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:updated_compilation:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:updated_compilation:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:updated_compilation:4", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:updated_compilation:5", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:updated_compilation:6", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:updated_compilation:7", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:updated_compilation:8", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:updated_compilation:9", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:updated_component:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:updated_component:1", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:updated_component:2", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:updated_component:3", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:updated_component:4", "shape": [512, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:updated_component:5", "shape": [256, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:restore:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:restore:1", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:restore:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:restore:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:restore:4", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:restore:5", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:restore:6", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:restore:7", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:restore:8", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "changed_weights:restore:9", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_COMPILED_CACHE_GATE {"case": "changed_weights", "shape": [512, 256, 512], "passed": true, "independent_metadata_qdq_bytes": true, "component_gradient_checked": true, "exact_complete_outputs_and_gradients": true, "microbatches": 2, "two_distinct_microbatches": true, "fp32_master_gradients": true, "fp32_master_accumulation": true, "updated_and_restored_master_caches": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:eager:up:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:eager:up:bf16_qdq", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:eager:up:forward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:eager:up:backward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:eager:down:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:eager:down:bf16_qdq", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:eager:down:forward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:eager:down:backward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:eager:fixed0", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:eager:fixed1", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:compiled:up:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:compiled:up:bf16_qdq", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:compiled:up:forward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:compiled:up:backward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:compiled:down:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:compiled:down:bf16_qdq", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:compiled:down:forward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:compiled:down:backward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:compiled:fixed0", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:compiled:fixed1", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:full_same_bytes:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:full_same_bytes:1", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:full_same_bytes:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:full_same_bytes:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:full_same_bytes:4", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:full_same_bytes:5", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:full_same_bytes:6", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:full_same_bytes:7", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:full_same_bytes:8", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:full_same_bytes:9", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:native_same_casts:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:native_same_casts:1", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:native_same_casts:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:native_same_casts:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:repeat:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:repeat:1", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:repeat:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:repeat:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:repeat:4", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:repeat:5", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:repeat:6", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:repeat:7", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:repeat:8", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:repeat:9", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:master_unchanged0", "shape": [512, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "tiny_weights:master_unchanged1", "shape": [256, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_COMPILED_CACHE_GATE {"case": "tiny_weights", "shape": [512, 256, 512], "passed": true, "independent_metadata_qdq_bytes": true, "component_gradient_checked": false}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:eager:up:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:eager:up:bf16_qdq", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:eager:up:forward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:eager:up:backward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:eager:down:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:eager:down:bf16_qdq", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:eager:down:forward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:eager:down:backward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:eager:fixed0", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:eager:fixed1", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:compiled:up:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:compiled:up:bf16_qdq", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:compiled:up:forward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:compiled:up:backward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:compiled:down:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:compiled:down:bf16_qdq", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:compiled:down:forward_bytes", "shape": [1, 128, 4, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:compiled:down:backward_bytes", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:compiled:fixed0", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:compiled:fixed1", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:full_same_bytes:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:full_same_bytes:1", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:full_same_bytes:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:full_same_bytes:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:full_same_bytes:4", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:full_same_bytes:5", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:full_same_bytes:6", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:full_same_bytes:7", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:full_same_bytes:8", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:full_same_bytes:9", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:native_same_casts:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:native_same_casts:1", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:native_same_casts:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:native_same_casts:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:repeat:0", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:repeat:1", "shape": [256, 512], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:repeat:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:repeat:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:repeat:4", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:repeat:5", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:repeat:6", "shape": [1, 128, 4, 256], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:repeat:7", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:repeat:8", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:repeat:9", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:master_unchanged0", "shape": [512, 256], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "large_weights:master_unchanged1", "shape": [256, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_COMPILED_CACHE_GATE {"case": "large_weights", "shape": [512, 256, 512], "passed": true, "independent_metadata_qdq_bytes": true, "component_gradient_checked": false}
+FP8_CACHE_EXACT_GATE {"name": "real_random:up:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:up:quantized", "shape": [4096, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:up:metadata_repeat", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:up:quantized_repeat", "shape": [4096, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:up:input_unchanged", "shape": [4096, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:up:idempotent", "shape": [4096, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_CALIBRATION {"name": "real_random:up", "shape": [4096, 1024], "maximum": 0.171875, "scale": 512.0, "scaled_maximum": 88.0, "online_calibration": true, "all_gates_passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:down:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:down:quantized", "shape": [1024, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:down:metadata_repeat", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:down:quantized_repeat", "shape": [1024, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:down:input_unchanged", "shape": [1024, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:down:idempotent", "shape": [1024, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_CALIBRATION {"name": "real_random:down", "shape": [1024, 4096], "maximum": 0.0869140625, "scale": 1024.0, "scaled_maximum": 89.0, "online_calibration": true, "all_gates_passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:packed_up:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:packed_up:backward_cache_reference", "shape": [4096, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:packed_up:backward_cache_old_kernel", "shape": [4096, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:packed_up:backward_cache_repeat", "shape": [4096, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:packed_up:packed_bytes_repeat", "shape": [8, 128, 8, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:packed_up:independent_legacy_decode_and_layout", "shape": [8, 128, 8, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:packed_up:input_unchanged", "shape": [4096, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:packed_up:metadata_unchanged", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_PACKED_CACHE_GATE {"name": "real_random:packed_up", "shape": [4096, 1024], "packed_shape": [8, 128, 8, 512], "pack_lanes": 2, "dtype": "uint8 raw legacy E4M3 bytes", "independent_decode_exact": true, "bf16_backward_cache_exact": true, "wrong_contraction_lane_negative_control_failures": 4134214, "signed_zero_encodings_equivalent": true, "passed": true, "whole_model_or_speed_claim": false}
+FP8_CACHE_EXACT_GATE {"name": "real_random:packed_down:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:packed_down:backward_cache_reference", "shape": [1024, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:packed_down:backward_cache_old_kernel", "shape": [1024, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:packed_down:backward_cache_repeat", "shape": [1024, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:packed_down:packed_bytes_repeat", "shape": [2, 128, 32, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:packed_down:independent_legacy_decode_and_layout", "shape": [2, 128, 32, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:packed_down:input_unchanged", "shape": [1024, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:packed_down:metadata_unchanged", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_PACKED_CACHE_GATE {"name": "real_random:packed_down", "shape": [1024, 4096], "packed_shape": [2, 128, 32, 512], "pack_lanes": 2, "dtype": "uint8 raw legacy E4M3 bytes", "independent_decode_exact": true, "bf16_backward_cache_exact": true, "wrong_contraction_lane_negative_control_failures": 4134686, "signed_zero_encodings_equivalent": true, "passed": true, "whole_model_or_speed_claim": false}
+FP8_CACHE_EXACT_GATE {"name": "real_random:packed_up_backward_values", "shape": [4096, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:packed_down_backward_values", "shape": [1024, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:fixed_rms_input_metadata", "shape": [32768, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:fixed_rms_input_quantizer", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_QUANTIZATION_DIAGNOSTIC {"name": "real_random:fixed_vs_adaptive_input_quantizer", "relative_rms": 8.828004923919487e-06, "max_abs": 0.000244140625, "quality_gate": false, "quantized_model_differs_from_original": true}
+FP8_ISLAND_PAIR_GATE {"name": "real_random:up", "sampled_shape": [14, 129], "full_coordinates": false, "finite": true, "bound_failures": 0, "max_abs": 1.1920928955078125e-07, "relative_rms": 4.35641249008617e-09, "max_error_over_bound": 0.0002534610869854254, "half_output_negative_control_failures": 1806, "contraction_pair_order": "corresponding positions in adjacent128-channel blocks", "reference": "empirical11-significand-bit pair sums, FP32 gamma_(K/2) accumulation", "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:relu_rounding", "shape": [4096, 32768], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:per_token_hidden_metadata", "shape": [32768, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:per_token_hidden_quantizer", "shape": [32768, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_ISLAND_PAIR_GATE {"name": "real_random:down", "sampled_shape": [14, 129], "full_coordinates": false, "finite": true, "bound_failures": 0, "max_abs": 6.258487701416016e-07, "relative_rms": 6.636809270400387e-08, "max_error_over_bound": 0.00020374343665422297, "half_output_negative_control_failures": 1798, "contraction_pair_order": "corresponding positions in adjacent128-channel blocks", "reference": "empirical11-significand-bit pair sums, FP32 gamma_(K/2) accumulation", "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:output_rounding", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:diagnostic_vs_normal0", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:repeat0", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:diagnostic_vs_normal1", "shape": [4096, 32768], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:repeat1", "shape": [4096, 32768], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:diagnostic_vs_normal2", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:repeat2", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:diagnostic_vs_normal3", "shape": [32768, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:repeat3", "shape": [32768, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:input_unchanged", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_QUANTIZATION_DIAGNOSTIC {"name": "real_random:original_bf16_model", "relative_rms": 0.05816394255834529, "max_abs": 0.416015625, "quality_gate": false, "quantized_model_differs_from_original": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:row_independence0", "shape": [32766, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:row_independence1", "shape": [32766, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:row_independence2", "shape": [32766, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:row_independence3", "shape": [32766, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_ISLAND_CASE {"case": "real_random", "shape": [32768, 1024, 4096], "passed": true, "actual_fp8_up_and_down_matmuls": true, "per_token_activation_scales": false, "token_row_output_layout": true, "fixed_rms_input_scale": true, "packed_weight_layout": true, "hidden_scale_is_per_token": true, "backward_gated": false, "training_speed_claimed": false}
+FP8_CACHE_EXACT_GATE {"name": "real_random:saved_up:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:saved_up:backward_cache_reference", "shape": [4096, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:saved_up:backward_cache_old_kernel", "shape": [4096, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:saved_up:backward_cache_repeat", "shape": [4096, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:saved_up:packed_bytes_repeat", "shape": [8, 128, 8, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:saved_up:independent_legacy_decode_and_layout", "shape": [8, 128, 8, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:saved_up:input_unchanged", "shape": [4096, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:saved_up:metadata_unchanged", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_PACKED_CACHE_GATE {"name": "real_random:saved_up", "shape": [4096, 1024], "packed_shape": [8, 128, 8, 512], "pack_lanes": 2, "dtype": "uint8 raw legacy E4M3 bytes", "independent_decode_exact": true, "bf16_backward_cache_exact": true, "wrong_contraction_lane_negative_control_failures": 4134214, "signed_zero_encodings_equivalent": true, "passed": true, "whole_model_or_speed_claim": false}
+FP8_CACHE_EXACT_GATE {"name": "real_random:saved_down:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:saved_down:backward_cache_reference", "shape": [1024, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:saved_down:backward_cache_old_kernel", "shape": [1024, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:saved_down:backward_cache_repeat", "shape": [1024, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:saved_down:packed_bytes_repeat", "shape": [2, 128, 32, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:saved_down:independent_legacy_decode_and_layout", "shape": [2, 128, 32, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:saved_down:input_unchanged", "shape": [1024, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:saved_down:metadata_unchanged", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_PACKED_CACHE_GATE {"name": "real_random:saved_down", "shape": [1024, 4096], "packed_shape": [2, 128, 32, 512], "pack_lanes": 2, "dtype": "uint8 raw legacy E4M3 bytes", "independent_decode_exact": true, "bf16_backward_cache_exact": true, "wrong_contraction_lane_negative_control_failures": 4134686, "signed_zero_encodings_equivalent": true, "passed": true, "whole_model_or_speed_claim": false}
+FP8_CACHE_EXACT_GATE {"name": "real_random:all_original_stages:0", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:all_original_stages:1", "shape": [32768, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:all_original_stages:2", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:all_original_stages:3", "shape": [32768, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:all_original_stages:4", "shape": [32768, 4096], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:all_original_stages:5", "shape": [32768, 1024], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:all_original_stages:6", "shape": [32768, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:all_original_stages:7", "shape": [32768, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:independent_input_byte_decoder", "shape": [32768, 1024], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:independent_hidden_metadata", "shape": [32768, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:independent_hidden_byte_decoder", "shape": [32768, 4096], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:ordinary_vs_diagnostic:0", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:repeat:0", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:ordinary_vs_diagnostic:1", "shape": [32768, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:repeat:1", "shape": [32768, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:ordinary_vs_diagnostic:2", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:repeat:2", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:ordinary_vs_diagnostic:3", "shape": [32768, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:repeat:3", "shape": [32768, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:ordinary_vs_diagnostic:4", "shape": [32768, 1024], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:repeat:4", "shape": [32768, 1024], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:ordinary_vs_diagnostic:5", "shape": [32768, 4096], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:repeat:5", "shape": [32768, 4096], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:ordinary_vs_diagnostic:6", "shape": [32768, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:repeat:6", "shape": [32768, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:metadata_only:0", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:metadata_only:1", "shape": [32768, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:metadata_only:2", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:metadata_only:3", "shape": [32768, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:metadata_only:4", "shape": [32768, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:input_repack:decoded", "shape": [32768, 1024], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_FORWARD_BYTE_REPACK {"name": "real_random:input_repack", "signed_zero_changes": 3340, "nonzero_byte_changes": 0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:hidden_repack:decoded", "shape": [32768, 4096], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_FORWARD_BYTE_REPACK {"name": "real_random:hidden_repack", "signed_zero_changes": 0, "nonzero_byte_changes": 0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:input_unchanged", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:saved_row_independence:0", "shape": [32766, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:saved_row_independence:1", "shape": [32766, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:saved_row_independence:2", "shape": [32766, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:saved_row_independence:3", "shape": [32766, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:saved_row_independence:4", "shape": [32766, 1024], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:saved_row_independence:5", "shape": [32766, 4096], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:saved_row_independence:6", "shape": [32766, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_FORWARD_SAVE_GATE {"case": "real_random", "shape": [32768, 1024, 4096], "passed": true, "all_original_stages_exact": true, "independent_byte_decoders": true, "hidden_scales_exact": true, "existing_bf16_saves_retained": true, "backward_or_quality_promotion": false}
+FP8_CACHE_EXACT_GATE {"name": "real_random:up_transpose:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:up_transpose:backward_cache_reference", "shape": [1024, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:up_transpose:backward_cache_old_kernel", "shape": [1024, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:up_transpose:backward_cache_repeat", "shape": [1024, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:up_transpose:packed_bytes_repeat", "shape": [2, 128, 32, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:up_transpose:independent_legacy_decode_and_layout", "shape": [2, 128, 32, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:up_transpose:input_unchanged", "shape": [1024, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:up_transpose:metadata_unchanged", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_PACKED_CACHE_GATE {"name": "real_random:up_transpose", "shape": [1024, 4096], "packed_shape": [2, 128, 32, 512], "pack_lanes": 2, "dtype": "uint8 raw legacy E4M3 bytes", "independent_decode_exact": true, "bf16_backward_cache_exact": true, "wrong_contraction_lane_negative_control_failures": 4135654, "signed_zero_encodings_equivalent": true, "passed": true, "whole_model_or_speed_claim": false}
+FP8_CACHE_EXACT_GATE {"name": "real_random:up_transpose:same_global_scale", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:up_transpose:same_packed_bytes", "shape": [2, 128, 32, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:down_transpose:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:down_transpose:backward_cache_reference", "shape": [4096, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:down_transpose:backward_cache_old_kernel", "shape": [4096, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:down_transpose:backward_cache_repeat", "shape": [4096, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:down_transpose:packed_bytes_repeat", "shape": [8, 128, 8, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:down_transpose:independent_legacy_decode_and_layout", "shape": [8, 128, 8, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:down_transpose:input_unchanged", "shape": [4096, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:down_transpose:metadata_unchanged", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_PACKED_CACHE_GATE {"name": "real_random:down_transpose", "shape": [4096, 1024], "packed_shape": [8, 128, 8, 512], "pack_lanes": 2, "dtype": "uint8 raw legacy E4M3 bytes", "independent_decode_exact": true, "bf16_backward_cache_exact": true, "wrong_contraction_lane_negative_control_failures": 4134772, "signed_zero_encodings_equivalent": true, "passed": true, "whole_model_or_speed_claim": false}
+FP8_CACHE_EXACT_GATE {"name": "real_random:down_transpose:same_global_scale", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:down_transpose:same_packed_bytes", "shape": [8, 128, 8, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro0:input_bytes", "shape": [32768, 1024], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro0:input_qdq", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro0:hidden_metadata", "shape": [32768, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro0:hidden_qdq", "shape": [32768, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro0:hidden_bytes", "shape": [32768, 4096], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro0:data_g_metadata", "shape": [32768, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro0:data_g_quantizer", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_ISLAND_PAIR_GATE {"name": "real_random:micro0:data_down", "sampled_shape": [14, 129], "full_coordinates": false, "finite": true, "bound_failures": 0, "max_abs": 1.862645149230957e-09, "relative_rms": 5.770864672767338e-09, "max_error_over_bound": 0.0002716775024866204, "half_output_negative_control_failures": 1805, "contraction_pair_order": "corresponding positions in adjacent128-channel blocks", "reference": "empirical11-significand-bit pair sums, FP32 gamma_(K/2) accumulation", "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro0:relu_derivative", "shape": [32768, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro0:data_pre_metadata", "shape": [32768, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro0:data_pre_quantizer", "shape": [32768, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_ISLAND_PAIR_GATE {"name": "real_random:micro0:data_up", "sampled_shape": [14, 129], "full_coordinates": false, "finite": true, "bound_failures": 0, "max_abs": 1.5832483768463135e-08, "relative_rms": 5.2531497935221516e-08, "max_error_over_bound": 0.0001345557850882421, "half_output_negative_control_failures": 1803, "contraction_pair_order": "corresponding positions in adjacent128-channel blocks", "reference": "empirical11-significand-bit pair sums, FP32 gamma_(K/2) accumulation", "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro0:dx_bf16_rounding", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro0:normal_dx", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro0:normal_pre", "shape": [32768, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro0:down:partial_maxima", "shape": [128, 2], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro0:down:global_metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro0:down:global_quantizer", "shape": [32768, 1024], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_ISLAND_PAIR_GATE {"name": "real_random:micro0:weight_down", "sampled_shape": [14, 129], "full_coordinates": false, "finite": true, "bound_failures": 0, "max_abs": 1.0378658771514893e-05, "relative_rms": 2.006898927573798e-07, "max_error_over_bound": 2.699792765753883e-05, "half_output_negative_control_failures": 1659, "contraction_pair_order": "corresponding positions in adjacent128-channel blocks", "reference": "empirical11-significand-bit pair sums, FP32 gamma_(K/2) accumulation", "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro0:up:partial_maxima", "shape": [128, 2], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro0:up:global_metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro0:up:global_quantizer", "shape": [32768, 4096], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_ISLAND_PAIR_GATE {"name": "real_random:micro0:weight_up", "sampled_shape": [14, 129], "full_coordinates": false, "finite": true, "bound_failures": 0, "max_abs": 3.7550926208496094e-06, "relative_rms": 1.5673812151368075e-07, "max_error_over_bound": 1.6357041204739263e-05, "half_output_negative_control_failures": 1674, "contraction_pair_order": "corresponding positions in adjacent128-channel blocks", "reference": "empirical11-significand-bit pair sums, FP32 gamma_(K/2) accumulation", "passed": true}
+FP8_COMPLETE_STAGES_GATE {"name": "real_random:micro0", "passed": true, "all_four_products_independently_bounded": true, "actual_forward_saves_used": true, "exact_previous_bf16_vjp": false}
+FP8_CACHE_EXACT_GATE {"name": "real_random:compiled_y0", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:compiled_dx0", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:compiled_dup0", "shape": [4096, 1024], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:compiled_ddown0", "shape": [1024, 4096], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:repeat_y", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:repeat_dx", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:repeat_dup", "shape": [4096, 1024], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:repeat_ddown", "shape": [1024, 4096], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro1:input_bytes", "shape": [32768, 1024], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro1:input_qdq", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro1:hidden_metadata", "shape": [32768, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro1:hidden_qdq", "shape": [32768, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro1:hidden_bytes", "shape": [32768, 4096], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro1:data_g_metadata", "shape": [32768, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro1:data_g_quantizer", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_ISLAND_PAIR_GATE {"name": "real_random:micro1:data_down", "sampled_shape": [14, 129], "full_coordinates": false, "finite": true, "bound_failures": 0, "max_abs": 1.862645149230957e-09, "relative_rms": 5.737655520590863e-09, "max_error_over_bound": 0.0002531132942118548, "half_output_negative_control_failures": 1806, "contraction_pair_order": "corresponding positions in adjacent128-channel blocks", "reference": "empirical11-significand-bit pair sums, FP32 gamma_(K/2) accumulation", "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro1:relu_derivative", "shape": [32768, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro1:data_pre_metadata", "shape": [32768, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro1:data_pre_quantizer", "shape": [32768, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_ISLAND_PAIR_GATE {"name": "real_random:micro1:data_up", "sampled_shape": [14, 129], "full_coordinates": false, "finite": true, "bound_failures": 0, "max_abs": 1.909211277961731e-08, "relative_rms": 5.662494633248139e-08, "max_error_over_bound": 0.00016691412916500258, "half_output_negative_control_failures": 1800, "contraction_pair_order": "corresponding positions in adjacent128-channel blocks", "reference": "empirical11-significand-bit pair sums, FP32 gamma_(K/2) accumulation", "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro1:dx_bf16_rounding", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro1:normal_dx", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro1:normal_pre", "shape": [32768, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro1:down:partial_maxima", "shape": [128, 2], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro1:down:global_metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro1:down:global_quantizer", "shape": [32768, 1024], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_ISLAND_PAIR_GATE {"name": "real_random:micro1:weight_down", "sampled_shape": [14, 129], "full_coordinates": false, "finite": true, "bound_failures": 0, "max_abs": 1.0492280125617981e-05, "relative_rms": 2.044108972220285e-07, "max_error_over_bound": 2.914522992656356e-05, "half_output_negative_control_failures": 1638, "contraction_pair_order": "corresponding positions in adjacent128-channel blocks", "reference": "empirical11-significand-bit pair sums, FP32 gamma_(K/2) accumulation", "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro1:up:partial_maxima", "shape": [128, 2], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro1:up:global_metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:micro1:up:global_quantizer", "shape": [32768, 4096], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_ISLAND_PAIR_GATE {"name": "real_random:micro1:weight_up", "sampled_shape": [14, 129], "full_coordinates": false, "finite": true, "bound_failures": 0, "max_abs": 6.7427754402160645e-06, "relative_rms": 1.5668717791441213e-07, "max_error_over_bound": 2.944055610519669e-05, "half_output_negative_control_failures": 1644, "contraction_pair_order": "corresponding positions in adjacent128-channel blocks", "reference": "empirical11-significand-bit pair sums, FP32 gamma_(K/2) accumulation", "passed": true}
+FP8_COMPLETE_STAGES_GATE {"name": "real_random:micro1", "passed": true, "all_four_products_independently_bounded": true, "actual_forward_saves_used": true, "exact_previous_bf16_vjp": false}
+FP8_CACHE_EXACT_GATE {"name": "real_random:compiled_y1", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:compiled_dx1", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:compiled_dup1", "shape": [4096, 1024], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:compiled_ddown1", "shape": [1024, 4096], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:fp32_master_accumulation0", "shape": [4096, 1024], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:fp32_master_accumulation1", "shape": [1024, 4096], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:distinct_micro_input_gradient0", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:input_unchanged0", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:distinct_micro_input_gradient1", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:input_unchanged1", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:master_unchanged0", "shape": [4096, 1024], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:master_unchanged1", "shape": [1024, 4096], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:cache_unchanged0", "shape": [4096, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:cache_unchanged1", "shape": [1024, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:cache_unchanged2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:cache_unchanged3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:cache_unchanged4", "shape": [8, 128, 8, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:cache_unchanged5", "shape": [2, 128, 32, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:cache_unchanged6", "shape": [2, 128, 32, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:cache_unchanged7", "shape": [8, 128, 8, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:cache_unchanged8", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:cache_unchanged9", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_COMPLETE_AUTOGRAD_GATE {"case": "real_random", "shape": [32768, 1024, 4096], "passed": true, "independent_all_four_product_gates": true, "compiled_vs_staged_exact": true, "two_distinct_microbatches": true, "fp32_master_accumulation_exact": true, "forward_activation_bytes_reused": true, "exact_previous_bf16_vjp": false, "full_model_or_quality_gain_established": false}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_master:input_bytes", "shape": [32768, 1024], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_master:input_qdq", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_master:hidden_metadata", "shape": [32768, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_master:hidden_qdq", "shape": [32768, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_master:hidden_bytes", "shape": [32768, 4096], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_master:data_g_metadata", "shape": [32768, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_master:data_g_quantizer", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_ISLAND_PAIR_GATE {"name": "real_random:updated_master:data_down", "sampled_shape": [14, 129], "full_coordinates": false, "finite": true, "bound_failures": 0, "max_abs": 1.862645149230957e-09, "relative_rms": 5.644128226614692e-09, "max_error_over_bound": 0.00020447871565130944, "half_output_negative_control_failures": 1806, "contraction_pair_order": "corresponding positions in adjacent128-channel blocks", "reference": "empirical11-significand-bit pair sums, FP32 gamma_(K/2) accumulation", "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_master:relu_derivative", "shape": [32768, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_master:data_pre_metadata", "shape": [32768, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_master:data_pre_quantizer", "shape": [32768, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_ISLAND_PAIR_GATE {"name": "real_random:updated_master:data_up", "sampled_shape": [14, 129], "full_coordinates": false, "finite": true, "bound_failures": 0, "max_abs": 1.4901161193847656e-08, "relative_rms": 5.241821842441056e-08, "max_error_over_bound": 0.00013882771107293895, "half_output_negative_control_failures": 1797, "contraction_pair_order": "corresponding positions in adjacent128-channel blocks", "reference": "empirical11-significand-bit pair sums, FP32 gamma_(K/2) accumulation", "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_master:dx_bf16_rounding", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_master:normal_dx", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_master:normal_pre", "shape": [32768, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_master:down:partial_maxima", "shape": [128, 2], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_master:down:global_metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_master:down:global_quantizer", "shape": [32768, 1024], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_ISLAND_PAIR_GATE {"name": "real_random:updated_master:weight_down", "sampled_shape": [14, 129], "full_coordinates": false, "finite": true, "bound_failures": 0, "max_abs": 4.820525646209717e-06, "relative_rms": 1.985513288909892e-07, "max_error_over_bound": 2.1038987110486104e-05, "half_output_negative_control_failures": 1661, "contraction_pair_order": "corresponding positions in adjacent128-channel blocks", "reference": "empirical11-significand-bit pair sums, FP32 gamma_(K/2) accumulation", "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_master:up:partial_maxima", "shape": [128, 2], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_master:up:global_metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_master:up:global_quantizer", "shape": [32768, 4096], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_ISLAND_PAIR_GATE {"name": "real_random:updated_master:weight_up", "sampled_shape": [14, 129], "full_coordinates": false, "finite": true, "bound_failures": 0, "max_abs": 5.155801773071289e-06, "relative_rms": 1.5189492714518375e-07, "max_error_over_bound": 2.4005875842395396e-05, "half_output_negative_control_failures": 1656, "contraction_pair_order": "corresponding positions in adjacent128-channel blocks", "reference": "empirical11-significand-bit pair sums, FP32 gamma_(K/2) accumulation", "passed": true}
+FP8_COMPLETE_STAGES_GATE {"name": "real_random:updated_master", "passed": true, "all_four_products_independently_bounded": true, "actual_forward_saves_used": true, "exact_previous_bf16_vjp": false}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_forward", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_dx", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_dup", "shape": [4096, 1024], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_ddown", "shape": [1024, 4096], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_COMPLETE_CACHE_REFRESH_GATE {"case": "real_random", "passed": true, "current_master_refresh_verified": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:restored_cache0", "shape": [4096, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:restored_cache1", "shape": [1024, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:restored_cache2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:restored_cache3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:restored_cache4", "shape": [8, 128, 8, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:restored_cache5", "shape": [2, 128, 32, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:restored_cache6", "shape": [2, 128, 32, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:restored_cache7", "shape": [8, 128, 8, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:restored_cache8", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:restored_cache9", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_BACKWARD_FP64_BOUND {"name": "real_random:native_timing_control", "field": "dx", "shape": [32768, 1024], "finite": true, "bound_failures": 0, "max_abs": 0.0009640090263805523, "relative_rms": 0.0033172462864330347, "max_bound": 0.021419321542249136, "rms_bound": 0.01724837900701109, "half_gradient_negative_control_failures": 14629502, "reference": "independent FP64 autograd on exact quantized weights", "error_model": "propagated FP32 gamma_K and BF16 u=2**-8; no empirical atol", "passed": true}
+FP8_CACHE_BACKWARD_FP64_BOUND {"name": "real_random:native_timing_control", "field": "dup", "shape": [4096, 1024], "finite": true, "bound_failures": 0, "max_abs": 0.059451195268218626, "relative_rms": 0.002873319146476763, "max_bound": 5.620161767512066, "rms_bound": 4.842985381420548, "half_gradient_negative_control_failures": 62506, "reference": "independent FP64 autograd on exact quantized weights", "error_model": "propagated FP32 gamma_K and BF16 u=2**-8; no empirical atol", "passed": true}
+FP8_CACHE_BACKWARD_FP64_BOUND {"name": "real_random:native_timing_control", "field": "ddown", "shape": [1024, 4096], "finite": true, "bound_failures": 0, "max_abs": 0.13934984038968334, "relative_rms": 0.0037057172625742725, "max_bound": 7.752369080991858, "rms_bound": 6.498693727956215, "half_gradient_negative_control_failures": 254633, "reference": "independent FP64 autograd on exact quantized weights", "error_model": "propagated FP32 gamma_K and BF16 u=2**-8; no empirical atol", "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "timed_full:master_accumulation0", "shape": [4096, 1024], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "timed_full:master_accumulation1", "shape": [1024, 4096], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_COMPLETE_MLP_BENCH {"shape": [32768, 1024, 4096], "samples_ms": {"native_bf16": [30.971865192987025, 30.99539600079879, 30.926105403341353], "fp8_forward_bf16_backward": [33.71611658949405, 33.723075804300606, 33.72864300617948], "fp8_forward_all_four_backward_products": [30.373465397860855, 30.3775480017066, 30.397489794995636]}, "median_ms": {"native_bf16": 30.971865192987025, "fp8_forward_bf16_backward": 33.723075804300606, "fp8_forward_all_four_backward_products": 30.3775480017066}, "units": "ms per current online caches plus two distinct FW/BW microbatches", "all_master_casts_calibration_transposes_packing_saves_charged": true, "fp32_master_gradient_accumulation_charged": true, "bf16_relu_derivative": true, "new_approximate_vjp": true, "optimizer_collectives_surrounding_model_excluded": true, "whole_model_speed_or_quality_gain_established": false}
+FP8_CACHE_EXACT_GATE {"name": "real_random:eager:up:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:eager:up:bf16_qdq", "shape": [4096, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:eager:up:forward_bytes", "shape": [8, 128, 8, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:eager:up:backward_bytes", "shape": [2, 128, 32, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:eager:down:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:eager:down:bf16_qdq", "shape": [1024, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:eager:down:forward_bytes", "shape": [2, 128, 32, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:eager:down:backward_bytes", "shape": [8, 128, 8, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:eager:fixed0", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:eager:fixed1", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:compiled:up:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:compiled:up:bf16_qdq", "shape": [4096, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:compiled:up:forward_bytes", "shape": [8, 128, 8, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:compiled:up:backward_bytes", "shape": [2, 128, 32, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:compiled:down:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:compiled:down:bf16_qdq", "shape": [1024, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:compiled:down:forward_bytes", "shape": [2, 128, 32, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:compiled:down:backward_bytes", "shape": [8, 128, 8, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:compiled:fixed0", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:compiled:fixed1", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:full_same_bytes:0", "shape": [4096, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:full_same_bytes:1", "shape": [1024, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:full_same_bytes:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:full_same_bytes:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:full_same_bytes:4", "shape": [8, 128, 8, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:full_same_bytes:5", "shape": [2, 128, 32, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:full_same_bytes:6", "shape": [2, 128, 32, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:full_same_bytes:7", "shape": [8, 128, 8, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:full_same_bytes:8", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:full_same_bytes:9", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:native_same_casts:0", "shape": [4096, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:native_same_casts:1", "shape": [1024, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:native_same_casts:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:native_same_casts:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:repeat:0", "shape": [4096, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:repeat:1", "shape": [1024, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:repeat:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:repeat:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:repeat:4", "shape": [8, 128, 8, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:repeat:5", "shape": [2, 128, 32, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:repeat:6", "shape": [2, 128, 32, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:repeat:7", "shape": [8, 128, 8, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:repeat:8", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:repeat:9", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:master_unchanged0", "shape": [4096, 1024], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:master_unchanged1", "shape": [1024, 4096], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:component_native:0", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:component_native:1", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:component_native:2", "shape": [4096, 1024], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:component_native:3", "shape": [1024, 4096], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:component_full:0", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:component_full:1", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:component_full:2", "shape": [4096, 1024], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:component_full:3", "shape": [1024, 4096], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated:up:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated:up:bf16_qdq", "shape": [4096, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated:up:forward_bytes", "shape": [8, 128, 8, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated:up:backward_bytes", "shape": [2, 128, 32, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated:down:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated:down:bf16_qdq", "shape": [1024, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated:down:forward_bytes", "shape": [2, 128, 32, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated:down:backward_bytes", "shape": [8, 128, 8, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated:fixed0", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated:fixed1", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_compilation:0", "shape": [4096, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_compilation:1", "shape": [1024, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_compilation:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_compilation:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_compilation:4", "shape": [8, 128, 8, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_compilation:5", "shape": [2, 128, 32, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_compilation:6", "shape": [2, 128, 32, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_compilation:7", "shape": [8, 128, 8, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_compilation:8", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_compilation:9", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_component:0", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_component:1", "shape": [32768, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_component:2", "shape": [4096, 1024], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:updated_component:3", "shape": [1024, 4096], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:restore:0", "shape": [4096, 1024], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:restore:1", "shape": [1024, 4096], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:restore:2", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:restore:3", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:restore:4", "shape": [8, 128, 8, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:restore:5", "shape": [2, 128, 32, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:restore:6", "shape": [2, 128, 32, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:restore:7", "shape": [8, 128, 8, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:restore:8", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "real_random:restore:9", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_COMPILED_CACHE_GATE {"case": "real_random", "shape": [32768, 1024, 4096], "passed": true, "independent_metadata_qdq_bytes": true, "component_gradient_checked": true, "exact_complete_outputs_and_gradients": true, "microbatches": 1, "two_distinct_microbatches": false, "fp32_master_gradients": true, "fp32_master_accumulation": false, "updated_and_restored_master_caches": true}
+FP8_COMPILED_CACHE_BENCH {"shape": [32768, 1024, 4096], "cache_preparation": {"samples_ms": {"native_eager": [0.17918040102813393, 0.18909370119217783, 0.17963669961318374], "native_compiled": [0.11081674892921001, 0.11588269844651222, 0.11201940069440752], "full_eager": [1.00565749744419, 1.0237006499664858, 1.0051773017039523], "full_compiled": [0.5504193977685645, 0.5416772502940148, 0.5492685013450682]}, "median_ms": {"native_eager": 0.17963669961318374, "native_compiled": 0.11201940069440752, "full_eager": 1.00565749744419, "full_compiled": 0.5492685013450682}}, "complete_component": {"samples_ms": {"native_eager": [15.423873998224735, 15.43359694769606, 15.435269149020314], "native_compiled": [15.373153900145553, 15.385368099668995, 15.382168951327913], "full_eager": [15.566211400437169, 15.565400701598264, 15.561270149191841], "full_compiled": [15.123714649234898, 15.10725664847996, 15.110783599084243]}, "median_ms": {"native_eager": 15.43359694769606, "native_compiled": 15.382168951327913, "full_eager": 15.565400701598264, "full_compiled": 15.110783599084243}}, "units": "ms", "full_microbatches": 1, "all_online_casts_calibration_transposes_packing_charged": true, "same_compiled_forward_backward_in_each_precision_pair": true, "native_compiled_cache_control": true, "new_quantization_policy": false, "optimizer_and_collectives_excluded": true, "model_quality_claim": false}
+FP8_COMPILED_CACHE_RESULT {"passed": true, "cases": 8, "real_shape": true, "real_tokens": 32768, "real_microbatches": 1, "independent_real_gates": true, "fullgraph": true, "full_model_or_quality_claim": false}
+EXPERIMENT_POSTFLIGHT {"label": "fs-w135-fp8-compiled-cache-pack32-component-r1", "returncode": 0, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave135/research/run-logs/fs-w135-fp8-compiled-cache-pack32-component-r1.postflight.json"}

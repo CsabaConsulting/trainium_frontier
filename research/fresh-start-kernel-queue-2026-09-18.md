@@ -1,6 +1,6 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19 06:44 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19 06:56 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
@@ -14,7 +14,7 @@ failure and clean recovery are preserved; the larger evaluation is clean.
 
 | Idea | Measured state | Next action |
 | --- | --- | --- |
-| Compile unchanged online FP8 cache preparation | Source132 all8 gates pass; preparation1.0066→0.5496ms, complete FP8 MLP15.8636→15.4436ms; compiled native15.3691ms | Gate32768tokens/one microbatch with independent all-four-product bounds before judging the current model shape |
+| Compile unchanged online FP8 cache preparation | Source135 pack32 complete MLP15.1108ms vs compiled native15.3822ms:1.76% faster; independent32768-token product/gradient gates pass | Prepared fused calibration plus both packed orientations; gate exact cache bytes/complete gradients, then time against previous compiled producer |
 | FP8-specific packing | One layout improves FP8 component about2.95% while worsening BF16 by11.63%; FP8 whole model still17.74% slower | Continue FP8-specific development; BF16 ranking is not a veto |
 | FP8 grouped weight-gradient products | Balanced banks + fused abs + two-core preparation pass10cases: down1.548/up1.695ms vs native1.095/1.075ms | Complete full FP8 MLP passes11cases but15.938ms vs15.486ms BF16; profile full derivative costs |
 | Reuse forward-produced FP8 bytes | All10cases pass; online cache work +2forward producers6.899→5.919ms (14.20%); preserves existing saves | Composed in complete FP8 MLP; saves do not yet make it faster than BF16 |
@@ -25,12 +25,21 @@ failure and clean recovery are preserved; the larger evaluation is clean.
 | BF16 magnitude maximum / fused abs | All3alternatives pass13cases; fused abs fastest, calibration0.197/0.650ms vs0.344/1.184ms | Composed in weight/data gradient prototypes; integer-code and sign-mask versions are correct but slower |
 | Smaller tables / rational composed functions | Design candidates; full-value LUT and standalone polynomial timings lose | Test full producer/consumer costs with independent range/gradient gates |
 
-The next prepared probe retains the existing16384-token/two-microbatch shape
-for a direct comparison with source124. Before any new full-model promotion,
-also gate **32768tokens/one microbatch**, matching the current pack32/GA1 winner.
-Equal total targets do not imply identical compiler allocation, launch overhead,
-FP8 reduction accumulation or component speed. Earlier FP8 results used the
-previous pack16/GA2 shape; do not extrapolate their ranking without this check.
+Source135 now gates **32768tokens/one microbatch**, matching the current
+pack32/GA1 winner. Independent forward/byte/all-four-gradient-product checks,
+updated master caches and the native FP64 rounding-bound control pass. Compiled
+FP8 preparation yields15.110784ms per complete MLP versus15.382169ms for compiled
+native:1.76% faster. At the former16384x2shape FP8 was0.485% slower. This is a
+component result, not a full-model speed or BPB result. All original records
+remain; the shape dependence is measured rather than extrapolated.
+
+The next prepared producer computes the same calibration and writes both packed
+orientations from each quantized tile, eliminating the BF16 HBM transpose and
+second quantization. A resident variant retains at most8MiB of BF16 weights in
+SBUF per physical core. Both cores repeat the global maximum before writing
+disjoint packed row blocks; that duplicated work is charged. It must match all
+CPU metadata/QDQ/layout references and exact complete gradients. The prior
+compiled producer and compiled native control remain in the comparison.
 
 The following ideas from the retro-computing search have already reached device
 experiments. This distinguishes a negative measured layout from an untested idea.
