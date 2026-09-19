@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 13:17 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 13:23 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
 ## Matched width1152 evaluation and FP8 consumer comparison — CURRENT
@@ -20,11 +20,16 @@ Use current manifests/postflights before dispatch; do not restart completed jobs
   all11 independent cases including32768tokens, exact retained tensors and
   master gradients, cached/uncached real-Linear widths256/1024, accumulation,
   row/padding independence and native evaluation/restore. Summary preserved.
-- trn22 ACTIVE `fs-w147-full-fp8-resident-phase-r1`, sourceac4f789,
-  guard1802422, started13:07:21.371880, clean preflight. First warmup436.598s.
-  NEXT only after command0/clean/four postchecks: prepared
-  `fs-w147-full-fp8-streamed-phase-r1.request.json` on the same immutable source.
-  The request itself verifies those prerequisites. No whole-model stream result.
+- trn22 resident compact phase COMPLETE/clean13:20:28.440699, all four model
+  postchecks. Median562.968046ms, source145 repeat differs only0.012%; final
+  diagnostic loss identical5.120891094207764. Summary and raw log preserved.
+- trn22 ACTIVE `fs-w147-full-fp8-streamed-phase-r1`, sourceac4f789,
+  guard1808156, started13:22:11.276554, clean preflight. The request verified
+  all independent/real-Linear gates and resident clean/four postchecks before
+  starting5warmups+30timed full-model updates. No stream speed result yet.
+  NEXT after complete result/four checks/clean postflight: compare same-source
+  resident timing. If promising, a new native control precedes any quality
+  trial; otherwise inspect the separately documented output-layout hypothesis.
 - Both prior90-minute watchers expired normally while the session was idle;
   new trn21=146/trn22=147 watchers started around13:09,90rounds/45s each.
   No existing remote device job was interrupted. Cron continued preserving
@@ -36,9 +41,12 @@ Use current manifests/postflights before dispatch; do not restart completed jobs
   corpus metadata,20K-training-document structure audit, active package
   metadata and historical count-mixer/startup rulings are checked. New priors
   are design/feasibility candidates, not implemented submission changes.
-- Source41e1990 and snapshot983538f9 pushed/ref-verified09:51:45. Current
-  completed results, preserved checkpoint receipts and research notes need
-  the next source commit/push. Frozen train.py/prepare.py/submission hashes
+  Hierarchical output factorization adds a training-cost interpretation of
+  vocabulary organization; CPU normalization/routing feasibility comes first.
+- Sourcef91367db and snapshot2ffed9c3 pushed/ref-verified13:18:21, including
+  width checkpoint receipts, source147 correctness and new research/audit.
+  Resident completion and stream dispatch need the next source commit/push.
+  Frozen train.py/prepare.py/submission hashes
   were rechecked unchanged13:16. No competition submission.
 
 ## Width1152 quality and streamed FP8 correctness active — 09:51 UTC

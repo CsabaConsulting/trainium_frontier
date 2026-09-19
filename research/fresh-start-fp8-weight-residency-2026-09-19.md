@@ -1,13 +1,15 @@
 # FP8 packed-weight residency experiment
 
-Updated2026-09-19 13:17UTC; hardware correctness gates PASS, speed pending.
+Updated2026-09-19 13:23UTC; hardware correctness gates PASS, streamed speed pending.
 Default OFF. The source145 native/legacy/compact comparison is complete and
 clean:488.702/568.354/562.902ms. Source147ac4f789 is deployed on trn22;
 `fs-w147-fp8-streamed-weight-gates-r1` started09:50:09 with clean preflight.
 It completed clean09:59:18 with all11 cases including32768tokens and both
 real-Linear widths/cache/master/restore gates. The same-source resident
-compact whole-model control started13:07:21, clean preflight. Streamed compact
-follows only after command0/clean and four model postchecks.
+compact whole-model control completed clean13:20:28, command0 and all four
+model postchecks. Median562.968046ms, within0.012% of source145 compact,
+with identical diagnostic loss5.120891094207764. Streamed compact is ACTIVE,
+guard1808156, started13:22:11.276554 after clean preflight and explicit gates.
 
 The complete FP8 MLP has a small isolated advantage but the source140 full
 model loses16.04%. Matched caller identities put most of the added device time

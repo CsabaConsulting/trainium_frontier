@@ -30,8 +30,10 @@ cost to a specific projection or proving its cause. The next controls remain:
 
 1. Finish same-source resident/streamed packed-weight consumers. Source147's
    eleven independent cases and real-Linear lifecycle checks PASS, clean
-   09:59:18UTC. The resident whole-model control started13:07:21UTC; streamed
-   follows only after clean completion and all four numerical postchecks.
+   09:59:18UTC. The resident whole-model control completed clean13:20:28UTC,
+   all four numerical postchecks:562.968ms, reproducing source145 within0.012%
+   with identical final diagnostic loss. The streamed comparison started
+   13:22:11UTC with clean preflight after checking every prerequisite.
 2. Test the separately documented output-layout boundary if required. Attribute
    changes with a caller profile only after an unprofiled whole-step improvement
    or a result that meaningfully distinguishes the memory/layout hypotheses.
@@ -183,6 +185,42 @@ gain. Its narrow ASCII seam rule and empirical falsification checks are recorded
 in `fresh-start-deep-research-2026-09-18.md`. That small result motivates careful
 coverage and probability-mass measurement before implementing another mask.
 
+## A training-time interpretation of vocabulary organization
+
+A separate architectural candidate is a hierarchical/adaptive output head over
+the same8192 token IDs. Predict a cluster and then a token conditional on that
+cluster: `p(token|x) = p(cluster(token)|x) * p(token|cluster(token),x)`.
+During training, only the target's conditional head is required to compute its
+exact loss under this **new model**. At evaluation, expand every cluster into
+all8192 normalized log probabilities, in the original token order, for the
+unchanged trusted scorer. This is not speculative decoding and does not
+preserve the current flat-head model's probabilities or promise equal quality.
+
+The [original adaptive-softmax paper](https://arxiv.org/abs/1609.04309) uses
+frequency-dependent output clusters to reduce large-vocabulary training cost.
+[PyTorch's API documentation](https://docs.pytorch.org/docs/2.14/generated/torch.nn.AdaptiveLogSoftmaxWithLoss.html)
+describes target-selected clusters and a full `log_prob` interface. This is a
+concept reference, not evidence that the installed torch2.11/Neuron compiler
+supports its dynamic implementation. No new package is needed to express the
+factorization, but a Neuron-efficient implementation would need separate work.
+
+This hypothesis has several reasons to fail here:8192 is a small vocabulary,
+the current dense head is efficient, routing/bucketing/padding can erase the
+saved GEMMs, and lower-rank rare-token heads can reduce capacity. Computing all
+conditional heads for all training tokens would also sacrifice much of the
+proposed saving. The output head's measured whole-step share bounds the total
+return; component FLOP counts alone do not justify implementation or a run.
+
+Bounded feasibility plan: first audit current output-head cost, allowed-data
+token frequencies and static routing shapes. Charge any corpus-derived cluster
+construction; do not precompute it in the excluded startup window. Check a CPU
+reference's normalization, original-ID mapping, exact target loss/gradients,
+causality and full-support expansion. Advance to a device prototype only if
+static shapes predict a meaningful whole-step saving after routing overhead,
+then require timed full-model and held-out-quality tests. Search of current
+research/article Markdown found no earlier adaptive-softmax experiment, but
+that is not a proof that every older branch/log was covered. Design only.
+
 ## Bounded next steps
 
 - Keep the streamed/resident FP8 whole-model comparison and matched width1152
@@ -198,3 +236,6 @@ coverage and probability-mass measurement before implementing another mask.
 - Advance a prior only for meaningful held-out CE/BPB improvement after its
   runtime and construction costs. Keep the historical count mixer and hard
   dictionary restriction out of the main training queue in their tested forms.
+- Keep hierarchical output factorization as a separate feasibility candidate;
+  it translates vocabulary organization into possible training savings without
+  relying on a generation loop. It does not displace the active FP8 controls.

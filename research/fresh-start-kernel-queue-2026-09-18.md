@@ -1,6 +1,6 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19 13:17 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19 13:23 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
@@ -52,8 +52,9 @@ No FP8 speed/BPB promotion.
    capacity revisit note; old generic ownership costs are not trustworthy at new widths.
 4. Optional packed-weight-group streaming is deployed on trn22 source147 and
    its bounded correctness gate PASSES all11 cases and both real-Linear widths,
-   clean09:59:18. Resident compact whole-model control is ACTIVE; streamed
-   compact follows after clean completion/four model checks.
+   clean09:59:18. Resident compact whole-model control is clean/four checks,
+   median562.968ms, consistent with source145. Streamed compact is ACTIVE
+   since13:22:11 after clean preflight and explicit prerequisite verification.
    Its source-level weight
    footprint falls8MiB to2.5MiB, with repeated HBM reads/sequential group costs.
    Actual caller allocation/speed remain pending; see
@@ -69,6 +70,12 @@ No FP8 speed/BPB promotion.
    and parallel-block trials. Preserve three Parameters/Muon states and the
    contiguous RoPE fast path. The source audit and bounded gates are in
    `fresh-start-serial-qkv-revisit-2026-09-19.md`; implementation is queued.
+8. Vocabulary/grammar ideas have bounded feasibility plans in the structured
+   priors note: prefix-only soft syntax/copy priors and hierarchical output
+   factorization for training. Their scope differs from generation-only
+   speculation. Completed20K-document training audit suggests labelled Python
+   is sparse; historical count-mixer gains were small. No new prior/head code
+   or quality claim; do not replace active kernel controls with blind runs.
 
 Compiler scratch archives now have a staged preservation/retirement procedure,
 so disk reserve does not repeatedly interrupt these comparisons. Every original
