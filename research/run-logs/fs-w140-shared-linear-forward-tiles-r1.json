@@ -1,0 +1,531 @@
+{
+  "source_sha256": "0b45e914dd73509257843d0a4bcab56874e8a0e75738d56e96b90e7c9a36bfcb",
+  "opcode_analysis_sha256": "5ebd3d85e4af3fe2b00b8c26ece30325a3f346252377fc629522e89bcdf21578",
+  "arms": {
+    "native": {
+      "execution": {
+        "execution_index": 1,
+        "neff_name": "d50c3dfb10d35b273ecc511cc048dd3a.neff",
+        "execution_start_ts": 10649552,
+        "execution_end_ts": 147806109,
+        "num_subgraphs": 2,
+        "row_count": 39031866,
+        "runtime_name": "model_default",
+        "nrt_sequence_id": 281474976718143,
+        "logical_cache_key": "7c545a1e32cf4f3c038bcb0e8351831969228d15a904da1d5a4acbb2fa80df93:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+        "enclosing_annotation": "fresh_start_single_forward_backward_microstep",
+        "device_wall_ms": 137.156557
+      },
+      "instruction_sha256": "752607700c5bc773b76ca0daead4d952a2e46837ef75f1fb3cd225239b6469ac",
+      "groups": {
+        "(16777216, 16777216)": {
+          "count": 54855,
+          "start_min_ns": 14659554,
+          "end_max_ns": 141077748,
+          "duration_sum_ns": 23069710,
+          "operand_patterns": {
+            " acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 48561,
+            "S[5] (Tensor)++@complete acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 6292,
+            "S[6] (Vector)>=12385 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 2
+          },
+          "bins_10ms": {
+            "0": 3568,
+            "1": 4029,
+            "2": 3823,
+            "3": 2064,
+            "4": 3867,
+            "5": 3720,
+            "6": 4527,
+            "7": 3520,
+            "8": 3692,
+            "9": 3895,
+            "10": 3951,
+            "11": 4056,
+            "12": 8404,
+            "13": 1739
+          },
+          "examples": [
+            {
+              "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave140/train.py:2853",
+              "start_ts": 14659554,
+              "end_ts": 14660188,
+              "raw_flops": 16777216,
+              "adjusted_flops": 16777216,
+              "operands": " acc_flags=1 src=bfloat16@0x4000[1,0,0][512,1,1] dst=0x2000800[1,0,0][512,1,1] 128*128 debugHint=1"
+            },
+            {
+              "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave140/train.py:2853",
+              "start_ts": 14659980,
+              "end_ts": 14660614,
+              "raw_flops": 16777216,
+              "adjusted_flops": 16777216,
+              "operands": " acc_flags=1 src=bfloat16@0x4000[1,0,0][512,1,1] dst=0x2000000[1,0,0][512,1,1] 128*128 debugHint=1"
+            }
+          ]
+        },
+        "(262144, 262144)": {
+          "count": 96,
+          "start_min_ns": 39663261,
+          "end_max_ns": 124483022,
+          "duration_sum_ns": 44384,
+          "operand_patterns": {
+            "S[5] (Tensor)++@complete acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 32*8 debugHint=1": 86,
+            " acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 32*8 debugHint=1": 9,
+            "S[6] (Vector)>=2481 S[5] (Tensor)++@complete acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 32*8 debugHint=1": 1
+          },
+          "bins_10ms": {
+            "2": 32,
+            "6": 10,
+            "7": 22,
+            "11": 32
+          },
+          "examples": [
+            {
+              "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave140/train.py:2853",
+              "start_ts": 39663261,
+              "end_ts": 39663850,
+              "raw_flops": 262144,
+              "adjusted_flops": 262144,
+              "operands": "S[5] (Tensor)++@complete acc_flags=3 src=bfloat16@0xb980[1,0,0][512,1,1] dst=0x2000000[1,0,0][512,1,1] 32*8 debugHint=1"
+            },
+            {
+              "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave140/train.py:2853",
+              "start_ts": 39663646,
+              "end_ts": 39664277,
+              "raw_flops": 262144,
+              "adjusted_flops": 262144,
+              "operands": "S[5] (Tensor)++@complete acc_flags=3 src=bfloat16@0xbd80[1,0,0][512,1,1] dst=0x2000800[1,0,0][512,1,1] 32*8 debugHint=1"
+            }
+          ]
+        },
+        "(4194304, 4194304)": {
+          "count": 71,
+          "start_min_ns": 61095590,
+          "end_max_ns": 139333298,
+          "duration_sum_ns": 17275,
+          "operand_patterns": {
+            " acc_flags=<value> src=bfloat16@<address>[1,0,0][128,1,1] dst=<address>[1,0,0][128,1,1] 128*128 debugHint=1": 61,
+            "S[5] (Tensor)++@complete acc_flags=<value> src=bfloat16@<address>[1,0,0][128,1,1] dst=<address>[1,0,0][128,1,1] 128*128 debugHint=1": 10
+          },
+          "bins_10ms": {
+            "5": 7,
+            "6": 20,
+            "9": 7,
+            "10": 20,
+            "12": 17
+          },
+          "examples": [
+            {
+              "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave140/train.py:2853",
+              "start_ts": 61095590,
+              "end_ts": 61095809,
+              "raw_flops": 4194304,
+              "adjusted_flops": 4194304,
+              "operands": " acc_flags=3 src=bfloat16@0x29c00[1,0,0][128,1,1] dst=0x2002b00[1,0,0][128,1,1] 128*128 debugHint=1"
+            },
+            {
+              "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave140/train.py:2853",
+              "start_ts": 61095981,
+              "end_ts": 61096200,
+              "raw_flops": 4194304,
+              "adjusted_flops": 4194304,
+              "operands": " acc_flags=3 src=bfloat16@0x29c00[1,0,0][128,1,1] dst=0x2002200[1,0,0][128,1,1] 128*128 debugHint=1"
+            }
+          ]
+        },
+        "(2097152, 8388608)": {
+          "count": 29,
+          "start_min_ns": 73843440,
+          "end_max_ns": 139305157,
+          "duration_sum_ns": 9600,
+          "operand_patterns": {
+            " acc_flags=<value> src=fp32@<address>[1,0,0][128,1,1] dst=<address>[1,0,0][128,1,1] 128*128 debugHint=1": 25,
+            "S[5] (Tensor)++@complete acc_flags=<value> src=fp32@<address>[1,0,0][128,1,1] dst=<address>[1,0,0][128,1,1] 128*128 debugHint=1": 4
+          },
+          "bins_10ms": {
+            "6": 1,
+            "10": 1,
+            "12": 27
+          },
+          "examples": [
+            {
+              "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave140/train.py:2853",
+              "start_ts": 73843440,
+              "end_ts": 73843743,
+              "raw_flops": 2097152,
+              "adjusted_flops": 8388608,
+              "operands": " acc_flags=3 src=fp32@0x29d00[1,0,0][128,1,1] dst=0x2001800[1,0,0][128,1,1] 128*128 debugHint=1"
+            },
+            {
+              "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave140/train.py:2853",
+              "start_ts": 115683642,
+              "end_ts": 115683945,
+              "raw_flops": 2097152,
+              "adjusted_flops": 8388608,
+              "operands": " acc_flags=3 src=fp32@0x29d00[1,0,0][128,1,1] dst=0x2001800[1,0,0][128,1,1] 128*128 debugHint=1"
+            }
+          ]
+        },
+        "(65536, 262144)": {
+          "count": 8,
+          "start_min_ns": 138331301,
+          "end_max_ns": 138701409,
+          "duration_sum_ns": 6261,
+          "operand_patterns": {
+            " acc_flags=<value> src=fp32@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*1 debugHint=1": 5,
+            "S[5] (Tensor)++@complete acc_flags=<value> src=fp32@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*1 debugHint=1": 1,
+            " acc_flags=<value> src=fp32@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 1*128 debugHint=1": 1,
+            "S[5] (Tensor)++@complete acc_flags=<value> src=fp32@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 1*128 debugHint=1": 1
+          },
+          "bins_10ms": {
+            "12": 8
+          },
+          "examples": [
+            {
+              "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave140/train.py:2853",
+              "start_ts": 138331301,
+              "end_ts": 138332362,
+              "raw_flops": 65536,
+              "adjusted_flops": 262144,
+              "operands": " acc_flags=0 src=fp32@0xcc08[1,0,0][512,1,1] dst=0x2000000[1,0,0][512,1,1] 128*1 debugHint=1"
+            },
+            {
+              "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave140/train.py:2853",
+              "start_ts": 138332154,
+              "end_ts": 138332971,
+              "raw_flops": 65536,
+              "adjusted_flops": 262144,
+              "operands": " acc_flags=0 src=fp32@0xcc08[1,0,0][512,1,1] dst=0x2000000[1,0,0][512,1,1] 128*1 debugHint=1"
+            }
+          ]
+        }
+      },
+      "warnings": [
+        {
+          "message": "Notification from block DMA of type DMA were dropped. This can cause corresponding data to be incorrect.",
+          "category": "Missing Data"
+        },
+        {
+          "message": "Current NEFF is missing compiler metrics. Please re-compile using latest version of the compiler",
+          "category": "Missing Data"
+        },
+        {
+          "message": "Missing HLO stats in the NEFF, `model_flops` and `mfu_hlo_estimated_percent` summary metrics will not be available. Consider the metrics (hardware_flops - transpose_flops) and mfu_inst_estimated_percent instead.",
+          "category": "Missing Data"
+        },
+        {
+          "message": "Missing additional dynamic DMA metadata, reported DMA values may be inaccurate. To enable more accurate DMA data, re-capture with --enable-dge-notifs flag or set NEURON_RT_ENABLE_DGE_NOTIFICATIONS=1 before running. Note: DGE notifications are disabled by default as they can cause execution timeouts on some models.",
+          "category": "Missing Data"
+        }
+      ]
+    },
+    "full_fp8": {
+      "execution": {
+        "execution_index": 1,
+        "neff_name": "07cb374ff502fce50009abcb47b64f32.neff",
+        "execution_start_ts": 12987690,
+        "execution_end_ts": 222735997,
+        "num_subgraphs": 2,
+        "row_count": 55671802,
+        "runtime_name": "model_default",
+        "nrt_sequence_id": 281474976718155,
+        "logical_cache_key": "1b0c47193797d990704045c3177f4bd4275cc34016915926d809fd013f7a6357:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+        "enclosing_annotation": "fresh_start_single_forward_backward_microstep",
+        "device_wall_ms": 209.748307
+      },
+      "instruction_sha256": "5fa8b0cc96b9e0d7bcf059539a60bcb7ae18174adfa432dcb0186b103e09528f",
+      "groups": {
+        "(16777216, 16777216)": {
+          "count": 43671,
+          "start_min_ns": 15063358,
+          "end_max_ns": 215354056,
+          "duration_sum_ns": 18813567,
+          "operand_patterns": {
+            " acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 38083,
+            "S[5] (Tensor)++@complete acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 5546,
+            "S[6] (Vector)>=9358 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 1,
+            "S[6] (Vector)>=9391 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 1,
+            "S[6] (Vector)>=9463 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 1,
+            "S[6] (Vector)>=9478 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 1,
+            "S[6] (Vector)>=9517 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 1,
+            "S[6] (Vector)>=9590 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 1,
+            "S[6] (Vector)>=9643 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 1,
+            "S[6] (Vector)>=9729 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 1,
+            "S[4] (Scalar)>=5170 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 1,
+            "S[4] (Scalar)>=5209 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 1,
+            "S[4] (Scalar)>=5242 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 1,
+            "S[6] (Vector)>=16475 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 1,
+            "S[4] (Scalar)>=10149 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 1,
+            "S[6] (Vector)>=16511 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 1,
+            "S[6] (Vector)>=16513 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 1,
+            "S[4] (Scalar)>=10152 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 1,
+            "S[4] (Scalar)>=10154 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 1,
+            "S[6] (Vector)>=16549 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 1,
+            "S[6] (Vector)>=16556 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 1,
+            "S[6] (Vector)>=16587 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 1,
+            "S[4] (Scalar)>=10162 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 1,
+            "S[6] (Vector)>=16621 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 1,
+            "S[4] (Scalar)>=10166 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 1,
+            "S[6] (Vector)>=7084 S[5] (Tensor)++@complete acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 1,
+            "S[6] (Vector)>=7108 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 1,
+            "S[4] (Scalar)>=3986 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 1,
+            "S[6] (Vector)>=49346 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 2,
+            "S[6] (Vector)>=49393 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 2,
+            "S[4] (Scalar)>=31895 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 2,
+            "S[6] (Vector)>=49473 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 2,
+            "S[4] (Scalar)>=31899 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 2,
+            "S[6] (Vector)>=49504 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 2,
+            "S[6] (Vector)>=49507 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 2,
+            "S[6] (Vector)>=49515 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 2
+          },
+          "bins_10ms": {
+            "0": 4692,
+            "1": 1671,
+            "2": 4599,
+            "3": 1696,
+            "4": 2048,
+            "5": 4096,
+            "11": 2048,
+            "12": 4096,
+            "13": 2048,
+            "18": 2048,
+            "19": 7802,
+            "20": 6827
+          },
+          "examples": [
+            {
+              "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave140/train.py:2853",
+              "start_ts": 15063358,
+              "end_ts": 15063965,
+              "raw_flops": 16777216,
+              "adjusted_flops": 16777216,
+              "operands": " acc_flags=1 src=bfloat16@0x13000[1,0,0][512,1,1] dst=0x2002000[1,0,0][512,1,1] 128*128 debugHint=1"
+            },
+            {
+              "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave140/train.py:2853",
+              "start_ts": 15063757,
+              "end_ts": 15064391,
+              "raw_flops": 16777216,
+              "adjusted_flops": 16777216,
+              "operands": " acc_flags=0 src=bfloat16@0x13400[1,0,0][512,1,1] dst=0x2002000[1,0,0][512,1,1] 128*128 debugHint=1"
+            }
+          ]
+        },
+        "(262144, 262144)": {
+          "count": 87,
+          "start_min_ns": 40823527,
+          "end_max_ns": 197309547,
+          "duration_sum_ns": 79129,
+          "operand_patterns": {
+            "S[5] (Tensor)++@complete acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 32*8 debugHint=1": 17,
+            " acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 32*8 debugHint=1": 5,
+            "S[6] (Vector)>=2451 acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 32*8 debugHint=1": 1,
+            "S[5] (Tensor)++@complete acc_flags=<value> src=bfloat16@<address>[32,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 32*8 debugHint=1": 64
+          },
+          "bins_10ms": {
+            "2": 23,
+            "9": 11,
+            "10": 21,
+            "17": 18,
+            "18": 14
+          },
+          "examples": [
+            {
+              "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave140/train.py:2853",
+              "start_ts": 40823527,
+              "end_ts": 40824116,
+              "raw_flops": 262144,
+              "adjusted_flops": 262144,
+              "operands": "S[5] (Tensor)++@complete acc_flags=3 src=bfloat16@0xb998[1,0,0][512,1,1] dst=0x2000000[1,0,0][512,1,1] 32*8 debugHint=1"
+            },
+            {
+              "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave140/train.py:2853",
+              "start_ts": 40823909,
+              "end_ts": 40824543,
+              "raw_flops": 262144,
+              "adjusted_flops": 262144,
+              "operands": "S[5] (Tensor)++@complete acc_flags=3 src=bfloat16@0xbd98[1,0,0][512,1,1] dst=0x2001000[1,0,0][512,1,1] 32*8 debugHint=1"
+            }
+          ]
+        },
+        "(4194304, 4194304)": {
+          "count": 65934,
+          "start_min_ns": 42326591,
+          "end_max_ns": 203926254,
+          "duration_sum_ns": 44472869,
+          "operand_patterns": {
+            "S[5] (Tensor)++@complete acc_flags=<value> src=bfloat16@<address>[1,0,0][128,1,1] dst=<address>[1,0,0][128,1,1] 128*128 debugHint=1": 84,
+            " acc_flags=<value> src=bfloat16@<address>[1,0,0][128,1,1] dst=<address>[1,0,0][128,1,1] 128*128 debugHint=1": 314,
+            " acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*32 debugHint=1": 14322,
+            "S[5] (Tensor)++@complete acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 128*32 debugHint=1": 2062,
+            " acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 32*128 debugHint=1": 29698,
+            "S[5] (Tensor)++@complete acc_flags=<value> src=bfloat16@<address>[1,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 32*128 debugHint=1": 3070,
+            " acc_flags=<value> src=bfloat16@<address>[32,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 32*128 debugHint=1": 15796,
+            "S[5] (Tensor)++@complete acc_flags=<value> src=bfloat16@<address>[32,0,0][512,1,1] dst=<address>[1,0,0][512,1,1] 32*128 debugHint=1": 588
+          },
+          "bins_10ms": {
+            "2": 121,
+            "3": 268,
+            "5": 512,
+            "6": 7680,
+            "7": 6753,
+            "8": 6559,
+            "9": 5831,
+            "10": 5433,
+            "13": 3840,
+            "14": 5376,
+            "15": 7168,
+            "16": 6788,
+            "17": 5879,
+            "18": 3717,
+            "19": 9
+          },
+          "examples": [
+            {
+              "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave140/train.py:2853",
+              "start_ts": 42326591,
+              "end_ts": 42326857,
+              "raw_flops": 4194304,
+              "adjusted_flops": 4194304,
+              "operands": "S[5] (Tensor)++@complete acc_flags=3 src=bfloat16@0x1d000[1,0,0][128,1,1] dst=0x2000000[1,0,0][128,1,1] 128*128 debugHint=1"
+            },
+            {
+              "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave140/train.py:2853",
+              "start_ts": 42341815,
+              "end_ts": 42342129,
+              "raw_flops": 4194304,
+              "adjusted_flops": 4194304,
+              "operands": " acc_flags=1 src=bfloat16@0x1d000[1,0,0][128,1,1] dst=0x2001800[1,0,0][128,1,1] 128*128 debugHint=1"
+            }
+          ]
+        },
+        "(2097152, 8388608)": {
+          "count": 2,
+          "start_min_ns": 203682242,
+          "end_max_ns": 203737397,
+          "duration_sum_ns": 779,
+          "operand_patterns": {
+            " acc_flags=<value> src=fp32@<address>[1,0,0][128,1,1] dst=<address>[1,0,0][128,1,1] 128*128 debugHint=1": 2
+          },
+          "bins_10ms": {
+            "19": 2
+          },
+          "examples": [
+            {
+              "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave140/train.py:2853",
+              "start_ts": 203682242,
+              "end_ts": 203682548,
+              "raw_flops": 2097152,
+              "adjusted_flops": 8388608,
+              "operands": " acc_flags=3 src=fp32@0x27d00[1,0,0][128,1,1] dst=0x2000000[1,0,0][128,1,1] 128*128 debugHint=1"
+            },
+            {
+              "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave140/train.py:2853",
+              "start_ts": 203736924,
+              "end_ts": 203737397,
+              "raw_flops": 2097152,
+              "adjusted_flops": 8388608,
+              "operands": " acc_flags=3 src=fp32@0x27d00[1,0,0][128,1,1] dst=0x2003000[1,0,0][128,1,1] 128*128 debugHint=1"
+            }
+          ]
+        },
+        "(4194304, 2097152)": {
+          "count": 18,
+          "start_min_ns": 205056898,
+          "end_max_ns": 210172180,
+          "duration_sum_ns": 5116,
+          "operand_patterns": {
+            "S[5] (Tensor)++@complete acc_flags=<value> src=fp8_exp4@<address>[1,0,0][128,1,1] dst=<address>[1,0,0][128,1,1] 128*128 debugHint=1": 18
+          },
+          "bins_10ms": {
+            "19": 18
+          },
+          "examples": [
+            {
+              "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave140/train.py:2853",
+              "start_ts": 205056898,
+              "end_ts": 205057209,
+              "raw_flops": 4194304,
+              "adjusted_flops": 2097152,
+              "operands": "S[5] (Tensor)++@complete acc_flags=1 src=fp8_exp4@0x9410[1,0,0][128,1,1] dst=0x2001000[1,0,0][128,1,1] 128*128 debugHint=1"
+            },
+            {
+              "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave140/train.py:2853",
+              "start_ts": 205364530,
+              "end_ts": 205364819,
+              "raw_flops": 4194304,
+              "adjusted_flops": 2097152,
+              "operands": "S[5] (Tensor)++@complete acc_flags=1 src=fp8_exp4@0x9410[1,0,0][128,1,1] dst=0x2003800[1,0,0][128,1,1] 128*128 debugHint=1"
+            }
+          ]
+        },
+        "(33554432, 16777216)": {
+          "count": 39,
+          "start_min_ns": 205057906,
+          "end_max_ns": 206175927,
+          "duration_sum_ns": 16599,
+          "operand_patterns": {
+            " acc_flags=<value> src=fp8_exp4@<address>[1,0,512][512,1,2] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 37,
+            "S[5] (Tensor)++@complete acc_flags=<value> src=fp8_exp4@<address>[1,0,512][512,1,2] dst=<address>[1,0,0][512,1,1] 128*128 debugHint=1": 2
+          },
+          "bins_10ms": {
+            "19": 39
+          },
+          "examples": [
+            {
+              "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave140/train.py:2853",
+              "start_ts": 205057906,
+              "end_ts": 205058540,
+              "raw_flops": 33554432,
+              "adjusted_flops": 16777216,
+              "operands": " acc_flags=0 src=fp8_exp4@0x307f8[1,0,512][512,1,2] dst=0x2001800[1,0,0][512,1,1] 128*128 debugHint=1"
+            },
+            {
+              "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave140/train.py:2853",
+              "start_ts": 205059186,
+              "end_ts": 205059800,
+              "raw_flops": 33554432,
+              "adjusted_flops": 16777216,
+              "operands": " acc_flags=0 src=fp8_exp4@0x313f8[1,0,512][512,1,2] dst=0x2001800[1,0,0][512,1,1] 128*128 debugHint=1"
+            }
+          ]
+        }
+      },
+      "warnings": [
+        {
+          "message": "Notification from block NC of type EVENT were dropped. This can cause corresponding data to be incorrect.",
+          "category": "Missing Data"
+        },
+        {
+          "message": "Notification from block DMA of type DMA were dropped. This can cause corresponding data to be incorrect.",
+          "category": "Missing Data"
+        },
+        {
+          "message": "Current NEFF is missing compiler metrics. Please re-compile using latest version of the compiler",
+          "category": "Missing Data"
+        },
+        {
+          "message": "Missing HLO stats in the NEFF, `model_flops` and `mfu_hlo_estimated_percent` summary metrics will not be available. Consider the metrics (hardware_flops - transpose_flops) and mfu_inst_estimated_percent instead.",
+          "category": "Missing Data"
+        },
+        {
+          "message": "Missing additional dynamic DMA metadata, reported DMA values may be inaccurate. To enable more accurate DMA data, re-capture with --enable-dge-notifs flag or set NEURON_RT_ENABLE_DGE_NOTIFICATIONS=1 before running. Note: DGE notifications are disabled by default as they can cause execution timeouts on some models.",
+          "category": "Missing Data"
+        },
+        {
+          "message": "Schema validation: Unexpected key 'subgraph' cannot be saved to table 'TimelineAnnotation' because no schema.yaml entry exists or no key name remapping. This key and value will be dropped and not found in parquet output.",
+          "category": "Schema Validation"
+        }
+      ]
+    }
+  },
+  "caveats": [
+    "Shared Linear source attribution does not identify QKV, head, or a specific layer.",
+    "Source attribution and metadata can be incomplete; preserve all capture warnings.",
+    "Activity unions overlap and are not additive wall-time shares.",
+    "FP8 capture dropped EVENT/DMA notifications; native capture dropped DMA notifications.",
+    "This is attribution, not a performance comparison or proof of allocator causality.",
+    "Operand geometry strings are observations, not an inferred layer identity.",
+    "Counts/durations can be incomplete; time bins are not wall-time shares."
+  ]
+}

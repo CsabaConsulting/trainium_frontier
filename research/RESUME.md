@@ -1,7 +1,47 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 09:29 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 09:39 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
+
+## Compact FP8 and width1152 phases active — CURRENT
+
+- trn22 source145 legacy full-FP8 phase COMPLETE/clean09:34:54.637342:
+  median568.353812ms, FW/BW509.880698ms, cache refresh5.257469ms,
+  last loss5.120891094207764, all four numerical postchecks pass.
+  Same-host native control488.702096ms; this reproduces the ~16.3% regression.
+- trn22 ACTIVE `fs-w145-full-fp8-compact-phase-r1`, guard1766041, started
+  09:36:11.069769, clean preflight, source63f6cce. Wait for its complete30-step
+  result/four postchecks and clean postflight. Summarize all three source145 arms.
+- trn21 ACTIVE `fs-w146-native-width1152-phase-r1`, guard1436331, started
+  09:31:17.262621, clean preflight, source1c70da11. First warmup398.277s.
+  NEXT after command0/clean/four model checks and phase median <=700ms:
+  `fs-w146-dense1152-context1024-pack32-owned-ce-1800-r1.request.json`.
+  This is one fixed-seed capacity trial, intentionally allowing a slower larger
+  model. Its wrapper enforces prerequisites. Production training keeps winning
+  clip-after-reduce; the diagnostic phase clips before reduction.
+- trn21 maintenance-r2 COMPLETE/clean09:31:00.495730:6,277 original files,
+  17,182,348,355bytes were archive/hash/cloud verified before retirement.
+  Free disk15.176GB ->32.406GB. Local archive711,686,967bytes; cloud payload
+  581,728,416bytes verified09:30:15. Shared caches/newer work remain.
+- Prepared source147 is `ac4f7899a17904591f9a02d1a30fcd4017fc79e9`, not current
+  HEAD. `out/fresh-start-wave147.bundle` and `out/deploy-wave147.py trn22` are
+  ready; NOT deployed. Finish source145 compact comparison before deployment.
+  Its next numerical request is
+  `fs-w147-fp8-streamed-weight-gates-r1.request.json` (1800s bound, exact compact
+  resident/original outputs, all four products/real-Linear lifecycle checks).
+  Do not launch a streamed full model before these gates pass.
+- Local hash-verified opcode/operand analysis finds changed ordinary-Linear
+  TensorEngine geometry in source140 FP8 forward:16,384 observed128x32 and
+  49,152 observed32x128 BF16 operations with512 free elements, versus mostly
+  128x128 in native. This is a tiling/layout lead, not a layer identification
+  or proof that weight residency causes it. EVENT/DMA warnings remain.
+  Records: `fs-w140-shared-linear-opcode-attribution-r2.json` and
+  `fs-w140-shared-linear-forward-tiles-r1.json`; analysis code is tracked.
+- Source de6d6805 and snapshot2a942b88 were pushed/ref-verified09:30:00.
+  Current attribution/new results/maintenance completion need the next push.
+- Both raw and both decoded caller datasets are local/cloud verified. Watchers
+  remain trn21=146/trn22=145. Frozen public best0.99285131 and cold replay
+  0.99385567 are unchanged; no new FP8/width BPB or competition submission.
 
 ## Nearby controls complete; legacy FP8 and staged maintenance active — 09:29 UTC
 
@@ -88,7 +128,7 @@ Use current manifests/postflights before dispatch; do not restart completed jobs
   caches, padding and native restore. No timing claim from this job. Check both
   summary gates and clean postflight before a whole-model phase.
 - Source144 caller analyses both COMPLETE/clean: FP8 at08:53:12.272984, native
-  at08:57:06.594962. All33 dispatches plus startup barrier match. Forward device
+  at08:57:06.594962. All runtime dispatches (45native/33FP8) plus each startup barrier match. Forward device
   intervals137.156557(native)/209.748307(FP8)ms; backward272.922323/275.310033ms.
   Same-host unprofiled source140 phase remains authoritative for speed.
 - Retained BF16 writes CONFIRMED:3,013 observed DMA rows at cached kernel

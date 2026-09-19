@@ -48,3 +48,17 @@ the full-step result is promising or contradicts the predicted tradeoff.
 This is distinct from source137's dual-cache producer residency: that kernel
 prepares packed bytes. This experiment changes the consumer's weight lifetime.
 The frozen submission and established BPB remain unchanged.
+
+Earlier BF16 streaming/prepacking trials remain valid negatives: source40–48
+whole models were slower despite passing gates, including a fixed-SBUF variant
+with7.125MiB declared storage. This FP8 experiment is not a claim that streaming
+is untried or guaranteed to cure composition. It tests the current FP8-specific
+consumer and compact-output combination, consistent with ranking layouts in
+the precision in which they will run.
+
+The later source140 operand query found ordinary-Linear BF16 MATMUL geometry
+changing from128x128 to128x32/32x128 with512 free elements for65,536 observed
+operations on one physical core. Shared-source/lost-notification limits prevent
+identifying the layer or establishing a memory cause. If streaming does not
+restore whole-step performance, investigate the opaque kernel output layout
+and actual caller tiling before pursuing another resident-size variant blindly.

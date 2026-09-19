@@ -1,6 +1,6 @@
 # Complete FP8 MLP: component gains and full-model validation
 
-Updated 2026-09-19 09:18 UTC. The original profile below identified online
+Updated 2026-09-19 09:39 UTC. The original profile below identified online
 weight preparation as a concrete cost. Both proposed preparation changes have
 now been implemented and gated; the original profile is retained as evidence.
 
@@ -31,7 +31,8 @@ The dominant gap is therefore inside the model call, not weight preparation.
 This locates the next measurement; it does not yet establish a compiler cause.
 The candidate's postflight failed only the 8 GiB disk reserve after compilation.
 It left no device holders or compiler/training workers. Preserve that failure,
-restore headroom and collect a clean caller diagnostic before further changes.
+Headroom was subsequently restored by verified archive/retirement, and the
+clean caller diagnosis below is complete.
 Records: `run-logs/fs-w140-full-fp8-phase-comparison-r1.json`.
 
 Native and full-FP8 microstep profiles use the same source140, pack32 geometry,
@@ -46,7 +47,8 @@ disk-only postflight failure is retained, with verified archive/retirement
 recovery restoring33.03GB free before ingestion. No bandwidth claim is valid
 from the captures' incomplete dynamic DMA timing metadata. Native ingestion
 also completed clean at08:55:36; its source144 analysis completed clean at08:57:06.
-All33 runtime dispatches and the preserved startup barrier match in both arms.
+All runtime dispatches match their ingested binaries:45 native and33 FP8,
+plus one explicitly matched startup barrier in each arm.
 
 | Instrumented graph interval | Native BF16 | Full FP8 |
 | --- | ---: | ---: |
@@ -61,6 +63,27 @@ and DMA notifications; native reports dropped DMA notifications. Both lack
 dynamic DMA metadata. Do not treat absence of an event as absence of work or
 turn these counters into bandwidth. Unprofiled same-host phase timings remain
 the speed evidence.
+
+A subsequent local opcode/operand query verifies each Instruction parquet
+hash against the source144 authority. On physical core0, shared-Linear forward
+regular-MATMUL activity is14.687885ms native versus45.144209ms FP8; these are
+overlapping instruction unions, not isolated layer wall times. The native trace
+has54,855 observed BF16 operations with16,777,216 FLOPs. The FP8 trace has65,934
+operations with4,194,304 FLOPs:65,536 of these have512 free elements but only
+128x32 or32x128 array geometry, while398 use128 free elements/128x128 geometry.
+The65,536 operations span multiple portions of the graph. This is evidence of
+a different tiling/layout at the shared Linear source line, not a uniquely
+identified head or QKV layer. The64K figure is an observed count, not a complete
+matmul inventory under dropped notifications. Ordinary Linear did not simply
+switch to FP32: both dominant work groups are BF16 in their operand strings and
+installed precision-cost metadata. These findings make the consumer-residency
+and output-layout hypotheses concrete but do not prove either one.
+
+Source145's nearby same-host controls reproduce the performance gap with clean
+postflights: native488.702096ms versus legacy full FP8568.353812ms. The compact
+candidate started09:36:11.069769 and is active. Its11 numerical cases and both
+real-Linear widths already pass. Source147's optional streamed-weight consumer
+is separately prepared, not yet deployed or gated; see the weight-residency note.
 
 The retained-write hypothesis is confirmed by observed instructions:3,013
 `DMA_DIRECT2D` rows cite the BF16 saved-X/saved-hidden stores at lines149/186,

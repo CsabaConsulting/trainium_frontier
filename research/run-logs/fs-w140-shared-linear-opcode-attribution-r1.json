@@ -1,0 +1,3682 @@
+{
+  "analysis_source_sha256": "1292b21f7a2a30bfa8073d993bf3cf707de44d6f9827694943394d2340d38820",
+  "arms": {
+    "native": {
+      "authority": "research/run-logs/fs-w144-native-pack32-caller-analysis-r1.json",
+      "authority_sha256": "a0ec1b01a8acc3f62d38fc6e3873fe0b67fe258ce6995aa14921c088f3eaed58",
+      "instruction_sha256": "752607700c5bc773b76ca0daead4d952a2e46837ef75f1fb3cd225239b6469ac",
+      "graphs": [
+        {
+          "execution": {
+            "execution_index": 1,
+            "neff_name": "d50c3dfb10d35b273ecc511cc048dd3a.neff",
+            "execution_start_ts": 10649552,
+            "execution_end_ts": 147806109,
+            "num_subgraphs": 2,
+            "row_count": 39031866,
+            "runtime_name": "model_default",
+            "nrt_sequence_id": 281474976718143,
+            "logical_cache_key": "7c545a1e32cf4f3c038bcb0e8351831969228d15a904da1d5a4acbb2fa80df93:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+            "enclosing_annotation": "fresh_start_single_forward_backward_microstep",
+            "device_wall_ms": 137.156557
+          },
+          "shared_linear_rows": 252504,
+          "opcode_groups": [
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "opcode": "MATMUL",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 55059,
+              "duration_ns_sum": 23147230,
+              "raw_flops_sum": 920698486784,
+              "adjusted_flops_sum": 920882511872,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Tensor",
+                  "instruction_rows": 55059,
+                  "active_ms": 14.687885
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "opcode": "MATMUL",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 55397,
+              "duration_ns_sum": 23122063,
+              "raw_flops_sum": 924211216384,
+              "adjusted_flops_sum": 924871032832,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Tensor",
+                  "instruction_rows": 55397,
+                  "active_ms": 14.671104
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "opcode": "LDWEIGHTS",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 55378,
+              "duration_ns_sum": 5837780,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Tensor",
+                  "instruction_rows": 55378,
+                  "active_ms": 5.757589
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "opcode": "LDWEIGHTS",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 55022,
+              "duration_ns_sum": 5822829,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Tensor",
+                  "instruction_rows": 55022,
+                  "active_ms": 5.73875
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "opcode": "CAST",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 3725,
+              "duration_ns_sum": 2572020,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Vector",
+                  "instruction_rows": 3725,
+                  "active_ms": 2.54685
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "opcode": "CAST",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 3706,
+              "duration_ns_sum": 2558708,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Vector",
+                  "instruction_rows": 3706,
+                  "active_ms": 2.53368
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "opcode": "COPY",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 2042,
+              "duration_ns_sum": 1413021,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Vector",
+                  "instruction_rows": 2042,
+                  "active_ms": 1.41273
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "opcode": "COPY",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 2042,
+              "duration_ns_sum": 1412959,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Vector",
+                  "instruction_rows": 2042,
+                  "active_ms": 1.412368
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Sync",
+              "opcode": "DMA_DIRECT2D",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 926,
+              "duration_ns_sum": 1047856,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": 152043520,
+              "spill_reload_bytes_sum": 294387712,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Sync",
+                  "instruction_rows": 926,
+                  "active_ms": 1.047856
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Sync",
+              "opcode": "DMA_DIRECT2D",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 928,
+              "duration_ns_sum": 1034779,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": 294649856,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Sync",
+                  "instruction_rows": 928,
+                  "active_ms": 1.034779
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "opcode": "DMA_DIRECT2D",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1042,
+              "duration_ns_sum": 978924,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": 524288,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Scalar",
+                  "instruction_rows": 1042,
+                  "active_ms": 0.978924
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "opcode": "DMA_DIRECT2D",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1020,
+              "duration_ns_sum": 931505,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": 538771456,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Scalar",
+                  "instruction_rows": 1020,
+                  "active_ms": 0.931505
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "opcode": "DMA_DIRECT2D",
+              "tensor_instruction_type": "SPILL",
+              "start_ts_count": 632,
+              "duration_ns_sum": 705610,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": 293339136,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Scalar",
+                  "instruction_rows": 632,
+                  "active_ms": 0.70561
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "opcode": "DMA_DIRECT2D",
+              "tensor_instruction_type": "SPILL",
+              "start_ts_count": 632,
+              "duration_ns_sum": 391760,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": 293339136,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Scalar",
+                  "instruction_rows": 632,
+                  "active_ms": 0.39176
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "opcode": "TENSOR_TENSOR",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 518,
+              "duration_ns_sum": 354406,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Vector",
+                  "instruction_rows": 518,
+                  "active_ms": 0.344141
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "opcode": "TENSOR_TENSOR",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 512,
+              "duration_ns_sum": 350146,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Vector",
+                  "instruction_rows": 512,
+                  "active_ms": 0.339607
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "opcode": "CAST",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 383,
+              "duration_ns_sum": 224292,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Scalar",
+                  "instruction_rows": 383,
+                  "active_ms": 0.222805
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "opcode": "CAST",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 367,
+              "duration_ns_sum": 215169,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Scalar",
+                  "instruction_rows": 367,
+                  "active_ms": 0.212662
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "opcode": "DMA_DIRECT2D",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 249,
+              "duration_ns_sum": 195003,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "GpSimd",
+                  "instruction_rows": 249,
+                  "active_ms": 0.195003
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "opcode": "DMA_DIRECT2D",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 199,
+              "duration_ns_sum": 160170,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": 99090432,
+              "spill_reload_bytes_sum": 2621440,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "GpSimd",
+                  "instruction_rows": 199,
+                  "active_ms": 0.16017
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1792,
+              "duration_ns_sum": 133383,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Tensor",
+                  "instruction_rows": 1792,
+                  "active_ms": 0.133383
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1686,
+              "duration_ns_sum": 129783,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Scalar",
+                  "instruction_rows": 1686,
+                  "active_ms": 0.129783
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1717,
+              "duration_ns_sum": 113906,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Scalar",
+                  "instruction_rows": 1717,
+                  "active_ms": 0.113906
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1845,
+              "duration_ns_sum": 101396,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Tensor",
+                  "instruction_rows": 1845,
+                  "active_ms": 0.101396
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1948,
+              "duration_ns_sum": 69269,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Vector",
+                  "instruction_rows": 1948,
+                  "active_ms": 0.069269
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1932,
+              "duration_ns_sum": 65174,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Vector",
+                  "instruction_rows": 1932,
+                  "active_ms": 0.065174
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 148,
+              "duration_ns_sum": 24984,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "GpSimd",
+                  "instruction_rows": 148,
+                  "active_ms": 0.024984
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Sync",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 681,
+              "duration_ns_sum": 21836,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Sync",
+                  "instruction_rows": 681,
+                  "active_ms": 0.021836
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 149,
+              "duration_ns_sum": 20242,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "GpSimd",
+                  "instruction_rows": 149,
+                  "active_ms": 0.020242
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Sync",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 710,
+              "duration_ns_sum": 19773,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Sync",
+                  "instruction_rows": 710,
+                  "active_ms": 0.019773
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "opcode": "ACTIVATE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 26,
+              "duration_ns_sum": 18755,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Scalar",
+                  "instruction_rows": 26,
+                  "active_ms": 0.018755
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "opcode": "MATMUL",
+              "tensor_instruction_type": "SPILL",
+              "start_ts_count": 26,
+              "duration_ns_sum": 9854,
+              "raw_flops_sum": 436207616,
+              "adjusted_flops_sum": 436207616,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Tensor",
+                  "instruction_rows": 26,
+                  "active_ms": 0.009202
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "opcode": "COPY",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 7,
+              "duration_ns_sum": 3706,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Scalar",
+                  "instruction_rows": 7,
+                  "active_ms": 0.003644
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "opcode": "COPY",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 6,
+              "duration_ns_sum": 3543,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Scalar",
+                  "instruction_rows": 6,
+                  "active_ms": 0.003481
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "opcode": "MATMUL",
+              "tensor_instruction_type": "SPILL",
+              "start_ts_count": 8,
+              "duration_ns_sum": 3489,
+              "raw_flops_sum": 134217728,
+              "adjusted_flops_sum": 134217728,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Tensor",
+                  "instruction_rows": 8,
+                  "active_ms": 0.003489
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "opcode": "LDWEIGHTS",
+              "tensor_instruction_type": "SPILL",
+              "start_ts_count": 26,
+              "duration_ns_sum": 2544,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Tensor",
+                  "instruction_rows": 26,
+                  "active_ms": 0.002544
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "opcode": "TENSOR_SCALAR",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 3,
+              "duration_ns_sum": 2075,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Vector",
+                  "instruction_rows": 3,
+                  "active_ms": 0.002075
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "opcode": "TENSOR_SCALAR",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 2,
+              "duration_ns_sum": 1382,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Vector",
+                  "instruction_rows": 2,
+                  "active_ms": 0.001382
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "opcode": "ACTIVATE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 2,
+              "duration_ns_sum": 1021,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Scalar",
+                  "instruction_rows": 2,
+                  "active_ms": 0.001021
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "opcode": "LDWEIGHTS",
+              "tensor_instruction_type": "SPILL",
+              "start_ts_count": 8,
+              "duration_ns_sum": 797,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Tensor",
+                  "instruction_rows": 8,
+                  "active_ms": 0.000797
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "opcode": "ACTIVATION_READ_ACCUMULATOR",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1,
+              "duration_ns_sum": 279,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Scalar",
+                  "instruction_rows": 1,
+                  "active_ms": 0.000279
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "opcode": "ACTIVATION_READ_ACCUMULATOR",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1,
+              "duration_ns_sum": 278,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Scalar",
+                  "instruction_rows": 1,
+                  "active_ms": 0.000278
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "opcode": "MEMSET",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1,
+              "duration_ns_sum": 59,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Vector",
+                  "instruction_rows": 1,
+                  "active_ms": 5.9e-05
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "execution": {
+            "execution_index": 5,
+            "neff_name": "47f9633b5ba18b721fe5267a8dfb317b.neff",
+            "execution_start_ts": 162193452,
+            "execution_end_ts": 435115775,
+            "num_subgraphs": 2,
+            "row_count": 55472525,
+            "runtime_name": "model_default",
+            "nrt_sequence_id": 281474976718147,
+            "logical_cache_key": "32dbc8a64b806b5eb6b33f659a779aa590b3da094cb86cc0306046f5972d86ac:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+            "enclosing_annotation": "fresh_start_single_forward_backward_microstep",
+            "device_wall_ms": 272.922323
+          },
+          "shared_linear_rows": 524094,
+          "opcode_groups": [
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "opcode": "MATMUL",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 122279,
+              "duration_ns_sum": 50646606,
+              "raw_flops_sum": 1947186364416,
+              "adjusted_flops_sum": 1947197767680,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Tensor",
+                  "instruction_rows": 122279,
+                  "active_ms": 33.209376
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "opcode": "MATMUL",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 118334,
+              "duration_ns_sum": 49218751,
+              "raw_flops_sum": 1871515222016,
+              "adjusted_flops_sum": 1871557099520,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Tensor",
+                  "instruction_rows": 118334,
+                  "active_ms": 32.242769
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "opcode": "LDWEIGHTS",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 108420,
+              "duration_ns_sum": 11622781,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Tensor",
+                  "instruction_rows": 108420,
+                  "active_ms": 11.35398
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "opcode": "LDWEIGHTS",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 106509,
+              "duration_ns_sum": 11546124,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Tensor",
+                  "instruction_rows": 106509,
+                  "active_ms": 11.187085
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Sync",
+              "opcode": "DMA_DIRECT2D",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 4347,
+              "duration_ns_sum": 3367402,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": 1936721408,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Sync",
+                  "instruction_rows": 4347,
+                  "active_ms": 3.367402
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Sync",
+              "opcode": "DMA_DIRECT2D",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 4353,
+              "duration_ns_sum": 3343866,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": 1128792064,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Sync",
+                  "instruction_rows": 4353,
+                  "active_ms": 3.343866
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "opcode": "TENSOR_TENSOR",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 3165,
+              "duration_ns_sum": 2159299,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Vector",
+                  "instruction_rows": 3165,
+                  "active_ms": 2.109645
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "opcode": "TENSOR_TENSOR",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 3136,
+              "duration_ns_sum": 2149698,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Vector",
+                  "instruction_rows": 3136,
+                  "active_ms": 2.098271
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "opcode": "COPY",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 3170,
+              "duration_ns_sum": 2097089,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Vector",
+                  "instruction_rows": 3170,
+                  "active_ms": 2.05676
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "opcode": "DMA_DIRECT2D",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 2477,
+              "duration_ns_sum": 1959863,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": 2883584,
+              "spill_reload_bytes_sum": 201326592,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "GpSimd",
+                  "instruction_rows": 2477,
+                  "active_ms": 1.928823
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "opcode": "COPY",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 2946,
+              "duration_ns_sum": 1950635,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Vector",
+                  "instruction_rows": 2946,
+                  "active_ms": 1.914382
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "opcode": "DMA_DIRECT2D",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 2336,
+              "duration_ns_sum": 1845060,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": 2097152,
+              "spill_reload_bytes_sum": 6291456,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "GpSimd",
+                  "instruction_rows": 2336,
+                  "active_ms": 1.816111
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "opcode": "DMA_DIRECT2D",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 2717,
+              "duration_ns_sum": 1657972,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": 1334260736,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Scalar",
+                  "instruction_rows": 2717,
+                  "active_ms": 1.657972
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "opcode": "DMA_DIRECT2D",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 2591,
+              "duration_ns_sum": 1556012,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": 1140064256,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Scalar",
+                  "instruction_rows": 2591,
+                  "active_ms": 1.556012
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "opcode": "COPY",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1965,
+              "duration_ns_sum": 1076741,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Scalar",
+                  "instruction_rows": 1965,
+                  "active_ms": 1.057951
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "opcode": "COPY",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1994,
+              "duration_ns_sum": 1052817,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Scalar",
+                  "instruction_rows": 1994,
+                  "active_ms": 1.036306
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "opcode": "CAST",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1279,
+              "duration_ns_sum": 879297,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Vector",
+                  "instruction_rows": 1279,
+                  "active_ms": 0.865478
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "opcode": "CAST",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1266,
+              "duration_ns_sum": 878030,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Vector",
+                  "instruction_rows": 1266,
+                  "active_ms": 0.863793
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 5515,
+              "duration_ns_sum": 619714,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Tensor",
+                  "instruction_rows": 5515,
+                  "active_ms": 0.619714
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 4647,
+              "duration_ns_sum": 604817,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Tensor",
+                  "instruction_rows": 4647,
+                  "active_ms": 0.604817
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Sync",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 2083,
+              "duration_ns_sum": 577550,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Sync",
+                  "instruction_rows": 2083,
+                  "active_ms": 0.57755
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Sync",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 2147,
+              "duration_ns_sum": 548143,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Sync",
+                  "instruction_rows": 2147,
+                  "active_ms": 0.548143
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "opcode": "MEMSET",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1182,
+              "duration_ns_sum": 411432,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Vector",
+                  "instruction_rows": 1182,
+                  "active_ms": 0.411431
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "opcode": "ACTIVATE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 539,
+              "duration_ns_sum": 399127,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Scalar",
+                  "instruction_rows": 539,
+                  "active_ms": 0.394101
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "opcode": "MEMSET",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1133,
+              "duration_ns_sum": 393163,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Vector",
+                  "instruction_rows": 1133,
+                  "active_ms": 0.393163
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "opcode": "CAST",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 494,
+              "duration_ns_sum": 292943,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Scalar",
+                  "instruction_rows": 494,
+                  "active_ms": 0.276973
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "opcode": "CAST",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 493,
+              "duration_ns_sum": 292878,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Scalar",
+                  "instruction_rows": 493,
+                  "active_ms": 0.276544
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "opcode": "ACTIVATE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 219,
+              "duration_ns_sum": 221496,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Scalar",
+                  "instruction_rows": 219,
+                  "active_ms": 0.216505
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 2037,
+              "duration_ns_sum": 154469,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Vector",
+                  "instruction_rows": 2037,
+                  "active_ms": 0.154469
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1954,
+              "duration_ns_sum": 128204,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Vector",
+                  "instruction_rows": 1954,
+                  "active_ms": 0.128204
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 2022,
+              "duration_ns_sum": 115267,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "GpSimd",
+                  "instruction_rows": 2022,
+                  "active_ms": 0.115267
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 2063,
+              "duration_ns_sum": 98877,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Scalar",
+                  "instruction_rows": 2063,
+                  "active_ms": 0.098877
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 2205,
+              "duration_ns_sum": 94418,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Scalar",
+                  "instruction_rows": 2205,
+                  "active_ms": 0.094418
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "opcode": "SCALAR_TENSOR_TENSOR",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 24,
+              "duration_ns_sum": 65343,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Vector",
+                  "instruction_rows": 24,
+                  "active_ms": 0.065174
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "opcode": "TENSOR_REDUCE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 66,
+              "duration_ns_sum": 37192,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Vector",
+                  "instruction_rows": 66,
+                  "active_ms": 0.035564
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1878,
+              "duration_ns_sum": 36707,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "GpSimd",
+                  "instruction_rows": 1878,
+                  "active_ms": 0.036707
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "opcode": "TENSOR_REDUCE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 68,
+              "duration_ns_sum": 31419,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Vector",
+                  "instruction_rows": 68,
+                  "active_ms": 0.030315
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "opcode": "SCALAR_TENSOR_TENSOR",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 25,
+              "duration_ns_sum": 18179,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Vector",
+                  "instruction_rows": 25,
+                  "active_ms": 0.017773
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "opcode": "TENSOR_SCALAR",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 3,
+              "duration_ns_sum": 9198,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Vector",
+                  "instruction_rows": 3,
+                  "active_ms": 0.009198
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "opcode": "TENSOR_SCALAR_AFFINE_SELECT",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 8,
+              "duration_ns_sum": 4908,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "GpSimd",
+                  "instruction_rows": 8,
+                  "active_ms": 0.004875
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "opcode": "TENSOR_SCALAR_AFFINE_SELECT",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 3,
+              "duration_ns_sum": 1855,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "GpSimd",
+                  "instruction_rows": 3,
+                  "active_ms": 0.001855
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "opcode": "ACT_TABLE_LOAD",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1,
+              "duration_ns_sum": 1283,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Scalar",
+                  "instruction_rows": 1,
+                  "active_ms": 0.001283
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "opcode": "ACT_TABLE_LOAD",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1,
+              "duration_ns_sum": 1283,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Scalar",
+                  "instruction_rows": 1,
+                  "active_ms": 0.001283
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "warnings": [
+        {
+          "message": "Notification from block DMA of type DMA were dropped. This can cause corresponding data to be incorrect.",
+          "category": "Missing Data"
+        },
+        {
+          "message": "Current NEFF is missing compiler metrics. Please re-compile using latest version of the compiler",
+          "category": "Missing Data"
+        },
+        {
+          "message": "Missing HLO stats in the NEFF, `model_flops` and `mfu_hlo_estimated_percent` summary metrics will not be available. Consider the metrics (hardware_flops - transpose_flops) and mfu_inst_estimated_percent instead.",
+          "category": "Missing Data"
+        },
+        {
+          "message": "Missing additional dynamic DMA metadata, reported DMA values may be inaccurate. To enable more accurate DMA data, re-capture with --enable-dge-notifs flag or set NEURON_RT_ENABLE_DGE_NOTIFICATIONS=1 before running. Note: DGE notifications are disabled by default as they can cause execution timeouts on some models.",
+          "category": "Missing Data"
+        }
+      ]
+    },
+    "full_fp8": {
+      "authority": "research/run-logs/fs-w144-full-fp8-pack32-caller-analysis-r1.json",
+      "authority_sha256": "9589d73417c1d92bb4c489da7722404226f5369904cf5b92883296abea691c0b",
+      "instruction_sha256": "5fa8b0cc96b9e0d7bcf059539a60bcb7ae18174adfa432dcb0186b103e09528f",
+      "graphs": [
+        {
+          "execution": {
+            "execution_index": 1,
+            "neff_name": "07cb374ff502fce50009abcb47b64f32.neff",
+            "execution_start_ts": 12987690,
+            "execution_end_ts": 222735997,
+            "num_subgraphs": 2,
+            "row_count": 55671802,
+            "runtime_name": "model_default",
+            "nrt_sequence_id": 281474976718155,
+            "logical_cache_key": "1b0c47193797d990704045c3177f4bd4275cc34016915926d809fd013f7a6357:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+            "enclosing_annotation": "fresh_start_single_forward_backward_microstep",
+            "device_wall_ms": 209.748307
+          },
+          "shared_linear_rows": 577880,
+          "opcode_groups": [
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "opcode": "MATMUL",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 111518,
+              "duration_ns_sum": 63992838,
+              "raw_flops_sum": 1029383258112,
+              "adjusted_flops_sum": 1026229927936,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Tensor",
+                  "instruction_rows": 111518,
+                  "active_ms": 45.38475
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "opcode": "MATMUL",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 109751,
+              "duration_ns_sum": 63388059,
+              "raw_flops_sum": 1010636161024,
+              "adjusted_flops_sum": 1009956683776,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Tensor",
+                  "instruction_rows": 109751,
+                  "active_ms": 45.144209
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "opcode": "COPY",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 12141,
+              "duration_ns_sum": 20948476,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Scalar",
+                  "instruction_rows": 12141,
+                  "active_ms": 20.854071
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "opcode": "COPY",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 12008,
+              "duration_ns_sum": 20854611,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Scalar",
+                  "instruction_rows": 12008,
+                  "active_ms": 20.760816
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "opcode": "LDWEIGHTS",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 110526,
+              "duration_ns_sum": 13316033,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Tensor",
+                  "instruction_rows": 110526,
+                  "active_ms": 12.931492
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "opcode": "LDWEIGHTS",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 108712,
+              "duration_ns_sum": 13102932,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Tensor",
+                  "instruction_rows": 108712,
+                  "active_ms": 12.74364
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Sync",
+              "opcode": "DMA_DIRECT2D",
+              "tensor_instruction_type": "SPILL",
+              "start_ts_count": 18496,
+              "duration_ns_sum": 10287024,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": 6472863744,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Sync",
+                  "instruction_rows": 18496,
+                  "active_ms": 10.287024
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Sync",
+              "opcode": "DMA_DIRECT2D",
+              "tensor_instruction_type": "SPILL",
+              "start_ts_count": 18496,
+              "duration_ns_sum": 10253344,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": 6472863744,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Sync",
+                  "instruction_rows": 18496,
+                  "active_ms": 10.253344
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "opcode": "CAST",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 6394,
+              "duration_ns_sum": 8150461,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Vector",
+                  "instruction_rows": 6394,
+                  "active_ms": 7.474201
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "opcode": "CAST",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 6330,
+              "duration_ns_sum": 8023886,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Vector",
+                  "instruction_rows": 6330,
+                  "active_ms": 7.361065
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "opcode": "COPY",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 4414,
+              "duration_ns_sum": 3253366,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Vector",
+                  "instruction_rows": 4414,
+                  "active_ms": 3.174807
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "opcode": "COPY",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 4492,
+              "duration_ns_sum": 3233329,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Vector",
+                  "instruction_rows": 4492,
+                  "active_ms": 3.132222
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Sync",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 12771,
+              "duration_ns_sum": 1694240,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Sync",
+                  "instruction_rows": 12771,
+                  "active_ms": 1.69424
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Sync",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 12704,
+              "duration_ns_sum": 1282443,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Sync",
+                  "instruction_rows": 12704,
+                  "active_ms": 1.282443
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "opcode": "DMA_DIRECT2D",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1321,
+              "duration_ns_sum": 1063558,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Scalar",
+                  "instruction_rows": 1321,
+                  "active_ms": 1.063558
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Sync",
+              "opcode": "DMA_DIRECT2D",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 826,
+              "duration_ns_sum": 1032332,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": 254803968,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Sync",
+                  "instruction_rows": 826,
+                  "active_ms": 1.032332
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "opcode": "DMA_DIRECT2D",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1349,
+              "duration_ns_sum": 966778,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": 702283776,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Scalar",
+                  "instruction_rows": 1349,
+                  "active_ms": 0.966778
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "opcode": "DMA_DIRECT2D",
+              "tensor_instruction_type": "SPILL",
+              "start_ts_count": 532,
+              "duration_ns_sum": 802138,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": 247463936,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Scalar",
+                  "instruction_rows": 532,
+                  "active_ms": 0.802138
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 308,
+              "duration_ns_sum": 689516,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "GpSimd",
+                  "instruction_rows": 308,
+                  "active_ms": 0.689516
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Sync",
+              "opcode": "DMA_DIRECT2D",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 772,
+              "duration_ns_sum": 672166,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": 125829120,
+              "spill_reload_bytes_sum": 247463936,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Sync",
+                  "instruction_rows": 772,
+                  "active_ms": 0.672166
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 301,
+              "duration_ns_sum": 634850,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "GpSimd",
+                  "instruction_rows": 301,
+                  "active_ms": 0.63485
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "opcode": "CAST",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 580,
+              "duration_ns_sum": 577137,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Scalar",
+                  "instruction_rows": 580,
+                  "active_ms": 0.542733
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "opcode": "DMA_DIRECT2D",
+              "tensor_instruction_type": "SPILL",
+              "start_ts_count": 548,
+              "duration_ns_sum": 460949,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": 254803968,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Scalar",
+                  "instruction_rows": 548,
+                  "active_ms": 0.460949
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "opcode": "CAST",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 534,
+              "duration_ns_sum": 453382,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Scalar",
+                  "instruction_rows": 534,
+                  "active_ms": 0.436363
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 6607,
+              "duration_ns_sum": 449279,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Scalar",
+                  "instruction_rows": 6607,
+                  "active_ms": 0.449279
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "opcode": "TENSOR_TENSOR",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 570,
+              "duration_ns_sum": 412660,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Vector",
+                  "instruction_rows": 570,
+                  "active_ms": 0.407557
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 6745,
+              "duration_ns_sum": 410376,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Scalar",
+                  "instruction_rows": 6745,
+                  "active_ms": 0.410376
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "opcode": "TENSOR_TENSOR",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 535,
+              "duration_ns_sum": 361820,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Vector",
+                  "instruction_rows": 535,
+                  "active_ms": 0.356798
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "opcode": "DMA_DIRECT2D",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 384,
+              "duration_ns_sum": 313412,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": 199753728,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "GpSimd",
+                  "instruction_rows": 384,
+                  "active_ms": 0.313412
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "opcode": "DMA_DIRECT2D",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 376,
+              "duration_ns_sum": 304750,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "GpSimd",
+                  "instruction_rows": 376,
+                  "active_ms": 0.304735
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 2246,
+              "duration_ns_sum": 160012,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Vector",
+                  "instruction_rows": 2246,
+                  "active_ms": 0.160012
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1126,
+              "duration_ns_sum": 153310,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Tensor",
+                  "instruction_rows": 1126,
+                  "active_ms": 0.15331
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 2184,
+              "duration_ns_sum": 107631,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Vector",
+                  "instruction_rows": 2184,
+                  "active_ms": 0.107631
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1207,
+              "duration_ns_sum": 66149,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Tensor",
+                  "instruction_rows": 1207,
+                  "active_ms": 0.066149
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "opcode": "ACTIVATE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 19,
+              "duration_ns_sum": 9216,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Scalar",
+                  "instruction_rows": 19,
+                  "active_ms": 0.009216
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "opcode": "TENSOR_REDUCE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 2,
+              "duration_ns_sum": 8840,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Vector",
+                  "instruction_rows": 2,
+                  "active_ms": 0.00884
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "opcode": "ACTIVATE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 10,
+              "duration_ns_sum": 7171,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Scalar",
+                  "instruction_rows": 10,
+                  "active_ms": 0.007171
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "opcode": "TENSOR_SCALAR",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 28,
+              "duration_ns_sum": 7092,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Vector",
+                  "instruction_rows": 28,
+                  "active_ms": 0.007092
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "opcode": "ACTIVATION_READ_ACCUMULATOR",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 9,
+              "duration_ns_sum": 2507,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Scalar",
+                  "instruction_rows": 9,
+                  "active_ms": 0.002507
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "opcode": "ACTIVATION_READ_ACCUMULATOR",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 7,
+              "duration_ns_sum": 1949,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Scalar",
+                  "instruction_rows": 7,
+                  "active_ms": 0.001949
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "opcode": "DMA_INDIRECT",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1,
+              "duration_ns_sum": 1204,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "GpSimd",
+                  "instruction_rows": 1,
+                  "active_ms": 0.001204
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "execution": {
+            "execution_index": 5,
+            "neff_name": "132a91ab55aab13ad7c6c126e9e7f511.neff",
+            "execution_start_ts": 233424634,
+            "execution_end_ts": 508734667,
+            "num_subgraphs": 2,
+            "row_count": 54621641,
+            "runtime_name": "model_default",
+            "nrt_sequence_id": 281474976718159,
+            "logical_cache_key": "c2d9fbbca20ea8961d0c51252d1cad7c58672650a8c2d0722e2d8412feedcc78:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+            "enclosing_annotation": "fresh_start_single_forward_backward_microstep",
+            "device_wall_ms": 275.310033
+          },
+          "shared_linear_rows": 463523,
+          "opcode_groups": [
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "opcode": "MATMUL",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 106783,
+              "duration_ns_sum": 44740702,
+              "raw_flops_sum": 1780490699264,
+              "adjusted_flops_sum": 1756547516416,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Tensor",
+                  "instruction_rows": 106783,
+                  "active_ms": 29.154063
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "opcode": "MATMUL",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 100114,
+              "duration_ns_sum": 41948665,
+              "raw_flops_sum": 1675191156736,
+              "adjusted_flops_sum": 1649543610368,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Tensor",
+                  "instruction_rows": 100114,
+                  "active_ms": 27.544136
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "opcode": "LDWEIGHTS",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 95907,
+              "duration_ns_sum": 10363228,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Tensor",
+                  "instruction_rows": 95907,
+                  "active_ms": 10.209959
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "opcode": "LDWEIGHTS",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 89442,
+              "duration_ns_sum": 9617513,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Tensor",
+                  "instruction_rows": 89442,
+                  "active_ms": 9.478808
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Sync",
+              "opcode": "DMA_DIRECT2D",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 4124,
+              "duration_ns_sum": 3075435,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": 1230897152,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Sync",
+                  "instruction_rows": 4124,
+                  "active_ms": 3.075435
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Sync",
+              "opcode": "DMA_DIRECT2D",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 4149,
+              "duration_ns_sum": 3032068,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": 1836711936,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Sync",
+                  "instruction_rows": 4149,
+                  "active_ms": 3.032068
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "opcode": "DMA_DIRECT2D",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 3651,
+              "duration_ns_sum": 2751971,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "GpSimd",
+                  "instruction_rows": 3651,
+                  "active_ms": 2.701217
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "opcode": "DMA_DIRECT2D",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 3546,
+              "duration_ns_sum": 2709255,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": 100139008,
+              "spill_reload_bytes_sum": 277872640,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "GpSimd",
+                  "instruction_rows": 3546,
+                  "active_ms": 2.635178
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "opcode": "TENSOR_TENSOR",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 3054,
+              "duration_ns_sum": 2078454,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Vector",
+                  "instruction_rows": 3054,
+                  "active_ms": 2.013399
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "opcode": "TENSOR_TENSOR",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 3012,
+              "duration_ns_sum": 2057800,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Vector",
+                  "instruction_rows": 3012,
+                  "active_ms": 1.993595
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "opcode": "COPY",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 2981,
+              "duration_ns_sum": 1963143,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Vector",
+                  "instruction_rows": 2981,
+                  "active_ms": 1.937075
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "opcode": "COPY",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 2774,
+              "duration_ns_sum": 1874781,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Vector",
+                  "instruction_rows": 2774,
+                  "active_ms": 1.850471
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "opcode": "DMA_DIRECT2D",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 2441,
+              "duration_ns_sum": 1507750,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": 1260534272,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Scalar",
+                  "instruction_rows": 2441,
+                  "active_ms": 1.50775
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "opcode": "DMA_DIRECT2D",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 2330,
+              "duration_ns_sum": 1458312,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": 1127153664,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Scalar",
+                  "instruction_rows": 2330,
+                  "active_ms": 1.458312
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "opcode": "COPY",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1991,
+              "duration_ns_sum": 1031757,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Scalar",
+                  "instruction_rows": 1991,
+                  "active_ms": 1.018044
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "opcode": "COPY",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1982,
+              "duration_ns_sum": 1017296,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Scalar",
+                  "instruction_rows": 1982,
+                  "active_ms": 1.000526
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "opcode": "CAST",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1404,
+              "duration_ns_sum": 966871,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Vector",
+                  "instruction_rows": 1404,
+                  "active_ms": 0.956894
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "opcode": "CAST",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1381,
+              "duration_ns_sum": 952556,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Vector",
+                  "instruction_rows": 1381,
+                  "active_ms": 0.944537
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 7520,
+              "duration_ns_sum": 709563,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Tensor",
+                  "instruction_rows": 7520,
+                  "active_ms": 0.709563
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 5166,
+              "duration_ns_sum": 626676,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Tensor",
+                  "instruction_rows": 5166,
+                  "active_ms": 0.626676
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "opcode": "MEMSET",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1157,
+              "duration_ns_sum": 397987,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Vector",
+                  "instruction_rows": 1157,
+                  "active_ms": 0.397987
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "opcode": "MEMSET",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1114,
+              "duration_ns_sum": 378410,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Vector",
+                  "instruction_rows": 1114,
+                  "active_ms": 0.37841
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 2595,
+              "duration_ns_sum": 244243,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "GpSimd",
+                  "instruction_rows": 2595,
+                  "active_ms": 0.244243
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "opcode": "CAST",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 387,
+              "duration_ns_sum": 231071,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Scalar",
+                  "instruction_rows": 387,
+                  "active_ms": 0.22152
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "opcode": "CAST",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 355,
+              "duration_ns_sum": 213280,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Scalar",
+                  "instruction_rows": 355,
+                  "active_ms": 0.204862
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Sync",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1839,
+              "duration_ns_sum": 116233,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Sync",
+                  "instruction_rows": 1839,
+                  "active_ms": 0.116233
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1814,
+              "duration_ns_sum": 114917,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Vector",
+                  "instruction_rows": 1814,
+                  "active_ms": 0.114917
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 2060,
+              "duration_ns_sum": 104171,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Scalar",
+                  "instruction_rows": 2060,
+                  "active_ms": 0.104171
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 2060,
+              "duration_ns_sum": 103267,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Scalar",
+                  "instruction_rows": 2060,
+                  "active_ms": 0.103267
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 2523,
+              "duration_ns_sum": 88730,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "GpSimd",
+                  "instruction_rows": 2523,
+                  "active_ms": 0.08873
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Sync",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1826,
+              "duration_ns_sum": 86837,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Sync",
+                  "instruction_rows": 1826,
+                  "active_ms": 0.086837
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "opcode": "EVENT_SEMAPHORE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 1853,
+              "duration_ns_sum": 61399,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Vector",
+                  "instruction_rows": 1853,
+                  "active_ms": 0.061399
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "opcode": "TENSOR_SCALAR_CACHE_REDUCE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 5,
+              "duration_ns_sum": 18901,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Vector",
+                  "instruction_rows": 5,
+                  "active_ms": 0.018901
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "opcode": "ACTIVATE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 21,
+              "duration_ns_sum": 16367,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Scalar",
+                  "instruction_rows": 21,
+                  "active_ms": 0.016367
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "opcode": "ACTIVATE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 27,
+              "duration_ns_sum": 15009,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Scalar",
+                  "instruction_rows": 27,
+                  "active_ms": 0.014729
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "opcode": "TENSOR_REDUCE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 18,
+              "duration_ns_sum": 12252,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Vector",
+                  "instruction_rows": 18,
+                  "active_ms": 0.011567
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "opcode": "TENSOR_REDUCE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 16,
+              "duration_ns_sum": 9809,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Vector",
+                  "instruction_rows": 16,
+                  "active_ms": 0.009049
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "opcode": "ACT_TABLE_LOAD",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 4,
+              "duration_ns_sum": 5132,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Scalar",
+                  "instruction_rows": 4,
+                  "active_ms": 0.005132
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "opcode": "ACT_TABLE_LOAD",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 4,
+              "duration_ns_sum": 5132,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Scalar",
+                  "instruction_rows": 4,
+                  "active_ms": 0.005132
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "opcode": "TENSOR_SCALAR_CACHE_REDUCE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 4,
+              "duration_ns_sum": 4867,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Vector",
+                  "instruction_rows": 4,
+                  "active_ms": 0.004867
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "opcode": "TENSOR_SCALAR",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 13,
+              "duration_ns_sum": 1991,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Vector",
+                  "instruction_rows": 13,
+                  "active_ms": 0.001991
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "opcode": "TENSOR_SCALAR",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 12,
+              "duration_ns_sum": 1848,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Vector",
+                  "instruction_rows": 12,
+                  "active_ms": 0.001848
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "opcode": "SCALAR_TENSOR_TENSOR",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 2,
+              "duration_ns_sum": 1319,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Vector",
+                  "instruction_rows": 2,
+                  "active_ms": 0.001319
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "opcode": "WRITE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 45,
+              "duration_ns_sum": 1257,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "GpSimd",
+                  "instruction_rows": 45,
+                  "active_ms": 0.001257
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "opcode": "TENSOR_SCALAR_AFFINE_SELECT",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 2,
+              "duration_ns_sum": 1228,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "GpSimd",
+                  "instruction_rows": 2,
+                  "active_ms": 0.001228
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "opcode": "TENSOR_SCALAR_AFFINE_SELECT",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 2,
+              "duration_ns_sum": 1223,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "GpSimd",
+                  "instruction_rows": 2,
+                  "active_ms": 0.001223
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "opcode": "DVE_READ_ACCUMULATOR",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 5,
+              "duration_ns_sum": 414,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "Vector",
+                  "instruction_rows": 5,
+                  "active_ms": 0.000414
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "opcode": "RECIPROCAL",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 2,
+              "duration_ns_sum": 393,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Vector",
+                  "instruction_rows": 2,
+                  "active_ms": 0.000393
+                }
+              ]
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "opcode": "DVE_READ_ACCUMULATOR",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 4,
+              "duration_ns_sum": 329,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 0,
+                  "engine": "Vector",
+                  "instruction_rows": 4,
+                  "active_ms": 0.000329
+                }
+              ]
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "opcode": "WRITE",
+              "tensor_instruction_type": "REGULAR",
+              "start_ts_count": 2,
+              "duration_ns_sum": 56,
+              "raw_flops_sum": null,
+              "adjusted_flops_sum": null,
+              "spill_save_bytes_sum": null,
+              "spill_reload_bytes_sum": null,
+              "merged_activity": [
+                {
+                  "pcore_idx": 1,
+                  "engine": "GpSimd",
+                  "instruction_rows": 2,
+                  "active_ms": 5.6e-05
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "warnings": [
+        {
+          "message": "Notification from block NC of type EVENT were dropped. This can cause corresponding data to be incorrect.",
+          "category": "Missing Data"
+        },
+        {
+          "message": "Notification from block DMA of type DMA were dropped. This can cause corresponding data to be incorrect.",
+          "category": "Missing Data"
+        },
+        {
+          "message": "Current NEFF is missing compiler metrics. Please re-compile using latest version of the compiler",
+          "category": "Missing Data"
+        },
+        {
+          "message": "Missing HLO stats in the NEFF, `model_flops` and `mfu_hlo_estimated_percent` summary metrics will not be available. Consider the metrics (hardware_flops - transpose_flops) and mfu_inst_estimated_percent instead.",
+          "category": "Missing Data"
+        },
+        {
+          "message": "Missing additional dynamic DMA metadata, reported DMA values may be inaccurate. To enable more accurate DMA data, re-capture with --enable-dge-notifs flag or set NEURON_RT_ENABLE_DGE_NOTIFICATIONS=1 before running. Note: DGE notifications are disabled by default as they can cause execution timeouts on some models.",
+          "category": "Missing Data"
+        },
+        {
+          "message": "Schema validation: Unexpected key 'subgraph' cannot be saved to table 'TimelineAnnotation' because no schema.yaml entry exists or no key name remapping. This key and value will be dropped and not found in parquet output.",
+          "category": "Schema Validation"
+        }
+      ]
+    }
+  },
+  "caveats": [
+    "Shared Linear source attribution does not identify QKV, head, or a specific layer.",
+    "Source attribution and metadata can be incomplete; preserve all capture warnings.",
+    "Activity unions overlap and are not additive wall-time shares.",
+    "FP8 capture dropped EVENT/DMA notifications; native capture dropped DMA notifications.",
+    "This is attribution, not a performance comparison or proof of allocator causality."
+  ]
+}
