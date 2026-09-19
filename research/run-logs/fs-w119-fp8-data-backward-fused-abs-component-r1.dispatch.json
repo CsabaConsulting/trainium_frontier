@@ -1,0 +1,47 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave119",
+    "expected_commit": "3ae1861f48094429d842ac79a493c022ee846d02",
+    "label": "fs-w119-fp8-data-backward-fused-abs-component-r1",
+    "purpose": "Gate exact fused per-row abs/max at both FP8 data-gradient boundaries against original eight stage outputs and independent CPU references; eleven fixtures including subnormals and signed zero; charge both backward weight preparations and two chains, paired native BF16/original FP8/new FP8.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave119"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/fp8_mlp_data_backward_probe.py",
+      "--real-shape",
+      "--steps",
+      "15",
+      "--fused-abs"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/fp8_mlp_data_backward_nki.py",
+      "research/scratch/fp8_mlp_data_backward_probe.py",
+      "research/scratch/fp8_gradient_gemm_nki.py",
+      "research/scratch/fp8_mlp_island_probe.py",
+      "research/scratch/fp8_packed_weight_cache_nki.py",
+      "research/scratch/fp8_packed_weight_cache_probe.py",
+      "research/scratch/fp8_weight_cache_nki.py",
+      "research/scratch/fp8_weight_cache_probe.py",
+      "research/scratch/mlp_backward_rounding_bounds.py",
+      "research/scratch/mlp_fused_bf16_probe.py"
+    ]
+  },
+  "requested_at": "2026-09-19T04:04:57.628904+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w119-fp8-data-backward-fused-abs-component-r1\", \"pid\": 1650377, \"commit\": \"3ae1861f48094429d842ac79a493c022ee846d02\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave119/research/run-logs/fs-w119-fp8-data-backward-fused-abs-component-r1.log\", \"started_at\": \"2026-09-19T04:05:03.286281+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

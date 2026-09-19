@@ -1,9 +1,27 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 04:09 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 04:06 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## Current dispatch update — 2026-09-19 04:09 UTC
+## Active trials — 2026-09-19 04:06 UTC
+
+- trn22 source119 `3ae1861f48094429d842ac79a493c022ee846d02`, watcher119:
+  `fs-w119-fp8-data-backward-fused-abs-component-r1` ACTIVE since04:05:03.
+  Both per-row calibrations use fused abs/max. Eleven fixtures retain original
+  stage equality and independent CPU bounds; actual timing charges cache work.
+- trn21 source113 saved-softcap component completed clean. Source120 prepares
+  a SINGLE separate compiled head region, leaving cached-head arithmetic alone.
+  First require all196 GPT exact checks plus explicit compiled-boundary checks;
+  only then same-source native/monolithic/separate full phases. Original model
+  evaluation/checkpoint behavior and protected train.py remain unchanged.
+- Caller diagnosis is recorded in fresh-start-head-caller-diagnosis-2026-09-19.md.
+  The head's residency coincides with much slower native body matmuls. This is
+  a hypothesis for the boundary experiment, not a proven allocator mechanism.
+- Artifact uploader is already active under its lock at04:05; the attempted
+  second uploader safely skipped. Latest source commit awaits the next source
+  push; retain the existing regular backup schedule.
+
+## Current dispatch update — 2026-09-19 04:04 UTC
 
 - Both hosts have clean completed postflights; check live manifests before new
   dispatch. trn21 watcher113, trn22 watcher118. Source118 is pushed and tracked.
