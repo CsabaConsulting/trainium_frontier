@@ -1,6 +1,6 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19, 04:34 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19, 04:48 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
@@ -15,10 +15,10 @@ failure and clean recovery are preserved; the larger evaluation is clean.
 | Idea | Measured state | Next action |
 | --- | --- | --- |
 | FP8-specific packing | One layout improves FP8 component about2.95% while worsening BF16 by11.63%; FP8 whole model still17.74% slower | Continue FP8-specific development; BF16 ranking is not a veto |
-| FP8 grouped weight-gradient products | Balanced banks + fused abs + two-core preparation pass10cases: down1.548/up1.695ms vs native1.095/1.075ms | Complete forward/all4backward autograd prototype prepared; gate before timing |
-| Reuse forward-produced FP8 bytes | All10cases pass; online cache work +2forward producers6.899→5.919ms (14.20%); preserves existing saves | Compose with all4backward products; no full-model gain established |
+| FP8 grouped weight-gradient products | Balanced banks + fused abs + two-core preparation pass10cases: down1.548/up1.695ms vs native1.095/1.075ms | Complete full FP8 MLP passes11cases but15.938ms vs15.486ms BF16; profile full derivative costs |
+| Reuse forward-produced FP8 bytes | All10cases pass; online cache work +2forward producers6.899→5.919ms (14.20%); preserves existing saves | Composed in complete FP8 MLP; saves do not yet make it faster than BF16 |
 | Fused per-row FP8 data-backward calibration |11cases pass;5.655ms vs original6.201ms and native5.510ms |8.81% same-algorithm gain; compose shared producers and weight gradients before full-model use |
-| Cached vocabulary head and exact CE | Component14.095440vs18.202054ms; whole step37.79% slower; caller profile local/cloud verified | Split-head196 exact same-scope checks pass; original monolithic equivalence fails; three complete phase controls in progress |
+| Cached vocabulary head and exact CE | Component14.095440vs18.202054ms; whole step37.79% slower; caller profile local/cloud verified | Split-head196 exact same-scope checks pass, but681.026ms vs501.265ms original; boundary trial closed for promotion |
 | Save exact softcap intermediate | All20component checks pass;13.850659ms vs native18.219967ms | Retain for composition after solving caller allocation; unchanged save bytes |
 | Reciprocal refinement + optimizer ownership |24composition checks; component16.77% faster, whole step1.128% faster | Retain for independently gated combinations; below3% advancement threshold |
 | BF16 magnitude maximum / fused abs | All3alternatives pass13cases; fused abs fastest, calibration0.197/0.650ms vs0.344/1.184ms | Composed in weight/data gradient prototypes; integer-code and sign-mask versions are correct but slower |
@@ -656,3 +656,31 @@ than fused abs0.649855ms. Integer magnitude-code reduction is running. The
 source116 composition flag reruns the original10FP8 gradient-product cases and
 charges rescaling, calibration, both byte preparations and the product. No
 speed benefit from these calibration components is yet claimed for a full model.
+
+## Complete FP8 component and next precision-specific design (04:48 UTC)
+
+Source124 gates all six MLP matrix products (two forward, four backward), BF16
+ReLU derivative and FP32 master gradients. All11 cases pass; exact current
+compiled/staged outputs and accumulated gradients match. Independent quantizer
+and empirical paired-arithmetic bounds are retained. Current per-row data
+quantization and matrix-wide weight-gradient calibration define a new VJP;
+this is not an exact replacement for the original BF16 derivative.
+
+The charged component15.937871ms still loses to native15.485907ms by2.9186%.
+Saving forward FP8 bytes and fused magnitude maxima are real local gains but do
+not establish a full-model benefit. Profile the complete native and full FP8
+arms, with online cache work, to measure the residual preparation/layout costs.
+Cross-host profile intervals are for attribution; the same-host component
+benchmark remains the speed authority. No30-minute FP8 quality trial yet.
+
+A bounded next DESIGN, conditional on those profiles: fuse per-output-channel
+weight-gradient calibration with its long-token matrix product. A core owns
+output rows, so it can load a contiguous transposed gradient tile, reduce its
+maximum across tokens and reuse the on-chip quantized tile without a separate
+cross-core global-maximum pass. This changes the quantization policy and needs
+independent per-channel CPU scales, byte decoding and pair-product bounds.
+Down-gradient hidden inverse scales must still be transferred at the declared
+BF16 boundary. Charge the gradient transpose/scale producer and any duplicated
+loads. Only afterwards consider producing that layout inside data-backward;
+never treat an unmeasured transpose or saved output as free. Compare all4
+products and complete FW/BW again before model integration. Not implemented.
