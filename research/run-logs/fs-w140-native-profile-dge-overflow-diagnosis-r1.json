@@ -1,0 +1,22 @@
+{
+  "label": "fs-w140-native-profile-dge-overflow-diagnosis-r1",
+  "prepared_at": "2026-09-19T08:24:57.546415+00:00",
+  "failed_job": "fs-w140-native-pack32-micro-device-profile-r1",
+  "source_commit": "2a6f267b443e262bb9d7955e06d539f603dc4edc",
+  "failure": "NRT status 1204: software notification queue overflow on module.neff during warmup",
+  "observed_at": "2026-09-19T08:23:34+00:00",
+  "numerical_result_available": false,
+  "postflight_clean": true,
+  "postflight_failures": [],
+  "owned_cleanup": {
+    "actions": [],
+    "remaining": [],
+    "artifacts_deleted": [],
+    "caches_deleted": [],
+    "driver_modified": false
+  },
+  "leading_hypothesis": "Extra DGE notifications enabled globally, including warmed compiled full-model executions, exceed the native runtime software notification queue. Requires the same-source flag-removed repeat; not yet a confirmed arithmetic or compiler fault.",
+  "next_job": "fs-w140-native-pack32-micro-device-profile-r2",
+  "model_source_changed": false,
+  "driver_reset_or_reboot_requested": false
+}

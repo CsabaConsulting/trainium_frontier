@@ -1,6 +1,28 @@
 # Fresh-start campaign — 2026-09-18
 
-**Current result, 2026-09-19 00:21 UTC:** matched larger public BPB is
+**Current result, 2026-09-19 08:26 UTC:** best matched public BPB is
+**0.9928513116311253**, source98 dense 6x1024 with pack32/GA1, no ngrams and
+seed42. The frozen standalone source129 package reproduces those checkpoint
+logits exactly; an independent cold 30-minute rehearsal scored 0.9938556748843932
+and exited within 1790.34 charged seconds. The 245-character launch is pushed
+in `b857d13`. Private leaderboard performance remains unknown.
+
+Source137's complete isolated FP8 MLP is 3.006% faster than its native component
+control after exact dual-cache preparation. Real-Linear integration passed.
+Source140's complete model instead takes 567.095 ms/step versus native 488.702 ms;
+all four numerical checks pass, but its disk-reserve failure is retained. The
+next investigation is actual caller allocation/traffic and unused BF16 saves,
+not an FP8 quality run. Both source140 native/FP8 caller profiles are now active
+under the host protocol. Native profile-r1 hit NRT1204 with extra DMA notification
+logging; its cleanly recovered r2 removes only that optional flag.
+
+trn21 now has 25.48 GB free after 16 GiB of old compiler diagnostics were fully
+archived and hash-verified locally and on GitHub before remote retirement.
+Shared compilation caches remain intact. The kernel queue, capacity revisit
+and `RESUME.md` record the executable next steps and exact job identities.
+The competitive target remains about 0.9749; no seed sweep is planned.
+
+**Earlier result, 2026-09-19 00:21 UTC:** matched larger public BPB is
 **0.9938106631483421**, improved from0.9973302213667847. The dense6x1024 model
 uses no n-grams and seed42, T1024/pack16/GA2, padded exact optimizer ownership,
 native-forward/custom-backward MLP and exact adaptive two-core CE/target gather.
