@@ -3187,7 +3187,7 @@ def load_for_eval(checkpoint_path: str, device: torch.device) -> nn.Module:
     config = GPTConfig(**payload['model_config'])
     if config.sequence_len < EVAL_MIN_SEQ_LEN:
         config.sequence_len = EVAL_MIN_SEQ_LEN
-    model = GPT(config)
+    model = _SubmissionEvalGPT(config)
     model.init_weights()
     state = payload['model_state']
     if EVAL_PREFER_EMA and 'ema_state' in payload:
@@ -4726,6 +4726,23 @@ def _submission_ce_install(train_module):
     train_module._softcap_ce_bwd = adaptive_backward
     train_module._fresh_start_adaptive_ce_installed = True
     return originals
+
+class _SubmissionEvalGPT(GPT):
+    """Use identical per-sequence arithmetic for every scorer batch size.
+
+    BF16 backend kernels can select different rounding paths when the batch
+    dimension changes. Evaluating independent rows with batch dimension one
+    preserves the original B1 logits and makes batching a pure concatenation.
+    The parameters, sequence computation and training model remain unchanged.
+    """
+
+    def forward(self, idx):
+        if idx.ndim != 2 or idx.shape[0] < 1:
+            raise ValueError('Expected a nonempty batch of token sequences')
+        single_forward = super().forward
+        if idx.shape[0] == 1:
+            return single_forward(idx)
+        return torch.cat([single_forward(idx[i:i + 1]) for i in range(idx.shape[0])], dim=0)
 
 def _install_submission_training():
     """Training-only adapters; load_for_eval uses the native frozen model."""
