@@ -45,6 +45,8 @@ def records(raw, marker):
 def require_completed(post, raw, request, requirements):
     if (post.get('source_commit') != request['expected_commit']
             or post.get('label') != request['label']
+            or post.get('remote') != request['remote']
+            or post.get('protocol_version') != 2
             or post.get('command_returncode') != 0
             or post.get('host_clean') is not True
             or post.get('guard_error') or post.get('failures')

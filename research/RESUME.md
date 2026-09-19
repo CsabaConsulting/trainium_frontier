@@ -1,30 +1,48 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 17:22 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 17:36 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## FP8 streaming complete; output-rank control preparation — CURRENT
+## FP8 output-rank gates and native control running — CURRENT
 
 - Source147 streaming completed clean13:34:10.966945 while the session was
   idle. Median570.476580ms versus same-source resident562.968046ms,1.334%
   slower; identical loss5.120891094207764 and all four numerical postchecks.
   New summary links source/raw-log hash, timing and comparison. No promotion.
-- Both hosts' last device jobs completed cleanly. Prior bounded log watchers
-  have expired; the independent cron backups continued. New jobs are not
-  automatically selected by the backup cron.
-- Source148 is being prepared: optional direct BxTxC NKI output for unpadded
+- Source148 is committed as60f5374bece8714e2bf2a13212a91ba953201074, deployed
+  cleanly on both hosts at `/home/ubuntu/trainium_freshstart_20260918_wave148`:
+  optional direct BxTxC NKI output for unpadded
   full-FP8 MLP calls, unchanged arithmetic/saves/four backward products. Input
   gradient shape restored explicitly; short padded calls retain the FP8 row
   path. Original11-case numerical and real-Linear gates extended, no relaxed
   tolerances. Local syntax passes; hardware checks and speed remain pending.
-- Planned dispatch: native control on trn21 and independent output-rank gates
-  on trn22. Any complete-model candidate comparison must follow successful
-  candidate gates and a same-source/host control. Preserve host cleanup.
+- trn21 ACTIVE `fs-w148-native-control-phase-r1`, guard1526371, started
+  17:26:38.603375 with clean preflight;5warmups+30timed complete-model updates
+  and four model postchecks. Native control is independent of candidate gates.
+- trn22 ACTIVE `fs-w148-fp8-output-rank-gates-r1`, guard1837442, started
+  17:28:26.323710 with clean preflight. The11-case independent numerical gate
+  including real32768 tokens PASSES, exact retained outputs/gradients/cache
+  checks. Real-Linear integration and final clean postflight remain pending.
+  No whole-model hardware completion or speed claim yet.
+- Prepared fixed trn22 sequence: adopt those gates, then source148 resident
+  compact FP8 control, then direct-rank FP8 candidate. These two timings share
+  host/source; trn21 native is not a matched FP8 reference. Each request has a
+  bounded remote guard, host lock and independent cleanup; advancement requires
+  source-matched clean postflight plus all declared numerical result records.
+  `fresh_start_sequence.py` and two exact request-digest plans are locally
+  validated against completed hardware records and21 invalid cases. Coordinator
+  source975ef2a is committed. Detached local coordinators STARTED17:35:45UTC:
+  native PID6907 (30-minute limit), trn22 PID6908 (90-minute limit). Both adopted
+  the existing dispatches and synced successfully17:35:52. Exact plan/helper
+  hashes, PIDs, logs and state are recorded in their coordinator-launch/sequence
+  receipts. Do not change a running plan, prepared request or coordinator/launch/
+  sync helper: hash mismatch stops advancement. The native sequence only
+  collects/verifies its one control and stops. Backup cron does not select jobs.
 - Remaining priorities: serial QKV preserving Parameters/Muon states/fast RoPE,
   then wider FP8 projection coverage and measured optimizer/loss combinations.
   NLP ideas remain feasibility candidates alongside the kernel campaign.
-- Last verified source pushcdf1b1e1, snapshot4dce9674,13:29:14UTC, includes
-  matched width1152 negative and traditional-NLP audit. Frozen public best
+- Last verified source push60f5374, snapshota6c80f07,17:30:50UTC, includes
+  source148 and stream completion, both remote retrievals complete. Frozen public best
   remains0.9928513116311253; no competition submission or seed sweep.
 
 ## Matched width1152 evaluation and FP8 consumer comparison — 13:28 UTC

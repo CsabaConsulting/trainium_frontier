@@ -1,0 +1,179 @@
+{
+  "label": "fs-w148-output-rank-sequence-r1",
+  "max_seconds": 5400,
+  "purpose": "Fixed three-stage comparison only; adopt already launched numerical gate, then resident control and direct BxTxC full-model candidate on trn22. Every transition requires clean source-matched postflight and explicit result records. No quality promotion or new experiment selection.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w148-fp8-output-rank-gates-r1.request.json",
+      "sha256": "9f4b481e4c5e16df813407b31b4dea721b2e4b179a5262320292cbcdbfb3d367",
+      "requirements": [
+        {
+          "marker": "FP8_COMPACT_SAVES_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 11,
+            "real_shape": true,
+            "real_tokens": 32768,
+            "preserve_output_rank": true,
+            "stream_packed_weights": false,
+            "all_original_independent_forward_and_four_product_gates": true,
+            "exact_retained_forward_tensors_and_compiled_gradients": true,
+            "cache_updates_and_fp32_accumulation": true
+          }
+        },
+        {
+          "marker": "FP8_FULL_MLP_INTEGRATION_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "real_width": true,
+            "compact_forward_saves": true,
+            "preserve_output_rank": true,
+            "stream_packed_weights": false,
+            "full_fp8_backward": true
+          }
+        },
+        {
+          "marker": "OUTPUT_RANK_GATES_COMPLETE",
+          "count": 1,
+          "fields": {
+            "independent_numerical_gate": true,
+            "real_linear_integration_gate": true,
+            "whole_model_phase_pending": true
+          }
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w148-fp8-resident-control-phase-r1.request.json",
+      "sha256": "104d71ca81b5ed3327245fed78f436f255349b9242ab68f2188f145169cad479",
+      "requirements": [
+        {
+          "marker": "PHASE_JSON",
+          "count": 1,
+          "fields": {
+            "world_size": 4,
+            "lnc": "2",
+            "grad_accum": 1,
+            "micro_tokens": 131072,
+            "compile": true,
+            "adaptive_nki_ce": true,
+            "optimizer_ownership": true,
+            "optimizer_owner_calls": 35,
+            "pack_factor": 32,
+            "fp8_mlp_full": true,
+            "fp8_mlp_packed": true,
+            "fp8_mlp_compact_saves": true,
+            "fp8_mlp_stream_packed_weights": false,
+            "fp8_mlp_preserve_output_rank": false,
+            "integrated_nki_local_conv": true,
+            "integrated_bf16_norm_output": true,
+            "fp8_mlp_cache_refresh_counts": [
+              35,
+              35,
+              35,
+              35,
+              35,
+              35,
+              35,
+              35,
+              35,
+              35,
+              35,
+              35
+            ]
+          },
+          "lengths": {
+            "steps": 30
+          },
+          "phase_timing": true
+        },
+        {
+          "marker": "NATIVE_POST_CHECK_JSON",
+          "count": 4,
+          "fields": {
+            "passed": true,
+            "parameters_and_gradients_finite": true,
+            "logits_finite": true,
+            "future_max_abs": 0.0,
+            "other_batch_max_abs": 0.0,
+            "repeated_call_max_abs": 0.0
+          },
+          "unique_field": "rank",
+          "values": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w148-fp8-output-rank-phase-r1.request.json",
+      "sha256": "01a0bf09b7df216891039782a67821aadfa170e39bd9578f2c782b4e97490a0b",
+      "requirements": [
+        {
+          "marker": "PHASE_JSON",
+          "count": 1,
+          "fields": {
+            "world_size": 4,
+            "lnc": "2",
+            "grad_accum": 1,
+            "micro_tokens": 131072,
+            "compile": true,
+            "adaptive_nki_ce": true,
+            "optimizer_ownership": true,
+            "optimizer_owner_calls": 35,
+            "pack_factor": 32,
+            "fp8_mlp_full": true,
+            "fp8_mlp_packed": true,
+            "fp8_mlp_compact_saves": true,
+            "fp8_mlp_stream_packed_weights": false,
+            "fp8_mlp_preserve_output_rank": true,
+            "integrated_nki_local_conv": true,
+            "integrated_bf16_norm_output": true,
+            "fp8_mlp_cache_refresh_counts": [
+              35,
+              35,
+              35,
+              35,
+              35,
+              35,
+              35,
+              35,
+              35,
+              35,
+              35,
+              35
+            ]
+          },
+          "lengths": {
+            "steps": 30
+          },
+          "phase_timing": true
+        },
+        {
+          "marker": "NATIVE_POST_CHECK_JSON",
+          "count": 4,
+          "fields": {
+            "passed": true,
+            "parameters_and_gradients_finite": true,
+            "logits_finite": true,
+            "future_max_abs": 0.0,
+            "other_batch_max_abs": 0.0,
+            "repeated_call_max_abs": 0.0
+          },
+          "unique_field": "rank",
+          "values": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      ]
+    }
+  ]
+}

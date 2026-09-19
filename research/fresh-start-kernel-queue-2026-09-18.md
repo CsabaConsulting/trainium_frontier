@@ -1,6 +1,6 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19 17:22 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19 17:36 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
@@ -69,7 +69,15 @@ No FP8 speed/BPB promotion.
    output contract and bounded rank-preserving/channel-major controls are in
    `fresh-start-fp8-output-layout-2026-09-19.md`. Source148 implements direct
    rank-three output behind a flag and extends the unchanged numerical gates;
-   hardware testing pending. No SDK changes or speed claim.
+   numerical/real-Linear hardware gates active on trn22 since17:28:26UTC, while
+   native control runs on trn21 since17:26:38UTC. A fixed bounded trn22 sequence
+   will adopt the gates, then measure resident control and direct-rank candidate,
+   requiring clean source-matched postflight and all numerical markers at each
+   transition. The11-case independent gate including32768 tokens PASSES; real-
+   Linear gates remain pending. Exact prepared request hashes are in the
+   source148 sequence plan; local coordinator PID6908 started17:35:45UTC and
+   synced successfully, with state and launch receipts preserved. No SDK
+   changes, cross-host speed comparison or candidate speed claim.
 7. Serial QKV execution is a separate candidate from the old fused-Parameter
    and parallel-block trials. Preserve three Parameters/Muon states and the
    contiguous RoPE fast path. The source audit and bounded gates are in
