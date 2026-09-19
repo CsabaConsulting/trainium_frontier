@@ -97,3 +97,19 @@ PROFILE_CONFIG {"seed": 42, "model": {"sequence_len": 1024, "vocab_size": 8192, 
 [pt] world_size=4 LNC=2 micro_tokens=131,072 grad_accum=1 local_conv=True conv_mode=normal norm_output_dtype=baseline sdpa_input_dtype=baseline compile=True foreach_optim=True weight_cache=True ngram_ve=False ngram_tables=0 ngram_rows=65536 ngram_dim=1024 ngram_index_gather=True params=117,453,580
 [pt] whole-matrix optimizer ownership {"rank": 3, "elements_by_owner": [27265796, 30414851, 30412805, 29360128], "estimated_ms_by_owner": [12.947406063447303, 12.939731226905751, 12.948754427971444, 12.947727783333331], "shard_elements": 30414976, "total_padded_bytes": 486639616}
 [pt] whole-matrix optimizer ownership {"rank": 1, "elements_by_owner": [27265796, 30414851, 30412805, 29360128], "estimated_ms_by_owner": [12.947406063447303, 12.939731226905751, 12.948754427971444, 12.947727783333331], "shard_elements": 30414976, "total_padded_bytes": 486639616}
+muon step: COMPILED body for (3, 8, 32) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 1]
+muon step: COMPILED body for (6, 1024, 1024) (tall=False ns_steps=5 red_dim=-1) [specialisations so far: 2]
+muon step: COMPILED body for (2, 4096, 1024) (tall=True ns_steps=5 red_dim=-1) [specialisations so far: 3]
+[pt] warmup 0 dt=421.963s
+[pt] warmup 1 dt=294.495s
+[pt] warmup 2 dt=0.561s
+[pt] warmup 3 dt=0.561s
+[pt] warmup 4 dt=0.562s
+[pt] STEP 0 total=564.2ms micro_total=508.9 (mean 508.9) zero_grad=0.6 clip=6.9 sync_grad=14.3 control=2.6 set_lr=0.0 opt_step=25.9 loss_item=0.0 wcache=5.0 => TAIL=55.3ms (9.8%)
+[pt] STEP 1 total=563.3ms micro_total=508.2 (mean 508.2) zero_grad=0.6 clip=7.2 sync_grad=14.4 control=2.1 set_lr=0.0 opt_step=26.0 loss_item=0.0 wcache=4.8 => TAIL=55.1ms (9.8%)
+[pt] STEP 2 total=569.3ms micro_total=512.4 (mean 512.4) zero_grad=0.7 clip=7.0 sync_grad=14.3 control=2.4 set_lr=0.0 opt_step=27.2 loss_item=0.0 wcache=5.3 => TAIL=56.9ms (10.0%)
+[pt] STEP 3 total=568.6ms micro_total=512.5 (mean 512.5) zero_grad=0.7 clip=6.7 sync_grad=14.9 control=2.6 set_lr=0.0 opt_step=26.4 loss_item=0.0 wcache=4.8 => TAIL=56.1ms (9.9%)
+[pt] STEP 4 total=569.4ms micro_total=511.4 (mean 511.4) zero_grad=0.7 clip=6.8 sync_grad=15.0 control=3.4 set_lr=0.0 opt_step=26.8 loss_item=0.0 wcache=5.2 => TAIL=58.0ms (10.2%)
+[pt] STEP 5 total=566.0ms micro_total=508.8 (mean 508.8) zero_grad=0.6 clip=6.9 sync_grad=14.0 control=3.6 set_lr=0.0 opt_step=26.8 loss_item=0.0 wcache=5.3 => TAIL=57.2ms (10.1%)
+[pt] STEP 6 total=567.7ms micro_total=506.8 (mean 506.8) zero_grad=0.6 clip=7.2 sync_grad=19.5 control=2.1 set_lr=0.0 opt_step=26.7 loss_item=0.0 wcache=4.7 => TAIL=60.8ms (10.7%)
+[pt] STEP 7 total=563.4ms micro_total=506.0 (mean 506.0) zero_grad=0.5 clip=7.0 sync_grad=17.4 control=2.4 set_lr=0.0 opt_step=25.6 loss_item=0.0 wcache=4.5 => TAIL=57.4ms (10.2%)
