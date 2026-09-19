@@ -351,3 +351,21 @@ experimental NKI CE, retains FP32 head accumulator values and softcap15, and
 separates forward fusion from recomputation and optional gradient filtering.
 The current caller trace determines whether its complete cost warrants a
 prototype. Lower memory use alone is not evidence of faster training.
+
+
+### 2026-09-19 02:13 UTC — reciprocal refinement with owned optimizer
+
+The separately passing mode2 reciprocal refinement is now being connected to
+padded whole-matrix optimizer ownership. The actual117,453,580-parameter gate
+compares the owned optimizer against a replicated optimizer using identical
+mode2 math. It requires exact parameters, owned states, all-rank weight bytes,
+unchanged gradients, schedules/skips, refreshed Linear caches and checkpoint
+continuation. Explicit per-table call counts prevent silent native fallback.
+The rank-local checkpoint also records the AdamW math policy and rejects a
+restore under different arithmetic. Original native ownership checkpoints
+retain compatibility through a missing/None policy.
+
+This composition gate does not claim equality with native AdamW or repeat its
+previously passed independent FP64 arithmetic proof. No new kernel arithmetic
+is introduced. A full-step control/candidate pair remains necessary, and the
+quality trainer still rejects the combination until its advancement gates pass.

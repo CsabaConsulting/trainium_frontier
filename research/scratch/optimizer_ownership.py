@@ -122,13 +122,17 @@ class OwnedOptimizer:
                           for key, fields in state["state"].items()}
         return dict(schema="fresh-start-owned-optimizer-v1", rank=self.rank,
                     world_size=self.world_size, entries=self.entries,
-                    pad_singleton_muon=self.pad_singleton_muon, optimizer=state)
+                    pad_singleton_muon=self.pad_singleton_muon,
+                    adamw_math_mode=getattr(self.optimizer, "_fresh_start_adamw_math_mode", None),
+                    optimizer=state)
 
     def load_state_dict(self, payload):
         if (payload.get("schema") != "fresh-start-owned-optimizer-v1"
                 or payload.get("rank") != self.rank
                 or payload.get("world_size") != self.world_size
                 or payload.get("pad_singleton_muon") != self.pad_singleton_muon
+                or payload.get("adamw_math_mode") != getattr(
+                    self.optimizer, "_fresh_start_adamw_math_mode", None)
                 or payload.get("entries") != self.entries):
             raise ValueError("optimizer checkpoint ownership/schema mismatch")
         self.raw_load_state_dict(payload["optimizer"])

@@ -25,6 +25,16 @@ numerics work. Watchers95/96. Full diagnosis:
 Measured FP8 progress and the BF16 layout reversal are summarized at the top of
 `fresh-start-results-2026-09-18.md`. No FP8 quality gain is established.
 
+Current next actions, in dependency order:
+
+| Idea | Current state | Advancement gate |
+| --- | --- | --- |
+| Separate compiled FP8 MLP region | Exact real-Linear gate passed; same-host complete-step comparison running | Include launch/cache/gradient costs; require at least3% whole-step gain before quality |
+| Reciprocal refinement plus optimizer ownership | New composition gate prepared; original mode2 arithmetic gates already pass | Exact owned-versus-replicated same-math weights/states/rank exchange/cache/restore; then fresh paired whole-step timing |
+| FP8 gradient scale sharing | Algebra and contracts recorded in backward design; not implemented | Independent quantizer/FP64 stage gates, then all four gradient products with all packing charged |
+| Fused vocabulary head and exact loss | Primary-source review and design recorded; not implemented | Preserve original FP32 head accumulation and all gradient terms; profile complete caller |
+| Smaller range-reduced tables / rational composed functions | Design candidates; full-value LUT and standalone polynomial timings lost | Benchmark the full producer/consumer pipeline after accuracy/range gates |
+
 | Item | State | Next action / evidence |
 | --- | --- | --- |
 | T1024/pack16 + original fused AdamW | 3282updates; small public0.992175; checkpoint local and cloud verified | Larger20.97M/T1024/O1 evaluation **0.9974687136975224**, clean; first larger public sub1.0, not private leaderboard |

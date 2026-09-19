@@ -1,0 +1,16 @@
+{
+  "label": "fs-w96-native-bf16-caller-analysis-r2",
+  "guard_pid": 1585479,
+  "child_pid": 1585480,
+  "child_session": 1585480,
+  "started_at": "2026-09-19T02:02:17.028245+00:00",
+  "command": [
+    "timeout",
+    "--kill-after=15s",
+    "600s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "-c",
+    "import json,pathlib,runpy,sys; p=json.loads(pathlib.Path('/home/ubuntu/trainium_freshstart_20260918_wave89/research/run-logs/fs-w89-native-owned-fp8-caller-remote-ingest-r1.postflight.json').read_text()); assert p[\"host_clean\"] and p[\"command_returncode\"]==0; sys.path.insert(0,\"research/scratch\"); sys.argv=['model_caller_profile_analysis.py', '--trace', '/home/ubuntu/trainium_freshstart_20260918_wave89/out/fs-w89-native-owned-fp8-micro-device-profile-r1/rank0', '--parquet', '/home/ubuntu/trainium_freshstart_20260918_wave89/out/fs-w89-native-owned-fp8-caller-remote-ingest-r1-parquet', '--output', 'research/run-logs/fs-w96-native-bf16-caller-analysis-r2.analysis.json']; runpy.run_path(\"research/scratch/model_caller_profile_analysis.py\",run_name=\"__main__\")"
+  ]
+}

@@ -101,6 +101,8 @@ def main():
                     help="Keep original FP32 head logits; compress CE derivative at the BF16 head boundary.")
     ap.add_argument("--nki-adamw-fp32", action="store_true",
                     help="Scratch gated functional FP32 AdamW for dense1024 tables; other groups stay native.")
+    ap.add_argument("--nki-adamw-math-mode", type=int, choices=(0, 2), default=0,
+                    help="0: original FP32 kernel;2: separately gated reciprocal refinement.")
     ap.add_argument("--optimizer-ownership", action="store_true",
                     help="Scratch whole-matrix owner updates and exact FP32 weight exchange; "
                          "requires independent CPU/native optimizer gates first.")
@@ -334,12 +336,15 @@ def main():
         from branch_norm_nki import install as install_branch_norm
         install_branch_norm(T)
         print("[pt] NKI branch RMSNorm; FP32 statistics/gradients and BF16 output unchanged", flush=True)
+    if args.nki_adamw_math_mode and not args.nki_adamw_fp32:
+        raise ValueError("--nki-adamw-math-mode requires --nki-adamw-fp32")
     if args.nki_adamw_fp32:
         if device_type != "neuron" or not T.USE_FOREACH_OPTIM:
             raise ValueError("--nki-adamw-fp32 requires Neuron and foreach optimizer")
         from adamw_fused_integration import install as install_adamw
-        install_adamw(T)
-        print("[pt] NKI FP32 AdamW for large tables; native other groups and Muon", flush=True)
+        install_adamw(T, math_mode=args.nki_adamw_math_mode)
+        print("[pt] NKI FP32 AdamW for large tables; native other groups and Muon; math_mode="
+              + str(args.nki_adamw_math_mode), flush=True)
 
     trace_config = None
     if args.trace_rank is not None and not 0 <= args.trace_rank < world_size:
@@ -708,6 +713,7 @@ def main():
             bf16_ce_boundary=args.bf16_ce_boundary,
             bf16_ce_gradient_only=args.bf16_ce_gradient_only,
             nki_adamw_fp32=args.nki_adamw_fp32,
+            nki_adamw_math_mode=(args.nki_adamw_math_mode if args.nki_adamw_fp32 else None),
             nki_adamw_parameter_updates=getattr(optimizer, "_fresh_start_adamw_calls", 0),
             optimizer_ownership=args.optimizer_ownership,
             optimizer_ownership_pad_singletons=args.optimizer_ownership_pad_singletons,

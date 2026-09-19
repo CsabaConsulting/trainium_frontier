@@ -74,4 +74,5 @@ def install(train_module, math_mode=0):
     assert not getattr(train_module, "_fresh_start_fused_adamw", False), "already installed"
     native = train_module.MuonAdamW._adamw_step_foreach
     train_module.MuonAdamW._adamw_step_foreach = make_step(train_module, native, math_mode)
+    train_module.MuonAdamW._fresh_start_adamw_math_mode = math_mode
     train_module._fresh_start_fused_adamw = True

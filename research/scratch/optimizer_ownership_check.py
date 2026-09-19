@@ -49,7 +49,8 @@ def template_groups(real):
     return groups
 
 
-def make_optimizer(groups, initial, device, owned, pad_singleton_muon=False):
+def make_optimizer(groups, initial, device, owned, pad_singleton_muon=False,
+                   adamw_math_mode=None):
     parameters = [torch.nn.Parameter(x.clone().to(device)) for x in initial]
     copied, offset = [], 0
     for group in groups:
@@ -57,6 +58,9 @@ def make_optimizer(groups, initial, device, owned, pad_singleton_muon=False):
         copied.append({**group, "params": parameters[offset:offset + size]})
         offset += size
     optimizer = T.MuonAdamW(copied)
+    if adamw_math_mode is not None:
+        from adamw_fused_integration import install_optimizer as install_adamw
+        install_adamw(optimizer, T, math_mode=adamw_math_mode)
     adapter = install_optimizer(optimizer, T, pad_singleton_muon=pad_singleton_muon) if owned else None
     return parameters, optimizer, adapter
 
@@ -126,7 +130,12 @@ def main():
     parser.add_argument("--real-shape", action="store_true")
     parser.add_argument("--steps", type=int, default=20)
     parser.add_argument("--pad-singleton-muon", action="store_true")
+    parser.add_argument("--adamw-math-mode", type=int, choices=(0, 2), default=None,
+                        help="Compare ownership against replicated identical NKI AdamW math. "
+                             "Its independent arithmetic gates remain required.")
     args = parser.parse_args()
+    if args.adamw_math_mode is not None and (args.device != "neuron" or not args.real_shape):
+        parser.error("NKI AdamW composition requires Neuron and the actual dense1024 tables")
     if args.device == "neuron":
         import torch_neuronx
     torch.set_num_threads(4)
@@ -139,11 +148,15 @@ def main():
         groups = template_groups(args.real_shape)
         generator = torch.Generator().manual_seed(9407)
         initial = [torch.randn(p.shape, generator=generator) * .03 for g in groups for p in g["params"]]
-        reference_params, reference, _ = make_optimizer(groups, initial, device, False)
-        parameters, candidate, adapter = make_optimizer(groups, initial, device, True, args.pad_singleton_muon)
+        reference_params, reference, _ = make_optimizer(
+            groups, initial, device, False, adamw_math_mode=args.adamw_math_mode)
+        parameters, candidate, adapter = make_optimizer(
+            groups, initial, device, True, args.pad_singleton_muon, args.adamw_math_mode)
         del initial
         print("OPTIMIZER_OWNERSHIP_PLAN " + json.dumps(dict(
             rank=rank, pad_singleton_muon=args.pad_singleton_muon,
+            adamw_math_mode=args.adamw_math_mode,
+            reference_math="native" if args.adamw_math_mode is None else "identical replicated NKI AdamW",
             padded_groups=list(adapter.padding), **adapter.summary)), flush=True)
         # Exercise the actual Linear cache after owner updates and all-gather.
         cache_parameter = next(p for p in parameters if p.ndim == 2)
@@ -153,6 +166,7 @@ def main():
                       if args.device == "neuron" else linear)
         x = torch.randn(2, cache_parameter.shape[1], generator=generator).to(device).bfloat16()
         last_gradients = None
+        expected_reference_calls = expected_owned_calls = 0
         for iteration in range(1, 5):
             gradients = [torch.randn(p.shape, generator=generator) * .003 for p in parameters]
             if iteration == 2:
@@ -172,6 +186,14 @@ def main():
                     p.grad = None if gradient is None else gradient.to(device)
                 opt.step(update_adamw=iteration != 3)
             T.synchronize(device)
+            if args.adamw_math_mode is not None:
+                active_tables = [entry for entry, gradient in zip(adapter.entries, gradients)
+                                 if entry["kind"] == "adamw" and entry["shape"] == [8192, 1024]
+                                 and gradient is not None and iteration != 3]
+                expected_reference_calls += len(active_tables)
+                expected_owned_calls += sum(entry["owner"] == rank for entry in active_tables)
+                assert getattr(reference, "_fresh_start_adamw_calls", 0) == expected_reference_calls
+                assert getattr(candidate, "_fresh_start_adamw_calls", 0) == expected_owned_calls
             compare(reference_params, reference, parameters, candidate, adapter, device, f"iteration{iteration}")
             for p, gradient in zip(parameters, gradients):
                 assert (p.grad is None) if gradient is None else torch.equal(p.grad.cpu(), gradient)
@@ -191,7 +213,7 @@ def main():
         stream.seek(0)
         payload = torch.load(stream, map_location="cpu", weights_only=True)
         restored_params, restored, restored_adapter = make_optimizer(
-            groups, payload["weights"], device, True, args.pad_singleton_muon)
+            groups, payload["weights"], device, True, args.pad_singleton_muon, args.adamw_math_mode)
         restored.load_state_dict(payload["optimizer"])
         invalid = {**payload["optimizer"], "rank": (rank + 1) % world}
         try:
@@ -200,6 +222,14 @@ def main():
             pass
         else:
             raise AssertionError("wrong-owner checkpoint accepted")
+        if args.adamw_math_mode is not None:
+            invalid_math = {**payload["optimizer"], "adamw_math_mode": None}
+            try:
+                restored.load_state_dict(invalid_math)
+            except ValueError:
+                pass
+            else:
+                raise AssertionError("different AdamW arithmetic checkpoint accepted")
         del payload, stream
         for opt, ps in ((reference, reference_params), (candidate, parameters), (restored, restored_params)):
             for group in opt.param_groups:
@@ -213,6 +243,17 @@ def main():
         del restored_params, restored, restored_adapter
         print("PASS: exact owned/replicated updates, states, cross-rank weights, "
               "None/zero gradients, skipped AdamW, schedules, cache and state restore", flush=True)
+        if args.adamw_math_mode is not None:
+            assert expected_reference_calls > 0
+            print("OPTIMIZER_OWNERSHIP_ADAMW_COMPOSITION " + json.dumps(dict(
+                rank=rank, math_mode=args.adamw_math_mode,
+                checked_reference_calls=expected_reference_calls,
+                checked_owned_calls=expected_owned_calls,
+                replicated_same_math_exact=True, cross_rank_weights_exact=True,
+                wrong_math_checkpoint_rejected=True,
+                independent_arithmetic_authority=("wave66 reciprocal-refinement integration gate"
+                    if args.adamw_math_mode == 2 else "wave60 original FP32 integration gate"),
+                speed_or_quality_promotion=False)), flush=True)
         if args.device == "neuron" and args.steps:
             arms = {"replicated_optimizer": reference.step, "owned_optimizer_with_exchange": candidate.step}
             samples = {name: [] for name in arms}
