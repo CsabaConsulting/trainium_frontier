@@ -1,0 +1,28 @@
+{
+  "label": "fs-w148-owned-reciprocal-current-gates-r1",
+  "guard_pid": 1530847,
+  "child_pid": 1530848,
+  "child_session": 1530848,
+  "started_at": "2026-09-19T17:41:37.613610+00:00",
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1500s",
+    "/home/ubuntu/workspace/native_venv/bin/torchrun",
+    "--standalone",
+    "--nproc_per_node=4",
+    "/home/ubuntu/trainium_freshstart_20260918_wave148/research/scratch/optimizer_ownership_check.py",
+    "--device",
+    "neuron",
+    "--real-shape",
+    "--width",
+    "1024",
+    "--config-log",
+    "/home/ubuntu/trainium_freshstart_20260918_wave148/research/run-logs/fs-w148-native-control-phase-r1.log",
+    "--steps",
+    "0",
+    "--pad-singleton-muon",
+    "--adamw-math-mode",
+    "2"
+  ]
+}
