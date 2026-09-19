@@ -3,8 +3,12 @@
 Updated 2026-09-19. These are proposed extensions, not measured full-FP8 gains.
 The packed mixed-precision component uses actual FP8 forward GEMMs and BF16
 backward:15.957811 ms versus15.625856 ms native, a2.1244% isolated loss. Model
-integration now passes; full-model allocation timing is in progress. The first
-FP8 incoming-gradient dot is under independent stage tests, not yet autograd.
+integration passes but whole-model timing loses17.7363% (587.956385 versus
+499.384107 ms). Caller traces are next. Both FP8 incoming-gradient dots now
+pass9 independent cases but gain only0.56–1.65% with incremental packing charged.
+Fused FP8 data backward passes9 cases and matches the separate FP8 algorithm;
+6.205545 ms versus5.505396 ms BF16 is12.72% slower. No autograd or FP8
+weight-gradient integration follows these measurements.
 
 ## Why the fixed input scale matters beyond one reduction
 

@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 01:27 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 01:40 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
 ## Current result and active work
@@ -23,31 +23,42 @@ CE alone. The previous larger results0.9973302214 (T2048/pack8/ownership) and
 0.9974687137 (T1024/pack16/original fused AdamW) remain reproducible checkpoints.
 No seed sweep or new function approximation is in the winning run.
 
-Packed FP8 forward/BF16 backward now takes15.957811ms per complete component
-(cache calibration/packing plus two FW/BW microbatches), versus prior FP8
-16.442287ms and native BF1615.625856ms. All independent forward/backward and
-FP32 accumulation gates pass. It still loses2.1244% in isolation; a bounded
-whole-model allocation probe is justified after wrapper/cache/prediction gates.
-Full FP8 backward is unimplemented.
+The packed FP8 forward/BF16 backward passes numerical and real-Linear/cache
+integration gates but loses the complete model comparison: **587.956385 ms**
+versus **499.384107 ms** native BF16, a **17.7363% regression**. Same immutable
+source dcd6b80, same trn21 host, seed/data/geometry/ownership/adaptive CE,
+5 warmup plus 30 timed updates. The two-microbatch compute phase adds85.0014 ms;
+extra cache refresh adds2.52845 ms. All four native-evaluation postchecks pass,
+and all12 FP8 cache counters equal35. Approximate training losses are finite
+(5.067037 FP8 versus5.064923 BF16); numerical correctness is not a quality win.
+The3% advancement gate fails: do not run a30-minute FP8 quality experiment yet.
+See `run-logs/fs-w89-packed-fp8-whole-step-comparison-r1.json`.
 
-**trn21 ACTIVE wave89 packed FP8 whole-step candidate:** source
-dcd6b80a4199339333d93a8e005aa746d3fd28d2, candidate dispatch after01:26 UTC.
-Same-source native control finished clean01:25:38, median499.38410651520826ms,
-last loss5.064923286437988, all four postchecks pass. Candidate retains the same
-host, seed42, model geometry, data and ownership/CE stack. Training is approximate;
-loss equality to native is not required. Require finite weights/gradients and
-all postchecks, inspect cache-refresh counts, compare full step, retain3%
-advancement gate. Native evaluation postchecks alone do not test FP8 training;
-the wrapper's separate row/padding checks provide that evidence. Watcher wave89.
+**trn21 wave89 caller profile COMPLETE and clean01:38:13:**
+`fs-w89-packed-fp8-owned-micro-device-profile-r1`, source dcd6b80a4199339333d93a8e005aa746d3fd28d2.
+Raw preservation is running locally. Captured one warmed rank0 microstep with
+all four ranks active, exported all compiled/eager binaries. Profile time is
+attribution only; diagnose the caller regression rather than more blind dots.
+**trn22 ACTIVE matching native BF16 caller profile01:40:07:**
+`fs-w89-native-owned-fp8-micro-device-profile-r1`, same source/configuration.
+This cross-host trace pair is for structural attribution; use the earlier
+same-host phase pair for performance. Both log watchers now target wave89.
 
-**trn22 ACTIVE wave92 FP8 gradient stage:** only the repack-byte diagnostic was
-changed from wave91 to classify every mismatch under the ORIGINAL signed-zero
-equivalence contract. Reject any changed nonzero code/layout; require independent
-legacy decode equality. Wave91 passed eight arithmetic cases (including tiny
-gradients) before raw-byte equality failed; clean postflight, no timing.
-Wave92 retains the same kernel/math/pair bounds and two real gradient shapes.
-Watchers are repointed using fresh_start_repoint_sync.py (exact argv/UID/cwd/
-start ticks plus pidfd; no remote experiment process is touched).
+Wave92 generic FP8 gradient GEMMs pass all9 independent cases. Repacked byte
+mismatches are only107/103 signed-zero encodings under the ORIGINAL zero
+contract; no changed nonzero value. Extra packing plus two products saves only
+1.6518% for G@Wdown and0.5554% for dPre@Wup. Wave93 fused data backward passes
+all9 cases and matches the separate FP8 algorithm exactly, but takes6.205545 ms
+versus5.505396 ms BF16 (12.7175% slower). It improves over separate FP8 by9.5398%.
+The17.350630 ms fused timing outlier remains in the raw samples. No backward
+autograd integration, weight-gradient FP8, quality run, or promotion follows.
+
+To recover trace headroom, maintenance01:37 reverified all17 local/remote
+hashes and the GitHub digest receipt for the old wave5 raw profile before
+removing ONLY its4,112,012,976-byte redundant remote copy. Local and GitHub
+copies remain. Whole-host lock held; no device holders; no source/cache change.
+trn22 free disk rose11,478,880,256 to15,590,940,672 bytes. Exact paths and hashes:
+`run-logs/fs-maintenance-preserved-wave5-profile-20260919T013701Z.json`.
 
 Wave89 wrapper rerun passes BOTH D256/D1024 all checks, cached/uncached gradients
 and real updates, FP32 accumulation, cache freshness/nonmutation, FP8 training

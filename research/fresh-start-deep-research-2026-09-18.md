@@ -30,8 +30,12 @@ updated caches, FP32 master accumulation, FP8 training token/batch/repetition
 and padding independence, and exact native checkpoint restore. Its initial
 two-width test hit Dynamo's eight-specialization limit; resetting only inactive
 process-local guards between independent models fixed the harness. The failed
-attempt remains recorded. Full-model timing is next, with quantized training
-and explicitly native BF16 evaluation; no FP8 quality gain is claimed.
+attempt remains recorded. The same-host full-model comparison then loses:
+587.956385 versus499.384107 ms (17.7363% slower). Two-microbatch compute adds
+85.0014 ms and cache refresh adds2.52845 ms. All cache counts and four postchecks
+pass; approximate training is paired with explicitly native BF16 evaluation.
+No FP8 quality run follows. Caller device traces are being preserved and compared
+to identify the full-graph cost that the component probe did not predict.
 
 Wave87's70 runtime dispatches all match preserved binaries. Packed forward
 device time2.535229 ms versus preceding token-row FP82.803872 ms; sampled SBUF
@@ -46,11 +50,13 @@ component improvement becomes only0.5300% per whole step (497.864910 versus
 with no quality run. The failed full BF16 forward boundary stays rejected as
 an exact optimization: original compiled logits retain FP32 accumulator values.
 
-The first true FP8 gradient GEMM probe passes eight small/real arithmetic gates,
-including tiny inputs and signed cancellation. Before timing it hits an overly
-strict raw-byte repack comparison; classify every difference against the
-preexisting signed-zero-equivalence contract and require decoded equality.
-Full FP8 backward and weight-gradient products remain unimplemented.
+The true FP8 gradient GEMM probe now passes all9 cases. Every repack-byte
+mismatch is a signed zero under the original contract; decoded values are exact.
+The two complete gradient products gain only1.65% and0.56%. A fused FP8 data
+backward then passes9 cases and exact agreement with the separate FP8 algorithm,
+but takes6.205545 versus5.505396 ms native BF16 (12.72% slower). The timing
+outlier remains recorded. No backward autograd or FP8 weight-gradient
+integration has been promoted.
 
 Compact full-value tables passed accuracy but lost19.04x. Stronger rsqrt
 corrections and standalone exponential polynomials also lost timing. Reciprocal
