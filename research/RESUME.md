@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19, 00:21 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19, 00:33 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
 ## Current result and active work
@@ -35,10 +35,11 @@ Compact full-value tables passed accuracy but lost19.04x; stronger rsqrt
 corrections and standalone exponential polynomials also lost timing. Reciprocal
 refinement passed optimizer integration but is absent from the quality run.
 
-**trn21 ACTIVE:** wave80 exact BF16 CE boundary small gate, source
-75c7eb2c791c17658173ede7fc0a1a49c345e7e1. Its preceding larger evaluation
-completed clean. Do not run the prepared real-shape request until small gates
-and clean postflight pass. Repoint the watcher from completed wave70 to wave80.
+**trn21 CLEAN after wave80:** BF16 CE memory boundary passes all72 exact
+eager/compiled comparisons. Complete CE+casts10.071585ms adaptiveFP32 versus
+6.233179ms BF16. The new head/caller adapter is prepared; commit/deploy wave82
+and run the real Linear/cache/head gradient gate before the prepared phase
+control and candidate. Whole-step gate remains3%. Watcher follows wave80.
 
 The installed CE/autograd gate passes36 eager/compiled exact loss/gradient
 checks. Fresh same-source whole-step control519.3954189890064ms versus candidate
@@ -48,12 +49,12 @@ loss5.064923286437988 matches exactly. No complete parameter-equality claim.
 Combined gain versus earlier owned T2048/pack8 control528.3530275ms is5.2958%.
 The phase clips before averaging; quality clips after. Protected trainer unchanged.
 
-**trn22 CLEAN after wave79:** fixed-input scale small/real forward, declared
-BF16 backward and accumulated FP32 master gradients pass. Complete component
-17.926315ms versus18.019795ms adaptive input; 0.519% gain, still14.38% slower
-than native. No training promotion. The next code changes backward orientation
-to match token-row saved ReLU; same FP64 bounds and an explicit old-backward
-control. Commit/deploy wave81 before launching. Watcher follows wave79.
+**trn22 CLEAN after wave81:** token-row backward passes all small/real
+FP64 surrogate gradient bounds and accumulated-master checks. Complete
+component16.515157ms versus17.920212ms previous backward with same forward
+(7.84% gain), but15.675626ms native (5.36% slower). No training promotion.
+Next wave82 profile pairs both backward orientations and the same fixed-input
+forward to check compiler transpose/spill removal. Watcher follows wave81.
 
 Wave78 raw profile358627902B and parquet219879131B are local/hash-verified.
 All44 runtime dispatches map to binaries. Device FW: oldFP83.686925ms, token
@@ -155,7 +156,7 @@ Local Devuan/SystemV, usercsaba cron; no root/systemd:
   inspect its completion. The new wave70 checkpoint arrived after that inventory. State is
   out/fresh-start-artifact-backup/latest.json; receipts under research/run-logs.
   Newly produced remote checkpoints still need retrieval to checkpoints/ first.
-- Local log watchers currently follow trn21/wave70 and trn22/wave79,90rounds at
+- Local log watchers currently follow trn21/wave80 and trn22/wave81,90rounds at
  45seconds. Repoint when the active remote worktree changes. Only stop exact
   owned watcher PID/UID/cwd/argv/startticks; remote training jobs are separate.
 

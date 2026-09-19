@@ -331,3 +331,14 @@ causality/quality contract is separate and documented in the kernel queue.
 The exact-CE/ownership/T1024-pack16 quality run completed within budget at
 3,548 updates and small public 0.988605 BPB. Checkpoint locally hash-verified;
 matched larger public evaluation pending. No private leaderboard claim.
+
+### 2026-09-19, 00:33 UTC — dtype and caller layout gains
+
+BF16 logits/gradient memory boundary passes72 exact loss/gradient comparisons
+and saved-statistic checks. Complete loss-plus-cast component6.233179ms versus
+10.071585ms adaptive FP32. Real head/caller integration is the next gate; no
+whole-model speed claim. Token-row FP8 backward passes original FP64 bounds
+and accumulation, improving16.515157vs17.920212ms (same forward) while still
+trailing native15.675626ms. Profiling will test the compiler-transpose hypothesis.
+The new FP8 backward design note records scale-factor algebra, packed-cache
+and producer/statistic candidates, state constraints and primary references.

@@ -30,13 +30,16 @@ def main():
     parser.add_argument('--trace-dir', type=Path, required=True)
     parser.add_argument('--token-rows', action='store_true',
                         help='Also attribute the wave77-gated token-row layout')
+    parser.add_argument('--rms-fixed-input', action='store_true')
+    parser.add_argument('--token-row-backward', action='store_true')
     args = parser.parse_args()
+    assert not (args.rms_fixed_input or args.token_row_backward) or args.token_rows
     torch.set_num_threads(4)
     trace = args.trace_dir.resolve()
     trace.mkdir(parents=True, exist_ok=False)
     shape = (16384, 1024, 4096)
     tile = 512
-    x, up, down = make_inputs(shape, 'real_random')
+    x, up, down = make_inputs(shape, 'real_random', args.rms_fixed_input)
     generator = torch.Generator().manual_seed(9073 + shape[0] + shape[1])
     gradient = (torch.randn(x.shape, generator=generator) * .03125).bfloat16().to('neuron')
     leaves = (x.to('neuron').requires_grad_(), up.float().to('neuron').requires_grad_(),
@@ -62,12 +65,20 @@ def main():
     if args.token_rows:
         from fp8_mlp_token_rows_nki import build_kernel as build_token_rows
         token_rows = wrap_nki(build_token_rows())
+        fixed_args = ()
+        if args.rms_fixed_input:
+            from fp8_rms_scale_contract import policy
+            fixed_args = (policy(shape[1])[0],)
 
         def token_rows_forward(xx, uu, dd, um, dm):
-            return token_rows[2](xx, uu, dd, um, dm, 2, 128, False)
+            return token_rows[2](xx, uu, dd, um, dm, 2, 128, False, *fixed_args)
 
         arms['nki_fp8_token_rows'] = (
             make_autograd(token_rows_forward, relu_token_major=True), True)
+        if args.token_row_backward:
+            arms['nki_fp8_token_row_backward'] = (
+                make_autograd(token_rows_forward, relu_token_major=True,
+                              token_row_backward=True), True)
     arms = {name: (torch.compile(function, backend='neuron', fullgraph=True, dynamic=False), q)
             for name, (function, q) in arms.items()}
     # Native/BF16 arms ignore these arguments, as in the gated timing probe.
@@ -137,7 +148,12 @@ def main():
         trace=str(trace), shape=list(shape), arms=list(arms), microbatches=2,
         compiled_neffs=len(entries), eager_neffs=len(eager['files']),
         phase_boundary_synchronization=True, profiled_latency_is_speed_evidence=False,
-        numerical_authority=('fs-w77-fp8-token-rows-training-component-gate-r1'
+        fixed_rms_input_scale=args.rms_fixed_input, token_row_backward=args.token_row_backward,
+        numerical_authority=('fs-w81-fp8-token-row-backward-training-component-gate-r1'
+                             if args.token_row_backward else
+                             'fs-w79-fp8-rms-fixed-input-training-component-gate-r1'
+                             if args.rms_fixed_input else
+                             'fs-w77-fp8-token-rows-training-component-gate-r1'
                              if args.token_rows else
                              'fs-w73-fp8-causal-island-training-component-gate-r1'),
         whole_model_or_optimizer_included=False)), flush=True)
