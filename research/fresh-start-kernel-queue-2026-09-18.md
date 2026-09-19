@@ -301,3 +301,27 @@ the fixed scale a training speed win. Full FP8 backward and a full-model
 allocation probe remain distinct: an isolated loss need not veto a justified
 caller-allocation experiment, but must be recorded and all numerical/state/
 causality gates must precede it. No such caller probe is implemented yet.
+
+### Wave80/81 outcome and ready integration (00:33 UTC)
+
+BF16 CE boundary passes72 eager/compiled loss-and-gradient comparisons plus
+exact saved statistics. At16384x8192, complete loss FW/BW including original
+cast boundaries is10.071585ms adaptive FP32 versus6.233179ms BF16 boundary;
+protected one-core original is16.252417ms. This is a38.11% component gain, not
+a whole-step gain. The next scratch adapter removes exactly the known head
+`.float()` assignment through an asserted AST change; prediction/evaluation,
+CPU and output-bigram paths call the original GPT forward. No protected source
+or checkpoint structure changes. A real Linear/cache/head gradient gate comes
+before same-source full-step control and candidate requests.
+
+Token-row FP8 backward passes all7 small and real forward/backward/accumulation
+gates. Complete component16.515157ms versus17.920212ms old backward with the
+same fixed-input forward (7.8406% gain), and15.675626ms native (5.36% slower).
+Capture a fresh trace with both backward orientations and the same forward to
+verify whether the compiler transpose and spill traffic disappeared.
+
+The follow-on precision/cache/gradient contracts are now detailed in
+`fresh-start-fp8-backward-design-2026-09-19.md`, with primary research. Fixed
+input scaling can factor out of the token contraction in weight gradients;
+per-token scales cannot. Packed FP8 caches, producer/statistic fusion, data
+gradients and weight gradients remain separately gated design candidates.

@@ -1,0 +1,3789 @@
+{
+  "label": "fs-w81-fp8-token-row-backward-training-component-gate-r1",
+  "source_commit": "2b9cdbf74b4af7c030ea4105d8df1743f384c390",
+  "command_returncode": 0,
+  "host_clean": true,
+  "completed_at": "2026-09-19T00:28:01.006057+00:00",
+  "record_counts": {
+    "FP8_ISLAND_BACKWARD_CONTRACT": 1,
+    "FP8_CACHE_EXACT_GATE": 194,
+    "FP8_CACHE_CALIBRATION": 18,
+    "FP8_ISLAND_BACKWARD_BOUND": 57,
+    "FP8_ISLAND_TRAINING_GATE": 8,
+    "FP8_CACHE_QUANTIZATION_DIAGNOSTIC": 2,
+    "FP8_ISLAND_PAIR_GATE": 2,
+    "FP8_ISLAND_CASE": 1,
+    "FP8_CACHE_BACKWARD_FP64_BOUND": 9,
+    "FP8_ISLAND_TRAINING_BENCH": 1,
+    "FP8_ISLAND_TRAINING_RESULT": 1
+  },
+  "records": {
+    "FP8_ISLAND_BACKWARD_CONTRACT": [
+      {
+        "forward_gates_required_before_launch": true,
+        "surrogate": "identity for casts, quantizers and pair rounding",
+        "token_row_output_layout": true,
+        "fixed_rms_input_scale": true,
+        "token_row_backward": true,
+        "reference": "independent FP64 autograd with forward-audited saved values",
+        "error_bound": "FP32 gamma_K accumulation and propagated BF16 u=2**-8 boundaries",
+        "gradients": "BF16 input; FP32 master weights exactly once; detached caches"
+      }
+    ],
+    "FP8_CACHE_EXACT_GATE": [
+      {
+        "name": "random:training_up:metadata",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "random:training_up:quantized",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "random:training_up:metadata_repeat",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "random:training_up:quantized_repeat",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "random:training_up:input_unchanged",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "random:training_up:idempotent",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "random:training_down:metadata",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "random:training_down:quantized",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "random:training_down:metadata_repeat",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "random:training_down:quantized_repeat",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "random:training_down:input_unchanged",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "random:training_down:idempotent",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "random:compiled_training_forward0",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "random:compiled_training_forward1",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "random:two_microbatch_accumulation0",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "random:two_microbatch_accumulation1",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "random:two_microbatch_accumulation2",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "random:x_unchanged",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "random:up_master_unchanged",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "random:down_master_unchanged",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_up:training_up:metadata",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_up:training_up:quantized",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_up:training_up:metadata_repeat",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_up:training_up:quantized_repeat",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_up:training_up:input_unchanged",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_up:training_up:idempotent",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_up:training_down:metadata",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_up:training_down:quantized",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_up:training_down:metadata_repeat",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_up:training_down:quantized_repeat",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_up:training_down:input_unchanged",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_up:training_down:idempotent",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_up:compiled_training_forward0",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_up:compiled_training_forward1",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_up:two_microbatch_accumulation0",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_up:two_microbatch_accumulation1",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_up:two_microbatch_accumulation2",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_up:x_unchanged",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_up:up_master_unchanged",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_up:down_master_unchanged",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_down:training_up:metadata",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_down:training_up:quantized",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_down:training_up:metadata_repeat",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_down:training_up:quantized_repeat",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_down:training_up:input_unchanged",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_down:training_up:idempotent",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_down:training_down:metadata",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_down:training_down:quantized",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_down:training_down:metadata_repeat",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_down:training_down:quantized_repeat",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_down:training_down:input_unchanged",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_down:training_down:idempotent",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_down:compiled_training_forward0",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_down:compiled_training_forward1",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_down:two_microbatch_accumulation0",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_down:two_microbatch_accumulation1",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_down:two_microbatch_accumulation2",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_down:x_unchanged",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_down:up_master_unchanged",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "zero_down:down_master_unchanged",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "outliers:training_up:metadata",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "outliers:training_up:quantized",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "outliers:training_up:metadata_repeat",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "outliers:training_up:quantized_repeat",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "outliers:training_up:input_unchanged",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "outliers:training_up:idempotent",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "outliers:training_down:metadata",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "outliers:training_down:quantized",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "outliers:training_down:metadata_repeat",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "outliers:training_down:quantized_repeat",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "outliers:training_down:input_unchanged",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "outliers:training_down:idempotent",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "outliers:compiled_training_forward0",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "outliers:compiled_training_forward1",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "outliers:two_microbatch_accumulation0",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "outliers:two_microbatch_accumulation1",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "outliers:two_microbatch_accumulation2",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "outliers:x_unchanged",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "outliers:up_master_unchanged",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "outliers:down_master_unchanged",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "changed_weights:training_up:metadata",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "changed_weights:training_up:quantized",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "changed_weights:training_up:metadata_repeat",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "changed_weights:training_up:quantized_repeat",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "changed_weights:training_up:input_unchanged",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "changed_weights:training_up:idempotent",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "changed_weights:training_down:metadata",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "changed_weights:training_down:quantized",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "changed_weights:training_down:metadata_repeat",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "changed_weights:training_down:quantized_repeat",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "changed_weights:training_down:input_unchanged",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "changed_weights:training_down:idempotent",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "changed_weights:compiled_training_forward0",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "changed_weights:compiled_training_forward1",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "changed_weights:two_microbatch_accumulation0",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "changed_weights:two_microbatch_accumulation1",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "changed_weights:two_microbatch_accumulation2",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "changed_weights:x_unchanged",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "changed_weights:up_master_unchanged",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "changed_weights:down_master_unchanged",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_spikes:training_up:metadata",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_spikes:training_up:quantized",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_spikes:training_up:metadata_repeat",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_spikes:training_up:quantized_repeat",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_spikes:training_up:input_unchanged",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_spikes:training_up:idempotent",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_spikes:training_down:metadata",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_spikes:training_down:quantized",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_spikes:training_down:metadata_repeat",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_spikes:training_down:quantized_repeat",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_spikes:training_down:input_unchanged",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_spikes:training_down:idempotent",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_spikes:compiled_training_forward0",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_spikes:compiled_training_forward1",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_spikes:two_microbatch_accumulation0",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_spikes:two_microbatch_accumulation1",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_spikes:two_microbatch_accumulation2",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_spikes:x_unchanged",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_spikes:up_master_unchanged",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_spikes:down_master_unchanged",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_tiny:training_up:metadata",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_tiny:training_up:quantized",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_tiny:training_up:metadata_repeat",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_tiny:training_up:quantized_repeat",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_tiny:training_up:input_unchanged",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_tiny:training_up:idempotent",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_tiny:training_down:metadata",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_tiny:training_down:quantized",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_tiny:training_down:metadata_repeat",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_tiny:training_down:quantized_repeat",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_tiny:training_down:input_unchanged",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_tiny:training_down:idempotent",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_tiny:compiled_training_forward0",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_tiny:compiled_training_forward1",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_tiny:two_microbatch_accumulation0",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_tiny:two_microbatch_accumulation1",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_tiny:two_microbatch_accumulation2",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_tiny:x_unchanged",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_tiny:up_master_unchanged",
+        "shape": [
+          512,
+          256
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "norm_tiny:down_master_unchanged",
+        "shape": [
+          256,
+          512
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:up:metadata",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:up:quantized",
+        "shape": [
+          4096,
+          1024
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:up:metadata_repeat",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:up:quantized_repeat",
+        "shape": [
+          4096,
+          1024
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:up:input_unchanged",
+        "shape": [
+          4096,
+          1024
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:up:idempotent",
+        "shape": [
+          4096,
+          1024
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:down:metadata",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:down:quantized",
+        "shape": [
+          1024,
+          4096
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:down:metadata_repeat",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:down:quantized_repeat",
+        "shape": [
+          1024,
+          4096
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:down:input_unchanged",
+        "shape": [
+          1024,
+          4096
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:down:idempotent",
+        "shape": [
+          1024,
+          4096
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:fixed_rms_input_metadata",
+        "shape": [
+          16384,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:fixed_rms_input_quantizer",
+        "shape": [
+          16384,
+          1024
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:relu_rounding",
+        "shape": [
+          4096,
+          16384
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:per_token_hidden_metadata",
+        "shape": [
+          16384,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:per_token_hidden_quantizer",
+        "shape": [
+          16384,
+          4096
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:output_rounding",
+        "shape": [
+          16384,
+          1024
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:diagnostic_vs_normal0",
+        "shape": [
+          16384,
+          1024
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:repeat0",
+        "shape": [
+          16384,
+          1024
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:diagnostic_vs_normal1",
+        "shape": [
+          4096,
+          16384
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:repeat1",
+        "shape": [
+          4096,
+          16384
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:diagnostic_vs_normal2",
+        "shape": [
+          16384,
+          1024
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:repeat2",
+        "shape": [
+          16384,
+          1024
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:diagnostic_vs_normal3",
+        "shape": [
+          16384,
+          4096
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:repeat3",
+        "shape": [
+          16384,
+          4096
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:input_unchanged",
+        "shape": [
+          16384,
+          1024
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:row_independence0",
+        "shape": [
+          16382,
+          1024
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:row_independence1",
+        "shape": [
+          16382,
+          4096
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:row_independence2",
+        "shape": [
+          16382,
+          1024
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:row_independence3",
+        "shape": [
+          16382,
+          4096
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:training_up:metadata",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:training_up:quantized",
+        "shape": [
+          4096,
+          1024
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:training_up:metadata_repeat",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:training_up:quantized_repeat",
+        "shape": [
+          4096,
+          1024
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:training_up:input_unchanged",
+        "shape": [
+          4096,
+          1024
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:training_up:idempotent",
+        "shape": [
+          4096,
+          1024
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:training_down:metadata",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:training_down:quantized",
+        "shape": [
+          1024,
+          4096
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:training_down:metadata_repeat",
+        "shape": [
+          128,
+          3
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:training_down:quantized_repeat",
+        "shape": [
+          1024,
+          4096
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:training_down:input_unchanged",
+        "shape": [
+          1024,
+          4096
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:training_down:idempotent",
+        "shape": [
+          1024,
+          4096
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:compiled_training_forward0",
+        "shape": [
+          16384,
+          1024
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:compiled_training_forward1",
+        "shape": [
+          16384,
+          1024
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:two_microbatch_accumulation0",
+        "shape": [
+          16384,
+          1024
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:two_microbatch_accumulation1",
+        "shape": [
+          4096,
+          1024
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:two_microbatch_accumulation2",
+        "shape": [
+          1024,
+          4096
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:x_unchanged",
+        "shape": [
+          16384,
+          1024
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:up_master_unchanged",
+        "shape": [
+          4096,
+          1024
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:down_master_unchanged",
+        "shape": [
+          1024,
+          4096
+        ],
+        "dtype": "torch.float32",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:original_fp8_timing_control_forward",
+        "shape": [
+          16384,
+          1024
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:adaptive_fp8_timing_control_forward",
+        "shape": [
+          16384,
+          1024
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      },
+      {
+        "name": "real_random:previous_backward_timing_control_forward",
+        "shape": [
+          16384,
+          1024
+        ],
+        "dtype": "torch.bfloat16",
+        "finite": true,
+        "exact": true,
+        "max_abs": 0.0,
+        "passed": true
+      }
+    ],
+    "FP8_CACHE_CALIBRATION": [
+      {
+        "name": "random:training_up",
+        "shape": [
+          512,
+          256
+        ],
+        "maximum": 0.28515625,
+        "scale": 256.0,
+        "scaled_maximum": 73.0,
+        "online_calibration": true,
+        "all_gates_passed": true
+      },
+      {
+        "name": "random:training_down",
+        "shape": [
+          256,
+          512
+        ],
+        "maximum": 0.21484375,
+        "scale": 512.0,
+        "scaled_maximum": 110.0,
+        "online_calibration": true,
+        "all_gates_passed": true
+      },
+      {
+        "name": "zero_up:training_up",
+        "shape": [
+          512,
+          256
+        ],
+        "maximum": 0.0,
+        "scale": 8.112963841460668e+31,
+        "scaled_maximum": 0.0,
+        "online_calibration": true,
+        "all_gates_passed": true
+      },
+      {
+        "name": "zero_up:training_down",
+        "shape": [
+          256,
+          512
+        ],
+        "maximum": 0.21484375,
+        "scale": 512.0,
+        "scaled_maximum": 110.0,
+        "online_calibration": true,
+        "all_gates_passed": true
+      },
+      {
+        "name": "zero_down:training_up",
+        "shape": [
+          512,
+          256
+        ],
+        "maximum": 0.28515625,
+        "scale": 256.0,
+        "scaled_maximum": 73.0,
+        "online_calibration": true,
+        "all_gates_passed": true
+      },
+      {
+        "name": "zero_down:training_down",
+        "shape": [
+          256,
+          512
+        ],
+        "maximum": 0.0,
+        "scale": 8.112963841460668e+31,
+        "scaled_maximum": 0.0,
+        "online_calibration": true,
+        "all_gates_passed": true
+      },
+      {
+        "name": "outliers:training_up",
+        "shape": [
+          512,
+          256
+        ],
+        "maximum": 8.0,
+        "scale": 8.0,
+        "scaled_maximum": 64.0,
+        "online_calibration": true,
+        "all_gates_passed": true
+      },
+      {
+        "name": "outliers:training_down",
+        "shape": [
+          256,
+          512
+        ],
+        "maximum": 4.0,
+        "scale": 16.0,
+        "scaled_maximum": 64.0,
+        "online_calibration": true,
+        "all_gates_passed": true
+      },
+      {
+        "name": "changed_weights:training_up",
+        "shape": [
+          512,
+          256
+        ],
+        "maximum": 0.419921875,
+        "scale": 256.0,
+        "scaled_maximum": 107.5,
+        "online_calibration": true,
+        "all_gates_passed": true
+      },
+      {
+        "name": "changed_weights:training_down",
+        "shape": [
+          256,
+          512
+        ],
+        "maximum": 0.263671875,
+        "scale": 256.0,
+        "scaled_maximum": 67.5,
+        "online_calibration": true,
+        "all_gates_passed": true
+      },
+      {
+        "name": "norm_spikes:training_up",
+        "shape": [
+          512,
+          256
+        ],
+        "maximum": 0.28515625,
+        "scale": 256.0,
+        "scaled_maximum": 73.0,
+        "online_calibration": true,
+        "all_gates_passed": true
+      },
+      {
+        "name": "norm_spikes:training_down",
+        "shape": [
+          256,
+          512
+        ],
+        "maximum": 0.21484375,
+        "scale": 512.0,
+        "scaled_maximum": 110.0,
+        "online_calibration": true,
+        "all_gates_passed": true
+      },
+      {
+        "name": "norm_tiny:training_up",
+        "shape": [
+          512,
+          256
+        ],
+        "maximum": 0.28515625,
+        "scale": 256.0,
+        "scaled_maximum": 73.0,
+        "online_calibration": true,
+        "all_gates_passed": true
+      },
+      {
+        "name": "norm_tiny:training_down",
+        "shape": [
+          256,
+          512
+        ],
+        "maximum": 0.21484375,
+        "scale": 512.0,
+        "scaled_maximum": 110.0,
+        "online_calibration": true,
+        "all_gates_passed": true
+      },
+      {
+        "name": "real_random:up",
+        "shape": [
+          4096,
+          1024
+        ],
+        "maximum": 0.1630859375,
+        "scale": 512.0,
+        "scaled_maximum": 83.5,
+        "online_calibration": true,
+        "all_gates_passed": true
+      },
+      {
+        "name": "real_random:down",
+        "shape": [
+          1024,
+          4096
+        ],
+        "maximum": 0.080078125,
+        "scale": 1024.0,
+        "scaled_maximum": 82.0,
+        "online_calibration": true,
+        "all_gates_passed": true
+      },
+      {
+        "name": "real_random:training_up",
+        "shape": [
+          4096,
+          1024
+        ],
+        "maximum": 0.1630859375,
+        "scale": 512.0,
+        "scaled_maximum": 83.5,
+        "online_calibration": true,
+        "all_gates_passed": true
+      },
+      {
+        "name": "real_random:training_down",
+        "shape": [
+          1024,
+          4096
+        ],
+        "maximum": 0.080078125,
+        "scale": 1024.0,
+        "scaled_maximum": 82.0,
+        "online_calibration": true,
+        "all_gates_passed": true
+      }
+    ],
+    "FP8_ISLAND_BACKWARD_BOUND": [
+      {
+        "name": "random:microbatch0",
+        "field": "dx",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0006742743379824501,
+        "relative_rms": 0.0023425900848283625,
+        "rms_bound": 0.003071453849086204,
+        "half_gradient_negative_control_failures": 117356,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "random:microbatch0",
+        "field": "dup",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.005671731644796729,
+        "relative_rms": 0.0016640448320691384,
+        "rms_bound": 0.04928364519932792,
+        "half_gradient_negative_control_failures": 117247,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "random:microbatch0",
+        "field": "ddown",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 4.246830940246582e-07,
+        "relative_rms": 5.4988256300092925e-08,
+        "rms_bound": 0.003499844336802406,
+        "half_gradient_negative_control_failures": 131030,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "random:microbatch1",
+        "field": "dx",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0006955521737672388,
+        "relative_rms": 0.002331877626592817,
+        "rms_bound": 0.0030533350507433257,
+        "half_gradient_negative_control_failures": 117183,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "random:microbatch1",
+        "field": "dup",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0062067744205616115,
+        "relative_rms": 0.001649803696700015,
+        "rms_bound": 0.04896877895117777,
+        "half_gradient_negative_control_failures": 117114,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "random:microbatch1",
+        "field": "ddown",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 4.6193599700927734e-07,
+        "relative_rms": 5.461115514882527e-08,
+        "rms_bound": 0.00356058584892445,
+        "half_gradient_negative_control_failures": 131005,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "zero_up:microbatch0",
+        "field": "dx",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0,
+        "relative_rms": 0.0,
+        "rms_bound": 0.0,
+        "half_gradient_negative_control_failures": 0,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "zero_up:microbatch0",
+        "field": "dup",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0,
+        "relative_rms": 0.0,
+        "rms_bound": 0.0,
+        "half_gradient_negative_control_failures": 0,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "zero_up:microbatch0",
+        "field": "ddown",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0,
+        "relative_rms": 0.0,
+        "rms_bound": 0.0,
+        "half_gradient_negative_control_failures": 0,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "zero_up:microbatch1",
+        "field": "dx",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0,
+        "relative_rms": 0.0,
+        "rms_bound": 0.0,
+        "half_gradient_negative_control_failures": 0,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "zero_up:microbatch1",
+        "field": "dup",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0,
+        "relative_rms": 0.0,
+        "rms_bound": 0.0,
+        "half_gradient_negative_control_failures": 0,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "zero_up:microbatch1",
+        "field": "ddown",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0,
+        "relative_rms": 0.0,
+        "rms_bound": 0.0,
+        "half_gradient_negative_control_failures": 0,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "zero_down:microbatch0",
+        "field": "dx",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0,
+        "relative_rms": 0.0,
+        "rms_bound": 0.0,
+        "half_gradient_negative_control_failures": 0,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "zero_down:microbatch0",
+        "field": "dup",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0,
+        "relative_rms": 0.0,
+        "rms_bound": 0.0,
+        "half_gradient_negative_control_failures": 0,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "zero_down:microbatch0",
+        "field": "ddown",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 4.246830940246582e-07,
+        "relative_rms": 5.4988256300092925e-08,
+        "rms_bound": 0.003499844336802406,
+        "half_gradient_negative_control_failures": 131030,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "zero_down:microbatch1",
+        "field": "dx",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0,
+        "relative_rms": 0.0,
+        "rms_bound": 0.0,
+        "half_gradient_negative_control_failures": 0,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "zero_down:microbatch1",
+        "field": "dup",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0,
+        "relative_rms": 0.0,
+        "rms_bound": 0.0,
+        "half_gradient_negative_control_failures": 0,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "zero_down:microbatch1",
+        "field": "ddown",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 4.6193599700927734e-07,
+        "relative_rms": 5.461115514882527e-08,
+        "rms_bound": 0.00356058584892445,
+        "half_gradient_negative_control_failures": 131005,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "outliers:microbatch0",
+        "field": "dx",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.03596716487602336,
+        "relative_rms": 0.0022908757819402876,
+        "rms_bound": 0.0034394450670648747,
+        "half_gradient_negative_control_failures": 117879,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "outliers:microbatch0",
+        "field": "dup",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.02107862987903175,
+        "relative_rms": 0.001657383380792493,
+        "rms_bound": 0.05269559185844843,
+        "half_gradient_negative_control_failures": 117185,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "outliers:microbatch0",
+        "field": "ddown",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 1.0251998901367188e-05,
+        "relative_rms": 5.25689847672304e-08,
+        "rms_bound": 0.009999268753527826,
+        "half_gradient_negative_control_failures": 131027,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "outliers:microbatch1",
+        "field": "dx",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.04255431763001205,
+        "relative_rms": 0.002399969998270147,
+        "rms_bound": 0.003413689349520461,
+        "half_gradient_negative_control_failures": 117833,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "outliers:microbatch1",
+        "field": "dup",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.02245339252311851,
+        "relative_rms": 0.001633160734490255,
+        "rms_bound": 0.0526052005560471,
+        "half_gradient_negative_control_failures": 117249,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "outliers:microbatch1",
+        "field": "ddown",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 1.2464821338653564e-05,
+        "relative_rms": 5.410691851121214e-08,
+        "rms_bound": 0.009614080130209259,
+        "half_gradient_negative_control_failures": 131034,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "changed_weights:microbatch0",
+        "field": "dx",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.002340577452994985,
+        "relative_rms": 0.0023407538406562275,
+        "rms_bound": 0.009330095540685202,
+        "half_gradient_negative_control_failures": 117283,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "changed_weights:microbatch0",
+        "field": "dup",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.012156013984009562,
+        "relative_rms": 0.0016521035211627974,
+        "rms_bound": 0.0994967095913778,
+        "half_gradient_negative_control_failures": 117338,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "changed_weights:microbatch0",
+        "field": "ddown",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 1.0468284017406404e-06,
+        "relative_rms": 5.49784330196859e-08,
+        "rms_bound": 0.007868174506754713,
+        "half_gradient_negative_control_failures": 131030,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "changed_weights:microbatch1",
+        "field": "dx",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0021099326925519968,
+        "relative_rms": 0.002341173129458927,
+        "rms_bound": 0.00925728415892311,
+        "half_gradient_negative_control_failures": 117280,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "changed_weights:microbatch1",
+        "field": "dup",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.012995537106910371,
+        "relative_rms": 0.0016548381354868492,
+        "rms_bound": 0.0987092076224939,
+        "half_gradient_negative_control_failures": 117201,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "changed_weights:microbatch1",
+        "field": "ddown",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 1.087784767150879e-06,
+        "relative_rms": 5.4694069039966573e-08,
+        "rms_bound": 0.007995815348189097,
+        "half_gradient_negative_control_failures": 131026,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "norm_spikes:microbatch0",
+        "field": "dx",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.00033708685352377976,
+        "relative_rms": 0.0021933712830125825,
+        "rms_bound": 0.00020832859016979035,
+        "half_gradient_negative_control_failures": 456,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "norm_spikes:microbatch0",
+        "field": "dup",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.007810463663190603,
+        "relative_rms": 0.0015538990221686893,
+        "rms_bound": 0.0005570713256822986,
+        "half_gradient_negative_control_failures": 526,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "norm_spikes:microbatch0",
+        "field": "ddown",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 7.450580596923828e-09,
+        "relative_rms": 9.532874818005603e-10,
+        "rms_bound": 0.00022444760632949073,
+        "half_gradient_negative_control_failures": 100344,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "norm_spikes:microbatch1",
+        "field": "dx",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0003363175903405846,
+        "relative_rms": 0.002346845895012021,
+        "rms_bound": 0.00018778839102802462,
+        "half_gradient_negative_control_failures": 466,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "norm_spikes:microbatch1",
+        "field": "dup",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0066508948802948,
+        "relative_rms": 0.0016347236995592326,
+        "rms_bound": 0.0004955209805285599,
+        "half_gradient_negative_control_failures": 526,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "norm_spikes:microbatch1",
+        "field": "ddown",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 5.960464477539063e-08,
+        "relative_rms": 3.75279516820862e-09,
+        "rms_bound": 0.00021508854559706197,
+        "half_gradient_negative_control_failures": 100350,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "norm_tiny:microbatch0",
+        "field": "dx",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0,
+        "relative_rms": 0.0,
+        "rms_bound": 0.0,
+        "half_gradient_negative_control_failures": 0,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "norm_tiny:microbatch0",
+        "field": "dup",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0,
+        "relative_rms": 0.0,
+        "rms_bound": 0.0,
+        "half_gradient_negative_control_failures": 0,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "norm_tiny:microbatch0",
+        "field": "ddown",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0,
+        "relative_rms": 0.0,
+        "rms_bound": 0.0,
+        "half_gradient_negative_control_failures": 0,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "norm_tiny:microbatch1",
+        "field": "dx",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0,
+        "relative_rms": 0.0,
+        "rms_bound": 0.0,
+        "half_gradient_negative_control_failures": 0,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "norm_tiny:microbatch1",
+        "field": "dup",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0,
+        "relative_rms": 0.0,
+        "rms_bound": 0.0,
+        "half_gradient_negative_control_failures": 0,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "norm_tiny:microbatch1",
+        "field": "ddown",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0,
+        "relative_rms": 0.0,
+        "rms_bound": 0.0,
+        "half_gradient_negative_control_failures": 0,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "real_random:microbatch0",
+        "field": "dx",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0008688311233521762,
+        "relative_rms": 0.0028699630746014284,
+        "rms_bound": 0.009962468129675004,
+        "half_gradient_negative_control_failures": 10972313,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "real_random:microbatch0",
+        "field": "dup",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.04042145992034829,
+        "relative_rms": 0.002345505511172521,
+        "rms_bound": 1.361660468495724,
+        "half_gradient_negative_control_failures": 1400417,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "real_random:microbatch0",
+        "field": "ddown",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 4.5352280721999705e-06,
+        "relative_rms": 1.1993868723378133e-07,
+        "rms_bound": 0.21562939016586455,
+        "half_gradient_negative_control_failures": 3918423,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "real_random:microbatch1",
+        "field": "dx",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0008432348720258942,
+        "relative_rms": 0.0028679928806309837,
+        "rms_bound": 0.009964148701227355,
+        "half_gradient_negative_control_failures": 10974401,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "real_random:microbatch1",
+        "field": "dup",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.035766042198163706,
+        "relative_rms": 0.002344479847064402,
+        "rms_bound": 1.3618888506490427,
+        "half_gradient_negative_control_failures": 1399102,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "real_random:microbatch1",
+        "field": "ddown",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 5.048699676990509e-06,
+        "relative_rms": 1.1956567154927723e-07,
+        "rms_bound": 0.21574918252714737,
+        "half_gradient_negative_control_failures": 3919503,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "real_random:original_fp8_timing_control",
+        "field": "dx",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0008528541832148462,
+        "relative_rms": 0.0028699508463431314,
+        "rms_bound": 0.009962468057728414,
+        "half_gradient_negative_control_failures": 10972301,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "real_random:original_fp8_timing_control",
+        "field": "dup",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.04037554598871251,
+        "relative_rms": 0.0023454728480537634,
+        "rms_bound": 1.3616604633153087,
+        "half_gradient_negative_control_failures": 1400395,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "real_random:original_fp8_timing_control",
+        "field": "ddown",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 9.673181921243668e-06,
+        "relative_rms": 1.5535462242587092e-07,
+        "rms_bound": 0.21562944719576563,
+        "half_gradient_negative_control_failures": 3918450,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "real_random:adaptive_fp8_timing_control",
+        "field": "dx",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0008528541832148462,
+        "relative_rms": 0.0028699508463431314,
+        "rms_bound": 0.009962468057728414,
+        "half_gradient_negative_control_failures": 10972301,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "real_random:adaptive_fp8_timing_control",
+        "field": "dup",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.04037554598871251,
+        "relative_rms": 0.0023454728480537634,
+        "rms_bound": 1.3616604633153087,
+        "half_gradient_negative_control_failures": 1400395,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "real_random:adaptive_fp8_timing_control",
+        "field": "ddown",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 9.673181921243668e-06,
+        "relative_rms": 1.5535462242587092e-07,
+        "rms_bound": 0.21562944719576563,
+        "half_gradient_negative_control_failures": 3918450,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "real_random:previous_backward_timing_control",
+        "field": "dx",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0008688311233521762,
+        "relative_rms": 0.002869964424755256,
+        "rms_bound": 0.009962468129675004,
+        "half_gradient_negative_control_failures": 10972312,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "real_random:previous_backward_timing_control",
+        "field": "dup",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.04042169833892739,
+        "relative_rms": 0.00234550551197599,
+        "rms_bound": 1.361660468495724,
+        "half_gradient_negative_control_failures": 1400417,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      },
+      {
+        "name": "real_random:previous_backward_timing_control",
+        "field": "ddown",
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 8.499249815940857e-06,
+        "relative_rms": 1.5537312765752823e-07,
+        "rms_bound": 0.21562939016586455,
+        "half_gradient_negative_control_failures": 3918423,
+        "reference": "independent FP64 autograd of declared STE using audited saved values",
+        "forward_quantization_quality_bounded": false,
+        "passed": true
+      }
+    ],
+    "FP8_ISLAND_TRAINING_GATE": [
+      {
+        "shape": [
+          512,
+          256,
+          512
+        ],
+        "case": "random",
+        "passed": true,
+        "fp32_master_gradients": true,
+        "two_microbatch_accumulation_exact": true,
+        "token_row_output_layout": true,
+        "fixed_rms_input_scale": true,
+        "token_row_backward": true,
+        "fp8_forward": true,
+        "bf16_backward": true,
+        "identity_quantizer_surrogate": true,
+        "forward_quality_not_established": true
+      },
+      {
+        "shape": [
+          512,
+          256,
+          512
+        ],
+        "case": "zero_up",
+        "passed": true,
+        "fp32_master_gradients": true,
+        "two_microbatch_accumulation_exact": true,
+        "token_row_output_layout": true,
+        "fixed_rms_input_scale": true,
+        "token_row_backward": true,
+        "fp8_forward": true,
+        "bf16_backward": true,
+        "identity_quantizer_surrogate": true,
+        "forward_quality_not_established": true
+      },
+      {
+        "shape": [
+          512,
+          256,
+          512
+        ],
+        "case": "zero_down",
+        "passed": true,
+        "fp32_master_gradients": true,
+        "two_microbatch_accumulation_exact": true,
+        "token_row_output_layout": true,
+        "fixed_rms_input_scale": true,
+        "token_row_backward": true,
+        "fp8_forward": true,
+        "bf16_backward": true,
+        "identity_quantizer_surrogate": true,
+        "forward_quality_not_established": true
+      },
+      {
+        "shape": [
+          512,
+          256,
+          512
+        ],
+        "case": "outliers",
+        "passed": true,
+        "fp32_master_gradients": true,
+        "two_microbatch_accumulation_exact": true,
+        "token_row_output_layout": true,
+        "fixed_rms_input_scale": true,
+        "token_row_backward": true,
+        "fp8_forward": true,
+        "bf16_backward": true,
+        "identity_quantizer_surrogate": true,
+        "forward_quality_not_established": true
+      },
+      {
+        "shape": [
+          512,
+          256,
+          512
+        ],
+        "case": "changed_weights",
+        "passed": true,
+        "fp32_master_gradients": true,
+        "two_microbatch_accumulation_exact": true,
+        "token_row_output_layout": true,
+        "fixed_rms_input_scale": true,
+        "token_row_backward": true,
+        "fp8_forward": true,
+        "bf16_backward": true,
+        "identity_quantizer_surrogate": true,
+        "forward_quality_not_established": true
+      },
+      {
+        "shape": [
+          512,
+          256,
+          512
+        ],
+        "case": "norm_spikes",
+        "passed": true,
+        "fp32_master_gradients": true,
+        "two_microbatch_accumulation_exact": true,
+        "token_row_output_layout": true,
+        "fixed_rms_input_scale": true,
+        "token_row_backward": true,
+        "fp8_forward": true,
+        "bf16_backward": true,
+        "identity_quantizer_surrogate": true,
+        "forward_quality_not_established": true
+      },
+      {
+        "shape": [
+          512,
+          256,
+          512
+        ],
+        "case": "norm_tiny",
+        "passed": true,
+        "fp32_master_gradients": true,
+        "two_microbatch_accumulation_exact": true,
+        "token_row_output_layout": true,
+        "fixed_rms_input_scale": true,
+        "token_row_backward": true,
+        "fp8_forward": true,
+        "bf16_backward": true,
+        "identity_quantizer_surrogate": true,
+        "forward_quality_not_established": true
+      },
+      {
+        "shape": [
+          16384,
+          1024,
+          4096
+        ],
+        "case": "real_random",
+        "passed": true,
+        "fp32_master_gradients": true,
+        "two_microbatch_accumulation_exact": true,
+        "token_row_output_layout": true,
+        "fixed_rms_input_scale": true,
+        "token_row_backward": true,
+        "fp8_forward": true,
+        "bf16_backward": true,
+        "identity_quantizer_surrogate": true,
+        "forward_quality_not_established": true
+      }
+    ],
+    "FP8_CACHE_QUANTIZATION_DIAGNOSTIC": [
+      {
+        "name": "real_random:fixed_vs_adaptive_input_quantizer",
+        "relative_rms": 8.757202400833235e-06,
+        "max_abs": 0.000244140625,
+        "quality_gate": false,
+        "quantized_model_differs_from_original": true
+      },
+      {
+        "name": "real_random:original_bf16_model",
+        "relative_rms": 0.057671771543804935,
+        "max_abs": 0.40234375,
+        "quality_gate": false,
+        "quantized_model_differs_from_original": true
+      }
+    ],
+    "FP8_ISLAND_PAIR_GATE": [
+      {
+        "name": "real_random:up",
+        "sampled_shape": [
+          14,
+          129
+        ],
+        "full_coordinates": false,
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 1.1920928955078125e-07,
+        "relative_rms": 4.735652450738223e-09,
+        "max_error_over_bound": 0.00024071021921635198,
+        "half_output_negative_control_failures": 1804,
+        "contraction_pair_order": "corresponding positions in adjacent128-channel blocks",
+        "reference": "empirical11-significand-bit pair sums, FP32 gamma_(K/2) accumulation",
+        "passed": true
+      },
+      {
+        "name": "real_random:down",
+        "sampled_shape": [
+          14,
+          129
+        ],
+        "full_coordinates": false,
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 6.407499313354492e-07,
+        "relative_rms": 7.000813954183986e-08,
+        "max_error_over_bound": 0.00021252451182849114,
+        "half_output_negative_control_failures": 1798,
+        "contraction_pair_order": "corresponding positions in adjacent128-channel blocks",
+        "reference": "empirical11-significand-bit pair sums, FP32 gamma_(K/2) accumulation",
+        "passed": true
+      }
+    ],
+    "FP8_ISLAND_CASE": [
+      {
+        "case": "real_random",
+        "shape": [
+          16384,
+          1024,
+          4096
+        ],
+        "passed": true,
+        "actual_fp8_up_and_down_matmuls": true,
+        "per_token_activation_scales": false,
+        "token_row_output_layout": true,
+        "fixed_rms_input_scale": true,
+        "hidden_scale_is_per_token": true,
+        "backward_gated": false,
+        "training_speed_claimed": false
+      }
+    ],
+    "FP8_CACHE_BACKWARD_FP64_BOUND": [
+      {
+        "name": "real_random:timing_control:native",
+        "field": "dx",
+        "shape": [
+          16384,
+          1024
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0009870951536715689,
+        "relative_rms": 0.0033139912729844333,
+        "max_bound": 0.021198171739678386,
+        "rms_bound": 0.017244477761893286,
+        "half_gradient_negative_control_failures": 7315903,
+        "reference": "independent FP64 autograd on exact quantized weights",
+        "error_model": "propagated FP32 gamma_K and BF16 u=2**-8; no empirical atol",
+        "passed": true
+      },
+      {
+        "name": "real_random:timing_control:native",
+        "field": "dup",
+        "shape": [
+          4096,
+          1024
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.04248422495105597,
+        "relative_rms": 0.00287025890655096,
+        "max_bound": 2.696480243235599,
+        "rms_bound": 2.294270980176356,
+        "half_gradient_negative_control_failures": 433643,
+        "reference": "independent FP64 autograd on exact quantized weights",
+        "error_model": "propagated FP32 gamma_K and BF16 u=2**-8; no empirical atol",
+        "passed": true
+      },
+      {
+        "name": "real_random:timing_control:native",
+        "field": "ddown",
+        "shape": [
+          1024,
+          4096
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.09176981708561449,
+        "relative_rms": 0.0037226261468548136,
+        "max_bound": 3.7590752392263034,
+        "rms_bound": 3.0465090599273963,
+        "half_gradient_negative_control_failures": 888268,
+        "reference": "independent FP64 autograd on exact quantized weights",
+        "error_model": "propagated FP32 gamma_K and BF16 u=2**-8; no empirical atol",
+        "passed": true
+      },
+      {
+        "name": "real_random:timing_control:bf16_cache",
+        "field": "dx",
+        "shape": [
+          16384,
+          1024
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0009870951536715689,
+        "relative_rms": 0.0033139912729844333,
+        "max_bound": 0.021198171739678386,
+        "rms_bound": 0.017244477761893286,
+        "half_gradient_negative_control_failures": 7315903,
+        "reference": "independent FP64 autograd on exact quantized weights",
+        "error_model": "propagated FP32 gamma_K and BF16 u=2**-8; no empirical atol",
+        "passed": true
+      },
+      {
+        "name": "real_random:timing_control:bf16_cache",
+        "field": "dup",
+        "shape": [
+          4096,
+          1024
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.04248422495105597,
+        "relative_rms": 0.00287025890655096,
+        "max_bound": 2.696480243235599,
+        "rms_bound": 2.294270980176356,
+        "half_gradient_negative_control_failures": 433643,
+        "reference": "independent FP64 autograd on exact quantized weights",
+        "error_model": "propagated FP32 gamma_K and BF16 u=2**-8; no empirical atol",
+        "passed": true
+      },
+      {
+        "name": "real_random:timing_control:bf16_cache",
+        "field": "ddown",
+        "shape": [
+          1024,
+          4096
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.09176981708561449,
+        "relative_rms": 0.0037226261468548136,
+        "max_bound": 3.7590752392263034,
+        "rms_bound": 3.0465090599273963,
+        "half_gradient_negative_control_failures": 888268,
+        "reference": "independent FP64 autograd on exact quantized weights",
+        "error_model": "propagated FP32 gamma_K and BF16 u=2**-8; no empirical atol",
+        "passed": true
+      },
+      {
+        "name": "real_random:timing_control:fp8_storage",
+        "field": "dx",
+        "shape": [
+          16384,
+          1024
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0009391653518905918,
+        "relative_rms": 0.003318038063623888,
+        "max_bound": 0.0211762972221681,
+        "rms_bound": 0.01720663717704866,
+        "half_gradient_negative_control_failures": 7319083,
+        "reference": "independent FP64 autograd on exact quantized weights",
+        "error_model": "propagated FP32 gamma_K and BF16 u=2**-8; no empirical atol",
+        "passed": true
+      },
+      {
+        "name": "real_random:timing_control:fp8_storage",
+        "field": "dup",
+        "shape": [
+          4096,
+          1024
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.04536804675324846,
+        "relative_rms": 0.002876356114518254,
+        "max_bound": 2.691664496106475,
+        "rms_bound": 2.2913475862043793,
+        "half_gradient_negative_control_failures": 433626,
+        "reference": "independent FP64 autograd on exact quantized weights",
+        "error_model": "propagated FP32 gamma_K and BF16 u=2**-8; no empirical atol",
+        "passed": true
+      },
+      {
+        "name": "real_random:timing_control:fp8_storage",
+        "field": "ddown",
+        "shape": [
+          1024,
+          4096
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.092856667226628,
+        "relative_rms": 0.003722884546173021,
+        "max_bound": 3.7387632853969497,
+        "rms_bound": 3.042863276485695,
+        "half_gradient_negative_control_failures": 888651,
+        "reference": "independent FP64 autograd on exact quantized weights",
+        "error_model": "propagated FP32 gamma_K and BF16 u=2**-8; no empirical atol",
+        "passed": true
+      }
+    ],
+    "FP8_ISLAND_TRAINING_BENCH": [
+      {
+        "shape": [
+          16384,
+          1024,
+          4096
+        ],
+        "samples_ms": {
+          "native_bf16_original": [
+            15.669663803419098,
+            15.677854197565466,
+            15.675625699805096
+          ],
+          "nki_bf16_cache_original": [
+            14.647539297584444,
+            14.647791103925556,
+            14.647114899707958
+          ],
+          "nki_fp8_storage_bf16_math": [
+            17.902977397898212,
+            17.9247886990197,
+            17.899798502912745
+          ],
+          "nki_fp8_token_row_backward": [
+            16.518286103382707,
+            16.51515749981627,
+            16.49496710160747
+          ],
+          "nki_fp8_original_layout_bf16_backward": [
+            18.16038970137015,
+            18.161581503227353,
+            18.150404503103346
+          ],
+          "nki_fp8_token_rows_adaptive_bf16_backward": [
+            18.015163496602327,
+            17.97980879782699,
+            17.98647539690137
+          ],
+          "nki_fp8_previous_backward_same_forward": [
+            17.946190800284967,
+            17.910331301391125,
+            17.920212197350338
+          ]
+        },
+        "median_ms": {
+          "native_bf16_original": 15.675625699805096,
+          "nki_bf16_cache_original": 14.647539297584444,
+          "nki_fp8_storage_bf16_math": 17.902977397898212,
+          "nki_fp8_token_row_backward": 16.51515749981627,
+          "nki_fp8_original_layout_bf16_backward": 18.16038970137015,
+          "nki_fp8_token_rows_adaptive_bf16_backward": 17.98647539690137,
+          "nki_fp8_previous_backward_same_forward": 17.920212197350338
+        },
+        "microbatches_per_update": 2,
+        "units": "ms per weight-cache refresh plus two FW/BW microbatches",
+        "online_weight_calibration_and_master_casts_included": true,
+        "activation_scaling_and_all_saved_values_included": true,
+        "gradient_accumulation_included": true,
+        "fp8_forward": true,
+        "bf16_backward": true,
+        "token_row_output_layout": true,
+        "fixed_rms_input_scale": true,
+        "token_row_backward": true,
+        "normalization_is_a_shared_caller_precondition_not_in_component_timing": true,
+        "optimizer_collectives_and_surrounding_model_included": false,
+        "timing_control_backward_bounds_gated": true,
+        "control_arithmetic_differs_because_quantization_is_part_of_candidate": true
+      }
+    ],
+    "FP8_ISLAND_TRAINING_RESULT": [
+      {
+        "passed": true,
+        "real_shape": true,
+        "token_row_output_layout": true,
+        "fixed_rms_input_scale": true,
+        "token_row_backward": true,
+        "fp8_forward": true,
+        "bf16_backward": true,
+        "promoted_into_training": false
+      }
+    ]
+  },
+  "whole_model_or_quality_promotion": false,
+  "gain_vs_same_forward_previous_backward_percent": 7.840614173875792,
+  "native_slowdown_percent": 5.355650971058923
+}

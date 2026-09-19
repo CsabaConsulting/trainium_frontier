@@ -1,0 +1,22 @@
+[W919 00:36:44.351619708 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+CE_HEAD_INTEGRATION_GATE {"rows": 256, "channels": 256, "weight_std": 0.0, "mode": "eager", "reduction": "none", "exact_loss_input_master_gradient": [true, true, true], "max_abs": [0.0, 0.0, 0.0], "fp32_master_gradient": true, "finite": true, "passed": true}
+CE_HEAD_INTEGRATION_GATE {"rows": 256, "channels": 256, "weight_std": 0.0, "mode": "eager", "reduction": "mean", "exact_loss_input_master_gradient": [true, true, true], "max_abs": [0.0, 0.0, 0.0], "fp32_master_gradient": true, "finite": true, "passed": true}
+CE_HEAD_INTEGRATION_GATE {"rows": 256, "channels": 256, "weight_std": 0.0, "mode": "compiled", "reduction": "none", "exact_loss_input_master_gradient": [true, true, true], "max_abs": [0.0, 0.0, 0.0], "fp32_master_gradient": true, "finite": true, "passed": true}
+CE_HEAD_INTEGRATION_GATE {"rows": 256, "channels": 256, "weight_std": 0.0, "mode": "compiled", "reduction": "mean", "exact_loss_input_master_gradient": [true, true, true], "max_abs": [0.0, 0.0, 0.0], "fp32_master_gradient": true, "finite": true, "passed": true}
+CE_HEAD_INTEGRATION_GATE {"rows": 256, "channels": 256, "weight_std": 0.001, "mode": "eager", "reduction": "none", "exact_loss_input_master_gradient": [true, true, true], "max_abs": [0.0, 0.0, 0.0], "fp32_master_gradient": true, "finite": true, "passed": true}
+CE_HEAD_INTEGRATION_GATE {"rows": 256, "channels": 256, "weight_std": 0.001, "mode": "eager", "reduction": "mean", "exact_loss_input_master_gradient": [true, true, true], "max_abs": [0.0, 0.0, 0.0], "fp32_master_gradient": true, "finite": true, "passed": true}
+CE_HEAD_INTEGRATION_GATE {"rows": 256, "channels": 256, "weight_std": 0.001, "mode": "compiled", "reduction": "none", "exact_loss_input_master_gradient": [false, false, false], "max_abs": [0.00012111663818359375, 7.62939453125e-06, 0.001953125], "fp32_master_gradient": true, "finite": true, "passed": false}
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_freshstart_20260918_wave82/research/scratch/softcap_ce_head_integration_check.py", line 85, in <module>
+    main()
+  File "/home/ubuntu/trainium_freshstart_20260918_wave82/research/scratch/softcap_ce_head_integration_check.py", line 70, in main
+    assert record['passed'] and record['fp32_master_gradient'], record
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'rows': 256, 'channels': 256, 'weight_std': 0.001, 'mode': 'compiled', 'reduction': 'none', 'exact_loss_input_master_gradient': [False, False, False], 'max_abs': [0.00012111663818359375, 7.62939453125e-06, 0.001953125], 'fp32_master_gradient': True, 'finite': True, 'passed': False}
+EXPERIMENT_POSTFLIGHT {"label": "fs-w82-softcap-ce-head-integration-gate-r1", "returncode": 1, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave82/research/run-logs/fs-w82-softcap-ce-head-integration-gate-r1.postflight.json"}

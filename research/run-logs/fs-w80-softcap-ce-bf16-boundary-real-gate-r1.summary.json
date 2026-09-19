@@ -1,0 +1,1457 @@
+{
+  "label": "fs-w80-softcap-ce-bf16-boundary-real-gate-r1",
+  "source_commit": "75c7eb2c791c17658173ede7fc0a1a49c345e7e1",
+  "command_returncode": 0,
+  "host_clean": true,
+  "completed_at": "2026-09-19T00:24:22.647415+00:00",
+  "record_counts": {
+    "CE_BF16_BOUNDARY_CONTRACT": 1,
+    "CE_BF16_BOUNDARY_SAVED_GATE": 12,
+    "CE_BF16_BOUNDARY_GATE": 72,
+    "CE_BF16_BOUNDARY_BENCH": 1,
+    "CE_BF16_BOUNDARY_RESULT": 1
+  },
+  "records": {
+    "CE_BF16_BOUNDARY_CONTRACT": [
+      {
+        "input": "BF16 logits already rounded by head",
+        "computation": "unchanged FP32",
+        "gradient": "FP32 internal, then exact existing BF16 boundary rounding",
+        "gate": "bit-exact loss and BF16 gradient versus protected original",
+        "exact_lse_and_shape_dispatch": true,
+        "approximate_functions": false,
+        "head_and_full_model_integration": false
+      }
+    ],
+    "CE_BF16_BOUNDARY_SAVED_GATE": [
+      {
+        "rows": 128,
+        "case": "random",
+        "exact_loss": true,
+        "exact_saved_lse": true,
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "random",
+        "exact_loss": true,
+        "exact_saved_lse": true,
+        "passed": true
+      },
+      {
+        "rows": 384,
+        "case": "random",
+        "exact_loss": true,
+        "exact_saved_lse": true,
+        "passed": true
+      },
+      {
+        "rows": 512,
+        "case": "random",
+        "exact_loss": true,
+        "exact_saved_lse": true,
+        "passed": true
+      },
+      {
+        "rows": 1024,
+        "case": "random",
+        "exact_loss": true,
+        "exact_saved_lse": true,
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "tiny",
+        "exact_loss": true,
+        "exact_saved_lse": true,
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "saturation",
+        "exact_loss": true,
+        "exact_saved_lse": true,
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "uniform",
+        "exact_loss": true,
+        "exact_saved_lse": true,
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "confident_correct",
+        "exact_loss": true,
+        "exact_saved_lse": true,
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "confident_wrong",
+        "exact_loss": true,
+        "exact_saved_lse": true,
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "zero_gradient",
+        "exact_loss": true,
+        "exact_saved_lse": true,
+        "passed": true
+      },
+      {
+        "rows": 16384,
+        "case": "real_bf16_head_values",
+        "exact_loss": true,
+        "exact_saved_lse": true,
+        "passed": true
+      }
+    ],
+    "CE_BF16_BOUNDARY_GATE": [
+      {
+        "rows": 128,
+        "case": "random",
+        "mode": "eager",
+        "reduction": "none",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 128,
+        "case": "random",
+        "mode": "eager",
+        "reduction": "none",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 128,
+        "case": "random",
+        "mode": "eager",
+        "reduction": "mean",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 128,
+        "case": "random",
+        "mode": "eager",
+        "reduction": "mean",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 128,
+        "case": "random",
+        "mode": "compiled",
+        "reduction": "none",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 128,
+        "case": "random",
+        "mode": "compiled",
+        "reduction": "none",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 128,
+        "case": "random",
+        "mode": "compiled",
+        "reduction": "mean",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 128,
+        "case": "random",
+        "mode": "compiled",
+        "reduction": "mean",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "random",
+        "mode": "eager",
+        "reduction": "none",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "random",
+        "mode": "eager",
+        "reduction": "none",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "random",
+        "mode": "eager",
+        "reduction": "mean",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "random",
+        "mode": "eager",
+        "reduction": "mean",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "random",
+        "mode": "compiled",
+        "reduction": "none",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "random",
+        "mode": "compiled",
+        "reduction": "none",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "random",
+        "mode": "compiled",
+        "reduction": "mean",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "random",
+        "mode": "compiled",
+        "reduction": "mean",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 384,
+        "case": "random",
+        "mode": "eager",
+        "reduction": "none",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 384,
+        "case": "random",
+        "mode": "eager",
+        "reduction": "none",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 384,
+        "case": "random",
+        "mode": "eager",
+        "reduction": "mean",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 384,
+        "case": "random",
+        "mode": "eager",
+        "reduction": "mean",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 384,
+        "case": "random",
+        "mode": "compiled",
+        "reduction": "none",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 384,
+        "case": "random",
+        "mode": "compiled",
+        "reduction": "none",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 384,
+        "case": "random",
+        "mode": "compiled",
+        "reduction": "mean",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 384,
+        "case": "random",
+        "mode": "compiled",
+        "reduction": "mean",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 512,
+        "case": "random",
+        "mode": "eager",
+        "reduction": "none",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 512,
+        "case": "random",
+        "mode": "eager",
+        "reduction": "none",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 512,
+        "case": "random",
+        "mode": "eager",
+        "reduction": "mean",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 512,
+        "case": "random",
+        "mode": "eager",
+        "reduction": "mean",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 512,
+        "case": "random",
+        "mode": "compiled",
+        "reduction": "none",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 512,
+        "case": "random",
+        "mode": "compiled",
+        "reduction": "none",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 512,
+        "case": "random",
+        "mode": "compiled",
+        "reduction": "mean",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 512,
+        "case": "random",
+        "mode": "compiled",
+        "reduction": "mean",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 1024,
+        "case": "random",
+        "mode": "eager",
+        "reduction": "none",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 1024,
+        "case": "random",
+        "mode": "eager",
+        "reduction": "none",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 1024,
+        "case": "random",
+        "mode": "eager",
+        "reduction": "mean",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 1024,
+        "case": "random",
+        "mode": "eager",
+        "reduction": "mean",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 1024,
+        "case": "random",
+        "mode": "compiled",
+        "reduction": "none",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 1024,
+        "case": "random",
+        "mode": "compiled",
+        "reduction": "none",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 1024,
+        "case": "random",
+        "mode": "compiled",
+        "reduction": "mean",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 1024,
+        "case": "random",
+        "mode": "compiled",
+        "reduction": "mean",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "tiny",
+        "mode": "eager",
+        "reduction": "none",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "tiny",
+        "mode": "eager",
+        "reduction": "none",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "tiny",
+        "mode": "compiled",
+        "reduction": "none",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "tiny",
+        "mode": "compiled",
+        "reduction": "none",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "saturation",
+        "mode": "eager",
+        "reduction": "none",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "saturation",
+        "mode": "eager",
+        "reduction": "none",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "saturation",
+        "mode": "compiled",
+        "reduction": "none",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "saturation",
+        "mode": "compiled",
+        "reduction": "none",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "uniform",
+        "mode": "eager",
+        "reduction": "none",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "uniform",
+        "mode": "eager",
+        "reduction": "none",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "uniform",
+        "mode": "compiled",
+        "reduction": "none",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "uniform",
+        "mode": "compiled",
+        "reduction": "none",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "confident_correct",
+        "mode": "eager",
+        "reduction": "none",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "confident_correct",
+        "mode": "eager",
+        "reduction": "none",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "confident_correct",
+        "mode": "compiled",
+        "reduction": "none",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "confident_correct",
+        "mode": "compiled",
+        "reduction": "none",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "confident_wrong",
+        "mode": "eager",
+        "reduction": "none",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "confident_wrong",
+        "mode": "eager",
+        "reduction": "none",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "confident_wrong",
+        "mode": "compiled",
+        "reduction": "none",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "confident_wrong",
+        "mode": "compiled",
+        "reduction": "none",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "zero_gradient",
+        "mode": "eager",
+        "reduction": "none",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "zero_gradient",
+        "mode": "eager",
+        "reduction": "none",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "zero_gradient",
+        "mode": "compiled",
+        "reduction": "none",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 256,
+        "case": "zero_gradient",
+        "mode": "compiled",
+        "reduction": "none",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 16384,
+        "case": "real_bf16_head_values",
+        "mode": "eager",
+        "reduction": "none",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 16384,
+        "case": "real_bf16_head_values",
+        "mode": "eager",
+        "reduction": "none",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 16384,
+        "case": "real_bf16_head_values",
+        "mode": "eager",
+        "reduction": "mean",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 16384,
+        "case": "real_bf16_head_values",
+        "mode": "eager",
+        "reduction": "mean",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 16384,
+        "case": "real_bf16_head_values",
+        "mode": "compiled",
+        "reduction": "none",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 16384,
+        "case": "real_bf16_head_values",
+        "mode": "compiled",
+        "reduction": "none",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 16384,
+        "case": "real_bf16_head_values",
+        "mode": "compiled",
+        "reduction": "mean",
+        "arm": "adaptive_fp32_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      },
+      {
+        "rows": 16384,
+        "case": "real_bf16_head_values",
+        "mode": "compiled",
+        "reduction": "mean",
+        "arm": "adaptive_bf16_boundary",
+        "exact_loss_gradient": [
+          true,
+          true
+        ],
+        "finite": true,
+        "gradient_dtype": "torch.bfloat16",
+        "max_abs_loss_gradient": [
+          0.0,
+          0.0
+        ],
+        "passed": true
+      }
+    ],
+    "CE_BF16_BOUNDARY_BENCH": [
+      {
+        "shape": [
+          16384,
+          8192
+        ],
+        "samples_ms": {
+          "original_fp32_boundary": [
+            16.243674102588557,
+            16.256242099916562,
+            16.252417050418444
+          ],
+          "adaptive_fp32_boundary": [
+            10.071584550314583,
+            10.070343551342376,
+            10.074947899556719
+          ],
+          "adaptive_bf16_boundary": [
+            6.2331788503797725,
+            6.2211449519963935,
+            6.239462649682537
+          ]
+        },
+        "median_ms": {
+          "original_fp32_boundary": 16.252417050418444,
+          "adaptive_fp32_boundary": 10.071584550314583,
+          "adaptive_bf16_boundary": 6.2331788503797725
+        },
+        "units": "ms per loss FW/BW",
+        "fp32_boundary_casts_charged": true,
+        "bf16_input_and_gradient": true,
+        "caller_matmul_and_surrounding_model_included": false,
+        "speed_claim_is_component_only": true
+      }
+    ],
+    "CE_BF16_BOUNDARY_RESULT": [
+      {
+        "passed": true,
+        "comparisons": 72,
+        "real_shape": true,
+        "integrated_into_training": false,
+        "protected_trainer_unchanged": true
+      }
+    ]
+  },
+  "whole_model_or_quality_promotion": false,
+  "component_gain_vs_adaptive_fp32_percent": 38.111239405868055
+}

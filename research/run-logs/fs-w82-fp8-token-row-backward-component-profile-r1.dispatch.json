@@ -1,0 +1,50 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave82",
+    "expected_commit": "fb8fe4bb2269fd8a7e8fd27edc2ca432c165dd5f",
+    "label": "fs-w82-fp8-token-row-backward-component-profile-r1",
+    "purpose": "After wave81 numerical/accumulation gates and7.84percent component gain, profile old versus natural token-row BF16 backward with identical fixed-input FP8 forward. Inspect compiler transpose/spill disappearance. Include native/BF16/original-FP8 controls, cache prep/two microbatches; trace times are attribution, not new speed benchmarks.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1800s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "/home/ubuntu/trainium_freshstart_20260918_wave82/research/scratch/fp8_mlp_island_profile.py",
+      "--trace-dir",
+      "/home/ubuntu/trainium_freshstart_20260918_wave82/out/fs-w82-fp8-token-row-backward-component-profile-r1",
+      "--token-rows",
+      "--rms-fixed-input",
+      "--token-row-backward"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/fp8_mlp_island_nki.py",
+      "research/scratch/fp8_mlp_island_probe.py",
+      "research/scratch/fp8_weight_cache_nki.py",
+      "research/scratch/fp8_weight_cache_probe.py",
+      "research/scratch/fresh_start_fp8_probe.py",
+      "research/scratch/fp8_mlp_island_autograd.py",
+      "research/scratch/fp8_mlp_island_training_probe.py",
+      "research/scratch/mlp_backward_rounding_bounds.py",
+      "research/scratch/mlp_fused_bf16.py",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "research/scratch/fp8_mlp_island_profile.py",
+      "research/scratch/preserve_native_trace_neffs.py",
+      "research/scratch/fp8_mlp_token_rows_nki.py",
+      "research/scratch/fp8_rms_scale_contract.py"
+    ]
+  },
+  "requested_at": "2026-09-19T00:36:40.386474+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w82-fp8-token-row-backward-component-profile-r1\", \"pid\": 1549589, \"commit\": \"fb8fe4bb2269fd8a7e8fd27edc2ca432c165dd5f\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave82/research/run-logs/fs-w82-fp8-token-row-backward-component-profile-r1.log\", \"started_at\": \"2026-09-19T00:36:45.990581+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}
