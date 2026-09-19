@@ -54,7 +54,7 @@ def projection_gate(name, result, x, w):
     return truth
 
 
-def check(case, functions, loss_reference, x, w, labels):
+def check(case, functions, loss_reference, x, w, labels, variant=None):
     inputs = (x.to('neuron'), w.to('neuron'), labels[:, None].float().to('neuron'))
     native = tuple(value.detach().cpu() for value in functions['native'](*inputs))
     weight_t = inputs[1].T.contiguous()
@@ -79,7 +79,7 @@ def check(case, functions, loss_reference, x, w, labels):
     shifted = capped - capped.gather(1, labels[:sample, None])
     truth_loss = shifted.exp().sum(1).log()
     loss_error = (actual[1][:sample, 0].double() - truth_loss).abs()
-    record = dict(case=case, shape=[*x.shape, w.shape[0]],
+    record = dict(case=case, shape=[*x.shape, w.shape[0]], variant=variant,
                   exact_frozen_logit_loss_lse=exact,
                   frozen_max_abs=[float((a - b).abs().max()) for a, b in zip(actual[1:], frozen)],
                   repeated_exact=repeat_exact, finite=finite,
@@ -125,8 +125,12 @@ def main():
     parser.add_argument('--real-shape', action='store_true')
     parser.add_argument('--benchmark', action='store_true')
     parser.add_argument('--steps', type=int, default=8)
+    parser.add_argument('--inplace-softcap', action='store_true')
+    parser.add_argument('--cache-weights', action='store_true')
     args = parser.parse_args()
     assert not args.benchmark or args.real_shape
+    assert not args.cache_weights or args.inplace_softcap
+    variant = dict(inplace_softcap=args.inplace_softcap, cache_weights=args.cache_weights)
     import torch_neuronx
     from torch_neuronx import wrap_nki
     torch.set_num_threads(4)
@@ -143,7 +147,7 @@ def main():
         return z, loss, lse
 
     def candidate(x, weight_t, target):
-        return fused[2](x, weight_t, target, 2)
+        return fused[2](x, weight_t, target, 2, args.inplace_softcap, args.cache_weights)
 
     functions = {name: torch.compile(fn, backend='neuron', fullgraph=True, dynamic=False)
                  for name, fn in (('native', native), ('candidate', candidate))}
@@ -174,7 +178,7 @@ def main():
                     x.zero_(); x[:, 0] = 1
                     w.zero_(); w[:, 0] = -80; w[0, 0] = 80
                     labels.fill_(0 if case == 'confident_correct' else vocab - 1)
-                native_eligible &= check(case, functions, loss_reference, x, w, labels)
+                native_eligible &= check(case, functions, loss_reference, x, w, labels, variant)
                 count += 1
         if args.benchmark:
             tokens, channels, vocab = 16384, 1024, 8192
@@ -207,10 +211,10 @@ def main():
             measured = timing({'native_two_forwards': native_pair,
                                'fused_transpose_and_two_forwards': fused_pair},
                               args.steps, torch.neuron.synchronize)
-            emit('FUSED_HEAD_FORWARD_BENCH', dict(shape=[tokens, channels, vocab], **measured,
+            emit('FUSED_HEAD_FORWARD_BENCH', dict(shape=[tokens, channels, vocab], variant=variant, **measured,
                 weight_transpose_charged=True, logits_save_included=True,
                 forward_only=True, backward_optimizer_or_whole_model_included=False))
-        emit('FUSED_HEAD_RESULT', dict(passed=True, cases=count, real_width=args.real_shape,
+        emit('FUSED_HEAD_RESULT', dict(passed=True, cases=count, real_width=args.real_shape, variant=variant,
             native_precision_eligible=native_eligible,
             exact_ce_on_frozen_fp32_logits=True,
             backward_or_autograd_integration=False, quality_or_full_step_promotion=False))

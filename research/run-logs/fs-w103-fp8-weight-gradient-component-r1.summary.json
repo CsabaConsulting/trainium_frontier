@@ -1,0 +1,66 @@
+{
+  "source_commit": "d7b17a7736d9aeddcb4568c2e07006c0c31f0a25",
+  "timings": [
+    {
+      "kind": "down",
+      "shape": [
+        16384,
+        1024,
+        4096
+      ],
+      "samples_ms": {
+        "native_bf16_weight_product": [
+          1.125326583860442,
+          1.134504748430724,
+          1.0943396676642199
+        ],
+        "fp8_scale_calibrate_pack_weight_product": [
+          6.428087833531511,
+          6.440367336229731,
+          6.431301919898639
+        ]
+      },
+      "median_ms": {
+        "native_bf16_weight_product": 1.125326583860442,
+        "fp8_scale_calibrate_pack_weight_product": 6.431301919898639
+      },
+      "current_gradient_scale_and_both_byte_preparations_charged": true,
+      "saved_forward_scales_assumed": true,
+      "extra_forward_scale_stores_not_included": true,
+      "data_gradients_activation_derivative_optimizer_or_whole_model_included": false,
+      "slowdown_multiple": 5.71505375607142
+    },
+    {
+      "kind": "up",
+      "shape": [
+        16384,
+        4096,
+        1024
+      ],
+      "samples_ms": {
+        "native_bf16_weight_product": [
+          1.077193582508092,
+          1.0964727504566933,
+          1.0846793350841228
+        ],
+        "fp8_scale_calibrate_pack_weight_product": [
+          7.067628335789777,
+          7.081225582320864,
+          7.0694045862182975
+        ]
+      },
+      "median_ms": {
+        "native_bf16_weight_product": 1.0846793350841228,
+        "fp8_scale_calibrate_pack_weight_product": 7.0694045862182975
+      },
+      "current_gradient_scale_and_both_byte_preparations_charged": true,
+      "saved_forward_scales_assumed": true,
+      "extra_forward_scale_stores_not_included": true,
+      "data_gradients_activation_derivative_optimizer_or_whole_model_included": false,
+      "slowdown_multiple": 6.517506471781383
+    }
+  ],
+  "host_clean": true,
+  "completed_at": "2026-09-19T02:58:04.767500+00:00",
+  "decision": "First layout loses both products; no autograd or quality integration. A grouped-operand/PSUM-tile layout is a separate bounded reuse candidate, with the original numerical contract retained."
+}

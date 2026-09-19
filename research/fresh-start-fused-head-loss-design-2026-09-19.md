@@ -194,3 +194,23 @@ and fused forward independently, preserving all binary/trace identities. Use
 this to attribute Tensor/DMA/Scalar activity and spills before claiming the
 streamed weights or row tile cause the loss. Saved-u and larger shared-weight
 token tiles remain candidates, not speed results.
+
+
+## Profile attribution and bounded next layout
+
+Source102 maps all3 dispatches to preserved binaries. Native device forward
+is6.444392ms, transpose0.118419ms, fused8.322044ms. The fused weight-load line55
+has GpSIMD interval unions5.388/5.381ms across its128x512 BF16 loads; whole
+fused GpSIMD active6.261/6.247ms. Tensor active3.917/3.920ms versus native
+2.037/2.047ms. Fused sampled SBUF peak0.507 and no populated spill counters;
+native peak0.858 with reported547MB saves/1,015MB reloads. These are attribution
+counters, not physical bandwidth; dynamic DMA metadata is incomplete. Do not
+add overlapping per-source/engine intervals into wall time.
+
+The small weight loads are now a concrete lead. Next retain the16MiB BF16
+weight transpose in SBUF across token tiles. After saving FP32 logits, tanh and
+exp can consume/overwrite that same logits tile, removing the separate4MiB
+softcap tile. The source live-size estimate can then fit the cache with reserve.
+Test in-place streaming separately from in-place caching to distinguish memory
+reuse from weight residency. Preserve exact CE and FP32 accumulation gates.
+The cached layout may still spill or lose Tensor throughput; no gain is assumed.

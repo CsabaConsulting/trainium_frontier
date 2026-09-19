@@ -27,8 +27,11 @@ all10 diagnostic cases match. Retain the failed wave99 sign assertion. Source101
 requires exact original signs/values, retains negativity diagnostics, and changes
 no math or numerical bounds. All14 fixtures and actual-row gates now pass.
 Forward-only native12.819835ms versus fused16.254153ms including transpose and
-saves (26.79% slower). Profile native/transpose/fused phases before another
-layout; no backward or quality promotion. trn21 clean, watcher101.
+saves (26.79% slower). Profile maps all3 dispatches: native6.444ms, transpose0.118ms, fused8.322ms.
+Repeated small weight loads show5.38ms/core GpSIMD source activity; fused has
+no populated spills. Source104 will gate in-place logits reuse and a full
+16MiB BF16 weight cache separately. No backward or quality promotion.
+trn21 currently gates source103 FP8 weight products; watcher103.
 
 Measured FP8 progress and the BF16 layout reversal are summarized at the top of
 `fresh-start-results-2026-09-18.md`. No FP8 quality gain is established.
@@ -39,7 +42,7 @@ Current next actions, in dependency order:
 | --- | --- | --- |
 | Separate compiled FP8 MLP region | Integration passes; whole step loses24.08% to native | Include launch/cache/gradient costs; require at least3% whole-step gain before quality |
 | Reciprocal refinement plus optimizer ownership | Composition passes; whole step gains1.13%, below3% | Exact owned-versus-replicated same-math weights/states/rank exchange/cache/restore; then fresh paired whole-step timing |
-| FP8 gradient scale sharing | Algebra and contracts recorded in backward design; not implemented | Independent quantizer/FP64 stage gates, then all four gradient products with all packing charged |
+| FP8 gradient scale sharing | Weight-gradient stages/probe prepared; shared data consumers unimplemented | Independent quantizer/FP64 stage gates, then all four gradient products with all packing charged |
 | Fused vocabulary head and exact loss | 14fixtures and actual-row gates pass; forward loses26.79%; profile prepared | Preserve original FP32 head accumulation and all gradient terms; profile complete caller |
 | Smaller range-reduced tables / rational composed functions | Design candidates; full-value LUT and standalone polynomial timings lost | Benchmark the full producer/consumer pipeline after accuracy/range gates |
 

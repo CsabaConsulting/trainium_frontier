@@ -14,13 +14,16 @@ def build_kernel():
     import nki.isa as nisa
 
     @nki.jit
-    def forward(x, weight_t, target, lanes: int = 2):
+    def forward(x, weight_t, target, lanes: int = 2,
+                inplace_softcap: bool = False, cache_weights: bool = False):
         """Return FP32 logits[N,V], loss[N,1] and saved logsumexp[N,1].
 
         x is BF16[N,C]; weight_t is contiguous BF16[C,V]. Targets are exact
         integer-valued FP32[N,1]. Supported rows are at least512 and divisible
         by256; widths are multiples128 and vocabulary is a multiple512.
         This is not an autograd integration or a recomputing backward kernel.
+        Optional in-place softcap reuses logits only after its ordinary save;
+        optional full weight residency then fits the declared SBUF estimate.
         """
         tokens, channels = x.shape
         weight_channels, vocab = weight_t.shape
@@ -29,14 +32,21 @@ def build_kernel():
         assert target.dtype == nl.float32 and target.shape == (tokens, 1)
         assert lanes == 2 and tokens >= 512 and tokens % 256 == 0
         assert vocab % 512 == 0
+        assert not cache_weights or inplace_softcap
         # Stream weights instead of retaining a16MiB cache beside the two
         # full-vocabulary FP32 row tiles. Count temporaries and reserve2MiB.
-        live_bytes = 4 * 128 * channels + 8 * 128 * vocab + 6 * 128 * 512
+        live_bytes = (4 * 128 * channels + (4 if inplace_softcap else 8) * 128 * vocab
+                      + 6 * 128 * 512 + (2 * channels * vocab if cache_weights else 0))
         assert live_bytes + 2 * 1024**2 <= nl.tile_size.sbuf_size_bytes
         logits_out = nl.ndarray((tokens, vocab), dtype=nl.float32, buffer=nl.shared_hbm)
         loss_out = nl.ndarray((tokens, 1), dtype=nl.float32, buffer=nl.shared_hbm)
         lse_out = nl.ndarray((tokens, 1), dtype=nl.float32, buffer=nl.shared_hbm)
         nc, nv = channels // 128, vocab // 512
+        if cache_weights:
+            weight_cache = nl.ndarray((128, nc, vocab), dtype=nl.bfloat16, buffer=nl.sbuf)
+            for ci in nl.affine_range(nc):
+                nisa.dma_copy(dst=weight_cache[:, ci, :],
+                              src=weight_t[ci * 128:(ci + 1) * 128, :])
         for tile in nl.affine_range(tokens // (128 * lanes)):
             rows = nl.ds((tile * lanes + nl.program_id(0)) * 128, 128)
             input_rows = nl.ndarray((128, channels), dtype=nl.bfloat16, buffer=nl.sbuf)
@@ -51,15 +61,21 @@ def build_kernel():
                 columns = nl.ds(vi * 512, 512)
                 accumulator = nl.ndarray((128, 512), dtype=nl.float32, buffer=nl.psum)
                 for ci in nl.affine_range(nc):
-                    weights = nl.ndarray((128, 512), dtype=nl.bfloat16, buffer=nl.sbuf)
-                    nisa.dma_copy(dst=weights, src=weight_t[ci * 128:(ci + 1) * 128, columns])
+                    if cache_weights:
+                        weights = weight_cache[:, ci, columns]
+                    else:
+                        weights = nl.ndarray((128, 512), dtype=nl.bfloat16, buffer=nl.sbuf)
+                        nisa.dma_copy(dst=weights, src=weight_t[ci * 128:(ci + 1) * 128, columns])
                     nisa.nc_matmul(dst=accumulator, stationary=inputs[:, ci, :],
                                    moving=weights, accumulate=(ci > 0))
                 nisa.tensor_copy(dst=logits[:, columns], src=accumulator)
             # Preserve the original FP32 accumulator boundary into loss and
             # the ordinary backward save. No BF16 rounding of the logits.
             nisa.dma_copy(dst=logits_out[rows, :], src=logits)
-            capped = nl.ndarray((128, vocab), dtype=nl.float32, buffer=nl.sbuf)
+            if inplace_softcap:
+                capped = logits
+            else:
+                capped = nl.ndarray((128, vocab), dtype=nl.float32, buffer=nl.sbuf)
             nisa.activation(dst=capped, data=logits, op=nl.tanh, scale=1.0 / 15.0)
             labels = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
             indices = nl.ndarray((128, 1), dtype=nl.uint32, buffer=nl.sbuf)
