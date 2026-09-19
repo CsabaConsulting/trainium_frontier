@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 13:23 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 13:28 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
 ## Matched width1152 evaluation and FP8 consumer comparison — CURRENT
@@ -11,11 +11,12 @@ Use current manifests/postflights before dispatch; do not restart completed jobs
   Checkpoint571,028,961bytes, SHA256
   `aa57fe35f10ca2070499b68a3d3fc38a5d04d8bac0bae4d0722ab907d3a0afb3`.
   Local independent hash verified13:08:35 and GitHub asset digests13:11:10.
-- trn21 ACTIVE `fs-w146-eval-width1152-context1024-pack32-s1024-20m-o1-r1`,
-  source1c70da11, guard1493538, started13:12:32.754312, clean preflight.
-  Protected scorer:world1/B1/T1024/O1,20,971,520tokens, no global autocast.
-  Wait for score, exact token/byte counts, causality/budget and clean postflight
-  before comparing/promoting against frozen public0.99285131.
+- trn21 matched width1152 eval COMPLETE/clean13:24:40.784776, source1c70da11:
+  **0.9938092802993084**,20,971,520tokens/83,462,186bytes,57,493,436nats,
+  711.94seconds, world1/B1/T1024/O1 without global autocast. All limits pass.
+  This loses to frozen0.9928513116311253 by0.000957969; no promotion/seed sweep.
+  Training and eval summaries link exact identities; checkpoint already cloud
+  verified. trn21 is now idle/clean; do not rerun the completed capacity trial.
 - trn22 source147 streamed correctness COMPLETE/clean09:59:18.490964:
   all11 independent cases including32768tokens, exact retained tensors and
   master gradients, cached/uncached real-Linear widths256/1024, accumulation,
@@ -43,9 +44,15 @@ Use current manifests/postflights before dispatch; do not restart completed jobs
   are design/feasibility candidates, not implemented submission changes.
   Hierarchical output factorization adds a training-cost interpretation of
   vocabulary organization; CPU normalization/routing feasibility comes first.
-- Sourcef91367db and snapshot2ffed9c3 pushed/ref-verified13:18:21, including
-  width checkpoint receipts, source147 correctness and new research/audit.
-  Resident completion and stream dispatch need the next source commit/push.
+- The follow-up classic-NLP audit checked81/82 installed distributions and a
+  broad selected package set. Only regex/tokenizers/tiktoken/transformers are
+  present from that set. Whisper has number/contraction normalization source,
+  but its spelling mapping is an external constructor input; no ready LM.
+  The source hash and exact metadata are preserved. Older byte-feature WTE
+  initialization is a known negative, not a new untried morphology direction.
+- Source943c39f4 and snapshot67177429 pushed/ref-verified13:24:03, including
+  resident completion, stream dispatch and the new head feasibility design.
+  Width matched eval and expanded NLP audit need the next source commit/push.
   Frozen train.py/prepare.py/submission hashes
   were rechecked unchanged13:16. No competition submission.
 
