@@ -1,6 +1,6 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19, 02:09 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19, 02:21 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
@@ -13,13 +13,13 @@ caller traces/parquets are locally hash-verified and analyzed. Forward grows
 (train.py:2853) has the largest extra spill/engine activity. These profiles
 attribute the regression; they do not replace same-host timing. Source96's
 FP8 precision ratio0 is a reporting integer-division bug; actual raw/adjusted
-FLOPs imply0.5. Corrected float division is prepared; original records retained.
+FLOPs imply0.5. Corrected source97 analyses are complete; all nonprecision metrics match.
+Original reports are retained.
 
 Separate compiled FP8 MLP source95 passes both real-Linear integration widths.
-trn21 ACTIVE native control phase, then monolithic FP8 and separate-region FP8
-same-host/source phases, sequential clean pre/postflights. No FP8 quality run.
-trn22 clean after CPU analysis; next corrected profile report then independent
-numerics work. Watchers95/96. Full diagnosis:
+trn21 native control reproduced499.641620ms; monolithic FP8 is active, separate
+region follows clean postflight. trn22 passed the mode2-AdamW/ownership gate
+and is running its native whole-step control; candidate follows. Watchers95/98. Full diagnosis:
 `fresh-start-fp8-caller-diagnosis-2026-09-19.md`.
 
 Measured FP8 progress and the BF16 layout reversal are summarized at the top of
@@ -30,9 +30,9 @@ Current next actions, in dependency order:
 | Idea | Current state | Advancement gate |
 | --- | --- | --- |
 | Separate compiled FP8 MLP region | Exact real-Linear gate passed; same-host complete-step comparison running | Include launch/cache/gradient costs; require at least3% whole-step gain before quality |
-| Reciprocal refinement plus optimizer ownership | New composition gate prepared; original mode2 arithmetic gates already pass | Exact owned-versus-replicated same-math weights/states/rank exchange/cache/restore; then fresh paired whole-step timing |
+| Reciprocal refinement plus optimizer ownership | Composition passes24 exact checks across four ranks; whole-step control running | Exact owned-versus-replicated same-math weights/states/rank exchange/cache/restore; then fresh paired whole-step timing |
 | FP8 gradient scale sharing | Algebra and contracts recorded in backward design; not implemented | Independent quantizer/FP64 stage gates, then all four gradient products with all packing charged |
-| Fused vocabulary head and exact loss | Primary-source review and design recorded; not implemented | Preserve original FP32 head accumulation and all gradient terms; profile complete caller |
+| Fused vocabulary head and exact loss | Forward-only prototype and gates prepared; no autograd integration | Preserve original FP32 head accumulation and all gradient terms; profile complete caller |
 | Smaller range-reduced tables / rational composed functions | Design candidates; full-value LUT and standalone polynomial timings lost | Benchmark the full producer/consumer pipeline after accuracy/range gates |
 
 | Item | State | Next action / evidence |
