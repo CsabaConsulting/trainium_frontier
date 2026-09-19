@@ -1,7 +1,29 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 04:57 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 06:18 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
+
+## Submission packaging — 2026-09-19 06:18 UTC
+
+- User asks for the sub-1.0 train.py and submission launch command. Public best
+  remains0.9928513116311253 (source98,20,971,520tokens); private result unknown.
+- Built `submissions/dense6x1024_public0992851/train.py` with all required
+  source98 helper/kernel code inline. SHA25695be3ac7d55d99ae45fec25de319557e7084173e41072d812294007533e26f06.
+  All72base definitions except eval freezing are AST-identical; roottrain.py
+  and prepare.py unchanged. Launch includes compiler BF16 matmul flags and
+  every winning CLI override, no in-process public evaluation.
+- Actual organizer static checker functions return zero warnings. Hardware
+  contract/replay and exact-command cold-cache full-budget rehearsal pending.
+- Authenticated upstream main c907da4c74bbaafeca7d13765c49610b7e77436c;
+  README/prepare.py byte-identical. Formal rules exclude startup/compilation;
+  actual five-step/capped900s contract is retained. No competition submission.
+- Both hosts idle after125. Pre-test disk maintenance only retires profile
+  files verified locally and against current GitHub asset digests. trn21 clean,
+  free9,405,628,416B after499MB actual reclaimed (wave16 profile still has
+  hardlinks elsewhere). trn22 maintenance pending. Never rerun one-off cleanup
+  without checking its expected prior job and existing receipts.
+- Campaign FP8 next design remains compiled cache preparation. Submission
+  packaging is the active immediate task; no source127 deployment yet.
 
 ## Complete profile attribution — 2026-09-19 04:57 UTC
 
