@@ -124,6 +124,8 @@ def main():
                     help="Scratch fused BF16 MLP with HxT saved activation consumed in backward.")
     ap.add_argument("--fp8-mlp-packed", action="store_true",
                     help="Gated packed FP8 MLP forward/BF16 surrogate backward; all cache work timed.")
+    ap.add_argument("--fp8-mlp-full", action="store_true",
+                    help="Use the independently gated four-product FP8 backward and fused dual weight caches.")
     ap.add_argument("--fp8-mlp-separate-region", action="store_true",
                     help="Compile the same packed FP8 MLP separately; include all graph-boundary costs.")
     ap.add_argument("--fused-mlp-normal-dx", action="store_true",
@@ -241,6 +243,8 @@ def main():
         ap.error("select either the BF16 or packed FP8 MLP implementation")
     if args.fp8_mlp_separate_region and not args.fp8_mlp_packed:
         ap.error("--fp8-mlp-separate-region requires --fp8-mlp-packed")
+    if args.fp8_mlp_full and not args.fp8_mlp_packed:
+        ap.error("--fp8-mlp-full requires --fp8-mlp-packed")
     if args.compact_embedding and args.segmented_dma_embedding:
         ap.error("select only one ordinary embedding backward implementation")
     if (args.fused_mlp_normal_dx or args.fused_mlp_grouped_io
@@ -413,7 +417,10 @@ def main():
               "shared ordinary Linear caches/parameters preserved", flush=True)
     fp8_mlp_contract = None
     if args.fp8_mlp_packed:
-        from fp8_mlp_integration import install
+        if args.fp8_mlp_full:
+            from fp8_full_mlp_integration import install
+        else:
+            from fp8_mlp_integration import install
         fp8_mlp_contract = install(model, device, T, separate_region=args.fp8_mlp_separate_region)
         print("[pt] packed FP8 MLP contract " + json.dumps(fp8_mlp_contract), flush=True)
     if args.cached_head_loss:
@@ -762,6 +769,7 @@ def main():
             optimizer_owner_calls=(optimizer_ownership.calls if optimizer_ownership is not None else 0),
             fused_mlp=args.fused_mlp,
             fp8_mlp_packed=args.fp8_mlp_packed,
+            fp8_mlp_full=args.fp8_mlp_full,
             fp8_mlp_separate_region=args.fp8_mlp_separate_region,
             fp8_mlp_contract=fp8_mlp_contract,
             fp8_mlp_cache_refresh_counts=[getattr(m, "_fp8_refresh_count", 0)
