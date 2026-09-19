@@ -1,0 +1,40 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave84",
+    "expected_commit": "c82d388d3b3668c9f61006a252c6ec693b3b4386",
+    "label": "fs-w84-fp8-packed-weight-cache-gate-r1",
+    "purpose": "Gate raw-byte legacy-E4M3 weight HBM layout and paired BF16 backward cache before any MLP integration. Independent CPU decode/layout, alphabet, zero/tiny/outlier/changing weights, exact repeat and real dimensions. All preparation is charged in later timing, no speed claim here.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "/home/ubuntu/trainium_freshstart_20260918_wave84/research/scratch/fp8_packed_weight_cache_probe.py",
+      "--real-shape"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/fp8_packed_weight_cache_nki.py",
+      "research/scratch/fp8_packed_weight_cache_probe.py",
+      "research/scratch/fp8_weight_cache_nki.py",
+      "research/scratch/fp8_weight_cache_probe.py",
+      "research/scratch/fresh_start_fp8_probe.py",
+      "research/scratch/mlp_fused_bf16.py",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "research/scratch/mlp_backward_rounding_bounds.py"
+    ]
+  },
+  "requested_at": "2026-09-19T00:48:12.941705+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w84-fp8-packed-weight-cache-gate-r1\", \"pid\": 1553006, \"commit\": \"c82d388d3b3668c9f61006a252c6ec693b3b4386\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave84/research/run-logs/fs-w84-fp8-packed-weight-cache-gate-r1.log\", \"started_at\": \"2026-09-19T00:48:18.959694+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

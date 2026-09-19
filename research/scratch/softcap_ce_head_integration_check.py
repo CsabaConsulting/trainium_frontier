@@ -18,9 +18,12 @@ def main():
     parser.add_argument('--real-shape', action='store_true')
     parser.add_argument('--gradient-boundary-only', action='store_true',
                         help='Keep original FP32 head logits; change only the backward output boundary')
+    parser.add_argument('--installed-gradient-adapter', action='store_true',
+                        help='Gate the restricted public loss adapter used by the whole model')
     parser.add_argument('--benchmark', action='store_true')
     parser.add_argument('--steps', type=int, default=20)
     args = parser.parse_args()
+    assert not args.installed_gradient_adapter or args.gradient_boundary_only
     import torch_neuronx
     torch.set_num_threads(4)
     torch._dynamo.config.recompile_limit = 32
@@ -32,16 +35,24 @@ def main():
         from softcap_ce_parallel_nki import build_kernels
         from torch_neuronx import wrap_nki
         install_adaptive(T)
-        _, backward = (wrap_nki(kernel) for kernel in build_kernels())
+        original_loss = T.softcap_cross_entropy
+        if args.installed_gradient_adapter:
+            from softcap_ce_head_gradient_integration import install as install_head_gradient
+            T.USE_BF16_NORM_OUTPUT = True
+            installed = install_head_gradient(T)
+            head_loss = T.softcap_cross_entropy
+        else:
+            _, backward = (wrap_nki(kernel) for kernel in build_kernels())
 
-        def head_backward(z, target, lse, gradient):
-            lanes = selected_lanes(z.shape[0])
-            return backward[lanes](z, target, lse, gradient, lanes, True)
+            def head_backward(z, target, lse, gradient):
+                lanes = selected_lanes(z.shape[0])
+                return backward[lanes](z, target, lse, gradient, lanes, True)
 
-        head_loss = native_loss_factory(T._softcap_ce_fwd, head_backward)
-        installed = dict(source_edit='none; original FP32 head logits retained')
+            head_loss = native_loss_factory(T._softcap_ce_fwd, head_backward)
+            installed = dict(source_edit='none; original FP32 head logits retained')
     else:
         installed = install(T)
+        original_loss = T.softcap_cross_entropy
     assert torch.equal(before_rng, torch.get_rng_state())
     shapes = [(256, 256)]
     if args.real_shape:
@@ -57,7 +68,7 @@ def main():
         gradient = (torch.randn(rows, generator=generator) * .5).to('neuron')
 
         def original(x, targets, reduction):
-            return T.softcap_cross_entropy(head(x).float(), targets, reduction)
+            return original_loss(head(x).float(), targets, reduction)
 
         def candidate(x, targets, reduction):
             if args.gradient_boundary_only:
@@ -84,6 +95,7 @@ def main():
                     finite = all(bool(torch.isfinite(v).all()) for row in outputs for v in row)
                     record = dict(rows=rows, channels=channels, weight_std=scale, mode=mode,
                                   gradient_boundary_only=args.gradient_boundary_only,
+                                  installed_public_adapter=args.installed_gradient_adapter,
                                   reduction=reduction, exact_loss_input_master_gradient=exact,
                                   max_abs=[float((a.float()-b.float()).abs().max()) for a, b in zip(*outputs)],
                                   fp32_master_gradient=outputs[1][2].dtype == torch.float32,
@@ -127,6 +139,7 @@ def main():
     print('CE_HEAD_INTEGRATION_RESULT ' + json.dumps(dict(
         passed=True, comparisons=count, real_shape=args.real_shape,
         gradient_boundary_only=args.gradient_boundary_only,
+        installed_public_adapter=args.installed_gradient_adapter,
         original_linear_and_bf16_cache=True, installation_rng_unchanged=True,
         actual_gpt_body_edit=installed['source_edit'],
         whole_model_gradient_equivalence_claimed=False)), flush=True)

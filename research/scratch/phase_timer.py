@@ -97,6 +97,8 @@ def main():
                     help="Gated CE target gather and one/two-core shape dispatch; unchanged loss math.")
     ap.add_argument("--bf16-ce-boundary", action="store_true",
                     help="Scratch head/loss BF16 memory boundary; FP32 loss math and native evaluation.")
+    ap.add_argument("--bf16-ce-gradient-only", action="store_true",
+                    help="Keep original FP32 head logits; compress CE derivative at the BF16 head boundary.")
     ap.add_argument("--nki-adamw-fp32", action="store_true",
                     help="Scratch gated functional FP32 AdamW for dense1024 tables; other groups stay native.")
     ap.add_argument("--optimizer-ownership", action="store_true",
@@ -206,6 +208,8 @@ def main():
                          "typo'd NAME or an uncoercible VALUE is an error rather than a silent "
                          "no-op. Applied AFTER the explicit flags above, so it wins.")
     args = ap.parse_args()
+    if args.bf16_ce_boundary and args.bf16_ce_gradient_only:
+        ap.error("select at most one head/loss boundary candidate")
     if args.compact_embedding and args.segmented_dma_embedding:
         ap.error("select only one ordinary embedding backward implementation")
     if (args.fused_mlp_normal_dx or args.fused_mlp_grouped_io
@@ -310,6 +314,12 @@ def main():
         from softcap_ce_bf16_integration import install as install_bf16_ce
         install_bf16_ce(T)
         print("[pt] BF16 head/loss memory boundary; FP32 loss math and original evaluation", flush=True)
+    if args.bf16_ce_gradient_only:
+        if device_type != "neuron":
+            raise ValueError("--bf16-ce-gradient-only requires Neuron")
+        from softcap_ce_head_gradient_integration import install as install_head_gradient
+        install_head_gradient(T)
+        print("[pt] BF16 head-gradient boundary only; original FP32 logits and loss retained", flush=True)
     if args.nki_branch_norm:
         if device_type != "neuron":
             raise ValueError("--nki-branch-norm requires Neuron")
@@ -683,6 +693,7 @@ def main():
             nki_branch_norm=args.nki_branch_norm,
             adaptive_nki_ce=args.adaptive_nki_ce,
             bf16_ce_boundary=args.bf16_ce_boundary,
+            bf16_ce_gradient_only=args.bf16_ce_gradient_only,
             nki_adamw_fp32=args.nki_adamw_fp32,
             nki_adamw_parameter_updates=getattr(optimizer, "_fresh_start_adamw_calls", 0),
             optimizer_ownership=args.optimizer_ownership,

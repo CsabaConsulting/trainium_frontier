@@ -368,3 +368,28 @@ CPU-decoded values, contraction layout, repeated bytes, cache versions, finite
 BF16 alphabet, tiny/outlier/zero values and real dimensions. This is only the
 cache boundary; full MLP stages, backward and charged update timing come next.
 PyTorch E4M3FN encoding is not assumed to match these raw legacy-E4M3 bytes.
+
+### Wave84 gates and wave82 profile attribution (00:54 UTC)
+
+The gradient-only head boundary passes all 32 eager/compiled loss/input/master
+gradient checks and the fresh timing-input check. Complete real head/loss FW/BW
+is 14.992966 ms versus 18.200297 ms (17.62% gain). It preserves FP32 head logits;
+the original BF16 forward-boundary failure remains recorded. A restricted public
+loss adapter now rejects non-BF16 final norm, output bigram, weighted loss and
+the incompatible forward adapter. Its installed-head gate precedes fresh
+whole-step control/candidate phases; no full-model speed claim yet.
+
+Packed weight preparation passes eight cases, including finite BF16 codes in
+the declared range and both real matrices. Independent legacy decoding and
+contraction layout agree exactly, as do the BF16 backward caches. The new MLP
+consumer loads the packed bytes directly into its FP8 SBUF layouts. Forward
+stage/row-independence gates precede compiled gradient/accumulation gates and
+complete update timing. The paired control still builds layouts in each forward.
+All online preparation, both caches and two microbatches are charged.
+
+The new paired FP8 trace verifies removal of 8,704 private compiler transpose
+instructions, and the earlier 64 MiB spill-save / 128 MiB reload counters are no
+longer populated in the new forward interval. Device forward drops 3.568860 to
+2.801243 ms; backward stays about 4.84 ms. All 57 dispatches map to binaries.
+This attributes wave81's unprofiled 7.84% component gain; it is not a second
+speed benchmark. Dynamic DMA metadata warnings still limit bandwidth claims.

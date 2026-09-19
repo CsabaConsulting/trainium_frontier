@@ -41,7 +41,7 @@ def build_kernel():
     @nki.jit
     def forward(x, up, down, up_scales, down_scales, lanes: int = 2,
                 token_tile: int = 128, diagnostic: bool = False,
-                fixed_x_scale: float = 0.0):
+                fixed_x_scale: float = 0.0, packed_up=None, packed_down=None):
         """Return Y[T,C], ReLU[T,H], QDQ-X[T,C], QDQ-hidden[T,H].
 
         Diagnostic mode additionally returns FP32 up[T,H], down[T,C] and
@@ -88,26 +88,42 @@ def build_kernel():
         nisa.dma_copy(dst=down_meta, src=down_scales)
         up_cache = nl.ndarray((128, hidden // up_width, nc, up_width), dtype=nl.float8_e4m3, buffer=nl.sbuf)
         down_cache = nl.ndarray((128, channels // down_width, nh, down_width), dtype=nl.float8_e4m3, buffer=nl.sbuf)
-        for group in nl.affine_range(hidden // up_width):
-            for sub in nl.affine_range(up_width // 128):
-                raw = nl.ndarray((128, channels), dtype=nl.bfloat16, buffer=nl.sbuf)
-                first = group * up_width + sub * 128
-                nisa.dma_copy(dst=raw, src=up[first:first + 128, :])
-                for ci in nl.affine_range(nc):
-                    transposed = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.psum)
-                    nisa.nc_transpose(dst=transposed, data=raw[:, ci * 128:(ci + 1) * 128])
-                    nisa.tensor_scalar(dst=up_cache[:, group, ci, sub * 128:(sub + 1) * 128],
-                                       data=transposed, op0=nl.multiply, operand0=up_meta[:, 0:1])
-        for group in nl.affine_range(channels // down_width):
-            for sub in nl.affine_range(down_width // 128):
-                raw = nl.ndarray((128, hidden), dtype=nl.bfloat16, buffer=nl.sbuf)
-                first = group * down_width + sub * 128
-                nisa.dma_copy(dst=raw, src=down[first:first + 128, :])
-                for hi in nl.affine_range(nh):
-                    transposed = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.psum)
-                    nisa.nc_transpose(dst=transposed, data=raw[:, hi * 128:(hi + 1) * 128])
-                    nisa.tensor_scalar(dst=down_cache[:, group, hi, sub * 128:(sub + 1) * 128],
-                                       data=transposed, op0=nl.multiply, operand0=down_meta[:, 0:1])
+        if packed_up != None:
+            assert packed_down != None
+            assert packed_up.dtype == packed_down.dtype == nl.uint8
+            assert packed_up.shape == (hidden // up_width, 128, nc, up_width)
+            assert packed_down.shape == (channels // down_width, 128, nh, down_width)
+            # Raw legacy-E4M3 bytes were prepared once per update. The bitcast
+            # has no floating-point conversion or scaling; the independent
+            # cache gate checks this representation and contraction layout.
+            packed_up_values = packed_up.view(nl.float8_e4m3)
+            packed_down_values = packed_down.view(nl.float8_e4m3)
+            for group in nl.affine_range(hidden // up_width):
+                nisa.dma_copy(dst=up_cache[:, group, :, :], src=packed_up_values[group, :, :, :])
+            for group in nl.affine_range(channels // down_width):
+                nisa.dma_copy(dst=down_cache[:, group, :, :], src=packed_down_values[group, :, :, :])
+        else:
+            assert packed_down == None
+            for group in nl.affine_range(hidden // up_width):
+                for sub in nl.affine_range(up_width // 128):
+                    raw = nl.ndarray((128, channels), dtype=nl.bfloat16, buffer=nl.sbuf)
+                    first = group * up_width + sub * 128
+                    nisa.dma_copy(dst=raw, src=up[first:first + 128, :])
+                    for ci in nl.affine_range(nc):
+                        transposed = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.psum)
+                        nisa.nc_transpose(dst=transposed, data=raw[:, ci * 128:(ci + 1) * 128])
+                        nisa.tensor_scalar(dst=up_cache[:, group, ci, sub * 128:(sub + 1) * 128],
+                                           data=transposed, op0=nl.multiply, operand0=up_meta[:, 0:1])
+            for group in nl.affine_range(channels // down_width):
+                for sub in nl.affine_range(down_width // 128):
+                    raw = nl.ndarray((128, hidden), dtype=nl.bfloat16, buffer=nl.sbuf)
+                    first = group * down_width + sub * 128
+                    nisa.dma_copy(dst=raw, src=down[first:first + 128, :])
+                    for hi in nl.affine_range(nh):
+                        transposed = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.psum)
+                        nisa.nc_transpose(dst=transposed, data=raw[:, hi * 128:(hi + 1) * 128])
+                        nisa.tensor_scalar(dst=down_cache[:, group, hi, sub * 128:(sub + 1) * 128],
+                                           data=transposed, op0=nl.multiply, operand0=down_meta[:, 0:1])
 
         for tile in nl.affine_range(tokens // (128 * lanes)):
             first = (tile * lanes + nl.program_id(0)) * 128

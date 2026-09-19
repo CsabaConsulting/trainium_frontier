@@ -1,0 +1,204 @@
+{
+  "source_commit": "c82d388d3b3668c9f61006a252c6ec693b3b4386",
+  "command_returncode": 0,
+  "host_clean": true,
+  "completed_at": "2026-09-19T00:48:42.550777+00:00",
+  "label": "fs-w84-fp8-packed-weight-cache-gate-r1",
+  "records": {
+    "FP8_PACKED_CACHE_CONTRACT": [
+      {
+        "decoded_legacy_values_and_layout": "exact",
+        "signed_zero_sign_ignored": true,
+        "finite_bf16_weight_amax_max": 1.2676506002282294e+30,
+        "calibration": "existing online exponent-bit scale; no validation data",
+        "layout": "[output group, contraction inner128, contraction block, output within group]",
+        "full_forward_and_backward_gate_still_required": true
+      }
+    ],
+    "FP8_PACKED_CACHE_GATE": [
+      {
+        "name": "random",
+        "shape": [
+          512,
+          256
+        ],
+        "packed_shape": [
+          1,
+          128,
+          2,
+          512
+        ],
+        "pack_lanes": 1,
+        "dtype": "uint8 raw legacy E4M3 bytes",
+        "independent_decode_exact": true,
+        "bf16_backward_cache_exact": true,
+        "wrong_contraction_lane_negative_control_failures": 129050,
+        "signed_zero_encodings_equivalent": true,
+        "passed": true,
+        "whole_model_or_speed_claim": false
+      },
+      {
+        "name": "zero",
+        "shape": [
+          512,
+          256
+        ],
+        "packed_shape": [
+          1,
+          128,
+          2,
+          512
+        ],
+        "pack_lanes": 1,
+        "dtype": "uint8 raw legacy E4M3 bytes",
+        "independent_decode_exact": true,
+        "bf16_backward_cache_exact": true,
+        "wrong_contraction_lane_negative_control_failures": 0,
+        "signed_zero_encodings_equivalent": true,
+        "passed": true,
+        "whole_model_or_speed_claim": false
+      },
+      {
+        "name": "tiny",
+        "shape": [
+          512,
+          256
+        ],
+        "packed_shape": [
+          1,
+          128,
+          2,
+          512
+        ],
+        "pack_lanes": 1,
+        "dtype": "uint8 raw legacy E4M3 bytes",
+        "independent_decode_exact": true,
+        "bf16_backward_cache_exact": true,
+        "wrong_contraction_lane_negative_control_failures": 113014,
+        "signed_zero_encodings_equivalent": true,
+        "passed": true,
+        "whole_model_or_speed_claim": false
+      },
+      {
+        "name": "outliers",
+        "shape": [
+          512,
+          256
+        ],
+        "packed_shape": [
+          1,
+          128,
+          2,
+          512
+        ],
+        "pack_lanes": 1,
+        "dtype": "uint8 raw legacy E4M3 bytes",
+        "independent_decode_exact": true,
+        "bf16_backward_cache_exact": true,
+        "wrong_contraction_lane_negative_control_failures": 4,
+        "signed_zero_encodings_equivalent": true,
+        "passed": true,
+        "whole_model_or_speed_claim": false
+      },
+      {
+        "name": "changed_weights",
+        "shape": [
+          512,
+          256
+        ],
+        "packed_shape": [
+          1,
+          128,
+          2,
+          512
+        ],
+        "pack_lanes": 1,
+        "dtype": "uint8 raw legacy E4M3 bytes",
+        "independent_decode_exact": true,
+        "bf16_backward_cache_exact": true,
+        "wrong_contraction_lane_negative_control_failures": 129074,
+        "signed_zero_encodings_equivalent": true,
+        "passed": true,
+        "whole_model_or_speed_claim": false
+      },
+      {
+        "name": "finite_bf16_declared_domain_alphabet",
+        "shape": [
+          256,
+          256
+        ],
+        "packed_shape": [
+          1,
+          128,
+          2,
+          256
+        ],
+        "pack_lanes": 1,
+        "dtype": "uint8 raw legacy E4M3 bytes",
+        "independent_decode_exact": true,
+        "bf16_backward_cache_exact": true,
+        "wrong_contraction_lane_negative_control_failures": 3276,
+        "signed_zero_encodings_equivalent": true,
+        "passed": true,
+        "whole_model_or_speed_claim": false
+      },
+      {
+        "name": "real_up",
+        "shape": [
+          4096,
+          1024
+        ],
+        "packed_shape": [
+          8,
+          128,
+          8,
+          512
+        ],
+        "pack_lanes": 2,
+        "dtype": "uint8 raw legacy E4M3 bytes",
+        "independent_decode_exact": true,
+        "bf16_backward_cache_exact": true,
+        "wrong_contraction_lane_negative_control_failures": 4134748,
+        "signed_zero_encodings_equivalent": true,
+        "passed": true,
+        "whole_model_or_speed_claim": false
+      },
+      {
+        "name": "real_down",
+        "shape": [
+          1024,
+          4096
+        ],
+        "packed_shape": [
+          2,
+          128,
+          32,
+          512
+        ],
+        "pack_lanes": 2,
+        "dtype": "uint8 raw legacy E4M3 bytes",
+        "independent_decode_exact": true,
+        "bf16_backward_cache_exact": true,
+        "wrong_contraction_lane_negative_control_failures": 4134718,
+        "signed_zero_encodings_equivalent": true,
+        "passed": true,
+        "whole_model_or_speed_claim": false
+      }
+    ],
+    "FP8_PACKED_CACHE_RESULT": [
+      {
+        "passed": true,
+        "cases": 8,
+        "real_shape": true,
+        "online_preparation_not_free": true,
+        "complete_speed_not_measured": true
+      }
+    ]
+  },
+  "record_counts": {
+    "FP8_PACKED_CACHE_CONTRACT": 1,
+    "FP8_PACKED_CACHE_GATE": 8,
+    "FP8_PACKED_CACHE_RESULT": 1
+  },
+  "full_model_promoted": false
+}

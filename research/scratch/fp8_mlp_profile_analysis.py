@@ -108,6 +108,8 @@ def main():
                                        pc.less(usage['timestamp'], hi)))
         busy = active.filter(pc.and_(pc.less(active['start_ts'], hi), pc.greater(active['end_ts'], lo)))
         transpose = part.filter(pc.fill_null(pc.equal(part['tensor_instruction_type'], 'TRANSPOSE'), False))
+        compiler_transpose = transpose.filter(pc.fill_null(pc.match_substring(
+            transpose['nki_source_location'], 'private_nkl/transpose.py'), False))
         fp8 = part.filter(pc.fill_null(pc.match_substring(part['nki_source_location'], 'fp8_mlp_'), False))
         source = dict(top=top_groups(fp8, ['nki_source_location'], lo, hi, limit=18)) if len(fp8) else None
         ops = part.group_by(['engine', 'opcode']).aggregate([
@@ -118,6 +120,8 @@ def main():
                         counters=totals(part), engine_activity=merged_activity(busy, lo, hi),
                         tensor_transpose=dict(instruction_rows=len(transpose),
                                               activity=merged_activity(transpose, lo, hi)),
+                        compiler_private_transpose=dict(instruction_rows=len(compiler_transpose),
+                            activity=merged_activity(compiler_transpose, lo, hi)),
                         source_groups=source,
                         top_opcodes=sorted(ops.to_pylist(), key=lambda row: row['duration_ns_sum'], reverse=True)[:20],
                         sbuf_sampled_peaks=sampled.group_by('pcore_idx').aggregate([
