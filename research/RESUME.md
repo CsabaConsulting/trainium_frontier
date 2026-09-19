@@ -1,40 +1,44 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19, 00:17 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19, 00:21 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
 ## Current result and active work
 
-Best matched larger public score: **0.9973302213667847 BPB**, not a private
-leaderboard result. Working competitive target remains about0.9749. No seed sweep.
-Dense6x1024,117453580parameters, no n-grams, BF16 branch normalization, NKI causal
-conv, native-forward/custom-backward MLP, T2048/pack8/GA2, padded exact optimizer
-ownership, seed42, clip after gradient averaging. It completed3377updates/
-442.6Mtargets in1784.8training seconds; charged estimate1785.2, clean/within budget.
-Small public scores0.979318/T2048 and0.992072/T1024 are separate diagnostics.
+**Current result, 2026-09-19 00:21 UTC:** matched larger public BPB is
+**0.9938106631483421**, improved from0.9973302213667847. The dense6x1024 model
+uses no n-grams and seed42, T1024/pack16/GA2, padded exact optimizer ownership,
+native-forward/custom-backward MLP and exact adaptive two-core CE/target gather.
+It completed3,548 updates /465,043,456 targets in1,784.9 training seconds; charged
+estimate1,785.3 is within1,800. The matched evaluation uses20,971,520 tokens,
+83,462,186 bytes and57,493,516 nats, world1/B1/T1024/O1 without global autocast;
+688.38 seconds, clean. This is a public result, not a private leaderboard score.
+Checkpoint local and GitHub-digest-verified. Exact source/checkpoint/evaluation
+identity is in `fresh-start-best-public.json`. Working target remains0.9749.
 
-Larger evaluation `fs-w65-eval-owned-pack8-s1024-20m-o1-r1` is COMPLETE:
-20,971,520tokens,83,462,186bytes,57,697,128nats, world1/B1/T1024/O1 without global
-autocast, protected scorer. Checkpoint local and GitHub-digest-verified:
-`checkpoints/fs-w65-dense1024-native-mlp-pack8-owned-1800-r1/final.pt`,469834849B,
-SHA256 a8a2c91e1886681d03996f7930710c944d1b0fd71e7c6a7936f35bd343745743.
-The previous T1024/pack16/original-fused-AdamW result is0.9974687136975224,
-3282updates/430.2Mtargets. Its checkpoint SHA is
-9eabd33e6925052091f0238629f9192096c42f1310cf3127286898621932cd27 and is also
-local/cloud verified. Earlier native pack8 result1.0010172426032236 is retained.
+The CE change passed exact compiled-autograd gates and improved a same-source
+whole step500.372595ms versus519.395419ms (3.6625%). Quality combines CE with
+shorter context/packing and optimizer ownership; its gain is not attributed to
+CE alone. The previous larger results0.9973302214 (T2048/pack8/ownership) and
+0.9974687137 (T1024/pack16/original fused AdamW) remain reproducible checkpoints.
+No seed sweep or new function approximation is in the winning run.
 
-**trn21:** the wave70 quality run completed clean: 3,548 updates /
-465,043,456 targets, 1,784.9 training seconds, 1,785.3 charged estimate,
-within the 1,800-second budget. Small public T1024 BPB is 0.988605.
-`fs-w70-dense1024-context1024-pack16-owned-ce-1800-r1`, source
-785c294e4ef70b222915a7d464df2cbc1ba08a56, uses T1024/pack16/GA2, padded
-ownership and exact adaptive CE, with clip AFTER averaging. The checkpoint
-is now local and hash-verified: 469834849 B, SHA256
-3e5ec6df4391cdae7969130d6b78bf34a45a282edf2bc3ffaa500056fb754430.
-Matched larger evaluation has been dispatched as
-`fs-w70-eval-context1024-pack16-owned-ce-s1024-20m-o1-r1`; inspect its
-postflight/result before declaring a new best. Same 20,971,520 tokens,
-world1/B1/T1024/O1, expected 83,462,186 bytes. GitHub artifact backup verified this checkpoint at00:11:31 (36/36, zero errors).
+FP8 token-row and fixed-input-scale variants pass declared forward/STE backward
+and master-accumulation gates, but still lose complete component timing. Fixed
+input gives17.926315ms versus18.019795ms adaptive token rows (0.519% gain),
+15.672957ms native BF16 and14.629534ms NKI BF16 cache. The trace exposes an
+additional compiler-generated transpose and reported spills around the token-row
+kernel; a matching backward orientation is the next bounded experiment.
+A separate BF16 head/loss memory-boundary probe keeps FP32 arithmetic and
+requires exactly matching loss/gradients. Full FP8 backward remains unimplemented.
+Compact full-value tables passed accuracy but lost19.04x; stronger rsqrt
+corrections and standalone exponential polynomials also lost timing. Reciprocal
+refinement passed optimizer integration but is absent from the quality run.
+
+**trn21 ACTIVE:** wave80 exact BF16 CE boundary small gate, source
+75c7eb2c791c17658173ede7fc0a1a49c345e7e1. Its preceding larger evaluation
+completed clean. Do not run the prepared real-shape request until small gates
+and clean postflight pass. Repoint the watcher from completed wave70 to wave80.
 
 The installed CE/autograd gate passes36 eager/compiled exact loss/gradient
 checks. Fresh same-source whole-step control519.3954189890064ms versus candidate
@@ -44,18 +48,21 @@ loss5.064923286437988 matches exactly. No complete parameter-equality claim.
 Combined gain versus earlier owned T2048/pack8 control528.3530275ms is5.2958%.
 The phase clips before averaging; quality clips after. Protected trainer unchanged.
 
-**trn22 CLEAN after wave77:** small and real token-row FP8 forward, BF16
-STE backward and accumulated FP32 master gradients all pass. Complete component
-17.979725 ms versus 18.161799 ms original FP8 (1.0025% gain), but versus
-15.673194 ms native BF16 (14.7164% slower). No training promotion. Wave78 profile completed clean at00:10:57, with all8 compiled and9 eager
-binaries preserved remotely. Retrieval/hash verification is in progress.
-Next fixed-input RMS-scale code and independent contract are written; commit/
-deploy and run small gates before any real-shape training-component request.
-Wave79 fixed-input small gate passed all9 cases, exhaustive input quantizers
-and actual norm contracts. Real forward passes; the full backward/component
-request is active on trn22. Watcher follows wave79. Token-row raw profile is
-local/hash-verified; local Explorer ingestion is active. The BF16 CE memory
-boundary candidate is prepared for a separate exact gate after a host is free.
+**trn22 CLEAN after wave79:** fixed-input scale small/real forward, declared
+BF16 backward and accumulated FP32 master gradients pass. Complete component
+17.926315ms versus18.019795ms adaptive input; 0.519% gain, still14.38% slower
+than native. No training promotion. The next code changes backward orientation
+to match token-row saved ReLU; same FP64 bounds and an explicit old-backward
+control. Commit/deploy wave81 before launching. Watcher follows wave79.
+
+Wave78 raw profile358627902B and parquet219879131B are local/hash-verified.
+All44 runtime dispatches map to binaries. Device FW: oldFP83.686925ms, token
+rows3.603983ms; BF16 backward remains about4.8ms. Token rows introduce8,704
+Tensor transpose instructions in compiler private_nkl/transpose.py on core0,
+and reported67,108,864B spill saves/134,217,728B reloads. The saved-ReLU layout
+is a hypothesis, not yet proven as the source tensor. Profile warning about
+dynamic DMA metadata prevents exact bandwidth claims. Analysis is
+`research/run-logs/fs-w78-fp8-token-rows-profile-analysis-r1.json`.
 
 The compact joint table passes hardware accuracy but loses 47.200750 ms versus
 2.478831 ms Scalar composition (19.04x). Close this full-value/GpSIMD-gather
