@@ -1,0 +1,36 @@
+{
+  "shape": [
+    16384,
+    1024,
+    8192
+  ],
+  "variant": {
+    "inplace_softcap": true,
+    "cache_weights": false
+  },
+  "samples_ms": {
+    "native_two_forwards": [
+      12.76433074963279,
+      12.753815336812599,
+      12.77446566867487
+    ],
+    "fused_transpose_and_two_forwards": [
+      16.611989500233904,
+      16.590903333659906,
+      16.606819500642207
+    ]
+  },
+  "median_ms": {
+    "native_two_forwards": 12.76433074963279,
+    "fused_transpose_and_two_forwards": 16.606819500642207
+  },
+  "weight_transpose_charged": true,
+  "logits_save_included": true,
+  "forward_only": true,
+  "backward_optimizer_or_whole_model_included": false,
+  "source_commit": "e6705c3b58b7f6365eee8dcebf8325bea39fe46a",
+  "host_clean": true,
+  "completed_at": "2026-09-19T03:01:12.844532+00:00",
+  "regression_pct": 30.10333112153145,
+  "numerical_cases": 14
+}

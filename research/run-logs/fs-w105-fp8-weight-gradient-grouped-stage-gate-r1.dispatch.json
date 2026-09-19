@@ -1,0 +1,41 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave105",
+    "expected_commit": "bfed1b2a3f65b1f31414c0fbe760bba1284d7864",
+    "label": "fs-w105-fp8-weight-gradient-grouped-stage-gate-r1",
+    "purpose": "Gate grouped FP8 weight products against exact ungrouped output and unchanged independent pair/FP32 bounds. Reuse256-token operand panels across up to8PSUM output tiles.10cases include real16384-token contractions,all quantizer/scale/input gates. No timing/autograd or quality claim.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave105"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/fp8_weight_gradient_probe.py",
+      "--real-shape",
+      "--grouped-io"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/fp8_weight_gradient_nki.py",
+      "research/scratch/fp8_weight_gradient_probe.py",
+      "research/scratch/fp8_weight_cache_nki.py",
+      "research/scratch/fp8_mlp_island_probe.py",
+      "research/scratch/fresh_start_fp8_probe.py",
+      "research/scratch/fp8_packed_weight_cache_probe.py"
+    ]
+  },
+  "requested_at": "2026-09-19T03:04:09.399379+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w105-fp8-weight-gradient-grouped-stage-gate-r1\", \"pid\": 1278960, \"commit\": \"bfed1b2a3f65b1f31414c0fbe760bba1284d7864\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave105/research/run-logs/fs-w105-fp8-weight-gradient-grouped-stage-gate-r1.log\", \"started_at\": \"2026-09-19T03:04:15.758851+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

@@ -31,7 +31,10 @@ saves (26.79% slower). Profile maps all3 dispatches: native6.444ms, transpose0.1
 Repeated small weight loads show5.38ms/core GpSIMD source activity; fused has
 no populated spills. Source104 will gate in-place logits reuse and a full
 16MiB BF16 weight cache separately. No backward or quality promotion.
-trn21 currently gates source103 FP8 weight products; watcher103.
+Source103 weight products pass10cases but lose6.431/native1.125ms down and
+7.069/native1.085ms up. Grouped operand reuse is prepared with unchanged
+numerical bounds. Source104 in-place-only head16.607/native12.764ms loses;
+cached-weight head variant now runs on trn21, watcher104.
 
 Measured FP8 progress and the BF16 layout reversal are summarized at the top of
 `fresh-start-results-2026-09-18.md`. No FP8 quality gain is established.

@@ -1,0 +1,37 @@
+{
+  "shape": [
+    16384,
+    1024,
+    8192
+  ],
+  "variant": {
+    "inplace_softcap": true,
+    "cache_weights": true
+  },
+  "samples_ms": {
+    "native_two_forwards": [
+      12.787697249829458,
+      12.837443665678924,
+      12.773196916289939
+    ],
+    "fused_transpose_and_two_forwards": [
+      8.443400583928451,
+      8.439871919108555,
+      8.443477665423416
+    ]
+  },
+  "median_ms": {
+    "native_two_forwards": 12.787697249829458,
+    "fused_transpose_and_two_forwards": 8.443400583928451
+  },
+  "weight_transpose_charged": true,
+  "logits_save_included": true,
+  "forward_only": true,
+  "backward_optimizer_or_whole_model_included": false,
+  "source_commit": "e6705c3b58b7f6365eee8dcebf8325bea39fe46a",
+  "host_clean": true,
+  "completed_at": "2026-09-19T03:02:25.688101+00:00",
+  "improvement_pct": 33.97247042237369,
+  "numerical_cases": 14,
+  "decision": "Forward-only improvement; complete autograd/head gradients and caller timing still required. No model or quality gain established."
+}

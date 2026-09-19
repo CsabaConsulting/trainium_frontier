@@ -214,3 +214,29 @@ softcap tile. The source live-size estimate can then fit the cache with reserve.
 Test in-place streaming separately from in-place caching to distinguish memory
 reuse from weight residency. Preserve exact CE and FP32 accumulation gates.
 The cached layout may still spill or lose Tensor throughput; no gain is assumed.
+
+### Source104 resident-weight result
+
+The in-place-only variant passes14 fixtures/actual-row gates but loses:
+16.606820ms versus12.764331ms native for two forwards. Retaining the16MiB BF16
+weight matrix in SBUF wins8.443401ms versus12.787697ms (33.97247%), including
+one weight transpose, two forwards and ordinary FP32 logits saves. Repeated
+candidate samples8.4434/8.4399/8.4435ms. Clean03:02:25. This is a component
+result: the absolute forward saving is4.3443ms, under1% of a500ms whole update.
+Next gate: exact compiled original Linear-head loss/input/master gradients,
+master accumulation/cache refresh across updates, then charged full FW/BW.
+No approximate special function, head BF16-logit rounding or quality claim.
+
+### Source107 autograd gate contract
+
+The scratch adapter retains original BF16 activation/weight-cache operands,
+saves ordinary FP32 logits, and uses exact CE backward with BF16 gradient
+output at the existing head boundary. Normal autograd carries the BF16 cache
+gradient to its FP32 master. A real transpose is charged on EVERY forward,
+without persistent cached weights between calls. Compare compiled original
+Linear (whose FP32 accumulator is preserved into loss) exactly for loss,
+input gradient and master gradient. Include zero/tiny/outlier/saturated inputs,
+arbitrary upstream gradients, mean/none reductions, two distinct accumulated
+microbatches and a deterministic master update followed by cache refresh.
+Independent FP64 projection and frozen-CE gates remain in the previous probe.
+No GPT installation, eager-logit equivalence, optimizer or quality claim.

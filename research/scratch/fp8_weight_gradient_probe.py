@@ -22,7 +22,7 @@ from fresh_start_fp8_probe import e4m3_legacy
 from mlp_fused_bf16_probe import timing
 
 
-def run(kind, shape, case, functions, calibrate, benchmark, steps):
+def run(kind, shape, case, functions, calibrate, benchmark, steps, grouped_io=False):
     tokens, outputs, inputs = shape
     multiply, quantize, product = functions
     generator = torch.Generator().manual_seed(9231 + outputs + inputs)
@@ -70,13 +70,16 @@ def run(kind, shape, case, functions, calibrate, benchmark, steps):
     raw_left, raw_right = decode_legacy(left_bytes.cpu()), decode_legacy(right_bytes.cpu())
     require_exact(case + ':' + kind + ':gradient_quantizer_decoded', raw_left, expected_left)
     require_exact(case + ':' + kind + ':saved_activation_quantizer_decoded', raw_right, expected_right)
-    actual = product[2](left_bytes, right_bytes, metadata, product_meta_dev, 2).cpu()
+    actual = product[2](left_bytes, right_bytes, metadata, product_meta_dev, 2, grouped_io).cpu()
     assert actual.dtype == torch.float32
     inverse_rows = torch.full((outputs, 1), float(left_meta[0, 1]))
     pair_gate(case + ':' + kind + ':weight_product', actual, raw_left.T, raw_right,
               inverse_rows, right_inverse, full=tokens <= 512)
-    repeated = product[2](left_bytes, right_bytes, metadata, product_meta_dev, 2)
+    repeated = product[2](left_bytes, right_bytes, metadata, product_meta_dev, 2, grouped_io)
     require_exact(case + ':' + kind + ':repeat', repeated, actual)
+    if grouped_io:
+        first_layout = product[2](left_bytes, right_bytes, metadata, product_meta_dev, 2, False)
+        require_exact(case + ':' + kind + ':grouped_vs_original_product', actual, first_layout)
     require_exact(case + ':' + kind + ':gradient_unchanged', gdev, gradient)
     require_exact(case + ':' + kind + ':saved_activation_unchanged', hdev, saved)
     require_exact(case + ':' + kind + ':left_bytes_unchanged', decode_legacy(left_bytes.cpu()), raw_left)
@@ -87,7 +90,7 @@ def run(kind, shape, case, functions, calibrate, benchmark, steps):
     ii = torch.unique(torch.cat((torch.linspace(0, inputs - 1, min(64, inputs)).long(), torch.tensor([127, 128]))))
     original = gradient[:, oi].double().T @ saved[:, ii].double()
     quantization_diagnostic(case + ':' + kind + ':original_bf16_surrogate_fp64', actual[oi][:, ii], original)
-    record = dict(kind=kind, case=case, shape=list(shape), passed=True,
+    record = dict(kind=kind, case=case, shape=list(shape), passed=True, grouped_io=grouped_io,
         fp32_master_output=True, exact_previous_bf16_vjp=False,
         scale_transfer_underflow_count=int(((gradient != 0) & (rescaled == 0)).sum()),
         gradient_quantizer_zeroed_nonzero_count=int(((rescaled != 0) & (raw_left == 0)).sum()),
@@ -109,7 +112,7 @@ def run(kind, shape, case, functions, calibrate, benchmark, steps):
             meta = calibrate[1](current)
             a = quantize[2](current, meta, 2, False)
             b = quantize[2](hdev, rmeta_dev, 2, kind == 'down')
-            return product[2](a, b, meta, product_meta_dev, 2)
+            return product[2](a, b, meta, product_meta_dev, 2, grouped_io)
 
         native_result = native_call().cpu()
         assert native_result.dtype == torch.float32 and bool(torch.isfinite(native_result).all())
@@ -119,7 +122,7 @@ def run(kind, shape, case, functions, calibrate, benchmark, steps):
                            'fp8_scale_calibrate_pack_weight_product': candidate_call},
                           steps, torch.neuron.synchronize)
         print('FP8_WEIGHT_GRADIENT_BENCH ' + json.dumps(dict(
-            kind=kind, shape=list(shape), **measured,
+            kind=kind, shape=list(shape), grouped_io=grouped_io, **measured,
             current_gradient_scale_and_both_byte_preparations_charged=True,
             saved_forward_scales_assumed=True, extra_forward_scale_stores_not_included=True,
             data_gradients_activation_derivative_optimizer_or_whole_model_included=False)), flush=True)
@@ -132,6 +135,7 @@ def main():
     parser.add_argument('--real-shape', action='store_true')
     parser.add_argument('--benchmark', action='store_true')
     parser.add_argument('--steps', type=int, default=12)
+    parser.add_argument('--grouped-io', action='store_true')
     args = parser.parse_args()
     assert not args.benchmark or args.real_shape
     import torch_neuronx
@@ -149,16 +153,16 @@ def main():
     count = 0
     for case in ('random', 'zero_gradient', 'zero_activation', 'tiny_gradient',
                  'row_scale_range', 'outliers', 'signed_cancellation'):
-        run('down', (512, 256, 512), case, functions, calibrate, False, args.steps)
+        run('down', (512, 256, 512), case, functions, calibrate, False, args.steps, args.grouped_io)
         count += 1
-    run('up', (512, 512, 256), 'random', functions, calibrate, False, args.steps)
+    run('up', (512, 512, 256), 'random', functions, calibrate, False, args.steps, args.grouped_io)
     count += 1
     if args.real_shape:
         for kind, shape in [('down', (16384, 1024, 4096)), ('up', (16384, 4096, 1024))]:
-            run(kind, shape, 'real_random', functions, calibrate, args.benchmark, args.steps)
+            run(kind, shape, 'real_random', functions, calibrate, args.benchmark, args.steps, args.grouped_io)
             count += 1
     print('FP8_WEIGHT_GRADIENT_RESULT ' + json.dumps(dict(
-        passed=True, cases=count, real_shape=args.real_shape,
+        passed=True, cases=count, real_shape=args.real_shape, grouped_io=args.grouped_io,
         full_fp8_backward_or_autograd_integration=False, quality_gain_established=False)), flush=True)
 
 

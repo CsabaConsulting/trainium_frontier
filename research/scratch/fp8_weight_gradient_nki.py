@@ -55,7 +55,8 @@ def build_kernels():
         return output
 
     @nki.jit
-    def weight_product(left_bytes, right_bytes, left_metadata, right_metadata, lanes: int = 2):
+    def weight_product(left_bytes, right_bytes, left_metadata, right_metadata,
+                       lanes: int = 2, grouped_io: bool = False):
         """[T,M].T @ [T,N], double-row FP8 with sequential inverse scaling.
 
         The contraction pairs corresponding positions in adjacent128-token
@@ -79,6 +80,53 @@ def build_kernels():
         right_meta = nl.ndarray((128, 3), dtype=nl.float32, buffer=nl.sbuf)
         nisa.dma_copy(dst=left_meta, src=left_metadata)
         nisa.dma_copy(dst=right_meta, src=right_metadata)
+        if grouped_io:
+            block_m = min(256, outputs // lanes)
+            block_n = min(2048, inputs)
+            row_groups, column_groups = block_m // 128, block_n // width
+            assert outputs % (block_m * lanes) == 0 and inputs % block_n == 0
+            assert row_groups * column_groups <= 8
+            for mi in nl.affine_range(outputs // (block_m * lanes)):
+                first_row = (mi * lanes + nl.program_id(0)) * block_m
+                for ni in nl.affine_range(inputs // block_n):
+                    first_column = ni * block_n
+                    # NC-v3 has eight PSUM banks. Each operation sees only
+                    # its128x512 bank; the larger free extent groups banks.
+                    # Every independent accumulator starts at a physical
+                    # bank boundary, including a256-column edge tile. Packing
+                    # two narrow results into one512-element bank aliases
+                    # TensorEngine accumulation (wave105 small-up failure).
+                    bank_stride = nl.tile_size.psum_bank_fmax
+                    banks = nl.ndarray((128, row_groups * column_groups * bank_stride),
+                                       dtype=nl.float32, buffer=nl.psum)
+                    for pair in nl.affine_range(tokens // 256):
+                        lhs_panel = nl.ndarray((128, 2, block_m), dtype=nl.float8_e4m3, buffer=nl.sbuf)
+                        rhs_panel = nl.ndarray((128, 2, block_n), dtype=nl.float8_e4m3, buffer=nl.sbuf)
+                        for half in nl.static_range(2):
+                            contraction = nl.ds((pair * 2 + half) * 128, 128)
+                            nisa.dma_copy(dst=lhs_panel[:, half, :],
+                                          src=left[contraction, nl.ds(first_row, block_m)])
+                            nisa.dma_copy(dst=rhs_panel[:, half, :],
+                                          src=right[contraction, nl.ds(first_column, block_n)])
+                        for rg in nl.affine_range(row_groups):
+                            for cg in nl.affine_range(column_groups):
+                                bank = nl.ds((rg * column_groups + cg) * bank_stride, width)
+                                nisa.nc_matmul(dst=banks[:, bank],
+                                    stationary=lhs_panel[:, :, nl.ds(rg * 128, 128)],
+                                    moving=rhs_panel[:, :, nl.ds(cg * width, width)],
+                                    accumulate=(pair > 0), perf_mode=nisa.matmul_perf_mode.double_row)
+                    for rg in nl.affine_range(row_groups):
+                        for cg in nl.affine_range(column_groups):
+                            bank = nl.ds((rg * column_groups + cg) * bank_stride, width)
+                            first_scale = nl.ndarray((128, width), dtype=nl.float32, buffer=nl.sbuf)
+                            result = nl.ndarray((128, width), dtype=nl.float32, buffer=nl.sbuf)
+                            nisa.tensor_scalar(dst=first_scale, data=banks[:, bank], op0=nl.multiply,
+                                               operand0=left_meta[:, 1:2])
+                            nisa.tensor_scalar(dst=result, data=first_scale, op0=nl.multiply,
+                                               operand0=right_meta[:, 1:2])
+                            nisa.dma_copy(dst=output[nl.ds(first_row + rg * 128, 128),
+                                                     nl.ds(first_column + cg * width, width)], src=result)
+            return output
         for row_tile in nl.affine_range(outputs // (128 * lanes)):
             rows = nl.ds((row_tile * lanes + nl.program_id(0)) * 128, 128)
             for column_tile in nl.affine_range(inputs // width):
