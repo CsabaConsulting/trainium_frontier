@@ -95,6 +95,8 @@ def main():
                     help="Scratch FP32-statistic RMSNorm with the existing BF16 branch outputs.")
     ap.add_argument("--adaptive-nki-ce", action="store_true",
                     help="Gated CE target gather and one/two-core shape dispatch; unchanged loss math.")
+    ap.add_argument("--bf16-ce-boundary", action="store_true",
+                    help="Scratch head/loss BF16 memory boundary; FP32 loss math and native evaluation.")
     ap.add_argument("--nki-adamw-fp32", action="store_true",
                     help="Scratch gated functional FP32 AdamW for dense1024 tables; other groups stay native.")
     ap.add_argument("--optimizer-ownership", action="store_true",
@@ -302,6 +304,12 @@ def main():
         from softcap_ce_parallel_integration import install as install_ce
         install_ce(T)
         print("[pt] Adaptive NKI CE row scheduling and target gather; unchanged loss math", flush=True)
+    if args.bf16_ce_boundary:
+        if device_type != "neuron":
+            raise ValueError("--bf16-ce-boundary requires Neuron")
+        from softcap_ce_bf16_integration import install as install_bf16_ce
+        install_bf16_ce(T)
+        print("[pt] BF16 head/loss memory boundary; FP32 loss math and original evaluation", flush=True)
     if args.nki_branch_norm:
         if device_type != "neuron":
             raise ValueError("--nki-branch-norm requires Neuron")
@@ -674,6 +682,7 @@ def main():
             segmented_dma_embedding=args.segmented_dma_embedding,
             nki_branch_norm=args.nki_branch_norm,
             adaptive_nki_ce=args.adaptive_nki_ce,
+            bf16_ce_boundary=args.bf16_ce_boundary,
             nki_adamw_fp32=args.nki_adamw_fp32,
             nki_adamw_parameter_updates=getattr(optimizer, "_fresh_start_adamw_calls", 0),
             optimizer_ownership=args.optimizer_ownership,
