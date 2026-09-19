@@ -106,7 +106,9 @@ two-ref pushes and readback. Neither the active HEAD nor the real index changed.
 one to four requests independently of the GUI. It is separate from cron. The
 source148 plans adopt the already launched device jobs; trn22 then runs the
 prepared resident/direct-output-rank comparison, while trn21 finishes its
-single native control. Request, plan and helper hashes are checked before
+single native control. After that native control completed, a separate bounded
+trn21 plan adopted its result and queued current-inventory reciprocal-optimizer
+gates followed by one matched pack32 candidate. Request, plan and helper hashes are checked before
 actions. A subsequent request requires source-matched clean postflight and
 every explicit numerical completion marker; failure, an ambiguous launch,
 changed source instructions or the local deadline stops advancement. Each

@@ -1,6 +1,6 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19 17:36 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19 17:42 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
@@ -64,17 +64,26 @@ No FP8 speed/BPB promotion.
 5. Keep reciprocal optimizer composition, reduced calibration work and compact
    function approximations available for measured bottlenecks. The standalone
    polynomial/full-value-table losses remain closed for their tested layouts.
+   Source98's reciprocal pair usedpack16/GA2. A source148 current-inventory gate
+   and pack32/GA1 candidate are now queued on trn21 against its clean nearby
+   native488.035319ms control. The kernel/adapter are byte-identical to source98;
+  24 exact ownership checks, four composition records and full-model checks
+   remain required. See `fresh-start-reciprocal-pack32-2026-09-19.md` and the
+   fixed one-hour sequence plan. Coordinator16921 adopted the completed native
+   control and launched current-inventory gates17:41:37UTC, clean preflight,
+   guard1530847. No candidate timing or quality result yet.
 6. Output-shape propagation is a separate follow-up if compact saves/streamed
    weights do not fix the observed smaller ordinary-Linear tiles. The SDK Meta
    output contract and bounded rank-preserving/channel-major controls are in
    `fresh-start-fp8-output-layout-2026-09-19.md`. Source148 implements direct
    rank-three output behind a flag and extends the unchanged numerical gates;
-   numerical/real-Linear hardware gates active on trn22 since17:28:26UTC, while
-   native control runs on trn21 since17:26:38UTC. A fixed bounded trn22 sequence
-   will adopt the gates, then measure resident control and direct-rank candidate,
+   numerical/real-Linear hardware gates COMPLETE/clean17:36:47UTC. Native control
+   on trn21 is complete/clean488.035319ms with four postchecks. The bounded
+   trn22 sequence adopted the gates and started resident control17:37:46UTC,
+   then will measure the direct-rank candidate,
    requiring clean source-matched postflight and all numerical markers at each
-   transition. The11-case independent gate including32768 tokens PASSES; real-
-   Linear gates remain pending. Exact prepared request hashes are in the
+   transition. The11-case independent gate including32768 tokens and both real-
+   Linear widths PASS. Exact prepared request hashes are in the
    source148 sequence plan; local coordinator PID6908 started17:35:45UTC and
    synced successfully, with state and launch receipts preserved. No SDK
    changes, cross-host speed comparison or candidate speed claim.
