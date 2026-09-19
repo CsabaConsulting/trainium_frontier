@@ -21,7 +21,7 @@ def call_separate_region(compiled_function, *inputs):
     return compiled_function(*inputs)
 
 
-def make_ops(compact_forward_saves=False):
+def make_ops(compact_forward_saves=False, stream_packed_weights=False):
     """Use the source137 exact dual producer and source135 full FP8 derivative."""
     from torch_neuronx import wrap_nki
     from fp8_dual_weight_cache_nki import build_kernel as build_dual
@@ -49,14 +49,15 @@ def make_ops(compact_forward_saves=False):
     def forward(x, up, down, up_meta, down_meta, packed_up, packed_down):
         scale = policy(x.shape[1])[0]
         return kernel[2](x, up, down, up_meta, down_meta, 2, 128, False,
-                         scale, packed_up, packed_down, True, False, compact_forward_saves)
+                         scale, packed_up, packed_down, True, False, compact_forward_saves, stream_packed_weights)
 
     apply = make_autograd(forward, backward, partial, finish, product,
                           compact_forward_saves=compact_forward_saves)
     return compiled_prepare, apply
 
 
-def install(model, device, train_module, separate_region=False, compact_forward_saves=False):
+def install(model, device, train_module, separate_region=False, compact_forward_saves=False,
+            stream_packed_weights=False):
     """Attach per-instance methods without adding parameters, buffers or RNG draws.
 
     A missing initial cache is prepared from current masters inside the forward
@@ -64,6 +65,8 @@ def install(model, device, train_module, separate_region=False, compact_forward_
     by every accumulated microbatch. Short calls pad only this token-independent
     MLP, never the attention sequence; no shape-dependent BF16 training fallback.
     """
+    if stream_packed_weights and not compact_forward_saves:
+        raise ValueError('Streaming packed weights requires compact full-FP8 saves')
     if not str(device).startswith('neuron'):
         raise ValueError('Packed FP8 integration requires Neuron')
     if not train_module.USE_WEIGHT_CACHE or not train_module.USE_BF16_NORM_OUTPUT:
@@ -75,7 +78,8 @@ def install(model, device, train_module, separate_region=False, compact_forward_
     before_keys = tuple(model.state_dict())
     before_ids = tuple(id(p) for p in model.parameters())
     before_rng = torch.get_rng_state().clone()
-    prepare, apply = make_ops(compact_forward_saves=compact_forward_saves)
+    prepare, apply = make_ops(compact_forward_saves=compact_forward_saves,
+                              stream_packed_weights=stream_packed_weights)
     if separate_region:
         # One shared callable across layers avoids six Python closure guards.
         # This changes the compiler's allocation scope, not the FP8 algorithm.
@@ -157,5 +161,6 @@ def install(model, device, train_module, separate_region=False, compact_forward_
                 evaluation='original BF16 MLP', cache_preparation='compiled source137 resident dual producer per timed Linear refresh',
                 separate_compiled_region=bool(separate_region),
                 compact_forward_saves=bool(compact_forward_saves),
+                stream_packed_weights=bool(stream_packed_weights),
                 input_contract='gain-free RMS norm, BF16, widths256/1024',
                 short_input_policy='zero-pad inside MLP to multiple512; discard padded rows')

@@ -1,6 +1,6 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19 09:12 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19 09:29 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
@@ -29,18 +29,25 @@ No FP8 speed/BPB promotion.
    Its independent byte/four-product and real-Linear lifecycle gates PASS,
    including32768 tokens and both256/1024 widths; clean09:09:36.852509. The nearby
    same-host source145 native/legacy/compact phase comparison starts with the
-   native control ACTIVE on trn22. No whole-step gain is established yet.
+   native control COMPLETE/clean488.702ms and legacy FP8 ACTIVE on trn22.
+   The compact candidate follows its clean completion. No whole-step gain yet.
 3. Native width guard is corrected; actual pack32/T1024 MLP gates now pass for
    both1024 and1152 channels with clean postflight. Measure new optimizer groups
    before a bounded capacity comparison with the current kernel stack. The new
    cost probe uses the recorded real model inventory; all13 cases are COMPLETE
    and clean. Source146 adds measured shape costs and its four-rank exact
-   ownership/state/restore gate is ACTIVE on trn21. See the capacity revisit
-   note; old generic ownership costs are not trustworthy at new widths.
-4. Keep reciprocal optimizer composition, reduced calibration work and compact
+   ownership/state/restore gate PASSES all28 rank/stage comparisons. The nearby
+   D1024 control is clean487.435ms. Staged disk maintenance precedes width1152
+   phase compilation. See the capacity revisit note; old generic ownership costs are not trustworthy at new widths.
+4. Optional packed-weight-group streaming is prepared for a bounded caller
+   allocation experiment after the compact comparison. Its source-level weight
+   footprint falls8MiB to2.5MiB, with repeated HBM reads/sequential group costs.
+   Actual allocation/speed and all numerical gates are pending; see
+   `fresh-start-fp8-weight-residency-2026-09-19.md`.
+5. Keep reciprocal optimizer composition, reduced calibration work and compact
    function approximations available for measured bottlenecks. The standalone
    polynomial/full-value-table losses remain closed for their tested layouts.
-5. Serial QKV execution is a separate candidate from the old fused-Parameter
+6. Serial QKV execution is a separate candidate from the old fused-Parameter
    and parallel-block trials. Preserve three Parameters/Muon states and the
    contiguous RoPE fast path. The source audit and bounded gates are in
    `fresh-start-serial-qkv-revisit-2026-09-19.md`; implementation is queued.

@@ -56,8 +56,19 @@ all28 comparisons across four ranks and seven stages are exact, including the
 after-timing state. Owned optimizer plus exchange measured31.90–31.92ms versus
 replicated68.67–69.33ms. This is not a comparison against the former unknown-
 shape ownership plan or a complete-model speed measurement. A nearby same-host
-source146 D1024 control is active; the D1152 whole-model phase follows only
-after its four numerical postchecks and clean postflight.
+source146 D1024 control is COMPLETE/clean09:23:29.405196: median487.434961ms,
+all four model postchecks pass, last loss5.126208782196045. Staged archival
+maintenance restores disk headroom before the D1152 whole-model phase.
+
+One fixed-seed42 full-budget request is prepared for after that phase. Its
+predeclared cutoff is700ms per step with all numerical checks and clean
+postflight. This deliberately permits a slower larger model: it tests the
+capacity/time tradeoff, with roughly337million target tokens in1800seconds
+at the cutoff before accounting for finalization. It is not a pure speed
+comparison. The phase harness clips before averaging and uses its diagnostic
+schedule; the quality trainer retains the winning clip-after-average policy
+and protected wall-clock schedule. Phase loss is not a quality prediction.
+Only a matched20,971,520-token public evaluation will support a BPB comparison.
 
 ## Two implementation restrictions can bias a future width comparison
 

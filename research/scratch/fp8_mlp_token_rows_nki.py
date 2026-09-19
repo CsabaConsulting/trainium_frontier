@@ -48,7 +48,7 @@ def build_kernel():
                 token_tile: int = 128, diagnostic: bool = False,
                 fixed_x_scale: float = 0.0, packed_up=None, packed_down=None,
                 save_fp8: bool = False, save_hidden_metadata: bool = False,
-                compact_full_vjp: bool = False):
+                compact_full_vjp: bool = False, stream_packed_weights: bool = False):
         """Return Y[T,C], ReLU[T,H], QDQ-X[T,C], QDQ-hidden[T,H].
 
         Diagnostic mode additionally returns FP32 up[T,H], down[T,C] and
@@ -62,9 +62,16 @@ def build_kernel():
         the complete FP8 backward. It omits both unused BF16 QDQ allocations,
         reconstruction operations and stores. Diagnostic/BF16 backward callers
         retain their original interface. This flag alone establishes no speedup.
+        Optional streaming loads one
+        packed output group at a time instead of keeping both full weights in
+        SBUF. Its sequential output-group loops preserve each contraction and
+        rescaling order, at the cost of repeated HBM reads for every token tile.
+        Actual caller allocation and complete-step performance need measurement.
         """
         kernel_assert(not compact_full_vjp or (save_fp8 and not diagnostic),
                       "Compact saves require the ordinary full-FP8 output contract")
+        kernel_assert(not stream_packed_weights or (compact_full_vjp and packed_up != None and packed_down != None),
+                      "Streaming requires compact full-FP8 saves and both packed weights")
         tokens, channels = x.shape
         hidden, up_channels = up.shape
         assert up_channels == channels and down.shape == (channels, hidden)
@@ -88,7 +95,10 @@ def build_kernel():
         up_width, down_width = min(512, hidden), min(512, channels)
         assert hidden % up_width == 0 and channels % down_width == 0
         nc, nh = channels // 128, hidden // 128
-        assert 2 * channels * hidden + 8 * (channels + hidden) * 128 + 4 * 1024**2 <= nl.tile_size.sbuf_size_bytes
+        # Source-level bound only: compiler allocation must still be profiled.
+        weight_bytes = (128 * (nc * up_width + nh * down_width)
+                        if stream_packed_weights else 2 * channels * hidden)
+        assert weight_bytes + 8 * (channels + hidden) * 128 + 4 * 1024**2 <= nl.tile_size.sbuf_size_bytes
         result = nl.ndarray((tokens, channels), dtype=nl.bfloat16, buffer=nl.shared_hbm)
         saved_relu = nl.ndarray((tokens, hidden), dtype=nl.bfloat16, buffer=nl.shared_hbm)
         if not compact_full_vjp:
@@ -107,8 +117,9 @@ def build_kernel():
         down_meta = nl.ndarray((128, 3), dtype=nl.float32, buffer=nl.sbuf)
         nisa.dma_copy(dst=up_meta, src=up_scales)
         nisa.dma_copy(dst=down_meta, src=down_scales)
-        up_cache = nl.ndarray((128, hidden // up_width, nc, up_width), dtype=nl.float8_e4m3, buffer=nl.sbuf)
-        down_cache = nl.ndarray((128, channels // down_width, nh, down_width), dtype=nl.float8_e4m3, buffer=nl.sbuf)
+        if not stream_packed_weights:
+            up_cache = nl.ndarray((128, hidden // up_width, nc, up_width), dtype=nl.float8_e4m3, buffer=nl.sbuf)
+            down_cache = nl.ndarray((128, channels // down_width, nh, down_width), dtype=nl.float8_e4m3, buffer=nl.sbuf)
         if packed_up != None:
             assert packed_down != None
             assert packed_up.dtype == packed_down.dtype == nl.uint8
@@ -119,10 +130,11 @@ def build_kernel():
             # cache gate checks this representation and contraction layout.
             packed_up_values = packed_up.view(nl.float8_e4m3)
             packed_down_values = packed_down.view(nl.float8_e4m3)
-            for group in nl.affine_range(hidden // up_width):
-                nisa.dma_copy(dst=up_cache[:, group, :, :], src=packed_up_values[group, :, :, :])
-            for group in nl.affine_range(channels // down_width):
-                nisa.dma_copy(dst=down_cache[:, group, :, :], src=packed_down_values[group, :, :, :])
+            if not stream_packed_weights:
+                for group in nl.affine_range(hidden // up_width):
+                    nisa.dma_copy(dst=up_cache[:, group, :, :], src=packed_up_values[group, :, :, :])
+                for group in nl.affine_range(channels // down_width):
+                    nisa.dma_copy(dst=down_cache[:, group, :, :], src=packed_down_values[group, :, :, :])
         else:
             assert packed_down == None
             for group in nl.affine_range(hidden // up_width):
@@ -171,26 +183,50 @@ def build_kernel():
                 nisa.tensor_copy(dst=inputs[:, ci, :], src=transposed.ap(pattern=[[256, 128], [2, 128]]))
             relu_rows = nl.ndarray((128, hidden), dtype=nl.bfloat16, buffer=nl.sbuf)
             hidden_rows = nl.ndarray((128, hidden), dtype=nl.bfloat16, buffer=nl.sbuf)
-            for group in nl.affine_range(hidden // up_width):
-                columns = nl.ds(group * up_width, up_width)
-                accumulator = nl.ndarray((128, up_width), dtype=nl.float32, buffer=nl.psum)
-                for pair in nl.affine_range(nc // 2):
-                    nisa.nc_matmul(dst=accumulator, stationary=inputs[:, pair * 2:pair * 2 + 2, :],
-                                   moving=up_cache[:, group, pair * 2:pair * 2 + 2, :],
-                                   accumulate=(pair > 0), perf_mode=nisa.matmul_perf_mode.double_row)
-                weighted = nl.ndarray((128, up_width), dtype=nl.float32, buffer=nl.sbuf)
-                scaled = nl.ndarray((128, up_width), dtype=nl.float32, buffer=nl.sbuf)
-                rounded = nl.ndarray((128, up_width), dtype=nl.bfloat16, buffer=nl.sbuf)
-                # Keep two sequential rescalings: multiplying inverse scales
-                # together first can underflow even when the output is nonzero.
-                nisa.tensor_scalar(dst=weighted, data=accumulator, op0=nl.multiply, operand0=up_meta[:, 1:2])
-                nisa.tensor_scalar(dst=scaled, data=weighted, op0=nl.multiply, operand0=x_meta[:, 1:2])
-                nisa.tensor_copy(dst=rounded, src=scaled)
-                nisa.tensor_scalar(dst=relu_rows[:, columns], data=rounded, op0=nl.maximum, operand0=0.0)
-                nisa.tensor_tensor(dst=hidden_rows[:, columns], data1=relu_rows[:, columns],
-                                   data2=relu_rows[:, columns], op=nl.multiply)
-                if diagnostic:
-                    nisa.dma_copy(dst=up_stage[rows, columns], src=scaled)
+            if stream_packed_weights:
+                up_group = nl.ndarray((128, nc, up_width), dtype=nl.float8_e4m3, buffer=nl.sbuf)
+                for group in nl.sequential_range(hidden // up_width):
+                    nisa.dma_copy(dst=up_group, src=packed_up_values[group, :, :, :])
+                    columns = nl.ds(group * up_width, up_width)
+                    accumulator = nl.ndarray((128, up_width), dtype=nl.float32, buffer=nl.psum)
+                    for pair in nl.affine_range(nc // 2):
+                        nisa.nc_matmul(dst=accumulator, stationary=inputs[:, pair * 2:pair * 2 + 2, :],
+                                       moving=up_group[:, pair * 2:pair * 2 + 2, :],
+                                       accumulate=(pair > 0), perf_mode=nisa.matmul_perf_mode.double_row)
+                    weighted = nl.ndarray((128, up_width), dtype=nl.float32, buffer=nl.sbuf)
+                    scaled = nl.ndarray((128, up_width), dtype=nl.float32, buffer=nl.sbuf)
+                    rounded = nl.ndarray((128, up_width), dtype=nl.bfloat16, buffer=nl.sbuf)
+                    # Keep two sequential rescalings: multiplying inverse scales
+                    # together first can underflow even when the output is nonzero.
+                    nisa.tensor_scalar(dst=weighted, data=accumulator, op0=nl.multiply, operand0=up_meta[:, 1:2])
+                    nisa.tensor_scalar(dst=scaled, data=weighted, op0=nl.multiply, operand0=x_meta[:, 1:2])
+                    nisa.tensor_copy(dst=rounded, src=scaled)
+                    nisa.tensor_scalar(dst=relu_rows[:, columns], data=rounded, op0=nl.maximum, operand0=0.0)
+                    nisa.tensor_tensor(dst=hidden_rows[:, columns], data1=relu_rows[:, columns],
+                                       data2=relu_rows[:, columns], op=nl.multiply)
+                    if diagnostic:
+                        nisa.dma_copy(dst=up_stage[rows, columns], src=scaled)
+            else:
+                for group in nl.affine_range(hidden // up_width):
+                    columns = nl.ds(group * up_width, up_width)
+                    accumulator = nl.ndarray((128, up_width), dtype=nl.float32, buffer=nl.psum)
+                    for pair in nl.affine_range(nc // 2):
+                        nisa.nc_matmul(dst=accumulator, stationary=inputs[:, pair * 2:pair * 2 + 2, :],
+                                       moving=up_cache[:, group, pair * 2:pair * 2 + 2, :],
+                                       accumulate=(pair > 0), perf_mode=nisa.matmul_perf_mode.double_row)
+                    weighted = nl.ndarray((128, up_width), dtype=nl.float32, buffer=nl.sbuf)
+                    scaled = nl.ndarray((128, up_width), dtype=nl.float32, buffer=nl.sbuf)
+                    rounded = nl.ndarray((128, up_width), dtype=nl.bfloat16, buffer=nl.sbuf)
+                    # Keep two sequential rescalings: multiplying inverse scales
+                    # together first can underflow even when the output is nonzero.
+                    nisa.tensor_scalar(dst=weighted, data=accumulator, op0=nl.multiply, operand0=up_meta[:, 1:2])
+                    nisa.tensor_scalar(dst=scaled, data=weighted, op0=nl.multiply, operand0=x_meta[:, 1:2])
+                    nisa.tensor_copy(dst=rounded, src=scaled)
+                    nisa.tensor_scalar(dst=relu_rows[:, columns], data=rounded, op0=nl.maximum, operand0=0.0)
+                    nisa.tensor_tensor(dst=hidden_rows[:, columns], data1=relu_rows[:, columns],
+                                       data2=relu_rows[:, columns], op=nl.multiply)
+                    if diagnostic:
+                        nisa.dma_copy(dst=up_stage[rows, columns], src=scaled)
             nisa.dma_copy(dst=saved_relu[rows, :], src=relu_rows)
             h_meta = calibrate_token_rows(hidden_rows, True)
             h_fp8 = nl.ndarray((128, hidden), dtype=nl.float8_e4m3, buffer=nl.sbuf)
@@ -208,20 +244,38 @@ def build_kernel():
                                   data=h_fp8[:, hi * 128:(hi + 1) * 128])
                 nisa.tensor_copy(dst=hidden_cache[:, hi, :], src=transposed.ap(pattern=[[256, 128], [2, 128]]))
             output_rows = nl.ndarray((128, channels), dtype=nl.bfloat16, buffer=nl.sbuf)
-            for group in nl.affine_range(channels // down_width):
-                columns = nl.ds(group * down_width, down_width)
-                accumulator = nl.ndarray((128, down_width), dtype=nl.float32, buffer=nl.psum)
-                for pair in nl.affine_range(nh // 2):
-                    nisa.nc_matmul(dst=accumulator, stationary=hidden_cache[:, pair * 2:pair * 2 + 2, :],
-                                   moving=down_cache[:, group, pair * 2:pair * 2 + 2, :],
-                                   accumulate=(pair > 0), perf_mode=nisa.matmul_perf_mode.double_row)
-                weighted = nl.ndarray((128, down_width), dtype=nl.float32, buffer=nl.sbuf)
-                scaled = nl.ndarray((128, down_width), dtype=nl.float32, buffer=nl.sbuf)
-                nisa.tensor_scalar(dst=weighted, data=accumulator, op0=nl.multiply, operand0=down_meta[:, 1:2])
-                nisa.tensor_scalar(dst=scaled, data=weighted, op0=nl.multiply, operand0=h_meta[:, 1:2])
-                nisa.tensor_copy(dst=output_rows[:, columns], src=scaled)
-                if diagnostic:
-                    nisa.dma_copy(dst=down_stage[rows, columns], src=scaled)
+            if stream_packed_weights:
+                down_group = nl.ndarray((128, nh, down_width), dtype=nl.float8_e4m3, buffer=nl.sbuf)
+                for group in nl.sequential_range(channels // down_width):
+                    nisa.dma_copy(dst=down_group, src=packed_down_values[group, :, :, :])
+                    columns = nl.ds(group * down_width, down_width)
+                    accumulator = nl.ndarray((128, down_width), dtype=nl.float32, buffer=nl.psum)
+                    for pair in nl.affine_range(nh // 2):
+                        nisa.nc_matmul(dst=accumulator, stationary=hidden_cache[:, pair * 2:pair * 2 + 2, :],
+                                       moving=down_group[:, pair * 2:pair * 2 + 2, :],
+                                       accumulate=(pair > 0), perf_mode=nisa.matmul_perf_mode.double_row)
+                    weighted = nl.ndarray((128, down_width), dtype=nl.float32, buffer=nl.sbuf)
+                    scaled = nl.ndarray((128, down_width), dtype=nl.float32, buffer=nl.sbuf)
+                    nisa.tensor_scalar(dst=weighted, data=accumulator, op0=nl.multiply, operand0=down_meta[:, 1:2])
+                    nisa.tensor_scalar(dst=scaled, data=weighted, op0=nl.multiply, operand0=h_meta[:, 1:2])
+                    nisa.tensor_copy(dst=output_rows[:, columns], src=scaled)
+                    if diagnostic:
+                        nisa.dma_copy(dst=down_stage[rows, columns], src=scaled)
+            else:
+                for group in nl.affine_range(channels // down_width):
+                    columns = nl.ds(group * down_width, down_width)
+                    accumulator = nl.ndarray((128, down_width), dtype=nl.float32, buffer=nl.psum)
+                    for pair in nl.affine_range(nh // 2):
+                        nisa.nc_matmul(dst=accumulator, stationary=hidden_cache[:, pair * 2:pair * 2 + 2, :],
+                                       moving=down_cache[:, group, pair * 2:pair * 2 + 2, :],
+                                       accumulate=(pair > 0), perf_mode=nisa.matmul_perf_mode.double_row)
+                    weighted = nl.ndarray((128, down_width), dtype=nl.float32, buffer=nl.sbuf)
+                    scaled = nl.ndarray((128, down_width), dtype=nl.float32, buffer=nl.sbuf)
+                    nisa.tensor_scalar(dst=weighted, data=accumulator, op0=nl.multiply, operand0=down_meta[:, 1:2])
+                    nisa.tensor_scalar(dst=scaled, data=weighted, op0=nl.multiply, operand0=h_meta[:, 1:2])
+                    nisa.tensor_copy(dst=output_rows[:, columns], src=scaled)
+                    if diagnostic:
+                        nisa.dma_copy(dst=down_stage[rows, columns], src=scaled)
             nisa.dma_copy(dst=result[rows, :], src=output_rows)
             if diagnostic:
                 nisa.dma_copy(dst=x_metadata[rows, :], src=x_meta)
