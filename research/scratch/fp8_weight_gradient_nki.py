@@ -92,7 +92,12 @@ def build_kernels():
                     first_column = ni * block_n
                     # NC-v3 has eight PSUM banks. Each operation sees only
                     # its128x512 bank; the larger free extent groups banks.
-                    banks = nl.ndarray((128, row_groups * column_groups * width),
+                    # Every independent accumulator starts at a physical
+                    # bank boundary, including a256-column edge tile. Packing
+                    # two narrow results into one512-element bank aliases
+                    # TensorEngine accumulation (wave105 small-up failure).
+                    bank_stride = nl.tile_size.psum_bank_fmax
+                    banks = nl.ndarray((128, row_groups * column_groups * bank_stride),
                                        dtype=nl.float32, buffer=nl.psum)
                     for pair in nl.affine_range(tokens // 256):
                         lhs_panel = nl.ndarray((128, 2, block_m), dtype=nl.float8_e4m3, buffer=nl.sbuf)
@@ -105,14 +110,14 @@ def build_kernels():
                                           src=right[contraction, nl.ds(first_column, block_n)])
                         for rg in nl.affine_range(row_groups):
                             for cg in nl.affine_range(column_groups):
-                                bank = nl.ds((rg * column_groups + cg) * width, width)
+                                bank = nl.ds((rg * column_groups + cg) * bank_stride, width)
                                 nisa.nc_matmul(dst=banks[:, bank],
                                     stationary=lhs_panel[:, :, nl.ds(rg * 128, 128)],
                                     moving=rhs_panel[:, :, nl.ds(cg * width, width)],
                                     accumulate=(pair > 0), perf_mode=nisa.matmul_perf_mode.double_row)
                     for rg in nl.affine_range(row_groups):
                         for cg in nl.affine_range(column_groups):
-                            bank = nl.ds((rg * column_groups + cg) * width, width)
+                            bank = nl.ds((rg * column_groups + cg) * bank_stride, width)
                             first_scale = nl.ndarray((128, width), dtype=nl.float32, buffer=nl.sbuf)
                             result = nl.ndarray((128, width), dtype=nl.float32, buffer=nl.sbuf)
                             nisa.tensor_scalar(dst=first_scale, data=banks[:, bank], op0=nl.multiply,

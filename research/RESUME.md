@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 02:45 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 03:08 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
 ## Current result and active work
@@ -339,3 +339,14 @@ Closed kernel variants and profiling details are in the MLP spill, norm,
 embedding and optimizer notes. Smaller source-level buffers do not establish
 smaller caller allocation. Full-graph profiling remains mandatory before a
 component win can be treated as a whole-training speedup.
+
+Source104 cached head forward COMPLETE clean03:02:25. All14 fixtures and actual-row
+gates pass. Native two forwards12.787697ms versus8.443401ms including transpose
+and FP32 logits saves (33.97247% forward-only gain). Full backward/master-gradient
+and caller integration remain required; no training speed or BPB promotion.
+Source105 grouped FP8 weight-gradient gate FAILED clean03:04 on small up shape
+[512,512,256];65520 coordinate bound failures and0.500913 relative RMS. Seven
+small down cases pass. Suspected narrow PSUM-bank alias: width256 allocation
+places two independent accumulators in the same512-element bank. Source106
+changes only the accumulator bank stride, retaining original pair/error gates.
+trn22 pack32 quality remains active on source98, about0.49s/update.

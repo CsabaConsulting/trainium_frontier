@@ -214,3 +214,15 @@ softcap tile. The source live-size estimate can then fit the cache with reserve.
 Test in-place streaming separately from in-place caching to distinguish memory
 reuse from weight residency. Preserve exact CE and FP32 accumulation gates.
 The cached layout may still spill or lose Tensor throughput; no gain is assumed.
+
+### Source104 resident-weight result
+
+The in-place-only variant passes14 fixtures/actual-row gates but loses:
+16.606820ms versus12.764331ms native for two forwards. Retaining the16MiB BF16
+weight matrix in SBUF wins8.443401ms versus12.787697ms (33.97247%), including
+one weight transpose, two forwards and ordinary FP32 logits saves. Repeated
+candidate samples8.4434/8.4399/8.4435ms. Clean03:02:25. This is a component
+result: the absolute forward saving is4.3443ms, under1% of a500ms whole update.
+Next gate: exact compiled original Linear-head loss/input/master gradients,
+master accumulation/cache refresh across updates, then charged full FW/BW.
+No approximate special function, head BF16-logit rounding or quality claim.
