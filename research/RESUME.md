@@ -1,7 +1,67 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 07:25 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 07:39 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
+
+## Current handoff: submission ready, full FP8 phase active — 2026-09-19 07:39 UTC
+
+- User's requested upload is submissions/dense6x1024_public0992851/train.py,
+  SHA25635c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2.
+  Paste the complete launch-command.txt line. All helpers are inline; upload
+  requires no research modules. Package plus complete validation is already
+  pushed in d46bdb7. Best public0.9928513116311253; independently cold-trained
+  package0.9938556748843932 over20,971,520tokens, charged1790.341476s. Both
+  rehearsal postflights are clean. No competition submission has been made.
+- Native control-r2 COMPLETE/clean07:35:36.482392, all four postchecks exact,
+  median488.701909ms, last loss5.126208782196045, free10,251,456,512B. Use this
+  control for comparison. The earlier reserve failure and recovery are retained.
+- trn21 ACTIVE: fs-w140-full-fp8-candidate-phase-r1, guardPID1392505,
+  started07:37:54.937632, clean preflight, immutable source140
+  2a6f267b443e262bb9d7955e06d539f603dc4edc. Same T1024/pack32/GA1, optimizer
+  ownership, data and seed. First full-GPT timing of four-product FP8 backward
+  with compiled dual weight preparation. Thirty timed steps follow five warmups;
+  require command0, clean health and four numerical postchecks before judging.
+  Phase JSON is ONE record containing a30-element steps list, not30 records.
+  Compare against control-r2, not its predecessor. No FP8 BPB claim yet.
+- trn22 is idle after the clean source129 public evaluation. Do not restart
+  its completed cold training or evaluation. trn21 watcher follows140 and is
+  active; trn22's129 watcher may expire, but scheduled backups discover all jobs.
+- If the full-GPT FP8 result disappoints, the next bounded source audit is in
+  fresh-start-full-fp8-mlp-diagnosis-2026-09-19.md: determine whether discarded
+  BF16 activation/weight outputs still cause writes in the actual compiled
+  caller before adding a full-VJP-only save mode. No kernel change for this
+  idea has been made. Capacity guard/ownership issues have a separate note.
+- All five selected old trn21 checkpoint copies have now been retired with
+  local/cloud preservation intact. The one-off recovery must not be rerun.
+  Source142cf6c12b/snapshot35c95cb pushed and verified07:33:16; newer status and
+  final phase records are covered by the next explicit/scheduled backup.
+
+## Research host recovery complete; clean control repeat — 2026-09-19 07:32 UTC
+
+- Submission is fully ready and already pushed in d46bdb7, verified07:25:46.
+  Fresh public0.9938556748843932; exact old-checkpoint replay0.9928513116311253;
+  cold charged1790.341476s. Give the standalone train.py and launch-command.txt.
+  Private leaderboard result unknown. trn22 is idle after clean public scoring.
+- Native control140-r1 completed command0 and all four numerical postchecks,
+  median489.272651ms, exact historical last loss5.126208782196045. Its postflight
+  failed only disk reserve (7,746,342,912B free). Keep it diagnostic, not the
+  authoritative paired control. A fresh control-r2 request is now dispatching
+  on the same immutable source140, with the exact command and initialization.
+- Five old checkpoints remain fully preserved locally and in verified GitHub
+  assets; only their redundant trn21 copies were retired. The first maintenance
+  attempt ending072852Z failed after two retirements because write_json
+  intentionally refuses overwriting an existing progress record. Preserve its
+  failure, intent and remote evidence. Source142cf6c12b changed progress to
+  unique numbered records and restricted recovery to the remaining three.
+  The original writer was exercised locally for three successive unique records.
+- Recovery fs-maintenance-full-fp8-phase-headroom-20260919T073150Z COMPLETE/clean:
+  free9,669,758,976 -> 11,079,245,824B. All remaining local/cloud/remote hashes
+  were reverified under the host lock. Currentbest/checkpoints on trn22,
+  source, logs, profiles and shared caches were untouched. Do not rerun this
+  one-off recovery; its selected files are now absent by design.
+- Launch research/run-logs/fs-w140-full-fp8-candidate-phase-r1.request.json ONLY
+  after control-r2 is clean with all four postchecks. Watcher trn21=140 is active;
+  trn22 watcher=129. Latest maintenance/results still need final commit/push.
 
 ## Submission is ready — 2026-09-19 07:25 UTC
 
