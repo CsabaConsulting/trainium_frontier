@@ -1,0 +1,37 @@
+{
+  "runtime_driver_model_calls": {
+    "packed-fp8-owned": [
+      {
+        "sequence": 281474976721872,
+        "ts": 6814092486189.422,
+        "duration_ms": 113.57131600000001,
+        "persistent_key": "c53d972c9d1c6cf52658a084f9fc0766"
+      },
+      {
+        "sequence": 281474976721876,
+        "ts": 6814092600494.434,
+        "duration_ms": 142.873275,
+        "persistent_key": "cda163a55c3a5eb32724782dd657fb8e"
+      }
+    ],
+    "native-owned-fp8": [
+      {
+        "sequence": 281474976721848,
+        "ts": 6814591920695.32,
+        "duration_ms": 71.294344,
+        "persistent_key": "9a47b0d90975ed68575c212fcc978ce3"
+      },
+      {
+        "sequence": 281474976721852,
+        "ts": 6814591992767.461,
+        "duration_ms": 143.538758,
+        "persistent_key": "955525e60dea3570cd18dbff3ab3f8fc"
+      }
+    ]
+  },
+  "interpretation": "First model call is the compiled training forward; second is backward in the manifested single microstep. Forward-only discrepancy is a lead, pending actual ExecutionInfo and instruction attribution.",
+  "limitations": [
+    "Driver spans can include queueing; not substitutes for device execution intervals.",
+    "Cross-host profiled recordings do not replace the earlier same-host unprofiled timing pair."
+  ]
+}

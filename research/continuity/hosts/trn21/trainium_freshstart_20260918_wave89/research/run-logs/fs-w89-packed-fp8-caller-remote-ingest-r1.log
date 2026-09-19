@@ -19,3 +19,13 @@ time="2026-09-19T01:42:45Z" level=error msg="invalid DMA duration - transfer rat
 time="2026-09-19T01:42:45Z" level=error msg="invalid DMA duration - transfer rate is invalid"
 time="2026-09-19T01:42:45Z" level=error msg="invalid DMA duration - transfer rate is invalid"
 time="2026-09-19T01:42:45Z" level=error msg="invalid DMA duration - transfer rate is invalid"
+All of the available Neuron Explorer metrics are viewable as Parquet files.
+These are saved to: /home/ubuntu/trainium_freshstart_20260918_wave89/out/fs-w89-packed-fp8-caller-remote-ingest-r1-parquet
+Schema info is available in these places:
+  1. Installed-version schema: run `neuron-explorer --show-profile-schema`
+  2. The SchemaFields table in the output Parquet (one row per table/field, queryable via DuckDB, the Database Viewer widget, or the API server)
+  3. Online reference: https://awsdocs-neuron.readthedocs-hosted.com/en/latest/tools/neuron-explorer/profile-schema-reference.html
+  Note: the online reference may not exactly match your installed neuron-explorer version.
+Processing complete
+INGEST_COMPLETE {"returncode": 0, "seconds": 727.5344992169994, "tables": 32, "raw_hashes_unchanged": true, "instruction_files": [["/home/ubuntu/trainium_freshstart_20260918_wave89/out/fs-w89-packed-fp8-caller-remote-ingest-r1-parquet/i-0329acb9a6244986b_pid_1241076_nc_0_session_0/Instruction.parquet", 167309897]]}
+EXPERIMENT_POSTFLIGHT {"label": "fs-w89-packed-fp8-caller-remote-ingest-r1", "returncode": 0, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave89/research/run-logs/fs-w89-packed-fp8-caller-remote-ingest-r1.postflight.json"}

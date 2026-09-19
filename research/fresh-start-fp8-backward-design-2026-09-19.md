@@ -139,3 +139,11 @@ outlier gradients, overflow/underflow, long-token pair sums and accumulation.
 Use an independent CPU reference for the specified gradient algorithm; report
 error against the BF16 surrogate separately. Current-gradient statistics are
 training work and must not become prediction-time state or validation calibration.
+
+## Compiler-scope diagnostic
+
+A separate fullgraph-compiled MLP variant is prepared after the17.74% whole-model
+regression. It retains the same packed forward and BF16 surrogate backward,
+master-gradient paths and once-per-update caches. The actual Linear integration
+gate must pass before its phase run. This is a possible response to caller-level
+layout/allocation evidence; it does not claim that graph separation is faster.

@@ -1,0 +1,45 @@
+{
+  "host": "trn22",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave94",
+  "expected_commit": "607aaea95338c2e128bfbceaa49363290579b044",
+  "label": "fs-w94-native-bf16-caller-analysis-r1",
+  "purpose": "Analyze completed whole-model caller trace after verifying all dispatch/binary mappings. CPU-only attribution: precision, spill counters, merged per-core/engine activity and source families. Same-host unprofiled pair is speed authority.",
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1",
+    "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave94",
+    "GOMEMLIMIT": "24GiB",
+    "GOMAXPROCS": "4"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=15s",
+    "600s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "-c",
+    "import json,pathlib,runpy,sys; p=json.loads(pathlib.Path('/home/ubuntu/trainium_freshstart_20260918_wave89/research/run-logs/fs-w89-native-owned-fp8-caller-remote-ingest-r1.postflight.json').read_text()); assert p[\"host_clean\"] and p[\"command_returncode\"]==0; sys.path.insert(0,\"research/scratch\"); sys.argv=['model_caller_profile_analysis.py', '--trace', '/home/ubuntu/trainium_freshstart_20260918_wave89/out/fs-w89-native-owned-fp8-micro-device-profile-r1/rank0', '--parquet', '/home/ubuntu/trainium_freshstart_20260918_wave89/out/fs-w89-native-owned-fp8-caller-remote-ingest-r1-parquet', '--output', 'research/run-logs/fs-w94-native-bf16-caller-analysis-r1.analysis.json']; runpy.run_path(\"research/scratch/model_caller_profile_analysis.py\",run_name=\"__main__\")"
+  ],
+  "fingerprint_paths": [
+    "research/scratch/model_caller_profile_analysis.py",
+    "research/scratch/fp8_mlp_profile_analysis.py"
+  ],
+  "started_at": "2026-09-19T01:56:05.071452+00:00",
+  "hostname": "ip-172-31-32-253",
+  "git_commit": "607aaea95338c2e128bfbceaa49363290579b044",
+  "source_dirty": false,
+  "preflight_free_bytes": 11799891968,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+    "research/fresh_start_host.py": "8c597adea7c48114bed8f50aa161fdc79b36b49c86c7315e6a58c3ca4e8f5f79",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/fresh_start_backup.py": "c978fd20b6620d0d80c25f8982974e8c4b2ad009edd9da376d784f5cecc3ead3",
+    "research/scratch/model_caller_profile_analysis.py": "285a403aec3e4775be7d036cdd62e23c28c80f9147e1019a6274dccaacd42289",
+    "research/scratch/fp8_mlp_profile_analysis.py": "8a1af15b8f6c9a5d32afe6f036357bc5ca933146ce8b6b9fc3372b40ba1b2182"
+  }
+}

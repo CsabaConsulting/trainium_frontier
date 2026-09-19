@@ -27,7 +27,20 @@ from fp8_rms_scale_contract import normalize, policy, require_domain
 from mlp_fused_integration_check import Probe, refresh
 
 
-def run(channels):
+def compiled_nodes(output):
+    """Check the intended inner compiled graph across explicit view boundaries."""
+    pending, seen, names = [output.grad_fn], set(), []
+    while pending:
+        node = pending.pop()
+        if node is None or node in seen:
+            continue
+        seen.add(node)
+        names.append(type(node).__name__)
+        pending.extend(child for child, _ in node.next_functions)
+    return names
+
+
+def run(channels, separate_region=False):
     from torch_neuronx import wrap_nki
     torch.manual_seed(8801 + channels)
     T.USE_WEIGHT_CACHE = T.USE_BF16_NORM_OUTPUT = True
@@ -39,11 +52,13 @@ def run(channels):
     original_keys = tuple(candidate.state_dict())
     original_ids = tuple(id(p) for p in candidate.parameters())
     rng = torch.get_rng_state().clone()
-    contract = install(candidate, 'neuron', T)
+    contract = install(candidate, 'neuron', T, separate_region=separate_region)
     assert torch.equal(rng, torch.get_rng_state())
     assert tuple(candidate.state_dict()) == original_keys
     assert tuple(id(p) for p in candidate.parameters()) == original_ids
-    optimized = torch.compile(candidate, backend='neuron', fullgraph=True, dynamic=False)
+    # Only the explicit boundary variant permits a caller graph break. Its
+    # inner complete MLP is still fullgraph=True; every numerical gate remains.
+    optimized = torch.compile(candidate, backend='neuron', fullgraph=not separate_region, dynamic=False)
     kernel = wrap_nki(build_kernel())
     scale = policy(channels)[0]
 
@@ -93,7 +108,10 @@ def run(channels):
                 expected = reference_apply(bx.reshape(512, channels), rmlp.c_fc.weight,
                                            rmlp.c_proj.weight, *device_caches).reshape(x.shape)
                 output = optimized(cx)
-                assert type(output.grad_fn).__name__ == 'CompiledFunctionBackward'
+                if separate_region:
+                    assert 'CompiledFunctionBackward' in compiled_nodes(output)
+                else:
+                    assert type(output.grad_fn).__name__ == 'CompiledFunctionBackward'
                 require_exact(f'D{channels}:{cached}:{step}:{micro}:output', output, expected)
                 g = gradient.to('neuron')
                 expected.backward(g)
@@ -150,6 +168,7 @@ def run(channels):
     assert tuple(id(p) for p in candidate.parameters()) == original_ids
     print('FP8_MLP_INTEGRATION_GATE ' + json.dumps(dict(
         channels=channels, tokens=512, cached_and_uncached=True, microbatches=2,
+        separate_compiled_region=separate_region,
         reference_updates=4, exact_outputs_input_and_fp32_master_gradients=True,
         changed_cache_values=changed_cache_values, training_padding_and_row_independence=True,
         native_eval_and_checkpoint_restore_exact=True, contract=contract,
@@ -161,22 +180,24 @@ def run(channels):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--real-width', action='store_true')
+    parser.add_argument('--separate-region', action='store_true')
     args = parser.parse_args()
     import torch_neuronx
     torch.set_num_threads(4)
-    run(256)
+    run(256, args.separate_region)
     if args.real_width:
         # Each independent model width exercises cached/uncached training and
         # four no-grad prediction shapes. Their shared Probe.forward code object
         # otherwise exhausts Dynamo's eight-specialization limit across widths.
         # Drop only this process's inactive Python graph guards between models;
-        # keep fullgraph=True, the default limit, all checks and device caches.
+        # keep the default limit, all numerical checks and device caches.
         torch._dynamo.reset()
         print('FP8_INTEGRATION_HARNESS_RESET ' + json.dumps(dict(
             completed_width=256, next_width=1024, process_local_dynamo_guards_only=True,
             numerical_contract_changed=False, shared_device_cache_purged=False)), flush=True)
-        run(1024)
+        run(1024, args.separate_region)
     print('FP8_MLP_INTEGRATION_RESULT ' + json.dumps(dict(passed=True, real_width=args.real_width,
+          separate_compiled_region=args.separate_region,
           full_fp8_backward=False, full_model_or_quality_promotion=False)), flush=True)
 
 
