@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 01:50 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 02:09 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
 ## Current result and active work
@@ -34,26 +34,39 @@ and all12 FP8 cache counters equal35. Approximate training losses are finite
 The3% advancement gate fails: do not run a30-minute FP8 quality experiment yet.
 See `run-logs/fs-w89-packed-fp8-whole-step-comparison-r1.json`.
 
-Both wave89 caller captures are COMPLETE and clean: packed FP8 on trn21
-01:38:13, native BF16 on trn22 01:46:33. Source for both is
-`dcd6b80a4199339333d93a8e005aa746d3fd28d2`. Each records one warmed rank0
-microstep while all four ranks run. The same-host unprofiled phase pair remains
-the performance evidence; these cross-host traces are structural attribution.
-Packed raw trace68files/2,539,181,724B is local/hash-verified. Its790,161,302-byte
-compressed archive is being uploaded; read the digest receipt before claiming
-cloud completion. Native raw preservation is running. Both watchers target89.
+Both wave89 caller captures and CPU ingestions are COMPLETE and clean. Raw
+FP8 trace68files/2,539,181,724B; native70files/2,066,921,123B. Parquet respectively
+32files/1,131,372,239B and32files/878,108,743B. All are locally hash-verified;
+raw archives have GitHub digest receipts. The02:05 heavy-artifact backup is
+processing47 artifacts including these two new parquet directories. Check its
+latest receipt before claiming all47 are uploaded.
 
-**Both hosts ACTIVE CPU-only ingestion, whole-host locks held:**
-`fs-w89-packed-fp8-caller-remote-ingest-r1` on trn21 (01:42:19),
-`fs-w89-native-owned-fp8-caller-remote-ingest-r1` on trn22 (01:48:23).
-Both use fresh hardlinked staging,24GiB Go limit/four threads/1200s timeout;
-source files are rehashed after ingestion. Missing DMA-duration metadata is
-retained as a limitation, not converted into an exact bandwidth claim. Wait
-for completed, clean postflights before scheduling another device/CPU job.
-The new `model_caller_profile_analysis.py` first matched all70 dispatches and
-all execution identities/times from the known wave87 profile, analyzing12
-large graphs. Apply it to these complete caller traces after ingestion; source
-code and numerical experiments remain distinct immutable identities.
+Source96 caller analysis accounts for every device execution:33 FP8 or45 BF16
+ordinary runtime dispatches plus one explicitly matched preserved c10d startup
+barrier. The initial source94 count mismatch is retained, not silently ignored.
+Forward109.520190ms FP8 versus68.001178ms native; backward137.589812 versus
+138.211172ms. The largest source change is ordinary Linear.forward(train.py:2853):
+reported spill reloads6,492,786,688B versus1,835,008B, and Tensor activity about
+22.6ms versus7.9ms per core. These cross-host profiled intervals are attribution;
+only the same-host unprofiled phase comparison establishes the17.7363% regression.
+Missing dynamic DMA metadata forbids exact physical bandwidth claims. Read
+`fresh-start-fp8-caller-diagnosis-2026-09-19.md` for the evidence and limitations.
+Source96 has a REPORTING bug: integer division prints FP8 cost multiplier0
+instead of0.5. Raw and adjusted FLOPs, timings, counters and identity matching
+are unaffected. Both analysis scripts now cast to float64 before division;
+corrected source97 analyses are planned, and the original reports remain intact.
+
+Source95 d14298ea22ab33ff8be47afc9cba4a81ca8967ac separate compiled FP8 region
+passes BOTH real-Linear widths256/1024, numerical/master-gradient/cache/update/
+row-independence/native-restore checks. Clean02:00:13. No speed promotion yet.
+**trn21 ACTIVE:** `fs-w95-native-owned-fp8-control-phase-r1`, started02:07:45.
+Then run `fs-w95-packed-fp8-monolithic-control-phase-r1` and
+`fs-w95-packed-fp8-separate-candidate-phase-r1` sequentially, only after each
+clean postflight. Immutable source95 worktree, same real data/seed/geometry,
+5 warmup +30 timed updates. Requests are in out/. This isolates the compilation
+boundary; math and caches are unchanged. trn22 is clean after caller analysis.
+Watchers currently trn21/wave95 and trn22/wave96. Repoint only exact owned
+watchers when moving worktrees; never interrupt a running experiment.
 
 Wave92 generic FP8 gradient GEMMs pass all9 independent cases. Repacked byte
 mismatches are only107/103 signed-zero encodings under the ORIGINAL zero
@@ -232,7 +245,7 @@ Local Devuan/SystemV, usercsaba cron; no root/systemd:
   wave82 raw/parquet plus wave83 compiler inputs, without errors. State is
   out/fresh-start-artifact-backup/latest.json; receipts under research/run-logs.
   Newly produced remote checkpoints still need retrieval to checkpoints/ first.
-- Local log watchers currently follow trn21/wave89 and trn22/wave92,90rounds at
+- Local log watchers currently follow trn21/wave95 and trn22/wave96,90rounds at
  45seconds. Repoint when the active remote worktree changes. Only stop exact
   owned watcher PID/UID/cwd/argv/startticks; remote training jobs are separate.
 
