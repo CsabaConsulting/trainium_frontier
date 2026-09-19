@@ -28,13 +28,18 @@ def main():
     ap.add_argument("--remote", type=Path, required=True)
     ap.add_argument("--label", required=True)
     ap.add_argument("--commit", required=True)
+    ap.add_argument("--relative-checkpoint", type=Path,
+                    help="Checkpoint under out/<label>/, for an isolated submission rehearsal")
     ap.add_argument("--bwlimit", type=int, default=8192, help="rsync KiB/s")
     args = ap.parse_args()
     assert re.fullmatch(r"fs-[A-Za-z0-9_.-]+", args.label)
     assert re.fullmatch(r"[0-9a-f]{40}", args.commit)
     assert args.remote.parent == Path("/home/ubuntu")
     assert args.remote.name.startswith("trainium_freshstart_") and args.bwlimit > 0
-    remote_file = args.remote / "out" / args.label / "final.pt"
+    relative = args.relative_checkpoint or Path("out", args.label, "final.pt")
+    assert not relative.is_absolute() and ".." not in relative.parts
+    assert relative.parts[:2] == ("out", args.label) and relative.name == "final.pt"
+    remote_file = args.remote / relative
     remote_script = "\n".join([
         "import hashlib,json,subprocess", "from pathlib import Path",
         f"root=Path({str(args.remote)!r})", f"p=Path({str(remote_file)!r})",

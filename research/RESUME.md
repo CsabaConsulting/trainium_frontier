@@ -1,7 +1,37 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 06:18 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 06:24 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
+
+## Submission contract verified; final rehearsal — 2026-09-19 06:24 UTC
+
+- Final candidate source129c51f6fdc5ca77793a1524148a563cafac0ab22b0
+  deployed to bothhosts. `submissions/dense6x1024_public0992851/train.py`
+  SHA25635c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2.
+- CPU and native contract129 BOTH PASS, clean06:23:06/06:23:18 respectively.
+  Original B1 checkpoint logits, rowwise reference, causal future independence,
+  batch size/permutation/other-row independence, repeated calls all EXACT.
+  Parameters frozen/no hooks; weights and buffers unchanged.117,453,580params.
+- Source127 CPU batch-size gate failed;128 reproduced identical original-model
+  behavior: max0.0872438, no dependence on other-row content; FP32 diagnostic
+  reduced difference to2.64645e-5. Original native127 passed every gate exactly.
+  Preserve both failed CPU records. Final evaluator uses a GPT subclass that
+  executes each independent sequence at B1, retaining original B1 logits and
+  checkpoint keys while eliminating backend batch-shape rounding differences.
+  Training is unchanged; no tolerance relaxation. Native129 B2 also exact to
+  original B2. Original CPU B2 may differ; documented in diagnostic, not hidden.
+- trn22 job requested `fs-w129-submission-cold-rehearsal-1800-r1`: actual
+  launch-command.txt parsed without research flag injection, onlytrain.py plus
+  organizerprepare.py in sandbox. Six fresh job-owned SDK cache dirs, no shared
+  cache purge. Independently observe first five official boundaries and time
+  through process exit. New checkpoint will be nestedout/<label>/out/final.pt;
+  localpreserver now accepts explicit--relative-checkpoint for that layout.
+- trn21 requested `fs-w129-submission-source98-public20m-r1`: protected20M
+  public replay using packagedtrain.py, original preserved source98checkpoint,
+  B1T1024/O1/no globalautocast. No private validation or competition submission.
+- Watchers both129 from06:22:49 for90x45s. Need retrieve final logs/checkpoint,
+  validate live postflights, update packageREADME/provenance validation status,
+  commit/push and give user concrete file plus launchcommand. Publicbest0.99285131.
 
 ## Submission packaging — 2026-09-19 06:18 UTC
 

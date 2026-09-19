@@ -1,0 +1,37 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave129",
+    "expected_commit": "c51f6fdc5ca77793a1524148a563cafac0ab22b0",
+    "label": "fs-w129-submission-cold-rehearsal-1800-r1",
+    "purpose": "Exact standalone launch text on whole chip with fresh empty native SDK caches and externally observed official step boundaries; full 1800s quality rehearsal.",
+    "fingerprint_paths": [
+      "submissions/dense6x1024_public0992851/train.py",
+      "submissions/dense6x1024_public0992851/provenance.json",
+      "submissions/dense6x1024_public0992851/launch-command.txt",
+      "research/scratch/submission_rehearsal.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "4200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "research/scratch/submission_rehearsal.py",
+      "--package",
+      "submissions/dense6x1024_public0992851",
+      "--sandbox",
+      "out/fs-w129-submission-cold-rehearsal-1800-r1",
+      "--mode",
+      "train",
+      "--fresh-caches"
+    ]
+  },
+  "requested_at": "2026-09-19T06:23:54.130796+00:00"
+}

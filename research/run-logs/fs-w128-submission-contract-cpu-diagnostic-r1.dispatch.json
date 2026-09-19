@@ -1,0 +1,39 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave128",
+    "expected_commit": "747f7f0e6cce19d2e828f2bcfc8422b0cbf8dcfb",
+    "label": "fs-w128-submission-contract-cpu-diagnostic-r1",
+    "purpose": "Gate standalone source98 winning checkpoint load: exact CPU logits vs baseline, frozen state/no hooks, causality, batch/repeat purity; no validation text.",
+    "fingerprint_paths": [
+      "submissions/dense6x1024_public0992851/train.py",
+      "submissions/dense6x1024_public0992851/provenance.json",
+      "submissions/dense6x1024_public0992851/launch-command.txt",
+      "research/scratch/submission_contract_check.py"
+    ],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "600s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "research/scratch/submission_contract_check.py",
+      "--train-py",
+      "submissions/dense6x1024_public0992851/train.py",
+      "--checkpoint",
+      "/home/ubuntu/trainium_freshstart_20260918_wave98/out/fs-w98-dense1024-context1024-pack32-owned-ce-1800-r1/final.pt",
+      "--device",
+      "cpu"
+    ]
+  },
+  "requested_at": "2026-09-19T06:20:11.367913+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w128-submission-contract-cpu-diagnostic-r1\", \"pid\": 1687261, \"commit\": \"747f7f0e6cce19d2e828f2bcfc8422b0cbf8dcfb\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave128/research/run-logs/fs-w128-submission-contract-cpu-diagnostic-r1.log\", \"started_at\": \"2026-09-19T06:20:17.860619+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}
