@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 01:19 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 01:27 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
 ## Current result and active work
@@ -30,32 +30,48 @@ FP32 accumulation gates pass. It still loses2.1244% in isolation; a bounded
 whole-model allocation probe is justified after wrapper/cache/prediction gates.
 Full FP8 backward is unimplemented.
 
-**trn21 CLEAN wave87:** packed FP8 six-arm trace finished01:15:14. All32files /
-499268795B are local/hash-verified. Local parquet ingestion is active under
-fs-w87-fp8-packed-weights-local-ingest-r1; trace is attribution only.
-Wave89 same-source native BF16 full-step control is next.
+**trn21 ACTIVE wave89 packed FP8 whole-step candidate:** source
+dcd6b80a4199339333d93a8e005aa746d3fd28d2, candidate dispatch after01:26 UTC.
+Same-source native control finished clean01:25:38, median499.38410651520826ms,
+last loss5.064923286437988, all four postchecks pass. Candidate retains the same
+host, seed42, model geometry, data and ownership/CE stack. Training is approximate;
+loss equality to native is not required. Require finite weights/gradients and
+all postchecks, inspect cache-refresh counts, compare full step, retain3%
+advancement gate. Native evaluation postchecks alone do not test FP8 training;
+the wrapper's separate row/padding checks provide that evidence. Watcher wave89.
 
-**trn22 CLEAN after failed wave88 harness:** D256 all gates pass; D1024 all
-cache/master update checks pass, then shared Probe.forward exceeds Dynamo's
-default eight-specialization limit at no-grad prediction. This is incomplete,
-not a passing integration gate. Wave89 resets process-local inactive Dynamo
-guards between independent widths, preserving all checks/default limits and
-fullgraph=True. No device cache purge. FP8 phase remains blocked until pass.
+**trn22 ACTIVE wave92 FP8 gradient stage:** only the repack-byte diagnostic was
+changed from wave91 to classify every mismatch under the ORIGINAL signed-zero
+equivalence contract. Reject any changed nonzero code/layout; require independent
+legacy decode equality. Wave91 passed eight arithmetic cases (including tiny
+gradients) before raw-byte equality failed; clean postflight, no timing.
+Wave92 retains the same kernel/math/pair bounds and two real gradient shapes.
+Watchers are repointed using fresh_start_repoint_sync.py (exact argv/UID/cwd/
+start ticks plus pidfd; no remote experiment process is touched).
+
+Wave89 wrapper rerun passes BOTH D256/D1024 all checks, cached/uncached gradients
+and real updates, FP32 accumulation, cache freshness/nonmutation, FP8 training
+future/batch/repeat/padding independence, exact native BF16 checkpoint restore.
+Clean01:20:21. Process-local Dynamo reset BETWEEN independent model widths fixes
+wave88's eight-specialization harness limit; no shared device purge or loosened
+numerical check. The earlier failed attempt remains in the ledger.
+
+Wave87 packed FP8 trace32files /499268795B is local/hash-verified. Parquet304690666B is local/hash-verified; analysis maps all70 dispatches.
+Packed forward2.535229ms versus2.803872ms previous FP8; sampled SBUF peak
+0.130903 versus0.364328; backward unchanged. Device trace is attribution only.
+All43 inventoried heavy artifacts verified on GitHub01:26:21 with no errors.
 
 Wave85 exact head-gradient-only CE complete step497.864910ms versus500.517682ms
 control (0.5300% improvement), all four postchecks pass, last loss matches. Below
 3% advancement gate: no quality run. Original failed full BF16 boundary remains
-blocked.
+blocked. Wave86 native BF16 token-row component17.434858ms loses11.6268% versus
+deployed contiguous HxT15.618884ms (view15.605782ms). Keep original BF16 control;
+the same layout direction helped FP8, so the BF16 loss is not an FP8 veto.
 
-Wave86 native BF16 token-row gate passes all five cases and FP32 accumulation,
-but token rows17.434858ms lose11.6268% versus deployed contiguous HxT15.618884ms
-(view15.605782ms). Keep original BF16 control. The same layout direction helped
-FP8; this BF16 result is not an FP8 veto.
-
-FP8 wrapper explicitly uses quantized training and original BF16 evaluation.
-All calibration and packing are charged in ordinary refresh; missing initial
-caches are charged in forward. Short calls pad inside MLP to512 multiples,
-preserving per-token independence. No quality-trainer change yet.
+FP8 wrapper uses quantized training and original BF16 evaluation. All calibration
+and packing are charged in ordinary refresh; missing initial caches are charged
+in forward. Short calls pad inside MLP to512 multiples, preserving per-token
+independence. No quality-trainer change yet.
 
 Wave83's six diagnostic cases establish the failed forward-boundary cause:
 compiled original head logits retain FP32 accumulator precision. The BF16-input
@@ -194,7 +210,7 @@ Local Devuan/SystemV, usercsaba cron; no root/systemd:
   wave82 raw/parquet plus wave83 compiler inputs, without errors. State is
   out/fresh-start-artifact-backup/latest.json; receipts under research/run-logs.
   Newly produced remote checkpoints still need retrieval to checkpoints/ first.
-- Local log watchers currently follow trn21/wave87 and trn22/wave86,90rounds at
+- Local log watchers currently follow trn21/wave89 and trn22/wave92,90rounds at
  45seconds. Repoint when the active remote worktree changes. Only stop exact
   owned watcher PID/UID/cwd/argv/startticks; remote training jobs are separate.
 

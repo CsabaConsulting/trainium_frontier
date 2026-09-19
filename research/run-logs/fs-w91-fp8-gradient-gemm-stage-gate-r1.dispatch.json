@@ -1,0 +1,50 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave91",
+    "expected_commit": "69046b1be835a2f0251a530ec704c9bca22d85ce",
+    "label": "fs-w91-fp8-gradient-gemm-stage-gate-r1",
+    "purpose": "Independent first FP8 backward-stage probe: per-row incoming-gradient quantization and packed GEMMs for G@Wdown and dPre@Wup. CPU legacy quantizer, unchanged empirical pair/FP32 accumulation bound, exact rounding/repeat/row independence, zero/tiny/cancellation/outlier range. Charge extra transpose/packing and two GEMMs; no whole backward or quality claim. Fix only the unsupported raise in the validation helper using the installed NKI assertion template; prior pre-arithmetic failure preserved and host clean.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1800s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "/home/ubuntu/trainium_freshstart_20260918_wave91/research/scratch/fp8_gradient_gemm_probe.py",
+      "--real-shape",
+      "--steps",
+      "15"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/fp8_packed_weight_cache_nki.py",
+      "research/scratch/fp8_packed_weight_cache_probe.py",
+      "research/scratch/fp8_weight_cache_nki.py",
+      "research/scratch/fp8_weight_cache_probe.py",
+      "research/scratch/fresh_start_fp8_probe.py",
+      "research/scratch/mlp_fused_bf16.py",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "research/scratch/mlp_backward_rounding_bounds.py",
+      "research/scratch/fp8_mlp_token_rows_nki.py",
+      "research/scratch/fp8_mlp_island_probe.py",
+      "research/scratch/fp8_mlp_island_autograd.py",
+      "research/scratch/fp8_rms_scale_contract.py",
+      "research/scratch/fp8_packed_mlp_probe.py",
+      "research/scratch/fp8_mlp_island_nki.py",
+      "research/scratch/fp8_gradient_gemm_nki.py",
+      "research/scratch/fp8_gradient_gemm_probe.py"
+    ]
+  },
+  "requested_at": "2026-09-19T01:23:19.163144+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w91-fp8-gradient-gemm-stage-gate-r1\", \"pid\": 1568434, \"commit\": \"69046b1be835a2f0251a530ec704c9bca22d85ce\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave91/research/run-logs/fs-w91-fp8-gradient-gemm-stage-gate-r1.log\", \"started_at\": \"2026-09-19T01:23:24.844583+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

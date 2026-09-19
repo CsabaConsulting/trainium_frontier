@@ -1,0 +1,58 @@
+[W919 01:21:42.900035210 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+FP8_GRADIENT_GEMM_CONTRACT {"finite_bf16_gradient_and_weight_max": 1.2676506002282294e+30, "scale_floor": 7.888609052210118e-31, "gradient_scale": "same-row channels only", "weight_scale": "existing matrix metadata", "independent_reference": "CPU legacy quantizer; empirical pair rule with fixed gamma bound", "no_tolerance_fitting": true, "full_fp8_backward": false}
+FP8_CACHE_EXACT_GATE {"name": "random:gradient_weight:metadata", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:gradient_weight:backward_cache_reference", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:gradient_weight:backward_cache_old_kernel", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:gradient_weight:backward_cache_repeat", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:gradient_weight:packed_bytes_repeat", "shape": [1, 128, 2, 512], "dtype": "torch.uint8", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:gradient_weight:independent_legacy_decode_and_layout", "shape": [1, 128, 2, 512], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:gradient_weight:input_unchanged", "shape": [512, 256], "dtype": "torch.bfloat16", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_CACHE_EXACT_GATE {"name": "random:gradient_weight:metadata_unchanged", "shape": [128, 3], "dtype": "torch.float32", "finite": true, "exact": true, "max_abs": 0.0, "passed": true}
+FP8_PACKED_CACHE_GATE {"name": "random:gradient_weight", "shape": [512, 256], "packed_shape": [1, 128, 2, 512], "pack_lanes": 1, "dtype": "uint8 raw legacy E4M3 bytes", "independent_decode_exact": true, "bf16_backward_cache_exact": true, "wrong_contraction_lane_negative_control_failures": 129258, "signed_zero_encodings_equivalent": true, "passed": true, "whole_model_or_speed_claim": false}
+/home/ubuntu/trainium_freshstart_20260918_wave90/research/scratch/fp8_gradient_gemm_nki.py:18:13: error: NKI does not support 'raise' statements; use 'if/else' control flow within kernels, or 'assert' for fatal errors
+            raise ValueError(message)
+            ^
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_freshstart_20260918_wave90/research/scratch/fp8_gradient_gemm_probe.py", line 129, in <module>
+    main()
+  File "/home/ubuntu/trainium_freshstart_20260918_wave90/research/scratch/fp8_gradient_gemm_probe.py", line 119, in main
+    run((512, 256, 512), case, kernel, calibrate, quantize, prepare, args.steps, False)
+  File "/home/ubuntu/trainium_freshstart_20260918_wave90/research/scratch/fp8_gradient_gemm_probe.py", line 42, in run
+    output, gq, gm, dot = (v.cpu() for v in kernel[2](input_device, packed, meta, 2, True))
+                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_hop.py", line 515, in __call__
+    return _C._nki_dispatch_eager(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py", line 1263, in _fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+RuntimeError: [NkiDispatch] Python lower_func failed for cache_key=nki_call:20:(('diagnostic', True), ('lanes', 2)):g2|[512,256]:BFloat16:S(C)|[1,128,2,512]:Byte:S(C)|[128,3]:Float:S(C): RuntimeError: error: failed to specialize NKI kernel:
+Collected 1 different diagnostics:
+- [x1] error: NKI does not support 'raise' statements; use 'if/else' control flow within kernels, or 'assert' for fatal errors
+
+
+At:
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/compiler/frontend.py(287): _compile
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/compiler/frontend.py(171): compile
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/compiler/driver.py(47): compile_to_bir
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/compiled.py(42): compile_kernel_to_nir
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nki/framework/compiled.py(197): _cached_compile_to_bir
+  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_kernel.py(211): _compile_dump_config
+  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_kernel.py(202): dump_config
+  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_hop.py(198): get_dumped_config
+  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/python_ops/neuron_nki_call_lowering.py(53): _lower_custom_nki
+  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/python_ops/neuron_nki_call_lowering.py(36): nki_call_lower_func
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py(1267): _fn
+  /home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py(1263): _fn
+  /home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_hop.py(515): __call__
+  /home/ubuntu/trainium_freshstart_20260918_wave90/research/scratch/fp8_gradient_gemm_probe.py(42): run
+  /home/ubuntu/trainium_freshstart_20260918_wave90/research/scratch/fp8_gradient_gemm_probe.py(119): main
+  /home/ubuntu/trainium_freshstart_20260918_wave90/research/scratch/fp8_gradient_gemm_probe.py(129): <module>
+
+EXPERIMENT_POSTFLIGHT {"label": "fs-w90-fp8-gradient-gemm-stage-gate-r1", "returncode": 1, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave90/research/run-logs/fs-w90-fp8-gradient-gemm-stage-gate-r1.postflight.json"}

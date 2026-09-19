@@ -1,9 +1,10 @@
 # FP8 backward and reuse experiments
 
 Updated 2026-09-19. These are proposed extensions, not measured full-FP8 gains.
-The working mixed-precision component uses actual FP8 forward GEMMs and BF16
-backward. Wave81 improves it to16.515157ms from17.920212ms by changing backward
-orientation, but native BF16 is15.675626ms in the same comparison.
+The packed mixed-precision component uses actual FP8 forward GEMMs and BF16
+backward:15.957811 ms versus15.625856 ms native, a2.1244% isolated loss. Model
+integration now passes; full-model allocation timing is in progress. The first
+FP8 incoming-gradient dot is under independent stage tests, not yet autograd.
 
 ## Why the fixed input scale matters beyond one reduction
 
@@ -32,10 +33,10 @@ described as exactly differentiating the previous saved-value surrogate.
    8,704 private compiler transpose instructions and the populated spill counters;
    forward device time falls from 3.568860 to 2.801243 ms. Do not use summed instruction
    durations as additive wall time or missing DMA metadata as exact bandwidth.
-2. **Packed FP8 weight cache (boundary gate passed, MLP gate next):** prepare the GEMM layouts once per optimizer
+2. **Packed FP8 weight cache (boundary, component and model gates passed):** prepare the GEMM layouts once per optimizer
    update, retain them in HBM, and consume them directly in both microbatches.
-   Current code prepares BF16 QDQ weights, then transposes/casts them again in
-   each forward. Charge packed-cache construction, extra storage, invalidation
+   The old code prepares BF16 QDQ weights, then transposes/casts them again in
+   each forward. Packed consumption now avoids those repeated conversions. Charge packed-cache construction, extra storage, invalidation
    and BF16 backward copies. Verify legacy FP8 byte representation at the HBM
    boundary; a framework dtype named E4M3 does not establish identical encoding.
 3. **Producer/statistic fusion:** investigate producing squared ReLU and its
