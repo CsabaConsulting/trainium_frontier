@@ -21,7 +21,7 @@ def call_separate_region(compiled_function, *inputs):
     return compiled_function(*inputs)
 
 
-def make_ops():
+def make_ops(compact_forward_saves=False):
     """Use the source137 exact dual producer and source135 full FP8 derivative."""
     from torch_neuronx import wrap_nki
     from fp8_dual_weight_cache_nki import build_kernel as build_dual
@@ -49,13 +49,14 @@ def make_ops():
     def forward(x, up, down, up_meta, down_meta, packed_up, packed_down):
         scale = policy(x.shape[1])[0]
         return kernel[2](x, up, down, up_meta, down_meta, 2, 128, False,
-                         scale, packed_up, packed_down, True)
+                         scale, packed_up, packed_down, True, False, compact_forward_saves)
 
-    apply = make_autograd(forward, backward, partial, finish, product)
+    apply = make_autograd(forward, backward, partial, finish, product,
+                          compact_forward_saves=compact_forward_saves)
     return compiled_prepare, apply
 
 
-def install(model, device, train_module, separate_region=False):
+def install(model, device, train_module, separate_region=False, compact_forward_saves=False):
     """Attach per-instance methods without adding parameters, buffers or RNG draws.
 
     A missing initial cache is prepared from current masters inside the forward
@@ -74,7 +75,7 @@ def install(model, device, train_module, separate_region=False):
     before_keys = tuple(model.state_dict())
     before_ids = tuple(id(p) for p in model.parameters())
     before_rng = torch.get_rng_state().clone()
-    prepare, apply = make_ops()
+    prepare, apply = make_ops(compact_forward_saves=compact_forward_saves)
     if separate_region:
         # One shared callable across layers avoids six Python closure guards.
         # This changes the compiler's allocation scope, not the FP8 algorithm.
@@ -155,5 +156,6 @@ def install(model, device, train_module, separate_region=False):
                 backward='source135 four FP8 products, BF16 ReLU derivative, FP32 master gradients',
                 evaluation='original BF16 MLP', cache_preparation='compiled source137 resident dual producer per timed Linear refresh',
                 separate_compiled_region=bool(separate_region),
+                compact_forward_saves=bool(compact_forward_saves),
                 input_contract='gain-free RMS norm, BF16, widths256/1024',
                 short_input_policy='zero-pad inside MLP to multiple512; discard padded rows')

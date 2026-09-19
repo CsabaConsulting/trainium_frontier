@@ -46,7 +46,7 @@ def compiled_nodes(output):
     return names
 
 
-def run(channels, separate_region=False):
+def run(channels, separate_region=False, compact_forward_saves=False):
     from torch_neuronx import wrap_nki
     torch.manual_seed(8801 + channels)
     T.USE_WEIGHT_CACHE = T.USE_BF16_NORM_OUTPUT = True
@@ -58,7 +58,8 @@ def run(channels, separate_region=False):
     original_keys = tuple(candidate.state_dict())
     original_ids = tuple(id(p) for p in candidate.parameters())
     rng = torch.get_rng_state().clone()
-    contract = install(candidate, 'neuron', T, separate_region=separate_region)
+    contract = install(candidate, 'neuron', T, separate_region=separate_region,
+                       compact_forward_saves=compact_forward_saves)
     assert torch.equal(rng, torch.get_rng_state())
     assert tuple(candidate.state_dict()) == original_keys
     assert tuple(id(p) for p in candidate.parameters()) == original_ids
@@ -189,6 +190,7 @@ def run(channels, separate_region=False):
     print('FP8_FULL_MLP_INTEGRATION_GATE ' + json.dumps(dict(
         channels=channels, tokens=512, cached_and_uncached=True, microbatches=2,
         separate_compiled_region=separate_region,
+        compact_forward_saves=compact_forward_saves,
         reference_updates=4, exact_outputs_input_and_fp32_master_gradients=True,
         changed_cache_values=changed_cache_values, training_padding_and_row_independence=True,
         native_eval_and_checkpoint_restore_exact=True, contract=contract,
@@ -201,10 +203,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--real-width', action='store_true')
     parser.add_argument('--separate-region', action='store_true')
+    parser.add_argument('--compact-forward-saves', action='store_true',
+                        help='Gate the explicit five-output forward against the original full FP8 VJP.')
     args = parser.parse_args()
     import torch_neuronx
     torch.set_num_threads(4)
-    run(256, args.separate_region)
+    run(256, args.separate_region, args.compact_forward_saves)
     if args.real_width:
         # Each independent model width exercises cached/uncached training and
         # four no-grad prediction shapes. Their shared Probe.forward code object
@@ -215,9 +219,10 @@ def main():
         print('FP8_INTEGRATION_HARNESS_RESET ' + json.dumps(dict(
             completed_width=256, next_width=1024, process_local_dynamo_guards_only=True,
             numerical_contract_changed=False, shared_device_cache_purged=False)), flush=True)
-        run(1024, args.separate_region)
+        run(1024, args.separate_region, args.compact_forward_saves)
     print('FP8_FULL_MLP_INTEGRATION_RESULT ' + json.dumps(dict(passed=True, real_width=args.real_width,
           separate_compiled_region=args.separate_region,
+          compact_forward_saves=args.compact_forward_saves,
           full_fp8_backward=True, full_model_or_quality_promotion=False)), flush=True)
 
 

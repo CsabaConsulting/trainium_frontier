@@ -9,14 +9,18 @@ All caches are detached inputs and must be refreshed from current masters.
 import torch
 
 
-def make_autograd(forward, backward_data, partial, finish, product):
+def make_autograd(forward, backward_data, partial, finish, product, compact_forward_saves=False):
     class CompleteFP8MLP(torch.autograd.Function):
         @staticmethod
         def forward(ctx, x, up_master, down_master, up_cache, down_cache,
                     up_meta, down_meta, packed_up, packed_down,
                     packed_up_transpose, packed_down_transpose, x_meta, one_meta):
-            result, relu, _, _, x_bytes, hidden_bytes, hidden_meta = forward(
+            values = forward(
                 x, up_cache, down_cache, up_meta, down_meta, packed_up, packed_down)
+            if compact_forward_saves:
+                result, relu, x_bytes, hidden_bytes, hidden_meta = values
+            else:
+                result, relu, _, _, x_bytes, hidden_bytes, hidden_meta = values
             ctx.save_for_backward(relu, x_bytes, hidden_bytes, hidden_meta,
                                   up_meta, down_meta, packed_up_transpose,
                                   packed_down_transpose, x_meta, one_meta)

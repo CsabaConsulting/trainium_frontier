@@ -8,6 +8,11 @@ The nonnegative squared hidden activation needs only a maximum reduction.
 """
 
 
+def kernel_assert(condition: bool, error_text: str):
+    """Format compile-time validation consistently with the NKI helpers."""
+    assert condition, f"[INTERNAL_ERROR] [NCC_INKI016] Kernel validation exception: {error_text}"
+
+
 def build_kernel():
     global nl, nisa, calibrate_token_rows
     import nki
@@ -42,7 +47,8 @@ def build_kernel():
     def forward(x, up, down, up_scales, down_scales, lanes: int = 2,
                 token_tile: int = 128, diagnostic: bool = False,
                 fixed_x_scale: float = 0.0, packed_up=None, packed_down=None,
-                save_fp8: bool = False, save_hidden_metadata: bool = False):
+                save_fp8: bool = False, save_hidden_metadata: bool = False,
+                compact_full_vjp: bool = False):
         """Return Y[T,C], ReLU[T,H], QDQ-X[T,C], QDQ-hidden[T,H].
 
         Diagnostic mode additionally returns FP32 up[T,H], down[T,C] and
@@ -51,8 +57,14 @@ def build_kernel():
         unnecessary hidden minimum reduction. BF16 backward is a separate gate.
         Optional raw activation bytes and hidden metadata preserve values already
         produced on chip for separately gated FP8 backward consumers. Existing
-        BF16 saves remain: their removal is not assumed or included in this trial.
+        BF16 saves remain by default. The explicit compact_full_vjp mode returns
+        only Y, ReLU, X bytes, hidden bytes and hidden metadata, as required by
+        the complete FP8 backward. It omits both unused BF16 QDQ allocations,
+        reconstruction operations and stores. Diagnostic/BF16 backward callers
+        retain their original interface. This flag alone establishes no speedup.
         """
+        kernel_assert(not compact_full_vjp or (save_fp8 and not diagnostic),
+                      "Compact saves require the ordinary full-FP8 output contract")
         tokens, channels = x.shape
         hidden, up_channels = up.shape
         assert up_channels == channels and down.shape == (channels, hidden)
@@ -79,8 +91,9 @@ def build_kernel():
         assert 2 * channels * hidden + 8 * (channels + hidden) * 128 + 4 * 1024**2 <= nl.tile_size.sbuf_size_bytes
         result = nl.ndarray((tokens, channels), dtype=nl.bfloat16, buffer=nl.shared_hbm)
         saved_relu = nl.ndarray((tokens, hidden), dtype=nl.bfloat16, buffer=nl.shared_hbm)
-        saved_x = nl.ndarray(x.shape, dtype=nl.bfloat16, buffer=nl.shared_hbm)
-        saved_hidden = nl.ndarray((tokens, hidden), dtype=nl.bfloat16, buffer=nl.shared_hbm)
+        if not compact_full_vjp:
+            saved_x = nl.ndarray(x.shape, dtype=nl.bfloat16, buffer=nl.shared_hbm)
+            saved_hidden = nl.ndarray((tokens, hidden), dtype=nl.bfloat16, buffer=nl.shared_hbm)
         if save_fp8:
             saved_x_bytes = nl.ndarray(x.shape, dtype=nl.uint8, buffer=nl.shared_hbm)
             saved_hidden_bytes = nl.ndarray((tokens, hidden), dtype=nl.uint8, buffer=nl.shared_hbm)
@@ -143,10 +156,11 @@ def build_kernel():
             else:
                 x_meta = calibrate_token_rows(raw)
             x_fp8 = nl.ndarray((128, channels), dtype=nl.float8_e4m3, buffer=nl.sbuf)
-            x_restored = nl.ndarray((128, channels), dtype=nl.bfloat16, buffer=nl.sbuf)
             nisa.tensor_scalar(dst=x_fp8, data=raw, op0=nl.multiply, operand0=x_meta[:, 0:1])
-            nisa.tensor_scalar(dst=x_restored, data=x_fp8, op0=nl.multiply, operand0=x_meta[:, 1:2])
-            nisa.dma_copy(dst=saved_x[rows, :], src=x_restored)
+            if not compact_full_vjp:
+                x_restored = nl.ndarray((128, channels), dtype=nl.bfloat16, buffer=nl.sbuf)
+                nisa.tensor_scalar(dst=x_restored, data=x_fp8, op0=nl.multiply, operand0=x_meta[:, 1:2])
+                nisa.dma_copy(dst=saved_x[rows, :], src=x_restored)
             if save_fp8:
                 nisa.dma_copy(dst=saved_x_bytes.view(nl.float8_e4m3)[rows, :], src=x_fp8)
             inputs = nl.ndarray((128, nc, 128), dtype=nl.float8_e4m3, buffer=nl.sbuf)
@@ -180,10 +194,11 @@ def build_kernel():
             nisa.dma_copy(dst=saved_relu[rows, :], src=relu_rows)
             h_meta = calibrate_token_rows(hidden_rows, True)
             h_fp8 = nl.ndarray((128, hidden), dtype=nl.float8_e4m3, buffer=nl.sbuf)
-            h_restored = nl.ndarray((128, hidden), dtype=nl.bfloat16, buffer=nl.sbuf)
             nisa.tensor_scalar(dst=h_fp8, data=hidden_rows, op0=nl.multiply, operand0=h_meta[:, 0:1])
-            nisa.tensor_scalar(dst=h_restored, data=h_fp8, op0=nl.multiply, operand0=h_meta[:, 1:2])
-            nisa.dma_copy(dst=saved_hidden[rows, :], src=h_restored)
+            if not compact_full_vjp:
+                h_restored = nl.ndarray((128, hidden), dtype=nl.bfloat16, buffer=nl.sbuf)
+                nisa.tensor_scalar(dst=h_restored, data=h_fp8, op0=nl.multiply, operand0=h_meta[:, 1:2])
+                nisa.dma_copy(dst=saved_hidden[rows, :], src=h_restored)
             if save_fp8:
                 nisa.dma_copy(dst=saved_hidden_bytes.view(nl.float8_e4m3)[rows, :], src=h_fp8)
             hidden_cache = nl.ndarray((128, nh, 128), dtype=nl.float8_e4m3, buffer=nl.sbuf)
@@ -212,6 +227,8 @@ def build_kernel():
                 nisa.dma_copy(dst=x_metadata[rows, :], src=x_meta)
             if diagnostic or save_fp8 or save_hidden_metadata:
                 nisa.dma_copy(dst=h_metadata[rows, :], src=h_meta)
+        if compact_full_vjp:
+            return result, saved_relu, saved_x_bytes, saved_hidden_bytes, h_metadata
         if diagnostic:
             if save_fp8:
                 return (result, saved_relu, saved_x, saved_hidden, up_stage, down_stage,
