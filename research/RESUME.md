@@ -1,7 +1,34 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 07:25 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 07:32 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
+
+## Research host recovery complete; clean control repeat — 2026-09-19 07:32 UTC
+
+- Submission is fully ready and already pushed in d46bdb7, verified07:25:46.
+  Fresh public0.9938556748843932; exact old-checkpoint replay0.9928513116311253;
+  cold charged1790.341476s. Give the standalone train.py and launch-command.txt.
+  Private leaderboard result unknown. trn22 is idle after clean public scoring.
+- Native control140-r1 completed command0 and all four numerical postchecks,
+  median489.272651ms, exact historical last loss5.126208782196045. Its postflight
+  failed only disk reserve (7,746,342,912B free). Keep it diagnostic, not the
+  authoritative paired control. A fresh control-r2 request is now dispatching
+  on the same immutable source140, with the exact command and initialization.
+- Five old checkpoints remain fully preserved locally and in verified GitHub
+  assets; only their redundant trn21 copies were retired. The first maintenance
+  attempt ending072852Z failed after two retirements because write_json
+  intentionally refuses overwriting an existing progress record. Preserve its
+  failure, intent and remote evidence. Source142cf6c12b changed progress to
+  unique numbered records and restricted recovery to the remaining three.
+  The original writer was exercised locally for three successive unique records.
+- Recovery fs-maintenance-full-fp8-phase-headroom-20260919T073150Z COMPLETE/clean:
+  free9,669,758,976 -> 11,079,245,824B. All remaining local/cloud/remote hashes
+  were reverified under the host lock. Currentbest/checkpoints on trn22,
+  source, logs, profiles and shared caches were untouched. Do not rerun this
+  one-off recovery; its selected files are now absent by design.
+- Launch research/run-logs/fs-w140-full-fp8-candidate-phase-r1.request.json ONLY
+  after control-r2 is clean with all four postchecks. Watcher trn21=140 is active;
+  trn22 watcher=129. Latest maintenance/results still need final commit/push.
 
 ## Submission is ready — 2026-09-19 07:25 UTC
 

@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Retire five backed-up old checkpoints after the wave140 native control.
+"""Finish the three remaining retirements after a partial wave140 cleanup.
 
 Every full checkpoint remains local and in a currently verified GitHub asset.
 The exact prior experiment must have exited successfully; only a disk-reserve
 health failure is recoverable here. An exclusive host lock excludes active
 experiments. No source, logs, profiles or compilation caches are removed.
+The first attempt retired two verified copies, then its second progress write
+hit the audit writer's no-overwrite rule. Preserve that failure and its intent.
 """
 from datetime import datetime, timezone
 import hashlib
@@ -36,7 +38,9 @@ def main():
     logs = Path("research/run-logs")
     best = json.loads(Path("research/fresh-start-best-public.json").read_text())
     selected = []
-    for artifact, wave, checkpoint_label in SELECTION:
+    # Exact recovery scope: the first two files were already retired by the
+    # recorded attempt. Do not silently skip missing files in the remaining set.
+    for artifact, wave, checkpoint_label in SELECTION[2:]:
         cloud = json.loads((logs / ("fs-artifact-backup-" + artifact + ".json")).read_text())
         local = Path("checkpoints", checkpoint_label, "final.pt")
         assert cloud["all_github_digests_match"] and cloud["entry"]["source"] == str(local)
@@ -67,6 +71,8 @@ def main():
         label="fs-maintenance-full-fp8-phase-headroom-" + now.strftime("%Y%m%dT%H%M%SZ"),
         host="trn21", remote="/home/ubuntu/trainium_freshstart_20260918_wave140",
         expected_previous_label="fs-w140-full-fp8-native-control-phase-r1",
+        previous_partial_cleanup="fs-maintenance-full-fp8-phase-headroom-20260919T072852Z",
+        previous_maintenance_sha256="8ffd369afa4397ec32d83b2dc53150e798bd931a057e75609aa11f871094ca12",
         selected=selected, current_best_excluded=True, prepared_at=now.isoformat(),
         maintenance_source_sha256=digest(Path(__file__)))
     (logs / (request["label"] + ".intent.json")).write_text(json.dumps(request, indent=2) + "\n")
@@ -84,6 +90,15 @@ with HOST_LOCK.open('a') as lock:
  before=snapshot(base,previous['completed_at'])
  failures=health_failures(before,(os.getpid(),os.getppid()))
  assert all(f=='less than8GiB disk space available' for f in failures),failures
+ prior=json.loads((base/'research/run-logs'/(m['previous_partial_cleanup']+'.intent.json')).read_text())
+ progress=json.loads((base/'research/run-logs'/(m['previous_partial_cleanup']+'.progress.json')).read_text())
+ assert prior['maintenance_source_sha256']==m['previous_maintenance_sha256']
+ assert prior['remote_hashes_reverified'] and prior['expected_previous_label']==m['expected_previous_label']
+ old_selection=prior['selected'];assert len(old_selection)==5
+ already_absent=[x['remote_checkpoint'] for x in old_selection[:2]]
+ assert progress['removed']==already_absent[:1]
+ assert all(not pathlib.Path(p).exists() for p in already_absent)
+ assert [(x['remote_checkpoint'],x['sha256'],x['bytes']) for x in old_selection[2:]]==[(x['remote_checkpoint'],x['sha256'],x['bytes']) for x in m['selected']]
  verified=[]
  for item in m['selected']:
   p=pathlib.Path(item['remote_checkpoint'])
@@ -100,6 +115,8 @@ with HOST_LOCK.open('a') as lock:
  # Verify the complete selected set before deleting its first redundant copy.
  result=dict(**m,started_at=utc_now(),host_lock_held=True,remote_hashes_reverified=True,
              free_before=before['disk']['free_bytes'],removed=[],
+             previous_observed_absent=already_absent,
+             previous_written_progress_removed=progress['removed'],
              original_experiment_postflight_retained=state['postflight'])
  write_json(base/'research/run-logs'/(m['label']+'.intent.json'),result)
  for p,st in verified:
@@ -107,7 +124,7 @@ with HOST_LOCK.open('a') as lock:
   assert (current.st_ino,current.st_mtime_ns,current.st_size)==(st.st_ino,st.st_mtime_ns,st.st_size)
   assert not p.is_symlink()
   p.unlink();result['removed'].append(str(p))
-  write_json(base/'research/run-logs'/(m['label']+'.progress.json'),result)
+  write_json(base/'research/run-logs'/(m['label']+'.progress-'+str(len(result['removed'])).zfill(3)+'.json'),result)
  after=snapshot(base,previous['completed_at']);failures=health_failures(after,(os.getpid(),os.getppid()))
  result.update(completed_at=utc_now(),free_after=after['disk']['free_bytes'],post_health=after,
                host_clean=not failures,failures=failures)
