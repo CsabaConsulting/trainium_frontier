@@ -1,0 +1,52 @@
+{
+  "label": "fs-w153-serial-qkv-tokens-sequence-r1",
+  "max_seconds": 2400,
+  "purpose": "Bounded attention discrepancy investigation. Diagnostic completion does not pass the original attention gate; preserve and stop after this one request.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w153-serial-qkv-tokens-boundary-r1.request.json",
+      "sha256": "d68de642574621e5f7f332a30705f3ca44ae86e6cba45fb5cec496cca756da59",
+      "requirements": [
+        {
+          "marker": "SERIAL_QKV_COMPONENT_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "source_commit": "85addadd2ade1d0eb37fa9a5294b598bfe2ba9b4"
+          }
+        },
+        {
+          "marker": "SERIAL_QKV_BOUNDARY_CASE",
+          "count": 4,
+          "unique_field": "case_id",
+          "values": [
+            "False:False",
+            "False:True",
+            "True:False",
+            "True:True"
+          ],
+          "fields": {
+            "layout": "tokens",
+            "channels": 256,
+            "diagnostic_complete": true,
+            "acceptance_bounds_unchanged": true,
+            "integration_promoted": false
+          }
+        },
+        {
+          "marker": "SERIAL_QKV_BOUNDARY_RESULT",
+          "count": 1,
+          "fields": {
+            "layout": "tokens",
+            "channels": 256,
+            "cases": 4,
+            "diagnostic_complete": true,
+            "acceptance_bounds_unchanged": true,
+            "integration_promoted": false,
+            "whole_model_or_quality_claim": false
+          }
+        }
+      ]
+    }
+  ]
+}
