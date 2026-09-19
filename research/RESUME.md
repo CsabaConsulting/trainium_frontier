@@ -367,3 +367,10 @@ Accumulation harness fails on unsupported retain_graph=True with AOT donated
 buffers (clean). Correct harness to ordinary backward, matching trainer; no
 compiler setting or equality changes. Source109 rerun prepared; source108 FP8
 component stage-cost diagnostic now active trn21, watcher108.
+
+Source108 stage costs COMPLETE clean03:13:33. Up calibration1.176563ms and
+prepared product1.471031/native1.074664ms; down calibration0.344010ms and
+product0.856747/native1.085396ms. Preparation erases down's product advantage.
+Source109 head exact-autograd/component rerun active trn21, watcher109.
+Source110 per-instance GPT training adapter/full caller gate prepared; do not
+run phases before autograd and caller gates pass.

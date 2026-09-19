@@ -248,3 +248,16 @@ actual trainer and existing integration gates use ordinary backward on each
 fresh forward. Source109 removes that unnecessary retention flag; donation
 settings, kernel math, exact comparisons and cache reuse remain unchanged.
 Retain the failed source107 postflight; it is not a numerical failure.
+
+### Source110 caller gate prepared
+
+A per-instance GPT adapter inserts one restricted compiled-training return
+before the original head projection. It retains the original model body for
+eager calls, evaluation/predictions and unsupported row counts. No parameters
+are added or replaced. Guards require BF16 final norm/cache, unweighted softcap15,
+no output bias, no padded-vocabulary truncation, and a gated width. Probe compares
+all FP32 master gradients in two-layer GPTs at256/1024width, two distinct
+microbatches, two updates, nonzero head/output branches, original evaluation,
+causality/batch/repetition and serialized native checkpoint restoration. Exact
+equality is required; no claim before hardware completion. The phase timer
+gets an explicit flag, unused unless that caller gate passes.
