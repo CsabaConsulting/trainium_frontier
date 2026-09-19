@@ -1,8 +1,15 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19 09:51 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19 13:17 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
+
+Scope clarification: full FP8 here means the complete MLP forward/backward,
+not all transformer projections/attention/optimizer arithmetic. A broader
+FP8 region can still win despite the current MLP integration regression.
+Its boundary, precision and advancement controls, plus the user's vocabulary/
+grammar ideas and measured fast-function history, are in
+`fresh-start-structured-priors-and-fp8-scope-2026-09-19.md`.
 
 ## Current priority after full FP8 integration
 
@@ -40,13 +47,16 @@ No FP8 speed/BPB promotion.
    ownership/state/restore gate PASSES all28 rank/stage comparisons. The nearby
    D1024 control is clean487.435ms. After verified maintenance, width1152 is
    clean587.592ms with four model checks. The single fixed-seed full-budget
-   capacity trial is ACTIVE on trn21; matched evaluation must follow. See the
+   capacity trial is complete3046updates/1784.7s, clean and checkpoint local/cloud
+   verified. The matched20M evaluation is ACTIVE on trn21. See the
    capacity revisit note; old generic ownership costs are not trustworthy at new widths.
 4. Optional packed-weight-group streaming is deployed on trn22 source147 and
-   its bounded correctness gate is ACTIVE after the compact comparison.
+   its bounded correctness gate PASSES all11 cases and both real-Linear widths,
+   clean09:59:18. Resident compact whole-model control is ACTIVE; streamed
+   compact follows after clean completion/four model checks.
    Its source-level weight
    footprint falls8MiB to2.5MiB, with repeated HBM reads/sequential group costs.
-   Actual allocation/speed and all numerical gates are pending; see
+   Actual caller allocation/speed remain pending; see
    `fresh-start-fp8-weight-residency-2026-09-19.md`.
 5. Keep reciprocal optimizer composition, reduced calibration work and compact
    function approximations available for measured bottlenecks. The standalone

@@ -1,9 +1,47 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 09:51 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 13:17 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## Width1152 quality and streamed FP8 correctness active — CURRENT
+## Matched width1152 evaluation and FP8 consumer comparison — CURRENT
+
+- Width1152 training COMPLETE/clean10:18:20.635599:3046 updates,399.2M target
+  presentations,1784.7 training seconds/1785.2 charged estimate, no overrun,
+  causality passed. Its small public0.988808 is not a matched20M result.
+  Checkpoint571,028,961bytes, SHA256
+  `aa57fe35f10ca2070499b68a3d3fc38a5d04d8bac0bae4d0722ab907d3a0afb3`.
+  Local independent hash verified13:08:35 and GitHub asset digests13:11:10.
+- trn21 ACTIVE `fs-w146-eval-width1152-context1024-pack32-s1024-20m-o1-r1`,
+  source1c70da11, guard1493538, started13:12:32.754312, clean preflight.
+  Protected scorer:world1/B1/T1024/O1,20,971,520tokens, no global autocast.
+  Wait for score, exact token/byte counts, causality/budget and clean postflight
+  before comparing/promoting against frozen public0.99285131.
+- trn22 source147 streamed correctness COMPLETE/clean09:59:18.490964:
+  all11 independent cases including32768tokens, exact retained tensors and
+  master gradients, cached/uncached real-Linear widths256/1024, accumulation,
+  row/padding independence and native evaluation/restore. Summary preserved.
+- trn22 ACTIVE `fs-w147-full-fp8-resident-phase-r1`, sourceac4f789,
+  guard1802422, started13:07:21.371880, clean preflight. First warmup436.598s.
+  NEXT only after command0/clean/four postchecks: prepared
+  `fs-w147-full-fp8-streamed-phase-r1.request.json` on the same immutable source.
+  The request itself verifies those prerequisites. No whole-model stream result.
+- Both prior90-minute watchers expired normally while the session was idle;
+  new trn21=146/trn22=147 watchers started around13:09,90rounds/45s each.
+  No existing remote device job was interrupted. Cron continued preserving
+  completed logs and cloud assets between turns.
+- New user ideas and exact FP8 scope are recorded in
+  `fresh-start-structured-priors-and-fp8-scope-2026-09-19.md`:
+  full MLP FP8 is not the full transformer; wider matmul coverage stays open.
+  Generation-only speculation does not change teacher-forced BPB. English
+  corpus metadata,20K-training-document structure audit, active package
+  metadata and historical count-mixer/startup rulings are checked. New priors
+  are design/feasibility candidates, not implemented submission changes.
+- Source41e1990 and snapshot983538f9 pushed/ref-verified09:51:45. Current
+  completed results, preserved checkpoint receipts and research notes need
+  the next source commit/push. Frozen train.py/prepare.py/submission hashes
+  were rechecked unchanged13:16. No competition submission.
+
+## Width1152 quality and streamed FP8 correctness active — 09:51 UTC
 
 - trn21 ACTIVE `fs-w146-dense1152-context1024-pack32-owned-ce-1800-r1`,
   source1c70da11, guard1442054, started09:45:14.368755, clean preflight.

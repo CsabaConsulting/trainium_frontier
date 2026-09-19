@@ -5,6 +5,13 @@ submission remains source129, reproducing source98 public BPB0.9928513116311253.
 The cold training and evaluation rehearsal passed. The caller-profile diagnosis
 remains active; capacity preparation proceeds independently of the frozen package.
 
+Update13:17UTC: the width1152 quality run is COMPLETE/clean10:18:20UTC,
+3046 updates,1784.7 training seconds/1785.2 charged estimate. Its checkpoint
+is independently hash-verified locally and GitHub-asset verified. Small public
+0.988808 is not comparable to the20M best. The matched20,971,520-token public
+evaluation started13:12:32UTC with clean preflight and the protected scorer,
+world1/B1/T1024/O1 without global autocast. A final quality decision is pending.
+
 Current2026-09-19 09:51UTC: the width1152 phase is COMPLETE/clean with all four
 model postchecks. Median587.591986ms versus nearby same-source width1024
 487.434961ms, a20.55% step-time increase for21.54% more parameters. It passes
