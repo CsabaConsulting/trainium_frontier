@@ -1,0 +1,16 @@
+{
+  "label": "fs-w146-width1152-optimizer-ownership-gate-r1",
+  "guard_pid": 1424730,
+  "child_pid": 1424731,
+  "child_session": 1424731,
+  "started_at": "2026-09-19T09:08:26.208547+00:00",
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1800s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "-c",
+    "import pathlib,json,subprocess\np=pathlib.Path('/home/ubuntu/trainium_freshstart_20260918_wave144/research/run-logs/fs-w144-width1152-optimizer-group-costs-r1.postflight.json')\nd=json.loads(p.read_text());assert d['host_clean'] and d['command_returncode']==0\nsubprocess.run(['/home/ubuntu/workspace/native_venv/bin/torchrun', '--standalone', '--nproc_per_node=4', '/home/ubuntu/trainium_freshstart_20260918_wave146/research/scratch/optimizer_ownership_check.py', '--device', 'neuron', '--real-shape', '--width', '1152', '--config-log', '/home/ubuntu/trainium_freshstart_20260918_wave146/research/run-logs/fs-w140-native-pack32-micro-device-profile-r2.log', '--pad-singleton-muon', '--steps', '20'],check=True)\n"
+  ]
+}

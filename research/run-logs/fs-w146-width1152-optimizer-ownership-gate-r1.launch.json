@@ -1,0 +1,48 @@
+{
+  "host": "trn21",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave146",
+  "expected_commit": "1c70da11c4dd9bb789afca0fa3088842874a1efd",
+  "label": "fs-w146-width1152-optimizer-ownership-gate-r1",
+  "purpose": "Gate the measured-width1152 ownership plan on the exact actual model inventory. Four-rank replicated/owned weights, grouped optimizer state, None/zero gradients, skipped AdamW, schedules, zero singleton padding, cross-rank weight digests, Linear cache refresh, wrong-owner rejection and checkpoint continuation all remain exact. Timing follows the equality gates and includes all-gather; it is an optimizer result, not full-model throughput or BPB. Frozen D1024 package/default costs unchanged.",
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1",
+    "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+    "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave146"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1800s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "-c",
+    "import pathlib,json,subprocess\np=pathlib.Path('/home/ubuntu/trainium_freshstart_20260918_wave144/research/run-logs/fs-w144-width1152-optimizer-group-costs-r1.postflight.json')\nd=json.loads(p.read_text());assert d['host_clean'] and d['command_returncode']==0\nsubprocess.run(['/home/ubuntu/workspace/native_venv/bin/torchrun', '--standalone', '--nproc_per_node=4', '/home/ubuntu/trainium_freshstart_20260918_wave146/research/scratch/optimizer_ownership_check.py', '--device', 'neuron', '--real-shape', '--width', '1152', '--config-log', '/home/ubuntu/trainium_freshstart_20260918_wave146/research/run-logs/fs-w140-native-pack32-micro-device-profile-r2.log', '--pad-singleton-muon', '--steps', '20'],check=True)\n"
+  ],
+  "fingerprint_paths": [
+    "research/scratch/optimizer_ownership.py",
+    "research/scratch/optimizer_ownership_check.py",
+    "research/scratch/optimizer_group_cost_probe.py",
+    "research/run-logs/fs-w140-native-pack32-micro-device-profile-r2.log"
+  ],
+  "started_at": "2026-09-19T09:08:26.181590+00:00",
+  "hostname": "ip-172-31-34-85",
+  "git_commit": "1c70da11c4dd9bb789afca0fa3088842874a1efd",
+  "source_dirty": false,
+  "preflight_free_bytes": 16540323840,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+    "research/fresh_start_host.py": "8c597adea7c48114bed8f50aa161fdc79b36b49c86c7315e6a58c3ca4e8f5f79",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/fresh_start_backup.py": "c978fd20b6620d0d80c25f8982974e8c4b2ad009edd9da376d784f5cecc3ead3",
+    "research/scratch/optimizer_ownership.py": "6db01f7894ffd30172a49728526dd169d31da81bc33543f9811adda303948a28",
+    "research/scratch/optimizer_ownership_check.py": "35e815c774784cf499e6505bf9278371259b197c36df9908320f4ce832db1171",
+    "research/scratch/optimizer_group_cost_probe.py": "00aff4c036a231c5d5165370abee0b839fc10d1266cae555aed57879de1bd91d",
+    "research/run-logs/fs-w140-native-pack32-micro-device-profile-r2.log": "8efb3566ac976a7aff6b958186aca004a5f03be661c12eaae0c578bc877e3235"
+  }
+}
