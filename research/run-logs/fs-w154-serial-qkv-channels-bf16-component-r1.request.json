@@ -1,0 +1,31 @@
+{
+  "host": "trn22",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave154",
+  "expected_commit": "ee1c7868c96bcf1b371ad81805ea90ec780f8a1f",
+  "label": "fs-w154-serial-qkv-channels-bf16-component-r1",
+  "purpose": "Original BF16 regression before precision repair.",
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_RT_VISIBLE_CORES": "0",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1800s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "/home/ubuntu/trainium_freshstart_20260918_wave154/research/scratch/serial_qkv_probe.py",
+    "--layout",
+    "channels",
+    "--steps",
+    "10"
+  ],
+  "fingerprint_paths": [
+    "research/scratch/serial_qkv_nki.py",
+    "research/scratch/serial_qkv_probe.py"
+  ]
+}

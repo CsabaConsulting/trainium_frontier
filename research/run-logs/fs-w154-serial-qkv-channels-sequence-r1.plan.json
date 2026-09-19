@@ -1,0 +1,295 @@
+{
+  "label": "fs-w154-serial-qkv-channels-sequence-r1",
+  "max_seconds": 10000,
+  "purpose": "Fixed four-step precision-repair campaign: BF16 regression, strict FP32-value component gates, corrected materialization diagnostic, unchanged full attention gates/timing. Each stage has independent cleanup. Stop on any failure; no automatic training/quality trial.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w154-serial-qkv-channels-bf16-component-r1.request.json",
+      "sha256": "b04cfdbd4a3345c24a23d3eb5e6b0a0e723dcb0fe81fe18d41e904cdb43522e2",
+      "requirements": [
+        {
+          "marker": "SERIAL_QKV_RESULT",
+          "count": 1,
+          "fields": {
+            "layout": "channels",
+            "cases": 9,
+            "passed": true,
+            "real_tokens": 32768,
+            "real_channels": 1024,
+            "independent_fp64_gates": true,
+            "lifecycle_passed": true,
+            "whole_model_or_quality_claim": false,
+            "value_fp32": false,
+            "fp32_value_output_bounds": false
+          }
+        },
+        {
+          "marker": "SERIAL_QKV_CASE",
+          "count": 9,
+          "fields": {
+            "passed": true,
+            "independent_fp64_forward_and_six_gradients": true,
+            "distinct_inputs": true,
+            "contiguous_outputs": true,
+            "fp32_master_gradients": true,
+            "repeat_and_nonmutation": true,
+            "stream_and_row_independence": true,
+            "value_fp32": false
+          },
+          "unique_field": "kind",
+          "values": [
+            "random",
+            "zero_input",
+            "zero_weight",
+            "zero_gradient",
+            "tiny_gradient",
+            "outliers",
+            "changed_weights",
+            "cancellation",
+            "real_random"
+          ]
+        },
+        {
+          "marker": "SERIAL_QKV_LIFECYCLE",
+          "count": 1,
+          "fields": {
+            "cached_and_uncached": true,
+            "master_updates": 2,
+            "microbatches_per_update": 2,
+            "fp32_accumulation": true,
+            "passed": true,
+            "value_fp32": false
+          }
+        },
+        {
+          "marker": "SERIAL_QKV_COMPONENT_TIMING",
+          "count": 1,
+          "fields": {
+            "tokens": 32768,
+            "channels": 1024,
+            "steps_per_block": 10,
+            "includes_three_forward_six_backward_products": true,
+            "includes_fp32_master_cache_cast_and_accumulation": true,
+            "all_layout_and_dispatch_costs_timed": true,
+            "whole_model_or_quality_claim": false,
+            "value_fp32": false,
+            "native_control_returns_fp32_v": false
+          }
+        },
+        {
+          "marker": "SERIAL_QKV_PRODUCT_GATE",
+          "count": 198,
+          "fields": {
+            "finite": true,
+            "bound_failures": 0,
+            "passed": true
+          }
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w154-serial-qkv-channels-fp32v-component-r1.request.json",
+      "sha256": "cb8d2289165e1c3f8b9c0bb847309c040a20f7892687186287d6eabfc6f2c174",
+      "requirements": [
+        {
+          "marker": "SERIAL_QKV_RESULT",
+          "count": 1,
+          "fields": {
+            "layout": "channels",
+            "cases": 10,
+            "passed": true,
+            "real_tokens": 32768,
+            "real_channels": 1024,
+            "independent_fp64_gates": true,
+            "lifecycle_passed": true,
+            "whole_model_or_quality_claim": false,
+            "value_fp32": true,
+            "fp32_value_output_bounds": true
+          }
+        },
+        {
+          "marker": "SERIAL_QKV_CASE",
+          "count": 10,
+          "fields": {
+            "passed": true,
+            "independent_fp64_forward_and_six_gradients": true,
+            "distinct_inputs": true,
+            "contiguous_outputs": true,
+            "fp32_master_gradients": true,
+            "repeat_and_nonmutation": true,
+            "stream_and_row_independence": true,
+            "value_fp32": true
+          },
+          "unique_field": "kind",
+          "values": [
+            "random",
+            "zero_input",
+            "zero_weight",
+            "zero_gradient",
+            "tiny_gradient",
+            "outliers",
+            "changed_weights",
+            "cancellation",
+            "real_random",
+            "unrounded_v_gradient"
+          ]
+        },
+        {
+          "marker": "SERIAL_QKV_LIFECYCLE",
+          "count": 1,
+          "fields": {
+            "cached_and_uncached": true,
+            "master_updates": 2,
+            "microbatches_per_update": 2,
+            "fp32_accumulation": true,
+            "passed": true,
+            "value_fp32": true
+          }
+        },
+        {
+          "marker": "SERIAL_QKV_COMPONENT_TIMING",
+          "count": 1,
+          "fields": {
+            "tokens": 32768,
+            "channels": 1024,
+            "steps_per_block": 10,
+            "includes_three_forward_six_backward_products": true,
+            "includes_fp32_master_cache_cast_and_accumulation": true,
+            "all_layout_and_dispatch_costs_timed": true,
+            "whole_model_or_quality_claim": false,
+            "value_fp32": true,
+            "native_control_returns_fp32_v": true
+          }
+        },
+        {
+          "marker": "SERIAL_QKV_PRODUCT_GATE",
+          "count": 216,
+          "fields": {
+            "finite": true,
+            "bound_failures": 0,
+            "passed": true
+          }
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w154-serial-qkv-channels-boundary-r1.request.json",
+      "sha256": "4149f4d47a5649f104c70bdec8a5e0286ff46edde0285a55a3f044eb5e808c52",
+      "requirements": [
+        {
+          "marker": "SERIAL_QKV_COMPONENT_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "source_commit": "ee1c7868c96bcf1b371ad81805ea90ec780f8a1f",
+            "value_fp32": false
+          }
+        },
+        {
+          "marker": "SERIAL_QKV_BOUNDARY_CASE",
+          "count": 4,
+          "unique_field": "case_id",
+          "values": [
+            "False:False",
+            "False:True",
+            "True:False",
+            "True:True"
+          ],
+          "fields": {
+            "layout": "channels",
+            "channels": 1024,
+            "diagnostic_complete": true,
+            "acceptance_bounds_unchanged": true,
+            "integration_promoted": false
+          }
+        },
+        {
+          "marker": "SERIAL_QKV_BOUNDARY_RESULT",
+          "count": 1,
+          "fields": {
+            "layout": "channels",
+            "channels": 1024,
+            "cases": 4,
+            "diagnostic_complete": true,
+            "acceptance_bounds_unchanged": true,
+            "integration_promoted": false,
+            "whole_model_or_quality_claim": false
+          }
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w154-serial-qkv-channels-attention-r1.request.json",
+      "sha256": "eb24675d6be96619696bf4c23390de88f08b3372f4c799cdae13cf93e2568b76",
+      "requirements": [
+        {
+          "marker": "SERIAL_QKV_COMPONENT_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "source_commit": "ee1c7868c96bcf1b371ad81805ea90ec780f8a1f",
+            "value_fp32": true
+          }
+        },
+        {
+          "marker": "SERIAL_QKV_ATTENTION_GATE",
+          "count": 2,
+          "unique_field": "channels",
+          "values": [
+            256,
+            1024
+          ],
+          "fields": {
+            "layout": "channels",
+            "passed": true,
+            "compiled_forward_backward": true,
+            "cached_and_uncached": true,
+            "original_separate_parameters": true,
+            "accumulation_and_refresh": true,
+            "distinct_input_gradients": true,
+            "causal_and_batch_independence_exact": true,
+            "padded_projection_rows": true,
+            "native_evaluation_and_restore_exact": true,
+            "value_fp32": true
+          }
+        },
+        {
+          "marker": "SERIAL_QKV_ATTENTION_TIMING",
+          "count": 1,
+          "fields": {
+            "layout": "channels",
+            "batch": 32,
+            "length": 1024,
+            "channels": 1024,
+            "passed": true,
+            "real_shape_output_input_and_master_gradients_gated": true,
+            "steps_per_block": 10,
+            "complete_attention_forward_backward": true,
+            "weight_cache_refresh_timed": true,
+            "compiled_native_control": true,
+            "all_layout_and_dispatch_costs_timed": true,
+            "whole_model_or_quality_claim": false,
+            "value_fp32": true
+          }
+        },
+        {
+          "marker": "SERIAL_QKV_INTEGRATION_RESULT",
+          "count": 1,
+          "fields": {
+            "layout": "channels",
+            "widths": [
+              256,
+              1024
+            ],
+            "passed": true,
+            "paired_native_bounds_unchanged": true,
+            "native_rope_geometry_preserved": true,
+            "real_shape_attention_timing_complete": true,
+            "whole_model_or_quality_claim": false,
+            "value_fp32": true
+          }
+        }
+      ]
+    }
+  ]
+}
