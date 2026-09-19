@@ -1,6 +1,6 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19, 00:21 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19, 00:41 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
@@ -325,3 +325,23 @@ The follow-on precision/cache/gradient contracts are now detailed in
 input scaling can factor out of the token contraction in weight gradients;
 per-token scales cannot. Packed FP8 caches, producer/statistic fusion, data
 gradients and weight gradients remain separately gated design candidates.
+
+### Compiled head boundary mismatch (00:41 UTC)
+
+Wave82's exact Linear/head integration gate fails on the first nonzero compiled
+case (256 rows, 256 channels, weight std 0.001). Eager loss and gradients agree;
+compiled maximum differences are 0.000121117 in loss, 0.00000762939 in input
+gradient and 0.001953125 in FP32 master gradient. The host is clean. Both
+prepared whole-step requests are blocked by this gate, not queued for automatic
+execution. The component's pre-rounded-logit result remains valid in its domain.
+
+A separate rounding diagnostic captures compiler-input MLIR and compares
+loss-only, exposed-logit, standalone-head and frozen-logit CE paths. Fresh heads
+and checked cache values distinguish arithmetic changes from stale weights.
+Exposing logits can itself change compilation, so its effect is measured.
+No numerical bound is loosened and no training promotion follows from this test.
+
+Installed SDK inspection also establishes that `activate2` is NC-v4-only; it
+cannot implement a fused max reduction on these NC-v3 instances. Ordinary
+`activation` has a sum reduction, and `activation_reduce` wraps it. Producer/max
+fusion needs a different documented NC-v3 route or remains a design idea.

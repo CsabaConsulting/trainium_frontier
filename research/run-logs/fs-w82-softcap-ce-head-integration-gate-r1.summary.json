@@ -1,0 +1,152 @@
+{
+  "source_commit": "fb8fe4bb2269fd8a7e8fd27edc2ca432c165dd5f",
+  "command_returncode": 1,
+  "host_clean": true,
+  "completed_at": "2026-09-19T00:37:08.647803+00:00",
+  "label": "fs-w82-softcap-ce-head-integration-gate-r1",
+  "records": [
+    {
+      "rows": 256,
+      "channels": 256,
+      "weight_std": 0.0,
+      "mode": "eager",
+      "reduction": "none",
+      "exact_loss_input_master_gradient": [
+        true,
+        true,
+        true
+      ],
+      "max_abs": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "fp32_master_gradient": true,
+      "finite": true,
+      "passed": true
+    },
+    {
+      "rows": 256,
+      "channels": 256,
+      "weight_std": 0.0,
+      "mode": "eager",
+      "reduction": "mean",
+      "exact_loss_input_master_gradient": [
+        true,
+        true,
+        true
+      ],
+      "max_abs": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "fp32_master_gradient": true,
+      "finite": true,
+      "passed": true
+    },
+    {
+      "rows": 256,
+      "channels": 256,
+      "weight_std": 0.0,
+      "mode": "compiled",
+      "reduction": "none",
+      "exact_loss_input_master_gradient": [
+        true,
+        true,
+        true
+      ],
+      "max_abs": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "fp32_master_gradient": true,
+      "finite": true,
+      "passed": true
+    },
+    {
+      "rows": 256,
+      "channels": 256,
+      "weight_std": 0.0,
+      "mode": "compiled",
+      "reduction": "mean",
+      "exact_loss_input_master_gradient": [
+        true,
+        true,
+        true
+      ],
+      "max_abs": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "fp32_master_gradient": true,
+      "finite": true,
+      "passed": true
+    },
+    {
+      "rows": 256,
+      "channels": 256,
+      "weight_std": 0.001,
+      "mode": "eager",
+      "reduction": "none",
+      "exact_loss_input_master_gradient": [
+        true,
+        true,
+        true
+      ],
+      "max_abs": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "fp32_master_gradient": true,
+      "finite": true,
+      "passed": true
+    },
+    {
+      "rows": 256,
+      "channels": 256,
+      "weight_std": 0.001,
+      "mode": "eager",
+      "reduction": "mean",
+      "exact_loss_input_master_gradient": [
+        true,
+        true,
+        true
+      ],
+      "max_abs": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "fp32_master_gradient": true,
+      "finite": true,
+      "passed": true
+    },
+    {
+      "rows": 256,
+      "channels": 256,
+      "weight_std": 0.001,
+      "mode": "compiled",
+      "reduction": "none",
+      "exact_loss_input_master_gradient": [
+        false,
+        false,
+        false
+      ],
+      "max_abs": [
+        0.00012111663818359375,
+        7.62939453125e-06,
+        0.001953125
+      ],
+      "fp32_master_gradient": true,
+      "finite": true,
+      "passed": false
+    }
+  ],
+  "passed": false,
+  "whole_model_requests_blocked": true,
+  "diagnosis": "Eager head/loss agrees, first nonzero compiled case differs. Compiler rounding/fusion is a hypothesis pending explicit logit diagnostic. Exact gate is unchanged."
+}
