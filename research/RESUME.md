@@ -1,9 +1,9 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 17:40 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 17:42 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## FP8 output-rank timing active; pack32 optimizer comparison prepared — CURRENT
+## FP8 output-rank timing and pack32 optimizer gates active — CURRENT
 
 - Source147 streaming completed clean13:34:10.966945 while the session was
   idle. Median570.476580ms versus same-source resident562.968046ms,1.334%
@@ -46,16 +46,20 @@ Use current manifests/postflights before dispatch; do not restart completed jobs
   Source98's prior reciprocal comparison usedpack16/GA2 (1.128% improvement);
   no pack32 reciprocal timing was found. Kernel/adapter bytes match source98.
   The new real-inventory gate must pass24 rank/stage checks plus four composition
-  records before timing. Plan/wrapper checks pass locally; commit before launch.
+  records before timing. Plan/wrapper checks pass locally and are committed in
+  fa0d52a. Local coordinator PID16921 STARTED17:41:21.909988, one-hour limit.
+  It revalidated the completed native control and launched
+  `fs-w148-owned-reciprocal-current-gates-r1`, guard1530847,17:41:37.585278,
+  clean preflight. Candidate timing is queued behind those gates/clean postflight.
   See `fresh-start-reciprocal-pack32-2026-09-19.md`. This is bounded composition
   alongside FP8, not a seed sweep or automatic quality promotion.
 - Remaining priorities: serial QKV preserving Parameters/Muon states/fast RoPE,
   then wider FP8 projection coverage and measured optimizer/loss combinations.
   NLP ideas remain feasibility candidates alongside the kernel campaign.
-- Last verified source push884645a, snapshot660e20bc,17:36:53UTC, includes
-  bounded coordinators and early numerical gates. That deliberate checkpoint
-  skipped remote retrieval; live coordinators continue mirroring exact job logs
-  and the next cron cycle retrieves both hosts. Frozen public best
+- Last verified source push884645a, snapshot86618ecf,17:40:44UTC, includes
+  bounded coordinators and both complete remote retrievals. Later completion
+  summaries, reciprocal plans and launch state need the next deliberate push.
+  Live coordinators keep mirroring exact job logs. Frozen public best
   remains0.9928513116311253; no competition submission or seed sweep.
 
 ## Matched width1152 evaluation and FP8 consumer comparison — 13:28 UTC

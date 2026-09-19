@@ -1,7 +1,13 @@
 # Reciprocal optimizer with the current larger microbatch
 
-Prepared2026-09-19 17:40UTC. This is a bounded composition experiment alongside
+Started2026-09-19 17:41UTC. This is a bounded composition experiment alongside
 the FP8 output-layout comparison. No new approximation or quality result.
+
+Plans and request checks are committed infa0d52a. The detached local coordinator
+PID16921 started17:41:21.909988 with a one-hour limit. It adopted/revalidated the
+completed native control, then launched the current-inventory gate on trn21 at
+17:41:37.585278,guard1530847,clean preflight. Candidate timing is queued behind
+those gates and clean postflight. No new cron entry or helper mutation.
 
 Source98's refined-reciprocal NKI AdamW plus optimizer ownership passed its
 independent numerical gates and24 four-rank ownership/state comparisons. Its

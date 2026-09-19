@@ -1,6 +1,6 @@
 # Fresh-start campaign — 2026-09-18
 
-**Current result, 2026-09-19 17:40 UTC:** best matched public BPB is
+**Current result, 2026-09-19 17:42 UTC:** best matched public BPB is
 **0.9928513116311253**, source98 dense 6x1024 with pack32/GA1, no ngrams and
 seed42. The frozen standalone source129 package reproduces those checkpoint
 logits exactly; an independent cold 30-minute rehearsal scored 0.9938556748843932
@@ -46,8 +46,8 @@ The user's dictionary/parser/classic-NLP ideas, active-venv dependency audit,
 20K-training-document structure sample and bounded alternative probability
 models are documented in `fresh-start-structured-priors-and-fp8-scope-2026-09-19.md`.
 No new language assets, pretrained NLP models or grammar masks were installed.
-The freed trn21 has a prepared current-inventory reciprocal/ownership gate and
-pack32/GA1 candidate against its nearby native control; the former reciprocal
+The freed trn21 is running a current-inventory reciprocal/ownership gate, with
+a pack32/GA1 candidate queued against its nearby native control; the former reciprocal
 comparison usedpack16/GA2. No new approximation, seed sweep or automatic quality
 trial is involved. Exact preparation and sequence receipts are in the kernel
 queue and reciprocal-pack32 note.

@@ -1,6 +1,6 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19 17:40 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19 17:42 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
@@ -65,11 +65,13 @@ No FP8 speed/BPB promotion.
    function approximations available for measured bottlenecks. The standalone
    polynomial/full-value-table losses remain closed for their tested layouts.
    Source98's reciprocal pair usedpack16/GA2. A source148 current-inventory gate
-   and pack32/GA1 candidate are now prepared on trn21 against its clean nearby
+   and pack32/GA1 candidate are now queued on trn21 against its clean nearby
    native488.035319ms control. The kernel/adapter are byte-identical to source98;
   24 exact ownership checks, four composition records and full-model checks
    remain required. See `fresh-start-reciprocal-pack32-2026-09-19.md` and the
-   fixed one-hour sequence plan. No candidate timing or quality result yet.
+   fixed one-hour sequence plan. Coordinator16921 adopted the completed native
+   control and launched current-inventory gates17:41:37UTC, clean preflight,
+   guard1530847. No candidate timing or quality result yet.
 6. Output-shape propagation is a separate follow-up if compact saves/streamed
    weights do not fix the observed smaller ordinary-Linear tiles. The SDK Meta
    output contract and bounded rank-preserving/channel-major controls are in
