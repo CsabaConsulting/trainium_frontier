@@ -1,0 +1,41 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave70",
+    "expected_commit": "785c294e4ef70b222915a7d464df2cbc1ba08a56",
+    "label": "fs-w70-eval-context1024-pack16-owned-ce-s1024-20m-o1-r1",
+    "purpose": "After clean completion and local checkpoint preservation, matched larger public evaluation of context1024/pack16/padded-ownership/exact-CE 30minute quality run. Hold world1/B1/T1024/20,971,520tokens/O1/no-autocast protected scorer; expected83,462,186bytes. No private leaderboard claim.",
+    "fingerprint_paths": [],
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1800s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "prepare.py",
+      "eval-public",
+      "--train-py",
+      "train.py",
+      "--checkpoint",
+      "/home/ubuntu/trainium_freshstart_20260918_wave70/out/fs-w70-dense1024-context1024-pack16-owned-ce-1800-r1/final.pt",
+      "--seq-len",
+      "1024",
+      "--eval-tokens",
+      "20971520",
+      "--timeout-seconds",
+      "1200"
+    ]
+  },
+  "requested_at": "2026-09-19T00:07:12.066231+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w70-eval-context1024-pack16-owned-ce-s1024-20m-o1-r1\", \"pid\": 1198603, \"commit\": \"785c294e4ef70b222915a7d464df2cbc1ba08a56\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave70/research/run-logs/fs-w70-eval-context1024-pack16-owned-ce-s1024-20m-o1-r1.log\", \"started_at\": \"2026-09-19T00:07:18.734918+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

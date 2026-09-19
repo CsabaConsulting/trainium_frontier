@@ -28,6 +28,8 @@ from preserve_native_trace_neffs import preserve_trace_neffs
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--trace-dir', type=Path, required=True)
+    parser.add_argument('--token-rows', action='store_true',
+                        help='Also attribute the wave77-gated token-row layout')
     args = parser.parse_args()
     torch.set_num_threads(4)
     trace = args.trace_dir.resolve()
@@ -57,6 +59,15 @@ def main():
         'nki_bf16_cache': (make_cached_autograd(bf16_forward), False),
         'nki_fp8_island': (make_autograd(fp8_forward), True),
     }
+    if args.token_rows:
+        from fp8_mlp_token_rows_nki import build_kernel as build_token_rows
+        token_rows = wrap_nki(build_token_rows())
+
+        def token_rows_forward(xx, uu, dd, um, dm):
+            return token_rows[2](xx, uu, dd, um, dm, 2, 128, False)
+
+        arms['nki_fp8_token_rows'] = (
+            make_autograd(token_rows_forward, relu_token_major=True), True)
     arms = {name: (torch.compile(function, backend='neuron', fullgraph=True, dynamic=False), q)
             for name, (function, q) in arms.items()}
     # Native/BF16 arms ignore these arguments, as in the gated timing probe.
@@ -126,7 +137,9 @@ def main():
         trace=str(trace), shape=list(shape), arms=list(arms), microbatches=2,
         compiled_neffs=len(entries), eager_neffs=len(eager['files']),
         phase_boundary_synchronization=True, profiled_latency_is_speed_evidence=False,
-        numerical_authority='fs-w73-fp8-causal-island-training-component-gate-r1',
+        numerical_authority=('fs-w77-fp8-token-rows-training-component-gate-r1'
+                             if args.token_rows else
+                             'fs-w73-fp8-causal-island-training-component-gate-r1'),
         whole_model_or_optimizer_included=False)), flush=True)
 
 

@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated2026-09-18,23:53UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19, 00:08 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
 ## Current result and active work
@@ -23,13 +23,18 @@ The previous T1024/pack16/original-fused-AdamW result is0.9974687136975224,
 9eabd33e6925052091f0238629f9192096c42f1310cf3127286898621932cd27 and is also
 local/cloud verified. Earlier native pack8 result1.0010172426032236 is retained.
 
-**trn21 ACTIVE:** `fs-w70-dense1024-context1024-pack16-owned-ce-1800-r1`,
-wave70/source785c294e4ef70b222915a7d464df2cbc1ba08a56, launched23:29:08UTC.
-Fresh30-minute seed42 quality run combines T1024/pack16/GA2, padded optimizer
-ownership and exact adaptive two-core CE/target gather. Clip AFTER averaging.
-Expected training completion around00:01UTC, then small public evaluation.
-Preserve/hash its checkpoint after clean postflight, then run matched larger
-20,971,520-token/world1/B1/T1024/O1 evaluation. No quality result yet.
+**trn21:** the wave70 quality run completed clean: 3,548 updates /
+465,043,456 targets, 1,784.9 training seconds, 1,785.3 charged estimate,
+within the 1,800-second budget. Small public T1024 BPB is 0.988605.
+`fs-w70-dense1024-context1024-pack16-owned-ce-1800-r1`, source
+785c294e4ef70b222915a7d464df2cbc1ba08a56, uses T1024/pack16/GA2, padded
+ownership and exact adaptive CE, with clip AFTER averaging. The checkpoint
+is now local and hash-verified: 469834849 B, SHA256
+3e5ec6df4391cdae7969130d6b78bf34a45a282edf2bc3ffaa500056fb754430.
+Matched larger evaluation has been dispatched as
+`fs-w70-eval-context1024-pack16-owned-ce-s1024-20m-o1-r1`; inspect its
+postflight/result before declaring a new best. Same 20,971,520 tokens,
+world1/B1/T1024/O1, expected 83,462,186 bytes. Cloud artifact upload pending.
 
 The installed CE/autograd gate passes36 eager/compiled exact loss/gradient
 checks. Fresh same-source whole-step control519.3954189890064ms versus candidate
@@ -39,13 +44,18 @@ loss5.064923286437988 matches exactly. No complete parameter-equality claim.
 Combined gain versus earlier owned T2048/pack8 control528.3530275ms is5.2958%.
 The phase clips before averaging; quality clips after. Protected trainer unchanged.
 
-**trn22 CLEAN after wave76:** the compact joint table passes all finite BF16
-codes, boundary shapes, repeated calls and row independence on hardware. At
-real16384x8192 it passes all-coordinate table/tail checks and sampled FP64
-truth, but loses47.2007497ms versus2.4788306ms Scalar composition (19.04x).
-Close this full-value/GpSIMD-gather layout; no full loss or training promotion.
-The first scalar-source validator failure was fixed with a prefilled ones tile;
-all original bounds were retained. Watcher follows wave76.
+**trn22 CLEAN after wave77:** small and real token-row FP8 forward, BF16
+STE backward and accumulated FP32 master gradients all pass. Complete component
+17.979725 ms versus 18.161799 ms original FP8 (1.0025% gain), but versus
+15.673194 ms native BF16 (14.7164% slower). No training promotion. Next: profile
+the token-row arm beside the original, then gate a fixed input scale using the
+RMS-normalization input bound. `fp8_mlp_island_profile.py --token-rows` prepared;
+commit/deploy before launch. Watcher currently follows wave77.
+
+The compact joint table passes hardware accuracy but loses 47.200750 ms versus
+2.478831 ms Scalar composition (19.04x). Close this full-value/GpSIMD-gather
+layout; full loss remains unimplemented. Its scalar-source frontend error was
+resolved without changing any accuracy bound.
 
 Actual FP8 up/down forward plus BF16 backward passed wave73 numerical gates,
 but lost complete-component timing18.1811702vs15.6627304ms native. The wave74
@@ -60,14 +70,11 @@ about0.98ms/core. Missing dynamic DMA metadata prevents exact bandwidth claims.
 No populated spill counters for either NKI component does not prove zero spills
 in a surrounding training graph. The profile is isolated, not full-model.
 
-Next source implements `fp8_mlp_token_rows_nki.py`: swap both GEMM orientations
-to output token rows, use per-partition scale operands, keep ReLU/squared hidden/
-output in that layout, and omit the proven-unnecessary hidden minimum reduction.
-Keep two separate inverse rescalings to avoid premature underflow. The saved
-ReLU layout changes, so the explicit BF16 backward, independent FP64 surrogate
-bounds and complete component cost must be re-gated. A fresh original-FP8 arm
-is retained alongside native/BF16-cache/storage-only controls. Small forward
-stage gates come first; commit/deploy before launching. No speed claim yet.
+`fp8_mlp_token_rows_nki.py` is now gated and measured, not merely a proposal.
+It keeps ReLU/hidden/output in token rows, omits the nonnegative hidden minimum
+reduction, and preserves two inverse rescalings. The profile will determine
+whether backward layout offsets a forward benefit. Full FP8 backward remains
+separate. The next input-scale invariant contract is in the kernel queue.
 
 ## Latest numerical findings
 
@@ -128,15 +135,15 @@ checkpoints, then commit/push. No automatic host-source merge.
 Local Devuan/SystemV, usercsaba cron; no root/systemd:
 - Every10minutes: source/recovery backup with alternate Git index and atomic
   fast-forward pushes. Skips merge/rebase/cherry-pick/index locks; no pull,
-  force push, merge or active HEAD/index mutation. Source585a983 and recovery
-  dcfc3a0bf5789eecea316fb70c2432e8e9ace847 were verified23:30:35. Check newer
+  force push, merge or active HEAD/index mutation. Source0eae485 and recovery
+  259e0491cfeb1f392bd19d713b29c0a7f315d42b were verified00:00:42. Check newer
   exact refs in out/fresh-start-backup/{latest,last-success}.json.
 - Minutes5/35: bounded digest-verified heavy-artifact upload to draft release
-  research-backup-20260918. Latest completed23:05:18:33/33 artifacts verified,
-  zero errors, including both new quality checkpoints. State is
+  research-backup-20260918. The00:05 backup planned35 artifacts including the new FP8 raw trace/parquet;
+  inspect its completion. The new wave70 checkpoint arrived after that inventory. State is
   out/fresh-start-artifact-backup/latest.json; receipts under research/run-logs.
   Newly produced remote checkpoints still need retrieval to checkpoints/ first.
-- Local log watchers currently follow trn21/wave70 and trn22/wave76,90rounds at
+- Local log watchers currently follow trn21/wave70 and trn22/wave77,90rounds at
  45seconds. Repoint when the active remote worktree changes. Only stop exact
   owned watcher PID/UID/cwd/argv/startticks; remote training jobs are separate.
 
@@ -172,9 +179,3 @@ Closed kernel variants and profiling details are in the MLP spill, norm,
 embedding and optimizer notes. Smaller source-level buffers do not establish
 smaller caller allocation. Full-graph profiling remains mandatory before a
 component win can be treated as a whole-training speedup.
-
-Compact-table wave75 stops before execution at the installed predicated-copy
-scalar-source validator. Clean postflight; no numerical gate ran. The installed
-source unconditionally accesses src.shape despite documenting scalar support.
-The fix preloads one FP32 ones tile and keeps the original accuracy gates.
-Commit/deploy this fix before rerunning the small gate.
