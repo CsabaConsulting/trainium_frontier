@@ -1,7 +1,40 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 07:32 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 07:39 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
+
+## Current handoff: submission ready, full FP8 phase active — 2026-09-19 07:39 UTC
+
+- User's requested upload is submissions/dense6x1024_public0992851/train.py,
+  SHA25635c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2.
+  Paste the complete launch-command.txt line. All helpers are inline; upload
+  requires no research modules. Package plus complete validation is already
+  pushed in d46bdb7. Best public0.9928513116311253; independently cold-trained
+  package0.9938556748843932 over20,971,520tokens, charged1790.341476s. Both
+  rehearsal postflights are clean. No competition submission has been made.
+- Native control-r2 COMPLETE/clean07:35:36.482392, all four postchecks exact,
+  median488.701909ms, last loss5.126208782196045, free10,251,456,512B. Use this
+  control for comparison. The earlier reserve failure and recovery are retained.
+- trn21 ACTIVE: fs-w140-full-fp8-candidate-phase-r1, guardPID1392505,
+  started07:37:54.937632, clean preflight, immutable source140
+  2a6f267b443e262bb9d7955e06d539f603dc4edc. Same T1024/pack32/GA1, optimizer
+  ownership, data and seed. First full-GPT timing of four-product FP8 backward
+  with compiled dual weight preparation. Thirty timed steps follow five warmups;
+  require command0, clean health and four numerical postchecks before judging.
+  Phase JSON is ONE record containing a30-element steps list, not30 records.
+  Compare against control-r2, not its predecessor. No FP8 BPB claim yet.
+- trn22 is idle after the clean source129 public evaluation. Do not restart
+  its completed cold training or evaluation. trn21 watcher follows140 and is
+  active; trn22's129 watcher may expire, but scheduled backups discover all jobs.
+- If the full-GPT FP8 result disappoints, the next bounded source audit is in
+  fresh-start-full-fp8-mlp-diagnosis-2026-09-19.md: determine whether discarded
+  BF16 activation/weight outputs still cause writes in the actual compiled
+  caller before adding a full-VJP-only save mode. No kernel change for this
+  idea has been made. Capacity guard/ownership issues have a separate note.
+- All five selected old trn21 checkpoint copies have now been retired with
+  local/cloud preservation intact. The one-off recovery must not be rerun.
+  Source142cf6c12b/snapshot35c95cb pushed and verified07:33:16; newer status and
+  final phase records are covered by the next explicit/scheduled backup.
 
 ## Research host recovery complete; clean control repeat — 2026-09-19 07:32 UTC
 

@@ -1,6 +1,6 @@
 # Complete FP8 MLP: component gains and full-model validation
 
-Updated 2026-09-19 07:18 UTC. The original profile below identified online
+Updated 2026-09-19 07:39 UTC. The original profile below identified online
 weight preparation as a concrete cost. Both proposed preparation changes have
 now been implemented and gated; the original profile is retained as evidence.
 
@@ -22,6 +22,16 @@ now been implemented and gated; the original profile is retained as evidence.
   and clean host protocol. The phase timer clips before reduction in both arms;
   the production quality loop clips after reduction. A component gain is not
   yet a whole-model gain or a BPB result.
+
+The native source140 control-r1 passed all numerical gates but failed the final
+8GiB disk reserve. Its 489.273ms median remains a diagnostic. After verified
+retirement of five old checkpoint copies (all preserved locally/cloud), a fresh
+control-r2 finished clean at 07:35:36: **488.702ms**, last loss5.126208782196045,
+all four postchecks passed. The paired full-FP8 candidate started 07:37:54 on
+the same source and host; use control-r2 when its result arrives. The cleanup's
+first attempt hit a no-overwrite audit-log error after two retirements; the
+failure and original intent are retained. Explicit recovery completed the
+remaining three with uniquely numbered progress records and clean health.
 
 Evidence: run-logs/fs-w132-fp8-compiled-cache-component-r1.log,
 run-logs/fs-w135-fp8-compiled-cache-pack32-component-r1.log,
