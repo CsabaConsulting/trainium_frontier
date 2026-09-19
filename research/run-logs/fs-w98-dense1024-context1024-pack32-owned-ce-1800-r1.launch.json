@@ -1,0 +1,23 @@
+{
+  "label": "fs-w98-dense1024-context1024-pack32-owned-ce-1800-r1",
+  "started_at": "2026-09-19T02:44:39+00:00",
+  "hostname": "ip-172-31-32-253",
+  "git_commit": "1da6c0714c0755fd3b078e972fbb0aefbb43bf6d",
+  "git_dirty": true,
+  "source_dirty": false,
+  "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 research/scratch/fresh_start_train.py --num-steps 1000000 --max-train-seconds 1800 --out-dir out/fs-w98-dense1024-context1024-pack32-owned-ce-1800-r1 --eval-tokens 2097152 --depth 6 --n-embd 1024 --seed 42 --compile-muon --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --eval-seq-len 1024 --pack-factor 32 --clip-after-reduce --experimental-native-mlp --experimental-optimizer-ownership --seq-len 1024 --experimental-adaptive-ce",
+  "description": "Dense6x1024 T1024 pack32/GA1 after3.16percent complete-step gain, nativeMLP paddedownership adaptiveCE, seed42 clipafter",
+  "entrypoint": "research/scratch/fresh_start_train.py",
+  "environment": {
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+    "research/scratch/fresh_start_train.py": "9ec94a4b20a4ddcfa68f6ae52056a952d602b582b217d5d96746b9af5d5c70d1"
+  }
+}

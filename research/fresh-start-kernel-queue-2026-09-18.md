@@ -14,8 +14,10 @@ Caller attribution/corrected source97 reports remain preserved.
 Source98 reciprocal-refined AdamW plus ownership passes24 exact composition
 checks. Whole step497.650549 versus503.328809ms (1.12814%); optimizer23.619889
 versus26.362835ms. Below3%: keep for combinations, no standalone quality run.
-trn22 now tests pack32/GA1 against the same-source pack16/GA2 control, keeping
-T1024 and131072 global targets/update. Watcher98.
+Pack32/GA1 whole step completes clean:487.405374 versus503.328809ms pack16/GA2,
+3.16362% gain with T1024 and131072 global targets/update. All four postchecks pass.
+trn22 now runs the1800s seed42/no-ngram quality comparison, preserving clip-after
+and the existing winning arithmetic. Watcher98; no BPB result yet.
 
 Source99 fused head/CE forward passes preceding projection/loss cases but fails
 strict nonnegative loss on a confident target. It matches the original kernel
@@ -23,7 +25,10 @@ exactly, including its tiny negative result. Source100 proves fused affine
 centering against the rounded target bias causes the original negative values;
 all10 diagnostic cases match. Retain the failed wave99 sign assertion. Source101
 requires exact original signs/values, retains negativity diagnostics, and changes
-no math or numerical bounds. trn21 clean;14fixture rerun pending, watcher100.
+no math or numerical bounds. All14 fixtures and actual-row gates now pass.
+Forward-only native12.819835ms versus fused16.254153ms including transpose and
+saves (26.79% slower). Profile native/transpose/fused phases before another
+layout; no backward or quality promotion. trn21 clean, watcher101.
 
 Measured FP8 progress and the BF16 layout reversal are summarized at the top of
 `fresh-start-results-2026-09-18.md`. No FP8 quality gain is established.
@@ -35,7 +40,7 @@ Current next actions, in dependency order:
 | Separate compiled FP8 MLP region | Integration passes; whole step loses24.08% to native | Include launch/cache/gradient costs; require at least3% whole-step gain before quality |
 | Reciprocal refinement plus optimizer ownership | Composition passes; whole step gains1.13%, below3% | Exact owned-versus-replicated same-math weights/states/rank exchange/cache/restore; then fresh paired whole-step timing |
 | FP8 gradient scale sharing | Algebra and contracts recorded in backward design; not implemented | Independent quantizer/FP64 stage gates, then all four gradient products with all packing charged |
-| Fused vocabulary head and exact loss | Original sign failure diagnosed; exact-reference14fixture gate prepared | Preserve original FP32 head accumulation and all gradient terms; profile complete caller |
+| Fused vocabulary head and exact loss | 14fixtures and actual-row gates pass; forward loses26.79%; profile prepared | Preserve original FP32 head accumulation and all gradient terms; profile complete caller |
 | Smaller range-reduced tables / rational composed functions | Design candidates; full-value LUT and standalone polynomial timings lost | Benchmark the full producer/consumer pipeline after accuracy/range gates |
 
 | Item | State | Next action / evidence |

@@ -4,7 +4,8 @@ Updated 2026-09-19. These are proposed extensions, not measured full-FP8 gains.
 The packed mixed-precision component uses actual FP8 forward GEMMs and BF16
 backward:15.957811 ms versus15.625856 ms native, a2.1244% isolated loss. Model
 integration passes but whole-model timing loses17.7363% (587.956385 versus
-499.384107 ms). Caller traces are next. Both FP8 incoming-gradient dots now
+499.384107 ms). Caller traces/ingestions/analyses are complete and preserved;
+ordinary Linear source shows the largest extra spills and engine time. Both FP8 incoming-gradient dots now
 pass9 independent cases but gain only0.56–1.65% with incremental packing charged.
 Fused FP8 data backward passes9 cases and matches the separate FP8 algorithm;
 6.205545 ms versus5.505396 ms BF16 is12.72% slower. No autograd or FP8
@@ -142,11 +143,13 @@ training work and must not become prediction-time state or validation calibratio
 
 ## Compiler-scope diagnostic
 
-A separate fullgraph-compiled MLP variant is prepared after the17.74% whole-model
-regression. It retains the same packed forward and BF16 surrogate backward,
-master-gradient paths and once-per-update caches. The actual Linear integration
-gate must pass before its phase run. This is a possible response to caller-level
-layout/allocation evidence; it does not claim that graph separation is faster.
+A separate fullgraph-compiled MLP variant passed both real-Linear integration
+widths, including master-gradient/cache/restore checks. Source95 full-model
+comparison is complete: native499.641620ms, monolithic FP8586.422830ms, separate
+FP8619.975017ms. All clean; separation adds5.72% over monolithic and24.08% over
+native, so this strategy is rejected for speed. Last losses differ; no
+full-model bitwise equivalence is claimed. The original spill lead remains an
+attribution, not proof of the tensor or of a successful remedy.
 
 ## Share backward quantization using activation-scale transfer
 

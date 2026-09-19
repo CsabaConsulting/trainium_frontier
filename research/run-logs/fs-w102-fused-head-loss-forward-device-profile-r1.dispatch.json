@@ -1,0 +1,39 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave102",
+    "expected_commit": "06efa2d82060614cdd048d5804a4e0e5ba1114fa",
+    "label": "fs-w102-fused-head-loss-forward-device-profile-r1",
+    "purpose": "Attribute measured26.79percent forward-only head/CE regression after14fixture and actual-row gates. Capture native forward, charged transpose and fused forward, preserving all binary/trace identities. No backward, whole-model timing or quality promotion.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave102"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/head_loss_fused_profile.py",
+      "--trace-dir",
+      "out/fs-w102-fused-head-loss-forward-device-profile-r1"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/head_loss_fused_profile.py",
+      "research/scratch/head_loss_fused_nki.py",
+      "research/scratch/softcap_ce_parallel_nki.py",
+      "research/scratch/preserve_native_trace_neffs.py"
+    ]
+  },
+  "requested_at": "2026-09-19T02:46:56.654224+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w102-fused-head-loss-forward-device-profile-r1\", \"pid\": 1271289, \"commit\": \"06efa2d82060614cdd048d5804a4e0e5ba1114fa\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave102/research/run-logs/fs-w102-fused-head-loss-forward-device-profile-r1.log\", \"started_at\": \"2026-09-19T02:47:02.962333+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

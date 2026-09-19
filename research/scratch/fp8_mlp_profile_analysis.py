@@ -67,6 +67,8 @@ def main():
     parser.add_argument('--trace', type=Path, required=True)
     parser.add_argument('--parquet', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--source-pattern', default='fp8_mlp_',
+                        help='NKI source substring for per-line attribution; defaults to the FP8 MLP')
     args = parser.parse_args()
     pa.set_cpu_count(4)
     root = next(args.parquet.glob('*nc_0_session_0'))
@@ -110,8 +112,10 @@ def main():
         transpose = part.filter(pc.fill_null(pc.equal(part['tensor_instruction_type'], 'TRANSPOSE'), False))
         compiler_transpose = transpose.filter(pc.fill_null(pc.match_substring(
             transpose['nki_source_location'], 'private_nkl/transpose.py'), False))
-        fp8 = part.filter(pc.fill_null(pc.match_substring(part['nki_source_location'], 'fp8_mlp_'), False))
-        source = dict(top=top_groups(fp8, ['nki_source_location'], lo, hi, limit=18)) if len(fp8) else None
+        source_rows = part.filter(pc.fill_null(pc.match_substring(
+            part['nki_source_location'], args.source_pattern), False))
+        source = (dict(top=top_groups(source_rows, ['nki_source_location'], lo, hi, limit=18))
+                  if len(source_rows) else None)
         ops = part.group_by(['engine', 'opcode']).aggregate([
             ('duration_ns', 'sum'), ('start_ts', 'count'),
             *[(field, 'sum') for field in COUNTERS]])
@@ -130,7 +134,7 @@ def main():
     schema = [row for row in pq.read_table(root / 'SchemaFields.parquet').to_pylist()
               if (row['table_name'] == 'Instruction' and row['field_name'] in COUNTERS)
               or row['table_name'] == 'SbufUsage']
-    report = dict(trace=str(args.trace), parquet=str(root),
+    report = dict(trace=str(args.trace), parquet=str(root), source_pattern=args.source_pattern,
                   all_runtime_dispatches_match_ingested_binaries=True,
                   executions=executions, forward_analyses=analyses,
                   warnings=pq.read_table(root / 'Warning.parquet').to_pylist(),

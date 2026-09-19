@@ -178,3 +178,19 @@ errors as diagnostics. This corrects the test contract after independent stage
 evidence; it does not change either kernel, add tolerances, clamp losses or
 relax the FP32 projection bound. Both widths and all14 fixtures must complete
 before a forward-only timing run; backward still has no integration.
+
+
+## Source101 forward result
+
+All14 fixtures pass exact CE/row/repetition/input checks, and native FP32
+accumulation eligibility remains true. Tiny negative reference losses remain
+explicitly reported. Gate clean02:41:17. Actual16384x1024x8192 projection and
+frozen-CE checks also pass. Two native forwards cost12.81983483ms; one transpose
+plus two fused forwards costs16.25415267ms,26.7891% slower. Component run ends
+clean02:42:38. No backward/autograd integration or quality promotion follows.
+
+`head_loss_fused_profile.py` captures native forward, actual weight transpose
+and fused forward independently, preserving all binary/trace identities. Use
+this to attribute Tensor/DMA/Scalar activity and spills before claiming the
+streamed weights or row tile cause the loss. Saved-u and larger shared-weight
+token tiles remain candidates, not speed results.

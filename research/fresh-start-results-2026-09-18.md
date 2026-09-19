@@ -70,8 +70,9 @@ Compact full-value tables passed accuracy but lost19.04x. Stronger rsqrt
 corrections and standalone exponential polynomials also lost timing. Reciprocal
 refinement plus optimizer ownership passes24 exact composition checks. Whole
 step497.650549 versus503.328809ms gains1.12814%, below3%; keep for combinations.
-It is absent from the best quality run. Source98 pack32/GA1 is currently testing
-with the same131072 global targets per update as pack16/GA2.
+It is absent from the best quality run. Source98 pack32/GA1 gains3.16362%
+(487.405374 versus503.328809ms), retaining131072 global targets/update. All four
+postchecks pass; the1800s quality comparison is now launched. No BPB claim yet.
 
 Current requests and recovery steps are in `RESUME.md` and the kernel queue.
 
