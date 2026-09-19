@@ -1,7 +1,33 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 08:20 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 08:26 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
+
+## Both source140 caller profiles active — 2026-09-19 08:26 UTC
+
+- trn21 ACTIVE `fs-w140-full-fp8-pack32-micro-device-profile-r1`, guard PID
+  1404853, started 08:25:23.258911; clean preflight on immutable source140.
+- trn22 ACTIVE `fs-w140-native-pack32-micro-device-profile-r2`, guard PID
+  1738521, started 08:25:04.208775; clean preflight on the same source140.
+- Native profile-r1 failed during warmup with NRT1204 software notification
+  queue overflow. No numerical/profile result. Automatic postflight is clean,
+  command 1, no leftover workers/device holders. The added global DGE-notification
+  flag is the leading hypothesis. r2 removes only that optional environment
+  flag; the model, compiler flags, data and shape are unchanged. The candidate
+  profile also uses the previous working native-profiler settings. Do not claim
+  exact DMA traffic when the resulting schema/diagnostics lacks that evidence.
+- Maintenance `fs-maintenance-nki-scratch-trn21-20260919-r1` COMPLETE/clean at
+  08:24:39.373976. All 8,926 original files / 17,183,487,985 bytes were verified
+  in the 714,780,213-byte local archive and current GitHub assets before remote
+  copies were retired. Free disk 8,221,212,672 -> 25,478,021,120 bytes. Shared
+  caches and newest candidate compile were excluded. Receipt and original
+  failed candidate postflight are retained; do not rerun the retirement.
+- Retrieve and preserve both profiles only after command 0 / clean postflight
+  and four numerical postchecks. Then ingest their exact runtime/NEFF identities
+  before judging unused BF16 writes, ordinary Linear spills or precision changes.
+  The previous 3% isolated MLP gain is still not a whole-model win.
+- Source/status commit `e6e03a0` and snapshot `4d132690` pushed and ref-verified
+  at 08:19:29. New profile/maintenance records need the next regular backup.
 
 ## Resume kernel investigation after submission handoff — 2026-09-19 08:20 UTC
 

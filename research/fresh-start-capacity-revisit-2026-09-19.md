@@ -2,11 +2,21 @@
 
 This is a source-audit follow-up, not a new BPB result. The frozen standalone
 submission remains source129, reproducing source98 public BPB0.9928513116311253.
-The immediate priority is completing its cold training and evaluation rehearsal.
+The cold training and evaluation rehearsal passed. The caller-profile diagnosis
+remains active; capacity preparation proceeds independently of the frozen package.
+
+The research installer now scopes the resident-SBUF assertion to the NKI forward
+backend. Native installation can reach its actual compiler at width1152/1280;
+all module/parameter/shape/cache assertions are retained. The existing full
+Linear integration gate accepts `--real-channels` (default1024), so the same
+cached/uncached, accumulated-gradient and evaluation/checkpoint checks can be
+applied at a new width. This is source preparation only, with no new-width
+hardware or BPB claim. Actual optimizer-group measurements are still required
+before assigning owners for a wider model.
 
 ## Two implementation restrictions can bias a future width comparison
 
-`research/scratch/mlp_fused_integration.py:install` applies its 24MiB SBUF
+The original `research/scratch/mlp_fused_integration.py:install` applied its 24MiB SBUF
 estimate to both `forward_backend="nki"` and `forward_backend="native"`.
 The native path calls the ordinary Torch forward and the custom backward; it
 does not require both complete weight matrices to reside in NKI SBUF. At a
