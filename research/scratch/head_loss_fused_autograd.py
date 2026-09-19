@@ -7,7 +7,7 @@ it does not claim equality to eager BF16-rounded Linear logits.
 """
 
 
-def loss_factory():
+def loss_factory(save_softcap=False):
     import torch
     from torch_neuronx import wrap_nki
     from head_loss_fused_nki import build_kernel
@@ -19,7 +19,7 @@ def loss_factory():
     class CachedHeadLoss(torch.autograd.Function):
         @staticmethod
         def forward(ctx, x, weight, target):
-            z, loss, lse = forward[2](x, weight.T.contiguous(), target, 2, True, True)
+            z, loss, lse = forward[2](x, weight.T.contiguous(), target, 2, True, True, save_softcap)
             ctx.save_for_backward(x, weight, z, target, lse)
             return loss.reshape(-1)
 
@@ -27,7 +27,7 @@ def loss_factory():
         def backward(ctx, gradient):
             x, weight, z, target, lse = ctx.saved_tensors
             dz = backward[2](z, target, lse,
-                             gradient.reshape(-1, 1).float().contiguous(), 2, True)
+                             gradient.reshape(-1, 1).float().contiguous(), 2, True, save_softcap)
             # Original BF16 Linear boundary; the weight-cache cast returns
             # this gradient to its FP32 master through normal autograd.
             return dz @ weight, dz.T @ x, None
