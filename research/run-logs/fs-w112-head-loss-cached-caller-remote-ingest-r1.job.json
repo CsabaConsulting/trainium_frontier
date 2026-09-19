@@ -1,0 +1,40 @@
+{
+  "host": "trn21",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave112",
+  "expected_commit": "5abe6708fbc29ff9c1ec5f0d0ca2c9e58f96a5ec",
+  "label": "fs-w112-head-loss-cached-caller-remote-ingest-r1",
+  "purpose": "CPU-only cached-head caller trace ingestion after37.79percent full-step regression. Hash raw files before/after, preserve binaries, bounded memory/threads, same host cleanup protocol. Not a device speed measurement.",
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1",
+    "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave112",
+    "GOMEMLIMIT": "24GiB",
+    "GOMAXPROCS": "4"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1200s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "-c",
+    "import pathlib,os,hashlib,subprocess,json,time\nroot=pathlib.Path.cwd()\nsource=pathlib.Path('/home/ubuntu/trainium_freshstart_20260918_wave112/out/fs-w112-head-loss-cached-micro-device-profile-r1')\nstage=root/('out/'+'fs-w112-head-loss-cached-caller-remote-ingest-r1'+'-input')\noutput=root/('out/'+'fs-w112-head-loss-cached-caller-remote-ingest-r1'+'-parquet')\npost=json.loads((root/'research/run-logs/fs-w112-head-loss-cached-micro-device-profile-r1.postflight.json').read_text())\nassert post['host_clean'] and post['command_returncode']==0\nassert source.is_dir() and not stage.exists() and not output.exists()\ndef digest(p):\n with p.open('rb') as f: return hashlib.file_digest(f,'sha256').hexdigest()\nfiles=sorted(p for p in source.rglob('*') if p.is_file())\nassert files and all(not p.is_symlink() for p in files)\nbefore={str(p.relative_to(source)):digest(p) for p in files}\nstage.mkdir(parents=True)\nfor p in files:\n target=stage/p.relative_to(source);target.parent.mkdir(parents=True,exist_ok=True);os.link(p,target)\nneffs=list(stage.rglob('*.neff'))\nfor trace in list(stage.rglob('*.ntff')):\n for neff in neffs:\n  target=trace.parent/neff.name\n  if not target.exists(): os.link(neff,target)\n  elif target.stat().st_ino!=neff.stat().st_ino: assert digest(target)==digest(neff)\ncommand=['/opt/aws/neuron/bin/neuron-explorer','view','--session-dir',str(stage),'--ingest-only','--output-format','parquet','--output-file',str(output)]\nprint('INGEST_START '+json.dumps({'source':str(source),'stage':str(stage),'output':str(output),'command':command,'raw_preserved':True,'source_sha256':before}),flush=True)\nstart=time.monotonic();completed=subprocess.run(command,cwd=stage)\nafter={str(p.relative_to(source)):digest(p) for p in files}\nassert before==after\nprint('INGEST_COMPLETE '+json.dumps({'returncode':completed.returncode,'seconds':time.monotonic()-start,'tables':len(list(output.rglob('*.parquet'))),'raw_hashes_unchanged':True,'instruction_files':[(str(p),p.stat().st_size) for p in output.rglob('Instruction.parquet')]}),flush=True)\nraise SystemExit(completed.returncode)\n"
+  ],
+  "fingerprint_paths": [],
+  "started_at": "2026-09-19T03:42:53.073054+00:00",
+  "hostname": "ip-172-31-34-85",
+  "git_commit": "5abe6708fbc29ff9c1ec5f0d0ca2c9e58f96a5ec",
+  "source_dirty": false,
+  "preflight_free_bytes": 9148878848,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+    "research/fresh_start_host.py": "8c597adea7c48114bed8f50aa161fdc79b36b49c86c7315e6a58c3ca4e8f5f79",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/fresh_start_backup.py": "c978fd20b6620d0d80c25f8982974e8c4b2ad009edd9da376d784f5cecc3ead3"
+  }
+}

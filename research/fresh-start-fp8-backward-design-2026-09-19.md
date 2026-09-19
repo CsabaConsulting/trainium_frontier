@@ -269,3 +269,35 @@ summed operand-panel width versus256x2048. Each switch is tested separately
 before composition. All independent pair/quantizer checks and exact original
 calibration/product comparisons remain; no new numerical tolerance or claimed
 quality gain. No forward saved-byte or shared-gradient cost is made free.
+
+
+## Source113 scheduling and panel experiments, 2026-09-19 03:44 UTC
+
+All three component experiments pass the unchanged10cases, original FP8 product
+comparison, independent quantizer/pair bounds and clean host checks. Independent
+calibration tiles alone give down1.909484/up3.167645ms; native1.090103/1.108476ms.
+Balanced512x1024 panels give down1.909761/up2.530159ms; native1.097864/1.083665ms.
+Combining both gives down1.885640/up2.515716ms; native1.114084/1.086046ms. None
+wins the full charged component. Do not add isolated stage times as if they were
+the same compiled pipeline. The combined prepared products are0.841978/0.813016ms,
+while current-gradient calibration is0.335195/1.167815ms. Calibration and both
+byte preparations remain charged; forward scale stores and shared data gradients
+are still absent. This motivates exact calibration work, not a quality claim.
+
+Three exact amax alternatives are now prototyped: BF16 sign masking before max,
+unsigned magnitude-code maximum with a final BF16 decode, and VectorEngine fused
+abs/max (tensor_scalar_reduce). The installed NKI0.5 signature/docs explicitly
+support the latter unary abs and maximum reduction; device compilation is still
+a gate. CPU ordering certification covers65280finite encodings but cannot prove
+hardware subnormal behavior. The new device probe compares original and candidate
+metadata with the independent CPU scale policy, decoded quantizer outputs,
+repetition and input preservation, including pure subnormal tensors. Both real
+calibration shapes are timed only after every numerical case passes. No existing
+FP8 path selects these opt-in modes by default.
+
+Scale-transfer sharing still needs data-gradient-specific tests. Quantizing
+G/sH can discard rows with small hidden activations; multiplying a subsequent
+dHidden product by sH cannot restore those lost values. A small weight-gradient
+RMS error does not establish acceptable data gradients. Delayed state must be
+charged, device-resident, advanced only at optimizer boundaries, checkpointed
+and frozen for evaluation. These remain separate design candidates.
