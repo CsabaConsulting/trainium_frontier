@@ -1,7 +1,26 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 06:40 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 06:44 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
+
+## Compiled FP8 preparation completes; submission training continues — 2026-09-19 06:44 UTC
+
+- trn21 source13210946f008e5680d2071a93f36fd61dbf53dc3100 component
+  COMPLETE/clean: all8 cases, exact eager/compiled packed bytes/metadata/qdq,
+  native and FP8 complete outputs/gradients, updated and restored masters.
+  Cache prep1.006624→0.549580ms (45.40%); complete FP8 MLP15.863606→15.443611ms
+  (2.65%). Compiled native15.369117ms: FP8 still0.485%slower. No BPB promotion.
+- New prepared extension adds32768tokens/one microbatch, matching pack32.
+  Requires independent forward + all4 gradient product bounds at new shape,
+  not just compiled/eager self-comparison. Numeric gate retains two distinct
+  microbatches as an accumulation stress test; final timing uses requested one.
+- trn21 successful replay's redundant transfer copy retired after local/current
+  cloud/remote hashes; host lock held, clean, free9,107,853,312B at06:40:55.
+  Earlier retirement attempt failed before mutation by reading command status
+  from condensed state. Fix reads the full postflight; both records retained.
+- trn22 cold rehearsal remains active with finite loss at steady~0.49s/step.
+  Source1338aa2498 and snapshotdb3165e were verified on GitHub06:41:38.
+  Watchers trn21=132, trn22=129. Package source129 is unchanged.
 
 ## Standalone scorer replay exact; cold training underway — 2026-09-19 06:40 UTC
 
