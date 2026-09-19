@@ -1,0 +1,74 @@
+{
+  "label": "fs-w89-fp8-packed-mlp-integration-gate-r1",
+  "source_commit": "dcd6b80a4199339333d93a8e005aa746d3fd28d2",
+  "gates": [
+    {
+      "channels": 256,
+      "tokens": 512,
+      "cached_and_uncached": true,
+      "microbatches": 2,
+      "reference_updates": 4,
+      "exact_outputs_input_and_fp32_master_gradients": true,
+      "changed_cache_values": [
+        36762
+      ],
+      "training_padding_and_row_independence": true,
+      "native_eval_and_checkpoint_restore_exact": true,
+      "contract": {
+        "layers": [
+          0
+        ],
+        "training_forward": "legacy E4M3 packed up/down GEMMs",
+        "backward": "gated BF16 identity-surrogate VJP into FP32 masters",
+        "evaluation": "original BF16 MLP",
+        "cache_preparation": "ordinary timed Linear refresh",
+        "input_contract": "gain-free RMS norm, BF16, widths256/1024",
+        "short_input_policy": "zero-pad inside MLP to multiple512; discard padded rows"
+      },
+      "independent_algorithm_authority": "wave85 staged forward and FP64 surrogate bounds",
+      "whole_model_speed_or_quality_established": false,
+      "passed": true
+    },
+    {
+      "channels": 1024,
+      "tokens": 512,
+      "cached_and_uncached": true,
+      "microbatches": 2,
+      "reference_updates": 4,
+      "exact_outputs_input_and_fp32_master_gradients": true,
+      "changed_cache_values": [
+        1035417
+      ],
+      "training_padding_and_row_independence": true,
+      "native_eval_and_checkpoint_restore_exact": true,
+      "contract": {
+        "layers": [
+          0
+        ],
+        "training_forward": "legacy E4M3 packed up/down GEMMs",
+        "backward": "gated BF16 identity-surrogate VJP into FP32 masters",
+        "evaluation": "original BF16 MLP",
+        "cache_preparation": "ordinary timed Linear refresh",
+        "input_contract": "gain-free RMS norm, BF16, widths256/1024",
+        "short_input_policy": "zero-pad inside MLP to multiple512; discard padded rows"
+      },
+      "independent_algorithm_authority": "wave85 staged forward and FP64 surrogate bounds",
+      "whole_model_speed_or_quality_established": false,
+      "passed": true
+    }
+  ],
+  "result": {
+    "passed": true,
+    "real_width": true,
+    "full_fp8_backward": false,
+    "full_model_or_quality_promotion": false
+  },
+  "exact_checks_passed": 134,
+  "postflight": {
+    "command_returncode": 0,
+    "host_clean": true,
+    "failures": [],
+    "completed_at": "2026-09-19T01:20:21.792879+00:00"
+  },
+  "numerical_contract_unchanged": true
+}
