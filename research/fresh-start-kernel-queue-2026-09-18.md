@@ -26,6 +26,12 @@ numerical repair; there is no speed claim. The nominal BF16 arithmetic floor
 is already close to native component time, so broader FP8 projections/fusion
 remain higher-return follow-ups than endless BF16 tile sweeps.
 
+Source154 is now deployed and its four-step fixed queues started on both hosts
+at23:51:16UTC (plan commit5d1b419). Order: BF16 regression, FP32-value component,
+corrected boundary diagnostic, full-attention gates/timing. All stages require
+fresh cleanup and exact completion records; any failure stops advancement.
+These are finite queues, not an automatic quality-training sweep.
+
 Scope clarification: full FP8 here means the complete MLP forward/backward,
 not all transformer projections/attention/optimizer arithmetic. A broader
 FP8 region can still win despite the current MLP integration regression.

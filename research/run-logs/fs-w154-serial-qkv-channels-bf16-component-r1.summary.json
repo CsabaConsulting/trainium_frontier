@@ -1,0 +1,54 @@
+{
+  "label": "fs-w154-serial-qkv-channels-bf16-component-r1",
+  "source_commit": "ee1c7868c96bcf1b371ad81805ea90ec780f8a1f",
+  "completed_at": "2026-09-19T23:52:46.685479+00:00",
+  "command_returncode": 0,
+  "host_clean": true,
+  "log_sha256": "ff4918c0004ef4ab3a203cb8b24f8ceb97dbf82376edb6ebed405f3fc68d682b",
+  "postflight_sha256": "da4bb2d0bccf71cebce2fb5391b353fe82526632a28635ea7cf7b8a4d312df5f",
+  "result": {
+    "layout": "channels",
+    "cases": 9,
+    "passed": true,
+    "value_fp32": false,
+    "fp32_value_output_bounds": false,
+    "real_tokens": 32768,
+    "real_channels": 1024,
+    "independent_fp64_gates": true,
+    "lifecycle_passed": true,
+    "whole_model_or_quality_claim": false
+  },
+  "timing": {
+    "tokens": 32768,
+    "channels": 1024,
+    "steps_per_block": 10,
+    "value_fp32": false,
+    "native_control_returns_fp32_v": false,
+    "samples_ms": {
+      "native": [
+        4.694216599455103,
+        4.736561101162806,
+        4.7108314000070095,
+        4.706268897280097,
+        4.72233240143396
+      ],
+      "candidate": [
+        5.210398300550878,
+        5.1953935995697975,
+        5.224793200613931,
+        5.236837803386152,
+        5.1931529014837
+      ]
+    },
+    "median_ms": {
+      "native": 4.7108314000070095,
+      "candidate": 5.210398300550878
+    },
+    "improvement_pct": -10.604644024049037,
+    "includes_three_forward_six_backward_products": true,
+    "includes_fp32_master_cache_cast_and_accumulation": true,
+    "all_layout_and_dispatch_costs_timed": true,
+    "whole_model_or_quality_claim": false
+  },
+  "decision": "Original BF16 regression passed. Next precision-repair component is independently gated; no integration or quality promotion."
+}
