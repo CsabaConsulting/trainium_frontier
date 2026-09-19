@@ -1,0 +1,52 @@
+{
+  "label": "fs-w151-serial-qkv-tokens-component-r1",
+  "source_commit": "85addadd2ade1d0eb37fa9a5294b598bfe2ba9b4",
+  "host": "trn21",
+  "completed_at": "2026-09-19T23:27:15.574262+00:00",
+  "host_clean": true,
+  "command_returncode": 0,
+  "log_sha256": "bf23df226307edeb30182cdd0bb7312b233ef7ef28e28f5613d51d20f61760df",
+  "postflight_sha256": "e0b8b1097105b1211266725b7c090fe0552b9d2bdedd525448fee4f51f6e16ff",
+  "result": {
+    "layout": "tokens",
+    "cases": 9,
+    "passed": true,
+    "real_tokens": 32768,
+    "real_channels": 1024,
+    "independent_fp64_gates": true,
+    "lifecycle_passed": true,
+    "whole_model_or_quality_claim": false
+  },
+  "timing": {
+    "tokens": 32768,
+    "channels": 1024,
+    "steps_per_block": 10,
+    "samples_ms": {
+      "native": [
+        4.695780697511509,
+        4.695674101822078,
+        4.693417000817135,
+        4.69975050073117,
+        4.69759339466691
+      ],
+      "candidate": [
+        4.947630601236597,
+        4.956629598746076,
+        4.9473908031359315,
+        4.946431098505855,
+        4.946445801761001
+      ]
+    },
+    "median_ms": {
+      "native": 4.695780697511509,
+      "candidate": 4.9473908031359315
+    },
+    "improvement_pct": -5.358216702022767,
+    "includes_three_forward_six_backward_products": true,
+    "includes_fp32_master_cache_cast_and_accumulation": true,
+    "all_layout_and_dispatch_costs_timed": true,
+    "whole_model_or_quality_claim": false
+  },
+  "decision": "Numerically gated; slower than native complete projection component. Measure real attention caller before any full-model promotion.",
+  "whole_model_or_quality_claim": false
+}

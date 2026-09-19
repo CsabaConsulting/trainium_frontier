@@ -1,40 +1,43 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 23:15 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 23:33 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## Source148 complete; serial QKV kernels prepared — CURRENT
+## Serial QKV component gates complete; attention integration prepared — CURRENT
 
-- Live SSH checked both hosts at23:05:46UTC: no device holders or Neuron
-  processes, both device locks free, trn21 disk26.80GB and trn22 disk16.11GB.
-  Their bounded queues completed normally: trn21 at17:46:20UTC and trn22 at
-  18:04:16UTC. They have been idle for roughly five hours. The backup cron
-  preserved results but did not launch further experiments. Do not describe
-  a completed finite queue as continuing research or continuously busy hosts.
-- Source148 FP8 resident/direct-rank comparison is complete with clean
-  postflights and all four checks:564.075656ms versus561.903786ms (0.3850%
-  improvement), identical loss5.120891094207764. No promotion.
-- Source148 pack32 reciprocal/ownership gate passes all24 equivalence and
-  four composition records. Whole-step candidate487.780576ms versus same-host
-  native488.035319ms (0.0522% improvement), all four checks/clean. Optimizer
-  component26.761235 ->23.836373ms does not establish a full-step win. No
-  quality run or seed sweep; both candidates miss the3% threshold.
-- Source149 is being prepared: independent Q/K/V NKI projections, three
-  separate ordinary weights and contiguous outputs, native six-product VJP.
-  Token-stationary and weight-stationary layouts will each receive a native
-  control on their own host. Both charge all weight loads/transposes/stores.
-  Original parameter shapes/Muon states and serial attention remain intact.
-  The existing attention qkv argument provides the later integration boundary.
-- New component probe has independent FP64 bounds for forward/all six
-  gradients, negative controls, distinct streams, repeated calls/nonmutation,
-  row independence, changed weights and two-microbatch FP32 accumulation.
-  It gates32768x1024 before alternating complete component timings including
-  cache casts. Local AST passes; hardware correctness and speed are pending.
-  Actual attention integration and whole-model timing are still pending.
-- Last verified backup: source67d4e88, snapshotf760e360,23:00:49UTC, both
-  remote retrievals complete. Source148 completion summaries and source149
-  preparation need a deliberate source commit/push. Frozen matched public
-  best remains0.9928513116311253. No competition submission.
+- Source148 finite queues completed cleanly: FP8 direct-rank improvement0.385%
+  (564.075656 ->561.903786ms), reciprocal pack32 improvement0.052%
+  (488.035319 ->487.780576ms). Both below3% whole-step advancement gate.
+  No new quality run. Hosts were idle until work resumed during this turn;
+  the backup cron preserves work but does not select or launch experiments.
+- Source149 both layouts failed at NKI helper resolution: `kernel_assert` was
+  a closure symbol the installed parser could not resolve. Source150 made it
+  module-global and declared the nested helpers global, matching the working
+  MLP kernel pattern. Both then passed initial forward/all-gradient bounds but
+  stopped at a Python logger argument collision (`kind`). Source151 renames
+  that positional argument to `marker`; arithmetic and bounds are unchanged.
+  All failed attempts have clean postflights and preserved raw evidence.
+- Source151 (`85addadd`) is COMPLETE on both hosts: token layout clean
+  23:27:15UTC; channel layout clean23:27:37UTC. Both pass all9 independent
+  FP64 projection/all-six-gradient cases, master/cache refresh/accumulation,
+  repeat/nonmutation and stream/row independence, including32768x1024.
+  Alternating same-host complete component timings: tokens4.947391 versus
+  native4.695781ms (5.358% slower); channels5.208927 versus native4.714912ms
+  (10.478% slower). These are valid negatives, not speed/quality wins.
+- New attention adapter/gate is prepared locally. It uses the original
+  attention's qkv argument, preserves each Parameter and cache, keeps Q/K/V
+  contiguous for RoPE and retains native evaluation/checkpoint loading.
+  Prerequisite checks require the completed source151 postflight/results and
+  identical primitive/gate bytes. Attention tests cover cached/uncached
+  accumulation/refresh, distinct input/master gradients, exact causal/batch
+  independence and native restore, then real32x1024x1024 attention timing.
+  Local syntax/prerequisite checks pass. Hardware integration remains pending.
+  No full-model timing or30-minute quality promotion is authorized by these
+  component results alone. Read current dispatch/sequence records for activity.
+- Last verified backup at23:30:47UTC pushed source71350a2 and recovery
+  snapshotbac58753, both remote retrievals complete. New summaries/adapter
+  need the next source commit/push. Frozen matched public best remains
+  0.9928513116311253; no competition submission or seed sweep.
 
 ## FP8 output-rank timing and pack32 optimizer gates — 17:42 UTC
 

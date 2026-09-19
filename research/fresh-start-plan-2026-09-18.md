@@ -1,6 +1,6 @@
 # Fresh-start campaign — 2026-09-18
 
-**Current result, 2026-09-19 17:42 UTC:** best matched public BPB is
+**Current result, 2026-09-19 23:33 UTC:** best matched public BPB is
 **0.9928513116311253**, source98 dense 6x1024 with pack32/GA1, no ngrams and
 seed42. The frozen standalone source129 package reproduces those checkpoint
 logits exactly; an independent cold 30-minute rehearsal scored 0.9938556748843932
@@ -23,8 +23,9 @@ loss and all four checks. Source148 implements direct BxTxC output while
 preserving the same arithmetic, saves and four backward products. Its independent
 numerical/real-Linear gates passed with clean postflight on trn22. A fresh native
 control on trn21 is clean488.035319ms with four numerical postchecks. The fixed
-bounded trn22 resident-then-direct-rank comparison is running;
-source-matched numerical results and clean postflight gate every transition.
+bounded trn22 resident/direct-rank comparison completed cleanly:564.076 versus
+561.904ms, only0.385% improvement. Pack32 reciprocal is also complete at
+487.781 versus488.035ms, only0.052% improvement; neither is promoted.
 Ordinary BF16 Linear
 tiles shrink around FP8 in the observed profile; weight lifetime and output
 layout are separate follow-up hypotheses, not proven compiler causes.
@@ -41,7 +42,9 @@ its checkpoint is local/cloud verified, with no promotion. The kernel queue, cap
 and `RESUME.md` record the executable next steps and exact job identities.
 The competitive target remains about 0.9749; no seed sweep is planned.
 Serial QKV execution with unchanged Parameters/Muon states and contiguous
-RoPE inputs is queued separately from the older negative architecture trials.
+RoPE inputs now passes all component numerical/lifecycle gates. Both layouts
+are slower than native complete projections (5.358%/10.478%). The real-attention
+adapter and matched complete-caller gates/timing are the next bounded step.
 The user's dictionary/parser/classic-NLP ideas, active-venv dependency audit,
 20K-training-document structure sample and bounded alternative probability
 models are documented in `fresh-start-structured-priors-and-fp8-scope-2026-09-19.md`.
