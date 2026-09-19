@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 04:34 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 04:35 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
 ## Complete FP8 component and split-head controls — 2026-09-19 04:34 UTC
@@ -21,10 +21,14 @@ Use current manifests/postflights before dispatch; do not restart completed jobs
   quantizers/pair bounds, two different microbatches and cache refresh precede
   timing. All current casts/calibration/transposes/packing and accumulation are
   charged. The VJP is explicitly new; no original-BF16 equivalence or quality.
-  Prototype is prepared locally; inspect its eventual dispatch/postflight.
-- Source123/snapshot were explicitly pushed and remote-ref verified04:24:18.
+  trn22 ACTIVE `fs-w124-fp8-complete-mlp-component-r1` since04:33:36,
+  PID1661083, source34b6f24affcf03f421637a20bae62cda747af3e0. Both deployment
+  and preflight passed; watcher repointed122→124 at04:33:49. No result yet.
+- Source124/snapshot were explicitly pushed and remote-ref verified04:33:49:
+  source34b6f24affcf03f421637a20bae62cda747af3e0;
+  snapshotdffea9cd0dafec841be55478cbcba9cda3566299.
   All52 heavy assets were GitHub-digest verified04:10:10 with zero errors.
-  Both host watchers continue123/122. Canonical best remains0.9928513116311253.
+  Both host watchers continue123/124. Canonical best remains0.9928513116311253.
 
 ## Separate precision variant — 2026-09-19 04:20 UTC
 
