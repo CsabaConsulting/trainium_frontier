@@ -1,0 +1,16 @@
+{
+  "label": "fs-w143-native-mlp-widths1024-1152-integration-r1",
+  "guard_pid": 1408379,
+  "child_pid": 1408380,
+  "child_session": 1408380,
+  "started_at": "2026-09-19T08:32:10.855507+00:00",
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1800s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "-c",
+    "import subprocess,sys\nfor width in (1024,1152):\n print('WIDTH_GATE_START',width,flush=True)\n subprocess.run([sys.executable,'-u','research/scratch/mlp_fused_integration_check.py','--forward-backend','native','--real-shape','--real-tokens','32768','--real-channels',str(width),'--batch-size','32','--require-compiled'],check=True)\n"
+  ]
+}

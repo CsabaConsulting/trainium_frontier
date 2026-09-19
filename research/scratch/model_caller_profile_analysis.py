@@ -127,6 +127,10 @@ def main():
         for name, match in (
                 ('fp8_forward', 'fp8_mlp_token_rows_nki.py'),
                 ('fp8_surrogate', 'fp8_mlp_island_autograd.py'),
+                ('fp8_data_backward', 'fp8_mlp_data_backward_nki.py'),
+                ('fp8_gradient_prepare', 'fp8_gradient_prepare_nki.py'),
+                ('fp8_weight_gradient', 'fp8_weight_gradient_nki.py'),
+                ('fp8_dual_weight_cache', 'fp8_dual_weight_cache_nki.py'),
                 ('bf16_mlp', 'mlp_fused_bf16.py'),
                 ('softcap_ce', 'softcap_ce_parallel_nki.py'),
                 ('cached_head', 'head_loss_fused_nki.py'),

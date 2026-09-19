@@ -10,9 +10,25 @@ backend. Native installation can reach its actual compiler at width1152/1280;
 all module/parameter/shape/cache assertions are retained. The existing full
 Linear integration gate accepts `--real-channels` (default1024), so the same
 cached/uncached, accumulated-gradient and evaluation/checkpoint checks can be
-applied at a new width. This is source preparation only, with no new-width
-hardware or BPB claim. Actual optimizer-group measurements are still required
+applied at a new width.
+
+Source143 (`2f826dc2e8ae244f67e91e128e6692b52b99cddc`) passed the actual
+pack32/T1024 gate for both1024 and1152 channels. Both runs assert compiled
+execution and cover cached/uncached accumulated FP32 master gradients, two
+updates, exact native evaluation and strict checkpoint restoration. They retain
+the existing numerical bounds; no tolerance was changed. The combined job
+`fs-w143-native-mlp-widths1024-1152-integration-r1` completed command0 with clean
+postflight at08:35:45.433370UTC. This establishes supported MLP behavior, not
+whole-model speed or BPB. Actual optimizer-group measurements are still required
 before assigning owners for a wider model.
+
+`scratch/optimizer_group_cost_probe.py` now derives its complete parameter-group
+inventory from an exact recorded `PROFILE_CONFIG`, changing only the requested
+width. A device invocation measures one actual group or an explicit prefix,
+including native stacking/copies/update and optional singleton padding. The
+synthetic fixed-gradient measurements do not change the ownership planner or
+replace its exact numerical/state/collective gates. Hardware cost measurements
+are pending; no new width costs have been inserted into the planner.
 
 ## Two implementation restrictions can bias a future width comparison
 
