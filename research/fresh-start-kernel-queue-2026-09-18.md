@@ -414,3 +414,22 @@ before measurement; paired exactness is reported separately, not fitted.
 The installed gradient-only loss adapter also passes its 32 exact head cases.
 A fresh full-step control completed clean, and the paired candidate is active.
 No step-speed or quality conclusion is available until that comparison finishes.
+
+## 2026-09-19 01:12 UTC: full-step CE decision and packed FP8 attribution
+
+Wave85 head-gradient-only CE keeps original FP32 logits and passed all32 exact
+head gates. Its same-source four-rank phase finished clean: median complete step
+497.864910ms versus500.517682ms, a0.5300% improvement. All four finite/causality/
+batch/repetition postchecks pass and last loss is identical5.0649232864. This
+misses the predeclared3% advancement gate; park for a later compatible combination,
+with no dedicated quality run and no complete parameter-equality claim.
+
+Wave86 native BF16 token-row component gate is active on trn22, source03a9d902.
+On trn21, add a trace of the already-gated packed FP8 consumer/cache refresh.
+This is attribution, not a replacement for the unprofiled wave85 timing. The
+next model wrapper must preserve FP32 master identities, charge all cache work,
+pass updated-cache/accumulation/restore tests, and check FP8 training row
+independence even though checkpoint evaluation intentionally uses native BF16.
+
+Source03a9d902 and recoveryfbd7f48a were verified on GitHub at01:10:40 UTC.
+All41 inventoried heavy artifacts verified by01:05:25, with no errors.
