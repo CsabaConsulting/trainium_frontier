@@ -1,0 +1,40 @@
+{
+  "host": "trn22",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave148",
+  "expected_commit": "60f5374bece8714e2bf2a13212a91ba953201074",
+  "label": "fs-w148-fp8-output-rank-gates-r1",
+  "purpose": "Correctness-only direct BxTxC opaque output. Resident compact FP8 arithmetic, scales, saved tensors and all four backward products are unchanged. All eleven original independent cases include real32x1024x1024 output, exact retained bytes/gradients, followed by real-Linear cached/uncached master updates, accumulation, padding/row independence and native evaluation/checkpoint restoration. No relaxed tolerance or performance claim.",
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1",
+    "NEURON_RT_VISIBLE_CORES": "0",
+    "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+    "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave148"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1800s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "-c",
+    "import sys,subprocess,json\nsubprocess.run([sys.executable,'-u','research/scratch/fp8_compact_forward_saves_probe.py','--real-shape','--real-tokens','32768','--preserve-output-rank'],check=True)\nsubprocess.run([sys.executable,'-u','research/scratch/fp8_full_mlp_integration_check.py','--real-width','--compact-forward-saves','--preserve-output-rank'],check=True)\nprint('OUTPUT_RANK_GATES_COMPLETE '+json.dumps(dict(independent_numerical_gate=True,real_linear_integration_gate=True,whole_model_phase_pending=True)),flush=True)\n"
+  ],
+  "fingerprint_paths": [
+    "research/scratch/fp8_mlp_token_rows_nki.py",
+    "research/scratch/fp8_complete_mlp_autograd.py",
+    "research/scratch/fp8_compact_forward_saves_probe.py",
+    "research/scratch/fp8_full_mlp_integration.py",
+    "research/scratch/fp8_full_mlp_integration_check.py",
+    "research/scratch/fp8_complete_mlp_probe.py",
+    "research/scratch/fp8_mlp_data_backward_nki.py",
+    "research/scratch/fp8_gradient_prepare_nki.py",
+    "research/scratch/fp8_weight_gradient_nki.py",
+    "research/scratch/fp8_rms_scale_contract.py",
+    "research/scratch/fp8_dual_weight_cache_nki.py",
+    "research/scratch/phase_timer.py"
+  ]
+}

@@ -1,7 +1,9 @@
 # Revisit QKV execution while preserving the trained model
 
 Design candidate,2026-09-19. No implementation or speed/quality result yet.
-The active compact-FP8 comparison and width1152 gates take priority.
+The active FP8 output-rank numerical/comparison sequence takes priority.
+The width1152 quality trial is complete and lost its matched public comparison;
+no capacity or seed sweep blocks this kernel candidate.
 
 The older fused-QKV trial is a valid negative for its exact implementation.
 `trn2-experiment-results.md` records206 versus240 steps and worse BPB because

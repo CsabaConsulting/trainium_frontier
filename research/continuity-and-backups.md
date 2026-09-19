@@ -102,6 +102,21 @@ two-ref pushes and readback. Neither the active HEAD nor the real index changed.
 
 ## Routine research checkpoints
 
+`fresh_start_sequence.py` can also run a fixed, previously reviewed list of
+one to four requests independently of the GUI. It is separate from cron. The
+source148 plans adopt the already launched device jobs; trn22 then runs the
+prepared resident/direct-output-rank comparison, while trn21 finishes its
+single native control. Request, plan and helper hashes are checked before
+actions. A subsequent request requires source-matched clean postflight and
+every explicit numerical completion marker; failure, an ambiguous launch,
+changed source instructions or the local deadline stops advancement. Each
+remote job retains its own timeout, host-wide lock and cleanup guard. There is
+no automatic retry, new experiment selection or quality promotion. Detached
+local processes need the local computer/network to remain available and are
+not reboot-persistent services. Their launch/state receipts and logs live in
+`research/run-logs/`; inspect those plus remote postflights before resuming.
+This does not change either user cron entry or Git merging behavior.
+
 Before deployment, commit the exact source. After a job completes, synchronize
 its evidence with `fresh_start_sync.py`, update the results note and `RESUME.md`,
 commit and push the research branch. The10minute recovery branch bounds lost
