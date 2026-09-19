@@ -43,8 +43,12 @@ and `RESUME.md` record the executable next steps and exact job identities.
 The competitive target remains about 0.9749; no seed sweep is planned.
 Serial QKV execution with unchanged Parameters/Muon states and contiguous
 RoPE inputs now passes all component numerical/lifecycle gates. Both layouts
-are slower than native complete projections (5.358%/10.478%). The real-attention
-adapter and matched complete-caller gates/timing are the next bounded step.
+are slower than native complete projections (5.358%/10.478%). The first real-attention
+gate exposed a V+VE rounding discrepancy. Partial replacements isolate it to V
+at widths256/1024. Source154 retains the FP32 V accumulator through VE and has
+active four-stage queues for old BF16 regression, strict new FP32-value gates,
+corrected boundary diagnostics and the original full-attention gates/timing.
+No acceptance bound was relaxed; integration and speed remain pending.
 The user's dictionary/parser/classic-NLP ideas, active-venv dependency audit,
 20K-training-document structure sample and bounded alternative probability
 models are documented in `fresh-start-structured-priors-and-fp8-scope-2026-09-19.md`.

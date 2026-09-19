@@ -1,0 +1,46 @@
+{
+  "host": "trn21",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave154",
+  "expected_commit": "ee1c7868c96bcf1b371ad81805ea90ec780f8a1f",
+  "label": "fs-w154-serial-qkv-tokens-bf16-component-r1",
+  "purpose": "Original BF16 regression before precision repair.",
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_RT_VISIBLE_CORES": "0",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1800s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "/home/ubuntu/trainium_freshstart_20260918_wave154/research/scratch/serial_qkv_probe.py",
+    "--layout",
+    "tokens",
+    "--steps",
+    "10"
+  ],
+  "fingerprint_paths": [
+    "research/scratch/serial_qkv_nki.py",
+    "research/scratch/serial_qkv_probe.py"
+  ],
+  "started_at": "2026-09-19T23:51:22.364099+00:00",
+  "hostname": "ip-172-31-34-85",
+  "git_commit": "ee1c7868c96bcf1b371ad81805ea90ec780f8a1f",
+  "source_dirty": false,
+  "preflight_free_bytes": 25994346496,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+    "research/fresh_start_host.py": "8c597adea7c48114bed8f50aa161fdc79b36b49c86c7315e6a58c3ca4e8f5f79",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/fresh_start_backup.py": "c978fd20b6620d0d80c25f8982974e8c4b2ad009edd9da376d784f5cecc3ead3",
+    "research/scratch/serial_qkv_nki.py": "1919e1adb09bcdbe21e7ee01cd4879dc69d50884addd32e124e3e95da5796931",
+    "research/scratch/serial_qkv_probe.py": "b6529d9666231e96add7b9109139e9d34b63db771973d4fd44892ad34b01176c"
+  }
+}

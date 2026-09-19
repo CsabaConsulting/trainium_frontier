@@ -1,9 +1,9 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 23:48 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 23:53 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## Serial QKV retained-value precision fix prepared — CURRENT
+## Serial QKV precision-repair sequences active — CURRENT
 
 - Source153 diagnostics COMPLETE/clean: tokens/256 at23:41:41UTC, channels/1024
   at23:43:08UTC. Native preprojection, Q-only and K-only are exactly native at
@@ -17,7 +17,7 @@ Use current manifests/postflights before dispatch; do not restart completed jobs
   partial-replacement controls; that compile-context confound is retained.
   The next diagnostic makes those inputs differentiable. Do not infer a
   universal precision policy from the earlier frozen control alone.
-- Source154 is prepared: opt-in FP32 V output retains the same BF16 operands
+- Source154 ee1c786 is deployed on both hosts: opt-in FP32 V output retains the same BF16 operands
   and FP32 dot accumulator. Q/K stay BF16; input/master-gradient GEMMs retain
   BF16 operands. New strict FP32 output bounds use gamma_K +2^-24 output
   rounding, rather than the older BF162^-8 term. A new non-BF16 upstream-V
@@ -30,11 +30,21 @@ Use current manifests/postflights before dispatch; do not restart completed jobs
   changed. A corrected materialization diagnostic and the original attention
   accumulation/causality/restore/real-shape gates are the next bounded steps.
   Local AST passes; hardware correction and speed are PENDING.
+- Source154 fixed four-step queues STARTED23:51:16UTC from plan commit5d1b419.
+  Local coordinators: tokens/trn21 PID30750, channels/trn22 PID30812. Remote
+  worktrees are `/home/ubuntu/trainium_freshstart_20260918_wave154`. Order:
+  BF16 regression ->FP32-value component ->corrected materialization diagnostic
+  ->original full-attention gates and real-shape timing. Each request is
+  separately guarded with a fresh preflight and postflight; progression requires
+  exact source/request/helper hashes and all declared records. Each device job
+  has an1800-second bound plus30-second kill grace; coordinator limit10000s.
+  Any failure stops that host's sequence. These are finite queues; no quality
+  training launches automatically. Read sequence state for the current label.
 - Source152's original attention gates FAIL (both clean23:35UTC), preserved.
   Source151 primitive gates passed but component times were5.358%/10.478%
   slower. Source148 FP8 output-rank0.385% and reciprocal pack320.052% gains
   were below3%. No whole-model/quality promotion; frozen public best0.9928513116.
-- Last verified backup23:40:46UTC: source987a447, snapshot2e5f7dc1, both remote
+- Last verified backup23:50:45UTC: sourceee1c786, snapshot56d732f8, both remote
   retrievals complete. Later results/correction need the next deliberate push.
   Read dispatch/sequence records for activity; queues are finite and the
   backup cron does not select or launch experiments.
