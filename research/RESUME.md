@@ -349,4 +349,15 @@ Source105 grouped FP8 weight-gradient gate FAILED clean03:04 on small up shape
 small down cases pass. Suspected narrow PSUM-bank alias: width256 allocation
 places two independent accumulators in the same512-element bank. Source106
 changes only the accumulator bank stride, retaining original pair/error gates.
+All10cases now PASS, including exact original FP8 products; clean03:09:16.
+Source106 grouped component timing launched, watcher106. Source107
+b65d61e4ff8ada778ae4c84e0c2a509410dca17e cached-head autograd probe is deployed
+trn21, request ready after106 finishes. Source/backup refs verified GitHub03:08:42.
+Matched pack32 larger-evaluation request is prepared under out/; launch ONLY
+after clean quality completion and checkpoint preservation.
 trn22 pack32 quality remains active on source98, about0.49s/update.
+
+Source106 grouped component COMPLETE clean03:10:51: down1.919147/native1.095259ms;
+up3.177483/native1.093426ms. Exact10case gate passes. No promotion.
+Source107 cached-head autograd gate launched trn21, watcher107.
+FP8 per-stage cost diagnostic is prepared locally; source108 pending.

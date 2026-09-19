@@ -22,7 +22,8 @@ from fresh_start_fp8_probe import e4m3_legacy
 from mlp_fused_bf16_probe import timing
 
 
-def run(kind, shape, case, functions, calibrate, benchmark, steps, grouped_io=False):
+def run(kind, shape, case, functions, calibrate, benchmark, steps, grouped_io=False,
+        stage_timings=False):
     tokens, outputs, inputs = shape
     multiply, quantize, product = functions
     generator = torch.Generator().manual_seed(9231 + outputs + inputs)
@@ -126,6 +127,22 @@ def run(kind, shape, case, functions, calibrate, benchmark, steps, grouped_io=Fa
             current_gradient_scale_and_both_byte_preparations_charged=True,
             saved_forward_scales_assumed=True, extra_forward_scale_stores_not_included=True,
             data_gradients_activation_derivative_optimizer_or_whole_model_included=False)), flush=True)
+        if stage_timings:
+            stages = {
+                'gradient_calibration': lambda: calibrate[1](gprime),
+                'gradient_bytes': lambda: quantize[2](gprime, metadata, 2, False),
+                'activation_bytes': lambda: quantize[2](hdev, rmeta_dev, 2, kind == 'down'),
+                'fp8_product_prepared_operands': lambda: product[2](
+                    left_bytes, right_bytes, metadata, product_meta_dev, 2, grouped_io),
+                'native_bf16_product': native_call,
+            }
+            if kind == 'down':
+                stages['gradient_row_scale_transfer'] = lambda: multiply[2](gdev, fdev, 2)
+            separated = timing(stages, steps, torch.neuron.synchronize)
+            print('FP8_WEIGHT_GRADIENT_STAGE_TIMINGS ' + json.dumps(dict(
+                kind=kind, shape=list(shape), grouped_io=grouped_io, **separated,
+                diagnostic_only=True, prepared_inputs_exclude_producer_cost=True,
+                isolated_times_not_additive=True, full_component_above_is_speed_authority=True)), flush=True)
     del actual, repeated, gprime, left_bytes, right_bytes, gdev, hdev
     gc.collect()
 
@@ -136,8 +153,10 @@ def main():
     parser.add_argument('--benchmark', action='store_true')
     parser.add_argument('--steps', type=int, default=12)
     parser.add_argument('--grouped-io', action='store_true')
+    parser.add_argument('--stage-timings', action='store_true')
     args = parser.parse_args()
     assert not args.benchmark or args.real_shape
+    assert not args.stage_timings or args.benchmark
     import torch_neuronx
     from torch_neuronx import wrap_nki
     torch.set_num_threads(4)
@@ -159,7 +178,8 @@ def main():
     count += 1
     if args.real_shape:
         for kind, shape in [('down', (16384, 1024, 4096)), ('up', (16384, 4096, 1024))]:
-            run(kind, shape, 'real_random', functions, calibrate, args.benchmark, args.steps, args.grouped_io)
+            run(kind, shape, 'real_random', functions, calibrate, args.benchmark,
+                args.steps, args.grouped_io, args.stage_timings)
             count += 1
     print('FP8_WEIGHT_GRADIENT_RESULT ' + json.dumps(dict(
         passed=True, cases=count, real_shape=args.real_shape, grouped_io=args.grouped_io,

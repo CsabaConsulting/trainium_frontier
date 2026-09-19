@@ -1,0 +1,66 @@
+{
+  "source_commit": "9a820796be3397ed21f33e497585ac07799a9184",
+  "completed_at": "2026-09-19T03:10:51.448438+00:00",
+  "host_clean": true,
+  "measurements": [
+    {
+      "kind": "down",
+      "shape": [
+        16384,
+        1024,
+        4096
+      ],
+      "grouped_io": true,
+      "samples_ms": {
+        "native_bf16_weight_product": [
+          1.0952594990764435,
+          1.090371166355908,
+          1.096985419280827
+        ],
+        "fp8_scale_calibrate_pack_weight_product": [
+          1.9155012511570628,
+          1.9217848312109709,
+          1.9191469133753951
+        ]
+      },
+      "median_ms": {
+        "native_bf16_weight_product": 1.0952594990764435,
+        "fp8_scale_calibrate_pack_weight_product": 1.9191469133753951
+      },
+      "current_gradient_scale_and_both_byte_preparations_charged": true,
+      "saved_forward_scales_assumed": true,
+      "extra_forward_scale_stores_not_included": true,
+      "data_gradients_activation_derivative_optimizer_or_whole_model_included": false
+    },
+    {
+      "kind": "up",
+      "shape": [
+        16384,
+        4096,
+        1024
+      ],
+      "grouped_io": true,
+      "samples_ms": {
+        "native_bf16_weight_product": [
+          1.0961390798911452,
+          1.0934264961785327,
+          1.0760256651944171
+        ],
+        "fp8_scale_calibrate_pack_weight_product": [
+          3.177483333274722,
+          3.1901964199884483,
+          3.172637002232174
+        ]
+      },
+      "median_ms": {
+        "native_bf16_weight_product": 1.0934264961785327,
+        "fp8_scale_calibrate_pack_weight_product": 3.177483333274722
+      },
+      "current_gradient_scale_and_both_byte_preparations_charged": true,
+      "saved_forward_scales_assumed": true,
+      "extra_forward_scale_stores_not_included": true,
+      "data_gradients_activation_derivative_optimizer_or_whole_model_included": false
+    }
+  ],
+  "decision": "Grouped products preserve exact FP8 output and improve prior layout, but complete charged components still lose to nativeBF16. No autograd or quality promotion; isolate conversion versus product before further design."
+}

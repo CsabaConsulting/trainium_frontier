@@ -231,3 +231,24 @@ reloads the same gradient panel for each output-column tile. That is an
 algorithmic traffic observation, not a profiled latency attribution. Require
 exact results versus the first FP8 product and the original independent pair
 bound. If successful, measure all calibration/packing costs again.
+
+### Source105 failure and source106 bank fix
+
+Source105 grouped operands pass seven down fixtures but fail small up shape
+[512,512,256]:65,520 coordinate-bound failures and0.500913 relative RMS. No
+tolerance changed. Independent accumulators were spaced by the moving width
+(256), placing two logical tiles inside one512-element PSUM bank. Source106
+changes only allocation/index bank spacing to `nl.tile_size.psum_bank_fmax`.
+All10fixtures pass, including bit-exact grouped-versus-original products at
+actual16384-token shapes. Clean03:09:16.793153. This controlled change supports
+the bank-alias diagnosis; original failure logs remain. Component timing follows
+with all row-scale, calibration and byte preparation costs retained.
+
+Source106 complete component clean03:10:51.448438: grouped down1.919147ms
+versus native1.095259ms; grouped up3.177483ms versus native1.093426ms. Large
+improvements from source1036.431/7.069ms, but still75%/191% slower than native.
+All10gates and composed-versus-stages pass. Next diagnostic separately times
+current-gradient calibration, each operand conversion, prepared FP8 product,
+and down-gradient row-scale transfer. Isolated timings are not additive and
+do not replace the complete charged component. This distinguishes conversion/
+calibration cost from the long-token matrix product before further changes.
