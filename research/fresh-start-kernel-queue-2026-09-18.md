@@ -1,8 +1,17 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19 17:42 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19 23:15 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
+
+Source148's finite queues completed cleanly while the session was idle. Direct
+FP8 output rank is0.385% faster than its same-host resident control; pack32
+reciprocal optimization is0.052% faster than its same-host native control.
+Both miss the3% advancement gate; detailed summaries and original logs are
+preserved. Source149's two serial-QKV kernel layouts are now implemented for
+independent forward/gradient/cache/row gates and complete component timing.
+Read current dispatch/state records before assuming a host is busy. Full-model
+integration and any speed or quality promotion remain pending.
 
 Scope clarification: full FP8 here means the complete MLP forward/backward,
 not all transformer projections/attention/optimizer arithmetic. A broader

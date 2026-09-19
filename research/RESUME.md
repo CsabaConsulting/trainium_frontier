@@ -1,9 +1,42 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 17:42 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 23:15 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## FP8 output-rank timing and pack32 optimizer gates active — CURRENT
+## Source148 complete; serial QKV kernels prepared — CURRENT
+
+- Live SSH checked both hosts at23:05:46UTC: no device holders or Neuron
+  processes, both device locks free, trn21 disk26.80GB and trn22 disk16.11GB.
+  Their bounded queues completed normally: trn21 at17:46:20UTC and trn22 at
+  18:04:16UTC. They have been idle for roughly five hours. The backup cron
+  preserved results but did not launch further experiments. Do not describe
+  a completed finite queue as continuing research or continuously busy hosts.
+- Source148 FP8 resident/direct-rank comparison is complete with clean
+  postflights and all four checks:564.075656ms versus561.903786ms (0.3850%
+  improvement), identical loss5.120891094207764. No promotion.
+- Source148 pack32 reciprocal/ownership gate passes all24 equivalence and
+  four composition records. Whole-step candidate487.780576ms versus same-host
+  native488.035319ms (0.0522% improvement), all four checks/clean. Optimizer
+  component26.761235 ->23.836373ms does not establish a full-step win. No
+  quality run or seed sweep; both candidates miss the3% threshold.
+- Source149 is being prepared: independent Q/K/V NKI projections, three
+  separate ordinary weights and contiguous outputs, native six-product VJP.
+  Token-stationary and weight-stationary layouts will each receive a native
+  control on their own host. Both charge all weight loads/transposes/stores.
+  Original parameter shapes/Muon states and serial attention remain intact.
+  The existing attention qkv argument provides the later integration boundary.
+- New component probe has independent FP64 bounds for forward/all six
+  gradients, negative controls, distinct streams, repeated calls/nonmutation,
+  row independence, changed weights and two-microbatch FP32 accumulation.
+  It gates32768x1024 before alternating complete component timings including
+  cache casts. Local AST passes; hardware correctness and speed are pending.
+  Actual attention integration and whole-model timing are still pending.
+- Last verified backup: source67d4e88, snapshotf760e360,23:00:49UTC, both
+  remote retrievals complete. Source148 completion summaries and source149
+  preparation need a deliberate source commit/push. Frozen matched public
+  best remains0.9928513116311253. No competition submission.
+
+## FP8 output-rank timing and pack32 optimizer gates — 17:42 UTC
 
 - Source147 streaming completed clean13:34:10.966945 while the session was
   idle. Median570.476580ms versus same-source resident562.968046ms,1.334%

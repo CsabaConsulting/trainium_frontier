@@ -1,9 +1,31 @@
 # Revisit QKV execution while preserving the trained model
 
-Design candidate,2026-09-19. No implementation or speed/quality result yet.
-The active FP8 output-rank numerical/comparison sequence takes priority.
-The width1152 quality trial is complete and lost its matched public comparison;
-no capacity or seed sweep blocks this kernel candidate.
+Source149 preparation,2026-09-19 23:15UTC. Two component kernels are implemented;
+hardware gates, actual attention integration and speed/quality results are pending.
+The source148 FP8 output-rank and pack32 reciprocal sequences are complete and
+miss their advancement thresholds. No capacity or seed sweep blocks QKV work.
+
+`serial_qkv_nki.py` supplies two BF16 layouts: weight-stationary with up to512
+tokens across the TensorEngine free dimension, and token-stationary with up to512
+output channels. Both retain ordinary separate square weight inputs, load/transpose
+those weights on chip, and return three separate contiguous token-row outputs.
+They support deliberately different Q/K/V inputs; no normalization gradient paths
+are combined. The custom backward keeps six independent native BF16 products;
+the ordinary cast graph sends separate gradients to the original FP32 masters.
+
+The component probe declares FP32 gamma_K plus one BF16 output-rounding bounds
+against independent CPU FP64 products before hardware results are known. It gates
+both native and candidate forwards/all six gradients, zero/tiny/outlier/cancellation
+cases, updated weights, cache refresh, two-microbatch accumulation, nonmutation,
+repeatability and stream/row independence. Real32768x1024 gates precede alternating
+native/candidate timing including three cache casts, all forward/backward products,
+copies and dispatch. Neither a component win nor contiguous outputs alone proves
+that the complete attention caller is faster or equivalent.
+
+The current CausalSelfAttention already accepts optional preprojected `qkv`.
+A subsequent adapter can call the original attention body through this argument,
+preserving its VE gates, RoPE/normalization, attention and output projection without
+duplicating that code or converting the block to a parallel architecture.
 
 The older fused-QKV trial is a valid negative for its exact implementation.
 `trn2-experiment-results.md` records206 versus240 steps and worse BPB because
