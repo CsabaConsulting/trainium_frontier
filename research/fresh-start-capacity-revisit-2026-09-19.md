@@ -28,7 +28,12 @@ width. A device invocation measures one actual group or an explicit prefix,
 including native stacking/copies/update and optional singleton padding. The
 synthetic fixed-gradient measurements do not change the ownership planner or
 replace its exact numerical/state/collective gates. Hardware cost measurements
-are pending; no new width costs have been inserted into the planner.
+are active on trn21 source144, job
+`fs-w144-width1152-optimizer-group-costs-r1`, started08:58:35.465128 with clean
+preflight. Inventory finds142,752,108 parameters and13 bounded measurement
+cases across nine actual groups. Its input is the hash-verified source144
+mirror of the trn22 native capture log, not an assumed cross-host file path.
+No new width costs have been inserted into the planner.
 
 ## Two implementation restrictions can bias a future width comparison
 

@@ -1,0 +1,40 @@
+{
+  "host": "trn22",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave145",
+  "expected_commit": "63f6cceca2e70bafaa747c0c9901844276433403",
+  "label": "fs-w145-fp8-compact-forward-saves-gates-r1",
+  "purpose": "Correctness-only compact five-output FP8 forward: original seven-output authority, exact retained bytes/metadata, independent four-product bounds, two-microbatch FP32 accumulation, refreshed masters, all edge cases and pack32 shape; then real Linear cached/uncached integration, row independence, padding, checkpoint/restore. Caller trace source140 proves discarded BF16 saves remain; remove only those saves/dequantizations. No numerical tolerance changes, no speed or BPB claim. Raw profile transfer may overlap this numerical gate; no performance comparison in this job.",
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1",
+    "NEURON_RT_VISIBLE_CORES": "0",
+    "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+    "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave145"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1800s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "-c",
+    "import sys,subprocess,json\nsubprocess.run([sys.executable,'-u','research/scratch/fp8_compact_forward_saves_probe.py','--real-shape','--real-tokens','32768'],check=True)\nsubprocess.run([sys.executable,'-u','research/scratch/fp8_full_mlp_integration_check.py','--real-width','--compact-forward-saves'],check=True)\nprint('COMPACT_GATES_COMPLETE '+json.dumps(dict(independent_numerical_gate=True,real_linear_integration_gate=True,whole_model_phase_pending=True)),flush=True)\n"
+  ],
+  "fingerprint_paths": [
+    "research/scratch/fp8_mlp_token_rows_nki.py",
+    "research/scratch/fp8_complete_mlp_autograd.py",
+    "research/scratch/fp8_compact_forward_saves_probe.py",
+    "research/scratch/fp8_full_mlp_integration.py",
+    "research/scratch/fp8_full_mlp_integration_check.py",
+    "research/scratch/fp8_complete_mlp_probe.py",
+    "research/scratch/fp8_mlp_data_backward_nki.py",
+    "research/scratch/fp8_gradient_prepare_nki.py",
+    "research/scratch/fp8_weight_gradient_nki.py",
+    "research/scratch/fp8_rms_scale_contract.py",
+    "research/scratch/fp8_dual_weight_cache_nki.py",
+    "research/scratch/phase_timer.py"
+  ]
+}

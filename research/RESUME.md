@@ -1,7 +1,44 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 08:53 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 09:02 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
+
+## Retained FP8 saves confirmed; compact gate and width costs active — 09:02 UTC
+
+- trn21 ACTIVE source144 `fs-w144-width1152-optimizer-group-costs-r1`, guard
+  1417752, started08:58:35.465128, clean preflight.13 cases derive from the
+  actual142,752,108-parameter model. Eight costs have appeared; wait for command0
+  and clean postflight before using the grid. New costs/ownership are not yet
+  installed or numerically gated. Input config is the byte-verified committed
+  source144 mirror of the trn22 profile log, not a missing cross-host path.
+- trn22 ACTIVE source145 `fs-w145-fp8-compact-forward-saves-gates-r1`, guard
+  1748935, started09:00:04.923393, clean preflight. Immutable source145 is
+  `63f6cceca2e70bafaa747c0c9901844276433403`. First numerical probe covers ten
+  small edge cases plus32768x1024x4096; second covers real-Linear masters,
+  caches, padding and native restore. No timing claim from this job. Check both
+  summary gates and clean postflight before a whole-model phase.
+- Source144 caller analyses both COMPLETE/clean: FP8 at08:53:12.272984, native
+  at08:57:06.594962. All33 dispatches plus startup barrier match. Forward device
+  intervals137.156557(native)/209.748307(FP8)ms; backward272.922323/275.310033ms.
+  Same-host unprofiled source140 phase remains authoritative for speed.
+- Retained BF16 writes CONFIRMED:3,013 observed DMA rows at cached kernel
+  lines149/186,1,973,157,888 observed write bytes. Source135 file equals source140
+  byte-for-byte. Exact parquet identity verified locally. FP8 dropped EVENT and
+  DMA notifications; native dropped DMA notifications. No exact traffic/bandwidth
+  inference or claim that shared Linear line2853 identifies a particular layer.
+  Evidence: `run-logs/fs-w144-pack32-caller-comparison-r1.json` and
+  `run-logs/fs-w140-full-fp8-retained-forward-saves-r1.json`.
+- Both raw caller captures are locally hash verified. Full-FP8 raw is also
+  GitHub asset-digest verified. Native raw asset upload is ACTIVE; verify final
+  backup receipt. Full-FP8 parquet is locally verified32files/2,149,367,880bytes;
+  native parquet transfer is ACTIVE. Both ingests match every locally preserved
+  raw hash and leave originals unchanged. Cloud-back up both parquets next.
+- Watchers are trn21=144 and trn22=145. Only the completed local trn22 wave140
+  watcher was stopped via verified PID identity; no remote experiment was touched.
+- After compact gates and transfers finish: nearby same-host source145 native,
+  legacy-full-FP8 and compact-full-FP8 phase measurements, each with its own
+  pre/post cleanup. Compact is default OFF. Frozen submission/public best
+  0.99285131 and independent cold replay0.99385567 remain unchanged.
 
 ## FP8 caller analysis active; native decode and compact preparation — 08:53 UTC
 
