@@ -110,6 +110,8 @@ def main():
                     help="Scratch fused BF16 MLP with HxT saved activation consumed in backward.")
     ap.add_argument("--fp8-mlp-packed", action="store_true",
                     help="Gated packed FP8 MLP forward/BF16 surrogate backward; all cache work timed.")
+    ap.add_argument("--fp8-mlp-separate-region", action="store_true",
+                    help="Compile the same packed FP8 MLP separately; include all graph-boundary costs.")
     ap.add_argument("--fused-mlp-normal-dx", action="store_true",
                     help="Form the fused MLP input gradient in TxC directly for upstream normalization.")
     ap.add_argument("--fused-mlp-token-tile", type=int, choices=(128, 256, 512), default=512,
@@ -214,6 +216,8 @@ def main():
         ap.error("select at most one head/loss boundary candidate")
     if args.fp8_mlp_packed and args.fused_mlp:
         ap.error("select either the BF16 or packed FP8 MLP implementation")
+    if args.fp8_mlp_separate_region and not args.fp8_mlp_packed:
+        ap.error("--fp8-mlp-separate-region requires --fp8-mlp-packed")
     if args.compact_embedding and args.segmented_dma_embedding:
         ap.error("select only one ordinary embedding backward implementation")
     if (args.fused_mlp_normal_dx or args.fused_mlp_grouped_io
@@ -384,7 +388,7 @@ def main():
     fp8_mlp_contract = None
     if args.fp8_mlp_packed:
         from fp8_mlp_integration import install
-        fp8_mlp_contract = install(model, device, T)
+        fp8_mlp_contract = install(model, device, T, separate_region=args.fp8_mlp_separate_region)
         print("[pt] packed FP8 MLP contract " + json.dumps(fp8_mlp_contract), flush=True)
     if args.ngram_ve_freeze:
         for p in model.ngram_embeds.parameters():
@@ -710,6 +714,7 @@ def main():
             optimizer_owner_calls=(optimizer_ownership.calls if optimizer_ownership is not None else 0),
             fused_mlp=args.fused_mlp,
             fp8_mlp_packed=args.fp8_mlp_packed,
+            fp8_mlp_separate_region=args.fp8_mlp_separate_region,
             fp8_mlp_contract=fp8_mlp_contract,
             fp8_mlp_cache_refresh_counts=[getattr(m, "_fp8_refresh_count", 0)
                                           for m in orig_model.modules()

@@ -587,3 +587,19 @@ forward fusion from backward recomputation and charge every extra GEMM.
 Priority depends on the current native caller profile; no speed or quality
 gain is established. This is work reuse/traffic elimination from the broad
 retro-computing search, not another standalone polynomial benchmark.
+
+## Prepared diagnostic: compile the packed FP8 MLP separately
+
+`--fp8-mlp-separate-region` exposes an explicit caller boundary while the same
+complete FP8-forward/BF16-surrogate-backward callable remains compiled with
+`fullgraph=True`. The shared callable is created once across all six layers;
+all graph-boundary/dispatch and cache costs remain timed. This tests compiler
+allocation scope, not a new scale, dtype, GEMM or backward approximation.
+
+`fp8_mlp_integration_check.py --real-width --separate-region` retains every
+exact output/input-gradient/FP32-master-gradient/cache/update/padding/restore
+check. Only the caller is permitted to break its graph; the test verifies a
+compiled autograd node remains reachable through any outer view nodes. Default
+monolithic mode still requires the original exact outer-node assertion.
+AST checks pass locally; hardware gate pending. Prioritize a whole-model paired
+comparison only if the caller trace supports a compilation/layout cost.

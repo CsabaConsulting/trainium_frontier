@@ -15,6 +15,12 @@ from fp8_mlp_island_autograd import make_autograd
 from fp8_rms_scale_contract import policy
 
 
+@torch.compiler.disable(recursive=False)
+def call_separate_region(compiled_function, *inputs):
+    """Expose a caller boundary while the complete MLP still compiles."""
+    return compiled_function(*inputs)
+
+
 def make_ops():
     """Build the already independently gated kernels; do not change their math."""
     from torch_neuronx import wrap_nki
@@ -44,7 +50,7 @@ def make_ops():
     return prepare, apply
 
 
-def install(model, device, train_module):
+def install(model, device, train_module, separate_region=False):
     """Attach per-instance methods without adding parameters, buffers or RNG draws.
 
     A missing initial cache is prepared from current masters inside the forward
@@ -64,6 +70,16 @@ def install(model, device, train_module):
     before_ids = tuple(id(p) for p in model.parameters())
     before_rng = torch.get_rng_state().clone()
     prepare, apply = make_ops()
+    if separate_region:
+        # One shared callable across layers avoids six Python closure guards.
+        # This changes the compiler's allocation scope, not the FP8 algorithm.
+        # Forward/backward and all dispatch costs remain inside timed training.
+        compiled_training = torch.compile(apply, backend='neuron', fullgraph=True, dynamic=False)
+
+        def separate_apply(*inputs):
+            return call_separate_region(compiled_training, *inputs)
+
+        apply = separate_apply
     selected = []
     for index, block in enumerate(model.transformer.h):
         module = block.mlp
@@ -126,5 +142,6 @@ def install(model, device, train_module):
     return dict(layers=selected, training_forward='legacy E4M3 packed up/down GEMMs',
                 backward='gated BF16 identity-surrogate VJP into FP32 masters',
                 evaluation='original BF16 MLP', cache_preparation='ordinary timed Linear refresh',
+                separate_compiled_region=bool(separate_region),
                 input_contract='gain-free RMS norm, BF16, widths256/1024',
                 short_input_policy='zero-pad inside MLP to multiple512; discard padded rows')
