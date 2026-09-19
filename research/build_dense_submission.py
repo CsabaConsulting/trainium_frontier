@@ -24,13 +24,12 @@ INPUTS = [
     "research/scratch/softcap_ce_parallel_integration.py",
 ]
 LAUNCH = (
-    "NEURON_CC_FLAGS='--optlevel=1 --auto-cast matmult --auto-cast-type bf16' "
     "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py "
-    "--num-steps 1000000 --max-train-seconds 1800 --depth 6 --n-embd 1024 "
-    "--seed 42 --compile --compile-muon --no-ngram-ve --no-qk-shift "
+    "--n-embd 1024 --no-ngram-ve --no-qk-shift "
     "--compile-sdpa-direct --nki-local-conv --bf16-norm-output "
     "--pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public"
 )
+assert len(LAUNCH) <= 256
 INTEGRATION = '''
 class _SubmissionEvalGPT(GPT):
     """Use identical per-sequence arithmetic for every scorer batch size.
@@ -206,6 +205,7 @@ if __name__ == "__main__":
             "evaluate rows independently to preserve original B1 logits across all batch sizes; no training change",
             "AST-format code to remove historical comments; unchanged training loop/data/scoring hooks",
             "launch disables optional in-process public evaluation; standalone scoring remains unchanged",
+            "launch omits values already supplied by frozen train.py defaults and fits the 256-character field",
         ],
     )
     (DEST / "provenance.json").write_text(json.dumps(manifest, indent=2) + "\n")

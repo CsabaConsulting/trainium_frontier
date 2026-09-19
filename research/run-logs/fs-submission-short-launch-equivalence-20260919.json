@@ -1,0 +1,52 @@
+{
+  "label": "fs-submission-short-launch-equivalence-20260919",
+  "status": "passed",
+  "checked_at": "2026-09-19T07:44:44+00:00",
+  "hardware_host": "trn22",
+  "train_sha256": "35c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2",
+  "character_limit": 256,
+  "short_command_characters": 245,
+  "short_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public",
+  "original_command": "NEURON_CC_FLAGS='--optlevel=1 --auto-cast matmult --auto-cast-type bf16' NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 1000000 --max-train-seconds 1800 --depth 6 --n-embd 1024 --seed 42 --compile --compile-muon --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public",
+  "method": {
+    "argument_probe": "Imported the frozen standalone train.py in isolated subprocesses, replaced ArgumentParser.parse_args with a capture-and-exit probe, and compared the complete parsed namespaces plus compiler environment.",
+    "device_work_started": false,
+    "argument_namespace_exactly_matches_original": true,
+    "compiler_environment_exactly_matches_original": true,
+    "organizer_static_check": "passed"
+  },
+  "effective_configuration": {
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "num_steps": 1000000,
+    "max_train_seconds": 1800,
+    "depth": 6,
+    "n_embd": 1024,
+    "seed": 42,
+    "compile": true,
+    "compile_muon": true,
+    "ngram_ve": false,
+    "qk_shift": false,
+    "compile_sdpa_direct": true,
+    "nki_local_conv": true,
+    "bf16_norm_output": true,
+    "pack_factor": 32,
+    "clip_after_reduce": true,
+    "seq_len": 1024,
+    "eval_public": false
+  },
+  "omitted_defaults": [
+    "NEURON_CC_FLAGS",
+    "num_steps",
+    "max_train_seconds",
+    "depth",
+    "seed",
+    "compile",
+    "compile_muon"
+  ],
+  "notes": [
+    "The frozen package train.py bytes are unchanged.",
+    "The completed cold training rehearsal used the original textual command; exact parser and environment equivalence establishes the shortened command's runtime configuration.",
+    "No competition submission was made."
+  ]
+}

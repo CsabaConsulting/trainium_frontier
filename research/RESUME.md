@@ -1,7 +1,24 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 07:39 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 07:45 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
+
+## Submission launch fits the 256-character field — 2026-09-19 07:45 UTC
+
+- `submissions/dense6x1024_public0992851/launch-command.txt` is now 245
+  characters excluding its trailing newline. Packaged `train.py` is unchanged at
+  SHA256 `35c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2`.
+- Omitted values are frozen source defaults: exact `NEURON_CC_FLAGS`, one million
+  maximum steps, 1,800-second budget, depth 6, seed 42, `--compile`, and
+  `--compile-muon`. Every retained flag differs from the packaged source default
+  or is required to establish the four-rank LNC2 launch.
+- On idle trn22, isolated parser probes showed the old and short commands have
+  exactly equal complete argument namespaces and compiler environments. The
+  organizer `prepare.py check` also passed the shortened line. These checks did
+  not start training or touch Neuron devices. Evidence is in
+  `research/run-logs/fs-submission-short-launch-equivalence-20260919.json`.
+- Rebuild/package verification is complete. Commit and push this record before
+  reporting the short command to the user. No competition submission was made.
 
 ## Current handoff: submission ready, full FP8 phase active — 2026-09-19 07:39 UTC
 

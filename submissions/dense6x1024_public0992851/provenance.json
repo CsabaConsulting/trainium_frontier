@@ -5,7 +5,7 @@
   "private_leaderboard_result": false,
   "train_sha256": "35c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2",
   "train_bytes": 311407,
-  "launch_command": "NEURON_CC_FLAGS='--optlevel=1 --auto-cast matmult --auto-cast-type bf16' NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 1000000 --max-train-seconds 1800 --depth 6 --n-embd 1024 --seed 42 --compile --compile-muon --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public",
+  "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public",
   "source_sha256": {
     "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
     "research/scratch/mlp_fused_bf16.py": "450b5b63c60a6c182a516a5748409426439e6616f8754b76f1b8659a44b00c9b",
@@ -169,6 +169,7 @@
     "freeze requires_grad in load_for_eval, without changing model weights or logits",
     "evaluate rows independently to preserve original B1 logits across all batch sizes; no training change",
     "AST-format code to remove historical comments; unchanged training loop/data/scoring hooks",
-    "launch disables optional in-process public evaluation; standalone scoring remains unchanged"
+    "launch disables optional in-process public evaluation; standalone scoring remains unchanged",
+    "launch omits values already supplied by frozen train.py defaults and fits the 256-character field"
   ]
 }

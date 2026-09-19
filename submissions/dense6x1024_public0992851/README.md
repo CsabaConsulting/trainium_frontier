@@ -6,6 +6,13 @@ are included in train.py. The organizer supplies prepare.py and the fixed assets
 The command trains from fresh initialization and saves a consolidated `final.pt`
 under the organizer-selected output directory (locally, `out/final.pt`).
 
+The launch line is **245 characters**, excluding its trailing file newline, and
+fits the 256-character field. It omits only values supplied by frozen `train.py`
+defaults: compiler flags, 1,000,000 maximum steps, the 1,800-second budget,
+depth 6, seed 42, and enabled model/Muon compilation. A Trainium2 argument probe
+confirmed that the shortened and original commands produce identical complete
+argument namespaces and compiler environments; the organizer static check passes.
+
 The source recipe achieved **0.9928513116311253 public validation BPB** over
 20,971,520 tokens at sequence length 1024. This is a public development result;
 the private leaderboard score has not been measured. The model has 117,453,580
