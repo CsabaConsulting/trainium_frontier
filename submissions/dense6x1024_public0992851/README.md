@@ -1,0 +1,33 @@
+# Dense 6×1024 submission candidate
+
+Upload **train.py** from this directory and paste the entire line in
+**launch-command.txt** into the launch-command field. All required custom kernels
+are included in train.py. The organizer supplies prepare.py and the fixed assets.
+The command trains from fresh initialization and saves a consolidated `final.pt`
+under the organizer-selected output directory (locally, `out/final.pt`).
+
+The source recipe achieved **0.9928513116311253 public validation BPB** over
+20,971,520 tokens at sequence length 1024. This is a public development result;
+the private leaderboard score has not been measured. The model has 117,453,580
+parameters, no ngrams, and no FP8. It uses BF16 compute, custom MLP backward,
+two-core exact softcap/cross-entropy, optimizer ownership across four LNC2 ranks,
+and gradient clipping after averaging.
+
+The winning run completed 3,660 updates in 1,785.0 estimated charged seconds.
+`provenance.json` pins the source commit, input hashes, launch command and
+packaging changes. `research/build_dense_submission.py` reproduces this file.
+The original training loop, data loader and timing hooks are AST-identical to
+the winning source. The evaluation hook strictly loads the same weights and
+freezes the model; training adapters are not installed during evaluator import.
+
+The [official rules](https://trainium-frontier.devpost.com/rules) exclude startup
+and compilation. The current organizer `prepare.py` implements this through
+the first five real optimizer-step boundaries, capped at 900 seconds. The
+submission retains those calls and reserves time for checkpoint writing.
+The command disables optional in-process public evaluation; the organizer's
+standalone scorer calls `load_for_eval` and computes its own score.
+
+Packaging validation is in progress: static checker has no warnings; isolated
+hardware launch, checkpoint-contract checks and public-score replay are pending.
+The organizer README and prepare.py were authenticated against upstream commit
+`c907da4c74bbaafeca7d13765c49610b7e77436c` on 2026-09-19 UTC; both match this repo.

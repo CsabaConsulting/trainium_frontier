@@ -1,0 +1,173 @@
+{
+  "source_commit": "1da6c0714c0755fd3b078e972fbb0aefbb43bf6d",
+  "source_training": "fs-w98-dense1024-context1024-pack32-owned-ce-1800-r1",
+  "public_val_bpb": 0.9928513116311253,
+  "private_leaderboard_result": false,
+  "train_sha256": "95be3ac7d55d99ae45fec25de319557e7084173e41072d812294007533e26f06",
+  "train_bytes": 310614,
+  "launch_command": "NEURON_CC_FLAGS='--optlevel=1 --auto-cast matmult --auto-cast-type bf16' NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 1000000 --max-train-seconds 1800 --depth 6 --n-embd 1024 --seed 42 --compile --compile-muon --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public",
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "research/scratch/mlp_fused_bf16.py": "450b5b63c60a6c182a516a5748409426439e6616f8754b76f1b8659a44b00c9b",
+    "research/scratch/mlp_fused_integration.py": "f85e0d744b1d4b8c330d35383a931af651facf784ca484deaa29fbf11efb4e04",
+    "research/scratch/optimizer_ownership.py": "4066b2ec0748cf5811bbfeb0c99314e5df9911cd14b91c603a0711bd7bda3a86",
+    "research/scratch/softcap_ce_parallel_nki.py": "6b94635b11b3e15239738ff6062d73186466f9bb4e7462771ead0e7f58723959",
+    "research/scratch/softcap_ce_parallel_integration.py": "b76edf10c434cb345ffafe9361b8f15371ec7f3b06ee07366694c4f694479e70"
+  },
+  "preserved_base_definitions": [
+    "make_dataloader_requeue",
+    "_document_batches_epoch_shuffle",
+    "has_ve",
+    "head_gate_slice",
+    "causal_shift_1",
+    "_next_prime",
+    "_largest_prime_below",
+    "_rng_neutral",
+    "ngram_bigram_primes",
+    "ngram_trigram_primes",
+    "ngram_layer_set",
+    "has_ngram_bigram",
+    "has_ngram_trigram",
+    "engram_orders",
+    "engram_hash_primes",
+    "engram_site_index",
+    "doc_boundary_mask",
+    "CausalConv",
+    "_build_window_mask",
+    "neuron_available",
+    "detect_device_type",
+    "init_runtime",
+    "cleanup_runtime",
+    "synchronize",
+    "compute_dtype_for",
+    "GPTConfig",
+    "norm",
+    "_attn_nki_mask",
+    "softcap_cross_entropy",
+    "relu_squared",
+    "Linear",
+    "_fnv1a64",
+    "byte_feature_wte_init",
+    "transpose_linear_weights",
+    "apply_rotary_emb",
+    "rope_norm",
+    "nki_attention",
+    "CausalSelfAttention",
+    "coalesced_swiglu_hidden",
+    "MLP",
+    "Block",
+    "EngramLite",
+    "GPT",
+    "build_config",
+    "_muon_math",
+    "_muon_lr_g",
+    "_cautious_weight_decay_",
+    "MuonAdamW",
+    "split_clip_params",
+    "sync_gradients",
+    "build_flat_grad_buffer",
+    "sync_gradients_flat",
+    "clip_and_sync_gradients",
+    "loss_scale_transition",
+    "grads_finite_",
+    "unscale_grads_",
+    "clip_grad_norm_flat_",
+    "current_toggles",
+    "restore_eval_toggles",
+    "save_checkpoint",
+    "warm_start_from",
+    "torch_load_weights",
+    "lr_multiplier",
+    "batch_ramp_stage",
+    "batch_ramp_grad_accum",
+    "weight_ema_state",
+    "muon_momentum",
+    "demon_beta1_scale",
+    "muon_beta2",
+    "muon_depth_enabled",
+    "muon_depth_mults",
+    "main"
+  ],
+  "vendored_definitions": [
+    {
+      "source": "research/scratch/mlp_fused_bf16.py",
+      "definition": "build_kernel",
+      "ast_sha256": "da6a8f4a7890ef34fb5154fdaf8d0ac2dc3d15c56e6f3e19ff9bb0508200bc77"
+    },
+    {
+      "source": "research/scratch/mlp_fused_bf16.py",
+      "definition": "reference_forward",
+      "ast_sha256": "93e0240bdc2c333f9a979985b12df397e755b96574f29ecca4b7856aef5d0947"
+    },
+    {
+      "source": "research/scratch/mlp_fused_bf16.py",
+      "definition": "prepack_weight",
+      "ast_sha256": "04413c7290dd57b822f6ba80dcd33c54db00d557ce070a68a00076c79ee6df4f"
+    },
+    {
+      "source": "research/scratch/mlp_fused_bf16.py",
+      "definition": "unpack_weight",
+      "ast_sha256": "96510b0798f6caf48e786fa96d9ab23b06c440f96087e7bc4e7779bac46700c8"
+    },
+    {
+      "source": "research/scratch/mlp_fused_bf16.py",
+      "definition": "make_autograd",
+      "ast_sha256": "7d97abb1091a62bdbdc89c2fa58ca02efc8bb391a68f7aeb1324210514b1ddf3"
+    },
+    {
+      "source": "research/scratch/mlp_fused_integration.py",
+      "definition": "call_separate_region",
+      "ast_sha256": "a4c2d72cd89ca668f7c2ae273d74d2e25a981e923adc5c9874b8d300f75a0b5e"
+    },
+    {
+      "source": "research/scratch/mlp_fused_integration.py",
+      "definition": "make_forward",
+      "ast_sha256": "de93c05d4c1cd6b4491c981ac8e4d3f300fd9a0626105d5d16f28d09d777f9c0"
+    },
+    {
+      "source": "research/scratch/mlp_fused_integration.py",
+      "definition": "_submission_mlp_install",
+      "ast_sha256": "b737961267695952652be23b55da8c1918cf3c93c2731532f72aaaee5fa0eaec"
+    },
+    {
+      "source": "research/scratch/optimizer_ownership.py",
+      "definition": "make_plan",
+      "ast_sha256": "a90a411a6756ec7800f1c93f060d5b0a03d2281d8375c1bb09a370ff9446a576"
+    },
+    {
+      "source": "research/scratch/optimizer_ownership.py",
+      "definition": "OwnedOptimizer",
+      "ast_sha256": "50dd5e33f515996d5f857566dbe50ab8abd4992e5781dce604466c39d01b420d"
+    },
+    {
+      "source": "research/scratch/optimizer_ownership.py",
+      "definition": "_submission_optimizer_install",
+      "ast_sha256": "4d19acf7cccba3ca9af56336892ab22375bcc051ef01e3496b17773fb082191d"
+    },
+    {
+      "source": "research/scratch/softcap_ce_parallel_nki.py",
+      "definition": "build_kernels",
+      "ast_sha256": "913ea336e43b6d862358363aeff692ceeb79b1c2df695db23db059d9dca1f690"
+    },
+    {
+      "source": "research/scratch/softcap_ce_parallel_integration.py",
+      "definition": "selected_lanes",
+      "ast_sha256": "c881e27d39930d2ce9cc8caea26a56d6b66ba8dacc2c52b8f1042e2e0abf348f"
+    },
+    {
+      "source": "research/scratch/softcap_ce_parallel_integration.py",
+      "definition": "_submission_ce_install",
+      "ast_sha256": "c9b0f1d82d69d20cb976852c1207136d4ce2717ba6dd4aef1f7565faffa81836"
+    }
+  ],
+  "packaging_changes": [
+    "inline source98 kernel/adapter modules; remove local helper imports",
+    "rename the three installation functions to avoid name collisions",
+    "reject unused fixed-SBUF MLP branch instead of importing research code",
+    "install only winning training adapters when executed as __main__",
+    "set training compiler BF16 matmul flags before SDK import; eval defaults optlevel1 only",
+    "freeze requires_grad in load_for_eval, without changing model weights or logits",
+    "AST-format code to remove historical comments; unchanged training loop/data/scoring hooks",
+    "launch disables optional in-process public evaluation; standalone scoring remains unchanged"
+  ]
+}
