@@ -1,0 +1,44 @@
+[W919 03:16:24.652717516 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_freshstart_20260918_wave110/research/scratch/head_loss_fused_model_probe.py", line 140, in <module>
+    main()
+  File "/home/ubuntu/trainium_freshstart_20260918_wave110/research/scratch/head_loss_fused_model_probe.py", line 85, in main
+    value = function(tokens, targets)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py", line 472, in __call__
+    return super().__call__(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py", line 1034, in compile_wrapper
+    raise e.with_traceback(None) from e.__cause__  # User compiler error
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch._dynamo.exc.Unsupported: Skip calling `torch.compiler.disable()`d function
+  Explanation: Skip calling function `<function nki_attention at 0x712e5bd6ad40>` since it was wrapped with `torch.compiler.disable` (reason: None)
+  Hint: Remove the `torch.compiler.disable` call
+
+  Developer debug context: <function nki_attention at 0x712e5bd6ad40>
+
+ For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0098.html
+
+from user code:
+   File "/home/ubuntu/trainium_freshstart_20260918_wave110/train.py", line 4075, in forward
+    x = block(x, x0, ve, cos, sin, attn_mask, ve_bi, ve_tri)
+  File "/home/ubuntu/trainium_freshstart_20260918_wave110/train.py", line 3376, in forward
+    attn_out = self.attn(norm(q_in), norm(k_in), norm(v_in), ve, cos, sin, attn_mask, ve_bi, ve_tri)
+  File "/home/ubuntu/trainium_freshstart_20260918_wave110/train.py", line 3185, in forward
+    y = nki_attention(q, k, v, self.attn_scale)
+
+Set TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you're reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS="+dynamo"
+
+EXPERIMENT_POSTFLIGHT {"label": "fs-w110-head-loss-cached-model-gate-r1", "returncode": 1, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave110/research/run-logs/fs-w110-head-loss-cached-model-gate-r1.postflight.json"}
