@@ -1,6 +1,6 @@
 # Fresh-start campaign — 2026-09-18
 
-**Current result, 2026-09-19 09:51 UTC:** best matched public BPB is
+**Current result, 2026-09-19 13:28 UTC:** best matched public BPB is
 **0.9928513116311253**, source98 dense 6x1024 with pack32/GA1, no ngrams and
 seed42. The frozen standalone source129 package reproduces those checkpoint
 logits exactly; an independent cold 30-minute rehearsal scored 0.9938556748843932
@@ -16,7 +16,9 @@ BF16 saved activations are still written. The compact-output version passes
 all11 numerical cases and real-Linear cache/master/restore gates. Its nearby
 same-host comparison is clean: native488.702ms, legacy FP8568.354ms and compact
 FP8562.902ms. That small gain leaves15.18% of full-step regression. Source147
-streamed-weight correctness gates are now active on trn22. Ordinary BF16 Linear
+streamed-weight correctness gates pass. The clean source147 resident control
+reproduces562.968ms with all four model checks; its streamed whole-model
+comparison is active on trn22 since13:22:11UTC. Ordinary BF16 Linear
 tiles shrink around FP8 in the observed profile; weight lifetime and output
 layout are separate follow-up hypotheses, not proven compiler causes.
 No FP8 speed or BPB promotion. Dropped profile notifications prohibit exact
@@ -26,12 +28,17 @@ Both hosts recovered disk reserve by archiving old compiler diagnostics locally
 and on GitHub, verifying every file before remote retirement. Shared caches
 remain intact. Width1152 native MLP and exact measured optimizer-ownership
 gates passed, followed by a clean587.592ms whole-model phase. Its single seed42
-30-minute quality trial is active on trn21, with matched public evaluation still
-required. The kernel queue, capacity revisit
+30-minute quality trial and matched20,971,520-token public evaluation completed
+clean. Width1152 scores0.9938092802993084, behind the frozen width1024 best;
+its checkpoint is local/cloud verified, with no promotion. The kernel queue, capacity revisit
 and `RESUME.md` record the executable next steps and exact job identities.
 The competitive target remains about 0.9749; no seed sweep is planned.
 Serial QKV execution with unchanged Parameters/Muon states and contiguous
 RoPE inputs is queued separately from the older negative architecture trials.
+The user's dictionary/parser/classic-NLP ideas, active-venv dependency audit,
+20K-training-document structure sample and bounded alternative probability
+models are documented in `fresh-start-structured-priors-and-fp8-scope-2026-09-19.md`.
+No new language assets, pretrained NLP models or grammar masks were installed.
 
 **Earlier result, 2026-09-19 00:21 UTC:** matched larger public BPB is
 **0.9938106631483421**, improved from0.9973302213667847. The dense6x1024 model

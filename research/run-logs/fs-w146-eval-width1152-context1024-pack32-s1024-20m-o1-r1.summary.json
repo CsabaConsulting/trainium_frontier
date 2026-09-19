@@ -1,0 +1,32 @@
+{
+  "label": "fs-w146-eval-width1152-context1024-pack32-s1024-20m-o1-r1",
+  "source_commit": "1c70da11c4dd9bb789afca0fa3088842874a1efd",
+  "checkpoint_sha256": "aa57fe35f10ca2070499b68a3d3fc38a5d04d8bac0bae4d0722ab907d3a0afb3",
+  "command_returncode": 0,
+  "host_clean": true,
+  "completed_at": "2026-09-19T13:24:40.784776+00:00",
+  "evaluation": {
+    "eval_over_timeout": false,
+    "eval_seconds": 711.9399645919912,
+    "eval_timeout": 1200,
+    "num_bytes": 83462186,
+    "num_tokens": 20971520,
+    "total_nats": 57493436.0,
+    "val_bpb": 0.9938092802993084
+  },
+  "configuration": {
+    "world_size": 1,
+    "batch_size": 1,
+    "seq_len": 1024,
+    "optlevel": 1,
+    "global_autocast": false
+  },
+  "training_label": "fs-w146-dense1152-context1024-pack32-owned-ce-1800-r1",
+  "training_budget_passed": true,
+  "training_causality_passed": true,
+  "reference_public_bpb": 0.9928513116311253,
+  "delta_bpb_vs_reference": 0.0009579686681830957,
+  "promoted": false,
+  "decision": "Width1152 is slower and loses the matched public comparison to frozen width1024. Preserve capacity evidence; no seed sweep or submission replacement.",
+  "log_sha256": "4d66b16f39a1689cd35875e9b1d4678edd1537121671caf58c859675d4b7680d"
+}

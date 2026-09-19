@@ -1,6 +1,6 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19 13:23 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19 13:28 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
@@ -48,7 +48,8 @@ No FP8 speed/BPB promotion.
    D1024 control is clean487.435ms. After verified maintenance, width1152 is
    clean587.592ms with four model checks. The single fixed-seed full-budget
    capacity trial is complete3046updates/1784.7s, clean and checkpoint local/cloud
-   verified. The matched20M evaluation is ACTIVE on trn21. See the
+   verified. The matched20M evaluation is clean0.9938092803, worse than the
+   frozen width1024 best0.9928513116; no promotion or seed sweep. See the
    capacity revisit note; old generic ownership costs are not trustworthy at new widths.
 4. Optional packed-weight-group streaming is deployed on trn22 source147 and
    its bounded correctness gate PASSES all11 cases and both real-Linear widths,
@@ -74,8 +75,11 @@ No FP8 speed/BPB promotion.
    priors note: prefix-only soft syntax/copy priors and hierarchical output
    factorization for training. Their scope differs from generation-only
    speculation. Completed20K-document training audit suggests labelled Python
-   is sparse; historical count-mixer gains were small. No new prior/head code
-   or quality claim; do not replace active kernel controls with blind runs.
+   is sparse; historical count-mixer gains were small. The expanded dependency
+   audit found no checked traditional NLP predictors; Whisper includes a
+   normalizer, not a ready probability model. Older byte-feature initialization
+   was a dose-response negative. No new prior/head code or quality claim;
+   do not replace active kernel controls with blind runs.
 
 Compiler scratch archives now have a staged preservation/retirement procedure,
 so disk reserve does not repeatedly interrupt these comparisons. Every original

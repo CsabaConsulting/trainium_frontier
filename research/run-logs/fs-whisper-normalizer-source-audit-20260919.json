@@ -1,0 +1,50 @@
+{
+  "path": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/transformers/models/whisper/english_normalizer.py",
+  "sha256": "ecc14492d5fc0d1332aea3729a6cdc7c4c48aea72beceacfcbcdb847b6c1ac83",
+  "bytes": 22804,
+  "classes": [
+    {
+      "name": "BasicTextNormalizer",
+      "line": 76,
+      "init_args": [
+        "self",
+        "remove_diacritics",
+        "split_letters"
+      ]
+    },
+    {
+      "name": "EnglishNumberNormalizer",
+      "line": 95,
+      "init_args": [
+        "self"
+      ]
+    },
+    {
+      "name": "EnglishSpellingNormalizer",
+      "line": 497,
+      "init_args": [
+        "self",
+        "english_spelling_mapping"
+      ]
+    },
+    {
+      "name": "EnglishTextNormalizer",
+      "line": 511,
+      "init_args": [
+        "self",
+        "english_spelling_mapping"
+      ]
+    }
+  ],
+  "host": "trn21",
+  "package_version": "5.14.1",
+  "read_only": true,
+  "target_module_imported": false,
+  "device_used": false,
+  "used_for_training_or_prediction": false,
+  "findings": [
+    "English number normalization and contraction rules are present in Python source.",
+    "EnglishSpellingNormalizer and EnglishTextNormalizer require an english_spelling_mapping argument; this file does not supply a general spelling dictionary.",
+    "This is a text normalizer, not a conditional language model or pretrained predictor."
+  ]
+}

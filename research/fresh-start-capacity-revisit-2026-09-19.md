@@ -1,16 +1,22 @@
 # Capacity checks after the kernel gains
 
-This is a source-audit follow-up, not a new BPB result. The frozen standalone
+This is a source-audit follow-up and completed capacity comparison. The frozen standalone
 submission remains source129, reproducing source98 public BPB0.9928513116311253.
 The cold training and evaluation rehearsal passed. The caller-profile diagnosis
 remains active; capacity preparation proceeds independently of the frozen package.
 
-Update13:17UTC: the width1152 quality run is COMPLETE/clean10:18:20UTC,
+Update13:28UTC: the width1152 quality run is COMPLETE/clean10:18:20UTC,
 3046 updates,1784.7 training seconds/1785.2 charged estimate. Its checkpoint
 is independently hash-verified locally and GitHub-asset verified. Small public
 0.988808 is not comparable to the20M best. The matched20,971,520-token public
-evaluation started13:12:32UTC with clean preflight and the protected scorer,
-world1/B1/T1024/O1 without global autocast. A final quality decision is pending.
+evaluation completed clean13:24:40.784776UTC: **0.9938092802993084**, using
+83,462,186bytes and57,493,436nats,711.94s, world1/B1/T1024/O1 without global
+autocast. Training budget/causality and evaluation time limits pass.
+This is0.000957969BPB worse than the frozen width1024 public best, so there is
+no promotion or seed sweep. It does not establish a universal capacity ceiling;
+the tested wider architecture trades fewer updates for more parameters and
+loses this matched fixed-budget comparison. Exact source/checkpoint/log hashes
+and decision are in the source146 evaluation summary JSON.
 
 Current2026-09-19 09:51UTC: the width1152 phase is COMPLETE/clean with all four
 model postchecks. Median587.591986ms versus nearby same-source width1024

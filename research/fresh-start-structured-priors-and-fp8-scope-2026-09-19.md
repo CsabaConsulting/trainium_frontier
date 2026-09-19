@@ -132,6 +132,29 @@ organizer's final environment. Python `ast` and `json` are standard-library
 modules, so absence of distributions with those names is immaterial.
 Receipt: `run-logs/fs-decoder-package-metadata-20260919.json`.
 
+The follow-up traditional-NLP inventory reads all installed distribution
+metadata (81 distributions on trn21,82 on trn22) and checks selected NLP,
+stemming, spelling, trie, language-identification and count-LM packages.
+Only regex2026.7.19, tokenizers0.22.2, tiktoken0.13.0 and
+transformers5.14.1 from the selected set are installed. NLTK, spaCy, TextBlob,
+Gensim, Stanza, KenLM, SnowballStemmer, SymSpell, WordFreq and the other
+selected specialized packages are absent. Declared dependency strings include
+optional extras; the receipt deliberately does not call them resolved active
+dependency edges. No package was installed, target module imported, device
+used, or external corpus/model loaded. Probe and exact results:
+`scratch/nlp_dependency_inventory.py` and
+`run-logs/fs-traditional-nlp-package-inventory-20260919.json`.
+
+One concrete embedded implementation was found: Transformers' Whisper
+`english_normalizer.py` contains number/contraction normalization rules.
+Read-only source inspection confirms that its spelling normalizer takes
+`english_spelling_mapping` as a constructor argument; that file does not
+provide a general spelling dictionary or conditional probability predictor.
+Source SHA256 and class signatures are recorded in
+`run-logs/fs-whisper-normalizer-source-audit-20260919.json`. A filename hint
+or installed Transformers library is not evidence that pretrained weights,
+lexicons or task-specific NLP models are bundled and usable.
+
 Even if a dependency bundled an English dictionary, availability would not
 authorize using that external language asset. The local README limits learned
 assets to the submitted training loop on supplied data, and the current
@@ -139,6 +162,23 @@ assets to the submitted training loop on supplied data, and the current
 provided training data without external data/pretrained assets. A generic
 parser algorithm is different from importing a wordlist, pretrained model,
 corpus or CORE-specific knowledge. No extra packages were installed here.
+
+Reusable generic algorithms could support byte/word-boundary, digit, case or
+punctuation features, or a smoothed count predictor learned from the allowed
+corpus. These would need a causal probability-model role to affect BPB.
+Stemming, tagging or normalization alone does not provide next-token
+probabilities, and normalizing scored targets would violate the fixed scorer.
+Learned auxiliary features must still predict the original token sequence.
+
+Do not call spelling-based features wholly untried. The older byte-feature
+embedding initialization was a measured negative: three mixture strengths
+produced progressively worse BPB, roughly+0.00124 to+0.00219 relative to the
+step-adjusted control. It hashed only the provided tokenizer's byte1..3-grams;
+see `trn2-experiment-results.md`, Item1 near line6775. Persistent, learned,
+gated features would be a different hypothesis, but this negative and the old
+count-mixer results argue for a cheap residual/coverage pilot before a device
+training trial. No classic-NLP package bypass or init-time learned asset is
+queued as a competition shortcut.
 
 ## What transfers from grammar-constrained generation
 
@@ -224,8 +264,9 @@ that is not a proof that every older branch/log was covered. Design only.
 ## Bounded next steps
 
 - Keep the streamed/resident FP8 whole-model comparison and matched width1152
-  public evaluation on the two hosts. The width checkpoint is now independent-
-  hash verified locally and GitHub-asset verified; no matched score yet.
+  evidence. The width checkpoint is independent-hash verified locally and
+  GitHub-asset verified. Its matched20M evaluation completed clean13:24:40UTC:
+  0.9938092802993084, worse than frozen0.9928513116311253. No promotion.
 - Keep wider FP8 matmul coverage on the kernel queue. Do not close it because
   the current MLP composition loses, and do not predict a win without measuring
   the complete region and quality.
