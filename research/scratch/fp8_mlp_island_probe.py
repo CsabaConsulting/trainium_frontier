@@ -99,7 +99,8 @@ def make_inputs(shape, case, rms_fixed_input=False):
     return x, up, down
 
 
-def run_case(shape, case, kernel, calibrate, quantize, token_rows=False, rms_fixed_input=False):
+def run_case(shape, case, kernel, calibrate, quantize, token_rows=False, rms_fixed_input=False,
+             packed_prepare=None):
     tokens, channels, hidden = shape
     tile = 128 if token_rows else min(512, tokens // 2)
 
@@ -119,6 +120,14 @@ def run_case(shape, case, kernel, calibrate, quantize, token_rows=False, rms_fix
     x, up, down = make_inputs(shape, case, rms_fixed_input)
     meta_up, uq = calibration_gate(case + ':up', up, calibrate, quantize)
     meta_down, dq = calibration_gate(case + ':down', down, calibrate, quantize)
+    if packed_prepare is not None:
+        assert token_rows
+        from fp8_packed_weight_cache_probe import pack_gate
+        _, packed_uq, packed_up = pack_gate(case + ':packed_up', up, calibrate, quantize, packed_prepare)
+        _, packed_dq, packed_down = pack_gate(case + ':packed_down', down, calibrate, quantize, packed_prepare)
+        require_exact(case + ':packed_up_backward_values', packed_uq, uq)
+        require_exact(case + ':packed_down_backward_values', packed_dq, dq)
+        fixed_args = (fixed_args or (0.0,)) + (packed_up, packed_down)
     inputs = x.to("neuron"), uq, dq, meta_up, meta_down
     outputs = to_reference_layout(kernel[2](*inputs, 2, tile, True, *fixed_args))
     y, relu_t, xq, hq, up_stage_t, down_stage, x_meta, h_meta = outputs
@@ -172,6 +181,7 @@ def run_case(shape, case, kernel, calibrate, quantize, token_rows=False, rms_fix
          actual_fp8_up_and_down_matmuls=True, per_token_activation_scales=not rms_fixed_input,
          token_row_output_layout=token_rows,
          fixed_rms_input_scale=rms_fixed_input,
+         packed_weight_layout=packed_prepare is not None,
          hidden_scale_is_per_token=True,
          backward_gated=False, training_speed_claimed=False))
     del inputs, outputs, normal, repeat

@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19, 00:47 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19, 00:54 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
 ## Current result and active work
@@ -28,17 +28,20 @@ FP8 token-row backward improves complete component time to 16.515157 ms from
 15.675626 ms, so this still loses by 5.36%. The wave82 paired trace finished
 clean and awaits preservation/ingestion. Full FP8 backward is unimplemented.
 
-**trn21 CLEAN after wave83 diagnostic:** all six width/scale cases show that
-compiled original logits preserve FP32 accumulator precision. The BF16-input
-candidate equals the original rounded to BF16 exactly. Exposing logits leaves
-both losses unchanged; CE on frozen logits reproduces each loss exactly. Thus
-the full BF16 boundary is not an exact optimization of this compiled head.
-Do not run the prepared wave82 phases. Original exact gate remains failed.
-Compiler-input MLIR is being preserved. The next candidate keeps FP32 logits
-and rounds only the backward output for the existing BF16 consumer boundary.
-`softcap_ce_head_integration_check.py --gradient-boundary-only --real-shape
---benchmark` must pass exact loss/input/master gradients before any integration.
-The local trn21 watcher follows wave83.
+**trn21 CLEAN after wave84:** the narrower head-gradient boundary passes all
+32 exact eager/compiled head checks plus the timing-input check. It keeps the
+original FP32 logits. Complete head/loss FW/BW is 14.992966 ms versus 18.200297 ms
+(17.62% gain). The public loss adapter is prepared and requires its installed
+head gate next, followed by fresh same-source phase control and candidate with
+`--bf16-ce-gradient-only`. Do not use the failed `--bf16-ce-boundary` forward
+candidate or either old wave82 phase request. No training promotion yet.
+
+Wave83's six diagnostic cases establish the failed forward-boundary cause:
+compiled original head logits retain FP32 accumulator precision. The BF16-input
+candidate adds rounding. Exposing logits leaves both losses unchanged, and
+frozen-input CE reproduces each result exactly. MLIR and diagnostic output are
+local/hash-verified; the exact gate remains failed. Watcher currently follows
+wave84 on both hosts.
 
 The installed CE/autograd gate passes36 eager/compiled exact loss/gradient
 checks. Fresh same-source whole-step control519.3954189890064ms versus candidate
@@ -48,12 +51,21 @@ loss5.064923286437988 matches exactly. No complete parameter-equality claim.
 Combined gain versus earlier owned T2048/pack8 control528.3530275ms is5.2958%.
 The phase clips before averaging; quality clips after. Protected trainer unchanged.
 
-**trn22 CLEAN after wave82 profile:** all five paired arms completed, including
-old and token-row backward with the same fixed-input FP8 forward. Ten compiled
-and nine eager NEFFs are exported. Raw profile (429,091,735 bytes) is local/hash-verified; local ingestion is
-running. Check whether the earlier 8,704 compiler transpose instructions and spill
-traffic disappear. Watcher follows wave82. This trace is attribution, not a
-replacement for wave81's unprofiled component benchmark.
+**trn22 CLEAN after wave84:** packed legacy-FP8 raw bytes and the paired BF16
+backward cache pass all eight cases, including the declared finite BF16 alphabet
+and both real weight matrices. The next source has a packed-cache consumer and
+full MLP forward/backward probes. Run forward stages first, then the complete
+training-component gate/benchmark. Calibration, packing, both caches and two
+microbatches are charged. Full-model integration is still absent.
+
+Wave82 profile raw 429,091,735 bytes and parquet 262,392,836 bytes are locally
+hash-verified. All 57 dispatches map to their binaries. Same fixed-input FP8
+forward: old backward causes 8,704 private compiler transposes and reported
+64 MiB spill saves / 128 MiB reloads; matching token-row backward removes these
+populated counters and transposes. Forward device time falls 3.568860 to
+2.801243 ms; backward is essentially unchanged at about 4.84 ms. Trace times
+are attribution, and missing dynamic DMA metadata prevents exact bandwidth
+claims. Unprofiled wave81 timing remains the speed evidence.
 
 Wave78 raw profile358627902B and parquet219879131B are local/hash-verified.
 All44 runtime dispatches map to binaries. Device FW: oldFP83.686925ms, token
