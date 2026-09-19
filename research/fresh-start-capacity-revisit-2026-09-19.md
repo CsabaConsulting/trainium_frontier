@@ -2,25 +2,35 @@
 
 This is a source-audit follow-up, not a new BPB result. The frozen standalone
 submission remains source129, reproducing source98 public BPB0.9928513116311253.
-The immediate priority is completing its cold training and evaluation rehearsal.
+The cold training and evaluation rehearsal passed. The caller-profile diagnosis
+remains active; capacity preparation proceeds independently of the frozen package.
+
+The research installer now scopes the resident-SBUF assertion to the NKI forward
+backend. Native installation can reach its actual compiler at width1152/1280;
+all module/parameter/shape/cache assertions are retained. The existing full
+Linear integration gate accepts `--real-channels` (default1024), so the same
+cached/uncached, accumulated-gradient and evaluation/checkpoint checks can be
+applied at a new width. This is source preparation only, with no new-width
+hardware or BPB claim. Actual optimizer-group measurements are still required
+before assigning owners for a wider model.
 
 ## Two implementation restrictions can bias a future width comparison
 
-`research/scratch/mlp_fused_integration.py:install` applies its 24MiB SBUF
+The original `research/scratch/mlp_fused_integration.py:install` applied its 24MiB SBUF
 estimate to both `forward_backend="nki"` and `forward_backend="native"`.
 The native path calls the ordinary Torch forward and the custom backward; it
 does not require both complete weight matrices to reside in NKI SBUF. At a
-512-token kernel tile and MLP ratio4, the current estimate plus reserve is:
+512-token kernel tile and MLP ratio4, the original estimate plus reserve is:
 
-| Width | Estimate plus reserve | Current install assertion |
+| Width | Estimate plus reserve | Original install assertion |
 | --- | --- | --- |
 | 1024 | 23MiB | passes |
 | 1152 | 27.875MiB | rejects even native forward |
 | 1280 | 33.25MiB | rejects even native forward |
 
-The asserted capacity is appropriate to the resident NKI variant. A future
-native width experiment should scope it to that variant, then independently
-check actual native compilation, memory and numerical behavior. This does not
+The asserted capacity remains appropriate to the resident NKI variant. The
+native width experiment must independently check actual compilation, memory
+and numerical behavior after the guard is scoped to that variant. This does not
 prove that a wider model is faster or better; it identifies a misleading early
 rejection that would prevent the experiment.
 
@@ -54,6 +64,6 @@ cost and must be labeled as such.
    This revisits capacity jointly with the new kernel/ownership implementation;
    the earlier depth8 result is still valid for its recorded configuration.
 
-No width sweep is queued ahead of the submission rehearsal or the active FP8
-pack32 gate. Both observations come from local code, not assumptions about the
+No width sweep is queued ahead of the active FP8 caller diagnosis. Both
+observations come from local code, not assumptions about the
 other teams' implementations.

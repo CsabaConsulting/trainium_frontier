@@ -118,6 +118,8 @@ def main():
     ap.add_argument("--device", choices=("cpu", "neuron"), default="neuron")
     ap.add_argument("--real-shape", action="store_true")
     ap.add_argument("--real-tokens", type=int, default=8192)
+    ap.add_argument("--real-channels", type=int, default=1024,
+                    help="Explicit width for the real-shape native/NKI integration gate.")
     ap.add_argument("--batch-size", type=int, default=4)
     ap.add_argument("--require-compiled", action="store_true")
     ap.add_argument("--normal-dx", action="store_true")
@@ -134,6 +136,8 @@ def main():
         ap.error("batch size must divide256; real tokens must be a positive multiple of256")
     if args.real_tokens < 256 or args.real_tokens % args.batch_size:
         ap.error("real tokens must be >=256 and divisible by batch size")
+    if args.real_channels < 128 or args.real_channels % 128:
+        ap.error("real channels must be a positive multiple of128")
     if args.require_compiled and (args.device != "neuron" or args.separate_region):
         ap.error("--require-compiled is for joined Neuron calls; use isolated checker for regions")
     if args.weight_mode and not args.grouped_io:
@@ -146,7 +150,7 @@ def main():
     run(args.device, 256, 256, args.normal_dx, args.token_tile, args.grouped_io, args.weight_mode,
         args.forward_backend, args.separate_region, args.batch_size, args.require_compiled)
     if args.real_shape:
-        run(args.device, args.real_tokens, 1024, args.normal_dx, args.token_tile, args.grouped_io,
+        run(args.device, args.real_tokens, args.real_channels, args.normal_dx, args.token_tile, args.grouped_io,
             args.weight_mode, args.forward_backend, args.separate_region, args.batch_size,
             args.require_compiled)
     print("PASS: fused MLP master parameter, cache, accumulation and checkpoint gates", flush=True)

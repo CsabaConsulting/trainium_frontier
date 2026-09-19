@@ -126,7 +126,12 @@ def install(model, device, train_module, normal_input_gradient=False,
                 live_bytes += 2 * channels * hidden
         if grouped_io:
             live_bytes += 2 * channels * token_tile
-        assert live_bytes + 2 * 1024**2 <= 24 * 1024**2
+        if forward_backend == "nki":
+            # This estimate describes the resident NKI forward buffers. The
+            # native forward has its own compiler-managed tiling; applying the
+            # same limit there incorrectly rejects widths above 1024 before
+            # their actual compiled forward/backward can be tested.
+            assert live_bytes + 2 * 1024**2 <= 24 * 1024**2
         if weight_mode >= 3:
             for linear in (module.c_fc, module.c_proj):
                 native_refresh = type(linear).refresh_weight_cache
