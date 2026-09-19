@@ -33,13 +33,17 @@ native:1.76% faster. At the former16384x2shape FP8 was0.485% slower. This is a
 component result, not a full-model speed or BPB result. All original records
 remain; the shape dependence is measured rather than extrapolated.
 
-The next prepared producer computes the same calibration and writes both packed
+Source137 now gates a producer that computes the same calibration and writes both packed
 orientations from each quantized tile, eliminating the BF16 HBM transpose and
 second quantization. A resident variant retains at most8MiB of BF16 weights in
 SBUF per physical core. Both cores repeat the global maximum before writing
-disjoint packed row blocks; that duplicated work is charged. It must match all
+disjoint packed row blocks; that duplicated work is charged. It passes all
 CPU metadata/QDQ/layout references and exact complete gradients. The prior
-compiled producer and compiled native control remain in the comparison.
+compiled producer and compiled native control remain in the comparison. Resident
+preparation0.294823ms vs previous compiled0.541435ms; complete FP8 MLP14.886892ms
+vs native15.348333ms (~3.01% component gain). Streaming14.906892ms also passes.
+Next: gate real Linear masters/cache refresh/eval restoration with the full FP8
+VJP, then measure the complete four-rank model. No whole-model/BPB promotion.
 
 The following ideas from the retro-computing search have already reached device
 experiments. This distinguishes a negative measured layout from an untested idea.
