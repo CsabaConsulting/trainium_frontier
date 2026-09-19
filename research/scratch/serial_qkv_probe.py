@@ -17,8 +17,8 @@ import torch
 from serial_qkv_nki import build_kernel, make_autograd, native
 
 
-def emit(kind, **record):
-    print(kind + ' ' + json.dumps(record), flush=True)
+def emit(marker, **record):
+    print(marker + ' ' + json.dumps(record), flush=True)
 
 
 def product_reference(left, right):

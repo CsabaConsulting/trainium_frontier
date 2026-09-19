@@ -1,0 +1,65 @@
+[W919 23:23:13.516293484 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+SERIAL_QKV_EXACT_GATE {"name": "random:native:repeat0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:native:repeat1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:native:repeat2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:native:nonmutation0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:native:nonmutation1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:native:nonmutation2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:native:nonmutation3", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:native:nonmutation4", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:native:nonmutation5", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:candidate:repeat0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:candidate:repeat1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:candidate:repeat2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:candidate:nonmutation0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:candidate:nonmutation1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:candidate:nonmutation2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:candidate:nonmutation3", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:candidate:nonmutation4", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:candidate:nonmutation5", "shape": [256, 256], "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:0:output:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015369106084108353, "relative_rms": 0.0016580404611602536, "half_value_negative_control_failures": 131036, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:0:output:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015369106084108353, "relative_rms": 0.0016580404611602536, "half_value_negative_control_failures": 131036, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "random", "stream": 0, "field": "output", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:0:input_gradient:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00012185373634565622, "relative_rms": 0.0016601111170535033, "half_value_negative_control_failures": 131038, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:0:input_gradient:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00012185373634565622, "relative_rms": 0.0016601111170535033, "half_value_negative_control_failures": 131038, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "random", "stream": 0, "field": "input_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:0:master_gradient:native", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 1.0343501344323158e-07, "relative_rms": 6.536434769999245e-08, "half_value_negative_control_failures": 65499, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:0:master_gradient:candidate", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 1.0343501344323158e-07, "relative_rms": 6.536434769999245e-08, "half_value_negative_control_failures": 65499, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "random", "stream": 0, "field": "master_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:1:output:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.01500004343688488, "relative_rms": 0.0016665366088529708, "half_value_negative_control_failures": 131039, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:1:output:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.01500004343688488, "relative_rms": 0.0016665366088529708, "half_value_negative_control_failures": 131039, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "random", "stream": 1, "field": "output", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:1:input_gradient:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00012108885493944399, "relative_rms": 0.0016533756262529368, "half_value_negative_control_failures": 131045, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:1:input_gradient:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00012108885493944399, "relative_rms": 0.0016533756262529368, "half_value_negative_control_failures": 131045, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "random", "stream": 1, "field": "input_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:1:master_gradient:native", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 8.381903171539307e-08, "relative_rms": 6.527080950551184e-08, "half_value_negative_control_failures": 65483, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:1:master_gradient:candidate", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 8.381903171539307e-08, "relative_rms": 6.527080950551184e-08, "half_value_negative_control_failures": 65483, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "random", "stream": 1, "field": "master_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:2:output:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015220846980810165, "relative_rms": 0.001661683743868204, "half_value_negative_control_failures": 131039, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:2:output:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015220846980810165, "relative_rms": 0.001661683743868204, "half_value_negative_control_failures": 131039, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "random", "stream": 2, "field": "output", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:2:input_gradient:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00012166465603513643, "relative_rms": 0.0016644605813713558, "half_value_negative_control_failures": 131037, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:2:input_gradient:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00012166465603513643, "relative_rms": 0.0016644605813713558, "half_value_negative_control_failures": 131037, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "random", "stream": 2, "field": "input_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:2:master_gradient:native", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 1.1222437024116516e-07, "relative_rms": 6.507021955352764e-08, "half_value_negative_control_failures": 65495, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:2:master_gradient:candidate", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 1.1222437024116516e-07, "relative_rms": 6.507021955352764e-08, "half_value_negative_control_failures": 65495, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "random", "stream": 2, "field": "master_gradient", "exact": true, "different": 0}
+SERIAL_QKV_EXACT_GATE {"name": "random:independent_q", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:independent_k", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:earlier_v_rows", "shape": [384, 256], "passed": true}
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_freshstart_20260918_wave150/research/scratch/serial_qkv_probe.py", line 238, in <module>
+    main()
+  File "/home/ubuntu/trainium_freshstart_20260918_wave150/research/scratch/serial_qkv_probe.py", line 224, in main
+    for kind in kinds: run_case((512, 256), kind, compiled)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/trainium_freshstart_20260918_wave150/research/scratch/serial_qkv_probe.py", line 137, in run_case
+    emit('SERIAL_QKV_CASE', kind=kind, tokens=tokens, channels=channels,
+TypeError: emit() got multiple values for argument 'kind'
+EXPERIMENT_POSTFLIGHT {"label": "fs-w150-serial-qkv-channels-component-r1", "returncode": 1, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave150/research/run-logs/fs-w150-serial-qkv-channels-component-r1.postflight.json"}
