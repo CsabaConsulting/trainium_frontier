@@ -433,3 +433,25 @@ independence even though checkpoint evaluation intentionally uses native BF16.
 
 Source03a9d902 and recoveryfbd7f48a were verified on GitHub at01:10:40 UTC.
 All41 inventoried heavy artifacts verified by01:05:25, with no errors.
+
+## 2026-09-19 01:15 UTC: BF16 layout reversal and FP8 model-integration contract
+
+Wave86 native BF16 gate passes five small/real cases, independent FP64 bounds
+and exact master accumulation. Component HxT view15.605782ms, deployed contiguous
+HxT15.618884ms, token-row save/backward17.434858ms (11.6268% slower). Thus the
+layout that helped FP8 is a loss for BF16 at identical geometry. Keep the
+deployed BF16 control; do not use this BF16 loss to veto the FP8 candidate.
+
+Wave87 packed FP8 six-arm trace is active on trn21, sourcee1173d13. trn22 is clean
+and ready for wave88 integration. New fp8_mlp_integration keeps native FP32
+parameters/checkpoints, uses explicitly quantized training with native BF16
+evaluation, and prepares packed/QDQ caches in each ordinary timed refresh.
+Initial uncached calls also charge preparation. All short training shapes
+zero-pad *inside the per-token MLP* to a multiple of512; there is no token-count
+fallback to a different training algorithm. No attention sequence is extended.
+
+Before phase timing, require actual Linear master/cache accumulation and refresh
+against the prior FP8 algorithm with independent CPU-prepared cache values,
+FP8 training future/batch/repeat/padding independence, and exact native checkpoint
+restore. The preexisting wave85 stages remain the numerical authority. No full
+FP8 backward, complete-step gain, or quality claim is established yet.

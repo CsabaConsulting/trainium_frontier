@@ -108,6 +108,8 @@ def main():
                     help="Keep singleton Muon owner groups on the batch-two numerical path using a zero dummy.")
     ap.add_argument("--fused-mlp", action="store_true",
                     help="Scratch fused BF16 MLP with HxT saved activation consumed in backward.")
+    ap.add_argument("--fp8-mlp-packed", action="store_true",
+                    help="Gated packed FP8 MLP forward/BF16 surrogate backward; all cache work timed.")
     ap.add_argument("--fused-mlp-normal-dx", action="store_true",
                     help="Form the fused MLP input gradient in TxC directly for upstream normalization.")
     ap.add_argument("--fused-mlp-token-tile", type=int, choices=(128, 256, 512), default=512,
@@ -210,6 +212,8 @@ def main():
     args = ap.parse_args()
     if args.bf16_ce_boundary and args.bf16_ce_gradient_only:
         ap.error("select at most one head/loss boundary candidate")
+    if args.fp8_mlp_packed and args.fused_mlp:
+        ap.error("select either the BF16 or packed FP8 MLP implementation")
     if args.compact_embedding and args.segmented_dma_embedding:
         ap.error("select only one ordinary embedding backward implementation")
     if (args.fused_mlp_normal_dx or args.fused_mlp_grouped_io
@@ -377,6 +381,11 @@ def main():
               f"layers={mlp_layer_indices if mlp_layer_indices is not None else 'all'}; "
               f"separate_region={args.fused_mlp_separate_region}; "
               "shared ordinary Linear caches/parameters preserved", flush=True)
+    fp8_mlp_contract = None
+    if args.fp8_mlp_packed:
+        from fp8_mlp_integration import install
+        fp8_mlp_contract = install(model, device, T)
+        print("[pt] packed FP8 MLP contract " + json.dumps(fp8_mlp_contract), flush=True)
     if args.ngram_ve_freeze:
         for p in model.ngram_embeds.parameters():
             p.requires_grad_(False)
@@ -700,6 +709,11 @@ def main():
             optimizer_ownership_pad_singletons=args.optimizer_ownership_pad_singletons,
             optimizer_owner_calls=(optimizer_ownership.calls if optimizer_ownership is not None else 0),
             fused_mlp=args.fused_mlp,
+            fp8_mlp_packed=args.fp8_mlp_packed,
+            fp8_mlp_contract=fp8_mlp_contract,
+            fp8_mlp_cache_refresh_counts=[getattr(m, "_fp8_refresh_count", 0)
+                                          for m in orig_model.modules()
+                                          if hasattr(m, "_fp8_training_cache")],
             fused_mlp_normal_dx=args.fused_mlp_normal_dx,
             fused_mlp_token_tile=args.fused_mlp_token_tile,
             fused_mlp_grouped_io=args.fused_mlp_grouped_io,

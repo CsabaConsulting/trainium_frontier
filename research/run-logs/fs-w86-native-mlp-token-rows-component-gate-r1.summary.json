@@ -1,0 +1,91 @@
+{
+  "label": "fs-w86-native-mlp-token-rows-component-gate-r1",
+  "source_commit": "03a9d902e10212e671e4918a261d1b71cf4e87e1",
+  "benchmark": {
+    "shape": [
+      16384,
+      1024,
+      4096
+    ],
+    "samples_ms": {
+      "component_hxt_view": [
+        15.585820935666561,
+        15.627457003574818,
+        15.605782465233156
+      ],
+      "deployed_hxt_contiguous": [
+        15.625290669656048,
+        15.618884198678037,
+        15.61449106860285
+      ],
+      "candidate_txh": [
+        17.42788739890481,
+        17.44042446759219,
+        17.434858065098524
+      ]
+    },
+    "median_ms": {
+      "component_hxt_view": 15.605782465233156,
+      "deployed_hxt_contiguous": 15.618884198678037,
+      "candidate_txh": 17.434858065098524
+    },
+    "units": "ms per BF16 master cast/cache refresh plus two FW/BW microbatches",
+    "full_model_included": false,
+    "forward_precision": "BF16 unchanged",
+    "all_numerical_and_accumulation_gates_passed": true
+  },
+  "cases": [
+    {
+      "case": "random",
+      "shape": [
+        512,
+        256,
+        512
+      ],
+      "passed": true
+    },
+    {
+      "case": "zero_up",
+      "shape": [
+        512,
+        256,
+        512
+      ],
+      "passed": true
+    },
+    {
+      "case": "zero_down",
+      "shape": [
+        512,
+        256,
+        512
+      ],
+      "passed": true
+    },
+    {
+      "case": "outliers",
+      "shape": [
+        512,
+        256,
+        512
+      ],
+      "passed": true
+    },
+    {
+      "case": "real_random",
+      "shape": [
+        16384,
+        1024,
+        4096
+      ],
+      "passed": true
+    }
+  ],
+  "postflight": {
+    "command_returncode": 0,
+    "host_clean": true,
+    "failures": [],
+    "completed_at": "2026-09-19T01:13:03.801662+00:00"
+  },
+  "token_rows_regression_percent": 11.626783599395596
+}

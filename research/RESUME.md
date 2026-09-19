@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 01:12 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 01:16 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
 ## Current result and active work
@@ -30,14 +30,27 @@ FP32 accumulation gates pass. It still loses2.1244% in isolation; a bounded
 whole-model allocation probe is justified after wrapper/cache/prediction gates.
 Full FP8 backward is unimplemented.
 
-**trn21 CLEAN wave85:** exact head-gradient-only CE complete step497.864910ms
-versus500.517682ms control (0.5300% improvement). All four postchecks pass and
-last loss matches. Below3% advancement gate: no quality run; retain as possible
-combination. Packed FP8 attribution trace is next. Original failed full BF16
-forward-boundary requests remain blocked. Watcher follows wave85 until repointed.
+**trn21 ACTIVE wave87:** packed FP8 six-arm component trace, sourcee1173d13,
+launched01:13:14. Watcher follows wave87. All component numerical gates already
+passed; trace is attribution only and must be preserved before ingestion.
 
-**trn22 ACTIVE wave86:** fair native BF16 save/backward layout component gate,
-source03a9d902, launched01:11:33. The watcher follows wave86. Do not relaunch.
+Wave85 exact head-gradient-only CE complete step497.864910ms versus500.517682ms
+control (0.5300% improvement), all four postchecks pass, last loss matches. Below
+3% advancement gate: no quality run. Original failed full BF16 boundary remains
+blocked.
+
+**trn22 CLEAN wave86:** native BF16 token-row gate passed all five cases and
+FP32 accumulation, but token rows17.434858ms lose11.6268% versus deployed
+contiguous HxT15.618884ms (view15.605782ms). Keep original BF16 control. The same
+layout direction helped FP8; this BF16 result is not an FP8 veto.
+
+Wave88 FP8 model-integration gate is next. Source adds an opt-in phase flag only;
+no quality-trainer change. Require wrapper/cache/FP32 accumulation/training row
+independence/native checkpoint gates before any phase launch. The wrapper
+explicitly uses quantized training and original BF16 evaluation. All calibration
+and packing are charged in ordinary refresh; missing initial caches are charged
+in forward. Short calls pad inside MLP to512 multiples, preserving per-token
+independence. Watcher will move from wave86 to wave88 after deployment.
 
 Wave83's six diagnostic cases establish the failed forward-boundary cause:
 compiled original head logits retain FP32 accumulator precision. The BF16-input
@@ -176,7 +189,7 @@ Local Devuan/SystemV, usercsaba cron; no root/systemd:
   wave82 raw/parquet plus wave83 compiler inputs, without errors. State is
   out/fresh-start-artifact-backup/latest.json; receipts under research/run-logs.
   Newly produced remote checkpoints still need retrieval to checkpoints/ first.
-- Local log watchers currently follow trn21/wave85 and trn22/wave86,90rounds at
+- Local log watchers currently follow trn21/wave87 and trn22/wave86,90rounds at
  45seconds. Repoint when the active remote worktree changes. Only stop exact
   owned watcher PID/UID/cwd/argv/startticks; remote training jobs are separate.
 
