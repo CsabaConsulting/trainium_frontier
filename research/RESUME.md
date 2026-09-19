@@ -1,7 +1,37 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 08:26 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 08:36 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
+
+## Both caller captures complete; width gate and preservation — 08:36 UTC
+
+- Source140 full-FP8 profile COMPLETE/clean 08:29:08.062744, command0, all four
+  numerical postchecks pass. Native profile-r2 COMPLETE 08:31:50.417156,
+  command0, all four postchecks pass; its only postflight failure is disk reserve
+  (7,263,350,784 bytes free). Preserve the original failed health receipt.
+  `run-logs/fs-w140-pack32-caller-capture-summary-r1.json` records the exact
+  summaries. Native r2 completed without NRT1204 after removal of the optional
+  DGE-notification flag, supporting an instrumentation-triggered failure in r1.
+- Full-FP8 raw-directory preservation is active locally. trn22 maintenance
+  `fs-maintenance-nki-scratch-trn22-20260919-r1` is archiving the oldest24GiB of
+  same-UID `/tmp/nki_*` files modified before07:00UTC. Retirement must wait for
+  per-file local verification and current GitHub asset digests. No current
+  profile, newest compilation or shared immutable cache is selected.
+- trn21 ACTIVE `fs-w143-native-mlp-widths1024-1152-integration-r1`, guardPID
+  1408379, started08:32:10.827313, clean preflight. Immutable source143 is
+  `2f826dc2e8ae244f67e91e128e6692b52b99cddc`. Native MLP guard is now correctly
+  scoped to the resident NKI forward; two separate subprocesses gate widths1024
+  and1152 at pack32/T1024, with actual Linear caches/master gradients, two
+  accumulated microbatches/two updates, exact evaluation and native checkpoints.
+  This is correctness-only work while raw trace copies proceed, not timing.
+- Log watchers: trn21=143, trn22=140. Caller analysis now recognizes the complete
+  FP8 data-gradient, calibration, weight-gradient and dual-cache source families.
+  Next: verified raw preservation, CPU-only64GiB/4thread ingestion, then exact
+  runtime-to-NEFF matching and source/allocation attribution. Do not launch
+  ingest on trn21 until its width gate has completed with clean postflight.
+- Source143 and all preceding maintenance/status source commits are pushed and
+  ref-verified at08:31:21. Snapshot branch was verified at `31d4488ff7e3e6ef67c39a720b53058751b339fc`.
+  No new BPB result; frozen submission remains unchanged.
 
 ## Both source140 caller profiles active — 2026-09-19 08:26 UTC
 
