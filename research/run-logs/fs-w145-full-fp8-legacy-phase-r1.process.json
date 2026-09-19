@@ -1,0 +1,16 @@
+{
+  "label": "fs-w145-full-fp8-legacy-phase-r1",
+  "guard_pid": 1761315,
+  "child_pid": 1761316,
+  "child_session": 1761316,
+  "started_at": "2026-09-19T09:22:00.018424+00:00",
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1500s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "-c",
+    "import pathlib,json,subprocess,re\nr=pathlib.Path('/home/ubuntu/trainium_freshstart_20260918_wave145')\npost=json.loads((r/'research/run-logs/fs-w145-fp8-compact-forward-saves-gates-r1.postflight.json').read_text())\nassert post['command_returncode']==0 and post['host_clean']\nlines=(r/'research/run-logs/fs-w145-fp8-compact-forward-saves-gates-r1.log').read_text().splitlines()\ndef records(prefix): return [json.loads(s.split(' ',1)[1]) for s in lines if s.startswith(prefix+' ')]\na=records('FP8_COMPACT_SAVES_RESULT');b=records('FP8_FULL_MLP_INTEGRATION_RESULT')\nassert len(a)==len(b)==1 and a[0]['passed'] and a[0]['cases']==11 and a[0]['real_tokens']==32768 and b[0]['passed'] and b[0]['real_width'] and b[0]['compact_forward_saves']\npost=json.loads((r/'research/run-logs/fs-w145-native-control-phase-r1.postflight.json').read_text())\nassert post['command_returncode']==0 and post['host_clean']\nprevious_text=(r/'research/run-logs/fs-w145-native-control-phase-r1.log').read_text()\nchecks=[json.JSONDecoder().raw_decode(previous_text[m.end():])[0] for m in re.finditer('NATIVE_POST_CHECK_JSON ',previous_text)]\nassert len(checks)==4 and {c['rank'] for c in checks}==set(range(4)) and all(c['passed'] for c in checks)\nsubprocess.run(['/home/ubuntu/workspace/native_venv/bin/torchrun', '--standalone', '--nproc_per_node=4', '/home/ubuntu/trainium_freshstart_20260918_wave145/research/scratch/phase_timer.py', '--steps', '30', '--warmup-steps', '5', '--seed', '42', '--foreach-optim', '--pack-factor', '32', '--no-ngram-ve', '--dataloader', 'real', '--set', 'DEPTH=6', '--set', 'N_EMBD=1024', '--set', 'USE_QK_SHIFT=False', '--set', 'QK_SHIFT_BETA=0.0', '--set', 'QK_SHIFT_FREEZE=True', '--set', 'USE_COMPILE_MUON=True', '--set', 'USE_NKI_MUON=False', '--set', 'COMPILE_SDPA_DIRECT=True', '--post-checks', '--set', 'USE_NKI_LOCAL_CONV=True', '--set', 'USE_BF16_NORM_OUTPUT=True', '--optimizer-ownership', '--optimizer-ownership-pad-singletons', '--set', 'SEQ_LEN=1024', '--adaptive-nki-ce', '--fp8-mlp-packed', '--fp8-mlp-full'],check=True)\n"
+  ]
+}

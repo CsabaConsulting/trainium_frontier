@@ -23,24 +23,29 @@ from fp8_weight_cache_probe import require_exact
 from fp8_weight_gradient_nki import build_kernels as build_weight_gradient
 
 
-def applications(channels, kernel, backward, partial, finish, product):
+def applications(channels, kernel, backward, partial, finish, product, stream_packed_weights=False):
     legacy, _, mixed, native = build_functions(channels, kernel, backward, partial, finish, product)
     scale = policy(channels)[0]
 
     def compact(x, u, d, um, dm, pu, pd):
-        return kernel[2](x, u, d, um, dm, 2, 128, False, scale, pu, pd, True, False, True)
+        return kernel[2](x, u, d, um, dm, 2, 128, False, scale, pu, pd, True, False, True, stream_packed_weights)
 
     def paired_forward(x, u, d, um, dm, pu, pd):
         original = legacy(x, u, d, um, dm, pu, pd)
         candidate = compact(x, u, d, um, dm, pu, pd)
         repeated = compact(x, u, d, um, dm, pu, pd)
+        if stream_packed_weights:
+            resident = kernel[2](x, u, d, um, dm, 2, 128, False, scale, pu, pd, True, False, True)
+            for index, (value, truth) in enumerate(zip(candidate, resident)):
+                require_exact(f'streamed:resident_compact_tensor:{index}', value, truth)
         assert len(original) == 7 and len(candidate) == len(repeated) == 5
         for index, prior in enumerate((0, 1, 4, 5, 6)):
             require_exact(f'compact:retained_tensor:{index}', candidate[index], original[prior])
             require_exact(f'compact:repeat_tensor:{index}', repeated[index], candidate[index])
         print('FP8_COMPACT_SAVES_GATE ' + json.dumps(dict(
             tokens=x.shape[0], channels=channels, exact_output_relu_fp8_bytes_metadata=True,
-            original_outputs=7, compact_outputs=5, repeated_call_exact=True, passed=True)), flush=True)
+            original_outputs=7, compact_outputs=5, stream_packed_weights=stream_packed_weights,
+            repeated_call_exact=True, passed=True)), flush=True)
         # Independent staged backward still receives its original full tuple;
         # the candidate's autograd below consumes ONLY its own compact outputs.
         return original
@@ -55,6 +60,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--real-shape', action='store_true')
     parser.add_argument('--real-tokens', type=int, default=32768)
+    parser.add_argument('--stream-packed-weights', action='store_true',
+                        help='Additionally stream packed output groups in the compact candidate.')
     args = parser.parse_args()
     if args.real_tokens < 512 or args.real_tokens % 512:
         parser.error('real tokens must be a positive multiple of512')
@@ -66,7 +73,7 @@ def main():
     _, byte_pack, product = (wrap_nki(k) for k in build_weight_gradient())
     calibrate, quantize = (wrap_nki(k) for k in build_calibration())
     kernels = kernel, backward, partial, finish, product, calibrate, quantize, pack, byte_pack
-    small = applications(256, kernel, backward, partial, finish, product)
+    small = applications(256, kernel, backward, partial, finish, product, args.stream_packed_weights)
     cases = ('random', 'zero_input', 'zero_up', 'zero_down', 'zero_gradient',
              'tiny_gradient', 'outliers', 'changed_weights', 'norm_spikes', 'norm_tiny')
     for case in cases:
@@ -78,10 +85,10 @@ def main():
         torch._dynamo.reset()
         print('FP8_COMPACT_PROCESS_GUARD_RESET ' + json.dumps(dict(
             completed_width=256, next_width=1024, shared_device_cache_purged=False)), flush=True)
-        large = applications(1024, kernel, backward, partial, finish, product)
+        large = applications(1024, kernel, backward, partial, finish, product, args.stream_packed_weights)
         run((args.real_tokens, 1024, 4096), 'real_random', kernels, large, 1, False)
     print('FP8_COMPACT_SAVES_RESULT ' + json.dumps(dict(
-        passed=True, cases=len(cases) + int(args.real_shape), real_shape=args.real_shape,
+        passed=True, stream_packed_weights=args.stream_packed_weights, cases=len(cases) + int(args.real_shape), real_shape=args.real_shape,
         real_tokens=args.real_tokens if args.real_shape else None,
         all_original_independent_forward_and_four_product_gates=True,
         exact_retained_forward_tensors_and_compiled_gradients=True,

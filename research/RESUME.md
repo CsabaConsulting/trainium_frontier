@@ -1,7 +1,39 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 09:18 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 09:29 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
+
+## Nearby controls complete; legacy FP8 and staged maintenance active — 09:29 UTC
+
+- trn22 source145 native control COMPLETE/clean09:20:30.022658, all four model
+  postchecks pass. Median488.702096ms, last loss5.126208782196045, consistent with
+  source140. Summary preserves all phase medians, exact source and raw-log hash.
+- trn22 ACTIVE `fs-w145-full-fp8-legacy-phase-r1`, guard1761315, started
+  09:21:59.988638, clean preflight. NEXT after command0/clean/four postchecks:
+  `fs-w145-full-fp8-compact-phase-r1.request.json` on the SAME source145 worktree.
+- trn21 source146 D1024 control COMPLETE/clean09:23:29.405196, all four model
+  checks pass. Median487.434961ms, FW/BW433.103516ms, loss5.126208782196045.
+  Its15.18GB free disk is above reserve, but larger compilation needs headroom.
+- trn21 maintenance `fs-maintenance-nki-scratch-trn21-20260919-r2` is capturing
+  the oldest16GiB of ordinary idle compiler diagnostics before08:00UTC. It holds
+  the host lock. Wait for local per-file verification, then put this artifact
+  first in artifact-backups.json and upload/verify cloud digests, then retire
+  ONLY its reverified original files. Existing shared caches/newer work remain.
+  NEXT after clean retirement: prepared source146 width1152 phase request.
+- Source147 candidate is prepared locally: optional sequential packed weight
+  groups in compact FP8 forward. It preserves all paired contraction/rescaling
+  arithmetic and trades repeated HBM loads for a lower source-level weight
+  footprint. Numerical/full-model tests are PENDING; do not claim allocation
+  or speed gains. See `fresh-start-fp8-weight-residency-2026-09-19.md`.
+  Finish source145 three-arm comparison before deploying/running this candidate.
+- Both raw caller captures AND both decoded32-table Parquet datasets are now
+  locally hash verified and GitHub asset-digest verified. Artifact backup09:05
+  completed63entries without errors. Native Parquet payload1,604,252,780bytes;
+  FP8 Parquet payload1,961,821,219bytes. Receipts are under research/run-logs.
+- Source27495b09 and snapshot92c1bb11 were pushed/ref-verified09:19:21. Current
+  source147 preparations/controls/maintenance intent require the next commit.
+- Watchers remain trn21=146, trn22=145. No new BPB: frozen package0.99285131,
+  independent cold replay0.99385567. No private leaderboard/submission action.
 
 ## Compact/ownership gates passed; nearby whole-model controls active — 09:18 UTC
 
