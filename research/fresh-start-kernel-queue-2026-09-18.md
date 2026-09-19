@@ -393,3 +393,24 @@ longer populated in the new forward interval. Device forward drops 3.568860 to
 2.801243 ms; backward stays about 4.84 ms. All 57 dispatches map to binaries.
 This attributes wave81's unprofiled 7.84% component gain; it is not a second
 speed benchmark. Dynamic DMA metadata warnings still limit bandwidth claims.
+
+### Packed MLP outcome and fair precision controls (01:07 UTC)
+
+Wave85 passes ten packed-cache forward cases and eight training cases. All
+paired saved values and gradients are exact, the independent FP64 surrogate
+bounds pass, and two-microbatch accumulation reaches FP32 masters exactly once.
+Complete update: packed FP8 15.957811 ms, previous FP8 16.442287 ms, native BF16
+15.625856 ms. Packing gains 2.95% within FP8, but the candidate still loses 2.12%
+to native. Preparation, both caches and all saved values are charged.
+
+That small component loss permits a justified surrounding-model allocation
+probe after cache/restore/causality gates. It does not justify a training quality
+run yet. First, a fair BF16 control tests the same saved-activation/backward
+orientation. It includes both the deployed contiguous HxT save and the component
+benchmark's HxT view, so those layouts are not silently conflated. The existing
+independent FP64/BF16 backward bounds and a derived forward bound are declared
+before measurement; paired exactness is reported separately, not fitted.
+
+The installed gradient-only loss adapter also passes its 32 exact head cases.
+A fresh full-step control completed clean, and the paired candidate is active.
+No step-speed or quality conclusion is available until that comparison finishes.
