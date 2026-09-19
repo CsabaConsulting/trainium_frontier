@@ -28,12 +28,30 @@ width. A device invocation measures one actual group or an explicit prefix,
 including native stacking/copies/update and optional singleton padding. The
 synthetic fixed-gradient measurements do not change the ownership planner or
 replace its exact numerical/state/collective gates. Hardware cost measurements
-are active on trn21 source144, job
-`fs-w144-width1152-optimizer-group-costs-r1`, started08:58:35.465128 with clean
-preflight. Inventory finds142,752,108 parameters and13 bounded measurement
-cases across nine actual groups. Its input is the hash-verified source144
+completed on trn21 source144, job
+`fs-w144-width1152-optimizer-group-costs-r1`, clean postflight09:02:50.813903.
+Inventory finds142,752,108 parameters and13 measurement cases across nine
+actual groups. Its input is the hash-verified source144
 mirror of the trn22 native capture log, not an assumed cross-host file path.
-No new width costs have been inserted into the planner.
+The prepared planner adds only these four new Muon shape costs; D1024 costs
+and the assignment algorithm are unchanged. The per-matrix estimates use the
+representative owner count, not the old0.01ms unknown-shape fallback:
+
+| Muon matrix shape | Measured count | Median group ms | Group range ms |
+| --- | ---: | ---: | ---: |
+|1152x1152|6|5.493694|5.460872–5.508509|
+|1152x4608|2|5.106647|5.091937–5.115605|
+|4608x1152|2|5.528477|5.500950–5.568338|
+|9x32|2|0.660949|0.497489–0.665520|
+
+These are amortized planning estimates; grouped cost has launch overhead and
+need not scale linearly. Whole-group controls and all AdamW measurements remain
+in `run-logs/fs-w144-width1152-optimizer-group-costs-r1.summary.json`.
+The existing ownership checker now accepts the exact recorded configuration
+and width1152. It must pass replicated/owned parameter and state equality,
+None/zero gradients, schedules, cache refresh, padding, cross-rank hashes and
+checkpoint continuation before the new plan is used for a complete model phase.
+The broader accuracy gate is prepared, not yet passed.
 
 ## Two implementation restrictions can bias a future width comparison
 

@@ -27,16 +27,24 @@ def cpu_tree(value):
     return value
 
 
-def template_groups(real):
+def template_groups(real, width=1024, config_log=None):
+    if config_log is not None:
+        # Use precisely the same actual model inventory as the measured costs.
+        # The replicated numerical authority still uses the original optimizer.
+        from optimizer_group_cost_probe import inventory
+        groups, record = inventory(config_log, width)
+        print("OPTIMIZER_OWNERSHIP_ACTUAL_INVENTORY " + json.dumps(record), flush=True)
+        return groups
     if real:
-        T.DEPTH, T.N_EMBD = 6, 1024
+        T.DEPTH, T.N_EMBD = 6, width
         T.USE_NGRAM_VE = T.USE_QK_SHIFT = False
         T.QK_SHIFT_BETA, T.QK_SHIFT_FREEZE = 0.0, True
         T.USE_LOCAL_CONV = T.TRAIN_LOCAL_CONV = True
         with torch.device("meta"):
             model = T.GPT(T.build_config())
             groups = model.setup_optimizer().param_groups
-        assert sum(p.numel() for g in groups for p in g["params"]) == 117453580
+        expected = {1024: 117453580, 1152: 142752108}
+        assert sum(p.numel() for g in groups for p in g["params"]) == expected[width]
         return groups
     groups = [dict(kind="adamw", params=[torch.empty(64, 32, device="meta") for _ in range(5)],
                    lr=.02, betas=(.8, .96), eps=1e-10, weight_decay=.01),
@@ -128,13 +136,19 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--device", choices=("cpu", "neuron"), required=True)
     parser.add_argument("--real-shape", action="store_true")
+    parser.add_argument("--width", type=int, choices=(1024, 1152), default=1024)
+    parser.add_argument("--config-log", type=Path,
+                        help="Derive actual parameter groups from a recorded phase configuration")
     parser.add_argument("--steps", type=int, default=20)
     parser.add_argument("--pad-singleton-muon", action="store_true")
     parser.add_argument("--adamw-math-mode", type=int, choices=(0, 2), default=None,
                         help="Compare ownership against replicated identical NKI AdamW math. "
                              "Its independent arithmetic gates remain required.")
     args = parser.parse_args()
-    if args.adamw_math_mode is not None and (args.device != "neuron" or not args.real_shape):
+    if not args.real_shape and (args.width != 1024 or args.config_log is not None):
+        parser.error("width/config-log options require the actual model gate")
+    if args.adamw_math_mode is not None and (
+            args.device != "neuron" or not args.real_shape or args.width != 1024):
         parser.error("NKI AdamW composition requires Neuron and the actual dense1024 tables")
     if args.device == "neuron":
         import torch_neuronx
@@ -145,7 +159,7 @@ def main():
     _, rank, _, world, device = T.init_runtime(args.device)
     assert world == 4
     try:
-        groups = template_groups(args.real_shape)
+        groups = template_groups(args.real_shape, args.width, args.config_log)
         generator = torch.Generator().manual_seed(9407)
         initial = [torch.randn(p.shape, generator=generator) * .03 for g in groups for p in g["params"]]
         reference_params, reference, _ = make_optimizer(
@@ -155,6 +169,7 @@ def main():
         del initial
         print("OPTIMIZER_OWNERSHIP_PLAN " + json.dumps(dict(
             rank=rank, pad_singleton_muon=args.pad_singleton_muon,
+            actual_model_width=args.width if args.real_shape else None,
             adamw_math_mode=args.adamw_math_mode,
             reference_math="native" if args.adamw_math_mode is None else "identical replicated NKI AdamW",
             padded_groups=list(adapter.padding), **adapter.summary)), flush=True)
