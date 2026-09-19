@@ -84,3 +84,15 @@ Related designs: shared gradient quantization in
 `fresh-start-fp8-backward-design-2026-09-19.md`; exact fused head/loss in
 `fresh-start-fused-head-loss-design-2026-09-19.md`. Neither is implemented or
 promoted by this caller diagnosis.
+
+
+## Completed boundary comparison, 02:28 UTC
+
+Source95 same-host medians: native499.641620ms, monolithic FP8586.422830ms,
+separate FP8619.975017ms. The boundary worsens FP8 by5.7215%; no promotion.
+All clean/four postchecks/cache counts pass. Last losses differ (5.064923,
+5.067037,5.063094), so do not claim full-model bitwise equivalence merely from
+the isolated integration gate. Extra dispatch/materialization or changed
+surrounding compilation remain possible; no separate-boundary device capture
+has been taken. This failed tactic does not prove the original spill attribution
+wrong. Record: fs-w95-fp8-compilation-boundary-comparison-r1.json.

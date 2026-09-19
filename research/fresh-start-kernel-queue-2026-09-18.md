@@ -1,26 +1,29 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19, 02:21 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19, 02:43 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
 ## Ready requests and active work
 
-Latest: packed FP8 integration passes but the whole step loses17.7363%:
-587.956385 versus499.384107ms, same trn21/source/configuration. Both complete
-caller traces/parquets are locally hash-verified and analyzed. Forward grows
-68.001178 to109.520190ms, backward stays about138ms. Ordinary Linear source
-(train.py:2853) has the largest extra spill/engine activity. These profiles
-attribute the regression; they do not replace same-host timing. Source96's
-FP8 precision ratio0 is a reporting integer-division bug; actual raw/adjusted
-FLOPs imply0.5. Corrected source97 analyses are complete; all nonprecision metrics match.
-Original reports are retained.
+Source95 compilation-boundary comparison is complete: native499.641620ms,
+monolithic FP8586.422830ms, separate FP8619.975017ms. All clean/four postchecks
+pass, but separation adds5.72% versus monolithic. No FP8 quality promotion.
+Caller attribution/corrected source97 reports remain preserved.
 
-Separate compiled FP8 MLP source95 passes both real-Linear integration widths.
-trn21 native control reproduced499.641620ms; monolithic FP8 is active, separate
-region follows clean postflight. trn22 passed the mode2-AdamW/ownership gate
-and is running its native whole-step control; candidate follows. Watchers95/98. Full diagnosis:
-`fresh-start-fp8-caller-diagnosis-2026-09-19.md`.
+Source98 reciprocal-refined AdamW plus ownership passes24 exact composition
+checks. Whole step497.650549 versus503.328809ms (1.12814%); optimizer23.619889
+versus26.362835ms. Below3%: keep for combinations, no standalone quality run.
+trn22 now tests pack32/GA1 against the same-source pack16/GA2 control, keeping
+T1024 and131072 global targets/update. Watcher98.
+
+Source99 fused head/CE forward passes preceding projection/loss cases but fails
+strict nonnegative loss on a confident target. It matches the original kernel
+exactly, including its tiny negative result. Source100 proves fused affine
+centering against the rounded target bias causes the original negative values;
+all10 diagnostic cases match. Retain the failed wave99 sign assertion. Source101
+requires exact original signs/values, retains negativity diagnostics, and changes
+no math or numerical bounds. trn21 clean;14fixture rerun pending, watcher100.
 
 Measured FP8 progress and the BF16 layout reversal are summarized at the top of
 `fresh-start-results-2026-09-18.md`. No FP8 quality gain is established.
@@ -29,10 +32,10 @@ Current next actions, in dependency order:
 
 | Idea | Current state | Advancement gate |
 | --- | --- | --- |
-| Separate compiled FP8 MLP region | Exact real-Linear gate passed; same-host complete-step comparison running | Include launch/cache/gradient costs; require at least3% whole-step gain before quality |
-| Reciprocal refinement plus optimizer ownership | Composition passes24 exact checks across four ranks; whole-step control running | Exact owned-versus-replicated same-math weights/states/rank exchange/cache/restore; then fresh paired whole-step timing |
+| Separate compiled FP8 MLP region | Integration passes; whole step loses24.08% to native | Include launch/cache/gradient costs; require at least3% whole-step gain before quality |
+| Reciprocal refinement plus optimizer ownership | Composition passes; whole step gains1.13%, below3% | Exact owned-versus-replicated same-math weights/states/rank exchange/cache/restore; then fresh paired whole-step timing |
 | FP8 gradient scale sharing | Algebra and contracts recorded in backward design; not implemented | Independent quantizer/FP64 stage gates, then all four gradient products with all packing charged |
-| Fused vocabulary head and exact loss | Forward-only prototype and gates prepared; no autograd integration | Preserve original FP32 head accumulation and all gradient terms; profile complete caller |
+| Fused vocabulary head and exact loss | Original sign failure diagnosed; exact-reference14fixture gate prepared | Preserve original FP32 head accumulation and all gradient terms; profile complete caller |
 | Smaller range-reduced tables / rational composed functions | Design candidates; full-value LUT and standalone polynomial timings lost | Benchmark the full producer/consumer pipeline after accuracy/range gates |
 
 | Item | State | Next action / evidence |

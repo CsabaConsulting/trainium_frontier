@@ -6,6 +6,12 @@ BF16 inputs and FP32 accumulation, plus32 FP32 subnormal units. There is no
 BF16 output-rounding allowance. Loss/lse must then match the existing exact
 adaptive CE bit-for-bit on these frozen FP32 logits. Independent FP64 loss
 diagnostics and compiled-native differences are retained separately.
+
+Loss nonnegativity is diagnostic, not an exact-compatibility requirement:
+wave100 proves that the unchanged reference itself returns tiny negative
+losses when fused target centering differs from its rounded target bias.
+Require identical signs and bit-exact reference values; do not clamp either
+kernel, add tolerances, or erase the original failed wave99 sign assertion.
 """
 import argparse
 import gc
@@ -78,12 +84,20 @@ def check(case, functions, loss_reference, x, w, labels):
                   frozen_max_abs=[float((a - b).abs().max()) for a, b in zip(actual[1:], frozen)],
                   repeated_exact=repeat_exact, finite=finite,
                   nonnegative_loss=bool((actual[1] >= 0).all()),
+                  negative_loss_rows=int((actual[1] < 0).sum()),
+                  minimum_loss=float(actual[1].min()),
+                  reference_negative_loss_rows=int((frozen[0] < 0).sum()),
+                  reference_minimum_loss=float(frozen[0].min()),
+                  exact_reference_loss_sign=bool(torch.equal(actual[1] < 0, frozen[0] < 0)),
+                  nonnegative_loss_diagnostic_only=True,
+                  original_failed_sign_gate='fs-w99-fused-head-loss-forward-stage-gate-r1',
+                  reference_rounding_diagnostic='fs-w100-ce-negative-stage-diagnostic-r1',
                   native_fp32_accumulation=native_fp32_accumulation,
                   native_exact_logits_loss_lse=[torch.equal(a, b) for a, b in zip(actual, native)],
                   native_max_abs=[float((a - b).abs().max()) for a, b in zip(actual, native)],
                   frozen_fp64_loss_max_abs=float(loss_error.max()),
                   independent_loss_diagnostic_only=True)
-    record['passed'] = all(exact) and repeat_exact and finite and record['nonnegative_loss']
+    record['passed'] = all(exact) and repeat_exact and finite and record['exact_reference_loss_sign']
     emit('FUSED_HEAD_LOSS_GATE', record)
     assert record['passed'], record
     assert torch.equal(inputs[0].cpu(), x) and torch.equal(inputs[1].cpu(), w)

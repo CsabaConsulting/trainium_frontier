@@ -369,3 +369,11 @@ This composition gate does not claim equality with native AdamW or repeat its
 previously passed independent FP64 arithmetic proof. No new kernel arithmetic
 is introduced. A full-step control/candidate pair remains necessary, and the
 quality trainer still rejects the combination until its advancement gates pass.
+
+
+2026-09-19 02:43 UTC: reciprocal mode2 composed with optimizer ownership passes
+24 exact composition checks and all four full-model postchecks. Whole step is
+497.650549 versus503.328809ms (1.12814% gain), optimizer23.619889 versus
+26.362835ms. The earlier16.77% isolated component improvement does not imply
+that gain for training. Below the3% standalone advancement gate; retain for
+combinations. Evidence: fs-w98-owned-reciprocal-adamw-comparison-r1.json.

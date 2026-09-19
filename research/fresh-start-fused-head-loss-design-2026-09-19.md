@@ -115,7 +115,7 @@ There is no claim that streamed weights will outperform native GEMM.
 
 `head_loss_fused_probe.py` declares gamma(C)*sum(abs(products)) FP32 accumulation
 bounds before execution, without BF16 output-rounding allowance. Exact loss/lse
-on frozen logits, nonnegative finite losses, repetition, row independence and
+on frozen logits, finite losses, repetition, row independence and
 input integrity are required. Fixtures include zero/tiny/random values,
 cancellation, outliers and confident correct/wrong targets. Exposed native
 output precision is audited; a rounded baseline cannot become speed evidence.
@@ -138,3 +138,43 @@ For the original nonfused head, writing a separate `u` tensor adds a full HBM
 write and may lose. For a fused producer it replaces an existing save of the
 same size. Time the complete forward/backward with all saves, not just the
 removed Scalar instruction. Prototype status: proposed; not implemented.
+
+
+## First hardware result: preserve the original failed sign gate
+
+Source99 gate ends clean02:30:35 with a failed nonnegative-loss check on the
+confident-correct fixture (vocabulary1024). Candidate logits/loss/lse match the
+compiled native head and exact CE on frozen logits. All projection bounds pass.
+The negative value is only about5.8e-8; the independent FP64 loss is tiny and
+positive. Zero/tiny/random/cancellation/outlier fixtures preceding it pass.
+The sign assertion remains failed, unmodified; no speed result exists yet.
+
+Next diagnostic exposes target softcap, affine argument, exponential,
+denominator and logarithm, plus runtime exp(0)/log(1) controls. It must match
+the original CE loss/lse exactly. This distinguishes a fusion error from the
+reference primitive/reduction behavior before any compatibility-contract change.
+No production clamp or approximation change is proposed to hide the failure.
+
+
+## Stage diagnosis and compatibility contract, 2026-09-19 02:42 UTC
+
+Source100 diagnostic completes clean02:36:09. All ten cases match the original
+loss/lse exactly. Four confident-target cases reproduce negative original
+losses. The source is fused affine centering against a separately rounded bias.
+For strength80, the actual FP32 tanh value is0.9999533295631409; its separately
+rounded15x target is14.999300003051758. The fused15*u-target retains
+-5.960464477539063e-8; exp and the final denominator are0.9999999403953552.
+The resulting original loss is-5.774199962615967e-8. Separately centering the
+rounded target gives exp(0)=1 exactly. Runtime log(1) is positive9.33724e-10,
+so it does not explain the negative sign. Strength30 gives the same mechanism
+with a-1.7881393432617188e-7 affine residual. Original logs and bit patterns
+are retained in fs-w100-ce-negative-stage-diagnostic-r1.summary.json.
+
+The original wave99 sign assertion remains a FAILED experiment. Universal
+nonnegativity is incompatible with bit-exact reproduction of this reference.
+The next probe therefore requires identical loss signs and unchanged exact
+loss/lse, while retaining nonnegative flags, negative counts, minima and FP64
+errors as diagnostics. This corrects the test contract after independent stage
+evidence; it does not change either kernel, add tolerances, clamp losses or
+relax the FP32 projection bound. Both widths and all14 fixtures must complete
+before a forward-only timing run; backward still has no integration.
