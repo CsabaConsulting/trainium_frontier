@@ -24,14 +24,16 @@ from mlp_fused_bf16_probe import compare
 from serial_qkv_integration import install
 
 
-def require_component(root, layout):
+def require_component(root, layout, label=None,
+                      expected_commit='85addadd2ade1d0eb37fa9a5294b598bfe2ba9b4',
+                      value_fp32=False):
     root = Path(root).resolve()
     current = Path(__file__).resolve().parents[2]
-    label = 'fs-w151-serial-qkv-' + layout + '-component-r1'
+    label = label or 'fs-w151-serial-qkv-' + layout + '-component-r1'
     post_path = root / 'research/run-logs' / (label + '.postflight.json')
     log_path = root / 'research/run-logs' / (label + '.log')
     post = json.loads(post_path.read_text())
-    assert post['source_commit'] == '85addadd2ade1d0eb37fa9a5294b598bfe2ba9b4'
+    assert post['source_commit'] == expected_commit
     assert post['command_returncode'] == 0 and post['host_clean']
     assert not post['failures'] and not post['guard_error'] and not post['interrupted_signals']
     digests = {}
@@ -46,16 +48,21 @@ def require_component(root, layout):
             marker, payload = line.split(' ', 1)
             records.setdefault(marker, []).append(json.loads(payload))
     result, = records['SERIAL_QKV_RESULT']
-    assert result['layout'] == layout and result['cases'] == 9 and result['passed']
+    count = 10 if value_fp32 else 9
+    assert result['layout'] == layout and result['cases'] == count and result['passed']
+    assert result.get('value_fp32', False) == value_fp32
+    if value_fp32: assert result['fp32_value_output_bounds']
     assert result['real_tokens'] == 32768 and result['real_channels'] == 1024
     assert result['independent_fp64_gates'] and result['lifecycle_passed']
     cases = records['SERIAL_QKV_CASE']
-    assert len(cases) == 9 and all(c['passed'] for c in cases)
-    assert {c['kind'] for c in cases} == {
+    assert len(cases) == count and all(c['passed'] for c in cases)
+    kinds = {
         'random', 'zero_input', 'zero_weight', 'zero_gradient', 'tiny_gradient',
         'outliers', 'changed_weights', 'cancellation', 'real_random'}
+    if value_fp32: kinds.add('unrounded_v_gradient')
+    assert {c['kind'] for c in cases} == kinds
     print('SERIAL_QKV_COMPONENT_PREREQUISITE ' + json.dumps(dict(
-        passed=True, source_commit=post['source_commit'], label=label,
+        passed=True, source_commit=post['source_commit'], label=label, value_fp32=value_fp32,
         component_log_sha256=hashlib.sha256(log_path.read_bytes()).hexdigest(),
         postflight_sha256=hashlib.sha256(post_path.read_bytes()).hexdigest(),
         current_primitive_and_gate_sha256=digests)), flush=True)
@@ -86,11 +93,11 @@ def exact(name, actual, expected):
     assert passed, name
 
 
-def run(channels, layout):
+def run(channels, layout, value_fp32=False):
     torch.manual_seed(151031 + channels)
     baseline = Probe(channels).to('neuron')
     candidate = copy.deepcopy(baseline)
-    contract = install(candidate, 'neuron', T, layout)
+    contract = install(candidate, 'neuron', T, layout, value_fp32)
     native = torch.compile(baseline, backend='neuron', fullgraph=True, dynamic=False)
     optimized = torch.compile(candidate, backend='neuron', fullgraph=True, dynamic=False)
     host_inputs = [torch.nn.functional.rms_norm(torch.randn(4, 128, channels), (channels,)).bfloat16()
@@ -153,20 +160,21 @@ def run(channels, layout):
     with torch.no_grad():
         exact(f'{channels}:strict_native_restore', restored(*inputs, cos, sin), candidate(*inputs, cos, sin))
     print('SERIAL_QKV_ATTENTION_GATE ' + json.dumps(dict(
-        channels=channels, layout=layout, passed=True, compiled_forward_backward=True,
+        channels=channels, layout=layout, value_fp32=value_fp32,
+        passed=True, compiled_forward_backward=True,
         cached_and_uncached=True, original_separate_parameters=True,
         accumulation_and_refresh=True, distinct_input_gradients=True,
         causal_and_batch_independence_exact=True, padded_projection_rows=True,
         native_evaluation_and_restore_exact=True, contract=contract)), flush=True)
 
 
-def real_attention_timing(layout, steps):
+def real_attention_timing(layout, steps, value_fp32=False):
     """Matched real-shape forward/backward, charging cache refresh and grads."""
     batch, length, channels = 32, 1024, 1024
     torch.manual_seed(152032)
     baseline = Probe(channels, length).to('neuron')
     candidate = copy.deepcopy(baseline)
-    install(candidate, 'neuron', T, layout)
+    install(candidate, 'neuron', T, layout, value_fp32)
     native = torch.compile(baseline, backend='neuron', fullgraph=True, dynamic=False)
     optimized = torch.compile(candidate, backend='neuron', fullgraph=True, dynamic=False)
     values = [torch.nn.functional.rms_norm(torch.randn(batch, length, channels), (channels,)).bfloat16()
@@ -212,7 +220,7 @@ def real_attention_timing(layout, steps):
             samples[name].append((time.perf_counter() - start) * 1000 / steps)
     medians = {name: statistics.median(values) for name, values in samples.items()}
     print('SERIAL_QKV_ATTENTION_TIMING ' + json.dumps(dict(
-        layout=layout, batch=batch, length=length, channels=channels,
+        layout=layout, value_fp32=value_fp32, batch=batch, length=length, channels=channels,
         passed=True, real_shape_output_input_and_master_gradients_gated=True,
         samples_ms=samples, median_ms=medians, steps_per_block=steps,
         improvement_pct=100 * (medians['native'] - medians['candidate']) / medians['native'],
@@ -226,26 +234,30 @@ def main():
     parser.add_argument('--layout', choices=('tokens', 'channels'), required=True)
     parser.add_argument('--steps', type=int, default=10)
     parser.add_argument('--component-root', required=True)
+    parser.add_argument('--component-label')
+    parser.add_argument('--component-commit', default='85addadd2ade1d0eb37fa9a5294b598bfe2ba9b4')
+    parser.add_argument('--value-fp32', action='store_true')
     args = parser.parse_args()
     assert args.steps > 0
-    require_component(args.component_root, args.layout)
+    require_component(args.component_root, args.layout, args.component_label,
+                      args.component_commit, args.value_fp32)
     import torch_neuronx  # noqa: F401
     torch.set_num_threads(4)
     T.USE_WEIGHT_CACHE = T.USE_BF16_NORM_OUTPUT = T.USE_NKI_ROPE_NORM = T.COMPILE_SDPA_DIRECT = True
     T.USE_FUSED_QKV = T.USE_PARALLEL_BLOCK = T.USE_NGRAM_VE = T.USE_HEAD_GATE = T.USE_NKI_ATTN = False
     T.USE_VE = True
     assert T._HAS_NKI
-    run(256, args.layout)
+    run(256, args.layout, args.value_fp32)
     torch._dynamo.reset()
     print('SERIAL_QKV_ATTENTION_GUARD_RESET ' + json.dumps(dict(
         completed_width=256, next_width=1024, shared_device_cache_purged=False)), flush=True)
-    run(1024, args.layout)
+    run(1024, args.layout, args.value_fp32)
     torch._dynamo.reset()
     print('SERIAL_QKV_ATTENTION_GUARD_RESET ' + json.dumps(dict(
         next_shape=[32, 1024, 1024], shared_device_cache_purged=False)), flush=True)
-    real_attention_timing(args.layout, args.steps)
+    real_attention_timing(args.layout, args.steps, args.value_fp32)
     print('SERIAL_QKV_INTEGRATION_RESULT ' + json.dumps(dict(
-        layout=args.layout, widths=[256, 1024], passed=True,
+        layout=args.layout, value_fp32=args.value_fp32, widths=[256, 1024], passed=True,
         paired_native_bounds_unchanged=True, native_rope_geometry_preserved=True,
         real_shape_attention_timing_complete=True,
         whole_model_or_quality_claim=False)), flush=True)

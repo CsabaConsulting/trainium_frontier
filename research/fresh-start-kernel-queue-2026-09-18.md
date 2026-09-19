@@ -18,6 +18,14 @@ Muon groups and RoPE layout are preserved. No whole-model/quality promotion.
 Read current dispatch/state records before assuming a host is busy; all queues
 are bounded, and backup cron does not launch research.
 
+Source153 now isolates the V+VE rounding boundary at both widths. Source154's
+opt-in FP32 V accumulator output and corrected differentiable frozen controls
+are prepared. Require old BF16 regression, strict FP32-V/all-gradient/lifecycle
+gates, then unchanged whole-attention gates and real-shape timing. This is
+numerical repair; there is no speed claim. The nominal BF16 arithmetic floor
+is already close to native component time, so broader FP8 projections/fusion
+remain higher-return follow-ups than endless BF16 tile sweeps.
+
 Scope clarification: full FP8 here means the complete MLP forward/backward,
 not all transformer projections/attention/optimizer arithmetic. A broader
 FP8 region can still win despite the current MLP integration regression.
