@@ -97,5 +97,27 @@ parameter/cache refresh, serialization, causality, batch independence and
 repeated predictions. Time complete head forward/backward and complete model
 updates after clean pre/postflight. Only a complete-step improvement of at least
 3%, with all required numerical gates satisfied, advances to a 30-minute
-quality comparison. No implementation or quality run is queued automatically
-until the caller profile justifies this priority.
+quality comparison. No quality run follows a forward-only component result. The caller source
+aggregates ordinary Linear operations and does not isolate the head cost. The
+earlier complete head/CE component14.99ms establishes a measurable target, not
+a whole-model forecast. A bounded forward prototype now tests fusion and
+transposed-weight preparation directly.
+
+
+## First prototype, 2026-09-19 02:21 UTC
+
+`head_loss_fused_nki.py` retains128 token rows of FP32 logits and softcapped
+values in SBUF. It streams BF16 weights from a contiguous[C,V] transpose;
+it does not retain a16MiB weight cache beside the vocabulary row tiles. The
+complete FP32 logits tensor is saved for ordinary backward. Target gather
+and512-wide exp reductions preserve the previously gated CE algorithm.
+There is no claim that streamed weights will outperform native GEMM.
+
+`head_loss_fused_probe.py` declares gamma(C)*sum(abs(products)) FP32 accumulation
+bounds before execution, without BF16 output-rounding allowance. Exact loss/lse
+on frozen logits, nonnegative finite losses, repetition, row independence and
+input integrity are required. Fixtures include zero/tiny/random values,
+cancellation, outliers and confident correct/wrong targets. Exposed native
+output precision is audited; a rounded baseline cannot become speed evidence.
+The timer charges one transpose plus two forwards including logits saves.
+Backward, autograd and optimizer costs are absent; no quality promotion follows.

@@ -1,6 +1,16 @@
 # Reopen optimizer ownership as a compute question
 
-Status at 21:59 UTC, 2026-09-18: the padded ownership implementation passes
+Current02:21 UTC,2026-09-19: mode2 reciprocal AdamW plus ownership passes its
+actual-model composition gate (`fs-w98-owned-reciprocal-adamw-integration-gate-r1`).
+All24 parameter/state/rank checks match replicated identical NKI math exactly.
+All13 expected table updates occur once across owners; cache, skip/schedule
+and checkpoint continuation pass. Rank-local checkpoints record/reject a
+different AdamW arithmetic policy. Native checkpoints without that field stay
+compatible with native math. Independent FP64 authority remains wave66.
+Whole-step control/candidate comparison is active; no new quality gain claimed.
+
+
+Earlier status at 21:59 UTC, 2026-09-18: the padded ownership implementation passes
 all CPU/Gloo and native gates with **exact weights and owned optimizer states**.
 The native complete optimizer, including FP32 packing, exchange and copyback,
 costs **25.35–25.38 ms versus 52.29–52.84 ms** on the four ranks. The matched
