@@ -1,10 +1,19 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19, 00:41 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19, 01:26 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
 ## Ready requests and active work
+
+Latest: packed FP8 model integration passes. Fresh native BF16 whole-step control
+is running on trn21; FP8 candidate waits for its clean postflight. trn22 is clean
+after the gradient GEMM's repack-byte diagnostic failure; wave92 will classify
+signed zeros and retain all arithmetic bounds. Watchers: trn21 wave89, trn22
+wave91 until repointed. New source and recovery push at01:21:52 is verified.
+
+Measured FP8 progress and the BF16 layout reversal are summarized at the top of
+`fresh-start-results-2026-09-18.md`. No FP8 quality gain is established.
 
 | Item | State | Next action / evidence |
 | --- | --- | --- |
@@ -499,3 +508,20 @@ a Python raise, which this NKI frontend does not support. The compiler points
 directly to that statement and recommends assert. Use the installed skill's
 assertion-helper template in wave91; retain the same shapes, math and checks.
 The failed label/log is preserved. This is not evidence against FP8 gradients.
+
+## 2026-09-19 01:26 UTC: trace attribution and repack diagnosis
+
+Wave87 raw32files/499268795B and parquet27tables/304690666B are local and
+hash-verified. All70 runtime dispatches match binaries. Packed forward2.535229ms
+versus previous token-row FP82.803872ms; sampled SBUF peak0.130903 versus
+0.364328, no populated spill counters in either; backward about4.84ms. Missing
+dynamic DMA metadata still prevents exact bandwidth claims. Device profile
+times are attribution; wave85 unprofiled complete component remains authority.
+
+Wave91's corrected validation helper compiles; seven small gradient GEMM cases
+and real G@Wdown arithmetic pass. It fails exact raw-byte equality when packing
+an existing BF16 QDQ cache: maximum uint8 difference128 suggests signed zero.
+The original packed-cache contract already treats0/128 as equivalent. Wave92
+will count/classify every mismatch, reject any changed nonzero encoding/layout,
+and require independently decoded values exactly equal. No pair/gamma bound
+changes. Keep the failed attempt and require clean postflight before rerun.

@@ -1,0 +1,119 @@
+{
+  "label": "fs-w91-fp8-gradient-gemm-stage-gate-r1",
+  "source_commit": "69046b1be835a2f0251a530ec704c9bca22d85ce",
+  "completed_gates": [
+    {
+      "case": "random",
+      "shape": [
+        512,
+        256,
+        512
+      ],
+      "passed": true,
+      "online_row_calibration": true,
+      "pair_arithmetic": "empirical11-bit paired sum then FP32 gamma_(K/2)",
+      "approximation_changes_existing_bf16_vjp": true,
+      "weight_gradients_or_autograd_integration": false
+    },
+    {
+      "case": "zero_gradient",
+      "shape": [
+        512,
+        256,
+        512
+      ],
+      "passed": true,
+      "online_row_calibration": true,
+      "pair_arithmetic": "empirical11-bit paired sum then FP32 gamma_(K/2)",
+      "approximation_changes_existing_bf16_vjp": true,
+      "weight_gradients_or_autograd_integration": false
+    },
+    {
+      "case": "zero_weight",
+      "shape": [
+        512,
+        256,
+        512
+      ],
+      "passed": true,
+      "online_row_calibration": true,
+      "pair_arithmetic": "empirical11-bit paired sum then FP32 gamma_(K/2)",
+      "approximation_changes_existing_bf16_vjp": true,
+      "weight_gradients_or_autograd_integration": false
+    },
+    {
+      "case": "tiny_gradient",
+      "shape": [
+        512,
+        256,
+        512
+      ],
+      "passed": true,
+      "online_row_calibration": true,
+      "pair_arithmetic": "empirical11-bit paired sum then FP32 gamma_(K/2)",
+      "approximation_changes_existing_bf16_vjp": true,
+      "weight_gradients_or_autograd_integration": false
+    },
+    {
+      "case": "row_scale_range",
+      "shape": [
+        512,
+        256,
+        512
+      ],
+      "passed": true,
+      "online_row_calibration": true,
+      "pair_arithmetic": "empirical11-bit paired sum then FP32 gamma_(K/2)",
+      "approximation_changes_existing_bf16_vjp": true,
+      "weight_gradients_or_autograd_integration": false
+    },
+    {
+      "case": "outliers",
+      "shape": [
+        512,
+        256,
+        512
+      ],
+      "passed": true,
+      "online_row_calibration": true,
+      "pair_arithmetic": "empirical11-bit paired sum then FP32 gamma_(K/2)",
+      "approximation_changes_existing_bf16_vjp": true,
+      "weight_gradients_or_autograd_integration": false
+    },
+    {
+      "case": "signed_cancellation",
+      "shape": [
+        512,
+        256,
+        512
+      ],
+      "passed": true,
+      "online_row_calibration": true,
+      "pair_arithmetic": "empirical11-bit paired sum then FP32 gamma_(K/2)",
+      "approximation_changes_existing_bf16_vjp": true,
+      "weight_gradients_or_autograd_integration": false
+    },
+    {
+      "case": "real_down_gradient",
+      "shape": [
+        16384,
+        1024,
+        4096
+      ],
+      "passed": true,
+      "online_row_calibration": true,
+      "pair_arithmetic": "empirical11-bit paired sum then FP32 gamma_(K/2)",
+      "approximation_changes_existing_bf16_vjp": true,
+      "weight_gradients_or_autograd_integration": false
+    }
+  ],
+  "failure": "Exact raw-byte repack comparison differs by128 at real shape; signed-zero encoding diagnosis pending",
+  "next_check": "Classify every changed byte; original packed-cache contract permits only0/128 zero equivalence; require independent decoded equality",
+  "postflight": {
+    "command_returncode": 1,
+    "host_clean": true,
+    "failures": [],
+    "completed_at": "2026-09-19T01:24:04.471677+00:00"
+  },
+  "timing_completed": false
+}

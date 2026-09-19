@@ -18,17 +18,43 @@ CE alone. The previous larger results0.9973302214 (T2048/pack8/ownership) and
 0.9974687137 (T1024/pack16/original fused AdamW) remain reproducible checkpoints.
 No seed sweep or new function approximation is in the winning run.
 
-FP8 token-row and fixed-input-scale variants pass declared forward/STE backward
-and master-accumulation gates, but still lose complete component timing. Fixed
-input gives17.926315ms versus18.019795ms adaptive token rows (0.519% gain),
-15.672957ms native BF16 and14.629534ms NKI BF16 cache. The trace exposes an
-additional compiler-generated transpose and reported spills around the token-row
-kernel; a matching backward orientation is the next bounded experiment.
-A separate BF16 head/loss memory-boundary probe keeps FP32 arithmetic and
-requires exactly matching loss/gradients. Full FP8 backward remains unimplemented.
-Compact full-value tables passed accuracy but lost19.04x; stronger rsqrt
+FP8 forward with a matching token-row BF16 backward and packed weight caches
+now takes **15.957811 ms** per complete component update, versus **15.625856 ms**
+for native BF16. Packing saves2.9465% relative to the preceding FP8 layout; the
+remaining isolated loss is2.1244%. The same token-row idea makes native BF16
+11.6268% slower, direct evidence that the two precisions need separate layout
+selection. Both comparisons passed their independent numerical gates.
+
+Wave89 actual Linear integration now passes at widths256/1024, including
+updated caches, FP32 master accumulation, FP8 training token/batch/repetition
+and padding independence, and exact native checkpoint restore. Its initial
+two-width test hit Dynamo's eight-specialization limit; resetting only inactive
+process-local guards between independent models fixed the harness. The failed
+attempt remains recorded. Full-model timing is next, with quantized training
+and explicitly native BF16 evaluation; no FP8 quality gain is claimed.
+
+Wave87's70 runtime dispatches all match preserved binaries. Packed forward
+device time2.535229 ms versus preceding token-row FP82.803872 ms; sampled SBUF
+peak0.130903 versus0.364328 and no populated spill counters in either. BF16
+backward remains about4.84 ms. These are profile attribution, not replacement
+benchmarks; missing dynamic DMA metadata prevents exact bandwidth claims.
+Raw499268795 bytes and parquet304690666 bytes are local/hash-verified.
+
+The head-gradient-only CE candidate passes exact head tests, but its17.62%
+component improvement becomes only0.5300% per whole step (497.864910 versus
+500.517682 ms), below the3% advancement gate. It is parked for a combination,
+with no quality run. The failed full BF16 forward boundary stays rejected as
+an exact optimization: original compiled logits retain FP32 accumulator values.
+
+The first true FP8 gradient GEMM probe passes eight small/real arithmetic gates,
+including tiny inputs and signed cancellation. Before timing it hits an overly
+strict raw-byte repack comparison; classify every difference against the
+preexisting signed-zero-equivalence contract and require decoded equality.
+Full FP8 backward and weight-gradient products remain unimplemented.
+
+Compact full-value tables passed accuracy but lost19.04x. Stronger rsqrt
 corrections and standalone exponential polynomials also lost timing. Reciprocal
-refinement passed optimizer integration but is absent from the quality run.
+refinement passed optimizer integration but is absent from the best quality run.
 
 Current requests and recovery steps are in `RESUME.md` and the kernel queue.
 
