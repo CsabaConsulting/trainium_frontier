@@ -73,8 +73,10 @@ No FP8 speed/BPB promotion.
    native control runs on trn21 since17:26:38UTC. A fixed bounded trn22 sequence
    will adopt the gates, then measure resident control and direct-rank candidate,
    requiring clean source-matched postflight and all numerical markers at each
-   transition. Exact prepared request hashes are in the source148 sequence plan;
-   sequence/launch receipts establish whether the coordinator started. No SDK
+   transition. The11-case independent gate including32768 tokens PASSES; real-
+   Linear gates remain pending. Exact prepared request hashes are in the
+   source148 sequence plan; local coordinator PID6908 started17:35:45UTC and
+   synced successfully, with state and launch receipts preserved. No SDK
    changes, cross-host speed comparison or candidate speed claim.
 7. Serial QKV execution is a separate candidate from the old fused-Parameter
    and parallel-block trials. Preserve three Parameters/Muon states and the

@@ -20,18 +20,23 @@ Use current manifests/postflights before dispatch; do not restart completed jobs
   17:26:38.603375 with clean preflight;5warmups+30timed complete-model updates
   and four model postchecks. Native control is independent of candidate gates.
 - trn22 ACTIVE `fs-w148-fp8-output-rank-gates-r1`, guard1837442, started
-  17:28:26.323710 with clean preflight. All observed small-case checks pass;
-  real32768-token and real-Linear gates still need their complete result markers
-  and clean postflight. No hardware completion or speed claim yet.
+  17:28:26.323710 with clean preflight. The11-case independent numerical gate
+  including real32768 tokens PASSES, exact retained outputs/gradients/cache
+  checks. Real-Linear integration and final clean postflight remain pending.
+  No whole-model hardware completion or speed claim yet.
 - Prepared fixed trn22 sequence: adopt those gates, then source148 resident
   compact FP8 control, then direct-rank FP8 candidate. These two timings share
   host/source; trn21 native is not a matched FP8 reference. Each request has a
   bounded remote guard, host lock and independent cleanup; advancement requires
   source-matched clean postflight plus all declared numerical result records.
   `fresh_start_sequence.py` and two exact request-digest plans are locally
-  validated against completed hardware records and21 invalid cases. They must
-  be committed before starting detached coordinators; read their sequence/launch
-  receipts to determine whether they actually started. The native sequence only
+  validated against completed hardware records and21 invalid cases. Coordinator
+  source975ef2a is committed. Detached local coordinators STARTED17:35:45UTC:
+  native PID6907 (30-minute limit), trn22 PID6908 (90-minute limit). Both adopted
+  the existing dispatches and synced successfully17:35:52. Exact plan/helper
+  hashes, PIDs, logs and state are recorded in their coordinator-launch/sequence
+  receipts. Do not change a running plan, prepared request or coordinator/launch/
+  sync helper: hash mismatch stops advancement. The native sequence only
   collects/verifies its one control and stops. Backup cron does not select jobs.
 - Remaining priorities: serial QKV preserving Parameters/Muon states/fast RoPE,
   then wider FP8 projection coverage and measured optimizer/loss combinations.

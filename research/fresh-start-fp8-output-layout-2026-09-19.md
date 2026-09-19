@@ -16,6 +16,10 @@ candidate, with exact request hashes, a90-minute coordinator limit, per-job
 timeouts, host locks and full pre/post cleanup. Both timings use the same host
 and source. The separate trn21 native control does not justify a cross-host
 FP8 speed claim. Read coordinator launch/state receipts before resuming.
+The local trn22 coordinator PID6908 started17:35:45UTC from committed helper
+source975ef2a and synchronized successfully. The first11-case numerical gate
+now PASSES including32768 tokens; real-Linear integration and clean postflight
+are still required before either prepared full-model FP8 timing.
 
 `--fp8-mlp-preserve-output-rank` requires compact full-FP8 saves and returns
 the NKI forward's allocated output directly as BxTxC for unpadded rank-three
