@@ -1,7 +1,28 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 06:51 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 06:56 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
+
+## FP8 complete component wins at pack32 — 2026-09-19 06:56 UTC
+
+- Source135 pack32 gate COMPLETE/clean. Independent forward and saved-byte
+  checks, all4 gradient products with negative controls, repeated calls,
+  refreshed/restored masters, FP32 accumulation stress test and native FP64
+  rounding-bound control pass at32768tokens. Final timing uses ONE microbatch.
+- Complete FP8 with compiled preparation15.110784ms vs compiled native15.382169ms
+  (1.76% faster), previous eager FP8 path15.565401ms. Prep1.005657→0.549269ms.
+  The former16384x2shape remained0.485%slower. No whole-model/BPB claim.
+- Prepared new dual weight producer: online calibration plus FW/BW packed
+  layouts from one quantization, no BF16 HBM transpose, optional resident8MiB
+  weight cache. The separate probe retains previous compiled and native controls,
+  all independent cache gates, exact complete gradients and refreshed masters.
+  Source135 large-shape arithmetic is prerequisite; do not skip it on failure.
+- trn22 submission cold rehearsal remains active,~0.49s/update,~13minutes left
+  at last check. Package source129 unchanged. Need final checkpoint/time gate
+  and fresh20M public evaluation. Watchers trn21=135,trn22=129.
+- The06:50cron backup safely skipped because our Git index changed during its
+  snapshot. An explicit retry started06:53; check latest.json before claiming
+  current source and notes are pushed. No concurrent merge was performed.
 
 ## Current pack32 FP8 gate and recovery headroom — 2026-09-19 06:51 UTC
 
