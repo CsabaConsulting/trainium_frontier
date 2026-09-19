@@ -525,3 +525,24 @@ The original packed-cache contract already treats0/128 as equivalent. Wave92
 will count/classify every mismatch, reject any changed nonzero encoding/layout,
 and require independently decoded values exactly equal. No pair/gamma bound
 changes. Keep the failed attempt and require clean postflight before rerun.
+
+## 2026-09-19 01:32 UTC: standalone FP8 gradient stages pass; fuse the chain
+
+Wave92 passes all nine small/real arithmetic gates, exact repeat/other-row tests
+and original signed-zero repack contract. Every changed byte is0/128:107 for
+G@Wdown's weight,103 for dPre@Wup; zero nonzero changes and decoded values exact.
+Complete incremental cost (one extra transpose/pack plus two dots) is2.091248
+versus2.126371ms for G@Wdown, and2.092029 versus2.103713ms for dPre@Wup. Gains
+1.65175% and0.55538% are too small for standalone promotion. No autograd/quality
+gain follows. The failed frontend/byte-equality attempts remain preserved.
+
+The next kernel fuses both data-gradient dots and the BF16 ReLU-squared derivative.
+It keeps the first dot in SBUF, saves BF16 dPre for the later weight gradient,
+and retains per-row signed gradient calibration at BOTH boundaries. The forward
+nonnegative calibration shortcut must not be used for signed dPre. Gate both
+FP32 dot stages with the independent quantizer/pair model, each BF16 rounding
+and derivative stage exactly, paired separate-vs-fused output, and row
+independence. A compiled BF16 chain has its own independent FP64 propagated
+rounding bound before timing. Charge both extra transposed caches and two data
+backward calls per update. Weight-gradient products/master accumulation and
+model integration are still excluded; this is not full FP8 backward.

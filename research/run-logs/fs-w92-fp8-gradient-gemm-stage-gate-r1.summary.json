@@ -1,0 +1,212 @@
+{
+  "label": "fs-w92-fp8-gradient-gemm-stage-gate-r1",
+  "source_commit": "3ea30b9755f9f1a1c54de34422fc923a52521576",
+  "gates": [
+    {
+      "case": "random",
+      "shape": [
+        512,
+        256,
+        512
+      ],
+      "passed": true,
+      "online_row_calibration": true,
+      "pair_arithmetic": "empirical11-bit paired sum then FP32 gamma_(K/2)",
+      "approximation_changes_existing_bf16_vjp": true,
+      "weight_gradients_or_autograd_integration": false
+    },
+    {
+      "case": "zero_gradient",
+      "shape": [
+        512,
+        256,
+        512
+      ],
+      "passed": true,
+      "online_row_calibration": true,
+      "pair_arithmetic": "empirical11-bit paired sum then FP32 gamma_(K/2)",
+      "approximation_changes_existing_bf16_vjp": true,
+      "weight_gradients_or_autograd_integration": false
+    },
+    {
+      "case": "zero_weight",
+      "shape": [
+        512,
+        256,
+        512
+      ],
+      "passed": true,
+      "online_row_calibration": true,
+      "pair_arithmetic": "empirical11-bit paired sum then FP32 gamma_(K/2)",
+      "approximation_changes_existing_bf16_vjp": true,
+      "weight_gradients_or_autograd_integration": false
+    },
+    {
+      "case": "tiny_gradient",
+      "shape": [
+        512,
+        256,
+        512
+      ],
+      "passed": true,
+      "online_row_calibration": true,
+      "pair_arithmetic": "empirical11-bit paired sum then FP32 gamma_(K/2)",
+      "approximation_changes_existing_bf16_vjp": true,
+      "weight_gradients_or_autograd_integration": false
+    },
+    {
+      "case": "row_scale_range",
+      "shape": [
+        512,
+        256,
+        512
+      ],
+      "passed": true,
+      "online_row_calibration": true,
+      "pair_arithmetic": "empirical11-bit paired sum then FP32 gamma_(K/2)",
+      "approximation_changes_existing_bf16_vjp": true,
+      "weight_gradients_or_autograd_integration": false
+    },
+    {
+      "case": "outliers",
+      "shape": [
+        512,
+        256,
+        512
+      ],
+      "passed": true,
+      "online_row_calibration": true,
+      "pair_arithmetic": "empirical11-bit paired sum then FP32 gamma_(K/2)",
+      "approximation_changes_existing_bf16_vjp": true,
+      "weight_gradients_or_autograd_integration": false
+    },
+    {
+      "case": "signed_cancellation",
+      "shape": [
+        512,
+        256,
+        512
+      ],
+      "passed": true,
+      "online_row_calibration": true,
+      "pair_arithmetic": "empirical11-bit paired sum then FP32 gamma_(K/2)",
+      "approximation_changes_existing_bf16_vjp": true,
+      "weight_gradients_or_autograd_integration": false
+    },
+    {
+      "case": "real_down_gradient",
+      "shape": [
+        16384,
+        1024,
+        4096
+      ],
+      "passed": true,
+      "online_row_calibration": true,
+      "pair_arithmetic": "empirical11-bit paired sum then FP32 gamma_(K/2)",
+      "approximation_changes_existing_bf16_vjp": true,
+      "weight_gradients_or_autograd_integration": false
+    },
+    {
+      "case": "real_input_gradient",
+      "shape": [
+        16384,
+        4096,
+        1024
+      ],
+      "passed": true,
+      "online_row_calibration": true,
+      "pair_arithmetic": "empirical11-bit paired sum then FP32 gamma_(K/2)",
+      "approximation_changes_existing_bf16_vjp": true,
+      "weight_gradients_or_autograd_integration": false
+    }
+  ],
+  "benchmarks": [
+    {
+      "shape": [
+        16384,
+        1024,
+        4096
+      ],
+      "samples_ms": {
+        "existing_bf16_two_dots": [
+          2.112337131984532,
+          2.134311067250868,
+          2.1263707312755287
+        ],
+        "fp8_extra_cache_plus_two_dots": [
+          2.091248333454132,
+          2.088858870168527,
+          2.104826201684773
+        ]
+      },
+      "median_ms": {
+        "existing_bf16_two_dots": 2.1263707312755287,
+        "fp8_extra_cache_plus_two_dots": 2.091248333454132
+      },
+      "units": "ms per incremental transpose/pack plus two gradient GEMMs",
+      "shared_forward_weight_calibration_already_paid": true,
+      "gradient_row_calibration_and_quantization_inside_kernel": true,
+      "complete_mlp_backward_optimizer_or_model_included": false,
+      "improvement_percent": 1.6517532575482718
+    },
+    {
+      "shape": [
+        16384,
+        4096,
+        1024
+      ],
+      "samples_ms": {
+        "existing_bf16_two_dots": [
+          2.096264735640337,
+          2.103712863754481,
+          2.108761470299214
+        ],
+        "fp8_extra_cache_plus_two_dots": [
+          2.091173466760665,
+          2.092029266835501,
+          2.1026608029690883
+        ]
+      },
+      "median_ms": {
+        "existing_bf16_two_dots": 2.103712863754481,
+        "fp8_extra_cache_plus_two_dots": 2.092029266835501
+      },
+      "units": "ms per incremental transpose/pack plus two gradient GEMMs",
+      "shared_forward_weight_calibration_already_paid": true,
+      "gradient_row_calibration_and_quantization_inside_kernel": true,
+      "complete_mlp_backward_optimizer_or_model_included": false,
+      "improvement_percent": 0.5553798296469292
+    }
+  ],
+  "repack_encodings": [
+    {
+      "case": "real_down_gradient",
+      "changed_bytes": 107,
+      "signed_zero_changes": 107,
+      "nonzero_changes": 0,
+      "authority": "original packed-cache contract permits signed-zero equivalence",
+      "passed": true
+    },
+    {
+      "case": "real_input_gradient",
+      "changed_bytes": 103,
+      "signed_zero_changes": 103,
+      "nonzero_changes": 0,
+      "authority": "original packed-cache contract permits signed-zero equivalence",
+      "passed": true
+    }
+  ],
+  "result": {
+    "passed": true,
+    "real_shape": true,
+    "integrated_backward": false,
+    "quality_gain_established": false
+  },
+  "postflight": {
+    "command_returncode": 0,
+    "host_clean": true,
+    "failures": [],
+    "completed_at": "2026-09-19T01:27:33.998381+00:00"
+  },
+  "standalone_promotion": false
+}

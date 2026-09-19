@@ -1,0 +1,52 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave93",
+    "expected_commit": "753d251427cdce5f1e501c92ab07252396e88fd2",
+    "label": "fs-w93-fp8-fused-data-backward-stage-gate-r1",
+    "purpose": "After standalone FP8 gradient stages pass, fuse G@Wdown, BF16 multiply by2*ReLU, and dPre@Wup. Independent CPU quantizer/pair bounds on both dots, exact derivative/rounding/separate-vs-fused/row checks; BF16 control FP64 bounds. Charge both extra transpose/packed caches and two calls. Excludes weight gradients, FP32 master accumulation, optimizer/model.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1800s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "/home/ubuntu/trainium_freshstart_20260918_wave93/research/scratch/fp8_mlp_data_backward_probe.py",
+      "--real-shape",
+      "--steps",
+      "15"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/fp8_packed_weight_cache_nki.py",
+      "research/scratch/fp8_packed_weight_cache_probe.py",
+      "research/scratch/fp8_weight_cache_nki.py",
+      "research/scratch/fp8_weight_cache_probe.py",
+      "research/scratch/fresh_start_fp8_probe.py",
+      "research/scratch/mlp_fused_bf16.py",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "research/scratch/mlp_backward_rounding_bounds.py",
+      "research/scratch/fp8_mlp_token_rows_nki.py",
+      "research/scratch/fp8_mlp_island_probe.py",
+      "research/scratch/fp8_mlp_island_autograd.py",
+      "research/scratch/fp8_rms_scale_contract.py",
+      "research/scratch/fp8_packed_mlp_probe.py",
+      "research/scratch/fp8_mlp_island_nki.py",
+      "research/scratch/fp8_gradient_gemm_nki.py",
+      "research/scratch/fp8_gradient_gemm_probe.py",
+      "research/scratch/fp8_mlp_data_backward_nki.py",
+      "research/scratch/fp8_mlp_data_backward_probe.py"
+    ]
+  },
+  "requested_at": "2026-09-19T01:32:49.708224+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w93-fp8-fused-data-backward-stage-gate-r1\", \"pid\": 1571758, \"commit\": \"753d251427cdce5f1e501c92ab07252396e88fd2\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave93/research/run-logs/fs-w93-fp8-fused-data-backward-stage-gate-r1.log\", \"started_at\": \"2026-09-19T01:32:55.381444+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}
