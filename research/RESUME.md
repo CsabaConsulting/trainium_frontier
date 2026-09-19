@@ -1,7 +1,29 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 06:44 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 06:51 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
+
+## Current pack32 FP8 gate and recovery headroom — 2026-09-19 06:51 UTC
+
+- trn21 source13560e8d96f56dbfc566523ce38261b9d2a64264e21 ACTIVE:
+  fs-w135-fp8-compiled-cache-pack32-component-r1, guardPID1368846,
+  started06:46:26.849805. Full independent32768-token gates precede the actual
+  single-microbatch measurements. No result/whole-model promotion yet.
+- Before deployment, source3old table-model checkpoint copy1,453,684,039B was
+  retired from trn21 only. Full local SHA and current GitHub asset digests plus
+  remote hash were reverified under host lock; free8,926,478,336→10,380,165,120B,
+  clean. Original model remains locally/cloud preserved; currentbest excluded.
+  Generic procedure is fresh_start_retire_checkpoint.py; exact prior clean job
+  and explicit path are mandatory. No active-job data/cache/source/log removal.
+- trn22 cold standalone training still active,~0.49s/step, no NaNs. Need final
+  timing/checkpoint preservation plus protected20M evaluation before readiness.
+- Submission rebuild into a new ignored directory matched train.py, launch and
+  provenance byte for byte. Source129 train SHA35c9ef79... remains unchanged.
+- New capacity note records a native-path SBUF assertion and width-specific
+  ownership-cost fallback. Metadata-only illustration uses original make_plan
+  AST and shape stubs (local Torch unavailable); no device or BPB claim.
+- Watchers trn21=135 (from06:48:47), trn22=129. Latest committed source135;
+  latest explicitly verified GitHub source133 from06:41:38. Push pending notes.
 
 ## Compiled FP8 preparation completes; submission training continues — 2026-09-19 06:44 UTC
 
