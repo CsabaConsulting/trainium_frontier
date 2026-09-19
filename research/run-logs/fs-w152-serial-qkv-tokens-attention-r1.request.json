@@ -1,0 +1,37 @@
+{
+  "host": "trn21",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave152",
+  "expected_commit": "f58c2c0befe1a76225f250ba39503c6318f472b8",
+  "label": "fs-w152-serial-qkv-tokens-attention-r1",
+  "purpose": "Source151 independent projection gates passed but component timing is slower. Gate the unchanged-Parameter adapter through actual attention: separate streams/master caches, accumulation/refresh, exact causality and native restore, then alternating32x1024x1024 complete-attention native/candidate timing. No full-model or quality promotion.",
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_RT_VISIBLE_CORES": "0",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1800s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "/home/ubuntu/trainium_freshstart_20260918_wave152/research/scratch/serial_qkv_integration_check.py",
+    "--layout",
+    "tokens",
+    "--steps",
+    "10",
+    "--component-root",
+    "/home/ubuntu/trainium_freshstart_20260918_wave151"
+  ],
+  "fingerprint_paths": [
+    "train.py",
+    "research/scratch/serial_qkv_nki.py",
+    "research/scratch/serial_qkv_probe.py",
+    "research/scratch/serial_qkv_integration.py",
+    "research/scratch/serial_qkv_integration_check.py",
+    "research/scratch/mlp_fused_bf16_probe.py"
+  ]
+}
