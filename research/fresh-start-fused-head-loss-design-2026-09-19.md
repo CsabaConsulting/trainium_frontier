@@ -121,3 +121,20 @@ cancellation, outliers and confident correct/wrong targets. Exposed native
 output precision is audited; a rounded baseline cannot become speed evidence.
 The timer charges one transpose plus two forwards including logits saves.
 Backward, autograd and optimizer costs are absent; no quality promotion follows.
+
+
+## Exact saved-intermediate follow-up
+
+The existing CE backward needs `u=tanh(z/15)` and saved logsumexp, not raw logits
+itself: `dz=g*(exp(15*u-lse)-one_hot(y))*(1-u*u)`. After the first FP32 logits
+prototype passes, test saving the FP32 `u` tile in place of the equally sized
+raw-logit save. Fused head/CE can write it directly. This avoids a backward
+tanh evaluation without gradient filtering or a new approximation, provided
+saved and recomputed hardware `u` values match exactly. The complete head's
+input/weight gradients still need their independent gates and original cast
+boundaries; this algebra does not establish whole-autograd correctness.
+
+For the original nonfused head, writing a separate `u` tensor adds a full HBM
+write and may lose. For a fused producer it replaces an existing save of the
+same size. Time the complete forward/backward with all saves, not just the
+removed Scalar instruction. Prototype status: proposed; not implemented.

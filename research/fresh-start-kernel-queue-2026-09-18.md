@@ -619,3 +619,20 @@ compiled autograd node remains reachable through any outer view nodes. Default
 monolithic mode still requires the original exact outer-node assertion.
 AST checks pass locally; hardware gate pending. Prioritize a whole-model paired
 comparison only if the caller trace supports a compilation/layout cost.
+
+
+## 2026-09-19 02:29 UTC — larger microbatch under the new exact kernel stack
+
+Prepared `fs-w98-native-owned-context1024-pack32-phase-r1` for trn22 after the
+reciprocal candidate is clean. Source1da6c07, T1024/pack32/GA1, native BF16 MLP,
+exact ownership/adaptive CE, seed42 and131072 global targets per update. Control
+is the same-host/source pack16/GA2 phase503.328809ms, clean02:23:38. No matching
+pack32 test was found in the reviewed run logs/research notes or memory search;
+older memories cover pack2/4 and earlier contexts. This is not a seed sweep or
+changed global batch. It trades fewer repeated microsteps for larger activation
+and scratch allocations; do not assume it fits or wins. Full-step numerical
+postchecks, memory/cleanup and the3% gate precede any quality experiment.
+
+The phase still clips before averaging, like its control. Quality must keep
+the best run's clip-after-average policy. Changed reduction grouping is not
+claimed bitwise equivalent, even though token count and context are preserved.

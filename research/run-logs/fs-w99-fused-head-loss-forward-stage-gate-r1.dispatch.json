@@ -1,0 +1,38 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave99",
+    "expected_commit": "94fa40ae3c5b5b93ba27f8f53d318ff14b07afaa",
+    "label": "fs-w99-fused-head-loss-forward-stage-gate-r1",
+    "purpose": "First forward-only head/CE prototype. Require independent FP64 FP32-accumulator bounds and exact adaptive CE on frozen logits,repeat,row-independence,input integrity and range/cancellation/confident-target fixtures before any timing. No backward or quality promotion. Launch only after source95 paired phases finish clean.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave99"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/head_loss_fused_probe.py",
+      "--real-shape"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/head_loss_fused_nki.py",
+      "research/scratch/head_loss_fused_probe.py",
+      "research/scratch/softcap_ce_parallel_nki.py",
+      "research/scratch/mlp_fused_bf16_probe.py"
+    ]
+  },
+  "requested_at": "2026-09-19T02:30:09.998725+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w99-fused-head-loss-forward-stage-gate-r1\", \"pid\": 1265855, \"commit\": \"94fa40ae3c5b5b93ba27f8f53d318ff14b07afaa\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave99/research/run-logs/fs-w99-fused-head-loss-forward-stage-gate-r1.log\", \"started_at\": \"2026-09-19T02:30:15.410980+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}
