@@ -54,6 +54,7 @@ def main():
     ap.add_argument("--separate-region", action="store_true")
     ap.add_argument("--saved-softcap", action="store_true")
     ap.add_argument("--fp32-carrier", action="store_true")
+    ap.add_argument("--include-final-norm", action="store_true")
     args = ap.parse_args()
     import torch_neuronx
     torch.set_num_threads(4)
@@ -89,7 +90,8 @@ def main():
             install_mlp(model, "neuron", T, forward_backend="native")
         before_rng = torch.get_rng_state().clone()
         contract = install(candidate, T, separate_region=args.separate_region,
-                           save_softcap=args.saved_softcap, fp32_carrier=args.fp32_carrier)
+                           save_softcap=args.saved_softcap, fp32_carrier=args.fp32_carrier,
+                           include_final_norm=args.include_final_norm)
         assert torch.equal(before_rng, torch.get_rng_state())
         before_keys = tuple(baseline.state_dict())
         assert before_keys == tuple(candidate.state_dict())
@@ -162,6 +164,7 @@ def main():
         emit("CACHED_HEAD_MODEL_RESULT", dict(channels=channels, passed=True,
             separate_region=args.separate_region, saved_softcap=args.saved_softcap,
             fp32_carrier=args.fp32_carrier,
+            include_final_norm=args.include_final_norm,
             two_microbatch_accumulation=True, two_master_updates=True,
             cache_refresh=True, exact_native_gradients=True, original_eval=True,
             checkpoint_roundtrip=True, causality_batch_repeat=True,

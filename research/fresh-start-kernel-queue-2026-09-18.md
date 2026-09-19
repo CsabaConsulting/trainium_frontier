@@ -1,6 +1,6 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19, 03:40 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19, 04:16 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
@@ -15,12 +15,12 @@ failure and clean recovery are preserved; the larger evaluation is clean.
 | Idea | Measured state | Next action |
 | --- | --- | --- |
 | FP8-specific packing | One layout improves FP8 component about2.95% while worsening BF16 by11.63%; FP8 whole model still17.74% slower | Continue FP8-specific development; BF16 ranking is not a veto |
-| FP8 grouped weight-gradient products | Correct PSUM bank spacing cuts down/up components to1.919/3.177ms; native1.095/1.093ms | Reduce calibration/preparation and rebalance8bank panels; all4gradients/autograd still ungated |
-| FP8 independent calibration tiles |10cases and exact prior scales pass; down1.909484/up3.167645ms still lose native | Scheduling alone is insufficient; balanced panels active ontrn22, combination queued |
-| Cached vocabulary head and exact CE |14forward/20head/196GPT checks pass; FW/BW14.095440vs18.202054ms, but whole step689.956164vs500.726543ms |37.79% regression; caller device trace active ontrn21, no quality promotion |
-| Save exact softcap intermediate | Source113 prototype saves FP32 tanh instead of FP32 logits and skips repeated backward tanh | Original20head/loss/dx/master/update/cache checks before timing; request ready |
+| FP8 grouped weight-gradient products | Balanced banks + fused abs + two-core preparation pass10cases: down1.548/up1.695ms vs native1.095/1.075ms | Reuse forward-produced activation bytes; all4gradients/autograd still ungated |
+| Fused per-row FP8 data-backward calibration |11cases pass;5.655ms vs original6.201ms and native5.510ms |8.81% same-algorithm gain; compose shared producers and weight gradients before full-model use |
+| Cached vocabulary head and exact CE | Component14.095440vs18.202054ms; whole step37.79% slower; caller profile local/cloud verified | Separate-head boundary changes native gradients too; FP32 carrier fails exact GPT gate; test boundary before final norm |
+| Save exact softcap intermediate | All20component checks pass;13.850659ms vs native18.219967ms | Retain for composition after solving caller allocation; unchanged save bytes |
 | Reciprocal refinement + optimizer ownership |24composition checks; component16.77% faster, whole step1.128% faster | Retain for independently gated combinations; below3% advancement threshold |
-| BF16 magnitude maximum / fused abs | Source115 fused abs/max passes13cases, including pure subnormals; calibration0.197/0.650ms vs0.344/1.184ms | Gate full weight-product composition; sign masking also passes but is slower than fused abs; integer-code maximum active |
+| BF16 magnitude maximum / fused abs | All3alternatives pass13cases; fused abs fastest, calibration0.197/0.650ms vs0.344/1.184ms | Composed in weight/data gradient prototypes; integer-code and sign-mask versions are correct but slower |
 | Smaller tables / rational composed functions | Design candidates; full-value LUT and standalone polynomial timings lose | Test full producer/consumer costs with independent range/gradient gates |
 
 The following ideas from the retro-computing search have already reached device
@@ -34,13 +34,20 @@ experiments. This distinguishes a negative measured layout from an untested idea
 | Polynomial exponential |Nine device records pass;3.57–4.19times slower than hardware exp | Closed as standalone replacement |
 | Compact full-value softcap/exp/derivative table |65280CPU codes and device gate pass;47.20vs2.48ms (19.04times slower) | Close this gather layout; smaller range-reduced tables remain distinct |
 | Exact CE work/traffic elimination |53.98% component and3.66% whole-step gains | In current best checkpoint |
-| Saved intermediate and on-chip weight reuse |Cached-head component improves22.56%, whole caller loses37.79% | Profile caller; saved-softcap variant separately queued |
+| Saved intermediate and on-chip weight reuse |Cached-head component improves22.56%, whole caller loses37.79%; saved-softcap passes | Isolate caller allocation with normalization-aware boundary; FP8 forward-byte reuse prototype ready |
 | Precomputed trigonometry/symmetry |RoPE already precomputed | Do not duplicate existing work |
 
 Original failures, subsequent root-cause diagnoses and incremental FP8 results
 remain below and in the design/result logs. New requests must retain immutable
 source, finite/causal/repeated-call/master-gradient checks and pre/post cleanup.
 Whole-step advancement normally requires at least3% before a30minute quality run.
+
+The official [nc_matmul reference](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/api/generated/nki.isa.nc_matmul.html)
+confirms that NC-v3 FP8 double-row mode has a different contraction layout:
+partition dimension plus a first free dimension of2. BF16 cannot use that mode.
+This supports precision-specific layout searches; measured whole-step cost still
+includes scale selection, packing, saved activations and backward work. The
+installed SDK remains the authority for supported legacy FP8 formats.
 
 ## FP8 can change which layout wins
 

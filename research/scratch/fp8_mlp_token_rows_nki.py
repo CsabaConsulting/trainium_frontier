@@ -41,13 +41,17 @@ def build_kernel():
     @nki.jit
     def forward(x, up, down, up_scales, down_scales, lanes: int = 2,
                 token_tile: int = 128, diagnostic: bool = False,
-                fixed_x_scale: float = 0.0, packed_up=None, packed_down=None):
+                fixed_x_scale: float = 0.0, packed_up=None, packed_down=None,
+                save_fp8: bool = False, save_hidden_metadata: bool = False):
         """Return Y[T,C], ReLU[T,H], QDQ-X[T,C], QDQ-hidden[T,H].
 
         Diagnostic mode additionally returns FP32 up[T,H], down[T,C] and
         per-token X/hidden metadata. Quantization and pair rules match the
         original FP8 island; this variant changes layout and removes the
         unnecessary hidden minimum reduction. BF16 backward is a separate gate.
+        Optional raw activation bytes and hidden metadata preserve values already
+        produced on chip for separately gated FP8 backward consumers. Existing
+        BF16 saves remain: their removal is not assumed or included in this trial.
         """
         tokens, channels = x.shape
         hidden, up_channels = up.shape
@@ -77,11 +81,15 @@ def build_kernel():
         saved_relu = nl.ndarray((tokens, hidden), dtype=nl.bfloat16, buffer=nl.shared_hbm)
         saved_x = nl.ndarray(x.shape, dtype=nl.bfloat16, buffer=nl.shared_hbm)
         saved_hidden = nl.ndarray((tokens, hidden), dtype=nl.bfloat16, buffer=nl.shared_hbm)
+        if save_fp8:
+            saved_x_bytes = nl.ndarray(x.shape, dtype=nl.uint8, buffer=nl.shared_hbm)
+            saved_hidden_bytes = nl.ndarray((tokens, hidden), dtype=nl.uint8, buffer=nl.shared_hbm)
+        if diagnostic or save_fp8 or save_hidden_metadata:
+            h_metadata = nl.ndarray((tokens, 3), dtype=nl.float32, buffer=nl.shared_hbm)
         if diagnostic:
             up_stage = nl.ndarray((tokens, hidden), dtype=nl.float32, buffer=nl.shared_hbm)
             down_stage = nl.ndarray((tokens, channels), dtype=nl.float32, buffer=nl.shared_hbm)
             x_metadata = nl.ndarray((tokens, 3), dtype=nl.float32, buffer=nl.shared_hbm)
-            h_metadata = nl.ndarray((tokens, 3), dtype=nl.float32, buffer=nl.shared_hbm)
         up_meta = nl.ndarray((128, 3), dtype=nl.float32, buffer=nl.sbuf)
         down_meta = nl.ndarray((128, 3), dtype=nl.float32, buffer=nl.sbuf)
         nisa.dma_copy(dst=up_meta, src=up_scales)
@@ -139,6 +147,8 @@ def build_kernel():
             nisa.tensor_scalar(dst=x_fp8, data=raw, op0=nl.multiply, operand0=x_meta[:, 0:1])
             nisa.tensor_scalar(dst=x_restored, data=x_fp8, op0=nl.multiply, operand0=x_meta[:, 1:2])
             nisa.dma_copy(dst=saved_x[rows, :], src=x_restored)
+            if save_fp8:
+                nisa.dma_copy(dst=saved_x_bytes.view(nl.float8_e4m3)[rows, :], src=x_fp8)
             inputs = nl.ndarray((128, nc, 128), dtype=nl.float8_e4m3, buffer=nl.sbuf)
             for ci in nl.affine_range(nc):
                 transposed = nl.ndarray((128, 256), dtype=nl.float8_e4m3, buffer=nl.psum)
@@ -174,6 +184,8 @@ def build_kernel():
             nisa.tensor_scalar(dst=h_fp8, data=hidden_rows, op0=nl.multiply, operand0=h_meta[:, 0:1])
             nisa.tensor_scalar(dst=h_restored, data=h_fp8, op0=nl.multiply, operand0=h_meta[:, 1:2])
             nisa.dma_copy(dst=saved_hidden[rows, :], src=h_restored)
+            if save_fp8:
+                nisa.dma_copy(dst=saved_hidden_bytes.view(nl.float8_e4m3)[rows, :], src=h_fp8)
             hidden_cache = nl.ndarray((128, nh, 128), dtype=nl.float8_e4m3, buffer=nl.sbuf)
             for hi in nl.affine_range(nh):
                 transposed = nl.ndarray((128, 256), dtype=nl.float8_e4m3, buffer=nl.psum)
@@ -198,9 +210,17 @@ def build_kernel():
             nisa.dma_copy(dst=result[rows, :], src=output_rows)
             if diagnostic:
                 nisa.dma_copy(dst=x_metadata[rows, :], src=x_meta)
+            if diagnostic or save_fp8 or save_hidden_metadata:
                 nisa.dma_copy(dst=h_metadata[rows, :], src=h_meta)
         if diagnostic:
+            if save_fp8:
+                return (result, saved_relu, saved_x, saved_hidden, up_stage, down_stage,
+                        x_metadata, h_metadata, saved_x_bytes, saved_hidden_bytes)
             return result, saved_relu, saved_x, saved_hidden, up_stage, down_stage, x_metadata, h_metadata
+        if save_fp8:
+            return result, saved_relu, saved_x, saved_hidden, saved_x_bytes, saved_hidden_bytes, h_metadata
+        if save_hidden_metadata:
+            return result, saved_relu, saved_x, saved_hidden, h_metadata
         return result, saved_relu, saved_x, saved_hidden
 
     return forward

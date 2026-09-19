@@ -8,6 +8,7 @@ backward. Require exact native/cached agreement within each scope, and report
 every monolithic/split gradient difference without calling it a numerical pass.
 """
 import copy
+import argparse
 import json
 from pathlib import Path
 import sys
@@ -63,6 +64,9 @@ def native_head_factory(save_softcap=False, fp32_carrier=False):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--include-final-norm", action="store_true")
+    args = parser.parse_args()
     import torch_neuronx
     torch.set_num_threads(4)
     torch._dynamo.config.recompile_limit = 32
@@ -98,11 +102,12 @@ def main():
             factory = head_ops.loss_factory
             try:
                 head_ops.loss_factory = native_head_factory
-                install(model, T, separate_region=True)
+                install(model, T, separate_region=True, include_final_norm=args.include_final_norm)
             finally:
                 head_ops.loss_factory = factory
         elif name.startswith("cached"):
-            install(model, T, separate_region=split)
+            install(model, T, separate_region=split,
+                    include_final_norm=args.include_final_norm and split)
         model.train(); model.zero_grad(set_to_none=True); refresh(model)
         optimized = torch.compile(model, backend="neuron", fullgraph=not split, dynamic=False)
         loss = optimized(ids, targets)
@@ -123,6 +128,7 @@ def main():
     cross = compare("native_monolithic_vs_native_split", results["native_monolithic"],
                      results["native_split"], False)
     emit("HEAD_BOUNDARY_DIAGNOSTIC_RESULT", dict(
+        include_final_norm=args.include_final_norm,
         same_scope_native_cached_controls=controls, native_boundary_effect=cross,
         exact_original_model_gate_replaced=False, speed_or_quality_promotion=False))
 

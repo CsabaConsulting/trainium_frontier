@@ -1,7 +1,23 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 04:10 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 04:16 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
+
+## Next immutable source122 — 2026-09-19 04:16 UTC
+
+- Source121 original-head diagnostic proves the graph boundary itself changes
+  gradients: native/cached are exact within both scopes. FP32 carrier passes20
+  component checks but FAILS the original GPT exact gate; no full phase allowed.
+  Source122 moves final normalization into the separate head region, retaining
+  the FP32 residual boundary and original norm/head arithmetic. Gate first.
+- Source122 FP8 producer probe saves already computed activation bytes/scales;
+  compare against actual forward plus repacking, charging online cache work and
+  both forward producers. All original independent gates are retained. Current
+  saved values and derivative are unchanged; no all-four-gradient claim.
+- All52 checkpoint/profile artifacts GitHub-digest verified04:10:10, no errors;
+  includes latest head parquet980,330,644B tar. Source/snapshot verified04:07:36;
+  regular10minute source backup continues. Both hosts' latest121 jobs have clean
+  postflights, including numerical failures. Check fresh manifests before launch.
 
 ## Boundary failure and next diagnostic — 2026-09-19 04:10 UTC
 

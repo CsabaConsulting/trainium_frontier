@@ -69,3 +69,18 @@ the original compiler elides. The head still consumes BF16 inputs/weights;
 all extra conversion/traffic must be charged. Require the20component checks and
 then the unchanged196GPT checks before complete timing. Diagnosis and repair
 are hypotheses until those results exist. The failed source120 gate is retained.
+
+Source121 native-boundary diagnosis COMPLETE/clean: native and cached heads
+match exactly within BOTH scopes. Splitting even the original native head
+changes23 master-gradient fields, while loss stays identical. This establishes
+a boundary-induced difference independent of custom head math. It does not
+identify all compiler transformations responsible for the difference.
+
+The FP32 carrier passes all20 standalone checks (14.331645ms vs16.544390ms for
+its own native interface), then FAILS the original GPT gate with the same
+2.861e-6 maximum embedding-gradient difference. Command1, postflight clean.
+Carrying a wider gradient after the final norm is insufficient. No speed or
+quality promotion follows. Source122 moves the single boundary before the
+original final RMSNorm, where the residual is already FP32. The exact original
+normalization and its backward stay with the head; original dtype/head math
+returns. All196 exact checks are still required.
