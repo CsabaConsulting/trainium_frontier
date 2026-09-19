@@ -1,75 +1,46 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19, 03:24 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19, 03:40 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
 ## Ready requests and active work
 
-Source95 compilation-boundary comparison is complete: native499.641620ms,
-monolithic FP8586.422830ms, separate FP8619.975017ms. All clean/four postchecks
-pass, but separation adds5.72% versus monolithic. No FP8 quality promotion.
-Caller attribution/corrected source97 reports remain preserved.
+New matched larger public best: **0.9928513116311253**, source98 pack32/GA1,
+3660updates in1784.6training seconds. Same global targets/update as the previous
+0.9938106631483421 pack16/GA2 checkpoint. No ngrams, seed sweep or FP8. Both
+checkpoints are local/cloud verified. Training's disk-reserve-only postflight
+failure and clean recovery are preserved; the larger evaluation is clean.
 
-Source98 reciprocal-refined AdamW plus ownership passes24 exact composition
-checks. Whole step497.650549 versus503.328809ms (1.12814%); optimizer23.619889
-versus26.362835ms. Below3%: keep for combinations, no standalone quality run.
-Pack32/GA1 whole step completes clean:487.405374 versus503.328809ms pack16/GA2,
-3.16362% gain with T1024 and131072 global targets/update. All four postchecks pass.
-trn22 now runs the1800s seed42/no-ngram quality comparison, preserving clip-after
-and the existing winning arithmetic. Watcher98; no BPB result yet.
-
-Source99 fused head/CE forward passes preceding projection/loss cases but fails
-strict nonnegative loss on a confident target. It matches the original kernel
-exactly, including its tiny negative result. Source100 proves fused affine
-centering against the rounded target bias causes the original negative values;
-all10 diagnostic cases match. Retain the failed wave99 sign assertion. Source101
-requires exact original signs/values, retains negativity diagnostics, and changes
-no math or numerical bounds. All14 fixtures and actual-row gates now pass.
-Forward-only native12.819835ms versus fused16.254153ms including transpose and
-saves (26.79% slower). Profile maps all3 dispatches: native6.444ms, transpose0.118ms, fused8.322ms.
-Repeated small weight loads show5.38ms/core GpSIMD source activity; fused has
-no populated spills. Source104 full16MiB BF16 weight residency passes all14
-fixtures and actual-row gates, then wins8.443401ms versus12.787697ms including
-transpose and FP32 logits saves (33.97% forward-only). Source107 compiled
-head/master-gradient, two-microbatch accumulation and refreshed-cache gate
-is prepared. No complete-step or quality promotion.
-Source103 weight products pass10cases but lose6.431/native1.125ms down and
-7.069/native1.085ms up. Grouped operand reuse is prepared with unchanged
-numerical bounds. Source105 grouped gate fails small up projection: width256
-PSUM tiles may share a bank. Source106512-element bank spacing now runs on
-trn21 with unchanged independent pair bounds and exact ungrouped comparison.
-Source104 in-place-only head16.607/native12.764ms loses; full weight caching
-supplies the measured forward win above.
-
-Measured FP8 progress and the BF16 layout reversal are summarized at the top of
-`fresh-start-results-2026-09-18.md`. No FP8 quality gain is established.
-
-Current next actions, in dependency order:
-
-| Idea | Current state | Advancement gate |
+| Idea | Measured state | Next action |
 | --- | --- | --- |
-| Separate compiled FP8 MLP region | Integration passes; whole step loses24.08% to native | Include launch/cache/gradient costs; require at least3% whole-step gain before quality |
-| Reciprocal refinement plus optimizer ownership | Composition passes; whole step gains1.13%, below3% | Exact owned-versus-replicated same-math weights/states/rank exchange/cache/restore; then fresh paired whole-step timing |
-| FP8 gradient scale sharing | Correct grouped products improve to1.919/3.177ms, still slower than native1.095/1.093; calibration/balanced-bank trials ready | Independent quantizer/FP64 stage gates, then all four gradient products with all packing charged |
-| Fused vocabulary head and exact loss | Complete head FW/BW22.56% faster;20head and196GPT exact gates pass; whole-step phases active | Preserve original FP32 head accumulation and all gradient terms; profile complete caller |
-| Smaller range-reduced tables / rational composed functions | Design candidates; full-value LUT and standalone polynomial timings lost | Benchmark the full producer/consumer pipeline after accuracy/range gates |
+| FP8-specific packing | One layout improves FP8 component about2.95% while worsening BF16 by11.63%; FP8 whole model still17.74% slower | Continue FP8-specific development; BF16 ranking is not a veto |
+| FP8 grouped weight-gradient products | Correct PSUM bank spacing cuts down/up components to1.919/3.177ms; native1.095/1.093ms | Reduce calibration/preparation and rebalance8bank panels; all4gradients/autograd still ungated |
+| FP8 independent calibration tiles |10cases and exact prior scales pass; down1.909484/up3.167645ms still lose native | Scheduling alone is insufficient; balanced panels active ontrn22, combination queued |
+| Cached vocabulary head and exact CE |14forward/20head/196GPT checks pass; FW/BW14.095440vs18.202054ms, but whole step689.956164vs500.726543ms |37.79% regression; caller device trace active ontrn21, no quality promotion |
+| Save exact softcap intermediate | Source113 prototype saves FP32 tanh instead of FP32 logits and skips repeated backward tanh | Original20head/loss/dx/master/update/cache checks before timing; request ready |
+| Reciprocal refinement + optimizer ownership |24composition checks; component16.77% faster, whole step1.128% faster | Retain for independently gated combinations; below3% advancement threshold |
+| BF16 integer magnitude maximum | CPU certificate covers all65280finite BF16 encodings; no device implementation yet | Preserve tiny/subnormal metadata, gate exact scales and benchmark before using |
+| Smaller tables / rational composed functions | Design candidates; full-value LUT and standalone polynomial timings lose | Test full producer/consumer costs with independent range/gradient gates |
 
-| Item | State | Next action / evidence |
+The following ideas from the retro-computing search have already reached device
+experiments. This distinguishes a negative measured layout from an untested idea.
+
+| Family | Result | Status |
 | --- | --- | --- |
-| T1024/pack16 + original fused AdamW | 3282updates; small public0.992175; checkpoint local and cloud verified | Larger20.97M/T1024/O1 evaluation **0.9974687136975224**, clean; first larger public sub1.0, not private leaderboard |
-| Padded optimizer ownership |3377updates/442.6Mtargets; checkpoint local and cloud verified | Larger public **0.9973302213667847**, clean; earlier best, now superseded by0.9938106631483421. T1024/pack16 ownership phase passes at515.473750ms versus528.353028ms:2.4376%, below3% gate; combine gated CE before another quality run |
-| Scalar reciprocal + Newton | 34component gates,16.77% component gain; repeated optimizer/cache/restore gate now passes | Optional whole-step combination after the active quality runs; no approximation is in those runs |
-| Scalar rsqrt correction | Mode5 passes34 gates but loses:1.363799vs1.262366ms; no promotion | Mode6 also passes34 gates but loses1.25%; both closed for this component; mode2 remains faster |
-| Exact CE core/gather changes | Wave68 isolates discrepancy to forward outer-loop trip count1, for both input precisions; cores agree and native-lse backward is exact | Adaptive/gather passes all original/boundary/row-independence gates;5.679065vs12.339531ms FW+BW,53.9767% component gain. Compiled installed-autograd gate passes all36 checks; whole step500.372595vs519.395419ms,3.6625% faster. Fresh 30-minute T1024/pack16/ownership/CE run completed clean: 3,548 updates / 465.04M targets, small public 0.988605; checkpoint local/cloud verified. Matched larger public **0.9938106631483421**, new best; no private leaderboard result |
-| Polynomial exponential | Nine device records pass;3.57–4.19times slower | Closed as a standalone speed replacement; retain the accurate implementation for diagnostics |
+| Exponent-bit range reduction for FP8 scales | Replaces log2/floor/exp2, extensive exact calibration/quantizer gates | Implemented in FP8 prototypes; no full FP8 quality gain |
+| Reciprocal/Newton optimizer update |16.77% component gain;1.13% whole-step gain with ownership | Keep for composition |
+| rsqrt correction variants |One Newton step fails large-gradient gate; two steps and quadratic variants pass but lose speed | Numerical failures and slower variants retained |
+| Polynomial exponential |Nine device records pass;3.57–4.19times slower than hardware exp | Closed as standalone replacement |
+| Compact full-value softcap/exp/derivative table |65280CPU codes and device gate pass;47.20vs2.48ms (19.04times slower) | Close this gather layout; smaller range-reduced tables remain distinct |
+| Exact CE work/traffic elimination |53.98% component and3.66% whole-step gains | In current best checkpoint |
+| Saved intermediate and on-chip weight reuse |Cached-head component improves22.56%, whole caller loses37.79% | Profile caller; saved-softcap variant separately queued |
+| Precomputed trigonometry/symmetry |RoPE already precomputed | Do not duplicate existing work |
 
-The CE experiment compares original, explicit one-core mask, two-core mask,
-and two-core SBUF target gather. It retains tanh/exp/log, the target-relative
-shift and512-wide reduction groups. Exact forward, saved logsumexp, backward,
-repetition and row independence precede16384×8192 FW+BW timing. The one-core
-arm is a kernel launch configuration within the existing LNC2 environment;
-it is not a return to the previously hanging host-wide LNC1 configuration.
+Original failures, subsequent root-cause diagnoses and incremental FP8 results
+remain below and in the design/result logs. New requests must retain immutable
+source, finite/causal/repeated-call/master-gradient checks and pre/post cleanup.
+Whole-step advancement normally requires at least3% before a30minute quality run.
 
 ## FP8 can change which layout wins
 

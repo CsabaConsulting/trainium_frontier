@@ -101,3 +101,15 @@ PROFILE_CONFIG {"seed": 42, "model": {"sequence_len": 1024, "vocab_size": 8192, 
 [pt] world_size=4 LNC=2 micro_tokens=65,536 grad_accum=2 local_conv=True conv_mode=normal norm_output_dtype=baseline sdpa_input_dtype=baseline compile=True foreach_optim=True weight_cache=True ngram_ve=False ngram_tables=0 ngram_rows=65536 ngram_dim=1024 ngram_index_gather=True params=117,453,580
 [pt] whole-matrix optimizer ownership {"rank": 1, "elements_by_owner": [27265796, 30414851, 30412805, 29360128], "estimated_ms_by_owner": [12.947406063447303, 12.939731226905751, 12.948754427971444, 12.947727783333331], "shard_elements": 30414976, "total_padded_bytes": 486639616}
 [pt] whole-matrix optimizer ownership {"rank": 3, "elements_by_owner": [27265796, 30414851, 30412805, 29360128], "estimated_ms_by_owner": [12.947406063447303, 12.939731226905751, 12.948754427971444, 12.947727783333331], "shard_elements": 30414976, "total_padded_bytes": 486639616}
+muon step: COMPILED body for (3, 8, 32) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 1]
+muon step: COMPILED body for (6, 1024, 1024) (tall=False ns_steps=5 red_dim=-1) [specialisations so far: 2]
+muon step: COMPILED body for (2, 4096, 1024) (tall=True ns_steps=5 red_dim=-1) [specialisations so far: 3]
+[pt] warmup 0 dt=56.675s
+[pt] warmup 1 dt=14.166s
+[pt] warmup 2 dt=0.694s
+[pt] warmup 3 dt=0.686s
+[pt] warmup 4 dt=0.691s
+[pt] STEP 0 total=689.0ms micro_total=632.7 (mean 316.3) zero_grad=0.7 clip=6.9 sync_grad=17.0 control=2.5 set_lr=0.0 opt_step=26.2 loss_item=0.0 wcache=3.0 => TAIL=56.3ms (8.2%)
+[pt] STEP 1 total=690.0ms micro_total=634.5 (mean 317.2) zero_grad=0.7 clip=6.9 sync_grad=16.4 control=2.9 set_lr=0.0 opt_step=25.5 loss_item=0.0 wcache=3.0 => TAIL=55.4ms (8.0%)
+[pt] STEP 2 total=689.9ms micro_total=635.3 (mean 317.6) zero_grad=0.8 clip=6.7 sync_grad=15.8 control=3.4 set_lr=0.0 opt_step=25.0 loss_item=0.0 wcache=3.0 => TAIL=54.6ms (7.9%)
+[pt] STEP 3 total=687.5ms micro_total=634.6 (mean 317.3) zero_grad=0.7 clip=6.8 sync_grad=15.3 control=2.0 set_lr=0.0 opt_step=25.1 loss_item=0.0 wcache=2.8 => TAIL=52.8ms (7.7%)

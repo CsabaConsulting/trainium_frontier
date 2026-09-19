@@ -1,5 +1,34 @@
 # Fresh-start measured results — 2026-09-18
 
+## 2026-09-19 03:40 UTC — matched public improvement and cached-head regression
+
+Pack32/GA1 quality (source98) completes3660updates /479,723,520targets in1784.6s
+(charged1785.0s). Matched larger public evaluation is **0.9928513116311253**,
+versus previous0.9938106631483421: improvement0.0009593515172168221. Evaluation
+uses20,971,520tokens,83,462,186bytes,57,438,016nats, world1/B1/T1024/O1,
+no global autocast, protected scorer;702.425697s and clean postflight. Fixed
+seed42, no ngrams, BF16/native AdamW. This is not a private leaderboard result.
+Checkpoint locally/cloud verified; identity is in fresh-start-best-public.json.
+The successful training command's original disk-reserve postflight failure is
+retained alongside hash-verified cleanup and the later clean evaluation.
+
+Cached head forward passes14fixtures and gains33.97% in isolation. Complete
+head autograd passes20exact checks and gains22.56% (14.095440vs18.202054ms,
+every transpose charged); real GPT integration passes196checks. Nevertheless,
+the same-source/same-host whole step regresses37.791%:689.956164vs500.726543ms,
+with188.376055ms extra microbatch computation. Both pass all4native postchecks;
+last losses differ5.068909vs5.064923. No full-model bitwise or quality claim.
+Candidate command0; postflight fails disk reserve only. Verified old profile
+removal restores clean health03:38:38 and12,027,482,112free bytes. Original
+failure unchanged. Caller trace now investigates allocation/spills/dispatch;
+no root cause or remedy is established yet.
+
+FP8 independent calibration tiles pass all10cases and exact original scale
+metadata, but full down/up costs1.909484/3.167645ms still lose to native
+1.090103/1.108476ms. This schedule does not eliminate the global reduction
+cost. Balanced operand panels and saved-softcap reuse are queued separately.
+
+
 **Current result, 2026-09-19 00:21 UTC:** matched larger public BPB is
 **0.9938106631483421**, improved from0.9973302213667847. The dense6x1024 model
 uses no n-grams and seed42, T1024/pack16/GA2, padded exact optimizer ownership,
