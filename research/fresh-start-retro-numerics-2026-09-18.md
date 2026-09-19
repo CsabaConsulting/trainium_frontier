@@ -342,3 +342,12 @@ and accumulation, improving16.515157vs17.920212ms (same forward) while still
 trailing native15.675626ms. Profiling will test the compiler-transpose hypothesis.
 The new FP8 backward design note records scale-factor algebra, packed-cache
 and producer/statistic candidates, state constraints and primary references.
+
+### Vocabulary projection and loss fusion
+
+The next work-elimination design is in
+`fresh-start-fused-head-loss-design-2026-09-19.md`. It reviews Apple CCE and AWS
+experimental NKI CE, retains FP32 head accumulator values and softcap15, and
+separates forward fusion from recomputation and optional gradient filtering.
+The current caller trace determines whether its complete cost warrants a
+prototype. Lower memory use alone is not evidence of faster training.

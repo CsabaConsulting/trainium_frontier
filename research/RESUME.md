@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 01:40 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 01:50 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
 ## Current result and active work
@@ -34,15 +34,26 @@ and all12 FP8 cache counters equal35. Approximate training losses are finite
 The3% advancement gate fails: do not run a30-minute FP8 quality experiment yet.
 See `run-logs/fs-w89-packed-fp8-whole-step-comparison-r1.json`.
 
-**trn21 wave89 caller profile COMPLETE and clean01:38:13:**
-`fs-w89-packed-fp8-owned-micro-device-profile-r1`, source dcd6b80a4199339333d93a8e005aa746d3fd28d2.
-Raw preservation is running locally. Captured one warmed rank0 microstep with
-all four ranks active, exported all compiled/eager binaries. Profile time is
-attribution only; diagnose the caller regression rather than more blind dots.
-**trn22 ACTIVE matching native BF16 caller profile01:40:07:**
-`fs-w89-native-owned-fp8-micro-device-profile-r1`, same source/configuration.
-This cross-host trace pair is for structural attribution; use the earlier
-same-host phase pair for performance. Both log watchers now target wave89.
+Both wave89 caller captures are COMPLETE and clean: packed FP8 on trn21
+01:38:13, native BF16 on trn22 01:46:33. Source for both is
+`dcd6b80a4199339333d93a8e005aa746d3fd28d2`. Each records one warmed rank0
+microstep while all four ranks run. The same-host unprofiled phase pair remains
+the performance evidence; these cross-host traces are structural attribution.
+Packed raw trace68files/2,539,181,724B is local/hash-verified. Its790,161,302-byte
+compressed archive is being uploaded; read the digest receipt before claiming
+cloud completion. Native raw preservation is running. Both watchers target89.
+
+**Both hosts ACTIVE CPU-only ingestion, whole-host locks held:**
+`fs-w89-packed-fp8-caller-remote-ingest-r1` on trn21 (01:42:19),
+`fs-w89-native-owned-fp8-caller-remote-ingest-r1` on trn22 (01:48:23).
+Both use fresh hardlinked staging,24GiB Go limit/four threads/1200s timeout;
+source files are rehashed after ingestion. Missing DMA-duration metadata is
+retained as a limitation, not converted into an exact bandwidth claim. Wait
+for completed, clean postflights before scheduling another device/CPU job.
+The new `model_caller_profile_analysis.py` first matched all70 dispatches and
+all execution identities/times from the known wave87 profile, analyzing12
+large graphs. Apply it to these complete caller traces after ingestion; source
+code and numerical experiments remain distinct immutable identities.
 
 Wave92 generic FP8 gradient GEMMs pass all9 independent cases. Repacked byte
 mismatches are only107/103 signed-zero encodings under the ORIGINAL zero
