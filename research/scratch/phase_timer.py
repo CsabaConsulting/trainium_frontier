@@ -99,6 +99,8 @@ def main():
                     help="Scratch head/loss BF16 memory boundary; FP32 loss math and native evaluation.")
     ap.add_argument("--bf16-ce-gradient-only", action="store_true",
                     help="Keep original FP32 head logits; compress CE derivative at the BF16 head boundary.")
+    ap.add_argument("--cached-head-loss", action="store_true",
+                    help="Experimental cached BF16 head/exact CE; charge transpose every forward.")
     ap.add_argument("--nki-adamw-fp32", action="store_true",
                     help="Scratch gated functional FP32 AdamW for dense1024 tables; other groups stay native.")
     ap.add_argument("--nki-adamw-math-mode", type=int, choices=(0, 2), default=0,
@@ -395,6 +397,13 @@ def main():
         from fp8_mlp_integration import install
         fp8_mlp_contract = install(model, device, T, separate_region=args.fp8_mlp_separate_region)
         print("[pt] packed FP8 MLP contract " + json.dumps(fp8_mlp_contract), flush=True)
+    if args.cached_head_loss:
+        if (device_type != "neuron" or not args.compile or not args.adaptive_nki_ce
+                or args.bf16_ce_boundary or args.bf16_ce_gradient_only):
+            raise ValueError("Cached head requires compiled Neuron/adaptive CE and its original boundaries")
+        from head_loss_fused_integration import install as install_cached_head
+        install_cached_head(model, T)
+        print("[pt] cached head/exact CE; ordinary FP32 logits save and charged per-forward transpose", flush=True)
     if args.ngram_ve_freeze:
         for p in model.ngram_embeds.parameters():
             p.requires_grad_(False)
@@ -712,6 +721,7 @@ def main():
             adaptive_nki_ce=args.adaptive_nki_ce,
             bf16_ce_boundary=args.bf16_ce_boundary,
             bf16_ce_gradient_only=args.bf16_ce_gradient_only,
+            cached_head_loss=args.cached_head_loss,
             nki_adamw_fp32=args.nki_adamw_fp32,
             nki_adamw_math_mode=(args.nki_adamw_math_mode if args.nki_adamw_fp32 else None),
             nki_adamw_parameter_updates=getattr(optimizer, "_fresh_start_adamw_calls", 0),

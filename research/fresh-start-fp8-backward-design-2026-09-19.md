@@ -243,3 +243,29 @@ All10fixtures pass, including bit-exact grouped-versus-original products at
 actual16384-token shapes. Clean03:09:16.793153. This controlled change supports
 the bank-alias diagnosis; original failure logs remain. Component timing follows
 with all row-scale, calibration and byte preparation costs retained.
+
+Source106 complete component clean03:10:51.448438: grouped down1.919147ms
+versus native1.095259ms; grouped up3.177483ms versus native1.093426ms. Large
+improvements from source1036.431/7.069ms, but still75%/191% slower than native.
+All10gates and composed-versus-stages pass. Next diagnostic separately times
+current-gradient calibration, each operand conversion, prepared FP8 product,
+and down-gradient row-scale transfer. Isolated timings are not additive and
+do not replace the complete charged component. This distinguishes conversion/
+calibration cost from the long-token matrix product before further changes.
+
+### Source111 independently controlled scheduling/layout candidates
+
+Source108 down prepared FP8 product0.856747ms versus native1.085396ms, but
+calibration0.344010ms,row transfer0.162511ms and byte conversions0.121265/
+0.371519ms erase that advantage. Up calibration1.176563ms and prepared product
+1.471031/native1.074664ms both need work. These isolated times are diagnostic
+and nonadditive; complete charged timings remain1.923247/3.160304ms.
+
+Two opt-in changes preserve the current quantized algorithm. Independent
+128-row tile maxima followed by a small exact max reduction remove the
+sequential calibration dependency while retaining its exponent policy. Balanced
+512x1024 grouped output tiles fill8PSUM banks in the up product and reduce
+summed operand-panel width versus256x2048. Each switch is tested separately
+before composition. All independent pair/quantizer checks and exact original
+calibration/product comparisons remain; no new numerical tolerance or claimed
+quality gain. No forward saved-byte or shared-gradient cost is made free.

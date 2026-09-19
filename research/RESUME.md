@@ -356,3 +356,29 @@ trn21, request ready after106 finishes. Source/backup refs verified GitHub03:08:
 Matched pack32 larger-evaluation request is prepared under out/; launch ONLY
 after clean quality completion and checkpoint preservation.
 trn22 pack32 quality remains active on source98, about0.49s/update.
+
+Source106 grouped component COMPLETE clean03:10:51: down1.919147/native1.095259ms;
+up3.177483/native1.093426ms. Exact10case gate passes. No promotion.
+Source107 cached-head autograd gate launched trn21, watcher107.
+FP8 per-stage cost diagnostic is prepared locally; source108 pending.
+
+Source107 all14small head loss/dx/master gradients exactly match original.
+Accumulation harness fails on unsupported retain_graph=True with AOT donated
+buffers (clean). Correct harness to ordinary backward, matching trainer; no
+compiler setting or equality changes. Source109 rerun prepared; source108 FP8
+component stage-cost diagnostic now active trn21, watcher108.
+
+Source108 stage costs COMPLETE clean03:13:33. Up calibration1.176563ms and
+prepared product1.471031/native1.074664ms; down calibration0.344010ms and
+product0.856747/native1.085396ms. Preparation erases down's product advantage.
+Source109 head exact-autograd/component rerun active trn21, watcher109.
+Source110 per-instance GPT training adapter/full caller gate prepared; do not
+run phases before autograd and caller gates pass.
+
+Source109 head autograd COMPLETE clean03:15:40.142026:20exact comparisons,
+real16384x1024head FW/BW14.095440ms versus18.202054native (22.5613% gain),
+every transpose charged. Source110 actual GPT/all-master-gradient gate launched
+trn21, watcher110. Pack32 quality should finish around03:17–03:19; preserve
+checkpoint after clean postflight then launch prepared matched larger eval.
+Source111 FP8 parallel-tile calibration and balanced8-bank grouping are prepared
+for separate controlled stage/component tests after head work.

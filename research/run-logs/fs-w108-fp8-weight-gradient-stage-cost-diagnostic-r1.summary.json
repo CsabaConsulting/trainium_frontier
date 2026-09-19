@@ -1,0 +1,108 @@
+{
+  "source_commit": "05d72523e76dc6300ace9c4cf2c1688c0d1b27f2",
+  "completed_at": "2026-09-19T03:13:33.136730+00:00",
+  "host_clean": true,
+  "measurements": [
+    {
+      "kind": "down",
+      "shape": [
+        16384,
+        1024,
+        4096
+      ],
+      "grouped_io": true,
+      "samples_ms": {
+        "gradient_calibration": [
+          0.34301908453926444,
+          0.3452887516080712,
+          0.3440104143616433
+        ],
+        "gradient_bytes": [
+          0.12248608497126649,
+          0.12126458265508215,
+          0.1210594152022774
+        ],
+        "activation_bytes": [
+          0.37151908327359706,
+          0.3772705822484568,
+          0.37065783302144456
+        ],
+        "fp8_product_prepared_operands": [
+          0.8553835844698673,
+          0.8735286634570608,
+          0.8567470795242116
+        ],
+        "native_bf16_product": [
+          1.0853956676631544,
+          1.1032164184143767,
+          1.0852992515234898
+        ],
+        "gradient_row_scale_transfer": [
+          0.16251066699624062,
+          0.160704415369158,
+          0.16802074969746172
+        ]
+      },
+      "median_ms": {
+        "gradient_calibration": 0.3440104143616433,
+        "gradient_bytes": 0.12126458265508215,
+        "activation_bytes": 0.37151908327359706,
+        "fp8_product_prepared_operands": 0.8567470795242116,
+        "native_bf16_product": 1.0853956676631544,
+        "gradient_row_scale_transfer": 0.16251066699624062
+      },
+      "diagnostic_only": true,
+      "prepared_inputs_exclude_producer_cost": true,
+      "isolated_times_not_additive": true,
+      "full_component_above_is_speed_authority": true
+    },
+    {
+      "kind": "up",
+      "shape": [
+        16384,
+        4096,
+        1024
+      ],
+      "grouped_io": true,
+      "samples_ms": {
+        "gradient_calibration": [
+          1.168882585867929,
+          1.17656333410802,
+          1.1792087510305767
+        ],
+        "gradient_bytes": [
+          0.3673017490655184,
+          0.36759958311449736,
+          0.3784594203655918
+        ],
+        "activation_bytes": [
+          0.1203386685422932,
+          0.12912049714941531,
+          0.12100208550691605
+        ],
+        "fp8_product_prepared_operands": [
+          1.4542718320929755,
+          1.4710314135299996,
+          1.4746422530151904
+        ],
+        "native_bf16_product": [
+          1.0746643335248034,
+          1.0701580807411422,
+          1.1273702499844755
+        ]
+      },
+      "median_ms": {
+        "gradient_calibration": 1.17656333410802,
+        "gradient_bytes": 0.36759958311449736,
+        "activation_bytes": 0.12100208550691605,
+        "fp8_product_prepared_operands": 1.4710314135299996,
+        "native_bf16_product": 1.0746643335248034
+      },
+      "diagnostic_only": true,
+      "prepared_inputs_exclude_producer_cost": true,
+      "isolated_times_not_additive": true,
+      "full_component_above_is_speed_authority": true
+    }
+  ],
+  "decision": "Prepared down FP8 product is faster than native, but preparation erases gain; up loses both calibration and product. Next independently test exact max-reduction scheduling and8-bank balanced output tiling. No promotion."
+}
