@@ -1,0 +1,73 @@
+{
+  "label": "fs-w139-fp8-full-mlp-real-linear-gate-r1",
+  "source_commit": "1f8a7dd7465fbaf4bb3b64887be5abc6837ffb0a",
+  "completed_at": "2026-09-19T07:11:27.720021+00:00",
+  "host_clean": true,
+  "cases": [
+    {
+      "channels": 256,
+      "tokens": 512,
+      "cached_and_uncached": true,
+      "microbatches": 2,
+      "separate_compiled_region": false,
+      "reference_updates": 4,
+      "exact_outputs_input_and_fp32_master_gradients": true,
+      "changed_cache_values": [
+        36803
+      ],
+      "training_padding_and_row_independence": true,
+      "native_eval_and_checkpoint_restore_exact": true,
+      "contract": {
+        "layers": [
+          0
+        ],
+        "training_forward": "legacy E4M3 packed up/down GEMMs",
+        "backward": "source135 four FP8 products, BF16 ReLU derivative, FP32 master gradients",
+        "evaluation": "original BF16 MLP",
+        "cache_preparation": "compiled source137 resident dual producer per timed Linear refresh",
+        "separate_compiled_region": false,
+        "input_contract": "gain-free RMS norm, BF16, widths256/1024",
+        "short_input_policy": "zero-pad inside MLP to multiple512; discard padded rows"
+      },
+      "independent_algorithm_authority": "source135 four-product bounds and source137 exact dual-cache gate",
+      "whole_model_speed_or_quality_established": false,
+      "passed": true
+    },
+    {
+      "channels": 1024,
+      "tokens": 512,
+      "cached_and_uncached": true,
+      "microbatches": 2,
+      "separate_compiled_region": false,
+      "reference_updates": 4,
+      "exact_outputs_input_and_fp32_master_gradients": true,
+      "changed_cache_values": [
+        1033724
+      ],
+      "training_padding_and_row_independence": true,
+      "native_eval_and_checkpoint_restore_exact": true,
+      "contract": {
+        "layers": [
+          0
+        ],
+        "training_forward": "legacy E4M3 packed up/down GEMMs",
+        "backward": "source135 four FP8 products, BF16 ReLU derivative, FP32 master gradients",
+        "evaluation": "original BF16 MLP",
+        "cache_preparation": "compiled source137 resident dual producer per timed Linear refresh",
+        "separate_compiled_region": false,
+        "input_contract": "gain-free RMS norm, BF16, widths256/1024",
+        "short_input_policy": "zero-pad inside MLP to multiple512; discard padded rows"
+      },
+      "independent_algorithm_authority": "source135 four-product bounds and source137 exact dual-cache gate",
+      "whole_model_speed_or_quality_established": false,
+      "passed": true
+    }
+  ],
+  "result": {
+    "passed": true,
+    "real_width": true,
+    "separate_compiled_region": false,
+    "full_fp8_backward": true,
+    "full_model_or_quality_promotion": false
+  }
+}

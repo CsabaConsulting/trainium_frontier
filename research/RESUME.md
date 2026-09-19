@@ -1,7 +1,39 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 07:06 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 07:15 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
+
+## Submission cold launch passes; fresh public evaluation active — 2026-09-19 07:15 UTC
+
+- Exact packaged launch, six empty SDK caches, completed clean on trn22 at
+  07:08:13.561380: 3,634 updates, 476,315,648 targets, 2,645.428628 wall seconds.
+  Observed first-five-boundary allowance 855.087152s; charged through process
+  exit 1,790.341476s. Checkpoint SHA256
+  f985887995c9ffe9d7efb6124926d842aac399059f23f04c1295fb09a145d45a,
+  469,834,849 bytes. Local/remote hashes match; GitHub asset digests verified
+  07:13:37. Root train.py, prepare.py and packaged train.py unchanged.
+- trn22 source129 c51f6fdc5ca77793a1524148a563cafac0ab22b0 ACTIVE:
+  fs-w129-submission-cold-public20m-r1, guard PID1725340, started 07:11:35.
+  Protected scorer B1/T1024/O1, 20,971,520 tokens, timeout1200. Need its fresh
+  checkpoint score before final readiness report. Retrieve nested rehearsal.json,
+  require clean postflight, update package README/validation and commit/push.
+  Original packaged-checkpoint replay already exactly reproduced 0.99285131.
+- Before evaluation, one redundant wave4 raw-profile archive was retired after
+  local/current-cloud/remote SHA verification under host lock. Archive remains
+  local/cloud; no checkpoint, source, log or shared cache removed. trn22 clean,
+  free 8,633,110,528 -> 13,742,022,656 bytes. Maintenance receipt
+  fs-maintenance-submission-eval-headroom-20260919T071044Z.
+- trn21 source139 full FP8 real-Linear integration gate COMPLETE/clean 07:11:27.
+  Widths256/1024, cached/uncached, two microbatches/four reference updates,
+  exact full outputs/input/master gradients, cache refresh/restore, training
+  padding/causality/row independence, native eval/checkpoint restore pass.
+  No whole-GPT speed or BPB claim. Prepared distinct --fp8-mlp-full phase flag;
+  next compare native/custom-backward and full FP8 at T1024 pack32/GA1 on the
+  same host/source. Existing phase timer clips before reduction on BOTH arms;
+  it is a matched phase comparison, not the winning clip-after quality loop.
+- Watchers: trn21 wave139, trn22 wave129. Source139 and snapshot e231aec pushed
+  and verified by 07:10 cron. Cold score and newer notes still need final push.
+  User asks for submission file/command; no competition submission authorized.
 
 ## Fused FP8 producer passes; final submission training minutes — 2026-09-19 07:06 UTC
 
