@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19, 00:12 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19, 00:17 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
 ## Current result and active work
@@ -51,7 +51,11 @@ STE backward and accumulated FP32 master gradients all pass. Complete component
 binaries preserved remotely. Retrieval/hash verification is in progress.
 Next fixed-input RMS-scale code and independent contract are written; commit/
 deploy and run small gates before any real-shape training-component request.
-Watcher currently follows wave78. No fixed-input device result yet.
+Wave79 fixed-input small gate passed all9 cases, exhaustive input quantizers
+and actual norm contracts. Real forward passes; the full backward/component
+request is active on trn22. Watcher follows wave79. Token-row raw profile is
+local/hash-verified; local Explorer ingestion is active. The BF16 CE memory
+boundary candidate is prepared for a separate exact gate after a host is free.
 
 The compact joint table passes hardware accuracy but loses 47.200750 ms versus
 2.478831 ms Scalar composition (19.04x). Close this full-value/GpSIMD-gather
@@ -144,7 +148,7 @@ Local Devuan/SystemV, usercsaba cron; no root/systemd:
   inspect its completion. The new wave70 checkpoint arrived after that inventory. State is
   out/fresh-start-artifact-backup/latest.json; receipts under research/run-logs.
   Newly produced remote checkpoints still need retrieval to checkpoints/ first.
-- Local log watchers currently follow trn21/wave70 and trn22/wave78,90rounds at
+- Local log watchers currently follow trn21/wave70 and trn22/wave79,90rounds at
  45seconds. Repoint when the active remote worktree changes. Only stop exact
   owned watcher PID/UID/cwd/argv/startticks; remote training jobs are separate.
 

@@ -248,3 +248,31 @@ original FP8, adaptive token-row FP8 and fixed-input token-row FP8 on identical
 normalized inputs. Shared caller normalization is excluded from all component
 arms; full-model speed must charge the actual caller. Small numerical gates
 must pass before the real-shape forward/backward/accumulation timing request.
+
+### BF16 head/loss memory boundary: executable exact gate (00:17 UTC)
+
+The protected model already rounds head output to BF16, then explicitly widens
+it to FP32 before custom CE. The new scratch candidate accepts BF16 logits,
+widens them in SBUF, performs the same FP32 loss/gradient arithmetic and rounds
+only the returned gradient at the existing BF16 head boundary. Original FP32
+input behavior remains available. This is not lower-precision softmax math.
+
+At16384x8192, the three full-matrix kernel transfers (forward input, backward
+input and backward output) have a source-level saving of768MiB per FW/BW.
+This does not prove caller traffic or speed; dtype conversion costs are charged.
+`softcap_ce_bf16_boundary_probe.py` compares protected original, adaptive-FP32
+and adaptive-BF16 paths, both eager and compiled, on boundary row counts,
+random/tiny/saturation/uniform/confident-correct/confident-wrong cases and
+arbitrary signed or zero upstream gradients. Loss, saved logsumexp and BF16
+head gradient must match exactly. Real-shape timing follows those gates.
+
+No GPT caller patch is installed: the protected training/scoring files remain
+unchanged. Caller integration must remove the redundant cast only after this
+probe passes and must preserve prediction dtype/semantics and optional branches.
+Do not combine this candidate into a quality run from component evidence alone.
+
+Wave79 fixed-input FP8 now passes33,542/D256 and33,798/D1024 finite BF16 input
+codes, both compiled norm contracts and all9 small forward cases. Real forward
+also passes; full backward and complete timing are currently in progress.
+Tiny normalized inputs can quantize to zero under this policy, with the change
+explicitly retained in diagnostics rather than called BF16-model equivalence.

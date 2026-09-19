@@ -1,0 +1,40 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave79",
+    "expected_commit": "2502bd9b11dc662decfa08e0d502734ed2f763d7",
+    "label": "fs-w79-fp8-rms-fixed-input-small-gate-r1",
+    "purpose": "Restricted RMS-normalized FP8 input-scale contract: exhaustive in-domain BF16 CPU/device quantizer, actual compiled norm boundary, zero/spike/tiny/range/causality and independent pair-stage gates; fixed scale8/D256 or4/D1024. No arbitrary-input equivalence or speed claim.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "900s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "/home/ubuntu/trainium_freshstart_20260918_wave79/research/scratch/fp8_mlp_island_probe.py",
+      "--token-rows",
+      "--rms-fixed-input"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/fp8_mlp_island_nki.py",
+      "research/scratch/fp8_mlp_island_probe.py",
+      "research/scratch/fp8_weight_cache_nki.py",
+      "research/scratch/fp8_weight_cache_probe.py",
+      "research/scratch/fresh_start_fp8_probe.py",
+      "research/scratch/fp8_mlp_token_rows_nki.py",
+      "research/scratch/fp8_rms_scale_contract.py"
+    ]
+  },
+  "requested_at": "2026-09-19T00:13:09.220448+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w79-fp8-rms-fixed-input-small-gate-r1\", \"pid\": 1540800, \"commit\": \"2502bd9b11dc662decfa08e0d502734ed2f763d7\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave79/research/run-logs/fs-w79-fp8-rms-fixed-input-small-gate-r1.log\", \"started_at\": \"2026-09-19T00:13:15.476776+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}
