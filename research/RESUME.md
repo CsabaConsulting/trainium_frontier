@@ -1,7 +1,38 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 07:45 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 08:20 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
+
+## Resume kernel investigation after submission handoff — 2026-09-19 08:20 UTC
+
+- Short launch/package update is pushed as `b857d13`; frozen submission remains
+  public best 0.99285131 / independent cold replay 0.99385567. No new BPB result.
+- Source140 full FP8 candidate finished at 07:50:45, command 0, all four numerical
+  postchecks passed. Median step 567.094872 ms versus native control-r2
+  488.701909 ms: 16.041% slower. Forward/backward accounts for 74.667012 ms of
+  the difference; cache refresh adds 2.070754 ms. The candidate postflight failed
+  only the disk reserve (8,224,735,232 bytes free); no device holders, remaining
+  workers or ECC errors. Treat it as diagnostic and retain the original failure.
+  Exact records: `run-logs/fs-w140-full-fp8-phase-comparison-r1.json`.
+- trn22 source140 now has a native pack32 microstep device-profile request:
+  `run-logs/fs-w140-native-pack32-micro-device-profile-r1.request.json`.
+  Its first bundle transfer failed because the incremental prerequisite existed
+  only on trn21. The r2 deployment uses trn22's source129 base and verifies the
+  exact source140 worktree. Both receipts are retained. Check dispatch/postflight
+  before launching anything else there; preserve every binary and trace.
+- trn21 maintenance request:
+  `run-logs/fs-maintenance-nki-scratch-trn21-20260919-r1.request.json`.
+  New `scratch/maintenance_archive_nki_scratch.py` captures the oldest 16 GiB of
+  same-UID `/tmp/nki_*` diagnostics modified before 07:00 UTC while holding the
+  host lock. It verifies every source hash inside the local archive. Retirement
+  is a separate stage requiring current GitHub asset digests and remote hashes.
+  Shared caches, newest candidate compile, source and checkpoints are excluded.
+  Do not dispatch the FP8 profile until maintenance is complete and health clean.
+- Next kernel decision: compare actual native and full-FP8 caller traces. Check
+  whether unused BF16 forward saves are retained and attribute the 75 ms model
+  cost before implementing the explicitly scoped output-elimination mode.
+  Capacity/optimizer balancing and composed reciprocal updates remain queued.
+
 
 ## Submission launch fits the 256-character field — 2026-09-19 07:45 UTC
 

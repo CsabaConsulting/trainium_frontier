@@ -1,8 +1,34 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19 06:56 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19 08:20 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
+
+## Current priority after full FP8 integration
+
+Source137's exact dual producer improved the complete isolated FP8 MLP by
+3.006%. Source139 passed real-Linear/master/cache lifecycle gates. Source140's
+complete model nevertheless takes 567.095 ms/step versus 488.702 ms for native
+BF16. All four numerical postchecks pass; the final disk-reserve failure is
+retained and needs maintenance before another job. No FP8 speed/BPB promotion.
+
+1. Capture the source140 native and full-FP8 caller at pack32/GA1. Attribute the
+   extra 74.667 ms in forward/backward using matched binary identities; inspect
+   unused BF16 outputs and model-wide precision/layout/allocation effects.
+2. If unused writes survive, implement a full-VJP-only output mode. Preserve
+   exact outputs, saved bytes/scales and all four derivatives; rerun cache and
+   master lifecycle gates before measuring the complete step.
+3. Correct the native width guard and measure new optimizer groups before a
+   bounded capacity comparison with the current kernel stack. See the capacity
+   revisit note; old generic ownership costs are not trustworthy at new widths.
+4. Keep reciprocal optimizer composition, reduced calibration work and compact
+   function approximations available for measured bottlenecks. The standalone
+   polynomial/full-value-table losses remain closed for their tested layouts.
+
+Compiler scratch archives now have a staged preservation/retirement procedure,
+so disk reserve does not repeatedly interrupt these comparisons. Every original
+file must exist in a hash-verified local archive and verified GitHub asset before
+its remote copy is retired. Immutable shared compilation caches remain in use.
 
 ## Ready requests and active work
 
