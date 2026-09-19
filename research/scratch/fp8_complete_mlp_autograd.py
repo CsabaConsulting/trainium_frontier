@@ -9,7 +9,8 @@ All caches are detached inputs and must be refreshed from current masters.
 import torch
 
 
-def make_autograd(forward, backward_data, partial, finish, product, compact_forward_saves=False):
+def make_autograd(forward, backward_data, partial, finish, product, compact_forward_saves=False,
+                  preserve_input_rank=False):
     class CompleteFP8MLP(torch.autograd.Function):
         @staticmethod
         def forward(ctx, x, up_master, down_master, up_cache, down_cache,
@@ -25,10 +26,16 @@ def make_autograd(forward, backward_data, partial, finish, product, compact_forw
                                   up_meta, down_meta, packed_up_transpose,
                                   packed_down_transpose, x_meta, one_meta)
             ctx.up_dtype, ctx.down_dtype = up_master.dtype, down_master.dtype
+            if preserve_input_rank:
+                ctx.input_shape = x.shape
             return result
 
         @staticmethod
         def backward(ctx, gradient):
+            if preserve_input_rank:
+                # Only the optional forward boundary has a different rank.
+                # Every gated FP8 backward product still consumes token rows.
+                gradient = gradient.reshape(-1, gradient.shape[-1])
             (relu, x_bytes, hidden_bytes, hidden_meta, up_meta, down_meta,
              packed_up_transpose, packed_down_transpose, x_meta, one_meta) = ctx.saved_tensors
             dx, pre = backward_data[2](
@@ -44,6 +51,8 @@ def make_autograd(forward, backward_data, partial, finish, product, compact_forw
             up_parts = partial[2](pre, one_meta, 2, False)
             up_bytes, up_gradient_meta = finish[2](pre, one_meta, up_parts, 2, False)
             dup = product[2](up_bytes, x_bytes, up_gradient_meta, x_meta, 2, True, True)
+            if preserve_input_rank:
+                dx = dx.reshape(ctx.input_shape)
             return (dx, dup.to(ctx.up_dtype), ddown.to(ctx.down_dtype)) + (None,) * 10
 
     return CompleteFP8MLP.apply

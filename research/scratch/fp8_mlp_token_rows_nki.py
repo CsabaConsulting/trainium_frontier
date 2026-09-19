@@ -48,7 +48,8 @@ def build_kernel():
                 token_tile: int = 128, diagnostic: bool = False,
                 fixed_x_scale: float = 0.0, packed_up=None, packed_down=None,
                 save_fp8: bool = False, save_hidden_metadata: bool = False,
-                compact_full_vjp: bool = False, stream_packed_weights: bool = False):
+                compact_full_vjp: bool = False, stream_packed_weights: bool = False,
+                output_batch_size: int = 0):
         """Return Y[T,C], ReLU[T,H], QDQ-X[T,C], QDQ-hidden[T,H].
 
         Diagnostic mode additionally returns FP32 up[T,H], down[T,C] and
@@ -67,6 +68,9 @@ def build_kernel():
         SBUF. Its sequential output-group loops preserve each contraction and
         rescaling order, at the cost of repeated HBM reads for every token tile.
         Actual caller allocation and complete-step performance need measurement.
+        A positive output_batch_size allocates Y as [B,T/B,C] while preserving
+        all linear-address stores and arithmetic. This independently tests the
+        opaque output-rank boundary; all retained backward saves stay two-dimensional.
         """
         kernel_assert(not compact_full_vjp or (save_fp8 and not diagnostic),
                       "Compact saves require the ordinary full-FP8 output contract")
@@ -99,7 +103,15 @@ def build_kernel():
         weight_bytes = (128 * (nc * up_width + nh * down_width)
                         if stream_packed_weights else 2 * channels * hidden)
         assert weight_bytes + 8 * (channels + hidden) * 128 + 4 * 1024**2 <= nl.tile_size.sbuf_size_bytes
-        result = nl.ndarray((tokens, channels), dtype=nl.bfloat16, buffer=nl.shared_hbm)
+        if output_batch_size != 0:
+            kernel_assert(output_batch_size > 0 and tokens % output_batch_size == 0,
+                          "Output batch must divide the token count")
+            result = nl.ndarray((output_batch_size, tokens // output_batch_size, channels),
+                                dtype=nl.bfloat16, buffer=nl.shared_hbm)
+            result_rows = result.reshape((tokens, channels))
+        else:
+            result = nl.ndarray((tokens, channels), dtype=nl.bfloat16, buffer=nl.shared_hbm)
+            result_rows = result
         saved_relu = nl.ndarray((tokens, hidden), dtype=nl.bfloat16, buffer=nl.shared_hbm)
         if not compact_full_vjp:
             saved_x = nl.ndarray(x.shape, dtype=nl.bfloat16, buffer=nl.shared_hbm)
@@ -276,7 +288,7 @@ def build_kernel():
                     nisa.tensor_copy(dst=output_rows[:, columns], src=scaled)
                     if diagnostic:
                         nisa.dma_copy(dst=down_stage[rows, columns], src=scaled)
-            nisa.dma_copy(dst=result[rows, :], src=output_rows)
+            nisa.dma_copy(dst=result_rows[rows, :], src=output_rows)
             if diagnostic:
                 nisa.dma_copy(dst=x_metadata[rows, :], src=x_meta)
             if diagnostic or save_fp8 or save_hidden_metadata:

@@ -1,8 +1,28 @@
 # FP8 caller output-layout control
 
-Design only,2026-09-19. Finish the compact-save and streamed-weight controls
-before implementing another caller change. No speed, correctness or BPB result
-exists for the designs below.
+Source148 preparation,2026-09-19 17:22UTC. The compact-save and streamed-weight
+controls are complete. Streaming is numerically exact under the existing gates
+but slower in the whole model:570.476580ms versus resident562.968046ms,1.334%
+more time, identical diagnostic loss, all four postchecks and clean postflight.
+The separate output-rank control below is now implemented behind an opt-in
+research flag. Hardware correctness and whole-step performance are PENDING;
+the frozen submission is unchanged.
+
+`--fp8-mlp-preserve-output-rank` requires compact full-FP8 saves and returns
+the NKI forward's allocated output directly as BxTxC for unpadded rank-three
+calls. Its internal two-dimensional view writes the same addresses in the same
+order. Autograd flattens the incoming derivative for the unchanged four FP8
+products, then restores the input-gradient shape. Short padded calls keep the
+existing FP8 token-row path; this is not a BF16 arithmetic fallback.
+
+The original independent eleven-case gate now optionally checks rank-three
+outputs exactly against every retained original tensor and exercises compiled
+rank-three autograd/input/master gradients. The real-Linear gate retains
+cached/uncached masters, repeated updates, accumulated microbatches, row/pad
+independence and native eval/restore. Real32768-token output uses32x1024x1024.
+Neither tolerances nor the reference algorithm changed. A new native phase
+can run independently while the candidate gates compile; any candidate phase
+requires the successful candidate gates and a same-source control.
 
 The source140 native/FP8 caller instruction data now gives an observable layout
 lead. At ordinary Linear source line2853 on physical core0, native forward has

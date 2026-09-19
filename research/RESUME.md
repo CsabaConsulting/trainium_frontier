@@ -1,9 +1,33 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 13:28 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 17:22 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## Matched width1152 evaluation and FP8 consumer comparison — CURRENT
+## FP8 streaming complete; output-rank control preparation — CURRENT
+
+- Source147 streaming completed clean13:34:10.966945 while the session was
+  idle. Median570.476580ms versus same-source resident562.968046ms,1.334%
+  slower; identical loss5.120891094207764 and all four numerical postchecks.
+  New summary links source/raw-log hash, timing and comparison. No promotion.
+- Both hosts' last device jobs completed cleanly. Prior bounded log watchers
+  have expired; the independent cron backups continued. New jobs are not
+  automatically selected by the backup cron.
+- Source148 is being prepared: optional direct BxTxC NKI output for unpadded
+  full-FP8 MLP calls, unchanged arithmetic/saves/four backward products. Input
+  gradient shape restored explicitly; short padded calls retain the FP8 row
+  path. Original11-case numerical and real-Linear gates extended, no relaxed
+  tolerances. Local syntax passes; hardware checks and speed remain pending.
+- Planned dispatch: native control on trn21 and independent output-rank gates
+  on trn22. Any complete-model candidate comparison must follow successful
+  candidate gates and a same-source/host control. Preserve host cleanup.
+- Remaining priorities: serial QKV preserving Parameters/Muon states/fast RoPE,
+  then wider FP8 projection coverage and measured optimizer/loss combinations.
+  NLP ideas remain feasibility candidates alongside the kernel campaign.
+- Last verified source pushcdf1b1e1, snapshot4dce9674,13:29:14UTC, includes
+  matched width1152 negative and traditional-NLP audit. Frozen public best
+  remains0.9928513116311253; no competition submission or seed sweep.
+
+## Matched width1152 evaluation and FP8 consumer comparison — 13:28 UTC
 
 - Width1152 training COMPLETE/clean10:18:20.635599:3046 updates,399.2M target
   presentations,1784.7 training seconds/1785.2 charged estimate, no overrun,
