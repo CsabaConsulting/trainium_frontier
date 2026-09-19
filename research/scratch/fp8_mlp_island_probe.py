@@ -68,7 +68,7 @@ def pair_gate(name, actual, left, right, inverse_rows, inverse_weight, full):
     assert record["passed"], record
 
 
-def make_inputs(shape, case):
+def make_inputs(shape, case, rms_fixed_input=False):
     tokens, channels, hidden = shape
     generator = torch.Generator().manual_seed(8107 + channels + tokens)
     x = torch.randn(tokens, channels, generator=generator).bfloat16()
@@ -89,10 +89,17 @@ def make_inputs(shape, case):
     elif case == "token_scale_range":
         exponents = torch.linspace(-30, 30, tokens).round().int()
         x = torch.ldexp(x.float(), exponents[:, None]).bfloat16()
+    elif case == "norm_spikes":
+        x.zero_(); x[127, 0] = 2.0**30; x[128, -1] = -(2.0**30)
+    elif case == "norm_tiny":
+        x = (x.float() * 2.0**-30).bfloat16()
+    if rms_fixed_input:
+        from fp8_rms_scale_contract import normalize
+        x = normalize(x)
     return x, up, down
 
 
-def run_case(shape, case, kernel, calibrate, quantize, token_rows=False):
+def run_case(shape, case, kernel, calibrate, quantize, token_rows=False, rms_fixed_input=False):
     tokens, channels, hidden = shape
     tile = 128 if token_rows else min(512, tokens // 2)
 
@@ -104,15 +111,27 @@ def run_case(shape, case, kernel, calibrate, quantize, token_rows=False):
                 result[4] = result[4].T
         return tuple(result)
 
-    x, up, down = make_inputs(shape, case)
+    assert not rms_fixed_input or token_rows
+    fixed_args = ()
+    if rms_fixed_input:
+        from fp8_rms_scale_contract import policy
+        fixed_args = (policy(channels)[0],)
+    x, up, down = make_inputs(shape, case, rms_fixed_input)
     meta_up, uq = calibration_gate(case + ':up', up, calibrate, quantize)
     meta_down, dq = calibration_gate(case + ':down', down, calibrate, quantize)
     inputs = x.to("neuron"), uq, dq, meta_up, meta_down
-    outputs = to_reference_layout(kernel[2](*inputs, 2, tile, True))
+    outputs = to_reference_layout(kernel[2](*inputs, 2, tile, True, *fixed_args))
     y, relu_t, xq, hq, up_stage_t, down_stage, x_meta, h_meta = outputs
-    expected_x_meta, expected_xq = row_reference(x)
-    require_exact(case + ':per_token_x_metadata', x_meta, expected_x_meta)
-    require_exact(case + ':per_token_x_quantizer', xq, expected_xq)
+    x_reference = row_reference
+    if rms_fixed_input:
+        from fp8_rms_scale_contract import reference as x_reference
+    expected_x_meta, expected_xq = x_reference(x)
+    x_policy = 'fixed_rms_input' if rms_fixed_input else 'per_token_x'
+    require_exact(case + ':' + x_policy + '_metadata', x_meta, expected_x_meta)
+    require_exact(case + ':' + x_policy + '_quantizer', xq, expected_xq)
+    if rms_fixed_input:
+        _, adaptive_xq = row_reference(x)
+        quantization_diagnostic(case + ':fixed_vs_adaptive_input_quantizer', xq, adaptive_xq)
     cpu_up, cpu_down = uq.cpu(), dq.cpu()
     up_meta, down_meta = meta_up.cpu(), meta_down.cpu()
     raw_x = xq.float() * x_meta[:, 0:1]
@@ -128,8 +147,8 @@ def run_case(shape, case, kernel, calibrate, quantize, token_rows=False):
     pair_gate(case + ':down', down_stage, raw_h, raw_down.T,
               h_meta[:, 1:2], down_meta[0, 1], full=tokens <= 512)
     require_exact(case + ':output_rounding', y, down_stage.bfloat16())
-    normal = to_reference_layout(kernel[2](*inputs, 2, tile, False))
-    repeat = to_reference_layout(kernel[2](*inputs, 2, tile, False))
+    normal = to_reference_layout(kernel[2](*inputs, 2, tile, False, *fixed_args))
+    repeat = to_reference_layout(kernel[2](*inputs, 2, tile, False, *fixed_args))
     for index, (value, expected, again) in enumerate(zip(normal, outputs[:4], repeat)):
         require_exact(case + f':diagnostic_vs_normal{index}', value, expected)
         require_exact(case + f':repeat{index}', again, value)
@@ -139,15 +158,21 @@ def run_case(shape, case, kernel, calibrate, quantize, token_rows=False):
     # Changing either side of a128-token boundary must not affect other rows.
     if case in ('random', 'real_random'):
         changed = x.clone(); changed[127] = -changed[127] * 7; changed[128] += 11
-        varied = to_reference_layout(kernel[2](changed.to('neuron'), *inputs[1:], 2, tile, False))
+        if rms_fixed_input:
+            from fp8_rms_scale_contract import normalize, require_domain
+            changed[127:129] = normalize(changed[127:129])
+            require_domain(changed)
+        varied = to_reference_layout(kernel[2](changed.to('neuron'), *inputs[1:], 2, tile, False, *fixed_args))
         keep = torch.ones(tokens, dtype=torch.bool); keep[127:129] = False
         for index, (before, after) in enumerate(zip(normal, varied)):
             if index == 1:
                 before, after = before.T, after.T
             require_exact(case + f':row_independence{index}', after[keep], before[keep])
     emit('FP8_ISLAND_CASE', dict(case=case, shape=list(shape), passed=True,
-         actual_fp8_up_and_down_matmuls=True, per_token_activation_scales=True,
+         actual_fp8_up_and_down_matmuls=True, per_token_activation_scales=not rms_fixed_input,
          token_row_output_layout=token_rows,
+         fixed_rms_input_scale=rms_fixed_input,
+         hidden_scale_is_per_token=True,
          backward_gated=False, training_speed_claimed=False))
     del inputs, outputs, normal, repeat
     gc.collect()
@@ -157,7 +182,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--real-shape', action='store_true')
     parser.add_argument('--token-rows', action='store_true')
+    parser.add_argument('--rms-fixed-input', action='store_true')
     args = parser.parse_args()
+    assert not args.rms_fixed_input or args.token_rows
     import torch_neuronx
     from torch_neuronx import wrap_nki
     torch.set_num_threads(4)
@@ -166,20 +193,30 @@ def main():
         from fp8_mlp_token_rows_nki import build_kernel as selected_builder
     kernel = wrap_nki(selected_builder())
     calibrate, quantize = (wrap_nki(k) for k in build_kernels())
+    if args.rms_fixed_input:
+        from fp8_rms_scale_contract import gate_contract
+        gate_contract(quantize)
     emit('FP8_ISLAND_CONTRACT', dict(
         pair_significand_bits=11, accumulation_bound='FP32 gamma_(K/2)',
         token_row_output_layout=args.token_rows,
+        fixed_rms_input_scale=args.rms_fixed_input,
         diagnostic_intermediates=True, backward_gated=False, timing_allowed=False,
-        activation_scales='per-token, same-row channels only',
+        activation_scales=('fixed RMS input bound; per-token hidden' if args.rms_fixed_input else
+                           'per-token, same-row channels only'),
         weight_scales='per-matrix online calibration charged once per update',
         accuracy_gate_is_not_a_quality_gate=True))
-    for case in ('random', 'zero_input', 'zero_up', 'zero_down', 'outliers',
-                 'changed_weights', 'token_scale_range'):
-        run_case((512, 256, 512), case, kernel, calibrate, quantize, args.token_rows)
+    cases = ('random', 'zero_input', 'zero_up', 'zero_down', 'outliers',
+             'changed_weights', 'token_scale_range')
+    if args.rms_fixed_input:
+        cases += ('norm_spikes', 'norm_tiny')
+    for case in cases:
+        run_case((512, 256, 512), case, kernel, calibrate, quantize, args.token_rows, args.rms_fixed_input)
     if args.real_shape:
-        run_case((16384, 1024, 4096), 'real_random', kernel, calibrate, quantize, args.token_rows)
+        run_case((16384, 1024, 4096), 'real_random', kernel, calibrate, quantize,
+                 args.token_rows, args.rms_fixed_input)
     emit('FP8_ISLAND_RESULT', dict(passed=True, real_shape=args.real_shape,
          token_row_output_layout=args.token_rows,
+         fixed_rms_input_scale=args.rms_fixed_input,
          actual_fp8_matmuls=True, backward_gated=False, promoted_into_training=False))
 
 

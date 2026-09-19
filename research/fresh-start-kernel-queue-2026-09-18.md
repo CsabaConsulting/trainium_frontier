@@ -225,3 +225,26 @@ bound could be much looser and damage subnormal precision. Current-batch global
 activation scales remain disallowed because predictions would depend on other
 tokens. Full FP8 backward and BF16 CE input/output boundaries remain distinct
 queued candidates. Historical `_scaled_mm` failure does not veto these NKI paths.
+
+### Fixed RMS input scale: executable contract before hardware (00:12 UTC)
+
+The candidate now exists behind `--token-rows --rms-fixed-input`; default
+behavior is unchanged. D256 uses scale8 and input bound16.25; D1024 uses scale4
+and bound32.5. The scaled maximum is at most130, below legacy E4M3's240. This
+removes input max/min reductions; it retains per-token hidden calibration,
+weight calibration, all saved values and the previous FP32 master STE.
+
+`fp8_rms_scale_contract.py` declares exhaustive in-domain BF16 quantizer checks
+and the analytic nearest-rounding bound `abs(error) <= abs(x)/16 + 2^-10/scale`.
+Its compiled actual RMS boundary uses protected epsilon2^-23, FP64 norm truth,
+a predeclared FP32 gamma_(2D+8) plus BF16 rounding bound, invalid-domain and
+half-output negative controls, and zero/spike/exponent-range/row-independence
+cases. Small MLP gates add normalized spikes and tiny activations. These are
+restricted-input tests; the previous arbitrary-input tests retain their old
+quantizer and are not relabeled as fixed-scale passes.
+
+The later complete benchmark pairs native BF16, NKI BF16 cache, FP8 storage,
+original FP8, adaptive token-row FP8 and fixed-input token-row FP8 on identical
+normalized inputs. Shared caller normalization is excluded from all component
+arms; full-model speed must charge the actual caller. Small numerical gates
+must pass before the real-shape forward/backward/accumulation timing request.

@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19, 00:08 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19, 00:12 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
 ## Current result and active work
@@ -34,7 +34,7 @@ is now local and hash-verified: 469834849 B, SHA256
 Matched larger evaluation has been dispatched as
 `fs-w70-eval-context1024-pack16-owned-ce-s1024-20m-o1-r1`; inspect its
 postflight/result before declaring a new best. Same 20,971,520 tokens,
-world1/B1/T1024/O1, expected 83,462,186 bytes. Cloud artifact upload pending.
+world1/B1/T1024/O1, expected 83,462,186 bytes. GitHub artifact backup verified this checkpoint at00:11:31 (36/36, zero errors).
 
 The installed CE/autograd gate passes36 eager/compiled exact loss/gradient
 checks. Fresh same-source whole-step control519.3954189890064ms versus candidate
@@ -47,10 +47,11 @@ The phase clips before averaging; quality clips after. Protected trainer unchang
 **trn22 CLEAN after wave77:** small and real token-row FP8 forward, BF16
 STE backward and accumulated FP32 master gradients all pass. Complete component
 17.979725 ms versus 18.161799 ms original FP8 (1.0025% gain), but versus
-15.673194 ms native BF16 (14.7164% slower). No training promotion. Next: profile
-the token-row arm beside the original, then gate a fixed input scale using the
-RMS-normalization input bound. `fp8_mlp_island_profile.py --token-rows` prepared;
-commit/deploy before launch. Watcher currently follows wave77.
+15.673194 ms native BF16 (14.7164% slower). No training promotion. Wave78 profile completed clean at00:10:57, with all8 compiled and9 eager
+binaries preserved remotely. Retrieval/hash verification is in progress.
+Next fixed-input RMS-scale code and independent contract are written; commit/
+deploy and run small gates before any real-shape training-component request.
+Watcher currently follows wave78. No fixed-input device result yet.
 
 The compact joint table passes hardware accuracy but loses 47.200750 ms versus
 2.478831 ms Scalar composition (19.04x). Close this full-value/GpSIMD-gather
@@ -143,7 +144,7 @@ Local Devuan/SystemV, usercsaba cron; no root/systemd:
   inspect its completion. The new wave70 checkpoint arrived after that inventory. State is
   out/fresh-start-artifact-backup/latest.json; receipts under research/run-logs.
   Newly produced remote checkpoints still need retrieval to checkpoints/ first.
-- Local log watchers currently follow trn21/wave70 and trn22/wave77,90rounds at
+- Local log watchers currently follow trn21/wave70 and trn22/wave78,90rounds at
  45seconds. Repoint when the active remote worktree changes. Only stop exact
   owned watcher PID/UID/cwd/argv/startticks; remote training jobs are separate.
 

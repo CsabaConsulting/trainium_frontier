@@ -1,0 +1,47 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave78",
+    "expected_commit": "506d5b3c78f7c93dc7513a05041f0f2271ce8872",
+    "label": "fs-w78-fp8-token-rows-component-profile-r1",
+    "purpose": "After wave77 passed every numerical gate but improved only1.0% over old FP8, attribute token-row versus original FP8/native/BF16-cache costs, including saved-ReLU backward orientation. Charge preparation/two FW/BW. Trace timing is attribution only; no training or quality promotion.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1800s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "/home/ubuntu/trainium_freshstart_20260918_wave78/research/scratch/fp8_mlp_island_profile.py",
+      "--trace-dir",
+      "/home/ubuntu/trainium_freshstart_20260918_wave78/out/fs-w78-fp8-token-rows-component-profile-r1",
+      "--token-rows"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/fp8_mlp_island_nki.py",
+      "research/scratch/fp8_mlp_island_probe.py",
+      "research/scratch/fp8_weight_cache_nki.py",
+      "research/scratch/fp8_weight_cache_probe.py",
+      "research/scratch/fresh_start_fp8_probe.py",
+      "research/scratch/fp8_mlp_island_autograd.py",
+      "research/scratch/fp8_mlp_island_training_probe.py",
+      "research/scratch/mlp_backward_rounding_bounds.py",
+      "research/scratch/mlp_fused_bf16.py",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "research/scratch/fp8_mlp_island_profile.py",
+      "research/scratch/preserve_native_trace_neffs.py",
+      "research/scratch/fp8_mlp_token_rows_nki.py"
+    ]
+  },
+  "requested_at": "2026-09-19T00:09:14.035466+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w78-fp8-token-rows-component-profile-r1\", \"pid\": 1538556, \"commit\": \"506d5b3c78f7c93dc7513a05041f0f2271ce8872\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave78/research/run-logs/fs-w78-fp8-token-rows-component-profile-r1.log\", \"started_at\": \"2026-09-19T00:09:19.784766+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

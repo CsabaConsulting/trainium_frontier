@@ -19,10 +19,16 @@ def emit(kind, record):
     print(kind + ' ' + json.dumps(record), flush=True)
 
 
-def gate(shape, case, island, calibrate, quantize, steps, benchmark, token_rows=False):
+def gate(shape, case, island, calibrate, quantize, steps, benchmark,
+         token_rows=False, rms_fixed_input=False):
     tokens, channels, hidden = shape
     tile = 128 if token_rows else min(512, tokens // 2)
-    x, up, down = make_inputs(shape, case)
+    assert not rms_fixed_input or token_rows
+    fixed_args = ()
+    if rms_fixed_input:
+        from fp8_rms_scale_contract import policy
+        fixed_args = (policy(channels)[0],)
+    x, up, down = make_inputs(shape, case, rms_fixed_input)
     generator = torch.Generator().manual_seed(9073 + tokens + channels)
     gradients = [(torch.randn(x.shape, generator=generator) * .03125).bfloat16()
                  for _ in range(2)]
@@ -33,7 +39,7 @@ def gate(shape, case, island, calibrate, quantize, steps, benchmark, token_rows=
     caches = up_cache, down_cache, up_meta, down_meta
 
     def call(xx, uu, dd, um, dm):
-        return island[2](xx, uu, dd, um, dm, 2, tile, False)
+        return island[2](xx, uu, dd, um, dm, 2, tile, False, *fixed_args)
 
     apply = torch.compile(make_autograd(call, relu_token_major=token_rows),
                           backend='neuron', fullgraph=True, dynamic=False)
@@ -71,6 +77,7 @@ def gate(shape, case, island, calibrate, quantize, steps, benchmark, token_rows=
     emit('FP8_ISLAND_TRAINING_GATE', dict(shape=list(shape), case=case, passed=True,
          fp32_master_gradients=True, two_microbatch_accumulation_exact=True,
          token_row_output_layout=token_rows,
+         fixed_rms_input_scale=rms_fixed_input,
          fp8_forward=True, bf16_backward=True, identity_quantizer_surrogate=True,
          forward_quality_not_established=True))
 
@@ -132,6 +139,26 @@ def gate(shape, case, island, calibrate, quantize, steps, benchmark, token_rows=
             audit(case + ':original_fp8_timing_control', tuple(leaf.grad for leaf in leaves), reference, bounds)
             del reference, bounds, original_saved, original_output
 
+        if rms_fixed_input:
+            # Pair with the same token-row kernel under its old adaptive input
+            # scale, using identical normalized inputs and weight-cache policy.
+            def adaptive_call(xx, uu, dd, um, dm):
+                return island[2](xx, uu, dd, um, dm, 2, tile, False)
+
+            adaptive_apply = torch.compile(make_autograd(adaptive_call, relu_token_major=True),
+                                           backend='neuron', fullgraph=True, dynamic=False)
+            with torch.no_grad():
+                adaptive_saved = tuple(v.cpu() for v in adaptive_call(leaves[0], *caches))
+            for leaf in leaves:
+                leaf.grad = None
+            adaptive_output = adaptive_apply(*leaves, *caches)
+            adaptive_output.backward(device_gradient)
+            require_exact(case + ':adaptive_fp8_timing_control_forward', adaptive_output, adaptive_saved[0])
+            reference, bounds = reference_and_bounds(adaptive_saved[2], up_cache.cpu(), down_cache.cpu(),
+                                                    adaptive_saved[1].T, adaptive_saved[3], gradients[0])
+            audit(case + ':adaptive_fp8_timing_control', tuple(leaf.grad for leaf in leaves), reference, bounds)
+            del reference, bounds, adaptive_saved, adaptive_output
+
         def update(function, quantized):
             for leaf in leaves:
                 leaf.grad = None
@@ -149,18 +176,23 @@ def gate(shape, case, island, calibrate, quantize, steps, benchmark, token_rows=
             'native_bf16_original': lambda: update(control['native'], False),
             'nki_bf16_cache_original': lambda: update(control['bf16_cache'], False),
             'nki_fp8_storage_bf16_math': lambda: update(control['fp8_storage'], True),
-            ('nki_fp8_token_rows_bf16_backward' if token_rows else
+            ('nki_fp8_rms_fixed_input_bf16_backward' if rms_fixed_input else
+             'nki_fp8_token_rows_bf16_backward' if token_rows else
              'nki_fp8_island_bf16_backward'): lambda: update(apply, True),
         }
         if token_rows:
             arms['nki_fp8_original_layout_bf16_backward'] = lambda: update(original_apply, True)
+        if rms_fixed_input:
+            arms['nki_fp8_token_rows_adaptive_bf16_backward'] = lambda: update(adaptive_apply, True)
         measured = timing(arms, steps, torch.neuron.synchronize)
         emit('FP8_ISLAND_TRAINING_BENCH', dict(shape=list(shape), **measured,
              microbatches_per_update=2, units='ms per weight-cache refresh plus two FW/BW microbatches',
              online_weight_calibration_and_master_casts_included=True,
-             online_per_token_activation_scaling_and_all_saved_values_included=True,
+             activation_scaling_and_all_saved_values_included=True,
              gradient_accumulation_included=True, fp8_forward=True, bf16_backward=True,
              token_row_output_layout=token_rows,
+             fixed_rms_input_scale=rms_fixed_input,
+             normalization_is_a_shared_caller_precondition_not_in_component_timing=rms_fixed_input,
              optimizer_collectives_and_surrounding_model_included=False,
              timing_control_backward_bounds_gated=True,
              control_arithmetic_differs_because_quantization_is_part_of_candidate=True))
@@ -173,7 +205,9 @@ def main():
     parser.add_argument('--real-shape', action='store_true')
     parser.add_argument('--steps', type=int, default=10)
     parser.add_argument('--token-rows', action='store_true')
+    parser.add_argument('--rms-fixed-input', action='store_true')
     args = parser.parse_args()
+    assert not args.rms_fixed_input or args.token_rows
     import torch_neuronx
     from torch_neuronx import wrap_nki
     torch.set_num_threads(4)
@@ -185,18 +219,26 @@ def main():
     emit('FP8_ISLAND_BACKWARD_CONTRACT', dict(
         forward_gates_required_before_launch=True, surrogate='identity for casts, quantizers and pair rounding',
         token_row_output_layout=args.token_rows,
+        fixed_rms_input_scale=args.rms_fixed_input,
         reference='independent FP64 autograd with forward-audited saved values',
         error_bound='FP32 gamma_K accumulation and propagated BF16 u=2**-8 boundaries',
         gradients='BF16 input; FP32 master weights exactly once; detached caches'))
-    for case in ('random', 'zero_up', 'zero_down', 'outliers', 'changed_weights'):
-        gate((512, 256, 512), case, island, calibrate, quantize, args.steps, False, args.token_rows)
+    cases = ('random', 'zero_up', 'zero_down', 'outliers', 'changed_weights')
+    if args.rms_fixed_input:
+        cases += ('norm_spikes', 'norm_tiny')
+    for case in cases:
+        gate((512, 256, 512), case, island, calibrate, quantize, args.steps,
+             False, args.token_rows, args.rms_fixed_input)
     if args.real_shape:
         # The larger forward has not been authorized by small-shape evidence
         # alone. Audit every new stage shape before any real-shape backward/timing.
-        run_case((16384, 1024, 4096), 'real_random', island, calibrate, quantize, args.token_rows)
-        gate((16384, 1024, 4096), 'real_random', island, calibrate, quantize, args.steps, True, args.token_rows)
+        run_case((16384, 1024, 4096), 'real_random', island, calibrate, quantize,
+                 args.token_rows, args.rms_fixed_input)
+        gate((16384, 1024, 4096), 'real_random', island, calibrate, quantize, args.steps,
+             True, args.token_rows, args.rms_fixed_input)
     emit('FP8_ISLAND_TRAINING_RESULT', dict(passed=True, real_shape=args.real_shape,
          token_row_output_layout=args.token_rows,
+         fixed_rms_input_scale=args.rms_fixed_input,
          fp8_forward=True, bf16_backward=True, promoted_into_training=False))
 
 
