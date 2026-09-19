@@ -34,8 +34,14 @@ attempt remains recorded. The same-host full-model comparison then loses:
 587.956385 versus499.384107 ms (17.7363% slower). Two-microbatch compute adds
 85.0014 ms and cache refresh adds2.52845 ms. All cache counts and four postchecks
 pass; approximate training is paired with explicitly native BF16 evaluation.
-No FP8 quality run follows. Caller device traces are being preserved and compared
-to identify the full-graph cost that the component probe did not predict.
+No FP8 quality run follows. Both caller traces/parquets are locally hash-verified
+and mapped to all runtime dispatches plus their startup barrier. Forward grows
+68.001178 to109.520190ms; backward is nearly unchanged at138ms. Ordinary Linear
+source shows the largest extra spill/engine activity. The separate compiled
+FP8 region passes both real-Linear integration widths; a fresh same-host phase
+comparison is running. Source96's FP8 cost-ratio field has an integer-division
+reporting bug (0 instead of0.5); all timings/counters/raw FLOPs remain valid.
+See `fresh-start-fp8-caller-diagnosis-2026-09-19.md` before interpreting precision.
 
 Wave87's70 runtime dispatches all match preserved binaries. Packed forward
 device time2.535229 ms versus preceding token-row FP82.803872 ms; sampled SBUF

@@ -1,20 +1,26 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19, 01:50 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19, 02:09 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
 ## Ready requests and active work
 
 Latest: packed FP8 integration passes but the whole step loses17.7363%:
-587.956385 versus499.384107 ms on the same trn21/source/configuration. Caller
-FP8 microstep trace finished clean01:38:13; native trace finished clean01:46:33.
-Packed trace is locally verified; native preservation and both CPU ingests
-are active. Map their binaries after complete ingestion, then localize the extra
-85.0014 ms in two-microbatch compute. No FP8 quality promotion. Wave92 gradient
-dots pass but gain only0.56–1.65%; wave93 fused FP8 data backward passes but
-loses12.72% to native BF16. Watchers both wave89. Latest source and heavy backup
-receipts are under out/fresh-start-{backup,artifact-backup}/latest.json.
+587.956385 versus499.384107ms, same trn21/source/configuration. Both complete
+caller traces/parquets are locally hash-verified and analyzed. Forward grows
+68.001178 to109.520190ms, backward stays about138ms. Ordinary Linear source
+(train.py:2853) has the largest extra spill/engine activity. These profiles
+attribute the regression; they do not replace same-host timing. Source96's
+FP8 precision ratio0 is a reporting integer-division bug; actual raw/adjusted
+FLOPs imply0.5. Corrected float division is prepared; original records retained.
+
+Separate compiled FP8 MLP source95 passes both real-Linear integration widths.
+trn21 ACTIVE native control phase, then monolithic FP8 and separate-region FP8
+same-host/source phases, sequential clean pre/postflights. No FP8 quality run.
+trn22 clean after CPU analysis; next corrected profile report then independent
+numerics work. Watchers95/96. Full diagnosis:
+`fresh-start-fp8-caller-diagnosis-2026-09-19.md`.
 
 Measured FP8 progress and the BF16 layout reversal are summarized at the top of
 `fresh-start-results-2026-09-18.md`. No FP8 quality gain is established.

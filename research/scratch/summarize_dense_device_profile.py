@@ -78,7 +78,8 @@ def main():
                     pc.equal(ins["tensor_instruction_type"], "REGULAR")),
             pc.and_(pc.greater(ins["raw_flops"], 0), pc.less_equal(ins["end_ts"], end))))
         regular = regular.append_column("bf16_cost_multiplier",
-                                         pc.divide(regular["adjusted_flops"], regular["raw_flops"]))
+                                         pc.divide(pc.cast(regular["adjusted_flops"], pa.float64()),
+                                                   pc.cast(regular["raw_flops"], pa.float64())))
         precision = regular.group_by(["pcore_idx", "bf16_cost_multiplier"]).aggregate(
             [("raw_flops", "sum"), ("adjusted_flops", "sum"), ("start_ts", "count")]).to_pylist()
         fp32 = regular.filter(pc.equal(regular["bf16_cost_multiplier"], 4.0))

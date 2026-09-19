@@ -1,0 +1,73 @@
+{
+  "label": "fs-w95-fp8-separate-region-integration-gate-r1",
+  "source_commit": "d14298ea22ab33ff8be47afc9cba4a81ca8967ac",
+  "records": [
+    {
+      "channels": 256,
+      "tokens": 512,
+      "cached_and_uncached": true,
+      "microbatches": 2,
+      "separate_compiled_region": true,
+      "reference_updates": 4,
+      "exact_outputs_input_and_fp32_master_gradients": true,
+      "changed_cache_values": [
+        36762
+      ],
+      "training_padding_and_row_independence": true,
+      "native_eval_and_checkpoint_restore_exact": true,
+      "contract": {
+        "layers": [
+          0
+        ],
+        "training_forward": "legacy E4M3 packed up/down GEMMs",
+        "backward": "gated BF16 identity-surrogate VJP into FP32 masters",
+        "evaluation": "original BF16 MLP",
+        "cache_preparation": "ordinary timed Linear refresh",
+        "separate_compiled_region": true,
+        "input_contract": "gain-free RMS norm, BF16, widths256/1024",
+        "short_input_policy": "zero-pad inside MLP to multiple512; discard padded rows"
+      },
+      "independent_algorithm_authority": "wave85 staged forward and FP64 surrogate bounds",
+      "whole_model_speed_or_quality_established": false,
+      "passed": true
+    },
+    {
+      "channels": 1024,
+      "tokens": 512,
+      "cached_and_uncached": true,
+      "microbatches": 2,
+      "separate_compiled_region": true,
+      "reference_updates": 4,
+      "exact_outputs_input_and_fp32_master_gradients": true,
+      "changed_cache_values": [
+        1035417
+      ],
+      "training_padding_and_row_independence": true,
+      "native_eval_and_checkpoint_restore_exact": true,
+      "contract": {
+        "layers": [
+          0
+        ],
+        "training_forward": "legacy E4M3 packed up/down GEMMs",
+        "backward": "gated BF16 identity-surrogate VJP into FP32 masters",
+        "evaluation": "original BF16 MLP",
+        "cache_preparation": "ordinary timed Linear refresh",
+        "separate_compiled_region": true,
+        "input_contract": "gain-free RMS norm, BF16, widths256/1024",
+        "short_input_policy": "zero-pad inside MLP to multiple512; discard padded rows"
+      },
+      "independent_algorithm_authority": "wave85 staged forward and FP64 surrogate bounds",
+      "whole_model_speed_or_quality_established": false,
+      "passed": true
+    },
+    {
+      "passed": true,
+      "real_width": true,
+      "separate_compiled_region": true,
+      "full_fp8_backward": false,
+      "full_model_or_quality_promotion": false
+    }
+  ],
+  "completed_at": "2026-09-19T02:00:13.077496+00:00",
+  "speed_or_quality_promotion": false
+}
