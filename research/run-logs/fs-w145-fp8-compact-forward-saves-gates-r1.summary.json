@@ -1,0 +1,90 @@
+{
+  "label": "fs-w145-fp8-compact-forward-saves-gates-r1",
+  "source_commit": "63f6cceca2e70bafaa747c0c9901844276433403",
+  "independent_compact_gate": {
+    "passed": true,
+    "cases": 11,
+    "real_shape": true,
+    "real_tokens": 32768,
+    "all_original_independent_forward_and_four_product_gates": true,
+    "exact_retained_forward_tensors_and_compiled_gradients": true,
+    "cache_updates_and_fp32_accumulation": true,
+    "whole_model_speed_or_quality_claim": false
+  },
+  "real_linear_summary": {
+    "passed": true,
+    "real_width": true,
+    "separate_compiled_region": false,
+    "compact_forward_saves": true,
+    "full_fp8_backward": true,
+    "full_model_or_quality_promotion": false
+  },
+  "integration_gates": [
+    {
+      "channels": 256,
+      "tokens": 512,
+      "cached_and_uncached": true,
+      "microbatches": 2,
+      "separate_compiled_region": false,
+      "compact_forward_saves": true,
+      "reference_updates": 4,
+      "exact_outputs_input_and_fp32_master_gradients": true,
+      "changed_cache_values": [
+        36803
+      ],
+      "training_padding_and_row_independence": true,
+      "native_eval_and_checkpoint_restore_exact": true,
+      "contract": {
+        "layers": [
+          0
+        ],
+        "training_forward": "legacy E4M3 packed up/down GEMMs",
+        "backward": "source135 four FP8 products, BF16 ReLU derivative, FP32 master gradients",
+        "evaluation": "original BF16 MLP",
+        "cache_preparation": "compiled source137 resident dual producer per timed Linear refresh",
+        "separate_compiled_region": false,
+        "compact_forward_saves": true,
+        "input_contract": "gain-free RMS norm, BF16, widths256/1024",
+        "short_input_policy": "zero-pad inside MLP to multiple512; discard padded rows"
+      },
+      "independent_algorithm_authority": "source135 four-product bounds and source137 exact dual-cache gate",
+      "whole_model_speed_or_quality_established": false,
+      "passed": true
+    },
+    {
+      "channels": 1024,
+      "tokens": 512,
+      "cached_and_uncached": true,
+      "microbatches": 2,
+      "separate_compiled_region": false,
+      "compact_forward_saves": true,
+      "reference_updates": 4,
+      "exact_outputs_input_and_fp32_master_gradients": true,
+      "changed_cache_values": [
+        1033724
+      ],
+      "training_padding_and_row_independence": true,
+      "native_eval_and_checkpoint_restore_exact": true,
+      "contract": {
+        "layers": [
+          0
+        ],
+        "training_forward": "legacy E4M3 packed up/down GEMMs",
+        "backward": "source135 four FP8 products, BF16 ReLU derivative, FP32 master gradients",
+        "evaluation": "original BF16 MLP",
+        "cache_preparation": "compiled source137 resident dual producer per timed Linear refresh",
+        "separate_compiled_region": false,
+        "compact_forward_saves": true,
+        "input_contract": "gain-free RMS norm, BF16, widths256/1024",
+        "short_input_policy": "zero-pad inside MLP to multiple512; discard padded rows"
+      },
+      "independent_algorithm_authority": "source135 four-product bounds and source137 exact dual-cache gate",
+      "whole_model_speed_or_quality_established": false,
+      "passed": true
+    }
+  ],
+  "host_clean": true,
+  "postflight_completed_at": "2026-09-19T09:09:36.852509+00:00",
+  "whole_model_phase_pending": true,
+  "raw_log_sha256": "1a04b67e08ffda1c1c5eb8b4d0c014d061c5e094efbac345c68a837376d03dc7"
+}

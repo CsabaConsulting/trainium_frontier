@@ -1,7 +1,45 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 09:02 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 09:18 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
+
+## Compact/ownership gates passed; nearby whole-model controls active — 09:18 UTC
+
+- trn22 source145 `fs-w145-fp8-compact-forward-saves-gates-r1` COMPLETE/clean
+  09:09:36.852509. All11 cases, real32768x1024x4096, both256/1024 Linear gates,
+  exact retained tensors/gradients, cache updates, row/padding independence,
+  native evaluation/checkpoint restore pass. Summary JSON preserves the gates.
+- trn22 ACTIVE `fs-w145-native-control-phase-r1`, guard1755778, started
+  09:10:10.242854, clean preflight, source63f6cce. First warmup327.080s includes
+  compilation. Process inspection confirms active work, no hang diagnosis.
+  NEXT after command0/clean postflight/four numerical checks:
+  `fs-w145-full-fp8-legacy-phase-r1.request.json`, then
+  `fs-w145-full-fp8-compact-phase-r1.request.json`. Both requests enforce prior
+  gates. Check rank records with JSONDecoder.raw_decode: rank stdout can
+  concatenate complete JSON objects on one line.
+- trn21 source146 `fs-w146-width1152-optimizer-ownership-gate-r1` COMPLETE/clean
+  09:11:01.480307. All28 exact comparisons across four ranks/seven stages pass,
+  including schedules, None/zero gradients, grouped state, padding, refreshed
+  caches, continued and restored updates, and all-rank weight-byte hashes.
+  Owned optimizer including exchange31.90–31.92ms versus replicated68.67–69.33ms.
+  This compares ownership with replication, not the former fallback plan.
+- trn21 ACTIVE `fs-w146-native-width1024-phase-r1`, guard1429666, started
+  09:13:27.594494, clean preflight. Source146 is
+  `1c70da11c4dd9bb789afca0fa3088842874a1efd`. NEXT after clean control:
+  `fs-w146-native-width1152-phase-r1.request.json`. Inspect remaining disk
+  before the new larger compile; last read-only snapshot was13.89GB free.
+  Additional verified old-diagnostic retirement may be needed for headroom.
+  Do not overlap maintenance with an active job or erase shared caches.
+- Source146 and snapshot53f2b803 were pushed/ref-verified09:08:07. Current
+  completed gate evidence/new plans need the next source commit and push.
+- Raw native and FP8 profiles are local/cloud verified. Both32-table parquets
+  are locally hash verified; the automatic artifact backup is uploading them,
+  with no reported errors. Do not claim a cloud copy until its receipt verifies.
+- Serial QKV execution is queued in `fresh-start-serial-qkv-revisit-2026-09-19.md`.
+  It preserves separate Parameters/Muon states, serial block order, original
+  attention inputs and contiguous RoPE fast path. It is a design, not a new win.
+- Watchers: trn21=146, trn22=145. Frozen submission/public best0.99285131 and
+  independent cold replay0.99385567 are unchanged. No FP8 or wider-model BPB yet.
 
 ## Retained FP8 saves confirmed; compact gate and width costs active — 09:02 UTC
 

@@ -1,0 +1,37 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave146",
+    "expected_commit": "1c70da11c4dd9bb789afca0fa3088842874a1efd",
+    "label": "fs-w146-width1152-optimizer-ownership-gate-r1",
+    "purpose": "Gate the measured-width1152 ownership plan on the exact actual model inventory. Four-rank replicated/owned weights, grouped optimizer state, None/zero gradients, skipped AdamW, schedules, zero singleton padding, cross-rank weight digests, Linear cache refresh, wrong-owner rejection and checkpoint continuation all remain exact. Timing follows the equality gates and includes all-gather; it is an optimizer result, not full-model throughput or BPB. Frozen D1024 package/default costs unchanged.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave146"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1800s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "-c",
+      "import pathlib,json,subprocess\np=pathlib.Path('/home/ubuntu/trainium_freshstart_20260918_wave144/research/run-logs/fs-w144-width1152-optimizer-group-costs-r1.postflight.json')\nd=json.loads(p.read_text());assert d['host_clean'] and d['command_returncode']==0\nsubprocess.run(['/home/ubuntu/workspace/native_venv/bin/torchrun', '--standalone', '--nproc_per_node=4', '/home/ubuntu/trainium_freshstart_20260918_wave146/research/scratch/optimizer_ownership_check.py', '--device', 'neuron', '--real-shape', '--width', '1152', '--config-log', '/home/ubuntu/trainium_freshstart_20260918_wave146/research/run-logs/fs-w140-native-pack32-micro-device-profile-r2.log', '--pad-singleton-muon', '--steps', '20'],check=True)\n"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/optimizer_ownership.py",
+      "research/scratch/optimizer_ownership_check.py",
+      "research/scratch/optimizer_group_cost_probe.py",
+      "research/run-logs/fs-w140-native-pack32-micro-device-profile-r2.log"
+    ]
+  },
+  "requested_at": "2026-09-19T09:08:20.466260+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w146-width1152-optimizer-ownership-gate-r1\", \"pid\": 1424730, \"commit\": \"1c70da11c4dd9bb789afca0fa3088842874a1efd\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave146/research/run-logs/fs-w146-width1152-optimizer-ownership-gate-r1.log\", \"started_at\": \"2026-09-19T09:08:26.181590+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}
