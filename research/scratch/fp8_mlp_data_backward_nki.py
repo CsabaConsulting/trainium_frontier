@@ -12,15 +12,24 @@ def build_kernel():
     import nki.language as nl
     import nki.isa as nisa
 
-    def calibrate_token_rows(values, nonnegative: bool = False):
+    def calibrate_token_rows(values, nonnegative: bool = False, fused_abs: bool = False):
         high = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
         clamped = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
         exponent = nl.ndarray((128, 1), dtype=nl.uint32, buffer=nl.sbuf)
         scale = nl.ndarray((128, 1), dtype=nl.uint32, buffer=nl.sbuf)
         inverse = nl.ndarray((128, 1), dtype=nl.uint32, buffer=nl.sbuf)
         meta = nl.ndarray((128, 3), dtype=nl.float32, buffer=nl.sbuf)
-        nisa.tensor_reduce(dst=high, data=values, op=nl.maximum, axis=(1,))
-        if not nonnegative:
+        if fused_abs:
+            # The signed-gradient contract is unchanged: one magnitude/max
+            # instruction replaces the max/min/negate/max sequence. Keep the
+            # original exponent policy and independently check both boundaries.
+            magnitude = nl.ndarray(values.shape, dtype=nl.bfloat16, buffer=nl.sbuf)
+            nisa.tensor_scalar_reduce(dst=magnitude, data=values,
+                                       op0=nl.abs, operand0=0.0,
+                                       reduce_op=nl.maximum, reduce_res=high)
+        else:
+            nisa.tensor_reduce(dst=high, data=values, op=nl.maximum, axis=(1,))
+        if not nonnegative and not fused_abs:
             low = nl.ndarray((128, 1), dtype=nl.float32, buffer=nl.sbuf)
             nisa.tensor_reduce(dst=low, data=values, op=nl.minimum, axis=(1,))
             nisa.tensor_scalar(dst=low, data=low, op0=nl.multiply, operand0=-1.0)
@@ -38,7 +47,8 @@ def build_kernel():
 
     @nki.jit
     def backward_data(x, relu, packed_up, packed_down, up_scales, down_scales,
-                      lanes: int = 2, token_tile: int = 128, diagnostic: bool = False):
+                      lanes: int = 2, token_tile: int = 128, diagnostic: bool = False,
+                      fused_abs: bool = False):
         """Return dX[T,C] and dPre[T,H] for the two data-gradient products.
 
         x is incoming gradient G. The first packed operand (packed_up/up_scales)
@@ -90,7 +100,7 @@ def build_kernel():
             rows = nl.ds(first, 128)
             raw = nl.ndarray((128, channels), dtype=nl.bfloat16, buffer=nl.sbuf)
             nisa.dma_copy(dst=raw, src=x[rows, :])
-            x_meta = calibrate_token_rows(raw)
+            x_meta = calibrate_token_rows(raw, fused_abs=fused_abs)
             x_fp8 = nl.ndarray((128, channels), dtype=nl.float8_e4m3, buffer=nl.sbuf)
             nisa.tensor_scalar(dst=x_fp8, data=raw, op0=nl.multiply, operand0=x_meta[:, 0:1])
             if diagnostic:
@@ -129,7 +139,7 @@ def build_kernel():
                     nisa.dma_copy(dst=up_stage[rows, columns], src=scaled)
             nisa.dma_copy(dst=saved_pre[rows, :], src=hidden_rows)
             # dPre has both signs; the nonnegative forward shortcut is invalid.
-            h_meta = calibrate_token_rows(hidden_rows)
+            h_meta = calibrate_token_rows(hidden_rows, fused_abs=fused_abs)
             h_fp8 = nl.ndarray((128, hidden), dtype=nl.float8_e4m3, buffer=nl.sbuf)
             nisa.tensor_scalar(dst=h_fp8, data=hidden_rows, op0=nl.multiply, operand0=h_meta[:, 0:1])
             if diagnostic:

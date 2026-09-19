@@ -1,0 +1,427 @@
+{
+  "label": "fs-w118-fp8-weight-gradient-two-core-prepare-component-r1",
+  "source_commit": "355bd5ea0743188a318385fd5979f119321ddeab",
+  "completed_at": "2026-09-19T03:57:59.555161+00:00",
+  "host_clean": true,
+  "records": {
+    "FP8_WEIGHT_GRADIENT_CONTRACT": [
+      {
+        "current_gradient_scale": "global, online exponent-bit calibration; clamp amax at2^-100",
+        "transferred_gradient": "BF16(G*saved_inverse_hidden_scale), then legacy E4M3",
+        "product": "FP32 long-token reduction under empirical11-bit pair model; sequential inverse scales",
+        "finite_bf16_rescaled_gradient_amax_max": 1.2676506002282294e+30,
+        "signed_zero_encodings_equivalent": true,
+        "numerical_bounds_unchanged_from_pair_reference": true,
+        "new_quantized_backward_algorithm": true,
+        "exact_previous_vjp_or_quality_claim": false
+      }
+    ],
+    "FP8_WEIGHT_GRADIENT_GATE": [
+      {
+        "kind": "down",
+        "case": "random",
+        "shape": [
+          512,
+          256,
+          512
+        ],
+        "passed": true,
+        "grouped_io": true,
+        "parallel_calibration": true,
+        "balanced_io": true,
+        "calibration_mode": 3,
+        "two_core_gradient_prepare": true,
+        "fp32_master_output": true,
+        "exact_previous_bf16_vjp": false,
+        "scale_transfer_underflow_count": 0,
+        "gradient_quantizer_zeroed_nonzero_count": 5,
+        "gradient_elements": 131072,
+        "saved_forward_scales_assumed": true,
+        "shared_data_gradient_products_or_autograd": false,
+        "quality_gate": false
+      },
+      {
+        "kind": "down",
+        "case": "zero_gradient",
+        "shape": [
+          512,
+          256,
+          512
+        ],
+        "passed": true,
+        "grouped_io": true,
+        "parallel_calibration": true,
+        "balanced_io": true,
+        "calibration_mode": 3,
+        "two_core_gradient_prepare": true,
+        "fp32_master_output": true,
+        "exact_previous_bf16_vjp": false,
+        "scale_transfer_underflow_count": 0,
+        "gradient_quantizer_zeroed_nonzero_count": 0,
+        "gradient_elements": 131072,
+        "saved_forward_scales_assumed": true,
+        "shared_data_gradient_products_or_autograd": false,
+        "quality_gate": false
+      },
+      {
+        "kind": "down",
+        "case": "zero_activation",
+        "shape": [
+          512,
+          256,
+          512
+        ],
+        "passed": true,
+        "grouped_io": true,
+        "parallel_calibration": true,
+        "balanced_io": true,
+        "calibration_mode": 3,
+        "two_core_gradient_prepare": true,
+        "fp32_master_output": true,
+        "exact_previous_bf16_vjp": false,
+        "scale_transfer_underflow_count": 0,
+        "gradient_quantizer_zeroed_nonzero_count": 3302,
+        "gradient_elements": 131072,
+        "saved_forward_scales_assumed": true,
+        "shared_data_gradient_products_or_autograd": false,
+        "quality_gate": false
+      },
+      {
+        "kind": "down",
+        "case": "tiny_gradient",
+        "shape": [
+          512,
+          256,
+          512
+        ],
+        "passed": true,
+        "grouped_io": true,
+        "parallel_calibration": true,
+        "balanced_io": true,
+        "calibration_mode": 3,
+        "two_core_gradient_prepare": true,
+        "fp32_master_output": true,
+        "exact_previous_bf16_vjp": false,
+        "scale_transfer_underflow_count": 0,
+        "gradient_quantizer_zeroed_nonzero_count": 130973,
+        "gradient_elements": 131072,
+        "saved_forward_scales_assumed": true,
+        "shared_data_gradient_products_or_autograd": false,
+        "quality_gate": false
+      },
+      {
+        "kind": "down",
+        "case": "row_scale_range",
+        "shape": [
+          512,
+          256,
+          512
+        ],
+        "passed": true,
+        "grouped_io": true,
+        "parallel_calibration": true,
+        "balanced_io": true,
+        "calibration_mode": 3,
+        "two_core_gradient_prepare": true,
+        "fp32_master_output": true,
+        "exact_previous_bf16_vjp": false,
+        "scale_transfer_underflow_count": 0,
+        "gradient_quantizer_zeroed_nonzero_count": 100680,
+        "gradient_elements": 131072,
+        "saved_forward_scales_assumed": true,
+        "shared_data_gradient_products_or_autograd": false,
+        "quality_gate": false
+      },
+      {
+        "kind": "down",
+        "case": "outliers",
+        "shape": [
+          512,
+          256,
+          512
+        ],
+        "passed": true,
+        "grouped_io": true,
+        "parallel_calibration": true,
+        "balanced_io": true,
+        "calibration_mode": 3,
+        "two_core_gradient_prepare": true,
+        "fp32_master_output": true,
+        "exact_previous_bf16_vjp": false,
+        "scale_transfer_underflow_count": 0,
+        "gradient_quantizer_zeroed_nonzero_count": 131070,
+        "gradient_elements": 131072,
+        "saved_forward_scales_assumed": true,
+        "shared_data_gradient_products_or_autograd": false,
+        "quality_gate": false
+      },
+      {
+        "kind": "down",
+        "case": "signed_cancellation",
+        "shape": [
+          512,
+          256,
+          512
+        ],
+        "passed": true,
+        "grouped_io": true,
+        "parallel_calibration": true,
+        "balanced_io": true,
+        "calibration_mode": 3,
+        "two_core_gradient_prepare": true,
+        "fp32_master_output": true,
+        "exact_previous_bf16_vjp": false,
+        "scale_transfer_underflow_count": 0,
+        "gradient_quantizer_zeroed_nonzero_count": 6,
+        "gradient_elements": 131072,
+        "saved_forward_scales_assumed": true,
+        "shared_data_gradient_products_or_autograd": false,
+        "quality_gate": false
+      },
+      {
+        "kind": "up",
+        "case": "random",
+        "shape": [
+          512,
+          512,
+          256
+        ],
+        "passed": true,
+        "grouped_io": true,
+        "parallel_calibration": true,
+        "balanced_io": true,
+        "calibration_mode": 3,
+        "two_core_gradient_prepare": true,
+        "fp32_master_output": true,
+        "exact_previous_bf16_vjp": false,
+        "scale_transfer_underflow_count": 0,
+        "gradient_quantizer_zeroed_nonzero_count": 13,
+        "gradient_elements": 262144,
+        "saved_forward_scales_assumed": true,
+        "shared_data_gradient_products_or_autograd": false,
+        "quality_gate": false
+      },
+      {
+        "kind": "down",
+        "case": "real_random",
+        "shape": [
+          16384,
+          1024,
+          4096
+        ],
+        "passed": true,
+        "grouped_io": true,
+        "parallel_calibration": true,
+        "balanced_io": true,
+        "calibration_mode": 3,
+        "two_core_gradient_prepare": true,
+        "fp32_master_output": true,
+        "exact_previous_bf16_vjp": false,
+        "scale_transfer_underflow_count": 0,
+        "gradient_quantizer_zeroed_nonzero_count": 1585,
+        "gradient_elements": 16777216,
+        "saved_forward_scales_assumed": true,
+        "shared_data_gradient_products_or_autograd": false,
+        "quality_gate": false
+      },
+      {
+        "kind": "up",
+        "case": "real_random",
+        "shape": [
+          16384,
+          4096,
+          1024
+        ],
+        "passed": true,
+        "grouped_io": true,
+        "parallel_calibration": true,
+        "balanced_io": true,
+        "calibration_mode": 3,
+        "two_core_gradient_prepare": true,
+        "fp32_master_output": true,
+        "exact_previous_bf16_vjp": false,
+        "scale_transfer_underflow_count": 0,
+        "gradient_quantizer_zeroed_nonzero_count": 3282,
+        "gradient_elements": 67108864,
+        "saved_forward_scales_assumed": true,
+        "shared_data_gradient_products_or_autograd": false,
+        "quality_gate": false
+      }
+    ],
+    "FP8_WEIGHT_GRADIENT_BENCH": [
+      {
+        "kind": "down",
+        "shape": [
+          16384,
+          1024,
+          4096
+        ],
+        "grouped_io": true,
+        "samples_ms": {
+          "native_bf16_weight_product": [
+            1.086717000968444,
+            1.1112529997869085,
+            1.0946605034405366
+          ],
+          "fp8_scale_calibrate_pack_weight_product": [
+            1.5428105010263,
+            1.5475012526925032,
+            1.560958247864619
+          ]
+        },
+        "median_ms": {
+          "native_bf16_weight_product": 1.0946605034405366,
+          "fp8_scale_calibrate_pack_weight_product": 1.5475012526925032
+        },
+        "parallel_calibration": true,
+        "balanced_io": true,
+        "calibration_mode": 3,
+        "two_core_gradient_prepare": true,
+        "current_gradient_scale_and_both_byte_preparations_charged": true,
+        "saved_forward_scales_assumed": true,
+        "extra_forward_scale_stores_not_included": true,
+        "data_gradients_activation_derivative_optimizer_or_whole_model_included": false
+      },
+      {
+        "kind": "up",
+        "shape": [
+          16384,
+          4096,
+          1024
+        ],
+        "grouped_io": true,
+        "samples_ms": {
+          "native_bf16_weight_product": [
+            1.078290001411612,
+            1.0746350841751944,
+            1.0624586672444518
+          ],
+          "fp8_scale_calibrate_pack_weight_product": [
+            1.6929442499531433,
+            1.6950632464916755,
+            1.7018050809080403
+          ]
+        },
+        "median_ms": {
+          "native_bf16_weight_product": 1.0746350841751944,
+          "fp8_scale_calibrate_pack_weight_product": 1.6950632464916755
+        },
+        "parallel_calibration": true,
+        "balanced_io": true,
+        "calibration_mode": 3,
+        "two_core_gradient_prepare": true,
+        "current_gradient_scale_and_both_byte_preparations_charged": true,
+        "saved_forward_scales_assumed": true,
+        "extra_forward_scale_stores_not_included": true,
+        "data_gradients_activation_derivative_optimizer_or_whole_model_included": false
+      }
+    ],
+    "FP8_WEIGHT_GRADIENT_STAGE_TIMINGS": [
+      {
+        "kind": "down",
+        "shape": [
+          16384,
+          1024,
+          4096
+        ],
+        "grouped_io": true,
+        "samples_ms": {
+          "activation_bytes": [
+            0.3715336642926559,
+            0.3720677486853674,
+            0.37179891660343856
+          ],
+          "fp8_product_prepared_operands": [
+            0.8302718294241155,
+            0.8423512529892226,
+            0.8399199189928671
+          ],
+          "native_bf16_product": [
+            1.1017017532140017,
+            1.0871140014690657,
+            1.091117417672649
+          ],
+          "two_core_gradient_preparation": [
+            0.34482199892712134,
+            0.3417143307160586,
+            0.35204008357444155
+          ]
+        },
+        "median_ms": {
+          "activation_bytes": 0.37179891660343856,
+          "fp8_product_prepared_operands": 0.8399199189928671,
+          "native_bf16_product": 1.091117417672649,
+          "two_core_gradient_preparation": 0.34482199892712134
+        },
+        "parallel_calibration": true,
+        "balanced_io": true,
+        "calibration_mode": 3,
+        "two_core_gradient_prepare": true,
+        "diagnostic_only": true,
+        "prepared_inputs_exclude_producer_cost": true,
+        "isolated_times_not_additive": true,
+        "full_component_above_is_speed_authority": true
+      },
+      {
+        "kind": "up",
+        "shape": [
+          16384,
+          4096,
+          1024
+        ],
+        "grouped_io": true,
+        "samples_ms": {
+          "activation_bytes": [
+            0.11921150144189596,
+            0.120084829783688,
+            0.11822641924178849
+          ],
+          "fp8_product_prepared_operands": [
+            0.8100143362147113,
+            0.8401746648208549,
+            0.8098298324815308
+          ],
+          "native_bf16_product": [
+            1.0688224186499913,
+            1.0740314173744991,
+            1.073791499948129
+          ],
+          "two_core_gradient_preparation": [
+            0.7553834972592691,
+            0.7497362482051054,
+            0.7541554174774016
+          ]
+        },
+        "median_ms": {
+          "activation_bytes": 0.11921150144189596,
+          "fp8_product_prepared_operands": 0.8100143362147113,
+          "native_bf16_product": 1.073791499948129,
+          "two_core_gradient_preparation": 0.7541554174774016
+        },
+        "parallel_calibration": true,
+        "balanced_io": true,
+        "calibration_mode": 3,
+        "two_core_gradient_prepare": true,
+        "diagnostic_only": true,
+        "prepared_inputs_exclude_producer_cost": true,
+        "isolated_times_not_additive": true,
+        "full_component_above_is_speed_authority": true
+      }
+    ],
+    "FP8_WEIGHT_GRADIENT_RESULT": [
+      {
+        "passed": true,
+        "cases": 10,
+        "real_shape": true,
+        "grouped_io": true,
+        "parallel_calibration": true,
+        "balanced_io": true,
+        "calibration_mode": 3,
+        "two_core_gradient_prepare": true,
+        "full_fp8_backward_or_autograd_integration": false,
+        "quality_gain_established": false
+      }
+    ]
+  },
+  "full_model_or_quality_gain_established": false
+}
