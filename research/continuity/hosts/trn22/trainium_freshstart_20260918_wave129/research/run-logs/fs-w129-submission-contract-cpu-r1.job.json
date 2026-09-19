@@ -1,0 +1,50 @@
+{
+  "host": "trn22",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave129",
+  "expected_commit": "c51f6fdc5ca77793a1524148a563cafac0ab22b0",
+  "label": "fs-w129-submission-contract-cpu-r1",
+  "purpose": "Gate standalone source98 winning checkpoint load: exact CPU logits vs baseline, frozen state/no hooks, causality, batch/repeat purity; no validation text.",
+  "fingerprint_paths": [
+    "submissions/dense6x1024_public0992851/train.py",
+    "submissions/dense6x1024_public0992851/provenance.json",
+    "submissions/dense6x1024_public0992851/launch-command.txt",
+    "research/scratch/submission_contract_check.py"
+  ],
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "600s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "research/scratch/submission_contract_check.py",
+    "--train-py",
+    "submissions/dense6x1024_public0992851/train.py",
+    "--checkpoint",
+    "/home/ubuntu/trainium_freshstart_20260918_wave98/out/fs-w98-dense1024-context1024-pack32-owned-ce-1800-r1/final.pt",
+    "--device",
+    "cpu"
+  ],
+  "started_at": "2026-09-19T06:22:54.984895+00:00",
+  "hostname": "ip-172-31-32-253",
+  "git_commit": "c51f6fdc5ca77793a1524148a563cafac0ab22b0",
+  "source_dirty": false,
+  "preflight_free_bytes": 10493644800,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+    "research/fresh_start_host.py": "8c597adea7c48114bed8f50aa161fdc79b36b49c86c7315e6a58c3ca4e8f5f79",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/fresh_start_backup.py": "c978fd20b6620d0d80c25f8982974e8c4b2ad009edd9da376d784f5cecc3ead3",
+    "submissions/dense6x1024_public0992851/train.py": "35c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2",
+    "submissions/dense6x1024_public0992851/provenance.json": "f863145bca9fe795f11815d8f63447c31ced834e9e1ac9e0f4939c27358a810d",
+    "submissions/dense6x1024_public0992851/launch-command.txt": "428047b3a88433b293caeacd110a07983f378df837c0a6e6e023a88c8466f2e6",
+    "research/scratch/submission_contract_check.py": "950a017bb0f0b9af561e69eb990c8dab1aecfa909af5d05149c6110ea20aa734"
+  }
+}

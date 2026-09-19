@@ -1,6 +1,6 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19 04:57 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19 06:30 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
@@ -14,6 +14,7 @@ failure and clean recovery are preserved; the larger evaluation is clean.
 
 | Idea | Measured state | Next action |
 | --- | --- | --- |
+| Compile online FP8 cache preparation | `fp8_compiled_cache_probe.py` prepared; hardware gates pending | Exact CPU calibration/decoded layouts, eager-versus-compiled bytes and complete gradients; include compiled native control, updated masters and all preparation costs |
 | FP8-specific packing | One layout improves FP8 component about2.95% while worsening BF16 by11.63%; FP8 whole model still17.74% slower | Continue FP8-specific development; BF16 ranking is not a veto |
 | FP8 grouped weight-gradient products | Balanced banks + fused abs + two-core preparation pass10cases: down1.548/up1.695ms vs native1.095/1.075ms | Complete full FP8 MLP passes11cases but15.938ms vs15.486ms BF16; profile full derivative costs |
 | Reuse forward-produced FP8 bytes | All10cases pass; online cache work +2forward producers6.899→5.919ms (14.20%); preserves existing saves | Composed in complete FP8 MLP; saves do not yet make it faster than BF16 |
@@ -23,6 +24,13 @@ failure and clean recovery are preserved; the larger evaluation is clean.
 | Reciprocal refinement + optimizer ownership |24composition checks; component16.77% faster, whole step1.128% faster | Retain for independently gated combinations; below3% advancement threshold |
 | BF16 magnitude maximum / fused abs | All3alternatives pass13cases; fused abs fastest, calibration0.197/0.650ms vs0.344/1.184ms | Composed in weight/data gradient prototypes; integer-code and sign-mask versions are correct but slower |
 | Smaller tables / rational composed functions | Design candidates; full-value LUT and standalone polynomial timings lose | Test full producer/consumer costs with independent range/gradient gates |
+
+The next prepared probe retains the existing16384-token/two-microbatch shape
+for a direct comparison with source124. Before any new full-model promotion,
+also gate **32768tokens/one microbatch**, matching the current pack32/GA1 winner.
+Equal total targets do not imply identical compiler allocation, launch overhead,
+FP8 reduction accumulation or component speed. Earlier FP8 results used the
+previous pack16/GA2 shape; do not extrapolate their ranking without this check.
 
 The following ideas from the retro-computing search have already reached device
 experiments. This distinguishes a negative measured layout from an untested idea.

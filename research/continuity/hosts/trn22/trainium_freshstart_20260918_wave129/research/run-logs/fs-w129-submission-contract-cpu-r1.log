@@ -1,0 +1,10 @@
+[W919 06:22:56.130679826 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+SUBMISSION_CONTRACT_DIAGNOSTIC {"device": "cpu", "source_batch2_max_abs": 0.23387867212295532, "source_batch1_max_abs": 0.0, "original_batch_size_max_abs": 0.08724379539489746, "candidate_batch_size_max_abs": 0.0, "other_row_content_max_abs": 0.0, "fp32_norm_diagnostic_batch_size_max_abs": 0.0}
+SUBMISSION_CONTRACT {"source_checkpoint_batch1_logits_max_abs": 0.0, "source_checkpoint_rowwise_logits_max_abs": 0.0, "repeat_max_abs": 0.0, "causality_max_abs": 0.0, "batch_independence_max_abs": 0.0, "batch_permutation_max_abs": 0.0, "other_row_content_max_abs": 0.0, "passed": true, "device": "cpu", "frozen": true, "no_hooks": true, "state_and_buffers_unchanged": true, "no_training_adapters_at_import": true, "num_params": 117453580}
+EXPERIMENT_POSTFLIGHT {"label": "fs-w129-submission-contract-cpu-r1", "returncode": 0, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave129/research/run-logs/fs-w129-submission-contract-cpu-r1.postflight.json"}
