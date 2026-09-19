@@ -1,0 +1,59 @@
+{
+  "label": "fs-w124-fp8-complete-mlp-component-r1",
+  "source_commit": "34b6f24affcf03f421637a20bae62cda747af3e0",
+  "command_returncode": 0,
+  "original_host_clean": false,
+  "original_postflight_failures": [
+    "less than8GiB disk space available"
+  ],
+  "completed_at": "2026-09-19T04:38:02.820503+00:00",
+  "result": {
+    "passed": true,
+    "cases": 11,
+    "real_shape": true,
+    "full_model_speed_or_quality_claim": false
+  },
+  "benchmark": {
+    "shape": [
+      16384,
+      1024,
+      4096
+    ],
+    "samples_ms": {
+      "native_bf16": [
+        15.479359001619741,
+        15.506261895643547,
+        15.485906897811219
+      ],
+      "fp8_forward_bf16_backward": [
+        15.756616997532547,
+        15.793857298558578,
+        15.740988700417802
+      ],
+      "fp8_forward_all_four_backward_products": [
+        15.937871497590095,
+        15.942289197118953,
+        15.9298290964216
+      ]
+    },
+    "median_ms": {
+      "native_bf16": 15.485906897811219,
+      "fp8_forward_bf16_backward": 15.756616997532547,
+      "fp8_forward_all_four_backward_products": 15.937871497590095
+    },
+    "units": "ms per current online caches plus two distinct FW/BW microbatches",
+    "all_master_casts_calibration_transposes_packing_saves_charged": true,
+    "fp32_master_gradient_accumulation_charged": true,
+    "bf16_relu_derivative": true,
+    "new_approximate_vjp": true,
+    "optimizer_collectives_surrounding_model_excluded": true,
+    "whole_model_speed_or_quality_gain_established": false
+  },
+  "component_regression_vs_bf16_percent": 2.9185542878522375,
+  "component_regression_vs_mixed_percent": 1.1503389343406223,
+  "whole_model_or_quality_gain_established": false,
+  "maintenance_recovery_pending": false,
+  "maintenance_recovery": "fs-maintenance-preserved-wave124-trn22-20260919T044506Z",
+  "maintenance_host_clean": true,
+  "maintenance_completed_at": "2026-09-19T04:45:19.203309+00:00"
+}

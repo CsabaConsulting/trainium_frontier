@@ -1,7 +1,37 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 04:34 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 04:48 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
+
+## Completed comparisons and clean recovery — 2026-09-19 04:48 UTC
+
+- Source124 COMPLETE: all11 full FP8 MLP cases pass, including the actual
+  16384x1024x4096 shape, both distinct microbatches, FP32 master accumulation,
+  cache refresh/restoration, independent CPU quantizers and all4 pair-product
+  bounds. Complete cache preparation +2FW/BW: native15.485907ms,
+  FP8-forward/BF16-backward15.756617ms, all4backward FP8 products15.937871ms.
+  The full FP8 component still loses2.9186%; no model or BPB promotion.
+- Source123 three same-host phases COMPLETE: original501.265347ms,
+  split-native684.669608ms, split-cached681.025798ms. All4 native postchecks
+  pass per arm. Custom head saves0.5322% within its split scope, but loses
+  35.8613% to the original complete step. The separate boundary fails the
+  advancement gate. Original exact-monolithic numerical failures are retained.
+- Both commands succeeded but their postflights failed only the8GiB disk
+  reserve. Explicit maintenance reverified local files, cloud manifest/hash
+  identities and remote hashes under the host locks. trn22 clean04:45:19,
+  free8,369,889,280→9,690,304,512B; trn21 clean04:45:35,
+  free8,103,407,616→9,180,405,760B. Original failed postflights are unchanged.
+  trn22's earlier maintenance attempt stopped before mutation because an old
+  raw-profile root had already been removed; its failed intent is preserved.
+  Successful cleanup removes wave36 raw/ingestion copies +wave39 parquet on22,
+  and already-preserved wave112 parquet on21. Checkpoints/caches/source remain.
+- Source125 prepares SINGLE-arm native/full FP8 component captures on separate
+  hosts. Independent waveform attribution only; source124 same-host timing is
+  authoritative. Extra384/512MiB disk headroom is required before and after
+  compilation, beyond the8GiB reserve. Binaries are exported before exit.
+  No dispatch exists yet at this note's creation; inspect manifests/watchers.
+- All52 heavy artifacts were reverified by the scheduled backup at04:35.
+  Best public BPB remains0.9928513116311253. No seed hunt or ngrams were added.
 
 ## Complete FP8 component and split-head controls — 2026-09-19 04:34 UTC
 
@@ -21,10 +51,14 @@ Use current manifests/postflights before dispatch; do not restart completed jobs
   quantizers/pair bounds, two different microbatches and cache refresh precede
   timing. All current casts/calibration/transposes/packing and accumulation are
   charged. The VJP is explicitly new; no original-BF16 equivalence or quality.
-  Prototype is prepared locally; inspect its eventual dispatch/postflight.
-- Source123/snapshot were explicitly pushed and remote-ref verified04:24:18.
+  trn22 ACTIVE `fs-w124-fp8-complete-mlp-component-r1` since04:33:36,
+  PID1661083, source34b6f24affcf03f421637a20bae62cda747af3e0. Both deployment
+  and preflight passed; watcher repointed122→124 at04:33:49. No result yet.
+- Source124/snapshot were explicitly pushed and remote-ref verified04:33:49:
+  source34b6f24affcf03f421637a20bae62cda747af3e0;
+  snapshotdffea9cd0dafec841be55478cbcba9cda3566299.
   All52 heavy assets were GitHub-digest verified04:10:10 with zero errors.
-  Both host watchers continue123/122. Canonical best remains0.9928513116311253.
+  Both host watchers continue123/124. Canonical best remains0.9928513116311253.
 
 ## Separate precision variant — 2026-09-19 04:20 UTC
 

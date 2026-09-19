@@ -113,3 +113,24 @@ The independent source121 CPU/projection/CE and native head component gates
 remain prerequisites. New errors/NaNs or mismatches WITHIN the selected scope
 remain failures and must be diagnosed before timing. Scope controls provide no
 permission to loosen the quantizer, gradient or evaluation contracts.
+
+## Source123 three-arm result
+
+All196 prospective same-scope checks pass. On the same host/source with35
+updates (5warmup/30timed), original native averages501.265347ms, split native
+684.669608ms, and split cached681.025798ms. All4 native postchecks pass in each
+arm. The custom head recovers3.643810ms (0.5322%) within the split scope, while
+its complete step is35.8613% slower than the original. This boundary does not
+solve the caller regression and is not advanced to30-minute training.
+
+The split-native control reproduces most of the slowdown without the resident
+custom-head cache in that head. Therefore the earlier cache-footprint theory
+alone is insufficient to explain every regression; graph partitioning/compiler
+planning is independently costly. Exact allocator/precision causes remain
+unproven. The original monolithic profile evidence and failed numerical gates
+are retained, without reclassifying the split regime as bitwise equivalent.
+
+The cached command succeeded; its original postflight failed only disk reserve.
+Verified removal of the locally/cloud-preserved wave112 parquet restored clean
+health04:45:35. The failed postflight and explicit maintenance receipt remain
+separate evidence. Comparison: run-logs/fs-w123-head-loss-split-whole-step-comparison-r1.json.
