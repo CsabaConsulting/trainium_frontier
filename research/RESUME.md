@@ -1,7 +1,29 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 06:56 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 07:06 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
+
+## Fused FP8 producer passes; final submission training minutes — 2026-09-19 07:06 UTC
+
+- trn21 source137552672ff705f30662f230d1c30c165a5404909c7 both resident
+  and streamed dual-cache probes COMPLETE/clean. All8 cases include independent
+  metadata/QDQ/layout references, exact old/new cache bytes and full derivatives,
+  repeated calls and refreshed/restored FP32 masters. Current32768x1shape.
+- Resident preparation0.294823ms vs previous compiled0.541435ms; full FP8 MLP
+  14.886892ms vs compiled native15.348333ms (~3.01% faster component).
+  Streamed14.906892ms vs native15.355214ms (~2.92%). Resident slightly ahead;
+  no whole-model throughput or BPB claim. Next: real-Linear full-VJP wiring gate.
+- Prepared maintenance_submission_eval_headroom.py for AFTER cold training:
+  only one old wave4 raw-profile archive may be retired from trn22 after fresh
+  local/current-cloud/remote verification under lock.5.1GB stays local/cloud.
+  Requires exact completed cold job, command0 and no non-disk health failures.
+  Do not run while training is active; no checkpoint or shared cache deletion.
+- Cold standalone training still finite, past3000steps and second data pass.
+  Final checkpoint is out/<cold-label>/out/final.pt onwave129. Preserve using
+  --relative-checkpoint, then score with same standalone package and protected
+  20M scorer. Private submission has NOT been made.
+- GitHub source137/snapshot6c8ae2f verified06:57:07;07:00cron also pushed source137
+  and snapshot58b6022. Watchers trn21=137, trn22=129. Best public0.99285131.
 
 ## FP8 complete component wins at pack32 — 2026-09-19 06:56 UTC
 
