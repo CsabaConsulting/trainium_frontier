@@ -1,12 +1,34 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 07:18 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 07:25 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
+
+## Submission is ready — 2026-09-19 07:25 UTC
+
+Exact packaged cold launch scored 0.9938556748843932 public BPB on the protected
+20,971,520-token scorer, evaluation697.480227s. Both training and evaluation
+command0/clean; cold charged time through process exit1790.341476s. Original
+public best remains0.9928513116311253, exactly replayed by this package.
+Give the user submissions/dense6x1024_public0992851/train.py and the exact
+launch-command.txt line. All NKI helpers are inline. No competition submission
+has been made. Package README/validation and best-public pointer now record
+readiness; commit/push these final records before the final response.
+
+trn21 control140 remains active: warmup0 took316.18s, further compilation may
+continue. During compilation free disk dropped to7,099,265,024B. DO NOT delete
+artifacts while the host lock is held. Prepared one-off
+research/scratch/maintenance_full_fp8_phase_headroom.py retires exactly five
+old checkpoint copies (about3.333GB), each preserved locally/cloud, after
+control140 exits successfully. It re-verifies all local/cloud/remote hashes,
+excludes currentbest, holds the host lock, and permits only disk-reserve health
+failures while retaining the original postflight. Run only after completion;
+then require clean actual health and four native control postchecks before
+launching the already prepared FP8 candidate. No shared cache/source/log purge.
 
 Current dispatch update: trn21 source140
 2a6f267b443e262bb9d7955e06d539f603dc4edc is running
 fs-w140-full-fp8-native-control-phase-r1, PID1383339, started07:16:23, clean
-preflight. Candidate request out/fs-w140-full-fp8-candidate-phase-r1.request.json
+preflight. Candidate request research/run-logs/fs-w140-full-fp8-candidate-phase-r1.request.json
 is prepared; launch only after control completes clean with four postchecks.
 Watcher trn21=140 from07:16:23, trn22=129. GitHub source140/snapshot22cd791
 verified07:16:04. Heavy backup completed07:14:17:57 artifacts verified, no errors.
