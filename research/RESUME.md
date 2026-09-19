@@ -1,36 +1,43 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 23:38 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 23:48 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## Serial QKV attention discrepancy under diagnosis — CURRENT
+## Serial QKV retained-value precision fix prepared — CURRENT
 
-- Source152 attention gates STOPPED on both hosts after the same unchanged
-  width256/uncached/VE output bound failure:190 elements, relative RMS
-  0.0041420266. Token postflight clean23:35:01UTC; channels clean23:35:18UTC.
-  Both coordinators stopped normally; no hardware/compiler crash and no timed
-  attention result. Do not describe source152 as still running or passing.
-- Source153 diagnostic is prepared: original native forward remains the
-  authority; native-preprojected, NKI-all and Q-only/K-only/V-only replacements
-  isolate the first difference. It crosses VE enabled/disabled and cached/
-  uncached weights, with token layout width256 and channel layout width1024.
-  Frozen stored-BF16 projections and CPU-FP64-derived unrounded FP32 V are
-  explicit precision hypotheses, not replacement acceptance references.
-  The unchanged integration bound remains failed until the original gate is
-  rerun successfully. A compiler-retained V/addition intermediate is only a
-  hypothesis. Diagnostics cannot promote a whole-model or quality run.
-- Source151 primitive remains fully gated but slower: tokens4.947391 versus
-  native4.695781ms (5.358% slower); channels5.208927 versus native4.714912ms
-  (10.478% slower). All9 cases, real32768x1024 and cache/master lifecycle pass.
-  Kernel source85addadd; primitive/gate bytes are checked before integrations.
-- Source149 helper-resolution and source150 logger failures were fixed without
-  altering math/bounds; all attempts and clean postflights are preserved.
-  Source148 FP8 direct-rank0.385% and pack32 reciprocal0.052% improvements
-  remain below3%, with no promotion. Frozen public best0.9928513116311253.
-- Last verified backup23:30:47UTC: source71350a2, recoverybac58753, both
-  remote retrievals complete. Later source152/153 work needs the next push.
-  Read current dispatch/sequence records for live activity. All experiment
-  queues are bounded; the backup cron does not choose or launch experiments.
+- Source153 diagnostics COMPLETE/clean: tokens/256 at23:41:41UTC, channels/1024
+  at23:43:08UTC. Native preprojection, Q-only and K-only are exactly native at
+  both widths, cached/uncached and with/without VE. V-only and all-QKV are exact
+  without VE; with VE they reproduce the failed output gate (190/710 bounds,
+  relative RMS0.004142/0.004067). Explicit FP32 V improves the VE case to
+  RMS0.00004476/0.00008954 with zero unchanged-bound failures. This strongly
+  supports an early V-rounding difference. It is not an accepted integration.
+- The frozen controls initially omitted requires_grad on supplied Q/K/V,
+  unlike original projected tensors. Their no-VE result differs from the
+  partial-replacement controls; that compile-context confound is retained.
+  The next diagnostic makes those inputs differentiable. Do not infer a
+  universal precision policy from the earlier frozen control alone.
+- Source154 is prepared: opt-in FP32 V output retains the same BF16 operands
+  and FP32 dot accumulator. Q/K stay BF16; input/master-gradient GEMMs retain
+  BF16 operands. New strict FP32 output bounds use gamma_K +2^-24 output
+  rounding, rather than the older BF162^-8 term. A new non-BF16 upstream-V
+  gradient case tests the explicit backward operand cast. Both layouts must
+  pass old BF16 regression and the10-case FP32-V component suite, including
+ 32768x1024 and master/cache lifecycle, before any integration trial.
+- The adapter selects FP32 V only when VE is supplied, otherwise its old BF16
+  projection. Original attention, Parameters/caches/Muon groups, evaluation
+  and checkpoint keys remain intact. The original attention bounds are not
+  changed. A corrected materialization diagnostic and the original attention
+  accumulation/causality/restore/real-shape gates are the next bounded steps.
+  Local AST passes; hardware correction and speed are PENDING.
+- Source152's original attention gates FAIL (both clean23:35UTC), preserved.
+  Source151 primitive gates passed but component times were5.358%/10.478%
+  slower. Source148 FP8 output-rank0.385% and reciprocal pack320.052% gains
+  were below3%. No whole-model/quality promotion; frozen public best0.9928513116.
+- Last verified backup23:40:46UTC: source987a447, snapshot2e5f7dc1, both remote
+  retrievals complete. Later results/correction need the next deliberate push.
+  Read dispatch/sequence records for activity; queues are finite and the
+  backup cron does not select or launch experiments.
 
 ## FP8 output-rank timing and pack32 optimizer gates — 17:42 UTC
 

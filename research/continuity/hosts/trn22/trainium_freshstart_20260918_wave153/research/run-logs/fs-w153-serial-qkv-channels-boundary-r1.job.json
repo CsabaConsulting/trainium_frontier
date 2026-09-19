@@ -1,0 +1,57 @@
+{
+  "host": "trn22",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave153",
+  "expected_commit": "ee0e78319e66aa4a032fa40a1112610f70d1bed0",
+  "label": "fs-w153-serial-qkv-channels-boundary-r1",
+  "purpose": "Diagnose the retained source152 attention failure without widening bounds. Compare original native, native preprojected, NKI all/Q-only/K-only/V-only across VE and cache settings; materialized BF16 and CPU-derived FP32 V are precision hypotheses only. No integration, speed or quality promotion.",
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_RT_VISIBLE_CORES": "0",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1800s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "/home/ubuntu/trainium_freshstart_20260918_wave153/research/scratch/serial_qkv_boundary_diagnostic.py",
+    "--layout",
+    "channels",
+    "--channels",
+    "1024",
+    "--component-root",
+    "/home/ubuntu/trainium_freshstart_20260918_wave151"
+  ],
+  "fingerprint_paths": [
+    "train.py",
+    "research/scratch/serial_qkv_nki.py",
+    "research/scratch/serial_qkv_probe.py",
+    "research/scratch/serial_qkv_integration.py",
+    "research/scratch/serial_qkv_integration_check.py",
+    "research/scratch/mlp_fused_bf16_probe.py",
+    "research/scratch/serial_qkv_boundary_diagnostic.py"
+  ],
+  "started_at": "2026-09-19T23:40:23.518328+00:00",
+  "hostname": "ip-172-31-32-253",
+  "git_commit": "ee0e78319e66aa4a032fa40a1112610f70d1bed0",
+  "source_dirty": false,
+  "preflight_free_bytes": 15402827776,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+    "research/fresh_start_host.py": "8c597adea7c48114bed8f50aa161fdc79b36b49c86c7315e6a58c3ca4e8f5f79",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/fresh_start_backup.py": "c978fd20b6620d0d80c25f8982974e8c4b2ad009edd9da376d784f5cecc3ead3",
+    "research/scratch/serial_qkv_nki.py": "1a251b155e909ccf654f1074a8437e75fb8a41caf94cc06f27abb6351a26ccec",
+    "research/scratch/serial_qkv_probe.py": "afc901db49acfeff4809ea4a2138e34548b97ac1258e7f22253f39be21ec6286",
+    "research/scratch/serial_qkv_integration.py": "97b59db0095cebd89242009793485aaa5831e84062aafa8121ea2e3746bbc078",
+    "research/scratch/serial_qkv_integration_check.py": "00fc2ee0e9f1071d8e23a4f684fb15e388107151f5262ca2ffcbd815bc559ab1",
+    "research/scratch/mlp_fused_bf16_probe.py": "565991e1fb29dcf41c6db58e098891a5e59685b231d6475bed66e465242483ed",
+    "research/scratch/serial_qkv_boundary_diagnostic.py": "84206cf1f0fccf4aa9faa2f9915c8577fc426b7b8174d48c34d130e5614063e6"
+  }
+}

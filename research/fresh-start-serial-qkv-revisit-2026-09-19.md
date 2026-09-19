@@ -1,5 +1,42 @@
 # Revisit QKV execution while preserving the trained model
 
+Current update,2026-09-19 23:48 UTC: source153 diagnostic is complete and clean on both
+hosts. At widths256/1024, with cached and uncached weights, replacing Q or K
+alone is exactly native. Replacing V alone reproduces the failure only when
+VE is present; without VE all partial/full replacements are exactly native.
+The FP32 V hypothesis reduces VE-case RMS from0.004142/0.004067 to
+0.00004476/0.00008954 and eliminates bound failures. The stored-projection
+controls omitted requires_grad on Q/K/V, introducing a compile-context
+confound; their no-VE results differ from the partial replacements. The next
+version fixes that diagnostic fixture. Neither observation replaces the
+original failed attention gate.
+
+Source154 adds opt-in FP32 V output from the same BF16-input dot accumulator.
+Q/K storage and all backward matrix operands remain BF16. The component
+probe tightens V-output bounds to FP32 rounding and adds a non-BF16 incoming
+V-gradient case. Old BF16 regression, independent FP32-output/six-gradient
+bounds and original unchanged attention lifecycle/causality/restore gates
+must all pass. Adapter FP32 V is selected only for VE consumers. Hardware
+and performance remain pending; extra output traffic is charged in timing.
+
+The [AWS transpose API](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/api/generated/nki.isa.nc_transpose.html)
+and [Trainium2 architecture guide](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/guides/architecture/trainium2_arch.html)
+support bit-preserving FP32 transpose on this generation. The token-stationary
+layout avoids a result transpose; the other layout retains an FP32 tile
+through its output transpose. No SDK files are changed.
+
+A useful limit for the next decision: nine32768x1024x1024 forward/backward
+matrix products require about618.5GFLOP. At the documented79BF16TFLOP/s per
+physical core, the optimistic two-core compute floor is about3.914ms versus
+our4.696/4.715ms native component observations. This is a nominal arithmetic
+floor, not a whole-model attribution: data movement, scheduling and four-rank
+resource contention also matter. It limits plausible BF16-only improvements
+and makes broader FP8 projections/fusion a more promising follow-up than an
+unbounded BF16 tiling sweep. Keep original gradients, VE precision and real
+caller timing as gates when extending the precision region.
+
+Earlier preparation/results below are retained chronologically.
+
 Updated 2026-09-19 23:33 UTC. Source151 completed cleanly on both hosts. Both layouts
 pass all9 independent FP64 forward/all-six-gradient cases and lifecycle gates.
 The token layout is5.358% slower than its native complete projection control

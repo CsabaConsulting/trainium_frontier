@@ -118,11 +118,11 @@ def run(channels, layout, cached, with_ve):
     torch._dynamo.reset()
     projection = torch.compile(project, backend='neuron', fullgraph=True, dynamic=False)
     # Host round trips deliberately enforce stored BF16 intermediates.
-    frozen = [x.detach().cpu().to('neuron').reshape(4, 128, channels // 128, 128)
+    frozen = [x.detach().cpu().to('neuron').reshape(4, 128, channels // 128, 128).requires_grad_()
               for x in projection(*values[:3])]
     weight = attn.c_v.weight.detach().cpu().bfloat16().double()
     exact_v = (host[2].double() @ weight.T).float()
-    unrounded_v = exact_v.to('neuron').reshape(frozen[2].shape)
+    unrounded_v = exact_v.to('neuron').reshape(frozen[2].shape).requires_grad_()
 
     def consume(xq, xk, xv, ve, c, s, q, k, v):
         return type(attn).forward(attn, xq, xk, xv, ve, c, s, None, qkv=(q, k, v))
@@ -144,8 +144,10 @@ def main():
     parser.add_argument('--layout', required=True, choices=('tokens', 'channels'))
     parser.add_argument('--channels', required=True, type=int, choices=(256, 1024))
     parser.add_argument('--component-root', required=True)
+    parser.add_argument('--component-label')
+    parser.add_argument('--component-commit', default='85addadd2ade1d0eb37fa9a5294b598bfe2ba9b4')
     args = parser.parse_args()
-    require_component(args.component_root, args.layout)
+    require_component(args.component_root, args.layout, args.component_label, args.component_commit)
     import torch_neuronx  # noqa: F401
     torch.set_num_threads(4)
     T.USE_WEIGHT_CACHE = T.USE_BF16_NORM_OUTPUT = T.USE_NKI_ROPE_NORM = T.COMPILE_SDPA_DIRECT = True

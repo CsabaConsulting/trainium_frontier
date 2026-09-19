@@ -14,7 +14,7 @@ import torch.nn.functional as F
 from serial_qkv_nki import build_kernel, make_autograd
 
 
-def make_forward(native_forward, use_weight_cache, layout):
+def make_forward(native_forward, use_weight_cache, layout, value_fp32=False):
     from torch_neuronx import wrap_nki
     kernel = wrap_nki(build_kernel())
     token_major = layout == 'tokens'
@@ -24,7 +24,13 @@ def make_forward(native_forward, use_weight_cache, layout):
         tile = 128 if token_major else (512 if rows % 1024 == 0 else 256 if rows % 512 == 0 else 128)
         return kernel[2](xq, xk, xv, wq, wk, wv, 2, tile, token_major)
 
+    def call_value_fp32(xq, xk, xv, wq, wk, wv):
+        rows = xq.shape[0]
+        tile = 128 if token_major else (512 if rows % 1024 == 0 else 256 if rows % 512 == 0 else 128)
+        return kernel[2](xq, xk, xv, wq, wk, wv, 2, tile, token_major, True)
+
     apply = make_autograd(call)
+    apply_value_fp32 = make_autograd(call_value_fp32) if value_fp32 else apply
 
     def weight(linear, dtype):
         cache = linear._cached_weight
@@ -46,7 +52,8 @@ def make_forward(native_forward, use_weight_cache, layout):
         padding = (-rows) % 256
         if padding:
             q_rows, k_rows, v_rows = (F.pad(x, (0, 0, 0, padding)) for x in (q_rows, k_rows, v_rows))
-        outputs = apply(q_rows, k_rows, v_rows, weight(self.c_q, x_q.dtype),
+        projection = apply_value_fp32 if value_fp32 and ve is not None else apply
+        outputs = projection(q_rows, k_rows, v_rows, weight(self.c_q, x_q.dtype),
                         weight(self.c_k, x_k.dtype), weight(self.c_v, x_v.dtype))
         projections = tuple(y[:rows].reshape(batch, length, self.n_head, self.head_dim)
                             for y in outputs)
@@ -59,7 +66,7 @@ def make_forward(native_forward, use_weight_cache, layout):
     return forward
 
 
-def install(model, device, train_module, layout):
+def install(model, device, train_module, layout, value_fp32=False):
     if layout not in ('tokens', 'channels') or not str(device).startswith('neuron'):
         raise ValueError('Serial QKV requires a declared Neuron layout')
     if train_module.USE_FUSED_QKV or train_module.USE_PARALLEL_BLOCK:
@@ -80,13 +87,15 @@ def install(model, device, train_module, layout):
             assert not linear.weight_transposed and linear.bias is None
             assert tuple(linear.weight.shape) == (attn.n_embd, attn.n_embd)
         if type(attn) not in forwards:
-            forwards[type(attn)] = make_forward(type(attn).forward, train_module.USE_WEIGHT_CACHE, layout)
+            forwards[type(attn)] = make_forward(type(attn).forward, train_module.USE_WEIGHT_CACHE,
+                                                layout, value_fp32)
         attn.forward = types.MethodType(forwards[type(attn)], attn)
         layers.append(index)
     assert tuple(model.state_dict()) == keys
     assert tuple(id(p) for p in model.parameters()) == parameter_ids
     assert torch.equal(rng, torch.get_rng_state())
     return dict(layout=layout, layers=layers, separate_parameter_objects=True,
+                value_fp32_before_ve=value_fp32, bf16_value_without_ve=True,
                 original_parameter_shapes_and_checkpoint_keys=True,
                 original_weight_refresh=True, distinct_normalized_inputs=True,
                 contiguous_qkv_outputs=True, native_attention_body=True,
