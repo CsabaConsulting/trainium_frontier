@@ -382,3 +382,11 @@ trn21, watcher110. Pack32 quality should finish around03:17–03:19; preserve
 checkpoint after clean postflight then launch prepared matched larger eval.
 Source111 FP8 parallel-tile calibration and balanced8-bank grouping are prepared
 for separate controlled stage/component tests after head work.
+
+Source110 GPT gate fails clean while compiling the ORIGINAL model: test omitted
+COMPILE_SDPA_DIRECT=True and selected a compiler-disabled attention wrapper.
+Source112 aligns gate configuration with the production native SDPA/QK flags;
+no head kernel or equality change. Source111 was not deployed; deploy112 bundle
+from known remote110. FP8 controlled variants also available in112.
+Pack32 quality finishes3660updates/479.7Mtargets, small public0.987784; await
+clean postflight, preservation and larger matched evaluation before promotion.

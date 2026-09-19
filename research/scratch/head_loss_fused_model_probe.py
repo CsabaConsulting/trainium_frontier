@@ -45,6 +45,12 @@ def main():
     torch._dynamo.config.recompile_limit = 32
     T.USE_WEIGHT_CACHE = T.USE_BF16_NORM_OUTPUT = T.USE_NKI_LOCAL_CONV = True
     T.USE_NGRAM_VE = T.USE_OUT_BIGRAM = T.USE_ENGRAM = False
+    # Match the current training path. The repository's other attention
+    # wrapper is compiler-disabled and cannot be traced by this fullgraph gate.
+    T.COMPILE_SDPA_DIRECT = True
+    T.USE_NKI_ATTN = T.USE_BF16_SDPA_INPUT = T.USE_QK_SHIFT = False
+    T.QK_SHIFT_BETA = 0.0
+    T.QK_SHIFT_FREEZE = True
     T.COMPUTE_DTYPE = torch.bfloat16
     install_ce(T)
     torch.manual_seed(10491)

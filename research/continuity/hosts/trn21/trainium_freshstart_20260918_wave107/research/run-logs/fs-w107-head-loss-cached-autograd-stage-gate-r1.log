@@ -1,0 +1,51 @@
+[W919 03:11:15.329812340 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+FUSED_HEAD_AUTOGRAD_GATE {"name": "512x256:zero_weight:none", "exact_loss_input_master_gradient": [true, true, true], "max_abs": [0.0, 0.0, 0.0], "fp32_master_gradient": true, "finite": true, "passed": true}
+FUSED_HEAD_AUTOGRAD_GATE {"name": "512x256:zero_weight:mean", "exact_loss_input_master_gradient": [true, true, true], "max_abs": [0.0, 0.0, 0.0], "fp32_master_gradient": true, "finite": true, "passed": true}
+FUSED_HEAD_AUTOGRAD_GATE {"name": "512x256:tiny_weight:none", "exact_loss_input_master_gradient": [true, true, true], "max_abs": [0.0, 0.0, 0.0], "fp32_master_gradient": true, "finite": true, "passed": true}
+FUSED_HEAD_AUTOGRAD_GATE {"name": "512x256:tiny_weight:mean", "exact_loss_input_master_gradient": [true, true, true], "max_abs": [0.0, 0.0, 0.0], "fp32_master_gradient": true, "finite": true, "passed": true}
+FUSED_HEAD_AUTOGRAD_GATE {"name": "512x256:random:none", "exact_loss_input_master_gradient": [true, true, true], "max_abs": [0.0, 0.0, 0.0], "fp32_master_gradient": true, "finite": true, "passed": true}
+FUSED_HEAD_AUTOGRAD_GATE {"name": "512x256:random:mean", "exact_loss_input_master_gradient": [true, true, true], "max_abs": [0.0, 0.0, 0.0], "fp32_master_gradient": true, "finite": true, "passed": true}
+FUSED_HEAD_AUTOGRAD_GATE {"name": "512x256:outliers:none", "exact_loss_input_master_gradient": [true, true, true], "max_abs": [0.0, 0.0, 0.0], "fp32_master_gradient": true, "finite": true, "passed": true}
+FUSED_HEAD_AUTOGRAD_GATE {"name": "512x256:outliers:mean", "exact_loss_input_master_gradient": [true, true, true], "max_abs": [0.0, 0.0, 0.0], "fp32_master_gradient": true, "finite": true, "passed": true}
+FUSED_HEAD_AUTOGRAD_GATE {"name": "512x256:zero_gradient:none", "exact_loss_input_master_gradient": [true, true, true], "max_abs": [0.0, 0.0, 0.0], "fp32_master_gradient": true, "finite": true, "passed": true}
+FUSED_HEAD_AUTOGRAD_GATE {"name": "512x256:zero_gradient:mean", "exact_loss_input_master_gradient": [true, true, true], "max_abs": [0.0, 0.0, 0.0], "fp32_master_gradient": true, "finite": true, "passed": true}
+FUSED_HEAD_AUTOGRAD_GATE {"name": "512x256:confident_correct:none", "exact_loss_input_master_gradient": [true, true, true], "max_abs": [0.0, 0.0, 0.0], "fp32_master_gradient": true, "finite": true, "passed": true}
+FUSED_HEAD_AUTOGRAD_GATE {"name": "512x256:confident_correct:mean", "exact_loss_input_master_gradient": [true, true, true], "max_abs": [0.0, 0.0, 0.0], "fp32_master_gradient": true, "finite": true, "passed": true}
+FUSED_HEAD_AUTOGRAD_GATE {"name": "512x256:confident_wrong:none", "exact_loss_input_master_gradient": [true, true, true], "max_abs": [0.0, 0.0, 0.0], "fp32_master_gradient": true, "finite": true, "passed": true}
+FUSED_HEAD_AUTOGRAD_GATE {"name": "512x256:confident_wrong:mean", "exact_loss_input_master_gradient": [true, true, true], "max_abs": [0.0, 0.0, 0.0], "fp32_master_gradient": true, "finite": true, "passed": true}
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_freshstart_20260918_wave107/research/scratch/head_loss_fused_autograd_probe.py", line 162, in <module>
+    main()
+  File "/home/ubuntu/trainium_freshstart_20260918_wave107/research/scratch/head_loss_fused_autograd_probe.py", line 118, in main
+    first.backward(retain_graph=True)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_tensor.py", line 631, in backward
+    torch.autograd.backward(
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/autograd/__init__.py", line 381, in backward
+    _engine_run_backward(
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/autograd/graph.py", line 869, in _engine_run_backward
+    return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/autograd/function.py", line 317, in apply
+    return user_fn(self, *args)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 2748, in backward
+    return impl_fn()
+           ^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 2734, in impl_fn
+    out = CompiledFunction._backward_impl(ctx, all_args)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 2906, in _backward_impl
+    torch._check(
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/__init__.py", line 1753, in _check
+    _check_with(RuntimeError, cond, message)  # pyrefly: ignore [bad-argument-type]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/__init__.py", line 1735, in _check_with
+    raise error_type(message_evaluated)
+RuntimeError: This backward function was compiled with non-empty donated buffers which requires create_graph=False and retain_graph=False. Please keep backward(create_graph=False, retain_graph=False) across all backward() function calls, or set torch._functorch.config.donated_buffer=False to disable donated buffer.
+EXPERIMENT_POSTFLIGHT {"label": "fs-w107-head-loss-cached-autograd-stage-gate-r1", "returncode": 1, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave107/research/run-logs/fs-w107-head-loss-cached-autograd-stage-gate-r1.postflight.json"}
