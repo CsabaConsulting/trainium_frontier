@@ -1,0 +1,36 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave94",
+    "expected_commit": "607aaea95338c2e128bfbceaa49363290579b044",
+    "label": "fs-w94-packed-fp8-caller-analysis-r1",
+    "purpose": "Analyze completed whole-model caller trace after verifying all dispatch/binary mappings. CPU-only attribution: precision, spill counters, merged per-core/engine activity and source families. Same-host unprofiled pair is speed authority.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave94",
+      "GOMEMLIMIT": "24GiB",
+      "GOMAXPROCS": "4"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=15s",
+      "600s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "-c",
+      "import json,pathlib,runpy,sys; p=json.loads(pathlib.Path('/home/ubuntu/trainium_freshstart_20260918_wave89/research/run-logs/fs-w89-packed-fp8-caller-remote-ingest-r1.postflight.json').read_text()); assert p[\"host_clean\"] and p[\"command_returncode\"]==0; sys.path.insert(0,\"research/scratch\"); sys.argv=['model_caller_profile_analysis.py', '--trace', '/home/ubuntu/trainium_freshstart_20260918_wave89/out/fs-w89-packed-fp8-owned-micro-device-profile-r1/rank0', '--parquet', '/home/ubuntu/trainium_freshstart_20260918_wave89/out/fs-w89-packed-fp8-caller-remote-ingest-r1-parquet', '--output', 'research/run-logs/fs-w94-packed-fp8-caller-analysis-r1.analysis.json']; runpy.run_path(\"research/scratch/model_caller_profile_analysis.py\",run_name=\"__main__\")"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/model_caller_profile_analysis.py",
+      "research/scratch/fp8_mlp_profile_analysis.py"
+    ]
+  },
+  "requested_at": "2026-09-19T01:55:59.116070+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w94-packed-fp8-caller-analysis-r1\", \"pid\": 1246967, \"commit\": \"607aaea95338c2e128bfbceaa49363290579b044\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave94/research/run-logs/fs-w94-packed-fp8-caller-analysis-r1.log\", \"started_at\": \"2026-09-19T01:56:04.744230+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

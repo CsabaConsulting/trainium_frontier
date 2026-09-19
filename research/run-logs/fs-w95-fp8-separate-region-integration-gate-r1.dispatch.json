@@ -1,0 +1,52 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave95",
+    "expected_commit": "d14298ea22ab33ff8be47afc9cba4a81ca8967ac",
+    "label": "fs-w95-fp8-separate-region-integration-gate-r1",
+    "purpose": "Gate explicit caller boundary around the unchanged packed FP8 MLP. Shared inner callable remains fullgraph compiled; retain original exact Linear/cache/master accumulation/update/padding/prediction/restore gates. No timing or quality promotion.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave95"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1800s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "/home/ubuntu/trainium_freshstart_20260918_wave95/research/scratch/fp8_mlp_integration_check.py",
+      "--real-width",
+      "--separate-region"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/fp8_packed_weight_cache_nki.py",
+      "research/scratch/fp8_packed_weight_cache_probe.py",
+      "research/scratch/fp8_weight_cache_nki.py",
+      "research/scratch/fp8_weight_cache_probe.py",
+      "research/scratch/fresh_start_fp8_probe.py",
+      "research/scratch/mlp_fused_bf16.py",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "research/scratch/mlp_backward_rounding_bounds.py",
+      "research/scratch/fp8_mlp_token_rows_nki.py",
+      "research/scratch/fp8_mlp_island_probe.py",
+      "research/scratch/fp8_mlp_island_autograd.py",
+      "research/scratch/fp8_rms_scale_contract.py",
+      "research/scratch/fp8_packed_mlp_probe.py",
+      "research/scratch/fp8_mlp_island_nki.py",
+      "research/scratch/fp8_mlp_integration.py",
+      "research/scratch/fp8_mlp_integration_check.py",
+      "research/scratch/mlp_fused_integration_check.py",
+      "research/scratch/mlp_fused_integration.py"
+    ]
+  },
+  "requested_at": "2026-09-19T01:59:17.678264+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w95-fp8-separate-region-integration-gate-r1\", \"pid\": 1247836, \"commit\": \"d14298ea22ab33ff8be47afc9cba4a81ca8967ac\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave95/research/run-logs/fs-w95-fp8-separate-region-integration-gate-r1.log\", \"started_at\": \"2026-09-19T01:59:24.749937+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

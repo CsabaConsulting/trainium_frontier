@@ -147,3 +147,42 @@ regression. It retains the same packed forward and BF16 surrogate backward,
 master-gradient paths and once-per-update caches. The actual Linear integration
 gate must pass before its phase run. This is a possible response to caller-level
 layout/allocation evidence; it does not claim that graph separation is faster.
+
+## Share backward quantization using activation-scale transfer
+
+Proposed algebraic extension, not implemented or a measured gain. Let saved
+hidden values be `H[t,h] = QH[t,h] / sH[t]`, using the existing positive
+power-of-two row scales. Choose one global backward scale `sG` and quantize
+`Gprime[t,c] = G[t,c] / sH[t]` into `QGprime = quantize(sG * Gprime)`.
+The resulting chosen gradient approximation is
+`Gtilde[t,c] = sH[t] * QGprime[t,c] / sG`. Then:
+
+```
+dWdown = QGprime.T @ QH / sG
+dHidden = sH[:, None] * (QGprime @ QWdown) / sG / sWdown
+```
+
+The row scales cancel inside the weight-gradient contraction, while they stay
+outside the channel contraction for the data gradient. This lets the SAME
+quantized gradient serve both products. Preserve derivative/BF16 boundaries
+and then choose a common scale `sD` for quantized preactivation gradients `QD`:
+
+```
+dWup = QD.T @ QX / sD / sX
+dX = QD @ QWup / sD / sWup
+```
+
+Here `sX` is the already gated fixed RMS-input scale. Sequential rescaling is
+intentional: multiplying inverse scales first previously underflowed. Returning
+raw `QX`/`QH` plus scale metadata from forward may replace the larger dequantized
+backward saves. Measure those layout/save costs and all four backward products
+together; separate two-product timing cannot establish the amortized benefit.
+
+This changes the quantized backward algorithm. Quantization of an upstream
+gradient is nonlinear, so do not label it an exact linear VJP or reuse the
+old FP64-autograd surrogate gate without modification. Build independent CPU
+quantizers and FP64 references for each chosen matrix product, then test
+tiny/zero rows, signed cancellation, broad row ranges, overflow/underflow,
+outliers and arbitrary upstream gradients. Global gradient scaling may lose
+small but useful contributions; finite outputs alone are insufficient. Full
+model speed and30-minute BPB remain required.
