@@ -1,0 +1,45 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave122",
+    "expected_commit": "19ae46c34a49392646d04862fa5fbf96fde7d446",
+    "label": "fs-w122-head-loss-final-norm-region-model-gate-r1",
+    "purpose": "After original native-boundary diagnosis and failed FP32-carrier model gate, move the single compiled boundary before original final RMSNorm at the FP32 residual. Retain unchanged196 exact loss/master-gradient/update/cache/native-eval checks plus explicit compiled-boundary checks. No tolerance relaxation or full phase before passing.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave122"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/head_loss_fused_model_probe.py",
+      "--real-width",
+      "--separate-region",
+      "--include-final-norm"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/head_loss_fused_nki.py",
+      "research/scratch/head_loss_fused_autograd.py",
+      "research/scratch/head_loss_fused_autograd_probe.py",
+      "research/scratch/softcap_ce_parallel_nki.py",
+      "research/scratch/softcap_ce_parallel_integration.py",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "research/scratch/head_loss_fused_integration.py",
+      "research/scratch/head_loss_fused_model_probe.py",
+      "research/scratch/mlp_fused_integration.py"
+    ]
+  },
+  "requested_at": "2026-09-19T04:17:06.042680+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w122-head-loss-final-norm-region-model-gate-r1\", \"pid\": 1318118, \"commit\": \"19ae46c34a49392646d04862fa5fbf96fde7d446\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave122/research/run-logs/fs-w122-head-loss-final-norm-region-model-gate-r1.log\", \"started_at\": \"2026-09-19T04:17:11.976061+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

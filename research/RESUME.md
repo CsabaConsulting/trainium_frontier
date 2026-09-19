@@ -1,7 +1,53 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 04:06 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 04:20 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
+
+## Separate precision variant — 2026-09-19 04:20 UTC
+
+- Source122 final-norm boundary also FAILS exact monolithic loss (9.5367e-7).
+  Command1, clean04:17:44. No original-equivalence claim or quality promotion.
+- Source123 adds a DISTINCT same-scope native reference gate for the original
+  BF16 split head. All196 checks remain exact; report explicitly denies proven
+  monolithic equivalence. Original native splitting alone already caused the
+  source121 discrepancy. After passing, three matched phases must separate the
+  compiler boundary from kernel gains, then quality requires a fresh timed run.
+- trn22 source122 FP8 forward-byte gate active, watcher122; small cases pass,
+  real-shape independent gates running. trn21 clean and ready for123 scope gate.
+- Future remote fetch/worktree commands disable automatic Git maintenance per
+  command. Wave122 trn22 fetch triggered background Git packing; a read-only
+  check at04:18 found no git process/gc.pid while real-shape gates were still
+  running, before timing. Do not run Git maintenance concurrently with phases.
+
+## Next immutable source122 — 2026-09-19 04:16 UTC
+
+- Source121 original-head diagnostic proves the graph boundary itself changes
+  gradients: native/cached are exact within both scopes. FP32 carrier passes20
+  component checks but FAILS the original GPT exact gate; no full phase allowed.
+  Source122 moves final normalization into the separate head region, retaining
+  the FP32 residual boundary and original norm/head arithmetic. Gate first.
+- Source122 FP8 producer probe saves already computed activation bytes/scales;
+  compare against actual forward plus repacking, charging online cache work and
+  both forward producers. All original independent gates are retained. Current
+  saved values and derivative are unchanged; no all-four-gradient claim.
+- All52 checkpoint/profile artifacts GitHub-digest verified04:10:10, no errors;
+  includes latest head parquet980,330,644B tar. Source/snapshot verified04:07:36;
+  regular10minute source backup continues. Both hosts' latest121 jobs have clean
+  postflights, including numerical failures. Check fresh manifests before launch.
+
+## Boundary failure and next diagnostic — 2026-09-19 04:10 UTC
+
+- Source120 split-head exact gate FAILED: same loss, token-embedding gradient
+  difference2.861e-6; command1 but clean04:07:19. Do not run its phase requests.
+  Next source121 diagnostic compares original native heads across the same
+  boundary, then a separately gated FP32 carrier tests extra gradient rounding.
+  Original196 exact GPT checks and failed evidence remain unchanged.
+- Source119 per-row fused abs data backward COMPLETE/clean04:07:05: all11cases
+  pass.5.654671ms versus original6.200740ms and native5.510375ms. No fullFP8 gain.
+- Source120/snapshot pushed and remote-ref verified04:07:36. Artifact uploader
+  continues under its lock. Both current hosts clean; source121 two independent
+  bounded component/diagnostic requests are being prepared. Verify their actual
+  dispatch and postflight before relying on this prose.
 
 ## Active trials — 2026-09-19 04:06 UTC
 

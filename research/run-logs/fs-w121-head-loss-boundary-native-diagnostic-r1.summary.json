@@ -1,0 +1,51 @@
+{
+  "label": "fs-w121-head-loss-boundary-native-diagnostic-r1",
+  "source_commit": "c5ee8f7ca75e849540dc24aa3bf73bb98b1adeb6",
+  "host_clean": true,
+  "completed_at": "2026-09-19T04:11:59.177425+00:00",
+  "result": {
+    "same_scope_native_cached_controls": [
+      {
+        "name": "native_vs_cached_monolithic",
+        "exact": true,
+        "differing_fields": []
+      },
+      {
+        "name": "native_vs_cached_split",
+        "exact": true,
+        "differing_fields": []
+      }
+    ],
+    "native_boundary_effect": {
+      "name": "native_monolithic_vs_native_split",
+      "exact": false,
+      "differing_fields": [
+        "transformer.wte.weight",
+        "transformer.h.0.resid_lambda",
+        "transformer.h.0.x0_lambda",
+        "transformer.h.0.attn.c_q.weight",
+        "transformer.h.0.attn.c_k.weight",
+        "transformer.h.0.attn.c_v.weight",
+        "transformer.h.0.attn.c_proj.weight",
+        "transformer.h.0.mlp.c_fc.weight",
+        "transformer.h.0.mlp.c_proj.weight",
+        "transformer.h.0.local_conv.weight",
+        "transformer.h.1.resid_lambda",
+        "transformer.h.1.x0_lambda",
+        "transformer.h.1.attn.c_q.weight",
+        "transformer.h.1.attn.c_k.weight",
+        "transformer.h.1.attn.c_v.weight",
+        "transformer.h.1.attn.c_proj.weight",
+        "transformer.h.1.attn.ve_gate.weight",
+        "transformer.h.1.mlp.c_fc.weight",
+        "transformer.h.1.mlp.c_proj.weight",
+        "transformer.h.1.local_conv.weight",
+        "lm_head.weight",
+        "value_embeds.1.weight"
+      ]
+    },
+    "exact_original_model_gate_replaced": false,
+    "speed_or_quality_promotion": false
+  },
+  "whole_model_or_quality_promotion": false
+}

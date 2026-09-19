@@ -1,0 +1,47 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave121",
+    "expected_commit": "c5ee8f7ca75e849540dc24aa3bf73bb98b1adeb6",
+    "label": "fs-w121-head-loss-fp32-carrier-component-r1",
+    "purpose": "Independently gate FP32 interface carrying BF16 activation values and FP32 input-gradient accumulator. All20 original head/loss/master-gradient/cache/update checks remain exact against compiled native BF16 head with FP32 input interface. Charge conversion/transpose in actual shape. No full-model or quality promotion.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave121"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/head_loss_fused_autograd_probe.py",
+      "--real-shape",
+      "--benchmark",
+      "--steps",
+      "12",
+      "--fp32-carrier"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/head_loss_fused_nki.py",
+      "research/scratch/head_loss_fused_autograd.py",
+      "research/scratch/head_loss_fused_autograd_probe.py",
+      "research/scratch/softcap_ce_parallel_nki.py",
+      "research/scratch/softcap_ce_parallel_integration.py",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "research/scratch/head_loss_fused_integration.py",
+      "research/scratch/head_loss_fused_model_probe.py",
+      "research/scratch/mlp_fused_integration.py"
+    ]
+  },
+  "requested_at": "2026-09-19T04:11:12.972788+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w121-head-loss-fp32-carrier-component-r1\", \"pid\": 1652990, \"commit\": \"c5ee8f7ca75e849540dc24aa3bf73bb98b1adeb6\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave121/research/run-logs/fs-w121-head-loss-fp32-carrier-component-r1.log\", \"started_at\": \"2026-09-19T04:11:19.514473+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

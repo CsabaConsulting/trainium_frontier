@@ -53,7 +53,14 @@ def main():
     ap.add_argument("--real-width", action="store_true")
     ap.add_argument("--separate-region", action="store_true")
     ap.add_argument("--saved-softcap", action="store_true")
+    ap.add_argument("--fp32-carrier", action="store_true")
+    ap.add_argument("--include-final-norm", action="store_true")
+    ap.add_argument("--same-scope-native-reference", action="store_true",
+                    help="Explicit numerical variant: exact reference uses the same graph boundary. "
+                         "This does not replace the failed original-monolithic equivalence gate.")
     args = ap.parse_args()
+    if args.same_scope_native_reference and not args.separate_region:
+        ap.error("same-scope reference requires the explicit separate region")
     import torch_neuronx
     torch.set_num_threads(4)
     torch._dynamo.config.recompile_limit = 32
@@ -87,12 +94,18 @@ def main():
         for model in (baseline, candidate):
             install_mlp(model, "neuron", T, forward_backend="native")
         before_rng = torch.get_rng_state().clone()
+        if args.same_scope_native_reference:
+            install(baseline, T, separate_region=True,
+                    fp32_carrier=args.fp32_carrier, include_final_norm=args.include_final_norm,
+                    native_head=True)
         contract = install(candidate, T, separate_region=args.separate_region,
-                           save_softcap=args.saved_softcap)
+                           save_softcap=args.saved_softcap, fp32_carrier=args.fp32_carrier,
+                           include_final_norm=args.include_final_norm)
         assert torch.equal(before_rng, torch.get_rng_state())
         before_keys = tuple(baseline.state_dict())
         assert before_keys == tuple(candidate.state_dict())
-        native = torch.compile(baseline, backend="neuron", fullgraph=True, dynamic=False)
+        native = torch.compile(baseline, backend="neuron",
+                               fullgraph=not args.same_scope_native_reference, dynamic=False)
         # Only the explicit boundary permits a caller graph break. Its head
         # compiles fullgraph=True, while all existing numerical gates remain.
         fused = torch.compile(candidate, backend="neuron",
@@ -108,12 +121,14 @@ def main():
                 for is_candidate, function in enumerate((native, fused)):
                     value = function(tokens, targets)
                     assert type(value.grad_fn).__name__ == "CompiledFunctionBackward"
-                    if is_candidate and args.separate_region:
+                    if ((is_candidate and args.separate_region)
+                            or (not is_candidate and args.same_scope_native_reference)):
                         names = compiled_nodes(value)
                         count = names.count("CompiledFunctionBackward")
                         assert count >= 2, ("head/body boundary absent", names)
                         emit("CACHED_HEAD_MODEL_COMPILED_BOUNDARY", dict(
                             channels=channels, step=step, micro=micro,
+                            implementation="candidate" if is_candidate else "native_reference",
                             compiled_backward_nodes=count, passed=True))
                     value.backward()
                     values.append(value)
@@ -160,6 +175,11 @@ def main():
             equal(f"{channels}:explicit_adapter_restore", b, candidate(short))
         emit("CACHED_HEAD_MODEL_RESULT", dict(channels=channels, passed=True,
             separate_region=args.separate_region, saved_softcap=args.saved_softcap,
+            fp32_carrier=args.fp32_carrier,
+            include_final_norm=args.include_final_norm,
+            native_reference_scope=("same_separate_region" if args.same_scope_native_reference
+                                    else "original_monolithic"),
+            exact_monolithic_equivalence=not args.same_scope_native_reference,
             two_microbatch_accumulation=True, two_master_updates=True,
             cache_refresh=True, exact_native_gradients=True, original_eval=True,
             checkpoint_roundtrip=True, causality_batch_repeat=True,

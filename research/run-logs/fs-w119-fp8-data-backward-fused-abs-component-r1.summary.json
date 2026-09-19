@@ -1,0 +1,238 @@
+{
+  "label": "fs-w119-fp8-data-backward-fused-abs-component-r1",
+  "source_commit": "3ae1861f48094429d842ac79a493c022ee846d02",
+  "host_clean": true,
+  "completed_at": "2026-09-19T04:07:05.247509+00:00",
+  "records": {
+    "FP8_DATA_BACKWARD_STAGE_GATE": [
+      {
+        "case": "random",
+        "shape": [
+          512,
+          256,
+          512
+        ],
+        "passed": true,
+        "separate_and_fused_algorithm_exact": true,
+        "independent_quantizer_and_pair_stages": true,
+        "bf16_pre_saved_for_weight_gradient": true,
+        "fused_abs": true,
+        "original_algorithm_exact": true,
+        "approximation_changes_vjp": true,
+        "autograd_or_weight_gradient_integration": false
+      },
+      {
+        "case": "zero_gradient",
+        "shape": [
+          512,
+          256,
+          512
+        ],
+        "passed": true,
+        "separate_and_fused_algorithm_exact": true,
+        "independent_quantizer_and_pair_stages": true,
+        "bf16_pre_saved_for_weight_gradient": true,
+        "fused_abs": true,
+        "original_algorithm_exact": true,
+        "approximation_changes_vjp": true,
+        "autograd_or_weight_gradient_integration": false
+      },
+      {
+        "case": "zero_relu",
+        "shape": [
+          512,
+          256,
+          512
+        ],
+        "passed": true,
+        "separate_and_fused_algorithm_exact": true,
+        "independent_quantizer_and_pair_stages": true,
+        "bf16_pre_saved_for_weight_gradient": true,
+        "fused_abs": true,
+        "original_algorithm_exact": true,
+        "approximation_changes_vjp": true,
+        "autograd_or_weight_gradient_integration": false
+      },
+      {
+        "case": "zero_down",
+        "shape": [
+          512,
+          256,
+          512
+        ],
+        "passed": true,
+        "separate_and_fused_algorithm_exact": true,
+        "independent_quantizer_and_pair_stages": true,
+        "bf16_pre_saved_for_weight_gradient": true,
+        "fused_abs": true,
+        "original_algorithm_exact": true,
+        "approximation_changes_vjp": true,
+        "autograd_or_weight_gradient_integration": false
+      },
+      {
+        "case": "zero_up",
+        "shape": [
+          512,
+          256,
+          512
+        ],
+        "passed": true,
+        "separate_and_fused_algorithm_exact": true,
+        "independent_quantizer_and_pair_stages": true,
+        "bf16_pre_saved_for_weight_gradient": true,
+        "fused_abs": true,
+        "original_algorithm_exact": true,
+        "approximation_changes_vjp": true,
+        "autograd_or_weight_gradient_integration": false
+      },
+      {
+        "case": "tiny_gradient",
+        "shape": [
+          512,
+          256,
+          512
+        ],
+        "passed": true,
+        "separate_and_fused_algorithm_exact": true,
+        "independent_quantizer_and_pair_stages": true,
+        "bf16_pre_saved_for_weight_gradient": true,
+        "fused_abs": true,
+        "original_algorithm_exact": true,
+        "approximation_changes_vjp": true,
+        "autograd_or_weight_gradient_integration": false
+      },
+      {
+        "case": "subnormal_gradient",
+        "shape": [
+          512,
+          256,
+          512
+        ],
+        "passed": true,
+        "separate_and_fused_algorithm_exact": true,
+        "independent_quantizer_and_pair_stages": true,
+        "bf16_pre_saved_for_weight_gradient": true,
+        "fused_abs": true,
+        "original_algorithm_exact": true,
+        "approximation_changes_vjp": true,
+        "autograd_or_weight_gradient_integration": false
+      },
+      {
+        "case": "signed_zero_gradient",
+        "shape": [
+          512,
+          256,
+          512
+        ],
+        "passed": true,
+        "separate_and_fused_algorithm_exact": true,
+        "independent_quantizer_and_pair_stages": true,
+        "bf16_pre_saved_for_weight_gradient": true,
+        "fused_abs": true,
+        "original_algorithm_exact": true,
+        "approximation_changes_vjp": true,
+        "autograd_or_weight_gradient_integration": false
+      },
+      {
+        "case": "row_scale_range",
+        "shape": [
+          512,
+          256,
+          512
+        ],
+        "passed": true,
+        "separate_and_fused_algorithm_exact": true,
+        "independent_quantizer_and_pair_stages": true,
+        "bf16_pre_saved_for_weight_gradient": true,
+        "fused_abs": true,
+        "original_algorithm_exact": true,
+        "approximation_changes_vjp": true,
+        "autograd_or_weight_gradient_integration": false
+      },
+      {
+        "case": "outliers",
+        "shape": [
+          512,
+          256,
+          512
+        ],
+        "passed": true,
+        "separate_and_fused_algorithm_exact": true,
+        "independent_quantizer_and_pair_stages": true,
+        "bf16_pre_saved_for_weight_gradient": true,
+        "fused_abs": true,
+        "original_algorithm_exact": true,
+        "approximation_changes_vjp": true,
+        "autograd_or_weight_gradient_integration": false
+      },
+      {
+        "case": "real_random",
+        "shape": [
+          16384,
+          1024,
+          4096
+        ],
+        "passed": true,
+        "separate_and_fused_algorithm_exact": true,
+        "independent_quantizer_and_pair_stages": true,
+        "bf16_pre_saved_for_weight_gradient": true,
+        "fused_abs": true,
+        "original_algorithm_exact": true,
+        "approximation_changes_vjp": true,
+        "autograd_or_weight_gradient_integration": false
+      }
+    ],
+    "FP8_DATA_BACKWARD_BENCH": [
+      {
+        "shape": [
+          16384,
+          1024,
+          4096
+        ],
+        "samples_ms": {
+          "native_bf16_chain": [
+            5.515016134207447,
+            5.510374663087229,
+            5.500379534593473
+          ],
+          "fp8_separate_dots": [
+            7.203441466360043,
+            7.091975266424318,
+            7.188409597923358
+          ],
+          "fp8_fused_data_backward": [
+            6.205741467420012,
+            6.171012999645124,
+            6.200740331163009
+          ],
+          "fp8_fused_abs_data_backward": [
+            5.648833598631124,
+            5.657758598681539,
+            5.654670600779355
+          ]
+        },
+        "median_ms": {
+          "native_bf16_chain": 5.510374663087229,
+          "fp8_separate_dots": 7.188409597923358,
+          "fp8_fused_data_backward": 6.200740331163009,
+          "fp8_fused_abs_data_backward": 5.654670600779355
+        },
+        "units": "ms per extra transposes/packing plus two data-gradient chains",
+        "all_extra_backward_cache_work_charged": true,
+        "shared_forward_calibration_already_paid": true,
+        "fused_abs": true,
+        "weight_gradients_fp32_accumulation_optimizer_model_excluded": true
+      }
+    ],
+    "FP8_DATA_BACKWARD_RESULT": [
+      {
+        "passed": true,
+        "real_shape": true,
+        "fused_abs": true,
+        "integrated_backward": false,
+        "full_model_speed_or_quality_claim": false
+      }
+    ]
+  },
+  "full_backward_or_quality_gain_established": false
+}

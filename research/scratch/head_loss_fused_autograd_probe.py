@@ -43,6 +43,7 @@ def main():
     parser.add_argument("--benchmark", action="store_true")
     parser.add_argument("--steps", type=int, default=12)
     parser.add_argument("--saved-softcap", action="store_true")
+    parser.add_argument("--fp32-carrier", action="store_true")
     args = parser.parse_args()
     assert not args.benchmark or args.real_shape
     import torch_neuronx
@@ -51,7 +52,7 @@ def main():
     T.USE_WEIGHT_CACHE = True
     before_rng = torch.get_rng_state().clone()
     install(T)
-    fused_loss = loss_factory(save_softcap=args.saved_softcap)
+    fused_loss = loss_factory(save_softcap=args.saved_softcap, fp32_carrier=args.fp32_carrier)
     assert torch.equal(before_rng, torch.get_rng_state())
     generator = torch.Generator().manual_seed(9417)
     shapes = [(512, 256)] + ([(16384, 1024)] if args.real_shape else [])
@@ -60,6 +61,8 @@ def main():
         head = T.Linear(channels, 8192, bias=False).to("neuron")
 
         def original(x, target, reduction):
+            if args.fp32_carrier:
+                x = x.bfloat16()
             return T.softcap_cross_entropy(head(x).float(), target, reduction)
 
         def candidate(x, target, reduction):
@@ -88,7 +91,8 @@ def main():
                 xc.zero_(); xc[:, 0] = 1
                 wc.zero_(); wc[:, 0] = -80; wc[0, 0] = 80
                 tc.fill_(0 if case == "confident_correct" else 8191)
-            x = xc.to("neuron").requires_grad_()
+            x = xc.to(device="neuron", dtype=torch.float32 if args.fp32_carrier
+                      else torch.bfloat16).requires_grad_()
             target, gradient = tc.to("neuron"), gcpu.to("neuron")
             with torch.no_grad():
                 head.weight.copy_(wc.to("neuron"))
@@ -106,7 +110,7 @@ def main():
             assert torch.equal(head.weight.detach().cpu(), wc)
             assert torch.equal(x.detach().cpu(), xc) and torch.equal(target.cpu(), tc)
         # Two distinct microbatches accumulate into the same FP32 master.
-        x2 = (xc * .75 + .125).to("neuron").requires_grad_()
+        x2 = (xc * .75 + .125).to(device="neuron", dtype=x.dtype).requires_grad_()
         initial_master = head.weight.detach().cpu().clone()
         accumulated, updated = [], []
         for function in functions:
@@ -153,6 +157,7 @@ def main():
             emit("FUSED_HEAD_AUTOGRAD_BENCH", dict(shape=[rows, channels, 8192], **measured,
                 units="ms per head/loss forward and backward",
                 saved_softcap=args.saved_softcap,
+                fp32_carrier=args.fp32_carrier,
                 transpose_per_forward_charged=True, fp32_master_gradient=True,
                 optimizer_or_whole_model_included=False))
         del head, x, x2, target, gradient
@@ -160,6 +165,7 @@ def main():
     emit("FUSED_HEAD_AUTOGRAD_RESULT", dict(passed=True, comparisons=count,
         real_shape=args.real_shape, compiled_original_linear=True,
         saved_softcap=args.saved_softcap,
+        fp32_carrier=args.fp32_carrier,
         cache_refresh_and_master_accumulation=True, rng_unchanged=True,
         integrated_into_model=False, quality_or_whole_step_promotion=False))
 

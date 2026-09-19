@@ -1,0 +1,45 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave123",
+    "expected_commit": "2f2ad50819383754be1ac493a6e78b4641433cb9",
+    "label": "fs-w123-head-loss-same-scope-model-gate-r1",
+    "purpose": "Declare split BF16 head as a new precision variant after native splitting alone reproduced prior differences. Keep all196 GPT checks exact against original native head with same split scope, at both widths/two updates/two microbatches. Require compiled boundary for both. Original monolithic equivalence is explicitly NOT claimed; failed gates retained. No numeric tolerance relaxation.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave123"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/head_loss_fused_model_probe.py",
+      "--real-width",
+      "--separate-region",
+      "--same-scope-native-reference"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/head_loss_fused_nki.py",
+      "research/scratch/head_loss_fused_autograd.py",
+      "research/scratch/head_loss_fused_autograd_probe.py",
+      "research/scratch/softcap_ce_parallel_nki.py",
+      "research/scratch/softcap_ce_parallel_integration.py",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "research/scratch/head_loss_fused_integration.py",
+      "research/scratch/head_loss_fused_model_probe.py",
+      "research/scratch/mlp_fused_integration.py"
+    ]
+  },
+  "requested_at": "2026-09-19T04:20:39.996529+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w123-head-loss-same-scope-model-gate-r1\", \"pid\": 1320199, \"commit\": \"2f2ad50819383754be1ac493a6e78b4641433cb9\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave123/research/run-logs/fs-w123-head-loss-same-scope-model-gate-r1.log\", \"started_at\": \"2026-09-19T04:20:46.393279+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

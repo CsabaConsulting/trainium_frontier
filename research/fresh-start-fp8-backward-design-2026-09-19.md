@@ -349,3 +349,25 @@ stage outputs, tiny/subnormal/signed-zero gradients, row independence and the
 actual shape. Timing charges transpose/packing once plus two data-gradient
 chains, paired with original fused FP8 and native BF16. No quality promotion
 without complete composition and whole-step evidence.
+
+Source119 fused per-row calibration COMPLETE and clean04:07:05. All11 cases
+pass exact original eight-stage comparisons, independent quantizers/pair bounds,
+subnormal/signed-zero cases and actual16384x1024x4096 shape. Two data chains plus
+extra weight transpose/packing:5.654671ms versus original fused6.200740ms
+(8.8065% faster), still slower than native5.510375ms. No all-four-gradient
+composition/autograd or full training claim. Further backward work must also
+reuse quantized activations produced by forward, charging any additional saves;
+repacking those from BF16 is currently an explicit cost, not a free input.
+
+## Source122: charge forward-produced activation bytes
+
+The FP8 forward already holds raw X and hidden bytes on chip but previously
+saved only their BF16 dequantizations. Add optional raw-byte and hidden-scale
+outputs while retaining every existing BF16 save. Compare with a real forward
+that saves scales then rebuilds both FP8 activation inputs using the old byte
+packer. Ten fixtures retain the independent original stage/quantizer/pair gates,
+then require exact old outputs, CPU byte decoding, original repacking (signed
+zero encoding changes reported), repeat and cross-row independence. Timing
+charges online master casts, weight calibration/packing and two complete forward
+producers. This tests a pipeline opportunity hidden by standalone weight-product
+benchmarks. Full backward and its shared preparation remain separate gates.

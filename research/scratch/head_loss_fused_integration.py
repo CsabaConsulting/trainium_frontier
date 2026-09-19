@@ -19,7 +19,14 @@ def call_separate_region(compiled_function, *inputs):
     return compiled_function(*inputs)
 
 
-def install(model, train_module, separate_region=False, save_softcap=False):
+def install(model, train_module, separate_region=False, save_softcap=False,
+            fp32_carrier=False, include_final_norm=False, native_head=False):
+    if native_head and not separate_region:
+        raise ValueError("Native head adapter is a separate-scope experimental control")
+    if fp32_carrier and not separate_region:
+        raise ValueError("FP32 carrier is restricted to the explicit head/body boundary")
+    if include_final_norm and (not separate_region or fp32_carrier):
+        raise ValueError("Final norm belongs to a separate region with the original head interface")
     if getattr(model, "_fresh_start_cached_head_installed", False):
         raise RuntimeError("Cached head adapter already installed")
     if (not train_module.USE_BF16_NORM_OUTPUT or not train_module.USE_WEIGHT_CACHE
@@ -31,7 +38,19 @@ def install(model, train_module, separate_region=False, save_softcap=False):
     if not getattr(train_module, "_fresh_start_adaptive_ce_installed", False):
         raise ValueError("Install the exact adaptive CE reference before the cached head")
     from head_loss_fused_autograd import loss_factory
-    fused_loss = loss_factory(save_softcap=save_softcap)
+    if native_head:
+        def fused_loss(x, weight, targets, reduction):
+            if fp32_carrier:
+                x = x.bfloat16()
+            return train_module.softcap_cross_entropy(
+                torch.nn.functional.linear(x, weight).float(), targets, reduction)
+    else:
+        fused_loss = loss_factory(save_softcap=save_softcap, fp32_carrier=fp32_carrier)
+    if include_final_norm:
+        head_loss = fused_loss
+
+        def fused_loss(x, weight, targets, reduction):
+            return head_loss(train_module.norm(x), weight, targets, reduction)
     if separate_region:
         compiled_loss = torch.compile(fused_loss, backend="neuron",
                                       fullgraph=True, dynamic=False)
@@ -51,21 +70,30 @@ def install(model, train_module, separate_region=False, save_softcap=False):
     position = positions[0]
     assert ast.unparse(function.body[position].value) == \
         "self.lm_head(x)[..., :self.config.vocab_size].float()"
+    if include_final_norm:
+        position -= 1
+        assert ast.unparse(function.body[position]) == "x = norm(x)"
 
     def model_loss(current, x, targets, reduction):
         weight = current.lm_head._cached_weight
-        if weight is None or weight.dtype != x.dtype:
-            weight = current.lm_head.weight.to(x.dtype)
+        head_dtype = torch.bfloat16 if include_final_norm else x.dtype
+        if weight is None or weight.dtype != head_dtype:
+            weight = current.lm_head.weight.to(head_dtype)
+        if fp32_carrier:
+            x = x.float()
         return fused_loss(x.reshape(-1, x.shape[-1]), weight, targets, reduction)
 
-    guard = ast.parse('''
+    guard_source = '''
 if (targets is not None and self.training and torch.compiler.is_compiling()
         and x.device.type == "neuron" and x.dtype == torch.bfloat16
         and x.numel() // x.shape[-1] >= 512
         and (x.numel() // x.shape[-1]) % 256 == 0
         and loss_reduction in ("mean", "none")):
     return _fresh_start_cached_head_loss(self, x, targets, loss_reduction)
-''').body[0]
+'''
+    if include_final_norm:
+        guard_source = guard_source.replace("x.dtype == torch.bfloat16", "x.dtype == torch.float32")
+    guard = ast.parse(guard_source).body[0]
     function.body.insert(position, guard)
     ast.fix_missing_locations(tree)
     namespace = dict(vars(train_module))
@@ -81,8 +109,12 @@ if (targets is not None and self.training and torch.compiler.is_compiling()
         delattr(model, "_fresh_start_cached_head_installed")
 
     return dict(restore=restore, original_forward=original,
-                source_edit="one guarded training return before original head projection",
+                source_edit=("one guarded training return before final norm" if include_final_norm
+                             else "one guarded training return before original head projection"),
                 transpose_every_forward=True, parameter_identity_unchanged=True,
                 separate_compiled_region=bool(separate_region),
                 saved_softcap=bool(save_softcap),
+                fp32_carrier=bool(fp32_carrier),
+                include_final_norm=bool(include_final_norm),
+                native_head_control=bool(native_head),
                 eager_and_evaluation_use_original=True)

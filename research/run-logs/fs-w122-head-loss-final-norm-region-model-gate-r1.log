@@ -1,0 +1,19 @@
+[W919 04:17:13.268955508 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+CACHED_HEAD_MODEL_COMPILED_BOUNDARY {"channels": 256, "step": 0, "micro": 0, "compiled_backward_nodes": 2, "passed": true}
+CACHED_HEAD_MODEL_EXACT {"name": "256:0:0:loss", "shape": [], "dtype": "torch.float32", "exact": false, "max_abs": 9.5367431640625e-07, "passed": false}
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_freshstart_20260918_wave122/research/scratch/head_loss_fused_model_probe.py", line 177, in <module>
+    main()
+  File "/home/ubuntu/trainium_freshstart_20260918_wave122/research/scratch/head_loss_fused_model_probe.py", line 123, in main
+    equal(f"{channels}:{step}:{micro}:loss", *values)
+  File "/home/ubuntu/trainium_freshstart_20260918_wave122/research/scratch/head_loss_fused_model_probe.py", line 36, in equal
+    assert passed, record
+           ^^^^^^
+AssertionError: {'name': '256:0:0:loss', 'shape': [], 'dtype': 'torch.float32', 'exact': False, 'max_abs': 9.5367431640625e-07, 'passed': False}
+EXPERIMENT_POSTFLIGHT {"label": "fs-w122-head-loss-final-norm-region-model-gate-r1", "returncode": 1, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave122/research/run-logs/fs-w122-head-loss-final-norm-region-model-gate-r1.postflight.json"}

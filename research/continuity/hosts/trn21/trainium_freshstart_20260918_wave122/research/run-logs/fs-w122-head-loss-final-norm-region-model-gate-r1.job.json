@@ -1,0 +1,61 @@
+{
+  "host": "trn21",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave122",
+  "expected_commit": "19ae46c34a49392646d04862fa5fbf96fde7d446",
+  "label": "fs-w122-head-loss-final-norm-region-model-gate-r1",
+  "purpose": "After original native-boundary diagnosis and failed FP32-carrier model gate, move the single compiled boundary before original final RMSNorm at the FP32 residual. Retain unchanged196 exact loss/master-gradient/update/cache/native-eval checks plus explicit compiled-boundary checks. No tolerance relaxation or full phase before passing.",
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1",
+    "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+    "NEURON_RT_VISIBLE_CORES": "0",
+    "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave122"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1200s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "research/scratch/head_loss_fused_model_probe.py",
+    "--real-width",
+    "--separate-region",
+    "--include-final-norm"
+  ],
+  "fingerprint_paths": [
+    "research/scratch/head_loss_fused_nki.py",
+    "research/scratch/head_loss_fused_autograd.py",
+    "research/scratch/head_loss_fused_autograd_probe.py",
+    "research/scratch/softcap_ce_parallel_nki.py",
+    "research/scratch/softcap_ce_parallel_integration.py",
+    "research/scratch/mlp_fused_bf16_probe.py",
+    "research/scratch/head_loss_fused_integration.py",
+    "research/scratch/head_loss_fused_model_probe.py",
+    "research/scratch/mlp_fused_integration.py"
+  ],
+  "started_at": "2026-09-19T04:17:11.976061+00:00",
+  "hostname": "ip-172-31-34-85",
+  "git_commit": "19ae46c34a49392646d04862fa5fbf96fde7d446",
+  "source_dirty": false,
+  "preflight_free_bytes": 10064060416,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+    "research/fresh_start_host.py": "8c597adea7c48114bed8f50aa161fdc79b36b49c86c7315e6a58c3ca4e8f5f79",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/fresh_start_backup.py": "c978fd20b6620d0d80c25f8982974e8c4b2ad009edd9da376d784f5cecc3ead3",
+    "research/scratch/head_loss_fused_nki.py": "22f834e5c5244cb333ea0464b7484ebe339a7617bf86238873afb59a209085ea",
+    "research/scratch/head_loss_fused_autograd.py": "e7650f2e3d96bf41a9d485ba7965faf63a123e13ebe8f922138f5a80b559dcad",
+    "research/scratch/head_loss_fused_autograd_probe.py": "2f8be8406ec39492416f8e9d1a9fbe7c4224c3a8ab476c20eabb119bc5962919",
+    "research/scratch/softcap_ce_parallel_nki.py": "15337f8f97fd8c92a9e97469bf81a8232e9dc5bd764df38a63374bee2cb2befb",
+    "research/scratch/softcap_ce_parallel_integration.py": "b76edf10c434cb345ffafe9361b8f15371ec7f3b06ee07366694c4f694479e70",
+    "research/scratch/mlp_fused_bf16_probe.py": "565991e1fb29dcf41c6db58e098891a5e59685b231d6475bed66e465242483ed",
+    "research/scratch/head_loss_fused_integration.py": "20cadc746a1e8ed30235e9668eb4a7a2dd93620d99096f0c088838a52ea07e99",
+    "research/scratch/head_loss_fused_model_probe.py": "98a1ebce412c4aa65262426c40a5ec6d867561710d5ce04b8febd6b5d23d5f8a",
+    "research/scratch/mlp_fused_integration.py": "f85e0d744b1d4b8c330d35383a931af651facf784ca484deaa29fbf11efb4e04"
+  }
+}
