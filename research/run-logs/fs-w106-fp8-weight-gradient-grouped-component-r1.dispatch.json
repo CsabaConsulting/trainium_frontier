@@ -1,0 +1,44 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave106",
+    "expected_commit": "9a820796be3397ed21f33e497585ac07799a9184",
+    "label": "fs-w106-fp8-weight-gradient-grouped-component-r1",
+    "purpose": "Repeat all10 grouped FP8 weight-gradient gates and exact original FP8 comparisons; only then time row-scale transfer,current calibration,both byte preparations and grouped weight product against native BF16. Saved forward scale availability remains explicit; no autograd, quality or whole-step claim.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave106"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/fp8_weight_gradient_probe.py",
+      "--real-shape",
+      "--grouped-io",
+      "--benchmark",
+      "--steps",
+      "12"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/fp8_weight_gradient_nki.py",
+      "research/scratch/fp8_weight_gradient_probe.py",
+      "research/scratch/fp8_weight_cache_nki.py",
+      "research/scratch/fp8_mlp_island_probe.py",
+      "research/scratch/fresh_start_fp8_probe.py",
+      "research/scratch/fp8_packed_weight_cache_probe.py"
+    ]
+  },
+  "requested_at": "2026-09-19T03:09:48.824446+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w106-fp8-weight-gradient-grouped-component-r1\", \"pid\": 1281228, \"commit\": \"9a820796be3397ed21f33e497585ac07799a9184\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave106/research/run-logs/fs-w106-fp8-weight-gradient-grouped-component-r1.log\", \"started_at\": \"2026-09-19T03:09:55.311226+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

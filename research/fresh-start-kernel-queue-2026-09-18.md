@@ -1,6 +1,6 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19, 02:43 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19, 03:09 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
@@ -29,12 +29,18 @@ no math or numerical bounds. All14 fixtures and actual-row gates now pass.
 Forward-only native12.819835ms versus fused16.254153ms including transpose and
 saves (26.79% slower). Profile maps all3 dispatches: native6.444ms, transpose0.118ms, fused8.322ms.
 Repeated small weight loads show5.38ms/core GpSIMD source activity; fused has
-no populated spills. Source104 will gate in-place logits reuse and a full
-16MiB BF16 weight cache separately. No backward or quality promotion.
+no populated spills. Source104 full16MiB BF16 weight residency passes all14
+fixtures and actual-row gates, then wins8.443401ms versus12.787697ms including
+transpose and FP32 logits saves (33.97% forward-only). Source107 compiled
+head/master-gradient, two-microbatch accumulation and refreshed-cache gate
+is prepared. No complete-step or quality promotion.
 Source103 weight products pass10cases but lose6.431/native1.125ms down and
 7.069/native1.085ms up. Grouped operand reuse is prepared with unchanged
-numerical bounds. Source104 in-place-only head16.607/native12.764ms loses;
-cached-weight head variant now runs on trn21, watcher104.
+numerical bounds. Source105 grouped gate fails small up projection: width256
+PSUM tiles may share a bank. Source106512-element bank spacing now runs on
+trn21 with unchanged independent pair bounds and exact ungrouped comparison.
+Source104 in-place-only head16.607/native12.764ms loses; full weight caching
+supplies the measured forward win above.
 
 Measured FP8 progress and the BF16 layout reversal are summarized at the top of
 `fresh-start-results-2026-09-18.md`. No FP8 quality gain is established.
@@ -45,8 +51,8 @@ Current next actions, in dependency order:
 | --- | --- | --- |
 | Separate compiled FP8 MLP region | Integration passes; whole step loses24.08% to native | Include launch/cache/gradient costs; require at least3% whole-step gain before quality |
 | Reciprocal refinement plus optimizer ownership | Composition passes; whole step gains1.13%, below3% | Exact owned-versus-replicated same-math weights/states/rank exchange/cache/restore; then fresh paired whole-step timing |
-| FP8 gradient scale sharing | Weight-gradient stages/probe prepared; shared data consumers unimplemented | Independent quantizer/FP64 stage gates, then all four gradient products with all packing charged |
-| Fused vocabulary head and exact loss | 14fixtures and actual-row gates pass; forward loses26.79%; profile prepared | Preserve original FP32 head accumulation and all gradient terms; profile complete caller |
+| FP8 gradient scale sharing | Original10stage gates pass, component5.7–6.5x slower; grouped layout debugging; shared data consumers unimplemented | Independent quantizer/FP64 stage gates, then all four gradient products with all packing charged |
+| Fused vocabulary head and exact loss | Resident-weight variant wins33.97% forward-only; complete autograd gate prepared | Preserve original FP32 head accumulation and all gradient terms; profile complete caller |
 | Smaller range-reduced tables / rational composed functions | Design candidates; full-value LUT and standalone polynomial timings lost | Benchmark the full producer/consumer pipeline after accuracy/range gates |
 
 | Item | State | Next action / evidence |

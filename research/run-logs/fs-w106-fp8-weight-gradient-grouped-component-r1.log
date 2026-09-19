@@ -1,0 +1,8 @@
+[W919 03:09:57.637948767 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+FP8_WEIGHT_GRADIENT_CONTRACT {"current_gradient_scale": "global, online exponent-bit calibration; clamp amax at2^-100", "transferred_gradient": "BF16(G*saved_inverse_hidden_scale), then legacy E4M3", "product": "FP32 long-token reduction under empirical11-bit pair model; sequential inverse scales", "finite_bf16_rescaled_gradient_amax_max": 1.2676506002282294e+30, "signed_zero_encodings_equivalent": true, "numerical_bounds_unchanged_from_pair_reference": true, "new_quantized_backward_algorithm": true, "exact_previous_vjp_or_quality_claim": false}
