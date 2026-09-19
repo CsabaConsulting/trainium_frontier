@@ -1,0 +1,50 @@
+{
+  "label": "fs-w122-fp8-forward-saved-bytes-component-r1",
+  "source_commit": "19ae46c34a49392646d04862fa5fbf96fde7d446",
+  "command_returncode": 0,
+  "host_clean": true,
+  "completed_at": "2026-09-19T04:19:53.265167+00:00",
+  "result": {
+    "passed": true,
+    "cases": 10,
+    "real_shape": true,
+    "whole_backward_or_quality_gain_established": false
+  },
+  "benchmark": {
+    "shape": [
+      16384,
+      1024,
+      4096
+    ],
+    "samples_ms": {
+      "ordinary_fp8_forward": [
+        5.766897748496073,
+        5.801887498819269,
+        5.7937868356627105
+      ],
+      "forward_then_repack": [
+        6.895734501692156,
+        6.901435001054779,
+        6.898545500007458
+      ],
+      "forward_saves_fp8_bytes": [
+        5.903594079427421,
+        5.919873753252129,
+        5.9189917471182225
+      ]
+    },
+    "median_ms": {
+      "ordinary_fp8_forward": 5.7937868356627105,
+      "forward_then_repack": 6.898545500007458,
+      "forward_saves_fp8_bytes": 5.9189917471182225
+    },
+    "units": "ms per online weight preparation plus two forward activation producers",
+    "all_master_casts_calibration_packing_and_saves_charged": true,
+    "metadata_save_charged_in_both_backward_input_producers": true,
+    "ordinary_forward_does_not_produce_required_backward_inputs": true,
+    "backward_gradients_optimizer_whole_model_excluded": true
+  },
+  "producer_pipeline_reduction_percent": 14.199424398783433,
+  "extra_ms_vs_ordinary_forward": 0.12520491145551205,
+  "full_model_or_bpb_gain_established": false
+}

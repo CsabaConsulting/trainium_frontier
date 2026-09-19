@@ -1,0 +1,51 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave124",
+    "expected_commit": "34b6f24affcf03f421637a20bae62cda747af3e0",
+    "label": "fs-w124-fp8-complete-mlp-component-r1",
+    "purpose": "Gate complete FP8 forward and all4 backward products against independent CPU quantizers and empirical pair bounds, exact compiled/staged derivatives, two distinct microbatches, FP32 master accumulation and updated cache lifecycle. Charge all current cache work, transposes, saved bytes and FW/BW. Native BF16 and FP8-forward/BF16-backward controls. New approximate VJP; no full-model/quality promotion.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave124"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/fp8_complete_mlp_probe.py",
+      "--real-shape",
+      "--steps",
+      "10"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/fp8_mlp_token_rows_nki.py",
+      "research/scratch/fp8_forward_saved_bytes_probe.py",
+      "research/scratch/fp8_mlp_island_probe.py",
+      "research/scratch/fp8_packed_weight_cache_nki.py",
+      "research/scratch/fp8_packed_weight_cache_probe.py",
+      "research/scratch/fp8_rms_scale_contract.py",
+      "research/scratch/fp8_weight_cache_nki.py",
+      "research/scratch/fp8_weight_cache_probe.py",
+      "research/scratch/fp8_weight_gradient_nki.py",
+      "research/scratch/fresh_start_fp8_probe.py",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "research/scratch/fp8_complete_mlp_autograd.py",
+      "research/scratch/fp8_complete_mlp_probe.py",
+      "research/scratch/fp8_mlp_island_autograd.py",
+      "research/scratch/fp8_mlp_data_backward_nki.py",
+      "research/scratch/fp8_gradient_prepare_nki.py",
+      "research/scratch/mlp_backward_rounding_bounds.py",
+      "research/scratch/mlp_fused_bf16.py"
+    ]
+  },
+  "requested_at": "2026-09-19T04:33:29.931399+00:00"
+}

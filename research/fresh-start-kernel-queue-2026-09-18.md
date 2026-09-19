@@ -1,6 +1,6 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19, 04:16 UTC. This is the executable/design queue, not a list of
+Updated 2026-09-19, 04:34 UTC. This is the executable/design queue, not a list of
 claimed gains. Read `RESUME.md` and the latest postflights before using a host.
 Every device request retains immutable source, cleanup and numerical gates.
 
@@ -15,9 +15,10 @@ failure and clean recovery are preserved; the larger evaluation is clean.
 | Idea | Measured state | Next action |
 | --- | --- | --- |
 | FP8-specific packing | One layout improves FP8 component about2.95% while worsening BF16 by11.63%; FP8 whole model still17.74% slower | Continue FP8-specific development; BF16 ranking is not a veto |
-| FP8 grouped weight-gradient products | Balanced banks + fused abs + two-core preparation pass10cases: down1.548/up1.695ms vs native1.095/1.075ms | Reuse forward-produced activation bytes; all4gradients/autograd still ungated |
+| FP8 grouped weight-gradient products | Balanced banks + fused abs + two-core preparation pass10cases: down1.548/up1.695ms vs native1.095/1.075ms | Complete forward/all4backward autograd prototype prepared; gate before timing |
+| Reuse forward-produced FP8 bytes | All10cases pass; online cache work +2forward producers6.899→5.919ms (14.20%); preserves existing saves | Compose with all4backward products; no full-model gain established |
 | Fused per-row FP8 data-backward calibration |11cases pass;5.655ms vs original6.201ms and native5.510ms |8.81% same-algorithm gain; compose shared producers and weight gradients before full-model use |
-| Cached vocabulary head and exact CE | Component14.095440vs18.202054ms; whole step37.79% slower; caller profile local/cloud verified | Separate-head boundary changes native gradients too; FP32 carrier fails exact GPT gate; test boundary before final norm |
+| Cached vocabulary head and exact CE | Component14.095440vs18.202054ms; whole step37.79% slower; caller profile local/cloud verified | Split-head196 exact same-scope checks pass; original monolithic equivalence fails; three complete phase controls in progress |
 | Save exact softcap intermediate | All20component checks pass;13.850659ms vs native18.219967ms | Retain for composition after solving caller allocation; unchanged save bytes |
 | Reciprocal refinement + optimizer ownership |24composition checks; component16.77% faster, whole step1.128% faster | Retain for independently gated combinations; below3% advancement threshold |
 | BF16 magnitude maximum / fused abs | All3alternatives pass13cases; fused abs fastest, calibration0.197/0.650ms vs0.344/1.184ms | Composed in weight/data gradient prototypes; integer-code and sign-mask versions are correct but slower |
