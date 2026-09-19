@@ -1,6 +1,6 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 02:34 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 02:43 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
 ## Current result and active work
@@ -85,13 +85,17 @@ Source99 `94fa40ae3c5b5b93ba27f8f53d318ff14b07afaa` head/CE forward gate FAILED
 clean02:30:35 on confident-correct loss sign. All preceding projection/CE cases
 pass; candidate/native/frozen-reference logits/loss/lse agree exactly. Tiny
 negative CE appears in the original too (about-5.8e-8 versus tiny positive
-FP64). The original nonnegative gate is STILL UNCHANGED and failed. No timing
-or autograd integration follows yet. Prepared source100 diagnostic
-`softcap_ce_negative_diagnostic.py` exposes target affine/exponential/reduction/
-log plus runtime exp(0)/log(1) controls and checks original CE exactly. Diagnose
-before correcting any compatibility contract; do not clamp production loss.
-trn21 is clean and ready for this bounded diagnostic; watcher99 needs moving
-when100 is deployed. Source99 forward prototype has no backward adapter.
+FP64). The original nonnegative gate remains FAILED in the wave99 evidence. Source100
+diagnostic completes clean02:36:09: all10 cases exactly match original CE.
+The fused15*u+bias retains a multiplication residual against the rounded target
+bias; at strength80 this is-5.96046e-8, yielding exp/denominator0.9999999404
+and loss-5.7742e-8. Separately centered exp is1; runtime log(1) is positive.
+Four cases reproduce negative original losses. Kernel math is unchanged.
+Prepared source101 corrects the incompatible sign assertion to exact reference
+signs/values, retaining negative counts/minima and FP64 diagnostics. No equality
+tolerance or projection bound changes. Rerun all14 cases before timing; original
+failed run stays in ledger. trn21 clean, watcher100 pending101.
+
 
 Wave92 generic FP8 gradient GEMMs pass all9 independent cases. Repacked byte
 mismatches are only107/103 signed-zero encodings under the ORIGINAL zero

@@ -38,9 +38,11 @@ No FP8 quality run follows. Both caller traces/parquets are locally hash-verifie
 and mapped to all runtime dispatches plus their startup barrier. Forward grows
 68.001178 to109.520190ms; backward is nearly unchanged at138ms. Ordinary Linear
 source shows the largest extra spill/engine activity. The separate compiled
-FP8 region passes both real-Linear integration widths; a fresh same-host phase
-comparison is running. Source96's FP8 cost-ratio field has an integer-division
-reporting bug (0 instead of0.5); all timings/counters/raw FLOPs remain valid.
+FP8 region passes both real-Linear integration widths but loses: source95
+native499.641620ms, monolithic586.422830ms, separate619.975017ms. All clean;
+separation adds5.72% versus monolithic and24.08% versus native. Source97 fixes
+the source96 integer-division reporting bug (FP8 ratio0 to0.5); all nonprecision
+values and ordered runtime identities match the original reports.
 See `fresh-start-fp8-caller-diagnosis-2026-09-19.md` before interpreting precision.
 
 Wave87's70 runtime dispatches all match preserved binaries. Packed forward
@@ -66,7 +68,10 @@ integration has been promoted.
 
 Compact full-value tables passed accuracy but lost19.04x. Stronger rsqrt
 corrections and standalone exponential polynomials also lost timing. Reciprocal
-refinement passed optimizer integration but is absent from the best quality run.
+refinement plus optimizer ownership passes24 exact composition checks. Whole
+step497.650549 versus503.328809ms gains1.12814%, below3%; keep for combinations.
+It is absent from the best quality run. Source98 pack32/GA1 is currently testing
+with the same131072 global targets per update as pack16/GA2.
 
 Current requests and recovery steps are in `RESUME.md` and the kernel queue.
 

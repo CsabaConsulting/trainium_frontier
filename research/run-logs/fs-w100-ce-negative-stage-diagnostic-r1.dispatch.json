@@ -1,0 +1,35 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave100",
+    "expected_commit": "0cc04d2df3c5eb08e233af2437b63e46f0c41e9d",
+    "label": "fs-w100-ce-negative-stage-diagnostic-r1",
+    "purpose": "Isolate tiny negative native CE without modifying its failed nonnegative gate or production math. Expose target affine and exp,reduction,log plus runtime exp0/log1 controls. Require instrumentation to match original CE loss/lse exactly. Previous head gate failed clean.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave100"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "900s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "research/scratch/softcap_ce_negative_diagnostic.py"
+    ],
+    "fingerprint_paths": [
+      "research/scratch/softcap_ce_negative_diagnostic.py",
+      "research/scratch/softcap_ce_parallel_nki.py"
+    ]
+  },
+  "requested_at": "2026-09-19T02:35:45.588264+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w100-ce-negative-stage-diagnostic-r1\", \"pid\": 1267296, \"commit\": \"0cc04d2df3c5eb08e233af2437b63e46f0c41e9d\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave100/research/run-logs/fs-w100-ce-negative-stage-diagnostic-r1.log\", \"started_at\": \"2026-09-19T02:35:52.009684+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}
