@@ -1,6 +1,6 @@
 # Complete FP8 MLP: component gains and full-model validation
 
-Updated 2026-09-19 09:39 UTC. The original profile below identified online
+Updated 2026-09-19 09:51 UTC. The original profile below identified online
 weight preparation as a concrete cost. Both proposed preparation changes have
 now been implemented and gated; the original profile is retained as evidence.
 
@@ -81,9 +81,12 @@ and output-layout hypotheses concrete but do not prove either one.
 
 Source145's nearby same-host controls reproduce the performance gap with clean
 postflights: native488.702096ms versus legacy full FP8568.353812ms. The compact
-candidate started09:36:11.069769 and is active. Its11 numerical cases and both
-real-Linear widths already pass. Source147's optional streamed-weight consumer
-is separately prepared, not yet deployed or gated; see the weight-residency note.
+candidate completed clean09:48:00.203536 at562.901787ms,0.959% faster than legacy
+but15.183% slower than native. All four postchecks pass and the FP8 final losses
+are identical. This small observed gain does not explain the dominant regression.
+Source147's optional streamed-weight consumer is deployed with correctness
+gates active09:50:09; whole-model speed remains pending. See the weight-residency
+note and `run-logs/fs-w145-fp8-compact-three-arm-comparison-r1.json`.
 
 The retained-write hypothesis is confirmed by observed instructions:3,013
 `DMA_DIRECT2D` rows cite the BF16 saved-X/saved-hidden stores at lines149/186,
@@ -95,8 +98,7 @@ trn22 source145 (`63f6cce`), started09:00:04.923393 with clean preflight. The
 source change removes only these unused saves/dequantizations. Hardware
 equivalence now passes all11 cases and the two real-Linear integration widths,
 with clean postflight09:09:36.852509. The nearby same-host source145
-native/legacy/compact phase sequence has started; whole-model speed is still
-pending. The frozen submission
+native/legacy/compact phase sequence is now complete as summarized above. The frozen submission
 is unchanged. Evidence: `run-logs/fs-w140-full-fp8-retained-forward-saves-r1.json`
 and `run-logs/fs-w144-pack32-caller-comparison-r1.json`.
 
