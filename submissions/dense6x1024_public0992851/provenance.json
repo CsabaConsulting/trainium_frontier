@@ -3,8 +3,8 @@
   "source_training": "fs-w98-dense1024-context1024-pack32-owned-ce-1800-r1",
   "public_val_bpb": 0.9928513116311253,
   "private_leaderboard_result": false,
-  "train_sha256": "95be3ac7d55d99ae45fec25de319557e7084173e41072d812294007533e26f06",
-  "train_bytes": 310614,
+  "train_sha256": "35c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2",
+  "train_bytes": 311407,
   "launch_command": "NEURON_CC_FLAGS='--optlevel=1 --auto-cast matmult --auto-cast-type bf16' NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 1000000 --max-train-seconds 1800 --depth 6 --n-embd 1024 --seed 42 --compile --compile-muon --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public",
   "source_sha256": {
     "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
@@ -167,6 +167,7 @@
     "install only winning training adapters when executed as __main__",
     "set training compiler BF16 matmul flags before SDK import; eval defaults optlevel1 only",
     "freeze requires_grad in load_for_eval, without changing model weights or logits",
+    "evaluate rows independently to preserve original B1 logits across all batch sizes; no training change",
     "AST-format code to remove historical comments; unchanged training loop/data/scoring hooks",
     "launch disables optional in-process public evaluation; standalone scoring remains unchanged"
   ]

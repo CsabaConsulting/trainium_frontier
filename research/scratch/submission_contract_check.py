@@ -71,11 +71,14 @@ def main():
                 candidate.USE_BF16_NORM_OUTPUT = saved
             print("SUBMISSION_CONTRACT_DIAGNOSTIC " + json.dumps(diagnostic), flush=True)
             report = dict(
-                source_checkpoint_logits_max_abs=close(actual, reference(tokens), exact=True),
+                source_checkpoint_batch1_logits_max_abs=close(single, ref_single, exact=True),
+                source_checkpoint_rowwise_logits_max_abs=close(actual, torch.cat([
+                    reference(tokens[i:i + 1]) for i in range(tokens.shape[0])], dim=0), exact=True),
                 repeat_max_abs=close(actual, model(tokens), exact=True),
-                causality_max_abs=close(actual[:, :65], model(changed)[:, :65]),
-                batch_independence_max_abs=close(actual[:1], model(tokens[:1])),
-                batch_permutation_max_abs=close(actual.flip(0), model(tokens.flip(0))),
+                causality_max_abs=close(actual[:, :65], model(changed)[:, :65], exact=True),
+                batch_independence_max_abs=close(actual[:1], model(tokens[:1]), exact=True),
+                batch_permutation_max_abs=close(actual.flip(0), model(tokens.flip(0)), exact=True),
+                other_row_content_max_abs=close(actual[:1], model(altered_batch)[:1], exact=True),
             )
         for k, v in model.state_dict().items():
             torch.testing.assert_close(v.detach().cpu(), state[k], rtol=0, atol=0)

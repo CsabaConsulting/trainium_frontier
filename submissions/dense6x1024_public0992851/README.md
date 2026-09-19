@@ -19,6 +19,9 @@ packaging changes. `research/build_dense_submission.py` reproduces this file.
 The original training loop, data loader and timing hooks are AST-identical to
 the winning source. The evaluation hook strictly loads the same weights and
 freezes the model; training adapters are not installed during evaluator import.
+It evaluates independent sequences with batch dimension one, preserving the
+original B1 logits while avoiding backend rounding differences between batch
+sizes. The parameter names, checkpoint and trained sequence model are unchanged.
 
 The [official rules](https://trainium-frontier.devpost.com/rules) exclude startup
 and compilation. The current organizer `prepare.py` implements this through
