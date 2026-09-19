@@ -1,7 +1,24 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 06:24 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 06:34 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
+
+## Cold startup underway — 2026-09-19 06:34 UTC
+
+- trn22 cold rehearsal source129 started06:23:59, guardPID1688427. First
+  synchronized optimizer boundary completed, logged loss9.0112, stepdt474.47s.
+  Initial full-graph compilation is real, not a warmed-cache test. Further
+  startup compilation still active; fifth-boundary allowance900s not yet known.
+  Free space at06:32:34 was8,919,302,144B (during compilation previously8.46GB).
+  Do not prune files/caches while its device lock is held. If postflight fails
+  disk reserve only, preserve original failure and perform verified recovery.
+- trn21 source12920M replay still running, guardPID1359747; began06:23:59.
+- Source13159120a8127fb4a40a1a1f33caff28329ad7b6c7f adds prepared
+  `fp8_compiled_cache_probe.py` but NOT yet deployed/run. It keeps source124's
+  16384x2micro shape for comparison. Before promotion, explicitly test current
+  winning32768x1micro shape too; do not extrapolate the compiler ranking.
+- Both source129 watchers active. Source13054b0bf8/snapshot76e68d5 pushed
+  and verified06:24:33. Latest probe and validation manifest await backup.
 
 ## Submission contract verified; final rehearsal — 2026-09-19 06:24 UTC
 
