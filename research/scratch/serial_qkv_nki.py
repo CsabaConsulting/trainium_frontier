@@ -9,15 +9,17 @@ import torch
 import torch.nn.functional as F
 
 
+def kernel_assert(condition: bool, message: str):
+    assert condition, f"[INTERNAL_ERROR] [NCC_INKI016] Kernel validation exception: {message}"
+
+
 def build_kernel():
-    global nl, nisa
+    # The installed NKI parser resolves helper functions through module globals,
+    # as in fp8_mlp_token_rows_nki.py; closure-only helpers are unbound there.
+    global nl, nisa, load_weight, project
     import nki
     import nki.language as nl
     import nki.isa as nisa
-
-    def kernel_assert(condition, message):
-        if not condition:
-            raise ValueError(message)
 
     def load_weight(weight, channels, width):
         blocks = channels // 128
