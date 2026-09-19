@@ -472,3 +472,22 @@ The same-source native BF16 control can run independently on trn21 while this
 rerun runs on trn22. FP8 phase remains dependent on a complete passing gate.
 Wave87 raw trace32files/499268795B is local and every remote/local SHA matches;
 local parquet ingestion is underway, with bounded memory/time.
+
+## 2026-09-19 01:21 UTC: integration passes; first true FP8 gradient stage
+
+Wave89 integration passes all D256/D1024 gates, including FP8 training row,
+batch, repeat and padding independence, exact master accumulation/cache refresh,
+and native BF16 checkpoint restore. The isolated Python guard reset resolves
+the identified harness limit; no tolerance/check/default-limit change. Clean
+postflight01:20:21. Whole-step FP8 timing is now authorized by the numerical gate
+once its same-source BF16 control finishes cleanly on trn21.
+
+Next on trn22: independently gate a packed FP8 incoming-gradient GEMM for
+G@Wdown and dPre@Wup geometries. Per-row gradient calibration and double-row
+E4M3 dot use the existing CPU quantizer/pair reference. Cases include zeros,
+signed cancellation, tiny2^-110 gradients, row exponents-80..30 and outliers.
+Implementation error and error versus the old BF16 surrogate are distinct.
+Timing charges the EXTRA transposed-weight packing per update plus two dots;
+existing forward-prepared weight metadata/cache is shared, not magically free
+new work. No derivative fusion, weight-gradient products or autograd install
+yet; this is one backward stage, not full FP8 training.
