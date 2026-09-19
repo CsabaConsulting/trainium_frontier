@@ -20,7 +20,9 @@ def call_separate_region(compiled_function, *inputs):
 
 
 def install(model, train_module, separate_region=False, save_softcap=False,
-            fp32_carrier=False, include_final_norm=False):
+            fp32_carrier=False, include_final_norm=False, native_head=False):
+    if native_head and not separate_region:
+        raise ValueError("Native head adapter is a separate-scope experimental control")
     if fp32_carrier and not separate_region:
         raise ValueError("FP32 carrier is restricted to the explicit head/body boundary")
     if include_final_norm and (not separate_region or fp32_carrier):
@@ -36,7 +38,14 @@ def install(model, train_module, separate_region=False, save_softcap=False,
     if not getattr(train_module, "_fresh_start_adaptive_ce_installed", False):
         raise ValueError("Install the exact adaptive CE reference before the cached head")
     from head_loss_fused_autograd import loss_factory
-    fused_loss = loss_factory(save_softcap=save_softcap, fp32_carrier=fp32_carrier)
+    if native_head:
+        def fused_loss(x, weight, targets, reduction):
+            if fp32_carrier:
+                x = x.bfloat16()
+            return train_module.softcap_cross_entropy(
+                torch.nn.functional.linear(x, weight).float(), targets, reduction)
+    else:
+        fused_loss = loss_factory(save_softcap=save_softcap, fp32_carrier=fp32_carrier)
     if include_final_norm:
         head_loss = fused_loss
 
@@ -107,4 +116,5 @@ if (targets is not None and self.training and torch.compiler.is_compiling()
                 saved_softcap=bool(save_softcap),
                 fp32_carrier=bool(fp32_carrier),
                 include_final_norm=bool(include_final_norm),
+                native_head_control=bool(native_head),
                 eager_and_evaluation_use_original=True)

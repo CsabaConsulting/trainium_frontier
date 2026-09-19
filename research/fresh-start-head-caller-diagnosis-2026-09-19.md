@@ -84,3 +84,32 @@ quality promotion follows. Source122 moves the single boundary before the
 original final RMSNorm, where the residual is already FP32. The exact original
 normalization and its backward stay with the head; original dtype/head math
 returns. All196 exact checks are still required.
+
+## Prospective precision-variant gate, distinct from exact monolithic replacement
+
+Source122 moving the final norm into the separate region also FAILS exact
+monolithic equivalence: first loss differs by9.5367431640625e-7; command1 and
+clean postflight04:17:44. This failed gate is not reclassified or relaxed.
+
+The source121 native controls establish that graph partitioning itself changes
+floating-point behavior, even without the custom kernel. Source123 therefore
+treats the original BF16 split-head interface as a NEW numerical variant. It
+requires the same196 exact full-model losses, all FP32 master gradients, two
+updates, accumulation, cache refresh, original evaluation and serialized restore
+checks against a native head with THE SAME explicit boundary. Both models must
+show the compiled boundary. No new numeric tolerance is introduced. The report
+explicitly says exact_monolithic_equivalence=false and identifies its reference
+scope. The original equivalence failures remain authoritative for that claim.
+
+Only after this gate passes, measure three matched complete steps: original
+monolithic native, separate native head, separate cached head. This separates
+compiler-boundary effects from custom-kernel effects. A speed win would still
+need a complete1800s training and matched public evaluation to test whether the
+new rounding regime preserves or improves quality. No such quality is assumed.
+This follows the existing FP8 distinction between correctness of a declared
+numeric algorithm and that algorithm's quality relative to the prior model.
+
+The independent source121 CPU/projection/CE and native head component gates
+remain prerequisites. New errors/NaNs or mismatches WITHIN the selected scope
+remain failures and must be diagnosed before timing. Scope controls provide no
+permission to loosen the quantizer, gradient or evaluation contracts.

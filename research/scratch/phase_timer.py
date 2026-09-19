@@ -109,6 +109,8 @@ def main():
                     help="Carry BF16-valued activations and FP32 gradients across the head boundary.")
     ap.add_argument("--cached-head-include-final-norm", action="store_true",
                     help="Place final norm inside the separate head region at the FP32 residual boundary.")
+    ap.add_argument("--cached-head-native-reference", action="store_true",
+                    help="Use the original native head inside the same separate region as the candidate.")
     ap.add_argument("--nki-adamw-fp32", action="store_true",
                     help="Scratch gated functional FP32 AdamW for dense1024 tables; other groups stay native.")
     ap.add_argument("--nki-adamw-math-mode", type=int, choices=(0, 2), default=0,
@@ -233,6 +235,8 @@ def main():
     if args.cached_head_include_final_norm and (
             not args.cached_head_separate_region or args.cached_head_fp32_carrier):
         ap.error("final norm requires a separate head region with the original head interface")
+    if args.cached_head_native_reference and not args.cached_head_separate_region:
+        ap.error("native head control requires --cached-head-separate-region")
     if args.fp8_mlp_packed and args.fused_mlp:
         ap.error("select either the BF16 or packed FP8 MLP implementation")
     if args.fp8_mlp_separate_region and not args.fp8_mlp_packed:
@@ -420,10 +424,12 @@ def main():
         install_cached_head(model, T, separate_region=args.cached_head_separate_region,
                             save_softcap=args.cached_head_saved_softcap,
                             fp32_carrier=args.cached_head_fp32_carrier,
-                            include_final_norm=args.cached_head_include_final_norm)
+                            include_final_norm=args.cached_head_include_final_norm,
+                            native_head=args.cached_head_native_reference)
         print(f"[pt] cached head/exact CE; separate_region={args.cached_head_separate_region}; "
               f"saved_softcap={args.cached_head_saved_softcap}; "
               f"include_final_norm={args.cached_head_include_final_norm}; "
+              f"native_reference={args.cached_head_native_reference}; "
               f"fp32_carrier={args.cached_head_fp32_carrier}; charged per-forward transpose", flush=True)
     if args.ngram_ve_freeze:
         for p in model.ngram_embeds.parameters():
@@ -747,6 +753,7 @@ def main():
             cached_head_saved_softcap=args.cached_head_saved_softcap,
             cached_head_fp32_carrier=args.cached_head_fp32_carrier,
             cached_head_include_final_norm=args.cached_head_include_final_norm,
+            cached_head_native_reference=args.cached_head_native_reference,
             nki_adamw_fp32=args.nki_adamw_fp32,
             nki_adamw_math_mode=(args.nki_adamw_math_mode if args.nki_adamw_fp32 else None),
             nki_adamw_parameter_updates=getattr(optimizer, "_fresh_start_adamw_calls", 0),

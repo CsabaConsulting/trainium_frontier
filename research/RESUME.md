@@ -1,7 +1,23 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 04:16 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 04:20 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
+
+## Separate precision variant — 2026-09-19 04:20 UTC
+
+- Source122 final-norm boundary also FAILS exact monolithic loss (9.5367e-7).
+  Command1, clean04:17:44. No original-equivalence claim or quality promotion.
+- Source123 adds a DISTINCT same-scope native reference gate for the original
+  BF16 split head. All196 checks remain exact; report explicitly denies proven
+  monolithic equivalence. Original native splitting alone already caused the
+  source121 discrepancy. After passing, three matched phases must separate the
+  compiler boundary from kernel gains, then quality requires a fresh timed run.
+- trn22 source122 FP8 forward-byte gate active, watcher122; small cases pass,
+  real-shape independent gates running. trn21 clean and ready for123 scope gate.
+- Future remote fetch/worktree commands disable automatic Git maintenance per
+  command. Wave122 trn22 fetch triggered background Git packing; a read-only
+  check at04:18 found no git process/gc.pid while real-shape gates were still
+  running, before timing. Do not run Git maintenance concurrently with phases.
 
 ## Next immutable source122 — 2026-09-19 04:16 UTC
 
