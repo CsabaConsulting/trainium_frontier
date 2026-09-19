@@ -14,7 +14,15 @@ def make_plan(groups, world_size):
     muon_ms = {(1024, 1024): 12.54413 / 24,
                (1024, 4096): 9.76316 / 6,
                (4096, 1024): 8.98251 / 6,
-               (8, 32): .23355 / 3}
+               (8, 32): .23355 / 3,
+               # Source144 actual-width groups, native dispatch/stack/copy/update:
+               # fs-w144-width1152-optimizer-group-costs-r1.summary.json.
+               # Amortized per-matrix estimates from representative owner counts;
+               # actual grouped cost is not perfectly linear. D1024 is unchanged.
+               (1152, 1152): 5.493693903554231 / 6,
+               (1152, 4608): 5.106646800413728 / 2,
+               (4608, 1152): 5.528476898325607 / 2,
+               (9, 32): .6609485950320959 / 2}
     entries, parameters, seen = [], [], set()
     for group_index, group in enumerate(groups):
         if group["kind"] not in ("adamw", "muon"):

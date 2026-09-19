@@ -178,6 +178,7 @@ def main():
                   caveats=['Use unprofiled same-host phase runs for speed; traces are attribution.',
                            'Runtime API durations contain asynchronous queueing and overlap.',
                            'Source/engine activity unions overlap and are not additive wall-time shares.',
+                           'Dropped EVENT/DMA warnings can mean missing instructions or inaccurate counters; absence is not proof of no work.',
                            'Missing dynamic DMA metadata prevents exact traffic or bandwidth claims.',
                            'Sampled SBUF utilization is not a complete allocator/live-memory proof.',
                            'BF16-cost multipliers follow the installed Explorer schema, not assumed FLOP peaks.'],
