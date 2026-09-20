@@ -1,0 +1,14 @@
+{
+  "label": "fs-w180-r3-precommit-dispatch-diagnosis-r1",
+  "observed_at": "2026-09-20T06:32:43.295439+00:00",
+  "source_commit": "240d07a1287ae0de185205a5c01aa21af1d9f3fa",
+  "plan_label": "fs-w180-library-caller-trace-sequence-r3",
+  "cause": "Shell lacked set-e; sequence start followed a commit skipped by the cron lock",
+  "immutable_kernel_source_unchanged": true,
+  "request_and_plan_hashes_recorded_before_dispatch": true,
+  "plan_was_uncommitted_at_dispatch": true,
+  "fix": "Tracked starter verifies exact plan and request bytes against committed Git blobs before spawning",
+  "negative_uncommitted_case_rejected": true,
+  "positive_committed_case_passes": true,
+  "core_sequence_launch_sync_helpers_unchanged": true
+}

@@ -14,6 +14,7 @@ import nki.language as nl
 
 from nki_library_probe_common import NAMESPACE, emit
 from nki_library_relu2_adapter import token_row_sharding
+from nki_library_row_heap_compat import _mlp_cte_single_shard as row_heap_safe_shard
 from research.vendor.nki_library_92d11f63.core.mlp.mlp_parameters import MLPParameters, validate_mlp_arguments
 from research.vendor.nki_library_92d11f63.core.mlp.mlp_cte.basic.mlp_cte_basic import mlp_cte_basic
 from research.vendor.nki_library_92d11f63.core.mlp.mlp_cte.basic.mlp_cte_basic_projection import (
@@ -112,6 +113,10 @@ def install():
     projection._evict_gate_res_tile = row_relu2_evict
     quantization._perform_intermediate_row_quantization = inspect_row_quantization
     core.calculate_sharding = token_row_sharding
+    core._mlp_cte_single_shard = row_heap_safe_shard
+    emit('NKILIB_ROW_HEAP_COMPAT', dict(installed=True, isolated_namespace_only=True,
+         conditional_gate_scale_cleanup=True, strict_allocator_checks_retained=True,
+         arithmetic_unchanged=True, upstream_files_unchanged=True))
     emit('NKILIB_ROW_MLP_ADAPTER', dict(installed=True, isolated_namespace_only=True,
          legacy_e4m3_double_row=True, upstream_row_quantization_and_scaling=True,
          token_row_sharding=True, relu_bf16_then_square_bf16=True,
