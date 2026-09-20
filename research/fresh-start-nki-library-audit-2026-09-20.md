@@ -420,3 +420,21 @@ compiled execution in the separate-region integration (the prior draft only
 asserted the direct joined node). No changed kernel arithmetic, source175
 component gate reuse requires byte identity. Measure its own matched native
 control on trn22; do not infer gains from cross-host or component timings.
+
+## Source177 separate-region harness failure and source178 diagnosis
+
+Source177 stopped cleanly05:35:45UTC after two passing output/dX checks. At
+second microbatch, the NATIVE reference root was no longer named
+CompiledFunctionBackward. No numerical bound failed. This may be a wrapper
+or a shared-code-object Dynamo cache/skip interaction; inspect actual graph
+nodes before claiming the cause. The candidate and reference both originate
+from Probe.forward, but only the candidate permits a graph break.
+
+Source178 retains the original native-root assertion and every numeric bound.
+It records both derivative graphs at the original failure. Its explicit
+--diagnose-probe-roots mode must reproduce that same assertion first, without
+counting the failed run as a gate pass. Then clear Dynamo state and give the
+candidate a distinct root function that calls the same MLP. Require all48
+original output/dX/master-gradient comparisons,10 exact training/eval/restore
+checks, two widths and compiled execution of BOTH control and candidate. If
+isolation fails, stop again; do not waive compilation or numeric gates.

@@ -1,0 +1,27 @@
+LIBRARY_COMPONENT_PREREQUISITE {"passed": true, "cases": 10, "source_commit": "d595ce0e55e8a0defe32fe59fede91c3b65feb2a", "unchanged_source_bytes": true}
+[W920 05:35:27.444977049 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+NKILIB_PROVENANCE {"passed": true, "upstream_commit": "92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e", "vendored_files": 66, "bundled_root": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib", "vendor_namespace": "research.vendor.nki_library_92d11f63", "nki": "0.5.0+28631259367.ga768afa6", "compiler": "2.26.6360.0+6f180f47", "package_installation": false, "bundled_package_replaced": false}
+NKILIB_TRAINING_ADAPTER {"installed": true, "isolated_namespace_only": true, "token_sharding": true, "saved_relu_inside_kernel": true, "saved_relu_layout": "HxT", "reuses_existing_transpose": true, "extra_activation_transpose": false, "additional_sbuf_bytes": 0, "square_after_transpose": true, "up_projection_recomputation": false, "master_and_weight_layout_costs_charged_by_caller": true}
+FUSED_MLP_NATIVE_GATE {"name": "library_integration:256:False:0:0:output", "shape": [4, 64, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0009765625, "reference_rms": 0.2348669868482862, "relative_rms": 1.624393002052049e-05, "exact": false, "passed": true}
+FUSED_MLP_NATIVE_GATE {"name": "library_integration:256:False:0:0:dx", "shape": [4, 64, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0, "reference_rms": 0.0027547628219264596, "relative_rms": 0.0, "exact": true, "passed": true}
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_freshstart_20260918_wave177/research/scratch/nki_library_mlp_integration_check.py", line 126, in <module>
+    main()
+  File "/home/ubuntu/trainium_freshstart_20260918_wave177/research/scratch/nki_library_mlp_integration_check.py", line 118, in main
+    run(256, 256, args.separate_region)
+  File "/home/ubuntu/trainium_freshstart_20260918_wave177/research/scratch/nki_library_mlp_integration_check.py", line 59, in run
+    assert type(expected.grad_fn).__name__ == 'CompiledFunctionBackward'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+Traceback (most recent call last):
+  File "<string>", line 15, in <module>
+  File "/usr/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['/home/ubuntu/workspace/native_venv/bin/python', '-u', '/home/ubuntu/trainium_freshstart_20260918_wave177/research/scratch/nki_library_mlp_integration_check.py', '--real-width', '--separate-region']' returned non-zero exit status 1.
+EXPERIMENT_POSTFLIGHT {"label": "fs-w177-nkilib-reuse-transpose-integration-r1", "returncode": 1, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave177/research/run-logs/fs-w177-nkilib-reuse-transpose-integration-r1.postflight.json"}
