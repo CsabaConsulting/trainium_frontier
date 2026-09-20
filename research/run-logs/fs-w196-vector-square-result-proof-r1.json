@@ -1,0 +1,362 @@
+{
+  "checked_at": "2026-09-20T12:25:08.865799+00:00",
+  "all_original_frozen_requirements_verified": true,
+  "all_source_bytes_unchanged": true,
+  "runs": [
+    {
+      "label": "fs-w196-nkilib-vector-square-forward-r1",
+      "source_commit": "d8461533951200f78faa35cfc8b5548b31d1e048",
+      "completed_at": "2026-09-20T09:04:42.671131+00:00",
+      "host_clean": true,
+      "log_sha256": "7b6cb7325923c713a5eb583fa01a731568a5b34dd6aaf6886db2b0885040a377",
+      "postflight_sha256": "a3b0487f3acd2c76f9725f63c6c82a9ce87e38b8ad13c33d11eeaf2ce3dc4003",
+      "frozen_requirements": [
+        {
+          "marker": "NKILIB_PROVENANCE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "vendored_files": 66,
+            "package_installation": false,
+            "bundled_package_replaced": false
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_MLP_ADAPTER",
+          "count": 1,
+          "fields": {
+            "installed": true,
+            "isolated_namespace_only": true,
+            "legacy_e4m3_double_row": true,
+            "upstream_row_quantization_and_scaling": true,
+            "token_row_sharding": true,
+            "relu_bf16_then_square_bf16": true,
+            "diagnostics_excluded_from_timed_path": true,
+            "training_backward_implemented": false
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_RECIPROCAL",
+          "count": 50,
+          "fields": {
+            "passed": true,
+            "limit": 2.384185791015625e-07
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_QUANT_GATE",
+          "count": 50,
+          "fields": {
+            "passed": true,
+            "independently_decoded_legacy_e4m3": true,
+            "scale_exact": true
+          }
+        },
+        {
+          "marker": "NKILIB_EXACT",
+          "count": 320,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_NUMERICAL",
+          "count": 20,
+          "fields": {
+            "passed": true,
+            "finite": true,
+            "bound_failures": 0
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_INTERMEDIATE_GATE",
+          "count": 10,
+          "fields": {
+            "passed": true,
+            "outside_quantization_interval": 0,
+            "relative_interval": 4.76837158203125e-07,
+            "all_decoded_coordinates": true,
+            "finite": true
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_MLP_CASE",
+          "count": 10,
+          "fields": {
+            "passed": true,
+            "independent_decoded_pair_and_rounding_gates": true,
+            "all_outputs_and_quantizer_coordinates_finite": true,
+            "plain_and_instrumented_exact": true,
+            "all_online_calibration_layout_and_master_casts_charged": true,
+            "saved_activations_and_backward_excluded": true
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_MLP_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 10,
+            "forward_only": true,
+            "online_preparation_charged": true,
+            "full_training_or_bpb_claim": false
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_HEAP_COMPAT",
+          "count": 1,
+          "fields": {
+            "installed": true,
+            "isolated_namespace_only": true,
+            "conditional_gate_scale_cleanup": true,
+            "strict_allocator_checks_retained": true,
+            "arithmetic_unchanged": true,
+            "upstream_files_unchanged": true
+          }
+        },
+        {
+          "marker": "NKILIB_INLINE_INPUT_ADAPTER",
+          "count": 1,
+          "fields": {
+            "installed": true,
+            "isolated_namespace_only": true,
+            "input_dtype_bf16": true,
+            "online_quantization_inside_loader": true,
+            "scratch_allocated_by_original_manager": true,
+            "scratch_charged_to_tile_planner": true,
+            "input_hbm_materialization_removed": true,
+            "packed_input_control_retained": true,
+            "upstream_projections_and_rounding_unchanged": true,
+            "backward_or_training_quality_claim": false
+          }
+        },
+        {
+          "marker": "NKILIB_INLINE_INPUT_GATE",
+          "count": 10,
+          "fields": {
+            "passed": true,
+            "actual_input_bytes_and_metadata_checked": true,
+            "independent_original_and_changed_input": true,
+            "exact_all_original_mlp_stages": true,
+            "exact_prepared_control_output": true,
+            "original_fixtures_and_bounds_retained": true,
+            "no_input_quantized_hbm_in_plain_path": true
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_TRAINING_SAVE_REWRITE",
+          "count": 1,
+          "fields": {
+            "original_probe_sha256": "c19bd4b3ff2856d3aeb77512777f9e1c73b4a1fce50728b89887804324c9d4f4",
+            "source191_probe_sha256": "3ca01ff495da5434480b3a41f53b89b46aec2ad64409539e2bd601a8680145c5",
+            "all_source191_numerical_checks_fixtures_and_bounds_retained": true,
+            "original_three_timing_controls_retained": true,
+            "native_hxt_and_row_fp8_training_saves_both_charged": true,
+            "backward_implemented": false,
+            "training_or_bpb_claim": false
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_TRAINING_SAVE_ADAPTER",
+          "count": 1,
+          "fields": {
+            "installed": true,
+            "unchanged_relu_forward_control": true,
+            "squared_relu_entry_selects_saves": true,
+            "actual_consumed_input_and_hidden_bytes_saved": true,
+            "both_row_scales_saved": true,
+            "bf16_pre_square_relu_saved": true,
+            "all_stores_inside_forward": true,
+            "additional_sbuf_allocations": 0,
+            "upstream_rounding_boundaries_retained": true,
+            "backward_implemented": false,
+            "training_or_bpb_claim": false
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_TRAINING_SAVE_CASE",
+          "count": 10,
+          "fields": {
+            "passed": true,
+            "exact_all_six_actual_forward_outputs": true,
+            "original_source191_gates_retained": true,
+            "repeat_changed_input_and_all_saved_row_independence": true,
+            "native_control_saved_relu_layout": "HxT",
+            "actual_input_and_hidden_bytes_scales_and_relu_saved": true,
+            "all_online_master_casts_weight_preparation_and_saves_charged": true,
+            "raw_up_diagnostic_store_excluded": true,
+            "backward_implemented": false,
+            "full_training_or_bpb_claim": false
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_TRAINING_SAVE_TIMING",
+          "count": 3,
+          "fields": {
+            "all_online_master_casts_weight_preparation_and_saves_charged": true,
+            "native_control_saved_relu_layout": "HxT",
+            "backward_excluded": true,
+            "training_or_bpb_claim": false
+          }
+        },
+        {
+          "marker": "NKILIB_VECTOR_SQUARE_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "source_commit": "725a385c2325d83c7273ff88ef1de31a9deea539",
+            "all_source194_requirements_verified": true,
+            "all_source194_source_bytes_unchanged": true
+          }
+        },
+        {
+          "marker": "NKILIB_VECTOR_SQUARE_ADAPTER",
+          "count": 1,
+          "fields": {
+            "installed": true,
+            "only_training_square_engine_changed": true,
+            "explicit_vector_multiply": true,
+            "matched_original_scalar_square_arm": true,
+            "original_scalar_diagnostic_control": true,
+            "both_bf16_rounding_boundaries_preserved": true,
+            "all_saves_unchanged": true,
+            "all_allocator_and_shape_checks_retained": true,
+            "backward_or_quality_claim": false
+          }
+        },
+        {
+          "marker": "NKILIB_VECTOR_SQUARE_REWRITE",
+          "count": 1,
+          "fields": {
+            "source194_probe_sha256": "7ce549d4d9fcf30d756589089fea23e92d3f91c54946851b48ef38f551420da9",
+            "all_source194_tests_and_original_three_forward_controls_retained": true,
+            "matched_scalar_and_vector_training_forward_both_charged": true,
+            "ordinary_training_forward_timing_arm_uses_vector_square": true,
+            "ten_additional_exact_comparisons": true,
+            "backward_or_quality_claim": false
+          }
+        },
+        {
+          "marker": "NKILIB_VECTOR_SQUARE_CASE",
+          "count": 10,
+          "fields": {
+            "passed": true,
+            "all_six_outputs_exact_against_scalar_control": true,
+            "original_source194_checks_and_bounds_retained": true,
+            "all_weight_preparation_and_saves_charged": true,
+            "backward_or_quality_claim": false
+          }
+        }
+      ],
+      "saved_forward_timings": [
+        {
+          "shape": [
+            512,
+            256,
+            1024
+          ],
+          "kind": "random",
+          "all_online_master_casts_weight_preparation_and_saves_charged": true,
+          "native_control_saved_relu_layout": "HxT",
+          "saved_tensor_bytes": 1708032,
+          "backward_excluded": true,
+          "training_or_bpb_claim": false,
+          "samples_ms": {
+            "native_bf16_training_forward": [
+              0.07777370046824217,
+              0.07397709996439517,
+              0.08386603246132533
+            ],
+            "row_fp8_training_forward": [
+              0.1401119341608137,
+              0.1355184668985506,
+              0.1365006008806328
+            ],
+            "row_fp8_scalar_training_forward": [
+              0.1330151998748382,
+              0.13359996567790708,
+              0.13140800098578134
+            ]
+          },
+          "median_ms": {
+            "native_bf16_training_forward": 0.07777370046824217,
+            "row_fp8_training_forward": 0.1365006008806328,
+            "row_fp8_scalar_training_forward": 0.1330151998748382
+          }
+        },
+        {
+          "shape": [
+            2048,
+            1024,
+            4096
+          ],
+          "kind": "real_random",
+          "all_online_master_casts_weight_preparation_and_saves_charged": true,
+          "native_control_saved_relu_layout": "HxT",
+          "saved_tensor_bytes": 27279360,
+          "backward_excluded": true,
+          "training_or_bpb_claim": false,
+          "samples_ms": {
+            "native_bf16_training_forward": [
+              0.345666033293431,
+              0.34980329995354015,
+              0.3432135660356532
+            ],
+            "row_fp8_training_forward": [
+              0.6078358002317449,
+              0.611062334307159,
+              0.6040169003730019
+            ],
+            "row_fp8_scalar_training_forward": [
+              0.6320088674935201,
+              0.6315962333853046,
+              0.6336667012268057
+            ]
+          },
+          "median_ms": {
+            "native_bf16_training_forward": 0.345666033293431,
+            "row_fp8_training_forward": 0.6078358002317449,
+            "row_fp8_scalar_training_forward": 0.6320088674935201
+          }
+        },
+        {
+          "shape": [
+            32768,
+            1024,
+            4096
+          ],
+          "kind": "real_random",
+          "all_online_master_casts_weight_preparation_and_saves_charged": true,
+          "native_control_saved_relu_layout": "HxT",
+          "saved_tensor_bytes": 436469760,
+          "backward_excluded": true,
+          "training_or_bpb_claim": false,
+          "samples_ms": {
+            "native_bf16_training_forward": [
+              5.327724065864459,
+              5.327761233396207,
+              5.329518999982004
+            ],
+            "row_fp8_training_forward": [
+              4.869294834012787,
+              4.8827792653658735,
+              4.87860186646382
+            ],
+            "row_fp8_scalar_training_forward": [
+              4.776795567401375,
+              4.776949499500915,
+              4.780151665909216
+            ]
+          },
+          "median_ms": {
+            "native_bf16_training_forward": 5.327761233396207,
+            "row_fp8_training_forward": 4.87860186646382,
+            "row_fp8_scalar_training_forward": 4.776949499500915
+          }
+        }
+      ],
+      "production_vector_regression_percent": 2.127976587852265
+    }
+  ],
+  "quality_or_bpb_claim": false
+}
