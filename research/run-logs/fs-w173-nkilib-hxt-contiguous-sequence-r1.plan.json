@@ -1,0 +1,101 @@
+{
+  "label": "fs-w173-nkilib-hxt-contiguous-sequence-r1",
+  "max_seconds": 4200,
+  "purpose": "Coalesced saved-activation HxT writes through128x128 onchip transpose and explicitly reserved32KiB scratch. Reuse current PSUM bank after ReLU eviction, preserve original vendor and numerical tests. All8fixtures, full FP64 gradients, native/stage/accumulation/row checks. Matched current native HxT control; no model or BPB claim.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w173-nkilib-hxt-contiguous-component-r1.request.json",
+      "sha256": "8d76fc28ef96106889217f9e518ea86478a2b8efee5064ddffd51bd7d8f16838",
+      "requirements": [
+        {
+          "marker": "NKILIB_TRAINING_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 6,
+            "source_commit": "2cd50e043742ff327f40eda70e9e43632a29118d",
+            "token_sharding": true
+          }
+        },
+        {
+          "marker": "NKILIB_PROVENANCE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "vendored_files": 66,
+            "package_installation": false,
+            "bundled_package_replaced": false
+          }
+        },
+        {
+          "marker": "NKILIB_TRAINING_HXT_CONTIGUOUS_CASE",
+          "count": 8,
+          "fields": {
+            "passed": true,
+            "full_independent_fp64_autograd_gradients": true,
+            "unchanged_native_comparison": true,
+            "exact_repeat_rows_and_fp32_accumulation": true,
+            "master_casts_layouts_activation_stores_and_full_backward_charged": true,
+            "optimizer_communication_and_model_excluded": true,
+            "matched_native_hxt_control": true,
+            "saved_relu_layout": "HxT",
+            "explicit_activation_transpose": true,
+            "contiguous_activation_store": true
+          }
+        },
+        {
+          "marker": "NKILIB_TRAINING_HXT_CONTIGUOUS_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 8,
+            "saved_relu_and_full_backward": true,
+            "all_fp64_and_native_gates": true,
+            "two_microbatch_fp32_accumulation": true,
+            "training_or_bpb_claim": false,
+            "matched_native_hxt_control": true,
+            "saved_relu_layout": "HxT"
+          }
+        },
+        {
+          "marker": "FUSED_MLP_NATIVE_GATE",
+          "count": 48,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "FUSED_MLP_STAGE_GATE",
+          "count": 16,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "FP8_CACHE_BACKWARD_FP64_BOUND",
+          "count": 48,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_EXACT",
+          "count": 48,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_HXT_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 3,
+            "source_commit": "0535b900babe9686b2a62f2b597791c3ef97a59c",
+            "matched_native_hxt_control": true
+          }
+        }
+      ]
+    }
+  ]
+}
