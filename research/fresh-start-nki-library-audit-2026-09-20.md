@@ -4,7 +4,7 @@ The user's Re:Invent lead is [AWS Neuron's NKI Library](https://github.com/aws-n
 The clean local clone is pinned at `92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e`
 (August 28). Source references below use that commit, rather than a moving main.
 
-Current result at07:21UTC: library techniques are incorporated into working
+Current result at07:11UTC: library techniques are incorporated into working
 experimental variants. Component improvements have not yet produced a faster
 whole-model training step or a lower BPB. The frozen submission is unchanged.
 

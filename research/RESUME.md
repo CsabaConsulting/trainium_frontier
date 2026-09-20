@@ -1,9 +1,9 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-20 07:21 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-20 07:11 UTC. Authorization: danger-full-access, approval never.
 Use committed manifests/postflights before dispatch; never restart completed jobs.
 
-## Current work — 2026-09-20 07:21 UTC
+## Current work — 2026-09-20 07:11 UTC
 
 - Source189 COMPLETE/CLEAN on trn21 (immutable66f3dc70). Both frozen plans
   independently verified. Fused online weight quantization/stride-2 FP8
@@ -28,7 +28,7 @@ Use committed manifests/postflights before dispatch; never restart completed job
   same-host native model control and budgeted model. No component-speed gate:
   this hypothesis targets surrounding model scheduling. Check later manifests
   and postflights for actual launches; both hosts are currently idle/clean.
-- Trn22 free11.20GB, trn21 free22.49GB at07:13. Trn22 scratch-maintenance r3
+- Trn22 free11.20GB, trn21 free22.49GB at the latest read-only check. Trn22 scratch-maintenance r3
   is prepared:6GiB of old /tmp/nki_* diagnostics before06:30UTC, excluding
   later compiles. Preserve every original file and verify live GitHub digests
   before retiring remote copies; keep shared caches/checkpoints/profiles.

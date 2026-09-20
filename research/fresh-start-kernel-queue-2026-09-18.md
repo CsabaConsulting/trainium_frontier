@@ -1,6 +1,6 @@
 # Kernel queue and precision-specific experiments
 
-## 2026-09-20 07:21 UTC — library fusions and caller evidence
+## 2026-09-20 07:11 UTC — library fusions and caller evidence
 
 Source189 COMPLETE/CLEAN: exact fused weight preparation29.85%/32.06% faster;
 complete ROW forward4.686795ms vs4.596355msBF16, still1.968% slower, all10 gates
