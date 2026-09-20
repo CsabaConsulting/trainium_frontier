@@ -1,0 +1,198 @@
+{
+  "label": "fs-w171-fp8-all-scale-separated-sequence-r1",
+  "max_seconds": 5600,
+  "purpose": "Finite compiler-scope revisit of completed source165 full FP8. Exact-source original numerical prerequisite; separate-region integration; fresh native fullmodel control; candidate. All cleanup/provenance, unchanged gates. Stop on failure; no quality run or promotion.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w171-fp8-all-scale-separated-integration-r1.request.json",
+      "sha256": "9112d97cf0b6244b3c62c7605831ad308e21868bb01c0c449b35c2231924bafe",
+      "requirements": [
+        {
+          "marker": "FP8_FULL_MLP_INTEGRATION_GATE",
+          "count": 2,
+          "fields": {
+            "tokens": 512,
+            "cached_and_uncached": true,
+            "microbatches": 2,
+            "engine_scaling": "all",
+            "compact_forward_saves": true,
+            "stream_packed_weights": false,
+            "preserve_output_rank": false,
+            "exact_outputs_input_and_fp32_master_gradients": true,
+            "training_padding_and_row_independence": true,
+            "native_eval_and_checkpoint_restore_exact": true,
+            "separate_compiled_region": true
+          },
+          "unique_field": "channels",
+          "values": [
+            256,
+            1024
+          ]
+        },
+        {
+          "marker": "FP8_FULL_MLP_INTEGRATION_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "real_width": true,
+            "compact_forward_saves": true,
+            "engine_scaling": "all",
+            "stream_packed_weights": false,
+            "preserve_output_rank": false,
+            "full_fp8_backward": true,
+            "full_model_or_quality_promotion": false,
+            "separate_compiled_region": true
+          }
+        },
+        {
+          "marker": "ENGINE_SEPARATE_SOURCE_IDENTITY",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "files": 43,
+            "original_source": "500ba3442f43acd5f121155aecda402e8e691324",
+            "current_source": "0535b900babe9686b2a62f2b597791c3ef97a59c"
+          }
+        },
+        {
+          "marker": "ENGINE_MODEL_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "source_commit": "500ba3442f43acd5f121155aecda402e8e691324"
+          }
+        },
+        {
+          "marker": "FP8_MLP_ENGINE_COMPONENT_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 12,
+            "source_commit": "1f3890c91650c5ea36dae5cf996d8dcc1964df16"
+          }
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w171-trn22-native-phase-r1.request.json",
+      "sha256": "1f7a3f7c08e2c540d548441942c973f4f05c7ca06f7de08f9acdaadf5676918f",
+      "requirements": [
+        {
+          "marker": "PHASE_JSON",
+          "count": 1,
+          "fields": {
+            "world_size": 4,
+            "lnc": "2",
+            "grad_accum": 1,
+            "micro_tokens": 131072,
+            "compile": true,
+            "adaptive_nki_ce": true,
+            "optimizer_ownership": true,
+            "optimizer_owner_calls": 35,
+            "pack_factor": 32,
+            "fp8_mlp_full": false,
+            "fp8_mlp_packed": false,
+            "fp8_mlp_compact_saves": false,
+            "fp8_mlp_stream_packed_weights": false,
+            "fp8_mlp_preserve_output_rank": false,
+            "integrated_nki_local_conv": true,
+            "integrated_bf16_norm_output": true,
+            "fp8_mlp_engine_scaling": "none",
+            "fp8_mlp_separate_region": false
+          },
+          "lengths": {
+            "steps": 30
+          },
+          "phase_timing": true
+        },
+        {
+          "marker": "NATIVE_POST_CHECK_JSON",
+          "count": 4,
+          "fields": {
+            "passed": true,
+            "parameters_and_gradients_finite": true,
+            "logits_finite": true,
+            "future_max_abs": 0.0,
+            "other_batch_max_abs": 0.0,
+            "repeated_call_max_abs": 0.0
+          },
+          "unique_field": "rank",
+          "values": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w171-fp8-all-scale-separated-phase-r1.request.json",
+      "sha256": "d5e554f65c55e832c445bf8a4c841cbf7796e523a5764a3cb97ab3294f4d7b9d",
+      "requirements": [
+        {
+          "marker": "PHASE_JSON",
+          "count": 1,
+          "fields": {
+            "world_size": 4,
+            "lnc": "2",
+            "grad_accum": 1,
+            "micro_tokens": 131072,
+            "compile": true,
+            "adaptive_nki_ce": true,
+            "optimizer_ownership": true,
+            "optimizer_owner_calls": 35,
+            "pack_factor": 32,
+            "fp8_mlp_full": true,
+            "fp8_mlp_packed": true,
+            "fp8_mlp_compact_saves": true,
+            "fp8_mlp_stream_packed_weights": false,
+            "fp8_mlp_preserve_output_rank": false,
+            "integrated_nki_local_conv": true,
+            "integrated_bf16_norm_output": true,
+            "fp8_mlp_engine_scaling": "all",
+            "fp8_mlp_cache_refresh_counts": [
+              35,
+              35,
+              35,
+              35,
+              35,
+              35,
+              35,
+              35,
+              35,
+              35,
+              35,
+              35
+            ],
+            "fp8_mlp_separate_region": true
+          },
+          "lengths": {
+            "steps": 30,
+            "fp8_mlp_cache_refresh_counts": 12
+          },
+          "phase_timing": true
+        },
+        {
+          "marker": "NATIVE_POST_CHECK_JSON",
+          "count": 4,
+          "fields": {
+            "passed": true,
+            "parameters_and_gradients_finite": true,
+            "logits_finite": true,
+            "future_max_abs": 0.0,
+            "other_batch_max_abs": 0.0,
+            "repeated_call_max_abs": 0.0
+          },
+          "unique_field": "rank",
+          "values": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      ]
+    }
+  ]
+}

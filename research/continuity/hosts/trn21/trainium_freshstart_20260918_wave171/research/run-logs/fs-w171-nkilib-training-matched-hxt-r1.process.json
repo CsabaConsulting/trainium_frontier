@@ -1,0 +1,16 @@
+{
+  "label": "fs-w171-nkilib-training-matched-hxt-r1",
+  "guard_pid": 1656197,
+  "child_pid": 1656198,
+  "child_session": 1656198,
+  "started_at": "2026-09-20T04:56:30.151972+00:00",
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "3600s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "-c",
+    "REMOTE='/home/ubuntu/trainium_freshstart_20260918_wave171'\nREQUIREMENTS=[{'marker': 'NKILIB_PROVENANCE', 'count': 1, 'fields': {'passed': True, 'upstream_commit': '92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e', 'vendored_files': 66, 'bundled_package_replaced': False, 'package_installation': False}}, {'marker': 'NKILIB_MLP_CASE', 'count': 6, 'fields': {'passed': True}}, {'marker': 'NKILIB_MLP_RESULT', 'count': 1, 'fields': {'passed': True, 'cases': 6, 'training_or_bpb_claim': False, 'token_sharding': True}}, {'marker': 'FUSED_MLP_NATIVE_GATE', 'count': 6, 'fields': {'passed': True}}]\nimport pathlib,json,sys,hashlib,subprocess\nroot=pathlib.Path(REMOTE);sys.path.insert(0,str(root/'research'))\nfrom fresh_start_sequence import require_completed\nr=root/'research/run-logs';label='fs-w170-nkilib-token-mlp-component-r1'\nreq=json.loads((r/(label+'.request.json')).read_text());assert req['expected_commit']=='2cd50e043742ff327f40eda70e9e43632a29118d'\nrequire_completed(json.loads((r/(label+'.postflight.json')).read_text()),(r/(label+'.log')).read_text(),req,REQUIREMENTS)\nlaunch=json.loads((r/(label+'.launch.json')).read_text())\nfor p,expected in launch['source_sha256'].items():\n if p.startswith('research/vendor/') or p in ('research/scratch/nki_library_probe_common.py','research/scratch/nki_library_relu2_adapter.py','research/scratch/nki_library_mlp_probe.py','research/scratch/mlp_fused_bf16.py','research/scratch/mlp_fused_bf16_probe.py'):\n  assert hashlib.sha256((root/p).read_bytes()).hexdigest()==expected,p\nprint('NKILIB_TRAINING_PREREQUISITE '+json.dumps(dict(passed=True,cases=6,source_commit=req['expected_commit'],token_sharding=True)),flush=True)\nsubprocess.run(['/home/ubuntu/workspace/native_venv/bin/python', '-u', '-c', \"import sys;sys.path.insert(0,'/home/ubuntu/trainium_freshstart_20260918_wave171/research/scratch')\\nimport torch\\nimport nki_library_training_mlp_probe as probe\\nfrom mlp_fused_bf16 import make_autograd,reference_forward\\nfrom nki_library_probe_common import emit,verify_sources\\nfrom nki_library_training_mlp import install\\nverify_sources();install();torch.set_num_threads(4)\\ndef native_hxt_forward(x,up,down):\\n y,relu=reference_forward(x,up,down)\\n return y,relu.T.contiguous()\\nprobe.native=make_autograd(native_hxt_forward,transposed_relu=True)\\nemit('NKILIB_MATCHED_HXT_CONTROL',dict(passed=True,transposed_relu=True,normal_input_gradient=False,source_commit='0535b900babe9686b2a62f2b597791c3ef97a59c',original_gates_retained=True))\\nfor shape in ((1024,256),(2048,1024),(32768,1024)):\\n emit('NKILIB_CASE_START',dict(shape=shape,kind='random',matched_hxt=True))\\n probe.run_case(shape,'random',20)\\nemit('NKILIB_MATCHED_HXT_RESULT',dict(passed=True,cases=3,all_original_gates=True,whole_model_or_quality_claim=False))\\n\"],check=True)\n"
+  ]
+}
