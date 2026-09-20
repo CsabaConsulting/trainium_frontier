@@ -1,0 +1,189 @@
+{
+  "label": "fs-w191-nkilib-inline-input-sequence-r1",
+  "max_seconds": 5400,
+  "purpose": "Quantize truthful BF16 input directly into managed FP8 library tiles, retaining source189 weight fusion and prepared-input control. Full original ten-case stage gates plus actual input byte/scale and changed-input checks. All scratch charged to tile planner. Compare native, prepared ROW and fused input forward with all online weight costs; no backward or quality claim.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w191-nkilib-inline-input-forward-r1.request.json",
+      "sha256": "65c1011a329d05b2d5510fe81617ef6cd6a8b4339897257760f58c07fa3050a1",
+      "requirements": [
+        {
+          "marker": "NKILIB_ROW_FORWARD_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 10,
+            "source_commit": "861b0ce85c7eb02710eb2fa6be01acdc30cf4b27",
+            "all_original_rules_verified": true,
+            "reference_and_mlp_bytes_unchanged": true
+          }
+        },
+        {
+          "marker": "NKILIB_PROVENANCE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "vendored_files": 66,
+            "package_installation": false,
+            "bundled_package_replaced": false
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_MLP_ADAPTER",
+          "count": 1,
+          "fields": {
+            "installed": true,
+            "isolated_namespace_only": true,
+            "legacy_e4m3_double_row": true,
+            "upstream_row_quantization_and_scaling": true,
+            "token_row_sharding": true,
+            "relu_bf16_then_square_bf16": true,
+            "diagnostics_excluded_from_timed_path": true,
+            "training_backward_implemented": false
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_RECIPROCAL",
+          "count": 50,
+          "fields": {
+            "passed": true,
+            "limit": 2.384185791015625e-07
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_QUANT_GATE",
+          "count": 50,
+          "fields": {
+            "passed": true,
+            "independently_decoded_legacy_e4m3": true,
+            "scale_exact": true
+          }
+        },
+        {
+          "marker": "NKILIB_EXACT",
+          "count": 260,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_NUMERICAL",
+          "count": 20,
+          "fields": {
+            "passed": true,
+            "finite": true,
+            "bound_failures": 0
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_INTERMEDIATE_GATE",
+          "count": 10,
+          "fields": {
+            "passed": true,
+            "outside_quantization_interval": 0,
+            "relative_interval": 4.76837158203125e-07,
+            "all_decoded_coordinates": true,
+            "finite": true
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_MLP_CASE",
+          "count": 10,
+          "fields": {
+            "passed": true,
+            "independent_decoded_pair_and_rounding_gates": true,
+            "all_outputs_and_quantizer_coordinates_finite": true,
+            "plain_and_instrumented_exact": true,
+            "all_online_calibration_layout_and_master_casts_charged": true,
+            "saved_activations_and_backward_excluded": true
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_MLP_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 10,
+            "forward_only": true,
+            "online_preparation_charged": true,
+            "full_training_or_bpb_claim": false
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_HEAP_COMPAT",
+          "count": 1,
+          "fields": {
+            "installed": true,
+            "isolated_namespace_only": true,
+            "conditional_gate_scale_cleanup": true,
+            "strict_allocator_checks_retained": true,
+            "arithmetic_unchanged": true,
+            "upstream_files_unchanged": true
+          }
+        },
+        {
+          "marker": "NKILIB_WEIGHT_FUSION_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 8,
+            "direct_producer_at_least_five_percent_faster_at_both_shapes": true,
+            "unchanged_source": true
+          }
+        },
+        {
+          "marker": "NKILIB_INLINE_INPUT_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 10,
+            "source_commit": "66f3dc70912264b885a18e277af1303669b2b397",
+            "all_frozen_forward_rules_verified": true,
+            "all_previous_forward_source_bytes_unchanged": true
+          }
+        },
+        {
+          "marker": "NKILIB_INLINE_INPUT_REWRITE",
+          "count": 1,
+          "fields": {
+            "all_original_numerical_checks_fixtures_and_bounds_retained": true,
+            "fused_weight_control_retained": true,
+            "online_weight_preparation_inside_both_timings": true,
+            "actual_fused_input_bytes_and_all_original_stages_exposed": true,
+            "independent_changed_input_check": true,
+            "training_or_bpb_claim": false
+          }
+        },
+        {
+          "marker": "NKILIB_INLINE_INPUT_ADAPTER",
+          "count": 1,
+          "fields": {
+            "installed": true,
+            "isolated_namespace_only": true,
+            "input_dtype_bf16": true,
+            "online_quantization_inside_loader": true,
+            "scratch_allocated_by_original_manager": true,
+            "scratch_charged_to_tile_planner": true,
+            "input_hbm_materialization_removed": true,
+            "packed_input_control_retained": true,
+            "upstream_projections_and_rounding_unchanged": true,
+            "backward_or_training_quality_claim": false
+          }
+        },
+        {
+          "marker": "NKILIB_INLINE_INPUT_GATE",
+          "count": 10,
+          "fields": {
+            "passed": true,
+            "actual_input_bytes_and_metadata_checked": true,
+            "independent_original_and_changed_input": true,
+            "exact_all_original_mlp_stages": true,
+            "exact_prepared_control_output": true,
+            "original_fixtures_and_bounds_retained": true,
+            "no_input_quantized_hbm_in_plain_path": true
+          }
+        }
+      ]
+    }
+  ]
+}
