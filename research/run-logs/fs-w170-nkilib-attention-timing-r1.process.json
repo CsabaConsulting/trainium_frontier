@@ -1,0 +1,16 @@
+{
+  "label": "fs-w170-nkilib-attention-timing-r1",
+  "guard_pid": 1962061,
+  "child_pid": 1962062,
+  "child_session": 1962062,
+  "started_at": "2026-09-20T04:40:56.984371+00:00",
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "3000s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "-c",
+    "REMOTE='/home/ubuntu/trainium_freshstart_20260918_wave170'\nREQUIREMENTS=[{'marker': 'NKILIB_PROVENANCE', 'count': 1, 'fields': {'passed': True, 'upstream_commit': '92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e', 'vendored_files': 66, 'bundled_package_replaced': False, 'package_installation': False}}, {'marker': 'NKILIB_PARSER_COMPAT', 'count': 1, 'fields': {'passed': True, 'cpu_factory_cases': 128, 'installed_compiler_unchanged': True}}, {'marker': 'NKILIB_ATTENTION_DIAGNOSTIC_CASE', 'count': 6, 'fields': {'completed': True, 'unchanged_native_gate_passed': True, 'diagnostic_only': True, 'promotion_allowed': False}}, {'marker': 'NKILIB_ATTENTION_DIAGNOSTIC_RESULT', 'count': 1, 'fields': {'completed': True, 'cases': 6, 'diagnostic_only': True, 'promotion_allowed': False, 'training_or_bpb_claim': False}}, {'marker': 'NKILIB_READOUT_COMPAT', 'count': 1, 'fields': {'installed': True, 'isolated_upstream_module_only': True, 'extra_sbuf_allocation': False, 'reset_accumulate_commands_unchanged': True, 'bundled_control_unchanged': True}}]\nimport pathlib,json,sys,hashlib,subprocess\nroot=pathlib.Path(REMOTE)\nsys.path.insert(0,str(root/'research'))\nfrom fresh_start_sequence import require_completed\nlabel='fs-w169-nkilib-attention-numerics-r1'\nr=root/'research/run-logs'\nreq=json.loads((r/(label+'.request.json')).read_text())\nassert req['expected_commit']=='6c654d38db308419d870133112952a5c0750cd03'\nrequire_completed(json.loads((r/(label+'.postflight.json')).read_text()),(r/(label+'.log')).read_text(),req,REQUIREMENTS)\nlaunch=json.loads((r/(label+'.launch.json')).read_text())\nfor p,expected in launch['source_sha256'].items():\n if p.startswith('research/vendor/') or p in ('research/scratch/nki_library_attention_probe.py','research/scratch/nki_library_attention_numerics.py','research/scratch/nki_library_attention_compat.py','research/scratch/nki_library_attention_readout_compat.py','research/scratch/nki_library_probe_common.py','research/scratch/mlp_fused_bf16_probe.py','research/scratch/mlp_fused_bf16.py'):\n  assert hashlib.sha256((root/p).read_bytes()).hexdigest()==expected,p\nprint('NKILIB_DIAGNOSTIC_PREREQUISITE '+json.dumps(dict(passed=True,cases=6,source_commit=req['expected_commit'],diagnostic_only=True,promotion_allowed=False)),flush=True)\nsubprocess.run(['/home/ubuntu/workspace/native_venv/bin/python','-u',str(root/'research/scratch/nki_library_attention_timing.py'),'--steps','20'],check=True)\n"
+  ]
+}

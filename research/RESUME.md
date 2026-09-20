@@ -1,9 +1,27 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-20 04:39 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-20 04:49 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## Current work — 2026-09-20 04:39 UTC
+## Current work — 2026-09-20 04:49 UTC
+
+- Source170 BOTH COMPLETE/CLEAN, original frozen requirements verified locally.
+  Token-row library MLP keeps21.166% forward gain (4.042807 vs5.128247ms) and
+  ALL SIX outputs are exactly native, also passing unchanged native gates.
+  This includes production32768 tokens. Still no saved-activation/backward gain.
+- Attention paired production timing10.703351 vs10.745843ms (only0.395% lower;
+  small batch1.297% slower); exact structural gates pass. Original CPU errors
+  remain non-promoting. Prefer the more promising MLP training extension.
+- Source171 code PREPARED: save ReLU inside the timed library kernel, reuse
+  established BF16 backward, gate full FP64 gradients and exact FP32 two-micro
+  accumulation. Check fs-w171 receipts for actual launch/results.
+- Trn22 free9.60GB: prepared strictly verified retirement of old profile copies
+  waves36/39/78/82 before more model compilation. Nothing deleted at this note.
+  Maintenance intent/result receipts, not this preparation, determine outcome.
+- Cron04:40:46 pushed source2cd50e04/snapshot0866930c; both hosts retrieved.
+  Latest verified push is always out/fresh-start-backup/last-success.json.
+
+## Previous source169/170 checkpoint (superseded host status)
 
 - Source169 BOTH COMPLETE/CLEAN; original frozen plan requirements independently
   verified locally. MLP production forward4.049636ms vs native5.129885ms,

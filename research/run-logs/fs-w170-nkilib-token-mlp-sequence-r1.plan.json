@@ -1,0 +1,48 @@
+{
+  "label": "fs-w170-nkilib-token-mlp-sequence-r1",
+  "max_seconds": 3000,
+  "purpose": "Compare isolated token-row sharding with native BF16 MLP. All six original CPU/structural cases plus the retained campaign native comparison. All layouts charged; no training/BPB claim until saved activation and backward are tested.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w170-nkilib-token-mlp-component-r1.request.json",
+      "sha256": "c9712688533dbaf78716072f053fc53454506c0cfd21ce733dc6c352d21848a5",
+      "requirements": [
+        {
+          "marker": "NKILIB_PROVENANCE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "upstream_commit": "92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e",
+            "vendored_files": 66,
+            "bundled_package_replaced": false,
+            "package_installation": false
+          }
+        },
+        {
+          "marker": "NKILIB_MLP_CASE",
+          "count": 6,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_MLP_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 6,
+            "training_or_bpb_claim": false,
+            "token_sharding": true
+          }
+        },
+        {
+          "marker": "FUSED_MLP_NATIVE_GATE",
+          "count": 6,
+          "fields": {
+            "passed": true
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+[W920 04:40:58.274541163 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+NKILIB_PROVENANCE {"passed": true, "upstream_commit": "92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e", "vendored_files": 66, "bundled_root": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib", "vendor_namespace": "research.vendor.nki_library_92d11f63", "nki": "0.5.0+28631259367.ga768afa6", "compiler": "2.26.6360.0+6f180f47", "package_installation": false, "bundled_package_replaced": false}
+NKILIB_RELU2_ADAPTER {"installed_in_isolated_namespace": true, "upstream_single_op_helper_rejects_squared_relu": true, "installed_compiler_unchanged": true, "token_sharding": true}
+NKILIB_CASE_START {"shape": [2, 512, 256], "kind": "random"}
+NKILIB_OUTPUT_CONTRACT {"name": "native", "expected_shape": [2, 512, 256], "actual_shape": [2, 512, 256], "dtype": "torch.bfloat16"}
+NKILIB_NUMERICAL {"name": "(2, 512, 256):random:native:fp64", "shape": [33, 256], "finite": true, "bound_failures": 0, "relative_rms": 0.004081294273939065, "max_abs": 0.020842669811889536, "max_error_over_bound": 0.1434534353210409, "half_output_negative_control_failures": 6688, "passed": true}
+NKILIB_EXACT {"name": "(2, 512, 256):random:native:repeat", "passed": true}
+NKILIB_OUTPUT_CONTRACT {"name": "upstream_relu2_adapter", "expected_shape": [2, 512, 256], "actual_shape": [2, 512, 256], "dtype": "torch.bfloat16"}
+NKILIB_NUMERICAL {"name": "(2, 512, 256):random:upstream_relu2_adapter:fp64", "shape": [33, 256], "finite": true, "bound_failures": 0, "relative_rms": 0.004081294273939065, "max_abs": 0.020842669811889536, "max_error_over_bound": 0.1434534353210409, "half_output_negative_control_failures": 6688, "passed": true}
+NKILIB_EXACT {"name": "(2, 512, 256):random:upstream_relu2_adapter:repeat", "passed": true}
+FUSED_MLP_NATIVE_GATE {"name": "(2, 512, 256):random:token_sharding_native_gate", "shape": [2, 512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0, "reference_rms": 1.2296767337892758, "relative_rms": 0.0, "exact": true, "passed": true}
+NKILIB_EXACT {"name": "(2, 512, 256):random:batch_independent", "passed": true}
+NKILIB_MLP_CASE {"shape": [2, 512, 256], "kind": "random", "passed": true, "samples_ms": {"native": [0.06569839897565544, 0.06128840032033622, 0.058329550665803254], "upstream_relu2_adapter": [0.06860735011287034, 0.07000824843998998, 0.06857594999019057]}, "median_ms": {"native": 0.06128840032033622, "upstream_relu2_adapter": 0.06860735011287034}, "upstream_vs_native_relative_rms": 0.0, "forward_only": true, "adapted_relu2_cte": true, "saved_training_activation_excluded": true, "input_weight_layout_work_charged": true}
+NKILIB_CASE_START {"shape": [2, 512, 256], "kind": "zero"}
+NKILIB_OUTPUT_CONTRACT {"name": "native", "expected_shape": [2, 512, 256], "actual_shape": [2, 512, 256], "dtype": "torch.bfloat16"}
+NKILIB_NUMERICAL {"name": "(2, 512, 256):zero:native:fp64", "shape": [33, 256], "finite": true, "bound_failures": 0, "relative_rms": 0.0, "max_abs": 0.0, "max_error_over_bound": 0.0, "half_output_negative_control_failures": 0, "passed": true}
+NKILIB_EXACT {"name": "(2, 512, 256):zero:native:repeat", "passed": true}
+NKILIB_OUTPUT_CONTRACT {"name": "upstream_relu2_adapter", "expected_shape": [2, 512, 256], "actual_shape": [2, 512, 256], "dtype": "torch.bfloat16"}
+NKILIB_NUMERICAL {"name": "(2, 512, 256):zero:upstream_relu2_adapter:fp64", "shape": [33, 256], "finite": true, "bound_failures": 0, "relative_rms": 0.0, "max_abs": 0.0, "max_error_over_bound": 0.0, "half_output_negative_control_failures": 0, "passed": true}
+NKILIB_EXACT {"name": "(2, 512, 256):zero:upstream_relu2_adapter:repeat", "passed": true}
+FUSED_MLP_NATIVE_GATE {"name": "(2, 512, 256):zero:token_sharding_native_gate", "shape": [2, 512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0, "reference_rms": 0.0, "relative_rms": 0.0, "exact": true, "passed": true}
+NKILIB_EXACT {"name": "(2, 512, 256):zero:batch_independent", "passed": true}
+NKILIB_MLP_CASE {"shape": [2, 512, 256], "kind": "zero", "passed": true, "upstream_vs_native_relative_rms": 0.0, "forward_only": true, "adapted_relu2_cte": true, "saved_training_activation_excluded": true, "input_weight_layout_work_charged": true}
+NKILIB_CASE_START {"shape": [2, 512, 256], "kind": "outlier"}
+NKILIB_OUTPUT_CONTRACT {"name": "native", "expected_shape": [2, 512, 256], "actual_shape": [2, 512, 256], "dtype": "torch.bfloat16"}
+NKILIB_NUMERICAL {"name": "(2, 512, 256):outlier:native:fp64", "shape": [33, 256], "finite": true, "bound_failures": 0, "relative_rms": 0.00416474750068611, "max_abs": 0.03689292634158514, "max_error_over_bound": 0.1434534353210409, "half_output_negative_control_failures": 6708, "passed": true}
+NKILIB_EXACT {"name": "(2, 512, 256):outlier:native:repeat", "passed": true}
+NKILIB_OUTPUT_CONTRACT {"name": "upstream_relu2_adapter", "expected_shape": [2, 512, 256], "actual_shape": [2, 512, 256], "dtype": "torch.bfloat16"}
+NKILIB_NUMERICAL {"name": "(2, 512, 256):outlier:upstream_relu2_adapter:fp64", "shape": [33, 256], "finite": true, "bound_failures": 0, "relative_rms": 0.00416474750068611, "max_abs": 0.03689292634158514, "max_error_over_bound": 0.1434534353210409, "half_output_negative_control_failures": 6708, "passed": true}
+NKILIB_EXACT {"name": "(2, 512, 256):outlier:upstream_relu2_adapter:repeat", "passed": true}
+FUSED_MLP_NATIVE_GATE {"name": "(2, 512, 256):outlier:token_sharding_native_gate", "shape": [2, 512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0, "reference_rms": 1.2560126976146182, "relative_rms": 0.0, "exact": true, "passed": true}
+NKILIB_EXACT {"name": "(2, 512, 256):outlier:batch_independent", "passed": true}
+NKILIB_MLP_CASE {"shape": [2, 512, 256], "kind": "outlier", "passed": true, "upstream_vs_native_relative_rms": 0.0, "forward_only": true, "adapted_relu2_cte": true, "saved_training_activation_excluded": true, "input_weight_layout_work_charged": true}
+NKILIB_CASE_START {"shape": [2, 512, 256], "kind": "changed"}
+NKILIB_OUTPUT_CONTRACT {"name": "native", "expected_shape": [2, 512, 256], "actual_shape": [2, 512, 256], "dtype": "torch.bfloat16"}
+NKILIB_NUMERICAL {"name": "(2, 512, 256):changed:native:fp64", "shape": [33, 256], "finite": true, "bound_failures": 0, "relative_rms": 0.004060681369888527, "max_abs": 0.008328184008189687, "max_error_over_bound": 0.13482332451443377, "half_output_negative_control_failures": 6688, "passed": true}
+NKILIB_EXACT {"name": "(2, 512, 256):changed:native:repeat", "passed": true}
+NKILIB_OUTPUT_CONTRACT {"name": "upstream_relu2_adapter", "expected_shape": [2, 512, 256], "actual_shape": [2, 512, 256], "dtype": "torch.bfloat16"}
+NKILIB_NUMERICAL {"name": "(2, 512, 256):changed:upstream_relu2_adapter:fp64", "shape": [33, 256], "finite": true, "bound_failures": 0, "relative_rms": 0.004060681369888527, "max_abs": 0.008328184008189687, "max_error_over_bound": 0.13482332451443377, "half_output_negative_control_failures": 6688, "passed": true}
+NKILIB_EXACT {"name": "(2, 512, 256):changed:upstream_relu2_adapter:repeat", "passed": true}
+FUSED_MLP_NATIVE_GATE {"name": "(2, 512, 256):changed:token_sharding_native_gate", "shape": [2, 512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0, "reference_rms": 0.4611409316089057, "relative_rms": 0.0, "exact": true, "passed": true}
+NKILIB_EXACT {"name": "(2, 512, 256):changed:batch_independent", "passed": true}
+NKILIB_MLP_CASE {"shape": [2, 512, 256], "kind": "changed", "passed": true, "upstream_vs_native_relative_rms": 0.0, "forward_only": true, "adapted_relu2_cte": true, "saved_training_activation_excluded": true, "input_weight_layout_work_charged": true}
+NKILIB_CASE_START {"shape": [2, 1024, 1024], "kind": "random"}
+NKILIB_OUTPUT_CONTRACT {"name": "native", "expected_shape": [2, 1024, 1024], "actual_shape": [2, 1024, 1024], "dtype": "torch.bfloat16"}
+NKILIB_NUMERICAL {"name": "(2, 1024, 1024):random:native:fp64", "shape": [33, 1024], "finite": true, "bound_failures": 0, "relative_rms": 0.004088395781178293, "max_abs": 0.024316177556587437, "max_error_over_bound": 0.06816116883172729, "half_output_negative_control_failures": 18803, "passed": true}
+NKILIB_EXACT {"name": "(2, 1024, 1024):random:native:repeat", "passed": true}
+NKILIB_OUTPUT_CONTRACT {"name": "upstream_relu2_adapter", "expected_shape": [2, 1024, 1024], "actual_shape": [2, 1024, 1024], "dtype": "torch.bfloat16"}
+NKILIB_NUMERICAL {"name": "(2, 1024, 1024):random:upstream_relu2_adapter:fp64", "shape": [33, 1024], "finite": true, "bound_failures": 0, "relative_rms": 0.004088395781178293, "max_abs": 0.024316177556587437, "max_error_over_bound": 0.06816116883172729, "half_output_negative_control_failures": 18803, "passed": true}
+NKILIB_EXACT {"name": "(2, 1024, 1024):random:upstream_relu2_adapter:repeat", "passed": true}
+FUSED_MLP_NATIVE_GATE {"name": "(2, 1024, 1024):random:token_sharding_native_gate", "shape": [2, 1024, 1024], "finite": true, "bound_failures": 0, "max_abs": 0.0, "reference_rms": 1.2308041995876835, "relative_rms": 0.0, "exact": true, "passed": true}
+NKILIB_EXACT {"name": "(2, 1024, 1024):random:batch_independent", "passed": true}
+NKILIB_MLP_CASE {"shape": [2, 1024, 1024], "kind": "random", "passed": true, "samples_ms": {"native": [0.31255595094989985, 0.3124854003544897, 0.3105355513980612], "upstream_relu2_adapter": [0.3808660985669121, 0.3770534007344395, 0.3812826005741954]}, "median_ms": {"native": 0.3124854003544897, "upstream_relu2_adapter": 0.3808660985669121}, "upstream_vs_native_relative_rms": 0.0, "forward_only": true, "adapted_relu2_cte": true, "saved_training_activation_excluded": true, "input_weight_layout_work_charged": true}
+NKILIB_CASE_START {"shape": [32, 1024, 1024], "kind": "random"}
+NKILIB_OUTPUT_CONTRACT {"name": "native", "expected_shape": [32, 1024, 1024], "actual_shape": [32, 1024, 1024], "dtype": "torch.bfloat16"}
+NKILIB_NUMERICAL {"name": "(32, 1024, 1024):random:native:fp64", "shape": [33, 1024], "finite": true, "bound_failures": 0, "relative_rms": 0.004054523239296773, "max_abs": 0.022397057399191844, "max_error_over_bound": 0.0643768020527615, "half_output_negative_control_failures": 18911, "passed": true}
+NKILIB_EXACT {"name": "(32, 1024, 1024):random:native:repeat", "passed": true}
+NKILIB_OUTPUT_CONTRACT {"name": "upstream_relu2_adapter", "expected_shape": [32, 1024, 1024], "actual_shape": [32, 1024, 1024], "dtype": "torch.bfloat16"}
+NKILIB_NUMERICAL {"name": "(32, 1024, 1024):random:upstream_relu2_adapter:fp64", "shape": [33, 1024], "finite": true, "bound_failures": 0, "relative_rms": 0.004054523239296773, "max_abs": 0.022397057399191844, "max_error_over_bound": 0.0643768020527615, "half_output_negative_control_failures": 18911, "passed": true}
+NKILIB_EXACT {"name": "(32, 1024, 1024):random:upstream_relu2_adapter:repeat", "passed": true}
+FUSED_MLP_NATIVE_GATE {"name": "(32, 1024, 1024):random:token_sharding_native_gate", "shape": [32, 1024, 1024], "finite": true, "bound_failures": 0, "max_abs": 0.0, "reference_rms": 1.2307502163328619, "relative_rms": 0.0, "exact": true, "passed": true}
+NKILIB_EXACT {"name": "(32, 1024, 1024):random:batch_independent", "passed": true}
+NKILIB_MLP_CASE {"shape": [32, 1024, 1024], "kind": "random", "passed": true, "samples_ms": {"native": [5.128247148240916, 5.132772200158797, 5.120299651753157], "upstream_relu2_adapter": [4.046940800617449, 4.042806848883629, 4.039795548305847]}, "median_ms": {"native": 5.128247148240916, "upstream_relu2_adapter": 4.042806848883629}, "upstream_vs_native_relative_rms": 0.0, "forward_only": true, "adapted_relu2_cte": true, "saved_training_activation_excluded": true, "input_weight_layout_work_charged": true}
+NKILIB_MLP_RESULT {"passed": true, "cases": 6, "forward_only": true, "adapted_relu2_cte": true, "token_sharding": true, "training_or_bpb_claim": false}
+EXPERIMENT_POSTFLIGHT {"label": "fs-w170-nkilib-token-mlp-component-r1", "returncode": 0, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave170/research/run-logs/fs-w170-nkilib-token-mlp-component-r1.postflight.json"}

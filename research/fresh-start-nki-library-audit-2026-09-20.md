@@ -229,3 +229,38 @@ inside the forward kernel and charge that HBM traffic, all backward products,
 FP32 master-gradient accumulation and actual weight refresh. Recomputing the
 whole up projection would likely consume the1.08ms forward saving. Prefer
 an explicit saved-activation output to hiding recomputation outside timing.
+
+## Source170: exact token-row output, attention essentially unchanged
+
+Source170 token-row MLP passes all six original CPU/repeat/batch cases AND
+all six retained native-equivalence comparisons. All outputs are exactly
+native, including production. Production forward4.042806849ms versus fresh
+native5.128247148ms (21.166% less time), including casts/layouts specified by
+the forward probe (weights themselves are BF16 inputs). It keeps the previous
+forward gain while avoiding intermediate partial-sum BF16 rounding.
+
+The paired attention diagnostic completed with exact repeat, causal-prefix,
+zero future K/V-gradient and other-batch checks. At production, new10.703351ms
+versus bundled10.745843ms, only0.395% lower; at the small batch it is1.297%
+slower. These forward+backward timings do not justify a whole-model change.
+The original CPU heuristic failures remain visible and non-promoting. Prioritize
+the MLP training extension; preserve attention adapters/diagnosis as references.
+
+Source171 implements an explicit saved-ReLU HBM output during the library
+forward, followed by the existing native BF16 backward into FP32 masters.
+Eight proposed component cases include zeros, tiny gradients, outliers,
+changed weights, real width and32768 production tokens. Require retained
+native output/saved/gradient comparisons, stagewise FP64 saved/output checks,
+full-coordinate independent FP64 autograd gradient bounds, exact repeats,
+independent rows and exact two-microbatch FP32 accumulation. Master BF16 casts,
+contiguous transposes, activation stores and all backward work are timed.
+Optimizer, communication and the surrounding model are excluded and must be
+tested separately if the complete component remains faster.
+
+Trn22 has9.60GB free after source170, close to the8GiB floor for larger jobs.
+Before another model compilation, a separate maintenance script may retire
+four named old profile copies (waves36/39/78/82). It requires a clean idle host,
+the exclusive host lock, fresh local SHA256 checks, live GitHub asset-digest
+checks and all remote-file hashes. Sources, checkpoints, compiler caches,
+staging directories and all local/cloud evidence remain intact. Check its
+actual intent/result receipts; preparation is not evidence of deletion.
