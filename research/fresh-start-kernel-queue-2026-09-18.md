@@ -1,23 +1,21 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-20 00:10 UTC. This is the executable/design queue, not a list of
-claimed gains. Read `RESUME.md` and current postflights before dispatch.
+Updated 2026-09-20 00:27 UTC. Read `RESUME.md` and postflights before dispatch.
 
-Trn21 source156 has an active fixed three-step queue: BF16 primitive regression,
-FP32-value primitive gates, then the exact production attention diagnostic.
-Trn22 source155 has an active fixed four-step queue: BF16 regression, corrected
-FP32-value transpose, materialization diagnostic, original attention gates/timing.
-Each request has immutable source, host locking, complete pre/post cleanup and
-exact completion requirements. Any failure stops its queue. No quality run.
+Trn21 source156 completed its BF16/FP32 component gates and production-shape
+precision diagnosis, with clean postflight00:25:41 UTC and no remaining job.
+At production shape each individual Q/K/V replacement is exactly native, but
+joint BF16 replacement with VE fails81 bounds and joint FP32-V fails47,860.
+Frozen controls reproduce these discrepancies. A simple V-output precision
+switch does not explain the full result. Next bounded diagnosis: pairwise
+QK/QV/KV or compiled consumer-intermediate inspection; no bounds relaxed.
 
-Source154 token FP32 primitive passes all10 cases/216 product-lifecycle audits.
-At B4/T128, widths256/1024, all122 attention output/gradient/accumulation
-comparisons are exactly native, with causal/padding/native-restore checks.
-At actual B32/T1024, the unchanged output gate fails (47,860 coordinates,
-RMS0.00413085). The next diagnosis tests the exact shape/cache/input-grad context;
-no precision switch or tolerance change is assumed. Source155 fixes the separate
-channel transpose allocation left BF16 despite FP32 input. Failed runs cleaned
-up and are preserved. Both are numerical investigations, not speed/BPB wins.
+Trn22 source155 corrected transpose passes its primitive gates but reproduces
+the same original production attention failure. Its source156 focused VE-on
+diagnostic is active (direct SSH00:26:57 UTC), reusing identical gated primitive/
+probe bytes. It independently reproduces81 joint-BF16 failures; other arms
+are pending. Each request has immutable source, a host lock and pre/postflight
+cleanup. No full attention timing, full-model or quality run is promoted.
 
 Native BF16 QKV component timing is already near its nominal arithmetic floor.
 Once execution/precision contracts are understood, broader FP8 projection coverage
