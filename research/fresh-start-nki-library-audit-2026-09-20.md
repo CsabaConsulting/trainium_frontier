@@ -4,9 +4,11 @@ The user's Re:Invent lead is [AWS Neuron's NKI Library](https://github.com/aws-n
 The clean local clone is pinned at `92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e`
 (August 28). Source references below use that commit, rather than a moving main.
 
-Current result at07:59UTC: library techniques are incorporated into working
-experimental variants. Component improvements have not yet produced a faster
-whole-model training step or a lower BPB. The frozen submission is unchanged.
+Current result: library techniques are incorporated into working experimental
+variants. The strongest completed result is10.372% lower saved-training-forward
+latency, including online preparation and actual forward-state stores. Complete
+backward, whole-model speed and training quality remain unproved for that FP8
+variant. The frozen submission is unchanged; see RESUME.md for active jobs.
 
 ## Concrete transfers and measured results
 
@@ -40,16 +42,18 @@ counters as exact traffic or bandwidth. Full analysis and warnings are in
 `run-logs/fs-w180-paired-caller-analysis-proof-r1.json`.
 
 The fixed64/128KiB budget tests pass correctness/cleanup but lose full-model
-throughput. Source192 now tests compiler-managed SBUF addresses with all original
-logical capacity/lifetime/underflow checks active. Full gradients and real
-Linear/cache integration pass; complete-model control/candidate timing is running.
+throughput. Source192's compiler-managed SBUF addresses also pass every original
+logical capacity/lifetime/underflow, gradient and real Linear/cache check, but
+the full model remains15.245% slower. Source195 now isolates layer count and
+position while retaining the original native backward in untouched blocks.
 
 Source191 fuses BF16 token-row quantization into the library loader. Its complete
 forward wins14.6885% overBF16 and16.2307% over the prepared-input ROW control,
 with all original ten cases plus actual-byte/stage/changed-input gates passing.
-Source193 has captured all three unchanged forward functions to measure remaining
-engine/copy costs. All preparation is charged. Training saves/backward remain
-required work; their scale algebra and costs are in
+Source193 independently replicates the forward gain and preserves profiles of
+all three unchanged functions. Source194 retains a10.372% gain after adding the
+actual training saves. All preparation is charged. Complete backward remains
+required work; its scale algebra and costs are in
 `fresh-start-library-fusion-next-2026-09-20.md`. The ROW random fixture differs
 from unquantizedBF16 by5.76445% relative RMS, so exact agreement with the FP8
 reference does not establish training-quality equivalence.
