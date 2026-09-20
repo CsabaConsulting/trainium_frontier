@@ -54,3 +54,33 @@ research leads; verify API claims against official docs and local installed SDK
 before implementation. Historical memory's September8 scaled_mm failure is
 specific to that frontend and superseded by our working NKI FP8 primitives.
 It does not close direct TensorEngine FP8. Current limitation is whole-step cost.
+
+## Next independent screen: FP8 only for square dX
+
+Source158 adds `scratch/fp8_square_dx_probe.py`. Keep forward and weight-gradient
+products native BF16; replace only the input-gradient product for square attention
+projections with the already independently characterized NKI E4M3 gradient GEMM.
+This tests a different precision boundary and matrix aspect ratio from the full
+MLP experiment. The old rectangular gradient pilot borrowed forward FP8 cache
+work; this screen charges original master casts, current calibration and dual
+packing every three-product call. Unused dual producer outputs remain charged.
+
+Seven small cases plus32768x1024 gate independent CPU forward/weight products,
+FP8 weight calibration/byte layout, per-row gradient quantization and the original
+pair arithmetic bound. Repeats, input nonmutation and row independence are checked.
+The native forward/weight product must also remain exactly equal. Compare complete
+three-product cost only after all gates pass. This is not actual autograd/master
+accumulation integration or a full-model timing. A component loss closes this
+specific boundary unless profile evidence supports a concrete cost removal;
+a win justifies actual autograd and cache-lifecycle gates, not a quality run.
+
+The Tavily report is complete and preserved. One central recommendation is
+inapplicable: it suggests MXFP8 hardware kernels for Trn2, but the official
+[nc_matmul_mx API](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/api/generated/nki.isa.nc_matmul_mx.html)
+explicitly restricts the instruction to NeuronCore-v4 or newer. The page's broad
+Trn2 relevance tag is not the instruction support statement. The report also
+uses the wrong backend name (`torch-neuron` vs our installed `neuron`) and
+mixes changing Muon optimizer matrix arithmetic with ordinary network GEMMs.
+Do not apply those suggestions. No SDK upgrade or optimizer precision change.
+The usable hypothesis is backward-first coverage with our working NC-v3 E4M3
+primitives; no documentation establishes a speed gain on this workload.

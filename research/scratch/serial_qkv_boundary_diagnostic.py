@@ -77,6 +77,11 @@ def setup_partial(model, layout, replacement):
     attn.forward = types.MethodType(forward, attn)
 
 
+def fixed_gate_forward(self, unused_input):
+    """Diagnostic only: materialize the gate GEMM before its original sigmoid."""
+    return self._diagnostic_gate_value
+
+
 def run(channels, layout, cached, with_ve, batch=4, length=128, seed=None,
         include_fp32_arm=False, arm_set='standard', gate_init='random',
         skip_materialized=False):
@@ -115,6 +120,15 @@ def run(channels, layout, cached, with_ve, batch=4, length=128, seed=None,
     if arm_set == 'pairs':
         modes = ('native_preprojected', 'nki_qk', 'nki_qv', 'nki_kv',
                  'nki_all_direct', 'nki_all')
+    if arm_set == 'gate':
+        assert with_ve and not include_fp32_arm
+        modes = ('native_preprojected', 'native_gate_bf16', 'native_gate_fp32',
+                 'nki_gate_bf16', 'nki_gate_fp32', 'nki_all')
+        # Independent CPU product of the actual BF16 gate operands. Freezing
+        # this intermediate can change fusion and removes its derivative;
+        # neither control is an authority for accepting an implementation.
+        gate_weight = baseline.transformer.h[0].attn.ve_gate.weight.detach().cpu().bfloat16()
+        preactivation = host[2][..., :T.VE_GATE_CHANNELS].double() @ gate_weight.double().T
     if include_fp32_arm: modes += ('nki_all_fp32v',)
     for mode in modes:
         # Fresh native initialization/weights remain the authority. Reset only
@@ -122,7 +136,14 @@ def run(channels, layout, cached, with_ve, batch=4, length=128, seed=None,
         torch._dynamo.reset()
         candidate = copy.deepcopy(template)
         if cached: refresh(candidate)
-        if mode in ('nki_all', 'nki_all_fp32v'):
+        if mode.startswith(('native_gate_', 'nki_gate_')):
+            dtype = torch.bfloat16 if mode.endswith('bf16') else torch.float32
+            gate = candidate.transformer.h[0].attn.ve_gate
+            gate._diagnostic_gate_value = preactivation.to(dtype).to('neuron').requires_grad_()
+            gate.forward = types.MethodType(fixed_gate_forward, gate)
+            if mode.startswith('nki_'):
+                install(candidate, 'neuron', T, layout)
+        elif mode in ('nki_all', 'nki_all_fp32v'):
             install(candidate, 'neuron', T, layout, value_fp32=(mode == 'nki_all_fp32v'))
         else: setup_partial(candidate, layout, mode)
         compiled = torch.compile(candidate, backend='neuron', fullgraph=True, dynamic=False)
@@ -181,7 +202,7 @@ def main():
     parser.add_argument('--cache-mode', choices=('both', 'cached', 'uncached'), default='both')
     parser.add_argument('--ve-mode', choices=('both', 'on', 'off'), default='both')
     parser.add_argument('--include-fp32-arm', action='store_true')
-    parser.add_argument('--arm-set', choices=('standard', 'pairs'), default='standard')
+    parser.add_argument('--arm-set', choices=('standard', 'pairs', 'gate'), default='standard')
     parser.add_argument('--gate-init', choices=('random', 'zero'), default='random')
     parser.add_argument('--skip-materialized', action='store_true')
     parser.add_argument('--component-root', required=True)

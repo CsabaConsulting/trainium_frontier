@@ -1,0 +1,43 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave158",
+    "expected_commit": "959495b462a824904e2f7d91a136da74f4ba94c0",
+    "label": "fs-w158-fp8-square-dx-component-r1",
+    "purpose": "Square attention projection screen: native BF16 forward/weight product, FP8 dX. Independent declared arithmetic gates precede three-product timing with every master cast, calibration and packing charged.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1800s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "/home/ubuntu/trainium_freshstart_20260918_wave158/research/scratch/fp8_square_dx_probe.py",
+      "--steps",
+      "10"
+    ],
+    "fingerprint_paths": [
+      "train.py",
+      "research/scratch/fp8_square_dx_probe.py",
+      "research/scratch/fp8_dual_weight_cache_nki.py",
+      "research/scratch/fp8_gradient_gemm_nki.py",
+      "research/scratch/fp8_mlp_island_probe.py",
+      "research/scratch/fp8_packed_weight_cache_probe.py",
+      "research/scratch/fp8_weight_cache_probe.py",
+      "research/scratch/fresh_start_fp8_probe.py",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "research/scratch/serial_qkv_probe.py"
+    ]
+  },
+  "requested_at": "2026-09-20T00:55:46.825123+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w158-fp8-square-dx-component-r1\", \"pid\": 1912655, \"commit\": \"959495b462a824904e2f7d91a136da74f4ba94c0\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave158/research/run-logs/fs-w158-fp8-square-dx-component-r1.log\", \"started_at\": \"2026-09-20T00:55:52.783331+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}
