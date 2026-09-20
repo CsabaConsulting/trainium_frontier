@@ -495,3 +495,28 @@ region and trn22 source178 separate region. Native whole-model controls run in
 independent processes. Source176 native completed cleanly05:42:28UTC with13.32GB
 free before the candidate; source178 recovered host has18.09GB after integration.
 No full-step/BPB gain has been established for the library yet.
+
+## Packed ROW quantizer prerequisite (prepared 05:55 UTC)
+
+`nki_library_row_quantize.py` implements online BF16 absmax, the pinned
+library's max(absmax/240,1e-6) dequantization scale, FP32 reciprocal and raw
+legacy-E4M3 output. Its optional C+4 layout writes the per-token FP32 scale
+through the same typed HBM access pattern used by the library consumer. All
+metadata stores remain charged. This is new code awaiting hardware validation.
+
+The independent screen has14 fixtures: zero, tiny, outlier, wide row-scale
+range and random values in both ordinary weight-row and packed token layouts;
+the finite BF16 alphabet; and all three production activation/weight shapes.
+Every fixture also changes a row and requires all other rows to stay exact.
+Absmax, dequantization scale and decoded quantized values must match their
+independent CPU references exactly. The reciprocal is separately screened
+against FP64 division at a predeclared4 FP32 unit-roundoff relative bound;
+this bound is an experimental requirement, not an AWS precision promise.
+Signed zero byte encodings are equivalent, but every decoded value is checked.
+Only a passing, clean producer run can support a later ROW MLP forward screen;
+neither its standalone timing nor a forward-only result qualifies a model.
+
+API references: [reciprocal](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/api/generated/nki.isa.reciprocal.html)
+performs VectorEngine FP32 arithmetic; [activation](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/api/generated/nki.isa.activation.html)
+performs multiply/add/activation in FP32 before casting to the destination.
+The producer deliberately avoids any PyTorch E4M3FN reinterpretation.
