@@ -1,0 +1,323 @@
+{
+  "upstream": "https://github.com/aws-neuron/nki-library",
+  "commit": "92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e",
+  "seeds": [
+    "core/attention/attention_cte.py",
+    "core/attention/attention_bwd.py",
+    "core/mlp/mlp.py"
+  ],
+  "external_imports": [
+    "dataclasses",
+    "enum",
+    "math",
+    "nki",
+    "nki.isa",
+    "nki.isa.constants",
+    "nki.language",
+    "nki.language.opcode",
+    "numpy",
+    "os",
+    "sys",
+    "typing"
+  ],
+  "files": {
+    "core/__init__.py": {
+      "sha256": "36c8868518ca8100d6e76a0855d4ab189a42a07cd0492770296040c8f6725d57",
+      "bytes": 615
+    },
+    "core/attention/__init__.py": {
+      "sha256": "36c8868518ca8100d6e76a0855d4ab189a42a07cd0492770296040c8f6725d57",
+      "bytes": 615
+    },
+    "core/attention/attention_bwd.py": {
+      "sha256": "0908e129bfc96a6ad726f33dc772eb33ef251fd865005b31089cababb1dcec94",
+      "bytes": 83325
+    },
+    "core/attention/attention_cte.py": {
+      "sha256": "29439c9f459dec0b6a1f5f503600edf4891391722c3bad4846f22c6ecaf6385f",
+      "bytes": 188432
+    },
+    "core/mlp/__init__.py": {
+      "sha256": "36c8868518ca8100d6e76a0855d4ab189a42a07cd0492770296040c8f6725d57",
+      "bytes": 615
+    },
+    "core/mlp/mlp.py": {
+      "sha256": "82cd781eb3598a527c99d27d8b75d4b3838f0291324332d2b5d5bb3c7968fb73",
+      "bytes": 18688
+    },
+    "core/mlp/mlp_cte/__init__.py": {
+      "sha256": "36c8868518ca8100d6e76a0855d4ab189a42a07cd0492770296040c8f6725d57",
+      "bytes": 615
+    },
+    "core/mlp/mlp_cte/basic/__init__.py": {
+      "sha256": "36c8868518ca8100d6e76a0855d4ab189a42a07cd0492770296040c8f6725d57",
+      "bytes": 615
+    },
+    "core/mlp/mlp_cte/basic/mlp_cte_basic.py": {
+      "sha256": "61470f905d376e244aaad0a57ee9eac7b144be22d3df595989e95bc2d644b112",
+      "bytes": 20145
+    },
+    "core/mlp/mlp_cte/basic/mlp_cte_basic_allocation.py": {
+      "sha256": "e13634ef9c466d95e33e897f5b454f8756885a2a589b1b7f58556b40409f1234",
+      "bytes": 5936
+    },
+    "core/mlp/mlp_cte/basic/mlp_cte_basic_norm.py": {
+      "sha256": "0715f3530f5bf4ae201a488a2c054583a15a8591f3b6b178d45b6c3f03a1ac31",
+      "bytes": 13430
+    },
+    "core/mlp/mlp_cte/basic/mlp_cte_basic_projection.py": {
+      "sha256": "b3d5c8d8f57c11efdedcd2369289af1333e7d4c1f862069cce01eef5148797d2",
+      "bytes": 39893
+    },
+    "core/mlp/mlp_cte/basic/mlp_cte_basic_quantization.py": {
+      "sha256": "da3d676d547c88e333d916333d7ab010087e6ed9b336b796f0785f2a7fe3c51e",
+      "bytes": 8723
+    },
+    "core/mlp/mlp_cte/basic/mlp_cte_basic_tensor_io.py": {
+      "sha256": "f8f791cab53c6fa4e295697c67faac0b8a4a5319a50edb77c4b2f960ad1bd5a1",
+      "bytes": 16476
+    },
+    "core/mlp/mlp_cte/basic/mlp_cte_basic_tile_info.py": {
+      "sha256": "f557e22417da2f09fe4ee8ae55e924b07646b70dc687317edbaf590b14706ff8",
+      "bytes": 15076
+    },
+    "core/mlp/mlp_cte/basic/mlp_cte_basic_transpose.py": {
+      "sha256": "2dfb8b4829a21c00f255d53683df3b2053070288cf364f21fc4ca52d983eb2b7",
+      "bytes": 16216
+    },
+    "core/mlp/mlp_cte/mlp_cte.py": {
+      "sha256": "7baefaa177234c1834f2798d8664dc6477c38c4570986cf4d52b9b58d7b74e5c",
+      "bytes": 1912
+    },
+    "core/mlp/mlp_cte/mlp_cte_constants.py": {
+      "sha256": "1f519cc808a75be6596ebb9d386e949d7dc14653840c39dca20648a5802b142f",
+      "bytes": 10802
+    },
+    "core/mlp/mlp_cte/mlp_cte_sharding.py": {
+      "sha256": "ad303722a97f24679613a6023cac1b78388a84f2c1fde3d4a516fd2785ba6d93",
+      "bytes": 7886
+    },
+    "core/mlp/mlp_cte/mx/__init__.py": {
+      "sha256": "36c8868518ca8100d6e76a0855d4ab189a42a07cd0492770296040c8f6725d57",
+      "bytes": 615
+    },
+    "core/mlp/mlp_cte/mx/mlp_cte_mx.py": {
+      "sha256": "2c04509ece0501596da6a862e12877a58aee3596ff32d37e4c8b1a82836d3a14",
+      "bytes": 16967
+    },
+    "core/mlp/mlp_cte/mx/mlp_cte_mx_allocation.py": {
+      "sha256": "2b9b517f7422300869fa8d6f5fa10dff2cc17352342866a58e0e0f4bfd678883",
+      "bytes": 8351
+    },
+    "core/mlp/mlp_cte/mx/mlp_cte_mx_projection.py": {
+      "sha256": "0f8b6082412313c909abc7db651470accc99c8492ef73b17f6e6c46a0363f118",
+      "bytes": 30490
+    },
+    "core/mlp/mlp_cte/mx/mlp_cte_mx_quantization.py": {
+      "sha256": "ebeb707676ff891ef8c4277b319ba1dcc8b408bca45a020cab4cbfa3db411581",
+      "bytes": 6467
+    },
+    "core/mlp/mlp_cte/mx/mlp_cte_mx_tensor_io.py": {
+      "sha256": "874461428047744b4b551050ca4c4785f4e9beb65a477924972f5b76d84c80b0",
+      "bytes": 21874
+    },
+    "core/mlp/mlp_cte/mx/mlp_cte_mx_tile_info.py": {
+      "sha256": "043199b52716cbc93055468dce314cd11b95c8bc01e03faa4cec85dfce1e1290",
+      "bytes": 15205
+    },
+    "core/mlp/mlp_cte/mx/mlp_cte_mx_transpose.py": {
+      "sha256": "ba7a95c633befc0eebff82715e0ba58e820d228044437208062aa0b584fb0bab",
+      "bytes": 6782
+    },
+    "core/mlp/mlp_parameters.py": {
+      "sha256": "8259370c4be9bc4732c1bdec40422fa22b9a814bb840682f9a0e7136247d075b",
+      "bytes": 43684
+    },
+    "core/mlp/mlp_tkg/__init__.py": {
+      "sha256": "36c8868518ca8100d6e76a0855d4ab189a42a07cd0492770296040c8f6725d57",
+      "bytes": 615
+    },
+    "core/mlp/mlp_tkg/down_projection_mx_shard_H.py": {
+      "sha256": "1435f47a4ededa341e0881a13cd98cccfcd2db6f7dbe34823f9e8c9e826cda52",
+      "bytes": 26237
+    },
+    "core/mlp/mlp_tkg/gate_up_projection_mx_shard_H.py": {
+      "sha256": "055b685d0b7cfb3e597174404e338fa934ed1b3da390ee690300642d96403c71",
+      "bytes": 31886
+    },
+    "core/mlp/mlp_tkg/llama3_70b_high_batch.py": {
+      "sha256": "5b205d5fe1802d6e129c3cac2fa850c08d1096b0cb3636cf54077c504e20ad90",
+      "bytes": 30372
+    },
+    "core/mlp/mlp_tkg/mlp_tkg.py": {
+      "sha256": "613493195ad50bcd116872529eeb9c1d1a830cd0de41c938b4ebf2c91313c47b",
+      "bytes": 18082
+    },
+    "core/mlp/mlp_tkg/mlp_tkg_constants.py": {
+      "sha256": "0ed606a3fbd084002ecff8b2312c66258368cf914d3df27cdefa497c8bb3cc96",
+      "bytes": 16085
+    },
+    "core/mlp/mlp_tkg/mlp_tkg_down_projection.py": {
+      "sha256": "69535e3de807c5aa73fb46f434db079521b7642ba5206510d2682accc1e64c2a",
+      "bytes": 12138
+    },
+    "core/mlp/mlp_tkg/mlp_tkg_down_projection_lhs_rhs_swap.py": {
+      "sha256": "8f9c1a4b6b1f668d74eec6d75a6665423afeb46f9be6f10b58a6a169a1db4944",
+      "bytes": 7620
+    },
+    "core/mlp/mlp_tkg/mlp_tkg_gate_up_projection.py": {
+      "sha256": "320210fde4eb8f569b7ca64f100e6e74210cf31f395c75e9600f586008fd3c9c",
+      "bytes": 22433
+    },
+    "core/mlp/mlp_tkg/mlp_tkg_gate_up_projection_lhs_rhs_swap.py": {
+      "sha256": "c080f2715487c55379345c4f177e9895ff4006e38af7dc40cc248bc17573d92c",
+      "bytes": 14679
+    },
+    "core/mlp/mlp_tkg/mlp_tkg_layernorm.py": {
+      "sha256": "3750970efdeff603bd3e571589f937eee1dfc9512c4dc63553d563d83ca2c71a",
+      "bytes": 27249
+    },
+    "core/mlp/mlp_tkg/mlp_tkg_mx.py": {
+      "sha256": "3257836208493f5fb2a73a4c20a8a29285877c3c787a432070b229f4fd5ebf99",
+      "bytes": 3381
+    },
+    "core/mlp/mlp_tkg/mlp_tkg_mx_utils.py": {
+      "sha256": "12fa6b15a0b6ee434a4ead67919d4a745f8998915e96aa2cc2049c22871f4b5d",
+      "bytes": 10374
+    },
+    "core/mlp/mlp_tkg/mlp_tkg_quad_fp8_mx.py": {
+      "sha256": "671c0cb129fd5ba25913ea7153a8004ca1296ccac3c5a12bd3b6db5682250719",
+      "bytes": 12065
+    },
+    "core/mlp/mlp_tkg/mlp_tkg_quad_fp8_row.py": {
+      "sha256": "51707d297ca664647cd6dfbc750b8929ad6239d8f2bda40362d6141d608886d7",
+      "bytes": 34633
+    },
+    "core/mlp/mlp_tkg/mlp_tkg_quad_fp8_static.py": {
+      "sha256": "6f6b9a25656afe3fd9e000b1fd3debaf2d754d151ff3e1eded358f52d5216b46",
+      "bytes": 32517
+    },
+    "core/mlp/mlp_tkg/mlp_tkg_rmsnorm.py": {
+      "sha256": "331c82717ba7cf1f95997233e487d04b99d5a6ea95e2f0fefdb2c472411066ef",
+      "bytes": 24616
+    },
+    "core/mlp/mlp_tkg/mlp_tkg_utils.py": {
+      "sha256": "6b113ec9b69ec3619bd77bbffd80e674b1a4675e819c38be2a345067620b38b4",
+      "bytes": 28131
+    },
+    "core/mlp/mlp_tkg/projection_mx_constants.py": {
+      "sha256": "f623244d72521c88211aaadf00ef17c5afe48e8a9c7d5adcd3a012f963d8d9b8",
+      "bytes": 6409
+    },
+    "core/quantization/__init__.py": {
+      "sha256": "6b43764b87456e724301eaafda81f3d7eb7add05fd6e76b24edffa6501a501df",
+      "bytes": 869
+    },
+    "core/quantization/constants.py": {
+      "sha256": "258a6e80bd720a50fd727d662cfbad3d4a1edf57b9a09949320912e56d350c26",
+      "bytes": 1086
+    },
+    "core/quantization/fp8_quantize.py": {
+      "sha256": "e049c9c9d3b6f06dc85caa55a07b21c662db608fb6b1f29be349b9e2263eac7f",
+      "bytes": 17497
+    },
+    "core/subkernels/__init__.py": {
+      "sha256": "36c8868518ca8100d6e76a0855d4ab189a42a07cd0492770296040c8f6725d57",
+      "bytes": 615
+    },
+    "core/subkernels/norm_tkg_utils.py": {
+      "sha256": "24ada2d3edab1ccd92ad347cbc85a3256f8c2e2628def194bef5aeb06093d201",
+      "bytes": 25958
+    },
+    "core/subkernels/rmsnorm_tkg.py": {
+      "sha256": "be2c0e47b519ced209b0e3db13b9913d79de5d121f42af777b77a2190153c449",
+      "bytes": 38894
+    },
+    "core/utils/__init__.py": {
+      "sha256": "36c8868518ca8100d6e76a0855d4ab189a42a07cd0492770296040c8f6725d57",
+      "bytes": 615
+    },
+    "core/utils/allocator.py": {
+      "sha256": "02b7dc442d4fc66c216ca9abf9cfb9b5411115a96882bbcd621539239f8c2f60",
+      "bytes": 24144
+    },
+    "core/utils/common_types.py": {
+      "sha256": "6eeb28c70b06c66ebd2de0225e953f2087cc74bdd66ab32c93f85772dd6e1454",
+      "bytes": 12279
+    },
+    "core/utils/interleave_copy.py": {
+      "sha256": "2054b8a4aa9ba33ce8a41f5d4b5cc3702475547242d69e1117a60495206339f1",
+      "bytes": 8029
+    },
+    "core/utils/kernel_assert.py": {
+      "sha256": "9c051e979b823b5310093a3720888000bae9361be3f7ac3c7cce1beb8915ef41",
+      "bytes": 1232
+    },
+    "core/utils/kernel_helpers.py": {
+      "sha256": "bb78ccdaa90514b9546088f9bf0da5653bfaa3f1e4606f33792ef0662a309ffa",
+      "bytes": 20544
+    },
+    "core/utils/logging.py": {
+      "sha256": "47bb155b36cc2c3c8d9ab60c2f276690f5f262b930ecf0403894530604515c33",
+      "bytes": 6202
+    },
+    "core/utils/modular_allocator.py": {
+      "sha256": "a016f23974cfdd4d19f6931f53479f53d80173153540fb572de1e73fbce6c01a",
+      "bytes": 9768
+    },
+    "core/utils/stream_shuffle_broadcast.py": {
+      "sha256": "e33320a189e0764495fea23b0cb87ffcb4b359e483efedc58da7a15dfd31e4c5",
+      "bytes": 1559
+    },
+    "core/utils/tensor_view.py": {
+      "sha256": "6be1a566f7957170dbf80587f3569d1b8d5f7ce5c69702511210af196f1bb9de",
+      "bytes": 43257
+    },
+    "core/utils/tile_info.py": {
+      "sha256": "4e61c6a3035c582cc1f9ec19ec6f38915930f46866a1f1d02a505124abc9bade",
+      "bytes": 4665
+    },
+    "core/utils/tiled_range.py": {
+      "sha256": "f2fd565c3929a48f8eaf0b685bbc896b4f1bd86b06ce31c2d9b35b0dd1125896",
+      "bytes": 4079
+    },
+    "core/utils/tree_logger.py": {
+      "sha256": "cf8475414f21a1f0781d1407cc01f34cc8e95f9a753e7cad0fd4cc41314d4d4e",
+      "bytes": 3430
+    }
+  },
+  "namespace": "research.vendor.nki_library_92d11f63",
+  "no_upstream_kernel_edits": true,
+  "package_installation": false,
+  "generated_root_sha256": "4058f319d188c82579ce60f50320cd55690a73f083fe0d37925debadc2519e74",
+  "installed_comparison": {
+    "installed_python_files": 442,
+    "clone_python_files": 627,
+    "equal": 204,
+    "different": 227,
+    "only_in_clone": 196,
+    "only_in_installed": 11,
+    "selected": {
+      "core/attention/attention_cte.py": {
+        "installed_sha256": "7fa64c3c07cdcde16f064d3a33bfbacf08c759318c78d2ecb3ff8b330744f16e",
+        "clone_sha256": "29439c9f459dec0b6a1f5f503600edf4891391722c3bad4846f22c6ecaf6385f"
+      },
+      "core/attention/attention_bwd.py": {
+        "installed_sha256": "915e75f68df95e954c91928bf34366d492d8e2cbe9bae52fb491a1d1ada1585a",
+        "clone_sha256": "0908e129bfc96a6ad726f33dc772eb33ef251fd865005b31089cababb1dcec94"
+      },
+      "core/mlp/mlp.py": {
+        "installed_sha256": "438b6ce4c31484a59155725349ceb0e86e152c98ba74d9d0080372e7c6ec10cd",
+        "clone_sha256": "82cd781eb3598a527c99d27d8b75d4b3838f0291324332d2b5d5bb3c7968fb73"
+      },
+      "experimental/optimizer/fused_adam.py": {
+        "installed_sha256": "6ae83c22fc5d02a03fc141ede4c2d68e0e869cd79b4b200a757e32b5fc425b8d",
+        "clone_sha256": "6ae83c22fc5d02a03fc141ede4c2d68e0e869cd79b4b200a757e32b5fc425b8d"
+      },
+      "experimental/loss/cross_entropy.py": {
+        "installed_sha256": "c1320cf468abc4809c4e5cf776218cb5e69714eb775b0c3d767bc468f7c10632",
+        "clone_sha256": "c1320cf468abc4809c4e5cf776218cb5e69714eb775b0c3d767bc468f7c10632"
+      }
+    }
+  }
+}
