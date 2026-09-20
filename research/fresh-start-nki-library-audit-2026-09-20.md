@@ -622,3 +622,20 @@ Source186 routes the same FP32 values through SBUF using tensor_copy before
 DMA. The store remains conditional on diagnostics; stripping diagnostic branches
 from old/new ASTs gives identical plain paths. Original184/185 failures, every
 fixture, byte/numerical bound and exact plain-versus-diagnostic check remain.
+
+Source186 reaches an upstream ROW cleanup bug with skip_gate_proj=True: only
+the up-scale allocation exists, but cleanup pops both up and gate allocations.
+This underflows when the constants are released. Source187's isolated shard
+copy changes one AST branch to pop the gate scale only if allocated. Strict
+allocator checks stay enabled. Replaying the original/corrected cleanup AST
+with gated/ungated mock heaps reproduces the original underflow and verifies
+balanced cleanup in both corrected cases. Upstream vendored files and numerical
+requirements remain unchanged. Hardware validation is still required.
+
+Caller r2 retains another nested copy of the ambiguous NEFF marker. It stops
+before torchrun. Caller r3 fixes that one nested marker constant and preserves
+all payload fields. Its first dispatch preceded its plan commit because the
+shell continued after a cron-lock failure. The immutable kernel and recorded
+plan/request hashes were unchanged. A tracked starter now refuses uncommitted
+or changed plan/request blobs; positive and negative cases are checked locally.
+The original event is retained in fs-w180-r3-precommit-dispatch-diagnosis-r1.json.

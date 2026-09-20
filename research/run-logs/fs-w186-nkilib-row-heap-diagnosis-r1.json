@@ -1,0 +1,39 @@
+{
+  "label": "fs-w186-nkilib-row-heap-diagnosis-r1",
+  "created_at": "2026-09-20T06:32:03.857433+00:00",
+  "upstream_commit": "92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e",
+  "vendored_file_sha256": "61470f905d376e244aaad0a57ee9eac7b144be22d3df595989e95bc2d644b112",
+  "upstream_function": "_mlp_cte_single_shard",
+  "only_ast_change": "Guard second ROW scale pop with not skip_gate_proj; up scale always allocated, gate scale conditional",
+  "changed_branches": 1,
+  "strict_allocator_checks_retained": true,
+  "local_heap_replay": [
+    {
+      "implementation": "original",
+      "skip_gate": true,
+      "underflow": true,
+      "remaining": []
+    },
+    {
+      "implementation": "corrected",
+      "skip_gate": true,
+      "underflow": false,
+      "remaining": []
+    },
+    {
+      "implementation": "original",
+      "skip_gate": false,
+      "underflow": false,
+      "remaining": []
+    },
+    {
+      "implementation": "corrected",
+      "skip_gate": false,
+      "underflow": false,
+      "remaining": []
+    }
+  ],
+  "corrected_shard_sha256": "6641f59e5bc1f0245c61d3a030c19a366deed5feeca55879a4b6ab783459405d",
+  "upstream_files_unchanged": true,
+  "arithmetic_bounds_unchanged": true
+}
