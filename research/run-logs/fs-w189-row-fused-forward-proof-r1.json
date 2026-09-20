@@ -1,0 +1,214 @@
+{
+  "label": "fs-w189-nkilib-row-fused-weight-forward-r1",
+  "source_commit": "66f3dc70912264b885a18e277af1303669b2b397",
+  "verified_at": "2026-09-20T06:59:18.910562+00:00",
+  "all_frozen_requirements_verified": true,
+  "host_clean": true,
+  "cases": [
+    {
+      "shape": [
+        512,
+        256,
+        1024
+      ],
+      "kind": "random",
+      "passed": true,
+      "independent_decoded_pair_and_rounding_gates": true,
+      "full_gemm_coordinates": true,
+      "all_outputs_and_quantizer_coordinates_finite": true,
+      "plain_and_instrumented_exact": true,
+      "all_online_calibration_layout_and_master_casts_charged": true,
+      "saved_activations_and_backward_excluded": true,
+      "samples_ms": {
+        "native_bf16": [
+          0.06296040179828803,
+          0.06018540007062256,
+          0.059689333041508995
+        ],
+        "row_fp8_with_online_preparation": [
+          0.09890046591560046,
+          0.09843320003710687,
+          0.09948500082828104
+        ]
+      },
+      "median_ms": {
+        "native_bf16": 0.06018540007062256,
+        "row_fp8_with_online_preparation": 0.09890046591560046
+      }
+    },
+    {
+      "shape": [
+        512,
+        256,
+        1024
+      ],
+      "kind": "zero_input",
+      "passed": true,
+      "independent_decoded_pair_and_rounding_gates": true,
+      "full_gemm_coordinates": true,
+      "all_outputs_and_quantizer_coordinates_finite": true,
+      "plain_and_instrumented_exact": true,
+      "all_online_calibration_layout_and_master_casts_charged": true,
+      "saved_activations_and_backward_excluded": true
+    },
+    {
+      "shape": [
+        512,
+        256,
+        1024
+      ],
+      "kind": "zero_up",
+      "passed": true,
+      "independent_decoded_pair_and_rounding_gates": true,
+      "full_gemm_coordinates": true,
+      "all_outputs_and_quantizer_coordinates_finite": true,
+      "plain_and_instrumented_exact": true,
+      "all_online_calibration_layout_and_master_casts_charged": true,
+      "saved_activations_and_backward_excluded": true
+    },
+    {
+      "shape": [
+        512,
+        256,
+        1024
+      ],
+      "kind": "zero_down",
+      "passed": true,
+      "independent_decoded_pair_and_rounding_gates": true,
+      "full_gemm_coordinates": true,
+      "all_outputs_and_quantizer_coordinates_finite": true,
+      "plain_and_instrumented_exact": true,
+      "all_online_calibration_layout_and_master_casts_charged": true,
+      "saved_activations_and_backward_excluded": true
+    },
+    {
+      "shape": [
+        512,
+        256,
+        1024
+      ],
+      "kind": "outliers",
+      "passed": true,
+      "independent_decoded_pair_and_rounding_gates": true,
+      "full_gemm_coordinates": true,
+      "all_outputs_and_quantizer_coordinates_finite": true,
+      "plain_and_instrumented_exact": true,
+      "all_online_calibration_layout_and_master_casts_charged": true,
+      "saved_activations_and_backward_excluded": true
+    },
+    {
+      "shape": [
+        512,
+        256,
+        1024
+      ],
+      "kind": "changed_weights",
+      "passed": true,
+      "independent_decoded_pair_and_rounding_gates": true,
+      "full_gemm_coordinates": true,
+      "all_outputs_and_quantizer_coordinates_finite": true,
+      "plain_and_instrumented_exact": true,
+      "all_online_calibration_layout_and_master_casts_charged": true,
+      "saved_activations_and_backward_excluded": true
+    },
+    {
+      "shape": [
+        512,
+        256,
+        1024
+      ],
+      "kind": "tiny_weights",
+      "passed": true,
+      "independent_decoded_pair_and_rounding_gates": true,
+      "full_gemm_coordinates": true,
+      "all_outputs_and_quantizer_coordinates_finite": true,
+      "plain_and_instrumented_exact": true,
+      "all_online_calibration_layout_and_master_casts_charged": true,
+      "saved_activations_and_backward_excluded": true
+    },
+    {
+      "shape": [
+        512,
+        256,
+        1024
+      ],
+      "kind": "row_scale_range",
+      "passed": true,
+      "independent_decoded_pair_and_rounding_gates": true,
+      "full_gemm_coordinates": true,
+      "all_outputs_and_quantizer_coordinates_finite": true,
+      "plain_and_instrumented_exact": true,
+      "all_online_calibration_layout_and_master_casts_charged": true,
+      "saved_activations_and_backward_excluded": true
+    },
+    {
+      "shape": [
+        2048,
+        1024,
+        4096
+      ],
+      "kind": "real_random",
+      "passed": true,
+      "independent_decoded_pair_and_rounding_gates": true,
+      "full_gemm_coordinates": false,
+      "all_outputs_and_quantizer_coordinates_finite": true,
+      "plain_and_instrumented_exact": true,
+      "all_online_calibration_layout_and_master_casts_charged": true,
+      "saved_activations_and_backward_excluded": true,
+      "samples_ms": {
+        "native_bf16": [
+          0.3341520670801401,
+          0.3344401348537455,
+          0.33241409886007506
+        ],
+        "row_fp8_with_online_preparation": [
+          0.5868996668141335,
+          0.5849634335997204,
+          0.5885833001229912
+        ]
+      },
+      "median_ms": {
+        "native_bf16": 0.3341520670801401,
+        "row_fp8_with_online_preparation": 0.5868996668141335
+      }
+    },
+    {
+      "shape": [
+        32768,
+        1024,
+        4096
+      ],
+      "kind": "real_random",
+      "passed": true,
+      "independent_decoded_pair_and_rounding_gates": true,
+      "full_gemm_coordinates": false,
+      "all_outputs_and_quantizer_coordinates_finite": true,
+      "plain_and_instrumented_exact": true,
+      "all_online_calibration_layout_and_master_casts_charged": true,
+      "saved_activations_and_backward_excluded": true,
+      "samples_ms": {
+        "native_bf16": [
+          4.596355233419065,
+          4.596213433736314,
+          4.5972087342912955
+        ],
+        "row_fp8_with_online_preparation": [
+          4.686795068361486,
+          4.681530133044968,
+          4.69077070010826
+        ]
+      },
+      "median_ms": {
+        "native_bf16": 4.596355233419065,
+        "row_fp8_with_online_preparation": 4.686795068361486
+      }
+    }
+  ],
+  "production_regression_percent": 1.9676424112055724,
+  "no_training_or_bpb_claim": true,
+  "hashes": {
+    "fs-w189-nkilib-row-fused-weight-forward-r1.log": "f50a7817afd818ecca2f51c15fb292e29fd20646b59e84572ddf3e2b7c95df32",
+    "fs-w189-nkilib-row-fused-weight-forward-r1.request.json": "c028ef25d239ce988b54be5d5aa1ced9033bdc0dcf23f4759e59d5e2aa2dc863",
+    "fs-w189-nkilib-row-fused-weight-forward-r1.postflight.json": "27f64b346056b679172a38719b867baa221949c7c0862241d15e1542315bb9a5"
+  }
+}
