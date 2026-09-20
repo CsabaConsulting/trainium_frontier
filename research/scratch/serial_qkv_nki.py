@@ -31,11 +31,11 @@ def build_kernel():
                 raw = nl.ndarray((128, channels), dtype=nl.bfloat16, buffer=nl.sbuf)
                 nisa.dma_copy(dst=raw, src=weight[row:row + 128, :])
                 for contraction in nl.affine_range(blocks):
-                    transposed = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.psum)
-                    nisa.nc_transpose(dst=transposed,
+                    weight_transpose = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.psum)
+                    nisa.nc_transpose(dst=weight_transpose,
                                       data=raw[:, contraction * 128:(contraction + 1) * 128])
                     nisa.tensor_copy(dst=cache[:, group, contraction,
-                                               part * 128:(part + 1) * 128], src=transposed)
+                                               part * 128:(part + 1) * 128], src=weight_transpose)
         return cache
 
     def project(inputs, weight, output, first, tile, token_major):
@@ -46,11 +46,11 @@ def build_kernel():
             raw = nl.ndarray((128, channels), dtype=nl.bfloat16, buffer=nl.sbuf)
             nisa.dma_copy(dst=raw, src=inputs[first + part * 128:first + (part + 1) * 128, :])
             for contraction in nl.affine_range(blocks):
-                transposed = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.psum)
-                nisa.nc_transpose(dst=transposed,
+                input_transpose = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.psum)
+                nisa.nc_transpose(dst=input_transpose,
                                   data=raw[:, contraction * 128:(contraction + 1) * 128])
                 nisa.tensor_copy(dst=values[:, contraction, part * 128:(part + 1) * 128],
-                                 src=transposed)
+                                 src=input_transpose)
         if token_major:
             # X is stationary. The result already has token rows, so no
             # result transpose is needed before the contiguous output DMA.
@@ -77,9 +77,9 @@ def build_kernel():
                 rounded = nl.ndarray((128, tile), dtype=output.dtype, buffer=nl.sbuf)
                 nisa.tensor_copy(dst=rounded, src=accumulator)
                 for part in nl.affine_range(tile // 128):
-                    transposed = nl.ndarray((128, 128), dtype=nl.bfloat16, buffer=nl.psum)
-                    nisa.nc_transpose(dst=transposed, data=rounded[:, part * 128:(part + 1) * 128])
-                    nisa.tensor_copy(dst=rows[:, part, group * 128:(group + 1) * 128], src=transposed)
+                    output_transpose = nl.ndarray((128, 128), dtype=output.dtype, buffer=nl.psum)
+                    nisa.nc_transpose(dst=output_transpose, data=rounded[:, part * 128:(part + 1) * 128])
+                    nisa.tensor_copy(dst=rows[:, part, group * 128:(group + 1) * 128], src=output_transpose)
             for part in nl.affine_range(tile // 128):
                 nisa.dma_copy(dst=output[first + part * 128:first + (part + 1) * 128, :],
                               src=rows[:, part, :])
