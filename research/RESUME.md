@@ -1,9 +1,26 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-20 04:15 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-20 04:29 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## Current work — 2026-09-20 04:15 UTC
+## Current work — 2026-09-20 04:29 UTC
+
+- Source166 and167 finite library queues have STOPPED, both hosts clean.
+  Do not restart labels. Source167 parser compatibility worked: attention
+  output/dQ/dK/dV exactly match bundled for the first fixture. The FP64
+  coordinate screen rejects the bundled control itself at one coordinate;
+  investigate rounding/cancellation before promoting anything. MLP compiled
+  but its wrapper indexed away a tensor batch axis; source168 fixes unpacking.
+- Source168 PREPARED: trn21 repeat the unchanged six-case MLP screen with
+  corrected return handling. Trn22 run an explicitly non-promoting attention
+  numerical diagnostic retaining every original bound failure, with staged
+  BF16 estimates from independent CPU algebra. No thresholds are changed.
+  Check fs-w168 receipts for subsequent actual launch/completion status.
+- Cron04:20:48 pushed source6ee56994 and snapshotf7297448, both hosts retrieved.
+  Source167 plans/results and168 preparations need the next push; consult
+  out/fresh-start-backup/last-success.json for authoritative later receipts.
+
+## Source165 results and library audit
 
 - Source165 BOTH finite queues completed cleanly by02:29UTC. Do not restart.
   The complete component win survives numerically but not in the model:
@@ -19,14 +36,8 @@ Use current manifests/postflights before dispatch; do not restart completed jobs
   backend replacement, canonical train.py edit or SDK upgrade. The CTE MLP
   needs an explicit ReLU2 hook despite its enum; separate scratch adapter
   uses upstream's two-instruction helper without changing pinned files.
-- Source166 jobs are PREPARED at this checkpoint: trn21 BF16 MLP forward
-  screen with independent FP64 bounds; trn22 attention forward+backward
-  with CPU gradients, exact causal/batch/repeat checks and bundled control.
-  Check fs-w166 dispatch/sequence receipts for later actual launch state.
-- Direct SSH04:06 found both hosts idle. Free17.45GB/11.53GB. Preserve8GiB
-  reserve; use only guarded launches. Cron04:00:55 pushed source882c2c4 and
-  recovery snapshot6540322f with both hosts retrieved. New source/results
-  need the next push; last-success.json has the authoritative later receipt.
+- Source167 postflight found both hosts idle. Free17.19GB/11.26GB. Preserve
+ 8GiB reserve; use only guarded launches and immutable committed checkouts.
 - Best public BPB remains0.9928513116311253; frozen submission unchanged.
 
 ## Previous source165 launch checkpoint (superseded host status)
