@@ -1,9 +1,48 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-20 06:25 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-20 06:40 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## Current work — 2026-09-20 06:25 UTC
+## Current work — 2026-09-20 06:40 UTC
+
+- Trn21 source187 RUNNING, sequence fs-w187-nkilib-row-mlp-heap-sequence-r1,
+  coordinator21425, immutable source861b0ce8, started06:33:45UTC. Nine cases
+  complete; production32768×1024 independent arithmetic also passes. Final
+  exact repeats, production timing and clean postflight remain pending.
+  Source185 parser fix exposed our unsupported diagnostic PSUM-to-HBM DMA;
+  source186 fixed that then exposed upstream ungated ROW cleanup underflow.
+  Source187 changes only the extra allocation pop to match conditional gate
+  allocation. All failures, strict allocator checks and bounds are retained.
+- Trn22 source180 r3 RUNNING, coordinator16599, immutable source9e103ea6,
+  started06:30:36UTC. Library joined training-forward capture then CPU ingest.
+  Warmup0 completed403.187s; compilation for later calls is active. Do not
+  relaunch r1/r2: their exact-marker substring failures are preserved. The
+  nested candidate prerequisite needed the same exact NEFF_ARTIFACT boundary
+  correction as the outer plan. Kernel and numeric fields are unchanged.
+- Native180 raw profile2,508,972,448B verified locally, then GitHub asset
+  verified06:26:26UTC. Native parquet718,206,372B verified locally06:30:46UTC.
+  Its analysis resolves all forward/startup graph identities. DMA warnings
+  prohibit exact traffic/bandwidth claims; candidate comparison is pending.
+- Source188 PREPARING: same complete BF16 library/native MLP with one and four
+  concurrent ranks. Reuse unchanged source175 FP64 proof; all ranks recheck
+  full native output/gradients, exact repeats and compiled backward. This
+  diagnoses chip contention versus surrounding model-graph cost, not BPB.
+- New tracked research/fresh_start_sequence_start.py rejects any plan/request
+  whose bytes differ from committed blobs before spawning. Source187 uses it.
+  Source180 r3's earlier plan dispatch/commit order mistake is preserved in
+  fs-w180-r3-precommit-dispatch-diagnosis-r1.json; its exact files are now
+  committed. Always use set -e for dependent shell operations.
+- Both BF16 whole-model tests COMPLETE/CLEAN: joined561.502963ms vs489.888026ms
+  (+14.619%); separate611.722864ms vs488.809250ms (+25.146%). Component gain
+ 2.404% does not survive the model. No quality promotion.
+- Best public BPB0.9928513116311253, cold replay0.9938556748843932. Frozen
+  submission/train.py/prepare.py unchanged. Source159 T512 MUST NOT dispatch.
+- Last verified push06:31:11UTC source240d07a1/snapshotf492d482. Consult
+  out/fresh-start-backup/last-success.json for later refs. Cron preserves and
+  pushes; it does not select experiments or merge branches. Continue explicit
+  git/host locks, finite timeouts, immutable checkouts and pre/postflight cleanup.
+
+## Previous checkpoint — 2026-09-20 06:25 UTC (superseded host status)
 
 - Trn21 source185 RUNNING, sequence fs-w185-nkilib-row-mlp-parser-sequence-r1,
   coordinator12737, immutable source3d4c8c91, started06:24UTC. Same ten-case

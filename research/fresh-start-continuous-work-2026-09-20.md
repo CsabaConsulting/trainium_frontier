@@ -1,8 +1,10 @@
 # Continued kernel work and research — 2026-09-20
 
-Latest host status and failure recovery: RESUME.md, updated06:25UTC. Trn21
-source185 repeats the ROW FP8 gate after byte-transpose and parser fixes; trn22
-source180 r2 ingests/captures the caller pair. Original failures remain.
+Latest host status and failure recovery: RESUME.md, updated06:40UTC. Trn21
+source187 finishes the ROW FP8 forward gate after targeted compatibility fixes;
+trn22 source180 r3 captures the library caller. Native caller analysis is ready.
+Source188 prepares matched one/four-rank MLP contention timing. Concrete library
+transfers and subsequent fusion ideas are in the library audit. No BPB promotion.
 
 User direction: keep both provisioned hosts doing useful experiments and use
 fresh research to find new directions or revisit negatives with a changed premise.

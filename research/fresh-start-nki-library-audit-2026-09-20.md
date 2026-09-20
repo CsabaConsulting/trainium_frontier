@@ -4,14 +4,42 @@ The user's Re:Invent lead is [AWS Neuron's NKI Library](https://github.com/aws-n
 The clean local clone is pinned at `92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e`
 (August 28). Source references below use that commit, rather than a moving main.
 
-Current result at06:13UTC: the best BF16 complete-component candidate is2.404%
+Current result at06:40UTC: the BF16 complete-component candidate is2.404%
 faster, but its joined/separate whole-model steps are14.619%/25.146% slower.
-Neither advances to a quality run. Source180 is capturing paired native/library
-training-forward traces to attribute the regression. The online ROW FP8 producer
-passes all14 fixtures; source181's composed preparation fails before the MLP on
-invalid weight bytes. Source182 preserves that original failure and isolates
-ordinary byte transpose, float carrier and explicit NKI transpose, including
-all256 codes. No new training-speed or BPB gain is established.
+Neither advances to a quality run. The native caller trace is decoded and
+preserved locally and on GitHub; source180 r3 captures the matching library
+caller. Source187 now passes the independent ROW FP8 arithmetic gates at the
+production32768×1024 shape; final repeat checks, timing and postflight remain
+pending. Earlier byte-transpose, parser, diagnostic-DMA and allocation failures
+are preserved with specific corrections and unchanged numerical bounds.
+No new training-speed or BPB gain is established.
+
+## Concrete transfers and next decisions
+
+| Library technique | Implemented experiment | Next decision |
+| --- | --- | --- |
+| Explicit SBUF/PSUM allocation, buffered weight loads, token-row sharding | BF16 CTE MLP adapted to ReLU-squared and ordinary training Linear weights | Use paired caller traces to locate surrounding compiler/spill cost before changing another tile. |
+| Existing intermediate transpose | Save the pre-square ReLU through the transpose already required by the library; source175 adds no activation transpose or reserved SBUF | One-rank versus four-rank complete-component timing will distinguish shared-chip contention from model-context overhead. |
+| Trn2 double-row legacy FP8 matmul with ROW scales | Source179 online quantizer and source187 complete forward use per-token activation and per-output-channel weight scales | Finish original gates and charge all preparation; add backward only if forward cost justifies it. |
+| Coalesced DMA and layout-aware transpose | Source183 exact byte transpose fixes the composed PyTorch byte-layout corruption | Fuse weight quantization and transpose into one producer if measured preparation cost is material. |
+| On-chip normalization/quantization | Library helpers expose a path to consume BF16 input directly and quantize loaded tiles | A future fused input loader could avoid packed-input HBM materialization; require the same independent scale/byte gates. |
+| Newer CTE attention and backward | Same installed controls, production shape and saved-statistic costs measured | Production gain is only0.395%; no wholesale switch or BPB claim. |
+
+Source188's proposed contention diagnostic retains source175's full FP64 proof
+as a source- and hash-matched prerequisite. Every participating rank must pass
+full native output/dX/dW comparisons and exact repeats. Distinct compiler root
+functions and a compiled-backward assertion on every call prevent fallback
+from contaminating timings. Alternating paired rounds report the maximum rank
+duration; synchronization/collectives used for comparison remain outside the
+timed region. This tests one MLP, not an optimizer step or model quality.
+
+The native training-forward trace is137.850536ms, with all compiled identities
+resolved. Its observed spill counters are10.09GB saved/15.07GB reloaded, and
+private-compiler transpose instructions occupy only0.007368ms on core0.
+Dropped DMA notifications and missing dynamic-DMA metadata prevent treating
+the byte counters as exact traffic or bandwidth. The paired candidate is still
+required before attributing the regression to any specific family or source
+line. See `run-logs/fs-w180-native-caller-analysis-r1.json`.
 
 ## What is new, and what we already use
 
