@@ -1,9 +1,49 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-20 08:20 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-20 08:32 UTC. Authorization: danger-full-access, approval never.
 Use committed manifests/postflights before dispatch; never restart completed jobs.
 
-## Current work — 2026-09-20 08:20 UTC
+## Current work — 2026-09-20 08:32 UTC
+
+- Trn21 source194 RUNNING, remote wave194, immutable725a385c. Coordinator6760,
+  fs-w194-nkilib-row-training-save-sequence-r1, plan2b447dfc. Started08:16:05UTC,
+  max5100s. All ten initial actual saved-tensor comparisons pass exactly;
+  production arithmetic also passes. Final changed-input checks/timing and
+  clean postflight still pending. Do not infer complete result or rerun it.
+- Trn22 source195 RUNNING, remote wave195, immutable282935ca. Coordinator21953,
+  fs-w195-nkilib-partial-gate-control-sequence-r1, started08:29:14UTC, max6300s.
+  Routing gate COMPLETE/CLEAN: zero/first/last/all-six,256 original native
+  coordinate/gradient comparisons and20 exact checks, all independently
+  verified. Current full-model zero-library control retains native HxT in
+  every layer. Fixed seed42,4ranks/LNC2,pack32,5warmups/30updates.
+- After195 gate/control BOTH complete cleanly, explicitly start the already
+  committed fs-w195-nkilib-partial-position-sequence-r1. It runs first, last,
+  all-six sequentially, each with separate pre/postflight and3300s bound;
+  total10800s. Every request re-verifies the gate/control and source bytes.
+  This second sequence is PREPARED, NOT LAUNCHED. No automatic watcher exists.
+- Trn22 old compiler scratch maintenance r4 COMPLETE/CLEAN before195 launch.
+ 1829files8,594,799,997B archived, every local hash checked, live GitHub asset
+  digests verified, remote contents reverified before retirement. Free space
+ 10,946,162,688B to19,556,073,472B. Cutoff07:40UTC preserves latest compiles.
+  Shared caches, sources, checkpoints and current profiles retained.
+- Source193 forward replication: native4.595774ms/preparedFP84.688562ms/
+  inlineFP83.908544ms, all online preparation charged. Original19114.6885%
+  gain replicated. All trace/NEFF and decoded table identities verified locally
+  and in GitHub. No saved-activation/backward or BPB claim from193.
+- Source192 complete model563.005751ms vs488.528818ms (+15.2451%), all original
+  gates pass. Compiler SBUF allocation does not fix the regression; fixed
+  smaller budgets also lost.195 diagnoses layer-count/position causality.
+- Profile-based exact Vector square experiment is queued in library-fusion-next,
+  not implemented or dispatched. Full ROW backward still needs its own scale/
+  rounding contract, tiny-gradient handling and complete-step tests.
+- Best public BPB0.9928513116311253, cold replay0.9938556748843932. Frozen
+  submission/train.py/prepare.py unchanged. Source159 T512 MUST NOT dispatch.
+- Consult out/fresh-start-backup/last-success.json for exact verified refs.
+  Cron mirrors/pushes, never merges or selects jobs; sequences mirror45s.
+  Keep8GiB reserve, finite requests, immutable sources, Git/host locks and
+  independent pre/postflight cleanup. Do not edit active plans or helpers.
+
+## Previous checkpoint — 2026-09-20 08:20 UTC
 
 - Trn21 source194 RUNNING from725a385c, remote wave194, coordinator6760,
   sequence fs-w194-nkilib-row-training-save-sequence-r1, started08:16:05UTC.

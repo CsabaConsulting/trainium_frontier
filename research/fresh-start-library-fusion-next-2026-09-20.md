@@ -244,3 +244,27 @@ weight scales can make that floor erase them. Existing backward power-of-two
 calibration uses a much smaller2^-100 guard. Declare/test the chosen gradient
 rule, including zero-initialized down weights, early updated weights, zero and
 tiny upstream gradients, before the full four-product VJP or model integration.
+
+## Profile-directed exact activation experiment, conditional after194
+
+Source193 provides a concrete next target for the earlier fast-function idea:
+`nki_library_row_mlp.py:53` spends about0.626ms/core of Scalar active time
+squaring the BF16 ReLU tile with `nisa.activation(op=nl.square)`. The preceding
+scaled ReLU accounts for about0.805ms/core Scalar activity; row quantization's
+conversion adds about0.493ms/core. Vector is also busy (~2.41ms/core total), so
+engine intervals alone do not predict a speedup and are not additive wall shares.
+
+A narrowly scoped candidate can replace square's scalar activation with a
+Vector multiply of the same BF16 tile by itself. It must preserve both existing
+BF16 scale/activation rounding boundaries, quantized bytes, saved ReLU and all
+source194 exact tests. Do not assume the multiplication has identical denormal
+or overflow behavior: zeros/tiny weights/outliers and actual-stage equality stay
+mandatory. Measure the same complete saved forward, not just the square call.
+The potential benefit is better engine scheduling, while the risk is moving
+work onto an already busy Vector engine. This is a queued experiment, not an
+implemented or measured improvement; it does not require a lookup table.
+
+More aggressive fusion across the square/quantization boundary would change
+rounding and therefore needs its own declared arithmetic/reference contract.
+It cannot inherit source191/194 equality claims. The complete backward and
+whole-step gates still determine whether any forward improvement advances.
