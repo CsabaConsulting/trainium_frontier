@@ -1,0 +1,193 @@
+{
+  "label": "fs-w187-nkilib-row-mlp-heap-r1",
+  "verified_at": "2026-09-20T06:42:29.126808+00:00",
+  "source_commit": "861b0ce85c7eb02710eb2fa6be01acdc30cf4b27",
+  "host_clean": true,
+  "all_frozen_requirements_verified": true,
+  "rule_counts": {
+    "NKILIB_ROW_PRODUCER_PREREQUISITE": 1,
+    "NKILIB_PROVENANCE": 1,
+    "NKILIB_ROW_MLP_ADAPTER": 1,
+    "NKILIB_ROW_RECIPROCAL": 30,
+    "NKILIB_ROW_QUANT_GATE": 30,
+    "NKILIB_EXACT": 150,
+    "NKILIB_NUMERICAL": 20,
+    "NKILIB_ROW_INTERMEDIATE_GATE": 10,
+    "NKILIB_ROW_MLP_CASE": 10,
+    "NKILIB_ROW_MLP_RESULT": 1,
+    "NKILIB_BYTE_PREPARATION_PREREQUISITE": 1,
+    "NKILIB_BYTE_SAFE_PREPARATION": 1,
+    "NKILIB_ROW_HEAP_PREREQUISITE": 1,
+    "NKILIB_ROW_HEAP_COMPAT": 1
+  },
+  "cases": 10,
+  "timed_cases": [
+    {
+      "shape": [
+        512,
+        256,
+        1024
+      ],
+      "kind": "random",
+      "passed": true,
+      "independent_decoded_pair_and_rounding_gates": true,
+      "full_gemm_coordinates": true,
+      "all_outputs_and_quantizer_coordinates_finite": true,
+      "plain_and_instrumented_exact": true,
+      "all_online_calibration_layout_and_master_casts_charged": true,
+      "saved_activations_and_backward_excluded": true,
+      "samples_ms": {
+        "native_bf16": [
+          0.06574825092684478,
+          0.06575110019184649,
+          0.05859954981133342
+        ],
+        "row_fp8_with_online_preparation": [
+          0.11681455071084201,
+          0.11724155046977103,
+          0.11650015076156706
+        ]
+      },
+      "median_ms": {
+        "native_bf16": 0.06574825092684478,
+        "row_fp8_with_online_preparation": 0.11681455071084201
+      },
+      "regression_percent": 77.66944224997938
+    },
+    {
+      "shape": [
+        2048,
+        1024,
+        4096
+      ],
+      "kind": "real_random",
+      "passed": true,
+      "independent_decoded_pair_and_rounding_gates": true,
+      "full_gemm_coordinates": false,
+      "all_outputs_and_quantizer_coordinates_finite": true,
+      "plain_and_instrumented_exact": true,
+      "all_online_calibration_layout_and_master_casts_charged": true,
+      "saved_activations_and_backward_excluded": true,
+      "samples_ms": {
+        "native_bf16": [
+          0.33795284980442375,
+          0.3432110999710858,
+          0.33709455165080726
+        ],
+        "row_fp8_with_online_preparation": [
+          0.7041201490210369,
+          0.7042102486593649,
+          0.703300250461325
+        ]
+      },
+      "median_ms": {
+        "native_bf16": 0.33795284980442375,
+        "row_fp8_with_online_preparation": 0.7041201490210369
+      },
+      "regression_percent": 108.34863485498568
+    },
+    {
+      "shape": [
+        32768,
+        1024,
+        4096
+      ],
+      "kind": "real_random",
+      "passed": true,
+      "independent_decoded_pair_and_rounding_gates": true,
+      "full_gemm_coordinates": false,
+      "all_outputs_and_quantizer_coordinates_finite": true,
+      "plain_and_instrumented_exact": true,
+      "all_online_calibration_layout_and_master_casts_charged": true,
+      "saved_activations_and_backward_excluded": true,
+      "samples_ms": {
+        "native_bf16": [
+          4.62322499952279,
+          4.617178899934515,
+          4.613922600401565
+        ],
+        "row_fp8_with_online_preparation": [
+          4.877345950808376,
+          4.866761900484562,
+          4.867047900916077
+        ]
+      },
+      "median_ms": {
+        "native_bf16": 4.617178899934515,
+        "row_fp8_with_online_preparation": 4.867047900916077
+      },
+      "regression_percent": 5.411724483647484
+    }
+  ],
+  "approximation_against_unquantized_bf16": [
+    {
+      "name": "random",
+      "relative_rms": 0.05695580093292691,
+      "comparison": "unquantized native BF16",
+      "quality_gate": false
+    },
+    {
+      "name": "zero_input",
+      "relative_rms": 0.0,
+      "comparison": "unquantized native BF16",
+      "quality_gate": false
+    },
+    {
+      "name": "zero_up",
+      "relative_rms": 0.0,
+      "comparison": "unquantized native BF16",
+      "quality_gate": false
+    },
+    {
+      "name": "zero_down",
+      "relative_rms": 0.0,
+      "comparison": "unquantized native BF16",
+      "quality_gate": false
+    },
+    {
+      "name": "outliers",
+      "relative_rms": 0.05582646287649877,
+      "comparison": "unquantized native BF16",
+      "quality_gate": false
+    },
+    {
+      "name": "changed_weights",
+      "relative_rms": 0.05609185275485326,
+      "comparison": "unquantized native BF16",
+      "quality_gate": false
+    },
+    {
+      "name": "tiny_weights",
+      "relative_rms": 1.0,
+      "comparison": "unquantized native BF16",
+      "quality_gate": false
+    },
+    {
+      "name": "row_scale_range",
+      "relative_rms": 0.0555885558949047,
+      "comparison": "unquantized native BF16",
+      "quality_gate": false
+    },
+    {
+      "name": "real_random",
+      "relative_rms": 0.0575488248624286,
+      "comparison": "unquantized native BF16",
+      "quality_gate": false
+    },
+    {
+      "name": "real_random",
+      "relative_rms": 0.057644524144545684,
+      "comparison": "unquantized native BF16",
+      "quality_gate": false
+    }
+  ],
+  "all_original_numerical_bounds_unchanged": true,
+  "saved_activations_backward_and_quality_not_tested": true,
+  "full_training_or_bpb_claim": false,
+  "artifacts": {
+    "fs-w187-nkilib-row-mlp-heap-r1.log": "b58dcd71dd1419df25cd64d1b1ab3375cada122223a6f4e020710477e56ed81d",
+    "fs-w187-nkilib-row-mlp-heap-r1.request.json": "0aadd215d8816e68178fca885941c5e43215ed64a249d545fa0652b07f645b24",
+    "fs-w187-nkilib-row-mlp-heap-r1.launch.json": "9a6f393ff0adefe4dd9fd578a6f15128ada5ea83400a2fd277c3ad222762ff2b",
+    "fs-w187-nkilib-row-mlp-heap-r1.postflight.json": "e4cbe5698541f338c05127433afd9e24492fcd671e27203a06f4eca38ea33768"
+  }
+}

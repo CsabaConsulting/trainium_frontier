@@ -277,3 +277,10 @@ NKILIB_EXACT {"name": "real_random:scaled_relu_rounding", "passed": true}
 NKILIB_EXACT {"name": "real_random:intermediate_scale", "passed": true}
 NKILIB_ROW_INTERMEDIATE_GATE {"name": "real_random", "passed": true, "outside_quantization_interval": 0, "relative_interval": 4.76837158203125e-07, "all_decoded_coordinates": true, "finite": true}
 NKILIB_NUMERICAL {"name": "(32768, 1024, 4096):real_random:down_scaled_pair", "shape": [37, 258], "finite": true, "bound_failures": 0, "relative_rms": 0.002343824027139983, "max_abs": 0.021845764045325566, "max_error_over_bound": 0.7324822178586262, "half_output_negative_control_failures": 9524, "passed": true}
+NKILIB_EXACT {"name": "real_random:plain_diagnostic_output", "passed": true}
+NKILIB_EXACT {"name": "real_random:plain_repeat", "passed": true}
+NKILIB_EXACT {"name": "real_random:independent_rows", "passed": true}
+NKILIB_ROW_APPROXIMATION {"name": "real_random", "relative_rms": 0.057644524144545684, "comparison": "unquantized native BF16", "quality_gate": false}
+NKILIB_ROW_MLP_CASE {"shape": [32768, 1024, 4096], "kind": "real_random", "passed": true, "independent_decoded_pair_and_rounding_gates": true, "full_gemm_coordinates": false, "all_outputs_and_quantizer_coordinates_finite": true, "plain_and_instrumented_exact": true, "all_online_calibration_layout_and_master_casts_charged": true, "saved_activations_and_backward_excluded": true, "samples_ms": {"native_bf16": [4.62322499952279, 4.617178899934515, 4.613922600401565], "row_fp8_with_online_preparation": [4.877345950808376, 4.866761900484562, 4.867047900916077]}, "median_ms": {"native_bf16": 4.617178899934515, "row_fp8_with_online_preparation": 4.867047900916077}}
+NKILIB_ROW_MLP_RESULT {"passed": true, "cases": 10, "forward_only": true, "online_preparation_charged": true, "full_training_or_bpb_claim": false}
+EXPERIMENT_POSTFLIGHT {"label": "fs-w187-nkilib-row-mlp-heap-r1", "returncode": 0, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave187/research/run-logs/fs-w187-nkilib-row-mlp-heap-r1.postflight.json"}

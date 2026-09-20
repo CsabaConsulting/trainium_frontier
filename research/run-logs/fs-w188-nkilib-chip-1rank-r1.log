@@ -1,0 +1,40 @@
+NKILIB_CHIP_PREREQUISITE {"passed": true, "source_commit": "d595ce0e55e8a0defe32fe59fede91c3b65feb2a", "cases": 10, "full_original_fp64_rules_verified": true, "kernel_and_reference_bytes_unchanged": true}
+[W920 06:42:44.238559513 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W920 06:42:46.270321724 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+NKILIB_PROVENANCE {"passed": true, "upstream_commit": "92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e", "vendored_files": 66, "bundled_root": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib", "vendor_namespace": "research.vendor.nki_library_92d11f63", "nki": "0.5.0+28631259367.ga768afa6", "compiler": "2.26.6360.0+6f180f47", "package_installation": false, "bundled_package_replaced": false}
+NKILIB_TRAINING_ADAPTER {"installed": true, "isolated_namespace_only": true, "token_sharding": true, "saved_relu_inside_kernel": true, "saved_relu_layout": "HxT", "reuses_existing_transpose": true, "extra_activation_transpose": false, "additional_sbuf_bytes": 0, "square_after_transpose": true, "up_projection_recomputation": false, "master_and_weight_layout_costs_charged_by_caller": true}
+FUSED_MLP_NATIVE_GATE {"name": "chip:1:0:output", "shape": [32768, 1024], "finite": true, "bound_failures": 0, "max_abs": 0.03125, "reference_rms": 1.2258021896024178, "relative_rms": 2.080354734866268e-05, "exact": false, "passed": true}
+FUSED_MLP_NATIVE_GATE {"name": "chip:1:0:dx", "shape": [32768, 1024], "finite": true, "bound_failures": 0, "max_abs": 0.0, "reference_rms": 0.014169217684111866, "relative_rms": 0.0, "exact": true, "passed": true}
+FUSED_MLP_NATIVE_GATE {"name": "chip:1:0:dup", "shape": [4096, 1024], "finite": true, "bound_failures": 0, "max_abs": 0.0, "reference_rms": 1.2824612482146729, "relative_rms": 0.0, "exact": true, "passed": true}
+FUSED_MLP_NATIVE_GATE {"name": "chip:1:0:ddown", "shape": [1024, 4096], "finite": true, "bound_failures": 0, "max_abs": 0.0, "reference_rms": 2.2254901417282635, "relative_rms": 0.0, "exact": true, "passed": true}
+NKILIB_EXACT {"name": "chip:1:0:native:repeat", "passed": true}
+NKILIB_EXACT {"name": "chip:1:0:library:repeat", "passed": true}
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+NKILIB_CHIP_TIMING {"world_size": 1, "rank": 0, "arm": "native", "repeat": 0, "steps": 30, "local_ms": 15.226573134229207, "maximum_rank_ms": 15.22657299041748, "collectives_outside_timing": true, "compiled_backward_asserted": true}
+NKILIB_CHIP_TIMING {"world_size": 1, "rank": 0, "arm": "library", "repeat": 0, "steps": 30, "local_ms": 14.921398367732763, "maximum_rank_ms": 14.921398162841797, "collectives_outside_timing": true, "compiled_backward_asserted": true}
+NKILIB_CHIP_TIMING {"world_size": 1, "rank": 0, "arm": "library", "repeat": 1, "steps": 30, "local_ms": 14.901498567390567, "maximum_rank_ms": 14.901498794555664, "collectives_outside_timing": true, "compiled_backward_asserted": true}
+NKILIB_CHIP_TIMING {"world_size": 1, "rank": 0, "arm": "native", "repeat": 1, "steps": 30, "local_ms": 15.22270423398974, "maximum_rank_ms": 15.22270393371582, "collectives_outside_timing": true, "compiled_backward_asserted": true}
+NKILIB_CHIP_TIMING {"world_size": 1, "rank": 0, "arm": "native", "repeat": 2, "steps": 30, "local_ms": 15.21922093234025, "maximum_rank_ms": 15.219221115112305, "collectives_outside_timing": true, "compiled_backward_asserted": true}
+NKILIB_CHIP_TIMING {"world_size": 1, "rank": 0, "arm": "library", "repeat": 2, "steps": 30, "local_ms": 14.902699866797775, "maximum_rank_ms": 14.90269947052002, "collectives_outside_timing": true, "compiled_backward_asserted": true}
+NKILIB_CHIP_TIMING {"world_size": 1, "rank": 0, "arm": "library", "repeat": 3, "steps": 30, "local_ms": 14.896112300145129, "maximum_rank_ms": 14.896112442016602, "collectives_outside_timing": true, "compiled_backward_asserted": true}
+NKILIB_CHIP_TIMING {"world_size": 1, "rank": 0, "arm": "native", "repeat": 3, "steps": 30, "local_ms": 15.226822666591033, "maximum_rank_ms": 15.226822853088379, "collectives_outside_timing": true, "compiled_backward_asserted": true}
+NKILIB_CHIP_TIMING {"world_size": 1, "rank": 0, "arm": "native", "repeat": 4, "steps": 30, "local_ms": 15.218774299137294, "maximum_rank_ms": 15.21877384185791, "collectives_outside_timing": true, "compiled_backward_asserted": true}
+NKILIB_CHIP_TIMING {"world_size": 1, "rank": 0, "arm": "library", "repeat": 4, "steps": 30, "local_ms": 14.910594899750626, "maximum_rank_ms": 14.910594940185547, "collectives_outside_timing": true, "compiled_backward_asserted": true}
+NKILIB_CHIP_RANK_GATE {"passed": true, "world_size": 1, "rank": 0, "shape": [32768, 1024], "full_native_output_and_gradients": true, "exact_both_arm_repeat": true, "fp32_master_gradients": true, "compiled_backward_on_every_invocation": true, "master_casts_layouts_saved_activation_and_backward_charged": true, "independent_fp64_proof_reused_from_source175": true, "model_optimizer_communication_and_quality_excluded": true}
+NKILIB_CHIP_RESULT {"passed": true, "world_size": 1, "shape": [32768, 1024], "steps": 30, "rounds": 5, "maximum_rank_samples_ms": {"native": [15.22657299041748, 15.22270393371582, 15.219221115112305, 15.226822853088379, 15.21877384185791], "library": [14.921398162841797, 14.901498794555664, 14.90269947052002, 14.896112442016602, 14.910594940185547]}, "median_ms": {"native": 15.22270393371582, "library": 14.90269947052002}, "library_regression_percent": -2.102152578078087, "source175_component_reproduced": true, "fixed_seed_fixture": true, "no_full_model_or_bpb_claim": true}
+EXPERIMENT_POSTFLIGHT {"label": "fs-w188-nkilib-chip-1rank-r1", "returncode": 0, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave188/research/run-logs/fs-w188-nkilib-chip-1rank-r1.postflight.json"}

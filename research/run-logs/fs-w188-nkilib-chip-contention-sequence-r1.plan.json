@@ -1,0 +1,196 @@
+{
+  "label": "fs-w188-nkilib-chip-contention-sequence-r1",
+  "max_seconds": 6000,
+  "purpose": "Same source175 complete BF16 training component with one versus four simultaneous LNC2 ranks. Reverify full original FP64 evidence and kernel hashes; reject compiler fallback on every call; original full native and exact repeat gates on every rank. Five alternating timing rounds, maximum rank duration; no model or BPB claim.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w188-nkilib-chip-1rank-r1.request.json",
+      "sha256": "6a3ff13d241af5f9703403b63c6fb606c9e00cb0321017ae7c7d79c0f6e1aac3",
+      "requirements": [
+        {
+          "marker": "NKILIB_CHIP_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "source_commit": "d595ce0e55e8a0defe32fe59fede91c3b65feb2a",
+            "cases": 10,
+            "full_original_fp64_rules_verified": true,
+            "kernel_and_reference_bytes_unchanged": true
+          }
+        },
+        {
+          "marker": "NKILIB_PROVENANCE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "vendored_files": 66,
+            "package_installation": false,
+            "bundled_package_replaced": false
+          }
+        },
+        {
+          "marker": "FUSED_MLP_NATIVE_GATE",
+          "count": 4,
+          "fields": {
+            "passed": true,
+            "finite": true,
+            "bound_failures": 0
+          }
+        },
+        {
+          "marker": "NKILIB_EXACT",
+          "count": 2,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_CHIP_TIMING",
+          "count": 10,
+          "fields": {
+            "world_size": 1,
+            "steps": 30,
+            "collectives_outside_timing": true,
+            "compiled_backward_asserted": true
+          }
+        },
+        {
+          "marker": "NKILIB_CHIP_RANK_GATE",
+          "count": 1,
+          "unique_field": "rank",
+          "values": [
+            0
+          ],
+          "fields": {
+            "passed": true,
+            "world_size": 1,
+            "shape": [
+              32768,
+              1024
+            ],
+            "full_native_output_and_gradients": true,
+            "exact_both_arm_repeat": true,
+            "fp32_master_gradients": true,
+            "compiled_backward_on_every_invocation": true,
+            "master_casts_layouts_saved_activation_and_backward_charged": true,
+            "independent_fp64_proof_reused_from_source175": true,
+            "model_optimizer_communication_and_quality_excluded": true
+          }
+        },
+        {
+          "marker": "NKILIB_CHIP_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "world_size": 1,
+            "shape": [
+              32768,
+              1024
+            ],
+            "steps": 30,
+            "rounds": 5,
+            "source175_component_reproduced": true,
+            "fixed_seed_fixture": true,
+            "no_full_model_or_bpb_claim": true
+          }
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w188-nkilib-chip-4rank-r1.request.json",
+      "sha256": "29561e3d9161586cad1c0d0d27b7ead29d6061f29d6bd30378c07951ac2dbab2",
+      "requirements": [
+        {
+          "marker": "NKILIB_CHIP_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "source_commit": "d595ce0e55e8a0defe32fe59fede91c3b65feb2a",
+            "cases": 10,
+            "full_original_fp64_rules_verified": true,
+            "kernel_and_reference_bytes_unchanged": true
+          }
+        },
+        {
+          "marker": "NKILIB_PROVENANCE",
+          "count": 4,
+          "fields": {
+            "passed": true,
+            "vendored_files": 66,
+            "package_installation": false,
+            "bundled_package_replaced": false
+          }
+        },
+        {
+          "marker": "FUSED_MLP_NATIVE_GATE",
+          "count": 16,
+          "fields": {
+            "passed": true,
+            "finite": true,
+            "bound_failures": 0
+          }
+        },
+        {
+          "marker": "NKILIB_EXACT",
+          "count": 8,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_CHIP_TIMING",
+          "count": 40,
+          "fields": {
+            "world_size": 4,
+            "steps": 30,
+            "collectives_outside_timing": true,
+            "compiled_backward_asserted": true
+          }
+        },
+        {
+          "marker": "NKILIB_CHIP_RANK_GATE",
+          "count": 4,
+          "unique_field": "rank",
+          "values": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "fields": {
+            "passed": true,
+            "world_size": 4,
+            "shape": [
+              32768,
+              1024
+            ],
+            "full_native_output_and_gradients": true,
+            "exact_both_arm_repeat": true,
+            "fp32_master_gradients": true,
+            "compiled_backward_on_every_invocation": true,
+            "master_casts_layouts_saved_activation_and_backward_charged": true,
+            "independent_fp64_proof_reused_from_source175": true,
+            "model_optimizer_communication_and_quality_excluded": true
+          }
+        },
+        {
+          "marker": "NKILIB_CHIP_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "world_size": 4,
+            "shape": [
+              32768,
+              1024
+            ],
+            "steps": 30,
+            "rounds": 5,
+            "source175_component_reproduced": true,
+            "fixed_seed_fixture": true,
+            "no_full_model_or_bpb_claim": true
+          }
+        }
+      ]
+    }
+  ]
+}

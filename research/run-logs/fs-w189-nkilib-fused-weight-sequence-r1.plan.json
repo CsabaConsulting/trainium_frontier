@@ -1,0 +1,243 @@
+{
+  "label": "fs-w189-nkilib-fused-weight-sequence-r1",
+  "max_seconds": 6600,
+  "purpose": "Fuse current ROW weight quantization and direct stride-2 PSUM FP8 transpose, with the exact BF16 integer carrier as a second candidate and the verified separate pair as control. Eight exact-byte/independent-scale fixtures. Only a >=5% direct producer gain at BOTH production weight shapes advances to the unchanged ten-case full ROW forward gate; neither job is a backward/model/BPB test.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w189-nkilib-fused-weight-producer-r1.request.json",
+      "sha256": "b1886d216e112deb0e0c0906c90d4067b0282a84c48f82b2e7ca651fe62b87bd",
+      "requirements": [
+        {
+          "marker": "NKILIB_ROW_FORWARD_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 10,
+            "source_commit": "861b0ce85c7eb02710eb2fa6be01acdc30cf4b27",
+            "all_original_rules_verified": true,
+            "reference_and_mlp_bytes_unchanged": true
+          }
+        },
+        {
+          "marker": "NKILIB_PROVENANCE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "vendored_files": 66,
+            "package_installation": false,
+            "bundled_package_replaced": false
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_RECIPROCAL",
+          "count": 48,
+          "fields": {
+            "passed": true,
+            "limit": 2.384185791015625e-07
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_QUANT_GATE",
+          "count": 48,
+          "fields": {
+            "passed": true,
+            "packed_input": false,
+            "independently_decoded_legacy_e4m3": true,
+            "scale_exact": true,
+            "reciprocal_checked_separately": true
+          }
+        },
+        {
+          "marker": "NKILIB_EXACT",
+          "count": 232,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_WEIGHT_PREPARE_CASE",
+          "count": 8,
+          "fields": {
+            "passed": true,
+            "independent_quantizer_checks": true,
+            "exact_all_bytes_and_metadata": true,
+            "changed_inputs_and_other_rows_checked": true,
+            "original_control_retained": true,
+            "fp32_master_cast_quantization_transpose_and_metadata_charged": true,
+            "intermediate_quantized_hbm_tensor_eliminated": true
+          }
+        },
+        {
+          "marker": "NKILIB_WEIGHT_PREPARE_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 8,
+            "direct_fp8_and_bf16_carrier": true,
+            "exact_bytes_scales_and_metadata": true,
+            "independent_quantization_and_reciprocal_gates": true,
+            "all_preparation_costs_charged": true,
+            "no_mlp_backward_or_quality_claim": true
+          }
+        },
+        {
+          "marker": "NKILIB_WEIGHT_PREPARE_ADVANCE",
+          "count": 1,
+          "fields": {
+            "warranted": true,
+            "maximum_ratio": 0.95,
+            "next_test": "unchanged complete ROW forward gate",
+            "training_or_quality_promotion": false
+          }
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w189-nkilib-row-fused-weight-forward-r1.request.json",
+      "sha256": "c028ef25d239ce988b54be5d5aa1ced9033bdc0dcf23f4759e59d5e2aa2dc863",
+      "requirements": [
+        {
+          "marker": "NKILIB_ROW_FORWARD_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 10,
+            "source_commit": "861b0ce85c7eb02710eb2fa6be01acdc30cf4b27",
+            "all_original_rules_verified": true,
+            "reference_and_mlp_bytes_unchanged": true
+          }
+        },
+        {
+          "marker": "NKILIB_PROVENANCE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "vendored_files": 66,
+            "package_installation": false,
+            "bundled_package_replaced": false
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_MLP_ADAPTER",
+          "count": 1,
+          "fields": {
+            "installed": true,
+            "isolated_namespace_only": true,
+            "legacy_e4m3_double_row": true,
+            "upstream_row_quantization_and_scaling": true,
+            "token_row_sharding": true,
+            "relu_bf16_then_square_bf16": true,
+            "diagnostics_excluded_from_timed_path": true,
+            "training_backward_implemented": false
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_RECIPROCAL",
+          "count": 30,
+          "fields": {
+            "passed": true,
+            "limit": 2.384185791015625e-07
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_QUANT_GATE",
+          "count": 30,
+          "fields": {
+            "passed": true,
+            "independently_decoded_legacy_e4m3": true,
+            "scale_exact": true
+          }
+        },
+        {
+          "marker": "NKILIB_EXACT",
+          "count": 150,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_NUMERICAL",
+          "count": 20,
+          "fields": {
+            "passed": true,
+            "finite": true,
+            "bound_failures": 0
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_INTERMEDIATE_GATE",
+          "count": 10,
+          "fields": {
+            "passed": true,
+            "outside_quantization_interval": 0,
+            "relative_interval": 4.76837158203125e-07,
+            "all_decoded_coordinates": true,
+            "finite": true
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_MLP_CASE",
+          "count": 10,
+          "fields": {
+            "passed": true,
+            "independent_decoded_pair_and_rounding_gates": true,
+            "all_outputs_and_quantizer_coordinates_finite": true,
+            "plain_and_instrumented_exact": true,
+            "all_online_calibration_layout_and_master_casts_charged": true,
+            "saved_activations_and_backward_excluded": true
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_MLP_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 10,
+            "forward_only": true,
+            "online_preparation_charged": true,
+            "full_training_or_bpb_claim": false
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_HEAP_COMPAT",
+          "count": 1,
+          "fields": {
+            "installed": true,
+            "isolated_namespace_only": true,
+            "conditional_gate_scale_cleanup": true,
+            "strict_allocator_checks_retained": true,
+            "arithmetic_unchanged": true,
+            "upstream_files_unchanged": true
+          }
+        },
+        {
+          "marker": "NKILIB_WEIGHT_FUSION_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 8,
+            "direct_producer_at_least_five_percent_faster_at_both_shapes": true,
+            "unchanged_source": true
+          }
+        },
+        {
+          "marker": "NKILIB_FUSED_WEIGHT_PREPARATION",
+          "count": 1,
+          "fields": {
+            "original_source_sha256": "c19bd4b3ff2856d3aeb77512777f9e1c73b4a1fce50728b89887804324c9d4f4",
+            "changed_expressions": [
+              "producer:uu",
+              "producer:dd",
+              "layout:qu",
+              "layout:qd"
+            ],
+            "all_original_arithmetic_and_fixtures_retained": true,
+            "both_online_weight_producers_inside_timed_path": true,
+            "original_failure_source_unchanged": true,
+            "direct_fp8_transpose": true
+          }
+        }
+      ]
+    }
+  ]
+}
