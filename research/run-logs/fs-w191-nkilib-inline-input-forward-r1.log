@@ -417,3 +417,16 @@ NKILIB_EXACT {"name": "real_random:down_weight:scale", "passed": true}
 NKILIB_ROW_RECIPROCAL {"name": "real_random:down_weight", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
 NKILIB_EXACT {"name": "real_random:down_weight:legacy_decode", "passed": true}
 NKILIB_ROW_QUANT_GATE {"name": "real_random:down_weight", "passed": true, "shape": [1024, 4096], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 4135012, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "real_random:inline_original_stages", "passed": true}
+NKILIB_EXACT {"name": "real_random:inline_input:absmax", "passed": true}
+NKILIB_EXACT {"name": "real_random:inline_input:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "real_random:inline_input", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "real_random:inline_input:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "real_random:inline_input", "passed": true, "shape": [32768, 1024], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 33078280, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "real_random:inline_input_bytes", "passed": true}
+NKILIB_EXACT {"name": "real_random:inline_input_metadata", "passed": true}
+NKILIB_NUMERICAL {"name": "(32768, 1024, 4096):real_random:up_pair_fp32", "shape": [37, 258], "finite": true, "bound_failures": 0, "relative_rms": 5.2696402400760285e-09, "max_abs": 0.03125, "max_error_over_bound": 0.0004545305669548352, "half_output_negative_control_failures": 9535, "passed": true}
+NKILIB_EXACT {"name": "real_random:scaled_relu_rounding", "passed": true}
+NKILIB_EXACT {"name": "real_random:intermediate_scale", "passed": true}
+NKILIB_ROW_INTERMEDIATE_GATE {"name": "real_random", "passed": true, "outside_quantization_interval": 0, "relative_interval": 4.76837158203125e-07, "all_decoded_coordinates": true, "finite": true}
+NKILIB_NUMERICAL {"name": "(32768, 1024, 4096):real_random:down_scaled_pair", "shape": [37, 258], "finite": true, "bound_failures": 0, "relative_rms": 0.002343824027139983, "max_abs": 0.021845764045325566, "max_error_over_bound": 0.7324822178586262, "half_output_negative_control_failures": 9524, "passed": true}
