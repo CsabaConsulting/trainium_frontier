@@ -1,0 +1,17 @@
+{
+  "label": "fs-w195-nkilib-partial-none-phase-r1",
+  "guard_pid": 2055094,
+  "child_pid": 2055095,
+  "child_session": 2055095,
+  "started_at": "2026-09-20T08:31:25.144873+00:00",
+  "command": [
+    "timeout",
+    "--signal=TERM",
+    "--kill-after=30s",
+    "3300",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "-c",
+    "REMOTE='/home/ubuntu/trainium_freshstart_20260918_wave195'\nITEMS=[('fs-w195-nkilib-partial-routing-gate-r1', [{'marker': 'NKILIB_PARTIAL_MLP_GATE', 'count': 4, 'fields': {'passed': True, 'total_layers': 6, 'channels': 256, 'tokens_per_layer': 256, 'original_native_coordinate_and_rms_bounds': True, 'all_layers_compiled_forward_and_backward': True, 'all_fp32_master_gradients_and_two_microbatch_accumulation': True, 'cached_and_uncached': True, 'changed_caches': 6, 'exact_layer_batch_independence_and_repeat': True, 'exact_native_evaluation_and_checkpoint': True, 'model_performance_or_quality_claim': False}, 'unique_field': 'selected', 'values': [[], [0], [5], [0, 1, 2, 3, 4, 5]]}, {'marker': 'NKILIB_PARTIAL_MLP_RESULT', 'count': 1, 'fields': {'passed': True, 'cases': 4, 'selected_layers': [[], [0], [5], [0, 1, 2, 3, 4, 5]], 'all_original_native_bounds_retained': True, 'model_performance_or_quality_claim': False}}, {'marker': 'FUSED_MLP_NATIVE_GATE', 'count': 256, 'fields': {'passed': True, 'finite': True, 'bound_failures': 0}}, {'marker': 'NKILIB_EXACT', 'count': 20, 'fields': {'passed': True}}, {'marker': 'NKILIB_PROVENANCE', 'count': 4, 'fields': {'passed': True, 'vendored_files': 66, 'package_installation': False, 'bundled_package_replaced': False}}, {'marker': 'NKILIB_PARTIAL_PREREQUISITE', 'count': 1, 'fields': {'passed': True, 'checked_labels': ['fs-w175-nkilib-reuse-transpose-component-r1'], 'all_original_frozen_requirements_verified': True, 'all_prior_source_bytes_unchanged': True}}], '282935ca9b1e30f6c21c397143770b03034363f9')]\nimport pathlib,json,sys,hashlib,subprocess\nroot=pathlib.Path(REMOTE);sys.path.insert(0,str(root/'research'))\nfrom fresh_start_sequence import require_completed\nlogs=root/'research/run-logs'\nfor label,rules,expected_source in ITEMS:\n launch=json.loads((logs/(label+'.launch.json')).read_text())\n assert launch['expected_commit']==expected_source\n require_completed(json.loads((logs/(label+'.postflight.json')).read_text()),(logs/(label+'.log')).read_text(),launch,rules)\n for path,wanted in launch['source_sha256'].items():\n  assert hashlib.sha256((root/path).read_bytes()).hexdigest()==wanted,path\nprint('NKILIB_PARTIAL_PREREQUISITE '+json.dumps(dict(passed=True,checked_labels=[v[0] for v in ITEMS],all_original_frozen_requirements_verified=True,all_prior_source_bytes_unchanged=True)),flush=True)\nsubprocess.run(['/home/ubuntu/workspace/native_venv/bin/torchrun', '--standalone', '--nproc_per_node=4', '/home/ubuntu/trainium_freshstart_20260918_wave195/research/scratch/phase_timer.py', '--steps', '30', '--warmup-steps', '5', '--seed', '42', '--foreach-optim', '--pack-factor', '32', '--no-ngram-ve', '--dataloader', 'real', '--set', 'DEPTH=6', '--set', 'N_EMBD=1024', '--set', 'USE_QK_SHIFT=False', '--set', 'QK_SHIFT_BETA=0.0', '--set', 'QK_SHIFT_FREEZE=True', '--set', 'USE_COMPILE_MUON=True', '--set', 'USE_NKI_MUON=False', '--set', 'COMPILE_SDPA_DIRECT=True', '--post-checks', '--set', 'USE_NKI_LOCAL_CONV=True', '--set', 'USE_BF16_NORM_OUTPUT=True', '--optimizer-ownership', '--optimizer-ownership-pad-singletons', '--set', 'SEQ_LEN=1024', '--adaptive-nki-ce', '--library-mlp', '--library-mlp-layers', 'none'],check=True)\n"
+  ]
+}

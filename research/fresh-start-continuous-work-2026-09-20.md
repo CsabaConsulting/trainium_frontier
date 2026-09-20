@@ -1,5 +1,14 @@
 # Continued kernel work and research — 2026-09-20
 
+Checkpoint2026-09-20 08:32UTC: both hosts active.194 training saves has all ten
+initial exact saved-tensor checks, final production timing/postflight pending.
+195 four-selection routing gate COMPLETE/CLEAN,256 native gradient comparisons
+and20exact checks verified; zero-library model control running. Start frozen
+195 position sequence only after both gate/control complete cleanly. Trn22
+scratch maintenance r4 restored19.56GB free after local/cloud verification.
+See RESUME.md for exact source hashes, labels, bounds and pending work.
+
+
 Checkpoint2026-09-20 08:13UTC:192/193 COMPLETE/CLEAN, both hosts idle.
 Compiler SBUF full model563.005751ms vs488.528818ms (+15.245%), all gates pass.
 Source191 forward win replicated193:3.908544ms vs4.595774msBF16, all preparation
