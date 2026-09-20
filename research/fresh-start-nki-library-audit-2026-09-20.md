@@ -1,0 +1,134 @@
+# Pinned NKI Library investigation — 2026-09-20
+
+The user's Re:Invent lead is [AWS Neuron's NKI Library](https://github.com/aws-neuron/nki-library).
+The clean local clone is pinned at `92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e`
+(August 28). Source references below use that commit, rather than a moving main.
+
+## What is new, and what we already use
+
+Read-only inspection at 04:06 UTC confirmed both hosts use Python3.12.3,
+NKI0.5.0, neuronx-cc2.26.6360 and native torch-neuronx2.11.3. Neither has the
+standalone nki-library package installed. Both have compiler-bundled `nkilib`.
+No device holders remained after the source165 queues. Free space was17.45GB
+on trn21 and11.53GB on trn22; keep the existing8GiB pre/postflight floor.
+
+The compiler's `nkilib` contains442 Python files; the clone has627. There are
+204 byte-identical files,227 changed common files,196 new files and11 installed
+files absent from main. The selected installed attention forward/backward and
+MLP files are byte-identical to this clone's `origin/2.31_release`, not its
+`origin/2.32_release`. This is file identity, not a claim that every installed
+file matches a release tag or that the compiler version equals the SDK version.
+
+| Candidate | Finding | Action |
+| --- | --- | --- |
+| Attention CTE + backward | Our native SDPA already calls the bundled pair. Main has changed code, including layout handling and forward tiling/masking. | Compare the pinned pair directly with bundled, charging both passes and transformations. |
+| CTE MLP | Newer explicitly managed SBUF/PSUM tiling, buffered weight loads and BF16/legacyFP8 paths. | Screen the BF16 path at our actual32×1024×1024 shape, then inspect resources in the caller if useful. |
+| Fused Adam | Main file is byte-identical to installed. Our optimizer already has separate, more stringent Adam numerical probes. | No claim of a new kernel from installing this package. Revisit only a specific scheduling/math difference. |
+| Cross entropy | Main file is byte-identical to installed and lacks our fused softcap boundary. Already consulted during the fused-head investigation. | No blind replacement of our faster adaptive softcap/CE path. |
+| `matmul_loop_nest`, `TiledTensor`, NeuroTile | Useful examples of bank management, rotating buffers and layout-aware DMA. | Transfer a measured scheduling idea into the failing surrounding projection region; abstraction alone is not a speedup. |
+| MXFP8/MXFP4 MLP/matmul | Use `nc_matmul_mx`, requiring NeuronCore-v4; our Trn2 is v3. | Not a runnable Trn2 FP8 pipeline. Study scheduling separately from incompatible arithmetic. |
+| TKG / GPT-OSS megakernels | Primarily inference/decode workloads. | Reference for fusion and memory management; our objective includes a full backward and updates. |
+
+The [README's integration section](https://github.com/aws-neuron/nki-library/blob/92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e/README.md)
+explains that installing the standalone package redirects compiler-bundled
+`nkilib` imports. It explicitly does not guarantee compatibility with a released
+compiler. We retain the installed stack and compare selected kernels in an
+isolated namespace, with `NKILIB_FORCE_BUNDLED_LIBRARY=true` for the control.
+
+## Source preservation and one necessary model adapter
+
+`scratch/nki_library_vendor.py` extracted the66-file relative-import closure
+of attention forward/backward and MLP:1,184,694bytes of unmodified upstream
+Python. `vendor/nki_library_92d11f63/manifest.json` records every file hash,
+upstream commit, external imports and the installed comparison. Apache2.0
+LICENSE and original copyright notices are retained. An intentionally empty
+package root prevents upstream's installation/namespace replacement mechanism.
+The user-owned clone is unchanged. Each probe verifies the entire closure and
+selected installed file hashes before testing.
+
+Source inspection found a concrete activation gap: `SquaredReLU` exists in
+`ActFnType` and `apply_activation`, but CTE's `_evict_gate_res_tile` still calls
+`get_nl_act_fn_from_type`, which rejects SquaredReLU. A direct call would fail
+before producing an output. `scratch/nki_library_relu2_adapter.py` installs a
+strict BF16/ungated/no-bias/no-quantization hook only inside our isolated CTE
+module. It calls upstream's own ReLU-then-square helper. The BF16 intermediate
+rounding matches our native MLP. Original vendored sources stay byte-identical;
+the separate adapter is explicitly part of the candidate, never the control.
+
+## Initial bounded experiments
+
+Trn21: `scratch/nki_library_mlp_probe.py`, six cases. Random, zero, outlier and
+changed-weight fixtures at2×512×256; random2×1024×1024 and32×1024×1024.
+Both native and adapted library outputs are checked against independent FP64
+ReLU-squared algebra with propagated FP32 accumulation/BF16-rounding envelopes,
+all output channels for33 rows spanning the complete batch/sequence. Full
+outputs must be finite and repeat exactly; changing another batch cannot alter
+batch0. Timing includes ordinary Linear weight orientation and both layout
+conversions. This is a forward-only screen: the library does not return the
+saved ReLU needed for training. Add/charge saved activations or recomputation
+and validate all derivatives before any training speed claim.
+
+Trn22: `scratch/nki_library_attention_probe.py`, six cases. Random, zero-QK,
+small-QK and outlier fixtures at2×2×512×128; random2×8×1024×128 and production
+32×8×1024×128. The paired wrapper reproduces the installed SDPA's LSE layout,
+FP32 mixed reduction setting, scale and gradient transposes. Both versions
+must pass independent FP64 output/dQ/dK/dV checks on full selected head
+sequences. The unchanged campaign native comparison additionally limits the
+new-vs-bundled drift. Repetition, prefix causality, zero future K/V gradients
+and independence of another batch are exact gates. Timing charges both passes,
+saved statistics, transposes and gradient accumulation. It is not a whole-model
+or BPB result. No global backend decomposition is patched.
+
+Each job uses a new committed immutable checkout, explicit fingerprint list,
+exclusive host lock, clean preflight, finite timeout and postflight. A finite
+coordinator mirrors logs every45seconds and stops on any failed check. No quality
+run is automatically promoted. Local syntax checks precede deployment; device
+compilation and numerical results are pending until actual receipts exist.
+
+## Source165 completed results, preceding this lead
+
+All seven jobs and all original numerical gates finished cleanly. The complete
+isolated FP8 MLP improved to13.110648ms, versus oldFP814.589666ms and native
+BF1615.425906ms, including current weight preparation and all four backward
+products. Nevertheless the complete model remains slower:
+
+| Same-host pair | Native step | Candidate step | Regression |
+| --- | ---: | ---: | ---: |
+| trn21, fused forward+backward scaling |488.587103ms|550.129347ms|12.596%|
+| trn22, fused backward scaling |488.616140ms|556.930141ms|13.981%|
+
+Both candidates refreshed all12 MLP caches35times and passed all four rank
+postchecks. The prior component improvement is real, but does not remove the
+surrounding model regression. No30-minute quality run is warranted from these
+timings alone. Exact source/postflight/log identities are in
+`run-logs/fs-w165-scale-fusion-final-comparison-r1.json`. The established public
+best0.9928513116311253 and frozen submission remain unchanged.
+
+The useful new direction is to compare proven library tiling/allocation and
+attention implementations with our measured integration gap. A wholesale
+package switch would change many unrelated kernels at once and obscure that
+comparison.
+
+## Source166 interface failures and source167 corrections
+
+Both jobs launched clean04:17:04UTC from29b90bb9 and stopped cleanly before
+timing. Preserve their failed logs/postflights; neither is a negative speed
+result and neither demonstrated a numerical failure in a candidate output.
+
+- MLP04:17:21: `_validate_mlp_required_arguments` requires a gate tensor even
+  with `skip_gate_proj=True`. Supply the same transposed up-weight operand in
+  both slots. The disabled gate remains disabled; this adds no cache, weight
+  conversion or matrix product. The original parameter validator stays intact.
+- Attention04:17:22: bundled forward/backward and repetition pass, but newer
+  CTE compilation stops at `min(tile.num_valid_k, _K_TILE_SZ)`, because the
+  NKI0.5 frontend treats the property as a function rather than an integer.
+  `scratch/nki_library_attention_compat.py` replaces only the isolated
+  `KTileInfo` constructor with a dataclass factory whose stored field is the
+  identical `seqlen_k - k_start_pos` expression. A128-case CPU factory check
+  precedes compilation. Tile classification, masks and reduction schedule
+  stay in unchanged upstream code. This is a parser compatibility adapter,
+  not a hardware workaround or numerical tolerance change.
+
+The source167 retries use new immutable checkouts and labels. Existing source166
+requests/plans and the stopped coordinators are not edited or restarted. Check
+the latest source167 launch/postflight/sequence receipts for hardware status.
