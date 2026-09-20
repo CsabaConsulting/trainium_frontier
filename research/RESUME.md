@@ -1,27 +1,27 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-20 05:13 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-20 05:20 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## Current work — 2026-09-20 05:13 UTC
+## Current work — 2026-09-20 05:20 UTC
 
-- Trn21 source172 and173 COMPLETE/CLEAN, all original8case gates verified.
-  Direct strided HxT stores1579.535ms vs15.243ms native; REJECT performance.
-  Coalesced HxT stores17.918935ms vs15.200161ms native; REJECT performance.
-  No model integration is authorized by these timing results. Hooks are drafts.
-- Source174 PREPARING compiler bulk transpose of the original source171 TxH
-  kernel output, with current native HxT backward. Retain all8fixtures and add
-  zero-up/zero-down weights. Still a component comparison, no quality promotion.
-- Trn22 source171 separate-region full-FP8 candidate RUNNING. Fresh native
-  whole-step control488.541417ms reproduced prior488.616ms; all4rank checks
-  and clean postflight passed. Candidate compiling after exact prerequisites.
-- Current library full training TxH15.361039 vs matched native HxT15.216359ms
-  remains0.951% slower. Plain-autograd15.7% improvement is not a trainer win.
-- Maintenance completed safely, four old checkpoint copies retired only after
-  three-way verification. Prior empty-profile attempt made no deletion.
-- Cron05:10:53 pushed sourceb404e35a/snapshot (see last-success receipt), with
-  both hosts retrieved. Source174 preparation needs the next regular push.
+- Trn21 source174 COMPLETE/CLEAN, all frozen ten-case gates passed. Bulk
+  transpose15.992353ms vs current native15.251666ms; no model promotion.
+- Source175 PREPARING reuse of the library required intermediate transpose:
+  BF16 ReLU -> existing transpose -> save HxT -> BF16 square -> down GEMM.
+  Same ten fixtures and native HxT backward; no extra SBUF or transpose.
+- Trn22 source171 full FP8 separate-region run rc0 but DISK RESERVE FAILED.
+  Its original postflight remains host_clean=false, only less than8GiB free.
+  Diagnostic timing is also slower; see source171 comparison JSON. No promotion.
+- Maintenance fs-maintenance-nki-scratch-trn22-20260920-r1 CAPTURING12GiB of
+  /tmp/nki_* files older than04:00UTC, exclusive lock. Retirement MUST wait
+  for every local archive hash and CURRENT GitHub asset digest to verify.
+  Current compile/shared caches/source/profiles/best checkpoints preserved.
+- Source172/173 also completed cleanly, slower; source171 normal TxH0.951%
+  slower than native HxT. None of these component results authorize integration.
+- Draft library MLP integration still points at source173; do not promote it.
 - Best public BPB0.9928513116311253; frozen submission unchanged. No new BPB.
+- Backup state is out/fresh-start-backup/last-success.json. Check latest push.
 
 ## Previous source169/170 checkpoint (superseded host status)
 

@@ -354,3 +354,24 @@ read/write and four backward products are charged.
 
 Trn22's fresh matched native fullmodel control488.541417ms reproduces the
 previous488.616ms. Its separated full-FP8 candidate has started compilation.
+
+## Source174 result and source175 follow-up (05:20 UTC)
+
+Source174 passed the frozen ten-case FP64/native/stage/accumulation screen and
+clean postflight. Production complete component: bulk transpose15.992353ms
+versus matched current native15.251666ms (+4.86%). No model promotion.
+
+Source175 prepares a lower-cost ordering: evict BF16 ReLU, run the original
+library intermediate transpose, save its already-transposed HxT tile, then
+square in place before down projection. BF16 rounding order is unchanged;
+elementwise square commutes with the bit-preserving transpose. No extra SBUF
+allocation, activation transpose, or up-projection recomputation. The same
+ten-case screen and native HxT control apply before any integration.
+
+Trn22 separate-region all-scale FP8 completed with rc0 and finite rank checks,
+but postflight correctly rejected free disk7,574,847,488B against8GiB reserve.
+Keep that failure unmodified. The descriptive timings are slower than native;
+no promotion. Source171 exact receipts and full timing summary are preserved
+in fs-w171-fp8-separated-diagnostic-comparison-r1.json. A guarded12GiB capture
+of old NKI scratch is in progress; no remote deletion until archive hashes and
+current GitHub asset digests have independently verified preservation.
