@@ -1,0 +1,54 @@
+{
+  "label": "fs-w168-nkilib-attention-numerics-sequence-r1",
+  "max_seconds": 3600,
+  "purpose": "Diagnose original FP64 attention gate failures in bundled control; preserve/report all failures, compare staged BF16 rounding without using it as acceptance authority. Original new-vs-bundled gate and exact repeats remain. No timing or promotion.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w168-nkilib-attention-numerics-r1.request.json",
+      "sha256": "f1eea211a5391d499c5e23e47db7c49d09b1884c32d5b780854d5cb98452b5ab",
+      "requirements": [
+        {
+          "marker": "NKILIB_PROVENANCE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "upstream_commit": "92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e",
+            "vendored_files": 66,
+            "bundled_package_replaced": false,
+            "package_installation": false
+          }
+        },
+        {
+          "marker": "NKILIB_PARSER_COMPAT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cpu_factory_cases": 128,
+            "installed_compiler_unchanged": true
+          }
+        },
+        {
+          "marker": "NKILIB_ATTENTION_DIAGNOSTIC_CASE",
+          "count": 6,
+          "fields": {
+            "completed": true,
+            "unchanged_native_gate_passed": true,
+            "diagnostic_only": true,
+            "promotion_allowed": false
+          }
+        },
+        {
+          "marker": "NKILIB_ATTENTION_DIAGNOSTIC_RESULT",
+          "count": 1,
+          "fields": {
+            "completed": true,
+            "cases": 6,
+            "diagnostic_only": true,
+            "promotion_allowed": false,
+            "training_or_bpb_claim": false
+          }
+        }
+      ]
+    }
+  ]
+}
