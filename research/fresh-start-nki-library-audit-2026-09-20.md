@@ -397,3 +397,10 @@ then a fresh same-host native/candidate whole-step comparison. Component
 improvement is too small to establish a useful whole-step gain; only actual
 measurements can decide whether compiler effects enlarge or erase it. No
 quality trial is authorized by the component alone.
+
+Source176 r1 was rejected LOCALLY by fresh_start_launch before SSH because
+the generated integration argv omitted the mandatory timeout prefix. There
+is no dispatch receipt, remote launch, kernel result or cleanup to relabel.
+The immutable r1 plan/stopped coordinator are preserved. New r2 labels retain
+the exact kernel/source/gates and add timeout2400s/TERM plus30s kill grace to
+every job. The host lock, pre/postflight, fingerprint gates are unchanged.
