@@ -1,12 +1,12 @@
 # Kernel queue and precision-specific experiments
 
-Current library continuation (2026-09-20 05:29 UTC): source175's ten-case
-reused-transpose MLP passes every original numerical gate and clean postflight.
-Its complete production component is14.845040ms vs native15.210640ms (2.404%
-lower). Trn21 source176 now gates real Linear/cache integration, then same-host
-native/candidate whole steps. No quality trial follows automatically. Trn22
-repeats source171 native/full-FP8 separate-region after hash-verified scratch
-archival/retirement restored20.59GB disk. The r1 disk failure is retained.
+Current library continuation (2026-09-20 06:13 UTC): source175's2.404% complete
+component gain does not survive model integration: joined561.503ms vs489.888ms;
+separate611.723ms vs488.809ms, both clean. Source180 on trn22 captures paired
+training-forward caller traces. Source179 ROW FP8 producer passes14 cases;
+source181 composed weight preparation fails before MLP execution with invalid
+bytes. Trn21 is clean; source182 byte-transpose isolation is prepared. All
+original failures/bounds remain. No quality trial or speed/BPB promotion.
 Read RESUME.md and fresh-start-nki-library-audit-2026-09-20.md for evidence.
 Earlier continuation paragraphs are historical; frozen submission is unchanged.
 

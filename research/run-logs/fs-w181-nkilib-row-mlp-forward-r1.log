@@ -1,0 +1,40 @@
+NKILIB_ROW_PRODUCER_PREREQUISITE {"passed": true, "cases": 14, "source_commit": "887e320625a2c0d57dc18d6d931700763a4660ad", "unchanged_source_bytes": true, "maintenance_verified": true}
+[W920 06:06:41.509248732 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+NKILIB_PROVENANCE {"passed": true, "upstream_commit": "92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e", "vendored_files": 66, "bundled_root": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib", "vendor_namespace": "research.vendor.nki_library_92d11f63", "nki": "0.5.0+28631259367.ga768afa6", "compiler": "2.26.6360.0+6f180f47", "package_installation": false, "bundled_package_replaced": false}
+NKILIB_ROW_MLP_ADAPTER {"installed": true, "isolated_namespace_only": true, "legacy_e4m3_double_row": true, "upstream_row_quantization_and_scaling": true, "token_row_sharding": true, "relu_bf16_then_square_bf16": true, "diagnostics_excluded_from_timed_path": true, "training_backward_implemented": false}
+NKILIB_ROW_MLP_START {"shape": [512, 256, 1024], "kind": "random"}
+NKILIB_EXACT {"name": "random:input:absmax", "passed": true}
+NKILIB_EXACT {"name": "random:input:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "random:input", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "random:input:legacy_decode", "passed": true}
+NKILIB_EXACT {"name": "random:input:appended_fp32_scale", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "random:input", "passed": true, "shape": [512, 256], "packed_input": true, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 129096, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "random:up_weight:absmax", "passed": true}
+NKILIB_EXACT {"name": "random:up_weight:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "random:up_weight", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_freshstart_20260918_wave181/research/scratch/nki_library_row_mlp_probe.py", line 158, in <module>
+    main()
+  File "/home/ubuntu/trainium_freshstart_20260918_wave181/research/scratch/nki_library_row_mlp_probe.py", line 152, in main
+    run_case(shape, kind, args.steps)
+  File "/home/ubuntu/trainium_freshstart_20260918_wave181/research/scratch/nki_library_row_mlp_probe.py", line 79, in run_case
+    quantizer_check(kind + ':up_weight', up.bfloat16(), (pu.T.contiguous(), um), False)
+  File "/home/ubuntu/trainium_freshstart_20260918_wave181/research/scratch/nki_library_row_quantize_probe.py", line 41, in check
+    decoded = decode_legacy(raw[:, :columns])
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/trainium_freshstart_20260918_wave181/research/scratch/fp8_packed_weight_cache_probe.py", line 28, in decode_legacy
+    assert bool((exponent < 15).all()), 'Packed weights contain legacy Inf/NaN encodings'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Packed weights contain legacy Inf/NaN encodings
+Traceback (most recent call last):
+  File "<string>", line 17, in <module>
+  File "/usr/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['/home/ubuntu/workspace/native_venv/bin/python', '-u', '/home/ubuntu/trainium_freshstart_20260918_wave181/research/scratch/nki_library_row_mlp_probe.py', '--steps', '20']' returned non-zero exit status 1.
+EXPERIMENT_POSTFLIGHT {"label": "fs-w181-nkilib-row-mlp-forward-r1", "returncode": 1, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave181/research/run-logs/fs-w181-nkilib-row-mlp-forward-r1.postflight.json"}

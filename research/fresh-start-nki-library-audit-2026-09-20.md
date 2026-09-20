@@ -4,6 +4,15 @@ The user's Re:Invent lead is [AWS Neuron's NKI Library](https://github.com/aws-n
 The clean local clone is pinned at `92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e`
 (August 28). Source references below use that commit, rather than a moving main.
 
+Current result at06:13UTC: the best BF16 complete-component candidate is2.404%
+faster, but its joined/separate whole-model steps are14.619%/25.146% slower.
+Neither advances to a quality run. Source180 is capturing paired native/library
+training-forward traces to attribute the regression. The online ROW FP8 producer
+passes all14 fixtures; source181's composed preparation fails before the MLP on
+invalid weight bytes. Source182 preserves that original failure and isolates
+ordinary byte transpose, float carrier and explicit NKI transpose, including
+all256 codes. No new training-speed or BPB gain is established.
+
 ## What is new, and what we already use
 
 Read-only inspection at 04:06 UTC confirmed both hosts use Python3.12.3,
