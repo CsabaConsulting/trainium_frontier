@@ -1,0 +1,115 @@
+{
+  "label": "fs-w181-nkilib-row-mlp-forward-sequence-r1",
+  "max_seconds": 3000,
+  "purpose": "Stagewise library ROW FP8 forward with gated online producers. Ten original/edge/production fixtures, decoded byte scales and empirical double-row arithmetic bounds, original scaling roundings, exact diagnostic/plain/repeat/row independence. Charge online calibration, FP32 master casts, transposes and scale broadcasts; saved training activations/backward excluded. No model/BPB claim.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w181-nkilib-row-mlp-forward-r1.request.json",
+      "sha256": "452951642f38fca33e44e8d21924e9d929d5a9736aa4cf213625a79db0d5cf33",
+      "requirements": [
+        {
+          "marker": "NKILIB_ROW_PRODUCER_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 14,
+            "source_commit": "887e320625a2c0d57dc18d6d931700763a4660ad",
+            "unchanged_source_bytes": true,
+            "maintenance_verified": true
+          }
+        },
+        {
+          "marker": "NKILIB_PROVENANCE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "vendored_files": 66,
+            "package_installation": false,
+            "bundled_package_replaced": false
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_MLP_ADAPTER",
+          "count": 1,
+          "fields": {
+            "installed": true,
+            "isolated_namespace_only": true,
+            "legacy_e4m3_double_row": true,
+            "upstream_row_quantization_and_scaling": true,
+            "token_row_sharding": true,
+            "relu_bf16_then_square_bf16": true,
+            "diagnostics_excluded_from_timed_path": true,
+            "training_backward_implemented": false
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_RECIPROCAL",
+          "count": 30,
+          "fields": {
+            "passed": true,
+            "limit": 2.384185791015625e-07
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_QUANT_GATE",
+          "count": 30,
+          "fields": {
+            "passed": true,
+            "independently_decoded_legacy_e4m3": true,
+            "scale_exact": true
+          }
+        },
+        {
+          "marker": "NKILIB_EXACT",
+          "count": 150,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_NUMERICAL",
+          "count": 20,
+          "fields": {
+            "passed": true,
+            "finite": true,
+            "bound_failures": 0
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_INTERMEDIATE_GATE",
+          "count": 10,
+          "fields": {
+            "passed": true,
+            "outside_quantization_interval": 0,
+            "relative_interval": 4.76837158203125e-07,
+            "all_decoded_coordinates": true,
+            "finite": true
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_MLP_CASE",
+          "count": 10,
+          "fields": {
+            "passed": true,
+            "independent_decoded_pair_and_rounding_gates": true,
+            "all_outputs_and_quantizer_coordinates_finite": true,
+            "plain_and_instrumented_exact": true,
+            "all_online_calibration_layout_and_master_casts_charged": true,
+            "saved_activations_and_backward_excluded": true
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_MLP_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 10,
+            "forward_only": true,
+            "online_preparation_charged": true,
+            "full_training_or_bpb_claim": false
+          }
+        }
+      ]
+    }
+  ]
+}
