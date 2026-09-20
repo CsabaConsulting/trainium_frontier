@@ -1,5 +1,11 @@
 # Kernel queue and precision-specific experiments
 
+Active continuation: source157 pairwise QKV/gate-initialization queues are running
+on both hosts. See `RESUME.md` and `fresh-start-continuous-work-2026-09-20.md`.
+A primary-source-oriented Tavily deep research request is also active. Earlier
+status below is retained as context; source156 is complete on both hosts.
+
+
 Updated 2026-09-20 00:27 UTC. Read `RESUME.md` and postflights before dispatch.
 
 Trn21 source156 completed its BF16/FP32 component gates and production-shape

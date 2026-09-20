@@ -3,7 +3,36 @@
 Updated 2026-09-20 00:27 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## Production QKV diagnosis — CURRENT
+## Two-host pairwise queues and new research — CURRENT
+
+Updated 2026-09-20 00:49 UTC. Source157 fcc11ed is deployed in wave157 on both hosts;
+plan commit ee910a8. trn21 token-layout sequence PID30835 started00:46:08 UTC,
+first guard1593791 passed preflight00:46:14. trn22 channel-layout sequence
+PID30953 started00:46:34 UTC, first guard1910153 passed preflight00:46:40.
+Each fixed sequence tests QK/QV/KV and direct/all-three controls with random,
+then zero VE gate. trn21 uses B32/T1024/C1024/seed152032; trn22 uses the small
+B4/T128/C1024/seed152055 fixture. Full setup, rationale and continuation
+instructions: `fresh-start-continuous-work-2026-09-20.md`.
+
+Both source156 production diagnoses are now complete/clean and IDENTICAL,
+including81 joint-BF16 and47,860 joint-FP32-V coordinate failures; each single
+replacement is exact. The source157 paired tests preserve all arithmetic and
+bounds, charge no new quality claim, and reuse only byte-identical completed
+component gates. Queue limits4800seconds; each remote request1800+30seconds.
+Coordinators mirror every45seconds and stop on a failed process or missing
+finite/source-matched records. Do not modify active plans or helpers.
+
+Tavily pro deep research is running: request21d003c3-9a58-45d3-8df0-321de7fc03e6.
+Prompt and dispatch receipt are committed under `research/external/`.
+It seeks broader/backward-first FP8, compiler/fusion/traffic causes and closed
+paths with changed premises; technical claims require primary-source validation.
+A failed old PyTorch FP8 frontend does not negate the now-gated NKI FP8 work.
+
+The prior GitHub receipt79498f8/ce57db88 at00:28:38 UTC predates these queues;
+read `out/fresh-start-backup/last-success.json` for the next exact receipt.
+The frozen public best is unchanged0.9928513116311253. No training/submission.
+
+## Previous production QKV checkpoint (superseded host status)
 
 - trn21 source156 ed3a53e three-step sequence is COMPLETE. All 9 BF16 and
   10 FP32-V component cases passed. The production diagnostic completed cleanly
