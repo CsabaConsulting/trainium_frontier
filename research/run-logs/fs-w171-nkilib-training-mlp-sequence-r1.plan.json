@@ -1,0 +1,85 @@
+{
+  "label": "fs-w171-nkilib-training-mlp-sequence-r1",
+  "max_seconds": 4200,
+  "purpose": "Training component extension of exact source170 token-row MLP: explicit saved ReLU inside forward, established native backward, FP32 masters. Original native/stagewise gates, full-coordinate FP64 autograd bounds, exact repeat/row independence/two-microbatch accumulation. All casts/layouts/saves/derivatives charged, no whole-model/quality promotion.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w171-nkilib-training-mlp-component-r1.request.json",
+      "sha256": "51fd61299157dafb13a1a89a724913cf6d27f08ffda13f1b8b6bec653ac3187e",
+      "requirements": [
+        {
+          "marker": "NKILIB_TRAINING_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 6,
+            "source_commit": "2cd50e043742ff327f40eda70e9e43632a29118d",
+            "token_sharding": true
+          }
+        },
+        {
+          "marker": "NKILIB_PROVENANCE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "vendored_files": 66,
+            "package_installation": false,
+            "bundled_package_replaced": false
+          }
+        },
+        {
+          "marker": "NKILIB_TRAINING_MLP_CASE",
+          "count": 8,
+          "fields": {
+            "passed": true,
+            "full_independent_fp64_autograd_gradients": true,
+            "unchanged_native_comparison": true,
+            "exact_repeat_rows_and_fp32_accumulation": true,
+            "master_casts_layouts_activation_stores_and_full_backward_charged": true,
+            "optimizer_communication_and_model_excluded": true
+          }
+        },
+        {
+          "marker": "NKILIB_TRAINING_MLP_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 8,
+            "saved_relu_and_full_backward": true,
+            "all_fp64_and_native_gates": true,
+            "two_microbatch_fp32_accumulation": true,
+            "training_or_bpb_claim": false
+          }
+        },
+        {
+          "marker": "FUSED_MLP_NATIVE_GATE",
+          "count": 48,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "FUSED_MLP_STAGE_GATE",
+          "count": 16,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "FP8_CACHE_BACKWARD_FP64_BOUND",
+          "count": 48,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_EXACT",
+          "count": 48,
+          "fields": {
+            "passed": true
+          }
+        }
+      ]
+    }
+  ]
+}
