@@ -585,3 +585,21 @@ The headline component arms charge online activation/weight calibration,
 FP32 master casts, transposes and128-row scale broadcasts. Saved training
 activations and the full backward remain absent; this screen can authorize
 further implementation only, never a whole-model or BPB claim.
+
+## Source182 transpose diagnosis and source180 record boundary
+
+Source182 reproduced the original prepared-weight corruption. Omitting only the
+two transposes yields exact bytes and identical other six outputs. The framework
+float-carrier workaround produces the same corrupt up-weight tensor as ordinary
+transpose (235,495/262,144 mismatches); source182 fails cleanly before its NKI
+arm. The failed request/plan/source are retained. Source183 is a separate exact
+NKI gate; no float-carrier success or MLP result is claimed.
+
+Source180 native forward capture completed rc0/CLEAN with seven compiled binary
+exports, no missing exports, and no unresolved trace keys. Its coordinator
+stopped because the substring matcher counts NEFF_ARTIFACT again inside
+TRACE_NEFF_ARTIFACT. Exact record-boundary parsing passes every unchanged payload
+and model check. The original stopped sequence is retained; its proof is
+fs-w180-native-record-boundary-diagnosis-r1.json. A subsequent request will use
+record-boundary markers. Full UUID coverage still requires Explorer ingestion.
+Both helper code and the original frozen requirements remain unchanged.
