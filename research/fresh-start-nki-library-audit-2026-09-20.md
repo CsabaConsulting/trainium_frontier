@@ -404,3 +404,19 @@ is no dispatch receipt, remote launch, kernel result or cleanup to relabel.
 The immutable r1 plan/stopped coordinator are preserved. New r2 labels retain
 the exact kernel/source/gates and add timeout2400s/TERM plus30s kill grace to
 every job. The host lock, pre/postflight, fingerprint gates are unchanged.
+
+## Clean FP8 repeat and separate BF16 region follow-up (05:33 UTC)
+
+Source171 r2 native/candidate BOTH complete and clean, all unchanged frozen
+checks independently verified. Full-step medians488.469301/592.811543ms:
+FP8 separate region21.361% slower. This confirms the descriptive r1 slowdown
+after restoring disk headroom. No quality promotion. Exact hashes, phase
+contracts and medians are in fs-w171-fp8-separated-clean-comparison-r2.json.
+
+Source177 prepares a separate compiled region for the source175 BF16 library
+MLP, a different activation-buffer/forward contract from the FP8 path. Retain
+all cache/update/eval gates; additionally walk the derivative graph to verify
+compiled execution in the separate-region integration (the prior draft only
+asserted the direct joined node). No changed kernel arithmetic, source175
+component gate reuse requires byte identity. Measure its own matched native
+control on trn22; do not infer gains from cross-host or component timings.

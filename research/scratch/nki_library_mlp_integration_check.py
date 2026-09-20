@@ -11,6 +11,18 @@ from nki_library_mlp_integration import install
 from nki_library_probe_common import emit, exact
 
 
+def backward_node_names(output):
+    pending, seen, names = [output.grad_fn], set(), []
+    while pending:
+        node = pending.pop()
+        if node is None or node in seen:
+            continue
+        seen.add(node)
+        names.append(type(node).__name__)
+        pending.extend(child for child, _ in node.next_functions)
+    return names
+
+
 def run(tokens, channels, separate_region=False):
     torch._dynamo.reset()
     torch.manual_seed(172021 + channels)
@@ -44,9 +56,11 @@ def run(tokens, channels, separate_region=False):
                 bx = value.detach().clone().requires_grad_()
                 cx = value.detach().clone().requires_grad_()
                 expected, output = native(bx), optimized(cx)
-                if not separate_region:
+                assert type(expected.grad_fn).__name__ == 'CompiledFunctionBackward'
+                if separate_region:
+                    assert 'CompiledFunctionBackward' in backward_node_names(output)
+                else:
                     assert type(output.grad_fn).__name__ == 'CompiledFunctionBackward'
-                    assert type(expected.grad_fn).__name__ == 'CompiledFunctionBackward'
                 compare(f'library_integration:{channels}:{cached}:{step}:{micro}:output', output, expected)
                 expected.backward(gradient)
                 output.backward(gradient)
@@ -89,7 +103,8 @@ def run(tokens, channels, separate_region=False):
         exact(f'library_integration:{channels}:strict_restore', restored(short), candidate(short))
     emit('NKILIB_MLP_INTEGRATION_GATE', dict(passed=True, tokens=tokens, channels=channels,
         cached_and_uncached=True, reference_updates=4, microbatches=2, fp32_master_gradients=True,
-        changed_cache_values=True, compiled_execution_asserted=not separate_region,
+        changed_cache_values=True, compiled_execution_asserted=True,
+        compiled_backward_graph_walk=separate_region,
         training_row_and_batch_independence=True, native_eval_and_checkpoint_exact=True,
         separate_compiled_region=separate_region, contract=contract))
 
