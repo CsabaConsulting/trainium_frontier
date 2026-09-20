@@ -1,31 +1,27 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-20 05:00 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-20 05:13 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## Current work — 2026-09-20 05:00 UTC
+## Current work — 2026-09-20 05:13 UTC
 
-- Source171 library full training component COMPLETE/CLEAN, all original8case
-  gates verified. Production15.444630 vs plain-native18.311820ms (15.657% lower).
-  BUT stronger current HxT control15.216359 vs library15.361039ms (0.951% slower).
-  Original matched3case gates also pass. DO NOT call this a current trainer win.
-- Source172 PREPARING direct HxT saved-activation stores to combine the faster
-  library forward with the existing backward layout. Recheck all8 original
-  fixtures against current HxT native control before any model integration.
-  Integration/phase flags are draft code, not tested or promoted at this note.
-- Trn22 source171 separate-region full-FP8 queue RUNNING. Cached/uncached actual
-  Linear integration at256/1024 passed. Fresh native fullmodel control compiling;
-  candidate is next after clean completion and exact frozen requirements.
-  Both source171 MLP queues on trn21 completed; inspect later172 manifests.
-- Checkpoint retirement completed/clean, four old losing copies freshly hashed
-  locally/remotely and live GitHub digests verified. Freed1,879,330,816B;
-  free11,350,482,944B afterward. Best and replay copies unchanged. Maintenance
-  intent/result/four progress receipts preserved. Earlier profile attempt
-  made NO deletion because the selected directories were already empty.
-- Cron04:50:57 pushed source8fa17973/snapshotfd271e91;05:00 cycle in progress.
-  Latest verified push remains out/fresh-start-backup/last-success.json.
-- Source170 forward-only21.166%gain exactnative all6cases; attention only0.4%.
-  Best public BPB0.9928513116311253; frozen submission unchanged. No new BPB.
+- Trn21 source172 and173 COMPLETE/CLEAN, all original8case gates verified.
+  Direct strided HxT stores1579.535ms vs15.243ms native; REJECT performance.
+  Coalesced HxT stores17.918935ms vs15.200161ms native; REJECT performance.
+  No model integration is authorized by these timing results. Hooks are drafts.
+- Source174 PREPARING compiler bulk transpose of the original source171 TxH
+  kernel output, with current native HxT backward. Retain all8fixtures and add
+  zero-up/zero-down weights. Still a component comparison, no quality promotion.
+- Trn22 source171 separate-region full-FP8 candidate RUNNING. Fresh native
+  whole-step control488.541417ms reproduced prior488.616ms; all4rank checks
+  and clean postflight passed. Candidate compiling after exact prerequisites.
+- Current library full training TxH15.361039 vs matched native HxT15.216359ms
+  remains0.951% slower. Plain-autograd15.7% improvement is not a trainer win.
+- Maintenance completed safely, four old checkpoint copies retired only after
+  three-way verification. Prior empty-profile attempt made no deletion.
+- Cron05:10:53 pushed sourceb404e35a/snapshot (see last-success receipt), with
+  both hosts retrieved. Source174 preparation needs the next regular push.
+- Best public BPB0.9928513116311253; frozen submission unchanged. No new BPB.
 
 ## Previous source169/170 checkpoint (superseded host status)
 

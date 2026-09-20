@@ -338,3 +338,19 @@ The fresh baseline phase breakdown is dominated by the training microstep:
 433.109ms of488.734ms mean total. Sync gradients16.549ms, optimizer26.465ms,
 weight caches2.871ms. These source165 numbers argue for continuing forward/
 backward fusion instead of assuming communication is the main bottleneck.
+
+### 05:13 UTC: complete saved-layout comparisons
+
+Both source172 and173 finished cleanly and all original8fixture gates passed.
+Strided HxT1579.535094ms versus15.243443ms native is rejected. Coalesced,
+on-chip-transposed HxT17.918935ms versus15.200161ms native is also rejected.
+The latter retains exact saved ReLU and exact production dx/dup/ddown; its
+forward differs by only2.08e-5 relative RMS, passing the original independent
+and native bounds. No tolerance changed. Neither variant enters the trainer.
+Source174 will test the simpler compiler-managed bulk transpose after the
+original source171 TxH forward. It retains the8 fixtures and adds zero-up and
+zero-down to exercise zero-initialized projection paths. All HBM transpose
+read/write and four backward products are charged.
+
+Trn22's fresh matched native fullmodel control488.541417ms reproduces the
+previous488.616ms. Its separated full-FP8 candidate has started compilation.
