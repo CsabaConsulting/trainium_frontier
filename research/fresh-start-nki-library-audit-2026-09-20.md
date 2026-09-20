@@ -264,3 +264,24 @@ the exclusive host lock, fresh local SHA256 checks, live GitHub asset-digest
 checks and all remote-file hashes. Sources, checkpoints, compiler caches,
 staging directories and all local/cloud evidence remain intact. Check its
 actual intent/result receipts; preparation is not evidence of deletion.
+
+### 04:56 UTC recovery and independent queue
+
+Source171 saved-ReLU/full-backward component started on trn21 at04:52UTC.
+The first seven fixtures pass; production32768-token fixture is in progress.
+No complete timing/quality claim yet. Trn22 has source171 deployed and a finite
+separate-compiled-region full-FP8 queue prepared. Source165 full component was
+faster but its whole model was slower; the separate-region mechanism was only
+previously tested with source95's older forward-only FP8/surrogate backward,
+not the current compact full-FP8 four-product backward and all scale fusion.
+The new queue requires byte identity for43 primitives versus source165, all
+original component/numerical gates, actual separate-region Linear integration,
+a fresh samehost native control and all charged full-step candidate costs.
+No quality run is automatically promoted.
+
+Trn22 profile retirement failed safely before mutation: waves36/39/78/82 have
+empty directory remnants, despite is_dir() being true. All expected files are
+missing; no unexpected files. Wave5-r3 is also empty. Preserve the intent and
+failure; do not delete or retry merely to mark maintenance successful. The next
+maintenance selects four old losing checkpoint copies, verified against local
+full bytes and current GitHub asset digests, while excluding best and replay.

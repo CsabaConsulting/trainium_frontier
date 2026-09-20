@@ -1,25 +1,28 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-20 04:49 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-20 04:56 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## Current work — 2026-09-20 04:49 UTC
+## Current work — 2026-09-20 04:56 UTC
 
-- Source170 BOTH COMPLETE/CLEAN, original frozen requirements verified locally.
-  Token-row library MLP keeps21.166% forward gain (4.042807 vs5.128247ms) and
-  ALL SIX outputs are exactly native, also passing unchanged native gates.
-  This includes production32768 tokens. Still no saved-activation/backward gain.
-- Attention paired production timing10.703351 vs10.745843ms (only0.395% lower;
-  small batch1.297% slower); exact structural gates pass. Original CPU errors
-  remain non-promoting. Prefer the more promising MLP training extension.
-- Source171 code PREPARED: save ReLU inside the timed library kernel, reuse
-  established BF16 backward, gate full FP64 gradients and exact FP32 two-micro
-  accumulation. Check fs-w171 receipts for actual launch/results.
-- Trn22 free9.60GB: prepared strictly verified retirement of old profile copies
-  waves36/39/78/82 before more model compilation. Nothing deleted at this note.
-  Maintenance intent/result receipts, not this preparation, determine outcome.
-- Cron04:40:46 pushed source2cd50e04/snapshot0866930c; both hosts retrieved.
-  Latest verified push is always out/fresh-start-backup/last-success.json.
+- Source171 saved-ReLU training MLP RUNNING on trn21. Seven fixtures pass original
+  native/stagewise/FP64 full-gradient gates and exact two-microbatch FP32
+  accumulation. Production32768-token case in progress; inspect receipts.
+- Source170 both complete/clean. Token-row library forward4.042807 vs native
+ 5.128247ms (21.166% lower), ALL SIX outputs exactly native. Attention only
+ 0.395% lower in production, 1.297% slower small; no attention promotion.
+- Trn22 source171 deployed; prepared separated-compiler-region full-FP8 queue:
+  original source165 primitive/component prerequisites, actual Linear/cache
+  gates, fresh native full-step control, all-scale-fused candidate. No quality
+  auto-promotion. Not launched at this note; inspect fs-w171 launch receipts.
+- Profile retirement stopped BEFORE ANY DELETE: four selected old paths were
+  already empty directory remnants (all expected files missing, no unexpected
+  files). Failure/intent preserved; do not retry that retirement. Wave5-r3 is
+  also empty. Preparing retirement of four old checkpoint copies only after
+  local SHA and live GitHub digest verification. Best/cold replay excluded.
+- Cron04:50:57 pushed source8fa17973/snapshotfd271e91; both hosts retrieved.
+  Latest verified push remains out/fresh-start-backup/last-success.json.
+- Best public BPB0.9928513116311253; frozen submission unchanged. No new BPB.
 
 ## Previous source169/170 checkpoint (superseded host status)
 
