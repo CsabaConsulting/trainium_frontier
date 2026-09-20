@@ -157,3 +157,41 @@ as present in immutable wave159, checks all prerequisite hashes, and captures
 both cached product arms with current installed native profiler APIs. Ingestion
 is a separate guarded CPU job after a clean postflight. Raw artifacts need local
 hash verification and GitHub artifact backup before any remote retirement.
+
+## Source160 profile and source161 operation-fusion hypothesis
+
+The paired cached dX capture and CPU ingestion completed cleanly at01:14:12
+and01:14:56 UTC. All13 raw files (9,850,819 bytes) and25 derived files
+(4,737,546 bytes) are locally SHA256-verified. Both runtime dispatches match
+their ingested binary identities. Unprofiled medians are0.544250ms native and
+0.693195ms FP8 on this host; source159 remains the separate complete-component
+cost authority. The profile shows native/FP8 device intervals0.524307/0.670392ms.
+FP8 regular matrix products have the expected0.5 BF16 cost multiplier, but
+Scalar activity is0.6343/0.6350ms per core and Vector0.5765/0.5771ms. Native
+Tensor activity is about0.5047ms; FP8 Tensor activity about0.45ms. Source lines
+94/95 (the two FP32 output scale passes) account for roughly0.194 and0.209ms
+of Scalar activity per core; max/min reductions each take about0.155ms of
+Vector activity. These overlapping intervals are not additive execution shares.
+
+The installed Explorer2.32.0.498 rejects --show-profile-schema. Use the matching
+SchemaFields.parquet instead. Missing dynamic DMA metadata means traffic and
+memory-bandwidth bounds are provisional; compiler/HLO metrics are absent too.
+No compiler/runtime upgrade, cache purge or unsupported MXFP8 instruction is
+needed. The instruction/source intervals provide a concrete compute hypothesis.
+
+Source161 adds a separate experimental gradient kernel, leaving the original
+byte-identical. Two independent flags: (1) abs plus max in one Vector reduction,
+using the already-working dual-weight producer's operation pattern; (2) retain
+both sequential FP32 scaling operations in one Vector instruction with BF16
+output, avoiding extra scale/cast passes. Never precombine inverse scales,
+which could overflow or underflow before multiplication. Test each flag and
+their combination using the original seven-domain gradient suite and eight
+square cases, independent CPU bounds, and exact old-kernel square outputs.
+Only after all checks measure complete freshly prepared three-product calls
+and cached dX controls. No full model or quality is promoted by this screen.
+
+API support was verified against the installed NKI0.5 signatures/docstrings
+and the primary [tensor_scalar API](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/api/generated/nki.isa.tensor_scalar.html).
+The two-operation API supports FP32 arithmetic and final dtype conversion;
+the two-multiply choice requires Vector on Trn2. Actual bitwise/numerical
+and speed behavior remains subject to the hardware gates above.

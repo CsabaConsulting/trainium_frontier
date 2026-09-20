@@ -1,0 +1,36 @@
+{
+  "host": "trn22",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave159",
+  "expected_commit": "64f548ea2d3524668f2ce86b0a33d6dad97f7b4b",
+  "label": "fs-w159-dense1024-context512-pack64-owned-ce-1800-r1",
+  "purpose": "PREPARED ONLY: One fixed-seed42 full-budget T512/pack64 dense6x1024 quality trial, conditional on same-source trn22 T1024 control and T512 phase completing cleanly with all four model gates and at least3percent full-step saving. Original131072 tokens/update and loader row width32768 preserved. Winning native MLP/ownership/exact CE and clip-after-average training. The 2M in-process evaluation at training context512 is diagnostic only: a standalone world1/B1/T1024/20M public evaluation is required before any BPB comparison. No automatic launch until measured phase result is reviewed.",
+  "fingerprint_paths": [
+    "research/scratch/fresh_start_train.py",
+    "research/scratch/mlp_fused_integration.py",
+    "research/scratch/mlp_fused_bf16.py",
+    "research/scratch/optimizer_ownership.py",
+    "research/scratch/softcap_ce_parallel_integration.py",
+    "research/scratch/softcap_ce_parallel_nki.py",
+    "research/scratch/optimizer_ownership_check.py",
+    "research/scratch/optimizer_group_cost_probe.py",
+    "research/scratch/mlp_fused_integration_check.py",
+    "research/scratch/phase_timer.py"
+  ],
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "4200s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "-c",
+    "REMOTE='/home/ubuntu/trainium_freshstart_20260918_wave159'\nSOURCE='64f548ea2d3524668f2ce86b0a33d6dad97f7b4b'\nCOMMAND=['/home/ubuntu/workspace/native_venv/bin/python', 'research/run_experiment.py', '--label', 'fs-w159-dense1024-context512-pack64-owned-ce-1800-r1', '--solution', 'fresh-start-context512', '--description', 'Dense6x1024 T512 pack64/GA1; same fixed seed42, real loader width32768, current nativeMLP/adaptiveCE and clip-after-reduce. Advance only after >=3percent matched full-step saving; compare later at fixed B1/T1024/20M.', '--num-steps', '1000000', '--max-train-seconds', '1800', '--nproc-per-node', '4', '--lnc', '2', '--eval-tokens', '2097152', '--no-commit', '--entrypoint', 'research/scratch/fresh_start_train.py', '--extra-args', '--depth', '6', '--n-embd', '1024', '--seed', '42', '--compile-muon', '--no-ngram-ve', '--no-qk-shift', '--compile-sdpa-direct', '--nki-local-conv', '--bf16-norm-output', '--eval-seq-len', '0', '--pack-factor', '64', '--clip-after-reduce', '--experimental-native-mlp', '--experimental-optimizer-ownership', '--seq-len', '512', '--experimental-adaptive-ce']\nimport pathlib,json,re,statistics,subprocess,math\nroot=pathlib.Path(REMOTE)\ndef check(label,length,pack):\n post=json.loads((root/'research/run-logs'/(label+'.postflight.json')).read_text())\n assert post['source_commit']==SOURCE and post['host_clean'] and post['command_returncode']==0\n assert not post['failures'] and not post['guard_error'] and not post['interrupted_signals']\n raw=(root/'research/run-logs'/(label+'.log')).read_text()\n def records(marker):return [json.JSONDecoder().raw_decode(raw[m.end():])[0] for m in re.finditer(re.escape(marker)+' ',raw)]\n checks=records('NATIVE_POST_CHECK_JSON');phase,=records('PHASE_JSON');config,=records('PROFILE_CONFIG')\n assert len(checks)==4 and {x['rank'] for x in checks}==set(range(4))\n assert all(x['passed'] and x['parameters_and_gradients_finite'] and x['logits_finite'] and x['future_max_abs']==x['other_batch_max_abs']==x['repeated_call_max_abs']==0 for x in checks)\n assert config['seed']==42 and config['model']['n_embd']==1024 and config['model']['n_layer']==6 and config['model']['sequence_len']==length\n assert phase['pack_factor']==pack and phase['grad_accum']==1 and phase['micro_tokens']==131072\n assert phase['fused_mlp_forward_backend']=='native' and phase['optimizer_ownership'] and phase['adaptive_nki_ce']\n assert not phase['fp8_mlp_full'] and phase['world_size']==4 and phase['lnc']=='2'\n assert math.isfinite(phase['last_loss']) and len(phase['steps'])==30\n times=[x['step_total_ms'] for x in phase['steps']];assert all(math.isfinite(x) and x>0 for x in times)\n return statistics.median(times)\ncontrol=check('fs-w159-context1024-phase-r1',1024,32)\ncandidate=check('fs-w159-context512-phase-r1',512,64)\nassert candidate<=control*.97,('context screen needs at least3percent whole-step saving',control,candidate)\nprint('CONTEXT_QUALITY_ADVANCE '+json.dumps(dict(passed=True,control_median_ms=control,candidate_median_ms=candidate,required_speedup_fraction=.03,same_host_and_source=True,seed=42,global_tokens_per_update=131072,loader_row_tokens=32768,training_context=512,required_matched_eval_context=1024,required_matched_eval_tokens=20971520,training_clip_after_reduce=True,phase_clip_before_reduce=True,short_context_small_eval_not_comparable_to_best=True)),flush=True)\nsubprocess.run(COMMAND,check=True)\n"
+  ],
+  "runner_owns_manifest": true
+}
