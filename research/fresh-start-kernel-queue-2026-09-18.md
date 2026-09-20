@@ -1,14 +1,16 @@
 # Kernel queue and precision-specific experiments
 
-Current continuation (2026-09-20 01:31 UTC): source161 passes45 original numerical
-cases across three arms. Combined cached FP8 dX is10.34% faster than native,
-but complete fresh three-product work remains2.94% slower. trn21 prepares a
-three-arm profile to confirm attribution. trn22 context screen is complete:
-T512492.366241ms versus T1024489.128874ms,0.662% slower, all model checks pass.
-No full-budget trial will be dispatched from that rejected speed screen. Source160 raw/derived profiles are
-hash-verified locally and on GitHub. See RESUME.md and
-fresh-start-continuous-work-2026-09-20.md for exact receipts and limits.
-Prior sections below are historical, not live host status.
+Current continuation (2026-09-20 01:55 UTC): both source165 queues are active.
+trn21 gates combined forward/backward FP8 scaling, then actual Linear integration
+and matched native/candidate full-model steps. trn22 gates backward-only scaling
+integration and its own matched native/candidate steps. All requests have
+separate pre/postflight and stop on incomplete or failed evidence. The source163
+MLP data-gradient component wins15.18% with12numerical cases; no whole-model or
+BPB gain is established. Source164 backward-only cache and source159 shorter
+context are negatives. Verified remote profile retirement restored trn22 to15GB
+free. Read RESUME.md and fresh-start-continuous-work-2026-09-20.md for exact
+PIDs, source/plan hashes and continuation conditions. Earlier sections below
+are historical; cron preserves work but does not select experiments.
 
 Updated 2026-09-20 00:27 UTC. Read `RESUME.md` and postflights before dispatch.
 

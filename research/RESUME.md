@@ -1,39 +1,53 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-20 01:31 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-20 01:55 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## Current work — 2026-09-20 01:47 UTC
+## Current work — 2026-09-20 01:55 UTC
 
-- Source163 MLP scale COMPLETE/clean01:40:57 on trn22:12cases pass, original
-  outputs exact, extra-cache-plus-chain4.706015ms vs oldFP85.548443ms (15.18%
-  faster). Native same-QDQ chain5.396273ms; forward calibration borrowed.
-  No whole-step/BPB result. Source164 square cache COMPLETE/clean01:40:50:
-  19cases pass,1.631882ms vs dual1.628419/native1.576031. No speed promotion.
-- Both hosts are between finite queues. Preparing source165: trn21 gates
-  forward+backward scale fusion with eleven full-autograd component cases,
-  then real Linear integration and native/candidate full-step controls.
-  trn22 gates backward-only scale integration, then native/candidate steps.
-  Every step gets independent pre/postflight; no quality trial is queued.
-- trn22 maintenance COMPLETE/clean01:49:39 UTC, label
-  fs-maintenance-preserved-wave140-trn22-20260920T014925Z. Reverified6GB of
-  wave140 native raw/derived artifacts locally, against live GitHub digests,
-  and remotely under the host lock, then retired only those redundant remote
-  copies and matching staging hardlinks. Free space rose from9.03 to15.00GB;
-  local/cloud originals, sources, checkpoints and compilation caches retained.
-  Full intent/result/three progress records and script hash are preserved.
-- Source161 cached square dX gain10.34% is confirmed by source163 compute trace.
-  Original and new useful matrix FLOPs are unchanged; Scalar activity drops
-  from0.6345 to0.3222ms/core. Source162 DMA notifications add host overhead;
-  their timing is explicitly excluded from speed claims. Both trace sets and
-  parquet are locally SHA-verified and GitHub-digest-verified01:40:10–01:40:35.
-- Source159 context512 screen loses0.662% (492.366241 vs489.128874ms), all four
-  model checks pass. Prepared30-minute request rejected; DO NOT dispatch.
-- Latest verified cron push01:40:50: source6ac8358. Read last-success.json
-  for complete source/snapshot identities. Source165 and launch receipts
-  need next push. Canonical train.py/prepare.py/submission unchanged.
-- Best public BPB0.9928513116311253; cold replay0.993855675. Finite queues,
-  45s coordinator sync,10-minute backup cron; cron selects no experiments.
+- BOTH hosts started clean source165 queues at01:52:07 UTC. Source500ba34,
+  immutable wave165 checkouts. Plan commit03ede7a. Do not edit a running
+  plan/request/helper or restart its completed labels; inspect live state first.
+- trn21 coordinator fs-w165-fp8-all-scale-model-sequence-r1 PID5712:
+  complete forward+backward scale-fusion component (11original cases,32768
+  tokens, exact retained outputs/gradients), actual Linear integration, fresh
+  native full-step control, then FP8 candidate full-step timing. Bound10000s;
+  requests3000/1500/1500/1500+30s each. Remote guard1615520 started01:52:13,
+  first preflight and source16312case prerequisite passed; logs mirror every45s.
+- trn22 coordinator fs-w165-fp8-backward-scale-model-sequence-r1 PID5676:
+  backward-scale actual Linear integration, fresh native full-step control,
+  then backward-scale FP8 full-model timing. Bound6000s; three1500+30s requests.
+  Remote guard1931233 started01:52:13; first preflight and source163 numerical
+  prerequisite passed. No other accelerator experiment may run on this host.
+- Both model comparisons use same host/source, seed42, real data, dense6x1024,
+  pack32/GA1,131072global tokens/update,5warmups30measured steps. All optimizer,
+  communication and fresh weight-cache costs are charged. Every step needs
+  its exact numerical records and clean postflight before the next starts.
+  Each candidate must refresh all12MLP weight caches35times. Queues STOP after
+  timing; no quality training or submission is automatically launched.
+- Source163 MLP data-gradient win:4.706015ms vs prior FP85.548443ms,15.18%
+  faster including extra backward preparation. All12cases pass original CPU
+  bounds and exact outputs. Shared forward calibration is still borrowed;
+  isolated data-gradient timing is NOT a whole-model or BPB result.
+- Source164 narrow square-cache negative:19cases pass,1.631882ms vs prior
+  dual1.628419ms/native1.576031ms. No promotion. Source159 shorter-context
+  screen also loses0.662%; prepared30-minute T512 request MUST NOT dispatch.
+- trn22 verified profile retirement completed clean01:49:39, label
+  fs-maintenance-preserved-wave140-trn22-20260920T014925Z. Rehashed local/remote
+  raw+parquet and verified live GitHub digests before removing only redundant
+  remote copies and matching staging hardlinks. Free9.03GB→15.00GB. Intent,
+  result, three progress records and script hash are committed. Sources,
+  checkpoints, compilation caches and local/cloud originals are retained.
+- Source162 DMA/source163 compute traces and all decoded tables are local-
+  hash/cloud-digest verified. Non-DGE trace confirms Scalar activity halves;
+  DMA notifications add substantial host overhead, so their timings are not
+  speed evidence. Detailed results in fresh-start-continuous-work-2026-09-20.md.
+- Latest verified cron01:50:55 pushed source500ba34. Plan03ede7a and these
+  active launch receipts need the next deliberate push; check
+  out/fresh-start-backup/last-success.json for newer exact source/snapshot refs.
+- Canonical train.py/prepare.py and frozen submission unchanged (rechecked
+ 01:52UTC). Best matched public BPB0.9928513116311253; cold replay0.993855675.
+  Cron preserves and pushes every10minutes; it selects no experiments.
 
 ## Previous production QKV checkpoint (superseded host status)
 
