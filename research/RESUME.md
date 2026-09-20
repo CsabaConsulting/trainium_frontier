@@ -1,9 +1,43 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-20 07:59 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-20 08:13 UTC. Authorization: danger-full-access, approval never.
 Use committed manifests/postflights before dispatch; never restart completed jobs.
 
-## Current work — 2026-09-20 07:59 UTC
+## Current work — 2026-09-20 08:13 UTC
+
+- Both source192 and193 sequences COMPLETE/CLEAN. No device job is running.
+  Source194 training-forward saves are implemented locally and syntax/AST
+  checked; NOT DISPATCHED. Freeze the source and request before launch.
+- Source191 forward win independently replicated by193 with unchanged kernels:
+  native4.595774ms, preparedFP84.688562ms, inlineFP83.908544ms. Online input
+  and FP32-master weight preparation included. Source191 original14.6885%
+  lower latency survives this separate measurement. No backward/BPB claim.
+- Source193 raw12files122,444,398B and derived28files69,259,863B all verified
+  against remote SHA256s. GitHub payload/manifests digest-verified08:08:53UTC.
+  Local analysis matches all3 dispatches to preserved binaries. Both large
+  projections are FP8; Tensor active time falls about4.04ms to2.46ms/core.
+  Scalar/Vector work remains; intervals overlap and cannot be added. Missing
+  dynamic DMA metadata means no exact traffic/bandwidth conclusions.
+- Source192 compiler-managed SBUF fails to recover full-model speed:
+ 563.005751ms vs488.528818ms native (+15.2451%). All original numerical,
+  cache, checkpoint and four-rank postchecks pass. Source190 smaller fixed
+  budgets also lost. No whole-training promotion or quality run warranted.
+- Source194 will save exact BF16 pre-square ReLU, consumed input/activation
+  FP8 bytes and both row scales inside the existing kernel. Original191
+  forward controls/gates remain unchanged. Native saved-ReLU HxT control and
+  all candidate saves are timed. No raw FP32 up diagnostic store or extra
+  SBUF allocation. Full backward still requires a declared approximate VJP.
+- Next model diagnosis: zero/first/last/all-six library replacements while
+  untouched blocks retain the native HxT custom backward. This has a causal
+  premise after the allocator tests; no partial-replacement request exists yet.
+- Best public BPB0.9928513116311253, cold replay0.9938556748843932. Frozen
+  submission/train.py/prepare.py unchanged. Source159 T512 MUST NOT dispatch.
+- Latest verified push is recorded in out/fresh-start-backup/last-success.json; consult it
+  for exact refs. New results/code need a commit/push. Cron mirrors/pushes,
+  never merges or selects jobs. Keep8GiB reserve, finite requests, immutable
+  sources, Git/host locks, and separate pre/postflight cleanup.
+
+## Previous checkpoint — 2026-09-20 07:59 UTC
 
 - Trn21 RUNNING source193317b99c3 at remote wave193. Sequence
   fs-w193-nkilib-row-forward-profile-sequence-r1, coordinator19207, started
