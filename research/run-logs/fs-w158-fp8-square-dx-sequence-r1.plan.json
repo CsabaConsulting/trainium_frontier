@@ -1,0 +1,69 @@
+{
+  "label": "fs-w158-fp8-square-dx-sequence-r1",
+  "max_seconds": 2400,
+  "purpose": "One bounded independently gated backward-only square projection screen; no model/quality promotion.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w158-fp8-square-dx-component-r1.request.json",
+      "sha256": "b7b635bd047188d4f68c8a4bc383c2209bc6cf9b276cc95df59c6f34fd72c85a",
+      "requirements": [
+        {
+          "marker": "FP8_SQUARE_DX_CASE",
+          "count": 8,
+          "fields": {
+            "passed": true,
+            "native_forward_and_weight_product_exact": true,
+            "declared_fp8_dx_independently_gated": true,
+            "all_master_casts_calibration_and_packing_included": true,
+            "autograd_or_model_gate": false,
+            "whole_model_or_quality_claim": false
+          },
+          "unique_field": "case",
+          "values": [
+            "random",
+            "zero_gradient",
+            "zero_weight",
+            "tiny_gradient",
+            "outliers",
+            "changed_weight",
+            "cancellation",
+            "real_random"
+          ]
+        },
+        {
+          "marker": "SERIAL_QKV_PRODUCT_GATE",
+          "count": 40,
+          "fields": {
+            "passed": true,
+            "finite": true,
+            "bound_failures": 0
+          }
+        },
+        {
+          "marker": "FP8_SQUARE_DX_TIMING",
+          "count": 1,
+          "fields": {
+            "tokens": 32768,
+            "channels": 1024,
+            "master_cast_calibration_and_all_dual_packing_charged": true,
+            "autograd_accumulation_optimizer_and_full_model_excluded": true
+          }
+        },
+        {
+          "marker": "FP8_SQUARE_DX_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 8,
+            "native_forward_and_weight_product_exact": true,
+            "independent_declared_fp8_dx_gates": true,
+            "real_tokens": 32768,
+            "real_channels": 1024,
+            "autograd_or_model_gate": false,
+            "whole_model_or_quality_claim": false
+          }
+        }
+      ]
+    }
+  ]
+}
