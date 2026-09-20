@@ -1,0 +1,111 @@
+{
+  "label": "fs-w182-nkilib-byte-transpose-sequence-r1",
+  "max_seconds": 2400,
+  "purpose": "Diagnose source181 invalid bytes while preserving its preparation AST. Compare raw quantizer, ordinary uint8 transpose, numeric float carrier and explicit NKI integer carrier. Exact all256-code and production-weight fixtures; no forward/training promotion.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w182-nkilib-byte-transpose-diagnostic-r1.request.json",
+      "sha256": "d7c8dfbde01b122b1fd052620a341de0e5f514ff9b92c751c6b839a716d9f1ee",
+      "requirements": [
+        {
+          "marker": "NKILIB_BYTE_DIAGNOSTIC_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "producer_cases": 14,
+            "original_failure_retained": true,
+            "failed_source": "d944a69f7c23b5504d611eaeb7164bbeb27a3c29",
+            "unchanged_source_bytes": true,
+            "no_forward_or_training_claim": true
+          }
+        },
+        {
+          "marker": "NKILIB_PROVENANCE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "vendored_files": 66,
+            "package_installation": false,
+            "bundled_package_replaced": false
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_RECIPROCAL",
+          "count": 2,
+          "fields": {
+            "passed": true,
+            "limit": 2.384185791015625e-07
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_QUANT_GATE",
+          "count": 2,
+          "fields": {
+            "passed": true,
+            "independently_decoded_legacy_e4m3": true,
+            "scale_exact": true
+          }
+        },
+        {
+          "marker": "NKILIB_PREPARATION_AST",
+          "count": 4,
+          "unique_field": "mode",
+          "values": [
+            "original",
+            "raw",
+            "float_carrier",
+            "nki"
+          ]
+        },
+        {
+          "marker": "NKILIB_BYTE_TRANSPOSE_DIAGNOSTIC",
+          "count": 23,
+          "fields": {
+            "diagnostic_only": true,
+            "permits_promotion": false
+          }
+        },
+        {
+          "marker": "NKILIB_EXACT",
+          "count": 34,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_ORIGINAL_PREPARATION_DIAGNOSTIC",
+          "count": 1,
+          "fields": {
+            "original_failure_reproduced": true,
+            "original_source_unchanged": true,
+            "all_three_alternative_weight_layouts_exact": true,
+            "other_six_outputs_unchanged": true,
+            "diagnostic_only": true,
+            "permits_promotion": false
+          }
+        },
+        {
+          "marker": "NKILIB_KNOWN_BYTE_CASE",
+          "count": 5,
+          "fields": {
+            "passed": true,
+            "all_256_codes": true,
+            "float_carrier_and_nki_exact": true,
+            "component_timing_only": true
+          }
+        },
+        {
+          "marker": "NKILIB_BYTE_TRANSPOSE_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "original_failure_reproduced": true,
+            "known_byte_cases": 5,
+            "all_three_alternatives_exact": true,
+            "forward_or_training_claim": false
+          }
+        }
+      ]
+    }
+  ]
+}

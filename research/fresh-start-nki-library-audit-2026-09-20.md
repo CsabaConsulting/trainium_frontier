@@ -4,6 +4,15 @@ The user's Re:Invent lead is [AWS Neuron's NKI Library](https://github.com/aws-n
 The clean local clone is pinned at `92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e`
 (August 28). Source references below use that commit, rather than a moving main.
 
+Current result at06:13UTC: the best BF16 complete-component candidate is2.404%
+faster, but its joined/separate whole-model steps are14.619%/25.146% slower.
+Neither advances to a quality run. Source180 is capturing paired native/library
+training-forward traces to attribute the regression. The online ROW FP8 producer
+passes all14 fixtures; source181's composed preparation fails before the MLP on
+invalid weight bytes. Source182 preserves that original failure and isolates
+ordinary byte transpose, float carrier and explicit NKI transpose, including
+all256 codes. No new training-speed or BPB gain is established.
+
 ## What is new, and what we already use
 
 Read-only inspection at 04:06 UTC confirmed both hosts use Python3.12.3,
@@ -576,3 +585,21 @@ The headline component arms charge online activation/weight calibration,
 FP32 master casts, transposes and128-row scale broadcasts. Saved training
 activations and the full backward remain absent; this screen can authorize
 further implementation only, never a whole-model or BPB claim.
+
+## Source182 transpose diagnosis and source180 record boundary
+
+Source182 reproduced the original prepared-weight corruption. Omitting only the
+two transposes yields exact bytes and identical other six outputs. The framework
+float-carrier workaround produces the same corrupt up-weight tensor as ordinary
+transpose (235,495/262,144 mismatches); source182 fails cleanly before its NKI
+arm. The failed request/plan/source are retained. Source183 is a separate exact
+NKI gate; no float-carrier success or MLP result is claimed.
+
+Source180 native forward capture completed rc0/CLEAN with seven compiled binary
+exports, no missing exports, and no unresolved trace keys. Its coordinator
+stopped because the substring matcher counts NEFF_ARTIFACT again inside
+TRACE_NEFF_ARTIFACT. Exact record-boundary parsing passes every unchanged payload
+and model check. The original stopped sequence is retained; its proof is
+fs-w180-native-record-boundary-diagnosis-r1.json. A subsequent request will use
+record-boundary markers. Full UUID coverage still requires Explorer ingestion.
+Both helper code and the original frozen requirements remain unchanged.

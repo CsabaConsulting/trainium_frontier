@@ -7,6 +7,13 @@ and GitHub backup protocol. No seed sweep, quality promotion or submission is
 implied by a diagnostic result. The coordinator runs only its finite prepared
 list; it does not implement an autonomous idea generator.
 
+Latest checkpoint06:13UTC: both BF16 library model integrations regress despite
+the component gain. Trn22 source180 captures paired caller traces. Trn21's
+source181 ROW FP8 preparation fails cleanly before MLP execution; source182
+isolates the byte transpose while preserving the original code and failure.
+See RESUME.md and fresh-start-nki-library-audit-2026-09-20.md for current status;
+earlier host-status paragraphs below are historical.
+
 Source156 production diagnosis finished cleanly on both hosts. Results are
 identical: individual Q/K/V replacements and native preprojection are exact;
 joint BF16 differs at81 coordinates with VE, joint FP32-V at47,860. This makes

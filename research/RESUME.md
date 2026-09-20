@@ -1,9 +1,9 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-20 06:01 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-20 06:13 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## Current work — 2026-09-20 06:01 UTC
+## Current work — 2026-09-20 06:13 UTC
 
 - Source176 joined and178 separate library MLP sequences BOTH COMPLETE/CLEAN.
   All original frozen requirements independently verified. Joined561.502963ms
@@ -15,13 +15,21 @@ Use current manifests/postflights before dispatch; do not restart completed jobs
   28 quantizer/reciprocal and154 exact gates pass, including32768x1024 input.
   Input packing0.913098ms; up/down weight row quantization0.117969/0.082215ms.
   Production transpose/scale broadcast and MLP are still unmeasured.
-- Trn21 guarded old-NKI-scratch capture RUNNING, label
-  fs-maintenance-nki-scratch-trn21-20260920-r1; previous job179, remote wave179.
-  cutoff04:00UTC, target12GiB. Never retire until archive, every file and live
-  GitHub asset hashes verify. No device job while maintenance holds host lock.
-- Trn22 idle/clean after178 with15.62GB free; next paired library/native
-  training-forward device trace is being prepared. Inspect new180 receipts.
-  No extra quality trial or FP8 library forward is currently launched.
+- Trn21 scratch maintenance COMPLETE after local archive/every-file and live
+  GitHub hashes verified. Retired only the inventoried old files; free space
+  11.54 to24.49GB. Label fs-maintenance-nki-scratch-trn21-20260920-r1.
+- Source181 ROW MLP screen FAILED/CLEAN before the MLP ran: composed weight
+  preparation creates invalid legacy FP8 bytes after an ordinary uint8 transpose.
+  The original producer passed independently. Do not relax the decoder or mark
+  this as a forward result. Last free space24.35GB, host idle/clean.
+  Source182 byte-transpose isolation is prepared: original preparation AST,
+  raw output, float carrier and NKI byte-preserving transpose; all256 codes
+  and production weight shapes. Inspect new182 receipts before dispatch.
+- Trn22 source180 paired training-forward caller trace RUNNING since06:02UTC,
+  sequence fs-w180-library-caller-trace-sequence-r1. Native first, then joined
+  library; immutable source9e103ea6, whole chip/4ranks, real data,30steps.
+  New import provenance gate applies. No DGE packet flag; dropped-notification
+  checks precede any profile inference. No quality trial is queued.
 - Source180 timer fix rejects mismatched PROF_REPO and emits imported file
   hashes per rank. Historical176/178 inherited wave171; read-only remote hashes
   prove train.py/prepare.py identical in all those checkouts. Their exact old
@@ -33,7 +41,7 @@ Use current manifests/postflights before dispatch; do not restart completed jobs
   Original r1 disk-reserve failure is preserved; no quality promotion.
 - Best public BPB0.9928513116311253, cold replay0.9938556748843932. Frozen
   submission/train.py/prepare.py unchanged. Source159 T512 MUST NOT dispatch.
-- Last verified push05:50UTC sourcef5978728/snapshot41e2f5aa; consult
+- Last verified push06:11UTC source73b48b2c/snapshot7d697966; consult
   out/fresh-start-backup/last-success.json for later verified refs. Cron only
   preserves/pushes; it does not choose experiments or merge branches.
 

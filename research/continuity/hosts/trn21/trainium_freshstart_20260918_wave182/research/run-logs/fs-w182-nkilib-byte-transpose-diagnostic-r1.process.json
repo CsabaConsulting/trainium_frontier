@@ -1,0 +1,17 @@
+{
+  "label": "fs-w182-nkilib-byte-transpose-diagnostic-r1",
+  "guard_pid": 1687975,
+  "child_pid": 1687976,
+  "child_session": 1687976,
+  "started_at": "2026-09-20T06:14:06.779984+00:00",
+  "command": [
+    "timeout",
+    "--signal=TERM",
+    "--kill-after=30s",
+    "1800",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "-c",
+    "REMOTE='/home/ubuntu/trainium_freshstart_20260918_wave182'\nRULES=[{'marker': 'NKILIB_PROVENANCE', 'count': 1, 'fields': {'passed': True, 'upstream_commit': '92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e', 'vendored_files': 66, 'package_installation': False, 'bundled_package_replaced': False}}, {'marker': 'NKILIB_ROW_RECIPROCAL', 'count': 28, 'fields': {'passed': True, 'limit': 2.384185791015625e-07}}, {'marker': 'NKILIB_ROW_QUANT_GATE', 'count': 28, 'fields': {'passed': True, 'independently_decoded_legacy_e4m3': True, 'scale_exact': True, 'reciprocal_checked_separately': True}}, {'marker': 'NKILIB_ROW_QUANT_CASE', 'count': 14, 'fields': {'passed': True, 'changed_input_and_row_independence': True, 'calibration_and_metadata_stores_charged': True}}, {'marker': 'NKILIB_EXACT', 'count': 154, 'fields': {'passed': True}}, {'marker': 'NKILIB_ROW_QUANT_RESULT', 'count': 1, 'fields': {'passed': True, 'cases': 14, 'original_and_changed_inputs': True, 'byte_and_scale_gate': True, 'no_forward_backward_or_model_claim': True}}]\nimport pathlib,json,sys,hashlib,subprocess\nroot=pathlib.Path(REMOTE);sys.path.insert(0,str(root/'research'))\nfrom fresh_start_sequence import require_completed\nr=root/'research/run-logs';label='fs-w179-nkilib-row-quantization-r1'\nreq=json.loads((r/(label+'.launch.json')).read_text());assert req['expected_commit']=='887e320625a2c0d57dc18d6d931700763a4660ad'\nrequire_completed(json.loads((r/(label+'.postflight.json')).read_text()),(r/(label+'.log')).read_text(),req,RULES)\nlabel='fs-w181-nkilib-row-mlp-forward-r1'\nfailed=json.loads((r/(label+'.postflight.json')).read_text());old=json.loads((r/(label+'.launch.json')).read_text())\nassert failed['source_commit']==old['expected_commit']=='d944a69f7c23b5504d611eaeb7164bbeb27a3c29'\nassert failed['label']==label and failed['remote']==old['remote'] and failed['command_returncode']==1\nassert failed['host_clean'] and not failed['failures'] and not failed['guard_error'] and not failed['interrupted_signals']\nraw=(r/(label+'.log')).read_text();assert 'AssertionError: Packed weights contain legacy Inf/NaN encodings' in raw\nassert 'NKILIB_ROW_MLP_RESULT ' not in raw\nfor p,expected in old['source_sha256'].items():\n if p.startswith('research/vendor/') or p in ('research/scratch/nki_library_row_mlp_probe.py','research/scratch/nki_library_row_quantize.py','research/scratch/nki_library_row_quantize_probe.py','research/scratch/nki_library_probe_common.py','research/scratch/fresh_start_fp8_probe.py','research/scratch/fp8_packed_weight_cache_probe.py','research/scratch/fp8_mlp_island_probe.py'):\n  assert hashlib.sha256((root/p).read_bytes()).hexdigest()==expected,p\nprint('NKILIB_BYTE_DIAGNOSTIC_PREREQUISITE '+json.dumps(dict(passed=True,producer_cases=14,original_failure_retained=True,failed_source=failed['source_commit'],unchanged_source_bytes=True,no_forward_or_training_claim=True)),flush=True)\nsubprocess.run(['/home/ubuntu/workspace/native_venv/bin/python','-u',str(root/'research/scratch/nki_library_byte_transpose_diagnostic.py')],check=True)\n"
+  ]
+}

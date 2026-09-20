@@ -1,0 +1,221 @@
+{
+  "label": "fs-w180-library-caller-trace-sequence-r2",
+  "max_seconds": 9000,
+  "purpose": "Recover exact profile record-boundary check without rerunning the clean native measurement: native ingestion, original same-source library capture, library ingestion. Old stopped plan remains unchanged.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w180-native-forward-remote-ingest-r1.request.json",
+      "sha256": "e83fbd58980355d922e731da5f3f18cc3f484a870dcf8e704df40265d99b5079",
+      "requirements": [
+        {
+          "marker": "CALLER_MAINTENANCE_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "local_and_cloud_hashes_verified": true,
+            "label": "fs-maintenance-nki-scratch-trn22-20260920-r2"
+          }
+        },
+        {
+          "marker": "CALLER_CAPTURE_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "exact_record_boundaries": true,
+            "original_payload_fields_unchanged": true
+          }
+        },
+        {
+          "marker": "INGEST_COMPLETE",
+          "count": 1,
+          "fields": {
+            "returncode": 0,
+            "raw_hashes_unchanged": true,
+            "instruction_files_present": true
+          }
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w180-library-training-forward-profile-r2.request.json",
+      "sha256": "d3efdc6100f1cacc13a754cfce2cd7c010912bacfcd8107e3b02902f8a401b7c",
+      "requirements": [
+        {
+          "marker": "PHASE_JSON",
+          "count": 1,
+          "fields": {
+            "world_size": 4,
+            "lnc": "2",
+            "grad_accum": 1,
+            "micro_tokens": 131072,
+            "compile": true,
+            "adaptive_nki_ce": true,
+            "optimizer_ownership": true,
+            "optimizer_owner_calls": 35,
+            "pack_factor": 32,
+            "fp8_mlp_full": false,
+            "fp8_mlp_packed": false,
+            "fp8_mlp_compact_saves": false,
+            "fp8_mlp_stream_packed_weights": false,
+            "fp8_mlp_preserve_output_rank": false,
+            "integrated_nki_local_conv": true,
+            "integrated_bf16_norm_output": true,
+            "fp8_mlp_engine_scaling": "none",
+            "fp8_mlp_separate_region": false,
+            "library_mlp": true,
+            "library_mlp_separate_region": false,
+            "fused_mlp": false,
+            "fused_mlp_forward_backend": "nki",
+            "library_mlp_contract": {
+              "library_commit": "92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e",
+              "modules": 6,
+              "token_row_sharding": true,
+              "saved_relu_layout": "HxT",
+              "backward": "original_bf16_four_products",
+              "contiguous_activation_store": true,
+              "reuses_existing_transpose": true,
+              "square_after_transpose": true,
+              "extra_activation_transpose": false,
+              "reserved_sbuf_bytes": 0,
+              "separate_compiled_region": false,
+              "ordinary_differentiable_weight_cache": true,
+              "weight_transposes_inside_forward": true,
+              "native_evaluation": true,
+              "checkpoint_keys_parameters_and_rng_unchanged": true
+            }
+          },
+          "lengths": {
+            "steps": 30
+          },
+          "phase_timing": true
+        },
+        {
+          "marker": "NATIVE_POST_CHECK_JSON",
+          "count": 4,
+          "fields": {
+            "passed": true,
+            "parameters_and_gradients_finite": true,
+            "logits_finite": true,
+            "future_max_abs": 0.0,
+            "other_batch_max_abs": 0.0,
+            "repeated_call_max_abs": 0.0
+          },
+          "unique_field": "rank",
+          "values": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "marker": "LIBRARY_MODEL_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "source_commit": "1ace86d380df6d85f9412cd40f64255bc7924057",
+            "component_and_integration_and_both_model_arms": true,
+            "kernel_bytes_unchanged": true
+          }
+        },
+        {
+          "marker": "PHASE_SOURCE",
+          "count": 4,
+          "fields": {
+            "passed": true,
+            "repository": "/home/ubuntu/trainium_freshstart_20260918_wave180",
+            "imports_match_immutable_checkout": true,
+            "train_sha256": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+            "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb"
+          },
+          "unique_field": "rank",
+          "values": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "marker": "PROFILE_ARTIFACT",
+          "count": 1,
+          "fields": {
+            "rank": 0,
+            "mode": "device",
+            "target": "forward",
+            "profiled_forwards": 1,
+            "profiled_microsteps": 0,
+            "profiled_steps": 0,
+            "profiled_latency_is_performance_evidence": false
+          }
+        },
+        {
+          "marker": "\nNEFF_ARTIFACT",
+          "count": 1,
+          "fields": {
+            "rank": 0,
+            "missing": []
+          }
+        },
+        {
+          "marker": "TRACE_NEFF_ARTIFACT",
+          "count": 1,
+          "fields": {
+            "rank": 0,
+            "unresolved": []
+          }
+        },
+        {
+          "marker": "CALLER_MAINTENANCE_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "local_and_cloud_hashes_verified": true,
+            "label": "fs-maintenance-nki-scratch-trn22-20260920-r2"
+          }
+        },
+        {
+          "marker": "NATIVE_CALLER_INGEST_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "label": "fs-w180-native-forward-remote-ingest-r1"
+          }
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w180-library-forward-remote-ingest-r1.request.json",
+      "sha256": "3315af21821c2d2bde7c9962a5b0bb466d7a3b9de59842b3ae24dda9dce65b5e",
+      "requirements": [
+        {
+          "marker": "CALLER_MAINTENANCE_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "local_and_cloud_hashes_verified": true,
+            "label": "fs-maintenance-nki-scratch-trn22-20260920-r2"
+          }
+        },
+        {
+          "marker": "CALLER_CAPTURE_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "exact_record_boundaries": true,
+            "original_payload_fields_unchanged": true
+          }
+        },
+        {
+          "marker": "INGEST_COMPLETE",
+          "count": 1,
+          "fields": {
+            "returncode": 0,
+            "raw_hashes_unchanged": true,
+            "instruction_files_present": true
+          }
+        }
+      ]
+    }
+  ]
+}
