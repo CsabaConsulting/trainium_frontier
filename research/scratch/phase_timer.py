@@ -122,6 +122,10 @@ def main():
                     help="Keep singleton Muon owner groups on the batch-two numerical path using a zero dummy.")
     ap.add_argument("--fused-mlp", action="store_true",
                     help="Scratch fused BF16 MLP with HxT saved activation consumed in backward.")
+    ap.add_argument("--library-mlp", action="store_true",
+                    help="Gated isolated library MLP with saved ReLU and original BF16 backward.")
+    ap.add_argument("--library-mlp-separate-region", action="store_true",
+                    help="Compile library training MLP separately, charging graph-boundary costs.")
     ap.add_argument("--fp8-mlp-packed", action="store_true",
                     help="Gated packed FP8 MLP forward/BF16 surrogate backward; all cache work timed.")
     ap.add_argument("--fp8-mlp-full", action="store_true",
@@ -249,6 +253,10 @@ def main():
         ap.error("native head control requires --cached-head-separate-region")
     if args.fp8_mlp_packed and args.fused_mlp:
         ap.error("select either the BF16 or packed FP8 MLP implementation")
+    if args.library_mlp and (args.fused_mlp or args.fp8_mlp_packed):
+        ap.error("select only one MLP implementation")
+    if args.library_mlp_separate_region and not args.library_mlp:
+        ap.error("--library-mlp-separate-region requires --library-mlp")
     if args.fp8_mlp_separate_region and not args.fp8_mlp_packed:
         ap.error("--fp8-mlp-separate-region requires --fp8-mlp-packed")
     if args.fp8_mlp_full and not args.fp8_mlp_packed:
@@ -434,6 +442,12 @@ def main():
               f"separate_region={args.fused_mlp_separate_region}; "
               "shared ordinary Linear caches/parameters preserved", flush=True)
     fp8_mlp_contract = None
+    library_mlp_contract = None
+    if args.library_mlp:
+        from nki_library_mlp_integration import install
+        library_mlp_contract = install(model, device, T,
+                                      separate_region=args.library_mlp_separate_region)
+        print("[pt] isolated library training MLP " + json.dumps(library_mlp_contract), flush=True)
     if args.fp8_mlp_packed:
         if args.fp8_mlp_full:
             from fp8_full_mlp_integration import install
@@ -792,6 +806,9 @@ def main():
             optimizer_ownership_pad_singletons=args.optimizer_ownership_pad_singletons,
             optimizer_owner_calls=(optimizer_ownership.calls if optimizer_ownership is not None else 0),
             fused_mlp=args.fused_mlp,
+            library_mlp=args.library_mlp,
+            library_mlp_separate_region=args.library_mlp_separate_region,
+            library_mlp_contract=library_mlp_contract,
             fp8_mlp_packed=args.fp8_mlp_packed,
             fp8_mlp_full=args.fp8_mlp_full,
             fp8_mlp_compact_saves=args.fp8_mlp_compact_saves,

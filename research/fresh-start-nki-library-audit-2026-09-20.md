@@ -285,3 +285,33 @@ missing; no unexpected files. Wave5-r3 is also empty. Preserve the intent and
 failure; do not delete or retry merely to mark maintenance successful. The next
 maintenance selects four old losing checkpoint copies, verified against local
 full bytes and current GitHub asset digests, while excluding best and replay.
+
+### 05:00 UTC: distinguish forward, plain-autograd and existing-trainer controls
+
+Both source171 training component queues completed cleanly and every frozen
+requirement was independently rechecked locally. The original eight fixtures
+include full-coordinate independent FP64 gradient bounds, original native
+comparisons, independent forward GEMM gates, exact repeated calls, causal row
+independence and exact two-microbatch FP32 master accumulation. At production,
+15.444630ms library versus18.311820ms plain native is15.657% lower. However, a
+matched three-shape follow-up uses the CURRENT native HxT saved-activation /
+custom backward control: library15.361039 versus native15.216359ms, **0.951%
+slower**. This is not a win over the current trainer. The plain-autograd speedup
+alone would be an invalid promotion argument. Machine-readable source/log/
+postflight identities: `run-logs/fs-w171-nkilib-matched-component-comparison-r1.json`.
+
+Next source172 adaptation writes the saved ReLU directly as HxT through a DMA
+access pattern, retaining the library forward's row sharding and the current
+backward layout. All original8case gates will be rerun. The new integration
+module and phase flags are only prepared code until component and actual
+Linear/cache gates pass. No quality run is queued. The documented DMA transpose
+requires SBUF destination, so this first candidate uses an ordinary DMA store
+with HBM strides rather than invoking DMA transpose on an unsupported HBM
+output. Source: https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/api/generated/nki.isa.dma_transpose.html
+
+Trn22 separate-region full-FP8 actual Linear integration passed both widths;
+the fresh fullmodel native control is compiling, with candidate timing next.
+The verified checkpoint retirement freed1,879,330,816B and left11.350GB free.
+All four local/cloud full checkpoint copies remain, including current best and
+cold replay; only selected old EC2 losing copies were unlinked. The earlier
+empty-profile failure is preserved as a failure and caused no deletion.

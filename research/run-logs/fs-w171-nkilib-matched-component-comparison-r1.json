@@ -1,0 +1,127 @@
+{
+  "recorded_at": "2026-09-20T05:00:46.161005+00:00",
+  "rows": [
+    {
+      "label": "fs-w170-nkilib-token-mlp-component-r1",
+      "source_commit": "2cd50e043742ff327f40eda70e9e43632a29118d",
+      "host_clean": true,
+      "all_frozen_requirements_verified": true,
+      "log_sha256": "7fb8cd6c13eb8376c59905ff151aedb5d37ea200a5addf14795a003adfb34743",
+      "postflight_sha256": "0f26cf8298e184124389e92a473b82fd86e38b463ea723b736cf9fe56f195a5b",
+      "production": {
+        "shape": [
+          32,
+          1024,
+          1024
+        ],
+        "kind": "random",
+        "passed": true,
+        "samples_ms": {
+          "native": [
+            5.128247148240916,
+            5.132772200158797,
+            5.120299651753157
+          ],
+          "upstream_relu2_adapter": [
+            4.046940800617449,
+            4.042806848883629,
+            4.039795548305847
+          ]
+        },
+        "median_ms": {
+          "native": 5.128247148240916,
+          "upstream_relu2_adapter": 4.042806848883629
+        },
+        "upstream_vs_native_relative_rms": 0.0,
+        "forward_only": true,
+        "adapted_relu2_cte": true,
+        "saved_training_activation_excluded": true,
+        "input_weight_layout_work_charged": true
+      },
+      "native_gate_count": 6,
+      "native_gate_exact_count": 6
+    },
+    {
+      "label": "fs-w171-nkilib-training-mlp-component-r1",
+      "source_commit": "0535b900babe9686b2a62f2b597791c3ef97a59c",
+      "host_clean": true,
+      "all_frozen_requirements_verified": true,
+      "log_sha256": "58a3731d5e3142f651cc429fcd92d2465d6602297d7bb9400f34c55fa08217a9",
+      "postflight_sha256": "ff8c14559c587faf01d808bb5d139939e712ad9da933018903a19379c56aa4c7",
+      "production": {
+        "shape": [
+          32768,
+          1024
+        ],
+        "kind": "random",
+        "passed": true,
+        "full_independent_fp64_autograd_gradients": true,
+        "unchanged_native_comparison": true,
+        "exact_repeat_rows_and_fp32_accumulation": true,
+        "saved_relu_bytes": 268435456,
+        "master_casts_layouts_activation_stores_and_full_backward_charged": true,
+        "optimizer_communication_and_model_excluded": true,
+        "samples_ms": {
+          "native_forward_backward": [
+            18.29933941674729,
+            18.31182008027099,
+            18.341124998793628
+          ],
+          "library_forward_backward": [
+            15.459264832315966,
+            15.440930753053786,
+            15.444630000274628
+          ]
+        },
+        "median_ms": {
+          "native_forward_backward": 18.31182008027099,
+          "library_forward_backward": 15.444630000274628
+        }
+      },
+      "native_gate_count": 48,
+      "native_gate_exact_count": 46
+    },
+    {
+      "label": "fs-w171-nkilib-training-matched-hxt-r1",
+      "source_commit": "0535b900babe9686b2a62f2b597791c3ef97a59c",
+      "host_clean": true,
+      "all_frozen_requirements_verified": true,
+      "log_sha256": "c0c15eca7ab96b81112509de6899bd912e93907c83915d91cf2c731e242c633c",
+      "postflight_sha256": "7467d6f0dd0e590a350a9549a13b23f3a8aae9e7e43aae62ad700e6b7cc7e0f2",
+      "production": {
+        "shape": [
+          32768,
+          1024
+        ],
+        "kind": "random",
+        "passed": true,
+        "full_independent_fp64_autograd_gradients": true,
+        "unchanged_native_comparison": true,
+        "exact_repeat_rows_and_fp32_accumulation": true,
+        "saved_relu_bytes": 268435456,
+        "master_casts_layouts_activation_stores_and_full_backward_charged": true,
+        "optimizer_communication_and_model_excluded": true,
+        "samples_ms": {
+          "native_forward_backward": [
+            15.207064501009881,
+            15.22262939834036,
+            15.216358948964626
+          ],
+          "library_forward_backward": [
+            15.36001464992296,
+            15.372915801708587,
+            15.361039401614107
+          ]
+        },
+        "median_ms": {
+          "native_forward_backward": 15.216358948964626,
+          "library_forward_backward": 15.361039401614107
+        }
+      },
+      "native_gate_count": 18,
+      "native_gate_exact_count": 9
+    }
+  ],
+  "forward_gain_does_not_establish_existing_trainer_improvement": true,
+  "no_new_quality_run": true
+}
