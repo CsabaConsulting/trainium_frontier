@@ -1,18 +1,21 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-20 01:15 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-20 01:14 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## Current work — 2026-09-20 01:15 UTC
+## Current work — 2026-09-20 01:14 UTC
 
 - trn22 runs fs-w159-context512-sequence-r1, PID30002, started01:10:46 UTC.
   Same deployed source64f548e in wave159: full native T1024/pack32 control,
   then T512/pack64, same131072global tokens/update and seed42. Bound4200s;
   each request1500+30s, all four numerical postchecks required. Read manifests
   before dispatch and never restart a completed label.
-- trn21's source159 gate diagnosis is COMPLETE/clean01:09:11 UTC. It has no
-  remaining queued successor yet. A source160 cached native/FP8 dX profile
-  is prepared locally; launch receipt is required before calling it active.
+- trn21 runs fs-w160-fp8-square-dx-profile-sequence-r1, PID31475, started
+  01:13:36 UTC. Source94e93a7 in wave160, plan f12a760. First verify source158
+  independent gates and exact cached outputs, capture native/FP8 dX, then
+  CPU-only ingest after clean postflight. Bound3300s; each request1200+30s.
+  Preserve raw artifacts locally and via the existing GitHub artifact backup.
+  The preceding source159 gate diagnosis completed clean01:09:11 UTC.
 - Source159 FP8 cost decomposition COMPLETE/clean01:05:09 UTC. Cached FP8
   three-product1.781839ms remains slower than native with fresh casts1.582102ms.
   Cached dX0.689475ms versus native0.549018ms. Preparation-only savings cannot
@@ -26,7 +29,7 @@ Use current manifests/postflights before dispatch; do not restart completed jobs
   the NC-v4-only MXFP8 recommendation is inapplicable to Trn2. Details and
   next-step criteria: fresh-start-continuous-work-2026-09-20.md.
 - Last verified GitHub backup01:10:46 UTC: source8e7e213, snapshot7e641134;
-  current geometry-plan commit54cec11 follows that receipt. Check
+  source94e93a7 and plan f12a760 follow that receipt. Check
   out/fresh-start-backup/last-success.json for newer verified hashes.
 - Best public BPB remains0.9928513116311253; cold replay0.9938556748843932.
   No new BPB win or competition submission. Queues are finite. Coordinators

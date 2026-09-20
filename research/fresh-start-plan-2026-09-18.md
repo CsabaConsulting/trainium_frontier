@@ -1,5 +1,15 @@
 # Fresh-start campaign — 2026-09-18
 
+Current continuation (2026-09-20 01:14 UTC): source159 diagnostics are complete;
+source160 native/FP8 dX capture runs on trn21 and the same-source T1024 versus
+T512 full-model screen runs on trn22. See RESUME.md and
+fresh-start-continuous-work-2026-09-20.md for receipts and result constraints.
+The frozen BF16 gate reproduces the81 production QKV coordinate failures even
+with native projections; a frozen FP32 gate produces6085 for either projection
+implementation. No attention integration is promoted by those diagnostic runs.
+The square cached FP8 dX is slower even when preparation is free. No new BPB win.
+Earlier dated sections below are historical.
+
 **Current result, 2026-09-20 00:27 UTC:** best matched public BPB is
 **0.9928513116311253**, source98 dense 6x1024 with pack32/GA1, no ngrams and
 seed42. The frozen standalone source129 package reproduces those checkpoint

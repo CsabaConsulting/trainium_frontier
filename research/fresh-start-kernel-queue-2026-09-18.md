@@ -1,8 +1,8 @@
 # Kernel queue and precision-specific experiments
 
-Current continuation (2026-09-20 01:15 UTC): source159 gate and FP8 cost
+Current continuation (2026-09-20 01:14 UTC): source159 gate and FP8 cost
 controls are COMPLETE. trn22 runs the fixed T1024/pack32 versus T512/pack64
-whole-model timing screen; trn21 cached native/FP8 dX profiling is prepared.
+whole-model timing screen; trn21 source160 cached native/FP8 dX capture and ingestion is running.
 Tavily deep research is complete; MXFP8 hardware is NC-v4-only, not applicable
 here. Read RESUME.md and fresh-start-continuous-work-2026-09-20.md for active
 receipts, findings and continuation gates. Earlier status below is historical.

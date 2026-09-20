@@ -117,7 +117,7 @@ Source159 runs two independent follow-ups:
   cannot rescue this implementation in the measured context. Separate scope
   timings are not additive and none replaces a full-step measurement.
 
-## Source159 results and next work — 2026-09-20 01:15 UTC
+## Source159 results and next work — 2026-09-20 01:14 UTC
 
 Both source159 diagnostic requests completed cleanly. The FP8 cost split is
 1.582102499ms native three products, 1.796937233ms fresh FP8, and
@@ -149,3 +149,11 @@ The Tavily report is complete, not running. Its broad MXFP8/Trn2 recommendation
 was rejected against the instruction-level NC-v4 restriction. Existing NC-v3
 E4M3 kernels remain the applicable FP8 path. The frozen public best and canonical
 train.py/prepare.py are unchanged.
+
+Source16094e93a7 is deployed on trn21. Profile/ingest coordinator
+fs-w160-fp8-square-dx-profile-sequence-r1 PID31475 started01:13:36 UTC;
+plan commit f12a760. Its profile uses the unchanged source158 component evidence
+as present in immutable wave159, checks all prerequisite hashes, and captures
+both cached product arms with current installed native profiler APIs. Ingestion
+is a separate guarded CPU job after a clean postflight. Raw artifacts need local
+hash verification and GitHub artifact backup before any remote retirement.
