@@ -1,0 +1,120 @@
+{
+  "label": "fs-w183-nkilib-byte-transpose-nki-sequence-r1",
+  "max_seconds": 2400,
+  "purpose": "Exact NKI byte-transpose gate after the separately retained source182 framework float-carrier failure. Original preparation and raw quantizer controls, all256-byte production fixtures. No numeric bound or MLP promotion.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w183-nkilib-byte-transpose-nki-r1.request.json",
+      "sha256": "d515bc5eb80159a846a945e133f880e0d1f9759534e1c98553897a6e636a5b17",
+      "requirements": [
+        {
+          "marker": "NKILIB_BYTE_DIAGNOSTIC_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "producer_cases": 14,
+            "original_failure_retained": true,
+            "failed_source": "d944a69f7c23b5504d611eaeb7164bbeb27a3c29",
+            "unchanged_source_bytes": true,
+            "no_forward_or_training_claim": true
+          }
+        },
+        {
+          "marker": "NKILIB_PROVENANCE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "vendored_files": 66,
+            "package_installation": false,
+            "bundled_package_replaced": false
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_RECIPROCAL",
+          "count": 2,
+          "fields": {
+            "passed": true,
+            "limit": 2.384185791015625e-07
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_QUANT_GATE",
+          "count": 2,
+          "fields": {
+            "passed": true,
+            "independently_decoded_legacy_e4m3": true,
+            "scale_exact": true
+          }
+        },
+        {
+          "marker": "NKILIB_PREPARATION_AST",
+          "count": 3,
+          "unique_field": "mode",
+          "values": [
+            "original",
+            "raw",
+            "nki"
+          ]
+        },
+        {
+          "marker": "NKILIB_BYTE_TRANSPOSE_DIAGNOSTIC",
+          "count": 16,
+          "fields": {
+            "diagnostic_only": true,
+            "permits_promotion": false
+          }
+        },
+        {
+          "marker": "NKILIB_EXACT",
+          "count": 23,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_FAILED_FLOAT_CONTROL",
+          "count": 1,
+          "fields": {
+            "retained": true,
+            "source_commit": "34ba84fb418d93d1653c88487e75d81601f4a1a0",
+            "original_and_float_bytes_identical": true,
+            "raw_producer_exact": true,
+            "unchanged_nki_candidate": true
+          }
+        },
+        {
+          "marker": "NKILIB_NKI_PREPARATION_DIAGNOSTIC",
+          "count": 1,
+          "fields": {
+            "original_failure_reproduced": true,
+            "raw_and_nki_weights_exact": true,
+            "other_six_outputs_unchanged": true,
+            "original_source_unchanged": true,
+            "failed_float_carrier_not_promoted": true
+          }
+        },
+        {
+          "marker": "NKILIB_KNOWN_BYTE_NKI_CASE",
+          "count": 5,
+          "fields": {
+            "passed": true,
+            "all_256_codes": true,
+            "nki_exact": true,
+            "component_timing_only": true
+          }
+        },
+        {
+          "marker": "NKILIB_BYTE_TRANSPOSE_NKI_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "original_failure_reproduced": true,
+            "known_byte_cases": 5,
+            "raw_and_nki_weights_exact": true,
+            "forward_or_training_claim": false
+          }
+        }
+      ]
+    }
+  ]
+}
