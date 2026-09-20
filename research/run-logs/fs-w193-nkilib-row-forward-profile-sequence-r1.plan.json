@@ -1,0 +1,117 @@
+{
+  "label": "fs-w193-nkilib-row-forward-profile-sequence-r1",
+  "max_seconds": 6000,
+  "purpose": "Profile unchanged source191 production native/prepared/inline ROW forward functions in one same-host capture; online input and current FP32-master weight preparation stay charged. Require full source191 numerical completion first. Profile identifies engines/spills, not speed or quality. Preserve all raw/compiled identities; derived tables must leave raw hashes unchanged.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w193-nkilib-row-forward-profile-r1.request.json",
+      "sha256": "8081b114d154f9e8a35dfa9dbdeac60d6aba63ce11a48fc1cde0a6ad38a6dbff",
+      "requirements": [
+        {
+          "marker": "NKILIB_ROW_PROFILE_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "source_commit": "153c4c13c9e3cde41cbeda3244fa8fd79a5af72c",
+            "all_original_source191_requirements_verified": true,
+            "kernel_bytes_unchanged": true
+          }
+        },
+        {
+          "marker": "NKILIB_PROVENANCE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "vendored_files": 66,
+            "bundled_package_replaced": false,
+            "package_installation": false
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_PROFILE_FUNCTIONS",
+          "count": 1,
+          "fields": {
+            "original_probe_sha256": "c19bd4b3ff2856d3aeb77512777f9e1c73b4a1fce50728b89887804324c9d4f4",
+            "original_function_bodies_unchanged": true,
+            "all_online_preparation_inside_compiled_functions": true,
+            "source191_transform_and_native_control_reused": true
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_PROFILE_UNINSTRUMENTED",
+          "count": 1,
+          "fields": {
+            "shape": [
+              32768,
+              1024,
+              4096
+            ],
+            "online_input_and_current_weight_preparation_included": true,
+            "saved_activations_and_backward_excluded": true,
+            "training_or_bpb_claim": false
+          }
+        },
+        {
+          "marker": "NKILIB_EXACT",
+          "count": 4,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_PROFILE_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "shape": [
+              32768,
+              1024,
+              4096
+            ],
+            "arms": [
+              "native",
+              "prepared",
+              "inline"
+            ],
+            "profiled_forwards": 3,
+            "same_host_and_inputs": true,
+            "online_preparation_inside_each_arm": true,
+            "captured_outputs_exact": true,
+            "missing_neffs": [],
+            "unresolved_trace_neffs": [],
+            "phase_synchronization": true,
+            "numerical_authority": "fs-w191-nkilib-inline-input-forward-r1",
+            "profiled_latency_is_speed_evidence": false,
+            "full_training_or_bpb_claim": false,
+            "dma_notification_completeness_not_assumed": true
+          }
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w193-nkilib-row-forward-ingest-r1.request.json",
+      "sha256": "9324290acafba46ea2a71313c2b7ad853cfc8832465190c49e65d527848cd9a5",
+      "requirements": [
+        {
+          "marker": "NKILIB_ROW_CAPTURE_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "label": "fs-w193-nkilib-row-forward-profile-r1",
+            "source_commit": "317b99c31ab21f012b55d5010211a64f5d2e4aac",
+            "all_capture_rules_verified": true
+          }
+        },
+        {
+          "marker": "INGEST_COMPLETE",
+          "count": 1,
+          "fields": {
+            "returncode": 0,
+            "raw_hashes_unchanged": true,
+            "instruction_files_present": true
+          }
+        }
+      ]
+    }
+  ]
+}
