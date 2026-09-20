@@ -1,0 +1,13 @@
+NKILIB_TRAINING_PREREQUISITE {"passed": true, "cases": 6, "source_commit": "2cd50e043742ff327f40eda70e9e43632a29118d", "token_sharding": true}
+NKILIB_HXT_PREREQUISITE {"passed": true, "cases": 3, "source_commit": "0535b900babe9686b2a62f2b597791c3ef97a59c", "matched_native_hxt_control": true}
+[W920 07:42:37.803159671 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+NKILIB_COMPILER_SBUF {"original_probe_sha256": "97ae3dbd9032dcfee6a5a9c43c505e7d99cec51a88faac7134fd0e050fccf9f7", "original_probe_source_unchanged": true, "compiler_allocated_sbuf": true, "logical_allocator_capacity_and_lifetime_checks_retained": true, "original_tiling_and_arithmetic_retained": true, "all_original_fixtures_and_bounds_retained": true, "model_scheduling_hypothesis": true, "component_speedup_required": false}
+NKILIB_PROVENANCE {"passed": true, "upstream_commit": "92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e", "vendored_files": 66, "bundled_root": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib", "vendor_namespace": "research.vendor.nki_library_92d11f63", "nki": "0.5.0+28631259367.ga768afa6", "compiler": "2.26.6360.0+6f180f47", "package_installation": false, "bundled_package_replaced": false}
+NKILIB_TRAINING_ADAPTER {"installed": true, "isolated_namespace_only": true, "token_sharding": true, "saved_relu_inside_kernel": true, "saved_relu_layout": "HxT", "reuses_existing_transpose": true, "extra_activation_transpose": false, "additional_sbuf_bytes": 0, "square_after_transpose": true, "up_projection_recomputation": false, "master_and_weight_layout_costs_charged_by_caller": true}
+NKILIB_CASE_START {"shape": [1024, 256], "kind": "random", "training_component": true, "saved_relu_layout": "HxT"}

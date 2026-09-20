@@ -1,45 +1,45 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-20 07:39 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-20 07:43 UTC. Authorization: danger-full-access, approval never.
 Use committed manifests/postflights before dispatch; never restart completed jobs.
 
-## Current work — 2026-09-20 07:39 UTC
+## Current work — 2026-09-20 07:43 UTC
 
-- Source190 both sequences are running their final budgeted library model arm.
-  The native controls completed CLEAN: 128KiB-host control 486.986693ms;
-  64KiB-host control 488.645588ms. Their last loss is exactly identical.
-  Both ten-case component and two-width cache/integration gates already pass.
-  Trn21 coordinator2513; trn22 coordinator9028. Do not restart or edit them.
-- Source191 ready, NOT DISPATCHED. Immutable code153c4c13, plan45ee03b4,
-  trn21 sequence fs-w191-nkilib-inline-input-sequence-r1. The preserved
-  out/fresh-start-wave191.bundle transports exactly153c4c13. Deploy helper
-  out/deploy-wave191.py trn21 creates detached remote wave191. Wait for190
-  CLEAN and coordinator exit, then use the tracked sequence starter once.
-  This is a forward-only quantize-in-loader gate, not training or BPB work.
-- Source192 ready, NOT DISPATCHED. Immutable code8b1a3fc0, plan6f893995,
-  trn22 sequence fs-w192-nkilib-compiler-sbuf-sequence-r1. Preserved bundle
-  and out/deploy-wave192.py trn22 create detached remote wave192. Four jobs:
-  original full-gradient component, real Linear/cache integration, native
-  control, compiler-placed-SBUF library candidate. All numerical bounds,
-  arithmetic and tiling retained. OOM/lifetime/underflow checks stay active.
-  Mixed compiler SBUF/manual PSUM compatibility still needs device validation.
-- New source180 analysis finds ordinary Linear core0 regular matmul count
-  55,059 to110,286; dominant work units shift16,777,216 to4,194,304 FLOPs.
-  Candidate Scalar copies add20.977ms active time. Source intervals overlap;
-  individual modules and exact M/N/K tiles are not identified. DMA counters
-  remain incomplete. Analysis, raw generated research and reviewed primary
-  sources are committed in the library-compiler-placement note.
-- Tavily pro research completed; incorrect PSUM-copy and unsupported internal
-  compiler-flag claims were rejected. No established causal explanation of
-  the adjacent Linear regression. No SDK or optimization-level change.
-- Last verified push 2026-09-20T07:31:06+00:00: source45ee03b4,
-  snapshotf59f839d; retrieval complete=True.
-  New source192 commits await next push. Cron retrieves/preserves/pushes;
-  it never merges or selects experiments. Sequences mirror logs every45s.
-- Best public BPB0.9928513116311253, cold replay0.9938556748843932.
-  Frozen submission/train.py/prepare.py unchanged. Source159 T512 MUST NOT run.
-  Retain8GiB free floor, immutable checkouts, finite timeouts, host/Git locks,
-  and separate pre/postflight cleanup for every experiment.
+- Trn21 RUNNING source191153c4c13 at remote wave191; sequence
+  fs-w191-nkilib-inline-input-sequence-r1, coordinator3770, started07:41:11UTC.
+  All small input-loader fusion fixtures have passed; production gates/timing
+  remain pending. One finite forward-only job, max5400s. No training/BPB claim.
+- Trn22 RUNNING source1928b1a3fc0 at remote wave192; sequence
+  fs-w192-nkilib-compiler-sbuf-sequence-r1, coordinator4195, started07:42:29UTC.
+  Four gated jobs: original full-gradient component, real Linear/cache
+  integration, native model control, compiler-managed-SBUF library model.
+  Original arithmetic, tiling and all bounds retained; logical allocator
+  capacity/lifetime/underflow checks stay active. Max12000s, no quality run.
+- Both source190 budget sequences COMPLETE/CLEAN and independently verified
+  against every frozen requirement.128KiB562.878526ms vs486.986693ms native,
+  +15.584%;64KiB566.748940ms vs488.645588ms, +15.984%. Candidate losses agree
+  exactly across budgets. Smaller fixed allocator bounds did not fix the
+  model slowdown. No promotion. Final free space19.234GB/14.370GB.
+- Source180 instruction analysis: surrounding ordinary Linear core0 regular
+  MATMUL count55,059 to110,286, dominant arithmetic work unit16,777,216 to
+  4,194,304 FLOPs. Scalar copies add20.977ms active time. Intervals overlap;
+  exact module/tile dimensions and complete DMA traffic remain unidentified.
+  Committed analysis and reviewed sources: library-compiler-placement note.
+- Source189 exact fused weight preparation29.85%/32.06% faster. Complete ROW
+  forward still1.968% slower thanBF16. Source191 targets input HBM
+  materialization next. Training saves/backward are separate required work.
+- Both180 raw traces/derived tables are SHA-verified locally and in GitHub
+  assets. Trn22 maintenance r3 preserved/cloud-verified old scratch before
+  retirement. Keep8GiB free reserve; do not purge shared caches or artifacts.
+- Last verified push07:41:04UTC: source6f893995, snapshot from last-success.json,
+  both host retrievals complete. Current results/resume need another commit.
+  Cron preserves and pushes; it never merges or chooses experiments. Active
+  sequences mirror logs every45s and stop on failed/incomplete gates.
+- Best public BPB0.9928513116311253, cold replay0.9938556748843932. Frozen
+  submission/train.py/prepare.py unchanged. Source159 T512 MUST NOT run.
+- Do not edit in-flight plans/requests or protected launch/sequence/sync
+  helpers. Use committed immutable checkouts, tracked sequence starter,
+  finite timeouts, Git/host locks and pre/postflight cleanup for every job.
 
 ## Previous checkpoint — 2026-09-20 07:19 UTC
 

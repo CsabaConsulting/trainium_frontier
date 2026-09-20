@@ -1,5 +1,16 @@
 # Kernel queue and precision-specific experiments
 
+## 2026-09-20 07:43 UTC — scratch budgets negative; both new library variants running
+
+Source190 full-model tests both COMPLETE/CLEAN:128KiB562.878526ms vs486.986693ms
+(+15.584%);64KiB566.748940ms vs488.645588ms (+15.984%). All original numerical
+and cleanup gates pass. Fixed budget reduction does not fix the model regression.
+Trn21 now runs source191 inline input quantization; trn22 source192 automatic
+SBUF placement through its full-gradient/cache/model sequence. Neither has a
+speed or quality claim yet. Source192 leaves logical allocator checks active.
+See RESUME.md for source/plan/coordinator identities and restart conditions.
+
+
 ## 2026-09-20 07:39 UTC — concrete compiler-placement and input-loader tests
 
 Source190 both native controls COMPLETE/CLEAN (486.986693/488.645588ms);
