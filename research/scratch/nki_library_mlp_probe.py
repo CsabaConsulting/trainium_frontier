@@ -12,7 +12,7 @@ import torch
 import torch.nn.functional as F
 import torch_neuronx
 
-from mlp_fused_bf16_probe import timing
+from mlp_fused_bf16_probe import compare, timing
 from nki_library_probe_common import NAMESPACE, bounded, emit, exact, verify_sources
 
 
@@ -72,7 +72,7 @@ def cpu_reference(x, up, down):
     return out, bound
 
 
-def case(shape, kind, steps):
+def case(shape, kind, steps, token_sharding=False):
     torch._dynamo.reset()  # no live graphs between distinct shape screens
     gen = torch.Generator().manual_seed(166021 + shape[1] + shape[2])
     batch, tokens, channels = shape
@@ -109,6 +109,11 @@ def case(shape, kind, steps):
         with torch.no_grad():
             exact(f"{shape}:{kind}:{name}:repeat", fn(*dev), cpu)
         outputs[name] = cpu
+    if token_sharding:
+        # The row-sharded path also has to satisfy the retained campaign
+        # native-equivalence gate before timing or considering training work.
+        compare(f"{shape}:{kind}:token_sharding_native_gate",
+                outputs["upstream_relu2_adapter"], outputs["native"])
     if batch > 1:
         altered = x.clone()
         altered[1:] *= -2
@@ -130,21 +135,24 @@ def case(shape, kind, steps):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--steps", type=int, default=20)
+    parser.add_argument("--token-sharding", action="store_true",
+                        help="Override only isolated CTE shard selection with independent token rows")
     args = parser.parse_args()
     torch.set_num_threads(4)
     verify_sources()
     from nki_library_relu2_adapter import install
-    install()
+    install(token_sharding=args.token_sharding)
     emit("NKILIB_RELU2_ADAPTER", dict(installed_in_isolated_namespace=True,
                                      upstream_single_op_helper_rejects_squared_relu=True,
-                                     installed_compiler_unchanged=True))
+                                     installed_compiler_unchanged=True,
+                                     token_sharding=args.token_sharding))
     cases = [((2, 512, 256), kind) for kind in ("random", "zero", "outlier", "changed")]
     cases += [((2, 1024, 1024), "random"), ((32, 1024, 1024), "random")]
     for shape, kind in cases:
         emit("NKILIB_CASE_START", dict(shape=shape, kind=kind))
-        case(shape, kind, args.steps)
+        case(shape, kind, args.steps, token_sharding=args.token_sharding)
     emit("NKILIB_MLP_RESULT", dict(passed=True, cases=len(cases), forward_only=True, adapted_relu2_cte=True,
-                                  training_or_bpb_claim=False))
+                                  token_sharding=args.token_sharding, training_or_bpb_claim=False))
 
 
 if __name__ == "__main__":

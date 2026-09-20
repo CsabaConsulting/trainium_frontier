@@ -196,3 +196,36 @@ Both source168 postflights are clean, commandrc1, no residual holders or health
 failures. Compact counts/source/log/postflight hashes are in
 `run-logs/fs-w168-nkilib-small-shape-diagnostic-summary-r1.json`. Cron04:30:52
 pushed sourcec36a1d14 and snapshotca6bc01f, including the mirrored failures.
+
+## Source169 production results and bounded follow-ups
+
+Both source169 jobs completed with commandrc0, clean postflight and every
+declared requirement; independently checked against the frozen plans locally.
+The MLP passes all six cases, including the production32×1024×1024 shape:
+native5.129884652ms versus adapted library4.049636101ms (21.058% lower time).
+The three alternating timing rounds are tightly grouped. Input/output reshape
+and both weight-layout conversions are charged. The library/native output
+relative RMS is0.00286148; original independent FP64 and exact repeat/batch
+checks pass. This remains a FORWARD-ONLY result, with no saved training
+activation, backward, optimizer or whole-model gain claimed.
+
+Attention completes all six diagnostic cases, including production shape.
+Every declared unchanged native comparison passes, but the retained CPU
+coordinate heuristic still reports1514 failures across both versions/heads/
+fields. This is explicitly a completed diagnostic, not successful passage
+of that heuristic. Both postflights are clean; free16.77GB/10.26GB.
+
+Source170 preparations: trn21 compare token-row sharding, eliminating
+intermediate-channel summation between cores. All original MLP checks remain,
+plus the campaign's unchanged native coordinate/RMS comparison before timing.
+Trn22 perform paired attention timing with exact causal/batch/repeat checks
+and the unchanged native comparison, while retaining/reporting every original
+CPU screen failure. Its result is explicitly non-promoting: timing can tell
+whether formalizing the corrected independent rounding contract is worthwhile.
+No quality run is queued by either follow-up.
+
+If an MLP forward win survives, the training candidate must save ReLU values
+inside the forward kernel and charge that HBM traffic, all backward products,
+FP32 master-gradient accumulation and actual weight refresh. Recomputing the
+whole up projection would likely consume the1.08ms forward saving. Prefer
+an explicit saved-activation output to hiding recomputation outside timing.
