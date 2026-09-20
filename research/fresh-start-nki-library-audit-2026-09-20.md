@@ -4,13 +4,16 @@ The user's Re:Invent lead is [AWS Neuron's NKI Library](https://github.com/aws-n
 The clean local clone is pinned at `92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e`
 (August 28). Source references below use that commit, rather than a moving main.
 
-Current result at06:40UTC: the BF16 complete-component candidate is2.404%
+Current result at06:48UTC: the BF16 complete-component candidate is2.404%
 faster, but its joined/separate whole-model steps are14.619%/25.146% slower.
 Neither advances to a quality run. The native caller trace is decoded and
 preserved locally and on GitHub; source180 r3 captures the matching library
-caller. Source187 now passes the independent ROW FP8 arithmetic gates at the
-production32768×1024 shape; final repeat checks, timing and postflight remain
-pending. Earlier byte-transpose, parser, diagnostic-DMA and allocation failures
+caller. Source187 passes all ten ROW FP8 cases and clean postflight: production
+forward4.867048ms vs4.617179ms nativeBF16 (+5.412%), with all online preparation
+charged. Source188 passes both rank-count checks: the isolated BF16 library
+component is2.102% faster with one rank,2.163% slower with four. Timing drift
+across the four-rank rounds is preserved; this is not a full-model explanation.
+Earlier byte-transpose, parser, diagnostic-DMA and allocation failures
 are preserved with specific corrections and unchanged numerical bounds.
 No new training-speed or BPB gain is established.
 
@@ -32,6 +35,24 @@ functions and a compiled-backward assertion on every call prevent fallback
 from contaminating timings. Alternating paired rounds report the maximum rank
 duration; synchronization/collectives used for comparison remain outside the
 timed region. This tests one MLP, not an optimizer step or model quality.
+
+Source189 prepares a directly library-inspired fusion. Its FP8 TensorEngine
+transpose uses the upstream two-byte PSUM stride; a second fused producer uses
+the already validated BF16 integer carrier. Both quantize each weight row,
+transpose while values remain on chip, and gather contiguous stores, removing
+the separate quantized-weight HBM temporary. They must match every reference
+byte and metadata value, the independent reciprocal/legacy-FP8 algebra, changed
+inputs and exact unaffected rows. Eight fixtures include both production weight
+shapes and the finite BF16 alphabet. Hardware validation is pending.
+
+Only if the direct producer is at least5% faster at both production shapes will
+the finite queue run the complete ten-case ROW forward again. Its wrapper
+changes exactly four preparation expressions; AST comparison proves every
+original fixture, numerical bound and timing boundary outside preparation is
+unchanged. This is a forward experiment; saved activations/backward and quality
+remain untested. Source187's production FP8 output differs from unquantized
+BF16 by5.764% relative RMS on its random fixture, which is recorded as an
+approximation diagnostic, never as evidence of equivalent training quality.
 
 The native training-forward trace is137.850536ms, with all compiled identities
 resolved. Its observed spill counters are10.09GB saved/15.07GB reloaded, and
