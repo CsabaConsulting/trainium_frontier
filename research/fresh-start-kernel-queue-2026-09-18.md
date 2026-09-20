@@ -1,5 +1,15 @@
 # Kernel queue and precision-specific experiments
 
+Current library continuation (2026-09-20 05:29 UTC): source175's ten-case
+reused-transpose MLP passes every original numerical gate and clean postflight.
+Its complete production component is14.845040ms vs native15.210640ms (2.404%
+lower). Trn21 source176 now gates real Linear/cache integration, then same-host
+native/candidate whole steps. No quality trial follows automatically. Trn22
+repeats source171 native/full-FP8 separate-region after hash-verified scratch
+archival/retirement restored20.59GB disk. The r1 disk failure is retained.
+Read RESUME.md and fresh-start-nki-library-audit-2026-09-20.md for evidence.
+Earlier continuation paragraphs are historical; frozen submission is unchanged.
+
 Current continuation (2026-09-20 01:55 UTC): both source165 queues are active.
 trn21 gates combined forward/backward FP8 scaling, then actual Linear integration
 and matched native/candidate full-model steps. trn22 gates backward-only scaling

@@ -1,0 +1,256 @@
+{
+  "label": "fs-w176-nkilib-reuse-transpose-model-sequence-r1",
+  "max_seconds": 10800,
+  "purpose": "Integration and same-host complete-step screen for source175 reused-transpose BF16 MLP. No automatic quality trial. A component result cannot authorize BPB claims.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w176-nkilib-reuse-transpose-integration-r1.request.json",
+      "sha256": "ebaf776ea5389878267c68550b5de97e90ab1a839e6830ae3c6125711d280fcd",
+      "requirements": [
+        {
+          "marker": "LIBRARY_COMPONENT_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 10,
+            "source_commit": "d595ce0e55e8a0defe32fe59fede91c3b65feb2a",
+            "unchanged_source_bytes": true
+          }
+        },
+        {
+          "marker": "NKILIB_MLP_INTEGRATION_GATE",
+          "count": 2,
+          "fields": {
+            "passed": true,
+            "cached_and_uncached": true,
+            "reference_updates": 4,
+            "microbatches": 2,
+            "fp32_master_gradients": true,
+            "changed_cache_values": true,
+            "compiled_execution_asserted": true,
+            "training_row_and_batch_independence": true,
+            "native_eval_and_checkpoint_exact": true,
+            "separate_compiled_region": false,
+            "contract": {
+              "library_commit": "92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e",
+              "modules": 1,
+              "token_row_sharding": true,
+              "saved_relu_layout": "HxT",
+              "backward": "original_bf16_four_products",
+              "contiguous_activation_store": true,
+              "reuses_existing_transpose": true,
+              "square_after_transpose": true,
+              "extra_activation_transpose": false,
+              "reserved_sbuf_bytes": 0,
+              "separate_compiled_region": false,
+              "ordinary_differentiable_weight_cache": true,
+              "weight_transposes_inside_forward": true,
+              "native_evaluation": true,
+              "checkpoint_keys_parameters_and_rng_unchanged": true
+            }
+          },
+          "unique_field": "channels",
+          "values": [
+            256,
+            1024
+          ]
+        },
+        {
+          "marker": "NKILIB_MLP_INTEGRATION_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 2,
+            "separate_compiled_region": false,
+            "full_model_or_quality_claim": false
+          }
+        },
+        {
+          "marker": "FUSED_MLP_NATIVE_GATE",
+          "count": 48,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_EXACT",
+          "count": 10,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_PROVENANCE",
+          "count": 2,
+          "fields": {
+            "passed": true,
+            "vendored_files": 66,
+            "package_installation": false,
+            "bundled_package_replaced": false
+          }
+        },
+        {
+          "marker": "NKILIB_TRAINING_ADAPTER",
+          "count": 2,
+          "fields": {
+            "installed": true,
+            "reuses_existing_transpose": true,
+            "extra_activation_transpose": false,
+            "square_after_transpose": true,
+            "additional_sbuf_bytes": 0
+          }
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w176-trn21-native-phase-r1.request.json",
+      "sha256": "49b80c67a805607965d31e456799817d0751263a8fbee9b62e21199caa08e696",
+      "requirements": [
+        {
+          "marker": "PHASE_JSON",
+          "count": 1,
+          "fields": {
+            "world_size": 4,
+            "lnc": "2",
+            "grad_accum": 1,
+            "micro_tokens": 131072,
+            "compile": true,
+            "adaptive_nki_ce": true,
+            "optimizer_ownership": true,
+            "optimizer_owner_calls": 35,
+            "pack_factor": 32,
+            "fp8_mlp_full": false,
+            "fp8_mlp_packed": false,
+            "fp8_mlp_compact_saves": false,
+            "fp8_mlp_stream_packed_weights": false,
+            "fp8_mlp_preserve_output_rank": false,
+            "integrated_nki_local_conv": true,
+            "integrated_bf16_norm_output": true,
+            "fp8_mlp_engine_scaling": "none",
+            "fp8_mlp_separate_region": false,
+            "library_mlp": false,
+            "library_mlp_separate_region": false,
+            "library_mlp_contract": null
+          },
+          "lengths": {
+            "steps": 30
+          },
+          "phase_timing": true
+        },
+        {
+          "marker": "NATIVE_POST_CHECK_JSON",
+          "count": 4,
+          "fields": {
+            "passed": true,
+            "parameters_and_gradients_finite": true,
+            "logits_finite": true,
+            "future_max_abs": 0.0,
+            "other_batch_max_abs": 0.0,
+            "repeated_call_max_abs": 0.0
+          },
+          "unique_field": "rank",
+          "values": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "marker": "LIBRARY_INTEGRATION_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 2,
+            "source_commit": "1ace86d380df6d85f9412cd40f64255bc7924057",
+            "component_source": "d595ce0e55e8a0defe32fe59fede91c3b65feb2a"
+          }
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w176-nkilib-reuse-transpose-phase-r1.request.json",
+      "sha256": "85ddb6ae375092749d1f0212882db32220ee4115adfc7d2f1d519f8ee7bce2bf",
+      "requirements": [
+        {
+          "marker": "PHASE_JSON",
+          "count": 1,
+          "fields": {
+            "world_size": 4,
+            "lnc": "2",
+            "grad_accum": 1,
+            "micro_tokens": 131072,
+            "compile": true,
+            "adaptive_nki_ce": true,
+            "optimizer_ownership": true,
+            "optimizer_owner_calls": 35,
+            "pack_factor": 32,
+            "fp8_mlp_full": false,
+            "fp8_mlp_packed": false,
+            "fp8_mlp_compact_saves": false,
+            "fp8_mlp_stream_packed_weights": false,
+            "fp8_mlp_preserve_output_rank": false,
+            "integrated_nki_local_conv": true,
+            "integrated_bf16_norm_output": true,
+            "fp8_mlp_engine_scaling": "none",
+            "fp8_mlp_separate_region": false,
+            "library_mlp": true,
+            "library_mlp_separate_region": false,
+            "fused_mlp": false,
+            "fused_mlp_forward_backend": "nki",
+            "library_mlp_contract": {
+              "library_commit": "92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e",
+              "modules": 6,
+              "token_row_sharding": true,
+              "saved_relu_layout": "HxT",
+              "backward": "original_bf16_four_products",
+              "contiguous_activation_store": true,
+              "reuses_existing_transpose": true,
+              "square_after_transpose": true,
+              "extra_activation_transpose": false,
+              "reserved_sbuf_bytes": 0,
+              "separate_compiled_region": false,
+              "ordinary_differentiable_weight_cache": true,
+              "weight_transposes_inside_forward": true,
+              "native_evaluation": true,
+              "checkpoint_keys_parameters_and_rng_unchanged": true
+            }
+          },
+          "lengths": {
+            "steps": 30
+          },
+          "phase_timing": true
+        },
+        {
+          "marker": "NATIVE_POST_CHECK_JSON",
+          "count": 4,
+          "fields": {
+            "passed": true,
+            "parameters_and_gradients_finite": true,
+            "logits_finite": true,
+            "future_max_abs": 0.0,
+            "other_batch_max_abs": 0.0,
+            "repeated_call_max_abs": 0.0
+          },
+          "unique_field": "rank",
+          "values": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "marker": "LIBRARY_INTEGRATION_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 2,
+            "source_commit": "1ace86d380df6d85f9412cd40f64255bc7924057",
+            "component_source": "d595ce0e55e8a0defe32fe59fede91c3b65feb2a"
+          }
+        }
+      ]
+    }
+  ]
+}

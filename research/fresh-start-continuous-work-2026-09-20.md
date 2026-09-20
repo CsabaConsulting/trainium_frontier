@@ -339,3 +339,22 @@ FP8 candidates must show35refreshes for each of12MLP weights. Coordinators
 mirror every45seconds and stop after the finite list. No automatic quality
 training, seed sweep or competition submission. Canonical train.py,prepare.py
 and the frozen public0992851 submission remain unchanged.
+
+## NKI Library lead — 05:29 UTC
+
+The user's Re:Invent pointer led to a pinned audit and two hardware tracks.
+Details and exact claims are in fresh-start-nki-library-audit-2026-09-20.md.
+Main attention changes alone are not a useful timing gain; the installed SDPA
+already uses older library attention. The CTE MLP forward is21.2% faster at our
+production shape but training saves/backward remove most of this benefit.
+Reusing its required intermediate transpose now yields2.404% complete-component
+improvement with ten original numerical fixtures and clean postflight. Trn21
+source176 performs real-Linear cache/gradient gates before matched full steps.
+The current complete-step/quality threshold remains unchanged. Native/compiler
+master weights, eval and the frozen submission are preserved.
+
+Trn22 source171 separate-region full-FP8 r1 completed all numerical checks but
+failed disk reserve. Verified local/GitHub preservation of12.98GB old scratch
+then remote retirement restored20.59GB, with independent clean health. The
+unchanged native/candidate r2 repeat is active under a new frozen finite plan;
+r1 remains a failed postflight, never relabeled as clean. No seed sweep.

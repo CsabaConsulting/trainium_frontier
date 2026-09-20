@@ -375,3 +375,25 @@ no promotion. Source171 exact receipts and full timing summary are preserved
 in fs-w171-fp8-separated-diagnostic-comparison-r1.json. A guarded12GiB capture
 of old NKI scratch is in progress; no remote deletion until archive hashes and
 current GitHub asset digests have independently verified preservation.
+
+At05:24UTC scratch maintenance completed cleanly. All4,991 original files
+(12,978,670,751B) are verified inside the local archive and in live GitHub
+assets before remote retirement. Free disk increased7.57GB ->20.59GB.
+Prepare the source171 native/FP8 clean repeat under new r2 labels, requiring
+the exact recovery receipt and unchanged original numeric/rank gates.
+The r1 failure remains intact and cannot serve as a successful prerequisite.
+
+## Source175 completed: reuse the required transpose
+
+All ten fixtures and frozen requirements pass, clean05:24:45UTC. Production
+complete component14.845040ms versus native HxT15.210640ms:2.403582% lower.
+Small2048x1024 remains slower1.165296ms versus1.085126ms. The save is exactly
+native at production; no thresholds or arithmetic bounds were changed.
+
+Source176 changes the previously untested integration hook to use this gated
+source175 kernel. Proceed to actual ordinary Linear/FP32-master/cache refresh,
+accumulation, training row independence and native evaluation/checkpoint gates,
+then a fresh same-host native/candidate whole-step comparison. Component
+improvement is too small to establish a useful whole-step gain; only actual
+measurements can decide whether compiler effects enlarge or erase it. No
+quality trial is authorized by the component alone.

@@ -1,0 +1,45 @@
+{
+  "label": "fs-w175-nkilib-reuse-transpose-component-r1",
+  "source": "d595ce0e55e8a0defe32fe59fede91c3b65feb2a",
+  "frozen_requirements_passed": true,
+  "host_clean": true,
+  "production": {
+    "shape": [
+      32768,
+      1024
+    ],
+    "kind": "random",
+    "passed": true,
+    "full_independent_fp64_autograd_gradients": true,
+    "unchanged_native_comparison": true,
+    "matched_native_hxt_control": true,
+    "saved_relu_layout": "HxT",
+    "extra_activation_transpose": false,
+    "reuses_existing_transpose": true,
+    "square_after_transpose": true,
+    "exact_repeat_rows_and_fp32_accumulation": true,
+    "saved_relu_bytes": 268435456,
+    "master_casts_layouts_activation_stores_and_full_backward_charged": true,
+    "optimizer_communication_and_model_excluded": true,
+    "samples_ms": {
+      "native_forward_backward": [
+        15.18858255003579,
+        15.211108399671502,
+        15.21064025000669
+      ],
+      "library_forward_backward": [
+        14.842396948370151,
+        14.86226569977589,
+        14.845040149521083
+      ]
+    },
+    "median_ms": {
+      "native_forward_backward": 15.21064025000669,
+      "library_forward_backward": 14.845040149521083
+    }
+  },
+  "component_gain_percent": 2.4035812725598293,
+  "decision": "Proceed only to actual Linear/cache integration and nearby complete-step comparison. No training/BPB improvement established; full-budget quality still requires >=3% complete-step gain and numerical gates.",
+  "log_sha256": "96a2d3f7bc2d02651b2ee67a71af9ac7c804860bb4afc5eb6eb5cd5c79c87d05",
+  "postflight_sha256": "9755cd2eddc22792e687427a05ffe6a811c7c9ab6619defd7a23e69418193312"
+}

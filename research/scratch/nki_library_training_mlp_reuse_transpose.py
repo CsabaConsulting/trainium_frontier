@@ -61,16 +61,19 @@ def transpose_save_then_square(mlp_params, tile_info, constants, indices,
         if local_row < shard_rows:
             rows = min(128, shard_rows - local_row)
             global_row = constants.get_bxs_offset() + local_row
-            for hidden_block in range(mlp_params.intermediate_size // 128):
-                # Upstream's post-transpose storage packs [I-block,T] in
-                # the free dimension, with I-within-block as partition.
-                tile = output_tile_sbuf_list[bxs_subtile_idx][
-                    :128, nl.ds(hidden_block * 128, rows)]
-                nisa.dma_copy(dst=mlp_params.training_saved_relu[
-                    nl.ds(hidden_block * 128, 128), nl.ds(global_row, rows)], src=tile)
-                # Same BF16 ReLU -> BF16 square rounding as the control.
-                # The dependency preserves the original ReLU HBM save.
-                nisa.activation(dst=tile, data=tile, op=nl.square)
+            hidden = mlp_params.intermediate_size
+            tokens = mlp_params.training_saved_relu.shape[1]
+            # Upstream packs [I-block,T] in the free dimension, with
+            # I-within-block as partition. One descriptor covers all
+            # blocks, preserving contiguous token-row DMA bursts.
+            tile = output_tile_sbuf_list[bxs_subtile_idx].ap(
+                [[hidden, 128], [128, hidden // 128], [1, rows]])
+            nisa.dma_copy(dst=mlp_params.training_saved_relu.ap(
+                [[tokens, 128], [128 * tokens, hidden // 128], [1, rows]],
+                offset=global_row), src=tile)
+            # Same BF16 ReLU -> BF16 square rounding as the control.
+            # The dependency preserves the original ReLU HBM save.
+            nisa.activation(dst=tile, data=tile, op=nl.square)
 
 
 @nki.jit
