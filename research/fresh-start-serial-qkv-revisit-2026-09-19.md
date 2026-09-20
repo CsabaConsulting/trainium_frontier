@@ -1,5 +1,32 @@
 # Revisit QKV execution while preserving the trained model
 
+Current update, 2026-09-20 00:27 UTC: source156 token diagnosis COMPLETE/clean00:25:41 UTC.
+All 9 BF16/10 FP32-V component gates passed first. At the exact failed production
+fixture (B32/T1024/C1024, seed152032, cached differentiable inputs), all no-VE
+adapter comparisons are exact. With VE, native preprojection and each individual
+Q/K/V replacement are also exact. Joint BF16 replacement fails81 coordinate
+bounds, relative RMS0.0017290317; joint FP32-V reproduces47,860 failures,
+RMS0.0041308524. Frozen BF16 controls reproduce the81 failures and frozen
+FP32 V yields47,839. The original production attention gate remains failed.
+
+This differs from the small-shape V-only result and rules out treating retained
+FP32 V alone as a validated general fix. The next useful bounded investigation
+is pairwise QK/QV/KV and compiled consumer context, preserving the original
+native reference and error bounds. Returning or materializing intermediates
+can change fusion, so those controls cannot silently become new authorities.
+Trn22's focused production channel-layout diagnosis is still active at direct
+SSH00:26:57 UTC and already reproduces the81 joint-BF16 failures. Both original
+source154/155 attention attempts stopped cleanly with identical47,860 failures.
+No full-attention timing or quality promotion follows.
+
+Latest token FP32-V component5.728514ms versus its matched explicit FP32-V
+native5.632454ms is1.705% slower. Treat it separately from the earlier BF16
+contract. All raw logs/postflights and the exact source156 result summary are
+preserved under `research/run-logs/`.
+
+Earlier preparation/results below are chronological and may describe jobs
+that subsequently completed; current authority is `RESUME.md` and postflights.
+
 Current update,2026-09-19 23:48 UTC: source153 diagnostic is complete and clean on both
 hosts. At widths256/1024, with cached and uncached weights, replacing Q or K
 alone is exactly native. Replacing V alone reproduces the failure only when

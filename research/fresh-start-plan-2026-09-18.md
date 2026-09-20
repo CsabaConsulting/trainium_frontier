@@ -1,6 +1,6 @@
 # Fresh-start campaign — 2026-09-18
 
-**Current result, 2026-09-20 00:10 UTC:** best matched public BPB is
+**Current result, 2026-09-20 00:27 UTC:** best matched public BPB is
 **0.9928513116311253**, source98 dense 6x1024 with pack32/GA1, no ngrams and
 seed42. The frozen standalone source129 package reproduces those checkpoint
 logits exactly; an independent cold 30-minute rehearsal scored 0.9938556748843932
@@ -46,19 +46,19 @@ RoPE inputs now passes all component numerical/lifecycle gates. Both layouts
 are slower than native complete projections (5.358%/10.478%). The first real-attention
 gate exposed a V+VE rounding discrepancy. Partial replacements isolate it to V
 at widths256/1024. Retained FP32 V passes all primitive gates and122 small-attention comparisons
-exactly, but production B32/T1024 still fails the unchanged output bound. Trn21
-source156 investigates that exact shape/cache/input-gradient context. Trn22
-source155 retries a separate corrected transpose allocation under four fixed
-gates. No acceptance bound was relaxed; integration and speed remain pending.
+exactly, but production B32/T1024 fails the unchanged output bound. Source156
+trn21 diagnosis is complete/clean: all individual Q/K/V replacements are exact,
+but their joint BF16 result fails81 bounds and joint FP32-V fails47,860 with VE.
+The focused trn22 channel-layout diagnosis remains active and initially matches.
+A simple precision switch is not validated. Pairwise replacements or compiled
+consumer inspection are next; no acceptance bounds have been relaxed.
 The user's dictionary/parser/classic-NLP ideas, active-venv dependency audit,
 20K-training-document structure sample and bounded alternative probability
 models are documented in `fresh-start-structured-priors-and-fp8-scope-2026-09-19.md`.
 No new language assets, pretrained NLP models or grammar masks were installed.
-The freed trn21 is running a current-inventory reciprocal/ownership gate, with
-a pack32/GA1 candidate queued against its nearby native control; the former reciprocal
-comparison usedpack16/GA2. No new approximation, seed sweep or automatic quality
-trial is involved. Exact preparation and sequence receipts are in the kernel
-queue and reciprocal-pack32 note.
+The earlier current-inventory reciprocal/ownership gates and pack32 comparison
+are complete/clean with only0.052% whole-step improvement; no promotion.
+Current host status and exact finite-queue identities are in `RESUME.md`.
 
 **Earlier result, 2026-09-19 00:21 UTC:** matched larger public BPB is
 **0.9938106631483421**, improved from0.9973302213667847. The dense6x1024 model
