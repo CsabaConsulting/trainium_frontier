@@ -1,0 +1,2594 @@
+{
+  "trace": "out/fresh-start-profiles/fs-w160-fp8-square-dx-profile-r1",
+  "parquet": "out/fresh-start-profiles/fs-w160-fp8-square-dx-remote-ingest-r1-parquet/i-0329acb9a6244986b_pid_1600997_nc_0_session_0",
+  "all_runtime_dispatches_match_ingested_binaries": true,
+  "executions": [
+    {
+      "execution_index": 0,
+      "neff_name": "c35f7627d1285deb5d13e4a2148529ba.neff",
+      "execution_start_ts": 0,
+      "execution_end_ts": 524307,
+      "num_subgraphs": 2,
+      "row_count": 81810,
+      "runtime_name": "model_default",
+      "nrt_sequence_id": 281474976710851,
+      "logical_cache_key": "428fbc1e395ae5a75ed6bf776c9a71c75cc401cc78cbffb8d50ba11fa159f800:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+      "enclosing_annotation": "native_dx/cached_product",
+      "device_wall_ms": 0.524307
+    },
+    {
+      "execution_index": 1,
+      "neff_name": "56082c9be90e2aaa92b5082685852f5a.neff",
+      "execution_start_ts": 1445646,
+      "execution_end_ts": 2116038,
+      "num_subgraphs": 2,
+      "row_count": 112091,
+      "runtime_name": "model_default",
+      "nrt_sequence_id": 281474976710852,
+      "logical_cache_key": "aa5a998792f266d345c5e065b45eb0fc641d99e5a5607c7d147b80682efbc4da:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+      "enclosing_annotation": "fp8_dx/cached_product",
+      "device_wall_ms": 0.670392
+    }
+  ],
+  "graph_analyses": [
+    {
+      "execution": {
+        "execution_index": 0,
+        "neff_name": "c35f7627d1285deb5d13e4a2148529ba.neff",
+        "execution_start_ts": 0,
+        "execution_end_ts": 524307,
+        "num_subgraphs": 2,
+        "row_count": 81810,
+        "runtime_name": "model_default",
+        "nrt_sequence_id": 281474976710851,
+        "logical_cache_key": "428fbc1e395ae5a75ed6bf776c9a71c75cc401cc78cbffb8d50ba11fa159f800:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+        "enclosing_annotation": "native_dx/cached_product",
+        "device_wall_ms": 0.524307
+      },
+      "instruction_rows": 13908,
+      "counters": {
+        "spill_save_bytes": {
+          "nonnull_rows": 0,
+          "positive_rows": 0,
+          "sum": 0
+        },
+        "spill_reload_bytes": {
+          "nonnull_rows": 0,
+          "positive_rows": 0,
+          "sum": 0
+        },
+        "hbm_read_bytes": {
+          "nonnull_rows": 138,
+          "positive_rows": 138,
+          "sum": 71368704
+        },
+        "hbm_write_bytes": {
+          "nonnull_rows": 128,
+          "positive_rows": 128,
+          "sum": 67108864
+        },
+        "sbuf_read_bytes": {
+          "nonnull_rows": 12376,
+          "positive_rows": 12376,
+          "sum": 871104512
+        },
+        "sbuf_write_bytes": {
+          "nonnull_rows": 906,
+          "positive_rows": 906,
+          "sum": 205586432
+        }
+      },
+      "engine_activity": [
+        {
+          "pcore_idx": 0,
+          "engine": "gpsimd",
+          "instruction_rows": 118,
+          "active_ms": 0.108691
+        },
+        {
+          "pcore_idx": 0,
+          "engine": "scalar",
+          "instruction_rows": 22,
+          "active_ms": 0.006563
+        },
+        {
+          "pcore_idx": 0,
+          "engine": "sync",
+          "instruction_rows": 17,
+          "active_ms": 0.002474
+        },
+        {
+          "pcore_idx": 0,
+          "engine": "tensor",
+          "instruction_rows": 20,
+          "active_ms": 0.504808
+        },
+        {
+          "pcore_idx": 0,
+          "engine": "vector",
+          "instruction_rows": 265,
+          "active_ms": 0.251477
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "gpsimd",
+          "instruction_rows": 120,
+          "active_ms": 0.108926
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "scalar",
+          "instruction_rows": 23,
+          "active_ms": 0.006502
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "sync",
+          "instruction_rows": 17,
+          "active_ms": 0.002206
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "tensor",
+          "instruction_rows": 21,
+          "active_ms": 0.504589
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "vector",
+          "instruction_rows": 266,
+          "active_ms": 0.251555
+        }
+      ],
+      "regular_matmul_precision_by_core": [
+        {
+          "pcore_idx": 0,
+          "bf16_cost_multiplier": 1.0,
+          "raw_flops_sum": 34359738368,
+          "adjusted_flops_sum": 34359738368,
+          "start_ts_count": 2048
+        },
+        {
+          "pcore_idx": 1,
+          "bf16_cost_multiplier": 1.0,
+          "raw_flops_sum": 34359738368,
+          "adjusted_flops_sum": 34359738368,
+          "start_ts_count": 2048
+        }
+      ],
+      "fp32_matmul_sources": [],
+      "transpose": {
+        "instruction_rows": 4096,
+        "activity": [
+          {
+            "pcore_idx": 0,
+            "engine": "Tensor",
+            "instruction_rows": 2048,
+            "active_ms": 0.081923
+          },
+          {
+            "pcore_idx": 1,
+            "engine": "Tensor",
+            "instruction_rows": 2048,
+            "active_ms": 0.081927
+          }
+        ]
+      },
+      "private_transpose": {
+        "instruction_rows": 0,
+        "activity": []
+      },
+      "sampled_sbuf_peaks": [
+        {
+          "pcore_idx": 0,
+          "avg_util_percent_max": 0.0580793134868145,
+          "timestamp_count": 1712
+        },
+        {
+          "pcore_idx": 1,
+          "avg_util_percent_max": 0.0580793134868145,
+          "timestamp_count": 1712
+        }
+      ],
+      "source_families": {
+        "fp8_forward": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "fp8_surrogate": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "fp8_data_backward": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "fp8_gradient_prepare": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "fp8_weight_gradient": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "fp8_dual_weight_cache": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "bf16_mlp": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "softcap_ce": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "cached_head": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "cached_head_autograd": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "attention": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "functional": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "private_transpose": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        }
+      },
+      "top_source_groups": [
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave160/research/scratch/fp8_square_dx_profile.py:51",
+          "duration_ns_sum": 2438306,
+          "start_ts_count": 9000,
+          "spill_save_bytes_sum": null,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": 4194304,
+          "hbm_write_bytes_sum": 67108864,
+          "sbuf_read_bytes_sum": 736886784,
+          "sbuf_write_bytes_sum": 71303168,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "instruction_rows": 136,
+              "active_ms": 0.063159
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 6,
+              "active_ms": 0.002421
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 4079,
+              "active_ms": 0.464176
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "instruction_rows": 279,
+              "active_ms": 0.173969
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "instruction_rows": 136,
+              "active_ms": 0.063185
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 6,
+              "active_ms": 0.00242
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 4079,
+              "active_ms": 0.463883
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "instruction_rows": 279,
+              "active_ms": 0.174049
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-123-0",
+              "opcode": "DMA_DIRECT2D"
+            },
+            {
+              "bir_instruction_name": "I-123-1",
+              "opcode": "DMA_DIRECT2D"
+            },
+            {
+              "bir_instruction_name": "I-123-2",
+              "opcode": "DMA_DIRECT2D"
+            }
+          ]
+        },
+        {
+          "nki_source_location": null,
+          "duration_ns_sum": 2154701,
+          "start_ts_count": 4908,
+          "spill_save_bytes_sum": null,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": 67174400,
+          "hbm_write_bytes_sum": null,
+          "sbuf_read_bytes_sum": 134217728,
+          "sbuf_write_bytes_sum": 134283264,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "instruction_rows": 124,
+              "active_ms": 0.060361
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 29,
+              "active_ms": 0.053687
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Sync",
+              "instruction_rows": 22,
+              "active_ms": 0.522784
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 2096,
+              "active_ms": 0.095266
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "instruction_rows": 180,
+              "active_ms": 0.095883
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "instruction_rows": 126,
+              "active_ms": 0.060553
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 30,
+              "active_ms": 0.053621
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Sync",
+              "instruction_rows": 22,
+              "active_ms": 0.522723
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 2098,
+              "active_ms": 0.095112
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "instruction_rows": 181,
+              "active_ms": 0.09594
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "",
+              "opcode": "DRAIN"
+            },
+            {
+              "bir_instruction_name": "",
+              "opcode": "DRAIN"
+            },
+            {
+              "bir_instruction_name": "",
+              "opcode": "NOTIFY"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "execution": {
+        "execution_index": 1,
+        "neff_name": "56082c9be90e2aaa92b5082685852f5a.neff",
+        "execution_start_ts": 1445646,
+        "execution_end_ts": 2116038,
+        "num_subgraphs": 2,
+        "row_count": 112091,
+        "runtime_name": "model_default",
+        "nrt_sequence_id": 281474976710852,
+        "logical_cache_key": "aa5a998792f266d345c5e065b45eb0fc641d99e5a5607c7d147b80682efbc4da:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+        "enclosing_annotation": "fp8_dx/cached_product",
+        "device_wall_ms": 0.670392
+      },
+      "instruction_rows": 16801,
+      "counters": {
+        "spill_save_bytes": {
+          "nonnull_rows": 0,
+          "positive_rows": 0,
+          "sum": 0
+        },
+        "spill_reload_bytes": {
+          "nonnull_rows": 0,
+          "positive_rows": 0,
+          "sum": 0
+        },
+        "hbm_read_bytes": {
+          "nonnull_rows": 262,
+          "positive_rows": 262,
+          "sum": 69209088
+        },
+        "hbm_write_bytes": {
+          "nonnull_rows": 512,
+          "positive_rows": 512,
+          "sum": 67108864
+        },
+        "sbuf_read_bytes": {
+          "nonnull_rows": 12030,
+          "positive_rows": 12030,
+          "sum": 940343296
+        },
+        "sbuf_write_bytes": {
+          "nonnull_rows": 6154,
+          "positive_rows": 6154,
+          "sum": 472976384
+        }
+      },
+      "engine_activity": [
+        {
+          "pcore_idx": 0,
+          "engine": "gpsimd",
+          "instruction_rows": 404,
+          "active_ms": 0.259829
+        },
+        {
+          "pcore_idx": 0,
+          "engine": "scalar",
+          "instruction_rows": 83,
+          "active_ms": 0.634336
+        },
+        {
+          "pcore_idx": 0,
+          "engine": "sync",
+          "instruction_rows": 15,
+          "active_ms": 0.002698
+        },
+        {
+          "pcore_idx": 0,
+          "engine": "tensor",
+          "instruction_rows": 348,
+          "active_ms": 0.455135
+        },
+        {
+          "pcore_idx": 0,
+          "engine": "vector",
+          "instruction_rows": 419,
+          "active_ms": 0.576492
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "gpsimd",
+          "instruction_rows": 387,
+          "active_ms": 0.258244
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "scalar",
+          "instruction_rows": 93,
+          "active_ms": 0.634967
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "sync",
+          "instruction_rows": 23,
+          "active_ms": 0.003596
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "tensor",
+          "instruction_rows": 335,
+          "active_ms": 0.44622
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "vector",
+          "instruction_rows": 429,
+          "active_ms": 0.577078
+        }
+      ],
+      "regular_matmul_precision_by_core": [
+        {
+          "pcore_idx": 0,
+          "bf16_cost_multiplier": 0.5,
+          "raw_flops_sum": 34359738368,
+          "adjusted_flops_sum": 17179869184,
+          "start_ts_count": 1024
+        },
+        {
+          "pcore_idx": 1,
+          "bf16_cost_multiplier": 0.5,
+          "raw_flops_sum": 34359738368,
+          "adjusted_flops_sum": 17179869184,
+          "start_ts_count": 1024
+        }
+      ],
+      "fp32_matmul_sources": [],
+      "transpose": {
+        "instruction_rows": 4096,
+        "activity": [
+          {
+            "pcore_idx": 0,
+            "engine": "Tensor",
+            "instruction_rows": 2048,
+            "active_ms": 0.13742
+          },
+          {
+            "pcore_idx": 1,
+            "engine": "Tensor",
+            "instruction_rows": 2048,
+            "active_ms": 0.13715
+          }
+        ]
+      },
+      "private_transpose": {
+        "instruction_rows": 0,
+        "activity": []
+      },
+      "sampled_sbuf_peaks": [
+        {
+          "pcore_idx": 1,
+          "avg_util_percent_max": 0.085457943379879,
+          "timestamp_count": 5753
+        },
+        {
+          "pcore_idx": 0,
+          "avg_util_percent_max": 0.0854187086224556,
+          "timestamp_count": 5753
+        }
+      ],
+      "source_families": {
+        "fp8_forward": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "fp8_surrogate": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "fp8_data_backward": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "fp8_gradient_prepare": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "fp8_weight_gradient": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "fp8_dual_weight_cache": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "bf16_mlp": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "softcap_ce": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "cached_head": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "cached_head_autograd": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "attention": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "functional": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "private_transpose": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        }
+      },
+      "top_source_groups": [
+        {
+          "nki_source_location": null,
+          "duration_ns_sum": 1435340,
+          "start_ts_count": 295,
+          "spill_save_bytes_sum": null,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": null,
+          "hbm_write_bytes_sum": null,
+          "sbuf_read_bytes_sum": null,
+          "sbuf_write_bytes_sum": null,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "instruction_rows": 26,
+              "active_ms": 0.009174
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 25,
+              "active_ms": 0.012958
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Sync",
+              "instruction_rows": 20,
+              "active_ms": 0.669215
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 28,
+              "active_ms": 0.014716
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "instruction_rows": 26,
+              "active_ms": 0.013107
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "instruction_rows": 35,
+              "active_ms": 0.008832
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 34,
+              "active_ms": 0.012642
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Sync",
+              "instruction_rows": 29,
+              "active_ms": 0.667852
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 37,
+              "active_ms": 0.01425
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "instruction_rows": 35,
+              "active_ms": 0.012594
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "",
+              "opcode": "DRAIN"
+            },
+            {
+              "bir_instruction_name": "",
+              "opcode": "DRAIN"
+            },
+            {
+              "bir_instruction_name": "",
+              "opcode": "NOTIFY"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave160/research/scratch/fp8_gradient_gemm_nki.py:88",
+          "duration_ns_sum": 1326136,
+          "start_ts_count": 4418,
+          "spill_save_bytes_sum": null,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": null,
+          "hbm_write_bytes_sum": null,
+          "sbuf_read_bytes_sum": 335413248,
+          "sbuf_write_bytes_sum": null,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 2209,
+              "active_ms": 0.353985
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 2209,
+              "active_ms": 0.347968
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-31_inst__I-5-0-wait-0",
+              "opcode": "EVENT_SEMAPHORE"
+            },
+            {
+              "bir_instruction_name": "I-31_inst__I-5-0",
+              "opcode": "LDWEIGHTS"
+            },
+            {
+              "bir_instruction_name": "I-31_inst__I-5-0",
+              "opcode": "MATMUL"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave160/research/scratch/fp8_gradient_gemm_nki.py:80",
+          "duration_ns_sum": 715367,
+          "start_ts_count": 4104,
+          "spill_save_bytes_sum": null,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": null,
+          "hbm_write_bytes_sum": null,
+          "sbuf_read_bytes_sum": 67141632,
+          "sbuf_write_bytes_sum": 65536,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "instruction_rows": 2,
+              "active_ms": 0.00034
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 2049,
+              "active_ms": 0.137473
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "instruction_rows": 1,
+              "active_ms": 8.5e-05
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "instruction_rows": 2,
+              "active_ms": 0.000341
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 2049,
+              "active_ms": 0.137203
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "instruction_rows": 1,
+              "active_ms": 8.5e-05
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-0_inst__I-5-0-accel",
+              "opcode": "MEMSET"
+            },
+            {
+              "bir_instruction_name": "I-1_inst__I-5-0-register-move",
+              "opcode": "MOVE"
+            },
+            {
+              "bir_instruction_name": "I-1_inst__I-5-0",
+              "opcode": "TENSOR_SCALAR_AFFINE_SELECT"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave160/research/scratch/fp8_gradient_gemm_nki.py:82",
+          "duration_ns_sum": 578233,
+          "start_ts_count": 2062,
+          "spill_save_bytes_sum": null,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": null,
+          "hbm_write_bytes_sum": null,
+          "sbuf_read_bytes_sum": null,
+          "sbuf_write_bytes_sum": 33554432,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 272,
+              "active_ms": 0.055361
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "instruction_rows": 759,
+              "active_ms": 0.171311
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 272,
+              "active_ms": 0.054809
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "instruction_rows": 759,
+              "active_ms": 0.171625
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-16_inst__I-5-0",
+              "opcode": "COPY"
+            },
+            {
+              "bir_instruction_name": "I-18_inst__I-5-0",
+              "opcode": "COPY"
+            },
+            {
+              "bir_instruction_name": "I-20_inst__I-5-0",
+              "opcode": "COPY"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave160/research/scratch/fp8_gradient_gemm_nki.py:95",
+          "duration_ns_sum": 423030,
+          "start_ts_count": 554,
+          "spill_save_bytes_sum": null,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": null,
+          "hbm_write_bytes_sum": null,
+          "sbuf_read_bytes_sum": 134217728,
+          "sbuf_write_bytes_sum": 134217728,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 277,
+              "active_ms": 0.209384
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 277,
+              "active_ms": 0.208534
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-44_inst__I-5-0-act",
+              "opcode": "ACTIVATE"
+            },
+            {
+              "bir_instruction_name": "I-36_inst__I-5-0-act",
+              "opcode": "ACTIVATE"
+            },
+            {
+              "bir_instruction_name": "I-86_inst__I-5-0-act",
+              "opcode": "ACTIVATE"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave160/research/scratch/fp8_gradient_gemm_nki.py:94",
+          "duration_ns_sum": 414629,
+          "start_ts_count": 866,
+          "spill_save_bytes_sum": null,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": null,
+          "hbm_write_bytes_sum": null,
+          "sbuf_read_bytes_sum": null,
+          "sbuf_write_bytes_sum": 134217728,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 433,
+              "active_ms": 0.19397
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 433,
+              "active_ms": 0.19455
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-35_inst__I-5-0-act-wait-0",
+              "opcode": "EVENT_SEMAPHORE"
+            },
+            {
+              "bir_instruction_name": "I-35_inst__I-5-0-act",
+              "opcode": "ACTIVATE"
+            },
+            {
+              "bir_instruction_name": "I-43_inst__I-5-0-act",
+              "opcode": "ACTIVATE"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave160/research/scratch/fp8_gradient_gemm_nki.py:97",
+          "duration_ns_sum": 355417,
+          "start_ts_count": 970,
+          "spill_save_bytes_sum": null,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": null,
+          "hbm_write_bytes_sum": 67108864,
+          "sbuf_read_bytes_sum": 67108864,
+          "sbuf_write_bytes_sum": null,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "instruction_rows": 485,
+              "active_ms": 0.17616
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "instruction_rows": 485,
+              "active_ms": 0.174992
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-38_inst__I-5-0",
+              "opcode": "DMA_DIRECT2D"
+            },
+            {
+              "bir_instruction_name": "I-88_inst__I-5-0-wait-0",
+              "opcode": "EVENT_SEMAPHORE"
+            },
+            {
+              "bir_instruction_name": "I-46_inst__I-5-0",
+              "opcode": "DMA_DIRECT2D"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave160/research/scratch/fp8_gradient_gemm_nki.py:76",
+          "duration_ns_sum": 319541,
+          "start_ts_count": 262,
+          "spill_save_bytes_sum": null,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": null,
+          "hbm_write_bytes_sum": null,
+          "sbuf_read_bytes_sum": 67108864,
+          "sbuf_write_bytes_sum": 33554432,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 131,
+              "active_ms": 0.159874
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 131,
+              "active_ms": 0.159667
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-14_inst__I-5-0-act",
+              "opcode": "ACTIVATE"
+            },
+            {
+              "bir_instruction_name": "I-56_inst__I-5-0-act",
+              "opcode": "ACTIVATE"
+            },
+            {
+              "bir_instruction_name": "I-98_inst__I-5-0-act",
+              "opcode": "ACTIVATE"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave160/research/scratch/fp8_gradient_gemm_nki.py:66",
+          "duration_ns_sum": 314571,
+          "start_ts_count": 450,
+          "spill_save_bytes_sum": null,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": null,
+          "hbm_write_bytes_sum": null,
+          "sbuf_read_bytes_sum": 67108864,
+          "sbuf_write_bytes_sum": 131072,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "instruction_rows": 225,
+              "active_ms": 0.157206
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "instruction_rows": 225,
+              "active_ms": 0.157205
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-7_inst__I-5-0",
+              "opcode": "TENSOR_REDUCE"
+            },
+            {
+              "bir_instruction_name": "I-49_inst__I-5-0",
+              "opcode": "TENSOR_REDUCE"
+            },
+            {
+              "bir_instruction_name": "I-91_inst__I-5-0",
+              "opcode": "TENSOR_REDUCE"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave160/research/scratch/fp8_gradient_gemm_nki.py:65",
+          "duration_ns_sum": 309488,
+          "start_ts_count": 256,
+          "spill_save_bytes_sum": null,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": null,
+          "hbm_write_bytes_sum": null,
+          "sbuf_read_bytes_sum": 67108864,
+          "sbuf_write_bytes_sum": 131072,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "instruction_rows": 128,
+              "active_ms": 0.154744
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "instruction_rows": 128,
+              "active_ms": 0.154744
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-6_inst__I-5-0",
+              "opcode": "TENSOR_REDUCE"
+            },
+            {
+              "bir_instruction_name": "I-48_inst__I-5-0",
+              "opcode": "TENSOR_REDUCE"
+            },
+            {
+              "bir_instruction_name": "I-90_inst__I-5-0",
+              "opcode": "TENSOR_REDUCE"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave160/research/scratch/fp8_gradient_gemm_nki.py:96",
+          "duration_ns_sum": 248483,
+          "start_ts_count": 538,
+          "spill_save_bytes_sum": null,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": null,
+          "hbm_write_bytes_sum": null,
+          "sbuf_read_bytes_sum": 134217728,
+          "sbuf_write_bytes_sum": 67108864,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 73,
+              "active_ms": 0.044926
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "instruction_rows": 196,
+              "active_ms": 0.078224
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 73,
+              "active_ms": 0.044644
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "instruction_rows": 196,
+              "active_ms": 0.07801
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-37_inst__I-5-0",
+              "opcode": "CAST"
+            },
+            {
+              "bir_instruction_name": "I-45_inst__I-5-0-tc-dve",
+              "opcode": "CAST"
+            },
+            {
+              "bir_instruction_name": "I-87_inst__I-5-0-tc-dve",
+              "opcode": "CAST"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave160/research/scratch/fp8_gradient_gemm_nki.py:64",
+          "duration_ns_sum": 167227,
+          "start_ts_count": 256,
+          "spill_save_bytes_sum": null,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": 67108864,
+          "hbm_write_bytes_sum": null,
+          "sbuf_read_bytes_sum": null,
+          "sbuf_write_bytes_sum": 67108864,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "instruction_rows": 128,
+              "active_ms": 0.083889
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "instruction_rows": 128,
+              "active_ms": 0.08323
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-5_inst__I-5-0",
+              "opcode": "DMA_DIRECT2D"
+            },
+            {
+              "bir_instruction_name": "I-47_inst__I-5-0",
+              "opcode": "DMA_DIRECT2D"
+            },
+            {
+              "bir_instruction_name": "I-89_inst__I-5-0",
+              "opcode": "DMA_DIRECT2D"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave160/research/scratch/fp8_gradient_gemm_nki.py:67",
+          "duration_ns_sum": 80788,
+          "start_ts_count": 258,
+          "spill_save_bytes_sum": null,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": null,
+          "hbm_write_bytes_sum": null,
+          "sbuf_read_bytes_sum": 131072,
+          "sbuf_write_bytes_sum": 131072,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 129,
+              "active_ms": 0.040502
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 129,
+              "active_ms": 0.040286
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-8_inst__I-5-0-act-PWP",
+              "opcode": "ACT_TABLE_LOAD"
+            },
+            {
+              "bir_instruction_name": "I-8_inst__I-5-0-act",
+              "opcode": "ACTIVATE"
+            },
+            {
+              "bir_instruction_name": "I-50_inst__I-5-0-act",
+              "opcode": "ACTIVATE"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave160/research/scratch/fp8_gradient_gemm_nki.py:72",
+          "duration_ns_sum": 78673,
+          "start_ts_count": 256,
+          "spill_save_bytes_sum": null,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": null,
+          "hbm_write_bytes_sum": null,
+          "sbuf_read_bytes_sum": 131072,
+          "sbuf_write_bytes_sum": 131072,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 128,
+              "active_ms": 0.039465
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 128,
+              "active_ms": 0.039208
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-12_inst__I-5-0-act",
+              "opcode": "ACTIVATE"
+            },
+            {
+              "bir_instruction_name": "I-54_inst__I-5-0-act",
+              "opcode": "ACTIVATE"
+            },
+            {
+              "bir_instruction_name": "I-96_inst__I-5-0-act",
+              "opcode": "ACTIVATE"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave160/research/scratch/fp8_gradient_gemm_nki.py:68",
+          "duration_ns_sum": 44206,
+          "start_ts_count": 480,
+          "spill_save_bytes_sum": null,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": null,
+          "hbm_write_bytes_sum": null,
+          "sbuf_read_bytes_sum": 262144,
+          "sbuf_write_bytes_sum": 131072,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "instruction_rows": 240,
+              "active_ms": 0.022136
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "instruction_rows": 240,
+              "active_ms": 0.02207
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-9_inst__I-5-0-wait-0",
+              "opcode": "EVENT_SEMAPHORE"
+            },
+            {
+              "bir_instruction_name": "I-9_inst__I-5-0",
+              "opcode": "TENSOR_TENSOR"
+            },
+            {
+              "bir_instruction_name": "I-51_inst__I-5-0-wait-0",
+              "opcode": "EVENT_SEMAPHORE"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave160/research/scratch/fp8_gradient_gemm_nki.py:69",
+          "duration_ns_sum": 39403,
+          "start_ts_count": 258,
+          "spill_save_bytes_sum": null,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": null,
+          "hbm_write_bytes_sum": null,
+          "sbuf_read_bytes_sum": 131072,
+          "sbuf_write_bytes_sum": 131072,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "instruction_rows": 129,
+              "active_ms": 0.019699
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "instruction_rows": 129,
+              "active_ms": 0.019704
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-10_inst__I-5-0",
+              "opcode": "TENSOR_SCALAR"
+            },
+            {
+              "bir_instruction_name": "I-52_inst__I-5-0",
+              "opcode": "TENSOR_SCALAR"
+            },
+            {
+              "bir_instruction_name": "I-94_inst__I-5-0",
+              "opcode": "TENSOR_SCALAR"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave160/research/scratch/fp8_gradient_gemm_nki.py:70",
+          "duration_ns_sum": 39113,
+          "start_ts_count": 256,
+          "spill_save_bytes_sum": null,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": null,
+          "hbm_write_bytes_sum": null,
+          "sbuf_read_bytes_sum": 131072,
+          "sbuf_write_bytes_sum": 131072,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "instruction_rows": 128,
+              "active_ms": 0.019562
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "instruction_rows": 128,
+              "active_ms": 0.019551
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-11_inst__I-5-0",
+              "opcode": "TENSOR_SCALAR"
+            },
+            {
+              "bir_instruction_name": "I-53_inst__I-5-0",
+              "opcode": "TENSOR_SCALAR"
+            },
+            {
+              "bir_instruction_name": "I-95_inst__I-5-0",
+              "opcode": "TENSOR_SCALAR"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave160/research/scratch/fp8_gradient_gemm_nki.py:74",
+          "duration_ns_sum": 36820,
+          "start_ts_count": 256,
+          "spill_save_bytes_sum": null,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": null,
+          "hbm_write_bytes_sum": null,
+          "sbuf_read_bytes_sum": 131072,
+          "sbuf_write_bytes_sum": 131072,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "instruction_rows": 128,
+              "active_ms": 0.015865
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "instruction_rows": 128,
+              "active_ms": 0.015874
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-13_inst__I-5-0",
+              "opcode": "TENSOR_SCALAR"
+            },
+            {
+              "bir_instruction_name": "I-55_inst__I-5-0",
+              "opcode": "TENSOR_SCALAR"
+            },
+            {
+              "bir_instruction_name": "I-97_inst__I-5-0",
+              "opcode": "TENSOR_SCALAR"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave160/research/scratch/fp8_gradient_gemm_nki.py:51",
+          "duration_ns_sum": 2600,
+          "start_ts_count": 4,
+          "spill_save_bytes_sum": null,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": 2097152,
+          "hbm_write_bytes_sum": null,
+          "sbuf_read_bytes_sum": null,
+          "sbuf_write_bytes_sum": 2097152,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "instruction_rows": 2,
+              "active_ms": 0.001296
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "instruction_rows": 2,
+              "active_ms": 0.001297
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-2_inst__I-5-0",
+              "opcode": "DMA_DIRECT2D"
+            },
+            {
+              "bir_instruction_name": "I-3_inst__I-5-0",
+              "opcode": "DMA_DIRECT2D"
+            },
+            {
+              "bir_instruction_name": "I-2_inst__I-5-0",
+              "opcode": "DMA_DIRECT2D"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave160/research/scratch/fp8_gradient_gemm_nki.py:53",
+          "duration_ns_sum": 1310,
+          "start_ts_count": 2,
+          "spill_save_bytes_sum": null,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": 3072,
+          "hbm_write_bytes_sum": null,
+          "sbuf_read_bytes_sum": null,
+          "sbuf_write_bytes_sum": 3072,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "instruction_rows": 1,
+              "active_ms": 0.000653
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "instruction_rows": 1,
+              "active_ms": 0.000657
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-4_inst__I-5-0",
+              "opcode": "DMA_DIRECT2D"
+            },
+            {
+              "bir_instruction_name": "I-4_inst__I-5-0",
+              "opcode": "DMA_DIRECT2D"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "explicitly_matched_auxiliary_executions": [],
+  "total_device_executions_accounted_for": 2,
+  "warnings": [
+    {
+      "message": "Missing additional dynamic DMA metadata, reported DMA values may be inaccurate. To enable more accurate DMA data, re-capture with --enable-dge-notifs flag or set NEURON_RT_ENABLE_DGE_NOTIFICATIONS=1 before running. Note: DGE notifications are disabled by default as they can cause execution timeouts on some models.",
+      "category": "Missing Data"
+    },
+    {
+      "message": "Current NEFF is missing compiler metrics. Please re-compile using latest version of the compiler",
+      "category": "Missing Data"
+    },
+    {
+      "message": "Missing HLO stats in the NEFF, `model_flops` and `mfu_hlo_estimated_percent` summary metrics will not be available. Consider the metrics (hardware_flops - transpose_flops) and mfu_inst_estimated_percent instead.",
+      "category": "Missing Data"
+    }
+  ],
+  "metric_schema": [
+    {
+      "table_name": "SbufUsage",
+      "table_description": "State Buffer (SB) memory partition utilization metrics during execution.",
+      "field_name": "timestamp",
+      "field_description": "Timestamp for this usage measurement.",
+      "field_example": null,
+      "field_type": "integer",
+      "field_required": true,
+      "field_format": "int64",
+      "field_unit": "nanoseconds",
+      "field_minimum": 0.0,
+      "field_maximum": null,
+      "field_enum_values": null
+    },
+    {
+      "table_name": "SbufUsage",
+      "table_description": "State Buffer (SB) memory partition utilization metrics during execution.",
+      "field_name": "avg_util_percent",
+      "field_description": "Average utilization across all State Buffer partitions.",
+      "field_example": null,
+      "field_type": "number",
+      "field_required": false,
+      "field_format": "float",
+      "field_unit": "percent",
+      "field_minimum": 0.0,
+      "field_maximum": 1.0,
+      "field_enum_values": null
+    },
+    {
+      "table_name": "SbufUsage",
+      "table_description": "State Buffer (SB) memory partition utilization metrics during execution.",
+      "field_name": "partition_0_util_percent",
+      "field_description": "Fullness percentage of State Buffer partition 0.",
+      "field_example": null,
+      "field_type": "number",
+      "field_required": false,
+      "field_format": "float",
+      "field_unit": "percent",
+      "field_minimum": 0.0,
+      "field_maximum": 1.0,
+      "field_enum_values": null
+    },
+    {
+      "table_name": "SbufUsage",
+      "table_description": "State Buffer (SB) memory partition utilization metrics during execution.",
+      "field_name": "partition_32_util_percent",
+      "field_description": "Fullness percentage of State Buffer partition 32.",
+      "field_example": null,
+      "field_type": "number",
+      "field_required": false,
+      "field_format": "float",
+      "field_unit": "percent",
+      "field_minimum": 0.0,
+      "field_maximum": 1.0,
+      "field_enum_values": null
+    },
+    {
+      "table_name": "SbufUsage",
+      "table_description": "State Buffer (SB) memory partition utilization metrics during execution.",
+      "field_name": "partition_64_util_percent",
+      "field_description": "Fullness percentage of State Buffer partition 64.",
+      "field_example": null,
+      "field_type": "number",
+      "field_required": false,
+      "field_format": "float",
+      "field_unit": "percent",
+      "field_minimum": 0.0,
+      "field_maximum": 1.0,
+      "field_enum_values": null
+    },
+    {
+      "table_name": "SbufUsage",
+      "table_description": "State Buffer (SB) memory partition utilization metrics during execution.",
+      "field_name": "partition_96_util_percent",
+      "field_description": "Fullness percentage of State Buffer partition 96.",
+      "field_example": null,
+      "field_type": "number",
+      "field_required": false,
+      "field_format": "float",
+      "field_unit": "percent",
+      "field_minimum": 0.0,
+      "field_maximum": 1.0,
+      "field_enum_values": null
+    },
+    {
+      "table_name": "SbufUsage",
+      "table_description": "State Buffer (SB) memory partition utilization metrics during execution.",
+      "field_name": "pcore_idx",
+      "field_description": "Index of the physical NeuronCore within a Logical NeuronCore (LNC). A Logical NeuronCore is a group of physical NeuronCores. For LNC2 this field can have a value of either 0 or 1.",
+      "field_example": null,
+      "field_type": "integer",
+      "field_required": false,
+      "field_format": "int64",
+      "field_unit": null,
+      "field_minimum": 0.0,
+      "field_maximum": null,
+      "field_enum_values": null
+    },
+    {
+      "table_name": "Instruction",
+      "table_description": "Instructions executed on NeuronCore compute engines.",
+      "field_name": "adjusted_flops",
+      "field_description": "BF16-equivalent FLOPs for this instruction. Scales FLOPs to the BF16 throughput equivalent so the result can be used with BF16 peak throughput as the denominator for PE utilization calculations. BF16, FP16, and TF32 use a 1.0x multiplier. FP32 uses 4.0x. On Trn2/Trn3, FP8@FP8 and UINT8@UINT8 matmuls use 0.5x; FP8 or UINT8 mixed with a higher-precision operand uses 1.0x (executes at BF16 throughput). FP8 uses 1.0x on Trn1/Inf2. MXFP8 and MXFP4 use 0.25x on Trn3.\n",
+      "field_example": null,
+      "field_type": "integer",
+      "field_required": false,
+      "field_format": "int64",
+      "field_unit": null,
+      "field_minimum": 0.0,
+      "field_maximum": null,
+      "field_enum_values": null
+    },
+    {
+      "table_name": "Instruction",
+      "table_description": "Instructions executed on NeuronCore compute engines.",
+      "field_name": "sbuf_read_bytes",
+      "field_description": "Number of bytes read from SBUF by this instruction.",
+      "field_example": null,
+      "field_type": "integer",
+      "field_required": false,
+      "field_format": "int64",
+      "field_unit": null,
+      "field_minimum": 0.0,
+      "field_maximum": null,
+      "field_enum_values": null
+    },
+    {
+      "table_name": "Instruction",
+      "table_description": "Instructions executed on NeuronCore compute engines.",
+      "field_name": "spill_reload_bytes",
+      "field_description": "Number of bytes loaded from HBM to SBUF by this instruction due to spill (lack of space in SBUF).",
+      "field_example": null,
+      "field_type": "integer",
+      "field_required": false,
+      "field_format": "int64",
+      "field_unit": null,
+      "field_minimum": 0.0,
+      "field_maximum": null,
+      "field_enum_values": null
+    },
+    {
+      "table_name": "Instruction",
+      "table_description": "Instructions executed on NeuronCore compute engines.",
+      "field_name": "raw_flops",
+      "field_description": "Number of floating-point operations (FLOPs) performed by this instruction. Each MAC (multiply-accumulate) operation counts as 2 FLOPs (one multiply, one add). Note that as each FP32 matmul lowers to two FP32_LO_HI instructions, each FP32_LO_HI matmul records half the logical FLOPs.\n",
+      "field_example": null,
+      "field_type": "integer",
+      "field_required": false,
+      "field_format": "int64",
+      "field_unit": null,
+      "field_minimum": 0.0,
+      "field_maximum": null,
+      "field_enum_values": null
+    },
+    {
+      "table_name": "Instruction",
+      "table_description": "Instructions executed on NeuronCore compute engines.",
+      "field_name": "hbm_write_bytes",
+      "field_description": "Number of bytes written to HBM by this instruction.",
+      "field_example": null,
+      "field_type": "integer",
+      "field_required": false,
+      "field_format": "int64",
+      "field_unit": null,
+      "field_minimum": 0.0,
+      "field_maximum": null,
+      "field_enum_values": null
+    },
+    {
+      "table_name": "Instruction",
+      "table_description": "Instructions executed on NeuronCore compute engines.",
+      "field_name": "sbuf_write_bytes",
+      "field_description": "Number of bytes written to SBUF by this instruction.",
+      "field_example": null,
+      "field_type": "integer",
+      "field_required": false,
+      "field_format": "int64",
+      "field_unit": null,
+      "field_minimum": 0.0,
+      "field_maximum": null,
+      "field_enum_values": null
+    },
+    {
+      "table_name": "Instruction",
+      "table_description": "Instructions executed on NeuronCore compute engines.",
+      "field_name": "spill_save_bytes",
+      "field_description": "Number of bytes saved to HBM from SBUF by this instruction due to spill (lack of space in SBUF).",
+      "field_example": null,
+      "field_type": "integer",
+      "field_required": false,
+      "field_format": "int64",
+      "field_unit": null,
+      "field_minimum": 0.0,
+      "field_maximum": null,
+      "field_enum_values": null
+    },
+    {
+      "table_name": "Instruction",
+      "table_description": "Instructions executed on NeuronCore compute engines.",
+      "field_name": "hbm_read_bytes",
+      "field_description": "Number of bytes read from HBM by this instruction.",
+      "field_example": null,
+      "field_type": "integer",
+      "field_required": false,
+      "field_format": "int64",
+      "field_unit": null,
+      "field_minimum": 0.0,
+      "field_maximum": null,
+      "field_enum_values": null
+    },
+    {
+      "table_name": "Instruction",
+      "table_description": "Instructions executed on NeuronCore compute engines.",
+      "field_name": "tensor_instruction_type",
+      "field_description": "Instruction type name from the debug info.",
+      "field_example": "[REGULAR TRANSPOSE]",
+      "field_type": "string",
+      "field_required": false,
+      "field_format": null,
+      "field_unit": null,
+      "field_minimum": null,
+      "field_maximum": null,
+      "field_enum_values": null
+    }
+  ],
+  "caveats": [
+    "Use unprofiled same-host phase runs for speed; traces are attribution.",
+    "Runtime API durations contain asynchronous queueing and overlap.",
+    "Source/engine activity unions overlap and are not additive wall-time shares.",
+    "Dropped EVENT/DMA warnings can mean missing instructions or inaccurate counters; absence is not proof of no work.",
+    "Missing dynamic DMA metadata prevents exact traffic or bandwidth claims.",
+    "Sampled SBUF utilization is not a complete allocator/live-memory proof.",
+    "BF16-cost multipliers follow the installed Explorer schema, not assumed FLOP peaks."
+  ],
+  "sha256": {
+    "out/fresh-start-profiles/fs-w160-fp8-square-dx-remote-ingest-r1-parquet/i-0329acb9a6244986b_pid_1600997_nc_0_session_0/ExecutionInfo.parquet": "6150b2ef2fdb1b2e115315beca9f67a80acaf7e1d9a049636c6522998ea7cbf2",
+    "out/fresh-start-profiles/fs-w160-fp8-square-dx-remote-ingest-r1-parquet/i-0329acb9a6244986b_pid_1600997_nc_0_session_0/Instruction.parquet": "f2b1b9bfdb68ea7ce00291bd662beb7c18fe995ac7ce0e9d9392afa5499f5b25",
+    "out/fresh-start-profiles/fs-w160-fp8-square-dx-remote-ingest-r1-parquet/i-0329acb9a6244986b_pid_1600997_nc_0_session_0/ActiveTime.parquet": "ff0771eade7c022e4ae9b9233695a74e1e6ec6527dba58ba97d359ee76a1de66",
+    "out/fresh-start-profiles/fs-w160-fp8-square-dx-remote-ingest-r1-parquet/i-0329acb9a6244986b_pid_1600997_nc_0_session_0/SbufUsage.parquet": "329f0145e33d3b95954e7552a87861ed0b9c52bee08a27fad412b2d0d3ca4c43",
+    "out/fresh-start-profiles/fs-w160-fp8-square-dx-remote-ingest-r1-parquet/i-0329acb9a6244986b_pid_1600997_nc_0_session_0/Warning.parquet": "b733a13aa428c4ecb39a1937a19e1731abea775994a9c8cf48309beef61c2aac",
+    "out/fresh-start-profiles/fs-w160-fp8-square-dx-remote-ingest-r1-parquet/i-0329acb9a6244986b_pid_1600997_nc_0_session_0/SchemaFields.parquet": "38c98fe7e679817094c872336a4844e7f939f56db99de491b358ff9fa3c6a39a",
+    "out/fresh-start-profiles/fs-w160-fp8-square-dx-profile-r1/i-0329acb9a6244986b_pid_1600997/1789866844695909380/trace.json": "b31ab7f898fbc11f4582934423338dcb829e395c1a76466953468ae48a7cb8c2",
+    "out/fresh-start-profiles/fs-w160-fp8-square-dx-profile-r1/neffs/manifest.json": "6f1385d14da56e03a9afa338a9880288e5f358dc8e2c72770b9953b2c51bd535"
+  }
+}

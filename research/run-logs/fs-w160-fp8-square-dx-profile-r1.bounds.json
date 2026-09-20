@@ -1,0 +1,194 @@
+{
+  "source": "fs-w160-fp8-square-dx-profile-r1.analysis.json",
+  "per_core_bf16_peak_flops": 78643203125000.0,
+  "per_core_dma_peak_bytes_s": 434999984128.0,
+  "results": [
+    {
+      "phase": "native_dx/cached_product",
+      "core": 0,
+      "bounds": {
+        "observed_device_ms": 0.524307,
+        "compute_ms": 0.504808,
+        "compute_ideal_ms": 0.49151998046875073,
+        "compute_ideal_useful_ms": 0.4369066493055562,
+        "memory_ms_provisional": 0.239018,
+        "memory_ideal_ms_provisional": 0.1591696241984834,
+        "memory_ideal_logical_no_reloads_ms": 0.15909429546010265,
+        "perfect_engine_overlap_ms_provisional": 0.504808
+      },
+      "gaps_ms": {
+        "compute_idle": 0.019498999999999933,
+        "tensor_efficiency": 0.013288019531249307,
+        "transpose_floor": 0.0546133311631945,
+        "memory_idle_provisional": 0.28528899999999996,
+        "dma_efficiency_provisional": 0.0798483758015166,
+        "dma_excess_traffic_provisional": 7.532873838075882e-05,
+        "serialization_provisional": 0.019498999999999933
+      },
+      "gaps_fraction_of_observed": {
+        "compute_idle": 0.03719004323802645,
+        "tensor_efficiency": 0.025343967429863244,
+        "transpose_floor": 0.10416288770356777,
+        "memory_idle_provisional": 0.5441258651896693,
+        "dma_efficiency_provisional": 0.15229317137004963,
+        "dma_excess_traffic_provisional": 0.00014367295950799594,
+        "serialization_provisional": 0.03719004323802645
+      },
+      "engine_ms": {
+        "gpsimd": 0.108691,
+        "scalar": 0.006563,
+        "tensor": 0.504808,
+        "vector": 0.251477
+      },
+      "matmul_adjusted_flops": 38654705664,
+      "transpose_adjusted_flops": 4294967296,
+      "reported_dma_bytes_provisional": 69238784,
+      "logical_necessary_bytes": 69206016
+    },
+    {
+      "phase": "native_dx/cached_product",
+      "core": 1,
+      "bounds": {
+        "observed_device_ms": 0.524307,
+        "compute_ms": 0.504589,
+        "compute_ideal_ms": 0.49151998046875073,
+        "compute_ideal_useful_ms": 0.4369066493055562,
+        "memory_ms_provisional": 0.248867,
+        "memory_ideal_ms_provisional": 0.1591696241984834,
+        "memory_ideal_logical_no_reloads_ms": 0.15909429546010265,
+        "perfect_engine_overlap_ms_provisional": 0.504589
+      },
+      "gaps_ms": {
+        "compute_idle": 0.019718000000000013,
+        "tensor_efficiency": 0.013069019531249226,
+        "transpose_floor": 0.0546133311631945,
+        "memory_idle_provisional": 0.27543999999999996,
+        "dma_efficiency_provisional": 0.0896973758015166,
+        "dma_excess_traffic_provisional": 7.532873838075882e-05,
+        "serialization_provisional": 0.019718000000000013
+      },
+      "gaps_fraction_of_observed": {
+        "compute_idle": 0.03760773745153129,
+        "tensor_efficiency": 0.024926273216358406,
+        "transpose_floor": 0.10416288770356777,
+        "memory_idle_provisional": 0.5253410692590409,
+        "dma_efficiency_provisional": 0.17107796730067804,
+        "dma_excess_traffic_provisional": 0.00014367295950799594,
+        "serialization_provisional": 0.03760773745153129
+      },
+      "engine_ms": {
+        "gpsimd": 0.108926,
+        "scalar": 0.006502,
+        "tensor": 0.504589,
+        "vector": 0.251555
+      },
+      "matmul_adjusted_flops": 38654705664,
+      "transpose_adjusted_flops": 4294967296,
+      "reported_dma_bytes_provisional": 69238784,
+      "logical_necessary_bytes": 69206016
+    },
+    {
+      "phase": "fp8_dx/cached_product",
+      "core": 0,
+      "bounds": {
+        "observed_device_ms": 0.670392,
+        "compute_ms": 0.455135,
+        "compute_ideal_ms": 0.24575999023437536,
+        "compute_ideal_useful_ms": 0.2184533246527781,
+        "memory_ms_provisional": 0.287497,
+        "memory_ideal_ms_provisional": 0.15668730686653087,
+        "memory_ideal_logical_no_reloads_ms": 0.15668730686653087,
+        "perfect_engine_overlap_ms_provisional": 0.634336
+      },
+      "gaps_ms": {
+        "compute_idle": 0.21525699999999998,
+        "tensor_efficiency": 0.20937500976562465,
+        "transpose_floor": 0.02730666558159725,
+        "memory_idle_provisional": 0.382895,
+        "dma_efficiency_provisional": 0.13080969313346913,
+        "dma_excess_traffic_provisional": 0.0,
+        "serialization_provisional": 0.03605599999999998
+      },
+      "gaps_fraction_of_observed": {
+        "compute_idle": 0.32109124213892765,
+        "tensor_efficiency": 0.3123172856561902,
+        "transpose_floor": 0.04073238580054245,
+        "memory_idle_provisional": 0.5711509087220611,
+        "dma_efficiency_provisional": 0.1951241857502314,
+        "dma_excess_traffic_provisional": 0.0,
+        "serialization_provisional": 0.05378345803649205
+      },
+      "engine_ms": {
+        "gpsimd": 0.259829,
+        "scalar": 0.634336,
+        "tensor": 0.455135,
+        "vector": 0.576492
+      },
+      "matmul_adjusted_flops": 19327352832,
+      "transpose_adjusted_flops": 2147483648,
+      "reported_dma_bytes_provisional": 68158976,
+      "logical_necessary_bytes": 68158976
+    },
+    {
+      "phase": "fp8_dx/cached_product",
+      "core": 1,
+      "bounds": {
+        "observed_device_ms": 0.670392,
+        "compute_ms": 0.44622,
+        "compute_ideal_ms": 0.24575999023437536,
+        "compute_ideal_useful_ms": 0.2184533246527781,
+        "memory_ms_provisional": 0.304652,
+        "memory_ideal_ms_provisional": 0.15668730686653087,
+        "memory_ideal_logical_no_reloads_ms": 0.15668730686653087,
+        "perfect_engine_overlap_ms_provisional": 0.634967
+      },
+      "gaps_ms": {
+        "compute_idle": 0.22417199999999998,
+        "tensor_efficiency": 0.20046000976562464,
+        "transpose_floor": 0.02730666558159725,
+        "memory_idle_provisional": 0.36574,
+        "dma_efficiency_provisional": 0.1479646931334691,
+        "dma_excess_traffic_provisional": 0.0,
+        "serialization_provisional": 0.03542500000000004
+      },
+      "gaps_fraction_of_observed": {
+        "compute_idle": 0.33438943185479536,
+        "tensor_efficiency": 0.29901909594032244,
+        "transpose_floor": 0.04073238580054245,
+        "memory_idle_provisional": 0.5455614028807027,
+        "dma_efficiency_provisional": 0.22071369159158985,
+        "dma_excess_traffic_provisional": 0.0,
+        "serialization_provisional": 0.05284221768756196
+      },
+      "engine_ms": {
+        "gpsimd": 0.258244,
+        "scalar": 0.634967,
+        "tensor": 0.44622,
+        "vector": 0.577078
+      },
+      "matmul_adjusted_flops": 19327352832,
+      "transpose_adjusted_flops": 2147483648,
+      "reported_dma_bytes_provisional": 68158976,
+      "logical_necessary_bytes": 68158976
+    }
+  ],
+  "warnings": [
+    {
+      "message": "Missing additional dynamic DMA metadata, reported DMA values may be inaccurate. To enable more accurate DMA data, re-capture with --enable-dge-notifs flag or set NEURON_RT_ENABLE_DGE_NOTIFICATIONS=1 before running. Note: DGE notifications are disabled by default as they can cause execution timeouts on some models.",
+      "category": "Missing Data"
+    },
+    {
+      "message": "Current NEFF is missing compiler metrics. Please re-compile using latest version of the compiler",
+      "category": "Missing Data"
+    },
+    {
+      "message": "Missing HLO stats in the NEFF, `model_flops` and `mfu_hlo_estimated_percent` summary metrics will not be available. Consider the metrics (hardware_flops - transpose_flops) and mfu_inst_estimated_percent instead.",
+      "category": "Missing Data"
+    }
+  ],
+  "memory_and_pipeline_bounds_provisional_due_to_missing_dynamic_dma": true,
+  "necessary_bytes_from_actual_shape_and_token_split": true,
+  "all_runtime_dispatches_matched": true,
+  "unprofiled_speed_authority": "fs-w160-fp8-square-dx-profile-r1.log",
+  "whole_model_or_quality_claim": false
+}
