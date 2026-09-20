@@ -315,3 +315,26 @@ The verified checkpoint retirement freed1,879,330,816B and left11.350GB free.
 All four local/cloud full checkpoint copies remain, including current best and
 cold replay; only selected old EC2 losing copies were unlinked. The earlier
 empty-profile failure is preserved as a failure and caused no deletion.
+
+### 05:05 UTC: saved-layout stores need coalescing
+
+Source172's direct HxT store passes numerical checks through production full
+FP64 gradients, but the2048x1024 complete component took94.988537ms versus
+1.107599ms native. The strided destination is mathematically correct and
+extremely inefficient. Production timing is still running; no promotion.
+Next source173 uses128x128 TensorEngine transposes and contiguous HxT stores.
+It explicitly reserves32KiB SBUF below the library allocator's lower bound;
+there is no untracked temporary allowed to overlap its manual scratch space.
+The current projection's PSUM bank is reused only after ReLU eviction. All
+upstream source stays byte-identical and all8 original numerical cases run.
+The prepared integration hooks follow the new store implementation only after
+its gate passes. This is an implementation hypothesis, not a speed claim.
+
+Additional library lead: STATIC and ROW quantization are explicitly Trn2 FP8
+paths in common_types.py and mlp_cte_basic_projection.py. The latter has
+separate double-row up/down implementations. This is different from the MX
+Trn3 path; revisit its tiling only after the BF16 saved-layout investigation.
+The fresh baseline phase breakdown is dominated by the training microstep:
+433.109ms of488.734ms mean total. Sync gradients16.549ms, optimizer26.465ms,
+weight caches2.871ms. These source165 numbers argue for continuing forward/
+backward fusion instead of assuming communication is the main bottleneck.
