@@ -1,0 +1,69 @@
+{
+  "label": "fs-w179-nkilib-row-quantization-sequence-r1",
+  "max_seconds": 2400,
+  "purpose": "Finite producer prerequisite for the pinned library ROW FP8 path. Launch only after source176 sequence has completed cleanly; no automatic MLP or quality trial.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w179-nkilib-row-quantization-r1.request.json",
+      "sha256": "35c0db9cccb3c56ff850d924e1e7aa2658d3f0c9c9e07f9069d173fedfa3de12",
+      "requirements": [
+        {
+          "marker": "NKILIB_PROVENANCE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "upstream_commit": "92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e",
+            "vendored_files": 66,
+            "package_installation": false,
+            "bundled_package_replaced": false
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_RECIPROCAL",
+          "count": 28,
+          "fields": {
+            "passed": true,
+            "limit": 2.384185791015625e-07
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_QUANT_GATE",
+          "count": 28,
+          "fields": {
+            "passed": true,
+            "independently_decoded_legacy_e4m3": true,
+            "scale_exact": true,
+            "reciprocal_checked_separately": true
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_QUANT_CASE",
+          "count": 14,
+          "fields": {
+            "passed": true,
+            "changed_input_and_row_independence": true,
+            "calibration_and_metadata_stores_charged": true
+          }
+        },
+        {
+          "marker": "NKILIB_EXACT",
+          "count": 154,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_QUANT_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 14,
+            "original_and_changed_inputs": true,
+            "byte_and_scale_gate": true,
+            "no_forward_backward_or_model_claim": true
+          }
+        }
+      ]
+    }
+  ]
+}
