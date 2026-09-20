@@ -1,0 +1,161 @@
+{
+  "label": "fs-w157-qkv-pairs-channels-sequence-r1",
+  "max_seconds": 4800,
+  "purpose": "Two fixed pairwise diagnostics at random and zero VE gate; clean completion and exact finite records required.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w157-qkv-pairs-channels-random-r1.request.json",
+      "sha256": "ff0162348a587beb48981976d3a673396520269f88ce6ea42f049dbb36cb4e57",
+      "requirements": [
+        {
+          "marker": "SERIAL_QKV_COMPONENT_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "source_commit": "853f2733e181f605b9d48a9a64dcf6bd12603da8",
+            "value_fp32": false
+          }
+        },
+        {
+          "marker": "SERIAL_QKV_BOUNDARY_COMPARE",
+          "count": 7,
+          "fields": {
+            "finite": true
+          },
+          "unique_field": "name",
+          "values": [
+            "1024:batch4:length128:cacheTrue:veTrue:native_repeat",
+            "1024:batch4:length128:cacheTrue:veTrue:native_preprojected",
+            "1024:batch4:length128:cacheTrue:veTrue:nki_qk",
+            "1024:batch4:length128:cacheTrue:veTrue:nki_qv",
+            "1024:batch4:length128:cacheTrue:veTrue:nki_kv",
+            "1024:batch4:length128:cacheTrue:veTrue:nki_all_direct",
+            "1024:batch4:length128:cacheTrue:veTrue:nki_all"
+          ]
+        },
+        {
+          "marker": "SERIAL_QKV_BOUNDARY_CASE",
+          "count": 1,
+          "fields": {
+            "layout": "channels",
+            "channels": 1024,
+            "batch": 4,
+            "length": 128,
+            "all_inputs_require_grad": true,
+            "include_fp32_arm": false,
+            "arm_set": "pairs",
+            "gate_init": "random",
+            "materialized_controls": false,
+            "diagnostic_complete": true,
+            "acceptance_bounds_unchanged": true,
+            "integration_promoted": false,
+            "seed": 152055,
+            "cached": true,
+            "with_ve": true
+          },
+          "unique_field": "case_id",
+          "values": [
+            "True:True"
+          ]
+        },
+        {
+          "marker": "SERIAL_QKV_BOUNDARY_RESULT",
+          "count": 1,
+          "fields": {
+            "layout": "channels",
+            "channels": 1024,
+            "batch": 4,
+            "length": 128,
+            "all_inputs_require_grad": true,
+            "include_fp32_arm": false,
+            "arm_set": "pairs",
+            "gate_init": "random",
+            "materialized_controls": false,
+            "diagnostic_complete": true,
+            "acceptance_bounds_unchanged": true,
+            "integration_promoted": false,
+            "cases": 1,
+            "whole_model_or_quality_claim": false
+          }
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w157-qkv-pairs-channels-zero-r1.request.json",
+      "sha256": "f7f071467888648cd95cfae7d43ab3ee09ecdbe4b47168737ddb993e00f105cb",
+      "requirements": [
+        {
+          "marker": "SERIAL_QKV_COMPONENT_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "source_commit": "853f2733e181f605b9d48a9a64dcf6bd12603da8",
+            "value_fp32": false
+          }
+        },
+        {
+          "marker": "SERIAL_QKV_BOUNDARY_COMPARE",
+          "count": 7,
+          "fields": {
+            "finite": true
+          },
+          "unique_field": "name",
+          "values": [
+            "1024:batch4:length128:cacheTrue:veTrue:native_repeat",
+            "1024:batch4:length128:cacheTrue:veTrue:native_preprojected",
+            "1024:batch4:length128:cacheTrue:veTrue:nki_qk",
+            "1024:batch4:length128:cacheTrue:veTrue:nki_qv",
+            "1024:batch4:length128:cacheTrue:veTrue:nki_kv",
+            "1024:batch4:length128:cacheTrue:veTrue:nki_all_direct",
+            "1024:batch4:length128:cacheTrue:veTrue:nki_all"
+          ]
+        },
+        {
+          "marker": "SERIAL_QKV_BOUNDARY_CASE",
+          "count": 1,
+          "fields": {
+            "layout": "channels",
+            "channels": 1024,
+            "batch": 4,
+            "length": 128,
+            "all_inputs_require_grad": true,
+            "include_fp32_arm": false,
+            "arm_set": "pairs",
+            "gate_init": "zero",
+            "materialized_controls": false,
+            "diagnostic_complete": true,
+            "acceptance_bounds_unchanged": true,
+            "integration_promoted": false,
+            "seed": 152055,
+            "cached": true,
+            "with_ve": true
+          },
+          "unique_field": "case_id",
+          "values": [
+            "True:True"
+          ]
+        },
+        {
+          "marker": "SERIAL_QKV_BOUNDARY_RESULT",
+          "count": 1,
+          "fields": {
+            "layout": "channels",
+            "channels": 1024,
+            "batch": 4,
+            "length": 128,
+            "all_inputs_require_grad": true,
+            "include_fp32_arm": false,
+            "arm_set": "pairs",
+            "gate_init": "zero",
+            "materialized_controls": false,
+            "diagnostic_complete": true,
+            "acceptance_bounds_unchanged": true,
+            "integration_promoted": false,
+            "cases": 1,
+            "whole_model_or_quality_claim": false
+          }
+        }
+      ]
+    }
+  ]
+}
