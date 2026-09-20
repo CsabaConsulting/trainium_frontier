@@ -145,3 +145,12 @@ use the existing manager, and the additional per-partition footprint is
 4*C +8 +4*subtile_count bytes. No extra kernels or arithmetic tolerances are
 introduced. Source/hash and inverse-AST checks are in
 `run-logs/fs-w191-inline-input-ast-proof-r1.json`.
+
+## Source190 final result and current follow-ups
+
+Both fixed SBUF budgets pass all original component/cache/model gates and finish
+CLEAN.128KiB full step562.878526ms versus486.986693ms native;64KiB566.748940ms
+versus488.645588ms. No improvement of model integration and no quality run.
+Source192 tests compiler placement separately while retaining virtual capacity
+and lifetime checks; see fresh-start-library-compiler-placement-2026-09-20.md.
+Source191 input-loader fusion is now running on trn21; source192 on trn22.

@@ -1,5 +1,28 @@
 # Continued kernel work and research — 2026-09-20
 
+## 2026-09-20 07:43 UTC — scratch budgets negative; both new library variants running
+
+Source190 full-model tests both COMPLETE/CLEAN:128KiB562.878526ms vs486.986693ms
+(+15.584%);64KiB566.748940ms vs488.645588ms (+15.984%). All original numerical
+and cleanup gates pass. Fixed budget reduction does not fix the model regression.
+Trn21 now runs source191 inline input quantization; trn22 source192 automatic
+SBUF placement through its full-gradient/cache/model sequence. Neither has a
+speed or quality claim yet. Source192 leaves logical allocator checks active.
+See RESUME.md for source/plan/coordinator identities and restart conditions.
+
+
+## 2026-09-20 07:39 UTC — concrete compiler-placement and input-loader tests
+
+Source190 both native controls COMPLETE/CLEAN (486.986693/488.645588ms);
+final candidate arms are running. Both full-gradient and cache gates pass.
+Source191 inline input quantization is frozen at153c4c13 and awaits trn21.
+Source192 compiler-managed SBUF placement is frozen at8b1a3fc0 and awaits
+trn22; its four-step plan retains all original math and correctness gates.
+Detailed surrounding-Linear instruction analysis and reviewed primary-source
+research are in fresh-start-library-compiler-placement-2026-09-20.md. No BPB
+promotion. See RESUME.md and final postflights before any dispatch.
+
+
 ## 2026-09-20 07:19 UTC — bounded scratch gates pass; input-loader fusion prepared
 
 Source190 both10-case full-gradient and2-width Linear/cache integration gates
