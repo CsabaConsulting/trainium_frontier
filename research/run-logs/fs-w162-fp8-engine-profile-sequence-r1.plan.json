@@ -1,0 +1,66 @@
+{
+  "label": "fs-w162-fp8-engine-profile-sequence-r1",
+  "max_seconds": 3300,
+  "purpose": "Bounded source162 attribution of source161-gated exact fusion; capture native/original/fused cached dX with DGE notifications, then CPU ingestion only after complete clean matched capture. No training, speed promotion or code changes by coordinator.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w162-fp8-engine-profile-r1.request.json",
+      "sha256": "311c14a18e9b54a9764eeaba0f6b47c1a26fd58b95fa3e91a78a899d633fc03a",
+      "requirements": [
+        {
+          "marker": "FP8_DX_COST_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "source_commit": "959495b462a824904e2f7d91a136da74f4ba94c0"
+          }
+        },
+        {
+          "marker": "FP8_ENGINE_PROFILE_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "variant": "both",
+            "cases": 15,
+            "source_commit": "252880f3bd3fea062a68df3451876e0a77321275"
+          }
+        },
+        {
+          "marker": "FP8_ENGINE_PROFILE_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "tokens": 32768,
+            "channels": 1024,
+            "arms": [
+              "native_dx",
+              "old_fp8_dx",
+              "candidate_fp8_dx"
+            ],
+            "numerical_controls_exact": true,
+            "cached_weights": true,
+            "preparation_excluded": true,
+            "profiled_latency_is_speed_evidence": false,
+            "whole_model_or_quality_claim": false,
+            "variant": "both",
+            "dge_notifications_enabled": true
+          }
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w162-fp8-engine-remote-ingest-r1.request.json",
+      "sha256": "d86ecca950982d9754d755088823fbff963431326d6f94e736bf3f9abcf01e3c",
+      "requirements": [
+        {
+          "marker": "INGEST_COMPLETE",
+          "count": 1,
+          "fields": {
+            "returncode": 0,
+            "raw_hashes_unchanged": true
+          }
+        }
+      ]
+    }
+  ]
+}
