@@ -1,0 +1,63 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave157",
+    "expected_commit": "fcc11ed40192bd447cddf6ac43b8450474ea86fa",
+    "label": "fs-w157-qkv-pairs-channels-random-r1",
+    "purpose": "Bounded QK/QV/KV plus direct/all-adapter diagnosis: B4/T128/C1024, random VE gate. Existing finite bounds; no integration promotion.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1800s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "/home/ubuntu/trainium_freshstart_20260918_wave157/research/scratch/serial_qkv_boundary_diagnostic.py",
+      "--layout",
+      "channels",
+      "--channels",
+      "1024",
+      "--batch",
+      "4",
+      "--length",
+      "128",
+      "--seed",
+      "152055",
+      "--cache-mode",
+      "cached",
+      "--ve-mode",
+      "on",
+      "--arm-set",
+      "pairs",
+      "--gate-init",
+      "random",
+      "--skip-materialized",
+      "--component-root",
+      "/home/ubuntu/trainium_freshstart_20260918_wave155",
+      "--component-label",
+      "fs-w155-serial-qkv-channels-bf16-component-r1",
+      "--component-commit",
+      "853f2733e181f605b9d48a9a64dcf6bd12603da8"
+    ],
+    "fingerprint_paths": [
+      "train.py",
+      "research/scratch/serial_qkv_nki.py",
+      "research/scratch/serial_qkv_probe.py",
+      "research/scratch/serial_qkv_integration.py",
+      "research/scratch/serial_qkv_integration_check.py",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "research/scratch/serial_qkv_boundary_diagnostic.py"
+    ]
+  },
+  "requested_at": "2026-09-20T00:46:34.266020+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w157-qkv-pairs-channels-random-r1\", \"pid\": 1910153, \"commit\": \"fcc11ed40192bd447cddf6ac43b8450474ea86fa\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave157/research/run-logs/fs-w157-qkv-pairs-channels-random-r1.log\", \"started_at\": \"2026-09-20T00:46:40.448483+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}
