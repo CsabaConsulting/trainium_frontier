@@ -159,3 +159,40 @@ native wrapper unwrapping a single output. Source168 handles Tensor versus
 collection explicitly and reports expected/actual shape and dtype. Original
 FP64 bounds, all six fixtures and full-tensor repeat/batch gates stay intact.
 This is an interface fix, not a new kernel or relaxed numerical check.
+
+## Source168 small-case evidence and source169 shape/API adapters
+
+The corrected MLP passes all four small cases with EXACT native outputs,
+original FP64 bounds, repetitions and batch independence. The small random
+forward is0.065846ms versus native0.059723ms; this is not a production speed
+claim. At2×1024×1024, upstream switches to intermediate sharding. Its loop
+uses B×S while the DMA-transpose helper only flattens the input for token
+sharding, producing an out-of-bounds sequence index1024:1152. Source169 gives
+the row-independent MLP an explicit `[1,B*S,C]` view and reshapes its result
+back. Both views remain inside the measured function and batch checks remain.
+
+All16 new-versus-bundled attention output/gradient comparisons across four
+small cases are EXACT. The separate diagnostic preserves355 coordinate
+failures per version across32 CPU field checks; maximum relative RMS0.003404.
+At the first rejected output coordinate, query4/channel51, FP64 gives
+0.00736431948 while both kernels give0.00927734375. The independent staged
+BF16 calculation gives EXACTLY0.00927734375. The absolute weighted-value sum
+is1.998044895 (signed result0.007364), demonstrating cancellation sensitivity.
+This explains the inadequacy of the global-RMS coordinate heuristic; it does
+not redefine the original check as passing. All failures are preserved.
+
+At T1024, main's chained Vector row-max reduction passes `reduce_res=None`
+for intermediate tiles, which installed NKI0.5 rejects. Source169 retains
+the reset/accumulate commands and writes each prefix maximum into its already
+allocated per-tile column. The later maximum over these columns is unchanged:
+max(all prefix maxima)=max(all tiles). The scratch compatibility helper is a
+licensed281-line copy of the pinned function with only this assignment
+changed; all extra readout instructions are charged. No extra SBUF buffer,
+global ISA patch, disabled reduction chain or compiler replacement is used.
+The pinned66 files and bundled control remain untouched. Source169 continues
+the same diagnostic without permitting promotion or changing thresholds.
+
+Both source168 postflights are clean, commandrc1, no residual holders or health
+failures. Compact counts/source/log/postflight hashes are in
+`run-logs/fs-w168-nkilib-small-shape-diagnostic-summary-r1.json`. Cron04:30:52
+pushed sourcec36a1d14 and snapshotca6bc01f, including the mirrored failures.

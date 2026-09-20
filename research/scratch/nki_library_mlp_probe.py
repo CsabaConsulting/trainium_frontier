@@ -27,14 +27,19 @@ def make_forward(prefix):
         up_layout = up.T.contiguous()
         # Upstream validates a non-None gate operand even when skip_gate_proj
         # is True. Alias the up operand; no gate GEMM or extra cache is needed.
-        result = wrapped[2](x, up_layout, up_layout, down.T.contiguous(),
+        # CTE's intermediate-sharding loop addresses flattened B*S rows, but
+        # its DMA-transpose input path only flattens for token sharding. Give
+        # it the explicit row view for either strategy. MLP rows are independent.
+        rows = x.reshape(1, -1, x.shape[-1])
+        result = wrapped[2](rows, up_layout, up_layout, down.T.contiguous(),
                             activation_fn=types.ActFnType.SquaredReLU,
                             normalization_type=types.NormType.NO_NORM,
                             quantization_type=types.QuantizationType.NONE,
                             skip_gate_proj=True, force_cte_mode=True)
         # Native wrap_nki unwraps a single kernel output. Only index when the
         # wrapper actually returns a collection; indexing a Tensor drops B.
-        return result if isinstance(result, torch.Tensor) else result[0]
+        output = result if isinstance(result, torch.Tensor) else result[0]
+        return output.reshape(x.shape)
 
     return torch.compile(call, backend="neuron", fullgraph=True, dynamic=False)
 

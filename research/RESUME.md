@@ -1,9 +1,23 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-20 04:29 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-20 04:34 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## Current work — 2026-09-20 04:29 UTC
+## Current work — 2026-09-20 04:34 UTC
+
+- Source168 both STOPPED CLEAN after passing the four small fixtures. MLP
+  outputs exactly native; large shape hits upstream B*S/unflattened-S input
+  bug. Attention output/three gradients exactly bundled; T1024 hits NKI0.5
+  rejection of intermediate reduce_res=None. CPU diagnostic explains the
+  first FP64 mismatch exactly via BF16 exponential rounding/cancellation.
+  It retains all355 coordinate failures per version and permits no promotion.
+- Source169 PREPARED: explicit flat-row MLP view and attention row-max helper
+  retaining intermediate readouts for the older API. No original numerical
+  thresholds changed. Inspect fs-w169 receipts for subsequent actual state.
+- Cron04:30:52 pushed sourcec36a1d14 and snapshotca6bc01f; both hosts retrieved.
+  No full-model or quality gain claimed from this investigation so far.
+
+## Previous source167/168 checkpoint (superseded host status)
 
 - Source166 and167 finite library queues have STOPPED, both hosts clean.
   Do not restart labels. Source167 parser compatibility worked: attention
