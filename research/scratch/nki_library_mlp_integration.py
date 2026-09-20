@@ -14,7 +14,7 @@ from nki_library_probe_common import verify_sources
 from nki_library_training_mlp_reuse_transpose import install as install_kernel, saved_relu_mlp_reuse_transpose
 
 
-def install(model, device, train_module, separate_region=False):
+def install(model, device, train_module, separate_region=False, sbuf_budget_kib=0):
     if not str(device).startswith('neuron'):
         raise ValueError('The library training adapter requires Neuron')
     assert train_module.RELU2_TAU == 0.0
@@ -27,10 +27,19 @@ def install(model, device, train_module, separate_region=False):
     verify_sources()
     install_kernel()
     from torch_neuronx import wrap_nki
-    kernel = wrap_nki(saved_relu_mlp_reuse_transpose)
+    assert sbuf_budget_kib in (0, 64, 128)
+    if sbuf_budget_kib:
+        from nki_library_sbuf_budget import saved_relu_mlp_budgeted
+        kernel = wrap_nki(saved_relu_mlp_budgeted)
+        budget_bytes = sbuf_budget_kib * 1024
 
-    def kernel_call(x, up, down):
-        return kernel[2](x, up.T.contiguous(), down.T.contiguous())
+        def kernel_call(x, up, down):
+            return kernel[2](x, up.T.contiguous(), down.T.contiguous(), budget_bytes)
+    else:
+        kernel = wrap_nki(saved_relu_mlp_reuse_transpose)
+
+        def kernel_call(x, up, down):
+            return kernel[2](x, up.T.contiguous(), down.T.contiguous())
 
     apply = make_autograd(kernel_call, transposed_relu=True)
     if separate_region:
@@ -81,7 +90,7 @@ def install(model, device, train_module, separate_region=False):
     assert tuple(model.state_dict()) == keys
     assert tuple(id(p) for p in model.parameters()) == ids
     assert torch.equal(torch.get_rng_state(), rng)
-    return dict(library_commit='92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e',
+    contract = dict(library_commit='92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e',
         modules=len(model.transformer.h), token_row_sharding=True, saved_relu_layout='HxT',
         backward='original_bf16_four_products', contiguous_activation_store=True,
         reuses_existing_transpose=True, square_after_transpose=True,
@@ -89,3 +98,6 @@ def install(model, device, train_module, separate_region=False):
         separate_compiled_region=separate_region,
         ordinary_differentiable_weight_cache=bool(use_cache), weight_transposes_inside_forward=True,
         native_evaluation=True, checkpoint_keys_parameters_and_rng_unchanged=True)
+    if sbuf_budget_kib:
+        contract['allocator_sbuf_budget_kib_per_partition'] = sbuf_budget_kib
+    return contract

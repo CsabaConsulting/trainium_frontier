@@ -1,0 +1,45 @@
+{
+  "host": "trn22",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave180",
+  "expected_commit": "9e103ea63b6eec62b027b1c836976e441f4ac8aa",
+  "label": "fs-w180-library-forward-remote-ingest-r2",
+  "purpose": "Continue same-source caller pair after fixing the nested control prerequisite to match exact NEFF record boundaries. Original failed r1/r2 sequences retained; no numeric or payload field is waived.",
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1",
+    "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave180",
+    "NKILIB_FORCE_BUNDLED_LIBRARY": "true"
+  },
+  "command": [
+    "timeout",
+    "--signal=TERM",
+    "--kill-after=30s",
+    "1200",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "-c",
+    "REMOTE = '/home/ubuntu/trainium_freshstart_20260918_wave180'\nCAPTURE = 'fs-w180-library-training-forward-profile-r3'\nLABEL = 'fs-w180-library-forward-remote-ingest-r2'\nRULES = [{'marker': 'PHASE_JSON', 'count': 1, 'fields': {'world_size': 4, 'lnc': '2', 'grad_accum': 1, 'micro_tokens': 131072, 'compile': True, 'adaptive_nki_ce': True, 'optimizer_ownership': True, 'optimizer_owner_calls': 35, 'pack_factor': 32, 'fp8_mlp_full': False, 'fp8_mlp_packed': False, 'fp8_mlp_compact_saves': False, 'fp8_mlp_stream_packed_weights': False, 'fp8_mlp_preserve_output_rank': False, 'integrated_nki_local_conv': True, 'integrated_bf16_norm_output': True, 'fp8_mlp_engine_scaling': 'none', 'fp8_mlp_separate_region': False, 'library_mlp': True, 'library_mlp_separate_region': False, 'fused_mlp': False, 'fused_mlp_forward_backend': 'nki', 'library_mlp_contract': {'library_commit': '92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e', 'modules': 6, 'token_row_sharding': True, 'saved_relu_layout': 'HxT', 'backward': 'original_bf16_four_products', 'contiguous_activation_store': True, 'reuses_existing_transpose': True, 'square_after_transpose': True, 'extra_activation_transpose': False, 'reserved_sbuf_bytes': 0, 'separate_compiled_region': False, 'ordinary_differentiable_weight_cache': True, 'weight_transposes_inside_forward': True, 'native_evaluation': True, 'checkpoint_keys_parameters_and_rng_unchanged': True}}, 'lengths': {'steps': 30}, 'phase_timing': True}, {'marker': 'NATIVE_POST_CHECK_JSON', 'count': 4, 'fields': {'passed': True, 'parameters_and_gradients_finite': True, 'logits_finite': True, 'future_max_abs': 0.0, 'other_batch_max_abs': 0.0, 'repeated_call_max_abs': 0.0}, 'unique_field': 'rank', 'values': [0, 1, 2, 3]}, {'marker': 'LIBRARY_MODEL_PREREQUISITE', 'count': 1, 'fields': {'passed': True, 'source_commit': '1ace86d380df6d85f9412cd40f64255bc7924057', 'component_and_integration_and_both_model_arms': True, 'kernel_bytes_unchanged': True}}, {'marker': 'PHASE_SOURCE', 'count': 4, 'fields': {'passed': True, 'repository': '/home/ubuntu/trainium_freshstart_20260918_wave180', 'imports_match_immutable_checkout': True, 'train_sha256': 'bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c', 'prepare_sha256': '5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb'}, 'unique_field': 'rank', 'values': [0, 1, 2, 3]}, {'marker': 'PROFILE_ARTIFACT', 'count': 1, 'fields': {'rank': 0, 'mode': 'device', 'target': 'forward', 'profiled_forwards': 1, 'profiled_microsteps': 0, 'profiled_steps': 0, 'profiled_latency_is_performance_evidence': False}}, {'marker': '\\nNEFF_ARTIFACT', 'count': 1, 'fields': {'rank': 0, 'missing': []}}, {'marker': 'TRACE_NEFF_ARTIFACT', 'count': 1, 'fields': {'rank': 0, 'unresolved': []}}, {'marker': 'CALLER_MAINTENANCE_PREREQUISITE', 'count': 1, 'fields': {'passed': True, 'local_and_cloud_hashes_verified': True, 'label': 'fs-maintenance-nki-scratch-trn22-20260920-r2'}}, {'marker': 'NATIVE_CALLER_INGEST_PREREQUISITE', 'count': 1, 'fields': {'passed': True, 'label': 'fs-w180-native-forward-remote-ingest-r1'}}]\nimport pathlib, os, sys, hashlib, subprocess, json, time\nroot = pathlib.Path(REMOTE)\nsys.path.insert(0, str(root / 'research'))\nfrom fresh_start_sequence import require_completed\nr = root / 'research/run-logs'\nMAINTENANCE = 'fs-maintenance-nki-scratch-trn22-20260920-r2'\nMAINT_SHA = '6db0ae43dfbf86a6791063ff755ece43316357ad0fc7511acc1d064acd4aaf33'\nINVENTORY_SHA = 'cff598ffed38310fc7fa533c134ac5e71d2bc0b970537281bfdd82fcadbf697d'\nm = json.loads((r / (MAINTENANCE + '.json')).read_text())\nassert m['host_clean'] and (not m['failures']) and m['cloud_assets_reverified'] and m['local_archive_hash_reverified']\nassert m['host'] == 'trn22' and m['expected_previous_label'] == 'fs-w180-native-training-forward-profile-r1'\nassert m['local_archive_sha256'] == MAINT_SHA and m['inventory_sha256'] == INVENTORY_SHA\nprint('CALLER_MAINTENANCE_PREREQUISITE ' + json.dumps(dict(passed=True, local_and_cloud_hashes_verified=True, label=MAINTENANCE)), flush=True)\nreq = json.loads((r / (CAPTURE + '.launch.json')).read_text())\nassert req['expected_commit'] == '9e103ea63b6eec62b027b1c836976e441f4ac8aa'\nrequire_completed(json.loads((r / (CAPTURE + '.postflight.json')).read_text()), (r / (CAPTURE + '.log')).read_text(), req, RULES)\nprint('CALLER_CAPTURE_PREREQUISITE ' + json.dumps(dict(passed=True, exact_record_boundaries=True, original_payload_fields_unchanged=True, label=CAPTURE)), flush=True)\nsource = root / 'out' / CAPTURE\nstage = root / 'out' / (LABEL + '-input')\noutput = root / 'out' / (LABEL + '-parquet')\nassert source.is_dir() and (not stage.exists()) and (not output.exists())\n\ndef digest(p):\n    with p.open('rb') as f:\n        return hashlib.file_digest(f, 'sha256').hexdigest()\nfiles = sorted((p for p in source.rglob('*') if p.is_file()))\nassert files and all((not p.is_symlink() for p in files))\nbefore = {str(p.relative_to(source)): digest(p) for p in files}\nstage.mkdir(parents=True)\nfor p in files:\n    target = stage / p.relative_to(source)\n    target.parent.mkdir(parents=True, exist_ok=True)\n    os.link(p, target)\nneffs = list(stage.rglob('*.neff'))\ntraces = list(stage.rglob('*.ntff'))\nassert len(traces) == 1\nfor trace in traces:\n    for neff in neffs:\n        target = trace.parent / neff.name\n        if not target.exists():\n            os.link(neff, target)\n        elif target.stat().st_ino != neff.stat().st_ino:\n            assert digest(target) == digest(neff)\ncommand = ['/opt/aws/neuron/bin/neuron-explorer', 'view', '--session-dir', str(stage), '--ingest-only', '--output-format', 'parquet', '--output-file', str(output)]\nprint('INGEST_START ' + json.dumps(dict(source=str(source), stage=str(stage), output=str(output), command=command, source_sha256=before)), flush=True)\nstart = time.monotonic()\nresult = subprocess.run(command, cwd=stage)\nafter = {str(p.relative_to(source)): digest(p) for p in files}\nassert before == after\ninstructions = list(output.rglob('Instruction.parquet'))\nprint('INGEST_COMPLETE ' + json.dumps(dict(returncode=result.returncode, seconds=time.monotonic() - start, tables=len(list(output.rglob('*.parquet'))), raw_hashes_unchanged=True, instruction_files_present=len(instructions) == 1, instruction_files=[(str(p), p.stat().st_size) for p in instructions])), flush=True)\nassert len(instructions) == 1 and instructions[0].stat().st_size > 0\nraise SystemExit(result.returncode)\n"
+  ],
+  "fingerprint_paths": [
+    "research/fresh_start_sequence.py",
+    "research/scratch/preserve_native_trace_neffs.py"
+  ],
+  "started_at": "2026-09-20T06:44:10.780660+00:00",
+  "hostname": "ip-172-31-32-253",
+  "git_commit": "9e103ea63b6eec62b027b1c836976e441f4ac8aa",
+  "source_dirty": false,
+  "preflight_free_bytes": 12314435584,
+  "source_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+    "research/fresh_start_host.py": "8c597adea7c48114bed8f50aa161fdc79b36b49c86c7315e6a58c3ca4e8f5f79",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/fresh_start_backup.py": "c978fd20b6620d0d80c25f8982974e8c4b2ad009edd9da376d784f5cecc3ead3",
+    "research/fresh_start_sequence.py": "7dfe9ab70be1a67f493f6012a73ada1e0d6ed9cfb1a3ec5b2cb2317102e4c51a",
+    "research/scratch/preserve_native_trace_neffs.py": "117d8f53c274c04b8996fe7fff72d84283cab7efb95ca371dfe577fa6ba3147b"
+  }
+}

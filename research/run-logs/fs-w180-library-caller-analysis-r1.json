@@ -1,0 +1,3508 @@
+{
+  "trace": "out/fresh-start-profiles/fs-w180-library-training-forward-profile-r3/rank0",
+  "parquet": "out/fresh-start-profiles/fs-w180-library-forward-remote-ingest-r2-parquet/i-0673e54d9d66e6a1e_pid_2008616_nc_0_session_0",
+  "analysis_script_sha256": "0b7c1bc7ec4313b79b789ca95f8ec589e0ea1108cca85fda82fe0118a0b0255d",
+  "all_runtime_dispatches_match_ingested_binaries": true,
+  "executions": [
+    {
+      "execution_index": 1,
+      "neff_name": "e84c86a7d5579ac029191aa6fc1fbb95.neff",
+      "execution_start_ts": 10957950,
+      "execution_end_ts": 220283572,
+      "num_subgraphs": 2,
+      "row_count": 59933858,
+      "runtime_name": "model_default",
+      "nrt_sequence_id": 281474976718143,
+      "logical_cache_key": "5b151748d54537928b69d3b25f2732ec83e1b10fe6f8ab5933db29cc54e2e0ac:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+      "enclosing_annotation": "fresh_start_single_training_forward",
+      "device_wall_ms": 209.325622
+    }
+  ],
+  "graph_analyses": [
+    {
+      "execution": {
+        "execution_index": 1,
+        "neff_name": "e84c86a7d5579ac029191aa6fc1fbb95.neff",
+        "execution_start_ts": 10957950,
+        "execution_end_ts": 220283572,
+        "num_subgraphs": 2,
+        "row_count": 59933858,
+        "runtime_name": "model_default",
+        "nrt_sequence_id": 281474976718143,
+        "logical_cache_key": "5b151748d54537928b69d3b25f2732ec83e1b10fe6f8ab5933db29cc54e2e0ac:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+        "enclosing_annotation": "fresh_start_single_training_forward",
+        "device_wall_ms": 209.325622
+      },
+      "instruction_rows": 3074738,
+      "counters": {
+        "spill_save_bytes": {
+          "nonnull_rows": 48734,
+          "positive_rows": 32254,
+          "sum": 6991265792
+        },
+        "spill_reload_bytes": {
+          "nonnull_rows": 102378,
+          "positive_rows": 87990,
+          "sum": 22879731712
+        },
+        "hbm_read_bytes": {
+          "nonnull_rows": 136068,
+          "positive_rows": 123776,
+          "sum": 33620686944
+        },
+        "hbm_write_bytes": {
+          "nonnull_rows": 85864,
+          "positive_rows": 69384,
+          "sum": 20147535876
+        },
+        "sbuf_read_bytes": {
+          "nonnull_rows": 2469928,
+          "positive_rows": 2465736,
+          "sum": 148916176900
+        },
+        "sbuf_write_bytes": {
+          "nonnull_rows": 681577,
+          "positive_rows": 681573,
+          "sum": 80122200676
+        }
+      },
+      "engine_activity": [
+        {
+          "pcore_idx": 0,
+          "engine": "gpsimd",
+          "instruction_rows": 28795,
+          "active_ms": 29.987683
+        },
+        {
+          "pcore_idx": 0,
+          "engine": "scalar",
+          "instruction_rows": 73151,
+          "active_ms": 78.562833
+        },
+        {
+          "pcore_idx": 0,
+          "engine": "sync",
+          "instruction_rows": 71077,
+          "active_ms": 44.15453
+        },
+        {
+          "pcore_idx": 0,
+          "engine": "tensor",
+          "instruction_rows": 28372,
+          "active_ms": 102.196934
+        },
+        {
+          "pcore_idx": 0,
+          "engine": "vector",
+          "instruction_rows": 61321,
+          "active_ms": 81.118429
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "gpsimd",
+          "instruction_rows": 27550,
+          "active_ms": 27.595199
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "scalar",
+          "instruction_rows": 63185,
+          "active_ms": 73.101633
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "sync",
+          "instruction_rows": 68524,
+          "active_ms": 41.930797
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "tensor",
+          "instruction_rows": 28619,
+          "active_ms": 101.834885
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "vector",
+          "instruction_rows": 60496,
+          "active_ms": 64.04016
+        }
+      ],
+      "regular_matmul_precision_by_core": [
+        {
+          "pcore_idx": 0,
+          "bf16_cost_multiplier": 1.0,
+          "raw_flops_sum": 3030273818624,
+          "adjusted_flops_sum": 3030273818624,
+          "start_ts_count": 255087
+        },
+        {
+          "pcore_idx": 0,
+          "bf16_cost_multiplier": 4.0,
+          "raw_flops_sum": 3041263872,
+          "adjusted_flops_sum": 12165055488,
+          "start_ts_count": 3116
+        },
+        {
+          "pcore_idx": 1,
+          "bf16_cost_multiplier": 1.0,
+          "raw_flops_sum": 3034996277248,
+          "adjusted_flops_sum": 3034996277248,
+          "start_ts_count": 255323
+        },
+        {
+          "pcore_idx": 1,
+          "bf16_cost_multiplier": 4.0,
+          "raw_flops_sum": 2459205632,
+          "adjusted_flops_sum": 9836822528,
+          "start_ts_count": 2816
+        }
+      ],
+      "fp32_matmul_sources": [
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave180/train.py:2853",
+          "raw_flops_sum": 1439334400,
+          "adjusted_flops_sum": 5757337600,
+          "start_ts_count": 856
+        },
+        {
+          "nki_source_location": null,
+          "raw_flops_sum": 918683648,
+          "adjusted_flops_sum": 3674734592,
+          "start_ts_count": 533
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/core/attention/attention_cte.py:3038",
+          "raw_flops_sum": 452067328,
+          "adjusted_flops_sum": 1808269312,
+          "start_ts_count": 264
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/core/attention/attention_cte.py:3380",
+          "raw_flops_sum": 311558144,
+          "adjusted_flops_sum": 1246232576,
+          "start_ts_count": 194
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/core/attention/attention_cte.py:3663",
+          "raw_flops_sum": 233701376,
+          "adjusted_flops_sum": 934805504,
+          "start_ts_count": 153
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/core/attention/attention_cte.py:3337",
+          "raw_flops_sum": 230948864,
+          "adjusted_flops_sum": 923795456,
+          "start_ts_count": 142
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/functional.py:2954",
+          "raw_flops_sum": 171704320,
+          "adjusted_flops_sum": 686817280,
+          "start_ts_count": 2582
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave180/train.py:3329",
+          "raw_flops_sum": 103809024,
+          "adjusted_flops_sum": 415236096,
+          "start_ts_count": 65
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave178/research/vendor/nki_library_92d11f63/core/mlp/mlp_cte/basic/mlp_cte_basic_projection.py:145",
+          "raw_flops_sum": 89391104,
+          "adjusted_flops_sum": 357564416,
+          "start_ts_count": 53
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/core/attention/attention_cte.py:3638",
+          "raw_flops_sum": 87293952,
+          "adjusted_flops_sum": 349175808,
+          "start_ts_count": 58
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave180/train.py:4060",
+          "raw_flops_sum": 85065728,
+          "adjusted_flops_sum": 340262912,
+          "start_ts_count": 58
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave180/train.py:3156",
+          "raw_flops_sum": 81788928,
+          "adjusted_flops_sum": 327155712,
+          "start_ts_count": 39
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/core/attention/attention_cte.py:3775",
+          "raw_flops_sum": 70516736,
+          "adjusted_flops_sum": 282066944,
+          "start_ts_count": 50
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/core/attention/attention_cte.py:2950",
+          "raw_flops_sum": 68026368,
+          "adjusted_flops_sum": 272105472,
+          "start_ts_count": 43
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave178/research/vendor/nki_library_92d11f63/core/mlp/mlp_cte/basic/mlp_cte_basic_projection.py:580",
+          "raw_flops_sum": 53215232,
+          "adjusted_flops_sum": 212860928,
+          "start_ts_count": 41
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave178/research/vendor/nki_library_92d11f63/core/mlp/mlp_cte/basic/mlp_cte_basic_projection.py:570",
+          "raw_flops_sum": 51511296,
+          "adjusted_flops_sum": 206045184,
+          "start_ts_count": 36
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave98/research/scratch/softcap_ce_parallel_nki.py:51",
+          "raw_flops_sum": 48496640,
+          "adjusted_flops_sum": 193986560,
+          "start_ts_count": 27
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave180/train.py:3174",
+          "raw_flops_sum": 46399488,
+          "adjusted_flops_sum": 185597952,
+          "start_ts_count": 26
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/core/attention/attention_cte.py:1409",
+          "raw_flops_sum": 44564480,
+          "adjusted_flops_sum": 178257920,
+          "start_ts_count": 29
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave98/research/scratch/softcap_ce_parallel_nki.py:58",
+          "raw_flops_sum": 44564480,
+          "adjusted_flops_sum": 178257920,
+          "start_ts_count": 29
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave180/train.py:3385",
+          "raw_flops_sum": 42467328,
+          "adjusted_flops_sum": 169869312,
+          "start_ts_count": 28
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave98/research/scratch/softcap_ce_parallel_nki.py:54",
+          "raw_flops_sum": 39976960,
+          "adjusted_flops_sum": 159907840,
+          "start_ts_count": 21
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/core/attention/attention_cte.py:1397",
+          "raw_flops_sum": 38666240,
+          "adjusted_flops_sum": 154664960,
+          "start_ts_count": 29
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/core/attention/attention_cte.py:3005",
+          "raw_flops_sum": 34209792,
+          "adjusted_flops_sum": 136839168,
+          "start_ts_count": 26
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave178/research/scratch/nki_library_training_mlp_reuse_transpose.py:71",
+          "raw_flops_sum": 34078720,
+          "adjusted_flops_sum": 136314880,
+          "start_ts_count": 24
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave98/research/scratch/softcap_ce_parallel_nki.py:89",
+          "raw_flops_sum": 32374784,
+          "adjusted_flops_sum": 129499136,
+          "start_ts_count": 26
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/core/attention/attention_cte.py:3202",
+          "raw_flops_sum": 30277632,
+          "adjusted_flops_sum": 121110528,
+          "start_ts_count": 28
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave98/train.py:1630",
+          "raw_flops_sum": 25296896,
+          "adjusted_flops_sum": 101187584,
+          "start_ts_count": 14
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave98/research/scratch/softcap_ce_parallel_nki.py:52",
+          "raw_flops_sum": 25296896,
+          "adjusted_flops_sum": 101187584,
+          "start_ts_count": 14
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave178/research/vendor/nki_library_92d11f63/core/mlp/mlp_cte/basic/mlp_cte_basic_tensor_io.py:180",
+          "raw_flops_sum": 25165824,
+          "adjusted_flops_sum": 100663296,
+          "start_ts_count": 12
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave98/train.py:1629",
+          "raw_flops_sum": 23592960,
+          "adjusted_flops_sum": 94371840,
+          "start_ts_count": 19
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave180/train.py:3173",
+          "raw_flops_sum": 23068672,
+          "adjusted_flops_sum": 92274688,
+          "start_ts_count": 11
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/core/attention/attention_cte.py:2804",
+          "raw_flops_sum": 21889024,
+          "adjusted_flops_sum": 87556096,
+          "start_ts_count": 18
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave98/train.py:1614",
+          "raw_flops_sum": 21364736,
+          "adjusted_flops_sum": 85458944,
+          "start_ts_count": 16
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/core/attention/attention_cte.py:2915",
+          "raw_flops_sum": 21266432,
+          "adjusted_flops_sum": 85065728,
+          "start_ts_count": 15
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/core/attention/attention_cte.py:2971",
+          "raw_flops_sum": 19529728,
+          "adjusted_flops_sum": 78118912,
+          "start_ts_count": 16
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave178/research/vendor/nki_library_92d11f63/core/mlp/mlp_cte/basic/mlp_cte_basic_tensor_io.py:83",
+          "raw_flops_sum": 19398656,
+          "adjusted_flops_sum": 77594624,
+          "start_ts_count": 17
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/core/attention/attention_cte.py:3642",
+          "raw_flops_sum": 19267840,
+          "adjusted_flops_sum": 77071360,
+          "start_ts_count": 14
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave98/research/scratch/softcap_ce_parallel_nki.py:86",
+          "raw_flops_sum": 19267584,
+          "adjusted_flops_sum": 77070336,
+          "start_ts_count": 15
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave178/research/vendor/nki_library_92d11f63/core/mlp/mlp_cte/basic/mlp_cte_basic_projection.py:159",
+          "raw_flops_sum": 18612224,
+          "adjusted_flops_sum": 74448896,
+          "start_ts_count": 18
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave98/train.py:1604",
+          "raw_flops_sum": 17301504,
+          "adjusted_flops_sum": 69206016,
+          "start_ts_count": 16
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/core/attention/attention_cte.py:3894",
+          "raw_flops_sum": 17039360,
+          "adjusted_flops_sum": 68157440,
+          "start_ts_count": 12
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave98/train.py:1605",
+          "raw_flops_sum": 17039360,
+          "adjusted_flops_sum": 68157440,
+          "start_ts_count": 12
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave180/train.py:3316",
+          "raw_flops_sum": 16777216,
+          "adjusted_flops_sum": 67108864,
+          "start_ts_count": 8
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave98/research/scratch/softcap_ce_parallel_nki.py:61",
+          "raw_flops_sum": 16777216,
+          "adjusted_flops_sum": 67108864,
+          "start_ts_count": 8
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave178/research/vendor/nki_library_92d11f63/core/mlp/mlp_cte/basic/mlp_cte_basic_projection.py:191",
+          "raw_flops_sum": 15204352,
+          "adjusted_flops_sum": 60817408,
+          "start_ts_count": 9
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/core/attention/attention_cte.py:3134",
+          "raw_flops_sum": 15073280,
+          "adjusted_flops_sum": 60293120,
+          "start_ts_count": 13
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave98/train.py:1624",
+          "raw_flops_sum": 14942208,
+          "adjusted_flops_sum": 59768832,
+          "start_ts_count": 11
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/core/attention/attention_cte.py:3174",
+          "raw_flops_sum": 12976128,
+          "adjusted_flops_sum": 51904512,
+          "start_ts_count": 9
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave98/train.py:1607",
+          "raw_flops_sum": 12976128,
+          "adjusted_flops_sum": 51904512,
+          "start_ts_count": 12
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave98/train.py:1593",
+          "raw_flops_sum": 12845056,
+          "adjusted_flops_sum": 51380224,
+          "start_ts_count": 10
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave98/train.py:1609",
+          "raw_flops_sum": 12845056,
+          "adjusted_flops_sum": 51380224,
+          "start_ts_count": 10
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave98/train.py:1606",
+          "raw_flops_sum": 12845056,
+          "adjusted_flops_sum": 51380224,
+          "start_ts_count": 10
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave98/train.py:1608",
+          "raw_flops_sum": 12845056,
+          "adjusted_flops_sum": 51380224,
+          "start_ts_count": 10
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave98/train.py:1616",
+          "raw_flops_sum": 12845056,
+          "adjusted_flops_sum": 51380224,
+          "start_ts_count": 10
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/core/attention/attention_cte.py:3107",
+          "raw_flops_sum": 12713984,
+          "adjusted_flops_sum": 50855936,
+          "start_ts_count": 8
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave98/train.py:1612",
+          "raw_flops_sum": 12713984,
+          "adjusted_flops_sum": 50855936,
+          "start_ts_count": 8
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave98/research/scratch/softcap_ce_parallel_nki.py:88",
+          "raw_flops_sum": 10616832,
+          "adjusted_flops_sum": 42467328,
+          "start_ts_count": 7
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave180/train.py:3183",
+          "raw_flops_sum": 10485760,
+          "adjusted_flops_sum": 41943040,
+          "start_ts_count": 5
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave98/research/scratch/softcap_ce_parallel_nki.py:76",
+          "raw_flops_sum": 9437184,
+          "adjusted_flops_sum": 37748736,
+          "start_ts_count": 8
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/neuronxcc/private_nkl/transpose.py:56",
+          "raw_flops_sum": 8781824,
+          "adjusted_flops_sum": 35127296,
+          "start_ts_count": 7
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave180/train.py:3155",
+          "raw_flops_sum": 8650752,
+          "adjusted_flops_sum": 34603008,
+          "start_ts_count": 8
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave98/research/scratch/softcap_ce_parallel_nki.py:84",
+          "raw_flops_sum": 8519680,
+          "adjusted_flops_sum": 34078720,
+          "start_ts_count": 6
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/core/attention/attention_cte.py:2887",
+          "raw_flops_sum": 8388608,
+          "adjusted_flops_sum": 33554432,
+          "start_ts_count": 4
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave98/train.py:2513",
+          "raw_flops_sum": 5537792,
+          "adjusted_flops_sum": 22151168,
+          "start_ts_count": 11
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave98/train.py:1626",
+          "raw_flops_sum": 4325376,
+          "adjusted_flops_sum": 17301504,
+          "start_ts_count": 4
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/neuronxcc/private_nkl/transpose.py:175",
+          "raw_flops_sum": 4194304,
+          "adjusted_flops_sum": 16777216,
+          "start_ts_count": 2
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave98/train.py:2514",
+          "raw_flops_sum": 2916352,
+          "adjusted_flops_sum": 11665408,
+          "start_ts_count": 5
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/neuronxcc/private_nkl/transpose.py:146",
+          "raw_flops_sum": 2097152,
+          "adjusted_flops_sum": 8388608,
+          "start_ts_count": 1
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave98/train.py:2515",
+          "raw_flops_sum": 917504,
+          "adjusted_flops_sum": 3670016,
+          "start_ts_count": 11
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave98/train.py:2512",
+          "raw_flops_sum": 688128,
+          "adjusted_flops_sum": 2752512,
+          "start_ts_count": 5
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave98/train.py:2508",
+          "raw_flops_sum": 393216,
+          "adjusted_flops_sum": 1572864,
+          "start_ts_count": 3
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/core/attention/attention_cte.py:3596",
+          "raw_flops_sum": 262144,
+          "adjusted_flops_sum": 1048576,
+          "start_ts_count": 1
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/core/attention/attention_cte.py:3872",
+          "raw_flops_sum": 262144,
+          "adjusted_flops_sum": 1048576,
+          "start_ts_count": 1
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave98/train.py:1595",
+          "raw_flops_sum": 262144,
+          "adjusted_flops_sum": 1048576,
+          "start_ts_count": 4
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/neuronxcc/private_nkl/transpose.py:772",
+          "raw_flops_sum": 262144,
+          "adjusted_flops_sum": 1048576,
+          "start_ts_count": 4
+        }
+      ],
+      "transpose": {
+        "instruction_rows": 942645,
+        "activity": [
+          {
+            "pcore_idx": 0,
+            "engine": "Tensor",
+            "instruction_rows": 474383,
+            "active_ms": 23.124688
+          },
+          {
+            "pcore_idx": 1,
+            "engine": "Tensor",
+            "instruction_rows": 468262,
+            "active_ms": 22.72544
+          }
+        ]
+      },
+      "private_transpose": {
+        "instruction_rows": 5988,
+        "activity": [
+          {
+            "pcore_idx": 0,
+            "engine": "Tensor",
+            "instruction_rows": 5988,
+            "active_ms": 0.324253
+          }
+        ]
+      },
+      "sampled_sbuf_peaks": [
+        {
+          "pcore_idx": 0,
+          "avg_util_percent_max": 0.9240635633468628,
+          "timestamp_count": 710953
+        },
+        {
+          "pcore_idx": 1,
+          "avg_util_percent_max": 0.919603705406189,
+          "timestamp_count": 645267
+        }
+      ],
+      "source_families": {
+        "fp8_forward": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "fp8_surrogate": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "fp8_data_backward": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "fp8_gradient_prepare": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "fp8_weight_gradient": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "fp8_dual_weight_cache": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "bf16_mlp": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "library_mlp_cte": {
+          "instruction_rows": 552692,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 1894,
+              "positive_rows": 870,
+              "sum": 248643584
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 13431,
+              "positive_rows": 12919,
+              "sum": 1796079616
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 25895,
+              "positive_rows": 25895,
+              "sum": 3649986560
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 2875,
+              "positive_rows": 1851,
+              "sum": 581632000
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 497545,
+              "positive_rows": 496521,
+              "sum": 36177088256
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 41550,
+              "positive_rows": 41550,
+              "sum": 5658364160
+            }
+          },
+          "activity": [
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "instruction_rows": 80,
+              "active_ms": 0.054107
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 1412,
+              "active_ms": 0.489424
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Sync",
+              "instruction_rows": 18128,
+              "active_ms": 11.175251
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 249904,
+              "active_ms": 27.540341
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "instruction_rows": 7937,
+              "active_ms": 3.183797
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "instruction_rows": 176,
+              "active_ms": 0.115097
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 1430,
+              "active_ms": 0.5481
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Sync",
+              "instruction_rows": 17891,
+              "active_ms": 9.125021
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 247801,
+              "active_ms": 27.095469
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "instruction_rows": 7933,
+              "active_ms": 3.166835
+            }
+          ]
+        },
+        "library_training_saves": {
+          "instruction_rows": 17515,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 17,
+              "positive_rows": 17,
+              "sum": 7733248
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 1,
+              "positive_rows": 1,
+              "sum": 524288
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 12,
+              "positive_rows": 12,
+              "sum": 606720
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 1547,
+              "positive_rows": 1547,
+              "sum": 1611530240
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 3785,
+              "positive_rows": 3785,
+              "sum": 3267199232
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 13756,
+              "positive_rows": 13756,
+              "sum": 3208200704
+            }
+          },
+          "activity": [
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "instruction_rows": 1524,
+              "active_ms": 1.582797
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 6892,
+              "active_ms": 6.301426
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 291,
+              "active_ms": 0.055894
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "instruction_rows": 1491,
+              "active_ms": 1.586866
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 6956,
+              "active_ms": 6.337157
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 361,
+              "active_ms": 0.077114
+            }
+          ]
+        },
+        "library_training_integration": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "softcap_ce": {
+          "instruction_rows": 23022,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 151,
+              "positive_rows": 151,
+              "sum": 8028160
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 294,
+              "positive_rows": 294,
+              "sum": 543479296
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 566,
+              "positive_rows": 566,
+              "sum": 1088804352
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 556,
+              "positive_rows": 556,
+              "sum": 20996096
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 16871,
+              "positive_rows": 16871,
+              "sum": 3216102912
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 10062,
+              "positive_rows": 10062,
+              "sum": 3112582144
+            }
+          },
+          "activity": [
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "instruction_rows": 3873,
+              "active_ms": 1.318275
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 4572,
+              "active_ms": 2.531441
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Sync",
+              "instruction_rows": 468,
+              "active_ms": 0.152664
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 1752,
+              "active_ms": 0.298365
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "instruction_rows": 645,
+              "active_ms": 0.32086
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "instruction_rows": 4315,
+              "active_ms": 1.432371
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 5020,
+              "active_ms": 2.928196
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Sync",
+              "instruction_rows": 440,
+              "active_ms": 0.164606
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 1324,
+              "active_ms": 0.212282
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "instruction_rows": 613,
+              "active_ms": 0.240698
+            }
+          ]
+        },
+        "cached_head": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "cached_head_autograd": {
+          "instruction_rows": 0,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 0,
+              "positive_rows": 0,
+              "sum": 0
+            }
+          },
+          "activity": []
+        },
+        "attention": {
+          "instruction_rows": 468206,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 23136,
+              "positive_rows": 7776,
+              "sum": 468195840
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 21551,
+              "positive_rows": 7727,
+              "sum": 493518848
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 28147,
+              "positive_rows": 15859,
+              "sum": 1123317768
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 31162,
+              "positive_rows": 15802,
+              "sum": 736934916
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 293464,
+              "positive_rows": 290392,
+              "sum": 22406775428
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 191410,
+              "positive_rows": 191410,
+              "sum": 18350231688
+            }
+          },
+          "activity": [
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "instruction_rows": 19071,
+              "active_ms": 8.180305
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 33484,
+              "active_ms": 11.061445
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Sync",
+              "instruction_rows": 26942,
+              "active_ms": 4.297569
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 79748,
+              "active_ms": 9.420392
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "instruction_rows": 75521,
+              "active_ms": 13.872345
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "instruction_rows": 18210,
+              "active_ms": 8.146837
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 32873,
+              "active_ms": 11.034297
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Sync",
+              "instruction_rows": 27274,
+              "active_ms": 4.465152
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 79776,
+              "active_ms": 9.495468
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "instruction_rows": 75307,
+              "active_ms": 13.987695
+            }
+          ]
+        },
+        "functional": {
+          "instruction_rows": 81500,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 1480,
+              "positive_rows": 1480,
+              "sum": 390009856
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 68,
+              "positive_rows": 68,
+              "sum": 60317696
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 75,
+              "positive_rows": 75,
+              "sum": 62554624
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 1770,
+              "positive_rows": 1770,
+              "sum": 460842496
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 75833,
+              "positive_rows": 75833,
+              "sum": 7873720448
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 65769,
+              "positive_rows": 65769,
+              "sum": 3312541184
+            }
+          },
+          "activity": [
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "instruction_rows": 599,
+              "active_ms": 0.772666
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 15486,
+              "active_ms": 9.783614
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Sync",
+              "instruction_rows": 46,
+              "active_ms": 0.036728
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 3504,
+              "active_ms": 1.116732
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "instruction_rows": 20860,
+              "active_ms": 12.423527
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "instruction_rows": 609,
+              "active_ms": 0.776846
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 15369,
+              "active_ms": 9.737475
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Sync",
+              "instruction_rows": 38,
+              "active_ms": 0.027498
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 4137,
+              "active_ms": 1.278677
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "instruction_rows": 20852,
+              "active_ms": 12.378614
+            }
+          ]
+        },
+        "private_transpose": {
+          "instruction_rows": 7987,
+          "counters": {
+            "spill_save_bytes": {
+              "nonnull_rows": 296,
+              "positive_rows": 296,
+              "sum": 102846464
+            },
+            "spill_reload_bytes": {
+              "nonnull_rows": 34,
+              "positive_rows": 30,
+              "sum": 6316032
+            },
+            "hbm_read_bytes": {
+              "nonnull_rows": 340,
+              "positive_rows": 336,
+              "sum": 112746496
+            },
+            "hbm_write_bytes": {
+              "nonnull_rows": 309,
+              "positive_rows": 309,
+              "sum": 109629440
+            },
+            "sbuf_read_bytes": {
+              "nonnull_rows": 6454,
+              "positive_rows": 6454,
+              "sum": 327197696
+            },
+            "sbuf_write_bytes": {
+              "nonnull_rows": 1210,
+              "positive_rows": 1206,
+              "sum": 228150272
+            }
+          },
+          "activity": [
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "instruction_rows": 418,
+              "active_ms": 0.214448
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 834,
+              "active_ms": 0.517621
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Sync",
+              "instruction_rows": 67,
+              "active_ms": 0.031494
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 6098,
+              "active_ms": 0.338649
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "instruction_rows": 462,
+              "active_ms": 0.16025
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 42,
+              "active_ms": 0.09056
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Sync",
+              "instruction_rows": 34,
+              "active_ms": 0.020268
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 12,
+              "active_ms": 0.002219
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "instruction_rows": 20,
+              "active_ms": 0.006459
+            }
+          ]
+        }
+      },
+      "top_source_groups": [
+        {
+          "nki_source_location": null,
+          "duration_ns_sum": 308345171,
+          "start_ts_count": 1154668,
+          "spill_save_bytes_sum": 1491410944,
+          "spill_reload_bytes_sum": 3300528128,
+          "hbm_read_bytes_sum": 9500158976,
+          "hbm_write_bytes_sum": 10698508800,
+          "sbuf_read_bytes_sum": 22025153280,
+          "sbuf_write_bytes_sum": 11642740996,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "instruction_rows": 24906,
+              "active_ms": 20.538944
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 28940,
+              "active_ms": 12.254249
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Sync",
+              "instruction_rows": 14644,
+              "active_ms": 11.57733
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 425026,
+              "active_ms": 21.687194
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "instruction_rows": 82853,
+              "active_ms": 9.917537
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "instruction_rows": 24991,
+              "active_ms": 40.33234
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 29060,
+              "active_ms": 12.733272
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Sync",
+              "instruction_rows": 14264,
+              "active_ms": 11.152945
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 426702,
+              "active_ms": 22.213787
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "instruction_rows": 83282,
+              "active_ms": 9.944008
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "",
+              "opcode": "EVENT_SEMAPHORE"
+            },
+            {
+              "bir_instruction_name": "",
+              "opcode": "DRAIN"
+            },
+            {
+              "bir_instruction_name": "",
+              "opcode": "DRAIN"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave180/train.py:2853",
+          "duration_ns_sum": 250791994,
+          "start_ts_count": 577292,
+          "spill_save_bytes_sum": 1548222464,
+          "spill_reload_bytes_sum": 13466865664,
+          "hbm_read_bytes_sum": 13499819520,
+          "hbm_write_bytes_sum": 2573948928,
+          "sbuf_read_bytes_sum": 26870044928,
+          "sbuf_write_bytes_sum": 17233720832,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "instruction_rows": 827,
+              "active_ms": 0.912024
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 21102,
+              "active_ms": 23.080757
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Sync",
+              "instruction_rows": 31960,
+              "active_ms": 12.72062
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 220773,
+              "active_ms": 45.204128
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "instruction_rows": 13721,
+              "active_ms": 11.290936
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "instruction_rows": 743,
+              "active_ms": 1.092107
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 20957,
+              "active_ms": 22.80068
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Sync",
+              "instruction_rows": 32059,
+              "active_ms": 12.704252
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 221413,
+              "active_ms": 45.232058
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "instruction_rows": 13737,
+              "active_ms": 11.275763
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-2658-0-wait-0",
+              "opcode": "EVENT_SEMAPHORE"
+            },
+            {
+              "bir_instruction_name": "I-2659-2-tc-dve-wait-0",
+              "opcode": "EVENT_SEMAPHORE"
+            },
+            {
+              "bir_instruction_name": "I-2658-0",
+              "opcode": "LDWEIGHTS"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave178/research/vendor/nki_library_92d11f63/core/mlp/mlp_cte/basic/mlp_cte_basic_projection.py:580",
+          "duration_ns_sum": 51932774,
+          "start_ts_count": 199643,
+          "spill_save_bytes_sum": null,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": null,
+          "hbm_write_bytes_sum": null,
+          "sbuf_read_bytes_sum": 16091078656,
+          "sbuf_write_bytes_sum": null,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 100019,
+              "active_ms": 12.879767
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 99624,
+              "active_ms": 12.51967
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-32_inst__I-227-0",
+              "opcode": "LDWEIGHTS"
+            },
+            {
+              "bir_instruction_name": "I-32_inst__I-227-0",
+              "opcode": "MATMUL"
+            },
+            {
+              "bir_instruction_name": "I-33_inst__I-227-0",
+              "opcode": "LDWEIGHTS"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave178/research/vendor/nki_library_92d11f63/core/mlp/mlp_cte/basic/mlp_cte_basic_projection.py:159",
+          "duration_ns_sum": 51801554,
+          "start_ts_count": 197285,
+          "spill_save_bytes_sum": null,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": null,
+          "hbm_write_bytes_sum": null,
+          "sbuf_read_bytes_sum": 16057127040,
+          "sbuf_write_bytes_sum": null,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 99373,
+              "active_ms": 12.612372
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 97912,
+              "active_ms": 12.570897
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-990_inst__I-227-0",
+              "opcode": "LDWEIGHTS"
+            },
+            {
+              "bir_instruction_name": "I-990_inst__I-227-0",
+              "opcode": "MATMUL"
+            },
+            {
+              "bir_instruction_name": "I-991_inst__I-227-0",
+              "opcode": "MATMUL"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/functional.py:2954",
+          "duration_ns_sum": 51296002,
+          "start_ts_count": 81500,
+          "spill_save_bytes_sum": 390009856,
+          "spill_reload_bytes_sum": 60317696,
+          "hbm_read_bytes_sum": 62554624,
+          "hbm_write_bytes_sum": 460842496,
+          "sbuf_read_bytes_sum": 7873720448,
+          "sbuf_write_bytes_sum": 3312541184,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "instruction_rows": 599,
+              "active_ms": 0.772666
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 15486,
+              "active_ms": 9.783614
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Sync",
+              "instruction_rows": 46,
+              "active_ms": 0.036728
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 3504,
+              "active_ms": 1.116732
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "instruction_rows": 20860,
+              "active_ms": 12.423527
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "instruction_rows": 609,
+              "active_ms": 0.776846
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 15369,
+              "active_ms": 9.737475
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Sync",
+              "instruction_rows": 38,
+              "active_ms": 0.027498
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 4137,
+              "active_ms": 1.278677
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "instruction_rows": 20852,
+              "active_ms": 12.378614
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-2602-22",
+              "opcode": "TENSOR_REDUCE"
+            },
+            {
+              "bir_instruction_name": "I-2602-23",
+              "opcode": "TENSOR_REDUCE"
+            },
+            {
+              "bir_instruction_name": "I-2602-24",
+              "opcode": "TENSOR_REDUCE"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave180/train.py:3316",
+          "duration_ns_sum": 26095106,
+          "start_ts_count": 39191,
+          "spill_save_bytes_sum": 400425472,
+          "spill_reload_bytes_sum": 401080320,
+          "hbm_read_bytes_sum": 406898264,
+          "hbm_write_bytes_sum": 408224768,
+          "sbuf_read_bytes_sum": 2883407488,
+          "sbuf_write_bytes_sum": 2003267032,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "instruction_rows": 20,
+              "active_ms": 0.010329
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 11724,
+              "active_ms": 8.034559
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Sync",
+              "instruction_rows": 1711,
+              "active_ms": 1.2365
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 168,
+              "active_ms": 0.029084
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "instruction_rows": 5627,
+              "active_ms": 3.162345
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "instruction_rows": 43,
+              "active_ms": 0.033029
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 11567,
+              "active_ms": 8.042261
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Sync",
+              "instruction_rows": 1670,
+              "active_ms": 1.292916
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 1064,
+              "active_ms": 0.21991
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "instruction_rows": 5597,
+              "active_ms": 3.187234
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-2615-0-wait-0",
+              "opcode": "EVENT_SEMAPHORE"
+            },
+            {
+              "bir_instruction_name": "I-2620-0-wait-0",
+              "opcode": "EVENT_SEMAPHORE"
+            },
+            {
+              "bir_instruction_name": "I-2620-0",
+              "opcode": "DMA_DIRECT2D"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave180/train.py:3329",
+          "duration_ns_sum": 23928819,
+          "start_ts_count": 39787,
+          "spill_save_bytes_sum": 782241792,
+          "spill_reload_bytes_sum": 828006400,
+          "hbm_read_bytes_sum": 866838528,
+          "hbm_write_bytes_sum": 792563712,
+          "sbuf_read_bytes_sum": 2559655424,
+          "sbuf_write_bytes_sum": 2418611456,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "instruction_rows": 93,
+              "active_ms": 0.035037
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 2861,
+              "active_ms": 1.805146
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Sync",
+              "instruction_rows": 3756,
+              "active_ms": 3.481747
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 483,
+              "active_ms": 0.08953
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "instruction_rows": 12453,
+              "active_ms": 6.084779
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "instruction_rows": 110,
+              "active_ms": 0.064654
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 2870,
+              "active_ms": 1.665415
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Sync",
+              "instruction_rows": 3738,
+              "active_ms": 3.176479
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 1024,
+              "active_ms": 0.18602
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "instruction_rows": 12399,
+              "active_ms": 6.214446
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "add.30_i163_SpillSave163_SpillSave",
+              "opcode": "DMA_DIRECT2D"
+            },
+            {
+              "bir_instruction_name": "add.30_i201_SpillSave201_SpillSave",
+              "opcode": "LDWEIGHTS"
+            },
+            {
+              "bir_instruction_name": "add.30_i201_SpillSave201_SpillSave",
+              "opcode": "MATMUL"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/core/attention/attention_cte.py:3872",
+          "duration_ns_sum": 23128369,
+          "start_ts_count": 110513,
+          "spill_save_bytes_sum": null,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": null,
+          "hbm_write_bytes_sum": null,
+          "sbuf_read_bytes_sum": 3545619328,
+          "sbuf_write_bytes_sum": null,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 55516,
+              "active_ms": 4.525186
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 54997,
+              "active_ms": 4.408717
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-12629_inst__I-85-0",
+              "opcode": "LDWEIGHTS"
+            },
+            {
+              "bir_instruction_name": "I-12629_inst__I-85-0",
+              "opcode": "MATMUL"
+            },
+            {
+              "bir_instruction_name": "I-15670_inst__I-85-0",
+              "opcode": "LDWEIGHTS"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/core/attention/attention_cte.py:3005",
+          "duration_ns_sum": 18389461,
+          "start_ts_count": 37392,
+          "spill_save_bytes_sum": 524288,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": null,
+          "hbm_write_bytes_sum": 524288,
+          "sbuf_read_bytes_sum": 4852651008,
+          "sbuf_write_bytes_sum": 2397437952,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 18214,
+              "active_ms": 7.916475
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 314,
+              "active_ms": 0.0755
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 18386,
+              "active_ms": 7.992198
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 478,
+              "active_ms": 0.125096
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-11929_inst__I-85-0",
+              "opcode": "ACTIVATE"
+            },
+            {
+              "bir_instruction_name": "I-12804_inst__I-85-0",
+              "opcode": "ACTIVATE"
+            },
+            {
+              "bir_instruction_name": "I-12830_inst__I-85-0",
+              "opcode": "ACTIVATE"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave178/research/vendor/nki_library_92d11f63/core/mlp/mlp_cte/basic/mlp_cte_basic_transpose.py:350",
+          "duration_ns_sum": 16565423,
+          "start_ts_count": 98106,
+          "spill_save_bytes_sum": null,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": null,
+          "hbm_write_bytes_sum": null,
+          "sbuf_read_bytes_sum": 3249864704,
+          "sbuf_write_bytes_sum": 786432,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "instruction_rows": 6,
+              "active_ms": 0.001755
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 49186,
+              "active_ms": 2.021455
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "instruction_rows": 6,
+              "active_ms": 0.00099
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "instruction_rows": 10,
+              "active_ms": 0.00194
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 48892,
+              "active_ms": 1.960282
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "instruction_rows": 6,
+              "active_ms": 0.00099
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-1_inst__I-227-0",
+              "opcode": "LDWEIGHTS"
+            },
+            {
+              "bir_instruction_name": "I-1_inst__I-227-0",
+              "opcode": "MATMUL"
+            },
+            {
+              "bir_instruction_name": "I-812_inst__I-227-0",
+              "opcode": "LDWEIGHTS"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/core/attention/attention_cte.py:3596",
+          "duration_ns_sum": 13565939,
+          "start_ts_count": 36026,
+          "spill_save_bytes_sum": null,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": null,
+          "hbm_write_bytes_sum": null,
+          "sbuf_read_bytes_sum": 2949128192,
+          "sbuf_write_bytes_sum": null,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 18124,
+              "active_ms": 5.398813
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 17902,
+              "active_ms": 5.338811
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-12877_inst__I-85-0",
+              "opcode": "LDWEIGHTS"
+            },
+            {
+              "bir_instruction_name": "I-12877_inst__I-85-0",
+              "opcode": "MATMUL"
+            },
+            {
+              "bir_instruction_name": "I-15676_inst__I-85-0",
+              "opcode": "LDWEIGHTS"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave178/research/vendor/nki_library_92d11f63/core/mlp/mlp_cte/basic/mlp_cte_basic_projection.py:145",
+          "duration_ns_sum": 11860016,
+          "start_ts_count": 17909,
+          "spill_save_bytes_sum": 9961472,
+          "spill_reload_bytes_sum": 823394304,
+          "hbm_read_bytes_sum": 1678123008,
+          "hbm_write_bytes_sum": 67371008,
+          "sbuf_read_bytes_sum": 111430144,
+          "sbuf_write_bytes_sum": 1667200512,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "instruction_rows": 19,
+              "active_ms": 0.011946
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 17,
+              "active_ms": 0.011325
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Sync",
+              "instruction_rows": 8511,
+              "active_ms": 6.262421
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 380,
+              "active_ms": 0.070028
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "instruction_rows": 47,
+              "active_ms": 0.027146
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "instruction_rows": 62,
+              "active_ms": 0.041439
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 38,
+              "active_ms": 0.027872
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Sync",
+              "instruction_rows": 8406,
+              "active_ms": 5.270834
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 401,
+              "active_ms": 0.077532
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "instruction_rows": 28,
+              "active_ms": 0.020972
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-1042_inst__I-227-0",
+              "opcode": "LDWEIGHTS"
+            },
+            {
+              "bir_instruction_name": "I-1042_inst__I-227-0",
+              "opcode": "MATMUL"
+            },
+            {
+              "bir_instruction_name": "I-1096_inst__I-227-0",
+              "opcode": "MATMUL"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/core/attention/attention_cte.py:3663",
+          "duration_ns_sum": 9985477,
+          "start_ts_count": 33100,
+          "spill_save_bytes_sum": 7340544,
+          "spill_reload_bytes_sum": 3145728,
+          "hbm_read_bytes_sum": 9465856,
+          "hbm_write_bytes_sum": 24127488,
+          "sbuf_read_bytes_sum": 3329177984,
+          "sbuf_write_bytes_sum": 3240573440,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "instruction_rows": 21,
+              "active_ms": 0.015465
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 75,
+              "active_ms": 0.044151
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 432,
+              "active_ms": 0.09391
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "instruction_rows": 16023,
+              "active_ms": 4.330776
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "instruction_rows": 39,
+              "active_ms": 0.036275
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 27,
+              "active_ms": 0.023261
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 680,
+              "active_ms": 0.14905
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "instruction_rows": 15803,
+              "active_ms": 4.339199
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-11919_inst__I-85-0",
+              "opcode": "ACTIVATE"
+            },
+            {
+              "bir_instruction_name": "I-11899_inst__I-85-0",
+              "opcode": "ACTIVATE"
+            },
+            {
+              "bir_instruction_name": "I-12048_inst__I-85-0",
+              "opcode": "ACTIVATE"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/core/attention/attention_cte.py:3380",
+          "duration_ns_sum": 8907848,
+          "start_ts_count": 25435,
+          "spill_save_bytes_sum": 409012224,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": 5261824,
+          "hbm_write_bytes_sum": 426149888,
+          "sbuf_read_bytes_sum": 926596096,
+          "sbuf_write_bytes_sum": 21920256,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "instruction_rows": 12164,
+              "active_ms": 4.090809
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 92,
+              "active_ms": 0.055247
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 580,
+              "active_ms": 0.114854
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "instruction_rows": 11790,
+              "active_ms": 4.128633
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 23,
+              "active_ms": 0.21207
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 786,
+              "active_ms": 0.160262
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-12029_inst__I-85-0",
+              "opcode": "ACTIVATE"
+            },
+            {
+              "bir_instruction_name": "I-12134_inst__I-85-0",
+              "opcode": "DMA_INDIRECT"
+            },
+            {
+              "bir_instruction_name": "I-12183_inst__I-85-0",
+              "opcode": "ACTIVATE"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave178/research/vendor/nki_library_92d11f63/core/mlp/mlp_cte/basic/mlp_cte_basic_projection.py:570",
+          "duration_ns_sum": 8337669,
+          "start_ts_count": 17213,
+          "spill_save_bytes_sum": 12582912,
+          "spill_reload_bytes_sum": 816185344,
+          "hbm_read_bytes_sum": 1670291456,
+          "hbm_write_bytes_sum": 70254592,
+          "sbuf_read_bytes_sum": 105607168,
+          "sbuf_write_bytes_sum": 1653281792,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "instruction_rows": 24,
+              "active_ms": 0.016863
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 14,
+              "active_ms": 0.013253
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Sync",
+              "instruction_rows": 8239,
+              "active_ms": 4.279338
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 297,
+              "active_ms": 0.061693
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "instruction_rows": 37,
+              "active_ms": 0.022389
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "instruction_rows": 59,
+              "active_ms": 0.039393
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 34,
+              "active_ms": 0.026131
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Sync",
+              "instruction_rows": 8121,
+              "active_ms": 3.765867
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 361,
+              "active_ms": 0.071951
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "instruction_rows": 27,
+              "active_ms": 0.017315
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-24048_inst__I-227-0",
+              "opcode": "DMA_DIRECT2D"
+            },
+            {
+              "bir_instruction_name": "I-24395_inst__I-227-0",
+              "opcode": "DMA_DIRECT2D"
+            },
+            {
+              "bir_instruction_name": "I-24359_inst__I-227-0",
+              "opcode": "DMA_DIRECT2D"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/core/attention/attention_cte.py:3638",
+          "duration_ns_sum": 8289172,
+          "start_ts_count": 16516,
+          "spill_save_bytes_sum": null,
+          "spill_reload_bytes_sum": 524288,
+          "hbm_read_bytes_sum": 4194308,
+          "hbm_write_bytes_sum": 21495808,
+          "sbuf_read_bytes_sum": 99431680,
+          "sbuf_write_bytes_sum": 3223341316,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "instruction_rows": 3,
+              "active_ms": 0.001993
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 2319,
+              "active_ms": 0.92592
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 678,
+              "active_ms": 0.147107
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "instruction_rows": 5588,
+              "active_ms": 3.065038
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "instruction_rows": 37,
+              "active_ms": 0.026869
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 2294,
+              "active_ms": 0.946977
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 226,
+              "active_ms": 0.051587
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "instruction_rows": 5371,
+              "active_ms": 3.103171
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-15677_inst__I-85-0",
+              "opcode": "LDWEIGHTS"
+            },
+            {
+              "bir_instruction_name": "I-15677_inst__I-85-0",
+              "opcode": "MATMUL"
+            },
+            {
+              "bir_instruction_name": "I-16192_inst__I-85-0",
+              "opcode": "LDWEIGHTS"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/core/attention/attention_cte.py:3642",
+          "duration_ns_sum": 7914240,
+          "start_ts_count": 13023,
+          "spill_save_bytes_sum": 5243904,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": 524288,
+          "hbm_write_bytes_sum": 9438208,
+          "sbuf_read_bytes_sum": 3266887680,
+          "sbuf_write_bytes_sum": 3218477056,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "instruction_rows": 6219,
+              "active_ms": 3.878251
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 83,
+              "active_ms": 0.041534
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 258,
+              "active_ms": 0.060919
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "instruction_rows": 6168,
+              "active_ms": 3.807775
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 11,
+              "active_ms": 0.006261
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 284,
+              "active_ms": 0.073345
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-11881_inst__I-85-0",
+              "opcode": "DMA_INDIRECT"
+            },
+            {
+              "bir_instruction_name": "I-12178_inst__I-85-0",
+              "opcode": "ACTIVATE"
+            },
+            {
+              "bir_instruction_name": "I-12317_inst__I-85-0",
+              "opcode": "ACTIVATE"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave180/train.py:3385",
+          "duration_ns_sum": 7610784,
+          "start_ts_count": 15114,
+          "spill_save_bytes_sum": 262144,
+          "spill_reload_bytes_sum": 34154496,
+          "hbm_read_bytes_sum": 77198336,
+          "hbm_write_bytes_sum": 11374592,
+          "sbuf_read_bytes_sum": 947020160,
+          "sbuf_write_bytes_sum": 894485504,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "instruction_rows": 21,
+              "active_ms": 0.016314
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 11,
+              "active_ms": 0.007252
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Sync",
+              "instruction_rows": 82,
+              "active_ms": 0.077766
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 223,
+              "active_ms": 0.046487
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "instruction_rows": 7033,
+              "active_ms": 3.39494
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "instruction_rows": 44,
+              "active_ms": 0.042136
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 30,
+              "active_ms": 0.019649
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Sync",
+              "instruction_rows": 87,
+              "active_ms": 0.146712
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 513,
+              "active_ms": 0.096566
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "instruction_rows": 7070,
+              "active_ms": 3.484302
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-2739-0-wait-0",
+              "opcode": "EVENT_SEMAPHORE"
+            },
+            {
+              "bir_instruction_name": "I-2741-0-wait-0",
+              "opcode": "EVENT_SEMAPHORE"
+            },
+            {
+              "bir_instruction_name": "I-2739-0",
+              "opcode": "DMA_DIRECT2D"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave178/research/scratch/nki_library_training_mlp_reuse_transpose.py:43",
+          "duration_ns_sum": 7436279,
+          "start_ts_count": 12675,
+          "spill_save_bytes_sum": 5111808,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": null,
+          "hbm_write_bytes_sum": 5636096,
+          "sbuf_read_bytes_sum": 39845888,
+          "sbuf_write_bytes_sum": 1603403776,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 6119,
+              "active_ms": 3.536137
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 168,
+              "active_ms": 0.035178
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 6184,
+              "active_ms": 3.575234
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 204,
+              "active_ms": 0.045089
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-24077_inst__I-227-0",
+              "opcode": "DMA_DIRECT2D"
+            },
+            {
+              "bir_instruction_name": "I-24409_inst__I-227-0",
+              "opcode": "DMA_DIRECT2D"
+            },
+            {
+              "bir_instruction_name": "I-641_inst__I-227-0",
+              "opcode": "DMA_DIRECT2D"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/core/attention/attention_cte.py:2804",
+          "duration_ns_sum": 7364453,
+          "start_ts_count": 13149,
+          "spill_save_bytes_sum": 1573376,
+          "spill_reload_bytes_sum": 203063296,
+          "hbm_read_bytes_sum": 404619264,
+          "hbm_write_bytes_sum": 6030848,
+          "sbuf_read_bytes_sum": 86325248,
+          "sbuf_write_bytes_sum": 436359680,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "instruction_rows": 66,
+              "active_ms": 0.022685
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 83,
+              "active_ms": 0.061299
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Sync",
+              "instruction_rows": 6189,
+              "active_ms": 3.565257
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 248,
+              "active_ms": 0.060192
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "instruction_rows": 10,
+              "active_ms": 0.00732
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "instruction_rows": 1,
+              "active_ms": 0.000838
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 11,
+              "active_ms": 0.006716
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Sync",
+              "instruction_rows": 6205,
+              "active_ms": 3.538674
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 324,
+              "active_ms": 0.083548
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "instruction_rows": 12,
+              "active_ms": 0.008259
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-11850_inst__I-85-0",
+              "opcode": "MEMSET"
+            },
+            {
+              "bir_instruction_name": "I-11849_inst__I-85-0",
+              "opcode": "DMA_DIRECT2D"
+            },
+            {
+              "bir_instruction_name": "I-11848_inst__I-85-0",
+              "opcode": "DMA_DIRECT2D"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave178/research/scratch/nki_library_training_mlp_reuse_transpose.py:76",
+          "duration_ns_sum": 5539205,
+          "start_ts_count": 1581,
+          "spill_save_bytes_sum": null,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": null,
+          "hbm_write_bytes_sum": null,
+          "sbuf_read_bytes_sum": 1606320128,
+          "sbuf_write_bytes_sum": 1603141632,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 768,
+              "active_ms": 2.762392
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 32,
+              "active_ms": 0.006266
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 766,
+              "active_ms": 2.757686
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 15,
+              "active_ms": 0.003516
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-2565_inst__I-227-0",
+              "opcode": "MATMUL"
+            },
+            {
+              "bir_instruction_name": "I-2565_inst__I-227-0",
+              "opcode": "LDWEIGHTS"
+            },
+            {
+              "bir_instruction_name": "I-4145_inst__I-227-0",
+              "opcode": "LDWEIGHTS"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave178/research/vendor/nki_library_92d11f63/core/mlp/mlp_cte/basic/mlp_cte_basic_transpose.py:392",
+          "duration_ns_sum": 5205669,
+          "start_ts_count": 12704,
+          "spill_save_bytes_sum": 5898240,
+          "spill_reload_bytes_sum": 262144,
+          "hbm_read_bytes_sum": 1048576,
+          "hbm_write_bytes_sum": 15859712,
+          "sbuf_read_bytes_sum": 65078272,
+          "sbuf_write_bytes_sum": 1626443264,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "instruction_rows": 17,
+              "active_ms": 0.011445
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 19,
+              "active_ms": 0.011953
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 212,
+              "active_ms": 0.045824
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "instruction_rows": 6153,
+              "active_ms": 2.065631
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "instruction_rows": 15,
+              "active_ms": 0.010236
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 34,
+              "active_ms": 0.027212
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 95,
+              "active_ms": 0.022581
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "instruction_rows": 6159,
+              "active_ms": 2.061025
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-24696_inst__I-227-0",
+              "opcode": "DMA_DIRECT2D"
+            },
+            {
+              "bir_instruction_name": "I-801_inst__I-227-0",
+              "opcode": "DMA_DIRECT2D"
+            },
+            {
+              "bir_instruction_name": "I-816_inst__I-227-0",
+              "opcode": "LDWEIGHTS"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib/core/attention/attention_cte.py:3775",
+          "duration_ns_sum": 4987088,
+          "start_ts_count": 15753,
+          "spill_save_bytes_sum": 2621440,
+          "spill_reload_bytes_sum": 2097152,
+          "hbm_read_bytes_sum": 2639360,
+          "hbm_write_bytes_sum": 9438208,
+          "sbuf_read_bytes_sum": 51900032,
+          "sbuf_write_bytes_sum": 1616025600,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "GpSimd",
+              "instruction_rows": 48,
+              "active_ms": 0.024611
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 42,
+              "active_ms": 0.021538
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 212,
+              "active_ms": 0.048281
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Vector",
+              "instruction_rows": 7644,
+              "active_ms": 2.171024
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "GpSimd",
+              "instruction_rows": 10,
+              "active_ms": 0.006948
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 13,
+              "active_ms": 0.008933
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 240,
+              "active_ms": 0.059128
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Vector",
+              "instruction_rows": 7544,
+              "active_ms": 2.173893
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-11987_inst__I-85-0",
+              "opcode": "TENSOR_TENSOR"
+            },
+            {
+              "bir_instruction_name": "I-12175_inst__I-85-0",
+              "opcode": "ACTIVATE"
+            },
+            {
+              "bir_instruction_name": "I-12878_inst__I-85-0",
+              "opcode": "LDWEIGHTS"
+            }
+          ]
+        },
+        {
+          "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave98/research/scratch/softcap_ce_parallel_nki.py:76",
+          "duration_ns_sum": 4192226,
+          "start_ts_count": 9071,
+          "spill_save_bytes_sum": 1593344,
+          "spill_reload_bytes_sum": null,
+          "hbm_read_bytes_sum": null,
+          "hbm_write_bytes_sum": 4870144,
+          "sbuf_read_bytes_sum": 1079441920,
+          "sbuf_write_bytes_sum": 994454016,
+          "merged_activity_by_core_engine": [
+            {
+              "pcore_idx": 0,
+              "engine": "Scalar",
+              "instruction_rows": 3607,
+              "active_ms": 1.475165
+            },
+            {
+              "pcore_idx": 0,
+              "engine": "Tensor",
+              "instruction_rows": 796,
+              "active_ms": 0.170174
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Scalar",
+              "instruction_rows": 4082,
+              "active_ms": 1.754304
+            },
+            {
+              "pcore_idx": 1,
+              "engine": "Tensor",
+              "instruction_rows": 586,
+              "active_ms": 0.114352
+            }
+          ],
+          "examples": [
+            {
+              "bir_instruction_name": "I-13_inst__I-278-0",
+              "opcode": "DMA_DIRECT2D"
+            },
+            {
+              "bir_instruction_name": "I-96_inst__I-278-0",
+              "opcode": "ACTIVATE"
+            },
+            {
+              "bir_instruction_name": "I-188_inst__I-278-0",
+              "opcode": "ACTIVATE"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "explicitly_matched_auxiliary_executions": [
+    {
+      "device_execution": {
+        "execution_index": 0,
+        "neff_name": "barrier_561826fb125f4bb8991c29e085c8949a.neff",
+        "execution_start_ts": 0,
+        "execution_end_ts": 177956,
+        "num_subgraphs": 1,
+        "row_count": 797
+      },
+      "cpu_event": {
+        "ph": "X",
+        "cat": "cpu_op",
+        "name": "c10d::barrier",
+        "pid": 2008616,
+        "tid": 2008616,
+        "ts": 6918808087276.502,
+        "dur": 1396.547,
+        "args": {
+          "External id": 2,
+          "Record function id": 0,
+          "Sequence number": 3248,
+          "Fwd thread id": 0,
+          "Ev Idx": 1
+        }
+      },
+      "binary": "out/fresh-start-profiles/fs-w180-library-training-forward-profile-r3/rank0/neffs/barrier_561826fb125f4bb8991c29e085c8949a.neff",
+      "sha256": "2639b5cad2f9b7eefcfe4ffc24221d356b9518ff1f9a8f16cf90f3a83cfdf64b",
+      "classification": "preserved c10d startup barrier before timed annotation"
+    }
+  ],
+  "total_device_executions_accounted_for": 2,
+  "warnings": [
+    {
+      "message": "Missing additional dynamic DMA metadata, reported DMA values may be inaccurate. To enable more accurate DMA data, re-capture with --enable-dge-notifs flag or set NEURON_RT_ENABLE_DGE_NOTIFICATIONS=1 before running. Note: DGE notifications are disabled by default as they can cause execution timeouts on some models.",
+      "category": "Missing Data"
+    },
+    {
+      "message": "Notification from block DMA of type DMA were dropped. This can cause corresponding data to be incorrect.",
+      "category": "Missing Data"
+    },
+    {
+      "message": "Current NEFF is missing compiler metrics. Please re-compile using latest version of the compiler",
+      "category": "Missing Data"
+    },
+    {
+      "message": "Missing HLO stats in the NEFF, `model_flops` and `mfu_hlo_estimated_percent` summary metrics will not be available. Consider the metrics (hardware_flops - transpose_flops) and mfu_inst_estimated_percent instead.",
+      "category": "Missing Data"
+    },
+    {
+      "message": "Schema validation: Unexpected key 'subgraph' cannot be saved to table 'TimelineAnnotation' because no schema.yaml entry exists or no key name remapping. This key and value will be dropped and not found in parquet output.",
+      "category": "Schema Validation"
+    }
+  ],
+  "metric_schema": [
+    {
+      "table_name": "SbufUsage",
+      "table_description": "State Buffer (SB) memory partition utilization metrics during execution.",
+      "field_name": "pcore_idx",
+      "field_description": "Index of the physical NeuronCore within a Logical NeuronCore (LNC). A Logical NeuronCore is a group of physical NeuronCores. For LNC2 this field can have a value of either 0 or 1.",
+      "field_example": null,
+      "field_type": "integer",
+      "field_required": false,
+      "field_format": "int64",
+      "field_unit": null,
+      "field_minimum": 0.0,
+      "field_maximum": null,
+      "field_enum_values": null
+    },
+    {
+      "table_name": "SbufUsage",
+      "table_description": "State Buffer (SB) memory partition utilization metrics during execution.",
+      "field_name": "partition_0_util_percent",
+      "field_description": "Fullness percentage of State Buffer partition 0.",
+      "field_example": null,
+      "field_type": "number",
+      "field_required": false,
+      "field_format": "float",
+      "field_unit": "percent",
+      "field_minimum": 0.0,
+      "field_maximum": 1.0,
+      "field_enum_values": null
+    },
+    {
+      "table_name": "SbufUsage",
+      "table_description": "State Buffer (SB) memory partition utilization metrics during execution.",
+      "field_name": "partition_32_util_percent",
+      "field_description": "Fullness percentage of State Buffer partition 32.",
+      "field_example": null,
+      "field_type": "number",
+      "field_required": false,
+      "field_format": "float",
+      "field_unit": "percent",
+      "field_minimum": 0.0,
+      "field_maximum": 1.0,
+      "field_enum_values": null
+    },
+    {
+      "table_name": "SbufUsage",
+      "table_description": "State Buffer (SB) memory partition utilization metrics during execution.",
+      "field_name": "partition_64_util_percent",
+      "field_description": "Fullness percentage of State Buffer partition 64.",
+      "field_example": null,
+      "field_type": "number",
+      "field_required": false,
+      "field_format": "float",
+      "field_unit": "percent",
+      "field_minimum": 0.0,
+      "field_maximum": 1.0,
+      "field_enum_values": null
+    },
+    {
+      "table_name": "SbufUsage",
+      "table_description": "State Buffer (SB) memory partition utilization metrics during execution.",
+      "field_name": "partition_96_util_percent",
+      "field_description": "Fullness percentage of State Buffer partition 96.",
+      "field_example": null,
+      "field_type": "number",
+      "field_required": false,
+      "field_format": "float",
+      "field_unit": "percent",
+      "field_minimum": 0.0,
+      "field_maximum": 1.0,
+      "field_enum_values": null
+    },
+    {
+      "table_name": "SbufUsage",
+      "table_description": "State Buffer (SB) memory partition utilization metrics during execution.",
+      "field_name": "avg_util_percent",
+      "field_description": "Average utilization across all State Buffer partitions.",
+      "field_example": null,
+      "field_type": "number",
+      "field_required": false,
+      "field_format": "float",
+      "field_unit": "percent",
+      "field_minimum": 0.0,
+      "field_maximum": 1.0,
+      "field_enum_values": null
+    },
+    {
+      "table_name": "SbufUsage",
+      "table_description": "State Buffer (SB) memory partition utilization metrics during execution.",
+      "field_name": "timestamp",
+      "field_description": "Timestamp for this usage measurement.",
+      "field_example": null,
+      "field_type": "integer",
+      "field_required": true,
+      "field_format": "int64",
+      "field_unit": "nanoseconds",
+      "field_minimum": 0.0,
+      "field_maximum": null,
+      "field_enum_values": null
+    },
+    {
+      "table_name": "Instruction",
+      "table_description": "Instructions executed on NeuronCore compute engines.",
+      "field_name": "raw_flops",
+      "field_description": "Number of floating-point operations (FLOPs) performed by this instruction. Each MAC (multiply-accumulate) operation counts as 2 FLOPs (one multiply, one add). Note that as each FP32 matmul lowers to two FP32_LO_HI instructions, each FP32_LO_HI matmul records half the logical FLOPs.\n",
+      "field_example": null,
+      "field_type": "integer",
+      "field_required": false,
+      "field_format": "int64",
+      "field_unit": null,
+      "field_minimum": 0.0,
+      "field_maximum": null,
+      "field_enum_values": null
+    },
+    {
+      "table_name": "Instruction",
+      "table_description": "Instructions executed on NeuronCore compute engines.",
+      "field_name": "sbuf_write_bytes",
+      "field_description": "Number of bytes written to SBUF by this instruction.",
+      "field_example": null,
+      "field_type": "integer",
+      "field_required": false,
+      "field_format": "int64",
+      "field_unit": null,
+      "field_minimum": 0.0,
+      "field_maximum": null,
+      "field_enum_values": null
+    },
+    {
+      "table_name": "Instruction",
+      "table_description": "Instructions executed on NeuronCore compute engines.",
+      "field_name": "spill_reload_bytes",
+      "field_description": "Number of bytes loaded from HBM to SBUF by this instruction due to spill (lack of space in SBUF).",
+      "field_example": null,
+      "field_type": "integer",
+      "field_required": false,
+      "field_format": "int64",
+      "field_unit": null,
+      "field_minimum": 0.0,
+      "field_maximum": null,
+      "field_enum_values": null
+    },
+    {
+      "table_name": "Instruction",
+      "table_description": "Instructions executed on NeuronCore compute engines.",
+      "field_name": "adjusted_flops",
+      "field_description": "BF16-equivalent FLOPs for this instruction. Scales FLOPs to the BF16 throughput equivalent so the result can be used with BF16 peak throughput as the denominator for PE utilization calculations. BF16, FP16, and TF32 use a 1.0x multiplier. FP32 uses 4.0x. On Trn2/Trn3, FP8@FP8 and UINT8@UINT8 matmuls use 0.5x; FP8 or UINT8 mixed with a higher-precision operand uses 1.0x (executes at BF16 throughput). FP8 uses 1.0x on Trn1/Inf2. MXFP8 and MXFP4 use 0.25x on Trn3.\n",
+      "field_example": null,
+      "field_type": "integer",
+      "field_required": false,
+      "field_format": "int64",
+      "field_unit": null,
+      "field_minimum": 0.0,
+      "field_maximum": null,
+      "field_enum_values": null
+    },
+    {
+      "table_name": "Instruction",
+      "table_description": "Instructions executed on NeuronCore compute engines.",
+      "field_name": "sbuf_read_bytes",
+      "field_description": "Number of bytes read from SBUF by this instruction.",
+      "field_example": null,
+      "field_type": "integer",
+      "field_required": false,
+      "field_format": "int64",
+      "field_unit": null,
+      "field_minimum": 0.0,
+      "field_maximum": null,
+      "field_enum_values": null
+    },
+    {
+      "table_name": "Instruction",
+      "table_description": "Instructions executed on NeuronCore compute engines.",
+      "field_name": "hbm_write_bytes",
+      "field_description": "Number of bytes written to HBM by this instruction.",
+      "field_example": null,
+      "field_type": "integer",
+      "field_required": false,
+      "field_format": "int64",
+      "field_unit": null,
+      "field_minimum": 0.0,
+      "field_maximum": null,
+      "field_enum_values": null
+    },
+    {
+      "table_name": "Instruction",
+      "table_description": "Instructions executed on NeuronCore compute engines.",
+      "field_name": "tensor_instruction_type",
+      "field_description": "Instruction type name from the debug info.",
+      "field_example": "[REGULAR TRANSPOSE]",
+      "field_type": "string",
+      "field_required": false,
+      "field_format": null,
+      "field_unit": null,
+      "field_minimum": null,
+      "field_maximum": null,
+      "field_enum_values": null
+    },
+    {
+      "table_name": "Instruction",
+      "table_description": "Instructions executed on NeuronCore compute engines.",
+      "field_name": "hbm_read_bytes",
+      "field_description": "Number of bytes read from HBM by this instruction.",
+      "field_example": null,
+      "field_type": "integer",
+      "field_required": false,
+      "field_format": "int64",
+      "field_unit": null,
+      "field_minimum": 0.0,
+      "field_maximum": null,
+      "field_enum_values": null
+    },
+    {
+      "table_name": "Instruction",
+      "table_description": "Instructions executed on NeuronCore compute engines.",
+      "field_name": "spill_save_bytes",
+      "field_description": "Number of bytes saved to HBM from SBUF by this instruction due to spill (lack of space in SBUF).",
+      "field_example": null,
+      "field_type": "integer",
+      "field_required": false,
+      "field_format": "int64",
+      "field_unit": null,
+      "field_minimum": 0.0,
+      "field_maximum": null,
+      "field_enum_values": null
+    }
+  ],
+  "caveats": [
+    "Use unprofiled same-host phase runs for speed; traces are attribution.",
+    "Runtime API durations contain asynchronous queueing and overlap.",
+    "Source/engine activity unions overlap and are not additive wall-time shares.",
+    "Dropped EVENT/DMA warnings can mean missing instructions or inaccurate counters; absence is not proof of no work.",
+    "Missing dynamic DMA metadata prevents exact traffic or bandwidth claims.",
+    "Sampled SBUF utilization is not a complete allocator/live-memory proof.",
+    "BF16-cost multipliers follow the installed Explorer schema, not assumed FLOP peaks."
+  ],
+  "sha256": {
+    "out/fresh-start-profiles/fs-w180-library-forward-remote-ingest-r2-parquet/i-0673e54d9d66e6a1e_pid_2008616_nc_0_session_0/ExecutionInfo.parquet": "3cc73652cde01f75467be9e9a8b7cbe8bf95d968db3a35f66f096eb5b9ab7aaa",
+    "out/fresh-start-profiles/fs-w180-library-forward-remote-ingest-r2-parquet/i-0673e54d9d66e6a1e_pid_2008616_nc_0_session_0/Instruction.parquet": "46aa04b76b834c10d991a51a9ab81c76d850986b56a6db0ea46040a10321a820",
+    "out/fresh-start-profiles/fs-w180-library-forward-remote-ingest-r2-parquet/i-0673e54d9d66e6a1e_pid_2008616_nc_0_session_0/ActiveTime.parquet": "05e54f851d45645a27f1855a48f04fc1eb1a8a47b4ad5a55e17f6ac1492e3535",
+    "out/fresh-start-profiles/fs-w180-library-forward-remote-ingest-r2-parquet/i-0673e54d9d66e6a1e_pid_2008616_nc_0_session_0/SbufUsage.parquet": "0bfe7b0ebb33a657fc8255be9594f73466cd4e3af993852eb3aae5a3cab715dd",
+    "out/fresh-start-profiles/fs-w180-library-forward-remote-ingest-r2-parquet/i-0673e54d9d66e6a1e_pid_2008616_nc_0_session_0/Warning.parquet": "0d63530d3515ff1e8f93f30436ab4b32881e9b3acde8621ca0531033c620a5fb",
+    "out/fresh-start-profiles/fs-w180-library-forward-remote-ingest-r2-parquet/i-0673e54d9d66e6a1e_pid_2008616_nc_0_session_0/SchemaFields.parquet": "5a5e3744ea13c6cc995888557fb9a67613b53353a80475e8bee4f647b49a23a2",
+    "out/fresh-start-profiles/fs-w180-library-training-forward-profile-r3/rank0/i-0673e54d9d66e6a1e_pid_2008616/1789886594768114777/trace.json": "63e1e2f0cb02f62ad388b4213bc2332af3fac002fec4295c09eb915e26e4d9be",
+    "out/fresh-start-profiles/fs-w180-library-training-forward-profile-r3/rank0/neffs/manifest.json": "b95a8b54298f5544e702f74a849269c95afefc89ad4c8d2cf28862eea2420e19"
+  }
+}

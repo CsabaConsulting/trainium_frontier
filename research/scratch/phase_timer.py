@@ -127,6 +127,8 @@ def main():
                     help="Gated isolated library MLP with saved ReLU and original BF16 backward.")
     ap.add_argument("--library-mlp-separate-region", action="store_true",
                     help="Compile library training MLP separately, charging graph-boundary costs.")
+    ap.add_argument("--library-mlp-sbuf-budget-kib", type=int, choices=(0, 64, 128), default=0,
+                    help="Restrict per-partition library scratch allocation; 0 retains upstream bounds.")
     ap.add_argument("--fp8-mlp-packed", action="store_true",
                     help="Gated packed FP8 MLP forward/BF16 surrogate backward; all cache work timed.")
     ap.add_argument("--fp8-mlp-full", action="store_true",
@@ -258,6 +260,8 @@ def main():
         ap.error("select only one MLP implementation")
     if args.library_mlp_separate_region and not args.library_mlp:
         ap.error("--library-mlp-separate-region requires --library-mlp")
+    if args.library_mlp_sbuf_budget_kib and not args.library_mlp:
+        ap.error("--library-mlp-sbuf-budget-kib requires --library-mlp")
     if args.fp8_mlp_separate_region and not args.fp8_mlp_packed:
         ap.error("--fp8-mlp-separate-region requires --fp8-mlp-packed")
     if args.fp8_mlp_full and not args.fp8_mlp_packed:
@@ -460,7 +464,8 @@ def main():
     if args.library_mlp:
         from nki_library_mlp_integration import install
         library_mlp_contract = install(model, device, T,
-                                      separate_region=args.library_mlp_separate_region)
+                                      separate_region=args.library_mlp_separate_region,
+                                      sbuf_budget_kib=args.library_mlp_sbuf_budget_kib)
         print("[pt] isolated library training MLP " + json.dumps(library_mlp_contract), flush=True)
     if args.fp8_mlp_packed:
         if args.fp8_mlp_full:
