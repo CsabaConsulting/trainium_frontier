@@ -520,3 +520,35 @@ API references: [reciprocal](https://awsdocs-neuron.readthedocs-hosted.com/en/la
 performs VectorEngine FP32 arithmetic; [activation](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/api/generated/nki.isa.activation.html)
 performs multiply/add/activation in FP32 before casting to the destination.
 The producer deliberately avoids any PyTorch E4M3FN reinterpretation.
+
+## Complete model outcomes and next attribution (05:59 UTC)
+
+Both original frozen whole-model sequences completed CLEAN and passed every
+integration/rank/numeric requirement. Joined library MLP561.502963ms versus
+489.888026ms native on trn21 (+14.619%). Separate library MLP611.722864ms
+versus488.809250ms native on trn22 (+25.146%). No quality promotion. The
+extra cost is in microstep forward/backward; optimizer/communication/tail
+medians remain close. The isolated2.4% complete-component improvement does
+not overcome compiler integration costs. This is additional evidence that
+low-precision arithmetic alone does not explain earlier FP8 caller regression.
+
+A paired training-forward device capture can now compare ordinary Linear
+array geometry, executed NKI/library regions and observed spill/reload counts.
+Use the same source, host, seed and35 preceding updates; include the ordinary
+30-step measurements before capture. Trace durations are attribution, never
+headline speed evidence; record dropped notifications and preserve all NEFFs.
+Only after interpreting this comparison choose a new compiler-boundary change.
+
+An inherited PROF_REPO still named wave171 in both timing arms. Read-only SSH
+hashes confirmed its train.py and prepare.py match both actual checkouts
+exactly on both hosts; scratch adapters resolve beside the actual phase script.
+No algorithm difference follows from that path in these runs. Source180 will
+default the timer to its own checkout, reject a different PROF_REPO, assert
+resolved imports and emit their hashes per rank. The audit JSON preserves the
+old path rather than silently rewriting any finished request.
+
+Source179 ROW producer passed all14 fixtures,28 original/changed quantizer
+gates and154 exact checks, CLEAN. Maximum reciprocal relative error5.2824e-8
+is below the frozen2.3842e-7 screen. Production input pack0.913098ms; up/down
+weight row quantization0.117969/0.082215ms, before layout/broadcast work. A
+ROW MLP still requires separate stagewise and full-training validation.

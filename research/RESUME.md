@@ -1,38 +1,41 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-20 05:48 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-20 06:01 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## Current work — 2026-09-20 05:48 UTC
+## Current work — 2026-09-20 06:01 UTC
 
-- Trn21 source176 JOINED library MLP full-model candidate RUNNING, sequence
-  fs-w176-nkilib-reuse-transpose-model-sequence-r2, coordinator PID26647.
-  Exact source1ace86d380df6d85f9412cd40f64255bc7924057, remote wave176.
-  Integration passed both widths; native full-step control completed CLEAN
-  05:42:28UTC (13.32GB free); candidate compiling. Check result/clean gates.
-  The r1 plan failed LOCALLY for missing timeout, before SSH; it is preserved.
-- Trn22 source178 SEPARATE library MLP sequence RUNNING, coordinator PID6323,
-  fs-w178-nkilib-reuse-transpose-model-sequence-r1, currently native control.
-  Exact sourcecf7416f6162ed1c1036460872d13e973c134959b, remote wave178.
-  Source177 stopped CLEAN on a compiled-reference assertion; source178 proved
-  shared Probe.forward caused the reference to fall back to eager. Distinct
-  candidate root restores original compiled assertion, all48 numerical/10 exact
-  gates and both widths. Original failed probe remains. See shared-root JSON.
-- Source175 MLP component COMPLETE/CLEAN with original ten fixtures. Reusing
-  required intermediate transpose gives14.845040ms vs native15.210640ms,
-  2.404% lower. No model/BPB claim; full quality requires >=3% complete-step
-  gain and numeric gates. Source172/173/174 store alternatives were slower.
-- Source171 full-FP8 separate-region clean r2 repeat COMPLETE/CLEAN: native
-  488.469301ms vs592.811543ms (+21.361%). Reject speed/quality promotion.
-  Original r1 disk-reserve failure remains failed. Verified old scratch archive
-  and live GitHub assets preceded retirement of12.98GB, restoring20.59GB.
-- Next FP8 design lead: pinned library legacy ROW/STATIC double-row path,
-  packed C+4 input scales and per-output weight scales. Detailed constraints in
-  the library audit; NOT implemented or queued. MX paths require newer hardware.
-- Best public BPB0.9928513116311253; frozen submission unchanged. No new BPB.
-- Last verified push05:41UTC sourcecf7416f6/snapshotb8f06ecc, both hosts synced.
-  New manifests/results require next regular push; authoritative state is
-  out/fresh-start-backup/last-success.json. Cron only preserves, never selects.
+- Source176 joined and178 separate library MLP sequences BOTH COMPLETE/CLEAN.
+  All original frozen requirements independently verified. Joined561.502963ms
+  vs489.888026ms (+14.619%); separate611.722864ms vs488.809250ms (+25.146%).
+  No quality promotion. Added cost is in microstep, not optimizer/communication.
+  Exact comparison JSONs are fs-w176-nkilib-joined-full-step-comparison-r1 and
+  fs-w178-nkilib-separated-full-step-comparison-r1. Do not restart old labels.
+- Source179 online ROW FP8 producer COMPLETE/CLEAN on trn21. All14 fixtures,
+  28 quantizer/reciprocal and154 exact gates pass, including32768x1024 input.
+  Input packing0.913098ms; up/down weight row quantization0.117969/0.082215ms.
+  Production transpose/scale broadcast and MLP are still unmeasured.
+- Trn21 guarded old-NKI-scratch capture RUNNING, label
+  fs-maintenance-nki-scratch-trn21-20260920-r1; previous job179, remote wave179.
+  cutoff04:00UTC, target12GiB. Never retire until archive, every file and live
+  GitHub asset hashes verify. No device job while maintenance holds host lock.
+- Trn22 idle/clean after178 with15.62GB free; next paired library/native
+  training-forward device trace is being prepared. Inspect new180 receipts.
+  No extra quality trial or FP8 library forward is currently launched.
+- Source180 timer fix rejects mismatched PROF_REPO and emits imported file
+  hashes per rank. Historical176/178 inherited wave171; read-only remote hashes
+  prove train.py/prepare.py identical in all those checkouts. Their exact old
+  requests/logs remain. See phase-import-root-audit-r1.json.
+- Source178 shared Probe.forward diagnostic proves native reference eager
+  fallback; distinct candidate root passes all original compiled/numeric gates.
+  Protocol now requires checking later microbatches and cache refreshes.
+- Full FP8 separate-region r2:592.811543ms vs488.469301ms (+21.361%), CLEAN.
+  Original r1 disk-reserve failure is preserved; no quality promotion.
+- Best public BPB0.9928513116311253, cold replay0.9938556748843932. Frozen
+  submission/train.py/prepare.py unchanged. Source159 T512 MUST NOT dispatch.
+- Last verified push05:50UTC sourcef5978728/snapshot41e2f5aa; consult
+  out/fresh-start-backup/last-success.json for later verified refs. Cron only
+  preserves/pushes; it does not choose experiments or merge branches.
 
 ## Previous source169/170 checkpoint (superseded host status)
 
