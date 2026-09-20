@@ -256,3 +256,27 @@ trace for traffic analysis, and capture the same three arms without DGE in
 source163 for compute-engine attribution. Source161's ordinary-runtime timing
 remains the performance authority. Never infer a kernel regression from the
 DGE-enabled timing or splice its intervals into uninstrumented wall time.
+
+## Backward-only cache after the dX kernel win
+
+Source164 removes the dual producer's unused restored BF16 and forward-packed
+outputs only for square dX. Keep its matrix calibration, row ownership, legacy
+quantizer and backward byte layout unchanged, and prepare from current master
+weights on every call. Source159's preparation-only rejection applied to the
+old slower dX. Source161 changes that premise: cached dX now wins10.34%, while
+fresh three-product work loses2.94%. Reprice the narrower preparation before
+considering autograd integration. Eleven independent metadata/layout cases
+include signed zero, subnormal, tiny, large and production weights; eight
+unchanged square-product CPU gates and exact original FP8 outputs follow.
+Every master cast, calibration and required packing is charged; no forward
+FP8 cache is borrowed. Stop at the component result, not a model promotion.
+
+Source163 non-DGE compute trace independently reproduces the cached result:
+0.489108ms candidate versus0.539251ms native and0.691124ms old FP8 before
+profiling. Three runtime dispatches match their binary identities. Device
+intervals native/old/new are0.529872/0.666426/0.469006ms. New Scalar activity
+is0.3222ms/core versus old0.6345ms; new Vector0.4303ms versus old0.5760ms.
+Useful matmul FLOPs and FP8 double-mode multipliers are unchanged. These
+engine intervals overlap; do not add them as wall-time shares. All source162
+DMA and source163 compute raw/parquet files are now locally SHA256-verified;
+GitHub artifact upload is still pending at this checkpoint.

@@ -3,38 +3,35 @@
 Updated 2026-09-20 01:31 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## Current work — 2026-09-20 01:31 UTC
+## Current work — 2026-09-20 01:39 UTC
 
-- Source161 three-arm FP8 dX sequence COMPLETE/clean01:26:18 UTC on trn21.
-  All45 declared cases across abs/scale/both pass unchanged CPU bounds and
-  exact original square outputs. Both-fusion cached dX0.487894ms beats native
-  0.544186ms by10.34%; freshly prepared three products1.625796ms still loses
-  to native1.579398ms by2.94%. No autograd/model/quality promotion.
-- trn21 source162 profile completed clean01:33:37 UTC; CPU ingestion follows
-  under coordinator PID20192 (started01:32:52). DGE notifications stretch
-  FP8 timing to9ms; these instrumented samples are not speed evidence.
-  Source163 prepares the same capture without DGE for compute attribution.
-  Source161 remains the uninstrumented performance authority.
-- trn22 source159 context sequence COMPLETE/clean01:30:57 UTC. T512/pack64
-  median492.366241ms versus T1024/pack32 control489.128874ms,0.662% slower.
-  Same131072global tokens/update, source/host/seed, all four model checks pass
-  in both arms. No quality advancement: prepared30-minute request is rejected
-  at its predeclared3% speed gate and must not be dispatched. Next: MLP
-  sequential-scale fusion component with independent numerical gates.
-- Source160 original paired dX profile/ingestion is complete and preserved.
-  Raw13files9,850,819bytes and derived25files4,737,546bytes have local hashes
-  and verified GitHub backup digests at01:21:24/01:21:32 UTC. Scalar output
-  rescalings and Vector max/min reductions motivated source161. Dynamic DMA
-  metadata was missing; do not treat traffic estimates as exact bounds.
-- Next useful transfer: fuse the sequential FP32 output-scale operations in
-  the existing two-product MLP data backward. Abs reduction is already fused
-  there. Keep scale order (no precombined scale product), original independent
-  eleven-case gates including subnormal/signed-zero inputs, and charge caches.
-- Last verified GitHub cron01:30:52 UTC: source4a107d6 and snapshot7dbce907;
-  both remote refs verified. This completion/profile source follows it.
-- Best matched public BPB remains0.9928513116311253; cold replay0.993855675.
-  No new BPB or competition submission. Finite coordinators sync every45s;
-  ten-minute cron preserves/pushes but selects or launches no experiments.
+- trn22 source163 MLP scale component runs under PID23453, started01:36:04.
+  Source1f3890c wave163; original11cases plus current32768-token shape, exact
+  original outputs, CPU stage/native bounds, and charged extra backward caches.
+  Ten small cases including subnormal/signed-zero and the16384 case have
+  passed; production case/timing still pending. Bound2400s, request1800+30.
+- trn21 source163 three-arm dX compute profile completed clean01:36:47;
+  ingestion also returned0 with25tables. Coordinator PID23503, started01:36:04,
+  collects its final clean state. Both raw/derived profiles are locally hashed.
+  Source164 prepares backward-only cache specialization (remove unused outputs)
+  against current fast dX, with19independent cases and all preparation charged.
+- Source161 all45cases pass; both-fusion cached dX0.487894ms beats native
+  0.544186ms by10.34%; fresh three products1.625796ms still loses2.94%.
+  Source163 pre-profile repeat confirms0.489108/0.539251ms. Device attribution
+  halves Scalar activity to0.322ms/core and reduces Vector to0.430ms/core.
+  No autograd, complete-step, quality or competition-submission promotion.
+- Source162 DGE trace is preserved separately: notifications add substantial
+  host-visible overhead (about9ms FP8 calls), so those times are not speed
+  evidence. Source163 compute capture disabled them. Raw/derived files for
+  both captures have local hashes; GitHub artifact upload pending.
+- Source159 context screen COMPLETE/clean01:30:57: T512/pack64 median492.366241ms
+  vs T1024/pack32489.128874ms,0.662% slower; all four checks pass in both.
+  Prepared30-minute request is rejected at its3% speed gate; DO NOT dispatch.
+- Source160 raw/derived profiles already have verified GitHub asset digests.
+  Last verified source cron01:30:52:4a107d6, snapshot7dbce907. Source8dbf24e
+  and subsequent source164 need next push. Check latest backup receipt.
+- Best public BPB0.9928513116311253; cold replay0.993855675. Finite queues,
+ 45s coordinator sync,10-minute backup cron; cron selects no experiments.
 
 ## Previous production QKV checkpoint (superseded host status)
 
