@@ -1,0 +1,211 @@
+{
+  "label": "fs-w161-fp8-gradient-engine-sequence-r1",
+  "max_seconds": 7200,
+  "purpose": "Three independent, predeclared FP8 dX operation-fusion arms on trn21: abs reduction, fused sequential scaling, both. Preserve original CPU arithmetic references/bounds; every arm must complete15 declared cases, exact old FP8 square outputs, finite timing and clean postflight before successor. No model or quality promotion.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w161-fp8-gradient-abs-r1.request.json",
+      "sha256": "5e32e5426533314effea6f68786be89f478495f7b035f5a06627668c6334aafb",
+      "requirements": [
+        {
+          "marker": "FP8_GRADIENT_GEMM_GATE",
+          "count": 7,
+          "fields": {
+            "passed": true
+          },
+          "unique_field": "case",
+          "values": [
+            "random",
+            "zero_gradient",
+            "zero_weight",
+            "tiny_gradient",
+            "row_scale_range",
+            "outliers",
+            "signed_cancellation"
+          ]
+        },
+        {
+          "marker": "FP8_SQUARE_DX_CASE",
+          "count": 8,
+          "fields": {
+            "passed": true,
+            "native_forward_and_weight_product_exact": true,
+            "declared_fp8_dx_independently_gated": true
+          },
+          "unique_field": "case",
+          "values": [
+            "random",
+            "zero_gradient",
+            "zero_weight",
+            "tiny_gradient",
+            "outliers",
+            "changed_weight",
+            "cancellation",
+            "real_random"
+          ]
+        },
+        {
+          "marker": "SERIAL_QKV_PRODUCT_GATE",
+          "count": 40,
+          "fields": {
+            "passed": true,
+            "bound_failures": 0
+          }
+        },
+        {
+          "marker": "FP8_DX_ENGINE_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "variant": "abs",
+            "domain_cases": 7,
+            "square_cases": 8,
+            "cases": 15,
+            "square_outputs_exact_old_fp8": true,
+            "independent_declared_fp8_gates": true,
+            "real_tokens": 32768,
+            "real_channels": 1024,
+            "preparation_charged_in_three_product_calls": true,
+            "whole_model_or_quality_claim": false
+          }
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w161-fp8-gradient-scale-r1.request.json",
+      "sha256": "9b43541fb2bb537f8c5d9b94c21e0933e83627fe63c3751a04a820d4203ac87c",
+      "requirements": [
+        {
+          "marker": "FP8_GRADIENT_GEMM_GATE",
+          "count": 7,
+          "fields": {
+            "passed": true
+          },
+          "unique_field": "case",
+          "values": [
+            "random",
+            "zero_gradient",
+            "zero_weight",
+            "tiny_gradient",
+            "row_scale_range",
+            "outliers",
+            "signed_cancellation"
+          ]
+        },
+        {
+          "marker": "FP8_SQUARE_DX_CASE",
+          "count": 8,
+          "fields": {
+            "passed": true,
+            "native_forward_and_weight_product_exact": true,
+            "declared_fp8_dx_independently_gated": true
+          },
+          "unique_field": "case",
+          "values": [
+            "random",
+            "zero_gradient",
+            "zero_weight",
+            "tiny_gradient",
+            "outliers",
+            "changed_weight",
+            "cancellation",
+            "real_random"
+          ]
+        },
+        {
+          "marker": "SERIAL_QKV_PRODUCT_GATE",
+          "count": 40,
+          "fields": {
+            "passed": true,
+            "bound_failures": 0
+          }
+        },
+        {
+          "marker": "FP8_DX_ENGINE_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "variant": "scale",
+            "domain_cases": 7,
+            "square_cases": 8,
+            "cases": 15,
+            "square_outputs_exact_old_fp8": true,
+            "independent_declared_fp8_gates": true,
+            "real_tokens": 32768,
+            "real_channels": 1024,
+            "preparation_charged_in_three_product_calls": true,
+            "whole_model_or_quality_claim": false
+          }
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w161-fp8-gradient-both-r1.request.json",
+      "sha256": "8d95a7fdd1eb6c9e11752bb63e159770cf235d330100b85e86c0e3bf59d39498",
+      "requirements": [
+        {
+          "marker": "FP8_GRADIENT_GEMM_GATE",
+          "count": 7,
+          "fields": {
+            "passed": true
+          },
+          "unique_field": "case",
+          "values": [
+            "random",
+            "zero_gradient",
+            "zero_weight",
+            "tiny_gradient",
+            "row_scale_range",
+            "outliers",
+            "signed_cancellation"
+          ]
+        },
+        {
+          "marker": "FP8_SQUARE_DX_CASE",
+          "count": 8,
+          "fields": {
+            "passed": true,
+            "native_forward_and_weight_product_exact": true,
+            "declared_fp8_dx_independently_gated": true
+          },
+          "unique_field": "case",
+          "values": [
+            "random",
+            "zero_gradient",
+            "zero_weight",
+            "tiny_gradient",
+            "outliers",
+            "changed_weight",
+            "cancellation",
+            "real_random"
+          ]
+        },
+        {
+          "marker": "SERIAL_QKV_PRODUCT_GATE",
+          "count": 40,
+          "fields": {
+            "passed": true,
+            "bound_failures": 0
+          }
+        },
+        {
+          "marker": "FP8_DX_ENGINE_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "variant": "both",
+            "domain_cases": 7,
+            "square_cases": 8,
+            "cases": 15,
+            "square_outputs_exact_old_fp8": true,
+            "independent_declared_fp8_gates": true,
+            "real_tokens": 32768,
+            "real_channels": 1024,
+            "preparation_charged_in_three_product_calls": true,
+            "whole_model_or_quality_claim": false
+          }
+        }
+      ]
+    }
+  ]
+}
