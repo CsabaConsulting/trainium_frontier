@@ -17,6 +17,11 @@ _types = importlib.import_module(NAMESPACE + ".core.utils.common_types")
 apply_activation = _helpers.apply_activation
 kernel_assert = _assertions.kernel_assert
 ActFnType = _types.ActFnType
+_sharding = importlib.import_module(NAMESPACE + ".core.mlp.mlp_cte.mlp_cte_sharding")
+ShardInfo = _sharding.ShardInfo
+ShardedDim = _sharding.ShardedDim
+calculate_bxs_sharding = _sharding._calculate_bxs_sharding
+get_program_sharding_info = _helpers.get_program_sharding_info
 
 
 def relu2_evict(mlp_params, constants, psum_bank, proj_results_sbuf_list,
@@ -37,7 +42,17 @@ def relu2_evict(mlp_params, constants, psum_bank, proj_results_sbuf_list,
                      act_fn=ActFnType.SquaredReLU)
 
 
-def install():
+def token_row_sharding(mlp_params):
+    """Split independent rows, avoiding intermediate-channel cross-core sums."""
+    _, workers, program = get_program_sharding_info()
+    return ShardInfo(ShardedDim.BATCH_X_SEQUENCE_LENGTH,
+                     calculate_bxs_sharding(mlp_params, program, workers))
+
+
+def install(token_sharding=False):
     module = importlib.import_module(NAMESPACE + ".core.mlp.mlp_cte.basic.mlp_cte_basic_projection")
     if module._evict_gate_res_tile is not relu2_evict:
         module._evict_gate_res_tile = relu2_evict
+    if token_sharding:
+        core = importlib.import_module(NAMESPACE + ".core.mlp.mlp_cte.basic.mlp_cte_basic")
+        core.calculate_sharding = token_row_sharding

@@ -136,6 +136,8 @@ def main():
     verify_sources()
     from nki_library_attention_compat import install
     install()
+    from nki_library_attention_readout_compat import install as install_readouts
+    install_readouts()
     cases = [((2, 2, 512, 128), kind) for kind in ("random", "zero_qk", "small", "outlier")]
     cases += [((2, 8, 1024, 128), "random"), ((32, 8, 1024, 128), "random")]
     for shape, kind in cases:

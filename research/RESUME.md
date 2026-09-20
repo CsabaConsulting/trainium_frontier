@@ -1,9 +1,38 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-20 04:29 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-20 04:39 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## Current work — 2026-09-20 04:29 UTC
+## Current work — 2026-09-20 04:39 UTC
+
+- Source169 BOTH COMPLETE/CLEAN; original frozen plan requirements independently
+  verified locally. MLP production forward4.049636ms vs native5.129885ms,
+ 21.058% faster including layouts. All6 FP64/repeat/batch checks pass. No
+  saved ReLU/backward yet: do not claim a training or BPB improvement.
+- Attention diagnostic completes all6 cases and original new-vs-bundled gates,
+  while retaining1514 CPU coordinate failures (both arms/heads/fields). The
+  global-RMS heuristic failure is not relabeled as passing. No promotion.
+- Source170 PREPARED: token-row-sharded MLP (also requires unchanged native
+  coordinate/RMS gate) and explicitly non-promoting attention paired timing
+  with exact structural gates. Inspect fs-w170 receipts for actual status.
+- Last169 free space16.77GB/10.26GB;8GiB reserve remains. Next MLP training
+  implementation must explicitly save ReLU and charge its stores/backward.
+
+## Previous source168/169 checkpoint (superseded host status)
+
+- Source168 both STOPPED CLEAN after passing the four small fixtures. MLP
+  outputs exactly native; large shape hits upstream B*S/unflattened-S input
+  bug. Attention output/three gradients exactly bundled; T1024 hits NKI0.5
+  rejection of intermediate reduce_res=None. CPU diagnostic explains the
+  first FP64 mismatch exactly via BF16 exponential rounding/cancellation.
+  It retains all355 coordinate failures per version and permits no promotion.
+- Source169 PREPARED: explicit flat-row MLP view and attention row-max helper
+  retaining intermediate readouts for the older API. No original numerical
+  thresholds changed. Inspect fs-w169 receipts for subsequent actual state.
+- Cron04:30:52 pushed sourcec36a1d14 and snapshotca6bc01f; both hosts retrieved.
+  No full-model or quality gain claimed from this investigation so far.
+
+## Previous source167/168 checkpoint (superseded host status)
 
 - Source166 and167 finite library queues have STOPPED, both hosts clean.
   Do not restart labels. Source167 parser compatibility worked: attention

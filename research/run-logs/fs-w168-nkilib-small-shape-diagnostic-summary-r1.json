@@ -1,0 +1,170 @@
+{
+  "diagnostic_only": true,
+  "promotion_allowed": false,
+  "records": {
+    "fs-w168-nkilib-mlp-component-r1": {
+      "source_commit": "151eb5a2af33dd8564973f9039d73a661819a648",
+      "log_sha256": "7ba2a9b33b2be58a9570c2353d42cf672fa9073e3970d237ec7ac8950537f871",
+      "postflight_sha256": "d5a72ff38f94ac279b5522a47f08cbc6078fd13d82c46247fe8001866599f817",
+      "command_returncode": 1,
+      "host_clean": true,
+      "completed_cases": [
+        {
+          "shape": [
+            2,
+            512,
+            256
+          ],
+          "kind": "random",
+          "passed": true,
+          "samples_ms": {
+            "native": [
+              0.07200275140348822,
+              0.05972259968984872,
+              0.057899349485524
+            ],
+            "upstream_relu2_adapter": [
+              0.06584624934475869,
+              0.06433540256693959,
+              0.06680799997411668
+            ]
+          },
+          "median_ms": {
+            "native": 0.05972259968984872,
+            "upstream_relu2_adapter": 0.06584624934475869
+          },
+          "upstream_vs_native_relative_rms": 0.0,
+          "forward_only": true,
+          "adapted_relu2_cte": true,
+          "saved_training_activation_excluded": true,
+          "input_weight_layout_work_charged": true
+        },
+        {
+          "shape": [
+            2,
+            512,
+            256
+          ],
+          "kind": "zero",
+          "passed": true,
+          "upstream_vs_native_relative_rms": 0.0,
+          "forward_only": true,
+          "adapted_relu2_cte": true,
+          "saved_training_activation_excluded": true,
+          "input_weight_layout_work_charged": true
+        },
+        {
+          "shape": [
+            2,
+            512,
+            256
+          ],
+          "kind": "outlier",
+          "passed": true,
+          "upstream_vs_native_relative_rms": 0.0,
+          "forward_only": true,
+          "adapted_relu2_cte": true,
+          "saved_training_activation_excluded": true,
+          "input_weight_layout_work_charged": true
+        },
+        {
+          "shape": [
+            2,
+            512,
+            256
+          ],
+          "kind": "changed",
+          "passed": true,
+          "upstream_vs_native_relative_rms": 0.0,
+          "forward_only": true,
+          "adapted_relu2_cte": true,
+          "saved_training_activation_excluded": true,
+          "input_weight_layout_work_charged": true
+        }
+      ],
+      "failed_stage": "Compile first intermediate-sharded B2/T1024/C1024 input: B*S indexing applied to unflattened S dimension."
+    },
+    "fs-w168-nkilib-attention-numerics-r1": {
+      "source_commit": "151eb5a2af33dd8564973f9039d73a661819a648",
+      "log_sha256": "04b0b8ab1963e2912e7e789d223a32fecde79a06c2a494a52594a1616724edbb",
+      "postflight_sha256": "91538741301f7a63399acb53d8b88595bae7584c425ba0b748cd5bdb1ff6b909",
+      "command_returncode": 1,
+      "host_clean": true,
+      "completed_cases": [
+        {
+          "shape": [
+            2,
+            2,
+            512,
+            128
+          ],
+          "kind": "random",
+          "completed": true,
+          "unchanged_native_gate_passed": true,
+          "diagnostic_only": true,
+          "promotion_allowed": false
+        },
+        {
+          "shape": [
+            2,
+            2,
+            512,
+            128
+          ],
+          "kind": "zero_qk",
+          "completed": true,
+          "unchanged_native_gate_passed": true,
+          "diagnostic_only": true,
+          "promotion_allowed": false
+        },
+        {
+          "shape": [
+            2,
+            2,
+            512,
+            128
+          ],
+          "kind": "small",
+          "completed": true,
+          "unchanged_native_gate_passed": true,
+          "diagnostic_only": true,
+          "promotion_allowed": false
+        },
+        {
+          "shape": [
+            2,
+            2,
+            512,
+            128
+          ],
+          "kind": "outlier",
+          "completed": true,
+          "unchanged_native_gate_passed": true,
+          "diagnostic_only": true,
+          "promotion_allowed": false
+        }
+      ],
+      "original_native_comparisons": {
+        "count": 16,
+        "all_passed": true,
+        "all_exact": true
+      },
+      "cpu_summary": {
+        "bundled": {
+          "checks": 32,
+          "original_coordinate_failures": 355,
+          "maximum_relative_rms": 0.0034040181056765864,
+          "maximum_staged_relative_rms": 0.0007351404367414956
+        },
+        "upstream": {
+          "checks": 32,
+          "original_coordinate_failures": 355,
+          "maximum_relative_rms": 0.0034040181056765864,
+          "maximum_staged_relative_rms": 0.0007351404367414956
+        }
+      },
+      "failed_stage": "Compile new attention at T1024: installed tensor_scalar_reduce does not accept None reduce_res for intermediate row-max chain."
+    }
+  },
+  "original_thresholds_unchanged": true
+}
