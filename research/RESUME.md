@@ -15,11 +15,13 @@ Use current manifests/postflights before dispatch; do not restart completed jobs
   then real Linear integration and native/candidate full-step controls.
   trn22 gates backward-only scale integration, then native/candidate steps.
   Every step gets independent pre/postflight; no quality trial is queued.
-- trn22 postflight disk free9,026,797,568bytes (8.4GiB), close to8GiB floor.
-  Do NOT start a new large compile before verifying and retiring already
-  locally/cloud-preserved profile artifacts. Disk inventory is in progress.
-  trn21 has21,949,374,464bytes free and no device holders in its last postflight.
-  Preserve immutable compilation caches, sources, training checkpoints.
+- trn22 maintenance COMPLETE/clean01:49:39 UTC, label
+  fs-maintenance-preserved-wave140-trn22-20260920T014925Z. Reverified6GB of
+  wave140 native raw/derived artifacts locally, against live GitHub digests,
+  and remotely under the host lock, then retired only those redundant remote
+  copies and matching staging hardlinks. Free space rose from9.03 to15.00GB;
+  local/cloud originals, sources, checkpoints and compilation caches retained.
+  Full intent/result/three progress records and script hash are preserved.
 - Source161 cached square dX gain10.34% is confirmed by source163 compute trace.
   Original and new useful matrix FLOPs are unchanged; Scalar activity drops
   from0.6345 to0.3222ms/core. Source162 DMA notifications add host overhead;

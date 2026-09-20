@@ -313,3 +313,16 @@ win, which is why these controls are required. No concurrent host experiments.
 Source162/163 raw and parquet artifacts now all have verified GitHub asset
 digests (01:40:10–01:40:35 UTC). The01:40:50cron pushed source6ac8358 and its
 recovery snapshot with verified refs. Source165 and new launch receipts follow.
+
+Before source165 deployment, trn22's clean source163 postflight had only
+9,026,797,568bytes free. Maintenancefs-maintenance-preserved-wave140-trn22-
+20260920T014925Z rehashed both wave140 native profile trees locally and
+remotely, revalidated live GitHub asset digests, acquired the host lock and
+verified the exact preceding clean experiment. It retired only those redundant
+raw/derived remote files and staging hardlinks whose hashes matched preserved
+raw data. Unmatched staging files are retained; sources, checkpoints and
+compilation caches are untouched. It completed clean01:49:39UTC, freeing
+5,976,428,544bytes and leaving15,003,205,632bytes. Local intent/result/three
+progress records and maintenance-script SHA256 are preserved. Both hosts now
+have immutable source500ba34 in wave165. Source500ba34 was pushed/ref-verified
+by the01:50:55 cron; new plans/maintenance receipts still need their commit.
