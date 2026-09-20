@@ -218,3 +218,29 @@ Required implementation/gates before model timing:
 The14.7% forward result is sufficient to justify this design work. Its benefit
 may shrink after training saves and scale preparation; the complete measurement
 will decide. Source192/193 results should guide implementation order and layout.
+
+## Source193 replication and source194 saved-forward gate (08:13 UTC)
+
+The unprofiled production191 win replicated:3.908544ms inline,4.595774ms native,
+4.688562ms preparedROW. Same host, same inputs, unchanged function AST and all
+preparation included. Three captured binary identities match decoded profiles.
+Large products areFP8; scalar/vector activation and scale work is still material.
+All raw/derived files are preserved and cloud-verified. Profile warnings prevent
+exact DMA traffic claims; unprofiled timing remains the speed authority.
+
+The next finite gate implements only saved forward state, without choosing a
+new backward quantizer prematurely. It returns output plus BF16 pre-squareReLU,
+actual Qx/sx and Qh/sh. At32768x1024x4096 these five saves occupy436,469,760B;
+all writes are included in the complete call, with no raw-up diagnostic store.
+The original no-save forward, preparedROW and native controls remain. A native
+forward with the current HxT ReLU-save contract is an additional measured arm.
+Source191's exact decoded arithmetic/reference checks are retained and extended
+to every saved tensor, changed inputs, repeats and row independence. No allocator
+or tiling bound is weakened and no extra SBUF is allocated for these stores.
+
+The later gradient producer must not reuse the forward activation floor1e-6
+without justification. Multiplying early small gradients by output-channel
+weight scales can make that floor erase them. Existing backward power-of-two
+calibration uses a much smaller2^-100 guard. Declare/test the chosen gradient
+rule, including zero-initialized down weights, early updated weights, zero and
+tiny upstream gradients, before the full four-product VJP or model integration.

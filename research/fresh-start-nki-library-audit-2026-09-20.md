@@ -19,7 +19,7 @@ whole-model training step or a lower BPB. The frozen submission is unchanged.
 | Same fused producer in complete ROW forward | Exactly four preparation expressions change; all original gates retained | Source1894.686795ms vs4.596355msBF16 (1.968% slower). Improvement over the prior5.412% gap; not yet a forward win. |
 | Newer CTE attention/backward | Production shape and saved-statistic costs measured against bundled NKI | Only0.395% production gain; no wholesale switch. Earlier FP64 coordinate failures are retained, not relabeled. |
 | Bounded scratch allocation | Source190 static64/128KiB limits, instead of212728B per partition | Both full sequences pass correctness/cleanup;128KiB model15.584% slower,64KiB15.984% slower. No promotion. |
-| Compiler-managed SBUF placement | Source192 uses the upstream automatic allocation branch with logical capacity/lifetime checks retained | Full numerical/cache gates pass; model control/candidate sequence running on trn22. |
+| Compiler-managed SBUF placement | Source192 uses the upstream automatic allocation branch with logical capacity/lifetime checks retained | All gates pass; full model563.005751ms vs488.528818ms native (+15.245%). No promotion. |
 | Input quantization in the tile loader | Source191 loads BF16 then quantizes directly into FP8 compute tiles | All10 cases pass;3.926421ms vs4.602453msBF16,14.6885% faster including all preparation. Forward only. |
 
 Source188 repeats the complete BF16 component with one/four concurrent ranks.
@@ -46,7 +46,7 @@ Linear/cache integration pass; complete-model control/candidate timing is runnin
 Source191 fuses BF16 token-row quantization into the library loader. Its complete
 forward wins14.6885% overBF16 and16.2307% over the prepared-input ROW control,
 with all original ten cases plus actual-byte/stage/changed-input gates passing.
-Source193 captures all three unchanged forward functions to measure remaining
+Source193 has captured all three unchanged forward functions to measure remaining
 engine/copy costs. All preparation is charged. Training saves/backward remain
 required work; their scale algebra and costs are in
 `fresh-start-library-fusion-next-2026-09-20.md`. The ROW random fixture differs
@@ -683,3 +683,30 @@ shell continued after a cron-lock failure. The immutable kernel and recorded
 plan/request hashes were unchanged. A tracked starter now refuses uncommitted
 or changed plan/request blobs; positive and negative cases are checked locally.
 The original event is retained in fs-w180-r3-precommit-dispatch-diagnosis-r1.json.
+
+## 08:13 UTC: replicated forward gain, complete allocator result, training saves
+
+Source193 independently verifies all frozen capture/ingest requirements and
+matches all three runtime dispatches to preserved binaries. Separate unprofiled
+medians: native4.595774ms, preparedROW4.688562ms, inlineROW3.908544ms, all online
+preparation charged. The original19114.6885% reduction is replicated (~14.95%).
+The two large projections useFP8. Per-core Tensor active intervals fall from
+about4.04ms native to2.46ms inline; Scalar/Vector work remains substantial.
+These intervals overlap. Missing dynamic DMA metadata prevents exact traffic
+claims. Raw traces/NEFFs and decoded tables are local-SHA and live-GitHub-digest
+verified. See fs-w193-row-profile-proof-r1.json and its analysis artifact.
+
+Source192 all four stages complete cleanly, with every original numerical,
+cache and model requirement verified. Compiler SBUF placement yields563.005751ms
+versus488.528818ms native (+15.2451%). It does not fix the model regression.
+The next diagnostic isolates zero/first/last/all-six replacements while retaining
+the same native custom backward in untouched blocks. No broad compiler sweep.
+
+Source194 adds only the real forward saves needed for a later ROW backward:
+BF16 pre-square ReLU, actual input and hiddenFP8 bytes, and their FP32 row scales.
+The new entry uses the original library scaling/rounding and191 inline loader.
+Five additional exact checks per fixture compare all six returned tensors to
+actual191 diagnostics, repetition, changed input and unaffected rows. Every191
+bound and fixture remains. Native HxT training-forward saves and candidate stores
+are timed explicitly. Syntax and inverse AST proof pass locally; hardware pending.
+No complete-step or BPB improvement is claimed.

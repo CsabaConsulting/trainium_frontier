@@ -1,5 +1,14 @@
 # Continued kernel work and research — 2026-09-20
 
+Checkpoint2026-09-20 08:13UTC:192/193 COMPLETE/CLEAN, both hosts idle.
+Compiler SBUF full model563.005751ms vs488.528818ms (+15.245%), all gates pass.
+Source191 forward win replicated193:3.908544ms vs4.595774msBF16, all preparation
+included. Raw/derived profiles local/cloud verified. Source194 training-forward
+saves implemented and locally AST checked, NOT DISPATCHED. Partial-layer model
+causality is next independent diagnostic; preserve native HxT in untouched blocks.
+See RESUME.md and final receipts for current status. No new BPB result.
+
+
 ## 2026-09-20 07:59 UTC — library input fusion wins production forward
 
 Source191 COMPLETE/CLEAN with all ten cases and frozen requirements verified.
