@@ -1,0 +1,211 @@
+{
+  "label": "fs-w194-nkilib-row-training-save-sequence-r1",
+  "max_seconds": 5100,
+  "purpose": "Retain every source191 forward bound/fixture and compare all six real saved-forward outputs exactly with actual diagnostic tensors, repeat/changed-input/row independence. Measure native HxT saved forward and ROW saved forward with current FP32-master preparation and every store charged. No backward or quality claim.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w194-nkilib-row-training-save-r1.request.json",
+      "sha256": "ae26965a5bcad67ae6452f69e598ee257081746088bc88edfbaa42797e2b2d22",
+      "requirements": [
+        {
+          "marker": "NKILIB_PROVENANCE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "vendored_files": 66,
+            "package_installation": false,
+            "bundled_package_replaced": false
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_MLP_ADAPTER",
+          "count": 1,
+          "fields": {
+            "installed": true,
+            "isolated_namespace_only": true,
+            "legacy_e4m3_double_row": true,
+            "upstream_row_quantization_and_scaling": true,
+            "token_row_sharding": true,
+            "relu_bf16_then_square_bf16": true,
+            "diagnostics_excluded_from_timed_path": true,
+            "training_backward_implemented": false
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_RECIPROCAL",
+          "count": 50,
+          "fields": {
+            "passed": true,
+            "limit": 2.384185791015625e-07
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_QUANT_GATE",
+          "count": 50,
+          "fields": {
+            "passed": true,
+            "independently_decoded_legacy_e4m3": true,
+            "scale_exact": true
+          }
+        },
+        {
+          "marker": "NKILIB_EXACT",
+          "count": 310,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_NUMERICAL",
+          "count": 20,
+          "fields": {
+            "passed": true,
+            "finite": true,
+            "bound_failures": 0
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_INTERMEDIATE_GATE",
+          "count": 10,
+          "fields": {
+            "passed": true,
+            "outside_quantization_interval": 0,
+            "relative_interval": 4.76837158203125e-07,
+            "all_decoded_coordinates": true,
+            "finite": true
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_MLP_CASE",
+          "count": 10,
+          "fields": {
+            "passed": true,
+            "independent_decoded_pair_and_rounding_gates": true,
+            "all_outputs_and_quantizer_coordinates_finite": true,
+            "plain_and_instrumented_exact": true,
+            "all_online_calibration_layout_and_master_casts_charged": true,
+            "saved_activations_and_backward_excluded": true
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_MLP_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 10,
+            "forward_only": true,
+            "online_preparation_charged": true,
+            "full_training_or_bpb_claim": false
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_HEAP_COMPAT",
+          "count": 1,
+          "fields": {
+            "installed": true,
+            "isolated_namespace_only": true,
+            "conditional_gate_scale_cleanup": true,
+            "strict_allocator_checks_retained": true,
+            "arithmetic_unchanged": true,
+            "upstream_files_unchanged": true
+          }
+        },
+        {
+          "marker": "NKILIB_INLINE_INPUT_ADAPTER",
+          "count": 1,
+          "fields": {
+            "installed": true,
+            "isolated_namespace_only": true,
+            "input_dtype_bf16": true,
+            "online_quantization_inside_loader": true,
+            "scratch_allocated_by_original_manager": true,
+            "scratch_charged_to_tile_planner": true,
+            "input_hbm_materialization_removed": true,
+            "packed_input_control_retained": true,
+            "upstream_projections_and_rounding_unchanged": true,
+            "backward_or_training_quality_claim": false
+          }
+        },
+        {
+          "marker": "NKILIB_INLINE_INPUT_GATE",
+          "count": 10,
+          "fields": {
+            "passed": true,
+            "actual_input_bytes_and_metadata_checked": true,
+            "independent_original_and_changed_input": true,
+            "exact_all_original_mlp_stages": true,
+            "exact_prepared_control_output": true,
+            "original_fixtures_and_bounds_retained": true,
+            "no_input_quantized_hbm_in_plain_path": true
+          }
+        },
+        {
+          "marker": "NKILIB_TRAINING_SAVE_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "source_commit": "153c4c13c9e3cde41cbeda3244fa8fd79a5af72c",
+            "all_original_source191_requirements_verified": true,
+            "all_source191_kernel_bytes_unchanged": true
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_TRAINING_SAVE_REWRITE",
+          "count": 1,
+          "fields": {
+            "original_probe_sha256": "c19bd4b3ff2856d3aeb77512777f9e1c73b4a1fce50728b89887804324c9d4f4",
+            "source191_probe_sha256": "3ca01ff495da5434480b3a41f53b89b46aec2ad64409539e2bd601a8680145c5",
+            "all_source191_numerical_checks_fixtures_and_bounds_retained": true,
+            "original_three_timing_controls_retained": true,
+            "native_hxt_and_row_fp8_training_saves_both_charged": true,
+            "backward_implemented": false,
+            "training_or_bpb_claim": false
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_TRAINING_SAVE_ADAPTER",
+          "count": 1,
+          "fields": {
+            "installed": true,
+            "unchanged_relu_forward_control": true,
+            "squared_relu_entry_selects_saves": true,
+            "actual_consumed_input_and_hidden_bytes_saved": true,
+            "both_row_scales_saved": true,
+            "bf16_pre_square_relu_saved": true,
+            "all_stores_inside_forward": true,
+            "additional_sbuf_allocations": 0,
+            "upstream_rounding_boundaries_retained": true,
+            "backward_implemented": false,
+            "training_or_bpb_claim": false
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_TRAINING_SAVE_CASE",
+          "count": 10,
+          "fields": {
+            "passed": true,
+            "exact_all_six_actual_forward_outputs": true,
+            "original_source191_gates_retained": true,
+            "repeat_changed_input_and_all_saved_row_independence": true,
+            "native_control_saved_relu_layout": "HxT",
+            "actual_input_and_hidden_bytes_scales_and_relu_saved": true,
+            "all_online_master_casts_weight_preparation_and_saves_charged": true,
+            "raw_up_diagnostic_store_excluded": true,
+            "backward_implemented": false,
+            "full_training_or_bpb_claim": false
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_TRAINING_SAVE_TIMING",
+          "count": 3,
+          "fields": {
+            "all_online_master_casts_weight_preparation_and_saves_charged": true,
+            "native_control_saved_relu_layout": "HxT",
+            "backward_excluded": true,
+            "training_or_bpb_claim": false
+          }
+        }
+      ]
+    }
+  ]
+}
