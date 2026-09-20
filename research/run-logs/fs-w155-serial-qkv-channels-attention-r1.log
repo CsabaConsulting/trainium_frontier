@@ -142,3 +142,16 @@ SERIAL_QKV_ATTENTION_EXACT {"name": "1024:native_evaluation", "passed": true}
 SERIAL_QKV_ATTENTION_EXACT {"name": "1024:strict_native_restore", "passed": true}
 SERIAL_QKV_ATTENTION_GATE {"channels": 1024, "layout": "channels", "value_fp32": true, "passed": true, "compiled_forward_backward": true, "cached_and_uncached": true, "original_separate_parameters": true, "accumulation_and_refresh": true, "distinct_input_gradients": true, "causal_and_batch_independence_exact": true, "padded_projection_rows": true, "native_evaluation_and_restore_exact": true, "contract": {"layout": "channels", "layers": [0], "separate_parameter_objects": true, "value_fp32_before_ve": true, "bf16_value_without_ve": true, "original_parameter_shapes_and_checkpoint_keys": true, "original_weight_refresh": true, "distinct_normalized_inputs": true, "contiguous_qkv_outputs": true, "native_attention_body": true, "native_evaluation": true, "short_inputs_pad_projection_rows_only": true, "whole_model_or_quality_claim": false}}
 SERIAL_QKV_ATTENTION_GUARD_RESET {"next_shape": [32, 1024, 1024], "shared_device_cache_purged": false}
+FUSED_MLP_NATIVE_GATE {"name": "qkv_real_attention:output", "shape": [32, 1024, 1024], "finite": true, "bound_failures": 47860, "max_abs": 0.0078125, "reference_rms": 0.04111820410067928, "relative_rms": 0.00413085240719273, "exact": false, "passed": false}
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_freshstart_20260918_wave155/research/scratch/serial_qkv_integration_check.py", line 267, in <module>
+    main()
+  File "/home/ubuntu/trainium_freshstart_20260918_wave155/research/scratch/serial_qkv_integration_check.py", line 258, in main
+    real_attention_timing(args.layout, args.steps, args.value_fp32)
+  File "/home/ubuntu/trainium_freshstart_20260918_wave155/research/scratch/serial_qkv_integration_check.py", line 200, in real_attention_timing
+    compare('qkv_real_attention:output', actual, expected)
+  File "/home/ubuntu/trainium_freshstart_20260918_wave155/research/scratch/mlp_fused_bf16_probe.py", line 59, in compare
+    assert record['passed'], record
+           ~~~~~~^^^^^^^^^^
+AssertionError: {'name': 'qkv_real_attention:output', 'shape': [32, 1024, 1024], 'finite': True, 'bound_failures': 47860, 'max_abs': 0.0078125, 'reference_rms': 0.04111820410067928, 'relative_rms': 0.00413085240719273, 'exact': False, 'passed': False}
+EXPERIMENT_POSTFLIGHT {"label": "fs-w155-serial-qkv-channels-attention-r1", "returncode": 1, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave155/research/run-logs/fs-w155-serial-qkv-channels-attention-r1.postflight.json"}
