@@ -1,0 +1,384 @@
+{
+  "label": "fs-w190-nkilib-sbuf128-sequence-r1",
+  "max_seconds": 12000,
+  "purpose": "Test 128KiB per-partition library allocator bounds as a model scheduling hypothesis. Original numerical/full-FP64-gradient/FP32-accumulation and real cache/eval/checkpoint gates precede same-host native/candidate complete-step timing. Component speed is diagnostic, not an advancement gate. Fixed seed42 and identical data/batch/optlevel1. No automatic quality run or BPB claim.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w190-nkilib-sbuf128-component-r1.request.json",
+      "sha256": "60cdc518ed943c4bc050e7008ad417235d2376e9690135caf2b1de9b63c370ff",
+      "requirements": [
+        {
+          "marker": "NKILIB_TRAINING_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 6,
+            "source_commit": "2cd50e043742ff327f40eda70e9e43632a29118d",
+            "token_sharding": true
+          }
+        },
+        {
+          "marker": "NKILIB_PROVENANCE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "vendored_files": 66,
+            "package_installation": false,
+            "bundled_package_replaced": false
+          }
+        },
+        {
+          "marker": "NKILIB_TRAINING_REUSE_TRANSPOSE_CASE",
+          "count": 10,
+          "fields": {
+            "passed": true,
+            "full_independent_fp64_autograd_gradients": true,
+            "unchanged_native_comparison": true,
+            "exact_repeat_rows_and_fp32_accumulation": true,
+            "master_casts_layouts_activation_stores_and_full_backward_charged": true,
+            "optimizer_communication_and_model_excluded": true,
+            "matched_native_hxt_control": true,
+            "saved_relu_layout": "HxT",
+            "extra_activation_transpose": false,
+            "reuses_existing_transpose": true,
+            "square_after_transpose": true
+          }
+        },
+        {
+          "marker": "NKILIB_TRAINING_REUSE_TRANSPOSE_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 10,
+            "saved_relu_and_full_backward": true,
+            "all_fp64_and_native_gates": true,
+            "two_microbatch_fp32_accumulation": true,
+            "training_or_bpb_claim": false,
+            "matched_native_hxt_control": true,
+            "saved_relu_layout": "HxT",
+            "reuses_existing_transpose": true,
+            "square_after_transpose": true
+          }
+        },
+        {
+          "marker": "FUSED_MLP_NATIVE_GATE",
+          "count": 60,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "FUSED_MLP_STAGE_GATE",
+          "count": 20,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "FP8_CACHE_BACKWARD_FP64_BOUND",
+          "count": 60,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_EXACT",
+          "count": 60,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_HXT_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 3,
+            "source_commit": "0535b900babe9686b2a62f2b597791c3ef97a59c",
+            "matched_native_hxt_control": true
+          }
+        },
+        {
+          "marker": "NKILIB_SBUF_BUDGET",
+          "count": 1,
+          "fields": {
+            "original_probe_sha256": "97ae3dbd9032dcfee6a5a9c43c505e7d99cec51a88faac7134fd0e050fccf9f7",
+            "budget_kib_per_partition": 128,
+            "explicit_static_kernel_argument": true,
+            "all_original_fixtures_and_bounds_retained": true,
+            "allocator_safety_checks_preserved": true,
+            "changed_call_sites": 1,
+            "model_scheduling_hypothesis": true,
+            "component_speedup_required": false
+          }
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w190-nkilib-sbuf128-integration-r1.request.json",
+      "sha256": "3076d385622bd6004b31a815d5da6fe988d8f9d526d1bf4da04566cbb93d7536",
+      "requirements": [
+        {
+          "marker": "NKILIB_MLP_INTEGRATION_GATE",
+          "count": 2,
+          "fields": {
+            "passed": true,
+            "cached_and_uncached": true,
+            "reference_updates": 4,
+            "microbatches": 2,
+            "fp32_master_gradients": true,
+            "changed_cache_values": true,
+            "compiled_execution_asserted": true,
+            "training_row_and_batch_independence": true,
+            "native_eval_and_checkpoint_exact": true,
+            "separate_compiled_region": false,
+            "contract": {
+              "library_commit": "92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e",
+              "modules": 1,
+              "token_row_sharding": true,
+              "saved_relu_layout": "HxT",
+              "backward": "original_bf16_four_products",
+              "contiguous_activation_store": true,
+              "reuses_existing_transpose": true,
+              "square_after_transpose": true,
+              "extra_activation_transpose": false,
+              "reserved_sbuf_bytes": 0,
+              "separate_compiled_region": false,
+              "ordinary_differentiable_weight_cache": true,
+              "weight_transposes_inside_forward": true,
+              "native_evaluation": true,
+              "checkpoint_keys_parameters_and_rng_unchanged": true,
+              "allocator_sbuf_budget_kib_per_partition": 128
+            }
+          },
+          "unique_field": "channels",
+          "values": [
+            256,
+            1024
+          ]
+        },
+        {
+          "marker": "NKILIB_MLP_INTEGRATION_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 2,
+            "separate_compiled_region": false,
+            "full_model_or_quality_claim": false,
+            "distinct_probe_root": true,
+            "shared_root_diagnostic": false
+          }
+        },
+        {
+          "marker": "FUSED_MLP_NATIVE_GATE",
+          "count": 48,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_EXACT",
+          "count": 10,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_PROVENANCE",
+          "count": 2,
+          "fields": {
+            "passed": true,
+            "vendored_files": 66,
+            "package_installation": false,
+            "bundled_package_replaced": false
+          }
+        },
+        {
+          "marker": "NKILIB_TRAINING_ADAPTER",
+          "count": 2,
+          "fields": {
+            "installed": true,
+            "reuses_existing_transpose": true,
+            "extra_activation_transpose": false,
+            "square_after_transpose": true,
+            "additional_sbuf_bytes": 0
+          }
+        },
+        {
+          "marker": "NKILIB_BUDGET_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "source_commit": "dad228dfc3898be5f41b149cf391694bd303aff7",
+            "budget_kib_per_partition": 128,
+            "checked_labels": [
+              "fs-w190-nkilib-sbuf128-component-r1"
+            ],
+            "all_original_rules_verified": true,
+            "unchanged_source_bytes": true
+          }
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w190-nkilib-sbuf128-native-phase-r1.request.json",
+      "sha256": "d5e9e849df88e51c91412d05b98910ba0d0a4a7422fb40843d53a80f18ed85a7",
+      "requirements": [
+        {
+          "marker": "PHASE_JSON",
+          "count": 1,
+          "fields": {
+            "world_size": 4,
+            "lnc": "2",
+            "grad_accum": 1,
+            "micro_tokens": 131072,
+            "compile": true,
+            "adaptive_nki_ce": true,
+            "optimizer_ownership": true,
+            "optimizer_owner_calls": 35,
+            "pack_factor": 32,
+            "fp8_mlp_full": false,
+            "fp8_mlp_packed": false,
+            "fp8_mlp_compact_saves": false,
+            "fp8_mlp_stream_packed_weights": false,
+            "fp8_mlp_preserve_output_rank": false,
+            "integrated_nki_local_conv": true,
+            "integrated_bf16_norm_output": true,
+            "fp8_mlp_engine_scaling": "none",
+            "fp8_mlp_separate_region": false,
+            "library_mlp": false,
+            "library_mlp_separate_region": false,
+            "library_mlp_contract": null
+          },
+          "lengths": {
+            "steps": 30
+          },
+          "phase_timing": true
+        },
+        {
+          "marker": "NATIVE_POST_CHECK_JSON",
+          "count": 4,
+          "fields": {
+            "passed": true,
+            "parameters_and_gradients_finite": true,
+            "logits_finite": true,
+            "future_max_abs": 0.0,
+            "other_batch_max_abs": 0.0,
+            "repeated_call_max_abs": 0.0
+          },
+          "unique_field": "rank",
+          "values": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "marker": "NKILIB_BUDGET_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "source_commit": "dad228dfc3898be5f41b149cf391694bd303aff7",
+            "budget_kib_per_partition": 128,
+            "checked_labels": [
+              "fs-w190-nkilib-sbuf128-integration-r1"
+            ],
+            "all_original_rules_verified": true,
+            "unchanged_source_bytes": true
+          }
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w190-nkilib-sbuf128-library-phase-r1.request.json",
+      "sha256": "149a839d7212ce380fc3027ed18ec3454d993de98c8ce3e2f7b98cbe0ca8001a",
+      "requirements": [
+        {
+          "marker": "PHASE_JSON",
+          "count": 1,
+          "fields": {
+            "world_size": 4,
+            "lnc": "2",
+            "grad_accum": 1,
+            "micro_tokens": 131072,
+            "compile": true,
+            "adaptive_nki_ce": true,
+            "optimizer_ownership": true,
+            "optimizer_owner_calls": 35,
+            "pack_factor": 32,
+            "fp8_mlp_full": false,
+            "fp8_mlp_packed": false,
+            "fp8_mlp_compact_saves": false,
+            "fp8_mlp_stream_packed_weights": false,
+            "fp8_mlp_preserve_output_rank": false,
+            "integrated_nki_local_conv": true,
+            "integrated_bf16_norm_output": true,
+            "fp8_mlp_engine_scaling": "none",
+            "fp8_mlp_separate_region": false,
+            "library_mlp": true,
+            "library_mlp_separate_region": false,
+            "fused_mlp": false,
+            "fused_mlp_forward_backend": "nki",
+            "library_mlp_contract": {
+              "library_commit": "92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e",
+              "modules": 6,
+              "token_row_sharding": true,
+              "saved_relu_layout": "HxT",
+              "backward": "original_bf16_four_products",
+              "contiguous_activation_store": true,
+              "reuses_existing_transpose": true,
+              "square_after_transpose": true,
+              "extra_activation_transpose": false,
+              "reserved_sbuf_bytes": 0,
+              "separate_compiled_region": false,
+              "ordinary_differentiable_weight_cache": true,
+              "weight_transposes_inside_forward": true,
+              "native_evaluation": true,
+              "checkpoint_keys_parameters_and_rng_unchanged": true,
+              "allocator_sbuf_budget_kib_per_partition": 128
+            }
+          },
+          "lengths": {
+            "steps": 30
+          },
+          "phase_timing": true
+        },
+        {
+          "marker": "NATIVE_POST_CHECK_JSON",
+          "count": 4,
+          "fields": {
+            "passed": true,
+            "parameters_and_gradients_finite": true,
+            "logits_finite": true,
+            "future_max_abs": 0.0,
+            "other_batch_max_abs": 0.0,
+            "repeated_call_max_abs": 0.0
+          },
+          "unique_field": "rank",
+          "values": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "marker": "NKILIB_BUDGET_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "source_commit": "dad228dfc3898be5f41b149cf391694bd303aff7",
+            "budget_kib_per_partition": 128,
+            "checked_labels": [
+              "fs-w190-nkilib-sbuf128-integration-r1",
+              "fs-w190-nkilib-sbuf128-native-phase-r1"
+            ],
+            "all_original_rules_verified": true,
+            "unchanged_source_bytes": true
+          }
+        }
+      ]
+    }
+  ]
+}

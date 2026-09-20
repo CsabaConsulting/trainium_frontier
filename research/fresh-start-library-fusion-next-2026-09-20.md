@@ -1,6 +1,6 @@
 # Next library-derived fusions
 
-Checkpoint: 2026-09-20 07:21 UTC. Consult `RESUME.md` and final postflights for
+Checkpoint: 2026-09-20 07:11 UTC. Consult `RESUME.md` and final postflights for
 current host state. These are conditional experiments, not accepted speed or
 quality improvements. The pinned library is upstream92d11f63; bundled control
 kernels, canonical training entry and frozen submission remain separate.
