@@ -552,3 +552,27 @@ gates and154 exact checks, CLEAN. Maximum reciprocal relative error5.2824e-8
 is below the frozen2.3842e-7 screen. Production input pack0.913098ms; up/down
 weight row quantization0.117969/0.082215ms, before layout/broadcast work. A
 ROW MLP still requires separate stagewise and full-training validation.
+
+## ROW FP8 forward screen prepared (06:05 UTC)
+
+Source181 uses the gated179 online producer and pinned library ordinary
+double-row ROW projections. The isolated hook adds BF16 square after the
+original scaled BF16 ReLU. Diagnostic mode stores up-projection FP32 sums,
+rounded ReLU and intermediate FP8 bytes/scales; the timed mode omits those
+stores, and their final outputs must agree exactly. No upstream file changes.
+
+Ten fixtures retain zeros, outliers, changed/tiny weights, row-scale variation
+and both real shapes. Decode every packed input/weight and intermediate byte.
+Audit raw up GEMM against the independently characterized11-bit pair-sum
+reference and FP32 accumulation bound; verify original scaling/ReLU rounding
+exactly; check intermediate scale exactly and decoded bytes against a frozen
+FP32 reciprocal/multiply interval (8 unit roundoffs), then independently audit
+down projection with both BF16 scaling stores in its bound. Small cases use
+all GEMM coordinates; production uses documented row/channel samples plus
+full-output finite/repeat/row-independence checks. The pair rule is empirical,
+not an AWS guarantee; approximation versus unquantized BF16 is diagnostic.
+
+The headline component arms charge online activation/weight calibration,
+FP32 master casts, transposes and128-row scale broadcasts. Saved training
+activations and the full backward remain absent; this screen can authorize
+further implementation only, never a whole-model or BPB claim.
