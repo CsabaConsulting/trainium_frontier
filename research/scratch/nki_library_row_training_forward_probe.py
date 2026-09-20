@@ -73,22 +73,25 @@ emit('NKILIB_ROW_TRAINING_SAVE_CASE', dict(passed=True, kind=kind, shape=list(sh
     raw_up_diagnostic_store_excluded=True, backward_implemented=False,
     full_training_or_bpb_claim=False))
 ''')
-    timings = [n for n in ast.walk(node) if isinstance(n, ast.Call)
-               and isinstance(n.func, ast.Name) and n.func.id == 'dict'
-               and any(k.arg == 'row_fp8_prepared_control' for k in n.keywords)]
-    assert len(timings) == 1
-    additions = [ast.keyword(arg=name, value=ast.parse(value, mode='eval').body)
-                 for name, value in (
-                     ('native_bf16_training_forward', 'lambda: native_saved_fn(*values)'),
-                     ('row_fp8_training_forward', 'lambda: training_fn(*values)'))]
-    timings[0].keywords.extend(additions)
+    # Keep the old no-save timing record's semantics intact. The saved-forward
+    # comparison gets its own record, with every new HBM store charged.
+    extra_timing = ast.parse('''
+if kind in ('random', 'real_random'):
+    training_measured = timing(dict(
+        native_bf16_training_forward=lambda: native_saved_fn(*values),
+        row_fp8_training_forward=lambda: training_fn(*values)),
+        steps, torch.neuron.synchronize)
+    emit('NKILIB_ROW_TRAINING_SAVE_TIMING', dict(shape=list(shape), kind=kind,
+        all_online_master_casts_weight_preparation_and_saves_charged=True,
+        native_control_saved_relu_layout='HxT', saved_tensor_bytes=saved_bytes,
+        backward_excluded=True, training_or_bpb_claim=False, **training_measured))
+''').body
+    node.body.extend(extra_timing)
+    inserted.extend(extra_timing)
     full_body = node.body
-    full_keywords = timings[0].keywords
     node.body = [n for n in node.body if n not in inserted]
-    timings[0].keywords = [n for n in full_keywords if n not in additions]
     assert ast.dump(node) == original_ast
     node.body = full_body
-    timings[0].keywords = full_keywords
     return node
 
 
