@@ -1,0 +1,87 @@
+{
+  "verified_at": "2026-09-20T08:09:39.661750+00:00",
+  "source_commit": "317b99c31ab21f012b55d5010211a64f5d2e4aac",
+  "all_frozen_capture_and_ingest_requirements_verified": true,
+  "completed": [
+    {
+      "label": "fs-w193-nkilib-row-forward-profile-r1",
+      "completed_at": "2026-09-20T08:00:02.149631+00:00",
+      "host_clean": true,
+      "log_sha256": "daf0cba9962262985d4eb1c2a0e108d82f56f225ddfa09d0a9721015501b28a8",
+      "postflight_sha256": "afdb4a7a6a9a9ada3835ad4f2e94e9cd6dc68dcfa3cf7855bd57d4bedbd9abb7"
+    },
+    {
+      "label": "fs-w193-nkilib-row-forward-ingest-r1",
+      "completed_at": "2026-09-20T08:01:17.901136+00:00",
+      "host_clean": true,
+      "log_sha256": "6bde9638cfe19f1dc8e7ade66b34d7c60a4b81d78722fc64334e9355d9e852d1",
+      "postflight_sha256": "cd6a93476ac242a45e4de3c02fe24d9d5ddbb7586c4b7683e2cb016396a01c54"
+    }
+  ],
+  "uninstrumented_replication": {
+    "shape": [
+      32768,
+      1024,
+      4096
+    ],
+    "samples_ms": {
+      "native": [
+        4.592292466744159,
+        4.595774000821014,
+        4.600490631613259
+      ],
+      "prepared": [
+        4.688562433390568,
+        4.682580499987428,
+        4.691404034383595
+      ],
+      "inline": [
+        3.9085442995807775,
+        3.9106074332570038,
+        3.9084709676293037
+      ]
+    },
+    "median_ms": {
+      "native": 4.595774000821014,
+      "prepared": 4.688562433390568,
+      "inline": 3.9085442995807775
+    },
+    "online_input_and_current_weight_preparation_included": true,
+    "saved_activations_and_backward_excluded": true,
+    "training_or_bpb_claim": false
+  },
+  "all_runtime_dispatches_match_ingested_binaries": true,
+  "graph_count": 3,
+  "profile_is_speed_authority": false,
+  "cloud": {
+    "fs-w193-nkilib-row-forward-profile-r1": {
+      "receipt": "research/run-logs/fs-artifact-backup-fs-w193-nkilib-row-forward-profile-r1.json",
+      "receipt_sha256": "2323e2f7b94526c423c6bb52da9c593e59dbd0a43d818bc303979db93ebc0da3",
+      "payload_sha256": "253781e413631f7edd9f1ccaebcb6d1db4ce92ef24a2b06392736de71ca1d962",
+      "all_github_digests_match": true,
+      "verified_at": "2026-09-20T08:08:52+00:00"
+    },
+    "fs-w193-nkilib-row-forward-ingest-r1-parquet": {
+      "receipt": "research/run-logs/fs-artifact-backup-fs-w193-nkilib-row-forward-ingest-r1-parquet.json",
+      "receipt_sha256": "3d3d0bfd6a4a83fb4adceddb1c47c4969209ea25064daa59e150fad6a5f29706",
+      "payload_sha256": "6bde1d97ef8090c49d4b1718c66526f9923bba893ae35a864099ef73bed4f898",
+      "all_github_digests_match": true,
+      "verified_at": "2026-09-20T08:08:53+00:00"
+    }
+  },
+  "training_backward_or_bpb_claim": false,
+  "warnings": [
+    {
+      "message": "Current NEFF is missing compiler metrics. Please re-compile using latest version of the compiler",
+      "category": "Missing Data"
+    },
+    {
+      "message": "Missing additional dynamic DMA metadata, reported DMA values may be inaccurate. To enable more accurate DMA data, re-capture with --enable-dge-notifs flag or set NEURON_RT_ENABLE_DGE_NOTIFICATIONS=1 before running. Note: DGE notifications are disabled by default as they can cause execution timeouts on some models.",
+      "category": "Missing Data"
+    },
+    {
+      "message": "Missing HLO stats in the NEFF, `model_flops` and `mfu_hlo_estimated_percent` summary metrics will not be available. Consider the metrics (hardware_flops - transpose_flops) and mfu_inst_estimated_percent instead.",
+      "category": "Missing Data"
+    }
+  ]
+}
