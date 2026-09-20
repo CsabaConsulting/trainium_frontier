@@ -1,0 +1,301 @@
+{
+  "label": "fs-w198-nkilib-saved-contention-sequence-r1",
+  "max_seconds": 6600,
+  "purpose": "Compare the unchanged saved FP8 forward with native saved BF16 at one/four/one ranks, with balanced paired orders, frozen original numerical prerequisites and clean separate host ownership. No quality promotion; this is the contention screen before a complete ROW backward.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w198-nkilib-saved-contention-1rank-r1.request.json",
+      "sha256": "50ee01b386a2019cdf44545bc737eb30a52f63709c50730c4ab2543a092134d4",
+      "requirements": [
+        {
+          "marker": "NKILIB_SAVED_CONTENTION_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "source_commit": "725a385c2325d83c7273ff88ef1de31a9deea539",
+            "all_original_source194_requirements_verified": true,
+            "all_source194_source_bytes_unchanged": true
+          }
+        },
+        {
+          "marker": "NKILIB_PROVENANCE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "vendored_files": 66,
+            "package_installation": false,
+            "bundled_package_replaced": false
+          }
+        },
+        {
+          "marker": "NKILIB_SAVED_CONTENTION_FUNCTIONS",
+          "count": 1,
+          "fields": {
+            "original_probe_sha256": "c19bd4b3ff2856d3aeb77512777f9e1c73b4a1fce50728b89887804324c9d4f4",
+            "source194_probe_sha256": "7ce549d4d9fcf30d756589089fea23e92d3f91c54946851b48ef38f551420da9",
+            "original_function_bodies_unchanged": true,
+            "native_control_saved_relu_layout": "HxT",
+            "all_online_preparation_and_saves_inside_compiled_functions": true
+          }
+        },
+        {
+          "marker": "NKILIB_EXACT",
+          "count": 6,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_SAVED_CONTENTION_TIMING",
+          "count": 12,
+          "fields": {
+            "world_size": 1,
+            "steps": 50,
+            "collectives_outside_timing": true,
+            "paired_alternating_order": true,
+            "online_preparation_and_all_saves_charged": true
+          }
+        },
+        {
+          "marker": "NKILIB_SAVED_CONTENTION_RANK_GATE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "world_size": 1,
+            "shape": [
+              32768,
+              1024,
+              4096
+            ],
+            "exact_actual_stages_repeat_changed_inputs_and_weights": true,
+            "exact_all_saved_row_independence": true,
+            "saved_tensor_bytes": 436469760,
+            "original_source194_numerical_prerequisite_required": true,
+            "original_forward_function_bodies_unchanged": true,
+            "master_casts_preparation_and_all_training_saves_charged": true,
+            "backward_and_model_excluded": true
+          },
+          "unique_field": "rank",
+          "values": [
+            0
+          ]
+        },
+        {
+          "marker": "NKILIB_SAVED_CONTENTION_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "world_size": 1,
+            "shape": [
+              32768,
+              1024,
+              4096
+            ],
+            "steps": 50,
+            "rounds": 6,
+            "source194_function_bodies_reused": true,
+            "original_numerical_gates_not_replaced": true,
+            "no_backward_model_or_bpb_claim": true
+          }
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w198-nkilib-saved-contention-4rank-r1.request.json",
+      "sha256": "1a233aef2aeae8929583c8f0bae6ed344a6541c276d35fead7e9769d32fa0952",
+      "requirements": [
+        {
+          "marker": "NKILIB_SAVED_CONTENTION_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "source_commit": "725a385c2325d83c7273ff88ef1de31a9deea539",
+            "all_original_source194_requirements_verified": true,
+            "all_source194_source_bytes_unchanged": true
+          }
+        },
+        {
+          "marker": "NKILIB_PROVENANCE",
+          "count": 4,
+          "fields": {
+            "passed": true,
+            "vendored_files": 66,
+            "package_installation": false,
+            "bundled_package_replaced": false
+          }
+        },
+        {
+          "marker": "NKILIB_SAVED_CONTENTION_FUNCTIONS",
+          "count": 4,
+          "fields": {
+            "original_probe_sha256": "c19bd4b3ff2856d3aeb77512777f9e1c73b4a1fce50728b89887804324c9d4f4",
+            "source194_probe_sha256": "7ce549d4d9fcf30d756589089fea23e92d3f91c54946851b48ef38f551420da9",
+            "original_function_bodies_unchanged": true,
+            "native_control_saved_relu_layout": "HxT",
+            "all_online_preparation_and_saves_inside_compiled_functions": true
+          }
+        },
+        {
+          "marker": "NKILIB_EXACT",
+          "count": 24,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_SAVED_CONTENTION_TIMING",
+          "count": 48,
+          "fields": {
+            "world_size": 4,
+            "steps": 50,
+            "collectives_outside_timing": true,
+            "paired_alternating_order": true,
+            "online_preparation_and_all_saves_charged": true
+          }
+        },
+        {
+          "marker": "NKILIB_SAVED_CONTENTION_RANK_GATE",
+          "count": 4,
+          "fields": {
+            "passed": true,
+            "world_size": 4,
+            "shape": [
+              32768,
+              1024,
+              4096
+            ],
+            "exact_actual_stages_repeat_changed_inputs_and_weights": true,
+            "exact_all_saved_row_independence": true,
+            "saved_tensor_bytes": 436469760,
+            "original_source194_numerical_prerequisite_required": true,
+            "original_forward_function_bodies_unchanged": true,
+            "master_casts_preparation_and_all_training_saves_charged": true,
+            "backward_and_model_excluded": true
+          },
+          "unique_field": "rank",
+          "values": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "marker": "NKILIB_SAVED_CONTENTION_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "world_size": 4,
+            "shape": [
+              32768,
+              1024,
+              4096
+            ],
+            "steps": 50,
+            "rounds": 6,
+            "source194_function_bodies_reused": true,
+            "original_numerical_gates_not_replaced": true,
+            "no_backward_model_or_bpb_claim": true
+          }
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w198-nkilib-saved-contention-1rank-r2.request.json",
+      "sha256": "1d5629eabe2d20c67cbc7316c9962e4fa4270becdbd84de800e7b105290be8dc",
+      "requirements": [
+        {
+          "marker": "NKILIB_SAVED_CONTENTION_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "source_commit": "725a385c2325d83c7273ff88ef1de31a9deea539",
+            "all_original_source194_requirements_verified": true,
+            "all_source194_source_bytes_unchanged": true
+          }
+        },
+        {
+          "marker": "NKILIB_PROVENANCE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "vendored_files": 66,
+            "package_installation": false,
+            "bundled_package_replaced": false
+          }
+        },
+        {
+          "marker": "NKILIB_SAVED_CONTENTION_FUNCTIONS",
+          "count": 1,
+          "fields": {
+            "original_probe_sha256": "c19bd4b3ff2856d3aeb77512777f9e1c73b4a1fce50728b89887804324c9d4f4",
+            "source194_probe_sha256": "7ce549d4d9fcf30d756589089fea23e92d3f91c54946851b48ef38f551420da9",
+            "original_function_bodies_unchanged": true,
+            "native_control_saved_relu_layout": "HxT",
+            "all_online_preparation_and_saves_inside_compiled_functions": true
+          }
+        },
+        {
+          "marker": "NKILIB_EXACT",
+          "count": 6,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_SAVED_CONTENTION_TIMING",
+          "count": 12,
+          "fields": {
+            "world_size": 1,
+            "steps": 50,
+            "collectives_outside_timing": true,
+            "paired_alternating_order": true,
+            "online_preparation_and_all_saves_charged": true
+          }
+        },
+        {
+          "marker": "NKILIB_SAVED_CONTENTION_RANK_GATE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "world_size": 1,
+            "shape": [
+              32768,
+              1024,
+              4096
+            ],
+            "exact_actual_stages_repeat_changed_inputs_and_weights": true,
+            "exact_all_saved_row_independence": true,
+            "saved_tensor_bytes": 436469760,
+            "original_source194_numerical_prerequisite_required": true,
+            "original_forward_function_bodies_unchanged": true,
+            "master_casts_preparation_and_all_training_saves_charged": true,
+            "backward_and_model_excluded": true
+          },
+          "unique_field": "rank",
+          "values": [
+            0
+          ]
+        },
+        {
+          "marker": "NKILIB_SAVED_CONTENTION_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "world_size": 1,
+            "shape": [
+              32768,
+              1024,
+              4096
+            ],
+            "steps": 50,
+            "rounds": 6,
+            "source194_function_bodies_reused": true,
+            "original_numerical_gates_not_replaced": true,
+            "no_backward_model_or_bpb_claim": true
+          }
+        }
+      ]
+    }
+  ]
+}
