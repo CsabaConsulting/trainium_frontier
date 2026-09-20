@@ -64,3 +64,31 @@ leads, but contains errors and nonprimary references; those claims are rejected.
 The research supports the allocation experiment, but supplies no established
 causal explanation of the source180 regression. Use measured counterfactuals,
 not a synthesized compiler story, to decide whether to continue this path.
+
+## Conditional follow-up: isolate how many replacements cause the regression
+
+If source192 also loses, the next causal test is placement/count of the library
+replacement: zero, first block only, last block only, and all six. Use the same
+source, host, seed, batch and native HxT custom-autograd control in every block
+that is not replaced. Leaving those blocks on ordinary MLP.forward would change
+the saved-activation/backward contract and confound this comparison. Preserve
+Parameter/cache identities, native evaluation and optimizer grouping. Gate the
+partial-install adapter separately before any model timing.
+
+A nearly fixed slowdown after a single replacement would support a graph-wide
+compiler/layout effect; a cost that scales with replaced layers would support
+a local boundary or per-layer cost. First-versus-last placement can further
+separate a downstream head/layout interaction from a uniform cost. These are
+falsifiable predictions, not explanations established by the current traces.
+The shared train.py:2853 attribution cannot identify the responsible module.
+If profiling a resulting difference, bind runtime executions to NEFF identities
+and compare instruction work as well as elapsed time. Do not infer causality
+from incomplete DMA counters or relax existing numerical gates.
+
+Source193 also prepares a same-host three-arm forward capture (native BF16,
+prepared-input ROW FP8, and fused-input ROW FP8). Its function bodies are
+extracted unchanged from the source191 transform. All input/master-weight
+preparation stays within each compiled call, and captured outputs must equal
+unprofiled outputs. The full source191 gate is an explicit prerequisite.
+This profile can identify remaining preparation/compute costs; it cannot
+justify training quality or a full-model speed claim.

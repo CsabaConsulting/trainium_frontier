@@ -1,45 +1,49 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-20 07:43 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-20 07:59 UTC. Authorization: danger-full-access, approval never.
 Use committed manifests/postflights before dispatch; never restart completed jobs.
 
-## Current work — 2026-09-20 07:43 UTC
+## Current work — 2026-09-20 07:59 UTC
 
-- Trn21 RUNNING source191153c4c13 at remote wave191; sequence
-  fs-w191-nkilib-inline-input-sequence-r1, coordinator3770, started07:41:11UTC.
-  All small input-loader fusion fixtures have passed; production gates/timing
-  remain pending. One finite forward-only job, max5400s. No training/BPB claim.
-- Trn22 RUNNING source1928b1a3fc0 at remote wave192; sequence
-  fs-w192-nkilib-compiler-sbuf-sequence-r1, coordinator4195, started07:42:29UTC.
-  Four gated jobs: original full-gradient component, real Linear/cache
-  integration, native model control, compiler-managed-SBUF library model.
-  Original arithmetic, tiling and all bounds retained; logical allocator
-  capacity/lifetime/underflow checks stay active. Max12000s, no quality run.
-- Both source190 budget sequences COMPLETE/CLEAN and independently verified
-  against every frozen requirement.128KiB562.878526ms vs486.986693ms native,
-  +15.584%;64KiB566.748940ms vs488.645588ms, +15.984%. Candidate losses agree
-  exactly across budgets. Smaller fixed allocator bounds did not fix the
-  model slowdown. No promotion. Final free space19.234GB/14.370GB.
-- Source180 instruction analysis: surrounding ordinary Linear core0 regular
-  MATMUL count55,059 to110,286, dominant arithmetic work unit16,777,216 to
-  4,194,304 FLOPs. Scalar copies add20.977ms active time. Intervals overlap;
-  exact module/tile dimensions and complete DMA traffic remain unidentified.
-  Committed analysis and reviewed sources: library-compiler-placement note.
-- Source189 exact fused weight preparation29.85%/32.06% faster. Complete ROW
-  forward still1.968% slower thanBF16. Source191 targets input HBM
-  materialization next. Training saves/backward are separate required work.
-- Both180 raw traces/derived tables are SHA-verified locally and in GitHub
-  assets. Trn22 maintenance r3 preserved/cloud-verified old scratch before
-  retirement. Keep8GiB free reserve; do not purge shared caches or artifacts.
-- Last verified push07:41:04UTC: source6f893995, snapshot from last-success.json,
-  both host retrievals complete. Current results/resume need another commit.
-  Cron preserves and pushes; it never merges or chooses experiments. Active
-  sequences mirror logs every45s and stop on failed/incomplete gates.
+- Trn21 RUNNING source193317b99c3 at remote wave193. Sequence
+  fs-w193-nkilib-row-forward-profile-sequence-r1, coordinator19207, started
+  07:56:08UTC. Plan d70c083d. One same-host three-arm forward capture followed
+  by raw-preserving Explorer ingestion. Requires every source191 gate and
+  unchanged kernel bytes. All preparation stays inside each compiled call.
+  Max6000s. Preserve raw traces/NEFFs and decoded tables locally and in cloud.
+- Source191 COMPLETE/CLEAN; every frozen requirement independently verified.
+  Ten cases pass. Production forward: inline3.926421ms, nativeBF164.602453ms,
+  preparedFP84.687184ms.14.6885% faster thanBF16,16.2307% faster than previous
+  ROW control; actual bytes/scales/stages/repetition/changed-input checks pass.
+  Includes all online input/weight preparation. No training saves/backward.
+  Relative RMS versusBF16 remains5.76445%, so no quality-equivalence claim.
+- Trn22 RUNNING source1928b1a3fc0 at remote wave192; coordinator4195, sequence
+  fs-w192-nkilib-compiler-sbuf-sequence-r1, started07:42:29UTC. All ten full
+  component and both Linear/cache gates COMPLETE/CLEAN, verified locally.
+  Complete component14.924422ms vs15.204608ms native. Current native model
+  control will be followed by compiler-SBUF library model timing. Max12000s.
+- Both source190 fixed-budget sequences COMPLETE/CLEAN;128KiB full step
+  562.878526ms vs486.986693ms (+15.584%);64KiB566.748940ms vs488.645588ms
+  (+15.984%). Smaller fixed bounds did not fix the model regression.
+- Source180 caller/instruction analysis and raw/derived profiles are preserved
+  locally and cloud-verified. Ordinary Linear tile work units shrink and
+  copies/reloads grow. Missing DMA notifications prohibit exact traffic claims.
+- ROW training design is now explicit in library-fusion-next: keep/save actual
+  quantized input and activation plus row scales, channel-scaled weights, BF16
+  pre-square ReLU, and a separately declared approximate VJP. The older fixed
+  input/weight-scale FP8 backward cannot be plugged in unchanged. Charge all
+  saves, dual weight layouts, gradient calibration and four backward products.
+- Conditional graph diagnosis if192 loses: zero/first/last/all-six replacements,
+  keeping the same native HxT custom backward in untouched blocks. This can
+  distinguish global graph interference from per-layer cost. Not dispatched.
+- Latest verified cron push07:51:05UTC sourcedbb20338, both hosts retrieved;
+  later source193 commits and191 result await next push. Consult last-success.
+  Cron preserves/pushes, never merges or chooses experiments. Active logs
+  mirror every45s. Never edit running plans/requests/protected helpers.
 - Best public BPB0.9928513116311253, cold replay0.9938556748843932. Frozen
   submission/train.py/prepare.py unchanged. Source159 T512 MUST NOT run.
-- Do not edit in-flight plans/requests or protected launch/sequence/sync
-  helpers. Use committed immutable checkouts, tracked sequence starter,
-  finite timeouts, Git/host locks and pre/postflight cleanup for every job.
+  Keep8GiB free reserve, finite bounds, immutable sources, Git/host locks,
+  and separate pre/postflight cleanup. No automatic quality run is queued.
 
 ## Previous checkpoint — 2026-09-20 07:19 UTC
 
