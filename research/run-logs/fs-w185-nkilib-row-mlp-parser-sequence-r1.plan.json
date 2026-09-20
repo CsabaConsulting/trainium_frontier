@@ -1,0 +1,151 @@
+{
+  "label": "fs-w185-nkilib-row-mlp-parser-sequence-r1",
+  "max_seconds": 3000,
+  "purpose": "Repeat unchanged source184 byte-safe ROW FP8 checks after splitting two tuple attribute assignments into four parser-compatible assignments. AST equivalence verified; no arithmetic, fixture, tolerance or timing boundary changes.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w185-nkilib-row-mlp-parser-r1.request.json",
+      "sha256": "7f2e02da315b1322caf7f7d51ccffae6fdb8efcc157073ab20247754186a3956",
+      "requirements": [
+        {
+          "marker": "NKILIB_ROW_PRODUCER_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 14,
+            "source_commit": "887e320625a2c0d57dc18d6d931700763a4660ad",
+            "unchanged_source_bytes": true,
+            "maintenance_verified": true
+          }
+        },
+        {
+          "marker": "NKILIB_PROVENANCE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "vendored_files": 66,
+            "package_installation": false,
+            "bundled_package_replaced": false
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_MLP_ADAPTER",
+          "count": 1,
+          "fields": {
+            "installed": true,
+            "isolated_namespace_only": true,
+            "legacy_e4m3_double_row": true,
+            "upstream_row_quantization_and_scaling": true,
+            "token_row_sharding": true,
+            "relu_bf16_then_square_bf16": true,
+            "diagnostics_excluded_from_timed_path": true,
+            "training_backward_implemented": false
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_RECIPROCAL",
+          "count": 30,
+          "fields": {
+            "passed": true,
+            "limit": 2.384185791015625e-07
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_QUANT_GATE",
+          "count": 30,
+          "fields": {
+            "passed": true,
+            "independently_decoded_legacy_e4m3": true,
+            "scale_exact": true
+          }
+        },
+        {
+          "marker": "NKILIB_EXACT",
+          "count": 150,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_NUMERICAL",
+          "count": 20,
+          "fields": {
+            "passed": true,
+            "finite": true,
+            "bound_failures": 0
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_INTERMEDIATE_GATE",
+          "count": 10,
+          "fields": {
+            "passed": true,
+            "outside_quantization_interval": 0,
+            "relative_interval": 4.76837158203125e-07,
+            "all_decoded_coordinates": true,
+            "finite": true
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_MLP_CASE",
+          "count": 10,
+          "fields": {
+            "passed": true,
+            "independent_decoded_pair_and_rounding_gates": true,
+            "all_outputs_and_quantizer_coordinates_finite": true,
+            "plain_and_instrumented_exact": true,
+            "all_online_calibration_layout_and_master_casts_charged": true,
+            "saved_activations_and_backward_excluded": true
+          }
+        },
+        {
+          "marker": "NKILIB_ROW_MLP_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 10,
+            "forward_only": true,
+            "online_preparation_charged": true,
+            "full_training_or_bpb_claim": false
+          }
+        },
+        {
+          "marker": "NKILIB_BYTE_PREPARATION_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "known_byte_shapes": 5,
+            "source_commit": "553d93ce4ebcea0736bbdeba55d06d7f3cef2dfe",
+            "all_original_arithmetic_and_bounds_retained": true,
+            "original_failure_source_unchanged": true
+          }
+        },
+        {
+          "marker": "NKILIB_BYTE_SAFE_PREPARATION",
+          "count": 1,
+          "fields": {
+            "original_source_sha256": "c19bd4b3ff2856d3aeb77512777f9e1c73b4a1fce50728b89887804324c9d4f4",
+            "changed_expressions": [
+              "qu",
+              "qd"
+            ],
+            "all_original_arithmetic_and_fixtures_retained": true,
+            "byte_transposes_inside_timed_path": true,
+            "original_failure_source_unchanged": true
+          }
+        },
+        {
+          "marker": "NKILIB_PARSER_FIX_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "original_failure_retained": true,
+            "normalized_ast_identical": true,
+            "changed_tuple_assignments": 2,
+            "original_preparation_gates_passed": 3
+          }
+        }
+      ]
+    }
+  ]
+}
