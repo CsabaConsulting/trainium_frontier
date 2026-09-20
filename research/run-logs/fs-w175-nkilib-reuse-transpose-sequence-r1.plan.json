@@ -1,0 +1,104 @@
+{
+  "label": "fs-w175-nkilib-reuse-transpose-sequence-r1",
+  "max_seconds": 4200,
+  "purpose": "Reuse the required library intermediate transpose: BF16 ReLU, original transpose, contiguous HxT save, BF16 square, down projection. No extra activation transpose, SBUF, or recomputation. Same ten full FP64/native/stage/accumulation fixtures and matched current native HxT control. All component costs charged; no model/BPB claim.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w175-nkilib-reuse-transpose-component-r1.request.json",
+      "sha256": "4ca9eed083bb63fadf9a4187cab24d98e61fa50f9626136e9bc3e643b85708f0",
+      "requirements": [
+        {
+          "marker": "NKILIB_TRAINING_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 6,
+            "source_commit": "2cd50e043742ff327f40eda70e9e43632a29118d",
+            "token_sharding": true
+          }
+        },
+        {
+          "marker": "NKILIB_PROVENANCE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "vendored_files": 66,
+            "package_installation": false,
+            "bundled_package_replaced": false
+          }
+        },
+        {
+          "marker": "NKILIB_TRAINING_REUSE_TRANSPOSE_CASE",
+          "count": 10,
+          "fields": {
+            "passed": true,
+            "full_independent_fp64_autograd_gradients": true,
+            "unchanged_native_comparison": true,
+            "exact_repeat_rows_and_fp32_accumulation": true,
+            "master_casts_layouts_activation_stores_and_full_backward_charged": true,
+            "optimizer_communication_and_model_excluded": true,
+            "matched_native_hxt_control": true,
+            "saved_relu_layout": "HxT",
+            "extra_activation_transpose": false,
+            "reuses_existing_transpose": true,
+            "square_after_transpose": true
+          }
+        },
+        {
+          "marker": "NKILIB_TRAINING_REUSE_TRANSPOSE_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 10,
+            "saved_relu_and_full_backward": true,
+            "all_fp64_and_native_gates": true,
+            "two_microbatch_fp32_accumulation": true,
+            "training_or_bpb_claim": false,
+            "matched_native_hxt_control": true,
+            "saved_relu_layout": "HxT",
+            "reuses_existing_transpose": true,
+            "square_after_transpose": true
+          }
+        },
+        {
+          "marker": "FUSED_MLP_NATIVE_GATE",
+          "count": 60,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "FUSED_MLP_STAGE_GATE",
+          "count": 20,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "FP8_CACHE_BACKWARD_FP64_BOUND",
+          "count": 60,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_EXACT",
+          "count": 60,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_HXT_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 3,
+            "source_commit": "0535b900babe9686b2a62f2b597791c3ef97a59c",
+            "matched_native_hxt_control": true
+          }
+        }
+      ]
+    }
+  ]
+}
