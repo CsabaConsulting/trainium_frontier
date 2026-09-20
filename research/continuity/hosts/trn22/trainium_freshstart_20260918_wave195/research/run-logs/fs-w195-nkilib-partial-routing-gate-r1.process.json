@@ -1,0 +1,17 @@
+{
+  "label": "fs-w195-nkilib-partial-routing-gate-r1",
+  "guard_pid": 2051189,
+  "child_pid": 2051190,
+  "child_session": 2051190,
+  "started_at": "2026-09-20T08:29:21.144502+00:00",
+  "command": [
+    "timeout",
+    "--signal=TERM",
+    "--kill-after=30s",
+    "2400",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "-c",
+    "REMOTE='/home/ubuntu/trainium_freshstart_20260918_wave195'\nITEMS=[('fs-w175-nkilib-reuse-transpose-component-r1', [{'marker': 'NKILIB_TRAINING_PREREQUISITE', 'count': 1, 'fields': {'passed': True, 'cases': 6, 'source_commit': '2cd50e043742ff327f40eda70e9e43632a29118d', 'token_sharding': True}}, {'marker': 'NKILIB_PROVENANCE', 'count': 1, 'fields': {'passed': True, 'vendored_files': 66, 'package_installation': False, 'bundled_package_replaced': False}}, {'marker': 'NKILIB_TRAINING_REUSE_TRANSPOSE_CASE', 'count': 10, 'fields': {'passed': True, 'full_independent_fp64_autograd_gradients': True, 'unchanged_native_comparison': True, 'exact_repeat_rows_and_fp32_accumulation': True, 'master_casts_layouts_activation_stores_and_full_backward_charged': True, 'optimizer_communication_and_model_excluded': True, 'matched_native_hxt_control': True, 'saved_relu_layout': 'HxT', 'extra_activation_transpose': False, 'reuses_existing_transpose': True, 'square_after_transpose': True}}, {'marker': 'NKILIB_TRAINING_REUSE_TRANSPOSE_RESULT', 'count': 1, 'fields': {'passed': True, 'cases': 10, 'saved_relu_and_full_backward': True, 'all_fp64_and_native_gates': True, 'two_microbatch_fp32_accumulation': True, 'training_or_bpb_claim': False, 'matched_native_hxt_control': True, 'saved_relu_layout': 'HxT', 'reuses_existing_transpose': True, 'square_after_transpose': True}}, {'marker': 'FUSED_MLP_NATIVE_GATE', 'count': 60, 'fields': {'passed': True}}, {'marker': 'FUSED_MLP_STAGE_GATE', 'count': 20, 'fields': {'passed': True}}, {'marker': 'FP8_CACHE_BACKWARD_FP64_BOUND', 'count': 60, 'fields': {'passed': True}}, {'marker': 'NKILIB_EXACT', 'count': 60, 'fields': {'passed': True}}, {'marker': 'NKILIB_HXT_PREREQUISITE', 'count': 1, 'fields': {'passed': True, 'cases': 3, 'source_commit': '0535b900babe9686b2a62f2b597791c3ef97a59c', 'matched_native_hxt_control': True}}], 'd595ce0e55e8a0defe32fe59fede91c3b65feb2a')]\nimport pathlib,json,sys,hashlib,subprocess\nroot=pathlib.Path(REMOTE);sys.path.insert(0,str(root/'research'))\nfrom fresh_start_sequence import require_completed\nlogs=root/'research/run-logs'\nfor label,rules,expected_source in ITEMS:\n launch=json.loads((logs/(label+'.launch.json')).read_text())\n assert launch['expected_commit']==expected_source\n require_completed(json.loads((logs/(label+'.postflight.json')).read_text()),(logs/(label+'.log')).read_text(),launch,rules)\n for path,wanted in launch['source_sha256'].items():\n  assert hashlib.sha256((root/path).read_bytes()).hexdigest()==wanted,path\nprint('NKILIB_PARTIAL_PREREQUISITE '+json.dumps(dict(passed=True,checked_labels=[v[0] for v in ITEMS],all_original_frozen_requirements_verified=True,all_prior_source_bytes_unchanged=True)),flush=True)\nsubprocess.run(['/home/ubuntu/workspace/native_venv/bin/python', '-u', '/home/ubuntu/trainium_freshstart_20260918_wave195/research/scratch/nki_library_partial_mlp_check.py'],check=True)\n"
+  ]
+}

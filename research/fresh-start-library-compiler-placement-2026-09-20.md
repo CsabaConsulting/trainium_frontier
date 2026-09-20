@@ -92,3 +92,36 @@ preparation stays within each compiled call, and captured outputs must equal
 unprofiled outputs. The full source191 gate is an explicit prerequisite.
 This profile can identify remaining preparation/compute costs; it cannot
 justify training quality or a full-model speed claim.
+
+## Source192 outcome and source195 causal routing gate (08:20 UTC)
+
+Source192 COMPLETE/CLEAN08:10:15UTC, all frozen component, cache and model gates
+verified. Native488.528818ms, compiler-SBUF563.005751ms (+15.2451%). Changing
+SBUF placement did not recover whole-model performance. Preserve this result
+alongside source190's failed smaller manual budgets; do not repeat their sweep.
+
+Source195 adds a setup-only selector around the two unchanged MLP adapters.
+It first installs the existing native HxT custom backward in every layer, then
+installs the existing library adapter and restores the exact bound native
+methods in unselected layers. No arithmetic, fallback, graph boundary, parameter
+or cache changes. Zero, first, last and all-six selections are explicit. The
+phase timer's previous AST is recovered exactly by removing the new argument,
+validation and install dispatch. Neither original adapter nor kernel changed.
+
+Before model timing, a six-module independent-slice probe will check all four
+selections with the original coordinate/RMS bounds, compiled forward/backward,
+every FP32 master gradient, two-microbatch accumulation, cached and uncached
+paths, real cache changes after updates, layer/batch independence, repeatability,
+native short evaluation and strict checkpoint restore. Use an independent slice
+per module so summation cannot conceal selecting the wrong layer. The older
+production-width component/integration evidence remains a prerequisite.
+
+After a clean gate, run fresh seed42 pack32 four-rank controls with zero, first,
+last and all-six library replacements. Identical data,131072tokens/update,
+5warmups/30measured updates and optlevel1. Each run has separate host ownership,
+pre/postflight cleanup and finite timeout. This tests whether cost is broadly
+proportional to replacement count or a single opaque operation changes graph
+scheduling. A discontinuity calls for paired full-model traces; a linear trend
+calls for per-layer cost analysis. Position dependence would motivate preserving
+native boundaries selectively. None warrants a30-minute quality run without an
+actual repeatable complete-step gain and its numerical/integration gates.
