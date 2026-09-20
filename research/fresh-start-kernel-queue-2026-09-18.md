@@ -1,5 +1,17 @@
 # Kernel queue and precision-specific experiments
 
+## 2026-09-20 07:19 UTC — bounded scratch gates pass; input-loader fusion prepared
+
+Source190 both10-case full-gradient and2-width Linear/cache integration gates
+COMPLETE/CLEAN.128KiB component14.884966ms vs15.202572ms;64KiB15.648807ms
+vs15.196156ms. Both same-host native/model sequences are running; no quality
+claim. Source191 inline BF16-to-FP8 input loader implemented, original arithmetic
+and prepared-input control retained, additional actual-byte/stage/change checks
+AST-verified. No191 dispatch yet. Trn22 archive/cloud-verify/retire maintenance
+restored free space to17.524GB; all source180 profile artifacts are cloud-verified.
+See RESUME.md for exact identities.
+
+
 ## 2026-09-20 07:11 UTC — library fusions and caller evidence
 
 Source189 COMPLETE/CLEAN: exact fused weight preparation29.85%/32.06% faster;

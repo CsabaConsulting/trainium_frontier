@@ -18,7 +18,7 @@ whole-model training step or a lower BPB. The frozen submission is unchanged.
 | Stride-2 FP8 PSUM transpose and contiguous DMA | Source189 fuses weight quantization and transpose on chip, eliminating a quantized HBM temporary | Up0.180071ms vs0.256682ms (29.85% lower); down0.137327ms vs0.202133ms (32.06% lower). All8 fixtures/232 exact checks pass. |
 | Same fused producer in complete ROW forward | Exactly four preparation expressions change; all original gates retained | Source1894.686795ms vs4.596355msBF16 (1.968% slower). Improvement over the prior5.412% gap; not yet a forward win. |
 | Newer CTE attention/backward | Production shape and saved-statistic costs measured against bundled NKI | Only0.395% production gain; no wholesale switch. Earlier FP64 coordinate failures are retained, not relabeled. |
-| Bounded scratch allocation | Source190 static64/128KiB limits, instead of212728B per partition | Implemented/AST-checked, device validation pending. Hypothesis: improve surrounding Linear scheduling/spills. |
+| Bounded scratch allocation | Source190 static64/128KiB limits, instead of212728B per partition | Both budgets passed full component/cache gates; model timing running. Hypothesis: improve surrounding Linear scheduling/spills. |
 
 Source188 repeats the complete BF16 component with one/four concurrent ranks.
 It passes all original source-matched FP64 prerequisites, native gradients,
@@ -43,7 +43,8 @@ this explicitly tests model-context interference. Numerical gates remain strict.
 All upstream lifetime, OOM and underflow checks remain in place; the budget is
 an explicit static NKI argument to prevent ambiguous compilation-cache reuse.
 
-A separate next fusion is designed in
+A separate next fusion is implemented for source191 and awaiting device validation;
+its design is in
 `fresh-start-library-fusion-next-2026-09-20.md`: quantize BF16 token rows inside
 the library loader to avoid input HBM materialization. Implementing training
 saves/backward remains a distinct requirement. The ROW random fixture differs

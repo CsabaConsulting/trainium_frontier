@@ -62,7 +62,13 @@ explicit, narrowly scoped adapters in the isolated namespace:
 Run small zero/tiny/outlier/alphabet cases before production; retain the original
 ten-case GEMM and rounding gates. The performance comparison must include current
 weights, all remaining producers and plain forward. No backwards or quality claim
-follows. This design is researched but not implemented or dispatched yet.
+follows. This design is now implemented in source191
+(`scratch/nki_library_row_fused_input.py`), with device validation pending.
+The prepared-input control remains unchanged. The new probe retains every
+original stage/arithmetic bound and additionally checks actual input bytes and
+metadata, exact original intermediate stages, and independent changed-input
+quantization. No input producer or quantized HBM tensor occurs in the plain
+forward path. Both complete timings include current weight preparation.
 
 Relevant pinned sources: `core/mlp/mlp_parameters.py`,
 `core/mlp/mlp_cte/mlp_cte_constants.py`, and the basic CTE allocation, tensor I/O,
@@ -122,3 +128,20 @@ seed42, same global batch, optlevel1, no separate compiled region. Component
 speedup is not a prerequisite for this scheduling hypothesis. Stop on any
 correctness/cleanup failure. Do not promote to a30-minute trial without a
 repeatable complete-step improvement and all existing master/cache/eval gates.
+
+## 07:19 UTC progress
+
+Both source190 budgets passed all10 original training fixtures and both real
+Linear/cache integration widths, including independent FP64 gradients and
+exact FP32 accumulation/eval/checkpoint gates.128KiB complete component
+14.884966ms vs native15.202572ms;64KiB15.648807ms vs15.196156ms. Whole-model
+controls/candidates are running. No quality trial is warranted yet.
+
+Source191 also explicitly suppresses the library's BF16 DMA-transpose shortcut
+for the inline ROW path: quantization first needs channels on the free axis,
+then the existing FP8 PE transpose supplies the double-row projection. Packed
+input controls retain their original shortcut decision. All new allocations
+use the existing manager, and the additional per-partition footprint is
+4*C +8 +4*subtile_count bytes. No extra kernels or arithmetic tolerances are
+introduced. Source/hash and inverse-AST checks are in
+`run-logs/fs-w191-inline-input-ast-proof-r1.json`.

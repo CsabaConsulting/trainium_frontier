@@ -1,46 +1,48 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-20 07:11 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-20 07:19 UTC. Authorization: danger-full-access, approval never.
 Use committed manifests/postflights before dispatch; never restart completed jobs.
 
-## Current work — 2026-09-20 07:11 UTC
+## Current work — 2026-09-20 07:19 UTC
 
-- Source189 COMPLETE/CLEAN on trn21 (immutable66f3dc70). Both frozen plans
-  independently verified. Fused online weight quantization/stride-2 FP8
-  transpose is29.85% faster for up weights and32.06% faster for down weights.
-  All8 fixtures and232 exact checks pass. Complete ROW forward passes all10
-  original cases:4.686795ms vs nativeBF164.596355ms, still1.968% slower.
-  Its previous gap was5.412%. No backward or quality claim.
-- Source180 library trace/ingestion r3 COMPLETE/CLEAN on trn22 (9e103ea6).
-  Both raw and derived arms are SHA-verified locally. Native raw/derived and
-  library raw are GitHub-digest-verified; library derived upload is pending.
-  Native forward137.850536ms vs library209.325622ms. Ordinary Linear source
-  train.py:2853 is a major new cost: core0 Tensor activity15.574 to45.204ms;
-  observed reload counters0.592 to13.467GB. DMA warnings prevent exact
-  traffic/bandwidth claims. FP32 matmul work falls; this is not evidence of
-  an accidental FP32 matmul promotion. See paired-caller-analysis-proof-r1.
-- Source188 COMPLETE/CLEAN: complete BF16 MLP one-rank2.102% faster, four-rank
- 2.163% slower; all rank/native/repeat/compiled-backward gates pass. Preserve
-  measured timing drift. It does not fully explain the model regression.
-- Source190 PREPARING, NOT DISPATCHED:64/128KiB per-partition SBUF budget
-  variants retain library allocator checks/arithmetic and source175's full
- 10-case independent gradient/accumulation gates. Then real cache integration,
-  same-host native model control and budgeted model. No component-speed gate:
-  this hypothesis targets surrounding model scheduling. Check later manifests
-  and postflights for actual launches; both hosts are currently idle/clean.
-- Trn22 free11.20GB, trn21 free22.49GB at the latest read-only check. Trn22 scratch-maintenance r3
-  is prepared:6GiB of old /tmp/nki_* diagnostics before06:30UTC, excluding
-  later compiles. Preserve every original file and verify live GitHub digests
-  before retiring remote copies; keep shared caches/checkpoints/profiles.
+- Source190 BOTH RUNNING from immutable dad228df, remote wave190 on each host.
+  Trn21 sequence fs-w190-nkilib-sbuf128-sequence-r1, coordinator2513, started
+  07:11:59UTC. Trn22 fs-w190-nkilib-sbuf64-sequence-r1, coordinator9028, started
+  07:13:17UTC. Both completed all10 full-gradient component gates and real
+  cached/uncached Linear integration CLEAN, independently verified locally.
+  Both now execute native whole-model control, followed by budgeted candidate.
+  Do not edit frozen plans, requests or protected launch/sequence/sync helpers.
+- Component128KiB14.884966ms vs native15.202572ms;64KiB15.648807ms vs
+  15.196156ms. No component-speed requirement for this model-scheduling test.
+  Same full-gradient/FP32 accumulation, cache refresh, native eval and exact
+  checkpoint gates passed. Model timing remains pending.
+- Source191 PREPARING, NOT DISPATCHED: BF16 input quantized directly into
+  library FP8 tiles, eliminating input HBM materialization. New scratch is
+  allocated through the original manager and charged to its tile planner.
+  Original fused-weight/prepared-input control retained; inverse AST proof
+  verifies unchanged original fixtures/bounds plus actual input-byte, scale,
+  all-intermediate-stage and changed-input checks. Device validation pending.
+- Source189 COMPLETE/CLEAN. Exact fused weight preparation29.85%/32.06% faster;
+  complete ROW forward4.686795ms vs4.596355msBF16, still1.968% slower. All10
+  original gates pass. No saved training activations/backward or quality claim.
+- Source180 both raw traces and both derived tables are locally SHA-verified
+  and GitHub-digest-verified. Paired device forward137.850536 vs209.325622ms;
+  ordinary Linear activity/spill attribution is a major new cost. FP32 matmul
+  work falls. Dropped DMA notifications prohibit exact traffic/bandwidth claims.
+- Trn22 scratch maintenance r3 COMPLETE/CLEAN07:13UTC:2,381 old files,
+  6.448GB preserved, every archived file verified, live GitHub digests checked,
+  then retired remotely. Free11.058 to17.524GB. Sources, shared caches,
+  checkpoints, profiles and newer compiler diagnostics retained.
 - Best public BPB0.9928513116311253, cold replay0.9938556748843932. Frozen
   submission/train.py/prepare.py unchanged. Source159 T512 MUST NOT dispatch.
-- Last verified push07:01:02UTC source d513defb/snapshot ca747f52; both remote
-  hosts retrieved. Consult out/fresh-start-backup/last-success.json for later
-  receipts. Cron preserves/pushes; it does not merge or select experiments.
+- Last verified push07:12:48UTC source d2e10195/snapshot615a3943. That manual
+  push explicitly skipped remote retrieval; sequences mirror active logs every
+  45seconds and cron retrieves/pushes every10minutes. Consult
+  out/fresh-start-backup/last-success.json for newer receipts. No auto-merging.
 - Use research/fresh_start_sequence_start.py, which rejects uncommitted or
   changed request/plan bytes. Explicit Git/host locks, finite timeouts,
-  immutable checkouts,45-second log mirroring and pre/postflight cleanup.
-  Always use set -e for dependent shell operations. No automatic retries.
+  immutable checkouts and pre/postflight cleanup. Always set -e for dependent
+  shell operations. No automatic retry of a failed or ambiguous experiment.
 
 ## Previous checkpoint — 2026-09-20 06:25 UTC (superseded host status)
 
