@@ -82,11 +82,13 @@ def main():
     parser.add_argument('--engine-root', required=True)
     parser.add_argument('--trace-dir', type=Path, required=True)
     parser.add_argument('--steps', type=int, default=30)
+    parser.add_argument('--dge-notifications', choices=('on', 'off'), default='on')
     args = parser.parse_args()
     assert args.steps > 0
     prerequisite(args.component_root)
     engine_prerequisite(args.engine_root)
-    assert os.environ.get('NEURON_RT_ENABLE_DGE_NOTIFICATIONS') == '1'
+    dge_enabled = args.dge_notifications == 'on'
+    assert (os.environ.get('NEURON_RT_ENABLE_DGE_NOTIFICATIONS') == '1') == dge_enabled
     torch.set_num_threads(4)
     trace = args.trace_dir.resolve()
     trace.parent.mkdir(parents=True, exist_ok=True)
@@ -121,7 +123,7 @@ def main():
     measured = timing(calls, args.steps, torch.neuron.synchronize)
     print('FP8_ENGINE_PROFILE_TIMING ' + json.dumps(dict(
         **measured, cached_weights=True, preparation_excluded=True,
-        dge_notifications_enabled=True, performance_authority='fs-w161-fp8-gradient-both-r1',
+        dge_notifications_enabled=dge_enabled, performance_authority='fs-w161-fp8-gradient-both-r1',
         timing_under_instrumentation_is_speed_evidence=False,
         whole_model_or_quality_claim=False)), flush=True)
     torch.neuron.synchronize()
@@ -168,7 +170,7 @@ def main():
         numerical_controls_exact=True, phase_synchronization=True,
         cached_weights=True, preparation_excluded=True,
         numerical_authority=['fs-w158-fp8-square-dx-component-r1', 'fs-w161-fp8-gradient-both-r1'],
-        variant='both', dge_notifications_enabled=True,
+        variant='both', dge_notifications_enabled=dge_enabled,
         profiled_latency_is_speed_evidence=False,
         whole_model_or_quality_claim=False)), flush=True)
 

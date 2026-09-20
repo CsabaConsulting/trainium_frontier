@@ -1,0 +1,59 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave162",
+    "expected_commit": "0a17c553fcad70c0561c291c7f8686c94e66e18b",
+    "label": "fs-w162-fp8-engine-profile-r1",
+    "purpose": "Confirm source161 profile-guided abs/scale fusion with three same-input cached dX arms: native, original FP8, fused FP8. Source158 and source161 completed independent gates and byte identity required. DGE notifications requested; timings under instrumentation are attribution only, source161 remains performance authority. No model or quality promotion.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1",
+      "NEURON_RT_ENABLE_DGE_NOTIFICATIONS": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "/home/ubuntu/trainium_freshstart_20260918_wave162/research/scratch/fp8_gradient_engine_profile.py",
+      "--component-root",
+      "/home/ubuntu/trainium_freshstart_20260918_wave159",
+      "--trace-dir",
+      "/home/ubuntu/trainium_freshstart_20260918_wave162/out/fs-w162-fp8-engine-profile-r1",
+      "--steps",
+      "30",
+      "--engine-root",
+      "/home/ubuntu/trainium_freshstart_20260918_wave161"
+    ],
+    "fingerprint_paths": [
+      "train.py",
+      "research/scratch/fp8_square_dx_probe.py",
+      "research/scratch/fp8_dual_weight_cache_nki.py",
+      "research/scratch/fp8_gradient_gemm_nki.py",
+      "research/scratch/fp8_mlp_island_probe.py",
+      "research/scratch/fp8_packed_weight_cache_probe.py",
+      "research/scratch/fp8_weight_cache_probe.py",
+      "research/scratch/fresh_start_fp8_probe.py",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "research/scratch/serial_qkv_probe.py",
+      "research/scratch/fp8_square_dx_cost_split.py",
+      "research/scratch/fp8_square_dx_profile.py",
+      "research/scratch/preserve_native_trace_neffs.py",
+      "research/scratch/fp8_gradient_gemm_engine_nki.py",
+      "research/scratch/fp8_gradient_engine_probe.py",
+      "research/scratch/fp8_gradient_engine_profile.py",
+      "research/scratch/fp8_gradient_gemm_probe.py",
+      "research/scratch/fp8_packed_weight_cache_nki.py",
+      "research/scratch/fp8_weight_cache_nki.py"
+    ]
+  },
+  "requested_at": "2026-09-20T01:32:52.741421+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w162-fp8-engine-profile-r1\", \"pid\": 1608780, \"commit\": \"0a17c553fcad70c0561c291c7f8686c94e66e18b\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave162/research/run-logs/fs-w162-fp8-engine-profile-r1.log\", \"started_at\": \"2026-09-20T01:32:58.639241+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

@@ -10,9 +10,11 @@ Use current manifests/postflights before dispatch; do not restart completed jobs
   exact original square outputs. Both-fusion cached dX0.487894ms beats native
   0.544186ms by10.34%; freshly prepared three products1.625796ms still loses
   to native1.579398ms by2.94%. No autograd/model/quality promotion.
-- trn21 is clean between jobs. Preparing source162 paired native/original/
-  fused dX profiling with DMA notifications, followed by CPU ingestion.
-  Source161 performance is the uninstrumented authority; trace is attribution.
+- trn21 source162 profile completed clean01:33:37 UTC; CPU ingestion follows
+  under coordinator PID20192 (started01:32:52). DGE notifications stretch
+  FP8 timing to9ms; these instrumented samples are not speed evidence.
+  Source163 prepares the same capture without DGE for compute attribution.
+  Source161 remains the uninstrumented performance authority.
 - trn22 source159 context sequence COMPLETE/clean01:30:57 UTC. T512/pack64
   median492.366241ms versus T1024/pack32 control489.128874ms,0.662% slower.
   Same131072global tokens/update, source/host/seed, all four model checks pass

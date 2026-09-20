@@ -233,3 +233,26 @@ Source159 context screen completed clean01:30:57 UTC: T512/pack64 median
 All four model checks pass in both arms. The prepared30-minute request is
 rejected by its predeclared3% speed gate and is not dispatched. Next trn22
 work transfers the profile-supported scale fusion to MLP data backward.
+
+## Transfer to MLP and separate DMA tracing from compute attribution
+
+Source163 keeps the original MLP kernel/probe unchanged, adding a separate
+variant that fuses the two sequential FP32 multiplies at BOTH data-gradient
+outputs into one Vector instruction. It retains original scale order and BF16
+rounding before the ReLU-squared derivative. Magnitude reduction was already
+fused in this MLP and is not a new claim. Reuse all eleven independent original
+stage cases and add the current32768-token shape. Original-kernel diagnostic
+and normal outputs must match exactly, including subnormal/signed-zero cases,
+with no tolerance change. Timing compares old fused-abs against the candidate,
+charging extra backward transpose/packing for one32768-token chain. Shared
+forward calibration is explicitly excluded as already paid, so this is not a
+complete four-product MLP, autograd or whole-model speed measurement.
+
+Source162 DGE-enabled three-arm capture completed clean01:33:37 UTC. All exact
+controls passed. However, enabling DMA notifications stretches the FP8 calls
+from below1ms to around9ms even outside the active profiler context. The output
+explicitly marks those timings as instrumented, not speed evidence. Keep this
+trace for traffic analysis, and capture the same three arms without DGE in
+source163 for compute-engine attribution. Source161's ordinary-runtime timing
+remains the performance authority. Never infer a kernel regression from the
+DGE-enabled timing or splice its intervals into uninstrumented wall time.
