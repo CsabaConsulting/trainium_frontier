@@ -63,9 +63,11 @@ def setup_partial(model, layout, replacement):
             result = tuple(F.linear(x, w) for x, w in zip(rows, weights))
         else:
             result = apply(*rows, *weights)
-        if replacement in ('nki_q', 'nki_k', 'nki_v'):
-            selected = {'nki_q': 0, 'nki_k': 1, 'nki_v': 2}[replacement]
-            result = tuple(result[i] if i == selected else F.linear(rows[i], weights[i])
+        selections = {'nki_q': (0,), 'nki_k': (1,), 'nki_v': (2,),
+                      'nki_qk': (0, 1), 'nki_qv': (0, 2), 'nki_kv': (1, 2)}
+        if replacement in selections:
+            selected = selections[replacement]
+            result = tuple(result[i] if i in selected else F.linear(rows[i], weights[i])
                            for i in range(3))
         shaped = tuple(x.reshape(xq.shape[0], xq.shape[1], self.n_head, self.head_dim)
                        for x in result)
@@ -76,11 +78,20 @@ def setup_partial(model, layout, replacement):
 
 
 def run(channels, layout, cached, with_ve, batch=4, length=128, seed=None,
-        include_fp32_arm=False):
+        include_fp32_arm=False, arm_set='standard', gate_init='random',
+        skip_materialized=False):
     seed = 151031 + channels if seed is None else seed
     torch.manual_seed(seed)
     torch._dynamo.reset()
-    baseline = Probe(channels, length).to('neuron')
+    baseline = Probe(channels, length)
+    if gate_init == 'zero':
+        # GPT.init_weights zeros this gate, whereas the original Probe uses
+        # Linear's random initializer. Keep the output projection nonzero:
+        # zeroing it would hide upstream errors. This is a diagnostic control,
+        # never a substitute for the random/trained-gate acceptance fixture.
+        with torch.no_grad():
+            baseline.transformer.h[0].attn.ve_gate.weight.zero_()
+    baseline = baseline.to('neuron')
     # deepcopy cannot copy differentiable nonleaf weight-cache tensors.
     # Retain a cache-free template before the optional cache refresh.
     template = copy.deepcopy(baseline)
@@ -101,6 +112,9 @@ def run(channels, layout, cached, with_ve, batch=4, length=128, seed=None,
     assert comparison(tag + ':native_repeat', native(*values, cos, sin), expected)['exact']
     records = {}
     modes = ('native_preprojected', 'nki_all', 'nki_q', 'nki_k', 'nki_v')
+    if arm_set == 'pairs':
+        modes = ('native_preprojected', 'nki_qk', 'nki_qv', 'nki_kv',
+                 'nki_all_direct', 'nki_all')
     if include_fp32_arm: modes += ('nki_all_fp32v',)
     for mode in modes:
         # Fresh native initialization/weights remain the authority. Reset only
@@ -115,6 +129,15 @@ def run(channels, layout, cached, with_ve, batch=4, length=128, seed=None,
         result = compiled(*values, cos, sin)
         assert type(result.grad_fn).__name__ == 'CompiledFunctionBackward'
         records[mode] = comparison(tag + ':' + mode, result, expected)
+
+    if skip_materialized:
+        emit('SERIAL_QKV_BOUNDARY_CASE', channels=channels, layout=layout, cached=cached,
+             batch=batch, length=length, seed=seed, all_inputs_require_grad=True,
+             include_fp32_arm=include_fp32_arm, arm_set=arm_set, gate_init=gate_init,
+             materialized_controls=False, with_ve=with_ve, diagnostic_complete=True,
+             observations=records, case_id=f'{cached}:{with_ve}',
+             acceptance_bounds_unchanged=True, integration_promoted=False)
+        return
 
     attn = baseline.transformer.h[0].attn
 
@@ -142,6 +165,7 @@ def run(channels, layout, cached, with_ve, batch=4, length=128, seed=None,
     emit('SERIAL_QKV_BOUNDARY_CASE', channels=channels, layout=layout, cached=cached,
          batch=batch, length=length, seed=seed, all_inputs_require_grad=True,
          include_fp32_arm=include_fp32_arm,
+         arm_set=arm_set, gate_init=gate_init, materialized_controls=True,
          with_ve=with_ve, diagnostic_complete=True, observations=records,
          case_id=f'{cached}:{with_ve}',
          acceptance_bounds_unchanged=True, integration_promoted=False)
@@ -157,6 +181,9 @@ def main():
     parser.add_argument('--cache-mode', choices=('both', 'cached', 'uncached'), default='both')
     parser.add_argument('--ve-mode', choices=('both', 'on', 'off'), default='both')
     parser.add_argument('--include-fp32-arm', action='store_true')
+    parser.add_argument('--arm-set', choices=('standard', 'pairs'), default='standard')
+    parser.add_argument('--gate-init', choices=('random', 'zero'), default='random')
+    parser.add_argument('--skip-materialized', action='store_true')
     parser.add_argument('--component-root', required=True)
     parser.add_argument('--component-label')
     parser.add_argument('--fp32-component-label')
@@ -180,10 +207,13 @@ def main():
     for cached in caches:
         for with_ve in ve_modes:
             run(args.channels, args.layout, cached, with_ve, args.batch, args.length,
-                args.seed, args.include_fp32_arm)
+                args.seed, args.include_fp32_arm, args.arm_set, args.gate_init,
+                args.skip_materialized)
     emit('SERIAL_QKV_BOUNDARY_RESULT', layout=args.layout, channels=args.channels,
          batch=args.batch, length=args.length, all_inputs_require_grad=True,
          include_fp32_arm=args.include_fp32_arm, cases=len(caches) * len(ve_modes),
+         arm_set=args.arm_set, gate_init=args.gate_init,
+         materialized_controls=not args.skip_materialized,
          diagnostic_complete=True, acceptance_bounds_unchanged=True,
          integration_promoted=False, whole_model_or_quality_claim=False)
 
