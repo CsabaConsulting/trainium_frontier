@@ -1,0 +1,80 @@
+{
+  "label": "fs-w159-qkv-gate-sequence-r1",
+  "max_seconds": 2400,
+  "purpose": "Freeze BF16/FP32 gate GEMM preactivation at exact production fixture; native and NKI consumers compared to unchanged native authority. No derivative/quality promotion.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w159-qkv-gate-boundary-r1.request.json",
+      "sha256": "2a1965e59e7e4e3f816225883bc1d4bade87109416a17c0a4d223731f56f3a82",
+      "requirements": [
+        {
+          "marker": "SERIAL_QKV_COMPONENT_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "source_commit": "ed3a53e40dfede83e04aff14d039a4cabdc251ad",
+            "value_fp32": false
+          }
+        },
+        {
+          "marker": "SERIAL_QKV_BOUNDARY_COMPARE",
+          "count": 7,
+          "fields": {
+            "finite": true
+          },
+          "unique_field": "name",
+          "values": [
+            "1024:batch32:length1024:cacheTrue:veTrue:native_repeat",
+            "1024:batch32:length1024:cacheTrue:veTrue:native_preprojected",
+            "1024:batch32:length1024:cacheTrue:veTrue:native_gate_bf16",
+            "1024:batch32:length1024:cacheTrue:veTrue:native_gate_fp32",
+            "1024:batch32:length1024:cacheTrue:veTrue:nki_gate_bf16",
+            "1024:batch32:length1024:cacheTrue:veTrue:nki_gate_fp32",
+            "1024:batch32:length1024:cacheTrue:veTrue:nki_all"
+          ]
+        },
+        {
+          "marker": "SERIAL_QKV_BOUNDARY_CASE",
+          "count": 1,
+          "fields": {
+            "layout": "tokens",
+            "channels": 1024,
+            "batch": 32,
+            "length": 1024,
+            "all_inputs_require_grad": true,
+            "include_fp32_arm": false,
+            "arm_set": "gate",
+            "gate_init": "random",
+            "materialized_controls": false,
+            "diagnostic_complete": true,
+            "acceptance_bounds_unchanged": true,
+            "integration_promoted": false,
+            "seed": 152032,
+            "cached": true,
+            "with_ve": true
+          }
+        },
+        {
+          "marker": "SERIAL_QKV_BOUNDARY_RESULT",
+          "count": 1,
+          "fields": {
+            "layout": "tokens",
+            "channels": 1024,
+            "batch": 32,
+            "length": 1024,
+            "all_inputs_require_grad": true,
+            "include_fp32_arm": false,
+            "arm_set": "gate",
+            "gate_init": "random",
+            "materialized_controls": false,
+            "diagnostic_complete": true,
+            "acceptance_bounds_unchanged": true,
+            "integration_promoted": false,
+            "cases": 1,
+            "whole_model_or_quality_claim": false
+          }
+        }
+      ]
+    }
+  ]
+}
