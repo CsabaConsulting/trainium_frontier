@@ -313,3 +313,29 @@ win, which is why these controls are required. No concurrent host experiments.
 Source162/163 raw and parquet artifacts now all have verified GitHub asset
 digests (01:40:10–01:40:35 UTC). The01:40:50cron pushed source6ac8358 and its
 recovery snapshot with verified refs. Source165 and new launch receipts follow.
+
+Before source165 deployment, trn22's clean source163 postflight had only
+9,026,797,568bytes free. Maintenancefs-maintenance-preserved-wave140-trn22-
+20260920T014925Z rehashed both wave140 native profile trees locally and
+remotely, revalidated live GitHub asset digests, acquired the host lock and
+verified the exact preceding clean experiment. It retired only those redundant
+raw/derived remote files and staging hardlinks whose hashes matched preserved
+raw data. Unmatched staging files are retained; sources, checkpoints and
+compilation caches are untouched. It completed clean01:49:39UTC, freeing
+5,976,428,544bytes and leaving15,003,205,632bytes. Local intent/result/three
+progress records and maintenance-script SHA256 are preserved. Both hosts now
+have immutable source500ba34 in wave165. Source500ba34 was pushed/ref-verified
+by the01:50:55 cron; new plans/maintenance receipts still need their commit.
+
+Both source165 queues STARTED01:52:07UTC under plan commit03ede7a. trn21:
+fs-w165-fp8-all-scale-model-sequence-r1 PID5712, four steps/10000-second bound;
+first guard1615520/clean preflight01:52:13. trn22:
+fs-w165-fp8-backward-scale-model-sequence-r1 PID5676, three steps/6000-second
+bound; first guard1931233/clean preflight01:52:13. Source16312case prerequisite
+passed on both. Requests have exact hashes and immutable source500ba34, plus
+separate pre/postflight for every component, integration and full-model run.
+Phase comparisons require all four finite/causality/batch/repetition checks;
+FP8 candidates must show35refreshes for each of12MLP weights. Coordinators
+mirror every45seconds and stop after the finite list. No automatic quality
+training, seed sweep or competition submission. Canonical train.py,prepare.py
+and the frozen public0992851 submission remain unchanged.

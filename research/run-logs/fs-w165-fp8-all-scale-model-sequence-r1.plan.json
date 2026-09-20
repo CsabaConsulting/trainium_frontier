@@ -1,0 +1,225 @@
+{
+  "label": "fs-w165-fp8-all-scale-model-sequence-r1",
+  "max_seconds": 10000,
+  "purpose": "Finite trn21 scale-fusion campaign: complete original-reference component gate, actual Linear/cache/master gates, fresh native full-step control, candidate full-step timing. Each request has isolated pre/postflight and exact source/results requirements. No seed sweep, quality run, or automatic promotion.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w165-fp8-all-scale-component-r1.request.json",
+      "sha256": "b858c026b126fdfad0da2fc5124929da98fcf797baa02773f844371010c1b988",
+      "requirements": [
+        {
+          "marker": "FP8_MLP_ENGINE_COMPONENT_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 12,
+            "source_commit": "1f3890c91650c5ea36dae5cf996d8dcc1964df16"
+          }
+        },
+        {
+          "marker": "FP8_COMPLETE_AUTOGRAD_GATE",
+          "count": 11,
+          "fields": {
+            "passed": true,
+            "independent_all_four_product_gates": true,
+            "compiled_vs_staged_exact": true,
+            "two_distinct_microbatches": true,
+            "fp32_master_accumulation_exact": true
+          },
+          "unique_field": "case",
+          "values": [
+            "random",
+            "zero_input",
+            "zero_up",
+            "zero_down",
+            "zero_gradient",
+            "tiny_gradient",
+            "outliers",
+            "changed_weights",
+            "norm_spikes",
+            "norm_tiny",
+            "real_random"
+          ]
+        },
+        {
+          "marker": "FP8_MLP_ENGINE_COMPLETE_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 11,
+            "engine_scaling": "all",
+            "production_tokens": 32768,
+            "original_independent_forward_and_four_product_gates": true,
+            "exact_retained_forward_tensors_and_compiled_gradients": true,
+            "cache_updates_and_fp32_accumulation": true,
+            "all_current_master_casts_calibration_and_dual_packing_charged": true,
+            "all_forward_and_four_backward_products_charged": true,
+            "fp32_master_gradients_charged": true,
+            "exact_old_complete_outputs_and_gradients": true,
+            "whole_model_or_quality_claim": false
+          }
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w165-fp8-all-scale-integration-r1.request.json",
+      "sha256": "4bcd23c73ca763a5e4b09a6a938664a23814d0e08eaec656be80e478f3374ab6",
+      "requirements": [
+        {
+          "marker": "FP8_FULL_MLP_INTEGRATION_GATE",
+          "count": 2,
+          "fields": {
+            "tokens": 512,
+            "cached_and_uncached": true,
+            "microbatches": 2,
+            "engine_scaling": "all",
+            "compact_forward_saves": true,
+            "stream_packed_weights": false,
+            "preserve_output_rank": false,
+            "exact_outputs_input_and_fp32_master_gradients": true,
+            "training_padding_and_row_independence": true,
+            "native_eval_and_checkpoint_restore_exact": true
+          },
+          "unique_field": "channels",
+          "values": [
+            256,
+            1024
+          ]
+        },
+        {
+          "marker": "FP8_FULL_MLP_INTEGRATION_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "real_width": true,
+            "compact_forward_saves": true,
+            "engine_scaling": "all",
+            "stream_packed_weights": false,
+            "preserve_output_rank": false,
+            "full_fp8_backward": true,
+            "full_model_or_quality_promotion": false
+          }
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w165-trn21-native-phase-r1.request.json",
+      "sha256": "04b9815625f1a711cbf5a8f5b807e7d5cad4be840346686bf872446f69f88c30",
+      "requirements": [
+        {
+          "marker": "PHASE_JSON",
+          "count": 1,
+          "fields": {
+            "world_size": 4,
+            "lnc": "2",
+            "grad_accum": 1,
+            "micro_tokens": 131072,
+            "compile": true,
+            "adaptive_nki_ce": true,
+            "optimizer_ownership": true,
+            "optimizer_owner_calls": 35,
+            "pack_factor": 32,
+            "fp8_mlp_full": false,
+            "fp8_mlp_packed": false,
+            "fp8_mlp_compact_saves": false,
+            "fp8_mlp_stream_packed_weights": false,
+            "fp8_mlp_preserve_output_rank": false,
+            "integrated_nki_local_conv": true,
+            "integrated_bf16_norm_output": true,
+            "fp8_mlp_engine_scaling": "none"
+          },
+          "lengths": {
+            "steps": 30
+          },
+          "phase_timing": true
+        },
+        {
+          "marker": "NATIVE_POST_CHECK_JSON",
+          "count": 4,
+          "fields": {
+            "passed": true,
+            "parameters_and_gradients_finite": true,
+            "logits_finite": true,
+            "future_max_abs": 0.0,
+            "other_batch_max_abs": 0.0,
+            "repeated_call_max_abs": 0.0
+          },
+          "unique_field": "rank",
+          "values": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w165-fp8-all-scale-phase-r1.request.json",
+      "sha256": "351f502d675e91f5701a4fdf9461cb90975ab30de3d5fcf94a8d83238c1cbc03",
+      "requirements": [
+        {
+          "marker": "PHASE_JSON",
+          "count": 1,
+          "fields": {
+            "world_size": 4,
+            "lnc": "2",
+            "grad_accum": 1,
+            "micro_tokens": 131072,
+            "compile": true,
+            "adaptive_nki_ce": true,
+            "optimizer_ownership": true,
+            "optimizer_owner_calls": 35,
+            "pack_factor": 32,
+            "fp8_mlp_full": true,
+            "fp8_mlp_packed": true,
+            "fp8_mlp_compact_saves": true,
+            "fp8_mlp_stream_packed_weights": false,
+            "fp8_mlp_preserve_output_rank": false,
+            "integrated_nki_local_conv": true,
+            "integrated_bf16_norm_output": true,
+            "fp8_mlp_engine_scaling": "all",
+            "fp8_mlp_cache_refresh_counts": [
+              35,
+              35,
+              35,
+              35,
+              35,
+              35,
+              35,
+              35,
+              35,
+              35,
+              35,
+              35
+            ]
+          },
+          "lengths": {
+            "steps": 30,
+            "fp8_mlp_cache_refresh_counts": 12
+          },
+          "phase_timing": true
+        },
+        {
+          "marker": "NATIVE_POST_CHECK_JSON",
+          "count": 4,
+          "fields": {
+            "passed": true,
+            "parameters_and_gradients_finite": true,
+            "logits_finite": true,
+            "future_max_abs": 0.0,
+            "other_batch_max_abs": 0.0,
+            "repeated_call_max_abs": 0.0
+          },
+          "unique_field": "rank",
+          "values": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      ]
+    }
+  ]
+}
