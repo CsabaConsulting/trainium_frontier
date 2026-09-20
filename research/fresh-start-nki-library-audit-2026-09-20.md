@@ -438,3 +438,60 @@ candidate a distinct root function that calls the same MLP. Require all48
 original output/dX/master-gradient comparisons,10 exact training/eval/restore
 checks, two widths and compiled execution of BOTH control and candidate. If
 isolation fails, stop again; do not waive compilation or numeric gates.
+
+## Next FP8 direction grounded in the pinned library
+
+The ROW/STATIC CTE branches use ordinary `nc_matmul(perf_mode="double_row")`
+with two 128-element contraction tiles on Trn2. They do not require MX
+instructions. Source: core/mlp/mlp_cte/basic/mlp_cte_basic_projection.py,
+_perform_doublerow_gate_up_projection and _perform_doublerow_down_projection.
+The compiler control already uses older NKI attention, so importing the library
+is not equivalent to newly enabling NKI everywhere.
+
+ROW is not a free BF16 input conversion. Its input contract is legacy E4M3
+bytes with an appended four-byte FP32 scale per token, shape[B,S,C+4]. Weight
+scales are broadcast per output channel (up[128,I], down[128,C]); its loader
+reads the appended input scale through an FP32 access pattern. See
+mlp_parameters.py::mlpp_input_has_packed_scale and mlp_cte_basic_tensor_io.py::
+load_packed_hidden_scales. Our current resident producer instead uses per-matrix
+power-of-two scales and two packed weight orientations. The format conversion,
+calibration and every cache refresh must be timed. No precomputed weights or
+untimed corpus calibration should be credited as a training gain.
+
+The library intermediate row quantizer computes max-absolute / dtype maximum,
+clamps the dequantization scale to1e-6 before reciprocal, then casts the scaled
+intermediate. Its zero handling is explicit. Legacy E4M3 maximum is240; PyTorch
+E4M3FN's448 encoding is different. Preserve raw uint8 bytes and reinterpret only
+inside NKI, as the existing independently verified producers do. Do not silently
+cast those bytes through torch.float8_e4m3fn. The original ROW eviction rounds
+weight-scaled PSUM to BF16 before applying the input-row scale and activation;
+a CPU reference must account for that intermediate rounding.
+
+A bounded next implementation would (1) gate online per-row/input and
+per-output-channel/weight byte producers, including appended-scale packing;
+(2) extend the original ROW ReLU eviction with BF16 square in the isolated
+namespace; (3) screen forward against independently decoded FP8 values and a
+staged FP64/BF16 reference, reporting BF16 approximation error separately;
+(4) add saved ReLU/quantized activations and all four derivative products;
+(5) gate master/cache/update behavior and measure complete steps. Require zero,
+tiny, changed and outlier weights/rows, repetition and batch independence. A
+forward-only or free-cache result cannot authorize a quality run. This is a
+concrete design lead, not an implemented or queued FP8 experiment yet.
+
+## Source178 diagnosis resolved (05:46 UTC)
+
+The original failure reproduces with native_root=LinearBackward0. Its graph has
+only Linear/ToCopy/Pow/Relu/AccumulateGrad nodes and NO CompiledFunctionBackward;
+it was actual eager fallback, not a harmless outer view. Candidate graph still
+has two compiled nodes. A distinct candidate root then passes the unchanged
+native-root assertion on every microbatch, all48 original numeric comparisons,
+10 exact checks, both widths and full cache/update/eval/restore checks. Frozen
+requirements (including the two original diagnostic comparisons) are verified;
+postflight is clean05:44:08UTC. The kernel and numeric bounds are unchanged.
+The first root-cause record is fs-w178-nkilib-shared-root-diagnosis-r1.json.
+
+Both queues are now in full-model measurements: trn21 source176 joined compiler
+region and trn22 source178 separate region. Native whole-model controls run in
+independent processes. Source176 native completed cleanly05:42:28UTC with13.32GB
+free before the candidate; source178 recovered host has18.09GB after integration.
+No full-step/BPB gain has been established for the library yet.

@@ -1,28 +1,38 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-20 05:27 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-20 05:48 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## Current work — 2026-09-20 05:27 UTC
+## Current work — 2026-09-20 05:48 UTC
 
-- Trn21 source175 COMPLETE/CLEAN. All ten fixtures, original FP64/native/stage/
-  accumulation/row requirements pass. Production14.845040ms vs current native
-  HxT15.210640ms:2.404% component improvement, no whole-step/BPB claim.
-- Source176 PREPARING actual Linear/cache integration of unchanged source175
-  reuse-transpose kernel, then matched native/candidate complete steps.
-  The integration now points at source175, not the slower source173 draft.
-  No quality trial unless real full-step gain >=3% and numerical gates pass.
-- Trn22 source171 clean matched repeat ACTIVE, first native phase-r2.
-  Sequence fs-w171-fp8-all-scale-separated-clean-repeat-r2, PID19106.
-  Original r1 candidate disk postflight remains failed; no retroactive rewrite.
-- Verified scratch maintenance completed: 4,991 files/12,978,670,751B preserved
-  in local archive and live verified GitHub assets, then remote copies retired.
-  Free disk7.57GB ->20.59GB, host clean. Shared caches/current compiles/source/
-  profiles/best and replay checkpoints preserved. Exact recovery receipt is
-  a prerequisite to the clean r2 repeat.
-- Source172/173/174 rejected performance; source171 normal TxH0.951% slower.
+- Trn21 source176 JOINED library MLP full-model candidate RUNNING, sequence
+  fs-w176-nkilib-reuse-transpose-model-sequence-r2, coordinator PID26647.
+  Exact source1ace86d380df6d85f9412cd40f64255bc7924057, remote wave176.
+  Integration passed both widths; native full-step control completed CLEAN
+  05:42:28UTC (13.32GB free); candidate compiling. Check result/clean gates.
+  The r1 plan failed LOCALLY for missing timeout, before SSH; it is preserved.
+- Trn22 source178 SEPARATE library MLP sequence RUNNING, coordinator PID6323,
+  fs-w178-nkilib-reuse-transpose-model-sequence-r1, currently native control.
+  Exact sourcecf7416f6162ed1c1036460872d13e973c134959b, remote wave178.
+  Source177 stopped CLEAN on a compiled-reference assertion; source178 proved
+  shared Probe.forward caused the reference to fall back to eager. Distinct
+  candidate root restores original compiled assertion, all48 numerical/10 exact
+  gates and both widths. Original failed probe remains. See shared-root JSON.
+- Source175 MLP component COMPLETE/CLEAN with original ten fixtures. Reusing
+  required intermediate transpose gives14.845040ms vs native15.210640ms,
+  2.404% lower. No model/BPB claim; full quality requires >=3% complete-step
+  gain and numeric gates. Source172/173/174 store alternatives were slower.
+- Source171 full-FP8 separate-region clean r2 repeat COMPLETE/CLEAN: native
+  488.469301ms vs592.811543ms (+21.361%). Reject speed/quality promotion.
+  Original r1 disk-reserve failure remains failed. Verified old scratch archive
+  and live GitHub assets preceded retirement of12.98GB, restoring20.59GB.
+- Next FP8 design lead: pinned library legacy ROW/STATIC double-row path,
+  packed C+4 input scales and per-output weight scales. Detailed constraints in
+  the library audit; NOT implemented or queued. MX paths require newer hardware.
 - Best public BPB0.9928513116311253; frozen submission unchanged. No new BPB.
-- Backup state is out/fresh-start-backup/last-success.json; regular10min pushes.
+- Last verified push05:41UTC sourcecf7416f6/snapshotb8f06ecc, both hosts synced.
+  New manifests/results require next regular push; authoritative state is
+  out/fresh-start-backup/last-success.json. Cron only preserves, never selects.
 
 ## Previous source169/170 checkpoint (superseded host status)
 
