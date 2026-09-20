@@ -1,0 +1,65 @@
+{
+  "label": "fs-w169-nkilib-attention-numerics-sequence-r1",
+  "max_seconds": 3600,
+  "purpose": "Diagnose original FP64 attention gate failures in bundled control; preserve/report all failures, compare staged BF16 rounding without using it as acceptance authority. Original new-vs-bundled gate and exact repeats remain. No timing or promotion. Source169 explicitly flattens token-independent MLP input; attention preserves chained row-max with mandatory intermediate readouts for NKI0.5. Previous failed labels untouched.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w169-nkilib-attention-numerics-r1.request.json",
+      "sha256": "bebf8b43b9e404bf59f696eaa18cddb1a7a277c88e1cfdb6550ddd45fe3cc4e9",
+      "requirements": [
+        {
+          "marker": "NKILIB_PROVENANCE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "upstream_commit": "92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e",
+            "vendored_files": 66,
+            "bundled_package_replaced": false,
+            "package_installation": false
+          }
+        },
+        {
+          "marker": "NKILIB_PARSER_COMPAT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cpu_factory_cases": 128,
+            "installed_compiler_unchanged": true
+          }
+        },
+        {
+          "marker": "NKILIB_ATTENTION_DIAGNOSTIC_CASE",
+          "count": 6,
+          "fields": {
+            "completed": true,
+            "unchanged_native_gate_passed": true,
+            "diagnostic_only": true,
+            "promotion_allowed": false
+          }
+        },
+        {
+          "marker": "NKILIB_ATTENTION_DIAGNOSTIC_RESULT",
+          "count": 1,
+          "fields": {
+            "completed": true,
+            "cases": 6,
+            "diagnostic_only": true,
+            "promotion_allowed": false,
+            "training_or_bpb_claim": false
+          }
+        },
+        {
+          "marker": "NKILIB_READOUT_COMPAT",
+          "count": 1,
+          "fields": {
+            "installed": true,
+            "isolated_upstream_module_only": true,
+            "extra_sbuf_allocation": false,
+            "reset_accumulate_commands_unchanged": true,
+            "bundled_control_unchanged": true
+          }
+        }
+      ]
+    }
+  ]
+}

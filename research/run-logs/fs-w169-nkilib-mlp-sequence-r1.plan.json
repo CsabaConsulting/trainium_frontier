@@ -1,0 +1,40 @@
+{
+  "label": "fs-w169-nkilib-mlp-sequence-r1",
+  "max_seconds": 3000,
+  "purpose": "Fix single-output Tensor unwrapping; repeat all six original BF16 library MLP cases, unchanged CPU FP64 and exact structural gates. Forward-only screen, no quality promotion. Source169 explicitly flattens token-independent MLP input; attention preserves chained row-max with mandatory intermediate readouts for NKI0.5. Previous failed labels untouched.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w169-nkilib-mlp-component-r1.request.json",
+      "sha256": "ea3a362e657637a3e70633541ced358bf51ac59b96764ec9d16d0c0c6b70dbbe",
+      "requirements": [
+        {
+          "marker": "NKILIB_PROVENANCE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "upstream_commit": "92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e",
+            "vendored_files": 66,
+            "bundled_package_replaced": false,
+            "package_installation": false
+          }
+        },
+        {
+          "marker": "NKILIB_MLP_CASE",
+          "count": 6,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_MLP_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 6,
+            "training_or_bpb_claim": false
+          }
+        }
+      ]
+    }
+  ]
+}
