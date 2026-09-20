@@ -1,0 +1,48 @@
+{
+  "host": "trn21",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave164",
+  "expected_commit": "50cae7d08e7ac26067a16fd3f6128b60c5290fdd",
+  "label": "fs-w164-fp8-backward-cache-component-r1",
+  "purpose": "Revisit preparation after source161 dX operation fusion changes the cost premise. Produce only current-weight metadata/backward FP8 bytes, preserving dual producer calibration and layout. Eleven independent weight cases and eight original square cases, exact original outputs, all master casts/calibration/required packing charged. No stale or free forward cache, autograd/model/quality promotion.",
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_RT_VISIBLE_CORES": "0",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1800s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "/home/ubuntu/trainium_freshstart_20260918_wave164/research/scratch/fp8_backward_weight_cache_probe.py",
+    "--engine-root",
+    "/home/ubuntu/trainium_freshstart_20260918_wave161",
+    "--steps",
+    "30"
+  ],
+  "fingerprint_paths": [
+    "train.py",
+    "research/scratch/fp8_square_dx_probe.py",
+    "research/scratch/fp8_dual_weight_cache_nki.py",
+    "research/scratch/fp8_gradient_gemm_nki.py",
+    "research/scratch/fp8_mlp_island_probe.py",
+    "research/scratch/fp8_packed_weight_cache_probe.py",
+    "research/scratch/fp8_weight_cache_probe.py",
+    "research/scratch/fresh_start_fp8_probe.py",
+    "research/scratch/mlp_fused_bf16_probe.py",
+    "research/scratch/serial_qkv_probe.py",
+    "research/scratch/fp8_square_dx_cost_split.py",
+    "research/scratch/fp8_gradient_gemm_engine_nki.py",
+    "research/scratch/fp8_gradient_engine_probe.py",
+    "research/scratch/fp8_gradient_gemm_probe.py",
+    "research/scratch/fp8_packed_weight_cache_nki.py",
+    "research/scratch/fp8_weight_cache_nki.py",
+    "research/scratch/fp8_backward_weight_cache_nki.py",
+    "research/scratch/fp8_backward_weight_cache_probe.py",
+    "research/scratch/fp8_gradient_engine_profile.py"
+  ]
+}
