@@ -1,39 +1,38 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-20 01:14 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-20 01:31 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## Current work — 2026-09-20 01:14 UTC
+## Current work — 2026-09-20 01:31 UTC
 
-- trn22 runs fs-w159-context512-sequence-r1, PID30002, started01:10:46 UTC.
-  Same deployed source64f548e in wave159: full native T1024/pack32 control,
-  then T512/pack64, same131072global tokens/update and seed42. Bound4200s;
-  each request1500+30s, all four numerical postchecks required. Read manifests
-  before dispatch and never restart a completed label.
-- trn21 runs fs-w160-fp8-square-dx-profile-sequence-r1, PID31475, started
-  01:13:36 UTC. Source94e93a7 in wave160, plan f12a760. First verify source158
-  independent gates and exact cached outputs, capture native/FP8 dX, then
-  CPU-only ingest after clean postflight. Bound3300s; each request1200+30s.
-  Preserve raw artifacts locally and via the existing GitHub artifact backup.
-  The preceding source159 gate diagnosis completed clean01:09:11 UTC.
-- Source159 FP8 cost decomposition COMPLETE/clean01:05:09 UTC. Cached FP8
-  three-product1.781839ms remains slower than native with fresh casts1.582102ms.
-  Cached dX0.689475ms versus native0.549018ms. Preparation-only savings cannot
-  rescue this implementation; profile attribution will inform any new tiling.
-- The frozen BF16 gate reproduces81 failed coordinates for native and NKI
-  projections; FP32 gate produces6085 for both. Gate/consumer compilation is
-  implicated. No shape-dependent precision hack, no tolerance relaxation,
-  no acceptance of a frozen or zero gate as a learned-gate implementation.
-- Source157 paired experiments and158 independent FP8 dX gates are complete
-  and preserved. The Tavily pro report is complete under research/external/;
-  the NC-v4-only MXFP8 recommendation is inapplicable to Trn2. Details and
-  next-step criteria: fresh-start-continuous-work-2026-09-20.md.
-- Last verified GitHub backup01:10:46 UTC: source8e7e213, snapshot7e641134;
-  source94e93a7 and plan f12a760 follow that receipt. Check
-  out/fresh-start-backup/last-success.json for newer verified hashes.
-- Best public BPB remains0.9928513116311253; cold replay0.9938556748843932.
-  No new BPB win or competition submission. Queues are finite. Coordinators
-  sync every45s; ten-minute cron preserves/pushes but invents no experiments.
+- Source161 three-arm FP8 dX sequence COMPLETE/clean01:26:18 UTC on trn21.
+  All45 declared cases across abs/scale/both pass unchanged CPU bounds and
+  exact original square outputs. Both-fusion cached dX0.487894ms beats native
+  0.544186ms by10.34%; freshly prepared three products1.625796ms still loses
+  to native1.579398ms by2.94%. No autograd/model/quality promotion.
+- trn21 is clean between jobs. Preparing source162 paired native/original/
+  fused dX profiling with DMA notifications, followed by CPU ingestion.
+  Source161 performance is the uninstrumented authority; trace is attribution.
+- trn22 source159 context sequence COMPLETE/clean01:30:57 UTC. T512/pack64
+  median492.366241ms versus T1024/pack32 control489.128874ms,0.662% slower.
+  Same131072global tokens/update, source/host/seed, all four model checks pass
+  in both arms. No quality advancement: prepared30-minute request is rejected
+  at its predeclared3% speed gate and must not be dispatched. Next: MLP
+  sequential-scale fusion component with independent numerical gates.
+- Source160 original paired dX profile/ingestion is complete and preserved.
+  Raw13files9,850,819bytes and derived25files4,737,546bytes have local hashes
+  and verified GitHub backup digests at01:21:24/01:21:32 UTC. Scalar output
+  rescalings and Vector max/min reductions motivated source161. Dynamic DMA
+  metadata was missing; do not treat traffic estimates as exact bounds.
+- Next useful transfer: fuse the sequential FP32 output-scale operations in
+  the existing two-product MLP data backward. Abs reduction is already fused
+  there. Keep scale order (no precombined scale product), original independent
+  eleven-case gates including subnormal/signed-zero inputs, and charge caches.
+- Last verified GitHub cron01:30:52 UTC: source4a107d6 and snapshot7dbce907;
+  both remote refs verified. This completion/profile source follows it.
+- Best matched public BPB remains0.9928513116311253; cold replay0.993855675.
+  No new BPB or competition submission. Finite coordinators sync every45s;
+  ten-minute cron preserves/pushes but selects or launches no experiments.
 
 ## Previous production QKV checkpoint (superseded host status)
 

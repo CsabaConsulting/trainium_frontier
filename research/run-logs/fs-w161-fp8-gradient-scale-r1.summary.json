@@ -1,0 +1,70 @@
+{
+  "label": "fs-w161-fp8-gradient-scale-r1",
+  "source_commit": "252880f3bd3fea062a68df3451876e0a77321275",
+  "completed_at": "2026-09-20T01:25:08.596645+00:00",
+  "host_clean": true,
+  "command_returncode": 0,
+  "log_sha256": "149bfaf36c9204d2f7169bee68d8fe0537b594cbcf79ed9f3a947a8e8295ae7b",
+  "postflight_sha256": "b7e15b8258dab7afb89689f97f10559004252b533887c1d60d08d46e740780cf",
+  "result": {
+    "passed": true,
+    "variant": "scale",
+    "domain_cases": 7,
+    "square_cases": 8,
+    "square_outputs_exact_old_fp8": true,
+    "independent_declared_fp8_gates": true,
+    "cases": 15,
+    "real_tokens": 32768,
+    "real_channels": 1024,
+    "samples_ms": {
+      "native_three_fresh": [
+        1.5764241009795417,
+        1.5721886321747054,
+        1.577084567785884
+      ],
+      "old_fp8_three_fresh": [
+        1.7885542009025812,
+        1.779166799193869,
+        1.787884267590319
+      ],
+      "candidate_fp8_three_fresh": [
+        1.665168800779308,
+        1.6484043347494055,
+        1.655408167668308
+      ],
+      "native_dx_cached": [
+        0.5446536660504838,
+        0.5436432994126031,
+        0.543297534265245
+      ],
+      "old_fp8_dx_cached": [
+        0.6964891663907716,
+        0.693213400275757,
+        0.6932194674542794
+      ],
+      "candidate_fp8_dx_cached": [
+        0.5734173328770945,
+        0.5693031668973466,
+        0.5749027671602865
+      ]
+    },
+    "median_ms": {
+      "native_three_fresh": 1.5764241009795417,
+      "old_fp8_three_fresh": 1.787884267590319,
+      "candidate_fp8_three_fresh": 1.655408167668308,
+      "native_dx_cached": 0.5436432994126031,
+      "old_fp8_dx_cached": 0.6932194674542794,
+      "candidate_fp8_dx_cached": 0.5734173328770945
+    },
+    "preparation_charged_in_three_product_calls": true,
+    "cached_controls_exclude_preparation": true,
+    "separate_times_not_additive": true,
+    "autograd_or_model_gate": false,
+    "whole_model_or_quality_claim": false
+  },
+  "cached_dx_speedup_vs_native": -0.054767590250190956,
+  "cached_dx_speedup_vs_original_fp8": 0.17281992240803068,
+  "fresh_three_slower_vs_native": 0.050103310803030654,
+  "fresh_three_speedup_vs_original_fp8": 0.0740965745509693,
+  "interpretation": "All original independent gates and exact square FP8 controls pass. Combined cached dX wins, but fresh complete three-product work still loses; no autograd, whole-model or BPB promotion."
+}

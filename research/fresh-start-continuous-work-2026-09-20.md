@@ -195,3 +195,41 @@ and the primary [tensor_scalar API](https://awsdocs-neuron.readthedocs-hosted.co
 The two-operation API supports FP32 arithmetic and final dtype conversion;
 the two-multiply choice requires Vector on Trn2. Actual bitwise/numerical
 and speed behavior remains subject to the hardware gates above.
+
+## Source161 results and source162 continuation — 2026-09-20 01:31 UTC
+
+- Source161 three-arm FP8 dX sequence COMPLETE/clean01:26:18 UTC on trn21.
+  All45 declared cases across abs/scale/both pass unchanged CPU bounds and
+  exact original square outputs. Both-fusion cached dX0.487894ms beats native
+  0.544186ms by10.34%; freshly prepared three products1.625796ms still loses
+  to native1.579398ms by2.94%. No autograd/model/quality promotion.
+- trn21 is clean between jobs. Preparing source162 paired native/original/
+  fused dX profiling with DMA notifications, followed by CPU ingestion.
+  Source161 performance is the uninstrumented authority; trace is attribution.
+- trn22 fs-w159-context512-sequence-r1 PID30002 is in the T512/pack64 phase,
+  same source64f548e, four ranks,131072global tokens/update, seed42. Control
+  T1024/pack32 completed clean01:20:52, median489.128874ms and all four model
+  checks. Candidate has reached measured steps around490–496ms; wait for
+  complete checks/postflight. Prepared30-minute request is NOT dispatched;
+  its runtime gate requires at least3% complete-step saving.
+- Source160 original paired dX profile/ingestion is complete and preserved.
+  Raw13files9,850,819bytes and derived25files4,737,546bytes have local hashes
+  and verified GitHub backup digests at01:21:24/01:21:32 UTC. Scalar output
+  rescalings and Vector max/min reductions motivated source161. Dynamic DMA
+  metadata was missing; do not treat traffic estimates as exact bounds.
+- Next useful transfer: fuse the sequential FP32 output-scale operations in
+  the existing two-product MLP data backward. Abs reduction is already fused
+  there. Keep scale order (no precombined scale product), original independent
+  eleven-case gates including subnormal/signed-zero inputs, and charge caches.
+- Last verified GitHub cron01:30:52 UTC: source4a107d6 and snapshot7dbce907;
+  both remote refs verified. This completion/profile source follows it.
+- Best matched public BPB remains0.9928513116311253; cold replay0.993855675.
+  No new BPB or competition submission. Finite coordinators sync every45s;
+  ten-minute cron preserves/pushes but selects or launches no experiments.
+
+
+Source159 context screen completed clean01:30:57 UTC: T512/pack64 median
+492.366241ms versus matched T1024/pack32 control489.128874ms,0.662% slower.
+All four model checks pass in both arms. The prepared30-minute request is
+rejected by its predeclared3% speed gate and is not dispatched. Next trn22
+work transfers the profile-supported scale fusion to MLP data backward.

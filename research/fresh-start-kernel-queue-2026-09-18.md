@@ -1,11 +1,14 @@
 # Kernel queue and precision-specific experiments
 
-Current continuation (2026-09-20 01:14 UTC): source159 gate and FP8 cost
-controls are COMPLETE. trn22 runs the fixed T1024/pack32 versus T512/pack64
-whole-model timing screen; trn21 source160 cached native/FP8 dX capture and ingestion is running.
-Tavily deep research is complete; MXFP8 hardware is NC-v4-only, not applicable
-here. Read RESUME.md and fresh-start-continuous-work-2026-09-20.md for active
-receipts, findings and continuation gates. Earlier status below is historical.
+Current continuation (2026-09-20 01:31 UTC): source161 passes45 original numerical
+cases across three arms. Combined cached FP8 dX is10.34% faster than native,
+but complete fresh three-product work remains2.94% slower. trn21 prepares a
+three-arm profile to confirm attribution. trn22 context screen is complete:
+T512492.366241ms versus T1024489.128874ms,0.662% slower, all model checks pass.
+No full-budget trial will be dispatched from that rejected speed screen. Source160 raw/derived profiles are
+hash-verified locally and on GitHub. See RESUME.md and
+fresh-start-continuous-work-2026-09-20.md for exact receipts and limits.
+Prior sections below are historical, not live host status.
 
 Updated 2026-09-20 00:27 UTC. Read `RESUME.md` and postflights before dispatch.
 
