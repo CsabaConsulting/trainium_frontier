@@ -36,8 +36,13 @@ def row_relu2_evict(mlp_params, constants, psum_bank, proj_results_sbuf_list,
     row = constants.get_bxs_offset() + bxs_subtile.start_offset
     columns = nl.ds(int_tile.start_offset, int_tile.size)
     if mlp_params.capture_intermediates:
+        # DMA cannot read PSUM. Preserve the FP32 diagnostic through SBUF;
+        # this allocation/copy is absent from the timed, non-diagnostic path.
+        raw_up_sbuf = nl.ndarray((bxs_subtile.size, int_tile.size),
+                                 dtype=nl.float32, buffer=nl.sbuf)
+        nisa.tensor_copy(dst=raw_up_sbuf, src=psum_bank[:bxs_subtile.size, :int_tile.size])
         nisa.dma_copy(dst=mlp_params.raw_up[nl.ds(row, bxs_subtile.size), columns],
-                      src=psum_bank[:bxs_subtile.size, :int_tile.size])
+                      src=raw_up_sbuf)
     upstream_evict(mlp_params, constants, psum_bank, proj_results_sbuf_list,
                    bxs_subtile, int_tile, bias_sbuf, static_scales_sbuf,
                    weight_row_scales_sbuf, hidden_scales_sbuf_list)
@@ -89,8 +94,10 @@ def row_mlp(packed_input, up_bytes, down_bytes, up_scales, down_scales,
         relu = nl.ndarray((tokens, hidden), dtype=nl.bfloat16, buffer=nl.shared_hbm)
         intermediate_bytes = nl.ndarray((tokens, hidden), dtype=nl.uint8, buffer=nl.shared_hbm)
         intermediate_scale = nl.ndarray((tokens, 1), dtype=nl.float32, buffer=nl.shared_hbm)
-        params.raw_up, params.relu = raw_up, relu
-        params.intermediate_bytes, params.intermediate_scale = intermediate_bytes, intermediate_scale
+        params.raw_up = raw_up
+        params.relu = relu
+        params.intermediate_bytes = intermediate_bytes
+        params.intermediate_scale = intermediate_scale
     validate_mlp_arguments(params)
     mlp_cte_basic(params, output, None)
     if capture_intermediates:

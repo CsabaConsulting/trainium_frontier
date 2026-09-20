@@ -1,0 +1,188 @@
+NKILIB_ROW_PRODUCER_PREREQUISITE {"passed": true, "cases": 14, "source_commit": "887e320625a2c0d57dc18d6d931700763a4660ad", "unchanged_source_bytes": true, "maintenance_verified": true}
+NKILIB_BYTE_PREPARATION_PREREQUISITE {"passed": true, "known_byte_shapes": 5, "source_commit": "553d93ce4ebcea0736bbdeba55d06d7f3cef2dfe", "all_original_arithmetic_and_bounds_retained": true, "original_failure_source_unchanged": true}
+[W920 06:22:02.128588221 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+NKILIB_BYTE_SAFE_PREPARATION {"original_source_sha256": "c19bd4b3ff2856d3aeb77512777f9e1c73b4a1fce50728b89887804324c9d4f4", "transformed_ast_sha256": "8e7803487e1b213a17d134b569bcc2e9ba5b1e2f2ac3cb3e010fc577d4bba793", "changed_expressions": ["qu", "qd"], "all_original_arithmetic_and_fixtures_retained": true, "byte_transposes_inside_timed_path": true, "original_failure_source_unchanged": true}
+NKILIB_PROVENANCE {"passed": true, "upstream_commit": "92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e", "vendored_files": 66, "bundled_root": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib", "vendor_namespace": "research.vendor.nki_library_92d11f63", "nki": "0.5.0+28631259367.ga768afa6", "compiler": "2.26.6360.0+6f180f47", "package_installation": false, "bundled_package_replaced": false}
+NKILIB_ROW_MLP_ADAPTER {"installed": true, "isolated_namespace_only": true, "legacy_e4m3_double_row": true, "upstream_row_quantization_and_scaling": true, "token_row_sharding": true, "relu_bf16_then_square_bf16": true, "diagnostics_excluded_from_timed_path": true, "training_backward_implemented": false}
+NKILIB_ROW_MLP_START {"shape": [512, 256, 1024], "kind": "random"}
+NKILIB_EXACT {"name": "random:input:absmax", "passed": true}
+NKILIB_EXACT {"name": "random:input:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "random:input", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "random:input:legacy_decode", "passed": true}
+NKILIB_EXACT {"name": "random:input:appended_fp32_scale", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "random:input", "passed": true, "shape": [512, 256], "packed_input": true, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 129096, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "random:up_weight:absmax", "passed": true}
+NKILIB_EXACT {"name": "random:up_weight:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "random:up_weight", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "random:up_weight:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "random:up_weight", "passed": true, "shape": [1024, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 258350, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "random:down_weight:absmax", "passed": true}
+NKILIB_EXACT {"name": "random:down_weight:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "random:down_weight", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "random:down_weight:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "random:down_weight", "passed": true, "shape": [256, 1024], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 258452, "signed_zero_encodings_equivalent": true}
+/home/ubuntu/trainium_freshstart_20260918_wave184/research/scratch/nki_library_row_mlp.py:92:9: error: expecting simple variable
+        params.raw_up, params.relu = raw_up, relu
+        ^
+/home/ubuntu/trainium_freshstart_20260918_wave184/research/scratch/nki_library_row_mlp.py:92:24: error: expecting simple variable
+        params.raw_up, params.relu = raw_up, relu
+                       ^
+/home/ubuntu/trainium_freshstart_20260918_wave184/research/scratch/nki_library_row_mlp.py:93:9: error: expecting simple variable
+        params.intermediate_bytes, params.intermediate_scale = intermediate_bytes, intermediate_scale
+        ^
+/home/ubuntu/trainium_freshstart_20260918_wave184/research/scratch/nki_library_row_mlp.py:93:36: error: expecting simple variable
+        params.intermediate_bytes, params.intermediate_scale = intermediate_bytes, intermediate_scale
+                                   ^
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_freshstart_20260918_wave184/research/scratch/nki_library_row_mlp_byte_safe_probe.py", line 53, in <module>
+    original.main()
+  File "/home/ubuntu/trainium_freshstart_20260918_wave184/research/scratch/nki_library_row_mlp_probe.py", line 152, in main
+    run_case(shape, kind, args.steps)
+  File "/home/ubuntu/trainium_freshstart_20260918_wave184/research/scratch/nki_library_row_mlp_probe.py", line 81, in run_case
+    result = tuple(v.detach().cpu() for v in debug_fn(*prepared[:5]))
+                                             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py", line 1024, in compile_wrapper
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 2316, in __call__
+    result = self._torchdynamo_orig_backend(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 729, in __call__
+    result = _compile(
+             ^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 1827, in _compile
+    guarded_code, tracer_output = compile_inner(code, one_graph, hooks)
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_utils_internal.py", line 96, in wrapper_function
+    return function(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 1500, in compile_inner
+    return _compile_inner(code, one_graph, hooks)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 1534, in _compile_inner
+    dynamo_output = compile_frame(
+                    ^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 1408, in compile_frame
+    bytecode, tracer_output = transform_code_object(code, transform)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/bytecode_transformation.py", line 1608, in transform_code_object
+    tracer_output = transformations(instructions, code_options)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 1380, in transform
+    tracer_output = trace_frame(
+                    ^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 341, in _fn
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 863, in trace_frame
+    run_tracer()
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 844, in run_tracer
+    tracer.run()
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 1794, in run
+    while self.step():
+          ^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 1459, in step
+    self.dispatch_table[inst.opcode](self, inst)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 1001, in wrapper
+    return inner_fn(self, inst)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 2792, in CALL_FUNCTION_EX
+    self.call_function(fn, argsvars.items, kwargsvars)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 1360, in call_function
+    self.push(fn.call_function(self, args, kwargs))  # type: ignore[arg-type]
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/user_defined.py", line 1477, in call_function
+    return self.call_method(tx, "__call__", args, kwargs)  # type: ignore[arg-type]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/user_defined.py", line 1297, in call_method
+    ).call_function(tx, args, kwargs)  # type: ignore[arg-type]
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/functions.py", line 1510, in call_function
+    return super().call_function(tx, args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/functions.py", line 691, in call_function
+    return super().call_function(tx, args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/functions.py", line 403, in call_function
+    return tx.inline_user_function_return(self, [*self.self_args(), *args], kwargs)  # type: ignore[attr-defined]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 1387, in inline_user_function_return
+    return InliningInstructionTranslator.inline_call(self, fn, args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 5668, in inline_call
+    return tracer.inline_call_()
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 5882, in inline_call_
+    self.run()
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 1794, in run
+    while self.step():
+          ^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 1459, in step
+    self.dispatch_table[inst.opcode](self, inst)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 1001, in wrapper
+    return inner_fn(self, inst)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 4093, in CALL
+    self._call(inst)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 4084, in _call
+    self.call_function(fn, args, kwargs)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/symbolic_convert.py", line 1360, in call_function
+    self.push(fn.call_function(self, args, kwargs))  # type: ignore[arg-type]
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/lazy.py", line 294, in realize_and_forward
+    return getattr(self.realize(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/torch.py", line 2322, in call_function
+    tensor_variable = wrap_fx_proxy(
+                      ^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/builder.py", line 3032, in wrap_fx_proxy
+    return wrap_fx_proxy_cls(target_cls=TensorVariable, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/builder.py", line 3107, in wrap_fx_proxy_cls
+    out: VTTypeAlias = _wrap_fx_proxy(
+                       ^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/variables/builder.py", line 3231, in _wrap_fx_proxy
+    example_value = get_fake_value(proxy.node, tx, allow_non_graph_fake=True)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/utils.py", line 3627, in get_fake_value
+    return _get_fake_value_impl(node, tx, allow_non_graph_fake)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/utils.py", line 3818, in _get_fake_value_impl
+    _wrap_graph_break_with_torch_runtime_err(
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/utils.py", line 3616, in _wrap_graph_break_with_torch_runtime_err
+    raise exc.with_traceback(e.__traceback__) from None
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/utils.py", line 3613, in _wrap_graph_break_with_torch_runtime_err
+    gb_fn()
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/utils.py", line 3819, in <lambda>
+    lambda: unimplemented(
+            ^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/exc.py", line 631, in unimplemented
+    raise Unsupported(
+torch._dynamo.exc.TorchRuntimeError: RuntimeError when making fake tensor call
+  Explanation: Dynamo failed to run FX node with fake tensors: call_function nki_kernel_wrapper(*(), **{'kernel_idx': 22, 'grid': (2,), 'backend_config': '', 'operand_output_aliases': {}, 'args': (FakeTensor(..., device='neuron:0', size=(512, 260), dtype=torch.uint8), FakeTensor(..., device='neuron:0', size=(256, 1024), dtype=torch.uint8), FakeTensor(..., device='neuron:0', size=(1024, 256), dtype=torch.uint8), FakeTensor(..., device='neuron:0', size=(128, 1024)), FakeTensor(..., device='neuron:0', size=(128, 256)), True), 'arg_names': ['packed_input', 'up_bytes', 'down_bytes', 'up_scales', 'down_scales', 'capture_intermediates'], 'constant_args_key': -1, 'has_side_effect': False}): got RuntimeError('error: failed to compile NKI kernel:\nCollected 1 different diagnostics:\n- [x4] error: expecting simple variable\n')
+  Hint: Your code may result in an error when running in eager. Please double check that your code doesn't contain a similar error when actually running eager/uncompiled. You can do this by removing the `torch.compile` call, or by using `torch.compiler.set_stance("force_eager")`. 
+
+  Developer debug context: 
+
+ For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb4315.html
+
+from user code:
+   File "/home/ubuntu/trainium_freshstart_20260918_wave184/research/scratch/nki_library_row_mlp_probe.py", line 65, in diagnostic
+    return mlp[2](*values, True)
+  File "/home/ubuntu/workspace/torch_neuron_eager/torch_neuronx/nki_hop.py", line 525, in __call__
+    return nki_kernel_wrapper(
+
+Set TORCHDYNAMO_VERBOSE=1 for the internal stack trace (please do this especially if you're reporting a bug to PyTorch). For even more developer context, set TORCH_LOGS="+dynamo"
+
+Traceback (most recent call last):
+  File "<string>", line 24, in <module>
+  File "/usr/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['/home/ubuntu/workspace/native_venv/bin/python', '-u', '/home/ubuntu/trainium_freshstart_20260918_wave184/research/scratch/nki_library_row_mlp_byte_safe_probe.py', '--steps', '20']' returned non-zero exit status 1.
+EXPERIMENT_POSTFLIGHT {"label": "fs-w184-nkilib-row-mlp-byte-safe-r1", "returncode": 1, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave184/research/run-logs/fs-w184-nkilib-row-mlp-byte-safe-r1.postflight.json"}

@@ -1,49 +1,46 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-20 06:13 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-20 06:25 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## Current work — 2026-09-20 06:13 UTC
+## Current work — 2026-09-20 06:25 UTC
 
-- Source176 joined and178 separate library MLP sequences BOTH COMPLETE/CLEAN.
-  All original frozen requirements independently verified. Joined561.502963ms
-  vs489.888026ms (+14.619%); separate611.722864ms vs488.809250ms (+25.146%).
-  No quality promotion. Added cost is in microstep, not optimizer/communication.
-  Exact comparison JSONs are fs-w176-nkilib-joined-full-step-comparison-r1 and
-  fs-w178-nkilib-separated-full-step-comparison-r1. Do not restart old labels.
-- Source179 online ROW FP8 producer COMPLETE/CLEAN on trn21. All14 fixtures,
-  28 quantizer/reciprocal and154 exact gates pass, including32768x1024 input.
-  Input packing0.913098ms; up/down weight row quantization0.117969/0.082215ms.
-  Production transpose/scale broadcast and MLP are still unmeasured.
-- Trn21 scratch maintenance COMPLETE after local archive/every-file and live
-  GitHub hashes verified. Retired only the inventoried old files; free space
-  11.54 to24.49GB. Label fs-maintenance-nki-scratch-trn21-20260920-r1.
-- Source181 ROW MLP screen FAILED/CLEAN before the MLP ran: composed weight
-  preparation creates invalid legacy FP8 bytes after an ordinary uint8 transpose.
-  The original producer passed independently. Do not relax the decoder or mark
-  this as a forward result. Last free space24.35GB, host idle/clean.
-  Source182 byte-transpose isolation is prepared: original preparation AST,
-  raw output, float carrier and NKI byte-preserving transpose; all256 codes
-  and production weight shapes. Inspect new182 receipts before dispatch.
-- Trn22 source180 paired training-forward caller trace RUNNING since06:02UTC,
-  sequence fs-w180-library-caller-trace-sequence-r1. Native first, then joined
-  library; immutable source9e103ea6, whole chip/4ranks, real data,30steps.
-  New import provenance gate applies. No DGE packet flag; dropped-notification
-  checks precede any profile inference. No quality trial is queued.
-- Source180 timer fix rejects mismatched PROF_REPO and emits imported file
-  hashes per rank. Historical176/178 inherited wave171; read-only remote hashes
-  prove train.py/prepare.py identical in all those checkouts. Their exact old
-  requests/logs remain. See phase-import-root-audit-r1.json.
-- Source178 shared Probe.forward diagnostic proves native reference eager
-  fallback; distinct candidate root passes all original compiled/numeric gates.
-  Protocol now requires checking later microbatches and cache refreshes.
+- Trn21 source185 RUNNING, sequence fs-w185-nkilib-row-mlp-parser-sequence-r1,
+  coordinator12737, immutable source3d4c8c91, started06:24UTC. Same ten-case
+  ROW FP8 forward gate as181/184; only two tuple-attribute assignments split
+  into four NKI0.5-compatible statements. AST equivalence proved. No bounds
+  or data fixtures changed. No saved training activations/backward yet.
+- Source183 byte transpose COMPLETE/CLEAN, all frozen gates independently
+  checked. NKI is exact for composed FP8 preparation and all256-byte fixtures,
+  including both production weight shapes. Ordinary byte transpose corrupts
+  3,391,488/4,194,304 coordinates; source182's float workaround also fails.
+  Preserve181/182 failures. The corrected184 preparation passes input/up/down
+  bytes/scales, then fails NKI parser before MLP execution; this is185's premise.
+- Trn22 source180 r2 finite sequence RUNNING since06:21UTC, coordinator11330,
+  immutable source9e103ea6: native caller ingestion, library joined forward
+  capture r2, library ingestion. Four ranks/whole chip/real data;30 steps per
+  capture. Original180 r1 remains stopped on the NEFF_ARTIFACT substring bug:
+  it counted TRACE_NEFF_ARTIFACT too. Exact record-boundary proof validates the
+  native capture with unchanged numeric/payload fields. Do not restart r1.
+- Native raw trace2,508,972,448B mirrored locally and every remote/local hash
+  verified. GitHub asset upload is running; consult its artifact receipt.
+  No DGE packet flag; inspect warnings before profile-derived conclusions.
+- Trn22 scratch maintenance r2 COMPLETE:2,071 files/6.46GB archived and every
+  file checked locally, live GitHub asset digests verified, then old remote
+  copies retired. Free space11.64 to18.12GB, clean host. Shared NEFF caches,
+  sources, checkpoints and current diagnostic artifacts retained.
+- Both BF16 library whole-model tests COMPLETE/CLEAN with every original
+  frozen requirement verified: joined561.502963ms vs489.888026ms (+14.619%);
+  separate611.722864ms vs488.809250ms (+25.146%). No quality promotion.
+  The isolated complete component's2.404% gain does not survive the caller.
 - Full FP8 separate-region r2:592.811543ms vs488.469301ms (+21.361%), CLEAN.
-  Original r1 disk-reserve failure is preserved; no quality promotion.
+  Its original r1 disk failure remains. Source179 ROW producer passes14 cases.
 - Best public BPB0.9928513116311253, cold replay0.9938556748843932. Frozen
   submission/train.py/prepare.py unchanged. Source159 T512 MUST NOT dispatch.
-- Last verified push06:11UTC source73b48b2c/snapshot7d697966; consult
-  out/fresh-start-backup/last-success.json for later verified refs. Cron only
-  preserves/pushes; it does not choose experiments or merge branches.
+- Last verified push06:20:55UTC sourcecc44c646/snapshotf90cb8ae. Consult
+  out/fresh-start-backup/last-success.json for later refs. Cron preserves and
+  pushes; it does not select experiments or merge branches. Continue explicit
+  git/host locks, finite timeouts, immutable checkouts and pre/postflight cleanup.
 
 ## Previous source169/170 checkpoint (superseded host status)
 
