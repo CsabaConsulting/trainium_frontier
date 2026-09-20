@@ -1,0 +1,28 @@
+{
+  "host": "trn21",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave163",
+  "expected_commit": "1f3890c91650c5ea36dae5cf996d8dcc1964df16",
+  "label": "fs-w163-fp8-engine-compute-ingest-r1",
+  "purpose": "CPU-only ingestion after the same-source square dX profile completes cleanly. Preserve raw binaries/traces, fingerprint them before/after, hardlink into a new ingest staging directory and decode instruction tables with64GiB Go soft limit/4threads. Local raw transfer follows capture; no unverified preservation or profiled-speed claim.",
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1",
+    "PROF_REPO": "/home/ubuntu/trainium_freshstart_20260918_wave163",
+    "GOMEMLIMIT": "64GiB",
+    "GOMAXPROCS": "4",
+    "GODEBUG": "gctrace=1"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1200s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "-c",
+    "import pathlib,os,hashlib,subprocess,json,time\nroot=pathlib.Path.cwd()\nsource=pathlib.Path('/home/ubuntu/trainium_freshstart_20260918_wave163/out/fs-w163-fp8-engine-compute-profile-r1')\nstage=root/('out/'+'fs-w163-fp8-engine-compute-ingest-r1'+'-input')\noutput=root/('out/'+'fs-w163-fp8-engine-compute-ingest-r1'+'-parquet')\npost=json.loads((root/'research/run-logs/fs-w163-fp8-engine-compute-profile-r1.postflight.json').read_text())\nassert post['host_clean'] and post['command_returncode']==0 and not post['failures'] and not post['guard_error'] and not post['interrupted_signals']\nassert post['source_commit']=='1f3890c91650c5ea36dae5cf996d8dcc1964df16'\nassert source.is_dir() and not stage.exists() and not output.exists()\ndef digest(p):\n with p.open('rb') as f: return hashlib.file_digest(f,'sha256').hexdigest()\nfiles=sorted(p for p in source.rglob('*') if p.is_file())\nassert files and all(not p.is_symlink() for p in files)\nbefore={str(p.relative_to(source)):digest(p) for p in files}\nstage.mkdir(parents=True)\nfor p in files:\n target=stage/p.relative_to(source);target.parent.mkdir(parents=True,exist_ok=True);os.link(p,target)\nneffs=list(stage.rglob('*.neff'))\nfor trace in list(stage.rglob('*.ntff')):\n for neff in neffs:\n  target=trace.parent/neff.name\n  if not target.exists(): os.link(neff,target)\n  elif target.stat().st_ino!=neff.stat().st_ino: assert digest(target)==digest(neff)\ncommand=['/opt/aws/neuron/bin/neuron-explorer','view','--session-dir',str(stage),'--ingest-only','--output-format','parquet','--output-file',str(output)]\nprint('INGEST_START '+json.dumps({'source':str(source),'stage':str(stage),'output':str(output),'command':command,'raw_preserved':False,'local_raw_transfer_status':'must be verified separately','source_sha256':before}),flush=True)\nstart=time.monotonic();completed=subprocess.run(command,cwd=stage)\nafter={str(p.relative_to(source)):digest(p) for p in files}\nassert before==after\nprint('INGEST_COMPLETE '+json.dumps({'returncode':completed.returncode,'seconds':time.monotonic()-start,'tables':len(list(output.rglob('*.parquet'))),'raw_hashes_unchanged':True,'instruction_files':[(str(p),p.stat().st_size) for p in output.rglob('Instruction.parquet')]}),flush=True)\nraise SystemExit(completed.returncode)\n"
+  ],
+  "fingerprint_paths": []
+}

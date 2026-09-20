@@ -1,0 +1,66 @@
+{
+  "label": "fs-w163-fp8-engine-compute-sequence-r1",
+  "max_seconds": 3300,
+  "purpose": "Source163 three-arm cached dX compute attribution and clean CPU ingestion without DGE notifications. Separate source162 capture retains traffic evidence; neither instrumentation timing is a model or quality claim.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w163-fp8-engine-compute-profile-r1.request.json",
+      "sha256": "9e24f62ee5dc00cca6e9a64d543eb6e9aa8bdcfa807529c9da751b4e2e4c9107",
+      "requirements": [
+        {
+          "marker": "FP8_DX_COST_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "source_commit": "959495b462a824904e2f7d91a136da74f4ba94c0"
+          }
+        },
+        {
+          "marker": "FP8_ENGINE_PROFILE_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "variant": "both",
+            "cases": 15,
+            "source_commit": "252880f3bd3fea062a68df3451876e0a77321275"
+          }
+        },
+        {
+          "marker": "FP8_ENGINE_PROFILE_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "tokens": 32768,
+            "channels": 1024,
+            "arms": [
+              "native_dx",
+              "old_fp8_dx",
+              "candidate_fp8_dx"
+            ],
+            "numerical_controls_exact": true,
+            "cached_weights": true,
+            "preparation_excluded": true,
+            "profiled_latency_is_speed_evidence": false,
+            "whole_model_or_quality_claim": false,
+            "variant": "both",
+            "dge_notifications_enabled": false
+          }
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w163-fp8-engine-compute-ingest-r1.request.json",
+      "sha256": "7443842590e603004290bc3d275fd662c0d449ba888ffd0eae4294a9c70df109",
+      "requirements": [
+        {
+          "marker": "INGEST_COMPLETE",
+          "count": 1,
+          "fields": {
+            "returncode": 0,
+            "raw_hashes_unchanged": true
+          }
+        }
+      ]
+    }
+  ]
+}

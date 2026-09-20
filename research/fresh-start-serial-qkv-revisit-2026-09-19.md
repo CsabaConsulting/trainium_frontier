@@ -1,14 +1,14 @@
 # Revisit QKV execution while preserving the trained model
 
-Current continuation (2026-09-20 01:14 UTC): source159 diagnostics are complete;
-source160 native/FP8 dX capture runs on trn21 and the same-source T1024 versus
-T512 full-model screen runs on trn22. See RESUME.md and
-fresh-start-continuous-work-2026-09-20.md for receipts and result constraints.
-The frozen BF16 gate reproduces the81 production QKV coordinate failures even
-with native projections; a frozen FP32 gate produces6085 for either projection
-implementation. No attention integration is promoted by those diagnostic runs.
-The square cached FP8 dX is slower even when preparation is free. No new BPB win.
-Earlier dated sections below are historical.
+Current continuation (2026-09-20 01:31 UTC): source161 passes45 original numerical
+cases across three arms. Combined cached FP8 dX is10.34% faster than native,
+but complete fresh three-product work remains2.94% slower. trn21 prepares a
+three-arm profile to confirm attribution. trn22 context screen is complete:
+T512492.366241ms versus T1024489.128874ms,0.662% slower, all model checks pass.
+No full-budget trial will be dispatched from that rejected speed screen. Source160 raw/derived profiles are
+hash-verified locally and on GitHub. See RESUME.md and
+fresh-start-continuous-work-2026-09-20.md for exact receipts and limits.
+Prior sections below are historical, not live host status.
 
 Current update, 2026-09-20 00:27 UTC: source156 token diagnosis COMPLETE/clean00:25:41 UTC.
 All 9 BF16/10 FP32-V component gates passed first. At the exact failed production

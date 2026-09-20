@@ -1,0 +1,93 @@
+{
+  "label": "fs-w164-fp8-backward-cache-sequence-r1",
+  "max_seconds": 2400,
+  "purpose": "One bounded19-case backward-only cache component gate and charged timing, motivated by source161 cached dX win. Mandatory clean postflight and all independent records; no autograd/model promotion.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w164-fp8-backward-cache-component-r1.request.json",
+      "sha256": "935337752341cb90970456385d1175fa465f909ad458cbb5c1540e6bbddc75f1",
+      "requirements": [
+        {
+          "marker": "FP8_ENGINE_PROFILE_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "variant": "both",
+            "cases": 15,
+            "source_commit": "252880f3bd3fea062a68df3451876e0a77321275"
+          }
+        },
+        {
+          "marker": "FP8_BACKWARD_CACHE_WEIGHT_GATE",
+          "count": 11,
+          "fields": {
+            "passed": true,
+            "independent_metadata_and_layout": true,
+            "exact_original_metadata_and_bytes": true,
+            "repeated_and_input_unchanged": true
+          },
+          "unique_field": "case",
+          "values": [
+            "random",
+            "zero",
+            "tiny",
+            "large",
+            "signed_zero",
+            "subnormal",
+            "positive",
+            "negative",
+            "outlier",
+            "row_scale_range",
+            "real_random"
+          ]
+        },
+        {
+          "marker": "FP8_SQUARE_DX_CASE",
+          "count": 8,
+          "fields": {
+            "passed": true,
+            "native_forward_and_weight_product_exact": true,
+            "declared_fp8_dx_independently_gated": true
+          },
+          "unique_field": "case",
+          "values": [
+            "random",
+            "zero_gradient",
+            "zero_weight",
+            "tiny_gradient",
+            "outliers",
+            "changed_weight",
+            "cancellation",
+            "real_random"
+          ]
+        },
+        {
+          "marker": "SERIAL_QKV_PRODUCT_GATE",
+          "count": 40,
+          "fields": {
+            "passed": true,
+            "bound_failures": 0
+          }
+        },
+        {
+          "marker": "FP8_BACKWARD_CACHE_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "weight_cases": 11,
+            "square_cases": 8,
+            "cases": 19,
+            "independent_cpu_cache_and_product_gates": true,
+            "exact_original_three_products": true,
+            "production_tokens": 32768,
+            "production_channels": 1024,
+            "all_master_casts_calibration_and_required_packing_charged": true,
+            "no_forward_fp8_cache_borrowed": true,
+            "autograd_or_model_gate": false,
+            "whole_model_or_quality_claim": false
+          }
+        }
+      ]
+    }
+  ]
+}

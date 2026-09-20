@@ -1,0 +1,46 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave163",
+    "expected_commit": "1f3890c91650c5ea36dae5cf996d8dcc1964df16",
+    "label": "fs-w163-fp8-mlp-scale-component-r1",
+    "purpose": "Apply source161 sequential FP32 scale fusion to both MLP data-gradient dots. Keep original kernel and independent stage references unchanged. All eleven original cases plus production32768 tokens, exact old algorithm outputs, native chain bounds, and one-chain extra backward preparation cost. Shared forward calibration is explicitly borrowed; no complete-MLP/autograd/model or quality promotion.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1800s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "/home/ubuntu/trainium_freshstart_20260918_wave163/research/scratch/fp8_mlp_data_backward_engine_probe.py",
+      "--steps",
+      "30"
+    ],
+    "fingerprint_paths": [
+      "train.py",
+      "research/scratch/fp8_mlp_data_backward_engine_nki.py",
+      "research/scratch/fp8_mlp_data_backward_engine_probe.py",
+      "research/scratch/fp8_mlp_data_backward_nki.py",
+      "research/scratch/fp8_mlp_data_backward_probe.py",
+      "research/scratch/fp8_gradient_gemm_nki.py",
+      "research/scratch/fp8_mlp_island_probe.py",
+      "research/scratch/fp8_packed_weight_cache_nki.py",
+      "research/scratch/fp8_packed_weight_cache_probe.py",
+      "research/scratch/fp8_weight_cache_nki.py",
+      "research/scratch/fp8_weight_cache_probe.py",
+      "research/scratch/mlp_backward_rounding_bounds.py",
+      "research/scratch/mlp_fused_bf16_probe.py"
+    ]
+  },
+  "requested_at": "2026-09-20T01:36:04.365034+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w163-fp8-mlp-scale-component-r1\", \"pid\": 1925838, \"commit\": \"1f3890c91650c5ea36dae5cf996d8dcc1964df16\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave163/research/run-logs/fs-w163-fp8-mlp-scale-component-r1.log\", \"started_at\": \"2026-09-20T01:36:10.423555+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

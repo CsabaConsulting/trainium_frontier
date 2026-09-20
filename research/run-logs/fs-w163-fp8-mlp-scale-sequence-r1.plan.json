@@ -1,0 +1,57 @@
+{
+  "label": "fs-w163-fp8-mlp-scale-sequence-r1",
+  "max_seconds": 2400,
+  "purpose": "One bounded trn22 MLP scale fusion component screen. Twelve independent stage cases and exact-original controls precede charged timing. Clean postflight and all gates required; stop after collection, no automatic model promotion.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w163-fp8-mlp-scale-component-r1.request.json",
+      "sha256": "1749ea43fcfe24a323ad2caa4baf3074b02cbdfb9e683d3433371e2217e78ccf",
+      "requirements": [
+        {
+          "marker": "FP8_DATA_BACKWARD_STAGE_GATE",
+          "count": 12,
+          "fields": {
+            "passed": true,
+            "separate_and_fused_algorithm_exact": true,
+            "independent_quantizer_and_pair_stages": true,
+            "bf16_pre_saved_for_weight_gradient": true,
+            "fused_abs": true,
+            "original_algorithm_exact": true
+          }
+        },
+        {
+          "marker": "FP8_DATA_BACKWARD_NATIVE_BOUND",
+          "count": 2,
+          "fields": {
+            "finite": true,
+            "bound_failures": 0,
+            "passed": true
+          },
+          "unique_field": "field",
+          "values": [
+            "dx",
+            "dpre"
+          ]
+        },
+        {
+          "marker": "FP8_MLP_ENGINE_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "original_cases": 11,
+            "cases": 12,
+            "production_tokens": 32768,
+            "all_diagnostic_and_normal_outputs_exact_original": true,
+            "original_independent_stage_gates": true,
+            "row_independence_at_both_real_shapes": true,
+            "data_gradient_chains_per_call": 1,
+            "extra_backward_transposes_and_packing_charged": true,
+            "shared_forward_calibration_already_paid": true,
+            "autograd_or_model_gate": false,
+            "whole_model_or_quality_claim": false
+          }
+        }
+      ]
+    }
+  ]
+}
