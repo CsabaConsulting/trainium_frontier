@@ -1,27 +1,28 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-20 05:20 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-20 05:27 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## Current work — 2026-09-20 05:20 UTC
+## Current work — 2026-09-20 05:27 UTC
 
-- Trn21 source174 COMPLETE/CLEAN, all frozen ten-case gates passed. Bulk
-  transpose15.992353ms vs current native15.251666ms; no model promotion.
-- Source175 PREPARING reuse of the library required intermediate transpose:
-  BF16 ReLU -> existing transpose -> save HxT -> BF16 square -> down GEMM.
-  Same ten fixtures and native HxT backward; no extra SBUF or transpose.
-- Trn22 source171 full FP8 separate-region run rc0 but DISK RESERVE FAILED.
-  Its original postflight remains host_clean=false, only less than8GiB free.
-  Diagnostic timing is also slower; see source171 comparison JSON. No promotion.
-- Maintenance fs-maintenance-nki-scratch-trn22-20260920-r1 CAPTURING12GiB of
-  /tmp/nki_* files older than04:00UTC, exclusive lock. Retirement MUST wait
-  for every local archive hash and CURRENT GitHub asset digest to verify.
-  Current compile/shared caches/source/profiles/best checkpoints preserved.
-- Source172/173 also completed cleanly, slower; source171 normal TxH0.951%
-  slower than native HxT. None of these component results authorize integration.
-- Draft library MLP integration still points at source173; do not promote it.
+- Trn21 source175 COMPLETE/CLEAN. All ten fixtures, original FP64/native/stage/
+  accumulation/row requirements pass. Production14.845040ms vs current native
+  HxT15.210640ms:2.404% component improvement, no whole-step/BPB claim.
+- Source176 PREPARING actual Linear/cache integration of unchanged source175
+  reuse-transpose kernel, then matched native/candidate complete steps.
+  The integration now points at source175, not the slower source173 draft.
+  No quality trial unless real full-step gain >=3% and numerical gates pass.
+- Trn22 source171 clean matched repeat ACTIVE, first native phase-r2.
+  Sequence fs-w171-fp8-all-scale-separated-clean-repeat-r2, PID19106.
+  Original r1 candidate disk postflight remains failed; no retroactive rewrite.
+- Verified scratch maintenance completed: 4,991 files/12,978,670,751B preserved
+  in local archive and live verified GitHub assets, then remote copies retired.
+  Free disk7.57GB ->20.59GB, host clean. Shared caches/current compiles/source/
+  profiles/best and replay checkpoints preserved. Exact recovery receipt is
+  a prerequisite to the clean r2 repeat.
+- Source172/173/174 rejected performance; source171 normal TxH0.951% slower.
 - Best public BPB0.9928513116311253; frozen submission unchanged. No new BPB.
-- Backup state is out/fresh-start-backup/last-success.json. Check latest push.
+- Backup state is out/fresh-start-backup/last-success.json; regular10min pushes.
 
 ## Previous source169/170 checkpoint (superseded host status)
 

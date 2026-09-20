@@ -11,7 +11,7 @@ import torch
 from mlp_fused_bf16 import make_autograd
 from mlp_fused_integration import call_separate_region
 from nki_library_probe_common import verify_sources
-from nki_library_training_mlp_hxt_contiguous import install as install_kernel, saved_relu_mlp_hxt_contiguous
+from nki_library_training_mlp_reuse_transpose import install as install_kernel, saved_relu_mlp_reuse_transpose
 
 
 def install(model, device, train_module, separate_region=False):
@@ -27,7 +27,7 @@ def install(model, device, train_module, separate_region=False):
     verify_sources()
     install_kernel()
     from torch_neuronx import wrap_nki
-    kernel = wrap_nki(saved_relu_mlp_hxt_contiguous)
+    kernel = wrap_nki(saved_relu_mlp_reuse_transpose)
 
     def kernel_call(x, up, down):
         return kernel[2](x, up.T.contiguous(), down.T.contiguous())
@@ -59,7 +59,7 @@ def install(model, device, train_module, separate_region=False):
         assert not module.c_fc.weight_transposed and not module.c_proj.weight_transposed
         hidden, channels = module.c_fc.weight.shape
         assert module.c_proj.weight.shape == (channels, hidden)
-        assert channels % 128 == 0 and hidden % 128 == 0
+        assert channels % 128 == 0 and hidden % 512 == 0
         cls = type(module)
         if cls not in forwards:
             native_forward = cls.forward
@@ -83,6 +83,9 @@ def install(model, device, train_module, separate_region=False):
     assert torch.equal(torch.get_rng_state(), rng)
     return dict(library_commit='92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e',
         modules=len(model.transformer.h), token_row_sharding=True, saved_relu_layout='HxT',
-        backward='original_bf16_four_products', contiguous_activation_store=True, reserved_sbuf_bytes=32768, separate_compiled_region=separate_region,
+        backward='original_bf16_four_products', contiguous_activation_store=True,
+        reuses_existing_transpose=True, square_after_transpose=True,
+        extra_activation_transpose=False, reserved_sbuf_bytes=0,
+        separate_compiled_region=separate_region,
         ordinary_differentiable_weight_cache=bool(use_cache), weight_transposes_inside_forward=True,
         native_evaluation=True, checkpoint_keys_parameters_and_rng_unchanged=True)
