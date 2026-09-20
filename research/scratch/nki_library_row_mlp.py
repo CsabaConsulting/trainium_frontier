@@ -89,8 +89,10 @@ def row_mlp(packed_input, up_bytes, down_bytes, up_scales, down_scales,
         relu = nl.ndarray((tokens, hidden), dtype=nl.bfloat16, buffer=nl.shared_hbm)
         intermediate_bytes = nl.ndarray((tokens, hidden), dtype=nl.uint8, buffer=nl.shared_hbm)
         intermediate_scale = nl.ndarray((tokens, 1), dtype=nl.float32, buffer=nl.shared_hbm)
-        params.raw_up, params.relu = raw_up, relu
-        params.intermediate_bytes, params.intermediate_scale = intermediate_bytes, intermediate_scale
+        params.raw_up = raw_up
+        params.relu = relu
+        params.intermediate_bytes = intermediate_bytes
+        params.intermediate_scale = intermediate_scale
     validate_mlp_arguments(params)
     mlp_cte_basic(params, output, None)
     if capture_intermediates:

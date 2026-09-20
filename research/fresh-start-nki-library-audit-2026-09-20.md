@@ -603,3 +603,15 @@ and model check. The original stopped sequence is retained; its proof is
 fs-w180-native-record-boundary-diagnosis-r1.json. A subsequent request will use
 record-boundary markers. Full UUID coverage still requires Explorer ingestion.
 Both helper code and the original frozen requirements remain unchanged.
+
+Source183 passes all frozen gates/CLEAN: the NKI integer-carrier transpose is
+byte-exact in composed preparation and all256-code fixtures, including both
+production weight orientations. Ordinary transpose fails3,391,488/4,194,304
+bytes per production fixture; float-cast workaround was already rejected. NKI
+layout costs0.134614/0.135399ms, charged in future complete-forward timings.
+Source184 uses only this verified layout substitution and clears all original
+input/up/down producer gates. It then fails before MLP execution on NKI0.5's
+parser: tuple assignment to object attributes is unsupported. Source185 splits
+only those two statements into four assignments. Normalizing the old AST this
+way exactly equals the new AST; original arithmetic and all bounds remain.
+The parser failure and its clean postflight are preserved.
