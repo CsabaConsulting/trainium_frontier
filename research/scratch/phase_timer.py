@@ -17,7 +17,8 @@ from pathlib import Path
 import sys
 import time
 
-REPO = os.environ.get("PROF_REPO", "/home/ubuntu/trainium_frontier")
+SOURCE_ROOT = Path(__file__).resolve().parents[2]
+REPO = Path(os.environ.get("PROF_REPO", str(SOURCE_ROOT))).resolve()
 
 
 def main():
@@ -296,11 +297,24 @@ def main():
                             or args.check_seq_len % 128):
         ap.error("--post-checks requires full steps and --check-seq-len a positive multiple of 128")
 
-    sys.path.insert(0, REPO)
+    if REPO != SOURCE_ROOT:
+        raise ValueError(f"PROF_REPO must be this immutable checkout: {SOURCE_ROOT}; got {REPO}")
+    sys.path.insert(0, str(REPO))
     os.chdir(REPO)
 
     import torch
     import train as T
+    import prepare as P
+    assert Path(T.__file__).resolve() == REPO / 'train.py'
+    assert Path(P.__file__).resolve() == REPO / 'prepare.py'
+    print('PHASE_SOURCE ' + json.dumps(dict(
+        passed=True, rank=int(os.environ.get('RANK', '0')),
+        script=str(Path(__file__).resolve()), repository=str(REPO),
+        imported_train=str(Path(T.__file__).resolve()),
+        imported_prepare=str(Path(P.__file__).resolve()),
+        train_sha256=hashlib.sha256(Path(T.__file__).read_bytes()).hexdigest(),
+        prepare_sha256=hashlib.sha256(Path(P.__file__).read_bytes()).hexdigest(),
+        imports_match_immutable_checkout=True)), flush=True)
 
     T.USE_LOCAL_CONV = args.local_conv
     if args.pack_factor is not None:

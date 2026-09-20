@@ -495,3 +495,60 @@ region and trn22 source178 separate region. Native whole-model controls run in
 independent processes. Source176 native completed cleanly05:42:28UTC with13.32GB
 free before the candidate; source178 recovered host has18.09GB after integration.
 No full-step/BPB gain has been established for the library yet.
+
+## Packed ROW quantizer prerequisite (prepared 05:55 UTC)
+
+`nki_library_row_quantize.py` implements online BF16 absmax, the pinned
+library's max(absmax/240,1e-6) dequantization scale, FP32 reciprocal and raw
+legacy-E4M3 output. Its optional C+4 layout writes the per-token FP32 scale
+through the same typed HBM access pattern used by the library consumer. All
+metadata stores remain charged. This is new code awaiting hardware validation.
+
+The independent screen has14 fixtures: zero, tiny, outlier, wide row-scale
+range and random values in both ordinary weight-row and packed token layouts;
+the finite BF16 alphabet; and all three production activation/weight shapes.
+Every fixture also changes a row and requires all other rows to stay exact.
+Absmax, dequantization scale and decoded quantized values must match their
+independent CPU references exactly. The reciprocal is separately screened
+against FP64 division at a predeclared4 FP32 unit-roundoff relative bound;
+this bound is an experimental requirement, not an AWS precision promise.
+Signed zero byte encodings are equivalent, but every decoded value is checked.
+Only a passing, clean producer run can support a later ROW MLP forward screen;
+neither its standalone timing nor a forward-only result qualifies a model.
+
+API references: [reciprocal](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/api/generated/nki.isa.reciprocal.html)
+performs VectorEngine FP32 arithmetic; [activation](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/nki/api/generated/nki.isa.activation.html)
+performs multiply/add/activation in FP32 before casting to the destination.
+The producer deliberately avoids any PyTorch E4M3FN reinterpretation.
+
+## Complete model outcomes and next attribution (05:59 UTC)
+
+Both original frozen whole-model sequences completed CLEAN and passed every
+integration/rank/numeric requirement. Joined library MLP561.502963ms versus
+489.888026ms native on trn21 (+14.619%). Separate library MLP611.722864ms
+versus488.809250ms native on trn22 (+25.146%). No quality promotion. The
+extra cost is in microstep forward/backward; optimizer/communication/tail
+medians remain close. The isolated2.4% complete-component improvement does
+not overcome compiler integration costs. This is additional evidence that
+low-precision arithmetic alone does not explain earlier FP8 caller regression.
+
+A paired training-forward device capture can now compare ordinary Linear
+array geometry, executed NKI/library regions and observed spill/reload counts.
+Use the same source, host, seed and35 preceding updates; include the ordinary
+30-step measurements before capture. Trace durations are attribution, never
+headline speed evidence; record dropped notifications and preserve all NEFFs.
+Only after interpreting this comparison choose a new compiler-boundary change.
+
+An inherited PROF_REPO still named wave171 in both timing arms. Read-only SSH
+hashes confirmed its train.py and prepare.py match both actual checkouts
+exactly on both hosts; scratch adapters resolve beside the actual phase script.
+No algorithm difference follows from that path in these runs. Source180 will
+default the timer to its own checkout, reject a different PROF_REPO, assert
+resolved imports and emit their hashes per rank. The audit JSON preserves the
+old path rather than silently rewriting any finished request.
+
+Source179 ROW producer passed all14 fixtures,28 original/changed quantizer
+gates and154 exact checks, CLEAN. Maximum reciprocal relative error5.2824e-8
+is below the frozen2.3842e-7 screen. Production input pack0.913098ms; up/down
+weight row quantization0.117969/0.082215ms, before layout/broadcast work. A
+ROW MLP still requires separate stagewise and full-training validation.

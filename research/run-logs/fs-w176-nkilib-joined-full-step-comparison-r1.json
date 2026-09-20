@@ -1,0 +1,65 @@
+{
+  "checked_at": "2026-09-20T05:56:37.327575+00:00",
+  "host": "trn21",
+  "all_frozen_requirements_pass": true,
+  "source": "1ace86d380df6d85f9412cd40f64255bc7924057",
+  "arms": [
+    {
+      "label": "fs-w176-trn21-native-phase-r2",
+      "source": "1ace86d380df6d85f9412cd40f64255bc7924057",
+      "postflight_sha256": "e86697a318030f4731323718ac7579859e23ec97789a0aa6e2db9e1b6498aa02",
+      "log_sha256": "1e455785a00b0096642947b53a5b5c2e8727ebacaf761f9274272e62220d7e7b",
+      "host_clean": true,
+      "whole_step_median_ms": 489.88802553503774,
+      "phase_medians_ms": {
+        "zero_grad_ms": 0.6786209996789694,
+        "micro_total_ms": 432.942360494053,
+        "micro_mean_ms": 432.942360494053,
+        "clip_ms": 6.857164989924058,
+        "sync_grad_ms": 15.503072994761169,
+        "control_ms": 2.4189760151784867,
+        "set_lr_ms": 0.02478403621353209,
+        "opt_step_ms": 26.442644011694938,
+        "wcache_ms": 2.8401665040291846,
+        "step_total_ms": 489.88802553503774,
+        "tail_ms": 54.56829097238369,
+        "tail_pct": 11.177443215741944
+      },
+      "last_loss": 5.126208782196045,
+      "library_mlp": false,
+      "separate_region": false,
+      "steps": 30,
+      "completed_at": "2026-09-20T05:42:28.703223+00:00"
+    },
+    {
+      "label": "fs-w176-nkilib-reuse-transpose-phase-r2",
+      "source": "1ace86d380df6d85f9412cd40f64255bc7924057",
+      "postflight_sha256": "682bff104a1207fb6f7c1f9d7d39406dc52b7a5935cdbae737cee3820a677c04",
+      "log_sha256": "8821141dc7ca73a25f53463ddb09c6f58d094803b856eca3c45928cf0e44eaab",
+      "host_clean": true,
+      "whole_step_median_ms": 561.5029630134813,
+      "phase_medians_ms": {
+        "zero_grad_ms": 0.6650029972661287,
+        "micro_total_ms": 507.44663301156834,
+        "micro_mean_ms": 507.44663301156834,
+        "clip_ms": 6.621836480917409,
+        "sync_grad_ms": 14.908460987498984,
+        "control_ms": 2.252188016427681,
+        "set_lr_ms": 0.02334598684683442,
+        "opt_step_ms": 26.098507980350405,
+        "wcache_ms": 2.812275488395244,
+        "step_total_ms": 561.5029630134813,
+        "tail_ms": 54.16389799211174,
+        "tail_pct": 9.648743536389635
+      },
+      "last_loss": 5.122610092163086,
+      "library_mlp": true,
+      "separate_region": false,
+      "steps": 30,
+      "completed_at": "2026-09-20T05:55:23.379628+00:00"
+    }
+  ],
+  "candidate_increase_percent": 14.618634003194586,
+  "promote_to_quality": false,
+  "reason": "Joined library BF16 MLP is slower in complete model despite isolated component gain; no BPB result"
+}

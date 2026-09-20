@@ -1,0 +1,67 @@
+{
+  "checked_at": "2026-09-20T05:59:15.516210+00:00",
+  "host": "trn22",
+  "all_frozen_requirements_pass": true,
+  "source": "cf7416f6162ed1c1036460872d13e973c134959b",
+  "arms": [
+    {
+      "label": "fs-w178-trn22-native-phase-r1",
+      "source": "cf7416f6162ed1c1036460872d13e973c134959b",
+      "postflight_sha256": "9fa9cddb1168b152936713fa6d187c97d5e99396c3241e809616c8ec77e55a73",
+      "log_sha256": "0cff4706c2e121cadb23b1288018205d3450f144b8f32b5dfebfc8511b94ef0f",
+      "host_clean": true,
+      "whole_step_median_ms": 488.8092500041239,
+      "phase_medians_ms": {
+        "zero_grad_ms": 0.734607019694522,
+        "micro_total_ms": 432.5419724918902,
+        "micro_mean_ms": 432.5419724918902,
+        "clip_ms": 7.067656988510862,
+        "sync_grad_ms": 15.19084649044089,
+        "control_ms": 2.312202501343563,
+        "set_lr_ms": 0.02639851300045848,
+        "opt_step_ms": 26.19328099535778,
+        "wcache_ms": 2.9156944947317243,
+        "step_total_ms": 488.8092500041239,
+        "tail_ms": 54.42592513281852,
+        "tail_pct": 11.171884597439409
+      },
+      "last_loss": 5.126208782196045,
+      "library_mlp": false,
+      "separate_region": false,
+      "steps": 30,
+      "completed_at": "2026-09-20T05:54:17.389412+00:00",
+      "free_bytes": 16767741952
+    },
+    {
+      "label": "fs-w178-nkilib-reuse-transpose-phase-r1",
+      "source": "cf7416f6162ed1c1036460872d13e973c134959b",
+      "postflight_sha256": "d0a7f2e59743aa72e5efc84886883993e59a3a8db3e12a8aebc1b4ce44f98877",
+      "log_sha256": "d132ea35d0bd97b9e6777cde512f8335ae812d9c8f8643e42e70e7e261c9c6d3",
+      "host_clean": true,
+      "whole_step_median_ms": 611.722863977775,
+      "phase_medians_ms": {
+        "zero_grad_ms": 0.7277120312210172,
+        "micro_total_ms": 556.7337250104174,
+        "micro_mean_ms": 556.7337250104174,
+        "clip_ms": 7.241521496325731,
+        "sync_grad_ms": 14.58752600592561,
+        "control_ms": 2.5078429898712784,
+        "set_lr_ms": 0.02723999205045402,
+        "opt_step_ms": 26.47235049516894,
+        "wcache_ms": 2.9254639812279493,
+        "step_total_ms": 611.722863977775,
+        "tail_ms": 54.90681598894298,
+        "tail_pct": 8.971675322899173
+      },
+      "last_loss": 5.123281478881836,
+      "library_mlp": true,
+      "separate_region": true,
+      "steps": 30,
+      "completed_at": "2026-09-20T05:57:51.785764+00:00",
+      "free_bytes": 15621996544
+    }
+  ],
+  "candidate_increase_percent": 25.145517187453812,
+  "promote_to_quality": false,
+  "reason": "Separate compiled library BF16 MLP is slower in complete model despite isolated component gain; no BPB result"
+}
