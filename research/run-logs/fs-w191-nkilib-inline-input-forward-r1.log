@@ -430,3 +430,18 @@ NKILIB_EXACT {"name": "real_random:scaled_relu_rounding", "passed": true}
 NKILIB_EXACT {"name": "real_random:intermediate_scale", "passed": true}
 NKILIB_ROW_INTERMEDIATE_GATE {"name": "real_random", "passed": true, "outside_quantization_interval": 0, "relative_interval": 4.76837158203125e-07, "all_decoded_coordinates": true, "finite": true}
 NKILIB_NUMERICAL {"name": "(32768, 1024, 4096):real_random:down_scaled_pair", "shape": [37, 258], "finite": true, "bound_failures": 0, "relative_rms": 0.002343824027139983, "max_abs": 0.021845764045325566, "max_error_over_bound": 0.7324822178586262, "half_output_negative_control_failures": 9524, "passed": true}
+NKILIB_EXACT {"name": "real_random:prepared_control_output", "passed": true}
+NKILIB_EXACT {"name": "real_random:plain_diagnostic_output", "passed": true}
+NKILIB_EXACT {"name": "real_random:plain_repeat", "passed": true}
+NKILIB_EXACT {"name": "real_random:inline_changed_input:absmax", "passed": true}
+NKILIB_EXACT {"name": "real_random:inline_changed_input:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "real_random:inline_changed_input", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "real_random:inline_changed_input:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "real_random:inline_changed_input", "passed": true, "shape": [32768, 1024], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 33078286, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "real_random:inline_changed_output", "passed": true}
+NKILIB_INLINE_INPUT_GATE {"passed": true, "kind": "real_random", "shape": [32768, 1024, 4096], "actual_input_bytes_and_metadata_checked": true, "independent_original_and_changed_input": true, "exact_all_original_mlp_stages": true, "exact_prepared_control_output": true, "original_fixtures_and_bounds_retained": true, "no_input_quantized_hbm_in_plain_path": true}
+NKILIB_EXACT {"name": "real_random:independent_rows", "passed": true}
+NKILIB_ROW_APPROXIMATION {"name": "real_random", "relative_rms": 0.057644524144545684, "comparison": "unquantized native BF16", "quality_gate": false}
+NKILIB_ROW_MLP_CASE {"shape": [32768, 1024, 4096], "kind": "real_random", "passed": true, "independent_decoded_pair_and_rounding_gates": true, "full_gemm_coordinates": false, "all_outputs_and_quantizer_coordinates_finite": true, "plain_and_instrumented_exact": true, "all_online_calibration_layout_and_master_casts_charged": true, "saved_activations_and_backward_excluded": true, "samples_ms": {"native_bf16": [4.602000132823984, 4.606631665956229, 4.60245306797636], "row_fp8_with_online_preparation": [3.9279292667439827, 3.9264206658117473, 3.9209236992367855], "row_fp8_prepared_control": [4.687184498955806, 4.684428533073515, 4.6958959331580745]}, "median_ms": {"native_bf16": 4.60245306797636, "row_fp8_with_online_preparation": 3.9264206658117473, "row_fp8_prepared_control": 4.687184498955806}}
+NKILIB_ROW_MLP_RESULT {"passed": true, "cases": 10, "forward_only": true, "online_preparation_charged": true, "full_training_or_bpb_claim": false}
+EXPERIMENT_POSTFLIGHT {"label": "fs-w191-nkilib-inline-input-forward-r1", "returncode": 0, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave191/research/run-logs/fs-w191-nkilib-inline-input-forward-r1.postflight.json"}

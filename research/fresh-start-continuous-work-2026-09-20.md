@@ -1,5 +1,19 @@
 # Continued kernel work and research — 2026-09-20
 
+## 2026-09-20 07:59 UTC — library input fusion wins production forward
+
+Source191 COMPLETE/CLEAN with all ten cases and frozen requirements verified.
+InlineFP83.926421ms vsBF164.602453ms (14.6885% faster), and16.2307% below the
+prepared-input ROW control. All online preparation is charged. No backward or
+quality claim; FP8/BF16 random-output RMS difference remains5.76445%.
+Source193 now profiles the three unchanged complete forwards on trn21, then
+ingests the preserved trace. Source192 on trn22 passed all component/cache
+gates and runs native/candidate model timing. Full ROW training scale algebra
+and required saved-state costs are recorded in library-fusion-next. The
+partial-replacement compiler counterfactual is conditional on192's outcome.
+See RESUME.md for identities, cleanup and restart conditions.
+
+
 ## 2026-09-20 07:43 UTC — scratch budgets negative; both new library variants running
 
 Source190 full-model tests both COMPLETE/CLEAN:128KiB562.878526ms vs486.986693ms

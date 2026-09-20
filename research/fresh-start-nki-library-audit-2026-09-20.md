@@ -4,7 +4,7 @@ The user's Re:Invent lead is [AWS Neuron's NKI Library](https://github.com/aws-n
 The clean local clone is pinned at `92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e`
 (August 28). Source references below use that commit, rather than a moving main.
 
-Current result at07:39UTC: library techniques are incorporated into working
+Current result at07:59UTC: library techniques are incorporated into working
 experimental variants. Component improvements have not yet produced a faster
 whole-model training step or a lower BPB. The frozen submission is unchanged.
 
@@ -19,8 +19,8 @@ whole-model training step or a lower BPB. The frozen submission is unchanged.
 | Same fused producer in complete ROW forward | Exactly four preparation expressions change; all original gates retained | Source1894.686795ms vs4.596355msBF16 (1.968% slower). Improvement over the prior5.412% gap; not yet a forward win. |
 | Newer CTE attention/backward | Production shape and saved-statistic costs measured against bundled NKI | Only0.395% production gain; no wholesale switch. Earlier FP64 coordinate failures are retained, not relabeled. |
 | Bounded scratch allocation | Source190 static64/128KiB limits, instead of212728B per partition | Both full sequences pass correctness/cleanup;128KiB model15.584% slower,64KiB15.984% slower. No promotion. |
-| Compiler-managed SBUF placement | Source192 uses the upstream automatic allocation branch with logical capacity/lifetime checks retained | Running on trn22 through full numerical/cache/model gates. |
-| Input quantization in the tile loader | Source191 loads BF16 then quantizes directly into FP8 compute tiles | Running on trn21; small fixtures pass, production timing pending. |
+| Compiler-managed SBUF placement | Source192 uses the upstream automatic allocation branch with logical capacity/lifetime checks retained | Full numerical/cache gates pass; model control/candidate sequence running on trn22. |
+| Input quantization in the tile loader | Source191 loads BF16 then quantizes directly into FP8 compute tiles | All10 cases pass;3.926421ms vs4.602453msBF16,14.6885% faster including all preparation. Forward only. |
 
 Source188 repeats the complete BF16 component with one/four concurrent ranks.
 It passes all original source-matched FP64 prerequisites, native gradients,
@@ -38,20 +38,20 @@ intervals overlap and DMA notifications were dropped. Never report the byte
 counters as exact traffic or bandwidth. Full analysis and warnings are in
 `run-logs/fs-w180-paired-caller-analysis-proof-r1.json`.
 
-The next finite queue checks64/128KiB allocator budgets through original full
-component, real Linear/cache/checkpoint integration, and same-source/same-host
-native/candidate model steps. A component speedup is not a prerequisite because
-this explicitly tests model-context interference. Numerical gates remain strict.
-All upstream lifetime, OOM and underflow checks remain in place; the budget is
-an explicit static NKI argument to prevent ambiguous compilation-cache reuse.
+The fixed64/128KiB budget tests pass correctness/cleanup but lose full-model
+throughput. Source192 now tests compiler-managed SBUF addresses with all original
+logical capacity/lifetime/underflow checks active. Full gradients and real
+Linear/cache integration pass; complete-model control/candidate timing is running.
 
-A separate next fusion is implemented for source191 and awaiting device validation;
-its design is in
-`fresh-start-library-fusion-next-2026-09-20.md`: quantize BF16 token rows inside
-the library loader to avoid input HBM materialization. Implementing training
-saves/backward remains a distinct requirement. The ROW random fixture differs
-from unquantized BF16 by5.764% relative RMS; quantized-reference correctness
-therefore does not establish equivalent training quality.
+Source191 fuses BF16 token-row quantization into the library loader. Its complete
+forward wins14.6885% overBF16 and16.2307% over the prepared-input ROW control,
+with all original ten cases plus actual-byte/stage/changed-input gates passing.
+Source193 captures all three unchanged forward functions to measure remaining
+engine/copy costs. All preparation is charged. Training saves/backward remain
+required work; their scale algebra and costs are in
+`fresh-start-library-fusion-next-2026-09-20.md`. The ROW random fixture differs
+from unquantizedBF16 by5.76445% relative RMS, so exact agreement with the FP8
+reference does not establish training-quality equivalence.
 
 All byte-transpose, parser, diagnostic-DMA and ungated-allocation failures are
 preserved with specific fixes and unchanged numerical bounds. The pinned66-file

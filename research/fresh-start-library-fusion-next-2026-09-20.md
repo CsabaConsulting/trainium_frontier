@@ -154,3 +154,67 @@ versus488.645588ms. No improvement of model integration and no quality run.
 Source192 tests compiler placement separately while retaining virtual capacity
 and lifetime checks; see fresh-start-library-compiler-placement-2026-09-20.md.
 Source191 input-loader fusion is now running on trn21; source192 on trn22.
+
+## Source191 forward win and the required training contract
+
+Source191 COMPLETE/CLEAN at the production32768x1024x4096 shape. All ten
+fixtures and all original frozen requirements pass. NativeBF164.602453ms,
+prepared-input ROW4.687184ms, inline-input ROW3.926421ms. Inline is14.6885%
+faster thanBF16 and16.2307% faster than the prepared-input control. Every
+producer/master cast is charged. All three timing rounds agree on the sign.
+Exact bytes/scales/stages and changed-input checks pass. Random-fixture
+relative RMS versus unquantizedBF16 is still5.76445%; this is an approximate
+forward, not evidence of training-quality equivalence.
+
+Source193 captures all three unchanged complete functions in a single matched
+profile, after the source191 prerequisite. Unprofiled timing is separate from
+instrumentation. Runtime/compiled identities and raw hashes must be preserved.
+Source192 independently tests whether compiler SBUF placement fixes BF16 model
+integration. Full component and real Linear/cache gates pass; model timing
+is still pending.
+
+A full ROW training implementation cannot simply reuse the old fixed-scale
+FP8 backward metadata. Define Qx, Qu, Qd and Qh as stored quantized bytes; sx
+and sh as token-row scales; su and sd as output-channel weight scales. The
+forward represents Xeff=diag(sx)Qx, Ueff=Qu diag(su), and
+Deff=Qd diag(sd), with the retained BF16 ReLU/square/scaling boundaries.
+An explicit straight-through surrogate can keep the2*ReLU derivative while
+using those effective quantized operands. It must be labeled a new approximate
+VJP, not the exact derivative of rounding.
+
+For the data gradients, move sd into the incoming output-gradient columns
+before the Qd-transpose product, then apply2*saved_ReLU. Move su into the
+resulting hidden-gradient columns before the Qu-transpose product. Calibrating
+and quantizing each scaled gradient introduces explicit new rounding stages;
+include them in an independent reference and do not inherit fixed-scale bounds.
+For weight gradients, move sh into the output-gradient rows for the down-weight
+reduction, and sx into the hidden-gradient rows for the up-weight reduction.
+This follows directly from the matrix products and differs from the old
+fixed-x-scale autograd implementation.
+
+Required implementation/gates before model timing:
+
+1. Save the actual BF16 pre-square ReLU, quantized input bytes with sx, and
+   quantized squared activation with sh. A training forward still needs these
+   stores: input-loader fusion removes the immediate reload, not the future
+   backward's need for data. Charge every save. Reconstructing ReLU via square
+   root is a separate approximation and must not inherit this derivative.
+2. Build both forward and backward weight layouts from current FP32 masters.
+   Preserve raw FP8 bytes using the gated NKI transpose, not the known failing
+   ordinary uint8 transpose. Measure all refresh/transpose/metadata costs.
+3. Implement the four products with the row/channel scale movement above.
+   Produce weight gradients and accumulate microbatches inFP32. Preserve each
+   parameter's identity, RNG order, optimizer group and cache lifetime.
+4. Derive a stagewise independent reference before measurement: exact decoded
+   legacyE4M3 values, the characterized pair-add model where applicable, and
+   every declared BF16/FP32 scale/activation rounding. Keep original failures
+   visible. Include zero/tiny/outliers, changed weights, changed rows, causal
+   and batch independence, repeated execution and exact master accumulation.
+5. Gate real cached/uncached model integration and strict native evaluation/
+   checkpoint restore. Then compare complete forward/backward/cache/optimizer/
+   communication steps on one host. Require a repeatable3% whole-step win
+   before spending a30-minute quality run; use the same seed and data order.
+
+The14.7% forward result is sufficient to justify this design work. Its benefit
+may shrink after training saves and scale preparation; the complete measurement
+will decide. Source192/193 results should guide implementation order and layout.
