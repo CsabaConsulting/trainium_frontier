@@ -615,3 +615,10 @@ parser: tuple assignment to object attributes is unsupported. Source185 splits
 only those two statements into four assignments. Normalizing the old AST this
 way exactly equals the new AST; original arithmetic and all bounds remain.
 The parser failure and its clean postflight are preserved.
+
+Source185 clears the parser but rejects our diagnostic store from PSUM directly
+to HBM. This is an instrumentation error, not a library numerical result.
+Source186 routes the same FP32 values through SBUF using tensor_copy before
+DMA. The store remains conditional on diagnostics; stripping diagnostic branches
+from old/new ASTs gives identical plain paths. Original184/185 failures, every
+fixture, byte/numerical bound and exact plain-versus-diagnostic check remain.

@@ -36,8 +36,13 @@ def row_relu2_evict(mlp_params, constants, psum_bank, proj_results_sbuf_list,
     row = constants.get_bxs_offset() + bxs_subtile.start_offset
     columns = nl.ds(int_tile.start_offset, int_tile.size)
     if mlp_params.capture_intermediates:
+        # DMA cannot read PSUM. Preserve the FP32 diagnostic through SBUF;
+        # this allocation/copy is absent from the timed, non-diagnostic path.
+        raw_up_sbuf = nl.ndarray((bxs_subtile.size, int_tile.size),
+                                 dtype=nl.float32, buffer=nl.sbuf)
+        nisa.tensor_copy(dst=raw_up_sbuf, src=psum_bank[:bxs_subtile.size, :int_tile.size])
         nisa.dma_copy(dst=mlp_params.raw_up[nl.ds(row, bxs_subtile.size), columns],
-                      src=psum_bank[:bxs_subtile.size, :int_tile.size])
+                      src=raw_up_sbuf)
     upstream_evict(mlp_params, constants, psum_bank, proj_results_sbuf_list,
                    bxs_subtile, int_tile, bias_sbuf, static_scales_sbuf,
                    weight_row_scales_sbuf, hidden_scales_sbuf_list)
