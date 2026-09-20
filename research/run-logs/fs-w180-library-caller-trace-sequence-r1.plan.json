@@ -1,0 +1,251 @@
+{
+  "label": "fs-w180-library-caller-trace-sequence-r1",
+  "max_seconds": 9000,
+  "purpose": "Paired same-host/source training-forward attribution after native/library full-step regression. All four ranks active, seed42 and35 preceding updates. Preserve NEFF/NTFF and check notification loss. No DGE flag because earlier caller capture overflowed; packet-derived bandwidth bounds require complete counters and cannot be assumed. No quality promotion.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w180-native-training-forward-profile-r1.request.json",
+      "sha256": "0942d0885a633bd8340ddbad59116f792ca702ce4bb5ec4acf79e3629c6b14b3",
+      "requirements": [
+        {
+          "marker": "PHASE_JSON",
+          "count": 1,
+          "fields": {
+            "world_size": 4,
+            "lnc": "2",
+            "grad_accum": 1,
+            "micro_tokens": 131072,
+            "compile": true,
+            "adaptive_nki_ce": true,
+            "optimizer_ownership": true,
+            "optimizer_owner_calls": 35,
+            "pack_factor": 32,
+            "fp8_mlp_full": false,
+            "fp8_mlp_packed": false,
+            "fp8_mlp_compact_saves": false,
+            "fp8_mlp_stream_packed_weights": false,
+            "fp8_mlp_preserve_output_rank": false,
+            "integrated_nki_local_conv": true,
+            "integrated_bf16_norm_output": true,
+            "fp8_mlp_engine_scaling": "none",
+            "fp8_mlp_separate_region": false,
+            "library_mlp": false,
+            "library_mlp_separate_region": false,
+            "library_mlp_contract": null
+          },
+          "lengths": {
+            "steps": 30
+          },
+          "phase_timing": true
+        },
+        {
+          "marker": "NATIVE_POST_CHECK_JSON",
+          "count": 4,
+          "fields": {
+            "passed": true,
+            "parameters_and_gradients_finite": true,
+            "logits_finite": true,
+            "future_max_abs": 0.0,
+            "other_batch_max_abs": 0.0,
+            "repeated_call_max_abs": 0.0
+          },
+          "unique_field": "rank",
+          "values": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "marker": "LIBRARY_MODEL_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "source_commit": "1ace86d380df6d85f9412cd40f64255bc7924057",
+            "component_and_integration_and_both_model_arms": true,
+            "kernel_bytes_unchanged": true
+          }
+        },
+        {
+          "marker": "PHASE_SOURCE",
+          "count": 4,
+          "fields": {
+            "passed": true,
+            "repository": "/home/ubuntu/trainium_freshstart_20260918_wave180",
+            "imports_match_immutable_checkout": true,
+            "train_sha256": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+            "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb"
+          },
+          "unique_field": "rank",
+          "values": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "marker": "PROFILE_ARTIFACT",
+          "count": 1,
+          "fields": {
+            "rank": 0,
+            "mode": "device",
+            "target": "forward",
+            "profiled_forwards": 1,
+            "profiled_microsteps": 0,
+            "profiled_steps": 0,
+            "profiled_latency_is_performance_evidence": false
+          }
+        },
+        {
+          "marker": "NEFF_ARTIFACT",
+          "count": 1,
+          "fields": {
+            "rank": 0,
+            "missing": []
+          }
+        },
+        {
+          "marker": "TRACE_NEFF_ARTIFACT",
+          "count": 1,
+          "fields": {
+            "rank": 0,
+            "unresolved": []
+          }
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w180-library-training-forward-profile-r1.request.json",
+      "sha256": "69164e5ce92e4c3c95f2e6f9fd95409bcd4ae27b4cc804942ef1bba4972cd46e",
+      "requirements": [
+        {
+          "marker": "PHASE_JSON",
+          "count": 1,
+          "fields": {
+            "world_size": 4,
+            "lnc": "2",
+            "grad_accum": 1,
+            "micro_tokens": 131072,
+            "compile": true,
+            "adaptive_nki_ce": true,
+            "optimizer_ownership": true,
+            "optimizer_owner_calls": 35,
+            "pack_factor": 32,
+            "fp8_mlp_full": false,
+            "fp8_mlp_packed": false,
+            "fp8_mlp_compact_saves": false,
+            "fp8_mlp_stream_packed_weights": false,
+            "fp8_mlp_preserve_output_rank": false,
+            "integrated_nki_local_conv": true,
+            "integrated_bf16_norm_output": true,
+            "fp8_mlp_engine_scaling": "none",
+            "fp8_mlp_separate_region": false,
+            "library_mlp": true,
+            "library_mlp_separate_region": false,
+            "fused_mlp": false,
+            "fused_mlp_forward_backend": "nki",
+            "library_mlp_contract": {
+              "library_commit": "92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e",
+              "modules": 6,
+              "token_row_sharding": true,
+              "saved_relu_layout": "HxT",
+              "backward": "original_bf16_four_products",
+              "contiguous_activation_store": true,
+              "reuses_existing_transpose": true,
+              "square_after_transpose": true,
+              "extra_activation_transpose": false,
+              "reserved_sbuf_bytes": 0,
+              "separate_compiled_region": false,
+              "ordinary_differentiable_weight_cache": true,
+              "weight_transposes_inside_forward": true,
+              "native_evaluation": true,
+              "checkpoint_keys_parameters_and_rng_unchanged": true
+            }
+          },
+          "lengths": {
+            "steps": 30
+          },
+          "phase_timing": true
+        },
+        {
+          "marker": "NATIVE_POST_CHECK_JSON",
+          "count": 4,
+          "fields": {
+            "passed": true,
+            "parameters_and_gradients_finite": true,
+            "logits_finite": true,
+            "future_max_abs": 0.0,
+            "other_batch_max_abs": 0.0,
+            "repeated_call_max_abs": 0.0
+          },
+          "unique_field": "rank",
+          "values": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "marker": "LIBRARY_MODEL_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "source_commit": "1ace86d380df6d85f9412cd40f64255bc7924057",
+            "component_and_integration_and_both_model_arms": true,
+            "kernel_bytes_unchanged": true
+          }
+        },
+        {
+          "marker": "PHASE_SOURCE",
+          "count": 4,
+          "fields": {
+            "passed": true,
+            "repository": "/home/ubuntu/trainium_freshstart_20260918_wave180",
+            "imports_match_immutable_checkout": true,
+            "train_sha256": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+            "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb"
+          },
+          "unique_field": "rank",
+          "values": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "marker": "PROFILE_ARTIFACT",
+          "count": 1,
+          "fields": {
+            "rank": 0,
+            "mode": "device",
+            "target": "forward",
+            "profiled_forwards": 1,
+            "profiled_microsteps": 0,
+            "profiled_steps": 0,
+            "profiled_latency_is_performance_evidence": false
+          }
+        },
+        {
+          "marker": "NEFF_ARTIFACT",
+          "count": 1,
+          "fields": {
+            "rank": 0,
+            "missing": []
+          }
+        },
+        {
+          "marker": "TRACE_NEFF_ARTIFACT",
+          "count": 1,
+          "fields": {
+            "rank": 0,
+            "unresolved": []
+          }
+        }
+      ]
+    }
+  ]
+}
