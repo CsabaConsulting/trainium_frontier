@@ -1,5 +1,15 @@
 # Kernel queue and precision-specific experiments
 
+Checkpoint2026-09-20 08:48UTC: source194 saved forward wins10.3719% with all310
+exact checks and10fixtures, clean. Trn21 source196 Vector-square comparison
+RUNNING, first9cases exact; production pending. Trn22 source195 position-r2
+RUNNING: first/last/all-six plus final zero-library control. Original zero mean
+499.107528ms/median488.653169ms includes a preserved optimizer outlier; final
+control brackets the comparison. Never-launched position-r1 is SUPERSEDED.
+See RESUME.md for exact sources, bounds, active labels and backward-scale design.
+No new BPB result or submission promotion.
+
+
 Checkpoint2026-09-20 08:32UTC: both hosts active.194 training saves has all ten
 initial exact saved-tensor checks, final production timing/postflight pending.
 195 four-selection routing gate COMPLETE/CLEAN,256 native gradient comparisons

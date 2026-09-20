@@ -21,6 +21,7 @@ whole-model training step or a lower BPB. The frozen submission is unchanged.
 | Bounded scratch allocation | Source190 static64/128KiB limits, instead of212728B per partition | Both full sequences pass correctness/cleanup;128KiB model15.584% slower,64KiB15.984% slower. No promotion. |
 | Compiler-managed SBUF placement | Source192 uses the upstream automatic allocation branch with logical capacity/lifetime checks retained | All gates pass; full model563.005751ms vs488.528818ms native (+15.245%). No promotion. |
 | Input quantization in the tile loader | Source191 loads BF16 then quantizes directly into FP8 compute tiles | All10 cases pass;3.926421ms vs4.602453msBF16,14.6885% faster including all preparation. Forward only. |
+| Training-state saves inside the ROW forward | Source194 saves actual input/hidden FP8 bytes, row scales and BF16 ReLU | All10 cases/310 exact checks pass;4.771002ms vs5.323111ms native HxT,10.372% lower latency including preparation/stores. Backward pending. |
 
 Source188 repeats the complete BF16 component with one/four concurrent ranks.
 It passes all original source-matched FP64 prerequisites, native gradients,
@@ -710,3 +711,27 @@ actual191 diagnostics, repetition, changed input and unaffected rows. Every191
 bound and fixture remains. Native HxT training-forward saves and candidate stores
 are timed explicitly. Syntax and inverse AST proof pass locally; hardware pending.
 No complete-step or BPB improvement is claimed.
+
+## 08:42 UTC: saved-forward win and exact engine comparison
+
+Source194 completes cleanly with all ten cases,310 exact comparisons and the
+original independent numerical/quantizer bounds. Its production saved forward
+is4.771002ms vs native HxT5.323111ms (10.3719% lower latency), including online
+FP32-master preparation and436,469,760B of actual forward-state stores. This is
+stronger evidence than the previous no-save forward, but still excludes backward,
+optimizer, communication and the rest of the model. No BPB promotion.
+
+Source196 changes only the square of the BF16 ReLU tile from Scalar activation
+to an explicitly selected Vector multiply. It retains a matched Scalar arm,
+the source191 Scalar diagnostic reference and every source194 check. Both
+engines receive identical values and return all six outputs; ten additional
+exact comparisons and the same complete saved-forward timings are required.
+The input quantizers, per-channel scales, two BF16 scaling/activation boundaries,
+SBUF manager and saved-state layout remain identical. Local AST/syntax gates
+pass, device pending. This is the profile-directed fast-function lead.
+
+The ROW backward plan now explicitly handles the different contraction axis:
+per-token gradient scales work naturally for data gradients, but cannot simply
+be moved outside the token contraction of weight gradients. A global or
+per-output-channel producer (or an explicit BF16 weight-gradient control) is
+required before claiming a correct fullFP8 backward.

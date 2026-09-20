@@ -1,0 +1,412 @@
+{
+  "label": "fs-w195-nkilib-partial-position-sequence-r2",
+  "max_seconds": 11900,
+  "purpose": "Bracket the frozen first/last/all library model comparisons with an unchanged native-HxT zero-library control. The first control retained an optimizer-step outlier:805.567ms total,343.201ms optimizer on final sample. Preserve all samples and both means/medians; require a repeat rather than filtering it. Same immutable source282935ca, seed42, data, warmups and30updates. Supersedes the never-dispatched three-step position-r1 plan by appending this finite control; the three original candidate requests remain byte-identical.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w195-nkilib-partial-first-phase-r1.request.json",
+      "sha256": "4bd7a0b686a198df12feee2e8e468133f750d550ab68a5cb709b0fcac8298648",
+      "requirements": [
+        {
+          "marker": "PHASE_JSON",
+          "count": 1,
+          "fields": {
+            "world_size": 4,
+            "lnc": "2",
+            "grad_accum": 1,
+            "micro_tokens": 131072,
+            "compile": true,
+            "adaptive_nki_ce": true,
+            "optimizer_ownership": true,
+            "optimizer_owner_calls": 35,
+            "pack_factor": 32,
+            "fp8_mlp_full": false,
+            "fp8_mlp_packed": false,
+            "fp8_mlp_compact_saves": false,
+            "fp8_mlp_stream_packed_weights": false,
+            "fp8_mlp_preserve_output_rank": false,
+            "integrated_nki_local_conv": true,
+            "integrated_bf16_norm_output": true,
+            "fp8_mlp_engine_scaling": "none",
+            "fp8_mlp_separate_region": false,
+            "library_mlp": true,
+            "library_mlp_separate_region": false,
+            "library_mlp_contract": {
+              "library_commit": "92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e",
+              "modules": 1,
+              "token_row_sharding": true,
+              "saved_relu_layout": "HxT",
+              "backward": "original_bf16_four_products",
+              "contiguous_activation_store": true,
+              "reuses_existing_transpose": true,
+              "square_after_transpose": true,
+              "extra_activation_transpose": false,
+              "reserved_sbuf_bytes": 0,
+              "separate_compiled_region": false,
+              "ordinary_differentiable_weight_cache": true,
+              "weight_transposes_inside_forward": true,
+              "native_evaluation": true,
+              "checkpoint_keys_parameters_and_rng_unchanged": true,
+              "total_mlp_modules": 6,
+              "library_layer_indices": [
+                0
+              ],
+              "native_hxt_layer_indices": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "exact_unselected_native_forward_objects_restored": true,
+              "all_layers_keep_original_hxt_custom_backward": true,
+              "existing_native_and_library_adapter_arithmetic_unchanged": true,
+              "layer_selection_before_compilation": true
+            },
+            "fused_mlp": false,
+            "fused_mlp_forward_backend": "nki"
+          },
+          "lengths": {
+            "steps": 30
+          },
+          "phase_timing": true
+        },
+        {
+          "marker": "NATIVE_POST_CHECK_JSON",
+          "count": 4,
+          "fields": {
+            "passed": true,
+            "parameters_and_gradients_finite": true,
+            "logits_finite": true,
+            "future_max_abs": 0.0,
+            "other_batch_max_abs": 0.0,
+            "repeated_call_max_abs": 0.0
+          },
+          "unique_field": "rank",
+          "values": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "marker": "NKILIB_PARTIAL_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "checked_labels": [
+              "fs-w195-nkilib-partial-routing-gate-r1",
+              "fs-w195-nkilib-partial-none-phase-r1"
+            ],
+            "all_original_frozen_requirements_verified": true,
+            "all_prior_source_bytes_unchanged": true
+          }
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w195-nkilib-partial-last-phase-r1.request.json",
+      "sha256": "b233fae0f189e530c0926be978d61b30380f7b6633e7990487569d991d5464eb",
+      "requirements": [
+        {
+          "marker": "PHASE_JSON",
+          "count": 1,
+          "fields": {
+            "world_size": 4,
+            "lnc": "2",
+            "grad_accum": 1,
+            "micro_tokens": 131072,
+            "compile": true,
+            "adaptive_nki_ce": true,
+            "optimizer_ownership": true,
+            "optimizer_owner_calls": 35,
+            "pack_factor": 32,
+            "fp8_mlp_full": false,
+            "fp8_mlp_packed": false,
+            "fp8_mlp_compact_saves": false,
+            "fp8_mlp_stream_packed_weights": false,
+            "fp8_mlp_preserve_output_rank": false,
+            "integrated_nki_local_conv": true,
+            "integrated_bf16_norm_output": true,
+            "fp8_mlp_engine_scaling": "none",
+            "fp8_mlp_separate_region": false,
+            "library_mlp": true,
+            "library_mlp_separate_region": false,
+            "library_mlp_contract": {
+              "library_commit": "92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e",
+              "modules": 1,
+              "token_row_sharding": true,
+              "saved_relu_layout": "HxT",
+              "backward": "original_bf16_four_products",
+              "contiguous_activation_store": true,
+              "reuses_existing_transpose": true,
+              "square_after_transpose": true,
+              "extra_activation_transpose": false,
+              "reserved_sbuf_bytes": 0,
+              "separate_compiled_region": false,
+              "ordinary_differentiable_weight_cache": true,
+              "weight_transposes_inside_forward": true,
+              "native_evaluation": true,
+              "checkpoint_keys_parameters_and_rng_unchanged": true,
+              "total_mlp_modules": 6,
+              "library_layer_indices": [
+                5
+              ],
+              "native_hxt_layer_indices": [
+                0,
+                1,
+                2,
+                3,
+                4
+              ],
+              "exact_unselected_native_forward_objects_restored": true,
+              "all_layers_keep_original_hxt_custom_backward": true,
+              "existing_native_and_library_adapter_arithmetic_unchanged": true,
+              "layer_selection_before_compilation": true
+            },
+            "fused_mlp": false,
+            "fused_mlp_forward_backend": "nki"
+          },
+          "lengths": {
+            "steps": 30
+          },
+          "phase_timing": true
+        },
+        {
+          "marker": "NATIVE_POST_CHECK_JSON",
+          "count": 4,
+          "fields": {
+            "passed": true,
+            "parameters_and_gradients_finite": true,
+            "logits_finite": true,
+            "future_max_abs": 0.0,
+            "other_batch_max_abs": 0.0,
+            "repeated_call_max_abs": 0.0
+          },
+          "unique_field": "rank",
+          "values": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "marker": "NKILIB_PARTIAL_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "checked_labels": [
+              "fs-w195-nkilib-partial-routing-gate-r1",
+              "fs-w195-nkilib-partial-none-phase-r1"
+            ],
+            "all_original_frozen_requirements_verified": true,
+            "all_prior_source_bytes_unchanged": true
+          }
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w195-nkilib-partial-all-phase-r1.request.json",
+      "sha256": "d64b8e1eba7235bf41e9102ec202a876ec575cf64c5f8e8ca4ea205377d21353",
+      "requirements": [
+        {
+          "marker": "PHASE_JSON",
+          "count": 1,
+          "fields": {
+            "world_size": 4,
+            "lnc": "2",
+            "grad_accum": 1,
+            "micro_tokens": 131072,
+            "compile": true,
+            "adaptive_nki_ce": true,
+            "optimizer_ownership": true,
+            "optimizer_owner_calls": 35,
+            "pack_factor": 32,
+            "fp8_mlp_full": false,
+            "fp8_mlp_packed": false,
+            "fp8_mlp_compact_saves": false,
+            "fp8_mlp_stream_packed_weights": false,
+            "fp8_mlp_preserve_output_rank": false,
+            "integrated_nki_local_conv": true,
+            "integrated_bf16_norm_output": true,
+            "fp8_mlp_engine_scaling": "none",
+            "fp8_mlp_separate_region": false,
+            "library_mlp": true,
+            "library_mlp_separate_region": false,
+            "library_mlp_contract": {
+              "library_commit": "92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e",
+              "modules": 6,
+              "token_row_sharding": true,
+              "saved_relu_layout": "HxT",
+              "backward": "original_bf16_four_products",
+              "contiguous_activation_store": true,
+              "reuses_existing_transpose": true,
+              "square_after_transpose": true,
+              "extra_activation_transpose": false,
+              "reserved_sbuf_bytes": 0,
+              "separate_compiled_region": false,
+              "ordinary_differentiable_weight_cache": true,
+              "weight_transposes_inside_forward": true,
+              "native_evaluation": true,
+              "checkpoint_keys_parameters_and_rng_unchanged": true,
+              "total_mlp_modules": 6,
+              "library_layer_indices": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "native_hxt_layer_indices": [],
+              "exact_unselected_native_forward_objects_restored": true,
+              "all_layers_keep_original_hxt_custom_backward": true,
+              "existing_native_and_library_adapter_arithmetic_unchanged": true,
+              "layer_selection_before_compilation": true
+            },
+            "fused_mlp": false,
+            "fused_mlp_forward_backend": "nki"
+          },
+          "lengths": {
+            "steps": 30
+          },
+          "phase_timing": true
+        },
+        {
+          "marker": "NATIVE_POST_CHECK_JSON",
+          "count": 4,
+          "fields": {
+            "passed": true,
+            "parameters_and_gradients_finite": true,
+            "logits_finite": true,
+            "future_max_abs": 0.0,
+            "other_batch_max_abs": 0.0,
+            "repeated_call_max_abs": 0.0
+          },
+          "unique_field": "rank",
+          "values": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "marker": "NKILIB_PARTIAL_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "checked_labels": [
+              "fs-w195-nkilib-partial-routing-gate-r1",
+              "fs-w195-nkilib-partial-none-phase-r1"
+            ],
+            "all_original_frozen_requirements_verified": true,
+            "all_prior_source_bytes_unchanged": true
+          }
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w195-nkilib-partial-none-phase-r2.request.json",
+      "sha256": "4a8e4342687e90b2b35454330e8b7c5133c32340a59356e1c8a29f8ce931048c",
+      "requirements": [
+        {
+          "marker": "PHASE_JSON",
+          "count": 1,
+          "fields": {
+            "world_size": 4,
+            "lnc": "2",
+            "grad_accum": 1,
+            "micro_tokens": 131072,
+            "compile": true,
+            "adaptive_nki_ce": true,
+            "optimizer_ownership": true,
+            "optimizer_owner_calls": 35,
+            "pack_factor": 32,
+            "fp8_mlp_full": false,
+            "fp8_mlp_packed": false,
+            "fp8_mlp_compact_saves": false,
+            "fp8_mlp_stream_packed_weights": false,
+            "fp8_mlp_preserve_output_rank": false,
+            "integrated_nki_local_conv": true,
+            "integrated_bf16_norm_output": true,
+            "fp8_mlp_engine_scaling": "none",
+            "fp8_mlp_separate_region": false,
+            "library_mlp": true,
+            "library_mlp_separate_region": false,
+            "library_mlp_contract": {
+              "library_commit": "92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e",
+              "modules": 0,
+              "token_row_sharding": true,
+              "saved_relu_layout": "HxT",
+              "backward": "original_bf16_four_products",
+              "contiguous_activation_store": true,
+              "reuses_existing_transpose": true,
+              "square_after_transpose": true,
+              "extra_activation_transpose": false,
+              "reserved_sbuf_bytes": 0,
+              "separate_compiled_region": false,
+              "ordinary_differentiable_weight_cache": true,
+              "weight_transposes_inside_forward": true,
+              "native_evaluation": true,
+              "checkpoint_keys_parameters_and_rng_unchanged": true,
+              "total_mlp_modules": 6,
+              "library_layer_indices": [],
+              "native_hxt_layer_indices": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "exact_unselected_native_forward_objects_restored": true,
+              "all_layers_keep_original_hxt_custom_backward": true,
+              "existing_native_and_library_adapter_arithmetic_unchanged": true,
+              "layer_selection_before_compilation": true
+            },
+            "fused_mlp": false,
+            "fused_mlp_forward_backend": "nki"
+          },
+          "lengths": {
+            "steps": 30
+          },
+          "phase_timing": true
+        },
+        {
+          "marker": "NATIVE_POST_CHECK_JSON",
+          "count": 4,
+          "fields": {
+            "passed": true,
+            "parameters_and_gradients_finite": true,
+            "logits_finite": true,
+            "future_max_abs": 0.0,
+            "other_batch_max_abs": 0.0,
+            "repeated_call_max_abs": 0.0
+          },
+          "unique_field": "rank",
+          "values": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "marker": "NKILIB_PARTIAL_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "checked_labels": [
+              "fs-w195-nkilib-partial-routing-gate-r1"
+            ],
+            "all_original_frozen_requirements_verified": true,
+            "all_prior_source_bytes_unchanged": true
+          }
+        }
+      ]
+    }
+  ]
+}

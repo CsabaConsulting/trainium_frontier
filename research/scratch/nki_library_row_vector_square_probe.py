@@ -24,6 +24,12 @@ def transform_run_case(node):
              and n.func.value.id == 'training_mlp']
     assert len(calls) == 1 and len(calls[0].args) == 5
     calls[0].args.append(ast.Constant(value=False))
+    vector_calls = [n for n in ast.walk(training) if isinstance(n, ast.Call)
+                    and isinstance(n.func, ast.Subscript) and isinstance(n.func.value, ast.Name)
+                    and n.func.value.id == 'training_mlp']
+    assert len(vector_calls) == 1 and len(vector_calls[0].args) == 5
+    vector_flag = ast.Constant(value=True)
+    vector_calls[0].args.append(vector_flag)
     extra = [scalar, *ast.parse('''
 scalar_training_fn = torch.compile(scalar_training_complete, backend='neuron', fullgraph=True, dynamic=False)
 ''').body]
@@ -53,7 +59,9 @@ emit('NKILIB_VECTOR_SQUARE_CASE', dict(passed=True, kind=kind, shape=list(shape)
     full_keywords = timings[0].keywords
     node.body = [n for n in node.body if n not in inserted]
     timings[0].keywords = [k for k in full_keywords if k is not scalar_arm]
+    assert vector_calls[0].args.pop() is vector_flag
     assert ast.dump(node) == original_ast
+    vector_calls[0].args.append(vector_flag)
     node.body = full_body
     timings[0].keywords = full_keywords
     return node

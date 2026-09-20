@@ -291,3 +291,14 @@ layout cost. Per-token calibration remains convenient for data-gradient GEMMs,
 where token rows are not the contraction dimension. A BF16 weight-gradient arm
 is a useful accuracy/performance control before requiring all four products to
 useFP8; charge reconstruction/layout costs and state its surrogate explicitly.
+
+## Source196 implementation prepared (08:42 UTC)
+
+The exact Vector-square comparison is implemented in the isolated ROW namespace.
+Only the training entry selects the engine; the original no-save/diagnostic
+ReLU branch is unchanged. The source194 entry and eviction ASTs are recovered
+exactly by removing the boolean selector and single square-operation branch.
+The source194 probe AST is recovered by removing that explicit True flag, the
+matched False/Scalar arm and ten extra exact checks. Both training-forward arms
+include current weight preparation and all saves. Installed SDK inspection
+confirms tensor_tensor(..., engine=nisa.vector_engine) support. Hardware pending.
