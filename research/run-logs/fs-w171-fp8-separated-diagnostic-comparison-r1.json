@@ -1,0 +1,57 @@
+{
+  "runs": [
+    {
+      "label": "fs-w171-trn22-native-phase-r1",
+      "source": "0535b900babe9686b2a62f2b597791c3ef97a59c",
+      "host_clean": true,
+      "postflight_failures": [],
+      "command_returncode": 0,
+      "median_ms": {
+        "zero_grad_ms": 0.6870529905427247,
+        "micro_total_ms": 433.6243014840875,
+        "micro_mean_ms": 433.6243014840875,
+        "clip_ms": 6.903607019921765,
+        "sync_grad_ms": 14.876992994686589,
+        "control_ms": 2.4422024725936353,
+        "set_lr_ms": 0.02721798955462873,
+        "opt_step_ms": 26.483145513338968,
+        "wcache_ms": 2.8626824787352234,
+        "step_total_ms": 488.5414174932521,
+        "tail_ms": 54.558089497732,
+        "tail_pct": 11.162641860128943
+      },
+      "steps": 30,
+      "log_sha256": "ef766fa59d1d6d27eaeaf4f44c215d1acea4d5081459066454394b2d6c1a2880",
+      "postflight_sha256": "6681319cbaedef41e12ded054144f5acc1aeadc3ad3516ac64e3340184f4b7d7"
+    },
+    {
+      "label": "fs-w171-fp8-all-scale-separated-phase-r1",
+      "source": "0535b900babe9686b2a62f2b597791c3ef97a59c",
+      "host_clean": false,
+      "postflight_failures": [
+        "less than8GiB disk space available"
+      ],
+      "command_returncode": 0,
+      "median_ms": {
+        "zero_grad_ms": 0.7055409951135516,
+        "micro_total_ms": 536.2286645104177,
+        "micro_mean_ms": 536.2286645104177,
+        "clip_ms": 7.246374007081613,
+        "sync_grad_ms": 15.283494489267468,
+        "control_ms": 2.4824729771353304,
+        "set_lr_ms": 0.026728026568889618,
+        "opt_step_ms": 26.545686996541917,
+        "wcache_ms": 5.04003549576737,
+        "step_total_ms": 593.3647409838159,
+        "tail_ms": 57.230493548559025,
+        "tail_pct": 9.642111440773823
+      },
+      "steps": 30,
+      "log_sha256": "18f714cb608b67a5d7eebdbe760d4c118270dfc61b127d0afa0a63fb2f627fc6",
+      "postflight_sha256": "c3b6dc9a7006b28236c5d903a39096ff19f23500da6e61ff3ca4b2758dcc68e7"
+    }
+  ],
+  "qualified_comparison": false,
+  "decision": "No promotion: candidate failed unchanged postflight disk reserve; descriptive timings are also slower. Preserve original failure. Recover disk via independently verified archive and retire.",
+  "descriptive_step_regression_percent": 21.456384195309642
+}

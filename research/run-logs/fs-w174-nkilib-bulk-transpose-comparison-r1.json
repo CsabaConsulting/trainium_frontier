@@ -1,0 +1,44 @@
+{
+  "label": "fs-w174-nkilib-bulk-transpose-component-r1",
+  "source": "f00592f299c4ff898d0d74f4a38a3bb2c4befd4a",
+  "frozen_requirements_passed": true,
+  "host_clean": true,
+  "production": {
+    "shape": [
+      32768,
+      1024
+    ],
+    "kind": "random",
+    "passed": true,
+    "full_independent_fp64_autograd_gradients": true,
+    "unchanged_native_comparison": true,
+    "matched_native_hxt_control": true,
+    "saved_relu_layout": "HxT",
+    "explicit_activation_transpose": true,
+    "compiler_bulk_transpose": true,
+    "exact_repeat_rows_and_fp32_accumulation": true,
+    "saved_relu_bytes": 268435456,
+    "master_casts_layouts_activation_stores_and_full_backward_charged": true,
+    "optimizer_communication_and_model_excluded": true,
+    "samples_ms": {
+      "native_forward_backward": [
+        15.233062699553557,
+        15.266553999390453,
+        15.251666199765168
+      ],
+      "library_forward_backward": [
+        15.995560851297341,
+        15.992352800094523,
+        15.988699902663939
+      ]
+    },
+    "median_ms": {
+      "native_forward_backward": 15.251666199765168,
+      "library_forward_backward": 15.992352800094523
+    }
+  },
+  "regression_percent": 4.856430704867898,
+  "decision": "Reject model promotion: complete component slower than current HxT backward.",
+  "log_sha256": "237d02c0bdcfc1c9685e81d1f5108acb91e5913dda8109eab33413226391186a",
+  "postflight_sha256": "41cdbe13a82fa8d40cecb6d513b91281933409154a83234d12e10568a2befbaa"
+}

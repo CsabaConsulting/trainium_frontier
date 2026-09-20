@@ -1,0 +1,102 @@
+{
+  "label": "fs-w174-nkilib-bulk-transpose-sequence-r1",
+  "max_seconds": 4200,
+  "purpose": "Compiler-managed whole saved-activation transpose after exact source171 library TxH forward; original current HxT BF16 backward. Ten fixtures retain all original8 plus zero up/down. Full original FP64/native/stage/accumulation/row gates. Every HBM transpose and derivative cost charged. No model/BPB claim.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w174-nkilib-bulk-transpose-component-r1.request.json",
+      "sha256": "7a7e3013bf21523433e614367e41634000502d0d444983555a41d0b47e600bdf",
+      "requirements": [
+        {
+          "marker": "NKILIB_TRAINING_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 6,
+            "source_commit": "2cd50e043742ff327f40eda70e9e43632a29118d",
+            "token_sharding": true
+          }
+        },
+        {
+          "marker": "NKILIB_PROVENANCE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "vendored_files": 66,
+            "package_installation": false,
+            "bundled_package_replaced": false
+          }
+        },
+        {
+          "marker": "NKILIB_TRAINING_BULK_TRANSPOSE_CASE",
+          "count": 10,
+          "fields": {
+            "passed": true,
+            "full_independent_fp64_autograd_gradients": true,
+            "unchanged_native_comparison": true,
+            "exact_repeat_rows_and_fp32_accumulation": true,
+            "master_casts_layouts_activation_stores_and_full_backward_charged": true,
+            "optimizer_communication_and_model_excluded": true,
+            "matched_native_hxt_control": true,
+            "saved_relu_layout": "HxT",
+            "explicit_activation_transpose": true,
+            "compiler_bulk_transpose": true
+          }
+        },
+        {
+          "marker": "NKILIB_TRAINING_BULK_TRANSPOSE_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 10,
+            "saved_relu_and_full_backward": true,
+            "all_fp64_and_native_gates": true,
+            "two_microbatch_fp32_accumulation": true,
+            "training_or_bpb_claim": false,
+            "matched_native_hxt_control": true,
+            "saved_relu_layout": "HxT",
+            "compiler_bulk_transpose": true
+          }
+        },
+        {
+          "marker": "FUSED_MLP_NATIVE_GATE",
+          "count": 60,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "FUSED_MLP_STAGE_GATE",
+          "count": 20,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "FP8_CACHE_BACKWARD_FP64_BOUND",
+          "count": 60,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_EXACT",
+          "count": 60,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_HXT_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 3,
+            "source_commit": "0535b900babe9686b2a62f2b597791c3ef97a59c",
+            "matched_native_hxt_control": true
+          }
+        }
+      ]
+    }
+  ]
+}

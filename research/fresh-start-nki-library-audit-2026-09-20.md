@@ -338,3 +338,40 @@ The fresh baseline phase breakdown is dominated by the training microstep:
 433.109ms of488.734ms mean total. Sync gradients16.549ms, optimizer26.465ms,
 weight caches2.871ms. These source165 numbers argue for continuing forward/
 backward fusion instead of assuming communication is the main bottleneck.
+
+### 05:13 UTC: complete saved-layout comparisons
+
+Both source172 and173 finished cleanly and all original8fixture gates passed.
+Strided HxT1579.535094ms versus15.243443ms native is rejected. Coalesced,
+on-chip-transposed HxT17.918935ms versus15.200161ms native is also rejected.
+The latter retains exact saved ReLU and exact production dx/dup/ddown; its
+forward differs by only2.08e-5 relative RMS, passing the original independent
+and native bounds. No tolerance changed. Neither variant enters the trainer.
+Source174 will test the simpler compiler-managed bulk transpose after the
+original source171 TxH forward. It retains the8 fixtures and adds zero-up and
+zero-down to exercise zero-initialized projection paths. All HBM transpose
+read/write and four backward products are charged.
+
+Trn22's fresh matched native fullmodel control488.541417ms reproduces the
+previous488.616ms. Its separated full-FP8 candidate has started compilation.
+
+## Source174 result and source175 follow-up (05:20 UTC)
+
+Source174 passed the frozen ten-case FP64/native/stage/accumulation screen and
+clean postflight. Production complete component: bulk transpose15.992353ms
+versus matched current native15.251666ms (+4.86%). No model promotion.
+
+Source175 prepares a lower-cost ordering: evict BF16 ReLU, run the original
+library intermediate transpose, save its already-transposed HxT tile, then
+square in place before down projection. BF16 rounding order is unchanged;
+elementwise square commutes with the bit-preserving transpose. No extra SBUF
+allocation, activation transpose, or up-projection recomputation. The same
+ten-case screen and native HxT control apply before any integration.
+
+Trn22 separate-region all-scale FP8 completed with rc0 and finite rank checks,
+but postflight correctly rejected free disk7,574,847,488B against8GiB reserve.
+Keep that failure unmodified. The descriptive timings are slower than native;
+no promotion. Source171 exact receipts and full timing summary are preserved
+in fs-w171-fp8-separated-diagnostic-comparison-r1.json. A guarded12GiB capture
+of old NKI scratch is in progress; no remote deletion until archive hashes and
+current GitHub asset digests have independently verified preservation.

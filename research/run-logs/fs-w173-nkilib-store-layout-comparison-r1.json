@@ -1,0 +1,90 @@
+{
+  "recorded_at": "2026-09-20T05:12:39.937912+00:00",
+  "results": [
+    {
+      "label": "fs-w172-nkilib-hxt-training-component-r1",
+      "source_commit": "b6b74c4d98fedfd0302f9d71ea4ebe220e65a55b",
+      "all_original_gates_passed": true,
+      "host_clean": true,
+      "production": {
+        "shape": [
+          32768,
+          1024
+        ],
+        "kind": "random",
+        "passed": true,
+        "full_independent_fp64_autograd_gradients": true,
+        "unchanged_native_comparison": true,
+        "matched_native_hxt_control": true,
+        "saved_relu_layout": "HxT",
+        "explicit_activation_transpose": false,
+        "exact_repeat_rows_and_fp32_accumulation": true,
+        "saved_relu_bytes": 268435456,
+        "master_casts_layouts_activation_stores_and_full_backward_charged": true,
+        "optimizer_communication_and_model_excluded": true,
+        "samples_ms": {
+          "native_forward_backward": [
+            15.264938998734578,
+            15.24344320059754,
+            15.23832245147787
+          ],
+          "library_forward_backward": [
+            1433.8428443996236,
+            1589.4753650500206,
+            1579.5350939501077
+          ]
+        },
+        "median_ms": {
+          "native_forward_backward": 15.24344320059754,
+          "library_forward_backward": 1579.5350939501077
+        }
+      },
+      "log_sha256": "b5004b1766cb19075fd245f6e868a14f7fb4791ebd7b50cdd2614158779d92f3",
+      "postflight_sha256": "7887c6d88cc8a5a133831c7cf1393f81bcceafbfc60722b7efb70a23308d54c7",
+      "model_promotion": false
+    },
+    {
+      "label": "fs-w173-nkilib-hxt-contiguous-component-r1",
+      "source_commit": "069594030b14b756d44a0cbb0f3d9ebe4f5dcfe2",
+      "all_original_gates_passed": true,
+      "host_clean": true,
+      "production": {
+        "shape": [
+          32768,
+          1024
+        ],
+        "kind": "random",
+        "passed": true,
+        "full_independent_fp64_autograd_gradients": true,
+        "unchanged_native_comparison": true,
+        "matched_native_hxt_control": true,
+        "saved_relu_layout": "HxT",
+        "explicit_activation_transpose": true,
+        "contiguous_activation_store": true,
+        "exact_repeat_rows_and_fp32_accumulation": true,
+        "saved_relu_bytes": 268435456,
+        "master_casts_layouts_activation_stores_and_full_backward_charged": true,
+        "optimizer_communication_and_model_excluded": true,
+        "samples_ms": {
+          "native_forward_backward": [
+            15.200161200482398,
+            15.203795550041832,
+            15.197442099452019
+          ],
+          "library_forward_backward": [
+            17.928009849856608,
+            17.918935097986832,
+            17.912478698417544
+          ]
+        },
+        "median_ms": {
+          "native_forward_backward": 15.200161200482398,
+          "library_forward_backward": 17.918935097986832
+        }
+      },
+      "log_sha256": "cbaf28a69d7f9f45e11eb79239412556999bd39bc9bcfdc8de4e0c8bc70c7c11",
+      "postflight_sha256": "c2e2faf9004323a74bcfd37863c9d72fe86d72dd3869ea49952c987617aa8007",
+      "model_promotion": false
+    }
+  ]
+}

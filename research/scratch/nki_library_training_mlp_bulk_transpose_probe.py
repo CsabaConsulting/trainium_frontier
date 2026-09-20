@@ -46,6 +46,10 @@ def run_case(shape, kind, steps):
         x[::127, ::63] *= 8
     elif kind == "changed_weights":
         up *= .5; down *= 1.5
+    elif kind == "zero_up":
+        up.zero_()
+    elif kind == "zero_down":
+        down.zero_()
     wrapped = torch_neuronx.wrap_nki(saved_relu_mlp)
 
     def call(xx, uu, dd):
@@ -138,7 +142,8 @@ def main():
     verify_sources()
     install()
     cases = [((1024, 256), kind) for kind in (
-        "random", "zero_input", "zero_gradient", "tiny_gradient", "outliers", "changed_weights")]
+        "random", "zero_input", "zero_gradient", "tiny_gradient", "outliers", "changed_weights",
+        "zero_up", "zero_down")]
     cases += [((2048, 1024), "random"), ((32768, 1024), "random")]
     for shape, kind in cases:
         emit("NKILIB_CASE_START", dict(shape=shape, kind=kind, training_component=True, saved_relu_layout="HxT"))
