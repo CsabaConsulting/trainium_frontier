@@ -1,0 +1,234 @@
+{
+  "label": "fs-w156-serial-qkv-tokens-sequence-r1",
+  "max_seconds": 7200,
+  "purpose": "Fixed three-step production-shape diagnosis: BF16/FP32 primitive prerequisites then controlled real attention precision investigation. Per-stage cleanup and stop on failure; no quality training.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w156-serial-qkv-tokens-bf16-component-r1.request.json",
+      "sha256": "707308713cc82a14f92e9fb4652dd50086583bcdc7d471d087147cf28de98b5e",
+      "requirements": [
+        {
+          "marker": "SERIAL_QKV_RESULT",
+          "count": 1,
+          "fields": {
+            "layout": "tokens",
+            "cases": 9,
+            "passed": true,
+            "real_tokens": 32768,
+            "real_channels": 1024,
+            "independent_fp64_gates": true,
+            "lifecycle_passed": true,
+            "whole_model_or_quality_claim": false,
+            "value_fp32": false,
+            "fp32_value_output_bounds": false
+          }
+        },
+        {
+          "marker": "SERIAL_QKV_CASE",
+          "count": 9,
+          "fields": {
+            "passed": true,
+            "independent_fp64_forward_and_six_gradients": true,
+            "distinct_inputs": true,
+            "contiguous_outputs": true,
+            "fp32_master_gradients": true,
+            "repeat_and_nonmutation": true,
+            "stream_and_row_independence": true,
+            "value_fp32": false
+          },
+          "unique_field": "kind",
+          "values": [
+            "random",
+            "zero_input",
+            "zero_weight",
+            "zero_gradient",
+            "tiny_gradient",
+            "outliers",
+            "changed_weights",
+            "cancellation",
+            "real_random"
+          ]
+        },
+        {
+          "marker": "SERIAL_QKV_LIFECYCLE",
+          "count": 1,
+          "fields": {
+            "cached_and_uncached": true,
+            "master_updates": 2,
+            "microbatches_per_update": 2,
+            "fp32_accumulation": true,
+            "passed": true,
+            "value_fp32": false
+          }
+        },
+        {
+          "marker": "SERIAL_QKV_COMPONENT_TIMING",
+          "count": 1,
+          "fields": {
+            "tokens": 32768,
+            "channels": 1024,
+            "steps_per_block": 10,
+            "includes_three_forward_six_backward_products": true,
+            "includes_fp32_master_cache_cast_and_accumulation": true,
+            "all_layout_and_dispatch_costs_timed": true,
+            "whole_model_or_quality_claim": false,
+            "value_fp32": false,
+            "native_control_returns_fp32_v": false
+          }
+        },
+        {
+          "marker": "SERIAL_QKV_PRODUCT_GATE",
+          "count": 198,
+          "fields": {
+            "finite": true,
+            "bound_failures": 0,
+            "passed": true
+          }
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w156-serial-qkv-tokens-fp32v-component-r1.request.json",
+      "sha256": "2e37e0e04f665256c28d670b7543a10585ca966acac4dca02bc0cc027d5285ef",
+      "requirements": [
+        {
+          "marker": "SERIAL_QKV_RESULT",
+          "count": 1,
+          "fields": {
+            "layout": "tokens",
+            "cases": 10,
+            "passed": true,
+            "real_tokens": 32768,
+            "real_channels": 1024,
+            "independent_fp64_gates": true,
+            "lifecycle_passed": true,
+            "whole_model_or_quality_claim": false,
+            "value_fp32": true,
+            "fp32_value_output_bounds": true
+          }
+        },
+        {
+          "marker": "SERIAL_QKV_CASE",
+          "count": 10,
+          "fields": {
+            "passed": true,
+            "independent_fp64_forward_and_six_gradients": true,
+            "distinct_inputs": true,
+            "contiguous_outputs": true,
+            "fp32_master_gradients": true,
+            "repeat_and_nonmutation": true,
+            "stream_and_row_independence": true,
+            "value_fp32": true
+          },
+          "unique_field": "kind",
+          "values": [
+            "random",
+            "zero_input",
+            "zero_weight",
+            "zero_gradient",
+            "tiny_gradient",
+            "outliers",
+            "changed_weights",
+            "cancellation",
+            "real_random",
+            "unrounded_v_gradient"
+          ]
+        },
+        {
+          "marker": "SERIAL_QKV_LIFECYCLE",
+          "count": 1,
+          "fields": {
+            "cached_and_uncached": true,
+            "master_updates": 2,
+            "microbatches_per_update": 2,
+            "fp32_accumulation": true,
+            "passed": true,
+            "value_fp32": true
+          }
+        },
+        {
+          "marker": "SERIAL_QKV_COMPONENT_TIMING",
+          "count": 1,
+          "fields": {
+            "tokens": 32768,
+            "channels": 1024,
+            "steps_per_block": 10,
+            "includes_three_forward_six_backward_products": true,
+            "includes_fp32_master_cache_cast_and_accumulation": true,
+            "all_layout_and_dispatch_costs_timed": true,
+            "whole_model_or_quality_claim": false,
+            "value_fp32": true,
+            "native_control_returns_fp32_v": true
+          }
+        },
+        {
+          "marker": "SERIAL_QKV_PRODUCT_GATE",
+          "count": 216,
+          "fields": {
+            "finite": true,
+            "bound_failures": 0,
+            "passed": true
+          }
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w156-serial-qkv-tokens-production-boundary-r1.request.json",
+      "sha256": "7d1f72a194206599e55e9097aa8d126f62c6d11d8eab539863b58d2a4832cdd6",
+      "requirements": [
+        {
+          "marker": "SERIAL_QKV_COMPONENT_PREREQUISITE",
+          "count": 2,
+          "fields": {
+            "passed": true,
+            "source_commit": "ed3a53e40dfede83e04aff14d039a4cabdc251ad"
+          },
+          "unique_field": "value_fp32",
+          "values": [
+            false,
+            true
+          ]
+        },
+        {
+          "marker": "SERIAL_QKV_BOUNDARY_CASE",
+          "count": 2,
+          "fields": {
+            "layout": "tokens",
+            "channels": 1024,
+            "batch": 32,
+            "length": 1024,
+            "seed": 152032,
+            "cached": true,
+            "all_inputs_require_grad": true,
+            "include_fp32_arm": true,
+            "diagnostic_complete": true,
+            "acceptance_bounds_unchanged": true,
+            "integration_promoted": false
+          },
+          "unique_field": "case_id",
+          "values": [
+            "True:False",
+            "True:True"
+          ]
+        },
+        {
+          "marker": "SERIAL_QKV_BOUNDARY_RESULT",
+          "count": 1,
+          "fields": {
+            "layout": "tokens",
+            "channels": 1024,
+            "batch": 32,
+            "length": 1024,
+            "all_inputs_require_grad": true,
+            "include_fp32_arm": true,
+            "cases": 2,
+            "diagnostic_complete": true,
+            "acceptance_bounds_unchanged": true,
+            "integration_promoted": false,
+            "whole_model_or_quality_claim": false
+          }
+        }
+      ]
+    }
+  ]
+}
