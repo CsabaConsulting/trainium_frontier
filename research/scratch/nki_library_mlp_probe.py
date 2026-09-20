@@ -32,7 +32,9 @@ def make_forward(prefix):
                             normalization_type=types.NormType.NO_NORM,
                             quantization_type=types.QuantizationType.NONE,
                             skip_gate_proj=True, force_cte_mode=True)
-        return result[0]
+        # Native wrap_nki unwraps a single kernel output. Only index when the
+        # wrapper actually returns a collection; indexing a Tensor drops B.
+        return result if isinstance(result, torch.Tensor) else result[0]
 
     return torch.compile(call, backend="neuron", fullgraph=True, dynamic=False)
 
@@ -92,7 +94,10 @@ def case(shape, kind, steps):
     for name, fn in arms.items():
         with torch.no_grad():
             output = fn(*dev)
-        assert tuple(output.shape) == shape and output.dtype == torch.bfloat16
+        emit("NKILIB_OUTPUT_CONTRACT", dict(name=name, expected_shape=shape,
+                                           actual_shape=list(output.shape), dtype=str(output.dtype)))
+        assert tuple(output.shape) == shape and output.dtype == torch.bfloat16, (
+            name, tuple(output.shape), output.dtype, shape)
         cpu = output.detach().cpu()
         assert torch.isfinite(cpu).all(), name
         bounded(f"{shape}:{kind}:{name}:fp64", cpu.reshape(-1, channels)[idx], truth, bound)

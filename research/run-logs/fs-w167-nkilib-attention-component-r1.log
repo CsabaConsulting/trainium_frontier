@@ -1,0 +1,31 @@
+[W920 04:21:35.486669323 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+NKILIB_PROVENANCE {"passed": true, "upstream_commit": "92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e", "vendored_files": 66, "bundled_root": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib", "vendor_namespace": "research.vendor.nki_library_92d11f63", "nki": "0.5.0+28631259367.ga768afa6", "compiler": "2.26.6360.0+6f180f47", "package_installation": false, "bundled_package_replaced": false}
+NKILIB_PARSER_COMPAT {"passed": true, "cpu_factory_cases": 128, "materialized_property": "seqlen_k - k_start_pos", "installed_compiler_unchanged": true, "isolated_upstream_module_only": true}
+NKILIB_CASE_START {"shape": [2, 2, 512, 128], "kind": "random"}
+NKILIB_EXACT {"name": "(2, 2, 512, 128):random:bundled:repeat", "passed": true}
+NKILIB_EXACT {"name": "(2, 2, 512, 128):random:upstream:repeat", "passed": true}
+FUSED_MLP_NATIVE_GATE {"name": "(2, 2, 512, 128):random:output:unchanged_native_gate", "shape": [2, 2, 512, 128], "finite": true, "bound_failures": 0, "max_abs": 0.0, "reference_rms": 0.1604041945393957, "relative_rms": 0.0, "exact": true, "passed": true}
+FUSED_MLP_NATIVE_GATE {"name": "(2, 2, 512, 128):random:dq:unchanged_native_gate", "shape": [2, 2, 512, 128], "finite": true, "bound_failures": 0, "max_abs": 0.0, "reference_rms": 0.004117005354723315, "relative_rms": 0.0, "exact": true, "passed": true}
+FUSED_MLP_NATIVE_GATE {"name": "(2, 2, 512, 128):random:dk:unchanged_native_gate", "shape": [2, 2, 512, 128], "finite": true, "bound_failures": 0, "max_abs": 0.0, "reference_rms": 0.004097709852222667, "relative_rms": 0.0, "exact": true, "passed": true}
+FUSED_MLP_NATIVE_GATE {"name": "(2, 2, 512, 128):random:dv:unchanged_native_gate", "shape": [2, 2, 512, 128], "finite": true, "bound_failures": 0, "max_abs": 0.0, "reference_rms": 0.004947337575198544, "relative_rms": 0.0, "exact": true, "passed": true}
+NKILIB_NUMERICAL {"name": "(2, 2, 512, 128):random:bundled:0:0:output:fp64", "shape": [1, 1, 512, 128], "finite": true, "bound_failures": 1, "relative_rms": 0.0019997140942983756, "max_abs": 0.005543025563929493, "max_error_over_bound": 1.2651444328221837, "half_output_negative_control_failures": 64233, "passed": false}
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_freshstart_20260918_wave167/research/scratch/nki_library_attention_probe.py", line 149, in <module>
+    main()
+  File "/home/ubuntu/trainium_freshstart_20260918_wave167/research/scratch/nki_library_attention_probe.py", line 143, in main
+    run_case(shape, kind, args.steps)
+  File "/home/ubuntu/trainium_freshstart_20260918_wave167/research/scratch/nki_library_attention_probe.py", line 96, in run_case
+    attention_cpu_check(f"{shape}:{kind}:{name}:{batch}:{head}:{field}:fp64",
+  File "/home/ubuntu/trainium_freshstart_20260918_wave167/research/scratch/nki_library_probe_common.py", line 80, in attention_cpu_check
+    bounded(name, actual, expected, bound, relative_limit=.01)
+  File "/home/ubuntu/trainium_freshstart_20260918_wave167/research/scratch/nki_library_probe_common.py", line 69, in bounded
+    assert passed, row
+           ^^^^^^
+AssertionError: {'name': '(2, 2, 512, 128):random:bundled:0:0:output:fp64', 'shape': [1, 1, 512, 128], 'finite': True, 'bound_failures': 1, 'relative_rms': 0.0019997140942983756, 'max_abs': 0.005543025563929493, 'max_error_over_bound': 1.2651444328221837, 'half_output_negative_control_failures': 64233, 'passed': False}
+EXPERIMENT_POSTFLIGHT {"label": "fs-w167-nkilib-attention-component-r1", "returncode": 1, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave167/research/run-logs/fs-w167-nkilib-attention-component-r1.postflight.json"}

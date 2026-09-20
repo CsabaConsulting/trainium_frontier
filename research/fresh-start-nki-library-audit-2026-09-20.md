@@ -132,3 +132,30 @@ result and neither demonstrated a numerical failure in a candidate output.
 The source167 retries use new immutable checkouts and labels. Existing source166
 requests/plans and the stopped coordinators are not edited or restarted. Check
 the latest source167 launch/postflight/sequence receipts for hardware status.
+
+## Source167 compiled; diagnostic follow-up source168
+
+Both source167 jobs stopped with clean postflight by04:21:54UTC. The attention
+property workaround passed128 CPU factory cases and compiled successfully.
+For the first2×2×512×128 random fixture, the new forward and all three gradients
+are EXACTLY the bundled control. Both versions repeat exactly. The independent
+FP64 check then rejected the BUNDLED control at one output coordinate:
+relative RMS0.001999714, maximum coordinate error/bound1.265144. This is not a
+candidate-versus-control discrepancy and no timing or promotion was accepted.
+
+The original coordinate envelope `.03*abs(reference)+.008*global_RMS` was an
+empirical screen, not a propagated floating-point error bound. A small result
+from cancellation can have BF16 probability-rounding error proportional to
+the sum of absolute weighted values, rather than the small signed output.
+Source168 adds a separate diagnostic that retains/reports every original
+failure and independently estimates the BF16 exp/P/V and gradient rounding
+boundaries using dense FP64 CPU algebra. It does not change the original probe,
+replace its acceptance test, time kernels or allow quality promotion. The
+unchanged new-versus-bundled comparison and exact repeats still assert.
+
+The MLP reached both native and candidate execution, then failed the output
+shape/dtype assertion. Its adapter indexed `[0]` unconditionally, despite the
+native wrapper unwrapping a single output. Source168 handles Tensor versus
+collection explicitly and reports expected/actual shape and dtype. Original
+FP64 bounds, all six fixtures and full-tensor repeat/batch gates stay intact.
+This is an interface fix, not a new kernel or relaxed numerical check.

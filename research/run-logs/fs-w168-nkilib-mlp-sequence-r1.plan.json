@@ -1,0 +1,40 @@
+{
+  "label": "fs-w168-nkilib-mlp-sequence-r1",
+  "max_seconds": 3000,
+  "purpose": "Fix single-output Tensor unwrapping; repeat all six original BF16 library MLP cases, unchanged CPU FP64 and exact structural gates. Forward-only screen, no quality promotion.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w168-nkilib-mlp-component-r1.request.json",
+      "sha256": "0e3b7f5d7ef8b2e4a3bb31ae865841cdd9f2e89f5cb653721d5cb9cf07f3c514",
+      "requirements": [
+        {
+          "marker": "NKILIB_PROVENANCE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "upstream_commit": "92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e",
+            "vendored_files": 66,
+            "bundled_package_replaced": false,
+            "package_installation": false
+          }
+        },
+        {
+          "marker": "NKILIB_MLP_CASE",
+          "count": 6,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_MLP_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 6,
+            "training_or_bpb_claim": false
+          }
+        }
+      ]
+    }
+  ]
+}

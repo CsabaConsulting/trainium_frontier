@@ -1,0 +1,22 @@
+[W920 04:21:35.482944523 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+NKILIB_PROVENANCE {"passed": true, "upstream_commit": "92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e", "vendored_files": 66, "bundled_root": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib", "vendor_namespace": "research.vendor.nki_library_92d11f63", "nki": "0.5.0+28631259367.ga768afa6", "compiler": "2.26.6360.0+6f180f47", "package_installation": false, "bundled_package_replaced": false}
+NKILIB_RELU2_ADAPTER {"installed_in_isolated_namespace": true, "upstream_single_op_helper_rejects_squared_relu": true, "installed_compiler_unchanged": true}
+NKILIB_CASE_START {"shape": [2, 512, 256], "kind": "random"}
+NKILIB_NUMERICAL {"name": "(2, 512, 256):random:native:fp64", "shape": [33, 256], "finite": true, "bound_failures": 0, "relative_rms": 0.004081294273939065, "max_abs": 0.020842669811889536, "max_error_over_bound": 0.1434534353210409, "half_output_negative_control_failures": 6688, "passed": true}
+NKILIB_EXACT {"name": "(2, 512, 256):random:native:repeat", "passed": true}
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_freshstart_20260918_wave167/research/scratch/nki_library_mlp_probe.py", line 141, in <module>
+    main()
+  File "/home/ubuntu/trainium_freshstart_20260918_wave167/research/scratch/nki_library_mlp_probe.py", line 135, in main
+    case(shape, kind, args.steps)
+  File "/home/ubuntu/trainium_freshstart_20260918_wave167/research/scratch/nki_library_mlp_probe.py", line 95, in case
+    assert tuple(output.shape) == shape and output.dtype == torch.bfloat16
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+EXPERIMENT_POSTFLIGHT {"label": "fs-w167-nkilib-mlp-component-r1", "returncode": 1, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave167/research/run-logs/fs-w167-nkilib-mlp-component-r1.postflight.json"}
