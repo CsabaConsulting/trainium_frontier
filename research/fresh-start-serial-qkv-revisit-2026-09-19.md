@@ -35,6 +35,20 @@ and makes broader FP8 projections/fusion a more promising follow-up than an
 unbounded BF16 tiling sweep. Keep original gradients, VE precision and real
 caller timing as gates when extending the precision region.
 
+Source154 token FP32-V component PASSES all10 cases, including non-BF16
+incoming V derivatives and production shape. Complete component5.727667ms
+versus native FP32-V5.644936ms is1.466% slower. This is a different explicit
+output contract from the earlier BF16 component, so do not mix its controls.
+The corrected token frozen controls now match native exactly without VE;
+with VE the BF16 materialization difference remains and FP32 V fits closely.
+Its original whole-attention gate is running.
+
+The source154 channel FP32 component fails to compile cleanly because its
+final transpose scratch was left BF16 while the input is now FP32. Source155
+changes that allocation to the output dtype; weight/input transpose scratch
+remain BF16 and get distinct names. No SDK patch or numerical relaxation.
+A fresh four-stage channel retry will preserve the failed source154 records.
+
 Earlier preparation/results below are retained chronologically.
 
 Updated 2026-09-19 23:33 UTC. Source151 completed cleanly on both hosts. Both layouts

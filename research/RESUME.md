@@ -1,10 +1,25 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 23:53 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-19 23:59 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
 ## Serial QKV precision-repair sequences active — CURRENT
 
+- Source154 token layout is on its final attention gate. Its BF16 regression
+  and all10 FP32-V independent/lifecycle cases pass, including real32768x1024
+  and non-BF16 incoming V gradients. FP32-value component5.727667 versus native
+  FP32-value5.644936ms (1.466% slower); this control differs from the old
+  BF16-output component. Corrected frozen diagnostics are clean: supplying
+  differentiable Q/K/V makes both no-VE materialized controls exactly native.
+  The VE-only early-rounding difference remains as previously isolated.
+- Source154 channel sequence STOPPED after its FP32 component compile failure;
+  postflight is clean. The final result transpose still used a BF16 scratch
+  allocation after its input became FP32. Source155 corrects that output
+  scratch dtype and names weight/input/output scratch separately for clarity.
+  This is a kernel declaration error, not an SDK or numerical-tolerance issue.
+  Fresh channel regression/FP32/diagnostic/attention retry is being prepared.
+  Do not restart its stopped source154 coordinator or alter the running token
+  queue/helper/request. Source155 hardware validation remains pending.
 - Source153 diagnostics COMPLETE/clean: tokens/256 at23:41:41UTC, channels/1024
   at23:43:08UTC. Native preprojection, Q-only and K-only are exactly native at
   both widths, cached/uncached and with/without VE. V-only and all-QKV are exact
@@ -44,8 +59,10 @@ Use current manifests/postflights before dispatch; do not restart completed jobs
   Source151 primitive gates passed but component times were5.358%/10.478%
   slower. Source148 FP8 output-rank0.385% and reciprocal pack320.052% gains
   were below3%. No whole-model/quality promotion; frozen public best0.9928513116.
-- Last verified backup23:50:45UTC: sourceee1c786, snapshot56d732f8, both remote
-  retrievals complete. Later results/correction need the next deliberate push.
+- Last verified push23:54:41UTC: sourceccfaf6e, snapshote9597acc. That manual
+  push used existing local mirrors; last full remote retrieval23:50:45UTC.
+  Live token coordinator mirrors its own logs every45seconds. Later results
+  and the channel scratch fix need the next source commit/push.
   Read dispatch/sequence records for activity; queues are finite and the
   backup cron does not select or launch experiments.
 
