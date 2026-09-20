@@ -32,6 +32,12 @@ corrected boundary diagnostic, full-attention gates/timing. All stages require
 fresh cleanup and exact completion records; any failure stops advancement.
 These are finite queues, not an automatic quality-training sweep.
 
+Current update: source154 token primitive and small attention gates pass,
+but production-shape attention fails (RMS0.00413085,47,860 coordinates).
+Source156 production-context diagnosis is prepared for trn21. Trn22 source155
+is actively retrying the corrected channel transpose dtype under its four-stage
+fixed plan. Both are numerical investigations; no whole-model/quality promotion.
+
 Scope clarification: full FP8 here means the complete MLP forward/backward,
 not all transformer projections/attention/optimizer arithmetic. A broader
 FP8 region can still win despite the current MLP integration regression.

@@ -1,0 +1,48 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave154",
+    "expected_commit": "ee1c7868c96bcf1b371ad81805ea90ec780f8a1f",
+    "label": "fs-w154-serial-qkv-tokens-attention-r1",
+    "purpose": "After same-source BF16/FP32-V component gates and corrected diagnostics: rerun original unchanged attention output/input/master/lifecycle/causality/native-restore gates with retained FP32 V only before VE, then real32x1024x1024 complete attention timing. No whole-model/quality promotion.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1800s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "/home/ubuntu/trainium_freshstart_20260918_wave154/research/scratch/serial_qkv_integration_check.py",
+      "--layout",
+      "tokens",
+      "--value-fp32",
+      "--steps",
+      "10",
+      "--component-root",
+      "/home/ubuntu/trainium_freshstart_20260918_wave154",
+      "--component-label",
+      "fs-w154-serial-qkv-tokens-fp32v-component-r1",
+      "--component-commit",
+      "ee1c7868c96bcf1b371ad81805ea90ec780f8a1f"
+    ],
+    "fingerprint_paths": [
+      "train.py",
+      "research/scratch/serial_qkv_nki.py",
+      "research/scratch/serial_qkv_probe.py",
+      "research/scratch/serial_qkv_integration.py",
+      "research/scratch/serial_qkv_integration_check.py",
+      "research/scratch/mlp_fused_bf16_probe.py"
+    ]
+  },
+  "requested_at": "2026-09-19T23:57:28.898917+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w154-serial-qkv-tokens-attention-r1\", \"pid\": 1577707, \"commit\": \"ee1c7868c96bcf1b371ad81805ea90ec780f8a1f\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave154/research/run-logs/fs-w154-serial-qkv-tokens-attention-r1.log\", \"started_at\": \"2026-09-19T23:57:34.673143+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}
