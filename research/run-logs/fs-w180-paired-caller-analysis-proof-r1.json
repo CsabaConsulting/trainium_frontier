@@ -1,0 +1,541 @@
+{
+  "created_at": "2026-09-20T07:08:53.366496+00:00",
+  "source_commit": "9e103ea63b6eec62b027b1c836976e441f4ac8aa",
+  "same_host": "trn22",
+  "paired_training_forward_only": true,
+  "arms": {
+    "native": {
+      "analysis": "research/run-logs/fs-w180-native-caller-analysis-r2.json",
+      "analysis_sha256": "96e3026492535d511669b8f3b808cdec2fc07bc2c60b41848bdc1410a9a53aff",
+      "forward": {
+        "execution_index": 1,
+        "neff_name": "e1cefdd7836e2a6b6987d8ed5503bee9.neff",
+        "execution_start_ts": 10047984,
+        "execution_end_ts": 147898520,
+        "num_subgraphs": 2,
+        "row_count": 39051076,
+        "runtime_name": "model_default",
+        "nrt_sequence_id": 281474976718143,
+        "logical_cache_key": "8e87821555ce8ff8ebcd22c1cece9d9a2b292f0ca0887da853ba9c9bf36aa2ba:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+        "enclosing_annotation": "fresh_start_single_training_forward",
+        "device_wall_ms": 137.850536
+      },
+      "ordinary_linear_source": {
+        "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave180/train.py:2853",
+        "duration_ns_sum": 75073961,
+        "start_ts_count": 252504,
+        "spill_save_bytes_sum": 1377107968,
+        "spill_reload_bytes_sum": 591659008,
+        "hbm_read_bytes_sum": 596901888,
+        "hbm_write_bytes_sum": 2201034752,
+        "sbuf_read_bytes_sum": 20394378240,
+        "sbuf_write_bytes_sum": 2882933504,
+        "merged_activity_by_core_engine": [
+          {
+            "pcore_idx": 0,
+            "engine": "GpSimd",
+            "instruction_rows": 347,
+            "active_ms": 0.181955
+          },
+          {
+            "pcore_idx": 0,
+            "engine": "Scalar",
+            "instruction_rows": 3762,
+            "active_ms": 1.580685
+          },
+          {
+            "pcore_idx": 0,
+            "engine": "Sync",
+            "instruction_rows": 1607,
+            "active_ms": 0.996973
+          },
+          {
+            "pcore_idx": 0,
+            "engine": "Tensor",
+            "instruction_rows": 111889,
+            "active_ms": 15.574164
+          },
+          {
+            "pcore_idx": 0,
+            "engine": "Vector",
+            "instruction_rows": 8196,
+            "active_ms": 4.318205
+          },
+          {
+            "pcore_idx": 1,
+            "engine": "GpSimd",
+            "instruction_rows": 398,
+            "active_ms": 0.214557
+          },
+          {
+            "pcore_idx": 1,
+            "engine": "Scalar",
+            "instruction_rows": 3760,
+            "active_ms": 1.877136
+          },
+          {
+            "pcore_idx": 1,
+            "engine": "Sync",
+            "instruction_rows": 1638,
+            "active_ms": 1.104997
+          },
+          {
+            "pcore_idx": 1,
+            "engine": "Tensor",
+            "instruction_rows": 112672,
+            "active_ms": 15.624457
+          },
+          {
+            "pcore_idx": 1,
+            "engine": "Vector",
+            "instruction_rows": 8235,
+            "active_ms": 4.33403
+          }
+        ],
+        "examples": [
+          {
+            "bir_instruction_name": "I-3710-11",
+            "opcode": "DMA_DIRECT2D"
+          },
+          {
+            "bir_instruction_name": "I-3710-16",
+            "opcode": "MEMSET"
+          },
+          {
+            "bir_instruction_name": "I-3710-5",
+            "opcode": "DMA_DIRECT2D"
+          }
+        ]
+      },
+      "observed_counters": {
+        "spill_save_bytes": {
+          "nonnull_rows": 45196,
+          "positive_rows": 29708,
+          "sum": 10091454464
+        },
+        "spill_reload_bytes": {
+          "nonnull_rows": 62675,
+          "positive_rows": 48783,
+          "sum": 15071602688
+        },
+        "hbm_read_bytes": {
+          "nonnull_rows": 83931,
+          "positive_rows": 71639,
+          "sum": 24184000608
+        },
+        "hbm_write_bytes": {
+          "nonnull_rows": 72056,
+          "positive_rows": 56568,
+          "sum": 22945734660
+        },
+        "sbuf_read_bytes": {
+          "nonnull_rows": 1552189,
+          "positive_rows": 1548989,
+          "sum": 145649000452
+        },
+        "sbuf_write_bytes": {
+          "nonnull_rows": 501227,
+          "positive_rows": 501223,
+          "sum": 69926870116
+        }
+      },
+      "engine_activity": [
+        {
+          "pcore_idx": 0,
+          "engine": "gpsimd",
+          "instruction_rows": 24242,
+          "active_ms": 19.390375
+        },
+        {
+          "pcore_idx": 0,
+          "engine": "scalar",
+          "instruction_rows": 43765,
+          "active_ms": 42.504857
+        },
+        {
+          "pcore_idx": 0,
+          "engine": "sync",
+          "instruction_rows": 45247,
+          "active_ms": 28.380027
+        },
+        {
+          "pcore_idx": 0,
+          "engine": "tensor",
+          "instruction_rows": 14551,
+          "active_ms": 66.235948
+        },
+        {
+          "pcore_idx": 0,
+          "engine": "vector",
+          "instruction_rows": 47007,
+          "active_ms": 59.495554
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "gpsimd",
+          "instruction_rows": 22955,
+          "active_ms": 17.367959
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "scalar",
+          "instruction_rows": 34878,
+          "active_ms": 37.311688
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "sync",
+          "instruction_rows": 42787,
+          "active_ms": 26.245726
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "tensor",
+          "instruction_rows": 14743,
+          "active_ms": 66.239389
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "vector",
+          "instruction_rows": 46276,
+          "active_ms": 42.567877
+        }
+      ],
+      "regular_matmul_precision_by_core": [
+        {
+          "pcore_idx": 0,
+          "bf16_cost_multiplier": 4.0,
+          "raw_flops_sum": 12033982720,
+          "adjusted_flops_sum": 48135930880,
+          "start_ts_count": 12445
+        },
+        {
+          "pcore_idx": 0,
+          "bf16_cost_multiplier": 1.0,
+          "raw_flops_sum": 3040295845888,
+          "adjusted_flops_sum": 3040295845888,
+          "start_ts_count": 207137
+        },
+        {
+          "pcore_idx": 1,
+          "bf16_cost_multiplier": 4.0,
+          "raw_flops_sum": 8796504064,
+          "adjusted_flops_sum": 35186016256,
+          "start_ts_count": 10852
+        },
+        {
+          "pcore_idx": 1,
+          "bf16_cost_multiplier": 1.0,
+          "raw_flops_sum": 3017931620352,
+          "adjusted_flops_sum": 3017931620352,
+          "start_ts_count": 205156
+        }
+      ],
+      "private_transpose": {
+        "instruction_rows": 102,
+        "activity": [
+          {
+            "pcore_idx": 0,
+            "engine": "Tensor",
+            "instruction_rows": 102,
+            "active_ms": 0.007368
+          }
+        ]
+      },
+      "warnings": [
+        {
+          "message": "Notification from block DMA of type DMA were dropped. This can cause corresponding data to be incorrect.",
+          "category": "Missing Data"
+        },
+        {
+          "message": "Current NEFF is missing compiler metrics. Please re-compile using latest version of the compiler",
+          "category": "Missing Data"
+        },
+        {
+          "message": "Missing HLO stats in the NEFF, `model_flops` and `mfu_hlo_estimated_percent` summary metrics will not be available. Consider the metrics (hardware_flops - transpose_flops) and mfu_inst_estimated_percent instead.",
+          "category": "Missing Data"
+        },
+        {
+          "message": "Missing additional dynamic DMA metadata, reported DMA values may be inaccurate. To enable more accurate DMA data, re-capture with --enable-dge-notifs flag or set NEURON_RT_ENABLE_DGE_NOTIFICATIONS=1 before running. Note: DGE notifications are disabled by default as they can cause execution timeouts on some models.",
+          "category": "Missing Data"
+        }
+      ]
+    },
+    "library": {
+      "analysis": "research/run-logs/fs-w180-library-caller-analysis-r1.json",
+      "analysis_sha256": "09a608a60de81b6da392a724c883789acbe09b3a3cd81750a2569661a487fac7",
+      "forward": {
+        "execution_index": 1,
+        "neff_name": "e84c86a7d5579ac029191aa6fc1fbb95.neff",
+        "execution_start_ts": 10957950,
+        "execution_end_ts": 220283572,
+        "num_subgraphs": 2,
+        "row_count": 59933858,
+        "runtime_name": "model_default",
+        "nrt_sequence_id": 281474976718143,
+        "logical_cache_key": "5b151748d54537928b69d3b25f2732ec83e1b10fe6f8ab5933db29cc54e2e0ac:cd47b8171ac56a23cc896e6ceb62fa0bfd9e8cf0bf9b08bd2a965094c3965433",
+        "enclosing_annotation": "fresh_start_single_training_forward",
+        "device_wall_ms": 209.325622
+      },
+      "ordinary_linear_source": {
+        "nki_source_location": "/home/ubuntu/trainium_freshstart_20260918_wave180/train.py:2853",
+        "duration_ns_sum": 250791994,
+        "start_ts_count": 577292,
+        "spill_save_bytes_sum": 1548222464,
+        "spill_reload_bytes_sum": 13466865664,
+        "hbm_read_bytes_sum": 13499819520,
+        "hbm_write_bytes_sum": 2573948928,
+        "sbuf_read_bytes_sum": 26870044928,
+        "sbuf_write_bytes_sum": 17233720832,
+        "merged_activity_by_core_engine": [
+          {
+            "pcore_idx": 0,
+            "engine": "GpSimd",
+            "instruction_rows": 827,
+            "active_ms": 0.912024
+          },
+          {
+            "pcore_idx": 0,
+            "engine": "Scalar",
+            "instruction_rows": 21102,
+            "active_ms": 23.080757
+          },
+          {
+            "pcore_idx": 0,
+            "engine": "Sync",
+            "instruction_rows": 31960,
+            "active_ms": 12.72062
+          },
+          {
+            "pcore_idx": 0,
+            "engine": "Tensor",
+            "instruction_rows": 220773,
+            "active_ms": 45.204128
+          },
+          {
+            "pcore_idx": 0,
+            "engine": "Vector",
+            "instruction_rows": 13721,
+            "active_ms": 11.290936
+          },
+          {
+            "pcore_idx": 1,
+            "engine": "GpSimd",
+            "instruction_rows": 743,
+            "active_ms": 1.092107
+          },
+          {
+            "pcore_idx": 1,
+            "engine": "Scalar",
+            "instruction_rows": 20957,
+            "active_ms": 22.80068
+          },
+          {
+            "pcore_idx": 1,
+            "engine": "Sync",
+            "instruction_rows": 32059,
+            "active_ms": 12.704252
+          },
+          {
+            "pcore_idx": 1,
+            "engine": "Tensor",
+            "instruction_rows": 221413,
+            "active_ms": 45.232058
+          },
+          {
+            "pcore_idx": 1,
+            "engine": "Vector",
+            "instruction_rows": 13737,
+            "active_ms": 11.275763
+          }
+        ],
+        "examples": [
+          {
+            "bir_instruction_name": "I-2658-0-wait-0",
+            "opcode": "EVENT_SEMAPHORE"
+          },
+          {
+            "bir_instruction_name": "I-2659-2-tc-dve-wait-0",
+            "opcode": "EVENT_SEMAPHORE"
+          },
+          {
+            "bir_instruction_name": "I-2658-0",
+            "opcode": "LDWEIGHTS"
+          }
+        ]
+      },
+      "observed_counters": {
+        "spill_save_bytes": {
+          "nonnull_rows": 48734,
+          "positive_rows": 32254,
+          "sum": 6991265792
+        },
+        "spill_reload_bytes": {
+          "nonnull_rows": 102378,
+          "positive_rows": 87990,
+          "sum": 22879731712
+        },
+        "hbm_read_bytes": {
+          "nonnull_rows": 136068,
+          "positive_rows": 123776,
+          "sum": 33620686944
+        },
+        "hbm_write_bytes": {
+          "nonnull_rows": 85864,
+          "positive_rows": 69384,
+          "sum": 20147535876
+        },
+        "sbuf_read_bytes": {
+          "nonnull_rows": 2469928,
+          "positive_rows": 2465736,
+          "sum": 148916176900
+        },
+        "sbuf_write_bytes": {
+          "nonnull_rows": 681577,
+          "positive_rows": 681573,
+          "sum": 80122200676
+        }
+      },
+      "engine_activity": [
+        {
+          "pcore_idx": 0,
+          "engine": "gpsimd",
+          "instruction_rows": 28795,
+          "active_ms": 29.987683
+        },
+        {
+          "pcore_idx": 0,
+          "engine": "scalar",
+          "instruction_rows": 73151,
+          "active_ms": 78.562833
+        },
+        {
+          "pcore_idx": 0,
+          "engine": "sync",
+          "instruction_rows": 71077,
+          "active_ms": 44.15453
+        },
+        {
+          "pcore_idx": 0,
+          "engine": "tensor",
+          "instruction_rows": 28372,
+          "active_ms": 102.196934
+        },
+        {
+          "pcore_idx": 0,
+          "engine": "vector",
+          "instruction_rows": 61321,
+          "active_ms": 81.118429
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "gpsimd",
+          "instruction_rows": 27550,
+          "active_ms": 27.595199
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "scalar",
+          "instruction_rows": 63185,
+          "active_ms": 73.101633
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "sync",
+          "instruction_rows": 68524,
+          "active_ms": 41.930797
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "tensor",
+          "instruction_rows": 28619,
+          "active_ms": 101.834885
+        },
+        {
+          "pcore_idx": 1,
+          "engine": "vector",
+          "instruction_rows": 60496,
+          "active_ms": 64.04016
+        }
+      ],
+      "regular_matmul_precision_by_core": [
+        {
+          "pcore_idx": 0,
+          "bf16_cost_multiplier": 1.0,
+          "raw_flops_sum": 3030273818624,
+          "adjusted_flops_sum": 3030273818624,
+          "start_ts_count": 255087
+        },
+        {
+          "pcore_idx": 0,
+          "bf16_cost_multiplier": 4.0,
+          "raw_flops_sum": 3041263872,
+          "adjusted_flops_sum": 12165055488,
+          "start_ts_count": 3116
+        },
+        {
+          "pcore_idx": 1,
+          "bf16_cost_multiplier": 1.0,
+          "raw_flops_sum": 3034996277248,
+          "adjusted_flops_sum": 3034996277248,
+          "start_ts_count": 255323
+        },
+        {
+          "pcore_idx": 1,
+          "bf16_cost_multiplier": 4.0,
+          "raw_flops_sum": 2459205632,
+          "adjusted_flops_sum": 9836822528,
+          "start_ts_count": 2816
+        }
+      ],
+      "private_transpose": {
+        "instruction_rows": 5988,
+        "activity": [
+          {
+            "pcore_idx": 0,
+            "engine": "Tensor",
+            "instruction_rows": 5988,
+            "active_ms": 0.324253
+          }
+        ]
+      },
+      "warnings": [
+        {
+          "message": "Missing additional dynamic DMA metadata, reported DMA values may be inaccurate. To enable more accurate DMA data, re-capture with --enable-dge-notifs flag or set NEURON_RT_ENABLE_DGE_NOTIFICATIONS=1 before running. Note: DGE notifications are disabled by default as they can cause execution timeouts on some models.",
+          "category": "Missing Data"
+        },
+        {
+          "message": "Notification from block DMA of type DMA were dropped. This can cause corresponding data to be incorrect.",
+          "category": "Missing Data"
+        },
+        {
+          "message": "Current NEFF is missing compiler metrics. Please re-compile using latest version of the compiler",
+          "category": "Missing Data"
+        },
+        {
+          "message": "Missing HLO stats in the NEFF, `model_flops` and `mfu_hlo_estimated_percent` summary metrics will not be available. Consider the metrics (hardware_flops - transpose_flops) and mfu_inst_estimated_percent instead.",
+          "category": "Missing Data"
+        },
+        {
+          "message": "Schema validation: Unexpected key 'subgraph' cannot be saved to table 'TimelineAnnotation' because no schema.yaml entry exists or no key name remapping. This key and value will be dropped and not found in parquet output.",
+          "category": "Schema Validation"
+        }
+      ]
+    }
+  },
+  "device_forward_delta_ms": 71.475086,
+  "interpretation": {
+    "ordinary_linear_attribution_dominant_new_cost": true,
+    "larger_fp32_matmul_work_not_supported": true,
+    "hypothesis_to_test": "Restrict manual SBUF address span to reduce interference with surrounding compiler scheduling and spills. Causality not established.",
+    "next_static_budgets_kib_per_partition": [
+      128,
+      64
+    ],
+    "fused_bf16_arithmetic_unchanged": true,
+    "profiling_wall_time_is_not_unprofiled_training_performance": true,
+    "source_engine_intervals_overlap_not_additive": true,
+    "dropped_dma_precludes_exact_traffic_bandwidth_claims": true,
+    "no_training_or_bpb_gain_claim": true
+  }
+}

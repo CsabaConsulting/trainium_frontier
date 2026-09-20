@@ -4,63 +4,55 @@ The user's Re:Invent lead is [AWS Neuron's NKI Library](https://github.com/aws-n
 The clean local clone is pinned at `92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e`
 (August 28). Source references below use that commit, rather than a moving main.
 
-Current result at06:48UTC: the BF16 complete-component candidate is2.404%
-faster, but its joined/separate whole-model steps are14.619%/25.146% slower.
-Neither advances to a quality run. The native caller trace is decoded and
-preserved locally and on GitHub; source180 r3 captures the matching library
-caller. Source187 passes all ten ROW FP8 cases and clean postflight: production
-forward4.867048ms vs4.617179ms nativeBF16 (+5.412%), with all online preparation
-charged. Source188 passes both rank-count checks: the isolated BF16 library
-component is2.102% faster with one rank,2.163% slower with four. Timing drift
-across the four-rank rounds is preserved; this is not a full-model explanation.
-Earlier byte-transpose, parser, diagnostic-DMA and allocation failures
-are preserved with specific corrections and unchanged numerical bounds.
-No new training-speed or BPB gain is established.
+Current result at07:21UTC: library techniques are incorporated into working
+experimental variants. Component improvements have not yet produced a faster
+whole-model training step or a lower BPB. The frozen submission is unchanged.
 
-## Concrete transfers and next decisions
+## Concrete transfers and measured results
 
-| Library technique | Implemented experiment | Next decision |
+| Library technique | Incorporated change | Measured result / decision |
 | --- | --- | --- |
-| Explicit SBUF/PSUM allocation, buffered weight loads, token-row sharding | BF16 CTE MLP adapted to ReLU-squared and ordinary training Linear weights | Use paired caller traces to locate surrounding compiler/spill cost before changing another tile. |
-| Existing intermediate transpose | Save the pre-square ReLU through the transpose already required by the library; source175 adds no activation transpose or reserved SBUF | One-rank versus four-rank complete-component timing will distinguish shared-chip contention from model-context overhead. |
-| Trn2 double-row legacy FP8 matmul with ROW scales | Source179 online quantizer and source187 complete forward use per-token activation and per-output-channel weight scales | Finish original gates and charge all preparation; add backward only if forward cost justifies it. |
-| Coalesced DMA and layout-aware transpose | Source183 exact byte transpose fixes the composed PyTorch byte-layout corruption | Fuse weight quantization and transpose into one producer if measured preparation cost is material. |
-| On-chip normalization/quantization | Library helpers expose a path to consume BF16 input directly and quantize loaded tiles | A future fused input loader could avoid packed-input HBM materialization; require the same independent scale/byte gates. |
-| Newer CTE attention and backward | Same installed controls, production shape and saved-statistic costs measured | Production gain is only0.395%; no wholesale switch or BPB claim. |
+| Explicit SBUF/PSUM allocation, buffered weight loads, token-row sharding | BF16 CTE MLP adapted to ReLU-squared and ordinary training Linear weights | Complete component2.404% faster; joined model14.619% slower, separate model25.146% slower. Full numerical/master/cache gates pass. |
+| Existing intermediate transpose | Save pre-square BF16 ReLU through the transpose already required for down projection | Source175 adds no extra activation transpose or reserved SBUF. Complete backward and independent FP64 checks pass. |
+| Trn2 double-row legacy FP8 with ROW scales | Online per-token/per-channel quantizers and complete ROW forward | Source187 passes all10 cases;4.867048ms vs4.617179msBF16, all preparation included. |
+| Stride-2 FP8 PSUM transpose and contiguous DMA | Source189 fuses weight quantization and transpose on chip, eliminating a quantized HBM temporary | Up0.180071ms vs0.256682ms (29.85% lower); down0.137327ms vs0.202133ms (32.06% lower). All8 fixtures/232 exact checks pass. |
+| Same fused producer in complete ROW forward | Exactly four preparation expressions change; all original gates retained | Source1894.686795ms vs4.596355msBF16 (1.968% slower). Improvement over the prior5.412% gap; not yet a forward win. |
+| Newer CTE attention/backward | Production shape and saved-statistic costs measured against bundled NKI | Only0.395% production gain; no wholesale switch. Earlier FP64 coordinate failures are retained, not relabeled. |
+| Bounded scratch allocation | Source190 static64/128KiB limits, instead of212728B per partition | Implemented/AST-checked, device validation pending. Hypothesis: improve surrounding Linear scheduling/spills. |
 
-Source188's proposed contention diagnostic retains source175's full FP64 proof
-as a source- and hash-matched prerequisite. Every participating rank must pass
-full native output/dX/dW comparisons and exact repeats. Distinct compiler root
-functions and a compiled-backward assertion on every call prevent fallback
-from contaminating timings. Alternating paired rounds report the maximum rank
-duration; synchronization/collectives used for comparison remain outside the
-timed region. This tests one MLP, not an optimizer step or model quality.
+Source188 repeats the complete BF16 component with one/four concurrent ranks.
+It passes all original source-matched FP64 prerequisites, native gradients,
+exact repeats and compiled-backward checks. One rank is2.102% faster; four
+ranks2.163% slower. The paired round timings drift; this diagnoses fragility
+under chip load but does not fully explain the whole-model regression.
 
-Source189 prepares a directly library-inspired fusion. Its FP8 TensorEngine
-transpose uses the upstream two-byte PSUM stride; a second fused producer uses
-the already validated BF16 integer carrier. Both quantize each weight row,
-transpose while values remain on chip, and gather contiguous stores, removing
-the separate quantized-weight HBM temporary. They must match every reference
-byte and metadata value, the independent reciprocal/legacy-FP8 algebra, changed
-inputs and exact unaffected rows. Eight fixtures include both production weight
-shapes and the finite BF16 alphabet. Hardware validation is pending.
+Both source180 training-forward traces and decoded tables are preserved locally,
+with compiled identities matched to runtime dispatches. Native137.850536ms,
+library209.325622ms. Ordinary Linear at train.py:2853 has core0 Tensor activity
+15.574164 to45.204128ms and observed reload counters0.592 to13.467GB. Regular
+FP32 matmul work falls. Private transpose instructions are too small to explain
+the gap. These are attribution clues, not a proven causal explanation: source
+intervals overlap and DMA notifications were dropped. Never report the byte
+counters as exact traffic or bandwidth. Full analysis and warnings are in
+`run-logs/fs-w180-paired-caller-analysis-proof-r1.json`.
 
-Only if the direct producer is at least5% faster at both production shapes will
-the finite queue run the complete ten-case ROW forward again. Its wrapper
-changes exactly four preparation expressions; AST comparison proves every
-original fixture, numerical bound and timing boundary outside preparation is
-unchanged. This is a forward experiment; saved activations/backward and quality
-remain untested. Source187's production FP8 output differs from unquantized
-BF16 by5.764% relative RMS on its random fixture, which is recorded as an
-approximation diagnostic, never as evidence of equivalent training quality.
+The next finite queue checks64/128KiB allocator budgets through original full
+component, real Linear/cache/checkpoint integration, and same-source/same-host
+native/candidate model steps. A component speedup is not a prerequisite because
+this explicitly tests model-context interference. Numerical gates remain strict.
+All upstream lifetime, OOM and underflow checks remain in place; the budget is
+an explicit static NKI argument to prevent ambiguous compilation-cache reuse.
 
-The native training-forward trace is137.850536ms, with all compiled identities
-resolved. Its observed spill counters are10.09GB saved/15.07GB reloaded, and
-private-compiler transpose instructions occupy only0.007368ms on core0.
-Dropped DMA notifications and missing dynamic-DMA metadata prevent treating
-the byte counters as exact traffic or bandwidth. The paired candidate is still
-required before attributing the regression to any specific family or source
-line. See `run-logs/fs-w180-native-caller-analysis-r1.json`.
+A separate next fusion is designed in
+`fresh-start-library-fusion-next-2026-09-20.md`: quantize BF16 token rows inside
+the library loader to avoid input HBM materialization. Implementing training
+saves/backward remains a distinct requirement. The ROW random fixture differs
+from unquantized BF16 by5.764% relative RMS; quantized-reference correctness
+therefore does not establish equivalent training quality.
+
+All byte-transpose, parser, diagnostic-DMA and ungated-allocation failures are
+preserved with specific fixes and unchanged numerical bounds. The pinned66-file
+library subset and Apache license are retained; no SDK replacement is involved.
 
 ## What is new, and what we already use
 

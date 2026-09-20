@@ -1,46 +1,46 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-20 06:40 UTC. Authorization: danger-full-access, approval never.
-Use current manifests/postflights before dispatch; do not restart completed jobs.
+Updated 2026-09-20 07:21 UTC. Authorization: danger-full-access, approval never.
+Use committed manifests/postflights before dispatch; never restart completed jobs.
 
-## Current work — 2026-09-20 06:40 UTC
+## Current work — 2026-09-20 07:21 UTC
 
-- Trn21 source187 RUNNING, sequence fs-w187-nkilib-row-mlp-heap-sequence-r1,
-  coordinator21425, immutable source861b0ce8, started06:33:45UTC. Nine cases
-  complete; production32768×1024 independent arithmetic also passes. Final
-  exact repeats, production timing and clean postflight remain pending.
-  Source185 parser fix exposed our unsupported diagnostic PSUM-to-HBM DMA;
-  source186 fixed that then exposed upstream ungated ROW cleanup underflow.
-  Source187 changes only the extra allocation pop to match conditional gate
-  allocation. All failures, strict allocator checks and bounds are retained.
-- Trn22 source180 r3 RUNNING, coordinator16599, immutable source9e103ea6,
-  started06:30:36UTC. Library joined training-forward capture then CPU ingest.
-  Warmup0 completed403.187s; compilation for later calls is active. Do not
-  relaunch r1/r2: their exact-marker substring failures are preserved. The
-  nested candidate prerequisite needed the same exact NEFF_ARTIFACT boundary
-  correction as the outer plan. Kernel and numeric fields are unchanged.
-- Native180 raw profile2,508,972,448B verified locally, then GitHub asset
-  verified06:26:26UTC. Native parquet718,206,372B verified locally06:30:46UTC.
-  Its analysis resolves all forward/startup graph identities. DMA warnings
-  prohibit exact traffic/bandwidth claims; candidate comparison is pending.
-- Source188 PREPARING: same complete BF16 library/native MLP with one and four
-  concurrent ranks. Reuse unchanged source175 FP64 proof; all ranks recheck
-  full native output/gradients, exact repeats and compiled backward. This
-  diagnoses chip contention versus surrounding model-graph cost, not BPB.
-- New tracked research/fresh_start_sequence_start.py rejects any plan/request
-  whose bytes differ from committed blobs before spawning. Source187 uses it.
-  Source180 r3's earlier plan dispatch/commit order mistake is preserved in
-  fs-w180-r3-precommit-dispatch-diagnosis-r1.json; its exact files are now
-  committed. Always use set -e for dependent shell operations.
-- Both BF16 whole-model tests COMPLETE/CLEAN: joined561.502963ms vs489.888026ms
-  (+14.619%); separate611.722864ms vs488.809250ms (+25.146%). Component gain
- 2.404% does not survive the model. No quality promotion.
+- Source189 COMPLETE/CLEAN on trn21 (immutable66f3dc70). Both frozen plans
+  independently verified. Fused online weight quantization/stride-2 FP8
+  transpose is29.85% faster for up weights and32.06% faster for down weights.
+  All8 fixtures and232 exact checks pass. Complete ROW forward passes all10
+  original cases:4.686795ms vs nativeBF164.596355ms, still1.968% slower.
+  Its previous gap was5.412%. No backward or quality claim.
+- Source180 library trace/ingestion r3 COMPLETE/CLEAN on trn22 (9e103ea6).
+  Both raw and derived arms are SHA-verified locally. Native raw/derived and
+  library raw are GitHub-digest-verified; library derived upload is pending.
+  Native forward137.850536ms vs library209.325622ms. Ordinary Linear source
+  train.py:2853 is a major new cost: core0 Tensor activity15.574 to45.204ms;
+  observed reload counters0.592 to13.467GB. DMA warnings prevent exact
+  traffic/bandwidth claims. FP32 matmul work falls; this is not evidence of
+  an accidental FP32 matmul promotion. See paired-caller-analysis-proof-r1.
+- Source188 COMPLETE/CLEAN: complete BF16 MLP one-rank2.102% faster, four-rank
+ 2.163% slower; all rank/native/repeat/compiled-backward gates pass. Preserve
+  measured timing drift. It does not fully explain the model regression.
+- Source190 PREPARING, NOT DISPATCHED:64/128KiB per-partition SBUF budget
+  variants retain library allocator checks/arithmetic and source175's full
+ 10-case independent gradient/accumulation gates. Then real cache integration,
+  same-host native model control and budgeted model. No component-speed gate:
+  this hypothesis targets surrounding model scheduling. Check later manifests
+  and postflights for actual launches; both hosts are currently idle/clean.
+- Trn22 free11.20GB, trn21 free22.49GB at07:13. Trn22 scratch-maintenance r3
+  is prepared:6GiB of old /tmp/nki_* diagnostics before06:30UTC, excluding
+  later compiles. Preserve every original file and verify live GitHub digests
+  before retiring remote copies; keep shared caches/checkpoints/profiles.
 - Best public BPB0.9928513116311253, cold replay0.9938556748843932. Frozen
   submission/train.py/prepare.py unchanged. Source159 T512 MUST NOT dispatch.
-- Last verified push06:31:11UTC source240d07a1/snapshotf492d482. Consult
-  out/fresh-start-backup/last-success.json for later refs. Cron preserves and
-  pushes; it does not select experiments or merge branches. Continue explicit
-  git/host locks, finite timeouts, immutable checkouts and pre/postflight cleanup.
+- Last verified push07:01:02UTC source d513defb/snapshot ca747f52; both remote
+  hosts retrieved. Consult out/fresh-start-backup/last-success.json for later
+  receipts. Cron preserves/pushes; it does not merge or select experiments.
+- Use research/fresh_start_sequence_start.py, which rejects uncommitted or
+  changed request/plan bytes. Explicit Git/host locks, finite timeouts,
+  immutable checkouts,45-second log mirroring and pre/postflight cleanup.
+  Always use set -e for dependent shell operations. No automatic retries.
 
 ## Previous checkpoint — 2026-09-20 06:25 UTC (superseded host status)
 

@@ -25,7 +25,7 @@ def backward_node_names(output):
     return names
 
 
-def run(tokens, channels, separate_region=False, distinct_probe_root=False):
+def run(tokens, channels, separate_region=False, distinct_probe_root=False, sbuf_budget_kib=0):
     torch._dynamo.reset()
     torch.manual_seed(172021 + channels)
     T.USE_WEIGHT_CACHE = T.USE_BF16_NORM_OUTPUT = True
@@ -34,7 +34,8 @@ def run(tokens, channels, separate_region=False, distinct_probe_root=False):
     T.RELU2_TAU = 0.0
     baseline = Probe(channels).to('neuron')
     candidate = copy.deepcopy(baseline)
-    contract = install(candidate, 'neuron', T, separate_region=separate_region)
+    contract = install(candidate, 'neuron', T, separate_region=separate_region,
+                       sbuf_budget_kib=sbuf_budget_kib)
     native = torch.compile(baseline, backend='neuron', fullgraph=True, dynamic=False)
 
     def candidate_forward(value):
@@ -134,6 +135,7 @@ def main():
     parser.add_argument('--real-width', action='store_true')
     parser.add_argument('--separate-region', action='store_true')
     parser.add_argument('--distinct-probe-root', action='store_true')
+    parser.add_argument('--sbuf-budget-kib', type=int, choices=(0, 64, 128), default=0)
     parser.add_argument('--diagnose-probe-roots', action='store_true',
                         help='Reproduce the original shared-root assertion, then gate isolated roots.')
     args = parser.parse_args()
@@ -142,7 +144,8 @@ def main():
         assert args.separate_region
         before = len(NATIVE_COMPILE_MISMATCHES)
         try:
-            run(256, 256, separate_region=True, distinct_probe_root=False)
+            run(256, 256, separate_region=True, distinct_probe_root=False,
+                sbuf_budget_kib=args.sbuf_budget_kib)
         except AssertionError:
             assert len(NATIVE_COMPILE_MISMATCHES) == before + 1
             assert not NATIVE_COMPILE_MISMATCHES[-1]['distinct_probe_root']
@@ -152,9 +155,9 @@ def main():
         else:
             raise AssertionError('Shared-root failure did not reproduce; inspect before advancing')
     distinct = args.distinct_probe_root or args.diagnose_probe_roots
-    run(256, 256, args.separate_region, distinct)
+    run(256, 256, args.separate_region, distinct, args.sbuf_budget_kib)
     if args.real_width:
-        run(2048, 1024, args.separate_region, distinct)
+        run(2048, 1024, args.separate_region, distinct, args.sbuf_budget_kib)
     emit('NKILIB_MLP_INTEGRATION_RESULT', dict(passed=True, cases=2 if args.real_width else 1,
         separate_compiled_region=args.separate_region, distinct_probe_root=distinct,
         shared_root_diagnostic=args.diagnose_probe_roots, full_model_or_quality_claim=False))

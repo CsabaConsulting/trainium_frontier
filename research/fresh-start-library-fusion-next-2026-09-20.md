@@ -1,6 +1,6 @@
 # Next library-derived fusions
 
-Checkpoint: 2026-09-20 06:54 UTC. Consult `RESUME.md` and final postflights for
+Checkpoint: 2026-09-20 07:21 UTC. Consult `RESUME.md` and final postflights for
 current host state. These are conditional experiments, not accepted speed or
 quality improvements. The pinned library is upstream92d11f63; bundled control
 kernels, canonical training entry and frozen submission remain separate.
@@ -19,7 +19,8 @@ kernels, canonical training entry and frozen submission remain separate.
   weight producer. Up preparation0.180071ms vs0.256682ms; down0.137327ms vs
  0.202133ms. Both are exact in bytes/scales/metadata, with independent reciprocal
   and FP8 gates, changed-input tests and all eight fixtures. The complete ROW
-  forward follow-up is running; its result must decide the next step.
+  forward now passes all10 cases:4.686795ms vs4.596355msBF16, still1.968%
+  slower. This is an improvement over5.412%, not an accepted forward win.
 
 ## Fuse BF16 input quantization into the library tile loader
 
@@ -96,3 +97,28 @@ data order, global token batch and official public evaluation boundary. A failed
 gate produces a preserved diagnosis and targeted new request, never a relaxed
 old threshold. Each request uses an immutable committed source, finite timeout,
 exclusive host ownership, pre/postflight cleanup and mirrored logs.
+
+## Source190 bounded allocator experiment
+
+Paired source180 traces are decoded and all dispatch identities match. The
+library forward adds71.475086ms; ordinary Linear source train.py:2853 is a
+major new attribution. Observed reload counters rise0.592 to13.467GB at that
+line, while core0 Tensor active intervals rise15.574 to45.204ms. FP32 matmul
+work falls. Dropped DMA notifications forbid exact traffic/bandwidth claims;
+source intervals overlap. This motivates a hypothesis, not a causal conclusion.
+
+The upstream allocator stacks upward from0 and heaps downward from212728B per
+partition. Source190 restricts that upper bound to128KiB (trn21) or64KiB
+(trn22). The same tile-size planner uses the actual remaining space. All
+allocation/scope/collision checks stay intact. The budget is an explicit static
+kernel argument. An AST proof verifies that only the function name/argument,
+accepted-budget assertion and allocator bound change in the copied upstream
+entry. The original training-save arithmetic and10-case probe remain unchanged.
+
+Each host gets a bounded four-step sequence: component numerical/full-gradient
+gates; real cached/uncached Linear integration; native full-step control;
+budgeted joined full-step candidate.30 measured steps after5 warmups, fixed
+seed42, same global batch, optlevel1, no separate compiled region. Component
+speedup is not a prerequisite for this scheduling hypothesis. Stop on any
+correctness/cleanup failure. Do not promote to a30-minute trial without a
+repeatable complete-step improvement and all existing master/cache/eval gates.

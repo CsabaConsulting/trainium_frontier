@@ -1,5 +1,19 @@
 # Continued kernel work and research — 2026-09-20
 
+## 2026-09-20 07:21 UTC — library fusions and caller evidence
+
+Source189 COMPLETE/CLEAN: exact fused weight preparation29.85%/32.06% faster;
+complete ROW forward4.686795ms vs4.596355msBF16, still1.968% slower, all10 gates
+pass. Source188 one/four-rank complete component−2.102%/+2.163%, all gates pass.
+Source180 paired traces COMPLETE/CLEAN and preserved; surrounding ordinary
+Linear activity/spills increase, not FP32 matmul work. DMA counters are incomplete.
+Source19064/128KiB allocator budgets implemented and statically verified,
+NOT YET DISPATCHED: full gradient/cache gates then native/candidate model steps.
+Trn22 verified archive-before-retirement maintenance r3 prepared for disk headroom.
+See RESUME.md, the NKI library audit and library-fusion-next plan for details.
+No quality/BPB gain or submission change. Source159 T512 remains prohibited.
+
+
 Latest host status and failure recovery: RESUME.md, updated06:40UTC. Trn21
 source187 finishes the ROW FP8 forward gate after targeted compatibility fixes;
 trn22 source180 r3 captures the library caller. Native caller analysis is ready.
