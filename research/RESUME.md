@@ -1,9 +1,47 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-20 08:48 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-20 12:34 UTC. Authorization: danger-full-access, approval never.
 Use committed manifests/postflights before dispatch; never restart completed jobs.
 
-## Current work — 2026-09-20 08:48 UTC
+## Current work — 2026-09-20 12:34 UTC
+
+- Direct SSH at12:23 found both hosts idle after finite queues196/195 completed
+  at09:05/09:28 UTC. Their results are now independently verified and committed.
+  See fresh-start-library-followup-2026-09-20.md and195/196 final proof JSONs.
+- Trn21 RUNNING source1989a793768, remote wave198. Coordinator17455,
+  fs-w198-nkilib-saved-contention-sequence-r1, launched12:29:52, plan7e754438,
+  max6600s. One/four/one-rank saved-forward comparison; same source194 functions
+  and frozen gates, exact stage/repeat/changed-input checks on each rank. Initial
+  one-rank native and FP8 repeat checks pass; diagnostic-stage compilation pending.
+- Trn22 first197 profile COMPLETE/CLEAN. Full-model trace reduced free disk to
+ 9,008,365,568B, just418,430,976B above8GiB reserve. First Explorer ingestion
+  continues under its own finite remote guard. Local coordinator16380 was
+  deliberately stopped using a checked pidfd at12:33:22 to hold the next capture.
+  fs-w197-coordinator-disk-hold-r1.json is authoritative: original sequence JSON
+  still says running because SIGTERM does not write its state. DO NOT restart
+  the original197 coordinator or launch last-profile before maintenance.
+- First raw197 profile is being retrieved with fresh_start_preserve_directory
+  (PTY48200). No remote artifacts have been deleted. Next: await/verify ingestion,
+  archive old /tmp/nki_* diagnostics before12:20 UTC under the exclusive host
+  lock, verify every local archive hash and live GitHub digest, then retire only
+  that inventory. Preserve sources/shared caches/current compiles/profiles.
+- Continue197 with a NEW finite plan for the unchanged remaining last-profile
+  and last-ingest requests after cleanup. New local preservation sidecar
+  research/preserve_library_position_profiles.py is an UNCOMMITTED draft;
+  DO NOT launch until adapted to the continuation plan and committed. Its current
+  wait target was stopped. It must preserve all four fixed artifacts without
+  dispatching experiments or changing cron.
+- Vector square196 is2.13% slower than matched Scalar at production shape.
+  Retain Scalar:4.776949ms vs native5.327761ms including saved forward state.
+  No complete backward/model/BPB improvement. Source195 first-only mean496.617ms,
+  last-only682.661ms, all564.512ms, zero controls499.108/498.149ms. Every sample
+  retained; final-step optimizer spikes repeat in first/zero arms.
+- Canonical train.py, prepare.py and submission remain unchanged. Best public
+  BPB0.9928513116311253; cold replay0.9938556748843932. Source159 MUST NOT dispatch.
+  Frozen active198 helpers/requests must not change. Cron mirrors/pushes every
+ 10min and chooses no experiments; active198 coordinator mirrors every45s.
+
+## Previous checkpoint — 2026-09-20 08:48 UTC
 
 - Trn21 RUNNING source196d8461533 at remote wave196. Coordinator13612,
   fs-w196-nkilib-vector-square-sequence-r1, started08:43:43UTC, plan9ddd3fe5,
