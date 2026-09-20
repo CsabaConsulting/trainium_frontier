@@ -1,0 +1,17 @@
+{
+  "label": "fs-w194-nkilib-row-training-save-r1",
+  "guard_pid": 1732977,
+  "child_pid": 1732978,
+  "child_session": 1732978,
+  "started_at": "2026-09-20T08:16:11.597407+00:00",
+  "command": [
+    "timeout",
+    "--signal=TERM",
+    "--kill-after=30s",
+    "4800",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "-c",
+    "REMOTE='/home/ubuntu/trainium_freshstart_20260918_wave194'\nimport pathlib,json,sys,hashlib,subprocess\nroot=pathlib.Path(REMOTE);sys.path.insert(0,str(root/'research'))\nfrom fresh_start_sequence import read_requests,require_completed\nlogs=root/'research/run-logs'\nplan=json.loads((logs/'fs-w191-nkilib-inline-input-sequence-r1.plan.json').read_text())\nrequest=read_requests(plan)[0]\nassert request['expected_commit']=='153c4c13c9e3cde41cbeda3244fa8fd79a5af72c'\nlabel=request['label']\nrequire_completed(json.loads((logs/(label+'.postflight.json')).read_text()),(logs/(label+'.log')).read_text(),request,plan['steps'][0]['requirements'])\nlaunch=json.loads((logs/(label+'.launch.json')).read_text())\nfor path,wanted in launch['source_sha256'].items():\n assert hashlib.sha256((root/path).read_bytes()).hexdigest()==wanted,path\nprint('NKILIB_TRAINING_SAVE_PREREQUISITE '+json.dumps(dict(passed=True,source_commit=request['expected_commit'],all_original_source191_requirements_verified=True,all_source191_kernel_bytes_unchanged=True)),flush=True)\nsubprocess.run(['/home/ubuntu/workspace/native_venv/bin/python','-u',str(root/'research/scratch/nki_library_row_training_forward_probe.py'),'--steps','30'],check=True)\n"
+  ]
+}

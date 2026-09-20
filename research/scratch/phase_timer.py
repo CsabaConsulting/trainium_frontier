@@ -131,6 +131,8 @@ def main():
                     help="Restrict per-partition library scratch allocation; 0 retains upstream bounds.")
     ap.add_argument("--library-mlp-compiler-sbuf", action="store_true",
                     help="Delegate SBUF placement to the compiler, retaining logical allocator checks.")
+    ap.add_argument("--library-mlp-layers", type=str, default=None,
+                    help="Comma-separated library layers, or 'none'; other layers keep native HxT backward.")
     ap.add_argument("--fp8-mlp-packed", action="store_true",
                     help="Gated packed FP8 MLP forward/BF16 surrogate backward; all cache work timed.")
     ap.add_argument("--fp8-mlp-full", action="store_true",
@@ -268,6 +270,19 @@ def main():
         ap.error("--library-mlp-compiler-sbuf requires --library-mlp")
     if args.library_mlp_compiler_sbuf and args.library_mlp_sbuf_budget_kib:
         ap.error("compiler SBUF placement and fixed SBUF budgets are separate experiments")
+    library_layer_indices = None
+    if args.library_mlp_layers is not None:
+        if (not args.library_mlp or args.library_mlp_separate_region
+                or args.library_mlp_compiler_sbuf or args.library_mlp_sbuf_budget_kib):
+            ap.error("library layer selection requires the original joined library MLP")
+        try:
+            library_layer_indices = (() if args.library_mlp_layers == 'none' else
+                                     tuple(int(value) for value in args.library_mlp_layers.split(',')))
+        except ValueError:
+            ap.error("--library-mlp-layers requires 'none' or comma-separated integers")
+        if (any(i < 0 for i in library_layer_indices)
+                or len(set(library_layer_indices)) != len(library_layer_indices)):
+            ap.error("library layers must be unique nonnegative indices")
     if args.fp8_mlp_separate_region and not args.fp8_mlp_packed:
         ap.error("--fp8-mlp-separate-region requires --fp8-mlp-packed")
     if args.fp8_mlp_full and not args.fp8_mlp_packed:
@@ -468,11 +483,15 @@ def main():
     fp8_mlp_contract = None
     library_mlp_contract = None
     if args.library_mlp:
-        from nki_library_mlp_integration import install
-        library_mlp_contract = install(model, device, T,
-                                      separate_region=args.library_mlp_separate_region,
-                                      sbuf_budget_kib=args.library_mlp_sbuf_budget_kib,
-                                      compiler_allocated_sbuf=args.library_mlp_compiler_sbuf)
+        if library_layer_indices is None:
+            from nki_library_mlp_integration import install
+            library_mlp_contract = install(model, device, T,
+                                          separate_region=args.library_mlp_separate_region,
+                                          sbuf_budget_kib=args.library_mlp_sbuf_budget_kib,
+                                          compiler_allocated_sbuf=args.library_mlp_compiler_sbuf)
+        else:
+            from nki_library_partial_mlp import install
+            library_mlp_contract = install(model, device, T, library_layer_indices)
         print("[pt] isolated library training MLP " + json.dumps(library_mlp_contract), flush=True)
     if args.fp8_mlp_packed:
         if args.fp8_mlp_full:
