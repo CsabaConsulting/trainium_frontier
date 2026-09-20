@@ -1,9 +1,47 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-20 07:19 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-20 07:39 UTC. Authorization: danger-full-access, approval never.
 Use committed manifests/postflights before dispatch; never restart completed jobs.
 
-## Current work — 2026-09-20 07:19 UTC
+## Current work — 2026-09-20 07:39 UTC
+
+- Source190 both sequences are running their final budgeted library model arm.
+  The native controls completed CLEAN: 128KiB-host control 486.986693ms;
+  64KiB-host control 488.645588ms. Their last loss is exactly identical.
+  Both ten-case component and two-width cache/integration gates already pass.
+  Trn21 coordinator2513; trn22 coordinator9028. Do not restart or edit them.
+- Source191 ready, NOT DISPATCHED. Immutable code153c4c13, plan45ee03b4,
+  trn21 sequence fs-w191-nkilib-inline-input-sequence-r1. The preserved
+  out/fresh-start-wave191.bundle transports exactly153c4c13. Deploy helper
+  out/deploy-wave191.py trn21 creates detached remote wave191. Wait for190
+  CLEAN and coordinator exit, then use the tracked sequence starter once.
+  This is a forward-only quantize-in-loader gate, not training or BPB work.
+- Source192 ready, NOT DISPATCHED. Immutable code8b1a3fc0, plan6f893995,
+  trn22 sequence fs-w192-nkilib-compiler-sbuf-sequence-r1. Preserved bundle
+  and out/deploy-wave192.py trn22 create detached remote wave192. Four jobs:
+  original full-gradient component, real Linear/cache integration, native
+  control, compiler-placed-SBUF library candidate. All numerical bounds,
+  arithmetic and tiling retained. OOM/lifetime/underflow checks stay active.
+  Mixed compiler SBUF/manual PSUM compatibility still needs device validation.
+- New source180 analysis finds ordinary Linear core0 regular matmul count
+  55,059 to110,286; dominant work units shift16,777,216 to4,194,304 FLOPs.
+  Candidate Scalar copies add20.977ms active time. Source intervals overlap;
+  individual modules and exact M/N/K tiles are not identified. DMA counters
+  remain incomplete. Analysis, raw generated research and reviewed primary
+  sources are committed in the library-compiler-placement note.
+- Tavily pro research completed; incorrect PSUM-copy and unsupported internal
+  compiler-flag claims were rejected. No established causal explanation of
+  the adjacent Linear regression. No SDK or optimization-level change.
+- Last verified push 2026-09-20T07:31:06+00:00: source45ee03b4,
+  snapshotf59f839d; retrieval complete=True.
+  New source192 commits await next push. Cron retrieves/preserves/pushes;
+  it never merges or selects experiments. Sequences mirror logs every45s.
+- Best public BPB0.9928513116311253, cold replay0.9938556748843932.
+  Frozen submission/train.py/prepare.py unchanged. Source159 T512 MUST NOT run.
+  Retain8GiB free floor, immutable checkouts, finite timeouts, host/Git locks,
+  and separate pre/postflight cleanup for every experiment.
+
+## Previous checkpoint — 2026-09-20 07:19 UTC
 
 - Source190 BOTH RUNNING from immutable dad228df, remote wave190 on each host.
   Trn21 sequence fs-w190-nkilib-sbuf128-sequence-r1, coordinator2513, started

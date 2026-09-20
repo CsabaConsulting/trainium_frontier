@@ -4,7 +4,7 @@ The user's Re:Invent lead is [AWS Neuron's NKI Library](https://github.com/aws-n
 The clean local clone is pinned at `92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e`
 (August 28). Source references below use that commit, rather than a moving main.
 
-Current result at07:11UTC: library techniques are incorporated into working
+Current result at07:39UTC: library techniques are incorporated into working
 experimental variants. Component improvements have not yet produced a faster
 whole-model training step or a lower BPB. The frozen submission is unchanged.
 
@@ -19,6 +19,8 @@ whole-model training step or a lower BPB. The frozen submission is unchanged.
 | Same fused producer in complete ROW forward | Exactly four preparation expressions change; all original gates retained | Source1894.686795ms vs4.596355msBF16 (1.968% slower). Improvement over the prior5.412% gap; not yet a forward win. |
 | Newer CTE attention/backward | Production shape and saved-statistic costs measured against bundled NKI | Only0.395% production gain; no wholesale switch. Earlier FP64 coordinate failures are retained, not relabeled. |
 | Bounded scratch allocation | Source190 static64/128KiB limits, instead of212728B per partition | Both budgets passed full component/cache gates; model timing running. Hypothesis: improve surrounding Linear scheduling/spills. |
+| Compiler-managed SBUF placement | Source192 uses the upstream automatic allocation branch with logical capacity/lifetime checks retained | Implemented and frozen; full numerical/cache/model sequence awaits a clean host. |
+| Input quantization in the tile loader | Source191 loads BF16 then quantizes directly into FP8 compute tiles | Implemented and frozen; exact byte/stage/changed-input gates await a clean host. |
 
 Source188 repeats the complete BF16 component with one/four concurrent ranks.
 It passes all original source-matched FP64 prerequisites, native gradients,

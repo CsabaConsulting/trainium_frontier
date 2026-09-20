@@ -14,7 +14,8 @@ from nki_library_probe_common import verify_sources
 from nki_library_training_mlp_reuse_transpose import install as install_kernel, saved_relu_mlp_reuse_transpose
 
 
-def install(model, device, train_module, separate_region=False, sbuf_budget_kib=0):
+def install(model, device, train_module, separate_region=False, sbuf_budget_kib=0,
+            compiler_allocated_sbuf=False):
     if not str(device).startswith('neuron'):
         raise ValueError('The library training adapter requires Neuron')
     assert train_module.RELU2_TAU == 0.0
@@ -28,7 +29,14 @@ def install(model, device, train_module, separate_region=False, sbuf_budget_kib=
     install_kernel()
     from torch_neuronx import wrap_nki
     assert sbuf_budget_kib in (0, 64, 128)
-    if sbuf_budget_kib:
+    assert not (compiler_allocated_sbuf and sbuf_budget_kib)
+    if compiler_allocated_sbuf:
+        from nki_library_compiler_sbuf_mlp import saved_relu_mlp_compiler_sbuf
+        kernel = wrap_nki(saved_relu_mlp_compiler_sbuf)
+
+        def kernel_call(x, up, down):
+            return kernel[2](x, up.T.contiguous(), down.T.contiguous())
+    elif sbuf_budget_kib:
         from nki_library_sbuf_budget import saved_relu_mlp_budgeted
         kernel = wrap_nki(saved_relu_mlp_budgeted)
         budget_bytes = sbuf_budget_kib * 1024
@@ -100,4 +108,7 @@ def install(model, device, train_module, separate_region=False, sbuf_budget_kib=
         native_evaluation=True, checkpoint_keys_parameters_and_rng_unchanged=True)
     if sbuf_budget_kib:
         contract['allocator_sbuf_budget_kib_per_partition'] = sbuf_budget_kib
+    if compiler_allocated_sbuf:
+        contract['compiler_allocated_sbuf'] = True
+        contract['logical_allocator_capacity_and_lifetime_checks_retained'] = True
     return contract
