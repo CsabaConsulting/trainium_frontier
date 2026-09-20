@@ -1,0 +1,69 @@
+{
+  "label": "fs-w163-fp8-mlp-scale-component-r1",
+  "source_commit": "1f3890c91650c5ea36dae5cf996d8dcc1964df16",
+  "completed_at": "2026-09-20T01:40:57.648751+00:00",
+  "host_clean": true,
+  "command_returncode": 0,
+  "log_sha256": "272462993c4167536cfddaa98d595de68b4396099a3d866f23078c12c1f6977e",
+  "postflight_sha256": "b3c4d3b4f005607f535c16a1bbd8983531c4def671c3b1cec2985a1056087cbc",
+  "result": {
+    "passed": true,
+    "original_cases": 11,
+    "cases": 12,
+    "production_tokens": 32768,
+    "all_diagnostic_and_normal_outputs_exact_original": true,
+    "original_independent_stage_gates": true,
+    "row_independence_at_both_real_shapes": true,
+    "samples_ms": {
+      "native_bf16_surrogate_chain": [
+        5.393090366851538,
+        5.402123532257974,
+        5.3962725001232075
+      ],
+      "old_fp8_fused_abs_extra_cache_and_chain": [
+        5.5354676325805485,
+        5.548442768243452,
+        5.551382767346998
+      ],
+      "candidate_fp8_extra_cache_and_chain": [
+        4.706015367992222,
+        4.697925199676926,
+        4.707558833373089
+      ],
+      "old_fp8_fused_abs_cached_chain": [
+        5.151045632859071,
+        5.135394200139369,
+        5.149981365927185
+      ],
+      "candidate_fp8_cached_chain": [
+        4.298435665744667,
+        4.2981877670778585,
+        4.294232067574437
+      ]
+    },
+    "median_ms": {
+      "native_bf16_surrogate_chain": 5.3962725001232075,
+      "old_fp8_fused_abs_extra_cache_and_chain": 5.548442768243452,
+      "candidate_fp8_extra_cache_and_chain": 4.706015367992222,
+      "old_fp8_fused_abs_cached_chain": 5.149981365927185,
+      "candidate_fp8_cached_chain": 4.2981877670778585
+    },
+    "tokens": 32768,
+    "channels": 1024,
+    "hidden": 4096,
+    "data_gradient_chains_per_call": 1,
+    "extra_backward_transposes_and_packing_charged": true,
+    "shared_forward_calibration_already_paid": true,
+    "native_control_uses_same_qdq_weights": true,
+    "cached_control_preparation_excluded": true,
+    "independent_native_chain_bound": true,
+    "separate_times_not_additive": true,
+    "weight_gradients_fp32_accumulation_optimizer_model_excluded": true,
+    "autograd_or_model_gate": false,
+    "whole_model_or_quality_claim": false
+  },
+  "whole_model_or_quality_claim": false,
+  "speedup_vs_old_fp8_extra_preparation": 0.1518313219472801,
+  "speedup_vs_native_qdq_surrogate": 0.12791369081439552,
+  "interpretation": "12original/production stage gates pass and exact original outputs. Extra-cache-plus-data-chain15.18percent faster than prior FP8. Shared forward calibration remains borrowed, and weight gradients/model/optimizer are excluded. Advance to exact real-Linear composition and matched full-step controls; no quality claim."
+}

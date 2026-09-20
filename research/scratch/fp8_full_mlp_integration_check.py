@@ -47,7 +47,7 @@ def compiled_nodes(output):
 
 
 def run(channels, separate_region=False, compact_forward_saves=False, stream_packed_weights=False,
-        preserve_output_rank=False):
+        preserve_output_rank=False, engine_scaling="none"):
     from torch_neuronx import wrap_nki
     torch.manual_seed(8801 + channels)
     T.USE_WEIGHT_CACHE = T.USE_BF16_NORM_OUTPUT = True
@@ -61,7 +61,7 @@ def run(channels, separate_region=False, compact_forward_saves=False, stream_pac
     rng = torch.get_rng_state().clone()
     contract = install(candidate, 'neuron', T, separate_region=separate_region,
                        compact_forward_saves=compact_forward_saves, stream_packed_weights=stream_packed_weights,
-                       preserve_output_rank=preserve_output_rank)
+                       preserve_output_rank=preserve_output_rank, engine_scaling=engine_scaling)
     assert torch.equal(rng, torch.get_rng_state())
     assert tuple(candidate.state_dict()) == original_keys
     assert tuple(id(p) for p in candidate.parameters()) == original_ids
@@ -193,7 +193,7 @@ def run(channels, separate_region=False, compact_forward_saves=False, stream_pac
         channels=channels, tokens=512, cached_and_uncached=True, microbatches=2,
         separate_compiled_region=separate_region,
         compact_forward_saves=compact_forward_saves, stream_packed_weights=stream_packed_weights,
-        preserve_output_rank=preserve_output_rank,
+        preserve_output_rank=preserve_output_rank, engine_scaling=engine_scaling,
         reference_updates=4, exact_outputs_input_and_fp32_master_gradients=True,
         changed_cache_values=changed_cache_values, training_padding_and_row_independence=True,
         native_eval_and_checkpoint_restore_exact=True, contract=contract,
@@ -212,6 +212,7 @@ def main():
                         help='Gate sequential packed output-group loads with compact saves.')
     parser.add_argument('--preserve-output-rank', action='store_true',
                         help='Gate a direct BxTxC NKI result for unpadded MLP calls.')
+    parser.add_argument("--engine-scaling", choices=("none", "backward", "all"), default="none")
     args = parser.parse_args()
     if args.stream_packed_weights and not args.compact_forward_saves:
         parser.error('--stream-packed-weights requires --compact-forward-saves')
@@ -220,7 +221,7 @@ def main():
     import torch_neuronx
     torch.set_num_threads(4)
     run(256, args.separate_region, args.compact_forward_saves, args.stream_packed_weights,
-        args.preserve_output_rank)
+        args.preserve_output_rank, args.engine_scaling)
     if args.real_width:
         # Each independent model width exercises cached/uncached training and
         # four no-grad prediction shapes. Their shared Probe.forward code object
@@ -232,11 +233,11 @@ def main():
             completed_width=256, next_width=1024, process_local_dynamo_guards_only=True,
             numerical_contract_changed=False, shared_device_cache_purged=False)), flush=True)
         run(1024, args.separate_region, args.compact_forward_saves, args.stream_packed_weights,
-            args.preserve_output_rank)
+            args.preserve_output_rank, args.engine_scaling)
     print('FP8_FULL_MLP_INTEGRATION_RESULT ' + json.dumps(dict(passed=True, real_width=args.real_width,
           separate_compiled_region=args.separate_region,
           compact_forward_saves=args.compact_forward_saves, stream_packed_weights=args.stream_packed_weights,
-          preserve_output_rank=args.preserve_output_rank,
+          preserve_output_rank=args.preserve_output_rank, engine_scaling=args.engine_scaling,
           full_fp8_backward=True, full_model_or_quality_promotion=False)), flush=True)
 
 

@@ -1,0 +1,49 @@
+{
+  "label": "fs-w164-fp8-backward-cache-component-r1",
+  "source_commit": "50cae7d08e7ac26067a16fd3f6128b60c5290fdd",
+  "completed_at": "2026-09-20T01:40:50.777053+00:00",
+  "host_clean": true,
+  "command_returncode": 0,
+  "log_sha256": "501a7ca8ba3e26664b49511ecd40d3b06f21620aff20fd1e50edc78e6006a2c2",
+  "postflight_sha256": "119e07b12aa54923c1bfb96bdc5463e658956c59b2e63870920bccb4ddb480cd",
+  "result": {
+    "passed": true,
+    "weight_cases": 11,
+    "square_cases": 8,
+    "cases": 19,
+    "independent_cpu_cache_and_product_gates": true,
+    "exact_original_three_products": true,
+    "samples_ms": {
+      "native_three_fresh": [
+        1.5760309994220734,
+        1.5777447319123894,
+        1.5722211663766454
+      ],
+      "fused_dx_dual_preparation_three_fresh": [
+        1.629543201609825,
+        1.6284187673591077,
+        1.6270586328270535
+      ],
+      "fused_dx_backward_preparation_three_fresh": [
+        1.6277019341941923,
+        1.6318815333458285,
+        1.6321807343047112
+      ]
+    },
+    "median_ms": {
+      "native_three_fresh": 1.5760309994220734,
+      "fused_dx_dual_preparation_three_fresh": 1.6284187673591077,
+      "fused_dx_backward_preparation_three_fresh": 1.6318815333458285
+    },
+    "production_tokens": 32768,
+    "production_channels": 1024,
+    "all_master_casts_calibration_and_required_packing_charged": true,
+    "no_forward_fp8_cache_borrowed": true,
+    "autograd_or_model_gate": false,
+    "whole_model_or_quality_claim": false
+  },
+  "whole_model_or_quality_claim": false,
+  "candidate_slower_vs_native": 0.035437458999369564,
+  "candidate_slower_vs_dual": 0.0021264591492866636,
+  "interpretation": "19cases pass, but removing unused weight representations does not reduce complete projection cost. Candidate remains3.54percent slower than native. Stop this preparation-only path; no autograd/model promotion."
+}

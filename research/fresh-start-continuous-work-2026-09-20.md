@@ -280,3 +280,36 @@ Useful matmul FLOPs and FP8 double-mode multipliers are unchanged. These
 engine intervals overlap; do not add them as wall-time shares. All source162
 DMA and source163 compute raw/parquet files are now locally SHA256-verified;
 GitHub artifact upload is still pending at this checkpoint.
+
+## Source163/164 decisions and source165 model controls
+
+Source163 MLP data-gradient fusion completed clean01:40:57 UTC,12cases including
+both16384/32768token shapes and subnormal/signed-zero gradients. All original
+outputs and CPU stage bounds pass. One32768-token chain plus extra backward
+cache work: old FP85.548443ms, new4.706015ms (15.18% faster); native same-QDQ-
+weight surrogate5.396273ms. Shared forward calibration is still borrowed.
+Source164 backward-only square weight producer completed clean01:40:50UTC with
+19cases. Fresh complete projection1.631882ms versus existing fused-dX/dual
+producer1.628419ms and native1.576031ms. This is a negative, not promotion.
+
+Source165 explicitly selects no scale fusion (default), backward-only, or
+forward+backward inside the existing full-FP8 MLP research integration. Default
+math, checkpoint format and canonical train.py are unchanged. The new forward
+keeps two sequential FP32 multiplies and final BF16 rounding, with resident
+compact token-row outputs only. Original forward/backward kernels remain the
+independent numerical authority; original complete-autograd, cache update,
+two-microbatch FP32 accumulation and CPU-stage references are unchanged.
+
+Prepared next queues (not yet running at this source commit): trn22 checks
+actual Linear integration with backward-only scale fusion, then fresh native
+and candidate full-step timings. trn21 runs eleven complete forward+backward
+component cases with original references and all preparation/gradients charged,
+then actual Linear integration and matched native/candidate whole-step timings.
+Every request has its own host lock, bounded runtime and pre/post cleanup;
+advancement requires complete declared gates and clean postflight. Neither
+queue launches quality training. Compiler scope/spilling may erase the component
+win, which is why these controls are required. No concurrent host experiments.
+
+Source162/163 raw and parquet artifacts now all have verified GitHub asset
+digests (01:40:10–01:40:35 UTC). The01:40:50cron pushed source6ac8358 and its
+recovery snapshot with verified refs. Source165 and new launch receipts follow.

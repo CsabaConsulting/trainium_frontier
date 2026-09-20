@@ -3,35 +3,35 @@
 Updated 2026-09-20 01:31 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## Current work — 2026-09-20 01:39 UTC
+## Current work — 2026-09-20 01:47 UTC
 
-- trn22 source163 MLP scale component runs under PID23453, started01:36:04.
-  Source1f3890c wave163; original11cases plus current32768-token shape, exact
-  original outputs, CPU stage/native bounds, and charged extra backward caches.
-  Ten small cases including subnormal/signed-zero and the16384 case have
-  passed; production case/timing still pending. Bound2400s, request1800+30.
-- trn21 source163 three-arm dX compute profile completed clean01:36:47;
-  ingestion also returned0 with25tables. Coordinator PID23503, started01:36:04,
-  collects its final clean state. Both raw/derived profiles are locally hashed.
-  Source164 prepares backward-only cache specialization (remove unused outputs)
-  against current fast dX, with19independent cases and all preparation charged.
-- Source161 all45cases pass; both-fusion cached dX0.487894ms beats native
-  0.544186ms by10.34%; fresh three products1.625796ms still loses2.94%.
-  Source163 pre-profile repeat confirms0.489108/0.539251ms. Device attribution
-  halves Scalar activity to0.322ms/core and reduces Vector to0.430ms/core.
-  No autograd, complete-step, quality or competition-submission promotion.
-- Source162 DGE trace is preserved separately: notifications add substantial
-  host-visible overhead (about9ms FP8 calls), so those times are not speed
-  evidence. Source163 compute capture disabled them. Raw/derived files for
-  both captures have local hashes; GitHub artifact upload pending.
-- Source159 context screen COMPLETE/clean01:30:57: T512/pack64 median492.366241ms
-  vs T1024/pack32489.128874ms,0.662% slower; all four checks pass in both.
-  Prepared30-minute request is rejected at its3% speed gate; DO NOT dispatch.
-- Source160 raw/derived profiles already have verified GitHub asset digests.
-  Last verified source cron01:30:52:4a107d6, snapshot7dbce907. Source8dbf24e
-  and subsequent source164 need next push. Check latest backup receipt.
+- Source163 MLP scale COMPLETE/clean01:40:57 on trn22:12cases pass, original
+  outputs exact, extra-cache-plus-chain4.706015ms vs oldFP85.548443ms (15.18%
+  faster). Native same-QDQ chain5.396273ms; forward calibration borrowed.
+  No whole-step/BPB result. Source164 square cache COMPLETE/clean01:40:50:
+  19cases pass,1.631882ms vs dual1.628419/native1.576031. No speed promotion.
+- Both hosts are between finite queues. Preparing source165: trn21 gates
+  forward+backward scale fusion with eleven full-autograd component cases,
+  then real Linear integration and native/candidate full-step controls.
+  trn22 gates backward-only scale integration, then native/candidate steps.
+  Every step gets independent pre/postflight; no quality trial is queued.
+- trn22 postflight disk free9,026,797,568bytes (8.4GiB), close to8GiB floor.
+  Do NOT start a new large compile before verifying and retiring already
+  locally/cloud-preserved profile artifacts. Disk inventory is in progress.
+  trn21 has21,949,374,464bytes free and no device holders in its last postflight.
+  Preserve immutable compilation caches, sources, training checkpoints.
+- Source161 cached square dX gain10.34% is confirmed by source163 compute trace.
+  Original and new useful matrix FLOPs are unchanged; Scalar activity drops
+  from0.6345 to0.3222ms/core. Source162 DMA notifications add host overhead;
+  their timing is explicitly excluded from speed claims. Both trace sets and
+  parquet are locally SHA-verified and GitHub-digest-verified01:40:10–01:40:35.
+- Source159 context512 screen loses0.662% (492.366241 vs489.128874ms), all four
+  model checks pass. Prepared30-minute request rejected; DO NOT dispatch.
+- Latest verified cron push01:40:50: source6ac8358. Read last-success.json
+  for complete source/snapshot identities. Source165 and launch receipts
+  need next push. Canonical train.py/prepare.py/submission unchanged.
 - Best public BPB0.9928513116311253; cold replay0.993855675. Finite queues,
- 45s coordinator sync,10-minute backup cron; cron selects no experiments.
+  45s coordinator sync,10-minute backup cron; cron selects no experiments.
 
 ## Previous production QKV checkpoint (superseded host status)
 

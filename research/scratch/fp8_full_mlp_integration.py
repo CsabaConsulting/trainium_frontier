@@ -21,12 +21,21 @@ def call_separate_region(compiled_function, *inputs):
     return compiled_function(*inputs)
 
 
-def make_ops(compact_forward_saves=False, stream_packed_weights=False, preserve_output_rank=False):
+def make_ops(compact_forward_saves=False, stream_packed_weights=False, preserve_output_rank=False,
+             engine_scaling="none"):
     """Use the source137 exact dual producer and source135 full FP8 derivative."""
     from torch_neuronx import wrap_nki
     from fp8_dual_weight_cache_nki import build_kernel as build_dual
     from fp8_mlp_token_rows_nki import build_kernel as build_forward
     from fp8_mlp_data_backward_nki import build_kernel as build_backward
+    if engine_scaling not in ('none', 'backward', 'all'):
+        raise ValueError('Unknown FP8 engine scaling selection')
+    if engine_scaling != 'none':
+        if not compact_forward_saves or stream_packed_weights or preserve_output_rank:
+            raise ValueError('Engine scaling requires resident compact token-row saves')
+        from fp8_mlp_data_backward_engine_nki import build_kernel as build_backward
+    if engine_scaling == 'all':
+        from fp8_mlp_forward_engine_nki import build_kernel as build_forward
     from fp8_gradient_prepare_nki import build_kernels as build_gradient
     from fp8_weight_gradient_nki import build_kernels as build_product
     dual = wrap_nki(build_dual())
@@ -67,7 +76,7 @@ def make_ops(compact_forward_saves=False, stream_packed_weights=False, preserve_
 
 
 def install(model, device, train_module, separate_region=False, compact_forward_saves=False,
-            stream_packed_weights=False, preserve_output_rank=False):
+            stream_packed_weights=False, preserve_output_rank=False, engine_scaling="none"):
     """Attach per-instance methods without adding parameters, buffers or RNG draws.
 
     A missing initial cache is prepared from current masters inside the forward
@@ -92,7 +101,7 @@ def install(model, device, train_module, separate_region=False, compact_forward_
     before_rng = torch.get_rng_state().clone()
     prepare, apply = make_ops(compact_forward_saves=compact_forward_saves,
                               stream_packed_weights=stream_packed_weights,
-                              preserve_output_rank=preserve_output_rank)
+                              preserve_output_rank=preserve_output_rank, engine_scaling=engine_scaling)
     if separate_region:
         # One shared callable across layers avoids six Python closure guards.
         # This changes the compiler's allocation scope, not the FP8 algorithm.
@@ -183,6 +192,7 @@ def install(model, device, train_module, separate_region=False, compact_forward_
                 compact_forward_saves=bool(compact_forward_saves),
                 stream_packed_weights=bool(stream_packed_weights),
                 preserve_output_rank=bool(preserve_output_rank),
+                engine_scaling=engine_scaling,
                 output_rank_policy=('BxTxC for unpadded rank-three training calls; padded calls use token rows'
                                     if preserve_output_rank else 'token rows then reshape at caller'),
                 input_contract='gain-free RMS norm, BF16, widths256/1024',
