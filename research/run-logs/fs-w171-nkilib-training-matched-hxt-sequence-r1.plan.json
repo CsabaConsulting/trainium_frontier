@@ -1,0 +1,93 @@
+{
+  "label": "fs-w171-nkilib-training-matched-hxt-sequence-r1",
+  "max_seconds": 4200,
+  "purpose": "Matched current-native-control component timing: exact source171 saved-ReLU library forward and normal-row backward versus the current trainer native-forward/transposed-saved-ReLU backward. Reuse original full FP64/native/accumulation checks at three sizes. Prevent claiming a gain only against plain autograd. No model or quality promotion.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w171-nkilib-training-matched-hxt-r1.request.json",
+      "sha256": "dc47046a2c9b880e2dd167f5db9e2d67a0917306c17095611fdde5f955fab975",
+      "requirements": [
+        {
+          "marker": "NKILIB_TRAINING_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 6,
+            "source_commit": "2cd50e043742ff327f40eda70e9e43632a29118d",
+            "token_sharding": true
+          }
+        },
+        {
+          "marker": "NKILIB_PROVENANCE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "vendored_files": 66,
+            "package_installation": false,
+            "bundled_package_replaced": false
+          }
+        },
+        {
+          "marker": "NKILIB_TRAINING_MLP_CASE",
+          "count": 3,
+          "fields": {
+            "passed": true,
+            "full_independent_fp64_autograd_gradients": true,
+            "unchanged_native_comparison": true,
+            "exact_repeat_rows_and_fp32_accumulation": true,
+            "master_casts_layouts_activation_stores_and_full_backward_charged": true,
+            "optimizer_communication_and_model_excluded": true
+          }
+        },
+        {
+          "marker": "FUSED_MLP_NATIVE_GATE",
+          "count": 18,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "FUSED_MLP_STAGE_GATE",
+          "count": 6,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "FP8_CACHE_BACKWARD_FP64_BOUND",
+          "count": 18,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_EXACT",
+          "count": 18,
+          "fields": {
+            "passed": true
+          }
+        },
+        {
+          "marker": "NKILIB_MATCHED_HXT_CONTROL",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "transposed_relu": true,
+            "normal_input_gradient": false,
+            "original_gates_retained": true
+          }
+        },
+        {
+          "marker": "NKILIB_MATCHED_HXT_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "cases": 3,
+            "all_original_gates": true,
+            "whole_model_or_quality_claim": false
+          }
+        }
+      ]
+    }
+  ]
+}
