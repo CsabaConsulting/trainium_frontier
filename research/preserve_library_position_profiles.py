@@ -23,8 +23,10 @@ from fresh_start_sequence_start import require_committed_files
 
 
 LABEL = 'fs-w197-profile-preservation-sidecar-r1'
-SEQUENCE = 'fs-w197-nkilib-partial-profile-sequence-r1'
-PLAN_SHA256 = '87f89c86678053c6604b6e502d9d5e5bb1131c29d31c24450dffb1c12bc65699'
+SEQUENCE = 'fs-w197-nkilib-partial-profile-sequence-r2'
+PLAN_SHA256 = '9ca7cdbf49b31f894ddfd54c99eb59f1a38864b912717a35f0c9c832a60da470'
+ORIGINAL_SEQUENCE = 'fs-w197-nkilib-partial-profile-sequence-r1'
+ORIGINAL_PLAN_SHA256 = '87f89c86678053c6604b6e502d9d5e5bb1131c29d31c24450dffb1c12bc65699'
 SOURCE = '282935ca9b1e30f6c21c397143770b03034363f9'
 
 
@@ -32,13 +34,22 @@ def checked_plan():
     path = ROOT / 'research/run-logs' / (SEQUENCE + '.plan.json')
     assert hashlib.sha256(path.read_bytes()).hexdigest() == PLAN_SHA256
     plan = json.loads(path.read_text())
+    assert len(read_requests(plan)) == 3
+    original_path = ROOT / 'research/run-logs' / (ORIGINAL_SEQUENCE + '.plan.json')
+    assert hashlib.sha256(original_path.read_bytes()).hexdigest() == ORIGINAL_PLAN_SHA256
+    original_plan = json.loads(original_path.read_text())
+    assert len(read_requests(original_plan)) == 4
+    # The first raw capture was already fully clean. Its first ingestion failed
+    # only the storage reserve and is retained separately; never waive that gate.
+    # The continuation repeats ingestion with its own clean completion record.
+    plan = dict(plan, steps=[original_plan['steps'][0], *plan['steps']])
     requests = read_requests(plan)
     assert len(requests) == 4
     for request in requests:
         assert request['host'] == 'trn22' and request['expected_commit'] == SOURCE
         assert request['remote'] == '/home/ubuntu/trainium_freshstart_20260918_wave195'
     commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
-    require_committed_files(ROOT, commit, [Path(__file__).resolve(), path,
+    require_committed_files(ROOT, commit, [Path(__file__).resolve(), path, original_path,
         *[ROOT / step['request'] for step in plan['steps']]])
     return plan, requests
 
@@ -76,7 +87,7 @@ def main():
             assert current['plan_sha256'] == PLAN_SHA256
             assert current['status'] != 'stopped', current
             if current['status'] == 'complete':
-                assert len(current['completed']) == 4
+                assert len(current['completed']) == 3
                 break
             time.sleep(45)
         desktop_keyring_environment()

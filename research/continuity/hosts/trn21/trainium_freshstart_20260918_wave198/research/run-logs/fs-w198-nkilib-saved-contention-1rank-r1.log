@@ -22,3 +22,119 @@ NKILIB_ROW_HEAP_COMPAT {"installed": true, "isolated_namespace_only": true, "con
 NKILIB_ROW_MLP_ADAPTER {"installed": true, "isolated_namespace_only": true, "legacy_e4m3_double_row": true, "upstream_row_quantization_and_scaling": true, "token_row_sharding": true, "relu_bf16_then_square_bf16": true, "diagnostics_excluded_from_timed_path": true, "training_backward_implemented": false}
 NKILIB_INLINE_INPUT_ADAPTER {"installed": true, "isolated_namespace_only": true, "input_dtype_bf16": true, "online_quantization_inside_loader": true, "scratch_allocated_by_original_manager": true, "scratch_charged_to_tile_planner": true, "input_hbm_materialization_removed": true, "packed_input_control_retained": true, "upstream_projections_and_rounding_unchanged": true, "backward_or_training_quality_claim": false}
 NKILIB_ROW_TRAINING_SAVE_ADAPTER {"installed": true, "unchanged_relu_forward_control": true, "squared_relu_entry_selects_saves": true, "actual_consumed_input_and_hidden_bytes_saved": true, "both_row_scales_saved": true, "bf16_pre_square_relu_saved": true, "all_stores_inside_forward": true, "additional_sbuf_allocations": 0, "upstream_rounding_boundaries_retained": true, "backward_implemented": false, "training_or_bpb_claim": false}
+NKILIB_EXACT {"name": "contention:1:0:native:repeat", "passed": true}
+NKILIB_EXACT {"name": "contention:1:0:row_fp8:repeat", "passed": true}
+[rank0]:E0920 12:33:42.615000 1775954 torch/_guards.py:368] [2/0] Error while creating guard:
+[rank0]:E0920 12:33:42.615000 1775954 torch/_guards.py:368] [2/0] Name: "G['__import_nki_library_row_mlp_probe'].hidden"
+[rank0]:E0920 12:33:42.615000 1775954 torch/_guards.py:368] [2/0]     Source: global
+[rank0]:E0920 12:33:42.615000 1775954 torch/_guards.py:368] [2/0]     Create Function: EQUALS_MATCH
+[rank0]:E0920 12:33:42.615000 1775954 torch/_guards.py:368] [2/0]     Guard Types: None
+[rank0]:E0920 12:33:42.615000 1775954 torch/_guards.py:368] [2/0]     Code List: None
+[rank0]:E0920 12:33:42.615000 1775954 torch/_guards.py:368] [2/0]     Object Weakref: None
+[rank0]:E0920 12:33:42.615000 1775954 torch/_guards.py:368] [2/0]     Guarded Class Weakref: None
+[rank0]:E0920 12:33:42.615000 1775954 torch/_guards.py:368] [2/0] Traceback (most recent call last):
+[rank0]:E0920 12:33:42.615000 1775954 torch/_guards.py:368] [2/0]   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_guards.py", line 366, in create
+[rank0]:E0920 12:33:42.615000 1775954 torch/_guards.py:368] [2/0]     return self.create_fn(builder, self)
+[rank0]:E0920 12:33:42.615000 1775954 torch/_guards.py:368] [2/0]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:E0920 12:33:42.615000 1775954 torch/_guards.py:368] [2/0]   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/guards.py", line 2271, in EQUALS_MATCH
+[rank0]:E0920 12:33:42.615000 1775954 torch/_guards.py:368] [2/0]     val = self.get(guard)
+[rank0]:E0920 12:33:42.615000 1775954 torch/_guards.py:368] [2/0]           ^^^^^^^^^^^^^^^
+[rank0]:E0920 12:33:42.615000 1775954 torch/_guards.py:368] [2/0]   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/guards.py", line 1843, in get
+[rank0]:E0920 12:33:42.615000 1775954 torch/_guards.py:368] [2/0]     ret = src.get_value(self.scope, closure_vars, self.src_get_value_cache)
+[rank0]:E0920 12:33:42.615000 1775954 torch/_guards.py:368] [2/0]           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:E0920 12:33:42.615000 1775954 torch/_guards.py:368] [2/0]   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_guards.py", line 1270, in get_value
+[rank0]:E0920 12:33:42.615000 1775954 torch/_guards.py:368] [2/0]     value = eval(self._name_template.format(tmpvar), globals, locals)
+[rank0]:E0920 12:33:42.615000 1775954 torch/_guards.py:368] [2/0]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:E0920 12:33:42.615000 1775954 torch/_guards.py:368] [2/0]   File "<string>", line 1, in <module>
+[rank0]:E0920 12:33:42.615000 1775954 torch/_guards.py:368] [2/0] AttributeError: module 'nki_library_row_mlp_probe' has no attribute 'hidden'
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "/home/ubuntu/trainium_freshstart_20260918_wave198/research/scratch/nki_library_row_saved_contention.py", line 172, in <module>
+[rank0]:     main()
+[rank0]:   File "/home/ubuntu/trainium_freshstart_20260918_wave198/research/scratch/nki_library_row_saved_contention.py", line 91, in main
+[rank0]:     expected = tuple(v.detach().cpu() for v in functions['actual_stages'](*values))
+[rank0]:                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/eval_frame.py", line 1024, in compile_wrapper
+[rank0]:     return fn(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 2316, in __call__
+[rank0]:     result = self._torchdynamo_orig_backend(
+[rank0]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 729, in __call__
+[rank0]:     result = _compile(
+[rank0]:              ^^^^^^^^^
+[rank0]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 1890, in _compile
+[rank0]:     raise InternalTorchDynamoError(
+[rank0]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 1827, in _compile
+[rank0]:     guarded_code, tracer_output = compile_inner(code, one_graph, hooks)
+[rank0]:                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_utils_internal.py", line 96, in wrapper_function
+[rank0]:     return function(*args, **kwargs)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 1500, in compile_inner
+[rank0]:     return _compile_inner(code, one_graph, hooks)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 1634, in _compile_inner
+[rank0]:     check_fn = dynamo_output.build_guards(
+[rank0]:                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/convert_frame.py", line 904, in build_guards
+[rank0]:     return CheckFunctionManager(
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/guards.py", line 3889, in __init__
+[rank0]:     builder, guard_manager = self.build_guards(
+[rank0]:                              ^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/guards.py", line 4191, in build_guards
+[rank0]:     guard.create(builder)
+[rank0]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_guards.py", line 366, in create
+[rank0]:     return self.create_fn(builder, self)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/guards.py", line 2271, in EQUALS_MATCH
+[rank0]:     val = self.get(guard)
+[rank0]:           ^^^^^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_dynamo/guards.py", line 1843, in get
+[rank0]:     ret = src.get_value(self.scope, closure_vars, self.src_get_value_cache)
+[rank0]:           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/_guards.py", line 1270, in get_value
+[rank0]:     value = eval(self._name_template.format(tmpvar), globals, locals)
+[rank0]:             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "<string>", line 1, in <module>
+[rank0]: torch._dynamo.exc.InternalTorchDynamoError: AttributeError: module 'nki_library_row_mlp_probe' has no attribute 'hidden'
+
+E0920 12:36:27.706000 1775943 torch/distributed/elastic/multiprocessing/api.py:986] failed (exitcode: 1) local_rank: 0 (pid: 1775954) of binary: /home/ubuntu/workspace/native_venv/bin/python3
+Traceback (most recent call last):
+  File "/home/ubuntu/workspace/native_venv/bin/torchrun", line 10, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 362, in wrapper
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/run.py", line 990, in main
+    run(args)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/run.py", line 981, in run
+    elastic_launch(
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 170, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 317, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+============================================================
+/home/ubuntu/trainium_freshstart_20260918_wave198/research/scratch/nki_library_row_saved_contention.py FAILED
+------------------------------------------------------------
+Failures:
+  <NO_OTHER_FAILURES>
+------------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2026-09-20_12:36:27
+  host      : ip-172-31-34-85.ap-southeast-4.compute.internal
+  rank      : 0 (local_rank: 0)
+  exitcode  : 1 (pid: 1775954)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+============================================================
+Traceback (most recent call last):
+  File "<string>", line 12, in <module>
+  File "/usr/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['/home/ubuntu/workspace/native_venv/bin/torchrun', '--standalone', '--nproc_per_node=1', '/home/ubuntu/trainium_freshstart_20260918_wave198/research/scratch/nki_library_row_saved_contention.py', '--steps', '50', '--rounds', '6']' returned non-zero exit status 1.
+EXPERIMENT_POSTFLIGHT {"label": "fs-w198-nkilib-saved-contention-1rank-r1", "returncode": 1, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave198/research/run-logs/fs-w198-nkilib-saved-contention-1rank-r1.postflight.json"}
