@@ -1,36 +1,39 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-20 00:27 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-20 01:14 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## Two-host pairwise queues and new research — CURRENT
+## Current work — 2026-09-20 01:14 UTC
 
-Updated 2026-09-20 00:49 UTC. Source157 fcc11ed is deployed in wave157 on both hosts;
-plan commit ee910a8. trn21 token-layout sequence PID30835 started00:46:08 UTC,
-first guard1593791 passed preflight00:46:14. trn22 channel-layout sequence
-PID30953 started00:46:34 UTC, first guard1910153 passed preflight00:46:40.
-Each fixed sequence tests QK/QV/KV and direct/all-three controls with random,
-then zero VE gate. trn21 uses B32/T1024/C1024/seed152032; trn22 uses the small
-B4/T128/C1024/seed152055 fixture. Full setup, rationale and continuation
-instructions: `fresh-start-continuous-work-2026-09-20.md`.
-
-Both source156 production diagnoses are now complete/clean and IDENTICAL,
-including81 joint-BF16 and47,860 joint-FP32-V coordinate failures; each single
-replacement is exact. The source157 paired tests preserve all arithmetic and
-bounds, charge no new quality claim, and reuse only byte-identical completed
-component gates. Queue limits4800seconds; each remote request1800+30seconds.
-Coordinators mirror every45seconds and stop on a failed process or missing
-finite/source-matched records. Do not modify active plans or helpers.
-
-Tavily pro deep research is running: request21d003c3-9a58-45d3-8df0-321de7fc03e6.
-Prompt and dispatch receipt are committed under `research/external/`.
-It seeks broader/backward-first FP8, compiler/fusion/traffic causes and closed
-paths with changed premises; technical claims require primary-source validation.
-A failed old PyTorch FP8 frontend does not negate the now-gated NKI FP8 work.
-
-The prior GitHub receipt79498f8/ce57db88 at00:28:38 UTC predates these queues;
-read `out/fresh-start-backup/last-success.json` for the next exact receipt.
-The frozen public best is unchanged0.9928513116311253. No training/submission.
+- trn22 runs fs-w159-context512-sequence-r1, PID30002, started01:10:46 UTC.
+  Same deployed source64f548e in wave159: full native T1024/pack32 control,
+  then T512/pack64, same131072global tokens/update and seed42. Bound4200s;
+  each request1500+30s, all four numerical postchecks required. Read manifests
+  before dispatch and never restart a completed label.
+- trn21 runs fs-w160-fp8-square-dx-profile-sequence-r1, PID31475, started
+  01:13:36 UTC. Source94e93a7 in wave160, plan f12a760. First verify source158
+  independent gates and exact cached outputs, capture native/FP8 dX, then
+  CPU-only ingest after clean postflight. Bound3300s; each request1200+30s.
+  Preserve raw artifacts locally and via the existing GitHub artifact backup.
+  The preceding source159 gate diagnosis completed clean01:09:11 UTC.
+- Source159 FP8 cost decomposition COMPLETE/clean01:05:09 UTC. Cached FP8
+  three-product1.781839ms remains slower than native with fresh casts1.582102ms.
+  Cached dX0.689475ms versus native0.549018ms. Preparation-only savings cannot
+  rescue this implementation; profile attribution will inform any new tiling.
+- The frozen BF16 gate reproduces81 failed coordinates for native and NKI
+  projections; FP32 gate produces6085 for both. Gate/consumer compilation is
+  implicated. No shape-dependent precision hack, no tolerance relaxation,
+  no acceptance of a frozen or zero gate as a learned-gate implementation.
+- Source157 paired experiments and158 independent FP8 dX gates are complete
+  and preserved. The Tavily pro report is complete under research/external/;
+  the NC-v4-only MXFP8 recommendation is inapplicable to Trn2. Details and
+  next-step criteria: fresh-start-continuous-work-2026-09-20.md.
+- Last verified GitHub backup01:10:46 UTC: source8e7e213, snapshot7e641134;
+  source94e93a7 and plan f12a760 follow that receipt. Check
+  out/fresh-start-backup/last-success.json for newer verified hashes.
+- Best public BPB remains0.9928513116311253; cold replay0.9938556748843932.
+  No new BPB win or competition submission. Queues are finite. Coordinators
+  sync every45s; ten-minute cron preserves/pushes but invents no experiments.
 
 ## Previous production QKV checkpoint (superseded host status)
 

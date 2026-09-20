@@ -1,0 +1,53 @@
+{
+  "label": "fs-w160-fp8-square-dx-profile-sequence-r1",
+  "max_seconds": 3300,
+  "purpose": "Two bounded steps on trn21: verify unchanged FP8 dX evidence and profile native/FP8 cached products, then ingest only after a clean gated capture. Preserve original artifacts. No automated kernel change, training, or speed promotion.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w160-fp8-square-dx-profile-r1.request.json",
+      "sha256": "6300a0387f9cb82e18dcf09eedd69a68af152e17a47670c812bba14acc695a51",
+      "requirements": [
+        {
+          "marker": "FP8_DX_COST_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "source_commit": "959495b462a824904e2f7d91a136da74f4ba94c0"
+          }
+        },
+        {
+          "marker": "FP8_DX_PROFILE_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "tokens": 32768,
+            "channels": 1024,
+            "arms": [
+              "native_dx",
+              "fp8_dx"
+            ],
+            "numerical_controls_exact": true,
+            "cached_weights": true,
+            "preparation_excluded": true,
+            "profiled_latency_is_speed_evidence": false,
+            "whole_model_or_quality_claim": false
+          }
+        }
+      ]
+    },
+    {
+      "request": "research/run-logs/fs-w160-fp8-square-dx-remote-ingest-r1.request.json",
+      "sha256": "b3102438ecd8ac08fb469a1d506c826d397c98eb4ff179b3662abe1fd851163d",
+      "requirements": [
+        {
+          "marker": "INGEST_COMPLETE",
+          "count": 1,
+          "fields": {
+            "returncode": 0,
+            "raw_hashes_unchanged": true
+          }
+        }
+      ]
+    }
+  ]
+}

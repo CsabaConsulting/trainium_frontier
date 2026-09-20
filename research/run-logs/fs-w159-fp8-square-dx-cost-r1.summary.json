@@ -1,0 +1,64 @@
+{
+  "label": "fs-w159-fp8-square-dx-cost-r1",
+  "source_commit": "64f548ea2d3524668f2ce86b0a33d6dad97f7b4b",
+  "completed_at": "2026-09-20T01:05:09.934433+00:00",
+  "host_clean": true,
+  "command_returncode": 0,
+  "log_sha256": "30cbdbae72417d01884314d1947075405f09bee82df849b91797b5f9a9b22b67",
+  "postflight_sha256": "2362c5d9bbe456bccdeec0b82fe0d093732d5b8efd71f22a1c9c9bbab52ef1ba",
+  "result": {
+    "passed": true,
+    "tokens": 32768,
+    "channels": 1024,
+    "numerical_controls_exact": true,
+    "cases": 6,
+    "samples_ms": {
+      "native_three_fresh": [
+        1.5725411668730278,
+        1.5821024988933157,
+        1.5838347336587806
+      ],
+      "fp8_three_fresh": [
+        1.7923989003368963,
+        1.7969372333027422,
+        1.7976562997015815
+      ],
+      "fp8_three_cached_optimistic": [
+        1.7818385347103078,
+        1.7797200339070212,
+        1.7885715991724283
+      ],
+      "native_dx_cached": [
+        0.5531942336043963,
+        0.5490180337801576,
+        0.5449127328271667
+      ],
+      "fp8_dx_cached": [
+        0.6937207343677679,
+        0.6829923659097403,
+        0.6894750986248255
+      ],
+      "current_dual_prepare": [
+        0.12171280104666948,
+        0.1057948994760712,
+        0.11849169968627393
+      ]
+    },
+    "median_ms": {
+      "native_three_fresh": 1.5821024988933157,
+      "fp8_three_fresh": 1.7969372333027422,
+      "fp8_three_cached_optimistic": 1.7818385347103078,
+      "native_dx_cached": 0.5490180337801576,
+      "fp8_dx_cached": 0.6894750986248255,
+      "current_dual_prepare": 0.11849169968627393
+    },
+    "cached_controls_exclude_preparation": true,
+    "separate_times_not_additive": true,
+    "autograd_or_model_gate": false,
+    "whole_model_or_quality_claim": false
+  },
+  "whole_model_or_quality_claim": false,
+  "cached_fp8_three_slower_fraction": 0.12624721593999633,
+  "cached_fp8_dx_slower_fraction": 0.25583324445205924,
+  "interpretation": "Even optimistic free preparation loses. Preparation-only changes cannot rescue this implementation in this component; profile its cached dX before changing tiling. Separate timings are not additive. No autograd/model/quality promotion."
+}

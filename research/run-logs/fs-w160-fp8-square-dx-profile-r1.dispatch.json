@@ -1,0 +1,50 @@
+{
+  "request": {
+    "host": "trn21",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave160",
+    "expected_commit": "94e93a78bdef0ec22330f38b12ddfdcf53eb3ba8",
+    "label": "fs-w160-fp8-square-dx-profile-r1",
+    "purpose": "Same-input cached native and FP8 square dX device capture following source158 independent arithmetic gates and source159 preparation-cost negative. Prerequisite requires all evidence and byte-identical primitive/reference code. Four exact controls and unprofiled two-arm timing precede capture; native and FP8 profiled separately with synchronized phase labels, binaries preserved. No preparation/autograd/whole-model/quality claim.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "/home/ubuntu/trainium_freshstart_20260918_wave160/research/scratch/fp8_square_dx_profile.py",
+      "--component-root",
+      "/home/ubuntu/trainium_freshstart_20260918_wave159",
+      "--trace-dir",
+      "/home/ubuntu/trainium_freshstart_20260918_wave160/out/fs-w160-fp8-square-dx-profile-r1",
+      "--steps",
+      "30"
+    ],
+    "fingerprint_paths": [
+      "train.py",
+      "research/scratch/fp8_square_dx_probe.py",
+      "research/scratch/fp8_dual_weight_cache_nki.py",
+      "research/scratch/fp8_gradient_gemm_nki.py",
+      "research/scratch/fp8_mlp_island_probe.py",
+      "research/scratch/fp8_packed_weight_cache_probe.py",
+      "research/scratch/fp8_weight_cache_probe.py",
+      "research/scratch/fresh_start_fp8_probe.py",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "research/scratch/serial_qkv_probe.py",
+      "research/scratch/fp8_square_dx_cost_split.py",
+      "research/scratch/fp8_square_dx_profile.py",
+      "research/scratch/preserve_native_trace_neffs.py"
+    ]
+  },
+  "requested_at": "2026-09-20T01:13:36.832182+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w160-fp8-square-dx-profile-r1\", \"pid\": 1600995, \"commit\": \"94e93a78bdef0ec22330f38b12ddfdcf53eb3ba8\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave160/research/run-logs/fs-w160-fp8-square-dx-profile-r1.log\", \"started_at\": \"2026-09-20T01:13:42.705260+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}
