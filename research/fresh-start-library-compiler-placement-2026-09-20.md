@@ -125,3 +125,21 @@ scheduling. A discontinuity calls for paired full-model traces; a linear trend
 calls for per-layer cost analysis. Position dependence would motivate preserving
 native boundaries selectively. None warrants a30-minute quality run without an
 actual repeatable complete-step gain and its numerical/integration gates.
+
+## Source195 routing/control outcomes and bracketing plan (08:48 UTC)
+
+Routing gate passed all four zero/first/last/all-six selections:256 original
+native coordinate/gradient comparisons and20exact checks. The zero-library
+full-model control passes all frozen postchecks and reproduces the original
+native loss exactly (5.126208782196045). Mean499.107528ms, median488.653169ms.
+The final sample has an optimizer spike343.200688ms and total805.567272ms;
+its forward/backward time432.505554ms is close to the overall micro mean432.511419ms.
+This localizes that sample's extra cost to the measured optimizer phase but does
+not establish its root cause. It remains in the record and aggregate mean.
+
+The original three-step position-r1 plan was never dispatched. Position-r2
+preserves its three requests byte-for-byte and appends an unchanged zero-library
+control with1200s bound. Total11900s; source282935ca throughout. It was launched
+08:46:21UTC, coordinator14184. Each run has its own pre/postflight. Compare both
+controls and full distributions before any small speed claim; no sample removal
+or quality promotion. See fs-w195-native-control-outlier-followup-r1.json.

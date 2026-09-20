@@ -1,9 +1,57 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-20 08:42 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-20 08:48 UTC. Authorization: danger-full-access, approval never.
 Use committed manifests/postflights before dispatch; never restart completed jobs.
 
-## Current work — 2026-09-20 08:42 UTC
+## Current work — 2026-09-20 08:48 UTC
+
+- Trn21 RUNNING source196d8461533 at remote wave196. Coordinator13612,
+  fs-w196-nkilib-vector-square-sequence-r1, started08:43:43UTC, plan9ddd3fe5,
+  max5100s. Nine small/medium cases pass all-six-output equality against the
+  matched Scalar square; production compilation/timing pending. New explicit
+  Vector square is the only arithmetic-engine change. All194 gates retained,
+  plus ten exact comparisons; no backward/BPB claim. Do not restart it.
+- Trn22 RUNNING source195282935ca at remote wave195. Coordinator14184,
+  fs-w195-nkilib-partial-position-sequence-r2, started08:46:21UTC, plan6b545049,
+  max11900s. Runs first-only, last-only, all-six, then zero-library repeat,
+  with separate cleanup/ownership each time. First-only model compiling now.
+  Original three requests3300s each; final identical zero control1200s.
+  The never-launched position-sequence-r1 is SUPERSEDED; DO NOT launch it.
+- Source195 routing and initial zero-library control COMPLETE/CLEAN. Four
+  selections pass256 native gradient comparisons/20exact gates. Zero model
+  loss5.126208782196045 exactly matches the original native control. Mean
+ 499.107528ms, median488.653169ms. Final sample805.567272ms includes343.200688ms
+  optimizer time; every sample is retained. The added final control brackets
+  the comparisons because this spike can distort a small apparent speed gain.
+- Source194 COMPLETE/CLEAN08:33:51UTC; every original frozen requirement locally
+  verified. All10 cases/310exact checks. Saved forward4.771002ms vs5.323111ms
+  native HxT (-10.3719%), including online master casts/preparation and
+ 436,469,760B of actual state saves. Full backward and model speed unmeasured.
+- Source193 independently replicated191 no-save gain:3.908544ms vs4.595774ms
+  BF16, all preparation charged. Raw/derived profiles verified locally/cloud.
+  Large products areFP8. Missing dynamic DMA metadata prevents exact traffic
+  claims; source/engine intervals overlap and cannot be added.
+- Source192 compiler SBUF full model563.005751ms vs488.528818ms (+15.2451%);
+  all gates pass, no promotion. Smaller fixed budgets also lost.195 isolates
+  layer-count/position effects with native HxT retained in untouched blocks.
+- Full ROW backward is designed, not implemented. Per-token scales cannot be
+  factored outside weight-gradient contractions over tokens. Use explicitly
+  gated global/channel scaling or a BF16 weight-gradient control; charge all
+  producers and transposes. Preserve tiny gradients, FP32 masters/accumulation,
+  cache refresh and native evaluation/checkpoint contracts. See fusion-next.
+- Trn22 maintenance r4 archived1829old files8.595GB, verified every local hash,
+  live GitHub digests and remote contents before removal. Free19.556GB before
+ 195 resumed. Sources/shared caches/checkpoints/current profiles retained.
+- Best public BPB0.9928513116311253, cold replay0.9938556748843932; no new quality
+  run this library wave. Frozen train.py/prepare.py/submission unchanged.
+  Source159 T512 MUST NOT dispatch. Both active sequences are finite and stop
+  on failed gates; no automatic quality promotion or further experiment exists.
+- Cron every10min mirrors/pushes source and backup refs; no merging or job
+  selection. Active sequences mirror45s. Consult last-success.json for exact
+  verified refs. Keep8GiB reserve, immutable sources, Git/host locks and
+  independent pre/postflight. Do not edit running plans/requests/helpers.
+
+## Previous checkpoint — 2026-09-20 08:42 UTC
 
 - Trn21 source194 COMPLETE/CLEAN08:33:51UTC, every frozen requirement verified:
   all10 cases and310 exact checks. Saved forward4.771002ms vs5.323111ms native
