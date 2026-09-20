@@ -1,0 +1,65 @@
+{
+  "label": "fs-w156-serial-qkv-channels-production-sequence-r1",
+  "max_seconds": 2400,
+  "purpose": "One bounded production VE-on diagnosis on trn22, using already-passed identical primitive/gate bytes. No redundant component rerun, training or quality promotion.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w156-serial-qkv-channels-production-ve-boundary-r1.request.json",
+      "sha256": "3f5f7cdd2c215824951008724176c350848a0b47b4f3e0d5b035703d4df52ef0",
+      "requirements": [
+        {
+          "marker": "SERIAL_QKV_COMPONENT_PREREQUISITE",
+          "count": 2,
+          "fields": {
+            "passed": true,
+            "source_commit": "853f2733e181f605b9d48a9a64dcf6bd12603da8"
+          },
+          "unique_field": "value_fp32",
+          "values": [
+            false,
+            true
+          ]
+        },
+        {
+          "marker": "SERIAL_QKV_BOUNDARY_CASE",
+          "count": 1,
+          "fields": {
+            "layout": "channels",
+            "channels": 1024,
+            "batch": 32,
+            "length": 1024,
+            "seed": 152032,
+            "cached": true,
+            "all_inputs_require_grad": true,
+            "include_fp32_arm": true,
+            "diagnostic_complete": true,
+            "acceptance_bounds_unchanged": true,
+            "integration_promoted": false,
+            "with_ve": true
+          },
+          "unique_field": "case_id",
+          "values": [
+            "True:True"
+          ]
+        },
+        {
+          "marker": "SERIAL_QKV_BOUNDARY_RESULT",
+          "count": 1,
+          "fields": {
+            "layout": "channels",
+            "channels": 1024,
+            "batch": 32,
+            "length": 1024,
+            "all_inputs_require_grad": true,
+            "include_fp32_arm": true,
+            "cases": 1,
+            "diagnostic_complete": true,
+            "acceptance_bounds_unchanged": true,
+            "integration_promoted": false,
+            "whole_model_or_quality_claim": false
+          }
+        }
+      ]
+    }
+  ]
+}
