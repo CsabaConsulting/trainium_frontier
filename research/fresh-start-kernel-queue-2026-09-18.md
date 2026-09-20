@@ -1,42 +1,29 @@
 # Kernel queue and precision-specific experiments
 
-Updated 2026-09-19 23:33 UTC. This is the executable/design queue, not a list of
-claimed gains. Read `RESUME.md` and the latest postflights before using a host.
-Every device request retains immutable source, cleanup and numerical gates.
+Updated 2026-09-20 00:10 UTC. This is the executable/design queue, not a list of
+claimed gains. Read `RESUME.md` and current postflights before dispatch.
 
-Source148's complete direct FP8 output-rank and pack32 reciprocal comparisons
-improve0.385% and0.052% respectively: below3%, no promotion. Source151's two
-serial QKV layouts now pass every independent component/lifecycle gate but are
-5.358% (tokens) and10.478% (channels) slower than their paired native controls.
-Compiler helper-resolution and logger failures from sources149/150 were fixed
-without changing numerical bounds; failed raw evidence and cleanups retained.
-The source152 real-attention gate fails identically on both layouts
-(190 bound failures, relative RMS0.0041420266); both cleanups pass. Source153
-partial Q/K/V and VE/cache/materialization diagnostics are the next step,
-keeping the original acceptance bounds and native authority unchanged. The original Parameters, three normalized streams,
-Muon groups and RoPE layout are preserved. No whole-model/quality promotion.
-Read current dispatch/state records before assuming a host is busy; all queues
-are bounded, and backup cron does not launch research.
+Trn21 source156 has an active fixed three-step queue: BF16 primitive regression,
+FP32-value primitive gates, then the exact production attention diagnostic.
+Trn22 source155 has an active fixed four-step queue: BF16 regression, corrected
+FP32-value transpose, materialization diagnostic, original attention gates/timing.
+Each request has immutable source, host locking, complete pre/post cleanup and
+exact completion requirements. Any failure stops its queue. No quality run.
 
-Source153 now isolates the V+VE rounding boundary at both widths. Source154's
-opt-in FP32 V accumulator output and corrected differentiable frozen controls
-are prepared. Require old BF16 regression, strict FP32-V/all-gradient/lifecycle
-gates, then unchanged whole-attention gates and real-shape timing. This is
-numerical repair; there is no speed claim. The nominal BF16 arithmetic floor
-is already close to native component time, so broader FP8 projections/fusion
-remain higher-return follow-ups than endless BF16 tile sweeps.
+Source154 token FP32 primitive passes all10 cases/216 product-lifecycle audits.
+At B4/T128, widths256/1024, all122 attention output/gradient/accumulation
+comparisons are exactly native, with causal/padding/native-restore checks.
+At actual B32/T1024, the unchanged output gate fails (47,860 coordinates,
+RMS0.00413085). The next diagnosis tests the exact shape/cache/input-grad context;
+no precision switch or tolerance change is assumed. Source155 fixes the separate
+channel transpose allocation left BF16 despite FP32 input. Failed runs cleaned
+up and are preserved. Both are numerical investigations, not speed/BPB wins.
 
-Source154 is now deployed and its four-step fixed queues started on both hosts
-at23:51:16UTC (plan commit5d1b419). Order: BF16 regression, FP32-value component,
-corrected boundary diagnostic, full-attention gates/timing. All stages require
-fresh cleanup and exact completion records; any failure stops advancement.
-These are finite queues, not an automatic quality-training sweep.
-
-Current update: source154 token primitive and small attention gates pass,
-but production-shape attention fails (RMS0.00413085,47,860 coordinates).
-Source156 production-context diagnosis is prepared for trn21. Trn22 source155
-is actively retrying the corrected channel transpose dtype under its four-stage
-fixed plan. Both are numerical investigations; no whole-model/quality promotion.
+Native BF16 QKV component timing is already near its nominal arithmetic floor.
+Once execution/precision contracts are understood, broader FP8 projection coverage
+and fusion are more promising than an unbounded BF16 tile sweep. Source148's
+0.385% FP8 output-rank and0.052% reciprocal pack32 gains remain below3% and
+are not promoted. Backup cron preserves work; it does not invent new experiments.
 
 Scope clarification: full FP8 here means the complete MLP forward/backward,
 not all transformer projections/attention/optimizer arithmetic. A broader

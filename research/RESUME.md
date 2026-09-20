@@ -1,75 +1,51 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-20 00:06 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-20 00:10 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
 ## Production-shape precision diagnosis and channel retry — CURRENT
 
-- Source154 token sequence STOPPED/clean00:00:37UTC: widths256/1024 at
-  B4/T128 pass the original attention output/input/master/cache/causality/
-  restore checks, but B32/T1024 fails output equivalence:47,860 coordinates,
-  relative RMS0.0041308524. No attention timing or promotion. The FP32-V
-  component itself passes all10 cases and216 product/lifecycle audits.
-- Source156 is prepared for trn21: extend boundary diagnostics to exact
-  B32/T1024/C1024, seed152032, cached weights and differentiable inputs,
-  matching the failed production fixture. Compare BF16 and FP32-V adapters,
-  Q/K/V partial replacements and differentiable frozen controls, with/without
-  VE. Gate unchanged primitive BF16/FP32 contracts again on this immutable
-  source before diagnostics. A shape-dependent rounding decision is only a
-  hypothesis; do not add a shape-based precision switch without evidence.
-- Source155 channel retry STARTED on trn22, local PID11012 at00:04:45UTC.
-  Kernel source853f273; plan commit9b39ce9; remote wave155 worktree. Fixed
-  four stages: BF16 regression ->FP32-V component ->corrected diagnostic
-  ->unchanged attention gates/timing, with full per-stage cleanup and a
- 10000-second coordinator bound. It fixes the final result transpose scratch
-  incorrectly left BF16 while its input became FP32; no SDK modification.
-  Original source154 channel failure and cleanup are preserved. Do not alter
-  its active request/plan/helper bytes or restart the stopped source154 queue.
-- Source153 diagnostics COMPLETE/clean: tokens/256 at23:41:41UTC, channels/1024
-  at23:43:08UTC. Native preprojection, Q-only and K-only are exactly native at
-  both widths, cached/uncached and with/without VE. V-only and all-QKV are exact
-  without VE; with VE they reproduce the failed output gate (190/710 bounds,
-  relative RMS0.004142/0.004067). Explicit FP32 V improves the VE case to
-  RMS0.00004476/0.00008954 with zero unchanged-bound failures. This strongly
-  supports an early V-rounding difference. It is not an accepted integration.
-- The frozen controls initially omitted requires_grad on supplied Q/K/V,
-  unlike original projected tensors. Their no-VE result differs from the
-  partial-replacement controls; that compile-context confound is retained.
-  The next diagnostic makes those inputs differentiable. Do not infer a
-  universal precision policy from the earlier frozen control alone.
-- Source154 ee1c786 is deployed on both hosts: opt-in FP32 V output retains the same BF16 operands
-  and FP32 dot accumulator. Q/K stay BF16; input/master-gradient GEMMs retain
-  BF16 operands. New strict FP32 output bounds use gamma_K +2^-24 output
-  rounding, rather than the older BF162^-8 term. A new non-BF16 upstream-V
-  gradient case tests the explicit backward operand cast. Both layouts must
-  pass old BF16 regression and the10-case FP32-V component suite, including
- 32768x1024 and master/cache lifecycle, before any integration trial.
-- The adapter selects FP32 V only when VE is supplied, otherwise its old BF16
-  projection. Original attention, Parameters/caches/Muon groups, evaluation
-  and checkpoint keys remain intact. The original attention bounds are not
-  changed. A corrected materialization diagnostic and the original attention
-  accumulation/causality/restore/real-shape gates are the next bounded steps.
-  Local AST passes; hardware correction and speed are PENDING.
-- Source154 fixed four-step queues STARTED23:51:16UTC from plan commit5d1b419.
-  Local coordinators: tokens/trn21 PID30750, channels/trn22 PID30812. Remote
-  worktrees are `/home/ubuntu/trainium_freshstart_20260918_wave154`. Order:
-  BF16 regression ->FP32-value component ->corrected materialization diagnostic
-  ->original full-attention gates and real-shape timing. Each request is
-  separately guarded with a fresh preflight and postflight; progression requires
-  exact source/request/helper hashes and all declared records. Each device job
-  has an1800-second bound plus30-second kill grace; coordinator limit10000s.
-  Any failure stops that host's sequence. These are finite queues; no quality
-  training launches automatically. Read sequence state for the current label.
-- Source152's original attention gates FAIL (both clean23:35UTC), preserved.
-  Source151 primitive gates passed but component times were5.358%/10.478%
-  slower. Source148 FP8 output-rank0.385% and reciprocal pack320.052% gains
-  were below3%. No whole-model/quality promotion; frozen public best0.9928513116.
-- Last verified push23:54:41UTC: sourceccfaf6e, snapshote9597acc. That manual
-  push used existing local mirrors; last full remote retrieval23:50:45UTC.
-  Live token coordinator mirrors its own logs every45seconds. Later results
-  and the channel scratch fix need the next source commit/push.
-  Read dispatch/sequence records for activity; queues are finite and the
-  backup cron does not select or launch experiments.
+- trn21 source156 ed3a53e is deployed to wave156. Its fixed three-step sequence
+  STARTED00:08:22UTC, local PID14595, plan commit7d39dff. Order: BF16 primitive
+  regression ->strict FP32-V primitive gates ->production-shape diagnostic.
+  The final diagnostic matches the failed B32/T1024/C1024 fixture, seed152032,
+  cached weights and differentiable inputs. It compares BF16/FP32-V adapters,
+  partial Q/K/V replacements and differentiable frozen controls, with/without
+  VE. The whole sequence is bounded to7200seconds; each remote job1800seconds
+  plus30seconds kill grace. Exact source/request/helper/result gates apply.
+- trn22 source155853f273 is deployed to wave155. Its fixed four-step sequence
+  STARTED00:04:45UTC, local PID11012, plan commit9b39ce9. Order: BF16 regression
+  ->FP32-V component ->corrected boundary diagnostic ->original attention
+  gates/timing. It fixes final transpose scratch incorrectly left BF16 after
+  its input became FP32. Coordinator bound10000seconds; per-job bounds as
+  above. No SDK change or tolerance relaxation. Read sequence/dispatch files
+  for the exact current stage; both sequences stop on failure.
+- Source154 token result: all10 FP32-V cases,216 product/lifecycle audits and
+  real32768x1024 primitive pass. At B4/T128, C256/1024, all122 paired attention
+  comparisons are EXACT, including input/master gradients and accumulation;
+  causality, padding, native evaluation and restore also pass. Production
+  B32/T1024 fails output equivalence:47,860 coordinates,RMS0.0041308524.
+  It stopped CLEAN00:00:37UTC before timing. No integration/quality promotion.
+- The precision diagnosis is bounded by real evidence. At small shape, Q/K
+  replacements are exact and the original BF16 V replacement differs only
+  with VE; retaining FP32 V repairs it. Correcting the frozen fixture to make
+  Q/K/V differentiable also makes its no-VE controls exactly native. The
+  remaining production failure needs the active real-context investigation;
+  shape-dependent rounding is a hypothesis, not a validated precision switch.
+- Source154 channel FP32 compile failure is preserved with clean postflight:
+  final transpose dtype was wrong. Original source152 small attention failure
+  and source149/150 helper/logger failures remain preserved; all cleaned.
+  Source151 original BF16 component is5.358%/10.478% slower than native;
+  source154 token FP32-V component5.727667 versus matched native FP32-V5.644936ms
+  is1.466% slower. These distinct component controls cannot be mixed.
+- No whole-model or quality trial is queued. Source148 output-rank0.385% and
+  reciprocal pack320.052% gains remain below3%. Frozen matched public best
+  stays0.9928513116311253, with no competition submission or seed sweep.
+- Source/progress are committed through7d39dff; a deliberate push follows this
+  status update. Last verified manual push23:54:41UTC wasccfaf6e/e9597acc;
+  check `out/fresh-start-backup/last-success.json` for subsequent cron receipts.
+  Live coordinators sync every45seconds; backup cron preserves work every10
+  minutes but does not select/launch experiments. These are finite queues.
 
 ## FP8 output-rank timing and pack32 optimizer gates — 17:42 UTC
 

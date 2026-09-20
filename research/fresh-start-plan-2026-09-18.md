@@ -1,6 +1,6 @@
 # Fresh-start campaign — 2026-09-18
 
-**Current result, 2026-09-19 23:33 UTC:** best matched public BPB is
+**Current result, 2026-09-20 00:10 UTC:** best matched public BPB is
 **0.9928513116311253**, source98 dense 6x1024 with pack32/GA1, no ngrams and
 seed42. The frozen standalone source129 package reproduces those checkpoint
 logits exactly; an independent cold 30-minute rehearsal scored 0.9938556748843932
@@ -45,10 +45,11 @@ Serial QKV execution with unchanged Parameters/Muon states and contiguous
 RoPE inputs now passes all component numerical/lifecycle gates. Both layouts
 are slower than native complete projections (5.358%/10.478%). The first real-attention
 gate exposed a V+VE rounding discrepancy. Partial replacements isolate it to V
-at widths256/1024. Source154 retains the FP32 V accumulator through VE and has
-active four-stage queues for old BF16 regression, strict new FP32-value gates,
-corrected boundary diagnostics and the original full-attention gates/timing.
-No acceptance bound was relaxed; integration and speed remain pending.
+at widths256/1024. Retained FP32 V passes all primitive gates and122 small-attention comparisons
+exactly, but production B32/T1024 still fails the unchanged output bound. Trn21
+source156 investigates that exact shape/cache/input-gradient context. Trn22
+source155 retries a separate corrected transpose allocation under four fixed
+gates. No acceptance bound was relaxed; integration and speed remain pending.
 The user's dictionary/parser/classic-NLP ideas, active-venv dependency audit,
 20K-training-document structure sample and bounded alternative probability
 models are documented in `fresh-start-structured-priors-and-fp8-scope-2026-09-19.md`.

@@ -1,0 +1,56 @@
+{
+  "label": "fs-w155-serial-qkv-channels-fp32v-component-r1",
+  "source_commit": "853f2733e181f605b9d48a9a64dcf6bd12603da8",
+  "completed_at": "2026-09-20T00:08:19.807637+00:00",
+  "host_clean": true,
+  "command_returncode": 0,
+  "log_sha256": "40821502d3520f7282d721bfab7816bd59b37fe9b21d2b1cd6a2762264f117d4",
+  "postflight_sha256": "4775ae3c6ea3d9da76499d1d3ff1b0a2cf94d76f4d73c41a4921d9918cf9d4ee",
+  "results": {
+    "SERIAL_QKV_COMPONENT_TIMING": {
+      "tokens": 32768,
+      "channels": 1024,
+      "steps_per_block": 10,
+      "value_fp32": true,
+      "native_control_returns_fp32_v": true,
+      "samples_ms": {
+        "native": [
+          5.652921000728384,
+          5.678470100974664,
+          5.666759196901694,
+          5.660919198999181,
+          5.6544448947533965
+        ],
+        "candidate": [
+          6.073057901812717,
+          6.0571123962290585,
+          6.042098597390577,
+          6.069571804255247,
+          6.07241970137693
+        ]
+      },
+      "median_ms": {
+        "native": 5.660919198999181,
+        "candidate": 6.069571804255247
+      },
+      "improvement_pct": -7.218838335094291,
+      "includes_three_forward_six_backward_products": true,
+      "includes_fp32_master_cache_cast_and_accumulation": true,
+      "all_layout_and_dispatch_costs_timed": true,
+      "whole_model_or_quality_claim": false
+    },
+    "SERIAL_QKV_RESULT": {
+      "layout": "channels",
+      "cases": 10,
+      "passed": true,
+      "value_fp32": true,
+      "fp32_value_output_bounds": true,
+      "real_tokens": 32768,
+      "real_channels": 1024,
+      "independent_fp64_gates": true,
+      "lifecycle_passed": true,
+      "whole_model_or_quality_claim": false
+    }
+  },
+  "integration_promoted": false
+}
