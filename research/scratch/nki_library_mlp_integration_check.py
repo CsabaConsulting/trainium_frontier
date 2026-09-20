@@ -10,8 +10,22 @@ from mlp_fused_integration_check import Probe, refresh, T
 from nki_library_mlp_integration import install
 from nki_library_probe_common import emit, exact
 
+NATIVE_COMPILE_MISMATCHES = []
 
-def run(tokens, channels, separate_region=False):
+
+def backward_node_names(output):
+    pending, seen, names = [output.grad_fn], set(), []
+    while pending:
+        node = pending.pop()
+        if node is None or node in seen:
+            continue
+        seen.add(node)
+        names.append(type(node).__name__)
+        pending.extend(child for child, _ in node.next_functions)
+    return names
+
+
+def run(tokens, channels, separate_region=False, distinct_probe_root=False):
     torch._dynamo.reset()
     torch.manual_seed(172021 + channels)
     T.USE_WEIGHT_CACHE = T.USE_BF16_NORM_OUTPUT = True
@@ -22,7 +36,15 @@ def run(tokens, channels, separate_region=False):
     candidate = copy.deepcopy(baseline)
     contract = install(candidate, 'neuron', T, separate_region=separate_region)
     native = torch.compile(baseline, backend='neuron', fullgraph=True, dynamic=False)
-    optimized = torch.compile(candidate, backend='neuron', fullgraph=not separate_region, dynamic=False)
+
+    def candidate_forward(value):
+        # A distinct root code object prevents a graph break in the candidate
+        # from changing the compiler's cache/skip decision for Probe.forward,
+        # which also owns the separately compiled native reference.
+        return candidate.transformer.h[0].mlp(value)
+
+    optimized = torch.compile(candidate_forward if distinct_probe_root else candidate,
+                              backend='neuron', fullgraph=not separate_region, dynamic=False)
     x = torch.randn(4, tokens // 4, channels).bfloat16().to('neuron')
     gradient = (torch.randn(x.shape) * .01).bfloat16().to('neuron')
     refresh_changes = 0
@@ -44,9 +66,20 @@ def run(tokens, channels, separate_region=False):
                 bx = value.detach().clone().requires_grad_()
                 cx = value.detach().clone().requires_grad_()
                 expected, output = native(bx), optimized(cx)
-                if not separate_region:
+                if type(expected.grad_fn).__name__ != 'CompiledFunctionBackward':
+                    record = dict(tokens=tokens, channels=channels, cached=cached,
+                        step=step, micro=micro, distinct_probe_root=distinct_probe_root,
+                        native_root=type(expected.grad_fn).__name__,
+                        native_nodes=backward_node_names(expected),
+                        candidate_nodes=backward_node_names(output),
+                        diagnostic_only=True, original_assertion_retained=True)
+                    NATIVE_COMPILE_MISMATCHES.append(record)
+                    emit('NKILIB_NATIVE_COMPILE_MISMATCH', record)
+                assert type(expected.grad_fn).__name__ == 'CompiledFunctionBackward'
+                if separate_region:
+                    assert 'CompiledFunctionBackward' in backward_node_names(output)
+                else:
                     assert type(output.grad_fn).__name__ == 'CompiledFunctionBackward'
-                    assert type(expected.grad_fn).__name__ == 'CompiledFunctionBackward'
                 compare(f'library_integration:{channels}:{cached}:{step}:{micro}:output', output, expected)
                 expected.backward(gradient)
                 output.backward(gradient)
@@ -89,22 +122,42 @@ def run(tokens, channels, separate_region=False):
         exact(f'library_integration:{channels}:strict_restore', restored(short), candidate(short))
     emit('NKILIB_MLP_INTEGRATION_GATE', dict(passed=True, tokens=tokens, channels=channels,
         cached_and_uncached=True, reference_updates=4, microbatches=2, fp32_master_gradients=True,
-        changed_cache_values=True, compiled_execution_asserted=not separate_region,
+        changed_cache_values=True, compiled_execution_asserted=True,
+        compiled_backward_graph_walk=separate_region,
         training_row_and_batch_independence=True, native_eval_and_checkpoint_exact=True,
-        separate_compiled_region=separate_region, contract=contract))
+        separate_compiled_region=separate_region, distinct_probe_root=distinct_probe_root,
+        contract=contract))
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--real-width', action='store_true')
     parser.add_argument('--separate-region', action='store_true')
+    parser.add_argument('--distinct-probe-root', action='store_true')
+    parser.add_argument('--diagnose-probe-roots', action='store_true',
+                        help='Reproduce the original shared-root assertion, then gate isolated roots.')
     args = parser.parse_args()
     torch.set_num_threads(4)
-    run(256, 256, args.separate_region)
+    if args.diagnose_probe_roots:
+        assert args.separate_region
+        before = len(NATIVE_COMPILE_MISMATCHES)
+        try:
+            run(256, 256, separate_region=True, distinct_probe_root=False)
+        except AssertionError:
+            assert len(NATIVE_COMPILE_MISMATCHES) == before + 1
+            assert not NATIVE_COMPILE_MISMATCHES[-1]['distinct_probe_root']
+            emit('NKILIB_SHARED_ROOT_DIAGNOSTIC', dict(observed_original_failure=True,
+                original_assertion_retained=True, numerical_bounds_unchanged=True,
+                diagnostic_only=True, permits_promotion=False))
+        else:
+            raise AssertionError('Shared-root failure did not reproduce; inspect before advancing')
+    distinct = args.distinct_probe_root or args.diagnose_probe_roots
+    run(256, 256, args.separate_region, distinct)
     if args.real_width:
-        run(2048, 1024, args.separate_region)
+        run(2048, 1024, args.separate_region, distinct)
     emit('NKILIB_MLP_INTEGRATION_RESULT', dict(passed=True, cases=2 if args.real_width else 1,
-        separate_compiled_region=args.separate_region, full_model_or_quality_claim=False))
+        separate_compiled_region=args.separate_region, distinct_probe_root=distinct,
+        shared_root_diagnostic=args.diagnose_probe_roots, full_model_or_quality_claim=False))
 
 
 if __name__ == '__main__':
