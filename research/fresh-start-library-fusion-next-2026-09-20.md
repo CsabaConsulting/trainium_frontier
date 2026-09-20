@@ -268,3 +268,37 @@ More aggressive fusion across the square/quantization boundary would change
 rounding and therefore needs its own declared arithmetic/reference contract.
 It cannot inherit source191/194 equality claims. The complete backward and
 whole-step gates still determine whether any forward improvement advances.
+
+## Source194 completed saved-forward result (08:37 UTC)
+
+All ten fixtures and310 exact checks pass, with clean postflight08:33:51UTC.
+Production native HxT saved forward5.323111ms versus ROW saved forward4.771002ms
+(10.3719% lower latency). Current FP32-master casts/weight preparation and all
+436,469,760B of actual forward state stores are included. The six returned
+outputs match the original Scalar-stage diagnostics exactly, including repeats,
+changed input and unaffected rows. Backward and whole-model performance remain
+unmeasured for this ROW variant. See fs-w194-training-save-forward-proof-r1.json.
+
+A further backward design constraint is the scale axis at weight-gradient
+matmuls. After moving forward row scale sh(T) into GY(T,C), a new *per-token*
+gradient calibration cannot be pulled outside the token contraction:
+Qh^T diag(sh * sg_token) Qg is not Qh^T Qg times an output scale. Use a separately
+gated global or per-output-channel gradient scale (equivalently quantize rows
+of the transposed gradient), or explicitly retain the contraction-varying scale.
+The same constraint applies to Qx and the up-weight gradient. Both weight-gradient
+products need this design, including the transposed producer's two-pass/max and
+layout cost. Per-token calibration remains convenient for data-gradient GEMMs,
+where token rows are not the contraction dimension. A BF16 weight-gradient arm
+is a useful accuracy/performance control before requiring all four products to
+useFP8; charge reconstruction/layout costs and state its surrogate explicitly.
+
+## Source196 implementation prepared (08:42 UTC)
+
+The exact Vector-square comparison is implemented in the isolated ROW namespace.
+Only the training entry selects the engine; the original no-save/diagnostic
+ReLU branch is unchanged. The source194 entry and eviction ASTs are recovered
+exactly by removing the boolean selector and single square-operation branch.
+The source194 probe AST is recovered by removing that explicit True flag, the
+matched False/Scalar arm and ten extra exact checks. Both training-forward arms
+include current weight preparation and all saves. Installed SDK inspection
+confirms tensor_tensor(..., engine=nisa.vector_engine) support. Hardware pending.
