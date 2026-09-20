@@ -116,3 +116,36 @@ Source159 runs two independent follow-ups:
   to be exact first. If cached FP8 still loses, cheaper preparation alone
   cannot rescue this implementation in the measured context. Separate scope
   timings are not additive and none replaces a full-step measurement.
+
+## Source159 results and next work — 2026-09-20 01:15 UTC
+
+Both source159 diagnostic requests completed cleanly. The FP8 cost split is
+1.582102499ms native three products, 1.796937233ms fresh FP8, and
+1.781838535ms cached FP8 with preparation optimistically free. Isolated dX is
+0.549018034ms native and 0.689475099ms FP8; preparation alone is0.118491700ms.
+Separate scope times are not additive. Cheaper preparation alone cannot rescue
+this measured implementation. A source160 cached-product device capture is
+prepared to distinguish TensorEngine, quantization, transpose and DMA costs;
+its two-arm unprofiled comparison remains separate from profiled attribution.
+
+At the production QKV fixture, the CPU-FP64-product/BF16 frozen gate gives the
+same81 failures as joint NKI, with both native and NKI projection consumers.
+The FP32 frozen gate gives6085 failures for both. This localizes the remaining
+production discrepancy to gate/consumer compilation, without proving its exact
+lowering cause. Frozen-gate derivatives are invalid for learned-gate training.
+No integration promotion; pause further BF16 QKV rewrites without new evidence.
+
+trn22 coordinator fs-w159-context512-sequence-r1 PID30002 started01:10:46 UTC,
+first clean preflight01:10:52. It compares current native dense6x1024 at
+T1024/pack32 then T512/pack64, keeping131072global tokens/update, GA1, real token
+stream, seed42, five warmups and thirty measured updates. All four finite,
+causality, repeat and batch-independence checks are mandatory. This is a geometry
+screen, not a BPB comparison; shorter context can hurt learning. No full-budget
+training is automatically authorized by this finite two-step coordinator.
+Search of fresh-start notes/request/summary files found no512-context experiment;
+this does not establish that the older campaign never tried it.
+
+The Tavily report is complete, not running. Its broad MXFP8/Trn2 recommendation
+was rejected against the instruction-level NC-v4 restriction. Existing NC-v3
+E4M3 kernels remain the applicable FP8 path. The frozen public best and canonical
+train.py/prepare.py are unchanged.

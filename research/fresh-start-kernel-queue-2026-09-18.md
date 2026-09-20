@@ -1,10 +1,11 @@
 # Kernel queue and precision-specific experiments
 
-Active continuation: source157 pairwise QKV/gate-initialization queues are running
-on both hosts. See `RESUME.md` and `fresh-start-continuous-work-2026-09-20.md`.
-A primary-source-oriented Tavily deep research request is also active. Earlier
-status below is retained as context; source156 is complete on both hosts.
-
+Current continuation (2026-09-20 01:15 UTC): source159 gate and FP8 cost
+controls are COMPLETE. trn22 runs the fixed T1024/pack32 versus T512/pack64
+whole-model timing screen; trn21 cached native/FP8 dX profiling is prepared.
+Tavily deep research is complete; MXFP8 hardware is NC-v4-only, not applicable
+here. Read RESUME.md and fresh-start-continuous-work-2026-09-20.md for active
+receipts, findings and continuation gates. Earlier status below is historical.
 
 Updated 2026-09-20 00:27 UTC. Read `RESUME.md` and postflights before dispatch.
 

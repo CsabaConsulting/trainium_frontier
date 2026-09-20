@@ -1,0 +1,92 @@
+{
+  "label": "fs-w159-qkv-gate-boundary-r1",
+  "source_commit": "64f548ea2d3524668f2ce86b0a33d6dad97f7b4b",
+  "completed_at": "2026-09-20T01:09:11.300738+00:00",
+  "host_clean": true,
+  "command_returncode": 0,
+  "log_sha256": "634bf80c6778fc3a592d0037e2a7d747efb5cfd4f969d9670e6efe1c0b3c353e",
+  "postflight_sha256": "0498cc9b8695cd095de0be74d5803dcb1ba0fc4445cd279445b34ed09e4407f1",
+  "result": {
+    "layout": "tokens",
+    "channels": 1024,
+    "batch": 32,
+    "length": 1024,
+    "all_inputs_require_grad": true,
+    "include_fp32_arm": false,
+    "cases": 1,
+    "arm_set": "gate",
+    "gate_init": "random",
+    "materialized_controls": false,
+    "diagnostic_complete": true,
+    "acceptance_bounds_unchanged": true,
+    "integration_promoted": false,
+    "whole_model_or_quality_claim": false
+  },
+  "whole_model_or_quality_claim": false,
+  "comparisons": [
+    {
+      "name": "1024:batch32:length1024:cacheTrue:veTrue:native_repeat",
+      "exact": true,
+      "finite": true,
+      "bound_failures": 0,
+      "relative_rms": 0.0,
+      "max_abs": 0.0,
+      "unchanged_paired_gate_passed": true
+    },
+    {
+      "name": "1024:batch32:length1024:cacheTrue:veTrue:native_preprojected",
+      "exact": true,
+      "finite": true,
+      "bound_failures": 0,
+      "relative_rms": 0.0,
+      "max_abs": 0.0,
+      "unchanged_paired_gate_passed": true
+    },
+    {
+      "name": "1024:batch32:length1024:cacheTrue:veTrue:native_gate_bf16",
+      "exact": false,
+      "finite": true,
+      "bound_failures": 81,
+      "relative_rms": 0.001729031741614262,
+      "max_abs": 0.0078125,
+      "unchanged_paired_gate_passed": false
+    },
+    {
+      "name": "1024:batch32:length1024:cacheTrue:veTrue:native_gate_fp32",
+      "exact": false,
+      "finite": true,
+      "bound_failures": 6085,
+      "relative_rms": 0.002846510026743893,
+      "max_abs": 0.0078125,
+      "unchanged_paired_gate_passed": false
+    },
+    {
+      "name": "1024:batch32:length1024:cacheTrue:veTrue:nki_gate_bf16",
+      "exact": false,
+      "finite": true,
+      "bound_failures": 81,
+      "relative_rms": 0.001729031741614262,
+      "max_abs": 0.0078125,
+      "unchanged_paired_gate_passed": false
+    },
+    {
+      "name": "1024:batch32:length1024:cacheTrue:veTrue:nki_gate_fp32",
+      "exact": false,
+      "finite": true,
+      "bound_failures": 6085,
+      "relative_rms": 0.002846510026743893,
+      "max_abs": 0.0078125,
+      "unchanged_paired_gate_passed": false
+    },
+    {
+      "name": "1024:batch32:length1024:cacheTrue:veTrue:nki_all",
+      "exact": false,
+      "finite": true,
+      "bound_failures": 81,
+      "relative_rms": 0.001729031741614262,
+      "max_abs": 0.0078125,
+      "unchanged_paired_gate_passed": false
+    }
+  ],
+  "interpretation": "BF16 frozen gate matches the joint-NKI discrepancy (81 failures) with either native or NKI projections. FP32 frozen gate worsens it (6085). This localizes a compiled gate/consumer precision boundary, not a projection error or an accepted frozen-gate implementation. Freeze removes gate derivatives. No integration or speed promotion."
+}
