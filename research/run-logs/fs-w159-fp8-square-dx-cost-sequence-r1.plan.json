@@ -1,0 +1,45 @@
+{
+  "label": "fs-w159-fp8-square-dx-cost-sequence-r1",
+  "max_seconds": 2400,
+  "purpose": "Distinguish unavoidable cached FP8 dX cost from calibration/dual packing; source158 independent gates and unchanged bytes required. Optimistic cached controls cannot claim free preparation.",
+  "steps": [
+    {
+      "request": "research/run-logs/fs-w159-fp8-square-dx-cost-r1.request.json",
+      "sha256": "2f19f568c85f03d1becce42b1160d2a50e4231ec904b8ee6b0ff0a3163d75fd5",
+      "requirements": [
+        {
+          "marker": "FP8_DX_COST_PREREQUISITE",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "source_commit": "959495b462a824904e2f7d91a136da74f4ba94c0"
+          }
+        },
+        {
+          "marker": "FP8_CACHE_EXACT_GATE",
+          "count": 7,
+          "fields": {
+            "passed": true,
+            "finite": true,
+            "exact": true
+          }
+        },
+        {
+          "marker": "FP8_DX_COST_RESULT",
+          "count": 1,
+          "fields": {
+            "passed": true,
+            "tokens": 32768,
+            "channels": 1024,
+            "numerical_controls_exact": true,
+            "cases": 6,
+            "cached_controls_exclude_preparation": true,
+            "separate_times_not_additive": true,
+            "autograd_or_model_gate": false,
+            "whole_model_or_quality_claim": false
+          }
+        }
+      ]
+    }
+  ]
+}
