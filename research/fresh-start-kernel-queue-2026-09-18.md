@@ -1,5 +1,7 @@
 # Kernel queue and precision-specific experiments
 
+Current checkpoint 2026-09-20 12:43 UTC: source199 runs the corrected, unchanged-math saved-FP8 contention screen on trn21. Source197 continuation r2 runs on trn22 after verified12GiB archival cleanup; the original ingestion reserve failure is retained. Both queues use independent pre/postflight and finite limits. A separate finite, committed local sidecar preserves/uploads the four accepted profiles after completion. No new BPB result. See RESUME.md and fresh-start-library-followup-2026-09-20.md for exact ownership, plans, failure boundaries and backups.
+
 Checkpoint2026-09-20 08:48UTC: source194 saved forward wins10.3719% with all310
 exact checks and10fixtures, clean. Trn21 source196 Vector-square comparison
 RUNNING, first9cases exact; production pending. Trn22 source195 position-r2

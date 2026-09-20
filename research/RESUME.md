@@ -1,9 +1,60 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-20 12:34 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-20 12:43 UTC. Authorization: danger-full-access, approval never.
 Use committed manifests/postflights before dispatch; never restart completed jobs.
 
-## Current work — 2026-09-20 12:34 UTC
+## Current work — 2026-09-20 12:43 UTC
+
+- Trn21 RUNNING source1995d1ff50e at remote wave199. Coordinator2644,
+  fs-w199-nkilib-saved-contention-sequence-r1, started12:38:36UTC, max6600s,
+  plan1b8178fd. One/four/one-rank screen of unchanged source194 saved FP8 forward.
+  Native and FP8 exact repeat gates pass; actual-stage reference compilation is
+  pending. All original198 numerical requirements remain, plus actual Python
+  module registration. No backward/model/BPB result from this screen yet.
+- Source198 STOPPED with returncode1 and CLEAN postflight12:36:33. Its extracted
+  reference function claimed the old module, so Dynamo could not resolve hidden.
+  Source199 registers a separate actual module. Inverse AST recovers198 after
+  removing only those bindings/imports/provenance. No kernel or bound changed.
+  DO NOT restart198 or dispatch its never-run later requests.
+- Trn22 RUNNING continuation fs-w197-nkilib-partial-profile-sequence-r2,
+  coordinator9757, started12:41:47UTC, max7600s, plan41e02ade. Reuses immutable
+  source195282935ca at remote wave195. First reruns ingestion into a new directory
+  with a fully clean postflight required, then the original byte-identical last
+  capture/ingestion requests. Recovery and original capture prerequisites pass.
+- Original197 first capture COMPLETE/CLEAN;63 files2,491,558,829B independently
+  hash-verified locally. Original first ingestion returned0 with31 valid tables
+  and unchanged raw hashes, but FAILED the8GiB reserve. Its failure is retained.
+  Original coordinator16380 was deliberately stopped before another capture;
+  its old sequence JSON still says running. The pidfd hold receipt is authoritative.
+  DO NOT restart original197r1. Use the active r2 continuation only.
+- Maintenance r5 COMPLETE/CLEAN. Archived1916 old same-UID /tmp/nki_* files,
+ 12,894,108,282B; verified all local archive contents and live GitHub digests
+  before rechecking/retiring the exact remote inventory under the host lock.
+  Free space8,294,133,760B to21,203,832,832B. Current compiles, shared caches,
+  profiles, sources/checkpoints remain. Cutoff12:20UTC. All receipts are local.
+- Finite preservation sidecar RUNNING/WAITING: timeout wrapper9912, Python9914,
+  fs-w197-profile-preservation-sidecar-r1. Started12:42:08UTC; outer12000s,
+  inner11000s. Its committed checker passes. After197r2 completes, it rechecks
+  all four accepted artifacts, retrieves/verifies every file, and uploads with
+  the existing cloud lock/digest verifier. No experiment dispatch/deletion/cron
+  change. Do not edit research/preserve_library_position_profiles.py while active.
+- The original reserve-failed first derived profile is preserved locally:
+ 31 files713,246,403B, every remote/local hash matches, with the explicit r5
+  recovery receipt. Original reserve failure is retained. Both first raw and
+  original derived profiles now have priority cloud entries; the finite sidecar
+  separately handles all four accepted outputs after the continuation.
+- Completed195/196 results are in fresh-start-library-followup-2026-09-20.md.
+  Scalar saved FP8 forward4.776949ms vs native5.327761ms; Vector substitution
+ 2.13% slower. Partial-layer means: first496.617ms, last682.661ms, all564.512ms,
+  zero499.108/498.149ms. All samples retained, including final optimizer spikes.
+- Best public BPB0.9928513116311253, cold replay0.9938556748843932. No new quality
+  run. Canonical train.py/prepare.py/frozen submission unchanged. Source159 MUST
+  NOT dispatch. Protect active helpers and requests. Cron mirrors/pushes every
+ 10min without merging or choosing work; active coordinators mirror every45s.
+  Queues and preservation sidecar are finite and stop on failed gates.
+  Consult out/fresh-start-backup/last-success.json for exact verified cloud refs.
+
+## Previous checkpoint — 2026-09-20 12:34 UTC
 
 - Direct SSH at12:23 found both hosts idle after finite queues196/195 completed
   at09:05/09:28 UTC. Their results are now independently verified and committed.

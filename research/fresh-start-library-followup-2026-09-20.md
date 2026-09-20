@@ -53,3 +53,37 @@ No new kernel arithmetic or backward is part of this screen.
 Complete ROW backward remains required work. The contraction-axis scaling
 constraint in `fresh-start-library-fusion-next-2026-09-20.md` still applies.
 Neither new sequence can promote a model to a quality run automatically.
+
+## Storage recovery and harness correction
+
+Source197 first capture passed every frozen requirement and clean postflight.
+Its63 files (2,491,558,829bytes) are copied locally and every remote/local SHA
+matches. The subsequent ingestion returned0 with31 tables and unchanged raw
+hashes, but free disk fell below the8GiB postflight reserve. Preserve the failed
+postflight; do not call the original ingestion fully clean. The exact owned
+local coordinator was held via pidfd before another capture could launch.
+
+Maintenance r5 captures only old same-UID /tmp/nki_* files before12:20UTC;
+1916 files totaling12,894,108,282bytes are independently verified in the local
+archive. The archive's SHA256 is
+`a9669e90981d9a966ffa32117643ba1336c305a08323683cecc37e8bf058dd37`.
+GitHub payload and manifest digests were verified before authorizing retirement.
+The retirement tool rechecks cloud assets, local files and the entire remote
+inventory while holding the host lock. Current compiles, profiles, sources and
+shared caches are retained. See the maintenance completion receipt for the
+actual retirement result; archive verification alone does not mean deletion.
+
+The new197 continuation first repeats ingestion into a new output directory
+and requires a fully clean postflight. Only then can the original, byte-identical
+last-profile and last-ingest requests run. Original reserve failure evidence is
+retained. A finite local preservation sidecar will copy/hash/upload the four
+accepted artifacts after the continuation, without selecting experiments or
+changing cron. It must be committed and checked before being started.
+
+Source198's native and FP8 repeat checks passed before the diagnostic reference
+hit a TorchDynamo guard error: the extracted function globals claimed the old
+probe's module, which has no `hidden` attribute. The run returned1 and cleaned
+up successfully. Source199 registers the extracted globals in an isolated real
+Python module. Reversing that binding change plus its imports/extra provenance
+field recovers the complete source198 AST. No arithmetic, fixture, bound or
+exact check was removed. Source199 is running the same one/four/one-rank screen.
