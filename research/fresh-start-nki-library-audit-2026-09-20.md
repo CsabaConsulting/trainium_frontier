@@ -375,3 +375,10 @@ no promotion. Source171 exact receipts and full timing summary are preserved
 in fs-w171-fp8-separated-diagnostic-comparison-r1.json. A guarded12GiB capture
 of old NKI scratch is in progress; no remote deletion until archive hashes and
 current GitHub asset digests have independently verified preservation.
+
+At05:24UTC scratch maintenance completed cleanly. All4,991 original files
+(12,978,670,751B) are verified inside the local archive and in live GitHub
+assets before remote retirement. Free disk increased7.57GB ->20.59GB.
+Prepare the source171 native/FP8 clean repeat under new r2 labels, requiring
+the exact recovery receipt and unchanged original numeric/rank gates.
+The r1 failure remains intact and cannot serve as a successful prerequisite.
