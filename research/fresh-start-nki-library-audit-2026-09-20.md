@@ -108,3 +108,27 @@ The useful new direction is to compare proven library tiling/allocation and
 attention implementations with our measured integration gap. A wholesale
 package switch would change many unrelated kernels at once and obscure that
 comparison.
+
+## Source166 interface failures and source167 corrections
+
+Both jobs launched clean04:17:04UTC from29b90bb9 and stopped cleanly before
+timing. Preserve their failed logs/postflights; neither is a negative speed
+result and neither demonstrated a numerical failure in a candidate output.
+
+- MLP04:17:21: `_validate_mlp_required_arguments` requires a gate tensor even
+  with `skip_gate_proj=True`. Supply the same transposed up-weight operand in
+  both slots. The disabled gate remains disabled; this adds no cache, weight
+  conversion or matrix product. The original parameter validator stays intact.
+- Attention04:17:22: bundled forward/backward and repetition pass, but newer
+  CTE compilation stops at `min(tile.num_valid_k, _K_TILE_SZ)`, because the
+  NKI0.5 frontend treats the property as a function rather than an integer.
+  `scratch/nki_library_attention_compat.py` replaces only the isolated
+  `KTileInfo` constructor with a dataclass factory whose stored field is the
+  identical `seqlen_k - k_start_pos` expression. A128-case CPU factory check
+  precedes compilation. Tile classification, masks and reduction schedule
+  stay in unchanged upstream code. This is a parser compatibility adapter,
+  not a hardware workaround or numerical tolerance change.
+
+The source167 retries use new immutable checkouts and labels. Existing source166
+requests/plans and the stopped coordinators are not edited or restarted. Check
+the latest source167 launch/postflight/sequence receipts for hardware status.

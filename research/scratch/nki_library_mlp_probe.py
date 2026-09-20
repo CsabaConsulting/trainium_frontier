@@ -24,7 +24,10 @@ def make_forward(prefix):
     def call(x, up, down):
         # Ordinary Linear parameter orientation at the external boundary.
         # Both transposes/contiguous conversions are inside the timed function.
-        result = wrapped[2](x, None, up.T.contiguous(), down.T.contiguous(),
+        up_layout = up.T.contiguous()
+        # Upstream validates a non-None gate operand even when skip_gate_proj
+        # is True. Alias the up operand; no gate GEMM or extra cache is needed.
+        result = wrapped[2](x, up_layout, up_layout, down.T.contiguous(),
                             activation_fn=types.ActFnType.SquaredReLU,
                             normalization_type=types.NormType.NO_NORM,
                             quantization_type=types.QuantizationType.NONE,
