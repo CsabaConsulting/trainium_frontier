@@ -1,0 +1,730 @@
+{
+  "label": "fs-w158-fp8-square-dx-component-r1",
+  "source_commit": "959495b462a824904e2f7d91a136da74f4ba94c0",
+  "completed_at": "2026-09-20T00:56:43.448412+00:00",
+  "host_clean": true,
+  "command_returncode": 0,
+  "log_sha256": "f1053c4b67b002e6f5fb699c6eae12ebb1e2f94480e37df2225de6917ef5cef2",
+  "postflight_sha256": "11fe22d93d1c12f378b9fcf2d9d4e98b2ab770ace1f6e246d12ebeb0d0a0015d",
+  "records": {
+    "FP8_SQUARE_DX_CONTRACT": [
+      {
+        "forward": "original BF16",
+        "weight_derivative": "original BF16 product to FP32",
+        "input_derivative": "per-row G E4M3 times per-matrix W E4M3, double-row pair rule, BF16 output",
+        "changed_vjp": true,
+        "no_free_shared_forward_fp8_cache": true,
+        "exact_original_backward": false,
+        "quality_gate": false
+      }
+    ],
+    "SERIAL_QKV_PRODUCT_GATE": [
+      {
+        "name": "random:native:product0",
+        "shape": [
+          512,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.014407698065042496,
+        "relative_rms": 0.0016609014570259594,
+        "half_value_negative_control_failures": 131039,
+        "passed": true
+      },
+      {
+        "name": "random:native:product2",
+        "shape": [
+          256,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 1.0058283805847168e-07,
+        "relative_rms": 6.523906382453378e-08,
+        "half_value_negative_control_failures": 65483,
+        "passed": true
+      },
+      {
+        "name": "random:fp8_dx:product0",
+        "shape": [
+          512,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.014407698065042496,
+        "relative_rms": 0.0016609014570259594,
+        "half_value_negative_control_failures": 131039,
+        "passed": true
+      },
+      {
+        "name": "random:fp8_dx:product2",
+        "shape": [
+          256,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 1.0058283805847168e-07,
+        "relative_rms": 6.523906382453378e-08,
+        "half_value_negative_control_failures": 65483,
+        "passed": true
+      },
+      {
+        "name": "random:native:dx",
+        "shape": [
+          512,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.00012176849122624844,
+        "relative_rms": 0.0016606991408540579,
+        "half_value_negative_control_failures": 131041,
+        "passed": true
+      },
+      {
+        "name": "zero_gradient:native:product0",
+        "shape": [
+          512,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.014407698065042496,
+        "relative_rms": 0.0016609014570259594,
+        "half_value_negative_control_failures": 131039,
+        "passed": true
+      },
+      {
+        "name": "zero_gradient:native:product2",
+        "shape": [
+          256,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0,
+        "relative_rms": 0.0,
+        "half_value_negative_control_failures": 0,
+        "passed": true
+      },
+      {
+        "name": "zero_gradient:fp8_dx:product0",
+        "shape": [
+          512,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.014407698065042496,
+        "relative_rms": 0.0016609014570259594,
+        "half_value_negative_control_failures": 131039,
+        "passed": true
+      },
+      {
+        "name": "zero_gradient:fp8_dx:product2",
+        "shape": [
+          256,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0,
+        "relative_rms": 0.0,
+        "half_value_negative_control_failures": 0,
+        "passed": true
+      },
+      {
+        "name": "zero_gradient:native:dx",
+        "shape": [
+          512,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0,
+        "relative_rms": 0.0,
+        "half_value_negative_control_failures": 0,
+        "passed": true
+      },
+      {
+        "name": "zero_weight:native:product0",
+        "shape": [
+          512,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0,
+        "relative_rms": 0.0,
+        "half_value_negative_control_failures": 0,
+        "passed": true
+      },
+      {
+        "name": "zero_weight:native:product2",
+        "shape": [
+          256,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 1.0058283805847168e-07,
+        "relative_rms": 6.523906382453378e-08,
+        "half_value_negative_control_failures": 65483,
+        "passed": true
+      },
+      {
+        "name": "zero_weight:fp8_dx:product0",
+        "shape": [
+          512,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0,
+        "relative_rms": 0.0,
+        "half_value_negative_control_failures": 0,
+        "passed": true
+      },
+      {
+        "name": "zero_weight:fp8_dx:product2",
+        "shape": [
+          256,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 1.0058283805847168e-07,
+        "relative_rms": 6.523906382453378e-08,
+        "half_value_negative_control_failures": 65483,
+        "passed": true
+      },
+      {
+        "name": "zero_weight:native:dx",
+        "shape": [
+          512,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0,
+        "relative_rms": 0.0,
+        "half_value_negative_control_failures": 0,
+        "passed": true
+      },
+      {
+        "name": "tiny_gradient:native:product0",
+        "shape": [
+          512,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.014407698065042496,
+        "relative_rms": 0.0016609014570259594,
+        "half_value_negative_control_failures": 131039,
+        "passed": true
+      },
+      {
+        "name": "tiny_gradient:native:product2",
+        "shape": [
+          256,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 6.139089236967266e-12,
+        "relative_rms": 6.523906382453378e-08,
+        "half_value_negative_control_failures": 65483,
+        "passed": true
+      },
+      {
+        "name": "tiny_gradient:fp8_dx:product0",
+        "shape": [
+          512,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.014407698065042496,
+        "relative_rms": 0.0016609014570259594,
+        "half_value_negative_control_failures": 131039,
+        "passed": true
+      },
+      {
+        "name": "tiny_gradient:fp8_dx:product2",
+        "shape": [
+          256,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 6.139089236967266e-12,
+        "relative_rms": 6.523906382453378e-08,
+        "half_value_negative_control_failures": 65483,
+        "passed": true
+      },
+      {
+        "name": "tiny_gradient:native:dx",
+        "shape": [
+          512,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 7.432158888320828e-09,
+        "relative_rms": 0.0016606991408540579,
+        "half_value_negative_control_failures": 131041,
+        "passed": true
+      },
+      {
+        "name": "outliers:native:product0",
+        "shape": [
+          512,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.06220421567559242,
+        "relative_rms": 0.001668078712100945,
+        "half_value_negative_control_failures": 131038,
+        "passed": true
+      },
+      {
+        "name": "outliers:native:product2",
+        "shape": [
+          256,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.01680540689267218,
+        "relative_rms": 1.0839530909407936e-07,
+        "half_value_negative_control_failures": 65484,
+        "passed": true
+      },
+      {
+        "name": "outliers:fp8_dx:product0",
+        "shape": [
+          512,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.06220421567559242,
+        "relative_rms": 0.001668078712100945,
+        "half_value_negative_control_failures": 131038,
+        "passed": true
+      },
+      {
+        "name": "outliers:fp8_dx:product2",
+        "shape": [
+          256,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.01680540689267218,
+        "relative_rms": 1.0839530909407936e-07,
+        "half_value_negative_control_failures": 65484,
+        "passed": true
+      },
+      {
+        "name": "outliers:native:dx",
+        "shape": [
+          512,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.09233778639463708,
+        "relative_rms": 6.47925145670316e-07,
+        "half_value_negative_control_failures": 131040,
+        "passed": true
+      },
+      {
+        "name": "changed_weight:native:product0",
+        "shape": [
+          512,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.00860208431549836,
+        "relative_rms": 0.001655082434113126,
+        "half_value_negative_control_failures": 131033,
+        "passed": true
+      },
+      {
+        "name": "changed_weight:native:product2",
+        "shape": [
+          256,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 1.0058283805847168e-07,
+        "relative_rms": 6.523906382453378e-08,
+        "half_value_negative_control_failures": 65483,
+        "passed": true
+      },
+      {
+        "name": "changed_weight:fp8_dx:product0",
+        "shape": [
+          512,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.00860208431549836,
+        "relative_rms": 0.001655082434113126,
+        "half_value_negative_control_failures": 131033,
+        "passed": true
+      },
+      {
+        "name": "changed_weight:fp8_dx:product2",
+        "shape": [
+          256,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 1.0058283805847168e-07,
+        "relative_rms": 6.523906382453378e-08,
+        "half_value_negative_control_failures": 65483,
+        "passed": true
+      },
+      {
+        "name": "changed_weight:native:dx",
+        "shape": [
+          512,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.00012188377149868757,
+        "relative_rms": 0.0016635198103096991,
+        "half_value_negative_control_failures": 131044,
+        "passed": true
+      },
+      {
+        "name": "cancellation:native:product0",
+        "shape": [
+          512,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.014407698065042496,
+        "relative_rms": 0.001654571391399349,
+        "half_value_negative_control_failures": 131036,
+        "passed": true
+      },
+      {
+        "name": "cancellation:native:product2",
+        "shape": [
+          256,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 1.0058283805847168e-07,
+        "relative_rms": 6.526483474407036e-08,
+        "half_value_negative_control_failures": 65496,
+        "passed": true
+      },
+      {
+        "name": "cancellation:fp8_dx:product0",
+        "shape": [
+          512,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.014407698065042496,
+        "relative_rms": 0.001654571391399349,
+        "half_value_negative_control_failures": 131036,
+        "passed": true
+      },
+      {
+        "name": "cancellation:fp8_dx:product2",
+        "shape": [
+          256,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 1.0058283805847168e-07,
+        "relative_rms": 6.526483474407036e-08,
+        "half_value_negative_control_failures": 65496,
+        "passed": true
+      },
+      {
+        "name": "cancellation:native:dx",
+        "shape": [
+          512,
+          256
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0,
+        "relative_rms": 0.0,
+        "half_value_negative_control_failures": 0,
+        "passed": true
+      },
+      {
+        "name": "real_random:native:product0",
+        "shape": [
+          32768,
+          1024
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.01562376506626606,
+        "relative_rms": 0.001661207880270694,
+        "half_value_negative_control_failures": 33487437,
+        "passed": true
+      },
+      {
+        "name": "real_random:native:product2",
+        "shape": [
+          1024,
+          1024
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 1.5193802482826868e-06,
+        "relative_rms": 1.310008084857172e-07,
+        "half_value_negative_control_failures": 679808,
+        "passed": true
+      },
+      {
+        "name": "real_random:fp8_dx:product0",
+        "shape": [
+          32768,
+          1024
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.01562376506626606,
+        "relative_rms": 0.001661207880270694,
+        "half_value_negative_control_failures": 33487437,
+        "passed": true
+      },
+      {
+        "name": "real_random:fp8_dx:product2",
+        "shape": [
+          1024,
+          1024
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 1.5193802482826868e-06,
+        "relative_rms": 1.310008084857172e-07,
+        "half_value_negative_control_failures": 679808,
+        "passed": true
+      },
+      {
+        "name": "real_random:native:dx",
+        "shape": [
+          32768,
+          1024
+        ],
+        "finite": true,
+        "bound_failures": 0,
+        "max_abs": 0.0001220705726154847,
+        "relative_rms": 0.0016585444006915727,
+        "half_value_negative_control_failures": 33487291,
+        "passed": true
+      }
+    ],
+    "FP8_CACHE_QUANTIZATION_DIAGNOSTIC": [
+      {
+        "name": "random:dx_quantization_error",
+        "relative_rms": 0.03751290671642153,
+        "max_abs": 0.0018310546875,
+        "quality_gate": false,
+        "quantized_model_differs_from_original": true
+      },
+      {
+        "name": "zero_gradient:dx_quantization_error",
+        "relative_rms": 0.0,
+        "max_abs": 0.0,
+        "quality_gate": false,
+        "quantized_model_differs_from_original": true
+      },
+      {
+        "name": "zero_weight:dx_quantization_error",
+        "relative_rms": 0.0,
+        "max_abs": 0.0,
+        "quality_gate": false,
+        "quantized_model_differs_from_original": true
+      },
+      {
+        "name": "tiny_gradient:dx_quantization_error",
+        "relative_rms": 0.03751290671642153,
+        "max_abs": 1.1175870895385742e-07,
+        "quality_gate": false,
+        "quantized_model_differs_from_original": true
+      },
+      {
+        "name": "outliers:dx_quantization_error",
+        "relative_rms": 0.003556641384712398,
+        "max_abs": 256.0,
+        "quality_gate": false,
+        "quantized_model_differs_from_original": true
+      },
+      {
+        "name": "changed_weight:dx_quantization_error",
+        "relative_rms": 0.03748790640761387,
+        "max_abs": 0.0015869140625,
+        "quality_gate": false,
+        "quantized_model_differs_from_original": true
+      },
+      {
+        "name": "cancellation:dx_quantization_error",
+        "relative_rms": 0.0,
+        "max_abs": 0.0,
+        "quality_gate": false,
+        "quantized_model_differs_from_original": true
+      },
+      {
+        "name": "real_random:dx_quantization_error",
+        "relative_rms": 0.03772355703608962,
+        "max_abs": 0.0020904541015625,
+        "quality_gate": false,
+        "quantized_model_differs_from_original": true
+      }
+    ],
+    "FP8_SQUARE_DX_CASE": [
+      {
+        "case": "random",
+        "tokens": 512,
+        "channels": 256,
+        "passed": true,
+        "native_forward_and_weight_product_exact": true,
+        "declared_fp8_dx_independently_gated": true,
+        "all_master_casts_calibration_and_packing_included": true,
+        "autograd_or_model_gate": false,
+        "whole_model_or_quality_claim": false
+      },
+      {
+        "case": "zero_gradient",
+        "tokens": 512,
+        "channels": 256,
+        "passed": true,
+        "native_forward_and_weight_product_exact": true,
+        "declared_fp8_dx_independently_gated": true,
+        "all_master_casts_calibration_and_packing_included": true,
+        "autograd_or_model_gate": false,
+        "whole_model_or_quality_claim": false
+      },
+      {
+        "case": "zero_weight",
+        "tokens": 512,
+        "channels": 256,
+        "passed": true,
+        "native_forward_and_weight_product_exact": true,
+        "declared_fp8_dx_independently_gated": true,
+        "all_master_casts_calibration_and_packing_included": true,
+        "autograd_or_model_gate": false,
+        "whole_model_or_quality_claim": false
+      },
+      {
+        "case": "tiny_gradient",
+        "tokens": 512,
+        "channels": 256,
+        "passed": true,
+        "native_forward_and_weight_product_exact": true,
+        "declared_fp8_dx_independently_gated": true,
+        "all_master_casts_calibration_and_packing_included": true,
+        "autograd_or_model_gate": false,
+        "whole_model_or_quality_claim": false
+      },
+      {
+        "case": "outliers",
+        "tokens": 512,
+        "channels": 256,
+        "passed": true,
+        "native_forward_and_weight_product_exact": true,
+        "declared_fp8_dx_independently_gated": true,
+        "all_master_casts_calibration_and_packing_included": true,
+        "autograd_or_model_gate": false,
+        "whole_model_or_quality_claim": false
+      },
+      {
+        "case": "changed_weight",
+        "tokens": 512,
+        "channels": 256,
+        "passed": true,
+        "native_forward_and_weight_product_exact": true,
+        "declared_fp8_dx_independently_gated": true,
+        "all_master_casts_calibration_and_packing_included": true,
+        "autograd_or_model_gate": false,
+        "whole_model_or_quality_claim": false
+      },
+      {
+        "case": "cancellation",
+        "tokens": 512,
+        "channels": 256,
+        "passed": true,
+        "native_forward_and_weight_product_exact": true,
+        "declared_fp8_dx_independently_gated": true,
+        "all_master_casts_calibration_and_packing_included": true,
+        "autograd_or_model_gate": false,
+        "whole_model_or_quality_claim": false
+      },
+      {
+        "case": "real_random",
+        "tokens": 32768,
+        "channels": 1024,
+        "passed": true,
+        "native_forward_and_weight_product_exact": true,
+        "declared_fp8_dx_independently_gated": true,
+        "all_master_casts_calibration_and_packing_included": true,
+        "autograd_or_model_gate": false,
+        "whole_model_or_quality_claim": false
+      }
+    ],
+    "FP8_SQUARE_DX_TIMING": [
+      {
+        "tokens": 32768,
+        "channels": 1024,
+        "samples_ms": {
+          "native": [
+            1.6170326969586313,
+            1.6405511007178575,
+            1.6141837986651808
+          ],
+          "fp8_dx": [
+            1.8398206972051412,
+            1.8260645971167833,
+            1.8454272008966655
+          ]
+        },
+        "median_ms": {
+          "native": 1.6170326969586313,
+          "fp8_dx": 1.8398206972051412
+        },
+        "units": "ms per forward, input gradient and weight gradient with fresh cache preparation",
+        "master_cast_calibration_and_all_dual_packing_charged": true,
+        "autograd_accumulation_optimizer_and_full_model_excluded": true
+      }
+    ],
+    "FP8_SQUARE_DX_RESULT": [
+      {
+        "passed": true,
+        "cases": 8,
+        "native_forward_and_weight_product_exact": true,
+        "independent_declared_fp8_dx_gates": true,
+        "real_tokens": 32768,
+        "real_channels": 1024,
+        "autograd_or_model_gate": false,
+        "whole_model_or_quality_claim": false
+      }
+    ]
+  },
+  "whole_model_or_quality_claim": false
+}

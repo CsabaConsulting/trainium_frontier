@@ -84,3 +84,35 @@ mixes changing Muon optimizer matrix arithmetic with ordinary network GEMMs.
 Do not apply those suggestions. No SDK upgrade or optimizer precision change.
 The usable hypothesis is backward-first coverage with our working NC-v3 E4M3
 primitives; no documentation establishes a speed gain on this workload.
+
+## Source157/158 outcomes and the next discriminating controls
+
+All four source157 requests completed cleanly. At production shape, every pair
+with random VE gate differs by the same81 coordinate failures; with zero gate,
+all pair/full/direct replacements are exactly native. At the small shape, QK
+alone is exact, but pairs containing V fail both random/zero gates (710/626
+coordinates). The direct wrapper equals the ordinary adapter in these results,
+so removing its redundant slice alone is not a numerical fix.
+
+Source158 is complete/clean00:56:43 UTC with all8 declared numerical cases and
+40 independent native-product audits. Forward and weight product are exactly
+native. Real square dX quantization changes relative RMS by0.03772356, reported
+separately from implementation correctness. Native complete three-product
+median1.617033ms; FP8 dX with all preparation1.839821ms,13.78% slower. No autograd,
+model, quality or speed promotion. This is a useful negative for that boundary.
+
+Source159 runs two independent follow-ups:
+
+- trn21: at the production fixture, freeze only the gate GEMM preactivation
+  from an independent CPU FP64 product of the actual BF16 operands, in BF16
+  and FP32 variants. Compare native and joint-NKI consumers to the UNMODIFIED
+  native authority, with original all-NKI and native-preprojected controls.
+  Freezing removes gate derivatives and may affect fusion, so it is diagnostic
+  only. It distinguishes gate arithmetic from V storage without accepting a
+  precision switch based on shape or zero initialization.
+- trn22: reuse source158 gates and byte-identical code, then measure native/
+  fresh-FP8 three-product calls, optimistic cached FP8, both isolated dX
+  products, and current cache preparation. Require all corresponding outputs
+  to be exact first. If cached FP8 still loses, cheaper preparation alone
+  cannot rescue this implementation in the measured context. Separate scope
+  timings are not additive and none replaces a full-step measurement.
