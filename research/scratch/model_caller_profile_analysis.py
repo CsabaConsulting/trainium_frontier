@@ -132,6 +132,9 @@ def main():
                 ('fp8_weight_gradient', 'fp8_weight_gradient_nki.py'),
                 ('fp8_dual_weight_cache', 'fp8_dual_weight_cache_nki.py'),
                 ('bf16_mlp', 'mlp_fused_bf16.py'),
+                ('library_mlp_cte', '/mlp/mlp_cte/'),
+                ('library_training_saves', 'nki_library_training_mlp_reuse_transpose.py'),
+                ('library_training_integration', 'nki_library_mlp_integration.py'),
                 ('softcap_ce', 'softcap_ce_parallel_nki.py'),
                 ('cached_head', 'head_loss_fused_nki.py'),
                 ('cached_head_autograd', 'head_loss_fused_autograd.py'),
@@ -166,6 +169,7 @@ def main():
         with path.open('rb') as stream:
             hashes[str(path)] = hashlib.file_digest(stream, 'sha256').hexdigest()
     report = dict(trace=str(args.trace), parquet=str(root),
+                  analysis_script_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
                   all_runtime_dispatches_match_ingested_binaries=True,
                   executions=executions, graph_analyses=analyses,
                   explicitly_matched_auxiliary_executions=auxiliary,

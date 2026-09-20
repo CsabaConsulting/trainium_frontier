@@ -1,0 +1,356 @@
+NKILIB_ROW_FORWARD_PREREQUISITE {"passed": true, "cases": 10, "source_commit": "861b0ce85c7eb02710eb2fa6be01acdc30cf4b27", "all_original_rules_verified": true, "reference_and_mlp_bytes_unchanged": true}
+[W920 06:49:00.680487881 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+NKILIB_PROVENANCE {"passed": true, "upstream_commit": "92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e", "vendored_files": 66, "bundled_root": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib", "vendor_namespace": "research.vendor.nki_library_92d11f63", "nki": "0.5.0+28631259367.ga768afa6", "compiler": "2.26.6360.0+6f180f47", "package_installation": false, "bundled_package_replaced": false}
+NKILIB_WEIGHT_PREPARE_START {"name": "random_small", "shape": [512, 256]}
+NKILIB_EXACT {"name": "random_small:separate:absmax", "passed": true}
+NKILIB_EXACT {"name": "random_small:separate:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "random_small:separate", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "random_small:separate:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "random_small:separate", "passed": true, "shape": [512, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 129244, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "random_small:separate:repeat", "passed": true}
+NKILIB_EXACT {"name": "random_small:direct_fp8:absmax", "passed": true}
+NKILIB_EXACT {"name": "random_small:direct_fp8:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "random_small:direct_fp8", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "random_small:direct_fp8:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "random_small:direct_fp8", "passed": true, "shape": [512, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 129244, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "random_small:direct_fp8:repeat", "passed": true}
+NKILIB_EXACT {"name": "random_small:direct_fp8:reference_bytes_and_metadata", "passed": true}
+NKILIB_EXACT {"name": "random_small:bf16_carrier:absmax", "passed": true}
+NKILIB_EXACT {"name": "random_small:bf16_carrier:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "random_small:bf16_carrier", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "random_small:bf16_carrier:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "random_small:bf16_carrier", "passed": true, "shape": [512, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 129244, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "random_small:bf16_carrier:repeat", "passed": true}
+NKILIB_EXACT {"name": "random_small:bf16_carrier:reference_bytes_and_metadata", "passed": true}
+NKILIB_EXACT {"name": "random_small:master_unchanged", "passed": true}
+NKILIB_EXACT {"name": "random_small:separate:changed:absmax", "passed": true}
+NKILIB_EXACT {"name": "random_small:separate:changed:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "random_small:separate:changed", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "random_small:separate:changed:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "random_small:separate:changed", "passed": true, "shape": [512, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 129244, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "random_small:separate:other_rows", "passed": true}
+NKILIB_EXACT {"name": "random_small:direct_fp8:changed:absmax", "passed": true}
+NKILIB_EXACT {"name": "random_small:direct_fp8:changed:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "random_small:direct_fp8:changed", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "random_small:direct_fp8:changed:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "random_small:direct_fp8:changed", "passed": true, "shape": [512, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 129244, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "random_small:direct_fp8:other_rows", "passed": true}
+NKILIB_EXACT {"name": "random_small:direct_fp8:changed_reference", "passed": true}
+NKILIB_EXACT {"name": "random_small:bf16_carrier:changed:absmax", "passed": true}
+NKILIB_EXACT {"name": "random_small:bf16_carrier:changed:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "random_small:bf16_carrier:changed", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "random_small:bf16_carrier:changed:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "random_small:bf16_carrier:changed", "passed": true, "shape": [512, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 129244, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "random_small:bf16_carrier:other_rows", "passed": true}
+NKILIB_EXACT {"name": "random_small:bf16_carrier:changed_reference", "passed": true}
+NKILIB_WEIGHT_PREPARE_CASE {"name": "random_small", "passed": true, "shape": [512, 256], "independent_quantizer_checks": true, "exact_all_bytes_and_metadata": true, "changed_inputs_and_other_rows_checked": true, "original_control_retained": true, "fp32_master_cast_quantization_transpose_and_metadata_charged": true, "intermediate_quantized_hbm_tensor_eliminated": true, "samples_ms": {"separate": [0.07707269978709519, 0.07588083390146494, 0.0701024003016452], "direct_fp8": [0.07447153329849243, 0.07060260007468362, 0.07626676621536414], "bf16_carrier": [0.07362966619742413, 0.07256593477601807, 0.0765271329631408]}, "median_ms": {"separate": 0.07588083390146494, "direct_fp8": 0.07447153329849243, "bf16_carrier": 0.07362966619742413}}
+NKILIB_WEIGHT_PREPARE_START {"name": "zero", "shape": [512, 256]}
+NKILIB_EXACT {"name": "zero:separate:absmax", "passed": true}
+NKILIB_EXACT {"name": "zero:separate:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "zero:separate", "passed": true, "max_relative_error": 2.5247572921216488e-09, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "zero:separate:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "zero:separate", "passed": true, "shape": [512, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 0, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "zero:separate:repeat", "passed": true}
+NKILIB_EXACT {"name": "zero:direct_fp8:absmax", "passed": true}
+NKILIB_EXACT {"name": "zero:direct_fp8:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "zero:direct_fp8", "passed": true, "max_relative_error": 2.5247572921216488e-09, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "zero:direct_fp8:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "zero:direct_fp8", "passed": true, "shape": [512, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 0, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "zero:direct_fp8:repeat", "passed": true}
+NKILIB_EXACT {"name": "zero:direct_fp8:reference_bytes_and_metadata", "passed": true}
+NKILIB_EXACT {"name": "zero:bf16_carrier:absmax", "passed": true}
+NKILIB_EXACT {"name": "zero:bf16_carrier:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "zero:bf16_carrier", "passed": true, "max_relative_error": 2.5247572921216488e-09, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "zero:bf16_carrier:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "zero:bf16_carrier", "passed": true, "shape": [512, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 0, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "zero:bf16_carrier:repeat", "passed": true}
+NKILIB_EXACT {"name": "zero:bf16_carrier:reference_bytes_and_metadata", "passed": true}
+NKILIB_EXACT {"name": "zero:master_unchanged", "passed": true}
+NKILIB_EXACT {"name": "zero:separate:changed:absmax", "passed": true}
+NKILIB_EXACT {"name": "zero:separate:changed:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "zero:separate:changed", "passed": true, "max_relative_error": 1.142422689781597e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "zero:separate:changed:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "zero:separate:changed", "passed": true, "shape": [512, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 0, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "zero:separate:other_rows", "passed": true}
+NKILIB_EXACT {"name": "zero:direct_fp8:changed:absmax", "passed": true}
+NKILIB_EXACT {"name": "zero:direct_fp8:changed:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "zero:direct_fp8:changed", "passed": true, "max_relative_error": 1.142422689781597e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "zero:direct_fp8:changed:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "zero:direct_fp8:changed", "passed": true, "shape": [512, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 0, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "zero:direct_fp8:other_rows", "passed": true}
+NKILIB_EXACT {"name": "zero:direct_fp8:changed_reference", "passed": true}
+NKILIB_EXACT {"name": "zero:bf16_carrier:changed:absmax", "passed": true}
+NKILIB_EXACT {"name": "zero:bf16_carrier:changed:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "zero:bf16_carrier:changed", "passed": true, "max_relative_error": 1.142422689781597e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "zero:bf16_carrier:changed:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "zero:bf16_carrier:changed", "passed": true, "shape": [512, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 0, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "zero:bf16_carrier:other_rows", "passed": true}
+NKILIB_EXACT {"name": "zero:bf16_carrier:changed_reference", "passed": true}
+NKILIB_WEIGHT_PREPARE_CASE {"name": "zero", "passed": true, "shape": [512, 256], "independent_quantizer_checks": true, "exact_all_bytes_and_metadata": true, "changed_inputs_and_other_rows_checked": true, "original_control_retained": true, "fp32_master_cast_quantization_transpose_and_metadata_charged": true, "intermediate_quantized_hbm_tensor_eliminated": true}
+NKILIB_WEIGHT_PREPARE_START {"name": "tiny", "shape": [512, 256]}
+NKILIB_EXACT {"name": "tiny:separate:absmax", "passed": true}
+NKILIB_EXACT {"name": "tiny:separate:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "tiny:separate", "passed": true, "max_relative_error": 2.5247572921216488e-09, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "tiny:separate:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "tiny:separate", "passed": true, "shape": [512, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 59930, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "tiny:separate:repeat", "passed": true}
+NKILIB_EXACT {"name": "tiny:direct_fp8:absmax", "passed": true}
+NKILIB_EXACT {"name": "tiny:direct_fp8:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "tiny:direct_fp8", "passed": true, "max_relative_error": 2.5247572921216488e-09, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "tiny:direct_fp8:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "tiny:direct_fp8", "passed": true, "shape": [512, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 59930, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "tiny:direct_fp8:repeat", "passed": true}
+NKILIB_EXACT {"name": "tiny:direct_fp8:reference_bytes_and_metadata", "passed": true}
+NKILIB_EXACT {"name": "tiny:bf16_carrier:absmax", "passed": true}
+NKILIB_EXACT {"name": "tiny:bf16_carrier:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "tiny:bf16_carrier", "passed": true, "max_relative_error": 2.5247572921216488e-09, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "tiny:bf16_carrier:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "tiny:bf16_carrier", "passed": true, "shape": [512, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 59930, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "tiny:bf16_carrier:repeat", "passed": true}
+NKILIB_EXACT {"name": "tiny:bf16_carrier:reference_bytes_and_metadata", "passed": true}
+NKILIB_EXACT {"name": "tiny:master_unchanged", "passed": true}
+NKILIB_EXACT {"name": "tiny:separate:changed:absmax", "passed": true}
+NKILIB_EXACT {"name": "tiny:separate:changed:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "tiny:separate:changed", "passed": true, "max_relative_error": 1.142422689781597e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "tiny:separate:changed:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "tiny:separate:changed", "passed": true, "shape": [512, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 59822, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "tiny:separate:other_rows", "passed": true}
+NKILIB_EXACT {"name": "tiny:direct_fp8:changed:absmax", "passed": true}
+NKILIB_EXACT {"name": "tiny:direct_fp8:changed:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "tiny:direct_fp8:changed", "passed": true, "max_relative_error": 1.142422689781597e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "tiny:direct_fp8:changed:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "tiny:direct_fp8:changed", "passed": true, "shape": [512, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 59822, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "tiny:direct_fp8:other_rows", "passed": true}
+NKILIB_EXACT {"name": "tiny:direct_fp8:changed_reference", "passed": true}
+NKILIB_EXACT {"name": "tiny:bf16_carrier:changed:absmax", "passed": true}
+NKILIB_EXACT {"name": "tiny:bf16_carrier:changed:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "tiny:bf16_carrier:changed", "passed": true, "max_relative_error": 1.142422689781597e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "tiny:bf16_carrier:changed:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "tiny:bf16_carrier:changed", "passed": true, "shape": [512, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 59822, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "tiny:bf16_carrier:other_rows", "passed": true}
+NKILIB_EXACT {"name": "tiny:bf16_carrier:changed_reference", "passed": true}
+NKILIB_WEIGHT_PREPARE_CASE {"name": "tiny", "passed": true, "shape": [512, 256], "independent_quantizer_checks": true, "exact_all_bytes_and_metadata": true, "changed_inputs_and_other_rows_checked": true, "original_control_retained": true, "fp32_master_cast_quantization_transpose_and_metadata_charged": true, "intermediate_quantized_hbm_tensor_eliminated": true}
+NKILIB_WEIGHT_PREPARE_START {"name": "outliers", "shape": [512, 256]}
+NKILIB_EXACT {"name": "outliers:separate:absmax", "passed": true}
+NKILIB_EXACT {"name": "outliers:separate:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "outliers:separate", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "outliers:separate:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "outliers:separate", "passed": true, "shape": [512, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 128740, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "outliers:separate:repeat", "passed": true}
+NKILIB_EXACT {"name": "outliers:direct_fp8:absmax", "passed": true}
+NKILIB_EXACT {"name": "outliers:direct_fp8:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "outliers:direct_fp8", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "outliers:direct_fp8:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "outliers:direct_fp8", "passed": true, "shape": [512, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 128740, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "outliers:direct_fp8:repeat", "passed": true}
+NKILIB_EXACT {"name": "outliers:direct_fp8:reference_bytes_and_metadata", "passed": true}
+NKILIB_EXACT {"name": "outliers:bf16_carrier:absmax", "passed": true}
+NKILIB_EXACT {"name": "outliers:bf16_carrier:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "outliers:bf16_carrier", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "outliers:bf16_carrier:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "outliers:bf16_carrier", "passed": true, "shape": [512, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 128740, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "outliers:bf16_carrier:repeat", "passed": true}
+NKILIB_EXACT {"name": "outliers:bf16_carrier:reference_bytes_and_metadata", "passed": true}
+NKILIB_EXACT {"name": "outliers:master_unchanged", "passed": true}
+NKILIB_EXACT {"name": "outliers:separate:changed:absmax", "passed": true}
+NKILIB_EXACT {"name": "outliers:separate:changed:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "outliers:separate:changed", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "outliers:separate:changed:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "outliers:separate:changed", "passed": true, "shape": [512, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 128740, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "outliers:separate:other_rows", "passed": true}
+NKILIB_EXACT {"name": "outliers:direct_fp8:changed:absmax", "passed": true}
+NKILIB_EXACT {"name": "outliers:direct_fp8:changed:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "outliers:direct_fp8:changed", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "outliers:direct_fp8:changed:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "outliers:direct_fp8:changed", "passed": true, "shape": [512, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 128740, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "outliers:direct_fp8:other_rows", "passed": true}
+NKILIB_EXACT {"name": "outliers:direct_fp8:changed_reference", "passed": true}
+NKILIB_EXACT {"name": "outliers:bf16_carrier:changed:absmax", "passed": true}
+NKILIB_EXACT {"name": "outliers:bf16_carrier:changed:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "outliers:bf16_carrier:changed", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "outliers:bf16_carrier:changed:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "outliers:bf16_carrier:changed", "passed": true, "shape": [512, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 128740, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "outliers:bf16_carrier:other_rows", "passed": true}
+NKILIB_EXACT {"name": "outliers:bf16_carrier:changed_reference", "passed": true}
+NKILIB_WEIGHT_PREPARE_CASE {"name": "outliers", "passed": true, "shape": [512, 256], "independent_quantizer_checks": true, "exact_all_bytes_and_metadata": true, "changed_inputs_and_other_rows_checked": true, "original_control_retained": true, "fp32_master_cast_quantization_transpose_and_metadata_charged": true, "intermediate_quantized_hbm_tensor_eliminated": true}
+NKILIB_WEIGHT_PREPARE_START {"name": "row_scale_range", "shape": [512, 256]}
+NKILIB_EXACT {"name": "row_scale_range:separate:absmax", "passed": true}
+NKILIB_EXACT {"name": "row_scale_range:separate:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "row_scale_range:separate", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "row_scale_range:separate:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "row_scale_range:separate", "passed": true, "shape": [512, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 96408, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "row_scale_range:separate:repeat", "passed": true}
+NKILIB_EXACT {"name": "row_scale_range:direct_fp8:absmax", "passed": true}
+NKILIB_EXACT {"name": "row_scale_range:direct_fp8:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "row_scale_range:direct_fp8", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "row_scale_range:direct_fp8:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "row_scale_range:direct_fp8", "passed": true, "shape": [512, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 96408, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "row_scale_range:direct_fp8:repeat", "passed": true}
+NKILIB_EXACT {"name": "row_scale_range:direct_fp8:reference_bytes_and_metadata", "passed": true}
+NKILIB_EXACT {"name": "row_scale_range:bf16_carrier:absmax", "passed": true}
+NKILIB_EXACT {"name": "row_scale_range:bf16_carrier:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "row_scale_range:bf16_carrier", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "row_scale_range:bf16_carrier:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "row_scale_range:bf16_carrier", "passed": true, "shape": [512, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 96408, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "row_scale_range:bf16_carrier:repeat", "passed": true}
+NKILIB_EXACT {"name": "row_scale_range:bf16_carrier:reference_bytes_and_metadata", "passed": true}
+NKILIB_EXACT {"name": "row_scale_range:master_unchanged", "passed": true}
+NKILIB_EXACT {"name": "row_scale_range:separate:changed:absmax", "passed": true}
+NKILIB_EXACT {"name": "row_scale_range:separate:changed:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "row_scale_range:separate:changed", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "row_scale_range:separate:changed:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "row_scale_range:separate:changed", "passed": true, "shape": [512, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 96408, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "row_scale_range:separate:other_rows", "passed": true}
+NKILIB_EXACT {"name": "row_scale_range:direct_fp8:changed:absmax", "passed": true}
+NKILIB_EXACT {"name": "row_scale_range:direct_fp8:changed:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "row_scale_range:direct_fp8:changed", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "row_scale_range:direct_fp8:changed:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "row_scale_range:direct_fp8:changed", "passed": true, "shape": [512, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 96408, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "row_scale_range:direct_fp8:other_rows", "passed": true}
+NKILIB_EXACT {"name": "row_scale_range:direct_fp8:changed_reference", "passed": true}
+NKILIB_EXACT {"name": "row_scale_range:bf16_carrier:changed:absmax", "passed": true}
+NKILIB_EXACT {"name": "row_scale_range:bf16_carrier:changed:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "row_scale_range:bf16_carrier:changed", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "row_scale_range:bf16_carrier:changed:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "row_scale_range:bf16_carrier:changed", "passed": true, "shape": [512, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 96408, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "row_scale_range:bf16_carrier:other_rows", "passed": true}
+NKILIB_EXACT {"name": "row_scale_range:bf16_carrier:changed_reference", "passed": true}
+NKILIB_WEIGHT_PREPARE_CASE {"name": "row_scale_range", "passed": true, "shape": [512, 256], "independent_quantizer_checks": true, "exact_all_bytes_and_metadata": true, "changed_inputs_and_other_rows_checked": true, "original_control_retained": true, "fp32_master_cast_quantization_transpose_and_metadata_charged": true, "intermediate_quantized_hbm_tensor_eliminated": true}
+NKILIB_WEIGHT_PREPARE_START {"name": "finite_bf16_alphabet", "shape": [256, 256]}
+NKILIB_EXACT {"name": "finite_bf16_alphabet:separate:absmax", "passed": true}
+NKILIB_EXACT {"name": "finite_bf16_alphabet:separate:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "finite_bf16_alphabet:separate", "passed": true, "max_relative_error": 1.142422689781597e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "finite_bf16_alphabet:separate:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "finite_bf16_alphabet:separate", "passed": true, "shape": [256, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 32616, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "finite_bf16_alphabet:separate:repeat", "passed": true}
+NKILIB_EXACT {"name": "finite_bf16_alphabet:direct_fp8:absmax", "passed": true}
+NKILIB_EXACT {"name": "finite_bf16_alphabet:direct_fp8:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "finite_bf16_alphabet:direct_fp8", "passed": true, "max_relative_error": 1.142422689781597e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "finite_bf16_alphabet:direct_fp8:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "finite_bf16_alphabet:direct_fp8", "passed": true, "shape": [256, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 32616, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "finite_bf16_alphabet:direct_fp8:repeat", "passed": true}
+NKILIB_EXACT {"name": "finite_bf16_alphabet:direct_fp8:reference_bytes_and_metadata", "passed": true}
+NKILIB_EXACT {"name": "finite_bf16_alphabet:bf16_carrier:absmax", "passed": true}
+NKILIB_EXACT {"name": "finite_bf16_alphabet:bf16_carrier:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "finite_bf16_alphabet:bf16_carrier", "passed": true, "max_relative_error": 1.142422689781597e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "finite_bf16_alphabet:bf16_carrier:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "finite_bf16_alphabet:bf16_carrier", "passed": true, "shape": [256, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 32616, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "finite_bf16_alphabet:bf16_carrier:repeat", "passed": true}
+NKILIB_EXACT {"name": "finite_bf16_alphabet:bf16_carrier:reference_bytes_and_metadata", "passed": true}
+NKILIB_EXACT {"name": "finite_bf16_alphabet:master_unchanged", "passed": true}
+NKILIB_EXACT {"name": "finite_bf16_alphabet:separate:changed:absmax", "passed": true}
+NKILIB_EXACT {"name": "finite_bf16_alphabet:separate:changed:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "finite_bf16_alphabet:separate:changed", "passed": true, "max_relative_error": 1.142422689781597e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "finite_bf16_alphabet:separate:changed:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "finite_bf16_alphabet:separate:changed", "passed": true, "shape": [256, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 32616, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "finite_bf16_alphabet:separate:other_rows", "passed": true}
+NKILIB_EXACT {"name": "finite_bf16_alphabet:direct_fp8:changed:absmax", "passed": true}
+NKILIB_EXACT {"name": "finite_bf16_alphabet:direct_fp8:changed:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "finite_bf16_alphabet:direct_fp8:changed", "passed": true, "max_relative_error": 1.142422689781597e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "finite_bf16_alphabet:direct_fp8:changed:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "finite_bf16_alphabet:direct_fp8:changed", "passed": true, "shape": [256, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 32616, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "finite_bf16_alphabet:direct_fp8:other_rows", "passed": true}
+NKILIB_EXACT {"name": "finite_bf16_alphabet:direct_fp8:changed_reference", "passed": true}
+NKILIB_EXACT {"name": "finite_bf16_alphabet:bf16_carrier:changed:absmax", "passed": true}
+NKILIB_EXACT {"name": "finite_bf16_alphabet:bf16_carrier:changed:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "finite_bf16_alphabet:bf16_carrier:changed", "passed": true, "max_relative_error": 1.142422689781597e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "finite_bf16_alphabet:bf16_carrier:changed:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "finite_bf16_alphabet:bf16_carrier:changed", "passed": true, "shape": [256, 256], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 32616, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "finite_bf16_alphabet:bf16_carrier:other_rows", "passed": true}
+NKILIB_EXACT {"name": "finite_bf16_alphabet:bf16_carrier:changed_reference", "passed": true}
+NKILIB_WEIGHT_PREPARE_CASE {"name": "finite_bf16_alphabet", "passed": true, "shape": [256, 256], "independent_quantizer_checks": true, "exact_all_bytes_and_metadata": true, "changed_inputs_and_other_rows_checked": true, "original_control_retained": true, "fp32_master_cast_quantization_transpose_and_metadata_charged": true, "intermediate_quantized_hbm_tensor_eliminated": true}
+NKILIB_WEIGHT_PREPARE_START {"name": "random_4096x1024", "shape": [4096, 1024]}
+NKILIB_EXACT {"name": "random_4096x1024:separate:absmax", "passed": true}
+NKILIB_EXACT {"name": "random_4096x1024:separate:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "random_4096x1024:separate", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "random_4096x1024:separate:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "random_4096x1024:separate", "passed": true, "shape": [4096, 1024], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 4135520, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "random_4096x1024:separate:repeat", "passed": true}
+NKILIB_EXACT {"name": "random_4096x1024:direct_fp8:absmax", "passed": true}
+NKILIB_EXACT {"name": "random_4096x1024:direct_fp8:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "random_4096x1024:direct_fp8", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "random_4096x1024:direct_fp8:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "random_4096x1024:direct_fp8", "passed": true, "shape": [4096, 1024], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 4135520, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "random_4096x1024:direct_fp8:repeat", "passed": true}
+NKILIB_EXACT {"name": "random_4096x1024:direct_fp8:reference_bytes_and_metadata", "passed": true}
+NKILIB_EXACT {"name": "random_4096x1024:bf16_carrier:absmax", "passed": true}
+NKILIB_EXACT {"name": "random_4096x1024:bf16_carrier:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "random_4096x1024:bf16_carrier", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "random_4096x1024:bf16_carrier:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "random_4096x1024:bf16_carrier", "passed": true, "shape": [4096, 1024], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 4135520, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "random_4096x1024:bf16_carrier:repeat", "passed": true}
+NKILIB_EXACT {"name": "random_4096x1024:bf16_carrier:reference_bytes_and_metadata", "passed": true}
+NKILIB_EXACT {"name": "random_4096x1024:master_unchanged", "passed": true}
+NKILIB_EXACT {"name": "random_4096x1024:separate:changed:absmax", "passed": true}
+NKILIB_EXACT {"name": "random_4096x1024:separate:changed:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "random_4096x1024:separate:changed", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "random_4096x1024:separate:changed:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "random_4096x1024:separate:changed", "passed": true, "shape": [4096, 1024], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 4135484, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "random_4096x1024:separate:other_rows", "passed": true}
+NKILIB_EXACT {"name": "random_4096x1024:direct_fp8:changed:absmax", "passed": true}
+NKILIB_EXACT {"name": "random_4096x1024:direct_fp8:changed:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "random_4096x1024:direct_fp8:changed", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "random_4096x1024:direct_fp8:changed:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "random_4096x1024:direct_fp8:changed", "passed": true, "shape": [4096, 1024], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 4135484, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "random_4096x1024:direct_fp8:other_rows", "passed": true}
+NKILIB_EXACT {"name": "random_4096x1024:direct_fp8:changed_reference", "passed": true}
+NKILIB_EXACT {"name": "random_4096x1024:bf16_carrier:changed:absmax", "passed": true}
+NKILIB_EXACT {"name": "random_4096x1024:bf16_carrier:changed:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "random_4096x1024:bf16_carrier:changed", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "random_4096x1024:bf16_carrier:changed:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "random_4096x1024:bf16_carrier:changed", "passed": true, "shape": [4096, 1024], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 4135484, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "random_4096x1024:bf16_carrier:other_rows", "passed": true}
+NKILIB_EXACT {"name": "random_4096x1024:bf16_carrier:changed_reference", "passed": true}
+NKILIB_WEIGHT_PREPARE_CASE {"name": "random_4096x1024", "passed": true, "shape": [4096, 1024], "independent_quantizer_checks": true, "exact_all_bytes_and_metadata": true, "changed_inputs_and_other_rows_checked": true, "original_control_retained": true, "fp32_master_cast_quantization_transpose_and_metadata_charged": true, "intermediate_quantized_hbm_tensor_eliminated": true, "samples_ms": {"separate": [0.2566822668692718, 0.25831163317585987, 0.2559970656875521], "direct_fp8": [0.18014453429107866, 0.17929979949258268, 0.18007116547475258], "bf16_carrier": [0.20199943295059106, 0.20095096551813185, 0.20270236612608036]}, "median_ms": {"separate": 0.2566822668692718, "direct_fp8": 0.18007116547475258, "bf16_carrier": 0.20199943295059106}}
+NKILIB_WEIGHT_PREPARE_START {"name": "random_1024x4096", "shape": [1024, 4096]}
+NKILIB_EXACT {"name": "random_1024x4096:separate:absmax", "passed": true}
+NKILIB_EXACT {"name": "random_1024x4096:separate:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "random_1024x4096:separate", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "random_1024x4096:separate:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "random_1024x4096:separate", "passed": true, "shape": [1024, 4096], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 4135210, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "random_1024x4096:separate:repeat", "passed": true}
+NKILIB_EXACT {"name": "random_1024x4096:direct_fp8:absmax", "passed": true}
+NKILIB_EXACT {"name": "random_1024x4096:direct_fp8:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "random_1024x4096:direct_fp8", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "random_1024x4096:direct_fp8:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "random_1024x4096:direct_fp8", "passed": true, "shape": [1024, 4096], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 4135210, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "random_1024x4096:direct_fp8:repeat", "passed": true}
+NKILIB_EXACT {"name": "random_1024x4096:direct_fp8:reference_bytes_and_metadata", "passed": true}
+NKILIB_EXACT {"name": "random_1024x4096:bf16_carrier:absmax", "passed": true}
+NKILIB_EXACT {"name": "random_1024x4096:bf16_carrier:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "random_1024x4096:bf16_carrier", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "random_1024x4096:bf16_carrier:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "random_1024x4096:bf16_carrier", "passed": true, "shape": [1024, 4096], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 4135210, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "random_1024x4096:bf16_carrier:repeat", "passed": true}
+NKILIB_EXACT {"name": "random_1024x4096:bf16_carrier:reference_bytes_and_metadata", "passed": true}
+NKILIB_EXACT {"name": "random_1024x4096:master_unchanged", "passed": true}
+NKILIB_EXACT {"name": "random_1024x4096:separate:changed:absmax", "passed": true}
+NKILIB_EXACT {"name": "random_1024x4096:separate:changed:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "random_1024x4096:separate:changed", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "random_1024x4096:separate:changed:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "random_1024x4096:separate:changed", "passed": true, "shape": [1024, 4096], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 4134862, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "random_1024x4096:separate:other_rows", "passed": true}
+NKILIB_EXACT {"name": "random_1024x4096:direct_fp8:changed:absmax", "passed": true}
+NKILIB_EXACT {"name": "random_1024x4096:direct_fp8:changed:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "random_1024x4096:direct_fp8:changed", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "random_1024x4096:direct_fp8:changed:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "random_1024x4096:direct_fp8:changed", "passed": true, "shape": [1024, 4096], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 4134862, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "random_1024x4096:direct_fp8:other_rows", "passed": true}
+NKILIB_EXACT {"name": "random_1024x4096:direct_fp8:changed_reference", "passed": true}
+NKILIB_EXACT {"name": "random_1024x4096:bf16_carrier:changed:absmax", "passed": true}
+NKILIB_EXACT {"name": "random_1024x4096:bf16_carrier:changed:scale", "passed": true}
+NKILIB_ROW_RECIPROCAL {"name": "random_1024x4096:bf16_carrier:changed", "passed": true, "max_relative_error": 5.2823935337009686e-08, "limit": 2.384185791015625e-07, "reference": "independent FP64 division; predeclared screen"}
+NKILIB_EXACT {"name": "random_1024x4096:bf16_carrier:changed:legacy_decode", "passed": true}
+NKILIB_ROW_QUANT_GATE {"name": "random_1024x4096:bf16_carrier:changed", "passed": true, "shape": [1024, 4096], "packed_input": false, "independently_decoded_legacy_e4m3": true, "scale_exact": true, "reciprocal_checked_separately": true, "wrong_channel_negative_control_failures": 4134862, "signed_zero_encodings_equivalent": true}
+NKILIB_EXACT {"name": "random_1024x4096:bf16_carrier:other_rows", "passed": true}
+NKILIB_EXACT {"name": "random_1024x4096:bf16_carrier:changed_reference", "passed": true}
+NKILIB_WEIGHT_PREPARE_CASE {"name": "random_1024x4096", "passed": true, "shape": [1024, 4096], "independent_quantizer_checks": true, "exact_all_bytes_and_metadata": true, "changed_inputs_and_other_rows_checked": true, "original_control_retained": true, "fp32_master_cast_quantization_transpose_and_metadata_charged": true, "intermediate_quantized_hbm_tensor_eliminated": true, "samples_ms": {"separate": [0.2021331999761363, 0.20229453414989015, 0.20090370089747012], "direct_fp8": [0.13764056493528187, 0.13672186566206315, 0.13732673251070082], "bf16_carrier": [0.1453750339957575, 0.14441199988747636, 0.14506696606986225]}, "median_ms": {"separate": 0.2021331999761363, "direct_fp8": 0.13732673251070082, "bf16_carrier": 0.14506696606986225}}
+NKILIB_WEIGHT_PREPARE_RESULT {"passed": true, "cases": 8, "direct_fp8_and_bf16_carrier": true, "exact_bytes_scales_and_metadata": true, "independent_quantization_and_reciprocal_gates": true, "all_preparation_costs_charged": true, "no_mlp_backward_or_quality_claim": true}
+NKILIB_WEIGHT_PREPARE_ADVANCE {"warranted": true, "production_median_ms": {"random_4096x1024": {"separate": 0.2566822668692718, "direct_fp8": 0.18007116547475258, "bf16_carrier": 0.20199943295059106}, "random_1024x4096": {"separate": 0.2021331999761363, "direct_fp8": 0.13732673251070082, "bf16_carrier": 0.14506696606986225}}, "maximum_ratio": 0.95, "next_test": "unchanged complete ROW forward gate", "training_or_quality_promotion": false}
+EXPERIMENT_POSTFLIGHT {"label": "fs-w189-nkilib-fused-weight-producer-r1", "returncode": 0, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave189/research/run-logs/fs-w189-nkilib-fused-weight-producer-r1.postflight.json"}

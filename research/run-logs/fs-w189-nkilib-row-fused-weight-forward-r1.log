@@ -1,0 +1,14 @@
+NKILIB_ROW_FORWARD_PREREQUISITE {"passed": true, "cases": 10, "source_commit": "861b0ce85c7eb02710eb2fa6be01acdc30cf4b27", "all_original_rules_verified": true, "reference_and_mlp_bytes_unchanged": true}
+NKILIB_WEIGHT_FUSION_PREREQUISITE {"passed": true, "cases": 8, "direct_producer_at_least_five_percent_faster_at_both_shapes": true, "unchanged_source": true}
+[W920 06:50:06.946044883 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+NKILIB_FUSED_WEIGHT_PREPARATION {"original_source_sha256": "c19bd4b3ff2856d3aeb77512777f9e1c73b4a1fce50728b89887804324c9d4f4", "transformed_ast_sha256": "97e725feea401ec248447b9a380af9f3b1d1918729927304aa3721ae3f03cb24", "changed_expressions": ["producer:uu", "producer:dd", "layout:qu", "layout:qd"], "all_original_arithmetic_and_fixtures_retained": true, "both_online_weight_producers_inside_timed_path": true, "original_failure_source_unchanged": true, "direct_fp8_transpose": true}
+NKILIB_PROVENANCE {"passed": true, "upstream_commit": "92d11f63a9a8ec1ade34e6e1a3b8db66ef31307e", "vendored_files": 66, "bundled_root": "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/nkilib", "vendor_namespace": "research.vendor.nki_library_92d11f63", "nki": "0.5.0+28631259367.ga768afa6", "compiler": "2.26.6360.0+6f180f47", "package_installation": false, "bundled_package_replaced": false}
+NKILIB_ROW_HEAP_COMPAT {"installed": true, "isolated_namespace_only": true, "conditional_gate_scale_cleanup": true, "strict_allocator_checks_retained": true, "arithmetic_unchanged": true, "upstream_files_unchanged": true}
+NKILIB_ROW_MLP_ADAPTER {"installed": true, "isolated_namespace_only": true, "legacy_e4m3_double_row": true, "upstream_row_quantization_and_scaling": true, "token_row_sharding": true, "relu_bf16_then_square_bf16": true, "diagnostics_excluded_from_timed_path": true, "training_backward_implemented": false}
+NKILIB_ROW_MLP_START {"shape": [512, 256, 1024], "kind": "random"}
