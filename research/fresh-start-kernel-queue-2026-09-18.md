@@ -1,5 +1,9 @@
 # Kernel queue and precision-specific experiments
 
+Latest host status and failure recovery: RESUME.md, updated06:25UTC. Trn21
+source185 repeats the ROW FP8 gate after byte-transpose and parser fixes; trn22
+source180 r2 ingests/captures the caller pair. Original failures remain.
+
 Current library continuation (2026-09-20 06:13 UTC): source175's2.404% complete
 component gain does not survive model integration: joined561.503ms vs489.888ms;
 separate611.723ms vs488.809ms, both clean. Source180 on trn22 captures paired

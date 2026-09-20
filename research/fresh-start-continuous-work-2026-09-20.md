@@ -1,5 +1,9 @@
 # Continued kernel work and research — 2026-09-20
 
+Latest host status and failure recovery: RESUME.md, updated06:25UTC. Trn21
+source185 repeats the ROW FP8 gate after byte-transpose and parser fixes; trn22
+source180 r2 ingests/captures the caller pair. Original failures remain.
+
 User direction: keep both provisioned hosts doing useful experiments and use
 fresh research to find new directions or revisit negatives with a changed premise.
 Continue the existing pre/postflight, immutable source, host locks, log mirroring
