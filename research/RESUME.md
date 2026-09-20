@@ -1,28 +1,31 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-20 04:56 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-20 05:00 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## Current work — 2026-09-20 04:56 UTC
+## Current work — 2026-09-20 05:00 UTC
 
-- Source171 saved-ReLU training MLP RUNNING on trn21. Seven fixtures pass original
-  native/stagewise/FP64 full-gradient gates and exact two-microbatch FP32
-  accumulation. Production32768-token case in progress; inspect receipts.
-- Source170 both complete/clean. Token-row library forward4.042807 vs native
- 5.128247ms (21.166% lower), ALL SIX outputs exactly native. Attention only
- 0.395% lower in production, 1.297% slower small; no attention promotion.
-- Trn22 source171 deployed; prepared separated-compiler-region full-FP8 queue:
-  original source165 primitive/component prerequisites, actual Linear/cache
-  gates, fresh native full-step control, all-scale-fused candidate. No quality
-  auto-promotion. Not launched at this note; inspect fs-w171 launch receipts.
-- Profile retirement stopped BEFORE ANY DELETE: four selected old paths were
-  already empty directory remnants (all expected files missing, no unexpected
-  files). Failure/intent preserved; do not retry that retirement. Wave5-r3 is
-  also empty. Preparing retirement of four old checkpoint copies only after
-  local SHA and live GitHub digest verification. Best/cold replay excluded.
-- Cron04:50:57 pushed source8fa17973/snapshotfd271e91; both hosts retrieved.
+- Source171 library full training component COMPLETE/CLEAN, all original8case
+  gates verified. Production15.444630 vs plain-native18.311820ms (15.657% lower).
+  BUT stronger current HxT control15.216359 vs library15.361039ms (0.951% slower).
+  Original matched3case gates also pass. DO NOT call this a current trainer win.
+- Source172 PREPARING direct HxT saved-activation stores to combine the faster
+  library forward with the existing backward layout. Recheck all8 original
+  fixtures against current HxT native control before any model integration.
+  Integration/phase flags are draft code, not tested or promoted at this note.
+- Trn22 source171 separate-region full-FP8 queue RUNNING. Cached/uncached actual
+  Linear integration at256/1024 passed. Fresh native fullmodel control compiling;
+  candidate is next after clean completion and exact frozen requirements.
+  Both source171 MLP queues on trn21 completed; inspect later172 manifests.
+- Checkpoint retirement completed/clean, four old losing copies freshly hashed
+  locally/remotely and live GitHub digests verified. Freed1,879,330,816B;
+  free11,350,482,944B afterward. Best and replay copies unchanged. Maintenance
+  intent/result/four progress receipts preserved. Earlier profile attempt
+  made NO deletion because the selected directories were already empty.
+- Cron04:50:57 pushed source8fa17973/snapshotfd271e91;05:00 cycle in progress.
   Latest verified push remains out/fresh-start-backup/last-success.json.
-- Best public BPB0.9928513116311253; frozen submission unchanged. No new BPB.
+- Source170 forward-only21.166%gain exactnative all6cases; attention only0.4%.
+  Best public BPB0.9928513116311253; frozen submission unchanged. No new BPB.
 
 ## Previous source169/170 checkpoint (superseded host status)
 
