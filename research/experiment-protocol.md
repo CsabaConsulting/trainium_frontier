@@ -104,6 +104,17 @@ drifts beyond normal control variation, investigate host/runtime state before
 calling it an algorithmic result. A repeat cannot be made reliable merely by
 renaming its log or clearing a cache.
 
+For paired compiled probes, verify compiled execution on later microbatches and
+after weight-cache refreshes for both the reference and candidate. Give them
+distinct root callables when only one permits graph breaks. Source177/178
+reproduced a shared `Probe.forward` interaction: after the candidate call, the
+reference returned `LinearBackward0` with no compiled derivative node. Keeping
+the original reference assertion and isolating the candidate root restored all
+checks. A graph-node wrapper is not itself a numerical error, but an eager
+reference cannot support a claimed compiled timing comparison. Preserve the
+failed original probe and verify the cause before changing its checks. See
+`run-logs/fs-w178-nkilib-shared-root-diagnosis-r1.json`.
+
 Full-budget BPB comparisons legitimately include different step counts: gaining
 useful updates is the purpose of kernel optimization. They do not isolate
 matched-exposure algorithmic quality. Use separate matched-step/exposure studies
