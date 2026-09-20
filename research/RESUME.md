@@ -1,9 +1,41 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-20 12:43 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-20 21:53 UTC. Authorization: danger-full-access, approval never.
 Use committed manifests/postflights before dispatch; never restart completed jobs.
 
-## Current work — 2026-09-20 12:43 UTC
+## Current state — 2026-09-20 21:53 UTC: ready for possible Claude Code handoff
+
+- BOTH HOSTS IDLE, confirmed directly over SSH. No training/compiler/profile
+  processes or Neuron device holders; both host locks available and latest
+  postflights clean. Trn21 has16.01GB free root space, trn22 has15.14GB.
+  No local experiment coordinators or preservation workers remain. No new
+  experiment was dispatched during this handoff check.
+- Read [HANDOFF-CLAUDE-2026-09-20.md](HANDOFF-CLAUDE-2026-09-20.md) for exact
+  ownership, results, next work, submission, SSH and backup instructions.
+  Direct observations and seven revalidated frozen job gates are in
+  `run-logs/fs-handoff-claude-20260920-r1.json`.
+- Source199 queue COMPLETE12:49:53UTC, source197 continuation r2 COMPLETE
+  12:57:39UTC. Each job passed its original gates and clean postflight; final
+  log/postflight hashes match the completed sequence receipts. Do not restart.
+- Source199 saved-forward medians: one rank BF165.314404ms / FP84.811585ms;
+  four ranks BF165.973897ms / FP84.830518ms; one-rank repeat5.320863/4.818947ms.
+  FP8 latency reductions9.46%,19.14%,9.43%, with all preparation and saved state
+  charged. This is forward-only; full ROW backward is NOT IMPLEMENTED, and
+  no complete-model speed or BPB improvement follows.
+- Source197 first/last captures and derived Explorer tables are local and in
+  digest-verified GitHub draft assets. Preservation sidecar COMPLETE13:20:42UTC.
+  Detailed first/last runtime-to-NEFF comparison remains to be done.
+- Original197r1 state still says running but its coordinator was deliberately
+  held; `fs-w197-coordinator-disk-hold-r1.json` remains authoritative. Original
+  reserve-failed ingestion is retained; corrected r2 passed. Source198 failed
+  diagnostic is retained and corrected199 passed. Source159 MUST NOT dispatch.
+- Best public BPB0.9928513116311253; cold replay0.9938556748843932. No new
+  quality result. Frozen submission, canonical train.py and prepare.py unchanged.
+- User cron remains: source/log backup every10min; artifact backup at minutes
+  5/35. Neither merges source branches nor launches experiments. Continue regular
+  deliberate commits and verified pushes; consult last-success.json for refs.
+
+## Previous checkpoint — 2026-09-20 12:43 UTC
 
 - Trn21 RUNNING source1995d1ff50e at remote wave199. Coordinator2644,
   fs-w199-nkilib-saved-contention-sequence-r1, started12:38:36UTC, max6600s,

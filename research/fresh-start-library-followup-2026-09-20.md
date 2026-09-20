@@ -1,5 +1,10 @@
 # Follow-up after the first NKI Library queues
 
+Current checkpoint 21:53 UTC: both hosts are idle, all199/197r2 jobs and profile
+backups are complete. See [the handoff](HANDOFF-CLAUDE-2026-09-20.md) and its
+machine-readable audit. The chronological notes below retain the original
+planning and failures; they are not instructions to restart old queues.
+
 Direct SSH checks at 12:23 UTC found both hosts idle, with no training/compiler
 processes or accelerator holders. Source196's finite queue completed at09:05 UTC;
 source195's at09:28 UTC. Backup cron preserved the results but did not dispatch
@@ -87,3 +92,27 @@ up successfully. Source199 registers the extracted globals in an isolated real
 Python module. Reversing that binding change plus its imports/extra provenance
 field recovers the complete source198 AST. No arithmetic, fixture, bound or
 exact check was removed. Source199 is running the same one/four/one-rank screen.
+
+## Completed199 and197 — handoff audit at21:53 UTC
+
+Source199 completed at12:49:53UTC. Original frozen rules, request/source identity
+and final log/postflight hashes were independently rechecked for all three jobs.
+Every postflight is clean. Median maximum-rank forward latency:
+
+| Concurrent ranks | Native BF16 ms | Saved ROW FP8 ms | FP8 reduction |
+| --- | ---: | ---: | ---: |
+| 1, first | 5.314404 | 4.811585 | 9.461% |
+| 4 | 5.973897 | 4.830518 | 19.140% |
+| 1, repeat | 5.320863 | 4.818947 | 9.433% |
+
+Six alternating-order rounds,50calls per arm; collectives outside timing.
+Master casts, online preparation and436,469,760bytes of saved state are charged.
+This advances the premise for full ROW backward, which remains unimplemented.
+There is no backward, complete-model or BPB claim from this component screen.
+
+Source197 continuation completed at12:57:39UTC. Both captures and both accepted
+ingestions pass all original rules and clean postflights. Four accepted raw and
+derived artifacts are local and cloud-verified; finite preservation finished
+13:20:42UTC. First/last model profile attribution remains pending. Original
+reserve-failed ingestion and deliberate coordinator hold remain recorded; r1's
+stale running state must not trigger a restart. See the handoff for exact paths.
