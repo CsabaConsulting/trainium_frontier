@@ -1,0 +1,42 @@
+{
+  "host": "trn22",
+  "remote": "/home/ubuntu/trainium_freshstart_20260918_wave155",
+  "expected_commit": "853f2733e181f605b9d48a9a64dcf6bd12603da8",
+  "label": "fs-w155-serial-qkv-channels-attention-r1",
+  "purpose": "Source155 corrects final transpose scratch dtype. After same-source BF16/FP32-V component gates and corrected diagnostics: rerun original unchanged attention output/input/master/lifecycle/causality/native-restore gates with retained FP32 V only before VE, then real32x1024x1024 complete attention timing. No whole-model/quality promotion.",
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_RT_VISIBLE_CORES": "0",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "command": [
+    "timeout",
+    "--kill-after=30s",
+    "1800s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "-u",
+    "/home/ubuntu/trainium_freshstart_20260918_wave155/research/scratch/serial_qkv_integration_check.py",
+    "--layout",
+    "channels",
+    "--value-fp32",
+    "--steps",
+    "10",
+    "--component-root",
+    "/home/ubuntu/trainium_freshstart_20260918_wave155",
+    "--component-label",
+    "fs-w155-serial-qkv-channels-fp32v-component-r1",
+    "--component-commit",
+    "853f2733e181f605b9d48a9a64dcf6bd12603da8"
+  ],
+  "fingerprint_paths": [
+    "train.py",
+    "research/scratch/serial_qkv_nki.py",
+    "research/scratch/serial_qkv_probe.py",
+    "research/scratch/serial_qkv_integration.py",
+    "research/scratch/serial_qkv_integration_check.py",
+    "research/scratch/mlp_fused_bf16_probe.py"
+  ]
+}

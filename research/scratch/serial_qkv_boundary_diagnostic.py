@@ -48,7 +48,8 @@ def setup_partial(model, layout, replacement):
     token_major = layout == 'tokens'
 
     def call(xq, xk, xv, wq, wk, wv):
-        return kernel[2](xq, xk, xv, wq, wk, wv, 2, 128 if token_major else 256, token_major)
+        tile = 128 if token_major else (512 if xq.shape[0] % 1024 == 0 else 256)
+        return kernel[2](xq, xk, xv, wq, wk, wv, 2, tile, token_major)
 
     apply = make_autograd(call)
 
@@ -74,36 +75,41 @@ def setup_partial(model, layout, replacement):
     attn.forward = types.MethodType(forward, attn)
 
 
-def run(channels, layout, cached, with_ve):
-    torch.manual_seed(151031 + channels)
+def run(channels, layout, cached, with_ve, batch=4, length=128, seed=None,
+        include_fp32_arm=False):
+    seed = 151031 + channels if seed is None else seed
+    torch.manual_seed(seed)
     torch._dynamo.reset()
-    baseline = Probe(channels).to('neuron')
+    baseline = Probe(channels, length).to('neuron')
     # deepcopy cannot copy differentiable nonleaf weight-cache tensors.
     # Retain a cache-free template before the optional cache refresh.
     template = copy.deepcopy(baseline)
-    host = [F.rms_norm(torch.randn(4, 128, channels), (channels,)).bfloat16()
+    host = [F.rms_norm(torch.randn(batch, length, channels), (channels,)).bfloat16()
             for _ in range(3)]
-    host.append((torch.randn(4, 128, channels) * .1).bfloat16())
-    values = [v.to('neuron') for v in host]
+    host.append((torch.randn(batch, length, channels) * .1).bfloat16())
+    values = [v.to('neuron').requires_grad_() for v in host]
     if not with_ve: values[-1] = None
-    angles = torch.outer(torch.arange(128).float(),
+    angles = torch.outer(torch.arange(length).float(),
                          100000.0**(-torch.arange(0, 128, 2).float() / 128))
-    cos, sin = [v.reshape(1, 128, 1, 64).to('neuron') for v in (angles.cos(), angles.sin())]
+    cos, sin = [v.reshape(1, length, 1, 64).to('neuron') for v in (angles.cos(), angles.sin())]
     if cached: refresh(baseline)
-    tag = f'{channels}:cache{cached}:ve{with_ve}'
+    tag = f'{channels}:batch{batch}:length{length}:cache{cached}:ve{with_ve}'
     native = torch.compile(baseline, backend='neuron', fullgraph=True, dynamic=False)
     y = native(*values, cos, sin)
     assert type(y.grad_fn).__name__ == 'CompiledFunctionBackward'
     expected = y.detach().cpu()
     assert comparison(tag + ':native_repeat', native(*values, cos, sin), expected)['exact']
     records = {}
-    for mode in ('native_preprojected', 'nki_all', 'nki_q', 'nki_k', 'nki_v'):
+    modes = ('native_preprojected', 'nki_all', 'nki_q', 'nki_k', 'nki_v')
+    if include_fp32_arm: modes += ('nki_all_fp32v',)
+    for mode in modes:
         # Fresh native initialization/weights remain the authority. Reset only
         # Python compile guards, not shared device/compiler caches.
         torch._dynamo.reset()
         candidate = copy.deepcopy(template)
         if cached: refresh(candidate)
-        if mode == 'nki_all': install(candidate, 'neuron', T, layout)
+        if mode in ('nki_all', 'nki_all_fp32v'):
+            install(candidate, 'neuron', T, layout, value_fp32=(mode == 'nki_all_fp32v'))
         else: setup_partial(candidate, layout, mode)
         compiled = torch.compile(candidate, backend='neuron', fullgraph=True, dynamic=False)
         result = compiled(*values, cos, sin)
@@ -118,7 +124,7 @@ def run(channels, layout, cached, with_ve):
     torch._dynamo.reset()
     projection = torch.compile(project, backend='neuron', fullgraph=True, dynamic=False)
     # Host round trips deliberately enforce stored BF16 intermediates.
-    frozen = [x.detach().cpu().to('neuron').reshape(4, 128, channels // 128, 128).requires_grad_()
+    frozen = [x.detach().cpu().to('neuron').reshape(batch, length, channels // 128, 128).requires_grad_()
               for x in projection(*values[:3])]
     weight = attn.c_v.weight.detach().cpu().bfloat16().double()
     exact_v = (host[2].double() @ weight.T).float()
@@ -134,6 +140,8 @@ def run(channels, layout, cached, with_ve):
     retained = consumer(*values, cos, sin, frozen[0], frozen[1], unrounded_v)
     records['materialized_fp32_v_hypothesis'] = comparison(tag + ':materialized_fp32_v_hypothesis', retained, expected)
     emit('SERIAL_QKV_BOUNDARY_CASE', channels=channels, layout=layout, cached=cached,
+         batch=batch, length=length, seed=seed, all_inputs_require_grad=True,
+         include_fp32_arm=include_fp32_arm,
          with_ve=with_ve, diagnostic_complete=True, observations=records,
          case_id=f'{cached}:{with_ve}',
          acceptance_bounds_unchanged=True, integration_promoted=False)
@@ -143,21 +151,40 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--layout', required=True, choices=('tokens', 'channels'))
     parser.add_argument('--channels', required=True, type=int, choices=(256, 1024))
+    parser.add_argument('--batch', type=int, default=4)
+    parser.add_argument('--length', type=int, default=128)
+    parser.add_argument('--seed', type=int)
+    parser.add_argument('--cache-mode', choices=('both', 'cached', 'uncached'), default='both')
+    parser.add_argument('--ve-mode', choices=('both', 'on', 'off'), default='both')
+    parser.add_argument('--include-fp32-arm', action='store_true')
     parser.add_argument('--component-root', required=True)
     parser.add_argument('--component-label')
+    parser.add_argument('--fp32-component-label')
     parser.add_argument('--component-commit', default='85addadd2ade1d0eb37fa9a5294b598bfe2ba9b4')
     args = parser.parse_args()
+    assert 1 <= args.batch <= 32 and args.length in (128, 1024)
+    assert args.batch * args.length % 256 == 0
     require_component(args.component_root, args.layout, args.component_label, args.component_commit)
+    if args.include_fp32_arm:
+        assert args.fp32_component_label
+        require_component(args.component_root, args.layout, args.fp32_component_label,
+                          args.component_commit, value_fp32=True)
     import torch_neuronx  # noqa: F401
     torch.set_num_threads(4)
     T.USE_WEIGHT_CACHE = T.USE_BF16_NORM_OUTPUT = T.USE_NKI_ROPE_NORM = T.COMPILE_SDPA_DIRECT = True
     T.USE_FUSED_QKV = T.USE_PARALLEL_BLOCK = T.USE_NGRAM_VE = T.USE_HEAD_GATE = T.USE_NKI_ATTN = False
     T.USE_VE = True
     assert T._HAS_NKI
-    for cached in (False, True):
-        for with_ve in (False, True): run(args.channels, args.layout, cached, with_ve)
+    caches = (False, True) if args.cache_mode == 'both' else (args.cache_mode == 'cached',)
+    ve_modes = (False, True) if args.ve_mode == 'both' else (args.ve_mode == 'on',)
+    for cached in caches:
+        for with_ve in ve_modes:
+            run(args.channels, args.layout, cached, with_ve, args.batch, args.length,
+                args.seed, args.include_fp32_arm)
     emit('SERIAL_QKV_BOUNDARY_RESULT', layout=args.layout, channels=args.channels,
-         cases=4, diagnostic_complete=True, acceptance_bounds_unchanged=True,
+         batch=args.batch, length=args.length, all_inputs_require_grad=True,
+         include_fp32_arm=args.include_fp32_arm, cases=len(caches) * len(ve_modes),
+         diagnostic_complete=True, acceptance_bounds_unchanged=True,
          integration_promoted=False, whole_model_or_quality_claim=False)
 
 

@@ -1,0 +1,92 @@
+{
+  "label": "fs-w154-serial-qkv-tokens-attention-r1",
+  "source_commit": "ee1c7868c96bcf1b371ad81805ea90ec780f8a1f",
+  "completed_at": "2026-09-20T00:00:37.040958+00:00",
+  "command_returncode": 1,
+  "host_clean": true,
+  "log_sha256": "929d99b50a7d3a093a06d09fcf71c13e89c7c9623a24c8bfc8e6864a6f19fac4",
+  "postflight_sha256": "a45d87132869f96520dee94ee8049efe7d6f250228b66985f8e0cb7fcdee7f29",
+  "passed_small_attention_gates": [
+    {
+      "channels": 256,
+      "layout": "tokens",
+      "value_fp32": true,
+      "passed": true,
+      "compiled_forward_backward": true,
+      "cached_and_uncached": true,
+      "original_separate_parameters": true,
+      "accumulation_and_refresh": true,
+      "distinct_input_gradients": true,
+      "causal_and_batch_independence_exact": true,
+      "padded_projection_rows": true,
+      "native_evaluation_and_restore_exact": true,
+      "contract": {
+        "layout": "tokens",
+        "layers": [
+          0
+        ],
+        "separate_parameter_objects": true,
+        "value_fp32_before_ve": true,
+        "bf16_value_without_ve": true,
+        "original_parameter_shapes_and_checkpoint_keys": true,
+        "original_weight_refresh": true,
+        "distinct_normalized_inputs": true,
+        "contiguous_qkv_outputs": true,
+        "native_attention_body": true,
+        "native_evaluation": true,
+        "short_inputs_pad_projection_rows_only": true,
+        "whole_model_or_quality_claim": false
+      }
+    },
+    {
+      "channels": 1024,
+      "layout": "tokens",
+      "value_fp32": true,
+      "passed": true,
+      "compiled_forward_backward": true,
+      "cached_and_uncached": true,
+      "original_separate_parameters": true,
+      "accumulation_and_refresh": true,
+      "distinct_input_gradients": true,
+      "causal_and_batch_independence_exact": true,
+      "padded_projection_rows": true,
+      "native_evaluation_and_restore_exact": true,
+      "contract": {
+        "layout": "tokens",
+        "layers": [
+          0
+        ],
+        "separate_parameter_objects": true,
+        "value_fp32_before_ve": true,
+        "bf16_value_without_ve": true,
+        "original_parameter_shapes_and_checkpoint_keys": true,
+        "original_weight_refresh": true,
+        "distinct_normalized_inputs": true,
+        "contiguous_qkv_outputs": true,
+        "native_attention_body": true,
+        "native_evaluation": true,
+        "short_inputs_pad_projection_rows_only": true,
+        "whole_model_or_quality_claim": false
+      }
+    }
+  ],
+  "small_comparison_count": 122,
+  "small_all_exact": true,
+  "failed_gate": {
+    "name": "qkv_real_attention:output",
+    "shape": [
+      32,
+      1024,
+      1024
+    ],
+    "finite": true,
+    "bound_failures": 47860,
+    "max_abs": 0.0078125,
+    "reference_rms": 0.04111820410067928,
+    "relative_rms": 0.00413085240719273,
+    "exact": false,
+    "passed": false
+  },
+  "decision": "No timing/promotion. Small attention repair passes unchanged gates; production shape still differs. Diagnose actual32x1024x1024 seed152032/cache/input-grad context, including BF16 and FP32 V replacement and materialized controls.",
+  "integration_promoted": false
+}

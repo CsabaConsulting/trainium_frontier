@@ -1,25 +1,30 @@
 # Resume the Trainium kernel campaign
 
-Updated 2026-09-19 23:59 UTC. Authorization: danger-full-access, approval never.
+Updated 2026-09-20 00:06 UTC. Authorization: danger-full-access, approval never.
 Use current manifests/postflights before dispatch; do not restart completed jobs.
 
-## Serial QKV precision-repair sequences active — CURRENT
+## Production-shape precision diagnosis and channel retry — CURRENT
 
-- Source154 token layout is on its final attention gate. Its BF16 regression
-  and all10 FP32-V independent/lifecycle cases pass, including real32768x1024
-  and non-BF16 incoming V gradients. FP32-value component5.727667 versus native
-  FP32-value5.644936ms (1.466% slower); this control differs from the old
-  BF16-output component. Corrected frozen diagnostics are clean: supplying
-  differentiable Q/K/V makes both no-VE materialized controls exactly native.
-  The VE-only early-rounding difference remains as previously isolated.
-- Source154 channel sequence STOPPED after its FP32 component compile failure;
-  postflight is clean. The final result transpose still used a BF16 scratch
-  allocation after its input became FP32. Source155 corrects that output
-  scratch dtype and names weight/input/output scratch separately for clarity.
-  This is a kernel declaration error, not an SDK or numerical-tolerance issue.
-  Fresh channel regression/FP32/diagnostic/attention retry is being prepared.
-  Do not restart its stopped source154 coordinator or alter the running token
-  queue/helper/request. Source155 hardware validation remains pending.
+- Source154 token sequence STOPPED/clean00:00:37UTC: widths256/1024 at
+  B4/T128 pass the original attention output/input/master/cache/causality/
+  restore checks, but B32/T1024 fails output equivalence:47,860 coordinates,
+  relative RMS0.0041308524. No attention timing or promotion. The FP32-V
+  component itself passes all10 cases and216 product/lifecycle audits.
+- Source156 is prepared for trn21: extend boundary diagnostics to exact
+  B32/T1024/C1024, seed152032, cached weights and differentiable inputs,
+  matching the failed production fixture. Compare BF16 and FP32-V adapters,
+  Q/K/V partial replacements and differentiable frozen controls, with/without
+  VE. Gate unchanged primitive BF16/FP32 contracts again on this immutable
+  source before diagnostics. A shape-dependent rounding decision is only a
+  hypothesis; do not add a shape-based precision switch without evidence.
+- Source155 channel retry STARTED on trn22, local PID11012 at00:04:45UTC.
+  Kernel source853f273; plan commit9b39ce9; remote wave155 worktree. Fixed
+  four stages: BF16 regression ->FP32-V component ->corrected diagnostic
+  ->unchanged attention gates/timing, with full per-stage cleanup and a
+ 10000-second coordinator bound. It fixes the final result transpose scratch
+  incorrectly left BF16 while its input became FP32; no SDK modification.
+  Original source154 channel failure and cleanup are preserved. Do not alter
+  its active request/plan/helper bytes or restart the stopped source154 queue.
 - Source153 diagnostics COMPLETE/clean: tokens/256 at23:41:41UTC, channels/1024
   at23:43:08UTC. Native preprojection, Q-only and K-only are exactly native at
   both widths, cached/uncached and with/without VE. V-only and all-QKV are exact

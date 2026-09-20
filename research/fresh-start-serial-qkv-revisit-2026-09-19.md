@@ -49,6 +49,17 @@ changes that allocation to the output dtype; weight/input transpose scratch
 remain BF16 and get distinct names. No SDK patch or numerical relaxation.
 A fresh four-stage channel retry will preserve the failed source154 records.
 
+Source154 token attention now has a precise remaining failure. Its B4/T128
+checks at C256/1024 pass, including all gradients and cached accumulation,
+causality, native evaluation/restore and padded rows. Production B32/T1024/C1024
+then fails the unchanged output bound:47,860 coordinates, RMS0.0041308524.
+Postflight is clean00:00:37UTC; no full attention timing was reached. The new
+source156 diagnostic uses that exact seed152032/cache/shape and makes both
+original and frozen inputs differentiable. It compares both V storage contracts,
+partial Q/K/V replacements and frozen BF16/FP32 controls with/without VE.
+This investigates possible shape/context-dependent rounding; it does not
+assume the cause or fit a precision switch to one case.
+
 Earlier preparation/results below are retained chronologically.
 
 Updated 2026-09-19 23:33 UTC. Source151 completed cleanly on both hosts. Both layouts

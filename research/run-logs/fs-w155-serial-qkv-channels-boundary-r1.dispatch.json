@@ -1,0 +1,48 @@
+{
+  "request": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_20260918_wave155",
+    "expected_commit": "853f2733e181f605b9d48a9a64dcf6bd12603da8",
+    "label": "fs-w155-serial-qkv-channels-boundary-r1",
+    "purpose": "Source155 corrects final transpose scratch dtype. Repeat the retained-value diagnostic with differentiable frozen Q/K/V, preserving SDPA training requirements. Original native remains authority; no relaxation, integration or performance promotion.",
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_RT_VISIBLE_CORES": "0",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--kill-after=30s",
+      "1800s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "-u",
+      "/home/ubuntu/trainium_freshstart_20260918_wave155/research/scratch/serial_qkv_boundary_diagnostic.py",
+      "--layout",
+      "channels",
+      "--channels",
+      "1024",
+      "--component-root",
+      "/home/ubuntu/trainium_freshstart_20260918_wave155",
+      "--component-label",
+      "fs-w155-serial-qkv-channels-bf16-component-r1",
+      "--component-commit",
+      "853f2733e181f605b9d48a9a64dcf6bd12603da8"
+    ],
+    "fingerprint_paths": [
+      "train.py",
+      "research/scratch/serial_qkv_nki.py",
+      "research/scratch/serial_qkv_probe.py",
+      "research/scratch/serial_qkv_integration.py",
+      "research/scratch/serial_qkv_integration_check.py",
+      "research/scratch/mlp_fused_bf16_probe.py",
+      "research/scratch/serial_qkv_boundary_diagnostic.py"
+    ]
+  },
+  "requested_at": "2026-09-20T00:08:49.954162+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-w155-serial-qkv-channels-boundary-r1\", \"pid\": 1895665, \"commit\": \"853f2733e181f605b9d48a9a64dcf6bd12603da8\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260918_wave155/research/run-logs/fs-w155-serial-qkv-channels-boundary-r1.log\", \"started_at\": \"2026-09-20T00:08:56.154643+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": ""
+}

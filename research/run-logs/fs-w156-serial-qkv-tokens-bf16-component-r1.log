@@ -1,0 +1,489 @@
+[W920 00:08:30.029122750 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+SERIAL_QKV_EXACT_GATE {"name": "random:native:repeat0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:native:repeat1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:native:repeat2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:native:nonmutation0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:native:nonmutation1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:native:nonmutation2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:native:nonmutation3", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:native:nonmutation4", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:native:nonmutation5", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:candidate:repeat0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:candidate:repeat1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:candidate:repeat2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:candidate:nonmutation0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:candidate:nonmutation1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:candidate:nonmutation2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:candidate:nonmutation3", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:candidate:nonmutation4", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:candidate:nonmutation5", "shape": [256, 256], "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:0:output:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015369106084108353, "relative_rms": 0.0016580404611602536, "half_value_negative_control_failures": 131036, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:0:output:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015369106084108353, "relative_rms": 0.0016580404611602536, "half_value_negative_control_failures": 131036, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "random", "stream": 0, "field": "output", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:0:input_gradient:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00012185373634565622, "relative_rms": 0.0016601111170535033, "half_value_negative_control_failures": 131038, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:0:input_gradient:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00012185373634565622, "relative_rms": 0.0016601111170535033, "half_value_negative_control_failures": 131038, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "random", "stream": 0, "field": "input_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:0:master_gradient:native", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 1.0343501344323158e-07, "relative_rms": 6.536434769999245e-08, "half_value_negative_control_failures": 65499, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:0:master_gradient:candidate", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 1.0343501344323158e-07, "relative_rms": 6.536434769999245e-08, "half_value_negative_control_failures": 65499, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "random", "stream": 0, "field": "master_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:1:output:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.01500004343688488, "relative_rms": 0.0016665366088529708, "half_value_negative_control_failures": 131039, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:1:output:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.01500004343688488, "relative_rms": 0.0016665366088529708, "half_value_negative_control_failures": 131039, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "random", "stream": 1, "field": "output", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:1:input_gradient:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00012108885493944399, "relative_rms": 0.0016533756262529368, "half_value_negative_control_failures": 131045, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:1:input_gradient:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00012108885493944399, "relative_rms": 0.0016533756262529368, "half_value_negative_control_failures": 131045, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "random", "stream": 1, "field": "input_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:1:master_gradient:native", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 8.381903171539307e-08, "relative_rms": 6.527080950551184e-08, "half_value_negative_control_failures": 65483, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:1:master_gradient:candidate", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 8.381903171539307e-08, "relative_rms": 6.527080950551184e-08, "half_value_negative_control_failures": 65483, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "random", "stream": 1, "field": "master_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:2:output:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015220846980810165, "relative_rms": 0.001661683743868204, "half_value_negative_control_failures": 131039, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:2:output:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015220846980810165, "relative_rms": 0.001661683743868204, "half_value_negative_control_failures": 131039, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "random", "stream": 2, "field": "output", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:2:input_gradient:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00012166465603513643, "relative_rms": 0.0016644605813713558, "half_value_negative_control_failures": 131037, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:2:input_gradient:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00012166465603513643, "relative_rms": 0.0016644605813713558, "half_value_negative_control_failures": 131037, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "random", "stream": 2, "field": "input_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:2:master_gradient:native", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 1.1222437024116516e-07, "relative_rms": 6.507021955352764e-08, "half_value_negative_control_failures": 65495, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "random:2:master_gradient:candidate", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 1.1222437024116516e-07, "relative_rms": 6.507021955352764e-08, "half_value_negative_control_failures": 65495, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "random", "stream": 2, "field": "master_gradient", "exact": true, "different": 0}
+SERIAL_QKV_EXACT_GATE {"name": "random:independent_q", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:independent_k", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "random:earlier_v_rows", "shape": [384, 256], "passed": true}
+SERIAL_QKV_CASE {"kind": "random", "tokens": 512, "channels": 256, "value_fp32": false, "backward_gemm_operands_bf16": true, "independent_fp64_forward_and_six_gradients": true, "distinct_inputs": true, "contiguous_outputs": true, "fp32_master_gradients": true, "repeat_and_nonmutation": true, "stream_and_row_independence": true, "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_input:native:repeat0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_input:native:repeat1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_input:native:repeat2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_input:native:nonmutation0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_input:native:nonmutation1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_input:native:nonmutation2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_input:native:nonmutation3", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_input:native:nonmutation4", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_input:native:nonmutation5", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_input:candidate:repeat0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_input:candidate:repeat1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_input:candidate:repeat2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_input:candidate:nonmutation0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_input:candidate:nonmutation1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_input:candidate:nonmutation2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_input:candidate:nonmutation3", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_input:candidate:nonmutation4", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_input:candidate:nonmutation5", "shape": [256, 256], "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_input:0:output:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015369106084108353, "relative_rms": 0.0016580404611602536, "half_value_negative_control_failures": 131036, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_input:0:output:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015369106084108353, "relative_rms": 0.0016580404611602536, "half_value_negative_control_failures": 131036, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "zero_input", "stream": 0, "field": "output", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_input:0:input_gradient:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00012185373634565622, "relative_rms": 0.0016601111170535033, "half_value_negative_control_failures": 131038, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_input:0:input_gradient:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00012185373634565622, "relative_rms": 0.0016601111170535033, "half_value_negative_control_failures": 131038, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "zero_input", "stream": 0, "field": "input_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_input:0:master_gradient:native", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 1.0343501344323158e-07, "relative_rms": 6.536434769999245e-08, "half_value_negative_control_failures": 65499, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_input:0:master_gradient:candidate", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 1.0343501344323158e-07, "relative_rms": 6.536434769999245e-08, "half_value_negative_control_failures": 65499, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "zero_input", "stream": 0, "field": "master_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_input:1:output:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0, "relative_rms": 0.0, "half_value_negative_control_failures": 0, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_input:1:output:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0, "relative_rms": 0.0, "half_value_negative_control_failures": 0, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "zero_input", "stream": 1, "field": "output", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_input:1:input_gradient:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00012108885493944399, "relative_rms": 0.0016533756262529368, "half_value_negative_control_failures": 131045, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_input:1:input_gradient:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00012108885493944399, "relative_rms": 0.0016533756262529368, "half_value_negative_control_failures": 131045, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "zero_input", "stream": 1, "field": "input_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_input:1:master_gradient:native", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0, "relative_rms": 0.0, "half_value_negative_control_failures": 0, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_input:1:master_gradient:candidate", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0, "relative_rms": 0.0, "half_value_negative_control_failures": 0, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "zero_input", "stream": 1, "field": "master_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_input:2:output:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015220846980810165, "relative_rms": 0.001661683743868204, "half_value_negative_control_failures": 131039, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_input:2:output:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015220846980810165, "relative_rms": 0.001661683743868204, "half_value_negative_control_failures": 131039, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "zero_input", "stream": 2, "field": "output", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_input:2:input_gradient:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00012166465603513643, "relative_rms": 0.0016644605813713558, "half_value_negative_control_failures": 131037, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_input:2:input_gradient:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00012166465603513643, "relative_rms": 0.0016644605813713558, "half_value_negative_control_failures": 131037, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "zero_input", "stream": 2, "field": "input_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_input:2:master_gradient:native", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 1.1222437024116516e-07, "relative_rms": 6.507021955352764e-08, "half_value_negative_control_failures": 65495, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_input:2:master_gradient:candidate", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 1.1222437024116516e-07, "relative_rms": 6.507021955352764e-08, "half_value_negative_control_failures": 65495, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "zero_input", "stream": 2, "field": "master_gradient", "exact": true, "different": 0}
+SERIAL_QKV_EXACT_GATE {"name": "zero_input:independent_q", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_input:independent_k", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_input:earlier_v_rows", "shape": [384, 256], "passed": true}
+SERIAL_QKV_CASE {"kind": "zero_input", "tokens": 512, "channels": 256, "value_fp32": false, "backward_gemm_operands_bf16": true, "independent_fp64_forward_and_six_gradients": true, "distinct_inputs": true, "contiguous_outputs": true, "fp32_master_gradients": true, "repeat_and_nonmutation": true, "stream_and_row_independence": true, "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_weight:native:repeat0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_weight:native:repeat1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_weight:native:repeat2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_weight:native:nonmutation0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_weight:native:nonmutation1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_weight:native:nonmutation2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_weight:native:nonmutation3", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_weight:native:nonmutation4", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_weight:native:nonmutation5", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_weight:candidate:repeat0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_weight:candidate:repeat1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_weight:candidate:repeat2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_weight:candidate:nonmutation0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_weight:candidate:nonmutation1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_weight:candidate:nonmutation2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_weight:candidate:nonmutation3", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_weight:candidate:nonmutation4", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_weight:candidate:nonmutation5", "shape": [256, 256], "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_weight:0:output:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015369106084108353, "relative_rms": 0.0016580404611602536, "half_value_negative_control_failures": 131036, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_weight:0:output:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015369106084108353, "relative_rms": 0.0016580404611602536, "half_value_negative_control_failures": 131036, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "zero_weight", "stream": 0, "field": "output", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_weight:0:input_gradient:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00012185373634565622, "relative_rms": 0.0016601111170535033, "half_value_negative_control_failures": 131038, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_weight:0:input_gradient:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00012185373634565622, "relative_rms": 0.0016601111170535033, "half_value_negative_control_failures": 131038, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "zero_weight", "stream": 0, "field": "input_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_weight:0:master_gradient:native", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 1.0343501344323158e-07, "relative_rms": 6.536434769999245e-08, "half_value_negative_control_failures": 65499, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_weight:0:master_gradient:candidate", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 1.0343501344323158e-07, "relative_rms": 6.536434769999245e-08, "half_value_negative_control_failures": 65499, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "zero_weight", "stream": 0, "field": "master_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_weight:1:output:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.01500004343688488, "relative_rms": 0.0016665366088529708, "half_value_negative_control_failures": 131039, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_weight:1:output:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.01500004343688488, "relative_rms": 0.0016665366088529708, "half_value_negative_control_failures": 131039, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "zero_weight", "stream": 1, "field": "output", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_weight:1:input_gradient:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00012108885493944399, "relative_rms": 0.0016533756262529368, "half_value_negative_control_failures": 131045, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_weight:1:input_gradient:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00012108885493944399, "relative_rms": 0.0016533756262529368, "half_value_negative_control_failures": 131045, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "zero_weight", "stream": 1, "field": "input_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_weight:1:master_gradient:native", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 8.381903171539307e-08, "relative_rms": 6.527080950551184e-08, "half_value_negative_control_failures": 65483, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_weight:1:master_gradient:candidate", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 8.381903171539307e-08, "relative_rms": 6.527080950551184e-08, "half_value_negative_control_failures": 65483, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "zero_weight", "stream": 1, "field": "master_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_weight:2:output:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0, "relative_rms": 0.0, "half_value_negative_control_failures": 0, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_weight:2:output:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0, "relative_rms": 0.0, "half_value_negative_control_failures": 0, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "zero_weight", "stream": 2, "field": "output", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_weight:2:input_gradient:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0, "relative_rms": 0.0, "half_value_negative_control_failures": 0, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_weight:2:input_gradient:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0, "relative_rms": 0.0, "half_value_negative_control_failures": 0, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "zero_weight", "stream": 2, "field": "input_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_weight:2:master_gradient:native", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 1.1222437024116516e-07, "relative_rms": 6.507021955352764e-08, "half_value_negative_control_failures": 65495, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_weight:2:master_gradient:candidate", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 1.1222437024116516e-07, "relative_rms": 6.507021955352764e-08, "half_value_negative_control_failures": 65495, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "zero_weight", "stream": 2, "field": "master_gradient", "exact": true, "different": 0}
+SERIAL_QKV_EXACT_GATE {"name": "zero_weight:independent_q", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_weight:independent_k", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_weight:earlier_v_rows", "shape": [384, 256], "passed": true}
+SERIAL_QKV_CASE {"kind": "zero_weight", "tokens": 512, "channels": 256, "value_fp32": false, "backward_gemm_operands_bf16": true, "independent_fp64_forward_and_six_gradients": true, "distinct_inputs": true, "contiguous_outputs": true, "fp32_master_gradients": true, "repeat_and_nonmutation": true, "stream_and_row_independence": true, "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_gradient:native:repeat0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_gradient:native:repeat1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_gradient:native:repeat2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_gradient:native:nonmutation0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_gradient:native:nonmutation1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_gradient:native:nonmutation2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_gradient:native:nonmutation3", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_gradient:native:nonmutation4", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_gradient:native:nonmutation5", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_gradient:candidate:repeat0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_gradient:candidate:repeat1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_gradient:candidate:repeat2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_gradient:candidate:nonmutation0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_gradient:candidate:nonmutation1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_gradient:candidate:nonmutation2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_gradient:candidate:nonmutation3", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_gradient:candidate:nonmutation4", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_gradient:candidate:nonmutation5", "shape": [256, 256], "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_gradient:0:output:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015369106084108353, "relative_rms": 0.0016580404611602536, "half_value_negative_control_failures": 131036, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_gradient:0:output:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015369106084108353, "relative_rms": 0.0016580404611602536, "half_value_negative_control_failures": 131036, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "zero_gradient", "stream": 0, "field": "output", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_gradient:0:input_gradient:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0, "relative_rms": 0.0, "half_value_negative_control_failures": 0, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_gradient:0:input_gradient:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0, "relative_rms": 0.0, "half_value_negative_control_failures": 0, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "zero_gradient", "stream": 0, "field": "input_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_gradient:0:master_gradient:native", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0, "relative_rms": 0.0, "half_value_negative_control_failures": 0, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_gradient:0:master_gradient:candidate", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0, "relative_rms": 0.0, "half_value_negative_control_failures": 0, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "zero_gradient", "stream": 0, "field": "master_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_gradient:1:output:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.01500004343688488, "relative_rms": 0.0016665366088529708, "half_value_negative_control_failures": 131039, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_gradient:1:output:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.01500004343688488, "relative_rms": 0.0016665366088529708, "half_value_negative_control_failures": 131039, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "zero_gradient", "stream": 1, "field": "output", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_gradient:1:input_gradient:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00012108885493944399, "relative_rms": 0.0016533756262529368, "half_value_negative_control_failures": 131045, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_gradient:1:input_gradient:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00012108885493944399, "relative_rms": 0.0016533756262529368, "half_value_negative_control_failures": 131045, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "zero_gradient", "stream": 1, "field": "input_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_gradient:1:master_gradient:native", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 8.381903171539307e-08, "relative_rms": 6.527080950551184e-08, "half_value_negative_control_failures": 65483, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_gradient:1:master_gradient:candidate", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 8.381903171539307e-08, "relative_rms": 6.527080950551184e-08, "half_value_negative_control_failures": 65483, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "zero_gradient", "stream": 1, "field": "master_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_gradient:2:output:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015220846980810165, "relative_rms": 0.001661683743868204, "half_value_negative_control_failures": 131039, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_gradient:2:output:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015220846980810165, "relative_rms": 0.001661683743868204, "half_value_negative_control_failures": 131039, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "zero_gradient", "stream": 2, "field": "output", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_gradient:2:input_gradient:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00012166465603513643, "relative_rms": 0.0016644605813713558, "half_value_negative_control_failures": 131037, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_gradient:2:input_gradient:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00012166465603513643, "relative_rms": 0.0016644605813713558, "half_value_negative_control_failures": 131037, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "zero_gradient", "stream": 2, "field": "input_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_gradient:2:master_gradient:native", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 1.1222437024116516e-07, "relative_rms": 6.507021955352764e-08, "half_value_negative_control_failures": 65495, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "zero_gradient:2:master_gradient:candidate", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 1.1222437024116516e-07, "relative_rms": 6.507021955352764e-08, "half_value_negative_control_failures": 65495, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "zero_gradient", "stream": 2, "field": "master_gradient", "exact": true, "different": 0}
+SERIAL_QKV_EXACT_GATE {"name": "zero_gradient:independent_q", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_gradient:independent_k", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "zero_gradient:earlier_v_rows", "shape": [384, 256], "passed": true}
+SERIAL_QKV_CASE {"kind": "zero_gradient", "tokens": 512, "channels": 256, "value_fp32": false, "backward_gemm_operands_bf16": true, "independent_fp64_forward_and_six_gradients": true, "distinct_inputs": true, "contiguous_outputs": true, "fp32_master_gradients": true, "repeat_and_nonmutation": true, "stream_and_row_independence": true, "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "tiny_gradient:native:repeat0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "tiny_gradient:native:repeat1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "tiny_gradient:native:repeat2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "tiny_gradient:native:nonmutation0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "tiny_gradient:native:nonmutation1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "tiny_gradient:native:nonmutation2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "tiny_gradient:native:nonmutation3", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "tiny_gradient:native:nonmutation4", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "tiny_gradient:native:nonmutation5", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "tiny_gradient:candidate:repeat0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "tiny_gradient:candidate:repeat1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "tiny_gradient:candidate:repeat2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "tiny_gradient:candidate:nonmutation0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "tiny_gradient:candidate:nonmutation1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "tiny_gradient:candidate:nonmutation2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "tiny_gradient:candidate:nonmutation3", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "tiny_gradient:candidate:nonmutation4", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "tiny_gradient:candidate:nonmutation5", "shape": [256, 256], "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "tiny_gradient:0:output:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015369106084108353, "relative_rms": 0.0016580404611602536, "half_value_negative_control_failures": 131036, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "tiny_gradient:0:output:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015369106084108353, "relative_rms": 0.0016580404611602536, "half_value_negative_control_failures": 131036, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "tiny_gradient", "stream": 0, "field": "output", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "tiny_gradient:0:input_gradient:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 7.437361837503431e-09, "relative_rms": 0.0016601111170535033, "half_value_negative_control_failures": 131038, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "tiny_gradient:0:input_gradient:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 7.437361837503431e-09, "relative_rms": 0.0016601111170535033, "half_value_negative_control_failures": 131038, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "tiny_gradient", "stream": 0, "field": "input_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "tiny_gradient:0:master_gradient:native", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 6.31317220722849e-12, "relative_rms": 6.536434769999245e-08, "half_value_negative_control_failures": 65499, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "tiny_gradient:0:master_gradient:candidate", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 6.31317220722849e-12, "relative_rms": 6.536434769999245e-08, "half_value_negative_control_failures": 65499, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "tiny_gradient", "stream": 0, "field": "master_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "tiny_gradient:1:output:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.01500004343688488, "relative_rms": 0.0016665366088529708, "half_value_negative_control_failures": 131039, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "tiny_gradient:1:output:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.01500004343688488, "relative_rms": 0.0016665366088529708, "half_value_negative_control_failures": 131039, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "tiny_gradient", "stream": 1, "field": "output", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "tiny_gradient:1:input_gradient:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 7.390677181362548e-09, "relative_rms": 0.0016533756262529368, "half_value_negative_control_failures": 131045, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "tiny_gradient:1:input_gradient:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 7.390677181362548e-09, "relative_rms": 0.0016533756262529368, "half_value_negative_control_failures": 131045, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "tiny_gradient", "stream": 1, "field": "input_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "tiny_gradient:1:master_gradient:native", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 5.115907697472721e-12, "relative_rms": 6.527080950551184e-08, "half_value_negative_control_failures": 65483, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "tiny_gradient:1:master_gradient:candidate", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 5.115907697472721e-12, "relative_rms": 6.527080950551184e-08, "half_value_negative_control_failures": 65483, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "tiny_gradient", "stream": 1, "field": "master_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "tiny_gradient:2:output:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015220846980810165, "relative_rms": 0.001661683743868204, "half_value_negative_control_failures": 131039, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "tiny_gradient:2:output:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015220846980810165, "relative_rms": 0.001661683743868204, "half_value_negative_control_failures": 131039, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "tiny_gradient", "stream": 2, "field": "output", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "tiny_gradient:2:input_gradient:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 7.4258212912070576e-09, "relative_rms": 0.0016644605813713558, "half_value_negative_control_failures": 131037, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "tiny_gradient:2:input_gradient:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 7.4258212912070576e-09, "relative_rms": 0.0016644605813713558, "half_value_negative_control_failures": 131037, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "tiny_gradient", "stream": 2, "field": "input_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "tiny_gradient:2:master_gradient:native", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 6.849631972727366e-12, "relative_rms": 6.507021955352764e-08, "half_value_negative_control_failures": 65495, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "tiny_gradient:2:master_gradient:candidate", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 6.849631972727366e-12, "relative_rms": 6.507021955352764e-08, "half_value_negative_control_failures": 65495, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "tiny_gradient", "stream": 2, "field": "master_gradient", "exact": true, "different": 0}
+SERIAL_QKV_EXACT_GATE {"name": "tiny_gradient:independent_q", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "tiny_gradient:independent_k", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "tiny_gradient:earlier_v_rows", "shape": [384, 256], "passed": true}
+SERIAL_QKV_CASE {"kind": "tiny_gradient", "tokens": 512, "channels": 256, "value_fp32": false, "backward_gemm_operands_bf16": true, "independent_fp64_forward_and_six_gradients": true, "distinct_inputs": true, "contiguous_outputs": true, "fp32_master_gradients": true, "repeat_and_nonmutation": true, "stream_and_row_independence": true, "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "outliers:native:repeat0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "outliers:native:repeat1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "outliers:native:repeat2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "outliers:native:nonmutation0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "outliers:native:nonmutation1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "outliers:native:nonmutation2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "outliers:native:nonmutation3", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "outliers:native:nonmutation4", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "outliers:native:nonmutation5", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "outliers:candidate:repeat0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "outliers:candidate:repeat1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "outliers:candidate:repeat2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "outliers:candidate:nonmutation0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "outliers:candidate:nonmutation1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "outliers:candidate:nonmutation2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "outliers:candidate:nonmutation3", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "outliers:candidate:nonmutation4", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "outliers:candidate:nonmutation5", "shape": [256, 256], "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "outliers:0:output:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.026306816183932824, "relative_rms": 0.0016560197519106356, "half_value_negative_control_failures": 131036, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "outliers:0:output:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.026306816183932824, "relative_rms": 0.0016560197519106356, "half_value_negative_control_failures": 131036, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "outliers", "stream": 0, "field": "output", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "outliers:0:input_gradient:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00012185373634565622, "relative_rms": 0.0016601111170535033, "half_value_negative_control_failures": 131038, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "outliers:0:input_gradient:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00012185373634565622, "relative_rms": 0.0016601111170535033, "half_value_negative_control_failures": 131038, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "outliers", "stream": 0, "field": "input_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "outliers:0:master_gradient:native", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 2.8300564736127853e-07, "relative_rms": 6.633620339701084e-08, "half_value_negative_control_failures": 65499, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "outliers:0:master_gradient:candidate", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 2.8300564736127853e-07, "relative_rms": 6.633620339701084e-08, "half_value_negative_control_failures": 65499, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "outliers", "stream": 0, "field": "master_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "outliers:1:output:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.12217353240703233, "relative_rms": 0.001653087414104352, "half_value_negative_control_failures": 131039, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "outliers:1:output:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.12217353240703233, "relative_rms": 0.001653087414104352, "half_value_negative_control_failures": 131039, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "outliers", "stream": 1, "field": "output", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "outliers:1:input_gradient:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.000946947795455344, "relative_rms": 0.0016151139327894486, "half_value_negative_control_failures": 131045, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "outliers:1:input_gradient:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.000946947795455344, "relative_rms": 0.0016151139327894486, "half_value_negative_control_failures": 131045, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "outliers", "stream": 1, "field": "input_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "outliers:1:master_gradient:native", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 8.381903171539307e-08, "relative_rms": 6.527080950551184e-08, "half_value_negative_control_failures": 65483, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "outliers:1:master_gradient:candidate", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 8.381903171539307e-08, "relative_rms": 6.527080950551184e-08, "half_value_negative_control_failures": 65483, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "outliers", "stream": 1, "field": "master_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "outliers:2:output:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015220846980810165, "relative_rms": 0.001661683743868204, "half_value_negative_control_failures": 131039, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "outliers:2:output:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015220846980810165, "relative_rms": 0.001661683743868204, "half_value_negative_control_failures": 131039, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "outliers", "stream": 2, "field": "output", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "outliers:2:input_gradient:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0017399880016455427, "relative_rms": 0.0017411724163078825, "half_value_negative_control_failures": 131037, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "outliers:2:input_gradient:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0017399880016455427, "relative_rms": 0.0017411724163078825, "half_value_negative_control_failures": 131037, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "outliers", "stream": 2, "field": "input_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "outliers:2:master_gradient:native", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 7.259513949975371e-07, "relative_rms": 5.815549128048176e-08, "half_value_negative_control_failures": 65495, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "outliers:2:master_gradient:candidate", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 7.259513949975371e-07, "relative_rms": 5.815549128048176e-08, "half_value_negative_control_failures": 65495, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "outliers", "stream": 2, "field": "master_gradient", "exact": true, "different": 0}
+SERIAL_QKV_EXACT_GATE {"name": "outliers:independent_q", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "outliers:independent_k", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "outliers:earlier_v_rows", "shape": [384, 256], "passed": true}
+SERIAL_QKV_CASE {"kind": "outliers", "tokens": 512, "channels": 256, "value_fp32": false, "backward_gemm_operands_bf16": true, "independent_fp64_forward_and_six_gradients": true, "distinct_inputs": true, "contiguous_outputs": true, "fp32_master_gradients": true, "repeat_and_nonmutation": true, "stream_and_row_independence": true, "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "changed_weights:native:repeat0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "changed_weights:native:repeat1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "changed_weights:native:repeat2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "changed_weights:native:nonmutation0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "changed_weights:native:nonmutation1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "changed_weights:native:nonmutation2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "changed_weights:native:nonmutation3", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "changed_weights:native:nonmutation4", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "changed_weights:native:nonmutation5", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "changed_weights:candidate:repeat0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "changed_weights:candidate:repeat1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "changed_weights:candidate:repeat2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "changed_weights:candidate:nonmutation0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "changed_weights:candidate:nonmutation1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "changed_weights:candidate:nonmutation2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "changed_weights:candidate:nonmutation3", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "changed_weights:candidate:nonmutation4", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "changed_weights:candidate:nonmutation5", "shape": [256, 256], "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "changed_weights:0:output:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.007799903862178326, "relative_rms": 0.0016556351611195937, "half_value_negative_control_failures": 131034, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "changed_weights:0:output:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.007799903862178326, "relative_rms": 0.0016556351611195937, "half_value_negative_control_failures": 131034, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "changed_weights", "stream": 0, "field": "output", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "changed_weights:0:input_gradient:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00011448049917817116, "relative_rms": 0.0016583800234549293, "half_value_negative_control_failures": 131044, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "changed_weights:0:input_gradient:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00011448049917817116, "relative_rms": 0.0016583800234549293, "half_value_negative_control_failures": 131044, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "changed_weights", "stream": 0, "field": "input_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "changed_weights:0:master_gradient:native", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 1.0343501344323158e-07, "relative_rms": 6.536434769999245e-08, "half_value_negative_control_failures": 65499, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "changed_weights:0:master_gradient:candidate", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 1.0343501344323158e-07, "relative_rms": 6.536434769999245e-08, "half_value_negative_control_failures": 65499, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "changed_weights", "stream": 0, "field": "master_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "changed_weights:1:output:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015624277293682098, "relative_rms": 0.001656610594518041, "half_value_negative_control_failures": 131031, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "changed_weights:1:output:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015624277293682098, "relative_rms": 0.001656610594518041, "half_value_negative_control_failures": 131031, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "changed_weights", "stream": 1, "field": "output", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "changed_weights:1:input_gradient:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00021101196762174368, "relative_rms": 0.0016621682344294213, "half_value_negative_control_failures": 131043, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "changed_weights:1:input_gradient:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00021101196762174368, "relative_rms": 0.0016621682344294213, "half_value_negative_control_failures": 131043, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "changed_weights", "stream": 1, "field": "input_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "changed_weights:1:master_gradient:native", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 8.381903171539307e-08, "relative_rms": 6.527080950551184e-08, "half_value_negative_control_failures": 65483, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "changed_weights:1:master_gradient:candidate", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 8.381903171539307e-08, "relative_rms": 6.527080950551184e-08, "half_value_negative_control_failures": 65483, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "changed_weights", "stream": 1, "field": "master_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "changed_weights:2:output:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015532556921243668, "relative_rms": 0.0016605902780170672, "half_value_negative_control_failures": 131037, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "changed_weights:2:output:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015532556921243668, "relative_rms": 0.0016605902780170672, "half_value_negative_control_failures": 131037, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "changed_weights", "stream": 2, "field": "output", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "changed_weights:2:input_gradient:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0001216103628394194, "relative_rms": 0.0016591653789429092, "half_value_negative_control_failures": 131048, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "changed_weights:2:input_gradient:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0001216103628394194, "relative_rms": 0.0016591653789429092, "half_value_negative_control_failures": 131048, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "changed_weights", "stream": 2, "field": "input_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "changed_weights:2:master_gradient:native", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 1.1222437024116516e-07, "relative_rms": 6.507021955352764e-08, "half_value_negative_control_failures": 65495, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "changed_weights:2:master_gradient:candidate", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 1.1222437024116516e-07, "relative_rms": 6.507021955352764e-08, "half_value_negative_control_failures": 65495, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "changed_weights", "stream": 2, "field": "master_gradient", "exact": true, "different": 0}
+SERIAL_QKV_EXACT_GATE {"name": "changed_weights:independent_q", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "changed_weights:independent_k", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "changed_weights:earlier_v_rows", "shape": [384, 256], "passed": true}
+SERIAL_QKV_CASE {"kind": "changed_weights", "tokens": 512, "channels": 256, "value_fp32": false, "backward_gemm_operands_bf16": true, "independent_fp64_forward_and_six_gradients": true, "distinct_inputs": true, "contiguous_outputs": true, "fp32_master_gradients": true, "repeat_and_nonmutation": true, "stream_and_row_independence": true, "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "cancellation:native:repeat0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "cancellation:native:repeat1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "cancellation:native:repeat2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "cancellation:native:nonmutation0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "cancellation:native:nonmutation1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "cancellation:native:nonmutation2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "cancellation:native:nonmutation3", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "cancellation:native:nonmutation4", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "cancellation:native:nonmutation5", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "cancellation:candidate:repeat0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "cancellation:candidate:repeat1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "cancellation:candidate:repeat2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "cancellation:candidate:nonmutation0", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "cancellation:candidate:nonmutation1", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "cancellation:candidate:nonmutation2", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "cancellation:candidate:nonmutation3", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "cancellation:candidate:nonmutation4", "shape": [256, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "cancellation:candidate:nonmutation5", "shape": [256, 256], "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "cancellation:0:output:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0, "relative_rms": 0.0, "half_value_negative_control_failures": 0, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "cancellation:0:output:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0, "relative_rms": 0.0, "half_value_negative_control_failures": 0, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "cancellation", "stream": 0, "field": "output", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "cancellation:0:input_gradient:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00012067515854141675, "relative_rms": 0.001661456100191629, "half_value_negative_control_failures": 131040, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "cancellation:0:input_gradient:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00012067515854141675, "relative_rms": 0.001661456100191629, "half_value_negative_control_failures": 131040, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "cancellation", "stream": 0, "field": "input_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "cancellation:0:master_gradient:native", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 1.0343501344323158e-07, "relative_rms": 6.493024141516294e-08, "half_value_negative_control_failures": 65510, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "cancellation:0:master_gradient:candidate", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 1.0343501344323158e-07, "relative_rms": 6.493024141516294e-08, "half_value_negative_control_failures": 65510, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "cancellation", "stream": 0, "field": "master_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "cancellation:1:output:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0, "relative_rms": 0.0, "half_value_negative_control_failures": 0, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "cancellation:1:output:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0, "relative_rms": 0.0, "half_value_negative_control_failures": 0, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "cancellation", "stream": 1, "field": "output", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "cancellation:1:input_gradient:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00012108885493944399, "relative_rms": 0.001655798310634513, "half_value_negative_control_failures": 131042, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "cancellation:1:input_gradient:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.00012108885493944399, "relative_rms": 0.001655798310634513, "half_value_negative_control_failures": 131042, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "cancellation", "stream": 1, "field": "input_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "cancellation:1:master_gradient:native", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 7.82310962677002e-08, "relative_rms": 6.519664556709562e-08, "half_value_negative_control_failures": 65472, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "cancellation:1:master_gradient:candidate", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 7.82310962677002e-08, "relative_rms": 6.519664556709562e-08, "half_value_negative_control_failures": 65472, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "cancellation", "stream": 1, "field": "master_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "cancellation:2:output:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0, "relative_rms": 0.0, "half_value_negative_control_failures": 0, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "cancellation:2:output:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0, "relative_rms": 0.0, "half_value_negative_control_failures": 0, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "cancellation", "stream": 2, "field": "output", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "cancellation:2:input_gradient:native", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0001208642206620425, "relative_rms": 0.0016683208016024429, "half_value_negative_control_failures": 131034, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "cancellation:2:input_gradient:candidate", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0001208642206620425, "relative_rms": 0.0016683208016024429, "half_value_negative_control_failures": 131034, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "cancellation", "stream": 2, "field": "input_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "cancellation:2:master_gradient:native", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 1.1222437024116516e-07, "relative_rms": 6.488868675167127e-08, "half_value_negative_control_failures": 65500, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "cancellation:2:master_gradient:candidate", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 1.1222437024116516e-07, "relative_rms": 6.488868675167127e-08, "half_value_negative_control_failures": 65500, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "cancellation", "stream": 2, "field": "master_gradient", "exact": true, "different": 0}
+SERIAL_QKV_EXACT_GATE {"name": "cancellation:independent_q", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "cancellation:independent_k", "shape": [512, 256], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "cancellation:earlier_v_rows", "shape": [384, 256], "passed": true}
+SERIAL_QKV_CASE {"kind": "cancellation", "tokens": 512, "channels": 256, "value_fp32": false, "backward_gemm_operands_bf16": true, "independent_fp64_forward_and_six_gradients": true, "distinct_inputs": true, "contiguous_outputs": true, "fp32_master_gradients": true, "repeat_and_nonmutation": true, "stream_and_row_independence": true, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:0:0:native:output0", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015369106084108353, "relative_rms": 0.0016580404611602536, "half_value_negative_control_failures": 131036, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:0:0:native:output1", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.01500004343688488, "relative_rms": 0.0016665366088529708, "half_value_negative_control_failures": 131039, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:0:0:native:output2", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015220846980810165, "relative_rms": 0.001661683743868204, "half_value_negative_control_failures": 131039, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:0:0:candidate:output0", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015369106084108353, "relative_rms": 0.0016580404611602536, "half_value_negative_control_failures": 131036, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:0:0:candidate:output1", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.01500004343688488, "relative_rms": 0.0016665366088529708, "half_value_negative_control_failures": 131039, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:0:0:candidate:output2", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015220846980810165, "relative_rms": 0.001661683743868204, "half_value_negative_control_failures": 131039, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:0:1:native:output0", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015597909688949585, "relative_rms": 0.0016587820841201973, "half_value_negative_control_failures": 131039, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:0:1:native:output1", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015003368258476257, "relative_rms": 0.0016693566204027913, "half_value_negative_control_failures": 131031, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:0:1:native:output2", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.01440359279513359, "relative_rms": 0.0016554033699145636, "half_value_negative_control_failures": 131041, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:0:1:candidate:output0", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015597909688949585, "relative_rms": 0.0016587820841201973, "half_value_negative_control_failures": 131039, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:0:1:candidate:output1", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015003368258476257, "relative_rms": 0.0016693566204027913, "half_value_negative_control_failures": 131031, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:0:1:candidate:output2", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.01440359279513359, "relative_rms": 0.0016554033699145636, "half_value_negative_control_failures": 131041, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:0:native:accumulated_master0", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 0.004019182175397873, "relative_rms": 0.0011661725709895584, "half_value_negative_control_failures": 65457, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:0:native:accumulated_master1", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0037819354329258204, "relative_rms": 0.001171021227000909, "half_value_negative_control_failures": 65482, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:0:native:accumulated_master2", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0037283904384821653, "relative_rms": 0.0011649890610706556, "half_value_negative_control_failures": 65478, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:0:candidate:accumulated_master0", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 0.004019182175397873, "relative_rms": 0.0011661725709895584, "half_value_negative_control_failures": 65457, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:0:candidate:accumulated_master1", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0037819354329258204, "relative_rms": 0.001171021227000909, "half_value_negative_control_failures": 65482, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:0:candidate:accumulated_master2", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0037283904384821653, "relative_rms": 0.0011649890610706556, "half_value_negative_control_failures": 65478, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:1:0:native:output0", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.01445630844682455, "relative_rms": 0.0016693016155033408, "half_value_negative_control_failures": 131040, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:1:0:native:output1", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015188126126304269, "relative_rms": 0.0016615666033237171, "half_value_negative_control_failures": 131041, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:1:0:native:output2", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015048570930957794, "relative_rms": 0.0016596349930869908, "half_value_negative_control_failures": 131041, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:1:0:candidate:output0", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.01445630844682455, "relative_rms": 0.0016693016155033408, "half_value_negative_control_failures": 131040, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:1:0:candidate:output1", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015188126126304269, "relative_rms": 0.0016615666033237171, "half_value_negative_control_failures": 131041, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:1:0:candidate:output2", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015048570930957794, "relative_rms": 0.0016596349930869908, "half_value_negative_control_failures": 131041, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:1:1:native:output0", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015144303441047668, "relative_rms": 0.0016661483555208349, "half_value_negative_control_failures": 131041, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:1:1:native:output1", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015558779239654541, "relative_rms": 0.0016638559912932132, "half_value_negative_control_failures": 131038, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:1:1:native:output2", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.014287672936916351, "relative_rms": 0.0016609585693641076, "half_value_negative_control_failures": 131035, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:1:1:candidate:output0", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015144303441047668, "relative_rms": 0.0016661483555208349, "half_value_negative_control_failures": 131041, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:1:1:candidate:output1", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.015558779239654541, "relative_rms": 0.0016638559912932132, "half_value_negative_control_failures": 131038, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:1:1:candidate:output2", "shape": [512, 256], "finite": true, "bound_failures": 0, "max_abs": 0.014287672936916351, "relative_rms": 0.0016609585693641076, "half_value_negative_control_failures": 131035, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:1:native:accumulated_master0", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 0.004019182175397873, "relative_rms": 0.0011661725709895584, "half_value_negative_control_failures": 65457, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:1:native:accumulated_master1", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0037819354329258204, "relative_rms": 0.001171021227000909, "half_value_negative_control_failures": 65482, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:1:native:accumulated_master2", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0037283904384821653, "relative_rms": 0.0011649890610706556, "half_value_negative_control_failures": 65478, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:1:candidate:accumulated_master0", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 0.004019182175397873, "relative_rms": 0.0011661725709895584, "half_value_negative_control_failures": 65457, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:1:candidate:accumulated_master1", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0037819354329258204, "relative_rms": 0.001171021227000909, "half_value_negative_control_failures": 65482, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "lifecycle:1:candidate:accumulated_master2", "shape": [256, 256], "finite": true, "bound_failures": 0, "max_abs": 0.0037283904384821653, "relative_rms": 0.0011649890610706556, "half_value_negative_control_failures": 65478, "passed": true}
+SERIAL_QKV_LIFECYCLE {"cached_and_uncached": true, "master_updates": 2, "value_fp32": false, "microbatches_per_update": 2, "fp32_accumulation": true, "passed": true}
+SERIAL_QKV_PROCESS_GUARD_RESET {"completed_width": 256, "next_width": 1024, "shared_device_cache_purged": false}
+SERIAL_QKV_EXACT_GATE {"name": "real_random:native:repeat0", "shape": [32768, 1024], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "real_random:native:repeat1", "shape": [32768, 1024], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "real_random:native:repeat2", "shape": [32768, 1024], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "real_random:native:nonmutation0", "shape": [32768, 1024], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "real_random:native:nonmutation1", "shape": [32768, 1024], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "real_random:native:nonmutation2", "shape": [32768, 1024], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "real_random:native:nonmutation3", "shape": [1024, 1024], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "real_random:native:nonmutation4", "shape": [1024, 1024], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "real_random:native:nonmutation5", "shape": [1024, 1024], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "real_random:candidate:repeat0", "shape": [32768, 1024], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "real_random:candidate:repeat1", "shape": [32768, 1024], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "real_random:candidate:repeat2", "shape": [32768, 1024], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "real_random:candidate:nonmutation0", "shape": [32768, 1024], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "real_random:candidate:nonmutation1", "shape": [32768, 1024], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "real_random:candidate:nonmutation2", "shape": [32768, 1024], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "real_random:candidate:nonmutation3", "shape": [1024, 1024], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "real_random:candidate:nonmutation4", "shape": [1024, 1024], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "real_random:candidate:nonmutation5", "shape": [1024, 1024], "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "real_random:0:output:native", "shape": [32768, 1024], "finite": true, "bound_failures": 0, "max_abs": 0.015616180025972426, "relative_rms": 0.0016616761520788757, "half_value_negative_control_failures": 33487021, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "real_random:0:output:candidate", "shape": [32768, 1024], "finite": true, "bound_failures": 0, "max_abs": 0.015616180025972426, "relative_rms": 0.0016616761520788757, "half_value_negative_control_failures": 33487021, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "real_random", "stream": 0, "field": "output", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "real_random:0:input_gradient:native", "shape": [32768, 1024], "finite": true, "bound_failures": 0, "max_abs": 0.00012207021609356161, "relative_rms": 0.0016591046020900647, "half_value_negative_control_failures": 33487197, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "real_random:0:input_gradient:candidate", "shape": [32768, 1024], "finite": true, "bound_failures": 0, "max_abs": 0.00012207021609356161, "relative_rms": 0.0016591046020900647, "half_value_negative_control_failures": 33487197, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "real_random", "stream": 0, "field": "input_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "real_random:0:master_gradient:native", "shape": [1024, 1024], "finite": true, "bound_failures": 0, "max_abs": 1.563335445098346e-06, "relative_rms": 1.312737773479947e-07, "half_value_negative_control_failures": 680033, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "real_random:0:master_gradient:candidate", "shape": [1024, 1024], "finite": true, "bound_failures": 0, "max_abs": 1.563335445098346e-06, "relative_rms": 1.312737773479947e-07, "half_value_negative_control_failures": 680033, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "real_random", "stream": 0, "field": "master_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "real_random:1:output:native", "shape": [32768, 1024], "finite": true, "bound_failures": 0, "max_abs": 0.015617125085555017, "relative_rms": 0.0016611783295486216, "half_value_negative_control_failures": 33487146, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "real_random:1:output:candidate", "shape": [32768, 1024], "finite": true, "bound_failures": 0, "max_abs": 0.015617125085555017, "relative_rms": 0.0016611783295486216, "half_value_negative_control_failures": 33487146, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "real_random", "stream": 1, "field": "output", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "real_random:1:input_gradient:native", "shape": [32768, 1024], "finite": true, "bound_failures": 0, "max_abs": 0.0001220720346282178, "relative_rms": 0.001659090359074495, "half_value_negative_control_failures": 33486507, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "real_random:1:input_gradient:candidate", "shape": [32768, 1024], "finite": true, "bound_failures": 0, "max_abs": 0.0001220720346282178, "relative_rms": 0.001659090359074495, "half_value_negative_control_failures": 33486507, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "real_random", "stream": 1, "field": "input_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "real_random:1:master_gradient:native", "shape": [1024, 1024], "finite": true, "bound_failures": 0, "max_abs": 1.6701560525689274e-06, "relative_rms": 1.3087669601540607e-07, "half_value_negative_control_failures": 680284, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "real_random:1:master_gradient:candidate", "shape": [1024, 1024], "finite": true, "bound_failures": 0, "max_abs": 1.6701560525689274e-06, "relative_rms": 1.3087669601540607e-07, "half_value_negative_control_failures": 680284, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "real_random", "stream": 1, "field": "master_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "real_random:2:output:native", "shape": [32768, 1024], "finite": true, "bound_failures": 0, "max_abs": 0.015619602054357529, "relative_rms": 0.001661814124876945, "half_value_negative_control_failures": 33487063, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "real_random:2:output:candidate", "shape": [32768, 1024], "finite": true, "bound_failures": 0, "max_abs": 0.015619602054357529, "relative_rms": 0.001661814124876945, "half_value_negative_control_failures": 33487063, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "real_random", "stream": 2, "field": "output", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "real_random:2:input_gradient:native", "shape": [32768, 1024], "finite": true, "bound_failures": 0, "max_abs": 0.00012207141116959974, "relative_rms": 0.0016584435592768164, "half_value_negative_control_failures": 33487158, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "real_random:2:input_gradient:candidate", "shape": [32768, 1024], "finite": true, "bound_failures": 0, "max_abs": 0.00012207141116959974, "relative_rms": 0.0016584435592768164, "half_value_negative_control_failures": 33487158, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "real_random", "stream": 2, "field": "input_gradient", "exact": true, "different": 0}
+SERIAL_QKV_PRODUCT_GATE {"name": "real_random:2:master_gradient:native", "shape": [1024, 1024], "finite": true, "bound_failures": 0, "max_abs": 1.6783167211542604e-06, "relative_rms": 1.3086907089066888e-07, "half_value_negative_control_failures": 680120, "passed": true}
+SERIAL_QKV_PRODUCT_GATE {"name": "real_random:2:master_gradient:candidate", "shape": [1024, 1024], "finite": true, "bound_failures": 0, "max_abs": 1.5634468581993133e-06, "relative_rms": 1.308524127754139e-07, "half_value_negative_control_failures": 680120, "passed": true}
+SERIAL_QKV_NATIVE_COMPARISON {"case": "real_random", "stream": 2, "field": "master_gradient", "exact": false, "different": 887270}
+SERIAL_QKV_EXACT_GATE {"name": "real_random:independent_q", "shape": [32768, 1024], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "real_random:independent_k", "shape": [32768, 1024], "passed": true}
+SERIAL_QKV_EXACT_GATE {"name": "real_random:earlier_v_rows", "shape": [32640, 1024], "passed": true}
+SERIAL_QKV_CASE {"kind": "real_random", "tokens": 32768, "channels": 1024, "value_fp32": false, "backward_gemm_operands_bf16": true, "independent_fp64_forward_and_six_gradients": true, "distinct_inputs": true, "contiguous_outputs": true, "fp32_master_gradients": true, "repeat_and_nonmutation": true, "stream_and_row_independence": true, "passed": true}
+SERIAL_QKV_COMPONENT_TIMING {"tokens": 32768, "channels": 1024, "steps_per_block": 10, "value_fp32": false, "native_control_returns_fp32_v": false, "samples_ms": {"native": [4.69171250006184, 4.695119202369824, 4.69860730227083, 4.702396696666256, 4.704956396017224], "candidate": [4.953659698367119, 4.944955796236172, 4.946289100917056, 4.950970003847033, 4.945394501555711]}, "median_ms": {"native": 4.69860730227083, "candidate": 4.946289100917056}, "improvement_pct": -5.271387513626058, "includes_three_forward_six_backward_products": true, "includes_fp32_master_cache_cast_and_accumulation": true, "all_layout_and_dispatch_costs_timed": true, "whole_model_or_quality_claim": false}
+SERIAL_QKV_RESULT {"layout": "tokens", "cases": 9, "passed": true, "value_fp32": false, "fp32_value_output_bounds": false, "real_tokens": 32768, "real_channels": 1024, "independent_fp64_gates": true, "lifecycle_passed": true, "whole_model_or_quality_claim": false}
+EXPERIMENT_POSTFLIGHT {"label": "fs-w156-serial-qkv-tokens-bf16-component-r1", "returncode": 0, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260918_wave156/research/run-logs/fs-w156-serial-qkv-tokens-bf16-component-r1.postflight.json"}
