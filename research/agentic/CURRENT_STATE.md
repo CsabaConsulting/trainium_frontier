@@ -34,8 +34,12 @@ Last reconciled: 2026-09-21
    clean immutable worktree for any future run. The 2026-09-21 read-only inventory is recorded in
    `research/agentic/HOST_INVENTORY_2026-09-21.md`.
 5. Confirm official team membership and replace the emailed shared PEM with per-user access.
-6. Bedrock reports Fable 5.1 and Astra as authorized/entitled/Region-available, but both applied
-   cross-Region token quotas remain zero and live invocation still returns access denied.
+6. Use the US source Region/profile pair: `us-west-2` with
+   `us.anthropic.claude-fable-5-1` and `us.openai.gpt-6-astra`. These profiles are active and calls
+   reach model validation. The earlier zero quotas and access-denied results apply to the incorrect
+   `eu-north-1` plus `global.*` route. Current US calls omit unsupported `temperature`; Fable then
+   returned a transient service-unavailable response and Astra did not complete within the bounded
+   health-check wait, so a successful `BEDROCK_OK` response is still required before daemon mode.
 
 ## Active technical direction
 

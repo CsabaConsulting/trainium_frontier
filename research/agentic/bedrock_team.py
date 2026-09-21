@@ -17,6 +17,7 @@ from pathlib import Path
 
 try:
     import boto3
+    from botocore.config import Config
     from botocore.exceptions import BotoCoreError, ClientError, NoCredentialsError
 except ModuleNotFoundError:
     raise SystemExit(
@@ -37,10 +38,34 @@ MAX_FILE_BYTES = 250_000
 MAX_TOTAL_BYTES = 700_000
 
 
+def inference_config(model_id: str, max_tokens: int, temperature: float = 0.0) -> dict:
+    """Return only sampling fields supported by the selected Bedrock model family."""
+    config = {"maxTokens": max_tokens}
+    if not (
+        model_id.startswith("us.anthropic.claude-fable-")
+        or model_id.startswith("global.anthropic.claude-fable-")
+        or model_id.startswith("us.openai.gpt-")
+        or model_id.startswith("global.openai.gpt-")
+    ):
+        config["temperature"] = temperature
+    return config
+
+
 def session():
     profile = os.getenv("AWS_PROFILE") or None
     region = os.getenv("AWS_REGION") or os.getenv("AWS_DEFAULT_REGION") or "eu-north-1"
     return boto3.Session(profile_name=profile, region_name=region)
+
+
+def runtime_client(aws, read_timeout: int):
+    return aws.client(
+        "bedrock-runtime",
+        config=Config(
+            connect_timeout=10,
+            read_timeout=read_timeout,
+            retries={"mode": "standard", "max_attempts": 2},
+        ),
+    )
 
 
 def safe_repo_path(value: str) -> Path:
@@ -93,11 +118,11 @@ def doctor(args) -> int:
         if not model_id:
             print("Model invocation: NOT TESTED (set BEDROCK_MODEL_ID or pass --model-id)")
             return 2
-        runtime = aws.client("bedrock-runtime")
+        runtime = runtime_client(aws, read_timeout=60)
         runtime.converse(
             modelId=model_id,
             messages=[{"role": "user", "content": [{"text": "Reply with exactly: BEDROCK_OK"}]}],
-            inferenceConfig={"maxTokens": 16, "temperature": 0},
+            inferenceConfig=inference_config(model_id, 16),
         )
         print(f"Model invocation: OK ({model_id})")
         return 0
@@ -143,14 +168,11 @@ def ask(args) -> int:
     )
 
     aws = session()
-    response = aws.client("bedrock-runtime").converse(
+    response = runtime_client(aws, read_timeout=600).converse(
         modelId=model_id,
         system=[{"text": system_prompt}],
         messages=[{"role": "user", "content": [{"text": user_text}]}],
-        inferenceConfig={
-            "maxTokens": args.max_tokens,
-            "temperature": args.temperature,
-        },
+        inferenceConfig=inference_config(model_id, args.max_tokens, args.temperature),
     )
     answer = extract_text(response)
     print(answer)

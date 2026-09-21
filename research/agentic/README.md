@@ -70,7 +70,7 @@ Select a visible model or inference-profile ID, then run the first reconciliatio
 
 ```bash
 export AWS_PROFILE=trainium-agent
-export AWS_REGION=eu-north-1
+export AWS_REGION=us-west-2
 export BEDROCK_MODEL_ID='<model-or-inference-profile-id>'
 .agent-venv/bin/python research/agentic/bedrock_team.py ask \
   --role supervisor \
@@ -88,9 +88,9 @@ a Supervisor review that report. It cannot edit code or reach the Trn2 boxes.
 
 ```bash
 export AWS_PROFILE=trainium-agent
-export AWS_REGION=eu-north-1
-export BEDROCK_RESEARCHER_MODEL_ID='<callable-profile-id>'
-export BEDROCK_SUPERVISOR_MODEL_ID='<callable-profile-id>'
+export AWS_REGION=us-west-2
+export BEDROCK_RESEARCHER_MODEL_ID='us.anthropic.claude-fable-5-1'
+export BEDROCK_SUPERVISOR_MODEL_ID='us.openai.gpt-6-astra'
 
 .agent-venv/bin/python research/agentic/agentctl.py bootstrap
 .agent-venv/bin/python research/agentic/agentctl.py cycle --dry-run

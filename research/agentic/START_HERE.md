@@ -1,30 +1,33 @@
 # Start here — shortest path to an operating research loop
 
 Status at 2026-09-21: the local controller, clean latest-research worktree, prompts, state, logging,
-and safety boundaries are installed. The dry run passes. A live cycle stops at Bedrock invocation
-because the AWS account cannot currently invoke the requested models.
+and safety boundaries are installed. The dry run passes. The intended Bedrock route is now known:
+source Region `us-west-2` with `us.*` inference profiles. Calls reach model validation after removing
+unsupported sampling fields, but a successful health response is still required before a cycle.
 
-## Two external blockers
+## Current external gates
 
-### 1. Make at least one Bedrock text model callable
+### 1. Prove one US Bedrock profile call
 
-The account can authenticate and list 43 models. Live tests returned:
+Do not use `eu-north-1` with `global.*` for this controller. That route exposed zero applied quotas
+and returned account-access errors. Csaba's existing Claude Code configuration uses the US route:
 
-- `global.openai.gpt-6-astra`: account access denied;
-- `global.anthropic.claude-fable-5-1`: account access denied;
-- Nova Micro, Nova 2 Lite, and Mistral Pixtral fallback profiles: daily-token throttle.
+- source Region: `us-west-2`
+- Fable: `us.anthropic.claude-fable-5-1`
+- Astra: `us.openai.gpt-6-astra`
 
-The AWS account owner must resolve model entitlement and/or Bedrock daily token quota. Catalog or
-inference-profile status `ACTIVE` is not sufficient; this exact command must print
-`Model invocation: OK`:
+Both US profiles are listed `ACTIVE`, and requests reach the models. Fable/Astra reject the generic
+`temperature` field, so the runner omits it for those families. This exact command must still print
+`Model invocation: OK` before daemon mode:
 
 ```bash
-AWS_PROFILE=trainium-agent AWS_REGION=eu-north-1 \
+AWS_PROFILE=trainium-agent AWS_REGION=us-west-2 \
   .agent-venv/bin/python research/agentic/bedrock_team.py doctor \
   --model-id '<inference-profile-id>'
 ```
 
-Read-only Service Quotas inspection confirmed these account-level values in `eu-north-1`:
+Historical clarification: read-only Service Quotas inspection found these values on the discarded
+Stockholm/global route:
 
 | Required quota | Current value | Adjustable | Quota code |
 |---|---:|---|---|
@@ -35,12 +38,9 @@ Read-only Service Quotas inspection confirmed these account-level values in `eu-
 | Model tokens/day — Amazon Nova 2 Lite | 0 | No | `L-210172B5` |
 | Model tokens/day — Amazon Nova Micro | 0 | No | `L-D2912E70` |
 
-In AWS Console, open **Service Quotas -> AWS services -> Amazon Bedrock** in `eu-north-1`, search
-the quota names/codes above, and request a nonzero account-level increase for the preferred models.
-Ask for enough tokens to accommodate repository evidence plus output; Fable/Astra research calls
-can exceed 100k input tokens, so a tiny quota is not useful. Quotas marked non-adjustable require
-AWS Support/Sales or account-level enablement. The Anthropic first-time-use form already exists for
-this account; do not resubmit or disclose its contents.
+Those zero values do not establish that the US profiles are blocked. Do not submit more quota
+requests until the US health call is tested again after any transient service error. The Anthropic
+first-time-use form already exists for this account; do not resubmit or disclose its contents.
 
 One callable strong model is enough to start. Two different callable families are preferred for
 independent research and review. Do not start daemon mode until both configured IDs pass `doctor`.
@@ -58,9 +58,9 @@ This is necessary because repository public BPB and official leaderboard BPB are
 ```bash
 cd /home/poojith-devan/Desktop/Trainium
 export AWS_PROFILE=trainium-agent
-export AWS_REGION=eu-north-1
-export BEDROCK_RESEARCHER_MODEL_ID='<callable-profile-id>'
-export BEDROCK_SUPERVISOR_MODEL_ID='<callable-profile-id>'
+export AWS_REGION=us-west-2
+export BEDROCK_RESEARCHER_MODEL_ID='us.anthropic.claude-fable-5-1'
+export BEDROCK_SUPERVISOR_MODEL_ID='us.openai.gpt-6-astra'
 
 .agent-venv/bin/python research/agentic/agentctl.py status
 .agent-venv/bin/python research/agentic/agentctl.py cycle
