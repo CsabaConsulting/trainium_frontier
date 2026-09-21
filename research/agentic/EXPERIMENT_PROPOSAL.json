@@ -1,0 +1,51 @@
+{
+  "proposal_id": "YYYYMMDD-short-slug",
+  "status": "draft",
+  "owner_role": "researcher",
+  "hypothesis": "One falsifiable sentence",
+  "single_causal_change": "Exact difference from the control",
+  "evidence": [
+    "repository path, run label, profile, or primary-source URL"
+  ],
+  "duplicate_search_terms": [
+    "flag name",
+    "technique alias"
+  ],
+  "control": {
+    "git_commit": "full commit hash",
+    "run_label": "existing matched control",
+    "public_val_bpb": null,
+    "steps": null,
+    "box_constraint": "same box and day for throughput comparison"
+  },
+  "candidate": {
+    "branch": "experiment/YYYYMMDD-short-slug",
+    "files_allowed": [
+      "train.py"
+    ],
+    "expected_diff": "Small description",
+    "run_label": "unique-label",
+    "launch_command": "python research/run_experiment.py ... --no-commit"
+  },
+  "gates": {
+    "rules_review": false,
+    "diff_review": false,
+    "cpu_or_static_checks": false,
+    "numerical_equivalence": false,
+    "causality": false,
+    "smoke_run": false,
+    "human_run_approval": false
+  },
+  "success_criteria": {
+    "quality": "Predeclared BPB threshold versus matched control",
+    "throughput": "Predeclared step-rate threshold versus same-box control",
+    "correctness": "No crash/NaN; checkpoint loads; causality passes; within budget"
+  },
+  "abort_conditions": [
+    "Any correctness gate fails",
+    "The run duplicates a closed experiment",
+    "The machine is not clean and idle"
+  ],
+  "human_approved_by": null,
+  "verdict": null
+}
