@@ -30,11 +30,12 @@ Last reconciled: 2026-09-21
 1. Record the submission ID, commit, launch command, and config for official `1.0246`.
 2. Record the complete reviewer reason for the rejected submission.
 3. Record the current leaderboard rank and tenth-place cutoff.
-4. Confirm both Trn2 boxes' current commit, worktree status, running processes, disk, environment,
-   and ownership—read-only inventory first.
+4. Reconcile and preserve the existing untracked receipts on both Trn2 boxes before selecting a
+   clean immutable worktree for any future run. The 2026-09-21 read-only inventory is recorded in
+   `research/agentic/HOST_INVENTORY_2026-09-21.md`.
 5. Confirm official team membership and replace the emailed shared PEM with per-user access.
-6. Bedrock browser authentication and catalog access work, but model invocation is blocked by
-   daily-token throttling and account access for the intended Astra/Fable profiles.
+6. Bedrock reports Fable 5.1 and Astra as authorized/entitled/Region-available, but both applied
+   cross-Region token quotas remain zero and live invocation still returns access denied.
 
 ## Active technical direction
 
