@@ -55,6 +55,14 @@ caller-boundary/layout experiment that preserves ordinary compiled MLP behavior 
 same-host complete-forward/step gate. It must not assume that `contiguous()` is the fix without an
 evidence-linked boundary argument.
 
+Bedrock Researcher/Supervisor review narrowed that next experiment to moving only the selected
+layer-5 library MLP's two exact BF16 transposed weight mirrors from forward into the already charged
+weight-cache refresh boundary. The locally reconciled draft is
+`research/agentic/proposals/20260922-source197-refresh-layout-l5.json`. It is not approved for
+implementation or execution. Wave42's prior full-model loss with persistent prepacked weights is
+recorded as related negative evidence; the new causal distinction is the exact Source197 library
+boundary at one selected layer.
+
 The saved ROW-FP8 forward is a real component lead (about 9.4% at one rank and 19.1% under four-rank
 contention in source199), but it has no backward, whole-step, or BPB proof. It must achieve a
 repeatable complete-step improvement of at least 3% and pass numerical/cache/evaluation gates before

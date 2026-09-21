@@ -1,0 +1,87 @@
+{
+  "proposal_id": "20260922-source197-refresh-layout-l5",
+  "status": "draft_requires_human_approval",
+  "owner_role": "researcher",
+  "hypothesis": "Moving only the selected layer-5 library MLP's exact BF16 weight transposes from the compiled forward to the existing weight-cache refresh boundary will remove the Source197 caller-layout penalty and yield at least a 3% complete-step improvement versus fresh native and layer-0 references.",
+  "single_causal_change": "For the selected layer-5 library MLP only, prepare the same up.T.contiguous() and down.T.contiguous() BF16 mirrors during the already charged weight-cache refresh instead of producing them inside forward; keep all arithmetic, masters, ordinary caches, backward products, unselected native forwards, compilation mode, and evaluation behavior unchanged.",
+  "evidence": [
+    "research/agentic/SOURCE197_OFFLINE_ATTRIBUTION.md: layer-5 placement adds 193.388 ms forward-device time and 16.344 GB reported spill reloads while direct library work changes modestly",
+    ".worktrees/fresh-start/research/scratch/nki_library_mlp_integration.py: current kernel_call creates both exact transposed contiguous weight inputs inside forward",
+    ".worktrees/fresh-start/research/scratch/phase_timer.py: foreach cache refresh bypasses per-Linear refresh methods, so an explicit charged refresh hook is required",
+    ".worktrees/fresh-start/research/run-logs/fs-w195-partial-position-proof-r1.json: exact native, layer-0, layer-5 and all-layer timing identities",
+    ".worktrees/fresh-start/research/run-logs/fs-w192-compiler-sbuf-comparison-proof-r1.json: compiler-managed SBUF lost 563.006 versus 488.529 ms",
+    ".worktrees/fresh-start/research/run-logs/fs-w178-nkilib-separated-full-step-comparison-r1.json: separate region lost 611.723 versus 488.809 ms",
+    ".worktrees/fresh-start/research/fresh-start-results-2026-09-18.md: Wave42 persistent prepacked BF16 weights improved a different component but lost 678.042 versus 590.315 ms in the full model",
+    "research/agentic/runs/20260921T184638Z-researcher.json and research/agentic/runs/20260921T184819Z-supervisor.json: archived Bedrock research and narrowed supervisor review",
+    "README.md and research/experiment-protocol.md: competition and machine protocol"
+  ],
+  "duplicate_search_terms": [
+    "refresh boundary",
+    "weight layout",
+    "transpose cache",
+    "contiguous_weights",
+    "prepack_weight",
+    "nki_packed_weight",
+    "packed_weight_inputs",
+    "grouped_io",
+    "separate region",
+    "graph split",
+    "SBUF",
+    "allocator",
+    "compiler placement",
+    "library MLP",
+    "Source178",
+    "Source180",
+    "Source188",
+    "Source190",
+    "Source192",
+    "Source195",
+    "Source197",
+    "Wave42"
+  ],
+  "control": {
+    "git_commit": "PENDING_IMPLEMENTATION_COMMIT",
+    "run_label": "fs-w200-refresh-layout-l5-control-r1",
+    "public_val_bpb": null,
+    "steps": 30,
+    "box_constraint": "Fresh native, layer-0 control, layer-5 control, and layer-5 candidate on one verified idle box, same day and immutable commit; run a second fixed-order round before promotion. Historical Source195 timings are evidence, not the matched control."
+  },
+  "candidate": {
+    "branch": "experiment/20260922-source197-refresh-layout-l5",
+    "files_allowed": [
+      "research/scratch/nki_library_mlp_integration.py",
+      "research/scratch/nki_library_partial_mlp.py",
+      "research/scratch/nki_library_refresh_boundary_probe.py",
+      "research/scratch/phase_timer.py"
+    ],
+    "expected_diff": "Scratch-only opt-in path for layer 5. Create two non-Parameter, non-persistent BF16 transposed mirrors from the ordinary current cache at the charged foreach refresh boundary; use those exact mirrors only as library forward inputs; preserve the original weights for the unchanged four-product BF16 backward and route gradients exactly once. Add explicit freshness, byte-identity, checkpoint-key, native-evaluation and contract markers. Do not modify root train.py, the frozen submission, prepare.py, scoring, vendor kernels, allocator, arithmetic, or compilation-region structure.",
+    "run_label": "fs-w200-refresh-layout-l5-candidate-r1",
+    "launch_command": "WITHHELD_PENDING_IMPLEMENTATION_AND_INDEPENDENT_VERIFICATION"
+  },
+  "gates": {
+    "rules_review": false,
+    "diff_review": false,
+    "cpu_or_static_checks": false,
+    "numerical_equivalence": false,
+    "causality": false,
+    "smoke_run": false,
+    "human_run_approval": false
+  },
+  "success_criteria": {
+    "quality": "No quality or BPB run is authorized. A later proposal may request one only after the complete-step gate passes twice.",
+    "throughput": "In each of two same-host rounds, the layer-5 candidate must improve over its layer-5 control and be at least 3% faster in arithmetic-mean complete-step latency than both the fresh layer-0 reference and native reference. All mirror preparation, allocation, synchronization, forward, backward, optimizer, communication, and refresh costs are charged.",
+    "correctness": "Exact mirror bytes and freshness; matched control/candidate outputs, saved tensors, losses, all input and weight gradients, FP32 accumulation and updates within existing bounds; no duplicate gradient path or stale cache; all native finite, causality, batch-independence, repetition, checkpoint restore, state-key and native-evaluation gates pass. The compiled candidate must remain joined and must remove the selected forward-local transpose producers."
+  },
+  "abort_conditions": [
+    "Duplicate search shows this exact library refresh-boundary intervention was already closed",
+    "The implementation cannot remain within the four declared scratch files",
+    "The candidate changes arithmetic, backward formulas, Parameters, persistent checkpoint state, initialization, data order, optimizer ownership, global batch, allocator, compiler flags, or evaluation behavior",
+    "The selected transposes remain inside the compiled forward or a new compiled/eager model region is introduced",
+    "Any static, numerical, gradient-routing, freshness, cache, causality, checkpoint, compile, cleanup, or provenance gate fails",
+    "Either fixed timing round fails the 3% complete-step requirement versus fresh layer-0 and native references",
+    "The machine is not clean and idle, receipts are unreconciled, device holders are unexplained, or disk headroom is below protocol",
+    "An immutable source commit, exact bounded commands, unique labels, retrieved logs, or explicit human run approval is missing"
+  ],
+  "human_approved_by": null,
+  "verdict": null
+}
