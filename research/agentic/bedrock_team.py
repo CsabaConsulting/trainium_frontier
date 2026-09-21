@@ -106,14 +106,21 @@ def account_label(sts) -> str:
 def doctor(args) -> int:
     try:
         aws = session()
-        credentials = aws.get_credentials()
-        if credentials is None:
-            raise NoCredentialsError()
-        print(f"AWS authentication: OK ({account_label(aws.client('sts'))})")
+        bearer = bool(os.getenv("AWS_BEARER_TOKEN_BEDROCK"))
+        if bearer:
+            print("AWS authentication: Bedrock bearer token configured")
+        else:
+            credentials = aws.get_credentials()
+            if credentials is None:
+                raise NoCredentialsError()
+            print(f"AWS authentication: OK ({account_label(aws.client('sts'))})")
         print(f"AWS region: {aws.region_name}")
-        bedrock = aws.client("bedrock")
-        count = len(bedrock.list_foundation_models().get("modelSummaries", []))
-        print(f"Bedrock catalog access: OK ({count} foundation-model entries visible)")
+        if bearer:
+            print("Bedrock catalog access: SKIPPED (runtime bearer-token health check)")
+        else:
+            bedrock = aws.client("bedrock")
+            count = len(bedrock.list_foundation_models().get("modelSummaries", []))
+            print(f"Bedrock catalog access: OK ({count} foundation-model entries visible)")
         model_id = args.model_id or os.getenv("BEDROCK_MODEL_ID")
         if not model_id:
             print("Model invocation: NOT TESTED (set BEDROCK_MODEL_ID or pass --model-id)")

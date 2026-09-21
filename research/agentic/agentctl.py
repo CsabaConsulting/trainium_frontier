@@ -79,7 +79,11 @@ def checks() -> list[dict]:
             add("fresh_git", False, str(exc))
     for relative in RESEARCH_CONTEXT:
         add(f"context:{relative}", (ROOT / relative).is_file(), relative)
-    add("aws_profile", bool(os.getenv("AWS_PROFILE")), os.getenv("AWS_PROFILE", "not set"))
+    aws_auth = os.getenv("AWS_BEARER_TOKEN_BEDROCK") or os.getenv("AWS_PROFILE")
+    auth_kind = "Bedrock bearer token" if os.getenv("AWS_BEARER_TOKEN_BEDROCK") else os.getenv(
+        "AWS_PROFILE", "not set"
+    )
+    add("aws_auth", bool(aws_auth), auth_kind)
     add(
         "researcher_model",
         bool(os.getenv("BEDROCK_RESEARCHER_MODEL_ID") or os.getenv("BEDROCK_MODEL_ID")),
