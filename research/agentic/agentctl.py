@@ -30,6 +30,7 @@ EXPECTED_FRESH_COMMIT = "9a4caa7bfab26c1d1bb59f7ef2bb8c5392d7503a"
 
 RESEARCH_CONTEXT = [
     "research/agentic/RESEARCH_HANDOFF_AUDIT_2026-09-21.md",
+    "research/agentic/SOURCE197_EVIDENCE_PACK.md",
     ".worktrees/fresh-start/research/RESUME.md",
     ".worktrees/fresh-start/research/HANDOFF-CLAUDE-2026-09-20.md",
     ".worktrees/fresh-start/research/fresh-start-library-followup-2026-09-20.md",
