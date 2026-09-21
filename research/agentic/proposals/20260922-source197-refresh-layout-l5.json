@@ -1,6 +1,6 @@
 {
   "proposal_id": "20260922-source197-refresh-layout-l5",
-  "status": "draft_requires_human_approval",
+  "status": "approved_for_implementation_and_offline_verification",
   "owner_role": "researcher",
   "hypothesis": "Moving only the selected layer-5 library MLP's exact BF16 weight transposes from the compiled forward to the existing weight-cache refresh boundary will remove the Source197 caller-layout penalty and yield at least a 3% complete-step improvement versus fresh native and layer-0 references.",
   "single_causal_change": "For the selected layer-5 library MLP only, prepare the same up.T.contiguous() and down.T.contiguous() BF16 mirrors during the already charged weight-cache refresh instead of producing them inside forward; keep all arithmetic, masters, ordinary caches, backward products, unselected native forwards, compilation mode, and evaluation behavior unchanged.",
@@ -82,6 +82,6 @@
     "The machine is not clean and idle, receipts are unreconciled, device holders are unexplained, or disk headroom is below protocol",
     "An immutable source commit, exact bounded commands, unique labels, retrieved logs, or explicit human run approval is missing"
   ],
-  "human_approved_by": null,
+  "human_approved_by": "human operator in chat, 2026-09-22; implementation and offline verification only; no Trn2 run authorization",
   "verdict": null
 }
