@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-21
+Last reconciled: 2026-09-22
 
 ## Verified repository state
 
@@ -35,21 +35,25 @@ Last reconciled: 2026-09-21
    `research/agentic/HOST_INVENTORY_2026-09-21.md`.
 5. Confirm official team membership and replace the emailed shared PEM with per-user access.
 6. Use the US source Region/profile pair: `us-west-2` with
-   `us.anthropic.claude-fable-5-1` and `us.openai.gpt-6-astra`. These profiles are active and calls
-   reach model validation. The earlier zero quotas and access-denied results apply to the incorrect
-   `eu-north-1` plus `global.*` route. Current US calls omit unsupported `temperature`; Fable then
-   returned a transient service-unavailable response and Astra did not complete within the bounded
-   health-check wait, so a successful `BEDROCK_OK` response is still required before daemon mode.
+   `us.anthropic.claude-fable-5-1` and `us.openai.gpt-6-astra`. The earlier zero quotas and
+   access-denied results apply to the incorrect `eu-north-1` plus `global.*` route. Current US calls
+   omit unsupported `temperature`. Astra passed the runtime doctor and completed the first bounded
+   read-only Researcher/Supervisor cycle; Fable most recently returned a transient
+   service-unavailable response.
 
 ## Active technical direction
 
-The latest handoff has two bounded tasks, in this order:
+Source197 offline attribution is complete. It identifies a caller-boundary constraint: moving the
+same single library MLP from layer 0 to layer 5 changes the compiled forward graph from 135.871 ms
+to 329.259 ms and adds 16.344 GB of reported spill reloads. The direct library-family work changes
+only modestly; ordinary BF16 MLP/`F.linear` regions, transposes, and spills expand sharply. The
+forward delta explains 99.55% of the unprofiled microstep gap. See
+`research/agentic/SOURCE197_OFFLINE_ATTRIBUTION.md`.
 
-1. Finish offline attribution of the already-captured source197 first-layer versus last-layer
-   profiles. This is analysis only and should determine whether the surrounding compiled model or
-   the custom MLP boundary explains the large position effect.
-2. If the attribution still supports it, implement and validate the complete saved-ROW-FP8 MLP
-   backward contract described in `research/fresh-start-library-fusion-next-2026-09-20.md`.
+The complete saved-ROW-FP8 MLP backward remains on hold. The next proposal must be one bounded
+caller-boundary/layout experiment that preserves ordinary compiled MLP behavior and defines a
+same-host complete-forward/step gate. It must not assume that `contiguous()` is the fix without an
+evidence-linked boundary argument.
 
 The saved ROW-FP8 forward is a real component lead (about 9.4% at one rank and 19.1% under four-rank
 contention in source199), but it has no backward, whole-step, or BPB proof. It must achieve a
@@ -70,4 +74,5 @@ profile-backed causal hypothesis.
 ## Agent-loop implementation
 
 - Architecture and safety plan: `research/agentic/AUTONOMOUS_LOOP_PLAN.md`
-- Current stage: Milestone A (truth reconciliation), before remote execution authority.
+- Current stage: Milestone B (offline evidence gate complete; next bounded proposal not yet
+  approved), before remote execution authority.
