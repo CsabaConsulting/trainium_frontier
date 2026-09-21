@@ -24,6 +24,24 @@ AWS_PROFILE=trainium-agent AWS_REGION=eu-north-1 \
   --model-id '<inference-profile-id>'
 ```
 
+Read-only Service Quotas inspection confirmed these account-level values in `eu-north-1`:
+
+| Required quota | Current value | Adjustable | Quota code |
+|---|---:|---|---|
+| Global cross-region tokens/minute — Claude Fable 5.1 | 0 | Yes | `L-50CC5674` |
+| Global cross-region tokens/minute — GPT-6 Astra | 0 | Yes | `L-B38B530A` |
+| Global cross-region tokens/minute — Amazon Nova 2 Lite | 0 | Yes | `L-71C69B70` |
+| Cross-region tokens/minute — Amazon Nova Micro | 0 | Yes | `L-DC7FF66C` |
+| Model tokens/day — Amazon Nova 2 Lite | 0 | No | `L-210172B5` |
+| Model tokens/day — Amazon Nova Micro | 0 | No | `L-D2912E70` |
+
+In AWS Console, open **Service Quotas -> AWS services -> Amazon Bedrock** in `eu-north-1`, search
+the quota names/codes above, and request a nonzero account-level increase for the preferred models.
+Ask for enough tokens to accommodate repository evidence plus output; Fable/Astra research calls
+can exceed 100k input tokens, so a tiny quota is not useful. Quotas marked non-adjustable require
+AWS Support/Sales or account-level enablement. The Anthropic first-time-use form already exists for
+this account; do not resubmit or disclose its contents.
+
 One callable strong model is enough to start. Two different callable families are preferred for
 independent research and review. Do not start daemon mode until both configured IDs pass `doctor`.
 
