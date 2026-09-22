@@ -1,0 +1,18 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "The direction is evidence-backed, competition-legal, and not closed in the supplied decision log. Ledger row fs-w65 records an ownership numerical gate and 5.06245% complete-step gain; the pinned _muon_step executes the full same-shape batch on every rank. Restricting changes to training-side Muon computation preserves the evaluator, data, and model contract.",
+    "The implementation plan assumes an existing selectable Newton-Schulz routine, but authoritative _muon_math contains normalization and both NS loops inline. Specify extraction of an NS helper and its cached compilation treatment, rather than leaving the central local_out/ref_out callable undefined. Also preserve functional state semantics: _muon_math uses out-of-place torch.lerp and returns the updated momentum buffer; _muon_pre must return that buffer for rebinding, not introduce the stated in-place momentum update. Keep the existing eager/NKI paths' semantics explicit or restrict this experiment to the compiled path.",
+    "The proposed once-only numerical check does not cover every batch as claimed. _muon_step receives one shape group per call, and step() invokes it separately for each group; a module-level flag consumed on the first call checks only the first group. Track first-use checks per group so every partitioned shape is checked during smoke. Because compilation boundaries also change, include a smoke-time comparison of updated weights and momentum/second-moment states against the original _muon_math on cloned identical inputs; comparing only NS outputs from the new split path does not validate those boundaries. These remain smoke checks, not pre-implementation prerequisites.",
+    "The fixed-budget effect is falsifiable against the supplied seed-42 controls: success requires at least 2% more steps and at least 0.001 lower public BPB. However, expected_effect calls a positive BPB gain below 0.001 falsified, while the ordered classification calls it INCONCLUSIVE. Use one consistent classification."
+  ],
+  "llm_verdict": "NEEDS_WORK",
+  "passed": false,
+  "proposal_id": "20260922-muon-owner-ns-split-r2",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-22T19:57:22Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}
