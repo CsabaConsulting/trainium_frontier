@@ -1,0 +1,20 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "One causal intervention: --ngram-rms-fp32 alone changes the n-gram RMSProp precision policy, without enabling the NKI kernel or changing model shape, schedule, or table/gradient dtype. Authoritative train.py lines 741\u2013751 and 5933\u20135948 support this independent option. Its precise scope includes FP32 second-moment storage AND FP32 denominator/update arithmetic, not merely intermediate state math.",
+    "Both pinned control ledger rows confirm active BF16 n-gram tables with RMSProp, rms_fp32_state_math=False, and nki_rms=False, establishing an applicable baseline.",
+    "The cited fs-w3/fs-w4 ledger results support the reported -0.000621 BPB and +16 steps. The proposal correctly treats this as suggestive rather than isolating evidence because the historical candidate also enabled NKI and changed commits.",
+    "No closed FP32-only n-gram RMSProp direction is identified in the supplied decision log or parked-direction list. The historical fused-kernel experiment is causally distinct from this ablation.",
+    "This optimizer precision change is permitted by README.md and introduces no pretrained weights, external data, or evaluator changes. The declared BPB and step-count thresholds make the expected benefit falsifiable against the controller-managed seed-42 full-chip matched control.",
+    "The claimed rounding-bias removal and gathered-row-only cost remain hypotheses, not established repository facts. index_gather=True alone does not prove sparse optimizer execution; assess the experiment by measured final BPB and throughput rather than assuming that mechanism."
+  ],
+  "llm_verdict": "PASS",
+  "passed": true,
+  "proposal_id": "20260922-ngram-rms-fp32-only-default-shape",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-22T07:10:09Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}

@@ -1,0 +1,43 @@
+{
+  "abort_conditions": [
+    "Preflight: the resolved control configuration or parser default shows ngram-rms-fp32 already True (rms_fp32_state_math=True) at 9a4caa7b, or static inspection shows the FP32 path is only executed when --nki-ngram-rms is also set (flag would be a no-op) -> void the proposal instead of launching",
+    "Preflight: environment differs from the control (NEURON_CC_FLAGS not exactly '--optlevel=1', LNC != 2, nproc != 4, seed != 42, --num-steps != 5000, --max-train-seconds != 1800) -> do not launch",
+    "Smoke (300 s, same host as its smoke control): non-finite loss, causality check failure, compile failure, or steps < 0.95x the same-host smoke control (trn21 334 -> <318; trn22 335 -> <319) -> abort full run",
+    "Full run: causality_passed=False, non-finite loss, or missing final checkpoint -> discard",
+    "Full run: steps < 0.90x same-host control (<1864 trn21, <1869 trn22) -> classify CONFOUNDED/throughput-failed, do not adopt, do not relaunch without diagnosing"
+  ],
+  "change_type": "flags",
+  "created_at": "2026-09-22T07:10:09Z",
+  "duplicate_search_terms": [
+    "ngram-rms-fp32",
+    "no-ngram-rms-fp32",
+    "rms_fp32_state_math",
+    "nki-ngram-rms",
+    "nki_rms",
+    "fp32 ngram rmsprop",
+    "ngram rms fp32",
+    "fs-w4-w896-nki-rms-fp32",
+    "ngram_ve rmsprop bf16 state",
+    "hashed table optimizer fp32"
+  ],
+  "evidence": [
+    "research/experiment-log.jsonl row al-20260922-control-trn21-lnc2x4-9a4caa7b-full-r1: ngram_ve 'True tables=4 rows=1048576 dim=128 index_gather=True trigram=True opt=rmsprop flat_lr=True bf16=True rms_fp32_state_math=False nki_rms=False' -> control resolved state is BF16 RMSProp math, so the flag is a real, non-no-op change",
+    "research/experiment-log.jsonl row al-20260922-control-trn22-lnc2x4-9a4caa7b-full-r1: same resolved ngram_ve state (rms_fp32_state_math=False), 2076 steps, 1.005967",
+    "research/experiment-log.jsonl row fs-w3-w896-direct-control-r1 (commit 00f82d8a, trn21, seed 42, 2188 steps, 0.987568, rms_fp32_state_math=False nki_rms=False)",
+    "research/experiment-log.jsonl row fs-w4-w896-nki-rms-fp32-r1 (commit a62df273, trn21, same day, seed 42, 2204 steps, 0.986947, rms_fp32_state_math=True nki_rms=True; description 'fused NKI FP32 ngram RMSProp; same-seed quality comparison') -> -0.00062 BPB, +16 steps; bundled with the NKI kernel, so suggestive only",
+    "train.py argparse at 9a4caa7b exposes --ngram-rms-fp32 / --no-ngram-rms-fp32 separately from --nki-ngram-rms / --no-nki-ngram-rms, and the ledger records them as separate fields (rms_fp32_state_math, nki_rms), establishing the FP32 math as an independently switchable numerical-format option",
+    "research/agentic/DECISION_LOG.md: no row for ngram-rms-fp32 / FP32 n-gram RMSProp at any commit; CURRENT_STATE.md parks attention redesign, full-model FP8, Vector-engine square, SBUF placement, width1152 and library-MLP compositions, none of which this touches",
+    "research/experiment-protocol.md section 5: same-box back-to-back rate comparison and >10% step shortfall = confounded rule, used below for outcome classification"
+  ],
+  "expected_effect": "Public val_bpb on the same-host control host decreases by 0.0004-0.0010 (predicted ~1.0053 on trn21 vs 1.005734; ~1.0055 on trn22 vs 1.005967) at essentially unchanged throughput (steps within 2% of the same-host control: >=2030 on trn21, >=2035 on trn22). Classification: SUCCESS if bpb <= control-0.0004 with steps >= 0.98x control; FALSIFIED if bpb >= control-0.0001 with steps >= 0.98x control (FP32 state math does not matter for these tables at this budget); INCONCLUSIVE if bpb lands between control-0.0004 and control-0.0001 with steps >= 0.98x control (record as null, do not adopt); CONFOUNDED per protocol section 5 if steps < 0.90x control (<1864 trn21, <1869 trn22), which is also recorded as a failure of the throughput prediction; steps between 0.90x and 0.98x with improved bpb is recorded as INCONCLUSIVE-throughput and may motivate a follow-up with the fused kernel, not adoption. Public and private shards differ, so only the direction is expected to transfer to the official score.",
+  "files_allowed": [],
+  "flags": [
+    "--ngram-rms-fp32"
+  ],
+  "hypothesis": "The default 9a4caa7b model carries 4 hashed n-gram tables of 1,048,576 rows x 128 dims stored in BF16 and trained with a flat-LR RMSProp whose second-moment state math also runs in BF16 (control ledger rows record `ngram_ve: ... opt=rmsprop flat_lr=True bf16=True rms_fp32_state_math=False nki_rms=False`). With beta2 near 1, the per-step increment (1-beta2)*g^2 is frequently smaller than 1/256 of the running state and is lost to BF16 rounding, so the RMSProp denominator for the sparsely-touched rows is biased and the effective per-row step size is erratic. Doing the RMSProp state math in FP32 (--ngram-rms-fp32) removes that quantization bias for a compute cost proportional only to the gathered rows (index_gather=True), so loss per step should improve at essentially unchanged throughput. Supporting paired evidence: fs-w3-w896-direct-control-r1 (trn21, 2026-09-18 09:18, seed 42, 2188 steps, 0.987568) vs fs-w4-w896-nki-rms-fp32-r1 (trn21, same day 09:58, same seed/shape/flags plus FP32 n-gram RMSProp, 2204 steps, 0.986947): -0.00062 BPB with +0.7% steps. Caveats acknowledged: that pair also enabled the fused NKI kernel (--nki-ngram-rms) and spans two commits (00f82d8a -> a62df273, the commit that added the feature), so it is suggestive, not isolating; it was run at width 896 under BF16 matmult autocast, not the default shape under CC='--optlevel=1'. No default-shape run with --ngram-rms-fp32 alone appears in the supplied ledger, DECISION_LOG.md, or CURRENT_STATE.md, and this direction is not among the parked ones.",
+  "implementation_plan": "",
+  "proposal_id": "20260922-ngram-rms-fp32-only-default-shape",
+  "single_causal_change": "Pass --ngram-rms-fp32 only: RMSProp state math for the hashed n-gram value-embedding tables is performed in FP32 instead of BF16. Nothing else changes: no --nki-ngram-rms kernel switch, no table dtype change (--ngram-ve-bf16 stays at its default True), no precision/kernel/optimizer/schedule/shape flag. Launch is otherwise identical to the pinned controls: NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 1800 --seed 42, environment NEURON_CC_FLAGS='--optlevel=1' exactly (no autocast flags), NEURON_COMPETITION_R1_SEED=42, evaluated with the unchanged public evaluator settings. The matched comparison is the same-host pinned control: trn21 -> al-20260922-control-trn21-lnc2x4-9a4caa7b-full-r1 (2071 steps, 1.005734); trn22 -> al-20260922-control-trn22-lnc2x4-9a4caa7b-full-r1 (2076 steps, 1.005967).",
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}
