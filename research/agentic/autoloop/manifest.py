@@ -241,6 +241,10 @@ def build_manifest(
     else:
         argv += ["--extra-args", "--seed", str(C.SEED)]
     env = {
+        # Non-interactive SSH sessions do not source the venv activation script.  The
+        # repository's run_experiment.py launches `torchrun` by name, so make the pinned
+        # native venv explicit instead of depending on a login-shell PATH.
+        "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
         "NEURON_CC_FLAGS": cfg.neuron_cc_flags,
         "NEURON_LOGICAL_NC_CONFIG": str(cfg.lnc),
         "NEURON_COMPETITION_R1_SEED": str(C.SEED),

@@ -88,6 +88,14 @@ def main():
             fh.write("%d\n" % proc.pid)
         os.write(w, ("%d\n" % proc.pid).encode())
         os.close(w)
+        # The detached supervisor must not retain the SSH session's stdout/stderr
+        # descriptors while it waits for training.  Otherwise ssh waits for EOF and the
+        # controller mistakes a healthy launch for a 120-second launcher timeout.
+        devnull = os.open(os.devnull, os.O_RDWR)
+        os.dup2(devnull, 1)
+        os.dup2(devnull, 2)
+        if devnull > 2:
+            os.close(devnull)
         rc = proc.wait()
     tmp = spec["donefile"] + ".tmp"
     with open(tmp, "w") as fh:

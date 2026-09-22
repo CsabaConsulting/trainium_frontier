@@ -528,8 +528,12 @@ class RemoteOperator:
             raise RemoteError(f"launcher refused: {data.get('error') or out.stderr.strip()[:300]}")
         pid = int(data["pid"])
         alive = self._run(manifest.box, ["ps", "-p", str(pid), "-o", "pid="], must_ok=False).ok
-        if not alive:
-            raise RemoteError("runner process not visible immediately after launch")
+        # A smoke run can fail before the follow-up SSH round trip completes.  A durable
+        # done marker is still a successful *launch* and must be reconciled/collected, not
+        # treated as an ambiguous launch that could be retried under the same state.
+        done = self._run(manifest.box, ["test", "-f", f"{launcher_dir}/done.json"], must_ok=False).ok
+        if not alive and not done:
+            raise RemoteError("runner process not visible and no completion marker after launch")
         return LaunchReceipt(manifest.manifest_id, pid, launcher_dir, self._now(), launcher_sha, inv.to_dict(), head)
 
     # poll / collect --------------------------------------------------------------------------
