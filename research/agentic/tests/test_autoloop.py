@@ -236,10 +236,14 @@ class FakeModel:
         self.replies: dict[str, list[str]] = {"researcher": [], "verifier": [], "analyst": []}
         self.calls: list[str] = []
         self.max_tokens: list[int] = []
+        self.users: dict[str, list[str]] = {}
+        self.systems: dict[str, list[str]] = {}
 
     def complete(self, *, role, model_id, system, user, max_tokens):
         self.calls.append(role)
         self.max_tokens.append(max_tokens)
+        self.users.setdefault(role, []).append(user)
+        self.systems.setdefault(role, []).append(system)
         if not self.replies.get(role):
             raise ModelError(f"no fake reply queued for {role}")
         return ModelReply(self.replies[role].pop(0), 1000, 300, "end_turn", model_id)
@@ -564,6 +568,10 @@ class ImplementerTests(unittest.TestCase):
             ))
             self.assertTrue((experiment / "implementation.patch").is_file())
             self.assertFalse((runtime / "worktrees" / prop.proposal_id).exists())
+            verifier_user = model.users["implementation_verifier"][0]
+            self.assertIn("COMPLETE CANDIDATE train.py", verifier_user)
+            self.assertIn("WIDTH = 672", verifier_user)
+            self.assertIn("do not require smoke", model.systems["implementation_verifier"][0])
 
 
 # ---------------------------------------------------------------------------------------------
@@ -712,6 +720,17 @@ class LoopTests(unittest.TestCase):
         prop = Proposal.from_model_json(json.loads(researcher_json()), self.env.cfg.researcher_model_id, "now")
         evidence = ctl._train_evidence(prop, TRAIN_PY)
         self.assertIn('parser.add_argument("--weight-ema"', evidence)
+
+    def test_proposal_verifier_receives_complete_authoritative_train_source(self):
+        env = self.env
+        ctl = env.controller()
+        self.run_controls(ctl)
+        env.model.replies["researcher"].append(researcher_json("20260922-source-grounded"))
+        env.model.replies["verifier"].append('{"verdict":"PASS","findings":[]}')
+        ctl.cycle()
+        verifier_user = env.model.users["verifier"][0]
+        self.assertIn("COMPLETE AUTHORITATIVE train.py", verifier_user)
+        self.assertIn(TRAIN_PY, verifier_user)
 
     def test_deterministic_duplicate_rejected_without_llm_verifier(self):
         env = self.env

@@ -767,6 +767,18 @@ class Controller:
         verifier_context += "\n--- EXACT PINNED FULL CONTROLS ---\n" + self._control_evidence()
         verifier_context += "\n--- RECENT LEDGER ROWS ---\n" + self._ledger_summary(200)
         verifier_context += "\n--- RELEVANT AUTHORITATIVE train.py EVIDENCE ---\n" + self._train_evidence(prop, train_text)
+        # A lexical excerpt is useful for orientation, but it cannot prove transitive flag
+        # semantics (argument -> global -> helper -> module construction -> forward/optimizer).
+        # The 2026-09-22 trigram proposals demonstrated the failure mode: the excerpt showed the
+        # CLI definition but omitted the downstream table construction, so an otherwise bounded
+        # proposal repeatedly returned NEEDS_WORK for missing evidence that existed in the pinned
+        # source.  The verifier is the only role that receives this complete source; the Researcher
+        # still works from compact evidence, and no model receives tools.
+        verifier_context += (
+            "\n--- COMPLETE AUTHORITATIVE train.py (pinned commit; source of truth) ---\n"
+            + train_text
+            + "\n--- END COMPLETE AUTHORITATIVE train.py ---\n"
+        )
         verification = run_verifier(
             prop, cfg=self.cfg, client=client,
             context_text=verifier_context,

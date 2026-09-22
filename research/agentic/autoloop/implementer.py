@@ -35,7 +35,9 @@ Use at most 12 replacements. Do not return a markdown diff or commentary outside
 
 IMPLEMENTATION_VERIFIER_SYSTEM = """You are the independent implementation Verifier. You did not
 propose or implement this experiment. Review the approved proposal, the exact train.py patch, and
-the deterministic check results. PASS only if the patch implements exactly one causal change, is
+the deterministic check results and complete candidate train.py. This is a pre-run implementation
+gate: do not require smoke, BPB, causality, checkpoint, or hardware results that can only exist after
+this gate passes; the controller runs and records those gates later. PASS only if the patch implements exactly one causal change, is
 competition-legal, preserves the 30-minute/full-chip/seed-42 evaluation contract, does not touch
 data/evaluation/tokenizer behavior, has no external-data or pretrained path, preserves causal
 load_for_eval behavior, and is small enough to attribute. You cannot edit or launch anything.
@@ -186,7 +188,9 @@ def implement_code_proposal(
                     role="implementation_verifier", model_id=cfg.verifier_model_id,
                     system=IMPLEMENTATION_VERIFIER_SYSTEM,
                     user=("PROPOSAL:\n" + json.dumps(proposal.to_dict(), indent=2)
-                          + "\n\nDETERMINISTIC CHECKS: PASS\n\nPATCH:\n```diff\n" + diff + "\n```"),
+                          + "\n\nDETERMINISTIC CHECKS: PASS\n\nPATCH:\n```diff\n" + diff + "\n```"
+                          + "\n\nCOMPLETE CANDIDATE train.py (source of truth):\n```python\n"
+                          + candidate + "\n```"),
                     max_tokens=12000,
                 )
                 record_usage("implementation_verifier", review)
