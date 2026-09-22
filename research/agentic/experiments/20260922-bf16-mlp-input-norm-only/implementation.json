@@ -1,0 +1,16 @@
+{
+  "branch": "autoloop/20260922-bf16-mlp-input-norm-only",
+  "candidate_commit": null,
+  "deterministic_findings": [],
+  "diff_sha256": "ececabe018bbff882e03aa05005df5242aac43b3252a3fcb0f6f1286d02cb39c",
+  "implemented_at": "2026-09-22T20:37:22Z",
+  "implementer_model_id": "us.anthropic.claude-fable-5-1",
+  "passed": false,
+  "verifier_findings": [
+    "The parallel-block path bypasses the new toggle: it computes h = norm(x), calls self.mlp(h, fc=fc), and returns before either added cast. With parallel_block=True and coalescing='none', the MLP therefore still receives FP32 despite USE_BF16_MLP_NORM_OUTPUT=True. This misses the proposal's explicit requirement for consistent MLP-input boundary behavior across applicable Block.forward variants. Preserve the shared attention input when addressing this; coalesced projections also require explicit compatibility handling rather than silently ignoring the toggle.",
+    "The default serial and sandwich paths correctly cast only the MLP-input norm result to torch.bfloat16 with a dtype guard. The toggle, environment/CLI resolution, checkpoint persistence/restoration, and single added startup field are wired correctly for those paths.",
+    "The patch otherwise remains small and confined to train.py, preserves parameter shapes and the 1800-second/full-chip/seed-42 launch contract, and introduces no data, tokenizer, evaluation-procedure, optimizer, external-data, or pretrained initialization changes. Runtime gates are appropriately deferred."
+  ],
+  "verifier_model_id": "us.openai.gpt-6-astra",
+  "verifier_verdict": "NEEDS_WORK"
+}
