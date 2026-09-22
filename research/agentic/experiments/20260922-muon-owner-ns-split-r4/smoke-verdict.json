@@ -1,0 +1,24 @@
+{
+  "analyst_prose": "DISCARD at the smoke tier: the candidate completed 325 steps, below the proposal minimum of 340 and the control\u2019s 335.\nCandidate throughput was 1.1432 steps/s versus 1.1775 for control, about 2.9% slower and below the required 1.1952 steps/s floor.\nValidation BPB was worse: 1.173345 versus 1.165604, a delta of +0.007741.\nThe BPB comparison is confounded by unequal training progress: the candidate processed 42.6M tokens versus 43.9M for control.\nBoth runs used 592.9M parameters, seed 42, the same host and listed runtime settings, and nearly identical training durations.\nThe candidate also had a larger estimated startup allowance (174.9s versus 119.7s), complicating wall-time comparisons but not explaining the measured training-throughput deficit.\nBoth runs completed successfully and passed causality checks; these do not override the smoke-step failure.",
+  "decision": "DISCARD",
+  "metrics": {
+    "bpb_delta": 0.007740999999999998,
+    "candidate_bpb": 1.173345,
+    "candidate_params_M": 592.9,
+    "candidate_step_rate": 1.14315863524446,
+    "candidate_steps": 325.0,
+    "control_bpb": 1.165604,
+    "control_params_M": 592.9,
+    "control_step_rate": 1.1775043936731107,
+    "control_steps": 335.0,
+    "smoke_gate": {
+      "min_candidate_steps": 340,
+      "min_step_rate_ratio": 1.015
+    },
+    "step_rate_floor": 1.1951669595782073
+  },
+  "reasons": [
+    "smoke steps 325 < proposal minimum 340"
+  ],
+  "tier": "smoke"
+}
