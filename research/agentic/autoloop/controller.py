@@ -133,6 +133,19 @@ class Controller:
             return False, "no model client"
         return self.store.llm_calls_allowed(self.cfg.caps, self._cycle_llm_calls, needed=needed)
 
+    def _box_has_ready_work(self, box: str) -> bool:
+        """Return whether *box* can advance durable work without asking for a new proposal.
+
+        The configured box order is intentionally stable, but it must not let an idle first box
+        start a potentially long Researcher call while a later box already owns a verified smoke
+        or full candidate.  Controls and deferred code proposals use the same ready stages.
+        """
+        return any(
+            rec.get("stage") in {"proposal_verified", "verified"}
+            and rec.get("box") in (None, box)
+            for rec in self.store.proposals().values()
+        )
+
     def breakers(self) -> str | None:
         if self.stop_file.exists():
             return "STOP file present"
@@ -177,7 +190,11 @@ class Controller:
             if self.breakers():
                 report.stopped_reason = self.breakers()
                 return report
-            for box in self.cfg.boxes:
+            # Advance already-verified work before generating a fresh hypothesis on an earlier
+            # idle box.  ``sorted`` is stable, so the configured order is preserved among boxes
+            # with equal priority.
+            boxes = sorted(self.cfg.boxes, key=lambda box: not self._box_has_ready_work(box))
+            for box in boxes:
                 if box in busy_boxes:
                     continue
                 if self._advance_box(box, report):

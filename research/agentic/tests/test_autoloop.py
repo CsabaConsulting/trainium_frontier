@@ -674,6 +674,28 @@ class LoopTests(unittest.TestCase):
         rep = ctl3.cycle()
         self.assertEqual(len(env.h.launched), 2, rep.actions)
 
+    def test_ready_work_on_later_box_precedes_new_research_on_first_box(self):
+        env = Env(boxes=("trn22", "trn21"))
+        self.addCleanup(env.close)
+        ctl = env.controller()
+        proposal = json.loads(researcher_json("20260922-ready-on-trn21"))
+        ctl.store.add_proposal(proposal)
+        ctl.store.set_stage(proposal["proposal_id"], "verified", box="trn21")
+        advanced: list[str] = []
+
+        def record_first_box(box, report):
+            advanced.append(box)
+            return True
+
+        with (
+            mock.patch.object(ctl, "_reconcile", return_value=set()),
+            mock.patch.object(ctl, "_advance_box", side_effect=record_first_box),
+        ):
+            rep = ctl.cycle()
+        self.assertIsNone(rep.stopped_reason)
+        self.assertEqual(advanced, ["trn21"])
+        self.assertNotIn("researcher", env.model.calls)
+
     def test_archived_smoke_checkpoint_is_hash_verified_then_pruned(self):
         env = self.env
         ctl = env.controller()
