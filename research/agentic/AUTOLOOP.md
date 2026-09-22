@@ -76,7 +76,9 @@ autoloop directories.
 - Correctness gates (any failure = `FAILED`, branch closed, no relaunch): runner exit 0, ledger
   `status == keep`, `over_budget False`, `causality_passed True`, `eval_over_timeout False`, finite
   `public_val_bpb`, `final.pt` present, `git_dirty` explained only by the run's own log/ledger.
-- Smoke: candidate steps/s ≥ control × (1 − 0.02) → `KEEP` (eligible for full) else `DISCARD`.
+- Smoke: candidate steps/s ≥ control × (1 − 0.02), plus every machine-readable proposal-specific
+  `smoke_gate` threshold, → `KEEP` (eligible for full) else `DISCARD`. Proposal gates can only
+  tighten the global floor.
 - Full: steps within 10 % of control else `CONFOUNDED`; `Δbpb ≤ −0.002` → `KEEP` else `DISCARD`.
 - Controls are re-run per (box, shape, commit) by this loop; historical rows are evidence only.
 - Thresholds live in `caps` and are frozen into each proposal's `*-verdict.json`.

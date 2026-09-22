@@ -48,9 +48,12 @@ change that implements one explicit boundary instead. Cite repository evidence. 
  "flags": ["--flag", "value", ...], "evidence": ["path or label ..."],
  "duplicate_search_terms": ["..."], "expected_effect": "predeclared BPB direction and size",
  "abort_conditions": ["..."], "change_type":"flags"|"code",
+ "smoke_gate":{"min_candidate_steps":123,"min_step_rate_ratio":1.0,"max_bpb_delta":0.0},
  "implementation_plan":"exact bounded edit plan, empty for flags",
  "files_allowed":[]|["train.py"]}
-For flags, files_allowed must be [] and implementation_plan empty. For code, flags must be [],
+smoke_gate must contain only thresholds justified by the proposal; use {} when the controller's
+global smoke gate is sufficient. Proposal thresholds can only tighten the global gate. For flags,
+files_allowed must be [] and implementation_plan empty. For code, flags must be [],
 files_allowed must be ["train.py"], and the plan must be precise enough for another isolated agent
 to implement without inventing a second change. Do not propose evaluator/tokenizer/data changes,
 external data, pretrained assets, or private validation access. If no non-duplicate hypothesis exists, return
@@ -297,6 +300,7 @@ class Controller:
                 control_ckpt=bool(ctrl and ctrl["collected"]["checkpoint_present"]),
                 candidate_rc=result["returncode"],
                 caps=self.cfg.caps,
+                smoke_gate=proposal.get("smoke_gate", {}),
             )
         if verdict.decision == "FAILED" and any("runner exit code" in r or "final.pt missing" in r for r in verdict.reasons):
             self.store.box_failure(rec["box"])

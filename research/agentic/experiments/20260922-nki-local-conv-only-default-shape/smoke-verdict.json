@@ -1,6 +1,6 @@
 {
-  "analyst_prose": "",
-  "decision": "KEEP",
+  "analyst_prose": "Corrected by deterministic gate audit after the original generic comparator marked this KEEP. The frozen proposal explicitly prohibited full promotion at 335 or fewer smoke steps. The candidate completed 330 steps versus 335 for the matched control and also produced a worse smoke BPB. No full run was launched; two full attempts stopped at inventory before staging because trn22 was below the controller's disk floor.",
+  "decision": "DISCARD",
   "metrics": {
     "bpb_delta": 0.0022499999999998632,
     "candidate_bpb": 1.167854,
@@ -11,10 +11,14 @@
     "control_params_M": 592.9,
     "control_step_rate": 1.1775043936731107,
     "control_steps": 335.0,
-    "step_rate_floor": 1.1539543057996484
+    "smoke_gate": {
+      "min_candidate_steps": 336,
+      "min_step_rate_ratio": 1.0
+    },
+    "step_rate_floor": 1.1775043936731107
   },
   "reasons": [
-    "correctness gates passed; step rate within tolerance; eligible for full run"
+    "smoke steps 330 < proposal minimum 336"
   ],
   "tier": "smoke"
 }

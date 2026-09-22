@@ -74,6 +74,7 @@ def compare(
     control_ckpt: bool,
     candidate_rc: int | None,
     caps: C.Caps,
+    smoke_gate: dict | None = None,
 ) -> Verdict:
     reasons: list[str] = []
     metrics: dict = {}
@@ -106,10 +107,30 @@ def compare(
     if tier == "smoke":
         if cand_rate is None or ctrl_rate is None:
             return Verdict("CONFOUNDED", tier, ["step rate unavailable"], metrics)
-        floor = ctrl_rate * (1 - caps.smoke_step_rate_tolerance)
+        smoke_gate = smoke_gate or {}
+        gate_ratio = float(smoke_gate.get("min_step_rate_ratio", 0.0))
+        floor = max(ctrl_rate * (1 - caps.smoke_step_rate_tolerance), ctrl_rate * gate_ratio)
         metrics["step_rate_floor"] = floor
+        metrics["smoke_gate"] = smoke_gate
+        min_steps = smoke_gate.get("min_candidate_steps")
+        candidate_steps = metrics["candidate_steps"]
+        if min_steps is not None and candidate_steps < int(min_steps):
+            return Verdict(
+                "DISCARD",
+                tier,
+                [f"smoke steps {candidate_steps:.0f} < proposal minimum {int(min_steps)}"],
+                metrics,
+            )
         if cand_rate < floor:
             return Verdict("DISCARD", tier, [f"smoke step rate {cand_rate:.4f} < floor {floor:.4f} steps/s"], metrics)
+        max_bpb_delta = smoke_gate.get("max_bpb_delta")
+        if max_bpb_delta is not None and metrics["bpb_delta"] > float(max_bpb_delta):
+            return Verdict(
+                "DISCARD",
+                tier,
+                [f"smoke public_val_bpb delta {metrics['bpb_delta']:+.5f} exceeds proposal maximum {float(max_bpb_delta):+.5f}"],
+                metrics,
+            )
         return Verdict("KEEP", tier, ["correctness gates passed; step rate within tolerance; eligible for full run"], metrics)
     # full tier
     cs, ks = metrics["candidate_steps"], metrics["control_steps"]

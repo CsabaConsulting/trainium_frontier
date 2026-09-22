@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import re
 import shlex
 from dataclasses import asdict, dataclass, field
@@ -44,6 +45,7 @@ class Proposal:
     change_type: str = "flags"  # flags | code
     implementation_plan: str = ""
     files_allowed: list[str] = field(default_factory=list)
+    smoke_gate: dict[str, float | int] = field(default_factory=dict)
 
     @classmethod
     def from_model_json(cls, raw: dict, source_model_id: str, created_at: str) -> "Proposal":
@@ -71,6 +73,7 @@ class Proposal:
             change_type=str(raw.get("change_type", "flags")).strip().lower(),
             implementation_plan=str(raw.get("implementation_plan", "")).strip(),
             files_allowed=[str(p) for p in raw.get("files_allowed", [])],
+            smoke_gate=raw.get("smoke_gate", {}),
         )
         prop.validate_shape()
         return prop
@@ -84,6 +87,26 @@ class Proposal:
             raise ManifestError("proposal cites no evidence")
         if self.change_type not in {"flags", "code"}:
             raise ManifestError("change_type must be flags or code")
+        if not isinstance(self.smoke_gate, dict):
+            raise ManifestError("proposal.smoke_gate must be an object")
+        allowed_gate_keys = {"min_candidate_steps", "min_step_rate_ratio", "max_bpb_delta"}
+        unknown_gate_keys = set(self.smoke_gate) - allowed_gate_keys
+        if unknown_gate_keys:
+            raise ManifestError(f"proposal.smoke_gate has unknown fields: {sorted(unknown_gate_keys)}")
+        min_steps = self.smoke_gate.get("min_candidate_steps")
+        if min_steps is not None and (isinstance(min_steps, bool) or not isinstance(min_steps, int) or min_steps < 1):
+            raise ManifestError("smoke_gate.min_candidate_steps must be a positive integer")
+        for key in ("min_step_rate_ratio", "max_bpb_delta"):
+            value = self.smoke_gate.get(key)
+            if value is not None and (
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not math.isfinite(float(value))
+            ):
+                raise ManifestError(f"smoke_gate.{key} must be a finite number")
+        ratio = self.smoke_gate.get("min_step_rate_ratio")
+        if ratio is not None and float(ratio) <= 0:
+            raise ManifestError("smoke_gate.min_step_rate_ratio must be positive")
         if self.change_type == "flags":
             if not self.flags:
                 raise ManifestError("flag-only proposal has no flags (that is the control)")

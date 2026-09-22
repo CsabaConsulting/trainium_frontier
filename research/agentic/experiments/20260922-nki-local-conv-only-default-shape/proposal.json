@@ -48,6 +48,10 @@
   "implementation_plan": "",
   "proposal_id": "20260922-nki-local-conv-only-default-shape",
   "single_causal_change": "Pass --nki-local-conv only. Every other option stays at the 9a4caa7b defaults used by the two pinned controls: no --bf16-norm-output, no --bf16-sdpa-input, no --compile-sdpa-direct, no optimizer/clipping/schedule/shape/precision switch, no env change (NEURON_CC_FLAGS='--optlevel=1', NEURON_LOGICAL_NC_CONFIG=2, NEURON_COMPETITION_R1_SEED=42, nproc 4, --num-steps 5000 --max-train-seconds 1800 --seed 42). The only behavioral delta is which implementation computes the same two-tap local convolution (fused NKI kernel instead of the compiled PyTorch two-tap path). Inference on the control default: neither pinned control launch passes --nki-local-conv; every fresh-start run that used the kernel (fs-w9, fs-w12, fs-w14, fs-w15, fs-w16, fs-w18, fs-w50..fs-w146, commits 2026-09-18..19) passed it explicitly, and the paired --no-nki-local-conv flag exists, so the default is off; preflight MUST confirm this from the resolved-config/log line printed at startup (see abort conditions) rather than assume it.",
+  "smoke_gate": {
+    "min_candidate_steps": 336,
+    "min_step_rate_ratio": 1.0
+  },
   "source_model_id": "us.anthropic.claude-fable-5-1",
   "status": "proposed"
 }

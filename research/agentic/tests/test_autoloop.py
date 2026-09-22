@@ -460,6 +460,36 @@ class AnalystTests(unittest.TestCase):
         self.assertEqual(compare(tier="smoke", candidate=self.row(1.3, 380, 300.0), control=self.row(1.3, 400, 300.0), candidate_ckpt=True, control_ckpt=True, candidate_rc=0, caps=caps).decision, "DISCARD")
         self.assertEqual(compare(tier="smoke", candidate=self.row(1.3, 396, 300.0), control=self.row(1.3, 400, 300.0), candidate_ckpt=True, control_ckpt=True, candidate_rc=0, caps=caps).decision, "KEEP")
 
+    def test_proposal_smoke_gate_cannot_be_weakened_by_global_tolerance(self):
+        caps = C.Caps()
+        verdict = compare(
+            tier="smoke",
+            candidate=self.row(1.167854, 330, 284.8),
+            control=self.row(1.165604, 335, 284.5),
+            candidate_ckpt=True,
+            control_ckpt=True,
+            candidate_rc=0,
+            caps=caps,
+            smoke_gate={"min_candidate_steps": 336, "min_step_rate_ratio": 1.0},
+        )
+        self.assertEqual(verdict.decision, "DISCARD")
+        self.assertIn("proposal minimum 336", verdict.reasons[0])
+
+    def test_proposal_smoke_gate_can_require_bpb_direction(self):
+        caps = C.Caps()
+        verdict = compare(
+            tier="smoke",
+            candidate=self.row(1.052, 410, 300.0),
+            control=self.row(1.050, 400, 300.0),
+            candidate_ckpt=True,
+            control_ckpt=True,
+            candidate_rc=0,
+            caps=caps,
+            smoke_gate={"max_bpb_delta": 0.0},
+        )
+        self.assertEqual(verdict.decision, "DISCARD")
+        self.assertIn("exceeds proposal maximum", verdict.reasons[0])
+
     def test_parse_json_block(self):
         self.assertEqual(parse_json_block('text ```json\n{"a": 1}\n``` more')["a"], 1)
         self.assertEqual(parse_json_block('{"a": 2}')["a"], 2)
