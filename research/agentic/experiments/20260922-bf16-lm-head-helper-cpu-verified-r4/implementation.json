@@ -1,0 +1,17 @@
+{
+  "branch": "autoloop/20260922-bf16-lm-head-helper-cpu-verified-r4",
+  "candidate_commit": null,
+  "deterministic_findings": [],
+  "diff_sha256": "5a8681143d256918c85a482ba1df7d15e1643f58a0b8f09f0bfcb63163afa3e5",
+  "implemented_at": "2026-09-22T19:18:52Z",
+  "implementer_model_id": "us.anthropic.claude-fable-5-1",
+  "passed": false,
+  "verifier_findings": [
+    "The patch statically implements one attributable change: BF16 activation and master-weight casts at the LM-head projection, followed immediately by FP32 logits. The disabled branch preserves the original lm_head(h) call, and the transposed layout is respected.",
+    "The new toggle is persisted by current_toggles()/save_checkpoint() and restored before model construction by load_for_eval(). Data, tokenizer, downstream loss/evaluation code, initialization, optimizer, seed, budget, and distributed launch behavior are unchanged; no external-data or pretrained path is introduced.",
+    "The proposal's mandatory pre-edit step0_head_dtypes.md artifact was not supplied. Source inspection supports the FP32-head premise, but cannot establish that the required pre-edit check was recorded.",
+    "The mandatory step4_cpu_check.txt results were not supplied. The unqualified 'DETERMINISTIC CHECKS: PASS' does not document captured BF16 operands, FP32 output and master/input gradients, or exact disabled-path equality. Supply these offline results before this gate passes; no smoke, BPB, checkpoint execution, causality execution, or hardware results are required here."
+  ],
+  "verifier_model_id": "us.openai.gpt-6-astra",
+  "verifier_verdict": "NEEDS_WORK"
+}
