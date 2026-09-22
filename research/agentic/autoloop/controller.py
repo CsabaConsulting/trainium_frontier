@@ -55,7 +55,11 @@ smoke_gate must contain only thresholds justified by the proposal; use {} when t
 global smoke gate is sufficient. Proposal thresholds can only tighten the global gate. For flags,
 files_allowed must be [] and implementation_plan empty. For code, flags must be [],
 files_allowed must be ["train.py"], and the plan must be precise enough for another isolated agent
-to implement without inventing a second change. Do not propose evaluator/tokenizer/data changes,
+to implement without inventing a second change. The pre-run implementation pipeline can edit only
+train.py and perform deterministic syntax/diff/static review. Do not require named pre-edit
+artifacts, CPU/unit execution, compilation output, dtype logs, smoke metrics, or hardware results
+before the implementation gate can pass; express runtime checks as smoke abort conditions instead.
+Do not propose evaluator/tokenizer/data changes,
 external data, pretrained assets, or private validation access. If no non-duplicate hypothesis exists, return
 {"proposal_id": "none", "reason": "..."}."""
 

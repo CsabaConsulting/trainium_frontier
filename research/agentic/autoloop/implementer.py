@@ -37,7 +37,11 @@ IMPLEMENTATION_VERIFIER_SYSTEM = """You are the independent implementation Verif
 propose or implement this experiment. Review the approved proposal, the exact train.py patch, and
 the deterministic check results and complete candidate train.py. This is a pre-run implementation
 gate: do not require smoke, BPB, causality, checkpoint, or hardware results that can only exist after
-this gate passes; the controller runs and records those gates later. PASS only if the patch implements exactly one causal change, is
+this gate passes; the controller runs and records those gates later. The implementation pipeline
+intentionally edits only train.py and does not create proposal-specific named pre-edit artifacts or
+run CPU/unit/compile checks. Judge pre-edit claims from the authoritative source and deterministic
+checks supplied here; do not reject solely because a separately named pre-edit artifact is absent.
+PASS only if the patch implements exactly one causal change, is
 competition-legal, preserves the 30-minute/full-chip/seed-42 evaluation contract, does not touch
 data/evaluation/tokenizer behavior, has no external-data or pretrained path, preserves causal
 load_for_eval behavior, and is small enough to attribute. You cannot edit or launch anything.

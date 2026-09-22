@@ -36,6 +36,10 @@ and do not reject merely because it does not narrate the deterministic duplicate
 proposal, judge the bounded causal plan now; a separate independent verifier reviews its exact patch.
 Public BPB is the local proxy and official BPB is the final target; requiring a predicted official
 number before a legal experiment is not a valid rejection reason.
+For code proposals, the implementation stage may edit only train.py and perform deterministic
+syntax/diff/static review before the smoke run. Return NEEDS_WORK if the proposal makes a named
+pre-edit artifact, CPU/unit execution, compilation output, dtype log, or hardware result a
+prerequisite for implementation approval; those executable checks belong in smoke abort conditions.
 Return ONLY a JSON object: {"verdict": "PASS"|"FAIL"|"NEEDS_WORK", "findings": ["..."]}.
 Mark PASS only with evidence. You cannot launch, edit, or approve hardware use."""
 

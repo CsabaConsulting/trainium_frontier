@@ -588,6 +588,7 @@ class ImplementerTests(unittest.TestCase):
             self.assertIn("COMPLETE CANDIDATE train.py", verifier_user)
             self.assertIn("WIDTH = 672", verifier_user)
             self.assertIn("do not require smoke", model.systems["implementation_verifier"][0])
+            self.assertIn("named pre-edit artifact", model.systems["implementation_verifier"][0])
 
 
 # ---------------------------------------------------------------------------------------------
@@ -752,6 +753,7 @@ class LoopTests(unittest.TestCase):
         ctl.cycle()
         researcher_call = env.model.calls.index("researcher")
         self.assertEqual(env.model.max_tokens[researcher_call], 64000)
+        self.assertIn("Do not require named pre-edit", env.model.systems["researcher"][0])
 
     def test_relevant_train_evidence_contains_flag_definition(self):
         ctl = self.env.controller()
@@ -769,6 +771,7 @@ class LoopTests(unittest.TestCase):
         verifier_user = env.model.users["verifier"][0]
         self.assertIn("COMPLETE AUTHORITATIVE train.py", verifier_user)
         self.assertIn(TRAIN_PY, verifier_user)
+        self.assertIn("pre-edit artifact", env.model.systems["verifier"][0])
 
     def test_deterministic_duplicate_rejected_without_llm_verifier(self):
         env = self.env
