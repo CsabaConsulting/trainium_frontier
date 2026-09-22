@@ -1,0 +1,20 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "Single causal change is bounded: cast only each applicable Block's MLP-input norm output to BF16. Toggle, CLI/env plumbing, checkpoint persistence and logging support that change; no optimizer, architecture, data or evaluator change is proposed.",
+    "Authoritative train.py supports the premise: Block.forward promotes the residual through FP32 dimensioned lambda parameters and calls self.mlp(norm(x)); norm preserves input dtype with USE_BF16_NORM_OUTPUT=False; Linear.forward selects cached or converted weights matching its input dtype.",
+    "The implementation plan covers serial and sandwich MLP inputs, preserves the shared attention tensor in non-coalesced parallel blocks, and explicitly declares coalesced parallel projections inapplicable. ARCH_TOGGLE_NAMES integrates with current_toggles and restore_eval_toggles to preserve candidate checkpoint arithmetic.",
+    "Repository evidence motivates boundary isolation: the all-norm BF16 run recorded 2716 steps and 1.016279 BPB versus 2071 and 1.005734; BF16 SDPA alone recorded 2233 and 1.002028 versus 2076 and 1.005967. The supplied decision log contains no closed MLP-input-only precision direction; this is distinct from global normalization precision and closed MLP architecture changes.",
+    "The plan confines edits to train.py and requires only static inspection/self-review before smoke. Compilation, finite-loss, configuration and causality checks are smoke gates rather than implementation-approval prerequisites. No pretrained weights, external data or scoring modifications are introduced.",
+    "The predicted step increase and BPB reduction are falsifiable against the controller-pinned seed-42, full-chip, matched full-budget control, with explicit success and negative-result thresholds. However, aggregate precision runs do not establish that MLP matmuls dominate cost or that the final head caused the global regression; likewise, a fixed-budget quality loss would not uniquely identify numerical damage because train.py documents an epoch-crossing data wall. Those remain attribution hypotheses, not established conclusions."
+  ],
+  "llm_verdict": "PASS",
+  "passed": true,
+  "proposal_id": "20260922-bf16-mlp-input-norm-r3",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-22T21:09:41Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}
