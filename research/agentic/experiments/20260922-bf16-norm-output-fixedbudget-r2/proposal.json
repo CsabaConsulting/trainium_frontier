@@ -1,0 +1,47 @@
+{
+  "abort_conditions": [
+    "Smoke resolved precision oneliner does not show bf16_norm_output=True, or shows bf16_sdpa_input=True (HALT-SEMANTIC-REVIEW; do not launch full).",
+    "Smoke num_params_M != 592.9, or ngram_ve / architecture oneliners differ from the same-host control smoke (unexpected side effect; do not launch full).",
+    "Smoke causality_passed is not True, or any NaN/inf loss in the smoke log.",
+    "Smoke steps < 342 (below +2% of the 335-step control smoke) or step-rate ratio vs same-host control smoke < 1.02 (throughput hypothesis falsified at smoke).",
+    "Smoke public_val_bpb > same-host control smoke + 0.003 (1.165604 trn22 / 1.165855 trn21).",
+    "Full run completes < 90% of same-host control steps (CONFOUNDED-SHORT; record as throughput regression only).",
+    "Full run steps > +10% of control: do not declare SUCCESS without the matched-step trajectory comparison described in the outcome classes."
+  ],
+  "change_type": "flags",
+  "created_at": "2026-09-22T19:01:54Z",
+  "duplicate_search_terms": [
+    "bf16-norm-output",
+    "bf16_norm_output",
+    "no-bf16-norm-output",
+    "USE_BF16_NORM_OUTPUT",
+    "norm output bf16",
+    "rmsnorm bf16 output",
+    "NEURON_COMPETITION_R1_BF16_NORM",
+    "20260922-bf16-norm-output-only-default-shape"
+  ],
+  "evidence": [
+    "research/experiment-log.jsonl row al-20260922-bf16-sdpa-input-only-default-shape-full-r1 (9a4caa7b, trn22): 2233 steps / 1.002028 vs control 2076 / 1.005967 -- an isolated precision-boundary cast improved fixed-budget BPB; DECISION_LOG.md verdict KEEP (full).",
+    "research/experiment-log.jsonl rows fs-w50, fs-w63, fs-w65, fs-w70, fs-w98, fs-w146 (2026-09-18/19): every fresh-start KEEP stack includes --bf16-norm-output (e.g. fs-w65 0.979318 BPB, 3377 steps), establishing feasibility and quality preservation of BF16 norm outputs in this lineage; those runs also had compiler autocast, which the pinned environment lacks, so the FP32 matmul cost this flag removes is larger here.",
+    "research/experiment-log.jsonl and DECISION_LOG.md: no smoke or full row with flags='--bf16-norm-output' at 9a4caa7b; the earlier id 20260922-bf16-norm-output-only-default-shape produced no run, so this direction is open, not closed.",
+    "train.py at 9a4caa7b exposes the --bf16-norm-output / --no-bf16-norm-output pair; verifier findings on the bf16-lm-head proposals record default flags as bf16_norm_output False, bf16_sdpa_input False, and cite train.py lines 3174-3189 describing SDPA precision selection as independent of other precision toggles -- so this flag is a distinct, isolated boundary from the KEEP arm.",
+    "research/experiment-log.jsonl smoke rows: nki-local-conv 330/335 steps and ngram-rms-fp32 316/335 steps (DISCARD) -- kernel-flag arms have not recovered steps, whereas the precision-boundary arm did; CURRENT_STATE.md lane 1 prioritizes targeted mixed-precision work at a measured expensive boundary.",
+    "experiment-protocol.md section 5: fixed-budget quality comparisons require comparable step counts; the outcome classes above apply the 90% CONFOUNDED rule and the controller's symmetric +10% review rule used on the batch-ramp and no-ngram-ve arms."
+  ],
+  "expected_effect": "Steps in 1800 s increase by 5-12% over same-host control (about 2175-2320 vs 2071/2076); public_val_bpb decreases by 0.002-0.006 (target <= 1.0037 trn21 / <= 1.0040 trn22). Falsified if steps are within +/-1% of control (inert) or if steps rise >= 2% but public_val_bpb is not lower than control by at least 0.001 (quality loss from BF16 norm outputs outweighs recovered steps).",
+  "files_allowed": [],
+  "flags": [
+    "--bf16-norm-output"
+  ],
+  "hypothesis": "At 9a4caa7b under the pinned environment (NEURON_CC_FLAGS='--optlevel=1', no compiler matmul autocast), the transformer blocks' linear projections consume FP32 RMSNorm outputs, so the dominant per-step cost is FP32 matmul/transposition work. The existing --bf16-sdpa-input arm proved that a single precision-boundary cast recovers steps without quality loss under a fixed 1800 s budget (2233 vs 2076 steps, 1.002028 vs 1.005967 BPB, trn22). --bf16-norm-output is the analogous, independent boundary (norm outputs cast to BF16 before the qkv/MLP projections; the verifier-cited train.py 3174-3189 region selects SDPA precision independently of norm-output precision). Every fresh-start KEEP configuration (fs-w50..fs-w146, 0.979-0.993 BPB) carried --bf16-norm-output, but no smoke or full ledger row and no DECISION_LOG row exists for this flag at 9a4caa7b (an earlier proposal id was allocated but never executed). Prediction: >=+5% steps within the same 1800 s and lower final public_val_bpb, because BF16 rounding of normalized activations (unit-scale, well-conditioned) costs far less loss than the extra optimizer steps recover.",
+  "implementation_plan": "",
+  "proposal_id": "20260922-bf16-norm-output-fixedbudget-r2",
+  "single_causal_change": "Pass --bf16-norm-output only. Every other option stays at the 9a4caa7b defaults used by the two pinned controls: identical launch shape (NEURON_LOGICAL_NC_CONFIG=2, torchrun --standalone --nproc_per_node=4, --num-steps 5000, --max-train-seconds 1800, --seed 42), identical environment (NEURON_CC_FLAGS exactly '--optlevel=1', NEURON_COMPETITION_R1_SEED=42, PYTHONUNBUFFERED=1), no --bf16-sdpa-input, no --ngram-rms-fp32, no --nki-* or --compile-* flag, no optimizer/schedule/batch/architecture/ngram-ve/evaluation change. Pre-full checks from the smoke: resolved precision oneliner shows bf16_norm_output=True and bf16_sdpa_input=False; num_params_M 592.9; ngram_ve oneliner identical to control ('True tables=4 rows=1048576 dim=128 ... trigram=True ... bf16=True rms_fp32_state_math=False nki_rms=False'); architecture oneliners identical to control; causality_passed True. If the resolved precision oneliner does not show bf16_norm_output=True, or any other oneliner differs from control, classify HALT-SEMANTIC-REVIEW and do not launch the full run. Comparison: same-host pinned control on public_val_bpb (trn21 2071 / 1.005734; trn22 2076 / 1.005967). Outcome classes evaluated in order: (1) HALT-SEMANTIC-REVIEW as above; (2) CONFOUNDED-SHORT if full-run steps < 90% of same-host control (<1864 trn21, <1869 trn22); (3) FALSIFIED-INERT if steps within +/-1% of control (norm-output precision is not a measurable cost); (4) EXCESS-GAIN-REVIEW if steps > +10% of control (>2278 trn21, >2283 trn22): record throughput and BPB; before any quality claim compare the candidate's logged validation trajectory against the control's at matched step counts; if matched-step trajectories are unavailable, quality attribution is recorded unresolved; SUCCESS may still be declared only if public_val_bpb < control by >= 0.001 and no matched-step deficit > 0.010 at the control's final step; (5) SUCCESS if steps >= +2% and public_val_bpb < same-host control by >= 0.001; (6) FALSIFIED-QUALITY if steps >= +2% and public_val_bpb >= control (BF16 rounding of normalized activations costs more than the recovered steps); (7) INCONCLUSIVE otherwise. Secondary, non-verdict analysis: record this arm next to the bf16-sdpa-input KEEP as the second independently validated precision boundary; a later stack-confirmation run (both flags) is a separate proposal with its own interaction hypothesis.",
+  "smoke_gate": {
+    "max_bpb_delta": 0.003,
+    "min_candidate_steps": 342,
+    "min_step_rate_ratio": 1.02
+  },
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}

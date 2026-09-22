@@ -1,0 +1,19 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "The flag is a single configurable intervention, but its implemented scope exceeds the claimed qkv/MLP precision boundary. train.py norm() (1446\u20131462), Block.forward(), and GPT.forward() show that it also affects embedding normalization, local-convolution inputs, and final LM-head inputs. Linear.forward() selects weights/cache by input dtype, propagating the arithmetic change into those consumers. Describe the experiment as the complete existing norm-output precision policy, not a projection-only cast.",
+    "Independent switches do not imply independent precision effects. CausalSelfAttention.forward() projects BF16 Q/K/V when norm outputs are BF16, explicitly aligns V to Q's dtype, and rope_norm() preserves the input dtype on its NKI path. Consequently SDPA receives BF16 inputs even with bf16_sdpa_input=False. The proposed oneliner check verifies the switch setting, not unchanged SDPA precision. Remove the claim of an independent boundary and revise the future stacking interpretation to acknowledge overlap with the SDPA KEEP arm.",
+    "Repository evidence supports feasibility and experimentation, not the asserted attribution: the isolated SDPA arm achieved 2233 steps / 1.002028 BPB versus 2076 / 1.005967, while fs-w50 through fs-w146 used norm-output BF16 in substantially different stacks with compiler autocast. These results do not establish that FP32 projection/transposition work dominates this control or that norm-output rounding alone preserves quality.",
+    "Reconcile the outcome definitions: expected_effect calls a gain below 0.001 BPB falsified when steps increase at least 2%, whereas the ordered classes call a positive gain smaller than 0.001 INCONCLUSIVE. Use one authoritative classification.",
+    "No closed isolated norm-output direction appears in the supplied decision log; historical stacks are not duplicates of this ablation. The flag changes no evaluator, data source, or pretrained initialization, and its setting is saved and restored through ARCH_TOGGLE_NAMES and load_for_eval(). The controller-matched seed-42 full-chip experiment can falsify the overall precision-policy throughput/BPB hypothesis once the scope and interpretation are corrected."
+  ],
+  "llm_verdict": "NEEDS_WORK",
+  "passed": false,
+  "proposal_id": "20260922-bf16-norm-output-fixedbudget-r2",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-22T19:01:55Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}
