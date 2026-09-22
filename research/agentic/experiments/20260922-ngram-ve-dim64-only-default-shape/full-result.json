@@ -1,0 +1,163 @@
+{
+  "collected": {
+    "checkpoint_bytes": 760424135,
+    "checkpoint_present": true,
+    "checkpoint_sha256": "94723098807ebe6867eb0594b01aa26ecaba79bbe596238cdac4182a2c5181f2",
+    "collected_at": "2026-09-22T18:32:24Z",
+    "files": {
+      "done": {
+        "bytes": 56,
+        "local": "/home/poojith-devan/Desktop/Trainium/research/agentic/experiments/20260922-ngram-ve-dim64-only-default-shape/artifacts/full/done.json",
+        "remote": "/home/ubuntu/autoloop/launchers/al-20260922-ngram-ve-dim64-only-default-shape-full-r1/done.json",
+        "sha256": "fea1817ffd6a66e01e2f6c429d4b957d687f83eebbf5ec40fdb5864bc8b22271"
+      },
+      "launch_spec": {
+        "bytes": 1723,
+        "local": "/home/poojith-devan/Desktop/Trainium/research/agentic/experiments/20260922-ngram-ve-dim64-only-default-shape/artifacts/full/launch.json",
+        "remote": "/home/ubuntu/autoloop/launchers/al-20260922-ngram-ve-dim64-only-default-shape-full-r1/launch.json",
+        "sha256": "88cf64f4744b67cad06cb12bd0f16ddc1d574d5a3fd014d6fe5e465847efa262"
+      },
+      "ledger": {
+        "bytes": 628464,
+        "local": "/home/poojith-devan/Desktop/Trainium/research/agentic/experiments/20260922-ngram-ve-dim64-only-default-shape/artifacts/full/experiment-log.jsonl",
+        "remote": "/home/ubuntu/workspace/autoloop_runs/9a4caa7b--20260922-ngram-ve-dim64-only-default-shape--al-20260922-ngram-ve-dim64-only-default-shape-full-r1/research/experiment-log.jsonl",
+        "sha256": "90d5aa9bff3e6cd3a26c30c94f28862346a02ed10a059acc4c59c397319f2847"
+      },
+      "run_log": {
+        "bytes": 35260,
+        "local": "/home/poojith-devan/Desktop/Trainium/research/agentic/experiments/20260922-ngram-ve-dim64-only-default-shape/artifacts/full/al-20260922-ngram-ve-dim64-only-default-shape-full-r1.log",
+        "remote": "/home/ubuntu/workspace/autoloop_runs/9a4caa7b--20260922-ngram-ve-dim64-only-default-shape--al-20260922-ngram-ve-dim64-only-default-shape-full-r1/research/run-logs/al-20260922-ngram-ve-dim64-only-default-shape-full-r1.log",
+        "sha256": "f6f35e664db0bfbc8432a3f714c202efcb7b95c6de7912f7361aba9a42392d20"
+      },
+      "runner_stdout": {
+        "bytes": 334,
+        "local": "/home/poojith-devan/Desktop/Trainium/research/agentic/experiments/20260922-ngram-ve-dim64-only-default-shape/artifacts/full/runner.log",
+        "remote": "/home/ubuntu/autoloop/launchers/al-20260922-ngram-ve-dim64-only-default-shape-full-r1/runner.log",
+        "sha256": "161e20945a1f20ce5b1984e69517b7a7962bcb7fb47b18b90d5f99f743414ef6"
+      }
+    },
+    "ledger_row": {
+      "batch_ramp": "False grad_accum=(2, 4, 8) bounds=(0.35, 0.75) lr_exp=0.5 ref_grad_accum=4 last_grad_accum=4",
+      "budget_seconds": 1800,
+      "causality_max_abs": 0.0,
+      "causality_passed": true,
+      "charged_seconds_est": 1784.9,
+      "checkpoint_path": "out/al-20260922-ngram-ve-dim64-only-default-shape-full-r1/final.pt",
+      "compiled": true,
+      "description": "autoloop 20260922-ngram-ve-dim64-only-default-shape full: Pass --ngram-ve-dim 64 only. Every other option stays at the 9a4caa7b defaults used by the two pinned controls: identical launch shape (NEURON_LOGICAL_NC_CONFIG flags='--ngram-ve-dim 64' [trn22] CC='--optlevel=1' seed=42 commit=9a4caa7b",
+      "engram": "False site=-1 orders=2,3 heads=1 tables=0 mult=32 mem_dim=128 e_dim=0 key_dim=0 conv_k=4 share=False bf16=True",
+      "environment": {
+        "NEURON_CC_FLAGS": "--optlevel=1",
+        "NEURON_COMPETITION_R1_SEED": "42",
+        "NEURON_LOGICAL_NC_CONFIG": "2",
+        "PYTHONUNBUFFERED": "1"
+      },
+      "eval_over_timeout": false,
+      "eval_seconds": 10.2,
+      "eval_timeout": 1200,
+      "git_commit": "9a4caa7bfab26c1d1bb59f7ef2bb8c5392d7503a",
+      "git_dirty": false,
+      "hostname": "ip-172-31-32-253",
+      "label": "al-20260922-ngram-ve-dim64-only-default-shape-full-r1",
+      "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 1800 --out-dir out/al-20260922-ngram-ve-dim64-only-default-shape-full-r1 --ngram-ve-dim 64 --seed 42",
+      "lnc": 2,
+      "max_train_seconds": 1800,
+      "ngram_ve": "True tables=4 rows=1048576 dim=64 index_gather=True trigram=True opt=rmsprop flat_lr=True bf16=True rms_fp32_state_math=False nki_rms=False",
+      "nki_relu2": false,
+      "num_params_M": 324.3,
+      "num_steps": 2206,
+      "oneliners": "relu2_tau=0.0 mlp_sandwich=False head_gate=False hg_norm=True hg_ch=32 hg_mul=2.0 hg_bias=0.0 out_pool=False pool_layers=3 qk_shift=True qk_beta=0.0 qk_freeze=True x0_gate=False block_nudge=False nudge_site=qk qkv_norm_cse=False parallel_block=False par_coalesce=none epoch_shuffle=False epoch_shuffle_seed=1234",
+      "out_bigram": "False bf16=True gate_bias=-2.0 lr=0.0",
+      "over_budget": false,
+      "public_val_bpb": 1.007083,
+      "returncode": 0,
+      "run_log": "research/run-logs/al-20260922-ngram-ve-dim64-only-default-shape-full-r1.log",
+      "sched_tricks": "demon_b1=False demon_final=0.55 demon_ref=0.8 demon_start=-1.0 muon_b2=0.9 muon_b2_final=0.0 depth_lr=1.0->1.0 depth_mom=0.0->0.0 depth_mom_ref=0.95",
+      "seq_len": 2048,
+      "solution": "autoloop:20260922-ngram-ve-dim64-only-default-shape",
+      "source_dirty": false,
+      "source_sha256": {
+        "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+        "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+        "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c"
+      },
+      "startup_allowance_est": 117.4,
+      "status": "keep",
+      "target_steps": 5000,
+      "timestamp": "2026-09-22T18:23:31+00:00",
+      "total_seconds": 1893.1,
+      "total_tokens_M": 289.1,
+      "training_seconds": 1784.3,
+      "wall_elapsed_seconds": 1917.6,
+      "weight_ema": "False decays=(0.995,) start_frac=0.75 seeded=False updates=0",
+      "world_size": 4
+    },
+    "post_run_dirt_explained": false,
+    "post_run_porcelain": [
+      " M research/experiment-log.jsonl",
+      "?? research/run-logs/al-20260922-ngram-ve-dim64-only-default-shape-full-r1.launch.json",
+      "?? research/run-logs/al-20260922-ngram-ve-dim64-only-default-shape-full-r1.log"
+    ]
+  },
+  "hostname": "ip-172-31-32-253",
+  "label": "al-20260922-ngram-ve-dim64-only-default-shape-full-r1",
+  "ledger_row": {
+    "_dirt_explained": false,
+    "batch_ramp": "False grad_accum=(2, 4, 8) bounds=(0.35, 0.75) lr_exp=0.5 ref_grad_accum=4 last_grad_accum=4",
+    "budget_seconds": 1800,
+    "causality_max_abs": 0.0,
+    "causality_passed": true,
+    "charged_seconds_est": 1784.9,
+    "checkpoint_path": "out/al-20260922-ngram-ve-dim64-only-default-shape-full-r1/final.pt",
+    "compiled": true,
+    "description": "autoloop 20260922-ngram-ve-dim64-only-default-shape full: Pass --ngram-ve-dim 64 only. Every other option stays at the 9a4caa7b defaults used by the two pinned controls: identical launch shape (NEURON_LOGICAL_NC_CONFIG flags='--ngram-ve-dim 64' [trn22] CC='--optlevel=1' seed=42 commit=9a4caa7b",
+    "engram": "False site=-1 orders=2,3 heads=1 tables=0 mult=32 mem_dim=128 e_dim=0 key_dim=0 conv_k=4 share=False bf16=True",
+    "environment": {
+      "NEURON_CC_FLAGS": "--optlevel=1",
+      "NEURON_COMPETITION_R1_SEED": "42",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "eval_over_timeout": false,
+    "eval_seconds": 10.2,
+    "eval_timeout": 1200,
+    "git_commit": "9a4caa7bfab26c1d1bb59f7ef2bb8c5392d7503a",
+    "git_dirty": false,
+    "hostname": "ip-172-31-32-253",
+    "label": "al-20260922-ngram-ve-dim64-only-default-shape-full-r1",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 1800 --out-dir out/al-20260922-ngram-ve-dim64-only-default-shape-full-r1 --ngram-ve-dim 64 --seed 42",
+    "lnc": 2,
+    "max_train_seconds": 1800,
+    "ngram_ve": "True tables=4 rows=1048576 dim=64 index_gather=True trigram=True opt=rmsprop flat_lr=True bf16=True rms_fp32_state_math=False nki_rms=False",
+    "nki_relu2": false,
+    "num_params_M": 324.3,
+    "num_steps": 2206,
+    "oneliners": "relu2_tau=0.0 mlp_sandwich=False head_gate=False hg_norm=True hg_ch=32 hg_mul=2.0 hg_bias=0.0 out_pool=False pool_layers=3 qk_shift=True qk_beta=0.0 qk_freeze=True x0_gate=False block_nudge=False nudge_site=qk qkv_norm_cse=False parallel_block=False par_coalesce=none epoch_shuffle=False epoch_shuffle_seed=1234",
+    "out_bigram": "False bf16=True gate_bias=-2.0 lr=0.0",
+    "over_budget": false,
+    "public_val_bpb": 1.007083,
+    "returncode": 0,
+    "run_log": "research/run-logs/al-20260922-ngram-ve-dim64-only-default-shape-full-r1.log",
+    "sched_tricks": "demon_b1=False demon_final=0.55 demon_ref=0.8 demon_start=-1.0 muon_b2=0.9 muon_b2_final=0.0 depth_lr=1.0->1.0 depth_mom=0.0->0.0 depth_mom_ref=0.95",
+    "seq_len": 2048,
+    "solution": "autoloop:20260922-ngram-ve-dim64-only-default-shape",
+    "source_dirty": false,
+    "source_sha256": {
+      "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+      "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+      "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c"
+    },
+    "startup_allowance_est": 117.4,
+    "status": "keep",
+    "target_steps": 5000,
+    "timestamp": "2026-09-22T18:23:31+00:00",
+    "total_seconds": 1893.1,
+    "total_tokens_M": 289.1,
+    "training_seconds": 1784.3,
+    "wall_elapsed_seconds": 1917.6,
+    "weight_ema": "False decays=(0.995,) start_frac=0.75 seeded=False updates=0",
+    "world_size": 4
+  },
+  "manifest_id": "20260922-ngram-ve-dim64-only-default-shape--full--al-20260922-ngram-ve-dim64-only-default-shape-full-r1",
+  "returncode": 0
+}

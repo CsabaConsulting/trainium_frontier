@@ -1,0 +1,19 @@
+{
+  "analyst_prose": "DISCARD at the full tier: candidate public_val_bpb was 1.007083 versus 1.005967 for control, a worsening of +0.001116 rather than the required improvement of at least 0.00200.\nThe only reported configuration change was reducing ngram embedding dimension from 128 to 64, lowering parameters from 592.9M to 324.3M.\nThe candidate ran about 6.3% faster, completing 2,206 steps versus 2,076 within essentially identical charged training time.\nUnequal training exposure is a confounder for a fixed-step architecture comparison: the candidate processed 289.1M tokens versus 272.1M. This is nevertheless a matched time-budget comparison.\nCommit, source hashes, seed, host, compiler flags, and launch shape matched; both runs passed causality checks and stayed within budget.\nThe size and throughput gains do not satisfy the validation-quality acceptance criterion.",
+  "decision": "DISCARD",
+  "metrics": {
+    "bpb_delta": 0.0011159999999998949,
+    "candidate_bpb": 1.007083,
+    "candidate_params_M": 324.3,
+    "candidate_step_rate": 1.2363391806310597,
+    "candidate_steps": 2206.0,
+    "control_bpb": 1.005967,
+    "control_params_M": 592.9,
+    "control_step_rate": 1.1634814773300455,
+    "control_steps": 2076.0
+  },
+  "reasons": [
+    "public_val_bpb delta +0.00112 did not meet threshold -0.00200"
+  ],
+  "tier": "full"
+}
