@@ -1,0 +1,48 @@
+{
+  "abort_conditions": [
+    "Pre-full: the resolved configuration dump shows compile_muon already True for the pinned-control configuration (flag is a no-op at this commit) -> record FALSIFIED-INERT, do not run the full budget",
+    "Smoke: candidate completes fewer steps than the same-host smoke control (step-rate ratio < 1.0; controls are 334 trn21 / 335 trn22) -> throughput mechanism absent or compile overhead dominates",
+    "Smoke: candidate public_val_bpb exceeds the same-host smoke control by more than 0.002 -> compiled Muon numerics diverge from eager; abort before full",
+    "Any compile failure, recompilation loop, NaN/inf loss, or causality check failure in the candidate",
+    "Full: candidate steps < 90% of same-host control -> CONFOUNDED-SHORT, record as throughput regression only",
+    "Full: steps > +10% of same-host control -> EXCESS-GAIN-REVIEW; no quality claim without a matched-step numerics sanity check"
+  ],
+  "change_type": "flags",
+  "created_at": "2026-09-22T16:44:41Z",
+  "duplicate_search_terms": [
+    "compile-muon",
+    "compile_muon",
+    "no-compile-muon",
+    "Muon compile",
+    "compiled Muon",
+    "torch.compile muon",
+    "newton schulz compile",
+    "nki-muon",
+    "muon optimizer graph",
+    "optimizer step compile"
+  ],
+  "evidence": [
+    "train.py flag inventory at 9a4caa7b: --compile-muon / --no-compile-muon is a distinct option pair from --nki-muon / --no-nki-muon; only the former is proposed, the latter is not passed",
+    "research/experiment-log.jsonl: pinned controls al-20260922-control-trn21-lnc2x4-9a4caa7b-full-r1 (2071 steps, 1.005734) and al-20260922-control-trn22-lnc2x4-9a4caa7b-full-r1 (2076 steps, 1.005967) pass no --compile-muon; their oneliners do not record the resolved compile_muon value, so the resolved default must be confirmed from the candidate/control configuration dump before the full run (pre-full check declared above)",
+    "research/experiment-log.jsonl: fs-w15, fs-w16, fs-w18, fs-w50, fs-w63, fs-w65, fs-w70, fs-w98, fs-w146 all pass --compile-muon explicitly in their launch commands (i.e., it was non-default and part of the winning fresh-start stack), but those runs are different commits, model shapes (117.5M / 142.8M), CC flags, and flag bundles, so they do not isolate its effect at the 9a4caa7b default shape; they are related prior evidence, not duplicates",
+    "DECISION_LOG.md and the used-proposal-id list: no run or proposal with --compile-muon at 9a4caa7b; the five flag experiments run at this commit (--batch-ramp, --ngram-rms-fp32, --nki-local-conv, --no-qk-shift, --clip-after-reduce) do not touch the Muon optimizer execution path",
+    "research/experiment-log.jsonl: al-20260922-no-qk-shift-fixedbudget-r3-full-r1 (2080 steps, 1.005766 vs control 2076 / 1.005967) is the step-to-BPB translation baseline for a rule-preserving change; al-20260922-batch-ramp-only-default-shape-full-r1 (2397 steps, 1.01219) shows extra steps do not help when the update rule changes",
+    "research/experiment-log.jsonl smoke controls: 334 (trn21) and 335 (trn22) steps in 300 s, stable to ~0.3%, which justifies a smoke step-rate ratio floor of 1.0 for a throughput-mechanism flag",
+    "experiment-protocol.md section 5: rate comparisons only between same-box runs; quality comparisons CONFOUNDED when >10% short on steps"
+  ],
+  "expected_effect": "Direction: lower public_val_bpb via more optimizer steps in the fixed 1800 s. Predeclared size: candidate steps +2% to +6% over the same-host control (>=2113 on trn21 or >=2118 on trn22 for +2%), and public_val_bpb lower than the same-host control by 0.001 to 0.004 (e.g. trn21 <= 1.0047, trn22 <= 1.0050). Smoke prediction: >= 335 steps in 300 s on either host and smoke BPB within +0.002 of the same-host smoke control (1.165855 trn21, 1.165604 trn22). If steps stay within +/-1% of control the mechanism is falsified as inert; if steps rise >= 1% but BPB does not fall, the compiled numerics or the step-to-quality translation is falsified.",
+  "files_allowed": [],
+  "flags": [
+    "--compile-muon"
+  ],
+  "hypothesis": "At the 9a4caa7b default shape (592.9M params, seq 2048, ~1.15 steps/s, 2071-2076 steps in 1800 s) the Muon optimizer's per-step Newton-Schulz orthogonalization over the large 2-D weight matrices is dispatched as an eager graph and is a material fraction of the ~0.87 s step. Passing --compile-muon compiles that optimizer update into a single traced graph, shortening the optimizer phase without changing the update rule, so the fixed 1800 s budget yields more optimizer steps and a lower public_val_bpb. This is a throughput-first causal chain: the ledger row al-20260922-no-qk-shift-fixedbudget-r3 (2080 vs 2076 steps, 1.005766 vs 1.005967) shows small step gains translate to small BPB gains when the update rule is unchanged, whereas al-20260922-batch-ramp-only-default-shape (2397 steps, 1.01219) shows extra steps do not help when the update rule itself changes; --compile-muon is intended to be in the first class. Numerical equivalence of the compiled Muon step to the eager step is a hypothesis to be tested by the smoke BPB delta, not an established fact.",
+  "implementation_plan": "",
+  "proposal_id": "20260922-compile-muon-only-default-shape",
+  "single_causal_change": "Pass --compile-muon only. Every other option stays at the 9a4caa7b defaults used by the two pinned controls: identical launch shape (NEURON_LOGICAL_NC_CONFIG=2, torchrun --nproc_per_node=4, --num-steps 5000, --max-train-seconds 1800, --seed 42), identical environment (NEURON_CC_FLAGS exactly '--optlevel=1', NEURON_COMPETITION_R1_SEED=42, PYTHONUNBUFFERED=1), no other kernel or compile flag (no --nki-muon, --nki-attn, --nki-local-conv, --nki-relu2, --nki-rope-norm, --nki-softcap-ce, --compile-sdpa-direct), no precision flag (no --bf16-norm-output, --bf16-sdpa-input, --ngram-rms-fp32, --muon-lr-fp32), no optimizer-rule, schedule, batch, architecture, or evaluation change. The only behavioral delta is that the Muon optimizer step executes as a compiled graph instead of eager dispatch; the update rule, learning rates, momentum, and parameter groups are unchanged. Pre-full check: the candidate's resolved configuration dump/launch log must show compile_muon resolving to True while the pinned controls (which do not pass the flag) resolve to False; if the control already resolves True, classify FALSIFIED-INERT without spending the full run. Comparison: same-host pinned control on public_val_bpb (trn21 -> 2071 steps / 1.005734; trn22 -> 2076 steps / 1.005967). Outcome classes, mutually exclusive, evaluated in order: (1) CONFOUNDED-SHORT if candidate steps < 90% of same-host control steps (<1864 trn21, <1869 trn22; experiment-protocol.md section 5 rule; record as throughput regression only); (2) FALSIFIED-INERT if steps are within +/-1% of control (compiled path not faster or not reached); (3) EXCESS-GAIN-REVIEW if steps > +10% of control (>2278 trn21, >2283 trn22): record throughput and BPB but require a matched-step numerics sanity check before any quality claim (a separately declared conservative upper rule, not the protocol's short-step rule); (4) SUCCESS if steps >= +1.5% (>=2103 trn21, >=2108 trn22) and public_val_bpb < same-host control; (5) FALSIFIED-QUALITY if steps >= +1% and public_val_bpb >= same-host control (extra steps did not translate, or compiled numerics differ unfavorably); (6) INCONCLUSIVE if the step gain is between +1% and +1.5%.",
+  "smoke_gate": {
+    "max_bpb_delta": 0.002,
+    "min_step_rate_ratio": 1.0
+  },
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}

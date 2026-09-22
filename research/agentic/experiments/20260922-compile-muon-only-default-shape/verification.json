@@ -1,0 +1,18 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "The proposed flag is inert under the pinned control configuration. Authoritative train.py lines 4178\u20134193 set USE_COMPILE_MUON = True; lines 5818\u20135833 resolve --compile-muon to True unless NEURON_COMPETITION_R1_COMPILE_MUON is '0'. Neither pinned control environment supplies that override. Adding --compile-muon therefore introduces no causal change.",
+    "The proposal's own pre-full condition is already satisfied by the supplied source evidence: classify FALSIFIED-INERT and do not proceed to the full run. This comparison cannot test eager-versus-compiled throughput because both arms use compiled Muon.",
+    "The implementation description also overstates the evidence: the flag compiles Muon's per-group math body, not necessarily the entire optimizer update into one graph. The adjacent source comment already documents compiled BF16 numerical drift, so numerical equivalence is not established by a smoke BPB comparison.",
+    "The optimization category is competition-legal and the supplied decision log does not close this isolated flag experiment, but those checks do not remedy the absence of a treatment/control difference."
+  ],
+  "llm_verdict": "FAIL",
+  "passed": false,
+  "proposal_id": "20260922-compile-muon-only-default-shape",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-22T16:44:41Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}
