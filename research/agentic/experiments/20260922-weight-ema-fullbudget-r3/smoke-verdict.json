@@ -1,0 +1,21 @@
+{
+  "analyst_prose": "DISCARD at the smoke tier: candidate throughput was 1.1006 steps/s, below the required 1.1513 steps/s floor.\nThe control achieved 1.1748 steps/s; the candidate was about 6.3% slower and completed 313 versus 334 steps in nearly identical training time.\nCandidate raw validation BPB was worse: 1.174056 versus 1.165855, a +0.008201 difference.\nEMA validation BPB was 1.193370, also worse than the candidate\u2019s raw weights by 0.019314 after 45 EMA updates.\nThe intended change was only --weight-ema; source hashes, clean commit, seed, host, launch configuration, and 592.9M parameter count matched.\nThe quality comparison is confounded by unequal training progress under the time cap; these are not equal-step checkpoints.\nRuns also occurred at different times, so runtime variability cannot be excluded from this single pair.\nBoth runs passed causality checks and completed successfully within budget, but the throughput gate determines the discard.",
+  "decision": "DISCARD",
+  "metrics": {
+    "bpb_delta": 0.008200999999999903,
+    "candidate_bpb": 1.174056,
+    "candidate_params_M": 592.9,
+    "candidate_step_rate": 1.1005625879043601,
+    "candidate_steps": 313.0,
+    "control_bpb": 1.165855,
+    "control_params_M": 592.9,
+    "control_step_rate": 1.1748153359127682,
+    "control_steps": 334.0,
+    "smoke_gate": {},
+    "step_rate_floor": 1.1513190291945128
+  },
+  "reasons": [
+    "smoke step rate 1.1006 < floor 1.1513 steps/s"
+  ],
+  "tier": "smoke"
+}
