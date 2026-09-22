@@ -1,0 +1,20 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "Single-causal-change gate is not met: the proposal changes both the convolution implementation and normalized-activation precision. Its own fs-w15 citation says NKI convolution works with FP32 normalization, so BF16 output is not established as a required integration boundary. Test --nki-local-conv alone against defaults, or explicitly redesign this as a stack-confirmation experiment under AGENTS.md.",
+    "The two flags name the proposed changes, but train.py at 9a4caa7b was not supplied. Their defaults, scope, interactions with the default shape, and inclusion of the corrected integration cannot be independently verified. Similar control BPB does not establish which convolution implementation executed.",
+    "Repository paths and numerical results are cited, but the underlying experiment-log.jsonl records, native-gate artifacts, README.md, and experiment-protocol.md were not supplied. The claimed matched dense configurations, correction ancestry, and protocol compliance therefore remain unverified rather than supporting a PASS.",
+    "The supplied DECISION_LOG.md has no matching closed direction, but it explicitly requires searching experiment-log.jsonl and trn2-experiment-results.md too. Search terms alone do not demonstrate that search. Provide results covering both flags and aliases, including earlier default-shape trials and negative outcomes.",
+    "The proposed flag-only scope contains no apparent pretrained-weight, external-data, or evaluator change. Competition legality still requires checking the actual flag implementation against the competition contract.",
+    "The BPB and step predictions are measurable, but the run specification must explicitly require seed 42, the pinned commit, full-chip topology, 1800-second budget, and a matched control environment. Reconcile the >=2350-step prediction with the weaker 2071-step decision threshold, and define outcomes for partial improvements. Fewer than 2071 steps should be recorded as failure of the throughput prediction, not merely a confounded result."
+  ],
+  "llm_verdict": "NEEDS_WORK",
+  "passed": false,
+  "proposal_id": "20260922-nki-local-conv-bf16norm-default-shape",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-22T06:10:40Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}

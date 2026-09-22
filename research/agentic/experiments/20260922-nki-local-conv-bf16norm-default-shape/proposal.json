@@ -1,0 +1,42 @@
+{
+  "abort_conditions": [
+    "Non-finite loss or NaN gradient norm at any logged step in smoke or full run",
+    "Smoke (300 s) completes fewer than 340 steps, i.e. no throughput gain over control smoke (334/335 steps)",
+    "Full run completes fewer than 2071 steps (no speedup, confounded per protocol \u00a75)",
+    "Compile failure or crash attributable to the NKI kernel at default shape",
+    "Full-run public val_bpb >= 1.005734 (control) despite >= 2071 steps: record as negative and close"
+  ],
+  "change_type": "flags",
+  "created_at": "2026-09-22T06:10:40Z",
+  "duplicate_search_terms": [
+    "nki-local-conv",
+    "nki_local_conv",
+    "NKI two-tap convolution",
+    "local conv kernel",
+    "bf16-norm-output",
+    "bf16_norm_output",
+    "BF16 normalized activations",
+    "nki-norm"
+  ],
+  "evidence": [
+    "research/experiment-log.jsonl: fs-w12-dense1024-nki-norm-1800-r1 (c61bfca7) --nki-local-conv --bf16-norm-output -> 0.98171 BPB, 2977 steps, 'corrected integration passed all four native gates'",
+    "research/experiment-log.jsonl: fs-w6-dense1024-noqk-1800-r2 (c333adbc) same dense config without NKI conv/BF16 norm -> 1.012886 BPB, 1805 steps",
+    "research/experiment-log.jsonl: fs-w15-dense1024-nki-sdpa-only-1800-r1 (4f0e77a7) --nki-local-conv with FP32 norm -> 0.989128, 2600 steps (kernel valid at FP32 boundary too; BF16 norm output gives the larger step gain)",
+    "research/experiment-log.jsonl: fs-w9-dense1024-nki-conv-1800-r1 (ccf22c06) crash and fs-w12-dense1024-nki-nan-diagnostic-r1 -> pre-fix NaN; fixed by c61bfca7 'corrected integration', which precedes pinned 9a4caa7b",
+    "research/experiment-log.jsonl: al-20260922-control-trn21-lnc2x4-9a4caa7b-full-r1 -> 1.005734 BPB, 2071 steps with default flags (matches sub1-record-repro-full 1.005436 / 2094 steps, so default shape does not use the NKI conv path)",
+    "research/experiment-protocol.md \u00a75: quality comparisons require comparable or larger step counts; this proposal predicts more steps, not fewer",
+    "research/agentic/DECISION_LOG.md: no row for nki-local-conv or bf16-norm-output at 9a4caa7b"
+  ],
+  "expected_effect": "Step count rises from 2071 to at least 2350 (>=13%) within 1800 s; public val_bpb decreases by 0.006 to 0.020 (from 1.0057 to roughly 0.986-1.000). Any result above 1.0057 with >=2071 steps falsifies the hypothesis.",
+  "files_allowed": [],
+  "flags": [
+    "--nki-local-conv",
+    "--bf16-norm-output"
+  ],
+  "hypothesis": "At commit 9a4caa7b the default-flag control (1.005734 BPB, 2071 steps) is throughput-bound and still runs the compiled two-tap local convolution. On the same branch's train.py the fused NKI local-convolution path with BF16 normalized activations feeding it (fs-w12 at c61bfca7: 2977 steps, 0.98171) versus the identical dense config without it (fs-w6: 1805 steps, 1.012886) delivered ~65% more optimizer steps in the fixed 1800 s and a large BPB drop, and the integration passed the four native finite/causal gates. The same kernel boundary has never been enabled on the default (record-shape, ngram-VE, frozen QK-shift) configuration. Enabling it should raise step count materially and lower val_bpb below the control.",
+  "implementation_plan": "",
+  "proposal_id": "20260922-nki-local-conv-bf16norm-default-shape",
+  "single_causal_change": "Replace the compiled two-tap local convolution with the validated fused NKI local-conv kernel path (--nki-local-conv) together with its BF16 normalized-activation input boundary (--bf16-norm-output), leaving model shape, optimizer, schedule, data, and evaluation untouched.",
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}
