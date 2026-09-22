@@ -38,7 +38,9 @@ falsifiable causal change. It may be an existing train.py flag experiment or a s
 confined to train.py (architecture, optimizer, schedule, numerical format, or inline NKI kernel).
 Seed 42, full-chip shape, data, evaluator, and budget are fixed by the controller.
 Search the provided ledger summary and decision log; never repeat a closed or already-run flag set
-at this commit. Cite repository evidence. Return ONLY a JSON object:
+at this commit. A flag proposal must set one causal option only; do not bundle a second precision,
+kernel, optimizer, or architecture switch. If two switches are truly inseparable, propose a code
+change that implements one explicit boundary instead. Cite repository evidence. Return ONLY a JSON object:
 {"proposal_id": "YYYYMMDD-short-slug", "hypothesis": "...", "single_causal_change": "...",
  "flags": ["--flag", "value", ...], "evidence": ["path or label ..."],
  "duplicate_search_terms": ["..."], "expected_effect": "predeclared BPB direction and size",
@@ -610,9 +612,29 @@ class Controller:
         ok, why = self._llm_ok()
         client = self.model if ok else None
         current_state = (C.AGENT_DIR / "CURRENT_STATE.md").read_text() if (C.AGENT_DIR / "CURRENT_STATE.md").is_file() else ""
+        train_text = self._train_py_text or self.git.file_at_commit(C.AUTHORITATIVE_COMMIT, "train.py").decode(errors="replace")
+        flag_snippets: list[str] = []
+        train_lines = train_text.splitlines()
+        for flag in prop.flag_names():
+            for i, line in enumerate(train_lines):
+                if repr(flag) in line or f'"{flag}"' in line:
+                    lo, hi = max(0, i - 4), min(len(train_lines), i + 8)
+                    flag_snippets.append(f"--- train.py lines {lo + 1}-{hi} for {flag} ---\n" + "\n".join(train_lines[lo:hi]))
+                    break
+        verifier_context = load_context([
+            C.ROOT / "README.md",
+            C.ROOT / "AGENTS.md",
+            C.AGENT_DIR / "CURRENT_STATE.md",
+            C.ROOT / "research" / "experiment-protocol.md",
+            C.DECISION_LOG,
+            C.ROOT / "research" / "trn2-experiment-results.md",
+        ])
+        verifier_context += "\n--- RECENT LEDGER ROWS ---\n" + self._ledger_summary(200)
+        if flag_snippets:
+            verifier_context += "\n" + "\n".join(flag_snippets)
         verification = run_verifier(
             prop, cfg=self.cfg, client=client,
-            context_text=load_context([C.ROOT / "AGENTS.md", C.AGENT_DIR / "CURRENT_STATE.md", C.DECISION_LOG]),
+            context_text=verifier_context,
             known_flags=self.known_flags(), ledgers=self.all_ledgers(), used_labels=self.all_labels(),
             used_proposal_ids=self.store.used_proposal_ids() - {prop.proposal_id},
             closed_terms=closed_direction_terms(current_state), now=self.now_iso(), record_usage=self._record_usage,
