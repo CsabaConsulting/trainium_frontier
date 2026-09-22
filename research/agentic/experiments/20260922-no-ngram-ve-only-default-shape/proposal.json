@@ -1,0 +1,49 @@
+{
+  "abort_conditions": [
+    "Resolved candidate oneliner does not read 'ngram_ve: False tables=0' or num_params_M is not reduced by >=500M relative to 592.9M -> FALSIFIED-INERT, do not run full",
+    "Any crash, compile failure, or causality_passed=False in smoke -> abort and diagnose per protocol section 2 (no relaunch without log diagnosis)",
+    "Smoke steps < 1.05x same-host control smoke (<352 vs 335 trn22 / <351 vs 334 trn21) -> throughput mechanism already falsified at smoke scale; do not run full",
+    "Smoke public_val_bpb worse than same-host control smoke by more than the controller's global max_bpb_delta -> discard under the global gate (n-gram tables may have a larger early-training advantage; a smoke discard is accepted as a negative result, not appealed)",
+    "Full run steps < 90% of same-host control -> CONFOUNDED-SHORT, throughput regression only",
+    "Environment differs from the pinned controls (NEURON_CC_FLAGS not exactly '--optlevel=1', seed not 42, LNC/nproc not 2x4) -> void run"
+  ],
+  "change_type": "flags",
+  "created_at": "2026-09-22T17:13:03Z",
+  "duplicate_search_terms": [
+    "--no-ngram-ve",
+    "no-ngram-ve",
+    "ngram_ve=False",
+    "ngram_ve False tables=0",
+    "ngram-ve",
+    "hashed n-gram value embedding",
+    "ngram tables",
+    "ngram_ve True tables=4",
+    "dense-only default shape",
+    "20260922-no-ngram-ve"
+  ],
+  "evidence": [
+    "research/experiment-log.jsonl al-20260922-control-trn21-lnc2x4-9a4caa7b-full-r1: 2071 steps, 1.005734, num_params_M 592.9, ngram_ve 'True tables=4 rows=1048576 dim=128 ... opt=rmsprop flat_lr=True bf16=True' (4x1048576x128 = 536.9M table parameters)",
+    "research/experiment-log.jsonl al-20260922-control-trn22-lnc2x4-9a4caa7b-full-r1: 2076 steps, 1.005967, same resolved configuration",
+    "research/experiment-log.jsonl al-20260922-ngram-rms-fp32-only-default-shape-smoke-r1: 316 steps vs control smoke 335 (-5.7%) from changing only the n-gram table RMSprop state math; DECISION_LOG.md row DISCARD (smoke)",
+    "research/experiment-log.jsonl al-20260922-weight-ema-fullbudget-r3-smoke-r1: 313 steps vs control smoke 334 (-6.3%) from one extra per-step elementwise pass over all parameters (dominated by the 537M table parameters)",
+    "research/experiment-log.jsonl fs-w65-dense1024-native-mlp-pack8-owned-1800-r1 (0.979318, 3377 steps), fs-w98 (0.987784), fs-w146 (0.988808), fs-w18 seed43 (0.986019): all use --no-ngram-ve with resolved 'ngram_ve: False tables=0' (different depth/width/eval settings; motivating, not isolating)",
+    "CURRENT_STATE.md: frozen one-file candidate submissions/dense6x1024_public0992851/train.py (public 0.9928513) is the --no-ngram-ve dense lineage",
+    "DECISION_LOG.md and the supplied ledger contain no run of --no-ngram-ve at commit 9a4caa7b with the default shape; the flag pair --ngram-ve/--no-ngram-ve is present in the available flag list at this commit",
+    "research/experiment-protocol.md section 5: quality comparisons require comparable budgets; >10% short on steps is CONFOUNDED; seed 42 for all comparisons"
+  ],
+  "expected_effect": "Completed steps at 1800 s rise by +8% to +20% (2237-2490 on trn21-equivalent hosts) because the 537M-parameter table gather/scatter/RMSprop/clip work is removed. Predeclared BPB direction: public_val_bpb lower than the same-host control by 0.002-0.008 (from ~1.0057 to ~0.998-1.004). If BPB is not lower despite >=8% more steps, the hypothesis is falsified (tables are worth their step cost at this budget); if the step gain is below 8%, the throughput mechanism is falsified.",
+  "files_allowed": [],
+  "flags": [
+    "--no-ngram-ve"
+  ],
+  "hypothesis": "At the pinned 9a4caa7b default shape the model is 592.9M parameters, of which the hashed n-gram value-embedding tables alone are 4 tables x 1,048,576 rows x 128 dim = 536.9M (control ledger oneliner 'ngram_ve: True tables=4 rows=1048576 dim=128 ... opt=rmsprop bf16=True'), leaving roughly 56M dense transformer parameters. Two smoke rows at this commit show that per-step maintenance of that table block is a first-order throughput cost: --ngram-rms-fp32 (only the table RMSprop state math changed) dropped steps from 335 to 316 (-5.7%), and --weight-ema (one extra elementwise pass over all parameters, dominated by the tables) dropped steps from 334 to 313 (-6.3%). Removing the tables entirely (gather, backward scatter, RMSprop update, clip-norm contribution, index computation) should therefore raise the completed step count at the fixed 1800 s budget by at least 8%. Hypothesis: within a 30-minute budget the n-gram tables cost more in lost dense-model optimizer steps than they return in quality, so the dense-only model at seed 42 reaches a lower public_val_bpb than the same-host control. Supporting but confounded prior: the entire fresh-start lineage and the frozen candidate submissions/dense6x1024_public0992851/train.py run with --no-ngram-ve and score 0.979-0.993 public (fs-w65, fs-w98, fs-w146, CURRENT_STATE.md) versus 1.0057 for the ngram-enabled default; those runs differ in depth/width/eval settings, so they motivate but do not establish the isolated effect this run measures.",
+  "implementation_plan": "",
+  "proposal_id": "20260922-no-ngram-ve-only-default-shape",
+  "single_causal_change": "Pass --no-ngram-ve only. Every other option stays at the 9a4caa7b defaults used by the two pinned controls: identical launch shape (NEURON_LOGICAL_NC_CONFIG=2, torchrun --nproc_per_node=4, --num-steps 5000, --max-train-seconds 1800, --seed 42), identical environment (NEURON_CC_FLAGS exactly '--optlevel=1', NEURON_COMPETITION_R1_SEED=42, PYTHONUNBUFFERED=1), no precision flag, no kernel/compile flag, no optimizer-rule, schedule, batch, evaluation, or other architecture change. No other --ngram-ve-* option is passed. The only behavioral delta is that the hashed n-gram value-embedding tables and their RMSprop optimizer are not constructed or trained; the dense transformer, its optimizer, data order, and evaluator are unchanged. Pre-full inertness check: the candidate's resolved 'ngram_ve' oneliner must read 'False tables=0' and num_params_M must fall from 592.9 to roughly 56 (>=500M fewer); if either does not hold, classify FALSIFIED-INERT without spending the full run. Comparison: same-host pinned control on public_val_bpb at the fixed 1800 s budget (trn21 -> 2071 steps / 1.005734; trn22 -> 2076 steps / 1.005967). Because the hypothesis is explicitly a fixed-budget tradeoff (fewer parameters, more steps), the primary comparison is the fixed-budget public_val_bpb; no matched-step equivalence is claimed. Outcome classes, mutually exclusive, evaluated in order: (1) FALSIFIED-INERT per the pre-full check above; (2) CONFOUNDED-SHORT if candidate steps < 90% of same-host control steps (<1864 trn21, <1869 trn22; experiment-protocol.md section 5 rule; record as throughput regression only); (3) FALSIFIED-THROUGHPUT if steps < +8% of control (<2237 trn21, <2242 trn22): the table-cost mechanism is falsified regardless of BPB; record BPB for information only; (4) SUCCESS if steps >= +8% and public_val_bpb < same-host control by at least 0.002; (5) FALSIFIED-QUALITY if steps >= +8% and public_val_bpb >= same-host control (the tables return more quality than their step cost at this budget); (6) INCONCLUSIVE if steps >= +8% and the BPB improvement is between 0 and 0.002 (within the 0.00023 inter-host control spread plus margin).",
+  "smoke_gate": {
+    "min_candidate_steps": 352,
+    "min_step_rate_ratio": 1.05
+  },
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}

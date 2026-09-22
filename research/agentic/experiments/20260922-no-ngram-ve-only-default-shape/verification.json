@@ -1,0 +1,20 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "The sole flag, --no-ngram-ve, matches the single architectural ablation. Removing the tables and their associated training work is one causal change, not a separate optimizer intervention. Historical ledger rows resolve this flag to 'False tables=0'; the proposed parameter-count and configuration checks guard against an inert switch.",
+    "The pinned control ledger supports the quantitative premise: 592.9M total parameters and four 1048576-by-128 tables, totaling 536.87M parameters. The RMSprop-FP32 smoke completed 316 versus 335 control steps, providing relevant evidence of table-related throughput sensitivity, though not proof of an 8% removal benefit.",
+    "The EMA evidence is overstated: its ledger records start_frac=0.75 and only 45 updates, not an extra pass on every training step. Its 313-versus-334 result is suggestive overhead evidence, not a direct measurement of baseline table-maintenance cost. The independent RMSprop evidence still supports testing the hypothesis.",
+    "No supplied decision-log entry closes the isolated default-shape table-removal direction. The historical dense runs change width, depth, precision, and other settings; the proposal appropriately treats their BPB results as motivation rather than isolated evidence.",
+    "This is competition-legal architecture experimentation under README.md: no pretrained weights, external data, tokenizer changes, or evaluator modifications are proposed.",
+    "The controller-pinned seed-42, full-chip, matched-control experiment can falsify the prediction through completed steps and exact public BPB. Success requires both at least 8% more steps and at least 0.002 lower BPB; throughput alone cannot establish a win. Public BPB remains a proxy, not proof of official-score improvement."
+  ],
+  "llm_verdict": "PASS",
+  "passed": true,
+  "proposal_id": "20260922-no-ngram-ve-only-default-shape",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-22T17:13:04Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}
