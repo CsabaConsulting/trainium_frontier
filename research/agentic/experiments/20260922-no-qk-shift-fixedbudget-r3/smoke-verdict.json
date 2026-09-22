@@ -1,0 +1,25 @@
+{
+  "analyst_prose": "KEEP at smoke tier: correctness gates passed, step rate met the floor, and the candidate is eligible for a full run.\nDisabling QK shift yielded validation BPB of 1.165482 versus 1.165604, a decrease of 0.000122, comfortably within the allowed +0.003 delta.\nBoth runs completed 335 steps, exceeding the 334-step minimum, with identical 592.9M parameter counts.\nCandidate throughput was 1.178747 versus 1.177504 steps/s, approximately 0.106% higher.\nBoth runs passed causality checks with zero maximum absolute error, exited successfully, and stayed within budget and evaluation timeout.\nThe comparison matches source hashes, clean commit, seed, host, compiler settings, and launch shape; QK shift is the only recorded model-option change.\nPotential confounder: the runs occurred roughly ten hours apart, so transient system conditions could explain the tiny throughput difference.\nThis single short comparison establishes smoke eligibility, not a reliable quality or speed advantage.",
+  "decision": "KEEP",
+  "metrics": {
+    "bpb_delta": -0.00012200000000017752,
+    "candidate_bpb": 1.165482,
+    "candidate_params_M": 592.9,
+    "candidate_step_rate": 1.178747361013371,
+    "candidate_steps": 335.0,
+    "control_bpb": 1.165604,
+    "control_params_M": 592.9,
+    "control_step_rate": 1.1775043936731107,
+    "control_steps": 335.0,
+    "smoke_gate": {
+      "max_bpb_delta": 0.003,
+      "min_candidate_steps": 334,
+      "min_step_rate_ratio": 1.0
+    },
+    "step_rate_floor": 1.1775043936731107
+  },
+  "reasons": [
+    "correctness gates passed; step rate within tolerance; eligible for full run"
+  ],
+  "tier": "smoke"
+}
