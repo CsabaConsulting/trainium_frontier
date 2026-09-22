@@ -1,0 +1,20 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "The bounded plan isolates one causal change: BF16 operands at the LM-head projection, followed immediately by FP32 logits. Toggle persistence, logging and offline tests support that change without adding another experimental factor.",
+    "Authoritative train.py supports the dtype premise: FP32 per-block lambda tensors promote the residual stream; default norm() preserves its dtype; Linear.forward ignores a BF16 cache for FP32 input and uses the FP32 master weight. GPT.forward applies the head immediately before vocabulary slicing, float conversion and softcap/CE.",
+    "Repository evidence supports testing an isolated precision boundary: the BF16-SDPA ledger row records 2233 steps and 1.002028 BPB versus trn22 control's 2076 and 1.005967. This is analogous evidence, not a measurement of LM-head cost; parameter counts alone do not establish its runtime share or prove logits are the largest activation.",
+    "The supplied decision log contains no closed LM-head precision direction. This head-only BF16 experiment is materially distinct from the generic full-model FP8 autocast direction closed in CURRENT_STATE.md.",
+    "The plan is competition-legal: edits are confined to train.py, training remains from scratch on provided data, evaluator code is untouched, and checkpoint toggle restoration preserves the same head arithmetic for training and standalone evaluation.",
+    "The expected effect is falsifiable using the controller-pinned seed-42 full-chip matched comparison: at least 2% more steps and at least 0.001 lower public BPB, with explicit inert, quality-failure and confounded outcomes. Exact disabled-path preservation, layout handling, differentiable master-weight routing and checkpoint restoration remain obligations for the separate implementation review; planned CPU checks are not yet completed evidence or proof of native performance."
+  ],
+  "llm_verdict": "PASS",
+  "passed": true,
+  "proposal_id": "20260922-bf16-lm-head-helper-cpu-verified-r4",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-22T19:18:30Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}
