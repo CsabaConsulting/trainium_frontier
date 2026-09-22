@@ -1,0 +1,163 @@
+{
+  "collected": {
+    "checkpoint_bytes": 1297950407,
+    "checkpoint_present": true,
+    "checkpoint_sha256": "c92363c886fcd478266423c73c953954d11a6b76caa85045a900eccd9e18dcf1",
+    "collected_at": "2026-09-22T07:17:30Z",
+    "files": {
+      "done": {
+        "bytes": 56,
+        "local": "/home/poojith-devan/Desktop/Trainium/research/agentic/experiments/20260922-batch-ramp-only-default-shape/artifacts/full/done.json",
+        "remote": "/home/ubuntu/autoloop/launchers/al-20260922-batch-ramp-only-default-shape-full-r1/done.json",
+        "sha256": "a1425160653ac5d326213871d0f214f8ebb0b21dc6f263f54ad61a069fd4a039"
+      },
+      "launch_spec": {
+        "bytes": 1674,
+        "local": "/home/poojith-devan/Desktop/Trainium/research/agentic/experiments/20260922-batch-ramp-only-default-shape/artifacts/full/launch.json",
+        "remote": "/home/ubuntu/autoloop/launchers/al-20260922-batch-ramp-only-default-shape-full-r1/launch.json",
+        "sha256": "90efcc0e6d05de98a141a5d78426b0232c1023dae7f75a30776568e07fcc49a1"
+      },
+      "ledger": {
+        "bytes": 628427,
+        "local": "/home/poojith-devan/Desktop/Trainium/research/agentic/experiments/20260922-batch-ramp-only-default-shape/artifacts/full/experiment-log.jsonl",
+        "remote": "/home/ubuntu/workspace/autoloop_runs/9a4caa7b--20260922-batch-ramp-only-default-shape--al-20260922-batch-ramp-only-default-shape-full-r1/research/experiment-log.jsonl",
+        "sha256": "bcc56dc11dd22e9e0fc8020bcf511bc08fa29a2c0e33ccec5d6a29cfde9d8f3c"
+      },
+      "run_log": {
+        "bytes": 37841,
+        "local": "/home/poojith-devan/Desktop/Trainium/research/agentic/experiments/20260922-batch-ramp-only-default-shape/artifacts/full/al-20260922-batch-ramp-only-default-shape-full-r1.log",
+        "remote": "/home/ubuntu/workspace/autoloop_runs/9a4caa7b--20260922-batch-ramp-only-default-shape--al-20260922-batch-ramp-only-default-shape-full-r1/research/run-logs/al-20260922-batch-ramp-only-default-shape-full-r1.log",
+        "sha256": "3ce9366efe63d741a00e08688e7f80e68658fb8abaa689005b0b3f5edb57166e"
+      },
+      "runner_stdout": {
+        "bytes": 324,
+        "local": "/home/poojith-devan/Desktop/Trainium/research/agentic/experiments/20260922-batch-ramp-only-default-shape/artifacts/full/runner.log",
+        "remote": "/home/ubuntu/autoloop/launchers/al-20260922-batch-ramp-only-default-shape-full-r1/runner.log",
+        "sha256": "f7340c6e73ab245e5a61acf6fd68c9e45511e8740cf0ee56614086c11417b15e"
+      }
+    },
+    "ledger_row": {
+      "batch_ramp": "True grad_accum=(2, 4, 8) bounds=(0.35, 0.75) lr_exp=0.5 ref_grad_accum=4 last_grad_accum=8",
+      "budget_seconds": 1800,
+      "causality_max_abs": 0.0,
+      "causality_passed": true,
+      "charged_seconds_est": 1785.0,
+      "checkpoint_path": "out/al-20260922-batch-ramp-only-default-shape-full-r1/final.pt",
+      "compiled": true,
+      "description": "autoloop 20260922-batch-ramp-only-default-shape full: Pass --batch-ramp only. Nothing else changes: no precision flag, no kernel flag, no optimizer/architecture switch, no --batch-ramp-grad-accum/--batch-ramp-bound flags='--batch-ramp' [trn21] CC='--optlevel=1' seed=42 commit=9a4caa7b",
+      "engram": "False site=-1 orders=2,3 heads=1 tables=0 mult=32 mem_dim=128 e_dim=0 key_dim=0 conv_k=4 share=False bf16=True",
+      "environment": {
+        "NEURON_CC_FLAGS": "--optlevel=1",
+        "NEURON_COMPETITION_R1_SEED": "42",
+        "NEURON_LOGICAL_NC_CONFIG": "2",
+        "PYTHONUNBUFFERED": "1"
+      },
+      "eval_over_timeout": false,
+      "eval_seconds": 9.8,
+      "eval_timeout": 1200,
+      "git_commit": "9a4caa7bfab26c1d1bb59f7ef2bb8c5392d7503a",
+      "git_dirty": false,
+      "hostname": "ip-172-31-34-85",
+      "label": "al-20260922-batch-ramp-only-default-shape-full-r1",
+      "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 1800 --out-dir out/al-20260922-batch-ramp-only-default-shape-full-r1 --batch-ramp --seed 42",
+      "lnc": 2,
+      "max_train_seconds": 1800,
+      "ngram_ve": "True tables=4 rows=1048576 dim=128 index_gather=True trigram=True opt=rmsprop flat_lr=True bf16=True rms_fp32_state_math=False nki_rms=False",
+      "nki_relu2": false,
+      "num_params_M": 592.9,
+      "num_steps": 2397,
+      "oneliners": "relu2_tau=0.0 mlp_sandwich=False head_gate=False hg_norm=True hg_ch=32 hg_mul=2.0 hg_bias=0.0 out_pool=False pool_layers=3 qk_shift=True qk_beta=0.0 qk_freeze=True x0_gate=False block_nudge=False nudge_site=qk qkv_norm_cse=False parallel_block=False par_coalesce=none epoch_shuffle=False epoch_shuffle_seed=1234",
+      "out_bigram": "False bf16=True gate_bias=-2.0 lr=0.0",
+      "over_budget": false,
+      "public_val_bpb": 1.01219,
+      "returncode": 0,
+      "run_log": "research/run-logs/al-20260922-batch-ramp-only-default-shape-full-r1.log",
+      "sched_tricks": "demon_b1=False demon_final=0.55 demon_ref=0.8 demon_start=-1.0 muon_b2=0.9 muon_b2_final=0.0 depth_lr=1.0->1.0 depth_mom=0.0->0.0 depth_mom_ref=0.95",
+      "seq_len": 2048,
+      "solution": "autoloop:20260922-batch-ramp-only-default-shape",
+      "source_dirty": false,
+      "source_sha256": {
+        "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+        "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+        "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c"
+      },
+      "startup_allowance_est": 112.7,
+      "status": "keep",
+      "target_steps": 5000,
+      "timestamp": "2026-09-22T07:14:12+00:00",
+      "total_seconds": 1887.2,
+      "total_tokens_M": 264.9,
+      "training_seconds": 1784.0,
+      "wall_elapsed_seconds": 1912.2,
+      "weight_ema": "False decays=(0.995,) start_frac=0.75 seeded=False updates=0",
+      "world_size": 4
+    },
+    "post_run_dirt_explained": false,
+    "post_run_porcelain": [
+      " M research/experiment-log.jsonl",
+      "?? research/run-logs/al-20260922-batch-ramp-only-default-shape-full-r1.launch.json",
+      "?? research/run-logs/al-20260922-batch-ramp-only-default-shape-full-r1.log"
+    ]
+  },
+  "hostname": "ip-172-31-34-85",
+  "label": "al-20260922-batch-ramp-only-default-shape-full-r1",
+  "ledger_row": {
+    "_dirt_explained": false,
+    "batch_ramp": "True grad_accum=(2, 4, 8) bounds=(0.35, 0.75) lr_exp=0.5 ref_grad_accum=4 last_grad_accum=8",
+    "budget_seconds": 1800,
+    "causality_max_abs": 0.0,
+    "causality_passed": true,
+    "charged_seconds_est": 1785.0,
+    "checkpoint_path": "out/al-20260922-batch-ramp-only-default-shape-full-r1/final.pt",
+    "compiled": true,
+    "description": "autoloop 20260922-batch-ramp-only-default-shape full: Pass --batch-ramp only. Nothing else changes: no precision flag, no kernel flag, no optimizer/architecture switch, no --batch-ramp-grad-accum/--batch-ramp-bound flags='--batch-ramp' [trn21] CC='--optlevel=1' seed=42 commit=9a4caa7b",
+    "engram": "False site=-1 orders=2,3 heads=1 tables=0 mult=32 mem_dim=128 e_dim=0 key_dim=0 conv_k=4 share=False bf16=True",
+    "environment": {
+      "NEURON_CC_FLAGS": "--optlevel=1",
+      "NEURON_COMPETITION_R1_SEED": "42",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "eval_over_timeout": false,
+    "eval_seconds": 9.8,
+    "eval_timeout": 1200,
+    "git_commit": "9a4caa7bfab26c1d1bb59f7ef2bb8c5392d7503a",
+    "git_dirty": false,
+    "hostname": "ip-172-31-34-85",
+    "label": "al-20260922-batch-ramp-only-default-shape-full-r1",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 1800 --out-dir out/al-20260922-batch-ramp-only-default-shape-full-r1 --batch-ramp --seed 42",
+    "lnc": 2,
+    "max_train_seconds": 1800,
+    "ngram_ve": "True tables=4 rows=1048576 dim=128 index_gather=True trigram=True opt=rmsprop flat_lr=True bf16=True rms_fp32_state_math=False nki_rms=False",
+    "nki_relu2": false,
+    "num_params_M": 592.9,
+    "num_steps": 2397,
+    "oneliners": "relu2_tau=0.0 mlp_sandwich=False head_gate=False hg_norm=True hg_ch=32 hg_mul=2.0 hg_bias=0.0 out_pool=False pool_layers=3 qk_shift=True qk_beta=0.0 qk_freeze=True x0_gate=False block_nudge=False nudge_site=qk qkv_norm_cse=False parallel_block=False par_coalesce=none epoch_shuffle=False epoch_shuffle_seed=1234",
+    "out_bigram": "False bf16=True gate_bias=-2.0 lr=0.0",
+    "over_budget": false,
+    "public_val_bpb": 1.01219,
+    "returncode": 0,
+    "run_log": "research/run-logs/al-20260922-batch-ramp-only-default-shape-full-r1.log",
+    "sched_tricks": "demon_b1=False demon_final=0.55 demon_ref=0.8 demon_start=-1.0 muon_b2=0.9 muon_b2_final=0.0 depth_lr=1.0->1.0 depth_mom=0.0->0.0 depth_mom_ref=0.95",
+    "seq_len": 2048,
+    "solution": "autoloop:20260922-batch-ramp-only-default-shape",
+    "source_dirty": false,
+    "source_sha256": {
+      "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+      "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+      "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c"
+    },
+    "startup_allowance_est": 112.7,
+    "status": "keep",
+    "target_steps": 5000,
+    "timestamp": "2026-09-22T07:14:12+00:00",
+    "total_seconds": 1887.2,
+    "total_tokens_M": 264.9,
+    "training_seconds": 1784.0,
+    "wall_elapsed_seconds": 1912.2,
+    "weight_ema": "False decays=(0.995,) start_frac=0.75 seeded=False updates=0",
+    "world_size": 4
+  },
+  "manifest_id": "20260922-batch-ramp-only-default-shape--full--al-20260922-batch-ramp-only-default-shape-full-r1",
+  "returncode": 0
+}

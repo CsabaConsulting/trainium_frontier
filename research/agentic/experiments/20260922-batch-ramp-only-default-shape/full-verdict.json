@@ -1,0 +1,19 @@
+{
+  "analyst_prose": "The full-tier verdict is CONFOUNDED.\nThe batch-ramp candidate scored 1.012190 BPB versus 1.005734 for control, an observed worsening of 0.006456 BPB (lower is better).\nThe named confounder is step count: 2,397 versus 2,071, about 15.7% more steps, exceeding the 10% tolerance.\nStep rates were 1.344 versus 1.160 steps/second under nearly identical training times of about 1,784 seconds.\nBatch ramp changed gradient accumulation; more steps did not mean more tokens (264.9M versus 271.5M).\nBoth runs used 592.9M parameters, the same seed, commit, source hashes, and hardware configuration.\nBoth passed causality checks and stayed within the charged budget, but the step mismatch prevents an unconfounded attribution of the BPB difference to batch ramp.",
+  "decision": "CONFOUNDED",
+  "metrics": {
+    "bpb_delta": 0.006456000000000017,
+    "candidate_bpb": 1.01219,
+    "candidate_params_M": 592.9,
+    "candidate_step_rate": 1.343609865470852,
+    "candidate_steps": 2397.0,
+    "control_bpb": 1.005734,
+    "control_params_M": 592.9,
+    "control_step_rate": 1.1603541012998655,
+    "control_steps": 2071.0
+  },
+  "reasons": [
+    "steps differ by more than 10% (2397.0 vs 2071.0)"
+  ],
+  "tier": "full"
+}
