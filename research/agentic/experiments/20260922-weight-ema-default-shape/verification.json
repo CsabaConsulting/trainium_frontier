@@ -1,0 +1,18 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "The single flag is causally isolated: both pinned control ledger rows record weight_ema=False, decay 0.995, start_frac 0.75, and zero updates. Enabling averaging of in-run weights is competition-legal and requires no evaluator, data, or pretrained-weight changes.",
+    "The novelty claim contradicts authoritative train.py lines 293\u2013297, which document a prior 400-second EMA experiment using decay 0.995 and start_frac 0.75 that worsened BPB by 0.0168. This does not establish that the full-budget direction is closed, but the proposal must acknowledge that negative evidence and explain why a roughly 500-update tail could overcome the documented averaging lag. Absence from the supplied ledger excerpt does not establish that EMA was never tested.",
+    "train.py lines 301\u2013305 and 6223\u20136228 describe saving both raw and EMA weights, evaluating both, and preferring ema_state when present. Align the mechanism description with that behavior. The supplied evidence does not establish the claimed single fused update over 593M FP32 parameters; the control ledger explicitly records BF16 n-gram tables. Treat implementation cost and unchanged training trajectory as hypotheses rather than established facts.",
+    "The public-BPB improvement and throughput predictions are falsifiable under the controller's matched seed-42 full-chip comparison. Correct the host-relative arithmetic: a 2% step-loss limit requires at least 2030 steps on trn21 but 2035 on trn22; the minimum step counts avoiding a greater-than-10% shortfall are 1864 and 1869 respectively. Specify how comparable runs missing the stricter throughput target are classified."
+  ],
+  "llm_verdict": "NEEDS_WORK",
+  "passed": false,
+  "proposal_id": "20260922-weight-ema-default-shape",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-22T06:21:16Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}

@@ -1,0 +1,47 @@
+{
+  "abort_conditions": [
+    "Pre-launch static check of train.py at 9a4caa7b shows the --weight-ema path does not swap EMA weights into the final public evaluation/checkpoint (i.e. EMA is tracked but never evaluated) -> proposal is a no-op; do not launch, return to Researcher.",
+    "Run log's final weight_ema line reports updates=0 or start_frac never reached under the 1800 s budget -> EMA never engaged; classify as invalid/no-op, not as a negative result.",
+    "Launch environment differs from the control in any way other than the added flag (NEURON_CC_FLAGS must be exactly '--optlevel=1', NEURON_LOGICAL_NC_CONFIG=2, nproc 4, seed 42, --num-steps 5000, --max-train-seconds 1800, same eval settings) -> abort before launch.",
+    "Non-finite loss or NaN in EMA parameters at any logged step -> abort and record as crash.",
+    "causality_passed=false or missing final checkpoint -> record as failed gate, no BPB comparison.",
+    "num_steps < 1864 (more than 10% below the same-host control) -> record as throughput regression; BPB comparison is confounded and the EMA cost hypothesis is falsified.",
+    "Smoke stage (300 s) shows step rate more than 5% below the same-host smoke control (334/335 steps) -> stop; per-step EMA cost is larger than predicted."
+  ],
+  "change_type": "flags",
+  "created_at": "2026-09-22T06:21:16Z",
+  "duplicate_search_terms": [
+    "weight-ema",
+    "weight_ema",
+    "--weight-ema",
+    "weight-ema-decay",
+    "weight-ema-start-frac",
+    "ema",
+    "EMA",
+    "polyak",
+    "weight averaging",
+    "swa",
+    "stochastic weight averaging",
+    "averaged weights",
+    "tail averaging"
+  ],
+  "evidence": [
+    "research/experiment-log.jsonl row al-20260922-control-trn21-lnc2x4-9a4caa7b-full-r1 (commit 9a4caa7b, seed 42, LNC2 x4, CC='--optlevel=1'): public_val_bpb 1.005734, num_steps 2071, resolved 'weight_ema: False decays=(0.995,) start_frac=0.75 seeded=False updates=0' -> establishes that the control's effective default is EMA OFF with zero EMA updates.",
+    "research/experiment-log.jsonl row al-20260922-control-trn22-lnc2x4-9a4caa7b-full-r1: public_val_bpb 1.005967, num_steps 2076, identical resolved weight_ema=False/updates=0 line -> same-host matched control for trn22.",
+    "train.py argparse at 9a4caa7b exposes --weight-ema / --no-weight-ema / --weight-ema-decay / --weight-ema-start-frac (available-flags list supplied by controller), so the mechanism exists in the pinned commit and requires no code edit.",
+    "Every supplied ledger row (fs-w*, sub1-*, autoloop controls) prints weight_ema=False updates=0: no run in the supplied ledger or DECISION_LOG.md has ever exercised this flag, at any commit or shape, so this is an untested, isolated lever rather than a re-run.",
+    "research/experiment-protocol.md section 5: quality comparison requires comparable step counts (>10% short = confounded) and same-box/same-day/same-code rate comparison; the design below pins the same-host control and the exact environment CC='--optlevel=1'.",
+    "CURRENT_STATE.md 'Do not reopen' list (attention redesign, full-model autocast FP8, Vector-engine square, compiler-SBUF placement, width1152, library-MLP compositions) does not include weight averaging; this proposal touches none of the parked directions."
+  ],
+  "expected_effect": "Direction: lower public val_bpb. Size: candidate public_val_bpb <= same-host control - 0.002 (i.e. <= 1.0037 on trn21 vs 1.005734, or <= 1.0040 on trn22 vs 1.005967), with predicted range -0.002 to -0.006. Throughput: num_steps within 2% of the same-host control (>= 2030). Success = bpb improvement >= 0.002 with steps >= 2030. Falsified = steps >= 2030 and bpb >= control - 0.001 (EMA gives nothing over the last iterate under the existing schedule). Inconclusive band = improvement between 0.001 and 0.002 (within seed/host noise, record as null). Confounded = steps < 1864 (>10% short per protocol section 5). Official private-shard BPB is expected to move in the same direction but is not directly observed; only the public_val_bpb comparison is scored here.",
+  "files_allowed": [],
+  "flags": [
+    "--weight-ema"
+  ],
+  "hypothesis": "At the pinned default shape the evaluated model is the raw last iterate of a ~2070-step Muon run (weight_ema=False, updates=0 in both control ledger rows). Enabling the existing in-repo exponential moving average of weights (decay 0.995, engaged over the final 25% of the time budget, ~500 updates) will evaluate a smoothed parameter average instead of the noisy last iterate, lowering public val_bpb by roughly 0.002-0.006 while leaving the training trajectory, optimizer, precision, data, and step count unchanged (EMA is an off-trajectory read-only average; its per-step cost is one fused elementwise update over 593M FP32 parameters during the last quarter only, predicted <2% step loss).",
+  "implementation_plan": "",
+  "proposal_id": "20260922-weight-ema-default-shape",
+  "single_causal_change": "Add --weight-ema only. Every other option stays at the 9a4caa7b defaults used by the two pinned controls (no precision flag, no kernel flag, no optimizer/schedule/shape change). --weight-ema-decay and --weight-ema-start-frac are NOT passed; their resolved defaults are already recorded in the control rows as decays=(0.995,) start_frac=0.75, so the only behavioral delta is the EMA being enabled and used at evaluation.",
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}
