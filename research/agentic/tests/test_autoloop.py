@@ -571,6 +571,25 @@ class BedrockTransportTests(unittest.TestCase):
                 system="system", user="evidence", max_tokens=4096,
             )
 
+    def test_premature_stream_end_is_a_model_error(self):
+        from urllib3.exceptions import ProtocolError
+
+        class FakeClient:
+            def converse_stream(self, **_kwargs):
+                def events():
+                    yield {"messageStart": {"role": "assistant"}}
+                    raise ProtocolError("Response ended prematurely")
+
+                return {"stream": events()}
+
+        bedrock = BedrockClient.__new__(BedrockClient)
+        bedrock._client = FakeClient()
+        with self.assertRaisesRegex(ModelError, "researcher call failed: Response ended prematurely"):
+            bedrock.complete(
+                role="researcher", model_id="us.anthropic.claude-fable-5-1",
+                system="system", user="evidence", max_tokens=4096,
+            )
+
 
 class ImplementerTests(unittest.TestCase):
     def test_isolated_code_change_requires_independent_pass_and_commits_only_train_py(self):
@@ -795,8 +814,30 @@ class LoopTests(unittest.TestCase):
         env.model.replies["verifier"].append('{"verdict":"PASS","findings":[]}')
         ctl.cycle()
         researcher_call = env.model.calls.index("researcher")
-        self.assertEqual(env.model.max_tokens[researcher_call], 64000)
+        self.assertEqual(env.model.max_tokens[researcher_call], 32000)
         self.assertIn("Do not require named pre-edit", env.model.systems["researcher"][0])
+
+    def test_research_ledger_view_is_recent_and_bounded(self):
+        env = self.env
+        rows = []
+        for i in range(100):
+            rows.append(json.dumps({
+                "timestamp": f"2026-09-22T{i // 60:02d}:{i % 60:02d}:00+00:00",
+                "label": f"candidate-{i:03d}",
+                "status": "ok",
+                "public_val_bpb": 1.2 - i / 10000,
+                "num_steps": 1000 + i,
+                "launch_command": "torchrun train.py " + "x" * 5000,
+                "description": "d" * 5000,
+            }))
+        C.LOCAL_LEDGER.write_text("\n".join(rows) + "\n")
+
+        summary = env.controller()._ledger_summary(200)
+        lines = summary.splitlines()
+        self.assertEqual(len(lines), 60)
+        self.assertLess(len(summary), 60000)
+        self.assertIn("candidate-099", summary)
+        self.assertNotIn("candidate-039", summary)
 
     def test_relevant_train_evidence_contains_flag_definition(self):
         ctl = self.env.controller()

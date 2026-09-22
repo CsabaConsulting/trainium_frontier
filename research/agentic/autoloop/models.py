@@ -86,6 +86,7 @@ class BedrockClient:
 
     def complete(self, *, role: str, model_id: str, system: str, user: str, max_tokens: int) -> ModelReply:
         from botocore.exceptions import BotoCoreError, ClientError
+        from urllib3.exceptions import ProtocolError
 
         try:
             resp = self._client.converse_stream(
@@ -123,7 +124,7 @@ class BedrockClient:
                     usage = event["metadata"].get("usage", {})
         except ModelError as exc:
             raise ModelError(f"{role} call failed: {exc}") from exc
-        except (BotoCoreError, ClientError) as exc:
+        except (BotoCoreError, ClientError, ProtocolError) as exc:
             raise ModelError(f"{role} call failed: {exc}") from exc
         return ModelReply(
             text="".join(chunks).strip(),

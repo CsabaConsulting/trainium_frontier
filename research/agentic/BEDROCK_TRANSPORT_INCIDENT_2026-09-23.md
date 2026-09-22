@@ -19,7 +19,7 @@ The working diagnosis is that a long non-streaming response left the HTTP connec
 enough for an intermediary to close it. This is an inference from the timing and socket evidence;
 it is not presented as an AWS service root-cause determination.
 
-## Repair
+## Repair iterations
 
 `research/agentic/autoloop/models.py` now uses Bedrock `ConverseStream` and:
 
@@ -28,10 +28,22 @@ it is not presented as an AWS service root-cause determination.
 - fails closed on every modeled stream error event; and
 - preserves the existing structured-response validation boundary.
 
+The first full streamed call (cycle 154) showed that Fable emitted no event before the connection's
+approximately five-minute idle cutoff. Its `urllib3.ProtocolError` also escaped the original
+botocore-only exception boundary and terminated the local service. The follow-up repair therefore:
+
+- converts premature HTTP stream termination into the same recoverable `ModelError` path;
+- bounds the model-facing ledger view to 60 recent compact rows while retaining the full ledger on
+  disk;
+- bounds verbose rejection fields while retaining their proposal ids and verifier findings; and
+- reduces the researcher output cap from 64K to 32K tokens. A prior 16K cap was insufficient, so
+  32K retains explicit reasoning headroom while reducing time-to-first-output pressure.
+
 ## Verification
 
-- `python -m unittest discover -s research/agentic/tests -v`: 37 tests passed, including two new
-  stream transport tests.
+- `python -m unittest discover -s research/agentic/tests -v`: the complete offline suite passes,
+  including streamed text, modeled stream error, premature stream termination, and bounded evidence
+  tests.
 - A live request through the patched `BedrockClient` returned exactly `BEDROCK_STREAM_OK` with
   `input_tokens=37`, `output_tokens=16`, and `stop_reason=end_turn`.
 

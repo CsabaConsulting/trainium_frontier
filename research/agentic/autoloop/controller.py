@@ -68,6 +68,20 @@ control ledger rows. Write at most 12 lines of plain prose explaining the compar
 confounder. You may not change the decision. Return plain text."""
 
 
+def _clip_text(value, max_chars: int) -> str:
+    """Bound model context fields without changing the durable source artifact."""
+    text = str(value)
+    if len(text) <= max_chars:
+        return text
+    return text[: max_chars - 1] + "…"
+
+
+def _clip_findings(value, *, max_items: int = 3, max_chars: int = 350) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    return [_clip_text(item, max_chars) for item in value[:max_items]]
+
+
 @dataclass
 class CycleReport:
     started_at: str
@@ -615,7 +629,8 @@ class Controller:
         report.add(f"implement: {prop.proposal_id} PASS commit={result.candidate_commit[:12]}")
         return True
 
-    def _ledger_summary(self, limit: int = 120) -> str:
+    def _ledger_summary(self, limit: int = 60) -> str:
+        """Return a bounded recent-outcome view; the complete ledger remains authoritative on disk."""
         rows = []
         for l in self.all_ledgers():
             rows.extend(l.rows)
@@ -624,11 +639,14 @@ class Controller:
         keys = (
             "timestamp", "label", "git_commit", "status", "public_val_bpb", "num_steps",
             "world_size", "lnc", "seq_len", "num_params_M", "compiled", "causality_passed",
-            "launch_command", "environment", "description", "oneliners", "ngram_ve",
-            "out_bigram", "engram", "sched_tricks", "batch_ramp", "weight_ema",
         )
-        for r in rows[:limit]:
-            out.append(json.dumps({k: r.get(k) for k in keys if r.get(k) is not None}))
+        for r in rows[: min(max(limit, 0), 60)]:
+            compact = {k: r.get(k) for k in keys if r.get(k) is not None}
+            if r.get("launch_command"):
+                compact["launch_command"] = _clip_text(r["launch_command"], 480)
+            if r.get("description"):
+                compact["description"] = _clip_text(r["description"], 240)
+            out.append(json.dumps(compact))
         return "\n".join(out)
 
     def _recent_rejection_feedback(self, limit: int = 5) -> str:
@@ -646,14 +664,16 @@ class Controller:
             rows.append(json.dumps({
                 "proposal_id": pid,
                 "change_type": proposal.get("change_type"),
-                "single_causal_change": proposal.get("single_causal_change"),
+                "single_causal_change": _clip_text(proposal.get("single_causal_change", ""), 700),
                 "flags": proposal.get("flags", []),
-                "implementation_plan": proposal.get("implementation_plan", ""),
+                "implementation_plan": _clip_text(proposal.get("implementation_plan", ""), 1000),
                 "proposal_verifier_verdict": verification.get("llm_verdict"),
-                "proposal_verifier_findings": verification.get("llm_findings", []),
-                "deterministic_findings": verification.get("deterministic_findings", []),
+                "proposal_verifier_findings": _clip_findings(verification.get("llm_findings", [])),
+                "deterministic_findings": _clip_findings(verification.get("deterministic_findings", [])),
                 "implementation_verifier_verdict": implementation.get("verifier_verdict"),
-                "implementation_verifier_findings": implementation.get("verifier_findings", []),
+                "implementation_verifier_findings": _clip_findings(
+                    implementation.get("verifier_findings", [])
+                ),
             }))
         return "\n".join(rows) if rows else "(none yet)"
 
@@ -762,10 +782,11 @@ class Controller:
         )
         reply = None
         try:
-            # Fable uses an always-on reasoning budget.  The 2026-09-22 live call consumed all
-            # 16,000 output tokens in hidden reasoning and returned empty text, so the structured
-            # answer needs enough headroom to exist after reasoning completes.
-            reply = self.model.complete(role="researcher", model_id=self.cfg.researcher_model_id, system=RESEARCHER_SYSTEM, user=user, max_tokens=64000)
+            # Fable uses an always-on reasoning budget. A 16K cap returned empty text, while 64K
+            # plus an oversized evidence view exceeded the observed five-minute idle connection
+            # window. The bounded context and 32K cap retain reasoning headroom without inviting
+            # another transport-length failure.
+            reply = self.model.complete(role="researcher", model_id=self.cfg.researcher_model_id, system=RESEARCHER_SYSTEM, user=user, max_tokens=32000)
             self._record_usage("researcher", reply)
             data = parse_json_block(reply.text)
         except ModelError as exc:
