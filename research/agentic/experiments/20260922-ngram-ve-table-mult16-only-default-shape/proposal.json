@@ -1,0 +1,56 @@
+{
+  "abort_conditions": [
+    "Smoke resolved ngram_ve oneliner still shows rows=1048576, or num_params_M unchanged at 592.9 (flag inert) -> FALSIFIED-INERT, no full run",
+    "Smoke resolved rows != 524288 and num_params_M outside 308-340M (equal-budget comparison to dim64 void) -> stop and re-derive the mult value; do not run full",
+    "Smoke steps < 1.02x same-host control smoke steps (i.e. < 341 on trn21 / 342 on trn22): throughput mechanism absent, do not run full",
+    "Smoke public_val_bpb > same-host control smoke + 0.003 (1.1689 trn21 / 1.1686 trn22): collision cost too large at equal time, do not run full",
+    "Any causality_passed=false, NaN loss, compile failure, or git_dirty=True",
+    "Full-run steps < 90% of same-host control -> CONFOUNDED-SHORT, record only",
+    "Any hygiene failure per experiment-protocol.md section 1 (non-idle box, <5G disk, stray device holders, commit mismatch)"
+  ],
+  "change_type": "flags",
+  "created_at": "2026-09-22T18:07:03Z",
+  "duplicate_search_terms": [
+    "ngram-ve-table-mult",
+    "table_mult",
+    "table-mult",
+    "rows=524288",
+    "ngram rows",
+    "hash table size",
+    "ngram_ve rows",
+    "ngram-ve-dim 64",
+    "ngram-ve-dim64",
+    "no-ngram-ve",
+    "ngram collisions",
+    "engram-table-mult",
+    "value embedding table",
+    "ngram_ve tables=4"
+  ],
+  "evidence": [
+    "research/experiment-log.jsonl: al-20260922-control-trn21-lnc2x4-9a4caa7b-full-r1 (2071 steps, 1.005734, num_params_M 592.9, ngram_ve 'True tables=4 rows=1048576 dim=128 ... bf16=True rms_fp32_state_math=False nki_rms=False')",
+    "research/experiment-log.jsonl: al-20260922-control-trn22-lnc2x4-9a4caa7b-full-r1 (2076 steps, 1.005967, same resolved ngram_ve)",
+    "research/experiment-log.jsonl: al-20260922-no-ngram-ve-only-default-shape-full-r1 (2548 steps, 1.026131, num_params_M 55.7) -> tables = 537.2M params and cost ~19% of step time, worth ~0.020 BPB",
+    "research/experiment-log.jsonl: al-20260922-ngram-ve-dim64-only-default-shape-smoke-r1 (355 steps vs control smoke 335, 1.163309 vs 1.165604, num_params_M 324.3) -> halving table params recovers ~6% steps with no smoke quality loss",
+    "research/experiment-log.jsonl: al-20260922-bf16-sdpa-input-only-default-shape-full-r1 (2233 steps, 1.002028, KEEP) -> at this budget a +7.6% step gain with neutral numerics translated into -0.004 BPB, establishing the step-starved regime",
+    "research/agentic/DECISION_LOG.md 2026-09-22 rows: no prior run at this commit varies ngram-ve table rows/table_mult; the ngram-ve arms run so far are --no-ngram-ve (CONFOUNDED), --ngram-rms-fp32 (DISCARD smoke), --ngram-ve-dim 64 (smoke only)",
+    "research/experiment-protocol.md section 5: quality comparisons require comparable step counts; >10% short is CONFOUNDED; same-box same-day rate comparisons",
+    "Arithmetic: 4 x 1048576 x 128 = 536.9M = 592.9M - 55.7M (within rounding), confirming tables=4 x rows x dim; 4 x 524288 x 128 = 268.4M -> expected num_params_M ~324.3, matching the dim64 arm"
+  ],
+  "expected_effect": "Fixed 1800 s budget on the same host: step count +4% to +7% vs control (roughly 2150-2220 steps vs 2071/2076), public_val_bpb lower than the same-host control by 0.001 to 0.004 (target ~1.002-1.005 vs 1.0057/1.0060). Falsified if steps rise >= +2% but BPB is not lower (collision cost dominates), or if steps do not rise (>-2%..+2%) and BPB is not lower (row count does not drive table cost).",
+  "files_allowed": [],
+  "flags": [
+    "--ngram-ve-table-mult",
+    "16"
+  ],
+  "hypothesis": "The hashed n-gram value-embedding tables dominate both parameter count and a large share of step time at the pinned defaults: the control has 592.9M params of which 4 tables x 1048576 rows x 128 dim = 536.9M are table entries (control num_params_M=592.9 vs 55.7 with --no-ngram-ve), and removing them raises the fixed-budget step count from 2071 to 2548 (+23%) while costing +0.020 BPB (al-20260922-no-ngram-ve-only-default-shape-full-r1). Halving the table parameter budget along the dim axis (--ngram-ve-dim 64, 324.3M params) already recovered +6% steps in smoke (355 vs 335) with equal-or-better smoke BPB (1.163309 vs 1.165604). Hypothesis: the per-step table cost is driven mainly by the dense per-parameter work (dense gradient materialization, all-reduce, RMSProp state update), which scales with rows x dim, so halving rows via --ngram-ve-table-mult 16 (expected rows 524288, same 324.3M total params as dim64) should recover a comparable +4% to +7% step count at fixed 1800 s. Because hashed-table capacity degrades gracefully under 2x more collisions, the quality-per-step loss is expected to be smaller than the gain from extra optimizer steps in this step-starved regime, yielding lower public_val_bpb than the same-host control. This is stated as a hypothesis; the run also disentangles whether n-gram VE cost is per-token (dim-driven) or per-parameter (rows x dim-driven) by comparison with the dim64 arm.",
+  "implementation_plan": "",
+  "proposal_id": "20260922-ngram-ve-table-mult16-only-default-shape",
+  "single_causal_change": "Pass --ngram-ve-table-mult 16 only. Every other option stays at the 9a4caa7b defaults used by the two pinned controls: identical launch shape (NEURON_LOGICAL_NC_CONFIG=2, torchrun --standalone --nproc_per_node=4, --num-steps 5000, --max-train-seconds 1800, --seed 42), identical environment (NEURON_CC_FLAGS exactly '--optlevel=1', NEURON_COMPETITION_R1_SEED=42, PYTHONUNBUFFERED=1), no precision flag (no --bf16-sdpa-input, --bf16-norm-output, --ngram-rms-fp32), no kernel or compile flag, no optimizer/schedule/batch/architecture/evaluation change, and no other ngram-ve option (--ngram-ve-dim stays 128, trigram stays True, opt stays rmsprop, bf16 stays True). The only behavioral delta is the number of hashed rows per n-gram table: the control resolves ngram_ve 'tables=4 rows=1048576 dim=128'; the candidate must resolve 'tables=4 rows=524288 dim=128' with num_params_M approximately 324.3 (identical table budget to the dim64 arm, allocated to rows instead of dim). Pre-full check (from the smoke run's resolved ngram_ve oneliner and num_params_M): if rows is still 1048576 or num_params_M is unchanged at 592.9, classify FALSIFIED-INERT and do not spend the full run; if rows resolves to some other value than 524288, record the resolved value and continue only if num_params_M is within 5% of 324.3M (the equal-budget comparison to dim64 is otherwise void). Comparison: same-host pinned control on public_val_bpb (trn21 -> 2071 steps / 1.005734; trn22 -> 2076 steps / 1.005967). Outcome classes, mutually exclusive, evaluated in order: (1) FALSIFIED-INERT as defined above; (2) CONFOUNDED-SHORT if candidate steps < 90% of same-host control steps (<1864 trn21, <1869 trn22; experiment-protocol.md section 5 rule; record as throughput regression only); (3) EXCESS-GAIN-REVIEW if candidate steps > +10% of control (>2278 trn21, >2283 trn22): record throughput and BPB, and require a matched-step sanity check before any quality claim (the controller's symmetric 10% rule, as applied to the batch-ramp and no-ngram-ve arms); (4) FALSIFIED-NO-THROUGHPUT if steps are within +/-2% of control and public_val_bpb >= control (row count does not drive table cost and gives no quality gain); (5) SUCCESS if public_val_bpb < same-host control by at least 0.001 with steps >= control; (6) FALSIFIED-QUALITY if steps >= +2% and public_val_bpb >= control (collision cost outweighs the extra steps); (7) INCONCLUSIVE otherwise (|delta BPB| < 0.001 or step gain between 0% and +2% with lower BPB). Secondary, non-verdict analysis: compare against the dim64 full arm when available to attribute cost to rows vs dim at equal parameter budget.",
+  "smoke_gate": {
+    "max_bpb_delta": 0.003,
+    "min_candidate_steps": 340,
+    "min_step_rate_ratio": 1.02
+  },
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}

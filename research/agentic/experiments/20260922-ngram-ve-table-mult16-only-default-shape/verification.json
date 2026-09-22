@@ -1,0 +1,18 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "The sole flag does not implement the stated causal change. Authoritative train.py lines 697\u2013730 set NGRAM_VE_TABLE_MULT=128 and define rows=mult\u00d78192; lines 5901\u20135916 confirm this CLI behavior. --ngram-ve-table-mult 16 therefore produces 131072 rows, an eightfold reduction, not 524288 rows. Its expected total is roughly 123.1M parameters, so the proposal's own shape/parameter gate would stop it before the full run. Halving rows requires mult=64.",
+    "Relevant prior negative evidence is omitted. train.py records the two-injection-site mult64 versus mult128 comparison: 2187 steps/1.005973 BPB versus 2135 steps/1.004363 BPB, with mult128 also better step-matched. Reconcile this evidence and explain the new causal rationale before proposing mult64; the supplied decision-log excerpt alone does not establish that table-row reduction is unexplored.",
+    "The cited ledger supports investigating table cost: dim64 achieved 355 smoke steps and 1.163309 BPB versus 335 and 1.165604 for control. However, no-ngram-ve is explicitly CONFOUNDED in DECISION_LOG.md, and train.py reports substantial forward-gather cost. These support a hypothesis, not established attribution to dense per-parameter work or an isolated 0.020-BPB table benefit.",
+    "The proposal otherwise changes one factor, uses a competition-permitted model-capacity adjustment without external assets or evaluator changes, and specifies measurable throughput and public-BPB outcomes against the matched seed-42 full-chip control. Correcting the flag/shape mismatch and addressing prior row-capacity evidence would make the intended experiment reviewable."
+  ],
+  "llm_verdict": "NEEDS_WORK",
+  "passed": false,
+  "proposal_id": "20260922-ngram-ve-table-mult16-only-default-shape",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-22T18:07:03Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}
