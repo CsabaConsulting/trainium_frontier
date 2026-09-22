@@ -1,0 +1,20 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "The plan isolates one causal change: BF16 conversion of the MLP-input norm result, with downstream MLP precision propagation explicitly acknowledged. Toggle plumbing, checkpoint persistence and one logging field support that change; no optimizer, schedule, data or evaluator edits are proposed.",
+    "Authoritative train.py supports the default-path mechanism: Block.forward calls self.mlp(norm(x)) after FP32 residual operations; norm() preserves input dtype when USE_BF16_NORM_OUTPUT=False; Linear.forward selects weights matching its input dtype. The existing global policy casts to torch.bfloat16.",
+    "The cited ledger measurements are corroborated: global BF16 norm output achieved 2716 steps / 1.016279 versus 2071 / 1.005734, while isolated BF16 SDPA input achieved 2233 / 1.002028 versus 2076 / 1.005967. DECISION_LOG.md contains no closed MLP-input-only precision experiment; this is a narrower ablation, not repetition of the global policy.",
+    "The implementation is bounded to train.py and requires only static inspection before editing. Runtime, compilation, numerical-health and causality checks are assigned to smoke. Exact-patch review must preserve the scope: the parallel path's shared h=norm(x) also feeds attention and must not be cast in place under this MLP-only policy.",
+    "The change is competition-legal as proposed: training remains from scratch on provided data, scoring is untouched, and the saved toggle restores the candidate's arithmetic for standalone evaluation. The controller-pinned seed-42 full-chip comparison is falsifiable through explicit step-count and fixed-budget public-BPB thresholds.",
+    "The attribution to final-head precision and data replay remains speculative, not established by these aggregate runs. Also, 521 steps beyond 2195 out of 2716 is approximately 19%, not 24%. Neither issue invalidates the isolated experiment; its outcome can establish net fixed-budget benefit, not uniquely identify the cause of the global policy's regression."
+  ],
+  "llm_verdict": "PASS",
+  "passed": true,
+  "proposal_id": "20260922-bf16-mlp-input-norm-only",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-22T20:34:55Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}
