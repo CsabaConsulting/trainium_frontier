@@ -1,0 +1,20 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "The bounded plan isolates one causal change: BF16 operands at the LM-head projection with immediate FP32 logits restoration. Toggle plumbing, checkpoint persistence and dtype logging support that change; the original disabled path and downstream loss/evaluation code remain unchanged.",
+    "Repository evidence supports testing an isolated precision boundary: the BF16-SDPA ledger row and DECISION_LOG.md record 2233 steps / 1.002028 BPB versus the trn22 control's 2076 / 1.005967. Fresh-start BF16-autocast rows provide supporting feasibility evidence, not a matched demonstration of head-only quality preservation.",
+    "The head's actual FP32 execution and runtime dominance remain hypotheses, not established profiling results. Mandatory STEP 0 inspection, the HALT-INERT condition, operand dtype logging and whole-training smoke gates make these assumptions checkable; exact gradient routing and cache behavior remain for independent implementation review.",
+    "No supplied decision-log entry closes head-only BF16 projection. This is distinct from the closed generic full-model FP8 direction and does not stack the existing BF16-SDPA KEEP.",
+    "The proposed train.py-only numerical change is competition-legal: no pretrained weights, external data, tokenizer changes or evaluator modifications, and checkpoint restoration preserves the same model precision policy for training and evaluation.",
+    "The expected fixed-budget effect is falsifiable against the controller-matched seed-42 full-chip control: explicit step-count and public-BPB thresholds distinguish improvement, inertness, quality regression and inconclusive outcomes. Large throughput deviations require additional attribution checks rather than an automatic quality claim."
+  ],
+  "llm_verdict": "PASS",
+  "passed": true,
+  "proposal_id": "20260922-bf16-lm-head-two-operand-r3",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-22T18:53:10Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}

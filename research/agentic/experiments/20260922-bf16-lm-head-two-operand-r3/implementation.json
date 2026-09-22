@@ -1,0 +1,16 @@
+{
+  "branch": "autoloop/20260922-bf16-lm-head-two-operand-r3",
+  "candidate_commit": null,
+  "deterministic_findings": [],
+  "diff_sha256": "390512b470ab1fede9a6ffc8884e40db1887c00f0ca9b4ef5242531b331a5a70",
+  "implemented_at": "2026-09-22T18:53:49Z",
+  "implementer_model_id": "us.anthropic.claude-fable-5-1",
+  "passed": false,
+  "verifier_findings": [
+    "The patch appears confined to one causal change: differentiable BF16 casts of both LM-head operands, followed by an immediate FP32 logits cast. The disabled branch preserves the original call; no data, tokenizer, evaluator, external-data, pretrained, or evaluation-budget changes are visible.",
+    "Mandatory evidence is missing. The unqualified deterministic-check PASS does not supply the pre-edit STEP 0 analysis, disabled-path demonstration, or quoted checkpoint save/load_for_eval paths proving toggle restoration and causal evaluation parity.",
+    "No smoke results establish the required operand/output dtypes, bf16_lm_head=True, 592.9M parameters, unchanged ngram_ve configuration, causality_passed=True, or throughput/BPB gates. The logger explicitly skips compiled execution, so its promised eager log must actually be supplied and identified rather than assumed to verify the first training head call."
+  ],
+  "verifier_model_id": "us.openai.gpt-6-astra",
+  "verifier_verdict": "NEEDS_WORK"
+}
