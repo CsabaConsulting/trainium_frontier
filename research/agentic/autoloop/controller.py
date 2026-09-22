@@ -122,6 +122,17 @@ class Controller:
             return False, "no model client"
         return self.store.llm_calls_allowed(self.cfg.caps, self._cycle_llm_calls)
 
+    def _llm_calls_available(self, needed: int) -> tuple[bool, str]:
+        """Reserve an atomic multi-agent stage before its first model call.
+
+        Code implementation needs both the Implementer and an independent implementation
+        Verifier.  Starting when only one call remains strands a valid proposal halfway through
+        the stage and used to record a quota condition as a technical rejection.
+        """
+        if self.model is None:
+            return False, "no model client"
+        return self.store.llm_calls_allowed(self.cfg.caps, self._cycle_llm_calls, needed=needed)
+
     def breakers(self) -> str | None:
         if self.stop_file.exists():
             return "STOP file present"
@@ -413,7 +424,28 @@ class Controller:
         if crec.get("verdict") != "KEEP":
             report.add(f"{box}: control failed; box unusable without human review")
             return False
-        # 2. an already-verified candidate?
+        # 2. A proposal that passed the proposal verifier but was deliberately deferred until a
+        # complete Implementer + independent implementation-Verifier pair can run atomically.
+        for pid, rec in self.store.proposals().items():
+            if rec["stage"] != "proposal_verified" or rec.get("box") not in (None, box):
+                continue
+            data = self.store.read_artifact(pid, "proposal.json")
+            prop = Proposal.from_model_json(
+                data,
+                str(data.get("source_model_id", self.cfg.researcher_model_id)),
+                str(data.get("created_at", self.now_iso())),
+            )
+            if prop.change_type == "code":
+                ok, why = self._llm_calls_available(2)
+                if not ok:
+                    report.add(f"implement: {pid} deferred; requires two agent calls: {why}")
+                    return False
+                if not self._implement(prop, report):
+                    return False
+            self.store.set_stage(pid, "verified", box=box)
+            return self._stage_and_launch(pid, "smoke", box, prop.flags, report)
+
+        # 3. an already-verified candidate?
         for pid, rec in self.store.proposals().items():
             if rec["stage"] != "verified" or rec.get("box") not in (None, box):
                 continue
@@ -424,21 +456,26 @@ class Controller:
             tier = "full" if smoke_verdict.get("decision") == "KEEP" else "smoke"
             self.store.set_stage(pid, "verified", box=box)
             return self._stage_and_launch(pid, tier, box, prop["flags"], report)
-        # 3. propose + verify a new one
+        # 4. propose + verify a new one
         prop = self._propose(report)
         if prop is None:
             return False
         if not self._verify(prop, report):
             return False
+        sha = self.archiver.commit(
+            [self.store.proposal_dir(prop.proposal_id)],
+            f"autoloop: {prop.proposal_id} verified proposal",
+        )
+        self.store.set_stage(prop.proposal_id, "proposal_verified", last_archive_commit=sha)
         if prop.change_type == "code":
+            ok, why = self._llm_calls_available(2)
+            if not ok:
+                report.add(
+                    f"implement: {prop.proposal_id} deferred; requires two agent calls: {why}"
+                )
+                return False
             if not self._implement(prop, report):
                 return False
-        else:
-            sha = self.archiver.commit(
-                [self.store.proposal_dir(prop.proposal_id)],
-                f"autoloop: {prop.proposal_id} verified proposal",
-            )
-            self.store.set_stage(prop.proposal_id, "proposal_verified", last_archive_commit=sha)
         self.store.set_stage(prop.proposal_id, "verified", box=box)
         return self._stage_and_launch(prop.proposal_id, "smoke", box, prop.flags, report)
 

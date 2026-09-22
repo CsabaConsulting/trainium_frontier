@@ -286,6 +286,22 @@ def researcher_json(pid="20260922-weight-ema-on", flags=("--weight-ema",)):
     })
 
 
+def code_researcher_json(pid="20260922-bf16-head"):
+    return json.dumps({
+        "proposal_id": pid,
+        "hypothesis": "A bounded BF16 final projection should increase useful fixed-budget throughput without changing optimizer state.",
+        "single_causal_change": "cast only the final projection operands to BF16 and immediately return logits to FP32",
+        "flags": [],
+        "evidence": ["research/experiment-log.jsonl", "train.py final projection"],
+        "duplicate_search_terms": ["bf16 final projection", "bf16 lm head"],
+        "expected_effect": "at least three percent more steps with non-worse smoke BPB",
+        "abort_conditions": ["dtype boundary is not local", "causality gate fails"],
+        "change_type": "code",
+        "implementation_plan": "Edit only train.py at the final projection: cast its two operands to BF16, compute that projection, then immediately cast logits to FP32.",
+        "files_allowed": ["train.py"],
+    })
+
+
 class Env:
     """Patch every module-level path constant into a temp dir and build the fakes."""
 
@@ -798,6 +814,48 @@ class LoopTests(unittest.TestCase):
         rep = ctl.cycle()
         self.assertEqual(env.model.calls, [])
         self.assertTrue(any("cap reached" in a for a in rep.actions), rep.actions)
+
+    def test_code_proposal_defers_until_implementer_and_verifier_slots_are_available(self):
+        env = self.env
+        env.cfg.caps.max_llm_calls_per_cycle = 2
+        ctl = env.controller()
+        self.run_controls(ctl)
+        pid = "20260922-bf16-head"
+        env.model.replies["researcher"].append(code_researcher_json(pid))
+        env.model.replies["verifier"].append('{"verdict":"PASS","findings":[]}')
+
+        with mock.patch.object(ctl, "_implement", wraps=ctl._implement) as implementation:
+            rep = ctl.cycle()
+            implementation.assert_not_called()
+        self.assertEqual(ctl.store.proposals()[pid]["stage"], "proposal_verified")
+        self.assertFalse((C.EXPERIMENTS_DIR / pid / "implementation.json").exists())
+        self.assertTrue(any("deferred; requires two agent calls" in a for a in rep.actions), rep.actions)
+        self.assertEqual(env.model.calls[-2:], ["researcher", "verifier"])
+
+        def complete_implementation(prop, report):
+            for role in ("implementer", "implementation_verifier"):
+                ctl._record_usage(role, ModelReply("{}", 100, 20, "end_turn", env.cfg.verifier_model_id))
+            ctl.store.set_stage(prop.proposal_id, "implemented", candidate_commit=COMMIT)
+            report.add(f"implement: {prop.proposal_id} PASS commit={COMMIT[:12]}")
+            return True
+
+        def launch_after_implementation(proposal_id, tier, box, flags, report):
+            ctl.store.set_stage(proposal_id, f"launched:{tier}", box=box)
+            report.add(f"{box}: test launch {proposal_id}/{tier}")
+            return True
+
+        with (
+            mock.patch.object(ctl, "_implement", side_effect=complete_implementation) as implementation,
+            mock.patch.object(ctl, "_stage_and_launch", side_effect=launch_after_implementation) as launch,
+        ):
+            rep = ctl.cycle()
+            implementation.assert_called_once()
+            launch.assert_called_once()
+        self.assertEqual(env.model.calls[-2:], ["researcher", "verifier"])
+        self.assertEqual(ctl._cycle_llm_calls, 2)
+        self.assertIsNone(rep.stopped_reason, (rep.actions, rep.stopped_reason))
+        self.assertEqual(ctl.store.proposals()[pid]["stage"], "launched:smoke", rep.actions)
+        self.assertEqual(len(env.h.launched), 2, rep.actions)
 
     def test_failed_candidate_run_closes_branch(self):
         env = self.env

@@ -149,14 +149,16 @@ class Store:
         self.state["runs_total"] += 1
         self.save()
 
-    def llm_calls_allowed(self, caps: C.Caps, cycle_calls: int) -> tuple[bool, str]:
+    def llm_calls_allowed(self, caps: C.Caps, cycle_calls: int, needed: int = 1) -> tuple[bool, str]:
+        if needed < 1:
+            raise ValueError("needed must be positive")
         u = self.usage_today()
-        if u["llm_calls"] >= caps.max_llm_calls_per_day:
-            return False, "daily LLM call cap reached"
+        if u["llm_calls"] + needed > caps.max_llm_calls_per_day:
+            return False, f"daily LLM call cap reached or has fewer than {needed} calls remaining"
         if u["usd"] >= caps.max_llm_usd_per_day:
             return False, "daily LLM spend cap reached"
-        if cycle_calls >= caps.max_llm_calls_per_cycle:
-            return False, "per-cycle LLM call cap reached"
+        if cycle_calls + needed > caps.max_llm_calls_per_cycle:
+            return False, f"per-cycle LLM call cap reached or has fewer than {needed} calls remaining"
         return True, ""
 
     def runs_allowed(self, caps: C.Caps) -> tuple[bool, str]:
