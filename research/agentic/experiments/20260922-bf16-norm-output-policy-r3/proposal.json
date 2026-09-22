@@ -1,0 +1,55 @@
+{
+  "abort_conditions": [
+    "Smoke resolved precision oneliner does not show bf16_norm_output=True with bf16_sdpa_input=False, or any architecture/ngram_ve/out_bigram/engram/sched_tricks/batch_ramp/weight_ema oneliner differs from control -> HALT-SEMANTIC-REVIEW, no full launch",
+    "Smoke num_params_M != 592.9 or causality_passed != True",
+    "Smoke steps < 342 (control smokes 334/335; +2% floor) or smoke step-rate ratio < 1.02 vs same-host control smoke",
+    "Smoke public_val_bpb > same-host control smoke + 0.003 (i.e. > 1.168604 trn22 / > 1.168855 trn21)",
+    "Any NaN/inf loss, compile failure, or NEURON_CC_FLAGS not exactly '--optlevel=1' in the recorded environment",
+    "Full run steps < 90% of same-host control -> CONFOUNDED-SHORT, no quality claim",
+    "Full run steps > +10% of control without available matched-step validation trajectories -> quality attribution recorded unresolved per EXCESS-GAIN-REVIEW"
+  ],
+  "change_type": "flags",
+  "created_at": "2026-09-22T19:04:11Z",
+  "duplicate_search_terms": [
+    "bf16-norm-output",
+    "bf16_norm_output",
+    "no-bf16-norm-output",
+    "USE_BF16_NORM_OUTPUT",
+    "norm-output",
+    "bf16norm",
+    "nki-local-conv-bf16norm",
+    "bf16-norm-output-fixedbudget-r2",
+    "bf16-norm-output-only-default-shape",
+    "bf16 norm",
+    "precision policy"
+  ],
+  "evidence": [
+    "train.py norm() lines 1446-1462: bf16_norm_output policy casts every norm output, feeding qkv/MLP, embedding norm, local-conv input, and final LM-head input (verifier finding on r2)",
+    "train.py Linear.forward(): weight/cache selection by input dtype propagates the norm-output dtype into all consuming matmuls",
+    "train.py CausalSelfAttention.forward(): V aligned to Q dtype; rope_norm() preserves input dtype on NKI path -> SDPA receives BF16 when norm outputs are BF16 (overlap with SDPA KEEP acknowledged)",
+    "train.py lines 3174-3189: SDPA precision selection independent of compiler matmul autocast; pinned NEURON_CC_FLAGS='--optlevel=1' has no --auto-cast, so control matmuls run FP32",
+    "train.py lines 5251-5266 / ARCH_TOGGLE_NAMES / load_for_eval(): precision toggles persisted in checkpoint and restored for eval and causality check",
+    "research/experiment-log.jsonl al-20260922-bf16-sdpa-input-only-default-shape-full-r1: 2233 steps / 1.002028 vs trn22 control 2076 / 1.005967 (isolated single-boundary BF16 arm, KEEP)",
+    "research/experiment-log.jsonl al-20260922-bf16-sdpa-input-only-default-shape-smoke-r1: 360 steps / 1.156334 vs control smoke 335 / 1.165604",
+    "research/experiment-log.jsonl controls al-20260922-control-trn21/trn22-lnc2x4-9a4caa7b-full-r1: 2071 / 1.005734 and 2076 / 1.005967 (cross-host noise ~0.00023 BPB, justifies 0.001 threshold)",
+    "research/experiment-log.jsonl fs-w50, fs-w63, fs-w65, fs-w70, fs-w98, fs-w146: all used --bf16-norm-output in different stacks with compiler autocast and reached 0.979-0.993 public BPB - feasibility evidence that the norm-output BF16 policy does not collapse quality, not an isolated attribution",
+    "DECISION_LOG.md: no closed isolated --bf16-norm-output direction; r2 verifier verdict NEEDS_WORK was for scope description and classification consistency, not for duplication or infeasibility",
+    "research/agentic/proposals rejected 20260922-bf16-norm-output-fixedbudget-r2 findings (scope must be described as the complete norm-output precision policy; SDPA overlap must be acknowledged; one authoritative classification)"
+  ],
+  "expected_effect": "Public val_bpb decreases relative to same-host control by 0.002-0.006 (predeclared direction: lower), driven by a step-count increase of +8% to +15% (approx 2240-2390 steps vs 2071-2076) at fixed 1800 s. Minimum to count as SUCCESS: steps >= +2% AND public_val_bpb lower by >= 0.001. If steps rise >= +2% but BPB is not lower than control, the quality-cost hypothesis is falsified (FALSIFIED-QUALITY). If steps change by <= 1%, the throughput hypothesis is falsified (FALSIFIED-INERT). Steps > +10% triggers EXCESS-GAIN-REVIEW with matched-step trajectory comparison before any quality claim.",
+  "files_allowed": [],
+  "flags": [
+    "--bf16-norm-output"
+  ],
+  "hypothesis": "Under the pinned environment (NEURON_CC_FLAGS='--optlevel=1', no compiler matmul autocast) the control executes every consumer of norm() output in FP32: the qkv/out/MLP projections, the embedding-normalization consumers, the local-convolution input, and the final LM-head input (train.py norm() 1446-1462; Block.forward; GPT.forward; Linear.forward selects weight/cache by input dtype). The only isolated precision arm run so far, --bf16-sdpa-input, converted a single boundary to BF16 and recovered +7.6% steps (2233 vs 2076) with better public BPB (1.002028 vs 1.005967). The existing --bf16-norm-output policy converts the much larger share of matmul FLOPs and activation traffic to BF16 (and, as a documented side effect, also delivers BF16 Q/K/V to SDPA because CausalSelfAttention aligns V to Q's dtype and rope_norm preserves input dtype). I hypothesize the complete norm-output precision policy yields a larger fixed-budget step gain (>= +8%) than the SDPA arm and that BF16 rounding of normalized activations at this 55.7M-dense/537M-table scale costs less quality than the extra steps recover, giving lower public BPB than control.",
+  "implementation_plan": "",
+  "proposal_id": "20260922-bf16-norm-output-policy-r3",
+  "single_causal_change": "Pass --bf16-norm-output only. This is the complete existing norm-output precision policy of train.py (not a projection-only cast): all norm() outputs become BF16, so qkv/out/MLP projections, embedding-normalization consumers, local-conv input, the final LM-head input, and (via V-to-Q dtype alignment and dtype-preserving rope_norm) SDPA inputs execute in BF16; FP32 master weights, optimizer state, loss code, evaluator, and every other option stay at 9a4caa7b defaults. No --bf16-sdpa-input, no --ngram-rms-fp32, no --nki-*/--compile-* flag, no optimizer/schedule/batch/architecture/ngram-ve/eval change. Launch shape and environment identical to the pinned controls (NEURON_LOGICAL_NC_CONFIG=2, torchrun --standalone --nproc_per_node=4, --num-steps 5000, --max-train-seconds 1800, --seed 42, NEURON_CC_FLAGS exactly '--optlevel=1', NEURON_COMPETITION_R1_SEED=42, PYTHONUNBUFFERED=1). This arm is NOT an independent boundary from the SDPA KEEP: its scope overlaps and supersedes the SDPA cast; a later stacking run with --bf16-sdpa-input is expected to be near-inert and must be proposed separately with that interaction hypothesis. Pre-full checks from the smoke: resolved precision oneliner shows bf16_norm_output=True and bf16_sdpa_input=False; num_params_M 592.9; ngram_ve oneliner identical to control ('True tables=4 rows=1048576 dim=128 index_gather=True trigram=True opt=rmsprop flat_lr=True bf16=True rms_fp32_state_math=False nki_rms=False'); architecture oneliners identical to control; causality_passed True. Comparison: same-host pinned control on public_val_bpb (trn21 2071 / 1.005734; trn22 2076 / 1.005967). ONE authoritative outcome classification, evaluated in order: (1) HALT-SEMANTIC-REVIEW if any pre-full check fails - do not launch the full run; (2) CONFOUNDED-SHORT if full-run steps < 90% of same-host control (<1864 trn21, <1869 trn22); (3) FALSIFIED-INERT if steps within +/-1% of control (norm-output precision is not a measurable cost); (4) EXCESS-GAIN-REVIEW if steps > +10% of control (>2278 trn21, >2283 trn22): record throughput and BPB; before any quality claim compare the candidate's logged validation trajectory to the control's at matched step counts; if matched-step trajectories are unavailable or noncomparable, quality attribution is recorded unresolved; SUCCESS may be declared only if public_val_bpb < control by >= 0.001 and no matched-step deficit > 0.010 at the control's final step; (5) SUCCESS if steps >= +2% and public_val_bpb < same-host control by >= 0.001; (6) FALSIFIED-QUALITY if steps >= +2% and public_val_bpb >= control (BF16 rounding of normalized activations costs at least as much as the recovered steps); (7) INCONCLUSIVE otherwise, including any gain in [0, 0.001) or steps in (+1%, +2%).",
+  "smoke_gate": {
+    "max_bpb_delta": 0.003,
+    "min_candidate_steps": 342,
+    "min_step_rate_ratio": 1.02
+  },
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}

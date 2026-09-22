@@ -1,0 +1,20 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "The sole flag, --bf16-norm-output, selects one existing arithmetic policy. train.py norm(), Linear.forward(), CausalConv.forward(), Block.forward(), and GPT.forward() support the declared broad scope rather than a projection-only cast; FP32 normalization statistics and master-weight storage remain unchanged.",
+    "CausalSelfAttention.forward() aligns V to Q's dtype, and the NKI rope_norm path preserves input dtype. The proposal correctly acknowledges that this policy also changes SDPA precision and overlaps with, rather than independently stacks with, the SDPA KEEP.",
+    "Repository evidence supports a legal test: the isolated SDPA full-run ledger records 2233 steps / 1.002028 BPB versus the matched trn22 control's 2076 / 1.005967. Historical norm-output stacks establish feasibility only, as the proposal explicitly recognizes.",
+    "The supplied decision log contains no closed isolated norm-output direction. Historical multi-flag BF16 stacks and the closed generic FP8-autocast direction are not equivalent to this single-policy experiment.",
+    "No pretrained weights, external data, or evaluator modifications are proposed. ARCH_TOGGLE_NAMES, save_checkpoint(), and restore_eval_toggles() preserve this arithmetic policy for standalone evaluation.",
+    "The controller-pinned seed-42 full-chip comparison can falsify the throughput and fixed-budget public-BPB predictions. The ordered classification prevents a throughput-only win. Note that main() logs training losses, not intermediate validation trajectories: if the gain exceeds 10%, those training logs cannot satisfy the matched-step validation requirement, and quality attribution must remain unresolved under the proposal's stated rule."
+  ],
+  "llm_verdict": "PASS",
+  "passed": true,
+  "proposal_id": "20260922-bf16-norm-output-policy-r3",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-22T19:04:11Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}
