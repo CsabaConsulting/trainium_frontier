@@ -107,6 +107,9 @@ call/spend caps · archive/push failure · lock held by another controller · tw
 infrastructure failures on a box · any `RemoteError`/`ManifestError` (staging proof, hash
 mismatch, missing artifact, tampered manifest) · state schema mismatch.
 
+The standing unattended configuration permits at most 48 launches per UTC day and 384 total
+through the cutoff. The independent Bedrock ceiling remains $10/day and 60 model calls/day.
+
 ## Commands
 
 ```bash
