@@ -1,0 +1,19 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "The direction is evidence-backed and competition-legal: ledger fs-w65 records owner-compute with numerical and +5.06245% complete-step gates, and fs-w70/fs-w98 retain ownership. The supplied decision log does not close this direction. Limiting changes to optimizer implementation in train.py preserves the prohibition on external data, pretrained weights, and evaluator changes.",
+    "The implementation plan does not match the active code boundary. MuonAdamW._muon_step invokes a compiled _muon_math that includes momentum/Nesterov, Newton-Schulz, second-moment normalization, and weight updates together; there is no standalone selected orthogonalization routine to wrap inside Muon.step. Specify the bounded extraction/splitting needed for owner-only Newton-Schulz on the default compiled path, retaining replicated momentum and second-moment updates, existing scalar/dtype semantics, backend precedence, and the unchanged toggle-off path. Explicitly include necessary optimizer helper/cache edits in the allowed diff scope.",
+    "Resolve the ownership specification: single_causal_change says round-robin ownership, while implementation STEP 3 specifies contiguous ceil(n/world_size) chunks and concatenation-order reconstruction. Choose one mapping consistently so the implementation verifier can check parameter/result correspondence unambiguously.",
+    "The smoke numerical interpretation is invalid at unequal step counts. Faster mathematically equivalent training can improve fixed-time smoke BPB by more than 0.002; the cited SDPA smoke itself improved from 1.165604 at 335 steps to 1.156334 at 360 steps. Moreover, train.py schedules LR and decay by elapsed time, so matched step counts alone do not imply identical updates. Separate fixed-budget quality screening from numerical-equivalence claims; any executable equivalence check must belong to smoke, not pre-implementation approval.",
+    "The EXCESS-GAIN-REVIEW criterion requires logged validation trajectories at matched steps, but authoritative train.py logs smoothed training loss during training and evaluates public BPB only after training. Define an achievable review using existing artifacts, without evaluator changes, and do not treat training-loss logs as matched-step validation BPB. The full-run >=2% steps and >=0.001 BPB improvement thresholds otherwise provide a falsifiable matched-control test."
+  ],
+  "llm_verdict": "NEEDS_WORK",
+  "passed": false,
+  "proposal_id": "20260922-muon-owner-compute-ns-default-shape",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-22T19:50:55Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}
