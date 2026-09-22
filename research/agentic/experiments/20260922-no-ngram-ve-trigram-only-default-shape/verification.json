@@ -1,0 +1,19 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "The proposal isolates one flag and describes a competition-legal architecture ablation: no pretrained weights, external data, or evaluator changes. Trigram removal is distinct from the all-table removal and dimension/row reductions in the cited history; the supplied decision log does not close this specific direction.",
+    "Exact flag semantics remain unverified. No authoritative train.py excerpt establishes that --no-ngram-ve-trigram removes two tables while preserving bigram tables at both default injection sites. Cite the pinned argument-to-configuration mapping, table-construction logic, and forward selection. Legal flag-name validation and a reduced parameter count alone do not establish this behavior.",
+    "The fallback permitting any other reduced table count with at least 25% fewer parameters weakens the declared causal boundary. An unexpected count should trigger semantic review rather than automatic continuation, unless pinned-source evidence explains why that count still implements precisely the proposed trigram-only removal.",
+    "Repository evidence supports testing a table-cost tradeoff: no-ngram-ve achieved 2548 steps/1.026131 versus 2071/1.005734, and dim64 smoke achieved 355 steps/1.163309 versus 335/1.165604. However, DECISION_LOG.md marks all-table removal CONFOUNDED; its 0.020397 BPB difference is not a measured matched-step table benefit. Trigram collision rates, training-signal sparsity, and the 0.005 matched-step quality threshold remain hypotheses, not established evidence.",
+    "The predicted throughput and final public-BPB effects are falsifiable under the controller's seed-42, full-chip, matched-control protocol. The predeclared quality and throughput outcomes provide a usable experiment once the flag's structural effect is established."
+  ],
+  "llm_verdict": "NEEDS_WORK",
+  "passed": false,
+  "proposal_id": "20260922-no-ngram-ve-trigram-only-default-shape",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-22T18:12:47Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}

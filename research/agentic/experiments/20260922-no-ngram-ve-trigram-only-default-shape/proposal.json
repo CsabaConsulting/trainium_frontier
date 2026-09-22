@@ -1,0 +1,45 @@
+{
+  "abort_conditions": [
+    "Smoke resolved ngram_ve oneliner still shows trigram=True, or tables/num_params_M unchanged from control (4 / 592.9): FALSIFIED-INERT-COST, skip full run",
+    "Smoke steps < 340 on either box (less than ~+1.5% over the 334/335 control smokes): cost hypothesis false, skip full run",
+    "Smoke public_val_bpb more than 0.003 above the same-host control smoke (1.165855 trn21 / 1.165604 trn22)",
+    "Any causality_passed=false, NaN/inf loss, compile failure, or git_dirty=True",
+    "Full run steps < 90% of same-host control steps (CONFOUNDED-SHORT)"
+  ],
+  "change_type": "flags",
+  "created_at": "2026-09-22T18:12:46Z",
+  "duplicate_search_terms": [
+    "ngram-ve-trigram",
+    "no-ngram-ve-trigram",
+    "ngram_ve_trigram",
+    "trigram",
+    "bigram-only",
+    "tables=2",
+    "NGRAM_VE_TRIGRAM"
+  ],
+  "evidence": [
+    "research/experiment-log.jsonl al-20260922-no-ngram-ve-only-default-shape-full-r1: --no-ngram-ve 2548 steps / 1.026131 vs trn21 control 2071 / 1.005734 (tables cost ~23% of steps, worth ~0.020 BPB)",
+    "research/experiment-log.jsonl al-20260922-ngram-ve-dim64-only-default-shape-smoke-r1: 355 steps / 1.163309 vs trn22 control smoke 335 / 1.165604 (halving table bytes recovers ~6% steps at no smoke-quality loss)",
+    "research/experiment-log.jsonl al-20260922-control-trn21/trn22 full rows: ngram_ve 'True tables=4 rows=1048576 dim=128 ... trigram=True', num_params_M 592.9, base model 55.7M (no-ngram-ve row) -> tables are 537M of 593M params",
+    "research/experiment-log.jsonl al-20260922-bf16-sdpa-input-only-default-shape-full-r1: +7.6% steps translated to -0.0039 BPB at fixed budget (KEEP), establishing that step-rate gains of this size convert to quality in this regime",
+    "DECISION_LOG.md 2026-09-22 rows: no-ngram-ve CONFOUNDED, batch-ramp CONFOUNDED, no-qk-shift/clip-after-reduce inert; no trigram on/off row at any commit",
+    "Proposal-verifier finding on 20260922-ngram-ve-table-mult16: prior two-injection-site mult64 vs mult128 comparison (2187/1.005973 vs 2135/1.004363) closes the row-halving allocation; table count is the remaining untested equal-budget axis",
+    "research/experiment-protocol.md section 5 (comparability rules, >10% short = CONFOUNDED, same-box rate comparisons)"
+  ],
+  "expected_effect": "Steps +5% to +10% vs same-host control (roughly 2175-2280 steps) and public_val_bpb lower than the same-host control by 0.002 to 0.006 (target range 1.0000-1.0040 on trn21). Predeclared falsifier: if trigram tables carry more than ~0.005 BPB of the 0.020 table benefit at matched steps, the arm lands at or above control BPB despite the extra steps (FALSIFIED-QUALITY).",
+  "files_allowed": [],
+  "flags": [
+    "--no-ngram-ve-trigram"
+  ],
+  "hypothesis": "The hashed n-gram value-embedding tables are simultaneously the largest quality contributor and the largest per-step cost in the pinned configuration: removing all four tables buys +23% steps but costs +0.020 BPB (no-ngram-ve full), while halving the table byte budget by dim (dim64 smoke) buys ~+6% steps with no smoke-quality loss. The trigram tables (the half of the 4-table budget with the sparsest per-row training signal and the highest hash-collision rate at 1M rows over ~2k steps) are hypothesized to contribute the least quality per unit of table cost. Dropping only the trigram tables (bigram tables kept at both injection sites, same rows/dim) should recover a meaningful fraction of the no-ngram-ve throughput gain (+5% to +10% steps) while retaining most of the 0.020 BPB table benefit, yielding a net lower public_val_bpb at the fixed 1800 s budget.",
+  "implementation_plan": "",
+  "proposal_id": "20260922-no-ngram-ve-trigram-only-default-shape",
+  "single_causal_change": "Pass --no-ngram-ve-trigram only. Every other option stays at the 9a4caa7b defaults used by the two pinned controls: identical launch shape (NEURON_LOGICAL_NC_CONFIG=2, torchrun --standalone --nproc_per_node=4, --num-steps 5000, --max-train-seconds 1800, --seed 42), identical environment (NEURON_CC_FLAGS exactly '--optlevel=1', NEURON_COMPETITION_R1_SEED=42, PYTHONUNBUFFERED=1), no precision flag (no --bf16-sdpa-input, --bf16-norm-output, --ngram-rms-fp32), no kernel or compile flag, no optimizer/schedule/batch/architecture/evaluation change, and no other ngram-ve option (--ngram-ve-dim stays 128, --ngram-ve-table-mult stays 128 -> rows 1048576, opt stays rmsprop, bf16 stays True, layers unchanged). The only behavioral delta is that trigram hashed tables are not instantiated or gathered; bigram tables remain at every default injection site. Pre-full check (from the smoke run's resolved ngram_ve oneliner and num_params_M): the control resolves 'True tables=4 rows=1048576 dim=128 ... trigram=True' with num_params_M 592.9; the candidate must resolve trigram=False with a reduced table count (expected tables=2) and reduced num_params_M (expected approximately 324.3, i.e. the same table budget as the dim64 arm allocated as 2 tables x 1048576 rows x 128 dim). If trigram still resolves True, or tables/num_params_M are unchanged (e.g. the flag only re-assigns all 4 tables to bigram hashes), classify FALSIFIED-INERT-COST and do not spend the full run; if tables resolves to some other reduced count, record the resolved value and continue only if num_params_M is below 592.9 by at least 25%. Comparison: same-host pinned control on public_val_bpb (trn21 -> 2071 steps / 1.005734; trn22 -> 2076 steps / 1.005967). Outcome classes, mutually exclusive, evaluated in order: (1) FALSIFIED-INERT-COST as defined above; (2) CONFOUNDED-SHORT if candidate steps < 90% of same-host control steps (<1864 trn21, <1869 trn22; experiment-protocol.md section 5 rule; record as throughput regression only); (3) EXCESS-GAIN-REVIEW if candidate steps > +10% of control (>2278 trn21, >2283 trn22): record throughput and BPB and require a matched-step sanity check against the control's logged trajectory before any quality claim (the controller's symmetric 10% rule as applied to the batch-ramp and no-ngram-ve arms); (4) FALSIFIED-NO-THROUGHPUT if steps are within +/-2% of control (trigram tables do not drive table cost); (5) SUCCESS if public_val_bpb < same-host control by at least 0.001 with steps >= control; (6) FALSIFIED-QUALITY if steps >= +2% and public_val_bpb >= control (trigram quality contribution outweighs the recovered steps); (7) INCONCLUSIVE otherwise. Secondary, non-verdict analysis: place this arm alongside the dim64 arm (4 x 1M x 64) and the prior mult64 evidence (4 x 512k x 128) as the third equal-budget allocation of ~268M table parameters, to attribute the table cost/quality trade to table count vs rows vs dim.",
+  "smoke_gate": {
+    "max_bpb_delta": 0.003,
+    "min_candidate_steps": 340,
+    "min_step_rate_ratio": 1.015
+  },
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}
