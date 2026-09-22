@@ -1,0 +1,17 @@
+{
+  "branch": "autoloop/20260922-bf16-mlp-input-norm-r2",
+  "candidate_commit": "b8fab55a4a6a21098cad7200a0001000aa9d76f3",
+  "deterministic_findings": [],
+  "diff_sha256": "bb2f8569c8fc8396205eba22e7f4c9157aabfa1809048b6b654a5337baae8ad0",
+  "implemented_at": "2026-09-22T20:43:52Z",
+  "implementer_model_id": "us.anthropic.claude-fable-5-1",
+  "passed": true,
+  "verifier_findings": [
+    "The patch implements one attributable numerical-format change in train.py: a dtype-guarded BF16 cast at the direct MLP input in serial, sandwich, and parallel Block.forward paths. Static inspection confirms the default pre-edit MLP-input norm output is FP32.",
+    "The parallel path preserves shared h and all attention consumers; coalesced projections remain untouched as explicitly approved. Disabling the toggle restores the original tensor path, and already-BF16 norm outputs bypass the cast.",
+    "Default-on behavior, environment override, CLI enable/disable flags, and checkpoint toggle persistence are wired correctly. load_for_eval restores the saved toggle before model construction; the cast introduces no cross-position dependency.",
+    "Parameter construction, optimizer, schedule, data, tokenizer, evaluation procedure, seed handling, launch shape, and training-budget enforcement are unchanged. No external-data or pretrained initialization path is introduced or enabled. Supplied deterministic checks pass; runtime gates remain for the controller."
+  ],
+  "verifier_model_id": "us.openai.gpt-6-astra",
+  "verifier_verdict": "PASS"
+}
