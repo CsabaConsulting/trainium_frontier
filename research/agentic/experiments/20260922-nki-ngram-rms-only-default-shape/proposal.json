@@ -1,0 +1,49 @@
+{
+  "abort_conditions": [
+    "Smoke completes fewer than 340 steps in 300 s (< +1.5% vs the 334/335-step same-host control smokes): kernel path gives no throughput gain -> discard without full run",
+    "Smoke public_val_bpb exceeds the same-host control smoke by more than 0.002 (1.1656/1.1659 baselines): kernel numerics diverge -> discard",
+    "Any non-finite loss, compile failure, or causality check failure in smoke or full",
+    "Resolved ngram_ve oneliner does not report nki_rms=True, or any other resolved oneliner field differs from the control rows (flag not isolated) -> void",
+    "Environment differs from controls (NEURON_CC_FLAGS not exactly '--optlevel=1', seed not 42, different LNC/nproc) -> void",
+    "Full run steps < 90% of same-host control -> CONFOUNDED-SHORT, no quality verdict"
+  ],
+  "change_type": "flags",
+  "created_at": "2026-09-22T16:27:46Z",
+  "duplicate_search_terms": [
+    "nki-ngram-rms",
+    "nki_ngram_rms",
+    "nki_rms",
+    "nki ngram rms",
+    "ngram rmsprop kernel",
+    "NgramVE RMSprop NKI",
+    "ngram-rms-fp32",
+    "rms_fp32_state_math",
+    "ngram table optimizer",
+    "nki-ngram-rms-only-default-shape"
+  ],
+  "evidence": [
+    "research/experiment-log.jsonl: al-20260922-control-trn21-lnc2x4-9a4caa7b-full-r1 and al-20260922-control-trn22-lnc2x4-9a4caa7b-full-r1 (commit 9a4caa7b, CC='--optlevel=1', seed 42) record ngram_ve 'True tables=4 rows=1048576 dim=128 ... opt=rmsprop flat_lr=True bf16=True rms_fp32_state_math=False nki_rms=False', num_params_M 592.9, steps 2071/2076, public_val_bpb 1.005734/1.005967 -- establishes the resolved default nki_rms=False and the matched baselines",
+    "research/experiment-log.jsonl: al-20260922-ngram-rms-fp32-only-default-shape-smoke-r1 (316 steps / 1.173336) vs al-20260922-control-trn22-lnc2x4-9a4caa7b-smoke-r2 (335 steps / 1.165604) -- changing only the n-gram RMSprop state arithmetic moved step throughput by -5.7%, showing the table optimizer update is on the critical path at this shape",
+    "research/experiment-log.jsonl: al-20260922-nki-local-conv-only-default-shape-smoke-r1 (compiled true, causality_passed true, 330 steps) -- an inline NKI kernel compiles and runs under the controller's environment (no NKI_VENV_PATH needed); it also shows an NKI path is not automatically faster (330 vs 335), which is why the smoke throughput gate is the primary falsifier here",
+    "research/experiment-log.jsonl: every fs-w14..fs-w146 row has ngram_ve False tables=0, so the n-gram kernel path was never exercised in the fresh-start family; no row in the supplied ledger has nki_rms=True",
+    "research/agentic/DECISION_LOG.md: entries at 9a4caa7b cover only control, --batch-ramp, --ngram-rms-fp32, --nki-local-conv, --no-qk-shift; no --nki-ngram-rms entry",
+    "train.py flag list at 9a4caa7b: --nki-ngram-rms / --no-nki-ngram-rms exist as a standalone kernel switch distinct from --ngram-rms-fp32 (precision) and --nki-local-conv (different kernel)",
+    "research/experiment-protocol.md section 5: rate comparisons same box/same day/same code; quality comparison confounded only when a run is >10% short on steps; section 1 item 5: NEURON_CC_FLAGS must contain --optlevel=1 (controls use exactly '--optlevel=1')"
+  ],
+  "expected_effect": "Full 1800 s run: steps completed +3% to +8% vs same-host control (about 2135-2245 vs 2071 trn21 / 2076 trn22); public_val_bpb lower than the same-host control by 0.001 to 0.004 (predicted 1.002-1.005). Falsified if steps are within +/-1% of control (inert) or if bpb is not lower with >= +1% more steps. Predeclared: the smoke must already show >= +1.5% steps (>= 340 vs 334/335) or the hypothesis is discarded before the full run.",
+  "files_allowed": [],
+  "flags": [
+    "--nki-ngram-rms"
+  ],
+  "hypothesis": "At the 9a4caa7b default shape the hashed n-gram value-embedding tables (ngram_ve True, tables=4 rows=1048576 dim=128, ~537M of the 592.9M parameters) receive a dense BF16 RMSprop update every step (opt=rmsprop flat_lr=True bf16=True rms_fp32_state_math=False nki_rms=False in both pinned control rows). The ngram-rms-fp32 smoke at this commit showed that changing only the arithmetic of that update moved step throughput by -5.7% (316 vs 335 steps in 300 s), so the table optimizer is on the step critical path and is plausibly HBM-bandwidth bound. Hypothesis: routing that update through the existing inline NKI kernel (--nki-ngram-rms) reduces the number of memory passes over the tables, raising steps completed in the fixed 1800 s budget by 3-8% with the same BF16 update semantics, and the extra steps translate to a lower public_val_bpb. This is a throughput-mediated quality hypothesis; numerical equivalence of the kernel path is itself a hypothesis to be checked by the smoke BPB gate, not an established fact.",
+  "implementation_plan": "",
+  "proposal_id": "20260922-nki-ngram-rms-only-default-shape",
+  "single_causal_change": "Pass --nki-ngram-rms only. Every other option stays at the 9a4caa7b defaults used by the two pinned controls: identical launch shape (NEURON_LOGICAL_NC_CONFIG=2, torchrun --nproc_per_node=4, --num-steps 5000, --max-train-seconds 1800, --seed 42), identical environment (NEURON_CC_FLAGS exactly '--optlevel=1', NEURON_COMPETITION_R1_SEED=42, PYTHONUNBUFFERED=1), no other kernel flag (no --nki-local-conv, --nki-attn, --nki-muon, --nki-relu2, --nki-rope-norm, --nki-softcap-ce), no precision flag (no --ngram-rms-fp32, --bf16-norm-output, --bf16-sdpa-input), no optimizer/schedule/batch/architecture/evaluation change. The only behavioral delta is the n-gram table RMSprop update executing via the NKI kernel path (nki_rms True in the resolved ngram_ve oneliner). Comparison: same-host pinned control on public_val_bpb (trn21 -> 2071 steps / 1.005734; trn22 -> 2076 steps / 1.005967). Outcome classes, mutually exclusive, evaluated in order: (1) CONFOUNDED-SHORT if candidate steps < 90% of same-host control steps (experiment-protocol.md section 5 rule; record as throughput regression only); (2) FALSIFIED-INERT if steps within +/-1% of control (kernel path is not faster or not reached); (3) EXCESS-GAIN-REVIEW if steps > +10% of control: record the throughput result and the BPB, but require a matched-step sanity check before any quality claim (a separately declared conservative upper rule, not the protocol's short-step rule); (4) SUCCESS if steps >= +1.5% and public_val_bpb < same-host control; (5) FALSIFIED-QUALITY if steps >= +1% and public_val_bpb >= same-host control (extra steps did not translate, or kernel numerics differ unfavorably); (6) INCONCLUSIVE if step gain is between +1% and +1.5%.",
+  "smoke_gate": {
+    "max_bpb_delta": 0.002,
+    "min_candidate_steps": 340,
+    "min_step_rate_ratio": 1.015
+  },
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}

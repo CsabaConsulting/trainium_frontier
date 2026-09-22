@@ -1,0 +1,18 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "The sole flag does not implement the claimed BF16 kernel substitution. Authoritative train.py lines 742\u2013762 define USE_NKI_NGRAM_RMS as a fused FP32 update requiring NGRAM_RMS_FP32; lines 5940\u20135955 explicitly require --ngram-rms-fp32. Both pinned controls resolve rms_fp32_state_math=False. Thus --nki-ngram-rms alone cannot exercise the supported path as proposed, and nki_rms=True in a configuration log would not establish execution.",
+    "Adding --ngram-rms-fp32 would change state storage and update arithmetic as well as kernel execution, contradicting the declared kernel-only causal change against the pinned BF16 control. A revised experiment must isolate the kernel with a compatible matched control, or propose a bounded BF16 kernel implementation.",
+    "The novelty evidence contains a direct factual error: research/experiment-log.jsonl includes fs-w4-w896-nki-rms-fp32-r1 with nki_rms=True, 2204 steps and public_val_bpb=0.986947, versus fs-w3-w896-direct-control-r1 at 2188 steps and 0.987568. This is not an exact duplicate of the proposed configuration, but it is relevant prior evidence that must be acknowledged and distinguished.",
+    "The proposed throughput and public-BPB thresholds are measurable under the controller's matched seed-42 full-chip experiment, and optimizer kernels are permitted by README.md with no external data, pretrained weights or evaluator changes proposed. These strengths do not resolve the incompatible kernel prerequisite."
+  ],
+  "llm_verdict": "FAIL",
+  "passed": false,
+  "proposal_id": "20260922-nki-ngram-rms-only-default-shape",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-22T16:27:46Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}
