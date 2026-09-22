@@ -1,0 +1,18 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "STEP 3's _muon_ns(X) cannot contain the NS statements verbatim as specified: authoritative _muon_math also reads the per-group arguments tall and ns_steps. Pass these explicitly through the helper and its cached compiled callable, preserving the existing specialization and iteration count. Also correct the FP32-work premise: main sets COMPUTE_DTYPE to BF16 on Neuron, and _muon_math casts the NS input with g.bfloat16(); this is not an exclusively FP32 NS chain.",
+    "STEP 5 uses raw _muon_math(*cloned_args) as its reference, but the pinned control executes fn from _MUON_COMPILED, created with torch.compile(_muon_math, backend='neuron', dynamic=False). The source explicitly documents compiled-versus-eager numerical differences. Compare candidate parameters and states against that existing compiled control callable on cloned pre-update inputs, not the raw eager function. Keep execution and tolerance enforcement in the smoke gate.",
+    "The fallback specification contradicts the existing backend dispatch. It says a non-default backend executes unchanged _muon_math, whereas authoritative _muon_step reaches its separate eager/NKI implementation when the compiled-path guard is false. Specify that ownership is inserted only inside the existing compiled branch and that every other branch remains untouched. Backend selection must respect main's existing compile-muon precedence over nki-muon.",
+    "The underlying direction is supported and competition-legal: fs-w65 records the numerical and 5.06245% complete-step gates, fs-w70/w98/w146 retain ownership, and the supplied DECISION_LOG contains no closed ownership direction. The train.py-only optimizer change leaves data and evaluation untouched, and the declared step/BPB thresholds are falsifiable against the supplied matched seed-42 controls. These positives do not resolve the implementation-plan inconsistencies above."
+  ],
+  "llm_verdict": "NEEDS_WORK",
+  "passed": false,
+  "proposal_id": "20260922-muon-owner-ns-split-r3",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-22T20:03:01Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}
