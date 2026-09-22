@@ -1,0 +1,19 @@
+{
+  "analyst_prose": "The full-tier verdict is CONFOUNDED.\nThe candidate enables --bf16-norm-output, the complete norm-output precision policy, while the control does not.\nCandidate validation BPB is 1.016279 versus 1.005734 for control, a worsening of 0.010545.\nThe confounder is unequal training exposure: 2,716 versus 2,071 steps, about 31.1% more for the candidate, exceeding the 10% threshold.\nWith nearly identical training time, the candidate achieved 1.522 versus 1.160 steps/second and processed 356.0M versus 271.5M tokens.\nBoth runs use 592.9M parameters, the same seed, clean source revision, and matching execution settings; both passed causality checks and stayed within budget.\nThe observed BPB difference therefore does not isolate the precision policy\u2019s effect at matched training steps.",
+  "decision": "CONFOUNDED",
+  "metrics": {
+    "bpb_delta": 0.010545000000000027,
+    "candidate_bpb": 1.016279,
+    "candidate_params_M": 592.9,
+    "candidate_step_rate": 1.5220802510647835,
+    "candidate_steps": 2716.0,
+    "control_bpb": 1.005734,
+    "control_params_M": 592.9,
+    "control_step_rate": 1.1603541012998655,
+    "control_steps": 2071.0
+  },
+  "reasons": [
+    "steps differ by more than 10% (2716.0 vs 2071.0)"
+  ],
+  "tier": "full"
+}
