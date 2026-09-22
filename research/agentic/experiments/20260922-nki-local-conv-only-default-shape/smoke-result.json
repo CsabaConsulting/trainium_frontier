@@ -1,0 +1,163 @@
+{
+  "collected": {
+    "checkpoint_bytes": 1297950407,
+    "checkpoint_present": true,
+    "checkpoint_sha256": "e0f03915dc9419b82e82358c5230eb73d2da3949eeef98cb367824940d821899",
+    "collected_at": "2026-09-22T07:39:52Z",
+    "files": {
+      "done": {
+        "bytes": 56,
+        "local": "/home/poojith-devan/Desktop/Trainium/research/agentic/experiments/20260922-nki-local-conv-only-default-shape/artifacts/smoke/done.json",
+        "remote": "/home/ubuntu/autoloop/launchers/al-20260922-nki-local-conv-only-default-shape-smoke-r1/done.json",
+        "sha256": "2b83ffc1f2426fbf9b5829bedf42f5346edb31182240562dab28efc399f8dae5"
+      },
+      "launch_spec": {
+        "bytes": 1719,
+        "local": "/home/poojith-devan/Desktop/Trainium/research/agentic/experiments/20260922-nki-local-conv-only-default-shape/artifacts/smoke/launch.json",
+        "remote": "/home/ubuntu/autoloop/launchers/al-20260922-nki-local-conv-only-default-shape-smoke-r1/launch.json",
+        "sha256": "d5bf1f21be23944976c7fade019242b5c753b404f7f0490aef515e955319dc6c"
+      },
+      "ledger": {
+        "bytes": 628460,
+        "local": "/home/poojith-devan/Desktop/Trainium/research/agentic/experiments/20260922-nki-local-conv-only-default-shape/artifacts/smoke/experiment-log.jsonl",
+        "remote": "/home/ubuntu/workspace/autoloop_runs/9a4caa7b--20260922-nki-local-conv-only-default-shape--al-20260922-nki-local-conv-only-default-shape-smoke-r1/research/experiment-log.jsonl",
+        "sha256": "9d7b52200031f39b1fcc0e5e976fb4dcad3a3526e4c7539df17e8da9d814fb66"
+      },
+      "run_log": {
+        "bytes": 12780,
+        "local": "/home/poojith-devan/Desktop/Trainium/research/agentic/experiments/20260922-nki-local-conv-only-default-shape/artifacts/smoke/al-20260922-nki-local-conv-only-default-shape-smoke-r1.log",
+        "remote": "/home/ubuntu/workspace/autoloop_runs/9a4caa7b--20260922-nki-local-conv-only-default-shape--al-20260922-nki-local-conv-only-default-shape-smoke-r1/research/run-logs/al-20260922-nki-local-conv-only-default-shape-smoke-r1.log",
+        "sha256": "048da55339c70ed22554064ff614d2b14ca393d2b3e1f4f30875c58b629c8353"
+      },
+      "runner_stdout": {
+        "bytes": 331,
+        "local": "/home/poojith-devan/Desktop/Trainium/research/agentic/experiments/20260922-nki-local-conv-only-default-shape/artifacts/smoke/runner.log",
+        "remote": "/home/ubuntu/autoloop/launchers/al-20260922-nki-local-conv-only-default-shape-smoke-r1/runner.log",
+        "sha256": "695e10f31bfa3040942e9cbb3a2bb3c7a4e9131be5b44a4bd7a69cf84a001d8c"
+      }
+    },
+    "ledger_row": {
+      "batch_ramp": "False grad_accum=(2, 4, 8) bounds=(0.35, 0.75) lr_exp=0.5 ref_grad_accum=4 last_grad_accum=4",
+      "budget_seconds": 1800,
+      "causality_max_abs": 0.0,
+      "causality_passed": true,
+      "charged_seconds_est": 285.8,
+      "checkpoint_path": "out/al-20260922-nki-local-conv-only-default-shape-smoke-r1/final.pt",
+      "compiled": true,
+      "description": "autoloop 20260922-nki-local-conv-only-default-shape smoke: Pass --nki-local-conv only. Every other option stays at the 9a4caa7b defaults used by the two pinned controls: no --bf16-norm-output, no --bf16-sdpa-input, no - flags='--nki-local-conv' [trn22] CC='--optlevel=1' seed=42 commit=9a4caa7b",
+      "engram": "False site=-1 orders=2,3 heads=1 tables=0 mult=32 mem_dim=128 e_dim=0 key_dim=0 conv_k=4 share=False bf16=True",
+      "environment": {
+        "NEURON_CC_FLAGS": "--optlevel=1",
+        "NEURON_COMPETITION_R1_SEED": "42",
+        "NEURON_LOGICAL_NC_CONFIG": "2",
+        "PYTHONUNBUFFERED": "1"
+      },
+      "eval_over_timeout": false,
+      "eval_seconds": 10.7,
+      "eval_timeout": 1200,
+      "git_commit": "9a4caa7bfab26c1d1bb59f7ef2bb8c5392d7503a",
+      "git_dirty": false,
+      "hostname": "ip-172-31-32-253",
+      "label": "al-20260922-nki-local-conv-only-default-shape-smoke-r1",
+      "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 300 --out-dir out/al-20260922-nki-local-conv-only-default-shape-smoke-r1 --nki-local-conv --seed 42",
+      "lnc": 2,
+      "max_train_seconds": 300,
+      "ngram_ve": "True tables=4 rows=1048576 dim=128 index_gather=True trigram=True opt=rmsprop flat_lr=True bf16=True rms_fp32_state_math=False nki_rms=False",
+      "nki_relu2": false,
+      "num_params_M": 592.9,
+      "num_steps": 330,
+      "oneliners": "relu2_tau=0.0 mlp_sandwich=False head_gate=False hg_norm=True hg_ch=32 hg_mul=2.0 hg_bias=0.0 out_pool=False pool_layers=3 qk_shift=True qk_beta=0.0 qk_freeze=True x0_gate=False block_nudge=False nudge_site=qk qkv_norm_cse=False parallel_block=False par_coalesce=none epoch_shuffle=False epoch_shuffle_seed=1234",
+      "out_bigram": "False bf16=True gate_bias=-2.0 lr=0.0",
+      "over_budget": false,
+      "public_val_bpb": 1.167854,
+      "returncode": 0,
+      "run_log": "research/run-logs/al-20260922-nki-local-conv-only-default-shape-smoke-r1.log",
+      "sched_tricks": "demon_b1=False demon_final=0.55 demon_ref=0.8 demon_start=-1.0 muon_b2=0.9 muon_b2_final=0.0 depth_lr=1.0->1.0 depth_mom=0.0->0.0 depth_mom_ref=0.95",
+      "seq_len": 2048,
+      "solution": "autoloop:20260922-nki-local-conv-only-default-shape",
+      "source_dirty": false,
+      "source_sha256": {
+        "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+        "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+        "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c"
+      },
+      "startup_allowance_est": 104.7,
+      "status": "keep",
+      "target_steps": 5000,
+      "timestamp": "2026-09-22T07:37:53+00:00",
+      "total_seconds": 390.6,
+      "total_tokens_M": 43.3,
+      "training_seconds": 284.8,
+      "wall_elapsed_seconds": 407.0,
+      "weight_ema": "False decays=(0.995,) start_frac=0.75 seeded=False updates=0",
+      "world_size": 4
+    },
+    "post_run_dirt_explained": false,
+    "post_run_porcelain": [
+      " M research/experiment-log.jsonl",
+      "?? research/run-logs/al-20260922-nki-local-conv-only-default-shape-smoke-r1.launch.json",
+      "?? research/run-logs/al-20260922-nki-local-conv-only-default-shape-smoke-r1.log"
+    ]
+  },
+  "hostname": "ip-172-31-32-253",
+  "label": "al-20260922-nki-local-conv-only-default-shape-smoke-r1",
+  "ledger_row": {
+    "_dirt_explained": false,
+    "batch_ramp": "False grad_accum=(2, 4, 8) bounds=(0.35, 0.75) lr_exp=0.5 ref_grad_accum=4 last_grad_accum=4",
+    "budget_seconds": 1800,
+    "causality_max_abs": 0.0,
+    "causality_passed": true,
+    "charged_seconds_est": 285.8,
+    "checkpoint_path": "out/al-20260922-nki-local-conv-only-default-shape-smoke-r1/final.pt",
+    "compiled": true,
+    "description": "autoloop 20260922-nki-local-conv-only-default-shape smoke: Pass --nki-local-conv only. Every other option stays at the 9a4caa7b defaults used by the two pinned controls: no --bf16-norm-output, no --bf16-sdpa-input, no - flags='--nki-local-conv' [trn22] CC='--optlevel=1' seed=42 commit=9a4caa7b",
+    "engram": "False site=-1 orders=2,3 heads=1 tables=0 mult=32 mem_dim=128 e_dim=0 key_dim=0 conv_k=4 share=False bf16=True",
+    "environment": {
+      "NEURON_CC_FLAGS": "--optlevel=1",
+      "NEURON_COMPETITION_R1_SEED": "42",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "eval_over_timeout": false,
+    "eval_seconds": 10.7,
+    "eval_timeout": 1200,
+    "git_commit": "9a4caa7bfab26c1d1bb59f7ef2bb8c5392d7503a",
+    "git_dirty": false,
+    "hostname": "ip-172-31-32-253",
+    "label": "al-20260922-nki-local-conv-only-default-shape-smoke-r1",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 300 --out-dir out/al-20260922-nki-local-conv-only-default-shape-smoke-r1 --nki-local-conv --seed 42",
+    "lnc": 2,
+    "max_train_seconds": 300,
+    "ngram_ve": "True tables=4 rows=1048576 dim=128 index_gather=True trigram=True opt=rmsprop flat_lr=True bf16=True rms_fp32_state_math=False nki_rms=False",
+    "nki_relu2": false,
+    "num_params_M": 592.9,
+    "num_steps": 330,
+    "oneliners": "relu2_tau=0.0 mlp_sandwich=False head_gate=False hg_norm=True hg_ch=32 hg_mul=2.0 hg_bias=0.0 out_pool=False pool_layers=3 qk_shift=True qk_beta=0.0 qk_freeze=True x0_gate=False block_nudge=False nudge_site=qk qkv_norm_cse=False parallel_block=False par_coalesce=none epoch_shuffle=False epoch_shuffle_seed=1234",
+    "out_bigram": "False bf16=True gate_bias=-2.0 lr=0.0",
+    "over_budget": false,
+    "public_val_bpb": 1.167854,
+    "returncode": 0,
+    "run_log": "research/run-logs/al-20260922-nki-local-conv-only-default-shape-smoke-r1.log",
+    "sched_tricks": "demon_b1=False demon_final=0.55 demon_ref=0.8 demon_start=-1.0 muon_b2=0.9 muon_b2_final=0.0 depth_lr=1.0->1.0 depth_mom=0.0->0.0 depth_mom_ref=0.95",
+    "seq_len": 2048,
+    "solution": "autoloop:20260922-nki-local-conv-only-default-shape",
+    "source_dirty": false,
+    "source_sha256": {
+      "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+      "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+      "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c"
+    },
+    "startup_allowance_est": 104.7,
+    "status": "keep",
+    "target_steps": 5000,
+    "timestamp": "2026-09-22T07:37:53+00:00",
+    "total_seconds": 390.6,
+    "total_tokens_M": 43.3,
+    "training_seconds": 284.8,
+    "wall_elapsed_seconds": 407.0,
+    "weight_ema": "False decays=(0.995,) start_frac=0.75 seeded=False updates=0",
+    "world_size": 4
+  },
+  "manifest_id": "20260922-nki-local-conv-only-default-shape--smoke--al-20260922-nki-local-conv-only-default-shape-smoke-r1",
+  "returncode": 0
+}
