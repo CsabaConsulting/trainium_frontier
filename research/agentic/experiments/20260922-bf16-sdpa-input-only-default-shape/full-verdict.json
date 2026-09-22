@@ -1,0 +1,19 @@
+{
+  "analyst_prose": "KEEP at full tier: public_val_bpb improved from 1.005967 to 1.002028, a reduction of 0.003939 exceeding the 0.002000 threshold.\nThe candidate adds only --bf16-sdpa-input; source hashes, clean commit, seed, host, launch shape, and 592.9M parameter count match the control.\nThroughput rose from 1.1635 to 1.2513 steps/s, about 7.5%, yielding 2233 versus 2076 steps within essentially identical training time.\nThe key confounder for attributing the quality gain directly to numerical precision is training exposure: the candidate processed 292.7M versus 272.1M tokens. This is a fixed-time comparison, not a matched-step comparison.\nBoth runs passed causality checks, exited successfully, and stayed within the charged budget without evaluation timeouts.",
+  "decision": "KEEP",
+  "metrics": {
+    "bpb_delta": -0.003939000000000137,
+    "candidate_bpb": 1.002028,
+    "candidate_params_M": 592.9,
+    "candidate_step_rate": 1.2512607867309202,
+    "candidate_steps": 2233.0,
+    "control_bpb": 1.005967,
+    "control_params_M": 592.9,
+    "control_step_rate": 1.1634814773300455,
+    "control_steps": 2076.0
+  },
+  "reasons": [
+    "public_val_bpb improved by 0.00394 (threshold 0.00200)"
+  ],
+  "tier": "full"
+}
