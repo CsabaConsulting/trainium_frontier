@@ -1,0 +1,19 @@
+{
+  "analyst_prose": "The full-tier verdict is CONFOUNDED.\nThe candidate\u2019s validation BPB was 1.019731 versus 1.005734 for control, a worsening of 0.013997 (lower is better).\nThe confounder is unequal training steps: 2,346 versus 2,071, about 13.3% more for the candidate, exceeding the 10% threshold.\nTraining time was nearly identical, but the candidate ran at 1.315 versus 1.160 steps/second and processed 307.5M versus 271.5M tokens.\nBoth runs used 592.9M parameters, seed 42, and the same listed execution configuration; both passed causality checks and stayed within budget.\nThe observed BPB difference therefore cannot be cleanly attributed to the candidate\u2019s BF16 MLP normalization-output change independently of training exposure.",
+  "decision": "CONFOUNDED",
+  "metrics": {
+    "bpb_delta": 0.013997000000000037,
+    "candidate_bpb": 1.019731,
+    "candidate_params_M": 592.9,
+    "candidate_step_rate": 1.3148013226475368,
+    "candidate_steps": 2346.0,
+    "control_bpb": 1.005734,
+    "control_params_M": 592.9,
+    "control_step_rate": 1.1603541012998655,
+    "control_steps": 2071.0
+  },
+  "reasons": [
+    "steps differ by more than 10% (2346.0 vs 2071.0)"
+  ],
+  "tier": "full"
+}
