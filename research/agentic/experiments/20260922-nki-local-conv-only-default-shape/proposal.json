@@ -1,0 +1,53 @@
+{
+  "abort_conditions": [
+    "PREFLIGHT (before any Trn2 run): the resolved startup config/log must show local-conv enabled in the default model and the NKI local-conv path selected when --nki-local-conv is passed, and the compiled two-tap path selected in the control. If the flag resolves as already-on in the control, or local-conv is disabled by default, the experiment is a no-op: do not run, record as NOT-RUNNABLE.",
+    "PREFLIGHT: the controller environment lacks NKI_VENV_PATH (all fs NKI runs set NKI_VENV_PATH=/home/ubuntu/workspace/native_venv). If train.py at 9a4caa7b cannot dispatch the NKI kernel under the fixed controller environment (raises, or logs a fallback to the compiled conv), classify INVALID / NOT-RUNNABLE, not falsified; do not add env variables as part of this proposal.",
+    "INVALID (precedence 1): crash, non-finite loss at any logged step, causality_passed != true, no final checkpoint, git dirty, or any environment/launch difference from the same-host control other than the single flag (--num-steps 5000, --max-train-seconds 1800, --seed 42, CC exactly '--optlevel=1', LNC=2, nproc 4 must all match).",
+    "SMOKE GATE (300 s, same host as its control smoke): do not promote to full if smoke steps <= 335 (no throughput gain over 334/335) or if loss at matched step counts deviates from the control smoke by more than 0.02 nats in the same direction for the last 100 logged steps (kernel non-equivalence). Smoke steps in 336-344 promote only with a note that the predeclared +3% was missed.",
+    "FALSIFIED (precedence 2, valid full run): completed steps <= same-host control steps (2071 trn21 / 2076 trn22) \u2014 throughput prediction failed regardless of bpb \u2014 OR public_val_bpb >= control bpb - 0.001.",
+    "SUCCESS (precedence 3): valid full run with steps >= 1.05x same-host control steps AND public_val_bpb <= control bpb - 0.003.",
+    "INCONCLUSIVE (precedence 4, exhaustive remainder): valid full run with steps > control and bpb < control - 0.001 but failing either SUCCESS threshold; record, do not adopt, do not repeat without a new hypothesis.",
+    "Budget accounting: report training_seconds and startup allowance explicitly; if NKI kernel compilation is charged against the budget per README.md and cannot be separated, state that in the record rather than reinterpreting the step count."
+  ],
+  "change_type": "flags",
+  "created_at": "2026-09-22T07:27:56Z",
+  "duplicate_search_terms": [
+    "--nki-local-conv",
+    "nki_local_conv",
+    "nki-local-conv only",
+    "NKI conv",
+    "NKI two-tap",
+    "two-tap convolution",
+    "local_conv kernel",
+    "fused local conv",
+    "fs-w9",
+    "fs-w12",
+    "fs-w15",
+    "nki-local-conv-bf16norm",
+    "LocalConv",
+    "native gate conv",
+    "default-shape nki"
+  ],
+  "evidence": [
+    "research/experiment-log.jsonl: al-20260922-control-trn21-lnc2x4-9a4caa7b-full-r1 (2071 steps, 1.005734) and al-20260922-control-trn22-lnc2x4-9a4caa7b-full-r1 (2076 steps, 1.005967): launch commands contain no --nki-local-conv; env CC='--optlevel=1'; these are the same-host matched controls.",
+    "research/experiment-log.jsonl: al-20260922-control-trn21/trn22 smoke rows (334 / 335 steps in 300 s, 1.1659 / 1.1656) define the smoke throughput baseline.",
+    "research/experiment-log.jsonl: fs-w6-dense1024-noqk-1800-r2 (c333adbc, compiled two-tap conv, direct SDPA, no NKI): 1805 steps, 1.012886; fs-w15-dense1024-nki-sdpa-only-1800-r1 (4f0e77a7, --nki-local-conv with 'retain FP32 normalization outputs and residuals' + --bf16-sdpa-input): 2600 steps, 0.989128; fs-w12-dense1024-nki-norm-1800-r1 (c61bfca7, NKI conv + bf16-norm-output): 2977 steps, 0.98171. Suggestive (not isolated: bf16-sdpa-input / bf16-norm-output and autocast env co-vary) evidence that the NKI conv path is a large step-rate contributor and works with the FP32 norm boundary.",
+    "research/experiment-log.jsonl: fs-w12 description 'integrated NKI two-tap convolution ... corrected integration passed all four native gates' and fs-w15 description 'all four updated-model checks pass' \u2014 the kernel is gated for numerical equivalence to the compiled conv, so the flag is a throughput change, not a model change.",
+    "research/experiment-log.jsonl: fs-w9-dense1024-nki-conv-1800-r1 (ccf22c06) crash and fs-w12-dense1024-nki-nan-diagnostic-r1 (c61bfca7) record the pre-fix NaN incident; all later NKI-conv runs (fs-w12 onward, including FP32-boundary fs-w15) completed, so the fix predates 9a4caa7b (2026-09-22 authoritative commit).",
+    "Proposal verifier finding on 20260922-nki-local-conv-bf16norm-default-shape: 'Its own fs-w15 citation says NKI convolution works with FP32 normalization, so BF16 output is not established as a required integration boundary. Test --nki-local-conv alone against defaults' \u2014 this proposal is that isolated arm.",
+    "train.py flag list at 9a4caa7b contains --nki-local-conv / --no-nki-local-conv and --local-conv / --no-local-conv / --local-conv-kernel, establishing that the default model has a local-conv module with a selectable implementation.",
+    "research/agentic/DECISION_LOG.md: no row for nki-local-conv at 9a4caa7b; only closed rows are batch-ramp (CONFOUNDED) and ngram-rms-fp32 (DISCARD smoke). CURRENT_STATE.md do-not-reopen list (attention redesign, full-model autocast FP8, Vector-engine square, compiler-SBUF placement, width1152, library-MLP compositions) does not include the NKI local-conv kernel.",
+    "Used proposal ids: only the bundled 20260922-nki-local-conv-bf16norm-default-shape exists and was never run (NEEDS_WORK); no isolated nki-local-conv proposal id has been used."
+  ],
+  "expected_effect": "Direction: public val_bpb decreases relative to the same-host control purely through more optimizer steps in 1800 s. Predeclared sizes: smoke (300 s) steps >= 345 vs 334/335 control (>= +3%); full run steps >= 2175 vs 2071/2076 (>= +5%), public_val_bpb <= control - 0.003 (i.e. <= 1.0027 on trn21 / <= 1.0030 on trn22). If the conv is not a bottleneck at this shape the effect is null (steps within +/-1% of control, bpb within +/-0.001). Per-step loss trajectory at matched step counts is expected to overlay the control within seed noise because the kernel is numerically gated; a per-step divergence would indicate the kernel is not equivalent at this shape. Public val_bpb is the controller's proxy; official private-shard BPB shares the scoring function but not the data.",
+  "files_allowed": [],
+  "flags": [
+    "--nki-local-conv"
+  ],
+  "hypothesis": "At the pinned default shape (6 layers, 592.9M params incl. 4x1M-row BF16 n-gram tables, FP32 matmul, CC='--optlevel=1'), the compiled two-tap local convolution is a non-trivial fraction of the ~0.87 s/step budget (2071-2076 steps in 1800 s). Replacing it with the already-integrated, gate-validated fused NKI local-conv kernel (--nki-local-conv), which is designed to be numerically equivalent to the compiled conv ('corrected integration passed all four native gates', fs-w12), will raise completed steps in the fixed 1800 s budget and therefore lower public val_bpb, with no change to the model function, optimizer, schedule, precision boundaries (FP32 norm outputs and residuals retained, exactly as fs-w15 demonstrated NKI conv works with FP32 normalization), data, or evaluator. This is the isolated arm the proposal verifier explicitly requested when rejecting the bundled --nki-local-conv+--bf16-norm-output proposal ('Test --nki-local-conv alone against defaults').",
+  "implementation_plan": "",
+  "proposal_id": "20260922-nki-local-conv-only-default-shape",
+  "single_causal_change": "Pass --nki-local-conv only. Every other option stays at the 9a4caa7b defaults used by the two pinned controls: no --bf16-norm-output, no --bf16-sdpa-input, no --compile-sdpa-direct, no optimizer/clipping/schedule/shape/precision switch, no env change (NEURON_CC_FLAGS='--optlevel=1', NEURON_LOGICAL_NC_CONFIG=2, NEURON_COMPETITION_R1_SEED=42, nproc 4, --num-steps 5000 --max-train-seconds 1800 --seed 42). The only behavioral delta is which implementation computes the same two-tap local convolution (fused NKI kernel instead of the compiled PyTorch two-tap path). Inference on the control default: neither pinned control launch passes --nki-local-conv; every fresh-start run that used the kernel (fs-w9, fs-w12, fs-w14, fs-w15, fs-w16, fs-w18, fs-w50..fs-w146, commits 2026-09-18..19) passed it explicitly, and the paired --no-nki-local-conv flag exists, so the default is off; preflight MUST confirm this from the resolved-config/log line printed at startup (see abort conditions) rather than assume it.",
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}

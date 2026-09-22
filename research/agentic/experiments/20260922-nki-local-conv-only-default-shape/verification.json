@@ -1,0 +1,19 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "Single causal change: the sole flag is --nki-local-conv; no precision, architecture, optimizer, environment, data, or evaluator changes are proposed. Authoritative train.py lines 2722\u20132737 set USE_NKI_LOCAL_CONV=False, and lines 5850\u20135865 describe the selectable FP32 two-tap implementation.",
+    "Repository evidence supports an isolated experiment, not a proven speedup: fs-w12 records corrected integration passing four native gates, and fs-w15 completed 2600 steps with FP32 normalization outputs and residuals. Their additional precision and configuration changes prevent attributing historical gains to convolution alone.",
+    "The supplied DECISION_LOG.md and CURRENT_STATE.md do not close this isolated direction. Historical fs-w9 and fs-w12 diagnostic crashes remain relevant negative evidence; later successful configurations do not establish correctness at the pinned defaults.",
+    "README.md explicitly permits custom NKI operator replacements. This proposal introduces no pretrained weights, external data, package installation, or evaluator modification. Its preflight conditions prevent silently adding environment dependencies or measuring an inactive/fallback path.",
+    "The controller-pinned seed-42 full-chip comparison is falsifiable against the documented 2071/2076-step controls at 1.005734/1.005967 public BPB. Success requires both at least 5% more steps and a BPB reduction of at least 0.003, with explicit failure and inconclusive outcomes. Apply the relative 5% criterion: its integer thresholds are 2175 steps on trn21 and 2180 on trn22, not 2175 on both."
+  ],
+  "llm_verdict": "PASS",
+  "passed": true,
+  "proposal_id": "20260922-nki-local-conv-only-default-shape",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-22T07:27:56Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}
