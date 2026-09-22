@@ -1,0 +1,20 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "Single causal change: --ngram-ve-dim 64 changes table width from 128 to 64, including the necessarily dimension-dependent up-projections. train.py lines 715\u2013730 and 5909\u20135924 document this independent width option; no second configuration change is proposed.",
+    "Repository evidence supports the experiment: pinned controls report 592.9M parameters with four 1048576\u00d7128 tables, while the no-ngram smoke reports 55.7M parameters, 410 versus 334 same-host steps, and BPB 1.173413 versus 1.165855. Halving table width predicts approximately 324M parameters, consistent with the exercise check.",
+    "The supplied decision log contains no closed table-width direction. The discarded --ngram-rms-fp32 experiment changes precision, and the no-ngram smoke removes the feature entirely; neither duplicates retaining four tables at width 64.",
+    "Competition-legal scope: README.md permits model-size and architecture changes. This flag introduces no pretrained weights, external data, tokenizer changes, or evaluator changes.",
+    "The expected effect is falsifiable through the controller-pinned seed-42, full-chip, 1800-second matched comparison: +6\u201312% steps and a 0.001\u20130.004 public-BPB reduction are measurable predictions, with explicit success and capacity-loss criteria.",
+    "Evidence limitations are non-blocking: parameter count and removal throughput do not prove which traffic component dominates, and the BF16-SDPA win does not establish that width reduction will improve quality. The no-ngram result is smoke-only, so it cannot bracket full-budget BPB; the declared matched full-run criterion, rather than that interpolation, should determine the outcome."
+  ],
+  "llm_verdict": "PASS",
+  "passed": true,
+  "proposal_id": "20260922-ngram-ve-dim64-only-default-shape",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-22T17:35:51Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}
