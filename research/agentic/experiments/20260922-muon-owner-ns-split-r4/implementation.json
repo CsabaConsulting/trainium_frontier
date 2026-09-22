@@ -1,0 +1,18 @@
+{
+  "branch": "autoloop/20260922-muon-owner-ns-split-r4",
+  "candidate_commit": "7adfe78f8324cb1f33588e4d8d63d978cd2d36b5",
+  "deterministic_findings": [],
+  "diff_sha256": "1a7c9e714abe90147658d035f4fe562127cc2c562a6787438123bd6c1fa88bb7",
+  "implemented_at": "2026-09-22T20:09:27Z",
+  "implementer_model_id": "us.anthropic.claude-fable-5-1",
+  "passed": true,
+  "verifier_findings": [
+    "The train.py-only patch implements one attributable change: compiled-branch Muon NS ownership using contiguous padded slices and one rank-ordered all_gather per partitioned group.",
+    "The extracted helpers preserve the source arithmetic, explicit tall/ns_steps arguments, return ordering, and optimizer-state rebinding. The original _muon_math, compiled fallback, eager/NKI branches, and backend precedence remain unchanged.",
+    "Default-on env/CLI control and once-per-group diagnostics are present. Diagnostics compare against the original compiled callable without applying reference updates to live state.",
+    "Data, tokenizer, forward/evaluation behavior, load_for_eval, checkpoint format, schedules, seed handling, and the 1800-second/full-chip launch contract are unchanged. No external-data or pretrained dependency is introduced.",
+    "Supplied deterministic checks pass. Numerical tolerances, collective execution, throughput, BPB, and causality results remain downstream runtime gates, not prerequisites for this implementation gate."
+  ],
+  "verifier_model_id": "us.openai.gpt-6-astra",
+  "verifier_verdict": "PASS"
+}

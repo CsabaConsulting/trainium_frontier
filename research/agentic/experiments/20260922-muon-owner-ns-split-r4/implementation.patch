@@ -1,0 +1,222 @@
+diff --git a/train.py b/train.py
+index 607862de..636b1101 100644
+--- a/train.py
++++ b/train.py
+@@ -4197,6 +4197,26 @@ USE_MUON_LR_FP32 = False
+ # several NEFFs -- this cache only exists so the wrapper object is not rebuilt per step.
+ _MUON_COMPILED: dict[tuple, object] = {}
+ 
++# Owner-compute Newton-Schulz (20260922-muon-owner-ns-split-r4). In the compiled Muon branch every
++# rank runs the NS orthogonalization for EVERY matrix of every same-shape batch, i.e. the only
++# super-linear part of the optimizer is replicated world_size times. With this ON (and
++# torch.distributed initialized with world_size > 1, and the batch holding n >= 2 matrices) the
++# compiled body is split at the NS stage into three identically-compiled, statement-for-statement
++# moved helpers (_muon_pre / _muon_ns / _muon_post): pre and post still run on every rank on the
++# full batch, NS runs only for the rank's contiguous owned slice, and ONE all_gather rebuilds the
++# full orthogonalized batch. Momentum/second-moment layout, optimizer state, checkpoint format,
++# gradient all-reduce, clipping and the eager/NKI Muon branch are untouched; OFF (or world_size ==
++# 1, or n < 2) runs the unchanged control compiled fn. Deliberately NOT in ARCH_TOGGLE_NAMES: it
++# affects no forward, weight, checkpoint or evaluation behaviour.
++# Toggled by --muon-owner-compute / --no-muon-owner-compute in main()
++# (env NEURON_COMPETITION_R1_MUON_OWNER_COMPUTE='0' disables).
++USE_MUON_OWNER_COMPUTE = True
++_MUON_PRE_COMPILED: dict[tuple, object] = {}
++_MUON_NS_COMPILED: dict[tuple, object] = {}
++_MUON_POST_COMPILED: dict[tuple, object] = {}
++# (tuple(shape), n) -> True once the one-off muon_owner_check for that group has run.
++_MUON_OWNER_CHECKED: dict[tuple, bool] = {}
++
+ 
+ def _muon_math(w, g, momentum_buffer, second, mom, one_mom, lr, lrwd,
+                tall: bool, ns_steps: int, red_dim: int, red_dim_size: int,
+@@ -4274,6 +4294,62 @@ def _muon_math(w, g, momentum_buffer, second, mom, one_mom, lr, lrwd,
+     return w, momentum_buffer, second
+ 
+ 
++def _muon_pre(g, momentum_buffer, mom, one_mom, to_bf16: bool):
++    """Group (a) of _muon_math, moved verbatim: out-of-place momentum/Nesterov statements and
++    the NS-input cast. Returns (new momentum buffer, NS input G)."""
++    momentum_buffer = torch.lerp(momentum_buffer, g, one_mom)
++    g = torch.lerp(g, momentum_buffer, mom)
++    x = g.bfloat16() if to_bf16 else g
++    return momentum_buffer, x
++
++
++def _muon_ns(x, tall: bool, ns_steps: int):
++    """Group (b) of _muon_math, moved verbatim: the NS-input normalization plus both
++    Newton-Schulz loops, on a stacked batch of ANY leading size. `tall` / `ns_steps` are the
++    same Python constants _muon_math specialises on."""
++    x = x / (x.norm(dim=(-2, -1), keepdim=True) * 1.01 + 1e-6)
++    if tall:
++        for a, b, c in POLAR_EXPRESS_COEFFS[:ns_steps]:
++            xtx = x.mT @ x
++            x = a * x + x @ (b * xtx + c * (xtx @ xtx))
++    else:
++        for a, b, c in POLAR_EXPRESS_COEFFS[:ns_steps]:
++            xxt = x @ x.mT
++            x = a * x + (b * xxt + c * (xxt @ xxt)) @ x
++    return x
++
++
++def _muon_post(g, w, momentum_buffer, second, lr, lrwd, red_dim: int, red_dim_size: int,
++               one_beta2, lr_fp32: bool = False):
++    """Group (c) of _muon_math, moved verbatim: shape-dependent second-moment update /
++    normalization, LR + weight-decay scaling and the parameter update, on the reconstructed
++    orthogonalized batch `g`. Returns exactly what _muon_math returns, in the same order."""
++    v_mean = g.float().square().mean(dim=red_dim, keepdim=True)
++    v_norm = (v_mean.sum(dim=(-2, -1), keepdim=True) * red_dim_size).sqrt()
++    second = torch.lerp(second, v_mean, one_beta2)
++    step_size = second.clamp_min(1e-10).rsqrt()
++    scaled = (v_mean * red_dim_size) * step_size.square()
++    v_norm_new = scaled.sum(dim=(-2, -1), keepdim=True).sqrt()
++    g = g * (step_size * (v_norm / v_norm_new.clamp_min(1e-10))).to(g.dtype)
++    mask = (g * w) >= 0
++    w = w - (_muon_lr_g(lr, g, lr_fp32) + lrwd * w * mask)
++    return w, momentum_buffer, second
++
++
++def _muon_owner_compiled(cache: dict, helper, key: tuple, device: torch.device):
++    """Lazily build/cache one compiled owner-compute helper with EXACTLY the treatment
++    _MUON_COMPILED gives _muon_math: torch.compile(backend='neuron', dynamic=False) on a neuron
++    device, the plain function elsewhere. `key` is (tall, ns_steps, red_dim, shape)."""
++    fn = cache.get(key)
++    if fn is None:
++        fn = (torch.compile(helper, backend="neuron", dynamic=False)
++              if device.type == "neuron" else helper)
++        cache[key] = fn
++        print0(f"muon step: OWNER-COMPUTE {helper.__name__} for {key[3]} "
++               f"(tall={key[0]} ns_steps={key[1]} red_dim={key[2]})")
++    return fn
++
++
+ def _muon_lr_g(lr, g, lr_fp32: bool = False):
+     """`lr * g`, computed the way a 0-dim `lr` computes it whatever `lr`'s shape.
+ 
+@@ -4913,10 +4989,78 @@ class MuonAdamW(torch.optim.Optimizer):
+             # i.e. a full neuronx-cc recompile of the whole Muon body per step. The device tensor
+             # is the same operand `mom`/`one_mom` already are.
+             one_beta2 = one_b2_t if MUON_BETA2_FINAL > 0.0 else 1 - group["beta2"]
+-            w, momentum_buffer, second = fn(
+-                w, g, momentum_buffer, second, mom_t, one_mom_t, lr_t, lrwd_t,
+-                key[0], ns_steps, red_dim, g.size(red_dim),
+-                one_beta2, COMPUTE_DTYPE == torch.bfloat16, USE_MUON_LR_FP32)
++            to_bf16 = COMPUTE_DTYPE == torch.bfloat16
++            # Owner-compute NS (USE_MUON_OWNER_COMPUTE): partition ONLY the Newton-Schulz stage
++            # across ranks and rebuild the full orthogonalized batch with one all_gather. Every
++            # other case runs the unchanged control compiled fn below.
++            owner_active = (USE_MUON_OWNER_COMPUTE and dist.is_available() and dist.is_initialized()
++                            and dist.get_world_size() > 1 and g.shape[0] >= 2)
++            if not owner_active:
++                w, momentum_buffer, second = fn(
++                    w, g, momentum_buffer, second, mom_t, one_mom_t, lr_t, lrwd_t,
++                    key[0], ns_steps, red_dim, g.size(red_dim),
++                    one_beta2, to_bf16, USE_MUON_LR_FP32)
++            else:
++                tall = key[0]
++                n = g.shape[0]
++                world_size = dist.get_world_size()
++                rank = dist.get_rank()
++                per_rank = (n + world_size - 1) // world_size
++                # Once per (shape, n): run the SAME control compiled fn on clones as the reference
++                # for the diagnostics printed below. Diagnostics only -- the real update always
++                # uses the split-path results, and the clones/references are discarded.
++                check_key = (tuple(shape), n)
++                do_check = check_key not in _MUON_OWNER_CHECKED
++                if do_check:
++                    _MUON_OWNER_CHECKED[check_key] = True
++                    w_before = w.clone()
++                    ref_w, ref_mom, ref_second = fn(
++                        w_before, g.clone(), momentum_buffer.clone(), second.clone(),
++                        mom_t, one_mom_t, lr_t, lrwd_t,
++                        tall, ns_steps, red_dim, g.size(red_dim),
++                        one_beta2, to_bf16, USE_MUON_LR_FP32)
++                # (pre) every rank, full batch: momentum/Nesterov + NS-input cast.
++                pre_fn = _muon_owner_compiled(_MUON_PRE_COMPILED, _muon_pre, key, p0.device)
++                momentum_buffer, G = pre_fn(g, momentum_buffer, mom_t, one_mom_t, to_bf16)
++                # (ns) this rank's contiguous owned slice [start, min(start+per_rank, n)); unowned
++                # slots hold copies of matrix 0 (never zeros, so no normalization guard changes)
++                # and their outputs are discarded by the [:n] slice after the gather.
++                start = rank * per_rank
++                owned = G[start:min(start + per_rank, n)]
++                if owned.shape[0] < per_rank:
++                    local_stack = torch.cat([owned] + [G[0:1]] * (per_rank - owned.shape[0]), dim=0)
++                else:
++                    local_stack = owned
++                ns_key = (tall, ns_steps, red_dim, tuple(local_stack.shape))
++                ns_fn = _muon_owner_compiled(_MUON_NS_COMPILED, _muon_ns, ns_key, p0.device)
++                local_out = ns_fn(local_stack, tall, ns_steps)
++                # ONE collective, in ordinary (lazy) code outside any compiled region. Rank-order
++                # concatenation, so index k of full_out is matrix k under the contiguous mapping.
++                gathered = [torch.empty_like(local_out) for _ in range(world_size)]
++                dist.all_gather(gathered, local_out)
++                full_out = torch.cat(gathered, dim=0)[:n]
++                # (post) every rank, full reconstructed batch: the remaining statements.
++                post_fn = _muon_owner_compiled(_MUON_POST_COMPILED, _muon_post, key, p0.device)
++                w, momentum_buffer, second = post_fn(
++                    full_out, w, momentum_buffer, second, lr_t, lrwd_t,
++                    red_dim, g.size(red_dim), one_beta2, USE_MUON_LR_FP32)
++                if do_check:
++                    ref_ns_fn = _muon_owner_compiled(
++                        _MUON_NS_COMPILED, _muon_ns, (tall, ns_steps, red_dim, tuple(G.shape)),
++                        p0.device)
++                    ref_ns = ref_ns_fn(G, tall, ns_steps)
++
++                    def _rel(cand, ref):
++                        return float(((cand.float() - ref.float()).abs().max()
++                                      / ref.float().abs().max().clamp_min(1e-30)).item())
++
++                    ns_rel = _rel(full_out, ref_ns)
++                    delta_rel = _rel(w - w_before, ref_w - w_before)
++                    mom_rel = _rel(momentum_buffer, ref_mom)
++                    sm_rel = _rel(second, ref_second)
++                    print0(f"muon_owner_check shape={tuple(shape)} n={n} per_rank={per_rank} "
++                           f"ns_rel={ns_rel:.6e} delta_rel={delta_rel:.6e} "
++                           f"mom_rel={mom_rel:.6e} sm_rel={sm_rel:.6e}")
+             # All three are scratch or state the caller owns, so rebinding is free --
+             # no copy back (see the _muon_math docstring).
+             state["stacked_params"] = w
+@@ -5729,6 +5873,7 @@ def main() -> None:
+     # statement that follows any use of the name in the same function. Same rule that put
+     # MATRIX_LR et al. in this block; --nki-muon dodged it by hardcoding a literal default instead.
+     global USE_COMPILE_MUON
++    global USE_MUON_OWNER_COMPUTE  # owner-compute NS, same reason as USE_COMPILE_MUON above
+     global USE_TRANSPOSED_LINEAR  # T1.6, same reason as USE_COMPILE_MUON above
+     # Plan 11.1 / gpu-closed-techniques §3.2 / T2.3 / T2.4 -- same rule again: every one of these is
+     # read by its own argparse default line below, so the `global` has to precede the parser.
+@@ -5828,6 +5973,16 @@ def main() -> None:
+                              "(Neuron only). Mutually exclusive with --nki-muon by construction -- a "
+                              "compiled region cannot contain an nki.jit call -- so this trades the NKI "
+                              "elementwise fusion for whole-body fusion. See _muon_math.")
++    parser.add_argument("--muon-owner-compute", action=argparse.BooleanOptionalAction,
++                        default=os.environ.get("NEURON_COMPETITION_R1_MUON_OWNER_COMPUTE",
++                                               "1" if USE_MUON_OWNER_COMPUTE else "0") != "0",
++                        help="inside the compiled Muon step (--compile-muon), run the Newton-Schulz "
++                             "orthogonalization only for this rank's contiguous slice of each "
++                             "same-shape batch and rebuild the full batch with ONE all_gather, "
++                             "instead of every rank redundantly orthogonalizing every matrix. "
++                             "Same arithmetic split at the NS stage; momentum/second-moment/update "
++                             "still run on every rank. Inert with world_size == 1, batches of a "
++                             "single matrix, or a non-compiled Muon backend. Default ON.")
+     parser.add_argument("--transposed-linear", action=argparse.BooleanOptionalAction,
+                         default=os.environ.get("NEURON_COMPETITION_R1_TRANSPOSED_LINEAR",
+                                                "1" if USE_TRANSPOSED_LINEAR else "0") != "0",
+@@ -6630,6 +6785,7 @@ def main() -> None:
+     USE_MUON_LR_FP32 = args.muon_lr_fp32
+     USE_TRANSPOSED_LINEAR = args.transposed_linear
+     USE_COMPILE_MUON = args.compile_muon
++    USE_MUON_OWNER_COMPUTE = args.muon_owner_compute  # read by _muon_step, i.e. after setup_optimizer()
+     if USE_COMPILE_MUON and USE_NKI_MUON:
+         # Not an error, because both are ON by default now and --compile-muon is the faster of the
+         # two (+3.38% vs the NKI path at the locked config). Silent precedence inside _muon_step
+@@ -6649,7 +6805,10 @@ def main() -> None:
+ 
+     print0(f"device={device} dtype={COMPUTE_DTYPE} world_size={world_size}")
+     print0(f"training target={args.num_steps} steps max_seconds={args.max_train_seconds} official_budget={TRAIN_TIME_BUDGET_SECONDS}s")
+-    print0(f"gradient_clip={GRAD_CLIP:g} clip_after_reduce={CLIP_AFTER_REDUCE}")
++    print0(f"gradient_clip={GRAD_CLIP:g} clip_after_reduce={CLIP_AFTER_REDUCE} "
++           f"muon_owner_compute={USE_MUON_OWNER_COMPUTE}")
++    if not (USE_COMPILE_MUON and USE_TENSOR_LR_SCALARS):
++        print0("muon_owner_compute: inactive (non-compiled NS backend)")
+     print0(f"attention: nki_attn={USE_NKI_ATTN} compile_sdpa_direct={COMPILE_SDPA_DIRECT} "
+            f"bf16_sdpa_input={USE_BF16_SDPA_INPUT}")
+     print0(f"branch_precision: bf16_norm_output={USE_BF16_NORM_OUTPUT} "
