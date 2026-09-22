@@ -1,0 +1,24 @@
+{
+  "analyst_prose": "KEEP at smoke tier: correctness gates passed, and the candidate is eligible for a full run.\nDisabling n-gram VE is the only substantive configuration change; source hashes, seed, host, compiler flags, and launch shape match.\nThe candidate reached 410 steps versus 334, exceeding the 352-step minimum.\nIts training rate was 1.4386 versus 1.1748 steps/s, about 22.5% faster and above the 1.2336 floor.\nValidation BPB was worse: 1.173413 versus 1.165855, a +0.007558 delta.\nParameter count fell from 592.9M to 55.7M with n-gram VE removed.\nThe quality comparison is confounded by unequal training exposure: similar training time yielded 53.7M versus 43.8M tokens, so this is not a matched-step ablation.\nStartup allowances also differed; the reported step-rate comparison uses training time rather than end-to-end wall time.\nThis smoke result supports proceeding, not a claim of improved validation quality.",
+  "decision": "KEEP",
+  "metrics": {
+    "bpb_delta": 0.007557999999999954,
+    "candidate_bpb": 1.173413,
+    "candidate_params_M": 55.7,
+    "candidate_step_rate": 1.4385964912280702,
+    "candidate_steps": 410.0,
+    "control_bpb": 1.165855,
+    "control_params_M": 592.9,
+    "control_step_rate": 1.1748153359127682,
+    "control_steps": 334.0,
+    "smoke_gate": {
+      "min_candidate_steps": 352,
+      "min_step_rate_ratio": 1.05
+    },
+    "step_rate_floor": 1.2335561027084068
+  },
+  "reasons": [
+    "correctness gates passed; step rate within tolerance; eligible for full run"
+  ],
+  "tier": "smoke"
+}
