@@ -1,0 +1,39 @@
+{
+  "abort_conditions": [
+    "Non-finite loss or grad norm at any step in the first 100 steps or any NaN/Inf in the smoke evaluation",
+    "Smoke (300 s) step count below the control smoke count of 334-335 steps (throughput regression means the causal premise is false)",
+    "Smoke public_val_bpb worse than the control smoke 1.1656 by more than 0.010",
+    "Run config dump shows bf16_norm_output already True in the no-flag control at this commit (then the proposal is a duplicate of the control and must be voided)",
+    "Full run completes fewer steps than the control (2071) or over_budget flag set"
+  ],
+  "change_type": "flags",
+  "created_at": "2026-09-22T06:15:06Z",
+  "duplicate_search_terms": [
+    "bf16-norm-output",
+    "no-bf16-norm-output",
+    "bf16 norm output",
+    "BF16 normalized activations",
+    "bf16norm",
+    "nki-local-conv-bf16norm-default-shape",
+    "norm-output precision"
+  ],
+  "evidence": [
+    "research/experiment-log.jsonl: fs-w15-dense1024-nki-sdpa-only-1800-r1 (FP32 norm outputs, bf16-sdpa-input) 0.989128 bpb @ 2600 steps vs fs-w12-dense1024-nki-norm-1800-r1 (--bf16-norm-output, same nki-local-conv/compile-sdpa-direct/dense6x1024/seed42) 0.98171 bpb @ 2977 steps: +14.5% steps and -0.0074 bpb when the norm-output precision boundary is the differing switch",
+    "research/experiment-log.jsonl: fs-w16 (0.981174) and seed43 repeat fs-w18 (0.986019) show the BF16-norm-output family is stable and finite across 3000 steps; no NaN incidents recorded for this flag (the NaN crashes fs-w9/fs-w12-nan-diagnostic were the FP32 NKI conv path, not the norm cast)",
+    "research/experiment-log.jsonl: controls al-20260922-control-trn21/trn22-lnc2x4-9a4caa7b-full-r1 at this commit: 1.005734 / 1.005967 bpb @ 2071 / 2076 steps, no flags -> default config is still FP32-norm (step count matches sub1-record-repro-full 2094 steps at dab464a)",
+    "train.py at 9a4caa7b exposes --bf16-norm-output / --no-bf16-norm-output as an independent option, separate from --nki-local-conv and --bf16-sdpa-input",
+    "CURRENT_STATE.md / used ids: '20260922-nki-local-conv-bf16norm-default-shape' bundled two switches; this proposal isolates only the precision boundary and has not been run at this commit or default shape",
+    "research/experiment-protocol.md \u00a75: quality comparison valid only if step count is comparable or higher than control; this proposal predicts higher steps so the bpb comparison is not confounded downward"
+  ],
+  "expected_effect": "Lower public/official val_bpb by 0.004 to 0.010 versus the 1.0057-1.0060 control (target <= 1.000), driven by a 8-15% increase in completed steps (>= 2230 steps vs 2071-2076) at seed 42, LNC=2, nproc=4, 1800 s. Falsified if bpb >= 1.0057 or steps <= control.",
+  "files_allowed": [],
+  "flags": [
+    "--bf16-norm-output"
+  ],
+  "hypothesis": "At the default (record) shape, the FP32 normalization outputs feeding the attention/MLP matmuls are the dominant per-step cost that the compiled graph cannot hide; casting only the RMSNorm outputs to BF16 (residual stream, optimizer, and loss kept FP32) raises step count within the fixed 1800 s budget enough that the extra optimizer updates outweigh the BF16 activation precision loss, lowering official val_bpb versus the no-flag control.",
+  "implementation_plan": "",
+  "proposal_id": "20260922-bf16-norm-output-only-default-shape",
+  "single_causal_change": "Enable --bf16-norm-output (BF16-cast normalized activations at the norm->matmul boundary) with every other default unchanged. No NKI conv, no SDPA-direct compile switch, no optimizer or clipping change.",
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}

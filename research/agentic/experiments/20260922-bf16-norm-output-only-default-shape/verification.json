@@ -1,0 +1,21 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "The proposal names one flag, but its stated scope is incomplete: train.py lines 5857\u20135868 explicitly say --bf16-norm-output also changes normalized inputs to the final head, not just attention/MLP matmuls. Include that boundary and provide implementation evidence confirming the claimed unchanged residual, optimizer, and loss precision.",
+    "The no-flag control's effective precision is not established. The supplied parser derives the default from NEURON_COMPETITION_R1_BF16_NORM_OUTPUT and USE_BF16_NORM_OUTPUT; neither resolved value is supplied. Similar step counts do not prove FP32 normalization. Verify the control configuration before treating this as a non-no-op experiment.",
+    "The fs-w15 versus fs-w12 measurements are accurately quoted but do not establish an isolated norm-output effect: they use different commits, fs-w15 explicitly enables --bf16-sdpa-input and --pack-factor 4, and fs-w12 does not. Supply resolved configurations, relevant code differences, and same-host/environment evidence, or describe this comparison as suggestive rather than causal.",
+    "Non-duplication is not fully evidenced. No exact closed duplicate appears in the supplied decision log, but search terms alone do not document the required search of research/trn2-experiment-results.md and the full ledger. The cited bundled proposal ID is absent from the supplied CURRENT_STATE.md. Provide its disposition and the alias-search results.",
+    "The seed-42, LNC=2, four-worker, 1800-second prediction is falsifiable, and the ledger supports both quoted control results. However, select a host-specific matched control and explicitly preserve its --num-steps 5000, compiler environment, evaluation settings, and other configuration. Protocol \u00a75 requires back-to-back, same-box/day/code rate comparisons; pooled control thresholds do not establish that match.",
+    "Separate public_val_bpb from official private-shard BPB: README.md says the scoring function is shared but the validation data differ. Also reconcile the numerical success criteria: 2230 steps is below an 8% gain over either control, and a 0.004 BPB improvement does not reach the stated <=1.000 target.",
+    "The proposed precision-only flag experiment is competition-legal in scope under README.md: it introduces no pretrained weights, external data, evaluator changes, or restricted-core launch. Related negative evidence should nevertheless be acknowledged: sub1-p2b-autocast-bf16-fullv2 achieved 2719 steps but worse public BPB, showing that additional BF16 updates need not improve quality. That broader autocast experiment is not itself an exact duplicate of this narrower proposal."
+  ],
+  "llm_verdict": "NEEDS_WORK",
+  "passed": false,
+  "proposal_id": "20260922-bf16-norm-output-only-default-shape",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-22T06:15:07Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}
