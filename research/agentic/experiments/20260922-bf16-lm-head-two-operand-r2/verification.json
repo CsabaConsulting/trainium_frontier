@@ -1,0 +1,20 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "The bounded plan specifies one causal intervention: BF16 operands only at the LM-head projection, followed by FP32 logits. Toggle resolution, checkpoint persistence and dtype logging support that intervention; no SDPA change or other optimization is stacked.",
+    "Repository evidence supports investigating precision boundaries: the bf16-sdpa-input full-run ledger row and DECISION_LOG report 2233 steps / 1.002028 BPB versus 2076 / 1.005967. This is analogous evidence, not proof of an FP32 head bottleneck. The mandatory pre-edit dtype/cache/autocast inspection and HALT-INERT gate appropriately leave that premise to implementation verification.",
+    "The implementation plan addresses both operands, differentiable gradient routing to master weights, the unchanged disabled path, and checkpoint/load_for_eval parity. train.py lines 5251\u20135266 establish the existing precision-toggle persistence mechanism. Exact cache/layout preservation and backward behavior remain subject to independent patch review.",
+    "No supplied closed direction is the isolated BF16 LM-head experiment. This differs from the parked generic full-model FP8 direction and the discarded flag arms. The earlier unrun implementation revision is not evidence that the experimental direction was falsified.",
+    "The proposed train.py-only numerical change is permitted by README.md. It introduces no pretrained weights, external data, tokenizer/data-pipeline changes or evaluator modifications, and requires training/evaluation forward parity.",
+    "The expected effect is falsifiable against the controller-pinned seed-42 full-chip matched control: at least 2% more steps and at least 0.001 lower public BPB, with explicit inert, quality-loss, short-run and excess-gain outcomes. FP32 output dtype does not imply byte-identical logits or establish negligible quality loss; those numerical claims remain hypotheses rather than verified guarantees."
+  ],
+  "llm_verdict": "PASS",
+  "passed": true,
+  "proposal_id": "20260922-bf16-lm-head-two-operand-r2",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-22T18:45:25Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}
