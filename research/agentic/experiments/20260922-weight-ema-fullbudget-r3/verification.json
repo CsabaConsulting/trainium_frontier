@@ -1,0 +1,19 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "Single causal change: only --weight-ema is added. Both pinned control ledger rows confirm EMA disabled with decay 0.995, start_frac 0.75, and zero updates; no additional hyperparameter change is introduced.",
+    "The flag matches the documented behavior: train.py:293-309 describes tail averaging, raw/EMA checkpoint states, and EMA-preferred loading; train.py:6218-6233 documents enabling maintenance, saving, and evaluation of both states. These excerpts are configuration/comments and parser documentation, not the complete implementation.",
+    "Historical counts are supported by train.py:293-309: 474 steps, 103 tail updates, and EMA worse than raw by 0.0168 BPB. The residual-mass calculation motivates a distinct full-budget hypothesis but does not establish that averaging lag disappears. The supplied decision log does not close full-budget EMA.",
+    "Competition-legal as proposed: averaging weights produced within the provided-data training loop introduces no pretrained assets, external data, or evaluator modification. Loading the resulting EMA checkpoint through the existing hook is distinct from changing the scoring function.",
+    "The controller-pinned seed-42 full-chip matched comparison can falsify the quality prediction. Ordered outcomes resolve overlap, check EMA activation and evaluated-state identity, and apply protocol section 5's short-run rule. If raw BPB is unavailable, any success supports only the control-relative quality claim, not the paired mechanism claim. The 0.001 inconclusive interval is a chosen decision margin, not an empirically established noise band from the two cross-host controls."
+  ],
+  "llm_verdict": "PASS",
+  "passed": true,
+  "proposal_id": "20260922-weight-ema-fullbudget-r3",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-22T16:57:26Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}
