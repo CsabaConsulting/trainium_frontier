@@ -1,0 +1,19 @@
+{
+  "analyst_prose": "The full-tier verdict is CONFOUNDED.\nThe BF16 MLP norm-output candidate recorded 1.020187 validation bpb versus 1.005734 for the control, a worsening of 0.014453 bpb.\nThe confounder is unequal training steps: 2,346 versus 2,071, approximately 13.3% more for the candidate and above the 10% threshold.\nBoth trained for 1,784.8 seconds, but candidate throughput was 1.314 steps/s versus 1.160 steps/s, yielding 307.5M versus 271.5M training tokens.\nParameter count (592.9M), seed, hardware configuration, and time budget matched; both passed causality checks and stayed within budget.\nThe observed bpb difference therefore does not isolate the numerical-format change from the unequal training exposure.",
+  "decision": "CONFOUNDED",
+  "metrics": {
+    "bpb_delta": 0.01445300000000005,
+    "candidate_bpb": 1.020187,
+    "candidate_params_M": 592.9,
+    "candidate_step_rate": 1.3144329896907216,
+    "candidate_steps": 2346.0,
+    "control_bpb": 1.005734,
+    "control_params_M": 592.9,
+    "control_step_rate": 1.1603541012998655,
+    "control_steps": 2071.0
+  },
+  "reasons": [
+    "steps differ by more than 10% (2346.0 vs 2071.0)"
+  ],
+  "tier": "full"
+}
