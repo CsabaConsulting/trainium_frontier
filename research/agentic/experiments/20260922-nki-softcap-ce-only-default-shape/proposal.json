@@ -1,0 +1,50 @@
+{
+  "abort_conditions": [
+    "Smoke fails to import, compile, or execute the NKI softcap-CE kernel, or causality_passed is False -> HALT-KERNEL, no full run.",
+    "Run log gives no evidence that the fused softcap-CE kernel path is active (fallback to the ordinary path or no kernel/config line), or any oneliner / num_params_M differs from control -> HALT-SEMANTIC-REVIEW, no full run.",
+    "Smoke steps within +/-3% of same-host control smoke but smoke public_val_bpb differs from control smoke by more than 0.002 in either direction -> HALT-NUMERICS (loss definition changed, comparison invalid), no full run.",
+    "Smoke step-rate ratio vs same-host control smoke < 1.02 or smoke public_val_bpb > control smoke + 0.003 -> fails smoke gate, no full run.",
+    "Full run steps < 90% of same-host control -> CONFOUNDED-SHORT; do not record as a quality verdict.",
+    "Full run steps > +10% of control -> EXCESS-GAIN-REVIEW; no SUCCESS claim without matched-step trajectory comparison."
+  ],
+  "change_type": "flags",
+  "created_at": "2026-09-22T19:36:33Z",
+  "duplicate_search_terms": [
+    "nki-softcap-ce",
+    "nki_softcap_ce",
+    "softcap-ce",
+    "softcap_ce",
+    "fused ce",
+    "fused cross entropy",
+    "adaptive-ce",
+    "experimental-adaptive-ce",
+    "nki ce kernel",
+    "softcap kernel",
+    "logits fusion",
+    "lm head kernel"
+  ],
+  "evidence": [
+    "research/experiment-log.jsonl row al-20260922-bf16-sdpa-input-only-default-shape-full-r1: 2233 steps / 1.002028 vs trn22 control 2076 / 1.005967 -- one isolated per-token-region cost reduction at this commit converts directly into lower fixed-budget BPB (analogous evidence for the value of recovering microstep time; not a measurement of the CE region).",
+    "research/experiment-log.jsonl rows al-20260922-control-trn21-lnc2x4-9a4caa7b-full-r1 (2071 / 1.005734) and al-20260922-control-trn22-lnc2x4-9a4caa7b-full-r1 (2076 / 1.005967); smoke controls 334 / 1.165855 (trn21) and 335 / 1.165604 (trn22) -- same-host comparison baselines.",
+    "train.py at 9a4caa7b exposes --nki-softcap-ce / --no-nki-softcap-ce; prior verifier-PASSED proposals (20260922-bf16-lm-head-*) locate the softcap + cross-entropy region immediately downstream of the LM head, gated by --nki-softcap-ce and --byte-loss-weight, operating on FP32 logits under default flags (GPT.forward: head -> vocabulary slice -> float -> softcap/CE).",
+    "research/experiment-log.jsonl rows fs-w70 -> fs-w98 (description: 'after 3.16 percent complete-step gain, nativeMLP paddedownership adaptiveCE'): the fresh-start campaign found the CE region worth a complete-step gain when its materialization was restructured -- analogous, different script and flag, cited only as feasibility evidence that the CE region is a real cost at this model shape.",
+    "research/experiment-log.jsonl row al-20260922-nki-local-conv-only-default-shape-smoke-r1 (330 vs 335 steps, DISCARD): NKI kernels at this commit are not automatically faster, which is why this is framed as a falsifiable throughput test with an explicit FALSIFIED-INERT class.",
+    "DECISION_LOG.md: no row at 9a4caa7b tests --nki-softcap-ce; tested kernel/precision arms are --nki-local-conv, --ngram-rms-fp32, --bf16-sdpa-input, --bf16-norm-output (smoke only), and the unrun bf16-lm-head code proposals."
+  ],
+  "expected_effect": "Throughput: +2% to +8% completed steps at 1800 s (2113 to 2240 on trn21; 2118 to 2245 on trn22) from removing separate FP32 logits passes in the softcap/CE forward and backward. Quality per step unchanged (same precision, same loss definition), so public_val_bpb should fall roughly in proportion to extra steps as in the SDPA arm (+7.5% steps -> -0.0039): predicted final public_val_bpb 1.0015 to 1.0047 on trn21 (control 1.005734) and 1.0017 to 1.0050 on trn22 (control 1.005967), i.e. a decrease of 0.001 to 0.004. Falsified as INERT if steps are within +/-1% of control; falsified on QUALITY if steps rise >= 2% but BPB does not decrease.",
+  "files_allowed": [],
+  "flags": [
+    "--nki-softcap-ce"
+  ],
+  "hypothesis": "At 9a4caa7b defaults the softcap + cross-entropy region operates on FP32 vocab-sized logits [B*T, V] through several separate compiler-generated passes (tanh softcap, logsumexp/softmax, gather, byte-loss weighting, and their backward). This region is a measurable per-microstep memory-traffic cost, analogous to the SDPA cost that --bf16-sdpa-input recovered (+7.5% steps, 2233 vs 2076, BPB 1.002028 vs 1.005967). The existing --nki-softcap-ce flag fuses softcap and CE into one inline NKI kernel without changing operand precision, so it should recover step throughput at a fixed 1800 s budget while leaving the loss definition numerically equivalent; more optimizer steps at unchanged quality-per-step lowers final public_val_bpb. This is a kernel-fusion test of the same logits-region-cost premise that the four unrun bf16-lm-head code proposals relied on, but it is a distinct causal factor (fusion at unchanged precision, not BF16 operands) and uses an existing flag rather than a code change.",
+  "implementation_plan": "",
+  "proposal_id": "20260922-nki-softcap-ce-only-default-shape",
+  "single_causal_change": "Pass --nki-softcap-ce only. Every other option stays at the 9a4caa7b defaults used by the two pinned controls: identical launch shape (NEURON_LOGICAL_NC_CONFIG=2, torchrun --standalone --nproc_per_node=4, --num-steps 5000, --max-train-seconds 1800, --seed 42), identical environment (NEURON_CC_FLAGS exactly '--optlevel=1', NEURON_COMPETITION_R1_SEED=42, PYTHONUNBUFFERED=1), no --bf16-sdpa-input, no --bf16-norm-output, no other --nki-* or --compile-* flag, no optimizer/schedule/batch/architecture/ngram-ve/evaluation change. Pre-full checks from the smoke: num_params_M 592.9; ngram_ve oneliner identical to control ('True tables=4 rows=1048576 dim=128 index_gather=True trigram=True opt=rmsprop flat_lr=True bf16=True rms_fp32_state_math=False nki_rms=False'); all architecture/sched/batch_ramp/weight_ema oneliners identical to control; causality_passed True; the run log must contain evidence that the NKI softcap-CE kernel path was selected (config field, kernel-compile line, or equivalent) -- if the log shows the kernel fell back to the ordinary path or gives no evidence of being active, classify HALT-SEMANTIC-REVIEW and do not launch the full run. Comparison: same-host pinned control on public_val_bpb (trn21 2071 / 1.005734; trn22 2076 / 1.005967). Outcome classes evaluated in order: (1) HALT-KERNEL if the smoke fails to import/compile/execute the kernel or causality_passed is False; (2) HALT-NUMERICS if smoke steps are within +/-3% of the same-host control smoke (334 trn21 / 335 trn22) but smoke public_val_bpb differs from the control smoke by more than 0.002 in either direction (the kernel changed the loss definition rather than the speed; no full run); (3) CONFOUNDED-SHORT if full-run steps < 90% of same-host control (<1864 trn21, <1869 trn22); (4) FALSIFIED-INERT if full-run steps within +/-1% of control (fused softcap-CE is not a measurable cost); (5) EXCESS-GAIN-REVIEW if steps > +10% of control (>2278 trn21, >2283 trn22): compare logged validation trajectories at matched step counts before any quality claim; if matched-step trajectories are unavailable, quality attribution is recorded unresolved; SUCCESS only if public_val_bpb < control by >= 0.001 and no matched-step deficit > 0.010 at the control's final step; (6) SUCCESS if steps >= +2% and public_val_bpb < same-host control by >= 0.001; (7) FALSIFIED-QUALITY if steps >= +2% and public_val_bpb >= control; (8) INCONCLUSIVE otherwise (including +2% steps with a BPB gain smaller than 0.001).",
+  "smoke_gate": {
+    "max_bpb_delta": 0.003,
+    "min_candidate_steps": 342,
+    "min_step_rate_ratio": 1.02
+  },
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}

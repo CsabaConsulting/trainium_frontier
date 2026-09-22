@@ -1,0 +1,18 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "The proposed flag is a semantic no-op against the pinned controls. Authoritative train.py lines 5771\u20135777 default --nki-softcap-ce to True when NEURON_COMPETITION_R1_NKI_SOFTCAP_CE is unset; main() assigns that value to USE_NKI_SOFTCAP_CE. The pinned control environments contain no override. Explicitly passing --nki-softcap-ce therefore introduces no causal change.",
+    "softcap_cross_entropy() applies identical NKI availability, device, precision, contiguity, and row-divisibility guards in both arms. The flag cannot activate a path that the default control would not already select. A candidate log reporting nki_softcap_ce=True would neither establish a treatment difference nor prove kernel execution, since the summary prints the requested argument rather than the branch taken.",
+    "Repository evidence contradicts the stated baseline premise: USE_NKI_SOFTCAP_CE=True is documented as an already-adopted fusion with prior hardware evidence (384 steps / 1.198478 versus 366 / 1.206231). LOSS_BYTE_WEIGHT and its CLI default are False. Moreover, fs-w70 and fs-w98 both enable adaptive CE while changing pack factor from 16 to 32, so their difference does not isolate a CE-restructuring gain.",
+    "Custom training-loss kernels are competition-legal under README.md, and no prohibited assets or evaluator edits are proposed. However, the declared throughput/BPB thresholds cannot test the fusion hypothesis with identical effective configurations; an inert result would not show that the CE region is inexpensive. A revised proposal must identify a genuine treatment difference and reconcile the existing fusion evidence."
+  ],
+  "llm_verdict": "FAIL",
+  "passed": false,
+  "proposal_id": "20260922-nki-softcap-ce-only-default-shape",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-22T19:36:33Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}
