@@ -1,0 +1,18 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "The site-scoped plan does not match authoritative Block.forward. The default serial path has separate norm(q_in), norm(k_in), and norm(v_in) calls feeding attention, a separate norm(x) feeding local_conv, and norm(x) feeding the MLP. Moreover, q_in/k_in/v_in are captured before the local-convolution residual update; convolution is not upstream of those QKV inputs. Specify the exact selected calls and whether the convolution norm is included. The repeated requirement to modify exactly two norm outputs cannot implement the described attention-plus-MLP policy without an additional, unauthorized restructuring.",
+    "The promised dtype scope is inaccurate. GPT.forward initially normalizes a COMPUTE_DTYPE embedding, which is BF16 on Neuron even in the control. Casting attention projection inputs also changes their outputs and the dtype entering rope_norm; its native kernel returns the input dtype. Leaving other norm call sites untouched does not guarantee their outputs remain FP32. Define the intervention as selected explicit casts with acknowledged downstream dtype propagation, while preserving the final FP32 residual/norm/head path.",
+    "The repository supports investigating a narrower policy: al-20260922-bf16-norm-output-policy-r3-full-r1 records 2716 steps / 1.016279 BPB versus 2071 / 1.005734, and the SDPA-only full run records 2233 / 1.002028 versus 2076 / 1.005967. However, these results do not establish dominant matmul cost or locate the regression in the head. train.py also documents quality degradation from crossing the approximately 2195-step data wall. A block-only regression would falsify the proposed fixed-budget benefit, not uniquely attribute the earlier regression to block projections rather than the head.",
+    "The remaining experiment framework is acceptable: the supplied decision log does not close this narrower block-scoped direction; edits are limited to train.py with no pretrained weights, external data, or evaluator changes; implementation prerequisites are static-only; and the declared step/BPB thresholds are falsifiable against the controller's matched seed-42 full-chip control. Revise the causal scope before exact-patch implementation review."
+  ],
+  "llm_verdict": "NEEDS_WORK",
+  "passed": false,
+  "proposal_id": "20260922-bf16-block-norm-output-head-fp32",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-22T20:26:25Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}
