@@ -16,3 +16,14 @@ breaker was then cleared. A fresh read-only preflight measured 7.96 GiB free on 
 10.26 GiB on idle `trn21`, with no device holders and both required runtime paths present. Restart
 semantics will abandon the staged `-r1` directory and create a unique `-r2` label; it must never
 reuse the unlaunched directory.
+
+The `r2` smoke then passed and its checkpoint was pruned, but staging the promoted full run plus
+the abandoned immutable directories reduced free space to about 7.4 GiB. The post-stage launch
+inventory correctly stopped again at the 7.5 GiB floor. The floor was not weakened further, the
+preserved BF16-SDPA `KEEP` checkpoint was not deleted, and no full run started on `trn22`.
+
+`trn22` is therefore removed temporarily from the controller's scheduling list. Its same-controller
+stale lock was released after confirming the box had no controller run. The promoted MLP-only full
+run is reassigned in runtime state to `trn21`; that box's already-running independently verified
+smoke is allowed to finish and be collected first. `trn22` may be re-enabled only after a separate
+hash-preserving cleanup decision raises it above the configured floor.
