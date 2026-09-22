@@ -127,6 +127,10 @@ mismatch, missing artifact, tampered manifest) · state schema mismatch.
 Malformed/unfinished Researcher output creates a 30-minute backoff instead of spending on every
 two-minute poll. A deliberate `none` response backs off for one hour.
 
+Fable's always-on reasoning is given a 64,000-token response ceiling. A live 16,000-token call
+exhausted its allowance entirely in hidden reasoning and returned no proposal text. Failed-call
+receipts retain stop reason and token usage under ignored `runtime/model-replies/` for diagnosis.
+
 The standing unattended configuration permits at most 48 launches per UTC day and 384 total
 through the cutoff. The independent Bedrock ceiling remains $10/day and 60 model calls/day.
 

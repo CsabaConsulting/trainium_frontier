@@ -704,9 +704,10 @@ class Controller:
         )
         reply = None
         try:
-            # Fable uses an always-on reasoning budget.  A small maxTokens can consume the whole
-            # response before the final JSON begins, so the structured answer needs a real margin.
-            reply = self.model.complete(role="researcher", model_id=self.cfg.researcher_model_id, system=RESEARCHER_SYSTEM, user=user, max_tokens=16000)
+            # Fable uses an always-on reasoning budget.  The 2026-09-22 live call consumed all
+            # 16,000 output tokens in hidden reasoning and returned empty text, so the structured
+            # answer needs enough headroom to exist after reasoning completes.
+            reply = self.model.complete(role="researcher", model_id=self.cfg.researcher_model_id, system=RESEARCHER_SYSTEM, user=user, max_tokens=64000)
             self._record_usage("researcher", reply)
             data = parse_json_block(reply.text)
         except ModelError as exc:
@@ -717,7 +718,14 @@ class Controller:
                 d = C.RUNTIME_DIR / "model-replies"
                 d.mkdir(parents=True, exist_ok=True)
                 stamp = self.now_iso().replace(":", "")
-                (d / f"researcher-failed-{stamp}.txt").write_text(reply.text)
+                (d / f"researcher-failed-{stamp}.json").write_text(json.dumps({
+                    "model_id": reply.model_id,
+                    "stop_reason": reply.stop_reason,
+                    "input_tokens": reply.input_tokens,
+                    "output_tokens": reply.output_tokens,
+                    "text": reply.text,
+                    "error": str(exc),
+                }, indent=2) + "\n")
             report.add(f"propose: model error {exc}; backing off 30m")
             return None
         if str(data.get("proposal_id", "none")) == "none":

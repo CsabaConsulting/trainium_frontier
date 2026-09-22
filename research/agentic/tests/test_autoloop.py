@@ -235,9 +235,11 @@ class FakeModel:
     def __init__(self):
         self.replies: dict[str, list[str]] = {"researcher": [], "verifier": [], "analyst": []}
         self.calls: list[str] = []
+        self.max_tokens: list[int] = []
 
     def complete(self, *, role, model_id, system, user, max_tokens):
         self.calls.append(role)
+        self.max_tokens.append(max_tokens)
         if not self.replies.get(role):
             raise ModelError(f"no fake reply queued for {role}")
         return ModelReply(self.replies[role].pop(0), 1000, 300, "end_turn", model_id)
@@ -694,6 +696,16 @@ class LoopTests(unittest.TestCase):
         rep = ctl.cycle()
         self.assertEqual(len(env.h.launched), 3, rep.actions)
         self.assertIn("20260922-good-idea", env.h.launched[2]["cwd"])
+
+    def test_fable_researcher_has_reasoning_headroom(self):
+        env = self.env
+        ctl = env.controller()
+        self.run_controls(ctl)
+        env.model.replies["researcher"].append(researcher_json())
+        env.model.replies["verifier"].append('{"verdict":"PASS","findings":[]}')
+        ctl.cycle()
+        researcher_call = env.model.calls.index("researcher")
+        self.assertEqual(env.model.max_tokens[researcher_call], 64000)
 
     def test_relevant_train_evidence_contains_flag_definition(self):
         ctl = self.env.controller()
