@@ -1,0 +1,122 @@
+diff --git a/train.py b/train.py
+index 607862de..8fb106db 100644
+--- a/train.py
++++ b/train.py
+@@ -1450,6 +1450,15 @@ COMPUTE_DTYPE: torch.dtype = torch.bfloat16
+ 
+ USE_BF16_NORM_OUTPUT = False
+ USE_BF16_SDPA_INPUT = False
++# bf16-mlp-input-norm-r3: cast ONLY the norm output that is the direct input of each Block's MLP
++# to BF16, so the MLP up/down projections run on BF16 activations through Linear's existing
++# BF16 weight-cache path (Linear.forward picks the cached weight matching the input dtype). The
++# MLP output is then added to the FP32 residual with the existing promotion semantics. Every
++# other norm site -- norm(q_in)/norm(k_in)/norm(v_in), the local_conv norm, the initial embedding
++# norm, the final norm before lm_head -- is untouched. Guarded on dtype, so under
++# --bf16-norm-output (norm() already returns BF16) this is byte-for-byte a no-op. Env
++# NEURON_COMPETITION_R1_BF16_MLP_NORM_OUTPUT=0 or --no-bf16-mlp-norm-output restores the FP32 path.
++USE_BF16_MLP_NORM_OUTPUT = True
+ 
+ 
+ def norm(x: torch.Tensor) -> torch.Tensor:
+@@ -3364,7 +3373,13 @@ class Block(nn.Module):
+                     fc = proj[..., c:]
+                 qkv = (q, k, v)
+             attn_out = self.attn(h, h, h, ve, cos, sin, attn_mask, ve_bi, ve_tri, qkv=qkv)
+-            x = x + self.par_lambda_a * attn_out + self.par_lambda_m * self.mlp(h, fc=fc)
++            # bf16-mlp-input-norm-r3: cast a COPY of h for the MLP only (h itself stays uncast
++            # for attention above). Not applied when the MLP consumes a coalesced projection
++            # (fc is not None): see the inapplicability line printed by GPT.__init__.
++            mlp_in = h
++            if fc is None and USE_BF16_MLP_NORM_OUTPUT and mlp_in.dtype != torch.bfloat16:
++                mlp_in = mlp_in.to(torch.bfloat16)
++            x = x + self.par_lambda_a * attn_out + self.par_lambda_m * self.mlp(mlp_in, fc=fc)
+             return x
+         if USE_QKV_NORM_CSE and q_in is k_in and k_in is v_in:
+             # See USE_QKV_NORM_CSE. Guarded on object identity, not equality, so this branch can
+@@ -3375,14 +3390,20 @@ class Block(nn.Module):
+         else:
+             attn_out = self.attn(norm(q_in), norm(k_in), norm(v_in), ve, cos, sin, attn_mask, ve_bi, ve_tri)
+             x = x + attn_out
++        # bf16-mlp-input-norm-r3: the ONE cast site of the serial block -- the norm output that
++        # feeds the MLP. Same norm(x) call both branches below always made; only its dtype at
++        # the MLP boundary changes (guarded, so a BF16 norm output is passed through untouched).
++        mlp_in = norm(x)
++        if USE_BF16_MLP_NORM_OUTPUT and mlp_in.dtype != torch.bfloat16:
++            mlp_in = mlp_in.to(torch.bfloat16)
+         if USE_MLP_SANDWICH_NORM:
+             # T3.9: sandwich norm on the MLP branch only (Recursive). norm() is parameter-free
+             # F.rms_norm with the default eps, so the zero-init c_proj still gives exactly 0 here
+             # at step 0 (0 / sqrt(0 + eps) = 0) -- the step-0 no-op survives, and the arm only
+             # starts to differ once c_proj leaves the origin.
+-            x = x + norm(self.mlp(norm(x)))
++            x = x + norm(self.mlp(mlp_in))
+         else:
+-            x = x + self.mlp(norm(x))
++            x = x + self.mlp(mlp_in)
+         return x
+ 
+ 
+@@ -3466,6 +3487,12 @@ class GPT(nn.Module):
+     def __init__(self, config: GPTConfig):
+         super().__init__()
+         self.config = config
++        if USE_BF16_MLP_NORM_OUTPUT and USE_PARALLEL_BLOCK and PARALLEL_BLOCK_COALESCE != "none":
++            # bf16-mlp-input-norm-r3: the coalesced parallel block hands the MLP a projection
++            # computed jointly with qkv from the shared h, so there is no separate MLP-input
++            # tensor to cast. Said out loud once rather than silently doing nothing.
++            print0("bf16_mlp_norm_output: inapplicable under parallel_block coalesced projections; "
++                   "no cast applied")
+         padded_vocab_size = ((config.vocab_size + 63) // 64) * 64
+         self.transformer = nn.ModuleDict({
+             "wte": nn.Embedding(padded_vocab_size, config.n_embd),
+@@ -5258,7 +5285,7 @@ ARCH_TOGGLE_NAMES = [
+     "USE_SELECTIVE_GATE", "SELECTIVE_GATE_CHANNELS", "USE_FUSED_QKV",
+     "USE_CAUSAL_FASTPATH", "USE_TRN2_COMPILER_FLAGS",
+     "COMPILE_SDPA_DIRECT", "USE_NKI_ATTN", "USE_NKI_LOCAL_CONV",
+-    "USE_BF16_NORM_OUTPUT", "USE_BF16_SDPA_INPUT",
++    "USE_BF16_NORM_OUTPUT", "USE_BF16_SDPA_INPUT", "USE_BF16_MLP_NORM_OUTPUT",
+     # T0.4 resweep knobs. None of these changes a tensor's name or shape, so every one of them
+     # is exactly the "loads silently with quietly wrong behavior" class this snapshot exists to
+     # catch -- ATTN_CPROJ_INIT_SCALE and LOGIT_SOFTCAP especially, since they change what the
+@@ -5687,7 +5714,7 @@ def main() -> None:
+     global MUON_NS_STEPS, MUON_MOMENTUM_COOLDOWN_FRAC, MUON_MOMENTUM_FINAL
+     global ADAM_EVERY_N, ADAM_EVERY_N_LR_COMP, PACK_FACTOR, GRAD_CLIP, LOSS_SCALE
+     global CLIP_AFTER_REDUCE
+-    global COMPILE_SDPA_DIRECT, USE_BF16_NORM_OUTPUT, USE_BF16_SDPA_INPUT
++    global COMPILE_SDPA_DIRECT, USE_BF16_NORM_OUTPUT, USE_BF16_SDPA_INPUT, USE_BF16_MLP_NORM_OUTPUT
+     global LOSS_SCALE_DYNAMIC, loss_scale_clean, loss_scale_skips
+     # T0.2/T0.3 capacity-shape knobs. All read inside build_config()/GPT(config), i.e. well before
+     # the first step, so none of them can add a per-step graph constant.
+@@ -5870,6 +5897,14 @@ def main() -> None:
+                         help="Cast Q/K/V only at the native SDPA boundary, restoring its "
+                              "output dtype. Independent of --bf16-norm-output; does not "
+                              "modify the alternative --nki-attn implementation.")
++    parser.add_argument("--bf16-mlp-norm-output", action=argparse.BooleanOptionalAction,
++                        default=os.environ.get("NEURON_COMPETITION_R1_BF16_MLP_NORM_OUTPUT",
++                                               "1" if USE_BF16_MLP_NORM_OUTPUT else "0") != "0",
++                        help="Cast only the norm output feeding each Block's MLP to BF16 (one "
++                             "tensor per block), so the MLP matmuls run on BF16 activations. "
++                             "Attention norms, the local_conv norm, the initial and final norms "
++                             "and lm_head are untouched. No-op under --bf16-norm-output. Saved "
++                             "for standalone eval. Default ON.")
+     parser.add_argument("--ve", action=argparse.BooleanOptionalAction,
+                         default=os.environ.get("NEURON_COMPETITION_R1_VE", "1" if USE_VE else "0") != "0",
+                         help="ResFormer-style value embeddings on alternating layers (has_ve), "
+@@ -6627,6 +6662,7 @@ def main() -> None:
+     COMPILE_SDPA_DIRECT = args.compile_sdpa_direct
+     USE_BF16_NORM_OUTPUT = args.bf16_norm_output
+     USE_BF16_SDPA_INPUT = args.bf16_sdpa_input
++    USE_BF16_MLP_NORM_OUTPUT = args.bf16_mlp_norm_output
+     USE_MUON_LR_FP32 = args.muon_lr_fp32
+     USE_TRANSPOSED_LINEAR = args.transposed_linear
+     USE_COMPILE_MUON = args.compile_muon
+@@ -6653,7 +6689,8 @@ def main() -> None:
+     print0(f"attention: nki_attn={USE_NKI_ATTN} compile_sdpa_direct={COMPILE_SDPA_DIRECT} "
+            f"bf16_sdpa_input={USE_BF16_SDPA_INPUT}")
+     print0(f"branch_precision: bf16_norm_output={USE_BF16_NORM_OUTPUT} "
+-           f"nki_local_conv={USE_NKI_LOCAL_CONV}")
++           f"nki_local_conv={USE_NKI_LOCAL_CONV} "
++           f"bf16_mlp_norm_output={USE_BF16_MLP_NORM_OUTPUT}")
+     # Guard against the 2026-09-10 failure mode (a step cap that binds before the time budget leaves the
+     # wall-clock LR schedule uncooled). Coarse check here; the precise projection runs at step 50 below.
+     if args.num_steps < args.max_train_seconds:

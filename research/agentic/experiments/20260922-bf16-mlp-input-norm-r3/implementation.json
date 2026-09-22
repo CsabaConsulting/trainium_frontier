@@ -1,0 +1,18 @@
+{
+  "branch": "autoloop/20260922-bf16-mlp-input-norm-r3",
+  "candidate_commit": "b2a5bf5ba7e6f3c071a4fa941f95b7723534237b",
+  "deterministic_findings": [],
+  "diff_sha256": "fc1865d6e05d07627c02b5cd463d1baaa83f252dd61fb5b4de3af0757194b947",
+  "implemented_at": "2026-09-22T21:10:04Z",
+  "implementer_model_id": "us.anthropic.claude-fable-5-1",
+  "passed": true,
+  "verifier_findings": [
+    "The train.py-only patch implements one attributable numerical change: BF16 casting at the Block MLP-input norm boundary. Static inspection confirms the default pre-cast input is FP32 and Linear already supports BF16 inputs.",
+    "Serial and sandwich variants share exactly one guarded MLP-input cast. Non-coalesced parallel blocks cast only the MLP copy of h; coalesced parallel blocks skip the cast and print the specified inapplicability message once per model.",
+    "The toggle defaults on, supports the requested environment and CLI overrides, adds one precision-log field, and is persisted and restored before model construction through ARCH_TOGGLE_NAMES. The dtype guard makes it inert when norm already returns BF16.",
+    "Attention norms, local convolution, initial/final norms, lm_head, loss, data, tokenizer, evaluation procedures, optimizer, schedule, parameter shapes and initialization are unchanged. No external-data or pretrained path is introduced or enabled.",
+    "The patch preserves structural causality, causal load_for_eval behavior, and the existing 1800-second/full-chip/seed-42 launch contract. Supplied deterministic checks pass; runtime smoke, checkpoint, causality and quality gates remain for the controller."
+  ],
+  "verifier_model_id": "us.openai.gpt-6-astra",
+  "verifier_verdict": "PASS"
+}
