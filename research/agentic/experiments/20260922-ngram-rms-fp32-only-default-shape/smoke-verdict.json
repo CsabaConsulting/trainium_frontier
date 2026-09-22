@@ -1,0 +1,20 @@
+{
+  "analyst_prose": "DISCARD at the smoke tier: candidate throughput was 1.1092 steps/s, below the required 1.1540 steps/s floor.\nThe candidate enabled FP32 RMSProp state math for hashed n-gram value embeddings; the control used BF16 state math.\nThroughput fell about 5.8% from the control\u2019s 1.1775 steps/s, yielding 316 versus 335 steps in nearly equal training time.\nValidation BPB was worse: 1.173336 versus 1.165604, a delta of +0.007732.\nThe BPB comparison is confounded by unequal training progress: the slower candidate processed 41.4M versus 43.9M tokens, so this does not isolate a precision effect on quality.\nBoth runs matched on clean source hashes, commit, seed, host, compiler settings, and parameter count of 592.9M.\nBoth completed successfully and passed causality checks; neither exceeded budget or evaluation timeout.\nThe throughput-floor failure determines the discard decision, regardless of the ledger rows\u2019 \u201ckeep\u201d status.",
+  "decision": "DISCARD",
+  "metrics": {
+    "bpb_delta": 0.00773199999999985,
+    "candidate_bpb": 1.173336,
+    "candidate_params_M": 592.9,
+    "candidate_step_rate": 1.1091611091611093,
+    "candidate_steps": 316.0,
+    "control_bpb": 1.165604,
+    "control_params_M": 592.9,
+    "control_step_rate": 1.1775043936731107,
+    "control_steps": 335.0,
+    "step_rate_floor": 1.1539543057996484
+  },
+  "reasons": [
+    "smoke step rate 1.1092 < floor 1.1540 steps/s"
+  ],
+  "tier": "smoke"
+}
