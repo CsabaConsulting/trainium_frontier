@@ -1,0 +1,20 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "Single causal change: cast only each Block's direct MLP-input norm result to BF16. The train.py-only plan includes necessary toggle, checkpoint persistence and logging plumbing without changing optimizer, schedule, data or evaluation.",
+    "Authoritative train.py supports the mechanism: Block.forward's FP32 lambda/residual operations precede self.mlp(norm(x)); norm() preserves input dtype when USE_BF16_NORM_OUTPUT=False; Linear.forward selects weights matching its input dtype; MLP.forward propagates that dtype through the default up/activation/down path.",
+    "The revised plan explicitly covers serial, sandwich and parallel paths without casting the shared attention input. Its coalesced-path limitation is accurate: MLP.forward uses supplied fc instead of c_fc(x), so casting the direct argument is inert for the ordinary coalesced MLP. That limitation is documented and does not affect the default candidate.",
+    "Repository evidence motivates, but does not prove, the hypothesis: the SDPA-only full run achieved 2233 steps / 1.002028 versus 2076 / 1.005967; global BF16 norm output achieved 2716 / 1.016279 versus 2071 / 1.005734. Attribution of the global regression specifically to head precision or epoch replay remains unproven.",
+    "The supplied decision log and ledger do not close the MLP-input-only experiment. This is distinct from global norm-output precision, generic FP8 autocast and previously closed MLP architecture changes. README permits this numerical-format edit; no pretrained weights, external data or evaluator modification is proposed.",
+    "The expected fixed-budget BPB improvement and throughput gain are falsifiable against the controller-pinned seed-42 same-host full-chip control. Implementation prerequisites are static inspection only; executable quality, compilation and causality checks remain smoke gates. This passes the bounded proposal review, not the exact patch or hardware authorization."
+  ],
+  "llm_verdict": "PASS",
+  "passed": true,
+  "proposal_id": "20260922-bf16-mlp-input-norm-r2",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-22T20:41:32Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}
