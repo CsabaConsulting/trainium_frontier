@@ -29,7 +29,7 @@ from autoloop.analyst import compare  # noqa: E402
 from autoloop.controller import Controller  # noqa: E402
 from autoloop.implementer import implement_code_proposal  # noqa: E402
 from autoloop.manifest import ManifestError, Proposal, assert_manifest_legal, build_manifest, known_train_flags  # noqa: E402
-from autoloop.models import ModelError, ModelReply, parse_json_block  # noqa: E402
+from autoloop.models import BedrockClient, ModelError, ModelReply, parse_json_block  # noqa: E402
 from autoloop.remote import (  # noqa: E402
     CommandResult,
     GuardError,
@@ -527,6 +527,49 @@ class AnalystTests(unittest.TestCase):
         self.assertEqual(parse_json_block('{"a": 2}')["a"], 2)
         with self.assertRaises(ModelError):
             parse_json_block("no json here")
+
+
+class BedrockTransportTests(unittest.TestCase):
+    def test_streams_text_and_collects_terminal_metadata(self):
+        class FakeClient:
+            def converse_stream(self, **kwargs):
+                self.kwargs = kwargs
+                return {"stream": iter([
+                    {"messageStart": {"role": "assistant"}},
+                    {"contentBlockDelta": {"contentBlockIndex": 0, "delta": {"text": "{\"proposal"}}},
+                    {"contentBlockDelta": {"contentBlockIndex": 0, "delta": {"text": "_id\": \"p1\"}"}}},
+                    {"messageStop": {"stopReason": "end_turn"}},
+                    {"metadata": {"usage": {"inputTokens": 1200, "outputTokens": 42}}},
+                ])}
+
+        bedrock = BedrockClient.__new__(BedrockClient)
+        bedrock._client = FakeClient()
+        reply = bedrock.complete(
+            role="researcher", model_id="us.anthropic.claude-fable-5-1",
+            system="system", user="evidence", max_tokens=4096,
+        )
+
+        self.assertEqual(reply.text, '{"proposal_id": "p1"}')
+        self.assertEqual(reply.input_tokens, 1200)
+        self.assertEqual(reply.output_tokens, 42)
+        self.assertEqual(reply.stop_reason, "end_turn")
+        self.assertEqual(bedrock._client.kwargs["inferenceConfig"], {"maxTokens": 4096})
+
+    def test_stream_error_event_is_a_model_error(self):
+        class FakeClient:
+            def converse_stream(self, **_kwargs):
+                return {"stream": iter([
+                    {"serviceUnavailableException": {"message": "retry later"}},
+                ])}
+
+        bedrock = BedrockClient.__new__(BedrockClient)
+        bedrock._client = FakeClient()
+        expected = "researcher call failed: serviceUnavailableException: retry later"
+        with self.assertRaisesRegex(ModelError, expected):
+            bedrock.complete(
+                role="researcher", model_id="us.anthropic.claude-fable-5-1",
+                system="system", user="evidence", max_tokens=4096,
+            )
 
 
 class ImplementerTests(unittest.TestCase):

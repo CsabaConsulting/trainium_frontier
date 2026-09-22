@@ -1,7 +1,7 @@
 """Minimal model-call boundary.
 
 The controller talks to models through :class:`ModelClient`. The only production implementation is
-Bedrock Converse. Models receive text and return text; they have no tools. Structured output is
+Bedrock ConverseStream. Models receive text and return text; they have no tools. Structured output is
 parsed by :func:`parse_json_block`, and the caller validates the schema.
 """
 
@@ -88,21 +88,47 @@ class BedrockClient:
         from botocore.exceptions import BotoCoreError, ClientError
 
         try:
-            resp = self._client.converse(
+            resp = self._client.converse_stream(
                 modelId=model_id,
                 system=[{"text": system}],
                 messages=[{"role": "user", "content": [{"text": user}]}],
                 inferenceConfig=inference_config(model_id, max_tokens),
             )
+            chunks: list[str] = []
+            usage: dict = {}
+            stop_reason = ""
+            error_events = (
+                "internalServerException",
+                "modelStreamErrorException",
+                "validationException",
+                "throttlingException",
+                "serviceUnavailableException",
+            )
+            for event in resp.get("stream", []):
+                for event_name in error_events:
+                    if event_name in event:
+                        detail = event[event_name]
+                        message = (
+                            detail.get("message", "unknown stream error")
+                            if isinstance(detail, dict)
+                            else str(detail)
+                        )
+                        raise ModelError(f"{event_name}: {message}")
+                delta = event.get("contentBlockDelta", {}).get("delta", {})
+                if "text" in delta:
+                    chunks.append(delta["text"])
+                if "messageStop" in event:
+                    stop_reason = str(event["messageStop"].get("stopReason", ""))
+                if "metadata" in event:
+                    usage = event["metadata"].get("usage", {})
+        except ModelError as exc:
+            raise ModelError(f"{role} call failed: {exc}") from exc
         except (BotoCoreError, ClientError) as exc:
             raise ModelError(f"{role} call failed: {exc}") from exc
-        blocks = resp.get("output", {}).get("message", {}).get("content", [])
-        text = "\n".join(b.get("text", "") for b in blocks if "text" in b).strip()
-        usage = resp.get("usage", {})
         return ModelReply(
-            text=text,
+            text="".join(chunks).strip(),
             input_tokens=int(usage.get("inputTokens", 0)),
             output_tokens=int(usage.get("outputTokens", 0)),
-            stop_reason=str(resp.get("stopReason", "")),
+            stop_reason=stop_reason,
             model_id=model_id,
         )
