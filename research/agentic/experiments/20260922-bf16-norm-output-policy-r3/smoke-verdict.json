@@ -1,0 +1,25 @@
+{
+  "analyst_prose": "KEEP at smoke tier; the candidate passes the gates and is eligible for a full run.\nThe candidate enables --bf16-norm-output, applying the existing precision policy to all norm outputs, not just projection inputs.\nValidation BPB improves from 1.165855 to 1.133670, a delta of -0.032185 versus the allowed maximum of +0.003.\nStep rate rises from 1.1748 to 1.5390 steps/s, about 31.0%, exceeding the 1.1983 steps/s floor.\nThe candidate completes 438 steps versus 334 for control, clearing the 342-step minimum.\nBoth runs pass causality checks with zero maximum absolute difference, exit successfully, and remain within budget.\nParameters, seed, source hashes, host, compiler flags, and distributed configuration match.\nThe main confounder for interpreting BPB is unequal training exposure: the candidate processes 57.4M tokens versus 43.8M in nearly identical training time.\nThus, the BPB gain supports the time-budgeted result but does not isolate a precision-policy benefit at equal steps; this remains a single-seed smoke comparison.",
+  "decision": "KEEP",
+  "metrics": {
+    "bpb_delta": -0.03218500000000013,
+    "candidate_bpb": 1.13367,
+    "candidate_params_M": 592.9,
+    "candidate_step_rate": 1.539002108222066,
+    "candidate_steps": 438.0,
+    "control_bpb": 1.165855,
+    "control_params_M": 592.9,
+    "control_step_rate": 1.1748153359127682,
+    "control_steps": 334.0,
+    "smoke_gate": {
+      "max_bpb_delta": 0.003,
+      "min_candidate_steps": 342,
+      "min_step_rate_ratio": 1.02
+    },
+    "step_rate_floor": 1.1983116426310236
+  },
+  "reasons": [
+    "correctness gates passed; step rate within tolerance; eligible for full run"
+  ],
+  "tier": "smoke"
+}
