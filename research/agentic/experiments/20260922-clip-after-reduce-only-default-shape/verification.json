@@ -1,0 +1,20 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "Single causal change: only --clip-after-reduce is added. Authoritative train.py lines 6352\u20136367 describe precisely the local-clip-before-AVG versus averaged-gradient clipping change; existing separate n-gram clipping is preserved.",
+    "The static default concern is resolved by the supplied evidence: train.py sets CLIP_AFTER_REDUCE=False, and argparse uses that default unless NEURON_COMPETITION_R1_CLIP_AFTER_REDUCE overrides it. Neither pinned control environment contains that override.",
+    "Repository evidence supports an experiment, not an established win: fs-w16 reports 0.981174 BPB/3005 steps versus fs-w12 at 0.981710/2977. Their commits differ, fs-w16's box is unspecified, and fs-w16 additionally spells out --pack-factor 4, so the claim of identical literal flag sets minus clipping is inaccurate.",
+    "No supplied decision-log entry closes this clip-order test on the 592.9M default configuration. Prior dense-model clip-order work is acknowledged and is materially distinct from testing transfer to the n-gram-enabled defaults.",
+    "Competition-legal scope: this changes training-loop optimizer behavior only, with no pretrained weights, external data, tokenizer changes, or evaluator changes.",
+    "The seed-42 matched full-chip experiment is falsifiable through the predeclared public-BPB improvement threshold and step-count outcome classes. Throughput neutrality remains a prediction, not a construction guarantee; the 0.0003 inert band is a chosen tolerance, not an established statistical noise floor from two cross-box controls. The proposal appropriately separates fixed-budget improvement from proof of the variance mechanism."
+  ],
+  "llm_verdict": "PASS",
+  "passed": true,
+  "proposal_id": "20260922-clip-after-reduce-only-default-shape",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-22T15:21:00Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}
