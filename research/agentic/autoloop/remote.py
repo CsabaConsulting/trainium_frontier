@@ -424,10 +424,9 @@ class RemoteOperator:
 
     # staging ----------------------------------------------------------------------------------
 
-    def stage(self, box: str, proposal_id: str, label: str) -> StagedRun:
-        commit = C.AUTHORITATIVE_COMMIT
+    def stage(self, box: str, proposal_id: str, label: str, commit: str = C.AUTHORITATIVE_COMMIT) -> StagedRun:
         if not self.git.commit_exists(commit):
-            raise RemoteError("authoritative commit is not present in the local repository; fetch it first")
+            raise RemoteError("requested verified commit is not present in the local repository")
         local_train = self.git.file_at_commit(commit, "train.py")
         expected_train_sha = sha256_bytes(local_train)
 

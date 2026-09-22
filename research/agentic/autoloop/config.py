@@ -151,6 +151,7 @@ class LoopConfig:
     nproc_per_node: int = 4
     neuron_cc_flags: str = "--optlevel=1"
     researcher_model_id: str = ""
+    implementer_model_id: str = ""
     verifier_model_id: str = ""
     analyst_model_id: str = ""
     aws_region: str = "us-west-2"

@@ -24,7 +24,7 @@ from .models import ModelClient, ModelError, parse_json_block
 
 VERIFIER_SYSTEM = """You are the independent Verifier for a Trainium competition research loop.
 You did not write this proposal. Review it against the repository contract and decision log.
-Check: (1) single causal change; (2) flags describe exactly that change; (3) evidence is cited from
+Check: (1) single causal change; (2) flags or the code implementation plan describe exactly that change; (3) evidence is cited from
 the repository; (4) it is not a duplicate of a closed direction; (5) it is competition-legal
 (no pretrained weights, no external data, no evaluator changes); (6) the expected effect is
 falsifiable with a seed-42 full-chip run against a matched control.
@@ -66,22 +66,31 @@ def deterministic_checks(
 ) -> tuple[list[str], list[dict]]:
     findings: list[str] = []
     duplicates: list[dict] = []
-    try:
-        validate_flag_tokens(proposal.flags, known_flags=known_flags)
-    except ManifestError as exc:
-        findings.append(f"flags: {exc}")
+    if proposal.change_type == "flags":
+        try:
+            validate_flag_tokens(proposal.flags, known_flags=known_flags)
+        except ManifestError as exc:
+            findings.append(f"flags: {exc}")
+    elif proposal.change_type == "code":
+        if proposal.files_allowed != ["train.py"]:
+            findings.append("code proposal may edit only train.py")
+        if proposal.flags:
+            findings.append("code proposal unexpectedly contains launch flags")
+    else:
+        findings.append("unknown change_type")
     if proposal.proposal_id in used_proposal_ids:
         findings.append("proposal_id already used")
     for tier in ("smoke", "full"):
         label = f"al-{proposal.proposal_id}-{tier}-r1"
         if label in used_labels:
             findings.append(f"label {label} already exists in a ledger")
-    names = proposal.flag_names()
-    for ledger in ledgers:
-        for row in ledger.rows_with_flags(names, commit_prefix=C.AUTHORITATIVE_COMMIT):
-            duplicates.append({"ledger": ledger.source, "label": row.get("label"), "status": row.get("status")})
-    if duplicates:
-        findings.append("identical flag set already run at the authoritative commit")
+    if proposal.change_type == "flags":
+        names = proposal.flag_names()
+        for ledger in ledgers:
+            for row in ledger.rows_with_flags(names, commit_prefix=C.AUTHORITATIVE_COMMIT):
+                duplicates.append({"ledger": ledger.source, "label": row.get("label"), "status": row.get("status")})
+        if duplicates:
+            findings.append("identical flag set already run at the authoritative commit")
     lowered = " ".join([proposal.hypothesis, proposal.single_causal_change, *proposal.duplicate_search_terms]).lower()
     hits = sorted(t for t in closed_terms if t and t.lower() in lowered)
     if hits:
@@ -151,7 +160,7 @@ def run_verifier(
         + "\n\nRepository context:\n" + context_text
     )
     try:
-        reply = client.complete(role="verifier", model_id=cfg.verifier_model_id, system=VERIFIER_SYSTEM, user=user, max_tokens=2048)
+        reply = client.complete(role="verifier", model_id=cfg.verifier_model_id, system=VERIFIER_SYSTEM, user=user, max_tokens=12000)
         record_usage("verifier", reply)
         data = parse_json_block(reply.text)
         verdict = str(data.get("verdict", "")).upper()

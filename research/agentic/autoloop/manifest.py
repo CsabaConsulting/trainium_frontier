@@ -41,6 +41,9 @@ class Proposal:
     status: str = "proposed"
     source_model_id: str = ""
     created_at: str = ""
+    change_type: str = "flags"  # flags | code
+    implementation_plan: str = ""
+    files_allowed: list[str] = field(default_factory=list)
 
     @classmethod
     def from_model_json(cls, raw: dict, source_model_id: str, created_at: str) -> "Proposal":
@@ -65,6 +68,9 @@ class Proposal:
             abort_conditions=[str(e) for e in raw.get("abort_conditions", [])],
             source_model_id=source_model_id,
             created_at=created_at,
+            change_type=str(raw.get("change_type", "flags")).strip().lower(),
+            implementation_plan=str(raw.get("implementation_plan", "")).strip(),
+            files_allowed=[str(p) for p in raw.get("files_allowed", [])],
         )
         prop.validate_shape()
         return prop
@@ -76,9 +82,21 @@ class Proposal:
             raise ManifestError("hypothesis/single_causal_change too short to be falsifiable")
         if not self.evidence:
             raise ManifestError("proposal cites no evidence")
-        if not self.flags:
-            raise ManifestError("flag-only proposal has no flags (that is the control)")
-        validate_flag_tokens(self.flags)
+        if self.change_type not in {"flags", "code"}:
+            raise ManifestError("change_type must be flags or code")
+        if self.change_type == "flags":
+            if not self.flags:
+                raise ManifestError("flag-only proposal has no flags (that is the control)")
+            if self.files_allowed:
+                raise ManifestError("flag-only proposal may not name editable files")
+            validate_flag_tokens(self.flags)
+        else:
+            if self.flags:
+                raise ManifestError("code proposal must encode its single change in code, not flags")
+            if self.files_allowed != ["train.py"]:
+                raise ManifestError("code proposal files_allowed must be exactly ['train.py']")
+            if len(self.implementation_plan) < 30:
+                raise ManifestError("code proposal implementation_plan is too short")
 
     def flag_names(self) -> list[str]:
         return sorted({t for t in self.flags if t.startswith("--")})
@@ -144,6 +162,7 @@ class RunManifest:
     host: str
     remote_run_dir: str
     commit: str
+    base_commit: str
     label: str
     description: str
     lnc: int
@@ -168,7 +187,9 @@ class RunManifest:
 
     @classmethod
     def from_dict(cls, raw: dict) -> "RunManifest":
-        return cls(**raw)
+        data = dict(raw)
+        data.setdefault("base_commit", C.AUTHORITATIVE_COMMIT)
+        return cls(**data)
 
     def fingerprint(self) -> str:
         blob = json.dumps(self.to_dict(), sort_keys=True).encode()
@@ -188,6 +209,7 @@ def build_manifest(
     control_label: str | None,
     abort_conditions: list[str],
     description_note: str,
+    candidate_commit: str | None = None,
 ) -> RunManifest:
     if tier not in TIERS:
         raise ManifestError(f"unknown tier {tier!r}")
@@ -208,8 +230,11 @@ def build_manifest(
     is_control = proposal_id.startswith("control-")
     if is_control and train_flags:
         raise ManifestError("control run must have no flags")
-    if not is_control and not train_flags:
-        raise ManifestError("candidate run must have flags")
+    commit = candidate_commit or C.AUTHORITATIVE_COMMIT
+    if not re.fullmatch(r"[0-9a-f]{40}", commit):
+        raise ManifestError("candidate commit must be a full lowercase git SHA")
+    if not is_control and not train_flags and commit == C.AUTHORITATIVE_COMMIT:
+        raise ManifestError("candidate must have flags or a verified code commit")
     validate_flag_tokens(train_flags)
 
     if tier == "smoke":
@@ -222,7 +247,7 @@ def build_manifest(
     description_note = re.sub(r"[^A-Za-z0-9 _.,:=+/()'-]", "", description_note)[:160]
     description = (
         f"autoloop {proposal_id} {tier}: {description_note} flags='{' '.join(train_flags) or 'none'}' "
-        f"[{box}] CC='{cfg.neuron_cc_flags}' seed={C.SEED} commit={C.AUTHORITATIVE_COMMIT[:8]}"
+        f"[{box}] CC='{cfg.neuron_cc_flags}' seed={C.SEED} commit={commit[:8]}"
     )
     argv = [
         C.REMOTE_PYTHON,
@@ -257,7 +282,8 @@ def build_manifest(
         box=box,
         host=C.PINNED_HOSTS[box],
         remote_run_dir=remote_run_dir,
-        commit=C.AUTHORITATIVE_COMMIT,
+        commit=commit,
+        base_commit=C.AUTHORITATIVE_COMMIT,
         label=label,
         description=description,
         lnc=cfg.lnc,
@@ -282,8 +308,17 @@ def build_manifest(
 
 def assert_manifest_legal(m: RunManifest) -> None:
     """Re-run every invariant on a loaded manifest (used right before launch and after restart)."""
-    if m.commit != C.AUTHORITATIVE_COMMIT:
-        raise ManifestError("manifest commit is not the authoritative commit")
+    if m.base_commit != C.AUTHORITATIVE_COMMIT:
+        raise ManifestError("manifest base commit is not authoritative")
+    if not re.fullmatch(r"[0-9a-f]{40}", m.commit):
+        raise ManifestError("manifest commit is not a full lowercase git SHA")
+    is_control = m.proposal_id.startswith("control-")
+    if is_control and m.commit != C.AUTHORITATIVE_COMMIT:
+        raise ManifestError("control manifest must use the authoritative commit")
+    if m.train_flags and m.commit != C.AUTHORITATIVE_COMMIT:
+        raise ManifestError("flag candidate must use the authoritative commit")
+    if not is_control and not m.train_flags and m.commit == C.AUTHORITATIVE_COMMIT:
+        raise ManifestError("code candidate must use an independently verified candidate commit")
     if m.seed != C.SEED or "--seed" not in m.argv or m.argv[m.argv.index("--seed") + 1] != str(C.SEED):
         raise ManifestError("seed must be 42 in both manifest and argv")
     if (m.lnc, m.nproc_per_node) not in C.VALID_SHAPES:

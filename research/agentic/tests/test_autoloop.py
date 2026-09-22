@@ -13,6 +13,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -26,7 +27,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from autoloop import config as C  # noqa: E402
 from autoloop.analyst import compare  # noqa: E402
 from autoloop.controller import Controller  # noqa: E402
-from autoloop.manifest import ManifestError, assert_manifest_legal, build_manifest, known_train_flags  # noqa: E402
+from autoloop.implementer import implement_code_proposal  # noqa: E402
+from autoloop.manifest import ManifestError, Proposal, assert_manifest_legal, build_manifest, known_train_flags  # noqa: E402
 from autoloop.models import ModelError, ModelReply, parse_json_block  # noqa: E402
 from autoloop.remote import (  # noqa: E402
     CommandResult,
@@ -463,6 +465,63 @@ class AnalystTests(unittest.TestCase):
         self.assertEqual(parse_json_block('{"a": 2}')["a"], 2)
         with self.assertRaises(ModelError):
             parse_json_block("no json here")
+
+
+class ImplementerTests(unittest.TestCase):
+    def test_isolated_code_change_requires_independent_pass_and_commits_only_train_py(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            subprocess.run(["git", "init", "-q", str(root)], check=True)
+            subprocess.run(["git", "-C", str(root), "config", "user.email", "autoloop@example.invalid"], check=True)
+            subprocess.run(["git", "-C", str(root), "config", "user.name", "Autoloop Test"], check=True)
+            (root / "train.py").write_text("def load_for_eval(path, device):\n    return None\n\nWIDTH = 640\n")
+            subprocess.run(["git", "-C", str(root), "add", "train.py"], check=True)
+            subprocess.run(["git", "-C", str(root), "commit", "-qm", "base"], check=True)
+            base = subprocess.check_output(["git", "-C", str(root), "rev-parse", "HEAD"], text=True).strip()
+            agent = root / "research" / "agentic"
+            experiment = agent / "experiments" / "20260922-code-width"
+            runtime = agent / "runtime"
+            model = FakeModel()
+            model.replies["implementer"] = [json.dumps({
+                "summary": "change width",
+                "replacements": [{"old": "WIDTH = 640", "new": "WIDTH = 672"}],
+                "notes": [],
+            })]
+            model.replies["implementation_verifier"] = ['{"verdict":"PASS","findings":[]}']
+            prop = Proposal.from_model_json({
+                "proposal_id": "20260922-code-width",
+                "hypothesis": "A slightly wider model should lower validation BPB at comparable trained tokens.",
+                "single_causal_change": "change only the model width constant from 640 to 672",
+                "flags": [],
+                "evidence": ["research/experiment-log.jsonl"],
+                "duplicate_search_terms": ["width 672"],
+                "expected_effect": "lower BPB by at least 0.002",
+                "change_type": "code",
+                "implementation_plan": "Replace only the unique WIDTH constant in train.py and preserve every other setting.",
+                "files_allowed": ["train.py"],
+            }, "us.anthropic.claude-fable-5-1", "now")
+            cfg = C.LoopConfig(
+                researcher_model_id="us.anthropic.claude-fable-5-1",
+                implementer_model_id="us.anthropic.claude-fable-5-1",
+                verifier_model_id="us.openai.gpt-6-astra",
+            )
+            used = []
+            with mock.patch.object(C, "ROOT", root), mock.patch.object(C, "RUNTIME_DIR", runtime), mock.patch.object(C, "AUTHORITATIVE_COMMIT", base):
+                result = implement_code_proposal(
+                    prop, experiment_dir=experiment, cfg=cfg, client=model, now="now",
+                    can_call=lambda: (True, ""), record_usage=lambda role, reply: used.append(role),
+                )
+            self.assertTrue(result.passed)
+            self.assertEqual(used, ["implementer", "implementation_verifier"])
+            changed = subprocess.check_output(
+                ["git", "-C", str(root), "diff-tree", "--no-commit-id", "--name-only", "-r", result.candidate_commit], text=True
+            ).splitlines()
+            self.assertEqual(changed, ["train.py"])
+            self.assertIn("WIDTH = 672", subprocess.check_output(
+                ["git", "-C", str(root), "show", f"{result.candidate_commit}:train.py"], text=True
+            ))
+            self.assertTrue((experiment / "implementation.patch").is_file())
+            self.assertFalse((runtime / "worktrees" / prop.proposal_id).exists())
 
 
 # ---------------------------------------------------------------------------------------------

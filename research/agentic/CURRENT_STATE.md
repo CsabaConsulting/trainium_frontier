@@ -75,7 +75,8 @@ profile-backed causal hypothesis.
 
 ## Human approvals required
 
-- Any Trn2 training launch
+- Development Trn2 launches are covered by `STANDING_AUTONOMOUS_AUTHORIZATION.md` after all
+  proposal, independent-verification, preflight, and evidence gates pass.
 - Any AWS resource mutation
 - Any merge to the submission candidate
 - Any leaderboard submission
@@ -83,5 +84,7 @@ profile-backed causal hypothesis.
 ## Agent-loop implementation
 
 - Architecture and safety plan: `research/agentic/AUTONOMOUS_LOOP_PLAN.md`
-- Current stage: Milestone B (offline evidence gate complete; next bounded proposal not yet
-  approved), before remote execution authority.
+- Current stage: unattended controls and flag experiments are live. The code-change path uses
+  Researcher → proposal Verifier → isolated Implementer → deterministic diff/static gate →
+  implementation Verifier → typed Operator → Analyst. Code candidates are limited to `train.py`,
+  committed on isolated `autoloop/<proposal-id>` branches, and never merged automatically.

@@ -18,12 +18,13 @@ from __future__ import annotations
 import json
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from . import config as C
 from .analyst import Verdict, compare, verdict_markdown
 from .archive import ArchiveError, GitArchiver
+from .implementer import ImplementationError, implement_code_proposal
 from .ledger import Ledger
 from .manifest import ManifestError, Proposal, RunManifest, build_manifest, known_train_flags
 from .models import ModelClient, ModelError, ModelReply, parse_json_block
@@ -32,16 +33,22 @@ from .state import Store, utc_now
 from .verifier import closed_direction_terms, load_context, run_verifier
 
 RESEARCHER_SYSTEM = """You are the Researcher in an unattended Trainium Phase 1 research loop.
-Goal: lower official val_bpb after a 30-minute full-chip Trn2 run. You may ONLY propose a change
-expressible as existing train.py command-line flags at the pinned commit (list provided). No code
-edits. One causal change. Seed 42, shape and budget are fixed by the controller.
+Goal: lower official val_bpb after a 30-minute full-chip Trn2 run. Propose ONE evidence-backed,
+falsifiable causal change. It may be an existing train.py flag experiment or a small code change
+confined to train.py (architecture, optimizer, schedule, numerical format, or inline NKI kernel).
+Seed 42, full-chip shape, data, evaluator, and budget are fixed by the controller.
 Search the provided ledger summary and decision log; never repeat a closed or already-run flag set
 at this commit. Cite repository evidence. Return ONLY a JSON object:
 {"proposal_id": "YYYYMMDD-short-slug", "hypothesis": "...", "single_causal_change": "...",
  "flags": ["--flag", "value", ...], "evidence": ["path or label ..."],
  "duplicate_search_terms": ["..."], "expected_effect": "predeclared BPB direction and size",
- "abort_conditions": ["..."]}
-If you cannot find a non-duplicate, evidence-backed flag-only hypothesis, return
+ "abort_conditions": ["..."], "change_type":"flags"|"code",
+ "implementation_plan":"exact bounded edit plan, empty for flags",
+ "files_allowed":[]|["train.py"]}
+For flags, files_allowed must be [] and implementation_plan empty. For code, flags must be [],
+files_allowed must be ["train.py"], and the plan must be precise enough for another isolated agent
+to implement without inventing a second change. Do not propose evaluator/tokenizer/data changes,
+external data, pretrained assets, or private validation access. If no non-duplicate hypothesis exists, return
 {"proposal_id": "none", "reason": "..."}."""
 
 ANALYST_SYSTEM = """You are the Analyst. You receive a deterministic verdict plus the candidate and
@@ -338,10 +345,17 @@ class Controller:
 
     def _append_decision_log(self, pid: str, tier: str, proposal: dict, verdict: dict) -> None:
         date = self.now_iso()[:10]
-        flags = " ".join(proposal.get("flags", [])) or "(control)"
+        rec = self.store.proposals()[pid]
+        if proposal.get("kind") == "control":
+            change = "(control)"
+        elif proposal.get("change_type") == "code":
+            change = "code: " + proposal.get("single_causal_change", "")[:80]
+        else:
+            change = " ".join(proposal.get("flags", []))
+        commit = rec.get("candidate_commit") or C.AUTHORITATIVE_COMMIT
         m = verdict.get("metrics", {})
         result = f"cand {m.get('candidate_bpb')} vs ctrl {m.get('control_bpb')} bpb, steps {m.get('candidate_steps')}/{m.get('control_steps')}" if m else "; ".join(verdict.get("reasons", []))[:120]
-        row = f"| {date} | autoloop {pid} (`{flags}`) | {C.AUTHORITATIVE_COMMIT[:8]} | {self._control_id(self.store.proposals()[pid]['box'])} | {result} | {verdict['decision']} ({tier}) | `research/agentic/experiments/{pid}/` |\n"
+        row = f"| {date} | autoloop {pid} (`{change}`) | {commit[:8]} | {self._control_id(rec['box'])} | {result} | {verdict['decision']} ({tier}) | `research/agentic/experiments/{pid}/` |\n"
         with C.DECISION_LOG.open("a") as fh:
             fh.write(row)
 
@@ -391,6 +405,15 @@ class Controller:
             return False
         if not self._verify(prop, report):
             return False
+        if prop.change_type == "code":
+            if not self._implement(prop, report):
+                return False
+        else:
+            sha = self.archiver.commit(
+                [self.store.proposal_dir(prop.proposal_id)],
+                f"autoloop: {prop.proposal_id} verified proposal",
+            )
+            self.store.set_stage(prop.proposal_id, "proposal_verified", last_archive_commit=sha)
         self.store.set_stage(prop.proposal_id, "verified", box=box)
         return self._stage_and_launch(prop.proposal_id, "smoke", box, prop.flags, report)
 
@@ -420,7 +443,8 @@ class Controller:
                 self.store.open_breaker("box lock held by another controller", box=box, owner=owner)
                 report.add(f"{box}: lock held by {owner}")
                 return False
-        remote_run_dir = f"{C.REMOTE_RUNS_DIR}/{C.AUTHORITATIVE_COMMIT[:8]}--{pid}--{label}"
+        candidate_commit = rec.get("candidate_commit") or C.AUTHORITATIVE_COMMIT
+        remote_run_dir = f"{C.REMOTE_RUNS_DIR}/{candidate_commit[:8]}--{pid}--{label}"
         control_label = None
         if not pid.startswith("control-"):
             ctrl = self._control_result(box, tier)
@@ -434,9 +458,10 @@ class Controller:
             proposal_id=pid, tier=tier, box=box, remote_run_dir=remote_run_dir, label=label, train_flags=flags,
             cfg=self.cfg, frozen_at=self.now_iso(), control_label=control_label,
             abort_conditions=proposal.get("abort_conditions", []), description_note=proposal.get("single_causal_change", "")[:160],
+            candidate_commit=candidate_commit,
         )
         self.store.write_artifact(pid, f"{tier}-manifest.json", manifest.to_dict())
-        staged = self.op.stage(box, pid, label)
+        staged = self.op.stage(box, pid, label, candidate_commit)
         if staged.run_dir != remote_run_dir:
             raise RemoteError("staged dir differs from manifest dir")
         self.store.write_artifact(pid, f"{tier}-staged.json", staged.to_dict())
@@ -452,6 +477,61 @@ class Controller:
 
     # ---- propose / verify ---------------------------------------------------------------------
 
+    def _implement(self, prop: Proposal, report: CycleReport) -> bool:
+        if self.model is None:
+            report.add(f"implement: {prop.proposal_id} no model client")
+            return False
+        try:
+            result = implement_code_proposal(
+                prop,
+                experiment_dir=self.store.proposal_dir(prop.proposal_id),
+                cfg=self.cfg,
+                client=self.model,
+                now=self.now_iso(),
+                can_call=self._llm_ok,
+                record_usage=self._record_usage,
+            )
+        except (ImplementationError, ModelError) as exc:
+            result_data = {
+                "passed": False,
+                "candidate_commit": None,
+                "error": str(exc),
+                "implemented_at": self.now_iso(),
+            }
+            self.store.write_artifact(prop.proposal_id, "implementation.json", result_data)
+            self.store.set_stage(prop.proposal_id, "rejected", verdict="REJECTED", failure=str(exc)[:500])
+            self.archiver.commit(
+                [self.store.proposal_dir(prop.proposal_id)],
+                f"autoloop: {prop.proposal_id} implementation failed",
+            )
+            report.add(f"implement: {prop.proposal_id} failed: {str(exc)[:240]}")
+            return False
+        self.store.write_artifact(prop.proposal_id, "implementation.json", result.to_dict())
+        if not result.passed or not result.candidate_commit:
+            self.store.set_stage(prop.proposal_id, "rejected", verdict="REJECTED")
+            self.archiver.commit(
+                [self.store.proposal_dir(prop.proposal_id)],
+                f"autoloop: {prop.proposal_id} implementation rejected",
+            )
+            report.add(
+                f"implement: {prop.proposal_id} rejected: det={result.deterministic_findings} "
+                f"llm={result.verifier_verdict} {result.verifier_findings[:3]}"
+            )
+            return False
+        sha = self.archiver.commit(
+            [self.store.proposal_dir(prop.proposal_id)],
+            f"autoloop: {prop.proposal_id} implementation verified",
+        )
+        self.store.set_stage(
+            prop.proposal_id,
+            "implemented",
+            candidate_commit=result.candidate_commit,
+            candidate_branch=result.branch,
+            last_archive_commit=sha,
+        )
+        report.add(f"implement: {prop.proposal_id} PASS commit={result.candidate_commit[:12]}")
+        return True
+
     def _ledger_summary(self, limit: int = 120) -> str:
         rows = []
         for l in self.all_ledgers():
@@ -463,6 +543,16 @@ class Controller:
         return "\n".join(out)
 
     def _propose(self, report: CycleReport) -> Proposal | None:
+        backoff = self.store.state.get("research_backoff_until")
+        if backoff:
+            try:
+                until = datetime.strptime(backoff, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+                if self._now() < until:
+                    report.add(f"propose: backoff until {backoff}")
+                    return None
+            except ValueError:
+                self.store.state.pop("research_backoff_until", None)
+                self.store.save()
         ok, why = self._llm_ok()
         if not ok:
             report.add(f"propose: {why}")
@@ -475,26 +565,45 @@ class Controller:
             f"Available train.py flags at this commit:\n{' '.join(flags)}\n\n"
             f"Recent ledger rows (newest first):\n{self._ledger_summary()}\n\n{context}"
         )
+        reply = None
         try:
-            reply = self.model.complete(role="researcher", model_id=self.cfg.researcher_model_id, system=RESEARCHER_SYSTEM, user=user, max_tokens=3000)
+            # Fable uses an always-on reasoning budget.  A small maxTokens can consume the whole
+            # response before the final JSON begins, so the structured answer needs a real margin.
+            reply = self.model.complete(role="researcher", model_id=self.cfg.researcher_model_id, system=RESEARCHER_SYSTEM, user=user, max_tokens=16000)
             self._record_usage("researcher", reply)
             data = parse_json_block(reply.text)
         except ModelError as exc:
-            report.add(f"propose: model error {exc}")
+            until = self._now() + timedelta(minutes=30)
+            self.store.state["research_backoff_until"] = until.strftime("%Y-%m-%dT%H:%M:%SZ")
+            self.store.save()
+            if reply is not None:
+                d = C.RUNTIME_DIR / "model-replies"
+                d.mkdir(parents=True, exist_ok=True)
+                stamp = self.now_iso().replace(":", "")
+                (d / f"researcher-failed-{stamp}.txt").write_text(reply.text)
+            report.add(f"propose: model error {exc}; backing off 30m")
             return None
         if str(data.get("proposal_id", "none")) == "none":
+            self.store.state["research_backoff_until"] = (self._now() + timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
+            self.store.save()
             report.add(f"propose: researcher declined: {data.get('reason', '')[:200]}")
             return None
         try:
             prop = Proposal.from_model_json(data, self.cfg.researcher_model_id, self.now_iso())
         except ManifestError as exc:
+            self.store.state["research_backoff_until"] = (self._now() + timedelta(minutes=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
+            self.store.save()
             report.add(f"propose: rejected malformed proposal: {exc}")
             return None
         if prop.proposal_id in self.store.used_proposal_ids():
+            self.store.state["research_backoff_until"] = (self._now() + timedelta(minutes=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
+            self.store.save()
             report.add("propose: duplicate proposal id")
             return None
+        self.store.state.pop("research_backoff_until", None)
+        self.store.save()
         self.store.add_proposal(prop.to_dict())
-        report.add(f"propose: {prop.proposal_id} flags={' '.join(prop.flags)}")
+        report.add(f"propose: {prop.proposal_id} type={prop.change_type} flags={' '.join(prop.flags)}")
         return prop
 
     def _verify(self, prop: Proposal, report: CycleReport) -> bool:

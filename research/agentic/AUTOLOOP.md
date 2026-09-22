@@ -1,4 +1,4 @@
-# AUTOLOOP — unattended flag-only experiment controller
+# AUTOLOOP — unattended code-and-flag experiment controller
 
 Implemented 2026-09-22 under `research/agentic/STANDING_AUTONOMOUS_AUTHORIZATION.md`. Code lives in
 `research/agentic/autoloop/`; CLI is `research/agentic/autoloop.py`; tests are in
@@ -14,12 +14,15 @@ A deterministic Python loop that, on each cycle:
    analyzes against the matched control, archives evidence to git.
 3. If a box is idle and everything prior is archived, advances that box one rung on the ladder:
    `control smoke → control full → candidate smoke → (KEEP) candidate full → verdict`.
-4. When a new candidate is needed, asks the Researcher model for **one flag-only proposal**
-   (existing `train.py` flags at the pinned commit; no code edits), then requires an
-   **independent Verifier** (different model family) to return `PASS` after deterministic checks.
+4. When a new candidate is needed, asks the Researcher for one flag or bounded `train.py` code
+   proposal, then requires an independent Verifier (different model family) to pass the proposal.
+5. For code proposals, an isolated Implementer returns exact text replacements which are applied
+   only in a fresh worktree at the authoritative commit. Deterministic syntax/diff/scope checks and
+   a second independent implementation review must pass before a candidate commit can be staged.
 
 Models never see a shell, the SSH key, the manifest, or hardware. They return JSON; the controller
-validates and decides.
+validates and decides. Code candidates may modify exactly `train.py`; the patch, checks, verifier
+decision, candidate branch, and commit are durable before the Operator receives the commit.
 
 ## Pinned, non-overridable facts (`autoloop/config.py`)
 
@@ -83,6 +86,7 @@ autoloop directories.
 ```
 research/agentic/experiments/<proposal_id>/
   proposal.json  verification.json
+  implementation.patch  implementation-checks.json  implementation.json  # code proposals
   <tier>-inventory.json  <tier>-manifest.json  <tier>-staged.json  <tier>-launch.json
   <tier>-result.json  <tier>-verdict.json  <tier>-verdict.md
   artifacts/<tier>/{<label>.log, experiment-log.jsonl, runner.log, done.json, launch.json}
@@ -91,6 +95,7 @@ research/agentic/experiments/<proposal_id>/
 Each tier is committed (`git add/commit` of that directory only; plain `git push` only if
 `git_push: true`) **before** the next launch anywhere. Closing a proposal appends a row to
 `DECISION_LOG.md`. Runtime state (`runtime/autoloop_state.json`) and bundles are git-ignored.
+Raw model replies are retained only under ignored `runtime/model-replies/`; they are never committed.
 
 ## Restart semantics
 
@@ -106,6 +111,9 @@ STOP file · cutoff 2026-09-30 23:59 PT · invalid config · daily/total run cap
 call/spend caps · archive/push failure · lock held by another controller · two consecutive
 infrastructure failures on a box · any `RemoteError`/`ManifestError` (staging proof, hash
 mismatch, missing artifact, tampered manifest) · state schema mismatch.
+
+Malformed/unfinished Researcher output creates a 30-minute backoff instead of spending on every
+two-minute poll. A deliberate `none` response backs off for one hour.
 
 The standing unattended configuration permits at most 48 launches per UTC day and 384 total
 through the cutoff. The independent Bedrock ceiling remains $10/day and 60 model calls/day.
@@ -136,8 +144,8 @@ python -m unittest discover -s research/agentic/tests -v        # mocked tests
 
 ## Limitations and assumptions (read before trusting a result)
 
-- **Nothing here has been executed.** Files were written offline with no Bash, SSH, or Python
-  available in this session. The unit tests are complete but unrun; run them first.
+- The controller and both control ladders were live-tested on 2026-09-22. Code-change behavior is
+  covered by an isolated worktree/commit unit test and still fails closed at every remote gate.
 - The trn21/trn22 ↔ DNS mapping is an assumption from the order the hosts were given.
 - The data cache location on the hosts is assumed from `.gitignore`'s comment; `preflight` fails
   closed if the directory is missing but cannot verify its contents.
@@ -154,5 +162,5 @@ python -m unittest discover -s research/agentic/tests -v        # mocked tests
   and observed; the box will fail inventory until it exits, which opens the breaker after two
   cycles.
 - Per-run cost: each new box requires a 5-minute and a 30-minute control before any candidate.
-- Leaderboard submission, AWS lifecycle, merges to the submission candidate, and any code change
-  remain human actions. The loop has no code path for them.
+- Leaderboard submission, AWS lifecycle, and merges to the submission candidate remain human
+  actions. Development code candidates are isolated branches and are never merged automatically.
