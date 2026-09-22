@@ -1,0 +1,20 @@
+{
+  "analyst_prose": "KEEP at smoke tier: correctness gates passed and step rate met tolerance; the candidate is eligible for a full run.\nCandidate validation BPB was 1.163452 versus 1.165855 for control, an improvement of 0.002403.\nIt completed 395 versus 334 steps in nearly equal training time (284.6 versus 284.3 seconds).\nStep rate was 1.3879 versus 1.1748 steps/s, about 18.1% higher and above the 1.1513 floor.\nBoth runs passed causality checks, exited successfully, and stayed within budget and evaluation timeout.\nModel size (592.9M), seed, source hashes, host, and execution configuration matched; the intended change was enabling default batch ramp.\nThe key comparison confounder is variable gradient accumulation: optimizer steps represent different token counts, so higher steps/s does not imply higher token throughput.\nThe candidate processed 42.3M tokens versus 43.8M for control; this is not an equal-token or equal-update comparison.\nThese single-seed smoke results support proceeding, not a confirmed full-run quality gain.",
+  "decision": "KEEP",
+  "metrics": {
+    "bpb_delta": -0.002403000000000155,
+    "candidate_bpb": 1.163452,
+    "candidate_params_M": 592.9,
+    "candidate_step_rate": 1.387912860154603,
+    "candidate_steps": 395.0,
+    "control_bpb": 1.165855,
+    "control_params_M": 592.9,
+    "control_step_rate": 1.1748153359127682,
+    "control_steps": 334.0,
+    "step_rate_floor": 1.1513190291945128
+  },
+  "reasons": [
+    "correctness gates passed; step rate within tolerance; eligible for full run"
+  ],
+  "tier": "smoke"
+}
