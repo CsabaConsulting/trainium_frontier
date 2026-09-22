@@ -16,6 +16,7 @@ two consecutive infrastructure failures on a box, missing artifacts, state schem
 from __future__ import annotations
 
 import json
+import re
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
@@ -36,6 +37,8 @@ RESEARCHER_SYSTEM = """You are the Researcher in an unattended Trainium Phase 1 
 Goal: lower official val_bpb after a 30-minute full-chip Trn2 run. Propose ONE evidence-backed,
 falsifiable causal change. It may be an existing train.py flag experiment or a small code change
 confined to train.py (architecture, optimizer, schedule, numerical format, or inline NKI kernel).
+Prefer a bounded code proposal when the remaining flag ideas are already heavily explored; use a
+flag only when the supplied evidence establishes that it is a real, isolated, non-duplicate gap.
 Seed 42, full-chip shape, data, evaluator, and budget are fixed by the controller.
 Search the provided ledger summary and decision log; never repeat a closed or already-run flag set
 at this commit. A flag proposal must set one causal option only; do not bundle a second precision,
@@ -540,9 +543,118 @@ class Controller:
             rows.extend(l.rows)
         rows.sort(key=lambda r: str(r.get("timestamp", "")), reverse=True)
         out = []
+        keys = (
+            "timestamp", "label", "git_commit", "status", "public_val_bpb", "num_steps",
+            "world_size", "lnc", "seq_len", "num_params_M", "compiled", "causality_passed",
+            "launch_command", "environment", "description", "oneliners", "ngram_ve",
+            "out_bigram", "engram", "sched_tricks", "batch_ramp", "weight_ema",
+        )
         for r in rows[:limit]:
-            out.append(json.dumps({k: r.get(k) for k in ("timestamp", "label", "git_commit", "status", "public_val_bpb", "num_steps", "world_size", "lnc", "launch_command", "description")}))
+            out.append(json.dumps({k: r.get(k) for k in keys if r.get(k) is not None}))
         return "\n".join(out)
+
+    def _recent_rejection_feedback(self, limit: int = 5) -> str:
+        """Return compact, durable verifier feedback so Researcher iterations can improve."""
+        rejected = [
+            (pid, rec) for pid, rec in self.store.proposals().items()
+            if rec.get("stage") == "rejected"
+        ]
+        rejected.sort(key=lambda item: str(item[1].get("updated_at", "")), reverse=True)
+        rows: list[str] = []
+        for pid, _rec in rejected[:limit]:
+            proposal = self.store.read_artifact(pid, "proposal.json") or {}
+            verification = self.store.read_artifact(pid, "verification.json") or {}
+            implementation = self.store.read_artifact(pid, "implementation.json") or {}
+            rows.append(json.dumps({
+                "proposal_id": pid,
+                "change_type": proposal.get("change_type"),
+                "single_causal_change": proposal.get("single_causal_change"),
+                "flags": proposal.get("flags", []),
+                "implementation_plan": proposal.get("implementation_plan", ""),
+                "proposal_verifier_verdict": verification.get("llm_verdict"),
+                "proposal_verifier_findings": verification.get("llm_findings", []),
+                "deterministic_findings": verification.get("deterministic_findings", []),
+                "implementation_verifier_verdict": implementation.get("verifier_verdict"),
+                "implementation_verifier_findings": implementation.get("verifier_findings", []),
+            }))
+        return "\n".join(rows) if rows else "(none yet)"
+
+    def _control_evidence(self) -> str:
+        """Expose the exact pinned full controls instead of asking a model to infer defaults."""
+        rows: list[str] = []
+        for box in self.cfg.boxes:
+            pid = self._control_id(box)
+            result = self.store.read_artifact(pid, "full-result.json") or {}
+            row = result.get("ledger_row", {})
+            if row:
+                rows.append(json.dumps({
+                    "box": box,
+                    "label": row.get("label"),
+                    "git_commit": row.get("git_commit"),
+                    "launch_command": row.get("launch_command"),
+                    "environment": row.get("environment"),
+                    "num_steps": row.get("num_steps"),
+                    "public_val_bpb": row.get("public_val_bpb"),
+                    "world_size": row.get("world_size"),
+                    "lnc": row.get("lnc"),
+                    "causality_passed": row.get("causality_passed"),
+                }))
+        return "\n".join(rows) if rows else "(controls not complete)"
+
+    def _train_evidence(self, prop: Proposal, train_text: str, max_regions: int = 16) -> str:
+        """Select source regions relevant to a proposal, including backing flag constants."""
+        lines = train_text.splitlines()
+        centers: set[int] = set()
+        constant_names: set[str] = set()
+        for flag in prop.flag_names():
+            needle = f'"{flag}"'
+            for i, line in enumerate(lines):
+                if needle in line or f"'{flag}'" in line:
+                    centers.add(i)
+                    snippet = "\n".join(lines[i:min(len(lines), i + 10)])
+                    constant_names.update(re.findall(r"\b[A-Z][A-Z0-9_]{2,}\b", snippet))
+                    break
+        for name in constant_names:
+            pattern = re.compile(rf"^{re.escape(name)}\s*=")
+            for i, line in enumerate(lines):
+                if pattern.match(line):
+                    centers.add(i)
+                    break
+
+        # Code proposals have no flags. Ground their plan in bounded lexical source excerpts.
+        if prop.change_type == "code":
+            raw = " ".join([
+                prop.hypothesis, prop.single_causal_change, prop.implementation_plan,
+                *prop.duplicate_search_terms,
+            ]).lower()
+            stop = {
+                "about", "after", "before", "change", "code", "current", "exact", "from",
+                "into", "only", "proposal", "should", "single", "that", "their", "this",
+                "train", "with", "without",
+            }
+            terms = {t for t in re.findall(r"[a-z_][a-z0-9_]{3,}", raw) if t not in stop}
+            scored: list[tuple[int, int]] = []
+            for i, line in enumerate(lines):
+                low = line.lower()
+                score = sum(1 for term in terms if term in low)
+                if score:
+                    scored.append((score, i))
+            for _score, i in sorted(scored, key=lambda item: (-item[0], item[1]))[:max_regions]:
+                centers.add(i)
+
+        regions: list[tuple[int, int]] = []
+        for center in sorted(centers)[:max_regions]:
+            lo, hi = max(0, center - 5), min(len(lines), center + 11)
+            if regions and lo <= regions[-1][1] + 2:
+                regions[-1] = (regions[-1][0], max(regions[-1][1], hi))
+            else:
+                regions.append((lo, hi))
+        if not regions:
+            return "(no lexical source excerpt found; require a more precise implementation plan)"
+        return "\n".join(
+            f"--- train.py lines {lo + 1}-{hi} ---\n" + "\n".join(lines[lo:hi])
+            for lo, hi in regions
+        )
 
     def _propose(self, report: CycleReport) -> Proposal | None:
         backoff = self.store.state.get("research_backoff_until")
@@ -565,6 +677,9 @@ class Controller:
             f"Pinned commit: {C.AUTHORITATIVE_COMMIT}\nShape: LNC={self.cfg.lnc} nproc={self.cfg.nproc_per_node}, seed 42, 1800 s.\n"
             f"Proposal ids already used: {sorted(self.store.used_proposal_ids())}\n\n"
             f"Available train.py flags at this commit:\n{' '.join(flags)}\n\n"
+            f"Exact pinned full controls:\n{self._control_evidence()}\n\n"
+            f"Recent rejected proposals and verifier feedback (do not repeat these defects):\n"
+            f"{self._recent_rejection_feedback()}\n\n"
             f"Recent ledger rows (newest first):\n{self._ledger_summary()}\n\n{context}"
         )
         reply = None
@@ -613,14 +728,6 @@ class Controller:
         client = self.model if ok else None
         current_state = (C.AGENT_DIR / "CURRENT_STATE.md").read_text() if (C.AGENT_DIR / "CURRENT_STATE.md").is_file() else ""
         train_text = self._train_py_text or self.git.file_at_commit(C.AUTHORITATIVE_COMMIT, "train.py").decode(errors="replace")
-        flag_snippets: list[str] = []
-        train_lines = train_text.splitlines()
-        for flag in prop.flag_names():
-            for i, line in enumerate(train_lines):
-                if repr(flag) in line or f'"{flag}"' in line:
-                    lo, hi = max(0, i - 4), min(len(train_lines), i + 8)
-                    flag_snippets.append(f"--- train.py lines {lo + 1}-{hi} for {flag} ---\n" + "\n".join(train_lines[lo:hi]))
-                    break
         verifier_context = load_context([
             C.ROOT / "README.md",
             C.ROOT / "AGENTS.md",
@@ -629,9 +736,9 @@ class Controller:
             C.DECISION_LOG,
             C.ROOT / "research" / "trn2-experiment-results.md",
         ])
+        verifier_context += "\n--- EXACT PINNED FULL CONTROLS ---\n" + self._control_evidence()
         verifier_context += "\n--- RECENT LEDGER ROWS ---\n" + self._ledger_summary(200)
-        if flag_snippets:
-            verifier_context += "\n" + "\n".join(flag_snippets)
+        verifier_context += "\n--- RELEVANT AUTHORITATIVE train.py EVIDENCE ---\n" + self._train_evidence(prop, train_text)
         verification = run_verifier(
             prop, cfg=self.cfg, client=client,
             context_text=verifier_context,

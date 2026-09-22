@@ -28,6 +28,14 @@ Check: (1) single causal change; (2) flags or the code implementation plan descr
 the repository; (4) it is not a duplicate of a closed direction; (5) it is competition-legal
 (no pretrained weights, no external data, no evaluator changes); (6) the expected effect is
 falsifiable with a seed-42 full-chip run against a matched control.
+The deterministic gate has already validated exact flag-set duplication, legal flag names, unique
+labels, and proposal structure before you are called. The controller—not the proposal—pins seed 42,
+the authoritative base commit, LNC/world size, 1800-second budget, clean staging, exact evaluation,
+and a same-box full control. Do not demand that the proposal restate those controller guarantees,
+and do not reject merely because it does not narrate the deterministic duplicate search. For a code
+proposal, judge the bounded causal plan now; a separate independent verifier reviews its exact patch.
+Public BPB is the local proxy and official BPB is the final target; requiring a predicted official
+number before a legal experiment is not a valid rejection reason.
 Return ONLY a JSON object: {"verdict": "PASS"|"FAIL"|"NEEDS_WORK", "findings": ["..."]}.
 Mark PASS only with evidence. You cannot launch, edit, or approve hardware use."""
 

@@ -632,9 +632,18 @@ class LoopTests(unittest.TestCase):
         self.assertEqual(len(env.h.launched), 2, rep.actions)
         state = json.loads(C.STATE_FILE.read_text())
         self.assertEqual(state["proposals"]["20260922-bad-idea"]["stage"], "rejected")
+        feedback = ctl._recent_rejection_feedback()
+        self.assertIn("20260922-bad-idea", feedback)
+        self.assertIn("duplicate of closed direction", feedback)
         rep = ctl.cycle()
         self.assertEqual(len(env.h.launched), 3, rep.actions)
         self.assertIn("20260922-good-idea", env.h.launched[2]["cwd"])
+
+    def test_relevant_train_evidence_contains_flag_definition(self):
+        ctl = self.env.controller()
+        prop = Proposal.from_model_json(json.loads(researcher_json()), self.env.cfg.researcher_model_id, "now")
+        evidence = ctl._train_evidence(prop, TRAIN_PY)
+        self.assertIn('parser.add_argument("--weight-ema"', evidence)
 
     def test_deterministic_duplicate_rejected_without_llm_verifier(self):
         env = self.env
