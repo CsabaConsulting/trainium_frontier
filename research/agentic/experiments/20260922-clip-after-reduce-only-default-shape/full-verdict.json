@@ -1,0 +1,19 @@
+{
+  "analyst_prose": "DISCARD at the full tier: --clip-after-reduce produced public_val_bpb 1.005974 versus 1.005734 for control.\nThe candidate-minus-control delta was +0.000240 (worse), failing the required threshold of -0.002000.\nBoth runs used the same clean commit and source hashes, seed, host, launch shape, and 592.9M parameters.\nCandidate throughput was slightly higher: 1.16210 versus 1.16035 steps/s, completing 2074 versus 2071 steps.\nThe minor confounder is unequal training exposure under the time budget: the candidate completed three additional steps, so this is not an exactly step-matched comparison.\nBoth runs passed causality checks, exited successfully, and stayed within the charged budget; these checks do not alter the rejection.",
+  "decision": "DISCARD",
+  "metrics": {
+    "bpb_delta": 0.00024000000000001798,
+    "candidate_bpb": 1.005974,
+    "candidate_params_M": 592.9,
+    "candidate_step_rate": 1.162100072841374,
+    "candidate_steps": 2074.0,
+    "control_bpb": 1.005734,
+    "control_params_M": 592.9,
+    "control_step_rate": 1.1603541012998655,
+    "control_steps": 2071.0
+  },
+  "reasons": [
+    "public_val_bpb delta +0.00024 did not meet threshold -0.00200"
+  ],
+  "tier": "full"
+}
