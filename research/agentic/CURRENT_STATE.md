@@ -73,6 +73,31 @@ Do not reopen the parked attention redesign, generic full-model autocast FP8, Ve
 compiler-SBUF placement, width1152, or previously tested library-MLP compositions without a new
 profile-backed causal hypothesis.
 
+## Human strategic research priority — 2026-09-22
+
+The human operator wants the unattended Researcher to search for mechanisms capable of closing the
+leaderboard gap, not merely accumulate small step-rate changes. Within the standing authorization,
+rank new hypotheses by plausible fixed-budget BPB upside and information gain across these lanes:
+
+1. **Targeted FP8 or mixed-precision systems work.** Pursue precision changes only at a measured
+   expensive boundary, with numerical, backward, whole-step, checkpoint, causality, and native-eval
+   gates. The saved ROW-FP8 lead remains relevant; generic full-model autocast FP8 remains closed.
+2. **Profile-directed NKI fusion.** Target a dominant end-to-end cost such as boundary/layout
+   conversion, attention/MLP materialization, optimizer work, or cache refresh. An isolated kernel
+   microbenchmark is not a win unless the complete step improves and BPB is preserved.
+3. **Learning-efficiency re-optimization after a systems gain.** Once a measured throughput or
+   memory win changes the feasible frontier, use bounded one-factor tests of capacity allocation,
+   depth/width/context, batch or accumulation, learning-rate/warmdown, optimizer, and auxiliary
+   memory capacity. Do not substitute an unstructured broad sweep or reopen a closed regime without
+   new causal evidence.
+4. **Other competition-legal architecture or training ideas.** Prefer mechanisms that improve
+   loss per token or useful tokens processed within 1,800 seconds, and reconcile them against the
+   full ledger before proposing a run.
+
+Isolate causal factors first. A stack-confirmation experiment may combine only independently
+validated KEEP changes and must declare the interaction hypothesis. Public development BPB is the
+selection proxy; official private-shard BPB remains unknown until a human-approved submission.
+
 ## Human approvals required
 
 - Development Trn2 launches are covered by `STANDING_AUTONOMOUS_AUTHORIZATION.md` after all
