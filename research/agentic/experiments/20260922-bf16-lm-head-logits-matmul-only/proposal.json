@@ -1,0 +1,54 @@
+{
+  "abort_conditions": [
+    "HALT-INERT: static pre-implementation check shows the default-configuration head matmul already runs with both operands BF16 or under an autocast context; do not implement or launch",
+    "HALT-SCOPE: implementing the cast requires touching softcap, cross-entropy, byte-loss weighting, tied-embedding lookup, optimizer, or any other module; return HALT-SEMANTIC-REVIEW instead of expanding scope",
+    "Smoke: candidate steps < 1.02 x same-host control smoke steps (i.e. < 342), or candidate smoke public_val_bpb > same-host control smoke public_val_bpb (1.165855 trn21 / 1.165604 trn22)",
+    "Smoke or full: num_params_M != 592.9, resolved ngram_ve/oneliners differ from control in any field other than the new bf16_lm_head entry, loss NaN/inf, loss-scale or debug-numerics anomaly, or causality_passed false",
+    "Full: candidate steps < 90% of same-host control -> CONFOUNDED-SHORT, record only",
+    "Implementation gate: diff touches anything beyond (i) the head-boundary cast and float() upcast, (ii) the USE_BF16_LM_HEAD constant with env/CLI toggle following the --bf16-sdpa-input pattern, (iii) one config-log field; or the candidate branch changes defaults of any existing option"
+  ],
+  "change_type": "code",
+  "created_at": "2026-09-22T18:25:45Z",
+  "duplicate_search_terms": [
+    "bf16 lm_head",
+    "bf16-lm-head",
+    "lm_head bf16",
+    "bf16 logits",
+    "logits bfloat16",
+    "head cast bf16",
+    "USE_BF16_LM_HEAD",
+    "bf16 head matmul",
+    "auto-cast matmult",
+    "bf16-norm-output",
+    "bf16-sdpa-input",
+    "softcap ce bf16",
+    "fp32 logits"
+  ],
+  "evidence": [
+    "research/experiment-log.jsonl: al-20260922-bf16-sdpa-input-only-default-shape-full-r1 (trn22, 2233 steps, 1.002028) vs al-20260922-control-trn22-lnc2x4-9a4caa7b-full-r1 (2076 steps, 1.005967): single BF16 input-cast at one un-cast boundary -> +7.6% steps and -0.0039 BPB; DECISION_LOG.md row KEEP (full)",
+    "research/experiment-log.jsonl: al-20260922-bf16-sdpa-input-only-default-shape-smoke-r1 360 steps / 1.156334 vs control-trn22 smoke 335 / 1.165604: smoke step-rate ratio 1.075 predicted the full KEEP, justifying the smoke gate below",
+    "Pinned control environment: NEURON_CC_FLAGS='--optlevel=1' only (both control rows); all fresh-start rows below 0.99 BPB (fs-w50, fs-w63, fs-w65, fs-w70, fs-w98, fs-w146) ran with '--optlevel=1 --auto-cast matmult --auto-cast-type bf16', i.e. their head matmul was BF16 via compiler autocast; the controller fixes the environment, so an in-code operand cast is the only admissible way to obtain BF16 at this boundary",
+    "train.py: USE_BF16_SDPA_INPUT / --bf16-sdpa-input / NEURON_COMPETITION_R1_* override pattern (implementation template for a bounded per-boundary cast with default constant plus CLI pair and config oneliner logging)",
+    "train.py: LM-head logits projection / softcap / cross-entropy region (the --nki-softcap-ce and --byte-loss-weight options attach here; the causal target is the logits F.linear/matmul operands only, not softcap or CE)",
+    "research/agentic/SOURCE197_OFFLINE_ATTRIBUTION.md and CURRENT_STATE.md: ordinary MLP/F.linear regions are already BF16; attention was FP32 until --bf16-sdpa-input; the head is the remaining large un-cast dense matmul",
+    "CURRENT_STATE.md human priority lane 1: targeted mixed precision at a measured expensive boundary with numerical, checkpoint, causality and native-eval gates",
+    "experiment-protocol.md section 5: same-host paired comparison; >10% step mismatch is CONFOUNDED not negative",
+    "DECISION_LOG.md: no row at 9a4caa7b changes the head/logits precision; --bf16-norm-output (id already used) casts norm outputs, not the head weight, and is not bundled here"
+  ],
+  "expected_effect": "Full 1800 s run on the same host: steps +3% to +12% vs control (2071/2076), public_val_bpb lower by 0.001 to 0.005 (predicted ~1.001-1.004 vs 1.0057/1.0060). Smoke (300 s): steps >= 1.02x same-host control smoke (>=342 vs 334/335) with smoke BPB <= control smoke. Falsified if steps are within +/-1% of control (head matmul not a cost) or if steps rise >= 2% but BPB does not improve (BF16 logit rounding harms quality).",
+  "files_allowed": [
+    "train.py"
+  ],
+  "flags": [],
+  "hypothesis": "Under the pinned control environment (NEURON_CC_FLAGS exactly '--optlevel=1', no '--auto-cast matmult --auto-cast-type bf16'), any F.linear/matmul in train.py whose operands are not explicitly cast runs in FP32 on Trainium. The KEEP result for --bf16-sdpa-input (2233 steps / 1.002028 vs 2076 / 1.005967 same-host control: +7.6% steps, -0.0039 BPB) shows that (a) such un-cast FP32 boundaries exist in the pinned default graph and (b) casting one of them to BF16 converts step-rate into fixed-budget BPB gain with no measurable quality loss. The final LM-head logits projection (final hidden states x head weight, vocab-sized output, executed every micro-step in forward and backward) is the largest remaining dense matmul that is not covered by any tested flag at this commit; every fresh-start ledger run that reached <0.99 BPB ran this projection in BF16 via compiler autocast, which the controller forbids as an env change. Casting only the head matmul operands to BF16 and up-casting the logits back to FP32 before softcap/cross-entropy will raise steps in 1800 s by 3-12% (proportional to the head's share of FLOPs) and lower public_val_bpb by 0.001-0.005 versus the same-host control.",
+  "implementation_plan": "All edits confined to train.py on branch autoloop/20260922-bf16-lm-head-logits-matmul-only from 9a4caa7b. Step 0 (static check, before editing): locate the model's final logits projection -- the F.linear / matmul / (tied) wte-weight product that maps the final-normed hidden state [B,T,d] to vocab-sized logits, immediately upstream of the softcap and cross-entropy (the region gated by the --nki-softcap-ce and --byte-loss-weight options). Read the code path under default flags (bf16_norm_output False, bf16_sdpa_input False) and record the dtype of each operand. If both operands are already torch.bfloat16 at that call, or the call sits inside a torch.autocast context, stop and return HALT-INERT. Step 1: following the existing --bf16-sdpa-input pattern, add a module-level constant USE_BF16_LM_HEAD = True with the same style of environment override (NEURON_COMPETITION_R1_BF16_LM_HEAD, '0' disables) and a matching argparse pair --bf16-lm-head / --no-bf16-lm-head (dest bf16_lm_head, default None -> falls back to the constant); default must resolve True so the candidate run uses no flags. Step 2: at the logits projection only, when USE_BF16_LM_HEAD is True, replace the call with: h16 = h.to(torch.bfloat16); w16 = head_weight.to(torch.bfloat16) (head_weight is whatever tensor the current code uses -- lm_head.weight or the tied wte.weight; do not change tying, do not create a new Parameter, do not change initialization); logits = F.linear(h16, w16) (or the equivalent matmul form already used, preserving any transposed-linear layout the code selects); logits = logits.float(). Leave every downstream operation (softcap, cross-entropy, byte-loss weighting, eval BPB accumulation, causality check) byte-for-byte unchanged so they receive FP32 logits as before. Autograd propagates gradients through the .to() casts to the FP32 master weight; no optimizer or grad-clip code changes. The same forward code path must serve training and evaluation; do not add a separate eval branch. When USE_BF16_LM_HEAD is False the original call must execute unchanged. Step 3: add exactly one field 'bf16_lm_head=<bool>' to the existing config oneliner that already prints bf16_sdpa_input/bf16_norm_output-style precision options so the resolved value appears in the ledger. Step 4: no other edits: no changes to attention, norms, MLP, ngram-ve tables, kernels, schedule, batch, seed handling, evaluator, or NEURON_CC_FLAGS handling. Verification for the implementation verifier: (a) diff limited to the constant/env/CLI toggle, the head-boundary cast block, and the one log field; (b) grep confirms softcap/CE code untouched; (c) with the env override set to '0' the code path is the original; (d) smoke run resolves bf16_lm_head=True, num_params_M 592.9, ngram_ve oneliner identical to control, and meets the smoke gate above.",
+  "proposal_id": "20260922-bf16-lm-head-logits-matmul-only",
+  "single_causal_change": "One numerical-format boundary change in train.py: at the LM-head logits projection only, cast the final hidden-state activation and the head weight (a temporary .to(torch.bfloat16) view; the FP32 master parameter, its optimizer state, and any tied wte lookup are untouched) so the logits matmul executes in BF16, then immediately .float() the logits so softcap, cross-entropy, byte-loss weighting, evaluation BPB, and the causality check consume FP32 logits exactly as before. Everything else stays at 9a4caa7b defaults: no --bf16-sdpa-input, no --bf16-norm-output, no --nki-* or --compile-* flag, no optimizer/schedule/batch/architecture/ngram-ve change, identical launch shape and environment as the pinned controls, num_params_M must remain 592.9. Comparison: same-host pinned control on public_val_bpb (trn21 2071 / 1.005734; trn22 2076 / 1.005967). Outcome classes evaluated in order: (1) HALT-INERT if the static pre-implementation check finds the head matmul already executes with both operands BF16 (or under an autocast context) in the default configuration -- do not implement or launch; (2) CONFOUNDED-SHORT if full-run steps < 90% of same-host control (<1864 trn21, <1869 trn22); (3) FALSIFIED-INERT if steps within +/-1% of control (head matmul is not a measurable cost); (4) EXCESS-GAIN-REVIEW if steps > +10% of control (>2278 trn21, >2283 trn22): record throughput and BPB, and before any quality claim compare the candidate's logged validation trajectory with the control's at matched step counts; if matched-step trajectories are unavailable, quality attribution is recorded as unresolved; SUCCESS may still be declared only if public_val_bpb < control by >= 0.001 and no matched-step deficit > 0.010 at the control's final step; (5) SUCCESS if steps >= +2% and public_val_bpb < same-host control by >= 0.001; (6) FALSIFIED-QUALITY if steps >= +2% and public_val_bpb >= control (BF16 logit rounding costs more than the recovered steps); (7) INCONCLUSIVE otherwise.",
+  "smoke_gate": {
+    "max_bpb_delta": 0.0,
+    "min_candidate_steps": 342,
+    "min_step_rate_ratio": 1.02
+  },
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}

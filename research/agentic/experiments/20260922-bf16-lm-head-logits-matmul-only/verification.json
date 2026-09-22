@@ -1,0 +1,20 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "The implementation plan isolates one causal change: BF16 operands for the LM-head projection, followed immediately by FP32 logits. The toggle and logging support that change; existing precision options, parameters, optimizer, and downstream loss operations remain unchanged.",
+    "Repository evidence supports testing a targeted precision boundary: DECISION_LOG.md and the SDPA ledger row report 2233 versus 2076 steps and 1.002028 versus 1.005967 public BPB under the pinned environment.",
+    "That evidence does not establish the head's current execution dtype, measured cost, or absence of matched-step quality loss. train.py lines 3174\u20133189 specifically describe SDPA precision selection as independent of compiler matmul autocast. Treat the broader FP32 and head-cost assertions as hypotheses; the planned pre-implementation dtype/autocast check and HALT-INERT gate are material safeguards for the separate implementation review.",
+    "No supplied closed direction duplicates this head-only BF16 change. It is distinct from SDPA-input casting, norm-output casting, and the closed generic full-model FP8 direction.",
+    "The bounded train.py change is competition-legal: no pretrained weights, external data, evaluator modifications, or separate evaluation-only behavior are proposed.",
+    "The expected fixed-budget effect is falsifiable against the controller's matched seed-42 full-chip control through explicit step-count and public-BPB thresholds. Short-run confounding and greater-than-10% throughput gains receive separate treatment, with quality attribution unresolved when required matched-step evidence is unavailable."
+  ],
+  "llm_verdict": "PASS",
+  "passed": true,
+  "proposal_id": "20260922-bf16-lm-head-logits-matmul-only",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-22T18:25:46Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}

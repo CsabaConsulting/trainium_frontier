@@ -1,0 +1,16 @@
+{
+  "branch": "autoloop/20260922-bf16-lm-head-logits-matmul-only",
+  "candidate_commit": null,
+  "deterministic_findings": [],
+  "diff_sha256": "2b9d2f0c5a5d3cd8574880a8e78d48b67b03b4351e939af234e001e15e4eeaf5",
+  "implemented_at": "2026-09-22T18:26:16Z",
+  "implementer_model_id": "us.anthropic.claude-fable-5-1",
+  "passed": false,
+  "verifier_findings": [
+    "The visible patch is confined to train.py and appears to introduce one precision-boundary change. It does not alter data, tokenization, loss code, seed, runtime budget, chip allocation, or introduce external-data/pretrained paths.",
+    "The patch explicitly casts only the activation. Confirming the approved two-operand BF16 matmul requires the existing Linear.forward and weight-cache implementation, including gradient flow to the FP32 master weight. Comments and an unspecified deterministic-check PASS do not establish this or the required pre-implementation HALT-INERT check.",
+    "Adding USE_BF16_LM_HEAD to ARCH_TOGGLE_NAMES appears appropriate for checkpoint parity, but the supplied evidence does not show load_for_eval restoring it or the required causality result. The proposal's smoke-gate results, parameter count, and unchanged resolved configuration are also absent."
+  ],
+  "verifier_model_id": "us.openai.gpt-6-astra",
+  "verifier_verdict": "NEEDS_WORK"
+}
