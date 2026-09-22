@@ -1,0 +1,21 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "Single bounded causal change: partition only Muon's Newton\u2013Schulz computation within the existing compiled branch, then gather results for replicated post-processing. The train.py-only plan preserves backend precedence, optimizer formulas, state layout, and all model/data/evaluation behavior; the toggle-off path retains the original callable.",
+    "The supplied authoritative train.py supports the mechanism: _muon_step invokes _MUON_COMPILED on each complete same-shape stack without rank ownership, and _muon_math normalizes independently over the final two dimensions before its batched NS matmuls. Explicit tall/ns_steps arguments, rank-order reconstruction, and discarded padding are consistent with that structure.",
+    "Repository evidence supports testing, not a guaranteed gain: fs-w65 records a 5.06245% complete-step gate for prior ownership work, and fs-w70/w98/w146 retain ownership. Those stacks differ from this control. The supplied bf16-sdpa-input result independently demonstrates a fixed-budget improvement at the current shape: 2233 steps/1.002028 BPB versus 2076/1.005967.",
+    "No supplied DECISION_LOG entry closes Muon ownership or NS partitioning. The earlier ownership results are positive precedent in a different stack, not a duplicate of a closed negative direction.",
+    "Competition-legal as proposed: optimizer implementation changes in train.py are permitted; no pretrained weights, external data, evaluator edits, or forward collectives are introduced.",
+    "The matched seed-42 full-chip experiment is falsifiable through declared step-count and public-BPB thresholds, with compiled-reference numerical comparisons and collective/causality failures assigned to smoke abort conditions. Implementation approval requires only static inspection/review, not executable pre-edit evidence. Exact patch correctness remains for the separate implementation verifier.",
+    "The claimed three-quarter NS saving is approximate: padding makes the per-rank work fraction ceil(n/world_size)/n, so small or non-divisible groups save less. Compilation boundaries and collective overhead may erase the benefit; the complete-step and BPB gates appropriately test that risk."
+  ],
+  "llm_verdict": "PASS",
+  "passed": true,
+  "proposal_id": "20260922-muon-owner-ns-split-r4",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-22T20:09:03Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}
