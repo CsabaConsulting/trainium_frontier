@@ -1,0 +1,20 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "The proposal declares one causal change and its flags match that intent: enable --compile-sdpa-direct only. However, train.py:5799-5810 derives the effective default from COMPILE_SDPA_DIRECT and NEURON_COMPETITION_R1_COMPILE_SDPA_DIRECT. Neither the constant nor the controls' resolved setting is supplied. Historical explicit flags and help text do not prove that enabling it changes the current control. Provide static evidence of the effective default and attention dispatch, including unchanged precision and causal masking.",
+    "The baseline evidence is supported: the supplied ledger records seed-42, LNC2x4, 1800-second controls at 9a4caa7b with 2071/2076 steps and 1.005734/1.005967 BPB. The fs-w3 versus fs-w896-bf16 comparison is only suggestive: commits and compiler precision settings differ, and fs-w3's compiler environment is not recorded in the supplied row. It does not isolate direct SDPA or establish a pure FP32 throughput improvement.",
+    "Duplicate clearance is incomplete. No exact closed default-shape direct-SDPA experiment appears in the supplied decision log, but listing search terms is not evidence of searching the full ledger and research/trn2-experiment-results.md as required. Supply search results and distinguish this routing flag from CURRENT_STATE.md's parked attention-redesign direction.",
+    "The expected steps and BPB outcomes are falsifiable, but the matched comparison needs to be pinned explicitly: select the same-host control and preserve seed 42, LNC2x4, --num-steps 5000, shape, evaluation settings, and the exact compiler environment CC='--optlevel=1'. Merely requiring that CC contain --optlevel=1 permits confounding autocast settings. Protocol section 5 requires back-to-back, same-box, same-day, same-code rate comparisons.",
+    "Clarify outcome classification between the success and falsification thresholds, and treat the 900-second extrapolation as provisional rather than a final throughput verdict. Failure to improve smoke throughput cannot by itself establish that the flag is inert or already enabled.",
+    "The proposed scope introduces no pretrained weights, external data, or evaluator changes, and compilation is permitted by README.md. Before declaring competition legality verified, resolve budget accounting: README.md counts compilation against the budget, whereas protocol section 5 describes resetting the clock after startup. Preserve causal, stateless evaluation and require valid checkpoint and budget evidence; an 1800-second training flag alone does not establish those gates."
+  ],
+  "llm_verdict": "NEEDS_WORK",
+  "passed": false,
+  "proposal_id": "20260922-compile-sdpa-direct-only-default-shape",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-22T06:16:41Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}

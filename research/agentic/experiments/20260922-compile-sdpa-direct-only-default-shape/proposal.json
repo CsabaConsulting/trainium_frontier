@@ -1,0 +1,40 @@
+{
+  "abort_conditions": [
+    "Smoke (300 s) completes fewer than 345 steps (i.e., not >=3% above the 334-335-step controls): flag is inert or already default; do not spend the full run",
+    "Any non-finite loss, NaN/Inf in gradients, or compile failure in the smoke",
+    "Smoke public_val_bpb worse than 1.1756 (control smoke 1.1656 + 0.01) despite equal or more steps: attention graph is numerically degraded, stop",
+    "Launch environment NEURON_CC_FLAGS lacks --optlevel=1 or git status is dirty (protocol \u00a71); full run void",
+    "Full run step count within +/-1% of the controls (2050-2095) at 900 s elapsed extrapolation: throughput hypothesis falsified, still finish for the record but mark as negative"
+  ],
+  "change_type": "flags",
+  "created_at": "2026-09-22T06:16:41Z",
+  "duplicate_search_terms": [
+    "compile-sdpa-direct",
+    "sdpa-direct",
+    "direct SDPA",
+    "direct compiled SDPA",
+    "compile_sdpa_direct",
+    "sdpa direct default shape",
+    "fs-w2-sdpa-direct",
+    "fs-w3-w896-direct-control"
+  ],
+  "evidence": [
+    "research/experiment-log.jsonl: al-20260922-control-trn21-lnc2x4-9a4caa7b-full-r1 (1.005734 BPB, 2071 steps, no flags) and al-20260922-control-trn22-lnc2x4-9a4caa7b-full-r1 (1.005967 BPB, 2076 steps) \u2014 step-count-limited baseline at this commit",
+    "research/experiment-log.jsonl: fs-w3-w896-direct-control-r1 (commit 00f82d8a, FP32, --compile-sdpa-direct, 2188 steps, 0.987568) vs fs-w896-bf16-1800-r1 (commit ca635670, no direct SDPA, BF16 matmult autocast, 2026 steps, 0.992245) \u2014 direct SDPA in FP32 outran the non-direct graph even against a BF16-autocast run",
+    "research/experiment-log.jsonl: fs-w2-sdpa-direct-bf16-smoke-r1 description 'direct compiled SDPA ... source-matched graph timing' \u2014 flag introduced as a graph/throughput change, not a precision change",
+    "research/experiment-log.jsonl: fs-w6/w12/w14/w15/w16/w18/w50/w63/w65/w70/w98/w146 all pass --compile-sdpa-direct explicitly alongside other retained levers, indicating it is a non-default flag that the fresh-start line kept in every winning configuration",
+    "train.py at 9a4caa7b exposes paired --compile-sdpa-direct / --no-compile-sdpa-direct (available flag list), and separately --bf16-sdpa-input, so the graph-routing switch is isolable from the SDPA precision switch",
+    "research/agentic/DECISION_LOG.md and proposal ids: only bf16-norm-output-only and nki-local-conv+bf16norm have been proposed at default shape; compile-sdpa-direct alone at default shape has not"
+  ],
+  "expected_effect": "Direction: lower val_bpb. Size: training steps in 1800 s rise from ~2073 to >=2180 (>=+5%); final public val_bpb falls from ~1.0059 to <=1.0025 (-0.003 to -0.010). Falsified if steps <= 2080 or val_bpb >= 1.0055 with seed 42 at the same shape.",
+  "files_allowed": [],
+  "flags": [
+    "--compile-sdpa-direct"
+  ],
+  "hypothesis": "At the default (record-config) shape on 9a4caa7b the 1800 s budget yields only ~2071-2076 optimizer steps (controls 1.005734 / 1.005967 BPB). Routing attention through the directly compiled SDPA path (--compile-sdpa-direct) removes the slower default attention graph without changing numerics policy (FP32 SDPA inputs, FP32 norm outputs, FP32 residuals are untouched), so the same seed-42 schedule completes more steps inside the fixed wall clock and reaches a lower final val_bpb. The fresh-start ledger shows the direct-SDPA FP32 width-896 run (fs-w3) completed 2188 steps, more than the width-896 run without direct SDPA even when that run had BF16 matmul autocast (fs-w896-bf16, 2026 steps), and every subsequent fresh-start improvement retained the flag explicitly, which is consistent with it being off by default and being a pure throughput lever.",
+  "implementation_plan": "",
+  "proposal_id": "20260922-compile-sdpa-direct-only-default-shape",
+  "single_causal_change": "Enable --compile-sdpa-direct only; all other flags remain at the 9a4caa7b defaults used by the two controls (no bf16-sdpa-input, no bf16-norm-output, no nki-local-conv, no optimizer/schedule/shape change).",
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}
