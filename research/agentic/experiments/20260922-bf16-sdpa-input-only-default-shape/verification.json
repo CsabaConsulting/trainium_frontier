@@ -1,0 +1,19 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "The precondition is supported: authoritative train.py lines 1447\u20131462 set USE_BF16_SDPA_INPUT=False, and lines 5862\u20135877 derive the argparse default from that value absent an environment override. Neither pinned control environment supplies that override. The flag therefore changes the resolved setting rather than restating the default.",
+    "One causal change is specified. The argparse help describes casting Q/K/V at the native SDPA boundary and restoring its output dtype, independently of BF16 normalization and without modifying alternative NKI attention. This matches the proposed precision-only intervention.",
+    "Repository evidence supports a legal experiment, not a proven speedup: fs-w15 completed 2600 steps at public BPB 0.989128 with causality passing, but used a different model and compiler configuration. The pinned controls confirm '--optlevel=1' without explicit compiler autocast. Neither fact establishes actual FP32 tensor-engine execution or attention's runtime share; those remain hypotheses.",
+    "No supplied decision-log entry closes this isolated attention-input precision direction. The earlier fs-w15 configuration is materially different, and this intervention is not an attention redesign. It introduces no pretrained weights, external data, or evaluator changes.",
+    "The controller-matched seed-42 full-chip comparison can falsify the throughput and public-BPB predictions. Public BPB remains the local proxy, not an official score. Minor interpretation cautions: 341/335 is only a 1.79% increase, so the separate 1.02 ratio gate requires at least 342 steps on trn22; unchanged throughput does not prove unchanged dtype; and the cited cross-configuration BPB spread is not a repeat-control noise estimate."
+  ],
+  "llm_verdict": "PASS",
+  "passed": true,
+  "proposal_id": "20260922-bf16-sdpa-input-only-default-shape",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-22T16:36:34Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}

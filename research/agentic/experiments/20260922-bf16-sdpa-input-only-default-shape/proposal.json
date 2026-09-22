@@ -1,0 +1,48 @@
+{
+  "abort_conditions": [
+    "Verifier finds the 9a4caa7b argparse default of --bf16-sdpa-input is already True (proposal void, do not launch)",
+    "Smoke candidate steps < 341 (less than 1.02 x the 335-step same-host control smoke) -> attention is not FP32-bound; abort before full run",
+    "Smoke public_val_bpb exceeds the same-host control smoke by more than 0.001",
+    "NaN/inf loss, causality check failure, or compile failure in smoke",
+    "Full run steps below 90% of same-host control (trn21 < 1864, trn22 < 1869) -> CONFOUNDED-SHORT, record throughput regression only",
+    "Full run public_val_bpb >= same-host control despite >= +1% steps -> FALSIFIED-QUALITY; do not iterate on this flag with additional precision switches"
+  ],
+  "change_type": "flags",
+  "created_at": "2026-09-22T16:36:34Z",
+  "duplicate_search_terms": [
+    "bf16-sdpa-input",
+    "bf16_sdpa_input",
+    "sdpa bf16",
+    "BF16 SDPA inputs",
+    "sdpa fp32",
+    "attention precision",
+    "fs-w15",
+    "auto-cast matmult",
+    "nki-sdpa-only"
+  ],
+  "evidence": [
+    "research/experiment-log.jsonl row fs-w15-dense1024-nki-sdpa-only-1800-r1 (commit 4f0e77a7): description 'BF16 SDPA inputs only, retain FP32 normalization outputs and residuals' with --bf16-sdpa-input, implying the default SDPA input dtype is FP32; that run used NEURON_CC_FLAGS='--optlevel=1 --auto-cast matmult --auto-cast-type bf16'",
+    "research/experiment-log.jsonl pinned control rows al-20260922-control-trn21-lnc2x4-9a4caa7b-full-r1 (2071 steps, 1.005734) and al-20260922-control-trn22-lnc2x4-9a4caa7b-full-r1 (2076 steps, 1.005967): environment NEURON_CC_FLAGS is exactly '--optlevel=1' (no compiler matmul auto-cast), seq_len 2048, launch command passes no precision flags so bf16_sdpa_input resolves to the train.py default",
+    "research/experiment-log.jsonl smoke rows: control-trn22 335 steps / 1.165604, ngram-rms-fp32 316 steps / 1.173336, nki-local-conv 330 steps / 1.167854 -> smoke BPB moves about 0.0004 per step at the 300 s horizon, so a >= 2% step gain must show as lower smoke BPB",
+    "DECISION_LOG.md rows 2026-09-22: no-qk-shift (2080 vs 2076 steps, 1.005766 vs 1.005967) and clip-after-reduce (2074 vs 2071 steps, 1.005974 vs 1.005734) establish ~0.0003 cross-run spread used for the SUCCESS margin; neither touched attention precision",
+    "Available train.py flags at 9a4caa7b include --bf16-sdpa-input / --no-bf16-sdpa-input; the proposal verifier findings for 20260922-nki-ngram-rms-only-default-shape list --bf16-sdpa-input as a precision flag that the pinned controls do not set",
+    "research/experiment-protocol.md section 1.5 (NEURON_CC_FLAGS captured verbatim; controller env fixed) and section 5 (rate comparisons same box; >10% step shortfall is CONFOUNDED)",
+    "Proposal ids already used contain bf16-norm-output-only and compile-sdpa-direct-only but no bf16-sdpa-input proposal; the fs-w15 dense6x1024 run is the only prior use and is not an isolated test at this model shape or in this compiler environment"
+  ],
+  "expected_effect": "Step count rises by +3% to +15% over the same-host control at identical tokens/step (magnitude uncertain because the FP32 fraction of attention time is not profiled at this shape); public_val_bpb decreases by 0.001 to 0.004 relative to the same-host pinned control (1.005734 trn21 / 1.005967 trn22). Predeclared direction: lower. Inert (steps within +/-1%) or higher BPB with more steps falsifies the hypothesis.",
+  "files_allowed": [],
+  "flags": [
+    "--bf16-sdpa-input"
+  ],
+  "hypothesis": "In the controller's pinned environment the compiler flags are exactly NEURON_CC_FLAGS='--optlevel=1' (no '--auto-cast matmult --auto-cast-type bf16', which every fresh-start recipe run carried). The fs-w15 ledger description ('BF16 SDPA inputs only, retain FP32 normalization outputs and residuals') indicates that the train.py default feeds scaled-dot-product attention FP32 q/k/v. Hypothesis (to be confirmed by the verifier against the argparse default of --bf16-sdpa-input at 9a4caa7b): without compiler auto-cast, the two T x T attention matmuls per layer at seq_len 2048 run in FP32 on the tensor engine, which is a large fraction of the 0.87 s/step control step time. Passing --bf16-sdpa-input casts only the SDPA inputs to BF16, so tokens/step and the optimizer are unchanged while the step rate rises by >=3%; within the fixed 1800 s budget the extra steps lower official public val_bpb. BF16 attention inputs are standard practice and fs-w15 (0.989128 at 2600 steps) shows no quality collapse from this cast. If the default already resolves SDPA inputs to BF16 (or attention is not throughput-bound), the step count will be within +/-1% of control and the hypothesis is falsified as inert.",
+  "implementation_plan": "",
+  "proposal_id": "20260922-bf16-sdpa-input-only-default-shape",
+  "single_causal_change": "Pass --bf16-sdpa-input only. Every other option stays at the 9a4caa7b defaults used by the two pinned controls: identical launch shape (NEURON_LOGICAL_NC_CONFIG=2, torchrun --nproc_per_node=4, --num-steps 5000, --max-train-seconds 1800, --seed 42), identical environment (NEURON_CC_FLAGS exactly '--optlevel=1', NEURON_COMPETITION_R1_SEED=42, PYTHONUNBUFFERED=1), no other precision flag (no --bf16-norm-output, no --ngram-rms-fp32), no kernel flag (no --nki-*, no --compile-sdpa-direct, no --compile-muon), no optimizer, schedule, batch, architecture, or evaluation change. The only behavioral delta is the dtype of the q/k/v tensors entering SDPA (BF16 instead of the default). Comparison: same-host pinned control on public_val_bpb (trn21 -> 2071 steps / 1.005734; trn22 -> 2076 steps / 1.005967). Outcome classes, mutually exclusive, evaluated in order: (1) VOID-PRECONDITION if the verifier finds the argparse default of bf16_sdpa_input at 9a4caa7b is already True (do not launch); (2) CONFOUNDED-SHORT if candidate steps < 90% of same-host control steps (trn21 < 1864, trn22 < 1869; protocol section 5 rule; record as throughput regression only); (3) FALSIFIED-INERT if steps are within +/-1% of same-host control (trn21 2050-2092, trn22 2055-2097): SDPA inputs already effectively BF16 or attention is not throughput-bound; (4) FALSIFIED-QUALITY if steps >= +1% and public_val_bpb >= same-host control (extra steps do not translate, or BF16 attention numerics cost more than they buy); (5) SUCCESS if steps >= +1% and public_val_bpb is lower than the same-host control by at least 0.0005 (larger than the 0.0003 cross-run spread observed among control/no-qk-shift/clip-after-reduce full runs); (6) INCONCLUSIVE otherwise (bpb lower but by < 0.0005, or steps between -10% and -1%). Because tokens/step are unchanged (unlike --batch-ramp, whose step gain came from smaller early batches), a step gain above +10% does not confound the quality comparison; a matched-step sanity check on the logged loss curve is recorded as secondary evidence only.",
+  "smoke_gate": {
+    "max_bpb_delta": 0.001,
+    "min_candidate_steps": 341,
+    "min_step_rate_ratio": 1.02
+  },
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}
