@@ -1,0 +1,121 @@
+name: Trainium verified winner alert
+
+on:
+  push:
+    branches:
+      - agent/control-plane-20260921
+    paths:
+      - "research/agentic/experiments/**/full-verdict.json"
+      - ".github/workflows/trainium-winner-alert.yml"
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: trainium-winner-alert-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the archived evidence
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Email the configured assignee through GitHub notifications
+        env:
+          ALERT_ASSIGNEE: ${{ vars.TRAINIUM_ALERT_ASSIGNEE }}
+          BEFORE_SHA: ${{ github.event.before }}
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${ALERT_ASSIGNEE}" ]]; then
+            echo "TRAINIUM_ALERT_ASSIGNEE repository variable is not set" >&2
+            exit 1
+          fi
+
+          if [[ "${COMMIT_MESSAGE}" == *"[notification-test]"* ]]; then
+            test_title="[Trainium notifications] Email delivery test"
+            existing_test="$(gh issue list \
+              --repo "${REPOSITORY}" \
+              --state all \
+              --search "\"${test_title}\" in:title" \
+              --json number \
+              --jq '.[0].number // empty')"
+            if [[ -z "${existing_test}" ]]; then
+              gh issue create \
+                --repo "${REPOSITORY}" \
+                --title "${test_title}" \
+                --body "The zero-OpenAI-token Trainium winner notification path is installed. Future email notifications trigger only after a verified full-run KEEP with BPB delta <= -0.002. Leaderboard submission remains manual." \
+                --assignee "${ALERT_ASSIGNEE}"
+            fi
+          fi
+
+          if [[ "${BEFORE_SHA}" =~ ^0+$ ]]; then
+            mapfile -t verdicts < <(git diff-tree --no-commit-id --name-only -r "${GITHUB_SHA}")
+          else
+            mapfile -t verdicts < <(git diff --name-only --diff-filter=AM "${BEFORE_SHA}" "${GITHUB_SHA}")
+          fi
+
+          for verdict in "${verdicts[@]}"; do
+            [[ "${verdict}" == research/agentic/experiments/*/full-verdict.json ]] || continue
+            [[ -f "${verdict}" ]] || continue
+
+            if ! jq -e '
+              .decision == "KEEP"
+              and .tier == "full"
+              and ((.metrics.bpb_delta | type) == "number")
+              and .metrics.bpb_delta <= -0.002
+            ' "${verdict}" >/dev/null; then
+              continue
+            fi
+
+            experiment_dir="$(dirname "${verdict}")"
+            proposal_id="$(basename "${experiment_dir}")"
+            manifest="${experiment_dir}/full-manifest.json"
+            candidate_bpb="$(jq -r '.metrics.candidate_bpb' "${verdict}")"
+            control_bpb="$(jq -r '.metrics.control_bpb' "${verdict}")"
+            bpb_delta="$(jq -r '.metrics.bpb_delta' "${verdict}")"
+            candidate_steps="$(jq -r '.metrics.candidate_steps' "${verdict}")"
+            control_steps="$(jq -r '.metrics.control_steps' "${verdict}")"
+            candidate_commit="$(jq -r '.commit // "unknown"' "${manifest}")"
+            evidence_url="https://github.com/${REPOSITORY}/tree/${GITHUB_SHA}/${experiment_dir}"
+            title="[Trainium winner] ${proposal_id}: ${candidate_bpb} BPB"
+
+            existing="$(gh issue list \
+              --repo "${REPOSITORY}" \
+              --state all \
+              --search "${proposal_id} in:title" \
+              --json number \
+              --jq '.[0].number // empty')"
+            if [[ -n "${existing}" ]]; then
+              echo "Winner issue already exists for ${proposal_id}: #${existing}"
+              continue
+            fi
+
+            body="$(printf '%s\n' \
+              'A new full-budget Trainium experiment passed every correctness gate and the predeclared improvement threshold.' \
+              '' \
+              "- Proposal: \`${proposal_id}\`" \
+              "- Candidate BPB: **${candidate_bpb}**" \
+              "- Matched control BPB: ${control_bpb}" \
+              "- BPB delta: **${bpb_delta}** (lower is better)" \
+              "- Steps: ${candidate_steps} candidate / ${control_steps} control" \
+              "- Candidate commit: \`${candidate_commit}\`" \
+              "- Evidence: ${evidence_url}" \
+              '' \
+              'Manual review and leaderboard submission are still required. This workflow never submits automatically.')"
+
+            gh issue create \
+              --repo "${REPOSITORY}" \
+              --title "${title}" \
+              --body "${body}" \
+              --assignee "${ALERT_ASSIGNEE}"
+          done

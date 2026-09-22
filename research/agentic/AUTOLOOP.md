@@ -97,6 +97,12 @@ Each tier is committed (`git add/commit` of that directory only; plain `git push
 `DECISION_LOG.md`. Runtime state (`runtime/autoloop_state.json`) and bundles are git-ignored.
 Raw model replies are retained only under ignored `runtime/model-replies/`; they are never committed.
 
+Verified full-run winners also trigger `.github/workflows/trainium-winner-alert.yml`. The workflow
+opens one deduplicated GitHub issue assigned to the account named by the repository variable
+`TRAINIUM_ALERT_ASSIGNEE`. GitHub handles the private email routing; no recipient address, SMTP
+credential, Bedrock call, or OpenAI call is stored in or made by the workflow. It triggers only for
+`full-verdict.json` with `decision == KEEP` and `bpb_delta <= -0.002`; submission remains manual.
+
 ## Restart semantics
 
 State is written atomically before every remote step. On restart: `launched:*` is polled, never
