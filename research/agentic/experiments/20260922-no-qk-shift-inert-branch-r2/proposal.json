@@ -1,0 +1,49 @@
+{
+  "abort_conditions": [
+    "Smoke run (300 s) completes fewer steps than the same-host control smoke (334 on trn21, 335 on trn22): the branch removal does not raise step rate -> abort before the full run",
+    "Smoke public_val_bpb higher than the same-host control smoke by more than 0.0 (1.165855 trn21 / 1.165604 trn22) despite equal-or-more steps: per-step trajectory changed, so the branch was not inert -> abort and reclassify as an architecture change",
+    "Resolved oneliners in the candidate log do not show qk_shift=False, or any other resolved field (batch_ramp, weight_ema, ngram_ve, precision, CC flags) differs from the control rows -> misconfigured run, abort",
+    "num_params_M changes by more than the shift-branch's own parameter count (i.e. deviates from 592.9 by more than 0.1), non-finite loss, or causality_passed false -> abort",
+    "Host busy, dirty git status, or NEURON_CC_FLAGS not exactly '--optlevel=1' at launch (protocol section 1) -> do not launch"
+  ],
+  "change_type": "flags",
+  "created_at": "2026-09-22T15:13:30Z",
+  "duplicate_search_terms": [
+    "--no-qk-shift",
+    "no-qk-shift",
+    "qk_shift",
+    "qk-shift",
+    "qk_beta",
+    "qk_freeze",
+    "qk-shift-freeze",
+    "token shift",
+    "frozen-zero QK",
+    "20260922-no-qk-shift-only-default-shape",
+    "noqk"
+  ],
+  "evidence": [
+    "research/experiment-log.jsonl row al-20260922-control-trn21-lnc2x4-9a4caa7b-full-r1: oneliners 'qk_shift=True qk_beta=0.0 qk_freeze=True', 2071 steps, public_val_bpb 1.005734, CC='--optlevel=1', seed 42 (establishes the resolved default and the matched trn21 control)",
+    "research/experiment-log.jsonl row al-20260922-control-trn22-lnc2x4-9a4caa7b-full-r1: same resolved qk_shift default, 2076 steps, public_val_bpb 1.005967 (matched trn22 control)",
+    "research/experiment-log.jsonl smoke rows al-20260922-control-trn21-lnc2x4-9a4caa7b-smoke-r1 (334 steps, 1.165855) and control-trn22 smoke-r2 (335 steps, 1.165604): smoke baselines for the step-rate and per-step-quality gate",
+    "research/experiment-log.jsonl row fs-w6-dense1024-noqk-1800-r2 description 'no frozen-zero QK shift' and every later fs-w* row (fs-w12, w14, w15, w16, w18, w50, w63, w65, w70, w98, w146) passing --no-qk-shift with resolved 'qk_shift=False qk_beta=0.0': the branch is a frozen zero-beta mix and the team's best lineage runs without it, but none is a same-commit paired measurement",
+    "CURRENT_STATE.md: frozen candidate submissions/dense6x1024_public0992851/train.py belongs to the --no-qk-shift lineage; parked directions (attention redesign, FP8, width1152) are not touched by this flag",
+    "DECISION_LOG.md: no row at 9a4caa7b for --no-qk-shift; the prior proposal 20260922-no-qk-shift-only-default-shape received verdict SKIPPED ('no model client configured'), i.e. an infrastructure skip with no merit findings, and was never run, so this flag set is neither closed nor already run",
+    "research/experiment-protocol.md section 5: same-box back-to-back rate comparison and the >10% step-shortfall CONFOUNDED rule, both encoded in the outcome classes above"
+  ],
+  "expected_effect": "Public val_bpb decreases by 0.0010 to 0.0030 relative to the same-host control (target <= 1.0047 on trn21, <= 1.0050 on trn22), driven by a step-count increase of +1.5% to +5% (>= 2102 steps on trn21, >= 2107 on trn22) with an unchanged per-step loss trajectory. If steps land within +/-1% of control the flag is classified inert at this commit and the hypothesis is falsified regardless of BPB.",
+  "files_allowed": [],
+  "flags": [
+    "--no-qk-shift"
+  ],
+  "hypothesis": "Both pinned 9a4caa7b controls run with qk_shift=True qk_beta=0.0 qk_freeze=True (ledger oneliners for al-20260922-control-trn21/trn22-lnc2x4-9a4caa7b-full-r1). A token-shift branch whose mixing coefficient is frozen at exactly zero contributes no learnable signal and leaves the forward function identical to a model without the branch, but the shifted-copy/scale/add ops on q and k in every layer (plus their backward) still execute each step because the zero lives in a runtime tensor the compiler cannot constant-fold. Passing --no-qk-shift therefore removes dead compute only: per-step loss trajectory is unchanged while step rate rises, so the fixed 1800 s budget yields more optimizer steps and a lower public val_bpb. Every fresh-start lineage run from fs-w6 onward (fs-w6 description: 'no frozen-zero QK shift') through the frozen candidate submissions/dense6x1024_public0992851/train.py already passes --no-qk-shift, but no paired same-commit measurement of the branch's cost exists; this run supplies that isolated measurement at the default full-chip shape.",
+  "implementation_plan": "",
+  "proposal_id": "20260922-no-qk-shift-inert-branch-r2",
+  "single_causal_change": "Pass --no-qk-shift only. Every other option stays at the 9a4caa7b defaults used by the two pinned controls: identical launch shape (NEURON_LOGICAL_NC_CONFIG=2, torchrun --nproc_per_node=4, --num-steps 5000, --max-train-seconds 1800, --seed 42), identical environment (NEURON_CC_FLAGS exactly '--optlevel=1', NEURON_COMPETITION_R1_SEED=42, PYTHONUNBUFFERED=1), no precision, kernel, optimizer, schedule, batch, architecture, or evaluation change. --qk-shift-freeze and any qk beta option are not passed. The only behavioral delta is removal of the frozen-zero QK token-shift branch (qk_shift False in the run's resolved oneliners). Matched comparison: the same-host pinned control (trn21 -> 2071 steps / 1.005734; trn22 -> 2076 steps / 1.005967), compared on public_val_bpb (the controller's shared scorer on public data; the private-shard score is not accessible and is not claimed). Outcome classes are mutually exclusive and evaluated in order: (1) FALSIFIED-INERT if candidate steps are within +/-1% of the same-host control steps (branch already eliminated or negligible); (2) CONFOUNDED if steps differ by more than +10% (protocol section 5 quality rule; record as a throughput result only); (3) SUCCESS if steps are >= +1.5% and public_val_bpb is lower than the same-host control; (4) FALSIFIED-QUALITY if steps are >= +1% but public_val_bpb is not lower (branch was not inert, or extra steps do not translate); (5) INCONCLUSIVE otherwise (step gain between 1% and 1.5%).",
+  "smoke_gate": {
+    "max_bpb_delta": 0.0,
+    "min_candidate_steps": 334,
+    "min_step_rate_ratio": 1.0
+  },
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}
