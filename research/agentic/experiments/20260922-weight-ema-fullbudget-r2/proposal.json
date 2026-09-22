@@ -1,0 +1,48 @@
+{
+  "abort_conditions": [
+    "Smoke (300 s) completes fewer than 320 steps versus 334/335 on the controls (>4% loss) -- EMA update cost too high; do not proceed to full",
+    "Smoke or full run reports ema updates=0 in the weight_ema ledger field, or the checkpoint lacks ema_state -- flag inert, stop",
+    "Any non-finite loss, failed causality gate, or missing final checkpoint",
+    "Full run steps below 1864 (trn21) or 1869 (trn22) -- classify CONFOUNDED, do not draw a BPB verdict",
+    "Run environment or launch differs from the matched control in anything other than the single added flag (must be seed 42, NEURON_LOGICAL_NC_CONFIG=2, nproc 4, --num-steps 5000, --max-train-seconds 1800, NEURON_CC_FLAGS exactly '--optlevel=1', same commit 9a4caa7b, same box as the chosen control) -- invalidate",
+    "Do NOT abort on smoke EMA BPB being worse than raw or control: at 300 s the EMA has ~85 updates at high LR, which is the predicted lag regime consistent with the 400 s negative evidence; the smoke gate is throughput and mechanism activation only"
+  ],
+  "change_type": "flags",
+  "created_at": "2026-09-22T07:20:22Z",
+  "duplicate_search_terms": [
+    "weight-ema",
+    "weight_ema",
+    "ema_state",
+    "EMA",
+    "exponential moving average",
+    "polyak",
+    "weight averaging",
+    "LAWA",
+    "SWA",
+    "weight-ema-decay",
+    "weight-ema-start-frac",
+    "20260922-weight-ema-default-shape"
+  ],
+  "evidence": [
+    "research/experiment-log.jsonl row al-20260922-control-trn21-lnc2x4-9a4caa7b-full-r1: 9a4caa7b, seed 42, LNC2 x4, 2071 steps, public_val_bpb 1.005734, weight_ema 'False decays=(0.995,) start_frac=0.75 seeded=False updates=0' (establishes the no-flag control resolved default and that EMA was not active)",
+    "research/experiment-log.jsonl row al-20260922-control-trn22-lnc2x4-9a4caa7b-full-r1: 2076 steps, public_val_bpb 1.005967, same weight_ema field",
+    "train.py lines 293-297 (per prior verifier): prior 400-second EMA experiment with decay 0.995 and start_frac 0.75 worsened BPB by 0.0168 -- acknowledged as related negative evidence; lag arithmetic above explains why a ~115-update EMA at high LR differs structurally from a ~518-update EMA over the low-LR tail",
+    "train.py lines 301-305 and 6223-6228 (per prior verifier): both raw and EMA weights are saved, both are evaluated, and ema_state is preferred when present -- defines the mechanism and the paired raw-vs-EMA readout",
+    "research/agentic/DECISION_LOG.md: no EMA/averaging row; only controls and the confounded --batch-ramp run exist at 9a4caa7b",
+    "Supplied ledger excerpt (all fs-w* and al-* rows): every row records weight_ema=False updates=0; no full-budget EMA run exists at any commit in the excerpt",
+    "research/experiment-protocol.md section 5: quality comparisons need comparable step counts (>10% short = CONFOUNDED); rate comparisons only same box, same day, same code",
+    "Prior verifier feedback on 20260922-weight-ema-default-shape (NEEDS_WORK): isolation and legality confirmed; defects were (a) unacknowledged 400 s negative evidence, (b) mechanism description, (c) unverified cost claims, (d) host-relative step arithmetic and outcome classification -- all addressed here",
+    "al-20260922-batch-ramp-only-default-shape-full-r1: 2397 steps but 1.01219 BPB, showing that at this shape more steps do not automatically lower BPB; EMA is a tail-averaging change that does not alter the training trajectory, so it is not subject to that confound"
+  ],
+  "expected_effect": "Direction: lower public val_bpb. Size: EMA-weights public_val_bpb 0.002-0.006 below the same-host matched control (trn21 1.005734 or trn22 1.005967, whichever box runs it) and 0.002-0.006 below the raw-weights BPB logged in the same run. Predeclared thresholds: SUCCESS if EMA BPB <= control - 0.002 AND steps >= 2030 (trn21) / 2035 (trn22) (<=2% step loss). PARTIAL if EMA BPB < control by <0.002 with steps within 2%, or if EMA BPB <= control - 0.002 but steps are between the 2% and 10% bounds (1864-2029 on trn21, 1869-2034 on trn22; a win despite fewer steps is still evidence for EMA, but the throughput prediction failed and is recorded as such). FALSIFIED if EMA BPB >= raw BPB of the same run, or EMA BPB > control with steps within 2%. CONFOUNDED (protocol section 5) if steps < 1864 (trn21) / 1869 (trn22). Throughput hypothesis (not established fact): the per-step EMA update over all parameters including the BF16 n-gram tables (ledger: ngram_ve bf16=True) is expected to cost <2% of steps; if it costs more, that is recorded against the flag. public_val_bpb is the public development measurement; the official private-shard BPB shares the scoring function but not the data, so a public gain is a prediction about, not a measurement of, the official score. The paired raw-vs-EMA readout is the primary causal test because it shares one trajectory; the raw-weights BPB is expected to land within +/-0.002 of the control if the step count matches (sanity check that EMA is a pure shadow).",
+  "files_allowed": [],
+  "flags": [
+    "--weight-ema"
+  ],
+  "hypothesis": "At the full 1800 s budget (~2071-2076 optimizer steps on the pinned controls), an exponential moving average of the in-run weights (decay 0.995, started at 75% of the budget, i.e. ~518 EMA updates) averages over roughly the final 200 low-learning-rate steps and yields lower public val_bpb than the raw final weights and than the matched same-host control. The documented 400 s negative result (train.py lines 293-297: decay 0.995, start_frac 0.75, BPB worsened by 0.0168) is explained by averaging lag, not by EMA being inert or harmful per se: at 400 s the run makes only ~460 steps, EMA is active for ~115 updates, and 0.995^115 = 0.56 of the evaluated EMA weight still sits on the stale step-~345 snapshot while the learning rate is still high. At 1800 s, 0.995^518 = 0.075 of the weight remains on the start snapshot, the effective window (~200 steps) is <10% of training, and it covers the low-LR tail where averaging reduces optimizer noise rather than trailing a fast-moving trajectory. Because train.py saves both raw and EMA weights and evaluates both (lines 301-305, 6223-6228), the same run provides a paired raw-vs-EMA comparison on one trajectory plus a comparison against the pinned control.",
+  "implementation_plan": "",
+  "proposal_id": "20260922-weight-ema-fullbudget-r2",
+  "single_causal_change": "Add --weight-ema only. Every other option stays at the 9a4caa7b defaults used by the two pinned controls (no precision, kernel, optimizer, schedule, or shape switch). --weight-ema-decay and --weight-ema-start-frac are not passed; both control ledger rows already record their resolved defaults as decays=(0.995,) start_frac=0.75 with weight_ema=False and updates=0, so the only behavioral delta is that EMA shadow weights are maintained after 75% of the budget, saved alongside the raw weights, and (per train.py 6223-6228) used as the preferred evaluation state when present. This is a corrected resubmission of the NEEDS_WORK proposal 20260922-weight-ema-default-shape that addresses each verifier finding; that proposal was never run and the verifier stated the full-budget direction is not closed.",
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}

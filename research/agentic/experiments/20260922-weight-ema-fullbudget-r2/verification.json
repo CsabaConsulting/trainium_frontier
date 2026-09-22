@@ -1,0 +1,18 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "Isolation and legality pass: --weight-ema is the sole flag change. Both pinned control ledger rows confirm EMA disabled with decay 0.995 and start_frac 0.75. train.py:293-309 and 6218-6233 support maintaining, saving, and evaluating in-run averaged weights without pretrained assets, external data, or evaluator edits.",
+    "The supplied decision log does not close full-budget EMA. The acknowledged 400-second negative result is relevant, but the longer averaging horizon provides a distinct, testable hypothesis rather than an exact repeat.",
+    "Outcome rules conflict: SUCCESS requires improvement against control but not against paired raw weights, while FALSIFIED applies whenever EMA BPB >= raw BPB. For example, on trn21 at 2071 steps, EMA=1.003 and raw=1.002 satisfies both SUCCESS and FALSIFIED. Make classifications mutually exclusive or specify precedence, and require the declared primary paired comparison to pass before calling the EMA mechanism successful.",
+    "Correct the historical evidence to train.py's actual 474 steps and 103 EMA-tail updates, rather than approximately 460 and 115. Reduced initialization weight is mathematically supported, but averaging lag as the explanation for the prior loss\u2014and the claimed high-LR versus low-LR distinction\u2014remains a hypothesis, not an established finding."
+  ],
+  "llm_verdict": "NEEDS_WORK",
+  "passed": false,
+  "proposal_id": "20260922-weight-ema-fullbudget-r2",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-22T07:20:22Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}
