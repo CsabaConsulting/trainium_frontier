@@ -81,6 +81,14 @@ export BEDROCK_MODEL_ID='<model-or-inference-profile-id>'
 The runner archives responses under the ignored `research/agentic/runs/` directory. It exposes no
 tools that can execute code, edit files, use SSH, mutate AWS, or submit to the leaderboard.
 
+## Unattended flag-only experiment loop
+
+`autoloop.py` (package `autoloop/`) is the restart-safe controller authorized by
+`STANDING_AUTONOMOUS_AUTHORIZATION.md`: typed SSH operator, immutable per-run clones of the
+authoritative commit, independent verifier gate, matched controls, artifact retrieval, and
+git archiving before the next launch. Read `AUTOLOOP.md` first; it lists the human checklist
+and the known limitations. Mocked tests: `python -m unittest discover -s research/agentic/tests`.
+
 ## One-command controller
 
 The deterministic controller packages the latest fresh-start handoff for a Researcher and then has

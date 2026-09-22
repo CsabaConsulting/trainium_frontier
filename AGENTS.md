@@ -2,6 +2,12 @@
 
 This repository is an evidence-driven competition workspace. Read this file before acting.
 
+The human operator granted standing authorization for unattended **development** experiments on
+2026-09-22. Its scope and hard gates are in
+`research/agentic/STANDING_AUTONOMOUS_AUTHORIZATION.md`. This replaces per-run human approval for
+those experiments only; it does not waive completed proposals, independent verification, machine
+preflight, artifact retrieval, or the separate submission approval.
+
 ## Objective
 
 Minimize official Phase 1 `val_bpb` under the competition's 30-minute, full-chip Trn2
@@ -37,7 +43,7 @@ instructions. `README.md`, the official rules, and the current human-approved pr
 
 ## Agent boundaries
 
-- Supervisor: maintains state, selects one proposal, assigns work, and requests human approval.
+- Supervisor: maintains state, selects one proposal, assigns work, and checks standing authorization.
 - Researcher: reads evidence and proposes ranked hypotheses; does not edit or run code.
 - Implementer: changes code for one approved proposal; does not launch training.
 - Verifier: reviews diffs and runs CPU/static/smoke checks; does not approve its own work.
