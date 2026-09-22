@@ -1,0 +1,34 @@
+{
+ "package": "dense6x1024_lean_review",
+ "derived_from": {
+  "package": "dense6x1024_lean",
+  "train_py_sha256": "4c6d998b0598a46c2a7e97af444e0d215a415e0b9ee739c0394ddfaca1e695cc",
+  "source_package": {
+   "package": "dense6x1024_public0992851",
+   "train_py_sha256": "35c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2",
+   "source_commit": "1da6c0714c0755fd3b078e972fbb0aefbb43bf6d",
+   "public_val_bpb": 0.9928513116311253
+  }
+ },
+ "builder": {
+  "path": "research/build_review_clean_submission.py",
+  "sha256": "54c78dae135757945dd3b2c2526f46cebf5f424cc423d73bbed7b61395637310"
+ },
+ "output": {
+  "train_py_sha256": "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344",
+  "lines": 1791,
+  "bytes": 95232
+ },
+ "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public",
+ "launch_command_identical_to_source": true,
+ "edits": [
+  "removed _SubmissionEvalGPT; load_for_eval returns GPT",
+  "removed restore_eval_toggles/current_toggles/ARCH_TOGGLE_NAMES and the checkpoint 'toggles' field",
+  "removed the EMA-weights branch of load_for_eval and the EMA checkpoint metadata",
+  "removed the three step-cap WARNING prints and STEP_CAP_GUARD_* constants; budget accounting unchanged, commented",
+  "rewrote the module docstring, 18 docstrings and 11 option help texts"
+ ],
+ "static_gates_passed": true,
+ "cpu_equivalence": "see cpu-equivalence.json",
+ "hardware_validation": "NOT YET RUN: contract checks (CPU + Neuron), 20M-token public replay and a cold dress rehearsal are required before submission"
+}

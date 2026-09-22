@@ -36,7 +36,7 @@ LEAN_DEFAULT = ROOT / "submissions/dense6x1024_lean/train.py"
 LAUNCH_FLAGS = ["--no-ngram-ve", "--no-qk-shift", "--compile-sdpa-direct", "--nki-local-conv",
                 "--bf16-norm-output", "--clip-after-reduce", "--no-eval-public"]
 NKI_GLUE = ["_RopeNormNKI", "_SoftcapCrossEntropyNKI", "_Conv2NKI", "_conv2_taps", "_conv2_fwd_tile", "_conv2_dw_partial",
-            "_conv2_bwd_tile", "selected_lanes", "build_kernels", "_SubmissionEvalGPT", "reference_forward"]
+            "_conv2_bwd_tile", "selected_lanes", "build_kernels", "reference_forward"]
 # _submission_ce_install is Neuron-only glue whose frozen-constant guards were folded; reviewed by diff, not identity.
 
 
@@ -148,8 +148,9 @@ def main() -> int:
         report["final_pt_model_config_equal"] = po["model_config"] == pl["model_config"]
         report["final_pt_meta_original"] = po["meta"]
         report["final_pt_meta_lean"] = pl["meta"]
-        report["final_pt_toggles_lean_subset_of_original"] = all(po["toggles"].get(k) == v for k, v in pl["toggles"].items())
-        report["final_pt_toggles_dropped"] = sorted(set(po["toggles"]) - set(pl["toggles"]))
+        lt = pl.get("toggles", {})  # the review-clean build writes no toggles at all
+        report["final_pt_toggles_lean_subset_of_original"] = all(po["toggles"].get(k) == v for k, v in lt.items())
+        report["final_pt_toggles_dropped"] = sorted(set(po["toggles"]) - set(lt))
         ok = ok and not bad and report["final_pt_model_config_equal"] and report["final_pt_toggles_lean_subset_of_original"]
 
         # 2. load_for_eval on both checkpoints with both modules.

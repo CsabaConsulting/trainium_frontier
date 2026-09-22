@@ -1,0 +1,14 @@
+--- lean
++++ lean_review
+@@ -1,9 +1,5 @@
+ def build_config() -> GPTConfig:
+-    """T0.2: depth and width are now independently settable.
+-
+-    `depth=None` reads the module-level DEPTH *at call time* -- deliberately not
+-    `depth: int = DEPTH`, which would freeze the pre-flag value at def time and make
+-    `--depth` silently inert (the same class of bug as the NUM_STEPS default).
+-    N_EMBD == 0 reproduces the historical derivation exactly.
++    """Model configuration from the module constants. N_EMBD > 0 sets the width directly; otherwise the
++    width is DEPTH * ASPECT_RATIO rounded up to a multiple of HEAD_DIM.
+     """
+     depth = None

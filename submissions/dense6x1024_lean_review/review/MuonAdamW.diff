@@ -1,0 +1,154 @@
+--- lean
++++ lean_review
+@@ -6,10 +6,7 @@
+ 
+     def _device_scalar(self, group, key: str, value: float, ref: torch.Tensor) -> torch.Tensor:
+-        """Carry a per-step-changing hyperparameter in a persistent DEVICE tensor
+-        instead of a Python float. Measured on Trn2: a Python-float lr is baked into
+-        the Neuron graph as a constant, so a new value every step forces a fresh
+-        neuronx-cc compile every step -- dt 0.90s -> 2.2-4.3s for the whole LR
+-        cooldown, i.e. the last WARMDOWN_RATIO of every run. Writing the value into a
+-        pre-allocated tensor keeps the graph shape-and-constant identical forever."""
++        """Carry a per-step hyperparameter in a persistent device tensor rather than a Python float, so the
++        traced Neuron graph is identical on every step.
++        """
+         cache = self._scalar_cache.setdefault(id(group), {})
+         entry = cache.get(key)
+@@ -23,20 +20,6 @@
+ 
+     def _muon_depth_dev(self, group, ref: torch.Tensor):
+-        """Plan §11.1 item 3: the group's per-parameter multipliers, built once.
+-
+-        Returns `(host_lr_f32, host_mom_f64, dev_lr_f32)`, all [K, 1, 1]. [K, 1, 1] is the shape
+-        that broadcasts over the group's stacked [K, rows, cols] buffers, so a per-LAYER multiplier
+-        costs nothing structural: the (shape, transposed) grouping, the batched Newton-Schulz and
+-        the one-compiled-graph-per-shape all stay exactly as they are. Returns None when the
+-        feature is off, which is the signal every call site branches on.
+-
+-        The MOMENTUM multiplier is kept in float64 on purpose. The momentum operands have to be
+-        derived as `1 - (1-m)*c` and `(1-m)*c`, and doing that subtraction in fp32 costs up to one
+-        ulp -- which would mean a multiplier of exactly 1.0 did NOT reproduce the 0-dim path
+-        bit-for-bit, and the neutral-multiplier equivalence check (the one thing that proves this
+-        plumbing correct) would fail for a reason that has nothing to do with per-depth scaling.
+-        In float64 it is exact: c == 1.0 gives back `fp32(1.0 - m)` and `fp32(m)`, which is
+-        literally what the OFF path fills. The LR multiplier needs no such care: it enters as an
+-        fp32 multiply by 1.0, which is exact.
++        """Per-parameter (lr, momentum) multipliers of a group as [K, 1, 1] tensors, built once per group.
++        Returns None when the group has none (the case in this configuration).
+         """
+         mults = group.get('depth_mults')
+@@ -55,11 +38,7 @@
+     @staticmethod
+     def _fill_depth_momentum(host_mom64, mom: float, out_mom, out_one_mom) -> None:
+-        """Write the per-parameter (momentum, 1-momentum) pair into two fp32 [K, 1, 1] rows.
+-
+-        Both products are formed in float64 and rounded once, so a multiplier of exactly 1.0 gives
+-        `fp32(mom)` / `fp32(1.0 - mom)` -- the same two floats the non-depth path fills, and the
+-        same two the eager `lerp_.Scalar` weight would have been. Clamped before the round because
+-        the momentum a layer ends up at must stay a valid lerp weight for any multiplier a sweep
+-        might try, not just the ones that happen to be safe."""
++        """Write the per-parameter (momentum, 1-momentum) pair into two fp32 [K, 1, 1] rows; both products are
++        formed in float64 and rounded once, clamped to a valid lerp weight.
++        """
+         one = (host_mom64 * (1.0 - mom)).clamp_(0.0, 1.0)
+         out_one_mom.copy_(one)
+@@ -67,12 +46,6 @@
+ 
+     def _muon_depth_mom(self, group, ref: torch.Tensor):
+-        """Plan §11.1 item 3, eager path: (momentum, 1-momentum) per parameter as two [K, 1, 1]
+-        fp32 device views behind ONE host->device copy, exactly like _muon_compile_scalars does for
+-        the compiled path.
+-
+-        Formed on the HOST rather than as `dev_mult * (1 - group["momentum"])` on device, for the
+-        USE_TENSOR_LR_SCALARS reason: `1 - momentum` changes every step of the warmup and the
+-        cooldown, and a Python float multiplied into a device tensor is the exact construct that
+-        gets baked into the Neuron graph as a constant. Staging it means the graph never sees it.
++        """(momentum, 1-momentum) per parameter as two [K, 1, 1] fp32 device views behind one host->device copy;
++        None when the group has no multipliers.
+         """
+         depth = self._muon_depth_dev(group, ref)
+@@ -92,25 +65,7 @@
+ 
+     def _muon_compile_scalars(self, group, ref: torch.Tensor, ratio: float):
+-        """T1.7: (lr*ratio, lr*ratio*wd, momentum, 1-momentum, 1-beta2) as five 0-dim fp32
+-        device views behind ONE host->device copy of a (5,) staging tensor.
+-
+-        Replaces `_device_scalar("lr")` for the compiled path at strictly lower cost --
+-        one copy instead of one per scalar -- and it is the reason the compiled graph has
+-        no per-step constants at all. Slicing `dev[i]` is a pure view: no device work, no
+-        launch, so four operands cost the same as one.
+-
+-        The two products are formed in float32 (see `_muon_lrwd`) and `1-momentum` in
+-        float64 (see `_muon_math`), each matching what the eager path's arithmetic does
+-        at that point. This distinction is load-bearing, not stylistic.
+-
+-        Plan §11.1 items 2-3 extend this without changing its cost:
+-          * a FIFTH slot carries `1 - beta2`, used only when MUON_BETA2_FINAL > 0. With the ramp
+-            off the caller keeps passing the Python float, so the compiled graph is unchanged; with
+-            it on the value changes every step and would otherwise be a Dynamo guard, i.e. a full
+-            recompile per step. Staging one extra float costs nothing -- it is the same single
+-            host->device copy either way.
+-          * with per-depth scaling on, the staging tensor is [5, K, 1, 1] instead of (5,) and the
+-            first four rows carry the per-parameter multipliers pre-applied. Still ONE copy, and
+-            the returned operands broadcast over the group's stacked [K, rows, cols] buffers.
++        """(lr*ratio, lr*ratio*wd, momentum, 1-momentum, 1-beta2) as five 0-dim fp32 device views behind one
++        host->device copy. The lr products are formed in fp32 and 1-momentum in float64 so they match the
++        eager path bit for bit.
+         """
+         depth = self._muon_depth_dev(group, ref)
+@@ -150,11 +105,6 @@
+ 
+     def _adamw_state(self, group):
+-        """Shared prologue for both AdamW paths: filter to params that actually have a
+-        grad this step, lazily create their state, advance the per-parameter step
+-        counter, and return the parallel lists the update needs.
+-
+-        The step counter is per-parameter and NOT per-group because a parameter whose
+-        grad was None on some earlier step legitimately lags the rest of its group; the
+-        bias corrections are therefore returned as per-parameter scalar lists.
++        """Shared prologue: parameters that have a gradient this step, lazily created state, per-parameter step
++        counters, and the per-parameter bias corrections as scalar lists.
+         """
+         beta1, beta2 = group['betas']
+@@ -184,29 +134,8 @@
+     @torch.no_grad()
+     def _adamw_step_foreach(self, group):
+-        """Batched-dispatch equivalent of _adamw_step. Same update math, restructured so
+-        each stage is ONE torch._foreach_* call over the whole group instead of one aten
+-        op per parameter.
+-
+-        Motivation is pure launch overhead, not arithmetic: the native TorchNeuron eager
+-        backend compiles one NEFF per aten op, so a K-parameter group costs ~8*K tiny
+-        launches in the loop form, each one paying a full host dispatch gap with every
+-        engine idle. A profile of the locked config measured MuonAdamW.step() at 10% of
+-        step time (89.6ms) across 647 launches / 171 un-fused NEFFs, 73.2% of which was
+-        dispatch gap.
+-
+-        This is required to be BIT-IDENTICAL to _adamw_step, not merely close:
+-          * grad.square() is emitted as _foreach_mul(g, g) -- verified bitwise identical
+-            to .square() for both fp32 and bf16 (research/scratch/foreach_api_probe.py).
+-          * bias1/bias2 go in as ScalarLists, one entry per parameter, preserving the
+-            per-parameter step counter exactly (see _adamw_state).
+-          * the weight-decay multiply is skipped when weight_decay == 0. That is exactly,
+-            not approximately, a no-op: the original computes p.mul_(1 - lr*0) =
+-            p.mul_(1.0), and multiplying a finite IEEE754 value by exactly 1.0 (fp32,
+-            then rounded back to the parameter dtype) returns it unchanged. Four of the
+-            locked config's AdamW groups have weight_decay=0.0, so this is also where a
+-            good chunk of the saved launches come from.
+-        foreach ops require same dtype/device but NOT the same shape, so the ragged
+-        scalar group batches fine -- confirmed against this installed torch (2.11.0) in
+-        research/scratch/foreach_api_probe.py rather than assumed from a newer API.
++        """AdamW for one group with batched torch._foreach_* calls (one launch per stage instead of one per
++        parameter). Bit-identical to the per-parameter form: grad.square() as _foreach_mul(g, g),
++        per-parameter bias corrections as scalar lists, and the weight-decay multiply skipped when
++        weight_decay == 0 (an exact no-op).
+         """
+         params, grads, exp_avgs, exp_avg_sqs, bias1, bias2 = self._adamw_state(group)
+@@ -323,6 +252,5 @@
+     @torch.no_grad()
+     def step(self, update_adamw: bool=True):
+-        """`update_adamw=False` (T1.4) runs only the Muon groups this step and leaves the AdamW
+-        groups' gradients untouched, so they keep accumulating into the same .grad tensors."""
++        """update_adamw=False runs only the Muon groups and leaves the AdamW groups' gradients accumulating."""
+         for group in self.param_groups:
+             if group['kind'] == 'adamw':
