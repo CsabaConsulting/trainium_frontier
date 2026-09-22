@@ -1,0 +1,22 @@
+--- original
++++ lean
+@@ -1,3 +1,3 @@
+-def build_config(depth: int | None=None) -> GPTConfig:
++def build_config() -> GPTConfig:
+     """T0.2: depth and width are now independently settable.
+ 
+@@ -7,4 +7,5 @@
+     N_EMBD == 0 reproduces the historical derivation exactly.
+     """
++    depth = None
+     depth = DEPTH if depth is None else depth
+     if N_EMBD > 0:
+@@ -16,7 +17,5 @@
+         n_embd = (base_dim + HEAD_DIM - 1) // HEAD_DIM * HEAD_DIM
+     n_head = n_embd // HEAD_DIM
+-    if N_KV_HEADS < 0 or N_KV_HEADS > n_head:
++    if N_KV_HEADS > n_head:
+         raise ValueError(f'N_KV_HEADS={N_KV_HEADS} must be 0 (dense) or in [1, n_head={n_head}]')
+-    if N_KV_HEADS > 0 and n_head % N_KV_HEADS != 0:
+-        raise ValueError(f'N_KV_HEADS={N_KV_HEADS} must divide n_head={n_head} (locked width: n_head=5, so only 1/MQA or 5/dense)')
+     return GPTConfig(sequence_len=SEQ_LEN, vocab_size=TOKENIZER_VOCAB_SIZE, n_layer=depth, n_head=n_head, n_embd=n_embd, mlp_ratio=MLP_RATIO, attn_scale=ATTN_SCALE, n_kv_heads=N_KV_HEADS)

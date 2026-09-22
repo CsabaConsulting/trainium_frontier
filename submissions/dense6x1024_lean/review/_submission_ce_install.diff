@@ -1,0 +1,12 @@
+--- original
++++ lean
+@@ -6,8 +6,6 @@
+     Installation belongs before compilation, once per process.
+     """
+-    if not train_module._HAS_NKI or train_module.LOGIT_SOFTCAP != 15.0:
++    if not train_module._HAS_NKI:
+         raise ValueError('adaptive CE is gated only for NKI with softcap15')
+-    if not train_module.USE_NKI_SOFTCAP_CE:
+-        raise ValueError('adaptive CE requires the existing NKI loss path')
+     if getattr(train_module, '_fresh_start_adaptive_ce_installed', False):
+         raise RuntimeError('adaptive CE is already installed in this process')

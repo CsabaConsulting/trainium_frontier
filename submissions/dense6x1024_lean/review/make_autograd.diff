@@ -1,0 +1,48 @@
+--- original
++++ lean
+@@ -1,3 +1,3 @@
+-def make_autograd(kernel_call, transposed_relu=False, normal_input_gradient=False, packed_weight_inputs=False):
++def make_autograd(kernel_call):
+ 
+     class FusedMLP(torch.autograd.Function):
+@@ -5,9 +5,5 @@
+         @staticmethod
+         def forward(ctx, x, up, down, up_packed=None, down_packed=None):
+-            if packed_weight_inputs:
+-                assert up_packed is not None and down_packed is not None
+-                result, relu = kernel_call(x, up_packed, down_packed)
+-            else:
+-                result, relu = kernel_call(x, up, down)
++            result, relu = kernel_call(x, up, down)
+             ctx.save_for_backward(x, up, down, relu)
+             return result
+@@ -16,23 +12,10 @@
+         def backward(ctx, grad):
+             x, up, down, relu = ctx.saved_tensors
+-            if transposed_relu:
+-                activated_t = relu.square()
+-                dhidden_t = down.to(x.dtype).T @ grad.T
+-                dpre_t = dhidden_t * (relu * 2.0)
+-                if normal_input_gradient:
+-                    dx = dpre_t.T @ up.to(x.dtype)
+-                else:
+-                    dx = (up.to(x.dtype).T @ dpre_t).T
+-                dup = (dpre_t @ x).to(up.dtype)
+-                ddown = (grad.T @ activated_t.T).to(down.dtype)
+-            else:
+-                activated = relu.square()
+-                dhidden = grad @ down.to(x.dtype)
+-                dpre = dhidden * (relu * 2.0)
+-                dx = dpre @ up.to(x.dtype)
+-                dup = (dpre.T @ x).to(up.dtype)
+-                ddown = (grad.T @ activated).to(down.dtype)
+-            if packed_weight_inputs:
+-                return (dx, dup, ddown, None, None)
++            activated_t = relu.square()
++            dhidden_t = down.to(x.dtype).T @ grad.T
++            dpre_t = dhidden_t * (relu * 2.0)
++            dx = (up.to(x.dtype).T @ dpre_t).T
++            dup = (dpre_t @ x).to(up.dtype)
++            ddown = (grad.T @ activated_t.T).to(down.dtype)
+             return (dx, dup, ddown)
+     return FusedMLP.apply

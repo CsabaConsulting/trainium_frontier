@@ -1,0 +1,13 @@
+--- original
++++ lean
+@@ -1,3 +1,3 @@
+-def sync_gradients(model: nn.Module, skip_param_ids: frozenset[int] | None=None) -> None:
++def sync_gradients(model: nn.Module) -> None:
+     """`skip_param_ids` (T1.4) defers these parameters' all_reduce to a later step. Exact, not an
+     approximation: ReduceOp.AVG is linear, so averaging the sum of K locally-accumulated steps
+@@ -6,4 +6,4 @@
+         return
+     for p in model.parameters():
+-        if p.grad is not None and (not (skip_param_ids and id(p) in skip_param_ids)):
++        if p.grad is not None:
+             dist.all_reduce(p.grad, op=dist.ReduceOp.AVG)

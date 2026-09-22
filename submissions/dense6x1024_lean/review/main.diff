@@ -1,0 +1,674 @@
+--- original
++++ lean
+@@ -1,42 +1,9 @@
+ def main() -> None:
+-    global USE_LOCAL_CONV, LRM_QUANTUM, USE_TENSOR_LR_SCALARS, USE_FOREACH_OPTIM
+-    global LOCAL_CONV_KERNEL, TRAIN_LOCAL_CONV, USE_NKI_LOCAL_CONV
+-    global USE_VE
+-    global MATRIX_LR, EMBEDDING_LR, UNEMBEDDING_LR, SCALAR_LR, WEIGHT_DECAY, WD_DECAY_TO_ZERO
+-    global FINAL_LR_FRAC, WARMDOWN_RATIO, INIT_SCALE, ATTN_CPROJ_INIT_SCALE, LOGIT_SOFTCAP
+-    global MUON_NS_STEPS, MUON_MOMENTUM_COOLDOWN_FRAC, MUON_MOMENTUM_FINAL
+-    global ADAM_EVERY_N, ADAM_EVERY_N_LR_COMP, PACK_FACTOR, GRAD_CLIP, LOSS_SCALE
+-    global CLIP_AFTER_REDUCE
+-    global COMPILE_SDPA_DIRECT, USE_BF16_NORM_OUTPUT, USE_BF16_SDPA_INPUT
+-    global LOSS_SCALE_DYNAMIC, loss_scale_clean, loss_scale_skips
+-    global DEPTH, N_EMBD, HEAD_DIM, MLP_RATIO, ATTN_SCALE, SEQ_LEN, N_KV_HEADS
+-    global USE_NGRAM_VE, NGRAM_VE_TABLE_MULT, NGRAM_VE_TRIGRAM, NGRAM_VE_BF16, NGRAM_VE_DIM
+-    global NGRAM_VE_LAYERS
+-    global NGRAM_RMS_FP32, USE_NKI_NGRAM_RMS
+-    global NGRAM_VE_LR, NGRAM_VE_BETA2, NGRAM_VE_FLAT_LR, NGRAM_VE_OPT, NGRAM_VE_CLIP_EXCLUDE
+-    global USE_OUT_BIGRAM, OUT_BIGRAM_BF16, OUT_BIGRAM_GATE_BIAS, OUT_BIGRAM_LR
+-    global RELU2_TAU, USE_MLP_SANDWICH_NORM
+-    global USE_HEAD_GATE, HEAD_GATE_NORM, HEAD_GATE_CHANNELS, HEAD_GATE_MUL, HEAD_GATE_BIAS
+-    global USE_OUT_POOL, OUT_POOL_LAYERS, USE_QK_SHIFT, QK_SHIFT_BETA, QK_SHIFT_FREEZE
+-    global USE_X0_GATE, USE_BLOCK_NUDGE, BLOCK_NUDGE_SITE, USE_QKV_NORM_CSE, USE_PARALLEL_BLOCK
+-    global PARALLEL_BLOCK_COALESCE, USE_EPOCH_SHUFFLE, EPOCH_SHUFFLE_SEED
+-    global USE_ENGRAM, ENGRAM_SITE, ENGRAM_ORDERS, ENGRAM_HEADS, ENGRAM_TABLE_MULT
+-    global ENGRAM_MEM_DIM, ENGRAM_KEY_DIM, ENGRAM_CONV_KERNEL, ENGRAM_SHARE_NGRAM_TABLES
+-    global ENGRAM_BF16
+-    global BATCH_RAMP, BATCH_RAMP_GRAD_ACCUM, BATCH_RAMP_BOUNDS, BATCH_RAMP_LR_EXP
+-    global USE_WEIGHT_EMA, WEIGHT_EMA_DECAYS, WEIGHT_EMA_START_FRAC
+-    global USE_COMPILE_MUON
+-    global USE_TRANSPOSED_LINEAR
+-    global USE_BYTE_WTE_INIT, BYTE_WTE_INIT_MIX, BYTE_WTE_INIT_NGRAM, BYTE_WTE_INIT_STD
+-    global USE_COALESCED_SWIGLU, COALESCED_SWIGLU_HIDDEN
+-    global USE_CAUTIOUS_WD, SCALAR_BETA1, SCALAR_BETA2
+-    global DEMON_BETA1, DEMON_BETA1_FINAL, DEMON_BETA1_REF, DEMON_BETA1_START_FRAC
+-    global MUON_BETA2, MUON_BETA2_FINAL
+-    global MUON_DEPTH_LR_BOTTOM, MUON_DEPTH_LR_TOP
+-    global MUON_DEPTH_MOM_BOTTOM, MUON_DEPTH_MOM_TOP, MUON_DEPTH_MOM_REF
++    global PACK_FACTOR
++    global loss_scale_clean, loss_scale_skips
++    global N_EMBD, SEQ_LEN
+     parser = argparse.ArgumentParser(description='Neuron Competition R1 baseline')
+     parser.add_argument('--device-type', type=str, default='')
+     parser.add_argument('--num-steps', type=int, default=int(os.environ.get('NEURON_COMPETITION_R1_NUM_STEPS', NUM_STEPS)))
+-    parser.add_argument('--debug-numerics-steps', type=int, default=0, help='Diagnostic only: synchronize and inspect loss/parameters/gradients at each stage of the first N steps. Invalidates speed measurements.')
+     parser.add_argument('--max-train-seconds', type=int, default=int(os.environ.get('NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS', MAX_TRAIN_SECONDS)))
+     parser.add_argument('--out-dir', type=str, default=os.environ.get('NEURON_COMPETITION_R1_OUT_DIR', 'out'))
+@@ -44,337 +11,45 @@
+     parser.add_argument('--eval-tokens', type=int, default=int(os.environ.get('NEURON_COMPETITION_R1_EVAL_TOKENS', str(4 * 524288))))
+     parser.add_argument('--compile', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_COMPILE', '1') != '0', help="enable torch.compile(backend='neuron') on the full model. Default ON (Bucket E, real full-1800s-confirmed win: 827 steps/1.113006 vs eager's 746 steps/1.122271, causality exact) -- pass --no-compile for the plain eager comparison path.")
+-    parser.add_argument('--compile-only', action='store_true', help='run one synthetic optimizer step to warm the compile cache, then exit')
+-    parser.add_argument('--nki-relu2', action='store_true', default=os.environ.get('NEURON_COMPETITION_R1_NKI_RELU2', '0') != '0', help='use the example fused NKI relu(x)**2 kernel in the MLP (Neuron only; illustration)')
+-    parser.add_argument('--nki-rope-norm', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_NKI_ROPE_NORM', '1') != '0', help='fuse norm(apply_rotary_emb(x)) into one NKI kernel for q/k (Neuron only). Default ON (Solution 12, real ~15-18%% step-time win, verified to 1-bf16-ULP against eager) -- pass --no-nki-rope-norm for the plain eager comparison path.')
+-    parser.add_argument('--nki-softcap-ce', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_NKI_SOFTCAP_CE', '1') != '0', help='fuse the logit softcap and cross-entropy (fwd+bwd) into one NKI kernel pair (Neuron only), collapsing ~8 full-[B*T,V] NEFF launches into 2. Default ON: verified numerically offline (research/scratch/softcap_ce_equiv.py) and confirmed on real hardware at the final locked shape -- pass --no-nki-softcap-ce for the plain eager comparison path.')
+-    parser.add_argument('--byte-loss-weight', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_BYTE_LOSS_WEIGHT', '0') != '0', help="Sub-1.0 plan P4: weight each token's training loss by its byte length (sum(w*l)/sum(w), mean-normalized so the loss scale is unchanged), aligning the objective with bpb. Weights come from the provided tokenizer artifact only. Default OFF = plain mean, bit-identical.")
+-    parser.add_argument('--nki-muon', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_NKI_MUON', '1') != '0', help="fuse the elementwise ops wrapping Muon's Newton-Schulz matmuls, plus the sign-gated weight update, into three NKI kernels (Neuron only). The matmuls themselves stay in aten. Default ON: removes 92 of Muon's 320 per-step device launches (-25.5%% off the Muon window) on a step whose optimizer window is ~54%% inter-launch gap, with BIT-IDENTICAL update math (research/scratch/muon_nki_equiv.py: 0 differing elements). Real paired 900s A/B: 1019 steps/1.089758 vs 1004/1.090677 -- pass --no-nki-muon for the plain eager comparison path.")
+-    parser.add_argument('--nki-attn', action='store_true', default=os.environ.get('NEURON_COMPETITION_R1_NKI_ATTN', '0') != '0', help='run causal SDPA through the fused NKI fwd/bwd pair (Neuron only). Default OFF.')
+-    parser.add_argument('--compile-sdpa-direct', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_COMPILE_SDPA_DIRECT', '1' if COMPILE_SDPA_DIRECT else '0') != '0', help='Call causal SDPA directly when --nki-attn is off, allowing Dynamo to trace it instead of entering the disabled attention wrapper. Default OFF preserves the historical graph partitioning. The custom NKI attention path retains its wrapper when enabled.')
+-    parser.add_argument('--muon-lr-fp32', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_MUON_LR_FP32', '0') != '0', help="see the _muon_lr_g docstring. Default OFF (the locked, current behaviour): a 0-dim fp32 lr multiplied against the bf16 Newton-Schulz iterate g gets CAST DOWN to bf16 before the multiply, by PyTorch's own 0-dim type-promotion rule -- quantising every Muon group's effective lr by up to ~0.4%% relative error, every step. ON keeps that product in fp32 instead (g upcast, lr untouched, cast down to w's dtype only at the final subtract). Zero-cost precision fix, no expected throughput impact; does not touch the per-depth [K,1,1] lr path's intentional bf16-matching behaviour. Its own flag and its own A/B, per that docstring.")
+-    parser.add_argument('--compile-muon', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_COMPILE_MUON', '1' if USE_COMPILE_MUON else '0') != '0', help="T1.7: run Muon's per-group math body inside torch.compile(backend='neuron') instead of ~80 eager aten launches (Neuron only). Mutually exclusive with --nki-muon by construction -- a compiled region cannot contain an nki.jit call -- so this trades the NKI elementwise fusion for whole-body fusion. See _muon_math.")
+-    parser.add_argument('--transposed-linear', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_TRANSPOSED_LINEAR', '1' if USE_TRANSPOSED_LINEAR else '0') != '0', help="T1.6: store every Linear weight as [in, out] and compute x @ weight instead of F.linear's x @ weight.T, on the theory that TensorE wants the contraction dim on partitions and the [out, in] storage costs a transpose per matmul. Bit-exact by construction (weights are initialized in the native layout and transposed afterwards; Muon is told the logical orientation so its one-sided `ratio` LR scale is unchanged). SHAPE-CRITICAL: flips every Linear weight's state_dict shape.")
+-    parser.add_argument('--local-conv', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_LOCAL_CONV', '1' if USE_LOCAL_CONV else '0') != '0', help="depthwise causal conv1d before attention in each block. NOT dead compute any more: T0.1 put local_conv.weight in its own AdamW group (TRAIN_LOCAL_CONV=True), so --no-local-conv now REMOVES 7,680 TRAINED parameters and is a real capacity ablation, not the bit-identical no-op this help text used to claim. Measured on the promoted stack (120-step instrument, throughput->capacity track): --no-local-conv is +2.65%% faster (161,075 vs 156,917 tok/s) but its step-110 loss is 4.2054 vs the control's 3.9380 -- a huge quality cost for 2.65%%, so DO NOT ablate it for speed. (This also reverses the older 'turning the compute off measured 6.9x-compiled-graph SLOWER' note in the USE_LOCAL_CONV comment: that was the pre-NKI eager stack.) Kept as a flag so an A/B runs from one identical binary.")
+-    parser.add_argument('--nki-local-conv', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_NKI_LOCAL_CONV', '1' if USE_NKI_LOCAL_CONV else '0') != '0', help='Use the gated BTC-layout native NKI two-tap convolution for FP32 residuals with time/channels divisible by 128. Other shapes and precisions retain the original causal convolution.')
+-    parser.add_argument('--bf16-norm-output', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_BF16_NORM_OUTPUT', '1' if USE_BF16_NORM_OUTPUT else '0') != '0', help='Keep FP32 RMS statistics/epsilon and residuals, but store normalized branch inputs in BF16, including the final head. This is an opt-in arithmetic change, saved for standalone eval.')
+-    parser.add_argument('--bf16-sdpa-input', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_BF16_SDPA_INPUT', '1' if USE_BF16_SDPA_INPUT else '0') != '0', help='Cast Q/K/V only at the native SDPA boundary, restoring its output dtype. Independent of --bf16-norm-output; does not modify the alternative --nki-attn implementation.')
+-    parser.add_argument('--ve', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_VE', '1' if USE_VE else '0') != '0', help="ResFormer-style value embeddings on alternating layers (has_ve), input-gated into attention's V stream. Default ON (the locked value); exposed for the throughput->capacity track's plain-block ablate-down arm. NOTE --no-ve also removes the n-gram value embeddings, because has_ngram_bigram() requires USE_VE and has_ve(layer) -- so --no-ve is strictly a step-time diagnostic, not a candidate config.")
+-    parser.add_argument('--tensor-lr-scalars', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_TENSOR_LR_SCALARS', '1' if USE_TENSOR_LR_SCALARS else '0') != '0', help='hold the per-step lr in a device tensor rather than a Python float, so a changing LR schedule stops forcing a fresh neuronx-cc compile every step')
+-    parser.add_argument('--foreach-optim', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_FOREACH_OPTIM', '1' if USE_FOREACH_OPTIM else '0') != '0', help="batch the optimizer's per-parameter work into torch._foreach_* calls instead of a Python loop of single-tensor ops. Bit-identical update math; targets the optimizer step's launch/dispatch overhead only.")
+-    parser.add_argument('--ngram-ve', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_NGRAM_VE', '1' if USE_NGRAM_VE else '0') != '0', help="T3.1: hashed bigram (all VE layers) and trigram (first/last VE layer) VALUE embeddings, mixed into attention's V through their own zero-init per-head gates on disjoint residual channels (unigram 0:32, bigram 32:64, trigram 64:96). Tables are zero-init, so this is an exact no-op at step 0 and the A/B runs from one identical binary. Strictly causal: a position's table row is a hash of tokens t-2..t only.")
+-    parser.add_argument('--ngram-ve-layers', type=str, default=os.environ.get('NEURON_COMPETITION_R1_NGRAM_VE_LAYERS', NGRAM_VE_LAYERS), help="which layers get a bigram table, comma-separated, negatives counting from the end ('-1' = last layer at any DEPTH). Empty = every VE layer, Recursive's own allocation. The per-step cost of these tables depends on WHICH layer holds them and not on their size: one table on the last layer is FASTER than no table at all, while any second table anywhere costs ~50ms/micro-step. See NGRAM_VE_LAYERS for the measurement.")
+-    parser.add_argument('--ngram-ve-table-mult', type=int, default=NGRAM_VE_TABLE_MULT, help='rows per n-gram table = this x padded_vocab_size (8 => 65536 rows, 41.9M params per table at n_embd=640). Recursive went to 64x; start at 8x.')
+-    parser.add_argument('--ngram-ve-trigram', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_NGRAM_VE_TRIGRAM', '1' if NGRAM_VE_TRIGRAM else '0') != '0', help='add a trigram table on the first and last VE layer as well as the bigram table every VE layer gets. --no-ngram-ve-trigram is the bigram-only arm.')
+-    parser.add_argument('--ngram-ve-dim', type=int, default=int(os.environ.get('NEURON_COMPETITION_R1_NGRAM_VE_DIM', NGRAM_VE_DIM)), help='n-gram table WIDTH (0 = n_embd, gathered straight into v). A throughput knob: the measured cost of these tables scales with rows x width in BOTH the forward gather and the dense embedding backward, so e.g. 128 is ~5x less table to read, scatter into, all-reduce and update, at the price of one [tokens,dim]x[dim,n_embd] matmul per table. See NGRAM_VE_DIM.')
+-    parser.add_argument('--ngram-ve-opt', type=str, default=NGRAM_VE_OPT, choices=('rmsprop', 'adamw'), help="optimizer for the n-gram tables. rmsprop (default, Recursive's choice) drops the first moment so a rarely-hit row still gets a full-rate update; adamw is the fallback arm and matches the unigram VE group.")
+-    parser.add_argument('--ngram-ve-lr', type=float, default=NGRAM_VE_LR, help='lr for the n-gram tables before the dmodel scale (0 = use --embedding-lr).')
+-    parser.add_argument('--ngram-ve-beta2', type=float, default=NGRAM_VE_BETA2, help='second-moment decay for the n-gram table optimizer.')
+-    parser.add_argument('--ngram-ve-flat-lr', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_NGRAM_VE_FLAT_LR', '1' if NGRAM_VE_FLAT_LR else '0') != '0', help='hold the n-gram tables\' lr FLAT (warmup only, no warmdown), per Recursive\'s "sparse tables benefit from full-rate training". --no-ngram-ve-flat-lr puts them back on the normal cooldown.')
+-    parser.add_argument('--ngram-ve-bf16', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_NGRAM_VE_BF16', '1' if NGRAM_VE_BF16 else '0') != '0', help='store n-gram tables and gradients in bf16 rather than fp32. Optimizer state follows that dtype unless --ngram-rms-fp32 is on.')
+-    parser.add_argument('--ngram-rms-fp32', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_NGRAM_RMS_FP32', '1' if NGRAM_RMS_FP32 else '0') != '0', help='Use FP32 second moments AND FP32 RMSProp update arithmetic for n-gram tables, retaining their parameter/gradient dtype. Casts grads before squaring and rounds at the final parameter write. Requires --ngram-ve-opt rmsprop. Default OFF.')
+-    parser.add_argument('--nki-ngram-rms', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_NKI_NGRAM_RMS', '1' if USE_NKI_NGRAM_RMS else '0') != '0', help='Fuse FP32 table RMSProp in NKI, using both cores under LNC2. Requires --ngram-rms-fp32 and contiguous BF16 Neuron tables. Default OFF; test quality and whole-run time before promotion.')
+-    parser.add_argument('--ngram-ve-clip-exclude', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_NGRAM_VE_CLIP_EXCLUDE', '1' if NGRAM_VE_CLIP_EXCLUDE else '0') != '0', help='keep the n-gram tables out of the GLOBAL clip_grad_norm_ and clip them as their own group, so adding them cannot change the effective lr of every other tensor through clip_coef. See split_clip_params.')
++    parser.add_argument('--compile-sdpa-direct', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_COMPILE_SDPA_DIRECT', '1') != '0', help='Call causal SDPA directly when --nki-attn is off, allowing Dynamo to trace it instead of entering the disabled attention wrapper. Default OFF preserves the historical graph partitioning. The custom NKI attention path retains its wrapper when enabled.')
++    parser.add_argument('--nki-local-conv', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_NKI_LOCAL_CONV', '1') != '0', help='Use the gated BTC-layout native NKI two-tap convolution for FP32 residuals with time/channels divisible by 128. Other shapes and precisions retain the original causal convolution.')
++    parser.add_argument('--bf16-norm-output', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_BF16_NORM_OUTPUT', '1') != '0', help='Keep FP32 RMS statistics/epsilon and residuals, but store normalized branch inputs in BF16, including the final head. This is an opt-in arithmetic change, saved for standalone eval.')
++    parser.add_argument('--ngram-ve', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_NGRAM_VE', '0') != '0', help="T3.1: hashed bigram (all VE layers) and trigram (first/last VE layer) VALUE embeddings, mixed into attention's V through their own zero-init per-head gates on disjoint residual channels (unigram 0:32, bigram 32:64, trigram 64:96). Tables are zero-init, so this is an exact no-op at step 0 and the A/B runs from one identical binary. Strictly causal: a position's table row is a hash of tokens t-2..t only.")
+ 
+     def _hp(flag: str, default, typ, helptext: str) -> None:
+         env = 'NEURON_COMPETITION_R1_' + flag.lstrip('-').replace('-', '_').upper()
+         parser.add_argument(flag, type=typ, default=typ(os.environ.get(env, default)), help=helptext)
+-    parser.add_argument('--byte-wte-init', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_BYTE_WTE_INIT', '1' if USE_BYTE_WTE_INIT else '0') != '0', help="Plan 11.1 (Recursive's from-vanilla run): initialize wte from a hashed bag of byte n-grams of each token's own byte string (from the provided tokenizer artifact's id->bytes map -- no external data) instead of normal_(0, 0.8), so tokens with similar surface form start correlated. Host-side and one-shot: zero ops added to the training graph, and no torch RNG consumed, so every OTHER tensor is initialized identically to the control arm. See byte_feature_wte_init.")
+-    _hp('--byte-wte-init-mix', BYTE_WTE_INIT_MIX, float, 'Plan 11.1: 1.0 = pure byte features; mix<1 blends mix*feat + sqrt(1-mix^2)*random, which keeps the row RMS and guarantees no two rows can coincide on a hash collision.')
+-    _hp('--byte-wte-init-ngram', BYTE_WTE_INIT_NGRAM, int, 'Plan 11.1: highest byte-n-gram order hashed into each row (1..N).')
+-    _hp('--byte-wte-init-std', BYTE_WTE_INIT_STD, float, "Plan 11.1: target per-row RMS of the byte-feature rows. Must track init_weights' own normal_ std for wte (0.8) or the arm also becomes an embedding-scale test.")
+-    parser.add_argument('--coalesced-swiglu', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_COALESCED_SWIGLU', '1' if USE_COALESCED_SWIGLU else '0') != '0', help="parameter-matched coalesced SwiGLU MLP: one Linear(n_embd, 2*hidden) split into gate and up halves, silu(gate)*up, at hidden = 8/3*n_embd (1664) so the three matrices cost the same as the baseline's two. Distinct from --gated-mlp/USE_GATED_MLP, which keeps hidden=4*n_embd and so adds 50%% MLP params and FLOPs. SHAPE-CRITICAL. Prior ~15-20%%: the ReLU^2 >= SwiGLU consensus at this scale is hardware-independent.")
+-    _hp('--coalesced-swiglu-hidden', COALESCED_SWIGLU_HIDDEN, int, 'force the coalesced-SwiGLU hidden width (must be a multiple of 128). 0 = auto, i.e. the parameter-matched round(2/3*mlp_ratio*n_embd / 128)*128. SHAPE-CRITICAL.')
+-    parser.add_argument('--cautious-wd', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_CAUTIOUS_WD', '1' if USE_CAUTIOUS_WD else '0') != '0', help='T2.3 (modded #50): in the AdamW groups, apply weight decay only where update*p > 0, so decay never fights an element the gradient is driving outward. Affects only the groups with wd != 0 -- wte (0.001) and lm_head (0.01). The Muon groups already do this (see _muon_math).')
+-    _hp('--scalar-beta1', SCALAR_BETA1, float, 'T2.4 (modded #52): Adam beta1 for the scalar/skip group. Default 0.9 = historical.')
+-    _hp('--scalar-beta2', SCALAR_BETA2, float, "T2.4 (modded #52): Adam beta2 for the scalar/skip group. Default 0.95 = historical; record #52's 'smoothed scalars' uses 0.99, usually with a lower --scalar-lr.")
+-    parser.add_argument('--demon-beta1', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_DEMON_BETA1', '1' if DEMON_BETA1 else '0') != '0', help="plan 11.1 (Recursive): anneal the AdamW groups' beta1 down across the LR warmdown ('Demon'), as a multiplicative shrink on each group's own initial beta1 calibrated so a 0.8 group lands on --demon-beta1-final. The rmsprop n-gram group has no first moment and is unaffected.")
+-    _hp('--demon-beta1-final', DEMON_BETA1_FINAL, float, 'plan 11.1: beta1 at the end of the run for a group whose initial beta1 is --demon-beta1-ref. Recursive uses 0.55 from 0.8. Only read with --demon-beta1.')
+-    _hp('--demon-beta1-ref', DEMON_BETA1_REF, float, "plan 11.1: the initial beta1 that --demon-beta1-final is quoted against (Recursive: 0.8, which is also this repo's embedding-family beta1).")
+-    _hp('--demon-beta1-start-frac', DEMON_BETA1_START_FRAC, float, "plan 11.1: wall-clock progress fraction at which the beta1 anneal starts. Negative (default) = start where the LR warmdown starts, i.e. 1 - WARMDOWN_RATIO = 0.25, which is Recursive's 'across its warmdown'. 0.0 = anneal across the whole run.")
+-    _hp('--muon-beta2', MUON_BETA2, float, "plan 11.1 / NorMuon: the Muon groups' second-moment beta2, i.e. the decay of the per-row second moment of the ORTHOGONALIZED update that rescales it. Default 0.90 = the tuned historical literal. Recursive's variant sits at 0.95->0.97; SkyPilot's autoresearch found 0.95->0.98 worth ~0.001 at their setting -- neither transfers as a VALUE here, only as a direction, so sweep it.")
+-    _hp('--muon-beta2-final', MUON_BETA2_FINAL, float, 'plan 11.1 / NorMuon: ramp the Muon beta2 linearly from --muon-beta2 to this over elapsed/max_train_seconds. 0.0 (default) = OFF, and specifically = keep handing the compiled Muon body `1-beta2` as the Python float it is today, so the traced graph is byte-identical. Recursive ramps 0.95 -> 0.97.')
+-    _hp('--muon-depth-lr-bottom', MUON_DEPTH_LR_BOTTOM, float, "plan 11.1: Muon LR multiplier for layer 0's matrices, ramped linearly to --muon-depth-lr-top at the last layer. Recursive: 1.15 -> 0.85. Both 1.0 (default) = OFF. Carried as a per-parameter [K,1,1] operand inside the existing per-shape groups, so the batched Newton-Schulz and the compiled-graph count are unchanged.")
+-    _hp('--muon-depth-lr-top', MUON_DEPTH_LR_TOP, float, "plan 11.1: Muon LR multiplier for the LAST layer's matrices. Recursive: 0.85.")
+-    _hp('--muon-depth-mom-bottom', MUON_DEPTH_MOM_BOTTOM, float, 'plan 11.1: target Muon momentum for layer 0 when the global scheduled momentum is at --muon-depth-mom-ref. Recursive: 0.90 (bottom) -> 0.97 (top). Applied as a multiplier on (1 - momentum) so it rides ON TOP of the global warmup/cooldown schedule and can never push momentum past 1. 0.0 (default, either endpoint) = OFF.')
+-    _hp('--muon-depth-mom-top', MUON_DEPTH_MOM_TOP, float, 'plan 11.1: target Muon momentum for the LAST layer. Recursive: 0.97.')
+-    _hp('--muon-depth-mom-ref', MUON_DEPTH_MOM_REF, float, "plan 11.1: the global momentum the two --muon-depth-mom-* targets are quoted against. 0.95 (default) = muon_momentum()'s warmed-up plateau.")
+-    parser.add_argument('--out-bigram', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_OUT_BIGRAM', '1' if USE_OUT_BIGRAM else '0') != '0', help='T4.2: a gradient-trained [vocab, vocab] table indexed by the CURRENT token whose row is added to the next-token logits, gated per token by sigmoid(Linear(n_embd->1)). Zero-init table => exact no-op at step 0. 67.1M bf16 parameters. Distinct from the frozen count-based mixer that was closed as a negative on 2026-09-12. See USE_OUT_BIGRAM.')
+-    parser.add_argument('--out-bigram-bf16', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_OUT_BIGRAM_BF16', '1' if OUT_BIGRAM_BF16 else '0') != '0', help="store the [vocab, vocab] output bigram table in bf16 (Aster's choice).")
+-    _hp('--out-bigram-gate-bias', OUT_BIGRAM_GATE_BIAS, float, "T4.2: bias init of the output bigram table's per-token gate. Aster specifies -2.0.")
+-    _hp('--out-bigram-lr', OUT_BIGRAM_LR, float, "T4.2: lr for the output bigram table's own AdamW group. 0 => UNEMBEDDING_LR.")
+-    _hp('--relu2-tau', RELU2_TAU, float, "T3.9: shifted ReLU^2 -- the MLP activation becomes relu(h - tau)^2. 0.0 = historical. Recursive: 'tau=0.5 confirmed optimal'.")
+-    parser.add_argument('--mlp-sandwich-norm', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_MLP_SANDWICH_NORM', '1' if USE_MLP_SANDWICH_NORM else '0') != '0', help='T3.9: x = x + norm(mlp(norm(x))) instead of x = x + mlp(norm(x)).')
+-    parser.add_argument('--head-gate', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_HEAD_GATE', '1' if USE_HEAD_GATE else '0') != '0', help='T3.6/T3.9: per-head gate on the attention output, read from a residual slice that no value-embedding gate has claimed (see head_gate_slice).')
+-    parser.add_argument('--head-gate-norm', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_HEAD_GATE_NORM', '1' if HEAD_GATE_NORM else '0') != '0', help="RMS-norm each head's attention output before gating (Recursive's form). Pass --no-head-gate-norm for the gate-only variant, which is an exact no-op at step 0.")
+-    _hp('--head-gate-channels', HEAD_GATE_CHANNELS, int, 'T3.6/T3.9: width of the residual slice the head gate reads. SHAPE-CRITICAL.')
+-    _hp('--head-gate-mul', HEAD_GATE_MUL, float, "T3.6/T3.9: gate = this * sigmoid(...). 2.0 makes zero-init neutral; 1.0 is the plan's sigmoid-only T3.6 form.")
+-    _hp('--head-gate-bias', HEAD_GATE_BIAS, float, 'T3.6/T3.9: bias init of the head gate. 0.0 is neutral at --head-gate-mul 2.')
+-    parser.add_argument('--out-pool', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_OUT_POOL', '1' if USE_OUT_POOL else '0') != '0', help='T3.9: zero-init pooling of the last --out-pool-layers block outputs into the final residual. Exact no-op at step 0.')
+-    _hp('--out-pool-layers', OUT_POOL_LAYERS, int, 'T3.9: how many trailing block outputs to pool. Recursive uses 3. SHAPE-CRITICAL.')
+-    parser.add_argument('--qk-shift', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_QK_SHIFT', '1' if USE_QK_SHIFT else '0') != '0', help='T3.9: causal token shift on the Q/K inputs only (q_in = k_in = x + beta*x_prev, per-dim learned beta, V unshifted). Different mechanism from --local-conv.')
+-    _hp('--qk-shift-beta', QK_SHIFT_BETA, float, "T3.9: per-dim init of the Q/K shift's beta. Recursive uses 0.3.")
+-    parser.add_argument('--qk-shift-freeze', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_QK_SHIFT_FREEZE', '1' if QK_SHIFT_FREEZE else '0') != '0', help="freeze the Q/K shift's beta (requires_grad=False, no optimizer group) so it stays at --qk-shift-beta forever. With --qk-shift-beta 0.0 this is a mathematical identity that still keeps the elementwise ops in the compiled graph -- the decisive probe for the block-body compiler-scheduling speedup.")
+-    parser.add_argument('--block-nudge', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_BLOCK_NUDGE', '1' if USE_BLOCK_NUDGE else '0') != '0', help='add `x = x + nudge*x` with one frozen zero scalar per block -- a mathematical identity whose only effect is on the compiled graph. The cheap, general form of the +10%% throughput the frozen qk-shift found.')
+-    parser.add_argument('--block-nudge-site', type=str, choices=('qk', 'resid'), default=os.environ.get('NEURON_COMPETITION_R1_BLOCK_NUDGE_SITE', BLOCK_NUDGE_SITE), help="where --block-nudge lands: the Q/K input ('qk', where --qk-shift put it) or the residual stream after the resid/x0 mix ('resid').")
+-    parser.add_argument('--parallel-block', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_PARALLEL_BLOCK', '1' if USE_PARALLEL_BLOCK else '0') != '0', help='GPT-J/PaLM parallel block: attention and MLP both read one norm(x) and are summed into the residual together (x + la*attn + lm*mlp). Removes 3 of 4 norms per block and unserialises the two branches.')
+-    parser.add_argument('--parallel-block-coalesce', type=str, choices=('none', 'vfc', 'all'), default=os.environ.get('NEURON_COMPETITION_R1_PARALLEL_BLOCK_COALESCE', PARALLEL_BLOCK_COALESCE), help="merge the parallel block's input projections into one matmul: 'vfc' (c_v+c_fc, no copies) or 'all' (q,k,v,c_fc, needs contiguous copies of q/k to keep the rope+QK-norm NKI kernel). Needs --parallel-block.")
+-    parser.add_argument('--qkv-norm-cse', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_QKV_NORM_CSE', '1' if USE_QKV_NORM_CSE else '0') != '0', help='hoist the three identical norm(q_in)/norm(k_in)/norm(v_in) calls into one when they share the same input tensor. Bit-exact identity; the only effect is 2 fewer ops per block in a dispatch-bound graph.')
+-    parser.add_argument('--engram', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_ENGRAM', '1' if USE_ENGRAM else '0') != '0', help='T3.2 Engram-lite: hashed n-gram memory read through a gate on the hidden state (alpha = sigmoid(norm(h).norm(k)/sqrt(d))), then Y = SiLU(dwconv(norm(alpha*v))) + alpha*v added to the residual. The context-aware superset of the n-gram value embeddings.')
+-    parser.add_argument('--engram-site', type=str, default=os.environ.get('NEURON_COMPETITION_R1_ENGRAM_SITE', ENGRAM_SITE), help="block index whose OUTPUT residual Engram writes into; negative counts from the end. Default 2 (the paper's mid-stack site): T3.1's LNC=2 downstream-resharding penalty was expected to make this unaffordable and measurably does NOT (1128 vs 1129 steps at 900s), while being 0.0016 bpb better than the last-layer placement.")
+-    parser.add_argument('--engram-orders', type=str, default=os.environ.get('NEURON_COMPETITION_R1_ENGRAM_ORDERS', ENGRAM_ORDERS), help="comma-separated n-gram orders for Engram's hash heads; only 2 and 3 are supported (Engram reports 4-grams slightly suboptimal).")
+-    parser.add_argument('--engram-heads', type=int, default=int(os.environ.get('NEURON_COMPETITION_R1_ENGRAM_HEADS', ENGRAM_HEADS)), help="hash heads PER ORDER. Each head is its own table with its own primes, so K heads is K independent hashings of the same n-gram (Engram's own collision-mitigation trick). Total tables = heads * len(orders).")
+-    parser.add_argument('--engram-table-mult', type=int, default=int(os.environ.get('NEURON_COMPETITION_R1_ENGRAM_TABLE_MULT', ENGRAM_TABLE_MULT)), help='rows per Engram table, in units of the padded vocab (8192). 32 => 262144 rows; the modulus used is the largest prime <= that.')
+-    parser.add_argument('--engram-mem-dim', type=int, default=int(os.environ.get('NEURON_COMPETITION_R1_ENGRAM_MEM_DIM', ENGRAM_MEM_DIM)), help='d_mem: width of each Engram table row. e_t is the concatenation over all tables, so w_k/w_v read heads*len(orders)*d_mem.')
+-    parser.add_argument('--engram-key-dim', type=int, default=int(os.environ.get('NEURON_COMPETITION_R1_ENGRAM_KEY_DIM', ENGRAM_KEY_DIM)), help="width of the gate's key/query space. 0 (default) means n_embd, which lets the gate dot norm(h) directly and needs no query projection.")
+-    parser.add_argument('--engram-conv-kernel', type=int, default=int(os.environ.get('NEURON_COMPETITION_R1_ENGRAM_CONV_KERNEL', ENGRAM_CONV_KERNEL)), help='depthwise causal conv kernel applied to norm(alpha*v) before the SiLU. 0 disables the conv branch entirely (Y = alpha*v), which is the ablation arm. Zero-init, so it starts as a no-op either way.')
+-    parser.add_argument('--engram-share-ngram-tables', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_ENGRAM_SHARE_NGRAM_TABLES', '1' if ENGRAM_SHARE_NGRAM_TABLES else '0') != '0', help="read T3.1's ALREADY-GATHERED n-gram rows instead of Engram's own tables. Isolates the MECHANISM (gate + conv + residual write) from the added capacity: no new gather, no new table parameters, no extra gradient all-reduce. Needs an n-gram table at or before --engram-site.")
+-    parser.add_argument('--engram-bf16', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_ENGRAM_BF16', '1' if ENGRAM_BF16 else '0') != '0', help="hold Engram's tables in bf16 (halves 67M params of memory and the gather's bandwidth). Same trade as --ngram-ve-bf16.")
+-    parser.add_argument('--epoch-shuffle', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_EPOCH_SHUFFLE', '1' if USE_EPOCH_SHUFFLE else '0') != '0', help="reshuffle the row-group order from epoch 2 onward. Epoch 1 keeps prepare's exact order, so this is a no-op for any run that never crosses the epoch boundary. Only matters above ~2195 steps at the locked shape -- see the 2026-09-13 data-wall section of research/trn2-experiment-results.md.")
+-    parser.add_argument('--epoch-shuffle-seed', type=int, default=EPOCH_SHUFFLE_SEED, help='seed base for --epoch-shuffle; epoch e is shuffled with seed+e.')
+-    parser.add_argument('--x0-gate', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_X0_GATE', '1' if USE_X0_GATE else '0') != '0', help="Recursive's input-dependent x0 gate: scale each block's x0 skip by 2*sigmoid(s*mean(x)) with one zero-init learned scalar s per layer. Bit-exact no-op at step 0. Mutually exclusive with USE_SELECTIVE_GATE, which owns the same line of Block.forward.")
+-    parser.add_argument('--batch-ramp', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_BATCH_RAMP', '1' if BATCH_RAMP else '0') != '0', help='T2.1: ramp the effective batch size across the run by varying grad_accum_steps on wall-clock-fraction boundaries, holding the micro shape (and therefore every compiled graph) fixed. Off by default.')
+-    parser.add_argument('--batch-ramp-grad-accum', type=str, default=os.environ.get('NEURON_COMPETITION_R1_BATCH_RAMP_GRAD_ACCUM', ','.join((str(g) for g in BATCH_RAMP_GRAD_ACCUM))), help="T2.1: comma-separated micro-batch counts for stages A,B,C. Stage B should normally be TOTAL_BATCH_SIZE's own grad_accum (4 at the locked shape) so the ramp is symmetric around today's batch size.")
+-    parser.add_argument('--batch-ramp-bounds', type=str, default=os.environ.get('NEURON_COMPETITION_R1_BATCH_RAMP_BOUNDS', ','.join((str(b) for b in BATCH_RAMP_BOUNDS))), help='T2.1: comma-separated elapsed/max_train_seconds boundaries A->B,B->C. The second should normally equal WARMDOWN_RATIO so the largest batch covers exactly the lr cooldown.')
+-    parser.add_argument('--batch-ramp-lr-exp', type=float, default=float(os.environ.get('NEURON_COMPETITION_R1_BATCH_RAMP_LR_EXP', BATCH_RAMP_LR_EXP)), help='T2.1: lr scales as (B/B_ref)**this. 0.5 = sqrt (gradient-noise matched), 1.0 = linear scaling, 0.0 = leave the lr alone.')
+-    parser.add_argument('--weight-ema', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_WEIGHT_EMA', '1' if USE_WEIGHT_EMA else '0') != '0', help='T2.2: keep an exponential moving average of the weights over the cooldown tail, save it alongside the raw weights, and evaluate both. Off by default.')
+-    parser.add_argument('--weight-ema-decay', type=str, default=os.environ.get('NEURON_COMPETITION_R1_WEIGHT_EMA_DECAY', ','.join((str(d) for d in WEIGHT_EMA_DECAYS))), help="T2.2: comma-separated per-step EMA decays -- one shadow each, all updated from the same weights every step, so they are a zero-noise comparison. The averaging window is ~1/(1-decay) steps (0.98 ~ 50, 0.995 ~ 200, 0.999 ~ 1000). The FIRST is the primary: it is the one saved into the checkpoint's 'ema_state'.")
+-    parser.add_argument('--weight-ema-start-frac', type=float, default=float(os.environ.get('NEURON_COMPETITION_R1_WEIGHT_EMA_START_FRAC', WEIGHT_EMA_START_FRAC)), help='T2.2: elapsed/max_train_seconds at which the shadow is seeded from the live weights. Defaults to WARMDOWN_RATIO (average the cooldown).')
+-    parser.add_argument('--lrm-quantum', type=int, default=int(os.environ.get('NEURON_COMPETITION_R1_LRM_QUANTUM', LRM_QUANTUM)), help='snap the LR multiplier onto a 1/N grid (0 = continuous). Each distinct lr value costs one neuronx-cc compile, so a continuous cooldown recompiles the optimizer every step.')
+-    parser.add_argument('--init-from', type=str, default='', help='warm-start model weights from a prior checkpoint (fresh optimizer/step/dataloader; dev-iteration only, never for a scored submission)')
+-    parser.add_argument('--grad-bucket', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_GRAD_BUCKET', '0') != '0', help="T1.2: point every parameter's .grad at a view into one flat fp32 buffer and all_reduce it once per step instead of once per parameter. Also switches grad clipping to the flat-buffer one-norm/one-mul form (T1.3). Verified bit-equal to the per-tensor path in research/scratch/grad_bucket_equiv.py. Default OFF pending a real hardware A/B (~1%% expected win).")
+-    parser.add_argument('--clip-foreach', action=argparse.BooleanOptionalAction, default=None if 'NEURON_COMPETITION_R1_CLIP_FOREACH' not in os.environ else os.environ['NEURON_COMPETITION_R1_CLIP_FOREACH'] != '0', help='T1.3: force foreach=True/False on torch.nn.utils.clip_grad_norm_ instead of letting it auto-detect (the default when the flag is absent). Numerically identical; only matters when --grad-bucket is off. Measured NEUTRAL at LNC=2 (clip_ms 6.2-7.7 vs 5.5-7.7).')
++    parser.add_argument('--qk-shift', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_QK_SHIFT', '0') != '0', help='T3.9: causal token shift on the Q/K inputs only (q_in = k_in = x + beta*x_prev, per-dim learned beta, V unshifted). Different mechanism from --local-conv.')
+     parser.add_argument('--seed', type=int, default=int(os.environ.get('NEURON_COMPETITION_R1_SEED', '42')), help='torch.manual_seed value (init_runtime). Default 42, unchanged from the long-standing hardcoded value -- exposed as a flag purely so noise/variance can be estimated with paired seeds without editing the file.')
+-    parser.add_argument('--local-conv-kernel', type=int, default=int(os.environ.get('NEURON_COMPETITION_R1_LOCAL_CONV_KERNEL', str(LOCAL_CONV_KERNEL))), help="depthwise causal conv1d kernel size for --local-conv (T0.1 sweep knob). Only matters once the conv's weight is actually trained (see the USE_LOCAL_CONV comment); a shape-critical toggle already covered by SHAPE_CRITICAL_TOGGLES via LOCAL_CONV_KERNEL.")
+-    parser.add_argument('--train-local-conv', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_TRAIN_LOCAL_CONV', '1' if TRAIN_LOCAL_CONV else '0') != '0', help='T0.1: register local_conv.weight in its own AdamW group (lr=MATRIX_LR, betas=(0.9,0.95), wd=0.0) instead of leaving it permanently zero/dead. Still zero-initialized, so step 0 is unchanged either way. Default OFF (bit-identical to every prior locked-baseline run) -- pass --train-local-conv for the A/B; only matters when --local-conv is on.')
+     _hp('--seq-len', SEQ_LEN, int, 'Training context length. Previously only settable by editing the constant. Currently 2048. NOTE: the in-process eval runs at this same length, so a --seq-len A/B is apples-to-oranges unless --eval-seq-len pins both arms to one eval length -- which matters a lot now that the scorer looks like it evaluates at 1024 (see the 2026-09-11 section of trn2-experiment-results.md).')
+-    parser.add_argument('--eval-seq-len', type=int, default=int(os.environ.get('NEURON_COMPETITION_R1_EVAL_SEQ_LEN', 0)), help="Run a SECOND in-process public_val eval at this context length and report it as public_val_bpb_alt. 0 (default) = off, zero cost. Must be <= --seq-len and a multiple of 128: the live model's rotary/mask tables are sized to --seq-len (a LONGER eval needs prepare.py eval-public, whose load_for_eval widens them to EVAL_MIN_SEQ_LEN). Post-training only, so it costs wall clock and never a charged training second.")
+-    _hp('--depth', DEPTH, int, 'T0.2: n_layer. Previously only settable by editing the constant, so every historical depth sweep also moved the width (n_embd is derived from DEPTH via ASPECT_RATIO unless --n-embd is given). Currently 6.')
+     _hp('--n-embd', N_EMBD, int, 'T0.2: force n_embd (must be a multiple of --head-dim), decoupling width from DEPTH*ASPECT_RATIO. 0 (default) = historical derived width, bit-identical.')
+-    _hp('--n-kv-heads', N_KV_HEADS, int, 'Sub-1.0 plan P2: grouped-query attention KV-head count. 0 (default) = dense, bit-identical. Must divide n_head; at the locked width (n_head=5) the only nontrivial choice is 1 (MQA). Shrinks the K/V projections; QK^T stays full-width.')
+-    _hp('--head-dim', HEAD_DIM, int, 'T0.2: per-head width; n_head = n_embd / head_dim. Also the rounding granularity of the derived n_embd. Currently 128. The fused rope+QK-norm NKI kernel is written generically in D (it only requires D even), so 64 stays on the kernel.')
+-    _hp('--mlp-ratio', MLP_RATIO, int, 'T0.3: MLP hidden width as a multiple of n_embd. Currently 4.')
+-    _hp('--attn-scale', ATTN_SCALE, float, "T0.3: explicit SDPA softmax scale. 0.0 (default) = SDPA's own 1/sqrt(head_dim) (0.0884 at 128). QK-norm already fixes the q/k norms, so the logit temperature is a free knob here rather than a redundant init reparameterisation.")
+-    _hp('--matrix-lr', MATRIX_LR, float, "T0.4: Muon groups' base lr (also the AdamW lr for the gate/local_conv groups). Currently 0.025.")
+-    _hp('--embedding-lr', EMBEDDING_LR, float, 'T0.4: wte (and value-embedding) AdamW lr before the (n_embd/768)**-0.5 scale. Currently 0.30.')
+-    _hp('--unembedding-lr', UNEMBEDDING_LR, float, 'T0.4: lm_head AdamW lr before the d_model scale. Currently 0.006.')
+-    _hp('--scalar-lr', SCALAR_LR, float, 'T0.4: AdamW lr for the scalar/skip params. Currently 0.20.')
+-    _hp('--weight-decay', WEIGHT_DECAY, float, "T0.4: Muon groups' weight decay (decayed to zero over the run unless --no-wd-decay-to-zero). Currently 0.10.")
+-    _hp('--final-lr-frac', FINAL_LR_FRAC, float, 'T0.4: LR floor at the end of cooldown as a fraction of peak. Currently 0.05.')
+-    _hp('--warmdown-ratio', WARMDOWN_RATIO, float, 'T0.4: fraction of the wall-clock budget spent on LR cooldown. Currently 0.75.')
+-    _hp('--init-scale', INIT_SCALE, float, 'T0.4: multiplier on the attn/mlp uniform-init bound. Currently 0.68.')
+-    _hp('--attn-cproj-init', ATTN_CPROJ_INIT_SCALE, float, 'T0.4: attn.c_proj init bound as a multiple of the shared bound s; 0.0 (default) keeps the historical exact-zero init.')
+-    _hp('--logit-softcap', LOGIT_SOFTCAP, float, 'T0.4: tanh logit softcap. Currently 15.0.')
+-    _hp('--muon-ns-steps', MUON_NS_STEPS, int, 'T0.4: Newton-Schulz iterations per Muon step (3 matmuls each). Currently 5.')
+-    _hp('--muon-momentum-cooldown-frac', MUON_MOMENTUM_COOLDOWN_FRAC, float, 'T0.4: ramp Muon momentum from its warmed-up 0.95 down to --muon-momentum-final over this trailing fraction of the wall-clock budget. 0.0 (default) = no cooldown, bit-identical to the old schedule.')
+-    _hp('--muon-momentum-final', MUON_MOMENTUM_FINAL, float, 'T0.4: momentum at the very end of the cooldown. Only read when --muon-momentum-cooldown-frac > 0.')
+-    parser.add_argument('--wd-decay-to-zero', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_WD_DECAY_TO_ZERO', '1' if WD_DECAY_TO_ZERO else '0') != '0', help="T0.4: decay Muon's weight_decay linearly to 0 over the run instead of holding it constant. Currently ON.")
+-    _hp('--grad-clip', GRAD_CLIP, float, "Gradient-norm clip threshold. By default clips each rank's local gradients before all_reduce(AVG); --clip-after-reduce clips the averaged global-batch gradients. 0 disables clipping. Separate n-gram clipping is preserved.")
+-    parser.add_argument('--clip-after-reduce', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_CLIP_AFTER_REDUCE', '1' if CLIP_AFTER_REDUCE else '0') != '0', help='Average all accumulated gradients before clipping. Default OFF preserves the historical local-clip-then-average update. Requires --adam-every-n 1; supports separate n-gram clipping.')
+-    _hp('--loss-scale', LOSS_SCALE, float, 'Sub-1.0 plan P2: static loss-scale factor. Multiplies the training loss before backward and divides grads back before clip/sync/step, so backward grads stay representable under compiler fp8 auto-cast (full-model grads underflow fp8_e4m3 otherwise). 1.0 (default) = off, bit-identical. Use powers of 2 (128/1024).')
+-    parser.add_argument('--loss-scale-dynamic', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_LOSS_SCALE_DYNAMIC', '0') != '0', help='Dynamic loss scaling for fp8 auto-cast: skip+halve the update on grad overflow (all ranks agree via all-reduce), double the scale every 500 clean steps (cap 8192). Starts from --loss-scale. Default OFF.')
++    parser.add_argument('--clip-after-reduce', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_CLIP_AFTER_REDUCE', '1') != '0', help='Average all accumulated gradients before clipping. Default OFF preserves the historical local-clip-then-average update. Requires --adam-every-n 1; supports separate n-gram clipping.')
+     _hp('--pack-factor', PACK_FACTOR, int, 'T1.5: dataloader packing-bin multiplier. The loader fetches DEVICE_BATCH_SIZE rows of PACK_FACTOR*SEQ_LEN tokens and reshapes them to DEVICE_BATCH_SIZE*PACK_FACTOR rows of SEQ_LEN, so this is the micro-batch ROW COUNT and grad_accum_steps falls as it rises (TOTAL_BATCH_SIZE is held fixed). Only ever set by editing this constant before; a flag so the T1.5 re-test is reproducible from the launch command alone.')
+-    _hp('--adam-every-n', ADAM_EVERY_N, int, 'T1.4: update the AdamW parameter groups (wte, lm_head, value-embedding tables, scalars, local_conv) only every Nth step, accumulating their gradients in between and skipping their all_reduce on the other steps. Muon groups still update every step. 1 (default) = historical behaviour, bit-identical.')
+-    parser.add_argument('--adam-every-n-lr-comp', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_ADAM_EVERY_N_LR_COMP', '1' if ADAM_EVERY_N_LR_COMP else '0') != '0', help="T1.4: multiply the AdamW groups' lr by --adam-every-n. Adam's update is scale-invariant in the gradient, so updating N times less often otherwise moves those tensors ~N times less far in total; this separates 'less often' from 'less far'. Default OFF.")
+     args = parser.parse_args()
+-    if args.ngram_rms_fp32 and args.ngram_ve_opt != 'rmsprop':
+-        parser.error('--ngram-rms-fp32 requires --ngram-ve-opt rmsprop')
+-    if args.nki_ngram_rms and (not args.ngram_rms_fp32):
+-        parser.error('--nki-ngram-rms requires --ngram-rms-fp32')
+-    if args.eval_seq_len:
+-        if args.eval_seq_len > args.seq_len:
+-            parser.error(f"--eval-seq-len {args.eval_seq_len} > --seq-len {args.seq_len}: the live model's rotary/mask tables are only built out to --seq-len. Use `prepare.py eval-public --seq-len N` on the saved checkpoint instead.")
+-        if args.eval_seq_len % 128 != 0:
+-            parser.error('--eval-seq-len must be a multiple of 128 (NKI tiling).')
+-    if args.adam_every_n < 1:
+-        parser.error('--adam-every-n must be >= 1')
+-    if args.clip_after_reduce and args.adam_every_n > 1:
+-        parser.error('--clip-after-reduce requires --adam-every-n 1: deferred Adam gradients would mix unreduced local gradients with averaged gradients in the norm.')
+-    if args.adam_every_n > 1 and args.grad_bucket:
+-        parser.error("--adam-every-n > 1 is incompatible with --grad-bucket: the flat buffer is zeroed wholesale every step, so it cannot leave the AdamW groups' gradients standing to accumulate. (--grad-bucket is also a known hang on this hardware; see trn2-experiment-results.md.)")
+-    global USE_NKI_RELU2, USE_NKI_ROPE_NORM, USE_NKI_SOFTCAP_CE, USE_NKI_MUON, USE_MUON_LR_FP32, USE_NKI_ATTN
+-    global LOSS_BYTE_WEIGHT, BYTE_LOSS_W
+-    ADAM_EVERY_N = args.adam_every_n
+-    ADAM_EVERY_N_LR_COMP = args.adam_every_n_lr_comp
+-    GRAD_CLIP = args.grad_clip
+-    CLIP_AFTER_REDUCE = args.clip_after_reduce
+-    LOSS_SCALE = args.loss_scale
+-    if not LOSS_SCALE > 0:
+-        raise ValueError(f'--loss-scale must be positive, got {LOSS_SCALE}')
+-    LOSS_SCALE_DYNAMIC = args.loss_scale_dynamic
++    if args.clip_after_reduce != True:
++        parser.error('this submission fixes CLIP_AFTER_REDUCE=True; the launch flag must agree')
+     loss_scale_clean = 0
+     loss_scale_skips = 0
+     PACK_FACTOR = args.pack_factor
+     SEQ_LEN = args.seq_len
+-    DEPTH = args.depth
+     N_EMBD = args.n_embd
+-    HEAD_DIM = args.head_dim
+-    MLP_RATIO = args.mlp_ratio
+-    ATTN_SCALE = args.attn_scale
+-    N_KV_HEADS = args.n_kv_heads
+-    MATRIX_LR = args.matrix_lr
+-    EMBEDDING_LR = args.embedding_lr
+-    UNEMBEDDING_LR = args.unembedding_lr
+-    SCALAR_LR = args.scalar_lr
+-    WEIGHT_DECAY = args.weight_decay
+-    WD_DECAY_TO_ZERO = args.wd_decay_to_zero
+-    FINAL_LR_FRAC = args.final_lr_frac
+-    WARMDOWN_RATIO = args.warmdown_ratio
+-    INIT_SCALE = args.init_scale
+-    ATTN_CPROJ_INIT_SCALE = args.attn_cproj_init
+-    LOGIT_SOFTCAP = args.logit_softcap
+-    MUON_NS_STEPS = args.muon_ns_steps
+-    MUON_MOMENTUM_COOLDOWN_FRAC = args.muon_momentum_cooldown_frac
+-    MUON_MOMENTUM_FINAL = args.muon_momentum_final
+-    USE_VE = args.ve
+-    USE_LOCAL_CONV = args.local_conv
+-    USE_NKI_LOCAL_CONV = args.nki_local_conv
+-    LOCAL_CONV_KERNEL = args.local_conv_kernel
+-    TRAIN_LOCAL_CONV = args.train_local_conv
+-    USE_NGRAM_VE = args.ngram_ve
+-    NGRAM_VE_LAYERS = args.ngram_ve_layers
+-    NGRAM_VE_TABLE_MULT = args.ngram_ve_table_mult
+-    NGRAM_VE_DIM = args.ngram_ve_dim
+-    NGRAM_VE_TRIGRAM = args.ngram_ve_trigram
+-    NGRAM_VE_BF16 = args.ngram_ve_bf16
+-    NGRAM_RMS_FP32 = args.ngram_rms_fp32
+-    USE_NKI_NGRAM_RMS = args.nki_ngram_rms
+-    NGRAM_VE_OPT = args.ngram_ve_opt
+-    NGRAM_VE_LR = args.ngram_ve_lr
+-    NGRAM_VE_BETA2 = args.ngram_ve_beta2
+-    NGRAM_VE_FLAT_LR = args.ngram_ve_flat_lr
+-    NGRAM_VE_CLIP_EXCLUDE = args.ngram_ve_clip_exclude
+-    USE_BYTE_WTE_INIT = args.byte_wte_init
+-    BYTE_WTE_INIT_MIX = args.byte_wte_init_mix
+-    BYTE_WTE_INIT_NGRAM = args.byte_wte_init_ngram
+-    BYTE_WTE_INIT_STD = args.byte_wte_init_std
+-    if not 0.0 <= BYTE_WTE_INIT_MIX <= 1.0:
+-        parser.error(f'--byte-wte-init-mix must be in [0, 1], got {BYTE_WTE_INIT_MIX}')
+-    if BYTE_WTE_INIT_NGRAM < 1:
+-        parser.error(f'--byte-wte-init-ngram must be >= 1, got {BYTE_WTE_INIT_NGRAM}')
+-    USE_COALESCED_SWIGLU = args.coalesced_swiglu
+-    COALESCED_SWIGLU_HIDDEN = args.coalesced_swiglu_hidden
+-    if USE_COALESCED_SWIGLU:
+-        if USE_GATED_MLP:
+-            parser.error('--coalesced-swiglu and USE_GATED_MLP are two different SwiGLU MLPs and both own mlp.c_fc/c_gate; pick one (USE_GATED_MLP has no flag, so this can only fire if the module constant was edited). --coalesced-swiglu is the parameter-matched, single-matmul form.')
+-        if args.parallel_block and args.parallel_block_coalesce != 'none':
+-            parser.error(f'--coalesced-swiglu is incompatible with --parallel-block-coalesce {args.parallel_block_coalesce}: block.c_in is sized mlp_ratio*n_embd and hands mlp.forward a single pre-activation, not a gate/up pair.')
+-        if COALESCED_SWIGLU_HIDDEN % 128 != 0:
+-            parser.error(f'--coalesced-swiglu-hidden must be a multiple of 128 (0 = auto), got {COALESCED_SWIGLU_HIDDEN}')
+-    USE_CAUTIOUS_WD = args.cautious_wd
+-    SCALAR_BETA1 = args.scalar_beta1
+-    SCALAR_BETA2 = args.scalar_beta2
+-    DEMON_BETA1 = args.demon_beta1
+-    DEMON_BETA1_FINAL = args.demon_beta1_final
+-    DEMON_BETA1_REF = args.demon_beta1_ref
+-    DEMON_BETA1_START_FRAC = args.demon_beta1_start_frac
+-    MUON_BETA2 = args.muon_beta2
+-    MUON_BETA2_FINAL = args.muon_beta2_final
+-    MUON_DEPTH_LR_BOTTOM = args.muon_depth_lr_bottom
+-    MUON_DEPTH_LR_TOP = args.muon_depth_lr_top
+-    MUON_DEPTH_MOM_BOTTOM = args.muon_depth_mom_bottom
+-    MUON_DEPTH_MOM_TOP = args.muon_depth_mom_top
+-    MUON_DEPTH_MOM_REF = args.muon_depth_mom_ref
+-    if MUON_BETA2_FINAL > 0.0 and (not 0.0 < MUON_BETA2_FINAL < 1.0):
+-        parser.error(f'--muon-beta2-final must be in (0, 1) when set, got {MUON_BETA2_FINAL}')
+-    if (MUON_DEPTH_MOM_BOTTOM > 0.0) != (MUON_DEPTH_MOM_TOP > 0.0):
+-        parser.error('--muon-depth-mom-bottom and --muon-depth-mom-top must both be set or both left at 0.0 (the OFF sentinel is the pair, not either one)')
+-    USE_OUT_BIGRAM = args.out_bigram
+-    OUT_BIGRAM_BF16 = args.out_bigram_bf16
+-    OUT_BIGRAM_GATE_BIAS = args.out_bigram_gate_bias
+-    OUT_BIGRAM_LR = args.out_bigram_lr
+-    RELU2_TAU = args.relu2_tau
+-    USE_MLP_SANDWICH_NORM = args.mlp_sandwich_norm
+-    USE_HEAD_GATE = args.head_gate
+-    HEAD_GATE_NORM = args.head_gate_norm
+-    HEAD_GATE_CHANNELS = args.head_gate_channels
+-    HEAD_GATE_MUL = args.head_gate_mul
+-    HEAD_GATE_BIAS = args.head_gate_bias
+-    USE_OUT_POOL = args.out_pool
+-    OUT_POOL_LAYERS = args.out_pool_layers
+-    USE_QK_SHIFT = args.qk_shift
+-    QK_SHIFT_BETA = args.qk_shift_beta
+-    QK_SHIFT_FREEZE = args.qk_shift_freeze
+-    USE_X0_GATE = args.x0_gate
+-    USE_BLOCK_NUDGE = args.block_nudge
+-    BLOCK_NUDGE_SITE = args.block_nudge_site
+-    USE_QKV_NORM_CSE = args.qkv_norm_cse
+-    USE_ENGRAM = args.engram
+-    ENGRAM_SITE = args.engram_site
+-    ENGRAM_ORDERS = args.engram_orders
+-    ENGRAM_HEADS = args.engram_heads
+-    ENGRAM_TABLE_MULT = args.engram_table_mult
+-    ENGRAM_MEM_DIM = args.engram_mem_dim
+-    ENGRAM_KEY_DIM = args.engram_key_dim
+-    ENGRAM_CONV_KERNEL = args.engram_conv_kernel
+-    ENGRAM_SHARE_NGRAM_TABLES = args.engram_share_ngram_tables
+-    ENGRAM_BF16 = args.engram_bf16
+-    if USE_ENGRAM:
+-        engram_orders()
+-        if ENGRAM_HEADS < 1:
+-            raise ValueError(f'--engram-heads must be >= 1, got {ENGRAM_HEADS}')
+-        if ENGRAM_TABLE_MULT < 1 or ENGRAM_MEM_DIM < 1:
+-            raise ValueError(f'--engram-table-mult and --engram-mem-dim must both be >= 1, got {ENGRAM_TABLE_MULT} and {ENGRAM_MEM_DIM}')
+-        if ENGRAM_CONV_KERNEL < 0:
+-            raise ValueError(f'--engram-conv-kernel must be >= 0 (0 disables), got {ENGRAM_CONV_KERNEL}')
+-        if ENGRAM_SHARE_NGRAM_TABLES and (not USE_NGRAM_VE):
+-            raise ValueError('--engram-share-ngram-tables needs --ngram-ve: there are no gathered n-gram rows to share otherwise.')
+-    USE_EPOCH_SHUFFLE = args.epoch_shuffle
+-    EPOCH_SHUFFLE_SEED = args.epoch_shuffle_seed
+-    USE_PARALLEL_BLOCK = args.parallel_block
+-    PARALLEL_BLOCK_COALESCE = args.parallel_block_coalesce
+-    if PARALLEL_BLOCK_COALESCE != 'none' and (not USE_PARALLEL_BLOCK):
+-        raise ValueError('--parallel-block-coalesce needs --parallel-block: the coalesced matmul is only valid when all four input projections read the same normed residual, which is exactly what the parallel block makes true.')
+-    if PARALLEL_BLOCK_COALESCE != 'none' and (USE_FUSED_QKV or USE_GATED_MLP):
+-        raise ValueError('--parallel-block-coalesce is incompatible with USE_FUSED_QKV (it is the same idea, done differently) and with USE_GATED_MLP (c_gate would still need its own matmul over the same input, which defeats the coalescing).')
+-    if USE_PARALLEL_BLOCK:
+-        for name, on in (('--qk-shift', USE_QK_SHIFT), ('--block-nudge', USE_BLOCK_NUDGE), ('--mlp-sandwich-norm', USE_MLP_SANDWICH_NORM)):
+-            if on:
+-                raise ValueError(f'--parallel-block and {name} are incompatible: the parallel block replaces the whole serial attn->MLP body that {name} modifies, so {name} would be silently ignored.')
+-    if USE_BLOCK_NUDGE and USE_QK_SHIFT and (BLOCK_NUDGE_SITE == 'qk'):
+-        raise ValueError('--block-nudge --block-nudge-site qk and --qk-shift both rewrite q_in/k_in; the nudge exists to REPLACE the frozen qk-shift, so pick one.')
+-    if USE_X0_GATE and USE_SELECTIVE_GATE:
+-        raise ValueError('--x0-gate and USE_SELECTIVE_GATE both rewrite the same resid/x0 mix line in Block.forward; pick one.')
+-    if RELU2_TAU != 0.0 and args.nki_relu2:
+-        raise ValueError('--relu2-tau is not implemented by the example NKI relu2 kernel; run it with --no-nki-relu2 (the default).')
+-    if OUT_POOL_LAYERS < 1:
+-        raise ValueError(f'--out-pool-layers must be >= 1, got {OUT_POOL_LAYERS}')
+-    if HEAD_GATE_CHANNELS < 1:
+-        raise ValueError(f'--head-gate-channels must be >= 1, got {HEAD_GATE_CHANNELS}')
+-    BATCH_RAMP = args.batch_ramp
+-    BATCH_RAMP_GRAD_ACCUM = tuple((int(v) for v in args.batch_ramp_grad_accum.split(',')))
+-    BATCH_RAMP_BOUNDS = tuple((float(v) for v in args.batch_ramp_bounds.split(',')))
+-    BATCH_RAMP_LR_EXP = args.batch_ramp_lr_exp
+-    if len(BATCH_RAMP_GRAD_ACCUM) != 3 or min(BATCH_RAMP_GRAD_ACCUM) < 1:
+-        raise ValueError(f'--batch-ramp-grad-accum needs three counts >= 1, got {BATCH_RAMP_GRAD_ACCUM}')
+-    if len(BATCH_RAMP_BOUNDS) != 2 or not 0.0 < BATCH_RAMP_BOUNDS[0] <= BATCH_RAMP_BOUNDS[1] < 1.0:
+-        raise ValueError(f'--batch-ramp-bounds needs 0 < A->B <= B->C < 1, got {BATCH_RAMP_BOUNDS}')
+-    USE_WEIGHT_EMA = args.weight_ema
+-    WEIGHT_EMA_DECAYS = tuple((float(v) for v in args.weight_ema_decay.split(',')))
+-    WEIGHT_EMA_START_FRAC = args.weight_ema_start_frac
+-    if not WEIGHT_EMA_DECAYS or not all((0.0 < d < 1.0 for d in WEIGHT_EMA_DECAYS)):
+-        raise ValueError(f'--weight-ema-decay needs one or more values in (0,1), got {WEIGHT_EMA_DECAYS}')
+-    if not 0.0 <= WEIGHT_EMA_START_FRAC < 1.0:
+-        raise ValueError(f'--weight-ema-start-frac must be in [0,1), got {WEIGHT_EMA_START_FRAC}')
+-    LRM_QUANTUM = args.lrm_quantum
+-    USE_TENSOR_LR_SCALARS = args.tensor_lr_scalars
+-    USE_FOREACH_OPTIM = args.foreach_optim
+-    USE_NKI_RELU2 = args.nki_relu2
+-    USE_NKI_ROPE_NORM = args.nki_rope_norm
+-    USE_NKI_SOFTCAP_CE = args.nki_softcap_ce
+-    LOSS_BYTE_WEIGHT = args.byte_loss_weight
+-    USE_NKI_MUON = args.nki_muon
+-    USE_NKI_ATTN = args.nki_attn
+-    COMPILE_SDPA_DIRECT = args.compile_sdpa_direct
+-    USE_BF16_NORM_OUTPUT = args.bf16_norm_output
+-    USE_BF16_SDPA_INPUT = args.bf16_sdpa_input
+-    USE_MUON_LR_FP32 = args.muon_lr_fp32
+-    USE_TRANSPOSED_LINEAR = args.transposed_linear
+-    USE_COMPILE_MUON = args.compile_muon
+-    if USE_COMPILE_MUON and USE_NKI_MUON:
+-        USE_NKI_MUON = False
+-        print0('muon step: --compile-muon supersedes --nki-muon (a compiled region cannot contain an nki.jit call); NKI Muon disabled for this run')
++    if args.nki_local_conv != True:
++        parser.error('this submission fixes USE_NKI_LOCAL_CONV=True; the launch flag must agree')
++    if args.ngram_ve != False:
++        parser.error('this submission fixes USE_NGRAM_VE=False; the launch flag must agree')
++    if not 0.0 <= 1.0 <= 1.0:
++        parser.error(f'--byte-wte-init-mix must be in [0, 1], got {1.0}')
++    if args.qk_shift != False:
++        parser.error('this submission fixes USE_QK_SHIFT=False; the launch flag must agree')
++    if not 0.0 < (0.35, 0.75)[0] <= (0.35, 0.75)[1] < 1.0:
++        raise ValueError(f'--batch-ramp-bounds needs 0 < A->B <= B->C < 1, got {(0.35, 0.75)}')
++    if not all((0.0 < d < 1.0 for d in (0.995,))):
++        raise ValueError(f'--weight-ema-decay needs one or more values in (0,1), got {(0.995,)}')
++    if not 0.0 <= 0.75 < 1.0:
++        raise ValueError(f'--weight-ema-start-frac must be in [0,1), got {0.75}')
++    if args.compile_sdpa_direct != True:
++        parser.error('this submission fixes COMPILE_SDPA_DIRECT=True; the launch flag must agree')
++    if args.bf16_norm_output != True:
++        parser.error('this submission fixes USE_BF16_NORM_OUTPUT=True; the launch flag must agree')
+     device_type = detect_device_type(args.device_type)
+-    if USE_NKI_NGRAM_RMS and (device_type != 'neuron' or not _HAS_NKI):
+-        parser.error('--nki-ngram-rms requires a Neuron device and available NKI backend')
+     ddp, rank, _local_rank, world_size, device = init_runtime(device_type, seed=args.seed)
+     global COMPUTE_DTYPE
+@@ -382,7 +57,5 @@
+     print0(f'device={device} dtype={COMPUTE_DTYPE} world_size={world_size}')
+     print0(f'training target={args.num_steps} steps max_seconds={args.max_train_seconds} official_budget={TRAIN_TIME_BUDGET_SECONDS}s')
+-    print0(f'gradient_clip={GRAD_CLIP:g} clip_after_reduce={CLIP_AFTER_REDUCE}')
+-    print0(f'attention: nki_attn={USE_NKI_ATTN} compile_sdpa_direct={COMPILE_SDPA_DIRECT} bf16_sdpa_input={USE_BF16_SDPA_INPUT}')
+-    print0(f'branch_precision: bf16_norm_output={USE_BF16_NORM_OUTPUT} nki_local_conv={USE_NKI_LOCAL_CONV}')
++    print0(f'gradient_clip={GRAD_CLIP:g} clip_after_reduce={True}')
+     if args.num_steps < args.max_train_seconds:
+         print0(f'WARNING: --num-steps {args.num_steps} is below max_train_seconds={args.max_train_seconds}s and will almost certainly stop training before the time budget (the LR schedule would end without cooldown). For a scored submission leave --num-steps at its default ({NUM_STEPS}).')
+@@ -394,15 +67,5 @@
+     model = GPT(config)
+     model.init_weights()
+-    if USE_BYTE_WTE_INIT:
+-        n_ok, n_skip, feats = byte_feature_wte_init(model.transformer.wte.weight, tokenizer, config.vocab_size)
+-        print0(f'byte-wte-init: {n_ok} rows from byte features, {n_skip} left random (mix={BYTE_WTE_INIT_MIX} max_n={BYTE_WTE_INIT_NGRAM} std={BYTE_WTE_INIT_STD} mean_features_per_token={feats:.1f})')
+-    if args.init_from:
+-        warm_start_from(args.init_from, model)
+     model.to(device)
+-    if LOSS_BYTE_WEIGHT:
+-        tb = get_token_bytes('cpu').to(torch.float32)
+-        tb = torch.clamp(tb, min=1.0)
+-        BYTE_LOSS_W = tb / tb.mean()
+-        print0(f'byte-loss-weight: mean_bytes={tb.mean().item():.3f} max_bytes={tb.max().item():.0f} weight_range=({BYTE_LOSS_W.min().item():.3f}, {BYTE_LOSS_W.max().item():.3f})')
+     num_params = sum((p.numel() for p in model.parameters()))
+     flops_per_token = model.estimate_flops()
+@@ -418,24 +81,6 @@
+     grad_accum_steps = TOTAL_BATCH_SIZE // world_tokens_per_micro
+     print0(f'micro_tokens={world_tokens_per_micro:,} grad_accum_steps={grad_accum_steps} pack_factor={PACK_FACTOR}')
+-    if args.compile_only:
+-        synthetic_x = torch.zeros((DEVICE_BATCH_SIZE * PACK_FACTOR, SEQ_LEN), dtype=torch.int32).to(device)
+-        synthetic_y = torch.zeros((DEVICE_BATCH_SIZE * PACK_FACTOR, SEQ_LEN), dtype=torch.long).to(device)
+-        optimizer = model.setup_optimizer()
+-        model.zero_grad(set_to_none=True)
+-        for _ in range(grad_accum_steps):
+-            loss = model(synthetic_x, synthetic_y)
+-            (loss / grad_accum_steps).backward()
+-        clip_main, clip_ngram = split_clip_params(orig_model)
+-        clip_and_sync_gradients(model, clip_main, clip_ngram, max_norm=GRAD_CLIP, clip_after_reduce=CLIP_AFTER_REDUCE, foreach=args.clip_foreach)
+-        optimizer.step()
+-        synchronize(device)
+-        print0('compile-only synthetic training step completed')
+-        cleanup_runtime()
+-        return
+     loader_seq_len = PACK_FACTOR * SEQ_LEN
+-    if USE_EPOCH_SHUFFLE:
+-        train_loader = make_dataloader_requeue(tokenizer, DEVICE_BATCH_SIZE, loader_seq_len, 'train', device, _document_batches_fn=_document_batches_epoch_shuffle)
+-    else:
+-        train_loader = make_dataloader(tokenizer, DEVICE_BATCH_SIZE, loader_seq_len, 'train', device)
++    train_loader = make_dataloader(tokenizer, DEVICE_BATCH_SIZE, loader_seq_len, 'train', device)
+ 
+     def fetch():
+@@ -447,36 +92,6 @@
+     x, y, loader_state = fetch()
+     optimizer = model.setup_optimizer()
+-    grad_flat_buffer = None
+-    if args.grad_bucket:
+-        grad_flat_buffer, _grad_bucket_params = build_flat_grad_buffer(model)
+-        print0(f'grad_bucket enabled: {len(_grad_bucket_params)} params, {grad_flat_buffer.numel():,} floats in one flat fp32 buffer')
+-    adamw_skip_ids: frozenset[int] = frozenset()
+-    if ADAM_EVERY_N > 1:
+-        adamw_skip_ids = optimizer.adamw_param_ids()
+-        if ADAM_EVERY_N_LR_COMP:
+-            for group in optimizer.param_groups:
+-                if group['kind'] == 'adamw':
+-                    group['initial_lr'] = group['initial_lr'] * ADAM_EVERY_N
+-        print0(f'adam_every_n={ADAM_EVERY_N} lr_comp={ADAM_EVERY_N_LR_COMP}: {len(adamw_skip_ids)} AdamW params update every {ADAM_EVERY_N} steps')
+-    cached_linears = [m for m in model.modules() if isinstance(m, Linear)] if USE_WEIGHT_CACHE else []
+-    clip_main_params, clip_ngram_params = split_clip_params(orig_model)
+-    assert not (grad_flat_buffer is not None and clip_ngram_params), '--grad-bucket clips one flat buffer and cannot exclude the n-gram tables; use --no-ngram-ve-clip-exclude to combine them'
+-
+-    def debug_numerics(stage, step_number, loss, inspect_tensors=False):
+-        if step_number >= args.debug_numerics_steps:
+-            return
+-        synchronize(device)
+-        record = dict(rank=rank, step=step_number, stage=stage, loss=None if loss is None else float(loss.item()), timing_valid=False)
+-        if inspect_tensors:
+-            named = [(n, p) for n, p in orig_model.named_parameters() if p.requires_grad]
+-            names = ['param:' + n for n, _ in named]
+-            tensors = [p.detach() for _, p in named]
+-            names += ['grad:' + n for n, p in named if p.grad is not None]
+-            tensors += [p.grad.detach() for _, p in named if p.grad is not None]
+-            flags = torch.stack([torch.isfinite(t).all() for t in tensors]).cpu().tolist()
+-            record['nonfinite'] = [n for n, ok in zip(names, flags) if not ok]
+-            record['missing_gradients'] = [n for n, p in named if p.grad is None]
+-            record['checked_tensors'] = len(tensors)
+-        print('NUMERICS_JSON ' + json.dumps(record), flush=True)
++    cached_linears = [m for m in model.modules() if isinstance(m, Linear)]
++    clip_main_params = list(orig_model.parameters())
+     loop_started = time.monotonic()
+     budget_started = loop_started
+@@ -486,92 +101,30 @@
+     recent_step_times: list[float] = []
+     startup_allowance_est = 0.0
+-    inv_gas_host = torch.empty((), dtype=torch.float32)
+-    inv_gas_dev = torch.zeros((), dtype=torch.float32, device=device)
+     grad_accum_now = grad_accum_steps
+-    ramp_stage_logged = -1
+-    ema_names = [n for n, _ in orig_model.named_parameters()]
+-    ema_live = [p for _, p in orig_model.named_parameters()]
+-    ema_shadows: list[list[torch.Tensor]] | None = None
+-    ema_updates = 0
+-    ema_lerp_ws = [1.0 - d for d in WEIGHT_EMA_DECAYS]
+     while step < args.num_steps:
+         elapsed = time.monotonic() - budget_started
+-        ramp_progress = min(1.0, elapsed / max(1e-06, args.max_train_seconds))
+-        grad_accum_now, batch_lr_scale = batch_ramp_grad_accum(ramp_progress, grad_accum_steps)
+-        if BATCH_RAMP:
+-            inv_gas_host.fill_(1.0 / grad_accum_now)
+-            inv_gas_dev.copy_(inv_gas_host)
+-            stage = batch_ramp_stage(ramp_progress)
+-            if stage != ramp_stage_logged:
+-                ramp_stage_logged = stage
+-                print0(f"batch_ramp: step {step} progress {ramp_progress:.3f} -> stage {'ABC'[stage]} grad_accum={grad_accum_now} tokens={grad_accum_now * world_tokens_per_micro:,} lr_scale={batch_lr_scale:.4f}")
++        grad_accum_now = grad_accum_steps
+         synchronize(device)
+         t0 = time.monotonic()
+-        adam_step_now = (step + 1) % ADAM_EVERY_N == 0
+-        zero_adamw_now = step % ADAM_EVERY_N == 0
+-        if grad_flat_buffer is not None:
+-            grad_flat_buffer.zero_()
+-        elif zero_adamw_now:
+-            optimizer.zero_grad(set_to_none=True)
+-        else:
+-            optimizer.zero_grad_selective(zero_adamw=False)
++        optimizer.zero_grad(set_to_none=True)
+         last_loss = None
+         for micro_index in range(grad_accum_now):
+             loss = model(x, y)
+             last_loss = loss.detach()
+-            debug_numerics(f'micro{micro_index}_forward', step, last_loss)
+-            ((loss * inv_gas_dev if BATCH_RAMP else loss / grad_accum_steps) * LOSS_SCALE).backward()
+-            debug_numerics(f'micro{micro_index}_backward', step, last_loss, inspect_tensors=micro_index + 1 == grad_accum_now)
++            (loss / grad_accum_steps * LOSS_SCALE).backward()
+             x, y, loader_state = fetch()
+-        skip_step = False
+-        unscale_with = LOSS_SCALE
+-        if LOSS_SCALE_DYNAMIC:
+-            finite = grads_finite_(model, grad_flat_buffer)
+-            ov = torch.tensor([0.0 if finite else 1.0], device=device)
+-            if dist.is_available() and dist.is_initialized():
+-                dist.all_reduce(ov, op=dist.ReduceOp.MAX)
+-            new_scale, new_clean, skip_step = loss_scale_transition(LOSS_SCALE, loss_scale_clean, bool(ov[0].item() == 0.0), LOSS_SCALE_GROWTH_INTERVAL, LOSS_SCALE_MAX)
+-            if skip_step:
+-                loss_scale_skips += 1
+-                print0(f'loss-scale: overflow at step {step}, skipping update (scale {LOSS_SCALE:g} -> {new_scale:g}, skips {loss_scale_skips})', flush=True)
+-                if grad_flat_buffer is not None:
+-                    grad_flat_buffer.zero_()
+-                else:
+-                    for p in model.parameters():
+-                        if p.grad is not None:
+-                            p.grad.detach().zero_()
+-            LOSS_SCALE, loss_scale_clean = (new_scale, new_clean)
+-        unscale_grads_(model, grad_flat_buffer, unscale_with)
+-        clip_and_sync_gradients(model, clip_main_params, clip_ngram_params, max_norm=GRAD_CLIP, clip_after_reduce=CLIP_AFTER_REDUCE, grad_flat_buffer=grad_flat_buffer, foreach=args.clip_foreach, skip_param_ids=None if adam_step_now else adamw_skip_ids)
+-        debug_numerics('clip_and_reduce', step, last_loss, inspect_tensors=True)
++        clip_and_sync_gradients(model, clip_main_params, max_norm=GRAD_CLIP)
+         lrm = lr_multiplier(step, elapsed=elapsed, max_train_seconds=args.max_train_seconds)
+         lrm_flat = min(1.0, (step + 1) / max(1, WARMUP_STEPS))
+         wd_progress = min(1.0, elapsed / max(1e-06, args.max_train_seconds))
+-        demon_b1 = demon_beta1_scale(wd_progress)
+-        muon_b2 = muon_beta2(wd_progress)
+         for group in optimizer.param_groups:
+-            group['lr'] = group['initial_lr'] * batch_lr_scale * (lrm_flat if group.get('no_lr_decay') else lrm)
++            group['lr'] = group['initial_lr'] * 1.0 * (lrm_flat if group.get('no_lr_decay') else lrm)
+             if group['kind'] == 'muon':
+                 group['momentum'] = muon_momentum(step, wd_progress)
+-                group['weight_decay'] = WEIGHT_DECAY * (1.0 - wd_progress) if WD_DECAY_TO_ZERO else WEIGHT_DECAY
+-                group['beta2'] = muon_b2
+-            elif group['kind'] == 'adamw' and DEMON_BETA1:
+-                _b1, _b2 = group['initial_betas']
+-                group['betas'] = (_b1 * demon_b1, _b2)
+-        if not skip_step:
+-            optimizer.step(update_adamw=adam_step_now)
+-        debug_numerics('optimizer', step, last_loss, inspect_tensors=True)
+-        if USE_WEIGHT_EMA and ramp_progress >= WEIGHT_EMA_START_FRAC:
+-            with torch.no_grad():
+-                if ema_shadows is None:
+-                    ema_shadows = [[p.detach().clone() for p in ema_live] for _ in ema_lerp_ws]
+-                    print0(f'weight_ema: seeded at step {step} progress {ramp_progress:.3f} decays={WEIGHT_EMA_DECAYS} tensors={len(ema_live)} each')
+-                else:
+-                    for shadow, w in zip(ema_shadows, ema_lerp_ws):
+-                        torch._foreach_lerp_(shadow, ema_live, w)
+-                    ema_updates += 1
++                group['weight_decay'] = WEIGHT_DECAY * (1.0 - wd_progress)
++                group['beta2'] = 0.9
++        optimizer.step(update_adamw=True)
+         for m in cached_linears:
+             m.refresh_weight_cache(COMPUTE_DTYPE)
+-        debug_numerics('weight_cache', step, last_loss)
+         synchronize(device)
+         record_step_boundary(step)
+@@ -625,32 +178,13 @@
+     budget_elapsed_before_save = time.monotonic() - budget_started
+     if rank == 0:
+-        save_checkpoint(checkpoint_path, orig_model, {'step': step, 'total_train_tokens': total_train_tokens, 'budget_elapsed_before_save': budget_elapsed_before_save, 'world_size': world_size, 'compiled': args.compile, 'weight_ema_updates': ema_updates, 'weight_ema_decay': WEIGHT_EMA_DECAYS[0] if ema_shadows is not None else None}, ema_state=weight_ema_state(orig_model, ema_names, ema_shadows[0]) if ema_shadows is not None else None)
++        save_checkpoint(checkpoint_path, orig_model, {'step': step, 'total_train_tokens': total_train_tokens, 'budget_elapsed_before_save': budget_elapsed_before_save, 'world_size': world_size, 'compiled': args.compile, 'weight_ema_updates': 0, 'weight_ema_decay': None})
+     if dist.is_available() and dist.is_initialized():
+         dist.barrier()
+     budget_elapsed_after_save = time.monotonic() - budget_started
+     public_eval = None
+-    public_eval_alt = None
+     causal = None
+     if args.eval_public:
+         causal = causality_check(orig_model, tokenizer, DEVICE_BATCH_SIZE, SEQ_LEN, device)
+         public_eval = evaluate_bpb(orig_model, tokenizer, DEVICE_BATCH_SIZE, SEQ_LEN, device, split='public_val', max_tokens=args.eval_tokens, timeout_seconds=EVAL_TIMEOUT_SECONDS)
+-        if args.eval_seq_len:
+-            public_eval_alt = evaluate_bpb(orig_model, tokenizer, DEVICE_BATCH_SIZE, args.eval_seq_len, device, split='public_val', max_tokens=args.eval_tokens, timeout_seconds=EVAL_TIMEOUT_SECONDS)
+-    ema_evals: list[tuple[float, dict, dict | None]] = []
+-    ema_eval_seconds = 0.0
+-    if args.eval_public and ema_shadows is not None:
+-        ema_eval_started = time.monotonic()
+-        for decay, shadow in zip(WEIGHT_EMA_DECAYS, ema_shadows):
+-            with torch.no_grad():
+-                for p, s in zip(ema_live, shadow):
+-                    p.copy_(s)
+-            for m in cached_linears:
+-                m.refresh_weight_cache(COMPUTE_DTYPE)
+-            main = evaluate_bpb(orig_model, tokenizer, DEVICE_BATCH_SIZE, SEQ_LEN, device, split='public_val', max_tokens=args.eval_tokens, timeout_seconds=EVAL_TIMEOUT_SECONDS)
+-            alt = None
+-            if args.eval_seq_len:
+-                alt = evaluate_bpb(orig_model, tokenizer, DEVICE_BATCH_SIZE, args.eval_seq_len, device, split='public_val', max_tokens=args.eval_tokens, timeout_seconds=EVAL_TIMEOUT_SECONDS)
+-            ema_evals.append((decay, main, alt))
+-        ema_eval_seconds = time.monotonic() - ema_eval_started
+     if rank == 0:
+         print('---')
+@@ -665,18 +199,4 @@
+         print(f'total_seconds:     {time.monotonic() - loop_started:.1f}')
+         print(f'compiled:          {args.compile}')
+-        print(f'nki_relu2:         {args.nki_relu2}')
+-        print(f'nki_rope_norm:     {args.nki_rope_norm}')
+-        print(f'nki_softcap_ce:    {args.nki_softcap_ce}')
+-        print(f'transposed_linear: {USE_TRANSPOSED_LINEAR}')
+-        print(f'nki_muon:          {USE_NKI_MUON}')
+-        print(f'compile_muon:      {USE_COMPILE_MUON}')
+-        print(f'muon_lr_fp32:      {USE_MUON_LR_FP32}')
+-        print(f'ngram_ve:          {args.ngram_ve} tables={len(orig_model.ngram_embeds)} rows={orig_model.ngram_rows} dim={orig_model.ngram_dim} index_gather={NGRAM_VE_INDEX_GATHER} trigram={args.ngram_ve_trigram} opt={args.ngram_ve_opt} flat_lr={args.ngram_ve_flat_lr} bf16={args.ngram_ve_bf16} rms_fp32_state_math={NGRAM_RMS_FP32} nki_rms={USE_NKI_NGRAM_RMS}')
+-        print(f'out_bigram:        {USE_OUT_BIGRAM} bf16={OUT_BIGRAM_BF16} gate_bias={OUT_BIGRAM_GATE_BIAS} lr={OUT_BIGRAM_LR}')
+-        print(f'oneliners:         relu2_tau={RELU2_TAU} mlp_sandwich={USE_MLP_SANDWICH_NORM} head_gate={USE_HEAD_GATE} hg_norm={HEAD_GATE_NORM} hg_ch={HEAD_GATE_CHANNELS} hg_mul={HEAD_GATE_MUL} hg_bias={HEAD_GATE_BIAS} out_pool={USE_OUT_POOL} pool_layers={OUT_POOL_LAYERS} qk_shift={USE_QK_SHIFT} qk_beta={QK_SHIFT_BETA} qk_freeze={QK_SHIFT_FREEZE} x0_gate={USE_X0_GATE} block_nudge={USE_BLOCK_NUDGE} nudge_site={BLOCK_NUDGE_SITE} qkv_norm_cse={USE_QKV_NORM_CSE} parallel_block={USE_PARALLEL_BLOCK} par_coalesce={PARALLEL_BLOCK_COALESCE} epoch_shuffle={USE_EPOCH_SHUFFLE} epoch_shuffle_seed={EPOCH_SHUFFLE_SEED}')
+-        print(f'engram:            {USE_ENGRAM} site={orig_model.engram_site} orders={ENGRAM_ORDERS} heads={ENGRAM_HEADS} tables={(0 if orig_model.engram is None else len(orig_model.engram.tables))} mult={ENGRAM_TABLE_MULT} mem_dim={ENGRAM_MEM_DIM} e_dim={(0 if orig_model.engram is None else orig_model.engram.e_dim)} key_dim={(0 if orig_model.engram is None else orig_model.engram.key_dim)} conv_k={ENGRAM_CONV_KERNEL} share={ENGRAM_SHARE_NGRAM_TABLES} bf16={ENGRAM_BF16}')
+-        print(f'batch_ramp:        {BATCH_RAMP} grad_accum={BATCH_RAMP_GRAD_ACCUM} bounds={BATCH_RAMP_BOUNDS} lr_exp={BATCH_RAMP_LR_EXP} ref_grad_accum={grad_accum_steps} last_grad_accum={grad_accum_now}')
+-        print(f'weight_ema:        {USE_WEIGHT_EMA} decays={WEIGHT_EMA_DECAYS} start_frac={WEIGHT_EMA_START_FRAC} seeded={ema_shadows is not None} updates={ema_updates}')
+-        print(f'sched_tricks:      demon_b1={DEMON_BETA1} demon_final={DEMON_BETA1_FINAL} demon_ref={DEMON_BETA1_REF} demon_start={DEMON_BETA1_START_FRAC} muon_b2={MUON_BETA2} muon_b2_final={MUON_BETA2_FINAL} depth_lr={MUON_DEPTH_LR_BOTTOM}->{MUON_DEPTH_LR_TOP} depth_mom={MUON_DEPTH_MOM_BOTTOM}->{MUON_DEPTH_MOM_TOP} depth_mom_ref={MUON_DEPTH_MOM_REF}')
+         print(f'num_steps:         {step}')
+         print(f'total_tokens_M:    {total_train_tokens / 1000000.0:.1f}')
+@@ -693,17 +213,3 @@
+             print(f"eval_timeout:      {public_eval['eval_timeout']}")
+             print(f"eval_over_timeout: {public_eval['eval_over_timeout']}")
+-        if public_eval_alt is not None:
+-            print(f'eval_alt_seq_len:  {args.eval_seq_len}')
+-            print(f"public_val_bpb_alt: {public_eval_alt['val_bpb']:.6f}")
+-            print(f"eval_alt_seconds:  {public_eval_alt['eval_seconds']:.1f}")
+-        if ema_evals:
+-            primary_decay, primary, primary_alt = ema_evals[0]
+-            print(f"public_val_bpb_ema: {primary['val_bpb']:.6f}")
+-            print(f"ema_delta:         {primary['val_bpb'] - public_eval['val_bpb']:+.6f}")
+-            print(f'eval_ema_seconds:  {ema_eval_seconds:.1f}')
+-            if primary_alt is not None:
+-                print(f"public_val_bpb_ema_alt: {primary_alt['val_bpb']:.6f}")
+-                print(f"ema_delta_alt:     {primary_alt['val_bpb'] - public_eval_alt['val_bpb']:+.6f}")
+-            arms = ' '.join((f"{d}={m['val_bpb']:.6f}/{m['val_bpb'] - public_eval['val_bpb']:+.6f}" + (f"|{a['val_bpb']:.6f}/{a['val_bpb'] - public_eval_alt['val_bpb']:+.6f}" if a is not None else '') for d, m, a in ema_evals))
+-            print(f"weight_ema_arms:   raw={public_eval['val_bpb']:.6f}" + (f"|{public_eval_alt['val_bpb']:.6f}" if public_eval_alt is not None else '') + f' {arms}')
+     cleanup_runtime()

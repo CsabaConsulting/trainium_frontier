@@ -1,0 +1,10 @@
+--- original
++++ lean
+@@ -1,6 +1,4 @@
+-def save_checkpoint(path: Path, model: GPT, meta: dict, ema_state: dict | None=None) -> None:
++def save_checkpoint(path: Path, model: GPT, meta: dict) -> None:
+     path.parent.mkdir(parents=True, exist_ok=True)
+     payload = {'model_state': {k: v.detach().cpu() for k, v in model.state_dict().items()}, 'model_config': asdict(model.config), 'toggles': current_toggles(), 'meta': meta}
+-    if ema_state is not None:
+-        payload['ema_state'] = {k: v.detach().cpu() for k, v in ema_state.items()}
+     torch.save(payload, path)

@@ -1,0 +1,81 @@
+--- original
++++ lean
+@@ -3,5 +3,5 @@
+     def __init__(self, config: GPTConfig, layer_idx: int=0):
+         super().__init__()
+-        self.coalesced = PARALLEL_BLOCK_COALESCE if USE_PARALLEL_BLOCK else 'none'
++        self.coalesced = 'none'
+         self.attn = CausalSelfAttention(config, layer_idx, coalesced=self.coalesced)
+         self.mlp = MLP(config, coalesced=self.coalesced)
+@@ -14,65 +14,13 @@
+         self.resid_lambda = nn.Parameter(torch.ones(1))
+         self.x0_lambda = nn.Parameter(torch.zeros(1))
+-        self.x0_gate_s = nn.Parameter(torch.zeros(1)) if USE_X0_GATE else None
+-        self.block_nudge = nn.Parameter(torch.zeros(1), requires_grad=False) if USE_BLOCK_NUDGE else None
+-        if USE_PARALLEL_BLOCK:
+-            self.par_lambda_a = nn.Parameter(torch.ones(1))
+-            self.par_lambda_m = nn.Parameter(torch.ones(1))
+-        else:
+-            self.par_lambda_a = self.par_lambda_m = None
+-        self.local_conv = CausalConv(config.n_embd, LOCAL_CONV_KERNEL) if USE_LOCAL_CONV else None
+-        self.scalar_gate = Linear(SELECTIVE_GATE_CHANNELS, 2, bias=False) if USE_SELECTIVE_GATE else None
+-        self.qk_shift_beta = nn.Parameter(torch.full((config.n_embd,), float(QK_SHIFT_BETA)), requires_grad=not QK_SHIFT_FREEZE) if USE_QK_SHIFT else None
++        self.local_conv = CausalConv(config.n_embd, LOCAL_CONV_KERNEL)
+ 
+-    def forward(self, x: torch.Tensor, x0: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, attn_mask: torch.Tensor | None, ve_bi: torch.Tensor | None=None, ve_tri: torch.Tensor | None=None) -> torch.Tensor:
+-        if self.scalar_gate is not None:
+-            g = self.scalar_gate(x[..., :SELECTIVE_GATE_CHANNELS])
+-            resid_lambda = self.resid_lambda * (1.0 + g[..., 0:1])
+-            x0_lambda = self.x0_lambda * (1.0 + g[..., 1:2])
+-            x = resid_lambda * x + x0_lambda * x0
+-        elif self.x0_gate_s is not None:
+-            gate0 = 2.0 * torch.sigmoid(self.x0_gate_s * x.mean(dim=-1, keepdim=True))
+-            x = self.resid_lambda * x + self.x0_lambda * (gate0 * x0)
+-        else:
+-            x = self.resid_lambda * x + self.x0_lambda * x0
+-        if self.block_nudge is not None and BLOCK_NUDGE_SITE == 'resid':
+-            x = x + self.block_nudge * x
++    def forward(self, x: torch.Tensor, x0: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor) -> torch.Tensor:
++        x = self.resid_lambda * x + self.x0_lambda * x0
+         q_in = k_in = v_in = x
+-        if self.block_nudge is not None and BLOCK_NUDGE_SITE == 'qk':
+-            q_in = k_in = x + self.block_nudge * x
+-        if self.qk_shift_beta is not None:
+-            q_in = k_in = x + self.qk_shift_beta * causal_shift_1(x)
+         if self.local_conv is not None:
+             x = x + self.local_conv(norm(x))
+-        if self.par_lambda_a is not None:
+-            h = norm(x)
+-            qkv = fc = None
+-            if self.c_in is not None:
+-                b, t, c = h.shape
+-                nh, hd = (self.attn.n_head, self.attn.head_dim)
+-                proj = self.c_in(h)
+-                if self.coalesced == 'all':
+-                    q = proj[..., :c].contiguous().view(b, t, nh, hd)
+-                    k = proj[..., c:2 * c].contiguous().view(b, t, nh, hd)
+-                    v = proj[..., 2 * c:3 * c].view(b, t, nh, hd)
+-                    fc = proj[..., 3 * c:]
+-                else:
+-                    q = k = None
+-                    v = proj[..., :c].view(b, t, nh, hd)
+-                    fc = proj[..., c:]
+-                qkv = (q, k, v)
+-            attn_out = self.attn(h, h, h, ve, cos, sin, attn_mask, ve_bi, ve_tri, qkv=qkv)
+-            x = x + self.par_lambda_a * attn_out + self.par_lambda_m * self.mlp(h, fc=fc)
+-            return x
+-        if USE_QKV_NORM_CSE and q_in is k_in and (k_in is v_in):
+-            qkv_n = norm(q_in)
+-            attn_out = self.attn(qkv_n, qkv_n, qkv_n, ve, cos, sin, attn_mask, ve_bi, ve_tri)
+-            x = x + attn_out
+-        else:
+-            attn_out = self.attn(norm(q_in), norm(k_in), norm(v_in), ve, cos, sin, attn_mask, ve_bi, ve_tri)
+-            x = x + attn_out
+-        if USE_MLP_SANDWICH_NORM:
+-            x = x + norm(self.mlp(norm(x)))
+-        else:
+-            x = x + self.mlp(norm(x))
++        attn_out = self.attn(norm(q_in), norm(k_in), norm(v_in), ve, cos, sin)
++        x = x + attn_out
++        x = x + self.mlp(norm(x))
+         return x

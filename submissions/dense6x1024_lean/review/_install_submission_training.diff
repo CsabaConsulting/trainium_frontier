@@ -1,0 +1,22 @@
+--- original
++++ lean
+@@ -10,7 +10,7 @@
+         nonlocal ce_installed
+         original_init(model)
+-        assert USE_BF16_NORM_OUTPUT and COMPUTE_DTYPE == torch.bfloat16
++        assert COMPUTE_DTYPE == torch.bfloat16
+         before_rng = torch.get_rng_state().clone()
+-        _submission_mlp_install(model, 'neuron', module, forward_backend='native')
++        _submission_mlp_install(model, 'neuron', module)
+         if not ce_installed:
+             _submission_ce_install(module)
+@@ -21,8 +21,6 @@
+     def setup_optimizer(model, *args, **kwargs):
+         optimizer = original_setup_optimizer(model, *args, **kwargs)
+-        assert USE_FOREACH_OPTIM and USE_TENSOR_LR_SCALARS
+-        assert not USE_CAUTIOUS_WD
+         assert dist.is_initialized() and dist.get_world_size() == 4
+-        ownership = _submission_optimizer_install(optimizer, module, pad_singleton_muon=True)
++        ownership = _submission_optimizer_install(optimizer, module)
+         print('SUBMISSION_OPTIMIZER_INTEGRATION ' + json.dumps(dict(owner_partitioning=True, rank=dist.get_rank(), **ownership.summary)), flush=True)
+         return optimizer

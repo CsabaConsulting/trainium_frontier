@@ -1,0 +1,10 @@
+--- original
++++ lean
+@@ -1,5 +1,6 @@
+ def apply_rotary_emb(x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor) -> torch.Tensor:
+     d = x.shape[-1] // 2
+-    x1, x2 = (x[..., :d], x[..., d:])
++    x1 = x[..., :d]
++    x2 = x[..., d:]
+     y1 = x1 * cos + x2 * sin
+     y2 = x1 * -sin + x2 * cos

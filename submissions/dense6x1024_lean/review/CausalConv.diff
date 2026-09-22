@@ -1,0 +1,9 @@
+--- original
++++ lean
+@@ -9,5 +9,5 @@
+ 
+     def forward(self, x: torch.Tensor) -> torch.Tensor:
+-        if USE_NKI_LOCAL_CONV and x.device.type == 'neuron' and (x.dtype in (torch.float32, torch.bfloat16)) and (self.kernel_size == 2) and (x.shape[1] % 128 == 0) and (x.shape[2] % 128 == 0):
++        if x.device.type == 'neuron' and x.dtype in (torch.float32, torch.bfloat16) and (self.kernel_size == 2) and (x.shape[1] % 128 == 0) and (x.shape[2] % 128 == 0):
+             if not _HAS_NKI:
+                 raise RuntimeError('--nki-local-conv requires the installed native NKI stack')

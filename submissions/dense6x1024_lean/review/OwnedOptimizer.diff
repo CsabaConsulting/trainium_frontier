@@ -1,0 +1,16 @@
+--- original
++++ lean
+@@ -1,5 +1,5 @@
+ class OwnedOptimizer:
+ 
+-    def __init__(self, optimizer, pad_singleton_muon=False):
++    def __init__(self, optimizer):
+         if not dist.is_initialized():
+             raise ValueError('optimizer ownership requires an initialized process group')
+@@ -7,5 +7,5 @@
+             raise ValueError('install ownership before the first update; use its checkpoint loader to resume')
+         self.optimizer = optimizer
+-        self.pad_singleton_muon = bool(pad_singleton_muon)
++        self.pad_singleton_muon = bool(True)
+         self.rank, self.world_size = (dist.get_rank(), dist.get_world_size())
+         self.entries, self.parameters, self.summary = make_plan(optimizer.param_groups, self.world_size)

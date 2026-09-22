@@ -1,0 +1,26 @@
+--- original
++++ lean
+@@ -15,9 +15,5 @@
+     per-token losses unweighted.
+     """
+-    weight = None
+-    if loss_reduction == 'mean' and LOSS_BYTE_WEIGHT and (BYTE_LOSS_W is not None):
+-        weight = BYTE_LOSS_W.to(device=logits.device, dtype=torch.float32)[targets.reshape(-1)]
+-        loss_reduction = 'none'
+-    if USE_NKI_SOFTCAP_CE and _HAS_NKI and (logits.device.type == 'neuron') and (loss_reduction in ('mean', 'none')) and (logits.dtype == torch.float32) and logits.is_contiguous():
++    if _HAS_NKI and logits.device.type == 'neuron' and (loss_reduction in ('mean', 'none')) and (logits.dtype == torch.float32) and logits.is_contiguous():
+         z = logits.reshape(-1, logits.shape[-1])
+         if z.shape[0] % _NKI_PARTITION == 0:
+@@ -28,6 +24,4 @@
+             else:
+                 out = per_token.mean()
+-            if weight is not None:
+-                return (out.reshape(-1) * weight).sum() / weight.sum()
+             return out
+     capped = LOGIT_SOFTCAP * torch.tanh(logits / LOGIT_SOFTCAP)
+@@ -37,5 +31,3 @@
+     else:
+         out = loss
+-    if weight is not None:
+-        return (out.reshape(-1) * weight).sum() / weight.sum()
+     return out

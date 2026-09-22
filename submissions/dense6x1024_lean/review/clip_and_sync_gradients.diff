@@ -1,0 +1,33 @@
+--- original
++++ lean
+@@ -1,3 +1,3 @@
+-def clip_and_sync_gradients(model: nn.Module, clip_main_params: list[torch.nn.Parameter], clip_ngram_params: list[torch.nn.Parameter], *, max_norm: float, clip_after_reduce: bool=False, grad_flat_buffer: torch.Tensor | None=None, foreach: bool | None=None, skip_param_ids: frozenset[int] | None=None) -> None:
++def clip_and_sync_gradients(model: nn.Module, clip_main_params: list[torch.nn.Parameter], *, max_norm: float) -> None:
+     """Apply the selected clipping order, preserving the separate n-gram norm.
+ 
+@@ -6,22 +6,5 @@
+     deferred Adam gradients would mix local and averaged quantities in the same norm.
+     """
+-    if clip_after_reduce and skip_param_ids:
+-        raise ValueError('clip-after-reduce requires all gradients to be reduced every step')
+-    if grad_flat_buffer is not None and clip_ngram_params:
+-        raise ValueError('a flat gradient buffer cannot represent separate n-gram clipping')
+-    if grad_flat_buffer is not None:
+-        if clip_after_reduce:
+-            sync_gradients_flat(grad_flat_buffer)
+-        if max_norm > 0:
+-            clip_grad_norm_flat_(grad_flat_buffer, max_norm)
+-        if not clip_after_reduce:
+-            sync_gradients_flat(grad_flat_buffer)
+-    else:
+-        if clip_after_reduce:
+-            sync_gradients(model)
+-        if max_norm > 0:
+-            torch.nn.utils.clip_grad_norm_(clip_main_params, max_norm, foreach=foreach)
+-            if clip_ngram_params:
+-                torch.nn.utils.clip_grad_norm_(clip_ngram_params, max_norm, foreach=foreach)
+-        if not clip_after_reduce:
+-            sync_gradients(model, skip_param_ids=skip_param_ids)
++    sync_gradients(model)
++    if max_norm > 0:
++        torch.nn.utils.clip_grad_norm_(clip_main_params, max_norm, foreach=None)

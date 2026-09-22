@@ -1,0 +1,13 @@
+--- original
++++ lean
+@@ -1,8 +1,6 @@
+-def _submission_optimizer_install(optimizer, train_module, pad_singleton_muon=False):
+-    if not train_module.USE_FOREACH_OPTIM or not train_module.USE_TENSOR_LR_SCALARS:
+-        raise ValueError('ownership gate requires the current foreach/runtime-scalar policy')
++def _submission_optimizer_install(optimizer, train_module):
+     if hasattr(optimizer, '_fresh_start_owned'):
+         raise ValueError('ownership already installed')
+-    adapter = OwnedOptimizer(optimizer, pad_singleton_muon=pad_singleton_muon)
++    adapter = OwnedOptimizer(optimizer)
+     optimizer._fresh_start_owned = adapter
+     optimizer.step = MethodType(lambda self, update_adamw=True: adapter.step(update_adamw), optimizer)

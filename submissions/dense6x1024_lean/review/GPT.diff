@@ -1,0 +1,339 @@
+--- original
++++ lean
+@@ -7,50 +7,8 @@
+         self.transformer = nn.ModuleDict({'wte': nn.Embedding(padded_vocab_size, config.n_embd), 'h': nn.ModuleList([Block(config, i) for i in range(config.n_layer)])})
+         self.lm_head = Linear(config.n_embd, padded_vocab_size, bias=False)
+-        self.value_embeds = nn.ModuleDict({str(i): nn.Embedding(padded_vocab_size, config.n_embd) for i in range(config.n_layer) if USE_VE and has_ve(i, config.n_layer)})
+-        self.ngram_rows = NGRAM_VE_TABLE_MULT * padded_vocab_size
+-        self.ngram_mod = _largest_prime_below(self.ngram_rows)
+-        ngram_dtype = torch.bfloat16 if NGRAM_VE_BF16 else torch.float32
+-        self.ngram_dim = NGRAM_VE_DIM if NGRAM_VE_DIM > 0 else config.n_embd
+-
+-        def _table() -> nn.Embedding:
+-            return nn.Embedding(self.ngram_rows, self.ngram_dim, _weight=torch.zeros(self.ngram_rows, self.ngram_dim, dtype=ngram_dtype))
+-        tables: dict[str, nn.Module] = {}
+-        for i in range(config.n_layer):
+-            if has_ngram_bigram(i, config.n_layer):
+-                tables[f'b{i}'] = _table()
+-            if has_ngram_trigram(i, config.n_layer):
+-                tables[f't{i}'] = _table()
+-        self.ngram_embeds = nn.ModuleDict(tables)
+-        self.ngram_proj = nn.ModuleDict({k: _rng_neutral(lambda: Linear(self.ngram_dim, config.n_embd, bias=False)) for k in tables} if self.ngram_dim != config.n_embd else {})
+-        self.ngram_pad_id = padded_vocab_size
+-        self.engram_site = engram_site_index(config.n_layer) if USE_ENGRAM else -1
+-        self.engram_share_keys: tuple[str, ...] = ()
+-        if USE_ENGRAM:
+-            share_e_dim = None
+-            if ENGRAM_SHARE_NGRAM_TABLES:
+-                self.engram_share_keys = tuple((k for k in self.ngram_embeds if int(k[1:]) <= self.engram_site))
+-                assert self.engram_share_keys, f'ENGRAM_SHARE_NGRAM_TABLES needs an n-gram table at or before layer {self.engram_site}; have {list(self.ngram_embeds)}'
+-                share_e_dim = self.ngram_dim * len(self.engram_share_keys)
+-            self.engram = EngramLite(config, padded_vocab_size, share_e_dim)
+-        else:
+-            self.engram = None
+-        if USE_OUT_BIGRAM:
+-            ob_dtype = torch.bfloat16 if OUT_BIGRAM_BF16 else torch.float32
+-            self.out_bigram = nn.Embedding(padded_vocab_size, padded_vocab_size, _weight=torch.zeros(padded_vocab_size, padded_vocab_size, dtype=ob_dtype))
+-            self.out_bigram_gate = _rng_neutral(lambda: Linear(config.n_embd, 1, bias=False))
+-            self.out_bigram_gate_bias = nn.Parameter(torch.full((1,), float(OUT_BIGRAM_GATE_BIAS)))
+-        else:
+-            self.out_bigram = None
+-            self.out_bigram_gate = None
+-            self.out_bigram_gate_bias = None
+-        self.out_pool_lambdas = nn.Parameter(torch.zeros(min(OUT_POOL_LAYERS, config.n_layer))) if USE_OUT_POOL else None
++        self.value_embeds = nn.ModuleDict({str(i): nn.Embedding(padded_vocab_size, config.n_embd) for i in range(config.n_layer) if i % 2 == (config.n_layer - 1) % 2})
+         cos, sin = self._precompute_rotary_embeddings(config.sequence_len, config.n_embd // config.n_head)
+         self.register_buffer('cos', cos, persistent=False)
+         self.register_buffer('sin', sin, persistent=False)
+-        pattern = (WINDOW_PATTERN * (config.n_layer // max(1, len(WINDOW_PATTERN)) + 1))[:config.n_layer]
+-        self.layer_is_short = [c == 'S' for c in pattern]
+-        short_window = max(1, int(config.sequence_len * SHORT_WINDOW_FRAC))
+-        self.register_buffer('mask_full', _build_window_mask(config.sequence_len, config.sequence_len, torch.float32), persistent=False)
+-        self.register_buffer('mask_short', _build_window_mask(config.sequence_len, short_window, torch.float32), persistent=False)
+ 
+     @torch.no_grad()
+@@ -72,142 +30,22 @@
+                     torch.nn.init.uniform_(block.c_in.weight[:n], -s, s)
+                     fc_rows = block.c_in.weight[n:]
+-            elif USE_FUSED_QKV:
+-                n = self.config.n_embd
+-                torch.nn.init.uniform_(block.attn.c_qkv.weight[:n], -s, s)
+-                torch.nn.init.uniform_(block.attn.c_qkv.weight[n:2 * n], -s, s)
+-                torch.nn.init.uniform_(block.attn.c_qkv.weight[2 * n:], -s, s)
+             else:
+                 torch.nn.init.uniform_(block.attn.c_q.weight, -s, s)
+                 torch.nn.init.uniform_(block.attn.c_k.weight, -s, s)
+                 torch.nn.init.uniform_(block.attn.c_v.weight, -s, s)
+-            if ATTN_CPROJ_INIT_SCALE > 0.0:
+-                b = ATTN_CPROJ_INIT_SCALE * s
+-                torch.nn.init.uniform_(block.attn.c_proj.weight, -b, b)
+-            else:
+-                torch.nn.init.zeros_(block.attn.c_proj.weight)
++            b = ATTN_CPROJ_INIT_SCALE * s
++            torch.nn.init.uniform_(block.attn.c_proj.weight, -b, b)
+             torch.nn.init.uniform_(block.mlp.c_fc.weight if block.c_in is None else fc_rows, -0.4 * s, 0.4 * s)
+-            if block.mlp.c_gate is not None:
+-                torch.nn.init.uniform_(block.mlp.c_gate.weight, -0.4 * s, 0.4 * s)
+             torch.nn.init.zeros_(block.mlp.c_proj.weight)
+             if block.resid_lambda is not None:
+                 block.resid_lambda.fill_(1.0)
+                 block.x0_lambda.fill_(0.05)
+-            if block.par_lambda_a is not None:
+-                block.par_lambda_a.fill_(1.0)
+-                block.par_lambda_m.fill_(1.0)
+             if block.attn.ve_gate is not None:
+                 torch.nn.init.zeros_(block.attn.ve_gate.weight)
+-            for g in (block.attn.ve_gate_bi, block.attn.ve_gate_tri):
+-                if g is not None:
+-                    torch.nn.init.zeros_(g.weight)
+-            if block.scalar_gate is not None:
+-                torch.nn.init.zeros_(block.scalar_gate.weight)
+         for ve in self.value_embeds.values():
+             torch.nn.init.uniform_(ve.weight, -s, s)
+-        for tbl in self.ngram_embeds.values():
+-            torch.nn.init.zeros_(tbl.weight)
+-        for proj in self.ngram_proj.values():
+-            torch.nn.init.uniform_(proj.weight, -s, s)
+-        if self.engram is not None:
+-            for tbl in self.engram.tables.values():
+-                torch.nn.init.zeros_(tbl.weight)
+-            for lin in (self.engram.w_k, self.engram.w_v, self.engram.w_q):
+-                if lin is not None:
+-                    torch.nn.init.uniform_(lin.weight, -s, s)
+-            if self.engram.conv is not None:
+-                torch.nn.init.zeros_(self.engram.conv.weight)
+-        if self.out_bigram is not None:
+-            torch.nn.init.zeros_(self.out_bigram.weight)
+-            torch.nn.init.zeros_(self.out_bigram_gate.weight)
+-        if self.out_pool_lambdas is not None:
+-            torch.nn.init.zeros_(self.out_pool_lambdas)
+-        for block in self.transformer.h:
+-            if block.attn is not None and block.attn.head_gate is not None:
+-                torch.nn.init.zeros_(block.attn.head_gate.weight)
+         cos, sin = self._precompute_rotary_embeddings(self.config.sequence_len, self.config.n_embd // self.config.n_head)
+         self.cos.copy_(cos)
+         self.sin.copy_(sin)
+-        if USE_TRANSPOSED_LINEAR:
+-            n_t = transpose_linear_weights(self)
+-            print0(f'T1.6: transposed {n_t} Linear weights to [in, out] layout')
+-
+-    def _ngram_hash_indices(self, idx: torch.Tensor) -> dict[str, torch.Tensor]:
+-        """T3.1: per-table gather indices for the hashed n-gram value embeddings.
+-
+-        STRICTLY CAUSAL: index[b, t] is a function of idx[b, t], idx[b, t-1] and (for the
+-        trigram tables) idx[b, t-2] only, so no position can ever read a later one --
+-        which is why causality_check stays at exactly 0.0 with this on.
+-
+-        DETERMINISTIC: a pure function of the token ids and of compile-time prime
+-        constants (NGRAM_HASH_PRIMES, built once at import by a sieve, and self.ngram_mod).
+-        No RNG, no dependence on dict/iteration order, no per-step-changing scalar -- the
+-        same token pair maps to the same row on every step, every rank and every process.
+-
+-        Computed on DEVICE rather than on the host in fetch(): every operand is int32 and
+-        every op (mul by a compile-time constant, bitwise_xor, remainder) is elementwise on
+-        a [b, T] tensor, i.e. ~5 tiny launches per table against the 168 MB gather the row
+-        lookup itself costs. The plan's host-side fallback (numpy int64 in fetch() plus an
+-        extra H2D copy per micro-step) exists if these int ops ever stop compiling, but it
+-        also has to thread an extra tensor through forward()/eval/load_for_eval, so it is
+-        only worth paying for if measured to be necessary.
+-        """
+-        cur = idx.to(torch.int32)
+-        pad = torch.full_like(cur[:, :1], self.ngram_pad_id)
+-        prev = torch.cat((pad, cur[:, :-1]), dim=1)
+-        need_trigram = any((k.startswith('t') for k in self.ngram_embeds))
+-        engram_keys = tuple(self.engram.tables) if self.engram is not None else ()
+-        need_trigram = need_trigram or any((k.endswith('o3') for k in engram_keys))
+-        prev2 = torch.cat((pad, pad, cur[:, :-2]), dim=1) if need_trigram else None
+-        out: dict[str, torch.Tensor] = {}
+-        for key in engram_keys:
+-            head_idx, order = (int(key[1:key.index('o')]), int(key[key.index('o') + 1:]))
+-            primes = engram_hash_primes(head_idx, order)
+-            if order == 2:
+-                h = torch.bitwise_xor(prev * primes[0], cur * primes[1])
+-            else:
+-                h = torch.bitwise_xor(torch.bitwise_xor(prev2 * primes[0], prev * primes[1]), cur * primes[2])
+-            out[key] = torch.remainder(h, self.engram.mod)
+-        for key in self.ngram_embeds:
+-            layer = int(key[1:])
+-            if key[0] == 'b':
+-                p_prev, p_cur = ngram_bigram_primes(layer)
+-                h = torch.bitwise_xor(prev * p_prev, cur * p_cur)
+-            else:
+-                p_prev2, p_prev, p_cur = ngram_trigram_primes(layer)
+-                h = torch.bitwise_xor(torch.bitwise_xor(prev2 * p_prev2, prev * p_prev), cur * p_cur)
+-            out[key] = torch.remainder(h, self.ngram_mod)
+-        return out
+-
+-    def _ngram_lookup(self, key: str, rows: torch.Tensor, raw_out: dict[str, torch.Tensor] | None=None) -> torch.Tensor:
+-        """One table's contribution to v, at full n_embd width, in COMPUTE_DTYPE.
+-
+-        With NGRAM_VE_DIM=0 (default) this is the plain gather. With a narrow table it is
+-        the gather followed by that table's own up-projection -- kept in one place so the
+-        forward loop reads the same either way and the two paths cannot drift apart.
+-
+-        NGRAM_VE_INDEX_GATHER picks HOW the gather is spelled. The two spellings are
+-        numerically identical (both are a row gather whose backward scatter-adds into a
+-        dense [rows, dim] grad), but they lower to completely different backward kernels on
+-        this stack, and the difference decides whether T3.1 is affordable at all
+-        (research/run-logs/embed-gather-bench.log, best-of-5 fwd+bwd, b=4 t=2048):
+-
+-            rows    dim   nn.Embedding   index_select   weight[idx]
+-             8192   640        3.18ms         5.12ms       5.20ms
+-            65536   640       19.39ms         5.20ms       5.21ms
+-            65536   128       19.09ms         1.88ms       1.80ms
+-           262144   128       72.49ms        72.43ms       2.21ms
+-
+-        The forward is ~0.25ms at EVERY shape, so `aten::embedding_dense_backward` is the
+-        entire cost, and it is linear in the table's ROW COUNT while being independent of
+-        its width -- i.e. it touches the whole table, not just the rows that were read.
+-        Advanced indexing is the only spelling that stays cheap at every shape.
+-        """
+-        tbl = self.ngram_embeds[key].weight
+-        out = (tbl[rows] if NGRAM_VE_INDEX_GATHER else self.ngram_embeds[key](rows)).to(COMPUTE_DTYPE)
+-        if raw_out is not None:
+-            raw_out[key] = out
+-        if key in self.ngram_proj:
+-            out = self.ngram_proj[key](out)
+-        return out
+ 
+     def _precompute_rotary_embeddings(self, seq_len: int, head_dim: int, base: int=ROPE_BASE):
+@@ -221,16 +59,8 @@
+         return (cos, sin)
+ 
+-    def get_device(self) -> torch.device:
+-        return self.transformer.wte.weight.device
+-
+     def estimate_flops(self) -> int:
+         """Estimate FLOPs per token (forward + backward). Attention QK^T and AV are O(T) per token."""
+         nparams = sum((p.numel() for p in self.parameters()))
+         non_matmul = self.transformer.wte.weight.numel() + 2 * self.config.n_layer
+-        non_matmul += sum((p.numel() for p in self.ngram_embeds.parameters()))
+-        if self.engram is not None:
+-            non_matmul += sum((p.numel() for p in self.engram.tables.parameters()))
+-        if self.out_bigram is not None:
+-            non_matmul += self.out_bigram.weight.numel()
+         h = self.config.n_head
+         d = self.config.n_embd // self.config.n_head
+@@ -243,5 +73,4 @@
+         matrix_params = []
+         local_conv_params = []
+-        gate_params = []
+         for block in self.transformer.h:
+             if block.local_conv is not None:
+@@ -249,26 +78,8 @@
+             if block.resid_lambda is not None:
+                 scalar_params.extend([block.resid_lambda, block.x0_lambda])
+-            if block.x0_gate_s is not None:
+-                scalar_params.append(block.x0_gate_s)
+-            if block.par_lambda_a is not None:
+-                scalar_params.extend([block.par_lambda_a, block.par_lambda_m])
+-            if block.qk_shift_beta is not None and block.qk_shift_beta.requires_grad:
+-                gate_params.append(block.qk_shift_beta)
+-            if block.attn.head_gate is not None:
+-                gate_params.append(block.attn.head_gate_bias)
+             matrix_params.extend((p for name, p in block.attn.named_parameters() if name != 'head_gate_bias'))
+             matrix_params.extend(block.mlp.parameters())
+             if block.c_in is not None:
+                 matrix_params.append(block.c_in.weight)
+-        matrix_params.extend((p.weight for p in self.ngram_proj.values()))
+-        engram_conv_params = []
+-        if self.engram is not None:
+-            matrix_params.extend((lin.weight for lin in (self.engram.w_k, self.engram.w_v, self.engram.w_q) if lin is not None))
+-            if self.engram.conv is not None:
+-                engram_conv_params.append(self.engram.conv.weight)
+-        if self.out_pool_lambdas is not None:
+-            scalar_params.append(self.out_pool_lambdas)
+-        if self.out_bigram is not None:
+-            gate_params.extend([self.out_bigram_gate.weight, self.out_bigram_gate_bias])
+         for p in scalar_params:
+             if p.ndim > 1:
+@@ -279,36 +90,15 @@
+         dmodel_lr_scale = (self.config.n_embd / 768) ** (-0.5)
+         param_groups = [dict(kind='adamw', params=embedding_params, lr=EMBEDDING_LR * dmodel_lr_scale, betas=(0.8, EMBED_ADAMW_BETA2), eps=1e-10, weight_decay=0.001), dict(kind='adamw', params=lm_head_params, lr=UNEMBEDDING_LR * dmodel_lr_scale, betas=(0.8, 0.96), eps=1e-10, weight_decay=0.01), dict(kind='adamw', params=scalar_params, lr=SCALAR_LR, betas=(SCALAR_BETA1, SCALAR_BETA2), eps=1e-10, weight_decay=0.0)]
+-        if gate_params:
+-            param_groups.append(dict(kind='adamw', params=gate_params, lr=MATRIX_LR, betas=(0.9, 0.95), eps=1e-10, weight_decay=0.0))
+         if value_embed_params:
+-            param_groups.append(dict(kind='adamw', params=value_embed_params, lr=EMBEDDING_LR * dmodel_lr_scale, betas=(0.8, EMBED_ADAMW_BETA2), eps=1e-10, weight_decay=VE_WD))
+-        ngram_params = list(self.ngram_embeds.parameters())
+-        if self.engram is not None:
+-            ngram_params.extend(self.engram.tables.parameters())
+-        if ngram_params:
+-            ngram_lr = (NGRAM_VE_LR if NGRAM_VE_LR > 0.0 else EMBEDDING_LR) * dmodel_lr_scale
+-            rmsprop = NGRAM_VE_OPT == 'rmsprop'
+-            param_groups.append(dict(kind='rmsprop' if rmsprop else 'adamw', params=ngram_params, lr=ngram_lr, betas=(0.0, NGRAM_VE_BETA2) if rmsprop else (0.8, EMBED_ADAMW_BETA2), eps=1e-10, weight_decay=0.0, no_lr_decay=NGRAM_VE_FLAT_LR))
+-            if rmsprop:
+-                table_dtypes = sorted({str(p.dtype) for p in ngram_params})
+-                math_dtypes = ['torch.float32'] if NGRAM_RMS_FP32 else table_dtypes
+-                print0(f'ngram_rmsprop: fp32_state_math={NGRAM_RMS_FP32} nki={USE_NKI_NGRAM_RMS} parameter_gradient_dtypes={table_dtypes} state_math_dtypes={math_dtypes}')
+-        if self.out_bigram is not None:
+-            param_groups.append(dict(kind='adamw', params=[self.out_bigram.weight], lr=(OUT_BIGRAM_LR if OUT_BIGRAM_LR > 0.0 else UNEMBEDDING_LR) * dmodel_lr_scale, betas=(0.8, 0.96), eps=1e-10, weight_decay=0.0))
+-        if local_conv_params and TRAIN_LOCAL_CONV:
++            param_groups.append(dict(kind='adamw', params=value_embed_params, lr=EMBEDDING_LR * dmodel_lr_scale, betas=(0.8, EMBED_ADAMW_BETA2), eps=1e-10, weight_decay=0.0))
++        if local_conv_params:
+             param_groups.append(dict(kind='adamw', params=local_conv_params, lr=MATRIX_LR, betas=(0.9, 0.95), eps=1e-10, weight_decay=0.0))
+-        if engram_conv_params:
+-            param_groups.append(dict(kind='adamw', params=engram_conv_params, lr=MATRIX_LR, betas=(0.9, 0.95), eps=1e-10, weight_decay=0.0))
+-        transposed_ids = {id(m.weight) for m in self.modules() if isinstance(m, Linear) and m.weight_transposed}
+         depth_of: dict[int, int] = {}
+         for _i, _block in enumerate(self.transformer.h):
+             for _p in _block.parameters():
+                 depth_of[id(_p)] = _i
+-        depth_on = any(muon_depth_enabled())
+-        for shape, transposed in sorted({(p.shape, id(p) in transposed_ids) for p in matrix_params}, key=lambda st: (st[0], st[1])):
+-            params = [p for p in matrix_params if p.shape == shape and (id(p) in transposed_ids) == transposed]
++        for shape, transposed in sorted({(p.shape, False) for p in matrix_params}, key=lambda st: (st[0], st[1])):
++            params = [p for p in matrix_params if p.shape == shape and False == transposed]
+             group = dict(kind='muon', params=params, lr=MATRIX_LR, momentum=0.95, beta2=MUON_BETA2, ns_steps=MUON_NS_STEPS, weight_decay=WEIGHT_DECAY, transposed=transposed)
+-            if depth_on:
+-                group['depth_mults'] = muon_depth_mults([depth_of.get(id(p)) for p in params], self.config.n_layer)
+             param_groups.append(group)
+         opt = MuonAdamW(param_groups)
+@@ -322,45 +112,14 @@
+         _b, t = idx.shape
+         assert t <= self.config.sequence_len
+-        cos, sin = (self.cos[:, :t], self.sin[:, :t])
++        cos = self.cos[:, :t]
++        sin = self.sin[:, :t]
+         x = self.transformer.wte(idx).to(COMPUTE_DTYPE)
+         x = norm(x)
+         x0 = x
+-        doc_mask = doc_boundary_mask(idx) if USE_DOC_MASK else None
+-        ngram_idx = self._ngram_hash_indices(idx) if len(self.ngram_embeds) or self.engram is not None else None
+-        engram_raw: dict[str, torch.Tensor] | None = {} if self.engram is not None and self.engram.share else None
+-        pool_from = self.config.n_layer - self.out_pool_lambdas.numel() if self.out_pool_lambdas is not None else -1
+-        pool_buf: list[torch.Tensor] = []
+         for i, block in enumerate(self.transformer.h):
+             ve = self.value_embeds[str(i)](idx).to(COMPUTE_DTYPE) if str(i) in self.value_embeds else None
+-            ve_bi = ve_tri = None
+-            if ngram_idx is not None:
+-                if f'b{i}' in self.ngram_embeds:
+-                    ve_bi = self._ngram_lookup(f'b{i}', ngram_idx[f'b{i}'], engram_raw)
+-                if f't{i}' in self.ngram_embeds:
+-                    ve_tri = self._ngram_lookup(f't{i}', ngram_idx[f't{i}'], engram_raw)
+-            if USE_CAUSAL_FASTPATH and doc_mask is None and (not self.layer_is_short[i]):
+-                attn_mask = None
+-            else:
+-                static_mask = (self.mask_short if self.layer_is_short[i] else self.mask_full)[..., :t, :t]
+-                attn_mask = static_mask + doc_mask if doc_mask is not None else static_mask
+-            x = block(x, x0, ve, cos, sin, attn_mask, ve_bi, ve_tri)
+-            if self.engram is not None and i == self.engram_site:
+-                if engram_raw is not None:
+-                    parts = [engram_raw[k] for k in self.engram_share_keys]
+-                    e_t = parts[0] if len(parts) == 1 else torch.cat(parts, dim=-1)
+-                else:
+-                    e_t = self.engram.gather(ngram_idx)
+-                x = x + self.engram(x, e_t)
+-            if i >= pool_from:
+-                pool_buf.append(x)
+-        if self.out_pool_lambdas is not None:
+-            for k, h in enumerate(pool_buf):
+-                x = x + self.out_pool_lambdas[k] * h
++            x = block(x, x0, ve, cos, sin)
+         x = norm(x)
+         logits = self.lm_head(x)[..., :self.config.vocab_size].float()
+-        if self.out_bigram is not None:
+-            g = torch.sigmoid(self.out_bigram_gate(x) + self.out_bigram_gate_bias.to(x.dtype))
+-            row = self.out_bigram.weight[idx][..., :self.config.vocab_size]
+-            logits = logits + (g * row).float()
+         if targets is None:
+             return LOGIT_SOFTCAP * torch.tanh(logits / LOGIT_SOFTCAP)

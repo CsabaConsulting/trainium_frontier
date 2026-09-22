@@ -1,0 +1,11 @@
+--- original
++++ lean
+@@ -16,6 +16,5 @@
+     frac = min(step / MUON_MOMENTUM_WARMUP_STEPS, 1.0)
+     m = (1 - frac) * 0.85 + frac * 0.95
+-    if MUON_MOMENTUM_COOLDOWN_FRAC > 0.0:
+-        cd = min(1.0, max(0.0, (progress - (1.0 - MUON_MOMENTUM_COOLDOWN_FRAC)) / MUON_MOMENTUM_COOLDOWN_FRAC))
+-        m = (1 - cd) * m + cd * MUON_MOMENTUM_FINAL
++    cd = min(1.0, max(0.0, (progress - (1.0 - MUON_MOMENTUM_COOLDOWN_FRAC)) / MUON_MOMENTUM_COOLDOWN_FRAC))
++    m = (1 - cd) * m + cd * MUON_MOMENTUM_FINAL
+     return m

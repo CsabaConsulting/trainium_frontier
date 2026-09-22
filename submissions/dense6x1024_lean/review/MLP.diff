@@ -1,0 +1,24 @@
+--- original
++++ lean
+@@ -4,19 +4,9 @@
+         super().__init__()
+         hidden = config.mlp_ratio * config.n_embd
+-        self.swiglu_hidden = coalesced_swiglu_hidden(config.n_embd, config.mlp_ratio) if USE_COALESCED_SWIGLU else 0
+-        if self.swiglu_hidden:
+-            hidden = self.swiglu_hidden
+-        fc_out = 2 * hidden if self.swiglu_hidden else hidden
++        fc_out = hidden
+         self.c_fc = None if coalesced in ('all', 'vfc') else Linear(config.n_embd, fc_out, bias=False)
+-        self.c_gate = Linear(config.n_embd, hidden, bias=False) if USE_GATED_MLP else None
+         self.c_proj = Linear(hidden, config.n_embd, bias=False)
+ 
+     def forward(self, x: torch.Tensor, fc: torch.Tensor | None=None) -> torch.Tensor:
+         h = self.c_fc(x) if fc is None else fc
+-        if self.swiglu_hidden:
+-            gate = h[..., :self.swiglu_hidden]
+-            up = h[..., self.swiglu_hidden:]
+-            return self.c_proj(F.silu(gate) * up)
+-        if self.c_gate is not None:
+-            return self.c_proj(h * F.silu(self.c_gate(x)))
+-        return self.c_proj(relu_squared(h))
++        return self.c_proj(F.relu(h).square())

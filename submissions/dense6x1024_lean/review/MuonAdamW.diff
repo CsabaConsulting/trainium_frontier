@@ -1,0 +1,366 @@
+--- original
++++ lean
+@@ -4,5 +4,4 @@
+         super().__init__(param_groups, defaults={})
+         self._scalar_cache: dict[int, dict[str, tuple[torch.Tensor, torch.Tensor]]] = {}
+-        self._ns_coef_cache: dict[torch.device, torch.Tensor] = {}
+ 
+     def _device_scalar(self, group, key: str, value: float, ref: torch.Tensor) -> torch.Tensor:
+@@ -22,55 +21,4 @@
+         dev.copy_(host)
+         return dev
+-
+-    def _ns_coef(self, ref: torch.Tensor) -> torch.Tensor:
+-        """The Polar-Express (a, b, c) triples as runtime [128, 1] fp32 operands.
+-
+-        Shape (n_coeffs, 3, 128, 1) so `coef[i, j]` is a *contiguous* [128, 1] view --
+-        NKI wants contiguous operands, and a column slice of a wider tensor would not
+-        be. Built once per device and never touched again, so it costs zero launches
+-        per step, and it is the reason the Newton-Schulz kernels compile once per shape
+-        instead of once per coefficient value.
+-
+-        Each value is stored as float32, which is exactly what eager does with these
+-        Python floats: multiplying a bf16 tensor by a Python scalar uses float32 as the
+-        opmath type, so the scalar is rounded to fp32 there too.
+-        """
+-        cached = self._ns_coef_cache.get(ref.device)
+-        if cached is None:
+-            host = torch.empty((len(POLAR_EXPRESS_COEFFS), 3, _NKI_PARTITION, 1), dtype=torch.float32)
+-            for i, abc in enumerate(POLAR_EXPRESS_COEFFS):
+-                for j, v in enumerate(abc):
+-                    host[i, j].fill_(v)
+-            cached = host.to(ref.device)
+-            self._ns_coef_cache[ref.device] = cached
+-        return cached
+-
+-    def _muon_lrwd(self, group, ref: torch.Tensor, ratio: float):
+-        """lr and lr*wd as two persistent [128, 1] fp32 device operands, one copy_.
+-
+-        Replaces `_device_scalar("lr")` for the fused path at the same cost -- one
+-        host->device copy per step -- while additionally absorbing the two 0-dim device
+-        multiplies (`lr_base * ratio` and `lr * wd`) that the eager path spends a whole
+-        launch on each.
+-
+-        Both products are formed on the host in float32 rather than float64 so they are
+-        bit-identical to the device's own fp32 arithmetic: eager computes
+-        fp32(fp32(lr) * fp32(ratio)) because `ratio` is a Python float wrapped into the
+-        fp32 opmath type, and doing the same multiply on an fp32 CPU tensor reproduces
+-        it exactly.
+-        """
+-        cache = self._scalar_cache.setdefault(id(group), {})
+-        entry = cache.get('muon_lrwd')
+-        if entry is None:
+-            entry = (torch.empty((2, _NKI_PARTITION, 1), dtype=torch.float32), torch.zeros((2, _NKI_PARTITION, 1), dtype=torch.float32, device=ref.device), torch.empty((), dtype=torch.float32))
+-            cache['muon_lrwd'] = entry
+-        host, dev, tmp = entry
+-        tmp.fill_(float(group['lr']))
+-        tmp.mul_(ratio)
+-        host[0].fill_(float(tmp))
+-        tmp.mul_(float(group['weight_decay']))
+-        host[1].fill_(float(tmp))
+-        dev.copy_(host)
+-        return (dev[0], dev[1])
+ 
+     def _muon_depth_dev(self, group, ref: torch.Tensor):
+@@ -211,5 +159,10 @@
+         """
+         beta1, beta2 = group['betas']
+-        params, grads, exp_avgs, exp_avg_sqs, bias1, bias2 = ([], [], [], [], [], [])
++        params = []
++        grads = []
++        exp_avgs = []
++        exp_avg_sqs = []
++        bias1 = []
++        bias2 = []
+         for p in group['params']:
+             if p.grad is None:
+@@ -261,6 +214,5 @@
+             return
+         lr = group['lr']
+-        if USE_TENSOR_LR_SCALARS:
+-            lr = self._device_scalar(group, 'lr', lr, params[0])
++        lr = self._device_scalar(group, 'lr', lr, params[0])
+         beta1, beta2 = group['betas']
+         wd = group['weight_decay']
+@@ -273,147 +225,7 @@
+         torch._foreach_div_(update, denom)
+         if wd != 0:
+-            if USE_CAUTIOUS_WD:
+-                _cautious_weight_decay_(params, update, lr, wd)
+-            else:
+-                torch._foreach_mul_(params, 1 - lr * wd)
+-        if USE_TENSOR_LR_SCALARS:
+-            torch._foreach_mul_(update, lr)
+-            torch._foreach_sub_(params, update)
+-        else:
+-            torch._foreach_add_(params, update, alpha=-lr)
+-
+-    @torch.no_grad()
+-    def _adamw_step(self, group):
+-        beta1, beta2 = group['betas']
+-        lr = group['lr']
+-        if USE_TENSOR_LR_SCALARS and group['params']:
+-            lr = self._device_scalar(group, 'lr', lr, group['params'][0])
+-        for p in group['params']:
+-            if p.grad is None:
+-                continue
+-            grad = p.grad
+-            state = self.state[p]
+-            if not state:
+-                state['step'] = 0
+-                state['exp_avg'] = torch.zeros_like(p)
+-                state['exp_avg_sq'] = torch.zeros_like(p)
+-            state['step'] += 1
+-            exp_avg = state['exp_avg']
+-            exp_avg_sq = state['exp_avg_sq']
+-            exp_avg.lerp_(grad, 1 - beta1)
+-            exp_avg_sq.lerp_(grad.square(), 1 - beta2)
+-            bias1 = 1 - beta1 ** state['step']
+-            bias2 = 1 - beta2 ** state['step']
+-            update = exp_avg / bias1 / ((exp_avg_sq / bias2).sqrt() + group['eps'])
+-            if USE_CAUTIOUS_WD and group['weight_decay'] != 0:
+-                _cautious_weight_decay_([p], [update], lr, group['weight_decay'])
+-            else:
+-                p.mul_(1 - lr * group['weight_decay'])
+-            if USE_TENSOR_LR_SCALARS:
+-                p.sub_(update * lr)
+-            else:
+-                p.add_(update, alpha=-lr)
+-
+-    def _rmsprop_state(self, group, *, cast_grads=True):
+-        """Prologue for the RMSProp path -- the same contract as _adamw_state, minus the
+-        first moment (that is the whole point of this kind) and minus its bias correction."""
+-        beta2 = group['betas'][1]
+-        params, grads, exp_avg_sqs, bias2 = ([], [], [], [])
+-        for p in group['params']:
+-            if p.grad is None:
+-                continue
+-            state = self.state[p]
+-            state_dtype = torch.float32 if NGRAM_RMS_FP32 else p.dtype
+-            if not state:
+-                state['step'] = 0
+-                state['exp_avg_sq'] = torch.zeros_like(p, dtype=state_dtype)
+-            elif state['exp_avg_sq'].dtype != state_dtype:
+-                raise ValueError(f"RMSProp second-moment dtype {state['exp_avg_sq'].dtype} does not match NGRAM_RMS_FP32={NGRAM_RMS_FP32} (expected {state_dtype}). Start with fresh optimizer state or restore its original precision; load_state_dict may have cast FP32 state to the parameter dtype.")
+-            state['step'] += 1
+-            params.append(p)
+-            grads.append(p.grad.float() if NGRAM_RMS_FP32 and cast_grads else p.grad)
+-            exp_avg_sqs.append(state['exp_avg_sq'])
+-            bias2.append(1 - beta2 ** state['step'])
+-        return (params, grads, exp_avg_sqs, bias2)
+-
+-    @torch.no_grad()
+-    def _rmsprop_step_nki(self, group):
+-        if not NGRAM_RMS_FP32 or not _HAS_NKI:
+-            raise ValueError('NKI table RMSProp requires FP32 moments and an available NKI backend')
+-        lanes = 2 if os.environ.get('NEURON_LOGICAL_NC_CONFIG', '1') == '2' else 1
+-        for p in group['params']:
+-            if p.grad is None:
+-                continue
+-            if p.device.type != 'neuron' or p.dtype != torch.bfloat16 or (not p.is_contiguous()) or (not p.grad.is_contiguous()) or (p.numel() % (2048 * 128 * lanes) != 0):
+-                raise ValueError('NKI table RMSProp requires contiguous Neuron BF16 tables/grads with element count divisible by 2048*128*LNC')
+-        params, grads, moments, biases = self._rmsprop_state(group, cast_grads=False)
+-        for p, grad, moment, bias in zip(params, grads, moments, biases):
+-            state = self.state[p]
+-            if 'nki_rms_scalars_cpu' not in state:
+-                state['nki_rms_scalars_cpu'] = torch.empty((128, 2), dtype=torch.float32)
+-                state['nki_rms_scalars_device'] = torch.empty((128, 2), dtype=torch.float32, device=p.device)
+-            scalars_cpu = state['nki_rms_scalars_cpu']
+-            scalars_cpu[:, 0].fill_(group['lr'])
+-            scalars_cpu[:, 1].fill_(1.0 / bias)
+-            scalars = state['nki_rms_scalars_device']
+-            scalars.copy_(scalars_cpu)
+-            p_view, grad_view, v_view = (x.view(-1, 2048) for x in (p, grad, moment))
+-            next_p, next_v = _ngram_rmsprop_fp32_nki[lanes](p_view, grad_view, v_view, scalars, group['betas'][1], group['eps'], lanes)
+-            p_view.copy_(next_p)
+-            v_view.copy_(next_v)
+-
+-    @torch.no_grad()
+-    def _rmsprop_step(self, group):
+-        """T3.1: RMSProp with no first moment, for the hashed n-gram value-embedding tables.
+-
+-        `update = grad / (sqrt(exp_avg_sq / bias2) + eps)`, i.e. exactly Adam with beta1 = 0.
+-        The bias correction is NOT optional here: classic un-corrected RMSProp starts from
+-        exp_avg_sq = 0, so step 1 gives `g / sqrt((1-beta2) g^2)` = 31.6 x sign(g) at
+-        beta2 = 0.999 -- a 31x over-sized first update into a zero-initialized table. With
+-        the correction the first update is exactly sign(g) * lr, like Adam's.
+-
+-        weight_decay is asserted 0 rather than implemented: decaying a table whose rows
+-        mostly have no gradient this step just erases the rows that are not being trained.
+-
+-        No NaN on an untouched row: its grad and exp_avg_sq are both exactly 0.0, and eps
+-        (1e-10) is representable in bf16 as well as fp32 -- bf16 shares fp32's 8-bit
+-        exponent -- so the denominator is 1e-10, not 0, and 0/1e-10 = 0.
+-
+-        NGRAM_RMS_FP32 changes BOTH state storage and optimizer arithmetic. The state
+-        helper casts grads before their square, leaving the original p.grad unchanged.
+-        All subsequent operands are FP32 through the denominator and LR multiplication;
+-        subtracting that FP32 update into p rounds to p.dtype only at the final write.
+-        Both foreach and scalar-tensor paths use the same promotion contract.
+-        """
+-        assert group['weight_decay'] == 0.0, 'rmsprop groups are weight-decay free by design'
+-        if USE_NKI_NGRAM_RMS:
+-            self._rmsprop_step_nki(group)
+-            return
+-        params, grads, exp_avg_sqs, bias2 = self._rmsprop_state(group)
+-        if not params:
+-            return
+-        lr = group['lr']
+-        if USE_TENSOR_LR_SCALARS:
+-            lr = self._device_scalar(group, 'lr', lr, params[0])
+-        beta2 = group['betas'][1]
+-        if USE_FOREACH_OPTIM:
+-            torch._foreach_lerp_(exp_avg_sqs, torch._foreach_mul(grads, grads), 1 - beta2)
+-            denom = torch._foreach_div(exp_avg_sqs, bias2)
+-            torch._foreach_sqrt_(denom)
+-            torch._foreach_add_(denom, group['eps'])
+-            update = torch._foreach_div(grads, denom)
+-            if USE_TENSOR_LR_SCALARS:
+-                torch._foreach_mul_(update, lr)
+-                torch._foreach_sub_(params, update)
+-            else:
+-                torch._foreach_add_(params, update, alpha=-lr)
+-        else:
+-            for p, grad, exp_avg_sq, b2 in zip(params, grads, exp_avg_sqs, bias2):
+-                exp_avg_sq.lerp_(grad.square(), 1 - beta2)
+-                update = grad / ((exp_avg_sq / b2).sqrt() + group['eps'])
+-                if USE_TENSOR_LR_SCALARS:
+-                    p.sub_(update * lr)
+-                else:
+-                    p.add_(update, alpha=-lr)
++            torch._foreach_mul_(params, 1 - lr * wd)
++        torch._foreach_mul_(update, lr)
++        torch._foreach_sub_(params, update)
+ 
+     @torch.no_grad()
+@@ -441,26 +253,18 @@
+         g = state['stacked_grads']
+         w = state['stacked_params']
+-        if USE_FOREACH_OPTIM:
+-            g_rows = list(g.unbind(0))
+-            grads = [p.grad for p in params]
+-            if all((gr is not None for gr in grads)):
+-                torch._foreach_copy_(g_rows, grads)
+-            else:
+-                for i, gr in enumerate(grads):
+-                    if gr is None:
+-                        g_rows[i].zero_()
+-                    else:
+-                        g_rows[i].copy_(gr)
+-            torch._foreach_copy_(list(w.unbind(0)), params)
++        g_rows = list(g.unbind(0))
++        grads = [p.grad for p in params]
++        if all((gr is not None for gr in grads)):
++            torch._foreach_copy_(g_rows, grads)
+         else:
+-            for i, p in enumerate(params):
+-                if p.grad is None:
+-                    g[i].zero_()
++            for i, gr in enumerate(grads):
++                if gr is None:
++                    g_rows[i].zero_()
+                 else:
+-                    g[i].copy_(p.grad)
+-                w[i].copy_(p)
++                    g_rows[i].copy_(gr)
++        torch._foreach_copy_(list(w.unbind(0)), params)
+         momentum_buffer = state['momentum_buffer']
+         second = state['second_momentum_buffer']
+-        if USE_COMPILE_MUON and USE_TENSOR_LR_SCALARS and (w.dtype == torch.float32):
++        if w.dtype == torch.float32:
+             ratio = max(1.0, lshape[-2] / lshape[-1]) ** 0.5
+             ns_steps = min(group['ns_steps'], len(POLAR_EXPRESS_COEFFS))
+@@ -472,6 +276,6 @@
+                 print0(f'muon step: COMPILED body for {tuple(g.shape)} (tall={key[0]} ns_steps={ns_steps} red_dim={red_dim}) [specialisations so far: {len(_MUON_COMPILED)}]')
+             lr_t, lrwd_t, mom_t, one_mom_t, one_b2_t = self._muon_compile_scalars(group, p0, ratio)
+-            one_beta2 = one_b2_t if MUON_BETA2_FINAL > 0.0 else 1 - group['beta2']
+-            w, momentum_buffer, second = fn(w, g, momentum_buffer, second, mom_t, one_mom_t, lr_t, lrwd_t, key[0], ns_steps, red_dim, g.size(red_dim), one_beta2, COMPUTE_DTYPE == torch.bfloat16, USE_MUON_LR_FP32)
++            one_beta2 = 1 - group['beta2']
++            w, momentum_buffer, second = fn(w, g, momentum_buffer, second, mom_t, one_mom_t, lr_t, lrwd_t, key[0], ns_steps, red_dim, g.size(red_dim), one_beta2, COMPUTE_DTYPE == torch.bfloat16, False)
+             state['stacked_params'] = w
+             state['momentum_buffer'] = momentum_buffer
+@@ -480,5 +284,4 @@
+             return
+         depth = self._muon_depth_dev(group, p0)
+-        use_nki = USE_NKI_MUON and _HAS_NKI and (p0.device.type == 'neuron') and USE_TENSOR_LR_SCALARS and (COMPUTE_DTYPE == torch.bfloat16) and (w.dtype == torch.float32) and (shape[-1] <= 8192) and (min(shape[-2], shape[-1]) <= 8192) and (depth is None)
+         if depth is None:
+             momentum_buffer.lerp_(g, 1 - group['momentum'])
+@@ -490,16 +293,5 @@
+         x = g.bfloat16() if COMPUTE_DTYPE == torch.bfloat16 else g
+         x = x / (x.norm(dim=(-2, -1), keepdim=True) * 1.01 + 1e-06)
+-        if use_nki:
+-            coef = self._ns_coef(p0)
+-            tall = x.shape[-2] > x.shape[-1]
+-            for i in range(min(group['ns_steps'], len(POLAR_EXPRESS_COEFFS))):
+-                ca, cb, cc = (coef[i, 0], coef[i, 1], coef[i, 2])
+-                sym = x.mT @ x if tall else x @ x.mT
+-                k = sym.shape[-1]
+-                m = _muon_ns_poly(sym.reshape(-1, k), (sym @ sym).reshape(-1, k), cb, cc).view_as(sym)
+-                prod = x @ m if tall else m @ x
+-                n = x.shape[-1]
+-                x = _muon_ns_axpy(x.reshape(-1, n), prod.reshape(-1, n), ca).view_as(x)
+-        elif x.shape[-2] > x.shape[-1]:
++        if x.shape[-2] > x.shape[-1]:
+             for a, b, c in POLAR_EXPRESS_COEFFS[:group['ns_steps']]:
+                 xtx = x.mT @ x
+@@ -519,19 +311,12 @@
+         g = g * (step_size * (v_norm / v_norm_new.clamp_min(1e-10))).to(g.dtype)
+         ratio = max(1.0, lshape[-2] / lshape[-1]) ** 0.5
+-        if use_nki:
+-            klr, klw = self._muon_lrwd(group, p0, ratio)
+-            n = g.shape[-1]
+-            w = _muon_update(g.reshape(-1, n), w.reshape(-1, n), klr, klw).view_as(w)
+-            state['stacked_params'] = w
+-        else:
+-            lr_base = group['lr']
+-            if USE_TENSOR_LR_SCALARS:
+-                lr_base = self._device_scalar(group, 'lr', lr_base, p0)
+-            lr = lr_base * ratio
+-            if depth is not None:
+-                lr = lr * depth[2]
+-            wd = group['weight_decay']
+-            mask = g * w >= 0
+-            w.sub_(_muon_lr_g(lr, g, USE_MUON_LR_FP32) + lr * wd * w * mask)
++        lr_base = group['lr']
++        lr_base = self._device_scalar(group, 'lr', lr_base, p0)
++        lr = lr_base * ratio
++        if depth is not None:
++            lr = lr * depth[2]
++        wd = group['weight_decay']
++        mask = g * w >= 0
++        w.sub_(_muon_lr_g(lr, g, False) + lr * wd * w * mask)
+         torch._foreach_copy_(params, list(w.unbind(0)))
+ 
+@@ -544,31 +329,7 @@
+                 if not update_adamw:
+                     continue
+-                if USE_FOREACH_OPTIM:
+-                    self._adamw_step_foreach(group)
+-                else:
+-                    self._adamw_step(group)
+-            elif group['kind'] == 'rmsprop':
+-                if not update_adamw:
+-                    continue
+-                self._rmsprop_step(group)
++                self._adamw_step_foreach(group)
+             elif group['kind'] == 'muon':
+                 self._muon_step(group)
+             else:
+                 raise ValueError(f"unknown optimizer kind: {group['kind']}")
+-
+-    @torch.no_grad()
+-    def zero_grad_selective(self, zero_adamw: bool=True) -> None:
+-        """T1.4: like `zero_grad(set_to_none=True)`, but can leave the AdamW groups' gradients in
+-        place so they accumulate across a skipped update. Never severs an accumulation by
+-        accident -- the AdamW branch is skipped entirely rather than zeroed with a different
+-        mechanism."""
+-        for group in self.param_groups:
+-            if group['kind'] in ADAM_LIKE_KINDS and (not zero_adamw):
+-                continue
+-            for p in group['params']:
+-                p.grad = None
+-
+-    def adamw_param_ids(self) -> frozenset[int]:
+-        """T1.4: identities of every parameter in an AdamW (or RMSProp) group, so the per-step
+-        all_reduce can skip exactly those on a non-update step."""
+-        return frozenset((id(p) for g in self.param_groups if g['kind'] in ADAM_LIKE_KINDS for p in g['params']))

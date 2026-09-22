@@ -1,0 +1,8 @@
+--- original
++++ lean
+@@ -1,4 +1,2 @@
+ def norm(x: torch.Tensor) -> torch.Tensor:
+-    if USE_BF16_NORM_OUTPUT:
+-        return F.rms_norm(x.float(), (x.size(-1),), eps=_RMS_EPS).to(torch.bfloat16)
+-    return F.rms_norm(x, (x.size(-1),))
++    return F.rms_norm(x.float(), (x.size(-1),), eps=_RMS_EPS).to(torch.bfloat16)

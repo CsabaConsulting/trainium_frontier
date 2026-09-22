@@ -1,0 +1,9 @@
+--- original
++++ lean
+@@ -7,5 +7,5 @@
+     knob is always safe to flip.
+     """
+-    if USE_NKI_ROPE_NORM and _HAS_NKI and (x.device.type == 'neuron') and (x.ndim == 4):
++    if _HAS_NKI and x.device.type == 'neuron' and (x.ndim == 4):
+         b, t, _, d = x.shape
+         if b * t % _NKI_PARTITION == 0 and t % _NKI_PARTITION == 0 and (d % 2 == 0) and (cos.shape[1] == t) and (cos.shape[-1] == d // 2) and x.is_contiguous():

@@ -1,0 +1,101 @@
+--- original
++++ lean
+@@ -10,5 +10,5 @@
+         self.kv_repeat = 1
+         if self.n_kv_heads != self.n_head:
+-            if USE_FUSED_QKV or coalesced != 'none':
++            if coalesced != 'none':
+                 raise ValueError('GQA (n_kv_heads != n_head) needs the standard separate q/k/v projections: incompatible with USE_FUSED_QKV (one fused 3-way matmul) and with parallel-block coalescing (one c_in matmul).')
+             if self.n_head % self.n_kv_heads != 0:
+@@ -21,6 +21,4 @@
+             self.c_q = Linear(config.n_embd, config.n_embd, bias=False)
+             self.c_k = Linear(config.n_embd, config.n_embd, bias=False)
+-        elif USE_FUSED_QKV:
+-            self.c_qkv = Linear(config.n_embd, 3 * config.n_embd, bias=False)
+         else:
+             self.c_q = Linear(config.n_embd, config.n_embd, bias=False)
+@@ -29,50 +27,19 @@
+         self.c_proj = Linear(config.n_embd, config.n_embd, bias=False)
+         self.attn_scale = config.attn_scale if config.attn_scale > 0.0 else None
+-        self.ve_gate = Linear(VE_GATE_CHANNELS, self.n_head, bias=False) if USE_VE and has_ve(layer_idx, config.n_layer) else None
+-        self.ve_gate_bi = _rng_neutral(lambda: Linear(VE_GATE_CHANNELS, self.n_head, bias=False)) if has_ngram_bigram(layer_idx, config.n_layer) else None
+-        self.ve_gate_tri = _rng_neutral(lambda: Linear(VE_GATE_CHANNELS, self.n_head, bias=False)) if has_ngram_trigram(layer_idx, config.n_layer) else None
+-        if self.ve_gate_tri is not None:
+-            assert config.n_embd >= 3 * VE_GATE_CHANNELS, (config.n_embd, VE_GATE_CHANNELS)
+-        elif self.ve_gate_bi is not None:
+-            assert config.n_embd >= 2 * VE_GATE_CHANNELS, (config.n_embd, VE_GATE_CHANNELS)
+-        if USE_HEAD_GATE:
+-            self.head_gate_lo, self.head_gate_hi = head_gate_slice(config.n_embd, config.n_layer)
+-            self.head_gate = _rng_neutral(lambda: Linear(HEAD_GATE_CHANNELS, self.n_head, bias=False))
+-            self.head_gate_bias = nn.Parameter(torch.full((self.n_head,), float(HEAD_GATE_BIAS)))
+-        else:
+-            self.head_gate_lo = self.head_gate_hi = 0
+-            self.head_gate = None
++        self.ve_gate = Linear(VE_GATE_CHANNELS, self.n_head, bias=False) if layer_idx % 2 == (config.n_layer - 1) % 2 else None
+ 
+-    def forward(self, x_q: torch.Tensor, x_k: torch.Tensor, x_v: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor, attn_mask: torch.Tensor | None, ve_bi: torch.Tensor | None=None, ve_tri: torch.Tensor | None=None, qkv: tuple[torch.Tensor, torch.Tensor, torch.Tensor] | None=None) -> torch.Tensor:
++    def forward(self, x_q: torch.Tensor, x_k: torch.Tensor, x_v: torch.Tensor, ve: torch.Tensor | None, cos: torch.Tensor, sin: torch.Tensor) -> torch.Tensor:
+         b, t, c = x_q.shape
+-        if qkv is not None:
+-            q, k, v = qkv
+-            if q is None:
+-                q = self.c_q(x_q).view(b, t, self.n_head, self.head_dim)
+-                k = self.c_k(x_k).view(b, t, self.n_head, self.head_dim)
+-        elif USE_FUSED_QKV:
+-            q, k, v = self.c_qkv(x_q).split(self.n_embd, dim=-1)
+-            q = q.view(b, t, self.n_head, self.head_dim)
+-            k = k.view(b, t, self.n_head, self.head_dim)
+-            v = v.view(b, t, self.n_head, self.head_dim)
+-        else:
+-            q = self.c_q(x_q).view(b, t, self.n_head, self.head_dim)
+-            k = self.c_k(x_k).view(b, t, self.n_kv_heads, self.head_dim)
+-            v = self.c_v(x_v).view(b, t, self.n_kv_heads, self.head_dim)
+-            if self.n_kv_heads != self.n_head:
+-                k = k.repeat_interleave(self.kv_repeat, dim=2).contiguous()
+-                v = v.repeat_interleave(self.kv_repeat, dim=2).contiguous()
++        q = self.c_q(x_q).view(b, t, self.n_head, self.head_dim)
++        k = self.c_k(x_k).view(b, t, self.n_kv_heads, self.head_dim)
++        v = self.c_v(x_v).view(b, t, self.n_kv_heads, self.head_dim)
++        if self.n_kv_heads != self.n_head:
++            k = k.repeat_interleave(self.kv_repeat, dim=2).contiguous()
++            v = v.repeat_interleave(self.kv_repeat, dim=2).contiguous()
+         if ve is not None:
+             ve = ve.view(b, t, self.n_head, self.head_dim)
+             gate = 2 * torch.sigmoid(self.ve_gate(x_v[..., :VE_GATE_CHANNELS]))
+             v = v + gate.unsqueeze(-1) * ve
+-        if ve_bi is not None:
+-            g_bi = 2 * torch.sigmoid(self.ve_gate_bi(x_v[..., VE_GATE_CHANNELS:2 * VE_GATE_CHANNELS]))
+-            v = v + g_bi.unsqueeze(-1) * ve_bi.view(b, t, self.n_head, self.head_dim)
+-        if ve_tri is not None:
+-            g_tri = 2 * torch.sigmoid(self.ve_gate_tri(x_v[..., 2 * VE_GATE_CHANNELS:3 * VE_GATE_CHANNELS]))
+-            v = v + g_tri.unsqueeze(-1) * ve_tri.view(b, t, self.n_head, self.head_dim)
+-        if USE_BF16_NORM_OUTPUT:
+-            v = v.to(q.dtype)
++        v = v.to(q.dtype)
+         q = rope_norm(q, cos, sin)
+         k = rope_norm(k, cos, sin)
+@@ -80,23 +47,5 @@
+         k = k.transpose(1, 2)
+         v = v.transpose(1, 2)
+-        sdpa_output_dtype = q.dtype
+-        if USE_BF16_SDPA_INPUT and (not USE_NKI_ATTN):
+-            q, k, v = (q.to(torch.bfloat16), k.to(torch.bfloat16), v.to(torch.bfloat16))
+-        if attn_mask is None:
+-            if COMPILE_SDPA_DIRECT and (not USE_NKI_ATTN):
+-                y = F.scaled_dot_product_attention(q, k, v, is_causal=True, scale=self.attn_scale)
+-            else:
+-                y = nki_attention(q, k, v, self.attn_scale)
+-        else:
+-            y = F.scaled_dot_product_attention(q, k, v, attn_mask=attn_mask[..., :t, :t], scale=self.attn_scale)
+-        if USE_BF16_SDPA_INPUT and (not USE_NKI_ATTN):
+-            y = y.to(sdpa_output_dtype)
++        y = F.scaled_dot_product_attention(q, k, v, is_causal=True, scale=self.attn_scale)
+         y = y.transpose(1, 2).contiguous().view(b, t, c)
+-        if self.head_gate is not None:
+-            yh = y.view(b, t, self.n_head, self.head_dim)
+-            if HEAD_GATE_NORM:
+-                yh = norm(yh)
+-            g = self.head_gate(x_q[..., self.head_gate_lo:self.head_gate_hi])
+-            g = HEAD_GATE_MUL * torch.sigmoid(g + self.head_gate_bias.to(g.dtype))
+-            y = (yh * g.unsqueeze(-1)).view(b, t, c)
+         return self.c_proj(y)

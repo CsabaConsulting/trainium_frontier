@@ -1,0 +1,77 @@
+--- original
++++ lean
+@@ -1,45 +1,13 @@
+-def make_forward(device, native_forward, use_weight_cache, normal_input_gradient=False, token_tile=512, grouped_io=False, weight_mode=0, forward_backend='nki', separate_region=False):
+-    assert forward_backend in ('nki', 'native')
+-    if forward_backend == 'native':
+-        assert weight_mode == 0
++def make_forward(device, native_forward):
+ 
+-        def kernel_call(x, up, down):
+-            result, relu = reference_forward(x, up, down)
+-            return (result, relu.T.contiguous())
+-    elif str(device).startswith('neuron'):
+-        from torch_neuronx import wrap_nki
+-        if weight_mode == 4:
+-            raise ValueError('Unsubmitted MLP variant; use native forward')
+-            kernel = wrap_nki(build_fixed_kernel())
+-        else:
+-            kernel = wrap_nki(build_kernel())
+-
+-        def kernel_call(x, up, down):
+-            tile = min(token_tile, x.shape[0] // 2)
+-            return kernel[2](x, up, down, 2, tile, True, True, True, grouped_io, weight_mode)
+-    else:
+-
+-        def kernel_call(x, up, down):
+-            if weight_mode >= 3:
+-                up, down = (unpack_weight(up), unpack_weight(down))
+-            result, relu = reference_forward(x, up, down)
+-            return (result, relu.T)
+-    fused = make_autograd(kernel_call, transposed_relu=True, normal_input_gradient=normal_input_gradient, packed_weight_inputs=weight_mode >= 3)
+-    if separate_region:
+-
+-        def training_call(x, up, down, up_packed=None, down_packed=None):
+-            if weight_mode >= 3:
+-                return fused(x, up, down, up_packed, down_packed)
+-            return fused(x, up, down)
+-        compiled_training = torch.compile(training_call, backend='neuron' if str(device).startswith('neuron') else 'inductor', fullgraph=True, dynamic=False)
+-
+-        def apply_fused(*inputs):
+-            return call_separate_region(compiled_training, *inputs)
+-    else:
+-        apply_fused = fused
++    def kernel_call(x, up, down):
++        result, relu = reference_forward(x, up, down)
++        return (result, relu.T.contiguous())
++    fused = make_autograd(kernel_call)
++    apply_fused = fused
+ 
+     def weight(linear, dtype):
+         cached = linear._cached_weight
+-        if use_weight_cache and cached is not None and (cached.dtype == dtype):
++        if cached is not None and cached.dtype == dtype:
+             return cached
+         return linear.weight.to(dtype=dtype)
+@@ -47,17 +15,10 @@
+     def forward(self, x, fc=None):
+         tokens = x.numel() // x.shape[-1]
+-        tile = min(token_tile, tokens // 2)
++        tile = min(512, tokens // 2)
+         if not self.training or fc is not None or x.dtype != torch.bfloat16 or (tile < 128) or tile % 128 or tokens % (2 * tile):
+             return native_forward(self, x, fc)
+-        up, down = (weight(self.c_fc, x.dtype), weight(self.c_proj, x.dtype))
+-        if weight_mode >= 3:
+-            if use_weight_cache and self.c_fc._cached_weight is not None and (self.c_proj._cached_weight is not None) and (self.c_fc._cached_weight.dtype == x.dtype) and (self.c_proj._cached_weight.dtype == x.dtype):
+-                up_packed = self.c_fc._nki_packed_weight
+-                down_packed = self.c_proj._nki_packed_weight
+-            else:
+-                up_packed, down_packed = (prepack_weight(up), prepack_weight(down))
+-            result = apply_fused(x.reshape(tokens, x.shape[-1]), up, down, up_packed, down_packed)
+-        else:
+-            result = apply_fused(x.reshape(tokens, x.shape[-1]), up, down)
++        up = weight(self.c_fc, x.dtype)
++        down = weight(self.c_proj, x.dtype)
++        result = apply_fused(x.reshape(tokens, x.shape[-1]), up, down)
+         return result.reshape(x.shape)
+     return forward

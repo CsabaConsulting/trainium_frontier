@@ -1,0 +1,12 @@
+--- original
++++ lean
+@@ -14,8 +14,6 @@
+     global COMPUTE_DTYPE, BOS_TOKEN_ID
+     COMPUTE_DTYPE = compute_dtype_for(device)
+-    payload = torch_load_weights(checkpoint_path, map_location='cpu')
++    payload = torch.load(checkpoint_path, map_location='cpu', weights_only=True)
+     restore_eval_toggles(payload)
+-    if USE_DOC_MASK:
+-        BOS_TOKEN_ID = ensure_tokenizer(build_if_missing=False).get_bos_token_id()
+     config = GPTConfig(**payload['model_config'])
+     if config.sequence_len < EVAL_MIN_SEQ_LEN:

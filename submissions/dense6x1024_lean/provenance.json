@@ -1,0 +1,28 @@
+{
+ "package": "dense6x1024_lean",
+ "derived_from": {
+  "package": "dense6x1024_public0992851",
+  "train_py_sha256": "35c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2",
+  "source_commit": "1da6c0714c0755fd3b078e972fbb0aefbb43bf6d",
+  "public_val_bpb": 0.9928513116311253
+ },
+ "builder": {
+  "path": "research/build_lean_submission.py",
+  "sha256": "6317bee48238f44874c650d63eac0649f425008526dae033a2af76610030edc6"
+ },
+ "output": {
+  "train_py_sha256": "4c6d998b0598a46c2a7e97af444e0d215a415e0b9ee739c0394ddfaca1e695cc",
+  "lines": 2041,
+  "bytes": 115181
+ },
+ "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public",
+ "launch_command_identical_to_source": true,
+ "static_gates_passed": true,
+ "hand_edits": [
+  "GPT: removed window-mask buffers and per-layer mask selection (WINDOW_PATTERN='L': every layer is full-context)",
+  "main: adam_step_now / zero_adamw_now are True (ADAM_EVERY_N=1; step is an int)",
+  "main: removed the always-returning debug_numerics hook and its 5 call sites"
+ ],
+ "cpu_equivalence": "see cpu-equivalence.json (research/scratch/lean_submission_cpu_equiv.py)",
+ "hardware_validation": "NOT YET RUN: contract checks (CPU + Neuron), 20M-token public replay and a cold dress rehearsal are required before submission"
+}

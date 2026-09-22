@@ -1,0 +1,19 @@
+--- original
++++ lean
+@@ -17,5 +17,4 @@
+         super().__init__(*args, **kwargs)
+         self._cached_weight: torch.Tensor | None = None
+-        self.weight_transposed = False
+ 
+     def refresh_weight_cache(self, dtype: torch.dtype) -> None:
+@@ -23,9 +22,7 @@
+ 
+     def forward(self, x: torch.Tensor) -> torch.Tensor:
+-        if USE_WEIGHT_CACHE and self._cached_weight is not None and (self._cached_weight.dtype == x.dtype):
++        if self._cached_weight is not None and self._cached_weight.dtype == x.dtype:
+             w = self._cached_weight
+         else:
+             w = self.weight.to(dtype=x.dtype)
+-        if self.weight_transposed:
+-            return x @ w
+         return F.linear(x, w, None)
