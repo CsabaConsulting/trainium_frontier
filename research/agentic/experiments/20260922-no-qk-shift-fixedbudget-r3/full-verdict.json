@@ -1,0 +1,19 @@
+{
+  "analyst_prose": "DISCARD at the full tier: disabling QK shift reduced public_val_bpb from 1.005967 to 1.005766.\nThe candidate-minus-control delta was -0.000201, short of the required -0.002000 threshold.\nBoth runs used the same clean source commit, seed, host, launch configuration, and 592.9M parameters; QK shift was the only recorded model-option difference.\nThe main confounder is unequal training progress under the fixed 1,800-second budget: the candidate completed 2,080 steps versus 2,076.\nStep rates were 1.16533 versus 1.16348 steps/s, so the small BPB gain cannot be attributed solely to QK shift at equal training steps.\nBoth runs passed causality checks and stayed within the charged budget, with no evaluation timeout.",
+  "decision": "DISCARD",
+  "metrics": {
+    "bpb_delta": -0.00020100000000011775,
+    "candidate_bpb": 1.005766,
+    "candidate_params_M": 592.9,
+    "candidate_step_rate": 1.1653313911143481,
+    "candidate_steps": 2080.0,
+    "control_bpb": 1.005967,
+    "control_params_M": 592.9,
+    "control_step_rate": 1.1634814773300455,
+    "control_steps": 2076.0
+  },
+  "reasons": [
+    "public_val_bpb delta -0.00020 did not meet threshold -0.00200"
+  ],
+  "tier": "full"
+}
