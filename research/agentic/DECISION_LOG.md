@@ -11,3 +11,4 @@ This is a compact index, not a replacement for run logs. Append one row after a 
 Before proposing work, search this file, `research/experiment-log.jsonl`, and
 `research/trn2-experiment-results.md` for the idea and its aliases.
 | 2026-09-22 | autoloop control-trn22-lnc2x4-9a4caa7b (`(control)`) | 9a4caa7b | control-trn22-lnc2x4-9a4caa7b | cand None vs ctrl None bpb, steps None/None | FAILED (smoke) | `research/agentic/experiments/control-trn22-lnc2x4-9a4caa7b/` |
+| 2026-09-22 | autoloop control-trn21-lnc2x4-9a4caa7b (`(control)`) | 9a4caa7b | control-trn21-lnc2x4-9a4caa7b | cand None vs ctrl 1.005734 bpb, steps None/2071 | KEEP (full) | `research/agentic/experiments/control-trn21-lnc2x4-9a4caa7b/` |
