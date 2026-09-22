@@ -124,6 +124,12 @@ class FakeTransport:
         if p == "rmdir":
             h.dirs.discard(argv[1])
             return self._ok(argv)
+        if p == "rm":
+            path = argv[2]
+            if path not in h.files:
+                return self._fail(argv, 1, "missing")
+            del h.files[path]
+            return self._ok(argv)
         if p == "cat":
             return self._ok(argv, h.files[argv[1]].decode()) if argv[1] in h.files else self._fail(argv)
         if p == "tail":
@@ -347,6 +353,9 @@ class GuardTests(unittest.TestCase):
             ["tail", "-n", "5", f"{C.REMOTE_AUTOLOOP_DIR}/x;", "reboot"],
             ["fuser", "/dev/neuron1"],
             ["rmdir", f"{C.REMOTE_RUNS_DIR}/somerun"],
+            ["rm", "-rf", f"{C.REMOTE_RUNS_DIR}/somerun"],
+            ["rm", "--", f"{C.REMOTE_RUNS_DIR}/somerun/train.py"],
+            ["rm", "--", f"{C.REMOTE_RUNS_DIR}/../other/out/x/final.pt"],
             ["mkdir", "/home/ubuntu/elsewhere"],
         ]
         for argv in bad:
@@ -363,6 +372,7 @@ class GuardTests(unittest.TestCase):
             ["git", "-C", run_dir, "checkout", "--quiet", "--detach", COMMIT],
             ["git", "-C", run_dir, "rev-parse", "HEAD"], ["git", "-C", run_dir, "status", "--porcelain"],
             ["sha256sum", f"{run_dir}/train.py"], ["stat", "-c", "%s", f"{run_dir}/out/x/final.pt"],
+            ["rm", "--", f"{run_dir}/out/al-20260922-test-arm-smoke-r1/final.pt"],
             [C.REMOTE_PYTHON, f"{C.REMOTE_AUTOLOOP_DIR}/launchers/l/remote_launcher.py", f"{C.REMOTE_AUTOLOOP_DIR}/launchers/l/launch.json"],
         ]
         for argv in good:
@@ -637,6 +647,22 @@ class LoopTests(unittest.TestCase):
         ctl3 = env.controller()
         rep = ctl3.cycle()
         self.assertEqual(len(env.h.launched), 2, rep.actions)
+
+    def test_archived_smoke_checkpoint_is_hash_verified_then_pruned(self):
+        env = self.env
+        ctl = env.controller()
+        ctl.cycle()
+        spec = env.h.launched[0]
+        finish_run(env.h, spec, bpb=1.3, steps=400, training_seconds=300.0)
+        checkpoint = f"{spec['cwd']}/out/{spec['argv'][spec['argv'].index('--label') + 1]}/final.pt"
+        self.assertIn(checkpoint, env.h.files)
+        env.advance(600)
+        rep = ctl.cycle()
+        self.assertNotIn(checkpoint, env.h.files)
+        pid = next(iter(ctl.store.proposals()))
+        audit = ctl.store.read_artifact(pid, "smoke-checkpoint-pruned.json")
+        self.assertEqual(audit["sha256"], sha(b"\x00" * 64))
+        self.assertTrue(any("checkpoint hash-verified and pruned" in action for action in rep.actions))
 
     def test_stop_file_halts_before_any_remote_call(self):
         env = self.env

@@ -64,12 +64,13 @@ pid/done files already exist; it double-forks so training survives SSH exit and 
 
 ## Remote command allowlist
 
-Only argv lists pass `guard_remote_argv`: programs `git test mkdir rmdir cat tail sha256sum df ps
+Only argv lists pass `guard_remote_argv`: programs `git test mkdir rmdir rm cat tail sha256sum df ps
 fuser hostname stat ls true` plus the pinned python (launcher only). `git` is limited to
 `clone/checkout/rev-parse/status/log/show`, only inside the runs base, never forced. No shell
-metacharacters, no `rm`, `kill`, `sudo`, `aws`, `ec2`, `ssh`, `rsync`, `curl`. `rmdir` is allowed
-only for lock directories. `scp` uploads only into the scratch dir and downloads only from
-autoloop directories.
+metacharacters and no `kill`, `sudo`, `aws`, `ec2`, `ssh`, `rsync`, or `curl`. `rmdir` is allowed
+only for lock directories. `rm` accepts exactly one manifest-bound `final.pt` inside a fresh
+autoloop run, and only through hash-verified `prune_checkpoint`; it cannot remove directories or
+any other file. `scp` uploads only into the scratch dir and downloads only from autoloop dirs.
 
 ## Ladder and verdict rules (`autoloop/analyst.py`)
 
@@ -98,6 +99,9 @@ Each tier is committed (`git add/commit` of that directory only; plain `git push
 `git_push: true`) **before** the next launch anywhere. Closing a proposal appends a row to
 `DECISION_LOG.md`. Runtime state (`runtime/autoloop_state.json`) and bundles are git-ignored.
 Raw model replies are retained only under ignored `runtime/model-replies/`; they are never committed.
+After result/verdict evidence is committed and pushed, the controller hash-verifies and prunes
+smoke checkpoints, control checkpoints, and non-winning full checkpoints. A full candidate `KEEP`
+checkpoint remains for human review. Each prune receipt is committed separately.
 
 Verified full-run winners also trigger `.github/workflows/trainium-winner-alert.yml`. The workflow
 opens one deduplicated GitHub issue assigned to the account named by the repository variable

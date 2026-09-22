@@ -351,6 +351,22 @@ class Controller:
         sha = self.archiver.commit(paths, f"autoloop: {pid} {tier} {decision}")
         self.store.set_stage(pid, next_stage, last_archive_commit=sha, closed=closing)
         report.add(f"{pid}/{tier}: archived ({sha or 'no changes'}) -> {next_stage}")
+        # Once the complete result/verdict is durably pushed, prune disposable checkpoints to
+        # keep both fixed-size Trn2 roots usable. Preserve a candidate full KEEP for human review;
+        # smoke checkpoints, controls, and non-winning full checkpoints are reproducible scratch.
+        if tier == "smoke" or is_control or decision != "KEEP":
+            result = self.store.read_artifact(pid, f"{tier}-result.json") or {}
+            expected_sha = (result.get("collected") or {}).get("checkpoint_sha256")
+            if expected_sha:
+                manifest = RunManifest.from_dict(self.store.read_artifact(pid, f"{tier}-manifest.json"))
+                pruned = self.op.prune_checkpoint(manifest, expected_sha)
+                self.store.write_artifact(pid, f"{tier}-checkpoint-pruned.json", pruned)
+                prune_sha = self.archiver.commit(
+                    [self.store.proposal_dir(pid)],
+                    f"autoloop: prune preserved checkpoint for {pid} {tier}",
+                )
+                self.store.set_stage(pid, next_stage, last_archive_commit=prune_sha or sha, closed=closing)
+                report.add(f"{pid}/{tier}: checkpoint hash-verified and pruned ({prune_sha or 'record local'})")
 
     def _append_decision_log(self, pid: str, tier: str, proposal: dict, verdict: dict) -> None:
         date = self.now_iso()[:10]

@@ -21,3 +21,14 @@ Scope:
 
 This standing authorization does not mark any unverified proposal's gates as passed. It does not
 authorize changing competition rules, modifying `prepare.py`, or merging the submission candidate.
+
+## Expanded operating authority — 2026-09-22
+
+The human operator subsequently confirmed that both existing Trn2 machines are available for this
+campaign, authorized cleanup needed to keep them usable, and removed the earlier $10/day Bedrock
+research preference. Cleanup remains limited to controller-created scratch checkpoints after their
+exact hashes and complete experiment evidence are preserved and pushed; unknown worktrees, source,
+logs, data caches, and unretrieved artifacts remain untouchable. The controller keeps emergency
+rate ceilings (240 model calls and $250 estimated Bedrock spend per UTC day) to contain software
+runaway; these are operational circuit breakers, not a research budget target. All experiment,
+verification, submission, and AWS-lifecycle restrictions above remain in force.

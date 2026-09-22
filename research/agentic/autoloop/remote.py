@@ -5,7 +5,8 @@ Every remote invocation is an argv list checked by :func:`guard_remote_argv` bef
 with ``stat`` and its contents are never read.
 
 Operations: ``inventory``, ``acquire_lock``/``release_lock``, ``stage``, ``launch``, ``poll``,
-``collect``. Each returns a dataclass; each fails closed with :class:`RemoteError`.
+``collect``, and hash-verified ``prune_checkpoint``. Each returns a dataclass; each fails closed
+with :class:`RemoteError`.
 """
 
 from __future__ import annotations
@@ -30,7 +31,7 @@ LAUNCHER_SRC = Path(__file__).with_name("remote_launcher.py")
 BUSY_PROCESS_RE = re.compile(r"train\.py|phase_timer|reconcile|run_experiment\.py|neuronx-cc|torchrun")
 
 ALLOWED_REMOTE_PROGRAMS = frozenset(
-    {"git", "test", "mkdir", "rmdir", "cat", "tail", "sha256sum", "df", "ps", "fuser", "hostname",
+    {"git", "test", "mkdir", "rmdir", "rm", "cat", "tail", "sha256sum", "df", "ps", "fuser", "hostname",
      "stat", "ls", "true", C.REMOTE_PYTHON}
 )
 
@@ -111,6 +112,14 @@ def guard_remote_argv(argv: list[str]) -> None:
                 raise GuardError(f"mkdir/rmdir outside autoloop scratch: {a}")
         if prog == "rmdir" and not all(_under(a, C.REMOTE_AUTOLOOP_DIR + "/locks") for a in argv[1:]):
             raise GuardError("rmdir only for lock directories")
+    elif prog == "rm":
+        if len(argv) != 3 or argv[1] != "--":
+            raise GuardError("rm accepts exactly one path after --")
+        path = argv[2]
+        if ".." in path.split("/"):
+            raise GuardError("rm path traversal forbidden")
+        if not _under(path, C.REMOTE_RUNS_DIR) or "/out/" not in path or not path.endswith("/final.pt"):
+            raise GuardError("rm may only prune a final.pt inside an autoloop run")
     elif prog == "fuser":
         if argv[1:] != ["/dev/neuron0"]:
             raise GuardError("fuser only on /dev/neuron0")
@@ -584,3 +593,24 @@ class RemoteOperator:
         allowed_dirt = {f"research/run-logs/{manifest.label}.log", "research/experiment-log.jsonl", "research/run-logs/"}
         explained = all(ln.strip().split(maxsplit=1)[-1] in allowed_dirt for ln in porcelain if ln.strip())
         return Collected(files, row, ckpt_sha is not None, ckpt_sha, ckpt_bytes, porcelain, explained, self._now())
+
+    def prune_checkpoint(self, manifest: RunManifest, expected_sha256: str) -> dict:
+        """Delete only a completed run's checkpoint after proving its preserved hash matches."""
+        expected_path = f"{manifest.remote_run_dir}/out/{manifest.label}/final.pt"
+        if manifest.remote_checkpoint != expected_path:
+            raise RemoteError("checkpoint path does not match the frozen manifest")
+        if not re.fullmatch(r"[0-9a-f]{64}", expected_sha256):
+            raise RemoteError("expected checkpoint sha256 is invalid")
+        actual = self._remote_sha(manifest.box, manifest.remote_checkpoint)
+        if actual != expected_sha256:
+            raise RemoteError(f"refusing checkpoint prune: remote hash {actual!r} != preserved hash")
+        self._run(manifest.box, ["rm", "--", manifest.remote_checkpoint])
+        if self._remote_sha(manifest.box, manifest.remote_checkpoint) is not None:
+            raise RemoteError("checkpoint still exists after prune")
+        return {
+            "box": manifest.box,
+            "label": manifest.label,
+            "remote_checkpoint": manifest.remote_checkpoint,
+            "sha256": expected_sha256,
+            "pruned_at": self._now(),
+        }
