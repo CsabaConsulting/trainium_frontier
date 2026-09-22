@@ -1,0 +1,49 @@
+{
+  "abort_conditions": [
+    "Any non-finite loss or grad-norm spike >10x the control's early-training values during the grad_accum=2 phase (LR is scaled by (2/4)^0.5 so divergence there indicates the ramp interacting badly with the schedule) -> abort, record FAILED.",
+    "Observed compile activity at the 35% or 75% phase boundary costing more than 60 s of the training clock (grad_accum change triggering graph recompilation) -> let the run finish but classify as throughput failure if final steps < same-host control steps.",
+    "Final num_steps < 2071 (trn21) or < 2076 (trn22) -> prediction of higher update count falsified; BPB result reported but flagged as confounded per protocol section 5.",
+    "causality_passed=false or missing final checkpoint/budget receipt -> invalid run, no verdict on the hypothesis.",
+    "Pre-run: if the Verifier's grep of the full research/experiment-log.jsonl and research/trn2-experiment-results.md finds any prior run with batch_ramp=True at any commit whose result was negative under a comparable (time-based, GA4-reference) configuration, do not launch; record as duplicate.",
+    "Environment mismatch with the same-host control (NEURON_CC_FLAGS not exactly '--optlevel=1', different --num-steps, seed != 42, LNC != 2, nproc != 4, dirty git status) -> do not launch."
+  ],
+  "change_type": "flags",
+  "created_at": "2026-09-22T06:24:32Z",
+  "duplicate_search_terms": [
+    "--batch-ramp",
+    "batch_ramp=True",
+    "batch-ramp",
+    "batch ramp",
+    "grad_accum ramp",
+    "GA ramp",
+    "grad-accum schedule",
+    "batch warmup",
+    "batch size warmup",
+    "critical batch",
+    "batch-ramp-bounds",
+    "batch-ramp-lr-exp",
+    "batch-ramp-grad-accum",
+    "ramp 2,4,8",
+    "0.35, 0.75"
+  ],
+  "evidence": [
+    "research/experiment-log.jsonl row al-20260922-control-trn21-lnc2x4-9a4caa7b-full-r1: batch_ramp='False grad_accum=(2, 4, 8) bounds=(0.35, 0.75) lr_exp=0.5 ref_grad_accum=4 last_grad_accum=4', num_steps=2071, public_val_bpb=1.005734, CC='--optlevel=1' -> resolved control state is a constant grad_accum=4 with the ramp disabled; this is the trn21 matched control.",
+    "research/experiment-log.jsonl row al-20260922-control-trn22-lnc2x4-9a4caa7b-full-r1: identical resolved batch_ramp block, num_steps=2076, public_val_bpb=1.005967 -> trn22 matched control; host-to-host control spread is 0.00023 BPB / 5 steps, which sets the noise band.",
+    "Every supplied ledger row from 2026-09-17 through 2026-09-22 (sub1-*, fs-w*, al-*) records batch_ramp=False; DECISION_LOG.md contains no batch-ramp row. In the supplied evidence the ramp has never been run at any commit, and never at 9a4caa7b.",
+    "train.py flag list at 9a4caa7b exposes --batch-ramp / --no-batch-ramp plus separate --batch-ramp-grad-accum, --batch-ramp-bounds, --batch-ramp-lr-exp, confirming the ramp is a self-contained, already-implemented schedule option whose parameters are independent of the enable switch.",
+    "Related negative evidence (acknowledged, not a duplicate): sub1-p2b-autocast-bf16-fullv2 (2719 steps, 1.015549) and sub1-bf16-lr077-full / lr065-full (2700/2688 steps, 1.0159/1.0180) show that more steps bought with BF16 matmul precision loss worsen BPB even with LR rescaling. The ramp buys early steps without any precision change and preserves total tokens, so the mechanism is distinct; but it establishes that a step-count gain alone must not be read as success.",
+    "fs-w640-bf16-exposure1395-r1 description 'compressed schedule' and record-repro runs with --num-steps 5000 vs fresh-start --num-steps 1000000 both terminating on time show the LR schedule is time-based, so fraction-of-budget ramp bounds (0.35, 0.75) are coherent with the schedule.",
+    "research/experiment-protocol.md section 5: quality comparisons need comparable step counts and same-box back-to-back rate comparisons; section 1.5: NEURON_CC_FLAGS must contain --optlevel=1 (control uses exactly '--optlevel=1')."
+  ],
+  "expected_effect": "Direction: lower public val_bpb than the same-host pinned control. Predeclared size: -0.003 to -0.008 BPB (i.e. trn21 <= 1.0027, trn22 <= 1.0030 for success). Predeclared step count: 2300-2500 optimizer steps (about 1300 at grad_accum=2, about 800 at 4, about 250 at 8) with total training tokens within 5% of the control's 2071x4 micro-batch equivalent. Classification: SUCCESS if same-host delta <= -0.003 and steps >= 2071/2076 and causality passes; NOT ADOPTED (weak/inconclusive, log only) if -0.003 < delta <= -0.001; FALSIFIED if delta > -0.001 (inside the 0.00023 host spread plus margin) or BPB is worse. If the candidate completes fewer steps than its same-host control, record it as a throughput-prediction failure (ramp/recompile overhead) regardless of BPB. public_val_bpb is the development proxy; the official private-shard BPB shares the scorer but not the data, so this run cannot claim an official score.",
+  "files_allowed": [],
+  "flags": [
+    "--batch-ramp"
+  ],
+  "hypothesis": "At the fixed 1800 s budget the default-shape model (6x640 + hashed n-gram tables, 592.9M params) is update-count-limited early and noise-limited late: the two pinned controls complete only ~2071/2076 optimizer steps at a constant grad_accum=4. Enabling the already-implemented but default-off batch ramp (grad_accum 2 -> 4 -> 8 at 35%/75% of the time budget with sqrt LR scaling, all resolved values already recorded in the control rows) roughly doubles the optimizer-update rate during the first 35% of the budget and doubles the effective batch (lower gradient noise) during the low-LR tail while keeping total tokens, precision, kernels, optimizer and architecture unchanged. This should lower final public val_bpb versus the same-host control.",
+  "implementation_plan": "",
+  "proposal_id": "20260922-batch-ramp-only-default-shape",
+  "single_causal_change": "Pass --batch-ramp only. Nothing else changes: no precision flag, no kernel flag, no optimizer/architecture switch, no --batch-ramp-grad-accum/--batch-ramp-bounds/--batch-ramp-lr-exp overrides (their resolved defaults are already recorded in both pinned control rows as grad_accum=(2, 4, 8) bounds=(0.35, 0.75) lr_exp=0.5 ref_grad_accum=4, so the only behavioral delta is the ramp being active instead of a constant grad_accum=4). Launch must otherwise be byte-identical to the same-host pinned control: NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 1800 --seed 42, NEURON_CC_FLAGS='--optlevel=1' exactly, NEURON_COMPETITION_R1_SEED=42, commit 9a4caa7b.",
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}

@@ -1,0 +1,19 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "Single bounded treatment: enable --batch-ramp, including its existing coupled LR scaling. Authoritative train.py lines 254\u2013270 and 6197\u20136212 describe fixed micro-shapes, wall-clock boundaries, accumulation (2,4,8), and LR exponent 0.5; both pinned control ledger rows confirm the same resolved defaults with the ramp disabled.",
+    "Repository-backed matched controls are available: trn21 records 2071 steps and 1.005734 public BPB; trn22 records 2076 steps and 1.005967. The predeclared same-host BPB delta and update-count criteria are falsifiable under the controller-pinned seed-42 full-chip experiment.",
+    "No closed batch-ramp direction appears in the supplied decision log or ledger excerpts. Static batch-size losses cited in train.py lines 222\u2013237 are relevant negative evidence, but do not duplicate a time-varying batch/LR schedule. The cited BF16 experiments also use a distinct mechanism.",
+    "Competition-legal scope: README.md permits batch-size and training-schedule changes. This flag-only proposal introduces no pretrained weights, external data, evaluator changes, or modifications to protected files.",
+    "Interpretation caveats: total tokens are an outcome, not an invariant under a fixed time budget. The illustrative phase counts imply 7800 micro-batches, about 5.8\u20136.1% below the controls, slightly outside the stated 5% prediction. Report actual accumulated tokens and phase timings separately from BPB success. The two-host 0.000233 BPB spread is descriptive, not an established statistical noise band."
+  ],
+  "llm_verdict": "PASS",
+  "passed": true,
+  "proposal_id": "20260922-batch-ramp-only-default-shape",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-22T06:24:32Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}
