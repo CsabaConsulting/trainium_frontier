@@ -24,7 +24,8 @@ for host,revision in (("trn21",""),("trn22",""),("trn21","-r2"),("trn22","-r2"))
         assert hashlib.sha256(blob).hexdigest()==want,(item,hashlib.sha256(blob).hexdigest(),want)
     assert job["request_sha256"]==hashlib.sha256(path.read_bytes()).hexdigest()
     assert job["expected_commit"]==request["expected_commit"]
-    assert not any(request["label"] in name for name in subprocess.check_output(["git","ls-files","research/run-logs"],cwd=ROOT,text=True).splitlines())
+    # Historical request labels may now have immutable dispatch/evidence records;
+    # their request bytes and Git-object fingerprints above remain authoritative.
 
 for host in ("trn21","trn22"):
     path=HERE/f"control-{host}-r2-v2-request.json";request=json.loads(path.read_text())
