@@ -19,10 +19,62 @@ from fresh_start_sync import HOSTS, ROOT, SSH
 
 
 REMOTE_SCRIPT = r'''
-import datetime, fcntl, hashlib, json, os, pathlib, shutil, socket, subprocess, sys
+import datetime, fcntl, hashlib, json, os, pathlib, shutil, socket, stat, subprocess, sys
 m = json.load(sys.stdin)
 r = pathlib.Path(m['remote'])
 assert r.is_dir(), 'checkout missing'
+
+# This boundary deliberately uses only the standard library.  No Python bytes
+# from the checkout are imported until the complete, non-sparse materialization
+# and every required byte have been authenticated against the request.
+runtime_closure = [
+    'research/fresh_start_launch.py',
+    'research/fresh_start_sync.py',
+    'research/fresh_start_guard.py',
+    'research/fresh_start_host.py',
+    'research/fresh_start_backup.py',
+]
+expected = m.get('expected_sha256')
+assert isinstance(expected, dict), 'expected_sha256 missing'
+required = list(dict.fromkeys(runtime_closure + m.get('fingerprint_paths', [])))
+assert all(path in expected for path in required), 'required checkout hash missing'
+
+def git(*args, check=True):
+    return subprocess.run(['git', *args], cwd=r, text=True, capture_output=True, check=check)
+
+commit = git('rev-parse', 'HEAD').stdout.strip()
+assert commit == m['expected_commit'], 'unexpected source commit: ' + commit
+sparse = git('config', '--bool', 'core.sparseCheckout', check=False)
+assert sparse.returncode in (0, 1), 'cannot read sparse checkout config'
+assert sparse.returncode == 1 or sparse.stdout.strip() == 'false', 'sparse checkout enabled'
+git_path = pathlib.Path(git('rev-parse', '--git-path', 'info/sparse-checkout').stdout.strip())
+if not git_path.is_absolute():
+    git_path = r / git_path
+assert not git_path.exists(), 'sparse checkout specification exists'
+assert not git('diff', '--name-only', 'HEAD', '--').stdout.strip(), 'tracked checkout differs from HEAD'
+assert not git('ls-files', '--deleted').stdout.strip(), 'tracked checkout is incompletely materialized'
+
+def authenticated_regular(relative):
+    rel = pathlib.PurePosixPath(relative)
+    assert relative == str(rel) and not rel.is_absolute() and '..' not in rel.parts, 'unsafe checkout path'
+    current = r
+    for index, part in enumerate(rel.parts):
+        current = current / part
+        mode = current.lstat().st_mode
+        assert not stat.S_ISLNK(mode), 'checkout path is symlink: ' + relative
+        if index + 1 < len(rel.parts):
+            assert stat.S_ISDIR(mode), 'checkout parent is not directory: ' + relative
+        else:
+            assert stat.S_ISREG(mode), 'checkout path is not regular: ' + relative
+    tracked = git('ls-files', '--error-unmatch', '--', relative, check=False)
+    assert tracked.returncode == 0 and tracked.stdout.strip() == relative, 'required path is not tracked: ' + relative
+    with current.open('rb') as source:
+        actual = hashlib.sha256(source.read()).hexdigest()
+    assert actual == expected[relative], 'checkout hash mismatch: ' + relative
+    return actual
+
+validated_sha256 = {path: authenticated_regular(path) for path in required}
+# CHECKOUT_AUTHENTICATION_BOUNDARY -- tests execute through this exact line only.
 sys.path.insert(0, str(r / 'research'))
 from fresh_start_host import HOST_DIRECTORY, HOST_LOCK, preflight
 HOST_DIRECTORY.mkdir(parents=True, exist_ok=True)
@@ -39,8 +91,6 @@ source_paths = ['train.py', 'prepare.py', 'research/scratch', 'research/run_expe
 dirty = subprocess.check_output(['git', 'diff', '--name-only', 'HEAD', '--', *source_paths], cwd=r)
 new = subprocess.check_output(['git', 'ls-files', '--others', '--exclude-standard', '--', *source_paths], cwd=r)
 assert not dirty.strip() and not new.strip(), 'experiment source is not committed'
-commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=r, text=True).strip()
-assert commit == m['expected_commit'], 'unexpected source commit: ' + commit
 fdir = r / 'research/run-logs'
 manifest = fdir / (m['label'] + '.launch.json')
 log = fdir / (m['label'] + '.log')
@@ -55,7 +105,9 @@ paths = ['train.py', 'prepare.py', 'research/run_experiment.py',
 m.update(started_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),
          hostname=socket.gethostname(), git_commit=commit, source_dirty=False,
          preflight_free_bytes=free,
-         source_sha256={p: hashlib.sha256((r / p).read_bytes()).hexdigest() for p in dict.fromkeys(paths)})
+         source_sha256={p: (validated_sha256[p] if p in validated_sha256 else
+                            hashlib.sha256((r / p).read_bytes()).hexdigest())
+                        for p in dict.fromkeys(paths)})
 env = os.environ.copy()
 for key in ('NEURON_RT_VISIBLE_CORES', 'NEURON_RT_NUM_CORES'):
     env.pop(key, None)

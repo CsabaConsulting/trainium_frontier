@@ -1,0 +1,33 @@
+{
+  "schema": "dense6x1024-cohort-post-run-contract-v2",
+  "scientific_change_from_r1": false,
+  "retry_reason": "r1 stopped in preflight and r2 was never dispatched; r3 authenticates a complete non-sparse checkout before importing protocol code",
+  "required_push_proof_schema": "dense6x1024-cohort-evidence-push-v1",
+  "origin": "https://github.com/CsabaConsulting/trainium_frontier.git",
+  "branch": "experiment/20260923-dense6x1024-matrixlr-cohort",
+  "lexical_path_invariants": "All paths must equal the arm entries byte-for-byte; no resolve, symlink leaf, symlink parent, alias, relative path or path escape is accepted.",
+  "arms": {
+    "control_r3": {
+      "host": "trn22",
+      "ssh_host": "ubuntu@ec2-16-26-154-27.ap-southeast-4.compute.amazonaws.com",
+      "label": "fs-20260923-dense6x1024-9173-cold-repeat-r3",
+      "remote_root": "/home/ubuntu/trainium_freshstart_20260923_dense9173_control_r3",
+      "checkpoint": "/home/ubuntu/trainium_freshstart_20260923_dense9173_control_r3/out/fs-20260923-dense6x1024-9173-cold-repeat-r3/train/out/final.pt",
+      "archive": "/home/ubuntu/trainium_freshstart_20260923_dense9173_control_r3/out/archives/fs-20260923-dense6x1024-9173-cold-repeat-r3.tar.gz",
+      "push_proof": "/home/ubuntu/trainium_freshstart_20260923_dense9173_control_r3/out/fs-20260923-dense6x1024-9173-cold-repeat-r3/evidence-pushed-receipt.json",
+      "prune_receipt": "/home/ubuntu/trainium_freshstart_20260923_dense9173_control_r3/out/fs-20260923-dense6x1024-9173-cold-repeat-r3/checkpoint-prune-receipt.json"
+    },
+    "candidate_r3": {
+      "host": "trn21",
+      "ssh_host": "ubuntu@ec2-16-26-246-98.ap-southeast-4.compute.amazonaws.com",
+      "label": "fs-20260923-dense6x1024-matrixlr025-r3",
+      "remote_root": "/home/ubuntu/trainium_freshstart_20260923_matrixlr025_candidate_r3",
+      "checkpoint": "/home/ubuntu/trainium_freshstart_20260923_matrixlr025_candidate_r3/out/fs-20260923-dense6x1024-matrixlr025-r3/train/out/final.pt",
+      "archive": "/home/ubuntu/trainium_freshstart_20260923_matrixlr025_candidate_r3/out/archives/fs-20260923-dense6x1024-matrixlr025-r3.tar.gz",
+      "push_proof": "/home/ubuntu/trainium_freshstart_20260923_matrixlr025_candidate_r3/out/fs-20260923-dense6x1024-matrixlr025-r3/evidence-pushed-receipt.json",
+      "prune_receipt": "/home/ubuntu/trainium_freshstart_20260923_matrixlr025_candidate_r3/out/fs-20260923-dense6x1024-matrixlr025-r3/checkpoint-prune-receipt.json"
+    }
+  },
+  "evaluation": {"seq_len": 1024, "batch_size": 1, "world_size": 1, "num_tokens": 20971520, "num_bytes": 83462186},
+  "ordering": ["retrieve and hash-verify lightweight evidence", "commit and push evidence", "authenticate exact push proof", "reserve and fsync prune journals", "delete only exact final.pt", "push completed prune receipt"]
+}
