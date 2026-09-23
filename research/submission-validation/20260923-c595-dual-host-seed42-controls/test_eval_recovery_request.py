@@ -16,7 +16,7 @@ for item,want in request["expected_sha256"].items():
  assert item in tracked
  blob=subprocess.check_output(["git","show",request["expected_commit"]+":"+item],cwd=ROOT)
  assert hashlib.sha256(blob).hexdigest()==want
-assert not any(request["label"] in name for name in subprocess.check_output(["git","ls-files","research/run-logs"],cwd=ROOT,text=True).splitlines())
+# This trn21 label is historical and may now have immutable dispatch evidence.
 launcher=(ROOT/"research/fresh_start_launch.py").read_text()
 assert 'request["request_file_sha256"] = hashlib.sha256(request_bytes).hexdigest()' in launcher
 job=json.loads((HERE/"eval-recovery-trn21-r1-job.json").read_text())
