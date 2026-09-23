@@ -29,6 +29,9 @@ exit 64
 Neither this runbook nor the harness computes or prints an authorized HEAD/request SHA. The final
 Verifier is the sole source of those two literals, the unique run label, and the exact manifested
 fresh-start request. An Operator must copy that report verbatim; no runtime substitution is valid.
+The authorization file intentionally does not embed its future commit SHA (which would be a Git
+self-reference); exact HEAD authority exists only in the Verifier's external literal and the
+matching CLI/environment/launch/job fields checked against `git rev-parse HEAD`.
 
 ## Decisive workload
 

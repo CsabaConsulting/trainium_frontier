@@ -205,8 +205,6 @@ def authenticate(args: argparse.Namespace, full: bool) -> dict[str, Any]:
             raise ValueError("external authorization SHA does not match request bytes")
         if request.get("authorization_state") != "finalized_by_external_verifier":
             raise ValueError("pending authorization request cannot launch")
-        if request.get("authorized_head") != args.authorized_head:
-            raise ValueError("request/external authorized HEAD mismatch")
     expected_hashes = request.get("expected_sha256")
     if not isinstance(expected_hashes, dict) or not expected_hashes:
         raise ValueError("authorization expected_sha256 is missing")
@@ -228,8 +226,6 @@ def authenticate(args: argparse.Namespace, full: bool) -> dict[str, Any]:
     dirty = git("status", "--porcelain=v1", "--untracked-files=all", "--", *expected_hashes)
     if dirty:
         raise ValueError("fingerprinted paths are dirty/untracked")
-    if full and request.get("authorized_head") != head:
-        raise ValueError("full run is not externally authorized")
     return {
         "request_sha256": actual_request_sha,
         "authorized_head": args.authorized_head,
