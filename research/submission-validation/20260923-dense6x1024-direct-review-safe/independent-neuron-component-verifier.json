@@ -1,0 +1,144 @@
+{
+  "role": "independent Verifier",
+  "verified_at": "2026-09-23",
+  "verdict": "FAIL",
+  "reviewed_commit": "06589ac0de200990e2954faf8e7d3d00dc3145e7",
+  "reviewed_parent": "fbe005cf180b28703795827fd12b362fe82a83ed",
+  "scope": {
+    "candidate_modified_by_reviewed_commit": false,
+    "reviewed_files": [
+      "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron_component_direct.py",
+      "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron-component-runbook.md"
+    ],
+    "unexpected_files": [],
+    "candidate_sha256": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537",
+    "candidate_hash_unchanged": true,
+    "harness_sha256": "f114a085cf0aa3962dec1c44427a3b142649d1308336ce8d15738cff199a57c5",
+    "runbook_sha256": "377d5fef8ce14e18418ec1e5c17707c81c6fcbe295b83e8d37a733627474b760"
+  },
+  "positive_findings": {
+    "candidate_hash_is_pinned_and_wrong_hash_fails": true,
+    "missing_candidate_fails": true,
+    "lnc2_and_world_size_four_are_checked_before_candidate_import": true,
+    "mlp_gate_requires_training_bf16_launch_shape_cached_weights_and_fused_autograd_node": true,
+    "mlp_reference_is_an_independent_eager_expression": true,
+    "ce_probes_call_through_to_the_real_wrapped_nki_grid": true,
+    "ce_gate_requires_direct_autograd_node_exact_call_count_and_expected_one_and_two_lane_selection": true,
+    "ce_reference_is_independent_native_pytorch_math": true,
+    "ownership_plan_requires_exact_slot_coverage_contiguous_indices_all_four_owners_and_rank_local_positions": true,
+    "optimizer_gate_checks_parameter_update_api_split_schedule_state_coverage_finite_buffers_schema_roundtrip_and_bad_schema_rejection": true,
+    "all_three_stage_pass_counts_and_plan_digest_are_reduced_across_four_ranks": true,
+    "process_group_cleanup_is_required_for_harness_pass": true,
+    "shape_dtype_finite_and_elementwise_tolerance_checks_exist": true,
+    "exceptions_and_missing_global_metrics_fail_closed": true
+  },
+  "blocking_findings": [
+    {
+      "id": "B1",
+      "severity": "blocking",
+      "finding": "The declared numerical tolerances are not protected by scale or non-degeneracy checks and can mark zero tensors equal to nonzero reference tensors.",
+      "evidence": "tensor_metrics at lines 136-166 uses only atol + rtol*abs(reference). Independent local calls returned passed=true for zero actual against constant nonzero references of 0.05 for MLP output, 0.001 for MLP input gradient, 0.01 for each MLP weight gradient, 0.0001 for CE loss, 0.00002 for CE gradient, and 5e-7 for optimizer parameters. The MLP loss is divided by 32768 before backward, making the large gradient absolute tolerances especially capable of hiding a zero or severely attenuated backward.",
+      "impact": "A hardware/compiler backward failure can satisfy the gate even though gradient correctness is the central purpose of the component test.",
+      "required_correction": "Calibrate thresholds from preserved source/candidate device evidence and add fail-closed reference magnitude plus error-to-reference norm checks (and, for gradients, an explicit zero/attenuation rejection). Compare optimizer update deltas as well as final parameters. Add local adversarial tests showing zeroed, scaled, permuted and single-element-corrupted outputs fail."
+    },
+    {
+      "id": "B2",
+      "severity": "blocking",
+      "finding": "The gate runs each compiled component only once.",
+      "evidence": "fused_mlp_gate performs one candidate forward/backward; each CE lane case requires exactly one wrapped forward/backward; optimizer_gate requires owner.calls == 1. The experiment protocol requires compiled probes to verify later execution and weight-cache refresh behavior.",
+      "impact": "The gate does not prove cached compilation executes on a later microbatch, nor that the direct MLP remains correct after the same weight-cache refresh lifecycle used by training.",
+      "required_correction": "Run and independently compare at least one later MLP forward/backward after a real weight update and BF16 cache refresh, a later call through each CE lane grid, and a second optimizer update with changed schedule/gradients. Record both invocations and require the intended custom/NKI nodes and exact call counts on both."
+    },
+    {
+      "id": "B3",
+      "severity": "blocking",
+      "finding": "The claimed frozen command/environment is not enforced by the harness.",
+      "evidence": "Full mode validates only NEURON_LOGICAL_NC_CONFIG and WORLD_SIZE before execution. It does not reject a non-42 seed, non-4 host thread count, wrong or missing NEURON_CC_FLAGS, wrong compile-cache path, wrong LOCAL_WORLD_SIZE, or an exact-content candidate copied outside the frozen candidate path. The success JSON does not record host_threads, compiler flags, compile-cache path, argv, run label, harness hash or commit.",
+      "impact": "A materially different invocation can emit passed=true while the report is insufficient to establish the frozen experiment identity.",
+      "required_correction": "Fail closed on the exact resolved candidate path and hash, seed 42, host threads 4, LNC2, WORLD_SIZE and LOCAL_WORLD_SIZE 4, exact compiler flags and cache policy. Record argv, seed, host threads, full relevant environment, harness/runbook/candidate hashes, commit and unique run label, and require agreement across ranks."
+    },
+    {
+      "id": "B4",
+      "severity": "blocking",
+      "finding": "Report writing can overwrite existing evidence or another in-scope file.",
+      "evidence": "write_report at lines 49-54 always writes a fixed .tmp sibling and replaces the requested path. No check requires a new JSON under research/run-logs, prevents --report from resolving to the candidate/harness/runbook, or rejects an existing report, despite the runbook requiring a unique non-overwriting report path.",
+      "impact": "A typo or reused label can destroy prior evidence or source and still be treated as the normal reporting path.",
+      "required_correction": "Resolve and validate the report path under the approved run-log directory, reject protected/source paths and any existing destination or temporary sibling, and create the report exclusively. Keep rank-zero-only writes in full mode."
+    },
+    {
+      "id": "B5",
+      "severity": "blocking",
+      "finding": "The runbook's exact command is a raw timeout/torchrun command rather than a complete manifested experiment-protocol launch.",
+      "evidence": "The protocol requires fresh_start_launch/fresh_start_guard, unique run identity, host-wide lock, immutable worktree fingerprints, preflight and postflight receipts. The runbook says to use the protocol but provides only timeout -> env -> torchrun and no exact outer launcher/request/expected-commit command.",
+      "impact": "Executing the documented exact command literally bypasses the lock and durable pre/postflight supervision required for every kernel diagnostic.",
+      "required_correction": "Provide the exact fresh_start_launch/fresh_start_guard request and dispatch command with a unique label, expected corrected commit and all hashes/environment. Treat the 1200-second timeout command only as the manifested guarded workload, and require retrieved preflight/postflight receipts before interpreting harness pass."
+    }
+  ],
+  "local_checks": [
+    {
+      "command": "git diff --name-status 06589ac0^ 06589ac0; sha256sum candidate harness runbook; git diff --check 06589ac0^ 06589ac0",
+      "result": "PASS: exactly the two declared harness/runbook additions; candidate hash c5956187...7537 unchanged; no whitespace errors"
+    },
+    {
+      "command": "python -m py_compile research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron_component_direct.py",
+      "result": "PASS"
+    },
+    {
+      "command": "python neuron_component_direct.py --static-only --train-py submissions/dense6x1024_direct_review/train.py --report /tmp/direct-neuron-static-correct.json",
+      "result": "PASS rc0: pinned hash and all static wiring checks true; explicit no-Neuron qualification present"
+    },
+    {
+      "command": "python neuron_component_direct.py --static-only --train-py submissions/dense6x1024_lean_review/train.py --report /tmp/direct-neuron-static-wrong-candidate.json",
+      "result": "PASS rejection rc1: wrong hash and old adapter constructs reported"
+    },
+    {
+      "command": "python neuron_component_direct.py --static-only --train-py /tmp/definitely-missing-direct-train.py --report /tmp/direct-neuron-static-missing.json",
+      "result": "PASS rejection rc2: FileNotFoundError captured in valid failure JSON"
+    },
+    {
+      "command": "local torch Python with missing/wrong NEURON_LOGICAL_NC_CONFIG and WORLD_SIZE=3 full-mode invocations",
+      "result": "PASS rejection rc2: missing/LNC1 rejected as 'must be 2'; world size 3 rejected as requiring four torchrun processes"
+    },
+    {
+      "command": "static-only invocation with seed 43, host-threads 1, LNC9, wrong compiler flags and wrong cache",
+      "result": "rc0 and report passed=true; static mode also omitted all of those values. Static mode need not validate hardware, but this confirms report identity is incomplete; source inspection confirms full mode enforces only LNC and world size."
+    },
+    {
+      "command": "independent tensor_metrics adversarial calls using zero actual tensors and small nonzero references for every declared tolerance",
+      "result": "FAIL criterion reproduced: every one of the seven comparisons returned passed=true, including all four MLP quantities and optimizer parameter values"
+    },
+    {
+      "command": "independent tensor_metrics shape/dtype/non-finite/beyond-limit checks",
+      "result": "PASS: wrong shape, wrong dtype, NaN and values beyond the elementwise limit returned passed=false"
+    }
+  ],
+  "report_completeness": {
+    "static_json_is_valid_and_self_qualifies": true,
+    "success_json_has_candidate_hash_static_wiring_tolerances_rank0_metrics_global_counts_plan_digest_and_distributed_cleanup": true,
+    "missing_required_identity_fields": [
+      "harness_sha256",
+      "runbook_sha256",
+      "git_commit",
+      "argv",
+      "unique_run_label",
+      "host_threads",
+      "NEURON_CC_FLAGS",
+      "NEURON_COMPILE_CACHE_DIR",
+      "LOCAL_WORLD_SIZE",
+      "later_execution_results",
+      "outer_preflight_receipt",
+      "outer_postflight_receipt"
+    ]
+  },
+  "authorization": {
+    "hardware_command_authorized": false,
+    "authorized_command": null,
+    "authorized_harness_sha256": null,
+    "candidate_or_submission_verdict_changed": false,
+    "statement": "Do not launch commit 06589ac0's documented hardware command. Correct B1-B5, obtain an independent verifier PASS on the new commit/hash, then dispatch only through the manifested experiment protocol. This FAIL is limited to the component harness and runbook; it does not alter the prior candidate implementation verification."
+  },
+  "candidate_modified_by_verifier": false,
+  "hardware_run_by_verifier": false,
+  "submission_performed": false,
+  "scientific_verdict": null
+}
