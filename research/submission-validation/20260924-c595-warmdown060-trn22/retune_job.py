@@ -20,11 +20,11 @@ import time
 ROOT = Path(__file__).resolve().parents[3]
 HERE = Path(__file__).resolve().parent
 PYTHON = "/home/ubuntu/workspace/native_venv/bin/python"
-LABEL = "fs-20260924-c595-warmdown060-trn22-r2"
+LABEL = "fs-20260924-c595-warmdown060-trn22-r3"
 HOST = "trn22"
 HOSTNAME = "ip-172-31-32-253"
-REMOTE = "/home/ubuntu/trainium_freshstart_20260924_c595_warmdown060_trn22_r2"
-CONCRETE_REQUEST = Path("/tmp/fs-20260924-c595-warmdown060-trn22-r2.request.json")
+REMOTE = "/home/ubuntu/trainium_freshstart_20260924_c595_warmdown060_trn22_r3"
+CONCRETE_REQUEST = Path("/tmp/fs-20260924-c595-warmdown060-trn22-r3.request.json")
 PACKAGE_REL = "submissions/dense6x1024_direct_review_warmdown060"
 SOURCE_REL = "submissions/dense6x1024_direct_review/train.py"
 SOURCE_SHA = "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537"
@@ -48,6 +48,8 @@ BASE_ARTIFACTS = {
 }
 HEX64 = set("0123456789abcdef")
 EXACT_CC_FLAGS = "--optlevel=1 --auto-cast matmult --auto-cast-type bf16"
+PINNED_LD_LIBRARY_PATH = "/usr/local/lib:/usr/lib"
+PINNED_LD_LIBRARY_PATH_SHA256 = "ac04b79dfecb27e2f78a97194a6d6cc7158f45a16ab3544df4c2b0ee5be3d3c0"
 AUTH_REL = "research/submission-validation/20260924-c595-warmdown060-trn22/authorization.json"
 REQUEST_REL = "research/submission-validation/20260924-c595-warmdown060-trn22/final-request.json"
 DRIVER_REL = "research/submission-validation/20260924-c595-warmdown060-trn22/retune_job.py"
@@ -96,6 +98,7 @@ MINIMAL_ENVIRONMENT = {
     "LOGNAME": "ubuntu",
     "LANG": "C.UTF-8",
     "LC_ALL": "C.UTF-8",
+    "LD_LIBRARY_PATH": PINNED_LD_LIBRARY_PATH,
     "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
     "TMPDIR": "/tmp",
     "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
@@ -464,6 +467,7 @@ def _nofollow_json(path: Path) -> dict:
 
 def build_subprocess_environment(source: dict[str, str]) -> dict[str, str]:
     allowed_sensitive = {
+        "LD_LIBRARY_PATH": PINNED_LD_LIBRARY_PATH,
         "NEURON_LOGICAL_NC_CONFIG": "2",
         "NEURON_CC_FLAGS": EXACT_CC_FLAGS,
         "TRAINIUM_FRESH_START_RUN_ID": LABEL,
@@ -822,6 +826,11 @@ print(json.dumps({'weights_only':True,'map_location':'cpu','finite':True,'tensor
         "source_sha256": SOURCE_SHA, "candidate_sha256": CANDIDATE_SHA, "prepare_sha256": PREPARE_SHA,
         "seed": 42, "max_train_seconds": 1800, "smoke": False,
         "single_causal_change": "WARMDOWN_RATIO 0.75 -> 0.60", "unchanged_weight_decay": 0.2,
+        "environment_contract": {
+            "LD_LIBRARY_PATH": PINNED_LD_LIBRARY_PATH,
+            "LD_LIBRARY_PATH_sha256": PINNED_LD_LIBRARY_PATH_SHA256,
+            "included_in_strict_child_environment": True,
+        },
         "checkpoint_path": str(checkpoint), "checkpoint_sha256": after_sha, "checkpoint_bytes": after_bytes,
         "checkpoint_preserved": True, "finite_scan": finite_receipt, "metrics": metrics, "decision_gate": decision,
         "checkpoint_prune_authorized": False, "cache_cleanup_authorized": False,
@@ -838,6 +847,11 @@ print(json.dumps({'weights_only':True,'map_location':'cpu','finite':True,'tensor
         "schema": "c595-warmdown060-completion-v1", "label": LABEL, "host": HOST, "hostname": HOSTNAME,
         **identity,
         "candidate_sha256": CANDIDATE_SHA, "prepare_sha256": PREPARE_SHA,
+        "environment_contract": {
+            "LD_LIBRARY_PATH": PINNED_LD_LIBRARY_PATH,
+            "LD_LIBRARY_PATH_sha256": PINNED_LD_LIBRARY_PATH_SHA256,
+            "included_in_strict_child_environment": True,
+        },
         "artifact_manifest_sha256": manifest_sha, "artifact_members": members,
         "checkpoint_path": str(checkpoint), "checkpoint_pre_eval_sha256": checkpoint_sha,
         "checkpoint_pre_eval_bytes": checkpoint_bytes, "checkpoint_post_eval_sha256": after_sha,
