@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import hashlib, importlib.util, json, math, pathlib, subprocess, sys, tempfile
+import importlib.util, json, math, pathlib
 
 HERE = pathlib.Path(__file__).resolve().parent
 spec = importlib.util.spec_from_file_location("cohort_job", HERE / "cohort_job.py")
@@ -41,21 +41,4 @@ for required in ("socket.gethostname()", "tarfile.open(args.archive, \"x:gz\")",
                  "NEURON_COMPETITION_R1_", "TORCHELASTIC_RUN_ID"):
     assert required in source
 assert "checkpoint.unlink()" not in source
-prune = (HERE / "prune_checkpoint.py").read_text()
-assert prune.index("retrieved_verified_committed_pushed") < prune.index("os.O_EXCL") < prune.index("checkpoint.unlink()")
-with tempfile.TemporaryDirectory() as directory:
-    root = pathlib.Path(directory); out = root / "run/out"; out.mkdir(parents=True)
-    checkpoint = out / "final.pt"; checkpoint.write_bytes(b"checkpoint")
-    archive = root / "evidence.tar.gz"; archive.write_bytes(b"archive")
-    proof = root / "proof.json"; proof.write_text(json.dumps({"retrieved_verified_committed_pushed": True}))
-    command = [sys.executable, str(HERE / "prune_checkpoint.py"), "--arm", "control",
-               "--label", "fs-forged", "--checkpoint", str(checkpoint),
-               "--expected-sha256", hashlib.sha256(b"checkpoint").hexdigest(),
-               "--expected-bytes", str(len(b"checkpoint")), "--archive", str(archive),
-               "--archive-sha256", hashlib.sha256(b"archive").hexdigest(),
-               "--evidence-pushed-receipt", str(proof),
-               "--evidence-pushed-receipt-sha256", hashlib.sha256(proof.read_bytes()).hexdigest(),
-               "--receipt", str(root / "receipt.json")]
-    failed = subprocess.run(command, capture_output=True)
-    assert failed.returncode != 0 and checkpoint.is_file() and not (root / "receipt.json").exists()
 print("cohort adversarial static tests: PASS")

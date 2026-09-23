@@ -4,6 +4,29 @@
   "required_fields": ["arm", "label", "archive_path", "archive_sha256", "checkpoint_path", "checkpoint_sha256", "checkpoint_bytes", "evidence_commit", "origin", "branch", "retrieved_verified_committed_pushed"],
   "origin": "https://github.com/CsabaConsulting/trainium_frontier.git",
   "branch": "experiment/20260923-dense6x1024-matrixlr-cohort",
+  "lexical_path_invariants": "All paths must equal the arm entries byte-for-byte; no resolve, symlink leaf, symlink parent, alias, relative path or path escape is accepted.",
+  "arms": {
+    "control": {
+      "label": "fs-20260923-dense6x1024-9173-cold-repeat-r1",
+      "remote_root": "/home/ubuntu/trainium_freshstart_20260923_dense9173_control",
+      "checkpoint": "/home/ubuntu/trainium_freshstart_20260923_dense9173_control/out/fs-20260923-dense6x1024-9173-cold-repeat-r1/train/out/final.pt",
+      "archive": "/home/ubuntu/trainium_freshstart_20260923_dense9173_control/out/archives/fs-20260923-dense6x1024-9173-cold-repeat-r1.tar.gz",
+      "push_proof": "/home/ubuntu/trainium_freshstart_20260923_dense9173_control/out/fs-20260923-dense6x1024-9173-cold-repeat-r1/evidence-pushed-receipt.json",
+      "prune_receipt": "/home/ubuntu/trainium_freshstart_20260923_dense9173_control/out/fs-20260923-dense6x1024-9173-cold-repeat-r1/checkpoint-prune-receipt.json"
+    },
+    "candidate": {
+      "label": "fs-20260923-dense6x1024-matrixlr025-r1",
+      "remote_root": "/home/ubuntu/trainium_freshstart_20260923_matrixlr025_candidate",
+      "checkpoint": "/home/ubuntu/trainium_freshstart_20260923_matrixlr025_candidate/out/fs-20260923-dense6x1024-matrixlr025-r1/train/out/final.pt",
+      "archive": "/home/ubuntu/trainium_freshstart_20260923_matrixlr025_candidate/out/archives/fs-20260923-dense6x1024-matrixlr025-r1.tar.gz",
+      "push_proof": "/home/ubuntu/trainium_freshstart_20260923_matrixlr025_candidate/out/fs-20260923-dense6x1024-matrixlr025-r1/evidence-pushed-receipt.json",
+      "prune_receipt": "/home/ubuntu/trainium_freshstart_20260923_matrixlr025_candidate/out/fs-20260923-dense6x1024-matrixlr025-r1/checkpoint-prune-receipt.json"
+    }
+  },
+  "command_contract": {
+    "retrieve_verify_commit_push": "Operator retrieves the exact arm archive plus outer receipts, verifies committed SHA manifests, commits them on the named branch, pushes origin, and records the resulting 40-hex remote branch head in the exact arm push_proof path.",
+    "prune_argv": ["python", "research/submission-validation/20260923-dense6x1024-matrixlr-cohort/prune_checkpoint.py", "--arm", "<exact arm>", "--label", "<exact arm label>", "--checkpoint", "<exact arm checkpoint>", "--expected-sha256", "<cohort-result checkpoint SHA>", "--expected-bytes", "<cohort-result checkpoint bytes>", "--archive", "<exact arm archive>", "--archive-sha256", "<verified archive SHA>", "--evidence-pushed-receipt", "<exact arm push_proof>", "--evidence-pushed-receipt-sha256", "<out-of-band proof SHA>", "--receipt", "<exact arm prune_receipt>"]
+  },
   "ordering": ["retrieve and hash-verify lightweight evidence", "commit and push evidence", "authenticate exact push proof by out-of-band SHA-256 and remote branch head", "reserve and fsync prune intent", "delete only exact final.pt", "atomically fsync completed receipt", "retrieve commit and push prune receipt"],
   "prune_command_prefix": ["python", "research/submission-validation/20260923-dense6x1024-matrixlr-cohort/prune_checkpoint.py"]
 }
