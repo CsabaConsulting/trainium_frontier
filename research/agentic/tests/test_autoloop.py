@@ -575,7 +575,11 @@ class BedrockTransportTests(unittest.TestCase):
         from urllib3.exceptions import ProtocolError
 
         class FakeClient:
+            calls = 0
+
             def converse_stream(self, **_kwargs):
+                self.calls += 1
+
                 def events():
                     yield {"messageStart": {"role": "assistant"}}
                     raise ProtocolError("Response ended prematurely")
@@ -584,11 +588,42 @@ class BedrockTransportTests(unittest.TestCase):
 
         bedrock = BedrockClient.__new__(BedrockClient)
         bedrock._client = FakeClient()
-        with self.assertRaisesRegex(ModelError, "researcher call failed: Response ended prematurely"):
+        with self.assertRaisesRegex(ModelError, "researcher call failed after stream retry"):
             bedrock.complete(
                 role="researcher", model_id="us.anthropic.claude-fable-5-1",
                 system="system", user="evidence", max_tokens=4096,
             )
+        self.assertEqual(bedrock._client.calls, 2)
+
+    def test_premature_stream_end_retries_without_partial_text(self):
+        from urllib3.exceptions import ProtocolError
+
+        class FakeClient:
+            calls = 0
+
+            def converse_stream(self, **_kwargs):
+                self.calls += 1
+                if self.calls == 1:
+                    def truncated():
+                        yield {"contentBlockDelta": {"delta": {"text": "discard-me"}}}
+                        raise ProtocolError("Response ended prematurely")
+
+                    return {"stream": truncated()}
+                return {"stream": iter([
+                    {"contentBlockDelta": {"delta": {"text": "{\"proposal_id\":\"p2\"}"}}},
+                    {"messageStop": {"stopReason": "end_turn"}},
+                    {"metadata": {"usage": {"inputTokens": 50, "outputTokens": 10}}},
+                ])}
+
+        bedrock = BedrockClient.__new__(BedrockClient)
+        bedrock._client = FakeClient()
+        reply = bedrock.complete(
+            role="researcher", model_id="us.anthropic.claude-fable-5-1",
+            system="system", user="evidence", max_tokens=4096,
+        )
+        self.assertEqual(reply.text, '{"proposal_id":"p2"}')
+        self.assertNotIn("discard-me", reply.text)
+        self.assertEqual(bedrock._client.calls, 2)
 
 
 class ImplementerTests(unittest.TestCase):

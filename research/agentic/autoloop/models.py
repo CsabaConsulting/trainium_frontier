@@ -88,48 +88,56 @@ class BedrockClient:
         from botocore.exceptions import BotoCoreError, ClientError
         from urllib3.exceptions import ProtocolError
 
-        try:
-            resp = self._client.converse_stream(
-                modelId=model_id,
-                system=[{"text": system}],
-                messages=[{"role": "user", "content": [{"text": user}]}],
-                inferenceConfig=inference_config(model_id, max_tokens),
-            )
-            chunks: list[str] = []
-            usage: dict = {}
-            stop_reason = ""
-            error_events = (
-                "internalServerException",
-                "modelStreamErrorException",
-                "validationException",
-                "throttlingException",
-                "serviceUnavailableException",
-            )
-            for event in resp.get("stream", []):
-                for event_name in error_events:
-                    if event_name in event:
-                        detail = event[event_name]
-                        message = (
-                            detail.get("message", "unknown stream error")
-                            if isinstance(detail, dict)
-                            else str(detail)
-                        )
-                        raise ModelError(f"{event_name}: {message}")
-                delta = event.get("contentBlockDelta", {}).get("delta", {})
-                if "text" in delta:
-                    chunks.append(delta["text"])
-                if "messageStop" in event:
-                    stop_reason = str(event["messageStop"].get("stopReason", ""))
-                if "metadata" in event:
-                    usage = event["metadata"].get("usage", {})
-        except ModelError as exc:
-            raise ModelError(f"{role} call failed: {exc}") from exc
-        except (BotoCoreError, ClientError, ProtocolError) as exc:
-            raise ModelError(f"{role} call failed: {exc}") from exc
-        return ModelReply(
-            text="".join(chunks).strip(),
-            input_tokens=int(usage.get("inputTokens", 0)),
-            output_tokens=int(usage.get("outputTokens", 0)),
-            stop_reason=stop_reason,
-            model_id=model_id,
-        )
+        for attempt in range(2):
+            try:
+                resp = self._client.converse_stream(
+                    modelId=model_id,
+                    system=[{"text": system}],
+                    messages=[{"role": "user", "content": [{"text": user}]}],
+                    inferenceConfig=inference_config(model_id, max_tokens),
+                )
+                # These are deliberately reset per attempt. Partial text from a truncated stream
+                # must never be joined to the fresh response.
+                chunks: list[str] = []
+                usage: dict = {}
+                stop_reason = ""
+                error_events = (
+                    "internalServerException",
+                    "modelStreamErrorException",
+                    "validationException",
+                    "throttlingException",
+                    "serviceUnavailableException",
+                )
+                for event in resp.get("stream", []):
+                    for event_name in error_events:
+                        if event_name in event:
+                            detail = event[event_name]
+                            message = (
+                                detail.get("message", "unknown stream error")
+                                if isinstance(detail, dict)
+                                else str(detail)
+                            )
+                            raise ModelError(f"{event_name}: {message}")
+                    delta = event.get("contentBlockDelta", {}).get("delta", {})
+                    if "text" in delta:
+                        chunks.append(delta["text"])
+                    if "messageStop" in event:
+                        stop_reason = str(event["messageStop"].get("stopReason", ""))
+                    if "metadata" in event:
+                        usage = event["metadata"].get("usage", {})
+                return ModelReply(
+                    text="".join(chunks).strip(),
+                    input_tokens=int(usage.get("inputTokens", 0)),
+                    output_tokens=int(usage.get("outputTokens", 0)),
+                    stop_reason=stop_reason,
+                    model_id=model_id,
+                )
+            except ProtocolError as exc:
+                if attempt == 0:
+                    continue
+                raise ModelError(f"{role} call failed after stream retry: {exc}") from exc
+            except ModelError as exc:
+                raise ModelError(f"{role} call failed: {exc}") from exc
+            except (BotoCoreError, ClientError) as exc:
+                raise ModelError(f"{role} call failed: {exc}") from exc
+        raise AssertionError("unreachable")

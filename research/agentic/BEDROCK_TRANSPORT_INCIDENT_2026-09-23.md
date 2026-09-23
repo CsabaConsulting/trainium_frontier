@@ -39,6 +39,13 @@ botocore-only exception boundary and terminated the local service. The follow-up
 - reduces the researcher output cap from 64K to 32K tokens. A prior 16K cap was insufficient, so
   32K retains explicit reasoning headroom while reducing time-to-first-output pressure.
 
+Cycle 173 later proved that a healthy event stream can still terminate prematurely after emitting
+partial data. The controller caught the resulting `ProtocolError` and backed off safely, but that
+discarded a full research attempt. `BedrockClient` now retries a premature stream exactly once as a
+fresh request. Partial chunks are reset before the retry, and a second premature termination is
+reported through the existing recoverable `ModelError` path. Modeled Bedrock error events are not
+retried by this wrapper.
+
 ## Verification
 
 - `python -m unittest discover -s research/agentic/tests -v`: the complete offline suite passes,
