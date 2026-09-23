@@ -1,0 +1,17 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "The device-scalar implementation claim contradicts the authoritative source. demon_beta1_scale explicitly says beta1 is NOT routed through _device_scalar. The training loop writes Python floats into group['betas']; _adamw_step_foreach consumes 1-beta1 as a scalar lerp weight and _adamw_state computes scalar bias corrections. Correct the hypothesis and evidence to describe this existing eager scalar path, including its documented schedule_tricks_smoke.sh evidence. No implementation change is needed for this correction.",
+    "Throughput neutrality is a testable expectation, not guaranteed by construction. Remove the claim that this schedule cannot trip the comparability gate, and do not attribute any step-rate regression uniquely to recompilation without diagnostic evidence. Retain the proposed smoke and full-run throughput gates.",
+    "Otherwise, the proposal is bounded and supported: --demon-beta1 enables only the existing AdamW beta1 schedule, including the local-convolution group, while excluding RMSProp tables and leaving Muon unchanged. No closed equivalent appears in the supplied decision log or source annotations. The optimizer-only experiment is competition-legal, and the specified BPB improvement, null range, and step-count limits are falsifiable against the controller-pinned seed-42 full-chip matched control."
+  ],
+  "llm_verdict": "NEEDS_WORK",
+  "passed": false,
+  "proposal_id": "20260923-demon-beta1-only-default-shape",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-23T06:32:37Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}

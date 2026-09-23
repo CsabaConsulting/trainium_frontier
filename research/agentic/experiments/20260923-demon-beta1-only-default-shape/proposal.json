@@ -1,0 +1,51 @@
+{
+  "abort_conditions": [
+    "Smoke (300 s) step count below 325 or step-rate ratio below 0.97 of the same-host control smoke (334/335 steps): indicates the per-step beta1 value is baking into a graph and forcing recompiles, i.e. the zero-throughput-term premise is false -- abort, do not promote",
+    "Smoke public_val_bpb more than 0.005 above the same-host control smoke (1.165855 trn21 / 1.165604 trn22)",
+    "Any non-finite loss, loss-scale skip cascade, or a train loss that rises for more than 50 consecutive steps after the anneal begins (progress > 0.25)",
+    "causality_passed false or causality_max_abs > 0.0",
+    "Full-run step count differing from the same-host control by more than 3% (>62 steps): the comparison would be confounded by a throughput term this change is not supposed to have; report CONFOUNDED, not a quality verdict",
+    "Compile or startup failure attributable to the flag (e.g. Dynamo guard failure from a Python float reaching a compiled region)"
+  ],
+  "change_type": "flags",
+  "created_at": "2026-09-23T06:32:36Z",
+  "duplicate_search_terms": [
+    "demon-beta1",
+    "DEMON_BETA1",
+    "demon beta1",
+    "beta1 anneal",
+    "beta1 decay",
+    "Demon Adam",
+    "optimized_from_karpathy",
+    "Recursive schedule",
+    "\u00a711.1",
+    "adam beta1 cooldown",
+    "SCALAR_BETA1",
+    "embedding beta1"
+  ],
+  "evidence": [
+    "train.py lines 414-448 (authoritative index): Plan \u00a711.1 'three SCHEDULE-LEVEL tricks from Recursive's optimized_from_karpathy.py (0.9109 on the nanochat autoresearch task, the strongest external evidence in this competition)... pure optimizer-schedule changes -- they add no new tensors, no new ops, and no new parameters -- so their throughput term is expected to be exactly zero'; '(1) Adam Demon beta1 decay... DEMON_BETA1 = False'; the bounded index carries no MEASURED/CLOSED annotation for DEMON_BETA1 (unlike SCALAR_BETA2 at lines 346-349, USE_CAUTIOUS_WD at 365-370, USE_BYTE_WTE_INIT at 551-558), so its status is unknown, not closed",
+    "train.py lines 405-418 and 508-526: MUON_MOMENTUM_COOLDOWN_FRAC 0.045 / MUON_MOMENTUM_FINAL 0.85 adopted in the confirmed T0.4 stack (1800s paired: stack 1.034005/1.034101 vs defaults 1.035073/1.035816) -- the same 'lower momentum near the end lets the update track the sharply-decaying LR' mechanism, already measured to help on the Muon side; the AdamW side has no such cooldown at the pinned defaults",
+    "train.py lines 428-434: the per-step changing value is routed through the USE_TENSOR_LR_SCALARS discipline (device tensor, no per-step recompile), which is why the step count is expected to match the controls; step-count drift is therefore itself a falsifier (see abort conditions)",
+    "train.py lines 340-344: the historical scalar-group NaN came from a projection matrix in that group, now structurally excluded by setup_optimizer's ndim assertion; beta1 changes do not reintroduce that path",
+    "Pinned controls: al-20260922-control-trn21-lnc2x4-9a4caa7b-full-r1 2071/1.005734 and al-20260922-control-trn22-lnc2x4-9a4caa7b-full-r1 2076/1.005967 (same commit, same flags-none shape)",
+    "DECISION_LOG.md: no row with --demon-beta1 / DEMON_BETA1; proposal-id list contains no demon-beta1 entry; the recent CONFOUNDED verdicts (batch-ramp 2397 steps, bf16-norm-output 2716, mlp-input-norm 2346, except-mlp-input 2352) all failed the 10% step-comparability gate, which a zero-throughput-term schedule change cannot trip",
+    "research/experiment-protocol.md \u00a75: quality comparisons require comparable step counts; this proposal is designed to satisfy that by construction"
+  ],
+  "expected_effect": "Lower val_bpb by 0.001 to 0.003 at a matched step count (expected 2060-2085 steps, within 1% of the 2071/2076 controls); i.e. candidate <= 1.0047 vs same-host control 1.005734 (trn21) or 1.005967 (trn22). A result within +/-0.0005 of the control at matched steps is a null; worse than +0.001 is a negative and closes the axis at these defaults.",
+  "files_allowed": [],
+  "flags": [
+    "--demon-beta1"
+  ],
+  "hypothesis": "Annealing the AdamW first-moment coefficient (beta1) multiplicatively across the LR warmdown (Recursive's 'Demon' schedule: a group whose initial beta1 is 0.8 lands at 0.55 at progress 1.0; the 0.9 scalar/gate groups shrink proportionally; the rmsprop n-gram tables are excluded by kind) lets the embedding-family updates (wte, lm_head, value embeddings) and the gate/scalar updates track the sharply decaying LR in the cooldown instead of averaging over a stale momentum window -- the same rationale train.py already adopted for Muon (MUON_MOMENTUM_COOLDOWN_FRAC 0.045 -> MUON_MOMENTUM_FINAL 0.85, part of the confirmed T0.4 stack). Because the change adds no tensors, ops or parameters and routes the per-step value as a device scalar, the throughput term is expected to be exactly zero, so the run should land within a few steps of the 2071/2076 controls and yield a clean, non-confounded per-step-quality comparison -- exactly the kind of comparison the recent throughput-shifting norm-boundary runs could not deliver.",
+  "implementation_plan": "",
+  "proposal_id": "20260923-demon-beta1-only-default-shape",
+  "single_causal_change": "Pass --demon-beta1 only (DEMON_BETA1 True with its in-source defaults: DEMON_BETA1_FINAL 0.55, DEMON_BETA1_REF 0.8, DEMON_BETA1_START_FRAC -1.0 i.e. anneal begins where the LR warmdown begins at 1 - WARMDOWN_RATIO). Every other option stays at the 9a4caa7b defaults used by the two pinned controls: identical launch shape (NEURON_LOGICAL_NC_CONFIG=2, torchrun --nproc_per_node=4, --num-steps 5000 --max-train-seconds 1800 --seed 42, NEURON_CC_FLAGS='--optlevel=1'). No precision flag (--bf16-sdpa-input, --bf16-norm-output), no kernel flag (--nki-*, --compile-*), no other optimizer switch (--cautious-wd, --wd-decay-to-zero, --muon-lr-fp32, --tensor-lr-scalars, --adam-every-n-lr-comp, --ngram-ve-opt/-lr/-beta2), no architecture switch, no data/eval change. The AdamW beta1 anneal is the sole causal option.",
+  "smoke_gate": {
+    "max_bpb_delta": 0.005,
+    "min_candidate_steps": 325,
+    "min_step_rate_ratio": 0.97
+  },
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}
