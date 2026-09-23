@@ -11,7 +11,7 @@ Behaviour:
   * refuses if pidfile or donefile already exist (never relaunch a label);
   * double-forks so the training process survives the SSH session ending;
   * the grandchild writes {"returncode", "finished_at"} to donefile when the runner exits;
-  * prints {"pid": <runner pid>} once and exits 0.
+  * prints the runner pid and detached process-group id once and exits 0.
 
 It never deletes anything and never composes a shell string.
 """
@@ -69,10 +69,10 @@ def main():
         os.close(r)
         os.waitpid(pid, 0)
         try:
-            runner_pid = int(data.decode().strip())
-        except ValueError:
+            runner_pid, process_group = [int(value) for value in data.decode().split()]
+        except (ValueError, TypeError):
             _fail("supervisor did not report a pid")
-        sys.stdout.write(json.dumps({"pid": runner_pid}) + "\n")
+        sys.stdout.write(json.dumps({"pid": runner_pid, "process_group": process_group}) + "\n")
         sys.stdout.flush()
         return
     # Child: detach, then supervise.
@@ -86,7 +86,7 @@ def main():
         proc = subprocess.Popen(argv, cwd=cwd, env=env, stdout=out, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL)
         with open(spec["pidfile"], "w") as fh:
             fh.write("%d\n" % proc.pid)
-        os.write(w, ("%d\n" % proc.pid).encode())
+        os.write(w, ("%d %d\n" % (proc.pid, os.getpgid(proc.pid))).encode())
         os.close(w)
         # The detached supervisor must not retain the SSH session's stdout/stderr
         # descriptors while it waits for training.  Otherwise ssh waits for EOF and the

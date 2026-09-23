@@ -331,6 +331,7 @@ class LaunchReceipt:
     launcher_sha256: str
     pre_launch_inventory: dict
     pre_launch_head: str
+    process_group: int | None = None
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -343,6 +344,7 @@ class PollStatus:
     returncode: int | None
     log_tail: str
     polled_at: str
+    group_members: list[dict] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -571,12 +573,45 @@ class RemoteOperator:
         done = self._run(manifest.box, ["test", "-f", f"{launcher_dir}/done.json"], must_ok=False).ok
         if not alive and not done:
             raise RemoteError("runner process not visible and no completion marker after launch")
-        return LaunchReceipt(manifest.manifest_id, pid, launcher_dir, self._now(), launcher_sha, inv.to_dict(), head)
+        process_group = int(data.get("process_group", pid))
+        if process_group <= 0:
+            raise RemoteError("launcher returned an invalid process group")
+        return LaunchReceipt(
+            manifest.manifest_id, pid, launcher_dir, self._now(), launcher_sha,
+            inv.to_dict(), head, process_group,
+        )
 
     # poll / collect --------------------------------------------------------------------------
 
     def poll(self, manifest: RunManifest, receipt: LaunchReceipt) -> PollStatus:
-        alive = self._run(manifest.box, ["ps", "-p", str(receipt.pid), "-o", "pid="], must_ok=False).ok
+        process_group = receipt.process_group or receipt.pid
+        direct_alive = self._run(
+            manifest.box, ["ps", "-p", str(receipt.pid), "-o", "pid="], must_ok=False
+        ).ok
+        group_members: list[dict] = ([{
+            "pid": receipt.pid, "ppid": None, "pgid": process_group,
+            "args": "runner (direct pid observation)",
+        }] if direct_alive else [])
+        if not direct_alive:
+            processes = self._run(
+                manifest.box, ["ps", "-eo", "pid=,ppid=,pgid=,args="], must_ok=False
+            )
+            if not processes.ok:
+                raise RemoteError("cannot prove launched process group state")
+            for line in processes.stdout.splitlines():
+                fields = line.strip().split(None, 3)
+                if len(fields) < 3:
+                    continue
+                try:
+                    pid, ppid, pgid = (int(fields[0]), int(fields[1]), int(fields[2]))
+                except ValueError:
+                    continue
+                if pgid == process_group:
+                    group_members.append({
+                        "pid": pid, "ppid": ppid, "pgid": pgid,
+                        "args": fields[3] if len(fields) == 4 else "",
+                    })
+        alive = bool(group_members)
         done_r = self._run(manifest.box, ["cat", f"{receipt.launcher_dir}/done.json"], must_ok=False)
         rc = None
         done = False
@@ -587,7 +622,102 @@ class RemoteOperator:
             except (ValueError, KeyError, json.JSONDecodeError):
                 done = False
         tail = self._run(manifest.box, ["tail", "-n", "40", f"{receipt.launcher_dir}/runner.log"], must_ok=False).stdout
-        return PollStatus(alive, done, rc, tail[-6000:], self._now())
+        return PollStatus(alive, done, rc, tail[-6000:], self._now(), group_members)
+
+    def collect_failure_evidence(
+        self,
+        manifest: RunManifest,
+        receipt: LaunchReceipt,
+        status: PollStatus,
+        local_dir: Path,
+        reason: str,
+    ) -> dict:
+        """Best-effort final evidence for a quiescent failed run.
+
+        Missing run artifacts are represented explicitly instead of turning a failed run into an
+        unhandled collection exception.  This method refuses to seal evidence while any member of
+        the launch process group remains visible.
+        """
+        if status.pid_alive or status.group_members:
+            raise RemoteError("refusing final failure evidence while process group is alive")
+        local_dir.mkdir(parents=True, exist_ok=True)
+        wanted = {
+            "run_log": manifest.remote_log,
+            "run_launch_receipt": (
+                f"{manifest.remote_run_dir}/research/run-logs/{manifest.label}.launch.json"
+            ),
+            "ledger": manifest.remote_ledger,
+            "runner_stdout": f"{receipt.launcher_dir}/runner.log",
+            "done": f"{receipt.launcher_dir}/done.json",
+            "launch_spec": f"{receipt.launcher_dir}/launch.json",
+        }
+        if manifest.execution_mode == "exact-dense1024-cold-eval":
+            wanted["cold_public_eval_log"] = (
+                f"{manifest.remote_run_dir}/research/run-logs/{manifest.label}.eval.log"
+            )
+        files: dict[str, dict] = {}
+        errors: list[str] = []
+        for name, remote in wanted.items():
+            try:
+                remote_sha = self._remote_sha(manifest.box, remote)
+                if remote_sha is None:
+                    files[name] = {"remote": remote, "available": False}
+                    continue
+                local = local_dir / Path(remote).name
+                if local.exists():
+                    if local.is_symlink() or not local.is_file() or sha256_file(local) != remote_sha:
+                        raise RemoteError(f"existing failure artifact differs: {local}")
+                else:
+                    fetched = self.t.get(manifest.host, remote, local)
+                    if not fetched.ok or sha256_file(local) != remote_sha:
+                        raise RemoteError(f"failure-evidence retrieval failed for {remote}")
+                files[name] = {
+                    "remote": remote, "local": str(local), "available": True,
+                    "sha256": remote_sha, "bytes": local.stat().st_size,
+                }
+            except Exception as exc:  # evidence must retain partial collection failures
+                files[name] = {"remote": remote, "available": False, "error": str(exc)[:500]}
+                errors.append(f"{name}: {exc}"[:1000])
+        ledger_row = None
+        ledger_meta = files.get("ledger", {})
+        if ledger_meta.get("available"):
+            try:
+                ledger_row = Ledger.load(Path(ledger_meta["local"])).latest_by_label(manifest.label)
+            except Exception as exc:
+                errors.append(f"ledger parse: {exc}"[:1000])
+        try:
+            postflight = self.inventory(manifest.box).to_dict()
+        except Exception as exc:
+            postflight = {"available": False, "error": str(exc)[:500]}
+            errors.append(f"postflight: {exc}"[:1000])
+        checkpoint_sha = self._remote_sha(manifest.box, manifest.remote_checkpoint)
+        return {
+            "schema_version": 1,
+            "outcome": "failed",
+            "final": True,
+            "reason": reason,
+            "manifest_id": manifest.manifest_id,
+            "label": manifest.label,
+            "box": manifest.box,
+            "manifest": manifest.to_dict(),
+            "launch_receipt": receipt.to_dict(),
+            "status": status.to_dict(),
+            "preflight": receipt.pre_launch_inventory,
+            "postflight": postflight,
+            "process": {
+                "pid": receipt.pid, "process_group": receipt.process_group or receipt.pid,
+                "quiescent": True, "remaining_members": [],
+            },
+            "files": files,
+            "available_result": {
+                "ledger_row": ledger_row,
+                "checkpoint_present": checkpoint_sha is not None,
+                "checkpoint_sha256": checkpoint_sha,
+                "returncode": status.returncode,
+            },
+            "errors": errors,
+            "collected_at": self._now(),
+        }
 
     def collect(self, manifest: RunManifest, receipt: LaunchReceipt, local_dir: Path) -> Collected:
         local_dir.mkdir(parents=True, exist_ok=True)
@@ -641,7 +771,13 @@ class RemoteOperator:
         explained = len(observed_dirt) == len(porcelain) and observed_dirt.issubset(allowed_dirt)
         return Collected(files, row, ckpt_sha is not None, ckpt_sha, ckpt_bytes, porcelain, explained, self._now())
 
-    def prune_checkpoint(self, manifest: RunManifest, expected_sha256: str) -> dict:
+    def prune_checkpoint(
+        self,
+        manifest: RunManifest,
+        expected_sha256: str,
+        *,
+        authorization_commit: str | None = None,
+    ) -> dict:
         """Delete only a completed run's checkpoint after proving its preserved hash matches."""
         expected_path = (
             f"{manifest.remote_run_dir}/out/final.pt"
@@ -653,6 +789,18 @@ class RemoteOperator:
         if not re.fullmatch(r"[0-9a-f]{64}", expected_sha256):
             raise RemoteError("expected checkpoint sha256 is invalid")
         actual = self._remote_sha(manifest.box, manifest.remote_checkpoint)
+        if actual is None:
+            if not authorization_commit or not re.fullmatch(r"[0-9a-f]{40}", authorization_commit):
+                raise RemoteError("checkpoint absent without a verified deletion-intent commit")
+            return {
+                "box": manifest.box,
+                "label": manifest.label,
+                "remote_checkpoint": manifest.remote_checkpoint,
+                "sha256": expected_sha256,
+                "pruned_at": self._now(),
+                "reconciled_after_restart": True,
+                "authorization_commit": authorization_commit,
+            }
         if actual != expected_sha256:
             raise RemoteError(f"refusing checkpoint prune: remote hash {actual!r} != preserved hash")
         self._run(manifest.box, ["rm", "--", manifest.remote_checkpoint])
@@ -664,17 +812,28 @@ class RemoteOperator:
             "remote_checkpoint": manifest.remote_checkpoint,
             "sha256": expected_sha256,
             "pruned_at": self._now(),
+            "reconciled_after_restart": False,
+            "authorization_commit": authorization_commit,
         }
 
     def confirm_checkpoint_pruned(self, manifest: RunManifest, receipt: dict) -> None:
         if (receipt.get("box") != manifest.box or receipt.get("label") != manifest.label
                 or receipt.get("remote_checkpoint") != manifest.remote_checkpoint
-                or not re.fullmatch(r"[0-9a-f]{64}", str(receipt.get("sha256", "")))):
+                or not re.fullmatch(r"[0-9a-f]{64}", str(receipt.get("sha256", "")))
+                or not re.fullmatch(
+                    r"[0-9a-f]{40}", str(receipt.get("authorization_commit", ""))
+                )):
             raise RemoteError("persisted checkpoint-prune receipt does not match manifest")
         if self._remote_sha(manifest.box, manifest.remote_checkpoint) is not None:
             raise RemoteError("persisted prune receipt exists but checkpoint is present")
 
-    def cleanup_compile_caches(self, manifest: RunManifest, local_receipt: Path) -> dict:
+    def cleanup_compile_caches(
+        self,
+        manifest: RunManifest,
+        local_receipt: Path,
+        *,
+        authorization_commit: str | None = None,
+    ) -> dict:
         """Delete only the exact label-owned cold caches after archived evidence is remote-safe."""
         if manifest.execution_mode != "exact-dense1024-cold-eval":
             raise RemoteError("compile-cache cleanup is restricted to exact dense1024 runs")
@@ -688,14 +847,8 @@ class RemoteOperator:
         if observed != expected_paths[:5] + expected_paths[5:]:
             raise RemoteError("manifest cache paths differ from exact cleanup schema")
         cleanup_dir = f"{C.REMOTE_AUTOLOOP_DIR}/cache-cleanup/{manifest.label}"
-        if self._run(manifest.box, ["test", "-e", cleanup_dir], must_ok=False).ok:
-            raise RemoteError("cache-cleanup receipt directory already exists")
-        self._run(manifest.box, ["mkdir", "-p", cleanup_dir])
         remote_script = f"{cleanup_dir}/remote_cache_cleanup.py"
         script_sha = sha256_file(CACHE_CLEANUP_SRC)
-        put = self.t.put(manifest.host, CACHE_CLEANUP_SRC, remote_script)
-        if not put.ok or self._remote_sha(manifest.box, remote_script) != script_sha:
-            raise RemoteError("cache-cleanup helper upload/hash verification failed")
         receipt_path = f"{cleanup_dir}/receipt.json"
         spec = {
             "label": manifest.label, "cache_root": cache_root,
@@ -705,20 +858,49 @@ class RemoteOperator:
             json.dump(spec, fh, sort_keys=True)
             tmp = Path(fh.name)
         try:
-            put = self.t.put(manifest.host, tmp, f"{cleanup_dir}/cleanup.json")
             spec_sha = sha256_file(tmp)
+            cleanup_exists = self._run(
+                manifest.box, ["test", "-e", cleanup_dir], must_ok=False
+            ).ok
+            remote_receipt_sha = self._remote_sha(manifest.box, receipt_path)
+            if remote_receipt_sha is None and not self._run(
+                    manifest.box, ["test", "-e", cache_root], must_ok=False).ok:
+                if not authorization_commit or not re.fullmatch(r"[0-9a-f]{40}", authorization_commit):
+                    raise RemoteError("cache absent without a verified deletion-intent commit")
+                receipt = {
+                    "label": manifest.label, "cache_root": cache_root,
+                    "cache_paths": expected_paths, "absent_after": True,
+                    "cleaned_at": self._now(), "reconciled_after_restart": True,
+                    "authorization_commit": authorization_commit,
+                }
+                local_receipt.parent.mkdir(parents=True, exist_ok=True)
+                if local_receipt.exists():
+                    raise RemoteError("refusing to overwrite local cache-cleanup receipt")
+                local_receipt.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
+                return receipt
+            if not cleanup_exists:
+                self._run(manifest.box, ["mkdir", "-p", cleanup_dir])
+                put = self.t.put(manifest.host, CACHE_CLEANUP_SRC, remote_script)
+                if not put.ok or self._remote_sha(manifest.box, remote_script) != script_sha:
+                    raise RemoteError("cache-cleanup helper upload/hash verification failed")
+                put = self.t.put(manifest.host, tmp, f"{cleanup_dir}/cleanup.json")
+                if (not put.ok or self._remote_sha(
+                        manifest.box, f"{cleanup_dir}/cleanup.json") != spec_sha):
+                    raise RemoteError("cache-cleanup spec upload/hash verification failed")
+            elif remote_receipt_sha is None:
+                if (self._remote_sha(manifest.box, remote_script) != script_sha
+                        or self._remote_sha(manifest.box, f"{cleanup_dir}/cleanup.json") != spec_sha):
+                    raise RemoteError("existing cache-cleanup transaction bytes changed")
         finally:
             tmp.unlink(missing_ok=True)
-        if (not put.ok
-                or self._remote_sha(manifest.box, f"{cleanup_dir}/cleanup.json") != spec_sha):
-            raise RemoteError("cache-cleanup spec upload/hash verification failed")
-        result = self._run(
-            manifest.box,
-            [C.REMOTE_PYTHON, remote_script, f"{cleanup_dir}/cleanup.json"],
-            timeout=600, must_ok=False,
-        )
-        if not result.ok:
-            raise RemoteError(f"cache cleanup failed: {result.stderr.strip()[:300]}")
+        if self._remote_sha(manifest.box, receipt_path) is None:
+            result = self._run(
+                manifest.box,
+                [C.REMOTE_PYTHON, remote_script, f"{cleanup_dir}/cleanup.json"],
+                timeout=600, must_ok=False,
+            )
+            if not result.ok:
+                raise RemoteError(f"cache cleanup failed: {result.stderr.strip()[:300]}")
         remote_sha = self._remote_sha(manifest.box, receipt_path)
         if remote_sha is None:
             raise RemoteError("cache-cleanup receipt missing")
@@ -730,12 +912,24 @@ class RemoteOperator:
         if (receipt.get("label") != manifest.label or receipt.get("cache_root") != cache_root
                 or receipt.get("cache_paths") != expected_paths or receipt.get("absent_after") is not True):
             raise RemoteError("cache-cleanup receipt schema mismatch")
+        receipt.setdefault("reconciled_after_restart", False)
+        receipt.setdefault("authorization_commit", authorization_commit)
+        receipt.setdefault("remote_receipt_sha256", remote_sha)
+        local_receipt.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
         return receipt
 
     def confirm_compile_caches_clean(self, manifest: RunManifest, receipt: dict) -> None:
         cache_root = f"{C.REMOTE_AUTOLOOP_DIR}/caches/{manifest.label}"
+        expected_paths = [
+            f"{cache_root}/{group}/{key.lower()}"
+            for group in ("train", "eval") for key in C.CACHE_ENV_KEYS
+        ]
         if (receipt.get("label") != manifest.label or receipt.get("cache_root") != cache_root
-                or receipt.get("absent_after") is not True):
+                or receipt.get("cache_paths") != expected_paths
+                or receipt.get("absent_after") is not True
+                or not re.fullmatch(
+                    r"[0-9a-f]{40}", str(receipt.get("authorization_commit", ""))
+                )):
             raise RemoteError("persisted compile-cache cleanup receipt does not match manifest")
         if self._run(manifest.box, ["test", "-e", cache_root], must_ok=False).ok:
             raise RemoteError("persisted cache cleanup receipt exists but cache root is present")
