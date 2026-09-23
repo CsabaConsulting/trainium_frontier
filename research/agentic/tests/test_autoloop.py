@@ -224,12 +224,22 @@ def finish_run(h: FakeHost, spec: dict, *, bpb: float, steps: int, training_seco
     }
     row.update(extra or {})
     h.files[spec["donefile"]] = json.dumps({"returncode": rc, "finished_at": "2026-09-22T13:00:00Z"}).encode()
+    h.files[f"{run_dir}/research/run-logs/{label}.launch.json"] = json.dumps({
+        "label": label,
+        "launch_command": row["launch_command"],
+        "git_commit": COMMIT,
+        "source_dirty": False,
+    }).encode()
     h.files[f"{run_dir}/research/run-logs/{label}.log"] = b"log line\npublic_val_bpb: %f\n" % bpb
     h.files[f"{run_dir}/research/experiment-log.jsonl"] += (json.dumps(row) + "\n").encode()
     h.files[spec["stdout"]] += b"--- logged\n"
     if checkpoint:
         h.files[f"{run_dir}/out/{label}/final.pt"] = b"\x00" * 64
-    h.dirty[run_dir] = " M research/experiment-log.jsonl\n?? research/run-logs/\n"
+    h.dirty[run_dir] = (
+        " M research/experiment-log.jsonl\n"
+        f"?? research/run-logs/{label}.launch.json\n"
+        f"?? research/run-logs/{label}.log\n"
+    )
 
 
 class FakeModel:
@@ -394,6 +404,7 @@ class GuardTests(unittest.TestCase):
             ["git", "clone", "--quiet", "--no-checkout", f"{C.REMOTE_AUTOLOOP_DIR}/bundles/b.bundle", run_dir],
             ["git", "-C", run_dir, "checkout", "--quiet", "--detach", COMMIT],
             ["git", "-C", run_dir, "rev-parse", "HEAD"], ["git", "-C", run_dir, "status", "--porcelain"],
+            ["git", "-C", run_dir, "status", "--porcelain", "--untracked-files=all"],
             ["sha256sum", f"{run_dir}/train.py"], ["stat", "-c", "%s", f"{run_dir}/out/x/final.pt"],
             ["rm", "--", f"{run_dir}/out/al-20260922-test-arm-smoke-r1/final.pt"],
             [C.REMOTE_PYTHON, f"{C.REMOTE_AUTOLOOP_DIR}/launchers/l/remote_launcher.py", f"{C.REMOTE_AUTOLOOP_DIR}/launchers/l/launch.json"],
@@ -523,6 +534,21 @@ class AnalystTests(unittest.TestCase):
         self.assertEqual(compare(tier="full", candidate=self.row(1.000, 2000), control=self.row(1.050, 3000), candidate_ckpt=True, control_ckpt=True, candidate_rc=0, caps=caps).decision, "CONFOUNDED")
         self.assertEqual(compare(tier="full", candidate=self.row(1.000, 3000, causality_passed=False), control=self.row(1.050, 3000), candidate_ckpt=True, control_ckpt=True, candidate_rc=0, caps=caps).decision, "FAILED")
         self.assertEqual(compare(tier="full", candidate=self.row(1.000, 3000), control=self.row(1.050, 3000), candidate_ckpt=False, control_ckpt=True, candidate_rc=0, caps=caps).decision, "FAILED")
+
+    def test_unexplained_post_run_dirt_fails_even_if_runner_reported_clean_source(self):
+        caps = C.Caps()
+        candidate = self.row(1.000, 3000, git_dirty=False, _dirt_explained=False)
+        verdict = compare(
+            tier="full",
+            candidate=candidate,
+            control=self.row(1.050, 3000),
+            candidate_ckpt=True,
+            control_ckpt=True,
+            candidate_rc=0,
+            caps=caps,
+        )
+        self.assertEqual(verdict.decision, "FAILED")
+        self.assertIn("post-run worktree dirt", verdict.reasons[0])
         self.assertEqual(compare(tier="smoke", candidate=self.row(1.3, 380, 300.0), control=self.row(1.3, 400, 300.0), candidate_ckpt=True, control_ckpt=True, candidate_rc=0, caps=caps).decision, "DISCARD")
         self.assertEqual(compare(tier="smoke", candidate=self.row(1.3, 396, 300.0), control=self.row(1.3, 400, 300.0), candidate_ckpt=True, control_ckpt=True, candidate_rc=0, caps=caps).decision, "KEEP")
 
@@ -812,6 +838,10 @@ class LoopTests(unittest.TestCase):
         self.assertEqual(state["proposals"]["20260922-weight-ema-on"]["verdict"], "KEEP")
         self.assertIn("20260922-weight-ema-on", C.DECISION_LOG.read_text())
         self.assertTrue((pdir / "artifacts" / "full" / "experiment-log.jsonl").is_file())
+        full_result = json.loads((pdir / "full-result.json").read_text())
+        self.assertTrue(full_result["collected"]["post_run_dirt_explained"])
+        self.assertIn("run_launch_receipt", full_result["collected"]["files"])
+        self.assertTrue(Path(full_result["collected"]["files"]["run_launch_receipt"]["local"]).is_file())
         self.assertTrue((pdir / "full-verdict.md").is_file())
         # every run dir was new and distinct; nothing touched wave195; every launch archived before the next
         cwds = [s["cwd"] for s in env.h.launched]

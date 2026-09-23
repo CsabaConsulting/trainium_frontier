@@ -1,0 +1,22 @@
+{
+  "label": "al-20260922-bf16-mlp-input-norm-r3-smoke-r1",
+  "started_at": "2026-09-22T21:16:37+00:00",
+  "hostname": "ip-172-31-34-85",
+  "git_commit": "b2a5bf5ba7e6f3c071a4fa941f95b7723534237b",
+  "git_dirty": false,
+  "source_dirty": false,
+  "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 300 --out-dir out/al-20260922-bf16-mlp-input-norm-r3-smoke-r1 --seed 42",
+  "description": "autoloop 20260922-bf16-mlp-input-norm-r3 smoke: One numerical-format boundary change confined to train.py: a new module-level toggle USE_BF16_MLP_NORM_OUTPUT (default True env NEURON_COMPETITION_R1_BF16_MLP_ flags='none' [trn21] CC='--optlevel=1' seed=42 commit=b2a5bf5b",
+  "entrypoint": "train.py",
+  "environment": {
+    "NEURON_CC_FLAGS": "--optlevel=1",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_COMPETITION_R1_SEED": "42",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "source_sha256": {
+    "train.py": "7458eb756f47fd46ad1e59ba1519af2b0511a2a1c7e61e07a63878fb0123368f",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705"
+  }
+}

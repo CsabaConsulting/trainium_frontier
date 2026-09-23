@@ -48,8 +48,8 @@ def correctness_failures(row: dict | None, checkpoint_present: bool, runner_rc: 
         fails.append("eval_over_timeout")
     if _f(row, "public_val_bpb") is None:
         fails.append("public_val_bpb missing or non-finite")
-    if row.get("git_dirty") is True and not row.get("_dirt_explained", False):
-        fails.append("git_dirty=True and not explained by the run's own log/ledger writes")
+    if row.get("_dirt_explained") is not True:
+        fails.append("post-run worktree dirt was not fully explained by the run's own receipts/log/ledger writes")
     if not checkpoint_present:
         fails.append("final.pt missing")
     steps = _f(row, "num_steps")

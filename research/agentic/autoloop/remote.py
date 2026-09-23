@@ -564,6 +564,7 @@ class RemoteOperator:
         local_dir.mkdir(parents=True, exist_ok=True)
         wanted = {
             "run_log": manifest.remote_log,
+            "run_launch_receipt": f"{manifest.remote_run_dir}/research/run-logs/{manifest.label}.launch.json",
             "ledger": manifest.remote_ledger,
             "runner_stdout": f"{receipt.launcher_dir}/runner.log",
             "done": f"{receipt.launcher_dir}/done.json",
@@ -589,9 +590,20 @@ class RemoteOperator:
         if ckpt_sha:
             st = self._run(manifest.box, ["stat", "-c", "%s", manifest.remote_checkpoint], must_ok=False)
             ckpt_bytes = int(st.stdout.strip()) if st.ok and st.stdout.strip().isdigit() else None
-        porcelain = self._run(manifest.box, ["git", "-C", manifest.remote_run_dir, "status", "--porcelain"]).stdout.splitlines()
-        allowed_dirt = {f"research/run-logs/{manifest.label}.log", "research/experiment-log.jsonl", "research/run-logs/"}
-        explained = all(ln.strip().split(maxsplit=1)[-1] in allowed_dirt for ln in porcelain if ln.strip())
+        porcelain = self._run(
+            manifest.box,
+            ["git", "-C", manifest.remote_run_dir, "status", "--porcelain", "--untracked-files=all"],
+        ).stdout.splitlines()
+        allowed_dirt = {
+            "research/experiment-log.jsonl",
+            f"research/run-logs/{manifest.label}.launch.json",
+            f"research/run-logs/{manifest.label}.log",
+        }
+        # Porcelain v1 is two status columns, one space, then the repository-relative path.
+        # Requesting every untracked file is important: accepting a collapsed run-logs/
+        # directory would hide an arbitrary extra artifact beneath it.
+        observed_dirt = {line[3:] for line in porcelain if len(line) >= 4 and line.strip()}
+        explained = len(observed_dirt) == len(porcelain) and observed_dirt.issubset(allowed_dirt)
         return Collected(files, row, ckpt_sha is not None, ckpt_sha, ckpt_bytes, porcelain, explained, self._now())
 
     def prune_checkpoint(self, manifest: RunManifest, expected_sha256: str) -> dict:
