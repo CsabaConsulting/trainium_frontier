@@ -1,0 +1,22 @@
+{
+  "label": "al-20260923-attn-scale-012-default-constant-code-full-r2",
+  "started_at": "2026-09-23T13:51:02+00:00",
+  "hostname": "ip-172-31-34-85",
+  "git_commit": "7c7449648547692e0877cc26b6b4a70c29cbf251",
+  "git_dirty": false,
+  "source_dirty": false,
+  "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 1800 --out-dir out/al-20260923-attn-scale-012-default-constant-code-full-r2 --seed 42",
+  "description": "autoloop 20260923-attn-scale-012-default-constant-code full: One architecture/numerics constant change confined to train.py: the existing module-level ATTN_SCALE default changes from 0.0 (use backend default 1/sqrt(head_d flags='none' [trn21] CC='--optlevel=1' seed=42 commit=7c744964",
+  "entrypoint": "train.py",
+  "environment": {
+    "NEURON_CC_FLAGS": "--optlevel=1",
+    "NEURON_COMPETITION_R1_SEED": "42",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "source_sha256": {
+    "train.py": "98bb00efe6206176d42f743aea789b5d2dade945253d17a589b64c96ed106aff",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705"
+  }
+}

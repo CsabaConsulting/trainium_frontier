@@ -1,0 +1,19 @@
+{
+  "analyst_prose": "DISCARD at the full tier: candidate public_val_bpb was 1.009764 versus control 1.005734, a worsening of +0.004030 rather than the required delta of \u22120.002000 or better.\nBoth runs completed 2,071 steps and 271.5M tokens with 592.9M parameters; throughput was effectively identical at about 1.1604 steps/s.\nSeed, host, compiler flags, and logged training settings matched. Both passed causality checks and stayed within the charged budget.\nPotential confounder: the runs used different commits on different dates. Only train.py differs among the recorded source hashes, but the ledger alone cannot verify that the attention-scale constant was the sole code change.\nThe candidate ledger\u2019s \u201ckeep\u201d status does not override the deterministic DISCARD verdict.",
+  "decision": "DISCARD",
+  "metrics": {
+    "bpb_delta": 0.0040300000000002,
+    "candidate_bpb": 1.009764,
+    "candidate_params_M": 592.9,
+    "candidate_step_rate": 1.1604191180590575,
+    "candidate_steps": 2071.0,
+    "control_bpb": 1.005734,
+    "control_params_M": 592.9,
+    "control_step_rate": 1.1603541012998655,
+    "control_steps": 2071.0
+  },
+  "reasons": [
+    "public_val_bpb delta +0.00403 did not meet threshold -0.00200"
+  ],
+  "tier": "full"
+}
