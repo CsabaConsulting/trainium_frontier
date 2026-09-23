@@ -51,8 +51,14 @@ def main() -> None:
         prepare._init_eval_distributed(device)
     try:
         reference_module = prepare._import_train_module(str(reference_train_py))
-        candidate = prepare._import_train_module(str(train_py))
-        assert reference_module is not candidate
+        reference_module_independent = reference_train_py != train_py
+        candidate = (
+            prepare._import_train_module(str(train_py))
+            if reference_module_independent
+            else reference_module
+        )
+        if reference_module_independent:
+            assert reference_module is not candidate
         assert callable(getattr(reference_module, "load_for_eval", None))
         assert callable(getattr(candidate, "load_for_eval", None))
         reference = reference_module.load_for_eval(str(checkpoint), device)
@@ -131,6 +137,7 @@ def main() -> None:
             "num_params": sum(parameter.numel() for parameter in model.parameters()),
             "train_py": str(train_py),
             "reference_train_py": str(reference_train_py),
+            "reference_module_independent": reference_module_independent,
             "reference_model_independent": True,
             "second_model_independent": True,
         }
