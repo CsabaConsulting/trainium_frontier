@@ -8,10 +8,10 @@ gate.
 
 | Class | Pairs | Comparable full | Clean sign agreement | Clean Spearman rho | Evidence |
 |---|---:|---:|---:|---:|---|
-| all | 13 | 7 | 71.4% | 0.643 | smoke_gate_supported |
+| all | 14 | 8 | 75.0% | 0.690 | smoke_gate_supported |
 | throughput | 5 | 1 | 100.0% | — | insufficient_evidence |
 | per_step_quality | 4 | 4 | 75.0% | 0.600 | insufficient_evidence |
-| schedule | 1 | 1 | 100.0% | — | insufficient_evidence |
+| schedule | 2 | 2 | 100.0% | 1.000 | insufficient_evidence |
 | capacity | 2 | 1 | 0.0% | — | insufficient_evidence |
 | data_regime | 1 | 0 | — | — | insufficient_evidence |
 
@@ -36,4 +36,5 @@ Continue recording explicit mechanism classes so this report becomes decision-gr
 - `20260922-no-qk-shift-fixedbudget-r3` — per_step_quality (inferred); smoke -0.000122, full -0.000201; full verdict `DISCARD`.
 - `20260923-attn-scale-012-default-constant-code` — per_step_quality (inferred); smoke +0.001546, full +0.004030; full verdict `DISCARD`.
 - `20260923-demon-beta1-r2-default-shape` — schedule (inferred); smoke +0.000492, full +0.000190; full verdict `DISCARD`.
+- `20260923-ngram-ve-cooldown-lr-flag-only-default-shape` — schedule (inferred); smoke +0.002788, full +0.002097; full verdict `DISCARD`.
 - `20260923-unet-skip-zero-init-r2` — per_step_quality (inferred); smoke +0.001911, full +0.002657; full verdict `DISCARD`.
