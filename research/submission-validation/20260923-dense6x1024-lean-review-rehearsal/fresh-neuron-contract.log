@@ -1,0 +1,19 @@
+[W923 06:44:34.051917644 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+Traceback (most recent call last):
+  File "/home/ubuntu/workspace/submission_validation_20260923_review1/research/submission-validation/20260923-dense6x1024-lean-review-rehearsal/contract_check_review.py", line 116, in <module>
+    main()
+  File "/home/ubuntu/workspace/submission_validation_20260923_review1/research/submission-validation/20260923-dense6x1024-lean-review-rehearsal/contract_check_review.py", line 34, in main
+    reference = baseline.load_for_eval(str(args.checkpoint), device)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/submission_validation_20260923_review1/train.py", line 5484, in load_for_eval
+    model.load_state_dict(state, strict=True)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/nn/modules/module.py", line 2639, in load_state_dict
+    raise RuntimeError(
+RuntimeError: Error(s) in loading state_dict for GPT:
+	Missing key(s) in state_dict: "transformer.h.0.qk_shift_beta", "transformer.h.1.qk_shift_beta", "transformer.h.1.attn.ve_gate_bi.weight", "transformer.h.1.attn.ve_gate_tri.weight", "transformer.h.2.qk_shift_beta", "transformer.h.3.qk_shift_beta", "transformer.h.4.qk_shift_beta", "transformer.h.5.qk_shift_beta", "transformer.h.5.attn.ve_gate_bi.weight", "transformer.h.5.attn.ve_gate_tri.weight", "ngram_embeds.b1.weight", "ngram_embeds.t1.weight", "ngram_embeds.b5.weight", "ngram_embeds.t5.weight", "ngram_proj.b1.weight", "ngram_proj.t1.weight", "ngram_proj.b5.weight", "ngram_proj.t5.weight". 

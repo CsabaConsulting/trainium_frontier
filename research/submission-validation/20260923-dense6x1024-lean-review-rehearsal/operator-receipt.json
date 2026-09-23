@@ -1,0 +1,95 @@
+{
+  "receipt_version": 1,
+  "captured_at": "2026-09-23T06:45:14Z",
+  "role": "operator",
+  "proposal": "research/submission-validation/20260923-dense6x1024-lean-review-rehearsal/proposal.json",
+  "host": {
+    "box": "trn22",
+    "hostname": "ip-172-31-32-253",
+    "remote_repository": "/home/ubuntu/workspace/submission_validation_20260923_review1",
+    "git_commit": "660d1da0de0653ba927e5c0e9d62ac934279927e",
+    "git_dirty_before_contract": false,
+    "git_dirty_after_contract": false
+  },
+  "frozen_inputs": {
+    "candidate_train_sha256": "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344",
+    "launch_command_sha256": "b75f844f413575f0cc35164972b4abf68de41e4b6f39e9b5423a6070de005abd",
+    "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "contract_check_sha256": "ed3eee900691dc691816af0e5d3ac41bf2eebf16db58c9372e70b07f153e92cf",
+    "submission_rehearsal_sha256": "3dfe882941f2e0f17ae0b93d55bc5d96f3adcd85320dea5b8896bccbcd49326b"
+  },
+  "cold_rehearsal": {
+    "label": "fs-20260923-dense6x1024-lean-review-cold-r1",
+    "returncode": 0,
+    "wall_seconds": 2631.34235261695,
+    "startup_allowance_observed_seconds": 841.0353511580033,
+    "charged_through_process_exit_seconds": 1790.3070014589466,
+    "charged_through_process_exit_within_budget": true,
+    "trainer_training_seconds": 1784.8,
+    "trainer_over_budget": false,
+    "step_boundaries": 3638,
+    "first_step": 0,
+    "last_step": 3637,
+    "tokens_per_step": 131072,
+    "total_training_tokens": 476839936,
+    "checkpoint": {
+      "status": "present",
+      "remote_path": "out/fs-20260923-dense6x1024-lean-review-cold-r1/out/final.pt",
+      "bytes": 469831009,
+      "sha256": "be040a5dbf7fc2750d1f3f2770fc39ab7a5c3100dfd670921257607abaa4e0ec"
+    },
+    "retrieved_artifacts": [
+      {
+        "path": "cold-rehearsal.operator.log",
+        "bytes": 56126,
+        "sha256": "501f365a64d609d23600a2ea2850e1acae703001ec21312c65691b3ffab881cb"
+      },
+      {
+        "path": "cold-rehearsal.json",
+        "bytes": 282539,
+        "sha256": "faf26686fecb2e21bbf8b97b0fc0323564b3a678794c6dabd4349067e4a9ba0d"
+      },
+      {
+        "path": "cold-rehearsal.steps.jsonl",
+        "bytes": 17080,
+        "sha256": "bb585c347381ee01d2e6d37bbf690f3d9a84e11da40117cd4a53ddd22f515ab3"
+      }
+    ]
+  },
+  "fresh_checkpoint_neuron_contract": {
+    "label": "fs-20260923-dense6x1024-lean-review-fresh-neuron-contract-r1",
+    "command": "NEURON_CC_FLAGS=--optlevel=1 /home/ubuntu/workspace/native_venv/bin/python research/submission-validation/20260923-dense6x1024-lean-review-rehearsal/contract_check_review.py --train-py submissions/dense6x1024_lean_review/train.py --checkpoint out/fs-20260923-dense6x1024-lean-review-cold-r1/out/final.pt --device neuron",
+    "returncode": 1,
+    "wall_seconds_integer": 4,
+    "passed": false,
+    "metrics_emitted": false,
+    "failure": "The baseline reference load failed strict state-dict loading before synthetic contract metrics because it expected feature-flag-only qk_shift, VE-gate, and ngram parameters omitted from the fresh review-clean checkpoint.",
+    "log": {
+      "path": "fresh-neuron-contract.log",
+      "bytes": 2137,
+      "sha256": "26a9c1757c0fb6dcd68bae2e9bf041e86bf8dd78c1d509c0791b570e02e8ccb7"
+    }
+  },
+  "protected_public_evaluation": {
+    "label": "fs-20260923-dense6x1024-lean-review-fresh-public20m-r1",
+    "requested_tokens": 20971520,
+    "started": false,
+    "processed_tokens": 0,
+    "returncode": null,
+    "val_bpb": null,
+    "reason": "Not authorized because the prerequisite fresh-checkpoint Neuron contract returned nonzero."
+  },
+  "host_postflight": {
+    "observed_at": "2026-09-23T06:45:14Z",
+    "free_bytes": 5515788288,
+    "minimum_required_bytes": 5368709120,
+    "nonself_matching_processes": 0,
+    "device_holders": [],
+    "fuser_returncode": 1,
+    "git_dirty": false,
+    "checkpoint_unchanged": true,
+    "evaluation_sandbox_absent": true,
+    "idle_and_clean": true
+  },
+  "scientific_verdict": null
+}
