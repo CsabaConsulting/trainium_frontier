@@ -1,0 +1,18 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "The central premise is contradicted by authoritative train.py: POLAR_EXPRESS_COEFFS already contains five distinct per-iteration triples, beginning (8.156554524902461, -22.48329292557795, 15.878769915207462). Both _muon_math and the eager _muon_step iterate over this table; neither uses the alleged fixed (3.4445, -4.7750, 2.0315) triple.",
+    "Both existing NS implementations already normalize with x / (x.norm(dim=(-2, -1), keepdim=True) * 1.01 + 1e-6). Consequently, the proposed experiment would replace one Polar Express coefficient schedule with another, not introduce Polar Express and its safety factor. The hypothesis, evidence, and implementation plan must describe and justify that actual contrast while preserving the real incumbent in the toggle-off path.",
+    "The source resolves the execution-path uncertainty: USE_COMPILE_MUON=True, main disables NKI Muon when compilation is enabled, and _muon_step executes _muon_math before considering NKI. The alternative NKI path already accepts per-iteration runtime coefficients through _ns_coef, _muon_ns_poly, and _muon_ns_axpy; it does not hard-code the alleged fixed triple.",
+    "The train.py-only optimizer scope is competition-legal, and DECISION_LOG.md's discarded muon-owner-ns-split direction concerns execution ownership rather than coefficient selection. The BPB prediction is measurable against the matched control, but equal matmul count does not guarantee equal runtime or eliminate step-count confounding. A revised coefficient-schedule experiment needs evidence relative to the existing schedule and must treat throughput neutrality as a measured hypothesis."
+  ],
+  "llm_verdict": "FAIL",
+  "passed": false,
+  "proposal_id": "20260923-muon-polar-express-ns-coeffs",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-23T14:38:43Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}
