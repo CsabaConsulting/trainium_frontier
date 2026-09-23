@@ -1,0 +1,35 @@
+{
+  "schema": "fresh-start-request-v2",
+  "host": "trn21",
+  "expected_hostname": "ip-172-31-34-85",
+  "remote": "/home/ubuntu/trainium_freshstart_20260923_matrixlr025_candidate",
+  "expected_commit": "ea041dfb6ff39ebf31025c8206418481ae242cbd",
+  "label": "fs-20260923-dense6x1024-matrixlr025-r1",
+  "purpose": "MATRIX_LR 0.025 single-factor full-budget run followed by fresh-process public1024 evaluation and exact checkpoint prune; no smoke.",
+  "fingerprint_paths": [
+    "prepare.py",
+    "research/scratch/submission_rehearsal.py",
+    "research/submission-validation/20260923-dense6x1024-matrixlr-cohort/cohort_job.py",
+    "research/submission-validation/20260923-dense6x1024-matrixlr-cohort/candidate-authorization.json",
+    "submissions/dense6x1024_lean_review_matrixlr025/train.py",
+    "submissions/dense6x1024_lean_review_matrixlr025/provenance.json",
+    "submissions/dense6x1024_lean_review_matrixlr025/launch-command.txt"
+  ],
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "command": [
+    "timeout", "--foreground", "--signal=TERM", "--kill-after=60s", "3600s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "research/submission-validation/20260923-dense6x1024-matrixlr-cohort/cohort_job.py",
+    "--arm", "candidate",
+    "--authorization-sha256", "fed61611a15955380797ac0fbe2e82025564a8a77e87a41611d700d42ea728cc",
+    "--sandbox-root", "/home/ubuntu/trainium_freshstart_20260923_matrixlr025_candidate/out/fs-20260923-dense6x1024-matrixlr025-r1",
+    "--archive", "/home/ubuntu/trainium_freshstart_20260923_matrixlr025_candidate/out/archives/fs-20260923-dense6x1024-matrixlr025-r1.tar.gz"
+  ],
+  "runner_owns_manifest": false,
+  "non_overwrite": true
+}

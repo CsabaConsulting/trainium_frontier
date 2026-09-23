@@ -1,0 +1,35 @@
+{
+  "schema": "fresh-start-request-v2",
+  "host": "trn22",
+  "expected_hostname": "ip-172-31-32-253",
+  "remote": "/home/ubuntu/trainium_freshstart_20260923_dense9173_control",
+  "expected_commit": "ea041dfb6ff39ebf31025c8206418481ae242cbd",
+  "label": "fs-20260923-dense6x1024-9173-cold-repeat-r1",
+  "purpose": "Exact 9173 cold full-budget repeat followed by fresh-process public1024 evaluation and exact checkpoint prune.",
+  "fingerprint_paths": [
+    "prepare.py",
+    "research/scratch/submission_rehearsal.py",
+    "research/submission-validation/20260923-dense6x1024-matrixlr-cohort/cohort_job.py",
+    "research/submission-validation/20260923-dense6x1024-matrixlr-cohort/control-authorization.json",
+    "submissions/dense6x1024_lean_review/train.py",
+    "submissions/dense6x1024_lean_review/provenance.json",
+    "submissions/dense6x1024_lean_review/launch-command.txt"
+  ],
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "command": [
+    "timeout", "--foreground", "--signal=TERM", "--kill-after=60s", "3600s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "research/submission-validation/20260923-dense6x1024-matrixlr-cohort/cohort_job.py",
+    "--arm", "control",
+    "--authorization-sha256", "8f22daac592f67e6b8d7ba21d5817e157dd7f966ec2f0e5b2a7fa937a1720005",
+    "--sandbox-root", "/home/ubuntu/trainium_freshstart_20260923_dense9173_control/out/fs-20260923-dense6x1024-9173-cold-repeat-r1",
+    "--archive", "/home/ubuntu/trainium_freshstart_20260923_dense9173_control/out/archives/fs-20260923-dense6x1024-9173-cold-repeat-r1.tar.gz"
+  ],
+  "runner_owns_manifest": false,
+  "non_overwrite": true
+}

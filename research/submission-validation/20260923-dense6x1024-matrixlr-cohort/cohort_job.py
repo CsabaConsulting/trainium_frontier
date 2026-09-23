@@ -38,6 +38,23 @@ def extract_eval_metrics(text):
             return value
     raise SystemExit("fresh eval emitted no metrics JSON")
 
+def validate_eval_metrics(metrics):
+    if (metrics.get("num_tokens") != 20971520 or metrics.get("num_bytes") != 83462186
+            or not math.isfinite(float(metrics.get("val_bpb", math.nan)))):
+        raise SystemExit("fresh eval metrics contract failed")
+
+def scrub_environment(environment):
+    clean = {key: value for key, value in environment.items()
+             if not key.startswith("NEURON_COMPETITION_R1_")}
+    blocked = ("RANK", "WORLD_SIZE", "LOCAL_RANK", "LOCAL_WORLD_SIZE", "GROUP_RANK",
+               "ROLE_RANK", "ROLE_WORLD_SIZE", "MASTER_ADDR", "MASTER_PORT",
+               "TORCHELASTIC_RUN_ID", "TORCHELASTIC_RESTART_COUNT",
+               "TORCHELASTIC_MAX_RESTARTS", "TORCHELASTIC_ERROR_FILE")
+    for key in blocked:
+        clean.pop(key, None)
+    clean.update({"PYTHONUNBUFFERED": "1", "NEURON_LOGICAL_NC_CONFIG": "2"})
+    return clean
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--arm", choices=EXPECTED, required=True)
@@ -78,9 +95,7 @@ def main():
     train_box = args.sandbox_root / "train"
     eval_box = args.sandbox_root / "eval"
     rehearsal = ROOT / "research/scratch/submission_rehearsal.py"
-    child_env = {key: value for key, value in os.environ.items()
-                 if not key.startswith("NEURON_COMPETITION_R1_")}
-    child_env.update({"PYTHONUNBUFFERED": "1", "NEURON_LOGICAL_NC_CONFIG": "2"})
+    child_env = scrub_environment(os.environ)
     subprocess.run([sys.executable, str(rehearsal), "--package", str(package),
                     "--sandbox", str(train_box), "--mode", "train", "--fresh-caches"],
                    cwd=ROOT, env=child_env, check=True)
@@ -96,9 +111,7 @@ def main():
     eval_log = args.sandbox_root / "fresh-eval.log"
     eval_log.write_text(evaluated.stdout)
     metrics = extract_eval_metrics(evaluated.stdout)
-    if (metrics.get("num_tokens") != 20971520 or metrics.get("num_bytes") != 83462186
-            or not math.isfinite(float(metrics.get("val_bpb", math.nan)))):
-        raise SystemExit("fresh eval metrics contract failed")
+    validate_eval_metrics(metrics)
     command_line = next((line for line in evaluated.stdout.splitlines()
                          if line.startswith("REHEARSAL_COMMAND ")), None)
     if command_line is None:
@@ -117,25 +130,35 @@ def main():
     evidence_path.write_text(json.dumps(evidence, indent=2) + "\n")
     include = [train_box / "rehearsal.json", train_box / "steps.jsonl",
                eval_box / "rehearsal.json", eval_log, evidence_path]
+    missing = [str(path) for path in include if not path.is_file()]
+    if missing:
+        raise SystemExit(f"required archive evidence missing: {missing}")
+    archive_manifest = {str(path.relative_to(args.sandbox_root)): sha(path) for path in include}
+    manifest_path = args.sandbox_root / "archive-manifest.json"
+    manifest_path.write_text(json.dumps(archive_manifest, indent=2, sort_keys=True) + "\n")
+    include.append(manifest_path)
     with tarfile.open(args.archive, "x:gz") as archive:
         for path in include:
-            if path.is_file():
-                archive.add(path, arcname=str(path.relative_to(args.sandbox_root)))
+            archive.add(path, arcname=str(path.relative_to(args.sandbox_root)))
     if not args.archive.is_file() or args.archive.stat().st_size == 0:
         raise SystemExit("archive failed")
     archive_sha = sha(args.archive)
-    if sha(checkpoint) != checkpoint_sha:
-        raise SystemExit("checkpoint changed before exact prune")
-    checkpoint.unlink()
-    if checkpoint.exists():
-        raise SystemExit("exact checkpoint prune failed")
-    prune = {"path": str(checkpoint), "expected_sha256": checkpoint_sha,
-             "expected_bytes": checkpoint_size, "archive_sha256": archive_sha,
-             "deleted_after_eval_and_verified_archive": True, "other_deletions": []}
-    prune_path = args.sandbox_root / "checkpoint-prune-receipt.json"
-    prune_path.write_text(json.dumps(prune, indent=2) + "\n")
+    expected_members = set(archive_manifest) | {"archive-manifest.json"}
+    with tarfile.open(args.archive, "r:gz") as archive:
+        actual_members = set(archive.getnames())
+        if actual_members != expected_members:
+            raise SystemExit("archive member set mismatch")
+        for name, expected_sha in archive_manifest.items():
+            stream = archive.extractfile(name)
+            if stream is None or hashlib.sha256(stream.read()).hexdigest() != expected_sha:
+                raise SystemExit(f"archive member hash mismatch: {name}")
+    if sha(checkpoint) != checkpoint_sha or checkpoint.stat().st_size != checkpoint_size:
+        raise SystemExit("checkpoint changed before retrieval handoff")
     print(json.dumps({**evidence, "archive": str(args.archive), "archive_sha256": archive_sha,
-                      "checkpoint_pruned": True, "prune_receipt": str(prune_path)}, sort_keys=True))
+                      "checkpoint_pruned": False, "ready_to_prune_after_retrieval_push": True,
+                      "prune_contract": {"exact_path": str(checkpoint),
+                                         "expected_sha256": checkpoint_sha,
+                                         "expected_bytes": checkpoint_size}}, sort_keys=True))
 
 if __name__ == "__main__":
     main()
