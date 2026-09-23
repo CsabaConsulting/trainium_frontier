@@ -1,6 +1,31 @@
 # Current state
 
-Last reconciled: 2026-09-23 15:13 UTC
+Last reconciled: 2026-09-23 16:35 UTC
+
+## Operational override — 2026-09-23 16:35 UTC
+
+This section supersedes older dynamic controller, proposal, and host statements below.
+
+- The controller branch is synced to origin at `1493ff2b080a5eb3b2a45fd72742906e43906736`.
+  The systemd service exited fail-closed with status 3 and is waiting on its configured five-minute
+  restart because the persisted breaker is open; an active service unit is not evidence of active
+  research while this breaker remains set.
+- Proposal `20260923-local-conv-pre-attn-serial-only-r3` passed proposal verification and independent
+  implementation verification. Its isolated candidate is
+  `79b0cecb2f655441f4e0898f6140308eea6072f0`. No smoke launched: two inventories measured idle
+  `trn21` at 7.3 GiB free, below the immutable 7.4 GiB gate, and opened the breaker.
+- Read-only live inventory at 16:34 UTC confirmed that both boxes are idle with no `torchrun`,
+  `train.py`, or `run_experiment.py` process. Available bytes were 7,835,312,128 on `trn21` and
+  8,628,547,584 on `trn22`. The controller still schedules only `trn21`; `trn22` remains excluded
+  pending the separate hash-preserving cleanup/re-enable decision required by
+  `operations/TRN22_DISK_GATE_RECOVERY_2026-09-23.md`.
+- Read-only attribution found 2,254,217,216 bytes of immutable controller run directories on
+  `trn21` and 4,371,390,464 bytes on `trn22`. No remote file was removed. The exact inventory and
+  recovery boundary are recorded in
+  `operations/TRN2_AUTOLOOP_DISK_BLOCK_2026-09-23_R1.md`.
+- The latest full result remains the n-gram-table cooldown DISCARD, `1.007831` / 2072 steps versus
+  the same-host control `1.005734` / 2071. No autonomous result beats the preserved public record
+  `0.9928513116311253`; there is no new submission candidate.
 
 ## Primary-source research override — 2026-09-23 15:26 UTC
 
