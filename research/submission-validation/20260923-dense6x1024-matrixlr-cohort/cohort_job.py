@@ -16,6 +16,15 @@ def sha(path):
     with path.open("rb") as stream:
         return hashlib.file_digest(stream, "sha256").hexdigest()
 
+def require_tracked_clean(paths):
+    relative = [str(path.relative_to(ROOT)) for path in paths]
+    subprocess.run(["git", "ls-files", "--error-unmatch", "--", *relative],
+                   cwd=ROOT, stdout=subprocess.DEVNULL, check=True)
+    dirty = subprocess.run(["git", "status", "--porcelain", "--", *relative],
+                           cwd=ROOT, text=True, capture_output=True, check=True).stdout
+    if dirty:
+        raise SystemExit("protected cohort files are dirty")
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--arm", choices=EXPECTED, required=True)
@@ -37,6 +46,8 @@ def main():
     if os.environ.get("TRAINIUM_COHORT_HOST") != host:
         raise SystemExit("TRAINIUM_COHORT_HOST does not match authorized host")
     package = ROOT / package_rel
+    require_tracked_clean([auth_path, pathlib.Path(__file__).resolve(), package / "train.py",
+                           package / "launch-command.txt", package / "provenance.json"])
     if sha(package / "train.py") != train_sha or sha(package / "launch-command.txt") != LAUNCH_SHA:
         raise SystemExit("package hash mismatch")
     if args.sandbox_root.exists() or args.archive.exists():
