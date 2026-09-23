@@ -10,6 +10,8 @@ SCP=["scp","-i","/home/poojith-devan/Desktop/Trainium/trn2.pem","-o","BatchMode=
 ARMS={
  "control_trn21":("ubuntu@ec2-16-26-246-98.ap-southeast-4.compute.amazonaws.com",pathlib.PurePosixPath("/home/ubuntu/trainium_freshstart_20260923_c595_control_trn21"),"fs-20260923-c595-control-trn21-r1"),
  "control_trn22":("ubuntu@ec2-16-26-154-27.ap-southeast-4.compute.amazonaws.com",pathlib.PurePosixPath("/home/ubuntu/trainium_freshstart_20260923_c595_control_trn22"),"fs-20260923-c595-control-trn22-r1"),
+ "control_trn21_r2":("ubuntu@ec2-16-26-246-98.ap-southeast-4.compute.amazonaws.com",pathlib.PurePosixPath("/home/ubuntu/trainium_freshstart_20260924_c595_control_trn21_r2"),"fs-20260924-c595-control-trn21-r2"),
+ "control_trn22_r2":("ubuntu@ec2-16-26-154-27.ap-southeast-4.compute.amazonaws.com",pathlib.PurePosixPath("/home/ubuntu/trainium_freshstart_20260924_c595_control_trn22_r2"),"fs-20260924-c595-control-trn22-r2"),
 }
 def sha(path):return hashlib.sha256(path.read_bytes()).hexdigest()
 def config(arm):

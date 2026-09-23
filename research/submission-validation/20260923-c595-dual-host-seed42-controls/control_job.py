@@ -11,6 +11,8 @@ COMPILER = "--optlevel=1 --auto-cast matmult --auto-cast-type bf16"
 ARMS = {
     "control_trn21": ("trn21", "ip-172-31-34-85", "fs-20260923-c595-control-trn21-r1"),
     "control_trn22": ("trn22", "ip-172-31-32-253", "fs-20260923-c595-control-trn22-r1"),
+    "control_trn21_r2": ("trn21", "ip-172-31-34-85", "fs-20260924-c595-control-trn21-r2"),
+    "control_trn22_r2": ("trn22", "ip-172-31-32-253", "fs-20260924-c595-control-trn22-r2"),
 }
 REFERENCE_LOSSES = {0:9.0112, 1:8.7816, 2:8.3625, 3:8.2986, 4:8.0851,
                     10:6.8196, 20:5.9603, 30:5.5119, 40:5.2152, 50:4.8776}

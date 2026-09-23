@@ -6,6 +6,8 @@ HERE=pathlib.Path(__file__).resolve().parent
 ARMS={
  "control_trn21":("fs-20260923-c595-control-trn21-r1",pathlib.Path("/home/ubuntu/trainium_freshstart_20260923_c595_control_trn21")),
  "control_trn22":("fs-20260923-c595-control-trn22-r1",pathlib.Path("/home/ubuntu/trainium_freshstart_20260923_c595_control_trn22")),
+ "control_trn21_r2":("fs-20260924-c595-control-trn21-r2",pathlib.Path("/home/ubuntu/trainium_freshstart_20260924_c595_control_trn21_r2")),
+ "control_trn22_r2":("fs-20260924-c595-control-trn22-r2",pathlib.Path("/home/ubuntu/trainium_freshstart_20260924_c595_control_trn22_r2")),
 }
 CACHE_NAMES=("neff","local","hlo","inductor","compiler","debug")
 
