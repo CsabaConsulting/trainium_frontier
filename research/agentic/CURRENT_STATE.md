@@ -1,6 +1,36 @@
 # Current state
 
-Last reconciled: 2026-09-23 03:11 UTC
+Last reconciled: 2026-09-23 15:13 UTC
+
+## Reconciliation override — 2026-09-23 15:13 UTC
+
+This section supersedes the stale dynamic run/box statements later in this handoff.
+
+- The autonomous controller is healthy on `agent/control-plane-20260921` at `b933e2ca`, synced
+  to origin, with breaker closed after cycle 287 and 37 retrieved runs.
+- Latest measured experiment: `20260923-ngram-ve-double-hash-r2` smoke was a clean DISCARD at
+  `1.171049` / 325 steps versus the same-host smoke control `1.165855` / 334 steps. It was 2.66%
+  slower and `+0.005194` BPB worse. Verdict and checkpoint-prune evidence are pushed in
+  `2ed3c130` and `b2cea2e7`; do not promote it to a full run.
+- The preceding attention-scale 0.12 full run was also a clean DISCARD: `1.009764` / 2071 steps
+  versus `1.005734` / 2071. The next value-residual proposal was rejected by the independent
+  verifier before hardware use (`b933e2ca`).
+- Both Trn2 boxes were idle with no Neuron holder at 15:04 UTC. Approved exact-target cleanup of
+  three already archived/reconstructable checkouts restored trn21 to 8,371,343,360 free bytes;
+  see `research/agentic/operations/TRN21_ARCHIVED_WORKTREE_CLEANUP_2026-09-23_R7.md`.
+- The best valid autonomous full KEEP remains BF16 SDPA input casting at `1.002028` versus
+  `1.005967`; it still does not beat the preserved public-development result `0.9928513116311253`
+  (cold replay `0.9938556748843932`). There is no new submit-ready winner.
+- A new external review was reconciled in
+  `research/agentic/EXTERNAL_REVIEW_RECONCILIATION_2026-09-23_R2.md`. Its strongest duplicate-clear
+  control-stack lead is the existing `--no-ngram-ve-flat-lr` flag (late table cooldown). Search of
+  `DECISION_LOG.md`, `CURRENT_STATE.md`, `research/experiment-log.jsonl`, and `train.py` found the
+  flag but no measured `flat_lr=False` run. Treat that as a hypothesis requiring the normal
+  proposal and independent-verification gates, not as a result.
+- Submission validation remains STOP/ABANDON_CURRENT_PROPOSAL at `beba1595` in the separate
+  `Trainium-submission-validation` checkout. Do not submit the current lean-review file: the
+  small compiled-Muon raw-byte discriminator is not a valid gate, and no replacement gate plus
+  complete dress rehearsal has passed.
 
 ## Verified repository state
 
