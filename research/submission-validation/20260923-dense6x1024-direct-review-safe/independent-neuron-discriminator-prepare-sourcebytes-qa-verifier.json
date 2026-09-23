@@ -1,0 +1,87 @@
+{
+  "schema": "dense6x1024-direct-neuron-discriminator-prepare-sourcebytes-qa-verifier-v1",
+  "role": "independent Verifier",
+  "verified_at_utc": "2026-09-23T13:48:00Z",
+  "verdict": "PASS",
+  "reviewed_implementation_commit": "160ebc3c330a872e1513b0d0528bc8fb1e5e88fe",
+  "reviewed_parent_fail_commit": "a0411d1b87f824352ff0c9b7d8ddac832218df48",
+  "reviewed_parent_fail_report_sha256": "ec134ec7eb88aedcaef631d2624c2ee595dd31bd39e444551ab531ac3d7a53fa",
+  "scope": {
+    "changed_files": [
+      "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron-discriminator-authorization-request.json",
+      "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron-discriminator-runbook.md",
+      "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron_discriminator_direct.py",
+      "research/submission-validation/20260923-dense6x1024-direct-review-safe/test_neuron_discriminator_static.py"
+    ],
+    "unexpected_files": [],
+    "prepare_source_candidate_changed": false
+  },
+  "repository_state_before_report": {
+    "branch": "submission/dense6x1024-direct-review-safe-20260923",
+    "head": "160ebc3c330a872e1513b0d0528bc8fb1e5e88fe",
+    "fetched_origin_head": "160ebc3c330a872e1513b0d0528bc8fb1e5e88fe",
+    "tracked_worktree_clean": true,
+    "authorization_state": "pending_external_verifier",
+    "pending_authorization_request_sha256": "16e5d60ee10f3bd668e1868aed5011875a358637e4ae4ec20d88c1bcea741a57",
+    "prior_protected_hash_count": 21,
+    "current_protected_hash_count": 22,
+    "protected_map_change": "All prior 21 protected paths remain byte-matching; the prior independent FAIL report is appended as the twenty-second trust-chain path.",
+    "all_current_protected_hashes_match": true,
+    "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "source_sha256": "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344",
+    "candidate_sha256": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537",
+    "harness_sha256": "86427ac8d38f902be0df4f181230f113b827396948447bbcbe8b2685aac1ccfd",
+    "static_test_sha256": "19857ce048f58e4cf01215781830ea40e16e60e718b40a9888259bc0c13c70d8",
+    "runbook_sha256": "e52133fae1d58f2fedf3a7a8b9b30546b68f1a12c80e00fc4e766bc7c4e62c21"
+  },
+  "findings": {
+    "authenticated_source_execution": "PASS: load_pinned_prepare reads canonical prepare.py once, hashes those exact bytes, compiles those same bytes with compile(source_bytes, canonical_path, 'exec', dont_inherit=True), and executes that code directly in the fresh canonical module. No loader executes module code and no cached bytecode is read or written.",
+    "cache_isolation": "PASS: an independently hand-built timestamp/size-valid prepare.cpython-*.pyc executed MALICIOUS through an ordinary SourceFileLoader probe, but the corrected boundary executed canonical from the authenticated prepare.py bytes and left the malicious pyc hash unchanged.",
+    "canonical_metadata": "PASS: the controlled module is sys.modules['prepare'] with canonical __name__, __file__, __spec__.name/origin, empty package, loader=None and cached=None; repository root is first in sys.path. Preloaded and wrong-origin/shadow modules remain rejected.",
+    "post_execution_revalidation": "PASS: after exec the boundary requires the canonical file to remain regular and non-symlink, re-reads its bytes, checks byte equality and SHA-256, and rechecks module identity, origin and root precedence. Independent source-to-symlink replacement during exec failed closed and removed sys.modules['prepare']; the supplied source-mutation regression also passed.",
+    "prior_contracts": "PASS: all prior import-boundary, singleton-environment, process-group TERM/KILL/quiescence, immutable child evidence/pre-top revalidation, exact launch/authentication and numerical-contract regression tests remain passing.",
+    "static_e2e": "PASS: the real pending-sentinel static CLI returned rc0 with passed=true, hardware_executed=false, all static checks true, and all 22 current protected hashes exactly equal; the temporary exclusive report was removed."
+  },
+  "commands_and_results": [
+    {
+      "command": "git diff --name-status/check a0411d1b..160ebc3c; inspect complete four-file diff",
+      "result": "PASS: exactly request, runbook, harness and static tests changed; diff check clean"
+    },
+    {
+      "command": "python -m py_compile neuron_discriminator_direct.py test_neuron_discriminator_static.py; python -m unittest -v test_neuron_discriminator_static.py",
+      "result": "PASS: syntax clean; 32/32 tests passed, including cache, import, lifecycle, evidence and numerical-contract regressions"
+    },
+    {
+      "command": "independent manual timestamp/size-valid malicious pyc attack plus ordinary-loader control",
+      "result": "PASS: ordinary loader executed MALICIOUS; authenticated boundary executed canonical, preserved canonical metadata/root-first resolution and did not alter the pyc"
+    },
+    {
+      "command": "independent prepare.py self-replacement with a symlink during controlled execution",
+      "result": "PASS: RuntimeError before return; prepare removed from sys.modules"
+    },
+    {
+      "command": "pending-sentinel static CLI using literal request SHA 16e5d60e... and exclusive temporary report",
+      "result": "PASS rc0: static-only passed, hardware_executed=false, authorization pending, 22/22 hashes exact"
+    },
+    {
+      "command": "git fetch origin; compare HEAD/origin; sha256 protected/frozen files; inspect request state",
+      "result": "PASS: origin aligned at 160ebc3c..., pre-report worktree clean, request pending, all protected hashes match and frozen prepare/source/candidate hashes are exact"
+    }
+  ],
+  "authorization": {
+    "authorization_request_finalized": false,
+    "hardware_launch_authorized_by_this_report": false,
+    "state_only_finalization_may_proceed": true,
+    "condition": "A separate finalizer may start from this pushed PASS-report commit and perform only the reviewed pending-to-finalized authorization transition with exact out-of-band HEAD/request literals and all existing fail-closed gates preserved. No hardware launch is authorized until that finalization is complete and independently bound."
+  },
+  "residual_risk": "Local QA proves the cache/import boundary and preserved static contracts, not Neuron execution. The already-approved one-shot hardware discriminator remains the required operational/numerical gate after separate finalization.",
+  "candidate_modified_by_verifier": false,
+  "source_modified_by_verifier": false,
+  "prepare_modified_by_verifier": false,
+  "implementation_modified_by_verifier": false,
+  "authorization_modified_by_verifier": false,
+  "hardware_run_by_verifier": false,
+  "training_run_by_verifier": false,
+  "submission_performed": false,
+  "scientific_verdict": null
+}
