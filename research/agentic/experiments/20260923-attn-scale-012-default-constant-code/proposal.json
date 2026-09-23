@@ -1,0 +1,49 @@
+{
+  "abort_conditions": [
+    "any non-finite training loss or loss-scale skip cascade in the first 100 steps (sharper softmax destabilizing early training)",
+    "causality_passed false or causality_max_abs > 0 in the smoke run",
+    "smoke step rate < 0.97x the same-host control smoke (control trn21 334 steps / trn22 335 steps at 300 s): the change adds no FLOPs, so a >3% slowdown means the compiled attention graph changed and the quality comparison is confounded",
+    "smoke public_val_bpb worse than the same-host control smoke (1.165855 trn21 / 1.165604 trn22) by more than 0.006",
+    "full-run step count outside 10% of the same-host control (2071/2076) -> CONFOUNDED per protocol section 5, do not treat as a verdict",
+    "static review finds the ATTN_SCALE comment block (lines ~209-232) already records a measured close of 0.12 at the locked 4-rank/LNC=2 shape -> stop, duplicate"
+  ],
+  "change_type": "code",
+  "created_at": "2026-09-23T13:20:30Z",
+  "duplicate_search_terms": [
+    "ATTN_SCALE",
+    "attn_scale",
+    "attn-scale",
+    "attention scale 0.12",
+    "softmax scale",
+    "sdpa scale=",
+    "logit scale",
+    "attention temperature",
+    "NEURON_COMPETITION_R1_ATTN_SCALE",
+    "qk scale",
+    "1/sqrt(head_dim)"
+  ],
+  "evidence": [
+    "proposal-verifier findings for 20260923-attn-logit-scale-012-fixed-q-premult: train.py defines ATTN_SCALE=0.0 (lines 209-232), carries it in GPTConfig, snapshots config.attn_scale into CausalSelfAttention.self.attn_scale (lines 3083-3098), passes scale=self.attn_scale to every SDPA call and forwards it to nki_attention; verifier explicitly recommended 'a one-factor --attn-scale 0.12 experiment using the existing checkpoint-safe plumbing' and did not cite any closed measurement of it",
+    "deterministic finding for 20260923-attn-scale-012-flag-only-default-shape: 'flag --attn-scale does not exist in train.py at the pinned commit' -- so the existing constant can only be exercised by a train.py edit, hence change_type code",
+    "proposal-verifier mechanism correction: per-head QK normalization is rope_norm(q,cos,sin)/rope_norm(k,cos,sin) inside CausalSelfAttention.forward; fixed norms constrain attainable logit magnitude",
+    "pinned controls: trn21 2071 steps / 1.005734, trn22 2076 steps / 1.005967 (control spread 0.00023) -- zero-FLOP scalar change should reproduce ~2071 steps, so the full-run comparison stays inside the 10% comparability gate of experiment-protocol.md section 5",
+    "train.py lines 592-595 (USE_EPOCH_SHUFFLE) and DECISION_LOG rows for --bf16-norm-output (2716 steps/1.016279), --batch-ramp (2397/1.01219), bf16-mlp-input-norm (2346/1.0197): throughput-only gains that cross the ~2195-step epoch boundary are CONFOUNDED or worse, so a per-step-quality change at unchanged step count is the right lever at this commit",
+    "modded-nanogpt speedrun records (QK-norm + fixed attention scale 0.12 replacing 1/sqrt(head_dim)) as the external prior for direction and rough size",
+    "DECISION_LOG.md: no attn_scale / attention-scale / softmax-temperature row; ledger rows at 9a4caa7b contain no ATTN_SCALE experiment"
+  ],
+  "expected_effect": "Lower official val_bpb by 0.002-0.004 at matched step count (~2071 steps) versus the pinned trn21 control 1.005734 / trn22 1.005967; step count within +/-3% of control (zero-FLOP scalar kwarg). Falsified if the full run lands at >= 1.0055 with steps inside 3% of control, or if step count moves >3% (which would indicate the scale changed the compiled SDPA path and confounds the reading).",
+  "files_allowed": [
+    "train.py"
+  ],
+  "flags": [],
+  "hypothesis": "At the pinned config every attention layer applies parameter-free per-head normalization to q and k (rope_norm inside CausalSelfAttention.forward, per the 2026-09-23 verifier's source reading), so the attainable logit magnitude is bounded by the fixed softmax scale: with |q|,|k| RMS-normalized over head_dim d, the largest logit is d*scale, i.e. sqrt(d) at the backend default 1/sqrt(d). The optimizer therefore cannot sharpen attention beyond that ceiling except by distorting q/k directions. modded-nanogpt (records with QK-norm) found a fixed scale of 0.12 (~1.36x sharper than 1/sqrt(128)) improves loss per step at zero cost. train.py already carries the complete checkpoint-safe plumbing for this (module-level ATTN_SCALE=0.0 meaning 'backend default', GPTConfig.attn_scale, CausalSelfAttention.self.attn_scale forwarded as scale= to every SDPA call and to nki_attention) but the default is the backend value and no CLI flag reaches it at 9a4caa7b (deterministic check: --attn-scale does not exist). Setting ATTN_SCALE to 0.12 is a pure per-step-quality change: the scale is a scalar kwarg of the same SDPA graph, so step count should stay at ~2071 and the comparison against the pinned trn21/trn22 controls is not step-confounded (unlike every recent throughput-driven variant that crossed the ~2195-step data wall and got worse).",
+  "implementation_plan": "All edits confined to train.py on branch autoloop/20260923-attn-scale-012-default-constant-code from 9a4caa7b. STEP 1 (static inspection, report as notes only, no execution/artifacts): (a) locate the module-level ATTN_SCALE constant and its comment block (~lines 209-232), noting whether it is read through the _hp()/env-override helper and the exact env var name if any; (b) locate GPTConfig.attn_scale (its default should reference ATTN_SCALE), CausalSelfAttention.__init__ where self.attn_scale = config.attn_scale is snapshotted (~lines 3083-3098), and every backend call that consumes it (each F.scaled_dot_product_attention call with scale=..., the nki_attention forward, and any _AttnNKI/compile-sdpa-direct path); (c) record EXACTLY how the value 0.0 is currently mapped to 'backend default' (e.g. `scale=self.attn_scale or None`, or `None if attn_scale <= 0 else attn_scale`) -- this mapping must remain byte-identical; (d) confirm the checkpoint saves config.attn_scale (GPTConfig serialized in the checkpoint) so load_for_eval rebuilds the same scale; note if load_for_eval instead reads the module constant (acceptable: same new default). STEP 2 (the single edit): change the ATTN_SCALE default literal from 0.0 to 0.12 at its definition site only (if it is defined via _hp('ATTN_SCALE', 0.0) or float(os.environ.get(..., '0.0')), change only that default literal so the env override still works). Do not touch the <=0 -> backend-default mapping, do not add a second scale, do not multiply q or k, do not change nki_attention, do not touch any precision cast. STEP 3 (comment only): append one dated line to the ATTN_SCALE comment block stating '2026-09-23 autoloop: default 0.0 -> 0.12 (modded-nanogpt fixed attention scale under QK-norm); 0.0 restores backend 1/sqrt(head_dim)'. STEP 4 (optional, only if trivially patterned): if argparse in the CLI section does not already register --attn-scale, add ONE `--attn-scale` float option following the identical pattern used by the nearest existing float knob (e.g. --ngram-ve-lr or --weight-ema-decay) that assigns into the module-level ATTN_SCALE / GPTConfig before model construction, with default = the module constant, so the control value 0.0 stays reachable; add nothing else. If the existing knob pattern is not a one-to-one copy, skip STEP 4 entirely. STEP 5 (self-check, static): python -m py_compile train.py; `git diff` must show only (i) the one default literal, (ii) the comment line, (iii) optionally the single argparse option and its assignment; no other hunks. The run command is the pinned control command with no extra flags.",
+  "proposal_id": "20260923-attn-scale-012-default-constant-code",
+  "single_causal_change": "One architecture/numerics constant change confined to train.py: the existing module-level ATTN_SCALE default changes from 0.0 (use backend default 1/sqrt(head_dim)) to 0.12, flowing through the EXISTING GPTConfig.attn_scale -> CausalSelfAttention.self.attn_scale -> scale= plumbing to every attention backend call. No new tensor, parameter, op, or scale path is added; no second scale is introduced; the '<= 0 means backend default' semantics are preserved so the control value remains reachable. Everything else stays at the 9a4caa7b defaults and the pinned launch shape (NEURON_LOGICAL_NC_CONFIG=2, torchrun --nproc_per_node=4, --num-steps 5000 --max-train-seconds 1800 --seed 42, NEURON_CC_FLAGS='--optlevel=1'): no precision flag, no kernel flag, no optimizer or schedule switch, no data/eval change.",
+  "smoke_gate": {
+    "max_bpb_delta": 0.006,
+    "min_step_rate_ratio": 0.97
+  },
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}

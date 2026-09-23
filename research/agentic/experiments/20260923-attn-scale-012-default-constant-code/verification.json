@@ -1,0 +1,20 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "The bounded code plan changes one causal factor: ATTN_SCALE from 0.0 to 0.12. Authoritative train.py confirms build_config() passes ATTN_SCALE explicitly into GPTConfig, and CausalSelfAttention preserves the existing positive-value-or-None mapping and forwards the scale through all attention paths.",
+    "Source correction: --attn-scale already exists via _hp(\"--attn-scale\", ATTN_SCALE, float, ...), with ATTN_SCALE = args.attn_scale and environment override NEURON_COMPETITION_R1_ATTN_SCALE. The cited absence finding is contradicted by the supplied authoritative source. Consequently optional STEP 4 must be skipped; the constant-only edit still implements the proposed experiment, and 0.0 remains CLI-accessible.",
+    "GPTConfig.attn_scale has a literal 0.0 compatibility default, not a reference to ATTN_SCALE. This does not prevent the experiment because build_config() supplies the value explicitly. save_checkpoint() serializes asdict(model.config), and load_for_eval() reconstructs GPTConfig from that payload, preserving the trained scale.",
+    "The QK-normalization mechanism is directly supported by rope_norm calls on both q and k. No closed fixed-attention-scale measurement appears in the supplied decision log, ledger rows, or ATTN_SCALE comment block; this is distinct from the parked attention-kernel redesign.",
+    "The plan is competition-legal: only train.py changes, with no pretrained weights, external training data, or evaluator modifications. Pre-smoke work is limited to static inspection, syntax checking, and diff review; executable model and hardware checks remain smoke gates.",
+    "The controller-managed seed-42 full-chip comparison is falsifiable through public BPB and achieved steps against the matched control. The cited 1.005734 and 1.005967 controls are public, not official, measurements. Unchanged throughput is a hypothesis rather than a zero-FLOP guarantee, and the proposal supplies explicit rate and step-count gates to test it."
+  ],
+  "llm_verdict": "PASS",
+  "passed": true,
+  "proposal_id": "20260923-attn-scale-012-default-constant-code",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-23T13:20:31Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}
