@@ -1,0 +1,20 @@
+{
+  "proposal_id":"20260924-c595-matrixlr025-trn21-r1",
+  "status":"human-approved-pending-implementation-and-independent-verification",
+  "owner_role":"researcher",
+  "hypothesis":"Increasing only MATRIX_LR from 0.020 to 0.025 improves full-budget public validation BPB on trn21 relative to the same-host exact-c595 control.",
+  "single_causal_change":"MATRIX_LR = 0.020 -> 0.025",
+  "mechanism_class":"optimizer_hyperparameter",
+  "predicted_val_bpb_delta":-0.0015,
+  "predicted_interval":[null,null],
+  "control":{"host":"trn21","package":"submissions/dense6x1024_direct_review","train_sha256":"c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537","full20m_public_bpb":0.993231940827686,"evidence":"research/submission-validation/20260923-c595-dual-host-seed42-controls/retrieved/fs-20260924-c595-eval-recovery-trn21-r1/secondary-public20m.metrics.json"},
+  "candidate":{"host":"trn21","package":"submissions/dense6x1024_direct_review_matrixlr025","train_sha256":"4b36bb0da7950299c09f8bbbfc8d4a77c6bb73415a85f3bcf413cc2c4bab2994"},
+  "launch_command":"NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public",
+  "environment":{"seed":42,"lnc":2,"world_size":4,"NEURON_CC_FLAGS":"--optlevel=1 --auto-cast matmult --auto-cast-type bf16","max_train_seconds":1800},
+  "run_mode":{"full_budget":true,"smoke":false,"one_run_per_machine":true},
+  "selection_metric":{"name":"full20m_public_val_bpb","batch_size":1,"seq_len":1024,"num_tokens":20971520,"num_bytes":83462186,"control":0.993231940827686,"lower_is_better":true},
+  "decision":{"keep_if_improvement_at_least":0.0015,"replicate_if_keep_improvement_below":0.0025,"discard_if_improvement_below":0.0015},
+  "gates":{"human_approval":true,"independent_verification_required":true,"submission_authorized":false,"training_launched":false},
+  "success":["finite strict checkpoint","four ranks LNC2","accelerated paths active","no crash or NaN","1800-second budget","fresh singleton full20m evaluation with exact token/byte counts","clean postflight"],
+  "abort":["dirty/incomplete checkout","occupied host","hash or hostname mismatch","source diff beyond MATRIX_LR","seed/time/launch/compiler mismatch","smoke or extra train flags","crash/NaN/missing checkpoint","evaluation schema/count/BPB-math mismatch","checkpoint mutation"]
+}

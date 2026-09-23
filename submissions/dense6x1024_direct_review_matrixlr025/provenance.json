@@ -1,0 +1,12 @@
+{
+  "package":"dense6x1024_direct_review_matrixlr025",
+  "derived_from":{"package":"dense6x1024_direct_review","train_py_sha256":"c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537"},
+  "train_sha256":"4b36bb0da7950299c09f8bbbfc8d4a77c6bb73415a85f3bcf413cc2c4bab2994",
+  "single_causal_change":{"constant":"MATRIX_LR","from":0.02,"to":0.025},
+  "launch_command":"NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public",
+  "launch_command_identical_to_source":true,
+  "seed":42,
+  "max_train_seconds":1800,
+  "smoke":false,
+  "hardware_validation":"NOT RUN: prepared for independent verification and operator execution"
+}
