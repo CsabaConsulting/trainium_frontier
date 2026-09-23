@@ -95,7 +95,8 @@ EXACT_DENSE1024_TRAIN_ARGV = [
 ]
 EXACT_DENSE1024_CHECKPOINT = Path("out/final.pt")
 EXACT_DENSE1024_EVAL_SEQ_LEN = 1024
-EXACT_DENSE1024_EVAL_TOKENS = 0
+EXACT_DENSE1024_EVAL_TOKENS = 20_971_520
+EXACT_DENSE1024_EVAL_BYTES = 83_462_186
 EXACT_CACHE_ENV_KEYS = (
     "TORCH_NEURONX_NEFF_CACHE_DIR",
     "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR",
@@ -358,7 +359,12 @@ def main() -> None:
                 "wall_seconds": round(time.monotonic() - eval_started, 3),
                 "result": eval_result,
             }
-            if eval_returncode != 0 or not isinstance(eval_result.get("val_bpb"), (int, float)):
+            counts_match = (
+                eval_result.get("num_tokens") == EXACT_DENSE1024_EVAL_TOKENS
+                and eval_result.get("num_bytes") == EXACT_DENSE1024_EVAL_BYTES
+            )
+            if (eval_returncode != 0 or not isinstance(eval_result.get("val_bpb"), (int, float))
+                    or not counts_match):
                 crashed = True
             else:
                 summary.update({
@@ -368,8 +374,26 @@ def main() -> None:
                     "eval_over_timeout": bool(eval_result.get("eval_over_timeout", False)),
                     "eval_context": EXACT_DENSE1024_EVAL_SEQ_LEN,
                     "eval_tokens_requested": EXACT_DENSE1024_EVAL_TOKENS,
+                    "eval_num_tokens": eval_result["num_tokens"],
+                    "eval_num_bytes": eval_result["num_bytes"],
+                    "eval_counts_match": True,
                     "selection_metric": "public_val_bpb",
                 })
+    if args.exact_dense1024 and not eval_log_path.exists():
+        # Collection requires a complete declared artifact set even when training failed before
+        # evaluation. Preserve that fact instead of turning a scientific failure into missing
+        # evidence that cannot be archived or safely cleaned up.
+        with eval_log_path.open("x") as eval_log:
+            eval_log.write("<fresh public evaluation skipped because training/checkpoint gate failed>\n")
+            eval_log.flush()
+            os.fsync(eval_log.fileno())
+        external_eval = {
+            "argv": None, "fresh_process": False, "returncode": None,
+            "seq_len": EXACT_DENSE1024_EVAL_SEQ_LEN,
+            "eval_tokens": EXACT_DENSE1024_EVAL_TOKENS,
+            "log": str(eval_log_path.relative_to(REPO_ROOT)), "result": {},
+            "skipped": True,
+        }
 
     if crashed or "public_val_bpb" not in summary or summary.get("eval_over_timeout") is True:
         status = "crash"
