@@ -1,6 +1,6 @@
 {
   "proposal_id": "20260923-dense6x1024-direct-review-safe",
-  "status": "human-approved-implementation",
+  "status": "hardware-component-gate-failed",
   "owner_role": "supervisor",
   "hypothesis": "Replacing the remaining runtime-installed training adapters with ordinary explicit code paths will preserve the frozen candidate's training arithmetic while avoiding the automated reviewer's repeated concern about `_submission_*` constructs.",
   "single_causal_change": "Relative to submissions/dense6x1024_lean_review/train.py at SHA-256 9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344, directly integrate the fused MLP path, optimizer ownership path, and adaptive NKI cross-entropy path; remove `_submission_*` and `_install_submission_training`, MethodType method replacement, training-global replacement, and SUBMISSION_* messages. Do not change model shapes, math, kernels, data order, timing, checkpoint/evaluation behavior, or launch flags.",
@@ -9,7 +9,8 @@
     "research/lean-submission-2026-09-22.md",
     "research/submission-validation/20260923-dense6x1024-direct-review-safe/rejection-sub-7be49b6b.json",
     "research/submission-validation/20260923-dense6x1024-lean-review-rehearsal/final-analyst.json",
-    "research/submission-validation/20260923-dense6x1024-lean-review-rehearsal/fresh-public20m-r1-result.json"
+    "research/submission-validation/20260923-dense6x1024-lean-review-rehearsal/fresh-public20m-r1-result.json",
+    "research/submission-validation/20260923-dense6x1024-direct-review-safe/fs-20260923-dense6x1024-direct-neuron-component-20260923T103500000001Z-result.json"
   ],
   "duplicate_search_terms": [
     "_submission_mlp_install",
@@ -46,6 +47,25 @@
     "causality": false,
     "smoke_run": false,
     "human_run_approval": true
+  },
+  "operator_progress": {
+    "updated_at": "2026-09-23T10:46:31Z",
+    "authorized_source_commit": "18559ee4621debd96e6459e697a7f1452386226c",
+    "candidate_sha256": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537",
+    "component_gate": {
+      "label": "fs-20260923-dense6x1024-direct-neuron-component-20260923T103500000001Z",
+      "status": "failed",
+      "command_returncode": 1,
+      "report_passed": false,
+      "host_clean": true,
+      "fused_mlp_rank_pass_count": 4,
+      "adaptive_ce_rank_pass_count": 0,
+      "owned_optimizer_rank_pass_count": 0
+    },
+    "source_checkpoint_public_replay": "not_started_fail_closed",
+    "cold_training_rehearsal": "not_started_fail_closed",
+    "fresh_checkpoint_contract_and_evaluation": "not_started_fail_closed",
+    "analyst_advancement_authorized": false
   },
   "success_criteria": {
     "quality": "The preserved source checkpoint replays at exactly 0.9928513116311253 public BPB and the fresh checkpoint remains within predeclared run-to-run noise of the 0.9929546795964038 control without claiming a private-shard win.",

@@ -1,0 +1,164 @@
+{
+  "role": "Operator",
+  "proposal_id": "20260923-dense6x1024-direct-review-safe",
+  "label": "fs-20260923-dense6x1024-direct-neuron-component-20260923T103500000001Z",
+  "host": "trn22",
+  "hostname": "ip-172-31-32-253",
+  "remote": "/home/ubuntu/trainium_freshstart_submission_validation_20260923_direct_component",
+  "authorized_source_commit": "18559ee4621debd96e6459e697a7f1452386226c",
+  "started_at": "2026-09-23T10:40:17.679104+00:00",
+  "completed_at": "2026-09-23T10:44:20.117184+00:00",
+  "authorization": {
+    "external_launch_request_sha256": "61dc17e896c7efc4347a6682fd29acc2f2718e071e9952217344f7b101932e67",
+    "authorization_request_sha256": "ba6353298101412302d2b5a484d950a6fe9f735a04a0688631b1c3a825d81a55",
+    "harness_sha256": "2f5f4f279c11a0f8504cd953335ca31994df438b62546edbb1b9a380d414143d",
+    "candidate_sha256": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537",
+    "bundle_sha256": "8479d620ab6be3abe09e60b8c8d8f8d5bd7c40891e5b7d8ead3b85ea642d8880",
+    "verbatim_absolute_launcher_used": true,
+    "request_and_process_argv_exact": true
+  },
+  "returncodes": {
+    "launch_dispatch": 0,
+    "component_workload": 1,
+    "guard_command": 1
+  },
+  "component_report": {
+    "schema": "dense6x1024-direct-neuron-component-v1",
+    "passed": false,
+    "distributed_initialized": true,
+    "distributed_cleanup_succeeded": true,
+    "all_ranks_passed": false,
+    "required_pass_count_per_stage": 4,
+    "rank_pass_counts": {
+      "fused_mlp": 4,
+      "adaptive_ce": 0,
+      "owned_optimizer": 0
+    },
+    "identity_digest_all_ranks": true,
+    "ownership_plan_digest_all_ranks": true,
+    "replicated_parameter_digest_all_ranks": true,
+    "metrics_available_on_all_ranks": true
+  },
+  "fused_mlp": {
+    "passed": true,
+    "rank_pass_count": 4,
+    "executions": 2,
+    "later_execution_after_weight_update_and_cache_refresh": true,
+    "output_max_abs_across_ranks": 0.0,
+    "input_gradient_max_abs_across_ranks": 5.960464477539063e-8,
+    "rank0_execution_1_up_gradient_max_abs": 1.9073486328125e-6,
+    "rank0_execution_1_down_gradient_max_abs": 1.9073486328125e-6,
+    "rank0_execution_2_up_gradient_max_abs": 1.9073486328125e-6,
+    "rank0_execution_2_down_gradient_max_abs": 1.9073486328125e-6
+  },
+  "adaptive_ce": {
+    "passed": false,
+    "rank_pass_count": 0,
+    "one_lane_128_rows": {
+      "passed": true,
+      "executions": 2,
+      "rank0_loss_max_abs": [
+        0.00004100799560546875,
+        0.0000400543212890625
+      ],
+      "rank0_gradient_max_abs": [
+        7.078051567077637e-8,
+        7.334165275096893e-8
+      ]
+    },
+    "two_lane_512_rows": {
+      "passed": false,
+      "executions": 2,
+      "forward_and_backward_wrappers_exercised_twice": true,
+      "selected_expected_two_lane_grid": true,
+      "gradient_passed_both_executions": true,
+      "rank0_gradient_max_abs": [
+        0.0000015702098608016968,
+        0.0000016349367797374725
+      ],
+      "loss_passed_both_executions": false,
+      "rank0_loss_max_abs": [
+        0.0004787445068359375,
+        0.0004634857177734375
+      ],
+      "loss_tolerance": {
+        "atol": 0.00002,
+        "rtol": 0.00002,
+        "elementwise_within_tolerance": false,
+        "norm_gate_passed": true
+      }
+    }
+  },
+  "owned_optimizer": {
+    "passed": false,
+    "rank_pass_count": 0,
+    "api_split_checks_passed": true,
+    "ownership_plan_checks_passed": true,
+    "all_four_owners_present": true,
+    "state_coverage_passed": true,
+    "state_roundtrip_exact": true,
+    "schedule_propagated": true,
+    "bad_schema_rejected": true,
+    "step_1": {
+      "parameter_metrics_passed": true,
+      "update_delta_metrics_passed": true,
+      "max_parameter_abs": 0.0,
+      "max_update_error_norm_ratio": 0.0
+    },
+    "step_2": {
+      "parameter_metrics_passed": false,
+      "update_delta_metrics_passed": false,
+      "max_parameter_abs": 0.0002593994140625,
+      "max_update_error_norm_ratio": 0.04243660215482841,
+      "worst_parameter": "transformer.h.0.mlp.c_fc.weight"
+    }
+  },
+  "preflight": {
+    "passed": true,
+    "failures": [],
+    "memory_available_bytes": 131540582400,
+    "disk_free_bytes": 8839208960,
+    "free_inodes": 25080480,
+    "device_fuser_returncode": 1,
+    "neuron_process_count": 0
+  },
+  "postflight": {
+    "host_clean": true,
+    "failures": [],
+    "guard_error": null,
+    "cleanup_actions": [],
+    "cleanup_remaining": [],
+    "memory_available_bytes": 130256932864,
+    "disk_free_bytes": 8688553984,
+    "free_inodes": 25077801,
+    "device_fuser_returncode": 1,
+    "neuron_process_count": 0,
+    "relevant_processes": [],
+    "independent_audit_at": "2026-09-23T10:46:31Z",
+    "independent_host_lock_free": true,
+    "independent_cache_lock_file_count": 5672,
+    "independent_cache_lock_holder_count": 0,
+    "tracked_source_clean": true,
+    "candidate_hash_unchanged": true
+  },
+  "retrieved_artifact_sha256": {
+    "launch_json": "f8e5ab64d99d32bf4e2374bd7c6fb1fc5f2a6eb3cc177d7f40a2826c5a27221d",
+    "job_json": "f8e5ab64d99d32bf4e2374bd7c6fb1fc5f2a6eb3cc177d7f40a2826c5a27221d",
+    "process_json": "1cbbfe97824b6875569d6b3fd2095ecce01adcd267cf6039d051da059d65c837",
+    "component_json": "81491f10c16ac8f92861ffac106ea2882adb1e852129ed377f12d3ef7c5837fd",
+    "preflight_json": "f60d9e2aee14cc9dfb498f2e4d790dec7a6163eb3c3a3fcfe8294d2fe10a3372",
+    "postflight_json": "deb683bc8dfe0be39e9c7838d4cdd710e81058100fd233b54cb1e27fcaf7c589",
+    "log": "9db50955866b128cb2a913056c97fa5128d50d3360ebec10ac547b06ad4f1911",
+    "external_request_json": "61dc17e896c7efc4347a6682fd29acc2f2718e071e9952217344f7b101932e67",
+    "dispatch_json": "c983d63f32a6ac896598ce869591e006c62b5408d74ada952ba471061b113c54"
+  },
+  "advancement": {
+    "source_checkpoint_public_replay_launched": false,
+    "cold_training_rehearsal_launched": false,
+    "fresh_checkpoint_evaluation_launched": false,
+    "analyst_advancement_authorized": false,
+    "reason": "The mandatory Neuron component gate failed."
+  },
+  "submission_performed": false,
+  "scientific_verdict": null
+}
