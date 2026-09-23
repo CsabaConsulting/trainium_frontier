@@ -44,6 +44,15 @@ def load_job():
     return module
 
 
+def load_adapter():
+    path = EVIDENCE / "launch_adapter.py"
+    spec = importlib.util.spec_from_file_location("warmdown060_launch_adapter", path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
@@ -188,6 +197,7 @@ class SecureEvidenceTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.job = load_job()
+        cls.adapter = load_adapter()
 
     def test_finite_receipt_requires_exact_positive_schema(self) -> None:
         good = '{"finite": true, "map_location": "cpu", "tensor_count": 62, "weights_only": true}\n'
@@ -312,16 +322,19 @@ class SecureEvidenceTests(unittest.TestCase):
             "request_path": self.job.REQUEST_REL, "request_sha256": request_sha,
             "request_content": request, "state": "human_approved_pending_operator",
         }
+        authorization_sha = "d" * 64
+        concrete = self.job.build_concrete_request(request, authorization_sha, request_sha, final)
         runtime = {
-            "schema": "c595-warmdown060-runtime-job-v1", "host": self.job.HOST,
-            "hostname": self.job.HOSTNAME, "label": self.job.LABEL,
-            "verified_core_commit": core, "finalization_head": final,
-            "request_path": self.job.REQUEST_REL, "request_sha256": request_sha,
-            "request_content": request, "command": request["command"],
-            "environment": request["environment"], "source_sha256": source_sha,
-            "source_dirty": False, "preflight_passed": True,
+            **concrete,
+            "request_file_sha256": hashlib.sha256(self.job.canonical_json(concrete)).hexdigest(),
+            "started_at": "2026-09-24T12:00:00+00:00",
+            "hostname": self.job.HOSTNAME,
+            "git_commit": final,
+            "source_dirty": False,
+            "preflight_free_bytes": 9 * 1024**3,
+            "source_sha256": concrete["expected_sha256"],
         }
-        return core, final, request, request_sha, auth, runtime
+        return core, final, request, request_sha, auth, authorization_sha, concrete, runtime
 
     def test_strict_minimal_environment_rejects_hostile_inheritance(self) -> None:
         clean = dict(self.job.MINIMAL_ENVIRONMENT)
@@ -339,30 +352,86 @@ class SecureEvidenceTests(unittest.TestCase):
         self.assertEqual(self.job.build_subprocess_environment(inherited_benign), self.job.MINIMAL_ENVIRONMENT)
 
     def test_request_auth_and_runtime_contract_reject_forgery(self) -> None:
-        core, final, request, request_sha, auth, runtime = self.fixture()
+        core, final, request, request_sha, auth, authorization_sha, _concrete, runtime = self.fixture()
         self.assertEqual(self.job.validate_authorization_request(auth, request, core), request_sha)
-        self.job.validate_runtime_contract(runtime, request, request_sha, core, final)
+        self.job.validate_runtime_contract(runtime, request, request_sha, authorization_sha, core, final)
         mutations = []
         for field, value in (
             ("finalization_head", "3" * 40),
             ("verified_core_commit", "4" * 40),
-            ("request_sha256", "b" * 64),
+            ("request_file_sha256", "b" * 64),
             ("command", ["python", "evil.py"]),
             ("environment", {**request["environment"], "TORCH_LOGS": "+all"}),
-            ("source_sha256", {**request["source_sha256"], "prepare.py": "c" * 64}),
+            ("source_sha256", {**runtime["source_sha256"], "prepare.py": "c" * 64}),
+            ("expected_sha256", {**runtime["expected_sha256"], "prepare.py": "c" * 64}),
+            ("git_commit", "6" * 40),
         ):
             mutations.append({**runtime, field: value})
         for forged in mutations:
             with self.subTest(field=next(key for key in forged if forged[key] != runtime.get(key))), self.assertRaises(SystemExit):
-                self.job.validate_runtime_contract(forged, request, request_sha, core, final)
+                self.job.validate_runtime_contract(
+                    forged, request, request_sha, authorization_sha, core, final
+                )
 
     def test_alternate_child_and_request_template_mutation_fail(self) -> None:
-        core, final, request, request_sha, auth, runtime = self.fixture()
+        core, final, request, request_sha, auth, authorization_sha, _concrete, runtime = self.fixture()
         with self.assertRaises(SystemExit):
-            self.job.validate_runtime_contract(runtime, request, request_sha, core, "5" * 40)
+            self.job.validate_runtime_contract(
+                runtime, request, request_sha, authorization_sha, core, "5" * 40
+            )
         mutated = {**request, "purpose": "mutated same-core request"}
         with self.assertRaises(SystemExit):
             self.job.validate_authorization_request(auth, mutated, core)
+
+    def test_adapter_materializes_standard_launcher_request_without_overwrite(self) -> None:
+        _core, final, request, request_sha, _auth, authorization_sha, concrete, _runtime = self.fixture()
+        self.adapter.validate_standard_request(concrete, self.job)
+        self.assertEqual(concrete["expected_commit"], final)
+        self.assertEqual(concrete["template_sha256"], request_sha)
+        self.assertEqual(concrete["authorization_sha256"], authorization_sha)
+        self.assertEqual(concrete["fingerprint_paths"], sorted(concrete["expected_sha256"]))
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory).resolve() / "concrete.json"
+            expected_sha = hashlib.sha256(self.job.canonical_json(concrete)).hexdigest()
+            self.assertEqual(self.adapter.durable_concrete(path, concrete, self.job), expected_sha)
+            self.assertEqual(json.loads(path.read_bytes()), concrete)
+            with self.assertRaises(FileExistsError):
+                self.adapter.durable_concrete(path, concrete, self.job)
+
+    def test_adapter_rejects_generated_request_field_attacks(self) -> None:
+        _core, final, request, request_sha, _auth, authorization_sha, concrete, _runtime = self.fixture()
+        attacks = (
+            {**concrete, "expected_commit": "7" * 40},
+            {**concrete, "command": ["python", "evil.py"]},
+            {**concrete, "environment": {**concrete["environment"], "LD_PRELOAD": "/tmp/evil.so"}},
+            {**concrete, "fingerprint_paths": concrete["fingerprint_paths"][:-1]},
+        )
+        for value in attacks:
+            with self.assertRaises(SystemExit):
+                self.adapter.validate_standard_request(value, self.job)
+        with self.assertRaises(SystemExit):
+            self.job.build_concrete_request(request, authorization_sha, request_sha, "not-a-head")
+        self.assertEqual(concrete["expected_commit"], final)
+
+    def test_finalized_adapter_cli_dry_run_without_ssh(self) -> None:
+        if not (EVIDENCE / "authorization.json").exists():
+            return
+        head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+        with tempfile.TemporaryDirectory() as directory:
+            concrete = Path(directory).resolve() / "concrete-request.json"
+            done = subprocess.run(
+                [
+                    "python3", str(EVIDENCE / "launch_adapter.py"),
+                    "--concrete-request", str(concrete), "--dry-run",
+                    "--dry-run-origin-head", head,
+                ],
+                cwd=ROOT, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True,
+            )
+            receipt = json.loads(done.stdout)
+            self.assertIs(receipt["dry_run"], True)
+            self.assertEqual(receipt["finalization_head"], head)
+            self.assertEqual(receipt["concrete_request_sha256"], sha256(concrete))
+            self.adapter.validate_standard_request(json.loads(concrete.read_bytes()), self.job)
 
 
 if __name__ == "__main__":

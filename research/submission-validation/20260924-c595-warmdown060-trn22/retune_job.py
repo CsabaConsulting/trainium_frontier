@@ -49,10 +49,13 @@ EXACT_CC_FLAGS = "--optlevel=1 --auto-cast matmult --auto-cast-type bf16"
 AUTH_REL = "research/submission-validation/20260924-c595-warmdown060-trn22/authorization.json"
 REQUEST_REL = "research/submission-validation/20260924-c595-warmdown060-trn22/final-request.json"
 DRIVER_REL = "research/submission-validation/20260924-c595-warmdown060-trn22/retune_job.py"
+ADAPTER_REL = "research/submission-validation/20260924-c595-warmdown060-trn22/launch_adapter.py"
 PROPOSAL_REL = "research/submission-validation/20260924-c595-warmdown060-trn22/EXPERIMENT_PROPOSAL.json"
 RUNTIME_JOB_REL = f"research/run-logs/{LABEL}.job.json"
 CORE_FINGERPRINT_PATHS = {
+    "train.py",
     "prepare.py",
+    "research/run_experiment.py",
     "research/scratch/submission_rehearsal.py",
     "research/fresh_start_launch.py",
     "research/fresh_start_sync.py",
@@ -61,6 +64,7 @@ CORE_FINGERPRINT_PATHS = {
     "research/fresh_start_backup.py",
     PROPOSAL_REL,
     DRIVER_REL,
+    ADAPTER_REL,
     SOURCE_REL,
     f"{PACKAGE_REL}/train.py",
     f"{PACKAGE_REL}/provenance.json",
@@ -545,27 +549,73 @@ def validate_authorization_request(auth: dict, request: dict, verified_core: str
     return request_sha
 
 
-def validate_runtime_contract(
-    runtime: dict, request: dict, request_sha: str, verified_core: str, finalization_head: str,
-) -> None:
-    expected = {
-        "schema": "c595-warmdown060-runtime-job-v1",
-        "host": HOST,
-        "hostname": HOSTNAME,
-        "label": LABEL,
-        "verified_core_commit": verified_core,
-        "finalization_head": finalization_head,
-        "request_path": REQUEST_REL,
-        "request_sha256": request_sha,
-        "request_content": request,
-        "command": request["command"],
-        "environment": request["environment"],
-        "source_sha256": request["source_sha256"],
-        "source_dirty": False,
-        "preflight_passed": True,
+def build_concrete_request(
+    template: dict, authorization_sha: str, template_sha: str, finalization_head: str,
+) -> dict:
+    _lower_sha(authorization_sha, "authorization sha")
+    _lower_sha(template_sha, "template sha")
+    if type(finalization_head) is not str or len(finalization_head) != 40 or any(c not in HEX64 for c in finalization_head):
+        raise SystemExit("invalid finalization commit")
+    expected_sha = {
+        **template["source_sha256"],
+        AUTH_REL: authorization_sha,
+        REQUEST_REL: template_sha,
     }
-    if runtime != expected:
+    return {
+        "authorization_path": AUTH_REL,
+        "authorization_sha256": authorization_sha,
+        "command": template["command"],
+        "environment": template["environment"],
+        "expected_commit": finalization_head,
+        "expected_hostname": HOSTNAME,
+        "expected_sha256": expected_sha,
+        "finalization_head": finalization_head,
+        "fingerprint_paths": sorted(expected_sha),
+        "host": HOST,
+        "label": LABEL,
+        "non_overwrite": True,
+        "origin": "https://github.com/CsabaConsulting/trainium_frontier.git",
+        "purpose": template["purpose"],
+        "remote": template["remote"],
+        "runner_owns_manifest": False,
+        "schema": "fresh-start-request-v2",
+        "template_content": template,
+        "template_path": REQUEST_REL,
+        "template_sha256": template_sha,
+        "verified_core_commit": template["verified_core_commit"],
+    }
+
+
+def validate_runtime_contract(
+    runtime: dict, template: dict, template_sha: str, authorization_sha: str,
+    verified_core: str, finalization_head: str,
+) -> str:
+    concrete = build_concrete_request(template, authorization_sha, template_sha, finalization_head)
+    concrete_sha = hashlib.sha256(canonical_json(concrete)).hexdigest()
+    dynamic_keys = {
+        "request_file_sha256", "started_at", "hostname", "git_commit",
+        "source_dirty", "preflight_free_bytes", "source_sha256",
+    }
+    if set(runtime) != set(concrete) | dynamic_keys:
         raise SystemExit("runtime job contract mismatch")
+    for key, value in concrete.items():
+        if runtime.get(key) != value:
+            raise SystemExit(f"runtime job concrete request mismatch: {key}")
+    if (
+        runtime["request_file_sha256"] != concrete_sha
+        or runtime["hostname"] != HOSTNAME
+        or runtime["git_commit"] != finalization_head
+        or runtime["source_dirty"] is not False
+        or type(runtime["preflight_free_bytes"]) is not int
+        or runtime["preflight_free_bytes"] < 8 * 1024**3
+        or runtime["source_sha256"] != concrete["expected_sha256"]
+        or type(runtime["started_at"]) is not str
+        or not runtime["started_at"].endswith("+00:00")
+    ):
+        raise SystemExit("runtime job dynamic metadata mismatch")
+    if runtime["verified_core_commit"] != verified_core:
+        raise SystemExit("runtime verified core mismatch")
+    return concrete_sha
 
 
 def _committed_bytes(head: str, relative: str) -> bytes:
@@ -617,13 +667,18 @@ def validate_finalization(auth_path: Path, request_path: Path, runtime_path: Pat
         raise SystemExit("runtime job JSON invalid") from error
     if runtime_bytes != canonical_json(runtime):
         raise SystemExit("runtime job is not canonical JSON")
-    validate_runtime_contract(runtime, request, request_sha, verified_core, head)
+    authorization_sha = hashlib.sha256(auth_bytes).hexdigest()
+    concrete_sha = validate_runtime_contract(
+        runtime, request, request_sha, authorization_sha, verified_core, head
+    )
     return {
         "verified_core_commit": verified_core,
         "finalization_head": head,
-        "authorization_sha256": hashlib.sha256(auth_bytes).hexdigest(),
-        "request_sha256": request_sha,
+        "authorization_sha256": authorization_sha,
+        "template_sha256": request_sha,
+        "concrete_request_sha256": concrete_sha,
         "runtime_job_sha256": hashlib.sha256(runtime_bytes).hexdigest(),
+        "launch_adapter_sha256": request["source_sha256"][ADAPTER_REL],
     }
 
 
