@@ -1,0 +1,86 @@
+{
+  "abort_conditions": [
+    "causality_passed is not True or causality_max_abs != 0.0 in the smoke",
+    "smoke step count < 328 (below 0.98x the same-host smoke control's 334) or per-step dt shows repeated recompiles",
+    "smoke public_val_bpb > same-host smoke control + 0.003 (1.165855 + 0.003 on trn21)",
+    "any NaN/inf loss, loss-scale skip, or compile failure",
+    "load_for_eval's checkpoint evaluation disagrees with the in-run eval by more than 1e-4 bpb (graph not rebuilt identically)",
+    "full-run step count outside 10% of the same-host control (CONFOUNDED, not a verdict)"
+  ],
+  "candidate_shortlist": [
+    {
+      "idea": "Restore local conv output into same-block Q/K/V snapshot (wiring repair of 7518d91e ordering), zero new parameters",
+      "mechanism_class": "per_step_quality",
+      "predicted_bpb_delta": -0.002,
+      "why_ranked": "Only candidate backed by a source-history audit showing an unintended regression of prior positive evidence; zero throughput cost by construction; no optimizer routing risk (no new params); one full run (~0.6 host-hours incl. smoke). Highest information value: falsifies whether the conv's prior GPU/Trn2 win depended on pre-attention placement."
+    },
+    {
+      "idea": "--compile-sdpa-direct only (attention compiled directly)",
+      "mechanism_class": "throughput",
+      "predicted_bpb_delta": -0.001,
+      "why_ranked": "Pure step-rate lever with fresh-start evidence (fs-w146 stack used it) but the id 20260922-compile-sdpa-direct-only-default-shape was already consumed with no ledger row, so its status at this commit is unknown/possibly closed; likely overlaps the --bf16-sdpa-input KEEP mechanism."
+    },
+    {
+      "idea": "--nki-softcap-ce only (fused softcap + CE kernel)",
+      "mechanism_class": "throughput",
+      "predicted_bpb_delta": -0.0005,
+      "why_ranked": "Cheap flag; CE is a measurable tail cost, but recent NKI flags (nki-local-conv, ngram-rms) lost steps at smoke, and the id 20260922-nki-softcap-ce-only-default-shape is already used, so low expected information."
+    },
+    {
+      "idea": "WARMDOWN_RATIO 0.75 -> 0.85 code constant (longer LR cooldown)",
+      "mechanism_class": "schedule",
+      "predicted_bpb_delta": -0.001,
+      "why_ranked": "Schedule axes at this commit have been repeatedly null (demon-beta1 +0.0002, ngram flat-lr +0.0021, scalar betas closed); no evidence the cooldown fraction is off-optimum; low transfer likelihood, one full run."
+    },
+    {
+      "idea": "--ngram-ve-table-mult 16 (smaller hashed tables, more steps)",
+      "mechanism_class": "capacity",
+      "predicted_bpb_delta": 0.001,
+      "why_ranked": "dim64 (-45% params) already lost +0.0011 despite +6.5% steps and --no-ngram-ve lost +0.020, so shrinking the tables is expected to regress; id already used; rejected."
+    }
+  ],
+  "change_type": "code",
+  "created_at": "2026-09-23T16:16:47Z",
+  "duplicate_search_terms": [
+    "local_conv",
+    "local conv pre-attention",
+    "conv before attention",
+    "q_in snapshot",
+    "7518d91e",
+    "MUDD",
+    "Canon-A",
+    "2512.17351",
+    "local-conv-pre-attn",
+    "conv feeds attention"
+  ],
+  "evidence": [
+    "CURRENT_STATE.md 'Primary-source research override 2026-09-23 15:26 UTC': commit 7518d91e introduced the Q/K/V snapshot before local_conv for a rejected MUDD experiment; the trained local conv does not feed same-block default attention; prior GPU and Trn2 positive evidence through related paths; Canon-A placement arXiv:2512.17351",
+    "research/agentic/PRIMARY_SOURCE_RESEARCH_MAP_2026-09-23.md (ranked queue naming this wiring repair as the strongest next architecture lead)",
+    "train.py flags at 9a4caa7b: --local-conv/--no-local-conv, --train-local-conv, --local-conv-kernel, --nki-local-conv exist, so a trained local conv is a live default component; proposal-verifier finding 2026-09-23: Block.forward normalizes residual snapshots norm(q_in)/norm(k_in) before projection (the snapshot site this change moves)",
+    "DECISION_LOG.md: no row tests the conv->attention ordering; the only local-conv row is 20260922-nki-local-conv-only-default-shape (kernel swap, DISCARD smoke 1.167854 vs 1.165604), which does not touch wiring",
+    "Ledger: pinned controls 1.005734/2071 (trn21) and 1.005967/2076 (trn22); recent zero-parameter-free architecture adds (unet-skip +0.0027, attn-scale +0.0040) regressed, calibrating the interval to include regression",
+    "train.py lines 621-650: VE/n-gram VE mix into the attention V stream is strictly causal and downstream of the snapshot, so reordering the snapshot keeps causality exact (conv is causal by construction; causality_check must stay 0.0)"
+  ],
+  "expected_effect": "Lower val_bpb at matched steps: predicted -0.002 BPB (candidate minus control) with step count within 2% of 2071.",
+  "files_allowed": [
+    "train.py"
+  ],
+  "flags": [],
+  "hypothesis": "Source-history audit (CURRENT_STATE.md, primary-source override 2026-09-23): commit 7518d91e moved the residual snapshot that feeds Q/K/V (q_in/k_in/v_in, then norm(q_in)/norm(k_in)/norm(v_in) in Block.forward) to BEFORE the trained local causal convolution is added, for a MUDD experiment that was later rejected. The ordering survived, so in the pinned default config the local conv output reaches only the MLP and later blocks, never the same block's attention, contrary to its comments and to the earlier pre-attention wiring that carried GPU/Trn2 positive evidence (and to the Canon-A placement of arXiv:2512.17351). Restoring the snapshot to AFTER the conv update lets each attention layer read locally-mixed (token t-k..t) queries/keys/values with zero new parameters and one extra data dependency, which should improve per-step loss at unchanged step count.",
+  "implementation_plan": "All edits confined to train.py on branch autoloop/20260923-local-conv-feeds-same-block-attention from 9a4caa7b. STEP 1 (static inspection only, report as notes in the implementation summary; no execution, no artifacts): (a) locate Block.forward and record, for the DEFAULT serial path (parallel_block=False, mlp_sandwich=False), the exact statements that (i) assign the residual snapshots q_in/k_in/v_in (or the equivalent names feeding norm(q_in)/norm(k_in)/norm(v_in) into the attention module) and (ii) apply the local conv and add its output to the residual x (whether via a torch conv module or the --nki-local-conv kernel; the kernel choice is irrelevant to this edit); (b) confirm that at the pinned defaults the local conv is active and trained (USE_LOCAL_CONV / --local-conv default and --train-local-conv default) and that the conv update currently occurs AFTER the snapshots on the default path; if the conv already precedes the snapshots, or the conv is off by default, or the conv output is not added to the residual before the attention call, STOP and report -- do not invent an alternative wiring; (c) locate the boolean-toggle pattern of USE_CAUTIOUS_WD (module constant, NEURON_COMPETITION_R1_* env override, argparse --cautious-wd/--no-cautious-wd pair) and the ARCH_TOGGLE_NAMES list plus the load_for_eval restore path used by NGRAM_VE_TRIGRAM, noting how a missing key is handled. STEP 2 (edit): add module-level USE_LOCAL_CONV_PRE_ATTN = os.environ.get('NEURON_COMPETITION_R1_LOCAL_CONV_PRE_ATTN', '1') != '0' next to the other architecture toggles with a comment citing 7518d91e; add the --local-conv-pre-attn/--no-local-conv-pre-attn argparse pair mirroring --cautious-wd and wire it to the global exactly as that pattern does; append 'USE_LOCAL_CONV_PRE_ATTN' to ARCH_TOGGLE_NAMES so it is saved in the checkpoint and restored by load_for_eval, ensuring a checkpoint LACKING the key restores False (current ordering) rather than the new default. STEP 3 (the single causal edit): in Block.forward's default serial path, wrap the ordering with `if USE_LOCAL_CONV_PRE_ATTN and <this block has an active local conv>:` apply the existing local-conv residual update statement(s) first (moved verbatim, not rewritten), then take the q_in/k_in/v_in snapshots from the updated x, and skip the original later conv-update statement so the conv is applied exactly once; `else:` keep the existing statement order byte-for-byte. Do not modify the conv module, the norm calls, the attention module, qk-shift, VE/n-gram VE mixing, the MLP call, or the parallel_block / mlp_sandwich paths (leave their ordering unchanged and note it). Add no parameters, no new tensors, no dtype casts; setup_optimizer is untouched. STEP 4 (deterministic review): python -m py_compile train.py; git diff must show only the toggle definition, argparse pair, ARCH_TOGGLE_NAMES entry, and the Block.forward reordering; confirm by reading that with the toggle False the forward statement order is identical to 9a4caa7b, and that with it True each block applies the conv exactly once and every downstream consumer reads the post-conv residual. Runtime checks (causality 0.0, step rate, checkpoint eval agreement) are smoke abort conditions, not pre-implementation requirements.",
+  "mechanism_class": "per_step_quality",
+  "predicted_bpb_delta": -0.002,
+  "predicted_bpb_interval": [
+    -0.006,
+    0.003
+  ],
+  "proposal_id": "20260923-local-conv-feeds-same-block-attention",
+  "selection_rationale": "The prompt ranks source-level wiring audits as the first idea stream, and the repository's own reconciled research map identifies exactly one such audit finding: the local conv's pre-attention wiring was silently lost in 7518d91e. Every remaining flag on the shortlist either has an already-consumed proposal id (status unknown, likely closed) or belongs to an axis that has produced only nulls/regressions at this commit. The wiring repair adds no parameters (avoiding the setup_optimizer routing defect that sank the value-residual proposal), adds no ops (throughput term ~0), keeps causality exact, is bit-identical to baseline when disabled, and directly tests a falsifiable causal claim in one smoke + one full run. Expected value per host-hour is therefore highest even after calibrating for the recent run of architecture regressions.",
+  "single_causal_change": "One wiring change confined to train.py: new module-level boolean toggle USE_LOCAL_CONV_PRE_ATTN (default True on the candidate branch; env NEURON_COMPETITION_R1_LOCAL_CONV_PRE_ATTN='0' disables; CLI --local-conv-pre-attn/--no-local-conv-pre-attn following the existing boolean-toggle pattern of --cautious-wd; appended to ARCH_TOGGLE_NAMES so the checkpoint persists it and load_for_eval rebuilds the identical graph, with a MISSING key restoring to False i.e. the current ordering). When True, in the DEFAULT serial Block.forward path (parallel_block=False, mlp_sandwich=False) of every block that owns an active local conv, the local-conv residual update is applied FIRST and the q_in/k_in/v_in snapshots are taken from the conv-updated residual, so norm(q_in)/norm(k_in)/norm(v_in), the Q/K/V projections, rope_norm, qk-shift, VE/n-gram VE mixing and the attention backend all see the conv-augmented stream. Nothing else moves: same conv module and kernel (torch or --nki-local-conv), same MLP input, same residual adds, no new tensor/parameter/op, no optimizer change, no precision or kernel flag. With the toggle False the forward is byte-for-byte the pinned 9a4caa7b ordering. Launch shape identical to the pinned controls (NEURON_LOGICAL_NC_CONFIG=2, torchrun --nproc_per_node=4, --num-steps 5000 --max-train-seconds 1800 --seed 42, NEURON_CC_FLAGS='--optlevel=1').",
+  "smoke_gate": {
+    "min_candidate_steps": 328,
+    "min_step_rate_ratio": 0.98
+  },
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}
