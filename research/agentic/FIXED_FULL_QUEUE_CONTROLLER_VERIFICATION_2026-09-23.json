@@ -1,0 +1,97 @@
+{
+  "schema": "fixed-full-queue-controller-verification-v1",
+  "verdict": "PASS",
+  "verified_by_role": "verifier",
+  "reviewed_controller_commit": "42cbef10c1c06fa84c69691ea3129ccd4db0d10e",
+  "reviewed_parent_commit": "5d6403eafd6aacab6a9a629de8cf1a44aa99fdec",
+  "queue_plan_path": "research/agentic/frontier-full-only-queue.json",
+  "queue_plan_sha256": "e9048d2dd378026c8fdf1b974bd670fc87d2a05cae2182b8c60e28175a36098d",
+  "reviewed_scope": [
+    "research/agentic/autoloop/archive.py",
+    "research/agentic/autoloop/controller.py",
+    "research/agentic/autoloop/remote.py",
+    "research/agentic/autoloop/remote_launcher.py",
+    "research/agentic/tests/test_fixed_full_queue.py"
+  ],
+  "queue_entries": [
+    {
+      "proposal_id": "20260923-dense6x1024-lean-control-c1024",
+      "commit": "4ed89f36c437ab75b0bf63cea80a3871f547de34",
+      "train_sha256": "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344",
+      "proposal_sha256": "3ce422161b4b6df30ea68bf2b064e0e35792e58f34157eaa453e9d523dba8593"
+    },
+    {
+      "proposal_id": "20260923-dense6x1024-matrix-lr-0025",
+      "commit": "1fe54026f16f0f4af79da30b3106a9873a11a24d",
+      "train_sha256": "abdc8372808489a2bdf94885922aa12e7173b5a1dc4d91cab1bd874d2573add8",
+      "proposal_sha256": "6c138515134a4ee329408197945ebbd31f65ca3c2629766e88370799836c2d46"
+    },
+    {
+      "proposal_id": "20260923-dense6x1024-matrix-lr-0015",
+      "commit": "f84dfad3538f5b5c04dc50a9ec52ba62574493c8",
+      "train_sha256": "78643cfec5af607f9d2dccc33698c5b3ff9a48ec1fa0a872547bf11b9fbdeb19",
+      "proposal_sha256": "3e2de21a1159538c7e46f1dbfcf36273c63d3ab72b95295855852709d60d0be7"
+    },
+    {
+      "proposal_id": "20260923-dense6x1024-warmdown-060",
+      "commit": "3ab583509e553fd3ed4b1b42dfe49e8b9bc2a23d",
+      "train_sha256": "983754ec3453fea07f7fb66dc44614d3e38d3b80e8a5160c1e570110bc8c869d",
+      "proposal_sha256": "d335cd0bed956e4cb14edcaec5c7348421dd0f26a6f39e0201a6f38250338d83"
+    },
+    {
+      "proposal_id": "20260923-dense6x1024-warmdown-085",
+      "commit": "69ff20a007cd2f841ccd99a7429808d2d4513d49",
+      "train_sha256": "4eee680d95130f054ebd2191fd544ce6abc93e32f9563340e91c067907b1c183",
+      "proposal_sha256": "40ae513da1dc9dda1ab83e8d9041c04dbcb549caadc61aaba744af464c4a3baa"
+    },
+    {
+      "proposal_id": "20260923-dense6x1024-total-batch-262144",
+      "commit": "e488dca2d29ce306d0c71d2ce3e0ebe5133777c6",
+      "train_sha256": "b0de2e77b02bea775f4cef8c39a88b44bee9a671d39fae9b0ee64c374c158cc2",
+      "proposal_sha256": "22467eaf49ebcd2e1b7e27a012f0b41500a4c0f2d4438b9127e9aa176327abf7"
+    },
+    {
+      "proposal_id": "20260923-dense6x1024-max-train-seconds-1080",
+      "commit": "4c6ec085b7161c96bddaa1d80f516d3c7b3d6c99",
+      "train_sha256": "b2a2b8fa5d3b41723ae89fddb7f929a902f161bb2bd41f3f47144b48f499eb18",
+      "proposal_sha256": "b48f3eef9d750408663904b70912ff1018e72900ad971afb5f37f9cb75e1cf84"
+    }
+  ],
+  "checks": {
+    "implementation_diff_scope_exact": true,
+    "prepare_queue_proposals_candidates_unchanged": true,
+    "all_seven_parent_commit_train_hash_and_one_factor_contracts": true,
+    "timeout_keeps_launched_stage_lock_and_host_busy_until_group_quiescence": true,
+    "distinct_quiescence_gated_failure_archive": true,
+    "lifecycle_exceptions_persist_evidence_and_open_breaker": true,
+    "archive_verified_before_checkpoint_or_cache_deletion": true,
+    "durable_remote_verified_intent_before_each_deletion": true,
+    "checkpoint_and_cache_reconciliation_idempotent": true,
+    "ten_injected_crash_boundaries_restart_with_single_deletion": true,
+    "detached_process_group_local_integration": true
+  },
+  "tests": [
+    {
+      "command": "/home/poojith-devan/Desktop/Trainium/.agent-venv/bin/python -m unittest discover -s research/agentic/tests -v",
+      "result": "PASS: 71 tests"
+    },
+    {
+      "command": "python -m py_compile research/agentic/autoloop/archive.py research/agentic/autoloop/controller.py research/agentic/autoloop/remote.py research/agentic/autoloop/remote_launcher.py research/agentic/tests/test_fixed_full_queue.py",
+      "result": "PASS"
+    },
+    {
+      "command": "independent local remote_launcher process-group lifecycle fixture",
+      "result": "PASS: descendant remained visible after direct runner completion and then reached quiescence"
+    }
+  ],
+  "activation": {
+    "performed": false,
+    "hardware_launched": false,
+    "remote_contacted": false,
+    "required_before_activation": [
+      "push this verifier receipt commit without rewriting history",
+      "perform the existing exact Operator breaker-clearance state transition",
+      "confirm both assigned hosts are clean and idle in the same controller cycle"
+    ]
+  }
+}

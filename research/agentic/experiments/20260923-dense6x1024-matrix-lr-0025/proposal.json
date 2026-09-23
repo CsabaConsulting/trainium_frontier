@@ -1,0 +1,103 @@
+{
+  "proposal_id": "20260923-dense6x1024-matrix-lr-0025",
+  "status": "human_approved_pending_independent_verification",
+  "owner_role": "researcher",
+  "hypothesis": "Raising only the dense6x1024 Muon matrix learning rate from 0.020 to 0.025 lowers fixed-budget public BPB at context 1024.",
+  "single_causal_change": "Change only MATRIX_LR = 0.02 to MATRIX_LR = 0.025 in the frozen lean-review train.py.",
+  "flags": [],
+  "expected_effect": "Lower public_val_bpb at the pinned fresh context-1024 evaluation population.",
+  "change_type": "code",
+  "implementation_plan": "Use the precreated isolated child commit changing only the unique MATRIX_LR constant from 0.02 to 0.025 in train.py.",
+  "files_allowed": ["train.py"],
+  "smoke_gate": {},
+  "mechanism_class": "schedule",
+  "predicted_bpb_delta": -0.001,
+  "predicted_bpb_interval": [
+    -0.004,
+    0.004
+  ],
+  "candidate_shortlist": [
+    {
+      "idea": "MATRIX_LR 0.025",
+      "mechanism_class": "schedule",
+      "predicted_bpb_delta": -0.001,
+      "why_ranked": "First human-authorized one-factor arm after the exact frontier control."
+    },
+    {
+      "idea": "MATRIX_LR 0.015",
+      "mechanism_class": "schedule",
+      "predicted_bpb_delta": 0.0,
+      "why_ranked": "Ordered second learning-rate point if the first cohort archives cleanly."
+    },
+    {
+      "idea": "WARMDOWN_RATIO 0.60",
+      "mechanism_class": "schedule",
+      "predicted_bpb_delta": 0.0,
+      "why_ranked": "Human-authorized later one-factor schedule point."
+    },
+    {
+      "idea": "TOTAL_BATCH_SIZE 262144",
+      "mechanism_class": "data_regime",
+      "predicted_bpb_delta": 0.0,
+      "why_ranked": "Nearest changed legal batch to 196608 for seq1024, pack32, world4."
+    }
+  ],
+  "selection_rationale": "The human explicitly placed MATRIX_LR 0.025 first in the full-only queue.",
+  "evidence": [
+    "Frozen control train.py SHA256 9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344",
+    "Commit 1fe54026f16f0f4af79da30b3106a9873a11a24d differs from corrected control only at MATRIX_LR",
+    "human authorization in active conversation, 2026-09-23"
+  ],
+  "duplicate_search_terms": [
+    "matrix lr 0.025",
+    "MATRIX_LR",
+    "dense1024 learning rate"
+  ],
+  "control": {
+    "git_commit": "4ed89f36c437ab75b0bf63cea80a3871f547de34",
+    "run_label": "al-20260923-dense6x1024-lean-control-c1024-full-r1",
+    "public_val_bpb": null,
+    "steps": null,
+    "box_constraint": "Control runs on trn22 and candidate on trn21 by explicit authorization; compare public BPB only, never host throughput."
+  },
+  "candidate": {
+    "branch": "autoloop/20260923-dense6x1024-matrix-lr-0025",
+    "files_allowed": [
+      "train.py"
+    ],
+    "expected_diff": "Exactly one constant line: MATRIX_LR = 0.02 becomes MATRIX_LR = 0.025.",
+    "run_label": "al-20260923-dense6x1024-matrix-lr-0025-full-r1",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public"
+  },
+  "gates": {
+    "rules_review": true,
+    "diff_review": false,
+    "cpu_or_static_checks": false,
+    "numerical_equivalence": false,
+    "causality": false,
+    "smoke_run": false,
+    "human_run_approval": true
+  },
+  "success_criteria": {
+    "quality": "Candidate public_val_bpb over exactly 20,971,520 tokens / 83,462,186 bytes is lower than the trn22 exact control; public BPB is the only selection metric.",
+    "throughput": "No keep/discard or rate claim may use cross-host steps or throughput.",
+    "correctness": "One-constant diff, exact argv/env, fresh caches, clean full-chip run, finite loss, within budget, checkpoint present, cold eval complete, and all evidence archived."
+  },
+  "abort_conditions": [
+    "Either first-cohort proposal, commit, independent verification, or same-cycle preflight is incomplete",
+    "Any exact source, one-constant diff, argv, environment, cache, host, budget, checkpoint, evaluation-count, or archive gate fails",
+    "Any comparison uses host throughput instead of public BPB"
+  ],
+  "human_approved_by": "human operator in active conversation, 2026-09-23",
+  "verdict": null,
+  "tier_policy": "full_only",
+  "assigned_box": "trn21",
+  "selection_metric": "public_val_bpb",
+  "evaluation": {
+    "mode": "fresh_process_prepare_eval_public",
+    "seq_len": 1024,
+    "max_tokens": 20971520,
+    "expected_num_tokens": 20971520,
+    "expected_num_bytes": 83462186
+  }
+}

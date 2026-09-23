@@ -94,6 +94,64 @@ class Store:
         atomic_write_json(self.proposal_dir(pid) / "proposal.json", proposal)
         self.save()
 
+    def track_existing_proposal(self, proposal_id: str, *, box: str, candidate_commit: str,
+                                comparison_role: str) -> None:
+        """Track a reviewed, already-versioned fixed-queue proposal without rewriting it."""
+        if proposal_id in self.proposals():
+            return
+        proposal_path = self.proposal_dir(proposal_id) / "proposal.json"
+        if proposal_path.is_symlink() or not proposal_path.is_file():
+            raise RuntimeError(f"fixed proposal artifact missing: {proposal_id}")
+        proposal = json.loads(proposal_path.read_text())
+        if proposal.get("proposal_id") != proposal_id:
+            raise RuntimeError(f"fixed proposal identity mismatch: {proposal_id}")
+        self.proposals()[proposal_id] = {
+            "stage": "verified", "tiers": {}, "verdict": None, "box": box,
+            "candidate_commit": candidate_commit, "comparison_role": comparison_role,
+            "fixed_queue": True, "updated_at": utc_now(),
+        }
+        self.save()
+
+    def activate_fixed_plan(self, *, plan_id: str, plan_sha256: str,
+                            parked_proposals: list[dict]) -> None:
+        """Losslessly migrate the runtime to the fixed queue and durably park old work.
+
+        Existing breakers, usage, run counts, histories, and unrelated proposal records are kept.
+        A parked proposal can never become launchable merely because a breaker is later cleared.
+        """
+        requested = {"plan_id": plan_id, "plan_sha256": plan_sha256, "mode": "fixed_full_only"}
+        active = self.state.get("active_plan")
+        if active is not None and active != requested:
+            raise RuntimeError("runtime is already bound to a different fixed plan")
+        for parked in parked_proposals:
+            pid = parked["proposal_id"]
+            expected = parked["expected_previous_stage"]
+            rec = self.proposals().get(pid)
+            if rec is None:
+                rec = {
+                    "stage": expected, "tiers": {}, "verdict": None, "box": None,
+                    "candidate_commit": parked["candidate_commit"], "updated_at": utc_now(),
+                    "reconstructed_for_plan_migration": True,
+                }
+                self.proposals()[pid] = rec
+            if rec.get("stage") == "parked":
+                if rec.get("parked_by_plan") != plan_id or rec.get("parked_from") != expected:
+                    raise RuntimeError(f"parked record for {pid} does not match fixed plan")
+                continue
+            if rec.get("stage") != expected:
+                raise RuntimeError(
+                    f"cannot park {pid}: stage {rec.get('stage')!r} != expected {expected!r}"
+                )
+            if rec.get("candidate_commit") not in (None, parked["candidate_commit"]):
+                raise RuntimeError(f"cannot park {pid}: candidate commit changed")
+            rec.update({
+                "stage": "parked", "parked_from": expected, "parked_by_plan": plan_id,
+                "launch_authorized": False, "candidate_commit": parked["candidate_commit"],
+                "updated_at": utc_now(),
+            })
+        self.state["active_plan"] = requested
+        self.save()
+
     def set_stage(self, proposal_id: str, stage: str, **extra) -> None:
         rec = self.proposals()[proposal_id]
         rec["stage"] = stage
@@ -175,6 +233,25 @@ class Store:
 
     def breaker(self) -> dict | None:
         return self.state.get("breaker")
+
+    def clear_breaker_for_fixed_plan(self, *, receipt_commit: str, receipt_path: str,
+                                     receipt_sha256: str, cleared_by_role: str) -> None:
+        """Explicit Operator recovery transition; never called automatically by the controller."""
+        if self.breaker() is None:
+            raise RuntimeError("fixed-plan breaker clearance requires an existing breaker")
+        expected = (
+            C.BREAKER_CLEANUP_RECEIPT_COMMIT, C.BREAKER_CLEANUP_RECEIPT_PATH,
+            C.BREAKER_CLEANUP_RECEIPT_SHA256, "operator",
+        )
+        if (receipt_commit, receipt_path, receipt_sha256, cleared_by_role) != expected:
+            raise RuntimeError("fixed-plan breaker clearance receipt differs from pinned evidence")
+        self.state["fixed_breaker_clearance"] = {
+            "receipt_commit": receipt_commit, "receipt_path": receipt_path,
+            "receipt_sha256": receipt_sha256, "cleared_by_role": cleared_by_role,
+            "cleared_at": utc_now(), "previous_breaker": self.state["breaker"],
+        }
+        self.state["breaker"] = None
+        self.save()
 
     def box_failure(self, box: str) -> int:
         n = self.state["box_failures"].get(box, 0) + 1

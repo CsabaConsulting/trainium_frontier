@@ -1,0 +1,241 @@
+{
+  "schema_version": 1,
+  "plan_id": "20260923-dense6x1024-lean-public-bpb-c1024",
+  "mode": "fixed_full_only",
+  "authorization": "human operator in active conversation, 2026-09-23",
+  "authoritative_control": {
+    "commit": "4ed89f36c437ab75b0bf63cea80a3871f547de34",
+    "train_sha256": "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344",
+    "source_path": "external reviewed submissions/dense6x1024_lean_review/train.py bytes imported as root train.py",
+    "source_commit": "73a7db786e63e683003525473267fa564ed744df"
+  },
+  "exact_train_argv": [
+    "torchrun",
+    "--standalone",
+    "--nproc_per_node=4",
+    "train.py",
+    "--n-embd",
+    "1024",
+    "--no-ngram-ve",
+    "--no-qk-shift",
+    "--compile-sdpa-direct",
+    "--nki-local-conv",
+    "--bf16-norm-output",
+    "--pack-factor",
+    "32",
+    "--clip-after-reduce",
+    "--seq-len",
+    "1024",
+    "--no-eval-public"
+  ],
+  "evaluation": {
+    "selection_metric": "public_val_bpb",
+    "fresh_process": true,
+    "command_suffix": [
+      "prepare.py",
+      "eval-public",
+      "--train-py",
+      "train.py",
+      "--checkpoint",
+      "out/final.pt",
+      "--seq-len",
+      "1024",
+      "--eval-tokens",
+      "20971520"
+    ],
+    "seq_len": 1024,
+    "max_tokens": 20971520,
+    "expected_num_tokens": 20971520,
+    "expected_num_bytes": 83462186,
+    "short_in_process_eval_allowed": false
+  },
+  "parked_proposals": [
+    {
+      "proposal_id": "20260923-local-conv-pre-attn-serial-only-r3",
+      "receipt": "research/agentic/experiments/20260923-local-conv-pre-attn-serial-only-r3/parked.json",
+      "expected_previous_stage": "verified",
+      "candidate_commit": "79b0cecb2f655441f4e0898f6140308eea6072f0"
+    }
+  ],
+  "breaker_recovery": {
+    "automatic_clear_allowed": false,
+    "operator_receipt_commit": "563f83ec3f5b68c8bc609d11956bdd2072720aee",
+    "operator_receipt_path": "research/agentic/operations/TRN21_DETERMINISTIC_CLEANUP_2026-09-23_R8.md",
+    "operator_receipt_sha256": "ac801b82ffd711a9efa269e824cdc53c8a4e0fe2c1037dd3b3ecf1978f5df5e1",
+    "pushed_branch": "agent/control-plane-20260921",
+    "requires_explicit_operator_state_transition": true
+  },
+  "launch_policy": {
+    "tiers": [
+      "full"
+    ],
+    "general_research_disabled": true,
+    "smoke_disabled": true,
+    "first_cohort_requires_all_verified": true,
+    "first_cohort_requires_both_preflight_clean": true,
+    "first_cohort_launch": "concurrent_across_assigned_hosts",
+    "cross_host_throughput_comparison_allowed": false,
+    "later_entries_strictly_ordered": true
+  },
+  "first_cohort": [
+    "20260923-dense6x1024-lean-control-c1024",
+    "20260923-dense6x1024-matrix-lr-0025"
+  ],
+  "queue": [
+    {
+      "position": 0,
+      "proposal_id": "20260923-dense6x1024-lean-control-c1024",
+      "role": "control",
+      "box": "trn22",
+      "proposal_path": "research/agentic/experiments/20260923-dense6x1024-lean-control-c1024/proposal.json",
+      "verification_path": "research/agentic/experiments/20260923-dense6x1024-lean-control-c1024/verification.json",
+      "commit": "4ed89f36c437ab75b0bf63cea80a3871f547de34",
+      "parent_commit": "39e38e9fc3a9107fe933414286852d98e81c2723",
+      "train_sha256": "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344",
+      "constant_change": null,
+      "state": "pending_independent_verification"
+    },
+    {
+      "position": 1,
+      "proposal_id": "20260923-dense6x1024-matrix-lr-0025",
+      "role": "candidate",
+      "box": "trn21",
+      "proposal_path": "research/agentic/experiments/20260923-dense6x1024-matrix-lr-0025/proposal.json",
+      "verification_path": "research/agentic/experiments/20260923-dense6x1024-matrix-lr-0025/verification.json",
+      "commit": "1fe54026f16f0f4af79da30b3106a9873a11a24d",
+      "parent_commit": "4ed89f36c437ab75b0bf63cea80a3871f547de34",
+      "train_sha256": "abdc8372808489a2bdf94885922aa12e7173b5a1dc4d91cab1bd874d2573add8",
+      "constant_change": {
+        "name": "MATRIX_LR",
+        "from": 0.02,
+        "to": 0.025
+      },
+      "state": "pending_independent_verification"
+    },
+    {
+      "position": 2,
+      "proposal_id": "20260923-dense6x1024-matrix-lr-0015",
+      "role": "candidate",
+      "box": "trn21",
+      "proposal_path": "research/agentic/experiments/20260923-dense6x1024-matrix-lr-0015/proposal.json",
+      "verification_path": "research/agentic/experiments/20260923-dense6x1024-matrix-lr-0015/verification.json",
+      "commit": "f84dfad3538f5b5c04dc50a9ec52ba62574493c8",
+      "parent_commit": "4ed89f36c437ab75b0bf63cea80a3871f547de34",
+      "train_sha256": "78643cfec5af607f9d2dccc33698c5b3ff9a48ec1fa0a872547bf11b9fbdeb19",
+      "constant_change": {
+        "name": "MATRIX_LR",
+        "from": 0.02,
+        "to": 0.015
+      },
+      "state": "pending_independent_verification"
+    },
+    {
+      "position": 3,
+      "proposal_id": "20260923-dense6x1024-warmdown-060",
+      "role": "candidate",
+      "box": "trn21",
+      "proposal_path": "research/agentic/experiments/20260923-dense6x1024-warmdown-060/proposal.json",
+      "verification_path": "research/agentic/experiments/20260923-dense6x1024-warmdown-060/verification.json",
+      "commit": "3ab583509e553fd3ed4b1b42dfe49e8b9bc2a23d",
+      "parent_commit": "4ed89f36c437ab75b0bf63cea80a3871f547de34",
+      "train_sha256": "983754ec3453fea07f7fb66dc44614d3e38d3b80e8a5160c1e570110bc8c869d",
+      "constant_change": {
+        "name": "WARMDOWN_RATIO",
+        "from": 0.75,
+        "to": 0.6
+      },
+      "state": "pending_independent_verification"
+    },
+    {
+      "position": 4,
+      "proposal_id": "20260923-dense6x1024-warmdown-085",
+      "role": "candidate",
+      "box": "trn21",
+      "proposal_path": "research/agentic/experiments/20260923-dense6x1024-warmdown-085/proposal.json",
+      "verification_path": "research/agentic/experiments/20260923-dense6x1024-warmdown-085/verification.json",
+      "commit": "69ff20a007cd2f841ccd99a7429808d2d4513d49",
+      "parent_commit": "4ed89f36c437ab75b0bf63cea80a3871f547de34",
+      "train_sha256": "4eee680d95130f054ebd2191fd544ce6abc93e32f9563340e91c067907b1c183",
+      "constant_change": {
+        "name": "WARMDOWN_RATIO",
+        "from": 0.75,
+        "to": 0.85
+      },
+      "state": "pending_independent_verification"
+    },
+    {
+      "position": 5,
+      "proposal_id": "20260923-dense6x1024-total-batch-262144",
+      "role": "candidate",
+      "box": "trn21",
+      "proposal_path": "research/agentic/experiments/20260923-dense6x1024-total-batch-262144/proposal.json",
+      "verification_path": "research/agentic/experiments/20260923-dense6x1024-total-batch-262144/verification.json",
+      "commit": "e488dca2d29ce306d0c71d2ce3e0ebe5133777c6",
+      "parent_commit": "4ed89f36c437ab75b0bf63cea80a3871f547de34",
+      "train_sha256": "b0de2e77b02bea775f4cef8c39a88b44bee9a671d39fae9b0ee64c374c158cc2",
+      "constant_change": {
+        "name": "TOTAL_BATCH_SIZE",
+        "from": 131072,
+        "requested_nearest_to": 196608,
+        "to": 262144,
+        "legal_multiple": 131072
+      },
+      "state": "pending_independent_verification"
+    },
+    {
+      "position": 6,
+      "proposal_id": "20260923-dense6x1024-max-train-seconds-1080",
+      "role": "candidate",
+      "box": "trn21",
+      "proposal_path": "research/agentic/experiments/20260923-dense6x1024-max-train-seconds-1080/proposal.json",
+      "verification_path": "research/agentic/experiments/20260923-dense6x1024-max-train-seconds-1080/verification.json",
+      "commit": "4c6ec085b7161c96bddaa1d80f516d3c7b3d6c99",
+      "parent_commit": "4ed89f36c437ab75b0bf63cea80a3871f547de34",
+      "train_sha256": "b2a2b8fa5d3b41723ae89fddb7f929a902f161bb2bd41f3f47144b48f499eb18",
+      "constant_change": {
+        "name": "MAX_TRAIN_SECONDS",
+        "from": 1800,
+        "requested_target": "approximately 1080-second one-epoch diagnostic",
+        "to": 1080
+      },
+      "state": "pending_independent_verification"
+    }
+  ],
+  "checkpoint_pruning": {
+    "automatic": true,
+    "only_after": [
+      "fresh_eval_complete_with_exact_context_token_and_byte_counts",
+      "result_json_archived",
+      "verdict_json_and_markdown_archived",
+      "complete_train_and_eval_logs_archived",
+      "archive_commit_verified_locally",
+      "archive_commit_verified_on_configured_remote"
+    ],
+    "remote_checkpoint_sha256_must_equal_collected_sha256": true,
+    "no_prune_when_git_push_disabled": true
+  },
+  "compile_cache_cleanup": {
+    "scope": "exact_unique_label_owned_train_and_eval_cache_paths_only",
+    "only_after_archive_commit_verified_on_configured_remote": true,
+    "reject_symlink_nonregular_or_live_process_reference": true,
+    "immutable_cleanup_receipt_must_be_retrieved_hashed_committed_pushed_and_verified": true
+  },
+  "source_loss_reference": {
+    "git_object": "bcd317f1c86bf4855659b7dc23e5f88492048a51",
+    "path": "research/run-logs/fs-w98-dense1024-context1024-pack32-owned-ce-1800-r1.log",
+    "sha256": "fe7279c4a795ce58f98e1907dd48692f08110aefe1a8ead669173cabcedf16fd",
+    "available_points_through_step_50": [
+      {"step": 0, "loss": 9.0112},
+      {"step": 1, "loss": 8.7816},
+      {"step": 2, "loss": 8.3625},
+      {"step": 3, "loss": 8.2986},
+      {"step": 4, "loss": 8.0851},
+      {"step": 10, "loss": 6.8196},
+      {"step": 20, "loss": 5.9603},
+      {"step": 30, "loss": 5.5119},
+      {"step": 40, "loss": 5.2152},
+      {"step": 50, "loss": 4.8776}
+    ],
+    "limitation": "Only steps 0-4 and multiples of ten are logged; fifty consecutive losses do not exist without changing frozen train.py."
+  }
+}

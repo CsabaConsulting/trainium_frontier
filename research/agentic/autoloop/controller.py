@@ -16,6 +16,8 @@ two consecutive infrastructure failures on a box, missing artifacts, state schem
 from __future__ import annotations
 
 import json
+import hashlib
+import math
 import re
 import time
 from dataclasses import dataclass, field
@@ -30,6 +32,7 @@ from .ledger import Ledger
 from .manifest import ManifestError, Proposal, RunManifest, build_manifest, known_train_flags
 from .models import ModelClient, ModelError, ModelReply, parse_json_block
 from .remote import LocalGit, RemoteError, RemoteOperator, StagedRun, LaunchReceipt
+from .queue_plan import FixedQueuePlan, QueueEntry, QueuePlanError
 from .state import Store, utc_now
 from .verifier import closed_direction_terms, load_context, run_verifier
 
@@ -136,6 +139,10 @@ class Controller:
         self._now = now or (lambda: datetime.now(timezone.utc))
         self._train_py_text = train_py_text
         self._cycle_llm_calls = 0
+        self.fixed_plan = (
+            FixedQueuePlan.load(C.QUEUE_PLAN_FILE, C.ROOT)
+            if cfg.plan_mode == "fixed_full_only" else None
+        )
 
     # ---- helpers ----------------------------------------------------------------------------
 
@@ -213,6 +220,14 @@ class Controller:
         self._cycle_llm_calls = 0
         reason = self.breakers()
         if reason:
+            if self.fixed_plan is not None and any(
+                    rec.get("stage", "").startswith("launched:")
+                    for rec in self.store.proposals().values()):
+                report.add("fixed queue: breaker open; observing already-launched work only")
+                try:
+                    self._reconcile(report)
+                except Exception as exc:
+                    report.add(f"fixed observation failed: {type(exc).__name__}: {exc}")
             report.stopped_reason = reason
             return report
         self.store.state["cycles"] += 1
@@ -220,6 +235,12 @@ class Controller:
         self.store.save()
 
         try:
+            if self.fixed_plan is not None:
+                self._cycle_fixed(report)
+                self.store.state["last_cycle"]["finished_at"] = self.now_iso()
+                self.store.state["last_cycle"]["actions"] = report.actions
+                self.store.save()
+                return report
             busy_boxes = self._reconcile(report)
             if self.breakers():
                 report.stopped_reason = self.breakers()
@@ -233,7 +254,7 @@ class Controller:
                     continue
                 if self._advance_box(box, report):
                     break  # one launch per cycle
-        except (RemoteError, ManifestError, ArchiveError) as exc:
+        except (RemoteError, ManifestError, ArchiveError, QueuePlanError, RuntimeError) as exc:
             self.store.open_breaker(type(exc).__name__, detail=str(exc)[:1000])
             report.stopped_reason = f"{type(exc).__name__}: {exc}"
         self.store.state["last_cycle"]["finished_at"] = self.now_iso()
@@ -242,12 +263,162 @@ class Controller:
         report.llm_calls = self._cycle_llm_calls
         return report
 
+    # ---- human-authorized fixed full-only queue ---------------------------------------------
+
+    def _validate_fixed_entry(self, entry: QueueEntry) -> None:
+        if not self.git.commit_exists(entry.commit):
+            raise QueuePlanError(f"fixed commit does not exist: {entry.commit}")
+        candidate = self.git.file_at_commit(entry.commit, "train.py")
+        if hashlib.sha256(candidate).hexdigest() != entry.train_sha256:
+            raise QueuePlanError(f"fixed train hash mismatch: {entry.proposal_id}")
+        if self.git.parent_of(entry.commit) != entry.parent_commit:
+            raise QueuePlanError(f"fixed commit parent mismatch: {entry.proposal_id}")
+        expected_paths = ["research/run_experiment.py"] if entry.position == 0 else ["train.py"]
+        if self.git.changed_paths(entry.parent_commit, entry.commit) != expected_paths:
+            raise QueuePlanError(f"fixed commit changed unauthorized paths: {entry.proposal_id}")
+        protected = {
+            "research/run_experiment.py": C.AUTHORITATIVE_RUNNER_SHA256,
+            "prepare.py": C.AUTHORITATIVE_PREPARE_SHA256,
+        }
+        for path, expected_sha in protected.items():
+            actual_sha = hashlib.sha256(self.git.file_at_commit(entry.commit, path)).hexdigest()
+            if actual_sha != expected_sha:
+                raise QueuePlanError(f"fixed protected source mismatch: {entry.proposal_id}:{path}")
+        control = self.git.file_at_commit(C.AUTHORITATIVE_COMMIT, "train.py")
+        if entry.position == 0:
+            if candidate != control:
+                raise QueuePlanError("authoritative control train bytes changed")
+            return
+        change = entry.constant_change or {}
+        before = f"{change['name']} = {change['from']}".encode()
+        after = f"{change['name']} = {change['to']}".encode()
+        if control.count(before) != 1 or candidate != control.replace(before, after, 1):
+            raise QueuePlanError(f"{entry.proposal_id} is not the declared one-constant diff")
+
+    def _cycle_fixed(self, report: CycleReport) -> None:
+        assert self.fixed_plan is not None
+        parked = self.fixed_plan.raw.get("parked_proposals", [])
+        self.store.activate_fixed_plan(
+            plan_id=self.fixed_plan.raw["plan_id"], plan_sha256=self.fixed_plan.sha256,
+            parked_proposals=parked,
+        )
+        clearance = self.store.state.get("fixed_breaker_clearance")
+        expected_clearance = {
+            "receipt_commit": C.BREAKER_CLEANUP_RECEIPT_COMMIT,
+            "receipt_path": C.BREAKER_CLEANUP_RECEIPT_PATH,
+            "receipt_sha256": C.BREAKER_CLEANUP_RECEIPT_SHA256,
+            "cleared_by_role": "operator",
+        }
+        if not isinstance(clearance, dict) or any(clearance.get(k) != v for k, v in expected_clearance.items()):
+            report.add("fixed queue: waiting for explicit Operator breaker-clearance receipt")
+            return
+        receipt_bytes = self.git.file_at_commit(
+            C.BREAKER_CLEANUP_RECEIPT_COMMIT, C.BREAKER_CLEANUP_RECEIPT_PATH
+        )
+        if hashlib.sha256(receipt_bytes).hexdigest() != C.BREAKER_CLEANUP_RECEIPT_SHA256:
+            raise QueuePlanError("pushed trn21 cleanup receipt bytes differ from pinned evidence")
+        for entry in self.fixed_plan.entries:
+            self._validate_fixed_entry(entry)
+        busy = self._reconcile(report)
+        if self.store.breaker():
+            report.add("fixed queue: breaker opened during reconciliation; no launch eligible")
+            return
+        launchable = set(self.fixed_plan.entries[i].proposal_id for i in range(len(self.fixed_plan.entries)))
+        for pid, rec in self.store.proposals().items():
+            if pid not in launchable and rec.get("stage") in {
+                    "proposed", "proposal_verified", "verified", "implemented"}:
+                raise QueuePlanError(f"non-queue proposal remains launchable: {pid}")
+
+        first = self.fixed_plan.entries[:2]
+        first_records = [self.store.proposals().get(entry.proposal_id) for entry in first]
+        if not all(first_records):
+            if not self.fixed_plan.all_verified(first, C.ROOT):
+                report.add("fixed queue: waiting for both independent first-cohort verifications")
+                return
+            for entry in first:
+                self.store.track_existing_proposal(
+                    entry.proposal_id, box=entry.box or "", candidate_commit=entry.commit,
+                    comparison_role=entry.role,
+                )
+        if (all(self.store.proposals()[entry.proposal_id]["stage"] == "verified" for entry in first)
+                and not self.store.state.get("fixed_first_cohort_preflight")):
+            if not self.fixed_plan.all_verified(first, C.ROOT):
+                raise QueuePlanError("first-cohort verification receipts changed before preflight")
+            inventories = {entry.box: self.op.inventory(entry.box) for entry in first}
+            if not all(inv.clean_and_idle for inv in inventories.values()):
+                report.add("fixed queue: both first-cohort preflights must be clean in the same cycle")
+                return
+            self.store.state["fixed_first_cohort_preflight"] = {
+                "at": self.now_iso(), "inventories": {box: inv.to_dict() for box, inv in inventories.items()}
+            }
+            self.store.save()
+            for entry in first:
+                launched = self._stage_and_launch(
+                    entry.proposal_id, "full", entry.box or "", [], report,
+                    execution_mode="exact-dense1024-cold-eval",
+                    comparison_role=entry.role, expected_train_sha256=entry.train_sha256,
+                    control_label_override=(None if entry.role == "control" else
+                                            f"al-{first[0].proposal_id}-full-r1"),
+                )
+                if not launched:
+                    raise QueuePlanError("first-cohort launch failed after paired preflight")
+            return
+        # If a crash occurred between first-cohort launches, the durable paired preflight permits
+        # only the missing member to be resumed; no unrelated work can enter the gap.
+        if self.store.state.get("fixed_first_cohort_preflight"):
+            for entry in first:
+                rec = self.store.proposals()[entry.proposal_id]
+                if rec["stage"] == "verified" and entry.box not in busy:
+                    self._stage_and_launch(
+                        entry.proposal_id, "full", entry.box or "", [], report,
+                        execution_mode="exact-dense1024-cold-eval",
+                        comparison_role=entry.role, expected_train_sha256=entry.train_sha256,
+                        control_label_override=(None if entry.role == "control" else
+                                                f"al-{first[0].proposal_id}-full-r1"),
+                    )
+                    return
+        if any(self.store.proposals()[entry.proposal_id]["stage"] != "closed" for entry in first):
+            report.add("fixed queue: first cohort still active")
+            return
+        # Later arms are strictly serial and require their own independent receipt.
+        for entry in self.fixed_plan.entries[2:]:
+            rec = self.store.proposals().get(entry.proposal_id)
+            if rec is not None:
+                if rec["stage"] != "closed":
+                    report.add(f"fixed queue: {entry.proposal_id} still active")
+                    return
+                continue
+            if self.fixed_plan.verification(entry, C.ROOT) is None:
+                report.add(f"fixed queue: waiting for independent verification of {entry.proposal_id}")
+                return
+            self.store.track_existing_proposal(
+                entry.proposal_id, box=entry.box or "", candidate_commit=entry.commit,
+                comparison_role=entry.role,
+            )
+            self._stage_and_launch(
+                entry.proposal_id, "full", entry.box or "", [], report,
+                execution_mode="exact-dense1024-cold-eval", comparison_role=entry.role,
+                expected_train_sha256=entry.train_sha256,
+                control_label_override=f"al-{first[0].proposal_id}-full-r1",
+            )
+            return
+        report.add("fixed queue: complete")
+
     # ---- reconcile running/collected work -------------------------------------------------
 
     def _reconcile(self, report: CycleReport) -> set[str]:
         busy: set[str] = set()
+        fixed_ids = ({entry.proposal_id for entry in self.fixed_plan.entries}
+                     if self.fixed_plan is not None else None)
         for pid, rec in list(self.store.proposals().items()):
             stage = rec["stage"]
+            if fixed_ids is not None and pid not in fixed_ids:
+                if stage not in {"parked", "closed", "rejected"}:
+                    raise QueuePlanError(f"non-queue runtime work is not inert: {pid} ({stage})")
+                continue
+            if self.store.breaker() and stage.startswith("staged:"):
+                report.add(f"{pid}: breaker open; persisted stage not launched")
+                continue
             if stage.startswith("launched:"):
                 tier = stage.split(":", 1)[1]
                 if self._poll_and_collect(pid, tier, report):
@@ -255,13 +426,26 @@ class Controller:
                 else:
                     busy.add(rec["box"])
                     continue
+            if stage.startswith("failure_collected:"):
+                tier = stage.split(":", 1)[1]
+                try:
+                    self._archive_fixed_failure(pid, tier, report)
+                except Exception as exc:
+                    self._persist_fixed_lifecycle_failure(pid, tier, "failure_archive", exc)
+                continue
             if stage.startswith("collected:"):
                 tier = stage.split(":", 1)[1]
                 self._analyze(pid, tier, report)
                 stage = self.store.proposals()[pid]["stage"]
             if stage.startswith("analyzed:"):
                 tier = stage.split(":", 1)[1]
-                self._archive_and_promote(pid, tier, report)
+                try:
+                    self._archive_and_promote(pid, tier, report)
+                except Exception as exc:
+                    if self.store.proposals()[pid].get("fixed_queue"):
+                        self._persist_fixed_lifecycle_failure(pid, tier, "success_archive", exc)
+                        continue
+                    raise
             if stage.startswith("staged:"):
                 # The immutable checkout, manifest, and staged hashes were persisted before the
                 # launch attempt.  Reuse that exact label after a restart: op.launch re-checks the
@@ -297,10 +481,35 @@ class Controller:
         self.store.save()
         launched = datetime.strptime(receipt.launched_at, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
         elapsed = (self._now() - launched).total_seconds()
+        fixed_timeout = (
+            self.store.proposals()[pid].get("fixed_queue")
+            and (elapsed > self.cfg.caps.run_timeout_seconds or trec.get("timeout_observed_at"))
+        )
+        if fixed_timeout:
+            if status.pid_alive:
+                observation = {
+                    "schema_version": 1, "final": False,
+                    "reason": "run exceeded controller timeout; awaiting process-group quiescence",
+                    "manifest_id": manifest.manifest_id, "label": manifest.label,
+                    "status": status.to_dict(), "observed_at": self.now_iso(),
+                }
+                self.store.write_artifact(pid, f"{tier}-timeout-observation.json", observation)
+                trec["timeout_observed_at"] = trec.get("timeout_observed_at") or self.now_iso()
+                self.store.save()
+                report.add(
+                    f"{pid}/{tier}: past timeout ({elapsed:.0f}s); process group still alive, "
+                    "host remains busy"
+                )
+                return False
+            self._record_fixed_failure(
+                pid, tier, manifest, receipt, status,
+                "run exceeded controller timeout; process group is now quiescent", report,
+            )
+            return True
         if not status.done:
             if status.pid_alive:
                 if elapsed > self.cfg.caps.run_timeout_seconds:
-                    report.add(f"{pid}/{tier}: still running past timeout ({elapsed:.0f}s); observing, branch marked FAILED")
+                    report.add(f"{pid}/{tier}: still running past timeout ({elapsed:.0f}s)")
                     self._fail_tier(pid, tier, manifest, "run exceeded controller timeout", infra=True)
                     return True
                 report.add(f"{pid}/{tier}: running ({elapsed:.0f}s)")
@@ -308,11 +517,29 @@ class Controller:
             if elapsed < self.cfg.caps.launch_grace_seconds:
                 report.add(f"{pid}/{tier}: pid not visible yet, within grace")
                 return False
+            if self.store.proposals()[pid].get("fixed_queue"):
+                self._record_fixed_failure(
+                    pid, tier, manifest, receipt, status,
+                    "runner and descendants exited without a done marker", report,
+                )
+                return True
             self._fail_tier(pid, tier, manifest, "runner died without done marker", infra=True)
             return True
+        if status.pid_alive:
+            report.add(f"{pid}/{tier}: done marker present; awaiting process-group quiescence")
+            return False
         # done: collect
         local_dir = self.store.proposal_dir(pid) / "artifacts" / tier
-        collected = self.op.collect(manifest, receipt, local_dir)
+        try:
+            collected = self.op.collect(manifest, receipt, local_dir)
+        except Exception as exc:
+            if not self.store.proposals()[pid].get("fixed_queue"):
+                raise
+            self._record_fixed_failure(
+                pid, tier, manifest, receipt, status,
+                f"completed run evidence collection failed: {exc}", report,
+            )
+            return True
         row = collected.ledger_row
         if row is not None:
             row = dict(row)
@@ -333,6 +560,71 @@ class Controller:
             report.add(f"lock release warning: {exc}")
         report.add(f"{pid}/{tier}: collected rc={status.returncode} label={manifest.label}")
         return True
+
+    def _record_fixed_failure(
+        self,
+        pid: str,
+        tier: str,
+        manifest: RunManifest,
+        receipt: LaunchReceipt,
+        status,
+        reason: str,
+        report: CycleReport,
+    ) -> None:
+        if tier != "full" or status.pid_alive or getattr(status, "group_members", []):
+            raise QueuePlanError("fixed failure can be finalized only for a quiescent full run")
+        local_dir = self.store.proposal_dir(pid) / "artifacts" / "full-failure"
+        try:
+            evidence = self.op.collect_failure_evidence(
+                manifest, receipt, status, local_dir, reason
+            )
+        except Exception as exc:
+            evidence = {
+                "schema_version": 1, "outcome": "failed", "final": True,
+                "reason": reason, "manifest_id": manifest.manifest_id,
+                "label": manifest.label, "box": manifest.box,
+                "manifest": manifest.to_dict(), "launch_receipt": receipt.to_dict(),
+                "status": status.to_dict(), "preflight": receipt.pre_launch_inventory,
+                "postflight": {"available": False, "error": str(exc)[:500]},
+                "process": {
+                    "pid": receipt.pid, "process_group": receipt.process_group or receipt.pid,
+                    "quiescent": True, "remaining_members": [],
+                },
+                "files": {}, "available_result": None,
+                "errors": [f"failure evidence collection: {exc}"[:1000]],
+                "collected_at": self.now_iso(),
+            }
+        if (evidence.get("final") is not True
+                or (evidence.get("process") or {}).get("quiescent") is not True):
+            raise QueuePlanError("failure evidence did not prove process-group quiescence")
+        self.store.write_artifact(pid, f"{tier}-failure.json", evidence)
+        self.store.set_stage(
+            pid, f"failure_collected:{tier}", verdict="FAILED", failure=reason,
+            host_busy=False,
+        )
+        try:
+            self.op.release_lock(manifest.box)
+        except Exception as exc:
+            evidence["errors"].append(f"lock release: {exc}"[:1000])
+            self.store.write_artifact(pid, f"{tier}-failure.json", evidence)
+        report.add(f"{pid}/{tier}: final failure evidence collected after quiescence")
+
+    def _persist_fixed_lifecycle_failure(
+        self, pid: str, tier: str, phase: str, exc: Exception
+    ) -> None:
+        rec = self.store.proposals()[pid]
+        artifact = {
+            "schema_version": 1, "outcome": "lifecycle_failure", "final": True,
+            "proposal_id": pid, "tier": tier, "phase": phase,
+            "stage_before": rec.get("stage"), "error_type": type(exc).__name__,
+            "error": str(exc)[:2000], "recorded_at": self.now_iso(),
+        }
+        self.store.write_artifact(pid, f"{tier}-lifecycle-failure.json", artifact)
+        self.store.set_stage(pid, rec.get("stage", f"analyzed:{tier}"), lifecycle_failure=artifact)
+        self.store.open_breaker(
+            "fixed lifecycle failure", proposal_id=pid, tier=tier,
+            phase=phase, error=str(exc)[:1000],
+        )
 
     def _fail_tier(self, pid: str, tier: str, manifest: RunManifest, reason: str, infra: bool) -> None:
         verdict = Verdict("FAILED", tier, [reason])
@@ -364,6 +656,9 @@ class Controller:
         result = self.store.read_artifact(pid, f"{tier}-result.json")
         manifest = self.store.read_artifact(pid, f"{tier}-manifest.json")
         proposal = self.store.read_artifact(pid, "proposal.json")
+        if rec.get("fixed_queue"):
+            self._analyze_fixed(pid, tier, result, manifest, proposal, report)
+            return
         is_control = proposal.get("kind") == "control"
         if is_control:
             from .analyst import correctness_failures
@@ -407,11 +702,98 @@ class Controller:
         self.store.set_stage(pid, f"analyzed:{tier}", verdict=verdict.decision)
         report.add(f"{pid}/{tier}: {verdict.decision} — {verdict.reasons[0]}")
 
+    def _analyze_fixed(self, pid: str, tier: str, result: dict, manifest: dict,
+                       proposal: dict, report: CycleReport) -> None:
+        if tier != "full":
+            raise QueuePlanError("fixed queue attempted a non-full analysis")
+        rec = self.store.proposals()[pid]
+        row = result.get("ledger_row") or {}
+        collected = result.get("collected") or {}
+        failures = self._fixed_correctness_failures(rec, result, manifest)
+        bpb = row.get("public_val_bpb")
+        role = rec.get("comparison_role")
+        control_bpb = None
+        if role == "candidate":
+            control_id = self.fixed_plan.entries[0].proposal_id if self.fixed_plan else ""
+            control = self.store.read_artifact(control_id, "full-result.json") or {}
+            control_verdict = self.store.read_artifact(control_id, "full-verdict.json") or {}
+            control_bpb = (control.get("ledger_row") or {}).get("public_val_bpb")
+            control_state = self.store.proposals().get(control_id, {})
+            if (control_state.get("stage") != "closed"
+                    or not (control_state.get("archive_verified") or {}).get("local_verified")
+                    or control_verdict.get("decision") != "KEEP"
+                    or not isinstance(control_bpb, (int, float))):
+                report.add(f"{pid}/full: waiting for archived usable fixed control")
+                return
+        if failures:
+            verdict = Verdict("FAILED", tier, failures)
+        elif role == "control":
+            verdict = Verdict("KEEP", tier, ["fixed control passed exact public-BPB correctness gates"])
+        elif float(bpb) < float(control_bpb):
+            verdict = Verdict("KEEP", tier, ["public_val_bpb is lower than the fixed control; throughput was not compared"])
+        else:
+            verdict = Verdict("DISCARD", tier, ["public_val_bpb did not beat the fixed control; throughput was not compared"])
+        verdict.metrics = {"candidate_bpb": bpb, "control_bpb": control_bpb,
+                           "selection_metric": "public_val_bpb"}
+        self.store.write_artifact(pid, f"{tier}-verdict.json", verdict.to_dict())
+        md = verdict_markdown(proposal, manifest, verdict, manifest.get("control_label"), result.get("hostname") or "")
+        (self.store.proposal_dir(pid) / f"{tier}-verdict.md").write_text(md + "\n")
+        self.store.set_stage(pid, f"analyzed:{tier}", verdict=verdict.decision)
+        report.add(f"{pid}/{tier}: {verdict.decision} — {verdict.reasons[0]}")
+
+    @staticmethod
+    def _fixed_correctness_failures(rec: dict, result: dict, manifest: dict) -> list[str]:
+        row = result.get("ledger_row") or {}
+        collected = result.get("collected") or {}
+        failures: list[str] = []
+        if result.get("returncode") != 0:
+            failures.append("runner exit code is nonzero")
+        if not collected.get("checkpoint_present") or not collected.get("checkpoint_sha256"):
+            failures.append("final.pt missing or unhashed")
+        if row.get("_dirt_explained") is not True:
+            failures.append("post-run dirt is unexplained")
+        if row.get("status") != "keep" or row.get("over_budget") is True:
+            failures.append("runner status/budget gate failed")
+        bpb = row.get("public_val_bpb")
+        if (isinstance(bpb, bool) or not isinstance(bpb, (int, float))
+                or not math.isfinite(float(bpb))):
+            failures.append("public_val_bpb is missing/nonfinite")
+        steps = row.get("num_steps")
+        if (isinstance(steps, bool) or not isinstance(steps, (int, float))
+                or not math.isfinite(float(steps)) or steps <= 0):
+            failures.append("num_steps is missing/nonpositive/nonfinite")
+        required = {
+            "eval_context": C.EXACT_DENSE1024_EVAL_CONTEXT,
+            "eval_tokens_requested": C.EXACT_DENSE1024_EVAL_TOKENS,
+            "eval_num_tokens": C.EXACT_DENSE1024_EVAL_TOKENS,
+            "eval_num_bytes": C.EXACT_DENSE1024_EVAL_BYTES,
+            "eval_counts_match": True,
+            "eval_over_timeout": False,
+            "selection_metric": "public_val_bpb",
+            "exact_train_argv": list(C.EXACT_DENSE1024_TRAIN_ARGV),
+            "git_commit": rec["candidate_commit"],
+            "source_dirty": False,
+        }
+        for key, expected in required.items():
+            if row.get(key) != expected:
+                failures.append(f"{key} differs from fixed contract")
+        if row.get("source_sha256", {}).get("train.py") != manifest.get("expected_train_sha256"):
+            failures.append("runner-observed train.py hash differs from manifest")
+        external = row.get("external_eval") or {}
+        if (external.get("fresh_process") is not True or external.get("returncode") != 0
+                or external.get("seq_len") != C.EXACT_DENSE1024_EVAL_CONTEXT
+                or external.get("eval_tokens") != C.EXACT_DENSE1024_EVAL_TOKENS):
+            failures.append("fresh public eval did not complete under the exact population")
+        return failures
+
     def _archive_and_promote(self, pid: str, tier: str, report: CycleReport) -> None:
         rec = self.store.proposals()[pid]
         verdict = self.store.read_artifact(pid, f"{tier}-verdict.json")
         decision = verdict["decision"]
         proposal = self.store.read_artifact(pid, "proposal.json")
+        if rec.get("fixed_queue"):
+            self._archive_fixed(pid, tier, proposal, verdict, report)
+            return
         is_control = proposal.get("kind") == "control"
         paths = [self.store.proposal_dir(pid)]
         closing = False
@@ -449,6 +831,357 @@ class Controller:
                 )
                 self.store.set_stage(pid, next_stage, last_archive_commit=prune_sha or sha, closed=closing)
                 report.add(f"{pid}/{tier}: checkpoint hash-verified and pruned ({prune_sha or 'record local'})")
+
+    def _archive_fixed(self, pid: str, tier: str, proposal: dict, verdict: dict,
+                       report: CycleReport) -> None:
+        if tier != "full":
+            raise QueuePlanError("fixed queue attempted a non-full archive")
+        result = self.store.read_artifact(pid, "full-result.json") or {}
+        pdir = self.store.proposal_dir(pid)
+        artifacts = self.store.proposal_dir(pid) / "artifacts" / "full"
+        required = [
+            pdir / "proposal.json",
+            C.ROOT / next(e.verification_path for e in self.fixed_plan.entries if e.proposal_id == pid),
+            pdir / "full-manifest.json", pdir / "full-staged.json",
+            pdir / "full-launch.json", pdir / "full-result.json",
+            pdir / "full-verdict.json", pdir / "full-verdict.md",
+        ]
+        expected_artifacts = {
+            "experiment-log.jsonl", f"{result.get('label')}.log",
+            f"{result.get('label')}.eval.log", f"{result.get('label')}.launch.json",
+            "runner.log", "done.json", "launch.json",
+        }
+        if artifacts.is_symlink() or not artifacts.is_dir():
+            raise ArchiveError("fixed run retrieved-artifact directory is missing/non-directory")
+        observed_artifacts = {path.name for path in artifacts.iterdir()
+                              if path.is_file() and not path.is_symlink()}
+        if observed_artifacts != expected_artifacts:
+            raise ArchiveError("fixed run archive lacks the exact complete retrieved evidence set")
+        required.extend(artifacts / name for name in sorted(expected_artifacts))
+        metrics = verdict.get("metrics") or {}
+        decision_row = (
+                f"| {self.now_iso()[:10]} | fixed queue {pid} | "
+                f"{self.store.proposals()[pid]['candidate_commit'][:8]} | "
+                f"{self.fixed_plan.entries[0].proposal_id} | public BPB "
+                f"{metrics.get('candidate_bpb')} vs {metrics.get('control_bpb')}; "
+                f"throughput excluded | {verdict['decision']} (full) | "
+                f"`research/agentic/experiments/{pid}/` |\n"
+        )
+        if f"fixed queue {pid}" not in C.DECISION_LOG.read_text():
+            with C.DECISION_LOG.open("a") as fh:
+                fh.write(decision_row)
+        journal_path = pdir / "full-lifecycle-journal.json"
+        journal = self._fixed_journal(pid, "success", journal_path)
+        if journal.get("phase") == "complete":
+            completion_required = [journal_path, pdir / "full-cache-cleanup.json"]
+            if expected_checkpoint := (result.get("collected") or {}).get("checkpoint_sha256"):
+                completion_required.append(pdir / "full-checkpoint-pruned.json")
+            completion_commit, completion_verification = self._commit_fixed_phase(
+                [pdir], f"autoloop: complete fixed lifecycle for {pid} full",
+                completion_required,
+            )
+            if not completion_verification.get("remote_verified"):
+                raise ArchiveError("completed fixed lifecycle is not on configured remote")
+            self.store.set_stage(
+                pid, "closed", last_archive_commit=completion_commit, closed=True,
+                archive_verified=journal.get("archive_verified", {}),
+                archive_receipt_verified=journal.get("archive_receipt_verified", {}),
+            )
+            report.add(f"{pid}/full: reconciled already-complete lifecycle -> closed")
+            return
+        archive_commit = journal.get("archive_commit")
+        if archive_commit:
+            verification = self.archiver.verify_commit(archive_commit, required)
+        else:
+            journal["phase"] = "archive_pending"
+            self.store.write_artifact(pid, "full-lifecycle-journal.json", journal)
+            archive_commit, verification = self._commit_fixed_phase(
+                [pdir, C.DECISION_LOG], f"autoloop: {pid} full {verdict['decision']}", required
+            )
+            journal["archive_commit"] = archive_commit
+            journal["archive_verified"] = verification
+            journal["phase"] = "archive_verified"
+            self.store.write_artifact(pid, "full-lifecycle-journal.json", journal)
+        if not verification.get("remote_verified"):
+            raise ArchiveError("fixed evidence archive is not verified on the configured remote")
+        archive_verification_path = self.store.write_artifact(
+            pid, "full-archive-verification.json", verification
+        )
+        receipt_sha = journal.get("archive_receipt_commit")
+        if receipt_sha:
+            receipt_verification = self.archiver.verify_commit(
+                receipt_sha, [archive_verification_path]
+            )
+        else:
+            receipt_sha, receipt_verification = self._commit_fixed_phase(
+                [pdir], f"autoloop: verify archive for {pid} full",
+                [archive_verification_path],
+            )
+            journal["archive_receipt_commit"] = receipt_sha
+            journal["archive_receipt_verified"] = receipt_verification
+            journal["phase"] = "archive_receipt_verified"
+            self.store.write_artifact(pid, "full-lifecycle-journal.json", journal)
+        if not receipt_verification.get("remote_verified"):
+            raise ArchiveError("fixed archive-verification receipt is not on configured remote")
+        report.add(f"{pid}/full: archived and verified ({receipt_sha})")
+        expected_sha = (result.get("collected") or {}).get("checkpoint_sha256")
+        final_sha = receipt_sha
+        manifest = RunManifest.from_dict(self.store.read_artifact(pid, "full-manifest.json"))
+        if expected_sha:
+            prune_path = pdir / "full-checkpoint-pruned.json"
+            pruned = self.store.read_artifact(pid, "full-checkpoint-pruned.json")
+            recorded_prune_commit = journal.get("checkpoint_receipt_commit")
+            if recorded_prune_commit and pruned is not None:
+                if pruned.get("sha256") != expected_sha:
+                    raise ArchiveError("persisted checkpoint-prune receipt hash changed")
+                self.op.confirm_checkpoint_pruned(manifest, pruned)
+                prune_verification = self.archiver.verify_commit(
+                    recorded_prune_commit, [prune_path]
+                )
+                if not prune_verification.get("remote_verified"):
+                    raise ArchiveError("checkpoint prune receipt is not on configured remote")
+                final_sha = recorded_prune_commit
+            elif pruned is None:
+                journal.update({
+                    "phase": "checkpoint_delete_authorized",
+                    "checkpoint_intent": {
+                        "remote_checkpoint": manifest.remote_checkpoint,
+                        "sha256": expected_sha,
+                    },
+                })
+                self.store.write_artifact(pid, "full-lifecycle-journal.json", journal)
+                intent_sha, intent_verification = self._commit_fixed_phase(
+                    [pdir], f"autoloop: authorize checkpoint prune for {pid} full",
+                    [journal_path, archive_verification_path],
+                )
+                if not intent_verification.get("remote_verified"):
+                    raise ArchiveError("checkpoint deletion intent is not on configured remote")
+                pruned = self.op.prune_checkpoint(
+                    manifest, expected_sha, authorization_commit=intent_sha
+                )
+                if pruned.get("authorization_commit") != intent_sha:
+                    raise ArchiveError("checkpoint prune receipt authorization commit mismatch")
+                self.store.write_artifact(pid, "full-checkpoint-pruned.json", pruned)
+            else:
+                if pruned.get("sha256") != expected_sha:
+                    raise ArchiveError("persisted checkpoint-prune receipt hash changed")
+                self.op.confirm_checkpoint_pruned(manifest, pruned)
+                intent_sha = pruned.get("authorization_commit")
+                if not intent_sha:
+                    raise ArchiveError("checkpoint receipt lacks its deletion-intent commit")
+            if not recorded_prune_commit:
+                journal.update({
+                    "phase": "checkpoint_pruned", "checkpoint_intent_commit": intent_sha,
+                    "checkpoint_receipt": {
+                        "path": str(prune_path.relative_to(C.ROOT)), "sha256": expected_sha,
+                        "reconciled_after_restart": bool(pruned.get("reconciled_after_restart")),
+                    },
+                })
+                self.store.write_artifact(pid, "full-lifecycle-journal.json", journal)
+                prune_sha, prune_verification = self._commit_fixed_phase(
+                    [pdir], f"autoloop: prune archived checkpoint for {pid} full",
+                    [prune_path, journal_path],
+                )
+                if not prune_verification["remote_verified"]:
+                    raise ArchiveError("checkpoint prune receipt is not on configured remote")
+                journal["checkpoint_receipt_commit"] = prune_sha
+                final_sha = prune_sha
+                report.add(
+                    f"{pid}/full: checkpoint hash-verified, pruned, and "
+                    f"receipt-verified ({prune_sha})"
+                )
+        cache_receipt_path = pdir / "full-cache-cleanup.json"
+        cache_receipt = self.store.read_artifact(pid, "full-cache-cleanup.json")
+        cache_root = f"{C.REMOTE_AUTOLOOP_DIR}/caches/{manifest.label}"
+        cache_paths = [manifest.env[key] for key in C.CACHE_ENV_KEYS]
+        cache_paths += [manifest.env[f"AUTOLOOP_EVAL_{key}"] for key in C.CACHE_ENV_KEYS]
+        if cache_receipt is None:
+            journal.update({
+                "phase": "cache_delete_authorized",
+                "cache_intent": {"cache_root": cache_root, "cache_paths": cache_paths},
+            })
+            self.store.write_artifact(pid, "full-lifecycle-journal.json", journal)
+            cache_intent_sha, cache_intent_verification = self._commit_fixed_phase(
+                [pdir], f"autoloop: authorize compile-cache cleanup for {pid} full",
+                [journal_path, archive_verification_path],
+            )
+            if not cache_intent_verification.get("remote_verified"):
+                raise ArchiveError("compile-cache deletion intent is not on configured remote")
+            cache_receipt = self.op.cleanup_compile_caches(
+                manifest, cache_receipt_path, authorization_commit=cache_intent_sha
+            )
+        else:
+            cache_intent_sha = cache_receipt.get("authorization_commit")
+            if not cache_intent_sha:
+                intent = journal.get("cache_intent") or {}
+                if (journal.get("phase") != "cache_delete_authorized"
+                        or intent.get("cache_root") != cache_root
+                        or intent.get("cache_paths") != cache_paths):
+                    raise ArchiveError("cache-cleanup receipt lacks a reconcilable deletion intent")
+                finder = getattr(self.archiver, "commit_for_path", None)
+                cache_intent_sha = finder(journal_path) if finder else self.archiver.current_head()
+                intent_verification = self.archiver.verify_commit(
+                    cache_intent_sha, [journal_path, archive_verification_path]
+                )
+                if not intent_verification.get("remote_verified"):
+                    raise ArchiveError("recovered cache deletion intent is not on configured remote")
+                cache_receipt = self.op.cleanup_compile_caches(
+                    manifest, cache_receipt_path, authorization_commit=cache_intent_sha
+                )
+            else:
+                self.op.confirm_compile_caches_clean(manifest, cache_receipt)
+        journal.update({
+            "phase": "cache_cleaned", "cache_intent_commit": cache_intent_sha,
+            "cache_receipt": {
+                "path": str(cache_receipt_path.relative_to(C.ROOT)),
+                "cache_root": cache_root,
+                "reconciled_after_restart": bool(cache_receipt.get("reconciled_after_restart")),
+            },
+        })
+        self.store.write_artifact(pid, "full-lifecycle-journal.json", journal)
+        cache_sha, cache_verification = self._commit_fixed_phase(
+            [pdir], f"autoloop: clean archived compile caches for {pid} full",
+            [cache_receipt_path, journal_path],
+        )
+        if not cache_verification["remote_verified"]:
+            raise ArchiveError("compile-cache cleanup receipt is not on configured remote")
+        journal["cache_receipt_commit"] = cache_sha
+        final_sha = cache_sha
+        report.add(f"{pid}/full: exact job-owned compile caches pruned and receipt-verified ({cache_sha})")
+        journal["phase"] = "complete"
+        journal["completed_at"] = self.now_iso()
+        self.store.write_artifact(pid, "full-lifecycle-journal.json", journal)
+        completion_sha, completion_verification = self._commit_fixed_phase(
+            [pdir], f"autoloop: complete fixed lifecycle for {pid} full",
+            [journal_path, cache_receipt_path] + ([pdir / "full-checkpoint-pruned.json"] if expected_sha else []),
+        )
+        if not completion_verification["remote_verified"]:
+            raise ArchiveError("fixed lifecycle completion journal is not on configured remote")
+        final_sha = completion_sha
+        self.store.set_stage(
+            pid, "closed", last_archive_commit=final_sha, closed=True,
+            archive_verified=verification, archive_receipt_verified=receipt_verification,
+        )
+        report.add(f"{pid}/full: definition-of-done complete -> closed")
+
+    def _fixed_journal(self, pid: str, mode: str, path: Path) -> dict:
+        journal = self.store.read_artifact(pid, path.name)
+        if journal is None:
+            return {
+                "schema_version": 1, "proposal_id": pid, "tier": "full", "mode": mode,
+                "phase": "initialized", "created_at": self.now_iso(),
+            }
+        if (journal.get("schema_version") != 1 or journal.get("proposal_id") != pid
+                or journal.get("tier") != "full" or journal.get("mode") != mode):
+            raise ArchiveError("fixed lifecycle journal identity/schema mismatch")
+        return journal
+
+    def _commit_fixed_phase(
+        self, paths: list[Path], message: str, required: list[Path]
+    ) -> tuple[str, dict]:
+        commit = self.archiver.commit(paths, message)
+        if commit is None:
+            if not required:
+                raise ArchiveError("cannot reconcile an empty fixed archive phase")
+            head = getattr(self.archiver, "current_head", None)
+            if head is None:
+                raise ArchiveError("archiver cannot reconcile an already-committed phase")
+            commit = head()
+        verification = self.archiver.verify_commit(commit, required)
+        return commit, verification
+
+    def _archive_fixed_failure(self, pid: str, tier: str, report: CycleReport) -> None:
+        if tier != "full":
+            raise QueuePlanError("fixed failure archive is full-only")
+        pdir = self.store.proposal_dir(pid)
+        failure_path = pdir / "full-failure.json"
+        failure = self.store.read_artifact(pid, "full-failure.json") or {}
+        if (failure.get("outcome") != "failed" or failure.get("final") is not True
+                or (failure.get("process") or {}).get("quiescent") is not True):
+            raise ArchiveError("fixed failure evidence is incomplete or not quiescent")
+        required = [
+            pdir / "proposal.json",
+            C.ROOT / next(e.verification_path for e in self.fixed_plan.entries if e.proposal_id == pid),
+            pdir / "full-manifest.json", pdir / "full-staged.json", pdir / "full-launch.json",
+            failure_path,
+        ]
+        for item in (failure.get("files") or {}).values():
+            if item.get("available") is True:
+                path = Path(item.get("local", ""))
+                if path.is_symlink() or not path.is_file():
+                    raise ArchiveError("declared failure artifact is missing/non-regular")
+                try:
+                    path.resolve().relative_to((pdir / "artifacts" / "full-failure").resolve())
+                except ValueError as exc:
+                    raise ArchiveError("declared failure artifact escaped its evidence directory") from exc
+                if hashlib.sha256(path.read_bytes()).hexdigest() != item.get("sha256"):
+                    raise ArchiveError("declared failure artifact hash changed")
+                required.append(path)
+        journal_path = pdir / "full-failure-lifecycle-journal.json"
+        journal = self._fixed_journal(pid, "failure", journal_path)
+        if journal.get("phase") == "complete":
+            receipt_commit, completion = self._commit_fixed_phase(
+                [pdir], f"autoloop: complete failed fixed run {pid} full",
+                [journal_path, failure_path],
+            )
+            if not completion.get("remote_verified"):
+                raise ArchiveError("completed fixed failure lifecycle is not on configured remote")
+            verification = journal.get("archive_verified") or {}
+        elif journal.get("archive_commit"):
+            commit = journal["archive_commit"]
+            verification = self.archiver.verify_commit(commit, required)
+        else:
+            journal["phase"] = "failure_archive_pending"
+            self.store.write_artifact(pid, journal_path.name, journal)
+            commit, verification = self._commit_fixed_phase(
+                [pdir], f"autoloop: archive failed fixed run {pid} full",
+                required + [journal_path],
+            )
+            journal.update({
+                "phase": "failure_archive_verified", "archive_commit": commit,
+                "archive_verified": verification,
+            })
+            self.store.write_artifact(pid, journal_path.name, journal)
+        if not verification.get("remote_verified"):
+            raise ArchiveError("fixed failure evidence is not verified on configured remote")
+        if journal.get("phase") != "complete":
+            archive_verification = self.store.write_artifact(
+                pid, "full-failure-archive-verification.json", verification
+            )
+            receipt_commit = journal.get("archive_receipt_commit")
+            if receipt_commit:
+                receipt_verification = self.archiver.verify_commit(
+                    receipt_commit, [archive_verification]
+                )
+            else:
+                receipt_commit, receipt_verification = self._commit_fixed_phase(
+                    [pdir], f"autoloop: verify failed fixed run {pid} full",
+                    [archive_verification],
+                )
+                journal.update({
+                    "phase": "failure_archive_receipt_verified",
+                    "archive_receipt_commit": receipt_commit,
+                })
+                self.store.write_artifact(pid, journal_path.name, journal)
+            if not receipt_verification.get("remote_verified"):
+                raise ArchiveError("fixed failure verification receipt is not on configured remote")
+            journal.update({"phase": "complete", "completed_at": self.now_iso()})
+            self.store.write_artifact(pid, journal_path.name, journal)
+            receipt_commit, completion = self._commit_fixed_phase(
+                [pdir], f"autoloop: complete failed fixed run {pid} full",
+                [journal_path, failure_path, archive_verification],
+            )
+            if not completion.get("remote_verified"):
+                raise ArchiveError("fixed failure completion journal is not on configured remote")
+        self.store.set_stage(
+            pid, "failed:full", closed=True, verdict="FAILED",
+            last_archive_commit=receipt_commit, archive_verified=verification,
+        )
+        self.store.open_breaker(
+            "fixed run failed", proposal_id=pid, tier="full",
+            failure_reason=failure.get("reason"),
+        )
+        report.add(f"{pid}/full: distinct failure evidence archived -> failed")
 
     def _append_decision_log(self, pid: str, tier: str, proposal: dict, verdict: dict) -> None:
         date = self.now_iso()[:10]
@@ -550,7 +1283,10 @@ class Controller:
         self.store.set_stage(prop.proposal_id, "verified", box=box)
         return self._stage_and_launch(prop.proposal_id, "smoke", box, prop.flags, report)
 
-    def _stage_and_launch(self, pid: str, tier: str, box: str, flags: list[str], report: CycleReport) -> bool:
+    def _stage_and_launch(self, pid: str, tier: str, box: str, flags: list[str], report: CycleReport,
+                          *, execution_mode: str = "standard", comparison_role: str | None = None,
+                          expected_train_sha256: str = "",
+                          control_label_override: str | None = None) -> bool:
         rec = self.store.proposals()[pid]
         attempts = rec.setdefault("attempts", {})
         r = attempts.get(tier, 0) + 1
@@ -578,8 +1314,8 @@ class Controller:
                 return False
         candidate_commit = rec.get("candidate_commit") or C.AUTHORITATIVE_COMMIT
         remote_run_dir = f"{C.REMOTE_RUNS_DIR}/{candidate_commit[:8]}--{pid}--{label}"
-        control_label = None
-        if not pid.startswith("control-"):
+        control_label = control_label_override
+        if execution_mode == "standard" and not pid.startswith("control-"):
             ctrl = self._control_result(box, tier)
             if ctrl is None:
                 report.add(f"{box}: no usable {tier} control; cannot launch candidate")
@@ -592,6 +1328,8 @@ class Controller:
             cfg=self.cfg, frozen_at=self.now_iso(), control_label=control_label,
             abort_conditions=proposal.get("abort_conditions", []), description_note=proposal.get("single_causal_change", "")[:160],
             candidate_commit=candidate_commit,
+            execution_mode=execution_mode, comparison_role=comparison_role,
+            expected_train_sha256=expected_train_sha256,
         )
         self.store.write_artifact(pid, f"{tier}-manifest.json", manifest.to_dict())
         staged = self.op.stage(box, pid, label, candidate_commit)

@@ -1,6 +1,21 @@
 # Current state
 
-Last reconciled: 2026-09-23 16:35 UTC
+Last reconciled: 2026-09-23 17:40 UTC
+
+## Human-authorized fixed-queue override — pending independent verification
+
+The current implementation branch represents, but does not activate, the 2026-09-23 replacement
+plan in `frontier-full-only-queue.json`. It parks
+`20260923-local-conv-pre-attn-serial-only-r3`, pins the exact dense6x1024 lean train bytes
+(`9173f626…`), restores `trn22`, and disables general proposals and smoke runs. The only eligible
+order is exact cold control on `trn22`, MATRIX_LR 0.025 on `trn21`, then LR 0.015, warmdown 0.60,
+warmdown 0.85, total batch 262144, and MAX_TRAIN_SECONDS 1080. Public BPB from a fresh context-1024
+evaluation over exactly 20,971,520 tokens / 83,462,186 bytes is the only selection metric.
+
+This is not launch approval. Every queue entry remains pending an independent Verifier receipt.
+The persisted disk breaker is preserved and the fixed controller additionally requires the exact
+pushed R8 cleanup receipt plus an explicit Operator state transition. No breaker was cleared and no
+remote or hardware action was performed while implementing this override.
 
 ## Operational override — 2026-09-23 16:35 UTC
 

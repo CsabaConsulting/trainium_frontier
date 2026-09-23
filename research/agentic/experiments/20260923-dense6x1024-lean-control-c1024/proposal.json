@@ -1,0 +1,92 @@
+{
+  "proposal_id": "20260923-dense6x1024-lean-control-c1024",
+  "status": "human_approved_pending_independent_verification",
+  "owner_role": "researcher",
+  "hypothesis": "The frozen dense6x1024 lean-review bytes provide a reproducible context-1024 public-BPB control under the exact submission launch command.",
+  "single_causal_change": "None: this is the exact frozen control train.py and exact submission argv.",
+  "flags": [],
+  "expected_effect": "Establish the exact cold public-BPB control population for the fixed queue.",
+  "change_type": "control",
+  "implementation_plan": "No scientific edit; import the frozen external source bytes as root train.py.",
+  "files_allowed": [],
+  "smoke_gate": {},
+  "kind": "control",
+  "mechanism_class": "data_regime",
+  "predicted_bpb_delta": 0.0,
+  "predicted_bpb_interval": [
+    -0.002,
+    0.002
+  ],
+  "candidate_shortlist": [
+    {
+      "idea": "Exact dense6x1024 lean control",
+      "mechanism_class": "data_regime",
+      "predicted_bpb_delta": 0.0,
+      "why_ranked": "Required matched scientific anchor before the authorized one-factor schedule and batch queue."
+    }
+  ],
+  "selection_rationale": "The human-authorized queue requires this exact control before interpreting any queued arm.",
+  "evidence": [
+    "Externally reviewed dense6x1024_lean_review source bytes imported as root train.py at SHA256 9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344",
+    "research/run-logs/fs-w98-dense1024-context1024-pack32-owned-ce-1800-r1.log at git object bcd317f1 and SHA256 fe7279c4a795ce58f98e1907dd48692f08110aefe1a8ead669173cabcedf16fd",
+    "submission-validation rehearsal: exact 9173 full run, 3638 steps, fresh context-1024 public eval 0.9929546796",
+    "human authorization in active conversation, 2026-09-23"
+  ],
+  "duplicate_search_terms": [
+    "dense6x1024 lean control",
+    "9173f626",
+    "context 1024 cold public eval"
+  ],
+  "control": {
+    "git_commit": "4ed89f36c437ab75b0bf63cea80a3871f547de34",
+    "run_label": "al-20260923-dense6x1024-lean-control-c1024-full-r1",
+    "public_val_bpb": null,
+    "steps": null,
+    "box_constraint": "trn22; exact package argv; fresh unique train and eval compile caches"
+  },
+  "candidate": {
+    "branch": "autoloop/20260923-dense6x1024-lean-control-c1024",
+    "files_allowed": [
+      "train.py"
+    ],
+    "expected_diff": "Root train.py is byte-identical to the frozen lean-review source; no scientific constant differs.",
+    "run_label": "al-20260923-dense6x1024-lean-control-c1024-full-r1",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public"
+  },
+  "gates": {
+    "rules_review": true,
+    "diff_review": false,
+    "cpu_or_static_checks": false,
+    "numerical_equivalence": false,
+    "causality": false,
+    "smoke_run": false,
+    "human_run_approval": true
+  },
+  "success_criteria": {
+    "quality": "Fresh-process prepare.py eval-public at seq_len=1024 must return finite public_val_bpb over exactly 20,971,520 tokens and 83,462,186 bytes.",
+    "throughput": "Record steps and time for diagnostics only; no cross-host rate claim is permitted.",
+    "correctness": "Exact train SHA/argv/env, fresh caches, clean full-chip run, finite loss, within budget, checkpoint present, cold eval complete, and all evidence archived."
+  },
+  "abort_conditions": [
+    "Any exact source, argv, environment, cache, host, budget, checkpoint, evaluation-count, or archive gate fails",
+    "Any train.py or prepare.py byte differs from the proposal fingerprints",
+    "The box is not clean and idle"
+  ],
+  "human_approved_by": "human operator in active conversation, 2026-09-23",
+  "verdict": null,
+  "tier_policy": "full_only",
+  "assigned_box": "trn22",
+  "selection_metric": "public_val_bpb",
+  "evaluation": {
+    "mode": "fresh_process_prepare_eval_public",
+    "seq_len": 1024,
+    "max_tokens": 20971520,
+    "expected_num_tokens": 20971520,
+    "expected_num_bytes": 83462186
+  },
+  "loss_trace": {
+    "source_log_sha256": "fe7279c4a795ce58f98e1907dd48692f08110aefe1a8ead669173cabcedf16fd",
+    "available_steps_through_50": [0, 1, 2, 3, 4, 10, 20, 30, 40, 50],
+    "limitation": "The frozen source logs steps 0-4 and then every ten steps; an exact first-50-loss comparison is impossible without changing train.py."
+  }
+}
