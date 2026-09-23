@@ -1,0 +1,17 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "Checkpoint compatibility needs an explicit, permitted edit. In pinned train.py, _EVAL_TOGGLE_DEFAULTS = current_toggles(), and restore_eval_toggles uses saved.get(name, _EVAL_TOGGLE_DEFAULTS[name]). Appending the new default-True toggle therefore restores True\u2014not False\u2014for legacy checkpoints, without raising an error. Specify a name-specific False legacy fallback and include that edit in STEP 3's allowed diff; preserve all other toggles' fallback behavior.",
+    "The causal wiring change is otherwise supported: Block.forward snapshots q_in/k_in/v_in and applies Q/K shift before the convolution, while serial attention consumes those snapshots. The early guard should use self.par_lambda_a is None and not USE_MLP_SANDWICH_NORM, with the complementary historical-site guard ensuring exactly one convolution. CURRENT_STATE.md's source-history override supports this direction, and DECISION_LOG.md's discarded --nki-local-conv experiment tested kernel implementation, not this wiring.",
+    "The train.py-only architecture experiment is competition-legal and its predicted BPB improvement is falsifiable against the pinned seed-42 full-chip control. Runtime checks are appropriately deferred to smoke. However, unchanged operator count does not guarantee unchanged throughput: the repository documents substantial compiler-scheduling sensitivity, so throughput neutrality remains a measured hypothesis."
+  ],
+  "llm_verdict": "NEEDS_WORK",
+  "passed": false,
+  "proposal_id": "20260923-local-conv-pre-attn-serial-only-r2",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-23T16:22:37Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}
