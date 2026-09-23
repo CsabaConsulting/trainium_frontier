@@ -2,7 +2,9 @@
 """Fail-closed contract check for the frozen review-clean submission artifact.
 
 This uses only synthetic tokens. It extends the historical submission contract check with an odd
-batch, a second load, and complete metric reporting before returning failure.
+batch, a second load, and complete metric reporting before returning failure. The caller must name
+the reference train.py explicitly: use the repository root train.py for historical full-feature
+checkpoints and the review-clean train.py for fresh lean checkpoints.
 """
 
 import argparse
@@ -16,23 +18,46 @@ import torch
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT))
 import prepare
-import train as baseline
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--train-py", type=Path, required=True)
+    parser.add_argument(
+        "--reference-train-py",
+        type=Path,
+        required=True,
+        help=(
+            "Explicit load_for_eval implementation used for exact-logit comparison. Use root "
+            "train.py for historical full-feature checkpoints or repeat --train-py for fresh "
+            "lean checkpoints."
+        ),
+    )
     parser.add_argument("--checkpoint", type=Path, required=True)
     parser.add_argument("--device", choices=("cpu", "neuron"), default="cpu")
     args = parser.parse_args()
+    train_py = args.train_py.resolve()
+    reference_train_py = args.reference_train_py.resolve()
+    checkpoint = args.checkpoint.resolve()
+    if not train_py.is_file():
+        parser.error(f"--train-py is not a file: {train_py}")
+    if not reference_train_py.is_file():
+        parser.error(f"--reference-train-py is not a file: {reference_train_py}")
+    if not checkpoint.is_file():
+        parser.error(f"--checkpoint is not a file: {checkpoint}")
     torch.set_num_threads(4)
     device = torch.device(args.device)
     if args.device == "neuron":
         prepare._init_eval_distributed(device)
     try:
-        candidate = prepare._import_train_module(str(args.train_py))
-        reference = baseline.load_for_eval(str(args.checkpoint), device)
-        model = candidate.load_for_eval(str(args.checkpoint), device)
+        reference_module = prepare._import_train_module(str(reference_train_py))
+        candidate = prepare._import_train_module(str(train_py))
+        assert reference_module is not candidate
+        assert callable(getattr(reference_module, "load_for_eval", None))
+        assert callable(getattr(candidate, "load_for_eval", None))
+        reference = reference_module.load_for_eval(str(checkpoint), device)
+        model = candidate.load_for_eval(str(checkpoint), device)
+        assert reference is not model
         assert not model.training
         assert all(not parameter.requires_grad for parameter in model.parameters())
         assert all(
@@ -62,7 +87,8 @@ def main() -> None:
             reference_rows = torch.cat(
                 [reference(tokens[index : index + 1]) for index in range(3)], dim=0
             )
-            second_model = candidate.load_for_eval(str(args.checkpoint), device)
+            second_model = candidate.load_for_eval(str(checkpoint), device)
+            assert second_model is not model
             second = second_model(tokens[:1])
             first_after_second_load = model(tokens[:1])
             metrics = {
@@ -103,6 +129,10 @@ def main() -> None:
             "state_and_buffers_unchanged": True,
             "no_training_adapters_at_import": no_training_adapters,
             "num_params": sum(parameter.numel() for parameter in model.parameters()),
+            "train_py": str(train_py),
+            "reference_train_py": str(reference_train_py),
+            "reference_model_independent": True,
+            "second_model_independent": True,
         }
         print("REVIEW_CLEAN_SUBMISSION_CONTRACT " + json.dumps(report), flush=True)
         if not passed:
