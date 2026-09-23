@@ -26,7 +26,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from autoloop import config as C  # noqa: E402
 from autoloop.analyst import compare  # noqa: E402
-from autoloop.controller import Controller  # noqa: E402
+from autoloop.controller import Controller, CycleReport  # noqa: E402
 from autoloop.implementer import implement_code_proposal  # noqa: E402
 from autoloop.manifest import ManifestError, Proposal, assert_manifest_legal, build_manifest, known_train_flags  # noqa: E402
 from autoloop.models import BedrockClient, ModelError, ModelReply, parse_json_block  # noqa: E402
@@ -864,6 +864,37 @@ class LoopTests(unittest.TestCase):
         ctl3 = env.controller()
         rep = ctl3.cycle()
         self.assertEqual(len(env.h.launched), 2, rep.actions)
+
+    def test_restart_revalidates_and_launches_same_persisted_stage(self):
+        env = self.env
+        ctl = env.controller()
+        cid = ctl._control_id("trn22")
+        ctl.store.add_proposal({
+            "proposal_id": cid,
+            "kind": "control",
+            "hypothesis": "matched control",
+            "single_causal_change": "none",
+            "flags": [],
+            "evidence": ["protocol"],
+        })
+        ctl.store.set_stage(cid, "verified", box="trn22", created_day="20260922")
+        with mock.patch.object(ctl.op, "launch", side_effect=RemoteError("interrupted before launch")):
+            with self.assertRaises(RemoteError):
+                ctl._stage_and_launch(cid, "smoke", "trn22", [], CycleReport("2026-09-22T12:00:00Z"))
+        state = json.loads(C.STATE_FILE.read_text())
+        self.assertEqual(state["proposals"][cid]["stage"], "staged:smoke")
+        self.assertEqual(state["proposals"][cid]["attempts"]["smoke"], 1)
+        self.assertEqual(len(env.h.repos), 1)
+        self.assertEqual(len(env.h.launched), 0)
+
+        rep = env.controller().cycle()
+        self.assertIsNone(rep.stopped_reason, rep.actions)
+        state = json.loads(C.STATE_FILE.read_text())
+        self.assertEqual(state["proposals"][cid]["stage"], "launched:smoke")
+        self.assertEqual(state["proposals"][cid]["attempts"]["smoke"], 1)
+        self.assertEqual(len(env.h.repos), 1)  # no second checkout / r2 label
+        self.assertEqual(len(env.h.launched), 1)
+        self.assertTrue(any("resumed staged launch" in action for action in rep.actions))
 
     def test_ready_work_on_later_box_precedes_new_research_on_first_box(self):
         env = Env(boxes=("trn22", "trn21"))

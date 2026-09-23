@@ -113,9 +113,10 @@ credential, Bedrock call, or OpenAI call is stored in or made by the workflow. I
 
 State is written atomically before every remote step. On restart: `launched:*` is polled, never
 relaunched (the remote launcher also refuses a second launch of the same label); `collected:*` is
-analyzed; `analyzed:*` is archived; `staged:*` (crash between stage and launch) is abandoned and
-re-staged under a new `-rN` label into a new directory. Labels are globally unique across the
-local ledger, archived ledgers, and state.
+analyzed; `analyzed:*` is archived; `staged:*` reuses the exact persisted immutable checkout and
+label only after `op.launch` revalidates the controller lock, idle/device/disk inventory, HEAD,
+porcelain, and source hash. A pre-existing launcher directory makes an ambiguous launch fail
+closed. Labels are globally unique across the local ledger, archived ledgers, and state.
 
 ## Circuit breakers (no new launches; running training is left to finish)
 

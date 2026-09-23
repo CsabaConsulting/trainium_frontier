@@ -250,10 +250,30 @@ class Controller:
                 tier = stage.split(":", 1)[1]
                 self._archive_and_promote(pid, tier, report)
             if stage.startswith("staged:"):
-                # staged but never launched (crash between stage and launch): the run dir is
-                # unused; stage again under a new r-number rather than trusting it.
-                self.store.set_stage(pid, "verified", note="re-stage after interrupted launch")
+                # The immutable checkout, manifest, and staged hashes were persisted before the
+                # launch attempt.  Reuse that exact label after a restart: op.launch re-checks the
+                # controller lock, idle/device/disk inventory, HEAD, porcelain, and train.py hash.
+                # Its unique launcher directory still fails closed if the first launch became
+                # ambiguous before the receipt was persisted.
+                tier = stage.split(":", 1)[1]
+                self._launch_persisted_stage(pid, tier, report, resumed=True)
+                busy.add(rec["box"])
         return busy
+
+    def _launch_persisted_stage(self, pid: str, tier: str, report: CycleReport, *, resumed: bool = False) -> bool:
+        manifest = RunManifest.from_dict(self.store.read_artifact(pid, f"{tier}-manifest.json"))
+        staged_data = self.store.read_artifact(pid, f"{tier}-staged.json")
+        if not staged_data:
+            raise RemoteError(f"{pid}/{tier}: staged state has no durable staged receipt")
+        staged = StagedRun(**staged_data)
+        receipt = self.op.launch(manifest, staged)
+        self.store.write_artifact(pid, f"{tier}-launch.json", receipt.to_dict())
+        self.store.tier(pid, tier).update({"pid": receipt.pid, "launched_at": receipt.launched_at})
+        self.store.set_stage(pid, f"launched:{tier}", box=manifest.box)
+        self.store.record_run()
+        prefix = "resumed staged launch" if resumed else "launched"
+        report.add(f"{manifest.box}: {prefix} {manifest.label} pid={receipt.pid} dir={manifest.remote_run_dir}")
+        return True
 
     def _poll_and_collect(self, pid: str, tier: str, report: CycleReport) -> bool:
         trec = self.store.tier(pid, tier)
@@ -567,13 +587,7 @@ class Controller:
         self.store.write_artifact(pid, f"{tier}-staged.json", staged.to_dict())
         self.store.tier(pid, tier).update({"label": label, "box": box})
         self.store.set_stage(pid, f"staged:{tier}", box=box)
-        receipt = self.op.launch(manifest, staged)
-        self.store.write_artifact(pid, f"{tier}-launch.json", receipt.to_dict())
-        self.store.tier(pid, tier).update({"pid": receipt.pid, "launched_at": receipt.launched_at})
-        self.store.set_stage(pid, f"launched:{tier}", box=box)
-        self.store.record_run()
-        report.add(f"{box}: launched {label} pid={receipt.pid} dir={remote_run_dir}")
-        return True
+        return self._launch_persisted_stage(pid, tier, report)
 
     # ---- propose / verify ---------------------------------------------------------------------
 
