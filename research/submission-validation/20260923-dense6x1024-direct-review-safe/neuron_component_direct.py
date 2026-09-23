@@ -16,29 +16,61 @@ import json
 import math
 import os
 from pathlib import Path
+import re
+import socket
+import subprocess
 import sys
+import time
 import traceback
 from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[3]
+HARNESS_PATH = Path(__file__).resolve()
+RUNBOOK_PATH = HARNESS_PATH.with_name("neuron-component-runbook.md")
+PROPOSAL_PATH = HARNESS_PATH.with_name("proposal.json")
+CANONICAL_TRAIN = (ROOT / "submissions/dense6x1024_direct_review/train.py").resolve()
+RUN_LOGS = ROOT / "research/run-logs"
 EXPECTED_TRAIN_SHA256 = "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537"
 EXPECTED_WORLD_SIZE = 4
 EXPECTED_LNC = "2"
+EXPECTED_SEED = 42
+EXPECTED_HOST_THREADS = 4
+EXPECTED_CC_FLAGS = "--optlevel=1 --auto-cast matmult --auto-cast-type bf16"
+EXPECTED_HARDWARE_HOSTNAME = "ip-172-31-32-253"
+FULL_LABEL_PATTERN = r"fs-20260923-dense6x1024-direct-neuron-component-[0-9]{8}T[0-9]{12}Z"
 VOCAB_SIZE = 8192
 MLP_SHAPE = (32, 1024, 1024)
 MLP_HIDDEN = 4096
 
-# Declared before execution.  The fused MLP uses BF16 matmuls; its FP32 master-weight gradients
-# are BF16-rounded at the custom-autograd boundary.  CE keeps logits and arithmetic in FP32.
+# Declared before execution.  Candidate and independent reference were exact in the preserved
+# source-component evidence.  The bounds below allow BF16 matmul rounding for MLP while requiring
+# close FP32 agreement for CE/optimizer.  Norm gates independently reject zero/attenuated output.
 TOLERANCES = {
-    "mlp_output": {"atol": 0.0625, "rtol": 0.02},
-    "mlp_input_gradient": {"atol": 0.002, "rtol": 0.03},
-    "mlp_up_gradient": {"atol": 0.02, "rtol": 0.03},
-    "mlp_down_gradient": {"atol": 0.02, "rtol": 0.03},
-    "ce_loss": {"atol": 0.0002, "rtol": 0.0002},
-    "ce_gradient": {"atol": 0.00005, "rtol": 0.0005},
-    "optimizer_parameter": {"atol": 0.000001, "rtol": 0.000001},
+    "mlp_output": {"atol": 0.015625, "rtol": 0.01, "max_error_norm_ratio": 0.01,
+                   "min_reference_norm": 1.0, "min_candidate_norm_ratio": 0.98,
+                   "max_candidate_norm_ratio": 1.02},
+    "mlp_input_gradient": {"atol": 0.00025, "rtol": 0.02, "max_error_norm_ratio": 0.02,
+                           "min_reference_norm": 1e-6, "min_candidate_norm_ratio": 0.90,
+                           "max_candidate_norm_ratio": 1.10},
+    "mlp_up_gradient": {"atol": 0.002, "rtol": 0.02, "max_error_norm_ratio": 0.02,
+                        "min_reference_norm": 1e-5, "min_candidate_norm_ratio": 0.90,
+                        "max_candidate_norm_ratio": 1.10},
+    "mlp_down_gradient": {"atol": 0.002, "rtol": 0.02, "max_error_norm_ratio": 0.02,
+                          "min_reference_norm": 1e-5, "min_candidate_norm_ratio": 0.90,
+                          "max_candidate_norm_ratio": 1.10},
+    "ce_loss": {"atol": 2e-5, "rtol": 2e-5, "max_error_norm_ratio": 1e-4,
+                "min_reference_norm": 1.0, "min_candidate_norm_ratio": 0.999,
+                "max_candidate_norm_ratio": 1.001},
+    "ce_gradient": {"atol": 2e-6, "rtol": 2e-4, "max_error_norm_ratio": 5e-4,
+                    "min_reference_norm": 1e-5, "min_candidate_norm_ratio": 0.99,
+                    "max_candidate_norm_ratio": 1.01},
+    "optimizer_parameter": {"atol": 1e-7, "rtol": 1e-6, "max_error_norm_ratio": 1e-6,
+                            "min_reference_norm": 1e-3, "min_candidate_norm_ratio": 0.99999,
+                            "max_candidate_norm_ratio": 1.00001},
+    "optimizer_update": {"atol": 1e-7, "rtol": 1e-5, "max_error_norm_ratio": 1e-4,
+                         "min_reference_norm": 1e-8, "min_candidate_norm_ratio": 0.99,
+                         "max_candidate_norm_ratio": 1.01},
 }
 
 
@@ -46,12 +78,33 @@ def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def write_report(path: Path, report: dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
+def expected_report_path(label: str) -> Path:
+    return RUN_LOGS / f"{label}.component.json"
+
+
+def validate_report_path(path: Path, label: str) -> Path:
+    if not re.fullmatch(r"fs-[A-Za-z0-9_.-]+", label):
+        raise ValueError("run label must be unique-looking and start with fs-")
+    absolute = path.absolute()
+    if absolute.parent != RUN_LOGS or absolute.name != f"{label}.component.json":
+        raise ValueError(f"report must be exactly {expected_report_path(label)}")
+    if not RUN_LOGS.is_dir() or RUN_LOGS.is_symlink() or RUN_LOGS.resolve() != RUN_LOGS:
+        raise RuntimeError("approved run-log parent must be an existing real directory")
+    if os.path.lexists(absolute):
+        raise FileExistsError(f"refusing to overwrite or follow existing report: {absolute}")
+    return absolute
+
+
+def write_report(path: Path, label: str, report: dict[str, Any]) -> None:
+    path = validate_report_path(path, label)
     encoded = json.dumps(report, indent=2, sort_keys=True, allow_nan=False) + "\n"
-    temporary = path.with_name(path.name + ".tmp")
-    temporary.write_text(encoded)
-    temporary.replace(path)
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+    flags |= getattr(os, "O_NOFOLLOW", 0)
+    descriptor = os.open(path, flags, 0o600)
+    with os.fdopen(descriptor, "w") as stream:
+        stream.write(encoded)
+        stream.flush()
+        os.fsync(stream.fileno())
 
 
 def functions_named(tree: ast.AST, name: str) -> list[ast.FunctionDef]:
@@ -148,13 +201,30 @@ def tensor_metrics(torch, actual, reference, tolerance: dict[str, float]) -> dic
     left = actual.detach().float()
     right = reference.detach().float()
     finite = bool((torch.isfinite(left).all() & torch.isfinite(right).all()).cpu().item())
-    difference = (left - right).abs()
+    signed_difference = left - right
+    difference = signed_difference.abs()
     maximum = float(difference.max().cpu().item())
     mean = float(difference.mean().cpu().item())
+    candidate_norm = float(torch.linalg.vector_norm(left.reshape(-1)).cpu().item())
+    reference_norm = float(torch.linalg.vector_norm(right.reshape(-1)).cpu().item())
+    error_norm = float(torch.linalg.vector_norm(signed_difference.reshape(-1)).cpu().item())
+    error_norm_ratio = error_norm / reference_norm if reference_norm > 0.0 else math.inf
+    candidate_norm_ratio = candidate_norm / reference_norm if reference_norm > 0.0 else math.inf
     limit = tolerance["atol"] + tolerance["rtol"] * right.abs()
     within = bool((difference <= limit).all().cpu().item())
+    norm_gate = (
+        math.isfinite(candidate_norm)
+        and math.isfinite(reference_norm)
+        and math.isfinite(error_norm_ratio)
+        and reference_norm >= tolerance["min_reference_norm"]
+        and candidate_norm > 0.0
+        and tolerance["min_candidate_norm_ratio"]
+        <= candidate_norm_ratio
+        <= tolerance["max_candidate_norm_ratio"]
+        and error_norm_ratio <= tolerance["max_error_norm_ratio"]
+    )
     return {
-        "passed": finite and within,
+        "passed": finite and within and norm_gate,
         "finite": finite,
         "shape_equal": True,
         "dtype_equal": True,
@@ -162,8 +232,150 @@ def tensor_metrics(torch, actual, reference, tolerance: dict[str, float]) -> dic
         "dtype": str(actual.dtype),
         "max_abs": maximum,
         "mean_abs": mean,
+        "candidate_l2_norm": candidate_norm,
+        "reference_l2_norm": reference_norm,
+        "error_l2_norm": error_norm,
+        "error_norm_ratio": error_norm_ratio,
+        "candidate_norm_ratio": candidate_norm_ratio,
+        "elementwise_within_tolerance": within,
+        "norm_gate_passed": norm_gate,
         **tolerance,
     }
+
+
+def host_metric_passes(actual: list[float], reference: list[float], tolerance: dict[str, float]) -> bool:
+    if len(actual) != len(reference):
+        return False
+    finite = all(math.isfinite(item) for item in actual + reference)
+    candidate_norm = math.sqrt(sum(item * item for item in actual))
+    reference_norm = math.sqrt(sum(item * item for item in reference))
+    error_norm = math.sqrt(sum((left - right) ** 2 for left, right in zip(actual, reference)))
+    if reference_norm <= 0.0:
+        return False
+    candidate_ratio = candidate_norm / reference_norm
+    error_ratio = error_norm / reference_norm
+    elementwise = all(
+        abs(left - right) <= tolerance["atol"] + tolerance["rtol"] * abs(right)
+        for left, right in zip(actual, reference)
+    )
+    return bool(
+        finite
+        and elementwise
+        and reference_norm >= tolerance["min_reference_norm"]
+        and candidate_norm > 0.0
+        and tolerance["min_candidate_norm_ratio"] <= candidate_ratio
+        <= tolerance["max_candidate_norm_ratio"]
+        and error_ratio <= tolerance["max_error_norm_ratio"]
+    )
+
+
+def metric_adversarial_self_test() -> dict[str, Any]:
+    """Prove each declared metric rejects degenerate and materially wrong tensors."""
+    cases: dict[str, Any] = {}
+    for index, (name, tolerance) in enumerate(TOLERANCES.items()):
+        scale = max(1.0, tolerance["min_reference_norm"])
+        reference = [scale * (1.0 + ((position * 17 + index * 11) % 31) / 17.0) for position in range(257)]
+        corrupt = list(reference)
+        corrupt[17] += max(10.0, 1000.0 * tolerance["atol"])
+        variants = {
+            "identical": list(reference),
+            "zero": [0.0] * len(reference),
+            "scaled_half": [item * 0.5 for item in reference],
+            "permuted": list(reversed(reference)),
+            "single_corruption": corrupt,
+            "nonfinite": list(reference),
+        }
+        variants["nonfinite"][3] = float("nan")
+        results = {
+            variant: host_metric_passes(value, reference, tolerance)
+            for variant, value in variants.items()
+        }
+        passed = results["identical"] and not any(
+            results[key] for key in results if key != "identical"
+        )
+        cases[name] = {"passed": passed, "results": results}
+    return {"passed": all(case["passed"] for case in cases.values()), "cases": cases}
+
+
+def git_head() -> str:
+    return subprocess.run(
+        ["git", "rev-parse", "HEAD"], cwd=ROOT, check=True, text=True, capture_output=True
+    ).stdout.strip()
+
+
+def identity_manifest(args, train_py: Path) -> dict[str, Any]:
+    environment_names = (
+        "NEURON_LOGICAL_NC_CONFIG", "NEURON_CC_FLAGS", "NEURON_COMPILE_CACHE_DIR",
+        "WORLD_SIZE", "LOCAL_WORLD_SIZE", "RANK", "LOCAL_RANK", "OMP_NUM_THREADS",
+        "MKL_NUM_THREADS", "PYTHONUNBUFFERED", "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION",
+        "TRAINIUM_COMPONENT_RUN_LABEL", "TRAINIUM_COMPONENT_EXPECTED_COMMIT",
+        "TRAINIUM_COMPONENT_EXPECTED_HOSTNAME", "TRAINIUM_FRESH_START_RUN_ID",
+    )
+    return {
+        "argv": sys.argv,
+        "run_label": args.run_label,
+        "git_commit": args.expected_commit,
+        "hostname": args.expected_hostname,
+        "seed": args.seed,
+        "host_threads": args.host_threads,
+        "candidate": {"path": str(train_py), "sha256": sha256(train_py)},
+        "files": {
+            "harness": {"path": str(HARNESS_PATH), "sha256": sha256(HARNESS_PATH)},
+            "runbook": {"path": str(RUNBOOK_PATH), "sha256": sha256(RUNBOOK_PATH)},
+            "proposal": {"path": str(PROPOSAL_PATH), "sha256": sha256(PROPOSAL_PATH)},
+        },
+        "environment": {name: os.environ.get(name) for name in environment_names},
+    }
+
+
+def validate_identity(args, train_py: Path, full: bool) -> dict[str, Any]:
+    if args.seed != EXPECTED_SEED:
+        raise ValueError(f"seed must be exactly {EXPECTED_SEED}")
+    if args.host_threads != EXPECTED_HOST_THREADS:
+        raise ValueError(f"host threads must be exactly {EXPECTED_HOST_THREADS}")
+    if train_py != CANONICAL_TRAIN:
+        raise ValueError(f"candidate must resolve exactly to {CANONICAL_TRAIN}")
+    if sha256(train_py) != EXPECTED_TRAIN_SHA256:
+        raise ValueError("candidate hash mismatch")
+    if not re.fullmatch(r"[0-9a-f]{40}", args.expected_commit):
+        raise ValueError("expected commit must be a full lowercase git SHA")
+    if git_head() != args.expected_commit:
+        raise ValueError("checked-out commit does not equal --expected-commit")
+    if socket.gethostname() != args.expected_hostname:
+        raise ValueError("hostname does not equal --expected-hostname")
+    if full and args.expected_hostname != EXPECTED_HARDWARE_HOSTNAME:
+        raise ValueError(f"full mode is pinned to hostname {EXPECTED_HARDWARE_HOSTNAME}")
+    if full and not re.fullmatch(FULL_LABEL_PATTERN, args.run_label):
+        raise ValueError("full-mode label does not match the authorized unique-label pattern")
+    expected_cache = f"/tmp/neuron-cache-{args.run_label}"
+    required = {
+        "NEURON_LOGICAL_NC_CONFIG": EXPECTED_LNC,
+        "NEURON_CC_FLAGS": EXPECTED_CC_FLAGS,
+        "NEURON_COMPILE_CACHE_DIR": expected_cache,
+        "WORLD_SIZE": str(EXPECTED_WORLD_SIZE),
+        "LOCAL_WORLD_SIZE": str(EXPECTED_WORLD_SIZE),
+        "OMP_NUM_THREADS": str(EXPECTED_HOST_THREADS),
+        "MKL_NUM_THREADS": str(EXPECTED_HOST_THREADS),
+        "PYTHONUNBUFFERED": "1",
+        "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+        "TRAINIUM_COMPONENT_RUN_LABEL": args.run_label,
+        "TRAINIUM_COMPONENT_EXPECTED_COMMIT": args.expected_commit,
+        "TRAINIUM_COMPONENT_EXPECTED_HOSTNAME": args.expected_hostname,
+    }
+    mismatches = {
+        name: {"expected": expected, "actual": os.environ.get(name)}
+        for name, expected in required.items() if os.environ.get(name) != expected
+    }
+    if mismatches:
+        raise RuntimeError(f"pinned environment mismatch: {json.dumps(mismatches, sort_keys=True)}")
+    rank = int(os.environ.get("RANK", "-1"))
+    local_rank = int(os.environ.get("LOCAL_RANK", "-1"))
+    if rank not in range(EXPECTED_WORLD_SIZE) or local_rank not in range(EXPECTED_WORLD_SIZE):
+        raise RuntimeError("RANK and LOCAL_RANK must each be in [0, 3]")
+    if full and os.environ.get("TRAINIUM_FRESH_START_RUN_ID") != args.run_label:
+        raise RuntimeError("missing/mismatched fresh_start_guard run identity")
+    validate_report_path(args.report, args.run_label)
+    return identity_manifest(args, train_py)
 
 
 def nested_exact(torch, left, right) -> bool:
@@ -198,10 +410,8 @@ def fused_mlp_gate(torch, candidate, device, seed: int) -> dict[str, Any]:
     batch, sequence, channels = MLP_SHAPE
     tokens = batch * sequence
     generator = torch.Generator(device="cpu").manual_seed(seed + 101)
-    x_host = torch.randn(MLP_SHAPE, generator=generator, dtype=torch.float32).mul_(0.5).bfloat16()
     up_host = torch.randn(MLP_HIDDEN, channels, generator=generator).mul_(0.02)
     down_host = torch.randn(channels, MLP_HIDDEN, generator=generator).mul_(0.02)
-    upstream_host = torch.randn(MLP_SHAPE, generator=generator).mul_(0.25).bfloat16()
     config = candidate.GPTConfig(
         sequence_len=sequence,
         vocab_size=VOCAB_SIZE,
@@ -220,68 +430,104 @@ def fused_mlp_gate(torch, candidate, device, seed: int) -> dict[str, Any]:
     mlp.train()
     mlp.c_fc.refresh_weight_cache(torch.bfloat16)
     mlp.c_proj.refresh_weight_cache(torch.bfloat16)
-    x = x_host.to(device).requires_grad_(True)
-    upstream = upstream_host.to(device)
-    output = mlp(x)
-    node_names = graph_node_names(output)
-    fused_node_names = [name for name in node_names if "FusedMLP" in name]
-    loss = (output.float() * upstream.float()).sum() / tokens
-    loss.backward()
-    synchronize(torch, device)
-    actual = {
-        "output": output.detach(),
-        "input_gradient": x.grad.detach(),
-        "up_gradient": mlp.c_fc.weight.grad.detach(),
-        "down_gradient": mlp.c_proj.weight.grad.detach(),
-    }
-
-    # Independent eager/autograd expression: no candidate helper, custom Function, or saved layout.
-    reference_x = x_host.to(device).requires_grad_(True)
     reference_up = up_host.to(device).requires_grad_(True)
     reference_down = down_host.to(device).requires_grad_(True)
-    hidden = F.relu(F.linear(reference_x, reference_up.to(torch.bfloat16)))
-    reference_output = F.linear(hidden.square(), reference_down.to(torch.bfloat16))
-    reference_loss = (reference_output.float() * upstream.float()).sum() / tokens
-    reference_loss.backward()
-    synchronize(torch, device)
-    reference = {
-        "output": reference_output.detach(),
-        "input_gradient": reference_x.grad.detach(),
-        "up_gradient": reference_up.grad.detach(),
-        "down_gradient": reference_down.grad.detach(),
-    }
-    metrics = {
-        name: tensor_metrics(torch, actual[name], reference[name], TOLERANCES[f"mlp_{name}"])
-        for name in actual
-    }
+    executions: list[dict[str, Any]] = []
+    cache_refresh: dict[str, Any] = {"performed_after_first_execution": False}
+    for execution in range(2):
+        x_host = torch.randn(MLP_SHAPE, generator=generator).mul_(0.5).bfloat16()
+        upstream_host = torch.randn(MLP_SHAPE, generator=generator).mul_(0.25).bfloat16()
+        x = x_host.to(device).requires_grad_(True)
+        upstream = upstream_host.to(device)
+        output = mlp(x)
+        fused_node_names = [name for name in graph_node_names(output) if "FusedMLP" in name]
+        loss = (output.float() * upstream.float()).sum() / tokens
+        loss.backward()
+        synchronize(torch, device)
+        actual = {
+            "output": output.detach(),
+            "input_gradient": x.grad.detach(),
+            "up_gradient": mlp.c_fc.weight.grad.detach(),
+            "down_gradient": mlp.c_proj.weight.grad.detach(),
+        }
+
+        # Independent eager/autograd expression: no candidate helper/custom Function/saved layout.
+        reference_x = x_host.to(device).requires_grad_(True)
+        hidden = F.relu(F.linear(reference_x, reference_up.to(torch.bfloat16)))
+        reference_output = F.linear(hidden.square(), reference_down.to(torch.bfloat16))
+        reference_loss = (reference_output.float() * upstream.float()).sum() / tokens
+        reference_loss.backward()
+        synchronize(torch, device)
+        reference = {
+            "output": reference_output.detach(),
+            "input_gradient": reference_x.grad.detach(),
+            "up_gradient": reference_up.grad.detach(),
+            "down_gradient": reference_down.grad.detach(),
+        }
+        metrics = {
+            name: tensor_metrics(torch, actual[name], reference[name], TOLERANCES[f"mlp_{name}"])
+            for name in actual
+        }
+        executions.append({
+            "execution": execution + 1,
+            "after_weight_update_and_cache_refresh": execution == 1,
+            "fused_autograd_nodes": fused_node_names,
+            "fused_branch_exercised": bool(fused_node_names),
+            "metrics": metrics,
+            "passed": bool(fused_node_names) and all(metric["passed"] for metric in metrics.values()),
+        })
+        if execution == 0:
+            before_cache = {
+                "up": mlp.c_fc._cached_weight.detach().clone(),
+                "down": mlp.c_proj._cached_weight.detach().clone(),
+            }
+            with torch.no_grad():
+                mlp.c_fc.weight.add_(mlp.c_fc.weight.grad, alpha=-0.01)
+                mlp.c_proj.weight.add_(mlp.c_proj.weight.grad, alpha=-0.01)
+                reference_up.add_(reference_up.grad, alpha=-0.01)
+                reference_down.add_(reference_down.grad, alpha=-0.01)
+            mlp.c_fc.weight.grad = None
+            mlp.c_proj.weight.grad = None
+            reference_up.grad = None
+            reference_down.grad = None
+            mlp.c_fc.refresh_weight_cache(torch.bfloat16)
+            mlp.c_proj.refresh_weight_cache(torch.bfloat16)
+            synchronize(torch, device)
+            cache_refresh = {
+                "performed_after_first_execution": True,
+                "up_cache_changed": not bool(before_cache["up"].equal(mlp.c_fc._cached_weight)),
+                "down_cache_changed": not bool(before_cache["down"].equal(mlp.c_proj._cached_weight)),
+                "up_cache_matches_updated_master": bool(
+                    mlp.c_fc._cached_weight.equal(mlp.c_fc.weight.detach().to(torch.bfloat16))
+                ),
+                "down_cache_matches_updated_master": bool(
+                    mlp.c_proj._cached_weight.equal(mlp.c_proj.weight.detach().to(torch.bfloat16))
+                ),
+            }
+            del before_cache
+        del x, upstream, output, loss, actual, reference_x, hidden, reference_output
+        del reference_loss, reference
+        gc.collect()
+
     branch = {
         "training": mlp.training,
-        "input_dtype": str(x.dtype),
         "tokens": tokens,
         "tile": min(512, tokens // 2),
         "candidate_trigger_shape": list(MLP_SHAPE),
-        "cached_bf16_weights": (
-            mlp.c_fc._cached_weight is not None
-            and mlp.c_proj._cached_weight is not None
-            and mlp.c_fc._cached_weight.dtype == torch.bfloat16
-            and mlp.c_proj._cached_weight.dtype == torch.bfloat16
-        ),
-        "fused_autograd_nodes": fused_node_names,
-        "fused_branch_exercised": bool(fused_node_names),
+        "compiled_execution_count": len(executions),
+        "later_execution_after_update": executions[1]["after_weight_update_and_cache_refresh"],
+        "cache_refresh": cache_refresh,
     }
-    passed = all(metric["passed"] for metric in metrics.values()) and all(
-        (
-            branch["training"],
-            branch["input_dtype"] == "torch.bfloat16",
-            branch["tokens"] == 32768,
-            branch["tile"] == 512,
-            branch["cached_bf16_weights"],
-            branch["fused_branch_exercised"],
-        )
+    passed = (
+        len(executions) == 2
+        and all(item["passed"] for item in executions)
+        and branch["training"]
+        and tokens == 32768
+        and branch["tile"] == 512
+        and all(cache_refresh.values())
     )
-    result = {"passed": passed, "branch": branch, "metrics": metrics}
-    del mlp, x, output, loss, reference_x, reference_up, reference_down, hidden, reference_output
-    del reference_loss, upstream, actual, reference
+    result = {"passed": passed, "branch": branch, "executions": executions}
+    del mlp, reference_up, reference_down
     gc.collect()
     synchronize(torch, device)
     return result
@@ -318,75 +564,88 @@ def adaptive_ce_case(torch, candidate, device, seed: int, rows: int) -> dict[str
     if candidate.selected_lanes(rows) != expected_lanes:
         raise AssertionError(f"selected_lanes({rows}) did not return {expected_lanes}")
     generator = torch.Generator(device="cpu").manual_seed(seed + 200 + rows)
-    logits_host = torch.randn(rows, VOCAB_SIZE, generator=generator).mul_(6.0)
-    targets_host = torch.randint(VOCAB_SIZE, (rows,), generator=generator)
-    targets_host[:4] = torch.tensor([0, VOCAB_SIZE - 1, VOCAB_SIZE // 2 - 1, VOCAB_SIZE // 2])
-    upstream_host = torch.randn(rows, generator=generator).mul_(0.25)
     original_forward = candidate._softcap_ce_fwd_native
     original_backward = candidate._softcap_ce_bwd_native
     forward_probe = GridProbe(original_forward, "forward")
     backward_probe = GridProbe(original_backward, "backward")
     candidate._softcap_ce_fwd_native = forward_probe
     candidate._softcap_ce_bwd_native = backward_probe
+    executions: list[dict[str, Any]] = []
     try:
-        logits = logits_host.to(device).requires_grad_(True)
-        targets = targets_host.to(device)
-        upstream = upstream_host.to(device)
-        loss = candidate.softcap_cross_entropy(logits, targets, "none")
-        node_names = graph_node_names(loss)
-        direct_nodes = [name for name in node_names if "SoftcapCrossEntropyNKI" in name]
-        gradient, = torch.autograd.grad(loss, logits, grad_outputs=upstream)
-        synchronize(torch, device)
+        for execution in range(2):
+            logits_host = torch.randn(rows, VOCAB_SIZE, generator=generator).mul_(6.0)
+            targets_host = torch.randint(VOCAB_SIZE, (rows,), generator=generator)
+            targets_host[:4] = torch.tensor(
+                [0, VOCAB_SIZE - 1, VOCAB_SIZE // 2 - 1, VOCAB_SIZE // 2]
+            )
+            upstream_host = torch.randn(rows, generator=generator).mul_(0.25)
+            logits = logits_host.to(device).requires_grad_(True)
+            targets = targets_host.to(device)
+            upstream = upstream_host.to(device)
+            loss = candidate.softcap_cross_entropy(logits, targets, "none")
+            direct_nodes = [
+                name for name in graph_node_names(loss) if "SoftcapCrossEntropyNKI" in name
+            ]
+            gradient, = torch.autograd.grad(loss, logits, grad_outputs=upstream)
+            synchronize(torch, device)
+
+            # Independent native PyTorch softcap15 CE/autograd reference.
+            reference_logits = logits_host.to(device).requires_grad_(True)
+            reference_targets = targets_host.to(device)
+            capped = 15.0 * torch.tanh(reference_logits / 15.0)
+            reference_loss = F.cross_entropy(capped, reference_targets, reduction="none")
+            reference_gradient, = torch.autograd.grad(
+                reference_loss, reference_logits, grad_outputs=upstream_host.to(device)
+            )
+            synchronize(torch, device)
+            metrics = {
+                "loss": tensor_metrics(
+                    torch, loss.detach(), reference_loss.detach(), TOLERANCES["ce_loss"]
+                ),
+                "gradient": tensor_metrics(
+                    torch, gradient.detach(), reference_gradient.detach(), TOLERANCES["ce_gradient"]
+                ),
+            }
+            executions.append({
+                "execution": execution + 1,
+                "direct_autograd_nodes": direct_nodes,
+                "direct_autograd_exercised": bool(direct_nodes),
+                "metrics": metrics,
+                "passed": bool(direct_nodes) and all(metric["passed"] for metric in metrics.values()),
+            })
+            del logits, targets, upstream, loss, gradient, reference_logits, reference_targets
+            del capped, reference_loss, reference_gradient
+            gc.collect()
     finally:
         candidate._softcap_ce_fwd_native = original_forward
         candidate._softcap_ce_bwd_native = original_backward
-
-    # Independent native PyTorch softcap15 CE/autograd reference.
-    reference_logits = logits_host.to(device).requires_grad_(True)
-    reference_targets = targets_host.to(device)
-    capped = 15.0 * torch.tanh(reference_logits / 15.0)
-    reference_loss = F.cross_entropy(capped, reference_targets, reduction="none")
-    reference_gradient, = torch.autograd.grad(
-        reference_loss,
-        reference_logits,
-        grad_outputs=upstream_host.to(device),
-    )
-    synchronize(torch, device)
-    metrics = {
-        "loss": tensor_metrics(torch, loss.detach(), reference_loss.detach(), TOLERANCES["ce_loss"]),
-        "gradient": tensor_metrics(
-            torch, gradient.detach(), reference_gradient.detach(), TOLERANCES["ce_gradient"]
-        ),
-    }
     wiring = {
         "rows": rows,
         "vocab": VOCAB_SIZE,
         "expected_lanes": expected_lanes,
         "selected_lanes": candidate.selected_lanes(rows),
-        "direct_autograd_nodes": direct_nodes,
-        "direct_autograd_exercised": bool(direct_nodes),
+        "compiled_execution_count": len(executions),
+        "later_execution_exercised": len(executions) == 2 and executions[1]["passed"],
         "wrapped_forward_calls": forward_probe.calls,
         "wrapped_backward_calls": backward_probe.calls,
-        "wrapped_forward_exercised_once": len(forward_probe.calls) == 1,
-        "wrapped_backward_exercised_once": len(backward_probe.calls) == 1,
+        "wrapped_forward_exercised_twice": len(forward_probe.calls) == 2,
+        "wrapped_backward_exercised_twice": len(backward_probe.calls) == 2,
         "wrapped_forward_selected_expected_grid": [call["lanes"] for call in forward_probe.calls]
-        == [expected_lanes],
+        == [expected_lanes, expected_lanes],
         "wrapped_backward_selected_expected_grid": [call["lanes"] for call in backward_probe.calls]
-        == [expected_lanes],
+        == [expected_lanes, expected_lanes],
     }
-    passed = all(metric["passed"] for metric in metrics.values()) and all(
+    passed = len(executions) == 2 and all(item["passed"] for item in executions) and all(
         (
             wiring["selected_lanes"] == expected_lanes,
-            wiring["direct_autograd_exercised"],
-            wiring["wrapped_forward_exercised_once"],
-            wiring["wrapped_backward_exercised_once"],
+            wiring["later_execution_exercised"],
+            wiring["wrapped_forward_exercised_twice"],
+            wiring["wrapped_backward_exercised_twice"],
             wiring["wrapped_forward_selected_expected_grid"],
             wiring["wrapped_backward_selected_expected_grid"],
         )
     )
-    result = {"passed": passed, "wiring": wiring, "metrics": metrics}
-    del logits, targets, upstream, loss, gradient, reference_logits, reference_targets, capped
-    del reference_loss, reference_gradient
+    result = {"passed": passed, "wiring": wiring, "executions": executions}
     gc.collect()
     synchronize(torch, device)
     return result
@@ -515,43 +774,75 @@ def optimizer_gate(torch, candidate, device, seed: int, rank: int, world_size: i
     owned_named = list(owned_model.named_parameters())
     if [name for name, _parameter in reference_named] != [name for name, _parameter in owned_named]:
         raise AssertionError("optimizer fixture parameter names differ")
+    initial_reference = {name: parameter.detach().clone() for name, parameter in reference_named}
+    initial_owned = {name: parameter.detach().clone() for name, parameter in owned_named}
     gradient_generator = torch.Generator(device="cpu").manual_seed(seed + 302)
-    for (_name_a, reference_parameter), (_name_b, owned_parameter) in zip(reference_named, owned_named):
-        host_gradient = torch.randn(
-            reference_parameter.shape,
-            generator=gradient_generator,
-            dtype=torch.float32,
-        ).mul_(0.01)
-        device_gradient = host_gradient.to(device)
-        reference_parameter.grad = device_gradient
-        owned_parameter.grad = device_gradient.clone()
-    for reference_group, owned_group in zip(reference_optimizer.param_groups, base_optimizer.param_groups):
-        for group in (reference_group, owned_group):
-            group["lr"] = group["initial_lr"] * 0.5
-            if group["kind"] == "muon":
-                group["momentum"] = 0.9
-                group["weight_decay"] = 0.1
-                group["beta2"] = 0.9
-    reference_optimizer.step(update_adamw=True)
-    owner.step(update_adamw=True)
-    synchronize(torch, device)
-    parameter_metrics = {
-        name_a: tensor_metrics(
-            torch,
-            owned_parameter,
-            reference_parameter,
-            TOLERANCES["optimizer_parameter"],
-        )
-        for (name_a, reference_parameter), (_name_b, owned_parameter) in zip(
+    schedules = (
+        {"lr_factor": 0.5, "momentum": 0.90, "weight_decay": 0.10, "beta2": 0.90},
+        {"lr_factor": 0.35, "momentum": 0.92, "weight_decay": 0.05, "beta2": 0.88},
+    )
+    executions: list[dict[str, Any]] = []
+    for step_index, schedule in enumerate(schedules):
+        for (_name_a, reference_parameter), (_name_b, owned_parameter) in zip(
             reference_named, owned_named
-        )
-    }
+        ):
+            host_gradient = torch.randn(
+                reference_parameter.shape, generator=gradient_generator, dtype=torch.float32
+            ).mul_(0.01 * (step_index + 1))
+            device_gradient = host_gradient.to(device)
+            reference_parameter.grad = device_gradient
+            owned_parameter.grad = device_gradient.clone()
+        for reference_group, owned_group in zip(
+            reference_optimizer.param_groups, base_optimizer.param_groups
+        ):
+            for group in (reference_group, owned_group):
+                group["lr"] = group["initial_lr"] * schedule["lr_factor"]
+                if group["kind"] == "muon":
+                    for key in ("momentum", "weight_decay", "beta2"):
+                        group[key] = schedule[key]
+        reference_optimizer.step(update_adamw=True)
+        owner.step(update_adamw=True)
+        synchronize(torch, device)
+        parameter_metrics = {}
+        update_metrics = {}
+        for (name, reference_parameter), (_owned_name, owned_parameter) in zip(
+            reference_named, owned_named
+        ):
+            parameter_metrics[name] = tensor_metrics(
+                torch, owned_parameter, reference_parameter, TOLERANCES["optimizer_parameter"]
+            )
+            update_metrics[name] = tensor_metrics(
+                torch,
+                owned_parameter.detach() - initial_owned[name],
+                reference_parameter.detach() - initial_reference[name],
+                TOLERANCES["optimizer_update"],
+            )
+        executions.append({
+            "step": step_index + 1,
+            "schedule": schedule,
+            "parameter_metrics_passed": all(item["passed"] for item in parameter_metrics.values()),
+            "update_delta_metrics_passed": all(item["passed"] for item in update_metrics.values()),
+            "max_parameter_abs": max(item["max_abs"] for item in parameter_metrics.values()),
+            "max_update_error_norm_ratio": max(
+                item["error_norm_ratio"] for item in update_metrics.values()
+            ),
+        })
     worst_parameter = max(parameter_metrics, key=lambda name: parameter_metrics[name]["max_abs"])
+    replicated_parameter_hasher = hashlib.sha256()
+    for name, parameter in owned_named:
+        replicated_parameter_hasher.update(name.encode())
+        replicated_parameter_hasher.update(str(parameter.dtype).encode())
+        replicated_parameter_hasher.update(str(tuple(parameter.shape)).encode())
+        replicated_parameter_hasher.update(parameter.detach().float().cpu().numpy().tobytes())
     parameter_summary = {
-        "passed": all(metric["passed"] for metric in parameter_metrics.values()),
+        "passed": all(item["parameter_metrics_passed"] for item in executions),
+        "update_deltas_passed": all(item["update_delta_metrics_passed"] for item in executions),
+        "executions": executions,
+        "later_update_exercised": len(executions) == 2,
         "count": len(parameter_metrics),
         "worst_parameter": worst_parameter,
         "max_abs": parameter_metrics[worst_parameter]["max_abs"],
+        "replicated_parameter_digest": replicated_parameter_hasher.hexdigest(),
         **TOLERANCES["optimizer_parameter"],
     }
     schedule_propagated = all(
@@ -602,11 +893,13 @@ def optimizer_gate(torch, candidate, device, seed: int, rank: int, world_size: i
         and all(value is True or key in {"entries", "parameters", "expected_slots", "digest", "summary"}
                 for key, value in plan.items())
         and parameter_summary["passed"]
+        and parameter_summary["update_deltas_passed"]
+        and parameter_summary["later_update_exercised"]
         and coverage["passed"]
         and all(value is True or key == "schema" for key, value in schema.items())
         and roundtrip_exact
         and bad_schema_rejected
-        and owner.calls == 1
+        and owner.calls == 2
         and schedule_propagated
         and state["send_finite"]
         and state["received_finite"]
@@ -619,7 +912,8 @@ def optimizer_gate(torch, candidate, device, seed: int, rank: int, world_size: i
         "state": state,
     }
     del reference_model, owned_model, reload_model, reference_optimizer, base_optimizer
-    del owner, reload_optimizer, reload_owner, payload, parameter_metrics
+    del owner, reload_optimizer, reload_owner, payload, parameter_metrics, update_metrics
+    del initial_reference, initial_owned
     gc.collect()
     synchronize(torch, device)
     return result
@@ -645,25 +939,135 @@ def guarded_gate(name: str, function) -> dict[str, Any]:
 def numeric_metric(result: dict[str, Any], path: tuple[str, ...]) -> float | None:
     value: Any = result
     for key in path:
-        if not isinstance(value, dict) or key not in value:
+        if isinstance(value, dict) and key in value:
+            value = value[key]
+        elif isinstance(value, list) and key.isdigit() and int(key) < len(value):
+            value = value[int(key)]
+        else:
             return None
-        value = value[key]
     if isinstance(value, (int, float)) and math.isfinite(float(value)):
         return float(value)
     return None
 
 
-def run_neuron(args, train_py: Path, static: dict[str, Any]) -> tuple[dict[str, Any], int]:
+def provision_fresh_cache(args, identity: dict[str, Any]) -> dict[str, Any]:
+    cache = Path(os.environ["NEURON_COMPILE_CACHE_DIR"])
+    marker = cache / ".direct-component-identity.json"
+    payload = {
+        "run_label": args.run_label,
+        "git_commit": args.expected_commit,
+        "hostname": args.expected_hostname,
+        "candidate_sha256": EXPECTED_TRAIN_SHA256,
+        "harness_sha256": identity["files"]["harness"]["sha256"],
+    }
+    local_rank = int(os.environ["LOCAL_RANK"])
+    if local_rank == 0:
+        if os.path.lexists(cache):
+            raise FileExistsError(f"fresh per-run compile cache already exists: {cache}")
+        os.mkdir(cache, 0o700)
+        flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0)
+        descriptor = os.open(marker, flags, 0o600)
+        with os.fdopen(descriptor, "w") as stream:
+            json.dump(payload, stream, sort_keys=True)
+            stream.flush()
+            os.fsync(stream.fileno())
+    deadline = time.monotonic() + 30.0
+    observed = None
+    while time.monotonic() < deadline:
+        try:
+            if marker.is_file() and not marker.is_symlink():
+                observed = json.loads(marker.read_text())
+                if observed == payload:
+                    break
+        except (json.JSONDecodeError, OSError):
+            pass
+        time.sleep(0.1)
+    if not cache.is_dir() or cache.is_symlink() or marker.is_symlink() or not marker.is_file():
+        raise RuntimeError("fresh compile-cache identity was not safely created")
+    if observed != payload:
+        raise RuntimeError("fresh compile-cache identity mismatch")
+    return {"path": str(cache), "marker": str(marker), "identity": payload, "fresh": True}
+
+
+def outer_receipts(args) -> dict[str, Any]:
+    suffixes = ("launch.json", "job.json", "preflight.json")
+    receipts: dict[str, Any] = {}
+    for suffix in suffixes:
+        path = RUN_LOGS / f"{args.run_label}.{suffix}"
+        if path.is_symlink() or not path.is_file():
+            raise RuntimeError(f"required fresh-start receipt missing/unsafe: {path}")
+        payload = json.loads(path.read_text())
+        receipts[suffix] = {"path": str(path), "sha256": sha256(path)}
+        if suffix != "preflight.json":
+            if payload.get("label") != args.run_label:
+                raise RuntimeError(f"{suffix} label mismatch")
+            if payload.get("expected_commit") != args.expected_commit:
+                raise RuntimeError(f"{suffix} commit mismatch")
+            if (
+                payload.get("git_commit") != args.expected_commit
+                or payload.get("hostname") != args.expected_hostname
+                or payload.get("remote") != str(ROOT)
+                or payload.get("source_dirty") is not False
+            ):
+                raise RuntimeError(f"{suffix} immutable checkout identity mismatch")
+            recorded_hashes = payload.get("source_sha256", {})
+            required_hashes = {
+                "submissions/dense6x1024_direct_review/train.py": EXPECTED_TRAIN_SHA256,
+                str(HARNESS_PATH.relative_to(ROOT)): sha256(HARNESS_PATH),
+                str(RUNBOOK_PATH.relative_to(ROOT)): sha256(RUNBOOK_PATH),
+                str(PROPOSAL_PATH.relative_to(ROOT)): sha256(PROPOSAL_PATH),
+            }
+            if any(recorded_hashes.get(path) != digest for path, digest in required_hashes.items()):
+                raise RuntimeError(f"{suffix} fingerprint mismatch")
+            environment = payload.get("environment", {})
+            for name in (
+                "NEURON_LOGICAL_NC_CONFIG", "NEURON_CC_FLAGS", "NEURON_COMPILE_CACHE_DIR",
+                "TRAINIUM_COMPONENT_RUN_LABEL", "TRAINIUM_COMPONENT_EXPECTED_COMMIT",
+                "TRAINIUM_COMPONENT_EXPECTED_HOSTNAME",
+            ):
+                if environment.get(name) != os.environ.get(name):
+                    raise RuntimeError(f"{suffix} environment mismatch for {name}")
+            command = payload.get("command", [])
+            command_text = "\0".join(str(item) for item in command)
+            required_tokens = (
+                "timeout", "torchrun", "--nproc_per_node=4", str(HARNESS_PATH),
+                str(CANONICAL_TRAIN), str(args.report), args.run_label, args.expected_commit,
+                args.expected_hostname,
+            )
+            if not all(token in command_text for token in required_tokens):
+                raise RuntimeError(f"{suffix} command is not the exact manifested component launch")
+        else:
+            if (
+                payload.get("label") != args.run_label
+                or payload.get("remote") != str(ROOT)
+                or payload.get("passed") is not True
+            ):
+                raise RuntimeError("preflight receipt does not prove a passing matching preflight")
+            if payload.get("hostname") != args.expected_hostname:
+                raise RuntimeError("preflight hostname mismatch")
+    receipts["process.json"] = {
+        "path": str(RUN_LOGS / f"{args.run_label}.process.json"),
+        "status": "written_by_guard_after_workload_exit",
+    }
+    receipts["postflight.json"] = {
+        "path": str(RUN_LOGS / f"{args.run_label}.postflight.json"),
+        "status": "pending_until_guard_cleanup_after_workload_exit",
+    }
+    receipts["log"] = {"path": str(RUN_LOGS / f"{args.run_label}.log")}
+    return receipts
+
+
+def run_neuron(
+    args, train_py: Path, static: dict[str, Any], identity: dict[str, Any]
+) -> tuple[dict[str, Any], int]:
     import torch
     import torch.distributed as dist
 
-    if os.environ.get("NEURON_LOGICAL_NC_CONFIG") != EXPECTED_LNC:
-        raise RuntimeError(f"NEURON_LOGICAL_NC_CONFIG must be {EXPECTED_LNC}")
-    if int(os.environ.get("WORLD_SIZE", "0")) != EXPECTED_WORLD_SIZE:
-        raise RuntimeError("launch must use torchrun --nproc_per_node=4")
     if dist.is_initialized():
         raise RuntimeError("process group was already initialized")
     torch.set_num_threads(args.host_threads)
+    receipts = outer_receipts(args)
+    cache_identity = provision_fresh_cache(args, identity)
     candidate = import_candidate(train_py)
     if not getattr(candidate, "_HAS_NKI", False):
         raise RuntimeError("candidate did not import the native NKI stack")
@@ -724,15 +1128,38 @@ def run_neuron(args, train_py: Path, static: dict[str, Any]) -> tuple[dict[str, 
             bool(gathered_plan_rows[index].equal(gathered_plan_rows[0]))
             for index in range(1, world_size)
         )
+        parameter_digest = optimizer.get("parameter_reference", {}).get(
+            "replicated_parameter_digest"
+        )
+        parameter_digest_available = isinstance(parameter_digest, str) and len(parameter_digest) == 64
+        parameter_bytes = bytes.fromhex(parameter_digest) if parameter_digest_available else bytes(32)
+        parameter_input = torch.tensor(list(parameter_bytes), dtype=torch.float32, device=device)
+        gathered_parameters = torch.empty(32 * world_size, dtype=torch.float32, device=device)
+        dist.all_gather_into_tensor(gathered_parameters, parameter_input)
+        parameter_rows = gathered_parameters.cpu().reshape(world_size, 32)
+        parameter_digests_agree = parameter_digest_available and all(
+            bool(parameter_rows[index].equal(parameter_rows[0])) for index in range(1, world_size)
+        )
+        common_identity = json.loads(json.dumps(identity))
+        common_identity["environment"].pop("RANK", None)
+        common_identity["environment"].pop("LOCAL_RANK", None)
+        identity_digest = hashlib.sha256(
+            json.dumps(common_identity, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()
+        identity_input = torch.tensor(list(bytes.fromhex(identity_digest)), dtype=torch.float32, device=device)
+        gathered_identity = torch.empty(32 * world_size, dtype=torch.float32, device=device)
+        dist.all_gather_into_tensor(gathered_identity, identity_input)
+        identity_rows = gathered_identity.cpu().reshape(world_size, 32)
+        identity_agrees = all(
+            bool(identity_rows[index].equal(identity_rows[0])) for index in range(1, world_size)
+        )
         metric_paths = (
-            ("fused_mlp", "metrics", "output", "max_abs"),
-            ("fused_mlp", "metrics", "input_gradient", "max_abs"),
-            ("fused_mlp", "metrics", "up_gradient", "max_abs"),
-            ("fused_mlp", "metrics", "down_gradient", "max_abs"),
-            ("adaptive_ce", "cases", "128", "metrics", "loss", "max_abs"),
-            ("adaptive_ce", "cases", "128", "metrics", "gradient", "max_abs"),
-            ("adaptive_ce", "cases", "512", "metrics", "loss", "max_abs"),
-            ("adaptive_ce", "cases", "512", "metrics", "gradient", "max_abs"),
+            ("fused_mlp", "executions", "1", "metrics", "output", "max_abs"),
+            ("fused_mlp", "executions", "1", "metrics", "input_gradient", "max_abs"),
+            ("adaptive_ce", "cases", "128", "executions", "1", "metrics", "loss", "max_abs"),
+            ("adaptive_ce", "cases", "128", "executions", "1", "metrics", "gradient", "max_abs"),
+            ("adaptive_ce", "cases", "512", "executions", "1", "metrics", "loss", "max_abs"),
+            ("adaptive_ce", "cases", "512", "executions", "1", "metrics", "gradient", "max_abs"),
             ("owned_optimizer", "parameter_reference", "max_abs"),
         )
         values = [numeric_metric(local_report, path) for path in metric_paths]
@@ -757,10 +1184,16 @@ def run_neuron(args, train_py: Path, static: dict[str, Any]) -> tuple[dict[str, 
             },
             "metrics_available_on_all_ranks": all(int(count) == world_size for count in available.cpu().tolist()),
             "ownership_plan_digest_all_ranks": plan_digests_agree,
+            "replicated_parameter_digest": parameter_digest,
+            "replicated_parameter_digest_all_ranks": parameter_digests_agree,
+            "identity_digest": identity_digest,
+            "identity_digest_all_ranks": identity_agrees,
             "all_ranks_passed": (
                 all(count == world_size for count in status_counts)
                 and all(int(count) == world_size for count in available.cpu().tolist())
                 and plan_digests_agree
+                and parameter_digests_agree
+                and identity_agrees
             ),
         }
         print(
@@ -792,7 +1225,9 @@ def run_neuron(args, train_py: Path, static: dict[str, Any]) -> tuple[dict[str, 
     report = {
         "schema": "dense6x1024-direct-neuron-component-v1",
         "scope": "standalone real-Neuron component gate; no data, training, scoring, or quality verdict",
-        "candidate": {"path": str(train_py), "sha256": sha256(train_py)},
+        "identity": identity,
+        "fresh_compile_cache": cache_identity,
+        "outer_receipts": receipts,
         "static_wiring": static,
         "tolerances": TOLERANCES,
         "expected_environment": {
@@ -813,12 +1248,15 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--train-py", type=Path, required=True)
     parser.add_argument("--report", type=Path, required=True)
+    parser.add_argument("--run-label", required=True)
+    parser.add_argument("--expected-commit", required=True)
+    parser.add_argument("--expected-hostname", required=True)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--host-threads", type=int, default=4)
     parser.add_argument(
         "--static-only",
         action="store_true",
-        help="Validate the pinned source/direct wiring without importing torch or touching hardware.",
+        help="Validate pins, source wiring, and CPU adversarial metric rejection; no Neuron use.",
     )
     return parser.parse_args()
 
@@ -826,9 +1264,14 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     train_py = args.train_py.resolve()
+    args.report = args.report.absolute()
     if not train_py.is_file():
         raise FileNotFoundError(train_py)
+    identity = validate_identity(args, train_py, full=not args.static_only)
     static = static_wiring_checks(train_py)
+    adversarial = metric_adversarial_self_test()
+    static["adversarial_metric_rejection"] = adversarial
+    static["passed"] = static["passed"] and adversarial["passed"]
     if not static["passed"]:
         report = {
             "schema": "dense6x1024-direct-neuron-component-v1",
@@ -836,25 +1279,25 @@ def main() -> int:
             "static_wiring": static,
             "passed": False,
         }
-        write_report(args.report.resolve(), report)
+        write_report(args.report, args.run_label, report)
         print("DIRECT_NEURON_COMPONENT " + json.dumps(report, sort_keys=True), flush=True)
         return 1
     if args.static_only:
         report = {
             "schema": "dense6x1024-direct-neuron-component-v1",
             "mode": "static-only",
-            "candidate": {"path": str(train_py), "sha256": sha256(train_py)},
+            "identity": identity,
             "static_wiring": static,
             "tolerances": TOLERANCES,
             "passed": True,
             "qualification": "No Neuron operation was executed.",
         }
-        write_report(args.report.resolve(), report)
+        write_report(args.report, args.run_label, report)
         print("DIRECT_NEURON_COMPONENT " + json.dumps(report, sort_keys=True), flush=True)
         return 0
-    report, exit_code = run_neuron(args, train_py, static)
+    report, exit_code = run_neuron(args, train_py, static, identity)
     if int(os.environ.get("RANK", "-1")) == 0:
-        write_report(args.report.resolve(), report)
+        write_report(args.report, args.run_label, report)
         print("DIRECT_NEURON_COMPONENT " + json.dumps(report, sort_keys=True), flush=True)
     return exit_code
 
@@ -873,10 +1316,13 @@ if __name__ == "__main__":
             "fatal_error": str(error),
             "traceback": traceback.format_exc(limit=16),
         }
-        if failure["rank"] in (-1, 0) and "--report" in sys.argv:
+        if failure["rank"] in (-1, 0) and "--report" in sys.argv and "--run-label" in sys.argv:
             try:
                 report_index = sys.argv.index("--report") + 1
-                write_report(Path(sys.argv[report_index]).resolve(), failure)
+                label_index = sys.argv.index("--run-label") + 1
+                write_report(
+                    Path(sys.argv[report_index]).absolute(), sys.argv[label_index], failure
+                )
             except Exception as report_error:
                 failure["report_write_error"] = f"{type(report_error).__name__}: {report_error}"
         print("DIRECT_NEURON_COMPONENT_FATAL " + json.dumps(failure, sort_keys=True), flush=True)
