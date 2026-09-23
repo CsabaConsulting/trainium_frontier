@@ -1,0 +1,34 @@
+{
+  "proposal_id": "20260923-dense6x1024-matrixlr-cohort",
+  "status": "approved_for_two_development_runs_not_launched",
+  "hypothesis": "Increasing only MATRIX_LR from 0.02 to 0.025 may improve 30-minute public val_bpb relative to an exact same-day cold repeat of the frozen 9173 package.",
+  "single_causal_change": "Candidate changes exactly MATRIX_LR 0.02 to 0.025; control is the exact frozen 9173 package.",
+  "control": {
+    "host": "trn22",
+    "label": "fs-20260923-dense6x1024-9173-cold-repeat-r1",
+    "package": "submissions/dense6x1024_lean_review",
+    "train_sha256": "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344"
+  },
+  "candidate": {
+    "host": "trn21",
+    "label": "fs-20260923-dense6x1024-matrixlr025-r1",
+    "package": "submissions/dense6x1024_lean_review_matrixlr025",
+    "train_sha256": "abdc8372808489a2bdf94885922aa12e7173b5a1dc4d91cab1bd874d2573add8"
+  },
+  "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public",
+  "shared_contract": {
+    "seed": 42,
+    "training": "full 1800-second competition budget; no smoke",
+    "eval": "fresh process, prepare.py eval-public, neuron, batch 1, seq_len 1024, 20971520 tokens",
+    "host_rule": "one run per host with full fresh-start preflight/postflight",
+    "cache_rule": "unique empty job-owned SDK caches",
+    "retention": "archive the complete train/eval sandboxes including checkpoint before any checkpoint prune; this implementation provides no prune operation"
+  },
+  "abort_conditions": [
+    "Any package hash, launch command, authorization hash, host assignment, seed, or protected source hash differs",
+    "Either host is not clean and idle or fails the experiment protocol",
+    "Any smoke, extra flag, concurrent device job, checkpoint deletion, or leaderboard submission is attempted",
+    "Training, checkpoint, fresh-process evaluation, archive, or postflight fails"
+  ],
+  "human_approval": "Active human conversation approved exactly these two development jobs on 2026-09-23; no leaderboard submission."
+}

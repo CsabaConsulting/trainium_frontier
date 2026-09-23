@@ -1,0 +1,44 @@
+--- lean
++++ lean_review
+@@ -1,39 +1,5 @@
+ def _muon_lr_g(lr, g, lr_fp32: bool=False):
+-    """`lr * g`, computed the way a 0-dim `lr` computes it whatever `lr`'s shape.
+-
+-    Plan §11.1 item 3 makes `lr` a [K, 1, 1] operand instead of a 0-dim one, and that flips
+-    PyTorch's type promotion. `g` is bf16 here (the Newton-Schulz iterate) while `lr` is fp32:
+-
+-      * 0-dim `lr`  -> same-category, so the 0-dim operand's dtype loses. Common dtype is bf16, and
+-        TensorIterator CASTS lr to bf16 before multiplying. The product is bf16 of a bf16 lr.
+-      * [K,1,1] `lr` -> both dimensioned, so common dtype is fp32: lr keeps its full precision and
+-        the product comes out fp32.
+-
+-    Left alone, the per-depth arm would therefore also carry a silent precision UPGRADE of the
+-    weight update -- roughly 0.4% of relative lr accuracy recovered -- riding along with the change
+-    being measured, on the arm least able to afford a confound. Measured, not theorised:
+-    research/scratch/sched_tricks_probe.py intercepts `_muon_math` and shows every scalar operand
+-    bit-identical and only `w_out` differing, by ~3e-5 on fp32 weights, with neutral multipliers.
+-
+-    So the cast happens BEFORE the multiply, not after: rounding the fp32 product back to bf16 is
+-    NOT the same number, because the 0-dim path rounds lr first and the product second. This is what
+-    makes the neutral-multiplier case in research/scratch/sched_tricks_equiv.py bitwise.
+-
+-    Recorded while here, as a separate matter: the locked path really does round lr to bf16 before
+-    scaling the update, i.e. every Muon group's effective lr carries up to ~0.4% quantisation error.
+-    It is uniform per group per step, so it acts as tiny lr jitter rather than as noise on the
+-    direction -- but keeping lr in fp32 is a candidate free win in its own right, and it must be its
+-    own flag and its own A/B, not something smuggled in under per-depth scaling.
+-
+-    `lr_fp32` (USE_MUON_LR_FP32 / --muon-lr-fp32) is that flag, and it is that A/B. Default False
+-    reproduces the paragraph above byte for byte -- this branch is only reached when the dimensioned
+-    (`lr.dim() > 0`) branch above was NOT taken, which is exactly the 0-dim locked-default case, so
+-    it can never touch the per-depth path's intentional bf16-matching behaviour. When on, instead of
+-    letting the multiply's own type promotion cast the fp32 `lr` down to `g`'s dtype first, `g` is
+-    upcast to fp32 and the product is formed and returned in fp32. Both call sites add that product
+-    to another fp32 term (`lrwd * w * mask`) and subtract the fp32 sum from an fp32 `w`, so the
+-    lower-precision cast that used to happen to `lr` before the multiply now simply does not happen
+-    anywhere before the final fp32 subtract -- there is no dtype for `g.float() * lr` to be cast
+-    down to here, unlike the `lr.dim() > 0` branch above where the cast is the point.
++    """`lr * g` with the dtype behaviour of a 0-dim lr: a dimensioned lr is cast to g's dtype before the
++    multiply; with lr_fp32 the product is formed in fp32 instead.
+     """
+     if isinstance(lr, torch.Tensor) and lr.dim() > 0 and (lr.dtype != g.dtype):

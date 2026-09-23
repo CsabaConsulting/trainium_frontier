@@ -1,0 +1,13 @@
+--- lean
++++ lean_review
+@@ -1,9 +1,4 @@
+ def clip_and_sync_gradients(model: nn.Module, clip_main_params: list[torch.nn.Parameter], *, max_norm: float) -> None:
+-    """Apply the selected clipping order, preserving the separate n-gram norm.
+-
+-    Call after every micro-batch has accumulated and loss scaling has been undone.
+-    With clip_after_reduce=True every included gradient must be averaged this step;
+-    deferred Adam gradients would mix local and averaged quantities in the same norm.
+-    """
++    """Average the accumulated gradients across ranks, then clip them to a global norm of max_norm."""
+     sync_gradients(model)
+     if max_norm > 0:

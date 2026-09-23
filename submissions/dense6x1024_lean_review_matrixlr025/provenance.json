@@ -1,0 +1,16 @@
+{
+  "package": "dense6x1024_lean_review_matrixlr025",
+  "derived_from": {
+    "package": "dense6x1024_lean_review",
+    "train_py_sha256": "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344"
+  },
+  "output": {
+    "train_py_sha256": "abdc8372808489a2bdf94885922aa12e7173b5a1dc4d91cab1bd874d2573add8",
+    "lines": 1791,
+    "bytes": 95233
+  },
+  "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public",
+  "single_causal_change": "MATRIX_LR = 0.02 changed to MATRIX_LR = 0.025; no other train.py or launch-command byte differs",
+  "seed": 42,
+  "hardware_validation": "NOT RUN"
+}

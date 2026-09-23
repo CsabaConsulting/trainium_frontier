@@ -1,0 +1,20 @@
+--- lean
++++ lean_review
+@@ -1,15 +1,5 @@
+ class Linear(nn.Linear):
+-    """Linear without bias that casts weight to input dtype (allows bf16 input with f32 weight).
+-
+-    When USE_WEIGHT_CACHE is on, the cast copy is refreshed once per optimizer step
+-    (see refresh_weight_cache, called from the training loop) instead of being
+-    recomputed on every forward call across the grad-accum inner loop.
+-
+-    T1.6: when `weight_transposed` is set (by transpose_linear_weights(), driven by
+-    USE_TRANSPOSED_LINEAR), `self.weight` holds [in_features, out_features] instead of
+-    nn.Linear's [out_features, in_features] and forward does a plain `x @ weight`. The flag
+-    is per-instance rather than read off the global in forward() so that a module which was
+-    never converted still works while the global is on -- forward must describe the tensor it
+-    actually holds, never what the global wishes it held.
++    """Linear without bias that casts the weight to the input dtype. With USE_WEIGHT_CACHE the cast copy is
++    refreshed once per optimizer step (refresh_weight_cache) instead of on every forward call.
+     """
+ 

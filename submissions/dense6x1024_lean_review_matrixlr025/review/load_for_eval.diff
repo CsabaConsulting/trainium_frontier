@@ -1,0 +1,37 @@
+--- lean
++++ lean_review
+@@ -1,29 +1,15 @@
+ def load_for_eval(checkpoint_path: str, device: torch.device) -> nn.Module:
+-    """Build+load a model for eval-only use, robust to any probing seq_len up to EVAL_MIN_SEQ_LEN.
+-
+-    prepare.py's eval-public (and the official scorer, whose context length is not published --
+-    see C1 in the research plan) call this with a fixed 2-argument signature and then run
+-    model(x) at whatever --seq-len they choose, which may exceed the checkpoint's own trained
+-    SEQ_LEN. config.sequence_len only controls three things here: the size of the cos/sin
+-    rotary tables, the size of mask_full/mask_short, and the `t <= config.sequence_len` assert in
+-    GPT.forward -- none of which are trained parameters, and cos/sin/mask_full/mask_short are all
+-    registered with persistent=False, so they are never part of the saved state_dict and widening
+-    sequence_len before construction cannot break strict-loading or change a single weight shape.
+-    Zero training-cost change: this function is eval-only, never called from the training loop.
++    """Return the trained model in eval mode. The rotary tables are not parameters and are sized for
++    sequences up to EVAL_MIN_SEQ_LEN, so evaluation may use a longer context than training did.
+     """
+-    global COMPUTE_DTYPE, BOS_TOKEN_ID
++    global COMPUTE_DTYPE
+     COMPUTE_DTYPE = compute_dtype_for(device)
+     payload = torch.load(checkpoint_path, map_location='cpu', weights_only=True)
+-    restore_eval_toggles(payload)
+     config = GPTConfig(**payload['model_config'])
+     if config.sequence_len < EVAL_MIN_SEQ_LEN:
+         config.sequence_len = EVAL_MIN_SEQ_LEN
+-    model = _SubmissionEvalGPT(config)
++    model = GPT(config)
+     model.init_weights()
+-    state = payload['model_state']
+-    if EVAL_PREFER_EMA and 'ema_state' in payload:
+-        state = payload['ema_state']
+-        print(f"load_for_eval: using EMA weights from {checkpoint_path} (raw weights still available under 'model_state')")
+-    model.load_state_dict(state, strict=True)
++    model.load_state_dict(payload['model_state'], strict=True)
+     model.to(device)
+     model.eval()

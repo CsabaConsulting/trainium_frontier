@@ -1,0 +1,8 @@
+--- lean
++++ lean_review
+@@ -1,4 +1,4 @@
+ def save_checkpoint(path: Path, model: GPT, meta: dict) -> None:
+     path.parent.mkdir(parents=True, exist_ok=True)
+-    payload = {'model_state': {k: v.detach().cpu() for k, v in model.state_dict().items()}, 'model_config': asdict(model.config), 'toggles': current_toggles(), 'meta': meta}
++    payload = {'model_state': {k: v.detach().cpu() for k, v in model.state_dict().items()}, 'model_config': asdict(model.config), 'meta': meta}
+     torch.save(payload, path)

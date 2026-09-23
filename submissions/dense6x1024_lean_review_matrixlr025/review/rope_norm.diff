@@ -1,0 +1,14 @@
+--- lean
++++ lean_review
+@@ -1,9 +1,5 @@
+ def rope_norm(x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor) -> torch.Tensor:
+-    """norm(apply_rotary_emb(x, cos, sin)), fused into one NKI kernel when enabled.
+-    x is [B, T, H, D]; cos/sin are [1, T, 1, D//2] broadcast over batch and heads.
+-    The kernel needs B*T and T to be multiples of 128 (both true for the baseline:
+-    B*T = 2*1024, T = 1024) so that each 128-row tile maps to one contiguous run of
+-    positions within a single batch row. Anything else falls back to eager, so the
+-    knob is always safe to flip.
++    """norm(apply_rotary_emb(x, cos, sin)), fused into one NKI kernel on Neuron when B*T and T are multiples
++    of 128 (x is [B, T, H, D]; cos/sin are [1, T, 1, D//2]); otherwise the eager composition.
+     """
+     if _HAS_NKI and x.device.type == 'neuron' and (x.ndim == 4):
