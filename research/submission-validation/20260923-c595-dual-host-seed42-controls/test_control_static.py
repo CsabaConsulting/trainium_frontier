@@ -16,7 +16,8 @@ invalid=("",good_primary+good_primary,metric(val_bpb=math.nan),metric(val_bpb=Tr
          metric(val_bpb=0),metric(num_tokens=True),metric(num_tokens=2097152.0),metric(num_bytes=True),
          metric(total_nats=math.inf),metric(total_nats=0),metric(eval_seconds="1"),metric(eval_seconds=0),
          metric(eval_timeout=True),metric(eval_timeout=1199),metric(eval_over_timeout=True),
-         json.dumps({**json.loads(good_primary),"extra":1}))
+         json.dumps({**json.loads(good_primary),"extra":1}), good_primary+json.dumps({"num_tokens":1}),
+         json.dumps({"val_bpb":0.9}))
 for item in invalid:
     try:module.parse_metrics(item,2097152,8418678)
     except SystemExit:pass

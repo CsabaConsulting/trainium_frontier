@@ -49,17 +49,17 @@ def scrub_eval_environment(source):
 
 def parse_metrics(output, expected_tokens, expected_bytes, expected_timeout=1200):
     decoder, found = json.JSONDecoder(), []
+    metric_keys = {"val_bpb", "num_tokens", "num_bytes", "total_nats", "eval_seconds",
+                   "eval_timeout", "eval_over_timeout"}
     for offset, character in enumerate(output):
         if character != "{": continue
         try: value, _ = decoder.raw_decode(output[offset:])
         except json.JSONDecodeError: continue
-        if isinstance(value, dict) and {"val_bpb", "num_tokens", "num_bytes"} <= value.keys():
+        if isinstance(value, dict) and metric_keys.intersection(value):
             found.append(value)
     if len(found) != 1: raise SystemExit(f"expected exactly one evaluation metrics object, got {len(found)}")
     value = found[0]
-    exact_keys = {"val_bpb", "num_tokens", "num_bytes", "total_nats", "eval_seconds",
-                  "eval_timeout", "eval_over_timeout"}
-    if set(value) != exact_keys: raise SystemExit("evaluation metrics schema mismatch")
+    if set(value) != metric_keys: raise SystemExit("evaluation metrics schema mismatch")
     numeric = lambda item: isinstance(item, (int, float)) and not isinstance(item, bool) and math.isfinite(item)
     if not numeric(value["val_bpb"]) or value["val_bpb"] <= 0: raise SystemExit("invalid BPB")
     if not numeric(value["total_nats"]) or value["total_nats"] <= 0: raise SystemExit("invalid total_nats")
