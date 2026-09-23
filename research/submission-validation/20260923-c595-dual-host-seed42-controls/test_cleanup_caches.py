@@ -47,14 +47,14 @@ with tempfile.TemporaryDirectory(prefix="c595-cleanup-") as temporary:
  # A completed journal/receipt can never authenticate a still-present cache.
  bound=module.bound_identity(arm,label,args.expected_core_commit,args.evidence_pushed_receipt_sha256,args.prune_receipt_sha256,caches)
  caches[0].mkdir()
- forged={**bound,"completed":list(map(str,caches)),"active_path":None,"state":"complete"}
+ forged={**bound,"completed":list(map(str,caches)),"active_path":None,"state":"complete","absence_lstat":{str(path):"ENOENT" for path in caches}}
  try:module.validate_journal(forged,bound,caches)
  except SystemExit:pass
  else:raise AssertionError("all-completed journal accepted present cache")
  caches[0].rmdir()
 
  # Invalid and valid stale temp handling is decided before any deletion.
- journal=sandbox/"cache-cleanup-journal-recovery.json";initial={**bound,"completed":[],"active_path":None,"state":"in_progress"}
+ journal=sandbox/"cache-cleanup-journal-recovery.json";initial={**bound,"completed":[],"active_path":None,"state":"in_progress","absence_lstat":{}}
  bad_temp=journal.with_name(journal.name+".tmp");bad_temp.write_text(json.dumps({"forged":True}))
  try:module.reconcile_temp(journal,bound,caches,initial)
  except SystemExit:pass
