@@ -27,6 +27,20 @@ The shared competition data cache used 551,325,696 bytes on each host. The large
 observed but not attributed or modified because they can contain Neuron compiler/runtime state and
 other agents' work.
 
+Two narrow `trn21` recovery candidates were then inspected read-only. They contain no `*.pt` or
+`*.ckpt`; their candidate HEADs are exact, and the dirty ledger/run-log state is already retrieved.
+Remote launch-receipt and run-log hashes exactly match the durable local copies.
+
+| Closed run directory | Bytes | HEAD | Retrieved launch/log SHA-256 |
+|---|---:|---|---|
+| `b8fab55a--20260922-bf16-mlp-input-norm-r2--al-20260922-bf16-mlp-input-norm-r2-full-r2` | 204,996,608 | `b8fab55a4a6a21098cad7200a0001000aa9d76f3` | `fa521732…` / `e5339fb5…` |
+| `fff4b9ba--20260922-bf16-norm-output-except-mlp-input--al-20260922-bf16-norm-output-except-mlp-input-full-r1` | 204,976,128 | `fff4b9ba808e18f8012537cb80b445889f2a9608` | `d6f7bb7a…` / `1bd980ec…` |
+
+Their full metrics, manifests, verdicts, retrieved artifacts, and checkpoint-prune receipts are
+already present under the corresponding `research/agentic/experiments/` directories. Removing both
+would nominally recover about 410 MB, but this monitor did not delete them because they are another
+agent's isolated worktrees.
+
 `trn22` is above the current 7.4 GiB preflight floor but remains intentionally absent from
 `autoloop.json`. Its recovery receipt requires a separate hash-preserving cleanup/re-enable
 decision. The persisted `trn21` breaker stops the daemon before another box can be selected.
