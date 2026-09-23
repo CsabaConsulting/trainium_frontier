@@ -1,0 +1,35 @@
+{
+  "proposal_id": "20260923-c595-dual-host-seed42-controls",
+  "status": "human-approved-pending-implementation-and-independent-verification",
+  "owner_role": "researcher",
+  "hypothesis": "Two independent seed-42 full-chip byte-identical c595 controls establish host-specific cold baselines before any tuning.",
+  "single_causal_change": "none",
+  "mechanism_class": "control",
+  "predicted_val_bpb_delta": 0.0,
+  "predicted_interval": [null, null],
+  "candidate": {"path": "submissions/dense6x1024_direct_review/train.py", "sha256": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537"},
+  "control": {"path": "submissions/dense6x1024_direct_review/train.py", "sha256": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537"},
+  "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public",
+  "environment": {"seed": 42, "lnc": 2, "world_size": 4, "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16"},
+  "historical_public_references": {"source_checkpoint": 0.9928513116311253, "source_cold": 0.9938556748843932, "lean_review": 0.9929546795964038},
+  "historical_step_band": {"minimum": 3602, "maximum": 3674, "policy": "diagnostic only; exact c595 controls may legitimately differ and the band is not an abort gate"},
+  "loss_gate": {"reference": "research/run-logs/fs-w98-dense1024-context1024-pack32-owned-ce-1800-r1.log", "maximum_absolute_delta": 0.0001, "required_steps": [0,1,2,3,4,10,20,30,40], "step_50": "reported separately", "limitation": "The frozen logger emits steps 0-4 and multiples of 10, so it cannot emit every loss at steps 1-49."},
+  "evaluations": [
+    {"name": "primary", "argv": ["/home/ubuntu/workspace/native_venv/bin/python", "prepare.py", "eval-public", "--train-py", "submissions/dense6x1024_direct_review/train.py", "--checkpoint", "<exact-checkpoint>"], "seq_len": 1024, "num_tokens": 2097152, "num_bytes": 8418678, "byte_count_derivation": "Preserved canonical public1024 evaluations regcheck-dress-rehearsal-20260915-evalpublic.log and crossbox-box2-seed7-20260915-evalpublic.log both report 8,418,678 bytes for 2,097,152 tokens; each new control must reproduce it."},
+    {"name": "secondary", "batch_size": 1, "seq_len": 1024, "num_tokens": 20971520, "num_bytes": 83462186, "timeout_seconds": 1200}
+  ],
+  "evidence": [
+    "submissions/dense6x1024_direct_review/provenance.json", "submissions/dense6x1024_direct_review/build-report.json", "submissions/dense6x1024_direct_review/cpu-equivalence.json",
+    "research/submission-validation/20260923-dense6x1024-direct-review-safe/independent-verifier.json",
+    "research/submission-validation/20260923-dense6x1024-direct-review-safe/fs-20260923-dense6x1024-direct-neuron-component-20260923T103500000001Z-result.json",
+    "research/submission-validation/20260923-dense6x1024-direct-review-safe/fs-dense6x1024-direct-neuron-discriminator-r3-20260923t135230000001z-result.json",
+    "research/submission-validation/20260923-dense6x1024-direct-review-safe/independent-analyst-neuron-discriminator-r3.json",
+    "research/submission-validation/20260923-dense6x1024-lean-review-rehearsal/final-analyst.json",
+    "research/submission-validation/20260923-dense6x1024-lean-review-rehearsal/fresh-public20m-r1-result.json",
+    "research/run-logs/fs-w98-dense1024-context1024-pack32-owned-ce-1800-r1.log"
+  ],
+  "gates": {"rules_static_source_direct_equivalence": true, "prior_component_top_passed": false, "prior_component_failure_explained": true, "prior_discriminator_top_passed": false, "prior_discriminator_failure_explained": true, "full_controls_complete": false, "human_approval": true, "submission_authorized": false},
+  "success": ["finite strict checkpoint", "accelerated paths active", "four ranks with LNC2", "no NaN/crash", "both fresh singleton evaluations have exact token and byte counts", "clean postflight"],
+  "abort": ["dirty or incomplete checkout", "occupied host", "hash mismatch", "host or commit mismatch", "wrong compiler flags", "crash or NaN", "budget failure", "missing checkpoint", "evaluation count mismatch", "prior FAIL relabeled", "any tuning before both controls"],
+  "post_control_queue": {"trn21": "MATRIX_LR 0.02 -> 0.025", "trn22": "WARMDOWN_RATIO 0.75 -> 0.6", "keep": "primary public1024 delta >= 0.0015", "replicate": "any KEEP with delta < 0.0025", "lr_followup": "0.030 if 0.025 confirms, otherwise 0.015", "later": ["dense local-conv independently", "combinations of confirmed wins"], "freeze": "morning 2026-09-30 Asia/Kolkata"}
+}
