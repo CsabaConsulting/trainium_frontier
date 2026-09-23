@@ -12,6 +12,7 @@ import argparse
 import ast
 from datetime import datetime, timezone
 import hashlib
+import importlib.machinery
 import importlib.util
 import json
 import math
@@ -23,6 +24,7 @@ import socket
 import subprocess
 import sys
 import time
+import types
 from typing import Any
 
 
@@ -102,6 +104,7 @@ PROTECTED_PATHS = (
     "research/submission-validation/20260923-dense6x1024-direct-review-safe/independent-neuron-discriminator-verifier.json",
     "research/submission-validation/20260923-dense6x1024-direct-review-safe/independent-neuron-discriminator-fix-harness-verifier.json",
     "research/submission-validation/20260923-dense6x1024-direct-review-safe/independent-analyst-neuron-discriminator-r2.json",
+    "research/submission-validation/20260923-dense6x1024-direct-review-safe/independent-neuron-discriminator-prepare-boundary-verifier.json",
 )
 LAUNCHER_DEFAULT_FINGERPRINT_PATHS = (
     "train.py", "prepare.py", "research/run_experiment.py",
@@ -291,6 +294,9 @@ def expected_contract() -> dict[str, Any]:
         "prepare_import_boundary": {
             "repository_root_first": True,
             "explicit_canonical_module_load": True,
+            "compile_authenticated_source_bytes": True,
+            "bytecode_cache_consulted": False,
+            "rehash_source_after_execution": True,
             "reject_preloaded_prepare": True,
             "reject_shadow_or_wrong_path": True,
             "regular_non_symlink_required": True,
@@ -396,7 +402,8 @@ def load_pinned_prepare(
     )
     if authorized_sha256 != expected_sha256:
         raise ValueError("authorized prepare SHA-256 differs from the pinned harness value")
-    actual_sha256 = sha256(prepare_path)
+    source_bytes = prepare_path.read_bytes()
+    actual_sha256 = hashlib.sha256(source_bytes).hexdigest()
     if actual_sha256 != expected_sha256:
         raise ValueError("prepare.py SHA-256 differs from the authorized protected hash")
     if root.resolve() == ROOT.resolve():
@@ -434,20 +441,41 @@ def load_pinned_prepare(
     if (controlled is None or not controlled.origin
             or Path(controlled.origin).absolute().resolve() != prepare_path.resolve()):
         raise RuntimeError("repository-root-first prepare resolution is not canonical")
-    spec = importlib.util.spec_from_file_location("prepare", prepare_path)
-    if spec is None or spec.loader is None:
-        raise RuntimeError(f"cannot load pinned prepare dependency: {prepare_path}")
-    module = importlib.util.module_from_spec(spec)
+    try:
+        code = compile(source_bytes, str(prepare_path), "exec", dont_inherit=True)
+    except (SyntaxError, ValueError, TypeError) as error:
+        raise RuntimeError(f"cannot compile authenticated prepare.py source bytes: {error}") from error
+    spec = importlib.machinery.ModuleSpec("prepare", loader=None, origin=str(prepare_path))
+    module = types.ModuleType("prepare")
+    module.__file__ = str(prepare_path)
+    module.__cached__ = None
+    module.__loader__ = None
+    module.__package__ = ""
+    module.__spec__ = spec
     sys.modules["prepare"] = module
     try:
-        spec.loader.exec_module(module)
+        exec(code, module.__dict__)
     except BaseException:
         if sys.modules.get("prepare") is module:
             sys.modules.pop("prepare", None)
         raise
     loaded_path = Path(getattr(module, "__file__", "")).absolute()
+    if prepare_path.is_symlink() or not prepare_path.is_file():
+        sys.modules.pop("prepare", None)
+        raise RuntimeError("prepare.py stopped being a regular non-symlink after execution")
+    try:
+        post_source_bytes = prepare_path.read_bytes()
+    except OSError as error:
+        sys.modules.pop("prepare", None)
+        raise RuntimeError(f"cannot re-read prepare.py after execution: {error}") from error
+    post_sha256 = hashlib.sha256(post_source_bytes).hexdigest()
     if (sys.modules.get("prepare") is not module or loaded_path.is_symlink()
-            or loaded_path.resolve() != prepare_path.resolve() or sha256(loaded_path) != expected_sha256
+            or not loaded_path.is_file() or loaded_path.resolve() != prepare_path.resolve()
+            or post_source_bytes != source_bytes or post_sha256 != expected_sha256
+            or module.__spec__ is not spec or module.__spec__.name != "prepare"
+            or Path(module.__spec__.origin or "").absolute().resolve() != prepare_path.resolve()
+            or module.__loader__ is not None or module.__cached__ is not None
+            or module.__package__ != ""
             or not sys.path or path_from_sys_path(sys.path[0]) != root.resolve()):
         sys.modules.pop("prepare", None)
         raise RuntimeError("loaded prepare module identity changed across controlled import")
@@ -457,6 +485,8 @@ def load_pinned_prepare(
         "sha256": actual_sha256,
         "repository_root": str(root),
         "repository_root_sys_path_index": 0,
+        "execution": "compile-exact-authenticated-source-bytes",
+        "source_rehashed_after_execution": True,
     }
 
 

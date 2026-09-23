@@ -46,9 +46,14 @@ bytes. Root and `prepare.py` must be a directory/file respectively, both non-sym
 The boundary rejects any already loaded `prepare` module, including one claiming the correct path,
 and rejects any current module-search result whose origin is not the pinned root file. It removes
 duplicate root entries, makes the repository root the first `sys.path` location, verifies canonical
-resolution again, then explicitly executes that exact regular file as canonical module `prepare`.
-It rechecks module identity, file SHA-256, and root-first precedence before returning to the frozen
-train import. A missing authorization value, shadow directory, wrong origin, symlink, non-regular
+resolution again, then reads and hashes the canonical source bytes once, compiles those exact bytes
+with the canonical filename, and executes the resulting code in a fresh canonical module
+`prepare`. It does not ask `SourceFileLoader` to execute the module, does not read or write a
+`__pycache__`/`.pyc`, and sets module cache metadata to `None`. Immediately after execution it
+re-reads the source, requires byte-for-byte equality and the authorized SHA-256, and rechecks module
+name/origin/file/loader/cache metadata plus root-first precedence before returning to the frozen
+train import. A timestamp-valid or hash-based malicious `.pyc` therefore cannot affect executed
+definitions. A missing authorization value, shadow directory, wrong origin, symlink, non-regular
 path, changed bytes, preload, or identity drift fails before train execution.
 
 ## Decisive workload
@@ -130,7 +135,9 @@ hard-coded harness contract. It pins:
   component result, the earlier discriminator verifier, and
   `independent-neuron-discriminator-fix-harness-verifier.json` at the FAIL commit that required this
   process-group correction, plus `independent-analyst-neuron-discriminator-r2.json` establishing the
-  later import-boundary-only correction.
+  later import-boundary-only correction and
+  `independent-neuron-discriminator-prepare-boundary-verifier.json` establishing the cached-bytecode
+  bypass corrected here.
 
 The manifested parsed command array is exactly:
 

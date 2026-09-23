@@ -8,6 +8,7 @@ import hashlib
 import importlib.util
 import json
 from pathlib import Path
+import py_compile
 import sys
 import tempfile
 import time
@@ -69,6 +70,9 @@ class DiscriminatorStaticTests(unittest.TestCase):
         self.assertEqual(contract["prepare_import_boundary"], {
             "repository_root_first": True,
             "explicit_canonical_module_load": True,
+            "compile_authenticated_source_bytes": True,
+            "bytecode_cache_consulted": False,
+            "rehash_source_after_execution": True,
             "reject_preloaded_prepare": True,
             "reject_shadow_or_wrong_path": True,
             "regular_non_symlink_required": True,
@@ -400,9 +404,57 @@ class DiscriminatorStaticTests(unittest.TestCase):
                     "sha256": expected,
                     "repository_root": str(root.absolute()),
                     "repository_root_sys_path_index": 0,
+                    "execution": "compile-exact-authenticated-source-bytes",
+                    "source_rehashed_after_execution": True,
                 })
                 self.assertEqual(D.sys.modules["prepare"].IMPORT_BOUNDARY_MARKER, "canonical")
                 self.assertEqual(Path(D.sys.modules["prepare"].__file__).resolve(), prepare.resolve())
+            finally:
+                D.sys.modules.pop("prepare", None)
+                if original_prepare is not None:
+                    D.sys.modules["prepare"] = original_prepare
+                D.sys.path[:] = original_path
+                D.importlib.invalidate_caches()
+
+    def test_prepare_import_ignores_timestamp_valid_malicious_pyc(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "root"
+            root.mkdir()
+            prepare = root / "prepare.py"
+            canonical = b"VALUE = 'SAFEVALUE'\n"
+            malicious = b"VALUE = 'EVILCODE!'\n"
+            self.assertEqual(len(canonical), len(malicious))
+            fixed_mtime = 1_700_000_000
+            prepare.write_bytes(malicious)
+            D.os.utime(prepare, (fixed_mtime, fixed_mtime))
+            pyc = Path(D.importlib.util.cache_from_source(str(prepare)))
+            py_compile.compile(
+                str(prepare), cfile=str(pyc), doraise=True,
+                invalidation_mode=py_compile.PycInvalidationMode.TIMESTAMP,
+            )
+            prepare.write_bytes(canonical)
+            D.os.utime(prepare, (fixed_mtime, fixed_mtime))
+            pyc_sha = D.sha256(pyc)
+            probe_spec = D.importlib.util.spec_from_file_location("prepare_cache_probe", prepare)
+            self.assertIsNotNone(probe_spec)
+            self.assertIsNotNone(probe_spec.loader)
+            probe = D.importlib.util.module_from_spec(probe_spec)
+            probe_spec.loader.exec_module(probe)
+            self.assertEqual(probe.VALUE, "EVILCODE!")
+
+            expected = D.sha256(prepare)
+            original_path = list(D.sys.path)
+            original_prepare = D.sys.modules.pop("prepare", None)
+            try:
+                D.sys.path[:] = [str(root), *original_path]
+                identity = D.load_pinned_prepare(root, expected, expected)
+                self.assertEqual(D.sys.modules["prepare"].VALUE, "SAFEVALUE")
+                self.assertEqual(identity["execution"], "compile-exact-authenticated-source-bytes")
+                self.assertTrue(identity["source_rehashed_after_execution"])
+                self.assertIsNone(D.sys.modules["prepare"].__loader__)
+                self.assertIsNone(D.sys.modules["prepare"].__cached__)
+                self.assertEqual(Path(D.sys.modules["prepare"].__spec__.origin).resolve(), prepare.resolve())
+                self.assertEqual(D.sha256(pyc), pyc_sha)
             finally:
                 D.sys.modules.pop("prepare", None)
                 if original_prepare is not None:
@@ -438,6 +490,32 @@ class DiscriminatorStaticTests(unittest.TestCase):
                             D.load_pinned_prepare(root, expected, expected)
                         self.assertIs(D.sys.modules["prepare"], preloaded)
                         D.sys.modules.pop("prepare")
+            finally:
+                D.sys.modules.pop("prepare", None)
+                if original_prepare is not None:
+                    D.sys.modules["prepare"] = original_prepare
+                D.sys.path[:] = original_path
+                D.importlib.invalidate_caches()
+
+    def test_prepare_import_rejects_source_change_during_execution(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "root"
+            root.mkdir()
+            prepare = root / "prepare.py"
+            prepare.write_text(
+                "from pathlib import Path\n"
+                "Path(__file__).write_text(\"VALUE = 'changed'\\n\")\n"
+                "VALUE = 'authenticated-but-mutating'\n"
+            )
+            expected = D.sha256(prepare)
+            original_path = list(D.sys.path)
+            original_prepare = D.sys.modules.pop("prepare", None)
+            try:
+                D.sys.path[:] = [str(root), *original_path]
+                with self.assertRaisesRegex(RuntimeError, "identity changed"):
+                    D.load_pinned_prepare(root, expected, expected)
+                self.assertNotIn("prepare", D.sys.modules)
+                self.assertNotEqual(D.sha256(prepare), expected)
             finally:
                 D.sys.modules.pop("prepare", None)
                 if original_prepare is not None:
