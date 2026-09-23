@@ -1,0 +1,24 @@
+{
+  "analyst_prose": "KEEP at smoke tier: correctness gates passed, step rate is within tolerance, and the candidate is eligible for a full run.\nCandidate validation BPB is 1.167401 versus 1.165855 for control, a regression of 0.001546, below the allowed 0.006.\nBoth completed 334 steps at 1.174815 steps/s, giving a step-rate ratio of 1.00, above the required 0.97.\nBoth passed causality with zero maximum absolute error, exited successfully, and stayed within budget and evaluation timeout.\nParameter count, seed, host, compiler settings, and recorded training configuration match.\nPotential confounder: runs occurred on different dates and commits; train.py hashes differ, but the ledger alone cannot verify that the stated attention-scale change is the only code difference.\nThis smoke result supports proceeding, not a claim of improved quality or full-run performance.",
+  "decision": "KEEP",
+  "metrics": {
+    "bpb_delta": 0.0015459999999998253,
+    "candidate_bpb": 1.167401,
+    "candidate_params_M": 592.9,
+    "candidate_step_rate": 1.1748153359127682,
+    "candidate_steps": 334.0,
+    "control_bpb": 1.165855,
+    "control_params_M": 592.9,
+    "control_step_rate": 1.1748153359127682,
+    "control_steps": 334.0,
+    "smoke_gate": {
+      "max_bpb_delta": 0.006,
+      "min_step_rate_ratio": 0.97
+    },
+    "step_rate_floor": 1.1513190291945128
+  },
+  "reasons": [
+    "correctness gates passed; step rate within tolerance; eligible for full run"
+  ],
+  "tier": "smoke"
+}
