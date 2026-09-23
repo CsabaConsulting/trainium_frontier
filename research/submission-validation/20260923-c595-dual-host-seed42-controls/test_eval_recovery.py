@@ -62,5 +62,13 @@ with tempfile.TemporaryDirectory(prefix="c595-eval-artifacts-") as temporary:
    try:m.validate_manifest(forged)
    except SystemExit:pass
    else:raise AssertionError("forged/truncated manifest accepted")
+  completion={"candidate_sha256":"a"*64,"prepare_sha256":"b"*64,"request_file_sha256":"c"*64,"runtime_job_sha256":"d"*64,
+   "artifact_manifest_sha256":"e"*64,"checkpoint_pre_sha256":"f"*64,"checkpoint_post_sha256":"0"*64,
+   "ready_to_retrieve":True,"checkpoint_preserved":True}
+  m.validate_completion(completion,completion)
+  for forged in ({**completion,"request_file_sha256":"z"*64},{**completion,"ready_to_retrieve":False},{key:value for key,value in completion.items() if key!="runtime_job_sha256"}):
+   try:m.validate_completion(forged,completion)
+   except SystemExit:pass
+   else:raise AssertionError("forged/truncated completion accepted")
  finally:m.ROOT,m.OUTPUT=old_root,old_output
 print("c595 evaluator-only recovery static/adversarial gates: PASS")

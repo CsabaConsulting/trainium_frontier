@@ -83,6 +83,13 @@ def validate_manifest(value):
  if set(value)!={"schema","label","members"} or value["schema"]!="c595-eval-recovery-artifact-manifest-v1" or value["label"]!=LABEL:raise SystemExit("manifest schema mismatch")
  if value["members"]!=inspect_artifacts(BASE_ARTIFACTS):raise SystemExit("manifest member mutation")
  return value
+def validate_completion(value,expected):
+ if set(value)!=set(expected) or value!=expected:raise SystemExit("completion receipt mismatch")
+ for key in ("candidate_sha256","prepare_sha256","request_file_sha256","runtime_job_sha256","artifact_manifest_sha256","checkpoint_pre_sha256","checkpoint_post_sha256"):
+  digest=value[key]
+  if type(digest) is not str or len(digest)!=64 or any(c not in HEX64 for c in digest):raise SystemExit("completion digest invalid")
+ if value["ready_to_retrieve"] is not True or value["checkpoint_preserved"] is not True:raise SystemExit("completion not ready")
+ return value
 def safe_regular(path):
  current=pathlib.Path(path.anchor)
  for part in path.parts[1:]:
@@ -209,7 +216,7 @@ def main():
   "training_executed":False,"checkpoint_prune_executed":False,"ready_to_retrieve":True}
  durable_json(OUTPUT/"ready-to-retrieve.json",completion)
  completion_bytes=artifact_bytes("ready-to-retrieve.json");completion_sha=hashlib.sha256(completion_bytes).hexdigest()
- if json.loads(completion_bytes)!=completion:raise SystemExit("completion receipt revalidation failed")
+ validate_completion(json.loads(completion_bytes),completion)
  final_set=BASE_ARTIFACTS|{"artifact-manifest.json","ready-to-retrieve.json"}
  final_artifacts=inspect_artifacts(final_set)
  if final_artifacts["artifact-manifest.json"]["sha256"]!=manifest_sha or final_artifacts["ready-to-retrieve.json"]["sha256"]!=completion_sha:raise SystemExit("final artifact mutation detected")
