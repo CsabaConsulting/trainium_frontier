@@ -1,0 +1,102 @@
+{
+  "role": "Operator",
+  "terminal_status": "FAIL",
+  "label": "fs-dense6x1024-direct-neuron-discriminator-20260923t122654561965582z",
+  "host": "trn22",
+  "hostname": "ip-172-31-32-253",
+  "remote": "/home/ubuntu/trainium_freshstart_submission_validation_20260923_direct_discriminator",
+  "authorized_head": "3a45e8ade72fca1e320c7c740256a32868edd731",
+  "authorization_request_sha256": "e0b04946aecb92641d073facc4a6a6ab5181492ebda16e133ef09198927220d4",
+  "external_request": {
+    "path": "/tmp/fs-dense6x1024-direct-neuron-discriminator-20260923t122654561965582z.request.json",
+    "bytes": 4260,
+    "sha256": "af0ab50a30a860c89f034d2bdbffb238f9c68d769c6515cb2f875bd863d0c3de"
+  },
+  "protected_paths": {
+    "tracked_and_clean": true,
+    "expected_hash_count": 19,
+    "all_hashes_match": true,
+    "source_sha256": "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344",
+    "direct_sha256": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537",
+    "harness_sha256": "b8fb941c66e654a6a2fbac637d3e3a56f2378308ccdd27a36cee05651e8740cd"
+  },
+  "deployment": {
+    "bundle_sha256": "0ed2f721854c0f9f2559cec7ade019fbeca9cdfd48062252fcc5126a737312e2",
+    "remote_head_exact": true,
+    "remote_tracked_clean": true,
+    "predeployment_cleanup": {
+      "reason": "Create enough room for the fixed immutable discriminator checkout while preserving the mandatory 8 GiB protocol gate.",
+      "removed_paths": [
+        "/home/ubuntu/trainium_freshstart_submission_validation_20260923_direct_component",
+        "/home/ubuntu/workspace/direct-component-18559ee4.bundle"
+      ],
+      "scope": "Only prior Operator-owned artifacts whose hash-verified evidence was pushed in commit 232da9f7f9058efdc64d0016fa75ec12a3ead548.",
+      "recoverable": true
+    }
+  },
+  "literal_launch_command": [
+    "python",
+    "/home/poojith-devan/Desktop/Trainium-submission-validation/research/fresh_start_launch.py",
+    "/tmp/fs-dense6x1024-direct-neuron-discriminator-20260923t122654561965582z.request.json"
+  ],
+  "launch": {
+    "dispatch_returncode": 0,
+    "guard_pid": 2671159,
+    "child_pid": 2671160,
+    "child_session": 2671160,
+    "started_at": "2026-09-23T12:32:57.192713+00:00",
+    "protocol_version": 2,
+    "preflight_passed": true
+  },
+  "result": {
+    "command_returncode": 1,
+    "passed": false,
+    "mode": "neuron",
+    "schema": "dense6x1024-direct-neuron-discriminator-report-v1",
+    "static_checks_passed": true,
+    "authorization_checks_passed": true,
+    "failure_type": "RuntimeError",
+    "failure_message": "child failed or emitted recompile-limit warning: ce-source",
+    "restart_or_substitution_performed": false
+  },
+  "preflight": {
+    "passed": true,
+    "failures": [],
+    "disk_free_bytes_before_launch": 8688205824,
+    "device_holders": 0,
+    "neuron_process_count": 0,
+    "host_lock_free": true,
+    "cache_lock_holder_count": 0
+  },
+  "postflight": {
+    "host_clean": true,
+    "failures": [],
+    "guard_error": null,
+    "cleanup_actions": [],
+    "cleanup_remaining": [],
+    "device_fuser_returncode": 1,
+    "neuron_process_count": 0,
+    "relevant_processes": [],
+    "disk_free_bytes": 8687923200,
+    "final_audit_at": "2026-09-23T12:35:06Z",
+    "final_host_lock_free": true,
+    "final_cache_lock_file_count": 5672,
+    "final_cache_lock_holder_count": 0,
+    "final_tracked_source_clean": true,
+    "final_source_hashes_unchanged": true
+  },
+  "retrieved_artifact_sha256": {
+    "request_json": "af0ab50a30a860c89f034d2bdbffb238f9c68d769c6515cb2f875bd863d0c3de",
+    "dispatch_json": "811fd7c6d482748fac69122cc587464f0ade4cae277f04ebede9f5a48e1d85fe",
+    "launch_json": "329ae92bd8791a6c26f4a518e59fe867600150bdba5d60b82ce1b1fd0d8cbc7e",
+    "job_json": "329ae92bd8791a6c26f4a518e59fe867600150bdba5d60b82ce1b1fd0d8cbc7e",
+    "preflight_json": "6545630ac31f1b59b9f857b41bf66c7654f476dbd61d50e853b3b1afb811dd03",
+    "process_json": "00ad56bb5754c3343555095b5a0ce786b504c1ef46faccf8ab2e8c1192971a5b",
+    "full_log": "867beec676be16b370c45b67841e0165c731cbca07830bf67a636df06f55b749",
+    "discriminator_result_json": "0f365d9a12974ceae9781c641f3e0a0aff6a26d8ee8d08128de79e2b4127a3e7",
+    "postflight_json": "2a34097f46cfe5c5711344ec686acc6d3ded0cd0c9e410303cc054b1ae24ca17"
+  },
+  "training_performed": false,
+  "submission_performed": false,
+  "scientific_verdict": null
+}
