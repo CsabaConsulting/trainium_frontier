@@ -1,0 +1,19 @@
+{
+  "analyst_prose": "DISCARD at the full tier: enabling --demon-beta1 produced public_val_bpb 1.005924 versus 1.005734 for control.\nThe candidate-minus-control delta was +0.000190, a slight regression rather than the required improvement of at least 0.002000.\nBoth runs completed 2,071 steps and processed 271.5M tokens with 592.9M parameters; throughput was essentially identical at 1.1603 steps/s.\nSeed, source hashes, commit, host, compiler settings, and other recorded model settings matched; the intended change was DEMON beta1.\nBoth runs passed causality checks and stayed within the charged budget.\nNo material recorded configuration confounder is evident. Separate run times and a single seed leave run-to-run variability unquantified.",
+  "decision": "DISCARD",
+  "metrics": {
+    "bpb_delta": 0.0001900000000001345,
+    "candidate_bpb": 1.005924,
+    "candidate_params_M": 592.9,
+    "candidate_step_rate": 1.1602890918258726,
+    "candidate_steps": 2071.0,
+    "control_bpb": 1.005734,
+    "control_params_M": 592.9,
+    "control_step_rate": 1.1603541012998655,
+    "control_steps": 2071.0
+  },
+  "reasons": [
+    "public_val_bpb delta +0.00019 did not meet threshold -0.00200"
+  ],
+  "tier": "full"
+}
