@@ -1,0 +1,94 @@
+{
+  "abort_conditions": [
+    "causality_passed is false or causality_max_abs != 0.0 in the smoke run",
+    "any NaN/inf loss or loss-scale skip cascade in the first 50 steps",
+    "smoke step count below 328 (>= 2% below the same-host 334-step control smoke) or steady-state dt drifting upward, indicating the conv on the critical path or a per-step recompile",
+    "smoke public_val_bpb worse than the same-host control smoke (1.165855) by more than +0.0015",
+    "checkpoint save or eval fails, or the saved checkpoint lacks the USE_LOCAL_CONV_PRE_ATTN key, or load_for_eval rebuilds a graph whose eval bpb differs from the in-process eval",
+    "full run step count more than 10% away from the 2071-step pinned control (CONFOUNDED per experiment-protocol.md 5)"
+  ],
+  "candidate_shortlist": [
+    {
+      "idea": "Restore local conv -> same-block attention wiring on the default serial path (this proposal)",
+      "mechanism_class": "per_step_quality",
+      "predicted_bpb_delta": -0.002,
+      "why_ranked": "Highest transfer likelihood: source-history bug confirmed by two independent verifier reads of Block.forward, named the strongest lead in CURRENT_STATE, primary-source support (Canon-A) and prior GPU/Trn2 positive evidence through related paths; zero new ops so throughput risk is scheduling-only; two prior attempts already mapped every implementation defect, so residual gate risk is low; ~0.6 host-hours (smoke+full)."
+    },
+    {
+      "idea": "Muon per-row update floor / radial control (RowUpdateFloor) on the Muon matrix groups",
+      "mechanism_class": "per_step_quality",
+      "predicted_bpb_delta": -0.001,
+      "why_ranked": "Listed as a secondary zero-hardware feasibility lane in CURRENT_STATE; plausible but no repo-local measurement, touches the compiled _muon_math region (Dynamo float-guard hazard per train.py lines 414-448), and the polar-express attempt shows optimizer premises here are easy to get wrong without reading the full source; ~0.7 host-hours plus higher verifier-rejection risk."
+    },
+    {
+      "idea": "--ngram-ve-layers -1 (drop the layer-1 table, keep the last-layer table)",
+      "mechanism_class": "throughput",
+      "predicted_bpb_delta": -0.001,
+      "why_ranked": "train.py lines 621-650 record the original -0.0152 win with tables on the LAST layer only and a +5.3 ms micro-dt penalty for {1}; whether '1,-1' vs '-1' was A/B'd at the current commit is not in the bounded index (unknown), so duplicate risk is real; gain is bounded by a few percent of steps (~0.001-0.002) and could be offset by lost layer-1 capacity; ~0.6 host-hours."
+    },
+    {
+      "idea": "Complete the saved ROW-FP8 MLP forward with a backward and gate the whole step",
+      "mechanism_class": "throughput",
+      "predicted_bpb_delta": -0.003,
+      "why_ranked": "Largest measured component upside (9.4%/19.1% forward in source199) but no backward, whole-step, or BPB proof; source197 shows a 193 ms caller-boundary regression risk; CURRENT_STATE puts it on hold behind a >=3% complete-step gate, so it is multi-cycle work, not one bounded train.py edit; several host-hours before any quality run."
+    },
+    {
+      "idea": "Cooldown shape change (WARMDOWN_RATIO 0.75 -> 0.85 or FINAL_LR_FRAC 0.05 -> 0.0)",
+      "mechanism_class": "schedule",
+      "predicted_bpb_delta": 0.0,
+      "why_ranked": "Schedule knobs were resweep targets in the T0.4 stack and the recent schedule flags (--demon-beta1 null, --no-ngram-ve-flat-lr +0.0021, --weight-ema discard) all failed; no bounded-index evidence that these two constants are an open gap, so information value is low and duplicate risk is high; ~0.6 host-hours."
+    }
+  ],
+  "change_type": "code",
+  "created_at": "2026-09-23T16:27:40Z",
+  "duplicate_search_terms": [
+    "local_conv",
+    "LOCAL_CONV_PRE_ATTN",
+    "local-conv-pre-attn",
+    "local-conv-feeds-same-block-attention",
+    "conv before attention",
+    "pre-attention conv",
+    "7518d91e",
+    "MUDD",
+    "q_in k_in v_in snapshot",
+    "Canon-A",
+    "2512.17351",
+    "nki-local-conv",
+    "train-local-conv",
+    "local-conv-kernel"
+  ],
+  "evidence": [
+    "CURRENT_STATE.md 'Primary-source research override 2026-09-23 15:26': 'commit 7518d91e introduced the Q/K/V snapshot before local_conv for a rejected MUDD experiment, and that ordering survived. The current trained local convolution therefore does not feed same-block default attention' -- named the strongest next architecture lead",
+    "research/agentic/PRIMARY_SOURCE_RESEARCH_MAP_2026-09-23.md (ranked queue; Canon-A placement, arXiv:2512.17351)",
+    "Proposal-verifier PASS findings on 20260923-local-conv-feeds-same-block-attention: 'authoritative Block.forward confirms the mechanism: q_in/k_in/v_in and the Q/K shift are computed before x = x + self.local_conv(norm(x)); serial attention subsequently reads the pre-convolution snapshots. USE_LOCAL_CONV and TRAIN_LOCAL_CONV are True, and setup_optimizer registers the convolution weights'",
+    "Implementation-verifier NEEDS_WORK on the same id: the r1 patch wrongly applied the new ordering under USE_MLP_SANDWICH_NORM=True and altered parallel-path statement order -- fixed here by the explicit serial-only guard and complementary historical-site guard",
+    "Proposal-verifier NEEDS_WORK on 20260923-local-conv-pre-attn-serial-only-r2: '_EVAL_TOGGLE_DEFAULTS = current_toggles(), and restore_eval_toggles uses saved.get(name, _EVAL_TOGGLE_DEFAULTS[name])' so a default-True toggle would restore True for legacy checkpoints -- fixed here by a name-specific legacy fallback of False inside restore_eval_toggles; verifier also confirmed 'the early guard should use self.par_lambda_a is None and not USE_MLP_SANDWICH_NORM'",
+    "DECISION_LOG.md 2026-09-22 20260922-nki-local-conv-only-default-shape: DISCARD (smoke) -- a kernel implementation swap, not a conv-to-attention wiring change; does not close this direction",
+    "DECISION_LOG.md 2026-09-22 20260922-no-qk-shift-fixedbudget-r3: 1.005766 vs 1.005967 full (null) -- the Q/K shift that will now read post-conv snapshots is measured near-inert, so moving it behind the conv carries little interaction risk",
+    "train.py lines 621-650: the n-gram VE gate pattern shows the repo's established convention of zero-op-count architecture edits being A/B'd against the pinned control at fixed budget",
+    "Pinned controls: trn21 1.005734/2071 steps, trn22 1.005967/2076 steps at 9a4caa7b"
+  ],
+  "expected_effect": "Lower val_bpb at matched step count: predicted -0.002 (range -0.005 to +0.003), with step count within 2% of the 2071-step control because operator count and parameter count are unchanged (only dependency order moves).",
+  "files_allowed": [
+    "train.py"
+  ],
+  "flags": [],
+  "hypothesis": "At 9a4caa7b the trained depthwise local convolution in each Block is added to the residual AFTER the q_in/k_in/v_in snapshots (and the Q/K shift) are taken, a leftover of commit 7518d91e's rejected MUDD experiment, so same-block attention never sees the conv output and the conv only reaches the MLP and later blocks. Re-ordering the existing conv residual update ahead of the snapshots on the default serial path (parallel_block off, mlp_sandwich off) hands attention a locally-mixed Q/K/V input (the Canon-A placement of arXiv:2512.17351 and this file's own earlier pre-attention wiring) with zero new parameters or ops, improving loss per step at unchanged step count.",
+  "implementation_plan": "All edits confined to train.py on branch autoloop/20260923-local-conv-pre-attn-serial-only-r3 from 9a4caa7b. STEP 1 (static inspection only; record findings as notes in the implementation summary; no execution, no artifacts): (a) in Block.forward locate, for the default serial path, (i) the first statement that reads x to build the q_in/k_in/v_in residual snapshots (and the Q/K shift that follows), and (ii) the existing conv residual update `x = x + self.local_conv(norm(x))` together with its existing guard (copy the exact expression as written, including any --nki-local-conv dispatch); confirm that (ii) currently executes after (i). Record the exact attribute used to detect the parallel path (expected: self.par_lambda_a is None means serial) and the global used for the sandwich path (expected: USE_MLP_SANDWICH_NORM). (b) locate the --cautious-wd boolean-toggle pattern: module constant USE_CAUTIOUS_WD, its NEURON_COMPETITION_R1_* env override, the argparse --cautious-wd/--no-cautious-wd pair, and the main() assignment into the global. (c) locate ARCH_TOGGLE_NAMES, current_toggles(), the `_EVAL_TOGGLE_DEFAULTS = current_toggles()` line, and restore_eval_toggles' `saved.get(name, _EVAL_TOGGLE_DEFAULTS[name])` loop; confirm whether restore_eval_toggles is ever called with a dict that could lack keys (legacy checkpoints) versus the in-process current_toggles() dict. STEP 2 (toggle): immediately after the USE_LOCAL_CONV / TRAIN_LOCAL_CONV constants add `USE_LOCAL_CONV_PRE_ATTN = os.environ.get(\"NEURON_COMPETITION_R1_LOCAL_CONV_PRE_ATTN\", \"1\") != \"0\"` with a 3-6 line comment stating: the 7518d91e snapshot ordering left same-block attention reading pre-conv residuals; True moves the existing conv update ahead of the snapshots on the default serial path only; False is bit-identical to 9a4caa7b. Add argparse `--local-conv-pre-attn` / `--no-local-conv-pre-attn` and the main() global assignment exactly mirroring the --cautious-wd pattern. STEP 3 (persistence): append \"USE_LOCAL_CONV_PRE_ATTN\" to ARCH_TOGGLE_NAMES. Do NOT mutate _EVAL_TOGGLE_DEFAULTS. Add a module-level `_EVAL_TOGGLE_LEGACY_DEFAULTS = {\"USE_LOCAL_CONV_PRE_ATTN\": False}` next to _EVAL_TOGGLE_DEFAULTS and change the restore loop's fallback to `saved.get(name, _EVAL_TOGGLE_LEGACY_DEFAULTS.get(name, _EVAL_TOGGLE_DEFAULTS[name]))`, with a one-line comment that checkpoints written before this toggle existed must rebuild the historical (post-snapshot) conv ordering. This is inert whenever the key is present, which is always true for checkpoints written by this branch. STEP 4 (wiring, Block.forward): before the first snapshot statement found in STEP 1(a)(i), insert `conv_first = (USE_LOCAL_CONV_PRE_ATTN and self.local_conv is not None and self.par_lambda_a is None and not USE_MLP_SANDWICH_NORM)` (substituting the exact attribute/global names recorded in STEP 1(a) if they differ) followed by `if conv_first:` and, indented, the verbatim conv residual update expression from STEP 1(a)(ii). Then modify the historical conv site's existing guard by conjoining `and not conv_first` so the conv executes exactly once per block on every path. Do not move, reorder, or edit any other statement; the parallel-block and mlp-sandwich paths must retain their 9a4caa7b statements and order byte-for-byte apart from the added `and not conv_first` (which is False-inert for them because conv_first is False on those paths). Do not touch the local_conv module, its kernel dispatch, TRAIN_LOCAL_CONV, setup_optimizer, norm(), attention, or any other file. STEP 5 (self-check, static): python -m py_compile train.py; git diff must show only: the new constant+comment, the argparse pair and main() assignment, the ARCH_TOGGLE_NAMES entry, the _EVAL_TOGGLE_LEGACY_DEFAULTS dict and the one-line restore fallback change, and the Block.forward conv_first block plus the `and not conv_first` guard. Confirm by reading that with USE_LOCAL_CONV_PRE_ATTN=False every executed statement and its order equals 9a4caa7b. Report the STEP 1 notes and the diff in the implementation summary; runtime behaviour (causality 0.0, step rate, bpb) is checked by the smoke abort conditions, not before the implementation gate.",
+  "mechanism_class": "per_step_quality",
+  "predicted_bpb_delta": -0.002,
+  "predicted_bpb_interval": [
+    -0.005,
+    0.003
+  ],
+  "proposal_id": "20260923-local-conv-pre-attn-serial-only-r3",
+  "selection_rationale": "The local-conv wiring repair is the only candidate that combines (a) a confirmed source-level defect (verified twice against authoritative Block.forward), (b) explicit endorsement as the strongest next lead in CURRENT_STATE, (c) primary-source architectural support, and (d) zero added operators/parameters so the expected throughput term is near zero. Its two prior attempts failed only on implementation-boundary details (sandwich-path leakage, legacy-checkpoint default), each now closed with an explicit spec, so the evidence-adjusted probability of reaching a clean full run is highest. The Muon and FP8 lanes have larger theoretical upside but need multi-cycle groundwork; the ngram-layers and schedule flags carry unknown-duplicate risk and small bounded upside. Cost is one smoke plus one full run (~0.6 host-hours).",
+  "single_causal_change": "One wiring change confined to train.py: new module-level boolean USE_LOCAL_CONV_PRE_ATTN (default True on the candidate branch; env NEURON_COMPETITION_R1_LOCAL_CONV_PRE_ATTN='0' disables; CLI --local-conv-pre-attn/--no-local-conv-pre-attn following the --cautious-wd boolean-pair pattern; appended to ARCH_TOGGLE_NAMES so the checkpoint persists it, with an explicit name-specific missing-key fallback of False in restore_eval_toggles so legacy checkpoints rebuild the historical ordering). When True, ONLY in the default serial Block.forward path (self.par_lambda_a is None and not USE_MLP_SANDWICH_NORM) of blocks whose local_conv is not None, the EXISTING conv residual update statement (copied verbatim, including any --nki-local-conv dispatch) executes immediately BEFORE the q_in/k_in/v_in snapshots and Q/K shift instead of after them; the historical conv site is guarded with the complementary condition so each active conv runs exactly once. Parallel-block and mlp-sandwich paths keep their exact 9a4caa7b statements and order. No kernel, parameter, optimizer, precision, schedule, data, or evaluator change; with the toggle off the file is bit-identical in behaviour to 9a4caa7b.",
+  "smoke_gate": {
+    "max_bpb_delta": 0.0015,
+    "min_candidate_steps": 328,
+    "min_step_rate_ratio": 0.98
+  },
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}

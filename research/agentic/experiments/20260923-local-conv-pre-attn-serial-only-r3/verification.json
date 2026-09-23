@@ -1,0 +1,20 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "Authoritative train.py confirms the mechanism: Block.forward snapshots q_in/k_in/v_in and applies Q/K shift before the local_conv residual update; serial attention consumes those snapshots. USE_LOCAL_CONV and TRAIN_LOCAL_CONV are True, and setup_optimizer registers the convolution weights.",
+    "The plan isolates one causal change: move the existing convolution update before the snapshots only when self.par_lambda_a is None and USE_MLP_SANDWICH_NORM is False. The complementary historical-site guard preserves exactly one convolution execution and leaves parallel and sandwich ordering unchanged.",
+    "Toggle plumbing matches the existing --cautious-wd BooleanOptionalAction pattern. ARCH_TOGGLE_NAMES persistence plus the name-specific False fallback addresses the authoritative restore_eval_toggles missing-key behavior without changing defaults for other settings.",
+    "CURRENT_STATE.md's 15:26 override explicitly identifies this source-history repair as an open lead. DECISION_LOG.md closes the NKI convolution implementation swap and Q/K-shift removal, not this wiring change; the cited earlier proposal revisions concern implementation defects rather than a measured rejection of the mechanism.",
+    "The bounded train.py-only plan is competition-legal: no pretrained weights, external data, tokenizer, scoring-function, or evaluator changes. Checkpoint restoration preserves the trained architecture. Pre-smoke work is limited to static inspection, syntax checking, and diff review; runtime checks remain smoke abort conditions.",
+    "The predicted -0.002 public BPB delta and step count within 2% are falsifiable against the controller's matched seed-42 full-chip control (trn21: 1.005734 BPB, 2071 steps). Unchanged operator count does not guarantee unchanged scheduling, but the proposal explicitly gates throughput and marks large step-count differences confounded. Exact patch compliance remains for independent implementation review."
+  ],
+  "llm_verdict": "PASS",
+  "passed": true,
+  "proposal_id": "20260923-local-conv-pre-attn-serial-only-r3",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-23T16:27:41Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}
