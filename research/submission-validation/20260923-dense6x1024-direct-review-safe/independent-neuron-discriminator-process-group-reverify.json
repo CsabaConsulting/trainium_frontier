@@ -1,0 +1,93 @@
+{
+  "schema": "dense6x1024-direct-neuron-discriminator-process-group-independent-reverify-v1",
+  "role": "independent Verifier",
+  "verified_at": "2026-09-23",
+  "verdict": "PASS",
+  "reviewed_implementation_commit": "5058f137b81f41e21ffc72f834671f25922fb8d3",
+  "prior_fail_report_commit": "a90456da1423043d450c6d4cbb3641d392ab535c",
+  "prior_fail_report_sha256": "a0b856d3ff1cbcda096c772353b9cbbb0b469b11ea61aa23420a437061c337eb",
+  "repository_state_before_report": {
+    "branch": "submission/dense6x1024-direct-review-safe-20260923",
+    "head": "5058f137b81f41e21ffc72f834671f25922fb8d3",
+    "fetched_origin_head": "5058f137b81f41e21ffc72f834671f25922fb8d3",
+    "tracked_worktree_clean": true,
+    "implementation_parent": "a90456da1423043d450c6d4cbb3641d392ab535c",
+    "diff_scope": [
+      "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron-discriminator-authorization-request.json",
+      "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron-discriminator-runbook.md",
+      "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron_discriminator_direct.py",
+      "research/submission-validation/20260923-dense6x1024-direct-review-safe/test_neuron_discriminator_static.py"
+    ],
+    "unexpected_files": [],
+    "candidate_or_source_changed": false,
+    "candidate_sha256": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537",
+    "source_sha256": "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344",
+    "harness_sha256": "85b13deae9f811e0c1441018056b2cfbe0c3b38a77eab5194f03e698063850c1",
+    "static_test_sha256": "51eb091f91351211ede76a388cfe8c944350071b10b9b5e63c7347f86723066a",
+    "runbook_sha256": "16d5c1ac5ba67a93d57418c43849ae137dfda332484837c09ecb2aad572a3cc2",
+    "pending_authorization_request_sha256": "e4d0ad246855e20ada25bcc13db29a46523fc20bdcc94e7ae1bb0753fe418d5b",
+    "authorization_state": "pending_external_verifier",
+    "protected_hash_count": 20,
+    "all_protected_hashes_match": true
+  },
+  "lifecycle_gate_findings": {
+    "dedicated_group": "Every launched child uses subprocess.Popen(start_new_session=true), so its leader PID is the dedicated session and process-group ID. The group schema requires those identities and a reaped direct child.",
+    "bounded_cleanup": "Timeout, wait error, or a direct-child exit with remaining descendants triggers whole-group SIGTERM, bounded polling for five seconds, then SIGKILL and another bounded five-second poll. A group still observable after the bound raises fail closed before a complete-log claim.",
+    "direct_child_reap": "process.wait handles the normal path; process.poll is performed during quiescence polling and after cleanup. Passing launched-group evidence requires primary_reaped=true and returncode present.",
+    "quiescence_before_snapshot": "The harness requires killpg(PGID, 0) to raise ProcessLookupError before it closes/fsyncs/hashes the log or observes artifacts/cache. Passing child evidence requires quiescent=true and no cleanup errors.",
+    "term_ignoring_regression": "Independent tests covered a late-writing descendant that obeyed SIGTERM and one that installed SIGTERM=SIG_IGN. The first ended after TERM; the second required KILL. Both leaders were reaped, both groups disappeared, neither late write occurred, and log length/SHA remained stable after the former mutation window.",
+    "pre_top_revalidation": "Immediately before exclusive top-result creation, every accumulated child record/log/receipt, artifact snapshot, cache snapshot and process-group absence is reopened/recomputed. Log, artifact and cache mutations each produce ProcessEvidenceMutation and force passed=false.",
+    "persistence_and_nonoverwrite": "Child log and JSON are O_CREAT|O_EXCL|O_NOFOLLOW and fsynced. Spawn error, rc error, timeout, warning and successful records use the exact schema. Existing paths and symlinks reject without overwrite.",
+    "top_failure_accumulation": "A returned failing child is appended before the orchestration raise; the failure report retains all accumulated child and outer receipts, then receives the same prewrite revalidation."
+  },
+  "contract_findings": {
+    "request": "The request remains pending_external_verifier, has the exact five-key authorization schema, includes the process-group/revalidation contract, and matches every protected hash including the prior independent FAIL report.",
+    "manifest": "The outer launch command/environment and launcher fingerprint union remain compatible with the existing fresh-start launch/job manifest validators.",
+    "environment": "The prior CE singleton sanitation and four-rank optimizer environment contracts remain intact.",
+    "scope": "Candidate, source, prepare.py, evaluator/tokenizer/scoring and fresh-start tools were not changed by this correction."
+  },
+  "commands_and_results": [
+    {
+      "command": "git fetch origin <branch>; git rev-parse HEAD/origin; git diff --name-status/check a90456da..5058f137; candidate/source/prepare diff and protected sha256 audit",
+      "result": "PASS: local and fetched origin exact at 5058f137b81f41e21ffc72f834671f25922fb8d3; clean; exactly four declared files; candidate/source unchanged; all 20 protected hashes match"
+    },
+    {
+      "command": "python -m py_compile neuron_discriminator_direct.py test_neuron_discriminator_static.py; python -m unittest -v test_neuron_discriminator_static.py",
+      "result": "PASS: syntax clean; 26/26 tests passed"
+    },
+    {
+      "command": "independent run_child process-tree timeout reproduction with ordinary and SIGTERM-ignoring late-writing descendants, shortened test-only grace bounds, followed by delayed log hash and receipt revalidation",
+      "result": "PASS: TERM case term_sent=true/kill_sent=false; ignoring case term_sent=true/kill_sent=true; both primary_reaped=true, quiescent=true, killpg group absent, delayed log unchanged, late output absent, and revalidation passed"
+    },
+    {
+      "command": "adversarial prewrite mutation matrix for child log, worker artifact and compile-cache contents",
+      "result": "PASS: each mutation was detected and forced top report ProcessEvidenceMutation/passed=false"
+    },
+    {
+      "command": "real pending-sentinel static CLI with request SHA e4d0ad24...",
+      "result": "PASS rc0: static-only passed, hardware_executed=false, all protected hashes matched; temporary report removed"
+    }
+  ],
+  "remaining_blockers": [],
+  "authorization": {
+    "authorization_request_finalized_by_this_verifier": false,
+    "current_hardware_launch_authorized": false,
+    "state_only_finalization_may_safely_proceed": true,
+    "required_conditions": [
+      "A separate finalizer changes only authorization_state to finalized_by_external_verifier in one clean commit and publishes the exact resulting HEAD and request SHA-256 out of band.",
+      "No descendant commit may substitute for that literal trust root.",
+      "Any retry must use a new unique label and exact fresh-start request, and remains failed unless child receipts, final discriminator result and clean postflight all pass."
+    ]
+  },
+  "residual_risks": [
+    "No Neuron hardware was run in this review. Actual compilation, source/direct equality and four-rank optimizer behavior remain empirical gates for a separately authorized retry.",
+    "This PASS authorizes only state-only finalization of the corrected validation harness, not training, submission or a scientific candidate verdict."
+  ],
+  "candidate_modified_by_verifier": false,
+  "source_modified_by_verifier": false,
+  "authorization_modified_by_verifier": false,
+  "hardware_run_by_verifier": false,
+  "training_run_by_verifier": false,
+  "submission_performed": false,
+  "scientific_verdict": null
+}
