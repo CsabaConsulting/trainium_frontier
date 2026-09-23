@@ -1,6 +1,6 @@
 {
   "schema": "dense6x1024-direct-neuron-discriminator-authorization-v1",
-  "authorization_state": "finalized_by_external_verifier",
+  "authorization_state": "pending_external_verifier",
   "purpose": "Source/direct Neuron component discriminator only; no training, submission, or scientific verdict.",
   "expected_sha256": {
     "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
@@ -16,13 +16,14 @@
     "submissions/dense6x1024_lean_review/train.py": "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344",
     "submissions/dense6x1024_direct_review/train.py": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537",
     "research/submission-validation/20260923-dense6x1024-direct-review-safe/cpu_equivalence_direct.py": "40133aedb49ab8918f1057a04231a8d0882db993a9d537c14f4ac8a26aeeda1b",
-    "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron_discriminator_direct.py": "85b13deae9f811e0c1441018056b2cfbe0c3b38a77eab5194f03e698063850c1",
-    "research/submission-validation/20260923-dense6x1024-direct-review-safe/test_neuron_discriminator_static.py": "51eb091f91351211ede76a388cfe8c944350071b10b9b5e63c7347f86723066a",
-    "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron-discriminator-runbook.md": "16d5c1ac5ba67a93d57418c43849ae137dfda332484837c09ecb2aad572a3cc2",
+    "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron_discriminator_direct.py": "dc8f594173bd736073ec030ff85111f45f0a396aa6eb19411d0c2bfe21e69ca4",
+    "research/submission-validation/20260923-dense6x1024-direct-review-safe/test_neuron_discriminator_static.py": "eba12525591ede57c042bf2d1906dad7d769d75472a74e921d1a08cf293655bc",
+    "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron-discriminator-runbook.md": "af5f0162b1412c638db07cb4afef4a86ac4a0e00cf66c8b705dcc61c61890b22",
     "research/submission-validation/20260923-dense6x1024-direct-review-safe/proposal.json": "3ec23532e588afa6b890ddd533a84635f77c7006c85b3b810dcfb003c6f4e0a9",
     "research/submission-validation/20260923-dense6x1024-direct-review-safe/fs-20260923-dense6x1024-direct-neuron-component-20260923T103500000001Z-result.json": "de995152c8d2911d7c0fedd1e4772844668db88aff604da5f96899d7540d15ba",
     "research/submission-validation/20260923-dense6x1024-direct-review-safe/independent-neuron-discriminator-verifier.json": "507baee46715f66d230debae365bf0b5872ef1b9ad975b7421985d5b53867e4c",
-    "research/submission-validation/20260923-dense6x1024-direct-review-safe/independent-neuron-discriminator-fix-harness-verifier.json": "a0b856d3ff1cbcda096c772353b9cbbb0b469b11ea61aa23420a437061c337eb"
+    "research/submission-validation/20260923-dense6x1024-direct-review-safe/independent-neuron-discriminator-fix-harness-verifier.json": "a0b856d3ff1cbcda096c772353b9cbbb0b469b11ea61aa23420a437061c337eb",
+    "research/submission-validation/20260923-dense6x1024-direct-review-safe/independent-analyst-neuron-discriminator-r2.json": "9ba58e75045f6d59951ff2b2f2dcbf68d8d904158ec9cc75b7a9613bdf76ba0b"
   },
   "request_contract": {
     "seed": 42,
@@ -36,6 +37,8 @@
     "source_sha256": "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344",
     "direct_path": "submissions/dense6x1024_direct_review/train.py",
     "direct_sha256": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537",
+    "prepare_path": "prepare.py",
+    "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
     "ce_rows": [128, 512, 32768],
     "ce_repetitions": 2,
     "optimizer_fixtures": ["tiny_fixed", "tiny_changed", "production_width1024_fs_w62"],
@@ -108,6 +111,14 @@
       "poll_seconds": 0.05,
       "quiescence_required_before_snapshot": true,
       "pre_top_log_artifact_cache_revalidation": true
+    },
+    "prepare_import_boundary": {
+      "repository_root_first": true,
+      "explicit_canonical_module_load": true,
+      "reject_preloaded_prepare": true,
+      "reject_shadow_or_wrong_path": true,
+      "regular_non_symlink_required": true,
+      "authorized_sha256_required": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb"
     }
   }
 }

@@ -11,6 +11,7 @@ from pathlib import Path
 import sys
 import tempfile
 import time
+import types
 import unittest
 from unittest import mock
 
@@ -39,6 +40,7 @@ class DiscriminatorStaticTests(unittest.TestCase):
         self.assertTrue(result["passed"], result)
         self.assertEqual(D.sha256(D.SOURCE), D.SOURCE_SHA256)
         self.assertEqual(D.sha256(D.DIRECT), D.DIRECT_SHA256)
+        self.assertEqual(D.sha256(D.PREPARE), D.PREPARE_SHA256)
 
     def test_numerical_contract_is_literal(self):
         contract = D.expected_contract()
@@ -63,6 +65,14 @@ class DiscriminatorStaticTests(unittest.TestCase):
             "poll_seconds": 0.05,
             "quiescence_required_before_snapshot": True,
             "pre_top_log_artifact_cache_revalidation": True,
+        })
+        self.assertEqual(contract["prepare_import_boundary"], {
+            "repository_root_first": True,
+            "explicit_canonical_module_load": True,
+            "reject_preloaded_prepare": True,
+            "reject_shadow_or_wrong_path": True,
+            "regular_non_symlink_required": True,
+            "authorized_sha256_required": D.PREPARE_SHA256,
         })
 
     def test_recompile_limit_warning_invalidates(self):
@@ -367,6 +377,119 @@ class DiscriminatorStaticTests(unittest.TestCase):
                 broken[key] = "1"
                 with self.assertRaisesRegex(RuntimeError, "requires retained"):
                     D.prepare_optimizer_environment(broken, cache)
+
+    def test_prepare_import_is_explicit_and_repository_root_first(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            root = base / "root"
+            empty_first = base / "empty-first"
+            root.mkdir()
+            empty_first.mkdir()
+            prepare = root / "prepare.py"
+            prepare.write_text("IMPORT_BOUNDARY_MARKER = 'canonical'\n")
+            expected = D.sha256(prepare)
+            original_path = list(D.sys.path)
+            original_prepare = D.sys.modules.pop("prepare", None)
+            try:
+                D.sys.path[:] = [str(empty_first), str(root), *original_path]
+                identity = D.load_pinned_prepare(root, expected, expected)
+                self.assertEqual(D.path_from_sys_path(D.sys.path[0]), root.resolve())
+                self.assertEqual(identity, {
+                    "module": "prepare",
+                    "path": str(root.absolute() / "prepare.py"),
+                    "sha256": expected,
+                    "repository_root": str(root.absolute()),
+                    "repository_root_sys_path_index": 0,
+                })
+                self.assertEqual(D.sys.modules["prepare"].IMPORT_BOUNDARY_MARKER, "canonical")
+                self.assertEqual(Path(D.sys.modules["prepare"].__file__).resolve(), prepare.resolve())
+            finally:
+                D.sys.modules.pop("prepare", None)
+                if original_prepare is not None:
+                    D.sys.modules["prepare"] = original_prepare
+                D.sys.path[:] = original_path
+                D.importlib.invalidate_caches()
+
+    def test_prepare_import_rejects_shadow_and_any_preload(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            root = base / "root"
+            shadow = base / "shadow"
+            root.mkdir()
+            shadow.mkdir()
+            prepare = root / "prepare.py"
+            prepare.write_text("IDENTITY = 'canonical'\n")
+            (shadow / "prepare.py").write_text("IDENTITY = 'shadow'\n")
+            expected = D.sha256(prepare)
+            original_path = list(D.sys.path)
+            original_prepare = D.sys.modules.pop("prepare", None)
+            try:
+                D.sys.path[:] = [str(shadow), str(root), *original_path]
+                with self.assertRaisesRegex(RuntimeError, "shadow/wrong-path"):
+                    D.load_pinned_prepare(root, expected, expected)
+                self.assertNotIn("prepare", D.sys.modules)
+                D.sys.path[:] = [str(root), *original_path]
+                for module_path in (shadow / "prepare.py", prepare):
+                    with self.subTest(module_path=module_path):
+                        preloaded = types.ModuleType("prepare")
+                        preloaded.__file__ = str(module_path)
+                        D.sys.modules["prepare"] = preloaded
+                        with self.assertRaisesRegex(RuntimeError, "refusing preloaded"):
+                            D.load_pinned_prepare(root, expected, expected)
+                        self.assertIs(D.sys.modules["prepare"], preloaded)
+                        D.sys.modules.pop("prepare")
+            finally:
+                D.sys.modules.pop("prepare", None)
+                if original_prepare is not None:
+                    D.sys.modules["prepare"] = original_prepare
+                D.sys.path[:] = original_path
+                D.importlib.invalidate_caches()
+
+    def test_prepare_import_rejects_symlink_nonregular_and_hash_mismatch(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            original_path = list(D.sys.path)
+            original_prepare = D.sys.modules.pop("prepare", None)
+            try:
+                symlink_root = base / "symlink-root"
+                symlink_root.mkdir()
+                target = base / "target.py"
+                target.write_text("VALUE = 1\n")
+                (symlink_root / "prepare.py").symlink_to(target)
+                with self.assertRaisesRegex(ValueError, "regular non-symlink"):
+                    D.load_pinned_prepare(symlink_root, D.sha256(target), D.sha256(target))
+
+                nonregular_root = base / "nonregular-root"
+                nonregular_root.mkdir()
+                (nonregular_root / "prepare.py").mkdir()
+                with self.assertRaisesRegex(ValueError, "regular non-symlink"):
+                    D.load_pinned_prepare(nonregular_root, "0" * 64, "0" * 64)
+
+                mismatch_root = base / "mismatch-root"
+                mismatch_root.mkdir()
+                mismatch = mismatch_root / "prepare.py"
+                mismatch.write_text("VALUE = 'actual'\n")
+                with self.assertRaisesRegex(ValueError, "differs from the authorized protected hash"):
+                    D.load_pinned_prepare(mismatch_root, "0" * 64, "0" * 64)
+                with self.assertRaisesRegex(ValueError, "authorized prepare SHA-256 differs"):
+                    D.load_pinned_prepare(mismatch_root, D.sha256(mismatch), "f" * 64)
+            finally:
+                D.sys.modules.pop("prepare", None)
+                if original_prepare is not None:
+                    D.sys.modules["prepare"] = original_prepare
+                D.sys.path[:] = original_path
+                D.importlib.invalidate_caches()
+
+    def test_train_dynamic_import_cannot_bypass_prepare_boundary(self):
+        module_name = "must_not_execute_train_before_prepare_boundary"
+        D.sys.modules.pop(module_name, None)
+        with mock.patch.object(
+            D, "load_pinned_prepare", side_effect=RuntimeError("prepare boundary rejected")
+        ) as boundary:
+            with self.assertRaisesRegex(RuntimeError, "prepare boundary rejected"):
+                D.import_train(D.SOURCE, module_name)
+        boundary.assert_called_once_with()
+        self.assertNotIn(module_name, D.sys.modules)
 
     def run_local_child(self, root, name, code, timeout=5):
         cache = root / f"{name}-cache"

@@ -31,11 +31,13 @@ EVIDENCE = Path(__file__).resolve().parent
 HARNESS = Path(__file__).resolve()
 SOURCE = ROOT / "submissions/dense6x1024_lean_review/train.py"
 DIRECT = ROOT / "submissions/dense6x1024_direct_review/train.py"
+PREPARE = ROOT / "prepare.py"
 PROPOSAL = EVIDENCE / "proposal.json"
 REQUEST = EVIDENCE / "neuron-discriminator-authorization-request.json"
 RUNBOOK = EVIDENCE / "neuron-discriminator-runbook.md"
 SOURCE_SHA256 = "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344"
 DIRECT_SHA256 = "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537"
+PREPARE_SHA256 = "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb"
 AUTH_SCHEMA = "dense6x1024-direct-neuron-discriminator-authorization-v1"
 REPORT_SCHEMA = "dense6x1024-direct-neuron-discriminator-report-v1"
 WORKER_SCHEMA = "dense6x1024-direct-neuron-discriminator-worker-v1"
@@ -99,6 +101,7 @@ PROTECTED_PATHS = (
     "research/submission-validation/20260923-dense6x1024-direct-review-safe/fs-20260923-dense6x1024-direct-neuron-component-20260923T103500000001Z-result.json",
     "research/submission-validation/20260923-dense6x1024-direct-review-safe/independent-neuron-discriminator-verifier.json",
     "research/submission-validation/20260923-dense6x1024-direct-review-safe/independent-neuron-discriminator-fix-harness-verifier.json",
+    "research/submission-validation/20260923-dense6x1024-direct-review-safe/independent-analyst-neuron-discriminator-r2.json",
 )
 LAUNCHER_DEFAULT_FINGERPRINT_PATHS = (
     "train.py", "prepare.py", "research/run_experiment.py",
@@ -133,6 +136,7 @@ SAFE_CHILD_ENV_NAMES = (
     "MASTER_ADDR", "MASTER_PORT", "NODE_RANK", "TRAINIUM_DISCRIMINATOR_LABEL",
     "TRAINIUM_DISCRIMINATOR_EXPECTED_COMMIT", "TRAINIUM_DISCRIMINATOR_AUTHORIZED_HEAD",
     "TRAINIUM_DISCRIMINATOR_AUTHORIZATION_SHA256", "TRAINIUM_FRESH_START_RUN_ID",
+    "TRAINIUM_DISCRIMINATOR_PREPARE_SHA256",
 )
 CHILD_PROCESS_KEYS = {
     "schema", "name", "argv", "environment_identity", "timeout_seconds",
@@ -211,6 +215,7 @@ def static_source_checks() -> dict[str, Any]:
     checks = {
         "source_sha256": sha256(SOURCE) == SOURCE_SHA256,
         "direct_sha256": sha256(DIRECT) == DIRECT_SHA256,
+        "prepare_sha256": sha256(PREPARE) == PREPARE_SHA256,
         "source_ce_adapter": "def _submission_ce_install(" in source_text,
         "source_optimizer_adapter": "def _submission_optimizer_install(" in source_text,
         "direct_native_ce": "class _SoftcapCrossEntropyNKI" in direct_text,
@@ -249,6 +254,8 @@ def expected_contract() -> dict[str, Any]:
         "source_sha256": SOURCE_SHA256,
         "direct_path": rel(DIRECT),
         "direct_sha256": DIRECT_SHA256,
+        "prepare_path": rel(PREPARE),
+        "prepare_sha256": PREPARE_SHA256,
         "ce_rows": list(ROWS),
         "ce_repetitions": REPETITIONS,
         "optimizer_fixtures": ["tiny_fixed", "tiny_changed", "production_width1024_fs_w62"],
@@ -280,6 +287,14 @@ def expected_contract() -> dict[str, Any]:
             "poll_seconds": PROCESS_GROUP_POLL_SECONDS,
             "quiescence_required_before_snapshot": True,
             "pre_top_log_artifact_cache_revalidation": True,
+        },
+        "prepare_import_boundary": {
+            "repository_root_first": True,
+            "explicit_canonical_module_load": True,
+            "reject_preloaded_prepare": True,
+            "reject_shadow_or_wrong_path": True,
+            "regular_non_symlink_required": True,
+            "authorized_sha256_required": PREPARE_SHA256,
         },
     }
 
@@ -358,7 +373,95 @@ def authenticate(args: argparse.Namespace, full: bool) -> dict[str, Any]:
     }
 
 
+def path_from_sys_path(entry: str) -> Path:
+    return Path(entry if entry else os.getcwd()).absolute().resolve()
+
+
+def load_pinned_prepare(
+    root: Path | None = None, expected_sha256: str | None = None,
+    authorized_sha256: str | None = None,
+) -> dict[str, Any]:
+    root = ROOT if root is None else root
+    expected_sha256 = PREPARE_SHA256 if expected_sha256 is None else expected_sha256
+    root = root.absolute()
+    prepare_path = root / "prepare.py"
+    if root.is_symlink() or not root.is_dir():
+        raise ValueError(f"repository root is not a regular non-symlink directory: {root}")
+    if prepare_path.is_symlink() or not prepare_path.is_file():
+        raise ValueError(f"prepare dependency is not a regular non-symlink file: {prepare_path}")
+    if not re.fullmatch(r"[0-9a-f]{64}", expected_sha256):
+        raise ValueError("pinned prepare SHA-256 is not a lowercase literal")
+    authorized_sha256 = authorized_sha256 or os.environ.get(
+        "TRAINIUM_DISCRIMINATOR_PREPARE_SHA256"
+    )
+    if authorized_sha256 != expected_sha256:
+        raise ValueError("authorized prepare SHA-256 differs from the pinned harness value")
+    actual_sha256 = sha256(prepare_path)
+    if actual_sha256 != expected_sha256:
+        raise ValueError("prepare.py SHA-256 differs from the authorized protected hash")
+    if root.resolve() == ROOT.resolve():
+        request = json.loads(REQUEST.read_text())
+        request_prepare_sha = request.get("expected_sha256", {}).get("prepare.py")
+        if request_prepare_sha != authorized_sha256:
+            raise ValueError("authorization request does not pin the active prepare.py SHA-256")
+    if "prepare" in sys.modules:
+        module = sys.modules["prepare"]
+        module_path = getattr(module, "__file__", None) if module is not None else None
+        raise RuntimeError(f"refusing preloaded prepare module: {module_path!r}")
+    importlib.invalidate_caches()
+    try:
+        discovered = importlib.util.find_spec("prepare")
+    except (ImportError, AttributeError, ValueError) as error:
+        raise RuntimeError(f"cannot safely resolve prepare before controlled load: {error}") from error
+    if discovered is not None:
+        if not discovered.origin:
+            raise RuntimeError("shadow prepare module has no regular file origin")
+        discovered_path = Path(discovered.origin).absolute()
+        if (discovered_path.is_symlink() or not discovered_path.is_file()
+                or discovered_path.resolve() != prepare_path.resolve()):
+            raise RuntimeError(f"shadow/wrong-path prepare module would resolve from: {discovered.origin}")
+    filtered = []
+    for entry in sys.path:
+        try:
+            same_root = path_from_sys_path(entry) == root.resolve()
+        except (OSError, RuntimeError, ValueError):
+            same_root = False
+        if not same_root:
+            filtered.append(entry)
+    sys.path[:] = [str(root), *filtered]
+    importlib.invalidate_caches()
+    controlled = importlib.util.find_spec("prepare")
+    if (controlled is None or not controlled.origin
+            or Path(controlled.origin).absolute().resolve() != prepare_path.resolve()):
+        raise RuntimeError("repository-root-first prepare resolution is not canonical")
+    spec = importlib.util.spec_from_file_location("prepare", prepare_path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"cannot load pinned prepare dependency: {prepare_path}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules["prepare"] = module
+    try:
+        spec.loader.exec_module(module)
+    except BaseException:
+        if sys.modules.get("prepare") is module:
+            sys.modules.pop("prepare", None)
+        raise
+    loaded_path = Path(getattr(module, "__file__", "")).absolute()
+    if (sys.modules.get("prepare") is not module or loaded_path.is_symlink()
+            or loaded_path.resolve() != prepare_path.resolve() or sha256(loaded_path) != expected_sha256
+            or not sys.path or path_from_sys_path(sys.path[0]) != root.resolve()):
+        sys.modules.pop("prepare", None)
+        raise RuntimeError("loaded prepare module identity changed across controlled import")
+    return {
+        "module": "prepare",
+        "path": str(prepare_path),
+        "sha256": actual_sha256,
+        "repository_root": str(root),
+        "repository_root_sys_path_index": 0,
+    }
+
+
 def import_train(path: Path, name: str):
+    load_pinned_prepare()
     spec = importlib.util.spec_from_file_location(name, path)
     if spec is None or spec.loader is None:
         raise RuntimeError(f"cannot import {path}")
@@ -1837,6 +1940,10 @@ def run_orchestrator(args: argparse.Namespace, authorization: dict[str, Any]) ->
         nonce = hashlib.sha256(f"{args.run_label}:{args.authorization_sha256}".encode()).hexdigest()
         common_env = os.environ.copy()
         common_env["TRAINIUM_DISCRIMINATOR_PARENT_NONCE"] = nonce
+        prepare_sha = authorization["expected_sha256"].get("prepare.py")
+        if prepare_sha != PREPARE_SHA256:
+            raise ValueError("authenticated protected map does not authorize pinned prepare.py")
+        common_env["TRAINIUM_DISCRIMINATOR_PREPARE_SHA256"] = prepare_sha
         python = NATIVE_PYTHON
         for variant in ("source", "direct"):
             name = f"ce-{variant}"

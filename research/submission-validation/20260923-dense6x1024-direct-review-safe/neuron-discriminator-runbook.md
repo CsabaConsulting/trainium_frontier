@@ -34,6 +34,23 @@ The authorization file intentionally does not embed its future commit SHA (which
 self-reference); exact HEAD authority exists only in the Verifier's external literal and the
 matching CLI/environment/launch/job fields checked against `git rev-parse HEAD`.
 
+## Controlled prepare import boundary
+
+The r2 hardware attempt stopped before Neuron execution because an absolute dynamic import of the
+frozen train module could not resolve root `prepare.py`. This correction does not change either
+train module or any numerical gate. Before dynamically executing source or direct `train.py`, each
+worker now requires the authenticated protected-map value for `prepare.py` to equal the hard-coded
+SHA-256 `5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb` and the actual root file
+bytes. Root and `prepare.py` must be a directory/file respectively, both non-symlinks.
+
+The boundary rejects any already loaded `prepare` module, including one claiming the correct path,
+and rejects any current module-search result whose origin is not the pinned root file. It removes
+duplicate root entries, makes the repository root the first `sys.path` location, verifies canonical
+resolution again, then explicitly executes that exact regular file as canonical module `prepare`.
+It rechecks module identity, file SHA-256, and root-first precedence before returning to the frozen
+train import. A missing authorization value, shadow directory, wrong origin, symlink, non-regular
+path, changed bytes, preload, or identity drift fails before train execution.
+
 ## Decisive workload
 
 The top-level process sequentially creates five fresh, non-existing compile-cache directories and
@@ -112,7 +129,8 @@ hard-coded harness contract. It pins:
   `research/fresh_start_backup.py`), fresh-start tools, fs-w62 provenance, the prior failed
   component result, the earlier discriminator verifier, and
   `independent-neuron-discriminator-fix-harness-verifier.json` at the FAIL commit that required this
-  process-group correction.
+  process-group correction, plus `independent-analyst-neuron-discriminator-r2.json` establishing the
+  later import-boundary-only correction.
 
 The manifested parsed command array is exactly:
 
