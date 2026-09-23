@@ -18,9 +18,12 @@ requires the authorization-request bytes to equal the external SHA exactly. Ther
 commit—including a harmless descendant or a descendant that recomputes its own request SHA—is
 rejected when the original external literals are used.
 
-The current request has `template_state: pending_external_verifier_literals`. Full mode always
-rejects that state. Neither this runbook nor any script in the checkout computes, prints, fills, or
-guesses the two authorization literals. A role/status string inside the request is not authority.
+The request at implementation HEAD `7f44d01d1f633d4473db29675b145c2dad4c3141` has
+`template_state: pending_external_verifier_literals`; full mode always rejects that state. The
+independent Verifier's finalization commit changes only this runbook and the authorization request;
+it records the finalized state plus this runbook's updated hash. Neither this runbook nor any script
+in the checkout computes, prints, fills, or guesses the two authorization literals. A role/status
+string inside the request is not authority.
 
 The independent Verifier's final out-of-band report is the only permitted source of:
 
