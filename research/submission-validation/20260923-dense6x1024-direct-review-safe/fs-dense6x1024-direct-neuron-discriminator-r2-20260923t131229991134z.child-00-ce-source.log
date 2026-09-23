@@ -1,0 +1,24 @@
+[W923 13:17:42.542883995 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_freshstart_submission_validation_20260923_direct_discriminator/research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron_discriminator_direct.py", line 1993, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/home/ubuntu/trainium_freshstart_submission_validation_20260923_direct_discriminator/research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron_discriminator_direct.py", line 1956, in main
+    return run_ce_worker(args) if args.worker == "ce" else run_optimizer_worker(args)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/trainium_freshstart_submission_validation_20260923_direct_discriminator/research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron_discriminator_direct.py", line 482, in run_ce_worker
+    module = import_train(SOURCE if args.variant == "source" else DIRECT,
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/trainium_freshstart_submission_validation_20260923_direct_discriminator/research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron_discriminator_direct.py", line 367, in import_train
+    spec.loader.exec_module(module)
+  File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/home/ubuntu/trainium_freshstart_submission_validation_20260923_direct_discriminator/submissions/dense6x1024_lean_review/train.py", line 31, in <module>
+    from prepare import EVAL_TIMEOUT_SECONDS, TOKENIZER_VOCAB_SIZE, TRAIN_STARTUP_ALLOWANCE_CAP_SECONDS, TRAIN_STARTUP_STEPS_EXCLUDED, TRAIN_TIME_BUDGET_SECONDS, Tokenizer, _document_batches, _row_groups_for_split, causality_check, ensure_tokenizer, evaluate_bpb, get_dist_info, get_token_bytes, make_dataloader, print0, record_step_boundary
+ModuleNotFoundError: No module named 'prepare'
