@@ -1,0 +1,80 @@
+{
+  "artifact_sha256": {
+    "evidence/checkpoint-finite.log": "08236a09cbb17a2cdb5f7bdb691b15cfd478c6199ed99ef419a79fcebef7f1ee",
+    "evidence/training-rehearsal.json": "06b9319d83c84ab2fd1d4c4a6a064c6fff207555287fa4d3fd1fbd6dcde5bd69",
+    "evidence/training-steps.jsonl": "bab92fe98dad04be9fe8c56e23536b104951ee03f1919c93b8369bac21993a1f",
+    "evidence/training.log": "85d5b8326888c65832a1902e631cc4a84d410dedaa631db7a1ae90680ada7280",
+    "run-logs/fs-20260924-c595-matrixlr025-trn21-r1.dispatch.json": "c8def362c3d8ad7bed4a50a2e779e6ac07f76c261a31e9c2e0bac29fdd11d644",
+    "run-logs/fs-20260924-c595-matrixlr025-trn21-r1.job.json": "c1e3633d1693f92445aebdd12b311016945cc289fc62c5ce7dd19d5b416fb2aa",
+    "run-logs/fs-20260924-c595-matrixlr025-trn21-r1.launch.json": "c1e3633d1693f92445aebdd12b311016945cc289fc62c5ce7dd19d5b416fb2aa",
+    "run-logs/fs-20260924-c595-matrixlr025-trn21-r1.log": "af73b374278ef79e650dd0e8a8d1927af2c189f8a1db1d36d5d9d3e91ecaf789",
+    "run-logs/fs-20260924-c595-matrixlr025-trn21-r1.postflight.json": "8aadea32b92141054e53492b7f1ec149e6ca67b201b3c3fc6fa35d4c8822957e",
+    "run-logs/fs-20260924-c595-matrixlr025-trn21-r1.preflight.json": "f3d6a5a7517e3b12c27ea563e82d7687e066fbce3e5227988638dc121b50ae4c",
+    "run-logs/fs-20260924-c595-matrixlr025-trn21-r1.process.json": "2168f8e520db1b61a53dccfeac218d891886eb12fb91fd692f6bc077032c573f"
+  },
+  "checkpoint": {
+    "bytes": 469831009,
+    "finite": true,
+    "inode": 2957034,
+    "nlink": 1,
+    "path": "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr025_trn21_r1/out/fs-20260924-c595-matrixlr025-trn21-r1-work/train/out/final.pt",
+    "preserved_remote": true,
+    "sha256": "b2c4818e95e4ae25643ab48eb9dd199edebfc4b065290d6c601244b758af69ba"
+  },
+  "evaluation": {
+    "attempted": false,
+    "full20m_bpb": null,
+    "primary_1024_bpb": null,
+    "reason": "strict finite receipt gate failed before evaluation"
+  },
+  "failure": {
+    "driver_error": "finite receipt count mismatch",
+    "explanation": "checkpoint-finite.log contains seven Neuron operator-registration warning lines followed by one valid c595-strict-finite-v1 JSON line; the driver requires exactly one output line",
+    "finite_json_line_count": 1,
+    "finite_raw_line_count": 8,
+    "finite_warning_line_count": 7,
+    "guard_command_returncode": 1
+  },
+  "fingerprints": {
+    "authorization_sha256": "8ef4fc7b638968165d09cb8a0164b2bc191b0d4d09578f69d98fee49dde2fc0a",
+    "candidate_sha256": "4b36bb0da7950299c09f8bbbfc8d4a77c6bb73415a85f3bcf413cc2c4bab2994",
+    "core_commit": "bb03c4c4fe06b206942549fe30b6743f42179a5d",
+    "job_sha256": "92c81adb58a8029f8361529b35ccc9433e76d1b01b9bce7d099639ec558d9c81",
+    "request_sha256": "a51c94f2c35babc0e2066f145e188a20fe2621e582d27b6055710f3f1a4f65b4",
+    "retune_job_sha256": "d1a44911d33572add3d8cb87c08db3c212dfd5620f09fbf82e2d5093e0a92dda"
+  },
+  "host": {
+    "device_holders": 0,
+    "hostname": "ip-172-31-34-85",
+    "name": "trn21",
+    "neuron_process_count": 0,
+    "postflight_free_bytes": 7105347584,
+    "postflight_gate_failure": "less than8GiB disk space available",
+    "postflight_host_clean": false,
+    "relevant_process_count": 0
+  },
+  "label": "fs-20260924-c595-matrixlr025-trn21-r1",
+  "launch": {
+    "child_pid": 2647715,
+    "guard_pid": 2647714,
+    "preflight_passed": true,
+    "started_at": "2026-09-23T23:04:18.699598+00:00"
+  },
+  "operator_actions": {
+    "cleanup_performed": false,
+    "evaluation_started": false,
+    "retry_performed": false
+  },
+  "remote_root": "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr025_trn21_r1",
+  "schema": "operator-failed-run-receipt-v1",
+  "training": {
+    "charged_through_process_exit_seconds": 1790.0518347660545,
+    "charged_within_budget": true,
+    "final_step": 3639,
+    "log_training_seconds": 1784.7,
+    "rehearsal_returncode": 0,
+    "step_count": 3640,
+    "total_tokens_millions": 477.1,
+    "wall_seconds": 2636.9258143700426
+  }
+}

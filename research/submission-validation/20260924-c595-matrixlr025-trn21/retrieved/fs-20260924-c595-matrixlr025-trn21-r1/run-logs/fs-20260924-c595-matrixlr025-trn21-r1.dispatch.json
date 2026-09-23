@@ -1,0 +1,73 @@
+{
+  "request": {
+    "schema": "fresh-start-request-v2",
+    "host": "trn21",
+    "expected_hostname": "ip-172-31-34-85",
+    "remote": "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr025_trn21_r1",
+    "expected_commit": "bb03c4c4fe06b206942549fe30b6743f42179a5d",
+    "origin": "https://github.com/CsabaConsulting/trainium_frontier.git",
+    "label": "fs-20260924-c595-matrixlr025-trn21-r1",
+    "purpose": "Human-approved single-factor MATRIX_LR 0.020 to 0.025, seed42, exact c595 flags, full 1800 seconds, no smoke, fresh full20m evaluation.",
+    "fingerprint_paths": [
+      "prepare.py",
+      "research/scratch/submission_rehearsal.py",
+      "research/fresh_start_launch.py",
+      "research/fresh_start_sync.py",
+      "research/fresh_start_guard.py",
+      "research/fresh_start_host.py",
+      "research/fresh_start_backup.py",
+      "research/submission-validation/20260923-c595-dual-host-seed42-controls/eval_recovery.py",
+      "research/submission-validation/20260924-c595-matrixlr025-trn21/EXPERIMENT_PROPOSAL.json",
+      "research/submission-validation/20260924-c595-matrixlr025-trn21/authorization.json",
+      "research/submission-validation/20260924-c595-matrixlr025-trn21/retune_job.py",
+      "submissions/dense6x1024_direct_review_matrixlr025/train.py",
+      "submissions/dense6x1024_direct_review_matrixlr025/provenance.json",
+      "submissions/dense6x1024_direct_review_matrixlr025/launch-command.txt"
+    ],
+    "expected_sha256": {
+      "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+      "research/scratch/submission_rehearsal.py": "3dfe882941f2e0f17ae0b93d55bc5d96f3adcd85320dea5b8896bccbcd49326b",
+      "research/fresh_start_launch.py": "06eefe82e04a810474614295228e1cef84923373e653a9c62f97f5dca3456b94",
+      "research/fresh_start_sync.py": "ea428d33f4de18376950abbd81cfda33d3a969f75b60e3648ff552bea04fc60c",
+      "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+      "research/fresh_start_host.py": "8c597adea7c48114bed8f50aa161fdc79b36b49c86c7315e6a58c3ca4e8f5f79",
+      "research/fresh_start_backup.py": "c978fd20b6620d0d80c25f8982974e8c4b2ad009edd9da376d784f5cecc3ead3",
+      "research/submission-validation/20260923-c595-dual-host-seed42-controls/eval_recovery.py": "a569a8cfb6c71a298544be659609ce5314ea6c7ec7ad40e9743e668e7e9a3617",
+      "research/submission-validation/20260924-c595-matrixlr025-trn21/EXPERIMENT_PROPOSAL.json": "3584778037d82034b623cce8fcae6059ee8f2c82be1bcf423e1d3d02585cfb2a",
+      "research/submission-validation/20260924-c595-matrixlr025-trn21/authorization.json": "8ef4fc7b638968165d09cb8a0164b2bc191b0d4d09578f69d98fee49dde2fc0a",
+      "research/submission-validation/20260924-c595-matrixlr025-trn21/retune_job.py": "d1a44911d33572add3d8cb87c08db3c212dfd5620f09fbf82e2d5093e0a92dda",
+      "submissions/dense6x1024_direct_review_matrixlr025/train.py": "4b36bb0da7950299c09f8bbbfc8d4a77c6bb73415a85f3bcf413cc2c4bab2994",
+      "submissions/dense6x1024_direct_review_matrixlr025/provenance.json": "5b4c3e6acd7ed2deab161f0badcf77ea7156f656bcca8d8a65fac268693cef17",
+      "submissions/dense6x1024_direct_review_matrixlr025/launch-command.txt": "b75f844f413575f0cc35164972b4abf68de41e4b6f39e9b5423a6070de005abd"
+    },
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--foreground",
+      "--signal=TERM",
+      "--kill-after=60s",
+      "4200s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "research/submission-validation/20260924-c595-matrixlr025-trn21/retune_job.py",
+      "--authorization-sha256",
+      "8ef4fc7b638968165d09cb8a0164b2bc191b0d4d09578f69d98fee49dde2fc0a",
+      "--sandbox-root",
+      "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr025_trn21_r1/out/fs-20260924-c595-matrixlr025-trn21-r1",
+      "--core-commit",
+      "bb03c4c4fe06b206942549fe30b6743f42179a5d"
+    ],
+    "runner_owns_manifest": false,
+    "non_overwrite": true,
+    "request_file_sha256": "a51c94f2c35babc0e2066f145e188a20fe2621e582d27b6055710f3f1a4f65b4"
+  },
+  "requested_at": "2026-09-23T23:04:09.819860+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-20260924-c595-matrixlr025-trn21-r1\", \"pid\": 2647714, \"commit\": \"bb03c4c4fe06b206942549fe30b6743f42179a5d\", \"hostname\": \"ip-172-31-34-85\", \"log\": \"/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr025_trn21_r1/research/run-logs/fs-20260924-c595-matrixlr025-trn21-r1.log\", \"started_at\": \"2026-09-23T23:04:18.699598+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": "Warning: Identity file /home/csaba/.ssh/trn2.pem not accessible: No such file or directory.\n"
+}
