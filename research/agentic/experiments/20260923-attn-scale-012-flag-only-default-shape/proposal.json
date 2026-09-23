@@ -1,0 +1,52 @@
+{
+  "abort_conditions": [
+    "Smoke (300 s) completes fewer than 325 steps on the same host (control smokes: 334 on trn21, 335 on trn22), indicating an unexpected throughput or recompile regression",
+    "Smoke public_val_bpb exceeds the same-host control smoke by more than 0.003",
+    "causality_passed is false or causality_max_abs > 0.0 (the scale is applied inside the causal attention backend; any nonzero value means the flag reached a different code path than documented)",
+    "Any NaN/inf loss, loss-scale skip storm, or a training-loss spike above 1.5x the control's loss at the same step in the first 100 steps (sharper logits are the only new risk)",
+    "Full run step count differs from the same-host control by more than 10% (result would be CONFOUNDED per protocol, not a verdict)",
+    "Argparse rejects --attn-scale (would indicate the verifier's source finding does not hold at 9a4caa7b; do not substitute a code change in this run)"
+  ],
+  "change_type": "flags",
+  "created_at": "2026-09-23T13:15:59Z",
+  "duplicate_search_terms": [
+    "--attn-scale",
+    "attn_scale",
+    "ATTN_SCALE",
+    "attn-logit-scale",
+    "ATTN_LOGIT_SCALE",
+    "attention scale 0.12",
+    "softmax scale",
+    "qk scale",
+    "attention temperature",
+    "logit scale",
+    "q_premult",
+    "scale=0.12"
+  ],
+  "evidence": [
+    "train.py lines 209-232 (per 20260923 proposal-verifier finding): ATTN_SCALE=0.0 defined, exposed as --attn-scale through _hp(), carried in GPTConfig, snapshot into CausalSelfAttention.self.attn_scale (lines 3083-3098); every SDPA call passes scale=self.attn_scale and nki_attention forwards it -- existing one-factor plumbing, no code change needed",
+    "20260923 proposal-verifier verdict on 20260923-attn-logit-scale-012-fixed-q-premult: 'Revise this as a one-factor --attn-scale 0.12 experiment using the existing checkpoint-safe plumbing' and 'The per-head QK normalization is rope_norm(q, cos, sin) and rope_norm(k, cos, sin) inside CausalSelfAttention.forward'",
+    "20260923 nki-attn verifier finding: default geometry is T=2048, D=128, i.e. head_dim 128 matches the modded-nanogpt attn_scale=0.12 setting",
+    "DECISION_LOG.md and research/experiment-log.jsonl at 9a4caa7b: no row for --attn-scale / ATTN_SCALE; the bounded authoritative evidence index (lines 27-57, 164-182, 282-320, 334-372, 385-405, 414-448, 508-526, 540-558, 576-595, 621-650) contains no measurement of this axis (status unknown, not asserted untested)",
+    "Pinned controls: control-trn21 1.005734 / 2071 steps, control-trn22 1.005967 / 2076 steps; same-host smoke controls 1.165855 / 334 (trn21) and 1.165604 / 335 (trn22)",
+    "train.py lines 414-448: schedule-level changes with no new tensors/ops carry an expected throughput term of ~0, so the outcome is a per-step-quality delta (same reasoning applies to a constant softmax scale kwarg)",
+    "External: modded-nanogpt speedrun records use QK-norm with F.scaled_dot_product_attention(..., scale=0.12) at head_dim 128 as a measured improvement over the default 1/sqrt(d)"
+  ],
+  "expected_effect": "val_bpb decreases by 0.002 to 0.005 versus the same-host pinned control at matched steps (step count within 3% of the control's ~2071-2076, since the change is a constant kwarg with no new ops). Falsified if candidate bpb >= control bpb at comparable steps, or if the run is CONFOUNDED by a >10% step-count gap.",
+  "files_allowed": [],
+  "flags": [
+    "--attn-scale",
+    "0.12"
+  ],
+  "hypothesis": "The attention module normalizes q and k per head (rope_norm inside CausalSelfAttention.forward, per the 20260923 verifier findings) and then calls the attention backend with scale=self.attn_scale, where ATTN_SCALE=0.0 selects the backend default 1/sqrt(head_dim) at head_dim D=128. With unit-RMS q and k, |q.k| <= D, so the attainable logit range under the default scale is bounded by sqrt(D) ~ 11.3; a fixed scale of 0.12 raises that bound to 0.12*D ~ 15.4 (+36%), letting heads form sharper attention distributions without the optimizer having to fight the normalization. This is exactly the modded-nanogpt QK-norm + attn_scale=0.12 configuration at head_dim 128, which was a measured speedrun improvement there. Because the scale is a constant kwarg on an existing code path (no new tensors, no new ops, no recompile-per-step hazard), the throughput term should be ~0 and any delta is per-step quality. Predicted: lower val_bpb at matched steps.",
+  "implementation_plan": "",
+  "proposal_id": "20260923-attn-scale-012-flag-only-default-shape",
+  "single_causal_change": "Pass --attn-scale 0.12 only, using the existing checkpoint-safe ATTN_SCALE plumbing (module-level ATTN_SCALE, _hp() CLI exposure, GPTConfig.attn_scale, CausalSelfAttention.self.attn_scale forwarded as scale= to every SDPA call and to nki_attention, as identified by the proposal verifier on 2026-09-23). Every other option stays at the 9a4caa7b defaults used by the two pinned controls: identical launch shape (NEURON_LOGICAL_NC_CONFIG=2, torchrun --nproc_per_node=4, --num-steps 5000 --max-train-seconds 1800 --seed 42, NEURON_CC_FLAGS='--optlevel=1'). No precision flag (--bf16-sdpa-input, --bf16-norm-output), no kernel flag (--nki-*, --compile-*), no optimizer or architecture switch, no data/eval change. The attention softmax scale constant is the sole causal option.",
+  "smoke_gate": {
+    "max_bpb_delta": 0.003,
+    "min_candidate_steps": 325,
+    "min_step_rate_ratio": 0.97
+  },
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}
