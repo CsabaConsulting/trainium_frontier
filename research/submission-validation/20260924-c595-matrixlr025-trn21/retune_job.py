@@ -21,7 +21,7 @@ def artifact_module():
  m.ROOT=ROOT; m.LABEL=LABEL; m.OUTPUT=ROOT/"out"/LABEL
  return m
 def scrub(source):
- blocked={"RANK","LOCAL_RANK","WORLD_SIZE","LOCAL_WORLD_SIZE","GROUP_RANK","ROLE_RANK","ROLE_WORLD_SIZE","MASTER_ADDR","MASTER_PORT","PYTHONPATH","PYTHONHOME","NEURON_RT_VISIBLE_CORES","NEURON_RT_NUM_CORES"}
+ blocked={"RANK","LOCAL_RANK","WORLD_SIZE","LOCAL_WORLD_SIZE","GROUP_RANK","ROLE_RANK","ROLE_WORLD_SIZE","MASTER_ADDR","MASTER_PORT","PYTHONPATH","PYTHONHOME","NEURON_RT_VISIBLE_CORES","NEURON_RT_NUM_CORES","NEURON_CC_FLAGS"}
  return {k:v for k,v in source.items() if k not in blocked and not k.startswith("TORCHELASTIC_") and not k.startswith("NEURON_COMPETITION_R1_")}
 def metrics(text):
  decoder=json.JSONDecoder(); found=[]

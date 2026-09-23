@@ -14,6 +14,8 @@ assert proposal["environment"]["max_train_seconds"]==1800 and proposal["run_mode
 assert proposal["selection_metric"]=={"name":"full20m_public_val_bpb","batch_size":1,"seq_len":1024,"num_tokens":20971520,"num_bytes":83462186,"control":0.993231940827686,"lower_is_better":True}
 assert proposal["decision"]["keep_if_improvement_at_least"]==0.0015 and proposal["decision"]["replicate_if_keep_improvement_below"]==0.0025
 spec=importlib.util.spec_from_file_location("retune_job",HERE/"retune_job.py");m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+scrubbed=m.scrub({"NEURON_CC_FLAGS":"bad","RANK":"1","TORCHELASTIC_X":"x","NEURON_COMPETITION_R1_SEED":"9","SAFE":"yes"})
+assert scrubbed=={"SAFE":"yes"}
 total=5776000.0;num_bytes=83462186
 good={"val_bpb":total/(num_bytes*math.log(2)),"num_tokens":20971520,"num_bytes":num_bytes,"total_nats":total,"eval_seconds":1.0,"eval_timeout":1200,"eval_over_timeout":False}
 assert m.metrics(json.dumps(good))["num_tokens"]==20971520
