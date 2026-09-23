@@ -1,0 +1,95 @@
+{
+  "schema": "dense6x1024-direct-neuron-discriminator-prepare-boundary-independent-verifier-v1",
+  "role": "independent Verifier",
+  "verified_at": "2026-09-23",
+  "verdict": "FAIL",
+  "reviewed_implementation_commit": "13d125ea0a96b0f2b2c8498873e64fbb9127bb7a",
+  "reviewed_analyst_commit": "8d9316d4b4868c3ae24d5da8eedfffc765199620",
+  "analyst_report_sha256": "9ba58e75045f6d59951ff2b2f2dcbf68d8d904158ec9cc75b7a9613bdf76ba0b",
+  "analyst_verdict": "STOP/FIX_HARNESS",
+  "repository_state_before_report": {
+    "branch": "submission/dense6x1024-direct-review-safe-20260923",
+    "head": "13d125ea0a96b0f2b2c8498873e64fbb9127bb7a",
+    "fetched_origin_head": "13d125ea0a96b0f2b2c8498873e64fbb9127bb7a",
+    "tracked_worktree_clean": true,
+    "implementation_parent": "8d9316d4b4868c3ae24d5da8eedfffc765199620",
+    "diff_scope": [
+      "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron-discriminator-authorization-request.json",
+      "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron-discriminator-runbook.md",
+      "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron_discriminator_direct.py",
+      "research/submission-validation/20260923-dense6x1024-direct-review-safe/test_neuron_discriminator_static.py"
+    ],
+    "unexpected_files": [],
+    "prepare_candidate_or_source_changed": false,
+    "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "candidate_sha256": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537",
+    "source_sha256": "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344",
+    "harness_sha256": "dc8f594173bd736073ec030ff85111f45f0a396aa6eb19411d0c2bfe21e69ca4",
+    "static_test_sha256": "eba12525591ede57c042bf2d1906dad7d769d75472a74e921d1a08cf293655bc",
+    "runbook_sha256": "af5f0162b1412c638db07cb4afef4a86ac4a0e00cf66c8b705dcc61c61890b22",
+    "pending_authorization_request_sha256": "eefa7e5e87f75ff78dc3cb09310bbd957e11bb9c79da9986a0973d50242bb060",
+    "authorization_state": "pending_external_verifier",
+    "protected_hash_count": 21,
+    "all_protected_hashes_match": true
+  },
+  "positive_findings": {
+    "r2_root_cause_addressed": "import_train calls the prepare boundary before creating or executing a train module. The boundary makes canonical ROOT first, rejects ordinary sys.path shadows and every preloaded prepare module, requires regular non-symlink ROOT/prepare.py, checks the hard-coded/request/environment SHA, explicitly loads canonical module name prepare, and rechecks path/hash/root-first identity after execution.",
+    "origin_and_auth_rejection": "Wrong-origin, symlink, directory/non-regular, protected-hash mismatch, authorization-hash mismatch and preloaded-module cases reject in the supplied tests. A train import cannot proceed when the prepare boundary raises.",
+    "prior_gates_preserved": "The CE singleton environment, optimizer four-rank sanitation, process-group TERM/KILL quiescence, immutable child evidence, pre-top revalidation, exact CE/optimizer validators and numerical gates are unchanged and their regression tests pass.",
+    "scope_and_hashes": "Only the harness, tests, runbook and new pending request changed. prepare.py, candidate and source are byte-identical. All 21 protected hashes, including the Analyst report, match.",
+    "static_e2e": "The real pending-sentinel static CLI passed with hardware_executed=false, prepare_sha256=true, and all actual protected hashes equal expected."
+  },
+  "blocking_findings": [
+    {
+      "id": "P1",
+      "severity": "blocking",
+      "finding": "The claimed SHA-pinned canonical prepare.py load can execute different code from a timestamp-valid __pycache__/prepare*.pyc while every current path, source-byte and authorization check passes.",
+      "root_cause": "load_pinned_prepare verifies prepare.py bytes, then uses spec_from_file_location(...).loader.exec_module(module). SourceFileLoader may execute a valid timestamp/size-matched .pyc cache rather than recompiling the verified source bytes. The protected/dirty scope does not pin or exclude __pycache__ content, and sys.dont_write_bytecode would not prevent reading an existing cache.",
+      "independent_reproduction": "In a temporary canonical root, prepare.py contained VALUE='canonical' and its exact SHA was passed as both pinned and authorized values. I wrote a normal timestamp-based prepare.cpython-*.pyc with the source's exact mtime/size header but code VALUE='MALICIOUS_PYC'. load_pinned_prepare returned success, reported the canonical source SHA/path, and sys.modules['prepare'].VALUE was MALICIOUS_PYC.",
+      "impact": "The dynamically imported train module can consume definitions that were not derived from the authorized prepare.py bytes. This violates the exact r2 requirement for an explicit SHA-pinned canonical dependency and can false-authorize a shadowed dependency despite a clean protected source hash.",
+      "required_correction": "Read the canonical prepare.py bytes, hash those exact bytes, compile those exact bytes directly with compile(..., canonical_path, 'exec') or an equivalent cache-bypassing source_to_code path, and execute that code in the freshly created canonical module. Do not let SourceFileLoader select cached bytecode. Re-read/re-hash immediately after execution and retain all existing preload/path/root/auth checks. Add an adversarial timestamp-valid malicious-pyc regression proving the canonical source value executes and the cache cannot influence the module."
+    }
+  ],
+  "commands_and_results": [
+    {
+      "command": "git fetch origin <branch>; git rev-parse HEAD/origin; git diff --name-status/check 8d9316d4..13d125ea; prepare/candidate/source diff and sha256 audit",
+      "result": "PASS: origin aligned and clean; exactly four declared files; prepare/candidate/source unchanged; all 21 protected hashes match"
+    },
+    {
+      "command": "sha256sum and python -m json.tool independent-analyst-neuron-discriminator-r2.json",
+      "result": "PASS: Analyst report is commit 8d9316d4... and SHA-256 9ba58e75..., verdict STOP/FIX_HARNESS"
+    },
+    {
+      "command": "python -m py_compile harness/tests; python -m unittest -v test_neuron_discriminator_static.py",
+      "result": "PASS: syntax clean; 30/30 supplied tests passed"
+    },
+    {
+      "command": "real pending-sentinel static CLI with request SHA eefa7e5e...",
+      "result": "PASS rc0: static-only passed, hardware_executed=false, prepare and all protected hashes matched; temporary report removed"
+    },
+    {
+      "command": "independent timestamp-valid malicious __pycache__/prepare*.pyc attack against load_pinned_prepare",
+      "result": "FAIL criterion reproduced: authorized source bytes remained VALUE='canonical' while loaded canonical module executed VALUE='MALICIOUS_PYC'"
+    }
+  ],
+  "remaining_conditions": [
+    "Correct P1 by executing code compiled from the exact authenticated source bytes without consulting bytecode cache.",
+    "Add the malicious timestamp/size-valid pyc regression plus retain all current shadow/preload/symlink/hash/auth and lifecycle tests.",
+    "Update only harness/tests/runbook and a new pending authorization request with exact hashes; keep prepare.py, candidate and source frozen.",
+    "Obtain a new independent PASS and then separate state-only finalization before any hardware retry."
+  ],
+  "authorization": {
+    "authorization_request_finalized": false,
+    "hardware_advancement_authorized": false,
+    "state_only_finalization_may_proceed": false,
+    "statement": "Do not finalize or launch commit 13d125ea0a96b0f2b2c8498873e64fbb9127bb7a. P1 must be corrected and independently reverified."
+  },
+  "candidate_modified_by_verifier": false,
+  "source_modified_by_verifier": false,
+  "prepare_modified_by_verifier": false,
+  "authorization_modified_by_verifier": false,
+  "hardware_run_by_verifier": false,
+  "training_run_by_verifier": false,
+  "submission_performed": false,
+  "scientific_verdict": null
+}
