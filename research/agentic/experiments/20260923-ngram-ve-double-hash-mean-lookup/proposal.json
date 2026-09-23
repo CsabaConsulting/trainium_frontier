@@ -1,0 +1,51 @@
+{
+  "abort_conditions": [
+    "Smoke: causality_passed false or causality_max_abs != 0.0 (indices must remain functions of tokens t, t-1, t-2 only)",
+    "Smoke: candidate steps < 324 or step-rate ratio vs same-host control smoke < 0.97 (the extra gathers must be cheap; a larger slowdown means the second gather/scatter is not free and the throughput term would swamp the expected gain)",
+    "Smoke: public_val_bpb more than 0.004 above the same-host control smoke (1.165855 trn21 / 1.165604 trn22), or any NaN/inf in loss or loss-scale skips",
+    "Full: over_budget true or checkpoint save exceeding CHECKPOINT_RESERVE_SECONDS (checkpoint size must be unchanged at ~1.30 GB)",
+    "Full: step count more than 5% below the same-host control (2071/2076) -> CONFOUNDED, not a quality verdict",
+    "Full: any eval-time config mismatch (checkpoint reloaded without ngram_ve_hashes == 2) -> void, since eval would index the tables with a different hash than training"
+  ],
+  "change_type": "code",
+  "created_at": "2026-09-23T14:32:25Z",
+  "duplicate_search_terms": [
+    "ngram-ve-hashes",
+    "double hash",
+    "two hash",
+    "multi-hash",
+    "hash embedding",
+    "bloom embedding",
+    "hash collision",
+    "second hash",
+    "ngram ve collision",
+    "table_mult",
+    "ngram-ve-table-mult",
+    "ngram-ve-dim"
+  ],
+  "evidence": [
+    "train.py lines 621-650: n-gram VE tables indexed by 'a HASH of (prev, cur)' and '(prev2, prev, cur)', ZERO-initialized (exact no-op at init), ON with -0.0152 bpb paired 1800s win; per-step cost of tables depends on WHICH layer, not table size (measured prof_driver table, layer {5} free)",
+    "train.py lines 300-310 (CHECKPOINT_RESERVE_SECONDS): locked config is four tables of 1048576 x 128 (592.9M params, 1.30 GB checkpoint); this proposal adds zero parameters so checkpoint size and the 15 s reserve are untouched",
+    "ledger al-20260922-no-ngram-ve-only-default-shape-full-r1: 1.026131 @ 2548 steps vs control 1.005734 @ 2071 -> tables worth >0.02 bpb even against +23% steps",
+    "ledger al-20260922-ngram-ve-dim64-only-default-shape-full-r1: 1.007083 @ 2206 steps vs 1.005967 @ 2076 -> halving row width costs only ~0.001, so rows/collisions, not width, is the limiting resource",
+    "train.py lines 592-600 (USE_EPOCH_SHUFFLE) + lines 168-182: one epoch ~2195 steps; control ends at 2071 steps, so extra throughput has no remaining value and per-token quality is the only open lever",
+    "DECISION_LOG.md 2026-09-22/23 rows: all throughput-positive variants (batch-ramp, bf16-norm-output, mlp-input-norm) worsened bpb; no closed row or source note mentions multi-hash / hash-embedding lookup for the n-gram tables",
+    "Svenstrup, Hansen, Winther 2017 'Hash Embeddings for Efficient Word Representations' (mechanism reference: multiple hash functions into a shared table sharply reduce collision damage at fixed parameter count)"
+  ],
+  "expected_effect": "Lower public val_bpb at matched steps: predeclared -0.003 (range -0.002 to -0.006) versus the same-host 9a4caa7b control (1.005734 trn21 / 1.005967 trn22), with steps within 3% of control (expected 2010-2080). A result within +/-0.001 of control is a null; any bpb above control is a DISCARD.",
+  "files_allowed": [
+    "train.py"
+  ],
+  "flags": [],
+  "hypothesis": "The hashed bigram/trigram value-embedding tables are the largest measured quality lever in the repo (-0.0152 bpb when adopted, train.py 621-650; --no-ngram-ve costs +0.020 even with +23% steps, ledger 2026-09-22), and the evidence says their bottleneck is ROW COLLISIONS, not per-row width: halving the row width (--ngram-ve-dim 64) cost only +0.0011 while the row count was doubled to 1048576 when the config was locked (CHECKPOINT_RESERVE comment). With ~8192^2 possible bigrams and far more trigrams hashed into 1M rows, each row is shared by tens of n-gram types and frequent types overwrite rare ones. Indexing the SAME table with two independent hashes and using the mean of the two looked-up rows (hash embeddings, Svenstrup et al. 2017 / Bloom embeddings) gives each n-gram type a representation T[h_a]+T[h_b] whose collision partners differ across the two hashes, so the effective number of distinguishable codes grows from R to ~R^2/const with zero new parameters, unchanged checkpoint size, and only one extra gather+add per table on the two table-bearing layers. In the ~1-epoch data-limited regime documented by the data-wall notes (epoch ~2195 steps vs 2071 control steps), this per-token quality gain is not offset by throughput loss: the extra gathers are on layers whose per-step cost was measured to depend on placement, not table size (NGRAM_VE_LAYERS comment).",
+  "implementation_plan": "All edits confined to train.py on branch autoloop/20260923-ngram-ve-double-hash-mean-lookup from 9a4caa7b. STEP 1 (static inspection, notes only, no execution): (a) locate the code that computes the hashed row indices for the bigram and trigram value-embedding tables (the function/expression that mixes the previous-token ids with the current-token id into an integer and reduces it modulo the table row count, used by the has_ve() layers that hold n-gram tables); record its integer dtype, whether it computes a pre-modulo mixed integer and then reduces by `%`/`&`, and every call site (training forward, load_for_eval/eval path, causality check) -- it is reached from GPT.forward via the token ids, so it must be one shared implementation. (b) locate the lookup site where the index tensor is turned into rows of the table (F.embedding / index_select / table[idx]) and any existing cast controlled by --ngram-ve-bf16; (c) locate how NGRAM_VE_TRIGRAM (a checkpoint-persisted n-gram option) is plumbed: module constant, env var, argparse pair in _hp()/the flag parser, GPTConfig field, membership in the checkpoint config / ARCH_TOGGLE_NAMES-style list, and how load_for_eval reads it back. STEP 2 (option plumbing, mirror NGRAM_VE_TRIGRAM exactly): add module-level `NGRAM_VE_HASHES = int(os.environ.get('NEURON_COMPETITION_R1_NGRAM_VE_HASHES', '2'))` with a comment stating 1 = bit-identical baseline, 2 = double-hash mean lookup; add CLI `--ngram-ve-hashes INT` in the same parser section as the other --ngram-ve-* options; add `ngram_ve_hashes` to GPTConfig with the same default, store it into the checkpoint's saved model config exactly where ngram_ve_trigram is stored, and have load_for_eval rebuild the model with it (validate it is 1 or 2; raise on anything else). STEP 3 (second hash): refactor the index computation from Step 1a into a helper taking `variant` (0 or 1). variant 0 MUST return exactly the existing index tensor (same ops, same dtype, same order -- do not touch this path). variant 1: take the existing PRE-MODULO mixed integer m (before the final `% rows` / `& (rows-1)`), cast to torch.int64, compute `m1 = m * 0x9E3779B97F4A7C15` allowing int64 wraparound (torch integer multiply wraps), then `m1 = m1 >> 32` (arithmetic shift; the high bits break the low-bit collision structure, which a plain odd-multiply-then-low-bits would preserve), then reduce with `torch.remainder(m1, rows)` (non-negative) -- or `& (rows - 1)` if the existing code already relies on rows being a power of two and does the same. If the existing code has NO pre-modulo integer (it reduces each component separately), build m1 from the raw component ids as int64: m1 = ((prev2*0x9E3779B97F4A7C15 + prev*0xC2B2AE3D27D4EB4F + cur*0x165667B19E3779F9) >> 32) remainder rows, using only the components the table actually uses (2 for bigram, 3 for trigram). Cast the result to the dtype the lookup expects. STEP 4 (lookup): at the lookup site, when config.ngram_ve_hashes == 2, compute rows0 = lookup(idx_variant0) exactly as today and rows1 = lookup(idx_variant1) with the identical cast policy, and use `0.5 * (rows0 + rows1)` in place of rows0 (the mean keeps the retrieved-vector magnitude and the effective RMSProp step of the mixed-in vector comparable to baseline; both rows are zero at init so the step-0 output is bit-identical to baseline). When ngram_ve_hashes == 1, execute the existing code path unchanged (no extra ops). Apply this identically for bigram and trigram tables on every layer that has them. STEP 5 (invariants, static): no new nn.Parameter, no optimizer-group change, no change to gates, layers, precision flags, LR, schedule, or hash variant 0; the eval/causality path reaches the same helper via GPT.forward so no separate edit is needed beyond config persistence; update the header comment of the n-gram VE section with a one-paragraph description and the falsification criterion. STEP 6: python -m py_compile train.py; produce a diff touching only the n-gram VE index helper, the lookup site, the option plumbing (constant/env/CLI/GPTConfig/checkpoint config/load_for_eval), and comments. Runtime checks (step-0 no-op, causality 0.0, step rate, checkpoint size) are smoke abort conditions, not pre-run requirements.",
+  "proposal_id": "20260923-ngram-ve-double-hash-mean-lookup",
+  "single_causal_change": "One code change confined to train.py: a new integer option NGRAM_VE_HASHES (default 2; 1 = bit-identical baseline; env NEURON_COMPETITION_R1_NGRAM_VE_HASHES; CLI --ngram-ve-hashes INT; persisted in the checkpoint config exactly like NGRAM_VE_TRIGRAM so load_for_eval and the causality check rebuild the same indexing). When 2, every n-gram VE table lookup (bigram and trigram, on every table-bearing layer) becomes 0.5 * (table[idx_h0] + table[idx_h1]) where idx_h0 is today's index (unchanged code path) and idx_h1 is a second, independent hash of the same (t-1,t) / (t-2,t-1,t) token ids taken from the HIGH bits of a 64-bit multiplicative mix of the existing pre-modulo integer. Nothing else changes: same tables, same zero-init (still an exact no-op at step 0 since both looked-up rows are zero), same gates, same RMSProp optimizer/LR/flags, same layers, no precision, kernel, schedule or shape change. The run uses the pinned control launch (NEURON_LOGICAL_NC_CONFIG=2, nproc 4, --num-steps 5000 --max-train-seconds 1800 --seed 42, NEURON_CC_FLAGS='--optlevel=1') with no extra flags.",
+  "smoke_gate": {
+    "max_bpb_delta": 0.004,
+    "min_candidate_steps": 324,
+    "min_step_rate_ratio": 0.97
+  },
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}

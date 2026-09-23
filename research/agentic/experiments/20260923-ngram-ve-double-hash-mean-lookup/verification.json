@@ -1,0 +1,18 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "The intended experiment is a single, competition-legal architecture change: average two gathers from each existing n-gram VE table without adding parameters, data, pretrained weights, or evaluator changes. The supplied decision log contains no closed experiment testing this same shared-table mean lookup; Engram and table-width ablations are distinct.",
+    "Reconcile the hash mechanism with the actual source. GPT._ngram_hash_indices forms a nonnegative int32 XOR of bounded token\u2013prime products and reduces it by self.ngram_mod, a prime\u2014not a power-of-two row count. Deriving both indices from that same at-most-31-bit intermediate preserves every pre-modulo collision and limits distinct index pairs to at most 2^31, not approximately R^2 for R near 2^20. Either retain the specified algorithm and describe it as an attempt to reduce modulo-induced collisions, or explicitly propose a second mix of the raw token components. The current independence and code-capacity claims do not describe the planned implementation accurately.",
+    "Correct the checkpoint-plumbing plan: NGRAM_VE_TRIGRAM is persisted through ARCH_TOGGLE_NAMES and restored globals, not a GPTConfig.ngram_ve_trigram field. If the new option belongs in GPTConfig, specify its build_config wiring and authoritative restoration behavior. A checkpoint lacking the new setting must retain single-hash semantics rather than silently inherit the candidate default of 2.",
+    "The evidence supports investigating n-gram memory but does not establish collisions as the bottleneck or throughput as worthless. The no-ngram full result is explicitly CONFOUNDED in DECISION_LOG.md; dim64 changes both width and achieved steps. Moreover, the BF16-SDPA full KEEP improves BPB while increasing steps from 2076 to 2233. Recast these conclusions as hypotheses. The declared BPB delta, null band, and step-rate gates otherwise make the fixed-budget seed-42 comparison falsifiable."
+  ],
+  "llm_verdict": "NEEDS_WORK",
+  "passed": false,
+  "proposal_id": "20260923-ngram-ve-double-hash-mean-lookup",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-23T14:32:26Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}
