@@ -1,0 +1,20 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "The bounded plan isolates one architectural factor: replace each existing bigram/trigram VE lookup with the mean of two gathers from that same table. GPT._ngram_hash_indices, GPT._ngram_lookup, and GPT.forward provide the required shared implementation points; parameter allocation, projections, gates, optimizer, and data remain unchanged.",
+    "The implementation plan specifies a second hash from raw causal token history, fixed bounded constants, unchanged primary indices, and existing gather/cast semantics. The constants remain int32-safe even for the repository's padding sentinel 8192. The primary implementation has no explicit nonnegative mask; nonnegativity follows from its bounded products and XOR.",
+    "Checkpoint plumbing is appropriately included in the same change: ARCH_TOGGLE_NAMES feeds current_toggles/save_checkpoint, and restore_eval_toggles runs before model construction in load_for_eval. Explicitly restoring the new toggle to False when absent prevents legacy checkpoints from inheriting the candidate's True default. Exact patch compliance remains for implementation verification.",
+    "Repository evidence supports investigating table representation: train.py records the historical paired 0.0152 BPB n-gram improvement and the two-layer table-capacity gain; DECISION_LOG records dim64 at 1.007083 versus 1.005967. Shared-table double probing is distinct from the discarded Engram module, table-width ablation, and historical hash changes aimed at scheduling; no supplied closed result tests this mechanism.",
+    "The proposal is competition-legal in scope: train.py-only architecture and checkpoint changes, no pretrained weights or external data, and no evaluator changes. Pre-implementation work is static inspection only; executable correctness, timing, and checkpoint checks are deferred to smoke/full gates.",
+    "The predicted 0.002\u20130.006 public BPB improvement and step-count limits are falsifiable against the controller's matched seed-42 full-chip control. However, increased SNR is a hypothesis, not established evidence. The claim that every higher-step variant worsened is contradicted by BF16 SDPA input casting (2233 steps, 1.002028, KEEP); other cited faster runs are recorded as CONFOUNDED. Likewise, a greater-than-10% step deficit fails comparability rather than falsifying per-step quality. These qualifications do not invalidate the isolated experiment."
+  ],
+  "llm_verdict": "PASS",
+  "passed": true,
+  "proposal_id": "20260923-ngram-ve-double-hash-r2",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-23T14:45:07Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}

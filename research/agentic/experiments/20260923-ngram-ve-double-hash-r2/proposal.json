@@ -1,0 +1,52 @@
+{
+  "abort_conditions": [
+    "num_params_M differs from 592.9 (the change must add no parameters)",
+    "causality_passed is not true in the smoke or full run",
+    "smoke step count < 0.93x the same-host control smoke (334 on trn21 / 335 on trn22), or full-run steps < 0.90x control (comparability gate)",
+    "smoke public_val_bpb worse than the same-host control smoke by more than 0.003",
+    "any NaN/inf loss, loss-scale skip storm, or per-step dt pattern indicating per-step recompilation (dt > 2x the control's steady state for >20 consecutive steps)",
+    "checkpoint load_for_eval fails or eval uses a different toggle value than training (checkpoint must carry USE_NGRAM_VE_DOUBLE_HASH=True and the eval must reproduce the training-time val loss)"
+  ],
+  "change_type": "code",
+  "created_at": "2026-09-23T14:45:06Z",
+  "duplicate_search_terms": [
+    "double hash",
+    "double-hash",
+    "ngram-ve-hashes",
+    "NGRAM_VE_HASHES",
+    "hash embedding",
+    "bloom embedding",
+    "multi-probe",
+    "two-hash",
+    "ngram collision",
+    "_ngram_hash_indices",
+    "ngram_mod",
+    "engram",
+    "ngram-ve-table-mult",
+    "ngram-ve-dim"
+  ],
+  "evidence": [
+    "train.py lines 621-650: n-gram VE tables (hash of (prev,cur) and (prev2,prev,cur) into a shared V stream via zero-init gates) are the largest measured win (-0.0152 bpb paired 1800s); tables are zero-initialized so the change is an exact no-op at step 0 and causality is by construction (indices depend only on t, t-1, t-2)",
+    "proposal-verifier findings on 20260923-ngram-ve-double-hash-mean-lookup: GPT._ngram_hash_indices forms a nonnegative int32 XOR of bounded token-prime products reduced by self.ngram_mod (a prime, not a power of two); NGRAM_VE_TRIGRAM is persisted through ARCH_TOGGLE_NAMES and restored globals; verifier judged the shared-table mean lookup itself legal, non-duplicate and untested, requesting only (a) an independent second hash from raw token ids and (b) correct checkpoint plumbing -- both addressed here",
+    "train.py lines 164-182 and 576-595 (data wall / USE_EPOCH_SHUFFLE): the locked config reaches ~2140 steps = one epoch; runs that cross into epoch 2 get worse (2354/1.021278 vs step-matched 2149/1.018967), so extra throughput is not convertible to bpb -- per-step quality is the lever",
+    "DECISION_LOG: all higher-step variants (batch-ramp 2397/1.01219, bf16-norm-output 2716/1.016279, mlp-input-norm 2346/1.0197-1.0202, no-ngram-ve 2548/1.026131) are worse than the 2071-step control 1.005734; --ngram-ve-dim 64 (half table width) 2206/1.007083 DISCARD shows table representational capacity matters",
+    "DECISION_LOG: --engram smoke DISCARD (1.187724 vs 1.165855, 320 vs 334 steps) is a distinct 660M-param module (conv, key/mem dims, gating), not a shared-table probing change; no ledger or decision-log row tests multi-probe lookup of the existing tables",
+    "Pinned controls: trn21 2071 steps / 1.005734, trn22 2076 / 1.005967 at 9a4caa7b, 592.9M params"
+  ],
+  "expected_effect": "Lower public val_bpb by 0.002-0.006 versus the same-host pinned control (1.005734 on trn21 / 1.005967 on trn22) at a comparable step count (predicted 1970-2071 steps, i.e. <=5% fewer than control from one extra gather+scatter per table). Falsified if bpb >= control at comparable steps, or if the step count falls >10% (comparability gate) -- the mechanism is per-step quality, so it must show at matched steps.",
+  "files_allowed": [
+    "train.py"
+  ],
+  "flags": [],
+  "hypothesis": "The hashed bigram/trigram value-embedding tables are the single largest measured win in train.py (-0.0152 bpb, train.py lines 621-650) and the run is data-bound (~2140 steps = 1 epoch; the ledger shows every higher-step variant crossing the epoch boundary got WORSE, so per-step quality, not throughput, is the open lever). Each table row (ngram_mod ~1M rows, prime) is shared by several distinct contexts in an 8192-vocab corpus with many millions of distinct bigrams/trigrams, so every lookup carries collision noise. Averaging two gathers from the SAME table at two independent hash positions (hash-embedding / Bloom-style probing, no new parameters) makes each context's own signal add coherently across both rows while the colliding contexts differ between rows, raising per-lookup SNR. Predicted: lower val_bpb at matched steps with a small (<5%) step-time cost from one extra gather per table.",
+  "implementation_plan": "All edits confined to train.py on branch autoloop/20260923-ngram-ve-double-hash-r2 from 9a4caa7b. STEP 1 (static inspection only; report as notes, no execution, no artifacts): (a) locate GPT._ngram_hash_indices: record the primary prime constants, the int32 multiply/XOR expression, the nonnegative masking, and the `% self.ngram_mod` reduction, and every call site (training forward, eval path, causality check -- expected to be one shared implementation reached from GPT.forward). (b) locate the lookup site where the bigram and trigram index tensors are turned into table rows (F.embedding / index_select / table[idx]) and the dtype cast controlled by --ngram-ve-bf16. (c) locate NGRAM_VE_TRIGRAM's module-level definition (env override pattern), its argparse boolean pair, its entry in ARCH_TOGGLE_NAMES, and the code that writes ARCH_TOGGLE_NAMES into the checkpoint config and restores them as globals in load_for_eval. STEP 2 edits: (1) Directly after NGRAM_VE_TRIGRAM's definition add `USE_NGRAM_VE_DOUBLE_HASH` as a module-level bool defaulting to True, overridable by env NEURON_COMPETITION_R1_NGRAM_VE_DOUBLE_HASH (value '0' -> False), using exactly the same helper/idiom the neighbouring toggles use; add a short comment stating the mechanism and that False is byte-identical to 9a4caa7b. (2) Add the argparse pair --ngram-ve-double-hash / --no-ngram-ve-double-hash wired to that global, copying the --ngram-ve-trigram/--no-ngram-ve-trigram pattern verbatim (same dest style, same help placement, same post-parse assignment into the global). (3) Append 'USE_NGRAM_VE_DOUBLE_HASH' to ARCH_TOGGLE_NAMES so it is saved in the checkpoint config alongside NGRAM_VE_TRIGRAM. In the restoration code, this name MUST restore via saved_config.get('USE_NGRAM_VE_DOUBLE_HASH', False) so any checkpoint lacking the key keeps single-hash semantics; if the existing loop indexes saved[name] unconditionally, change only the access for names absent from the saved config to use a per-name default and set this name's default to False (existing names keep their current behaviour). If ARCH_TOGGLE_NAMES also feeds a startup config print, the new toggle is printed there automatically -- add nothing else. (4) In GPT._ngram_hash_indices (or a new sibling method _ngram_hash_indices_alt called from the same call site), when USE_NGRAM_VE_DOUBLE_HASH is True compute, for each n-gram order that exists at that layer, a second int32 index from the SAME raw token-id tensors: bigram h1 = ((cur * Q1) ^ (prev * Q2) ^ SALT); trigram h1 = ((cur * Q1) ^ (prev * Q2) ^ (prev2 * Q3) ^ SALT); then apply the same nonnegative masking used for the primary index and `% self.ngram_mod`. Use Q1=131071, Q2=65537, Q3=32749 and SALT=0x5bd1e995 (all products with token ids <= 8191 stay below 2**31 so int32 never overflows, and XOR of values below 2**31 stays nonnegative). The implementer must confirm Q1..Q3 are each different from every primary prime found in STEP 1(a); if any coincides, substitute 8191 (2**13-1) for the coinciding one and note it. Return the second index tensors alongside the first with the same shapes and dtype. (5) At the lookup site, when the toggle is True, perform the second gather with the identical op, table, and dtype-cast rule as the existing gather, then form 0.5 * (e0 + e1) in the gathered dtype (a single add followed by a mul by the Python float 0.5 -- 0.5 is a fixed constant, so no per-step recompile) and hand that tensor to the unchanged downstream gate/V-mix code. When the toggle is False, execute exactly the existing single-gather code (no extra ops, no dead gathers). (6) Change nothing else: table row count, ngram_mod, NGRAM_VE_LAYERS, dim, zero-init, gates, RMSProp/optimizer groups, LR, clipping exclusions, precision flags, kernels, checkpoint reserve, and the data pipeline all stay untouched. STEP 3 static self-review: syntax check by reading; confirm both training forward and load_for_eval/causality reach the same _ngram_hash_indices implementation; confirm no new nn.Parameter or buffer with parameters is created (num_params must remain 592.9M); confirm the toggle-off path is unchanged text apart from the added conditional.",
+  "proposal_id": "20260923-ngram-ve-double-hash-r2",
+  "single_causal_change": "One architecture change confined to train.py: a new module-level boolean toggle USE_NGRAM_VE_DOUBLE_HASH (default True on the candidate branch; env NEURON_COMPETITION_R1_NGRAM_VE_DOUBLE_HASH='0' disables; CLI --ngram-ve-double-hash/--no-ngram-ve-double-hash following the existing --ngram-ve-trigram boolean-pair pattern; persisted and restored exactly like NGRAM_VE_TRIGRAM through ARCH_TOGGLE_NAMES, with a MISSING key restoring to False). When True, every n-gram VE table lookup (bigram and trigram, on every table-bearing layer) becomes 0.5*(table[idx0] + table[idx1]) where idx0 is today's index computed by the unchanged GPT._ngram_hash_indices code, and idx1 is a second index computed from the SAME raw token ids (prev,cur / prev2,prev,cur) with a disjoint set of bounded primes plus a XOR salt in the same int32 arithmetic, reduced by the same self.ngram_mod. No new parameters (592.9M unchanged), no table-size, layer, optimizer, LR, gate, precision, or kernel change. With the toggle False the code path is byte-identical to 9a4caa7b.",
+  "smoke_gate": {
+    "max_bpb_delta": 0.003,
+    "min_candidate_steps": 310,
+    "min_step_rate_ratio": 0.93
+  },
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}
