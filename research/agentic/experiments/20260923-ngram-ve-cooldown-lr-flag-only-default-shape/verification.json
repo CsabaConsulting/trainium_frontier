@@ -1,0 +1,19 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "The flag implements one causal change. In train.py, main() assigns NGRAM_VE_FLAT_LR from the BooleanOptionalAction argument; GPT.setup_optimizer() uses it solely for the table group's no_lr_decay key; the training loop consequently selects lrm instead of lrm_flat. Table geometry, optimizer kind, precision, clipping, and other groups' schedules remain unchanged.",
+    "The implementation supports the proposed schedule and throughput hypothesis: lr_multiplier() starts warmdown at 25% elapsed budget and decays over the remaining 75% toward FINAL_LR_FRAC=0.05. MuonAdamW._rmsprop_step() already routes LR through _device_scalar(), so this flag adds no device operations or parameter tensors. Actual throughput neutrality and improved BPB remain experimental predictions, not guarantees established by the Demon result.",
+    "This is not a closed direction in the supplied evidence. CURRENT_STATE.md's 2026-09-23 15:13 reconciliation explicitly reports no measured flat_lr=False run. DECISION_LOG.md's table-removal, dimension, RMSProp-precision, and double-hash experiments test different mechanisms. The proposal's claim that removal and dimension are the only table axes tested is inaccurate but does not invalidate this distinct schedule experiment.",
+    "The change is competition-legal under README.md's allowance for optimizer and hyperparameter changes: it introduces no pretrained weights, external data, evaluator modifications, or inference-contract changes.",
+    "The expected negative public-BPB delta, declared null and falsification thresholds, throughput smoke gate, and full-run comparability conditions make the effect falsifiable using the controller-pinned seed-42 full-chip matched control. The supplied trn21 control records 1.005734 BPB at 2071 steps; correctness or budget failures cannot count as evidence of improvement."
+  ],
+  "llm_verdict": "PASS",
+  "passed": true,
+  "proposal_id": "20260923-ngram-ve-cooldown-lr-flag-only-default-shape",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-23T15:15:54Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}

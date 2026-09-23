@@ -1,0 +1,47 @@
+{
+  "abort_conditions": [
+    "Smoke: candidate steps at 300s below 0.97x the same-host control smoke (control 334 steps on trn21 / 335 on trn22), which would indicate the schedule change is baking per-step Python floats into the graph and recompiling",
+    "Smoke: per-step dt rising above 1.5x its steady-state value once the warmdown begins (recompile signature analogous to the USE_TENSOR_LR_SCALARS incident)",
+    "Smoke or full: causality_passed false or any NaN/inf loss",
+    "Full: candidate steps differ from the same-host control by more than 10% (CONFOUNDED per experiment-protocol.md section 5)",
+    "Full: val_bpb worse than the same-host control by more than 0.003 at matched steps (falsified, DISCARD)",
+    "Full: over_budget true"
+  ],
+  "change_type": "flags",
+  "created_at": "2026-09-23T15:15:53Z",
+  "duplicate_search_terms": [
+    "ngram-ve-flat-lr",
+    "no-ngram-ve-flat-lr",
+    "NGRAM_VE_FLAT_LR",
+    "flat_lr",
+    "flat-lr",
+    "table cooldown",
+    "ngram table lr schedule",
+    "ngram-ve-lr",
+    "late table cooldown",
+    "rmsprop table warmdown"
+  ],
+  "evidence": [
+    "CURRENT_STATE.md, Reconciliation override 2026-09-23 15:13 UTC: 'Its strongest duplicate-clear control-stack lead is the existing --no-ngram-ve-flat-lr flag (late table cooldown). Search of DECISION_LOG.md, CURRENT_STATE.md, research/experiment-log.jsonl, and train.py found the flag but no measured flat_lr=False run.'",
+    "train.py flag list at 9a4caa7b: --ngram-ve-flat-lr / --no-ngram-ve-flat-lr exist; proposal ids already used contain no flat-lr experiment",
+    "train.py lines 385-405: WARMDOWN_RATIO 0.75, FINAL_LR_FRAC 0.05 (all non-table groups anneal to 5% of peak); USE_TENSOR_LR_SCALARS LOCKED ON carries the per-step lr as a device tensor so schedule changes do not recompile",
+    "train.py lines 621-650: USE_NGRAM_VE True, NGRAM_VE_LAYERS '1,-1'; -0.0152 bpb paired win, tables are the dominant parameter mass (592.9M vs 55.7M without them per ledger rows no-ngram-ve vs control)",
+    "train.py lines 282-320 (weight EMA comment): the cooldown tail 'shapes the final weights most' and late-trajectory noise is the mechanism the repo already treats as decisive",
+    "DECISION_LOG.md 2026-09-23 demon-beta1-r2: a pure optimizer-schedule flag ran at exactly 2071/2071 steps vs control, establishing that schedule-only flags have zero throughput cost at this shape (so any delta here is per-step quality, not step count)",
+    "DECISION_LOG.md: ngram-ve-dim64 (1.007083, DISCARD) and no-ngram-ve (1.026131, CONFOUNDED) are the only n-gram-table axes run in the autoloop; neither touches the table LR schedule"
+  ],
+  "expected_effect": "Lower val_bpb by 0.001 to 0.004 at a matched step count (~2071 steps, within 3% of the trn21 control 1.005734 / 2071). Direction predeclared: negative delta. A result within +/-0.0005 at matched steps is a null; a positive delta of >0.001 falsifies the noise-annealing hypothesis (i.e. the tables need the full LR through the tail to keep absorbing new n-grams).",
+  "files_allowed": [],
+  "flags": [
+    "--no-ngram-ve-flat-lr"
+  ],
+  "hypothesis": "The hashed n-gram value-embedding tables (the single largest measured win in the repo, 4 tables of 1048576x128 on layers 1 and -1, RMSProp-trained) are the only large parameter family whose learning rate is held FLAT through the 75%-of-budget LR warmdown (NGRAM_VE_FLAT_LR default True). Every other tensor's step size decays to FINAL_LR_FRAC=0.05 of peak, which is what lets the final ~1500 cooldown steps converge instead of bounce; the tables never get that annealing, so their entries carry full-amplitude RMSProp noise into the final checkpoint. Letting the tables follow the same cooldown multiplier (--no-ngram-ve-flat-lr) should reduce end-of-run table noise and lower val_bpb at an unchanged step count, because it is a pure per-step schedule change that adds no ops, tensors, or parameters.",
+  "implementation_plan": "",
+  "proposal_id": "20260923-ngram-ve-cooldown-lr-flag-only-default-shape",
+  "single_causal_change": "Pass --no-ngram-ve-flat-lr only (NGRAM_VE_FLAT_LR False: the n-gram VE table learning rate follows the run's LR warmdown instead of being held flat). Every other option stays at the 9a4caa7b defaults used by the two pinned controls: identical launch shape (NEURON_LOGICAL_NC_CONFIG=2, torchrun --nproc_per_node=4, --num-steps 5000 --max-train-seconds 1800 --seed 42, NEURON_CC_FLAGS='--optlevel=1'). No precision flag, no kernel flag, no optimizer switch, no architecture switch, no --ngram-ve-lr/--ngram-ve-opt/--ngram-ve-beta2 change, no data/evaluator change.",
+  "smoke_gate": {
+    "min_step_rate_ratio": 0.97
+  },
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}
