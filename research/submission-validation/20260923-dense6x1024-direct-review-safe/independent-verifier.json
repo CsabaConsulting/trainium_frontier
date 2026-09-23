@@ -1,0 +1,192 @@
+{
+  "role": "Verifier",
+  "verified_at": "2026-09-23",
+  "verdict": "PASS",
+  "implementation_commit": "8490049da5383f533822179c95d3f7828c7df9fb",
+  "implementation_parent": "68bacfd709d719ce15c901ff53750852d63be596",
+  "proposal": "research/submission-validation/20260923-dense6x1024-direct-review-safe/proposal.json",
+  "candidate": {
+    "path": "submissions/dense6x1024_direct_review/train.py",
+    "sha256": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537",
+    "source_path": "submissions/dense6x1024_lean_review/train.py",
+    "source_sha256": "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344",
+    "launch_command_sha256": "b75f844f413575f0cc35164972b4abf68de41e4b6f39e9b5423a6070de005abd",
+    "launch_command_identical_to_source": true
+  },
+  "required_reading": {
+    "agent_contract": "read from the sibling canonical Trainium worktree because this review-clean branch has no AGENTS.md",
+    "readme": "read",
+    "experiment_protocol": "read",
+    "proposal_and_all_cited_evidence": "read",
+    "current_state": "absent from this review-clean branch",
+    "decision_log": "absent from this review-clean branch"
+  },
+  "scope_audit": {
+    "implementation_diff_confined_to_proposal_allowed_paths": true,
+    "implementation_files": 13,
+    "prepare_py_unchanged_blob": true,
+    "tokenizer_artifact_unchanged_blob": true,
+    "source_candidate_unchanged_blob": true,
+    "source_launch_command_unchanged_blob": true,
+    "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "tokenizer_artifact_sha256": "12fa2c4a56d9f26d46e8ea0a57f69d78145930eecb0a765c9bfc085176af8a54",
+    "git_diff_check_passed": true,
+    "py_compile_passed": true
+  },
+  "builder": {
+    "path": "research/build_direct_review_submission.py",
+    "sha256": "9830d13bf9e3672ac21978743b769e6c4ab83c56c6251012f4b725348a0ee7b0",
+    "normal_interpreter_source_hash_pin_rejected_altered_input": true,
+    "temporary_regeneration_file_count": 10,
+    "temporary_regeneration_matches_committed_package_exactly": true,
+    "regenerated_candidate_sha256": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537",
+    "static_gates_passed": true,
+    "deterministic": true,
+    "qualification": "The builder uses Python assert statements for several proof obligations, including the input hash. Run it with the normal interpreter, never python -O; this does not affect the already hash-verified generated candidate."
+  },
+  "independent_static_findings": {
+    "identical_top_level_definitions": 30,
+    "changed_existing_top_level_definitions": [
+      "MLP",
+      "main"
+    ],
+    "removed_runtime_adapter_definitions": [
+      "_install_submission_training",
+      "_submission_ce_install",
+      "_submission_mlp_install",
+      "_submission_optimizer_install",
+      "build_kernels",
+      "make_autograd",
+      "make_forward"
+    ],
+    "added_explicit_helpers": [
+      "_FusedMLP",
+      "_fused_mlp_kernel",
+      "_linear_weight"
+    ],
+    "model_shape_and_math_definitions_ast_identical": true,
+    "optimizer_math_and_ownership_definitions_ast_identical": true,
+    "data_path_preserved": true,
+    "timing_and_budget_path_preserved": true,
+    "checkpoint_path_preserved": true,
+    "evaluation_path_preserved": true,
+    "main_diff_only_explicit_owner_construction_and_step_receiver": true,
+    "original_mlp_fallback_ast_identical": true,
+    "adaptive_runtime_nki_ce_kernel_bodies_ast_identical": true,
+    "all_other_nki_kernel_bodies_ast_identical": true,
+    "review_trigger_hits": [],
+    "runtime_method_replacement_assignments": [],
+    "runtime_ce_global_replacement": false,
+    "organizer_checker_warnings": []
+  },
+  "forbidden_constructs_absent": {
+    "_submission_wildcard": true,
+    "_install_submission_training": true,
+    "MethodType_training_replacement": true,
+    "runtime_training_global_replacement": true,
+    "SUBMISSION_logs": true
+  },
+  "local_commands_and_results": [
+    {
+      "command": "normal-interpreter builder --dest <temporary-directory> --write, followed by byte comparison with the committed package",
+      "result": "PASS; 10 generated files match exactly"
+    },
+    {
+      "command": "builder main with SRC rebound to an altered temporary source",
+      "result": "PASS; rejected with 'input changed; re-pin deliberately'"
+    },
+    {
+      "command": "python -m py_compile builder, CPU harness and candidate; git diff --check parent..implementation",
+      "result": "PASS"
+    },
+    {
+      "command": "prepare.py check --train-py submissions/dense6x1024_direct_review/train.py --launch-command <exact launch-command.txt>",
+      "result": "PASS; return code 0"
+    },
+    {
+      "command": "cpu_equivalence_direct.py --report <temporary-report>",
+      "result": "PASS; return code 0 and all_cpu_static_checks_passed=true"
+    },
+    {
+      "command": "deterministic CPU contract with review-clean source reference, candidate direct train.py, and a synthetic source-format checkpoint",
+      "result": "PASS; every logits, repeatability, causality, batch-independence, permutation, unrelated-row, second-load and contamination metric was exactly 0.0; frozen/no-hooks/state/no-adapter checks passed"
+    },
+    {
+      "command": "torch.distributed.run --standalone --nproc-per-node=4 cpu_equivalence_direct.py --owned-worker",
+      "result": "PASS; OWNED_OPTIMIZER_EQUIVALENT"
+    },
+    {
+      "command": "independent single-rank gloo optimizer API/state component check",
+      "result": "PASS; base param_groups and zero_grad preserved, explicit owner step matches source patch, owner state matches source public patched state, load round-trip passed, bad schema rejected"
+    },
+    {
+      "command": "independent fused MLP component comparisons at 256 and 1024 BF16 tokens plus eval/fc fallbacks",
+      "result": "PASS; outputs, input gradients and both weight gradients exactly equal"
+    },
+    {
+      "command": "adaptive CE direct-wiring AST and selected_lanes boundary checks",
+      "result": "PASS; launch rows 32768 select two lanes and invalid row counts fail closed"
+    },
+    {
+      "command": "parser mismatch checks for ngram, qk-shift, SDPA, local-conv, BF16-norm and clip-after-reduce flags",
+      "result": "PASS; all six returned argparse code 2 before data or device work"
+    }
+  ],
+  "cpu_equivalence": {
+    "initial_model_state_exact": true,
+    "initial_rng_state_exact": true,
+    "source_checkpoint_loads_in_candidate": true,
+    "evaluation_logits_max_abs": 0.0,
+    "causal_prefix_exact": true,
+    "fused_mlp_output_exact": true,
+    "fused_mlp_input_gradient_exact": true,
+    "fused_mlp_up_gradient_exact": true,
+    "fused_mlp_down_gradient_exact": true,
+    "two_rank_owner_equivalence": true,
+    "four_rank_owner_equivalence": true
+  },
+  "optimizer_semantics": {
+    "base_optimizer_retained_for_public_param_groups_and_zero_grad": true,
+    "schedule_mutations_visible_to_explicit_owner_each_step": true,
+    "explicit_owner_used_only_for_step_in_main": true,
+    "owner_state_dict_matches_prior_patched_optimizer_public_state": true,
+    "owner_load_state_dict_roundtrip": true,
+    "owner_bad_schema_fails_closed": true,
+    "api_split": "OwnedOptimizer intentionally does not expose param_groups or zero_grad; main retains the base MuonAdamW object for those APIs and uses the owner for step/state. The unchanged checkpoint path saves model state only."
+  },
+  "adaptive_ce": {
+    "softcap_cross_entropy_dispatch_unchanged": true,
+    "forward_kernel_matches_prior_runtime_installed_kernel": true,
+    "backward_kernel_matches_prior_runtime_installed_kernel": true,
+    "wrapped_forward_direct_call": true,
+    "wrapped_backward_direct_call": true,
+    "target_gather_enabled_as_before": true,
+    "hardware_execution_not_locally_testable": true
+  },
+  "hardware_advancement": {
+    "authorized": true,
+    "submission_authorized": false,
+    "reason": "All approved local implementation gates passed independently; remaining uncertainty is hardware-specific compilation, distributed execution, timing and fresh quality.",
+    "required_gates": [
+      "Freeze and fingerprint implementation commit, candidate SHA-256, launch command, prepare.py, tokenizer, proposal and hardware commands in a new immutable remote worktree; complete the experiment-protocol preflight and use seed 42, LNC2 and four ranks.",
+      "Run Neuron component/contract checks for direct fused-MLP forward/backward, the directly wrapped adaptive CE forward/backward at launch-relevant shapes, and four-rank OwnedOptimizer plan/update/all-gather behavior. Require finite values, source-adapter equivalence, later-microbatch execution and clean postflight.",
+      "Load the preserved source checkpoint through the direct candidate and run the Neuron evaluation contract: strict load, exact source logits, causality, repeatability, batch/row/permutation independence, frozen parameters, no hooks/adapters, unchanged state and clean postflight.",
+      "Replay the preserved source checkpoint through the protected trusted prepare.py public evaluator for exactly 20,971,520 tokens and 83,462,186 bytes; require return code 0, finite metrics, clean postflight and exactly 0.9928513116311253 BPB.",
+      "Run one cold full-chip 1800-second rehearsal with the exact launch command. Require no crash/NaN, all four LNC2 ranks, at least five trusted boundaries, charged time through checkpoint/process exit at most 1800 seconds, a consolidated strict-loadable checkpoint, unchanged frozen hashes and clean postflight. The predeclared one-percent step gate around 3638 is 3602 through 3674 inclusive.",
+      "Contract-check and protected-public-evaluate the fresh checkpoint through the unchanged single-model scorer path. Require strict load, finite BPB, exactly 20,971,520 tokens and 83,462,186 bytes, no timeout, checkpoint/hash preservation and clean postflight.",
+      "Retrieve and hash-verify every command, log, manifest, pre/postflight receipt, checkpoint receipt and parsed metric locally. An independent analyst must compare the fresh result with the 0.9929546795964038 control before any human submission decision."
+    ]
+  },
+  "residual_risks": [
+    "The adaptive CE wrappers, top-level fused-MLP autograd path and direct ownership call graph have not compiled or executed in the target torch-neuronx/NKI environment; Python movement can change graph capture or compilation despite identical arithmetic/kernel ASTs.",
+    "Local CPU verification used a non-target PyTorch build. It cannot establish Neuron numerical equivalence, NKI grid behavior, four-rank device collectives, compile time, step rate or memory pressure.",
+    "The explicit ownership design deliberately splits APIs: the base optimizer owns param_groups and zero_grad while OwnedOptimizer owns distributed step and ownership-aware state. Current main and checkpoint behavior are correct, but future resume code must call the owner state API rather than the raw base optimizer state API.",
+    "The builder's assert-based fail-closed checks are disabled by python -O; use the normal interpreter and verify generated hashes, as done here.",
+    "The proposal says fresh BPB must remain within predeclared run-to-run noise but does not state a numeric BPB band. A supervisor/analyst must define or explicitly resolve that acceptance criterion before calling the hardware result a quality pass.",
+    "Automated reviewer acceptance and private-shard BPB cannot be guaranteed by these local checks."
+  ],
+  "candidate_modified_by_verifier": false,
+  "hardware_run_by_verifier": false,
+  "submission_performed": false,
+  "scientific_verdict": null
+}
