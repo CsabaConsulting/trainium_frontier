@@ -1,0 +1,19 @@
+{
+  "branch": "autoloop/20260923-attn-scale-012-default-constant-code",
+  "candidate_commit": "7c7449648547692e0877cc26b6b4a70c29cbf251",
+  "deterministic_findings": [],
+  "diff_sha256": "7ecfbbe8ae5c9dc96f4c0a774ec94ffdbb8e1f00c1f8604867148af4b6c504b1",
+  "implemented_at": "2026-09-23T13:20:50Z",
+  "implementer_model_id": "us.anthropic.claude-fable-5-1",
+  "passed": true,
+  "verifier_findings": [
+    "The patch contains exactly one behavioral change: ATTN_SCALE changes from 0.0 to 0.12. All other edits are comments, and only train.py is modified.",
+    "Source confirms build_config explicitly passes ATTN_SCALE into GPTConfig; each attention layer snapshots it and forwards it through the existing SDPA/NKI scale plumbing. The nonpositive-to-None mapping is unchanged, with no additional scaling operation.",
+    "Nonblocking proposal correction: --attn-scale already exists through _hp, including NEURON_COMPETITION_R1_ATTN_SCALE override support. GPTConfig's field default remains 0.0, but build_config supplies the module value explicitly. The control remains reachable with --attn-scale 0.0.",
+    "Checkpoint serialization saves model.config, and load_for_eval reconstructs GPTConfig from it, preserving the trained attention scale. Causal masks and evaluation loading logic are unchanged.",
+    "The pinned 1800-second, four-rank/LNC=2, seed-42 contract is preserved. No data, tokenizer, evaluation-procedure, optimizer, schedule, precision, or kernel-selection behavior is changed; no external-data or pretrained initialization path is introduced or enabled.",
+    "Supplied deterministic checks pass. Runtime quality, throughput, causality, and checkpoint checks remain subsequent controller gates, not prerequisites for this pre-run approval."
+  ],
+  "verifier_model_id": "us.openai.gpt-6-astra",
+  "verifier_verdict": "PASS"
+}

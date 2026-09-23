@@ -1,0 +1,19 @@
+diff --git a/train.py b/train.py
+index 607862de..ff561390 100644
+--- a/train.py
++++ b/train.py
+@@ -211,11 +211,13 @@ N_EMBD = 0  # T0.2 depth/width decoupling: explicit width override. 0 (default)
+ MLP_RATIO = 4  # T0.3: MLP hidden width = MLP_RATIO * n_embd. 4 is the historical (and starter-kit)
+ # value, so the default is bit-identical to every previous run. Carried in GPTConfig so a checkpoint
+ # is self-describing and load_for_eval rebuilds the right shape without needing the flag.
+-ATTN_SCALE = 0.0  # T0.3: explicit softmax scale for F.scaled_dot_product_attention. 0.0 (default) =
++ATTN_SCALE = 0.12  # T0.3: explicit softmax scale for F.scaled_dot_product_attention. 0.0 =
+ # pass scale=None, i.e. SDPA's own 1/sqrt(head_dim) == 0.0884 at HEAD_DIM=128 -- bit-identical to
+ # every previous run. QK-norm (rope_norm on both q and k) already fixes |q|,|k| to sqrt(D) per head,
+ # which decouples the useful logit temperature from the 1/sqrt(D) convention, so this is a real free
+ # knob rather than a redundant reparameterisation of the init scale.
++# 2026-09-23 autoloop: default 0.0 -> 0.12 (modded-nanogpt fixed attention scale under QK-norm);
++# 0.0 restores backend 1/sqrt(head_dim).
+ N_KV_HEADS = 0  # Sub-1.0 plan P2 (2026-09-16): grouped-query attention KV-head count. 0 (default) =
+ # dense attention (n_kv_heads = n_head), bit-identical to every previous run. Set to a divisor of
+ # n_head to shrink the K/V projections (the QK^T + softmax work stays full-width by design, see
