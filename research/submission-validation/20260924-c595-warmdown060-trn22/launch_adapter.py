@@ -193,6 +193,8 @@ def main() -> None:
     concrete = driver.build_concrete_request(template, authorization_sha, template_sha, head)
     validate_standard_request(concrete, driver)
     concrete_path = args.concrete_request.resolve(strict=False)
+    if not args.dry_run and concrete_path != driver.CONCRETE_REQUEST:
+        raise SystemExit("non-dry-run concrete request path mismatch")
     concrete_sha = durable_concrete(concrete_path, concrete, driver)
     receipt = {
         "schema": "c595-warmdown060-launch-adapter-v1",

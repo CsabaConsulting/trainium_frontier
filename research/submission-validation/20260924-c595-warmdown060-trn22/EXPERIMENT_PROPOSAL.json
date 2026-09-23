@@ -1,5 +1,5 @@
 {
-  "proposal_id": "20260924-c595-warmdown060-trn22-r1",
+  "proposal_id": "20260924-c595-warmdown060-trn22-r2",
   "status": "human-approved-pending-independent-verification",
   "owner_role": "researcher",
   "hypothesis": "On trn22 at seed 42, changing only WARMDOWN_RATIO from 0.75 to 0.60 improves the fresh full20m public BPB by at least 0.0015 versus the same-host c595 control.",
@@ -43,6 +43,7 @@
     "research/submission-validation/20260923-c595-dual-host-seed42-controls/retrieved/fs-20260924-c595-control-trn22-r2/rehearsal.json",
     "research/submission-validation/20260923-c595-dual-host-seed42-controls/retrieved/fs-20260924-c595-eval-recovery-trn22-r1/result.json",
     "submissions/dense6x1024_direct_review/provenance.json",
+    "research/submission-validation/20260924-c595-warmdown060-trn22/retrieved/fs-20260924-c595-warmdown060-trn22-r1/operator-failure-receipt.json",
     "research/submission-validation/20260924-c595-warmdown060-trn22/retune_job.py",
     "research/submission-validation/20260924-c595-warmdown060-trn22/launch_adapter.py"
   ],
@@ -78,7 +79,12 @@
       "submissions/dense6x1024_direct_review_warmdown060/train.py"
     ],
     "expected_diff": "Exactly one source-line replacement: WARMDOWN_RATIO = 0.75 becomes WARMDOWN_RATIO = 0.60. WEIGHT_DECAY remains 0.2.",
-    "run_label": "fs-20260924-c595-warmdown060-trn22-r1",
+    "run_label": "fs-20260924-c595-warmdown060-trn22-r2",
+    "remote_checkout": "/home/ubuntu/trainium_freshstart_20260924_c595_warmdown060_trn22_r2",
+    "concrete_request_path": "/tmp/fs-20260924-c595-warmdown060-trn22-r2.request.json",
+    "dispatch_receipt": "research/run-logs/fs-20260924-c595-warmdown060-trn22-r2.dispatch.json",
+    "runtime_job": "research/run-logs/fs-20260924-c595-warmdown060-trn22-r2.job.json",
+    "output_directory": "out/fs-20260924-c595-warmdown060-trn22-r2",
     "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public",
     "seed": 42,
     "max_train_seconds": 1800,
@@ -116,6 +122,17 @@
     "finalization": "A direct child may add only authorization.json and final-request.json. Authorization pins the exact canonical request content and SHA-256 plus the verified core parent; the request does not embed its own child commit.",
     "runtime": "The core-pinned launch adapter derives the actual origin-aligned finalization HEAD and O_EXCL-materializes a canonical standard-launcher request containing expected_commit. The driver reconstructs that concrete request from the standard launcher job and requires exact template/concrete hashes, argv, minimal environment, finalization HEAD, and every protected source hash.",
     "external_trust": "The independently verified finalization HEAD remains an external Operator/Verifier choice; an alternate child is not authorized merely because it shares the core parent."
+  },
+  "retry_provenance": {
+    "previous_label": "fs-20260924-c595-warmdown060-trn22-r1",
+    "evidence_commit": "b17fb2d0438e2a8fa7cea51683b88c1c209b2932",
+    "failure_receipt_sha256": "b2ab112abe99fc6226428e48cd9cd645173fcd2a4e2c91fec66a49ca3bd3ab9a",
+    "runtime_job_sha256": "fccc470e6a44e232e5731ed00948a50810b4d80ea62db296c4be5d05e3f1ba09",
+    "failure_stage": "runtime_contract_before_training",
+    "training_started": false,
+    "cause": "The r1 driver required recursively sorted canonical JSON with a trailing newline, while the pinned standard launcher deterministically emitted insertion-ordered json.dump(indent=2) bytes without a trailing newline.",
+    "fix": "The driver now independently reconstructs and exactly validates the pinned standard launcher's insertion order and no-newline serialization after all semantic request, core, finalization, environment, argv, and source-hash gates pass.",
+    "evidence_policy": "The tracked r1 retrieved directory and dispatch receipt remain immutable; r2 uses a distinct label, checkout, runtime job, dispatch receipt, concrete request, output directory, and artifact namespace."
   },
   "abort_conditions": [
     "Any candidate source difference beyond the exact WARMDOWN_RATIO replacement",

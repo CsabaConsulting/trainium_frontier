@@ -20,9 +20,11 @@ import time
 ROOT = Path(__file__).resolve().parents[3]
 HERE = Path(__file__).resolve().parent
 PYTHON = "/home/ubuntu/workspace/native_venv/bin/python"
-LABEL = "fs-20260924-c595-warmdown060-trn22-r1"
+LABEL = "fs-20260924-c595-warmdown060-trn22-r2"
 HOST = "trn22"
 HOSTNAME = "ip-172-31-32-253"
+REMOTE = "/home/ubuntu/trainium_freshstart_20260924_c595_warmdown060_trn22_r2"
+CONCRETE_REQUEST = Path("/tmp/fs-20260924-c595-warmdown060-trn22-r2.request.json")
 PACKAGE_REL = "submissions/dense6x1024_direct_review_warmdown060"
 SOURCE_REL = "submissions/dense6x1024_direct_review/train.py"
 SOURCE_SHA = "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537"
@@ -52,6 +54,7 @@ DRIVER_REL = "research/submission-validation/20260924-c595-warmdown060-trn22/ret
 ADAPTER_REL = "research/submission-validation/20260924-c595-warmdown060-trn22/launch_adapter.py"
 PROPOSAL_REL = "research/submission-validation/20260924-c595-warmdown060-trn22/EXPERIMENT_PROPOSAL.json"
 RUNTIME_JOB_REL = f"research/run-logs/{LABEL}.job.json"
+DISPATCH_REL = f"research/run-logs/{LABEL}.dispatch.json"
 LAUNCHER_SOURCE_PREFIX = (
     "train.py",
     "prepare.py",
@@ -542,7 +545,7 @@ def validate_authorization_request(auth: dict, request: dict, verified_core: str
         request["schema"] != "c595-warmdown060-final-request-v1"
         or request["host"] != HOST
         or request["expected_hostname"] != HOSTNAME
-        or request["remote"] != "/home/ubuntu/trainium_freshstart_20260924_c595_warmdown060_trn22_r1"
+        or request["remote"] != REMOTE
         or request["label"] != LABEL
         or request["verified_core_commit"] != verified_core
         or request["authorization_path"] != AUTH_REL

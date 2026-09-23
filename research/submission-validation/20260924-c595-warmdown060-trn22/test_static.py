@@ -18,8 +18,12 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[3]
 EVIDENCE = ROOT / "research/submission-validation/20260924-c595-warmdown060-trn22"
+R1_LABEL = "fs-20260924-c595-warmdown060-trn22-r1"
+R2_LABEL = "fs-20260924-c595-warmdown060-trn22-r2"
+R1_EVIDENCE_COMMIT = "b17fb2d0438e2a8fa7cea51683b88c1c209b2932"
+R1_RETRIEVED = EVIDENCE / f"retrieved/{R1_LABEL}"
 RETRIEVED_RUNTIME_JOB = (
-    EVIDENCE / "retrieved/fs-20260924-c595-warmdown060-trn22-r1/job.json"
+    R1_RETRIEVED / "job.json"
 )
 SOURCE_PACKAGE = ROOT / "submissions/dense6x1024_direct_review"
 CANDIDATE_PACKAGE = ROOT / "submissions/dense6x1024_direct_review_warmdown060"
@@ -144,6 +148,7 @@ class ConfigurationTests(unittest.TestCase):
 
     def test_proposal_pins_control_metric_and_predeclared_decision(self) -> None:
         proposal = load_json(EVIDENCE / "EXPERIMENT_PROPOSAL.json")
+        self.assertEqual(proposal["proposal_id"], "20260924-c595-warmdown060-trn22-r2")
         self.assertEqual(proposal["status"], "human-approved-pending-independent-verification")
         self.assertEqual(proposal["mechanism_class"], "schedule")
         self.assertIn("not a weight-decay change", proposal["single_causal_change"])
@@ -152,6 +157,14 @@ class ConfigurationTests(unittest.TestCase):
         metric = proposal["control"]["selection_metric"]
         self.assertEqual((metric["seq_len"], metric["num_tokens"], metric["num_bytes"]), (1024, 20971520, 83462186))
         self.assertEqual(proposal["candidate"]["sha256"], CANDIDATE_TRAIN_SHA)
+        self.assertEqual(proposal["candidate"]["run_label"], R2_LABEL)
+        self.assertEqual(
+            proposal["candidate"]["remote_checkout"],
+            "/home/ubuntu/trainium_freshstart_20260924_c595_warmdown060_trn22_r2",
+        )
+        self.assertEqual(proposal["candidate"]["runtime_job"], f"research/run-logs/{R2_LABEL}.job.json")
+        self.assertEqual(proposal["candidate"]["dispatch_receipt"], f"research/run-logs/{R2_LABEL}.dispatch.json")
+        self.assertEqual(proposal["candidate"]["output_directory"], f"out/{R2_LABEL}")
         self.assertEqual(proposal["candidate"]["launch_command"], LAUNCH)
         self.assertEqual(proposal["candidate"]["seed"], 42)
         self.assertEqual(proposal["candidate"]["max_train_seconds"], 1800)
@@ -163,6 +176,11 @@ class ConfigurationTests(unittest.TestCase):
         self.assertIs(proposal["gates"]["training_launched"], False)
         self.assertIs(proposal["gates"]["submission_authorized"], False)
         self.assertIsNone(proposal["verdict"])
+        retry = proposal["retry_provenance"]
+        self.assertEqual(retry["previous_label"], R1_LABEL)
+        self.assertEqual(retry["evidence_commit"], R1_EVIDENCE_COMMIT)
+        self.assertIs(retry["training_started"], False)
+        self.assertEqual(retry["failure_stage"], "runtime_contract_before_training")
 
     def test_finalization_files_are_absent_together_or_exact_child_only(self) -> None:
         auth_path = EVIDENCE / "authorization.json"
@@ -194,6 +212,56 @@ class ConfigurationTests(unittest.TestCase):
         self.assertEqual(metrics["val_bpb"], CONTROL_BPB)
         self.assertEqual((metrics["num_tokens"], metrics["num_bytes"]), (20971520, 83462186))
         self.assertIs(metrics["eval_over_timeout"], False)
+
+    def test_r1_failure_evidence_is_unchanged_from_evidence_commit(self) -> None:
+        paths = [
+            str(R1_RETRIEVED.relative_to(ROOT)),
+            f"research/run-logs/{R1_LABEL}.dispatch.json",
+        ]
+        subprocess.run(
+            ["git", "diff", "--quiet", R1_EVIDENCE_COMMIT, "--", *paths],
+            cwd=ROOT,
+            check=True,
+        )
+        self.assertEqual(
+            sha256(R1_RETRIEVED / "operator-failure-receipt.json"),
+            "b2ab112abe99fc6226428e48cd9cd645173fcd2a4e2c91fec66a49ca3bd3ab9a",
+        )
+        self.assertEqual(
+            sha256(RETRIEVED_RUNTIME_JOB),
+            "fccc470e6a44e232e5731ed00948a50810b4d80ea62db296c4be5d05e3f1ba09",
+        )
+
+    def test_r2_runtime_namespace_is_unique_and_unused(self) -> None:
+        job = load_job()
+        self.assertEqual(job.LABEL, R2_LABEL)
+        self.assertEqual(job.RUNTIME_JOB_REL, f"research/run-logs/{R2_LABEL}.job.json")
+        self.assertEqual(job.DISPATCH_REL, f"research/run-logs/{R2_LABEL}.dispatch.json")
+        self.assertEqual(job.OUTPUT, ROOT / f"out/{R2_LABEL}")
+        self.assertEqual(
+            job.CONCRETE_REQUEST,
+            Path(f"/tmp/{R2_LABEL}.request.json"),
+        )
+        self.assertNotEqual(job.LABEL, R1_LABEL)
+        self.assertFalse(job.OUTPUT.exists())
+        self.assertFalse(job.CONCRETE_REQUEST.exists())
+        for suffix in ("dispatch.json", "job.json", "launch.json", "log", "preflight.json", "postflight.json", "process.json"):
+            self.assertFalse((ROOT / f"research/run-logs/{R2_LABEL}.{suffix}").exists())
+
+    def test_r2_executable_config_has_no_r1_identity(self) -> None:
+        paths = [EVIDENCE / "retune_job.py", EVIDENCE / "launch_adapter.py"]
+        for name in ("authorization.json", "final-request.json"):
+            path = EVIDENCE / name
+            if path.exists():
+                paths.append(path)
+        for path in paths:
+            text = path.read_text()
+            self.assertNotIn(R1_LABEL, text, path.name)
+            self.assertNotIn(
+                "/home/ubuntu/trainium_freshstart_20260924_c595_warmdown060_trn22_r1",
+                text,
+                path.name,
+            )
 
 
 class SecureEvidenceTests(unittest.TestCase):
@@ -295,7 +363,7 @@ class SecureEvidenceTests(unittest.TestCase):
             "schema": "c595-warmdown060-final-request-v1",
             "host": self.job.HOST,
             "expected_hostname": self.job.HOSTNAME,
-            "remote": "/home/ubuntu/trainium_freshstart_20260924_c595_warmdown060_trn22_r1",
+            "remote": self.job.REMOTE,
             "label": self.job.LABEL,
             "purpose": "exact single-factor warmdown full run and fresh full20m evaluation",
             "verified_core_commit": core,
@@ -420,52 +488,55 @@ class SecureEvidenceTests(unittest.TestCase):
             self.job.build_concrete_request(request, authorization_sha, request_sha, "not-a-head")
         self.assertEqual(concrete["expected_commit"], final)
 
-    def validate_retrieved_runtime(self, data: bytes):
-        runtime = json.loads(data)
-        return self.job.validate_runtime_job_bytes(
-            data,
-            runtime["template_content"],
-            runtime["template_sha256"],
-            runtime["authorization_sha256"],
-            runtime["verified_core_commit"],
-            runtime["finalization_head"],
-        )
+    def test_adapter_pins_r2_concrete_path_for_non_dry_run(self) -> None:
+        source = (EVIDENCE / "launch_adapter.py").read_text()
+        self.assertIn("concrete_path != driver.CONCRETE_REQUEST", source)
+        self.assertIn("non-dry-run concrete request path mismatch", source)
+        self.assertEqual(self.job.CONCRETE_REQUEST, Path(f"/tmp/{R2_LABEL}.request.json"))
 
-    def test_retrieved_standard_launcher_fixture_passes_driver_acceptance(self) -> None:
+    def validate_retrieved_serialization(self, data: bytes):
+        runtime = json.loads(data)
+        concrete = {
+            key: value for key, value in runtime.items()
+            if key not in self.job.RUNTIME_DYNAMIC_KEYS
+        }
+        if self.job.standard_launcher_job_bytes(runtime, concrete) != data:
+            raise SystemExit("historical launcher serialization mismatch")
+        return runtime, runtime["request_file_sha256"]
+
+    def test_retrieved_standard_launcher_fixture_pins_r1_serialization(self) -> None:
         data = RETRIEVED_RUNTIME_JOB.read_bytes()
         self.assertEqual(len(data), 12220)
         self.assertEqual(
             hashlib.sha256(data).hexdigest(),
             "fccc470e6a44e232e5731ed00948a50810b4d80ea62db296c4be5d05e3f1ba09",
         )
-        runtime, concrete_sha = self.validate_retrieved_runtime(data)
+        runtime, concrete_sha = self.validate_retrieved_serialization(data)
         self.assertEqual(
             concrete_sha,
             "c6d1ab20a1b5f13c98341aeccd1407230c0b5c569c52704cc505f00fa99fd281",
         )
-        concrete = self.job.build_concrete_request(
-            runtime["template_content"], runtime["authorization_sha256"],
-            runtime["template_sha256"], runtime["finalization_head"],
-        )
-        self.assertEqual(self.job.standard_launcher_job_bytes(runtime, concrete), data)
+        self.assertEqual(runtime["label"], R1_LABEL)
 
     def test_retrieved_runtime_rejects_whitespace_mutation(self) -> None:
         with self.assertRaises(SystemExit):
-            self.validate_retrieved_runtime(RETRIEVED_RUNTIME_JOB.read_bytes() + b"\n")
+            self.validate_retrieved_serialization(RETRIEVED_RUNTIME_JOB.read_bytes() + b"\n")
 
     def test_retrieved_runtime_rejects_key_order_mutation(self) -> None:
         runtime = json.loads(RETRIEVED_RUNTIME_JOB.read_bytes())
         reordered = json.dumps(runtime, indent=2, sort_keys=True).encode()
         self.assertNotEqual(reordered, RETRIEVED_RUNTIME_JOB.read_bytes())
         with self.assertRaises(SystemExit):
-            self.validate_retrieved_runtime(reordered)
+            self.validate_retrieved_serialization(reordered)
 
-    def test_retrieved_runtime_rejects_content_mutation(self) -> None:
-        runtime = json.loads(RETRIEVED_RUNTIME_JOB.read_bytes())
+    def test_current_runtime_rejects_content_mutation(self) -> None:
+        core, final, request, request_sha, _auth, authorization_sha, _concrete, runtime, _data = self.fixture()
         runtime["hostname"] = "ip-172-31-32-254"
         mutated = json.dumps(runtime, indent=2).encode()
         with self.assertRaises(SystemExit):
-            self.validate_retrieved_runtime(mutated)
+            self.job.validate_runtime_job_bytes(
+                mutated, request, request_sha, authorization_sha, core, final
+            )
 
     def test_finalized_adapter_cli_dry_run_without_ssh(self) -> None:
         if not (EVIDENCE / "authorization.json").exists():
