@@ -2,6 +2,29 @@
 
 Last reconciled: 2026-09-23 15:13 UTC
 
+## Primary-source research override — 2026-09-23 15:26 UTC
+
+- The primary-source and source-history review is durable in
+  `research/agentic/PRIMARY_SOURCE_RESEARCH_MAP_2026-09-23.md`. It is a ranked queue, not run
+  authorization.
+- `20260923-ngram-ve-cooldown-lr-flag-only-default-shape` completed its smoke process successfully
+  at `1.168643` / 334 steps versus the same-host smoke control `1.165855` / 334. It preserved
+  throughput but was `+0.002788` BPB worse at the short horizon. The proposal defines smoke as a
+  correctness/throughput gate, so collection and the independent Analyst verdict still control
+  whether a full run is eligible. This is not an improvement.
+- After the active proposal closes, the strongest next architecture lead is a source-history
+  repair: commit `7518d91e` introduced the Q/K/V snapshot before `local_conv` for a rejected MUDD
+  experiment, and that ordering survived. The current trained local convolution therefore does not
+  feed same-block default attention, contrary to its comments and its earlier pre-attention wiring.
+  It has prior GPU and Trn2 positive evidence through related paths and matches the Canon-A placement
+  studied in arXiv:2512.17351. The Researcher must still produce one bounded proposal and an
+  independent verifier must approve it before implementation or hardware use.
+- Secondary zero-hardware lanes are modern Muon feasibility (RowUpdateFloor/radial control,
+  SOAP-Muon, then Newton-Muon) and completing the saved ROW-FP8 backward. Training-time random token
+  replacement is parked until a measured stack actually enters a repeated-data regime.
+- No new full-run score beats `0.9928513116311253`, and submission validation remains
+  STOP/ABANDON_CURRENT_PROPOSAL.
+
 ## Reconciliation override — 2026-09-23 15:13 UTC
 
 This section supersedes the stale dynamic run/box statements later in this handoff.
