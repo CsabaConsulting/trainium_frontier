@@ -146,6 +146,17 @@ cp research/agentic/autoloop.example.json research/agentic/autoloop.json   # edi
 python -m unittest discover -s research/agentic/tests -v        # mocked tests
 ```
 
+## Zero-token notifications
+
+`.github/workflows/trainium-winner-alert.yml` creates an assigned GitHub issue after a durable,
+comparable full-run KEEP with BPB delta at most -0.002. GitHub's normal issue-assignment email is
+the delivery channel; no OpenAI model or API token is involved.
+
+The local `trainium-autoloop-watchdog.timer` checks every five minutes for an inactive controller
+or an open controller circuit breaker. It creates one deduplicated assigned GitHub issue when human
+action is required. An intentional `research/agentic/STOP` suppresses the inactive-service alert.
+The watchdog is read-only with respect to AWS, Trn2 workers, experiment state, and submissions.
+
 ## Human checklist before the first unattended cycle
 
 1. `git fetch` so commit `9a4caa7b` is present locally (`status` reports it).

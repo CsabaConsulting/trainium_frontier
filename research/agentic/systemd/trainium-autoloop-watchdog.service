@@ -1,0 +1,11 @@
+[Unit]
+Description=Trainium autonomous loop zero-token blocker alert
+After=network-online.target trainium-autoloop.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/poojith-devan/Desktop/Trainium
+Environment=TRAINIUM_ALERT_REPOSITORY=CsabaConsulting/trainium_frontier
+Environment=TRAINIUM_ALERT_ASSIGNEE=poojithdevan4D
+ExecStart=/home/poojith-devan/Desktop/Trainium/.agent-venv/bin/python /home/poojith-devan/Desktop/Trainium/research/agentic/autoloop_watchdog.py

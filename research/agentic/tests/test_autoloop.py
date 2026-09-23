@@ -40,6 +40,7 @@ from autoloop.remote import (  # noqa: E402
     guard_remote_argv,
 )
 from autoloop.state import Store  # noqa: E402
+import autoloop_watchdog as W  # noqa: E402
 
 COMMIT = C.AUTHORITATIVE_COMMIT
 HOST = C.PINNED_HOSTS["trn22"]
@@ -481,6 +482,31 @@ class ManifestTests(unittest.TestCase):
             bedrock_read_timeout_seconds=3601,
         )
         self.assertTrue(any("bedrock_read_timeout_seconds" in e for e in cfg.validate()))
+
+
+class WatchdogTests(unittest.TestCase):
+    @staticmethod
+    def result(stdout="", returncode=0, stderr=""):
+        return subprocess.CompletedProcess([], returncode, stdout, stderr)
+
+    def test_healthy_service_and_closed_breaker_are_silent(self):
+        with tempfile.TemporaryDirectory() as d:
+            state = Path(d) / "state.json"
+            state.write_text('{"breaker": null}')
+            with mock.patch.object(W, "STATE_FILE", state), mock.patch.object(W, "run", return_value=self.result("active\n")):
+                self.assertIsNone(W.blocker_reason())
+
+    def test_open_breaker_requires_attention(self):
+        with tempfile.TemporaryDirectory() as d:
+            state = Path(d) / "state.json"
+            state.write_text('{"breaker": {"reason": "worker gate"}}')
+            with mock.patch.object(W, "STATE_FILE", state), mock.patch.object(W, "run", return_value=self.result("active\n")):
+                self.assertIn("worker gate", W.blocker_reason())
+
+    def test_existing_blocker_issue_is_deduplicated(self):
+        with mock.patch.object(W, "run", return_value=self.result("7\n")) as invoked:
+            W.notify("test blocker")
+        self.assertEqual(invoked.call_count, 1)
 
 
 class AnalystTests(unittest.TestCase):
