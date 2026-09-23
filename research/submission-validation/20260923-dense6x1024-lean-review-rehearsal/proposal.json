@@ -65,9 +65,9 @@
     "source_checkpoint_public_replay": "passed exactly at 0.9928513116311253 BPB over 20,971,520 tokens",
     "candidate_modified": false,
     "cold_rehearsal": "passed: returncode 0, 3638 steps, charged-through-exit 1790.307001 seconds, checkpoint SHA-256 be040a5dbf7fc2750d1f3f2770fc39ab7a5c3100dfd670921257607abaa4e0ec",
-    "fresh_checkpoint_neuron_contract": "first attempt failed before metrics because the historical root baseline loader requires feature-only keys intentionally absent from the review-clean checkpoint",
-    "contract_harness_correction": "commit edd7fcaee66263030b0e9e50e43fb98fa35c62b7 requires an explicit reference train.py, has no fallback, and was independently verified PASS in harness-verifier.json",
-    "next_gate": "rerun the corrected fresh-checkpoint Neuron contract with the lean train.py as explicit independently loaded reference; run protected public evaluation only if it passes"
+    "fresh_checkpoint_neuron_contract": "r1 failed before metrics because the historical root baseline loader requires removed feature-only keys; r2 timed out after separately importing the identical NKI module twice and waiting on self-held compile-cache locks",
+    "contract_harness_correction": "commit edd7fcaee66263030b0e9e50e43fb98fa35c62b7 made the reference explicit and fail-closed; commit 633f871c378620d2b877dbc53b83d91aec32f152 uses one module import with three distinct model loads for identical paths. Both corrections passed independent verification in harness-verifier.json and harness-verifier-r3.json",
+    "next_gate": "run the bounded r3 fresh-checkpoint Neuron contract; run protected public evaluation only if it passes"
   },
   "human_approved_by": "active human operator conversation, 2026-09-23",
   "verdict": null
