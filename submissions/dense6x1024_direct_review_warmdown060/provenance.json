@@ -1,0 +1,23 @@
+{
+  "package": "dense6x1024_direct_review_warmdown060",
+  "derived_from": {
+    "package": "dense6x1024_direct_review",
+    "train_py_sha256": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537"
+  },
+  "train_sha256": "52cf99df3e241ab8399c104b7ad4b717571e0987781b6b835303a8500baff38c",
+  "single_causal_change": {
+    "constant": "WARMDOWN_RATIO",
+    "from": 0.75,
+    "to": 0.60
+  },
+  "unchanged_control_constant": {
+    "constant": "WEIGHT_DECAY",
+    "value": 0.2
+  },
+  "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public",
+  "launch_command_identical_to_source": true,
+  "seed": 42,
+  "max_train_seconds": 1800,
+  "smoke": false,
+  "hardware_validation": "NOT RUN: prepared by the Implementer for independent verification and Operator execution"
+}

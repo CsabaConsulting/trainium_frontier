@@ -1,0 +1,128 @@
+{
+  "proposal_id": "20260924-c595-warmdown060-trn22-r1",
+  "status": "human-approved-pending-independent-verification",
+  "owner_role": "researcher",
+  "hypothesis": "On trn22 at seed 42, changing only WARMDOWN_RATIO from 0.75 to 0.60 improves the fresh full20m public BPB by at least 0.0015 versus the same-host c595 control.",
+  "single_causal_change": "WARMDOWN_RATIO = 0.75 -> 0.60; this is a schedule change, not a weight-decay change, and WEIGHT_DECAY remains 0.2.",
+  "mechanism_class": "schedule",
+  "predicted_bpb_delta": -0.0015,
+  "predicted_bpb_interval": [
+    -0.004,
+    0.001
+  ],
+  "candidate_shortlist": [
+    {
+      "idea": "WARMDOWN_RATIO 0.75 -> 0.60 on trn22",
+      "mechanism_class": "schedule",
+      "predicted_bpb_delta": -0.0015,
+      "why_ranked": "Selected explicitly by the human-approved c595 post-control queue and evaluated against the completed same-host control."
+    },
+    {
+      "idea": "MATRIX_LR 0.02 -> 0.025 on trn21",
+      "mechanism_class": "schedule",
+      "predicted_bpb_delta": 0.0,
+      "why_ranked": "A separately assigned one-factor arm on the other host; it is outside this implementation and cannot replace the trn22 control."
+    },
+    {
+      "idea": "MATRIX_LR follow-up 0.030 or 0.015",
+      "mechanism_class": "schedule",
+      "predicted_bpb_delta": 0.0,
+      "why_ranked": "Deferred until the independently assigned 0.025 arm has a valid verdict."
+    },
+    {
+      "idea": "Dense local-convolution follow-up",
+      "mechanism_class": "per_step_quality",
+      "predicted_bpb_delta": 0.0,
+      "why_ranked": "Explicitly later in the approved queue and not part of this single-factor arm."
+    }
+  ],
+  "selection_rationale": "The human-approved c595 control proposal assigns this exact one-factor warmdown arm to trn22. The Implementer did not re-rank or add a second causal change.",
+  "evidence": [
+    "research/submission-validation/20260923-c595-dual-host-seed42-controls/proposal.json",
+    "research/submission-validation/20260923-c595-dual-host-seed42-controls/retrieved/fs-20260924-c595-control-trn22-r2/training.log",
+    "research/submission-validation/20260923-c595-dual-host-seed42-controls/retrieved/fs-20260924-c595-control-trn22-r2/rehearsal.json",
+    "research/submission-validation/20260923-c595-dual-host-seed42-controls/retrieved/fs-20260924-c595-eval-recovery-trn22-r1/result.json",
+    "submissions/dense6x1024_direct_review/provenance.json",
+    "research/submission-validation/20260924-c595-warmdown060-trn22/retune_job.py",
+    "research/submission-validation/20260924-c595-warmdown060-trn22/operator-request.pending.json"
+  ],
+  "duplicate_search_terms": [
+    "WARMDOWN_RATIO",
+    "warmdown 0.60",
+    "c595 warmdown trn22"
+  ],
+  "control": {
+    "git_commit": "067ff2326bbad1d4ed7060a802e7cee3e8448545",
+    "run_label": "fs-20260924-c595-control-trn22-r2",
+    "evaluation_label": "fs-20260924-c595-eval-recovery-trn22-r1",
+    "candidate_path": "submissions/dense6x1024_direct_review/train.py",
+    "candidate_sha256": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537",
+    "public_val_bpb": 0.993593002710418,
+    "steps": 3637,
+    "box_constraint": "trn22 only; ip-172-31-32-253; compare quality on this same host and do not use cross-host throughput for a rate claim",
+    "selection_metric": {
+      "name": "fresh full20m public BPB",
+      "seq_len": 1024,
+      "num_tokens": 20971520,
+      "num_bytes": 83462186,
+      "batch_size": 1,
+      "timeout_seconds": 1200
+    }
+  },
+  "candidate": {
+    "branch": "experiment/20260924-c595-warmdown060-trn22",
+    "path": "submissions/dense6x1024_direct_review_warmdown060/train.py",
+    "base_sha256": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537",
+    "sha256": "52cf99df3e241ab8399c104b7ad4b717571e0987781b6b835303a8500baff38c",
+    "files_allowed": [
+      "submissions/dense6x1024_direct_review_warmdown060/train.py"
+    ],
+    "expected_diff": "Exactly one source-line replacement: WARMDOWN_RATIO = 0.75 becomes WARMDOWN_RATIO = 0.60. WEIGHT_DECAY remains 0.2.",
+    "run_label": "fs-20260924-c595-warmdown060-trn22-r1",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public",
+    "seed": 42,
+    "max_train_seconds": 1800,
+    "smoke_authorized": false
+  },
+  "gates": {
+    "rules_review": true,
+    "diff_review": false,
+    "cpu_or_static_checks": false,
+    "implementer_static_checks": true,
+    "numerical_equivalence": false,
+    "causality": false,
+    "smoke_run": false,
+    "human_run_approval": true,
+    "independent_verification": false,
+    "training_launched": false,
+    "submission_authorized": false
+  },
+  "success_criteria": {
+    "quality": "KEEP iff full20m public BPB <= 0.992093002710418 (improvement >= 0.0015 versus 0.993593002710418). If KEEP improvement is < 0.0025, replicate before adoption.",
+    "throughput": "Diagnostic only; no cross-host or rate claim is authorized.",
+    "correctness": "No crash/NaN; finite strict checkpoint; exact seed/host/launch/package hash; fresh separate-process eval reports seq_len 1024, 20,971,520 tokens and 83,462,186 bytes within timeout."
+  },
+  "replication_policy": {
+    "keep_improvement_minimum": 0.0015,
+    "replicate_if_keep_improvement_below": 0.0025,
+    "keep_bpb_maximum": 0.992093002710418,
+    "replicate_keep_bpb_interval": {
+      "lower_exclusive": 0.991093002710418,
+      "upper_inclusive": 0.992093002710418
+    }
+  },
+  "abort_conditions": [
+    "Any candidate source difference beyond the exact WARMDOWN_RATIO replacement",
+    "WEIGHT_DECAY differs from 0.2",
+    "The base c595, candidate, prepare.py, launch-command, host, seed, compiler, or world-size fingerprint differs",
+    "Any smoke or shortened run is requested",
+    "The host is not clean and idle or one-run-per-machine would be violated",
+    "Crash, NaN, budget failure, missing/nonfinite checkpoint, causality failure, or dirty tree",
+    "Fresh evaluation is not a separate process or its token/byte counts differ",
+    "The parsed finite-checkpoint receipt does not report weights_only=true, finite=true, and tensor_count>0",
+    "The exact immutable artifact manifest and ready-to-retrieve completion receipt are absent or fail revalidation",
+    "Independent verification is absent"
+  ],
+  "human_approved_by": "human operator instruction dated 2026-09-24",
+  "verdict": null
+}
