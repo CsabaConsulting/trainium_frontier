@@ -1,0 +1,98 @@
+{
+  "role": "independent Verifier",
+  "verified_at": "2026-09-23",
+  "verdict": "FAIL",
+  "reviewed_implementation_commit": "b6def6daac0212f847dcd8f4c87abe7b604c5666",
+  "review_basis": {
+    "required_prior_fail_commit": "e512c00ffcb6abb31daa4048d0ea3b719564fc6a",
+    "required_prior_fail_report": "research/submission-validation/20260923-dense6x1024-direct-review-safe/independent-neuron-component-reverify.json",
+    "required_prior_fail_report_sha256": "1fa417045cd3b0c45b22a0c6f648ea057311ff13bd4f79efe7a8dee3e7284d84",
+    "prior_commit_is_ancestor": true,
+    "prior_report_matches_exact_blob_at_prior_commit": true
+  },
+  "scope": {
+    "reviewed_changes_since_prior_fail": [
+      "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron-component-authorization-request.json",
+      "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron-component-runbook.md",
+      "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron_component_direct.py"
+    ],
+    "candidate_modified": false,
+    "candidate_sha256": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537",
+    "harness_sha256": "ee7c8bbc7078f05f74f741e536cbd884bc4c64a6094fd2ad01f3ae3bc6037299",
+    "runbook_sha256": "c860879067b5f5d7e582a79ce823e02284738925e4259945fd8774cde717af06",
+    "pending_authorization_request_sha256": "3e42bbf31da45762106c0e934368d10d9e44c682cb5f7442d4b1528d6a0218ef",
+    "proposal_sha256": "5f3ea81b7e19ca6bb6959f6d9731c7a61226e9764f77424f8eda35f951a47780"
+  },
+  "resolved_findings": {
+    "clean_tracked_scope": "The harness requires every protected/fingerprint path to be tracked and rejects modified, staged, or untracked state. An isolated unchanged-HEAD dirty-harness test failed, and simultaneous mutations to the request, runbook, proposal, launcher, guard, host, sync, candidate, and harness were all named and rejected.",
+    "fixed_source_hashes": "A committed isolated mutation of the harness, runbook, proposal, launcher, guard, host, sync, and candidate failed against the authorization request's independently declared expected_sha256 map.",
+    "exact_manifest": "An independently constructed baseline manifest passed. Mutating every request field and each of 27 workload argv positions, including reorder, duplication, and appended arguments, failed. The launcher-created started_at field is intentionally checked for type rather than a predetermined value.",
+    "pending_decision": "The current pending request rejects full mode with 'hardware command lacks independent verifier authorization'. Wrong authorization SHA values reject.",
+    "failure_and_uniqueness": "Wrong candidate and environment values reject. Existing report replay is rejected without changing the existing SHA-256. Fresh compile-cache creation succeeds once; a second creation and a symlink path reject.",
+    "numerical_matrix": "For all eight declared tolerances, independent tensor_metrics tests accepted identity and rejected zero, half scale, negation, permutation, NaN, infinity, and a single large corruption. The built-in static adversarial matrix also passed.",
+    "runbook_shape": "The documented launch uses fresh_start launch/guard, manifested source paths, host lock, preflight, postflight, bounded timeout, unique report/cache paths, and exact receipt retrieval. It remains blocked only by the authorization anchor described below."
+  },
+  "blocking_findings": [
+    {
+      "id": "A1",
+      "severity": "blocking",
+      "finding": "The authorization request is mutable but is not pinned by a non-self-derived trust root. Its SHA-256 is recomputed from the current checkout by the runbook and supplied back to the harness, while the request itself is excluded from expected_sha256.",
+      "root_cause": "load_authorization proves only that the CLI SHA equals the current authorization file and that reviewed_implementation_commit is an ancestor of the current HEAD. It does not require the exact verifier authorization commit or an authorization-request SHA supplied independently of that current file. The role string is data inside the same mutable request.",
+      "reproduction": {
+        "setup": "In an isolated clone, commit only changes to neuron-component-authorization-request.json after b6def6da, leaving every expected_sha256 target unchanged.",
+        "whitespace_only_result": "A clean descendant with a recomputed request SHA passed the fully pinned static invocation rc0/passed=true.",
+        "contract_change_result": "Changing timeout_argv from 1200s to 9999s, committing, and recomputing the request SHA also passed static validation rc0/passed=true.",
+        "self_authorization_result": "A further clean descendant daaff44bcffdb6408f66d0daa6660ad291e654d2 changed the same request to status=authorized, hardware_command_authorized=true, authorized_by_role='independent Verifier', and reviewed_implementation_commit=b6def6da. load_authorization(full=true) accepted it at descendant HEAD with the altered 9999s timeout.",
+        "self_authorized_request_sha256": "bf819815d1cb6f431edb6aa4192208eda76af1ab1bfaf467bfac0b073db83506"
+      },
+      "impact": "A later clean descendant can change the supposedly fixed workload contract or manufacture the authorization decision and still satisfy the harness. Exact argv equality then faithfully attests the altered request rather than the independently reviewed request.",
+      "required_correction": "Use a two-phase, non-self-derived authorization anchor. After a Verifier creates the authorization commit, the Operator must be given and enforce the exact verifier commit and literal authorization-request SHA from an external immutable instruction/attestation, reject every later descendant, and compare the checkout/request to those literals before generating or dispatching the launch request. The runbook must not derive the expected authorization SHA solely from the file it is validating. Independently enforce the fixed 1200s timeout contract as part of that external attestation. Re-review the concrete final command/trust chain before hardware."
+    }
+  ],
+  "local_checks": [
+    {
+      "command": "git diff --name-status/check e512c00f..b6def6da; py_compile harness/launcher/guard; JSON parse; sha256sum protected files",
+      "result": "PASS: declared scope, syntax, JSON, candidate hash, and protected hashes are correct"
+    },
+    {
+      "command": "fully pinned canonical --static-only invocation at b6def6da with pending request 3e42bbf...",
+      "result": "PASS rc0/passed=true; all static wiring and built-in adversarial gates passed"
+    },
+    {
+      "command": "pending full authorization load, wrong authorization SHA, wrong candidate, and wrong NEURON_CC_FLAGS",
+      "result": "PASS: each rejected fail-closed; CLI negative cases returned rc2 with precise fatal reason"
+    },
+    {
+      "command": "independent exact request/manifest mutation matrix",
+      "result": "PASS: baseline accepted; all ten request-field mutations and all 27 argv position/reorder/extra/duplicate mutations rejected"
+    },
+    {
+      "command": "isolated dirty and committed mutation matrix over request/runbook/proposal/launcher/guard/host/sync/candidate/harness",
+      "result": "PASS: dirty scope and fixed expected source hashes rejected every mutation"
+    },
+    {
+      "command": "report O_EXCL replay plus compile-cache first/second/symlink matrix",
+      "result": "PASS: no overwrite; unique real cache accepted once; reused and symlink cache paths rejected"
+    },
+    {
+      "command": "independent torch tensor_metrics matrix for all eight tolerances",
+      "result": "PASS: identity accepted; zero, half, negative, permutation, NaN, infinity, and single corruption rejected for every metric"
+    },
+    {
+      "command": "isolated authorization-only clean descendant and full-load adversarial matrix",
+      "result": "FAIL criterion reproduced: recomputed current-file SHA accepts altered timeout, then full=true accepts a locally asserted authorization decision because b6def6da is merely an ancestor"
+    }
+  ],
+  "authorization": {
+    "hardware_advancement_authorized": false,
+    "authorization_request_modified_by_verifier": false,
+    "authorized_verifier_commit": null,
+    "authorized_request_sha256": null,
+    "authorized_hardware_command": null,
+    "statement": "Do not launch hardware from b6def6da or from its self-derived runbook command. Implement the external exact-verifier-commit plus literal-request-SHA trust root and obtain a new independent PASS."
+  },
+  "candidate_modified_by_verifier": false,
+  "hardware_run_by_verifier": false,
+  "submission_performed": false,
+  "scientific_verdict": null
+}
