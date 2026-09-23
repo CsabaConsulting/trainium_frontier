@@ -1,0 +1,108 @@
+{
+  "role": "independent Verifier",
+  "verified_at": "2026-09-23",
+  "verdict": "FAIL",
+  "reviewed_commit": "a5ca0641e7a19cce35228e48c0cdf39d5b895dd9",
+  "reviewed_parent": "bf1cb32fb17a22aaa7a80f6984b09a69265a8777",
+  "review_basis": "research/submission-validation/20260923-dense6x1024-direct-review-safe/independent-neuron-component-verifier.json",
+  "scope": {
+    "reviewed_commit_changes_only_harness_and_runbook": true,
+    "candidate_modified_by_reviewed_commit": false,
+    "candidate_sha256": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537",
+    "candidate_hash_unchanged": true,
+    "harness_sha256": "7ba86a4b4bb707f2053e6c4831d2b9c4dfe9ff9c67d712a39a5da380e7f66a30",
+    "runbook_sha256": "f7023640e828bd0102a85dc6baf81a9c817117fe4758f87e276ce76b6b002e78",
+    "proposal_sha256": "5f3ea81b7e19ca6bb6959f6d9731c7a61226e9764f77424f8eda35f951a47780"
+  },
+  "prior_blocker_resolution": {
+    "B1_numerical_false_pass": {
+      "status": "resolved",
+      "evidence": "Every metric now requires finite values, a minimum nonzero reference norm, nonzero candidate norm, bounded candidate/reference L2 ratio, bounded error/reference L2 ratio, and elementwise agreement. The harness self-test and an independent torch matrix rejected zero, half-scale, negative, permuted, NaN, infinity, single corruption, and below-minimum-reference fixtures for all eight metrics while accepting identity. Optimizer update deltas are checked separately."
+    },
+    "B2_later_execution": {
+      "status": "resolved by code audit; hardware execution remains pending",
+      "evidence": "MLP performs two real custom-autograd forward/backward executions, applies a deterministic master-weight update, clears gradients, refreshes both BF16 caches, requires changed/matching caches, and checks the second execution. Each real wrapped CE one-lane and two-lane grid is called exactly twice with direct nodes. OwnedOptimizer executes two different gradient/schedule updates and requires owner.calls==2, parameter and update-delta agreement, state coverage and round-trip after step two."
+    },
+    "B3_frozen_identity": {
+      "status": "not fully resolved",
+      "evidence": "Candidate path/hash, seed, threads, hostname, commit, topology, rank ranges, compiler/cache/thread/fallback variables, run label and guard identity now reject mismatches. However, harness/runbook/proposal hashes are only measured and reported, not compared with independently frozen expected hashes, and requested fingerprint paths are omitted from fresh_start_launch.py's dirty/untracked check. A dirty harness at the authorized Git HEAD passed in an isolated reproduction."
+    },
+    "B4_safe_report_creation": {
+      "status": "resolved",
+      "evidence": "The report must be the exact label-derived child of the real non-symlink research/run-logs directory, existing leafs and symlinks fail via lexists, and creation uses O_EXCL plus O_NOFOLLOW. Independent existing-file replay preserved its SHA-256, outside-root/name mismatches failed, and a dangling leaf symlink was neither followed nor replaced."
+    },
+    "B5_manifested_protocol": {
+      "status": "partially resolved; exact-command attestation still fails closed insufficiently",
+      "evidence": "The runbook now gives syntactically valid, placeholder-free request generation through fresh_start_launch.py, the host lock/preflight/fresh_start_guard path, a bounded timeout, unique cache/report paths, and strict postflight retrieval. But outer_receipts accepts any command containing selected token substrings rather than requiring exact argv equality, so a changed timeout/signal/extra argument can be manifested and accepted. The launcher also labels source_dirty=false without checking fingerprint_paths."
+    }
+  },
+  "blocking_findings": [
+    {
+      "id": "R1",
+      "severity": "blocking",
+      "finding": "The corrected source-identity pin can be bypassed by an uncommitted modified harness, runbook, or proposal at the authorized Git HEAD.",
+      "reproduction": {
+        "setup": "Created an isolated clone at exact HEAD a5ca0641, added one harmless line to neuron_component_direct.py only, leaving git rev-parse HEAD unchanged.",
+        "committed_harness_sha256": "7ba86a4b4bb707f2053e6c4831d2b9c4dfe9ff9c67d712a39a5da380e7f66a30",
+        "dirty_harness_sha256": "70e2785f14a976e2edbbc43a09362d39ee6eaf3861a6394f6b2ef253b69a1e9a",
+        "result": "The fully pinned static invocation returned rc0 and passed=true. Its JSON merely reported the dirty SHA. The throwaway clone was removed after the test."
+      },
+      "root_cause": "validate_identity checks git HEAD and the candidate's hard-coded path/hash but has no expected harness/runbook/proposal digest and no scoped dirty-tree check. fresh_start_launch.py dirty-checks a fixed source_paths list that omits request fingerprint_paths. It then fingerprints the possibly dirty remote files. outer_receipts compares those recorded hashes with the same currently running files, which is tautological rather than an independent pin.",
+      "impact": "The documented full hardware path can run altered gate logic or an altered governing runbook/proposal and still emit passed=true under the authorized commit.",
+      "required_correction": "Make fresh_start_launch.py include every fingerprint_path in both tracked-diff and untracked-file rejection, or add an equivalent harness-side scoped clean-tree check before import. The request must also carry independently frozen expected SHA-256 values for candidate, harness, runbook and proposal; the launcher and harness must compare actual files against those request values. Retrieval must compare the report identity to the same frozen map. Do not derive the expected hashes from the remote files being verified."
+    },
+    {
+      "id": "R2",
+      "severity": "blocking",
+      "finding": "The harness does not verify the exact manifested timeout/torchrun argv.",
+      "evidence": "outer_receipts joins command argv and only tests whether ten required strings occur somewhere. It does not require the exact list, order, 1200s duration, --foreground, TERM signal, 60-second kill grace, exact torchrun executable, absence of duplicate overriding flags, or absence of extra arguments. The postflight retrieval only proves process.command equals request.command, so a modified request remains internally self-consistent.",
+      "impact": "A request with a materially different timeout or invocation can satisfy the harness identity and later retrieval checks.",
+      "required_correction": "Construct the complete expected argv from the validated arguments and require payload.command == expected_argv for both launch.json and job.json. Require the request/retrieval validator to match that same exact argv and independently frozen source-hash map."
+    }
+  ],
+  "local_checks": [
+    {
+      "command": "git diff --name-status a5ca0641^ a5ca0641; sha256sum candidate/harness/runbook; git diff --check; py_compile harness",
+      "result": "PASS: scope is only the two declared files, candidate unchanged, hashes recorded, syntax and diff clean"
+    },
+    {
+      "command": "fully pinned local --static-only invocation with canonical candidate and unique in-tree report",
+      "result": "PASS rc0 with complete identity and all static/adversarial gates true"
+    },
+    {
+      "command": "independent validate_identity negative matrix",
+      "result": "PASS rejection for seed, host threads, candidate path, commit, hostname, LNC, world/local-world size, rank/local-rank range, compiler flags, cache, OMP/MKL threads, fallback-disable variable, label environment, report name and outside-root report; isolated full-mode checks rejected missing/wrong guard identity"
+    },
+    {
+      "command": "independent tensor_metrics torch matrix for all eight tolerances",
+      "result": "PASS: identity accepted; zero, half, negative, permutation, NaN, infinity, single corruption and identity below minimum reference norm rejected for every metric"
+    },
+    {
+      "command": "repeat successful static invocation against its existing report path with before/after SHA-256",
+      "result": "PASS rejection rc2; existing report SHA-256 unchanged"
+    },
+    {
+      "command": "dangling symlink at the exact label-derived report path",
+      "result": "PASS rejection rc2; link unchanged during invocation, target never created, test symlink then removed"
+    },
+    {
+      "command": "bash -n over both runbook command blocks and placeholder scan",
+      "result": "PASS: both blocks parse; executable variable fields are generated with exclusive request creation and there are no operator-fill placeholders in the commands"
+    },
+    {
+      "command": "isolated dirty-harness clone reproduction at unchanged authorized HEAD",
+      "result": "FAIL criterion reproduced: rc0/passed=true with actual harness SHA 70e2785f... differing from committed/authorized 7ba86a4b..."
+    }
+  ],
+  "authorization": {
+    "hardware_command_authorized": false,
+    "authorized_harness_sha256": null,
+    "authorized_manifest_command": null,
+    "statement": "Do not dispatch commit a5ca0641. Correct R1 and R2 and obtain a new independent verifier PASS. The candidate implementation remains unchanged and this verdict does not alter its earlier implementation verification."
+  },
+  "candidate_modified_by_verifier": false,
+  "shared_harness_modified_by_verifier": false,
+  "hardware_run_by_verifier": false,
+  "submission_performed": false,
+  "scientific_verdict": null
+}
