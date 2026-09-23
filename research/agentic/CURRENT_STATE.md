@@ -1,10 +1,10 @@
 # Current state
 
-Last reconciled: 2026-09-23 01:42 UTC
+Last reconciled: 2026-09-23 02:31 UTC
 
 ## Verified repository state
 
-- Active controller checkout: `agent/control-plane-20260921` at `500615a9`, clean and synced to
+- Active controller checkout: `agent/control-plane-20260921` at `691faccb`, clean and synced to
   `origin/agent/control-plane-20260921`
 - Authoritative research branch: `origin/research/fresh-start-20260918`
 - Authoritative research commit: `9a4caa7bfab26c1d1bb59f7ef2bb8c5392d7503a`
@@ -13,8 +13,12 @@ Last reconciled: 2026-09-23 01:42 UTC
 - Existing runner: `research/run_experiment.py`
 - Existing ledger: `research/experiment-log.jsonl`
 - Mandatory machine protocol: `research/experiment-protocol.md`
-- Autonomous state: 29 retrieved runs; no open run or proposal; local user service active with
-  closed breaker and automatic Git push enabled
+- Autonomous state: 29 retrieved result records (30 launch attempts including the failed initial
+  `trn22` control); no open run or proposal at reconciliation; local user service active in cycle
+  196 with a closed breaker and automatic Git push enabled
+- Evidence durability: commit `691faccb` retrieved and SHA-verified the previously omitted
+  per-run launch receipt for all 29 durable results. Future collection retrieves that receipt,
+  enumerates every untracked path, and fails the correctness gate on any unexplained post-run dirt.
 - Phase 1 deadline: 2026-09-30 23:59 PT
 
 ## Known score state
@@ -47,10 +51,10 @@ Last reconciled: 2026-09-23 01:42 UTC
 5. Confirm official team membership and replace the emailed shared PEM with per-user access.
 6. The valid Bedrock route is `us-west-2` with `us.anthropic.claude-fable-5-1` and
    `us.openai.gpt-6-astra`; the old `eu-north-1` plus `global.*` failures are irrelevant. Fable's
-   long streamed Researcher calls have suffered silent read timeouts and premature termination.
-   Commit `500615a9` raises the validated socket read timeout to 1,800 seconds while retaining the
-   single fresh retry and fail-closed parsing. The production Researcher call after that repair is
-   still the live verification gate.
+   long streamed Researcher calls previously suffered silent read timeouts and premature
+   termination. Commit `500615a9` raised the validated socket read timeout to 1,800 seconds while
+   retaining the single fresh retry and fail-closed parsing. Multiple production calls have since
+   completed beyond the former 600-second boundary, so the transport repair is now live-verified.
 
 ## Active technical direction
 
