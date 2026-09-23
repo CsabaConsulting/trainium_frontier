@@ -1,0 +1,43 @@
+{
+  "label": "fs-20260923-dense6x1024-lean-review-cold-r1",
+  "launched_at": "2026-09-23T05:52:06Z",
+  "host": "trn22",
+  "remote_hostname": "ip-172-31-32-253",
+  "remote_pid": 2595929,
+  "source_commit": "ae77329b516392a33bcaee27fda08556e7da734e",
+  "candidate_train_sha256": "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344",
+  "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public",
+  "operator_command": [
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "research/scratch/submission_rehearsal.py",
+    "--package",
+    "submissions/dense6x1024_lean_review",
+    "--sandbox",
+    "out/fs-20260923-dense6x1024-lean-review-cold-r1",
+    "--mode",
+    "train",
+    "--fresh-caches"
+  ],
+  "environment": {
+    "parent_NEURON_CC_FLAGS": "unset to reproduce a fresh leaderboard shell",
+    "candidate_default_NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "seed": 42
+  },
+  "preflight": {
+    "git_dirty": false,
+    "free_bytes": 7265046528,
+    "device_holders": [],
+    "training_processes": [],
+    "remote_python_present": true,
+    "data_cache_present": true,
+    "sandbox_absent_before_launch": true
+  },
+  "launch_verified": {
+    "operator_pid_alive_after_seconds": 11,
+    "torchrun_started": true,
+    "four_workers_started": true,
+    "device_holders_present_after_launch": true
+  },
+  "status": "running"
+}
