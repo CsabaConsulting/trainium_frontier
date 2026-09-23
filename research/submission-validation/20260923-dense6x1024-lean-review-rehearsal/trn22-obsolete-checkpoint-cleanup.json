@@ -1,7 +1,7 @@
 {
   "receipt_version": 1,
   "role": "operator",
-  "status": "PRE_REMOVAL_VERIFIED",
+  "status": "COMPLETED",
   "authorization": "Exact cleanup requested by the supervisor under the user's and Csaba's prior explicit authorization to clean trn22 while preserving progress.",
   "host": {
     "box": "trn22",
@@ -32,7 +32,7 @@
       "sha256": "c4a41515bef101bf781464133e2d1015d81bb0449d539fb12eed68c6a18b1aa4",
       "live_process_references": [],
       "fuser_returncode": 1,
-      "removed": false
+      "removed": true
     },
     {
       "path": "/home/ubuntu/trainium_frontier/out/sub1-p2b-autocast-s32-smoke/final.pt",
@@ -46,7 +46,7 @@
       "sha256": "bac221998694c3848dceae9e1d31399c805432cd6e94a28c0582c14b53fd408e",
       "live_process_references": [],
       "fuser_returncode": 1,
-      "removed": false
+      "removed": true
     },
     {
       "path": "/home/ubuntu/trainium_frontier/out/sub1-p2b-autocast-s32-revisit/final.pt",
@@ -60,15 +60,53 @@
       "sha256": "ffe08e9b588dd474e8efff51633399ba58198ba889668e7322a47497d0f8180a",
       "live_process_references": [],
       "fuser_returncode": 1,
-      "removed": false
+      "removed": true
     }
   ],
   "total_target_bytes": 3893850453,
   "deletion": {
-    "method": "Each validated absolute regular-file path will be passed explicitly to rm --; no recursive option, glob, environment-derived target, or directory removal is authorized.",
-    "started": false,
-    "completed_at": null,
-    "directories_logs_and_metrics_preserved": null
+    "method": "The three validated absolute regular-file paths were passed literally to rm -- in one command; no recursive option, glob, environment-derived target, or directory path was passed.",
+    "preflight_at": "2026-09-23T07:23:00Z",
+    "pre_removal_free_bytes": 5514792960,
+    "all_hashes_inodes_and_nonuse_revalidated": true,
+    "started": true,
+    "rm_returncode": 0,
+    "completed_at": "2026-09-23T07:23:03Z",
+    "immediate_post_removal_free_bytes": 9408663552,
+    "immediate_observed_freed_bytes": 3893870592,
+    "directories_logs_and_metrics_preserved": true,
+    "preserved_directories": [
+      {
+        "path": "/home/ubuntu/trainium_frontier/out/sub1-p2b-autocast-s32o1-smoke",
+        "present": true,
+        "remaining_entries": 0
+      },
+      {
+        "path": "/home/ubuntu/trainium_frontier/out/sub1-p2b-autocast-s32-smoke",
+        "present": true,
+        "remaining_entries": 0
+      },
+      {
+        "path": "/home/ubuntu/trainium_frontier/out/sub1-p2b-autocast-s32-revisit",
+        "present": true,
+        "remaining_entries": 0
+      }
+    ],
+    "recovery": "The three checkpoint files are no longer recoverable in place. Their exact pre-removal metadata and SHA-256 hashes are retained here; this receipt does not claim an off-machine checkpoint backup."
   },
-  "postflight": null
+  "postflight": {
+    "observed_at": "2026-09-23T07:23:32Z",
+    "all_target_paths_absent": true,
+    "free_bytes": 9408659456,
+    "free_inodes": 25099562,
+    "eight_gib_threshold_bytes": 8589934592,
+    "eight_gib_gate_pass": true,
+    "nonself_matching_processes": 0,
+    "device_holders": [],
+    "device_fuser_returncode": 1,
+    "submission_staging_git_commit": "8db9bc1562074051712a4986bb0f0aaabc921249",
+    "submission_staging_git_dirty": false,
+    "r3_launched": false,
+    "idle_and_clean": true
+  }
 }
