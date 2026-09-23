@@ -1,0 +1,19 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "Single bounded architecture change: --engram changes USE_ENGRAM from False to True. Authoritative train.py confirms defaults of site 2, orders 2/3, one hash head per order, two independent 262144\u00d7128 BF16 tables, key width 640, and causal convolution width 4. Existing ngram-ve remains enabled. This tests the complete added module, including capacity, not gating alone.",
+    "Repository evidence supports investigating auxiliary memory: the dim64 full run scored 1.007083 versus 1.005967 at 2206 versus 2076 steps. However, DECISION_LOG.md classifies ngram-ve removal as CONFOUNDED; its +0.020397 BPB difference is not a clean comparable estimate of memory benefit.",
+    "No closed default-shape Engram direction appears in the supplied decision log or ledger. Historical Engram testing does exist: train.py documents 900-second site-5/site-2 runs at 1.063967/1.062342 with 8.4M table parameters. Thus novelty is this default-capacity, pinned-control experiment, not an entirely untested mechanism.",
+    "Competition-legal by static inspection: Engram tables are initialized from scratch; hashes read only current/past input tokens; CausalConv left-pads; optimizer registration and checkpoint toggle restoration already cover the module. No external assets or evaluator modifications are proposed.",
+    "The controller-pinned seed-42 full-chip matched comparison can falsify the prediction: public BPB must improve by more than 0.001 with step counts within 10%. Official BPB remains an unmeasured final target. Use the stated same-host smoke formulas rather than the parenthetical examples, whose trn21/trn22 BPB thresholds are swapped."
+  ],
+  "llm_verdict": "PASS",
+  "passed": true,
+  "proposal_id": "20260923-engram-only-default-shape",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-23T02:04:22Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}

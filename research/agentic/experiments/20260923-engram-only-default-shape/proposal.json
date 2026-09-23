@@ -1,0 +1,48 @@
+{
+  "abort_conditions": [
+    "Pre-launch static check (proposal verifier / operator reading the startup config dump of the pinned control): if engram is already enabled in the 9a4caa7b defaults, i.e. --engram is inert relative to the control, HALT-INERT and do not launch",
+    "If DECISION_LOG.md, research/experiment-log.jsonl, or research/trn2-experiment-results.md contains a closed --engram run at commit 9a4caa7b with the default shape, HALT-DUPLICATE",
+    "Smoke (300 s): candidate steps < 0.90 x same-host control smoke steps (i.e. < 301 vs 334/335) -> abort as throughput-confounded",
+    "Smoke (300 s): candidate steps within 10% of control but public_val_bpb > same-host control smoke bpb + 0.005 (> 1.1706 trn21 / > 1.1708 trn22) -> abort, mechanism not paying off where ngram-ve demonstrably does",
+    "Any compile failure, device OOM, NaN/Inf loss, or causality check failure -> abort",
+    "Full run: num_steps > 10% apart from same-host control -> record CONFOUNDED, not KEEP"
+  ],
+  "change_type": "flags",
+  "created_at": "2026-09-23T02:04:21Z",
+  "duplicate_search_terms": [
+    "--engram",
+    "engram",
+    "no-engram",
+    "engram-site",
+    "engram-share-ngram-tables",
+    "engram-heads",
+    "conditional memory",
+    "gated n-gram memory",
+    "hashed memory read-out",
+    "DeepSeek Engram",
+    "ngram-ve",
+    "ngram-ve-dim",
+    "no-ngram-ve"
+  ],
+  "evidence": [
+    "train.py flag list at 9a4caa7b: --engram / --no-engram plus --engram-bf16 --engram-conv-kernel --engram-heads --engram-key-dim --engram-mem-dim --engram-orders --engram-share-ngram-tables --engram-site --engram-table-mult exist (complete implemented module, no autoloop launch)",
+    "research/experiment-log.jsonl al-20260922-no-ngram-ve-only-default-shape-full-r1: 1.026131 bpb / 2548 steps / 55.7M params vs control-trn21 1.005734 / 2071 / 592.9M -> n-gram memory is worth ~0.02 bpb even against +23% steps",
+    "research/experiment-log.jsonl al-20260922-ngram-ve-dim64-only-default-shape-full-r1: 1.007083 / 2206 steps / 324.3M vs control-trn22 1.005967 / 2076 -> memory capacity still binding at dim 128 (params 592.9-55.7=537.2M at dim 128, 268.6M at dim 64 confirms default dim 128)",
+    "research/experiment-log.jsonl al-20260922-no-ngram-ve-only-default-shape-smoke-r1: 1.173413 vs control smoke 1.165604 -> n-gram memory benefit is already visible at 300 s, so an Engram gain should be detectable in smoke",
+    "DECISION_LOG.md: no row for engram / conditional memory / gated n-gram read-out; all closed rows are precision boundaries, batch ramp, qk-shift, clip-after-reduce, weight EMA, ngram-ve removal/dim, Muon ownership",
+    "Exact pinned controls control-trn21 (1.005734 / 2071) and control-trn22 (1.005967 / 2076) at 9a4caa7b with launch_command containing no --engram",
+    "CURRENT_STATE.md human priority lane 4: prefer mechanisms that improve loss per token within 1800 s; Engram is such a mechanism, not a throughput-only change"
+  ],
+  "expected_effect": "Direction: lower public val_bpb. Size: -0.003 to -0.010 relative to the same-host pinned control (target 0.996-1.003 vs 1.0057) at a full-run step count within 10% of the control (>=1864 steps on trn21, >=1868 on trn22). Falsified if val_bpb >= control - 0.001 at comparable steps. If steps fall >10% below control the result is CONFOUNDED by the standing comparability rule, not a win.",
+  "files_allowed": [],
+  "flags": [
+    "--engram"
+  ],
+  "hypothesis": "The hashed n-gram memory is the largest fixed-budget quality lever measured on this commit: removing it (--no-ngram-ve) gained +23% steps yet worsened val_bpb by +0.0204 (1.026131 vs 1.005734), and halving its dim gained +6.3% steps yet worsened val_bpb by +0.0011 (1.007083 vs 1.005967). train.py at 9a4caa7b already contains a complete gated conditional-memory read-out of the same mechanism family (--engram with --engram-heads/--engram-key-dim/--engram-mem-dim/--engram-orders/--engram-conv-kernel/--engram-share-ngram-tables/--engram-site/--engram-table-mult/--engram-bf16) that has never been launched in the autoloop ledger or closed in DECISION_LOG.md. If the untested Engram read-out (context-gated multi-head lookup plus short causal conv) is enabled at its own defaults while every other option stays at the pinned-control defaults, the model will extract more loss-per-token benefit from n-gram memory than the plain ngram-ve path alone, lowering official val_bpb at comparable step count; if step rate drops more than ~10% or the memory read-out adds no quality, the hypothesis is falsified.",
+  "implementation_plan": "",
+  "proposal_id": "20260923-engram-only-default-shape",
+  "single_causal_change": "Pass --engram only. Every other option stays at the 9a4caa7b defaults used by the two pinned controls: identical launch shape (NEURON_LOGICAL_NC_CONFIG=2, torchrun --nproc_per_node=4), seed 42, --num-steps 5000, --max-train-seconds 1800, NEURON_CC_FLAGS='--optlevel=1'. No engram sub-option is set (all --engram-* values remain at their code defaults), no precision flag, no kernel flag, no optimizer or schedule switch, no other architecture switch, no change to ngram-ve, eval, data, or tokenizer.",
+  "smoke_gate": {},
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}
