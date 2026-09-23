@@ -1,0 +1,10 @@
+{
+  "submission_id": "sub-7be49b6b",
+  "submitted_at": "2026-09-23T13:43:00+05:30",
+  "status": "REJECTED_BY_REVIEW",
+  "val_bpb": null,
+  "visible_message": "REJECTED_BY_REVIEW: The submission is a dense GPT with custom NKI kernels, Muon optimizer, and several training-only adapters. The code is largely honest, but several constructs require closer human inspection: (1) `_sub",
+  "message_truncated_by_portal": true,
+  "candidate_sha256": "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344",
+  "diagnosis": "The message begins naming a `_sub...` construct. The frozen file still contains `_submission_mlp_install`, `_submission_optimizer_install`, `_submission_ce_install`, `_install_submission_training`, runtime MethodType replacements, and runtime replacement of the cross-entropy function. These are the scoped targets of the approved refactor; the rejection is not a BPB result."
+}

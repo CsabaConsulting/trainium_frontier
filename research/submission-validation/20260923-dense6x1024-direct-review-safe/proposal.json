@@ -1,0 +1,63 @@
+{
+  "proposal_id": "20260923-dense6x1024-direct-review-safe",
+  "status": "human-approved-implementation",
+  "owner_role": "supervisor",
+  "hypothesis": "Replacing the remaining runtime-installed training adapters with ordinary explicit code paths will preserve the frozen candidate's training arithmetic while avoiding the automated reviewer's repeated concern about `_submission_*` constructs.",
+  "single_causal_change": "Relative to submissions/dense6x1024_lean_review/train.py at SHA-256 9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344, directly integrate the fused MLP path, optimizer ownership path, and adaptive NKI cross-entropy path; remove `_submission_*` and `_install_submission_training`, MethodType method replacement, training-global replacement, and SUBMISSION_* messages. Do not change model shapes, math, kernels, data order, timing, checkpoint/evaluation behavior, or launch flags.",
+  "evidence": [
+    "submissions/dense6x1024_lean/rejection.md",
+    "research/lean-submission-2026-09-22.md",
+    "research/submission-validation/20260923-dense6x1024-direct-review-safe/rejection-sub-7be49b6b.json",
+    "research/submission-validation/20260923-dense6x1024-lean-review-rehearsal/final-analyst.json",
+    "research/submission-validation/20260923-dense6x1024-lean-review-rehearsal/fresh-public20m-r1-result.json"
+  ],
+  "duplicate_search_terms": [
+    "_submission_mlp_install",
+    "_submission_optimizer_install",
+    "_submission_ce_install",
+    "_install_submission_training",
+    "MethodType",
+    "training-only adapters",
+    "review-safe direct integration"
+  ],
+  "control": {
+    "git_commit": "5ba2ce149987e2f06769d559dfe028788501ab04",
+    "run_label": "fs-20260923-dense6x1024-lean-review-cold-r1",
+    "public_val_bpb": 0.9929546795964038,
+    "steps": 3638,
+    "box_constraint": "Use the same approved Trn2 protocol and compare exact launch shape, charged training time, checkpoint validity, source-checkpoint replay, and fresh public score."
+  },
+  "candidate": {
+    "branch": "submission/dense6x1024-direct-review-safe-20260923",
+    "files_allowed": [
+      "research/build_direct_review_submission.py",
+      "submissions/dense6x1024_direct_review/",
+      "research/submission-validation/20260923-dense6x1024-direct-review-safe/"
+    ],
+    "expected_diff": "A deterministic builder plus a new submission package that directly wires the three validated training optimizations and contains none of the reviewer-triggering runtime adapter constructs.",
+    "run_label": "fs-20260923-dense6x1024-direct-review-safe-cold-r1",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public"
+  },
+  "gates": {
+    "rules_review": false,
+    "diff_review": false,
+    "cpu_or_static_checks": false,
+    "numerical_equivalence": false,
+    "causality": false,
+    "smoke_run": false,
+    "human_run_approval": true
+  },
+  "success_criteria": {
+    "quality": "The preserved source checkpoint replays at exactly 0.9928513116311253 public BPB and the fresh checkpoint remains within predeclared run-to-run noise of the 0.9929546795964038 control without claiming a private-shard win.",
+    "throughput": "A cold full-chip rehearsal completes inside 1800 charged seconds with a valid checkpoint and a step count within 1% of the 3638-step control.",
+    "correctness": "Organizer check, independent rules/diff review, CPU equivalence, exact adapter checks, causality, Neuron validation, checkpoint load, protected public evaluation, frozen hashes, and clean postflight all pass; the final source contains no `_submission_*`, MethodType training patch, or SUBMISSION_* logging constructs."
+  },
+  "abort_conditions": [
+    "Any organizer, independent-review, equivalence, causality, checkpoint, NaN, budget, or host-cleanliness gate fails",
+    "Model shapes, math, NKI kernel bodies, data order, timing contract, checkpoint/evaluation path, or launch flags change",
+    "The candidate contains runtime forward/optimizer/global replacement or `_submission_*` constructs",
+    "The machine is not clean and idle or another person's work would need alteration"
+  ],
+  "human_approved_by": "active human request 'do thiss', 2026-09-23",
+  "verdict": null
+}
