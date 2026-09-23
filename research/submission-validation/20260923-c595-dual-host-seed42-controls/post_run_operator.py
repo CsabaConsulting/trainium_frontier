@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Deterministic post-run retrieve/verify/push/proof/prune/cache-cleanup operator."""
-import argparse, hashlib, json, os, pathlib, subprocess, tarfile
+import argparse, hashlib, json, os, pathlib, re, subprocess, tarfile
 
 ROOT=pathlib.Path(__file__).resolve().parents[3];HERE=pathlib.Path(__file__).resolve().parent
 ORIGIN="https://github.com/CsabaConsulting/trainium_frontier.git";BRANCH="experiment/20260923-c595-dual-control"
@@ -61,6 +61,32 @@ def require_clean_evidence_state(root,commit_paths,allowed_untracked):
  if staged or dirty or set(untracked)!=set(allowed_untracked):raise SystemExit("repository state not exclusive to retrieved evidence")
  for path in commit_paths:
   if path not in untracked:raise SystemExit("evidence path was pretracked or missing")
+def commit_exact_evidence(paths,allowed_untracked,message):
+ relative=[str(path.relative_to(ROOT)) for path in paths]
+ require_clean_evidence_state(ROOT,relative,allowed_untracked)
+ subprocess.run(["git","add","--",*relative],cwd=ROOT,check=True)
+ staged=subprocess.check_output(["git","diff","--cached","--name-only"],cwd=ROOT,text=True).splitlines()
+ if set(staged)!=set(relative) or len(staged)!=len(relative):raise SystemExit("staged stage-evidence path mismatch")
+ subprocess.run(["git","commit","--only","-m",message,"--",*relative],cwd=ROOT,check=True)
+ committed=subprocess.check_output(["git","diff-tree","--no-commit-id","--name-only","-r","HEAD"],cwd=ROOT,text=True).splitlines()
+ if set(committed)!=set(relative) or len(committed)!=len(relative):raise SystemExit("commit contains non-stage evidence")
+ subprocess.run(["git","push","origin",f"HEAD:refs/heads/{BRANCH}"],cwd=ROOT,check=True)
+ head=subprocess.check_output(["git","rev-parse","HEAD"],cwd=ROOT,text=True).strip()
+ if remote_ref()!=head:raise SystemExit("stage evidence not pushed")
+ return head
+def lowercase_sha(value,name):
+ if type(value) is not str or not re.fullmatch(r"[0-9a-f]{64}",value):raise SystemExit(name+" is not lowercase sha256")
+ return value
+def validate_terminal_cleanup(journal,receipt,arm,label,core,proof_sha,prune_sha,caches,journal_sha):
+ absence={path:"ENOENT" for path in caches}
+ base={"arm":arm,"label":label,"core_commit":core,"candidate_sha256":TRAIN_SHA,
+  "proof_sha256":lowercase_sha(proof_sha,"proof sha"),"prune_receipt_sha256":lowercase_sha(prune_sha,"prune sha"),
+  "allowlist":caches,"preserved_logs_results":True,"completed":caches,"active_path":None,
+  "state":"complete","absence_lstat":absence}
+ expected_journal={"schema":"c595-cache-cleanup-journal-v1",**base}
+ validate_exact(journal,expected_journal,"terminal cleanup journal")
+ expected_receipt={"schema":"c595-cache-cleanup-receipt-v1",**base,"journal_sha256":lowercase_sha(journal_sha,"journal sha")}
+ validate_exact(receipt,expected_receipt,"terminal cleanup receipt")
 
 def retrieve(args):
  host,_root,label,_sandbox,archive,completion=config(args.arm)
@@ -99,6 +125,8 @@ def prune(args):
  c=json.loads((destination/"archive-completion.json").read_text());proof=destination/"evidence-pushed-receipt.json"
  script=root/"research/submission-validation/20260923-c595-dual-host-seed42-controls/prune_checkpoint.py"
  receipt=sandbox/"checkpoint-prune-receipt.json";remote_proof=sandbox/"evidence-pushed-receipt.json"
+ allowed=[str((destination/"evidence.tar.gz").relative_to(ROOT)),str(proof.relative_to(ROOT))]
+ require_clean_evidence_state(ROOT,[],allowed)
  argv=["cd",str(root),"&&","/home/ubuntu/workspace/native_venv/bin/python",str(script),"--arm",args.arm,"--label",label,
        "--checkpoint",c["checkpoint_path"],"--archive",str(archive),"--archive-sha256",c["archive_sha256"],
        "--expected-sha256",c["checkpoint_sha256"],"--expected-bytes",str(c["checkpoint_bytes"]),
@@ -108,35 +136,31 @@ def prune(args):
  local=destination/"checkpoint-prune-receipt.json";subprocess.run([*SCP,f"{host}:{receipt}",str(local)],check=True)
  record=json.loads(local.read_text());proof_data=json.loads(proof.read_text())
  validate_exact(record,{**proof_data,"state":"complete","deleted":True,"other_deletions":[]},"prune receipt")
- subprocess.run(["git","add","--",str(local.relative_to(ROOT))],cwd=ROOT,check=True);subprocess.run(["git","commit","-m",f"evidence: preserve {label} prune"],cwd=ROOT,check=True)
- subprocess.run(["git","push","origin",f"HEAD:refs/heads/{BRANCH}"],cwd=ROOT,check=True)
- if remote_ref()!=subprocess.check_output(["git","rev-parse","HEAD"],cwd=ROOT,text=True).strip():raise SystemExit("prune receipt not pushed")
+ commit_exact_evidence([local],[*allowed,str(local.relative_to(ROOT))],f"evidence: preserve {label} prune")
  print(local)
 
 def cleanup(args):
  host,root,label,sandbox,_archive,_completion=config(args.arm);destination=HERE/"retrieved"/label
  proof=destination/"evidence-pushed-receipt.json";prune_receipt=destination/"checkpoint-prune-receipt.json"
- script=root/"research/submission-validation/20260923-c595-dual-host-seed42-controls/cleanup_caches.py";remote_receipt=sandbox/"cache-cleanup-receipt.json"
+ script=root/"research/submission-validation/20260923-c595-dual-host-seed42-controls/cleanup_caches.py";remote_receipt=sandbox/"cache-cleanup-receipt.json";remote_journal=sandbox/"cache-cleanup-journal.json"
+ allowed=[str((destination/"evidence.tar.gz").relative_to(ROOT)),str(proof.relative_to(ROOT))]
+ require_clean_evidence_state(ROOT,[],allowed)
  argv=["cd",str(root),"&&","/home/ubuntu/workspace/native_venv/bin/python",str(script),"--arm",args.arm,"--label",label,
        "--evidence-pushed-receipt",str(sandbox/"evidence-pushed-receipt.json"),"--evidence-pushed-receipt-sha256",sha(proof),
        "--prune-receipt",str(sandbox/"checkpoint-prune-receipt.json"),"--prune-receipt-sha256",sha(prune_receipt),
        "--receipt",str(remote_receipt),"--expected-core-commit",json.loads((destination/"archive-completion.json").read_text())["core_commit"],
        "--expected-script-sha256",args.cleanup_script_sha256]
  subprocess.run([*SSH,host," ".join(argv)],check=True)
- local=destination/"cache-cleanup-receipt.json";subprocess.run([*SCP,f"{host}:{remote_receipt}",str(local)],check=True)
- record=json.loads(local.read_text());proof_data=json.loads(proof.read_text());prune_data=json.loads(prune_receipt.read_text())
+ local=destination/"cache-cleanup-receipt.json";local_journal=destination/"cache-cleanup-journal.json"
+ subprocess.run([*SCP,f"{host}:{remote_journal}",str(local_journal)],check=True)
+ subprocess.run([*SCP,f"{host}:{remote_receipt}",str(local)],check=True)
+ record=json.loads(local.read_text());journal_record=json.loads(local_journal.read_text());proof_data=json.loads(proof.read_text());prune_data=json.loads(prune_receipt.read_text())
  validate_exact(prune_data,{**proof_data,"state":"complete","deleted":True,"other_deletions":[]},"prune receipt")
  caches=[str(sandbox/"train"/"caches"/name) for name in ("neff","local","hlo","inductor","compiler","debug")]
- expected={"schema":"c595-cache-cleanup-receipt-v1","arm":args.arm,"label":label,
-  "core_commit":json.loads((destination/"archive-completion.json").read_text())["core_commit"],
-  "proof_sha256":sha(proof),"prune_receipt_sha256":sha(prune_receipt),"allowlist":caches,
-  "preserved_logs_results":True,"completed":caches,"active_path":None,"state":"complete",
-  "journal_sha256":record.get("journal_sha256")}
- if not isinstance(record.get("journal_sha256"),str) or len(record["journal_sha256"])!=64:raise SystemExit("cleanup journal digest invalid")
- validate_exact(record,expected,"cleanup receipt")
- subprocess.run(["git","add","--",str(local.relative_to(ROOT))],cwd=ROOT,check=True);subprocess.run(["git","commit","-m",f"evidence: preserve {label} cache cleanup"],cwd=ROOT,check=True)
- subprocess.run(["git","push","origin",f"HEAD:refs/heads/{BRANCH}"],cwd=ROOT,check=True)
- if remote_ref()!=subprocess.check_output(["git","rev-parse","HEAD"],cwd=ROOT,text=True).strip():raise SystemExit("cleanup receipt not pushed")
+ core=json.loads((destination/"archive-completion.json").read_text())["core_commit"]
+ validate_terminal_cleanup(journal_record,record,args.arm,label,core,sha(proof),sha(prune_receipt),caches,sha(local_journal))
+ incoming=[str(local_journal.relative_to(ROOT)),str(local.relative_to(ROOT))]
+ commit_exact_evidence([local_journal,local],[*allowed,*incoming],f"evidence: preserve {label} cache cleanup")
  print(local)
 
 def main():

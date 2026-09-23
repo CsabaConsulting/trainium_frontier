@@ -4,6 +4,7 @@ import argparse, hashlib, json, os, pathlib, shutil, stat, subprocess
 
 ORIGIN="https://github.com/CsabaConsulting/trainium_frontier.git"
 BRANCH="experiment/20260923-c595-dual-control"
+TRAIN_SHA="c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537"
 ARMS={
  "control_trn21":("fs-20260923-c595-control-trn21-r1",pathlib.Path("/home/ubuntu/trainium_freshstart_20260923_c595_control_trn21")),
  "control_trn22":("fs-20260923-c595-control-trn22-r1",pathlib.Path("/home/ubuntu/trainium_freshstart_20260923_c595_control_trn22")),
@@ -63,15 +64,18 @@ def validate_prune(value,proof):
  if set(value)!=set(expected) or value!=expected:raise SystemExit("prune receipt contract mismatch")
 def bound_identity(arm,label,head,proof_sha,prune_sha,caches):
  return {"schema":"c595-cache-cleanup-journal-v1","arm":arm,"label":label,"core_commit":head,
+  "candidate_sha256":TRAIN_SHA,
   "proof_sha256":proof_sha,"prune_receipt_sha256":prune_sha,"allowlist":list(map(str,caches)),"preserved_logs_results":True}
 def validate_journal(value,bound,caches):
- if set(value)!=set(bound)|{"completed","active_path","state"} or any(value[k]!=v for k,v in bound.items()):raise SystemExit("cleanup journal identity/schema mismatch")
+ if set(value)!=set(bound)|{"completed","active_path","state","absence_lstat"} or any(value[k]!=v for k,v in bound.items()):raise SystemExit("cleanup journal identity/schema mismatch")
  allow=list(map(str,caches));completed=value["completed"]
  if type(completed) is not list or completed!=allow[:len(completed)] or len(completed)>len(allow):raise SystemExit("cleanup journal non-monotone prefix")
  active=value["active_path"]
  if active is not None and (len(completed)==len(allow) or active!=allow[len(completed)]):raise SystemExit("cleanup journal active path mismatch")
  if value["state"] not in ("in_progress","complete"):raise SystemExit("cleanup journal state mismatch")
  if value["state"]=="complete" and (completed!=allow or active is not None):raise SystemExit("premature cleanup complete")
+ expected_absence={path:"ENOENT" for path in completed}
+ if value["absence_lstat"]!=expected_absence:raise SystemExit("cleanup absence evidence mismatch")
  for path in completed:
   if os.path.lexists(path):raise SystemExit("completed cache path still exists")
  return value
@@ -94,7 +98,8 @@ def reconcile_temp(path,bound,caches,initial):
  elif pending!=initial:raise SystemExit("invalid initial cleanup journal temp")
  os.replace(temp,path);fsync_dir(path.parent)
 def validate_receipt(value,bound,caches,journal_sha):
- expected={**bound,"schema":"c595-cache-cleanup-receipt-v1","completed":list(map(str,caches)),"active_path":None,"state":"complete","journal_sha256":journal_sha}
+ absence={str(path):"ENOENT" for path in caches}
+ expected={**bound,"schema":"c595-cache-cleanup-receipt-v1","completed":list(map(str,caches)),"active_path":None,"state":"complete","absence_lstat":absence,"journal_sha256":journal_sha}
  if set(value)!=set(expected) or value!=expected:raise SystemExit("cleanup receipt contract mismatch")
  if any(os.path.lexists(path) for path in caches):raise SystemExit("cleanup receipt claims present cache")
 
@@ -112,7 +117,7 @@ def execute(args):
  rehearsal=sandbox/"train"/"rehearsal.json";no_symlink(rehearsal);caches=[sandbox/"train"/"caches"/name for name in CACHE_NAMES]
  if set(json.loads(file_bytes(rehearsal)).get("fresh_empty_sdk_caches",{}).values())!=set(map(str,caches)):raise SystemExit("fresh-cache ownership receipt mismatch")
  bound=bound_identity(args.arm,label,head,args.evidence_pushed_receipt_sha256,args.prune_receipt_sha256,caches)
- initial={**bound,"completed":[],"active_path":None,"state":"in_progress"};reconcile_temp(journal,bound,caches,initial)
+ initial={**bound,"completed":[],"active_path":None,"state":"in_progress","absence_lstat":{}};reconcile_temp(journal,bound,caches,initial)
  if not journal.exists():replace_journal(journal,initial,bound,caches)
  current=validate_journal(json.loads(file_bytes(journal)),bound,caches)
  if receipt.exists():validate_receipt(json.loads(file_bytes(receipt)),bound,caches,sha(journal));return receipt
@@ -123,9 +128,12 @@ def execute(args):
    if not cache.exists():raise SystemExit("missing cache before durable intent")
    reject_tree_symlinks(cache);current={**current,"active_path":name};replace_journal(journal,current,bound,caches)
   if cache.exists():reject_tree_symlinks(cache);shutil.rmtree(cache);fsync_dir(cache.parent)
-  current={**current,"completed":[*current["completed"],name],"active_path":None};replace_journal(journal,current,bound,caches)
+  try:os.lstat(cache)
+  except FileNotFoundError:absence={**current["absence_lstat"],name:"ENOENT"}
+  else:raise SystemExit("cache remains after removal")
+  current={**current,"completed":[*current["completed"],name],"active_path":None,"absence_lstat":absence};replace_journal(journal,current,bound,caches)
  current={**current,"state":"complete"};replace_journal(journal,current,bound,caches)
- result={**bound,"schema":"c595-cache-cleanup-receipt-v1","completed":list(map(str,caches)),"active_path":None,"state":"complete","journal_sha256":sha(journal)}
+ result={**bound,"schema":"c595-cache-cleanup-receipt-v1","completed":list(map(str,caches)),"active_path":None,"state":"complete","absence_lstat":current["absence_lstat"],"journal_sha256":sha(journal)}
  write_exclusive(receipt,result);return receipt
 
 def main():

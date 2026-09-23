@@ -35,6 +35,24 @@ for actual in ({"schema":"c595-control-evidence-push-v1"},{**sample,"extra":1}):
  except SystemExit:pass
  else:raise AssertionError("forged exact receipt accepted")
 
+caches=[f"/remote/train/caches/{name}" for name in cleanup.CACHE_NAMES]
+base={"arm":"control_trn21_r2","label":"label","core_commit":"c"*40,
+ "candidate_sha256":operator.TRAIN_SHA,"proof_sha256":"a"*64,"prune_receipt_sha256":"b"*64,
+ "allowlist":caches,"preserved_logs_results":True,"completed":caches,"active_path":None,
+ "state":"complete","absence_lstat":{path:"ENOENT" for path in caches}}
+journal={"schema":"c595-cache-cleanup-journal-v1",**base}
+receipt={"schema":"c595-cache-cleanup-receipt-v1",**base,"journal_sha256":"d"*64}
+operator.validate_terminal_cleanup(journal,receipt,"control_trn21_r2","label","c"*40,"a"*64,"b"*64,caches,"d"*64)
+for bad_journal,bad_receipt in (
+ (journal,{**receipt,"journal_sha256":"z"*64}),
+ ({**journal,"absence_lstat":{**journal["absence_lstat"],caches[0]:"PRESENT"}},receipt),
+ ({**journal,"completed":caches[:-1]},receipt),
+ (journal,{**receipt,"candidate_sha256":"0"*64}),
+):
+ try:operator.validate_terminal_cleanup(bad_journal,bad_receipt,"control_trn21_r2","label","c"*40,"a"*64,"b"*64,caches,"d"*64)
+ except SystemExit:pass
+ else:raise AssertionError("forged/mutated cleanup evidence accepted")
+
 # Evidence commits fail closed on either unrelated dirt or pre-staged content.
 with tempfile.TemporaryDirectory(prefix="c595-git-state-") as temporary:
  root=pathlib.Path(temporary);subprocess.run(["git","init","-q"],cwd=root,check=True)
@@ -50,4 +68,6 @@ with tempfile.TemporaryDirectory(prefix="c595-git-state-") as temporary:
  try:operator.require_clean_evidence_state(root,["verification","completion"],["verification","completion","archive"])
  except SystemExit:pass
  else:raise AssertionError("pre-staged evidence accepted")
+assert source.count("require_clean_evidence_state(ROOT,[],allowed)")==2
+assert "cache-cleanup-journal.json" in source and "sha(local_journal)" in source
 print("c595 post-run literal path/lifecycle gates: PASS")
