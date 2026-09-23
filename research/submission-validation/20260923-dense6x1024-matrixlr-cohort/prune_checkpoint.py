@@ -9,6 +9,10 @@ ARMS = {
                 pathlib.Path("/home/ubuntu/trainium_freshstart_20260923_dense9173_control")),
     "candidate": ("fs-20260923-dense6x1024-matrixlr025-r1",
                   pathlib.Path("/home/ubuntu/trainium_freshstart_20260923_matrixlr025_candidate")),
+    "control_r2": ("fs-20260923-dense6x1024-9173-cold-repeat-r2",
+                   pathlib.Path("/home/ubuntu/trainium_freshstart_20260923_dense9173_control_r2")),
+    "candidate_r2": ("fs-20260923-dense6x1024-matrixlr025-r2",
+                     pathlib.Path("/home/ubuntu/trainium_freshstart_20260923_matrixlr025_candidate_r2")),
 }
 
 def nofollow_bytes(path):
