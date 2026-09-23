@@ -13,6 +13,7 @@ import ast
 import hashlib
 import importlib.util
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -37,7 +38,6 @@ AUTH_SCHEMA = "dense6x1024-direct-neuron-discriminator-authorization-v1"
 REPORT_SCHEMA = "dense6x1024-direct-neuron-discriminator-report-v1"
 WORKER_SCHEMA = "dense6x1024-direct-neuron-discriminator-worker-v1"
 PENDING_HEAD = "PENDING_EXTERNAL_VERIFIER_HEAD"
-PENDING_SHA = "PENDING_EXTERNAL_VERIFIER_REQUEST_SHA256"
 ROWS = (128, 512, 32768)
 REPETITIONS = 2
 WORLD_SIZE = 4
@@ -57,6 +57,8 @@ STATIC_ENVIRONMENT = {
     "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
     "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
     "NEURON_LOGICAL_NC_CONFIG": "2",
+    "WORLD_SIZE": "4",
+    "LOCAL_WORLD_SIZE": "4",
     "NEURON_CC_FLAGS": NEURON_CC_FLAGS,
     "OMP_NUM_THREADS": "4",
     "MKL_NUM_THREADS": "4",
@@ -68,9 +70,12 @@ RECOMPILE_PATTERNS = (
     re.compile(r"(?:limit|too many|exceed).*recompil", re.I),
 )
 PROTECTED_PATHS = (
+    "train.py",
+    "prepare.py",
     "research/fresh_start_guard.py",
     "research/fresh_start_host.py",
     "research/fresh_start_launch.py",
+    "research/fresh_start_backup.py",
     "research/fresh_start_sync.py",
     "research/run_experiment.py",
     "research/scratch/optimizer_ownership_check.py",
@@ -83,7 +88,23 @@ PROTECTED_PATHS = (
     "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron-discriminator-runbook.md",
     "research/submission-validation/20260923-dense6x1024-direct-review-safe/proposal.json",
     "research/submission-validation/20260923-dense6x1024-direct-review-safe/fs-20260923-dense6x1024-direct-neuron-component-20260923T103500000001Z-result.json",
+    "research/submission-validation/20260923-dense6x1024-direct-review-safe/independent-neuron-discriminator-verifier.json",
 )
+LAUNCHER_DEFAULT_FINGERPRINT_PATHS = (
+    "train.py", "prepare.py", "research/run_experiment.py",
+    "research/fresh_start_host.py", "research/fresh_start_guard.py",
+    "research/fresh_start_backup.py",
+)
+AUTHORIZATION_KEYS = {
+    "schema", "authorization_state", "purpose", "expected_sha256", "request_contract",
+}
+FIXTURE_SPECS = {
+    "tiny_fixed": {"steps": 2, "parameter_count": 40, "element_count": 43788},
+    "tiny_changed": {"steps": 4, "parameter_count": 40, "element_count": 43788},
+    "production_width1024_fs_w62": {
+        "steps": 4, "parameter_count": 62, "element_count": 117453580,
+    },
+}
 
 
 def sha256(path: Path) -> str:
@@ -183,26 +204,46 @@ def expected_contract() -> dict[str, Any]:
     }
 
 
+def require_request_integrity(requested: Path) -> dict[str, Any]:
+    requested = requested.absolute()
+    if requested != REQUEST or requested.is_symlink() or not requested.is_file():
+        raise ValueError(f"authorization request must be canonical, regular and non-symlink: {REQUEST}")
+    relative = rel(requested)
+    try:
+        tracked = git("ls-files", "--error-unmatch", "--", relative)
+    except subprocess.CalledProcessError as error:
+        raise ValueError("authorization request is not tracked") from error
+    if tracked != relative:
+        raise ValueError("authorization request tracking identity mismatch")
+    dirty = git("status", "--porcelain=v1", "--untracked-files=all", "--", relative)
+    if dirty:
+        raise ValueError("authorization request is dirty/untracked")
+    return {"path": str(requested), "relative": relative, "tracked": True, "clean": True}
+
+
 def authenticate(args: argparse.Namespace, full: bool) -> dict[str, Any]:
-    if args.authorization_request.resolve() != REQUEST:
-        raise ValueError(f"authorization request must be exactly {REQUEST}")
+    request_integrity = require_request_integrity(args.authorization_request)
     request = json.loads(REQUEST.read_text())
+    if set(request) != AUTHORIZATION_KEYS:
+        raise ValueError("authorization top-level key schema mismatch")
     if request.get("schema") != AUTH_SCHEMA:
         raise ValueError("authorization schema mismatch")
+    if request.get("purpose") != EXPECTED_PURPOSE:
+        raise ValueError("authorization purpose mismatch")
     if request.get("request_contract") != expected_contract():
         raise ValueError("authorization contract differs from hard-coded harness contract")
     actual_request_sha = sha256(REQUEST)
-    if args.static_only and args.authorized_head == PENDING_HEAD and args.authorization_sha256 == PENDING_SHA:
+    if not re.fullmatch(r"[0-9a-f]{64}", args.authorization_sha256):
+        raise ValueError("--authorization-sha256 must be a literal lowercase SHA-256")
+    if args.authorization_sha256 != actual_request_sha:
+        raise ValueError("external authorization SHA does not match request bytes")
+    if args.static_only and args.authorized_head == PENDING_HEAD:
         if request.get("authorization_state") != "pending_external_verifier":
             raise ValueError("sentinel is only valid for pending static review")
         full = False
     else:
         if not re.fullmatch(r"[0-9a-f]{40}", args.authorized_head):
             raise ValueError("--authorized-head must be an external literal 40-hex commit")
-        if not re.fullmatch(r"[0-9a-f]{64}", args.authorization_sha256):
-            raise ValueError("--authorization-sha256 must be an external literal SHA-256")
-        if args.authorization_sha256 != actual_request_sha:
-            raise ValueError("external authorization SHA does not match request bytes")
         if request.get("authorization_state") != "finalized_by_external_verifier":
             raise ValueError("pending authorization request cannot launch")
     expected_hashes = request.get("expected_sha256")
@@ -233,6 +274,7 @@ def authenticate(args: argparse.Namespace, full: bool) -> dict[str, Any]:
         "expected_sha256": expected_hashes,
         "actual_sha256": actual_hashes,
         "state": request.get("authorization_state"),
+        "request_integrity": request_integrity,
     }
 
 
@@ -250,12 +292,15 @@ def tensor_digest(torch, tensor) -> dict[str, Any]:
     value = tensor.detach().contiguous().cpu()
     raw = value.view(torch.uint8).numpy().tobytes()
     finite = bool(torch.isfinite(value).all()) if value.is_floating_point() else True
+    magnitude = value.float()
     return {
         "sha256": hashlib.sha256(raw).hexdigest(),
         "shape": list(value.shape),
         "dtype": str(value.dtype),
         "finite": finite,
         "nonzero": bool(torch.count_nonzero(value)),
+        "l2": float(torch.linalg.vector_norm(magnitude)) if value.numel() else 0.0,
+        "max_abs": float(magnitude.abs().max()) if value.numel() else 0.0,
     }
 
 
@@ -357,7 +402,7 @@ def run_ce_worker(args: argparse.Namespace) -> int:
                     "max_abs_gradient": grad_max,
                     "passed": loss_equal and grad_equal and loss_max == 0.0 and grad_max == 0.0,
                 }
-                record["pytorch_diagnostic_non_gating"] = {
+                record["pytorch_diagnostic_numerically_non_gating"] = {
                     "loss_max_abs": float((loss_cpu - eager_loss.detach().cpu()).abs().max()),
                     "gradient_max_abs": float((grad_cpu - eager_logits.grad.detach().cpu()).abs().max()),
                 }
@@ -368,10 +413,7 @@ def run_ce_worker(args: argparse.Namespace) -> int:
         if source_pt.exists() or source_pt.is_symlink():
             raise FileExistsError(source_pt)
         torch.save(saved, source_pt)
-    expected_calls = [
-        {"op": op, "rows": rows, "lanes": 2 if rows >= 512 else 1}
-        for rows in ROWS for _ in range(REPETITIONS) for op in ("forward", "backward")
-    ]
+    expected_calls = expected_ce_calls()
     passed = calls == expected_calls
     if args.variant == "direct":
         passed = passed and all(case["source_direct"]["passed"] for case in cases)
@@ -511,7 +553,7 @@ def snapshot_optimizer(torch, module, optimizer, owner, parameters, device, step
         "parameters": parameter_records,
         "state": persistent_state(torch, optimizer, owner),
         "group_scalars": group_scalars,
-        "owner_calls": step if owner is not None else step,
+        "owner_calls": None if owner is None else owner.calls,
         "cross_rank_parameter_sha256": rank_digests,
         "cross_rank_exact": len(set(rank_digests)) == 1,
     }
@@ -530,6 +572,8 @@ def run_optimizer_fixture(torch, module, variant: str, fixture: str, device) -> 
         owner = None
         step_call = optimizer.step
     plan = plan_snapshot(module, optimizer, owner)
+    initial_parameters = {str(i): tensor_digest(torch, parameter)
+                          for i, parameter in enumerate(parameters)}
     linear = projection = linear_input = cache_parameter = None
     if fixture == "production_width1024_fs_w62":
         cache_parameter = next(parameter for parameter in parameters if parameter.ndim == 2)
@@ -586,6 +630,7 @@ def run_optimizer_fixture(torch, module, variant: str, fixture: str, device) -> 
         "parameter_count": len(parameters),
         "element_count": sum(p.numel() for p in parameters),
         "plan": plan,
+        "initial_parameters": initial_parameters,
         "snapshots": snapshots,
     }
     del parameters, optimizer, owner
@@ -647,28 +692,364 @@ def run_child(command: list[str], env: dict[str, str], timeout: int) -> dict[str
     }
 
 
-def compare_optimizer_results(result_dir: Path) -> dict[str, Any]:
-    reports = {
-        variant: [json.loads((result_dir / f"optimizer-{variant}-rank{rank}.json").read_text())
-                  for rank in range(WORLD_SIZE)]
-        for variant in ("raw", "source", "direct")
+def expected_ce_calls() -> list[dict[str, Any]]:
+    return [
+        {"op": operation, "rows": rows, "lanes": 2 if rows >= 512 else 1}
+        for rows in ROWS for _ in range(REPETITIONS) for operation in ("forward", "backward")
+    ]
+
+
+def validate_ce_report(report: Any, variant: str) -> None:
+    require_exact_keys(
+        report,
+        {"schema", "worker", "variant", "passed", "cases", "calls", "expected_calls", "compile_cache"},
+        f"ce.{variant}",
+    )
+    if (report["schema"] != WORKER_SCHEMA or report["worker"] != "ce"
+            or report["variant"] != variant or report["passed"] is not True):
+        raise ValueError(f"ce.{variant}: worker identity/schema/pass mismatch")
+    if not isinstance(report["compile_cache"], str) or not Path(report["compile_cache"]).is_absolute():
+        raise ValueError(f"ce.{variant}: compile cache missing/non-absolute")
+    calls = expected_ce_calls()
+    if report["calls"] != calls or report["expected_calls"] != calls:
+        raise ValueError(f"ce.{variant}: exact lane/call trace mismatch")
+    cases = report["cases"]
+    if not isinstance(cases, list) or len(cases) != len(ROWS) * REPETITIONS:
+        raise ValueError(f"ce.{variant}: case cardinality mismatch")
+    index = 0
+    for rows in ROWS:
+        for repetition in range(REPETITIONS):
+            case = cases[index]
+            keys = {"key", "rows", "repetition", "selected_lanes", "loss", "gradient", "autograd_node"}
+            if variant == "direct":
+                keys |= {"source_direct", "pytorch_diagnostic_numerically_non_gating"}
+            require_exact_keys(case, keys, f"ce.{variant}.cases[{index}]")
+            if (case["key"] != f"r{rows}-n{repetition}" or case["rows"] != rows
+                    or case["repetition"] != repetition
+                    or case["selected_lanes"] != (2 if rows >= 512 else 1)
+                    or not isinstance(case["autograd_node"], str) or not case["autograd_node"]):
+                raise ValueError(f"ce.{variant}.cases[{index}]: case identity/wiring mismatch")
+            validate_tensor_record(case["loss"], f"ce.{variant}.cases[{index}].loss")
+            validate_tensor_record(case["gradient"], f"ce.{variant}.cases[{index}].gradient")
+            if variant == "direct":
+                exact = case["source_direct"]
+                require_exact_keys(
+                    exact,
+                    {"torch_equal_loss", "torch_equal_gradient", "max_abs_loss", "max_abs_gradient", "passed"},
+                    f"ce.direct.cases[{index}].source_direct",
+                )
+                if exact != {
+                    "torch_equal_loss": True, "torch_equal_gradient": True,
+                    "max_abs_loss": 0.0, "max_abs_gradient": 0.0, "passed": True,
+                }:
+                    raise ValueError(f"ce.direct.cases[{index}]: source/direct is not exact")
+                diagnostic = case["pytorch_diagnostic_numerically_non_gating"]
+                require_exact_keys(
+                    diagnostic, {"loss_max_abs", "gradient_max_abs"},
+                    f"ce.direct.cases[{index}].pytorch_diagnostic",
+                )
+                if any(type(value) not in (int, float) or not math.isfinite(value)
+                       for value in diagnostic.values()):
+                    raise ValueError(f"ce.direct.cases[{index}]: invalid diagnostic values")
+            index += 1
+
+
+TENSOR_RECORD_KEYS = {"sha256", "shape", "dtype", "finite", "nonzero", "l2", "max_abs"}
+WORKER_RECORD_KEYS = {
+    "schema", "worker", "variant", "rank", "world_size", "passed", "fixtures", "compile_cache",
+}
+FIXTURE_RECORD_KEYS = {
+    "fixture", "passed", "parameter_count", "element_count", "plan", "initial_parameters", "snapshots",
+}
+SNAPSHOT_KEYS = {
+    "step", "parameters", "state", "group_scalars", "owner_calls",
+    "cross_rank_parameter_sha256", "cross_rank_exact",
+}
+
+
+def require_exact_keys(value: Any, expected: set[str], path: str) -> None:
+    if not isinstance(value, dict) or set(value) != expected:
+        raise ValueError(f"{path}: key schema mismatch")
+
+
+def validate_tensor_record(value: Any, path: str, require_nonzero: bool = True) -> None:
+    require_exact_keys(value, TENSOR_RECORD_KEYS, path)
+    if not re.fullmatch(r"[0-9a-f]{64}", value["sha256"]):
+        raise ValueError(f"{path}: invalid tensor digest")
+    if (not isinstance(value["shape"], list)
+            or any(type(dimension) is not int or dimension <= 0 for dimension in value["shape"])):
+        raise ValueError(f"{path}: invalid tensor shape")
+    if not isinstance(value["dtype"], str) or not value["dtype"].startswith("torch."):
+        raise ValueError(f"{path}: invalid tensor dtype")
+    if value["finite"] is not True:
+        raise ValueError(f"{path}: nonfinite tensor evidence")
+    for field in ("l2", "max_abs"):
+        if type(value[field]) not in (int, float) or not math.isfinite(value[field]) or value[field] < 0:
+            raise ValueError(f"{path}: invalid {field}")
+    if require_nonzero and (value["nonzero"] is not True or value["l2"] <= 0 or value["max_abs"] <= 0):
+        raise ValueError(f"{path}: zero/no-op tensor evidence")
+
+
+def validate_canonical_finite(value: Any, path: str) -> None:
+    if isinstance(value, dict):
+        if set(value) == TENSOR_RECORD_KEYS:
+            validate_tensor_record(value, path)
+        else:
+            for key, item in value.items():
+                validate_canonical_finite(item, f"{path}.{key}")
+    elif isinstance(value, list):
+        for index, item in enumerate(value):
+            validate_canonical_finite(item, f"{path}[{index}]")
+    elif type(value) is float:
+        if not math.isfinite(value):
+            raise ValueError(f"{path}: nonfinite scalar")
+    elif not isinstance(value, (str, int, bool)) and value is not None:
+        raise ValueError(f"{path}: unsupported canonical value")
+
+
+def validate_parameter_records(records: Any, count: int, path: str) -> None:
+    expected = {str(index) for index in range(count)}
+    if not isinstance(records, dict) or set(records) != expected:
+        raise ValueError(f"{path}: parameter record cardinality/index mismatch")
+    for index in range(count):
+        validate_tensor_record(records[str(index)], f"{path}.{index}")
+
+
+def validate_plan(plan: Any, parameter_count: int, element_count: int, path: str) -> list[dict[str, Any]]:
+    require_exact_keys(plan, {"entries", "summary"}, path)
+    entries = plan["entries"]
+    if not isinstance(entries, list) or len(entries) != parameter_count:
+        raise ValueError(f"{path}: plan entry cardinality mismatch")
+    positions = set()
+    elements_by_owner = [0] * WORLD_SIZE
+    for index, entry in enumerate(entries):
+        require_exact_keys(
+            entry,
+            {"index", "group", "position", "kind", "shape", "elements",
+             "estimated_ms", "owner", "offset"},
+            f"{path}.entries[{index}]",
+        )
+        if entry["index"] != index or type(entry["group"]) is not int or entry["group"] < 0:
+            raise ValueError(f"{path}: invalid plan index/group")
+        if type(entry["position"]) is not int or entry["position"] < 0:
+            raise ValueError(f"{path}: invalid plan position")
+        position = (entry["group"], entry["position"])
+        if position in positions:
+            raise ValueError(f"{path}: duplicate plan group/position")
+        positions.add(position)
+        if entry["kind"] not in ("adamw", "muon"):
+            raise ValueError(f"{path}: invalid plan optimizer kind")
+        if (not isinstance(entry["shape"], list) or not entry["shape"]
+                or any(type(dimension) is not int or dimension <= 0 for dimension in entry["shape"])):
+            raise ValueError(f"{path}: invalid plan shape")
+        shape_elements = math.prod(entry["shape"])
+        if entry["elements"] != shape_elements:
+            raise ValueError(f"{path}: plan element/shape mismatch")
+        if type(entry["owner"]) is not int or entry["owner"] not in range(WORLD_SIZE):
+            raise ValueError(f"{path}: invalid plan owner")
+        if type(entry["offset"]) is not int or entry["offset"] < 0:
+            raise ValueError(f"{path}: invalid plan offset")
+        if type(entry["estimated_ms"]) not in (int, float) or not math.isfinite(entry["estimated_ms"]) or entry["estimated_ms"] <= 0:
+            raise ValueError(f"{path}: invalid plan cost")
+        elements_by_owner[entry["owner"]] += entry["elements"]
+    if sum(entry["elements"] for entry in entries) != element_count:
+        raise ValueError(f"{path}: plan total element mismatch")
+    group_ids = {entry["group"] for entry in entries}
+    if group_ids != set(range(max(group_ids) + 1)):
+        raise ValueError(f"{path}: plan groups are not contiguous")
+    for group in group_ids:
+        group_entries = [entry for entry in entries if entry["group"] == group]
+        if ({entry["position"] for entry in group_entries} != set(range(len(group_entries)))
+                or len({entry["kind"] for entry in group_entries}) != 1):
+            raise ValueError(f"{path}: group positions/kind are inconsistent")
+    summary = plan["summary"]
+    require_exact_keys(
+        summary,
+        {"elements_by_owner", "estimated_ms_by_owner", "shard_elements", "total_padded_bytes"},
+        f"{path}.summary",
+    )
+    if summary["elements_by_owner"] != elements_by_owner:
+        raise ValueError(f"{path}: owner element summary mismatch")
+    costs = summary["estimated_ms_by_owner"]
+    if (not isinstance(costs, list) or len(costs) != WORLD_SIZE
+            or any(type(cost) not in (int, float) or not math.isfinite(cost) or cost <= 0 for cost in costs)):
+        raise ValueError(f"{path}: invalid owner cost summary")
+    stride = summary["shard_elements"]
+    if type(stride) is not int or stride % 128 or stride < max(elements_by_owner):
+        raise ValueError(f"{path}: invalid shard stride")
+    if summary["total_padded_bytes"] != stride * WORLD_SIZE * 4:
+        raise ValueError(f"{path}: invalid padded byte total")
+    return entries
+
+
+def expected_state_keys(entries: list[dict[str, Any]], variant: str, rank: int) -> dict[str, str]:
+    return {
+        f"g{entry['group']}:p{entry['position']}": entry["kind"]
+        for entry in entries if variant == "raw" or entry["owner"] == rank
     }
+
+
+def validate_state(state: Any, expected: dict[str, str], path: str) -> None:
+    if not isinstance(state, dict) or set(state) != set(expected) or not state:
+        raise ValueError(f"{path}: optimizer state coverage mismatch/empty")
+    for key, kind in expected.items():
+        fields = state[key]
+        required = {"step", "exp_avg", "exp_avg_sq"} if kind == "adamw" else {
+            "momentum_buffer", "second_momentum_buffer"
+        }
+        require_exact_keys(fields, required, f"{path}.{key}")
+        if kind == "adamw":
+            if type(fields["step"]) is not int or fields["step"] <= 0:
+                raise ValueError(f"{path}.{key}: invalid AdamW step")
+            validate_tensor_record(fields["exp_avg"], f"{path}.{key}.exp_avg")
+            validate_tensor_record(fields["exp_avg_sq"], f"{path}.{key}.exp_avg_sq")
+        else:
+            validate_tensor_record(fields["momentum_buffer"], f"{path}.{key}.momentum_buffer")
+            validate_tensor_record(fields["second_momentum_buffer"], f"{path}.{key}.second_momentum_buffer")
+
+
+def validate_snapshot(
+    snapshot: Any, fixture: str, variant: str, rank: int, step: int,
+    parameter_count: int, expected_state: dict[str, str], group_kinds: list[str], path: str,
+) -> None:
+    keys = set(SNAPSHOT_KEYS)
+    if fixture == "production_width1024_fs_w62":
+        keys.add("linear_cache")
+    require_exact_keys(snapshot, keys, path)
+    if snapshot["step"] != step:
+        raise ValueError(f"{path}: nonsequential step")
+    validate_parameter_records(snapshot["parameters"], parameter_count, f"{path}.parameters")
+    validate_state(snapshot["state"], expected_state, f"{path}.state")
+    if (not isinstance(snapshot["group_scalars"], list)
+            or len(snapshot["group_scalars"]) != len(group_kinds)):
+        raise ValueError(f"{path}: group scalar evidence missing")
+    validate_canonical_finite(snapshot["group_scalars"], f"{path}.group_scalars")
+    if any(not isinstance(group, dict) or group.get("kind") != group_kinds[index]
+           for index, group in enumerate(snapshot["group_scalars"])):
+        raise ValueError(f"{path}: group scalar kind/order mismatch")
+    expected_calls = None if variant == "raw" else step
+    if snapshot["owner_calls"] != expected_calls:
+        raise ValueError(f"{path}: owner call count mismatch")
+    digests = snapshot["cross_rank_parameter_sha256"]
+    combined = hashlib.sha256(b"".join(
+        bytes.fromhex(snapshot["parameters"][str(index)]["sha256"])
+        for index in range(parameter_count)
+    )).hexdigest()
+    if (snapshot["cross_rank_exact"] is not True or not isinstance(digests, list)
+            or digests != [combined] * WORLD_SIZE):
+        raise ValueError(f"{path}: cross-rank parameter digest mismatch")
+    if fixture == "production_width1024_fs_w62":
+        cache = snapshot["linear_cache"]
+        require_exact_keys(
+            cache, {"cache_exact", "output_exact", "compiled_output", "eager_output"},
+            f"{path}.linear_cache",
+        )
+        if cache["cache_exact"] is not True or cache["output_exact"] is not True:
+            raise ValueError(f"{path}: Linear cache/output proof failed")
+        validate_tensor_record(cache["compiled_output"], f"{path}.compiled_output")
+        validate_tensor_record(cache["eager_output"], f"{path}.eager_output")
+        if cache["compiled_output"] != cache["eager_output"]:
+            raise ValueError(f"{path}: compiled/eager Linear output record mismatch")
+
+
+def parameter_sha_map(records: dict[str, Any]) -> tuple[str, ...]:
+    return tuple(records[str(index)]["sha256"] for index in range(len(records)))
+
+
+def validate_fixture(fixture: Any, variant: str, rank: int, index: int) -> None:
+    path = f"{variant}.rank{rank}.fixtures[{index}]"
+    require_exact_keys(fixture, FIXTURE_RECORD_KEYS, path)
+    expected_name = tuple(FIXTURE_SPECS)[index]
+    spec = FIXTURE_SPECS[expected_name]
+    if fixture["fixture"] != expected_name or fixture["passed"] is not True:
+        raise ValueError(f"{path}: fixture identity/pass mismatch")
+    if (fixture["parameter_count"] != spec["parameter_count"]
+            or fixture["element_count"] != spec["element_count"]):
+        raise ValueError(f"{path}: parameter/element count drift")
+    validate_parameter_records(
+        fixture["initial_parameters"], spec["parameter_count"], f"{path}.initial_parameters"
+    )
+    entries = validate_plan(
+        fixture["plan"], spec["parameter_count"], spec["element_count"], f"{path}.plan"
+    )
+    expected_state = expected_state_keys(entries, variant, rank)
+    group_kinds = [
+        next(entry["kind"] for entry in entries if entry["group"] == group)
+        for group in range(max(entry["group"] for entry in entries) + 1)
+    ]
+    snapshots = fixture["snapshots"]
+    if not isinstance(snapshots, list) or len(snapshots) != spec["steps"]:
+        raise ValueError(f"{path}: snapshot cardinality mismatch")
+    previous_parameters = parameter_sha_map(fixture["initial_parameters"])
+    previous_state = None
+    for step, snapshot in enumerate(snapshots, 1):
+        validate_snapshot(
+            snapshot, expected_name, variant, rank, step, spec["parameter_count"],
+            expected_state, group_kinds, f"{path}.snapshots[{step - 1}]",
+        )
+        current_parameters = parameter_sha_map(snapshot["parameters"])
+        should_change = expected_name == "tiny_fixed" or step < 4
+        if should_change == (current_parameters == previous_parameters):
+            raise ValueError(f"{path}: unexpected no-op/change at step {step}")
+        if previous_state is not None and snapshot["state"] == previous_state:
+            raise ValueError(f"{path}: optimizer state did not update at step {step}")
+        previous_parameters = current_parameters
+        previous_state = snapshot["state"]
+
+
+def validate_optimizer_worker(report: Any, variant: str, rank: int) -> None:
+    path = f"{variant}.rank{rank}"
+    require_exact_keys(report, WORKER_RECORD_KEYS, path)
+    if (report["schema"] != WORKER_SCHEMA or report["worker"] != "optimizer"
+            or report["variant"] != variant or report["rank"] != rank
+            or report["world_size"] != WORLD_SIZE or report["passed"] is not True):
+        raise ValueError(f"{path}: worker identity/schema/pass mismatch")
+    if not isinstance(report["compile_cache"], str) or not Path(report["compile_cache"]).is_absolute():
+        raise ValueError(f"{path}: compile cache identity missing/non-absolute")
+    fixtures = report["fixtures"]
+    if not isinstance(fixtures, list) or len(fixtures) != len(FIXTURE_SPECS):
+        raise ValueError(f"{path}: fixture cardinality mismatch")
+    for index, fixture in enumerate(fixtures):
+        validate_fixture(fixture, variant, rank, index)
+
+
+def compare_optimizer_results(result_dir: Path) -> dict[str, Any]:
+    reports: dict[str, list[dict[str, Any]]] = {}
     failures = []
-    for variant, ranks in reports.items():
-        if not all(report["passed"] for report in ranks):
-            failures.append(f"{variant}: worker failed")
+    for variant in ("raw", "source", "direct"):
+        reports[variant] = []
+        for rank in range(WORLD_SIZE):
+            path = result_dir / f"optimizer-{variant}-rank{rank}.json"
+            try:
+                if path.is_symlink() or not path.is_file():
+                    raise ValueError("worker report missing/unsafe")
+                report = json.loads(path.read_text())
+                reports[variant].append(report)
+                validate_optimizer_worker(report, variant, rank)
+            except Exception as error:
+                failures.append(f"{variant} rank {rank}: {type(error).__name__}: {error}")
+    if failures:
+        return {"passed": False, "failures": failures, "variants": {}, "worker_reports": reports}
+    caches = {variant: {report["compile_cache"] for report in ranks} for variant, ranks in reports.items()}
+    if any(len(paths) != 1 for paths in caches.values()) or len({next(iter(paths)) for paths in caches.values()}) != 3:
+        failures.append("optimizer variants do not have three distinct rank-shared compile caches")
+    for rank in range(1, WORLD_SIZE):
+        if reports["raw"][rank]["fixtures"] != reports["raw"][0]["fixtures"]:
+            failures.append(f"raw rank {rank} snapshots differ from raw rank 0")
     for rank in range(WORLD_SIZE):
         source = reports["source"][rank]
         direct = reports["direct"][rank]
         if source["fixtures"] != direct["fixtures"]:
             failures.append(f"source/direct rank {rank} snapshots differ")
-    for fixture_index, fixture_name in enumerate(("tiny_fixed", "tiny_changed", "production_width1024_fs_w62")):
+    for fixture_index, fixture_name in enumerate(FIXTURE_SPECS):
         raw = reports["raw"][0]["fixtures"][fixture_index]
         for rank in range(WORLD_SIZE):
             direct_fixture = reports["direct"][rank]["fixtures"][fixture_index]
+            if direct_fixture["initial_parameters"] != raw["initial_parameters"]:
+                failures.append(f"{fixture_name}: direct rank {rank} initial parameters differ from raw")
             if direct_fixture["plan"] != raw["plan"]:
                 failures.append(f"{fixture_name}: direct rank {rank} ownership plan differs from raw")
-        for step_index in range(len(raw["snapshots"])):
+        for step_index in range(FIXTURE_SPECS[fixture_name]["steps"]):
             raw_step = raw["snapshots"][step_index]
             merged_state = {}
             for rank in range(WORLD_SIZE):
@@ -694,17 +1075,17 @@ def compare_optimizer_results(result_dir: Path) -> dict[str, Any]:
     }
 
 
-def validate_full_environment(args: argparse.Namespace) -> None:
-    exact = {**STATIC_ENVIRONMENT,
-        "NEURON_LOGICAL_NC_CONFIG": "2",
-        "LOCAL_WORLD_SIZE": "4",
-        "WORLD_SIZE": "4",
-        "OMP_NUM_THREADS": str(HOST_THREADS),
+def expected_outer_environment(args: argparse.Namespace) -> dict[str, str]:
+    return {**STATIC_ENVIRONMENT,
         "TRAINIUM_DISCRIMINATOR_LABEL": args.run_label,
         "TRAINIUM_DISCRIMINATOR_EXPECTED_COMMIT": args.expected_commit,
         "TRAINIUM_DISCRIMINATOR_AUTHORIZED_HEAD": args.authorized_head,
         "TRAINIUM_DISCRIMINATOR_AUTHORIZATION_SHA256": args.authorization_sha256,
     }
+
+
+def validate_full_environment(args: argparse.Namespace) -> None:
+    exact = expected_outer_environment(args)
     for key, expected in exact.items():
         if os.environ.get(key) != expected:
             raise ValueError(f"environment mismatch for {key}")
@@ -723,13 +1104,7 @@ def validate_full_environment(args: argparse.Namespace) -> None:
 
 
 def exact_launch_request(args: argparse.Namespace, authorization: dict[str, Any]) -> dict[str, Any]:
-    environment = dict(STATIC_ENVIRONMENT)
-    environment.update({
-        "TRAINIUM_DISCRIMINATOR_LABEL": args.run_label,
-        "TRAINIUM_DISCRIMINATOR_EXPECTED_COMMIT": args.expected_commit,
-        "TRAINIUM_DISCRIMINATOR_AUTHORIZED_HEAD": args.authorized_head,
-        "TRAINIUM_DISCRIMINATOR_AUTHORIZATION_SHA256": args.authorization_sha256,
-    })
+    environment = expected_outer_environment(args)
     command = [
         *OUTER_TIMEOUT,
         NATIVE_PYTHON, str(HARNESS),
@@ -756,35 +1131,54 @@ def exact_launch_request(args: argparse.Namespace, authorization: dict[str, Any]
     }
 
 
+def launcher_fingerprint_paths() -> tuple[str, ...]:
+    return tuple(dict.fromkeys((*LAUNCHER_DEFAULT_FINGERPRINT_PATHS, *PROTECTED_PATHS, rel(REQUEST))))
+
+
+def validate_launcher_payload(
+    payload: dict[str, Any], authorized_request: dict[str, Any],
+    required_hashes: dict[str, str], args: argparse.Namespace, suffix: str,
+) -> None:
+    augmented = {"started_at", "hostname", "git_commit", "source_dirty",
+                 "preflight_free_bytes", "source_sha256"}
+    if set(payload) != set(authorized_request) | augmented:
+        raise ValueError(f"{suffix} manifest key set differs from exact schema")
+    if {key: payload[key] for key in authorized_request} != authorized_request:
+        raise ValueError(f"{suffix} parsed request/argv/environment is not exact")
+    if tuple(payload["source_sha256"]) != launcher_fingerprint_paths():
+        raise ValueError(f"{suffix} fingerprint path union/order differs from launcher contract")
+    if (payload.get("hostname") != EXPECTED_HOSTNAME
+            or payload.get("git_commit") != args.expected_commit
+            or payload.get("remote") != EXPECTED_REMOTE
+            or payload.get("source_dirty") is not False
+            or payload.get("source_sha256") != required_hashes):
+        raise ValueError(f"{suffix} checkout/fingerprint identity mismatch")
+    if not isinstance(payload.get("started_at"), str) or not isinstance(
+            payload.get("preflight_free_bytes"), int):
+        raise ValueError(f"{suffix} launcher augmentation type mismatch")
+
+
 def validate_outer_receipts(args: argparse.Namespace, authorization: dict[str, Any]) -> dict[str, Any]:
     run_logs = ROOT / "research/run-logs"
     authorized_request = exact_launch_request(args, authorization)
-    required_hashes = dict(authorization["expected_sha256"])
-    required_hashes[rel(REQUEST)] = authorization["request_sha256"]
+    hash_values = dict(authorization["expected_sha256"])
+    hash_values[rel(REQUEST)] = authorization["request_sha256"]
+    required_hashes = {path: hash_values[path] for path in launcher_fingerprint_paths()}
+    if tuple(required_hashes) != launcher_fingerprint_paths():
+        raise ValueError("authorization hash map differs from exact launcher fingerprint union")
     receipts = {}
-    augmented = {"started_at", "hostname", "git_commit", "source_dirty",
-                 "preflight_free_bytes", "source_sha256"}
     for suffix in ("launch.json", "job.json"):
         path = run_logs / f"{args.run_label}.{suffix}"
         if path.is_symlink() or not path.is_file():
             raise ValueError(f"required fresh-start receipt missing/unsafe: {path}")
         payload = json.loads(path.read_text())
-        if set(payload) != set(authorized_request) | augmented:
-            raise ValueError(f"{suffix} manifest key set differs from exact schema")
-        if {key: payload[key] for key in authorized_request} != authorized_request:
-            raise ValueError(f"{suffix} parsed request/argv/environment is not exact")
-        if (payload.get("hostname") != EXPECTED_HOSTNAME
-                or payload.get("git_commit") != args.expected_commit
-                or payload.get("remote") != str(ROOT)
-                or payload.get("source_dirty") is not False
-                or payload.get("source_sha256") != required_hashes):
-            raise ValueError(f"{suffix} checkout/fingerprint identity mismatch")
+        validate_launcher_payload(payload, authorized_request, required_hashes, args, suffix)
         receipts[suffix] = {"path": str(path), "sha256": sha256(path)}
     preflight = run_logs / f"{args.run_label}.preflight.json"
     if preflight.is_symlink() or not preflight.is_file():
         raise ValueError("required preflight receipt missing/unsafe")
     payload = json.loads(preflight.read_text())
-    if (payload.get("label") != args.run_label or payload.get("remote") != str(ROOT)
+    if (payload.get("label") != args.run_label or payload.get("remote") != EXPECTED_REMOTE
             or payload.get("hostname") != EXPECTED_HOSTNAME or payload.get("passed") is not True):
         raise ValueError("preflight receipt does not prove the exact passing run")
     receipts["preflight.json"] = {"path": str(preflight), "sha256": sha256(preflight)}
@@ -816,9 +1210,18 @@ def run_orchestrator(args: argparse.Namespace, authorization: dict[str, Any]) ->
             raise RuntimeError(f"child failed or emitted recompile-limit warning: ce-{variant}")
     ce_source = json.loads((result_dir / "ce-source.json").read_text())
     ce_direct = json.loads((result_dir / "ce-direct.json").read_text())
+    validate_ce_report(ce_source, "source")
+    validate_ce_report(ce_direct, "direct")
+    ce_records_exact = all(
+        source_case["loss"] == direct_case["loss"]
+        and source_case["gradient"] == direct_case["gradient"]
+        for source_case, direct_case in zip(ce_source["cases"], ce_direct["cases"])
+    )
     ce_passed = (
         ce_source["passed"] and ce_direct["passed"]
         and ce_source["calls"] == ce_direct["calls"]
+        and ce_source["compile_cache"] != ce_direct["compile_cache"]
+        and ce_records_exact
         and len(ce_direct["cases"]) == len(ROWS) * REPETITIONS
         and all(case["source_direct"]["passed"] for case in ce_direct["cases"])
     )
@@ -849,7 +1252,9 @@ def run_orchestrator(args: argparse.Namespace, authorization: dict[str, Any]) ->
             "source_direct_exact": [case["source_direct"] for case in ce_direct["cases"]],
             "source_calls": ce_source["calls"],
             "direct_calls": ce_direct["calls"],
-            "pytorch_diagnostic_non_gating": [case["pytorch_diagnostic_non_gating"] for case in ce_direct["cases"]],
+            "pytorch_diagnostic_numerically_non_gating": [
+                case["pytorch_diagnostic_numerically_non_gating"] for case in ce_direct["cases"]
+            ],
         },
         "optimizer": optimizer,
         "processes": processes,
