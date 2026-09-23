@@ -9,6 +9,10 @@ EXPECTED = {
                 "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344"),
     "candidate": ("trn21", "ip-172-31-34-85", "fs-20260923-dense6x1024-matrixlr025-r1", "submissions/dense6x1024_lean_review_matrixlr025",
                   "abdc8372808489a2bdf94885922aa12e7173b5a1dc4d91cab1bd874d2573add8"),
+    "control_r2": ("trn22", "ip-172-31-32-253", "fs-20260923-dense6x1024-9173-cold-repeat-r2", "submissions/dense6x1024_lean_review",
+                   "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344"),
+    "candidate_r2": ("trn21", "ip-172-31-34-85", "fs-20260923-dense6x1024-matrixlr025-r2", "submissions/dense6x1024_lean_review_matrixlr025",
+                     "abdc8372808489a2bdf94885922aa12e7173b5a1dc4d91cab1bd874d2573add8"),
 }
 LAUNCH_SHA = "b75f844f413575f0cc35164972b4abf68de41e4b6f39e9b5423a6070de005abd"
 
