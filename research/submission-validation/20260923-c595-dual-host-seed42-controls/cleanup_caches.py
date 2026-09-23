@@ -47,11 +47,17 @@ def reject_tree_symlinks(root):
   for name in [*dirs,*files]:
    if stat.S_ISLNK(os.lstat(pathlib.Path(current)/name).st_mode):raise SystemExit("cache tree symlink rejected")
 
-def validate_proof(value,arm,label):
+def validate_proof(value,arm,label,root=None):
  if set(value)!=PROOF_KEYS:raise SystemExit("proof schema mismatch")
  if (value["schema"]!="c595-control-evidence-push-v1" or value["arm"]!=arm or value["label"]!=label
   or value["origin"]!=ORIGIN or value["branch"]!=BRANCH or value["retrieved_verified_committed_pushed"] is not True):raise SystemExit("proof identity mismatch")
  if type(value["checkpoint_bytes"]) is not int or value["checkpoint_bytes"]<=0:raise SystemExit("proof size mismatch")
+ for key,size in (("archive_sha256",64),("checkpoint_sha256",64),("evidence_commit",40)):
+  if type(value[key]) is not str or len(value[key])!=size or any(c not in "0123456789abcdef" for c in value[key]):raise SystemExit("proof digest mismatch")
+ if root is not None:
+  expected_archive=root/"out"/"archives"/(label+".tar.gz")
+  expected_checkpoint=root/"out"/label/"train"/"out"/"final.pt"
+  if (value["archive_path"],value["checkpoint_path"])!=(str(expected_archive),str(expected_checkpoint)):raise SystemExit("proof path mismatch")
 def validate_prune(value,proof):
  expected={**proof,"state":"complete","deleted":True,"other_deletions":[]}
  if set(value)!=set(expected) or value!=expected:raise SystemExit("prune receipt contract mismatch")
@@ -102,7 +108,7 @@ def execute(args):
  if tuple(map(str,(args.label,args.evidence_pushed_receipt,args.prune_receipt,args.receipt)))!=tuple(map(str,(label,proof,prune,receipt))):raise SystemExit("lexical cleanup contract mismatch")
  for path in (proof,prune):no_symlink(path)
  if sha(proof)!=args.evidence_pushed_receipt_sha256 or sha(prune)!=args.prune_receipt_sha256:raise SystemExit("prerequisite receipt hash mismatch")
- proof_data=json.loads(file_bytes(proof));prune_data=json.loads(file_bytes(prune));validate_proof(proof_data,args.arm,label);validate_prune(prune_data,proof_data)
+ proof_data=json.loads(file_bytes(proof));prune_data=json.loads(file_bytes(prune));validate_proof(proof_data,args.arm,label,root);validate_prune(prune_data,proof_data)
  rehearsal=sandbox/"train"/"rehearsal.json";no_symlink(rehearsal);caches=[sandbox/"train"/"caches"/name for name in CACHE_NAMES]
  if set(json.loads(file_bytes(rehearsal)).get("fresh_empty_sdk_caches",{}).values())!=set(map(str,caches)):raise SystemExit("fresh-cache ownership receipt mismatch")
  bound=bound_identity(args.arm,label,head,args.evidence_pushed_receipt_sha256,args.prune_receipt_sha256,caches)
