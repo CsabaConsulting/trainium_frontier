@@ -1,0 +1,21 @@
+{
+  "analyst_prose": "KEEP at smoke tier: correctness gates passed and step rate remained within tolerance, making the candidate eligible for a full run.\nThe U-Net skip candidate recorded 1.167766 validation BPB versus 1.165855 for control, a worsening of 0.001911.\nIts step rate was 1.158301 versus 1.174815 steps/s, about 1.41% slower but above the 1.151319 floor.\nBoth runs passed causality with zero maximum absolute error, exited successfully, and stayed within budget and evaluation timeout.\nReported parameter count, seed, host, compiler flags, sequence length, and world size matched.\nThe main confounder for the BPB comparison is unequal training exposure: the candidate completed 330 steps and 43.3M tokens versus 334 steps and 43.8M tokens.\nRuns also occurred on different dates and commits; the listed source hashes differ only for train.py.\nThis smoke result supports proceeding, not a claim of improved validation quality.",
+  "decision": "KEEP",
+  "metrics": {
+    "bpb_delta": 0.001910999999999996,
+    "candidate_bpb": 1.167766,
+    "candidate_params_M": 592.9,
+    "candidate_step_rate": 1.1583011583011584,
+    "candidate_steps": 330.0,
+    "control_bpb": 1.165855,
+    "control_params_M": 592.9,
+    "control_step_rate": 1.1748153359127682,
+    "control_steps": 334.0,
+    "smoke_gate": {},
+    "step_rate_floor": 1.1513190291945128
+  },
+  "reasons": [
+    "correctness gates passed; step rate within tolerance; eligible for full run"
+  ],
+  "tier": "smoke"
+}
