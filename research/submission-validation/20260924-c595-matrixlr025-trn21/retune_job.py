@@ -65,6 +65,12 @@ def verify_archive(data,a,names):
   if [x.name for x in members]!=sorted(names) or any(not x.isfile() for x in members): raise SystemExit("archive member mismatch")
   for member in members:
    if tar.extractfile(member).read()!=a.artifact_bytes(member.name): raise SystemExit("archive member mutation")
+def revalidate_manifest(a,manifest,members):
+ persisted=a.artifact_bytes("artifact-manifest.json")
+ if json.loads(persisted)!=manifest: raise SystemExit("manifest content mutation")
+ current=a.inspect_artifacts(BASE_ARTIFACTS|{"artifact-manifest.json"})
+ if {name:current[name] for name in BASE_ARTIFACTS}!=members: raise SystemExit("manifest member mutation")
+ return hashlib.sha256(persisted).hexdigest()
 def copy_artifact(a,source,name):
  a.safe_regular(source); data,_=a.nofollow_bytes(source); a.durable(a.OUTPUT/name,data)
 def main():
@@ -110,8 +116,7 @@ def main():
  prearchive=BASE_ARTIFACTS-{"evidence.tar.gz"}; archive=make_archive(a,prearchive); a.durable(evidence/"evidence.tar.gz",archive); verify_archive(a.artifact_bytes("evidence.tar.gz"),a,prearchive)
  post_sha,post_bytes=a.nofollow_sha(checkpoint)
  if (post_sha,post_bytes)!=(before_sha,before_bytes): raise SystemExit("checkpoint changed after archive")
- members=a.inspect_artifacts(BASE_ARTIFACTS); manifest={"schema":"c595-matrixlr025-artifact-manifest-v1","label":LABEL,"members":members}; a.durable_json(evidence/"artifact-manifest.json",manifest); manifest_bytes=a.artifact_bytes("artifact-manifest.json"); manifest_sha=hashlib.sha256(manifest_bytes).hexdigest()
- if json.loads(manifest_bytes)!=manifest or a.inspect_artifacts(BASE_ARTIFACTS)!=members: raise SystemExit("manifest revalidation failed")
+ members=a.inspect_artifacts(BASE_ARTIFACTS); manifest={"schema":"c595-matrixlr025-artifact-manifest-v1","label":LABEL,"members":members}; a.durable_json(evidence/"artifact-manifest.json",manifest); manifest_sha=revalidate_manifest(a,manifest,members)
  completion={"schema":"c595-matrixlr025-completion-v1","label":LABEL,"host":"trn21","hostname":HOSTNAME,"core_commit":args.core_commit,"base_sha256":BASE_SHA,"candidate_sha256":TRAIN_SHA,"prepare_sha256":PREPARE_SHA,"request_file_sha256":request_sha,"runtime_job_sha256":hashlib.sha256(runtime_bytes).hexdigest(),"artifact_manifest_sha256":manifest_sha,"artifact_members":members,"checkpoint_path":str(checkpoint),"checkpoint_pre_sha256":before_sha,"checkpoint_pre_bytes":before_bytes,"checkpoint_post_sha256":post_sha,"checkpoint_post_bytes":post_bytes,"checkpoint_preserved":True,"archive_sha256":hashlib.sha256(archive).hexdigest(),"archive_bytes":len(archive),"prune_authorized":False,"cache_cleanup_authorized":False,"ready_to_retrieve":True}
  a.durable_json(evidence/"ready-to-retrieve.json",completion); completion_bytes=a.artifact_bytes("ready-to-retrieve.json"); completion_sha=hashlib.sha256(completion_bytes).hexdigest()
  if json.loads(completion_bytes)!=completion or a.inspect_artifacts(BASE_ARTIFACTS|{"artifact-manifest.json","ready-to-retrieve.json"})["ready-to-retrieve.json"]["sha256"]!=completion_sha: raise SystemExit("completion revalidation failed")

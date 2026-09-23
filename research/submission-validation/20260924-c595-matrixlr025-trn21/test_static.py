@@ -71,6 +71,27 @@ with tempfile.TemporaryDirectory() as directory:
  except (SystemExit,OSError):pass
  else:raise AssertionError("ancestor symlink accepted")
 a.ROOT,a.LABEL,a.OUTPUT=old
+# Full artifact sealing lifecycle reaches a durable ready receipt and remains fail-closed.
+with tempfile.TemporaryDirectory() as directory:
+ root=pathlib.Path(directory);a.ROOT=root;a.LABEL=m.LABEL;a.OUTPUT=root/"out"/m.LABEL;a.create_output(root,a.OUTPUT)
+ for name in sorted(m.BASE_ARTIFACTS):a.durable(a.OUTPUT/name,("payload:"+name).encode())
+ members=a.inspect_artifacts(m.BASE_ARTIFACTS)
+ manifest={"schema":"c595-matrixlr025-artifact-manifest-v1","label":m.LABEL,"members":members}
+ a.durable_json(a.OUTPUT/"artifact-manifest.json",manifest)
+ manifest_sha=m.revalidate_manifest(a,manifest,members);assert len(manifest_sha)==64
+ ready={"schema":"test-ready-v1","artifact_manifest_sha256":manifest_sha,"ready_to_retrieve":True}
+ a.durable_json(a.OUTPUT/"ready-to-retrieve.json",ready)
+ assert json.loads(a.artifact_bytes("ready-to-retrieve.json"))==ready
+ assert set(a.inspect_artifacts(m.BASE_ARTIFACTS|{"artifact-manifest.json","ready-to-retrieve.json"}))==m.BASE_ARTIFACTS|{"artifact-manifest.json","ready-to-retrieve.json"}
+ (a.OUTPUT/"training.log").write_bytes(b"mutation")
+ try:m.revalidate_manifest(a,manifest,members)
+ except SystemExit:pass
+ else:raise AssertionError("post-manifest mutation accepted")
+ (a.OUTPUT/"unexpected").write_bytes(b"extra")
+ try:m.revalidate_manifest(a,manifest,members)
+ except SystemExit:pass
+ else:raise AssertionError("post-manifest extra accepted")
+a.ROOT,a.LABEL,a.OUTPUT=old
 source=(HERE/"retune_job.py").read_text()
 assert '"--mode","train","--fresh-caches"' in source and '"--mode","eval"' in source
 assert "smoke" not in source.lower().replace('"smoke":False','') or '"smoke":False' in source
