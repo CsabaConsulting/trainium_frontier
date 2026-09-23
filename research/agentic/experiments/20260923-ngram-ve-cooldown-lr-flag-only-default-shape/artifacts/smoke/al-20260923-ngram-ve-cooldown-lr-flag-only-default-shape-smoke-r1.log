@@ -1,0 +1,151 @@
+[W923 15:19:07.656495922 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+W0923 15:19:07.217000 2564527 torch/distributed/run.py:851] 
+W0923 15:19:07.217000 2564527 torch/distributed/run.py:851] *****************************************
+W0923 15:19:07.217000 2564527 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0923 15:19:07.217000 2564527 torch/distributed/run.py:851] *****************************************
+[W923 15:19:09.842209647 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W923 15:19:09.842628955 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W923 15:19:09.843597766 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W923 15:19:09.845230578 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+muon step: --compile-muon supersedes --nki-muon (a compiled region cannot contain an nki.jit call); NKI Muon disabled for this run
+neuron-ls not found in PATH; NUMA optimizations disabled
+neuron-ls not found in PATH; NUMA optimizations disabled
+neuron-ls not found in PATH; NUMA optimizations disabled
+neuron-ls not found in PATH; NUMA optimizations disabled
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+device=neuron dtype=torch.bfloat16 world_size=4
+training target=5000 steps max_seconds=300 official_budget=1800s
+gradient_clip=1 clip_after_reduce=False
+attention: nki_attn=False compile_sdpa_direct=False bf16_sdpa_input=False
+branch_precision: bf16_norm_output=False nki_local_conv=False
+model_config={
+  "sequence_len": 2048,
+  "vocab_size": 8192,
+  "n_layer": 6,
+  "n_head": 5,
+  "n_embd": 640,
+  "mlp_ratio": 4,
+  "attn_scale": 0.0,
+  "n_kv_heads": 0
+}
+num_params=592,916,844 flops_per_token=3.991901e+08
+torch.compile enabled (backend=neuron)
+micro_tokens=32,768 grad_accum_steps=4 pack_factor=4
+ngram_rmsprop: fp32_state_math=False nki=False parameter_gradient_dtypes=['torch.bfloat16'] state_math_dtypes=['torch.bfloat16']
+muon step: COMPILED body for (7, 5, 32) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 1]
+muon step: COMPILED body for (4, 640, 128) (tall=True ns_steps=5 red_dim=-1) [specialisations so far: 2]
+muon step: COMPILED body for (24, 640, 640) (tall=False ns_steps=5 red_dim=-1) [specialisations so far: 3]
+muon step: COMPILED body for (6, 640, 2560) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 4]
+muon step: COMPILED body for (6, 2560, 640) (tall=True ns_steps=5 red_dim=-1) [specialisations so far: 5]
+step 00000 | loss 9.0100 | lrm 1.000 | dt 69.08s | tok/s 1,897 | remaining_steps 4999 | remaining_time 231s | epoch 1
+step 00001 | loss 8.7974 | lrm 1.000 | dt 22.44s | tok/s 5,841 | remaining_steps 4998 | remaining_time 208s | epoch 1
+step 00002 | loss 8.4198 | lrm 0.928 | dt 0.86s | tok/s 152,326 | remaining_steps 4997 | remaining_time 207s | epoch 1
+step 00003 | loss 8.0731 | lrm 0.925 | dt 0.86s | tok/s 152,628 | remaining_steps 4996 | remaining_time 206s | epoch 1
+step 00004 | loss 7.7104 | lrm 0.921 | dt 0.86s | tok/s 152,037 | remaining_steps 4995 | remaining_time 300s | epoch 1
+step 00010 | loss 6.5454 | lrm 1.000 | dt 0.86s | tok/s 152,122 | remaining_steps 4989 | remaining_time 295s | epoch 1
+step 00020 | loss 5.8994 | lrm 1.000 | dt 0.86s | tok/s 152,040 | remaining_steps 4979 | remaining_time 286s | epoch 1
+step 00030 | loss 5.5684 | lrm 1.000 | dt 0.86s | tok/s 151,618 | remaining_steps 4969 | remaining_time 278s | epoch 1
+step 00040 | loss 5.3540 | lrm 1.000 | dt 0.86s | tok/s 152,233 | remaining_steps 4959 | remaining_time 269s | epoch 1
+step 00050 | loss 5.1043 | lrm 1.000 | dt 0.86s | tok/s 151,950 | remaining_steps 4949 | remaining_time 260s | epoch 1
+step 00060 | loss 4.7949 | lrm 1.000 | dt 0.86s | tok/s 152,506 | remaining_steps 4939 | remaining_time 252s | epoch 1
+step 00070 | loss 4.5078 | lrm 1.000 | dt 0.86s | tok/s 153,155 | remaining_steps 4929 | remaining_time 243s | epoch 1
+step 00080 | loss 4.2771 | lrm 1.000 | dt 0.86s | tok/s 152,128 | remaining_steps 4919 | remaining_time 234s | epoch 1
+step 00090 | loss 4.0592 | lrm 1.000 | dt 0.86s | tok/s 152,038 | remaining_steps 4909 | remaining_time 226s | epoch 1
+step 00100 | loss 3.9448 | lrm 0.970 | dt 0.86s | tok/s 151,655 | remaining_steps 4899 | remaining_time 217s | epoch 1
+step 00110 | loss 3.9135 | lrm 0.934 | dt 0.86s | tok/s 151,864 | remaining_steps 4889 | remaining_time 208s | epoch 1
+step 00120 | loss 3.8190 | lrm 0.897 | dt 0.86s | tok/s 151,688 | remaining_steps 4879 | remaining_time 200s | epoch 1
+step 00130 | loss 3.7595 | lrm 0.861 | dt 0.86s | tok/s 152,426 | remaining_steps 4869 | remaining_time 191s | epoch 1
+step 00140 | loss 3.6335 | lrm 0.824 | dt 0.86s | tok/s 151,855 | remaining_steps 4859 | remaining_time 183s | epoch 1
+step 00150 | loss 3.5900 | lrm 0.788 | dt 0.86s | tok/s 151,750 | remaining_steps 4849 | remaining_time 174s | epoch 1
+step 00160 | loss 3.6212 | lrm 0.752 | dt 0.86s | tok/s 151,917 | remaining_steps 4839 | remaining_time 165s | epoch 1
+step 00170 | loss 3.5741 | lrm 0.715 | dt 0.87s | tok/s 151,273 | remaining_steps 4829 | remaining_time 157s | epoch 1
+step 00180 | loss 3.5795 | lrm 0.679 | dt 0.86s | tok/s 151,929 | remaining_steps 4819 | remaining_time 148s | epoch 1
+step 00190 | loss 3.4550 | lrm 0.642 | dt 0.87s | tok/s 151,481 | remaining_steps 4809 | remaining_time 139s | epoch 1
+step 00200 | loss 3.4677 | lrm 0.606 | dt 0.86s | tok/s 151,910 | remaining_steps 4799 | remaining_time 131s | epoch 1
+step 00210 | loss 3.4316 | lrm 0.569 | dt 0.86s | tok/s 152,536 | remaining_steps 4789 | remaining_time 122s | epoch 1
+step 00220 | loss 3.4495 | lrm 0.533 | dt 0.86s | tok/s 151,623 | remaining_steps 4779 | remaining_time 113s | epoch 1
+step 00230 | loss 3.3787 | lrm 0.496 | dt 0.86s | tok/s 151,756 | remaining_steps 4769 | remaining_time 105s | epoch 1
+step 00240 | loss 3.4820 | lrm 0.460 | dt 0.86s | tok/s 151,716 | remaining_steps 4759 | remaining_time 96s | epoch 1
+step 00250 | loss 3.4634 | lrm 0.423 | dt 0.86s | tok/s 151,680 | remaining_steps 4749 | remaining_time 87s | epoch 1
+step 00260 | loss 3.3885 | lrm 0.387 | dt 0.87s | tok/s 151,399 | remaining_steps 4739 | remaining_time 79s | epoch 1
+step 00270 | loss 3.3326 | lrm 0.350 | dt 0.86s | tok/s 151,916 | remaining_steps 4729 | remaining_time 70s | epoch 1
+step 00280 | loss 3.4167 | lrm 0.314 | dt 0.86s | tok/s 152,267 | remaining_steps 4719 | remaining_time 62s | epoch 1
+step 00290 | loss 3.4182 | lrm 0.277 | dt 0.86s | tok/s 152,183 | remaining_steps 4709 | remaining_time 53s | epoch 1
+step 00300 | loss 3.3223 | lrm 0.241 | dt 0.86s | tok/s 152,090 | remaining_steps 4699 | remaining_time 44s | epoch 1
+step 00310 | loss 3.3149 | lrm 0.204 | dt 0.87s | tok/s 151,514 | remaining_steps 4689 | remaining_time 36s | epoch 1
+step 00320 | loss 3.2824 | lrm 0.168 | dt 0.86s | tok/s 151,776 | remaining_steps 4679 | remaining_time 27s | epoch 1
+step 00330 | loss 3.3193 | lrm 0.131 | dt 0.86s | tok/s 152,347 | remaining_steps 4669 | remaining_time 18s | epoch 1
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+WARNING:torch_neuronx.python_ops.dtype_autocast:Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
+WARNING:torch_neuronx.python_ops.dtype_autocast:Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
+WARNING:torch_neuronx.python_ops.dtype_autocast:Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
+WARNING:torch_neuronx.python_ops.dtype_autocast:Neuron backend does not support int64. Automatically casting to int32. Consider using int32 directly for better performance until native int64 support is added.
+---
+checkpoint_path:    out/al-20260923-ngram-ve-cooldown-lr-flag-only-default-shape-smoke-r1/final.pt
+training_seconds:  284.2
+budget_seconds:    1800
+target_steps:      5000
+max_train_seconds: 300
+startup_allowance_est: 116.6
+charged_seconds_est:   285.2
+over_budget:       False
+total_seconds:     390.2
+compiled:          True
+nki_relu2:         False
+nki_rope_norm:     True
+nki_softcap_ce:    True
+transposed_linear: False
+nki_muon:          False
+compile_muon:      True
+muon_lr_fp32:      False
+ngram_ve:          True tables=4 rows=1048576 dim=128 index_gather=True trigram=True opt=rmsprop flat_lr=False bf16=True rms_fp32_state_math=False nki_rms=False
+out_bigram:        False bf16=True gate_bias=-2.0 lr=0.0
+oneliners:         relu2_tau=0.0 mlp_sandwich=False head_gate=False hg_norm=True hg_ch=32 hg_mul=2.0 hg_bias=0.0 out_pool=False pool_layers=3 qk_shift=True qk_beta=0.0 qk_freeze=True x0_gate=False block_nudge=False nudge_site=qk qkv_norm_cse=False parallel_block=False par_coalesce=none epoch_shuffle=False epoch_shuffle_seed=1234
+engram:            False site=-1 orders=2,3 heads=1 tables=0 mult=32 mem_dim=128 e_dim=0 key_dim=0 conv_k=4 share=False bf16=True
+batch_ramp:        False grad_accum=(2, 4, 8) bounds=(0.35, 0.75) lr_exp=0.5 ref_grad_accum=4 last_grad_accum=4
+weight_ema:        False decays=(0.995,) start_frac=0.75 seeded=False updates=0
+sched_tricks:      demon_b1=False demon_final=0.55 demon_ref=0.8 demon_start=-1.0 muon_b2=0.9 muon_b2_final=0.0 depth_lr=1.0->1.0 depth_mom=0.0->0.0 depth_mom_ref=0.95
+num_steps:         334
+total_tokens_M:    43.8
+world_size:        4
+lnc:               2
+seq_len:           2048
+num_params_M:      592.9
+causality_passed:  True
+causality_max_abs: 0.000000
+public_val_bpb:    1.168643
+eval_seconds:      9.9
+eval_timeout:      1200
+eval_over_timeout: False

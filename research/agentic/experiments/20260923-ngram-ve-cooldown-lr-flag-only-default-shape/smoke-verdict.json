@@ -1,0 +1,23 @@
+{
+  "analyst_prose": "KEEP at smoke tier: correctness gates passed and step rate was within tolerance, making the candidate eligible for a full run.\nThe candidate changes only n-gram VE flat_lr from True to False, so its table learning rate follows the run\u2019s warmdown.\nValidation BPB was slightly worse: 1.168643 versus 1.165855, a delta of +0.002788.\nBoth runs completed 334 steps; candidate throughput was 1.17523 versus 1.17482 steps/s, above the supplied floor of 1.15132.\nParameter count, seed, source hashes, host, and execution configuration matched; both runs exited successfully and passed causality checks.\nPotential timing confounder: the runs occurred on different dates and had different startup overheads, so wall-time differences should not be attributed to the flag.\nThis short, single-seed smoke comparison establishes eligibility, not a quality improvement or full-run outcome.",
+  "decision": "KEEP",
+  "metrics": {
+    "bpb_delta": 0.0027880000000000127,
+    "candidate_bpb": 1.168643,
+    "candidate_params_M": 592.9,
+    "candidate_step_rate": 1.175228712174525,
+    "candidate_steps": 334.0,
+    "control_bpb": 1.165855,
+    "control_params_M": 592.9,
+    "control_step_rate": 1.1748153359127682,
+    "control_steps": 334.0,
+    "smoke_gate": {
+      "min_step_rate_ratio": 0.97
+    },
+    "step_rate_floor": 1.1513190291945128
+  },
+  "reasons": [
+    "correctness gates passed; step rate within tolerance; eligible for full run"
+  ],
+  "tier": "smoke"
+}
