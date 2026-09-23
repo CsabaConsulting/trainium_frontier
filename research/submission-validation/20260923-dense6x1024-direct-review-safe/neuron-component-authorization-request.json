@@ -1,0 +1,54 @@
+{
+  "schema": "dense6x1024-direct-neuron-component-authorization-v1",
+  "trust_root_verifier_commit": "e512c00ffcb6abb31daa4048d0ea3b719564fc6a",
+  "trust_root_report_sha256": "1fa417045cd3b0c45b22a0c6f648ea057311ff13bd4f79efe7a8dee3e7284d84",
+  "authorization": {
+    "status": "pending_independent_verifier",
+    "hardware_command_authorized": false,
+    "authorized_by_role": null,
+    "reviewed_implementation_commit": null
+  },
+  "expected_sha256": {
+    "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+    "research/fresh_start_host.py": "8c597adea7c48114bed8f50aa161fdc79b36b49c86c7315e6a58c3ca4e8f5f79",
+    "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "research/fresh_start_launch.py": "dc3479c09abe344ef8239f6ce7c06f903dd7213deca5f25fe260c7ce715afab2",
+    "research/fresh_start_backup.py": "c978fd20b6620d0d80c25f8982974e8c4b2ad009edd9da376d784f5cecc3ead3",
+    "research/fresh_start_sync.py": "ea428d33f4de18376950abbd81cfda33d3a969f75b60e3648ff552bea04fc60c",
+    "submissions/dense6x1024_direct_review/train.py": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537",
+    "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron_component_direct.py": "d7587ae6f3ef2fe3581d6fa5346c973e8e2e9bde5fe16fd41abebe5f9f1853ef",
+    "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron-component-runbook.md": "c860879067b5f5d7e582a79ce823e02284738925e4259945fd8774cde717af06",
+    "research/submission-validation/20260923-dense6x1024-direct-review-safe/proposal.json": "5f3ea81b7e19ca6bb6959f6d9731c7a61226e9764f77424f8eda35f951a47780",
+    "research/submission-validation/20260923-dense6x1024-direct-review-safe/independent-neuron-component-reverify.json": "1fa417045cd3b0c45b22a0c6f648ea057311ff13bd4f79efe7a8dee3e7284d84"
+  },
+  "request_contract": {
+    "host": "trn22",
+    "remote": "/home/ubuntu/trainium_freshstart_submission_validation_20260923_direct_component",
+    "expected_hostname": "ip-172-31-32-253",
+    "purpose": "Standalone authorized direct-wiring Neuron component gate: repeated fused MLP, repeated adaptive CE one/two lane, and two-step explicit OwnedOptimizer semantics. No training, submission, or scientific verdict.",
+    "environment_static": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "OMP_NUM_THREADS": "4",
+      "MKL_NUM_THREADS": "4",
+      "PYTHONUNBUFFERED": "1",
+      "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1"
+    },
+    "timeout_argv": [
+      "timeout",
+      "--foreground",
+      "--signal=TERM",
+      "--kill-after=60s",
+      "1200s"
+    ],
+    "torchrun_argv_prefix": [
+      "/home/ubuntu/workspace/native_venv/bin/torchrun",
+      "--standalone",
+      "--nproc_per_node=4"
+    ]
+  }
+}
