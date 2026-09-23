@@ -9,6 +9,8 @@ REQUESTS = (
     ("candidate", "candidate-fresh-start-request.json", "candidate-job.json", False),
     ("control_r2", "control-r2-fresh-start-request.json", "control-r2-job.json", True),
     ("candidate_r2", "candidate-r2-fresh-start-request.json", "candidate-r2-job.json", True),
+    ("control_r3", "control-r3-fresh-start-request.json", "control-r3-job.json", True),
+    ("candidate_r3", "candidate-r3-fresh-start-request.json", "candidate-r3-job.json", True),
 )
 tracked_logs = subprocess.check_output(
     ["git", "ls-files", "research/run-logs"], cwd=ROOT, text=True
@@ -52,7 +54,12 @@ for arm, request_name, job_name, is_r2 in REQUESTS:
     if is_r2:
         assert arm in request["command"]
         assert "research/fresh_start_sync.py" in request["fingerprint_paths"]
-        assert "post-run-evidence-contract-r2.json" in " ".join(request["fingerprint_paths"])
+        contract_revision = "r3" if arm.endswith("r3") else "r2"
+        assert f"post-run-evidence-contract-{contract_revision}.json" in " ".join(request["fingerprint_paths"])
+        if arm.endswith("r3"):
+            closure = {f"research/fresh_start_{name}.py" for name in
+                       ("launch", "sync", "guard", "host", "backup")}
+            assert closure <= set(request["fingerprint_paths"])
         assert not any(request["label"] in path for path in tracked_logs), (
             arm, "retry label is already used", request["label"]
         )
