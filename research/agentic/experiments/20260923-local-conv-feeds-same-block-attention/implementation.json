@@ -1,0 +1,16 @@
+{
+  "branch": "autoloop/20260923-local-conv-feeds-same-block-attention",
+  "candidate_commit": null,
+  "deterministic_findings": [],
+  "diff_sha256": "8ea6987f15579ecf180708dbd7d0222e754976a432d1a929a4f3650b62e73e5a",
+  "implemented_at": "2026-09-23T16:17:06Z",
+  "implementer_model_id": "us.anthropic.claude-fable-5-1",
+  "passed": false,
+  "verifier_findings": [
+    "Block.forward applies the new ordering whenever local_conv exists and USE_LOCAL_CONV_PRE_ATTN is True, including when USE_MLP_SANDWICH_NORM=True. This changes that path's same-block attention inputs, contrary to the proposal's explicit restriction to the default serial, non-sandwich path.",
+    "Restrict the early convolution to non-parallel, non-sandwich blocks and retain the historical convolution location otherwise, using complementary guards so each active convolution executes exactly once. The parallel path currently retains its numerical inputs but not its specified statement ordering.",
+    "Otherwise, the patch is small and implements the intended default-path wiring. CLI/environment control and checkpoint persistence are correctly connected, with missing checkpoint keys restoring False. No data, tokenizer, evaluation-metric, optimizer, precision, seed, distributed-launch, or time-budget changes are introduced; the existing causal convolution and attention remain intact. Runtime gates are appropriately deferred."
+  ],
+  "verifier_model_id": "us.openai.gpt-6-astra",
+  "verifier_verdict": "NEEDS_WORK"
+}

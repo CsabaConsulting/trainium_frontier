@@ -1,0 +1,98 @@
+diff --git a/train.py b/train.py
+index 607862de..60a12a06 100644
+--- a/train.py
++++ b/train.py
+@@ -1256,6 +1256,18 @@ TRAIN_LOCAL_CONV = True  # T0.1 WINNER, now the locked default (was False). Whet
+ # kernel=2) vs 2037/1.040879 (off) = +63 steps (+3.1%) and -0.002493 bpb. That 2100/1.038386 is the
+ # best-known local config and the baseline every subsequent experiment is measured against.
+ # --no-train-local-conv reproduces the old (dead-conv) behaviour for provenance.
++USE_LOCAL_CONV_PRE_ATTN = os.environ.get("NEURON_COMPETITION_R1_LOCAL_CONV_PRE_ATTN", "1") != "0"
++# Wiring repair (2026-09-23 source-history audit): commit 7518d91e moved the residual snapshot
++# that feeds Q/K/V (q_in/k_in/v_in in Block.forward) to BEFORE the local conv update for a later
++# rejected MUDD experiment, and the ordering survived -- so in the pinned default the TRAINED
++# local conv reaches only the MLP and later blocks, never the same block's attention. True (the
++# default here) applies the conv update FIRST and snapshots q_in/k_in/v_in from the conv-updated
++# residual (Canon-A placement, arXiv:2512.17351), so norm(q_in)/norm(k_in)/norm(v_in), the
++# Q/K/V projections, rope_norm, qk-shift and the VE/n-gram VE mixing all see the conv-augmented
++# stream. Zero new parameters/tensors/ops: the same conv is applied exactly once either way,
++# only its position relative to the snapshot moves. False = the 9a4caa7b ordering, byte for
++# byte. A checkpoint LACKING this key restores False (see _EVAL_TOGGLE_DEFAULTS), never True.
++# Only the default serial path is affected: the parallel block ignores q_in/k_in/v_in entirely.
+ USE_GATED_MLP = False    # SwiGLU-style: c_fc(x) * silu(c_gate(x)) instead of relu(c_fc(x))**2; adds one weight matrix
+ # gpu-closed-techniques-trn2-revisit-2026-09-12.md §3.2: the PARAMETER-MATCHED, COALESCED form of
+ # the SwiGLU above, which is the only version of it worth a second hearing on Trn2.
+@@ -3316,6 +3328,12 @@ class Block(nn.Module):
+             x = self.resid_lambda * x + self.x0_lambda * x0
+         if self.block_nudge is not None and BLOCK_NUDGE_SITE == "resid":
+             x = x + self.block_nudge * x
++        if self.local_conv is not None and USE_LOCAL_CONV_PRE_ATTN:
++            # See USE_LOCAL_CONV_PRE_ATTN: the conv update lands BEFORE the Q/K/V snapshot below,
++            # so this block's own attention reads the locally-mixed residual. The same statement
++            # (moved, not rewritten) runs in its historical place further down when the toggle
++            # is off; exactly one of the two executes.
++            x = x + self.local_conv(norm(x))
+         q_in = k_in = v_in = x
+         if self.block_nudge is not None and BLOCK_NUDGE_SITE == "qk":
+             # Exactly where --qk-shift put its perturbation (Q/K only, V untouched), minus the
+@@ -3325,7 +3343,7 @@ class Block(nn.Module):
+             # T3.9: q/k see x + beta*x_prev, v sees plain x. causal_shift_1 zero-pads at t=0
+             # (it does NOT wrap), so position t reads only positions t and t-1.
+             q_in = k_in = x + self.qk_shift_beta * causal_shift_1(x)
+-        if self.local_conv is not None:
++        if self.local_conv is not None and not USE_LOCAL_CONV_PRE_ATTN:
+             x = x + self.local_conv(norm(x))
+         if self.par_lambda_a is not None:
+             # T-parallel: attention and the MLP both read the SAME normed residual and their
+@@ -5253,6 +5271,8 @@ def clip_grad_norm_flat_(flat_grad_buffer: torch.Tensor, max_norm: float) -> tor
+ ARCH_TOGGLE_NAMES = [
+     "PACK_FACTOR", "INIT_SCALE", "USE_VE", "WINDOW_PATTERN", "SHORT_WINDOW_FRAC",
+     "ROPE_BASE", "USE_LOCAL_CONV", "LOCAL_CONV_KERNEL", "TRAIN_LOCAL_CONV", "USE_GATED_MLP",
++    # Silent-behavior class: same tensors, same shapes, different wiring of the conv into Q/K/V.
++    "USE_LOCAL_CONV_PRE_ATTN",
+     "USE_WEIGHT_CACHE", "USE_TRANSPOSED_LINEAR", "WARMDOWN_RATIO", "FINAL_LR_FRAC", "WARMUP_STEPS",
+     "WD_DECAY_TO_ZERO", "MUON_MOMENTUM_WARMUP_STEPS", "USE_DOC_MASK", "VE_WD",
+     "USE_SELECTIVE_GATE", "SELECTIVE_GATE_CHANNELS", "USE_FUSED_QKV",
+@@ -5390,6 +5410,11 @@ def current_toggles() -> dict:
+ # Capture import-time defaults once. A legacy checkpoint lacking a new toggle
+ # must not inherit it from a different checkpoint loaded earlier in this process.
+ _EVAL_TOGGLE_DEFAULTS = current_toggles()
++# Every checkpoint written before USE_LOCAL_CONV_PRE_ATTN existed was trained with the conv
++# AFTER the Q/K/V snapshot, so a payload lacking the key must rebuild that ordering (False),
++# not inherit the new default (True). Overridden here rather than in restore_eval_toggles so
++# the restore logic itself stays unchanged.
++_EVAL_TOGGLE_DEFAULTS["USE_LOCAL_CONV_PRE_ATTN"] = False
+ 
+ 
+ def restore_eval_toggles(payload: dict) -> None:
+@@ -5673,7 +5698,7 @@ def muon_depth_mults(depths: list[int | None], n_layer: int) -> tuple[list[float
+ 
+ def main() -> None:
+     global USE_LOCAL_CONV, LRM_QUANTUM, USE_TENSOR_LR_SCALARS, USE_FOREACH_OPTIM  # flags below default off these constants
+-    global LOCAL_CONV_KERNEL, TRAIN_LOCAL_CONV, USE_NKI_LOCAL_CONV
++    global LOCAL_CONV_KERNEL, TRAIN_LOCAL_CONV, USE_NKI_LOCAL_CONV, USE_LOCAL_CONV_PRE_ATTN
+     # Throughput->capacity track, Probe 3: USE_VE needs to be reachable from the CLI so the
+     # "maximally plain block" ablate-down arm can be measured. Default is the locked True, so
+     # passing nothing changes nothing. Declared here because --ve's argparse default reads it.
+@@ -6283,6 +6308,14 @@ def main() -> None:
+                              "Still zero-initialized, so step 0 is unchanged either way. Default OFF "
+                              "(bit-identical to every prior locked-baseline run) -- pass "
+                              "--train-local-conv for the A/B; only matters when --local-conv is on.")
++    parser.add_argument("--local-conv-pre-attn", action=argparse.BooleanOptionalAction,
++                        default=os.environ.get("NEURON_COMPETITION_R1_LOCAL_CONV_PRE_ATTN",
++                                               "1" if USE_LOCAL_CONV_PRE_ATTN else "0") != "0",
++                        help="apply the local conv's residual update BEFORE the Q/K/V snapshot in "
++                             "Block.forward, so each block's own attention reads the locally-mixed "
++                             "residual (wiring repair of the 7518d91e ordering; zero new "
++                             "parameters, same conv applied exactly once). --no-local-conv-pre-attn "
++                             "reproduces the 9a4caa7b ordering byte for byte. Default ON.")
+     # ---- T0.4 hyperparameter-resweep knobs -----------------------------------------------
+     # Every one of these defaults to the module-level constant, so passing none of them is
+     # bit-identical to the locked baseline; they exist so a coordinate-descent sweep runs from
+@@ -6458,6 +6491,7 @@ def main() -> None:
+     USE_NKI_LOCAL_CONV = args.nki_local_conv
+     LOCAL_CONV_KERNEL = args.local_conv_kernel  # ditto (CausalConv.__init__ reads it via the global default)
+     TRAIN_LOCAL_CONV = args.train_local_conv  # read by GPT.setup_optimizer(), called after GPT(config) below
++    USE_LOCAL_CONV_PRE_ATTN = args.local_conv_pre_attn  # read inside Block.forward as a fixed Python bool
+     # T3.1: the first four are read by GPT.__init__/CausalSelfAttention.__init__ below, the
+     # rest by setup_optimizer() / the training loop.
+     USE_NGRAM_VE = args.ngram_ve
