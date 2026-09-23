@@ -4,8 +4,8 @@ Last reconciled: 2026-09-23 02:34 UTC
 
 ## Verified repository state
 
-- Active controller checkout: `agent/control-plane-20260921` at `3b26fee1`, clean and synced to
-  `origin/agent/control-plane-20260921`
+- Active controller checkout: `agent/control-plane-20260921`, clean and synced to
+  `origin/agent/control-plane-20260921`; deployed controller code includes `3b26fee1`
 - Authoritative research branch: `origin/research/fresh-start-20260918`
 - Authoritative research commit: `9a4caa7bfab26c1d1bb59f7ef2bb8c5392d7503a`
 - Recovery-only snapshot: `origin/backup/fresh-start-20260918` at `c7f151a7`; it does not
