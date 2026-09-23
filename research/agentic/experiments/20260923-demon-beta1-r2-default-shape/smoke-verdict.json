@@ -1,0 +1,25 @@
+{
+  "analyst_prose": "KEEP at smoke tier: correctness gates passed, step rate is within tolerance, and the candidate is eligible for a full run.\nThe candidate enables --demon-beta1 with default final/reference settings of 0.55/0.8; the control disables it.\nCandidate BPB is 1.166347 versus 1.165855, a worsening of 0.000492, below the allowed 0.003 delta.\nBoth completed 334 steps, exceeding the 320-step minimum, with identical 592.9M parameter counts.\nCandidate throughput is 1.174402 steps/s versus 1.174815, about 0.035% slower and above the supplied 1.151319 floor.\nBoth passed causality checks, exited successfully, and stayed within budget and evaluation timeout.\nSource hashes, commit, seed, host, and listed training configuration otherwise match.\nPotential confounder: the runs occurred on different days, so runtime conditions and startup overhead may differ.\nThis single-seed smoke result supports progression, not a demonstrated quality improvement or full-run benefit.",
+  "decision": "KEEP",
+  "metrics": {
+    "bpb_delta": 0.0004919999999999369,
+    "candidate_bpb": 1.166347,
+    "candidate_params_M": 592.9,
+    "candidate_step_rate": 1.1744022503516176,
+    "candidate_steps": 334.0,
+    "control_bpb": 1.165855,
+    "control_params_M": 592.9,
+    "control_step_rate": 1.1748153359127682,
+    "control_steps": 334.0,
+    "smoke_gate": {
+      "max_bpb_delta": 0.003,
+      "min_candidate_steps": 320,
+      "min_step_rate_ratio": 0.97
+    },
+    "step_rate_floor": 1.1513190291945128
+  },
+  "reasons": [
+    "correctness gates passed; step rate within tolerance; eligible for full run"
+  ],
+  "tier": "smoke"
+}
