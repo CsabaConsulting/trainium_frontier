@@ -1,0 +1,41 @@
+{
+  "host": "trn22",
+  "remote": "/home/ubuntu/trainium_freshstart_submission_validation_20260923_finalgates",
+  "expected_commit": "5856c32bcd4023a5e6cf2561e5627713a3169d7c",
+  "label": "fs-20260923-dense6x1024-lean-review-fresh-neuron-contract-r3",
+  "purpose": "Bounded corrected single-import Neuron contract against the fresh review-clean checkpoint; public evaluation remains gated on exact contract metrics and clean postflight.",
+  "command": [
+    "timeout",
+    "--signal=TERM",
+    "--kill-after=15s",
+    "600s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "research/submission-validation/20260923-dense6x1024-lean-review-rehearsal/contract_check_review.py",
+    "--train-py",
+    "submissions/dense6x1024_lean_review/train.py",
+    "--reference-train-py",
+    "submissions/dense6x1024_lean_review/train.py",
+    "--checkpoint",
+    "/home/ubuntu/workspace/submission_validation_20260923_review1/out/fs-20260923-dense6x1024-lean-review-cold-r1/out/final.pt",
+    "--device",
+    "neuron"
+  ],
+  "environment": {
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "fingerprint_paths": [
+    "submissions/dense6x1024_lean_review/train.py",
+    "submissions/dense6x1024_lean_review/launch-command.txt",
+    "research/submission-validation/20260923-dense6x1024-lean-review-rehearsal/contract_check_review.py",
+    "research/submission-validation/20260923-dense6x1024-lean-review-rehearsal/harness-verifier-r3.json",
+    "research/submission-validation/20260923-dense6x1024-lean-review-rehearsal/proposal.json",
+    "research/scratch/submission_rehearsal.py"
+  ],
+  "candidate_sha256": "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344",
+  "checkpoint_sha256": "be040a5dbf7fc2750d1f3f2770fc39ab7a5c3100dfd670921257607abaa4e0ec",
+  "checkpoint_bytes": 469831009,
+  "supervisor_timeout_seconds": 600,
+  "public_evaluation_authorized_by_this_request": false
+}

@@ -1,0 +1,150 @@
+{
+  "receipt_version": 1,
+  "role": "operator",
+  "label": "fs-20260923-dense6x1024-lean-review-fresh-neuron-contract-r3",
+  "status": "FAIL_TIMEOUT",
+  "host": {
+    "box": "trn22",
+    "hostname": "ip-172-31-32-253",
+    "immutable_worktree": "/home/ubuntu/trainium_freshstart_submission_validation_20260923_finalgates",
+    "submission_staging_repository": "/home/ubuntu/workspace/submission_validation_20260923_review1"
+  },
+  "source": {
+    "git_commit": "5856c32bcd4023a5e6cf2561e5627713a3169d7c",
+    "candidate_train_sha256": "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344",
+    "contract_harness_sha256": "9e69f0be7e71da712f4b67f8862ade35228d4df01d1ba87bd23abe8a61774f35",
+    "checkpoint_path": "/home/ubuntu/workspace/submission_validation_20260923_review1/out/fs-20260923-dense6x1024-lean-review-cold-r1/out/final.pt",
+    "checkpoint_bytes": 469831009,
+    "checkpoint_sha256": "be040a5dbf7fc2750d1f3f2770fc39ab7a5c3100dfd670921257607abaa4e0ec",
+    "source_diff_after": [],
+    "checkpoint_unchanged_after": true
+  },
+  "launch": {
+    "repository_launcher": "research/fresh_start_launch.py",
+    "repository_guard": "research/fresh_start_guard.py",
+    "launcher_ssh_key_compatibility_override": "The launcher code was executed unmodified through runpy after overriding only fresh_start_sync.SSH to the readable local key path /home/poojith-devan/Desktop/Trainium/trn2.pem; request validation, remote preflight, host lock, guard and artifact behavior were unchanged.",
+    "dispatch_requested_at": "2026-09-23T07:27:13.692941+00:00",
+    "dispatch_returncode": 0,
+    "guard_pid": 2632086,
+    "child_pid": 2632087,
+    "guard_started_at": "2026-09-23T07:27:22.526640+00:00",
+    "explicit_timeout_seconds": 600,
+    "neuron_logical_nc_config": "2",
+    "neuron_cc_flags": "--optlevel=1",
+    "host_lock_held_through_postflight": true
+  },
+  "preflight": {
+    "started_at": "2026-09-23T07:27:19.315593+00:00",
+    "completed_at": "2026-09-23T07:27:22.493993+00:00",
+    "passed": true,
+    "failures": [],
+    "mem_available_bytes": 131553267712,
+    "free_bytes": 9253969920,
+    "free_inodes": 25093245,
+    "device_fuser_returncode": 1,
+    "neuron_process_count": 0,
+    "sdk_capture_returncode": 0,
+    "monitor_returncode": 124,
+    "kernel_relevant_line_count": 42,
+    "note": "The complete preflight artifact preserves the historical kernel reset lines returned since the last guarded postflight."
+  },
+  "contract": {
+    "command_returncode": 124,
+    "guard_error": null,
+    "interrupted_signals": [],
+    "completed_at": "2026-09-23T07:37:28.065087+00:00",
+    "metrics_emitted": false,
+    "passed": false,
+    "metric_values": null,
+    "frozen": null,
+    "no_hooks": null,
+    "state_and_buffers_unchanged": null,
+    "no_training_adapters_at_import": null,
+    "reference_module_independent": null,
+    "reference_model_independent": null,
+    "second_model_independent": null,
+    "failure": "The bounded command reached its explicit 600-second timeout before emitting a REVIEW_CLEAN_SUBMISSION_CONTRACT result."
+  },
+  "guard_cleanup": {
+    "actions": [],
+    "remaining_owned_processes": [],
+    "artifacts_deleted": [],
+    "caches_deleted": [],
+    "driver_modified": false
+  },
+  "postflight": {
+    "host_clean": true,
+    "failures": [],
+    "mem_available_bytes": 131540819968,
+    "free_bytes": 9253421056,
+    "free_inodes": 25093196,
+    "device_fuser_returncode": 1,
+    "neuron_process_count": 0,
+    "relevant_processes": [],
+    "kernel_relevant_lines": [
+      "2026-09-23T07:27:25+00:00 ip-172-31-32-253 kernel: neuron:nr_reset_thread_fn: nd0: initiating TPB reset request 2632088",
+      "2026-09-23T07:27:34+00:00 ip-172-31-32-253 kernel: neuron:nr_reset_thread_fn: nd0: reset request 2632088 completed"
+    ],
+    "final_audit_at": "2026-09-23T07:39:20Z",
+    "host_lock_free_after": true,
+    "nonself_matching_processes_after": 0,
+    "evaluation_sandbox_absent": true,
+    "submission_staging_git_clean": true,
+    "immutable_source_clean": true,
+    "final_free_bytes": 9253396480,
+    "final_free_inodes": 25093195
+  },
+  "protected_public_evaluation": {
+    "label": "fs-20260923-dense6x1024-lean-review-fresh-public20m-r1",
+    "requested_tokens": 20971520,
+    "started": false,
+    "processed_tokens": 0,
+    "processed_bytes": 0,
+    "returncode": null,
+    "val_bpb": null,
+    "reason": "The prerequisite r3 fresh-checkpoint Neuron contract timed out without emitting metrics."
+  },
+  "artifacts": [
+    {
+      "path": "fresh-neuron-contract-r3-request.json",
+      "bytes": 1953,
+      "sha256": "af8094144965a775db954c9424e1b3eed5f58c9f6e47cec3f87a0b8744a24298"
+    },
+    {
+      "path": "fresh-neuron-contract-r3.dispatch.json",
+      "bytes": 2625,
+      "sha256": "17a1fec343a96415a2d42043d401c502154926688abda719993cb4ba2b9ca4d0"
+    },
+    {
+      "path": "fresh-neuron-contract-r3.launch.json",
+      "bytes": 3650,
+      "sha256": "f027b84b40896bfdbdbec63e07edec9cc62235438f3443e1c2484dcf90cd11a7"
+    },
+    {
+      "path": "fresh-neuron-contract-r3.job.json",
+      "bytes": 3650,
+      "sha256": "f027b84b40896bfdbdbec63e07edec9cc62235438f3443e1c2484dcf90cd11a7"
+    },
+    {
+      "path": "fresh-neuron-contract-r3.process.json",
+      "bytes": 786,
+      "sha256": "a818aca9f777350a667009a35aa55414bf2dc068b65886f3cc7b21b88a797568"
+    },
+    {
+      "path": "fresh-neuron-contract-r3.preflight.json",
+      "bytes": 39171,
+      "sha256": "9dbc65a90d7e05a08b4f4c48d29de6258332f0df895b61e4fc5891e709e4582e"
+    },
+    {
+      "path": "fresh-neuron-contract-r3.postflight.json",
+      "bytes": 9219,
+      "sha256": "37200508f070f18c0db91a054a6e8bd401abbe8a777294804afe5c9f5a2a4630"
+    },
+    {
+      "path": "fresh-neuron-contract-r3.log",
+      "bytes": 952,
+      "sha256": "9293fa7e176ad8b8c64f753aab611a2318fede775215b70b33a1f502610331f2"
+    }
+  ],
+  "scientific_verdict": null
+}
