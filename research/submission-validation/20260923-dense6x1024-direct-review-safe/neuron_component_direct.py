@@ -1182,6 +1182,34 @@ def exact_request(args, identity: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def validate_launcher_manifest(
+    payload: dict[str, Any], authorized_request: dict[str, Any],
+    required_hashes: dict[str, str], args, suffix: str,
+) -> None:
+    augmented = {
+        "started_at", "hostname", "git_commit", "source_dirty",
+        "preflight_free_bytes", "source_sha256",
+    }
+    if set(payload) != set(authorized_request) | augmented:
+        raise RuntimeError(f"{suffix} manifest schema/key mismatch")
+    observed_request = {key: payload[key] for key in authorized_request}
+    if observed_request != authorized_request:
+        raise RuntimeError(f"{suffix} exact authorized request mismatch")
+    if (
+        payload.get("git_commit") != args.expected_commit
+        or payload.get("hostname") != args.expected_hostname
+        or payload.get("remote") != str(ROOT)
+        or payload.get("source_dirty") is not False
+    ):
+        raise RuntimeError(f"{suffix} immutable checkout identity mismatch")
+    if payload.get("source_sha256") != required_hashes:
+        raise RuntimeError(f"{suffix} fingerprint mismatch")
+    if not isinstance(payload["started_at"], str) or not isinstance(
+        payload["preflight_free_bytes"], int
+    ):
+        raise RuntimeError(f"{suffix} launcher augmentation type mismatch")
+
+
 def outer_receipts(args, identity: dict[str, Any]) -> dict[str, Any]:
     authorized_request = exact_request(args, identity)
     suffixes = ("launch.json", "job.json", "preflight.json")
@@ -1193,30 +1221,11 @@ def outer_receipts(args, identity: dict[str, Any]) -> dict[str, Any]:
         payload = json.loads(path.read_text())
         receipts[suffix] = {"path": str(path), "sha256": sha256(path)}
         if suffix != "preflight.json":
-            augmented = {
-                "started_at", "hostname", "git_commit", "source_dirty",
-                "preflight_free_bytes", "source_sha256",
-            }
-            if set(payload) != set(authorized_request) | augmented:
-                raise RuntimeError(f"{suffix} manifest schema/key mismatch")
-            observed_request = {key: payload[key] for key in authorized_request}
-            if observed_request != authorized_request:
-                raise RuntimeError(f"{suffix} exact authorized request mismatch")
-            if (
-                payload.get("git_commit") != args.expected_commit
-                or payload.get("hostname") != args.expected_hostname
-                or payload.get("remote") != str(ROOT)
-                or payload.get("source_dirty") is not False
-            ):
-                raise RuntimeError(f"{suffix} immutable checkout identity mismatch")
             required_hashes = dict(identity["authorization"]["expected_sha256"])
             required_hashes[AUTHORIZATION_RELATIVE_PATH] = identity["authorization"]["sha256"]
-            if payload.get("source_sha256") != required_hashes:
-                raise RuntimeError(f"{suffix} fingerprint mismatch")
-            if not isinstance(payload["started_at"], str) or not isinstance(
-                payload["preflight_free_bytes"], int
-            ):
-                raise RuntimeError(f"{suffix} launcher augmentation type mismatch")
+            validate_launcher_manifest(
+                payload, authorized_request, required_hashes, args, suffix
+            )
         else:
             if (
                 payload.get("label") != args.run_label
