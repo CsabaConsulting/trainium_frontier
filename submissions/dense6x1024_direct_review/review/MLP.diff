@@ -1,0 +1,17 @@
+--- lean_review
++++ direct_review
+@@ -8,5 +8,12 @@
+         self.c_proj = Linear(hidden, config.n_embd, bias=False)
+
+     def forward(self, x: torch.Tensor, fc: torch.Tensor | None=None) -> torch.Tensor:
+-        h = self.c_fc(x) if fc is None else fc
+-        return self.c_proj(F.relu(h).square())
++        tokens = x.numel() // x.shape[-1]
++        tile = min(512, tokens // 2)
++        if not self.training or fc is not None or x.dtype != torch.bfloat16 or (tile < 128) or tile % 128 or tokens % (2 * tile):
++            h = self.c_fc(x) if fc is None else fc
++            return self.c_proj(F.relu(h).square())
++        up = _linear_weight(self.c_fc, x.dtype)
++        down = _linear_weight(self.c_proj, x.dtype)
++        result = _FusedMLP.apply(x.reshape(tokens, x.shape[-1]), up, down)
++        return result.reshape(x.shape)

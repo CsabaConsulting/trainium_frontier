@@ -1,0 +1,94 @@
+--- lean_review
++++ direct_review
+@@ -1,35 +1,60 @@
+ @nki.jit
+-def _softcap_ce_bwd(z, tgt, lse, g):
+-    """Gradient of _softcap_ce_fwd w.r.t. the raw (pre-softcap) logits z.
++def _softcap_ce_bwd(z, tgt, lse, g, lanes: int=2, round_bf16_output: bool=False):
++    """Return [N, V] gradients, normally in the logits dtype.
+
+-        g is the [N, 1] fp32 upstream gradient of the per-token loss vector, so
+-        this implements the reduction="none" backward; mean/sum scaling is left
+-        to autograd outside the kernel.
++        Args:
++            z, tgt, lse: Same inputs and saved logsumexp as forward.
++            g: Arbitrary FP32 [N, 1] upstream loss gradient.
++            lanes: Physical cores in the matching launch grid.
++            round_bf16_output: Separately gated head-only contract. Preserve
++                FP32 logits/arithmetic, but round the output to BF16 for a
++                consumer that already has that backward cast boundary.
++        Returns:
++            Original FP32 softcap15/CE derivative, rounded at the output when
++            the input was BF16 or round_bf16_output is enabled. The latter
++            requires a matching consumer boundary; it is not exact for an
++            arbitrary FP32-logit leaf's gradient.
+         """
+-    N, V = z.shape
+-    P = _NKI_PARTITION
+-    S = LOGIT_SOFTCAP
+-    dz = nl.ndarray((N, V), dtype=nl.float32, buffer=nl.shared_hbm)
+-    idx = nl.ndarray((P, V), dtype=nl.float32, buffer=nl.sbuf)
+-    nisa.iota(dst=idx, pattern=[[1, V]], offset=0, channel_multiplier=0)
+-    for i in nl.affine_range(N // P):
+-        rows = nl.ds(i * P, P)
+-        zb = nl.ndarray((P, V), dtype=nl.float32, buffer=nl.sbuf)
+-        nisa.dma_copy(dst=zb, src=z[rows])
+-        cb = nl.ndarray((P, 1), dtype=nl.float32, buffer=nl.sbuf)
+-        nisa.dma_copy(dst=cb, src=tgt[rows])
+-        gb = nl.ndarray((P, 1), dtype=nl.float32, buffer=nl.sbuf)
+-        nisa.dma_copy(dst=gb, src=g[rows])
+-        nb = nl.ndarray((P, 1), dtype=nl.float32, buffer=nl.sbuf)
+-        nisa.dma_copy(dst=nb, src=lse[rows])
+-        nisa.tensor_scalar(dst=nb, data=nb, op0=nl.multiply, operand0=-1.0)
+-        tb = nl.ndarray((P, V), dtype=nl.float32, buffer=nl.sbuf)
+-        nisa.activation(dst=tb, op=nl.tanh, data=zb, scale=1.0 / S)
+-        nisa.activation(dst=zb, op=nl.exp, data=tb, scale=S, bias=nb)
+-        mb = nl.ndarray((P, V), dtype=nl.float32, buffer=nl.sbuf)
+-        nisa.tensor_scalar(dst=mb, data=idx, op0=nl.equal, operand0=cb, op1=nl.multiply, operand1=gb)
+-        nisa.scalar_tensor_tensor(dst=zb, data=zb, op0=nl.multiply, operand0=gb, op1=nl.subtract, operand1=mb)
+-        nisa.activation(dst=mb, op=nl.square, data=tb)
+-        nisa.scalar_tensor_tensor(dst=tb, data=mb, op0=nl.subtract, operand0=1.0, reverse0=True, op1=nl.multiply, operand1=zb)
+-        nisa.dma_copy(dst=dz[rows], src=tb)
++    rows_count, vocab = z.shape
++    partitions = 128
++    softcap = 15.0
++    assert lanes in (1, 2) and rows_count % (partitions * lanes) == 0
++    assert z.dtype in (nl.float32, nl.bfloat16) and tgt.dtype == nl.float32
++    assert lse.dtype == nl.float32 and g.dtype == nl.float32
++    assert tgt.shape == (rows_count, 1) and lse.shape == (rows_count, 1)
++    assert g.shape == (rows_count, 1)
++    output_dtype = nl.bfloat16 if round_bf16_output else z.dtype
++    dz = nl.ndarray(z.shape, dtype=output_dtype, buffer=nl.shared_hbm)
++    indices = nl.ndarray((partitions, vocab), dtype=nl.float32, buffer=nl.sbuf)
++    nisa.iota(dst=indices, pattern=[[1, vocab]], offset=0, channel_multiplier=0)
++    for tile in nl.affine_range(rows_count // (partitions * lanes)):
++        rows = nl.ds((tile * lanes + nl.program_id(0)) * partitions, partitions)
++        logits = nl.ndarray((partitions, vocab), dtype=nl.float32, buffer=nl.sbuf)
++        labels = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
++        gradient = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
++        negative_lse = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
++        if z.dtype == nl.bfloat16:
++            source = nl.ndarray((partitions, vocab), dtype=nl.bfloat16, buffer=nl.sbuf)
++            nisa.dma_copy(dst=source, src=z[rows])
++            nisa.tensor_copy(dst=logits, src=source)
++        else:
++            nisa.dma_copy(dst=logits, src=z[rows])
++        nisa.dma_copy(dst=labels, src=tgt[rows])
++        nisa.dma_copy(dst=gradient, src=g[rows])
++        nisa.dma_copy(dst=negative_lse, src=lse[rows])
++        nisa.tensor_scalar(dst=negative_lse, data=negative_lse, op0=nl.multiply, operand0=-1.0)
++        capped_unit = nl.ndarray((partitions, vocab), dtype=nl.float32, buffer=nl.sbuf)
++        nisa.activation(dst=capped_unit, op=nl.tanh, data=logits, scale=1.0 / softcap)
++        nisa.activation(dst=logits, op=nl.exp, data=capped_unit, scale=softcap, bias=negative_lse)
++        temporary = nl.ndarray((partitions, vocab), dtype=nl.float32, buffer=nl.sbuf)
++        nisa.tensor_scalar(dst=temporary, data=indices, op0=nl.equal, operand0=labels, op1=nl.multiply, operand1=gradient)
++        nisa.scalar_tensor_tensor(dst=logits, data=logits, op0=nl.multiply, operand0=gradient, op1=nl.subtract, operand1=temporary)
++        nisa.activation(dst=temporary, op=nl.square, data=capped_unit)
++        nisa.scalar_tensor_tensor(dst=capped_unit, data=temporary, op0=nl.subtract, operand0=1.0, reverse0=True, op1=nl.multiply, operand1=logits)
++        if output_dtype == nl.bfloat16:
++            rounded = nl.ndarray((partitions, vocab), dtype=nl.bfloat16, buffer=nl.sbuf)
++            nisa.tensor_copy(dst=rounded, src=capped_unit)
++            nisa.dma_copy(dst=dz[rows], src=rounded)
++        else:
++            nisa.dma_copy(dst=dz[rows], src=capped_unit)
+     return dz

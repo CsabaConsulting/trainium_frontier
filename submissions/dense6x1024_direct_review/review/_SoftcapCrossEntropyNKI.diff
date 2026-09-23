@@ -1,0 +1,19 @@
+--- lean_review
++++ direct_review
+@@ -8,7 +8,8 @@
+
+     @staticmethod
+     def forward(ctx, z, tgt):
+-        loss, lse = _softcap_ce_fwd(z, tgt)
++        lanes = selected_lanes(z.shape[0])
++        loss, lse = _softcap_ce_fwd_native[lanes](z, tgt, lanes, True)
+         ctx.save_for_backward(z, tgt, lse)
+         return loss.reshape(-1)
+
+@@ -16,4 +17,5 @@
+     def backward(ctx, grad_out):
+         z, tgt, lse = ctx.saved_tensors
+         g = grad_out.reshape(-1, 1).float().contiguous()
+-        return (_softcap_ce_bwd(z, tgt, lse, g), None)
++        lanes = selected_lanes(z.shape[0])
++        return (_softcap_ce_bwd_native[lanes](z, tgt, lse, g, lanes), None)

@@ -1,0 +1,20 @@
+--- lean_review
++++ direct_review
+@@ -89,6 +89,8 @@
+         return (xb, yb, state)
+     x, y, loader_state = fetch()
+     optimizer = model.setup_optimizer()
++    assert dist.is_initialized() and dist.get_world_size() == 4
++    owned_optimizer = OwnedOptimizer(optimizer)
+     cached_linears = [m for m in model.modules() if isinstance(m, Linear)]
+     clip_main_params = list(orig_model.parameters())
+     loop_started = time.monotonic()
+@@ -121,7 +123,7 @@
+                 group['momentum'] = muon_momentum(step, wd_progress)
+                 group['weight_decay'] = WEIGHT_DECAY * (1.0 - wd_progress)
+                 group['beta2'] = 0.9
+-        optimizer.step(update_adamw=True)
++        owned_optimizer.step(update_adamw=True)
+         for m in cached_linears:
+             m.refresh_weight_cache(COMPUTE_DTYPE)
+         synchronize(device)

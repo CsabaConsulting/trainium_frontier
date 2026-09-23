@@ -1,0 +1,112 @@
+--- lean_review
++++ direct_review
+@@ -1,46 +1,67 @@
+ @nki.jit
+-def _softcap_ce_fwd(z, tgt):
+-    """Per-token softcap+cross-entropy forward for z [N, V] fp32.
++def _softcap_ce_fwd(z, tgt, lanes: int=2, target_gather: bool=False):
++    """Compute unreduced loss and saved logsumexp with unchanged softcap15.
+
+-        tgt is [N, 1] fp32 target class indices (exact for V < 2**24). Returns
+-        (loss [N, 1], lse [N, 1]), both fp32; lse is saved for the backward.
++        Args:
++            z: Contiguous FP32 or BF16 [N, V] logits. BF16 is widened in
++                SBUF; all loss arithmetic and saved statistics remain FP32.
++            tgt: FP32 [N, 1] class indices, exact integers in [0, V).
++            lanes: Physical cores in the matching launch grid.
++            target_gather: Gather one SBUF element per row instead of mask/sum.
++        Returns:
++            FP32 [N, 1] loss and logsumexp, as in the original kernel.
+         """
+-    N, V = z.shape
+-    P = _NKI_PARTITION
+-    S = LOGIT_SOFTCAP
+-    loss = nl.ndarray((N, 1), dtype=nl.float32, buffer=nl.shared_hbm)
+-    lse = nl.ndarray((N, 1), dtype=nl.float32, buffer=nl.shared_hbm)
+-    idx = nl.ndarray((P, V), dtype=nl.float32, buffer=nl.sbuf)
+-    nisa.iota(dst=idx, pattern=[[1, V]], offset=0, channel_multiplier=0)
+-    C = 512 if V > 512 and V % 512 == 0 else V
+-    R = V // C
+-    for i in nl.affine_range(N // P):
+-        rows = nl.ds(i * P, P)
+-        zb = nl.ndarray((P, V), dtype=nl.float32, buffer=nl.sbuf)
+-        nisa.dma_copy(dst=zb, src=z[rows])
+-        cb = nl.ndarray((P, 1), dtype=nl.float32, buffer=nl.sbuf)
+-        nisa.dma_copy(dst=cb, src=tgt[rows])
+-        tb = nl.ndarray((P, V), dtype=nl.float32, buffer=nl.sbuf)
+-        nisa.activation(dst=tb, op=nl.tanh, data=zb, scale=1.0 / S)
+-        mb = nl.ndarray((P, V), dtype=nl.float32, buffer=nl.sbuf)
+-        nisa.tensor_scalar(dst=mb, data=idx, op0=nl.equal, operand0=cb)
+-        nisa.tensor_tensor(dst=mb, data1=mb, data2=tb, op=nl.multiply)
+-        tc = nl.ndarray((P, 1), dtype=nl.float32, buffer=nl.sbuf)
+-        nisa.tensor_reduce(dst=tc, op=nl.add, data=mb, axis=(1,))
+-        yc = nl.ndarray((P, 1), dtype=nl.float32, buffer=nl.sbuf)
+-        nisa.tensor_scalar(dst=yc, data=tc, op0=nl.multiply, operand0=S)
+-        nyc = nl.ndarray((P, 1), dtype=nl.float32, buffer=nl.sbuf)
+-        nisa.tensor_scalar(dst=nyc, data=tc, op0=nl.multiply, operand0=-S)
+-        parts = nl.ndarray((P, R), dtype=nl.float32, buffer=nl.sbuf)
+-        for k in nl.affine_range(R):
+-            cols = nl.ds(k * C, C)
+-            nisa.activation(dst=zb[:, cols], op=nl.exp, data=tb[:, cols], scale=S, bias=nyc, reduce_op=nl.add, reduce_res=parts[:, nl.ds(k, 1)], reduce_cmd=nisa.reduce_cmd.reset_reduce)
+-        d = nl.ndarray((P, 1), dtype=nl.float32, buffer=nl.sbuf)
+-        nisa.tensor_reduce(dst=d, op=nl.add, data=parts, axis=(1,))
+-        lo = nl.ndarray((P, 1), dtype=nl.float32, buffer=nl.sbuf)
+-        nisa.activation(dst=lo, op=nl.log, data=d)
+-        lb = nl.ndarray((P, 1), dtype=nl.float32, buffer=nl.sbuf)
+-        nisa.tensor_tensor(dst=lb, data1=yc, data2=lo, op=nl.add)
+-        nisa.dma_copy(dst=lse[rows], src=lb)
+-        nisa.dma_copy(dst=loss[rows], src=lo)
++    rows_count, vocab = z.shape
++    partitions = 128
++    softcap = 15.0
++    assert lanes in (1, 2) and rows_count % (partitions * lanes) == 0
++    assert z.dtype in (nl.float32, nl.bfloat16) and tgt.dtype == nl.float32
++    assert tgt.shape == (rows_count, 1) and vocab % 512 == 0
++    loss = nl.ndarray((rows_count, 1), dtype=nl.float32, buffer=nl.shared_hbm)
++    lse = nl.ndarray((rows_count, 1), dtype=nl.float32, buffer=nl.shared_hbm)
++    if not target_gather:
++        indices = nl.ndarray((partitions, vocab), dtype=nl.float32, buffer=nl.sbuf)
++        nisa.iota(dst=indices, pattern=[[1, vocab]], offset=0, channel_multiplier=0)
++    chunk = 512
++    chunks = vocab // chunk
++    for tile in nl.affine_range(rows_count // (partitions * lanes)):
++        first = (tile * lanes + nl.program_id(0)) * partitions
++        rows = nl.ds(first, partitions)
++        logits = nl.ndarray((partitions, vocab), dtype=nl.float32, buffer=nl.sbuf)
++        labels = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
++        if z.dtype == nl.bfloat16:
++            source = nl.ndarray((partitions, vocab), dtype=nl.bfloat16, buffer=nl.sbuf)
++            nisa.dma_copy(dst=source, src=z[rows])
++            nisa.tensor_copy(dst=logits, src=source)
++        else:
++            nisa.dma_copy(dst=logits, src=z[rows])
++        nisa.dma_copy(dst=labels, src=tgt[rows])
++        capped_unit = nl.ndarray((partitions, vocab), dtype=nl.float32, buffer=nl.sbuf)
++        nisa.activation(dst=capped_unit, op=nl.tanh, data=logits, scale=1.0 / softcap)
++        target_unit = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
++        if target_gather:
++            gather_indices = nl.ndarray((partitions, 1), dtype=nl.uint32, buffer=nl.sbuf)
++            nisa.tensor_copy(dst=gather_indices, src=labels)
++            nisa.nc_n_gather(dst=target_unit, data=capped_unit, indices=gather_indices)
++        else:
++            mask = nl.ndarray((partitions, vocab), dtype=nl.float32, buffer=nl.sbuf)
++            nisa.tensor_scalar(dst=mask, data=indices, op0=nl.equal, operand0=labels)
++            nisa.tensor_tensor(dst=mask, data1=mask, data2=capped_unit, op=nl.multiply)
++            nisa.tensor_reduce(dst=target_unit, op=nl.add, data=mask, axis=(1,))
++        target_value = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
++        negative_target = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
++        nisa.tensor_scalar(dst=target_value, data=target_unit, op0=nl.multiply, operand0=softcap)
++        nisa.tensor_scalar(dst=negative_target, data=target_unit, op0=nl.multiply, operand0=-softcap)
++        partial_sums = nl.ndarray((partitions, chunks), dtype=nl.float32, buffer=nl.sbuf)
++        for part in nl.affine_range(chunks):
++            columns = nl.ds(part * chunk, chunk)
++            nisa.activation(dst=logits[:, columns], op=nl.exp, data=capped_unit[:, columns], scale=softcap, bias=negative_target, reduce_op=nl.add, reduce_res=partial_sums[:, nl.ds(part, 1)], reduce_cmd=nisa.reduce_cmd.reset_reduce)
++        denominator = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
++        nisa.tensor_reduce(dst=denominator, op=nl.add, data=partial_sums, axis=(1,))
++        log_denominator = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
++        nisa.activation(dst=log_denominator, op=nl.log, data=denominator)
++        logsumexp = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
++        nisa.tensor_tensor(dst=logsumexp, data1=target_value, data2=log_denominator, op=nl.add)
++        nisa.dma_copy(dst=loss[rows], src=log_denominator)
++        nisa.dma_copy(dst=lse[rows], src=logsumexp)
+     return (loss, lse)

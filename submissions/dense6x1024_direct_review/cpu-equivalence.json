@@ -1,0 +1,49 @@
+{
+  "adaptive_nki_ce_static": {
+    "backward_kernel_ast_equal": true,
+    "class_calls_wrapped_backward": true,
+    "class_calls_wrapped_forward": true,
+    "class_selects_lanes": true,
+    "forward_kernel_ast_equal": true
+  },
+  "all_cpu_static_checks_passed": true,
+  "candidate": {
+    "path": "submissions/dense6x1024_direct_review/train.py",
+    "sha256": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537"
+  },
+  "evaluation": {
+    "causal_prefix_exact": true,
+    "logits_exact": true,
+    "max_abs_logit_difference": 0.0,
+    "source_checkpoint_loads_in_direct": true
+  },
+  "fused_mlp": {
+    "down_gradient_exact": true,
+    "input_gradient_exact": true,
+    "output_exact": true,
+    "up_gradient_exact": true
+  },
+  "hardware_residual": "Adaptive CE launch wrappers, NKI compilation, full four-rank LNC2 ownership, timing, and fresh-run quality require the independent Trainium validation gates.",
+  "initialization": {
+    "rng_exact": true,
+    "state_dict_exact": true
+  },
+  "owned_optimizer": {
+    "source_adapter_matches_explicit_owner": true,
+    "two_rank_gloo_exit_code": 0
+  },
+  "schema": "dense6x1024-direct-review-cpu-equivalence-v1",
+  "scope": "local CPU/static implementation evidence; no Trainium execution and no independent approval",
+  "source": {
+    "path": "submissions/dense6x1024_lean_review/train.py",
+    "sha256": "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344"
+  },
+  "static": {
+    "launch_command_exact": true,
+    "review_trigger_hits": [],
+    "runtime_ce_global_assignment_absent": true,
+    "runtime_forward_assignment_absent": true,
+    "runtime_step_assignment_absent": true,
+    "source_sha256_pinned": true
+  }
+}

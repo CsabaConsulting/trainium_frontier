@@ -1,0 +1,37 @@
+{
+ "package": "dense6x1024_direct_review",
+ "derived_from": {
+  "package": "dense6x1024_lean_review",
+  "train_py_sha256": "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344",
+  "source_package": {
+   "package": "dense6x1024_lean",
+   "train_py_sha256": "4c6d998b0598a46c2a7e97af444e0d215a415e0b9ee739c0394ddfaca1e695cc",
+   "source_package": {
+    "package": "dense6x1024_public0992851",
+    "train_py_sha256": "35c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2",
+    "source_commit": "1da6c0714c0755fd3b078e972fbb0aefbb43bf6d",
+    "public_val_bpb": 0.9928513116311253
+   }
+  }
+ },
+ "builder": {
+  "path": "research/build_direct_review_submission.py",
+  "sha256": "9830d13bf9e3672ac21978743b769e6c4ab83c56c6251012f4b725348a0ee7b0"
+ },
+ "output": {
+  "train_py_sha256": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537",
+  "lines": 1602,
+  "bytes": 85556
+ },
+ "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public",
+ "launch_command_identical_to_source": true,
+ "edits": [
+  "directly integrated the validated fused MLP forward/backward path",
+  "directly integrated the validated adaptive NKI cross-entropy launch path",
+  "directly instantiated optimizer ownership in main",
+  "removed runtime method/global replacement helpers and integration logs"
+ ],
+ "static_gates_passed": true,
+ "cpu_equivalence": "see cpu-equivalence.json",
+ "hardware_validation": "NOT RUN: independent review, Neuron validation, source replay and a cold rehearsal remain required before any submission"
+}
