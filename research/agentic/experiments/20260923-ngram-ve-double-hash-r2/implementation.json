@@ -1,0 +1,18 @@
+{
+  "branch": "autoloop/20260923-ngram-ve-double-hash-r2",
+  "candidate_commit": "05422cf0503821f9031e349613eb38db1af8f5c4",
+  "deterministic_findings": [],
+  "diff_sha256": "e58b3521d79194742ed35f15fb9fcec746628f87c117eae0b333e8ace079953b",
+  "implemented_at": "2026-09-23T14:45:32Z",
+  "implementer_model_id": "us.anthropic.claude-fable-5-1",
+  "passed": true,
+  "verifier_findings": [
+    "The train.py-only patch implements one attributable architecture change: averaging two same-table gathers for every existing bigram/trigram VE lookup, without adding parameters or changing table geometry, gates, projections, optimizer settings, precision flags, or kernels.",
+    "The primary hash remains unchanged. The alternate hash uses the specified disjoint primes and XOR salt on the same causal token-history tensors. Products, including padding ID 8192, fit in nonnegative int32; both hashes use the existing modulus.",
+    "The default-on toggle has the neighboring BooleanOptionalAction and environment-override pattern, is saved through ARCH_TOGGLE_NAMES, and restores missing checkpoint keys to False. load_for_eval reaches the same shared forward implementation.",
+    "Disabling the toggle avoids alternate hash tensor operations and extra gathers and retains the original single-gather expression and downstream mathematics.",
+    "The patch preserves the 30-minute budget accounting, checkpoint reserve, distributed/full-chip execution, and seed-42 default. Data, tokenizer, evaluation procedures, and fresh-training defaults are unchanged; no external-data or pretrained path is introduced. Supplied deterministic checks pass; runtime and scoring gates remain for the controller."
+  ],
+  "verifier_model_id": "us.openai.gpt-6-astra",
+  "verifier_verdict": "PASS"
+}

@@ -1,0 +1,161 @@
+diff --git a/train.py b/train.py
+index 607862de..01030bc2 100644
+--- a/train.py
++++ b/train.py
+@@ -717,6 +717,19 @@ NGRAM_VE_TRIGRAM = True   # also add a trigram table on the FIRST and LAST VE la
+ # one extra table, on that layer, and two tables on ONE layer is still free (measured). Worth
+ # -0.0017 at 1800s (1.020516 -> 1.018985 is mult, but bigram-only at mult 64 is 1.022205 vs
+ # bigram+trigram at mult 32 = 1.020516 at equal parameter count).
++# Hash-embedding / Bloom-style double probing of the SAME n-gram table: each lookup becomes
++# 0.5 * (table[idx0] + table[idx1]) where idx0 is the unchanged per-layer prime hash and idx1 a
++# second, independent hash of the same raw token ids (disjoint bounded primes + XOR salt, same
++# int32 arithmetic, same modulus). The context's own signal adds coherently across both rows
++# while the colliding contexts differ between rows, raising per-lookup SNR at zero new parameters.
++# False is byte-identical to the single-gather code (commit 9a4caa7b). Checkpoints lacking the key
++# restore to False (see restore_eval_toggles).
++USE_NGRAM_VE_DOUBLE_HASH = True
++# Second-hash multipliers, oldest-token-last order (cur, prev, prev2). All prime, all distinct from
++# every entry of NGRAM_HASH_PRIMES, and each x 8192 < 2**31 so int32 products cannot overflow; the
++# salt is < 2**31 so XOR of nonnegative int32 values stays nonnegative.
++NGRAM_VE_ALT_PRIMES = (131071, 65537, 32749)
++NGRAM_VE_ALT_SALT = 0x5BD1E995
+ NGRAM_VE_DIM = 128        # table WIDTH. 0 => n_embd, i.e. the table is gathered straight into v.
+ # >0 makes each table [rows, NGRAM_VE_DIM] followed by its own Linear(NGRAM_VE_DIM, n_embd)
+ # up-projection, which is a THROUGHPUT knob, not a quality one, and it exists because the
+@@ -3749,20 +3762,33 @@ class GPT(nn.Module):
+                 h = torch.bitwise_xor(torch.bitwise_xor(prev2 * primes[0], prev * primes[1]),
+                                       cur * primes[2])
+             out[key] = torch.remainder(h, self.engram.mod)
++        q1, q2, q3 = NGRAM_VE_ALT_PRIMES
+         for key in self.ngram_embeds:
+             layer = int(key[1:])
+             if key[0] == "b":
+                 p_prev, p_cur = ngram_bigram_primes(layer)
+                 h = torch.bitwise_xor(prev * p_prev, cur * p_cur)
++                if USE_NGRAM_VE_DOUBLE_HASH:
++                    # Second, independent hash of the SAME (prev, cur): disjoint primes + salt.
++                    h1 = torch.bitwise_xor(torch.bitwise_xor(cur * q1, prev * q2),
++                                           NGRAM_VE_ALT_SALT)
+             else:
+                 p_prev2, p_prev, p_cur = ngram_trigram_primes(layer)
+                 h = torch.bitwise_xor(torch.bitwise_xor(prev2 * p_prev2, prev * p_prev),
+                                       cur * p_cur)
++                if USE_NGRAM_VE_DOUBLE_HASH:
++                    h1 = torch.bitwise_xor(
++                        torch.bitwise_xor(torch.bitwise_xor(cur * q1, prev * q2), prev2 * q3),
++                        NGRAM_VE_ALT_SALT)
+             out[key] = torch.remainder(h, self.ngram_mod)
++            if USE_NGRAM_VE_DOUBLE_HASH:
++                # Same shape/dtype as out[key]; same modulus, same table. Consumed by _ngram_lookup.
++                out[key + ":alt"] = torch.remainder(h1, self.ngram_mod)
+         return out
+ 
+     def _ngram_lookup(self, key: str, rows: torch.Tensor,
+-                      raw_out: dict[str, torch.Tensor] | None = None) -> torch.Tensor:
++                      raw_out: dict[str, torch.Tensor] | None = None,
++                      rows_alt: torch.Tensor | None = None) -> torch.Tensor:
+         """One table's contribution to v, at full n_embd width, in COMPUTE_DTYPE.
+ 
+         With NGRAM_VE_DIM=0 (default) this is the plain gather. With a narrow table it is
+@@ -3787,7 +3813,16 @@ class GPT(nn.Module):
+         Advanced indexing is the only spelling that stays cheap at every shape.
+         """
+         tbl = self.ngram_embeds[key].weight
+-        out = (tbl[rows] if NGRAM_VE_INDEX_GATHER else self.ngram_embeds[key](rows)).to(COMPUTE_DTYPE)
++        if rows_alt is None:
++            out = (tbl[rows] if NGRAM_VE_INDEX_GATHER else self.ngram_embeds[key](rows)).to(COMPUTE_DTYPE)
++        else:
++            # USE_NGRAM_VE_DOUBLE_HASH: two gathers from the SAME table at two independent hash
++            # positions, averaged. Identical op/dtype rule as the single gather; 0.5 is a fixed
++            # Python constant (exact in bf16/fp32), never a per-step-changing scalar.
++            emb = self.ngram_embeds[key]
++            e0 = (tbl[rows] if NGRAM_VE_INDEX_GATHER else emb(rows)).to(COMPUTE_DTYPE)
++            e1 = (tbl[rows_alt] if NGRAM_VE_INDEX_GATHER else emb(rows_alt)).to(COMPUTE_DTYPE)
++            out = (e0 + e1) * 0.5
+         # T3.2 share mode taps the PRE-projection rows: they are what an Engram table would hold,
+         # and reading them here means the shared arm adds no gather of its own. `raw_out` is None
+         # on the default path, so that path's ops are byte-identical to before.
+@@ -4061,9 +4096,13 @@ class GPT(nn.Module):
+             ve_bi = ve_tri = None
+             if ngram_idx is not None:
+                 if f"b{i}" in self.ngram_embeds:
+-                    ve_bi = self._ngram_lookup(f"b{i}", ngram_idx[f"b{i}"], engram_raw)
++                    # ":alt" keys exist only when USE_NGRAM_VE_DOUBLE_HASH is on; .get gives None
++                    # otherwise, which selects the unchanged single-gather path in _ngram_lookup.
++                    ve_bi = self._ngram_lookup(f"b{i}", ngram_idx[f"b{i}"], engram_raw,
++                                               ngram_idx.get(f"b{i}:alt"))
+                 if f"t{i}" in self.ngram_embeds:
+-                    ve_tri = self._ngram_lookup(f"t{i}", ngram_idx[f"t{i}"], engram_raw)
++                    ve_tri = self._ngram_lookup(f"t{i}", ngram_idx[f"t{i}"], engram_raw,
++                                                ngram_idx.get(f"t{i}:alt"))
+             if USE_CAUSAL_FASTPATH and doc_mask is None and not self.layer_is_short[i]:
+                 # Solution 13d: this layer's static mask is purely causal (full context,
+                 # no doc-boundary masking) -- let SDPA take its is_causal fast path
+@@ -5292,6 +5331,9 @@ ARCH_TOGGLE_NAMES = [
+     "NGRAM_VE_BF16", "NGRAM_RMS_FP32", "USE_NKI_NGRAM_RMS",
+     "NGRAM_VE_LR", "NGRAM_VE_BETA2", "NGRAM_VE_FLAT_LR", "NGRAM_VE_OPT",
+     "NGRAM_VE_CLIP_EXCLUDE",
++    # Double-hash probing of the n-gram tables: silent-behavior (same shapes, different index
++    # math), so the eval MUST reproduce the training-time value. Missing key restores to False.
++    "USE_NGRAM_VE_DOUBLE_HASH",
+     # T4.2 Aster output bigram logit table, T3.9 Recursive one-liners. RELU2_TAU,
+     # USE_MLP_SANDWICH_NORM, HEAD_GATE_NORM/MUL/BIAS and QK_SHIFT_BETA are all pure
+     # silent-behavior knobs -- they change what the same-shaped weights MEAN, which is exactly
+@@ -5390,6 +5432,9 @@ def current_toggles() -> dict:
+ # Capture import-time defaults once. A legacy checkpoint lacking a new toggle
+ # must not inherit it from a different checkpoint loaded earlier in this process.
+ _EVAL_TOGGLE_DEFAULTS = current_toggles()
++# Toggles whose ABSENCE from a checkpoint must not inherit the import-time default: a checkpoint
++# written before USE_NGRAM_VE_DOUBLE_HASH existed was trained single-hash and must eval that way.
++_EVAL_TOGGLE_MISSING_DEFAULTS = {"USE_NGRAM_VE_DOUBLE_HASH": False}
+ 
+ 
+ def restore_eval_toggles(payload: dict) -> None:
+@@ -5404,7 +5449,8 @@ def restore_eval_toggles(payload: dict) -> None:
+     if not isinstance(saved, dict):
+         raise ValueError("checkpoint toggles must be a dictionary")
+     for name in ARCH_TOGGLE_NAMES:
+-        globals()[name] = saved.get(name, _EVAL_TOGGLE_DEFAULTS[name])
++        globals()[name] = saved.get(
++            name, _EVAL_TOGGLE_MISSING_DEFAULTS.get(name, _EVAL_TOGGLE_DEFAULTS[name]))
+ 
+ 
+ def save_checkpoint(path: Path, model: GPT, meta: dict, ema_state: dict | None = None) -> None:
+@@ -5698,6 +5744,7 @@ def main() -> None:
+     # that could bake them in as a per-step graph constant.
+     global USE_NGRAM_VE, NGRAM_VE_TABLE_MULT, NGRAM_VE_TRIGRAM, NGRAM_VE_BF16, NGRAM_VE_DIM
+     global NGRAM_VE_LAYERS
++    global USE_NGRAM_VE_DOUBLE_HASH
+     global NGRAM_RMS_FP32, USE_NKI_NGRAM_RMS
+     global NGRAM_VE_LR, NGRAM_VE_BETA2, NGRAM_VE_FLAT_LR, NGRAM_VE_OPT, NGRAM_VE_CLIP_EXCLUDE
+     # T4.2 / T3.9. USE_OUT_BIGRAM, OUT_BIGRAM_BF16, OUT_BIGRAM_GATE_BIAS, USE_HEAD_GATE,
+@@ -5911,6 +5958,12 @@ def main() -> None:
+                         help="add a trigram table on the first and last VE layer as well as the "
+                              "bigram table every VE layer gets. --no-ngram-ve-trigram is the "
+                              "bigram-only arm.")
++    parser.add_argument("--ngram-ve-double-hash", action=argparse.BooleanOptionalAction,
++                        default=os.environ.get("NEURON_COMPETITION_R1_NGRAM_VE_DOUBLE_HASH", "1" if USE_NGRAM_VE_DOUBLE_HASH else "0") != "0",
++                        help="average two gathers from the SAME n-gram table at two independent "
++                             "hash positions (0.5*(table[idx0]+table[idx1])) instead of one. No new "
++                             "parameters. --no-ngram-ve-double-hash is the byte-identical "
++                             "single-gather arm.")
+     parser.add_argument("--ngram-ve-dim", type=int,
+                         default=int(os.environ.get("NEURON_COMPETITION_R1_NGRAM_VE_DIM", NGRAM_VE_DIM)),
+                         help="n-gram table WIDTH (0 = n_embd, gathered straight into v). A throughput "
+@@ -6465,6 +6518,7 @@ def main() -> None:
+     NGRAM_VE_TABLE_MULT = args.ngram_ve_table_mult
+     NGRAM_VE_DIM = args.ngram_ve_dim
+     NGRAM_VE_TRIGRAM = args.ngram_ve_trigram
++    USE_NGRAM_VE_DOUBLE_HASH = args.ngram_ve_double_hash  # read in GPT.forward via _ngram_hash_indices
+     NGRAM_VE_BF16 = args.ngram_ve_bf16
+     NGRAM_RMS_FP32 = args.ngram_rms_fp32
+     USE_NKI_NGRAM_RMS = args.nki_ngram_rms
+@@ -7202,7 +7256,7 @@ def main() -> None:
+         print(f"ngram_ve:          {args.ngram_ve} tables={len(orig_model.ngram_embeds)} "
+               f"rows={orig_model.ngram_rows} dim={orig_model.ngram_dim} "
+               f"index_gather={NGRAM_VE_INDEX_GATHER} "
+-              f"trigram={args.ngram_ve_trigram} opt={args.ngram_ve_opt} "
++              f"trigram={args.ngram_ve_trigram} double_hash={USE_NGRAM_VE_DOUBLE_HASH} opt={args.ngram_ve_opt} "
+               f"flat_lr={args.ngram_ve_flat_lr} bf16={args.ngram_ve_bf16} "
+               f"rms_fp32_state_math={NGRAM_RMS_FP32} nki_rms={USE_NKI_NGRAM_RMS}")
+         # T4.2 / T3.9, same reason: one line carrying every knob of this block, so two arms are
