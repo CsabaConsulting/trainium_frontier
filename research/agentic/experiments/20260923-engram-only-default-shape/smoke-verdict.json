@@ -1,0 +1,21 @@
+{
+  "analyst_prose": "DISCARD at the smoke tier: candidate throughput was 1.1232 steps/s, below the required 1.1513 steps/s floor and about 4.4% slower than control.\nValidation BPB was also worse: 1.187724 versus 1.165855, an increase of 0.021869.\nEnabling engram increased parameters from 592.9M to 660.4M, with source hashes, seed, host, compiler flags, and launch shape otherwise matched.\nThe quality comparison is confounded by unequal training progress: candidate completed 320 steps versus 334 in nearly identical training time, so the BPB gap does not isolate engram\u2019s effect at equal steps.\nBoth runs completed successfully, passed causality checks, and stayed within budget; these do not override the throughput gate.",
+  "decision": "DISCARD",
+  "metrics": {
+    "bpb_delta": 0.021868999999999916,
+    "candidate_bpb": 1.187724,
+    "candidate_params_M": 660.4,
+    "candidate_step_rate": 1.1232011232011232,
+    "candidate_steps": 320.0,
+    "control_bpb": 1.165855,
+    "control_params_M": 592.9,
+    "control_step_rate": 1.1748153359127682,
+    "control_steps": 334.0,
+    "smoke_gate": {},
+    "step_rate_floor": 1.1513190291945128
+  },
+  "reasons": [
+    "smoke step rate 1.1232 < floor 1.1513 steps/s"
+  ],
+  "tier": "smoke"
+}
