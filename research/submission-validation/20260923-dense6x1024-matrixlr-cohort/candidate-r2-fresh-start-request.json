@@ -1,0 +1,55 @@
+{
+  "schema": "fresh-start-request-v2",
+  "host": "trn21",
+  "expected_hostname": "ip-172-31-34-85",
+  "remote": "/home/ubuntu/trainium_freshstart_20260923_matrixlr025_candidate_r2",
+  "expected_commit": "08d997d2195cf11d9ba397702c375bc21796cb0f",
+  "origin": "https://github.com/CsabaConsulting/trainium_frontier.git",
+  "label": "fs-20260923-dense6x1024-matrixlr025-r2",
+  "purpose": "MATRIX_LR 0.025 single-factor full-budget run followed by fresh-process public1024 evaluation and exact checkpoint prune; no smoke.",
+  "fingerprint_paths": [
+    "prepare.py",
+    "research/scratch/submission_rehearsal.py",
+    "research/submission-validation/20260923-dense6x1024-matrixlr-cohort/cohort_job.py",
+    "research/submission-validation/20260923-dense6x1024-matrixlr-cohort/proposal.json",
+    "research/submission-validation/20260923-dense6x1024-matrixlr-cohort/prune_checkpoint.py",
+    "research/submission-validation/20260923-dense6x1024-matrixlr-cohort/post-run-evidence-contract-r2.json",
+    "research/submission-validation/20260923-dense6x1024-matrixlr-cohort/candidate_r2-authorization.json",
+    "research/fresh_start_sync.py",
+    "submissions/dense6x1024_lean_review_matrixlr025/train.py",
+    "submissions/dense6x1024_lean_review_matrixlr025/provenance.json",
+    "submissions/dense6x1024_lean_review_matrixlr025/launch-command.txt"
+  ],
+  "expected_sha256": {
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "research/scratch/submission_rehearsal.py": "3dfe882941f2e0f17ae0b93d55bc5d96f3adcd85320dea5b8896bccbcd49326b",
+    "research/submission-validation/20260923-dense6x1024-matrixlr-cohort/cohort_job.py": "5e8bea76e86a50b8fc393d7574c94f51ef4ad1d4b160f53f7242485f611a1980",
+    "research/submission-validation/20260923-dense6x1024-matrixlr-cohort/proposal.json": "2d300e8c23e40c9a75a139f3f1bb62e6321f6266a26b53bd573e97070d1c9097",
+    "research/submission-validation/20260923-dense6x1024-matrixlr-cohort/prune_checkpoint.py": "45b1383d47f20fd3c6d6b944e2256f707472d1a7b43c5f8fe302e8f0e467341b",
+    "research/submission-validation/20260923-dense6x1024-matrixlr-cohort/post-run-evidence-contract-r2.json": "3fafe0abdb0c9bf209c5c8da59004dd4a457c41fdfd8e8004fc63a08ea88fa72",
+    "research/submission-validation/20260923-dense6x1024-matrixlr-cohort/candidate_r2-authorization.json": "fdab23e845f8dd633402af7f93354a89332b4e68ea21214244d1d4d021192da3",
+    "research/fresh_start_sync.py": "ea428d33f4de18376950abbd81cfda33d3a969f75b60e3648ff552bea04fc60c",
+    "submissions/dense6x1024_lean_review_matrixlr025/train.py": "abdc8372808489a2bdf94885922aa12e7173b5a1dc4d91cab1bd874d2573add8",
+    "submissions/dense6x1024_lean_review_matrixlr025/provenance.json": "a7b11d9d17ead0c6f677ae3a5ffbf62bb510bb552be9e4a5a2d5aea24c60434f",
+    "submissions/dense6x1024_lean_review_matrixlr025/launch-command.txt": "b75f844f413575f0cc35164972b4abf68de41e4b6f39e9b5423a6070de005abd"
+  },
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "command": [
+    "timeout", "--foreground", "--signal=TERM", "--kill-after=60s", "3600s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "research/submission-validation/20260923-dense6x1024-matrixlr-cohort/cohort_job.py",
+    "--arm", "candidate_r2",
+    "--authorization-sha256", "fdab23e845f8dd633402af7f93354a89332b4e68ea21214244d1d4d021192da3",
+    "--sandbox-root", "/home/ubuntu/trainium_freshstart_20260923_matrixlr025_candidate_r2/out/fs-20260923-dense6x1024-matrixlr025-r2",
+    "--archive", "/home/ubuntu/trainium_freshstart_20260923_matrixlr025_candidate_r2/out/archives/fs-20260923-dense6x1024-matrixlr025-r2.tar.gz"
+  ],
+  "runner_owns_manifest": false,
+  "post_run_core": {"expected_commit": "08d997d2195cf11d9ba397702c375bc21796cb0f", "prune_script_sha256": "45b1383d47f20fd3c6d6b944e2256f707472d1a7b43c5f8fe302e8f0e467341b", "ssh_host": "ubuntu@ec2-16-26-246-98.ap-southeast-4.compute.amazonaws.com", "cwd": "/home/ubuntu/trainium_freshstart_20260923_matrixlr025_candidate_r2"},
+  "non_overwrite": true
+}
