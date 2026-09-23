@@ -22,7 +22,7 @@
     "eval": "fresh process, prepare.py eval-public, neuron, batch 1, seq_len 1024, 20971520 tokens",
     "host_rule": "one run per host with full fresh-start preflight/postflight",
     "cache_rule": "unique empty job-owned SDK caches",
-    "retention": "archive the complete train/eval sandboxes including checkpoint before any checkpoint prune; this implementation provides no prune operation"
+    "retention": "after exact fresh eval, archive lightweight logs/JSON/results while excluding checkpoint and compile caches; verify archive; then hash-check and delete only the exact final.pt and write a prune receipt"
   },
   "abort_conditions": [
     "Any package hash, launch command, authorization hash, host assignment, seed, or protected source hash differs",
