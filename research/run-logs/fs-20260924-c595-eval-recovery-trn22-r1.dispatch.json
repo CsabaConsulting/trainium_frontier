@@ -1,0 +1,63 @@
+{
+  "request": {
+    "schema": "fresh-start-request-v2",
+    "host": "trn22",
+    "expected_hostname": "ip-172-31-32-253",
+    "remote": "/home/ubuntu/trainium_freshstart_20260924_c595_eval_recovery_trn22_r1",
+    "expected_commit": "4cb00f7611c95aa541fc9ad6b6a892e8dbf853f6",
+    "origin": "https://github.com/CsabaConsulting/trainium_frontier.git",
+    "label": "fs-20260924-c595-eval-recovery-trn22-r1",
+    "purpose": "Evaluator-only recovery of the retained exact trn22 c595 checkpoint; no training, pruning, or cache cleanup; hard refuse below 8 GiB free.",
+    "fingerprint_paths": [
+      "prepare.py",
+      "research/fresh_start_launch.py",
+      "research/fresh_start_sync.py",
+      "research/fresh_start_guard.py",
+      "research/fresh_start_host.py",
+      "research/fresh_start_backup.py",
+      "submissions/dense6x1024_direct_review/train.py",
+      "research/submission-validation/20260923-c595-dual-host-seed42-controls/eval_recovery_trn22.py",
+      "research/submission-validation/20260923-c595-dual-host-seed42-controls/eval-recovery-trn22-authorization.json"
+    ],
+    "expected_sha256": {
+      "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+      "research/fresh_start_launch.py": "06eefe82e04a810474614295228e1cef84923373e653a9c62f97f5dca3456b94",
+      "research/fresh_start_sync.py": "ea428d33f4de18376950abbd81cfda33d3a969f75b60e3648ff552bea04fc60c",
+      "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+      "research/fresh_start_host.py": "8c597adea7c48114bed8f50aa161fdc79b36b49c86c7315e6a58c3ca4e8f5f79",
+      "research/fresh_start_backup.py": "c978fd20b6620d0d80c25f8982974e8c4b2ad009edd9da376d784f5cecc3ead3",
+      "submissions/dense6x1024_direct_review/train.py": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537",
+      "research/submission-validation/20260923-c595-dual-host-seed42-controls/eval_recovery_trn22.py": "d6c9262517a4663a21e172db27d9cc7e7a30949a24b76270dd82fc21e3bef36e",
+      "research/submission-validation/20260923-c595-dual-host-seed42-controls/eval-recovery-trn22-authorization.json": "f398943b81b1164cfa1ea042c4922794463218da279d13b2f1bf3f67cb80a0e9"
+    },
+    "environment": {
+      "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+      "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "command": [
+      "timeout",
+      "--foreground",
+      "--signal=TERM",
+      "--kill-after=60s",
+      "3300s",
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "research/submission-validation/20260923-c595-dual-host-seed42-controls/eval_recovery_trn22.py",
+      "--authorization",
+      "research/submission-validation/20260923-c595-dual-host-seed42-controls/eval-recovery-trn22-authorization.json",
+      "--authorization-sha256",
+      "f398943b81b1164cfa1ea042c4922794463218da279d13b2f1bf3f67cb80a0e9",
+      "--core-commit",
+      "4cb00f7611c95aa541fc9ad6b6a892e8dbf853f6"
+    ],
+    "runner_owns_manifest": false,
+    "non_overwrite": true,
+    "request_file_sha256": "c6376ff58a2befd591f4b2769dfa0ff69e45bad83969a9b22e394c70930bf0a9"
+  },
+  "requested_at": "2026-09-23T22:12:36.935703+00:00",
+  "returncode": 0,
+  "stdout": "{\"label\": \"fs-20260924-c595-eval-recovery-trn22-r1\", \"pid\": 2769421, \"commit\": \"4cb00f7611c95aa541fc9ad6b6a892e8dbf853f6\", \"hostname\": \"ip-172-31-32-253\", \"log\": \"/home/ubuntu/trainium_freshstart_20260924_c595_eval_recovery_trn22_r1/research/run-logs/fs-20260924-c595-eval-recovery-trn22-r1.log\", \"started_at\": \"2026-09-23T22:12:45.892895+00:00\", \"protocol_version\": 2, \"preflight_passed\": true}\n",
+  "stderr": "Warning: Identity file /home/csaba/.ssh/trn2.pem not accessible: No such file or directory.\n"
+}
