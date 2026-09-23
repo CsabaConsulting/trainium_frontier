@@ -52,6 +52,23 @@ DRIVER_REL = "research/submission-validation/20260924-c595-warmdown060-trn22/ret
 ADAPTER_REL = "research/submission-validation/20260924-c595-warmdown060-trn22/launch_adapter.py"
 PROPOSAL_REL = "research/submission-validation/20260924-c595-warmdown060-trn22/EXPERIMENT_PROPOSAL.json"
 RUNTIME_JOB_REL = f"research/run-logs/{LABEL}.job.json"
+LAUNCHER_SOURCE_PREFIX = (
+    "train.py",
+    "prepare.py",
+    "research/run_experiment.py",
+    "research/fresh_start_host.py",
+    "research/fresh_start_guard.py",
+    "research/fresh_start_backup.py",
+)
+RUNTIME_DYNAMIC_KEYS = (
+    "request_file_sha256",
+    "started_at",
+    "hostname",
+    "git_commit",
+    "source_dirty",
+    "preflight_free_bytes",
+    "source_sha256",
+)
 CORE_FINGERPRINT_PATHS = {
     "train.py",
     "prepare.py",
@@ -586,17 +603,30 @@ def build_concrete_request(
     }
 
 
+def standard_launcher_job_bytes(runtime: dict, concrete: dict) -> bytes:
+    """Reproduce fresh_start_launch.py's deterministic remote json.dump bytes."""
+    # The adapter writes the concrete request with recursively sorted keys.  The
+    # standard launcher loads those bytes, appends request_file_sha256 locally,
+    # then appends the remaining dynamic fields remotely.  Its json.dump call
+    # preserves that insertion order and deliberately writes no final newline.
+    ordered_concrete = json.loads(canonical_json(concrete))
+    source_paths = list(dict.fromkeys((*LAUNCHER_SOURCE_PREFIX, *concrete["fingerprint_paths"])))
+    if set(source_paths) != set(runtime["source_sha256"]):
+        raise SystemExit("runtime source serialization paths mismatch")
+    expected = dict(ordered_concrete)
+    for key in RUNTIME_DYNAMIC_KEYS[:-1]:
+        expected[key] = runtime[key]
+    expected["source_sha256"] = {path: runtime["source_sha256"][path] for path in source_paths}
+    return json.dumps(expected, indent=2).encode()
+
+
 def validate_runtime_contract(
     runtime: dict, template: dict, template_sha: str, authorization_sha: str,
-    verified_core: str, finalization_head: str,
+    verified_core: str, finalization_head: str, runtime_bytes: bytes | None = None,
 ) -> str:
     concrete = build_concrete_request(template, authorization_sha, template_sha, finalization_head)
     concrete_sha = hashlib.sha256(canonical_json(concrete)).hexdigest()
-    dynamic_keys = {
-        "request_file_sha256", "started_at", "hostname", "git_commit",
-        "source_dirty", "preflight_free_bytes", "source_sha256",
-    }
-    if set(runtime) != set(concrete) | dynamic_keys:
+    if set(runtime) != set(concrete) | set(RUNTIME_DYNAMIC_KEYS):
         raise SystemExit("runtime job contract mismatch")
     for key, value in concrete.items():
         if runtime.get(key) != value:
@@ -615,7 +645,26 @@ def validate_runtime_contract(
         raise SystemExit("runtime job dynamic metadata mismatch")
     if runtime["verified_core_commit"] != verified_core:
         raise SystemExit("runtime verified core mismatch")
+    if runtime_bytes is not None and runtime_bytes != standard_launcher_job_bytes(runtime, concrete):
+        raise SystemExit("runtime job standard-launcher serialization mismatch")
     return concrete_sha
+
+
+def validate_runtime_job_bytes(
+    runtime_bytes: bytes, template: dict, template_sha: str, authorization_sha: str,
+    verified_core: str, finalization_head: str,
+) -> tuple[dict, str]:
+    try:
+        runtime = json.loads(runtime_bytes)
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise SystemExit("runtime job JSON invalid") from error
+    if not isinstance(runtime, dict):
+        raise SystemExit("runtime job is not an object")
+    concrete_sha = validate_runtime_contract(
+        runtime, template, template_sha, authorization_sha, verified_core,
+        finalization_head, runtime_bytes,
+    )
+    return runtime, concrete_sha
 
 
 def _committed_bytes(head: str, relative: str) -> bytes:
@@ -660,16 +709,10 @@ def validate_finalization(auth_path: Path, request_path: Path, runtime_path: Pat
         actual = _nofollow_bytes(ROOT / relative)
         if core_blob != head_blob or head_blob != actual or hashlib.sha256(actual).hexdigest() != expected_sha:
             raise SystemExit(f"core tree/source identity mismatch: {relative}")
-    runtime_bytes = _nofollow_bytes(runtime_path)
-    try:
-        runtime = json.loads(runtime_bytes)
-    except json.JSONDecodeError as error:
-        raise SystemExit("runtime job JSON invalid") from error
-    if runtime_bytes != canonical_json(runtime):
-        raise SystemExit("runtime job is not canonical JSON")
     authorization_sha = hashlib.sha256(auth_bytes).hexdigest()
-    concrete_sha = validate_runtime_contract(
-        runtime, request, request_sha, authorization_sha, verified_core, head
+    runtime_bytes = _nofollow_bytes(runtime_path)
+    _runtime, concrete_sha = validate_runtime_job_bytes(
+        runtime_bytes, request, request_sha, authorization_sha, verified_core, head
     )
     return {
         "verified_core_commit": verified_core,

@@ -18,6 +18,9 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[3]
 EVIDENCE = ROOT / "research/submission-validation/20260924-c595-warmdown060-trn22"
+RETRIEVED_RUNTIME_JOB = (
+    EVIDENCE / "retrieved/fs-20260924-c595-warmdown060-trn22-r1/job.json"
+)
 SOURCE_PACKAGE = ROOT / "submissions/dense6x1024_direct_review"
 CANDIDATE_PACKAGE = ROOT / "submissions/dense6x1024_direct_review_warmdown060"
 SOURCE_TRAIN_SHA = "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537"
@@ -334,7 +337,8 @@ class SecureEvidenceTests(unittest.TestCase):
             "preflight_free_bytes": 9 * 1024**3,
             "source_sha256": concrete["expected_sha256"],
         }
-        return core, final, request, request_sha, auth, authorization_sha, concrete, runtime
+        runtime_bytes = self.job.standard_launcher_job_bytes(runtime, concrete)
+        return core, final, request, request_sha, auth, authorization_sha, concrete, runtime, runtime_bytes
 
     def test_strict_minimal_environment_rejects_hostile_inheritance(self) -> None:
         clean = dict(self.job.MINIMAL_ENVIRONMENT)
@@ -352,9 +356,12 @@ class SecureEvidenceTests(unittest.TestCase):
         self.assertEqual(self.job.build_subprocess_environment(inherited_benign), self.job.MINIMAL_ENVIRONMENT)
 
     def test_request_auth_and_runtime_contract_reject_forgery(self) -> None:
-        core, final, request, request_sha, auth, authorization_sha, _concrete, runtime = self.fixture()
+        core, final, request, request_sha, auth, authorization_sha, _concrete, runtime, runtime_bytes = self.fixture()
         self.assertEqual(self.job.validate_authorization_request(auth, request, core), request_sha)
-        self.job.validate_runtime_contract(runtime, request, request_sha, authorization_sha, core, final)
+        accepted, _ = self.job.validate_runtime_job_bytes(
+            runtime_bytes, request, request_sha, authorization_sha, core, final
+        )
+        self.assertEqual(accepted, runtime)
         mutations = []
         for field, value in (
             ("finalization_head", "3" * 40),
@@ -374,7 +381,7 @@ class SecureEvidenceTests(unittest.TestCase):
                 )
 
     def test_alternate_child_and_request_template_mutation_fail(self) -> None:
-        core, final, request, request_sha, auth, authorization_sha, _concrete, runtime = self.fixture()
+        core, final, request, request_sha, auth, authorization_sha, _concrete, runtime, _runtime_bytes = self.fixture()
         with self.assertRaises(SystemExit):
             self.job.validate_runtime_contract(
                 runtime, request, request_sha, authorization_sha, core, "5" * 40
@@ -384,7 +391,7 @@ class SecureEvidenceTests(unittest.TestCase):
             self.job.validate_authorization_request(auth, mutated, core)
 
     def test_adapter_materializes_standard_launcher_request_without_overwrite(self) -> None:
-        _core, final, request, request_sha, _auth, authorization_sha, concrete, _runtime = self.fixture()
+        _core, final, request, request_sha, _auth, authorization_sha, concrete, _runtime, _runtime_bytes = self.fixture()
         self.adapter.validate_standard_request(concrete, self.job)
         self.assertEqual(concrete["expected_commit"], final)
         self.assertEqual(concrete["template_sha256"], request_sha)
@@ -399,7 +406,7 @@ class SecureEvidenceTests(unittest.TestCase):
                 self.adapter.durable_concrete(path, concrete, self.job)
 
     def test_adapter_rejects_generated_request_field_attacks(self) -> None:
-        _core, final, request, request_sha, _auth, authorization_sha, concrete, _runtime = self.fixture()
+        _core, final, request, request_sha, _auth, authorization_sha, concrete, _runtime, _runtime_bytes = self.fixture()
         attacks = (
             {**concrete, "expected_commit": "7" * 40},
             {**concrete, "command": ["python", "evil.py"]},
@@ -412,6 +419,53 @@ class SecureEvidenceTests(unittest.TestCase):
         with self.assertRaises(SystemExit):
             self.job.build_concrete_request(request, authorization_sha, request_sha, "not-a-head")
         self.assertEqual(concrete["expected_commit"], final)
+
+    def validate_retrieved_runtime(self, data: bytes):
+        runtime = json.loads(data)
+        return self.job.validate_runtime_job_bytes(
+            data,
+            runtime["template_content"],
+            runtime["template_sha256"],
+            runtime["authorization_sha256"],
+            runtime["verified_core_commit"],
+            runtime["finalization_head"],
+        )
+
+    def test_retrieved_standard_launcher_fixture_passes_driver_acceptance(self) -> None:
+        data = RETRIEVED_RUNTIME_JOB.read_bytes()
+        self.assertEqual(len(data), 12220)
+        self.assertEqual(
+            hashlib.sha256(data).hexdigest(),
+            "fccc470e6a44e232e5731ed00948a50810b4d80ea62db296c4be5d05e3f1ba09",
+        )
+        runtime, concrete_sha = self.validate_retrieved_runtime(data)
+        self.assertEqual(
+            concrete_sha,
+            "c6d1ab20a1b5f13c98341aeccd1407230c0b5c569c52704cc505f00fa99fd281",
+        )
+        concrete = self.job.build_concrete_request(
+            runtime["template_content"], runtime["authorization_sha256"],
+            runtime["template_sha256"], runtime["finalization_head"],
+        )
+        self.assertEqual(self.job.standard_launcher_job_bytes(runtime, concrete), data)
+
+    def test_retrieved_runtime_rejects_whitespace_mutation(self) -> None:
+        with self.assertRaises(SystemExit):
+            self.validate_retrieved_runtime(RETRIEVED_RUNTIME_JOB.read_bytes() + b"\n")
+
+    def test_retrieved_runtime_rejects_key_order_mutation(self) -> None:
+        runtime = json.loads(RETRIEVED_RUNTIME_JOB.read_bytes())
+        reordered = json.dumps(runtime, indent=2, sort_keys=True).encode()
+        self.assertNotEqual(reordered, RETRIEVED_RUNTIME_JOB.read_bytes())
+        with self.assertRaises(SystemExit):
+            self.validate_retrieved_runtime(reordered)
+
+    def test_retrieved_runtime_rejects_content_mutation(self) -> None:
+        runtime = json.loads(RETRIEVED_RUNTIME_JOB.read_bytes())
+        runtime["hostname"] = "ip-172-31-32-254"
+        mutated = json.dumps(runtime, indent=2).encode()
+        with self.assertRaises(SystemExit):
+            self.validate_retrieved_runtime(mutated)
 
     def test_finalized_adapter_cli_dry_run_without_ssh(self) -> None:
         if not (EVIDENCE / "authorization.json").exists():
