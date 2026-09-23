@@ -474,6 +474,14 @@ class ManifestTests(unittest.TestCase):
         self.assertTrue(any("different model family" in e for e in cfg.validate()))
         self.assertTrue(any("5 GiB" in e for e in C.LoopConfig(researcher_model_id="us.anthropic.a", verifier_model_id="us.openai.b", caps=C.Caps(min_free_gib=2)).validate()))
 
+    def test_config_rejects_unbounded_bedrock_read_timeout(self):
+        cfg = C.LoopConfig(
+            researcher_model_id="us.anthropic.a",
+            verifier_model_id="us.openai.b",
+            bedrock_read_timeout_seconds=3601,
+        )
+        self.assertTrue(any("bedrock_read_timeout_seconds" in e for e in cfg.validate()))
+
 
 class AnalystTests(unittest.TestCase):
     def row(self, bpb, steps, secs=1790.0, **kw):

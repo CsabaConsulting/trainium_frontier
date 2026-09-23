@@ -51,6 +51,14 @@ Cycle 174 exposed the sibling silent-stream failure: `urllib3.ReadTimeoutError` 
 retry now covers that common low-level transport base class. The retry count and modeled Bedrock
 error behavior are unchanged.
 
+Cycle 175 proved that a bounded retry alone is insufficient for Fable's long, silent reasoning
+phase: the first attempt reached the same 600-second socket limit, and the fresh attempt then ended
+prematurely. The Bedrock read timeout is now a validated configuration value and is set to 1,800
+seconds. This preserves the exactly-once retry and all fail-closed parsing behavior while allowing
+the intended long-horizon researcher enough time to emit its first stream event. The timeout is
+local controller transport configuration only; it does not affect the 1,800-second Trn2 training
+budget.
+
 ## Verification
 
 - `python -m unittest discover -s research/agentic/tests -v`: the complete offline suite passes,

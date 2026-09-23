@@ -81,7 +81,11 @@ class BedrockClient:
         session = boto3.Session(profile_name=profile, region_name=region)
         self._client = session.client(
             "bedrock-runtime",
-            config=Config(connect_timeout=10, read_timeout=600, retries={"mode": "standard", "max_attempts": 2}),
+            config=Config(
+                connect_timeout=10,
+                read_timeout=cfg.bedrock_read_timeout_seconds,
+                retries={"mode": "standard", "max_attempts": 2},
+            ),
         )
 
     def complete(self, *, role: str, model_id: str, system: str, user: str, max_tokens: int) -> ModelReply:

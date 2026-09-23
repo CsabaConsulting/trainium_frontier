@@ -156,6 +156,7 @@ class LoopConfig:
     analyst_model_id: str = ""
     aws_region: str = "us-west-2"
     aws_profile: str = ""
+    bedrock_read_timeout_seconds: int = 1800
     git_push: bool = False
     git_remote: str = "origin"
     boxes: list[str] = field(default_factory=lambda: ["trn22", "trn21"])
@@ -185,6 +186,8 @@ class LoopConfig:
             errors.append("min_free_gib may not be lowered below the protocol's 5 GiB")
         if self.caps.max_runs_per_day < 1 or self.caps.max_runs_total < 1:
             errors.append("run caps must be positive")
+        if not 60 <= self.bedrock_read_timeout_seconds <= 3600:
+            errors.append("bedrock_read_timeout_seconds must be between 60 and 3600")
         return errors
 
     def to_dict(self) -> dict:
