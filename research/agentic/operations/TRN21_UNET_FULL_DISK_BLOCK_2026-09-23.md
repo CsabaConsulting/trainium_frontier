@@ -40,3 +40,20 @@ one of the following human-coordinated actions:
 
 The breaker must remain open until a fresh inventory passes the configured gate. Lowering the gate
 again or deleting unknown/teammate data is not an accepted recovery.
+
+## Narrow cleanup candidates awaiting approval
+
+Three closed, controller-created smoke worktrees were checked read-only. Their exact checkpoint
+paths are already absent, each has a durable result/verdict and checkpoint-prune receipt on GitHub,
+and together they occupy `614,658,048` bytes (about 586 MiB):
+
+| Proposal | Remote worktree bytes | Verdict evidence | Prune receipt |
+|---|---:|---|---|
+| `20260922-weight-ema-fullbudget-r3` smoke | 204,886,016 | `2f8b4ee7` DISCARD | `bef2fb7a` |
+| `20260923-engram-only-default-shape` smoke | 204,886,016 | `d1fa2ab0` DISCARD | `070e5698` |
+| `20260922-bf16-norm-output-policy-r3` smoke | 204,886,016 | `bce18ba6` KEEP; later full `fe6f2342` CONFOUNDED | `cb9cf875` |
+
+Deleting only these three whole isolated worktrees would raise the measured free space from about
+7.26 GiB to about 7.83 GiB. After staging the new approximately 205 MB candidate checkout, the
+second launch inventory should remain above 7.40 GiB. This is a proposed recovery, not current
+authority to delete; all three directories remain in place.
