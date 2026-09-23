@@ -1,0 +1,193 @@
+{
+  "receipt_version": 1,
+  "role": "operator",
+  "label": "fs-20260923-dense6x1024-lean-review-fresh-neuron-contract-r2",
+  "proposal": "research/submission-validation/20260923-dense6x1024-lean-review-rehearsal/proposal.json",
+  "host": {
+    "box": "trn22",
+    "hostname": "ip-172-31-32-253",
+    "boot_id": "bf52dfdd-1dba-485a-9ee6-e5a27fb41ba6",
+    "remote_repository": "/home/ubuntu/workspace/submission_validation_20260923_review1"
+  },
+  "source": {
+    "git_commit": "8db9bc1562074051712a4986bb0f0aaabc921249",
+    "git_dirty_before": false,
+    "candidate_train_sha256": "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344",
+    "launch_command_sha256": "b75f844f413575f0cc35164972b4abf68de41e4b6f39e9b5423a6070de005abd",
+    "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "contract_harness_sha256": "fb45b690c757b1aaf9d36e424dbe10474f8710d9f0c375341057d571b52fe533",
+    "submission_rehearsal_sha256": "3dfe882941f2e0f17ae0b93d55bc5d96f3adcd85320dea5b8896bccbcd49326b"
+  },
+  "checkpoint": {
+    "path": "out/fs-20260923-dense6x1024-lean-review-cold-r1/out/final.pt",
+    "bytes": 469831009,
+    "sha256": "be040a5dbf7fc2750d1f3f2770fc39ab7a5c3100dfd670921257607abaa4e0ec",
+    "unchanged_after": true
+  },
+  "preflight": {
+    "observed_at": "2026-09-23T06:59:15Z",
+    "free_bytes": 5515157504,
+    "minimum_required_bytes": 5368709120,
+    "nonself_matching_processes": 0,
+    "device_holders": [],
+    "fuser_returncode": 1,
+    "git_dirty": false,
+    "parent_neuron_cc_flags": null,
+    "parent_neuron_logical_nc_config": null,
+    "contract_neuron_cc_flags": "--optlevel=1",
+    "proposal_seed": 42,
+    "python": "Python 3.12.3",
+    "contract_log_absent": true,
+    "evaluation_sandbox_absent": true,
+    "public_validation": {
+      "path": "/home/ubuntu/.cache/neuron_competition_r1/data/shard_06542.parquet",
+      "bytes": 91699537,
+      "sha256": "769fe59d108dfd2cfa186c63173b83fbfb90a7adb3519519ba6eaa6ca9889f94"
+    },
+    "tokenizer_files_present": [
+      "/home/ubuntu/.cache/neuron_competition_r1/tokenizer/token_bytes.pt",
+      "/home/ubuntu/.cache/neuron_competition_r1/tokenizer/tokenizer.pkl"
+    ]
+  },
+  "contract": {
+    "command": "NEURON_CC_FLAGS=--optlevel=1 /home/ubuntu/workspace/native_venv/bin/python research/submission-validation/20260923-dense6x1024-lean-review-rehearsal/contract_check_review.py --train-py submissions/dense6x1024_lean_review/train.py --reference-train-py submissions/dense6x1024_lean_review/train.py --checkpoint out/fs-20260923-dense6x1024-lean-review-cold-r1/out/final.pt --device neuron",
+    "process_started_at": "2026-09-23T06:59:51Z",
+    "supervisor_timeout_seconds": 900,
+    "natural_returncode": null,
+    "timed_out": true,
+    "metrics_emitted": false,
+    "all_metrics_exact_zero": null,
+    "independent_module_and_model_fields": null,
+    "outcome": "FAIL_TIMEOUT",
+    "log": {
+      "path": "fresh-neuron-contract-r2.log",
+      "bytes": 608,
+      "sha256": "1fa35958db12baa8bb7f18a5fed6aef970bd61a693cc6b9b23f2b2c356877c25",
+      "remote_mtime": "2026-09-23T06:59:53.908462779Z",
+      "content_status": "Only the initial Neuron operator-registration warning was emitted; no contract metric line or traceback was emitted."
+    }
+  },
+  "no_progress_diagnostics": {
+    "first_observed_at": "2026-09-23T07:06:45Z",
+    "detailed_observed_at": "2026-09-23T07:12:44Z",
+    "log_bytes": 608,
+    "log_unchanged_since": "2026-09-23T06:59:53.908462779Z",
+    "processes": [
+      {
+        "pid": 2627705,
+        "ppid": 2627704,
+        "session": 2627705,
+        "process_group": 2627705,
+        "start_ticks": 76085126,
+        "started_at": "2026-09-23T06:59:51Z",
+        "elapsed_seconds_at_detailed_observation": 772,
+        "state": "Ss",
+        "wait_channel": "do_wait",
+        "role": "owned wrapper shell"
+      },
+      {
+        "pid": 2627707,
+        "ppid": 2627705,
+        "session": 2627705,
+        "process_group": 2627705,
+        "start_ticks": 76085126,
+        "started_at": "2026-09-23T06:59:51Z",
+        "elapsed_seconds_at_detailed_observation": 772,
+        "state": "Sl",
+        "wait_channel": "futex_do_wait",
+        "role": "owned contract checker"
+      },
+      {
+        "pid": 2627944,
+        "ppid": 2627707,
+        "session": 2627705,
+        "process_group": 2627705,
+        "start_ticks": 76086556,
+        "started_at": "2026-09-23T07:00:05Z",
+        "elapsed_seconds_at_detailed_observation": 758,
+        "state": "S",
+        "wait_channel": "futex_do_wait",
+        "role": "owned contract child"
+      },
+      {
+        "pid": 2627946,
+        "ppid": 2627707,
+        "session": 2627705,
+        "process_group": 2627705,
+        "start_ticks": 76086572,
+        "started_at": "2026-09-23T07:00:05Z",
+        "elapsed_seconds_at_detailed_observation": 758,
+        "state": "S",
+        "wait_channel": "futex_do_wait",
+        "role": "owned contract child"
+      }
+    ],
+    "cache_locks": [
+      {
+        "path": "/tmp/local_cache/locks/282a710c9deebd1ec1b6d6b1faef59c2.lock",
+        "inode": 6821705,
+        "bytes": 0,
+        "mtime": "2026-09-23T07:00:06.329448643Z",
+        "holder_pids": [2627707, 2627944, 2627946],
+        "holder_fds": {
+          "2627707": 33,
+          "2627944": 33,
+          "2627946": 33
+        }
+      },
+      {
+        "path": "/tmp/local_cache/locks/9b79643c1b3fa99a9dbbab0f37ebe833.lock",
+        "inode": 6821707,
+        "bytes": 0,
+        "mtime": "2026-09-23T07:00:06.492448460Z",
+        "holder_pids": [2627707, 2627946],
+        "holder_fds": {
+          "2627707": 38,
+          "2627946": 38
+        }
+      }
+    ]
+  },
+  "cleanup": {
+    "started_at": "2026-09-23T07:16:13Z",
+    "wrapper_and_main_elapsed_seconds_before_term": 981,
+    "child_elapsed_seconds_before_term": 967,
+    "identities_revalidated": true,
+    "term_pids": [2627944, 2627946, 2627707, 2627705],
+    "term_returncode": 0,
+    "grace_seconds": 10,
+    "verified_survivors_after_grace": [],
+    "kill_sent": false,
+    "completed_at": "2026-09-23T07:16:26Z"
+  },
+  "postflight": {
+    "observed_at": "2026-09-23T07:16:57Z",
+    "uptime_seconds": 761876.27,
+    "mem_available_kib": 128475152,
+    "free_bytes": 5514813440,
+    "free_inodes": 25099559,
+    "nonself_matching_processes": 0,
+    "owned_pids_remaining": [],
+    "device_holders": [],
+    "device_fuser_returncode": 1,
+    "cache_lock_holders": [],
+    "cache_lock_fuser_returncodes": [1, 1],
+    "neuron_ls_returncode": 0,
+    "kernel_diagnostic_query_returncode": 0,
+    "kernel_diagnostic_matching_lines": [],
+    "git_commit": "8db9bc1562074051712a4986bb0f0aaabc921249",
+    "git_dirty": false,
+    "evaluation_sandbox_absent": true,
+    "idle_and_clean": true
+  },
+  "protected_public_evaluation": {
+    "label": "fs-20260923-dense6x1024-lean-review-fresh-public20m-r1",
+    "requested_tokens": 20971520,
+    "started": false,
+    "processed_tokens": 0,
+    "returncode": null,
+    "val_bpb": null,
+    "reason": "The prerequisite corrected fresh-checkpoint Neuron contract timed out and did not emit metrics."
+  },
+  "scientific_verdict": null
+}
