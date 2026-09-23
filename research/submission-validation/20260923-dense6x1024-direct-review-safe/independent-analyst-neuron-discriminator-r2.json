@@ -1,0 +1,80 @@
+{
+  "schema": "dense6x1024-direct-neuron-discriminator-r2-independent-analyst-v1",
+  "role": "independent Analyst",
+  "analyzed_evidence_commit": "5dfe96972a7645de6d727b18d3e53c7abb66e406",
+  "label": "fs-dense6x1024-direct-neuron-discriminator-r2-20260923t131229991134z",
+  "verdict": "STOP/FIX_HARNESS",
+  "submission_ready": false,
+  "training_advancement_authorized": false,
+  "root_cause": {
+    "classification": "harness import-path defect",
+    "finding": "The plain-Python ce-source worker imported the discriminator harness by absolute path. The harness's import_train function dynamically executed the frozen lean train.py without first making the repository root importable. train.py line 31 then performed its expected absolute import `from prepare import ...`, but prepare.py lives at the repository root rather than beside the harness, so Python raised ModuleNotFoundError before the source module completed import.",
+    "captured_exception": "ModuleNotFoundError: No module named 'prepare'",
+    "traceback_boundary": "neuron_discriminator_direct.py:482 import_train -> :367 spec.loader.exec_module -> submissions/dense6x1024_lean_review/train.py:31",
+    "harness_evidence": {
+      "import_train_adds_repository_root_to_sys_path": false,
+      "prepare_py_exists_and_is_fingerprinted": true,
+      "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb"
+    }
+  },
+  "observed_boundary": {
+    "child": "ce-source",
+    "returncode": 1,
+    "duration_seconds": 2.525798461982049,
+    "timed_out": false,
+    "recompile_limit_warnings": [],
+    "worker_json_exists": false,
+    "source_tensor_artifact_exists": false,
+    "fresh_compile_cache_entry_count": 0,
+    "neuron_execution_observed": false,
+    "later_arms_executed": [],
+    "meaning": "No CE output, gradient, source/direct comparison, direct candidate execution, or optimizer execution occurred. The result contains no candidate/source semantic evidence."
+  },
+  "environment_assessment": {
+    "ce_environment_proof": "The child record proves a rank-0/world-size-1 singleton, no rendezvous, no elastic names, and removal of inherited WORLD_SIZE and LOCAL_WORLD_SIZE.",
+    "host_preflight_passed": true,
+    "host_postflight_clean": true,
+    "device_holders_after_run": 0,
+    "neuron_processes_after_run": 0,
+    "kernel_error_lines": [],
+    "conclusion": "The prior distributed-environment hypothesis is not the proximate r2 failure. The singleton correction should remain, but r2 failed earlier at ordinary Python module resolution. This is not an ambient host, SDK, compiler-warning-policy, or Neuron numerical failure."
+  },
+  "identity": {
+    "authorized_head": "c8c302ec6dfa0dba3ebfecfceccf73d3a56cca50",
+    "source_sha256": "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344",
+    "direct_sha256": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537",
+    "harness_sha256": "85b13deae9f811e0c1441018056b2cfbe0c3b38a77eab5194f03e698063850c1",
+    "protected_paths_clean_and_matching_before_launch": true,
+    "source_or_candidate_change_recommended": false
+  },
+  "evidence_sha256": {
+    "top_result": "65f6a1c3ce8f38ac41244afd3913c9f7bfa35c4331f85edc3156c5a9c7791450",
+    "child_record": "e7069708fb85f55c358c30c6aa4a737b5dba36fe662b10b2b3d1142d8a19f943",
+    "child_log": "0e50b900bc6fc3913200e84bfc845b5d2a813c1003f8cc577dd46602d93e8e2b",
+    "operator_receipt": "d47f085f1b0d8961882700d76aeedd51f6b4937ffa1946eab3fbf3d4c87b8dc7",
+    "external_request": "f293ff947f88e5bbbc91c8cd730f6e05c793d96d75a11ff9d8cf039d8367ad3f",
+    "postflight": "6ae35d5040a9ca982bf75baf6e23dba07ce7211dcd24a7c6f74100f313b21936"
+  },
+  "minimal_correction": {
+    "scope": "Harness, tests, runbook, and authorization state only; keep source and direct candidate byte-identical.",
+    "required_behavior": [
+      "Before dynamically executing either frozen train.py, make the discriminator repository root the first controlled module-search location, or explicitly load the pinned root prepare.py under its canonical module name.",
+      "Fail closed unless the resolved prepare module is the regular non-symlink ROOT/prepare.py with the authorized SHA-256; reject a preloaded or shadow prepare module from any other path.",
+      "Retain the r2 CE singleton-environment sanitization and durable child/process-group evidence behavior unchanged."
+    ],
+    "reason": "This repairs only the fixture's ability to import the already-pinned submission dependency. It does not alter model, loss, optimizer, evaluator, tokenizer, data, or numerical gates."
+  },
+  "required_sequence": [
+    "An Implementer makes the scoped harness/test/runbook/request correction without changing either train.py.",
+    "An independent Verifier confirms the exact diff, source/direct hashes, root-precedence and shadow/preload rejection tests, all existing child-lifecycle/failure tests, and a passing pending-sentinel static CLI.",
+    "A separate external actor finalizes the authorization request and records the exact new head and request SHA.",
+    "An Operator launches one newly labeled full non-training discriminator under the existing machine protocol.",
+    "Only a complete discriminator PASS may advance to the already-required cold rehearsal and later human submission review."
+  ],
+  "full_discriminator_acceptance_unchanged": {
+    "ce": "Source and direct must each execute rows 128, 512, and 32768 twice with exact 1/2/2 lane traces; every direct loss and gradient must be torch.equal to source with max_abs_loss=0.0 and max_abs_gradient=0.0; no recompile-limit warning.",
+    "optimizer": "All raw, source-adapter, and direct four-rank workers and every tiny_fixed, tiny_changed, and production_width1024_fs_w62 snapshot/state/cache/cross-rank exact comparison must pass.",
+    "policy": "Do not relax a numerical or process gate, substitute PyTorch diagnostic tolerances for source/direct exactness, restart a failed label, train, or submit."
+  },
+  "scientific_conclusion": "None. This failure occurred before the discriminator measured candidate behavior."
+}
