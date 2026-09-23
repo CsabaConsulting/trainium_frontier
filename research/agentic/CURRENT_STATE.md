@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-23 02:34 UTC
+Last reconciled: 2026-09-23 03:11 UTC
 
 ## Verified repository state
 
@@ -13,9 +13,10 @@ Last reconciled: 2026-09-23 02:34 UTC
 - Existing runner: `research/run_experiment.py`
 - Existing ledger: `research/experiment-log.jsonl`
 - Mandatory machine protocol: `research/experiment-protocol.md`
-- Autonomous state: 29 retrieved result records (30 launch attempts including the failed initial
-  `trn22` control); no open run or proposal at reconciliation; local user service active in cycle
-  196 with a closed breaker and automatic Git push enabled
+- Autonomous state: 30 retrieved result records (31 launch attempts including the failed initial
+  `trn22` control); proposal `20260923-unet-skip-zero-init-r2` is smoke-verified and awaiting its
+  full run; automatic Git push is enabled, but the controller breaker is open on the `trn21` disk
+  gate described below
 - Evidence durability: commit `691faccb` retrieved and SHA-verified the previously omitted
   per-run launch receipt for all 29 durable results. Future collection retrieves that receipt,
   enumerates every untracked path, and fails the correctness gate on any unexplained post-run dirt.
@@ -38,6 +39,9 @@ Last reconciled: 2026-09-23 02:34 UTC
 - Latest completed full result is `20260922-bf16-norm-output-except-mlp-input`: `1.020309` versus
   its `trn21` control `1.005734`, at 2352 versus 2071 steps. The 13.57% step difference exceeds the
   comparability gate, so its durable verdict is CONFOUNDED, not a win.
+- Latest completed smoke is `20260923-unet-skip-zero-init-r2`: `1.167766` at 330 steps on `trn21`,
+  versus the same-host control smoke `1.165855` at 334 steps. All correctness gates passed and the
+  independent Analyst returned KEEP/eligible-for-full. A smoke is not a comparable full-result win.
 - The frozen one-file candidate is
   `submissions/dense6x1024_public0992851/train.py` on the authoritative branch.
 - The exact commit/configuration that produced official `1.0246` is not yet recorded here.
@@ -48,9 +52,12 @@ Last reconciled: 2026-09-23 02:34 UTC
 1. Record the submission ID, commit, launch command, and config for official `1.0246`.
 2. Record the complete reviewer reason for the rejected submission.
 3. Record the current leaderboard rank and tenth-place cutoff.
-4. `trn21` is eligible and idle with 8.12 GiB free as of 2026-09-23 01:27 UTC. `trn22` is idle but
-   excluded from launches with 7.37 GiB free, below the configured 7.5 GiB gate. Do not remove
-   unknown or teammate-owned data merely to recover the missing space.
+4. `trn21` is idle but blocked at 7.26 GiB free, below the configured 7.40 GiB gate; the second
+   failed full-run preflight opened the breaker at 2026-09-23 03:11 UTC. `trn22` remains excluded
+   at about 7.37 GiB. Read-only attribution found 3.89 GB in old controller-created isolated run
+   worktrees, but current cleanup authority covers scratch checkpoints only. See
+   `research/agentic/operations/TRN21_UNET_FULL_DISK_BLOCK_2026-09-23.md`; do not lower the gate or
+   remove worktrees/caches without explicit human coordination.
 5. Confirm official team membership and replace the emailed shared PEM with per-user access.
 6. The valid Bedrock route is `us-west-2` with `us.anthropic.claude-fable-5-1` and
    `us.openai.gpt-6-astra`; the old `eu-north-1` plus `global.*` failures are irrelevant. Fable's
@@ -61,9 +68,11 @@ Last reconciled: 2026-09-23 02:34 UTC
 
 ## Active technical direction
 
-There is no active proposal. The Researcher must reconcile any new idea against the 29-run ledger
-and the durable rejection feedback before proposing one single causal change. The strongest live
-autonomous result is BF16 SDPA input casting, but it has not beaten the preserved `0.992851` public
+The active proposal is `20260923-unet-skip-zero-init-r2`, candidate commit `7e500778`. Its
+independently verified smoke passed every correctness gate and earned KEEP, but its full promotion
+has not started because the `trn21` disk breaker is open. It cannot be called an improvement until
+a retrieved, comparable full run beats its same-host control. The strongest completed autonomous
+full result remains BF16 SDPA input casting, which has not beaten the preserved `0.992851` public
 development record. Recent norm-boundary variants increased throughput while worsening BPB or
 became step-count-confounded, so throughput alone is not evidence of progress.
 
