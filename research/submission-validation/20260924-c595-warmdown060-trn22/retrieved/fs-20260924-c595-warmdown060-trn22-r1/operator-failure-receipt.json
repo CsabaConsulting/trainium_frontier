@@ -1,0 +1,91 @@
+{
+  "schema": "c595-warmdown060-operator-failure-v1",
+  "status": "failed_gate",
+  "failure_stage": "runtime_contract_before_training",
+  "failure": "runtime job is not canonical JSON",
+  "recorded_at": "2026-09-23T23:14:00Z",
+  "host": "trn22",
+  "hostname": "ip-172-31-32-253",
+  "label": "fs-20260924-c595-warmdown060-trn22-r1",
+  "branch": "experiment/20260924-c595-warmdown060-trn22",
+  "finalization_head": "126cf41293fc31cfa79030ab82f55947c6042590",
+  "verified_core_commit": "c3b15e69bba6b2b09606e4aeba44cb4f184cc743",
+  "adapter_sha256": "cc3d27df829a258b086289c8e3c2e8e0526ac864cfc2fca1f67061e50f207951",
+  "driver_sha256": "36c9a26b1059984b551fb2b724ab3fb49c6353db98c3b360c814f4b025698e98",
+  "authorization_sha256": "8c6de2b557bd5b0c6dbddf7e6ab6e756da3ac2c1224f5b53f5d4a2f3377b8b8e",
+  "template_sha256": "b6db0bf8d66f8c63fe1f6dc71a981dc5ebb8a944bbefa849dc8b11f5b259f702",
+  "candidate_sha256": "52cf99df3e241ab8399c104b7ad4b717571e0987781b6b835303a8500baff38c",
+  "staging": {
+    "complete_non_sparse": true,
+    "remote_checkout": "/home/ubuntu/trainium_freshstart_20260924_c595_warmdown060_trn22_r1",
+    "checkout_head": "126cf41293fc31cfa79030ab82f55947c6042590",
+    "checkout_clean_before_launch": true,
+    "source_fingerprint_count": 16,
+    "source_fingerprints_passed": true,
+    "bundle_sha256": "0d783fb549f6bdba3d30596a3aff73e3ba9fb9c37dc7bba80a949934d8ee556e",
+    "bundle_bytes": 52488711,
+    "checkout_allocated_bytes": 214138880,
+    "free_bytes_before_launch": 9041633280
+  },
+  "adapter": {
+    "command": [
+      "python",
+      "research/submission-validation/20260924-c595-warmdown060-trn22/launch_adapter.py",
+      "--concrete-request",
+      "/tmp/fs-20260924-c595-warmdown060-trn22-r1.request.json"
+    ],
+    "dry_run": false,
+    "concrete_request_path": "/tmp/fs-20260924-c595-warmdown060-trn22-r1.request.json",
+    "concrete_request_bytes": 9655,
+    "concrete_request_sha256": "c6d1ab20a1b5f13c98341aeccd1407230c0b5c569c52704cc505f00fa99fd281"
+  },
+  "launch": {
+    "launcher_returncode": 0,
+    "preflight_passed": true,
+    "guard_pid": 2773403,
+    "child_pid": 2773404,
+    "started_at": "2026-09-23T23:10:36.605737+00:00",
+    "remote_log": "/home/ubuntu/trainium_freshstart_20260924_c595_warmdown060_trn22_r1/research/run-logs/fs-20260924-c595-warmdown060-trn22-r1.log"
+  },
+  "runtime_job": {
+    "bytes": 12220,
+    "sha256": "fccc470e6a44e232e5731ed00948a50810b4d80ea62db296c4be5d05e3f1ba09",
+    "canonical_bytes": 12221,
+    "canonical_sha256": "db341b913316a9a2733ae30944255d285b92cec5366a6ba5f79108b4b21c137e",
+    "equals_required_canonical_serialization": false,
+    "first_difference_offset": 4806
+  },
+  "execution": {
+    "command_returncode": 1,
+    "training_started": false,
+    "evaluation_started": false,
+    "checkpoint_created": false,
+    "retry_performed": false,
+    "remote_output_files": 0
+  },
+  "postflight": {
+    "host_clean": true,
+    "failures": [],
+    "cleanup_actions": [],
+    "relevant_processes": [],
+    "device_holder_returncode": 1,
+    "neuron_process_count": 0,
+    "free_bytes": 9041522688
+  },
+  "retrieved": {
+    "concrete-request.json": {"bytes": 9655, "sha256": "c6d1ab20a1b5f13c98341aeccd1407230c0b5c569c52704cc505f00fa99fd281"},
+    "dispatch.json": {"bytes": 10676, "sha256": "2aa376d5e0dc42d39c44a09be876fe7b6c08aafc766aecf8a97d5e2bd67c56a3"},
+    "job.json": {"bytes": 12220, "sha256": "fccc470e6a44e232e5731ed00948a50810b4d80ea62db296c4be5d05e3f1ba09"},
+    "launch.json": {"bytes": 12220, "sha256": "fccc470e6a44e232e5731ed00948a50810b4d80ea62db296c4be5d05e3f1ba09"},
+    "log": {"bytes": 323, "sha256": "176469ddc29127942bccd63d88578b2a1e1df1ffeecdefb5524a2c8c8fae7b1c"},
+    "postflight.json": {"bytes": 7319, "sha256": "886e12b6ef7290288c8fa5d53ffbf656317e310b423d864d50b190e3fa532afe"},
+    "preflight.json": {"bytes": 13809, "sha256": "d6cd9d6a91f170e841f32001e0b910b85905a36f80c9ec3639f94c1ab5c71c4f"},
+    "process.json": {"bytes": 743, "sha256": "20d664b684cddf5f614b84700e528f744c1bc007953edd682e1b1b2c023766cb"}
+  },
+  "operator_boundary": {
+    "candidate_or_harness_modified": false,
+    "retry_authorized": false,
+    "cleanup_or_prune_performed": false,
+    "leaderboard_submission_performed": false
+  }
+}
