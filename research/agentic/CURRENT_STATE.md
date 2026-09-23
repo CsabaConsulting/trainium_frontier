@@ -1,10 +1,10 @@
 # Current state
 
-Last reconciled: 2026-09-23 02:31 UTC
+Last reconciled: 2026-09-23 02:34 UTC
 
 ## Verified repository state
 
-- Active controller checkout: `agent/control-plane-20260921` at `691faccb`, clean and synced to
+- Active controller checkout: `agent/control-plane-20260921` at `3b26fee1`, clean and synced to
   `origin/agent/control-plane-20260921`
 - Authoritative research branch: `origin/research/fresh-start-20260918`
 - Authoritative research commit: `9a4caa7bfab26c1d1bb59f7ef2bb8c5392d7503a`
@@ -19,6 +19,9 @@ Last reconciled: 2026-09-23 02:31 UTC
 - Evidence durability: commit `691faccb` retrieved and SHA-verified the previously omitted
   per-run launch receipt for all 29 durable results. Future collection retrieves that receipt,
   enumerates every untracked path, and fails the correctness gate on any unexplained post-run dirt.
+- Research grounding: after two source-contradicted proposals were independently rejected before
+  hardware use, commit `3b26fee1` added a bounded authoritative `train.py` measured/closed evidence
+  index to the Researcher prompt. The complete-source Astra verification gate remains unchanged.
 - Phase 1 deadline: 2026-09-30 23:59 PT
 
 ## Known score state
