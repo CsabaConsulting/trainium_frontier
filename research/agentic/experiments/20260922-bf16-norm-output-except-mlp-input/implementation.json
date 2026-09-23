@@ -1,0 +1,18 @@
+{
+  "branch": "autoloop/20260922-bf16-norm-output-except-mlp-input",
+  "candidate_commit": "fff4b9ba808e18f8012537cb80b445889f2a9608",
+  "deterministic_findings": [],
+  "diff_sha256": "edff764a516f42dbae690670a46e275b1a7c9d6eab744a91da14532d5a3c31b5",
+  "implemented_at": "2026-09-23T00:03:11Z",
+  "implementer_model_id": "us.anthropic.claude-fable-5-1",
+  "passed": true,
+  "verifier_findings": [
+    "The train.py-only patch implements one attributable numerical-format policy: enable the existing BF16 norm-output policy while exempting exactly the serial, pre-MLP sandwich, and parallel shared-h MLP-input norms.",
+    "Exempted calls execute the original non-cast norm path, without BF16-then-FP32 conversion. The sandwich post-MLP norm and other norm call sites remain unchanged; the parallel shared-h exemption also affects attention as explicitly approved.",
+    "The default-on toggle, environment override, positive/negative CLI flags, effective-policy assignment, startup logging, and checkpoint toggle registration match the proposal. Disabling the new toggle with otherwise baseline defaults restores the original behavior.",
+    "Candidate checkpoints persist both precision toggles, and load_for_eval restores them before model construction. The patch introduces no future-token dependency, evaluation-time adaptation, external data, or pretrained initialization.",
+    "The patch leaves optimizer, schedule, parameter shapes, kernels, data loading, tokenizer, evaluator, seed-42 default, distributed/full-chip launch behavior, and 1800-second budget accounting unchanged. Supplied deterministic checks pass; runtime gates remain for the controller."
+  ],
+  "verifier_model_id": "us.openai.gpt-6-astra",
+  "verifier_verdict": "PASS"
+}
