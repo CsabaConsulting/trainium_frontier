@@ -1,0 +1,19 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "Single causal change verified: --demon-beta1 enables only the existing AdamW beta1 schedule. demon_beta1_scale() linearly scales each group's initial beta1 across wall-clock progress 0.25\u20131.0, targeting 0.55 for initial beta1 0.8 and 0.61875 for initial beta1 0.9. The training-loop kind check excludes RMSProp and leaves Muon unchanged.",
+    "The implementation supports the corrected mechanism: group['betas'] receives Python floats; _adamw_step_foreach() uses 1-beta1 in _foreach_lerp_; _adamw_state() supplies scalar bias corrections. The demon_beta1_scale() docstring cites device-smoke confirmation of this scalar plumbing. Throughput neutrality remains appropriately subject to the proposed smoke gate.",
+    "Repository grounding is substantive: train.py records the T0.4 momentum-cooldown stack measurements and separately closes the scalar beta2/LR sweep. Neither that closure nor any direction in the supplied decision log and ledger is equivalent to this AdamW beta1 anneal.",
+    "Competition-legal: this flag changes training optimizer scheduling only, with no pretrained weights, external data, architecture changes, or evaluator modifications. README.md explicitly permits optimizer and hyperparameter changes.",
+    "The predicted public-BPB improvement and throughput neutrality are falsifiable using the controller-pinned seed-42 full-chip run and matched control. The pooled 1.005850 reference must not independently establish a win: the retrieved same-host control remains authoritative, as required by AGENTS.md and experiment-protocol.md."
+  ],
+  "llm_verdict": "PASS",
+  "passed": true,
+  "proposal_id": "20260923-demon-beta1-r2-default-shape",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-23T06:42:28Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}

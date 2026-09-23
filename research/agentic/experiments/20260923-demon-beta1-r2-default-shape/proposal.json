@@ -1,0 +1,51 @@
+{
+  "abort_conditions": [
+    "Smoke (300 s) step count below 320 or step rate below 0.97x the same-host control smoke (334/335 steps): indicates the beta1 schedule is triggering recompiles or extra launches; abort and log as throughput-confounded, do not promote to full",
+    "Smoke public_val_bpb exceeds same-host control smoke by more than 0.003",
+    "causality_passed is not true in smoke or full run",
+    "Any NaN/inf loss, loss-scale skip, or non-finite gradient norm in the training log",
+    "Full run step count differs from the same-host control by more than 10% (comparability gate) or over_budget is true",
+    "Full run public_val_bpb >= 1.005850 (hypothesis falsified; record DISCARD, do not stack)"
+  ],
+  "change_type": "flags",
+  "created_at": "2026-09-23T06:42:27Z",
+  "duplicate_search_terms": [
+    "demon",
+    "demon-beta1",
+    "DEMON_BETA1",
+    "beta1 anneal",
+    "beta1 decay",
+    "Adam momentum decay",
+    "Recursive schedule",
+    "optimized_from_karpathy",
+    "Plan \u00a711.1",
+    "adamw betas schedule",
+    "DEMON_BETA1_FINAL"
+  ],
+  "evidence": [
+    "train.py lines 414-448: Plan \u00a711.1 (1) Adam 'Demon' beta1 decay -- DEMON_BETA1=False default is exactly current behaviour; anneal is a multiplicative shrink of each AdamW group's initial beta1 (0.8 embedding family, 0.9 scalar and gate/conv groups); rmsprop n-gram tables excluded by kind; 'pure optimizer-schedule changes -- they add no new tensors, no new ops, and no new parameters'",
+    "train.py lines 421-430: per-step changing Python floats can bake into the Neuron graph, but 'lerp_.Scalar's weight demonstrably does NOT bake' (measured) -- the op _adamw_step_foreach uses for the 1-beta1 first-moment update",
+    "Proposal verifier findings on 20260923-demon-beta1-only-default-shape: beta1 is NOT routed through _device_scalar; training loop writes Python floats into group['betas']; _adamw_step_foreach consumes 1-beta1 as scalar lerp weight; _adamw_state computes scalar bias corrections; 'No closed equivalent appears in the supplied decision log or source annotations'; flag correctly isolated including the local-convolution group",
+    "train.py lines 508-526: T0.4 combined stack adopted MUON_MOMENTUM_COOLDOWN_FRAC 0.0->0.045 (tail momentum reduction for Muon) confirmed at 1800s: stack 1.034053 vs defaults 1.035445 -- analog mechanism for the matrix optimizer",
+    "train.py lines 334-350: SCALAR_BETA2/SCALAR_LR sweep closed negative -- distinct axis (beta2 and LR of the scalar group, constant over the run), not a beta1 anneal",
+    "train.py lines 385-405: USE_TENSOR_LR_SCALARS locked on; the optimizer graph must stay compiled once -- motivates the smoke step-rate abort condition",
+    "research/agentic/DECISION_LOG.md: no demon/beta1 row; pinned controls control-trn21 1.005734/2071 steps and control-trn22 1.005967/2076 steps at 9a4caa7b",
+    "research/experiment-log.jsonl rows al-20260922-control-trn21-lnc2x4-9a4caa7b-smoke-r1 (1.165855/334 steps) and al-20260922-control-trn22-lnc2x4-9a4caa7b-smoke-r2 (1.165604/335 steps) -- smoke reference points"
+  ],
+  "expected_effect": "Lower public val_bpb by 0.0005 to 0.0015 relative to the pinned controls (mean 1.005850) at a matched step count (within \u00b13% of 2071-2076 steps), i.e. a full-run result of about 1.0043-1.0053. Falsified if the candidate is >= 1.005850 at comparable steps. Throughput predicted neutral (step count within \u00b13% of control); a >3% step-rate drop is treated as a confound (likely per-step recompilation) rather than as quality signal.",
+  "files_allowed": [],
+  "flags": [
+    "--demon-beta1"
+  ],
+  "hypothesis": "Annealing the AdamW groups' beta1 across the LR warmdown (Recursive 'Demon' schedule, train.py DEMON_BETA1 block, lines ~414-448) lets the embedding-family updates (wte, lm_head, unigram value embeddings, adamw fallback) and the 0.9-beta1 scalar/gate/local-conv groups track the sharply decaying LR instead of averaging over a stale first-moment window during the final ~1500 low-LR steps that shape the final weights most. The repo already adopted the same tail-momentum-reduction mechanism for Muon (MUON_MOMENTUM_COOLDOWN_FRAC 0.045 -> MUON_MOMENTUM_FINAL 0.85, part of the confirmed T0.4 stack, train.py lines 508-526), but the AdamW groups still run a fixed beta1 to the last step. Mechanism as the source actually implements it (correcting the prior proposal's wrong claim): the training loop writes per-step Python-float betas into group['betas']; _adamw_step_foreach consumes 1-beta1 as the scalar weight of lerp_ (which the muon_momentum docstring records as measured NOT to bake into the Neuron graph), and _adamw_state computes scalar bias corrections that already vary every step in the baseline (they depend on the step count), so the schedule changes values, not the kind of op or scalar plumbing. Throughput neutrality is therefore expected but is a testable prediction checked by the smoke step-rate gate, not a guarantee. The rmsprop n-gram tables have no first moment and are excluded by kind; Muon is untouched. Prior verifier (20260923-demon-beta1-only-default-shape) found no closed equivalent in the decision log or source annotations and judged the flag correctly isolated; this r2 only corrects the two flagged claims.",
+  "implementation_plan": "",
+  "proposal_id": "20260923-demon-beta1-r2-default-shape",
+  "single_causal_change": "Pass --demon-beta1 only (DEMON_BETA1 True with in-source defaults: DEMON_BETA1_FINAL 0.55 quoted against DEMON_BETA1_REF 0.8, applied as a multiplicative shrink of each AdamW group's own initial beta1, DEMON_BETA1_START_FRAC -1.0 i.e. the anneal starts where the LR warmdown starts at progress 1 - WARMDOWN_RATIO = 0.25). Every other option stays at the 9a4caa7b defaults of the two pinned controls: NEURON_LOGICAL_NC_CONFIG=2, torchrun --nproc_per_node=4, --num-steps 5000 --max-train-seconds 1800 --seed 42, NEURON_CC_FLAGS='--optlevel=1'. No precision flag, no kernel flag, no other optimizer switch (--cautious-wd, --wd-decay-to-zero, --muon-lr-fp32, --adam-every-n-lr-comp, --ngram-ve-*), no architecture, data or evaluator change. The AdamW beta1 schedule is the sole causal option.",
+  "smoke_gate": {
+    "max_bpb_delta": 0.003,
+    "min_candidate_steps": 320,
+    "min_step_rate_ratio": 0.97
+  },
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}
