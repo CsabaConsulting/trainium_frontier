@@ -44,13 +44,25 @@ def output_fd():
   try:return os.open(LABEL,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW,dir_fd=out_fd)
   finally:os.close(out_fd)
  finally:os.close(root_fd)
+def write_all(fd,data,writer=os.write):
+ view=memoryview(data);offset=0
+ while offset<len(view):
+  count=writer(fd,view[offset:])
+  if type(count) is not int or count<=0 or count>len(view)-offset:raise SystemExit("invalid durable write count")
+  offset+=count
+ return offset
 def durable(path,data):
  if path.parent!=OUTPUT or path.name in ("",".",".."):raise SystemExit("artifact path escape")
  directory=output_fd()
  try:
   fd=os.open(path.name,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600,dir_fd=directory)
-  try:os.write(fd,data);os.fsync(fd)
-  finally:os.close(fd)
+  try:
+   try:
+    if write_all(fd,data,os.write)!=len(data):raise SystemExit("incomplete durable write")
+    os.fsync(fd)
+   finally:os.close(fd)
+  except BaseException:
+   os.unlink(path.name,dir_fd=directory);os.fsync(directory);raise
   os.fsync(directory)
  finally:os.close(directory)
 def durable_json(path,value):durable(path,(json.dumps(value,indent=2,sort_keys=True)+"\n").encode())
@@ -70,6 +82,14 @@ def artifact_bytes(name):
    return b"".join(chunks)
   finally:os.close(fd)
  finally:os.close(directory)
+def persisted_json(name,expected,schema):
+ data=artifact_bytes(name)
+ try:value=json.loads(data)
+ except (UnicodeDecodeError,json.JSONDecodeError):raise SystemExit("persisted JSON invalid: "+name)
+ if value!=expected or value.get("schema")!=schema:raise SystemExit("persisted JSON schema/content mismatch: "+name)
+ canonical=(json.dumps(expected,indent=2,sort_keys=True)+"\n").encode()
+ if data!=canonical:raise SystemExit("persisted JSON bytes mismatch: "+name)
+ return value
 def inspect_artifacts(expected):
  directory=output_fd()
  try:names=set(os.listdir(directory))
@@ -150,7 +170,9 @@ def run_eval(name,argv,env,tokens,num_bytes):
  elapsed=time.monotonic()-started;durable(OUTPUT/(name+".log"),done.stdout.encode())
  if done.returncode!=0 or elapsed>1200.0:raise SystemExit(name+" failed or exceeded wall timeout")
  metrics=parse_metrics(done.stdout,tokens,num_bytes)
- durable_json(OUTPUT/(name+".metrics.json"),{"argv":argv,"metrics":metrics,"wall_seconds":elapsed})
+ receipt={"schema":"c595-eval-recovery-metrics-v1","name":name,"argv":argv,"metrics":metrics,"wall_seconds":elapsed}
+ durable_json(OUTPUT/(name+".metrics.json"),receipt)
+ persisted_json(name+".metrics.json",receipt,"c595-eval-recovery-metrics-v1")
  return metrics,elapsed
 def finite_scan(env):
  source="""import json,sys,torch\nv=torch.load(sys.argv[1],map_location='cpu',weights_only=True); stack=[v]; n=0\nwhile stack:\n x=stack.pop()\n if isinstance(x,dict): stack.extend(x.values())\n elif isinstance(x,(list,tuple)): stack.extend(x)\n elif isinstance(x,torch.Tensor):\n  n+=1\n  if (x.is_floating_point() or x.is_complex()) and not torch.isfinite(x).all().item(): raise SystemExit('nonfinite')\nprint(json.dumps({'weights_only':True,'map_location':'cpu','finite':True,'tensor_count':n}))\n"""
@@ -198,6 +220,7 @@ def main():
   "secondary":{"argv":secondary,"metrics":secondary_metrics,"wall_seconds":secondary_wall},
   "environment":{"python":PYTHON,"lnc":"2","inherited_neuron_cc_flags_removed":True,"distributed_and_competition_variables_scrubbed":True}}
  durable_json(OUTPUT/"result.json",result)
+ persisted_json("result.json",result,"c595-eval-recovery-result-v1")
  members=inspect_artifacts(BASE_ARTIFACTS)
  manifest={"schema":"c595-eval-recovery-artifact-manifest-v1","label":LABEL,"members":members}
  durable_json(OUTPUT/"artifact-manifest.json",manifest)

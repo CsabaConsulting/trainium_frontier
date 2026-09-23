@@ -71,4 +71,28 @@ with tempfile.TemporaryDirectory(prefix="c595-eval-artifacts-") as temporary:
    except SystemExit:pass
    else:raise AssertionError("forged/truncated completion accepted")
  finally:m.ROOT,m.OUTPUT=old_root,old_output
+
+all_durable=sorted(m.BASE_ARTIFACTS|{"artifact-manifest.json","ready-to-retrieve.json"})
+with tempfile.TemporaryDirectory(prefix="c595-short-write-") as temporary:
+ root=pathlib.Path(temporary)/"checkout";root.mkdir();m.create_output(root,root/"out"/m.LABEL)
+ old_root,old_output,original_write=m.ROOT,m.OUTPUT,m.os.write;m.ROOT=root;m.OUTPUT=root/"out"/m.LABEL
+ def short_write(fd,view):return original_write(fd,view[:max(1,min(3,len(view)))])
+ m.os.write=short_write
+ try:
+  for name in all_durable:
+   payload=("repeated-short-write-"+name).encode();m.durable(m.OUTPUT/name,payload)
+   assert m.artifact_bytes(name)==payload
+ finally:m.os.write=original_write;m.ROOT,m.OUTPUT=old_root,old_output
+
+for failed_name in all_durable:
+ with tempfile.TemporaryDirectory(prefix="c595-zero-write-") as temporary:
+  root=pathlib.Path(temporary)/"checkout";root.mkdir();m.create_output(root,root/"out"/m.LABEL)
+  old_root,old_output,original_write=m.ROOT,m.OUTPUT,m.os.write;m.ROOT=root;m.OUTPUT=root/"out"/m.LABEL
+  m.os.write=lambda _fd,_view:0
+  try:
+   try:m.durable(m.OUTPUT/failed_name,b"must-not-persist")
+   except SystemExit:pass
+   else:raise AssertionError("zero write accepted for "+failed_name)
+   assert not (m.OUTPUT/failed_name).exists() and not (m.OUTPUT/"ready-to-retrieve.json").exists()
+  finally:m.os.write=original_write;m.ROOT,m.OUTPUT=old_root,old_output
 print("c595 evaluator-only recovery static/adversarial gates: PASS")
