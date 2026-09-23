@@ -1,0 +1,18 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "The implementation plan contradicts the authoritative source. train.py already defines ATTN_SCALE=0.0 (lines 209\u2013232), exposes --attn-scale through _hp(), carries it in GPTConfig, and snapshots config.attn_scale into CausalSelfAttention.self.attn_scale (lines 3083\u20133098). Every SDPA call passes scale=self.attn_scale, and nki_attention forwards the resolved scale to both its SDPA fallback and _AttnNKI. Step 1's requirement that no scale= keyword exist therefore fails on the pinned source, although the control's resolved scale is the backend default.",
+    "Revise this as a one-factor --attn-scale 0.12 experiment using the existing checkpoint-safe plumbing, or explicitly justify a distinct query-premultiplication experiment and reconcile its interaction with the existing scale. Adding an independent ATTN_LOGIT_SCALE currently duplicates an implemented control and can compound two scales. The supplied decision log does not establish that attention-temperature tuning is a closed direction; an existing implementation alone is not evidence of experimental closure.",
+    "Correct the mechanism citation: Block.forward's norm(q_in)/norm(k_in) normalizes residual inputs before projection; the per-head QK normalization is rope_norm(q, cos, sin) and rope_norm(k, cos, sin) inside CausalSelfAttention.forward. Fixed norms constrain attainable logit magnitude, but the optimizer can still sharpen attention by changing query/key alignment. The BF16 SDPA KEEP is valid repository evidence of attention-boundary sensitivity, not proof that increased temperature improves loss per step; its 2233 versus 2076 steps also differ.",
+    "The proposed axis is competition-legal and falsifiable through the controller's matched seed-42 full-chip run: it changes neither training assets nor the evaluator and declares BPB and throughput expectations. Pre-implementation inspection is static-only, with executable checks reserved for smoke, so that stage boundary is acceptable. These strengths do not resolve the source/implementation mismatch."
+  ],
+  "llm_verdict": "NEEDS_WORK",
+  "passed": false,
+  "proposal_id": "20260923-attn-logit-scale-012-fixed-q-premult",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-23T13:12:27Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}

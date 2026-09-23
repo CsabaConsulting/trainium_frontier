@@ -1,0 +1,52 @@
+{
+  "abort_conditions": [
+    "Static inspection (Step 1) finds the attention path already applies a non-default softmax scale, a learnable per-head temperature, or a learnable gain on norm(q)/norm(k): report HALT-DUPLICATE/HALT-INERT, do not run",
+    "Smoke: candidate steps < 0.985 x same-host control smoke steps (control smokes: 334 trn21 / 335 trn22) -> abort as throughput regression (the change is expected to be step-neutral, so any loss indicates a graph-level side effect)",
+    "Smoke: causality_passed != true or any NaN/inf loss or loss_scale skip counts > control",
+    "Smoke: candidate bpb > control smoke bpb + 0.004 (sharper attention should not be materially worse even at 335 steps)",
+    "Full: step count differs from same-host control by > 10% (comparability gate) -> CONFOUNDED, investigate rather than conclude",
+    "Full: candidate bpb >= control bpb -> DISCARD; log the sign so a lower value (e.g. 0.10) is not blindly retried without new evidence"
+  ],
+  "change_type": "code",
+  "created_at": "2026-09-23T13:12:26Z",
+  "duplicate_search_terms": [
+    "attn_scale",
+    "attention scale",
+    "ATTN_LOGIT_SCALE",
+    "attn-logit-scale",
+    "softmax scale",
+    "softmax temperature",
+    "qk scale",
+    "logit scale",
+    "scale=0.12",
+    "0.12",
+    "1/sqrt(head_dim)",
+    "query premultiply",
+    "q * ",
+    "attention temperature",
+    "scaled_dot_product_attention scale"
+  ],
+  "evidence": [
+    "train.py Block.forward (per implementation-verifier finding on 20260922-bf16-mlp-input-norm-only): norm(q_in), norm(k_in), norm(v_in) are function calls to the parameter-free norm(); norm() preserves input dtype under default flags -> q/k are RMS-normalized fp32 with no learnable per-head gain, so attention logits are bounded by sqrt(head_dim) and the scale constant is the only sharpness lever",
+    "train.py nki_attention / _AttnNKI geometry T=2048, D=128 (proposal-verifier finding on 20260923-nki-attn-only-default-shape) -> head_dim 128, the exact geometry at which modded-nanogpt's 0.12 scale was tuned",
+    "train.py lines 27-57 COMPILE_SDPA_DIRECT=False routes the control through @torch._dynamo.disable nki_attention and its eager SDPA fallback with default scale (verifier finding on 20260923-nki-attn-only-default-shape); a q pre-multiply is backend-agnostic and needs no kwarg support",
+    "research/experiment-log.jsonl al-20260922-bf16-sdpa-input-only-default-shape-full-r1: 1.002028 / 2233 steps vs control 1.005967 / 2076 -- the only autonomous KEEP at 9a4caa7b is an attention-boundary change, establishing attention as a live lever",
+    "research/experiment-log.jsonl controls al-20260922-control-trn21 (1.005734 / 2071) and trn22 (1.005967 / 2076): cross-box spread 0.00023, so an effect >= 0.001 at matched steps is resolvable",
+    "DECISION_LOG.md: no row for attention scale / softmax temperature / qk scale at any commit; authoritative evidence index (lines 27-57, 164-182, 282-320, 334-372, 385-448, 508-526, 540-558, 576-595, 621-650) contains no measured or closed attention-scale axis",
+    "External (label, not repository): modded-nanogpt train_gpt.py CausalSelfAttention uses F.rms_norm on q,k and a fixed attn_scale=0.12 at head_dim 128 in place of 1/sqrt(d); adopted as part of a record and retained in all subsequent records"
+  ],
+  "expected_effect": "Lower public val_bpb at matched steps: predeclared -0.001 to -0.003 bpb versus the same-host pinned control (trn21 1.005734 / 2071 or trn22 1.005967 / 2076), with step count within +/-1.5% of control (the change adds one elementwise scalar multiply on q per layer and no parameters). A candidate within +/-0.0005 of control is a null; a candidate worse by > +0.001 falsifies the hypothesis (attention at this model is already sharp enough or over-sharp at 0.12).",
+  "files_allowed": [
+    "train.py"
+  ],
+  "flags": [],
+  "hypothesis": "The pinned model applies a parameter-free RMS norm to q and k before attention (train.py Block.forward calls norm(q_in), norm(k_in), norm(v_in); norm() is a function, not a module with gains) and then dispatches to SDPA/nki_attention with the default softmax scale 1/sqrt(head_dim). With QK-norm the row norms of q and k are pinned to sqrt(d), so attention logits are hard-bounded to [-sqrt(d), +sqrt(d)] (about +/-11.3 at d=128) and the ONLY route to sharper attention is the scale constant, which the optimizer cannot touch. modded-nanogpt's QK-normed attention adopted a fixed scale of 0.12 at head_dim 128 (vs 1/sqrt(128)=0.0884, i.e. ~1.36x sharper attainable logits) as a record-improving change at similar depth/width. Attention numerics are demonstrably load-bearing in this model (the only autonomous KEEP at this commit is the attention-boundary change --bf16-sdpa-input: 1.002028/2233 vs 1.005967/2076). Raising the attention logit scale to 0.12 is a zero-parameter, zero-extra-matmul change (one scalar multiply of q, constant across steps so it cannot trigger recompilation) that should improve loss per step at unchanged step rate.",
+  "implementation_plan": "All edits confined to train.py on branch autoloop/20260923-attn-logit-scale-012-fixed-q-premult from 9a4caa7b. STEP 1 (static inspection; report only as notes in the implementation summary, no artifact, no execution): (a) locate the attention module (the class whose forward computes q,k,v, applies norm(q_in)/norm(k_in)/norm(v_in), rope, the qk-shift, any value-embedding/n-gram mixing into v, and then calls nki_attention / F.scaled_dot_product_attention / _AttnNKI); record head_dim (n_embd // n_head or the explicit constant) and every distinct call site that hands q to an attention backend, including the parallel_block and mlp_sandwich variants if they reach the backend through a different line; (b) confirm the backend is invoked with the default softmax scale (no scale= kwarg, no explicit division of q or k other than 1/sqrt(d) inside the backend, no learnable temperature/scalar multiplying q, k or the logits) and that norm() applied to q and k is parameter-free (no per-head or per-channel learnable gain). If (b) fails on any point, STOP and report HALT-DUPLICATE (scale already non-default) or HALT-INERT (a learnable gain/temperature already makes the scale trainable); (c) locate the existing module-level toggle plumbing pattern (module constant, NEURON_COMPETITION_R1_* env read, argparse pair, ARCH_TOGGLE_NAMES persistence, load_for_eval restore, the startup config print) used by e.g. --x0-gate, and note whether the persistence mechanism accepts non-boolean values. STEP 2 (constant + plumbing): add module-level ATTN_LOGIT_SCALE = float(os.environ.get('NEURON_COMPETITION_R1_ATTN_LOGIT_SCALE', '0.12')) next to the other architecture constants, with a comment stating: 0.12 is the new default; <= 0 selects the backend default 1/sqrt(head_dim) which is bit-identical to 9a4caa7b; values are Python-float constants baked into the graph once, so they cannot cause per-step recompilation. Add argparse --attn-logit-scale (type=float, default=None -> leave constant as resolved from env) that overwrites the module constant when given, following the existing flag style. Persist the value in the checkpoint: if the ARCH_TOGGLE_NAMES mechanism stores arbitrary module-constant values, append 'ATTN_LOGIT_SCALE' to it; otherwise save it as a sibling key 'attn_logit_scale' in the same config dict and have load_for_eval restore it when present (absent -> keep the module constant). Add one field to the existing startup config print: attn_logit_scale=<value> and the resolved q_premult. STEP 3 (the single causal edit): in the attention module __init__, compute head_dim as the module already does and set self.q_premult = (ATTN_LOGIT_SCALE * math.sqrt(head_dim)) if ATTN_LOGIT_SCALE > 0 else 1.0 (Python float). In forward, at EVERY call site identified in Step 1(a) that hands q to a backend, insert exactly `if self.q_premult != 1.0: q = q * self.q_premult` as the last operation on q before (i) any existing --bf16-sdpa-input cast of q and (ii) the backend call; do not touch k or v, do not pass scale= to SDPA, do not modify the NKI kernel or nki_attention wrapper internals. If a single shared helper receives q for all paths, place the multiply once inside that helper instead of at each call site (same rule: after norm/rope/qk-shift, before any bf16 cast). STEP 4 (guards): assert at model construction that q_premult is a finite Python float; ensure the default path with ATTN_LOGIT_SCALE <= 0 executes no multiply (exact baseline). STEP 5 (self-review, static only): confirm no other numerical, optimizer, schedule, data, eval, or toggle default changed; confirm the diff touches only train.py; confirm the change is applied identically in serial, parallel_block, and mlp_sandwich paths (or via the shared helper); record head_dim and q_premult (expected 0.12*sqrt(128)=1.3576 if head_dim=128) in the summary.",
+  "proposal_id": "20260923-attn-logit-scale-012-fixed-q-premult",
+  "single_causal_change": "One architecture/numerics constant change confined to train.py: a new module-level ATTN_LOGIT_SCALE (default 0.12; env NEURON_COMPETITION_R1_ATTN_LOGIT_SCALE overrides; CLI --attn-logit-scale FLOAT; a value <= 0 means 'use the backend default 1/sqrt(head_dim)', which is the bit-identical baseline path). When ATTN_LOGIT_SCALE > 0 and differs from 1/sqrt(head_dim), the attention module multiplies ONLY the final query tensor q by the Python-float constant q_premult = ATTN_LOGIT_SCALE * sqrt(head_dim) immediately before the attention backend call (after norm/rope/qk-shift, before any existing --bf16-sdpa-input cast), so softmax(q.k^T / sqrt(d)) becomes softmax(0.12 * q.k^T) for every backend. k, v, the SDPA/NKI kernels, all norms, the optimizer, schedule, data and evaluator are untouched. No other flag or default changes.",
+  "smoke_gate": {
+    "min_step_rate_ratio": 0.985
+  },
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}
