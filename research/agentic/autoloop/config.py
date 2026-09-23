@@ -22,12 +22,40 @@ STATE_FILE = RUNTIME_DIR / "autoloop_state.json"
 LOCAL_LOCK_DIR = RUNTIME_DIR / "locks"
 BUNDLE_DIR = RUNTIME_DIR / "bundles"
 CONFIG_FILE = AGENT_DIR / "autoloop.json"
+QUEUE_PLAN_FILE = AGENT_DIR / "frontier-full-only-queue.json"
 DECISION_LOG = AGENT_DIR / "DECISION_LOG.md"
 LOCAL_LEDGER = ROOT / "research" / "experiment-log.jsonl"
 
 # ---- pinned (not overridable) -------------------------------------------------------------------
 
-AUTHORITATIVE_COMMIT = "9a4caa7bfab26c1d1bb59f7ef2bb8c5392d7503a"
+# Filled by the reviewed frontier-control preparation commit. The controller additionally checks
+# the exact train.py byte hash before staging and again on the host.
+AUTHORITATIVE_COMMIT = "4ed89f36c437ab75b0bf63cea80a3871f547de34"
+AUTHORITATIVE_TRAIN_SHA256 = "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344"
+AUTHORITATIVE_RUNNER_SHA256 = "88243a74f0f080929f93d0b88ddedbe6f5351ad37bf272229d9ae6d26efd5d2d"
+AUTHORITATIVE_PREPARE_SHA256 = "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb"
+BREAKER_CLEANUP_RECEIPT_COMMIT = "563f83ec3f5b68c8bc609d11956bdd2072720aee"
+BREAKER_CLEANUP_RECEIPT_PATH = "research/agentic/operations/TRN21_DETERMINISTIC_CLEANUP_2026-09-23_R8.md"
+BREAKER_CLEANUP_RECEIPT_SHA256 = "ac801b82ffd711a9efa269e824cdc53c8a4e0fe2c1037dd3b3ecf1978f5df5e1"
+EXACT_DENSE1024_TRAIN_ARGV: tuple[str, ...] = (
+    "torchrun", "--standalone", "--nproc_per_node=4", "train.py",
+    "--n-embd", "1024", "--no-ngram-ve", "--no-qk-shift",
+    "--compile-sdpa-direct", "--nki-local-conv", "--bf16-norm-output",
+    "--pack-factor", "32", "--clip-after-reduce", "--seq-len", "1024",
+    "--no-eval-public",
+)
+EXACT_DENSE1024_NUM_STEPS = 1_000_000
+EXACT_DENSE1024_EVAL_CONTEXT = 1024
+EXACT_DENSE1024_EVAL_TOKENS = 20_971_520
+EXACT_DENSE1024_EVAL_BYTES = 83_462_186
+EXACT_DENSE1024_CC_FLAGS = "--optlevel=1 --auto-cast matmult --auto-cast-type bf16"
+CACHE_ENV_KEYS: tuple[str, ...] = (
+    "TORCH_NEURONX_NEFF_CACHE_DIR",
+    "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR",
+    "TORCH_NEURONX_HLO_CACHE_DIR",
+    "TORCHINDUCTOR_CACHE_DIR",
+    "NEURON_COMPILE_CACHE_DIR",
+)
 
 # Order given by the human operator on 2026-09-22. The trn21/trn22 labels are the protocol's box
 # ids; the mapping to these two DNS names is an assumption recorded in AUTOLOOP.md and re-checked
@@ -159,6 +187,7 @@ class LoopConfig:
     bedrock_read_timeout_seconds: int = 1800
     git_push: bool = False
     git_remote: str = "origin"
+    plan_mode: str = ""
     boxes: list[str] = field(default_factory=lambda: ["trn22", "trn21"])
     caps: Caps = field(default_factory=Caps)
 
@@ -182,6 +211,13 @@ class LoopConfig:
         for box in self.boxes:
             if box not in PINNED_HOSTS:
                 errors.append(f"unknown box {box!r}; pinned boxes are {sorted(PINNED_HOSTS)}")
+        if self.plan_mode not in {"", "fixed_full_only"}:
+            errors.append("plan_mode must be empty or fixed_full_only")
+        if self.plan_mode == "fixed_full_only":
+            if self.boxes != ["trn22", "trn21"]:
+                errors.append("fixed_full_only requires boxes [trn22, trn21] in authorized order")
+            if self.neuron_cc_flags != EXACT_DENSE1024_CC_FLAGS:
+                errors.append("fixed_full_only requires the exact dense1024 compiler flags")
         if self.caps.min_free_gib < 5.0:
             errors.append("min_free_gib may not be lowered below the protocol's 5 GiB")
         if self.caps.max_runs_per_day < 1 or self.caps.max_runs_total < 1:

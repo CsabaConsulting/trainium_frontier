@@ -1,7 +1,7 @@
 {
   "lnc": 2,
   "nproc_per_node": 4,
-  "neuron_cc_flags": "--optlevel=1",
+  "neuron_cc_flags": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
   "researcher_model_id": "us.anthropic.claude-fable-5-1",
   "implementer_model_id": "us.anthropic.claude-fable-5-1",
   "verifier_model_id": "us.openai.gpt-6-astra",
@@ -11,6 +11,7 @@
   "bedrock_read_timeout_seconds": 1800,
   "git_push": false,
   "git_remote": "origin",
+  "plan_mode": "fixed_full_only",
   "boxes": ["trn22", "trn21"],
   "caps": {
     "max_llm_calls_per_day": 60,

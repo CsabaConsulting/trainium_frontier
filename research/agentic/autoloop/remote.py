@@ -28,6 +28,7 @@ from .ledger import Ledger
 from .manifest import RunManifest, assert_manifest_legal
 
 LAUNCHER_SRC = Path(__file__).with_name("remote_launcher.py")
+CACHE_CLEANUP_SRC = Path(__file__).with_name("remote_cache_cleanup.py")
 BUSY_PROCESS_RE = re.compile(r"train\.py|phase_timer|reconcile|run_experiment\.py|neuronx-cc|torchrun")
 
 ALLOWED_REMOTE_PROGRAMS = frozenset(
@@ -100,10 +101,17 @@ def guard_remote_argv(argv: list[str]) -> None:
     if prog == "git":
         _guard_git(argv)
     elif prog == C.REMOTE_PYTHON:
-        if len(argv) != 3 or not _under(argv[1], C.REMOTE_AUTOLOOP_DIR + "/launchers") or not argv[1].endswith("remote_launcher.py"):
-            raise GuardError("remote python may only run the staged launcher")
-        if not _under(argv[2], C.REMOTE_AUTOLOOP_DIR + "/launchers"):
-            raise GuardError("launcher spec must live under the launchers dir")
+        launcher = (len(argv) == 3
+                    and _under(argv[1], C.REMOTE_AUTOLOOP_DIR + "/launchers")
+                    and argv[1].endswith("remote_launcher.py")
+                    and _under(argv[2], C.REMOTE_AUTOLOOP_DIR + "/launchers"))
+        cache_cleanup = (len(argv) == 3
+                         and _under(argv[1], C.REMOTE_AUTOLOOP_DIR + "/cache-cleanup")
+                         and argv[1].endswith("remote_cache_cleanup.py")
+                         and _under(argv[2], C.REMOTE_AUTOLOOP_DIR + "/cache-cleanup")
+                         and argv[2].endswith("cleanup.json"))
+        if not launcher and not cache_cleanup:
+            raise GuardError("remote python may only run the staged launcher or exact cache cleanup")
     elif prog in ("mkdir", "rmdir"):
         for a in argv[1:]:
             if a.startswith("-") and a != "-p":
@@ -231,6 +239,18 @@ class LocalGit:
         if data is None:
             raise RemoteError(f"git show {commit}:{path} failed")
         return data
+
+    def parent_of(self, commit: str) -> str:
+        result = self._run(["rev-parse", f"{commit}^"])
+        if not result.ok or not re.fullmatch(r"[0-9a-f]{40}", result.stdout.strip()):
+            raise RemoteError(f"cannot resolve parent of {commit}")
+        return result.stdout.strip()
+
+    def changed_paths(self, parent: str, commit: str) -> list[str]:
+        result = self._run(["diff-tree", "--no-commit-id", "--name-only", "-r", parent, commit])
+        if not result.ok:
+            raise RemoteError(f"cannot inspect changed paths for {commit}")
+        return [line for line in result.stdout.splitlines() if line]
 
     def make_bundle(self, commit: str, out: Path) -> Path:
         ref = f"refs/heads/autoloop-stage-{commit[:12]}"
@@ -488,8 +508,17 @@ class RemoteOperator:
         assert_manifest_legal(manifest)
         if staged.run_dir != manifest.remote_run_dir or staged.box != manifest.box or staged.head != manifest.commit:
             raise RemoteError("manifest does not match the staged run directory")
+        if (manifest.execution_mode == "exact-dense1024-cold-eval"
+                and staged.train_py_sha256 != manifest.expected_train_sha256):
+            raise RemoteError("staged train.py differs from the exact manifest hash")
         if self.lock_owner(manifest.box) != self.controller_id:
             raise RemoteError("box lock not held by this controller")
+        if manifest.execution_mode == "exact-dense1024-cold-eval":
+            for key in C.CACHE_ENV_KEYS:
+                for env_key in (key, f"AUTOLOOP_EVAL_{key}"):
+                    cache_path = manifest.env[env_key]
+                    if self._run(manifest.box, ["test", "-e", cache_path], must_ok=False).ok:
+                        raise RemoteError(f"cold cache path already exists: {env_key}")
         inv = self.inventory(manifest.box)
         if not inv.clean_and_idle:
             raise RemoteError(f"pre-launch inventory failed: {inv.findings}")
@@ -570,6 +599,10 @@ class RemoteOperator:
             "done": f"{receipt.launcher_dir}/done.json",
             "launch_spec": f"{receipt.launcher_dir}/launch.json",
         }
+        if manifest.execution_mode == "exact-dense1024-cold-eval":
+            wanted["cold_public_eval_log"] = (
+                f"{manifest.remote_run_dir}/research/run-logs/{manifest.label}.eval.log"
+            )
         files: dict[str, dict] = {}
         for name, remote in wanted.items():
             remote_sha = self._remote_sha(manifest.box, remote)
@@ -599,6 +632,8 @@ class RemoteOperator:
             f"research/run-logs/{manifest.label}.launch.json",
             f"research/run-logs/{manifest.label}.log",
         }
+        if manifest.execution_mode == "exact-dense1024-cold-eval":
+            allowed_dirt.add(f"research/run-logs/{manifest.label}.eval.log")
         # Porcelain v1 is two status columns, one space, then the repository-relative path.
         # Requesting every untracked file is important: accepting a collapsed run-logs/
         # directory would hide an arbitrary extra artifact beneath it.
@@ -608,7 +643,11 @@ class RemoteOperator:
 
     def prune_checkpoint(self, manifest: RunManifest, expected_sha256: str) -> dict:
         """Delete only a completed run's checkpoint after proving its preserved hash matches."""
-        expected_path = f"{manifest.remote_run_dir}/out/{manifest.label}/final.pt"
+        expected_path = (
+            f"{manifest.remote_run_dir}/out/final.pt"
+            if manifest.execution_mode == "exact-dense1024-cold-eval"
+            else f"{manifest.remote_run_dir}/out/{manifest.label}/final.pt"
+        )
         if manifest.remote_checkpoint != expected_path:
             raise RemoteError("checkpoint path does not match the frozen manifest")
         if not re.fullmatch(r"[0-9a-f]{64}", expected_sha256):
@@ -626,3 +665,77 @@ class RemoteOperator:
             "sha256": expected_sha256,
             "pruned_at": self._now(),
         }
+
+    def confirm_checkpoint_pruned(self, manifest: RunManifest, receipt: dict) -> None:
+        if (receipt.get("box") != manifest.box or receipt.get("label") != manifest.label
+                or receipt.get("remote_checkpoint") != manifest.remote_checkpoint
+                or not re.fullmatch(r"[0-9a-f]{64}", str(receipt.get("sha256", "")))):
+            raise RemoteError("persisted checkpoint-prune receipt does not match manifest")
+        if self._remote_sha(manifest.box, manifest.remote_checkpoint) is not None:
+            raise RemoteError("persisted prune receipt exists but checkpoint is present")
+
+    def cleanup_compile_caches(self, manifest: RunManifest, local_receipt: Path) -> dict:
+        """Delete only the exact label-owned cold caches after archived evidence is remote-safe."""
+        if manifest.execution_mode != "exact-dense1024-cold-eval":
+            raise RemoteError("compile-cache cleanup is restricted to exact dense1024 runs")
+        cache_root = f"{C.REMOTE_AUTOLOOP_DIR}/caches/{manifest.label}"
+        expected_paths = []
+        for group in ("train", "eval"):
+            for key in C.CACHE_ENV_KEYS:
+                expected_paths.append(f"{cache_root}/{group}/{key.lower()}")
+        observed = [manifest.env[key] for key in C.CACHE_ENV_KEYS]
+        observed += [manifest.env[f"AUTOLOOP_EVAL_{key}"] for key in C.CACHE_ENV_KEYS]
+        if observed != expected_paths[:5] + expected_paths[5:]:
+            raise RemoteError("manifest cache paths differ from exact cleanup schema")
+        cleanup_dir = f"{C.REMOTE_AUTOLOOP_DIR}/cache-cleanup/{manifest.label}"
+        if self._run(manifest.box, ["test", "-e", cleanup_dir], must_ok=False).ok:
+            raise RemoteError("cache-cleanup receipt directory already exists")
+        self._run(manifest.box, ["mkdir", "-p", cleanup_dir])
+        remote_script = f"{cleanup_dir}/remote_cache_cleanup.py"
+        script_sha = sha256_file(CACHE_CLEANUP_SRC)
+        put = self.t.put(manifest.host, CACHE_CLEANUP_SRC, remote_script)
+        if not put.ok or self._remote_sha(manifest.box, remote_script) != script_sha:
+            raise RemoteError("cache-cleanup helper upload/hash verification failed")
+        receipt_path = f"{cleanup_dir}/receipt.json"
+        spec = {
+            "label": manifest.label, "cache_root": cache_root,
+            "cache_paths": expected_paths, "receipt_path": receipt_path,
+        }
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
+            json.dump(spec, fh, sort_keys=True)
+            tmp = Path(fh.name)
+        try:
+            put = self.t.put(manifest.host, tmp, f"{cleanup_dir}/cleanup.json")
+            spec_sha = sha256_file(tmp)
+        finally:
+            tmp.unlink(missing_ok=True)
+        if (not put.ok
+                or self._remote_sha(manifest.box, f"{cleanup_dir}/cleanup.json") != spec_sha):
+            raise RemoteError("cache-cleanup spec upload/hash verification failed")
+        result = self._run(
+            manifest.box,
+            [C.REMOTE_PYTHON, remote_script, f"{cleanup_dir}/cleanup.json"],
+            timeout=600, must_ok=False,
+        )
+        if not result.ok:
+            raise RemoteError(f"cache cleanup failed: {result.stderr.strip()[:300]}")
+        remote_sha = self._remote_sha(manifest.box, receipt_path)
+        if remote_sha is None:
+            raise RemoteError("cache-cleanup receipt missing")
+        local_receipt.parent.mkdir(parents=True, exist_ok=True)
+        get = self.t.get(manifest.host, receipt_path, local_receipt)
+        if not get.ok or sha256_file(local_receipt) != remote_sha:
+            raise RemoteError("cache-cleanup receipt retrieval/hash mismatch")
+        receipt = json.loads(local_receipt.read_text())
+        if (receipt.get("label") != manifest.label or receipt.get("cache_root") != cache_root
+                or receipt.get("cache_paths") != expected_paths or receipt.get("absent_after") is not True):
+            raise RemoteError("cache-cleanup receipt schema mismatch")
+        return receipt
+
+    def confirm_compile_caches_clean(self, manifest: RunManifest, receipt: dict) -> None:
+        cache_root = f"{C.REMOTE_AUTOLOOP_DIR}/caches/{manifest.label}"
+        if (receipt.get("label") != manifest.label or receipt.get("cache_root") != cache_root
+                or receipt.get("absent_after") is not True):
+            raise RemoteError("persisted compile-cache cleanup receipt does not match manifest")
+        if self._run(manifest.box, ["test", "-e", cache_root], must_ok=False).ok:
+            raise RemoteError("persisted cache cleanup receipt exists but cache root is present")

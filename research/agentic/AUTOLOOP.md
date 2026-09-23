@@ -4,6 +4,25 @@ Implemented 2026-09-22 under `research/agentic/STANDING_AUTONOMOUS_AUTHORIZATION
 `research/agentic/autoloop/`; CLI is `research/agentic/autoloop.py`; tests are in
 `research/agentic/tests/`. Nothing in this document waives `AGENTS.md`.
 
+## 2026-09-23 fixed full-only mode
+
+When `plan_mode` is `fixed_full_only`, `frontier-full-only-queue.json` supersedes the general ladder
+below. The controller never calls the Researcher, never creates a smoke run, and rejects any
+launchable proposal outside the seven predeclared full arms. It migrates the schema-2 runtime
+losslessly, changing the verified local-conv r3 record to `parked` with
+`launch_authorized=false`; usage, history, run counts, failures, and breakers are retained.
+
+The first cohort is exact control on `trn22` and MATRIX_LR 0.025 on `trn21`. Both independent
+verification receipts and both clean preflights must exist before either launch. Later arms are
+strictly serial. Every arm uses a direct one-constant commit, the exact submission argv, unique
+empty train/eval compile caches, and a separate context-1024 public evaluation over exactly
+20,971,520 tokens / 83,462,186 bytes. Cross-host throughput is diagnostic and cannot affect a
+verdict. Result/verdict/log evidence must be locally and remotely verified before the exact
+checkpoint hash is pruned; prune and exact label-owned cache-cleanup receipts are then committed,
+pushed, and reverified before the state closes. If push is disabled, the checkpoint and caches are
+retained. The controller never clears a breaker automatically: the pinned pushed R8 cleanup receipt
+must be recorded through the explicit Operator recovery transition.
+
 ## What it does
 
 A deterministic Python loop that, on each cycle:
@@ -140,7 +159,7 @@ through the cutoff. The independent Bedrock ceiling remains $10/day and 60 model
 ```bash
 cp research/agentic/autoloop.example.json research/agentic/autoloop.json   # edit model ids
 .agent-venv/bin/python research/agentic/autoloop.py status      # local gates only
-.agent-venv/bin/python research/agentic/autoloop.py dry-run --tier smoke -- --weight-ema
+.agent-venv/bin/python research/agentic/autoloop.py dry-run --tier full  # fixed mode; no remote call
 .agent-venv/bin/python research/agentic/autoloop.py preflight   # read-only remote inventory
 .agent-venv/bin/python research/agentic/autoloop.py once        # one cycle
 .agent-venv/bin/python research/agentic/autoloop.py daemon      # until STOP/breaker

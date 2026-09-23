@@ -296,6 +296,14 @@ class RunManifest:
     frozen_at: str
     frozen_by: str = "autoloop-controller"
     launch_command_string: str = ""  # informational; never executed
+    execution_mode: str = "standard"  # standard | exact-dense1024-cold-eval
+    comparison_role: str = "candidate"  # control | candidate
+    expected_train_sha256: str = ""
+    exact_train_argv: list[str] = field(default_factory=list)
+    selection_metric: str = "public_val_bpb"
+    eval_context: int | None = None
+    eval_tokens: int | None = None
+    eval_bytes: int | None = None
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -325,6 +333,9 @@ def build_manifest(
     abort_conditions: list[str],
     description_note: str,
     candidate_commit: str | None = None,
+    execution_mode: str = "standard",
+    comparison_role: str | None = None,
+    expected_train_sha256: str = "",
 ) -> RunManifest:
     if tier not in TIERS:
         raise ManifestError(f"unknown tier {tier!r}")
@@ -342,16 +353,23 @@ def build_manifest(
         raise ManifestError(f"shape {shape} is not full-chip")
     if C.REQUIRED_CC_FLAG not in cfg.neuron_cc_flags.split():
         raise ManifestError("NEURON_CC_FLAGS lacks --optlevel=1")
-    is_control = proposal_id.startswith("control-")
+    comparison_role = comparison_role or ("control" if proposal_id.startswith("control-") else "candidate")
+    if comparison_role not in {"control", "candidate"}:
+        raise ManifestError("comparison_role must be control or candidate")
+    is_control = comparison_role == "control"
     if is_control and train_flags:
         raise ManifestError("control run must have no flags")
     commit = candidate_commit or C.AUTHORITATIVE_COMMIT
     if not re.fullmatch(r"[0-9a-f]{40}", commit):
         raise ManifestError("candidate commit must be a full lowercase git SHA")
-    if not is_control and not train_flags and commit == C.AUTHORITATIVE_COMMIT:
+    if execution_mode == "standard" and not is_control and not train_flags and commit == C.AUTHORITATIVE_COMMIT:
         raise ManifestError("candidate must have flags or a verified code commit")
     validate_flag_tokens(train_flags)
 
+    if execution_mode not in {"standard", "exact-dense1024-cold-eval"}:
+        raise ManifestError(f"unknown execution_mode {execution_mode!r}")
+    if execution_mode == "exact-dense1024-cold-eval" and tier != "full":
+        raise ManifestError("exact dense1024 queue is full-only")
     if tier == "smoke":
         num_steps, max_train = cfg.caps.smoke_num_steps, cfg.caps.smoke_max_train_seconds
     else:
@@ -364,22 +382,40 @@ def build_manifest(
         f"autoloop {proposal_id} {tier}: {description_note} flags='{' '.join(train_flags) or 'none'}' "
         f"[{box}] CC='{cfg.neuron_cc_flags}' seed={C.SEED} commit={commit[:8]}"
     )
-    argv = [
-        C.REMOTE_PYTHON,
-        "research/run_experiment.py",
-        "--label", label,
-        "--solution", f"autoloop:{proposal_id}",
-        "--description", description,
-        "--num-steps", str(num_steps),
-        "--max-train-seconds", str(max_train),
-        "--nproc-per-node", str(cfg.nproc_per_node),
-        "--lnc", str(cfg.lnc),
-        "--no-commit",
-    ]
-    if train_flags:
-        argv += ["--extra-args", *train_flags, "--seed", str(C.SEED)]
+    if execution_mode == "exact-dense1024-cold-eval":
+        if train_flags:
+            raise ManifestError("exact dense1024 mode encodes variants in one-constant commits, not flags")
+        if not re.fullmatch(r"[0-9a-f]{64}", expected_train_sha256):
+            raise ManifestError("exact dense1024 mode requires an expected train.py SHA-256")
+        num_steps = C.EXACT_DENSE1024_NUM_STEPS
+        argv = [
+            C.REMOTE_PYTHON, "research/run_experiment.py",
+            "--label", label,
+            "--solution", f"autoloop:{proposal_id}",
+            "--description", description,
+            "--nproc-per-node", str(cfg.nproc_per_node),
+            "--lnc", str(cfg.lnc),
+            "--no-commit",
+            "--exact-dense1024",
+            "--expected-train-sha256", expected_train_sha256,
+        ]
     else:
-        argv += ["--extra-args", "--seed", str(C.SEED)]
+        argv = [
+            C.REMOTE_PYTHON,
+            "research/run_experiment.py",
+            "--label", label,
+            "--solution", f"autoloop:{proposal_id}",
+            "--description", description,
+            "--num-steps", str(num_steps),
+            "--max-train-seconds", str(max_train),
+            "--nproc-per-node", str(cfg.nproc_per_node),
+            "--lnc", str(cfg.lnc),
+            "--no-commit",
+        ]
+        if train_flags:
+            argv += ["--extra-args", *train_flags, "--seed", str(C.SEED)]
+        else:
+            argv += ["--extra-args", "--seed", str(C.SEED)]
     env = {
         # Non-interactive SSH sessions do not source the venv activation script.  The
         # repository's run_experiment.py launches `torchrun` by name, so make the pinned
@@ -390,6 +426,13 @@ def build_manifest(
         "NEURON_COMPETITION_R1_SEED": str(C.SEED),
         "PYTHONUNBUFFERED": "1",
     }
+    if execution_mode == "exact-dense1024-cold-eval":
+        env["NEURON_CC_FLAGS"] = C.EXACT_DENSE1024_CC_FLAGS
+        cache_root = f"{C.REMOTE_AUTOLOOP_DIR}/caches/{label}"
+        for key in C.CACHE_ENV_KEYS:
+            suffix = key.lower()
+            env[key] = f"{cache_root}/train/{suffix}"
+            env[f"AUTOLOOP_EVAL_{key}"] = f"{cache_root}/eval/{suffix}"
     manifest = RunManifest(
         manifest_id=f"{proposal_id}--{tier}--{label}",
         proposal_id=proposal_id,
@@ -411,11 +454,27 @@ def build_manifest(
         env=env,
         remote_log=f"{remote_run_dir}/research/run-logs/{label}.log",
         remote_ledger=f"{remote_run_dir}/research/experiment-log.jsonl",
-        remote_checkpoint=f"{remote_run_dir}/out/{label}/final.pt",
+        remote_checkpoint=(
+            f"{remote_run_dir}/out/final.pt"
+            if execution_mode == "exact-dense1024-cold-eval"
+            else f"{remote_run_dir}/out/{label}/final.pt"
+        ),
         abort_conditions=list(abort_conditions),
         control_label=control_label,
         frozen_at=frozen_at,
         launch_command_string=f"NEURON_LOGICAL_NC_CONFIG={cfg.lnc} " + shlex.join(argv),
+        execution_mode=execution_mode,
+        comparison_role=comparison_role,
+        expected_train_sha256=expected_train_sha256,
+        exact_train_argv=(list(C.EXACT_DENSE1024_TRAIN_ARGV)
+                          if execution_mode == "exact-dense1024-cold-eval" else []),
+        selection_metric="public_val_bpb",
+        eval_context=(C.EXACT_DENSE1024_EVAL_CONTEXT
+                      if execution_mode == "exact-dense1024-cold-eval" else None),
+        eval_tokens=(C.EXACT_DENSE1024_EVAL_TOKENS
+                     if execution_mode == "exact-dense1024-cold-eval" else None),
+        eval_bytes=(C.EXACT_DENSE1024_EVAL_BYTES
+                    if execution_mode == "exact-dense1024-cold-eval" else None),
     )
     assert_manifest_legal(manifest)
     return manifest
@@ -427,15 +486,17 @@ def assert_manifest_legal(m: RunManifest) -> None:
         raise ManifestError("manifest base commit is not authoritative")
     if not re.fullmatch(r"[0-9a-f]{40}", m.commit):
         raise ManifestError("manifest commit is not a full lowercase git SHA")
-    is_control = m.proposal_id.startswith("control-")
+    if m.comparison_role not in {"control", "candidate"}:
+        raise ManifestError("manifest comparison role is invalid")
+    is_control = m.comparison_role == "control"
     if is_control and m.commit != C.AUTHORITATIVE_COMMIT:
         raise ManifestError("control manifest must use the authoritative commit")
     if m.train_flags and m.commit != C.AUTHORITATIVE_COMMIT:
         raise ManifestError("flag candidate must use the authoritative commit")
-    if not is_control and not m.train_flags and m.commit == C.AUTHORITATIVE_COMMIT:
+    if m.execution_mode == "standard" and not is_control and not m.train_flags and m.commit == C.AUTHORITATIVE_COMMIT:
         raise ManifestError("code candidate must use an independently verified candidate commit")
-    if m.seed != C.SEED or "--seed" not in m.argv or m.argv[m.argv.index("--seed") + 1] != str(C.SEED):
-        raise ManifestError("seed must be 42 in both manifest and argv")
+    if m.seed != C.SEED:
+        raise ManifestError("seed must be 42 in manifest")
     if (m.lnc, m.nproc_per_node) not in C.VALID_SHAPES:
         raise ManifestError("manifest shape is not full-chip")
     if "--no-commit" not in m.argv:
@@ -460,10 +521,44 @@ def assert_manifest_legal(m: RunManifest) -> None:
     for a in m.argv:
         if any(ch in a for ch in "|;&`$<>\n"):
             raise ManifestError(f"shell metacharacter in argv element {a!r}")
-    extra = m.argv.index("--extra-args") + 1 if "--extra-args" in m.argv else None
-    if extra is None:
-        raise ManifestError("argv lacks --extra-args block")
-    flags_in_argv = m.argv[extra:]
-    if flags_in_argv[:-2] != m.train_flags or flags_in_argv[-2:] != ["--seed", str(C.SEED)]:
-        raise ManifestError("train_flags and argv disagree")
-    validate_flag_tokens(m.train_flags)
+    if m.execution_mode == "exact-dense1024-cold-eval":
+        expected_runner_tail = [
+            "--no-commit", "--exact-dense1024", "--expected-train-sha256",
+            m.expected_train_sha256,
+        ]
+        if m.argv[-4:] != expected_runner_tail:
+            raise ManifestError("exact runner argv tail differs from the pinned schema")
+        if m.exact_train_argv != list(C.EXACT_DENSE1024_TRAIN_ARGV):
+            raise ManifestError("exact train argv differs from the human-authorized command")
+        if m.train_flags or not re.fullmatch(r"[0-9a-f]{64}", m.expected_train_sha256):
+            raise ManifestError("exact mode train hash/flags invalid")
+        if (m.eval_context != C.EXACT_DENSE1024_EVAL_CONTEXT
+                or m.eval_tokens != C.EXACT_DENSE1024_EVAL_TOKENS
+                or m.eval_bytes != C.EXACT_DENSE1024_EVAL_BYTES):
+            raise ManifestError("exact mode cold-eval contract changed")
+        if m.remote_checkpoint != f"{m.remote_run_dir}/out/final.pt":
+            raise ManifestError("exact mode checkpoint is not the submission default out/final.pt")
+        if m.env.get("NEURON_CC_FLAGS") != C.EXACT_DENSE1024_CC_FLAGS:
+            raise ManifestError("exact mode compiler flags differ from the package effective default")
+        cache_values: list[str] = []
+        expected_root = f"{C.REMOTE_AUTOLOOP_DIR}/caches/{m.label}"
+        for key in C.CACHE_ENV_KEYS:
+            train_path = m.env.get(key, "")
+            eval_path = m.env.get(f"AUTOLOOP_EVAL_{key}", "")
+            if not train_path.startswith(expected_root + "/train/"):
+                raise ManifestError(f"exact train cache path for {key} is not unique to the label")
+            if not eval_path.startswith(expected_root + "/eval/"):
+                raise ManifestError(f"exact eval cache path for {key} is not unique to the label")
+            cache_values.extend((train_path, eval_path))
+        if len(cache_values) != len(set(cache_values)):
+            raise ManifestError("exact train/eval cache paths are not pairwise unique")
+    else:
+        if "--seed" not in m.argv or m.argv[m.argv.index("--seed") + 1] != str(C.SEED):
+            raise ManifestError("seed must be 42 in standard runner argv")
+        extra = m.argv.index("--extra-args") + 1 if "--extra-args" in m.argv else None
+        if extra is None:
+            raise ManifestError("argv lacks --extra-args block")
+        flags_in_argv = m.argv[extra:]
+        if flags_in_argv[:-2] != m.train_flags or flags_in_argv[-2:] != ["--seed", str(C.SEED)]:
+            raise ManifestError("train_flags and argv disagree")
+        validate_flag_tokens(m.train_flags)
