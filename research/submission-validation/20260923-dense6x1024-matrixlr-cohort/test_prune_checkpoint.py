@@ -25,7 +25,7 @@ def setup(root):
         expected_bytes=10,archive=archive,archive_sha256=digest(b"archive"),evidence_pushed_receipt=proof,
         evidence_pushed_receipt_sha256=digest(proof.read_bytes()),receipt=receipt,
         expected_script_sha256=p.sha(pathlib.Path(p.__file__)),
-        expected_core_commit=subprocess.run(["git","rev-parse","HEAD"],cwd=HERE.parents[3],
+        expected_core_commit=subprocess.run(["git","rev-parse","HEAD"],cwd=HERE.parents[2],
             text=True,capture_output=True,check=True).stdout.strip())
     return args, fields
 
