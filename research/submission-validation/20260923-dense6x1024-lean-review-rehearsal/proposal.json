@@ -1,6 +1,6 @@
 {
   "proposal_id": "20260923-dense6x1024-lean-review-rehearsal",
-  "status": "hardware-validation-in-progress",
+  "status": "ready-for-human-submission",
   "owner_role": "supervisor",
   "hypothesis": "The review-clean package preserves the validated dense6x1024 training and evaluation behavior while removing reviewer-confusing eval-path constructs, so it will pass the submission contract, reproduce the source checkpoint's 0.9928513116311253 public BPB, and complete a cold 1800-second full-chip rehearsal with a valid checkpoint.",
   "single_causal_change": "Relative to submissions/dense6x1024_public0992851, only the mechanically documented reviewer-facing cleanup in submissions/dense6x1024_lean_review is under test; the model, optimizer, kernels, data path, timing budget, and launch command are unchanged.",
@@ -42,7 +42,7 @@
     "cpu_or_static_checks": true,
     "numerical_equivalence": true,
     "causality": true,
-    "smoke_run": false,
+    "smoke_run": true,
     "human_run_approval": true
   },
   "success_criteria": {
@@ -68,8 +68,12 @@
     "fresh_checkpoint_neuron_contract": "r1 failed before metrics because the historical root baseline loader requires removed feature-only keys; r2 timed out after separately importing the identical NKI module twice; guarded r3 used one import and three model loads but also timed out at 600 seconds with no contract metrics or candidate traceback and a clean postflight",
     "contract_harness_correction": "commit edd7fcaee66263030b0e9e50e43fb98fa35c62b7 made the reference explicit and fail-closed; commit 633f871c378620d2b877dbc53b83d91aec32f152 uses one module import with three distinct model loads for identical paths. Both corrections passed independent verification in harness-verifier.json and harness-verifier-r3.json",
     "gate_substitution": "An independent protocol verifier conditionally approved the exact protected single-model public evaluation as the final fresh Neuron load/forward/score gate; see protocol-gate-substitution-verifier.json. The multi-model harness failures remain recorded failures, not passes.",
-    "next_gate": "run the guarded exact protected 20,971,520-token public evaluation and require every condition in protocol-gate-substitution-verifier.json"
+    "fresh_checkpoint_public_evaluation": "passed at 0.9929546795964038 BPB over exactly 20,971,520 tokens and 83,462,186 bytes; all return codes were zero, the outer timeout was not reached, all frozen hashes matched, and postflight was clean and idle",
+    "comparison": "The fresh result is 0.0001033679652785 BPB worse than the preserved source-checkpoint replay and 0.0009009952879894 BPB better than the prior source cold rehearsal. The official 1.0246 used a private shard and is not directly comparable.",
+    "evidence_commit": "0912f9db044e7c0b1a59e696105292af8c21cb41",
+    "analyst_audit": "passed; see final-analyst.json",
+    "next_gate": "human uploads the frozen train.py to the competition portal; no validation rerun is required"
   },
   "human_approved_by": "active human operator conversation, 2026-09-23",
-  "verdict": null
+  "verdict": "READY_TO_SUBMIT"
 }

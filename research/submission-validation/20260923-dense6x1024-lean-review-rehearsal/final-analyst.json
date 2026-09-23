@@ -1,0 +1,49 @@
+{
+  "role": "analyst",
+  "completed_at": "2026-09-23",
+  "verdict": "READY_TO_SUBMIT",
+  "submission_performed": false,
+  "upload_file": "submissions/dense6x1024_lean_review/train.py",
+  "candidate_sha256": "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344",
+  "launch_command_file_sha256": "b75f844f413575f0cc35164972b4abf68de41e4b6f39e9b5423a6070de005abd",
+  "evaluated_evidence_commit": "0912f9db044e7c0b1a59e696105292af8c21cb41",
+  "fresh_public_validation": {
+    "val_bpb": 0.9929546795964038,
+    "num_tokens": 20971520,
+    "num_bytes": 83462186,
+    "total_nats": 57443996.0,
+    "eval_seconds": 692.1387974959798,
+    "all_success_gates_passed": true
+  },
+  "cold_rehearsal": {
+    "steps": 3638,
+    "control_steps": 3634,
+    "charged_through_exit_seconds": 1790.307001,
+    "budget_seconds": 1800,
+    "checkpoint_valid": true
+  },
+  "comparison": {
+    "preserved_source_replay_val_bpb": 0.9928513116311253,
+    "fresh_minus_preserved_source": 0.0001033679652785,
+    "source_cold_rehearsal_val_bpb": 0.9938556748843932,
+    "fresh_minus_source_cold": -0.0009009952879894,
+    "official_private_score": 1.0246,
+    "official_private_score_directly_comparable": false
+  },
+  "audit": {
+    "organizer_check": "passed",
+    "independent_rules_review": "passed",
+    "candidate_frozen": true,
+    "fresh_training_rehearsal": "passed",
+    "protected_single_model_public_evaluation": "passed",
+    "conditional_gate_substitution_requirements": "all passed",
+    "postflight": "clean and idle",
+    "rerun_required": false
+  },
+  "residual_risks": [
+    "The official score uses a private shard, so the public validation result cannot guarantee an official improvement.",
+    "Default-MKLDNN CPU batch-shape diagnostics failed and fresh multi-model Neuron harness attempts timed out; the independent protocol verifier accepted the protected official-path single-model evaluation as the replacement gate.",
+    "Automated review acceptance cannot be guaranteed."
+  ],
+  "human_action": "Upload only the frozen train.py. Leaderboard submission remains human-only."
+}
