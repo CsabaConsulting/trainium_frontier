@@ -11,6 +11,7 @@ import math
 import os
 from pathlib import Path
 import shlex
+import subprocess
 import tempfile
 import unittest
 
@@ -151,33 +152,21 @@ class ConfigurationTests(unittest.TestCase):
         self.assertIs(proposal["gates"]["submission_authorized"], False)
         self.assertIsNone(proposal["verdict"])
 
-    def test_pending_request_is_non_executable_and_exact(self) -> None:
-        request = load_json(EVIDENCE / "operator-request.pending.json")
-        self.assertEqual(request["state"], "human-approved-pending-independent-verification")
-        self.assertIs(request["launch_authorized"], False)
-        self.assertIs(request["operator_must_not_execute_this_pending_request"], True)
-        self.assertIsNone(request["expected_commit"])
-        self.assertEqual((request["host"], request["expected_hostname"]), ("trn22", "ip-172-31-32-253"))
-        self.assertEqual(request["source"]["sha256"], SOURCE_TRAIN_SHA)
-        self.assertEqual(request["candidate"]["sha256"], CANDIDATE_TRAIN_SHA)
-        self.assertEqual(request["candidate"]["unchanged_weight_decay"], Decimal("0.2"))
-        self.assertEqual(request["protected_sha256"]["prepare.py"], PREPARE_SHA)
-        for relative, expected in request["protected_sha256"].items():
-            self.assertEqual(sha256(ROOT / relative), expected, relative)
-        self.assertEqual(request["training"]["launch_command"], LAUNCH)
-        self.assertEqual(request["training"]["launch_argv"], shlex.split(LAUNCH)[1:])
-        self.assertEqual(request["environment"]["seed"], 42)
-        self.assertEqual(request["environment"]["WORLD_SIZE"], 4)
-        self.assertEqual(request["training"]["max_train_seconds"], 1800)
-        self.assertIs(request["training"]["smoke"], False)
-        evaluation = request["evaluation"]
-        self.assertIs(evaluation["fresh_process_required"], True)
-        self.assertEqual((evaluation["expected_num_tokens"], evaluation["expected_num_bytes"]), (20971520, 83462186))
-        self.assertEqual(request["decision"]["keep_bpb_maximum"], CONTROL_BPB - KEEP_DELTA)
-        self.assertEqual(request["evidence_lifecycle"]["manifest_schema"], "c595-warmdown060-artifact-manifest-v1")
-        self.assertEqual(request["evidence_lifecycle"]["completion_schema"], "c595-warmdown060-completion-v1")
-        self.assertIs(request["evidence_lifecycle"]["checkpoint_prune_authorized"], False)
-        self.assertIs(request["submission_authorized"], False)
+    def test_finalization_files_are_absent_together_or_exact_child_only(self) -> None:
+        auth_path = EVIDENCE / "authorization.json"
+        request_path = EVIDENCE / "final-request.json"
+        self.assertEqual(auth_path.exists(), request_path.exists())
+        if not auth_path.exists():
+            return
+        job = load_job()
+        head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+        core = subprocess.check_output(["git", "rev-parse", "HEAD^"], cwd=ROOT, text=True).strip()
+        changed = set(subprocess.check_output(["git", "diff", "--name-only", core, head], cwd=ROOT, text=True).splitlines())
+        self.assertEqual(changed, {job.AUTH_REL, job.REQUEST_REL})
+        auth = json.loads(auth_path.read_text())
+        request = json.loads(request_path.read_text())
+        request_sha = job.validate_authorization_request(auth, request, core)
+        self.assertEqual(request_sha, hashlib.sha256(job.canonical_json(request)).hexdigest())
 
     def test_control_result_matches_pinned_full20m_metric(self) -> None:
         result = load_json(
@@ -284,11 +273,96 @@ class SecureEvidenceTests(unittest.TestCase):
         ):
             self.assertIn(required, source)
         self.assertNotIn(".write_text(", source)
-        authorization = load_json(EVIDENCE / "authorization.pending.json")
-        self.assertIs(authorization["training_authorized"], False)
-        self.assertIs(authorization["evaluation_authorized"], False)
-        self.assertIsNone(authorization["expected_commit"])
-        self.assertEqual(authorization["state"], "pending_independent_verification")
+
+    def fixture(self):
+        core = "1" * 40
+        final = "2" * 40
+        source_sha = {path: "a" * 64 for path in self.job.CORE_FINGERPRINT_PATHS}
+        request = {
+            "schema": "c595-warmdown060-final-request-v1",
+            "host": self.job.HOST,
+            "expected_hostname": self.job.HOSTNAME,
+            "remote": "/home/ubuntu/trainium_freshstart_20260924_c595_warmdown060_trn22_r1",
+            "label": self.job.LABEL,
+            "purpose": "exact single-factor warmdown full run and fresh full20m evaluation",
+            "verified_core_commit": core,
+            "authorization_path": self.job.AUTH_REL,
+            "request_path": self.job.REQUEST_REL,
+            "source_sha256": source_sha,
+            "environment": self.job.MINIMAL_ENVIRONMENT,
+            "command": [
+                "timeout", "--foreground", "--signal=TERM", "--kill-after=60s", "4200s", self.job.PYTHON,
+                self.job.DRIVER_REL, "--authorization", self.job.AUTH_REL, "--request", self.job.REQUEST_REL,
+                "--runtime-job", self.job.RUNTIME_JOB_REL,
+            ],
+            "runtime_job_schema": "c595-warmdown060-runtime-job-v1",
+            "runner_owns_manifest": False,
+            "non_overwrite": True,
+        }
+        request_sha = hashlib.sha256(self.job.canonical_json(request)).hexdigest()
+        auth = {
+            "schema": "c595-warmdown060-authorization-v2", "arm": "candidate",
+            "host": self.job.HOST, "expected_hostname": self.job.HOSTNAME, "label": self.job.LABEL,
+            "package": self.job.PACKAGE_REL, "base_train_sha256": self.job.SOURCE_SHA,
+            "train_sha256": self.job.CANDIDATE_SHA,
+            "single_causal_change": "WARMDOWN_RATIO 0.75 -> 0.60", "unchanged_weight_decay": 0.2,
+            "seed": 42, "max_train_seconds": 1800, "smoke_authorized": False,
+            "training_authorized": True, "evaluation_authorized": True,
+            "checkpoint_prune_authorized": False, "verified_core_commit": core,
+            "request_path": self.job.REQUEST_REL, "request_sha256": request_sha,
+            "request_content": request, "state": "independently_verified_authorized",
+        }
+        runtime = {
+            "schema": "c595-warmdown060-runtime-job-v1", "host": self.job.HOST,
+            "hostname": self.job.HOSTNAME, "label": self.job.LABEL,
+            "verified_core_commit": core, "finalization_head": final,
+            "request_path": self.job.REQUEST_REL, "request_sha256": request_sha,
+            "request_content": request, "command": request["command"],
+            "environment": request["environment"], "source_sha256": source_sha,
+            "source_dirty": False, "preflight_passed": True,
+        }
+        return core, final, request, request_sha, auth, runtime
+
+    def test_strict_minimal_environment_rejects_hostile_inheritance(self) -> None:
+        clean = dict(self.job.MINIMAL_ENVIRONMENT)
+        self.assertEqual(self.job.build_subprocess_environment(clean), self.job.MINIMAL_ENVIRONMENT)
+        for key, value in (
+            ("LD_PRELOAD", "/tmp/evil.so"),
+            ("XLA_FLAGS", "--xla_force_host_platform_device_count=99"),
+            ("NEURON_RT_VISIBLE_CORES", "0"),
+            ("NEURON_STOCHASTIC_ROUNDING_EN", "1"),
+            ("TORCH_LOGS", "+dynamo"),
+        ):
+            with self.subTest(key=key), self.assertRaises(SystemExit):
+                self.job.build_subprocess_environment({**clean, key: value})
+        inherited_benign = {**clean, "TERM": "xterm", "SHELL": "/bin/bash"}
+        self.assertEqual(self.job.build_subprocess_environment(inherited_benign), self.job.MINIMAL_ENVIRONMENT)
+
+    def test_request_auth_and_runtime_contract_reject_forgery(self) -> None:
+        core, final, request, request_sha, auth, runtime = self.fixture()
+        self.assertEqual(self.job.validate_authorization_request(auth, request, core), request_sha)
+        self.job.validate_runtime_contract(runtime, request, request_sha, core, final)
+        mutations = []
+        for field, value in (
+            ("finalization_head", "3" * 40),
+            ("verified_core_commit", "4" * 40),
+            ("request_sha256", "b" * 64),
+            ("command", ["python", "evil.py"]),
+            ("environment", {**request["environment"], "TORCH_LOGS": "+all"}),
+            ("source_sha256", {**request["source_sha256"], "prepare.py": "c" * 64}),
+        ):
+            mutations.append({**runtime, field: value})
+        for forged in mutations:
+            with self.subTest(field=next(key for key in forged if forged[key] != runtime.get(key))), self.assertRaises(SystemExit):
+                self.job.validate_runtime_contract(forged, request, request_sha, core, final)
+
+    def test_alternate_child_and_request_template_mutation_fail(self) -> None:
+        core, final, request, request_sha, auth, runtime = self.fixture()
+        with self.assertRaises(SystemExit):
+            self.job.validate_runtime_contract(runtime, request, request_sha, core, "5" * 40)
+        mutated = {**request, "purpose": "mutated same-core request"}
+        with self.assertRaises(SystemExit):
+            self.job.validate_authorization_request(auth, mutated, core)
 
 
 if __name__ == "__main__":

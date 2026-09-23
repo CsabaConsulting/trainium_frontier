@@ -43,8 +43,7 @@
     "research/submission-validation/20260923-c595-dual-host-seed42-controls/retrieved/fs-20260924-c595-control-trn22-r2/rehearsal.json",
     "research/submission-validation/20260923-c595-dual-host-seed42-controls/retrieved/fs-20260924-c595-eval-recovery-trn22-r1/result.json",
     "submissions/dense6x1024_direct_review/provenance.json",
-    "research/submission-validation/20260924-c595-warmdown060-trn22/retune_job.py",
-    "research/submission-validation/20260924-c595-warmdown060-trn22/operator-request.pending.json"
+    "research/submission-validation/20260924-c595-warmdown060-trn22/retune_job.py"
   ],
   "duplicate_search_terms": [
     "WARMDOWN_RATIO",
@@ -110,6 +109,12 @@
       "lower_exclusive": 0.991093002710418,
       "upper_inclusive": 0.992093002710418
     }
+  },
+  "authorization_model": {
+    "core": "This proposal, the scientific package, driver, and tests are frozen in one verified core commit.",
+    "finalization": "A direct child may add only authorization.json and final-request.json. Authorization pins the exact canonical request content and SHA-256 plus the verified core parent; the request does not embed its own child commit.",
+    "runtime": "The driver derives the actual finalization HEAD and requires the exact runtime job to bind that HEAD, the verified core parent, committed request bytes, full argv, minimal environment, and every protected source hash.",
+    "external_trust": "The independently verified finalization HEAD remains an external Operator/Verifier choice; an alternate child is not authorized merely because it shares the core parent."
   },
   "abort_conditions": [
     "Any candidate source difference beyond the exact WARMDOWN_RATIO replacement",

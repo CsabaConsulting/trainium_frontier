@@ -46,6 +46,40 @@ BASE_ARTIFACTS = {
 }
 HEX64 = set("0123456789abcdef")
 EXACT_CC_FLAGS = "--optlevel=1 --auto-cast matmult --auto-cast-type bf16"
+AUTH_REL = "research/submission-validation/20260924-c595-warmdown060-trn22/authorization.json"
+REQUEST_REL = "research/submission-validation/20260924-c595-warmdown060-trn22/final-request.json"
+DRIVER_REL = "research/submission-validation/20260924-c595-warmdown060-trn22/retune_job.py"
+PROPOSAL_REL = "research/submission-validation/20260924-c595-warmdown060-trn22/EXPERIMENT_PROPOSAL.json"
+RUNTIME_JOB_REL = f"research/run-logs/{LABEL}.job.json"
+CORE_FINGERPRINT_PATHS = {
+    "prepare.py",
+    "research/scratch/submission_rehearsal.py",
+    "research/fresh_start_launch.py",
+    "research/fresh_start_sync.py",
+    "research/fresh_start_guard.py",
+    "research/fresh_start_host.py",
+    "research/fresh_start_backup.py",
+    PROPOSAL_REL,
+    DRIVER_REL,
+    SOURCE_REL,
+    f"{PACKAGE_REL}/train.py",
+    f"{PACKAGE_REL}/provenance.json",
+    f"{PACKAGE_REL}/launch-command.txt",
+}
+MINIMAL_ENVIRONMENT = {
+    "HOME": "/home/ubuntu",
+    "USER": "ubuntu",
+    "LOGNAME": "ubuntu",
+    "LANG": "C.UTF-8",
+    "LC_ALL": "C.UTF-8",
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "TMPDIR": "/tmp",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": EXACT_CC_FLAGS,
+    "PYTHONUNBUFFERED": "1",
+    "TRAINIUM_FRESH_START_RUN_ID": LABEL,
+}
 
 
 def canonical_json(value: object) -> bytes:
@@ -404,24 +438,20 @@ def _nofollow_json(path: Path) -> dict:
     return value
 
 
-def scrub_environment(source: dict[str, str]) -> dict[str, str]:
-    exact = {
-        "RANK", "LOCAL_RANK", "WORLD_SIZE", "LOCAL_WORLD_SIZE", "GROUP_RANK", "ROLE_RANK",
-        "ROLE_WORLD_SIZE", "MASTER_ADDR", "MASTER_PORT", "PYTHONPATH", "PYTHONHOME",
-        "NEURON_RT_VISIBLE_CORES", "NEURON_RT_NUM_CORES",
+def build_subprocess_environment(source: dict[str, str]) -> dict[str, str]:
+    allowed_sensitive = {
+        "NEURON_LOGICAL_NC_CONFIG": "2",
+        "NEURON_CC_FLAGS": EXACT_CC_FLAGS,
+        "TRAINIUM_FRESH_START_RUN_ID": LABEL,
     }
-    result = {
-        key: value for key, value in source.items()
-        if key not in exact and not key.startswith("TORCHELASTIC_") and not key.startswith("NEURON_COMPETITION_R1_")
-    }
-    result.update(
-        PATH="/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
-        NKI_VENV_PATH="/home/ubuntu/workspace/native_venv",
-        NEURON_LOGICAL_NC_CONFIG="2",
-        NEURON_CC_FLAGS=EXACT_CC_FLAGS,
-        PYTHONUNBUFFERED="1",
-    )
-    return result
+    for key, value in source.items():
+        sensitive = key.startswith(("LD_", "XLA_", "NEURON_", "TORCH_"))
+        if sensitive and (key not in allowed_sensitive or value != allowed_sensitive[key]):
+            raise SystemExit(f"hostile or unpinned inherited environment: {key}")
+    for key, value in allowed_sensitive.items():
+        if source.get(key) != value:
+            raise SystemExit(f"required outer environment mismatch: {key}")
+    return dict(MINIMAL_ENVIRONMENT)
 
 
 def validate_candidate() -> None:
@@ -450,82 +480,167 @@ def validate_candidate() -> None:
         raise SystemExit("candidate provenance mismatch")
 
 
-def validate_authorization(path: Path, supplied_sha: str, expected_commit: str) -> tuple[str, str]:
-    if subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip() != expected_commit:
-        raise SystemExit("expected commit mismatch")
+def _lower_sha(value: object, name: str) -> str:
+    if type(value) is not str or len(value) != 64 or any(character not in HEX64 for character in value):
+        raise SystemExit(f"invalid {name}")
+    return value
+
+
+def validate_authorization_request(auth: dict, request: dict, verified_core: str) -> str:
+    request_sha = hashlib.sha256(canonical_json(request)).hexdigest()
+    expected_auth_keys = {
+        "schema", "arm", "host", "expected_hostname", "label", "package",
+        "base_train_sha256", "train_sha256", "single_causal_change", "unchanged_weight_decay",
+        "seed", "max_train_seconds", "smoke_authorized", "training_authorized",
+        "evaluation_authorized", "checkpoint_prune_authorized", "verified_core_commit",
+        "request_path", "request_sha256", "request_content", "state",
+    }
+    if set(auth) != expected_auth_keys:
+        raise SystemExit("authorization schema mismatch")
+    expected_auth = {
+        "schema": "c595-warmdown060-authorization-v2",
+        "arm": "candidate", "host": HOST, "expected_hostname": HOSTNAME, "label": LABEL,
+        "package": PACKAGE_REL, "base_train_sha256": SOURCE_SHA, "train_sha256": CANDIDATE_SHA,
+        "single_causal_change": "WARMDOWN_RATIO 0.75 -> 0.60", "unchanged_weight_decay": 0.2,
+        "seed": 42, "max_train_seconds": 1800, "smoke_authorized": False,
+        "training_authorized": True, "evaluation_authorized": True,
+        "checkpoint_prune_authorized": False, "verified_core_commit": verified_core,
+        "request_path": REQUEST_REL, "request_sha256": request_sha, "request_content": request,
+        "state": "independently_verified_authorized",
+    }
+    if auth != expected_auth:
+        raise SystemExit("authorization content mismatch")
+    expected_request_keys = {
+        "schema", "host", "expected_hostname", "remote", "label", "purpose",
+        "verified_core_commit", "authorization_path", "request_path", "source_sha256",
+        "environment", "command", "runtime_job_schema", "runner_owns_manifest", "non_overwrite",
+    }
+    if set(request) != expected_request_keys:
+        raise SystemExit("final request schema mismatch")
+    if (
+        request["schema"] != "c595-warmdown060-final-request-v1"
+        or request["host"] != HOST
+        or request["expected_hostname"] != HOSTNAME
+        or request["remote"] != "/home/ubuntu/trainium_freshstart_20260924_c595_warmdown060_trn22_r1"
+        or request["label"] != LABEL
+        or request["verified_core_commit"] != verified_core
+        or request["authorization_path"] != AUTH_REL
+        or request["request_path"] != REQUEST_REL
+        or request["runtime_job_schema"] != "c595-warmdown060-runtime-job-v1"
+        or request["runner_owns_manifest"] is not False
+        or request["non_overwrite"] is not True
+        or request["environment"] != MINIMAL_ENVIRONMENT
+        or set(request["source_sha256"]) != CORE_FINGERPRINT_PATHS
+    ):
+        raise SystemExit("final request content mismatch")
+    expected_command = [
+        "timeout", "--foreground", "--signal=TERM", "--kill-after=60s", "4200s", PYTHON,
+        DRIVER_REL, "--authorization", AUTH_REL, "--request", REQUEST_REL,
+        "--runtime-job", RUNTIME_JOB_REL,
+    ]
+    if request["command"] != expected_command:
+        raise SystemExit("final request command mismatch")
+    for path, digest in request["source_sha256"].items():
+        _lower_sha(digest, f"source digest {path}")
+    return request_sha
+
+
+def validate_runtime_contract(
+    runtime: dict, request: dict, request_sha: str, verified_core: str, finalization_head: str,
+) -> None:
+    expected = {
+        "schema": "c595-warmdown060-runtime-job-v1",
+        "host": HOST,
+        "hostname": HOSTNAME,
+        "label": LABEL,
+        "verified_core_commit": verified_core,
+        "finalization_head": finalization_head,
+        "request_path": REQUEST_REL,
+        "request_sha256": request_sha,
+        "request_content": request,
+        "command": request["command"],
+        "environment": request["environment"],
+        "source_sha256": request["source_sha256"],
+        "source_dirty": False,
+        "preflight_passed": True,
+    }
+    if runtime != expected:
+        raise SystemExit("runtime job contract mismatch")
+
+
+def _committed_bytes(head: str, relative: str) -> bytes:
+    path = ROOT / relative
+    actual = _nofollow_bytes(path)
+    committed = subprocess.check_output(["git", "show", f"{head}:{relative}"], cwd=ROOT)
+    if actual != committed:
+        raise SystemExit(f"working path differs from finalization HEAD: {relative}")
+    return actual
+
+
+def validate_finalization(auth_path: Path, request_path: Path, runtime_path: Path) -> dict[str, str]:
+    head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+    parents = subprocess.check_output(["git", "rev-list", "--parents", "-n", "1", head], cwd=ROOT, text=True).split()
+    if len(parents) != 2:
+        raise SystemExit("finalization HEAD must have exactly one parent")
+    verified_core = parents[1]
+    changed = set(subprocess.check_output(["git", "diff", "--name-only", verified_core, head], cwd=ROOT, text=True).splitlines())
+    if changed != {AUTH_REL, REQUEST_REL}:
+        raise SystemExit("finalization child changed paths beyond authorization and request")
     if subprocess.check_output(["git", "diff", "--name-only", "HEAD"], cwd=ROOT, text=True).strip():
         raise SystemExit("tracked working tree is not clean")
     if subprocess.check_output(["git", "diff", "--cached", "--name-only"], cwd=ROOT, text=True).strip():
         raise SystemExit("index is not clean")
-    runtime_prefix = f"research/run-logs/{LABEL}"
-    expected_runtime = {
-        runtime_prefix + suffix
-        for suffix in (".launch.json", ".job.json", ".log", ".preflight.json", ".process.json")
-    }
-    untracked = set(
-        subprocess.check_output(["git", "ls-files", "--others", "--exclude-standard"], cwd=ROOT, text=True).splitlines()
-    )
-    if untracked != expected_runtime:
-        raise SystemExit("unexpected runtime untracked paths")
+    if auth_path != ROOT / AUTH_REL or request_path != ROOT / REQUEST_REL or runtime_path != ROOT / RUNTIME_JOB_REL:
+        raise SystemExit("runtime path contract mismatch")
+    auth_bytes = _committed_bytes(head, AUTH_REL)
+    request_bytes = _committed_bytes(head, REQUEST_REL)
     try:
-        relative = path.resolve(strict=True).relative_to(ROOT)
-    except (OSError, ValueError) as error:
-        raise SystemExit("authorization path escape") from error
-    authorization_bytes = _nofollow_bytes(path)
-    if hashlib.sha256(authorization_bytes).hexdigest() != supplied_sha:
-        raise SystemExit("authorization hash mismatch")
-    tracked = subprocess.check_output(["git", "show", f"{expected_commit}:{relative}"], cwd=ROOT)
-    if hashlib.sha256(tracked).hexdigest() != supplied_sha:
-        raise SystemExit("authorization is not the committed object")
-    expected = {
-        "schema": "c595-warmdown060-authorization-v1",
-        "arm": "candidate",
-        "host": HOST,
-        "expected_hostname": HOSTNAME,
-        "label": LABEL,
-        "package": PACKAGE_REL,
-        "base_train_sha256": SOURCE_SHA,
-        "train_sha256": CANDIDATE_SHA,
-        "single_causal_change": "WARMDOWN_RATIO 0.75 -> 0.60",
-        "unchanged_weight_decay": 0.2,
-        "seed": 42,
-        "max_train_seconds": 1800,
-        "smoke_authorized": False,
-        "training_authorized": True,
-        "evaluation_authorized": True,
-        "checkpoint_prune_authorized": False,
-        "expected_commit": expected_commit,
-        "state": "independently_verified_authorized",
+        auth = json.loads(auth_bytes)
+        request = json.loads(request_bytes)
+    except json.JSONDecodeError as error:
+        raise SystemExit("authorization or request JSON invalid") from error
+    if auth_bytes != canonical_json(auth) or request_bytes != canonical_json(request):
+        raise SystemExit("authorization or request is not canonical JSON")
+    request_sha = validate_authorization_request(auth, request, verified_core)
+    if hashlib.sha256(request_bytes).hexdigest() != request_sha:
+        raise SystemExit("request bytes/hash mismatch")
+    for relative, expected_sha in request["source_sha256"].items():
+        core_blob = subprocess.check_output(["git", "show", f"{verified_core}:{relative}"], cwd=ROOT)
+        head_blob = subprocess.check_output(["git", "show", f"{head}:{relative}"], cwd=ROOT)
+        actual = _nofollow_bytes(ROOT / relative)
+        if core_blob != head_blob or head_blob != actual or hashlib.sha256(actual).hexdigest() != expected_sha:
+            raise SystemExit(f"core tree/source identity mismatch: {relative}")
+    runtime_bytes = _nofollow_bytes(runtime_path)
+    try:
+        runtime = json.loads(runtime_bytes)
+    except json.JSONDecodeError as error:
+        raise SystemExit("runtime job JSON invalid") from error
+    if runtime_bytes != canonical_json(runtime):
+        raise SystemExit("runtime job is not canonical JSON")
+    validate_runtime_contract(runtime, request, request_sha, verified_core, head)
+    return {
+        "verified_core_commit": verified_core,
+        "finalization_head": head,
+        "authorization_sha256": hashlib.sha256(auth_bytes).hexdigest(),
+        "request_sha256": request_sha,
+        "runtime_job_sha256": hashlib.sha256(runtime_bytes).hexdigest(),
     }
-    if json.loads(authorization_bytes) != expected:
-        raise SystemExit("authorization contract mismatch")
-    runtime_job = ROOT / "research/run-logs" / f"{LABEL}.job.json"
-    runtime_bytes = _nofollow_bytes(runtime_job)
-    runtime = json.loads(runtime_bytes)
-    if runtime.get("label") != LABEL or runtime.get("host") != HOST or runtime.get("expected_commit") != expected_commit:
-        raise SystemExit("runtime job identity mismatch")
-    request_sha = runtime.get("request_file_sha256")
-    if type(request_sha) is not str or len(request_sha) != 64 or any(character not in HEX64 for character in request_sha):
-        raise SystemExit("runtime request identity missing")
-    return hashlib.sha256(runtime_bytes).hexdigest(), request_sha
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--authorization", type=Path, required=True)
-    parser.add_argument("--authorization-sha256", required=True)
-    parser.add_argument("--expected-commit", required=True)
+    parser.add_argument("--request", type=Path, required=True)
+    parser.add_argument("--runtime-job", type=Path, required=True)
     args = parser.parse_args()
     if socket.gethostname() != HOSTNAME:
         raise SystemExit("wrong host")
-    if os.environ.get("NEURON_CC_FLAGS") != EXACT_CC_FLAGS:
-        raise SystemExit("outer compiler flags mismatch")
-    runtime_job_sha, request_sha = validate_authorization(
-        ROOT / args.authorization, args.authorization_sha256, args.expected_commit
+    identity = validate_finalization(
+        ROOT / args.authorization, ROOT / args.request, ROOT / args.runtime_job
     )
     validate_candidate()
     output, evidence = create_output()
-    env = scrub_environment(os.environ)
+    env = build_subprocess_environment(os.environ)
     package = ROOT / PACKAGE_REL
     rehearsal = ROOT / "research/scratch/submission_rehearsal.py"
     train_box = output / "train"
@@ -602,6 +717,7 @@ print(json.dumps({'weights_only':True,'map_location':'cpu','finite':True,'tensor
     decision = decide_bpb(str(metrics["val_bpb"]))
     result = {
         "schema": "c595-warmdown060-result-v1", "label": LABEL, "host": HOST, "hostname": HOSTNAME,
+        **identity,
         "source_sha256": SOURCE_SHA, "candidate_sha256": CANDIDATE_SHA, "prepare_sha256": PREPARE_SHA,
         "seed": 42, "max_train_seconds": 1800, "smoke": False,
         "single_causal_change": "WARMDOWN_RATIO 0.75 -> 0.60", "unchanged_weight_decay": 0.2,
@@ -619,8 +735,7 @@ print(json.dumps({'weights_only':True,'map_location':'cpu','finite':True,'tensor
     revalidate_members(evidence, members)
     completion = {
         "schema": "c595-warmdown060-completion-v1", "label": LABEL, "host": HOST, "hostname": HOSTNAME,
-        "core_commit": args.expected_commit, "authorization_sha256": args.authorization_sha256,
-        "request_file_sha256": request_sha, "runtime_job_sha256": runtime_job_sha,
+        **identity,
         "candidate_sha256": CANDIDATE_SHA, "prepare_sha256": PREPARE_SHA,
         "artifact_manifest_sha256": manifest_sha, "artifact_members": members,
         "checkpoint_path": str(checkpoint), "checkpoint_pre_eval_sha256": checkpoint_sha,
