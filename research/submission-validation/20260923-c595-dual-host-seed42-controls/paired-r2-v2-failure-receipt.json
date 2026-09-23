@@ -1,0 +1,124 @@
+{
+  "schema": "c595-dual-control-paired-failure-v1",
+  "recorded_at": "2026-09-23T21:05:36Z",
+  "branch_head_at_dispatch": "c730d24f3a8636d00e03b1d6bc478b87ab134ba4",
+  "core_commit": "067ff2326bbad1d4ed7060a802e7cee3e8448545",
+  "candidate_sha256": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537",
+  "authenticated_bundle_sha256": "a4e4c845bc16c6af37a609eca324cdb1a1fd6fe071e627b6f37c9138dec236c8",
+  "cleanup_receipt": {
+    "control_plane_commit": "089d73c7",
+    "receipt_sha256": "ce121ab6e3f5d6b62153f9b0bb72d68a78ddad78fbbebb80c5dbaab48507a47e"
+  },
+  "paired_preflight_passed": true,
+  "failure_stage": "post-training source-loss gate before checkpoint finite check or evaluation",
+  "evaluation_started": false,
+  "primary_metrics_exist": false,
+  "secondary_metrics_exist": false,
+  "archive_created": false,
+  "checkpoint_pruned": false,
+  "job_caches_cleaned": false,
+  "retry_performed": false,
+  "arms": {
+    "control_trn21_r2": {
+      "request_sha256": "9dcec55b497d11a040592da8b42f7c79a2c079dbe38ff1f1ae1fc3b00ad3cbac",
+      "label": "fs-20260924-c595-control-trn21-r2",
+      "hostname": "ip-172-31-34-85",
+      "remote_root": "/home/ubuntu/trainium_freshstart_20260924_c595_control_trn21_r2",
+      "guard_pid": 2611001,
+      "command_returncode": 1,
+      "failure": "source-loss gate failed: {2: 0.0030000000000001137, 3: 0.2256999999999998, 4: 0.3053000000000008, 10: 0.19320000000000004, 20: 0.043400000000000105, 30: 0.0038999999999997925, 40: 0.016899999999999693}",
+      "completed_steps": 3645,
+      "training_wall_seconds": 2621.0261563009117,
+      "charged_through_process_exit": 1790.2340432369383,
+      "charged_within_budget": true,
+      "checkpoint": {
+        "remote_path": "/home/ubuntu/trainium_freshstart_20260924_c595_control_trn21_r2/out/fs-20260924-c595-control-trn21-r2/train/out/final.pt",
+        "bytes": 469831009,
+        "sha256": "cefe116eee4652fbab0ebc045fe6f7ea0a39785aff42ffb415106bf6e6820085",
+        "retained_remote": true
+      },
+      "observed_losses": {
+        "0": 9.0112,
+        "1": 8.7816,
+        "2": 8.3655,
+        "3": 8.0729,
+        "4": 7.7798,
+        "10": 6.6264,
+        "20": 5.9169,
+        "30": 5.5158,
+        "40": 5.2321,
+        "50": 4.8954
+      },
+      "postflight": {
+        "host_clean": true,
+        "failures": [],
+        "free_bytes": 8944898048,
+        "device_holder_returncode": 1,
+        "neuron_process_count": 0
+      },
+      "retrieved_sha256": {
+        "dispatch.json": "72d328e2f37e727bc9aaab48859e4d1a8ba4a3d64292626fccec19aabd0706c0",
+        "launch.json": "47f68b097e1943fab63acc1d57db9edbef5708dd22af5a6e0b62d18155c86e2e",
+        "job.json": "47f68b097e1943fab63acc1d57db9edbef5708dd22af5a6e0b62d18155c86e2e",
+        "preflight.json": "d3da58f5fb431e7fd20fa3e30235b7ad151513b1a0dffeeae292330530220266",
+        "guard.log": "bd4e887491ab30aa62ad8cdaa7e8b456b39db49fc25b487281dcd5b93a79bddd",
+        "postflight.json": "d3c01f4acfd64bc62cc25e9c5a503b261b0bd738cc5959d40523ac09e3747a92",
+        "training.log": "dc01bea2eafdd3b963cf473c022214d9f48591fe2ee8237f218629a44c7eb28c",
+        "rehearsal.json": "66e1afba234349ef4dbc9c2f10e4c8fc9343c5b894bf6213cc00e4190cd47fd8",
+        "steps.jsonl": "3978eecd6001e9e537497ec87e43bcb85b03ae352bc91c78420ad68fe0698309"
+      }
+    },
+    "control_trn22_r2": {
+      "request_sha256": "3264ad72e5a696757074e9d4d3f82e8ddfede3577d2f2214aa25a3ad89274c82",
+      "label": "fs-20260924-c595-control-trn22-r2",
+      "hostname": "ip-172-31-32-253",
+      "remote_root": "/home/ubuntu/trainium_freshstart_20260924_c595_control_trn22_r2",
+      "guard_pid": 2737423,
+      "command_returncode": 1,
+      "failure": "source-loss gate failed: {2: 0.006499999999999062, 3: 0.23960000000000115, 4: 0.3236000000000008, 10: 0.20530000000000026, 20: 0.04780000000000051, 30: 0.000900000000000567, 40: 0.015200000000000102}",
+      "completed_steps": 3637,
+      "training_wall_seconds": 2650.130244373926,
+      "charged_through_process_exit": 1790.2337965730112,
+      "charged_within_budget": true,
+      "checkpoint": {
+        "remote_path": "/home/ubuntu/trainium_freshstart_20260924_c595_control_trn22_r2/out/fs-20260924-c595-control-trn22-r2/train/out/final.pt",
+        "bytes": 469831009,
+        "sha256": "b12fbc758f63aeedec09752bdaa43b5267d3d5a2eb410ab6fbe8f80f641435ea",
+        "retained_remote": true
+      },
+      "observed_losses": {
+        "0": 9.0112,
+        "1": 8.7816,
+        "2": 8.369,
+        "3": 8.059,
+        "4": 7.7615,
+        "10": 6.6143,
+        "20": 5.9125,
+        "30": 5.5128,
+        "40": 5.2304,
+        "50": 4.8889
+      },
+      "postflight": {
+        "host_clean": false,
+        "failures": [
+          "less than8GiB disk space available"
+        ],
+        "free_bytes": 7198257152,
+        "device_holder_returncode": 1,
+        "neuron_process_count": 0
+      },
+      "retrieved_sha256": {
+        "dispatch.json": "b4785c2df2818cbd232e7ca9747794dc52b741121be0938b2eaa4f5bcc65f9b6",
+        "launch.json": "c7bbccf96f5452a6baf812e244260a0350e24983d6b674d51bfe4b98985c4b23",
+        "job.json": "c7bbccf96f5452a6baf812e244260a0350e24983d6b674d51bfe4b98985c4b23",
+        "preflight.json": "f70472e78b31da9c05a23dbaabbed0750c30e2d57d49e4af6d4c82e78a70711e",
+        "guard.log": "463e06ee361d845074190fcddefff1ba9b826a28615f81f9bff483b98f0e97e7",
+        "postflight.json": "23db20b260578d992ed92313bbacd3c5cd6c55199844c29928da7acdc18da6e3",
+        "training.log": "179bc4a8b831d1d752a23ead291edff7a524ab6375cae057e952a6dc42b115d7",
+        "rehearsal.json": "1beadd1f45a02a68b265c8a82ac57399cedeb09446917d91abf16f6f1aec70f6",
+        "steps.jsonl": "3357343aec5dce99392fb773ba57763dbaa96e64991928b186a705039b727242"
+      }
+    }
+  },
+  "operator_boundary": "This receipt records the failed gate and artifact preservation only; it makes no scientific verdict."
+}
