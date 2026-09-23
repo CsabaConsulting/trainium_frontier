@@ -25,4 +25,18 @@ for host,revision in (("trn21",""),("trn22",""),("trn21","-r2"),("trn22","-r2"))
     assert job["request_sha256"]==hashlib.sha256(path.read_bytes()).hexdigest()
     assert job["expected_commit"]==request["expected_commit"]
     assert not any(request["label"] in name for name in subprocess.check_output(["git","ls-files","research/run-logs"],cwd=ROOT,text=True).splitlines())
+
+for host in ("trn21","trn22"):
+    path=HERE/f"control-{host}-r2-v2-request.json";request=json.loads(path.read_text())
+    job=json.loads((HERE/f"control-{host}-r2-v2-job.json").read_text())
+    assert request["expected_commit"]=="cb071b0e755e99153b029ff67f152432549f900d"
+    assert job["request_sha256"]==hashlib.sha256(path.read_bytes()).hexdigest()
+    assert set(request["fingerprint_paths"])==set(request["expected_sha256"])
+    post=request["post_run_core"]
+    assert post["expected_commit"]==request["expected_commit"]
+    for key in ("post_run_operator_sha256","post_run_contract_sha256","prune_script_sha256","cleanup_script_sha256"):
+        assert re.fullmatch(r"[0-9a-f]{64}",post[key])
+    for item,want in request["expected_sha256"].items():
+        blob=subprocess.check_output(["git","show",f'{request["expected_commit"]}:{item}'],cwd=ROOT)
+        assert hashlib.sha256(blob).hexdigest()==want,(item,hashlib.sha256(blob).hexdigest(),want)
 print("c595 immutable requests: PASS (no dispatch)")
