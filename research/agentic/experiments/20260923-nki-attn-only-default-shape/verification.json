@@ -1,0 +1,18 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "The single change is correctly isolated: --nki-attn sets USE_NKI_ATTN and selects _AttnNKI through nki_attention at the default T=2048, D=128 geometry. No additional precision, architecture, optimizer, data, or evaluator change is proposed. The full-run BPB and step-count outcomes are falsifiable against the pinned matched control.",
+    "Correct the central mechanism claim. In authoritative train.py, COMPILE_SDPA_DIRECT=False routes the control through @torch._dynamo.disable nki_attention and its eager SDPA fallback; the source also describes an installed native NKI SDPA backward. The cited BF16 run establishes an attention-boundary performance opportunity, not that the control materializes per-head T x T scores/probabilities through HBM. Cite existing repository evidence for that materialization claim or explicitly treat it as unverified.",
+    "Reconcile this backend experiment with CURRENT_STATE.md's explicitly parked attention-redesign direction. Absence of --nki-attn in recent decision rows does not establish that the underlying direction is distinct. Explain the distinction using existing historical evidence, or identify the new profile-backed causal evidence required to reopen it.",
+    "The BF16 KEEP (1.002028 at 2233 steps versus 1.005967 at 2076) supports the experiment's motivation but does not establish general attention-numerics insensitivity or numerical equivalence of this different forward/backward pair. Present those as hypotheses; retain the proposed compilation, finite-loss, causality, throughput, and full-budget BPB gates."
+  ],
+  "llm_verdict": "NEEDS_WORK",
+  "passed": false,
+  "proposal_id": "20260923-nki-attn-only-default-shape",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-23T02:27:09Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}

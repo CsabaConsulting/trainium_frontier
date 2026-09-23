@@ -1,0 +1,48 @@
+{
+  "abort_conditions": [
+    "Smoke run fails to compile, crashes, or produces NaN/inf loss with --nki-attn",
+    "Smoke completes fewer than 340 steps in 300 s (controls: 334 on trn21, 335 on trn22), i.e. the kernel is not faster end-to-end",
+    "Smoke public_val_bpb exceeds the same-host control smoke value (1.165855 trn21 / 1.165604 trn22): a throughput-only change with preserved numerics must not raise BPB at equal-or-greater step count",
+    "causality_passed is false for the smoke or full run (fused kernel leaks future tokens)",
+    "Startup/config log shows the attention backend unchanged versus control (flag inert or already default) -- halt as inert, do not run full",
+    "Full run completes <= 2071 steps or val_bpb >= 1.005734"
+  ],
+  "change_type": "flags",
+  "created_at": "2026-09-23T02:27:09Z",
+  "duplicate_search_terms": [
+    "--nki-attn",
+    "nki-attn",
+    "nki_attn",
+    "NKI attention",
+    "fused attention",
+    "flash attention",
+    "attention kernel",
+    "sdpa kernel",
+    "nki sdpa",
+    "compile-sdpa-direct"
+  ],
+  "evidence": [
+    "research/experiment-log.jsonl: al-20260922-bf16-sdpa-input-only-default-shape-full-r1 = 1.002028 @ 2233 steps vs al-20260922-control-trn22-lnc2x4-9a4caa7b-full-r1 = 1.005967 @ 2076 steps (KEEP) -- attention-side speedup translates into fixed-budget BPB gain and attention numerics tolerate reduced precision",
+    "research/experiment-log.jsonl: al-20260922-bf16-sdpa-input-only-default-shape-smoke-r1 = 1.156334 @ 360 steps vs control smokes 1.165855 @ 334 / 1.165604 @ 335 -- smoke BPB falls monotonically with extra steps when per-step quality is preserved (basis for the smoke gate below)",
+    "research/experiment-log.jsonl + DECISION_LOG.md: none of the 29 retrieved runs and no decision-log row passes --nki-attn; the used-proposal-id list contains no nki-attn entry (only compile-sdpa-direct, nki-local-conv, nki-ngram-rms, nki-softcap-ce)",
+    "train.py flag list at 9a4caa7b exposes --nki-attn as a selectable attention backend distinct from --compile-sdpa-direct and --bf16-sdpa-input",
+    "CURRENT_STATE.md 'Human strategic research priority' lane 2: profile-directed NKI fusion targeting attention/MLP materialization, judged by complete-step improvement with BPB preserved",
+    "research/experiment-log.jsonl: fs-w98/fs-w146 runs report causality_passed as a recorded field -- the run harness checks causal masking, so a masking defect in a fused kernel is detectable and is declared as an abort condition"
+  ],
+  "expected_effect": "Direction: lower val_bpb. If the fused kernel yields >=8% more steps in 1800 s with per-step quality preserved, predicted full-run val_bpb 0.997-1.002 vs control 1.005734 (delta -0.004 to -0.009, scaling the bf16-sdpa-input slope of -0.0039 BPB per +7.5% steps). Falsified if full-run val_bpb >= 1.005734 or if steps completed <= 2071.",
+  "files_allowed": [],
+  "flags": [
+    "--nki-attn"
+  ],
+  "hypothesis": "Attention is a measured cost center in the pinned configuration: casting only the SDPA inputs to BF16 (--bf16-sdpa-input) bought 7.56% more optimizer steps in the fixed 1800 s budget (2233 vs 2076) and lowered val_bpb from 1.005967 to 1.002028 (the only KEEP among 29 retrieved runs), which also shows that attention-side numerics are not quality-critical at this scale. The control's compiled torch SDPA path at seq_len 2048 materializes per-head T x T score/probability tensors through HBM in forward and backward; the existing --nki-attn option replaces that operator with the repository's fused NKI attention kernel that keeps score tiles on-chip. If the fused kernel is faster end-to-end and numerically equivalent (causal masking preserved), the run completes more steps under the time-bounded schedule and, by the same mechanism as the bf16-sdpa-input KEEP, lowers val_bpb. This is the human priority lane 2 (profile-directed NKI fusion targeting attention materialization) applied to the one operator the ledger has already shown to matter.",
+  "implementation_plan": "",
+  "proposal_id": "20260923-nki-attn-only-default-shape",
+  "single_causal_change": "Pass --nki-attn only. Every other option stays at the 9a4caa7b defaults used by the two pinned controls: identical launch shape (NEURON_LOGICAL_NC_CONFIG=2, torchrun --nproc_per_node=4, --num-steps 5000 --max-train-seconds 1800 --seed 42, NEURON_CC_FLAGS='--optlevel=1'). No --bf16-sdpa-input, no --bf16-norm-output, no --compile-sdpa-direct, no other kernel/precision/optimizer/architecture flag is added; the kernel selection is the sole causal option and any internal tiling/accumulation format is intrinsic to that kernel, not a second toggled switch.",
+  "smoke_gate": {
+    "max_bpb_delta": 0.0,
+    "min_candidate_steps": 340,
+    "min_step_rate_ratio": 1.02
+  },
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}
