@@ -1,0 +1,121 @@
+{
+  "role": "independent Verifier",
+  "verified_at": "2026-09-23",
+  "verdict": "FAIL",
+  "reviewed_implementation_head": "638169e08c9aa1180ea0e2d178a2543477a480f1",
+  "implementation_base": "232da9f7",
+  "scope": {
+    "reviewed_new_files": [
+      "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron_discriminator_direct.py",
+      "research/submission-validation/20260923-dense6x1024-direct-review-safe/test_neuron_discriminator_static.py",
+      "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron-discriminator-runbook.md",
+      "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron-discriminator-authorization-request.json"
+    ],
+    "unexpected_implementation_files": [],
+    "candidate_modified": false,
+    "source_modified": false,
+    "candidate_sha256": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537",
+    "source_sha256": "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344",
+    "harness_sha256": "be73de46d1a71f390229f8f1c2761950839868f0e891bca03835eb978636cf26",
+    "static_test_sha256": "fa07ed39069f96ee22fcc55f90127c5655bd176fee48e441ee7c731afbbf01a0",
+    "runbook_sha256": "99b202e3273042979dec5b8e40baee7a54baca9dbdef6722a11eae5e545217f3",
+    "pending_authorization_request_sha256": "6cb6aac74ce88232f75aad50bc09e7814e96a824eed165b8fc049196d3ff88ae"
+  },
+  "positive_findings": {
+    "source_direct_ce_shape": "The worker code deterministically exercises 128, 512 and 32768 rows twice, records one-/two-lane forward/backward traces, and uses torch.equal plus zero max-absolute error for decisive source/direct loss and gradient equality.",
+    "worker_isolation": "CE source/direct and optimizer raw/source/direct use five sequential subprocesses and five unique fresh cache paths. Worker entry rejects a missing parent nonce.",
+    "optimizer_intent": "The code constructs raw/source/direct variants, tiny fixed and changed-schedule fixtures, a width-1024 production inventory asserted at 117453580 elements, None/zero gradients, skipped AdamW, changing lr/momentum/betas, cross-rank digests and Linear cache checks.",
+    "recompile_warning_policy": "run_child scans complete captured child output and makes a matching recompile-limit warning fail even at rc0; the observed torch._dynamo recompile_limit form matches the scanner.",
+    "hashes": "All 15 currently declared protected SHA-256 values match, including source, candidate, harness, static tests, proposal, fs-w62 provenance and the prior component result.",
+    "head_self_reference": "The authorization request no longer embeds a future authorized_head field; exact HEAD is supplied externally and compared for equality rather than ancestry.",
+    "nonoverwrite": "Static CLI evidence writes exclusively, replay is rejected with the original SHA unchanged, and the unit symlink/overwrite test passes."
+  },
+  "blocking_findings": [
+    {
+      "id": "D1",
+      "severity": "blocking",
+      "finding": "The exact generated outer environment is rejected by the harness before any worker can run.",
+      "evidence": "exact_launch_request emits STATIC_ENVIRONMENT plus four TRAINIUM_DISCRIMINATOR fields. validate_full_environment additionally requires LOCAL_WORLD_SIZE=4 and WORLD_SIZE=4. An independent call with precisely the generated environment failed with 'environment mismatch for LOCAL_WORLD_SIZE'. The top-level workload is native Python, not torchrun, so the missing values are not injected before this check.",
+      "required_correction": "Make the exact manifested outer environment and validator identical. Add literal WORLD_SIZE=4 and LOCAL_WORLD_SIZE=4 to the request/environment contract and negative tests, or remove the impossible top-level requirement while retaining the four-rank optimizer-worker check."
+    },
+    {
+      "id": "D2",
+      "severity": "blocking",
+      "finding": "Every real launch/job manifest has a source_sha256 key set that validate_outer_receipts rejects.",
+      "evidence": "fresh_start_launch.py always fingerprints train.py, prepare.py and research/fresh_start_backup.py in addition to requested paths. PROTECTED_PATHS and authorization expected_sha256 omit those three files. The harness compares payload.source_sha256 for exact dictionary equality with only expected_sha256 plus the authorization request, so the launcher necessarily supplies three extra keys.",
+      "required_correction": "Add train.py, prepare.py and research/fresh_start_backup.py with independently frozen hashes to PROTECTED_PATHS and the authorization map, preserving exact launcher-default coverage; add a baseline synthetic launch/job manifest test using the launcher's actual source-path union."
+    },
+    {
+      "id": "D3",
+      "severity": "blocking",
+      "finding": "The decisive optimizer comparator can false-pass absent, nonfinite and no-op evidence.",
+      "evidence": "Independent synthetic reports with all three fixtures but snapshots=[] for every raw/source/direct rank returned passed=true. A second matrix with one identical snapshot whose parameter digest declared finite=false/nonzero=false, empty state and owner_calls=999 also returned passed=true. snapshot_optimizer fabricates owner_calls as the loop step instead of reading owner.calls. compare_optimizer_results does not require worker schema/variant/rank/world identity, exact 2/4/4 snapshot counts, sequential step IDs, finite/nondegenerate tensors, actual owner calls, nonempty expected state, or production parameter/element counts.",
+      "required_correction": "Validate exact worker/report schemas and identities; exact fixture order; 2/4/4 snapshots and step numbers; width-1024 counts; all finite digests and real state coverage; actual owner.calls equal the completed source/direct steps; and evidence of real parameter/state updates. Add adversarial tests for missing/extra snapshots, false finite flags, empty/no-op state, wrong call counts, wrong rank/schema, and production count drift. Preserve the existing exact parameter/scalar/digest/merged-state comparisons."
+    },
+    {
+      "id": "D4",
+      "severity": "blocking",
+      "finding": "The required state-only finalization would leave contradictory and impossible authorization metadata.",
+      "evidence": "The request still contains authorization_sha256='PENDING_EXTERNAL_VERIFIER_REQUEST_SHA256'. A file cannot embed its own final SHA-256, authenticate ignores this field, and changing only authorization_state would leave a pending sentinel in a finalized request. The runbook title and 'checked-in request is deliberately pending' statement would also become false after the mandated state-only finalization. Top-level request keys are not validated as an exact schema.",
+      "required_correction": "Remove the embedded authorization_sha256 field entirely; keep request SHA solely as the external CLI/environment/manifest literal. Enforce an exact top-level request schema. Make the runbook state-neutral or explicitly describe the implementation-head pending state so a later state-only verifier commit remains truthful."
+    },
+    {
+      "id": "D5",
+      "severity": "blocking",
+      "finding": "Authorization-file integrity and documented exact argv are incomplete.",
+      "evidence": "The authorization request is intentionally outside its own hash map, but authenticate neither requires REQUEST to be a regular non-symlink file nor includes it in the scoped Git dirty check. The runbook calls a relative-path inner argv 'exact', while exact_launch_request reconstructs absolute remote harness/request/report paths, so the documented argv would fail receipt equality. The allegedly non-gating PyTorch CE diagnostic can also veto through exceptions, timeout or the global recompile-warning scan.",
+      "required_correction": "Separately require the canonical authorization request to be tracked, clean, regular and non-symlink while pinning its bytes only by the external SHA. Make the runbook argv byte-for-byte identical to the harness-generated remote argv. Either describe the PyTorch diagnostic as operationally gating or isolate/catch it so it genuinely cannot veto source/direct equality."
+    }
+  ],
+  "local_checks": [
+    {
+      "command": "git diff --name-status/check 232da9f7..638169e0; candidate/source diff and sha256sum",
+      "result": "PASS: exactly the four declared new files; candidate/source unchanged at required hashes"
+    },
+    {
+      "command": "python -m unittest -v test_neuron_discriminator_static.py; py_compile harness and tests",
+      "result": "PASS: 10 implementation tests and syntax checks"
+    },
+    {
+      "command": "pending-sentinel static CLI plus existing-result replay",
+      "result": "PASS rc0 static/no hardware; replay rc1 and original result SHA unchanged"
+    },
+    {
+      "command": "pending full CLI and direct CE/optimizer worker calls without parent nonce",
+      "result": "PASS rejection before torch/Neuron import"
+    },
+    {
+      "command": "independent optimizer comparator corruption matrix",
+      "result": "PASS rejection for plan, parameter, scalar, state, cross-rank digest, worker-failed, missing-state and duplicate-state mutations"
+    },
+    {
+      "command": "independent empty/nonfinite/no-op optimizer evidence matrix",
+      "result": "FAIL criterion reproduced: both malformed matrices returned passed=true"
+    },
+    {
+      "command": "exact_launch_request environment versus validate_full_environment",
+      "result": "FAIL criterion reproduced: generated environment lacks LOCAL_WORLD_SIZE and WORLD_SIZE and is rejected"
+    },
+    {
+      "command": "fresh_start_launch.py default fingerprint union versus discriminator required_hashes",
+      "result": "FAIL criterion reproduced: launcher adds train.py, prepare.py and research/fresh_start_backup.py, making exact equality impossible"
+    },
+    {
+      "command": "runbook fenced-block syntax and sentinel execution",
+      "result": "PASS: bash syntax valid; preauthorization block exits 64 and cannot launch"
+    }
+  ],
+  "authorization": {
+    "hardware_advancement_authorized": false,
+    "authorization_request_finalized": false,
+    "authorized_head": null,
+    "authorized_request_sha256": null,
+    "authorized_fresh_start_request": null,
+    "statement": "Do not launch the discriminator at 638169e0. Correct D1-D5 and obtain a new independent verifier PASS."
+  },
+  "candidate_modified_by_verifier": false,
+  "hardware_run_by_verifier": false,
+  "training_run_by_verifier": false,
+  "submission_performed": false,
+  "scientific_verdict": null
+}
