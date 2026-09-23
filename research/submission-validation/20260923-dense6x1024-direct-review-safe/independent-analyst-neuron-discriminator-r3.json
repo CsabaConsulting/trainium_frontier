@@ -1,0 +1,106 @@
+{
+  "schema": "dense6x1024-direct-neuron-discriminator-r3-independent-analyst-v1",
+  "role": "independent Analyst",
+  "analyzed_evidence_commit": "5e1cb8c972f2907553a87eea9c3a0445919176b8",
+  "label": "fs-dense6x1024-direct-neuron-discriminator-r3-20260923t135230000001z",
+  "verdict": "STOP/ABANDON_CURRENT_PROPOSAL",
+  "submission_ready": false,
+  "training_advancement_authorized": false,
+  "another_unchanged_neuron_discriminator_warranted": false,
+  "result_boundary": {
+    "top_result_passed": false,
+    "ce_passed": true,
+    "optimizer_passed": false,
+    "optimizer_failure_messages": 54,
+    "all_five_children_returned_zero": true,
+    "all_worker_reports_passed_internal_validation": true,
+    "process_evidence_revalidation_passed": true,
+    "recompile_limit_warnings": [],
+    "training_performed": false,
+    "submission_performed": false
+  },
+  "exact_mismatch_decomposition": {
+    "steps": "tiny_fixed steps 1-2 and tiny_changed steps 1-4",
+    "message_count_identity": "6 steps * (4 per-rank parameter messages + 4 per-rank global-digest messages + 1 merged-state message) = 54",
+    "independent_parameter_mismatch_family": {
+      "group": 3,
+      "kind": "muon",
+      "shape": [32, 32],
+      "positions": [1, 2, 4, 5, 6, 7],
+      "all_direct_ranks_hold_the_same_replicated_result": true,
+      "meaning": "The four per-rank messages and four cross-rank-digest messages at each step duplicate one globally replicated direct-versus-raw parameter difference. cross_rank_exact remains true within every variant."
+    },
+    "independent_state_mismatch_family": {
+      "group": 4,
+      "kind": "muon",
+      "shape": [32, 64],
+      "positions": [0, 1, 2, 3, 4, 5],
+      "only_differing_persistent_field": "second_momentum_buffer",
+      "record_shape": [1, 64]
+    },
+    "not_mismatched": [
+      "initial parameters",
+      "ownership plans",
+      "group scalars",
+      "cross-rank agreement within raw/source/direct",
+      "source-adapter versus direct fixtures on every rank",
+      "all production_width1024_fs_w62 parameter, global-digest and merged-state comparisons"
+    ]
+  },
+  "root_cause": {
+    "classification": "pre-existing source ownership behavior exposed by an internally incompatible tiny raw-reference gate; not a direct-integration candidate regression",
+    "mechanism": "Replicated raw calls MuonAdamW._muon_step once on each complete tiny Muon group, while OwnedOptimizer partitions each group by owner and invokes the same compiled body on smaller per-rank subsets, padding only singleton subsets. The child logs prove distinct Neuron graph shapes: raw compiled (8,32,32) and (6,32,64), while source/direct rank 0 compiled (2,32,32) and (2,32,64), with other owner cardinalities determined by the plan. The mathematically batch-independent update is not byte-invariant under those different small compiled batch shapes: the six square-matrix parameters and six rectangular second-moment rows above differ from replicated raw.",
+    "direct_refactor_evidence": "For every rank, source-adapter fixtures equal direct fixtures byte for byte, including all parameters, state, plans, scalars and snapshots. The source adapter and direct class share the same make_plan and OwnedOptimizer implementation; direct only removes the runtime installation wrapper.",
+    "production_evidence": "For the exact fs-w62 width-1024 inventory, raw, source and direct match across all four scheduled steps, including None gradients, zero gradients, skipped AdamW, changed hyperparameters, merged persistent state, cross-rank digests and Linear cache/output checks.",
+    "low_level_limit": "The evidence identifies the changed compiled batch dimension and the exact affected outputs. It does not expose compiler-internal reduction/lowering order, so no narrower compiler implementation claim is made."
+  },
+  "reference_triangle": {
+    "source_equals_direct": true,
+    "direct_equals_raw_on_tiny": false,
+    "therefore_source_equals_raw_on_tiny": false,
+    "consequence": "The current gate simultaneously demands direct==source and direct==raw for the same tiny inputs even though source!=raw. No candidate implementation can satisfy both exact equalities. This is an unsatisfiable validation contract for the frozen source, not evidence that the direct refactor changed source semantics."
+  },
+  "candidate_decision": {
+    "smallest_scientifically_correct_candidate_change": null,
+    "recommendation": "ABANDON the current direct-review-safe proposal rather than mutate the candidate after this result.",
+    "rationale": [
+      "The approved proposal permits only direct integration of frozen source arithmetic and explicitly forbids math changes.",
+      "Current direct already reproduces frozen source exactly on every observed CE and optimizer fixture.",
+      "Changing direct to match tiny raw would necessarily break the simultaneously required exact source comparison because frozen source and raw are already unequal there.",
+      "Padding every owned Muon subset to the original full group shape or redesigning ownership could target raw equality, but would change memory, compilation, performance and optimizer execution; it is a new experiment, not a minimal review-safe refactor."
+    ]
+  },
+  "rerun_policy": {
+    "immediate_rerun": "NO",
+    "reason": "An unchanged rerun would exercise the same deterministic reference conflict and cannot turn this valid terminal FAIL into a pass.",
+    "only_legitimate_future_paths": [
+      "A new human-approved proposal may redesign OwnedOptimizer with replicated-raw byte equality as the target, followed by new CPU/static, component, throughput, cold-training and quality controls.",
+      "Alternatively, a new independently reviewed validation proposal may make frozen source/direct exactness and launch-shape production raw equality decisive while treating nonproduction tiny batch-shape raw differences as diagnostics. That would be a prospective gate redesign, not a reinterpretation or rescue of r3."
+    ]
+  },
+  "independent_postflight_blocker": {
+    "process_and_device_clean": true,
+    "host_clean": false,
+    "failure": "less than8GiB disk space available",
+    "free_bytes": 6439194624,
+    "consequence": "Any future hardware proposal also requires an independently authorized capacity remedy and a fresh passing preflight/postflight; the preserved r3 failure must not be deleted or relabeled."
+  },
+  "identity": {
+    "authorized_head": "8c00844b7cd119a6b66ea6179afd53f00a7dc8fe",
+    "source_sha256": "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344",
+    "direct_sha256": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537",
+    "harness_sha256": "86427ac8d38f902be0df4f181230f113b827396948447bbcbe8b2685aac1ccfd",
+    "protected_paths_clean_and_matching_before_launch": true,
+    "source_or_candidate_edited_by_analyst": false
+  },
+  "evidence_sha256": {
+    "top_result": "7e64bd9c7dd9d675c4975ba4dbbf9d09d94761da3d57f68b2c5d3eeccf4147ac",
+    "operator_receipt": "870ad180457d377a42d48d0dc3b6d222b32b35a80212a72c9c3495e9cc536866",
+    "external_request": "06aa3c8805fbf2f82c19413fda931fb9f693eb9b40cfbc57b59f4e38aa14a083",
+    "postflight": "9cb8406dbffbde670b26673ebdf686b3b13867402c82931a9a23b3b64292c73d",
+    "optimizer_raw_log": "ddd99ce2fab959fcaec8ddbf17c3b045ebefbf18d8da2a5c9f0d542d1df2a39a",
+    "optimizer_source_log": "575fb7c0cb6da18ef500a48d3d53ddcf9dbd181a5fba558c9c82cf718e6bce0f",
+    "optimizer_direct_log": "2bc6cd6ac3c581d741eaec33fc80a3ff1ef0666057cf6bdaf487af555d243cf9"
+  },
+  "scientific_conclusion": "r3 proves the review-safe direct integration reproduces its frozen source on the exercised Neuron paths, but the predeclared discriminator and postflight still fail. It does not authorize training, submission, a relaxed gate, or a private-score claim."
+}
