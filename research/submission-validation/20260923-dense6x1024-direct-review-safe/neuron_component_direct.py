@@ -32,9 +32,11 @@ PROPOSAL_PATH = HARNESS_PATH.with_name("proposal.json")
 AUTHORIZATION_PATH = HARNESS_PATH.with_name("neuron-component-authorization-request.json")
 CANONICAL_TRAIN = (ROOT / "submissions/dense6x1024_direct_review/train.py").resolve()
 RUN_LOGS = ROOT / "research/run-logs"
-TRUST_ROOT_VERIFIER_COMMIT = "e512c00ffcb6abb31daa4048d0ea3b719564fc6a"
-TRUST_ROOT_REPORT = HARNESS_PATH.with_name("independent-neuron-component-reverify.json")
-TRUST_ROOT_REPORT_SHA256 = "1fa417045cd3b0c45b22a0c6f648ea057311ff13bd4f79efe7a8dee3e7284d84"
+TRUST_ROOT_VERIFIER_COMMIT = "c6d521ab068a4392da1d67bacc55e081335b42bf"
+TRUST_ROOT_REPORT = HARNESS_PATH.with_name(
+    "independent-neuron-component-authorization-review.json"
+)
+TRUST_ROOT_REPORT_SHA256 = "860b844a4a8e7a600df6d96ef4a42abdf139acb5faeed883c23ceb7edaff4a86"
 EXPECTED_TRAIN_SHA256 = "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537"
 EXPECTED_WORLD_SIZE = 4
 EXPECTED_LNC = "2"
@@ -44,6 +46,29 @@ EXPECTED_CC_FLAGS = "--optlevel=1 --auto-cast matmult --auto-cast-type bf16"
 EXPECTED_HARDWARE_HOSTNAME = "ip-172-31-32-253"
 FULL_LABEL_PATTERN = r"fs-20260923-dense6x1024-direct-neuron-component-[0-9]{8}T[0-9]{12}Z"
 AUTHORIZATION_SCHEMA = "dense6x1024-direct-neuron-component-authorization-v1"
+EXPECTED_HOST = "trn22"
+EXPECTED_REMOTE = "/home/ubuntu/trainium_freshstart_submission_validation_20260923_direct_component"
+EXPECTED_PURPOSE = (
+    "Standalone authorized direct-wiring Neuron component gate: repeated fused MLP, repeated "
+    "adaptive CE one/two lane, and two-step explicit OwnedOptimizer semantics. No training, "
+    "submission, or scientific verdict."
+)
+EXPECTED_STATIC_ENVIRONMENT = {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "OMP_NUM_THREADS": "4",
+    "MKL_NUM_THREADS": "4",
+    "PYTHONUNBUFFERED": "1",
+    "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1",
+}
+EXPECTED_TIMEOUT_ARGV = [
+    "timeout", "--foreground", "--signal=TERM", "--kill-after=60s", "1200s",
+]
+EXPECTED_TORCHRUN_ARGV_PREFIX = [
+    "/home/ubuntu/workspace/native_venv/bin/torchrun", "--standalone", "--nproc_per_node=4",
+]
 VOCAB_SIZE = 8192
 MLP_SHAPE = (32, 1024, 1024)
 MLP_HIDDEN = 4096
@@ -91,7 +116,7 @@ EXPECTED_HASH_PATHS = (
     "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron_component_direct.py",
     "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron-component-runbook.md",
     "research/submission-validation/20260923-dense6x1024-direct-review-safe/proposal.json",
-    "research/submission-validation/20260923-dense6x1024-direct-review-safe/independent-neuron-component-reverify.json",
+    "research/submission-validation/20260923-dense6x1024-direct-review-safe/independent-neuron-component-authorization-review.json",
 )
 AUTHORIZATION_RELATIVE_PATH = (
     "research/submission-validation/20260923-dense6x1024-direct-review-safe/"
@@ -355,6 +380,14 @@ def require_clean_fingerprint_scope() -> dict[str, Any]:
 
 
 def load_authorization(args, full: bool) -> dict[str, Any]:
+    if not re.fullmatch(r"[0-9a-f]{40}", args.authorized_head):
+        raise ValueError("--authorized-head must be a literal full lowercase commit SHA")
+    if git_head() != args.authorized_head:
+        raise ValueError("checkout HEAD differs from the externally authorized exact HEAD")
+    if args.expected_commit != args.authorized_head:
+        raise ValueError("--expected-commit must equal the externally authorized exact HEAD")
+    if not re.fullmatch(r"[0-9a-f]{64}", args.authorization_sha256):
+        raise ValueError("--authorization-sha256 must be a literal lowercase SHA-256")
     requested = args.authorization_request.absolute()
     if requested != AUTHORIZATION_PATH or requested.is_symlink() or not requested.is_file():
         raise ValueError(f"authorization request must be exactly {AUTHORIZATION_PATH}")
@@ -381,50 +414,35 @@ def load_authorization(args, full: bool) -> dict[str, Any]:
     if mismatches:
         raise RuntimeError(f"authorized source hash mismatch: {json.dumps(mismatches, sort_keys=True)}")
     authorization_sha = sha256(requested)
-    if args.authorization_request_sha256 != authorization_sha:
-        raise ValueError("authorization request SHA mismatch")
-    authorization = payload.get("authorization", {})
-    authorization_keys = {
-        "status", "hardware_command_authorized", "authorized_by_role",
-        "reviewed_implementation_commit",
-    }
-    if not isinstance(authorization, dict) or set(authorization) != authorization_keys:
-        raise ValueError("authorization decision schema mismatch")
-    pending = authorization == {
-        "status": "pending_independent_verifier",
-        "hardware_command_authorized": False,
-        "authorized_by_role": None,
-        "reviewed_implementation_commit": None,
-    }
-    authorized = (
-        authorization.get("status") == "authorized"
-        and authorization.get("hardware_command_authorized") is True
-        and authorization.get("authorized_by_role") == "independent Verifier"
-        and bool(re.fullmatch(
-            r"[0-9a-f]{40}", authorization.get("reviewed_implementation_commit", "")
-        ))
-    )
-    if not pending and not authorized:
-        raise ValueError("authorization decision is neither exact pending nor exact authorized")
-    if full and not (
-        authorized
-        and subprocess.run(
-            ["git", "merge-base", "--is-ancestor",
-             authorization["reviewed_implementation_commit"], git_head()],
-            cwd=ROOT,
-        ).returncode == 0
-    ):
-        raise RuntimeError("hardware command lacks independent verifier authorization")
+    if args.authorization_sha256 != authorization_sha:
+        raise ValueError("request bytes differ from the externally authorized SHA-256")
+    template_state = payload.get("template_state")
+    if template_state not in {
+        "pending_external_verifier_literals", "finalized_by_external_verifier"
+    }:
+        raise ValueError("authorization template state mismatch")
+    if full and template_state != "finalized_by_external_verifier":
+        raise RuntimeError("pending authorization template cannot launch hardware")
     request_contract = payload.get("request_contract")
-    if not isinstance(request_contract, dict):
-        raise ValueError("authorization request contract is absent")
+    expected_contract = {
+        "host": EXPECTED_HOST,
+        "remote": EXPECTED_REMOTE,
+        "expected_hostname": EXPECTED_HARDWARE_HOSTNAME,
+        "purpose": EXPECTED_PURPOSE,
+        "environment_static": EXPECTED_STATIC_ENVIRONMENT,
+        "timeout_argv": EXPECTED_TIMEOUT_ARGV,
+        "torchrun_argv_prefix": EXPECTED_TORCHRUN_ARGV_PREFIX,
+    }
+    if request_contract != expected_contract:
+        raise ValueError("authorization request contract differs from hard-coded harness constants")
     return {
         "path": str(requested),
         "sha256": authorization_sha,
         "schema": payload["schema"],
         "trust_root_verifier_commit": payload["trust_root_verifier_commit"],
         "expected_sha256": expected_hashes,
-        "authorization": authorization,
+        "authorized_head": args.authorized_head,
+        "template_state": template_state,
         "request_contract": request_contract,
         "clean_scope": clean,
     }
@@ -436,7 +454,8 @@ def identity_manifest(args, train_py: Path, authorization: dict[str, Any]) -> di
         "WORLD_SIZE", "LOCAL_WORLD_SIZE", "RANK", "LOCAL_RANK", "OMP_NUM_THREADS",
         "MKL_NUM_THREADS", "PYTHONUNBUFFERED", "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION",
         "TRAINIUM_COMPONENT_RUN_LABEL", "TRAINIUM_COMPONENT_EXPECTED_COMMIT",
-        "TRAINIUM_COMPONENT_EXPECTED_HOSTNAME", "TRAINIUM_COMPONENT_AUTHORIZATION_SHA256",
+        "TRAINIUM_COMPONENT_EXPECTED_HOSTNAME", "TRAINIUM_COMPONENT_AUTHORIZED_HEAD",
+        "TRAINIUM_COMPONENT_AUTHORIZATION_SHA256",
         "TRAINIUM_FRESH_START_RUN_ID",
     )
     return {
@@ -494,6 +513,7 @@ def validate_identity(args, train_py: Path, full: bool) -> dict[str, Any]:
         "TRAINIUM_COMPONENT_RUN_LABEL": args.run_label,
         "TRAINIUM_COMPONENT_EXPECTED_COMMIT": args.expected_commit,
         "TRAINIUM_COMPONENT_EXPECTED_HOSTNAME": args.expected_hostname,
+        "TRAINIUM_COMPONENT_AUTHORIZED_HEAD": args.authorized_head,
         "TRAINIUM_COMPONENT_AUTHORIZATION_SHA256": authorization["sha256"],
     }
     mismatches = {
@@ -1139,46 +1159,42 @@ def provision_fresh_cache(args, identity: dict[str, Any]) -> dict[str, Any]:
 
 def exact_request(args, identity: dict[str, Any]) -> dict[str, Any]:
     authorization = identity["authorization"]
-    contract = authorization["request_contract"]
-    required_contract_keys = {
-        "host", "remote", "expected_hostname", "purpose", "environment_static",
-        "timeout_argv", "torchrun_argv_prefix",
-    }
-    if not isinstance(contract, dict) or set(contract) != required_contract_keys:
-        raise ValueError("authorized request-contract keys mismatch")
-    environment = dict(contract["environment_static"])
+    environment = dict(EXPECTED_STATIC_ENVIRONMENT)
     environment.update({
         "NEURON_COMPILE_CACHE_DIR": f"/tmp/neuron-cache-{args.run_label}",
         "TRAINIUM_COMPONENT_RUN_LABEL": args.run_label,
         "TRAINIUM_COMPONENT_EXPECTED_COMMIT": args.expected_commit,
         "TRAINIUM_COMPONENT_EXPECTED_HOSTNAME": args.expected_hostname,
+        "TRAINIUM_COMPONENT_AUTHORIZED_HEAD": args.authorized_head,
         "TRAINIUM_COMPONENT_AUTHORIZATION_SHA256": authorization["sha256"],
     })
     command = [
-        *contract["timeout_argv"],
-        *contract["torchrun_argv_prefix"],
+        *EXPECTED_TIMEOUT_ARGV,
+        *EXPECTED_TORCHRUN_ARGV_PREFIX,
         str(HARNESS_PATH),
         "--train-py", str(CANONICAL_TRAIN),
         "--report", str(args.report),
         "--run-label", args.run_label,
         "--expected-commit", args.expected_commit,
         "--expected-hostname", args.expected_hostname,
+        "--authorized-head", args.authorized_head,
         "--authorization-request", str(AUTHORIZATION_PATH),
-        "--authorization-request-sha256", authorization["sha256"],
+        "--authorization-sha256", args.authorization_sha256,
         "--seed", str(EXPECTED_SEED),
         "--host-threads", str(EXPECTED_HOST_THREADS),
     ]
     return {
-        "host": contract["host"],
-        "remote": contract["remote"],
+        "host": EXPECTED_HOST,
+        "remote": EXPECTED_REMOTE,
         "expected_commit": args.expected_commit,
+        "authorized_head": args.authorized_head,
         "label": args.run_label,
-        "purpose": contract["purpose"],
+        "purpose": EXPECTED_PURPOSE,
         "environment": environment,
         "command": command,
         "fingerprint_paths": list(FINGERPRINT_PATHS),
         "authorization_request": AUTHORIZATION_RELATIVE_PATH,
-        "authorization_request_sha256": authorization["sha256"],
+        "authorization_sha256": args.authorization_sha256,
     }
 
 
@@ -1441,8 +1457,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--run-label", required=True)
     parser.add_argument("--expected-commit", required=True)
     parser.add_argument("--expected-hostname", required=True)
+    parser.add_argument("--authorized-head", required=True)
     parser.add_argument("--authorization-request", type=Path, required=True)
-    parser.add_argument("--authorization-request-sha256", required=True)
+    parser.add_argument("--authorization-sha256", required=True)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--host-threads", type=int, default=4)
     parser.add_argument(
