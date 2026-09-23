@@ -1,0 +1,18 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "This reopens a closed direction without new causal evidence. Authoritative train.py lines 365\u2013370 record cautious weight decay as a measured 2026-09-15 EXACT NULL: paired 900-second per-step delta -0.000087 versus control spread 0.000148, retained OFF. The proposal's claim that decay masking is untested overlooks this repository evidence; it offers no mechanism-specific reason that the unchanged low-decay configuration should reverse that result.",
+    "The hypothesis misstates the flag's scope and control behavior. train.py lines 5996\u20136004 and _muon_math show that Muon already uses sign-gated decay, independently of --cautious-wd. The flag changes only nonzero-decay AdamW groups: wte at 0.001 and lm_head at 0.01 under the pinned defaults. It does not introduce cautious decay across Muon and AdamW as claimed.",
+    "The zero-kernel-footprint claim is unsupported: train.py lines 352\u2013358 and _cautious_weight_decay_ document approximately 12 additional eager launches. Near-neutral throughput remains testable, but is not guaranteed by this implementation.",
+    "The actual flag change is a single optimizer-policy intervention, competition-legal, and its BPB/step-count prediction is falsifiable against the controller-pinned seed-42 full-chip matched control. Those properties do not resolve the contradicted mechanism and unreconciled prior closure."
+  ],
+  "llm_verdict": "FAIL",
+  "passed": false,
+  "proposal_id": "20260923-cautious-wd-only-default-shape",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-23T02:32:23Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}

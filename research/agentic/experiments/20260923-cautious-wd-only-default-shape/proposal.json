@@ -1,0 +1,42 @@
+{
+  "abort_conditions": [
+    "Smoke: candidate completes fewer than 97% of the same-host control's smoke steps (i.e. < 325 vs 334/335), indicating the flag adds unexpected per-step work",
+    "Smoke: candidate smoke val_bpb exceeds the same-host control smoke value by more than 0.002 (control smoke 1.165855 trn21 / 1.165604 trn22)",
+    "Smoke or full: any NaN/Inf loss, loss-scale collapse, or grad-norm divergence in the training log",
+    "Startup configuration banner shows cautious_wd already True in the pinned control's log (flag inert): abort as HALT-INERT and do not spend the full budget",
+    "Full: candidate step count differs from the same-host control by more than 10% (verdict would be CONFOUNDED, not a quality readout)",
+    "Full: causality check fails or the run exceeds the 1800 s training budget"
+  ],
+  "change_type": "flags",
+  "created_at": "2026-09-23T02:32:23Z",
+  "duplicate_search_terms": [
+    "cautious-wd",
+    "cautious_wd",
+    "no-cautious-wd",
+    "cautious weight decay",
+    "CWD",
+    "sign-aligned weight decay",
+    "masked weight decay",
+    "weight decay mask",
+    "decoupled weight decay policy"
+  ],
+  "evidence": [
+    "train.py flag list at 9a4caa7b exposes the toggle pair --cautious-wd / --no-cautious-wd; the pinned control launch commands (al-20260922-control-trn21-lnc2x4-9a4caa7b-full-r1, al-20260922-control-trn22-lnc2x4-9a4caa7b-full-r1) pass no --cautious-wd, and every enabling-form flag exercised so far in this loop (--batch-ramp, --weight-ema, --engram, --clip-after-reduce, --bf16-sdpa-input, --bf16-norm-output) was off by default, so the control runs ordinary decay",
+    "DECISION_LOG.md and the 29-run ledger contain no row, alias, or proposal id containing 'cautious'; the optimizer lane so far covers only --clip-after-reduce (DISCARD, 1.005974 vs 1.005734 at 2074/2071 steps), --weight-ema (DISCARD smoke), --ngram-rms-fp32 (DISCARD smoke) and the Muon ownership code split (DISCARD smoke); the decay policy itself is an untested, isolated gap",
+    "research/experiment-log.jsonl controls: 1.005734 @2071 steps (trn21) and 1.005967 @2076 steps (trn22) define the matched-step comparison; --clip-after-reduce reproduced 2074 steps, showing optimizer-side elementwise changes leave throughput inside the 10% comparability gate",
+    "CURRENT_STATE.md 'Human strategic research priority' lanes 3-4: bounded one-factor optimizer tests aimed at loss per token within 1800 s are in scope; this proposal does not touch the parked attention redesign, full-model FP8, SBUF placement, width1152 or library-MLP compositions",
+    "Literature: Cautious Weight Decay (Chen et al., 2025, arXiv:2510.12402) reports lower training loss for AdamW and Muon LLM pretraining from sign-aligned decay masking with no throughput cost; the mechanism is optimizer-local and directly matches the existing train.py toggle name"
+  ],
+  "expected_effect": "Lower public val_bpb by 0.002 to 0.006 relative to the same-host pinned control (target <= 1.0037 on trn21 or <= 1.0039 on trn22) at a step count within +/-3% of the control (roughly 2010-2135 steps). Direction: decrease. Falsified if BPB is >= control at matched steps, or if step count drops more than 3%.",
+  "files_allowed": [],
+  "flags": [
+    "--cautious-wd"
+  ],
+  "hypothesis": "The pinned control applies ordinary decoupled weight decay to every Muon/AdamW-decayed coordinate regardless of whether the decay opposes or reinforces the current update. Cautious weight decay (mask decay to the coordinates where the update direction and the weight sign agree, i.e. decay only where shrinking is consistent with the optimizer's own descent direction) is an optimizer-only, elementwise change with no matmul/format/kernel footprint, so step rate should stay within a few percent of the 2071/2076-step controls, while the reduced fight between decay and update improves loss per step over a 1800 s budget. The ledger's confounded rows (batch-ramp 2397 steps/1.01219, BF16 norm-output 2716/1.01628, MLP-input 2346/1.0197) show that throughput gains without per-step quality are not wins; this proposal targets per-step quality at matched throughput, which is exactly the regime where the comparability gate (<10% step difference) permits a clean KEEP.",
+  "implementation_plan": "",
+  "proposal_id": "20260923-cautious-wd-only-default-shape",
+  "single_causal_change": "Pass --cautious-wd only. Every other option stays at the 9a4caa7b defaults used by the two pinned controls: identical launch shape (NEURON_LOGICAL_NC_CONFIG=2, torchrun --nproc_per_node=4, --num-steps 5000 --max-train-seconds 1800 --seed 42, NEURON_CC_FLAGS='--optlevel=1'). No precision flag (--bf16-sdpa-input, --bf16-norm-output), no kernel flag (--nki-*, --compile-*), no other optimizer switch (--demon-beta1, --wd-decay-to-zero, --muon-lr-fp32, --tensor-lr-scalars, --adam-every-n-lr-comp), no architecture switch, no data/eval change. The weight-decay masking policy is the sole causal option.",
+  "smoke_gate": {},
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}
