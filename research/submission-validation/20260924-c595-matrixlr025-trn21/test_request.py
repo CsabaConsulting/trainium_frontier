@@ -2,7 +2,7 @@
 import hashlib,json,pathlib,subprocess
 ROOT=pathlib.Path(__file__).resolve().parents[3];HERE=pathlib.Path(__file__).resolve().parent
 path=HERE/"request.json";request=json.loads(path.read_text())
-assert request["expected_commit"]=="5076552ef594aaca932cf7b57aa250bd1a9d55a7" and request["host"]=="trn21"
+assert request["expected_commit"]=="eefe62ba6f08571ca9642cd8fe7781d904ab42bd" and request["host"]=="trn21"
 assert set(request["fingerprint_paths"])==set(request["expected_sha256"])
 assert request["environment"]["NEURON_CC_FLAGS"]=="--optlevel=1 --auto-cast matmult --auto-cast-type bf16"
 assert request["command"][:5]==["timeout","--foreground","--signal=TERM","--kill-after=60s","4200s"]
