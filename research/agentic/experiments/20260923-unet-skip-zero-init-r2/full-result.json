@@ -1,0 +1,169 @@
+{
+  "collected": {
+    "checkpoint_bytes": 1297958776,
+    "checkpoint_present": true,
+    "checkpoint_sha256": "bdd800b49da9461f48399c049606f393e052c08b05e4840fa40ce3edcc517416",
+    "collected_at": "2026-09-23T05:50:25Z",
+    "files": {
+      "done": {
+        "bytes": 56,
+        "local": "/home/poojith-devan/Desktop/Trainium/research/agentic/experiments/20260923-unet-skip-zero-init-r2/artifacts/full/done.json",
+        "remote": "/home/ubuntu/autoloop/launchers/al-20260923-unet-skip-zero-init-r2-full-r3/done.json",
+        "sha256": "6d09f53262945b10a870acd3469f9450446b70c086d1852f450ebc9ef2d77d3a"
+      },
+      "launch_spec": {
+        "bytes": 1588,
+        "local": "/home/poojith-devan/Desktop/Trainium/research/agentic/experiments/20260923-unet-skip-zero-init-r2/artifacts/full/launch.json",
+        "remote": "/home/ubuntu/autoloop/launchers/al-20260923-unet-skip-zero-init-r2-full-r3/launch.json",
+        "sha256": "cff9babae69673536885f6ca112d1b40c4687cb304b1ec4fdbed9b909cd7ce59"
+      },
+      "ledger": {
+        "bytes": 628377,
+        "local": "/home/poojith-devan/Desktop/Trainium/research/agentic/experiments/20260923-unet-skip-zero-init-r2/artifacts/full/experiment-log.jsonl",
+        "remote": "/home/ubuntu/workspace/autoloop_runs/7e500778--20260923-unet-skip-zero-init-r2--al-20260923-unet-skip-zero-init-r2-full-r3/research/experiment-log.jsonl",
+        "sha256": "0078a617894f6c1178b3c529395a534ac1e86be563dba5a2332f3d0231f048f3"
+      },
+      "run_launch_receipt": {
+        "bytes": 1236,
+        "local": "/home/poojith-devan/Desktop/Trainium/research/agentic/experiments/20260923-unet-skip-zero-init-r2/artifacts/full/al-20260923-unet-skip-zero-init-r2-full-r3.launch.json",
+        "remote": "/home/ubuntu/workspace/autoloop_runs/7e500778--20260923-unet-skip-zero-init-r2--al-20260923-unet-skip-zero-init-r2-full-r3/research/run-logs/al-20260923-unet-skip-zero-init-r2-full-r3.launch.json",
+        "sha256": "bc3e8d1065a4edf50a2e55b6c29f49ff526d7101d0f03118faa69e5d2430e996"
+      },
+      "run_log": {
+        "bytes": 33351,
+        "local": "/home/poojith-devan/Desktop/Trainium/research/agentic/experiments/20260923-unet-skip-zero-init-r2/artifacts/full/al-20260923-unet-skip-zero-init-r2-full-r3.log",
+        "remote": "/home/ubuntu/workspace/autoloop_runs/7e500778--20260923-unet-skip-zero-init-r2--al-20260923-unet-skip-zero-init-r2-full-r3/research/run-logs/al-20260923-unet-skip-zero-init-r2-full-r3.log",
+        "sha256": "394aee5b23b2cc0dee205dfe16e68b304be6c592ce8414fedd9f980203eae408"
+      },
+      "runner_stdout": {
+        "bytes": 305,
+        "local": "/home/poojith-devan/Desktop/Trainium/research/agentic/experiments/20260923-unet-skip-zero-init-r2/artifacts/full/runner.log",
+        "remote": "/home/ubuntu/autoloop/launchers/al-20260923-unet-skip-zero-init-r2-full-r3/runner.log",
+        "sha256": "e6068da55aa770d2b735d9f5fac9994b677274cba8f3a6640302117249e76e47"
+      }
+    },
+    "ledger_row": {
+      "batch_ramp": "False grad_accum=(2, 4, 8) bounds=(0.35, 0.75) lr_exp=0.5 ref_grad_accum=4 last_grad_accum=4",
+      "budget_seconds": 1800,
+      "causality_max_abs": 0.0,
+      "causality_passed": true,
+      "charged_seconds_est": 1785.9,
+      "checkpoint_path": "out/al-20260923-unet-skip-zero-init-r2-full-r3/final.pt",
+      "compiled": true,
+      "description": "autoloop 20260923-unet-skip-zero-init-r2 full: One architecture change confined to train.py: new module-level toggle USE_UNET_SKIP (default True env NEURON_COMPETITION_R1_UNET_SKIP='0' disables CLI --unet- flags='none' [trn21] CC='--optlevel=1' seed=42 commit=7e500778",
+      "engram": "False site=-1 orders=2,3 heads=1 tables=0 mult=32 mem_dim=128 e_dim=0 key_dim=0 conv_k=4 share=False bf16=True",
+      "environment": {
+        "NEURON_CC_FLAGS": "--optlevel=1",
+        "NEURON_COMPETITION_R1_SEED": "42",
+        "NEURON_LOGICAL_NC_CONFIG": "2",
+        "PYTHONUNBUFFERED": "1"
+      },
+      "eval_over_timeout": false,
+      "eval_seconds": 10.1,
+      "eval_timeout": 1200,
+      "git_commit": "7e500778265cf2c55b39ab00666b73072970f089",
+      "git_dirty": false,
+      "hostname": "ip-172-31-34-85",
+      "label": "al-20260923-unet-skip-zero-init-r2-full-r3",
+      "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 1800 --out-dir out/al-20260923-unet-skip-zero-init-r2-full-r3 --seed 42",
+      "lnc": 2,
+      "max_train_seconds": 1800,
+      "ngram_ve": "True tables=4 rows=1048576 dim=128 index_gather=True trigram=True opt=rmsprop flat_lr=True bf16=True rms_fp32_state_math=False nki_rms=False",
+      "nki_relu2": false,
+      "num_params_M": 592.9,
+      "num_steps": 2041,
+      "oneliners": "relu2_tau=0.0 mlp_sandwich=False head_gate=False hg_norm=True hg_ch=32 hg_mul=2.0 hg_bias=0.0 out_pool=False pool_layers=3 qk_shift=True qk_beta=0.0 qk_freeze=True x0_gate=False unet_skip=3 block_nudge=False nudge_site=qk qkv_norm_cse=False parallel_block=False par_coalesce=none epoch_shuffle=False epoch_shuffle_seed=1234",
+      "out_bigram": "False bf16=True gate_bias=-2.0 lr=0.0",
+      "over_budget": false,
+      "public_val_bpb": 1.008391,
+      "returncode": 0,
+      "run_log": "research/run-logs/al-20260923-unet-skip-zero-init-r2-full-r3.log",
+      "sched_tricks": "demon_b1=False demon_final=0.55 demon_ref=0.8 demon_start=-1.0 muon_b2=0.9 muon_b2_final=0.0 depth_lr=1.0->1.0 depth_mom=0.0->0.0 depth_mom_ref=0.95",
+      "seq_len": 2048,
+      "solution": "autoloop:20260923-unet-skip-zero-init-r2",
+      "source_dirty": false,
+      "source_sha256": {
+        "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+        "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+        "train.py": "0141ec0768af88cbec1b4479cb432cc61c25560a8af9c46660194de21c06283a"
+      },
+      "startup_allowance_est": 115.6,
+      "status": "keep",
+      "target_steps": 5000,
+      "timestamp": "2026-09-23T05:46:27+00:00",
+      "total_seconds": 1889.4,
+      "total_tokens_M": 267.5,
+      "training_seconds": 1784.9,
+      "wall_elapsed_seconds": 1916.3,
+      "weight_ema": "False decays=(0.995,) start_frac=0.75 seeded=False updates=0",
+      "world_size": 4
+    },
+    "post_run_dirt_explained": true,
+    "post_run_porcelain": [
+      " M research/experiment-log.jsonl",
+      "?? research/run-logs/al-20260923-unet-skip-zero-init-r2-full-r3.launch.json",
+      "?? research/run-logs/al-20260923-unet-skip-zero-init-r2-full-r3.log"
+    ]
+  },
+  "hostname": "ip-172-31-34-85",
+  "label": "al-20260923-unet-skip-zero-init-r2-full-r3",
+  "ledger_row": {
+    "_dirt_explained": true,
+    "batch_ramp": "False grad_accum=(2, 4, 8) bounds=(0.35, 0.75) lr_exp=0.5 ref_grad_accum=4 last_grad_accum=4",
+    "budget_seconds": 1800,
+    "causality_max_abs": 0.0,
+    "causality_passed": true,
+    "charged_seconds_est": 1785.9,
+    "checkpoint_path": "out/al-20260923-unet-skip-zero-init-r2-full-r3/final.pt",
+    "compiled": true,
+    "description": "autoloop 20260923-unet-skip-zero-init-r2 full: One architecture change confined to train.py: new module-level toggle USE_UNET_SKIP (default True env NEURON_COMPETITION_R1_UNET_SKIP='0' disables CLI --unet- flags='none' [trn21] CC='--optlevel=1' seed=42 commit=7e500778",
+    "engram": "False site=-1 orders=2,3 heads=1 tables=0 mult=32 mem_dim=128 e_dim=0 key_dim=0 conv_k=4 share=False bf16=True",
+    "environment": {
+      "NEURON_CC_FLAGS": "--optlevel=1",
+      "NEURON_COMPETITION_R1_SEED": "42",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "eval_over_timeout": false,
+    "eval_seconds": 10.1,
+    "eval_timeout": 1200,
+    "git_commit": "7e500778265cf2c55b39ab00666b73072970f089",
+    "git_dirty": false,
+    "hostname": "ip-172-31-34-85",
+    "label": "al-20260923-unet-skip-zero-init-r2-full-r3",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 1800 --out-dir out/al-20260923-unet-skip-zero-init-r2-full-r3 --seed 42",
+    "lnc": 2,
+    "max_train_seconds": 1800,
+    "ngram_ve": "True tables=4 rows=1048576 dim=128 index_gather=True trigram=True opt=rmsprop flat_lr=True bf16=True rms_fp32_state_math=False nki_rms=False",
+    "nki_relu2": false,
+    "num_params_M": 592.9,
+    "num_steps": 2041,
+    "oneliners": "relu2_tau=0.0 mlp_sandwich=False head_gate=False hg_norm=True hg_ch=32 hg_mul=2.0 hg_bias=0.0 out_pool=False pool_layers=3 qk_shift=True qk_beta=0.0 qk_freeze=True x0_gate=False unet_skip=3 block_nudge=False nudge_site=qk qkv_norm_cse=False parallel_block=False par_coalesce=none epoch_shuffle=False epoch_shuffle_seed=1234",
+    "out_bigram": "False bf16=True gate_bias=-2.0 lr=0.0",
+    "over_budget": false,
+    "public_val_bpb": 1.008391,
+    "returncode": 0,
+    "run_log": "research/run-logs/al-20260923-unet-skip-zero-init-r2-full-r3.log",
+    "sched_tricks": "demon_b1=False demon_final=0.55 demon_ref=0.8 demon_start=-1.0 muon_b2=0.9 muon_b2_final=0.0 depth_lr=1.0->1.0 depth_mom=0.0->0.0 depth_mom_ref=0.95",
+    "seq_len": 2048,
+    "solution": "autoloop:20260923-unet-skip-zero-init-r2",
+    "source_dirty": false,
+    "source_sha256": {
+      "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+      "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+      "train.py": "0141ec0768af88cbec1b4479cb432cc61c25560a8af9c46660194de21c06283a"
+    },
+    "startup_allowance_est": 115.6,
+    "status": "keep",
+    "target_steps": 5000,
+    "timestamp": "2026-09-23T05:46:27+00:00",
+    "total_seconds": 1889.4,
+    "total_tokens_M": 267.5,
+    "training_seconds": 1784.9,
+    "wall_elapsed_seconds": 1916.3,
+    "weight_ema": "False decays=(0.995,) start_frac=0.75 seeded=False updates=0",
+    "world_size": 4
+  },
+  "manifest_id": "20260923-unet-skip-zero-init-r2--full--al-20260923-unet-skip-zero-init-r2-full-r3",
+  "returncode": 0
+}

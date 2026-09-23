@@ -1,0 +1,19 @@
+{
+  "analyst_prose": "DISCARD at the full tier: candidate public_val_bpb was 1.008391 versus control 1.005734.\nThe delta was +0.002657 (worse), failing the required improvement threshold of \u22120.002000.\nThe candidate enabled U-Net skips (unet_skip=3); both runs reported 592.9M parameters and matched seed, host, compiler flags, and training budget.\nA training-exposure confounder is the candidate\u2019s lower throughput: 1.14348 versus 1.16035 steps/s, yielding 2041 versus 2071 steps and 267.5M versus 271.5M tokens.\nThus, this fixed-time comparison does not isolate the architecture\u2019s effect at equal training exposure.\nBoth runs passed causality checks, completed successfully, and stayed within the charged budget.",
+  "decision": "DISCARD",
+  "metrics": {
+    "bpb_delta": 0.0026570000000001315,
+    "candidate_bpb": 1.008391,
+    "candidate_params_M": 592.9,
+    "candidate_step_rate": 1.1434814275309542,
+    "candidate_steps": 2041.0,
+    "control_bpb": 1.005734,
+    "control_params_M": 592.9,
+    "control_step_rate": 1.1603541012998655,
+    "control_steps": 2071.0
+  },
+  "reasons": [
+    "public_val_bpb delta +0.00266 did not meet threshold -0.00200"
+  ],
+  "tier": "full"
+}
