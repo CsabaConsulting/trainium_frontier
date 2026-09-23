@@ -1,0 +1,145 @@
+diff --git a/train.py b/train.py
+index 607862de..0a333b21 100644
+--- a/train.py
++++ b/train.py
+@@ -1061,6 +1061,17 @@ USE_X0_GATE = False        # DISCARDED at 900s: per-step NEUTRAL (-0.00050 resid
+                            # multiplicative-around-1 rather than (1 + g).
+ 
+ 
++# U-Net style encoder->decoder skip connections (modded-nanogpt records 8+). The outputs of the
++# first n_enc = depth // 2 blocks are added, LIFO, into the residual entering the last n_enc
++# blocks through one learnable per-channel FP32 vector each (GPT.unet_skip_gates). Every vector
++# is ZERO-initialised (nn.Parameter(torch.zeros) draws no torch RNG), so at step 0 the forward
++# graph is bit-identical to the control: x + 0 * h == x for finite x. Distinct from the x0 gate
++# (reads the embedding, not block outputs), the frozen block nudge and the final-output pooling.
++# The vectors ride the gate/conv AdamW group in setup_optimizer (MATRIX_LR, betas (0.9, 0.95),
++# wd 0.0), never Muon and never the SCALAR_LR group. CLI: --unet-skip / --no-unet-skip.
++USE_UNET_SKIP = os.environ.get("NEURON_COMPETITION_R1_UNET_SKIP", "1") != "0"
++
++
+ def head_gate_slice(n_embd: int, n_layer: int) -> tuple[int, int]:
+     """(start, stop) residual channels the T3.6 head gate reads.
+ 
+@@ -3567,6 +3578,17 @@ class GPT(nn.Module):
+         # no-op and the arm can only ever add what it learns to be worth adding.
+         self.out_pool_lambdas = nn.Parameter(torch.zeros(min(OUT_POOL_LAYERS, config.n_layer))) \
+             if USE_OUT_POOL else None
++        # USE_UNET_SKIP: one zero-init FP32 per-channel gate vector per encoder block (depth // 2
++        # of them). nn.Parameter(torch.zeros) draws no RNG, so building these cannot shift any
++        # other tensor's init; zero-init makes step 0 bit-identical to the control.
++        if USE_UNET_SKIP and config.n_layer >= 2:
++            self.unet_n_enc = config.n_layer // 2
++            self.unet_skip_gates = nn.ParameterList(
++                [nn.Parameter(torch.zeros(config.n_embd, dtype=torch.float32))
++                 for _ in range(self.unet_n_enc)])
++        else:
++            self.unet_n_enc = 0
++            self.unet_skip_gates = None
+         cos, sin = self._precompute_rotary_embeddings(config.sequence_len, config.n_embd // config.n_head)
+         self.register_buffer("cos", cos, persistent=False)
+         self.register_buffer("sin", sin, persistent=False)
+@@ -3684,6 +3706,11 @@ class GPT(nn.Module):
+         # exists so a future non-zero construction cannot silently change that).
+         if self.out_pool_lambdas is not None:
+             torch.nn.init.zeros_(self.out_pool_lambdas)
++        # USE_UNET_SKIP: constructed zero already; explicit so a future non-zero construction
++        # cannot silently break the step-0 no-op.
++        if self.unet_skip_gates is not None:
++            for g in self.unet_skip_gates:
++                torch.nn.init.zeros_(g)
+         # T3.6 / T3.9: zero head-gate weight, bias left at HEAD_GATE_BIAS. With
+         # HEAD_GATE_MUL * sigmoid(HEAD_GATE_BIAS) == 1.0 (the default 2.0 / 0.0 pair) and
+         # HEAD_GATE_NORM off, this is an exact identity at step 0.
+@@ -3917,6 +3944,11 @@ class GPT(nn.Module):
+             scalar_params.append(self.out_pool_lambdas)
+         if self.out_bigram is not None:
+             gate_params.extend([self.out_bigram_gate.weight, self.out_bigram_gate_bias])
++        if getattr(self, "unet_skip_gates", None) is not None:
++            # USE_UNET_SKIP: 1-D per-channel vectors -> the gate/conv AdamW group (MATRIX_LR,
++            # betas (0.9, 0.95), wd 0.0), exactly like qk_shift_beta / head_gate_bias. Not Muon
++            # (no second axis) and not the SCALAR_LR group (see the gate_params comment above).
++            gate_params.extend(list(self.unet_skip_gates))
+         # T2.4 guard, and the answer to "is the old NaN still a live risk?". The scalar group runs at
+         # SCALAR_LR = 8-10x MATRIX_LR, which is safe for a single learned scalar and NOT safe for a
+         # real weight tensor -- a projection matrix that landed here once diverged to NaN around step
+@@ -4056,7 +4088,14 @@ class GPT(nn.Module):
+         # toggle is on, so the default path keeps exactly one live residual as before.
+         pool_from = self.config.n_layer - self.out_pool_lambdas.numel() if self.out_pool_lambdas is not None else -1
+         pool_buf: list[torch.Tensor] = []
++        # USE_UNET_SKIP: encoder block outputs, popped LIFO into the decoder blocks below. Stays an
++        # empty list with no ops at all when unet_n_enc == 0.
++        unet_skips: list[torch.Tensor] = []
+         for i, block in enumerate(self.transformer.h):
++            if self.unet_n_enc and i >= self.unet_n_enc and unet_skips:
++                # Before decoder block n_enc + j, add encoder block (n_enc - 1 - j)'s output through
++                # its zero-init per-channel gate. Purely per-position, so causality is untouched.
++                x = x + self.unet_skip_gates[i - self.unet_n_enc].to(x.dtype) * unet_skips.pop()
+             ve = self.value_embeds[str(i)](idx).to(COMPUTE_DTYPE) if str(i) in self.value_embeds else None
+             ve_bi = ve_tri = None
+             if ngram_idx is not None:
+@@ -4073,6 +4112,8 @@ class GPT(nn.Module):
+                 static_mask = (self.mask_short if self.layer_is_short[i] else self.mask_full)[..., :t, :t]
+                 attn_mask = static_mask + doc_mask if doc_mask is not None else static_mask
+             x = block(x, x0, ve, cos, sin, attn_mask, ve_bi, ve_tri)
++            if self.unet_n_enc and i < self.unet_n_enc:
++                unet_skips.append(x)
+             if self.engram is not None and i == self.engram_site:
+                 # H <- H + Y, on the residual leaving this block. Placed at the LAST layer by
+                 # default: the gather's dynamic address forces the LNC=2 compiler to re-shard the
+@@ -5300,7 +5341,7 @@ ARCH_TOGGLE_NAMES = [
+     "RELU2_TAU", "USE_MLP_SANDWICH_NORM",
+     "USE_HEAD_GATE", "HEAD_GATE_NORM", "HEAD_GATE_CHANNELS", "HEAD_GATE_MUL", "HEAD_GATE_BIAS",
+     "USE_OUT_POOL", "OUT_POOL_LAYERS", "USE_QK_SHIFT", "QK_SHIFT_BETA", "QK_SHIFT_FREEZE",
+-    "USE_X0_GATE", "USE_BLOCK_NUDGE", "BLOCK_NUDGE_SITE", "USE_QKV_NORM_CSE",
++    "USE_X0_GATE", "USE_BLOCK_NUDGE", "BLOCK_NUDGE_SITE", "USE_QKV_NORM_CSE", "USE_UNET_SKIP",
+     "USE_PARALLEL_BLOCK", "PARALLEL_BLOCK_COALESCE",
+     # T3.2 Engram-lite. ENGRAM_SITE / ENGRAM_ORDERS / ENGRAM_HEADS / ENGRAM_TABLE_MULT /
+     # ENGRAM_MEM_DIM / ENGRAM_KEY_DIM / ENGRAM_CONV_KERNEL all change a tensor's shape or its
+@@ -5357,6 +5398,8 @@ SHAPE_CRITICAL_TOGGLES = {"USE_VE", "USE_LOCAL_CONV", "USE_GATED_MLP", "USE_SELE
+                           # one frozen block_nudge scalar per block. Both are state_dict keys even
+                           # though the nudge never trains, so a mismatch is a load-time error.
+                           "USE_X0_GATE", "USE_BLOCK_NUDGE",
++                          # USE_UNET_SKIP adds depth//2 unet_skip_gates.N vectors on GPT.
++                          "USE_UNET_SKIP",
+                           # USE_PARALLEL_BLOCK adds par_lambda_a/par_lambda_m per block;
+                           # PARALLEL_BLOCK_COALESCE replaces c_q/c_k/c_v/c_fc with one c_in.
+                           "USE_PARALLEL_BLOCK", "PARALLEL_BLOCK_COALESCE",
+@@ -5712,6 +5755,7 @@ def main() -> None:
+     global USE_HEAD_GATE, HEAD_GATE_NORM, HEAD_GATE_CHANNELS, HEAD_GATE_MUL, HEAD_GATE_BIAS
+     global USE_OUT_POOL, OUT_POOL_LAYERS, USE_QK_SHIFT, QK_SHIFT_BETA, QK_SHIFT_FREEZE
+     global USE_X0_GATE, USE_BLOCK_NUDGE, BLOCK_NUDGE_SITE, USE_QKV_NORM_CSE, USE_PARALLEL_BLOCK
++    global USE_UNET_SKIP  # read by --unet-skip's argparse default and by GPT.__init__
+     global PARALLEL_BLOCK_COALESCE, USE_EPOCH_SHUFFLE, EPOCH_SHUFFLE_SEED
+     # T3.2. Every one of these is read at MODULE-CONSTRUCTION time (or, for ENGRAM_SITE, once per
+     # forward as a Python int compared against the loop index), so none of them is a per-step
+@@ -6199,6 +6243,13 @@ def main() -> None:
+                              "2*sigmoid(s*mean(x)) with one zero-init learned scalar s per layer. "
+                              "Bit-exact no-op at step 0. Mutually exclusive with USE_SELECTIVE_GATE, "
+                              "which owns the same line of Block.forward.")
++    parser.add_argument("--unet-skip", action=argparse.BooleanOptionalAction,
++                        default=os.environ.get("NEURON_COMPETITION_R1_UNET_SKIP", "1" if USE_UNET_SKIP else "0") != "0",
++                        help="U-Net style encoder->decoder skips: the first depth//2 block outputs "
++                             "are added, LIFO, into the residual entering the last depth//2 blocks "
++                             "through one zero-init learnable per-channel vector each. Bit-exact "
++                             "no-op at step 0; vectors train in the gate/conv AdamW group. "
++                             "SHAPE-CRITICAL (adds unet_skip_gates.N).")
+     parser.add_argument("--batch-ramp", action=argparse.BooleanOptionalAction,
+                         default=os.environ.get("NEURON_COMPETITION_R1_BATCH_RAMP", "1" if BATCH_RAMP else "0") != "0",
+                         help="T2.1: ramp the effective batch size across the run by varying "
+@@ -6539,6 +6590,7 @@ def main() -> None:
+     QK_SHIFT_BETA = args.qk_shift_beta
+     QK_SHIFT_FREEZE = args.qk_shift_freeze
+     USE_X0_GATE = args.x0_gate
++    USE_UNET_SKIP = args.unet_skip           # read by GPT.__init__, i.e. before GPT(config) below
+     USE_BLOCK_NUDGE = args.block_nudge
+     BLOCK_NUDGE_SITE = args.block_nudge_site
+     USE_QKV_NORM_CSE = args.qkv_norm_cse
+@@ -7215,7 +7267,7 @@ def main() -> None:
+               f"hg_mul={HEAD_GATE_MUL} hg_bias={HEAD_GATE_BIAS} "
+               f"out_pool={USE_OUT_POOL} pool_layers={OUT_POOL_LAYERS} "
+               f"qk_shift={USE_QK_SHIFT} qk_beta={QK_SHIFT_BETA} qk_freeze={QK_SHIFT_FREEZE} "
+-              f"x0_gate={USE_X0_GATE} "
++              f"x0_gate={USE_X0_GATE} unet_skip={orig_model.unet_n_enc} "
+               f"block_nudge={USE_BLOCK_NUDGE} nudge_site={BLOCK_NUDGE_SITE} "
+               f"qkv_norm_cse={USE_QKV_NORM_CSE} parallel_block={USE_PARALLEL_BLOCK} "
+               f"par_coalesce={PARALLEL_BLOCK_COALESCE} "

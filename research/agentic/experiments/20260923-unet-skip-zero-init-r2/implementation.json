@@ -1,0 +1,17 @@
+{
+  "branch": "autoloop/20260923-unet-skip-zero-init-r2",
+  "candidate_commit": "7e500778265cf2c55b39ab00666b73072970f089",
+  "deterministic_findings": [],
+  "diff_sha256": "517de6c7a37cf0c81497ca83565e9e17b5afd2ad74b396e86b8151e8624a49da",
+  "implemented_at": "2026-09-23T02:44:26Z",
+  "implementer_model_id": "us.anthropic.claude-fable-5-1",
+  "passed": true,
+  "verifier_findings": [
+    "The train.py patch implements one bounded architecture change: three zero-initialized FP32 per-channel skip gates at depth 6, pairing encoder outputs 2, 1, 0 with decoder inputs 3, 4, 5. Existing block calls and norm/dtype policies are unchanged.",
+    "New gates consume no initialization RNG and are explicitly registered exactly once in gate_params, receiving AdamW at MATRIX_LR with betas (0.9, 0.95) and zero weight decay\u2014not Muon or the scalar group.",
+    "The toggle and gate tensors are checkpointed; load_for_eval restores the saved toggle before constructing GPT and strictly loading candidate weights. Skip additions are position-wise and preserve structural causality.",
+    "No data, tokenizer, evaluation procedure, budget, distributed execution, seed-42 default, or external-data/pretrained initialization behavior is changed. Supplied deterministic checks pass; runtime correctness and performance remain subsequent controller gates."
+  ],
+  "verifier_model_id": "us.openai.gpt-6-astra",
+  "verifier_verdict": "PASS"
+}
