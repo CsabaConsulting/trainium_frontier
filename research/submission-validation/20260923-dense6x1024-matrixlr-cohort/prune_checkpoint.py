@@ -46,6 +46,13 @@ def remote_head():
     return output[0]
 
 def execute(args, lookup_remote_head=remote_head):
+    script_path = pathlib.Path(__file__)
+    if sha(script_path) != args.expected_script_sha256:
+        raise SystemExit("prune script SHA mismatch")
+    active_commit = subprocess.run(["git", "rev-parse", "HEAD"], cwd=script_path.parents[3],
+                                   text=True, capture_output=True, check=True).stdout.strip()
+    if active_commit != args.expected_core_commit:
+        raise SystemExit("prune checkout commit mismatch")
     label, root = ARMS[args.arm]
     expected = {
         "label": label,
@@ -102,6 +109,8 @@ def execute(args, lookup_remote_head=remote_head):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--arm", choices=ARMS, required=True); ap.add_argument("--label", required=True)
+    ap.add_argument("--expected-core-commit", required=True)
+    ap.add_argument("--expected-script-sha256", required=True)
     ap.add_argument("--checkpoint", type=pathlib.Path, required=True)
     ap.add_argument("--expected-sha256", required=True); ap.add_argument("--expected-bytes", type=int, required=True)
     ap.add_argument("--archive", type=pathlib.Path, required=True); ap.add_argument("--archive-sha256", required=True)

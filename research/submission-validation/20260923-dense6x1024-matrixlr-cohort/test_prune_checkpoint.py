@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import argparse, hashlib, importlib.util, json, os, pathlib, tempfile
+import argparse, hashlib, importlib.util, json, os, pathlib, subprocess, tempfile
 
 HERE = pathlib.Path(__file__).resolve().parent
 spec = importlib.util.spec_from_file_location("prune", HERE / "prune_checkpoint.py")
@@ -23,7 +23,10 @@ def setup(root):
     proof.write_text(json.dumps(fields))
     args=argparse.Namespace(arm=arm,label=label,checkpoint=checkpoint,expected_sha256=digest(b"checkpoint"),
         expected_bytes=10,archive=archive,archive_sha256=digest(b"archive"),evidence_pushed_receipt=proof,
-        evidence_pushed_receipt_sha256=digest(proof.read_bytes()),receipt=receipt)
+        evidence_pushed_receipt_sha256=digest(proof.read_bytes()),receipt=receipt,
+        expected_script_sha256=p.sha(pathlib.Path(p.__file__)),
+        expected_core_commit=subprocess.run(["git","rev-parse","HEAD"],cwd=HERE.parents[3],
+            text=True,capture_output=True,check=True).stdout.strip())
     return args, fields
 
 with tempfile.TemporaryDirectory() as d:
