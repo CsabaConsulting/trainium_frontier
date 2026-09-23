@@ -16,12 +16,13 @@
     "submissions/dense6x1024_lean_review/train.py": "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344",
     "submissions/dense6x1024_direct_review/train.py": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537",
     "research/submission-validation/20260923-dense6x1024-direct-review-safe/cpu_equivalence_direct.py": "40133aedb49ab8918f1057a04231a8d0882db993a9d537c14f4ac8a26aeeda1b",
-    "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron_discriminator_direct.py": "7605cf659e5888fa12373539b3fddb9297c4458729882882e99614a1ee7b84a6",
-    "research/submission-validation/20260923-dense6x1024-direct-review-safe/test_neuron_discriminator_static.py": "75866b0c88fb2963d977f0087ce9de47a2be917e8197d3553dfca06d46d48631",
-    "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron-discriminator-runbook.md": "09b3a5b478fe4ee354f9edd1f864f6c952cadf7fa956a3e8c98a3a90d3e4ed34",
+    "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron_discriminator_direct.py": "85b13deae9f811e0c1441018056b2cfbe0c3b38a77eab5194f03e698063850c1",
+    "research/submission-validation/20260923-dense6x1024-direct-review-safe/test_neuron_discriminator_static.py": "51eb091f91351211ede76a388cfe8c944350071b10b9b5e63c7347f86723066a",
+    "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron-discriminator-runbook.md": "16d5c1ac5ba67a93d57418c43849ae137dfda332484837c09ecb2aad572a3cc2",
     "research/submission-validation/20260923-dense6x1024-direct-review-safe/proposal.json": "3ec23532e588afa6b890ddd533a84635f77c7006c85b3b810dcfb003c6f4e0a9",
     "research/submission-validation/20260923-dense6x1024-direct-review-safe/fs-20260923-dense6x1024-direct-neuron-component-20260923T103500000001Z-result.json": "de995152c8d2911d7c0fedd1e4772844668db88aff604da5f96899d7540d15ba",
-    "research/submission-validation/20260923-dense6x1024-direct-review-safe/independent-neuron-discriminator-verifier.json": "507baee46715f66d230debae365bf0b5872ef1b9ad975b7421985d5b53867e4c"
+    "research/submission-validation/20260923-dense6x1024-direct-review-safe/independent-neuron-discriminator-verifier.json": "507baee46715f66d230debae365bf0b5872ef1b9ad975b7421985d5b53867e4c",
+    "research/submission-validation/20260923-dense6x1024-direct-review-safe/independent-neuron-discriminator-fix-harness-verifier.json": "a0b856d3ff1cbcda096c772353b9cbbb0b469b11ea61aa23420a437061c337eb"
   },
   "request_contract": {
     "seed": 42,
@@ -99,6 +100,14 @@
       "log": "immutable complete combined stdout/stderr with SHA-256",
       "record": "immutable per-child JSON before orchestration decision",
       "top_failure": "all accumulated child records and receipts retained"
+    },
+    "child_process_group": {
+      "start_new_session": true,
+      "term_grace_seconds": 5.0,
+      "kill_grace_seconds": 5.0,
+      "poll_seconds": 0.05,
+      "quiescence_required_before_snapshot": true,
+      "pre_top_log_artifact_cache_revalidation": true
     }
   }
 }

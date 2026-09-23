@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 import sys
 import tempfile
+import time
 import unittest
 from unittest import mock
 
@@ -54,6 +55,14 @@ class DiscriminatorStaticTests(unittest.TestCase):
         })
         self.assertEqual(contract["optimizer_child_environment"]["retained_outer"], {
             "WORLD_SIZE": "4", "LOCAL_WORLD_SIZE": "4",
+        })
+        self.assertEqual(contract["child_process_group"], {
+            "start_new_session": True,
+            "term_grace_seconds": 5.0,
+            "kill_grace_seconds": 5.0,
+            "poll_seconds": 0.05,
+            "quiescence_required_before_snapshot": True,
+            "pre_top_log_artifact_cache_revalidation": True,
         })
 
     def test_recompile_limit_warning_invalidates(self):
@@ -396,6 +405,10 @@ class DiscriminatorStaticTests(unittest.TestCase):
             self.assertEqual(process["log"]["bytes"], len((root / "success.log").read_bytes()))
             self.assertTrue(process["artifacts"]["worker_artifact"]["regular"])
             self.assertEqual(process["environment_identity"]["mode"], "ce-singleton-launch")
+            self.assertTrue(process["process_group"]["start_new_session"])
+            self.assertTrue(process["process_group"]["primary_reaped"])
+            self.assertTrue(process["process_group"]["quiescent"])
+            self.assertFalse(D.process_group_exists(process["process_group"]["process_group_id"]))
             D.validate_child_process_record(process, include_receipt=True)
 
     def test_child_error_timeout_and_warning_are_persisted_fail_closed(self):
@@ -459,9 +472,100 @@ class DiscriminatorStaticTests(unittest.TestCase):
             wrong_record = copy.deepcopy(process)
             wrong_record["record_receipt"]["sha256"] = "0" * 64
             mutations.append(wrong_record)
+            live_group = copy.deepcopy(process)
+            live_group["process_group"]["quiescent"] = False
+            mutations.append(live_group)
             for mutation in mutations:
                 with self.assertRaises((ValueError, TypeError)):
                     D.validate_child_process_record(mutation, include_receipt=True)
+
+    def test_spawn_error_persists_unlaunched_group_evidence(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            cache = root / "spawn-error-cache"
+            cache.mkdir()
+            environment, identity = D.prepare_ce_environment({
+                "PATH": "/usr/bin:/bin",
+                "TRAINIUM_DISCRIMINATOR_PARENT_NONCE": "unit-test-nonce",
+            }, cache)
+            process = D.run_child(
+                "spawn-error", ["/definitely/not/a/real/executable"], environment, identity, 5,
+                root / "spawn-error.log", root / "spawn-error.json", cache, {},
+            )
+            self.assertFalse(process["passed"])
+            self.assertEqual(process["error"]["type"], "FileNotFoundError")
+            self.assertFalse(process["process_group"]["launched"])
+            self.assertTrue(process["process_group"]["quiescent"])
+            D.validate_child_process_record(process, include_receipt=True)
+
+    def test_late_writing_descendants_are_terminated_before_log_completion(self):
+        cases = {"term": False, "kill": True}
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for name, ignores_term in cases.items():
+                descendant = (
+                    "import signal,time;"
+                    + ("signal.signal(signal.SIGTERM,signal.SIG_IGN);" if ignores_term else "")
+                    + "print('descendant-ready',flush=True);time.sleep(2.0);"
+                    + "print('late-descendant-output',flush=True);time.sleep(10)"
+                )
+                parent = (
+                    "import subprocess,sys,time;"
+                    f"subprocess.Popen([sys.executable,'-c',{descendant!r}]);"
+                    "print('parent-ready',flush=True);time.sleep(10)"
+                )
+                with self.subTest(name=name):
+                    with mock.patch.object(D, "PROCESS_GROUP_TERM_GRACE_SECONDS", 0.2), \
+                            mock.patch.object(D, "PROCESS_GROUP_KILL_GRACE_SECONDS", 1.0):
+                        process = self.run_local_child(root, f"late-{name}", parent, timeout=1)
+                        self.assertFalse(process["passed"])
+                        self.assertTrue(process["timed_out"])
+                        self.assertTrue(process["process_group"]["term_sent"])
+                        self.assertEqual(process["process_group"]["kill_sent"], ignores_term)
+                        self.assertTrue(process["process_group"]["primary_reaped"])
+                        self.assertTrue(process["process_group"]["quiescent"])
+                        group_id = process["process_group"]["process_group_id"]
+                        self.assertFalse(D.process_group_exists(group_id))
+                        before = (process["log"]["bytes"], process["log"]["sha256"])
+                        time.sleep(1.2)
+                        after = (
+                            (root / f"late-{name}.log").stat().st_size,
+                            D.sha256(root / f"late-{name}.log"),
+                        )
+                        self.assertEqual(after, before)
+                        self.assertNotIn("late-descendant-output", (root / f"late-{name}.log").read_text())
+                        D.validate_child_process_record(process, include_receipt=True)
+                        self.assertTrue(D.revalidate_process_evidence([process])["passed"])
+
+    def test_prewrite_revalidation_rejects_late_log_artifact_and_cache_changes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            mutations = ("log", "artifact", "cache")
+            for mutation in mutations:
+                with self.subTest(mutation=mutation):
+                    name = f"prewrite-{mutation}"
+                    base = self.run_local_child(
+                        root, name,
+                        "import pathlib,sys; pathlib.Path(sys.argv[1]).write_text('original'); print('done')",
+                    )
+                    self.assertTrue(D.revalidate_process_evidence([base])["passed"])
+                    if mutation == "log":
+                        with (root / f"{name}.log").open("ab") as output:
+                            output.write(b"late\n")
+                    elif mutation == "artifact":
+                        (root / f"{name}-artifact.txt").write_text("changed")
+                    else:
+                        (root / f"{name}-cache" / "late-entry").write_text("changed")
+                    revalidation = D.revalidate_process_evidence([base])
+                    self.assertFalse(revalidation["passed"])
+                    report = D.orchestrator_failure_report(
+                        {"request_sha256": "a" * 64}, root / "results", [base], {},
+                        RuntimeError("earlier failure"),
+                    )
+                    D.attach_prewrite_process_revalidation(report)
+                    self.assertFalse(report["passed"])
+                    self.assertFalse(report["process_evidence_revalidation"]["passed"])
+                    self.assertEqual(report["evidence_failure"]["type"], "ProcessEvidenceMutation")
 
     def test_top_failure_report_retains_accumulated_child_receipts(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -477,6 +581,10 @@ class DiscriminatorStaticTests(unittest.TestCase):
             self.assertEqual(report["processes"][1]["returncode"], 9)
             self.assertEqual(report["processes"][1]["record_receipt"]["sha256"], D.sha256(root / "second.json"))
             self.assertEqual(report["failure"], {"type": "RuntimeError", "message": "second failed"})
+            D.attach_prewrite_process_revalidation(report)
+            self.assertTrue(report["process_evidence_revalidation"]["passed"])
+            self.assertFalse(report["passed"])
+            self.assertNotIn("evidence_failure", report)
 
     @staticmethod
     def tensor_record(label):

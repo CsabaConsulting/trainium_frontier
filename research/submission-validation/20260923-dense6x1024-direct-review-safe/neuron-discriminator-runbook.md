@@ -61,6 +61,21 @@ including on the first child error, timeout, warning, missing artifact, malforme
 later comparison failure. The Operator must retrieve these child logs/records with the other
 receipts; a missing or overwritten child receipt invalidates the gate.
 
+Every child is launched with `start_new_session=True`, making its PID the dedicated session and
+process-group ID. The direct child is reaped. On timeout, wait error, or a direct-child exit that
+leaves descendants behind, the harness sends `SIGTERM` to the entire group, polls for at most five
+seconds, then sends `SIGKILL` to the entire group and polls for at most another five seconds. It
+requires `killpg(PGID, 0)` to report no such group after the direct child is reaped. Only after this
+quiescence proof does it fsync and hash the complete combined log, observe worker artifacts and the
+compile cache, and write the immutable child record. Each child record includes whether TERM/KILL
+was sent, group/session identity, direct-child reap state, poll count, and the final no-group proof.
+
+Immediately before the top result is exclusively written, the harness reopens and revalidates every
+accumulated child log byte count/SHA-256, child-record bytes/SHA-256, expected artifact snapshot,
+compile-cache snapshot, and absence of the recorded process group. A late append or artifact/cache
+change makes the top result fail closed with `ProcessEvidenceMutation`; it cannot retain a passing
+gate. This is the final check before the result fsync/write.
+
 - CE runs 128, 512, and launch-relevant 32768 rows, twice each. Source and direct loss and logit
   gradient must pass actual `torch.equal` checks with max-absolute difference exactly zero. Forward
   and backward lane/call traces must be identical (one lane at 128; two at 512/32768). An independent
@@ -95,7 +110,9 @@ hard-coded harness contract. It pins:
 - the complete ordered protected-path hash map, including harness, test, this runbook, proposal,
   source/direct candidates, launcher defaults (`train.py`, `prepare.py`,
   `research/fresh_start_backup.py`), fresh-start tools, fs-w62 provenance, the prior failed
-  component result and the independent FAIL report that required this correction.
+  component result, the earlier discriminator verifier, and
+  `independent-neuron-discriminator-fix-harness-verifier.json` at the FAIL commit that required this
+  process-group correction.
 
 The manifested parsed command array is exactly:
 

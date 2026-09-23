@@ -18,6 +18,7 @@ import math
 import os
 from pathlib import Path
 import re
+import signal
 import socket
 import subprocess
 import sys
@@ -40,6 +41,8 @@ REPORT_SCHEMA = "dense6x1024-direct-neuron-discriminator-report-v1"
 WORKER_SCHEMA = "dense6x1024-direct-neuron-discriminator-worker-v1"
 CHILD_PROCESS_SCHEMA = "dense6x1024-direct-neuron-discriminator-child-process-v1"
 CHILD_ENV_SCHEMA = "dense6x1024-direct-neuron-discriminator-child-environment-v1"
+CHILD_GROUP_SCHEMA = "dense6x1024-direct-neuron-discriminator-process-group-v1"
+PROCESS_REVALIDATION_SCHEMA = "dense6x1024-direct-neuron-discriminator-process-revalidation-v1"
 PENDING_HEAD = "PENDING_EXTERNAL_VERIFIER_HEAD"
 ROWS = (128, 512, 32768)
 REPETITIONS = 2
@@ -56,6 +59,9 @@ EXPECTED_REMOTE = "/home/ubuntu/trainium_freshstart_submission_validation_202609
 EXPECTED_PURPOSE = (
     "Source/direct Neuron component discriminator only; no training, submission, or scientific verdict."
 )
+PROCESS_GROUP_TERM_GRACE_SECONDS = 5.0
+PROCESS_GROUP_KILL_GRACE_SECONDS = 5.0
+PROCESS_GROUP_POLL_SECONDS = 0.05
 STATIC_ENVIRONMENT = {
     "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
     "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
@@ -92,6 +98,7 @@ PROTECTED_PATHS = (
     "research/submission-validation/20260923-dense6x1024-direct-review-safe/proposal.json",
     "research/submission-validation/20260923-dense6x1024-direct-review-safe/fs-20260923-dense6x1024-direct-neuron-component-20260923T103500000001Z-result.json",
     "research/submission-validation/20260923-dense6x1024-direct-review-safe/independent-neuron-discriminator-verifier.json",
+    "research/submission-validation/20260923-dense6x1024-direct-review-safe/independent-neuron-discriminator-fix-harness-verifier.json",
 )
 LAUNCHER_DEFAULT_FINGERPRINT_PATHS = (
     "train.py", "prepare.py", "research/run_experiment.py",
@@ -131,12 +138,17 @@ CHILD_PROCESS_KEYS = {
     "schema", "name", "argv", "environment_identity", "timeout_seconds",
     "started_at_utc", "completed_at_utc", "duration_seconds", "returncode",
     "timed_out", "error", "recompile_limit_warnings", "log", "artifacts",
-    "cache", "passed", "record_path",
+    "cache", "process_group", "passed", "record_path",
 }
 CHILD_LOG_KEYS = {"path", "stream", "bytes", "sha256", "complete"}
 CHILD_ARTIFACT_KEYS = {"path", "exists", "regular", "symlink", "bytes", "sha256"}
 CHILD_CACHE_KEYS = {"path", "exists", "directory", "symlink", "entry_count"}
 CHILD_RECEIPT_KEYS = {"path", "sha256", "bytes"}
+CHILD_GROUP_KEYS = {
+    "schema", "start_new_session", "launched", "leader_pid", "process_group_id",
+    "session_id", "term_grace_seconds", "kill_grace_seconds", "term_sent",
+    "kill_sent", "primary_reaped", "quiescent", "quiescence_checks", "cleanup_errors", "proof",
+}
 BASE_CHILD_ENV_KEYS = {
     "schema", "mode", "retained", "elastic_names_present",
     "removed_distributed_names", "parent_nonce_sha256",
@@ -260,6 +272,14 @@ def expected_contract() -> dict[str, Any]:
             "log": "immutable complete combined stdout/stderr with SHA-256",
             "record": "immutable per-child JSON before orchestration decision",
             "top_failure": "all accumulated child records and receipts retained",
+        },
+        "child_process_group": {
+            "start_new_session": True,
+            "term_grace_seconds": PROCESS_GROUP_TERM_GRACE_SECONDS,
+            "kill_grace_seconds": PROCESS_GROUP_KILL_GRACE_SECONDS,
+            "poll_seconds": PROCESS_GROUP_POLL_SECONDS,
+            "quiescence_required_before_snapshot": True,
+            "pre_top_log_artifact_cache_revalidation": True,
         },
     }
 
@@ -843,6 +863,108 @@ def cache_observation(path: Path) -> dict[str, Any]:
     }
 
 
+def process_group_exists(process_group_id: int) -> bool:
+    try:
+        os.killpg(process_group_id, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
+
+
+def wait_for_process_group_quiescence(
+    process: subprocess.Popen[bytes], process_group_id: int, grace_seconds: float,
+) -> tuple[bool, int]:
+    deadline = time.monotonic() + grace_seconds
+    checks = 0
+    while True:
+        process.poll()  # Reap the direct child as soon as it exits.
+        checks += 1
+        if not process_group_exists(process_group_id):
+            return True, checks
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            return False, checks
+        time.sleep(min(PROCESS_GROUP_POLL_SECONDS, remaining))
+
+
+def quiesce_process_group(
+    process: subprocess.Popen[bytes], process_group_id: int, terminate: bool,
+) -> dict[str, Any]:
+    term_sent = False
+    kill_sent = False
+    checks = 0
+    cleanup_errors = []
+    if terminate and process_group_exists(process_group_id):
+        try:
+            os.killpg(process_group_id, signal.SIGTERM)
+            term_sent = True
+        except ProcessLookupError:
+            pass
+        except OSError as error:
+            cleanup_errors.append(f"SIGTERM: {type(error).__name__}: {error}")
+    quiescent, count = wait_for_process_group_quiescence(
+        process, process_group_id,
+        PROCESS_GROUP_TERM_GRACE_SECONDS if terminate else 0.0,
+    )
+    checks += count
+    if not quiescent:
+        try:
+            os.killpg(process_group_id, signal.SIGKILL)
+            kill_sent = True
+        except ProcessLookupError:
+            pass
+        except OSError as error:
+            cleanup_errors.append(f"SIGKILL: {type(error).__name__}: {error}")
+        quiescent, count = wait_for_process_group_quiescence(
+            process, process_group_id, PROCESS_GROUP_KILL_GRACE_SECONDS,
+        )
+        checks += count
+    process.poll()
+    primary_reaped = process.returncode is not None
+    return {
+        "schema": CHILD_GROUP_SCHEMA,
+        "start_new_session": True,
+        "launched": True,
+        "leader_pid": process.pid,
+        "process_group_id": process_group_id,
+        "session_id": process_group_id,
+        "term_grace_seconds": PROCESS_GROUP_TERM_GRACE_SECONDS,
+        "kill_grace_seconds": PROCESS_GROUP_KILL_GRACE_SECONDS,
+        "term_sent": term_sent,
+        "kill_sent": kill_sent,
+        "primary_reaped": primary_reaped,
+        "quiescent": quiescent,
+        "quiescence_checks": checks,
+        "cleanup_errors": cleanup_errors,
+        "proof": (
+            "killpg(process_group_id, 0) raised ProcessLookupError after direct-child reap"
+            if quiescent else "process group remained observable after bounded SIGTERM/SIGKILL"
+        ),
+    }
+
+
+def unlaunched_process_group_record() -> dict[str, Any]:
+    return {
+        "schema": CHILD_GROUP_SCHEMA,
+        "start_new_session": True,
+        "launched": False,
+        "leader_pid": None,
+        "process_group_id": None,
+        "session_id": None,
+        "term_grace_seconds": PROCESS_GROUP_TERM_GRACE_SECONDS,
+        "kill_grace_seconds": PROCESS_GROUP_KILL_GRACE_SECONDS,
+        "term_sent": False,
+        "kill_sent": False,
+        "primary_reaped": False,
+        "quiescent": True,
+        "quiescence_checks": 0,
+        "cleanup_errors": [],
+        "proof": "no process group was launched",
+    }
+
+
 def validate_child_process_record(record: Any, include_receipt: bool = False) -> None:
     expected = CHILD_PROCESS_KEYS | ({"record_receipt"} if include_receipt else set())
     require_exact_keys(record, expected, "child_process")
@@ -903,6 +1025,30 @@ def validate_child_process_record(record: Any, include_receipt: bool = False) ->
             or (cache["directory"] and (type(cache["entry_count"]) is not int or cache["entry_count"] < 0))
             or (not cache["directory"] and cache["entry_count"] is not None)):
         raise ValueError("child_process: invalid cache observation")
+    group = record["process_group"]
+    require_exact_keys(group, CHILD_GROUP_KEYS, "child_process.process_group")
+    if (group["schema"] != CHILD_GROUP_SCHEMA or group["start_new_session"] is not True
+            or group["term_grace_seconds"] != PROCESS_GROUP_TERM_GRACE_SECONDS
+            or group["kill_grace_seconds"] != PROCESS_GROUP_KILL_GRACE_SECONDS
+            or type(group["launched"]) is not bool or type(group["term_sent"]) is not bool
+            or type(group["kill_sent"]) is not bool or type(group["primary_reaped"]) is not bool
+            or type(group["quiescent"]) is not bool or type(group["quiescence_checks"]) is not int
+            or group["quiescence_checks"] < 0 or not isinstance(group["cleanup_errors"], list)
+            or any(not isinstance(value, str) for value in group["cleanup_errors"])
+            or not isinstance(group["proof"], str)):
+        raise ValueError("child_process: invalid process-group evidence")
+    if group["launched"]:
+        if (type(group["leader_pid"]) is not int or group["leader_pid"] <= 0
+                or group["process_group_id"] != group["leader_pid"]
+                or group["session_id"] != group["leader_pid"]
+                or group["primary_reaped"] is not True or group["quiescent"] is not True
+                or group["quiescence_checks"] <= 0):
+            raise ValueError("child_process: launched process group is not proven quiescent/reaped")
+    elif (group["leader_pid"] is not None or group["process_group_id"] is not None
+            or group["session_id"] is not None or group["term_sent"] or group["kill_sent"]
+            or group["primary_reaped"] or group["quiescent"] is not True
+            or group["quiescence_checks"] != 0 or group["cleanup_errors"]):
+        raise ValueError("child_process: unlaunched process-group evidence is incoherent")
     environment = record["environment_identity"]
     if not isinstance(environment, dict) or environment.get("schema") != CHILD_ENV_SCHEMA:
         raise ValueError("child_process: sanitized environment identity missing")
@@ -934,6 +1080,8 @@ def validate_child_process_record(record: Any, include_receipt: bool = False) ->
     expected_passed = (
         record["returncode"] == 0 and record["timed_out"] is False
         and record["error"] is None and not record["recompile_limit_warnings"]
+        and group["launched"] is True and group["primary_reaped"] is True
+        and group["quiescent"] is True and not group["cleanup_errors"]
     )
     if record["passed"] is not expected_passed:
         raise ValueError("child_process: pass state differs from recorded process evidence")
@@ -980,19 +1128,41 @@ def run_child(
     returncode = None
     timed_out = False
     error_record = None
+    process = None
+    group_record = unlaunched_process_group_record()
     try:
         with os.fdopen(log_fd, "wb") as output:
             try:
-                completed = subprocess.run(
+                process = subprocess.Popen(
                     command, cwd=ROOT, env=env, stdout=output, stderr=subprocess.STDOUT,
-                    timeout=timeout, check=False,
+                    start_new_session=True,
                 )
-                returncode = completed.returncode
-            except subprocess.TimeoutExpired as error:
-                timed_out = True
-                error_record = {"type": type(error).__name__, "message": str(error)}
             except Exception as error:  # Persist spawn/exec failures before returning fail-closed.
                 error_record = {"type": type(error).__name__, "message": str(error)}
+            if process is not None:
+                process_group_id = process.pid
+                terminate_group = False
+                try:
+                    returncode = process.wait(timeout=timeout)
+                    terminate_group = process_group_exists(process_group_id)
+                    if terminate_group:
+                        error_record = {
+                            "type": "LingeringProcessGroup",
+                            "message": "direct child exited while descendants remained in its process group",
+                        }
+                except subprocess.TimeoutExpired as error:
+                    timed_out = True
+                    error_record = {"type": type(error).__name__, "message": str(error)}
+                    terminate_group = True
+                except Exception as error:
+                    error_record = {"type": type(error).__name__, "message": str(error)}
+                    terminate_group = True
+                group_record = quiesce_process_group(
+                    process, process_group_id, terminate=terminate_group,
+                )
+                returncode = process.returncode
+            if process is not None and not group_record["quiescent"]:
+                raise RuntimeError("child process group did not become quiescent after bounded TERM/KILL")
             output.flush()
             os.fsync(output.fileno())
         duration = time.monotonic() - started
@@ -1024,7 +1194,12 @@ def run_child(
                 for artifact_name, path in artifact_paths.items()
             },
             "cache": cache_observation(cache_path),
-            "passed": returncode == 0 and not timed_out and error_record is None and not warnings,
+            "process_group": group_record,
+            "passed": (
+                returncode == 0 and not timed_out and error_record is None and not warnings
+                and group_record["launched"] and group_record["primary_reaped"]
+                and group_record["quiescent"] and not group_record["cleanup_errors"]
+            ),
             "record_path": str(record_path),
         }
         validate_child_process_record(record)
@@ -1046,6 +1221,76 @@ def run_child(
         except OSError:
             pass
         raise
+
+
+def revalidate_process_evidence(processes: list[dict[str, Any]]) -> dict[str, Any]:
+    results = []
+    for process in processes:
+        failures = []
+        try:
+            validate_child_process_record(process, include_receipt=True)
+        except Exception as error:
+            failures.append(f"record/log/receipt: {type(error).__name__}: {error}")
+        for name, expected in process.get("artifacts", {}).items():
+            try:
+                actual = artifact_observation(Path(expected["path"]))
+                if actual != expected:
+                    failures.append(f"artifact snapshot changed: {name}")
+            except Exception as error:
+                failures.append(f"artifact revalidation failed {name}: {type(error).__name__}: {error}")
+        expected_cache = process.get("cache")
+        if isinstance(expected_cache, dict) and isinstance(expected_cache.get("path"), str):
+            try:
+                if cache_observation(Path(expected_cache["path"])) != expected_cache:
+                    failures.append("compile-cache snapshot changed")
+            except Exception as error:
+                failures.append(f"compile-cache revalidation failed: {type(error).__name__}: {error}")
+        group = process.get("process_group")
+        if isinstance(group, dict) and group.get("launched") is True:
+            group_id = group.get("process_group_id")
+            if type(group_id) is not int or process_group_exists(group_id):
+                failures.append("process group is observable immediately before top-result write")
+        results.append({
+            "name": process.get("name"),
+            "passed": not failures,
+            "failures": failures,
+            "record_path": process.get("record_path"),
+            "record_sha256": process.get("record_receipt", {}).get("sha256"),
+        })
+    return {
+        "schema": PROCESS_REVALIDATION_SCHEMA,
+        "checked_at_utc": datetime.now(timezone.utc).isoformat(),
+        "passed": all(result["passed"] for result in results),
+        "process_count": len(processes),
+        "results": results,
+    }
+
+
+def attach_prewrite_process_revalidation(report: dict[str, Any]) -> None:
+    if report.get("mode") != "neuron":
+        return
+    processes = report.get("processes", [])
+    if not isinstance(processes, list):
+        report["passed"] = False
+        report["process_evidence_revalidation"] = {
+            "schema": PROCESS_REVALIDATION_SCHEMA,
+            "checked_at_utc": datetime.now(timezone.utc).isoformat(),
+            "passed": False,
+            "process_count": 0,
+            "results": [],
+        }
+        report["evidence_failure"] = {
+            "type": "ProcessEvidenceSchemaError", "message": "top report processes is not a list",
+        }
+        return
+    revalidation = revalidate_process_evidence(processes)
+    report["process_evidence_revalidation"] = revalidation
+    if not revalidation["passed"]:
+        report["passed"] = False
+        report["evidence_failure"] = {
+            "type": "ProcessEvidenceMutation",
+            "message": "child log, record, artifact, cache, or quiescence evidence changed before top write",
+        }
 
 
 def expected_ce_calls() -> list[dict[str, Any]]:
@@ -1738,6 +1983,7 @@ def main() -> int:
             )
         report["static"] = static
         report["passed"] = report["passed"] and static["passed"]
+    attach_prewrite_process_revalidation(report)
     exclusive_json(args.report, report)
     print(json.dumps({"report": str(args.report), "passed": report["passed"], "mode": report["mode"]}, sort_keys=True))
     return 0 if report["passed"] else 1
