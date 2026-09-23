@@ -506,7 +506,7 @@ def validate_authorization_request(auth: dict, request: dict, verified_core: str
         "training_authorized": True, "evaluation_authorized": True,
         "checkpoint_prune_authorized": False, "verified_core_commit": verified_core,
         "request_path": REQUEST_REL, "request_sha256": request_sha, "request_content": request,
-        "state": "independently_verified_authorized",
+        "state": "human_approved_pending_operator",
     }
     if auth != expected_auth:
         raise SystemExit("authorization content mismatch")

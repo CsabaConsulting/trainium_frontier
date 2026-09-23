@@ -310,7 +310,7 @@ class SecureEvidenceTests(unittest.TestCase):
             "training_authorized": True, "evaluation_authorized": True,
             "checkpoint_prune_authorized": False, "verified_core_commit": core,
             "request_path": self.job.REQUEST_REL, "request_sha256": request_sha,
-            "request_content": request, "state": "independently_verified_authorized",
+            "request_content": request, "state": "human_approved_pending_operator",
         }
         runtime = {
             "schema": "c595-warmdown060-runtime-job-v1", "host": self.job.HOST,
