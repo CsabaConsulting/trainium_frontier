@@ -2,7 +2,7 @@
 import hashlib,json,pathlib,re,subprocess
 ROOT=pathlib.Path(__file__).resolve().parents[3];HERE=pathlib.Path(__file__).resolve().parent
 path=HERE/"eval-recovery-trn21-r1-request.json";request=json.loads(path.read_text())
-assert request["expected_commit"]=="6a6bce1a97c6dbee0895a7d775bbb1fa3abb5e23"
+assert request["expected_commit"]=="9b0952aab6465ed10737e37abae417c47ea9d80a"
 assert request["host"]=="trn21" and request["expected_hostname"]=="ip-172-31-34-85"
 assert re.fullmatch(r"fs-[A-Za-z0-9_.-]+",request["label"])
 assert request["remote"]=="/home/ubuntu/trainium_freshstart_20260924_c595_eval_recovery_trn21_r1"
