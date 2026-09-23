@@ -29,7 +29,7 @@ for host,revision in (("trn21",""),("trn22",""),("trn21","-r2"),("trn22","-r2"))
 for host in ("trn21","trn22"):
     path=HERE/f"control-{host}-r2-v2-request.json";request=json.loads(path.read_text())
     job=json.loads((HERE/f"control-{host}-r2-v2-job.json").read_text())
-    assert request["expected_commit"]=="cb071b0e755e99153b029ff67f152432549f900d"
+    assert request["expected_commit"]=="3b8e7e9eb08360fda455eae55326748da03280a7"
     assert job["request_sha256"]==hashlib.sha256(path.read_bytes()).hexdigest()
     assert set(request["fingerprint_paths"])==set(request["expected_sha256"])
     post=request["post_run_core"]
