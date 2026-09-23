@@ -944,6 +944,20 @@ class LoopTests(unittest.TestCase):
         researcher_call = env.model.calls.index("researcher")
         self.assertEqual(env.model.max_tokens[researcher_call], 32000)
         self.assertIn("Do not require named pre-edit", env.model.systems["researcher"][0])
+        self.assertIn("Authoritative measured/closed train.py evidence excerpts", env.model.users["researcher"][0])
+
+    def test_researcher_source_index_exposes_closed_flag_evidence_and_is_bounded(self):
+        ctl = self.env.controller()
+        source = "\n".join([
+            "# mechanism details",
+            "# MEASURED 2026-09-15: EXACT NULL, stays OFF.",
+            "USE_CAUTIOUS_WD = False",
+            *[f"line_{i} = {i}" for i in range(100)],
+        ])
+        evidence = ctl._research_train_evidence_index(source, max_chars=1000)
+        self.assertIn("EXACT NULL", evidence)
+        self.assertIn("USE_CAUTIOUS_WD = False", evidence)
+        self.assertLessEqual(len(evidence), 1000)
 
     def test_research_ledger_view_is_recent_and_bounded(self):
         env = self.env

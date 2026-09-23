@@ -43,7 +43,10 @@ Seed 42, full-chip shape, data, evaluator, and budget are fixed by the controlle
 Search the provided ledger summary and decision log; never repeat a closed or already-run flag set
 at this commit. A flag proposal must set one causal option only; do not bundle a second precision,
 kernel, optimizer, or architecture switch. If two switches are truly inseparable, propose a code
-change that implements one explicit boundary instead. Cite repository evidence. Return ONLY a JSON object:
+change that implements one explicit boundary instead. The supplied authoritative train.py evidence
+index contains measured/closed source comments: do not call a flag untested or infer its scope/cost
+from its name when that index contradicts the claim. Absence from the bounded index means unknown,
+not untested. Cite repository evidence. Return ONLY a JSON object:
 {"proposal_id": "YYYYMMDD-short-slug", "hypothesis": "...", "single_causal_change": "...",
  "flags": ["--flag", "value", ...], "evidence": ["path or label ..."],
  "duplicate_search_terms": ["..."], "expected_effect": "predeclared BPB direction and size",
@@ -754,6 +757,39 @@ class Controller:
             for lo, hi in regions
         )
 
+    def _research_train_evidence_index(self, train_text: str, max_chars: int = 28000) -> str:
+        """Bounded source excerpts around durable measured/closed comments for the Researcher.
+
+        The Researcher cannot inspect the repository interactively.  A list of flag names alone
+        encouraged it to call historically measured flags untested and to invent their scope.
+        Keep the independent Verifier's complete-source review, while exposing enough authoritative
+        source evidence to avoid wasting proposal calls on already-closed axes.
+        """
+        lines = train_text.splitlines()
+        marker = re.compile(
+            r"\b(?:MEASURED|CLOSED|EXACT NULL|STAYS OFF|RETAINED OFF|PARKED|ON HOLD|"
+            r"NEGATIVE|REGRESSION|NO WIN|DO NOT REOPEN)\b",
+            re.IGNORECASE,
+        )
+        centers = [i for i, line in enumerate(lines) if marker.search(line)]
+        regions: list[tuple[int, int]] = []
+        for center in centers:
+            lo, hi = max(0, center - 12), min(len(lines), center + 7)
+            if regions and lo <= regions[-1][1] + 2:
+                regions[-1] = (regions[-1][0], max(regions[-1][1], hi))
+            else:
+                regions.append((lo, hi))
+
+        chunks: list[str] = []
+        used = 0
+        for lo, hi in regions:
+            chunk = f"--- train.py lines {lo + 1}-{hi} ---\n" + "\n".join(lines[lo:hi])
+            if used + len(chunk) + 1 > max_chars:
+                break
+            chunks.append(chunk)
+            used += len(chunk) + 1
+        return "\n".join(chunks) if chunks else "(no measured/closed source comments found)"
+
     def _propose(self, report: CycleReport) -> Proposal | None:
         backoff = self.store.state.get("research_backoff_until")
         if backoff:
@@ -771,10 +807,14 @@ class Controller:
             return None
         context = load_context([C.AGENT_DIR / "CURRENT_STATE.md", C.DECISION_LOG, C.ROOT / "research" / "experiment-protocol.md"])
         flags = sorted(self.known_flags())
+        assert self._train_py_text is not None
+        source_evidence = self._research_train_evidence_index(self._train_py_text)
         user = (
             f"Pinned commit: {C.AUTHORITATIVE_COMMIT}\nShape: LNC={self.cfg.lnc} nproc={self.cfg.nproc_per_node}, seed 42, 1800 s.\n"
             f"Proposal ids already used: {sorted(self.store.used_proposal_ids())}\n\n"
             f"Available train.py flags at this commit:\n{' '.join(flags)}\n\n"
+            f"Authoritative measured/closed train.py evidence excerpts "
+            f"(bounded; absence does not mean untested):\n{source_evidence}\n\n"
             f"Exact pinned full controls:\n{self._control_evidence()}\n\n"
             f"Recent rejected proposals and verifier feedback (do not repeat these defects):\n"
             f"{self._recent_rejection_feedback()}\n\n"
