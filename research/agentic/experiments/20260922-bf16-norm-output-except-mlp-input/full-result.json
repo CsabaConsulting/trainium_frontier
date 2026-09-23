@@ -1,0 +1,163 @@
+{
+  "collected": {
+    "checkpoint_bytes": 1297950407,
+    "checkpoint_present": true,
+    "checkpoint_sha256": "a680140734b262507ea2c42beb6b0b9ef91752d44439986076d8aa1389103097",
+    "collected_at": "2026-09-23T00:55:31Z",
+    "files": {
+      "done": {
+        "bytes": 56,
+        "local": "/home/poojith-devan/Desktop/Trainium/research/agentic/experiments/20260922-bf16-norm-output-except-mlp-input/artifacts/full/done.json",
+        "remote": "/home/ubuntu/autoloop/launchers/al-20260922-bf16-norm-output-except-mlp-input-full-r1/done.json",
+        "sha256": "35da66d74f91a83a3d74ce6aea85d8561b095b658202e48215251ca327d207d5"
+      },
+      "launch_spec": {
+        "bytes": 1677,
+        "local": "/home/poojith-devan/Desktop/Trainium/research/agentic/experiments/20260922-bf16-norm-output-except-mlp-input/artifacts/full/launch.json",
+        "remote": "/home/ubuntu/autoloop/launchers/al-20260922-bf16-norm-output-except-mlp-input-full-r1/launch.json",
+        "sha256": "18840b61aaf14564c0dd5ec40295778a2832b92190606047aa884b6aeac504ad"
+      },
+      "ledger": {
+        "bytes": 628432,
+        "local": "/home/poojith-devan/Desktop/Trainium/research/agentic/experiments/20260922-bf16-norm-output-except-mlp-input/artifacts/full/experiment-log.jsonl",
+        "remote": "/home/ubuntu/workspace/autoloop_runs/fff4b9ba--20260922-bf16-norm-output-except-mlp-input--al-20260922-bf16-norm-output-except-mlp-input-full-r1/research/experiment-log.jsonl",
+        "sha256": "dce213b79d05adf1e0d1f1731a8c61393b48f462ee1b5a86b1ff75cb2265724a"
+      },
+      "run_log": {
+        "bytes": 37084,
+        "local": "/home/poojith-devan/Desktop/Trainium/research/agentic/experiments/20260922-bf16-norm-output-except-mlp-input/artifacts/full/al-20260922-bf16-norm-output-except-mlp-input-full-r1.log",
+        "remote": "/home/ubuntu/workspace/autoloop_runs/fff4b9ba--20260922-bf16-norm-output-except-mlp-input--al-20260922-bf16-norm-output-except-mlp-input-full-r1/research/run-logs/al-20260922-bf16-norm-output-except-mlp-input-full-r1.log",
+        "sha256": "1bd980ec66849f3a4d0815e38f4f60fd6031858ce58e97cc871570e8c8b04fcd"
+      },
+      "runner_stdout": {
+        "bytes": 316,
+        "local": "/home/poojith-devan/Desktop/Trainium/research/agentic/experiments/20260922-bf16-norm-output-except-mlp-input/artifacts/full/runner.log",
+        "remote": "/home/ubuntu/autoloop/launchers/al-20260922-bf16-norm-output-except-mlp-input-full-r1/runner.log",
+        "sha256": "efcfa76128cf000ed84fcf3e79d4afded6f9f85415d4df8d5bc3d143b5feddb0"
+      }
+    },
+    "ledger_row": {
+      "batch_ramp": "False grad_accum=(2, 4, 8) bounds=(0.35, 0.75) lr_exp=0.5 ref_grad_accum=4 last_grad_accum=4",
+      "budget_seconds": 1800,
+      "causality_max_abs": 0.0,
+      "causality_passed": true,
+      "charged_seconds_est": 1785.9,
+      "checkpoint_path": "out/al-20260922-bf16-norm-output-except-mlp-input-full-r1/final.pt",
+      "compiled": true,
+      "description": "autoloop 20260922-bf16-norm-output-except-mlp-input full: One numerical-format policy change confined to train.py: a new module-level toggle USE_BF16_NORM_OUTPUT_EXCEPT_MLP (default True env NEURON_COMPETITION_R1_BF16 flags='none' [trn21] CC='--optlevel=1' seed=42 commit=fff4b9ba",
+      "engram": "False site=-1 orders=2,3 heads=1 tables=0 mult=32 mem_dim=128 e_dim=0 key_dim=0 conv_k=4 share=False bf16=True",
+      "environment": {
+        "NEURON_CC_FLAGS": "--optlevel=1",
+        "NEURON_COMPETITION_R1_SEED": "42",
+        "NEURON_LOGICAL_NC_CONFIG": "2",
+        "PYTHONUNBUFFERED": "1"
+      },
+      "eval_over_timeout": false,
+      "eval_seconds": 10.1,
+      "eval_timeout": 1200,
+      "git_commit": "fff4b9ba808e18f8012537cb80b445889f2a9608",
+      "git_dirty": false,
+      "hostname": "ip-172-31-34-85",
+      "label": "al-20260922-bf16-norm-output-except-mlp-input-full-r1",
+      "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 1800 --out-dir out/al-20260922-bf16-norm-output-except-mlp-input-full-r1 --seed 42",
+      "lnc": 2,
+      "max_train_seconds": 1800,
+      "ngram_ve": "True tables=4 rows=1048576 dim=128 index_gather=True trigram=True opt=rmsprop flat_lr=True bf16=True rms_fp32_state_math=False nki_rms=False",
+      "nki_relu2": false,
+      "num_params_M": 592.9,
+      "num_steps": 2352,
+      "oneliners": "relu2_tau=0.0 mlp_sandwich=False head_gate=False hg_norm=True hg_ch=32 hg_mul=2.0 hg_bias=0.0 out_pool=False pool_layers=3 qk_shift=True qk_beta=0.0 qk_freeze=True x0_gate=False block_nudge=False nudge_site=qk qkv_norm_cse=False parallel_block=False par_coalesce=none epoch_shuffle=False epoch_shuffle_seed=1234",
+      "out_bigram": "False bf16=True gate_bias=-2.0 lr=0.0",
+      "over_budget": false,
+      "public_val_bpb": 1.020309,
+      "returncode": 0,
+      "run_log": "research/run-logs/al-20260922-bf16-norm-output-except-mlp-input-full-r1.log",
+      "sched_tricks": "demon_b1=False demon_final=0.55 demon_ref=0.8 demon_start=-1.0 muon_b2=0.9 muon_b2_final=0.0 depth_lr=1.0->1.0 depth_mom=0.0->0.0 depth_mom_ref=0.95",
+      "seq_len": 2048,
+      "solution": "autoloop:20260922-bf16-norm-output-except-mlp-input",
+      "source_dirty": false,
+      "source_sha256": {
+        "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+        "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+        "train.py": "106fb177bdd5931830a30a247d62be39db7ed85180ba6fbd0f7f9b6839ad75cd"
+      },
+      "startup_allowance_est": 113.2,
+      "status": "keep",
+      "target_steps": 5000,
+      "timestamp": "2026-09-23T00:52:27+00:00",
+      "total_seconds": 1887.5,
+      "total_tokens_M": 308.3,
+      "training_seconds": 1784.9,
+      "wall_elapsed_seconds": 1914.1,
+      "weight_ema": "False decays=(0.995,) start_frac=0.75 seeded=False updates=0",
+      "world_size": 4
+    },
+    "post_run_dirt_explained": false,
+    "post_run_porcelain": [
+      " M research/experiment-log.jsonl",
+      "?? research/run-logs/al-20260922-bf16-norm-output-except-mlp-input-full-r1.launch.json",
+      "?? research/run-logs/al-20260922-bf16-norm-output-except-mlp-input-full-r1.log"
+    ]
+  },
+  "hostname": "ip-172-31-34-85",
+  "label": "al-20260922-bf16-norm-output-except-mlp-input-full-r1",
+  "ledger_row": {
+    "_dirt_explained": false,
+    "batch_ramp": "False grad_accum=(2, 4, 8) bounds=(0.35, 0.75) lr_exp=0.5 ref_grad_accum=4 last_grad_accum=4",
+    "budget_seconds": 1800,
+    "causality_max_abs": 0.0,
+    "causality_passed": true,
+    "charged_seconds_est": 1785.9,
+    "checkpoint_path": "out/al-20260922-bf16-norm-output-except-mlp-input-full-r1/final.pt",
+    "compiled": true,
+    "description": "autoloop 20260922-bf16-norm-output-except-mlp-input full: One numerical-format policy change confined to train.py: a new module-level toggle USE_BF16_NORM_OUTPUT_EXCEPT_MLP (default True env NEURON_COMPETITION_R1_BF16 flags='none' [trn21] CC='--optlevel=1' seed=42 commit=fff4b9ba",
+    "engram": "False site=-1 orders=2,3 heads=1 tables=0 mult=32 mem_dim=128 e_dim=0 key_dim=0 conv_k=4 share=False bf16=True",
+    "environment": {
+      "NEURON_CC_FLAGS": "--optlevel=1",
+      "NEURON_COMPETITION_R1_SEED": "42",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "eval_over_timeout": false,
+    "eval_seconds": 10.1,
+    "eval_timeout": 1200,
+    "git_commit": "fff4b9ba808e18f8012537cb80b445889f2a9608",
+    "git_dirty": false,
+    "hostname": "ip-172-31-34-85",
+    "label": "al-20260922-bf16-norm-output-except-mlp-input-full-r1",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 1800 --out-dir out/al-20260922-bf16-norm-output-except-mlp-input-full-r1 --seed 42",
+    "lnc": 2,
+    "max_train_seconds": 1800,
+    "ngram_ve": "True tables=4 rows=1048576 dim=128 index_gather=True trigram=True opt=rmsprop flat_lr=True bf16=True rms_fp32_state_math=False nki_rms=False",
+    "nki_relu2": false,
+    "num_params_M": 592.9,
+    "num_steps": 2352,
+    "oneliners": "relu2_tau=0.0 mlp_sandwich=False head_gate=False hg_norm=True hg_ch=32 hg_mul=2.0 hg_bias=0.0 out_pool=False pool_layers=3 qk_shift=True qk_beta=0.0 qk_freeze=True x0_gate=False block_nudge=False nudge_site=qk qkv_norm_cse=False parallel_block=False par_coalesce=none epoch_shuffle=False epoch_shuffle_seed=1234",
+    "out_bigram": "False bf16=True gate_bias=-2.0 lr=0.0",
+    "over_budget": false,
+    "public_val_bpb": 1.020309,
+    "returncode": 0,
+    "run_log": "research/run-logs/al-20260922-bf16-norm-output-except-mlp-input-full-r1.log",
+    "sched_tricks": "demon_b1=False demon_final=0.55 demon_ref=0.8 demon_start=-1.0 muon_b2=0.9 muon_b2_final=0.0 depth_lr=1.0->1.0 depth_mom=0.0->0.0 depth_mom_ref=0.95",
+    "seq_len": 2048,
+    "solution": "autoloop:20260922-bf16-norm-output-except-mlp-input",
+    "source_dirty": false,
+    "source_sha256": {
+      "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+      "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+      "train.py": "106fb177bdd5931830a30a247d62be39db7ed85180ba6fbd0f7f9b6839ad75cd"
+    },
+    "startup_allowance_est": 113.2,
+    "status": "keep",
+    "target_steps": 5000,
+    "timestamp": "2026-09-23T00:52:27+00:00",
+    "total_seconds": 1887.5,
+    "total_tokens_M": 308.3,
+    "training_seconds": 1784.9,
+    "wall_elapsed_seconds": 1914.1,
+    "weight_ema": "False decays=(0.995,) start_frac=0.75 seeded=False updates=0",
+    "world_size": 4
+  },
+  "manifest_id": "20260922-bf16-norm-output-except-mlp-input--full--al-20260922-bf16-norm-output-except-mlp-input-full-r1",
+  "returncode": 0
+}
