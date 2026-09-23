@@ -81,7 +81,9 @@ def run_eval(name,argv,env,tokens,num_bytes):
   durable(OUTPUT/(name+".log"),(error.stdout or "").encode() if isinstance(error.stdout,str) else (error.stdout or b""));raise SystemExit(name+" exceeded 1200 seconds")
  elapsed=time.monotonic()-started;durable(OUTPUT/(name+".log"),done.stdout.encode())
  if done.returncode!=0 or elapsed>1200.0:raise SystemExit(name+" failed or exceeded wall timeout")
- return parse_metrics(done.stdout,tokens,num_bytes),elapsed
+ metrics=parse_metrics(done.stdout,tokens,num_bytes)
+ durable_json(OUTPUT/(name+".metrics.json"),{"argv":argv,"metrics":metrics,"wall_seconds":elapsed})
+ return metrics,elapsed
 def finite_scan(env):
  source="""import json,sys,torch\nv=torch.load(sys.argv[1],map_location='cpu',weights_only=True); stack=[v]; n=0\nwhile stack:\n x=stack.pop()\n if isinstance(x,dict): stack.extend(x.values())\n elif isinstance(x,(list,tuple)): stack.extend(x)\n elif isinstance(x,torch.Tensor):\n  n+=1\n  if (x.is_floating_point() or x.is_complex()) and not torch.isfinite(x).all().item(): raise SystemExit('nonfinite')\nprint(json.dumps({'weights_only':True,'map_location':'cpu','finite':True,'tensor_count':n}))\n"""
  done=subprocess.run([PYTHON,"-c",source,str(CHECKPOINT)],cwd=ROOT,env=env,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=600)
