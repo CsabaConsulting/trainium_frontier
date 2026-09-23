@@ -1,0 +1,20 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "The plan defines one bounded numerical-format policy in train.py: enable the existing global BF16 norm policy while exempting exactly the MLP-input norm calls. The authoritative norm(), Block.forward serial/sandwich/shared-parallel sites, and Linear.forward dtype selection support this implementation.",
+    "The implementation preserves every existing reader of USE_BF16_NORM_OUTPUT, including CausalSelfAttention.forward's V-dtype alignment. The keyword-only exemption selects the original non-cast norm branch rather than BF16-then-upcast. ARCH_TOGGLE_NAMES persistence supports consistent candidate checkpoint evaluation.",
+    "Repository evidence supports a distinct experiment: the ledger records all-site BF16 at 2716 steps/1.016279 BPB, MLP-only BF16 at 2346 steps/1.020187 and 1.019731, and SDPA-input BF16 at 2233 steps/1.002028. The supplied decision log does not close the proposed complement policy; it is not a repeat of either norm arm.",
+    "The claimed localization of quality damage is a hypothesis, not an established decomposition. Different achieved step counts, precision interactions, and the data-wall behavior documented beside USE_EPOCH_SHUFFLE prevent attributing the observed BPB differences solely to individual boundaries. Additive timing is likewise only a prediction.",
+    "The full-run step and public-BPB predictions are falsifiable against the controller-provided seed-42 matched full-chip control. A negative result rejects this fixed-budget policy, but would not alone prove intrinsic quality degradation at the non-MLP sites.",
+    "The plan uses only permitted train.py edits, introduces no pretrained weights, external data, or evaluator changes, and requires only static inspection before implementation review. Executable compilation, numerical-health, causality, and performance checks remain smoke abort conditions."
+  ],
+  "llm_verdict": "PASS",
+  "passed": true,
+  "proposal_id": "20260922-bf16-norm-output-except-mlp-input",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-23T00:02:55Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}
