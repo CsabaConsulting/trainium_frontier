@@ -38,7 +38,11 @@ def main():
     assert sandbox.is_relative_to(root / "out")
     sandbox.mkdir(exist_ok=False, parents=True)
     manifest = json.loads((package / "provenance.json").read_text())
-    assert sha(package / "train.py") == manifest["train_sha256"]
+    expected_train_sha = manifest.get("train_sha256")
+    if expected_train_sha is None:
+        expected_train_sha = manifest.get("output", {}).get("train_py_sha256")
+    assert expected_train_sha, "provenance does not declare the packaged train.py SHA-256"
+    assert sha(package / "train.py") == expected_train_sha
     for src in (package / "train.py", root / "prepare.py"):
         shutil.copy2(src, sandbox / src.name)
         assert sha(src) == sha(sandbox / src.name)
