@@ -1,0 +1,97 @@
+{
+  "schema": "c595-warmdown060-r2-operator-failure-v1",
+  "status": "failed_gate",
+  "failure_stage": "outer_environment_validation_before_training",
+  "failure": "hostile or unpinned inherited environment: LD_LIBRARY_PATH",
+  "recorded_at": "2026-09-23T23:29:00Z",
+  "host": "trn22",
+  "hostname": "ip-172-31-32-253",
+  "label": "fs-20260924-c595-warmdown060-trn22-r2",
+  "branch": "experiment/20260924-c595-warmdown060-trn22",
+  "finalization_head": "bb897031029a50b83d481133448cdf690a45414b",
+  "verified_core_commit": "6409f07ad85e46fda4b58c2803998761934f2679",
+  "adapter_sha256": "a5532a6aec73afc5d8196559ad535f76a43638c134617f1fb299cc235d6f038f",
+  "driver_sha256": "b2195638fa122b9e9f4b40ad808b8045b1eb3e27aa81716c65ff66c838f772d3",
+  "authorization_sha256": "22d327079340fd4b0c6be20a119eed3b8a59c4a496a4ffaf3ec25301c86bed7a",
+  "template_sha256": "5bc76c975ea30bedf9272fd919d22949adcbbb811b8a6904b4bde76a79e63c07",
+  "candidate_sha256": "52cf99df3e241ab8399c104b7ad4b717571e0987781b6b835303a8500baff38c",
+  "r1_evidence_preserved_unchanged": true,
+  "staging": {
+    "complete_non_sparse": true,
+    "remote_checkout": "/home/ubuntu/trainium_freshstart_20260924_c595_warmdown060_trn22_r2",
+    "checkout_head": "bb897031029a50b83d481133448cdf690a45414b",
+    "checkout_clean_before_launch": true,
+    "source_fingerprint_count": 16,
+    "source_fingerprints_passed": true,
+    "bundle_sha256": "d9481cf465c0240add918118cd74903a93dc80c05b8de666993f994d1261ba1e",
+    "bundle_bytes": 52500788,
+    "checkout_allocated_bytes": 214220800,
+    "free_bytes_before_launch": 8774758400
+  },
+  "adapter": {
+    "command": [
+      "python",
+      "research/submission-validation/20260924-c595-warmdown060-trn22/launch_adapter.py",
+      "--concrete-request",
+      "/tmp/fs-20260924-c595-warmdown060-trn22-r2.request.json"
+    ],
+    "dry_run": false,
+    "concrete_request_path": "/tmp/fs-20260924-c595-warmdown060-trn22-r2.request.json",
+    "concrete_request_bytes": 9699,
+    "concrete_request_sha256": "04ce5d4b6ffdfbf56d2fa32635dd1e0fbd3bd3b6c98e2053577288a78afdd32f"
+  },
+  "launch": {
+    "launcher_returncode": 0,
+    "preflight_passed": true,
+    "guard_pid": 2774993,
+    "child_pid": 2774994,
+    "started_at": "2026-09-23T23:27:15.378976+00:00",
+    "remote_log": "/home/ubuntu/trainium_freshstart_20260924_c595_warmdown060_trn22_r2/research/run-logs/fs-20260924-c595-warmdown060-trn22-r2.log"
+  },
+  "runtime_job": {
+    "bytes": 12264,
+    "sha256": "eb17c80431544fd03760b6d939b150a543c578a088030e6aa3696f9d3ec21f31",
+    "concrete_request_sha256": "04ce5d4b6ffdfbf56d2fa32635dd1e0fbd3bd3b6c98e2053577288a78afdd32f"
+  },
+  "inherited_environment": {
+    "rejected_key": "LD_LIBRARY_PATH",
+    "value_is_secret": false,
+    "exact_value": "/usr/local/lib:/usr/lib",
+    "value_sha256": "ac04b79dfecb27e2f78a97194a6d6cc7158f45a16ab3544df4c2b0ee5be3d3c0",
+    "request_explicitly_sets_key": false,
+    "source": "The non-login controller SSH environment supplied LD_LIBRARY_PATH. fresh_start_launch.py copies os.environ and overlays the request environment without removing LD_LIBRARY_PATH; fresh_start_guard.py copies that environment into the bounded driver; retune_job.py rejects any unpinned LD_* variable before training."
+  },
+  "execution": {
+    "command_returncode": 1,
+    "training_started": false,
+    "evaluation_started": false,
+    "checkpoint_created": false,
+    "retry_performed": false,
+    "remote_output_files": 0
+  },
+  "postflight": {
+    "host_clean": true,
+    "failures": [],
+    "cleanup_actions": [],
+    "relevant_processes": [],
+    "device_holder_returncode": 1,
+    "neuron_process_count": 0,
+    "free_bytes": 8774631424
+  },
+  "retrieved": {
+    "concrete-request.json": {"bytes": 9699, "sha256": "04ce5d4b6ffdfbf56d2fa32635dd1e0fbd3bd3b6c98e2053577288a78afdd32f"},
+    "dispatch.json": {"bytes": 10720, "sha256": "c6509d4978f1b2dece8e9a7a61d393c2009abb61608f1972619fce96afff8563"},
+    "job.json": {"bytes": 12264, "sha256": "eb17c80431544fd03760b6d939b150a543c578a088030e6aa3696f9d3ec21f31"},
+    "launch.json": {"bytes": 12264, "sha256": "eb17c80431544fd03760b6d939b150a543c578a088030e6aa3696f9d3ec21f31"},
+    "log": {"bytes": 348, "sha256": "5ec626fadc54fe8861d0e2a7d28b8bbb27c6c112b110798beadebbe6f446d283"},
+    "postflight.json": {"bytes": 7318, "sha256": "0749729655d43072e8d86140ce2fb6f0ebdab7f75ee19801ad4a2446c68fdd4b"},
+    "preflight.json": {"bytes": 13582, "sha256": "3d0911902dc735223e4527fda6bdd234c948c1429d62a444db85351fd5df4586"},
+    "process.json": {"bytes": 743, "sha256": "3650330d79dcc9076e611244d86ca50494bf23f327dfd43c05af77a1b15a5f62"}
+  },
+  "operator_boundary": {
+    "candidate_or_harness_modified": false,
+    "retry_authorized": false,
+    "cleanup_or_prune_performed": false,
+    "leaderboard_submission_performed": false
+  }
+}
