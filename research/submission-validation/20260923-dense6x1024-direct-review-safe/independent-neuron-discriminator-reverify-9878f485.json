@@ -1,0 +1,121 @@
+{
+  "schema": "dense6x1024-direct-neuron-discriminator-independent-reverify-v1",
+  "role": "independent Verifier",
+  "verified_at": "2026-09-23",
+  "verdict": "PASS",
+  "reviewed_correction_commit": "9878f4854b5f8191494611a75e7bc0e83e26c684",
+  "reviewed_fail_report_commit": "3877c1ace91c6889b4af4a809e2834312724c005",
+  "reviewed_fail_report_sha256": "507baee46715f66d230debae365bf0b5872ef1b9ad975b7421985d5b53867e4c",
+  "repository_state_before_report": {
+    "branch": "submission/dense6x1024-direct-review-safe-20260923",
+    "head": "9878f4854b5f8191494611a75e7bc0e83e26c684",
+    "origin_head_after_fetch": "9878f4854b5f8191494611a75e7bc0e83e26c684",
+    "tracked_worktree_clean": true,
+    "correction_parent": "3877c1ace91c6889b4af4a809e2834312724c005",
+    "correction_scope": [
+      "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron-discriminator-authorization-request.json",
+      "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron-discriminator-runbook.md",
+      "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron_discriminator_direct.py",
+      "research/submission-validation/20260923-dense6x1024-direct-review-safe/test_neuron_discriminator_static.py"
+    ],
+    "unexpected_files_in_correction": [],
+    "candidate_sha256": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537",
+    "source_sha256": "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344",
+    "candidate_or_source_changed_by_correction": false,
+    "root_train_sha256": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "harness_sha256": "b8fb941c66e654a6a2fbac637d3e3a56f2378308ccdd27a36cee05651e8740cd",
+    "static_test_sha256": "cb8468f22c5e8bd287f841563a074afb37de5c82176b8e8c99632ea4c3cf4dcc",
+    "runbook_sha256": "f041db2fe2627aaea3b614b4ae33b66884b876ee78f3cd5addeaefbcde4af326",
+    "pending_authorization_request_sha256": "ad22637a5814137340a17224e8e1ddb28ff3548984f6d3c2423b15474ff0e084",
+    "authorization_state": "pending_external_verifier"
+  },
+  "blocker_reverification": [
+    {
+      "id": "D1",
+      "resolved": true,
+      "finding": "The hard-coded contract, authorization request, generated manifest environment and runtime validator now all contain literal WORLD_SIZE=4 and LOCAL_WORLD_SIZE=4. The generated environment passed validate_full_environment, and removing each of its 14 keys independently was rejected."
+    },
+    {
+      "id": "D2",
+      "resolved": true,
+      "finding": "The protected hash map now includes train.py, prepare.py and research/fresh_start_backup.py. The required union is exactly the launcher defaults plus the protected paths plus the authorization request, with no missing or extra source_sha256 entries. A complete synthetic launch/job/preflight receipt set passed; command, environment, missing-default and extra-hash mutations were rejected."
+    },
+    {
+      "id": "D3",
+      "resolved": true,
+      "finding": "Optimizer reports now enforce exact worker/schema/variant/rank/world/cache identities; exact fixture order and 2/4/4 snapshots; sequential steps; 40/40/62 parameter counts and 43788/43788/117453580 element counts; exact plan coverage; finite, nonzero tensor records; complete per-kind state; real owner.calls; cross-rank digests; non-no-op parameter/state transitions; production Linear cache refresh/output; separate variant caches; source/direct equality; and merged direct-owner equality to raw. The prior all-empty and nonfinite/empty-state/no-op/owner_calls=999 matrices now fail. The expanded adversarial matrix also rejected missing reports, extra/reordered fixtures, bad step/world/pass/state/calls/norm/count/cache/digest and shared-cache evidence."
+    },
+    {
+      "id": "D4",
+      "resolved": true,
+      "finding": "The authorization request has the exact five-key top-level schema and no embedded authorization_sha256 or authorized-head self-reference. The runbook is state-neutral and explicitly describes later state-only external finalization. Changing only authorization_state can therefore produce an independently hashable final request without invalidating any protected-path hash."
+    },
+    {
+      "id": "D5",
+      "resolved": true,
+      "finding": "The authorization request is separately required to be the canonical tracked, clean, regular, non-symlink file, with its bytes pinned only by the external CLI SHA. Symlink, untracked and dirty simulations were rejected. The documented parsed workload uses the same absolute remote harness/request/report paths and fixed 5400-second timeout as exact_launch_request. The independent PyTorch CE comparison remains numerically non-decisive, while the runbook truthfully states that its exception, timeout, nonfinite record or recompile warning operationally fails the gate."
+    }
+  ],
+  "additional_fail_closed_checks": {
+    "ce_report": "Synthetic valid source/direct CE schemas passed. Missing cases, altered lane/call traces, nonfinite gradients, inexact source/direct fields and nonfinite diagnostic fields were independently rejected.",
+    "recompile_warning": "The observed-style text 'torch._dynamo hit config.recompile_limit (8)' is detected; a child passes only with rc0 and no detected recompile-limit warning.",
+    "worker_entry": "CE and optimizer worker invocations with a forged parent nonce failed before torch or Neuron import.",
+    "pending_authority": "A full-mode invocation using the current literal HEAD and request SHA failed with 'pending authorization request cannot launch' and created no result file.",
+    "nonoverwrite": "Result creation uses O_CREAT|O_EXCL|O_NOFOLLOW; overwrite and symlink tests pass. Fresh result/cache locations are rejected if they already exist or are symlinks.",
+    "static_e2e": "The real static-only CLI authenticated the clean tracked pending request, verified all 19 protected hashes, reported passed=true and hardware_executed=false; its temporary local report was inspected and removed."
+  },
+  "commands_and_results": [
+    {
+      "command": "git fetch origin submission/dense6x1024-direct-review-safe-20260923; git rev-parse HEAD; git rev-parse origin/submission/dense6x1024-direct-review-safe-20260923; git status --short --branch",
+      "result": "PASS: local and fetched origin were both 9878f4854b5f8191494611a75e7bc0e83e26c684 and the worktree was clean before this report"
+    },
+    {
+      "command": "git diff --check/name-status 3877c1ace91c6889b4af4a809e2834312724c005..9878f4854b5f8191494611a75e7bc0e83e26c684; git diff --exit-code 638169e0..9878f485 -- candidate/source/prepare.py",
+      "result": "PASS: no whitespace errors; exactly four declared harness files changed; candidate, source and prepare.py were unchanged"
+    },
+    {
+      "command": "sha256sum submissions/dense6x1024_direct_review/train.py submissions/dense6x1024_lean_review/train.py train.py prepare.py research/fresh_start_backup.py",
+      "result": "PASS: candidate c5956187..., source 9173f626..., root train bc1d0b75..., prepare 5807c46e..., backup c978fd20..."
+    },
+    {
+      "command": "python -m py_compile neuron_discriminator_direct.py test_neuron_discriminator_static.py; python -m unittest -v test_neuron_discriminator_static.py",
+      "result": "PASS: syntax clean; 15/15 tests passed"
+    },
+    {
+      "command": "python neuron_discriminator_direct.py --static-only --authorization-request <canonical-request> --authorized-head PENDING_EXTERNAL_VERIFIER_HEAD --authorization-sha256 ad22637a... --report <unique-local-run-log>",
+      "result": "PASS rc0: mode=static-only, passed=true, hardware_executed=false, all protected actual hashes equal expected; temporary report removed and worktree returned clean"
+    },
+    {
+      "command": "independent Python adversarial matrices for environment, full receipts, CE reports and optimizer reports",
+      "result": "PASS: valid baselines accepted and every D1-D3 mutation described in this report rejected"
+    },
+    {
+      "command": "pending full-mode CLI and direct CE/optimizer worker CLI with forged nonce",
+      "result": "PASS: pending full authority and both unauthenticated worker entries rejected before hardware imports; no report created"
+    }
+  ],
+  "remaining_blockers": [],
+  "authorization": {
+    "authorization_request_finalized_by_this_verifier": false,
+    "current_hardware_launch_authorized": false,
+    "external_hardware_authorization_may_safely_be_finalized": true,
+    "required_finalization_conditions": [
+      "An external authority changes only authorization_state from pending_external_verifier to finalized_by_external_verifier in one clean commit.",
+      "After that commit, it independently fetches/confirms origin alignment and clean tracked protected/request paths, then publishes the literal final 40-hex HEAD and literal SHA-256 of the finalized request bytes.",
+      "It constructs the unique-label fresh_start_launch.py request with exact_launch_request's full argv/environment/fingerprint schema and those literals; no descendant commit or recomputed substitute is authorized.",
+      "The hardware gate is accepted only if the exact launch/job/preflight identity checks pass, every child returns rc0 without a recompile-limit warning, the final discriminator report passes, and fresh-start postflight is clean."
+    ]
+  },
+  "residual_risks": [
+    "No Neuron hardware was run in this verification. Compilation, four-rank runtime behavior, exact source/direct CE equality and optimizer equality remain empirical gates for the authorized discriminator job.",
+    "The independent PyTorch CE diagnostic is numerically non-decisive but operationally required; an exception, timeout, nonfinite diagnostic record or recompile-limit warning will fail closed.",
+    "This PASS authorizes only external finalization of this discriminator request, not training, leaderboard submission, or a scientific keep/discard verdict."
+  ],
+  "candidate_modified_by_verifier": false,
+  "source_modified_by_verifier": false,
+  "hardware_run_by_verifier": false,
+  "training_run_by_verifier": false,
+  "submission_performed": false,
+  "scientific_verdict": null
+}
