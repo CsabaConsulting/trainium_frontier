@@ -1,0 +1,28 @@
+{
+  "verified_at": "2026-09-23T07:40:36Z",
+  "verdict": "PASS_CONDITIONAL",
+  "decision": "The exact protected fresh-checkpoint public evaluation may replace the multi-model Neuron contract as the final fresh Neuron load, forward, and scoring gate.",
+  "basis": [
+    "The frozen candidate passed the historical full-feature checkpoint Neuron contract with every logits and correctness metric exactly zero.",
+    "The fresh lean checkpoint passed the deterministic CPU contract, including causality, batch independence, repeatability, state, freeze, hook, and adapter gates.",
+    "The fresh cold full-chip training rehearsal passed and produced a hash-verified checkpoint within the charged 1800-second budget.",
+    "The source checkpoint replay reproduced 0.9928513116311253 BPB exactly.",
+    "The official evaluation path imports one candidate module and loads one model; the r2/r3 failures are specific to the synthetic multi-model harness and emitted no candidate traceback."
+  ],
+  "required_eval_conditions": {
+    "frozen_candidate_prepare_checkpoint_tokenizer_and_public_shard_hashes": true,
+    "batch_size": 1,
+    "sequence_length": 1024,
+    "exact_tokens": 20971520,
+    "exact_bytes": 83462186,
+    "whole_process_outer_timeout_required": true,
+    "returncode": 0,
+    "finite_total_nats_and_bpb": true,
+    "eval_over_timeout": false,
+    "checkpoint_hash_unchanged": true,
+    "clean_idle_postflight_no_device_or_cache_lock_holders": true,
+    "durable_command_log_metrics_hashes_and_receipt": true
+  },
+  "failure_accounting": "Record r1 as reference-loader incompatible and r2/r3 as timeout/harness-incompatible failures; do not call them passes.",
+  "residual_risk": "The fresh checkpoint did not complete the synthetic multi-model/multi-load Neuron harness and r3's exact hang stage was not instrumented. Acceptance relies on the fresh CPU invariance result, historical-checkpoint Neuron invariance with identical candidate code, and the official single-model evaluation path."
+}

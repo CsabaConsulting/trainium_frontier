@@ -65,9 +65,10 @@
     "source_checkpoint_public_replay": "passed exactly at 0.9928513116311253 BPB over 20,971,520 tokens",
     "candidate_modified": false,
     "cold_rehearsal": "passed: returncode 0, 3638 steps, charged-through-exit 1790.307001 seconds, checkpoint SHA-256 be040a5dbf7fc2750d1f3f2770fc39ab7a5c3100dfd670921257607abaa4e0ec",
-    "fresh_checkpoint_neuron_contract": "r1 failed before metrics because the historical root baseline loader requires removed feature-only keys; r2 timed out after separately importing the identical NKI module twice and waiting on self-held compile-cache locks",
+    "fresh_checkpoint_neuron_contract": "r1 failed before metrics because the historical root baseline loader requires removed feature-only keys; r2 timed out after separately importing the identical NKI module twice; guarded r3 used one import and three model loads but also timed out at 600 seconds with no contract metrics or candidate traceback and a clean postflight",
     "contract_harness_correction": "commit edd7fcaee66263030b0e9e50e43fb98fa35c62b7 made the reference explicit and fail-closed; commit 633f871c378620d2b877dbc53b83d91aec32f152 uses one module import with three distinct model loads for identical paths. Both corrections passed independent verification in harness-verifier.json and harness-verifier-r3.json",
-    "next_gate": "run the bounded r3 fresh-checkpoint Neuron contract; run protected public evaluation only if it passes"
+    "gate_substitution": "An independent protocol verifier conditionally approved the exact protected single-model public evaluation as the final fresh Neuron load/forward/score gate; see protocol-gate-substitution-verifier.json. The multi-model harness failures remain recorded failures, not passes.",
+    "next_gate": "run the guarded exact protected 20,971,520-token public evaluation and require every condition in protocol-gate-substitution-verifier.json"
   },
   "human_approved_by": "active human operator conversation, 2026-09-23",
   "verdict": null
