@@ -8,6 +8,7 @@ not be pre-created. This helper never stops an existing process or edits source.
 Deployment and selection of an experiment remain separate decisions.
 """
 import argparse
+import hashlib
 from datetime import datetime, timezone
 import json
 from pathlib import Path
@@ -133,7 +134,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("request", type=Path)
     args = parser.parse_args()
-    request = json.loads(args.request.read_text())
+    request_bytes = args.request.read_bytes()
+    request = json.loads(request_bytes)
+    request["request_file_sha256"] = hashlib.sha256(request_bytes).hexdigest()
     assert request["host"] in HOSTS
     assert re.fullmatch(r"fs-[A-Za-z0-9_.-]+", request["label"])
     assert re.fullmatch(r"[0-9a-f]{40}", request["expected_commit"])

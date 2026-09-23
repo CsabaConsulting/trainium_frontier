@@ -15,15 +15,74 @@ HOSTNAME="ip-172-31-34-85"
 LABEL="fs-20260924-c595-eval-recovery-trn21-r1"
 OUTPUT=ROOT/"out"/LABEL
 METRIC_KEYS={"val_bpb","num_tokens","num_bytes","total_nats","eval_seconds","eval_timeout","eval_over_timeout"}
+BASE_ARTIFACTS={"checkpoint-finite.log","primary-public1024.log","primary-public1024.metrics.json",
+ "secondary-public20m.log","secondary-public20m.metrics.json","result.json"}
+HEX64=set("0123456789abcdef")
 
+def open_directory(path):
+ info=os.lstat(path)
+ if stat.S_ISLNK(info.st_mode) or not stat.S_ISDIR(info.st_mode):raise SystemExit("unsafe output ancestor: "+str(path))
+ return os.open(path,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW)
+def create_output(root=ROOT,output=OUTPUT):
+ if not root.is_absolute() or output!=root/"out"/LABEL:raise SystemExit("output path escape")
+ root_fd=open_directory(root)
+ try:
+  try:os.mkdir("out",0o700,dir_fd=root_fd);os.fsync(root_fd)
+  except FileExistsError:pass
+  out_fd=os.open("out",os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW,dir_fd=root_fd)
+  try:
+   out_info=os.stat("out",dir_fd=root_fd,follow_symlinks=False)
+   if not stat.S_ISDIR(out_info.st_mode):raise SystemExit("unsafe output parent")
+   try:os.mkdir(LABEL,0o700,dir_fd=out_fd);os.fsync(out_fd)
+   except FileExistsError:raise SystemExit("recovery output already exists")
+  finally:os.close(out_fd)
+ finally:os.close(root_fd)
+def output_fd():
+ root_fd=open_directory(ROOT)
+ try:
+  out_fd=os.open("out",os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW,dir_fd=root_fd)
+  try:return os.open(LABEL,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW,dir_fd=out_fd)
+  finally:os.close(out_fd)
+ finally:os.close(root_fd)
 def durable(path,data):
- fd=os.open(path,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600)
- try:os.write(fd,data);os.fsync(fd)
- finally:os.close(fd)
- directory=os.open(path.parent,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW)
- try:os.fsync(directory)
+ if path.parent!=OUTPUT or path.name in ("",".",".."):raise SystemExit("artifact path escape")
+ directory=output_fd()
+ try:
+  fd=os.open(path.name,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600,dir_fd=directory)
+  try:os.write(fd,data);os.fsync(fd)
+  finally:os.close(fd)
+  os.fsync(directory)
  finally:os.close(directory)
 def durable_json(path,value):durable(path,(json.dumps(value,indent=2,sort_keys=True)+"\n").encode())
+def artifact_bytes(name):
+ directory=output_fd()
+ try:
+  info=os.stat(name,dir_fd=directory,follow_symlinks=False)
+  if not stat.S_ISREG(info.st_mode):raise SystemExit("artifact not regular: "+name)
+  fd=os.open(name,os.O_RDONLY|os.O_NOFOLLOW,dir_fd=directory)
+  try:
+   if os.fstat(fd).st_size!=info.st_size:raise SystemExit("artifact changed while opening")
+   chunks=[]
+   while True:
+    chunk=os.read(fd,1024*1024)
+    if not chunk:break
+    chunks.append(chunk)
+   return b"".join(chunks)
+  finally:os.close(fd)
+ finally:os.close(directory)
+def inspect_artifacts(expected):
+ directory=output_fd()
+ try:names=set(os.listdir(directory))
+ finally:os.close(directory)
+ if names!=set(expected):raise SystemExit("artifact allowlist mismatch")
+ result={}
+ for name in sorted(names):
+  data=artifact_bytes(name);result[name]={"sha256":hashlib.sha256(data).hexdigest(),"bytes":len(data)}
+ return result
+def validate_manifest(value):
+ if set(value)!={"schema","label","members"} or value["schema"]!="c595-eval-recovery-artifact-manifest-v1" or value["label"]!=LABEL:raise SystemExit("manifest schema mismatch")
+ if value["members"]!=inspect_artifacts(BASE_ARTIFACTS):raise SystemExit("manifest member mutation")
+ return value
 def safe_regular(path):
  current=pathlib.Path(path.anchor)
  for part in path.parts[1:]:
@@ -32,18 +91,20 @@ def safe_regular(path):
  info=os.lstat(path)
  if not stat.S_ISREG(info.st_mode):raise SystemExit("checkpoint is not regular")
  return info
-def nofollow_sha(path):
+def nofollow_bytes(path):
  fd=os.open(path,os.O_RDONLY|os.O_NOFOLLOW)
  try:
   info=os.fstat(fd)
   if not stat.S_ISREG(info.st_mode):raise SystemExit("not regular")
-  digest=hashlib.sha256()
+  chunks=[]
   while True:
    block=os.read(fd,8*1024*1024)
    if not block:break
-   digest.update(block)
-  return digest.hexdigest(),info.st_size
+   chunks.append(block)
+  return b"".join(chunks),info.st_size
  finally:os.close(fd)
+def nofollow_sha(path):
+ data,size=nofollow_bytes(path);return hashlib.sha256(data).hexdigest(),size
 def file_sha(path):return hashlib.sha256(path.read_bytes()).hexdigest()
 def scrub(source):
  exact={"RANK","LOCAL_RANK","WORLD_SIZE","LOCAL_WORLD_SIZE","GROUP_RANK","ROLE_RANK","ROLE_WORLD_SIZE",
@@ -94,22 +155,28 @@ def finite_scan(env):
  return value
 
 def main():
- ap=argparse.ArgumentParser();ap.add_argument("--authorization",type=pathlib.Path,required=True);ap.add_argument("--authorization-sha256",required=True);args=ap.parse_args()
+ ap=argparse.ArgumentParser();ap.add_argument("--authorization",type=pathlib.Path,required=True);ap.add_argument("--authorization-sha256",required=True);ap.add_argument("--core-commit",required=True);args=ap.parse_args()
  if socket.gethostname()!=HOSTNAME:raise SystemExit("wrong host")
+ if subprocess.check_output(["git","rev-parse","HEAD"],cwd=ROOT,text=True).strip()!=args.core_commit:raise SystemExit("core commit mismatch")
  authorization=ROOT/args.authorization
  if file_sha(authorization)!=args.authorization_sha256:raise SystemExit("authorization hash mismatch")
  expected_auth={"schema":"c595-eval-recovery-authorization-v1","host":"trn21","expected_hostname":HOSTNAME,"label":LABEL,
   "source_commit":SOURCE_COMMIT,"candidate_sha256":TRAIN_SHA,"prepare_sha256":PREPARE_SHA,"checkpoint_path":str(CHECKPOINT),
   "checkpoint_sha256":CHECKPOINT_SHA,"checkpoint_bytes":CHECKPOINT_BYTES,"training_authorized":False,"checkpoint_prune_authorized":False,"state":"human_approved_evaluator_only"}
  if json.loads(authorization.read_text())!=expected_auth:raise SystemExit("authorization contract mismatch")
- if OUTPUT.exists():raise SystemExit("recovery output already exists")
- OUTPUT.mkdir(parents=True)
  if file_sha(ROOT/TRAIN_REL)!=TRAIN_SHA or file_sha(ROOT/"prepare.py")!=PREPARE_SHA:raise SystemExit("working evaluator source mismatch")
  for rel,want in ((TRAIN_REL,TRAIN_SHA),("prepare.py",PREPARE_SHA)):
   blob=subprocess.check_output(["git","show",SOURCE_COMMIT+":"+rel],cwd=ROOT)
   if hashlib.sha256(blob).hexdigest()!=want:raise SystemExit("source commit object mismatch")
  info=safe_regular(CHECKPOINT);before_sha,before_bytes=nofollow_sha(CHECKPOINT)
  if (before_sha,before_bytes)!=(CHECKPOINT_SHA,CHECKPOINT_BYTES) or info.st_size!=CHECKPOINT_BYTES:raise SystemExit("checkpoint identity mismatch")
+ runtime_job=ROOT/"research"/"run-logs"/(LABEL+".job.json");safe_regular(runtime_job)
+ runtime_job_bytes,_=nofollow_bytes(runtime_job);runtime_job_data=json.loads(runtime_job_bytes)
+ if runtime_job_data.get("label")!=LABEL or runtime_job_data.get("expected_commit")!=args.core_commit or runtime_job_data.get("host")!="trn21":raise SystemExit("runtime job identity mismatch")
+ request_sha=runtime_job_data.get("request_file_sha256")
+ if type(request_sha) is not str or len(request_sha)!=64 or any(c not in HEX64 for c in request_sha):raise SystemExit("runtime request identity missing")
+ runtime_job_sha=hashlib.sha256(runtime_job_bytes).hexdigest()
+ create_output()
  env=scrub(os.environ);scan=finite_scan(env)
  primary=[PYTHON,"prepare.py","eval-public","--train-py",TRAIN_REL,"--checkpoint",str(CHECKPOINT)]
  secondary=[PYTHON,"prepare.py","eval-public","--train-py",TRAIN_REL,"--checkpoint",str(CHECKPOINT),"--device","neuron","--batch-size","1","--seq-len","1024","--eval-tokens","20971520","--timeout-seconds","1200"]
@@ -124,7 +191,27 @@ def main():
   "secondary":{"argv":secondary,"metrics":secondary_metrics,"wall_seconds":secondary_wall},
   "environment":{"python":PYTHON,"lnc":"2","inherited_neuron_cc_flags_removed":True,"distributed_and_competition_variables_scrubbed":True}}
  durable_json(OUTPUT/"result.json",result)
- manifest={path.name:{"sha256":file_sha(path),"bytes":path.stat().st_size} for path in sorted(OUTPUT.iterdir()) if path.is_file()}
+ members=inspect_artifacts(BASE_ARTIFACTS)
+ manifest={"schema":"c595-eval-recovery-artifact-manifest-v1","label":LABEL,"members":members}
  durable_json(OUTPUT/"artifact-manifest.json",manifest)
- print(json.dumps(result,sort_keys=True))
+ manifest_bytes=artifact_bytes("artifact-manifest.json");manifest_sha=hashlib.sha256(manifest_bytes).hexdigest()
+ if json.loads(manifest_bytes)!=manifest or inspect_artifacts(BASE_ARTIFACTS|{"artifact-manifest.json"})["artifact-manifest.json"]["sha256"]!=manifest_sha:raise SystemExit("manifest revalidation failed")
+ # Validate against the exact pre-manifest allowlist by temporarily checking
+ # the already captured member map and each no-follow byte identity.
+ for name,identity in members.items():
+  data=artifact_bytes(name)
+  if identity!={"sha256":hashlib.sha256(data).hexdigest(),"bytes":len(data)}:raise SystemExit("manifest member changed")
+ completion={"schema":"c595-eval-recovery-completion-v1","label":LABEL,"host":"trn21","hostname":HOSTNAME,
+  "core_commit":args.core_commit,"source_commit":SOURCE_COMMIT,"candidate_sha256":TRAIN_SHA,"prepare_sha256":PREPARE_SHA,
+  "request_file_sha256":request_sha,"runtime_job_sha256":runtime_job_sha,"artifact_manifest_sha256":manifest_sha,
+  "artifact_members":members,"checkpoint_path":str(CHECKPOINT),"checkpoint_pre_sha256":before_sha,"checkpoint_pre_bytes":before_bytes,
+  "checkpoint_post_sha256":after_sha,"checkpoint_post_bytes":after_bytes,"checkpoint_preserved":True,
+  "training_executed":False,"checkpoint_prune_executed":False,"ready_to_retrieve":True}
+ durable_json(OUTPUT/"ready-to-retrieve.json",completion)
+ completion_bytes=artifact_bytes("ready-to-retrieve.json");completion_sha=hashlib.sha256(completion_bytes).hexdigest()
+ if json.loads(completion_bytes)!=completion:raise SystemExit("completion receipt revalidation failed")
+ final_set=BASE_ARTIFACTS|{"artifact-manifest.json","ready-to-retrieve.json"}
+ final_artifacts=inspect_artifacts(final_set)
+ if final_artifacts["artifact-manifest.json"]["sha256"]!=manifest_sha or final_artifacts["ready-to-retrieve.json"]["sha256"]!=completion_sha:raise SystemExit("final artifact mutation detected")
+ print(json.dumps({"result":result,"artifact_manifest_sha256":manifest_sha,"completion_receipt_sha256":completion_sha,"ready_to_retrieve":True},sort_keys=True))
 if __name__=="__main__":main()

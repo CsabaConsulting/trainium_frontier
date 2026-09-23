@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import importlib.util,json,math,pathlib
+import importlib.util,json,math,os,pathlib,tempfile
 HERE=pathlib.Path(__file__).resolve().parent
 spec=importlib.util.spec_from_file_location("eval_recovery",HERE/"eval_recovery.py");m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 
@@ -32,4 +32,35 @@ assert "submission_rehearsal" not in source and "torchrun" not in source and "ru
 assert '[PYTHON,"prepare.py","eval-public","--train-py",TRAIN_REL,"--checkpoint",str(CHECKPOINT)]' in source
 assert '"--eval-tokens","20971520","--timeout-seconds","1200"' in source
 assert "weights_only=True" in source and "map_location='cpu'" in source
+
+with tempfile.TemporaryDirectory(prefix="c595-eval-artifacts-") as temporary:
+ root=pathlib.Path(temporary)/"checkout";root.mkdir();outside=pathlib.Path(temporary)/"outside";outside.mkdir()
+ (root/"out").symlink_to(outside,target_is_directory=True)
+ try:m.create_output(root,root/"out"/m.LABEL)
+ except (OSError,SystemExit):pass
+ else:raise AssertionError("symlinked output ancestor accepted")
+ assert list(outside.iterdir())==[]
+ (root/"out").unlink();m.create_output(root,root/"out"/m.LABEL)
+ old_root,old_output=m.ROOT,m.OUTPUT;m.ROOT=root;m.OUTPUT=root/"out"/m.LABEL
+ try:
+  for name in m.BASE_ARTIFACTS:m.durable(m.OUTPUT/name,b"evidence-"+name.encode())
+  members=m.inspect_artifacts(m.BASE_ARTIFACTS)
+  m.validate_manifest({"schema":"c595-eval-recovery-artifact-manifest-v1","label":m.LABEL,"members":members})
+  (m.OUTPUT/"extra").write_text("x")
+  try:m.inspect_artifacts(m.BASE_ARTIFACTS)
+  except SystemExit:pass
+  else:raise AssertionError("extra artifact accepted")
+  (m.OUTPUT/"extra").unlink();victim=m.OUTPUT/next(iter(m.BASE_ARTIFACTS));victim.unlink();victim.symlink_to(outside)
+  try:m.inspect_artifacts(m.BASE_ARTIFACTS)
+  except (OSError,SystemExit):pass
+  else:raise AssertionError("artifact symlink accepted")
+  victim.unlink();victim.write_bytes(b"mutated")
+  try:m.validate_manifest({"schema":"c595-eval-recovery-artifact-manifest-v1","label":m.LABEL,"members":members})
+  except SystemExit:pass
+  else:raise AssertionError("mutated artifact accepted")
+  for forged in ({"schema":"wrong","label":m.LABEL,"members":members},{"schema":"c595-eval-recovery-artifact-manifest-v1","label":m.LABEL,"members":{}},{}):
+   try:m.validate_manifest(forged)
+   except SystemExit:pass
+   else:raise AssertionError("forged/truncated manifest accepted")
+ finally:m.ROOT,m.OUTPUT=old_root,old_output
 print("c595 evaluator-only recovery static/adversarial gates: PASS")
