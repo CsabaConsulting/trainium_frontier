@@ -1,0 +1,53 @@
+{
+  "abort_conditions": [
+    "Smoke (300 s) step count below 0.97x the same-box control smoke (control smokes: 334 trn21 / 335 trn22), i.e. < 324 steps -- falsifies the 'negligible compute' premise",
+    "Smoke public_val_bpb more than 0.004 above the same-box control smoke (1.165855 trn21 / 1.165604 trn22)",
+    "causality_passed false or causality_max_abs != 0.0 in any smoke/full record",
+    "Any NaN/inf in the training loss, or loss-scale skips, or the step-time trace showing per-step recompiles (dt not settling to the control's steady state)",
+    "Checkpoint load_for_eval fails to reconstruct the model (missing skip weight keys or shape mismatch), or ARCH_TOGGLE_NAMES round-trip mismatch",
+    "Full run exceeds 2200 steps (would mean an unintended change to per-step work/data consumption and re-enter the data-wall confound) or falls below 2030 steps"
+  ],
+  "change_type": "code",
+  "created_at": "2026-09-23T02:38:43Z",
+  "duplicate_search_terms": [
+    "unet",
+    "u-net",
+    "U-Net",
+    "skip_weights",
+    "skip weight",
+    "encoder decoder",
+    "encoder_layers",
+    "decoder_layers",
+    "long skip",
+    "residual skip",
+    "x0-gate",
+    "x0_gate",
+    "block-nudge",
+    "block_nudge",
+    "skips.pop"
+  ],
+  "evidence": [
+    "train.py lines 172-182: prepare's identical-order replay; locked config at ~2140 steps sits at the data wall; epoch-2 replay lands in the lowest-LR cooldown steps",
+    "train.py lines 588-595 (USE_EPOCH_SHUFFLE): 1800s with +9.2% steps measured 2341/1.023799 shuffled and 2354/1.021278 vs 2149/1.018967 step-matched -- crossing the epoch boundary makes BPB WORSE, so extra step rate has no headroom at this commit",
+    "DECISION_LOG.md: all five CONFOUNDED full results at 9a4caa7b (2716, 2352, 2346, 2548, 2397 steps) exceed the ~2140-step wall and all are worse than the 2071-step control 1.005734/1.005967",
+    "research/experiment-log.jsonl controls: al-20260922-control-trn21-lnc2x4-9a4caa7b-full-r1 2071 steps/1.005734 and al-20260922-control-trn22-lnc2x4-9a4caa7b-full-r1 2076/1.005967 (control-pair spread 0.000233, so a >=0.002 delta at matched steps is resolvable)",
+    "train.py lines 629-632: repo convention of zero-initialized additive paths that are bit-identical to the control at step 0 (n-gram VE tables), which this proposal mirrors for the skip weights",
+    "train.py lines 340-343 (setup_optimizer contract): gate_params group catches 1-D/single-row gate tensors; scalar group asserts ndim <= 1 -- the (n_embd,) skip vectors belong in the gate group, not the scalar group",
+    "CURRENT_STATE.md 'Human strategic research priority' lane 4: prefer mechanisms that improve loss per token within 1800 s; lane 3: throughput alone is not evidence of progress",
+    "External: modded-nanogpt speedrun records (U-Net pattern skip connections with learnable skip weights between encoder and decoder halves) -- a per-token quality improvement at near-zero compute in short-budget small-depth training"
+  ],
+  "expected_effect": "val_bpb decreases by 0.002 to 0.006 versus the pinned 9a4caa7b control (1.005734 trn21 / 1.005967 trn22) at a matched step count (2071 +/- 2%, i.e. 2030-2115 steps, below the data wall). Step count within 2% of control because the added work is three (B,T,n_embd) scale-and-add ops per forward and their backward. If BPB is unchanged or worse at matched steps, the hypothesis is falsified and the toggle stays OFF.",
+  "files_allowed": [
+    "train.py"
+  ],
+  "flags": [],
+  "hypothesis": "The 1800 s budget at this commit is data-wall-limited, not throughput-limited: train.py lines 172-182 document that the corpus is exhausted at ~2140 steps and that epoch-2 replay lands in the low-LR cooldown and HURTS (USE_EPOCH_SHUFFLE note, lines 588-595: 2341 steps/1.023799 shuffled and 2354/1.021278 unshuffled vs 2149/1.018967 step-matched). Every 'CONFOUNDED' autoloop result (--bf16-norm-output 2716 steps/1.016279, bf16-mlp-input-norm 2346/1.0197, except-mlp-input 2352/1.0203, --no-ngram-ve 2548/1.026131, --batch-ramp 2397/1.01219) overshot that wall, so additional step-rate wins bought nothing. The remaining lever is loss-per-token at a fixed ~2071-step token budget. A U-Net-style encoder->decoder residual skip (modded-nanogpt records: learnable skip weights adding the i-th encoder block output into the i-th decoder block input) improves per-token loss in short-budget small-depth speedruns at negligible compute: three elementwise scale-and-add ops on the (B,T,n_embd) residual per forward. At depth 6 (3 encoder / 3 decoder blocks) with zero-initialized per-dimension skip weights, step 0 is bit-identical to the control (the repo's own honest-A/B convention, cf. the zero-initialized n-gram VE tables at lines 629-632), the step count stays within ~1-2% of the 2071-step control, and val_bpb drops.",
+  "implementation_plan": "All edits confined to train.py on branch autoloop/20260923-unet-skip-connections-zero-init from 9a4caa7b. STEP 1 (static inspection, reported only as a note in the implementation summary; no artifact, no execution): (a) locate class GPT: its __init__ (where self.transformer/blocks are built from depth and n_embd) and its forward (x = norm(wte(idx)); loop over blocks with whatever per-layer arguments -- x0, value embeddings, n-gram indices, layer index -- the blocks take; final norm; lm_head/CE path). Record the exact loop form and the block-call signature so it is reproduced unchanged. (b) Locate the existing toggle plumbing for --x0-gate (module-level USE_* constant, env var NEURON_COMPETITION_R1_*, argparse pair, ARCH_TOGGLE_NAMES membership, and how the model reads the constant) and how its 1-D gate parameters are registered (attribute naming) and routed by setup_optimizer into the gate/conv AdamW group (name-based or ndim-based). (c) Confirm setup_optimizer's assertions (scalar group ndim <= 1; every parameter assigned exactly once). STEP 2 (toggle): add module-level USE_UNET_SKIP = os.environ.get('NEURON_COMPETITION_R1_UNET_SKIP', '1') != '0' next to USE_X0_GATE-style constants, with a comment stating the data-wall rationale and the zero-init step-0-identity property; add --unet-skip / --no-unet-skip argparse flags wired exactly like --x0-gate/--no-x0-gate (including the env-default resolution and the dest that overwrites the module constant); append 'USE_UNET_SKIP' to ARCH_TOGGLE_NAMES so save/load_for_eval persist and restore it identically to the other architecture toggles. STEP 3 (parameters): in GPT.__init__, if USE_UNET_SKIP and depth >= 2: n_enc = depth // 2; register self.unet_skip_gates = nn.ParameterList([nn.Parameter(torch.zeros(n_embd)) for _ in range(n_enc)]) using the same parameter dtype the existing gate parameters use; if the existing gate group is selected by a name pattern, name the attribute so it matches that pattern (e.g. include 'gate' in the name as the x0-gate parameters do); if depth < 2, register nothing and behave as the control. Do NOT touch init_weights for other tensors and draw no torch RNG (zeros only) so every other parameter is bit-identical to the control. STEP 4 (forward): in GPT.forward, replace the single block loop by: skips = []; for i, block in enumerate(blocks): if USE_UNET_SKIP and n_enc > 0 and n_enc <= i < 2*n_enc: x = x + self.unet_skip_gates[i - n_enc] * skips.pop(); x = block(x, <unchanged per-layer args for layer i>); if USE_UNET_SKIP and i < n_enc: skips.append(x). Keep layer indices, has_ve/n-gram-table layer selection (NGRAM_VE_LAYERS '1,-1'), x0, and every existing block argument exactly as before; the multiply broadcasts (n_embd,) over (B,T,n_embd) and must be performed in x's dtype (cast the gate to x.dtype if they differ) so the residual dtype is unchanged. When the toggle is off the loop must be the original loop (no skips list, no extra ops). STEP 5 (optimizer): verify statically that the new parameters land in the existing 1-D gate/conv AdamW group (weight_decay 0, the group's existing betas/lr) and that no Muon group receives them; if routing is name-based and the chosen name does not match, adjust the attribute name -- do not add a new optimizer group and do not change any LR/beta/wd constant. STEP 6 (logging): add exactly one startup log field 'unet_skip': USE_UNET_SKIP (and n_enc) alongside the other architecture toggle fields; no other logging changes. STEP 7 (static review): confirm python -c 'import ast; ast.parse(open(\"train.py\").read())' passes, the diff touches only the toggle constant, argparse, ARCH_TOGGLE_NAMES, GPT.__init__, GPT.forward, and the one log field, and that with USE_UNET_SKIP False the forward/optimizer code paths are the original ones. Launch is the pinned control command with no extra flags (toggle default True).",
+  "proposal_id": "20260923-unet-skip-connections-zero-init",
+  "single_causal_change": "One architecture change confined to train.py: a new module-level toggle USE_UNET_SKIP (default True; env NEURON_COMPETITION_R1_UNET_SKIP='0' disables; CLI --unet-skip/--no-unet-skip; appended to ARCH_TOGGLE_NAMES so checkpoints persist it and load_for_eval rebuilds the same graph). When on, GPT registers n_enc = depth // 2 learnable skip weight vectors of shape (n_embd,) initialized to ZERO, and GPT.forward adds skip_weights[i] * (output of encoder block i) to the residual stream immediately before decoder block i (encoder blocks are the first n_enc blocks, decoder blocks are the remaining ones, paired last-encoder-to-first-decoder in the usual U-Net LIFO order). Nothing else changes: no precision, kernel, optimizer-algorithm, schedule, data, or evaluator change; the new parameters join the existing 1-D gate/conv AdamW group exactly as the existing gate parameters do.",
+  "smoke_gate": {
+    "min_step_rate_ratio": 0.97
+  },
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}
