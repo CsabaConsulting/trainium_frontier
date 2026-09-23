@@ -1,0 +1,78 @@
+{
+  "role": "Operator",
+  "status": "complete",
+  "authorization": "User's previously explicit bounded cleanup approval, relayed by Supervisor after verified evidence durability.",
+  "host": "trn22",
+  "hostname": "ip-172-31-32-253",
+  "label": "fs-dense6x1024-direct-neuron-discriminator-r3-20260923t135230000001z",
+  "pre_delete_audit_at": "2026-09-23T14:17:45Z",
+  "target": {
+    "absolute_path": "/tmp/fs-dense6x1024-direct-neuron-discriminator-r3-20260923t135230000001z-discriminator-results/ce-source.pt",
+    "basename": "ce-source.pt",
+    "bytes": 2189698403,
+    "sha256": "7d9f13f14b5fdd3bf5720e0ee5587f47113ae5cf8f6946d6aae1f5ed2a43acca",
+    "mtime": "2026-09-23 14:04:21.030895910 +0000",
+    "mode": "0664",
+    "inode": 68873,
+    "hard_link_count": 1,
+    "regular_file": true,
+    "symlink": false,
+    "fuser_returncode": 1,
+    "live_holder_count": 0,
+    "relevant_process_count": 0
+  },
+  "classification": {
+    "report_role": "source_tensors",
+    "is_training_checkpoint": false,
+    "reason": "The finalized discriminator report binds this exact path/hash/size as the ce-source child source_tensors intermediate; its basename is not a checkpoint basename and no training was performed.",
+    "report_sha256": "7e64bd9c7dd9d675c4975ba4dbbf9d09d94761da3d57f68b2c5d3eeccf4147ac",
+    "evidence_commit": "5e1cb8c972f2907553a87eea9c3a0445919176b8"
+  },
+  "scope": {
+    "delete_only_exact_target": true,
+    "recursive": false,
+    "glob": false,
+    "other_artifacts_authorized_for_removal": false
+  },
+  "disk_before": {
+    "available_bytes": 6439137280,
+    "inode_total": 26083328,
+    "inode_available": 25082993,
+    "eight_gib_gate_bytes": 8589934592,
+    "eight_gib_gate_passed": false
+  },
+  "sibling_regular_file_count_before": 14,
+  "deletion": {
+    "performed_at": "2026-09-23T14:18:33Z",
+    "operation": "unlink",
+    "exact_target_only": true,
+    "target_exists_after": false,
+    "other_files_removed": 0
+  },
+  "disk_after": {
+    "available_bytes": 8628834304,
+    "inode_total": 26083328,
+    "inode_available": 25082991,
+    "eight_gib_gate_bytes": 8589934592,
+    "eight_gib_gate_passed": true
+  },
+  "sibling_regular_file_count_after": 14,
+  "sibling_manifest_sha256_before": "58713e5edb80263843da14900dd061a7abeca650c2e381f386a7d87eb6465c04",
+  "sibling_manifest_sha256_after": "58713e5edb80263843da14900dd061a7abeca650c2e381f386a7d87eb6465c04",
+  "sibling_manifest_unchanged": true,
+  "final_audit": {
+    "performed_at": "2026-09-23T14:18:57Z",
+    "target_absent": true,
+    "report_sha256_unchanged": true,
+    "remote_head": "8c00844b7cd119a6b66ea6179afd53f00a7dc8fe",
+    "tracked_diff_clean": true,
+    "relevant_process_count": 0,
+    "device_fuser_returncode": 1,
+    "host_lock_free": true,
+    "cache_lock_file_count": 5793,
+    "cache_lock_holder_count": 0,
+    "neuron_process_count": 0,
+    "passed": true
+  },
+  "recoverability": "The deleted generated tensor bytes are not retained locally; their SHA-256, size, role, and all discriminator comparisons are durable in the pushed r3 evidence. Recreating the bytes would require an independently authorized rerun."
+}
