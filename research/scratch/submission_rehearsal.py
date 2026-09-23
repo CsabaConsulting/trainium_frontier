@@ -82,6 +82,9 @@ def main():
                    "--timeout-seconds", "1200"]
     else:
         command = shlex.split(launch)
+        # Reproduce a fresh leaderboard shell. A parent experiment wrapper may carry a narrower
+        # NEURON_CC_FLAGS value; the packaged train.py owns its full default compiler policy.
+        env.pop("NEURON_CC_FLAGS", None)
         while command and "=" in command[0] and not command[0].startswith("-"):
             key, value = command.pop(0).split("=", 1)
             env[key] = value
