@@ -1,0 +1,18 @@
+{
+  "deterministic_findings": [],
+  "deterministic_ok": true,
+  "duplicates_found": [],
+  "independent": true,
+  "llm_findings": [
+    "STEP 3 contradicts authoritative GPT.setup_optimizer(): there is no generic shape/name classifier routing new 1-D attention parameters to gate_params. matrix_params collects every block.attn parameter except exactly 'head_gate_bias'; existing VE/ngram gate matrices go to Muon. A parameter named vres_gate would therefore enter Muon, and the proposed assertion would fail rather than establish safe routing. Explicitly plan to append vres_gate to gate_params and exclude it from matrix_params, preserving all existing memberships and gate-group hyperparameters (AdamW, MATRIX_LR=0.020, betas=(0.9,0.95), eps=1e-10, weight_decay=0). Correct the corresponding evidence claim.",
+    "The remaining architecture plan describes one bounded causal change: reuse layer-0 post-VE values through zero-initialized per-head interpolation in later layers. Authoritative CausalSelfAttention.forward currently mixes only embedding-table sources into V, and GPT.forward carries no first-layer value tensor. The supplied decision log closes residual-stream UNet skips and attention-scale changes, not this value-stream mechanism.",
+    "The train.py-only scope, checkpoint-toggle restoration, and per-position value mixing are consistent with the competition contract; no pretrained assets, external data, or evaluator changes are proposed. Pre-implementation inspection and post-edit syntax/diff review introduce no prohibited executable prerequisite.",
+    "The predicted BPB improvement and step-count range are falsifiable against the controller-managed seed-42 matched full-chip control, including trn21's recorded 1.005734 BPB at 2071 steps. Negligible FLOPs do not establish negligible runtime: train.py documents substantial scheduling effects from small graph edits. Treat throughput neutrality as a hypothesis tested by the smoke/full gates, not established evidence."
+  ],
+  "llm_verdict": "NEEDS_WORK",
+  "passed": false,
+  "proposal_id": "20260923-value-residual-first-layer-v-zero-init",
+  "researcher_model_id": "us.anthropic.claude-fable-5-1",
+  "verified_at": "2026-09-23T15:12:34Z",
+  "verifier_model_id": "us.openai.gpt-6-astra"
+}

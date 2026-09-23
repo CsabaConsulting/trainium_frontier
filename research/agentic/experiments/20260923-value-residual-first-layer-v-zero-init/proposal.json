@@ -1,0 +1,48 @@
+{
+  "abort_conditions": [
+    "Static inspection finds an existing first-layer value-residual mechanism (any code mixing a stored earlier-layer value tensor into later layers' v) -- report and stop, do not implement a second one",
+    "Smoke: candidate steps < 324 in 300 s (below 0.97 x the 334-step same-host control smoke), i.e. the extra lerp/plumbing costs more than 3% step rate",
+    "Smoke: public_val_bpb > same-host control smoke + 0.003 (trn21: > 1.168855)",
+    "Smoke or full: causality_passed != true, or any NaN/inf loss, or load_for_eval fails to rebuild the model from the checkpoint (missing vres_gate keys / toggle mismatch)",
+    "Full: step count differs from the same-host pinned control by more than 10% (CONFOUNDED per protocol) or public_val_bpb >= control"
+  ],
+  "change_type": "code",
+  "created_at": "2026-09-23T15:12:33Z",
+  "duplicate_search_terms": [
+    "value residual",
+    "value-residual",
+    "ResFormer",
+    "v_first",
+    "v1",
+    "vres",
+    "first-layer value",
+    "value skip",
+    "lambdas v",
+    "USE_VALUE_RESIDUAL"
+  ],
+  "evidence": [
+    "train.py lines 621-650: n-gram VE 'mix it into the same attention V stream the unigram value embedding already feeds, through its own zero-init per-head gate' -- documents value-EMBEDDING sources into V only; no first-layer value residual is described",
+    "Available flag list at 9a4caa7b: contains --ve, --ngram-ve*, --x0-gate, --head-gate, --block-nudge, --unet-skip candidates but no --value-residual / value-residual alias, so no existing toggle for this mechanism",
+    "train.py lines 334-372: gate_params group exists 'precisely to catch 1-D/single-row gate tensors' and setup_optimizer asserts the scalar group holds nothing with ndim > 1 -- a (n_head,) zero-init gate has a known safe optimizer home and cannot reach Muon",
+    "Decision log 2026-09-22: --bf16-sdpa-input KEEP 1.002028 vs 1.005967 (2233/2076 steps) -- the attention V stream is already a measured, well-behaved boundary; this proposal places its mix before that cast so the KEEP remains composable",
+    "Decision log 2026-09-23: 20260923-unet-skip-zero-init-r2 DISCARD (1.008391 vs 1.005734 at 2041/2071) and 20260923-attn-scale-012 DISCARD -- residual-stream skips and attention-temperature changes are closed; the value-stream skip is distinct and untested",
+    "Pinned controls: trn21 2071 steps / 1.005734, trn22 2076 / 1.005967; smoke controls 334 / 1.165855 (trn21), 335 / 1.165604 (trn22)",
+    "ResFormer (Zhou et al. 2024, 'Value Residual Learning') and modded-nanogpt Nov-2024 record: mixing layer-0 values into later layers improves loss at matched tokens with negligible compute; the gain persists alongside embedding shortcuts"
+  ],
+  "expected_effect": "Lower public val_bpb at equal step count: -0.003 to -0.008 bpb versus the same-host pinned control (target <= 1.0027 on trn21 / <= 1.0030 on trn22), with step count within 3% of control (2010-2130 steps).",
+  "files_allowed": [
+    "train.py"
+  ],
+  "flags": [],
+  "hypothesis": "Layers 1..5 of this 6-layer model lose direct access to the token-local value information that layer 0 computes; ResFormer-style value residual learning (mixing the first layer's value tensor into every later layer's value tensor through a learnable per-head scalar) restores it at ~zero FLOP cost and improves loss per step. The repo already carries the value-EMBEDDING family (unigram VE on has_ve() layers, hashed n-gram VE tables on layers 1 and -1, both mixed into the attention V stream) and the embedding shortcut (--x0-gate), but no value-RESIDUAL path exists: no --value-residual flag is in the flag list, and the VE/ngram docs describe only embedding-table sources for the V stream. Because the mix is a per-position lerp on V before the attention backend call, causality is exactly preserved and step rate should be unchanged within noise, so any BPB change is a per-step-quality change and the run is unlikely to be step-count confounded (the failure mode of six recent precision candidates).",
+  "implementation_plan": "All edits confined to train.py on branch autoloop/20260923-value-residual-first-layer-v-zero-init from 9a4caa7b. STEP 1 (static inspection, notes only, no execution): (a) locate CausalSelfAttention.forward and record the exact line where the final value tensor is handed to the attention backend (nki_attention / F.scaled_dot_product_attention / _AttnNKI), including where the optional --bf16-sdpa-input cast of q/k/v happens and where the unigram VE and n-gram VE mixes into v happen; (b) locate every call site of the attention module inside Block.forward (including any --parallel-block / --mlp-sandwich-norm / qk-shift variant paths) and the GPT.forward loop over blocks; (c) locate the boolean-toggle pattern for USE_CAUTIOUS_WD (module constant, NEURON_COMPETITION_R1_* env override, argparse --cautious-wd/--no-cautious-wd) and the ARCH_TOGGLE_NAMES list plus the load_for_eval restore path that NGRAM_VE_TRIGRAM uses; (d) locate the parameter classifier in setup_optimizer that routes 1-D gate tensors (the existing per-head VE / n-gram gates) to the gate_params group and record whether it keys on name, shape, or both; (e) confirm no existing code stores a layer's value tensor and mixes it into a later layer's value tensor -- if it does, STOP and report (abort condition). STEP 2: add module-level USE_VALUE_RESIDUAL = True with env override NEURON_COMPETITION_R1_VALUE_RESIDUAL ('0' -> False), add --value-residual/--no-value-residual to argparse exactly like --cautious-wd, and add 'USE_VALUE_RESIDUAL' to ARCH_TOGGLE_NAMES so it is saved in the checkpoint config and restored by load_for_eval; a checkpoint lacking the key must restore False (baseline). STEP 3: in CausalSelfAttention.__init__, if USE_VALUE_RESIDUAL and this module's layer index >= 1 (use the existing layer-index attribute passed for has_ve()/n-gram layer selection), register self.vres_gate = nn.Parameter(torch.zeros(n_head, dtype=torch.float32)); name it so the STEP 1(d) classifier places it in the same optimizer group as the existing per-head VE gates (add a one-line assertion in setup_optimizer that every parameter named '*vres_gate' landed in that group and none in Muon). Layer 0 registers no new parameter. STEP 4: change CausalSelfAttention.forward to accept an optional keyword v_first=None and to return, in addition to its existing output, the fp32 value tensor v_out that it hands to the backend (captured before any bf16 cast); when self has vres_gate and v_first is not None, insert exactly one line at the point identified in STEP 1(a), after all VE/n-gram mixing and before the bf16-sdpa-input cast: v = v + self.vres_gate.view(1, self.n_head, 1, 1).to(v.dtype) * (v_first - v). Return v_out = v (post-mix for layers >= 1, plain for layer 0). STEP 5: thread the plumbing: Block.forward accepts v_first and returns (x, v_out) on every path that calls self.attn; GPT.forward keeps v_first = None before the block loop, passes it in, and after block 0 sets v_first to that block's returned v_out; all other forward callers (training loss path, eval path, causality check) are updated so signatures match. When USE_VALUE_RESIDUAL is False the returned v_out is ignored and no vres_gate exists, so the forward math is bit-identical to 9a4caa7b. STEP 6: do not touch q, k, rope, qk-shift, norms, MLP, lm_head, optimizer hyperparameters, schedules, dtype policies, kernels, data, or evaluator; do not add gradient checkpointing or change compile boundaries beyond the extra block input/output. STEP 7: static review: python -m py_compile train.py, diff limited to the edits above, confirm one new parameter per layer >= 1, zero init, and that the default-off path is textually unchanged in math.",
+  "proposal_id": "20260923-value-residual-first-layer-v-zero-init",
+  "single_causal_change": "One architecture change confined to train.py: a new module-level boolean toggle USE_VALUE_RESIDUAL (default True on the candidate branch; env NEURON_COMPETITION_R1_VALUE_RESIDUAL='0' disables; CLI --value-residual/--no-value-residual following the existing boolean-toggle pattern of --cautious-wd; persisted/restored through the same ARCH_TOGGLE_NAMES checkpoint mechanism as NGRAM_VE_TRIGRAM). When True, every attention layer with layer index >= 1 owns one new zero-initialized learnable parameter vres_gate of shape (n_head,), and immediately before the value tensor is handed to the attention backend (after projection, after all existing VE/n-gram VE mixing, BEFORE any --bf16-sdpa-input cast) it computes v = v + vres_gate.view(1, n_head, 1, 1) * (v_first - v), where v_first is the layer-0 attention module's value tensor at exactly the same point. Layer 0 is unchanged apart from returning its v. Nothing else changes: no precision, kernel, optimizer, schedule, data, or evaluator change; q, k, rope, qk-shift, VE, n-gram VE, MLP, norms, head all untouched. At init the change is bit-exact to baseline (v + 0*(v_first - v) == v).",
+  "smoke_gate": {
+    "max_bpb_delta": 0.003,
+    "min_candidate_steps": 324,
+    "min_step_rate_ratio": 0.97
+  },
+  "source_model_id": "us.anthropic.claude-fable-5-1",
+  "status": "proposed"
+}
