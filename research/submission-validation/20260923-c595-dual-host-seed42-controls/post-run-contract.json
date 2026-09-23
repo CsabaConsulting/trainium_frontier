@@ -2,8 +2,16 @@
   "schema":"c595-control-post-run-v1",
   "branch":"experiment/20260923-c595-dual-control",
   "origin":"https://github.com/CsabaConsulting/trainium_frontier.git",
-  "ordering":["retrieve and hash-verify exact allowlisted archive","commit and push evidence","create authenticated arm-bound push proof","run exact-path/hash prune","retrieve commit and push prune receipt"],
+  "operator_script":"research/submission-validation/20260923-c595-dual-host-seed42-controls/post_run_operator.py",
+  "stages":[
+    {"name":"retrieve","argv":["python","post_run_operator.py","retrieve","--arm","<exact-arm>"],"effect":"scp exact archive and post-archive completion receipt; verify exact tar members and hashes"},
+    {"name":"commit-proof","argv":["python","post_run_operator.py","commit-proof","--arm","<exact-arm>"],"effect":"commit/push verification, verify remote ref, construct and transfer bound proof"},
+    {"name":"prune","argv":["python","post_run_operator.py","prune","--arm","<exact-arm>","--prune-script-sha256","<core-pinned-sha>"],"effect":"authenticated exact checkpoint prune, retrieve/commit/push receipt"},
+    {"name":"cleanup","argv":["python","post_run_operator.py","cleanup","--arm","<exact-arm>","--cleanup-script-sha256","<core-pinned-sha>"],"effect":"after pushed evidence and prune receipt, remove only six job-owned cache roots; retrieve/commit/push receipt"}
+  ],
+  "ordering":["retrieve archive plus immutable outer completion receipt","verify exact tar members and hashes","commit and push verification","verify remote ref","construct and transfer arm-bound proof","run exact-path/hash prune","retrieve commit and push prune receipt","run journaled allowlisted cache cleanup","retrieve commit and push cleanup receipt"],
   "checkpoint_and_caches_in_archive":false,
+  "cache_allowlist":["train/caches/neff","train/caches/local","train/caches/hlo","train/caches/inductor","train/caches/compiler","train/caches/debug"],
   "arms":{
     "control_trn21":{"host":"trn21","ssh":"ubuntu@ec2-16-26-246-98.ap-southeast-4.compute.amazonaws.com","root":"/home/ubuntu/trainium_freshstart_20260923_c595_control_trn21","label":"fs-20260923-c595-control-trn21-r1"},
     "control_trn22":{"host":"trn22","ssh":"ubuntu@ec2-16-26-154-27.ap-southeast-4.compute.amazonaws.com","root":"/home/ubuntu/trainium_freshstart_20260923_c595_control_trn22","label":"fs-20260923-c595-control-trn22-r1"}

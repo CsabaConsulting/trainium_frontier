@@ -19,9 +19,20 @@ REQUIRED_LOSS_STEPS = (0, 1, 2, 3, 4, 10, 20, 30, 40)
 def sha(path):
     with path.open("rb") as stream: return hashlib.file_digest(stream, "sha256").hexdigest()
 
+def durable_create(path, value):
+    descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+    try:
+        os.write(descriptor, (json.dumps(value, indent=2, sort_keys=True) + "\n").encode())
+        os.fsync(descriptor)
+    finally: os.close(descriptor)
+    directory = os.open(path.parent, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    try: os.fsync(directory)
+    finally: os.close(directory)
+
 def scrub_eval_environment(source):
     blocked = {"RANK", "LOCAL_RANK", "WORLD_SIZE", "LOCAL_WORLD_SIZE", "GROUP_RANK",
-               "ROLE_RANK", "ROLE_WORLD_SIZE", "MASTER_ADDR", "MASTER_PORT"}
+               "ROLE_RANK", "ROLE_WORLD_SIZE", "MASTER_ADDR", "MASTER_PORT", "PYTHONPATH",
+               "PYTHONHOME", "NEURON_RT_VISIBLE_CORES", "NEURON_RT_NUM_CORES"}
     result = {}
     for key, value in source.items():
         if key in blocked or key.startswith("TORCHELASTIC_") or key.startswith("NEURON_COMPETITION_R1_"):
@@ -34,7 +45,7 @@ def scrub_eval_environment(source):
                   NEURON_LOGICAL_NC_CONFIG="2")
     return result
 
-def parse_metrics(output):
+def parse_metrics(output, expected_tokens, expected_bytes, expected_timeout=1200):
     decoder, found = json.JSONDecoder(), []
     for offset, character in enumerate(output):
         if character != "{": continue
@@ -43,8 +54,22 @@ def parse_metrics(output):
         if isinstance(value, dict) and {"val_bpb", "num_tokens", "num_bytes"} <= value.keys():
             found.append(value)
     if len(found) != 1: raise SystemExit(f"expected exactly one evaluation metrics object, got {len(found)}")
-    if not math.isfinite(float(found[0]["val_bpb"])): raise SystemExit("nonfinite BPB")
-    return found[0]
+    value = found[0]
+    exact_keys = {"val_bpb", "num_tokens", "num_bytes", "total_nats", "eval_seconds",
+                  "eval_timeout", "eval_over_timeout"}
+    if set(value) != exact_keys: raise SystemExit("evaluation metrics schema mismatch")
+    numeric = lambda item: isinstance(item, (int, float)) and not isinstance(item, bool) and math.isfinite(item)
+    if not numeric(value["val_bpb"]) or value["val_bpb"] <= 0: raise SystemExit("invalid BPB")
+    if not numeric(value["total_nats"]) or value["total_nats"] <= 0: raise SystemExit("invalid total_nats")
+    if not numeric(value["eval_seconds"]) or value["eval_seconds"] <= 0: raise SystemExit("invalid eval_seconds")
+    if type(value["num_tokens"]) is not int or value["num_tokens"] != expected_tokens:
+        raise SystemExit("invalid token count/type")
+    if type(value["num_bytes"]) is not int or value["num_bytes"] != expected_bytes:
+        raise SystemExit("invalid byte count/type")
+    if type(value["eval_timeout"]) is not int or value["eval_timeout"] != expected_timeout:
+        raise SystemExit("invalid eval timeout")
+    if value["eval_over_timeout"] is not False: raise SystemExit("evaluation exceeded timeout")
+    return value
 
 def parse_losses(output):
     values = {}
@@ -66,9 +91,7 @@ def run_eval(argv, environment, log_path, expected_tokens, expected_bytes):
                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     log_path.write_text(completed.stdout)
     if completed.returncode: raise SystemExit(f"evaluation failed rc={completed.returncode}")
-    metrics = parse_metrics(completed.stdout)
-    if metrics["num_tokens"] != expected_tokens or metrics["num_bytes"] != expected_bytes:
-        raise SystemExit(f"evaluation counts mismatch: {metrics}")
+    metrics = parse_metrics(completed.stdout, expected_tokens, expected_bytes, 1200)
     return metrics
 
 def strict_checkpoint_check(checkpoint, environment, log_path):
@@ -175,7 +198,20 @@ def main():
             stream=archive.extractfile(name)
             if stream is None or hashlib.sha256(stream.read()).hexdigest()!=want: raise SystemExit("archive hash mismatch")
     if sha(checkpoint)!=checkpoint_sha or checkpoint.stat().st_size!=checkpoint_bytes: raise SystemExit("checkpoint changed")
-    result.update(archive=str(exact_archive), archive_sha256=sha(exact_archive), ready_to_prune=True,
+    archive_sha = sha(exact_archive)
+    core_commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+    completion = {"schema":"c595-control-archive-completion-v1", "arm":args.arm,
+                  "label":label, "core_commit":core_commit, "candidate_sha256":TRAIN_SHA,
+                  "checkpoint_path":str(checkpoint), "checkpoint_sha256":checkpoint_sha,
+                  "checkpoint_bytes":checkpoint_bytes, "archive_path":str(exact_archive),
+                  "archive_sha256":archive_sha, "archive_bytes":exact_archive.stat().st_size,
+                  "archive_members":{**manifest, "archive-manifest.json":sha(manifest_path)},
+                  "ready_to_retrieve":True, "archive_immutable_after_sha256":True}
+    completion_path = exact_sandbox/"archive-completion.json"
+    durable_create(completion_path, completion)
+    result.update(archive=str(exact_archive), archive_sha256=archive_sha,
+                  archive_completion=str(completion_path),
+                  archive_completion_sha256=sha(completion_path), ready_to_prune=False,
                   prune_contract={"exact_path":str(checkpoint),"expected_sha256":checkpoint_sha,
                                   "expected_bytes":checkpoint_bytes})
     print(json.dumps(result, sort_keys=True))
