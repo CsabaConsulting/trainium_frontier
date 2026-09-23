@@ -16,11 +16,11 @@ checkout for every hard-coded protected path, and every protected file's indepen
 SHA-256. A descendant commit is rejected with the original literals. Supplying a descendant's own
 newly computed values is not an authorized command and this runbook never emits one.
 
-The Implementer-authored request starts as `pending_external_verifier`; full mode rejects that
-state. A later independent state-only finalization may make the current request
-`finalized_by_external_verifier` without making this description false. There is no SHA sentinel:
-even static mode requires the literal SHA-256 of the actual request bytes. This deliberately
-non-executable block confers no authority in either state.
+This corrected Implementer-authored request is `pending_external_verifier`; full mode rejects that
+state. A later independent state-only finalization may make the request
+`finalized_by_external_verifier`. There is no SHA sentinel: even static mode requires the literal
+SHA-256 of the actual request bytes. This deliberately non-executable block confers no authority in
+either state.
 
 ```bash
 echo 'No hardware authority. Obtain the exact request and command from the independent Verifier.' >&2
@@ -40,6 +40,26 @@ The top-level process sequentially creates five fresh, non-existing compile-cach
 runs five isolated subprocesses: CE source, CE direct, optimizer raw, optimizer source, optimizer
 direct. A child cannot run without the top-level nonce. Any nonzero exit or output line indicating
 a recompile-limit warning invalidates the gate.
+
+The outer manifested environment remains exact and contains `WORLD_SIZE=LOCAL_WORLD_SIZE=4` for
+the four-rank optimizer contract. Before either plain-Python CE child starts, the harness removes
+`WORLD_SIZE`, `LOCAL_WORLD_SIZE`, all rank/group/role/node variables, `MASTER_ADDR`, `MASTER_PORT`,
+and every `TORCHELASTIC_`, `TORCHRUN_`, `PET_`, `RDZV_`, `RENDEZVOUS_`, `PMI_`, `PMIX_`, and
+`OMPI_COMM_WORLD_` variable. The CE worker independently rejects any such inherited variable before
+importing Torch/Neuron and records logical singleton identity (world/local world 1, rank/local rank
+0, no rendezvous). In contrast, each optimizer launch retains exactly the outer world/local-world
+shape of four, removes stale rank/rendezvous values, and lets the pinned four-rank `torchrun` inject
+the per-worker ranks and rendezvous settings.
+
+Before the parent judges a launched child, it writes two label-derived, no-overwrite receipts under
+`research/run-logs`: `LABEL.child-NN-NAME.log` is the complete combined stdout/stderr stream, and
+`LABEL.child-NN-NAME.json` records the exact argv, sanitized environment identity, return code,
+duration, timeout/error state, all recompile-limit matches, log byte count/SHA-256, expected worker
+artifact observations, and compile-cache observation. Both use `O_EXCL`/no-follow semantics and are
+fsynced; an existing path fails closed. The top result includes each record and its record SHA-256,
+including on the first child error, timeout, warning, missing artifact, malformed worker report, or
+later comparison failure. The Operator must retrieve these child logs/records with the other
+receipts; a missing or overwritten child receipt invalidates the gate.
 
 - CE runs 128, 512, and launch-relevant 32768 rows, twice each. Source and direct loss and logit
   gradient must pass actual `torch.equal` checks with max-absolute difference exactly zero. Forward
@@ -112,7 +132,8 @@ key/value pairs. It also requires the matching passing preflight receipt and gua
    host lock, preflight, timeout and postflight above. Publish it in the final Verifier report.
 4. Operator checks out exact HEAD and runs only the report's literal launch command. No training.
 5. Retrieve request/launch/job/process/log/result/postflight receipts. Missing receipts, a dirty path,
-   pre/postflight failure, recompile-limit warning, worker failure or any inequality is a failed gate.
+   missing child log/record, pre/postflight failure, recompile-limit warning, worker failure or any
+   inequality is a failed gate.
 
 Local implementation check (safe; no torch/Neuron import):
 

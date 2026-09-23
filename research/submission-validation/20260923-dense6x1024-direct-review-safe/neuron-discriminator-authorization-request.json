@@ -1,6 +1,6 @@
 {
   "schema": "dense6x1024-direct-neuron-discriminator-authorization-v1",
-  "authorization_state": "finalized_by_external_verifier",
+  "authorization_state": "pending_external_verifier",
   "purpose": "Source/direct Neuron component discriminator only; no training, submission, or scientific verdict.",
   "expected_sha256": {
     "train.py": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
@@ -16,9 +16,9 @@
     "submissions/dense6x1024_lean_review/train.py": "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344",
     "submissions/dense6x1024_direct_review/train.py": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537",
     "research/submission-validation/20260923-dense6x1024-direct-review-safe/cpu_equivalence_direct.py": "40133aedb49ab8918f1057a04231a8d0882db993a9d537c14f4ac8a26aeeda1b",
-    "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron_discriminator_direct.py": "b8fb941c66e654a6a2fbac637d3e3a56f2378308ccdd27a36cee05651e8740cd",
-    "research/submission-validation/20260923-dense6x1024-direct-review-safe/test_neuron_discriminator_static.py": "cb8468f22c5e8bd287f841563a074afb37de5c82176b8e8c99632ea4c3cf4dcc",
-    "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron-discriminator-runbook.md": "f041db2fe2627aaea3b614b4ae33b66884b876ee78f3cd5addeaefbcde4af326",
+    "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron_discriminator_direct.py": "7605cf659e5888fa12373539b3fddb9297c4458729882882e99614a1ee7b84a6",
+    "research/submission-validation/20260923-dense6x1024-direct-review-safe/test_neuron_discriminator_static.py": "75866b0c88fb2963d977f0087ce9de47a2be917e8197d3553dfca06d46d48631",
+    "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron-discriminator-runbook.md": "09b3a5b478fe4ee354f9edd1f864f6c952cadf7fa956a3e8c98a3a90d3e4ed34",
     "research/submission-validation/20260923-dense6x1024-direct-review-safe/proposal.json": "3ec23532e588afa6b890ddd533a84635f77c7006c85b3b810dcfb003c6f4e0a9",
     "research/submission-validation/20260923-dense6x1024-direct-review-safe/fs-20260923-dense6x1024-direct-neuron-component-20260923T103500000001Z-result.json": "de995152c8d2911d7c0fedd1e4772844668db88aff604da5f96899d7540d15ba",
     "research/submission-validation/20260923-dense6x1024-direct-review-safe/independent-neuron-discriminator-verifier.json": "507baee46715f66d230debae365bf0b5872ef1b9ad975b7421985d5b53867e4c"
@@ -54,6 +54,51 @@
       "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION": "1"
     },
     "recompile_limit_warning_policy": "invalidate",
-    "worker_isolation": "one variant per process; one fresh compile cache per variant"
+    "worker_isolation": "one variant per process; one fresh compile cache per variant",
+    "ce_child_environment": {
+      "distributed_exact_names_removed": [
+        "GROUP_RANK",
+        "GROUP_WORLD_SIZE",
+        "LOCAL_RANK",
+        "LOCAL_WORLD_SIZE",
+        "MASTER_ADDR",
+        "MASTER_PORT",
+        "NODE_RANK",
+        "RANK",
+        "ROLE_NAME",
+        "ROLE_RANK",
+        "ROLE_WORLD_SIZE",
+        "WORLD_SIZE"
+      ],
+      "distributed_prefixes_removed": [
+        "TORCHELASTIC_",
+        "TORCHRUN_",
+        "PET_",
+        "RDZV_",
+        "RENDEZVOUS_",
+        "PMI_",
+        "PMIX_",
+        "OMPI_COMM_WORLD_"
+      ],
+      "logical_singleton": {
+        "world_size": 1,
+        "local_world_size": 1,
+        "rank": 0,
+        "local_rank": 0
+      },
+      "rendezvous_configured": false
+    },
+    "optimizer_child_environment": {
+      "retained_outer": {
+        "WORLD_SIZE": "4",
+        "LOCAL_WORLD_SIZE": "4"
+      },
+      "rank_and_rendezvous": "injected by pinned four-rank torchrun"
+    },
+    "child_evidence": {
+      "log": "immutable complete combined stdout/stderr with SHA-256",
+      "record": "immutable per-child JSON before orchestration decision",
+      "top_failure": "all accumulated child records and receipts retained"
+    }
   }
 }

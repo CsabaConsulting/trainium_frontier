@@ -8,6 +8,7 @@ import hashlib
 import importlib.util
 import json
 from pathlib import Path
+import sys
 import tempfile
 import unittest
 from unittest import mock
@@ -48,6 +49,12 @@ class DiscriminatorStaticTests(unittest.TestCase):
         self.assertEqual(contract["outer_timeout_argv"], [
             "timeout", "--foreground", "--signal=TERM", "--kill-after=60s", "5400s"
         ])
+        self.assertEqual(contract["ce_child_environment"]["logical_singleton"], {
+            "world_size": 1, "local_world_size": 1, "rank": 0, "local_rank": 0,
+        })
+        self.assertEqual(contract["optimizer_child_environment"]["retained_outer"], {
+            "WORLD_SIZE": "4", "LOCAL_WORLD_SIZE": "4",
+        })
 
     def test_recompile_limit_warning_invalidates(self):
         self.assertTrue(D.scan_recompile_warning("WARNING: recompilation count exceeded limit"))
@@ -286,6 +293,190 @@ class DiscriminatorStaticTests(unittest.TestCase):
                             D.require_request_integrity(target)
             finally:
                 D.REQUEST = original
+
+    @staticmethod
+    def distributed_environment():
+        return {
+            "PATH": "/usr/bin:/bin",
+            "WORLD_SIZE": "4",
+            "LOCAL_WORLD_SIZE": "4",
+            "RANK": "3",
+            "LOCAL_RANK": "3",
+            "GROUP_RANK": "0",
+            "MASTER_ADDR": "127.0.0.1",
+            "MASTER_PORT": "29400",
+            "TORCHELASTIC_RUN_ID": "stale",
+            "RDZV_ENDPOINT": "stale:29400",
+            "PMI_RANK": "3",
+            "OMPI_COMM_WORLD_RANK": "3",
+            "TRAINIUM_DISCRIMINATOR_PARENT_NONCE": "unit-test-nonce",
+        }
+
+    def test_ce_child_environment_is_explicit_singleton(self):
+        with tempfile.TemporaryDirectory() as directory:
+            cache = Path(directory) / "cache"
+            child, identity = D.prepare_ce_environment(self.distributed_environment(), cache)
+            self.assertFalse(any(D.is_distributed_environment_name(name) for name in child), child)
+            self.assertEqual(child["NEURON_COMPILE_CACHE_DIR"], str(cache))
+            self.assertEqual(identity["mode"], "ce-singleton-launch")
+            self.assertEqual(
+                (identity["world_size"], identity["local_world_size"], identity["rank"],
+                 identity["local_rank"], identity["rendezvous_configured"]),
+                (1, 1, 0, 0, False),
+            )
+            self.assertEqual(
+                identity["removed_distributed_names"],
+                sorted(name for name in self.distributed_environment()
+                       if D.is_distributed_environment_name(name)),
+            )
+            worker_identity = D.ce_singleton_environment_identity(child)
+            self.assertEqual(worker_identity["mode"], "ce-singleton")
+            self.assertFalse(worker_identity["rendezvous_configured"])
+
+    def test_ce_worker_rejects_every_distributed_environment_family(self):
+        names = [*sorted(D.DISTRIBUTED_ENV_NAMES), *[prefix + "UNIT_TEST" for prefix in D.DISTRIBUTED_ENV_PREFIXES]]
+        for name in names:
+            with self.subTest(name=name):
+                with self.assertRaisesRegex(RuntimeError, "inherited distributed/rendezvous"):
+                    D.ce_singleton_environment_identity({name: "unexpected"})
+
+    def test_optimizer_child_environment_preserves_only_outer_world_shape(self):
+        with tempfile.TemporaryDirectory() as directory:
+            cache = Path(directory) / "cache"
+            child, identity = D.prepare_optimizer_environment(self.distributed_environment(), cache)
+            self.assertEqual(child["WORLD_SIZE"], "4")
+            self.assertEqual(child["LOCAL_WORLD_SIZE"], "4")
+            self.assertNotIn("RANK", child)
+            self.assertNotIn("LOCAL_RANK", child)
+            self.assertNotIn("MASTER_ADDR", child)
+            self.assertNotIn("TORCHELASTIC_RUN_ID", child)
+            self.assertEqual(identity["mode"], "optimizer-torchrun-four-rank-launch")
+            self.assertTrue(identity["rank_injected_by_torchrun"])
+            self.assertTrue(identity["rendezvous_injected_by_torchrun"])
+            for key in ("WORLD_SIZE", "LOCAL_WORLD_SIZE"):
+                broken = self.distributed_environment()
+                broken[key] = "1"
+                with self.assertRaisesRegex(RuntimeError, "requires retained"):
+                    D.prepare_optimizer_environment(broken, cache)
+
+    def run_local_child(self, root, name, code, timeout=5):
+        cache = root / f"{name}-cache"
+        cache.mkdir(exist_ok=True)
+        artifact = root / f"{name}-artifact.txt"
+        environment = {
+            "PATH": "/usr/bin:/bin",
+            "TRAINIUM_DISCRIMINATOR_PARENT_NONCE": "unit-test-nonce",
+        }
+        environment, identity = D.prepare_ce_environment(environment, cache)
+        command = [sys.executable, "-c", code, str(artifact)]
+        return D.run_child(
+            name, command, environment, identity, timeout,
+            root / f"{name}.log", root / f"{name}.json", cache,
+            {"worker_artifact": artifact},
+        )
+
+    def test_child_success_record_has_exact_schema_complete_log_and_artifact(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            process = self.run_local_child(
+                root, "success",
+                "import pathlib,sys; print('stdout-complete', flush=True); "
+                "print('stderr-complete', file=sys.stderr, flush=True); "
+                "pathlib.Path(sys.argv[1]).write_text('artifact')",
+            )
+            self.assertTrue(process["passed"], process)
+            self.assertEqual(set(process), D.CHILD_PROCESS_KEYS | {"record_receipt"})
+            persisted = json.loads((root / "success.json").read_text())
+            self.assertEqual(set(persisted), D.CHILD_PROCESS_KEYS)
+            self.assertEqual(process["argv"], persisted["argv"])
+            self.assertEqual(process["record_receipt"]["sha256"], D.sha256(root / "success.json"))
+            log = (root / "success.log").read_text()
+            self.assertIn("stdout-complete", log)
+            self.assertIn("stderr-complete", log)
+            self.assertEqual(process["log"]["bytes"], len((root / "success.log").read_bytes()))
+            self.assertTrue(process["artifacts"]["worker_artifact"]["regular"])
+            self.assertEqual(process["environment_identity"]["mode"], "ce-singleton-launch")
+            D.validate_child_process_record(process, include_receipt=True)
+
+    def test_child_error_timeout_and_warning_are_persisted_fail_closed(self):
+        cases = {
+            "error": ("import sys; print('before-error', flush=True); sys.exit(7)", 5),
+            "timeout": ("import time; print('before-timeout', flush=True); time.sleep(3)", 1),
+            "warning": ("print('torch._dynamo exceeded recompilation limit', flush=True)", 5),
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for name, (code, timeout) in cases.items():
+                with self.subTest(name=name):
+                    process = self.run_local_child(root, name, code, timeout)
+                    self.assertFalse(process["passed"])
+                    self.assertTrue((root / f"{name}.json").is_file())
+                    self.assertTrue((root / f"{name}.log").is_file())
+                    persisted = json.loads((root / f"{name}.json").read_text())
+                    self.assertEqual(persisted["argv"], process["argv"])
+                    self.assertEqual(persisted["log"], process["log"])
+                    if name == "error":
+                        self.assertEqual(process["returncode"], 7)
+                        self.assertIn("before-error", (root / "error.log").read_text())
+                    elif name == "timeout":
+                        self.assertTrue(process["timed_out"])
+                        self.assertEqual(process["error"]["type"], "TimeoutExpired")
+                        self.assertIn("before-timeout", (root / "timeout.log").read_text())
+                    else:
+                        self.assertTrue(process["recompile_limit_warnings"])
+
+    def test_child_receipts_never_overwrite(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            process = self.run_local_child(root, "once", "print('once', flush=True)")
+            before_log = process["log"]["sha256"]
+            before_record = process["record_receipt"]["sha256"]
+            with self.assertRaisesRegex(FileExistsError, "replace child log"):
+                self.run_local_child(root, "once", "print('twice', flush=True)")
+            self.assertEqual(D.sha256(root / "once.log"), before_log)
+            self.assertEqual(D.sha256(root / "once.json"), before_record)
+
+    def test_child_record_schema_and_environment_mutations_fail_closed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            process = self.run_local_child(root, "schema", "print('schema', flush=True)")
+            mutations = []
+            missing = copy.deepcopy(process)
+            missing.pop("argv")
+            mutations.append(missing)
+            extra = copy.deepcopy(process)
+            extra["unexpected"] = True
+            mutations.append(extra)
+            contaminated = copy.deepcopy(process)
+            contaminated["environment_identity"]["retained"]["WORLD_SIZE"] = "4"
+            mutations.append(contaminated)
+            false_pass = copy.deepcopy(process)
+            false_pass["returncode"] = 9
+            mutations.append(false_pass)
+            wrong_log = copy.deepcopy(process)
+            wrong_log["log"]["sha256"] = "0" * 64
+            mutations.append(wrong_log)
+            wrong_record = copy.deepcopy(process)
+            wrong_record["record_receipt"]["sha256"] = "0" * 64
+            mutations.append(wrong_record)
+            for mutation in mutations:
+                with self.assertRaises((ValueError, TypeError)):
+                    D.validate_child_process_record(mutation, include_receipt=True)
+
+    def test_top_failure_report_retains_accumulated_child_receipts(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            first = self.run_local_child(root, "first", "print('first', flush=True)")
+            second = self.run_local_child(root, "second", "import sys; print('second', flush=True); sys.exit(9)")
+            report = D.orchestrator_failure_report(
+                {"request_sha256": "a" * 64}, root / "results", [first, second],
+                {"launch.json": {"sha256": "b" * 64}}, RuntimeError("second failed"),
+            )
+            self.assertFalse(report["passed"])
+            self.assertEqual(report["processes"], [first, second])
+            self.assertEqual(report["processes"][1]["returncode"], 9)
+            self.assertEqual(report["processes"][1]["record_receipt"]["sha256"], D.sha256(root / "second.json"))
+            self.assertEqual(report["failure"], {"type": "RuntimeError", "message": "second failed"})
 
     @staticmethod
     def tensor_record(label):

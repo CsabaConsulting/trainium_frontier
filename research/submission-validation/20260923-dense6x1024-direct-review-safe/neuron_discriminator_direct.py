@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+from datetime import datetime, timezone
 import hashlib
 import importlib.util
 import json
@@ -37,6 +38,8 @@ DIRECT_SHA256 = "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf84753
 AUTH_SCHEMA = "dense6x1024-direct-neuron-discriminator-authorization-v1"
 REPORT_SCHEMA = "dense6x1024-direct-neuron-discriminator-report-v1"
 WORKER_SCHEMA = "dense6x1024-direct-neuron-discriminator-worker-v1"
+CHILD_PROCESS_SCHEMA = "dense6x1024-direct-neuron-discriminator-child-process-v1"
+CHILD_ENV_SCHEMA = "dense6x1024-direct-neuron-discriminator-child-environment-v1"
 PENDING_HEAD = "PENDING_EXTERNAL_VERIFIER_HEAD"
 ROWS = (128, 512, 32768)
 REPETITIONS = 2
@@ -105,6 +108,46 @@ FIXTURE_SPECS = {
         "steps": 4, "parameter_count": 62, "element_count": 117453580,
     },
 }
+DISTRIBUTED_ENV_NAMES = {
+    "WORLD_SIZE", "LOCAL_WORLD_SIZE", "RANK", "LOCAL_RANK", "GROUP_RANK",
+    "GROUP_WORLD_SIZE", "ROLE_RANK", "ROLE_WORLD_SIZE", "ROLE_NAME",
+    "MASTER_ADDR", "MASTER_PORT", "NODE_RANK",
+}
+DISTRIBUTED_ENV_PREFIXES = (
+    "TORCHELASTIC_", "TORCHRUN_", "PET_", "RDZV_", "RENDEZVOUS_",
+    "PMI_", "PMIX_", "OMPI_COMM_WORLD_",
+)
+SAFE_CHILD_ENV_NAMES = (
+    "PATH", "NKI_VENV_PATH", "NEURON_LOGICAL_NC_CONFIG", "NEURON_CC_FLAGS",
+    "NEURON_COMPILE_CACHE_DIR", "OMP_NUM_THREADS", "MKL_NUM_THREADS",
+    "PYTHONUNBUFFERED", "TORCH_NEURONX_DISABLE_FALLBACK_EXECUTION",
+    "WORLD_SIZE", "LOCAL_WORLD_SIZE", "RANK", "LOCAL_RANK", "GROUP_RANK",
+    "GROUP_WORLD_SIZE", "ROLE_RANK", "ROLE_WORLD_SIZE", "ROLE_NAME",
+    "MASTER_ADDR", "MASTER_PORT", "NODE_RANK", "TRAINIUM_DISCRIMINATOR_LABEL",
+    "TRAINIUM_DISCRIMINATOR_EXPECTED_COMMIT", "TRAINIUM_DISCRIMINATOR_AUTHORIZED_HEAD",
+    "TRAINIUM_DISCRIMINATOR_AUTHORIZATION_SHA256", "TRAINIUM_FRESH_START_RUN_ID",
+)
+CHILD_PROCESS_KEYS = {
+    "schema", "name", "argv", "environment_identity", "timeout_seconds",
+    "started_at_utc", "completed_at_utc", "duration_seconds", "returncode",
+    "timed_out", "error", "recompile_limit_warnings", "log", "artifacts",
+    "cache", "passed", "record_path",
+}
+CHILD_LOG_KEYS = {"path", "stream", "bytes", "sha256", "complete"}
+CHILD_ARTIFACT_KEYS = {"path", "exists", "regular", "symlink", "bytes", "sha256"}
+CHILD_CACHE_KEYS = {"path", "exists", "directory", "symlink", "entry_count"}
+CHILD_RECEIPT_KEYS = {"path", "sha256", "bytes"}
+BASE_CHILD_ENV_KEYS = {
+    "schema", "mode", "retained", "elastic_names_present",
+    "removed_distributed_names", "parent_nonce_sha256",
+}
+CE_CHILD_ENV_KEYS = BASE_CHILD_ENV_KEYS | {
+    "world_size", "local_world_size", "rank", "local_rank", "rendezvous_configured",
+}
+OPTIMIZER_CHILD_ENV_KEYS = BASE_CHILD_ENV_KEYS | {
+    "world_size", "local_world_size", "rank_injected_by_torchrun",
+    "rendezvous_injected_by_torchrun",
+}
 
 
 def sha256(path: Path) -> str:
@@ -126,6 +169,8 @@ def exclusive_json(path: Path, value: Any) -> None:
     try:
         with os.fdopen(fd, "wb") as f:
             f.write(json_bytes(value))
+            f.flush()
+            os.fsync(f.fileno())
     except BaseException:
         try:
             path.unlink()
@@ -201,6 +246,21 @@ def expected_contract() -> dict[str, Any]:
         "environment_static": STATIC_ENVIRONMENT,
         "recompile_limit_warning_policy": "invalidate",
         "worker_isolation": "one variant per process; one fresh compile cache per variant",
+        "ce_child_environment": {
+            "distributed_exact_names_removed": sorted(DISTRIBUTED_ENV_NAMES),
+            "distributed_prefixes_removed": list(DISTRIBUTED_ENV_PREFIXES),
+            "logical_singleton": {"world_size": 1, "local_world_size": 1, "rank": 0, "local_rank": 0},
+            "rendezvous_configured": False,
+        },
+        "optimizer_child_environment": {
+            "retained_outer": {"WORLD_SIZE": "4", "LOCAL_WORLD_SIZE": "4"},
+            "rank_and_rendezvous": "injected by pinned four-rank torchrun",
+        },
+        "child_evidence": {
+            "log": "immutable complete combined stdout/stderr with SHA-256",
+            "record": "immutable per-child JSON before orchestration decision",
+            "top_failure": "all accumulated child records and receipts retained",
+        },
     }
 
 
@@ -288,6 +348,84 @@ def import_train(path: Path, name: str):
     return module
 
 
+def is_distributed_environment_name(name: str) -> bool:
+    return name in DISTRIBUTED_ENV_NAMES or name.startswith(DISTRIBUTED_ENV_PREFIXES)
+
+
+def safe_child_environment_identity(
+    environment: dict[str, str], mode: str, removed_names: list[str] | tuple[str, ...] = (),
+) -> dict[str, Any]:
+    retained = {name: environment[name] for name in SAFE_CHILD_ENV_NAMES if name in environment}
+    elastic_names = sorted(name for name in environment if name.startswith(DISTRIBUTED_ENV_PREFIXES))
+    parent_nonce = environment.get("TRAINIUM_DISCRIMINATOR_PARENT_NONCE", "")
+    return {
+        "schema": CHILD_ENV_SCHEMA,
+        "mode": mode,
+        "retained": retained,
+        "elastic_names_present": elastic_names,
+        "removed_distributed_names": sorted(removed_names),
+        "parent_nonce_sha256": hashlib.sha256(parent_nonce.encode()).hexdigest() if parent_nonce else None,
+    }
+
+
+def ce_singleton_environment_identity(environment: dict[str, str]) -> dict[str, Any]:
+    present = sorted(name for name in environment if is_distributed_environment_name(name))
+    if present:
+        raise RuntimeError(f"CE worker inherited distributed/rendezvous variables: {present}")
+    identity = safe_child_environment_identity(environment, "ce-singleton")
+    identity.update({
+        "world_size": 1,
+        "local_world_size": 1,
+        "rank": 0,
+        "local_rank": 0,
+        "rendezvous_configured": False,
+    })
+    return identity
+
+
+def prepare_ce_environment(environment: dict[str, str], cache: Path) -> tuple[dict[str, str], dict[str, Any]]:
+    child = dict(environment)
+    removed = sorted(name for name in child if is_distributed_environment_name(name))
+    for name in removed:
+        child.pop(name)
+    child["NEURON_COMPILE_CACHE_DIR"] = str(cache)
+    singleton = ce_singleton_environment_identity(child)
+    launch_identity = safe_child_environment_identity(child, "ce-singleton-launch", removed)
+    launch_identity.update({
+        "world_size": 1,
+        "local_world_size": 1,
+        "rank": 0,
+        "local_rank": 0,
+        "rendezvous_configured": False,
+    })
+    if singleton["retained"] != launch_identity["retained"]:
+        raise AssertionError("CE singleton environment identity is incoherent")
+    return child, launch_identity
+
+
+def prepare_optimizer_environment(
+    environment: dict[str, str], cache: Path,
+) -> tuple[dict[str, str], dict[str, Any]]:
+    child = dict(environment)
+    if child.get("WORLD_SIZE") != str(WORLD_SIZE) or child.get("LOCAL_WORLD_SIZE") != str(WORLD_SIZE):
+        raise RuntimeError("optimizer torchrun launch requires retained WORLD_SIZE=LOCAL_WORLD_SIZE=4")
+    removed = sorted(
+        name for name in child
+        if is_distributed_environment_name(name) and name not in {"WORLD_SIZE", "LOCAL_WORLD_SIZE"}
+    )
+    for name in removed:
+        child.pop(name)
+    child["NEURON_COMPILE_CACHE_DIR"] = str(cache)
+    identity = safe_child_environment_identity(child, "optimizer-torchrun-four-rank-launch", removed)
+    identity.update({
+        "world_size": WORLD_SIZE,
+        "local_world_size": WORLD_SIZE,
+        "rank_injected_by_torchrun": True,
+        "rendezvous_injected_by_torchrun": True,
+    })
+    return child, identity
+
+
 def tensor_digest(torch, tensor) -> dict[str, Any]:
     value = tensor.detach().contiguous().cpu()
     raw = value.view(torch.uint8).numpy().tobytes()
@@ -315,6 +453,7 @@ def ce_fixture(torch, rows: int, repetition: int, device):
 def run_ce_worker(args: argparse.Namespace) -> int:
     if os.environ.get("TRAINIUM_DISCRIMINATOR_PARENT_NONCE") != args.parent_nonce:
         raise RuntimeError("CE worker lacks its authenticated parent nonce")
+    environment_identity = ce_singleton_environment_identity(dict(os.environ))
     import torch
     import torch.nn.functional as F
     import torch_neuronx  # noqa: F401
@@ -426,6 +565,7 @@ def run_ce_worker(args: argparse.Namespace) -> int:
         "calls": calls,
         "expected_calls": expected_calls,
         "compile_cache": os.environ.get("NEURON_COMPILE_CACHE_DIR"),
+        "environment_identity": environment_identity,
     }
     exclusive_json(args.result_dir / f"ce-{args.variant}.json", result)
     return 0 if passed else 1
@@ -676,20 +816,236 @@ def scan_recompile_warning(text: str) -> list[str]:
     return [line for line in text.splitlines() if any(pattern.search(line) for pattern in RECOMPILE_PATTERNS)]
 
 
-def run_child(command: list[str], env: dict[str, str], timeout: int) -> dict[str, Any]:
-    started = time.monotonic()
-    completed = subprocess.run(command, cwd=ROOT, env=env, text=True,
-                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                               timeout=timeout, check=False)
-    warnings = scan_recompile_warning(completed.stdout)
+def artifact_observation(path: Path) -> dict[str, Any]:
+    exists = path.exists()
+    symlink = path.is_symlink()
+    regular = path.is_file() and not symlink
     return {
-        "argv": command,
-        "returncode": completed.returncode,
-        "seconds": time.monotonic() - started,
-        "recompile_limit_warnings": warnings,
-        "log_tail": completed.stdout[-12000:],
-        "passed": completed.returncode == 0 and not warnings,
+        "path": str(path),
+        "exists": exists,
+        "regular": regular,
+        "symlink": symlink,
+        "bytes": path.stat().st_size if regular else None,
+        "sha256": sha256(path) if regular else None,
     }
+
+
+def cache_observation(path: Path) -> dict[str, Any]:
+    exists = path.exists()
+    symlink = path.is_symlink()
+    directory = path.is_dir() and not symlink
+    return {
+        "path": str(path),
+        "exists": exists,
+        "directory": directory,
+        "symlink": symlink,
+        "entry_count": len(list(path.iterdir())) if directory else None,
+    }
+
+
+def validate_child_process_record(record: Any, include_receipt: bool = False) -> None:
+    expected = CHILD_PROCESS_KEYS | ({"record_receipt"} if include_receipt else set())
+    require_exact_keys(record, expected, "child_process")
+    if record["schema"] != CHILD_PROCESS_SCHEMA or not isinstance(record["name"], str):
+        raise ValueError("child_process: identity/schema mismatch")
+    if (not isinstance(record["argv"], list) or not record["argv"]
+            or any(not isinstance(value, str) for value in record["argv"])):
+        raise ValueError("child_process: argv is not an exact nonempty string array")
+    if type(record["timeout_seconds"]) is not int or record["timeout_seconds"] <= 0:
+        raise ValueError("child_process: invalid timeout")
+    if (not isinstance(record["started_at_utc"], str)
+            or not isinstance(record["completed_at_utc"], str)
+            or type(record["duration_seconds"]) not in (int, float)
+            or not math.isfinite(record["duration_seconds"])
+            or record["duration_seconds"] < 0):
+        raise ValueError("child_process: invalid timing evidence")
+    if type(record["timed_out"]) is not bool:
+        raise ValueError("child_process: invalid timeout state")
+    if record["returncode"] is not None and type(record["returncode"]) is not int:
+        raise ValueError("child_process: invalid returncode")
+    if record["error"] is not None:
+        require_exact_keys(record["error"], {"type", "message"}, "child_process.error")
+        if not all(isinstance(value, str) for value in record["error"].values()):
+            raise ValueError("child_process: invalid error evidence")
+    if (not isinstance(record["recompile_limit_warnings"], list)
+            or any(not isinstance(value, str) for value in record["recompile_limit_warnings"])):
+        raise ValueError("child_process: invalid warning evidence")
+    log = record["log"]
+    require_exact_keys(log, CHILD_LOG_KEYS, "child_process.log")
+    if (not isinstance(log["path"], str) or log["stream"] != "combined-stdout-stderr"
+            or type(log["bytes"]) is not int or log["bytes"] < 0
+            or not re.fullmatch(r"[0-9a-f]{64}", log["sha256"] or "")
+            or log["complete"] is not True):
+        raise ValueError("child_process: invalid immutable log evidence")
+    log_path = Path(log["path"])
+    if (log_path.is_symlink() or not log_path.is_file() or log_path.stat().st_size != log["bytes"]
+            or sha256(log_path) != log["sha256"]):
+        raise ValueError("child_process: immutable log bytes differ from evidence")
+    if not isinstance(record["artifacts"], dict):
+        raise ValueError("child_process: artifact observations missing")
+    for name, observation in record["artifacts"].items():
+        if not isinstance(name, str):
+            raise ValueError("child_process: artifact name is not a string")
+        require_exact_keys(observation, CHILD_ARTIFACT_KEYS, f"child_process.artifacts.{name}")
+        if (type(observation["exists"]) is not bool or type(observation["regular"]) is not bool
+                or type(observation["symlink"]) is not bool):
+            raise ValueError("child_process: invalid artifact observation")
+        if observation["regular"]:
+            if (type(observation["bytes"]) is not int or observation["bytes"] < 0
+                    or not re.fullmatch(r"[0-9a-f]{64}", observation["sha256"] or "")):
+                raise ValueError("child_process: invalid regular artifact observation")
+        elif observation["bytes"] is not None or observation["sha256"] is not None:
+            raise ValueError("child_process: absent/unsafe artifact has digest evidence")
+    cache = record["cache"]
+    require_exact_keys(cache, CHILD_CACHE_KEYS, "child_process.cache")
+    if (type(cache["exists"]) is not bool or type(cache["directory"]) is not bool
+            or type(cache["symlink"]) is not bool
+            or (cache["directory"] and (type(cache["entry_count"]) is not int or cache["entry_count"] < 0))
+            or (not cache["directory"] and cache["entry_count"] is not None)):
+        raise ValueError("child_process: invalid cache observation")
+    environment = record["environment_identity"]
+    if not isinstance(environment, dict) or environment.get("schema") != CHILD_ENV_SCHEMA:
+        raise ValueError("child_process: sanitized environment identity missing")
+    if environment.get("mode") == "ce-singleton-launch":
+        require_exact_keys(environment, CE_CHILD_ENV_KEYS, "child_process.environment_identity")
+        if (environment["world_size"], environment["local_world_size"], environment["rank"],
+                environment["local_rank"], environment["rendezvous_configured"]) != (1, 1, 0, 0, False):
+            raise ValueError("child_process: CE launch is not a coherent singleton")
+        if (environment["elastic_names_present"]
+                or any(is_distributed_environment_name(name) for name in environment["retained"])):
+            raise ValueError("child_process: CE launch retained distributed environment")
+    elif environment.get("mode") == "optimizer-torchrun-four-rank-launch":
+        require_exact_keys(environment, OPTIMIZER_CHILD_ENV_KEYS, "child_process.environment_identity")
+        if (environment["world_size"] != WORLD_SIZE or environment["local_world_size"] != WORLD_SIZE
+                or environment["rank_injected_by_torchrun"] is not True
+                or environment["rendezvous_injected_by_torchrun"] is not True
+                or environment["retained"].get("WORLD_SIZE") != str(WORLD_SIZE)
+                or environment["retained"].get("LOCAL_WORLD_SIZE") != str(WORLD_SIZE)
+                or environment["elastic_names_present"]):
+            raise ValueError("child_process: optimizer launch is not coherent four-rank torchrun")
+    else:
+        raise ValueError("child_process: unknown environment mode")
+    if (not re.fullmatch(r"[0-9a-f]{64}", environment["parent_nonce_sha256"] or "")
+            or not isinstance(environment["removed_distributed_names"], list)
+            or environment["removed_distributed_names"] != sorted(set(environment["removed_distributed_names"]))
+            or any(not is_distributed_environment_name(name)
+                   for name in environment["removed_distributed_names"])):
+        raise ValueError("child_process: invalid sanitized environment identity")
+    expected_passed = (
+        record["returncode"] == 0 and record["timed_out"] is False
+        and record["error"] is None and not record["recompile_limit_warnings"]
+    )
+    if record["passed"] is not expected_passed:
+        raise ValueError("child_process: pass state differs from recorded process evidence")
+    if include_receipt:
+        receipt = record["record_receipt"]
+        require_exact_keys(receipt, CHILD_RECEIPT_KEYS, "child_process.record_receipt")
+        record_path = Path(receipt["path"])
+        if (receipt["path"] != record["record_path"] or record_path.is_symlink()
+                or not record_path.is_file() or type(receipt["bytes"]) is not int
+                or record_path.stat().st_size != receipt["bytes"]
+                or not re.fullmatch(r"[0-9a-f]{64}", receipt["sha256"] or "")
+                or sha256(record_path) != receipt["sha256"]):
+            raise ValueError("child_process: invalid immutable record receipt")
+        if json.loads(record_path.read_text()) != {
+            key: value for key, value in record.items() if key != "record_receipt"
+        }:
+            raise ValueError("child_process: persisted record differs from top-level evidence")
+
+
+def run_child(
+    name: str,
+    command: list[str],
+    env: dict[str, str],
+    environment_identity: dict[str, Any],
+    timeout: int,
+    log_path: Path,
+    record_path: Path,
+    cache_path: Path,
+    artifact_paths: dict[str, Path],
+) -> dict[str, Any]:
+    if log_path.exists() or log_path.is_symlink():
+        raise FileExistsError(f"refusing to replace child log: {log_path}")
+    if record_path.exists() or record_path.is_symlink():
+        raise FileExistsError(f"refusing to replace child record: {record_path}")
+    log_fd = os.open(log_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+    try:
+        record_fd = os.open(record_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+    except BaseException:
+        os.close(log_fd)
+        log_path.unlink()
+        raise
+    started_at = datetime.now(timezone.utc).isoformat()
+    started = time.monotonic()
+    returncode = None
+    timed_out = False
+    error_record = None
+    try:
+        with os.fdopen(log_fd, "wb") as output:
+            try:
+                completed = subprocess.run(
+                    command, cwd=ROOT, env=env, stdout=output, stderr=subprocess.STDOUT,
+                    timeout=timeout, check=False,
+                )
+                returncode = completed.returncode
+            except subprocess.TimeoutExpired as error:
+                timed_out = True
+                error_record = {"type": type(error).__name__, "message": str(error)}
+            except Exception as error:  # Persist spawn/exec failures before returning fail-closed.
+                error_record = {"type": type(error).__name__, "message": str(error)}
+            output.flush()
+            os.fsync(output.fileno())
+        duration = time.monotonic() - started
+        completed_at = datetime.now(timezone.utc).isoformat()
+        log_bytes = log_path.read_bytes()
+        warnings = scan_recompile_warning(log_bytes.decode("utf-8", errors="replace"))
+        record = {
+            "schema": CHILD_PROCESS_SCHEMA,
+            "name": name,
+            "argv": list(command),
+            "environment_identity": environment_identity,
+            "timeout_seconds": timeout,
+            "started_at_utc": started_at,
+            "completed_at_utc": completed_at,
+            "duration_seconds": duration,
+            "returncode": returncode,
+            "timed_out": timed_out,
+            "error": error_record,
+            "recompile_limit_warnings": warnings,
+            "log": {
+                "path": str(log_path),
+                "stream": "combined-stdout-stderr",
+                "bytes": len(log_bytes),
+                "sha256": hashlib.sha256(log_bytes).hexdigest(),
+                "complete": True,
+            },
+            "artifacts": {
+                artifact_name: artifact_observation(path)
+                for artifact_name, path in artifact_paths.items()
+            },
+            "cache": cache_observation(cache_path),
+            "passed": returncode == 0 and not timed_out and error_record is None and not warnings,
+            "record_path": str(record_path),
+        }
+        validate_child_process_record(record)
+        with os.fdopen(record_fd, "wb") as output:
+            output.write(json_bytes(record))
+            output.flush()
+            os.fsync(output.fileno())
+        receipt = {
+            "path": str(record_path),
+            "sha256": sha256(record_path),
+            "bytes": record_path.stat().st_size,
+        }
+        result = {**record, "record_receipt": receipt}
+        validate_child_process_record(result, include_receipt=True)
+        return result
+    except BaseException:
+        try:
+            os.close(record_fd)
+        except OSError:
+            pass
+        raise
 
 
 def expected_ce_calls() -> list[dict[str, Any]]:
@@ -702,7 +1058,8 @@ def expected_ce_calls() -> list[dict[str, Any]]:
 def validate_ce_report(report: Any, variant: str) -> None:
     require_exact_keys(
         report,
-        {"schema", "worker", "variant", "passed", "cases", "calls", "expected_calls", "compile_cache"},
+        {"schema", "worker", "variant", "passed", "cases", "calls", "expected_calls",
+         "compile_cache", "environment_identity"},
         f"ce.{variant}",
     )
     if (report["schema"] != WORKER_SCHEMA or report["worker"] != "ce"
@@ -710,6 +1067,23 @@ def validate_ce_report(report: Any, variant: str) -> None:
         raise ValueError(f"ce.{variant}: worker identity/schema/pass mismatch")
     if not isinstance(report["compile_cache"], str) or not Path(report["compile_cache"]).is_absolute():
         raise ValueError(f"ce.{variant}: compile cache missing/non-absolute")
+    environment = report["environment_identity"]
+    require_exact_keys(
+        environment,
+        {"schema", "mode", "retained", "elastic_names_present", "removed_distributed_names",
+         "parent_nonce_sha256", "world_size", "local_world_size", "rank", "local_rank",
+         "rendezvous_configured"},
+        f"ce.{variant}.environment_identity",
+    )
+    if (environment["schema"] != CHILD_ENV_SCHEMA or environment["mode"] != "ce-singleton"
+            or environment["world_size"] != 1 or environment["local_world_size"] != 1
+            or environment["rank"] != 0 or environment["local_rank"] != 0
+            or environment["rendezvous_configured"] is not False
+            or environment["elastic_names_present"] != []
+            or environment["removed_distributed_names"] != []
+            or any(is_distributed_environment_name(name) for name in environment["retained"])
+            or not re.fullmatch(r"[0-9a-f]{64}", environment["parent_nonce_sha256"] or "")):
+        raise ValueError(f"ce.{variant}: singleton environment proof mismatch")
     calls = expected_ce_calls()
     if report["calls"] != calls or report["expected_calls"] != calls:
         raise ValueError(f"ce.{variant}: exact lane/call trace mismatch")
@@ -1185,82 +1559,129 @@ def validate_outer_receipts(args: argparse.Namespace, authorization: dict[str, A
     return receipts
 
 
-def run_orchestrator(args: argparse.Namespace, authorization: dict[str, Any]) -> dict[str, Any]:
-    validate_full_environment(args)
-    outer_receipts = validate_outer_receipts(args, authorization)
-    result_dir = Path(f"/tmp/{args.run_label}-discriminator-results")
-    if result_dir.exists() or result_dir.is_symlink():
-        raise FileExistsError(f"fresh result directory already exists: {result_dir}")
-    result_dir.mkdir(mode=0o700)
-    nonce = hashlib.sha256(f"{args.run_label}:{args.authorization_sha256}".encode()).hexdigest()
-    common_env = os.environ.copy()
-    common_env["TRAINIUM_DISCRIMINATOR_PARENT_NONCE"] = nonce
-    processes = []
-    python = NATIVE_PYTHON
-    for variant in ("source", "direct"):
-        cache = Path(f"/tmp/{args.run_label}-ce-{variant}-cache")
-        if cache.exists() or cache.is_symlink():
-            raise FileExistsError(f"compile cache is not fresh: {cache}")
-        cache.mkdir(mode=0o700)
-        env = dict(common_env, NEURON_COMPILE_CACHE_DIR=str(cache))
-        command = [python, str(HARNESS), "--worker", "ce", "--variant", variant,
-                   "--result-dir", str(result_dir), "--parent-nonce", nonce]
-        processes.append({"name": f"ce-{variant}", **run_child(command, env, 1800)})
-        if not processes[-1]["passed"]:
-            raise RuntimeError(f"child failed or emitted recompile-limit warning: ce-{variant}")
-    ce_source = json.loads((result_dir / "ce-source.json").read_text())
-    ce_direct = json.loads((result_dir / "ce-direct.json").read_text())
-    validate_ce_report(ce_source, "source")
-    validate_ce_report(ce_direct, "direct")
-    ce_records_exact = all(
-        source_case["loss"] == direct_case["loss"]
-        and source_case["gradient"] == direct_case["gradient"]
-        for source_case, direct_case in zip(ce_source["cases"], ce_direct["cases"])
-    )
-    ce_passed = (
-        ce_source["passed"] and ce_direct["passed"]
-        and ce_source["calls"] == ce_direct["calls"]
-        and ce_source["compile_cache"] != ce_direct["compile_cache"]
-        and ce_records_exact
-        and len(ce_direct["cases"]) == len(ROWS) * REPETITIONS
-        and all(case["source_direct"]["passed"] for case in ce_direct["cases"])
-    )
-    for variant in ("raw", "source", "direct"):
-        cache = Path(f"/tmp/{args.run_label}-optimizer-{variant}-cache")
-        if cache.exists() or cache.is_symlink():
-            raise FileExistsError(f"compile cache is not fresh: {cache}")
-        cache.mkdir(mode=0o700)
-        env = dict(common_env, NEURON_COMPILE_CACHE_DIR=str(cache))
-        command = [TORCHRUN, "--standalone", "--nproc_per_node=4", str(HARNESS),
-                   "--worker", "optimizer", "--variant", variant,
-                   "--result-dir", str(result_dir), "--parent-nonce", nonce]
-        processes.append({"name": f"optimizer-{variant}", **run_child(command, env, 2400)})
-        if not processes[-1]["passed"]:
-            raise RuntimeError(f"child failed or emitted recompile-limit warning: optimizer-{variant}")
-    optimizer = compare_optimizer_results(result_dir)
+def orchestrator_failure_report(
+    authorization: dict[str, Any], result_dir: Path, processes: list[dict[str, Any]],
+    outer_receipts: dict[str, Any], error: Exception,
+) -> dict[str, Any]:
     return {
         "schema": REPORT_SCHEMA,
         "mode": "neuron",
-        "passed": ce_passed and optimizer["passed"] and all(p["passed"] for p in processes),
+        "passed": False,
         "authorization": authorization,
         "source_sha256": sha256(SOURCE),
         "direct_sha256": sha256(DIRECT),
-        "ce": {
-            "passed": ce_passed,
-            "source_cases": ce_source["cases"],
-            "direct_cases": ce_direct["cases"],
-            "source_direct_exact": [case["source_direct"] for case in ce_direct["cases"]],
-            "source_calls": ce_source["calls"],
-            "direct_calls": ce_direct["calls"],
-            "pytorch_diagnostic_numerically_non_gating": [
-                case["pytorch_diagnostic_numerically_non_gating"] for case in ce_direct["cases"]
-            ],
-        },
-        "optimizer": optimizer,
-        "processes": processes,
-        "outer_receipts": outer_receipts,
+        "failure": {"type": type(error).__name__, "message": str(error)},
+        "processes": list(processes),
+        "outer_receipts": dict(outer_receipts),
         "result_directory": str(result_dir),
     }
+
+
+def run_orchestrator(args: argparse.Namespace, authorization: dict[str, Any]) -> dict[str, Any]:
+    result_dir = Path(f"/tmp/{args.run_label}-discriminator-results")
+    run_logs = ROOT / "research/run-logs"
+    processes: list[dict[str, Any]] = []
+    outer_receipts: dict[str, Any] = {}
+
+    try:
+        validate_full_environment(args)
+        outer_receipts = validate_outer_receipts(args, authorization)
+        if result_dir.exists() or result_dir.is_symlink():
+            raise FileExistsError(f"fresh result directory already exists: {result_dir}")
+        result_dir.mkdir(mode=0o700)
+        nonce = hashlib.sha256(f"{args.run_label}:{args.authorization_sha256}".encode()).hexdigest()
+        common_env = os.environ.copy()
+        common_env["TRAINIUM_DISCRIMINATOR_PARENT_NONCE"] = nonce
+        python = NATIVE_PYTHON
+        for variant in ("source", "direct"):
+            name = f"ce-{variant}"
+            cache = Path(f"/tmp/{args.run_label}-{name}-cache")
+            if cache.exists() or cache.is_symlink():
+                raise FileExistsError(f"compile cache is not fresh: {cache}")
+            cache.mkdir(mode=0o700)
+            env, environment_identity = prepare_ce_environment(common_env, cache)
+            command = [python, str(HARNESS), "--worker", "ce", "--variant", variant,
+                       "--result-dir", str(result_dir), "--parent-nonce", nonce]
+            artifact_paths = {"worker_json": result_dir / f"ce-{variant}.json"}
+            if variant == "source":
+                artifact_paths["source_tensors"] = result_dir / "ce-source.pt"
+            index = len(processes)
+            process = run_child(
+                name, command, env, environment_identity, 1800,
+                run_logs / f"{args.run_label}.child-{index:02d}-{name}.log",
+                run_logs / f"{args.run_label}.child-{index:02d}-{name}.json",
+                cache, artifact_paths,
+            )
+            processes.append(process)
+            if not process["passed"]:
+                raise RuntimeError(f"child failed or emitted recompile-limit warning: {name}")
+        ce_source = json.loads((result_dir / "ce-source.json").read_text())
+        ce_direct = json.loads((result_dir / "ce-direct.json").read_text())
+        validate_ce_report(ce_source, "source")
+        validate_ce_report(ce_direct, "direct")
+        ce_records_exact = all(
+            source_case["loss"] == direct_case["loss"]
+            and source_case["gradient"] == direct_case["gradient"]
+            for source_case, direct_case in zip(ce_source["cases"], ce_direct["cases"])
+        )
+        ce_passed = (
+            ce_source["passed"] and ce_direct["passed"]
+            and ce_source["calls"] == ce_direct["calls"]
+            and ce_source["compile_cache"] != ce_direct["compile_cache"]
+            and ce_records_exact
+            and len(ce_direct["cases"]) == len(ROWS) * REPETITIONS
+            and all(case["source_direct"]["passed"] for case in ce_direct["cases"])
+        )
+        for variant in ("raw", "source", "direct"):
+            name = f"optimizer-{variant}"
+            cache = Path(f"/tmp/{args.run_label}-{name}-cache")
+            if cache.exists() or cache.is_symlink():
+                raise FileExistsError(f"compile cache is not fresh: {cache}")
+            cache.mkdir(mode=0o700)
+            env, environment_identity = prepare_optimizer_environment(common_env, cache)
+            command = [TORCHRUN, "--standalone", "--nproc_per_node=4", str(HARNESS),
+                       "--worker", "optimizer", "--variant", variant,
+                       "--result-dir", str(result_dir), "--parent-nonce", nonce]
+            artifact_paths = {
+                f"rank{rank}_json": result_dir / f"optimizer-{variant}-rank{rank}.json"
+                for rank in range(WORLD_SIZE)
+            }
+            index = len(processes)
+            process = run_child(
+                name, command, env, environment_identity, 2400,
+                run_logs / f"{args.run_label}.child-{index:02d}-{name}.log",
+                run_logs / f"{args.run_label}.child-{index:02d}-{name}.json",
+                cache, artifact_paths,
+            )
+            processes.append(process)
+            if not process["passed"]:
+                raise RuntimeError(f"child failed or emitted recompile-limit warning: {name}")
+        optimizer = compare_optimizer_results(result_dir)
+        return {
+            "schema": REPORT_SCHEMA,
+            "mode": "neuron",
+            "passed": ce_passed and optimizer["passed"] and all(p["passed"] for p in processes),
+            "authorization": authorization,
+            "source_sha256": sha256(SOURCE),
+            "direct_sha256": sha256(DIRECT),
+            "ce": {
+                "passed": ce_passed,
+                "source_cases": ce_source["cases"],
+                "direct_cases": ce_direct["cases"],
+                "source_direct_exact": [case["source_direct"] for case in ce_direct["cases"]],
+                "source_calls": ce_source["calls"],
+                "direct_calls": ce_direct["calls"],
+                "pytorch_diagnostic_numerically_non_gating": [
+                    case["pytorch_diagnostic_numerically_non_gating"] for case in ce_direct["cases"]
+                ],
+            },
+            "optimizer": optimizer,
+            "processes": processes,
+            "outer_receipts": outer_receipts,
+            "result_directory": str(result_dir),
+        }
+    except Exception as error:
+        return orchestrator_failure_report(authorization, result_dir, processes, outer_receipts, error)
 
 
 def parser() -> argparse.ArgumentParser:
@@ -1312,15 +1733,9 @@ def main() -> int:
         try:
             report = run_orchestrator(args, authorization)
         except Exception as error:
-            report = {
-                "schema": REPORT_SCHEMA,
-                "mode": "neuron",
-                "passed": False,
-                "authorization": authorization,
-                "source_sha256": sha256(SOURCE),
-                "direct_sha256": sha256(DIRECT),
-                "failure": {"type": type(error).__name__, "message": str(error)},
-            }
+            report = orchestrator_failure_report(
+                authorization, Path(f"/tmp/{args.run_label}-discriminator-results"), [], {}, error,
+            )
         report["static"] = static
         report["passed"] = report["passed"] and static["passed"]
     exclusive_json(args.report, report)
