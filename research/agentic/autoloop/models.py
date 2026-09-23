@@ -86,7 +86,7 @@ class BedrockClient:
 
     def complete(self, *, role: str, model_id: str, system: str, user: str, max_tokens: int) -> ModelReply:
         from botocore.exceptions import BotoCoreError, ClientError
-        from urllib3.exceptions import ProtocolError
+        from urllib3.exceptions import HTTPError
 
         for attempt in range(2):
             try:
@@ -132,7 +132,7 @@ class BedrockClient:
                     stop_reason=stop_reason,
                     model_id=model_id,
                 )
-            except ProtocolError as exc:
+            except HTTPError as exc:
                 if attempt == 0:
                     continue
                 raise ModelError(f"{role} call failed after stream retry: {exc}") from exc

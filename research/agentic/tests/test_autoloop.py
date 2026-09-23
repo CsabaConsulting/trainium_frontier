@@ -625,6 +625,35 @@ class BedrockTransportTests(unittest.TestCase):
         self.assertNotIn("discard-me", reply.text)
         self.assertEqual(bedrock._client.calls, 2)
 
+    def test_stream_read_timeout_retries(self):
+        from urllib3.exceptions import ReadTimeoutError
+
+        class FakeClient:
+            calls = 0
+
+            def converse_stream(self, **_kwargs):
+                self.calls += 1
+                if self.calls == 1:
+                    def timed_out():
+                        raise ReadTimeoutError(None, None, "Read timed out")
+                        yield  # pragma: no cover - makes this a lazy stream generator
+
+                    return {"stream": timed_out()}
+                return {"stream": iter([
+                    {"contentBlockDelta": {"delta": {"text": "ok"}}},
+                    {"messageStop": {"stopReason": "end_turn"}},
+                    {"metadata": {"usage": {"inputTokens": 5, "outputTokens": 1}}},
+                ])}
+
+        bedrock = BedrockClient.__new__(BedrockClient)
+        bedrock._client = FakeClient()
+        reply = bedrock.complete(
+            role="researcher", model_id="us.anthropic.claude-fable-5-1",
+            system="system", user="evidence", max_tokens=4096,
+        )
+        self.assertEqual(reply.text, "ok")
+        self.assertEqual(bedrock._client.calls, 2)
+
 
 class ImplementerTests(unittest.TestCase):
     def test_isolated_code_change_requires_independent_pass_and_commits_only_train_py(self):

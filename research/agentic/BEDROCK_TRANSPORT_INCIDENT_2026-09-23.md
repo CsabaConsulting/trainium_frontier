@@ -46,6 +46,11 @@ fresh request. Partial chunks are reset before the retry, and a second premature
 reported through the existing recoverable `ModelError` path. Modeled Bedrock error events are not
 retried by this wrapper.
 
+Cycle 174 exposed the sibling silent-stream failure: `urllib3.ReadTimeoutError` after the configured
+600-second read timeout. Both it and `ProtocolError` inherit `urllib3.HTTPError`, so the bounded
+retry now covers that common low-level transport base class. The retry count and modeled Bedrock
+error behavior are unchanged.
+
 ## Verification
 
 - `python -m unittest discover -s research/agentic/tests -v`: the complete offline suite passes,
