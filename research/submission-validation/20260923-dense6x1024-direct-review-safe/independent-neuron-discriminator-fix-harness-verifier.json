@@ -1,0 +1,97 @@
+{
+  "schema": "dense6x1024-direct-neuron-discriminator-fix-harness-independent-verifier-v1",
+  "role": "independent Verifier",
+  "verified_at": "2026-09-23",
+  "verdict": "FAIL",
+  "analyst_directive": "STOP/FIX_HARNESS",
+  "reviewed_implementation_commit": "12770295715139def11955ed343393ea63e21498",
+  "reviewed_failed_evidence_commit": "62caa960855ca06697c8c72b5ef853db641d9ce4",
+  "repository_state_before_report": {
+    "branch": "submission/dense6x1024-direct-review-safe-20260923",
+    "head": "12770295715139def11955ed343393ea63e21498",
+    "fetched_origin_head": "12770295715139def11955ed343393ea63e21498",
+    "tracked_worktree_clean": true,
+    "implementation_parent": "62caa960855ca06697c8c72b5ef853db641d9ce4",
+    "diff_scope": [
+      "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron-discriminator-authorization-request.json",
+      "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron-discriminator-runbook.md",
+      "research/submission-validation/20260923-dense6x1024-direct-review-safe/neuron_discriminator_direct.py",
+      "research/submission-validation/20260923-dense6x1024-direct-review-safe/test_neuron_discriminator_static.py"
+    ],
+    "unexpected_files": [],
+    "candidate_or_source_changed": false,
+    "candidate_sha256": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537",
+    "source_sha256": "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344",
+    "harness_sha256": "7605cf659e5888fa12373539b3fddb9297c4458729882882e99614a1ee7b84a6",
+    "static_test_sha256": "75866b0c88fb2963d977f0087ce9de47a2be917e8197d3553dfca06d46d48631",
+    "runbook_sha256": "09b3a5b478fe4ee354f9edd1f864f6c952cadf7fa956a3e8c98a3a90d3e4ed34",
+    "pending_authorization_request_sha256": "9b958ef076cc5cfb39f2dec0cea62c5c1d8b9f4d339af6059d1aea68a43455c0",
+    "authorization_state": "pending_external_verifier"
+  },
+  "failed_run_evidence": {
+    "result_sha256": "0f365d9a12974ceae9781c641f3e0a0aff6a26d8ee8d08128de79e2b4127a3e7",
+    "outer_log_sha256": "867beec676be16b370c45b67841e0165c731cbca07830bf67a636df06f55b749",
+    "operator_report_sha256": "9d29b70e141c1dfe6b7383682de999944519be42f6e88d59060de8061b61f3b2",
+    "observed_failure": "The authorized run failed at ce-source and the old top result preserved only the generic RuntimeError, with no child stdout/stderr or per-child process record. Postflight was clean. This supports STOP/FIX_HARNESS and does not support a candidate scientific verdict."
+  },
+  "positive_findings": {
+    "ce_environment": "prepare_ce_environment removes every declared exact distributed name and TORCHELASTIC_/TORCHRUN_/PET_/RDZV_/RENDEZVOUS_/PMI_/PMIX_/OMPI_COMM_WORLD_ family. run_ce_worker verifies absence and records a logical 1/1 rank-0 singleton before importing torch, torch.nn.functional or torch_neuronx. An actual contaminated worker invocation rejected WORLD_SIZE, MASTER_ADDR and TORCHELASTIC_RUN_ID before those imports.",
+    "optimizer_environment": "prepare_optimizer_environment requires and retains only outer WORLD_SIZE=LOCAL_WORLD_SIZE=4 from the distributed shape, removes stale rank/master/elastic/rendezvous variables, and invokes the pinned standalone four-rank torchrun which supplies fresh per-rank/rendezvous state.",
+    "ordinary_child_failures": "For a single-process child, rc7, spawn error, TimeoutExpired and recompile-limit warning paths produce fail-closed records. Nominal success records complete combined stdout/stderr, exact argv, environment identity, cache and artifact observations.",
+    "accumulated_failure": "When run_child returns a complete failing record, run_orchestrator appends it before raising and orchestrator_failure_report preserves accumulated process receipts and outer receipts in the top failure.",
+    "nonoverwrite": "Log, child JSON and final result creation use O_CREAT|O_EXCL|O_NOFOLLOW. Existing regular paths and symlinks reject; fsync is used for log/record/final JSON bytes.",
+    "schemas_and_hashes": "The pending request has the exact five-key schema and hard-coded contract, all 19 protected hashes match, the launcher fingerprint union remains compatible, and full mode rejects the pending state.",
+    "static_e2e": "The real pending-sentinel static CLI passed with hardware_executed=false, all actual hashes equal expected, and no retained temporary report."
+  },
+  "blocking_findings": [
+    {
+      "id": "F1",
+      "severity": "blocking",
+      "finding": "A timed-out child process tree can mutate the allegedly immutable, complete log after run_child has fsynced, hashed and persisted its JSON record.",
+      "root_cause": "run_child uses subprocess.run(timeout=...) without start_new_session/process-group ownership. On timeout Python kills and waits only for the immediate process. Descendants such as torchrun ranks or compiler subprocesses can retain the inherited log descriptor and continue writing. The fresh-start guard cleans marked descendants only after the top harness exits, which is after child and top-result evidence are created.",
+      "independent_reproduction": "A parent child printed one line, spawned a grandchild inheriting stdout, then slept. With timeout=1, run_child returned timed_out=true and persisted a complete=true 22-byte log and child JSON. Two seconds later the grandchild appended 'late-grandchild-output'; the log became 45 bytes, its SHA-256 changed, and validate_child_process_record rejected the previously returned record with 'immutable log bytes differ from evidence'.",
+      "impact": "The timeout/error evidence contract can claim complete immutable bytes while the file is still writable by descendants. A top failure can therefore contain a child record whose log hash/length no longer matches the retrieved log; artifact observations can also be taken before descendants quiesce. This is directly relevant to four-rank torchrun and compiler process trees.",
+      "required_correction": "Own each launched child in a dedicated process group/session. On timeout or orchestration exception, terminate the entire group with bounded TERM then KILL, wait until the group/descendants have exited and the output stream is quiescent, and only then close/fsync/hash the log, snapshot artifacts/cache, and exclusively persist the child JSON. Revalidate every accumulated child record/receipt immediately before writing the top result. Add an adversarial test that spawns a late-writing descendant and proves no live descendant, no post-return log mutation, a stable log SHA/length, and valid persisted/top-level receipts."
+    }
+  ],
+  "commands_and_results": [
+    {
+      "command": "git fetch origin <branch>; git rev-parse HEAD/origin; git diff --name-status/check 62caa960..12770295; candidate/source diff and sha256sum",
+      "result": "PASS: fetched origin and local were exact 12770295715139def11955ed343393ea63e21498; clean; exactly four declared harness/request/runbook/test files; candidate/source unchanged at required hashes"
+    },
+    {
+      "command": "python -m py_compile neuron_discriminator_direct.py test_neuron_discriminator_static.py; python -m unittest -v test_neuron_discriminator_static.py",
+      "result": "PASS: syntax clean and 23/23 implementation tests passed"
+    },
+    {
+      "command": "pending-sentinel static CLI with literal request SHA 9b958ef0...",
+      "result": "PASS rc0: static-only passed, hardware_executed=false, all protected hashes matched; temporary report removed"
+    },
+    {
+      "command": "full-mode CLI against the pending request; actual CE worker with correct nonce plus contaminated WORLD_SIZE/MASTER_ADDR/TORCHELASTIC_RUN_ID",
+      "result": "PASS: full mode rejected pending authorization without a report; contaminated worker rejected before Torch/Neuron import"
+    },
+    {
+      "command": "independent local late-writing-descendant timeout matrix through run_child",
+      "result": "FAIL criterion reproduced: 22-byte recorded complete log changed to 45 bytes after run_child returned; recorded SHA became stale and subsequent validation rejected"
+    }
+  ],
+  "authorization": {
+    "authorization_request_finalized": false,
+    "hardware_advancement_authorized": false,
+    "statement": "Do not finalize or launch commit 12770295715139def11955ed343393ea63e21498. F1 must be corrected and independently reverified."
+  },
+  "remaining_conditions": [
+    "Correct F1 with bounded whole-process-group termination/quiescence and post-quiescence evidence persistence.",
+    "Add the descendant timeout/log-stability adversarial test and top-result prewrite revalidation.",
+    "Update only the harness/tests/runbook and a new pending request with exact hashes/contracts, preserving candidate/source.",
+    "Obtain a new independent verifier PASS, then a separate state-only authorization finalization before any hardware retry."
+  ],
+  "candidate_modified_by_verifier": false,
+  "source_modified_by_verifier": false,
+  "authorization_modified_by_verifier": false,
+  "hardware_run_by_verifier": false,
+  "training_run_by_verifier": false,
+  "submission_performed": false,
+  "scientific_verdict": null
+}
