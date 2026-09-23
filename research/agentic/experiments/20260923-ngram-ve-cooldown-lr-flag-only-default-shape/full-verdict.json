@@ -1,0 +1,19 @@
+{
+  "analyst_prose": "DISCARD at the full tier: candidate public_val_bpb was 1.007831 versus control 1.005734.\nThe candidate-minus-control delta was +0.002097 (worse), failing the required threshold of \u22120.002000.\nThe candidate disabled flat learning rate for the n-gram VE tables, making their learning rate follow the run\u2019s warmdown.\nBoth runs used identical source hashes, seed 42, hardware host, compiler settings, and 592.9M parameters.\nThroughput was nearly identical: 1.16111 versus 1.16035 steps/s.\nA minor confounder is unequal training exposure under the time budget: 2,072 candidate steps versus 2,071 control steps; runs also occurred on different dates.\nBoth passed causality checks and stayed within the charged budget, with no evaluation timeout.\nThis single-seed comparison does not establish run-to-run variability, but it fails the specified acceptance criterion.",
+  "decision": "DISCARD",
+  "metrics": {
+    "bpb_delta": 0.0020970000000000155,
+    "candidate_bpb": 1.007831,
+    "candidate_params_M": 592.9,
+    "candidate_step_rate": 1.161109554497058,
+    "candidate_steps": 2072.0,
+    "control_bpb": 1.005734,
+    "control_params_M": 592.9,
+    "control_step_rate": 1.1603541012998655,
+    "control_steps": 2071.0
+  },
+  "reasons": [
+    "public_val_bpb delta +0.00210 did not meet threshold -0.00200"
+  ],
+  "tier": "full"
+}
