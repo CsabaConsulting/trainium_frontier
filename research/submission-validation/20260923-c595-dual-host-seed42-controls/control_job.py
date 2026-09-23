@@ -60,10 +60,10 @@ def parse_metrics(output, expected_tokens, expected_bytes, expected_timeout=1200
     if len(found) != 1: raise SystemExit(f"expected exactly one evaluation metrics object, got {len(found)}")
     value = found[0]
     if set(value) != metric_keys: raise SystemExit("evaluation metrics schema mismatch")
-    numeric = lambda item: isinstance(item, (int, float)) and not isinstance(item, bool) and math.isfinite(item)
-    if not numeric(value["val_bpb"]) or value["val_bpb"] <= 0: raise SystemExit("invalid BPB")
-    if not numeric(value["total_nats"]) or value["total_nats"] <= 0: raise SystemExit("invalid total_nats")
-    if not numeric(value["eval_seconds"]) or value["eval_seconds"] <= 0: raise SystemExit("invalid eval_seconds")
+    for name in ("val_bpb", "total_nats", "eval_seconds"):
+        item = value[name]
+        if type(item) is not float or not math.isfinite(item) or item <= 0:
+            raise SystemExit(f"invalid {name}: expected positive finite JSON float")
     if type(value["num_tokens"]) is not int or value["num_tokens"] != expected_tokens:
         raise SystemExit("invalid token count/type")
     if type(value["num_bytes"]) is not int or value["num_bytes"] != expected_bytes:
@@ -71,6 +71,13 @@ def parse_metrics(output, expected_tokens, expected_bytes, expected_timeout=1200
     if type(value["eval_timeout"]) is not int or value["eval_timeout"] != expected_timeout:
         raise SystemExit("invalid eval timeout")
     if value["eval_over_timeout"] is not False: raise SystemExit("evaluation exceeded timeout")
+    if value["eval_seconds"] > float(value["eval_timeout"]):
+        raise SystemExit("evaluation duration exceeds declared timeout")
+    derived_bpb = value["total_nats"] / (value["num_bytes"] * math.log(2.0))
+    # prepare.py emits full-precision JSON floats; 1e-12 catches inconsistent
+    # payloads while allowing only ordinary binary64 serialization roundoff.
+    if not math.isclose(value["val_bpb"], derived_bpb, rel_tol=1e-12, abs_tol=1e-12):
+        raise SystemExit("val_bpb is inconsistent with total_nats and num_bytes")
     return value
 
 def parse_losses(output):

@@ -40,6 +40,28 @@ def durable(path,value):
  try:os.write(fd,(json.dumps(value,indent=2,sort_keys=True)+"\n").encode());os.fsync(fd)
  finally:os.close(fd)
 
+def exact_proof(arm,label,archive,c,evidence_commit):
+ return {"schema":"c595-control-evidence-push-v1","arm":arm,"label":label,
+  "archive_path":str(archive),"archive_sha256":c["archive_sha256"],
+  "checkpoint_path":c["checkpoint_path"],"checkpoint_sha256":c["checkpoint_sha256"],
+  "checkpoint_bytes":c["checkpoint_bytes"],"origin":ORIGIN,"branch":BRANCH,
+  "retrieved_verified_committed_pushed":True,"evidence_commit":evidence_commit}
+def validate_exact(value,expected,name):
+ if set(value)!=set(expected) or value!=expected:raise SystemExit(name+" schema/identity mismatch")
+def validate_retrieval(value,arm,label,c,completion_sha):
+ expected={"schema":"c595-control-retrieval-v1","arm":arm,"label":label,
+  "archive_sha256":c["archive_sha256"],"archive_bytes":c["archive_bytes"],
+  "archive_members":c["archive_members"],"completion_sha256":completion_sha,
+  "core_commit":c["core_commit"],"candidate_sha256":TRAIN_SHA,"verified":True}
+ validate_exact(value,expected,"retrieval verification")
+def require_clean_evidence_state(root,commit_paths,allowed_untracked):
+ staged=subprocess.check_output(["git","diff","--cached","--name-only"],cwd=root,text=True).splitlines()
+ dirty=subprocess.check_output(["git","diff","--name-only"],cwd=root,text=True).splitlines()
+ untracked=subprocess.check_output(["git","ls-files","--others","--exclude-standard"],cwd=root,text=True).splitlines()
+ if staged or dirty or set(untracked)!=set(allowed_untracked):raise SystemExit("repository state not exclusive to retrieved evidence")
+ for path in commit_paths:
+  if path not in untracked:raise SystemExit("evidence path was pretracked or missing")
+
 def retrieve(args):
  host,_root,label,_sandbox,archive,completion=config(args.arm)
  destination=HERE/"retrieved"/label;destination.mkdir(parents=True,exist_ok=False)
@@ -57,16 +79,17 @@ def commit_proof(args):
  destination=HERE/"retrieved"/label;verification=destination/"retrieval-verification.json"
  c=verify(args.arm,destination/"evidence.tar.gz",destination/"archive-completion.json")
  if not verification.is_file():raise SystemExit("retrieval verification missing")
- subprocess.run(["git","add","--",str(verification.relative_to(ROOT)),str((destination/"archive-completion.json").relative_to(ROOT))],cwd=ROOT,check=True)
+ completion=destination/"archive-completion.json";archive_local=destination/"evidence.tar.gz"
+ validate_retrieval(json.loads(verification.read_text()),args.arm,label,c,sha(completion))
+ commit_paths=[str(verification.relative_to(ROOT)),str(completion.relative_to(ROOT))]
+ require_clean_evidence_state(ROOT,commit_paths,[*commit_paths,str(archive_local.relative_to(ROOT))])
+ subprocess.run(["git","add","--",*commit_paths],cwd=ROOT,check=True)
+ if set(subprocess.check_output(["git","diff","--cached","--name-only"],cwd=ROOT,text=True).splitlines())!=set(commit_paths):raise SystemExit("staged evidence path mismatch")
  subprocess.run(["git","commit","-m",f"evidence: verify {label} archive"],cwd=ROOT,check=True)
  subprocess.run(["git","push","origin",f"HEAD:refs/heads/{BRANCH}"],cwd=ROOT,check=True)
  evidence_commit=subprocess.check_output(["git","rev-parse","HEAD"],cwd=ROOT,text=True).strip()
  if remote_ref()!=evidence_commit:raise SystemExit("evidence push not remote head")
- proof={"schema":"c595-control-evidence-push-v1","arm":args.arm,"label":label,
-        "archive_path":str(archive),"archive_sha256":c["archive_sha256"],
-        "checkpoint_path":c["checkpoint_path"],"checkpoint_sha256":c["checkpoint_sha256"],
-        "checkpoint_bytes":c["checkpoint_bytes"],"origin":ORIGIN,"branch":BRANCH,
-        "retrieved_verified_committed_pushed":True,"evidence_commit":evidence_commit}
+ proof=exact_proof(args.arm,label,archive,c,evidence_commit)
  local=destination/"evidence-pushed-receipt.json";durable(local,proof)
  subprocess.run([*SCP,str(local),f"{host}:{sandbox/'evidence-pushed-receipt.json'}"],check=True)
  print(local)
@@ -83,8 +106,8 @@ def prune(args):
        "--receipt",str(receipt),"--expected-core-commit",c["core_commit"],"--expected-script-sha256",args.prune_script_sha256]
  subprocess.run([*SSH,host," ".join(argv)],check=True)
  local=destination/"checkpoint-prune-receipt.json";subprocess.run([*SCP,f"{host}:{receipt}",str(local)],check=True)
- record=json.loads(local.read_text())
- if record.get("state")!="complete" or record.get("deleted") is not True:raise SystemExit("prune receipt invalid")
+ record=json.loads(local.read_text());proof_data=json.loads(proof.read_text())
+ validate_exact(record,{**proof_data,"state":"complete","deleted":True,"other_deletions":[]},"prune receipt")
  subprocess.run(["git","add","--",str(local.relative_to(ROOT))],cwd=ROOT,check=True);subprocess.run(["git","commit","-m",f"evidence: preserve {label} prune"],cwd=ROOT,check=True)
  subprocess.run(["git","push","origin",f"HEAD:refs/heads/{BRANCH}"],cwd=ROOT,check=True)
  if remote_ref()!=subprocess.check_output(["git","rev-parse","HEAD"],cwd=ROOT,text=True).strip():raise SystemExit("prune receipt not pushed")
@@ -101,8 +124,16 @@ def cleanup(args):
        "--expected-script-sha256",args.cleanup_script_sha256]
  subprocess.run([*SSH,host," ".join(argv)],check=True)
  local=destination/"cache-cleanup-receipt.json";subprocess.run([*SCP,f"{host}:{remote_receipt}",str(local)],check=True)
- record=json.loads(local.read_text())
- if record.get("state")!="complete" or record.get("preserved_logs_results") is not True:raise SystemExit("cleanup receipt invalid")
+ record=json.loads(local.read_text());proof_data=json.loads(proof.read_text());prune_data=json.loads(prune_receipt.read_text())
+ validate_exact(prune_data,{**proof_data,"state":"complete","deleted":True,"other_deletions":[]},"prune receipt")
+ caches=[str(sandbox/"train"/"caches"/name) for name in ("neff","local","hlo","inductor","compiler","debug")]
+ expected={"schema":"c595-cache-cleanup-receipt-v1","arm":args.arm,"label":label,
+  "core_commit":json.loads((destination/"archive-completion.json").read_text())["core_commit"],
+  "proof_sha256":sha(proof),"prune_receipt_sha256":sha(prune_receipt),"allowlist":caches,
+  "preserved_logs_results":True,"completed":caches,"active_path":None,"state":"complete",
+  "journal_sha256":record.get("journal_sha256")}
+ if not isinstance(record.get("journal_sha256"),str) or len(record["journal_sha256"])!=64:raise SystemExit("cleanup journal digest invalid")
+ validate_exact(record,expected,"cleanup receipt")
  subprocess.run(["git","add","--",str(local.relative_to(ROOT))],cwd=ROOT,check=True);subprocess.run(["git","commit","-m",f"evidence: preserve {label} cache cleanup"],cwd=ROOT,check=True)
  subprocess.run(["git","push","origin",f"HEAD:refs/heads/{BRANCH}"],cwd=ROOT,check=True)
  if remote_ref()!=subprocess.check_output(["git","rev-parse","HEAD"],cwd=ROOT,text=True).strip():raise SystemExit("cleanup receipt not pushed")

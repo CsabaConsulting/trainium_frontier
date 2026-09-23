@@ -6,16 +6,18 @@ spec=importlib.util.spec_from_file_location("control_job",HERE/"control_job.py")
 module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
 
 def metric(**updates):
-    value={"val_bpb":0.99,"num_tokens":2097152,"num_bytes":8418678,"total_nats":1.0,
+    num_bytes=updates.get("num_bytes",8418678);total_nats=updates.get("total_nats",5776000.0)
+    value={"val_bpb":float(total_nats/(num_bytes*math.log(2.0))),"num_tokens":2097152,"num_bytes":num_bytes,"total_nats":total_nats,
            "eval_seconds":1.0,"eval_timeout":1200,"eval_over_timeout":False}
     value.update(updates);return json.dumps(value)
 good_primary=metric();good_secondary=metric(num_tokens=20971520,num_bytes=83462186)
 assert module.parse_metrics("noise\n"+good_primary+"\n",2097152,8418678)["num_bytes"]==8418678
 assert module.parse_metrics(good_secondary,20971520,83462186)["num_tokens"]==20971520
-invalid=("",good_primary+good_primary,metric(val_bpb=math.nan),metric(val_bpb=True),metric(val_bpb="0.99"),
+invalid=("",good_primary+good_primary,metric(val_bpb=math.nan),metric(val_bpb=True),metric(val_bpb="0.99"),metric(val_bpb=1),
          metric(val_bpb=0),metric(num_tokens=True),metric(num_tokens=2097152.0),metric(num_bytes=True),
-         metric(total_nats=math.inf),metric(total_nats=0),metric(eval_seconds="1"),metric(eval_seconds=0),
+         metric(total_nats=math.inf),metric(total_nats=0),metric(total_nats=1),metric(eval_seconds="1"),metric(eval_seconds=0),metric(eval_seconds=1),metric(eval_seconds=1200.0000001),
          metric(eval_timeout=True),metric(eval_timeout=1199),metric(eval_over_timeout=True),
+         metric(val_bpb=0.99),
          json.dumps({**json.loads(good_primary),"extra":1}), good_primary+json.dumps({"num_tokens":1}),
          json.dumps({"val_bpb":0.9}))
 for item in invalid:

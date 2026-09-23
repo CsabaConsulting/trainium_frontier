@@ -11,8 +11,12 @@ with tempfile.TemporaryDirectory(prefix="c595-cleanup-") as temporary:
  caches[0].symlink_to(target,target_is_directory=True)
  for cache in caches[1:]:cache.mkdir();(cache/"entry").write_text("cache")
  (sandbox/"training.log").write_text("preserve")
- proof={"schema":"c595-control-evidence-push-v1","arm":arm,"label":label,"retrieved_verified_committed_pushed":True}
- prune={"arm":arm,"label":label,"state":"complete","deleted":True}
+ proof={"schema":"c595-control-evidence-push-v1","arm":arm,"label":label,
+  "archive_path":str(root/"out/archives"/(label+".tar.gz")),"archive_sha256":"a"*64,
+  "checkpoint_path":str(sandbox/"train/out/final.pt"),"checkpoint_sha256":"b"*64,
+  "checkpoint_bytes":123,"origin":module.ORIGIN,"branch":module.BRANCH,
+  "retrieved_verified_committed_pushed":True,"evidence_commit":"c"*40}
+ prune={**proof,"state":"complete","deleted":True,"other_deletions":[]}
  proof_path=sandbox/"evidence-pushed-receipt.json";proof_path.write_text(json.dumps(proof))
  prune_path=sandbox/"checkpoint-prune-receipt.json";prune_path.write_text(json.dumps(prune))
  rehearsal=sandbox/"train/rehearsal.json";rehearsal.write_text(json.dumps({"fresh_empty_sdk_caches":{str(i):str(p) for i,p in enumerate(caches)}}))
@@ -30,4 +34,31 @@ with tempfile.TemporaryDirectory(prefix="c595-cleanup-") as temporary:
  assert record["state"]=="complete" and record["preserved_logs_results"] is True
  assert not any(path.exists() for path in caches) and (sandbox/"training.log").read_text()=="preserve"
  assert module.execute(args)==receipt
+
+ # Exact-schema validators reject forged minimal prerequisites and receipts.
+ for bad in ({"arm":arm}, {**proof,"extra":True}):
+  try:module.validate_proof(bad,arm,label)
+  except SystemExit:pass
+  else:raise AssertionError("forged proof accepted")
+ try:module.validate_prune({"arm":arm,"state":"complete"},proof)
+ except SystemExit:pass
+ else:raise AssertionError("forged prune receipt accepted")
+
+ # A completed journal/receipt can never authenticate a still-present cache.
+ bound=module.bound_identity(arm,label,args.expected_core_commit,args.evidence_pushed_receipt_sha256,args.prune_receipt_sha256,caches)
+ caches[0].mkdir()
+ forged={**bound,"completed":list(map(str,caches)),"active_path":None,"state":"complete"}
+ try:module.validate_journal(forged,bound,caches)
+ except SystemExit:pass
+ else:raise AssertionError("all-completed journal accepted present cache")
+ caches[0].rmdir()
+
+ # Invalid and valid stale temp handling is decided before any deletion.
+ journal=sandbox/"cache-cleanup-journal-recovery.json";initial={**bound,"completed":[],"active_path":None,"state":"in_progress"}
+ bad_temp=journal.with_name(journal.name+".tmp");bad_temp.write_text(json.dumps({"forged":True}))
+ try:module.reconcile_temp(journal,bound,caches,initial)
+ except SystemExit:pass
+ else:raise AssertionError("invalid stale temp accepted")
+ bad_temp.unlink();bad_temp.write_text(json.dumps(initial));module.reconcile_temp(journal,bound,caches,initial)
+ assert journal.exists() and not bad_temp.exists()
 print("c595 cache cleanup symlink/idempotence/preservation: PASS")
