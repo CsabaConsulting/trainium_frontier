@@ -34,13 +34,17 @@ from .state import Store, utc_now
 from .verifier import closed_direction_terms, load_context, run_verifier
 
 RESEARCHER_SYSTEM = """You are the Researcher in an unattended Trainium Phase 1 research loop.
-Goal: lower official val_bpb after a 30-minute full-chip Trn2 run. Propose ONE evidence-backed,
-falsifiable causal change. It may be an existing train.py flag experiment or a small code change
+Goal: lower official val_bpb after a 30-minute full-chip Trn2 run. First compare 4 to 6 distinct
+candidate directions, then select exactly ONE evidence-backed, falsifiable causal change for the
+controller to execute. Include the rejected shortlist in the output; it is planning evidence, not
+authorization to bundle or run those alternatives. Source-level bug/wiring audits are the first
+idea stream, followed by measured prior outcomes and primary-source techniques. It may be an
+existing train.py flag experiment or a small code change
 confined to train.py (architecture, optimizer, schedule, numerical format, or inline NKI kernel).
 Prefer a bounded code proposal when the remaining flag ideas are already heavily explored; use a
 flag only when the supplied evidence establishes that it is a real, isolated, non-duplicate gap.
 Seed 42, full-chip shape, data, evaluator, and budget are fixed by the controller.
-Search the provided ledger summary and decision log; never repeat a closed or already-run flag set
+Search the provided outcome memory, ledger summary and decision log; never repeat a closed or already-run flag set
 at this commit. A flag proposal must set one causal option only; do not bundle a second precision,
 kernel, optimizer, or architecture switch. If two switches are truly inseparable, propose a code
 change that implements one explicit boundary instead. The supplied authoritative train.py evidence
@@ -50,10 +54,19 @@ not untested. Cite repository evidence. Return ONLY a JSON object:
 {"proposal_id": "YYYYMMDD-short-slug", "hypothesis": "...", "single_causal_change": "...",
  "flags": ["--flag", "value", ...], "evidence": ["path or label ..."],
  "duplicate_search_terms": ["..."], "expected_effect": "predeclared BPB direction and size",
+ "mechanism_class":"throughput"|"per_step_quality"|"schedule"|"capacity"|"data_regime",
+ "predicted_bpb_delta":-0.002, "predicted_bpb_interval":[-0.004,0.001],
+ "candidate_shortlist":[{"idea":"...","mechanism_class":"schedule",
+   "predicted_bpb_delta":-0.002,"why_ranked":"evidence, transfer likelihood, and cost"}, ...],
+ "selection_rationale":"why the selected idea has the best evidence-adjusted value per host-hour",
  "abort_conditions": ["..."], "change_type":"flags"|"code",
  "smoke_gate":{"min_candidate_steps":123,"min_step_rate_ratio":1.0,"max_bpb_delta":0.0},
  "implementation_plan":"exact bounded edit plan, empty for flags",
  "files_allowed":[]|["train.py"]}
+BPB deltas are always candidate minus matched control, so negative is better. Predictions are
+priors, not measurements: give an honest interval that includes regression when uncertainty
+warrants it. The shortlist must contain 4 to 6 candidates and no mechanism class may occupy more
+than half the list. Rank transfer likelihood, information value, and host-hours explicitly.
 smoke_gate must contain only thresholds justified by the proposal; use {} when the controller's
 global smoke gate is sufficient. Proposal thresholds can only tighten the global gate. For flags,
 files_allowed must be [] and implementation_plan empty. For code, flags must be [],
@@ -694,6 +707,67 @@ class Controller:
             }))
         return "\n".join(rows) if rows else "(none yet)"
 
+    @staticmethod
+    def _historical_mechanism_class(proposal: dict) -> str:
+        """Best-effort class for pre-metadata proposals; never used as a run verdict."""
+        declared = str(proposal.get("mechanism_class", ""))
+        if declared in {"throughput", "per_step_quality", "schedule", "capacity", "data_regime"}:
+            return declared
+        proposal_id = str(proposal.get("_proposal_id", "")).lower()
+        if any(term in proposal_id for term in ("batch-ramp", "epoch", "shuffle", "context")):
+            return "data_regime"
+        if any(term in proposal_id for term in ("bf16", "fp8", "nki", "kernel", "fused")):
+            return "throughput"
+        if any(term in proposal_id for term in ("dim64", "no-ngram", "width", "depth", "capacity")):
+            return "capacity"
+        if any(term in proposal_id for term in ("warmdown", "cooldown", "flat-lr", "decay", "freeze", "ema", "demon")):
+            return "schedule"
+        return "per_step_quality"
+
+    def _outcome_memory(self, limit: int = 12) -> str:
+        """Compact proposal-to-outcome memory, diversified across mechanism classes.
+
+        Raw ledger rows make it hard for the Researcher to learn which causal claim produced a
+        result.  This joins the durable proposal and verdict artifacts.  Historical mechanism
+        classes are explicitly marked inferred and are planning hints only.
+        """
+        records: list[dict] = []
+        for pid, state_record in self.store.proposals().items():
+            proposal = self.store.read_artifact(pid, "proposal.json") or {}
+            smoke = self.store.read_artifact(pid, "smoke-verdict.json") or {}
+            full = self.store.read_artifact(pid, "full-verdict.json") or {}
+            if not smoke and not full:
+                continue
+            declared = proposal.get("mechanism_class")
+            mechanism = self._historical_mechanism_class({**proposal, "_proposal_id": pid})
+            records.append({
+                "proposal_id": pid,
+                "updated_at": state_record.get("updated_at"),
+                "mechanism_class": mechanism,
+                "mechanism_class_inferred": declared not in {
+                    "throughput", "per_step_quality", "schedule", "capacity", "data_regime"
+                },
+                "single_causal_change": _clip_text(proposal.get("single_causal_change", ""), 650),
+                "flags": proposal.get("flags", []),
+                "predicted_bpb_delta": proposal.get("predicted_bpb_delta"),
+                "smoke_decision": smoke.get("decision"),
+                "smoke_bpb_delta": (smoke.get("metrics") or {}).get("bpb_delta"),
+                "full_decision": full.get("decision"),
+                "full_bpb_delta": (full.get("metrics") or {}).get("bpb_delta"),
+            })
+        records.sort(key=lambda item: str(item.get("updated_at", "")), reverse=True)
+        selected: list[dict] = []
+        class_counts: dict[str, int] = {}
+        for record in records:
+            cls = str(record["mechanism_class"])
+            if class_counts.get(cls, 0) >= 3:
+                continue
+            selected.append(record)
+            class_counts[cls] = class_counts.get(cls, 0) + 1
+            if len(selected) >= limit:
+                break
+        return "\n".join(json.dumps(row) for row in selected) if selected else "(none yet)"
+
     def _control_evidence(self) -> str:
         """Expose the exact pinned full controls instead of asking a model to infer defaults."""
         rows: list[str] = []
@@ -832,6 +906,8 @@ class Controller:
             f"Exact pinned full controls:\n{self._control_evidence()}\n\n"
             f"Recent rejected proposals and verifier feedback (do not repeat these defects):\n"
             f"{self._recent_rejection_feedback()}\n\n"
+            f"Proposal-to-outcome memory (calibrate predictions; inferred classes are hints):\n"
+            f"{self._outcome_memory()}\n\n"
             f"Recent ledger rows (newest first):\n{self._ledger_summary()}\n\n{context}"
         )
         reply = None
@@ -867,7 +943,12 @@ class Controller:
             report.add(f"propose: researcher declined: {data.get('reason', '')[:200]}")
             return None
         try:
-            prop = Proposal.from_model_json(data, self.cfg.researcher_model_id, self.now_iso())
+            prop = Proposal.from_model_json(
+                data,
+                self.cfg.researcher_model_id,
+                self.now_iso(),
+                require_research_metadata=True,
+            )
         except ManifestError as exc:
             self.store.state["research_backoff_until"] = (self._now() + timedelta(minutes=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
             self.store.save()

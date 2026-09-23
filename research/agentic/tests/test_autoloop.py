@@ -294,6 +294,16 @@ def researcher_json(pid="20260922-weight-ema-on", flags=("--weight-ema",)):
         "duplicate_search_terms": ["weight ema", "ema"],
         "expected_effect": "public_val_bpb lower by >= 0.002",
         "abort_conditions": ["any correctness gate fails"],
+        "mechanism_class": "schedule",
+        "predicted_bpb_delta": -0.002,
+        "predicted_bpb_interval": [-0.004, 0.001],
+        "candidate_shortlist": [
+            {"idea": "enable weight EMA", "mechanism_class": "schedule", "predicted_bpb_delta": -0.002, "why_ranked": "measured warmdown uncertainty"},
+            {"idea": "fuse a projection kernel", "mechanism_class": "throughput", "predicted_bpb_delta": -0.001, "why_ranked": "bounded speed opportunity"},
+            {"idea": "change one value-path gate", "mechanism_class": "per_step_quality", "predicted_bpb_delta": -0.001, "why_ranked": "published sparse-memory analogue"},
+            {"idea": "test one width point", "mechanism_class": "capacity", "predicted_bpb_delta": 0.001, "why_ranked": "budget-dependent capacity question"},
+        ],
+        "selection_rationale": "EMA has the strongest evidence-adjusted value per host-hour in this shortlist.",
     })
 
 
@@ -310,6 +320,16 @@ def code_researcher_json(pid="20260922-bf16-head"):
         "change_type": "code",
         "implementation_plan": "Edit only train.py at the final projection: cast its two operands to BF16, compute that projection, then immediately cast logits to FP32.",
         "files_allowed": ["train.py"],
+        "mechanism_class": "throughput",
+        "predicted_bpb_delta": -0.002,
+        "predicted_bpb_interval": [-0.005, 0.003],
+        "candidate_shortlist": [
+            {"idea": "cast final projection", "mechanism_class": "throughput", "predicted_bpb_delta": -0.002, "why_ranked": "isolated dtype boundary"},
+            {"idea": "decay table LR", "mechanism_class": "schedule", "predicted_bpb_delta": -0.001, "why_ranked": "late schedule uncertainty"},
+            {"idea": "alter value-path gate", "mechanism_class": "per_step_quality", "predicted_bpb_delta": -0.001, "why_ranked": "published sparse-memory analogue"},
+            {"idea": "test width", "mechanism_class": "capacity", "predicted_bpb_delta": 0.001, "why_ranked": "budget-dependent capacity"},
+        ],
+        "selection_rationale": "The isolated projection boundary has the best evidence-adjusted value per host-hour.",
     })
 
 
@@ -976,6 +996,44 @@ class LoopTests(unittest.TestCase):
         self.assertEqual(env.model.max_tokens[researcher_call], 32000)
         self.assertIn("Do not require named pre-edit", env.model.systems["researcher"][0])
         self.assertIn("Authoritative measured/closed train.py evidence excerpts", env.model.users["researcher"][0])
+        self.assertIn("candidate_shortlist", env.model.systems["researcher"][0])
+        self.assertIn("Proposal-to-outcome memory", env.model.users["researcher"][0])
+
+    def test_fresh_proposal_requires_ranked_research_metadata(self):
+        raw = json.loads(researcher_json())
+        raw.pop("candidate_shortlist")
+        with self.assertRaisesRegex(ManifestError, "shortlist of 4 to 6"):
+            Proposal.from_model_json(
+                raw,
+                self.env.cfg.researcher_model_id,
+                "now",
+                require_research_metadata=True,
+            )
+
+    def test_historical_proposal_without_research_metadata_remains_resumable(self):
+        raw = json.loads(researcher_json())
+        for key in (
+            "mechanism_class", "predicted_bpb_delta", "predicted_bpb_interval",
+            "candidate_shortlist", "selection_rationale",
+        ):
+            raw.pop(key)
+        prop = Proposal.from_model_json(raw, self.env.cfg.researcher_model_id, "now")
+        self.assertEqual(prop.mechanism_class, "unclassified")
+
+    def test_outcome_memory_joins_proposal_to_tier_deltas(self):
+        env = self.env
+        ctl = env.controller()
+        ctl.store.add_proposal(json.loads(researcher_json("20260922-memory-example")))
+        ctl.store.write_artifact("20260922-memory-example", "smoke-verdict.json", {
+            "decision": "KEEP", "metrics": {"bpb_delta": -0.003},
+        })
+        ctl.store.write_artifact("20260922-memory-example", "full-verdict.json", {
+            "decision": "DISCARD", "metrics": {"bpb_delta": 0.002},
+        })
+        memory = ctl._outcome_memory()
+        self.assertIn("20260922-memory-example", memory)
+        self.assertIn('"smoke_bpb_delta": -0.003', memory)
+        self.assertIn('"full_bpb_delta": 0.002', memory)
 
     def test_researcher_source_index_exposes_closed_flag_evidence_and_is_bounded(self):
         ctl = self.env.controller()

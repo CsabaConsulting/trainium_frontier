@@ -23,6 +23,13 @@ FLAG_RE = re.compile(r"^--[a-z][a-z0-9-]*$")
 VALUE_RE = re.compile(r"^[A-Za-z0-9_.,:=+-]{1,64}$")
 
 TIERS = ("smoke", "full")  # controls run the same two tiers with an empty flag list
+MECHANISM_CLASSES = (
+    "throughput",
+    "per_step_quality",
+    "schedule",
+    "capacity",
+    "data_regime",
+)
 
 
 class ManifestError(ValueError):
@@ -46,9 +53,23 @@ class Proposal:
     implementation_plan: str = ""
     files_allowed: list[str] = field(default_factory=list)
     smoke_gate: dict[str, float | int] = field(default_factory=dict)
+    # Research-design metadata.  Defaults keep pre-v2 proposals resumable after a controller
+    # upgrade; fresh model output is required to populate them by ``from_model_json``.
+    mechanism_class: str = "unclassified"
+    predicted_bpb_delta: float | None = None  # candidate - control; negative is better
+    predicted_bpb_interval: list[float] = field(default_factory=list)
+    candidate_shortlist: list[dict] = field(default_factory=list)
+    selection_rationale: str = ""
 
     @classmethod
-    def from_model_json(cls, raw: dict, source_model_id: str, created_at: str) -> "Proposal":
+    def from_model_json(
+        cls,
+        raw: dict,
+        source_model_id: str,
+        created_at: str,
+        *,
+        require_research_metadata: bool = False,
+    ) -> "Proposal":
         required = (
             "proposal_id", "hypothesis", "single_causal_change", "flags", "evidence",
             "duplicate_search_terms", "expected_effect",
@@ -74,11 +95,16 @@ class Proposal:
             implementation_plan=str(raw.get("implementation_plan", "")).strip(),
             files_allowed=[str(p) for p in raw.get("files_allowed", [])],
             smoke_gate=raw.get("smoke_gate", {}),
+            mechanism_class=str(raw.get("mechanism_class", "unclassified")).strip(),
+            predicted_bpb_delta=raw.get("predicted_bpb_delta"),
+            predicted_bpb_interval=raw.get("predicted_bpb_interval", []),
+            candidate_shortlist=raw.get("candidate_shortlist", []),
+            selection_rationale=str(raw.get("selection_rationale", "")).strip(),
         )
-        prop.validate_shape()
+        prop.validate_shape(require_research_metadata=require_research_metadata)
         return prop
 
-    def validate_shape(self) -> None:
+    def validate_shape(self, *, require_research_metadata: bool = False) -> None:
         if not PROPOSAL_ID_RE.match(self.proposal_id):
             raise ManifestError(f"bad proposal_id {self.proposal_id!r}")
         if len(self.hypothesis) < 20 or len(self.single_causal_change) < 10:
@@ -87,6 +113,72 @@ class Proposal:
             raise ManifestError("proposal cites no evidence")
         if self.change_type not in {"flags", "code"}:
             raise ManifestError("change_type must be flags or code")
+        if self.mechanism_class != "unclassified" and self.mechanism_class not in MECHANISM_CLASSES:
+            raise ManifestError(
+                f"mechanism_class must be one of {MECHANISM_CLASSES}, got {self.mechanism_class!r}"
+            )
+        if self.predicted_bpb_delta is not None and (
+            isinstance(self.predicted_bpb_delta, bool)
+            or not isinstance(self.predicted_bpb_delta, (int, float))
+            or not math.isfinite(float(self.predicted_bpb_delta))
+        ):
+            raise ManifestError("predicted_bpb_delta must be a finite number")
+        if not isinstance(self.predicted_bpb_interval, list) or len(self.predicted_bpb_interval) not in {0, 2}:
+            raise ManifestError("predicted_bpb_interval must be [] or [low, high]")
+        if self.predicted_bpb_interval:
+            low, high = self.predicted_bpb_interval
+            if any(
+                isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(float(v))
+                for v in (low, high)
+            ):
+                raise ManifestError("predicted_bpb_interval values must be finite numbers")
+            if float(low) > float(high):
+                raise ManifestError("predicted_bpb_interval low must not exceed high")
+            if self.predicted_bpb_delta is not None and not (
+                float(low) <= float(self.predicted_bpb_delta) <= float(high)
+            ):
+                raise ManifestError("predicted_bpb_delta must lie inside predicted_bpb_interval")
+        if not isinstance(self.candidate_shortlist, list):
+            raise ManifestError("candidate_shortlist must be a list")
+        for i, item in enumerate(self.candidate_shortlist):
+            if not isinstance(item, dict):
+                raise ManifestError(f"candidate_shortlist[{i}] must be an object")
+            required_item = {"idea", "mechanism_class", "predicted_bpb_delta", "why_ranked"}
+            missing_item = required_item - set(item)
+            if missing_item:
+                raise ManifestError(
+                    f"candidate_shortlist[{i}] missing fields: {sorted(missing_item)}"
+                )
+            if str(item["mechanism_class"]) not in MECHANISM_CLASSES:
+                raise ManifestError(
+                    f"candidate_shortlist[{i}].mechanism_class must be one of {MECHANISM_CLASSES}"
+                )
+            delta = item["predicted_bpb_delta"]
+            if isinstance(delta, bool) or not isinstance(delta, (int, float)) or not math.isfinite(float(delta)):
+                raise ManifestError(
+                    f"candidate_shortlist[{i}].predicted_bpb_delta must be finite"
+                )
+        if require_research_metadata:
+            if self.mechanism_class not in MECHANISM_CLASSES:
+                raise ManifestError("fresh proposal requires a classified mechanism_class")
+            if self.predicted_bpb_delta is None or len(self.predicted_bpb_interval) != 2:
+                raise ManifestError("fresh proposal requires a BPB point prediction and interval")
+            if not 4 <= len(self.candidate_shortlist) <= 6:
+                raise ManifestError("fresh proposal requires a shortlist of 4 to 6 candidates")
+            class_counts: dict[str, int] = {}
+            for item in self.candidate_shortlist:
+                cls_name = str(item["mechanism_class"])
+                class_counts[cls_name] = class_counts.get(cls_name, 0) + 1
+            if any(count * 2 > len(self.candidate_shortlist) for count in class_counts.values()):
+                raise ManifestError("one mechanism class may not occupy more than half the shortlist")
+            if not any(
+                item["mechanism_class"] == self.mechanism_class
+                and float(item["predicted_bpb_delta"]) == float(self.predicted_bpb_delta)
+                for item in self.candidate_shortlist
+            ):
+                raise ManifestError("selected prediction must appear in candidate_shortlist")
+            if len(self.selection_rationale) < 20:
+                raise ManifestError("fresh proposal requires a concrete selection_rationale")
         if not isinstance(self.smoke_gate, dict):
             raise ManifestError("proposal.smoke_gate must be an object")
         allowed_gate_keys = {"min_candidate_steps", "min_step_rate_ratio", "max_bpb_delta"}
