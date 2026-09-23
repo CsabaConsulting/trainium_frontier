@@ -1,0 +1,25 @@
+{
+  "analyst_prose": "DISCARD at the smoke tier: candidate throughput was 1.1436 steps/s, below the supplied floor of 1.1513 steps/s.\nThe double-hash candidate was 2.66% slower than control (1.1748 steps/s), completing 325 versus 334 steps despite nearly identical training time.\nValidation BPB worsened from 1.165855 to 1.171049, a +0.005194 delta, exceeding the listed 0.003 tolerance; the candidate cleared the 310-step minimum.\nBoth runs used 592.9M parameters, seed 42, the same host and compiler settings, and passed causality checks.\nThe quality comparison is confounded by unequal training exposure: the candidate processed 42.6M versus 43.8M tokens, so the BPB regression cannot be attributed solely to double hashing.\nRuns occurred on different dates, leaving possible runtime variability uncontrolled.\nThe supplied floor is approximately 98% of control throughput, not the listed 93% ratio; this metadata inconsistency does not change the deterministic DISCARD verdict.",
+  "decision": "DISCARD",
+  "metrics": {
+    "bpb_delta": 0.005193999999999921,
+    "candidate_bpb": 1.171049,
+    "candidate_params_M": 592.9,
+    "candidate_step_rate": 1.143560872624912,
+    "candidate_steps": 325.0,
+    "control_bpb": 1.165855,
+    "control_params_M": 592.9,
+    "control_step_rate": 1.1748153359127682,
+    "control_steps": 334.0,
+    "smoke_gate": {
+      "max_bpb_delta": 0.003,
+      "min_candidate_steps": 310,
+      "min_step_rate_ratio": 0.93
+    },
+    "step_rate_floor": 1.1513190291945128
+  },
+  "reasons": [
+    "smoke step rate 1.1436 < floor 1.1513 steps/s"
+  ],
+  "tier": "smoke"
+}

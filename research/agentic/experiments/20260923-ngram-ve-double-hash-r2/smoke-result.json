@@ -1,0 +1,169 @@
+{
+  "collected": {
+    "checkpoint_bytes": 1297950407,
+    "checkpoint_present": true,
+    "checkpoint_sha256": "359355c489aa9cd120f091b23faef649a5282ff6b480a526d91cb1cc2f349308",
+    "collected_at": "2026-09-23T15:03:12Z",
+    "files": {
+      "done": {
+        "bytes": 56,
+        "local": "/home/poojith-devan/Desktop/Trainium/research/agentic/experiments/20260923-ngram-ve-double-hash-r2/artifacts/smoke/done.json",
+        "remote": "/home/ubuntu/autoloop/launchers/al-20260923-ngram-ve-double-hash-r2-smoke-r1/done.json",
+        "sha256": "7a24d868afd67f3bf14ca22463ffb51e4fe7d37c05d433262d946808b3601f82"
+      },
+      "launch_spec": {
+        "bytes": 1602,
+        "local": "/home/poojith-devan/Desktop/Trainium/research/agentic/experiments/20260923-ngram-ve-double-hash-r2/artifacts/smoke/launch.json",
+        "remote": "/home/ubuntu/autoloop/launchers/al-20260923-ngram-ve-double-hash-r2-smoke-r1/launch.json",
+        "sha256": "a90afb10f513079c5ee481f60a68698f2b552c1397dedcd9222ae7c775be0435"
+      },
+      "ledger": {
+        "bytes": 628386,
+        "local": "/home/poojith-devan/Desktop/Trainium/research/agentic/experiments/20260923-ngram-ve-double-hash-r2/artifacts/smoke/experiment-log.jsonl",
+        "remote": "/home/ubuntu/workspace/autoloop_runs/05422cf0--20260923-ngram-ve-double-hash-r2--al-20260923-ngram-ve-double-hash-r2-smoke-r1/research/experiment-log.jsonl",
+        "sha256": "b951e768c1d7b4f7ed1e763a59b10edaac0fa2df2cdc7d24c1c26afbcd369c1a"
+      },
+      "run_launch_receipt": {
+        "bytes": 1242,
+        "local": "/home/poojith-devan/Desktop/Trainium/research/agentic/experiments/20260923-ngram-ve-double-hash-r2/artifacts/smoke/al-20260923-ngram-ve-double-hash-r2-smoke-r1.launch.json",
+        "remote": "/home/ubuntu/workspace/autoloop_runs/05422cf0--20260923-ngram-ve-double-hash-r2--al-20260923-ngram-ve-double-hash-r2-smoke-r1/research/run-logs/al-20260923-ngram-ve-double-hash-r2-smoke-r1.launch.json",
+        "sha256": "a9c48ce3a8f25d58b932ffcbc7a1488bc4098e239b123da9c14f367ae5b3a20f"
+      },
+      "run_log": {
+        "bytes": 12787,
+        "local": "/home/poojith-devan/Desktop/Trainium/research/agentic/experiments/20260923-ngram-ve-double-hash-r2/artifacts/smoke/al-20260923-ngram-ve-double-hash-r2-smoke-r1.log",
+        "remote": "/home/ubuntu/workspace/autoloop_runs/05422cf0--20260923-ngram-ve-double-hash-r2--al-20260923-ngram-ve-double-hash-r2-smoke-r1/research/run-logs/al-20260923-ngram-ve-double-hash-r2-smoke-r1.log",
+        "sha256": "f43fcbc9537bc38146e0c13810d6650a103d8bfc5db10e3480ebfeb191f89833"
+      },
+      "runner_stdout": {
+        "bytes": 304,
+        "local": "/home/poojith-devan/Desktop/Trainium/research/agentic/experiments/20260923-ngram-ve-double-hash-r2/artifacts/smoke/runner.log",
+        "remote": "/home/ubuntu/autoloop/launchers/al-20260923-ngram-ve-double-hash-r2-smoke-r1/runner.log",
+        "sha256": "a6db9041b9a6ab4db95f6b0527dcdcf9d208d4803dcf5316739f11e21e6e0517"
+      }
+    },
+    "ledger_row": {
+      "batch_ramp": "False grad_accum=(2, 4, 8) bounds=(0.35, 0.75) lr_exp=0.5 ref_grad_accum=4 last_grad_accum=4",
+      "budget_seconds": 1800,
+      "causality_max_abs": 0.0,
+      "causality_passed": true,
+      "charged_seconds_est": 285.2,
+      "checkpoint_path": "out/al-20260923-ngram-ve-double-hash-r2-smoke-r1/final.pt",
+      "compiled": true,
+      "description": "autoloop 20260923-ngram-ve-double-hash-r2 smoke: One architecture change confined to train.py: a new module-level boolean toggle USE_NGRAM_VE_DOUBLE_HASH (default True on the candidate branch env NEURON_COMPE flags='none' [trn21] CC='--optlevel=1' seed=42 commit=05422cf0",
+      "engram": "False site=-1 orders=2,3 heads=1 tables=0 mult=32 mem_dim=128 e_dim=0 key_dim=0 conv_k=4 share=False bf16=True",
+      "environment": {
+        "NEURON_CC_FLAGS": "--optlevel=1",
+        "NEURON_COMPETITION_R1_SEED": "42",
+        "NEURON_LOGICAL_NC_CONFIG": "2",
+        "PYTHONUNBUFFERED": "1"
+      },
+      "eval_over_timeout": false,
+      "eval_seconds": 11.1,
+      "eval_timeout": 1200,
+      "git_commit": "05422cf0503821f9031e349613eb38db1af8f5c4",
+      "git_dirty": false,
+      "hostname": "ip-172-31-34-85",
+      "label": "al-20260923-ngram-ve-double-hash-r2-smoke-r1",
+      "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 300 --out-dir out/al-20260923-ngram-ve-double-hash-r2-smoke-r1 --seed 42",
+      "lnc": 2,
+      "max_train_seconds": 300,
+      "ngram_ve": "True tables=4 rows=1048576 dim=128 index_gather=True trigram=True double_hash=True opt=rmsprop flat_lr=True bf16=True rms_fp32_state_math=False nki_rms=False",
+      "nki_relu2": false,
+      "num_params_M": 592.9,
+      "num_steps": 325,
+      "oneliners": "relu2_tau=0.0 mlp_sandwich=False head_gate=False hg_norm=True hg_ch=32 hg_mul=2.0 hg_bias=0.0 out_pool=False pool_layers=3 qk_shift=True qk_beta=0.0 qk_freeze=True x0_gate=False block_nudge=False nudge_site=qk qkv_norm_cse=False parallel_block=False par_coalesce=none epoch_shuffle=False epoch_shuffle_seed=1234",
+      "out_bigram": "False bf16=True gate_bias=-2.0 lr=0.0",
+      "over_budget": false,
+      "public_val_bpb": 1.171049,
+      "returncode": 0,
+      "run_log": "research/run-logs/al-20260923-ngram-ve-double-hash-r2-smoke-r1.log",
+      "sched_tricks": "demon_b1=False demon_final=0.55 demon_ref=0.8 demon_start=-1.0 muon_b2=0.9 muon_b2_final=0.0 depth_lr=1.0->1.0 depth_mom=0.0->0.0 depth_mom_ref=0.95",
+      "seq_len": 2048,
+      "solution": "autoloop:20260923-ngram-ve-double-hash-r2",
+      "source_dirty": false,
+      "source_sha256": {
+        "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+        "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+        "train.py": "66757cf801c381060c3df2aa62ff7038747669af92d30cb35b587fa64c455c58"
+      },
+      "startup_allowance_est": 114.8,
+      "status": "keep",
+      "target_steps": 5000,
+      "timestamp": "2026-09-23T14:59:16+00:00",
+      "total_seconds": 394.9,
+      "total_tokens_M": 42.6,
+      "training_seconds": 284.2,
+      "wall_elapsed_seconds": 417.9,
+      "weight_ema": "False decays=(0.995,) start_frac=0.75 seeded=False updates=0",
+      "world_size": 4
+    },
+    "post_run_dirt_explained": true,
+    "post_run_porcelain": [
+      " M research/experiment-log.jsonl",
+      "?? research/run-logs/al-20260923-ngram-ve-double-hash-r2-smoke-r1.launch.json",
+      "?? research/run-logs/al-20260923-ngram-ve-double-hash-r2-smoke-r1.log"
+    ]
+  },
+  "hostname": "ip-172-31-34-85",
+  "label": "al-20260923-ngram-ve-double-hash-r2-smoke-r1",
+  "ledger_row": {
+    "_dirt_explained": true,
+    "batch_ramp": "False grad_accum=(2, 4, 8) bounds=(0.35, 0.75) lr_exp=0.5 ref_grad_accum=4 last_grad_accum=4",
+    "budget_seconds": 1800,
+    "causality_max_abs": 0.0,
+    "causality_passed": true,
+    "charged_seconds_est": 285.2,
+    "checkpoint_path": "out/al-20260923-ngram-ve-double-hash-r2-smoke-r1/final.pt",
+    "compiled": true,
+    "description": "autoloop 20260923-ngram-ve-double-hash-r2 smoke: One architecture change confined to train.py: a new module-level boolean toggle USE_NGRAM_VE_DOUBLE_HASH (default True on the candidate branch env NEURON_COMPE flags='none' [trn21] CC='--optlevel=1' seed=42 commit=05422cf0",
+    "engram": "False site=-1 orders=2,3 heads=1 tables=0 mult=32 mem_dim=128 e_dim=0 key_dim=0 conv_k=4 share=False bf16=True",
+    "environment": {
+      "NEURON_CC_FLAGS": "--optlevel=1",
+      "NEURON_COMPETITION_R1_SEED": "42",
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "eval_over_timeout": false,
+    "eval_seconds": 11.1,
+    "eval_timeout": 1200,
+    "git_commit": "05422cf0503821f9031e349613eb38db1af8f5c4",
+    "git_dirty": false,
+    "hostname": "ip-172-31-34-85",
+    "label": "al-20260923-ngram-ve-double-hash-r2-smoke-r1",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5000 --max-train-seconds 300 --out-dir out/al-20260923-ngram-ve-double-hash-r2-smoke-r1 --seed 42",
+    "lnc": 2,
+    "max_train_seconds": 300,
+    "ngram_ve": "True tables=4 rows=1048576 dim=128 index_gather=True trigram=True double_hash=True opt=rmsprop flat_lr=True bf16=True rms_fp32_state_math=False nki_rms=False",
+    "nki_relu2": false,
+    "num_params_M": 592.9,
+    "num_steps": 325,
+    "oneliners": "relu2_tau=0.0 mlp_sandwich=False head_gate=False hg_norm=True hg_ch=32 hg_mul=2.0 hg_bias=0.0 out_pool=False pool_layers=3 qk_shift=True qk_beta=0.0 qk_freeze=True x0_gate=False block_nudge=False nudge_site=qk qkv_norm_cse=False parallel_block=False par_coalesce=none epoch_shuffle=False epoch_shuffle_seed=1234",
+    "out_bigram": "False bf16=True gate_bias=-2.0 lr=0.0",
+    "over_budget": false,
+    "public_val_bpb": 1.171049,
+    "returncode": 0,
+    "run_log": "research/run-logs/al-20260923-ngram-ve-double-hash-r2-smoke-r1.log",
+    "sched_tricks": "demon_b1=False demon_final=0.55 demon_ref=0.8 demon_start=-1.0 muon_b2=0.9 muon_b2_final=0.0 depth_lr=1.0->1.0 depth_mom=0.0->0.0 depth_mom_ref=0.95",
+    "seq_len": 2048,
+    "solution": "autoloop:20260923-ngram-ve-double-hash-r2",
+    "source_dirty": false,
+    "source_sha256": {
+      "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+      "research/run_experiment.py": "494e283f2464f1d08059eb69423165cbd40ff3fbf9ba9c89f746e0ce45096705",
+      "train.py": "66757cf801c381060c3df2aa62ff7038747669af92d30cb35b587fa64c455c58"
+    },
+    "startup_allowance_est": 114.8,
+    "status": "keep",
+    "target_steps": 5000,
+    "timestamp": "2026-09-23T14:59:16+00:00",
+    "total_seconds": 394.9,
+    "total_tokens_M": 42.6,
+    "training_seconds": 284.2,
+    "wall_elapsed_seconds": 417.9,
+    "weight_ema": "False decays=(0.995,) start_frac=0.75 seeded=False updates=0",
+    "world_size": 4
+  },
+  "manifest_id": "20260923-ngram-ve-double-hash-r2--smoke--al-20260923-ngram-ve-double-hash-r2-smoke-r1",
+  "returncode": 0
+}
