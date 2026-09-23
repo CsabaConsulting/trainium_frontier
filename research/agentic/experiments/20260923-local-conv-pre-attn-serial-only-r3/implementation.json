@@ -1,0 +1,19 @@
+{
+  "branch": "autoloop/20260923-local-conv-pre-attn-serial-only-r3",
+  "candidate_commit": "79b0cecb2f655441f4e0898f6140308eea6072f0",
+  "deterministic_findings": [],
+  "diff_sha256": "455af9834e3599fbbc267fa33dd971dd2c26aedecbbd47205d9687d8655c5653",
+  "implemented_at": "2026-09-23T16:28:01Z",
+  "implementer_model_id": "us.anthropic.claude-fable-5-1",
+  "passed": true,
+  "verifier_findings": [
+    "The patch implements one attributable change confined to train.py: the existing local-convolution residual update precedes Q/K/V snapshots and Q/K shift only on serial, non-sandwich blocks with an active convolution.",
+    "Complementary guards execute each active convolution exactly once. Parallel and MLP-sandwich paths retain their historical tensor operations and ordering; disabling the toggle restores the historical forward behavior.",
+    "The default-True toggle, environment override, BooleanOptionalAction CLI pair, and main() assignment are correctly connected. Checkpoints persist the toggle, and its name-specific missing-key fallback is False without changing other toggle defaults.",
+    "load_for_eval restores the saved ordering before model construction. The unchanged left-padded convolution and causal attention preserve structural causality; no evaluation adaptation is introduced.",
+    "No parameters, kernels, optimizer settings, precision, schedules, data handling, tokenizer behavior, or scoring procedures are changed. The 30-minute budget, distributed full-chip execution, and seed-42 defaults remain intact; no external-data or pretrained initialization path is introduced or enabled.",
+    "Supplied deterministic checks report PASS. Runtime quality, throughput, causality, and checkpoint round-trip results remain downstream gates, not prerequisites for this implementation approval."
+  ],
+  "verifier_model_id": "us.openai.gpt-6-astra",
+  "verifier_verdict": "PASS"
+}
