@@ -1,0 +1,9 @@
+{
+  "schema": "dense6x1024-cohort-post-run-contract-v1",
+  "required_push_proof_schema": "dense6x1024-cohort-evidence-push-v1",
+  "required_fields": ["arm", "label", "archive_path", "archive_sha256", "checkpoint_path", "checkpoint_sha256", "checkpoint_bytes", "evidence_commit", "origin", "branch", "retrieved_verified_committed_pushed"],
+  "origin": "https://github.com/CsabaConsulting/trainium_frontier.git",
+  "branch": "experiment/20260923-dense6x1024-matrixlr-cohort",
+  "ordering": ["retrieve and hash-verify lightweight evidence", "commit and push evidence", "authenticate exact push proof by out-of-band SHA-256 and remote branch head", "reserve and fsync prune intent", "delete only exact final.pt", "atomically fsync completed receipt", "retrieve commit and push prune receipt"],
+  "prune_command_prefix": ["python", "research/submission-validation/20260923-dense6x1024-matrixlr-cohort/prune_checkpoint.py"]
+}
