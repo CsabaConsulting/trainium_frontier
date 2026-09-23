@@ -20,4 +20,10 @@ for arm in ("control", "candidate"):
     for path, expected in request["expected_sha256"].items():
         actual = hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
         assert actual == expected, (path, actual, expected)
+    post = request["post_run_core"]
+    assert post["expected_commit"] == request["expected_commit"]
+    assert post["prune_script_sha256"] == request["expected_sha256"]["research/submission-validation/20260923-dense6x1024-matrixlr-cohort/prune_checkpoint.py"]
+    assert post["cwd"] == request["remote"]
+    prune_source = (ROOT / "research/submission-validation/20260923-dense6x1024-matrixlr-cohort/prune_checkpoint.py").read_text()
+    assert "--expected-core-commit" in prune_source and "--expected-script-sha256" in prune_source
 print("fresh_start request launcher compatibility: PASS (no dispatch)")
