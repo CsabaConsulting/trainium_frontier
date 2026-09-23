@@ -1,0 +1,36 @@
+{
+  "completed_at": "2026-09-23T05:25:17Z",
+  "model_id": "us.openai.gpt-6-astra",
+  "model_usage_reported": {
+    "input_tokens": 2,
+    "output_tokens": 1877,
+    "stop_reason": "end_turn"
+  },
+  "verdict": "PASS",
+  "rules_review_passed": true,
+  "independent_of_implementer": true,
+  "observed_train_sha256": "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344",
+  "material_rule_risks": [
+    "Budget compliance remains conditional on the trusted organizer's actual startup-accounting policy. Confirm it and measure charged time through checkpoint completion and process exit.",
+    "The launch shape is consistent with full-chip training, but actual placement and utilization require hardware verification."
+  ],
+  "contract_risks": [
+    "The review-clean artifact requires fresh CPU and Neuron batch-independence checks because it removed the predecessor's rowwise evaluation wrapper.",
+    "load_for_eval assigns module-global COMPUTE_DTYPE; multiple-load isolation must confirm a later load cannot change an already-loaded model's outputs.",
+    "Backend purity, state preservation, supported sequence-length behavior, causality across aligned and fallback shapes, and absence of training adapters at import require fresh checks."
+  ],
+  "equivalence_risks": [
+    "The supplied CPU equivalence report covers two reduced-width steps, not full-width distributed Neuron execution or real-time stopping.",
+    "Prior hardware validation belongs to source train.py SHA-256 35c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2, not this candidate.",
+    "Kernel identity is supporting evidence, not inherited hardware approval."
+  ],
+  "required_gates_before_human_submission": [
+    "Hash the frozen train.py and launch command before and after validation.",
+    "Run the organizer checker in the unchanged trusted environment.",
+    "Run fresh CPU and Neuron contract checks covering strict checkpoint loading, frozen parameters, no hooks or forward collectives, repeatability, unchanged state, causality, odd and even batch sizes, permutation and unrelated-row independence, and multiple-load isolation.",
+    "Replay the source checkpoint for 20,971,520 public tokens and require exact 0.9928513116311253 BPB.",
+    "Run one cold full-chip rehearsal with the exact launch, trusted timing through process exit, finite training, and a valid consolidated checkpoint.",
+    "Contract-check and publicly score the newly trained checkpoint, preserve all evidence, and keep leaderboard submission human-only."
+  ],
+  "rationale": "PASS authorizes development hardware validation only. The complete supplied source revealed no evaluator or tokenizer modification, external training asset ingestion, validation training, private-data access, or hidden scoring branch. Training-only adapters implement optimizer ownership, custom backward computation, and CE dispatch. Evaluation uses the visible model equations and model_state without EMA substitution or checkpoint-controlled global restoration. Hardware gates are not yet passed."
+}

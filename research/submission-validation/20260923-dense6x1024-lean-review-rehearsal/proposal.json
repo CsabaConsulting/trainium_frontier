@@ -1,0 +1,62 @@
+{
+  "proposal_id": "20260923-dense6x1024-lean-review-rehearsal",
+  "status": "approved-for-development-validation",
+  "owner_role": "supervisor",
+  "hypothesis": "The review-clean package preserves the validated dense6x1024 training and evaluation behavior while removing reviewer-confusing eval-path constructs, so it will pass the submission contract, reproduce the source checkpoint's 0.9928513116311253 public BPB, and complete a cold 1800-second full-chip rehearsal with a valid checkpoint.",
+  "single_causal_change": "Relative to submissions/dense6x1024_public0992851, only the mechanically documented reviewer-facing cleanup in submissions/dense6x1024_lean_review is under test; the model, optimizer, kernels, data path, timing budget, and launch command are unchanged.",
+  "evidence": [
+    "submissions/dense6x1024_lean_review/build-report.json",
+    "submissions/dense6x1024_lean_review/cpu-equivalence.json",
+    "submissions/dense6x1024_lean_review/provenance.json",
+    "submissions/dense6x1024_lean/rejection.md",
+    "submissions/dense6x1024_public0992851/validation.json",
+    "research/run-logs/fs-w129-submission-cold-rehearsal-1800-r1.rehearsal.json"
+  ],
+  "duplicate_search_terms": [
+    "dense6x1024_lean_review",
+    "submission contract",
+    "review clean",
+    "cold rehearsal"
+  ],
+  "control": {
+    "git_commit": "1da6c0714c0755fd3b078e972fbb0aefbb43bf6d",
+    "run_label": "fs-w129-submission-cold-rehearsal-1800-r1",
+    "public_val_bpb": 0.9938556748843932,
+    "steps": 3634,
+    "box_constraint": "Use trn22, the same host as the preserved cold source-package rehearsal; compare exact launch shape, charged training time, checkpoint validity, and public scorer output."
+  },
+  "candidate": {
+    "branch": "submission/dense6x1024-lean-review-validation-20260923",
+    "files_allowed": [
+      "submissions/dense6x1024_lean_review/train.py",
+      "submissions/dense6x1024_lean_review/launch-command.txt",
+      "research/submission-validation/20260923-dense6x1024-lean-review-rehearsal/"
+    ],
+    "expected_diff": "No new train.py edit. Validate the existing review-clean artifact at SHA-256 9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344.",
+    "run_label": "fs-20260923-dense6x1024-lean-review-cold-r1",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public"
+  },
+  "gates": {
+    "rules_review": true,
+    "diff_review": true,
+    "cpu_or_static_checks": true,
+    "numerical_equivalence": true,
+    "causality": false,
+    "smoke_run": false,
+    "human_run_approval": true
+  },
+  "success_criteria": {
+    "quality": "Source-checkpoint replay equals 0.9928513116311253 BPB; a fresh checkpoint is evaluated and reported without claiming an official private-shard win.",
+    "throughput": "Cold rehearsal stays within the 1800-second charged training budget and produces a step count comparable with the 3634-step source rehearsal.",
+    "correctness": "Organizer check, independent rules review, CPU and Neuron contract checks, causality, clean-host postflight, checkpoint load, and protected public evaluation all pass with no crash or NaN."
+  },
+  "abort_conditions": [
+    "Any organizer, independent-review, contract, causality, checkpoint, NaN, budget, or host-cleanliness gate fails",
+    "The candidate train.py or launch command differs from the frozen package hashes",
+    "The machine is not clean and idle or has less than 5 GiB free",
+    "Any unknown worktree, cache, checkpoint, or teammate artifact would need deletion"
+  ],
+  "authorization_basis": "research/agentic/STANDING_AUTONOMOUS_AUTHORIZATION.md on the controller branch authorizes gated development validation on existing Trn2 instances; leaderboard submission remains human-only.",
+  "human_approved_by": "active human operator conversation, 2026-09-23",
+  "verdict": null
+}
