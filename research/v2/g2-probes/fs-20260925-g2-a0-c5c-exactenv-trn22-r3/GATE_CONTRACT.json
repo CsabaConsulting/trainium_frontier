@@ -1,0 +1,87 @@
+{
+  "schema": "trn22-a0-r2-cpu-g2-retry-r3-pending-v1",
+  "status": "PENDING_INDEPENDENT_VERIFIER_REVIEW",
+  "prepared_by_role": "implementer",
+  "cpu_probe_authorized": false,
+  "native_training_authorized": false,
+  "fresh_evaluation_authorized": false,
+  "host": "trn22",
+  "expected_hostname": "ip-172-31-32-253",
+  "science_run_label_unconsumed": "fs-20260925-v2-c5c-a0-control-trn22-r2",
+  "cpu_g2_label_new": "fs-20260925-g2-a0-c5c-exactenv-trn22-r3",
+  "lineage": {
+    "failed_cpu_g2_label_consumed": "fs-20260925-g2-a0-c5c-exactenv-trn22-r2",
+    "failed_operator_receipt": "research/v2/g2-probes/fs-20260925-v2-c5c-a0-control-trn22-r2/operator-stage-hold.json",
+    "failed_operator_receipt_sha256": "a476312c1b9b24e785b72aac1ef78d165fc65b36fa193ea65530a1d188dc9aba",
+    "failed_g2_receipt": "research/v2/g2-probes/fs-20260925-v2-c5c-a0-control-trn22-r2/remote-run/c5c-g2.json",
+    "failed_g2_receipt_sha256": "0d58c8d4f7d5ff08eec451a743778151e0c8716436854e740ea42394f69b41e0",
+    "failure_classification": "FAIL_INFRA_STEP_LOG_PARENT_ABSENT; rank 0 reached record_step_boundary(0), then FileNotFoundError; other ranks lost their Gloo peer; no native run or BPB",
+    "prior_passing_cpu_control_receipt": "research/v2/g2-probes/fs-20260925-v2-g2-baseline-s0-trn22-r1/remote-run/receipts/fs-20260925-g2-a0-research-v2-trn22-r1.json",
+    "prior_passing_cpu_control_receipt_sha256": "17ce1ec84ddc0d585ecd103237ecfcd86d3820cdd9aaf1c4fe8b60ed308b90e3"
+  },
+  "breaker_and_failure_accounting": {
+    "prior_native_a0_r1_disk_stop": "One failed trn22 native launch before optimizer step 0; its named disk breaker was re-armed only after human acknowledgement and independent review.",
+    "failed_cpu_g2_r2": "A contained four-rank CPU G2 process started, then rank 0 failed while reporting the first completed optimizer step; no boundary was recorded. Quiescence passed. It was an infrastructure STEP_LOG-parent failure, not a model result.",
+    "counts_as_second_consecutive_launch_failure": "UNRESOLVED_PENDING_INDEPENDENT_SAFETY_CLASSIFICATION",
+    "triggers_global_correctness_breaker": "UNRESOLVED_PENDING_INDEPENDENT_SAFETY_CLASSIFICATION",
+    "required_disposition": "An independent Verifier/Safety Analyst must explicitly classify both breaker rules against the archived receipts before this new CPU G2 may run. If either rule trips or authority is unclear, HOLD and obtain the human's specific acknowledgement/reset. The earlier human disk-breaker re-arm does not reset a different or newly triggered breaker.",
+    "implementer_reset_any_breaker": false
+  },
+  "immutable_science": {
+    "existing_clean_checkout": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r2",
+    "pinned_commit": "e65a3097a5b00f6178188a935bb2acb9a5042c6c",
+    "root_train_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "train_argv": [
+      "--n-embd", "1024", "--no-ngram-ve", "--no-qk-shift",
+      "--compile-sdpa-direct", "--nki-local-conv", "--bf16-norm-output",
+      "--pack-factor", "32", "--clip-after-reduce", "--seq-len", "1024",
+      "--no-eval-public", "--matrix-lr", "0.015"
+    ],
+    "four_effective_environment_values": {
+      "NEURON_LOGICAL_NC_CONFIG": "2",
+      "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+      "NEURON_COMPETITION_R1_SEED": "42",
+      "NEURON_COMPETITION_R1_MAX_TRAIN_SECONDS": "1800"
+    }
+  },
+  "cpu_only_probe": {
+    "g2_root_must_be_absent_before_atomic_create": "/dev/shm/trainium-v2-g2-20260925-trn22-r3",
+    "g2_root_required_mode": "0700",
+    "step_log_parent_must_exist_before_launch": "/dev/shm/trainium-v2-g2-20260925-trn22-r3",
+    "step_log_must_be_absent_before_launch": "/dev/shm/trainium-v2-g2-20260925-trn22-r3/fs-20260925-g2-a0-c5c-exactenv-trn22-r3.steps.jsonl",
+    "g2_receipt": "/dev/shm/trainium-v2-g2-20260925-trn22-r3/c5c-g2.json",
+    "contained_process_dir": "/dev/shm/trainium-v2-g2-20260925-trn22-r3/process-fs-20260925-g2-a0-c5c-exactenv-trn22-r3",
+    "preflight_tool": "/dev/shm/trainium-v2-g2-20260925-trn22-r1/workflow/tools/preflight_dryrun.py",
+    "preflight_tool_sha256": "6a54589127a31beb5bde39fec8f58db370c2af5198ca4d6bca2bac684278d0b8",
+    "containment_tool": "/dev/shm/trainium-v2-g2-20260925-trn22-r1/workflow/tools/contained.py",
+    "containment_tool_sha256": "0b5aae142d2c0b0af4c8c2676521426a6e9ca6cb0c91c97fda2bf8f310c4e46d",
+    "g2_tool_options": ["--steps", "3", "--nproc", "4", "--timeout", "900", "--keep"],
+    "expected_g2_appended_train_argv": ["--device-type", "cpu", "--no-compile", "--num-steps", "3", "--out-dir", "<new-g2-temp-workdir>/out"],
+    "uses_synthetic_data": true,
+    "uses_neuron_training": false,
+    "uses_fresh_public_evaluation": false
+  },
+  "literal_environment_difference_from_failed_cpu_g2": {
+    "TRN_EXP_LABEL": "new CPU G2 r3 label for process containment",
+    "TMPDIR": "new isolated /dev/shm G2 root so temporary CPU model/checkpoint artifacts cannot dirty the source checkout",
+    "NEURON_COMPETITION_R1_STEP_LOG": "new pre-created isolated /dev/shm parent; prepare.py only appends integer optimizer boundaries on rank 0 and does not read this path as training input",
+    "other_values": "Keep the failed r2 G2 literal environment, including the same six warm-cache paths, science OUT_DIR default and science RUN_ID; preflight_dryrun.py appends its own CPU --out-dir, which must be verified in the receipt. The four science-effective values and Track-A argv are unchanged."
+  },
+  "mandatory_gates": [
+    "An independent Verifier/Safety Analyst first classifies whether the failed CPU G2 r2 counts toward the host's two-consecutive-launch-failures rule or the global correctness-breaker rule; any tripped/unclear breaker remains HOLD for a specific human decision. The prior human disk-breaker re-arm is not sufficient for another breaker.",
+    "A separate Verifier PASSes this package before any trn22 action; only after the breaker disposition is safe may a Supervisor assign one CPU G2 only, not native training/evaluation.",
+    "Operator authenticates hostname, exact clean commit and hashes, prior failure receipt, unchanged G1 checkpoint/six warm-cache identities, idle host/lock/Neuron device, root free at least 10 GiB, and absence of new G2 root and science output/log/step paths.",
+    "Operator atomically creates only the new G2 root with mode 0700; never creates or edits a directory inside the clean source checkout. The isolated step-log parent must exist and its target file must not exist before G2 launch.",
+    "Operator rehashes both G2 tools and executes only the exact clean-env four-rank CPU G2 command in RUNBOOK.md, under contained.py with a unique r3 label.",
+    "After contained wait, Operator proves quiescence even if G2 fails, archives all G2 receipts/logs/rank files/step log and their SHA-256, and rechecks clean source, checkpoint/cache identity, idle/Neuron state, disk and absent science paths.",
+    "The G2 receipt must show PASS on all four ranks, exact train.py/prepare.py hashes and argv, three finite losses per rank, stable ownership plan, no cross-rank parameter mismatch, successful checkpoint/load_for_eval, and exactly step-log lines 0, 1, 2.",
+    "A different Verifier compares the new PASS receipt against the archived prior c5c PASS receipt: same source/prepare hashes, training argv, 3 steps, 2x256 micro-batch, 4 ranks, plan hash, per-rank losses and final parameter digests; the built-in --compare output must say identical true.",
+    "Any failure or mismatch is a HOLD. This G2 PASS alone cannot authorize science A0 r2; live native preflight, independent final request review, external observer and separate one-shot Supervisor authorization remain."
+  ],
+  "forbidden_actions": [
+    "No prepare.py/train.py/evaluator/data edit, native training, fresh evaluation, AWS action, protected deletion, cache cleanup, breaker reset, adoption or submission under this package.",
+    "No reuse of failed G2 r2 label or substitution of G2 r3 for the unconsumed science A0 r2 label.",
+    "No launch from this Implementer-authored package without independent review and Supervisor assignment."
+  ]
+}
