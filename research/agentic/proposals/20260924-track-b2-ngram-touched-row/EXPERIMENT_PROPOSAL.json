@@ -1,0 +1,71 @@
+{
+  "proposal_id": "20260924-track-b2-ngram-touched-row",
+  "status": "human-approved-implementation-blocked-by-sdk-feasibility",
+  "owner_role": "implementer",
+  "hypothesis": "Replacing dense n-gram gradient synchronization and RMSProp traffic with deterministic, globally synchronized touched-row-only lazy RMSProp preserves dense AVG semantics and increases useful training throughput enough to lower final val_bpb.",
+  "single_causal_change": "Only the n-gram table gradient synchronization and RMSProp update representation changes from dense tensors to exact touched-row records with deferred per-row moment decay; model, data, loss, clipping policy, schedule, checkpoint model state, and evaluation remain unchanged.",
+  "evidence": [
+    "submissions/dense6x1024_public0992851/train.py sha256 35c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2",
+    "research/trn2-experiment-results.md:5166-5194 documents index_add_ accumulation loss across XLA mark_step boundaries",
+    "research/fresh-start-code-audit-2026-09-18.md:258-259 identifies sparse backward, communication, optimizer traffic, and timestamped lazy RMSProp as separate requirements",
+    "research/RESUME.md source98 records only 1.12814% whole-step gain for exact owner-table optimizer and 3.16362% in the separate pack32 composition",
+    "AWS native run logs register aten::gather.out with sparse_grad=False for this code surface",
+    "Recursive Apache-2.0 attribution is already present in the pinned source; upstream source commit a962ec43, cited file sha256 f92ecc81"
+  ],
+  "duplicate_search_terms": [
+    "sparse ngram RMSProp",
+    "touched row optimizer",
+    "lazy RMSProp",
+    "sparse embedding gradient",
+    "owner table optimizer",
+    "index_add_ mark_step"
+  ],
+  "control": {
+    "git_commit": "c51f6fdc5ca77793a1524148a563cafac0ab22b0",
+    "train_py": "submissions/dense6x1024_public0992851/train.py",
+    "train_py_sha256": "35c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2",
+    "run_label": "historical-public0992851-control",
+    "public_val_bpb": 0.9928513116311253,
+    "steps": null,
+    "box_constraint": "A future component gate and any quality run require the same LNC2/native SDK stack and a nearby same-host exact 35c9 control."
+  },
+  "candidate": {
+    "branch": "experiment/20260924-track-b2-ngram-touched-row",
+    "files_allowed": [
+      "train.py"
+    ],
+    "expected_diff": "Not materialized: the installed SDK support needed for an exact implementation is not established by repository evidence.",
+    "run_label": "fs-20260924-track-b2-ngram-touched-row-r1",
+    "launch_command": null
+  },
+  "gates": {
+    "rules_review": true,
+    "diff_review": false,
+    "cpu_or_static_checks": true,
+    "numerical_equivalence": true,
+    "causality": false,
+    "smoke_run": false,
+    "human_run_approval": false,
+    "native_sparse_backward_supported": false,
+    "native_sparse_collective_supported": false,
+    "native_dynamic_row_update_supported": false
+  },
+  "success_criteria": {
+    "quality": "Full-budget public val_bpb must improve by at least 0.0015 against a nearby same-host exact 35c9 control after all exactness gates pass.",
+    "throughput": "Unprofiled warmed whole-step median must improve by at least 3%, including index extraction, duplicate reduction, clipping, collectives, lazy decay, and row writes.",
+    "correctness": "For duplicate and cross-rank cases, touched-row parameters and logically materialized RMSProp state match dense local-clip then AVG RMSProp; untouched parameter and physical lazy state bytes do not change; deterministic replay is exact; BF16-parameter/FP32-state and BF16-state variants pass; checkpoint model keys and native evaluation logits are unchanged; no crash, NaN, causality, or budget failure."
+  },
+  "abort_conditions": [
+    "The backward path materializes or scans the full dense table gradient.",
+    "Any sparse COO, custom autograd side effect, hook, collective, unique/sort, index_add/scatter, or dynamic-shape primitive is unsupported or silently host-falls back on the pinned native SDK.",
+    "Local clipping before AVG is not reproduced exactly.",
+    "Duplicate reduction or rank merge is nondeterministic.",
+    "Deferred beta2 decay or global bias correction differs from dense RMSProp.",
+    "Untouched table parameters change, or logical optimizer state differs from dense RMSProp.",
+    "Checkpoint model keys, load_for_eval behavior, logits, causality, or scoring path changes.",
+    "Whole-step throughput gain is below 3% or final BPB gate fails.",
+    "Any training, SSH, submission, or AWS action occurs before independent verification and separate human run approval."
+  ],
+  "human_approved_by": "human Track B2 direction; implementation remains gated by SDK feasibility and independent verification",
+  "verdict": "Do not materialize or launch the candidate on current evidence. First run a separately approved, bounded native-SDK component probe for sparse backward/collective/dynamic row update support."
+}
