@@ -46,6 +46,13 @@ This section supersedes earlier Track-A readiness and host-control statements be
   on hybrid RMS optimizer `state_dict/load_state_dict`, preserve no-RMS ownership serialization,
   and document interruption as abort/restart-from-zero. This removes unneeded resume complexity
   without changing any scored forward/backward/update/checkpoint/eval behavior.
+- Iteration 4 simplified hybrid RMS optimizer resume to an immediate fail-closed error; verifier
+  `8431f38a` found one mutable cached-list bypass. The four-line iteration-5 repair `ec93e156`
+  bound the gate to the authenticated plan. Independent verifier receipt `c35504bc` now PASSes all
+  13 supplied tests plus a two-RMS mutation matrix. The accepted candidate SHA-256 is
+  `9191e85835d8cad50923f32d44ad90c047a9e2d3d4621ce196b11ba66cd66bae`; `prepare.py` remains
+  `5807c46e...`. A distinct native-five-step equivalence package may be prepared, but no hardware
+  or full A1 run is authorized by this receipt.
 - A separate source audit confirms clean-step replicated RMSProp is semantically equivalent to the
   ordinary optimizer only if tables are absent from ownership/all-gather, post-AVG joint table
   clipping is unchanged, and each rank executes exactly one RMS step. Source cannot prove Neuron
