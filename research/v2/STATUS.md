@@ -2,6 +2,10 @@
 
 Status: **both hosts disk-blocked; A0 failed safely before step 1; no new BPB result.**
 
+An hourly Codex heartbeat now checks this thread for a meaningful change while the
+hosts are blocked. It is **not** a verified unattended host/Bedrock scheduler and
+does not authorize training, AWS changes or breaker reset. Unchanged checks stay quiet.
+
 ## Safety update (2026-09-24 21:37 UTC)
 
 - trn22's first warm c5c A0 attempt crossed the immutable 6.5-GiB root-disk floor during
