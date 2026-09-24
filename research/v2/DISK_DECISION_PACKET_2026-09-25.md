@@ -8,11 +8,13 @@ below the immutable 6.5-GiB floor (6,979,321,856 bytes), authenticated the run's
 guard identity, and stopped that owned guard. Its postflight ended at 21:28:07 UTC
 with rc 1 and `host_clean=false` solely for disk; the timing observer saw zero steps.
 No checkpoint/evaluation result, deletion, cache cleanup, or relaunch occurred.
-Terminal artifact retrieval is in progress; these figures are from the Operator's
-live and postflight reports, not a finalized new score.
+The hash-verified [terminal receipt](incidents/fs-20260925-v2-c5c-a0-control-trn22-r1/operator-terminal.json)
+and [independent review](../agentic/verification/20260925-a0-trn22-disk-safety-review.md)
+are now archived. Preflight-to-postflight root free space fell by 1,500,942,336
+bytes during compile. This is a failed safety gate, not a model score.
 
 **Both hosts are now blocked:** trn21 was already under the floor and trn22 remains
-under it at about 6,449,004,544 bytes free. The same +50-GiB-per-host EBS request
+under it at the latest checked 6,448,951,296 bytes free. The same +50-GiB-per-host EBS request
 below is now needed before any further training. A reviewed new-label A0 retry and
 human acknowledgement of the trn22 safety breaker are also required after the
 volumes are expanded; resizing alone is not authorization to restart.

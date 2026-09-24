@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-24 21:30 UTC
+Last reconciled: 2026-09-24 21:37 UTC
 
 ## Current handoff: both hosts disk-blocked after A0 compile safety stop
 
@@ -9,7 +9,10 @@ below the 6.5-GiB operational floor **before any optimizer step**. The authentic
 guard ended at 21:28:07 UTC with rc 1; no owned processes or cleanup actions remain.
 The independent timing observer saw zero boundaries and reported NON_SCORED. No
 checkpoint/public20M result or quality verdict exists; this label is consumed.
-Terminal evidence retrieval and failure diagnosis are underway.
+The hash-verified [terminal receipt](../v2/incidents/fs-20260925-v2-c5c-a0-control-trn22-r1/operator-terminal.json)
+and [independent safety review](verification/20260925-a0-trn22-disk-safety-review.md)
+are now archived. Compile-time free-space consumption was 1,500,942,336 bytes;
+trn22's latest free space was 6,448,951,296 bytes.
 
 trn21 and trn22 are both below the disk floor. The [disk packet](../v2/DISK_DECISION_PACKET_2026-09-25.md)
 asks the human to expand both existing root volumes by 50 GiB, then acknowledge the

@@ -2,15 +2,19 @@
 
 Status: **both hosts disk-blocked; A0 failed safely before step 1; no new BPB result.**
 
-## Safety update (2026-09-24 21:30 UTC)
+## Safety update (2026-09-24 21:37 UTC)
 
 - trn22's first warm c5c A0 attempt crossed the immutable 6.5-GiB root-disk floor during
   compilation **before any optimizer boundary**. The Operator authenticated and signaled
   only that guard. Terminal postflight at 21:28:07 UTC was rc 1 and `host_clean=false`
   solely for disk; no owned processes or cleanup actions remained. The observer reported
   `COMPLETE_NON_SCORED` with zero boundaries. There is no checkpoint/BPB result or win.
-  The label is consumed and must never be reused. Artifact retrieval and diagnosis continue.
-- trn22 has about 6,449,004,544 bytes free, below the 6,979,321,856-byte floor;
+  The label is consumed and must never be reused. The hash-verified
+  [terminal receipt](incidents/fs-20260925-v2-c5c-a0-control-trn22-r1/operator-terminal.json)
+  and [independent review](../agentic/verification/20260925-a0-trn22-disk-safety-review.md)
+  are archived. Compilation consumed 1,500,942,336 bytes of root free space.
+- trn22's latest checked free space is 6,448,951,296 bytes, below the
+  6,979,321,856-byte floor;
   trn21 was already below the floor. Both need the human root EBS expansion in the
   [updated disk decision packet](DISK_DECISION_PACKET_2026-09-25.md). trn22's disk
   breaker remains tripped; only the human can acknowledge/reset it after resize and
