@@ -1,0 +1,78 @@
+{
+  "schema": "a1-native-five-trn22-tmpfs-independent-verification-v2",
+  "verdict": "FAIL",
+  "reviewed_commit": "b7932876cc9348e5870ee090bafa07ea9f976e67",
+  "reviewed_branch": "implement/20260925-v2-a1-native5-trn22-tmpfs-r2",
+  "review_parent": "a130a4a2bba4d1af43be56b8e99042a545140b2d",
+  "prior_fail_receipt_sha256": "ee1dad06dd445b923cda480b8ea0f55e77e75a4fd555b428462e26fada9de0c4",
+  "verifier_branch": "verify/20260925-v2-a1-native5-trn22-tmpfs-r2-b793",
+  "date": "2026-09-25",
+  "role": "independent-verifier",
+  "scope": {
+    "host_access_performed": false,
+    "hardware_or_training_executed": false,
+    "request_materialized": false,
+    "authorization_or_finalization_changed": false,
+    "cleanup_or_prune_performed": false,
+    "implementation_files_edited": false
+  },
+  "ancestry_and_diff": {
+    "origin_head_exact": true,
+    "prior_fail_is_exact_parent": true,
+    "changed_paths": [
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_gate_package.py",
+      "research/submission-validation/20260925-v2-a1-native5-trn22-tmpfs-r1/EXPERIMENT_PROPOSAL.json",
+      "research/submission-validation/20260925-v2-a1-native5-trn22-tmpfs-r1/RUNBOOK.md",
+      "research/submission-validation/20260925-v2-a1-native5-trn22-tmpfs-r1/checkpoint_guard.py",
+      "research/submission-validation/20260925-v2-a1-native5-trn22-tmpfs-r1/g0-request.pending.json",
+      "research/submission-validation/20260925-v2-a1-native5-trn22-tmpfs-r1/protected-hashes.json",
+      "research/submission-validation/20260925-v2-a1-native5-trn22-tmpfs-r1/storage_contract.py",
+      "research/submission-validation/20260925-v2-a1-native5-trn22-tmpfs-r1/test_trn22_tmpfs_package.py"
+    ],
+    "candidate_prepare_gate_wrappers_launcher_guard_comparator_unchanged_from_parent": true,
+    "protected_manifest_file_count": 22,
+    "protected_manifest_exact": true,
+    "protected_manifest_non_self_referential": true,
+    "secret_scan_clean": true
+  },
+  "tests": {
+    "py_compile": "PASS",
+    "json_parse": "PASS (6 package JSON files)",
+    "focused_default": "FAIL: 36 run, 35 pass, 1 error",
+    "focused_torch": "FAIL: 36 run, 35 pass, 1 error",
+    "ownership_torch": "PASS: 13/13",
+    "migration_native_gate_torch": "PASS: 60/60",
+    "aggregate": "145 run, 143 pass, 2 errors",
+    "failing_test": "MountAndStorageTests.test_absent_cache_snapshot_is_exact_and_anchored",
+    "error": "ContractError: snapshot root mount/device mismatch"
+  },
+  "verified_repairs": [
+    "The R1 bare-string/partial evidence forgery is rejected by exact closed pre/post, mount, resource, tree, arm, watcher and checkpoint schemas.",
+    "Phase-specific root reservations include G0 >= 7849426944 bytes and both root/tmpfs inode floors.",
+    "Watcher receipts require nonempty pre/runtime/final samples, continuous sequence/cadence, lifecycle coverage and exact source/job/postflight/cache/terminal-arm bindings.",
+    "Checkpoint validation requires mode 0600, one link, current uid/gid, pinned mount/device/root/output-parent identities, same-descriptor hashing and post-validation resealing.",
+    "The tree walker is recursive, descriptor-anchored, no-follow, same-mount, single-link for files, same-descriptor hashed and rewalked for a final exact seal.",
+    "Candidate, prepare.py, gate wrappers, launcher and guard hashes are unchanged; G1/G2 remain absent/locked and G0 request/authorization remain non-executable pending files."
+  ],
+  "release_blockers": [
+    {
+      "id": "R2-B1",
+      "severity": "RELEASE_BLOCKING",
+      "finding": "snapshot_path cannot prove absence or snapshot a path on any mount distinct from /. It opens / and immediately requires the root descriptor device and mount ID to equal the target mount. The required /dev/shm tree therefore always raises before traversing into tmpfs.",
+      "evidence": [
+        "storage_contract.py:524-529 opens / then compares that descriptor with expected_device and mount_id.",
+        "Both checked-in focused suites error in test_absent_cache_snapshot_is_exact_and_anchored.",
+        "Independent read-only probe: / device 64513, /dev/shm device 29, mount ID 35, absent /dev/shm target -> ContractError snapshot root mount/device mismatch."
+      ],
+      "impact": "A later G0 finalizer cannot execute the required exact fresh tmpfs absence/cache path gate. The current package is not a usable fail-closed basis for G0 finalizer preparation.",
+      "minimal_repair": "Anchor the full lexical chain at / without requiring every pre-mount ancestor to have the target device/mount ID; identify and pin the exact authenticated target mount root, enforce the expected device/mount ID from that boundary downward, revalidate every pre- and post-boundary ancestor, and add passing root-filesystem and /dev/shm cross-mount present/absent tests plus ancestor/bind/symlink/swap attacks."
+    }
+  ],
+  "authorization": {
+    "separate_g0_finalizer_implementation_permitted": false,
+    "request_materialization_permitted": false,
+    "hardware_execution_permitted": false,
+    "g1_or_g2_permitted": false,
+    "cleanup_prune_submission_permitted": false
+  }
+}
