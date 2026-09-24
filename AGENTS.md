@@ -52,6 +52,15 @@ instructions. `README.md`, the official rules, and the current human-approved pr
 
 No agent may combine proposer, implementer, verifier, and operator authority for the same run.
 
+## Deterministic workflow v2
+
+The additive control-plane contract is documented in
+`research/agentic/DETERMINISTIC_WORKFLOW_V2.md`. It maps every workflow role—including the
+externally suggested “Porter” duties—onto the roles and authority boundaries above, documents the
+existing persisted state machine, and identifies `research/agentic/autoloop/selection.py` as the
+sole advisory screen/confirmation decision engine. It does not create another queue, ledger, or
+source of launch authority.
+
 ## Definition of done for one experiment
 
 The proposal, commit, exact launch command, environment, box, log, parsed metrics, checkpoint

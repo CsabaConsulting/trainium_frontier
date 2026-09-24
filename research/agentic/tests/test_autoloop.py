@@ -304,6 +304,11 @@ def researcher_json(pid="20260922-weight-ema-on", flags=("--weight-ema",)):
             {"idea": "test one width point", "mechanism_class": "capacity", "predicted_bpb_delta": 0.001, "why_ranked": "budget-dependent capacity question"},
         ],
         "selection_rationale": "EMA has the strongest evidence-adjusted value per host-hour in this shortlist.",
+        "p_improve": 0.45,
+        "estimated_host_hours": 3.0,
+        "trainium_feasibility": "No ownership change; one known graph branch with unchanged memory and bounded compile risk.",
+        "cheapest_falsifier": "Reject on the existing bounded screen if matched public BPB does not improve.",
+        "prior_result_refs": ["research/experiment-log.jsonl: T2.2 rows"],
     })
 
 
@@ -330,6 +335,11 @@ def code_researcher_json(pid="20260922-bf16-head"):
             {"idea": "test width", "mechanism_class": "capacity", "predicted_bpb_delta": 0.001, "why_ranked": "budget-dependent capacity"},
         ],
         "selection_rationale": "The isolated projection boundary has the best evidence-adjusted value per host-hour.",
+        "p_improve": 0.4,
+        "estimated_host_hours": 3.0,
+        "trainium_feasibility": "One local graph dtype boundary; unchanged ownership and bounded compilation and memory risk.",
+        "cheapest_falsifier": "Reject if static review or the existing bounded gate disproves the local dtype boundary.",
+        "prior_result_refs": ["train.py final projection"],
     })
 
 
@@ -1002,6 +1012,9 @@ class LoopTests(unittest.TestCase):
         self.assertIn("Do not require named pre-edit", env.model.systems["researcher"][0])
         self.assertIn("Authoritative measured/closed train.py evidence excerpts", env.model.users["researcher"][0])
         self.assertIn("candidate_shortlist", env.model.systems["researcher"][0])
+        self.assertIn("p_improve", env.model.systems["researcher"][0])
+        self.assertIn("cheapest_falsifier", env.model.systems["researcher"][0])
+        self.assertIn("prior_result_refs", env.model.systems["researcher"][0])
         self.assertIn("Proposal-to-outcome memory", env.model.users["researcher"][0])
 
     def test_fresh_proposal_requires_ranked_research_metadata(self):
@@ -1015,15 +1028,71 @@ class LoopTests(unittest.TestCase):
                 require_research_metadata=True,
             )
 
+    def test_fresh_proposal_requires_decision_cost_and_feasibility_metadata(self):
+        fields = (
+            "p_improve", "estimated_host_hours", "trainium_feasibility",
+            "cheapest_falsifier", "prior_result_refs",
+        )
+        for field in fields:
+            with self.subTest(field=field):
+                raw = json.loads(researcher_json())
+                raw.pop(field)
+                with self.assertRaises(ManifestError):
+                    Proposal.from_model_json(
+                        raw,
+                        self.env.cfg.researcher_model_id,
+                        "now",
+                        require_research_metadata=True,
+                    )
+
+    def test_fresh_proposal_rejects_malformed_decision_metadata(self):
+        invalid = {
+            "p_improve": [True, -0.01, 1.01, float("inf")],
+            "estimated_host_hours": [True, 0, -1, float("nan")],
+            "trainium_feasibility": ["vague", {"graph": "unchanged", "memory": "unchanged"}],
+            "cheapest_falsifier": ["run it", {"gate": "screen"}],
+            "prior_result_refs": [[], [""], ["same", "same"], "not-a-list"],
+        }
+        for field, values in invalid.items():
+            for value in values:
+                with self.subTest(field=field, value=value):
+                    raw = json.loads(researcher_json())
+                    raw[field] = value
+                    with self.assertRaises(ManifestError):
+                        Proposal.from_model_json(
+                            raw,
+                            self.env.cfg.researcher_model_id,
+                            "now",
+                            require_research_metadata=True,
+                        )
+
     def test_historical_proposal_without_research_metadata_remains_resumable(self):
         raw = json.loads(researcher_json())
         for key in (
             "mechanism_class", "predicted_bpb_delta", "predicted_bpb_interval",
-            "candidate_shortlist", "selection_rationale",
+            "candidate_shortlist", "selection_rationale", "p_improve",
+            "estimated_host_hours", "trainium_feasibility", "cheapest_falsifier",
+            "prior_result_refs",
         ):
             raw.pop(key)
         prop = Proposal.from_model_json(raw, self.env.cfg.researcher_model_id, "now")
         self.assertEqual(prop.mechanism_class, "unclassified")
+        self.assertIsNone(prop.p_improve)
+        self.assertEqual(prop.prior_result_refs, [])
+
+    def test_optional_new_metadata_is_not_enforced_for_historical_loads(self):
+        raw = json.loads(researcher_json())
+        raw.update({
+            "p_improve": "legacy-unknown",
+            "estimated_host_hours": None,
+            "trainium_feasibility": {"legacy": True},
+            "cheapest_falsifier": None,
+            "prior_result_refs": "legacy-free-text",
+        })
+        prop = Proposal.from_model_json(raw, self.env.cfg.researcher_model_id, "now")
+        self.assertEqual(prop.p_improve, "legacy-unknown")
+        with self.assertRaises(ManifestError):
+            prop.validate_shape(require_research_metadata=True)
 
     def test_outcome_memory_joins_proposal_to_tier_deltas(self):
         env = self.env

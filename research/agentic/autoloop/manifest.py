@@ -60,6 +60,13 @@ class Proposal:
     predicted_bpb_interval: list[float] = field(default_factory=list)
     candidate_shortlist: list[dict] = field(default_factory=list)
     selection_rationale: str = ""
+    # Optional on historical proposals. Fresh Researcher output must populate these when
+    # ``require_research_metadata`` is enabled by the controller.
+    p_improve: float | None = None
+    estimated_host_hours: float | None = None
+    trainium_feasibility: str = ""
+    cheapest_falsifier: str = ""
+    prior_result_refs: list[str] = field(default_factory=list)
 
     @classmethod
     def from_model_json(
@@ -100,6 +107,11 @@ class Proposal:
             predicted_bpb_interval=raw.get("predicted_bpb_interval", []),
             candidate_shortlist=raw.get("candidate_shortlist", []),
             selection_rationale=str(raw.get("selection_rationale", "")).strip(),
+            p_improve=raw.get("p_improve"),
+            estimated_host_hours=raw.get("estimated_host_hours"),
+            trainium_feasibility=raw.get("trainium_feasibility", ""),
+            cheapest_falsifier=raw.get("cheapest_falsifier", ""),
+            prior_result_refs=raw.get("prior_result_refs", []),
         )
         prop.validate_shape(require_research_metadata=require_research_metadata)
         return prop
@@ -179,6 +191,33 @@ class Proposal:
                 raise ManifestError("selected prediction must appear in candidate_shortlist")
             if len(self.selection_rationale) < 20:
                 raise ManifestError("fresh proposal requires a concrete selection_rationale")
+            if (
+                isinstance(self.p_improve, bool)
+                or not isinstance(self.p_improve, (int, float))
+                or not math.isfinite(float(self.p_improve))
+                or not 0.0 <= float(self.p_improve) <= 1.0
+            ):
+                raise ManifestError("fresh proposal requires p_improve in [0, 1]")
+            if (
+                isinstance(self.estimated_host_hours, bool)
+                or not isinstance(self.estimated_host_hours, (int, float))
+                or not math.isfinite(float(self.estimated_host_hours))
+                or float(self.estimated_host_hours) <= 0.0
+            ):
+                raise ManifestError("fresh proposal requires positive finite estimated_host_hours")
+            if not isinstance(self.trainium_feasibility, str) or len(self.trainium_feasibility.strip()) < 20:
+                raise ManifestError("fresh proposal requires concrete trainium_feasibility")
+            if not isinstance(self.cheapest_falsifier, str) or len(self.cheapest_falsifier.strip()) < 20:
+                raise ManifestError("fresh proposal requires a concrete cheapest_falsifier")
+            if (
+                not isinstance(self.prior_result_refs, list)
+                or not self.prior_result_refs
+                or any(not isinstance(ref, str) or not ref.strip() for ref in self.prior_result_refs)
+                or len({ref.strip() for ref in self.prior_result_refs}) != len(self.prior_result_refs)
+            ):
+                raise ManifestError(
+                    "fresh proposal requires unique nonempty prior_result_refs"
+                )
         if not isinstance(self.smoke_gate, dict):
             raise ManifestError("proposal.smoke_gate must be an object")
         allowed_gate_keys = {"min_candidate_steps", "min_step_rate_ratio", "max_bpb_delta"}

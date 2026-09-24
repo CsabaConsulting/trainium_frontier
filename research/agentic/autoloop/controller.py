@@ -62,6 +62,10 @@ not untested. Cite repository evidence. Return ONLY a JSON object:
  "candidate_shortlist":[{"idea":"...","mechanism_class":"schedule",
    "predicted_bpb_delta":-0.002,"why_ranked":"evidence, transfer likelihood, and cost"}, ...],
  "selection_rationale":"why the selected idea has the best evidence-adjusted value per host-hour",
+ "p_improve":0.45, "estimated_host_hours":3.0,
+ "trainium_feasibility":"specific graph, ownership, memory, compile, and startup risks",
+ "cheapest_falsifier":"the least expensive gate that can reject the mechanism",
+ "prior_result_refs":["durable repository path or run label"],
  "abort_conditions": ["..."], "change_type":"flags"|"code",
  "smoke_gate":{"min_candidate_steps":123,"min_step_rate_ratio":1.0,"max_bpb_delta":0.0},
  "implementation_plan":"exact bounded edit plan, empty for flags",
@@ -70,6 +74,11 @@ BPB deltas are always candidate minus matched control, so negative is better. Pr
 priors, not measurements: give an honest interval that includes regression when uncertainty
 warrants it. The shortlist must contain 4 to 6 candidates and no mechanism class may occupy more
 than half the list. Rank transfer likelihood, information value, and host-hours explicitly.
+p_improve is the probability that the candidate improves the matched selection metric, expressed
+as a number in [0, 1]. estimated_host_hours is the positive total host time needed for the cheapest
+decisive test. trainium_feasibility must address concrete compile/graph, ownership/world-size,
+memory, and cold-start risks. cheapest_falsifier must name the bounded first gate, and
+prior_result_refs must cite at least one durable repository artifact or run label.
 smoke_gate must contain only thresholds justified by the proposal; use {} when the controller's
 global smoke gate is sufficient. Proposal thresholds can only tighten the global gate. For flags,
 files_allowed must be [] and implementation_plan empty. For code, flags must be [],
