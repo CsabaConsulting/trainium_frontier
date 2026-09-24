@@ -68,7 +68,7 @@ ENVIRONMENT = {
 }
 METRIC_KEYS = {"val_bpb", "num_tokens", "num_bytes", "total_nats", "eval_seconds", "eval_timeout", "eval_over_timeout"}
 ARTIFACTS = {
-    "contract-check.log", "training.log", "training-process.json", "training-steps.jsonl",
+    "contract-check.log", "contract-check-process.json", "training.log", "training-process.json", "training-steps.jsonl",
     "checkpoint-finite.log", "checkpoint-finite.json", "screen2m.log", "screen2m.metrics.json",
     "cache-observations.json", "result.json", "evidence.tar.gz",
 }
@@ -87,6 +87,24 @@ def digest(data):
 
 def valid_digest(value):
     return type(value) is str and HEX64.fullmatch(value) is not None and value != "0" * 64
+
+
+def validate_clean_lifecycle(value):
+    required = {
+        "pgid", "leader_returncode", "cleanup_required", "term_sent", "kill_sent",
+        "quiescent", "reaped_descendants", "term_grace_seconds", "kill_grace_seconds",
+    }
+    if type(value) is not dict or set(value) != required:
+        raise SystemExit("process-group lifecycle schema mismatch")
+    if (type(value["pgid"]) is not int or value["pgid"] <= 0
+            or value["leader_returncode"] != 0
+            or value["cleanup_required"] is not False
+            or value["term_sent"] is not False or value["kill_sent"] is not False
+            or value["quiescent"] is not True or value["reaped_descendants"] != []
+            or type(value["term_grace_seconds"]) is not float or value["term_grace_seconds"] <= 0
+            or type(value["kill_grace_seconds"]) is not float or value["kill_grace_seconds"] <= 0):
+        raise SystemExit("successful evidence did not have a clean process-group exit")
+    return value
 
 
 def json_object(data, name, canonical=False):
@@ -166,6 +184,30 @@ def a1_decision(control_bpb, candidate_bpb):
         "decision": "NOMINATE_OTHER_HOST_FULL20M_REPLICATE" if nominated else "DISCARD",
         "screening_only": True, "keep_authorized": False, "adoption_authorized": False,
         "other_host_full20m_replicate_required": nominated,
+    }
+
+
+def adoption_decision(control_trn21, candidate_trn21, control_trn22, candidate_trn22):
+    """Downstream-only gate: delta is candidate minus matched control at full20M."""
+    try:
+        values = [Decimal(str(value)) for value in (
+            control_trn21, candidate_trn21, control_trn22, candidate_trn22
+        )]
+    except (InvalidOperation, ValueError) as error:
+        raise SystemExit("full20M BPB is not decimal") from error
+    if any(not value.is_finite() or value <= 0 for value in values):
+        raise SystemExit("full20M BPB is nonfinite/nonpositive")
+    delta_trn21 = values[1] - values[0]
+    delta_trn22 = values[3] - values[2]
+    mean_delta = (delta_trn21 + delta_trn22) / Decimal(2)
+    adopt = delta_trn21 < 0 and delta_trn22 < 0 and mean_delta <= Decimal("-0.001")
+    return {
+        "metric_population": "fresh20m_seq1024_tokens20971520_bytes83462186",
+        "delta_definition": "candidate_bpb_minus_same_host_control_bpb",
+        "trn21_delta": str(delta_trn21), "trn22_delta": str(delta_trn22),
+        "mean_delta": str(mean_delta), "both_deltas_negative": delta_trn21 < 0 and delta_trn22 < 0,
+        "mean_threshold": "-0.001", "adoption_authorized": adopt,
+        "other_host_replicate_alone_confirms": False,
     }
 
 
@@ -390,6 +432,28 @@ def validate_control_evidence(reader, identity_value):
         for entry in entries:
             if tar.extractfile(entry).read() != members[entry.name]:
                 raise SystemExit(f"control archive content mismatch: {entry.name}")
+    contract_process = json_object(members["contract-check-process.json"], "control contract process", canonical=True)
+    if (set(contract_process) != {"schema", "argv", "returncode", "timed_out", "wall_seconds", "process_group"}
+            or contract_process["schema"] != "track-a-contract-check-process-v1"
+            or contract_process["returncode"] != 0 or contract_process["timed_out"] is not False
+            or type(contract_process["wall_seconds"]) is not float or contract_process["wall_seconds"] <= 0):
+        raise SystemExit("control contract process mismatch")
+    validate_clean_lifecycle(contract_process["process_group"])
+    training_process = json_object(members["training-process.json"], "control training process", canonical=True)
+    training_keys = {
+        "schema", "argv", "launch_command", "returncode", "timed_out", "wall_seconds",
+        "startup_allowance_seconds", "charged_through_exit_seconds", "charged_within_budget",
+        "observations", "seed", "world_size", "lnc", "process_group",
+    }
+    if (set(training_process) != training_keys or training_process["schema"] != "track-a-training-process-v1"
+            or training_process["launch_command"] != ARMS["control-trn21"]["launch"]
+            or training_process["returncode"] != 0 or training_process["timed_out"] is not False
+            or training_process["charged_within_budget"] is not True
+            or training_process["seed"] != 42 or training_process["world_size"] != 4
+            or training_process["lnc"] != 2 or type(training_process["observations"]) is not list
+            or len(training_process["observations"]) < 5):
+        raise SystemExit("control training process mismatch")
+    validate_clean_lifecycle(training_process["process_group"])
     result_keys = {
         "schema", "arm", "role", "label", "host", "hostname", "source_commit", "source_path",
         "source_sha256", "prepare_sha256", "launch_command", "seed", "world_size", "lnc",
@@ -421,10 +485,12 @@ def validate_control_evidence(reader, identity_value):
             or finite.get("checkpoint_sha256") != result["checkpoint_sha256"]
             or finite.get("checkpoint_bytes") != result["checkpoint_bytes"]):
         raise SystemExit("control finite receipt mismatch")
-    if (set(receipt) != {"schema", "argv", "metrics", "wall_seconds"}
+    validate_clean_lifecycle(finite.get("process_group"))
+    if (set(receipt) != {"schema", "argv", "metrics", "wall_seconds", "process_group"}
             or receipt["schema"] != "track-a-screen2m-metrics-v1"
             or receipt["metrics"] != result["screen2m"]):
         raise SystemExit("control metric receipt mismatch")
+    validate_clean_lifecycle(receipt["process_group"])
     metrics = validate_metric(receipt["metrics"])
     if metrics != completion["screen2m"]:
         raise SystemExit("control completion metric mismatch")

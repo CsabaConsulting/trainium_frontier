@@ -9,10 +9,12 @@ import json
 import math
 import os
 from pathlib import Path
+import signal
 import subprocess
 import sys
 import tarfile
 import tempfile
+import time
 import unittest
 
 HERE = Path(__file__).resolve().parent
@@ -21,6 +23,7 @@ sys.path.insert(0, str(HERE))
 import artifact_io as aio
 import contracts as c
 import launch_adapter as adapter
+import track_a_job as job
 
 
 class Reader:
@@ -41,6 +44,15 @@ def metric(bpb=0.994):
     }
 
 
+def clean_lifecycle(pgid=123):
+    return {
+        "pgid": pgid, "leader_returncode": 0, "cleanup_required": False,
+        "term_sent": False, "kill_sent": False, "quiescent": True,
+        "reaped_descendants": [], "term_grace_seconds": 15.0,
+        "kill_grace_seconds": 10.0,
+    }
+
+
 def control_fixture(mutator=None):
     checkpoint_sha = "c" * 64
     metrics = metric()
@@ -48,6 +60,7 @@ def control_fixture(mutator=None):
         "schema": "track-a-finite-v1", "finite": True, "weights_only": True,
         "map_location": "cpu", "tensor_count": 62, "checkpoint_sha256": checkpoint_sha,
         "checkpoint_bytes": 123456, "argv": ["python", "scan"], "wall_seconds": 1.0,
+        "process_group": clean_lifecycle(124),
     }
     result = {
         "schema": "track-a-result-v1", "arm": "control-trn21", "role": "control",
@@ -63,8 +76,24 @@ def control_fixture(mutator=None):
         "keep_authorized": False, "adoption_authorized": False, "a1_decision": None,
         "ready_to_retrieve": False,
     }
-    receipt = {"schema": "track-a-screen2m-metrics-v1", "argv": ["eval"], "metrics": metrics, "wall_seconds": 12.6}
+    receipt = {
+        "schema": "track-a-screen2m-metrics-v1", "argv": ["eval"],
+        "metrics": metrics, "wall_seconds": 12.6, "process_group": clean_lifecycle(125),
+    }
     values = {name: (name + "\n").encode() for name in c.ARCHIVE_MEMBERS}
+    values["contract-check-process.json"] = c.canonical_json({
+        "schema": "track-a-contract-check-process-v1", "argv": ["check"],
+        "returncode": 0, "timed_out": False, "wall_seconds": 0.1,
+        "process_group": clean_lifecycle(126),
+    })
+    values["training-process.json"] = c.canonical_json({
+        "schema": "track-a-training-process-v1", "argv": ["torchrun"],
+        "launch_command": c.ARMS["control-trn21"]["launch"], "returncode": 0,
+        "timed_out": False, "wall_seconds": 1801.0, "startup_allowance_seconds": 5.0,
+        "charged_through_exit_seconds": 1796.0, "charged_within_budget": True,
+        "observations": [{"step": i, "observed_seconds": float(i + 1)} for i in range(5)],
+        "seed": 42, "world_size": 4, "lnc": 2, "process_group": clean_lifecycle(127),
+    })
     if mutator:
         mutator(result, receipt, values)
     values["result.json"] = c.canonical_json(result)
@@ -217,6 +246,18 @@ class DecisionDiskMetricTests(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 c.a1_decision("1.0", bad)
 
+    def test_full20m_adoption_requires_two_negative_deltas_and_mean_boundary(self):
+        exact = c.adoption_decision("1.000", "0.999", "1.010", "1.009")
+        self.assertTrue(exact["adoption_authorized"])
+        self.assertEqual(exact["mean_delta"], "-0.001")
+        self.assertFalse(exact["other_host_replicate_alone_confirms"])
+        one_bad = c.adoption_decision("1.000", "0.998", "1.000", "1.0001")
+        self.assertFalse(one_bad["adoption_authorized"])
+        shallow = c.adoption_decision("1.000", "0.9991", "1.000", "0.9991")
+        self.assertFalse(shallow["adoption_authorized"])
+        with self.assertRaises(SystemExit):
+            c.adoption_decision("NaN", "0.9", "1.0", "0.9")
+
     def test_disk_boundaries(self):
         self.assertEqual(c.disk_disposition(c.HARD_ABORT_BYTES - 1), "HARD_ABORT")
         self.assertEqual(c.disk_disposition(c.HARD_ABORT_BYTES), "BLOCKED")
@@ -230,6 +271,58 @@ class DecisionDiskMetricTests(unittest.TestCase):
             value[key] = bad
             with self.assertRaises(SystemExit):
                 c.validate_metric(value)
+
+
+class ProcessGroupLifecycleTests(unittest.TestCase):
+    CHILD = (
+        "import signal,sys,time\n"
+        "signal.signal(signal.SIGTERM,signal.SIG_IGN)\n"
+        "f=open(sys.argv[1],'ab',buffering=0)\n"
+        "while True:\n f.write(b'x'); time.sleep(0.02)\n"
+    )
+
+    def run_fixture(self, timeout_parent):
+        with tempfile.TemporaryDirectory() as directory:
+            sandbox = Path(directory)
+            heartbeat = sandbox / "heartbeat"
+            parent = (
+                "import signal,subprocess,sys,time\n"
+                "open('steps.jsonl','w').write('0\\n1\\n2\\n3\\n4\\n')\n"
+                f"subprocess.Popen([sys.executable,'-c',{self.CHILD!r},sys.argv[1]],"
+                "stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)\n"
+            )
+            if timeout_parent:
+                parent += (
+                    "signal.signal(signal.SIGTERM,signal.SIG_IGN)\n"
+                    "while True: time.sleep(1)\n"
+                )
+                timeout = 0.25
+            else:
+                parent += "time.sleep(0.2)\n"
+                timeout = 2.0
+            rc, _output, _wall, timed_out, observations, lifecycle = job.run_training(
+                [sys.executable, "-c", parent, str(heartbeat)], sandbox,
+                os.environ.copy(), timeout, term_grace=0.1, kill_grace=0.5,
+            )
+            size = heartbeat.stat().st_size
+            time.sleep(0.1)
+            self.assertEqual(heartbeat.stat().st_size, size)
+            self.assertNotEqual(rc, 0)
+            self.assertEqual(timed_out, timeout_parent)
+            self.assertGreaterEqual(len(observations), 5)
+            self.assertTrue(lifecycle["cleanup_required"])
+            self.assertTrue(lifecycle["term_sent"])
+            self.assertTrue(lifecycle["kill_sent"])
+            self.assertTrue(lifecycle["quiescent"])
+            self.assertFalse(job.group_exists(lifecycle["pgid"]))
+            with self.assertRaises(SystemExit):
+                c.validate_clean_lifecycle(lifecycle)
+
+    def test_rc0_leader_with_term_ignoring_descendant_fails_and_is_quiescent(self):
+        self.run_fixture(False)
+
+    def test_timeout_with_term_ignoring_group_fails_and_is_quiescent(self):
+        self.run_fixture(True)
 
 
 class EvidenceTests(unittest.TestCase):
@@ -264,6 +357,20 @@ class EvidenceTests(unittest.TestCase):
         with self.assertRaises(SystemExit):
             c.validate_control_evidence(reader, identity)
         reader, identity = control_fixture(lambda result, _receipt, _values: result.__setitem__("checkpoint_preserved", False))
+        with self.assertRaises(SystemExit):
+            c.validate_control_evidence(reader, identity)
+
+    def test_nonquiescent_success_evidence_fails(self):
+        reader, identity = control_fixture(
+            lambda result, _receipt, _values:
+            result["finite_scan"]["process_group"].__setitem__("cleanup_required", True)
+        )
+        with self.assertRaises(SystemExit):
+            c.validate_control_evidence(reader, identity)
+        reader, identity = control_fixture(
+            lambda _result, receipt, _values:
+            receipt["process_group"].__setitem__("quiescent", False)
+        )
         with self.assertRaises(SystemExit):
             c.validate_control_evidence(reader, identity)
 

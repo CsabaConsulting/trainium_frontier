@@ -24,4 +24,7 @@ request, immutable artifacts, finite checkpoint scan, and fresh2M count checks a
 
 After each run, retrieve and hash the dispatch/job/launch/preflight/process/postflight/driver files
 and the entire `out/<label>` evidence directory. Do not delete a checkpoint or cache. A1 improvement
-of at least 0.001 only nominates an other-host full20M replicate; it is not KEEP or adoption.
+of at least 0.001 only nominates the downstream full20M path; it is not KEEP or adoption. The retained
+trn21 A1 checkpoint and a matched trn22 replicate must each produce a fresh20M candidate-minus-control
+delta. Both deltas must be strictly negative and their Decimal mean must be at most -0.001 before
+adoption; the other-host replicate alone is never confirmation.

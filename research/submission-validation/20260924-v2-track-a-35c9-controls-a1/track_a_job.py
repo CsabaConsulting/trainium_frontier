@@ -2,6 +2,7 @@
 """Run one immutable 35c9 control/A1 arm and emit sealed 2M evidence."""
 
 import argparse
+import ctypes
 import hashlib
 import io
 import json
@@ -22,24 +23,112 @@ import artifact_io as aio
 import contracts as c
 
 PYTHON = "/home/ubuntu/workspace/native_venv/bin/python"
+PR_SET_CHILD_SUBREAPER = 36
+PR_GET_CHILD_SUBREAPER = 37
 
 
 def git(*args):
     return subprocess.check_output(["git", *args], cwd=ROOT, text=True).strip()
 
 
-def kill_group(process):
-    if process.poll() is not None:
-        return
-    os.killpg(process.pid, signal.SIGTERM)
+def enable_subreaper():
+    libc = ctypes.CDLL(None, use_errno=True)
+    if libc.prctl(PR_SET_CHILD_SUBREAPER, 1, 0, 0, 0) != 0:
+        raise SystemExit(f"cannot enable child subreaper: errno={ctypes.get_errno()}")
+    observed = ctypes.c_int()
+    if libc.prctl(PR_GET_CHILD_SUBREAPER, ctypes.byref(observed), 0, 0, 0) != 0 or observed.value != 1:
+        raise SystemExit("child subreaper verification failed")
+
+
+def reap_group(pgid):
+    reaped = []
+    while True:
+        try:
+            pid, _status = os.waitpid(-pgid, os.WNOHANG)
+        except ChildProcessError:
+            break
+        if pid <= 0:
+            break
+        reaped.append(pid)
+    return reaped
+
+
+def group_exists(pgid):
     try:
-        process.wait(timeout=15)
-    except subprocess.TimeoutExpired:
-        os.killpg(process.pid, signal.SIGKILL)
-        process.wait(timeout=10)
+        os.killpg(pgid, 0)
+        return True
+    except ProcessLookupError:
+        return False
+    except PermissionError as error:
+        raise SystemExit(f"cannot inspect process group {pgid}") from error
 
 
-def run_capture(argv, cwd, env, timeout):
+def wait_group_gone(pgid, seconds, reaped):
+    deadline = time.monotonic() + seconds
+    while True:
+        reaped.extend(reap_group(pgid))
+        if not group_exists(pgid):
+            return True
+        if time.monotonic() >= deadline:
+            return False
+        time.sleep(0.02)
+
+
+def quiesce_group(process, term_grace=15.0, kill_grace=10.0):
+    """Reap one private session and reject even rc=0 when cleanup was required."""
+    pgid = process.pid
+    leader_returncode = process.poll()
+    reaped = []
+    cleanup_required = group_exists(pgid)
+    term_sent = False
+    kill_sent = False
+    if cleanup_required:
+        try:
+            os.killpg(pgid, signal.SIGTERM)
+            term_sent = True
+        except ProcessLookupError:
+            pass
+        if leader_returncode is None:
+            try:
+                leader_returncode = process.wait(timeout=term_grace)
+            except subprocess.TimeoutExpired:
+                pass
+        gone = wait_group_gone(pgid, term_grace, reaped)
+        if not gone:
+            try:
+                os.killpg(pgid, signal.SIGKILL)
+                kill_sent = True
+            except ProcessLookupError:
+                pass
+            if process.poll() is None:
+                try:
+                    leader_returncode = process.wait(timeout=kill_grace)
+                except subprocess.TimeoutExpired:
+                    pass
+            gone = wait_group_gone(pgid, kill_grace, reaped)
+        if not gone:
+            raise SystemExit(f"process group {pgid} survived TERM/KILL escalation")
+    if process.poll() is None:
+        try:
+            leader_returncode = process.wait(timeout=0.2)
+        except subprocess.TimeoutExpired as error:
+            raise SystemExit("leader remained after process-group quiescence") from error
+    else:
+        leader_returncode = process.returncode
+    reaped.extend(reap_group(pgid))
+    if group_exists(pgid):
+        raise SystemExit(f"process group {pgid} reappeared after quiescence")
+    return {
+        "pgid": pgid, "leader_returncode": leader_returncode,
+        "cleanup_required": cleanup_required, "term_sent": term_sent,
+        "kill_sent": kill_sent, "quiescent": True,
+        "reaped_descendants": sorted(set(reaped)),
+        "term_grace_seconds": float(term_grace), "kill_grace_seconds": float(kill_grace),
+    }
+
+
+def run_capture(argv, cwd, env, timeout, term_grace=15.0, kill_grace=10.0):
+    enable_subreaper()
     started = time.monotonic()
     process = subprocess.Popen(argv, cwd=cwd, env=env, stdout=subprocess.PIPE,
                                stderr=subprocess.STDOUT, start_new_session=True)
@@ -48,12 +137,18 @@ def run_capture(argv, cwd, env, timeout):
         output, _ = process.communicate(timeout=timeout)
     except subprocess.TimeoutExpired:
         timed_out = True
-        kill_group(process)
+        lifecycle = quiesce_group(process, term_grace, kill_grace)
         output, _ = process.communicate()
-    return process.returncode, output, time.monotonic() - started, timed_out
+    else:
+        lifecycle = quiesce_group(process, term_grace, kill_grace)
+    effective_returncode = process.returncode
+    if lifecycle["cleanup_required"] and effective_returncode == 0:
+        effective_returncode = 125
+    return effective_returncode, output, time.monotonic() - started, timed_out, lifecycle
 
 
-def run_training(argv, sandbox, env, timeout):
+def run_training(argv, sandbox, env, timeout, term_grace=15.0, kill_grace=10.0):
+    enable_subreaper()
     raw_log = sandbox / "training.raw.log"
     step_log = sandbox / "steps.jsonl"
     started = time.monotonic()
@@ -66,7 +161,6 @@ def run_training(argv, sandbox, env, timeout):
             elapsed = time.monotonic() - started
             if elapsed > timeout:
                 timed_out = True
-                kill_group(process)
                 break
             try:
                 steps = step_log.read_text().splitlines()
@@ -75,11 +169,14 @@ def run_training(argv, sandbox, env, timeout):
             while len(observed) < len(steps):
                 observed.append({"step": int(steps[len(observed)]), "observed_seconds": elapsed})
             time.sleep(0.1)
-        process.wait()
+        lifecycle = quiesce_group(process, term_grace, kill_grace)
         output.flush()
         os.fsync(output.fileno())
     elapsed = time.monotonic() - started
-    return process.returncode, aio.regular_bytes(raw_log), elapsed, timed_out, observed
+    effective_returncode = process.returncode
+    if lifecycle["cleanup_required"] and effective_returncode == 0:
+        effective_returncode = 125
+    return effective_returncode, aio.regular_bytes(raw_log), elapsed, timed_out, observed, lifecycle
 
 
 def fresh_caches(root, namespace):
@@ -225,40 +322,55 @@ def main():
     child_env["NEURON_COMPETITION_R1_OUT_DIR"] = str(sandbox / "out")
     child_env["NEURON_COMPETITION_R1_STEP_LOG"] = str(sandbox / "steps.jsonl")
     check_argv = [PYTHON, "prepare.py", "check", "--train-py", "train.py", "--launch-command", spec["launch"]]
-    check_rc, check_output, _check_wall, check_timeout = run_capture(check_argv, sandbox, child_env, 120)
+    check_rc, check_output, check_wall, check_timeout, check_lifecycle = run_capture(
+        check_argv, sandbox, child_env, 120
+    )
     store.write("contract-check.log", check_output)
+    store.write_json("contract-check-process.json", {
+        "schema": "track-a-contract-check-process-v1", "argv": check_argv,
+        "returncode": check_rc, "timed_out": check_timeout, "wall_seconds": check_wall,
+        "process_group": check_lifecycle,
+    })
     if check_rc or check_timeout:
         raise SystemExit("organizer contract check failed")
-    train_rc, train_output, train_wall, train_timeout, observations = run_training(
+    c.validate_clean_lifecycle(check_lifecycle)
+    train_rc, train_output, train_wall, train_timeout, observations, train_lifecycle = run_training(
         c.train_argv(arm), sandbox, child_env, 3000
     )
     store.write("training.log", train_output)
-    step_bytes = aio.regular_bytes(sandbox / "steps.jsonl")
+    try:
+        step_bytes = aio.regular_bytes(sandbox / "steps.jsonl")
+    except FileNotFoundError:
+        step_bytes = b""
     store.write("training-steps.jsonl", step_bytes)
-    if train_rc or train_timeout or len(observations) < 5:
-        raise SystemExit("full training failed or lacked startup boundaries")
-    allowance = min(observations[4]["observed_seconds"], 900.0)
-    charged = train_wall - allowance
+    allowance = min(observations[4]["observed_seconds"], 900.0) if len(observations) >= 5 else None
+    charged = train_wall - allowance if allowance is not None else None
     training_process = {
         "schema": "track-a-training-process-v1", "argv": c.train_argv(arm),
         "launch_command": spec["launch"], "returncode": train_rc, "timed_out": train_timeout,
         "wall_seconds": train_wall, "startup_allowance_seconds": allowance,
-        "charged_through_exit_seconds": charged, "charged_within_budget": charged <= 1800.0,
+        "charged_through_exit_seconds": charged,
+        "charged_within_budget": charged is not None and charged <= 1800.0,
         "observations": observations, "seed": 42, "world_size": 4, "lnc": 2,
+        "process_group": train_lifecycle,
     }
     store.write_json("training-process.json", training_process)
+    if train_rc or train_timeout or len(observations) < 5:
+        raise SystemExit("full training failed or lacked startup boundaries")
     if not training_process["charged_within_budget"]:
         raise SystemExit("training budget gate failed")
+    c.validate_clean_lifecycle(train_lifecycle)
     checkpoint = sandbox / "out" / "final.pt"
     checkpoint_data = aio.regular_bytes(checkpoint)
     checkpoint_sha = aio.digest(checkpoint_data)
     checkpoint_bytes = len(checkpoint_data)
     scan_env = dict(c.ENVIRONMENT)
     scan_env["TRAINIUM_FRESH_START_RUN_ID"] = spec["label"]
-    scan_argv, (scan_rc, scan_output, scan_wall, scan_timeout) = finite_scan(checkpoint, scan_env)
+    scan_argv, (scan_rc, scan_output, scan_wall, scan_timeout, scan_lifecycle) = finite_scan(checkpoint, scan_env)
     store.write("checkpoint-finite.log", scan_output)
     if scan_rc or scan_timeout:
         raise SystemExit("finite checkpoint scan failed")
+    c.validate_clean_lifecycle(scan_lifecycle)
     try:
         scan = json.loads(scan_output.splitlines()[-1])
     except (IndexError, json.JSONDecodeError) as error:
@@ -268,7 +380,10 @@ def main():
             or scan["finite"] is not True or scan["weights_only"] is not True or scan["map_location"] != "cpu"
             or type(scan["tensor_count"]) is not int or scan["tensor_count"] <= 0):
         raise SystemExit("finite receipt mismatch")
-    finite_receipt = {"schema": "track-a-finite-v1", **scan, "argv": scan_argv, "wall_seconds": scan_wall}
+    finite_receipt = {
+        "schema": "track-a-finite-v1", **scan, "argv": scan_argv,
+        "wall_seconds": scan_wall, "process_group": scan_lifecycle,
+    }
     store.write_json("checkpoint-finite.json", finite_receipt)
     eval_env = dict(c.ENVIRONMENT)
     eval_env["TRAINIUM_FRESH_START_RUN_ID"] = spec["label"]
@@ -279,12 +394,18 @@ def main():
         "--device", "neuron", "--batch-size", "1", "--seq-len", "1024",
         "--eval-tokens", str(c.SCREEN_TOKENS), "--timeout-seconds", "1200",
     ]
-    eval_rc, eval_output, eval_wall, eval_timeout = run_capture(eval_argv, sandbox, eval_env, 1200)
+    eval_rc, eval_output, eval_wall, eval_timeout, eval_lifecycle = run_capture(
+        eval_argv, sandbox, eval_env, 1200
+    )
     store.write("screen2m.log", eval_output)
     if eval_rc or eval_timeout or eval_wall > 1200.0:
         raise SystemExit("fresh 2M evaluation failed")
+    c.validate_clean_lifecycle(eval_lifecycle)
     metrics = c.parse_metric_output(eval_output.decode(errors="replace"))
-    metric_receipt = {"schema": "track-a-screen2m-metrics-v1", "argv": eval_argv, "metrics": metrics, "wall_seconds": eval_wall}
+    metric_receipt = {
+        "schema": "track-a-screen2m-metrics-v1", "argv": eval_argv,
+        "metrics": metrics, "wall_seconds": eval_wall, "process_group": eval_lifecycle,
+    }
     store.write_json("screen2m.metrics.json", metric_receipt)
     if aio.identity(aio.regular_bytes(checkpoint)) != {"sha256": checkpoint_sha, "bytes": checkpoint_bytes}:
         raise SystemExit("checkpoint changed during finite/eval")

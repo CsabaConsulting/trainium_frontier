@@ -2,7 +2,7 @@
   "proposal_id": "20260924-v2-track-a-35c9-controls-a1",
   "status": "human-approved-pending-independent-verification",
   "owner_role": "researcher",
-  "hypothesis": "On the immutable 35c9 dense base at matrix LR 0.015, the last-layer 64x128 BF16 bigram+trigram value-embedding subsystem improves same-host trn21 fresh 2M public BPB by at least 0.001 and therefore merits an other-host full20M replicate.",
+  "hypothesis": "On the immutable 35c9 dense base at matrix LR 0.015, the last-layer 64x128 BF16 bigram+trigram value-embedding subsystem improves same-host trn21 fresh 2M public BPB by at least 0.001 and therefore merits the downstream two-host full20M evaluation path.",
   "single_causal_change": "Replace --no-ngram-ve with the complete A1 subsystem configuration: --ngram-ve --ngram-ve-layers=-1 --ngram-ve-table-mult 64 --ngram-ve-dim 128 --ngram-ve-trigram --ngram-ve-opt rmsprop --ngram-ve-flat-lr --ngram-ve-bf16 --ngram-ve-clip-exclude.",
   "mechanism_class": "capacity",
   "evidence": [
@@ -75,17 +75,26 @@
     "controls_establish_host_baselines": true,
     "a1_nomination_threshold": "same-host control BPB - A1 BPB >= 0.001",
     "a1_nomination_outcome": "NOMINATE_OTHER_HOST_FULL20M_REPLICATE",
-    "selection_authority": "The A1 2M screen may nominate or discard only. It can never KEEP or adopt A1 by itself."
+    "selection_authority": "The A1 2M screen may nominate or discard only. It can never KEEP or adopt A1 by itself, and an other-host full20M replicate alone is not confirmation."
+  },
+  "downstream_adoption": {
+    "metric_population": "fresh public BPB at seq_len=1024, num_tokens=20,971,520 and num_bytes=83,462,186",
+    "delta_definition": "candidate full20M BPB minus authenticated same-host control full20M BPB",
+    "required_deltas": "One matched trn21 delta and one matched trn22 delta; both must be strictly negative.",
+    "mean_gate": "Arithmetic mean of the two Decimal deltas must be <= -0.001.",
+    "other_host_replicate_alone_confirms": false,
+    "adoption_before_both_matched_deltas": false
   },
   "disk_and_artifact_policy": {
     "operational_launch_floor_bytes": 6979321856,
     "hard_abort_floor_bytes": 5368709120,
     "one_run_per_host": true,
     "fresh_job_owned_compile_caches": true,
+    "process_group_policy": "Every subprocess is launched in a private session under a verified child subreaper. Any group member remaining after the leader exits makes the arm fail; bounded TERM then KILL must yield a nonexistent group before any checkpoint or success-artifact hash.",
     "automatic_cache_cleanup_authorized": false,
     "checkpoint_prune_authorized": false,
     "control_checkpoint_retention": "Retain both control checkpoints for fresh 20M and finalist analysis.",
-    "a1_checkpoint_retention": "Retain A1 checkpoint through evidence archival and, if nominated, through the other-host full20M replicate decision.",
+    "a1_checkpoint_retention": "Retain A1 checkpoint through evidence archival and, if nominated, through its trn21 fresh20M evaluation and the matched trn22 full20M replicate/adoption decision.",
     "retrieval": "Retrieve and hash every preflight/job/process/postflight log, training/eval log, finite receipt, cache observation, result, archive, manifest, completion receipt, and checkpoint identity before any later lifecycle action."
   },
   "authorization_model": {
@@ -109,7 +118,7 @@
     "submission_authorized": false
   },
   "success_criteria": {
-    "quality": "A1 nomination only when its exact fresh2M BPB is at least 0.001 below authenticated same-host trn21 control; confirmation is an other-host full20M replicate.",
+    "quality": "A1 nomination only when its exact fresh2M BPB is at least 0.001 below authenticated same-host trn21 control. Adoption later requires matched fresh20M candidate-minus-control deltas on trn21 and trn22 to both be negative and their Decimal mean to be <= -0.001; the other-host replicate alone is not confirmation.",
     "throughput": "Diagnostic only and same-host only; no cross-host rate claim.",
     "correctness": "Exact 35c9/prepare bytes, exact arm argv, seed42, LNC2/world4, full1800, no smoke, finite weights-only checkpoint, exact fresh2M token/byte counts, sealed evidence, and no budget/causality/dirty-tree failure."
   },
