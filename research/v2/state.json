@@ -1,6 +1,6 @@
 {
   "schema": "trn-frontier-state-v2",
-  "written_utc": "2026-09-24T22:13:14Z",
+  "written_utc": "2026-09-24T22:17:39Z",
   "installation": {
     "status": "INSTALLED_EXACT_COPIES_VERIFIED_RUNTIME_GATES_PENDING",
     "target_base_commit": "33774742dc49de7a5d6f5fd539c1530430306763",
@@ -174,7 +174,7 @@
     }
   ],
   "last_event": "Read-only guest disk audit at 22:05:10 UTC confirms both root disks still 200 GiB and both filesystems below the 6.5-GiB floor; no AWS-side status or process check in this audit. Independent A0 retry static review passed but dispatch remains HOLD. A0 r1 is terminal with zero steps/no BPB, and trn22 breaker remains tripped. No relaunch or AWS action.",
-  "updated_utc": "2026-09-24T22:13:14Z",
+  "updated_utc": "2026-09-24T22:17:39Z",
   "latest_disk_audit": {
     "path": "research/agentic/operations/TRN2_DISK_READ_ONLY_AUDIT_2026-09-25_0335.json",
     "sha256": "ba6d7469bd57c29547d8573bcca0daef07ff116c76d987a6be4cf768fa06e291",
@@ -198,6 +198,16 @@
     "verifier_receipt_sha256": "5034d8ea9a75d20052cdfb24606a5882d20a13b45dc0fb1b1ac4de07aa4da679",
     "required_prelaunch_free_bytes": 10737418240,
     "remaining": "Human EBS and guest expansion; explicit human trn22 breaker acknowledgement/reset; fresh staging, source/cache/host/disk checks, exact-env G2, independent final request check and separate one-shot authorization. No launch is authorized."
+  },
+  "a0_trn21_control_package": {
+    "status": "STATIC_PASS_INDEPENDENT_REVIEW_DISPATCH_HOLD",
+    "label": "fs-20260925-v2-c5c-a0-control-trn21-r1",
+    "path": "research/submission-validation/20260925-v2-c5c-a0-control-trn21-r1",
+    "contract_sha256": "8d6a6a5cc03f30c05de80f5581cfe628a727d7b0be62e91b18cbed09c3d8dbdf",
+    "verifier_receipt": "research/agentic/verification/20260925-v2-c5c-a0-trn21-r1-static-review.md",
+    "verifier_receipt_sha256": "51c2319793484b61bb1861b32a5ef0e3fa2e726324ca89f036ec710d9ae052c4",
+    "required_prelaunch_free_bytes": 10737418240,
+    "remaining": "Human EBS and guest expansion; trn21 G1 calibration and independent result review; exact-env G2; fresh host, source/cache/disk/staging checks; one-shot authorization. No launch is authorized."
   },
   "submission_s0": {
     "status": "STATIC_AUDIT_NO_PROVEN_RULE_VIOLATION_RUNTIME_AND_SUBMISSION_HOLD",

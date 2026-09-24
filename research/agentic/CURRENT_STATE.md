@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-24 22:13 UTC
+Last reconciled: 2026-09-24 22:17 UTC
 
 ## Current handoff: both hosts disk-blocked after A0 compile safety stop
 
@@ -18,6 +18,10 @@ but is not dispatchable until host/storage, checkpoint/cache/environment and
 one-shot authority gates pass. An independent [S0 static audit](verification/20260925-s0-submission-static-recheck.md)
 found no proven rule violation, but native checks and two cold bare-command
 replays remain before the human can safely upload it.
+The trn21 c5c A0 [pending control package](../submission-validation/20260925-v2-c5c-a0-control-trn21-r1/GATE_CONTRACT.json)
+also passed [independent static review](verification/20260925-v2-c5c-a0-trn21-r1-static-review.md)
+but is still dispatch HOLD pending storage, trn21 G1, exact-env G2, live
+staging and one-shot authority. It has no BPB result.
 The newer human brief schedules A1/trn21 and A2/trn22 in parallel once each has
 a valid same-host control and exact gates; this supersedes the older A2-after-A1
 schedule but not the need for same-host A1 to attribute the incremental layer-1

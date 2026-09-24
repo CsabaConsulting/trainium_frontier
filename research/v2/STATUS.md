@@ -16,6 +16,10 @@ staging, and one-shot authorization are still required. The trn21 G1
 has [independent static PASS / dispatch HOLD](../agentic/verification/20260925-g1-trn21-pending-package-review.md):
 it is still non-dispatchable until host/storage and checkpoint/cache/environment
 checks, a finalized request, and separate one-shot authorization pass.
+The matching [trn21 c5c A0 control package](../submission-validation/20260925-v2-c5c-a0-control-trn21-r1/GATE_CONTRACT.json)
+also has [independent static PASS / dispatch HOLD](../agentic/verification/20260925-v2-c5c-a0-trn21-r1-static-review.md).
+It requires the human storage fix, trn21 G1, exact-env G2, live staging and
+one-shot authorization before training; there is no new control score.
 S0's [independent source audit](../agentic/verification/20260925-s0-submission-static-recheck.md)
 found no proven rule violation but left the submission HOLD until native checks
 and two cold bare-command replays pass.
