@@ -107,14 +107,19 @@ def main():
     if not torch.equal(a,b):raise SystemExit("fixed-input logits mismatch")
     export=getattr(candidate,"track_b2_native_component_probe",None)
     if not callable(export):raise SystemExit("candidate component export missing")
-    evidence=export(device=device,rank=dist.get_rank(),world_size=4)
+    rank=dist.get_rank();evidence=export(device=device,rank=rank,world_size=4)
     required={"schema","duplicates_present","avg_world_size","dense_param","touched_param","dense_moment","touched_logical_moment","untouched_param_before","untouched_param_after","untouched_state_before","untouched_state_after","ordering"}
     if type(evidence) is not dict or set(evidence)!=required or evidence["schema"]!="track-b2-native-bf16-ordering-v1" or evidence["duplicates_present"] is not True or evidence["avg_world_size"]!=4:raise SystemExit("component evidence schema mismatch")
     for left,right in (("dense_param","touched_param"),("dense_moment","touched_logical_moment"),("untouched_param_before","untouched_param_after"),("untouched_state_before","untouched_state_after")):
         if not torch.equal(evidence[left],evidence[right]):raise SystemExit("component exactness mismatch: "+left)
     if evidence["ordering"]!={"occurrence_accumulation":"bf16","collective":"sum_then_divide_world","state":"candidate_reported_and_tensor_checked"}:raise SystemExit("ordering evidence mismatch")
+    local_evidence={"rank":rank,"dense_param_sha256":sha(tensor_bytes(evidence["dense_param"])),"touched_param_sha256":sha(tensor_bytes(evidence["touched_param"])),"dense_moment_sha256":sha(tensor_bytes(evidence["dense_moment"])),"touched_logical_moment_sha256":sha(tensor_bytes(evidence["touched_logical_moment"])),"untouched_param_sha256":sha(tensor_bytes(evidence["untouched_param_after"])),"untouched_state_sha256":sha(tensor_bytes(evidence["untouched_state_after"]))}
+    rank_evidence=[None]*4;dist.all_gather_object(rank_evidence,local_evidence)
+    if [item["rank"] for item in rank_evidence]!=list(range(4)):raise SystemExit("rank evidence consensus mismatch")
     versions={"python":sys.version,"torch":torch.__version__,"torch_neuronx":getattr(torch_neuronx,"__version__",None),"neuron_cc":subprocess.run(["neuronx-cc","--version"],text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=30).stdout.strip()}
-    result={"schema":"track-b2-native-component-probe-result-v1","label":auth["probe_label"],"hostname":socket.gethostname(),"core_commit":args.core_commit,"request_sha256":args.request_sha256,"authorization_sha256":auth_sha,"checkpoint_sha256":auth["checkpoint_sha256"],"ordered_keys":list(control_keys),"table_hashes":table_hashes,"input_sha256":sha(tensor_bytes(fixed)),"logits_sha256":sha(tensor_bytes(a)),"versions":versions,"native_bf16_ordering":evidence["ordering"],"training_executed":False,"checkpoint_mutated":False,"training_authorized":False,"ready_to_retrieve":True}
+    result={"schema":"track-b2-native-component-probe-result-v1","label":auth["probe_label"],"hostname":socket.gethostname(),"core_commit":args.core_commit,"request_sha256":args.request_sha256,"authorization_sha256":auth_sha,"checkpoint_sha256":auth["checkpoint_sha256"],"ordered_keys":list(control_keys),"table_hashes":table_hashes,"input_sha256":sha(tensor_bytes(fixed)),"logits_sha256":sha(tensor_bytes(a)),"rank_evidence":rank_evidence,"versions":versions,"native_bf16_ordering":evidence["ordering"],"training_executed":False,"checkpoint_mutated":False,"training_authorized":False,"ready_to_retrieve":True}
+    if rank!=0:
+        dist.barrier();return
     args.output.parent.mkdir(parents=True,exist_ok=True);fd=os.open(args.output,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600)
     data=(json.dumps(result,sort_keys=True,separators=(",",":"))+"\n").encode()
     try:
@@ -126,5 +131,6 @@ def main():
         os.fsync(fd)
     finally:os.close(fd)
     if nofollow_bytes(args.output)!=data:raise SystemExit("result persistence mismatch")
+    dist.barrier()
     print(json.dumps({"result_sha256":sha(data),"ready_to_retrieve":True},sort_keys=True))
 if __name__=="__main__":main()
