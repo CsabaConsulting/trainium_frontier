@@ -1,0 +1,115 @@
+{
+  "schema": "a1-native-five-trn22-tmpfs-independent-verification-v1",
+  "verdict": "FAIL",
+  "reviewed_implementation_commit": "7c109194f0d948de4f11580706446b3df7297ff0",
+  "analysis_commit": "45e2d0f16ca5c8c3865c9b2efb758bf54f0b2ccf",
+  "analysis_sha256": "fc98aa0aeb9584a5ee6f65bba8af2eab9f1ae30064e075f78b026f4399bcaedd",
+  "reviewed_origin_ref": "origin/implement/20260925-v2-a1-native5-trn22-tmpfs-r1",
+  "origin_ref_exact_at_review": true,
+  "host_access_performed": false,
+  "request_materialized": false,
+  "authorization_or_finalization_performed": false,
+  "implementation_edited": false,
+  "scope": {
+    "changed_existing_files": [
+      "research/a1_native_gate_observer.py",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/a1_ownership_manifest.json",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/compare_gate_reports.py"
+    ],
+    "new_package_file_count": 10,
+    "storage_contract_sha256": "325f5a491e0ca81182a75018380276080bfeb16c81074ce60a7f5f667e750b78",
+    "checkpoint_guard_sha256": "2f9e7725ee000ab341d0038c6649728952c9098428c7f7c262bd735d512b1f11",
+    "trn22_comparator_sha256": "e094fdd609b5b178239b53839de9b6e48d621cef31212963ae4c8ff5c7f44553",
+    "package_tests_sha256": "d7fd9b230d6f4ce5b290facbd3a84b9e494cd869289a4d988a5fe8f2bcc03b94",
+    "protected_manifest_sha256": "78084d54640f854db50ef6e6bce8fc15f110962d1897a13e6a299977102eacab",
+    "protected_manifest_entry_count": 19,
+    "protected_manifest_self_referential": false,
+    "secret_pattern_scan": "PASS"
+  },
+  "accepted_findings": [
+    "The implementation is an exact child of the Analyst proposal commit and the proposal bytes match fc98aa0aeb9584a5ee6f65bba8af2eab9f1ae30064e075f78b026f4399bcaedd.",
+    "Candidate train.py, prepare.py, hybrid and ordinary gate wrappers, baseline checkpoint verifier, launcher, and guard retain their frozen hashes.",
+    "The observer source change is limited to exact G0/G1/G2 trn22 labels and EXPECTED_HOST=trn22; all 12 arm/rank constructions passed and 36 wrong-host, trn21-label, or consumed-label constructions rejected.",
+    "The ownership manifest changes only the observer source pin. The base comparator changes only the manifest pin and a host parameter; numeric, parser, record-cardinality, collective, and ownership arithmetic remain unchanged.",
+    "Exact G0 argv/environment/topology/seed/five-update paths are frozen; G1/G2 have no request or authorization; pending G0 request and authorization remain non-executable and false.",
+    "The protected-hash manifest matches all 19 files and does not hash itself. No hidden launcher, materializer, subprocess, SSH, cleanup, or downstream authorization path exists in the new package."
+  ],
+  "tests": [
+    {
+      "command": "py_compile plus json.tool for all changed/new Python and JSON files",
+      "result": "PASS"
+    },
+    {
+      "command": "/usr/bin/python -m unittest -v test_trn22_tmpfs_package.py",
+      "result": "PASS: 29/29; Torch unavailable in this interpreter"
+    },
+    {
+      "command": "/home/poojith-devan/Desktop/InferPilot/.venv-bench/bin/python -m unittest -v test_trn22_tmpfs_package.py",
+      "result": "PASS: 29/29 with torch 2.13.0+cu130"
+    },
+    {
+      "command": "Torch-backed accepted hybrid ownership suite",
+      "result": "PASS: 13/13"
+    },
+    {
+      "command": "Torch-backed legacy native gate package suite",
+      "result": "55/60 PASS; five old-identity/finalization assertions fail because they require the consumed trn21 observer hash/labels, old manifest hash, or historical authorization-file absence. No numeric, optimizer, parser, collective, or ownership test failed."
+    },
+    {
+      "command": "independent storage evidence schema mutations",
+      "result": "FAIL: adjudicate_storage returned PASS with each root-cache value replaced by a bare string, with checkpoint SHA/bytes/device/inode/mode/digests absent, and with retained G0 represented only by the string 'forged'"
+    },
+    {
+      "command": "independent cache snapshot late-write and ancestor-symlink attacks",
+      "result": "FAIL: snapshot_tree followed a symlink ancestor and returned successfully while omitting a file inserted into a nested directory during traversal"
+    },
+    {
+      "command": "independent checkpoint mode and parent-swap attacks",
+      "result": "FAIL: verify_checkpoint accepted mode 0666 and accepted an attacker replacement checkpoint after the output parent was swapped between ancestor lstat and parent open"
+    },
+    {
+      "command": "independent watcher/resource boundary checks",
+      "result": "FAIL: run_watcher returned PASS for zero samples; G0 preflight accepted root free exactly 7247757312 without reserving remaining source/log allowances"
+    }
+  ],
+  "blockers": [
+    {
+      "id": "T22-B1",
+      "title": "Storage adjudication trusts incomplete and forged evidence",
+      "evidence": "The PASS path validates selected scalar fields but has no exact schemas for root-cache snapshots, retained arms, output/cache identities, checkpoint receipts, observer reports, or source/job/postflight bindings. Bare-string root-cache records, a forged retained G0 string, and a checkpoint record containing only paths plus asserted booleans passed.",
+      "required_correction": "Define and enforce complete exact evidence schemas. Authenticate cache/output/checkpoint path, mount ID/device, inode, type, mode, owner, link count, size/allocation/timestamps and stable digest; bind checkpoint state/logit digests to rank reports, source, job and postflight. Retained-arm records must authenticate every retained out/cache/checkpoint and fail on missing or extra fields."
+    },
+    {
+      "id": "T22-B2",
+      "title": "Cache snapshot and fresh-path guards are not anchored or race complete",
+      "evidence": "snapshot_tree opens the full path with O_NOFOLLOW only on the final component, so an ancestor symlink was accepted. It records nested-directory metadata before recursion but never revalidates nested membership/metadata afterward; a late nested file was omitted without error. validate_initial_absence is a sequence of lexical lstat calls with no stable dirfd chain or atomic creation boundary.",
+      "required_correction": "Walk every component through pinned dirfds with O_NOFOLLOW, mount/device and name-to-inode checks. Revalidate exact membership and metadata bottom-up and re-seal the complete chain after traversal. Bind absence directly to O_EXCL creation in the later finalizer and test ancestor swaps, nested late writes, mount replacement and final-name creation at every boundary."
+    },
+    {
+      "id": "T22-B3",
+      "title": "Checkpoint guard accepts unsafe mode and ancestor substitution",
+      "evidence": "A world-writable 0666 checkpoint passed because no accepted mode is enforced. The guard lstat-checks ancestors lexically and then opens the complete parent path; swapping the out directory in between caused a replacement checkpoint to be accepted while the original survived elsewhere. The returned guard record also does not directly match the storage adjudicator's mount_device/regular schema.",
+      "required_correction": "Use a pinned no-follow dirfd chain from authenticated /dev/shm through the exact arm/out path, enforce exact allowed mode and mount ID/device on every component, and bind the final name/inode before and after all validation. Use one exact checkpoint receipt schema consumed directly by adjudication without synthesized trust fields."
+    },
+    {
+      "id": "T22-B4",
+      "title": "Watcher and root-capacity enforcement can pass without required evidence or reservation",
+      "evidence": "run_watcher accepts an empty sample list as PASS and carries no cadence/timestamp/completeness proof. validate_resources accepts G0 root_free_bytes=7247757312, although the proposal requires current free minus all remaining stage/log allowances to remain at least that breaker; with three source and log allowances the corresponding value is 7849426944. No inode-floor evidence is enforced.",
+      "required_correction": "Require a bounded nonempty, ordered watcher series covering launch through quiescence with authenticated cadence and terminal postflight. Enforce the proposal's remaining-stage/log reservation formula before each stage and dispatch, plus exact root/tmpfs inode gates, hard/operational floors and full per-arm combined allocation accounting."
+    },
+    {
+      "id": "T22-B5",
+      "title": "Legacy regression suite is not migration-aware",
+      "evidence": "The Torch-backed legacy gate suite has 55 passes and five failures tied to deliberately consumed trn21 observer/manifest/finalization identities. This does not show numeric drift, but leaves no all-green regression command that distinguishes intended identity rejection from accidental legacy scientific breakage.",
+      "required_correction": "Add an explicit migration-aware regression layer that preserves and runs all legacy science/parser/ownership tests while asserting old trn21 observer execution is rejected and the fresh trn22 adapter is accepted."
+    }
+  ],
+  "authorization_decision": {
+    "g0_finalizer_implementation_may_be_prepared": false,
+    "request_materialization_authorized": false,
+    "hardware_execution_authorized": false,
+    "g1_or_g2_authorized": false,
+    "cleanup_or_submission_authorized": false,
+    "required_next_step": "Correct T22-B1 through T22-B5 and obtain a fresh independent package review."
+  }
+}
