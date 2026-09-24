@@ -1,6 +1,6 @@
 {
   "schema": "trn-frontier-state-v2",
-  "written_utc": "2026-09-24T22:55:01Z",
+  "written_utc": "2026-09-24T23:00:49Z",
   "installation": {
     "status": "INSTALLED_EXACT_COPIES_VERIFIED_RUNTIME_GATES_PENDING",
     "target_base_commit": "33774742dc49de7a5d6f5fd539c1530430306763",
@@ -205,8 +205,8 @@
       "scope": "Named trn22 workflow-v2 disk breaker only; launch remains disallowed"
     }
   ],
-  "last_event": "At 22:48:11 UTC trn22 A0 r2 source staging passed, but its exact-env four-rank CPU G2 failed at step zero because the future science STEP_LOG parent was absent in the clean checkout. Operator archived hash-bound logs; G2 label consumed, science A0 r2 label unconsumed, no native run or BPB. A separate reviewed new-label G2 retry is being prepared. trn21 G1 r1 remains staged HOLD on missing pinned commit; an r2 exact-retained-source package passed independent static review for Operator staging only. Both host launches remain disallowed and ready counts zero.",
-  "updated_utc": "2026-09-24T22:55:01Z",
+  "last_event": "trn22 A0 r2 exact-env CPU G2 failed infrastructure-only on missing STEP_LOG parent; new-label G2 retry package is under independent review, and science A0 r2 remains unused. trn21 G1 r2 exact-retained-source package passed independent static review for Operator staging only. A2 conditional native smoke failed independent static review on the same step-log parent gate and 30-vs-50-step proof gap; repair assigned. No native run, BPB, launch authorization or ready scored job on either host.",
+  "updated_utc": "2026-09-24T23:00:49Z",
   "latest_breaker_rearm": {
     "scope": "trn22 workflow-v2 DISK_FLOOR_BREACH_DURING_A0_COMPILE_PRE_STEP only",
     "human_acknowledgement": "research/v2/authorizations/20260925-trn22-disk-breaker-human-ack.md",
@@ -237,6 +237,14 @@
     "verifier_receipt": "research/agentic/verification/20260925-v2-c5c-a2-m64d128-trn22-r1-static-r2-review.md",
     "verifier_receipt_sha256": "c1f4665335c3af3201593ff3c1770b21c6430abf821be078422e890f4a16d85d",
     "remaining": "Exact-environment G2 and rank trace, native smoke, valid same-host c5c A0 control and separate one-label authorization. No scored A2 run or BPB."
+  },
+  "table_a2_native_smoke_package": {
+    "status": "INDEPENDENT_STATIC_FAIL_NO_HOST_DISPATCH",
+    "path": "research/submission-validation/20260925-v2-c5c-a2-m64d128-trn22-r1/NATIVE_SMOKE_GATE_CONTRACT.json",
+    "review": "research/agentic/verification/20260925-v2-c5c-a2-native30-static-review.md",
+    "review_sha256": "a802f15a26fadc59e1ab0d5507b065213e14c3121e2cd763c554d3561dd4e3f1",
+    "finding": "Step-log parent existence, trust, writability and isolation outside the clean source checkout were not authenticated; 30 steps does not resolve the older 50-step per-rank-hash criterion.",
+    "native_or_scored_training_started": false
   },
   "a0_trn22_retry_package": {
     "status": "STATIC_PASS_SOURCE_STAGED_CPU_G2_INFRA_HOLD_NO_DISPATCH",

@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-24 22:55 UTC
+Last reconciled: 2026-09-24 23:00 UTC
 
 ## Current handoff: post-resize staging and CPU preflight, no new score
 
@@ -18,6 +18,11 @@ only and a separate Operator is assigned that task. Evaluator dispatch remains
 HOLD pending live checks, finalized request review and one-shot authority. Both hosts
 still have launch authorization false and ready scored-job counts zero.
 The best confirmed public20M stays 0.9918353324 single/0.9919537735 mean.
+An independent review of the conditional A2 native-smoke package
+[failed static gating](verification/20260925-v2-c5c-a2-native30-static-review.md)
+because it did not authenticate the step-log parent and had not reconciled the
+older 50-step per-rank-hash criterion. The Implementer is repairing the
+package; there is no A2 host run or BPB result.
 The storage-fixed section below supplies context and remains authoritative for
 the disk expansion and trn22 breaker re-arm.
 
