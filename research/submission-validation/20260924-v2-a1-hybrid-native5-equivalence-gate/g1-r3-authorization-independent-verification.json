@@ -1,0 +1,138 @@
+{
+  "schema": "a1-native-five-g1-r3-authorization-independent-verification-v1",
+  "verdict": "PASS",
+  "role": "independent-verifier",
+  "verified_at_utc": "2026-09-24T18:55:49Z",
+  "reviewed_branch": "experiment/20260925-v2-a1-hybrid-native5-g1-r3-finalization",
+  "reviewed_commit": "c4fed0c1b307b6c22149f4d42a134ce531879815",
+  "reviewed_parent": "312a3ad689182a512d381a1cacc4d60e1bdc0a81",
+  "reviewed_tree": "76a9a63db9caaaeb2f76d7fba8ffce6b5700ab74",
+  "implementation_verifier_pass": {
+    "commit": "312a3ad689182a512d381a1cacc4d60e1bdc0a81",
+    "receipt_path": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-r3-correctness-independent-verification.json",
+    "receipt_sha256": "529f358d8a657ed63fcf30b0f6f8e48abfb7c64e5a379e2589c19dadfce69ff1",
+    "exact_parent": true
+  },
+  "origin_alignment": {
+    "origin_ref": "origin/experiment/20260925-v2-a1-hybrid-native5-g1-r3-finalization",
+    "origin_commit": "c4fed0c1b307b6c22149f4d42a134ce531879815",
+    "clean_detached_review": true,
+    "git_fsck_strict": "PASS"
+  },
+  "contract_read": [
+    "root AGENTS contract supplied out of band; AGENTS.md is not tracked at this commit",
+    "README.md",
+    "research/experiment-protocol.md",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-r3-correctness-independent-verification.json",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-request.template.json",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1_finalization.py"
+  ],
+  "scope": {
+    "diff_base": "312a3ad689182a512d381a1cacc4d60e1bdc0a81",
+    "added_files": [
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-r3-authorization.json"
+    ],
+    "modified_files": [],
+    "deleted_files": [],
+    "exact_one_file_state_transition": true,
+    "science_or_protected_bytes_changed": false,
+    "git_diff_check": "PASS"
+  },
+  "authorization": {
+    "path": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-r3-authorization.json",
+    "sha256": "307ed8a59521a22b32f790022062ae436f6543714520f3e8d6a93cf7d8db14c0",
+    "bytes": 14244,
+    "schema": "a1-native-five-g1-r3-authorization-v1",
+    "state": "independent-verifier-finalized-g1-r3-only",
+    "executable": true,
+    "arm": "G1",
+    "host": "trn21",
+    "label": "fs-20260925-v2-a1-native5-g1-hybrid-observation-on-trn21-r3",
+    "head_binding": "external-literals-only",
+    "request_template_path": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-request.template.json",
+    "request_template_sha256": "50b083be810557b4cc222520119006475bc59158659dfa7d63ba90fd4272b43a",
+    "request_template_bytes": 18521,
+    "declared_source_hashes": 37,
+    "declared_protected_finalization_hashes": 12,
+    "all_declared_paths_regular_single_link_and_hash_exact": true
+  },
+  "validator": {
+    "template_validate": "PASS",
+    "exact_authorization_validate": "PASS",
+    "pending_r3_authorization": "REJECTED",
+    "consumed_r2_authorization": "REJECTED",
+    "consumed_r1_authorization": "REJECTED",
+    "mutation_rejections": 11,
+    "mutations": [
+      "state",
+      "request SHA-256",
+      "source SHA-256",
+      "r2 provenance",
+      "G2 authority",
+      "full-A1 authority",
+      "checkpoint-prune authority",
+      "cache-cleanup authority",
+      "submission authority",
+      "protected-path omission",
+      "protected-path hash mutation"
+    ]
+  },
+  "provenance_and_lifecycle": {
+    "g0_prerequisite_exactly_equals_template": true,
+    "r1_consumed_failure_exactly_equals_template": true,
+    "r2_consumed_failure_exactly_equals_template": true,
+    "one_run_per_host": true,
+    "private_child_process_group": true,
+    "bounded_term_kill_reap_quiescence": true,
+    "hash_only_after_quiescence": true,
+    "no_cleanup_or_prune": true
+  },
+  "authority_booleans": {
+    "native_execution_authorized": true,
+    "g1_authorized": true,
+    "g2_authorized": false,
+    "full_a1_authorized": false,
+    "checkpoint_prune_authorized": false,
+    "cache_cleanup_authorized": false,
+    "submission_authorized": false,
+    "template_cleanup_lock": false,
+    "template_cache_delete_lock": false
+  },
+  "hash_cycle": {
+    "template_does_not_embed_final_authorization_sha256": true,
+    "authorization_binds_exact_template_sha256": true,
+    "authorization_does_not_embed_its_own_sha256": true,
+    "concrete_builder_accepts_distinct_external_template_and_authorization_hashes": true,
+    "concrete_builder_fingerprints_authorization_path": true,
+    "in_memory_concrete_schema_check": "PASS",
+    "materialized_request_created": false,
+    "expected_request_path_absent": "/tmp/fs-20260925-v2-a1-native5-g1-hybrid-observation-on-trn21-r3.request.json"
+  },
+  "regression": {
+    "implementation_suite_at_parent": "104/104 PASS in the bound implementation receipt",
+    "phase_invariant_tests_at_authorization_commit": "101/101 PASS",
+    "pre_authorization_absence_assertions_excluded": 3,
+    "excluded_assertions": [
+      "G0FinalizationTests.test_g1_g2_are_locked_and_have_no_authorization",
+      "G1FinalizationContractTests.test_pending_authorization_cannot_materialize",
+      "G1R3BoundaryTests.test_r3_paths_unique_pending_and_old_authorities_invalid"
+    ],
+    "replacement": "Exact finalized authorization validation, pending/old authorization rejection, request absence and the 11-case mutation matrix above replace only those intentionally stale file-absence assertions."
+  },
+  "static_checks": {
+    "all_tracked_json_parse": "PASS",
+    "g1_finalization_py_compile": "PASS",
+    "secret_content_marker_scan_of_added_file": "PASS; no marker found and no secret file read"
+  },
+  "next_step_boundary": {
+    "state_only_g1_r3_authorization_verified": true,
+    "one_exact_request_may_be_materialized_for_separate_inode_and_byte_verification": true,
+    "request_materialized_by_this_review": false,
+    "host_access_or_launch_performed": false,
+    "operator_execution_authorized_by_this_receipt": false,
+    "g2_or_full_a1_authorized": false,
+    "cleanup_or_prune_authorized": false,
+    "submission_authorized": false
+  },
+  "blockers": []
+}
