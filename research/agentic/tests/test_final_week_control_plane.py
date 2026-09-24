@@ -208,9 +208,11 @@ class DiagnosticsAndUtilizationTests(unittest.TestCase):
 
 
 class FrozenSafetyBoundaryTests(unittest.TestCase):
-    def test_disk_floor_and_active_queue_base_are_unchanged(self):
+    def test_safe_final_week_disk_gate_and_active_queue_base(self):
         raw = json.loads((Path(__file__).resolve().parents[1] / "autoloop.json").read_text())
-        self.assertEqual(raw["caps"]["min_free_gib"], 7.4)
+        # The 2026-09-24 human-approved final-week override lowered only the operational gate.
+        # It remains 1.5 GiB above the immutable protocol validator exercised below.
+        self.assertEqual(raw["caps"]["min_free_gib"], 6.5)
         self.assertEqual(C.AUTHORITATIVE_TRAIN_SHA256,
                          "9173f62617789b058083c3a4722a906e2b165f4986716281f1915db3fb9fa344")
         errors = C.LoopConfig(
