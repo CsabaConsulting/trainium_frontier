@@ -1,6 +1,6 @@
 {
   "schema": "trn-frontier-state-v2",
-  "written_utc": "2026-09-24T20:19:13Z",
+  "written_utc": "2026-09-24T21:14:00Z",
   "installation": {
     "status": "INSTALLED_EXACT_COPIES_VERIFIED_RUNTIME_GATES_PENDING",
     "target_base_commit": "33774742dc49de7a5d6f5fd539c1530430306763",
@@ -25,9 +25,14 @@
   },
   "gates": {
     "G1": {
-      "status": "TRN22_FRESH_PUBLIC20M_CALIBRATION_RUNNING",
-      "blocking": true,
+      "status": "PASS_TRN22_FRESH_PUBLIC20M_TRN21_PENDING",
+      "blocking": false,
+      "scope": "trn22 only; trn21 requires its own fresh calibration after disk unblock",
       "receipt": "research/v2/g1.json",
+      "operator_receipt": "research/v2/g1-calibrations/fs-20260925-g1-public20m-calibration-trn22-r1/operator-receipt.json",
+      "operator_receipt_sha256": "d78803b0ed21f9f4470560840ae7f78bb2b8ccaf2c82d4d8d9a472c4a6445a57",
+      "independent_review": "research/agentic/verification/20260925-g1-trn22-calibration-review.md",
+      "trn22_fresh_public20m": 0.992968300659387,
       "label": "fs-20260925-g1-public20m-calibration-trn22-r1",
       "request": "research/v2/g1-calibration-trn22-request.json",
       "request_sha256": "2efe1b6404ab262e818ef607a4630e82d641800a03813bf0427c3ad82a4d35b6",
@@ -75,15 +80,15 @@
       "neuron_device_holders": 0
     },
     "trn22": {
-      "status": "RUNNING_G1_WARM_CALIBRATION_NO_TRAINING",
+      "status": "IDLE_G1_COMPLETE_A0_STAGE_PENDING",
       "launch_allowed": false,
-      "last_observed_utc": "2026-09-24T20:53:19Z",
-      "free_gib": 7.46,
-      "prelaunch_free_bytes": 8010055680,
-      "label": "fs-20260925-g1-public20m-calibration-trn22-r1",
-      "guard_pid": 2950407,
+      "last_observed_utc": "2026-09-24T21:07:42Z",
+      "free_gib": 7.45,
+      "postflight_free_bytes": 8001118208,
+      "last_completed_label": "fs-20260925-g1-public20m-calibration-trn22-r1",
+      "guard_pid": null,
       "training_processes": 0,
-      "neuron_device_holders": null
+      "neuron_device_holders": 0
     }
   },
   "breakers": {
@@ -106,8 +111,8 @@
       "deletion_targets": []
     }
   ],
-  "last_event": "Four CPU/G2 probes and three exact comparisons archived PASS. Corrected historical compiler flags; G1 trn22 fresh warm 20M calibration started under proven guard. No new model score, deletion, or AWS action.",
-  "updated_utc": "2026-09-24T20:55:00Z",
+  "last_event": "trn22 G1 fresh-process public20M calibration independently reviewed PASS: exact known 0.992968300659387, clean postflight and stable hashes. This is not a new model score or advancement control. Warm c5c A0 staging is pending; no scored launch yet.",
+  "updated_utc": "2026-09-24T21:14:00Z",
   "active_human_brief": "research/v2/CONTROLLER_BRIEF_2026-09-25.md",
   "ready_job_counts": {"trn21": 0, "trn22": 0},
   "ideation_policy": {
@@ -135,6 +140,6 @@
   "validation_only": {
     "cpu_g2": "PASS; four baseline/S0 exact-argv CPU/gloo probes, three identical comparisons, retrieved hashed receipts, no surviving processes or device holders.",
     "native_or_scored_training_authorized": false,
-    "calibration_only_authorized": "fs-20260925-g1-public20m-calibration-trn22-r1"
+    "calibration_only_completed": "fs-20260925-g1-public20m-calibration-trn22-r1"
   }
 }

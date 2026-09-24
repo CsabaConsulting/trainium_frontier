@@ -1,6 +1,23 @@
 # Current state
 
-Last reconciled: 2026-09-24 20:55 UTC
+Last reconciled: 2026-09-24 21:14 UTC
+
+## Current handoff: G1 passed on trn22; warm A0 not yet launched
+
+The trn22 fresh-process public20M evaluator calibration reproduced its retained checkpoint's
+historical `0.992968300659387` BPB exactly at context 1024 and 20,971,520 tokens. The archived
+Operator receipt is under `research/v2/g1-calibrations/fs-20260925-g1-public20m-calibration-trn22-r1/`
+and the independent review is `research/agentic/verification/20260925-g1-trn22-calibration-review.md`.
+This is **not** a new candidate score or a valid advancement control. trn21 still needs separate
+G1 calibration after human disk expansion. `research/v2/g1.json` now records trn22-specific PASS.
+
+The first warm c5c A0 control is being staged on trn22 with a unique label and retained warm caches.
+Training has **not** started. Its launch still requires a completed stage receipt, fresh disk/host
+checks and a fail-closed external step-boundary observer started before the first step. The
+new-runner `run_job.py` remains pilot-only. Best confirmed candidate is unchanged at
+`0.9918353324` public20M (single run; two-run mean `0.9919537735`).
+
+The current handoff above supersedes older pending-G1 statements below.
 
 ## Latest controller brief and live gate work
 

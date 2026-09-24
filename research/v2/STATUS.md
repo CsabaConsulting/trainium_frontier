@@ -1,6 +1,22 @@
 # Workflow installation and incremental launch status
 
-Status: **CPU/G2 PASS; trn22 fresh 20M evaluator calibration running; first warm A0 prepared.**
+Status: **CPU/G2 PASS; trn22 fresh 20M evaluator calibration PASS; first warm A0 staging.**
+
+## Live update (2026-09-24 21:14 UTC)
+
+- trn22 G1 fresh-process public20M calibration passed and reproduced the known checkpoint score
+  exactly: `0.992968300659387` at 20,971,520 tokens/context 1024. The independently reviewed
+  [Operator receipt](g1-calibrations/fs-20260925-g1-public20m-calibration-trn22-r1/operator-receipt.json)
+  has SHA-256 `d78803b0ed21f9f4470560840ae7f78bb2b8ccaf2c82d4d8d9a472c4a6445a57`.
+  This is evaluator calibration, **not a new model result or valid advancement control**.
+- The trn22 Operator is staging the one warm dense `c5c410af...` A0 control. It has **not
+  launched training**. Final authorization still needs the stage receipt, unique-root/source
+  checks, live disk projection, G2 binding and read-only boundary observer started before the
+  first optimizer step. trn21 remains disk-blocked; no deletion or AWS action occurred.
+- The best confirmed candidate remains `0.9918353324` single, `0.9919537735` two-run mean.
+  New-runner production migration and S0 cold replay remain pending.
+
+This live update supersedes the older pending G1 statements below.
 
 ## Live update (2026-09-24 20:55 UTC)
 

@@ -1,7 +1,7 @@
 {
   "schema": "trainium-workflow-v2-g1-facts-v1",
-  "observed_utc": "2026-09-24T20:20:06Z",
-  "status": "PARTIAL_SOURCE_AND_HOST_METADATA_VERIFIED_CALIBRATION_PENDING",
+  "observed_utc": "2026-09-24T21:07:42Z",
+  "status": "TRN22_FRESH_PUBLIC20M_CALIBRATION_PASS_TRN21_PENDING",
   "launch_authorized": false,
   "source": {
     "path": "prepare.py",
@@ -43,7 +43,11 @@
     "eval_bpb_regex": "\"val_bpb\"\\s*:\\s*([0-9]+(?:\\.[0-9]+)?(?:[eE][+-]?[0-9]+)?)",
     "trusted_metric": "prepare.evaluate_bpb uses trusted CE from model(x), not model(x,y).",
     "import_layout": "Historical validated runs colocated train.py and unchanged prepare.py. Nested v2 train.py paths need the deployed repository root in PYTHONPATH for direct training; the actual absolute deployment path is not yet assigned.",
-    "eval_args_verified": false
+    "eval_args_verified": true,
+    "verification_scope": "trn22 only; trn21 has not undergone fresh retained-checkpoint calibration",
+    "operator_receipt": "research/v2/g1-calibrations/fs-20260925-g1-public20m-calibration-trn22-r1/operator-receipt.json",
+    "operator_receipt_sha256": "d78803b0ed21f9f4470560840ae7f78bb2b8ccaf2c82d4d8d9a472c4a6445a57",
+    "independent_review": "research/agentic/verification/20260925-g1-trn22-calibration-review.md"
   },
   "training_data": {
     "source_lines": [
@@ -124,7 +128,7 @@
     "candidate_local_guard": "excess = max(0.0, observed_startup + STARTUP_LAUNCH_MARGIN_SECONDS - TRAIN_STARTUP_ALLOWANCE_CAP_SECONDS), margin 30s; startup is not a blanket exemption from wall-clock enforcement."
   },
   "calibration": {
-    "status": "PENDING_FRESH_REEVALUATION",
+    "status": "PASS_TRN22_ONLY_TRN21_PENDING",
     "tolerance_abs": 0.0002,
     "trn21": {
       "checkpoint": "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr015_confirm_trn21_r2/out/fs-20260924-c595-matrixlr015-confirm-trn21-r2-work/train/out/final.pt",
@@ -146,13 +150,20 @@
       "known_num_bytes": 83462186,
       "historical_eval_seconds": 731.733122856007,
       "evidence_commit": "68ecfeb1",
-      "comparability_note": "Historical run is not a valid advancement control because it failed the postflight disk gate; retained checkpoint/score can be a CLI-calibration reference only."
+      "comparability_note": "Historical run is not a valid advancement control because it failed the postflight disk gate; retained checkpoint/score can be a CLI-calibration reference only.",
+      "fresh_checkpoint_hash_reauthenticated": true,
+      "fresh_public20m": 0.992968300659387,
+      "fresh_num_tokens": 20971520,
+      "fresh_num_bytes": 83462186,
+      "fresh_eval_seconds": 735.1430530250072,
+      "fresh_command_returncode": 0,
+      "fresh_host_clean": true,
+      "fresh_calibration_verdict": "PASS_EXACT_HISTORICAL_SCORE_NOT_A_NEW_RESULT"
     }
   },
   "remaining": [
-    "Fresh retained-checkpoint hash and contained calibration eval after host safety checks.",
-    "Actual deployment path and PYTHONPATH in each host profile.",
-    "Independent G1 review; only then set host eval_args_verified true.",
+    "Fresh trn21 retained-checkpoint calibration remains pending and trn21 remains disk-blocked.",
+    "Install host-specific host.json on trn22 only when piloting run_job.py; the template remains invalid and must not be deployed unchanged.",
     "No synthetic self-test rows or historical 2M results enter the new 20M ledger."
   ]
 }
