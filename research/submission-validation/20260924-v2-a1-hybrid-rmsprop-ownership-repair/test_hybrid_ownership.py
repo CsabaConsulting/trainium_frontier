@@ -448,6 +448,84 @@ class WorldOneEquivalence(unittest.TestCase):
                 self.assertEqual((adapter.calls, adapter.replicated_rmsprop_calls, DIST.collective_calls),
                                  before_calls)
 
+    def test_checkpoint_tensor_schema_fields_reject_before_raw_load(self):
+        parameters, optimizer = make_toy(self.initial)
+        adapter = OwnedOptimizer(optimizer)
+        payload = clone_value(adapter.state_dict())
+        attacks = (
+            ("shape", [99]),
+            ("elements", 99),
+            ("dtype", "torch.float64"),
+            ("contiguous", False),
+            ("requires_grad", False),
+            ("device_type", "meta"),
+            ("device_index", 0),
+        )
+        for field, value in attacks:
+            with self.subTest(field=field):
+                attacked = clone_value(payload)
+                attacked["group_schema"][0]["parameters"][0][field] = value
+                raw_calls = []
+                adapter.raw_load_state_dict = lambda _state: raw_calls.append(True)
+                with self.assertRaisesRegex(ValueError, "schema mismatch"):
+                    adapter.load_state_dict(attacked)
+                self.assertEqual(raw_calls, [])
+
+    def test_checkpoint_state_schema_attacks_reject_before_raw_load(self):
+        parameters, optimizer = make_toy(self.initial)
+        adapter = OwnedOptimizer(optimizer)
+        set_grads(parameters, 0)
+        adapter.step()
+        payload = clone_value(adapter.state_dict())
+        attacks = []
+        missing_parameter_state = clone_value(payload)
+        missing_parameter_state["optimizer"]["state"].pop(3)
+        attacks.append(missing_parameter_state)
+        missing_state_field = clone_value(payload)
+        missing_state_field["optimizer"]["state"][0].pop("exp_avg")
+        attacks.append(missing_state_field)
+        extra_state_field = clone_value(payload)
+        extra_state_field["optimizer"]["state"][0]["unexpected"] = torch.ones(1)
+        attacks.append(extra_state_field)
+        wrong_state_shape = clone_value(payload)
+        wrong_state_shape["optimizer"]["state"][0]["exp_avg"] = torch.zeros(99)
+        attacks.append(wrong_state_shape)
+        wrong_state_dtype = clone_value(payload)
+        wrong_state_dtype["optimizer"]["state"][0]["exp_avg"] = wrong_state_dtype["optimizer"]["state"][0]["exp_avg"].double()
+        attacks.append(wrong_state_dtype)
+        noncontiguous_state = clone_value(payload)
+        noncontiguous_state["optimizer"]["state"][2]["momentum_buffer"] = torch.zeros(2, 2).t()
+        attacks.append(noncontiguous_state)
+        wrong_step_type = clone_value(payload)
+        wrong_step_type["optimizer"]["state"][0]["step"] = "one"
+        attacks.append(wrong_step_type)
+        swapped_state = clone_value(payload)
+        swapped_state["optimizer"]["state"][0] = clone_value(swapped_state["optimizer"]["state"][1])
+        attacks.append(swapped_state)
+        empty_state = clone_value(payload)
+        empty_state["optimizer"]["state"] = {}
+        attacks.append(empty_state)
+        for index, attacked in enumerate(attacks):
+            with self.subTest(attack=index):
+                restored_parameters, restored = make_toy(self.initial)
+                restored_adapter = OwnedOptimizer(restored)
+                raw_calls = []
+                raw_loader = restored_adapter.raw_load_state_dict
+
+                def recorded_raw_loader(state):
+                    raw_calls.append(True)
+                    return raw_loader(state)
+
+                restored_adapter.raw_load_state_dict = recorded_raw_loader
+                before_parameters = [parameter.detach().clone() for parameter in restored_parameters]
+                before_state = clone_value(restored.state)
+                with self.assertRaisesRegex(ValueError, "schema mismatch"):
+                    restored_adapter.load_state_dict(attacked)
+                self.assertEqual(raw_calls, [])
+                assert_tree_equal(self, restored.state, before_state)
+                for actual, expected in zip(restored_parameters, before_parameters):
+                    self.assertTrue(torch.equal(actual, expected))
+
     def test_post_plan_kind_drift_rejects_before_updates_or_collective(self):
         parameters, optimizer = make_toy(self.initial)
         adapter = OwnedOptimizer(optimizer)
@@ -492,6 +570,29 @@ class WorldOneEquivalence(unittest.TestCase):
                 assert_tree_equal(self, optimizer.state, before_state)
                 self.assertEqual((adapter.calls, adapter.replicated_rmsprop_calls, DIST.collective_calls),
                                  before_calls)
+
+    def test_complete_summary_drift_rejects_before_mutation_or_collective(self):
+        for field in ("elements_by_owner", "estimated_ms_by_owner", "shard_elements",
+                      "total_padded_bytes"):
+            with self.subTest(field=field):
+                parameters, optimizer = make_toy(self.initial)
+                adapter = OwnedOptimizer(optimizer)
+                set_grads(parameters, 0)
+                if isinstance(adapter.summary[field], list):
+                    adapter.summary[field][0] += 1
+                else:
+                    adapter.summary[field] += 1
+                before_parameters = [parameter.detach().clone() for parameter in parameters]
+                before_state = clone_value(optimizer.state)
+                before_calls = (adapter.calls, adapter.replicated_rmsprop_calls,
+                                DIST.collective_calls)
+                with self.assertRaisesRegex(ValueError, "plan drifted"):
+                    adapter.step()
+                for actual, expected in zip(parameters, before_parameters):
+                    self.assertTrue(torch.equal(actual, expected))
+                assert_tree_equal(self, optimizer.state, before_state)
+                self.assertEqual((adapter.calls, adapter.replicated_rmsprop_calls,
+                                  DIST.collective_calls), before_calls)
 
 
 class FakeWorldFour(unittest.TestCase):

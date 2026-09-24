@@ -1,30 +1,34 @@
 {
-  "reviewed_commit": "bf46f25c4b4fe267fc8e4922d9395e603bdc3835",
-  "reviewed_parent": "6cb04c550d497e09b2e0ffa530b5ec4488c229b4",
-  "role": "independent_verifier",
+  "reviewed_commit": "241ba406b2309d0a4d4af223a57de6261e722ff1",
+  "reviewed_parent": "0569cf3e4a045067a9645ba2a8e2e341471d31a6",
+  "role": "independent_verifier_iteration_2",
   "status": "FAIL",
-  "summary": "The intended RMSProp replication and provided equivalence tests pass, but optimizer checkpoint/runtime group-kind identity is not fail-closed.",
+  "summary": "The prior kind/order blockers are corrected and all supplied tests pass, but optimizer state schema and the complete ownership summary are not fail-closed before raw load or update.",
   "checks": {
-    "clean_detached_verifier_worktree": true,
-    "provided_tests_passed": 6,
-    "adversarial_tests_added": 2,
-    "expanded_suite_result": "6 passed; 4 expected failing subcases across the 2 adversarial tests",
-    "candidate_sha256": "3a89332327e4fd9b003b3b39495c8289ad9e06148beb62ec228699aadc032aaa",
+    "clean_detached_verifier_worktree": "/tmp/trainium-verifier-r2.DP21J6",
+    "py_compile_passed": true,
+    "supplied_tests_passed": 10,
+    "verifier_adversarial_tests_added": 3,
+    "expanded_suite_result": "11 tests passed; 13 failing subcases across the state-schema and complete-summary tests reproduced the blockers",
+    "candidate_sha256": "e613708baade1b3b9468f71104368c847d3f5eeed334a6207ec094c6836a57b5",
     "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
     "base_sha256": "35c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2",
-    "scope_confined_to_ownership_adapter": true,
-    "new_authorization_or_request_present": false
+    "diff_check_passed": true,
+    "candidate_scope_confined_to_ownership_adapter": true,
+    "normal_world1_save_resume_fake_world4_and_rms_math_passed": true,
+    "kind_order_tensor_schema_entries_and_group_count_gates_passed": true,
+    "new_or_finalized_authorization_or_request_present": false
   },
   "blockers": [
     {
-      "id": "B1",
-      "finding": "OwnedOptimizer.load_state_dict authenticates ownership entries and RMSProp metadata but not optimizer.param_groups kind identity. A payload that changes the replicated RMSProp group to sgd or adamw loads successfully and subsequent step silently skips the RMSProp parameter and state update.",
-      "required_correction": "Bind exact planned group kinds/indices in the checkpoint schema and reject mismatches before raw_load_state_dict mutates the optimizer. Preserve the live optimizer on rejection."
+      "id": "R2-B1",
+      "finding": "Checkpoint state validation checks only that top-level parameter IDs are integers in the allowed set. Missing parameter state, missing or extra nested fields, wrong tensor shape/dtype/contiguity, invalid step type, swapped state and an empty state all reached raw_load_state_dict and were accepted, mutating the live optimizer.",
+      "required_correction": "Define and validate the exact per-kind optimizer-state schema and exact expected parameter-state key set before raw_load_state_dict. Reject every mismatch without invoking the raw loader or changing parameters, optimizer state, counters or collectives. If a pristine zero-step state is supported, encode it as an explicit distinct schema rather than accepting arbitrary omissions."
     },
     {
-      "id": "B2",
-      "finding": "OwnedOptimizer.step does not validate every live group kind against the plan before updates. Post-plan kind drift can be silently skipped for an empty owned group or fail only on owner ranks after earlier groups have already updated, creating rank-asymmetric collective risk.",
-      "required_correction": "Validate the complete group-kind/partition identity on every step before any parameter/state mutation or collective. Unknown or changed kinds must reject uniformly on every rank."
+      "id": "R2-B2",
+      "finding": "The live-plan gate authenticates only summary.replicated_rmsprop_groups. Drift in elements_by_owner, estimated_ms_by_owner, shard_elements or total_padded_bytes is accepted and a real update and collective proceed.",
+      "required_correction": "Freeze and validate the complete ownership summary before state_dict, load_state_dict and every update/collective, while preserving intentional runtime optimizer hyperparameter schedules."
     }
   ],
   "hardware_authorized": false,
