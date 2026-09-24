@@ -85,7 +85,8 @@ the exact paths above. These steps follow the [AWS EBS extension instructions](h
 
 ## Consequence if no action is taken
 
-trn21 stays disk-blocked. trn22 has space for a projected warm dense run only after
-all its other gates pass; table jobs and cold S0 replays remain blocked. S0's noon-IST
-target is therefore conditional on disk expansion and successful runtime checks, not
-a promise of readiness. No threshold is lowered to improve utilization.
+Both hosts stay disk-blocked: trn22's observed compile footprint exceeded its earlier
+projection, and its breaker is tripped. Dense controls, table jobs and cold S0 replays
+remain blocked until the volume expansion and separate gate review. S0's noon-IST
+target has slipped; there is no submission-ready package. No threshold is lowered to
+improve utilization.
