@@ -1,0 +1,59 @@
+{
+  "reviewed_authorization_commit": "03bfeabf0f4293e30dc86eecf3aa9cce49e9735b",
+  "reviewed_parent_verifier_pass": "1da0481a54c87cd643165c19b28383e1b42869e8",
+  "role": "independent_verifier_g0_state_only_authorization_materialization",
+  "status": "PASS",
+  "summary": "The one-file state-only authorization is limited to exact G0 native execution, binds the reviewed harness and all source/finalization identities, and leaves G1, G2, checkpoint pruning, and cache cleanup false. The materialized request is the byte-exact deterministic output of those authorities and is accepted by the standard launcher boundary without dispatch.",
+  "scope": {
+    "standing_human_authorization": "autonomous development authorization, G0 only",
+    "arm": "G0",
+    "host": "trn21",
+    "hostname": "ip-172-31-34-85",
+    "label": "fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1",
+    "g1_authorized": false,
+    "g2_authorized": false,
+    "checkpoint_prune_authorized": false,
+    "cache_cleanup_authorized": false
+  },
+  "identities": {
+    "authorization_path": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g0-authorization.json",
+    "authorization_sha256": "c372bd3f0c3909a69f679a74789d3674f5e0139f12788bd15494c0b9700be28e",
+    "request_template_path": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g0-request.template.json",
+    "request_template_sha256": "dd9fa11ae2c30c41a52c9f9b2ce0d58c0551786c5a206bb98d1d15a1f475dc29",
+    "materialized_request_path": "/tmp/fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1.request.json",
+    "materialized_request_sha256": "739878f2eacbd86cbb161a74522a49a0ba7b7e13cf840a27383fbc3a12cd6c3e",
+    "materialized_request_bytes": 4318,
+    "command_canonical_sha256": "cc1a36ea73978827c1f647ef086949a95e59e072261b63865c69482a55431ec2",
+    "environment_canonical_sha256": "32499c6b5d5e304c538f9261ba6012cf0638b13422423c5b94115b6f46f97fcf",
+    "fingerprint_paths_canonical_sha256": "41af498d0a95b2f23975056e839ca85388109237849573324a3685c77a7428a1"
+  },
+  "checks": {
+    "authorization_diff_is_one_new_file": true,
+    "authorization_parent_is_joint_seal_pass": true,
+    "authorized_head_exact_symbolic_branch_and_clean": true,
+    "authorization_regular_single_link_and_exact_sha": true,
+    "request_template_regular_single_link_and_exact_sha": true,
+    "all_protected_and_source_pins_match": 20,
+    "exact_command_environment_host_paths_and_disk_floors_match": true,
+    "request_is_regular_single_link": true,
+    "deterministic_request_bytes_match_existing_materialization": true,
+    "fresh_exclusive_writer_replay_matches_request_sha": true,
+    "literal_and_schema_mutations_rejected": 27,
+    "standard_launcher_local_validation_passed_without_ssh": true,
+    "py_compile_passed": true,
+    "pre_finalization_regression_tests_passed": 29,
+    "pre_finalization_regression_tests_expected_state_transition_failures": 1,
+    "expected_state_transition_failure": "test_g1_g2_are_locked_and_have_no_authorization asserts that g0-authorization.json is absent; the reviewed commit deliberately adds that exact G0-only file. Independent checks confirm both downstream arms remain false and locked.",
+    "full_materializer_entrypoint_replay_not_performed": "The exact O_EXCL output already exists and must not be removed or overwritten. The validated builder plus exclusive sealed writer was replayed into a fresh temporary root and produced identical bytes and SHA-256.",
+    "ssh_or_native_execution_performed": false
+  },
+  "blockers": [],
+  "conditions": [
+    "Operator must use exactly authorized commit 03bfeabf0f4293e30dc86eecf3aa9cce49e9735b, not this verifier-receipt descendant.",
+    "Operator must consume the existing request only if its path, 4318-byte size and SHA-256 remain exact and all standard fresh-start preflight gates pass.",
+    "Any request, authorization, source, command, environment, host, path, hash or checkout change requires a fresh independent review.",
+    "G1, G2, pruning, cleanup, full A1 adoption and submission remain unauthorized."
+  ],
+  "exact_g0_request_ready_for_operator_under_standing_authority": true,
+  "receipt_expands_authority": false
+}
