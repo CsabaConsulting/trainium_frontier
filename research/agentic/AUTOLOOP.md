@@ -23,6 +23,37 @@ pushed, and reverified before the state closes. If push is disabled, the checkpo
 retained. The controller never clears a breaker automatically: the pinned pushed R8 cleanup receipt
 must be recorded through the explicit Operator recovery transition.
 
+## 2026-09-24 final-week control-plane instrumentation
+
+The disk safety boundary is unchanged: production config remains `min_free_gib=7.4`, and the
+existing validator still refuses values below the protocol floor. Cleanup remains an Operator
+action. `TRAIN_STARTUP_ALLOWANCE_CAP_SECONDS=900` is recorded separately from training time. Every
+collected result now carries `startup_cache_diagnostics`, derived only from its frozen manifest and
+runner ledger row: the available startup estimate, cap comparison, compile flag, unique cache
+identities, and an explicit statement that cache hit/miss telemetry is unavailable. No train or
+evaluation source is instrumented.
+
+Every controller cycle writes one fsynced JSONL utilization sample per configured host to ignored
+runtime state at `research/agentic/runtime/idle-utilization.jsonl`. A sample distinguishes actual
+process/device busy state from an idle host that is launch-blocked (for example by disk). The
+cycle report calls out idle streaks longer than ten minutes; inventory failures are recorded as
+`unknown`, never guessed busy or idle.
+
+`FINAL_WEEK_RESEARCH_ADDENDUM_2026-09-24.md` is included in Researcher and Verifier context. The
+new `evaluation_policy` schema is intentionally disabled with an empty base hash and no authorized
+control labels/sweeps, because the canonical-root rebase is a separate reviewed change. Enabling it
+without a 64-hex current-base hash and explicit same-host current-control labels is invalid. Its
+deterministic assessor enforces:
+
+- context-1024, 2,097,152-token screens only nominate full20M confirmation at delta <= -0.0005;
+- delta >= +0.0005 is discarded; the middle band is discarded unless the record carries a
+  predeclared active-sweep identifier;
+- a screen has no ADOPT/KEEP transition;
+- ADOPT requires exactly two distinct, strictly negative 20,971,520-token runs of identical
+  candidate bytes, each paired to a same-host current-base control, with mean delta <= -0.0008.
+
+The current pinned base and fixed queue are not changed by this instrumentation patch.
+
 ## What it does
 
 A deterministic Python loop that, on each cycle:

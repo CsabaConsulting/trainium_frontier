@@ -862,6 +862,11 @@ class LoopTests(unittest.TestCase):
         self.assertTrue(full_result["collected"]["post_run_dirt_explained"])
         self.assertIn("run_launch_receipt", full_result["collected"]["files"])
         self.assertTrue(Path(full_result["collected"]["files"]["run_launch_receipt"]["local"]).is_file())
+        diagnostics = full_result["startup_cache_diagnostics"]
+        self.assertEqual(diagnostics["startup_allowance_cap_seconds"], 900)
+        self.assertEqual(diagnostics["startup_allowance_status"], "unavailable")
+        self.assertEqual(diagnostics["cache"]["hit_miss_observation"],
+                         "unavailable in existing receipts")
         self.assertTrue((pdir / "full-verdict.md").is_file())
         # every run dir was new and distinct; nothing touched wave195; every launch archived before the next
         cwds = [s["cwd"] for s in env.h.launched]

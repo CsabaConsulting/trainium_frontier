@@ -51,9 +51,12 @@ class Store:
     root: Path = C.AGENT_DIR
     state_path: Path = C.STATE_FILE
     experiments_dir: Path = C.EXPERIMENTS_DIR
+    utilization_journal_path: Path | None = None
     state: dict = field(default_factory=dict)
 
     def __post_init__(self) -> None:
+        if self.utilization_journal_path is None:
+            self.utilization_journal_path = self.root / "runtime" / "idle-utilization.jsonl"
         self.state = read_json(self.state_path, None) or self._fresh()
         if self.state.get("schema_version") != SCHEMA_VERSION:
             raise RuntimeError(f"state schema {self.state.get('schema_version')} != {SCHEMA_VERSION}; refusing to guess")
@@ -74,6 +77,63 @@ class Store:
 
     def save(self) -> None:
         atomic_write_json(self.state_path, self.state)
+
+    def record_host_utilization(
+        self, *, box: str, host: str, status: str, reason: str, observed_at: str
+    ) -> float | None:
+        """Append one fsynced utilization sample and return the current idle streak in seconds."""
+
+        if status not in {"busy", "idle", "unknown"}:
+            raise ValueError(f"invalid utilization status {status!r}")
+        if not box or not host or not reason:
+            raise ValueError("utilization samples require box, host, and reason")
+        try:
+            observed = datetime.strptime(observed_at, "%Y-%m-%dT%H:%M:%SZ").replace(
+                tzinfo=timezone.utc
+            )
+        except ValueError as exc:
+            raise ValueError("utilization timestamp must be UTC YYYY-MM-DDTHH:MM:SSZ") from exc
+        tracking = self.state.setdefault("host_utilization", {}).setdefault(box, {})
+        if status == "idle":
+            if tracking.get("last_status") != "idle" or not tracking.get("idle_since"):
+                tracking["idle_since"] = observed_at
+            idle_since = datetime.strptime(
+                tracking["idle_since"], "%Y-%m-%dT%H:%M:%SZ"
+            ).replace(tzinfo=timezone.utc)
+            idle_seconds: float | None = max(0.0, (observed - idle_since).total_seconds())
+        else:
+            tracking["idle_since"] = None
+            idle_seconds = None
+        tracking.update({
+            "host": host,
+            "last_status": status,
+            "last_reason": reason,
+            "last_observed_at": observed_at,
+        })
+        sample = {
+            "schema_version": 1,
+            "timestamp": observed_at,
+            "box": box,
+            "host": host,
+            "inventory_status": status,
+            "reason": reason,
+            "idle_since": tracking.get("idle_since"),
+            "idle_seconds": idle_seconds,
+        }
+        assert self.utilization_journal_path is not None
+        path = self.utilization_journal_path
+        path.parent.mkdir(parents=True, exist_ok=True)
+        flags = os.O_WRONLY | os.O_CREAT | os.O_APPEND
+        if hasattr(os, "O_NOFOLLOW"):
+            flags |= os.O_NOFOLLOW
+        fd = os.open(path, flags, 0o600)
+        with os.fdopen(fd, "ab") as journal:
+            payload = (json.dumps(sample, sort_keys=True) + "\n").encode()
+            journal.write(payload)
+            journal.flush()
+            os.fsync(journal.fileno())
+        self.save()
+        return idle_seconds
 
     # ---- proposals ----
     @property

@@ -101,6 +101,44 @@ def _clip_findings(value, *, max_items: int = 3, max_chars: int = 350) -> list[s
     return [_clip_text(item, max_chars) for item in value[:max_items]]
 
 
+def startup_cache_diagnostics(manifest: RunManifest, row: dict | None) -> dict:
+    """Summarize only startup/cache facts already present in the manifest and runner row."""
+
+    row = row or {}
+    estimate = row.get("startup_allowance_est")
+    if (isinstance(estimate, bool) or not isinstance(estimate, (int, float))
+            or not math.isfinite(float(estimate))):
+        estimate = None
+    cache_paths: dict[str, dict[str, str | None]] = {}
+    flattened: list[str] = []
+    for key in C.CACHE_ENV_KEYS:
+        train_path = manifest.env.get(key)
+        eval_path = manifest.env.get(f"AUTOLOOP_EVAL_{key}")
+        cache_paths[key] = {"train": train_path, "eval": eval_path}
+        flattened.extend(path for path in (train_path, eval_path) if path)
+    exact_cold = manifest.execution_mode == "exact-dense1024-cold-eval"
+    return {
+        "schema_version": 1,
+        "startup_allowance_cap_seconds": C.TRAIN_STARTUP_ALLOWANCE_CAP_SECONDS,
+        "startup_allowance_est_seconds": estimate,
+        "startup_allowance_status": (
+            "unavailable" if estimate is None else
+            "within_cap" if float(estimate) <= C.TRAIN_STARTUP_ALLOWANCE_CAP_SECONDS else
+            "exceeded"
+        ),
+        "runner_wall_elapsed_seconds": row.get("wall_elapsed_seconds"),
+        "training_seconds": row.get("training_seconds"),
+        "compiled": row.get("compiled"),
+        "cache": {
+            "mode": "unique_cold_train_and_eval" if exact_cold else "runner_environment",
+            "paths_from_frozen_manifest": cache_paths,
+            "pairwise_unique": len(flattened) == len(set(flattened)),
+            "fresh_paths_verified_before_launch": True if exact_cold else None,
+            "hit_miss_observation": "unavailable in existing receipts",
+        },
+    }
+
+
 @dataclass
 class CycleReport:
     started_at: str
@@ -200,6 +238,42 @@ class Controller:
             return "config invalid: " + "; ".join(errs)
         return None
 
+    def _sample_utilization(self, report: CycleReport, *, skip_reason: str | None = None) -> None:
+        """Persist one read-only inventory-derived busy/idle/unknown sample per configured host."""
+
+        observed_at = self.now_iso()
+        for box in self.cfg.boxes:
+            host = C.PINNED_HOSTS[box]
+            if skip_reason is not None:
+                status = "unknown"
+                reason = f"inventory not sampled because controller is stopped: {skip_reason}"
+            else:
+                try:
+                    inventory = self.op.inventory(box)
+                    process_busy = bool(inventory.busy_processes or inventory.device_holders)
+                    if process_busy:
+                        status = "busy"
+                        detail = []
+                        if inventory.busy_processes:
+                            detail.append("matching processes present")
+                        if inventory.device_holders:
+                            detail.append("Neuron device holders present")
+                        reason = "; ".join(detail)
+                    else:
+                        status = "idle"
+                        reason = (
+                            "idle but launch-blocked: " + "; ".join(inventory.findings)
+                            if inventory.findings else "inventory clean and idle"
+                        )
+                except Exception as exc:
+                    status = "unknown"
+                    reason = f"inventory unavailable: {type(exc).__name__}: {str(exc)[:300]}"
+            idle_seconds = self.store.record_host_utilization(
+                box=box, host=host, status=status, reason=reason, observed_at=observed_at
+            )
+            if status == "idle" and idle_seconds is not None and idle_seconds > 600:
+                report.add(f"{box}: idle >10min ({idle_seconds:.0f}s); {reason}")
+
     def all_ledgers(self) -> list[Ledger]:
         ledgers = [Ledger.load(C.LOCAL_LEDGER)]
         if self.store.experiments_dir.is_dir():
@@ -219,6 +293,17 @@ class Controller:
         report = CycleReport(started_at=self.now_iso())
         self._cycle_llm_calls = 0
         reason = self.breakers()
+        skip_inventory = (
+            reason if reason and not reason.startswith("breaker open:") else None
+        )
+        try:
+            # STOP/config/cutoff remain zero-remote-call terminal conditions. A persisted breaker
+            # still permits read-only inventory so blocked-but-idle host time is visible.
+            self._sample_utilization(report, skip_reason=skip_inventory)
+        except Exception as exc:
+            self.store.open_breaker("utilization journal failure", detail=str(exc)[:1000])
+            report.stopped_reason = f"utilization journal failure: {exc}"
+            return report
         if reason:
             if self.fixed_plan is not None and any(
                     rec.get("stage", "").startswith("launched:")
@@ -551,6 +636,7 @@ class Controller:
             "collected": collected.to_dict(),
             "ledger_row": row,
             "hostname": receipt.pre_launch_inventory.get("hostname"),
+            "startup_cache_diagnostics": startup_cache_diagnostics(manifest, row),
         }
         self.store.write_artifact(pid, f"{tier}-result.json", result)
         self.store.set_stage(pid, f"collected:{tier}")
@@ -597,6 +683,8 @@ class Controller:
         if (evidence.get("final") is not True
                 or (evidence.get("process") or {}).get("quiescent") is not True):
             raise QueuePlanError("failure evidence did not prove process-group quiescence")
+        available_row = (evidence.get("available_result") or {}).get("ledger_row")
+        evidence["startup_cache_diagnostics"] = startup_cache_diagnostics(manifest, available_row)
         self.store.write_artifact(pid, f"{tier}-failure.json", evidence)
         self.store.set_stage(
             pid, f"failure_collected:{tier}", verdict="FAILED", failure=reason,
@@ -1631,7 +1719,12 @@ class Controller:
         if not ok:
             report.add(f"propose: {why}")
             return None
-        context = load_context([C.AGENT_DIR / "CURRENT_STATE.md", C.DECISION_LOG, C.ROOT / "research" / "experiment-protocol.md"])
+        context = load_context([
+            C.AGENT_DIR / "CURRENT_STATE.md",
+            C.FINAL_WEEK_RESEARCH_ADDENDUM,
+            C.DECISION_LOG,
+            C.ROOT / "research" / "experiment-protocol.md",
+        ])
         flags = sorted(self.known_flags())
         assert self._train_py_text is not None
         source_evidence = self._research_train_evidence_index(self._train_py_text)
@@ -1712,6 +1805,7 @@ class Controller:
             C.ROOT / "README.md",
             C.ROOT / "AGENTS.md",
             C.AGENT_DIR / "CURRENT_STATE.md",
+            C.FINAL_WEEK_RESEARCH_ADDENDUM,
             C.ROOT / "research" / "experiment-protocol.md",
             C.DECISION_LOG,
             C.ROOT / "research" / "trn2-experiment-results.md",

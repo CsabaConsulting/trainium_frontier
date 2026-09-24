@@ -8,6 +8,7 @@ launch shapes, forbidden flags, forbidden remote tokens, and hard caps. Override
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -25,6 +26,8 @@ CONFIG_FILE = AGENT_DIR / "autoloop.json"
 QUEUE_PLAN_FILE = AGENT_DIR / "frontier-full-only-queue.json"
 DECISION_LOG = AGENT_DIR / "DECISION_LOG.md"
 LOCAL_LEDGER = ROOT / "research" / "experiment-log.jsonl"
+UTILIZATION_JOURNAL = RUNTIME_DIR / "idle-utilization.jsonl"
+FINAL_WEEK_RESEARCH_ADDENDUM = AGENT_DIR / "FINAL_WEEK_RESEARCH_ADDENDUM_2026-09-24.md"
 
 # ---- pinned (not overridable) -------------------------------------------------------------------
 
@@ -128,6 +131,20 @@ VALID_SHAPES: tuple[tuple[int, int], ...] = ((2, 4), (1, 8))  # (lnc, nproc_per_
 SEED = 42
 PHASE1_BUDGET_SECONDS = 1800
 REQUIRED_CC_FLAG = "--optlevel=1"
+TRAIN_STARTUP_ALLOWANCE_CAP_SECONDS = 900
+
+# Final-week public-development selection populations.  These constants describe the policy but do
+# not rebase the active controller; ``EvaluationPolicy.enabled`` remains false until a separately
+# reviewed canonical-root change supplies the exact current base hash.
+SCREEN_EVAL_TOKENS = 2_097_152
+CONFIRMATION_EVAL_TOKENS = 20_971_520
+SCREEN_EVAL_BYTES = 8_418_678
+CONFIRMATION_EVAL_BYTES = 83_462_186
+EVAL_CONTEXT = 1024
+SCREEN_NOMINATE_DELTA = "-0.0005"
+SCREEN_DISCARD_DELTA = "0.0005"
+ADOPTION_MEAN_DELTA = "-0.0008"
+ADOPTION_REQUIRED_FULL20M_RUNS = 2
 
 # train.py flags a flag-only proposal may never set (they define the protocol, not the hypothesis).
 FORBIDDEN_TRAIN_FLAGS = frozenset(
@@ -174,6 +191,71 @@ class Caps:
 
 
 @dataclass
+class EvaluationPolicy:
+    """Fail-closed two-population selection policy for the next canonical root.
+
+    Decimal thresholds are stored as strings so boundary decisions never depend on binary-float
+    rounding.  The active fixed queue is intentionally not changed by this schema.
+    """
+
+    schema_version: int = 1
+    enabled: bool = False
+    current_base_sha256: str = ""
+    current_control_labels_by_host: dict[str, str] = field(default_factory=dict)
+    active_sweep_ids: list[str] = field(default_factory=list)
+    context_length: int = EVAL_CONTEXT
+    screen_eval_tokens: int = SCREEN_EVAL_TOKENS
+    confirmation_eval_tokens: int = CONFIRMATION_EVAL_TOKENS
+    screen_eval_bytes: int = SCREEN_EVAL_BYTES
+    confirmation_eval_bytes: int = CONFIRMATION_EVAL_BYTES
+    screen_nominate_delta: str = SCREEN_NOMINATE_DELTA
+    screen_discard_delta: str = SCREEN_DISCARD_DELTA
+    middle_band_requires_active_sweep: bool = True
+    adoption_required_full20m_runs: int = ADOPTION_REQUIRED_FULL20M_RUNS
+    adoption_mean_delta: str = ADOPTION_MEAN_DELTA
+    adoption_requires_each_negative: bool = True
+    adoption_requires_same_host_current_control: bool = True
+
+    def validate(self) -> list[str]:
+        expected = {
+            "schema_version": 1,
+            "context_length": EVAL_CONTEXT,
+            "screen_eval_tokens": SCREEN_EVAL_TOKENS,
+            "confirmation_eval_tokens": CONFIRMATION_EVAL_TOKENS,
+            "screen_eval_bytes": SCREEN_EVAL_BYTES,
+            "confirmation_eval_bytes": CONFIRMATION_EVAL_BYTES,
+            "screen_nominate_delta": SCREEN_NOMINATE_DELTA,
+            "screen_discard_delta": SCREEN_DISCARD_DELTA,
+            "middle_band_requires_active_sweep": True,
+            "adoption_required_full20m_runs": ADOPTION_REQUIRED_FULL20M_RUNS,
+            "adoption_mean_delta": ADOPTION_MEAN_DELTA,
+            "adoption_requires_each_negative": True,
+            "adoption_requires_same_host_current_control": True,
+        }
+        errors = [
+            f"evaluation_policy.{key} must remain {value!r}"
+            for key, value in expected.items()
+            if getattr(self, key) != value
+        ]
+        if self.enabled and not re.fullmatch(r"[0-9a-f]{64}", self.current_base_sha256):
+            errors.append("enabled evaluation_policy requires a full lowercase current_base_sha256")
+        if self.enabled and not self.current_control_labels_by_host:
+            errors.append("enabled evaluation_policy requires authorized current control labels")
+        for host, label in self.current_control_labels_by_host.items():
+            if host not in PINNED_HOSTS or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", label):
+                errors.append("evaluation_policy current control label mapping is invalid")
+        if len(self.active_sweep_ids) != len(set(self.active_sweep_ids)) or any(
+                not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", value)
+                for value in self.active_sweep_ids):
+            errors.append("evaluation_policy active_sweep_ids must be unique safe identifiers")
+        if not self.enabled and self.current_base_sha256:
+            errors.append("disabled evaluation_policy must not pre-pin a base hash")
+        if not self.enabled and (self.current_control_labels_by_host or self.active_sweep_ids):
+            errors.append("disabled evaluation_policy must not authorize controls or sweeps")
+        return errors
+
+
+@dataclass
 class LoopConfig:
     lnc: int = 2
     nproc_per_node: int = 4
@@ -190,6 +272,7 @@ class LoopConfig:
     plan_mode: str = ""
     boxes: list[str] = field(default_factory=lambda: ["trn22", "trn21"])
     caps: Caps = field(default_factory=Caps)
+    evaluation_policy: EvaluationPolicy = field(default_factory=EvaluationPolicy)
 
     # ---- derived / validation ----
     def shape(self) -> tuple[int, int]:
@@ -224,6 +307,7 @@ class LoopConfig:
             errors.append("run caps must be positive")
         if not 60 <= self.bedrock_read_timeout_seconds <= 3600:
             errors.append("bedrock_read_timeout_seconds must be between 60 and 3600")
+        errors.extend(self.evaluation_policy.validate())
         return errors
 
     def to_dict(self) -> dict:
@@ -248,6 +332,7 @@ def load_config(path: Path | None = None) -> LoopConfig:
             if pinned in raw:
                 raise ValueError(f"{path.name} may not override pinned value {pinned!r}")
         caps_raw = raw.pop("caps", {})
+        evaluation_raw = raw.pop("evaluation_policy", {})
         for key, value in raw.items():
             if not hasattr(cfg, key):
                 raise ValueError(f"unknown config key {key!r}")
@@ -256,4 +341,8 @@ def load_config(path: Path | None = None) -> LoopConfig:
             if not hasattr(cfg.caps, key):
                 raise ValueError(f"unknown caps key {key!r}")
             setattr(cfg.caps, key, value)
+        for key, value in evaluation_raw.items():
+            if not hasattr(cfg.evaluation_policy, key):
+                raise ValueError(f"unknown evaluation_policy key {key!r}")
+            setattr(cfg.evaluation_policy, key, value)
     return cfg
