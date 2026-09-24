@@ -764,16 +764,45 @@ def _revalidate_snapshot(
         _assert_file_identity(trusted_root, path, identity)
 
 
+def _immediate_entry_schema_no_follow(
+    trusted_root: Path, directory: Path,
+) -> list[tuple[str, str]]:
+    """Return exact immediate names/types; never omit directories or follow aliases."""
+    _validate_chain(trusted_root, directory, "directory")
+    fd = _open_directory_chain(trusted_root, directory, create=False)
+    rows: list[tuple[str, str]] = []
+    try:
+        try:
+            entries = sorted(os.scandir(fd), key=lambda entry: entry.name)
+        except OSError as exc:
+            raise ContractError(f"cannot enumerate exact artifact membership {directory}: {exc}") from exc
+        for entry in entries:
+            try:
+                observed = entry.stat(follow_symlinks=False)
+            except OSError as exc:
+                raise ContractError(f"cannot lstat artifact member {directory / entry.name}: {exc}") from exc
+            if stat.S_ISREG(observed.st_mode) and observed.st_nlink == 1:
+                kind = "file"
+            elif stat.S_ISDIR(observed.st_mode):
+                kind = "directory"
+            elif stat.S_ISLNK(observed.st_mode):
+                kind = "symlink"
+            else:
+                kind = "other"
+            rows.append((entry.name, kind))
+    finally:
+        os.close(fd)
+    _validate_chain(trusted_root, directory, "directory")
+    return rows
+
+
 def _validate_success_artifact_allowlist(
     output: Path, report: Path, trusted_root: Path = ROOT,
 ) -> None:
-    output_files = _directory_files_no_follow(trusted_root, output)
-    expected_checkpoint = output / "final.pt"
-    if output_files != [expected_checkpoint]:
+    if _immediate_entry_schema_no_follow(trusted_root, output) != [("final.pt", "file")]:
         raise ContractError("G0 output directory artifact allowlist is not exact")
-    report_files = _directory_files_no_follow(trusted_root, report)
-    expected_reports = [report / f"rank-{rank}.jsonl" for rank in range(4)]
-    if report_files != expected_reports:
+    expected_reports = [(f"rank-{rank}.jsonl", "file") for rank in range(4)]
+    if _immediate_entry_schema_no_follow(trusted_root, report) != expected_reports:
         raise ContractError("G0 rank-report artifact allowlist is not exact")
 
 
@@ -924,6 +953,8 @@ def run(args: argparse.Namespace) -> int:
             rooted["output"] / "final.pt", rooted["report"],
         ])
     artifacts, artifact_identities = _artifact_snapshot(artifact_paths)
+    if success:
+        _validate_success_artifact_allowlist(rooted["output"], rooted["report"])
     result = {
         "schema": "a1-native-five-g0-runtime-result-v1", "arm": "G0",
         "status": "PASS" if success else "FAILED", "complete": success,
@@ -949,6 +980,9 @@ def run(args: argparse.Namespace) -> int:
     _assert_directory_identity(ROOT, rooted["output"], directory_identities[rooted["output"]])
     _assert_directory_identity(ROOT, rooted["report"], directory_identities[rooted["report"]])
     _validate_chain(ROOT, rooted["runtime_result"], "absent")
+    if success:
+        # This is the last artifact-tree operation before the sealed result is created.
+        _validate_success_artifact_allowlist(rooted["output"], rooted["report"])
     sealed_result = _write_exclusive(ROOT, rooted["runtime_result"], result)
     _assert_sealed_file(ROOT, rooted["runtime_result"], sealed_result)
     return 0 if success else 2
