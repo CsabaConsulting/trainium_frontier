@@ -74,6 +74,17 @@ workflow-v2 gate state and has `launch_authorized: false` until G1, independent 
 gates, and the applicable role/authority checks are complete. All non-negotiable rules and role
 separation in this file remain in force.
 
+The latest human controller brief (25 September IST) requires an **incremental** migration:
+retain the proven launch machinery for independently checked jobs; pilot `run_job.py` on one
+host and pass its host self-test before switching production launchers. A new-runner defect
+must not by itself block a separately verified old-runner job. Never run two active launchers.
+The exact research-v2/S0 candidates and unchanged `decide.py` may be adopted separately.
+Use public-2M only as a screen, public-20M/context-1024 for decisions, and the stricter mean
+delta threshold `<= -0.0010`. Adoptions still await human acknowledgement.
+No cleanup, protected-artifact deletion, AWS/volume action, or breaker reset may be inferred
+from older standing authorization; the newest brief reserves these decisions to the human.
+See `research/v2/CONTROLLER_BRIEF_2026-09-25.md` for priorities and deadlines.
+
 ## Definition of done for one experiment
 
 The proposal, commit, exact launch command, environment, box, log, parsed metrics, checkpoint

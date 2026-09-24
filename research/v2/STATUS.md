@@ -1,6 +1,24 @@
-# Workflow v2 installation status
+# Workflow installation and incremental launch status
 
 Status: **Phase 0 installed; independent review and all runtime gates pending.**
+
+## Latest human brief (25 September, 02:06 IST)
+
+- [Active brief](CONTROLLER_BRIEF_2026-09-25.md): keep proven launches while piloting the repaired
+  new runner on one host; do not gate independent legacy dense work on a wholesale migration.
+- [Disk decision packet](DISK_DECISION_PACKET_2026-09-25.md): recommend human expansion of both
+  exact root EBS volumes from 200 to 250 GiB. The historical 3.89 GB cleanup opportunity is gone:
+  the old controller directory is empty. No deletion/AWS action occurred; LR0.015 checkpoints stay.
+- Latest measured root free space: trn21 6.43 GiB, trn22 7.46 GiB. trn21 and table/cold replay work
+  remain disk-blocked. trn22's warm dense path still needs its independent runtime gates.
+- Independent static model review is integrated at `7150b59b`; the exact four CPU/G2 checks have
+  a reviewed contained shell wrapper at `445cc9d0`. CPU checks are not scored training or BPB gains.
+- Ready jobs: **zero**, not two per host yet. Proposals must not be counted as checked jobs.
+- Use 2M screens only to triage; fresh public20M/context1024 and unchanged decide.py govern results.
+  The active adoption threshold is mean delta `<= -0.0010`, not historical `-0.0008`.
+- The local autonomous-loop service is inactive; its watchdog timer is active. A running unattended
+  Bedrock scheduler has not been verified. Ideation cadence is now a 3–4-hour policy, not a claim
+  of deployed scheduling.
 
 - `launch_authorized` is `false`; no controller or launcher is active.
 - The seeded queue is an exact copy of `reports/2026-09-24-queue-v2.json` and remains proposal-only.

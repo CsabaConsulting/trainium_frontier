@@ -6,7 +6,7 @@
     "target_base_commit": "33774742dc49de7a5d6f5fd539c1530430306763",
     "upstream_commit": "4bd08d0f199c0917a65a332c416a6577c925520f"
   },
-  "workflow_mode": "V2_GATES_PENDING",
+  "workflow_mode": "INCREMENTAL_MIGRATION_CHECKED_LEGACY_LAUNCHES_ALLOWED_BY_JOB_ONLY",
   "launch_authorized": false,
   "active_launcher": null,
   "controller": {
@@ -18,7 +18,10 @@
     "eval_seq_len": 1024,
     "eval_tokens": 20971520,
     "decision_engine": "workflow/tools/decide.py",
-    "decision_rules": "v2-2026-09-24"
+    "decision_rules": "v2-2026-09-24",
+    "screen_eval_tokens": 2097152,
+    "adoption_mean_delta_max": -0.001,
+    "adoption_human_ack_required": true
   },
   "gates": {
     "G1": {
@@ -36,7 +39,8 @@
     },
     "runner": {
       "status": "NEEDS_REVIEWED_FIXES",
-      "blocking": true,
+      "blocking": false,
+      "blocks": "new run_job.py production pilot only; separate known-working launcher retains its own gates",
       "findings": [
         "launch-once and shared host lock",
         "effective environment and complete source cleanliness",
@@ -76,9 +80,24 @@
     }
   },
   "alert_cmd": "${TRAINIUM_ALERT_CMD}",
-  "pending_human_decisions": [],
-  "last_event": "Exact workflow installed; source/data G1 facts committed; legacy local controller stopped; independent runner repair and model CPU gates in progress.",
-  "updated_utc": "2026-09-24T20:27:00Z",
+  "pending_human_decisions": [
+    {
+      "item": "Human expansion of both root EBS volumes from 200 to 250 GiB",
+      "packet": "research/v2/DISK_DECISION_PACKET_2026-09-25.md",
+      "without_action": "trn21 remains disk-blocked; tables and cold S0 validation cannot advance",
+      "deletion_targets": []
+    }
+  ],
+  "last_event": "New controller brief persisted; disk packet disproves stale 3.89GB cleanup opportunity; no deletion performed; incremental migration and stricter selection adopted as policy.",
+  "updated_utc": "2026-09-24T20:38:00Z",
+  "active_human_brief": "research/v2/CONTROLLER_BRIEF_2026-09-25.md",
+  "ready_job_counts": {"trn21": 0, "trn22": 0},
+  "ideation_policy": {
+    "cycle_interval_seconds": 12600,
+    "approximate_daily_calls": 50,
+    "verification_budget_separate": true,
+    "scheduler_runtime_verified": false
+  },
   "legacy_controller": {
     "service": "trainium-autoloop.service",
     "prior_state": "activating/auto-restart",
