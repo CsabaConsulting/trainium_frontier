@@ -263,8 +263,9 @@ RESOURCE_KEYS = {"schema", "phase", "root_free_bytes", "root_free_inodes",
 ENTRY_KEYS = {"kind", "device", "inode", "mode", "uid", "gid", "nlink",
               "size", "allocated", "mtime_ns", "ctime_ns", "content_sha256"}
 TREE_KEYS = {"schema", "path", "state", "mount_id", "mount_device",
-             "mount_root_identity_sha256", "ancestors", "entries", "entry_count",
-             "logical_bytes", "allocated_bytes", "manifest_sha256", "complete"}
+             "mount_root_identity_sha256", "ancestors", "ancestor_mount_ids",
+             "entries", "entry_count", "logical_bytes", "allocated_bytes",
+             "manifest_sha256", "complete"}
 CHECKPOINT_KEYS = {"schema", "path", "mount_id", "mount_device", "device", "inode",
                    "kind", "mode", "uid", "gid", "nlink", "bytes", "allocated",
                    "mtime_ns", "ctime_ns", "sha256", "weights_only", "model_only",
@@ -403,16 +404,19 @@ def _fd_mount_id(fd: int) -> int:
     return int(values[0])
 
 
-def _open_dir_chain(path: Path) -> tuple[list[int], list[str], list[tuple[int, ...]]]:
+def _open_dir_chain(path: Path) -> tuple[
+        list[int], list[str], list[tuple[int, ...]], list[int]]:
     absolute = Path(os.path.abspath(path))
     _require(absolute.is_absolute(), "anchored path must be absolute")
     fds: list[int] = []
     names: list[str] = []
     identities: list[tuple[int, ...]] = []
+    mount_ids: list[int] = []
     try:
         root_fd = os.open("/", _dir_flags())
         fds.append(root_fd)
         identities.append(_identity_tuple(os.fstat(root_fd)))
+        mount_ids.append(_fd_mount_id(root_fd))
         parent_fd = root_fd
         for component in absolute.parts[1:]:
             _require(component not in ("", ".", "..") and "/" not in component,
@@ -425,30 +429,62 @@ def _open_dir_chain(path: Path) -> tuple[list[int], list[str], list[tuple[int, .
             fds.append(child_fd)
             names.append(component)
             identities.append(_identity_tuple(opened))
+            mount_ids.append(_fd_mount_id(child_fd))
             parent_fd = child_fd
-        return fds, names, identities
+        return fds, names, identities, mount_ids
     except Exception:
         for fd in reversed(fds):
             os.close(fd)
         raise
 
 
-def _revalidate_chain(fds: list[int], names: list[str],
-                      identities: list[tuple[int, ...]]) -> None:
+def _revalidate_chain(fds: list[int], names: list[str], identities: list[tuple[int, ...]],
+                      mount_ids: list[int]) -> None:
+    _require(len(fds) == len(identities) == len(mount_ids)
+             and len(names) + 1 == len(fds), "anchored chain cardinality mismatch")
     _require(_identity_tuple(os.fstat(fds[0])) == identities[0], "root identity changed")
+    _require(_fd_mount_id(fds[0]) == mount_ids[0], "root mount changed")
     for index, name in enumerate(names):
         opened = os.fstat(fds[index + 1])
         named = os.stat(name, dir_fd=fds[index], follow_symlinks=False)
-        _require(_identity_tuple(opened) == identities[index + 1]
-                 and _identity_tuple(named) == identities[index + 1],
-                 "anchored ancestor changed")
+        reopened_fd = os.open(name, _dir_flags(), dir_fd=fds[index])
+        try:
+            reopened = os.fstat(reopened_fd)
+            _require(_identity_tuple(opened) == identities[index + 1]
+                     and _identity_tuple(named) == identities[index + 1]
+                     and _identity_tuple(reopened) == identities[index + 1]
+                     and _fd_mount_id(fds[index + 1]) == mount_ids[index + 1]
+                     and _fd_mount_id(reopened_fd) == mount_ids[index + 1],
+                     "anchored ancestor changed")
+        finally:
+            os.close(reopened_fd)
+
+
+def _mount_boundary(identities: list[tuple[int, ...]], mount_ids: list[int],
+                    expected_device: int, expected_mount_id: int) -> int:
+    _require(len(identities) == len(mount_ids), "mount boundary cardinality mismatch")
+    matches = [index for index, (identity, current_mount_id) in
+               enumerate(zip(identities, mount_ids))
+               if identity[0] == expected_device and current_mount_id == expected_mount_id]
+    _require(matches, "target mount boundary was not reached")
+    boundary = matches[0]
+    _require(all(not (identity[0] == expected_device
+                     and current_mount_id == expected_mount_id)
+                 for identity, current_mount_id in
+                 zip(identities[:boundary], mount_ids[:boundary])),
+             "target mount appeared before boundary")
+    _require(all(identity[0] == expected_device and current_mount_id == expected_mount_id
+                 for identity, current_mount_id in
+                 zip(identities[boundary:], mount_ids[boundary:])),
+             "mount changed below authenticated boundary")
+    return boundary
 
 
 def _tree_manifest_payload(snapshot: dict[str, Any]) -> dict[str, Any]:
     return {key: snapshot[key] for key in
             ("schema", "path", "state", "mount_id", "mount_device",
-             "mount_root_identity_sha256", "ancestors", "entries", "entry_count",
-             "logical_bytes", "allocated_bytes", "complete")}
+             "mount_root_identity_sha256", "ancestors", "ancestor_mount_ids", "entries",
+             "entry_count", "logical_bytes", "allocated_bytes", "complete")}
 
 
 def _validate_entry(value: Any, label: str) -> dict[str, Any]:
@@ -479,9 +515,22 @@ def validate_tree_snapshot(snapshot: Any, expected_path: str, mount_id: int,
              "tree mount-root identity mismatch")
     _require(type(snapshot["ancestors"]) is list and snapshot["ancestors"],
              "tree ancestor chain missing")
+    _require(type(snapshot["ancestor_mount_ids"]) is list
+             and len(snapshot["ancestor_mount_ids"]) == len(snapshot["ancestors"])
+             and all(type(item) is int and item >= 0
+                     for item in snapshot["ancestor_mount_ids"]),
+             "tree ancestor mount identities missing")
     for index, entry in enumerate(snapshot["ancestors"]):
         _validate_entry(entry, f"ancestor {index}")
         _require(entry["kind"] == "directory", "ancestor is not a directory")
+    identities = [(entry["device"], entry["inode"], entry["mode"], entry["nlink"],
+                   entry["uid"], entry["gid"], entry["size"], entry["mtime_ns"],
+                   entry["ctime_ns"]) for entry in snapshot["ancestors"]]
+    boundary = _mount_boundary(identities, snapshot["ancestor_mount_ids"],
+                               mount_device, mount_id)
+    _require(snapshot["mount_root_identity_sha256"]
+             == canonical_sha(snapshot["ancestors"][boundary]),
+             "tree mount-root boundary identity mismatch")
     if snapshot["state"] == "absent":
         _require(snapshot["entries"] == {} and snapshot["entry_count"] == 0
                  and snapshot["logical_bytes"] == 0 and snapshot["allocated_bytes"] == 0,
@@ -515,18 +564,18 @@ def validate_tree_snapshot(snapshot: Any, expected_path: str, mount_id: int,
 
 
 def snapshot_path(path: Path, *, mount_id: int, expected_device: int) -> dict[str, Any]:
-    """Snapshot a present tree or prove the exact target absent through dirfds."""
+    """Snapshot a present tree or prove absence after crossing a pinned mount boundary."""
     absolute = Path(os.path.abspath(path))
     fds: list[int] = []
     names: list[str] = []
     identities: list[tuple[int, ...]] = []
+    mount_ids: list[int] = []
     try:
         root_fd = os.open("/", _dir_flags())
         fds.append(root_fd)
         root_info = os.fstat(root_fd)
         identities.append(_identity_tuple(root_info))
-        _require(root_info.st_dev == expected_device and _fd_mount_id(root_fd) == mount_id,
-                 "snapshot root mount/device mismatch")
+        mount_ids.append(_fd_mount_id(root_fd))
         parent_fd = root_fd
         for component in absolute.parts[1:]:
             _require(component not in ("", ".", "..") and "/" not in component,
@@ -534,20 +583,22 @@ def snapshot_path(path: Path, *, mount_id: int, expected_device: int) -> dict[st
             try:
                 child = os.open(component, _dir_flags(), dir_fd=parent_fd)
             except FileNotFoundError:
-                _revalidate_chain(fds, names, identities)
+                boundary = _mount_boundary(identities, mount_ids,
+                                           expected_device, mount_id)
+                _revalidate_chain(fds, names, identities, mount_ids)
                 result = {
                     "schema": "a1-native-five-anchored-tree-v2",
                     "path": os.fspath(absolute), "state": "absent",
                     "mount_id": mount_id, "mount_device": expected_device,
                     "mount_root_identity_sha256": canonical_sha(
-                        next(_entry(os.fstat(fd), "directory") for fd in fds
-                             if os.fstat(fd).st_dev == expected_device)),
+                        _entry(os.fstat(fds[boundary]), "directory")),
                     "ancestors": [_entry(os.fstat(fd), "directory") for fd in fds],
+                    "ancestor_mount_ids": list(mount_ids),
                     "entries": {}, "entry_count": 0, "logical_bytes": 0,
                     "allocated_bytes": 0, "complete": True,
                 }
                 result["manifest_sha256"] = canonical_sha(_tree_manifest_payload(result))
-                _revalidate_chain(fds, names, identities)
+                _revalidate_chain(fds, names, identities, mount_ids)
                 return validate_tree_snapshot(
                     result, os.fspath(absolute), mount_id, expected_device,
                     result["mount_root_identity_sha256"])
@@ -555,28 +606,40 @@ def snapshot_path(path: Path, *, mount_id: int, expected_device: int) -> dict[st
                 raise ContractError("snapshot ancestor is not a stable directory") from exc
             opened = os.fstat(child)
             named = os.stat(component, dir_fd=parent_fd, follow_symlinks=False)
-            _require(_identity_tuple(opened) == _identity_tuple(named)
-                     and opened.st_dev == expected_device and _fd_mount_id(child) == mount_id,
-                     "snapshot ancestor identity/device changed")
+            _require(_identity_tuple(opened) == _identity_tuple(named),
+                     "snapshot ancestor identity changed")
             fds.append(child)
             names.append(component)
             identities.append(_identity_tuple(opened))
+            mount_ids.append(_fd_mount_id(child))
             parent_fd = child
-        _revalidate_chain(fds, names, identities)
+        _mount_boundary(identities, mount_ids, expected_device, mount_id)
+        _revalidate_chain(fds, names, identities, mount_ids)
+        return snapshot_tree(
+            absolute, mount_id=mount_id, expected_device=expected_device,
+            _chain=(fds, names, identities, mount_ids))
     finally:
         for fd in reversed(fds):
             os.close(fd)
-    return snapshot_tree(absolute, mount_id=mount_id, expected_device=expected_device)
 
 
-def snapshot_tree(path: Path, *, mount_id: int, expected_device: int) -> dict[str, Any]:
+def snapshot_tree(path: Path, *, mount_id: int, expected_device: int,
+                  _chain: tuple[list[int], list[str], list[tuple[int, ...]],
+                                list[int]] | None = None) -> dict[str, Any]:
     """Capture a bottom-up resealed no-follow tree through pinned ancestor dirfds."""
-    fds, names, chain_identities = _open_dir_chain(path)
+    owns_chain = _chain is None
+    if _chain is None:
+        fds, names, chain_identities, chain_mount_ids = _open_dir_chain(path)
+    else:
+        fds, names, chain_identities, chain_mount_ids = _chain
     root_fd = fds[-1]
     root_info = os.fstat(root_fd)
     try:
-        _require(root_info.st_dev == expected_device, "snapshot root device mismatch")
-        _require(_fd_mount_id(root_fd) == mount_id, "snapshot root mount-id mismatch")
+        boundary = _mount_boundary(chain_identities, chain_mount_ids,
+                                   expected_device, mount_id)
+        _revalidate_chain(fds, names, chain_identities, chain_mount_ids)
+        _require(root_info.st_dev == expected_device and _fd_mount_id(root_fd) == mount_id,
+                 "snapshot root mount identity mismatch")
         entries: dict[str, dict[str, Any]] = {".": _entry(root_info, "directory")}
 
         def walk(fd: int, prefix: str, parent_fd: int | None,
@@ -639,15 +702,15 @@ def snapshot_tree(path: Path, *, mount_id: int, expected_device: int) -> dict[st
 
         walk(root_fd, "", fds[-2] if len(fds) > 1 else None,
              names[-1] if names else None, root_info)
-        _revalidate_chain(fds, names, chain_identities)
+        _revalidate_chain(fds, names, chain_identities, chain_mount_ids)
         snapshot = {
             "schema": "a1-native-five-anchored-tree-v2",
             "path": os.path.abspath(os.fspath(path)),
             "state": "present", "mount_id": mount_id, "mount_device": expected_device,
             "mount_root_identity_sha256": canonical_sha(
-                next(_entry(os.fstat(fd), "directory") for fd in fds
-                     if os.fstat(fd).st_dev == expected_device)),
+                _entry(os.fstat(fds[boundary]), "directory")),
             "ancestors": [_entry(os.fstat(fd), "directory") for fd in fds],
+            "ancestor_mount_ids": list(chain_mount_ids),
             "entries": entries, "entry_count": len(entries),
             "logical_bytes": sum(item["size"] for item in entries.values()
                                  if item["kind"] == "file"),
@@ -655,7 +718,7 @@ def snapshot_tree(path: Path, *, mount_id: int, expected_device: int) -> dict[st
             "complete": True,
         }
         snapshot["manifest_sha256"] = canonical_sha(_tree_manifest_payload(snapshot))
-        _revalidate_chain(fds, names, chain_identities)
+        _revalidate_chain(fds, names, chain_identities, chain_mount_ids)
         # A complete second no-follow walk is the final tree operation.  It
         # catches late nested membership, metadata, and same-size byte writes
         # that happened after the first bottom-up capture.
@@ -665,8 +728,9 @@ def snapshot_tree(path: Path, *, mount_id: int, expected_device: int) -> dict[st
             snapshot, snapshot["path"], mount_id, expected_device,
             snapshot["mount_root_identity_sha256"])
     finally:
-        for fd in reversed(fds):
-            os.close(fd)
+        if owns_chain:
+            for fd in reversed(fds):
+                os.close(fd)
 
 
 def snapshot_tree_revalidate(root_fd: int, expected: dict[str, dict[str, Any]],
@@ -747,19 +811,20 @@ def validate_initial_absence(trusted_root: Path, target: Path) -> dict[str, Any]
         raise ContractError("path escapes trusted root") from exc
     _require(relative.parts and all(part not in ("", ".", "..") for part in relative.parts),
              "unsafe relative path")
-    fds, names, identities = _open_dir_chain(root)
+    fds, names, identities, mount_ids = _open_dir_chain(root)
     try:
         parent_fd = fds[-1]
         existing_parts: list[str] = []
-        for index, part in enumerate(relative.parts):
+        for part in relative.parts:
             try:
                 child = os.open(part, _dir_flags(), dir_fd=parent_fd)
             except FileNotFoundError:
-                _revalidate_chain(fds, names, identities)
+                _revalidate_chain(fds, names, identities, mount_ids)
                 receipt = {"schema": "a1-native-five-absence-preflight-v2",
                            "trusted_root": os.fspath(root), "target": os.fspath(absolute),
                            "existing_parts": existing_parts, "first_absent": part,
-                           "parent_identity_sha256": canonical_sha(identities),
+                           "parent_identity_sha256": canonical_sha(
+                               {"identities": identities, "mount_ids": mount_ids}),
                            "o_excl_creation_required": True, "authoritative": False}
                 return receipt
             except OSError as exc:
@@ -772,6 +837,7 @@ def validate_initial_absence(trusted_root: Path, target: Path) -> dict[str, Any]
             fds.append(child)
             names.append(part)
             identities.append(_identity_tuple(opened))
+            mount_ids.append(_fd_mount_id(child))
             existing_parts.append(part)
             parent_fd = child
         raise ContractError("authorized fresh path already exists")

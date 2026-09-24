@@ -81,8 +81,9 @@ def entry(kind: str, device: int, inode: int, *, size: int = 0,
 
 def tree(path: str, mount_record: dict, *, inode: int, cache: bool = False) -> dict:
     payload = b"compiled-cache" if cache else b"model-artifact"
+    root_entry = entry("directory", mount_record["st_dev"], inode)
     entries = {
-        ".": entry("directory", mount_record["st_dev"], inode),
+        ".": root_entry,
         "artifact": entry("file", mount_record["st_dev"], inode + 1,
                           size=len(payload), allocated=8192, content=payload),
     }
@@ -92,7 +93,9 @@ def tree(path: str, mount_record: dict, *, inode: int, cache: bool = False) -> d
         "mount_device": mount_record["st_dev"],
         "mount_root_identity_sha256": CONTRACT.canonical_sha(
             mount_record["target_identity"]),
-        "ancestors": [entry("directory", mount_record["st_dev"], inode - 1)],
+        "ancestors": [copy.deepcopy(mount_record["target_identity"]),
+                      copy.deepcopy(root_entry)],
+        "ancestor_mount_ids": [mount_record["mount_id"], mount_record["mount_id"]],
         "entries": entries, "entry_count": len(entries),
         "logical_bytes": len(payload),
         "allocated_bytes": sum(item["allocated"] for item in entries.values()),
@@ -624,7 +627,123 @@ class MountAndStorageTests(unittest.TestCase):
             mutated["entries"] = {"forged": entry("file", device, 9, content=b"x")}
             with self.assertRaises(CONTRACT.ContractError):
                 CONTRACT.validate_tree_snapshot(
-                    mutated, str(target), 1, device, snapshot["mount_root_identity_sha256"])
+                    mutated, str(target), snapshot["mount_id"], device,
+                    snapshot["mount_root_identity_sha256"])
+
+    def test_root_and_tmpfs_present_and_absent_boundary_traversal(self):
+        cases = [(HERE, "root"), (Path("/dev/shm"), "tmpfs")]
+        for parent, label in cases:
+            with self.subTest(label=label), tempfile.TemporaryDirectory(dir=parent) as temp:
+                base = Path(temp)
+                present = base / "present"
+                present.mkdir()
+                (present / "artifact").write_bytes(b"boundary-aware")
+                mount_id = fd_mount_id(CONTRACT, base)
+                device = base.stat().st_dev
+                present_receipt = CONTRACT.snapshot_path(
+                    present, mount_id=mount_id, expected_device=device)
+                self.assertEqual(present_receipt["state"], "present")
+                self.assertEqual(present_receipt["mount_id"], mount_id)
+                boundary = next(index for index, (ancestor, current_mount_id) in enumerate(zip(
+                    present_receipt["ancestors"], present_receipt["ancestor_mount_ids"]))
+                    if ancestor["device"] == device and current_mount_id == mount_id)
+                self.assertEqual(present_receipt["mount_root_identity_sha256"],
+                                 CONTRACT.canonical_sha(present_receipt["ancestors"][boundary]))
+                absent = base / "missing" / "cache"
+                absent_receipt = CONTRACT.snapshot_path(
+                    absent, mount_id=mount_id, expected_device=device)
+                self.assertEqual(absent_receipt["state"], "absent")
+                self.assertGreaterEqual(len(absent_receipt["ancestors"]), boundary + 1)
+                with self.assertRaises(CONTRACT.ContractError):
+                    CONTRACT.snapshot_path(
+                        absent, mount_id=mount_id + 1, expected_device=device)
+                if label == "tmpfs":
+                    # Absence before reaching the authenticated /dev/shm
+                    # boundary is not evidence about a tmpfs-owned target.
+                    with self.assertRaises(CONTRACT.ContractError):
+                        CONTRACT.snapshot_path(
+                            Path("/dev/definitely-absent-before-shm-boundary"),
+                            mount_id=mount_id, expected_device=device)
+
+    def test_cross_mount_symlink_bind_and_pre_boundary_identity_attacks_fail(self):
+        with tempfile.TemporaryDirectory(dir="/dev/shm") as temp:
+            base = Path(temp)
+            target = base / "target"
+            target.mkdir()
+            nested = target / "nested"
+            nested.mkdir()
+            (nested / "artifact").write_bytes(b"x")
+            mount_id = fd_mount_id(CONTRACT, target)
+            device = target.stat().st_dev
+
+            os.symlink(target, base / "alias")
+            with self.assertRaises((CONTRACT.ContractError, OSError)):
+                CONTRACT.snapshot_path(
+                    base / "alias", mount_id=mount_id, expected_device=device)
+
+            original_mount_id = CONTRACT._fd_mount_id
+            def simulated_bind(fd):
+                current = original_mount_id(fd)
+                try:
+                    opened_path = os.readlink(f"/proc/self/fd/{fd}")
+                except OSError:
+                    return current
+                return current + 1 if opened_path.endswith("/nested") else current
+            with mock.patch.object(CONTRACT, "_fd_mount_id", side_effect=simulated_bind):
+                with self.assertRaises(CONTRACT.ContractError):
+                    CONTRACT.snapshot_path(
+                        target, mount_id=mount_id, expected_device=device)
+
+            # A bind reattachment of the same inode can evade stat identity;
+            # the fresh name-open in revalidation must also match mount ID.
+            fds, names, identities, mount_ids = CONTRACT._open_dir_chain(target)
+            pinned_fds = set(fds)
+            def simulated_late_bind(fd):
+                current = original_mount_id(fd)
+                return current if fd in pinned_fds else current + 1
+            try:
+                with mock.patch.object(CONTRACT, "_fd_mount_id",
+                                       side_effect=simulated_late_bind):
+                    with self.assertRaises(CONTRACT.ContractError):
+                        CONTRACT._revalidate_chain(fds, names, identities, mount_ids)
+            finally:
+                for fd in reversed(fds):
+                    os.close(fd)
+
+            original_stat = CONTRACT.os.stat
+            wrong_identity = original_stat("/tmp", follow_symlinks=False)
+            def pre_boundary_substitution(name, *args, **kwargs):
+                if name == "dev" and kwargs.get("dir_fd") is not None:
+                    return wrong_identity
+                return original_stat(name, *args, **kwargs)
+            with mock.patch.object(CONTRACT.os, "stat", side_effect=pre_boundary_substitution):
+                with self.assertRaises(CONTRACT.ContractError):
+                    CONTRACT.snapshot_path(
+                        target, mount_id=mount_id, expected_device=device)
+
+    def test_cross_mount_parent_swap_after_capture_fails(self):
+        with tempfile.TemporaryDirectory(dir="/dev/shm") as temp:
+            base = Path(temp)
+            target = base / "target"
+            target.mkdir()
+            (target / "artifact").write_bytes(b"original")
+            mount_id = fd_mount_id(CONTRACT, target)
+            device = target.stat().st_dev
+            original_revalidate = CONTRACT._revalidate_chain
+            swapped = []
+            def swap_after_capture(fds, names, identities, mount_ids):
+                original_revalidate(fds, names, identities, mount_ids)
+                if not swapped:
+                    swapped.append(True)
+                    target.rename(base / "target.displaced")
+                    target.mkdir()
+                    (target / "artifact").write_bytes(b"replacement")
+            with mock.patch.object(CONTRACT, "_revalidate_chain",
+                                   side_effect=swap_after_capture):
+                with self.assertRaises(CONTRACT.ContractError):
+                    CONTRACT.snapshot_path(
+                        target, mount_id=mount_id, expected_device=device)
+            self.assertTrue(swapped)
 
 
 class CheckpointGuardTests(unittest.TestCase):
@@ -777,6 +896,10 @@ class PackageStateTests(unittest.TestCase):
 
     def test_proposal_has_no_authority(self):
         proposal = json.loads((HERE / "EXPERIMENT_PROPOSAL.json").read_text())
+        self.assertEqual(proposal["repair_provenance"]["verifier_fail_commit"],
+                         "ad4cea44a3648926185f0e94a5ebf7fcc2f38295")
+        self.assertEqual(proposal["repair_provenance"]["verifier_receipt_sha256"],
+                         "9c8757c7b3a5c93e217f8f821ba6c031c870f2d88f8a067b5f8f165ff6540e0d")
         self.assertFalse(proposal["authority"]["training_authorized"])
         self.assertFalse(proposal["authority"]["host_access_authorized"])
         self.assertFalse(proposal["authority"]["materialization_authorized"])

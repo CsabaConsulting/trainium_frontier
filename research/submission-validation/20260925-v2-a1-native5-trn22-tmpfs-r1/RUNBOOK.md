@@ -64,8 +64,12 @@ unchanged. Historical trn21 requests and labels are consumed and must fail the o
 Every cache/output tree is an exact closed-schema, anchored no-follow recursive snapshot containing
 mount/device/inode/type/mode/owner/link/size/allocation/timestamp and same-fd content SHA-256 for
 every regular file. Every opened directory/file descriptor must also report the authenticated mount
-ID; same-device bind/submount substitutions are invalid. A complete second bottom-up seal must match
-immediately before adjudication.
+ID. Traversal starts at a pinned `/` descriptor: every lexical ancestor before the authenticated
+mount boundary is identity- and mount-ID-pinned and revalidated, while the exact authenticated
+device/mount-ID pair is mandatory at the boundary and for every descendant. An absence observed
+before that boundary is not evidence about a tmpfs path. Symlinks, parent swaps, same-device bind
+mounts and nested submounts are invalid. A complete second bottom-up seal must match immediately
+before adjudication.
 Retained G0/G1 evidence is the full authenticated arm record, never a label or asserted boolean.
 The final checkpoint receipt binds its model/logit/causal digests to the four rank-report hashes,
 frozen source/observer, runtime job, postflight and exact output-parent identity.
