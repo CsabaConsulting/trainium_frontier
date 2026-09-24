@@ -1,0 +1,96 @@
+{
+  "schema": "trainium-final-submission-package-verifier-v1",
+  "verdict": "HOLD",
+  "reviewed_commit": "5c4feb9967b4bac7951f129e6b2584d0e6415a74",
+  "reviewed_parent": "83b433e398f34af175db82e5459a3f386ec19ba2",
+  "package": "submissions/insurance_116188_review_20260924",
+  "candidate": {
+    "path": "submissions/insurance_116188_review_20260924/train.py",
+    "bytes": 85557,
+    "sha256": "116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d",
+    "exact_canonical_copy": true,
+    "canonical_source": "submissions/dense6x1024_direct_review_matrixlr015/train.py",
+    "evidence_source": "28b89bfc6d65be9188f8d8a78accd6187e7627b7:submissions/dense6x1024_direct_review_matrixlr015/train.py",
+    "causal_diff_from_review_clean_base": "MATRIX_LR = 0.02 -> 0.015 only"
+  },
+  "launch": {
+    "filename": "train.py",
+    "command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public",
+    "sha256": "b75f844f413575f0cc35164972b4abf68de41e4b6f39e9b5423a6070de005abd",
+    "bytes": 246,
+    "trailing_newline_count": 1,
+    "bare_valid_command": true
+  },
+  "checks": {
+    "commit_scope": "PASS: package-only additions; no root train.py, prepare.py, evaluator, tokenizer, or scoring modification",
+    "candidate_byte_identity": "PASS",
+    "git_diff_check": "PASS",
+    "python_compile": "PASS",
+    "official_prepare_check": "PASS under Python 3.12 with torch, numpy, pyarrow, requests and tiktoken",
+    "direct_module_import": "PASS",
+    "confirmation_static_decimal_suite": "PASS",
+    "synthetic_load_for_eval": "PASS: strict weights-only-compatible state load, exact logits, eval/frozen model, no hooks, unchanged persistent state",
+    "all_manifest_declared_receipt_hashes": "PASS: 13 of 13 referenced receipts exist and match",
+    "secret_scan": "PASS: no private key, AWS access-key, bearer-token, or credential-assignment patterns",
+    "forbidden_payload_scan": "PASS: no checkpoint, data, prepare/evaluator/tokenizer file, S0 source, or private candidate bytes",
+    "checksum_entries_present": "PASS: the four listed entries validate",
+    "checksum_completeness": "FAIL: EVIDENCE_MANIFEST.json, OFFLINE_CHECKS.md, PACKAGE_CHECKLIST.md and REJECTION_EVIDENCE.md are package files but absent from SHA256SUMS",
+    "rejection_documentation": "PASS_AS_LIMITATION: both visible portal fragments are reproduced accurately and explicitly identified as truncated; neither is falsely attributed to exact 116188 bytes"
+  },
+  "reviewer_risk_audit": {
+    "load_for_eval_count": 1,
+    "torch_load": "sole call uses map_location='cpu' and weights_only=True",
+    "eval_identity": "same GPT class and strict trained model_state; only deterministic nonpersistent rotary buffers are extended to evaluation sequence length",
+    "eval_hooks_or_wrappers": false,
+    "submission_named_adapters": false,
+    "methodtype_or_runtime_forward_replacement": false,
+    "external_data_or_pretrained_weights": false,
+    "custom_training_wrappers": "Custom autograd/NKI functions and OwnedOptimizer are training-path implementations with clear model/optimizer purposes; they do not replace the eval model.",
+    "import_time_environment": "The module calls os.environ.setdefault for NEURON_COMPILE_CACHE_DIR and NEURON_CC_FLAGS before importing PyTorch. These are compilation defaults, not data/eval adaptation, but the package static-risk report should disclose them rather than presenting an unqualified reviewer-risk PASS.",
+    "misleading_constructs": "No _submission_ names, SubmissionEval class, dynamic global restore, EMA eval substitution, monkeypatch, hook installation, or alternate eval forward found."
+  },
+  "run_evidence": {
+    "cold_runs": [
+      {
+        "commit": "7fe770b2185f594cfd66fead05aee2051ce1793b",
+        "steps": 3635,
+        "charged_seconds": "1790.328",
+        "public20m_bpb": "0.9920722144854677",
+        "checkpoint_sha256": "503dbfda2ec0fe90fdaee44f07551d1c0520b575e6ab23d1a52444f3d1365e88",
+        "runtime_job_sha256": "df56b1bbad619b91b1cdcfd67bc02b7022db9df3b40619c9254c213d80093352",
+        "postflight_sha256": "5ad286daf31ce7196fd717c801fd8a3bb507f1da737b62f0be47d069525551b4"
+      },
+      {
+        "commit": "28b89bfc6d65be9188f8d8a78accd6187e7627b7",
+        "steps": 3654,
+        "charged_seconds": "1790.191",
+        "public20m_bpb": "0.9918353324459732",
+        "checkpoint_sha256": "5c42f143837fc6d6a64dd1101f53887bdf40d984e752ad8a9ed99cc026a758b9",
+        "runtime_job_sha256": "c7209dbfb199e4e8c5c457a4e52af7d55882c5f1ae5a08ce34cf830e57d63bbc",
+        "postflight_sha256": "5013442d652fb5364da0934d440aac7444214c534b4e5867f85dd0e01e561d68"
+      }
+    ],
+    "scientific_status": "PASS: exact bytes completed two cold, seed-42, full-budget Trn21 runs with finite weights-only checkpoints and fresh-process exact public20M evaluation.",
+    "postflight_limitation": "Both historical postflights failed only the former 8-GiB disk floor; no device holders or Neuron/training/evaluation processes remained. This does not invalidate the scientific runs.",
+    "manifest_binding_gap": "EVIDENCE_MANIFEST.json hash-binds operator, finite, rehearsal, metric and result receipts, and operator receipts record runtime/postflight facts. It does not directly enumerate/hash the two runtime-job and two postflight JSON files."
+  },
+  "failed_or_limited_local_checks": [
+    "The two historical immutable-request tests cannot import fresh_start_launch.py at this audit commit; they are run-harness tests, not candidate-package checks.",
+    "The first-arm legacy static test cannot run because its review-clean base package path is absent. The exact base object was instead read from Git and the one-line candidate diff independently confirmed."
+  ],
+  "remaining_blockers": [
+    "Correct OFFLINE_CHECKS.md: launch-command.txt contains exactly one trailing newline, contrary to its current no-newline claim. Either document that accurate byte fact or intentionally change the launch artifact and repin its hash everywhere.",
+    "Make SHA256SUMS complete for every intended immutable package file except SHA256SUMS itself, including EVIDENCE_MANIFEST.json and all package/check/rejection documentation, then independently recheck it.",
+    "Directly hash-bind both runtime-job and both postflight JSON receipts in EVIDENCE_MANIFEST.json, or explicitly narrow the manifest claim and document the indirect operator-receipt boundary.",
+    "Disclose and disposition the import-time NEURON_CC_FLAGS/NEURON_COMPILE_CACHE_DIR setdefault behavior in the final reviewer-risk documentation.",
+    "The untruncated prior reviewer explanation and a portal receipt binding any rejection to exact uploaded bytes remain unknown. Recover them if available; otherwise the human must explicitly accept this unresolved reviewer-risk limitation before submission approval."
+  ],
+  "authority": {
+    "human_submittable": false,
+    "submission_approved": false,
+    "submission_performed": false,
+    "candidate_source_change_required": false,
+    "package_documentation_and_manifest_patch_required": true,
+    "required_next_step": "Implementer patches package metadata only, preserving exact train.py bytes; a fresh independent verifier rechecks the complete sealed package; human separately decides whether to approve one upload."
+  }
+}
