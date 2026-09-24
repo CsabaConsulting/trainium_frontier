@@ -33,6 +33,14 @@ This section supersedes earlier Track-A readiness and host-control statements be
   pushed on `experiment/20260924-v2-a1-hybrid-rmsprop-ownership-repair`; native packaging and
   hardware remain forbidden while an Implementer adds exact ordered group-schema validation and a
   fresh Verifier repeats the gate.
+- A separate source audit confirms clean-step replicated RMSProp is semantically equivalent to the
+  ordinary optimizer only if tables are absent from ownership/all-gather, post-AVG joint table
+  clipping is unchanged, and each rank executes exactly one RMS step. Source cannot prove Neuron
+  byte identity. The native five-step gate must record post-AVG/preclip and postclip table-gradient
+  hashes, clip scalar, parameter/moment/step hashes on every rank, ownership inventory, one RMS call
+  per rank/step, equality to an ordinary non-owned control, and adapter-state save/load continuation.
+  `final.pt` is model-only and is not an optimizer-resume artifact. Static loss scaling also has no
+  pre-update nonfinite guard, so clean finite assertions and injected failure checks are mandatory.
 - A flags-only AdamW substitution is rejected as a repair: it changes the table optimizer, still
   conflicts with the adapter's FP32 requirement for BF16 tables, and historical paired evidence
   found worse per-step quality and throughput. Disabling ownership globally is also not selected
