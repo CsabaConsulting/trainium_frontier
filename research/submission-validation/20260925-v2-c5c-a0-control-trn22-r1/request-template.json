@@ -4,7 +4,7 @@
   "host": "trn22",
   "expected_hostname": "ip-172-31-32-253",
   "remote": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r1",
-  "expected_commit": "1ada1953271bccbb1fd2c35d2ac752df62b928a4",
+  "expected_commit": "e65a3097a5b00f6178188a935bb2acb9a5042c6c",
   "origin": "https://github.com/CsabaConsulting/trainium_frontier.git",
   "label": "fs-20260925-v2-c5c-a0-control-trn22-r1",
   "purpose": "Warm research-v2 c5c A0 numerical-equivalence control; full1800 seed42 by authenticated source defaults; preserve checkpoint.",
@@ -32,13 +32,19 @@
     "research/fresh_start_guard.py": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
     "research/fresh_start_host.py": "c4442b917084239099864f8dd53e4a5467ec8440b8eec9057bbdad5b19a84065",
     "research/fresh_start_backup.py": "c978fd20b6620d0d80c25f8982974e8c4b2ad009edd9da376d784f5cecc3ead3",
-    "research/submission-validation/20260925-v2-c5c-a0-control-trn22-r1/EXPERIMENT_PROPOSAL.json": "9a6ad428a589b2533b95fd80ed0d443763ddb3a2c0b7f929c1a3a01ea998be8d",
-    "research/submission-validation/20260925-v2-c5c-a0-control-trn22-r1/RUNBOOK.md": "a1f8fe4c4a275c2251b7de73ad14f4907d5e3e8bf917317b886c1c9e2f5596f3",
-    "research/submission-validation/20260925-v2-c5c-a0-control-trn22-r1/test_static.py": "45e518e4608a65b50bd746753db84b4e206126b352ad941bafcffab54b342cea"
+    "research/submission-validation/20260925-v2-c5c-a0-control-trn22-r1/EXPERIMENT_PROPOSAL.json": "657000b91b45c9cf5eba1762fdbe2809ef8cf909a87c59228ee49b36f4eeb2c7",
+    "research/submission-validation/20260925-v2-c5c-a0-control-trn22-r1/RUNBOOK.md": "65bde02b06bc307bd671f3e1c900be2352d8ca8adf5ce1d47423a06a0da9edcc",
+    "research/submission-validation/20260925-v2-c5c-a0-control-trn22-r1/test_static.py": "32522c50f7efe8ace275ede89f0592ac758f2bb6175e7626e9d1fc39f4c33d06"
   },
   "environment": {
     "NEURON_LOGICAL_NC_CONFIG": "2",
-    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16"
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/neff",
+    "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/local",
+    "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/hlo",
+    "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/inductor",
+    "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/compiler",
+    "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/debug"
   },
   "command": [
     "timeout", "--foreground", "--signal=TERM", "--kill-after=60s", "3600s",
@@ -49,7 +55,12 @@
     "PYTHONUNBUFFERED=1",
     "NEURON_LOGICAL_NC_CONFIG=2",
     "NEURON_CC_FLAGS=--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
-    "NEURON_COMPILE_CACHE_DIR=/tmp/neuron_cache",
+    "TORCH_NEURONX_NEFF_CACHE_DIR=/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/neff",
+    "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR=/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/local",
+    "TORCH_NEURONX_HLO_CACHE_DIR=/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/hlo",
+    "TORCHINDUCTOR_CACHE_DIR=/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/inductor",
+    "NEURON_COMPILE_CACHE_DIR=/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/compiler",
+    "TORCH_NEURONX_DEBUG_DIR=/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/debug",
     "NEURON_COMPETITION_R1_OUT_DIR=/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r1/out/fs-20260925-v2-c5c-a0-control-trn22-r1",
     "NEURON_COMPETITION_R1_STEP_LOG=/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r1/research/run-logs/fs-20260925-v2-c5c-a0-control-trn22-r1.steps.jsonl",
     "TRAINIUM_FRESH_START_RUN_ID=fs-20260925-v2-c5c-a0-control-trn22-r1",
@@ -60,7 +71,14 @@
   "runner_owns_manifest": false,
   "non_overwrite": true,
   "warm_cache_policy": {
-    "reuse_only": ["/tmp/neuron_cache", "/tmp/neff_cache"],
+    "reuse_only": [
+      "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/neff",
+      "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/local",
+      "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/hlo",
+      "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/inductor",
+      "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/compiler",
+      "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train/debug"
+    ],
     "cold_cache_authorized": false,
     "cache_cleanup_authorized": false
   },
