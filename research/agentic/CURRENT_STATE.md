@@ -1,6 +1,6 @@
 # Current state
 
-Last reconciled: 2026-09-24 21:37 UTC
+Last reconciled: 2026-09-24 21:45 UTC
 
 ## Current handoff: both hosts disk-blocked after A0 compile safety stop
 
@@ -14,7 +14,9 @@ and [independent safety review](verification/20260925-a0-trn22-disk-safety-revie
 are now archived. Compile-time free-space consumption was 1,500,942,336 bytes;
 trn22's latest free space was 6,448,951,296 bytes.
 
-trn21 and trn22 are both below the disk floor. The [disk packet](../v2/DISK_DECISION_PACKET_2026-09-25.md)
+trn21 and trn22 are both below the disk floor. The exact-size c5c A1 table-gate
+package now has an [independent static PASS / dispatch HOLD](../submission-validation/20260925-v2-c5c-a1-m64d128-trn21-r1/verifier.json);
+its four-rank/native checks and BPB run have not happened. The [disk packet](../v2/DISK_DECISION_PACKET_2026-09-25.md)
 asks the human to expand both existing root volumes by 50 GiB, then acknowledge the
 trn22 disk breaker after the reviewed diagnosis. No AWS action, deletion, new launch,
 relaunch or breaker reset has occurred. The best confirmed public20M remains

@@ -1,6 +1,6 @@
 {
   "schema": "trn-frontier-state-v2",
-  "written_utc": "2026-09-24T21:37:00Z",
+  "written_utc": "2026-09-24T21:45:00Z",
   "installation": {
     "status": "INSTALLED_EXACT_COPIES_VERIFIED_RUNTIME_GATES_PENDING",
     "target_base_commit": "33774742dc49de7a5d6f5fd539c1530430306763",
@@ -95,7 +95,8 @@
     "trn21": {
       "status": "BLOCKED_DISK",
       "launch_allowed": false,
-      "last_observed_utc": "2026-09-24T20:16:29Z",
+      "last_observed_utc": "2026-09-24T21:42:00Z",
+      "free_bytes_read_only_df": 6901800960,
       "free_gib": 6.43,
       "training_processes": 0,
       "neuron_device_holders": 0
@@ -103,11 +104,11 @@
     "trn22": {
       "status": "BLOCKED_DISK_BREAKER_A0_TERMINAL_NO_SCORE",
       "launch_allowed": false,
-      "last_observed_utc": "2026-09-24T21:28:07Z",
+      "last_observed_utc": "2026-09-24T21:42:00Z",
       "prelaunch_free_bytes": 7950065664,
       "floor_breach_observed_free_bytes": 6449438720,
       "terminal_reported_free_bytes": 6449033216,
-      "latest_checked_free_bytes": 6448951296,
+      "latest_checked_free_bytes": 6448939008,
       "preflight_free_bytes": 7949975552,
       "preflight_to_postflight_consumed_bytes": 1500942336,
       "incident_receipt": "research/v2/incidents/fs-20260925-v2-c5c-a0-control-trn22-r1/operator-terminal.json",
@@ -150,10 +151,18 @@
       "without_action": "No training on trn22; failed label cannot be retried"
     }
   ],
-  "last_event": "Final hash-verified A0 incident receipt and independent review archived. Compile crossed disk floor before any optimizer step; guard terminal rc1 at 21:28:07 UTC, no remaining owned process or deletion, observer NON_SCORED with zero boundaries. No BPB result or relaunch; trn22 disk breaker remains tripped.",
-  "updated_utc": "2026-09-24T21:37:00Z",
+  "last_event": "Final hash-verified A0 incident receipt, independent review and failed ledger row archived. Compile crossed disk floor before any optimizer step; guard terminal rc1 at 21:28:07 UTC, no remaining owned process or deletion, observer NON_SCORED with zero boundaries. No BPB result or relaunch; trn22 disk breaker remains tripped.",
+  "updated_utc": "2026-09-24T21:45:00Z",
   "active_human_brief": "research/v2/CONTROLLER_BRIEF_2026-09-25.md",
   "ready_job_counts": {"trn21": 0, "trn22": 0},
+  "table_a1_exact_gate_package": {
+    "status": "STATIC_PASS_INDEPENDENT_REVIEW_HOLD_NO_DISPATCH",
+    "path": "research/submission-validation/20260925-v2-c5c-a1-m64d128-trn21-r1",
+    "source_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+    "verifier_receipt": "research/submission-validation/20260925-v2-c5c-a1-m64d128-trn21-r1/verifier.json",
+    "verifier_receipt_sha256": "05fa1efa929a20b95d7768619fbdbc507ba566848cfd198ddfb93575d8c5985a",
+    "remaining": "Human storage fix; host-specific G1, exact-size G2 rank trace, native smoke, valid same-host c5c A0 control; separate new-label authorization. Effective seed/budget environment must be authenticated."
+  },
   "ideation_policy": {
     "cycle_interval_seconds": 12600,
     "approximate_daily_calls": 50,

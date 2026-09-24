@@ -12,7 +12,9 @@ Status: **both hosts disk-blocked; A0 failed safely before step 1; no new BPB re
   The label is consumed and must never be reused. The hash-verified
   [terminal receipt](incidents/fs-20260925-v2-c5c-a0-control-trn22-r1/operator-terminal.json)
   and [independent review](../agentic/verification/20260925-a0-trn22-disk-safety-review.md)
-  are archived. Compilation consumed 1,500,942,336 bytes of root free space.
+  are archived. A `status=failed` row in `ledger.jsonl` makes the consumed label
+  discoverable while the unmodified `decide.py` excludes it from controls and drift.
+  Compilation consumed 1,500,942,336 bytes of root free space.
 - trn22's latest checked free space is 6,448,951,296 bytes, below the
   6,979,321,856-byte floor;
   trn21 was already below the floor. Both need the human root EBS expansion in the
@@ -22,6 +24,11 @@ Status: **both hosts disk-blocked; A0 failed safely before step 1; no new BPB re
 - The R5/new-runner local synthetic suite passed earlier, but its one-host production
   pilot and bare-S0 compatibility remain unverified. The timebox does not justify
   switching launchers or bypassing any disk/containment gate.
+- The exact c5c last-layer A1 m64/d128 table-gate package is archived with an
+  [independent static PASS / dispatch HOLD](../submission-validation/20260925-v2-c5c-a1-m64d128-trn21-r1/verifier.json).
+  It has no G2, native-smoke, full-run or BPB result. Its launch must authenticate
+  effective seed/budget environment; a valid same-host control is required before
+  comparing a full A1 run, not before the cheaper diagnostic G2.
 
 This safety update supersedes the earlier active-A0 status below.
 
