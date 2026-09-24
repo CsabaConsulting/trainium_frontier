@@ -1,0 +1,83 @@
+{
+  "schema": "c595-warmdown060-operator-failure-receipt-v1",
+  "recorded_at": "2026-09-24T00:26:27Z",
+  "label": "fs-20260924-c595-warmdown060-trn22-r3",
+  "host": "trn22",
+  "hostname": "ip-172-31-32-253",
+  "remote_root": "/home/ubuntu/trainium_freshstart_20260924_c595_warmdown060_trn22_r3",
+  "finalization_commit": "30902dec421a5ad45848da3761fc5ae6dddfb88c",
+  "verified_core_commit": "d11233d5c5e5ecdd1ea2a400c68fad2f1e40a491",
+  "concrete_request_sha256": "a1a61469db8373560d4a3fc306d2c0a3e3d46e7b039ee03cbd0797c2841a947f",
+  "runtime_job_sha256": "de82f06a9da2afdabbfb587fd6e78b4871f2b75db2d4743a0c52d069f99a2519",
+  "launch": {
+    "launcher_returncode": 0,
+    "preflight_passed": true,
+    "guard_pid": 2776381,
+    "child_pid": 2776382,
+    "child_session": 2776382,
+    "started_at": "2026-09-23T23:41:23.884052+00:00",
+    "preflight_free_bytes": 8665219072
+  },
+  "failure": {
+    "gate": "bounded_training_process",
+    "message": "training failed, timed out, or left descendants",
+    "training_timeout_seconds": 2400,
+    "training_duration_seconds": 2430.05939993402,
+    "training_returncode": -15,
+    "training_timed_out": true,
+    "training_process_group_quiescent": true,
+    "training_descendants_after_parent_exit": false,
+    "guard_returncode": 1,
+    "timeout_signal": "SIGTERM",
+    "torchrun_pid": 2776450,
+    "worker_pids": [2776465, 2776466, 2776467, 2776468]
+  },
+  "training_progress": {
+    "official_budget_seconds": 1800,
+    "target_steps": 1000000,
+    "first_step": 0,
+    "last_step": 3197,
+    "step_record_count": 3198,
+    "final_periodic_log_step": 3190,
+    "final_periodic_log_remaining_time_seconds": 242,
+    "checkpoint_written": false,
+    "checkpoint_expected_path": "/home/ubuntu/trainium_freshstart_20260924_c595_warmdown060_trn22_r3/out/fs-20260924-c595-warmdown060-trn22-r3/train/out/final.pt",
+    "evaluation_started": false,
+    "evaluation_metrics_present": false
+  },
+  "postflight": {
+    "completed_at": "2026-09-24T00:21:59.224354+00:00",
+    "host_clean": false,
+    "command_returncode": 1,
+    "free_bytes": 7316873216,
+    "minimum_free_bytes": 8589934592,
+    "failure_reasons": ["less than8GiB disk space available"],
+    "neuron_process_count": 0,
+    "device_holders_absent": true,
+    "relevant_processes": [],
+    "cleanup_actions": [],
+    "artifacts_preserved_on_remote": true
+  },
+  "operator_followup": {
+    "retrieval_complete": true,
+    "hash_audit_passed": true,
+    "checkpoint_absence_reconfirmed": true,
+    "owned_process_absence_reconfirmed": true,
+    "device_holder_absence_reconfirmed": true,
+    "retry_performed": false,
+    "cleanup_performed": false
+  },
+  "artifact_sha256": {
+    "concrete-request.json": "a1a61469db8373560d4a3fc306d2c0a3e3d46e7b039ee03cbd0797c2841a947f",
+    "dispatch.json": "296a438807a3b7c1fa9152adaa176993a08986412b68a4f03ef861a1ceaddc0a",
+    "fs-20260924-c595-warmdown060-trn22-r3.job.json": "de82f06a9da2afdabbfb587fd6e78b4871f2b75db2d4743a0c52d069f99a2519",
+    "fs-20260924-c595-warmdown060-trn22-r3.launch.json": "de82f06a9da2afdabbfb587fd6e78b4871f2b75db2d4743a0c52d069f99a2519",
+    "fs-20260924-c595-warmdown060-trn22-r3.log": "858c3364ba60f715cc34c3e1592577dd76eaf4b98344d1d09877f8aaefa840d6",
+    "fs-20260924-c595-warmdown060-trn22-r3.postflight.json": "5d68122e360f2779300f380830bc7e1fa87be82096aef955c13f45a0dc037138",
+    "fs-20260924-c595-warmdown060-trn22-r3.preflight.json": "717c27d18726d1f3501ae1b14704573d0881f235292109b3b8728b27c8a53617",
+    "fs-20260924-c595-warmdown060-trn22-r3.process.json": "40d8eb24a315ff6612f86a002da7aa82067153aa3bf97d30d9c5ebc5449400f0",
+    "steps.jsonl": "386db56e1bde186f9ce537cdf2792da6bcb01db14ba0977a1cb738ae21c1c28f",
+    "training-process.json": "a717b0a1a4fa234a8e159d9c26acd214e18ff8cd8c21e52a9f8f369ee4ac1360",
+    "training.log": "de88763afcb05a5b8ff006a9dd0756c948c396869e1f8654e999e9b3d8b48d75"
+  }
+}
