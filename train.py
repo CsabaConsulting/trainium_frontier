@@ -46,7 +46,7 @@ STARTUP_LAUNCH_MARGIN_SECONDS = 30.0
 LOGIT_SOFTCAP = 15.0
 EMBEDDING_LR = 0.3
 UNEMBEDDING_LR = 0.006
-MATRIX_LR = 0.02
+MATRIX_LR = 0.015
 SCALAR_LR = 0.2
 SCALAR_BETA1 = 0.9
 SCALAR_BETA2 = 0.95
@@ -300,87 +300,136 @@ try:
             return (_rope_norm_bwd(x3, g3, cos2, sin2).reshape(b, t, h, d), None, None)
 
     @nki.jit
-    def _softcap_ce_fwd(z, tgt):
-        """Per-token softcap+cross-entropy forward for z [N, V] fp32.
+    def _softcap_ce_fwd(z, tgt, lanes: int=2, target_gather: bool=False):
+        """Compute unreduced loss and saved logsumexp with unchanged softcap15.
 
-        tgt is [N, 1] fp32 target class indices (exact for V < 2**24). Returns
-        (loss [N, 1], lse [N, 1]), both fp32; lse is saved for the backward.
+        Args:
+            z: Contiguous FP32 or BF16 [N, V] logits. BF16 is widened in
+                SBUF; all loss arithmetic and saved statistics remain FP32.
+            tgt: FP32 [N, 1] class indices, exact integers in [0, V).
+            lanes: Physical cores in the matching launch grid.
+            target_gather: Gather one SBUF element per row instead of mask/sum.
+        Returns:
+            FP32 [N, 1] loss and logsumexp, as in the original kernel.
         """
-        N, V = z.shape
-        P = _NKI_PARTITION
-        S = LOGIT_SOFTCAP
-        loss = nl.ndarray((N, 1), dtype=nl.float32, buffer=nl.shared_hbm)
-        lse = nl.ndarray((N, 1), dtype=nl.float32, buffer=nl.shared_hbm)
-        idx = nl.ndarray((P, V), dtype=nl.float32, buffer=nl.sbuf)
-        nisa.iota(dst=idx, pattern=[[1, V]], offset=0, channel_multiplier=0)
-        C = 512 if V > 512 and V % 512 == 0 else V
-        R = V // C
-        for i in nl.affine_range(N // P):
-            rows = nl.ds(i * P, P)
-            zb = nl.ndarray((P, V), dtype=nl.float32, buffer=nl.sbuf)
-            nisa.dma_copy(dst=zb, src=z[rows])
-            cb = nl.ndarray((P, 1), dtype=nl.float32, buffer=nl.sbuf)
-            nisa.dma_copy(dst=cb, src=tgt[rows])
-            tb = nl.ndarray((P, V), dtype=nl.float32, buffer=nl.sbuf)
-            nisa.activation(dst=tb, op=nl.tanh, data=zb, scale=1.0 / S)
-            mb = nl.ndarray((P, V), dtype=nl.float32, buffer=nl.sbuf)
-            nisa.tensor_scalar(dst=mb, data=idx, op0=nl.equal, operand0=cb)
-            nisa.tensor_tensor(dst=mb, data1=mb, data2=tb, op=nl.multiply)
-            tc = nl.ndarray((P, 1), dtype=nl.float32, buffer=nl.sbuf)
-            nisa.tensor_reduce(dst=tc, op=nl.add, data=mb, axis=(1,))
-            yc = nl.ndarray((P, 1), dtype=nl.float32, buffer=nl.sbuf)
-            nisa.tensor_scalar(dst=yc, data=tc, op0=nl.multiply, operand0=S)
-            nyc = nl.ndarray((P, 1), dtype=nl.float32, buffer=nl.sbuf)
-            nisa.tensor_scalar(dst=nyc, data=tc, op0=nl.multiply, operand0=-S)
-            parts = nl.ndarray((P, R), dtype=nl.float32, buffer=nl.sbuf)
-            for k in nl.affine_range(R):
-                cols = nl.ds(k * C, C)
-                nisa.activation(dst=zb[:, cols], op=nl.exp, data=tb[:, cols], scale=S, bias=nyc, reduce_op=nl.add, reduce_res=parts[:, nl.ds(k, 1)], reduce_cmd=nisa.reduce_cmd.reset_reduce)
-            d = nl.ndarray((P, 1), dtype=nl.float32, buffer=nl.sbuf)
-            nisa.tensor_reduce(dst=d, op=nl.add, data=parts, axis=(1,))
-            lo = nl.ndarray((P, 1), dtype=nl.float32, buffer=nl.sbuf)
-            nisa.activation(dst=lo, op=nl.log, data=d)
-            lb = nl.ndarray((P, 1), dtype=nl.float32, buffer=nl.sbuf)
-            nisa.tensor_tensor(dst=lb, data1=yc, data2=lo, op=nl.add)
-            nisa.dma_copy(dst=lse[rows], src=lb)
-            nisa.dma_copy(dst=loss[rows], src=lo)
+        rows_count, vocab = z.shape
+        partitions = 128
+        softcap = 15.0
+        assert lanes in (1, 2) and rows_count % (partitions * lanes) == 0
+        assert z.dtype in (nl.float32, nl.bfloat16) and tgt.dtype == nl.float32
+        assert tgt.shape == (rows_count, 1) and vocab % 512 == 0
+        loss = nl.ndarray((rows_count, 1), dtype=nl.float32, buffer=nl.shared_hbm)
+        lse = nl.ndarray((rows_count, 1), dtype=nl.float32, buffer=nl.shared_hbm)
+        if not target_gather:
+            indices = nl.ndarray((partitions, vocab), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.iota(dst=indices, pattern=[[1, vocab]], offset=0, channel_multiplier=0)
+        chunk = 512
+        chunks = vocab // chunk
+        for tile in nl.affine_range(rows_count // (partitions * lanes)):
+            first = (tile * lanes + nl.program_id(0)) * partitions
+            rows = nl.ds(first, partitions)
+            logits = nl.ndarray((partitions, vocab), dtype=nl.float32, buffer=nl.sbuf)
+            labels = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
+            if z.dtype == nl.bfloat16:
+                source = nl.ndarray((partitions, vocab), dtype=nl.bfloat16, buffer=nl.sbuf)
+                nisa.dma_copy(dst=source, src=z[rows])
+                nisa.tensor_copy(dst=logits, src=source)
+            else:
+                nisa.dma_copy(dst=logits, src=z[rows])
+            nisa.dma_copy(dst=labels, src=tgt[rows])
+            capped_unit = nl.ndarray((partitions, vocab), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.activation(dst=capped_unit, op=nl.tanh, data=logits, scale=1.0 / softcap)
+            target_unit = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
+            if target_gather:
+                gather_indices = nl.ndarray((partitions, 1), dtype=nl.uint32, buffer=nl.sbuf)
+                nisa.tensor_copy(dst=gather_indices, src=labels)
+                nisa.nc_n_gather(dst=target_unit, data=capped_unit, indices=gather_indices)
+            else:
+                mask = nl.ndarray((partitions, vocab), dtype=nl.float32, buffer=nl.sbuf)
+                nisa.tensor_scalar(dst=mask, data=indices, op0=nl.equal, operand0=labels)
+                nisa.tensor_tensor(dst=mask, data1=mask, data2=capped_unit, op=nl.multiply)
+                nisa.tensor_reduce(dst=target_unit, op=nl.add, data=mask, axis=(1,))
+            target_value = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
+            negative_target = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.tensor_scalar(dst=target_value, data=target_unit, op0=nl.multiply, operand0=softcap)
+            nisa.tensor_scalar(dst=negative_target, data=target_unit, op0=nl.multiply, operand0=-softcap)
+            partial_sums = nl.ndarray((partitions, chunks), dtype=nl.float32, buffer=nl.sbuf)
+            for part in nl.affine_range(chunks):
+                columns = nl.ds(part * chunk, chunk)
+                nisa.activation(dst=logits[:, columns], op=nl.exp, data=capped_unit[:, columns], scale=softcap, bias=negative_target, reduce_op=nl.add, reduce_res=partial_sums[:, nl.ds(part, 1)], reduce_cmd=nisa.reduce_cmd.reset_reduce)
+            denominator = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.tensor_reduce(dst=denominator, op=nl.add, data=partial_sums, axis=(1,))
+            log_denominator = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.activation(dst=log_denominator, op=nl.log, data=denominator)
+            logsumexp = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.tensor_tensor(dst=logsumexp, data1=target_value, data2=log_denominator, op=nl.add)
+            nisa.dma_copy(dst=loss[rows], src=log_denominator)
+            nisa.dma_copy(dst=lse[rows], src=logsumexp)
         return (loss, lse)
 
     @nki.jit
-    def _softcap_ce_bwd(z, tgt, lse, g):
-        """Gradient of _softcap_ce_fwd w.r.t. the raw (pre-softcap) logits z.
+    def _softcap_ce_bwd(z, tgt, lse, g, lanes: int=2, round_bf16_output: bool=False):
+        """Return [N, V] gradients, normally in the logits dtype.
 
-        g is the [N, 1] fp32 upstream gradient of the per-token loss vector, so
-        this implements the reduction="none" backward; mean/sum scaling is left
-        to autograd outside the kernel.
+        Args:
+            z, tgt, lse: Same inputs and saved logsumexp as forward.
+            g: Arbitrary FP32 [N, 1] upstream loss gradient.
+            lanes: Physical cores in the matching launch grid.
+            round_bf16_output: Separately gated head-only contract. Preserve
+                FP32 logits/arithmetic, but round the output to BF16 for a
+                consumer that already has that backward cast boundary.
+        Returns:
+            Original FP32 softcap15/CE derivative, rounded at the output when
+            the input was BF16 or round_bf16_output is enabled. The latter
+            requires a matching consumer boundary; it is not exact for an
+            arbitrary FP32-logit leaf's gradient.
         """
-        N, V = z.shape
-        P = _NKI_PARTITION
-        S = LOGIT_SOFTCAP
-        dz = nl.ndarray((N, V), dtype=nl.float32, buffer=nl.shared_hbm)
-        idx = nl.ndarray((P, V), dtype=nl.float32, buffer=nl.sbuf)
-        nisa.iota(dst=idx, pattern=[[1, V]], offset=0, channel_multiplier=0)
-        for i in nl.affine_range(N // P):
-            rows = nl.ds(i * P, P)
-            zb = nl.ndarray((P, V), dtype=nl.float32, buffer=nl.sbuf)
-            nisa.dma_copy(dst=zb, src=z[rows])
-            cb = nl.ndarray((P, 1), dtype=nl.float32, buffer=nl.sbuf)
-            nisa.dma_copy(dst=cb, src=tgt[rows])
-            gb = nl.ndarray((P, 1), dtype=nl.float32, buffer=nl.sbuf)
-            nisa.dma_copy(dst=gb, src=g[rows])
-            nb = nl.ndarray((P, 1), dtype=nl.float32, buffer=nl.sbuf)
-            nisa.dma_copy(dst=nb, src=lse[rows])
-            nisa.tensor_scalar(dst=nb, data=nb, op0=nl.multiply, operand0=-1.0)
-            tb = nl.ndarray((P, V), dtype=nl.float32, buffer=nl.sbuf)
-            nisa.activation(dst=tb, op=nl.tanh, data=zb, scale=1.0 / S)
-            nisa.activation(dst=zb, op=nl.exp, data=tb, scale=S, bias=nb)
-            mb = nl.ndarray((P, V), dtype=nl.float32, buffer=nl.sbuf)
-            nisa.tensor_scalar(dst=mb, data=idx, op0=nl.equal, operand0=cb, op1=nl.multiply, operand1=gb)
-            nisa.scalar_tensor_tensor(dst=zb, data=zb, op0=nl.multiply, operand0=gb, op1=nl.subtract, operand1=mb)
-            nisa.activation(dst=mb, op=nl.square, data=tb)
-            nisa.scalar_tensor_tensor(dst=tb, data=mb, op0=nl.subtract, operand0=1.0, reverse0=True, op1=nl.multiply, operand1=zb)
-            nisa.dma_copy(dst=dz[rows], src=tb)
+        rows_count, vocab = z.shape
+        partitions = 128
+        softcap = 15.0
+        assert lanes in (1, 2) and rows_count % (partitions * lanes) == 0
+        assert z.dtype in (nl.float32, nl.bfloat16) and tgt.dtype == nl.float32
+        assert lse.dtype == nl.float32 and g.dtype == nl.float32
+        assert tgt.shape == (rows_count, 1) and lse.shape == (rows_count, 1)
+        assert g.shape == (rows_count, 1)
+        output_dtype = nl.bfloat16 if round_bf16_output else z.dtype
+        dz = nl.ndarray(z.shape, dtype=output_dtype, buffer=nl.shared_hbm)
+        indices = nl.ndarray((partitions, vocab), dtype=nl.float32, buffer=nl.sbuf)
+        nisa.iota(dst=indices, pattern=[[1, vocab]], offset=0, channel_multiplier=0)
+        for tile in nl.affine_range(rows_count // (partitions * lanes)):
+            rows = nl.ds((tile * lanes + nl.program_id(0)) * partitions, partitions)
+            logits = nl.ndarray((partitions, vocab), dtype=nl.float32, buffer=nl.sbuf)
+            labels = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
+            gradient = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
+            negative_lse = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
+            if z.dtype == nl.bfloat16:
+                source = nl.ndarray((partitions, vocab), dtype=nl.bfloat16, buffer=nl.sbuf)
+                nisa.dma_copy(dst=source, src=z[rows])
+                nisa.tensor_copy(dst=logits, src=source)
+            else:
+                nisa.dma_copy(dst=logits, src=z[rows])
+            nisa.dma_copy(dst=labels, src=tgt[rows])
+            nisa.dma_copy(dst=gradient, src=g[rows])
+            nisa.dma_copy(dst=negative_lse, src=lse[rows])
+            nisa.tensor_scalar(dst=negative_lse, data=negative_lse, op0=nl.multiply, operand0=-1.0)
+            capped_unit = nl.ndarray((partitions, vocab), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.activation(dst=capped_unit, op=nl.tanh, data=logits, scale=1.0 / softcap)
+            nisa.activation(dst=logits, op=nl.exp, data=capped_unit, scale=softcap, bias=negative_lse)
+            temporary = nl.ndarray((partitions, vocab), dtype=nl.float32, buffer=nl.sbuf)
+            nisa.tensor_scalar(dst=temporary, data=indices, op0=nl.equal, operand0=labels, op1=nl.multiply, operand1=gradient)
+            nisa.scalar_tensor_tensor(dst=logits, data=logits, op0=nl.multiply, operand0=gradient, op1=nl.subtract, operand1=temporary)
+            nisa.activation(dst=temporary, op=nl.square, data=capped_unit)
+            nisa.scalar_tensor_tensor(dst=capped_unit, data=temporary, op0=nl.subtract, operand0=1.0, reverse0=True, op1=nl.multiply, operand1=logits)
+            if output_dtype == nl.bfloat16:
+                rounded = nl.ndarray((partitions, vocab), dtype=nl.bfloat16, buffer=nl.sbuf)
+                nisa.tensor_copy(dst=rounded, src=capped_unit)
+                nisa.dma_copy(dst=dz[rows], src=rounded)
+            else:
+                nisa.dma_copy(dst=dz[rows], src=capped_unit)
         return dz
+    from torch_neuronx import wrap_nki as _wrap_softcap_ce_nki
+    _softcap_ce_fwd_native = _wrap_softcap_ce_nki(_softcap_ce_fwd)
+    _softcap_ce_bwd_native = _wrap_softcap_ce_nki(_softcap_ce_bwd)
 
     class _SoftcapCrossEntropyNKI(torch.autograd.Function):
         """Makes the fused softcap+cross-entropy kernel differentiable.
@@ -392,7 +441,8 @@ try:
 
         @staticmethod
         def forward(ctx, z, tgt):
-            loss, lse = _softcap_ce_fwd(z, tgt)
+            lanes = selected_lanes(z.shape[0])
+            loss, lse = _softcap_ce_fwd_native[lanes](z, tgt, lanes, True)
             ctx.save_for_backward(z, tgt, lse)
             return loss.reshape(-1)
 
@@ -400,7 +450,8 @@ try:
         def backward(ctx, grad_out):
             z, tgt, lse = ctx.saved_tensors
             g = grad_out.reshape(-1, 1).float().contiguous()
-            return (_softcap_ce_bwd(z, tgt, lse, g), None)
+            lanes = selected_lanes(z.shape[0])
+            return (_softcap_ce_bwd_native[lanes](z, tgt, lse, g, lanes), None)
     from torch_neuronx import wrap_nki as _wrap_conv2_nki
 
     def _conv2_taps(wt, channels):
@@ -647,6 +698,39 @@ class CausalSelfAttention(nn.Module):
         y = y.transpose(1, 2).contiguous().view(b, t, c)
         return self.c_proj(y)
 
+def reference_forward(x, up, down):
+    relu = F.relu(F.linear(x, up.to(x.dtype)))
+    return (F.linear(relu.square(), down.to(x.dtype)), relu)
+
+def _fused_mlp_kernel(x, up, down):
+    result, relu = reference_forward(x, up, down)
+    return (result, relu.T.contiguous())
+
+def _linear_weight(linear, dtype):
+    cached = linear._cached_weight
+    if cached is not None and cached.dtype == dtype:
+        return cached
+    return linear.weight.to(dtype=dtype)
+
+class _FusedMLP(torch.autograd.Function):
+
+    @staticmethod
+    def forward(ctx, x, up, down, up_packed=None, down_packed=None):
+        result, relu = _fused_mlp_kernel(x, up, down)
+        ctx.save_for_backward(x, up, down, relu)
+        return result
+
+    @staticmethod
+    def backward(ctx, grad):
+        x, up, down, relu = ctx.saved_tensors
+        activated_t = relu.square()
+        dhidden_t = down.to(x.dtype).T @ grad.T
+        dpre_t = dhidden_t * (relu * 2.0)
+        dx = (up.to(x.dtype).T @ dpre_t).T
+        dup = (dpre_t @ x).to(up.dtype)
+        ddown = (grad.T @ activated_t.T).to(down.dtype)
+        return (dx, dup, ddown)
+
 class MLP(nn.Module):
 
     def __init__(self, config: GPTConfig, coalesced: str='none'):
@@ -657,8 +741,15 @@ class MLP(nn.Module):
         self.c_proj = Linear(hidden, config.n_embd, bias=False)
 
     def forward(self, x: torch.Tensor, fc: torch.Tensor | None=None) -> torch.Tensor:
-        h = self.c_fc(x) if fc is None else fc
-        return self.c_proj(F.relu(h).square())
+        tokens = x.numel() // x.shape[-1]
+        tile = min(512, tokens // 2)
+        if not self.training or fc is not None or x.dtype != torch.bfloat16 or (tile < 128) or tile % 128 or tokens % (2 * tile):
+            h = self.c_fc(x) if fc is None else fc
+            return self.c_proj(F.relu(h).square())
+        up = _linear_weight(self.c_fc, x.dtype)
+        down = _linear_weight(self.c_proj, x.dtype)
+        result = _FusedMLP.apply(x.reshape(tokens, x.shape[-1]), up, down)
+        return result.reshape(x.shape)
 
 class Block(nn.Module):
 
@@ -1293,6 +1384,8 @@ def main() -> None:
         return (xb, yb, state)
     x, y, loader_state = fetch()
     optimizer = model.setup_optimizer()
+    assert dist.is_initialized() and dist.get_world_size() == 4
+    owned_optimizer = OwnedOptimizer(optimizer)
     cached_linears = [m for m in model.modules() if isinstance(m, Linear)]
     clip_main_params = list(orig_model.parameters())
     loop_started = time.monotonic()
@@ -1325,7 +1418,7 @@ def main() -> None:
                 group['momentum'] = muon_momentum(step, wd_progress)
                 group['weight_decay'] = WEIGHT_DECAY * (1.0 - wd_progress)
                 group['beta2'] = 0.9
-        optimizer.step(update_adamw=True)
+        owned_optimizer.step(update_adamw=True)
         for m in cached_linears:
             m.refresh_weight_cache(COMPUTE_DTYPE)
         synchronize(device)
@@ -1333,9 +1426,6 @@ def main() -> None:
         dt = time.monotonic() - t0
         recent_step_times.append(dt)
         train_loss = float(last_loss.item())
-        # Budget accounting. The organiser excludes the first TRAIN_STARTUP_STEPS_EXCLUDED optimizer steps
-        # (compile and startup) from the charged time, capped at TRAIN_STARTUP_ALLOWANCE_CAP_SECONDS. Anchor
-        # the 30-minute window at that boundary so the run stops, and writes its checkpoint, inside it.
         if step + 1 == TRAIN_STARTUP_STEPS_EXCLUDED:
             now = time.monotonic()
             observed_startup = now - _PROCESS_STARTED
@@ -1345,7 +1435,6 @@ def main() -> None:
         elapsed_after_step = time.monotonic() - budget_started
         reached_min_steps = step + 1 >= TRAIN_STARTUP_STEPS_EXCLUDED
         step_cap_hit = step + 1 >= args.num_steps
-        # Stop when the budget is reached, or when one more step plus the checkpoint write would cross it.
         time_budget_hit = reached_min_steps and (elapsed_after_step >= args.max_train_seconds or elapsed_after_step + max(recent_step_times[-20:]) + CHECKPOINT_RESERVE_SECONDS >= args.max_train_seconds)
         stop_after_step = step_cap_hit or time_budget_hit
         control = torch.tensor([1 if math.isnan(train_loss) or train_loss > 100 else 0, 1 if stop_after_step else 0], device=device, dtype=torch.int32)
@@ -1408,81 +1497,6 @@ def main() -> None:
             print(f"eval_timeout:      {public_eval['eval_timeout']}")
             print(f"eval_over_timeout: {public_eval['eval_over_timeout']}")
     cleanup_runtime()
-
-def reference_forward(x, up, down):
-    relu = F.relu(F.linear(x, up.to(x.dtype)))
-    return (F.linear(relu.square(), down.to(x.dtype)), relu)
-
-def make_autograd(kernel_call):
-
-    class FusedMLP(torch.autograd.Function):
-
-        @staticmethod
-        def forward(ctx, x, up, down, up_packed=None, down_packed=None):
-            result, relu = kernel_call(x, up, down)
-            ctx.save_for_backward(x, up, down, relu)
-            return result
-
-        @staticmethod
-        def backward(ctx, grad):
-            x, up, down, relu = ctx.saved_tensors
-            activated_t = relu.square()
-            dhidden_t = down.to(x.dtype).T @ grad.T
-            dpre_t = dhidden_t * (relu * 2.0)
-            dx = (up.to(x.dtype).T @ dpre_t).T
-            dup = (dpre_t @ x).to(up.dtype)
-            ddown = (grad.T @ activated_t.T).to(down.dtype)
-            return (dx, dup, ddown)
-    return FusedMLP.apply
-import types
-
-def make_forward(device, native_forward):
-
-    def kernel_call(x, up, down):
-        result, relu = reference_forward(x, up, down)
-        return (result, relu.T.contiguous())
-    fused = make_autograd(kernel_call)
-    apply_fused = fused
-
-    def weight(linear, dtype):
-        cached = linear._cached_weight
-        if cached is not None and cached.dtype == dtype:
-            return cached
-        return linear.weight.to(dtype=dtype)
-
-    def forward(self, x, fc=None):
-        tokens = x.numel() // x.shape[-1]
-        tile = min(512, tokens // 2)
-        if not self.training or fc is not None or x.dtype != torch.bfloat16 or (tile < 128) or tile % 128 or tokens % (2 * tile):
-            return native_forward(self, x, fc)
-        up = weight(self.c_fc, x.dtype)
-        down = weight(self.c_proj, x.dtype)
-        result = apply_fused(x.reshape(tokens, x.shape[-1]), up, down)
-        return result.reshape(x.shape)
-    return forward
-
-def _submission_mlp_install(model, device, train_module):
-    keys = tuple(model.state_dict())
-    parameter_ids = tuple((id(p) for p in model.parameters()))
-    selected = tuple(range(len(model.transformer.h)))
-    assert selected and len(set(selected)) == len(selected)
-    assert all((0 <= i < len(model.transformer.h) for i in selected))
-    for index, block in enumerate(model.transformer.h):
-        if index not in selected:
-            continue
-        module = block.mlp
-        assert module.c_fc is not None
-        assert module.c_fc.bias is None and module.c_proj.bias is None
-        hidden, channels = module.c_fc.weight.shape
-        assert module.c_proj.weight.shape == (channels, hidden)
-        assert channels % 128 == 0 and hidden % 128 == 0
-        live_bytes = 4 * channels * hidden + 2 * (channels + hidden) * 512
-        assert live_bytes + 2 * 1024 ** 2 <= 24 * 1024 ** 2
-        forward = make_forward(device, type(module).forward)
-        module.forward = types.MethodType(forward, module)
-    assert tuple(model.state_dict()) == keys
-    assert tuple((id(p) for p in model.parameters())) == parameter_ids
-from types import MethodType
 
 def make_plan(groups, world_size):
     muon_ms = {(1024, 1024): 12.54413 / 24, (1024, 4096): 9.76316 / 6, (4096, 1024): 8.98251 / 6, (8, 32): 0.23355 / 3}
@@ -1580,212 +1594,9 @@ class OwnedOptimizer:
         self.raw_load_state_dict(payload['optimizer'])
         self.optimizer._scalar_cache.clear()
 
-def _submission_optimizer_install(optimizer, train_module):
-    if hasattr(optimizer, '_fresh_start_owned'):
-        raise ValueError('ownership already installed')
-    adapter = OwnedOptimizer(optimizer)
-    optimizer._fresh_start_owned = adapter
-    optimizer.step = MethodType(lambda self, update_adamw=True: adapter.step(update_adamw), optimizer)
-    optimizer.state_dict = MethodType(lambda self: adapter.state_dict(), optimizer)
-    optimizer.load_state_dict = MethodType(lambda self, payload: adapter.load_state_dict(payload), optimizer)
-    return adapter
-
-def build_kernels():
-    global nl, nisa
-    import nki
-    import nki.language as nl
-    import nki.isa as nisa
-
-    @nki.jit
-    def forward(z, tgt, lanes: int=2, target_gather: bool=False):
-        """Compute unreduced loss and saved logsumexp with unchanged softcap15.
-
-        Args:
-            z: Contiguous FP32 or BF16 [N, V] logits. BF16 is widened in
-                SBUF; all loss arithmetic and saved statistics remain FP32.
-            tgt: FP32 [N, 1] class indices, exact integers in [0, V).
-            lanes: Physical cores in the matching launch grid.
-            target_gather: Gather one SBUF element per row instead of mask/sum.
-        Returns:
-            FP32 [N, 1] loss and logsumexp, as in the original kernel.
-        """
-        rows_count, vocab = z.shape
-        partitions = 128
-        softcap = 15.0
-        assert lanes in (1, 2) and rows_count % (partitions * lanes) == 0
-        assert z.dtype in (nl.float32, nl.bfloat16) and tgt.dtype == nl.float32
-        assert tgt.shape == (rows_count, 1) and vocab % 512 == 0
-        loss = nl.ndarray((rows_count, 1), dtype=nl.float32, buffer=nl.shared_hbm)
-        lse = nl.ndarray((rows_count, 1), dtype=nl.float32, buffer=nl.shared_hbm)
-        if not target_gather:
-            indices = nl.ndarray((partitions, vocab), dtype=nl.float32, buffer=nl.sbuf)
-            nisa.iota(dst=indices, pattern=[[1, vocab]], offset=0, channel_multiplier=0)
-        chunk = 512
-        chunks = vocab // chunk
-        for tile in nl.affine_range(rows_count // (partitions * lanes)):
-            first = (tile * lanes + nl.program_id(0)) * partitions
-            rows = nl.ds(first, partitions)
-            logits = nl.ndarray((partitions, vocab), dtype=nl.float32, buffer=nl.sbuf)
-            labels = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
-            if z.dtype == nl.bfloat16:
-                source = nl.ndarray((partitions, vocab), dtype=nl.bfloat16, buffer=nl.sbuf)
-                nisa.dma_copy(dst=source, src=z[rows])
-                nisa.tensor_copy(dst=logits, src=source)
-            else:
-                nisa.dma_copy(dst=logits, src=z[rows])
-            nisa.dma_copy(dst=labels, src=tgt[rows])
-            capped_unit = nl.ndarray((partitions, vocab), dtype=nl.float32, buffer=nl.sbuf)
-            nisa.activation(dst=capped_unit, op=nl.tanh, data=logits, scale=1.0 / softcap)
-            target_unit = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
-            if target_gather:
-                gather_indices = nl.ndarray((partitions, 1), dtype=nl.uint32, buffer=nl.sbuf)
-                nisa.tensor_copy(dst=gather_indices, src=labels)
-                nisa.nc_n_gather(dst=target_unit, data=capped_unit, indices=gather_indices)
-            else:
-                mask = nl.ndarray((partitions, vocab), dtype=nl.float32, buffer=nl.sbuf)
-                nisa.tensor_scalar(dst=mask, data=indices, op0=nl.equal, operand0=labels)
-                nisa.tensor_tensor(dst=mask, data1=mask, data2=capped_unit, op=nl.multiply)
-                nisa.tensor_reduce(dst=target_unit, op=nl.add, data=mask, axis=(1,))
-            target_value = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
-            negative_target = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
-            nisa.tensor_scalar(dst=target_value, data=target_unit, op0=nl.multiply, operand0=softcap)
-            nisa.tensor_scalar(dst=negative_target, data=target_unit, op0=nl.multiply, operand0=-softcap)
-            partial_sums = nl.ndarray((partitions, chunks), dtype=nl.float32, buffer=nl.sbuf)
-            for part in nl.affine_range(chunks):
-                columns = nl.ds(part * chunk, chunk)
-                nisa.activation(dst=logits[:, columns], op=nl.exp, data=capped_unit[:, columns], scale=softcap, bias=negative_target, reduce_op=nl.add, reduce_res=partial_sums[:, nl.ds(part, 1)], reduce_cmd=nisa.reduce_cmd.reset_reduce)
-            denominator = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
-            nisa.tensor_reduce(dst=denominator, op=nl.add, data=partial_sums, axis=(1,))
-            log_denominator = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
-            nisa.activation(dst=log_denominator, op=nl.log, data=denominator)
-            logsumexp = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
-            nisa.tensor_tensor(dst=logsumexp, data1=target_value, data2=log_denominator, op=nl.add)
-            nisa.dma_copy(dst=loss[rows], src=log_denominator)
-            nisa.dma_copy(dst=lse[rows], src=logsumexp)
-        return (loss, lse)
-
-    @nki.jit
-    def backward(z, tgt, lse, g, lanes: int=2, round_bf16_output: bool=False):
-        """Return [N, V] gradients, normally in the logits dtype.
-
-        Args:
-            z, tgt, lse: Same inputs and saved logsumexp as forward.
-            g: Arbitrary FP32 [N, 1] upstream loss gradient.
-            lanes: Physical cores in the matching launch grid.
-            round_bf16_output: Separately gated head-only contract. Preserve
-                FP32 logits/arithmetic, but round the output to BF16 for a
-                consumer that already has that backward cast boundary.
-        Returns:
-            Original FP32 softcap15/CE derivative, rounded at the output when
-            the input was BF16 or round_bf16_output is enabled. The latter
-            requires a matching consumer boundary; it is not exact for an
-            arbitrary FP32-logit leaf's gradient.
-        """
-        rows_count, vocab = z.shape
-        partitions = 128
-        softcap = 15.0
-        assert lanes in (1, 2) and rows_count % (partitions * lanes) == 0
-        assert z.dtype in (nl.float32, nl.bfloat16) and tgt.dtype == nl.float32
-        assert lse.dtype == nl.float32 and g.dtype == nl.float32
-        assert tgt.shape == (rows_count, 1) and lse.shape == (rows_count, 1)
-        assert g.shape == (rows_count, 1)
-        output_dtype = nl.bfloat16 if round_bf16_output else z.dtype
-        dz = nl.ndarray(z.shape, dtype=output_dtype, buffer=nl.shared_hbm)
-        indices = nl.ndarray((partitions, vocab), dtype=nl.float32, buffer=nl.sbuf)
-        nisa.iota(dst=indices, pattern=[[1, vocab]], offset=0, channel_multiplier=0)
-        for tile in nl.affine_range(rows_count // (partitions * lanes)):
-            rows = nl.ds((tile * lanes + nl.program_id(0)) * partitions, partitions)
-            logits = nl.ndarray((partitions, vocab), dtype=nl.float32, buffer=nl.sbuf)
-            labels = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
-            gradient = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
-            negative_lse = nl.ndarray((partitions, 1), dtype=nl.float32, buffer=nl.sbuf)
-            if z.dtype == nl.bfloat16:
-                source = nl.ndarray((partitions, vocab), dtype=nl.bfloat16, buffer=nl.sbuf)
-                nisa.dma_copy(dst=source, src=z[rows])
-                nisa.tensor_copy(dst=logits, src=source)
-            else:
-                nisa.dma_copy(dst=logits, src=z[rows])
-            nisa.dma_copy(dst=labels, src=tgt[rows])
-            nisa.dma_copy(dst=gradient, src=g[rows])
-            nisa.dma_copy(dst=negative_lse, src=lse[rows])
-            nisa.tensor_scalar(dst=negative_lse, data=negative_lse, op0=nl.multiply, operand0=-1.0)
-            capped_unit = nl.ndarray((partitions, vocab), dtype=nl.float32, buffer=nl.sbuf)
-            nisa.activation(dst=capped_unit, op=nl.tanh, data=logits, scale=1.0 / softcap)
-            nisa.activation(dst=logits, op=nl.exp, data=capped_unit, scale=softcap, bias=negative_lse)
-            temporary = nl.ndarray((partitions, vocab), dtype=nl.float32, buffer=nl.sbuf)
-            nisa.tensor_scalar(dst=temporary, data=indices, op0=nl.equal, operand0=labels, op1=nl.multiply, operand1=gradient)
-            nisa.scalar_tensor_tensor(dst=logits, data=logits, op0=nl.multiply, operand0=gradient, op1=nl.subtract, operand1=temporary)
-            nisa.activation(dst=temporary, op=nl.square, data=capped_unit)
-            nisa.scalar_tensor_tensor(dst=capped_unit, data=temporary, op0=nl.subtract, operand0=1.0, reverse0=True, op1=nl.multiply, operand1=logits)
-            if output_dtype == nl.bfloat16:
-                rounded = nl.ndarray((partitions, vocab), dtype=nl.bfloat16, buffer=nl.sbuf)
-                nisa.tensor_copy(dst=rounded, src=capped_unit)
-                nisa.dma_copy(dst=dz[rows], src=rounded)
-            else:
-                nisa.dma_copy(dst=dz[rows], src=capped_unit)
-        return dz
-    return (forward, backward)
-
 def selected_lanes(rows):
     if rows <= 0 or rows % 128:
         raise ValueError('the NKI CE adapter requires positive multiples of128 rows')
     return 2 if rows >= 512 and rows % 256 == 0 else 1
-
-def _submission_ce_install(train_module):
-    """Replace the two primitive calls used by the existing CE autograd class.
-
-    Returns the original pair so an isolated diagnostic can restore it. Model
-    parameters, loss reductions, scoring and checkpoint formats are unchanged.
-    Installation belongs before compilation, once per process.
-    """
-    if not train_module._HAS_NKI:
-        raise ValueError('adaptive CE is gated only for NKI with softcap15')
-    if getattr(train_module, '_fresh_start_adaptive_ce_installed', False):
-        raise RuntimeError('adaptive CE is already installed in this process')
-    from torch_neuronx import wrap_nki
-    forward, backward = (wrap_nki(kernel) for kernel in build_kernels())
-    originals = (train_module._softcap_ce_fwd, train_module._softcap_ce_bwd)
-
-    def adaptive_forward(z, target):
-        lanes = selected_lanes(z.shape[0])
-        return forward[lanes](z, target, lanes, True)
-
-    def adaptive_backward(z, target, lse, gradient):
-        lanes = selected_lanes(z.shape[0])
-        return backward[lanes](z, target, lse, gradient, lanes)
-    train_module._softcap_ce_fwd = adaptive_forward
-    train_module._softcap_ce_bwd = adaptive_backward
-    train_module._fresh_start_adaptive_ce_installed = True
-    return originals
-
-def _install_submission_training():
-    """Training-only adapters; load_for_eval uses the native frozen model."""
-    import sys
-    module = sys.modules[__name__]
-    original_init = GPT.init_weights
-    original_setup_optimizer = GPT.setup_optimizer
-    ce_installed = False
-
-    def initialize(model):
-        nonlocal ce_installed
-        original_init(model)
-        assert COMPUTE_DTYPE == torch.bfloat16
-        before_rng = torch.get_rng_state().clone()
-        _submission_mlp_install(model, 'neuron', module)
-        if not ce_installed:
-            _submission_ce_install(module)
-            ce_installed = True
-        assert torch.equal(before_rng, torch.get_rng_state())
-        print('SUBMISSION_TRAIN_INTEGRATION ' + json.dumps(dict(source_commit='1da6c0714c0755fd3b078e972fbb0aefbb43bf6d', native_forward_custom_mlp_backward=True, optimizer_ownership=True, adaptive_nki_ce=True, loader_and_timing_hooks_unchanged=True)), flush=True)
-
-    def setup_optimizer(model, *args, **kwargs):
-        optimizer = original_setup_optimizer(model, *args, **kwargs)
-        assert dist.is_initialized() and dist.get_world_size() == 4
-        ownership = _submission_optimizer_install(optimizer, module)
-        print('SUBMISSION_OPTIMIZER_INTEGRATION ' + json.dumps(dict(owner_partitioning=True, rank=dist.get_rank(), **ownership.summary)), flush=True)
-        return optimizer
-    GPT.init_weights = initialize
-    GPT.setup_optimizer = setup_optimizer
 if __name__ == '__main__':
-    _install_submission_training()
     main()
