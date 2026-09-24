@@ -1,6 +1,6 @@
 # Independent analyst verdict: Track-A 35c9 + matrix-LR 0.015 controls
 
-Date: 2026-09-24  
+Date: 2026-09-24
 Role: Analyst (read-only evidence adjudication; no training, SSH, source edit, push, or submission)
 
 ## Verdict
