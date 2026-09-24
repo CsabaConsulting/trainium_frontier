@@ -26,6 +26,13 @@ This section supersedes earlier Track-A readiness and host-control statements be
   planning and stepping that original full group identically on every rank. Unknown kinds still
   fail. This is an infrastructure repair proposal, not a model change or run authorization; it is
   now in separate implementation and independent-verification gates.
+- Hybrid-repair implementation `bf46f25c` passed its initial six CPU/fake-world contracts but
+  failed independent adversarial verification at `0569cf3e`: checkpoint group-kind tampering and
+  post-plan live group-kind drift were not authenticated before state mutation/collectives. That
+  could silently stop RMS updates or create rank-asymmetric failure. The FAIL receipt and tests are
+  pushed on `experiment/20260924-v2-a1-hybrid-rmsprop-ownership-repair`; native packaging and
+  hardware remain forbidden while an Implementer adds exact ordered group-schema validation and a
+  fresh Verifier repeats the gate.
 - A flags-only AdamW substitution is rejected as a repair: it changes the table optimizer, still
   conflicts with the adapter's FP32 requirement for BF16 tables, and historical paired evidence
   found worse per-step quality and throughput. Disabling ownership globally is also not selected
