@@ -1,34 +1,38 @@
 {
-  "reviewed_commit": "241ba406b2309d0a4d4af223a57de6261e722ff1",
-  "reviewed_parent": "0569cf3e4a045067a9645ba2a8e2e341471d31a6",
-  "role": "independent_verifier_iteration_2",
+  "reviewed_commit": "257b84bc6cce077d93c05f746e7bd6bdf899ed7a",
+  "reviewed_parent": "a350e2d2e99f36b8ce70d7c37181de0beba95409",
+  "role": "independent_verifier_iteration_3",
   "status": "FAIL",
-  "summary": "The prior kind/order blockers are corrected and all supplied tests pass, but optimizer state schema and the complete ownership summary are not fail-closed before raw load or update.",
+  "summary": "The iteration-2 state-field and summary blockers are corrected and all supplied tests pass, but counter/state consistency, empty initialized rank-sparse state, and post-load rollback remain fail-closed blockers.",
   "checks": {
-    "clean_detached_verifier_worktree": "/tmp/trainium-verifier-r2.DP21J6",
+    "clean_detached_verifier_worktree": "/tmp/trainium-verifier-r3.VQmmKC",
     "py_compile_passed": true,
-    "supplied_tests_passed": 10,
-    "verifier_adversarial_tests_added": 3,
-    "expanded_suite_result": "11 tests passed; 13 failing subcases across the state-schema and complete-summary tests reproduced the blockers",
-    "candidate_sha256": "e613708baade1b3b9468f71104368c847d3f5eeed334a6207ec094c6836a57b5",
+    "supplied_tests_passed": 15,
+    "verifier_adversarial_tests_added": 4,
+    "candidate_sha256": "ba50528d0d08f1630cc84010187c1830f9ef8ba47da8f96d19a60403414cae7b",
     "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
     "base_sha256": "35c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2",
     "diff_check_passed": true,
     "candidate_scope_confined_to_ownership_adapter": true,
-    "normal_world1_save_resume_fake_world4_and_rms_math_passed": true,
-    "kind_order_tensor_schema_entries_and_group_count_gates_passed": true,
+    "prior_kind_order_tensor_state_and_complete_summary_attacks_passed": true,
+    "world1_save_resume_fake_world4_rms_math_and_padded_muon_passed": true,
     "new_or_finalized_authorization_or_request_present": false
   },
   "blockers": [
     {
-      "id": "R2-B1",
-      "finding": "Checkpoint state validation checks only that top-level parameter IDs are integers in the allowed set. Missing parameter state, missing or extra nested fields, wrong tensor shape/dtype/contiguity, invalid step type, swapped state and an empty state all reached raw_load_state_dict and were accepted, mutating the live optimizer.",
-      "required_correction": "Define and validate the exact per-kind optimizer-state schema and exact expected parameter-state key set before raw_load_state_dict. Reject every mismatch without invoking the raw loader or changing parameters, optimizer state, counters or collectives. If a pristine zero-step state is supported, encode it as an explicit distinct schema rather than accepting arbitrary omissions."
+      "id": "R3-B1",
+      "finding": "Counter and state semantics are not related: replicated_rmsprop_calls can exceed optimizer_calls times the RMSProp-group count, a per-parameter step can exceed optimizer_calls, and nonfinite state tensors pass the pre-load schema gate and reach the raw loader.",
+      "required_correction": "Validate counter bounds/divisibility, per-parameter step bounds and finiteness for every state tensor before raw_load_state_dict and before emitting state_dict."
     },
     {
-      "id": "R2-B2",
-      "finding": "The live-plan gate authenticates only summary.replicated_rmsprop_groups. Drift in elements_by_owner, estimated_ms_by_owner, shard_elements or total_padded_bytes is accepted and a real update and collective proceed.",
-      "required_correction": "Freeze and validate the complete ownership summary before state_dict, load_state_dict and every update/collective, while preserving intentional runtime optimizer hyperparameter schedules."
+      "id": "R3-B2",
+      "finding": "An initialized rank with zero locally materialized state is rejected because initialized requires a nonempty state_manifest. This is a legitimate world-size/rank-sparse outcome when the rank owns no updated group and update_adamw is false.",
+      "required_correction": "Allow an explicitly initialized empty manifest while retaining the phase/counter and exact empty-state bindings; pristine must remain distinct."
+    },
+    {
+      "id": "R3-B3",
+      "finding": "The deliberate map-location design validates device only after raw_load_state_dict. If that post-load check fails, the live optimizer state remains mutated. A raw-loader exception after partial mutation likewise has no rollback.",
+      "required_correction": "Snapshot or transactionally stage optimizer state and param-group values, then restore them on any raw-load or post-load validation failure. Counters, scalar cache, parameters and collectives must remain unchanged on rejection."
     }
   ],
   "hardware_authorized": false,

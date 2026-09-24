@@ -554,7 +554,7 @@ class WorldOneEquivalence(unittest.TestCase):
         _restored_parameters, restored = make_toy(self.initial)
         restored_adapter = OwnedOptimizer(restored)
         restored_adapter.load_state_dict(payload)
-        self.assertEqual(restored.state, {})
+        self.assertEqual(len(restored.state), 0)
         self.assertEqual((restored_adapter.calls, restored_adapter.replicated_rmsprop_calls),
                          (0, 0))
         for field, value in (("state_phase", "initialized"), ("optimizer_calls", 1),
@@ -583,6 +583,121 @@ class WorldOneEquivalence(unittest.TestCase):
         set_grads(restored_parameters, 1)
         restored_adapter.step()
         self.assertEqual(set(restored.state_dict()["state"]), {0, 1, 2, 3})
+
+    def test_initialized_empty_rank_sparse_state_roundtrips(self):
+        DIST.rank, DIST.world_size = 3, 4
+        adam = torch.nn.Parameter(torch.ones(2))
+        rms = torch.nn.Parameter(torch.ones(2, dtype=torch.bfloat16))
+        groups = [
+            {"kind": "adamw", "params": [adam], "lr": 0.01, "betas": (0.8, 0.9),
+             "eps": 1e-8, "weight_decay": 0.0},
+            {"kind": "rmsprop", "params": [rms], "lr": 0.01, "betas": (0.0, 0.9),
+             "eps": 1e-8, "weight_decay": 0.0},
+        ]
+        optimizer = ToyOptimizer(groups)
+        adapter = OwnedOptimizer(optimizer)
+        DIST.gathered = torch.zeros(adapter.summary["shard_elements"] * DIST.world_size)
+        adapter.step(update_adamw=False)
+        payload = clone_value(adapter.state_dict())
+        self.assertEqual(payload["state_phase"], "initialized")
+        self.assertEqual(payload["state_manifest"], [])
+        self.assertEqual(payload["optimizer"]["state"], {})
+        restored_adam = torch.nn.Parameter(adam.detach().clone())
+        restored_rms = torch.nn.Parameter(rms.detach().clone())
+        restored = ToyOptimizer([
+            {**groups[0], "params": [restored_adam]},
+            {**groups[1], "params": [restored_rms]},
+        ])
+        restored_adapter = OwnedOptimizer(restored)
+        restored_adapter.load_state_dict(payload)
+        self.assertEqual(len(restored.state), 0)
+        self.assertEqual((restored_adapter.calls, restored_adapter.replicated_rmsprop_calls),
+                         (1, 0))
+
+    def test_counter_step_and_finite_state_attacks_reject_before_raw_load(self):
+        parameters, optimizer = make_toy(self.initial)
+        adapter = OwnedOptimizer(optimizer)
+        set_grads(parameters, 0)
+        adapter.step()
+        payload = clone_value(adapter.state_dict())
+        attacks = []
+        impossible_rms_calls = clone_value(payload)
+        impossible_rms_calls["replicated_rmsprop_calls"] = payload["optimizer_calls"] + 1
+        attacks.append(impossible_rms_calls)
+        impossible_parameter_step = clone_value(payload)
+        impossible_parameter_step["optimizer"]["state"][0]["step"] = payload["optimizer_calls"] + 1
+        attacks.append(impossible_parameter_step)
+        nonfinite_state = clone_value(payload)
+        nonfinite_state["optimizer"]["state"][0]["exp_avg"].fill_(float("nan"))
+        attacks.append(nonfinite_state)
+        for index, attacked in enumerate(attacks):
+            with self.subTest(attack=index):
+                _restored_parameters, restored = make_toy(self.initial)
+                restored_adapter = OwnedOptimizer(restored)
+                raw_calls = []
+                restored_adapter.raw_load_state_dict = lambda _state: raw_calls.append(True)
+                with self.assertRaisesRegex(ValueError, "schema mismatch"):
+                    restored_adapter.load_state_dict(attacked)
+                self.assertEqual(raw_calls, [])
+                self.assertEqual(len(restored.state), 0)
+                self.assertEqual((restored_adapter.calls,
+                                  restored_adapter.replicated_rmsprop_calls), (0, 0))
+
+    def test_post_load_rejection_rolls_back_optimizer_atomically(self):
+        parameters, optimizer = make_toy(self.initial)
+        adapter = OwnedOptimizer(optimizer)
+        set_grads(parameters, 0)
+        adapter.step()
+        payload = clone_value(adapter.state_dict())
+
+        _restored_parameters, restored = make_toy(self.initial)
+        restored_adapter = OwnedOptimizer(restored)
+        attacked = clone_value(payload)
+        attacked["optimizer"]["state"][0]["exp_avg"] = attacked["optimizer"]["state"][0]["exp_avg"].to("meta")
+        before_groups = clone_value(restored.state_dict()["param_groups"])
+        with self.assertRaisesRegex(ValueError, "schema mismatch"):
+            restored_adapter.load_state_dict(attacked)
+        self.assertEqual(len(restored.state), 0)
+        assert_tree_equal(self, restored.state_dict()["param_groups"], before_groups)
+        self.assertEqual((restored_adapter.calls, restored_adapter.replicated_rmsprop_calls),
+                         (0, 0))
+
+        _restored_parameters, restored = make_toy(self.initial)
+        restored_adapter = OwnedOptimizer(restored)
+        before_groups = clone_value(restored.state_dict()["param_groups"])
+
+        def partial_then_raise(_state):
+            restored.param_groups[0]["lr"] = 123.0
+            restored.state[restored.param_groups[0]["params"][0]] = {"partial": True}
+            raise ValueError("synthetic raw loader failure")
+
+        restored_adapter.raw_load_state_dict = partial_then_raise
+        with self.assertRaisesRegex(ValueError, "synthetic raw loader failure"):
+            restored_adapter.load_state_dict(payload)
+        self.assertEqual(len(restored.state), 0)
+        assert_tree_equal(self, restored.state_dict()["param_groups"], before_groups)
+        self.assertEqual((restored_adapter.calls, restored_adapter.replicated_rmsprop_calls),
+                         (0, 0))
+
+    def test_padded_singleton_muon_save_resume_preserves_state_and_math(self):
+        parameters, optimizer = make_toy(self.initial)
+        adapter = OwnedOptimizer(optimizer, pad_singleton_muon=True)
+        set_grads(parameters, 0)
+        adapter.step()
+        payload = clone_value(adapter.state_dict())
+        self.assertEqual(payload["state_schema"][2]["fields"]["momentum_buffer"]["shape"],
+                         [2, 2, 2])
+        restored_parameters, restored = make_toy(
+            [parameter.detach().clone() for parameter in parameters])
+        restored_adapter = OwnedOptimizer(restored, pad_singleton_muon=True)
+        restored_adapter.load_state_dict(payload)
+        set_grads(parameters, 1)
+        set_grads(restored_parameters, 1)
+        adapter.step()
+        restored_adapter.step()
+        for actual, expected in zip(restored_parameters, parameters):
+            self.assertTrue(torch.equal(actual, expected))
+        assert_tree_equal(self, restored.state_dict(), optimizer.state_dict())
 
     def test_post_plan_kind_drift_rejects_before_updates_or_collective(self):
         parameters, optimizer = make_toy(self.initial)
