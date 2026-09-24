@@ -45,6 +45,10 @@ This section supersedes earlier Track-A readiness and host-control statements be
 - Track-A A8's embedding-LR 0.45 sub-arm was stopped as a closed axis. The exact prior
   `t04-embedlr-045-900s` change from 0.30 to 0.45 measured only `-0.000057` BPB, below noise; the
   durable study concluded that 0.30 is a flat optimum. No full run was repeated.
+- A8 embedding LR 0.60 was also stopped on final-week value-of-information. It has no isolated
+  positive evidence, and width scaling makes dense1024 at 0.60 only about 5.4% more aggressive
+  than the old dense640 0.45 null point in effective optimizer LR. Matrix LR 0.015 provides no
+  mechanism for moving this closed embedding optimum upward.
 - The paused A2 scaffold is unauthorized and must not run: it has the same RMSProp/ownership
   blocker. Track B2 sparse touched-row work also remains rejected before hardware. The best
   confirmed submission candidate therefore remains the review-clean MATRIX_LR 0.015 dense file,
