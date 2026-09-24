@@ -38,6 +38,10 @@ This section supersedes earlier Track-A readiness and host-control statements be
   `35c9...` cannot run it as a flags-only arm because its fused training MLP hard-requires
   `RELU2_TAU == 0.0`. A valid retest would be a separately researched kernel implementation, not
   the requested one-factor flag experiment.
+- Track-A A6 (`--head-gate`, whose default includes per-head normalization) was stopped as another
+  prior dense negative. `t39-hgate-900s` ran about 25% slower per step, completed about 19.8% fewer
+  steps, and lost roughly `+0.0135` BPB against paired controls. Exact `35c9...` has no fused NKI
+  implementation to change that wall-clock tradeoff, and the flag bundles two explanatory factors.
 - The paused A2 scaffold is unauthorized and must not run: it has the same RMSProp/ownership
   blocker. Track B2 sparse touched-row work also remains rejected before hardware. The best
   confirmed submission candidate therefore remains the review-clean MATRIX_LR 0.015 dense file,
