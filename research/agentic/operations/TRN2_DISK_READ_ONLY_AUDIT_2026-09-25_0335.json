@@ -1,0 +1,30 @@
+{
+  "schema": "trn2-read-only-disk-audit-v1",
+  "observed_utc": "2026-09-24T22:05:10Z",
+  "region": "ap-southeast-4",
+  "commands": [
+    "df -B1 /",
+    "lsblk -b -dn -o SIZE /dev/nvme0n1"
+  ],
+  "operational_floor_bytes": 6979321856,
+  "hosts": {
+    "trn21": {
+      "ssh_host": "ec2-16-26-246-98.ap-southeast-4.compute.amazonaws.com",
+      "root_filesystem_total_bytes": 206900281344,
+      "root_filesystem_available_bytes": 6901743616,
+      "root_disk_bytes": 214748364800,
+      "below_floor_bytes": 77578240,
+      "status": "BLOCKED_DISK"
+    },
+    "trn22": {
+      "ssh_host": "ec2-16-26-154-27.ap-southeast-4.compute.amazonaws.com",
+      "root_filesystem_total_bytes": 206900281344,
+      "root_filesystem_available_bytes": 6448918528,
+      "root_disk_bytes": 214748364800,
+      "below_floor_bytes": 530403328,
+      "status": "BLOCKED_DISK_AND_EXISTING_BREAKER"
+    }
+  },
+  "scope": "Read-only guest filesystem and block-device check only. AWS-side volume-modification state, process quiescence, cache identity, and breaker state were not independently rechecked here.",
+  "actions": "No AWS operation, resize, deletion, breaker reset, evaluation, or training was performed."
+}

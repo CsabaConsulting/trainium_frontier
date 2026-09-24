@@ -1,8 +1,21 @@
 # Current state
 
-Last reconciled: 2026-09-24 21:54 UTC
+Last reconciled: 2026-09-24 22:05 UTC
 
 ## Current handoff: both hosts disk-blocked after A0 compile safety stop
+
+At 22:05:10 UTC a new [read-only guest disk audit](operations/TRN2_DISK_READ_ONLY_AUDIT_2026-09-25_0335.json)
+still found 200-GiB root disks, with 6,901,743,616 B free on trn21 and
+6,448,918,528 B on trn22—both below the 6.5-GiB operational floor. The audit
+did not check AWS-side volume state or repeat process quiescence. No new
+training or BPB result occurred. The trn22 c5c A0 r2 retry now has an
+[independent static PASS / dispatch HOLD](verification/20260925-v2-c5c-a0-trn22-r2-static-review.md),
+not launch authorization. Its exact-env G2 and live gates must wait for human
+EBS expansion and an explicit trn22 breaker reset. The trn21 G1
+[pending request](../v2/g1-calibrations/fs-20260925-g1-public20m-calibration-trn21-r1/request.pending.json)
+is not dispatchable. An independent [S0 static audit](verification/20260925-s0-submission-static-recheck.md)
+found no proven rule violation, but native checks and two cold bare-command
+replays remain before the human can safely upload it.
 
 The one authorized warm c5c A0 trn22 run was stopped after root free space fell
 below the 6.5-GiB operational floor **before any optimizer step**. The authenticated

@@ -2,6 +2,22 @@
 
 Status: **both hosts disk-blocked; A0 failed safely before step 1; no new BPB result.**
 
+Read-only guest disk audit at 22:05:10 UTC: trn21 has 6,901,743,616 B free and
+trn22 6,448,918,528 B free, both below the 6,979,321,856-B floor. Both root
+disks still report 200 GiB. This check did not query AWS-side resize state or
+repeat the earlier process-quiescence audit. [Receipt](../agentic/operations/TRN2_DISK_READ_ONLY_AUDIT_2026-09-25_0335.json).
+
+The new-label [trn22 A0 retry package](../submission-validation/20260925-v2-c5c-a0-control-trn22-r2/GATE_CONTRACT.json)
+has an [independent static PASS / dispatch HOLD](../agentic/verification/20260925-v2-c5c-a0-trn22-r2-static-review.md).
+Its 10-GiB prelaunch projection is provisional, not a proved maximum. Human EBS
+expansion and explicit trn22 breaker reset, then fresh exact-environment G2,
+staging, and one-shot authorization are still required. The trn21 G1
+[pending calibration request](g1-calibrations/fs-20260925-g1-public20m-calibration-trn21-r1/request.pending.json)
+is also non-dispatchable pending independent review and host/storage checks.
+S0's [independent source audit](../agentic/verification/20260925-s0-submission-static-recheck.md)
+found no proven rule violation but left the submission HOLD until native checks
+and two cold bare-command replays pass.
+
 Read-only Operator inventory at 21:50:53 UTC: trn21 free 6,901,788,672 B,
 trn22 free 6,448,939,008 B; both root disks still 200 GiB, with no training
 processes or Neuron holders. The requested EBS expansion is not reflected in
