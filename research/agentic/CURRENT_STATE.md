@@ -1,6 +1,24 @@
 # Current state
 
-Last reconciled: 2026-09-24 21:14 UTC
+Last reconciled: 2026-09-24 21:26 UTC
+
+## Current handoff: one warm A0 control running on trn22
+
+The exact `c5c410af...` A0 dense baseline was guarded-dispatched once on trn22 at
+21:25:57 UTC, label `fs-20260925-v2-c5c-a0-control-trn22-r1`, guard PID `2963679`.
+Its one-run authorization and staged evidence are in `research/v2/authorizations/` and
+`research/v2/fs-20260925-v2-c5c-a0-control-trn22-r1.operator-stage.json`. The read-only
+boundary observer was started before launch. The Operator is monitoring disk, step
+boundaries, loss and guard; **no scored result exists yet**. Do not dispatch a second trn22
+job until terminal postflight and quiescence. This run is a baseline, not a quality win.
+
+Warm S0 has a separate static-reviewed package on
+`experiment/20260925-s0-warm-native-trn22-r1`, but its 8,833,482,752-byte prelaunch disk
+requirement blocks it now; see `research/agentic/verification/20260925-s0-warm-native-package-review.md`.
+trn21 remains disk-blocked. Both hosts have all five default training shards; the
+newer first-place brief is `workflow/CONTROLLER_PROMPT.md`. Best confirmed public20M is
+still 0.9918353324 single (0.9919537735 two-run mean). The present handoff supersedes
+older pending-G1/A0-staging statements below.
 
 ## Current handoff: G1 passed on trn22; warm A0 not yet launched
 

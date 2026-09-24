@@ -1,6 +1,24 @@
 # Workflow installation and incremental launch status
 
-Status: **CPU/G2 PASS; trn22 fresh 20M evaluator calibration PASS; first warm A0 staging.**
+Status: **trn22 warm c5c A0 full run active; trn21 disk-blocked; no new BPB result.**
+
+## Live update (2026-09-24 21:26 UTC)
+
+- The first warm `c5c410af...` A0 control was guarded-dispatched **once** on trn22 at
+  21:25:57 UTC, guard PID `2963679`, label `fs-20260925-v2-c5c-a0-control-trn22-r1`.
+  The separate read-only step-boundary observer was alive before dispatch. The exact
+  [one-run authorization](authorizations/fs-20260925-v2-c5c-a0-control-trn22-r1.authorization.md)
+  binds G1, G2, stage/fingerprint, cache/disk and observer evidence. No checkpoint, fresh
+  public20M result, or verdict exists yet. Training remains under Operator monitoring.
+- The pending warm S0 native package is independently static-reviewed but **HOLD**:
+  it requires at least 8,833,482,752 free bytes on trn22 before dispatch, more than the
+  measured roughly 7.95 billion. It is not a cold replay or submission-ready.
+- Both hosts already contain the five train shards that `prepare.py setup` downloads by
+  default. This excludes a missing-default-shard discovery but not uncertainty about
+  official private runtime data. First place is the user-supplied 0.9464 official;
+  best confirmed local public20M remains 0.9918353324 single/0.9919537735 mean.
+
+This live update supersedes older A0-staging and G1-running statements below.
 
 ## Live update (2026-09-24 21:14 UTC)
 
