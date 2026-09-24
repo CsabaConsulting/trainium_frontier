@@ -1,0 +1,26 @@
+{
+  "schema": "trn22-a0-r2-runlog-parent-readonly-observation-v1",
+  "operator_checked_utc": "2026-09-24T23:30:28Z",
+  "host": "trn22",
+  "hostname": "ip-172-31-32-253",
+  "checkout": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r2",
+  "path": "/home/ubuntu/trainium_freshstart_20260925_v2_c5c_a0_control_trn22_r2/research/run-logs",
+  "read_only_stat_exit_code": 1,
+  "read_only_stat_result": "ENOENT: directory absent",
+  "directory_created_by_this_check": false,
+  "any_host_mutation_by_this_check": false,
+  "pinned_source_commit": "e65a3097a5b00f6178188a935bb2acb9a5042c6c",
+  "pinned_tool_hashes": {
+    "research/fresh_start_launch.py": "822d4317408a09ee0dd6ab3eaaa4f706f0a173741659ea5e47cc12e45e4f1bef",
+    "research/fresh_start_host.py": "c4442b917084239099864f8dd53e4a5467ec8440b8eec9057bbdad5b19a84065"
+  },
+  "static_launcher_order": {
+    "fresh_start_launch_preflight_call_line": 52,
+    "fresh_start_host_preflight_receipt_write_line": 236,
+    "fresh_start_host_write_json_parent_mkdir_line": 36,
+    "fresh_start_launch_manifest_open_line": 65,
+    "interpretation": "The pinned launcher calls preflight before opening the manifest; preflight's receipt writer creates research/run-logs as its parent. This is source-level evidence, not a live launch proof. The prior CPU G2 used a different contained path and failed when its step-log parent was absent."
+  },
+  "decision": "STAGING_NOTE_ONLY: do not mkdir or launch now. Any later authorized dispatch must recheck the parent/label state and verify that the pinned launcher successfully writes its preflight receipt before the native child starts.",
+  "native_training_or_eval_started": false
+}
