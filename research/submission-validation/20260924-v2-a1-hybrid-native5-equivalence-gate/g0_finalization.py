@@ -806,6 +806,58 @@ def _validate_success_artifact_allowlist(
         raise ContractError("G0 rank-report artifact allowlist is not exact")
 
 
+def _immediate_file_identities_no_follow(
+    trusted_root: Path, directory: Path,
+) -> dict[str, FileIdentity]:
+    """Bind every immediate member name to its regular single-link inode identity."""
+    _validate_chain(trusted_root, directory, "directory")
+    fd = _open_directory_chain(trusted_root, directory, create=False)
+    rows: dict[str, FileIdentity] = {}
+    try:
+        entries = sorted(os.scandir(fd), key=lambda entry: entry.name)
+        for entry in entries:
+            observed = entry.stat(follow_symlinks=False)
+            if not stat.S_ISREG(observed.st_mode) or observed.st_nlink != 1:
+                raise ContractError(
+                    f"final artifact member is not regular single-link: {directory / entry.name}"
+                )
+            rows[entry.name] = _identity(observed)
+    except OSError as exc:
+        raise ContractError(f"cannot bind final artifact membership {directory}: {exc}") from exc
+    finally:
+        os.close(fd)
+    _validate_chain(trusted_root, directory, "directory")
+    return rows
+
+
+def _validate_success_artifact_bindings(
+    output: Path, report: Path, identities: dict[Path, FileIdentity],
+    trusted_root: Path = ROOT,
+) -> None:
+    expected = {
+        output: [output / "final.pt"],
+        report: [report / f"rank-{rank}.jsonl" for rank in range(4)],
+    }
+    for directory, paths in expected.items():
+        observed = _immediate_file_identities_no_follow(trusted_root, directory)
+        if list(observed) != [path.name for path in paths]:
+            raise ContractError(f"final artifact membership changed: {directory}")
+        for path in paths:
+            if identities.get(path) != observed[path.name]:
+                raise ContractError(f"final artifact inode changed after hashing: {path}")
+
+
+def _final_success_artifact_seal(
+    output: Path, report: Path, identities: dict[Path, FileIdentity],
+    trusted_root: Path = ROOT,
+) -> None:
+    # Keep these three checks adjacent: names/types, all hashed inode identities, then the
+    # exact name-to-inode binding. The caller writes the sealed result immediately afterward.
+    _validate_success_artifact_allowlist(output, report, trusted_root)
+    _revalidate_snapshot(trusted_root, identities)
+    _validate_success_artifact_bindings(output, report, identities, trusted_root)
+
+
 def _validate_runtime_job(runtime: dict, concrete: dict, template: dict, auth: dict) -> None:
     for key, value in concrete.items():
         if runtime.get(key) != value:
@@ -981,8 +1033,9 @@ def run(args: argparse.Namespace) -> int:
     _assert_directory_identity(ROOT, rooted["report"], directory_identities[rooted["report"]])
     _validate_chain(ROOT, rooted["runtime_result"], "absent")
     if success:
-        # This is the last artifact-tree operation before the sealed result is created.
-        _validate_success_artifact_allowlist(rooted["output"], rooted["report"])
+        _final_success_artifact_seal(
+            rooted["output"], rooted["report"], artifact_identities,
+        )
     sealed_result = _write_exclusive(ROOT, rooted["runtime_result"], result)
     _assert_sealed_file(ROOT, rooted["runtime_result"], sealed_result)
     return 0 if success else 2

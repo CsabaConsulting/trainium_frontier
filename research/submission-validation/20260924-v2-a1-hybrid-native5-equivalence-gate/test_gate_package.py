@@ -413,7 +413,9 @@ class G0FinalizationTests(unittest.TestCase):
                 "research/run-logs/g0/native-gate/rank-3.jsonl",
             })
             G0_FINALIZATION._assert_sealed_file(root, child_log, log_seal)
-            G0_FINALIZATION._revalidate_snapshot(root, artifact_identities)
+            G0_FINALIZATION._final_success_artifact_seal(
+                output, report, artifact_identities, root,
+            )
             result_seal = G0_FINALIZATION._write_exclusive(
                 root, runtime_result, {"complete": True, "artifacts": rows},
             )
@@ -458,6 +460,72 @@ class G0FinalizationTests(unittest.TestCase):
                         G0_FINALIZATION._validate_success_artifact_allowlist(
                             output, report, root,
                         )
+
+    def test_final_seal_rejects_mutation_between_every_subcheck(self):
+        real_revalidate = G0_FINALIZATION._revalidate_snapshot
+        real_bindings = G0_FINALIZATION._validate_success_artifact_bindings
+        for target_kind in ("final.pt", "rank-0.jsonl"):
+            for mutation in ("replacement", "insertion"):
+                for interval in ("after-membership", "after-identities"):
+                    with self.subTest(
+                        target=target_kind, mutation=mutation, interval=interval,
+                    ), tempfile.TemporaryDirectory() as tmp:
+                        root = Path(tmp) / "trusted"
+                        root.mkdir()
+                        output = root / "out" / "g0"
+                        report = root / "research" / "run-logs" / "g0" / "native-gate"
+                        G0_FINALIZATION._safe_mkdir(root, output)
+                        G0_FINALIZATION._safe_mkdir(root, report)
+                        (output / "final.pt").write_bytes(b"model-only-checkpoint")
+                        for rank in range(4):
+                            (report / f"rank-{rank}.jsonl").write_text(
+                                '{"kind":"complete"}\n',
+                            )
+                        _, identities = G0_FINALIZATION._artifact_snapshot(
+                            [output / "final.pt", report], root,
+                        )
+                        target = (
+                            output / "final.pt" if target_kind == "final.pt"
+                            else report / "rank-0.jsonl"
+                        )
+                        attacked = False
+
+                        def attack_once():
+                            nonlocal attacked
+                            if attacked:
+                                return
+                            attacked = True
+                            if mutation == "replacement":
+                                replacement = target.parent / ".replacement.tmp"
+                                replacement.write_bytes(target.read_bytes())
+                                os.replace(replacement, target)
+                            else:
+                                (target.parent / "post-seal-extra.bin").write_bytes(b"late")
+
+                        def revalidate_after_attack(*args, **kwargs):
+                            attack_once()
+                            return real_revalidate(*args, **kwargs)
+
+                        def bindings_after_attack(*args, **kwargs):
+                            attack_once()
+                            return real_bindings(*args, **kwargs)
+
+                        patched_name = (
+                            "_revalidate_snapshot" if interval == "after-membership"
+                            else "_validate_success_artifact_bindings"
+                        )
+                        patched_call = (
+                            revalidate_after_attack if interval == "after-membership"
+                            else bindings_after_attack
+                        )
+                        with mock.patch.object(
+                            G0_FINALIZATION, patched_name, side_effect=patched_call,
+                        ):
+                            with self.assertRaises(G0_FINALIZATION.ContractError):
+                                G0_FINALIZATION._final_success_artifact_seal(
+                                    output, report, identities, root,
+                                )
+                        self.assertTrue(attacked)
 
     def test_verifier_report_parent_symlink_attack_is_rejected(self):
         label = "fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1"
