@@ -81,6 +81,13 @@ This section supersedes earlier Track-A readiness and host-control statements be
   It requires a new proposal, independent implementation/verification, equivalence and causality
   gates, native NKI/eager equality, and same-host throughput/BPB comparison; it is not currently
   hardware-authorized.
+- Track B1 (`LNC1`, world size 8) is blocked and is not a one-factor topology arm on exact 35c9.
+  Pack32 makes one world microbatch 262,144 tokens, exceeding and failing divisibility against the
+  131,072-token total batch, while the ownership adapter explicitly requires world size 4.
+  Changing pack or total batch would confound topology; all exact LNC1 kernel, ownership,
+  collective, HBM, checkpoint, and fresh-cache gates also remain unauthenticated. Historical LNC1
+  evidence is unfavorable. Do not propose B1 until A1 works and a separately matched pack16
+  topology contract clears the documented component gates.
 - The paused A2 scaffold is unauthorized and must not run: it has the same RMSProp/ownership
   blocker. Track B2 sparse touched-row work also remains rejected before hardware. The best
   confirmed submission candidate therefore remains the review-clean MATRIX_LR 0.015 dense file,
