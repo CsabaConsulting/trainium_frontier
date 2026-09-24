@@ -1,0 +1,303 @@
+{
+  "appended_argv": [
+    "--device-type",
+    "cpu",
+    "--no-compile",
+    "--num-steps",
+    "1",
+    "--out-dir",
+    "/tmp/g2-cuzet0ck/out"
+  ],
+  "argv": [
+    "--n-embd",
+    "1024",
+    "--no-ngram-ve",
+    "--no-qk-shift",
+    "--compile-sdpa-direct",
+    "--nki-local-conv",
+    "--bf16-norm-output",
+    "--pack-factor",
+    "32",
+    "--clip-after-reduce",
+    "--seq-len",
+    "1024",
+    "--no-eval-public"
+  ],
+  "elapsed_s": 71.5,
+  "host": "vm",
+  "micro_batch": [
+    2,
+    256
+  ],
+  "nproc": 4,
+  "plan_sha256": "b89d62227c844eb13706fbe81bddfb9b8b7db5fefcd57b4e7d0ea3213dca5031",
+  "prepare": {
+    "dir": "/home/user/trainium-research-context/workflow/tools/stub_prepare",
+    "sha256": "b2ae4d6f7de54aa1b0f5a9cb2c2629c38c86c30178e6516a7b48b8ac004ca1a2",
+    "stub": true
+  },
+  "python": "3.11.15",
+  "ranks": [
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "1",
+        "--out-dir",
+        "/tmp/g2-cuzet0ck/out"
+      ],
+      "checkpoint_check": {
+        "deterministic": true,
+        "logits_shape": [
+          1,
+          256,
+          8192
+        ],
+        "ok": true,
+        "path_exists": true
+      },
+      "cross_rank_mismatches": [],
+      "losses": [
+        9.010494232177734
+      ],
+      "n_changed": 62,
+      "n_params": 62,
+      "plan_sha256": "b89d62227c844eb13706fbe81bddfb9b8b7db5fefcd57b4e7d0ea3213dca5031",
+      "plan_summary": {
+        "elements_by_owner": [
+          27265796,
+          30414851,
+          30412805,
+          29360128
+        ],
+        "estimated_ms_by_owner": [
+          12.947406063447303,
+          12.939731226905751,
+          12.948754427971444,
+          12.947727783333331
+        ],
+        "shard_elements": 30414976,
+        "total_padded_bytes": 486639616
+      },
+      "rank": 0,
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 2x256 tokens"
+      ],
+      "status": "PASS",
+      "tables": [],
+      "torch": "2.14.0+cu130",
+      "unchanged_params": [],
+      "unchanged_tables": []
+    },
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "1",
+        "--out-dir",
+        "/tmp/g2-cuzet0ck/out"
+      ],
+      "cross_rank_mismatches": [],
+      "losses": [
+        9.013444900512695
+      ],
+      "n_changed": 62,
+      "n_params": 62,
+      "plan_sha256": "b89d62227c844eb13706fbe81bddfb9b8b7db5fefcd57b4e7d0ea3213dca5031",
+      "plan_summary": {
+        "elements_by_owner": [
+          27265796,
+          30414851,
+          30412805,
+          29360128
+        ],
+        "estimated_ms_by_owner": [
+          12.947406063447303,
+          12.939731226905751,
+          12.948754427971444,
+          12.947727783333331
+        ],
+        "shard_elements": 30414976,
+        "total_padded_bytes": 486639616
+      },
+      "rank": 1,
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 2x256 tokens"
+      ],
+      "status": "PASS",
+      "tables": [],
+      "torch": "2.14.0+cu130",
+      "unchanged_params": [],
+      "unchanged_tables": []
+    },
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "1",
+        "--out-dir",
+        "/tmp/g2-cuzet0ck/out"
+      ],
+      "cross_rank_mismatches": [],
+      "losses": [
+        9.010927200317383
+      ],
+      "n_changed": 62,
+      "n_params": 62,
+      "plan_sha256": "b89d62227c844eb13706fbe81bddfb9b8b7db5fefcd57b4e7d0ea3213dca5031",
+      "plan_summary": {
+        "elements_by_owner": [
+          27265796,
+          30414851,
+          30412805,
+          29360128
+        ],
+        "estimated_ms_by_owner": [
+          12.947406063447303,
+          12.939731226905751,
+          12.948754427971444,
+          12.947727783333331
+        ],
+        "shard_elements": 30414976,
+        "total_padded_bytes": 486639616
+      },
+      "rank": 2,
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 2x256 tokens"
+      ],
+      "status": "PASS",
+      "tables": [],
+      "torch": "2.14.0+cu130",
+      "unchanged_params": [],
+      "unchanged_tables": []
+    },
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "1",
+        "--out-dir",
+        "/tmp/g2-cuzet0ck/out"
+      ],
+      "cross_rank_mismatches": [],
+      "losses": [
+        9.011689186096191
+      ],
+      "n_changed": 62,
+      "n_params": 62,
+      "plan_sha256": "b89d62227c844eb13706fbe81bddfb9b8b7db5fefcd57b4e7d0ea3213dca5031",
+      "plan_summary": {
+        "elements_by_owner": [
+          27265796,
+          30414851,
+          30412805,
+          29360128
+        ],
+        "estimated_ms_by_owner": [
+          12.947406063447303,
+          12.939731226905751,
+          12.948754427971444,
+          12.947727783333331
+        ],
+        "shard_elements": 30414976,
+        "total_padded_bytes": 486639616
+      },
+      "rank": 3,
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 2x256 tokens"
+      ],
+      "status": "PASS",
+      "tables": [],
+      "torch": "2.14.0+cu130",
+      "unchanged_params": [],
+      "unchanged_tables": []
+    }
+  ],
+  "reason": "all ranks completed the real training loop consistently",
+  "schema": "g2-preflight-v1",
+  "shims": [
+    "compute_dtype_for -> torch.bfloat16",
+    "module `time` -> deterministic fake clock (1 ms per call)",
+    "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+    "GPT.forward training micro-batch sliced to 2x256 tokens"
+  ],
+  "steps": 1,
+  "timed_out": false,
+  "torch": "2.14.0+cu130",
+  "torchrun_log_tail": [
+    "[W924 12:07:36.447419706 socket.cpp:764] [c10d] The client socket cannot be initialized to connect to [localhost]:39849 (errno: 97 - Address family not supported by protocol).",
+    "[W924 12:07:37.810577699 socket.cpp:764] [c10d] The client socket cannot be initialized to connect to [localhost]:38633 (errno: 97 - Address family not supported by protocol).",
+    "[W924 12:07:39.676613661 socket.cpp:764] [c10d] The client socket cannot be initialized to connect to [localhost]:38633 (errno: 97 - Address family not supported by protocol).",
+    "[W924 12:07:39.704890557 socket.cpp:764] [c10d] The client socket cannot be initialized to connect to [localhost]:38633 (errno: 97 - Address family not supported by protocol).",
+    "[W924 12:07:39.773607353 socket.cpp:764] [c10d] The client socket cannot be initialized to connect to [localhost]:38633 (errno: 97 - Address family not supported by protocol).",
+    "[W924 12:07:39.823578054 socket.cpp:764] [c10d] The client socket cannot be initialized to connect to [localhost]:38633 (errno: 97 - Address family not supported by protocol).",
+    "device=cpu dtype=torch.bfloat16 world_size=4",
+    "training target=1 steps max_seconds=1800 official_budget=1800s",
+    "gradient_clip=1 clip_after_reduce=True",
+    "model_config={",
+    "  \"sequence_len\": 1024,",
+    "  \"vocab_size\": 8192,",
+    "  \"n_layer\": 6,",
+    "  \"n_head\": 8,",
+    "  \"n_embd\": 1024,",
+    "  \"mlp_ratio\": 4,",
+    "  \"attn_scale\": 0.0,",
+    "  \"n_kv_heads\": 0",
+    "}",
+    "num_params=117,453,580 flops_per_token=7.298872e+08",
+    "micro_tokens=131,072 grad_accum_steps=1 pack_factor=32",
+    "muon step: COMPILED body for (3, 8, 32) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 1]",
+    "muon step: COMPILED body for (6, 1024, 1024) (tall=False ns_steps=5 red_dim=-1) [specialisations so far: 2]",
+    "muon step: COMPILED body for (2, 4096, 1024) (tall=True ns_steps=5 red_dim=-1) [specialisations so far: 3]",
+    "/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/venv/lib/python3.11/site-packages/torch/distributed/c10d_logger.py:83: FutureWarning: `torch.distributed.all_gather_into_tensor` is deprecated. Please use `torch.distributed.all_gather_single` instead.",
+    "  return func(*args, **kwargs)",
+    "/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/venv/lib/python3.11/site-packages/torch/distributed/c10d_logger.py:83: FutureWarning: `torch.distributed.all_gather_into_tensor` is deprecated. Please use `torch.distributed.all_gather_single` instead.",
+    "  return func(*args, **kwargs)",
+    "/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/venv/lib/python3.11/site-packages/torch/distributed/c10d_logger.py:83: FutureWarning: `torch.distributed.all_gather_into_tensor` is deprecated. Please use `torch.distributed.all_gather_single` instead.",
+    "  return func(*args, **kwargs)",
+    "/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/venv/lib/python3.11/site-packages/torch/distributed/c10d_logger.py:83: FutureWarning: `torch.distributed.all_gather_into_tensor` is deprecated. Please use `torch.distributed.all_gather_single` instead.",
+    "  return func(*args, **kwargs)",
+    "step 00000 | loss 9.0105 | lrm 1.000 | dt 0.00s | tok/s 131,072,000 | remaining_steps 0 | remaining_time 1800s | epoch 1",
+    "---",
+    "checkpoint_path:    /tmp/g2-cuzet0ck/out/final.pt",
+    "training_seconds:  0.0",
+    "budget_seconds:    1800",
+    "target_steps:      1",
+    "max_train_seconds: 1800",
+    "startup_allowance_est: 0.0",
+    "charged_seconds_est:   0.0",
+    "over_budget:       False",
+    "total_seconds:     0.0",
+    "compiled:          False",
+    "num_steps:         1",
+    "total_tokens_M:    0.1",
+    "world_size:        4",
+    "lnc:               ",
+    "seq_len:           1024",
+    "num_params_M:      117.5"
+  ],
+  "torchrun_rc": 0,
+  "train_py": "/home/user/trainium-research-context/05-train-submission-clean-116188.py",
+  "train_py_sha256": "116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d",
+  "verdict": "PASS"
+}

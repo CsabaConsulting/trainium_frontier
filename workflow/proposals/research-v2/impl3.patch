@@ -1,0 +1,90 @@
+--- a/train.py
++++ b/train.py
+@@ -84,6 +84,43 @@
+         inputs.copy_(cpu_inputs, non_blocking=pin_memory)
+         targets.copy_(cpu_targets, non_blocking=pin_memory)
+         yield (inputs, targets, {'epoch': epoch})
++
++def _read_row_group_batches(path, rg_idx, tokenizer_batch_size, epoch):
++    rg = pq.ParquetFile(path).read_row_group(rg_idx)
++    rows = rg.column('text').to_pylist()
++    for i in range(0, len(rows), tokenizer_batch_size):
++        yield (rows[i:i + tokenizer_batch_size], epoch)
++
++def _document_batches_identity(split, start, step, tokenizer_batch_size, shard_ids=None):
++    """IMPL-3 control: this rank's row groups in their natural order every epoch (same walk as the
++    fresh-tail order uses), so a --fresh-tail-frac arm is compared on the SAME loader implementation."""
++    groups = list(_row_groups_for_split(split, start, step, shard_ids=shard_ids))
++    epoch = 0
++    while True:
++        epoch += 1
++        for path, rg_idx in groups:
++            yield from _read_row_group_batches(path, rg_idx, tokenizer_batch_size, epoch)
++
++def _document_batches_fresh_tail(split, start, step, tokenizer_batch_size, shard_ids=None):
++    """IMPL-3 fresh-tail order. Split this rank's row groups into A (first 1-f) and B (last f) and walk
++    A, A, B, then the full list once per further epoch. A run that ends inside B spends its lowest-LR
++    tail on documents it has never seen instead of replaying the opening documents. Same data, same
++    per-rank partition, different order. Epoch labels: A=1, A=2, B=2, then 3, 4, ...
++    """
++    groups = list(_row_groups_for_split(split, start, step, shard_ids=shard_ids))
++    k = int(round(len(groups) * (1.0 - FRESH_TAIL_FRAC)))
++    head, tail = groups[:k], groups[k:]
++    print(f'fresh tail: rank {start} walks {len(head)} row groups twice, then {len(tail)} unseen ones (frac={FRESH_TAIL_FRAC})', flush=True)
++    if not tail:
++        raise ValueError(f'--fresh-tail-frac {FRESH_TAIL_FRAC} leaves no tail row groups on rank {start} ({len(groups)} groups); raise the fraction')
++    for order, epoch in ((head, 1), (head, 2), (tail, 2)):
++        for path, rg_idx in order:
++            yield from _read_row_group_batches(path, rg_idx, tokenizer_batch_size, epoch)
++    epoch = 2
++    while True:
++        epoch += 1
++        for path, rg_idx in groups:
++            yield from _read_row_group_batches(path, rg_idx, tokenizer_batch_size, epoch)
+ 
+ def _document_batches_epoch_shuffle(split, start, step, tokenizer_batch_size, shard_ids=None):
+     """prepare._document_batches, but the row-group order is reshuffled from epoch 2 onward.
+@@ -190,6 +227,8 @@
+ USE_EPOCH_SHUFFLE = False
+ EPOCH_SHUFFLE_SEED = 1234
+ NGRAM_VE_FREEZE_EPOCH = 0
++FRESH_TAIL_FRAC = 0.0
++REQUEUE_IDENTITY = False
+ USE_VE = True
+ VE_GATE_CHANNELS = 32
+ 
+@@ -3497,6 +3536,8 @@
+     parser.add_argument('--engram-bf16', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_ENGRAM_BF16', '1' if ENGRAM_BF16 else '0') != '0', help="hold Engram's tables in bf16 (halves 67M params of memory and the gather's bandwidth). Same trade as --ngram-ve-bf16.")
+     parser.add_argument('--epoch-shuffle', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_EPOCH_SHUFFLE', '1' if USE_EPOCH_SHUFFLE else '0') != '0', help="reshuffle the row-group order from epoch 2 onward. Epoch 1 keeps prepare's exact order, so this is a no-op for any run that never crosses the epoch boundary. Only matters above ~2195 steps at the locked shape -- see the 2026-09-13 data-wall section of research/trn2-experiment-results.md.")
+     parser.add_argument('--ngram-ve-freeze-epoch', type=int, default=NGRAM_VE_FREEZE_EPOCH, help='IMPL-2: from the first step whose batch comes from loader epoch >= N, stop updating the n-gram tables (their gradients are dropped before the all-reduce; lookups continue). 0 (default) = off, bit-identical. The compiled graph is unchanged, so there is no recompilation.')
++    parser.add_argument('--fresh-tail-frac', type=float, default=FRESH_TAIL_FRAC, help='IMPL-3: walk each rank\'s row groups as A, A, B where B is the last FRAC of them, so the end of a ~1.7-epoch run trains on unseen documents. 0 (default) = off (organizer loader, bit-identical). Uses the in-file requeue loader; compare against --requeue-identity.')
++    parser.add_argument('--requeue-identity', action=argparse.BooleanOptionalAction, default=REQUEUE_IDENTITY, help='IMPL-3 control: the same in-file requeue loader as --fresh-tail-frac, natural row-group order. Default off.')
+     parser.add_argument('--epoch-shuffle-seed', type=int, default=EPOCH_SHUFFLE_SEED, help='seed base for --epoch-shuffle; epoch e is shuffled with seed+e.')
+     parser.add_argument('--x0-gate', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_X0_GATE', '1' if USE_X0_GATE else '0') != '0', help="Recursive's input-dependent x0 gate: scale each block's x0 skip by 2*sigmoid(s*mean(x)) with one zero-init learned scalar s per layer. Bit-exact no-op at step 0. Mutually exclusive with USE_SELECTIVE_GATE, which owns the same line of Block.forward.")
+     parser.add_argument('--batch-ramp', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_BATCH_RAMP', '1' if BATCH_RAMP else '0') != '0', help='T2.1: ramp the effective batch size across the run by varying grad_accum_steps on wall-clock-fraction boundaries, holding the micro shape (and therefore every compiled graph) fixed. Off by default.')
+@@ -3687,6 +3728,12 @@
+             raise ValueError('--engram-share-ngram-tables needs --ngram-ve: there are no gathered n-gram rows to share otherwise.')
+     USE_EPOCH_SHUFFLE = args.epoch_shuffle
+     NGRAM_VE_FREEZE_EPOCH = args.ngram_ve_freeze_epoch
++    FRESH_TAIL_FRAC = args.fresh_tail_frac
++    REQUEUE_IDENTITY = args.requeue_identity
++    if not 0.0 <= FRESH_TAIL_FRAC <= 0.5:
++        parser.error('--fresh-tail-frac must be in [0, 0.5]')
++    if sum((bool(FRESH_TAIL_FRAC), REQUEUE_IDENTITY, USE_EPOCH_SHUFFLE)) > 1:
++        parser.error('--fresh-tail-frac, --requeue-identity and --epoch-shuffle are mutually exclusive data orders')
+     if NGRAM_VE_FREEZE_EPOCH < 0:
+         parser.error('--ngram-ve-freeze-epoch must be >= 0 (0 = off)')
+     if NGRAM_VE_FREEZE_EPOCH and args.grad_bucket:
+@@ -3807,6 +3854,12 @@
+     loader_seq_len = PACK_FACTOR * SEQ_LEN
+     if USE_EPOCH_SHUFFLE:
+         train_loader = make_dataloader_requeue(tokenizer, DEVICE_BATCH_SIZE, loader_seq_len, 'train', device, _document_batches_fn=_document_batches_epoch_shuffle)
++    elif FRESH_TAIL_FRAC > 0.0:
++        print0(f'data order: fresh tail, frac={FRESH_TAIL_FRAC}')
++        train_loader = make_dataloader_requeue(tokenizer, DEVICE_BATCH_SIZE, loader_seq_len, 'train', device, _document_batches_fn=_document_batches_fresh_tail)
++    elif REQUEUE_IDENTITY:
++        print0('data order: identity (requeue loader control)')
++        train_loader = make_dataloader_requeue(tokenizer, DEVICE_BATCH_SIZE, loader_seq_len, 'train', device, _document_batches_fn=_document_batches_identity)
+     else:
+         train_loader = make_dataloader(tokenizer, DEVICE_BATCH_SIZE, loader_seq_len, 'train', device)
+ 

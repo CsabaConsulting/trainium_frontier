@@ -1,0 +1,18 @@
+expected |update| = table lr = 0.25980762 (bf16 0.25976562)
+a1m8-impl1-final.pt toggles USE_NGRAM_VE=True layers=-1 mult=8
+  ngram_embeds.b5.weight     dtype=torch.bfloat16 shape=(65536, 128) rows_touched=2024 nonzero=259071 min|nz|=0.00000118 max|nz|=0.25976562 all_equal_lr=False
+  ngram_embeds.t5.weight     dtype=torch.bfloat16 shape=(65536, 128) rows_touched=2016 nonzero=258047 min|nz|=0.00000334 max|nz|=0.25976562 all_equal_lr=False
+a2m8-impl1-final.pt toggles USE_NGRAM_VE=True layers=1,-1 mult=8
+  ngram_embeds.b1.weight     dtype=torch.bfloat16 shape=(65536, 128) rows_touched=2019 nonzero=258428 min|nz|=0.00000022 max|nz|=0.25976562 all_equal_lr=False
+  ngram_embeds.t1.weight     dtype=torch.bfloat16 shape=(65536, 128) rows_touched=2019 nonzero=258431 min|nz|=0.00001401 max|nz|=0.25976562 all_equal_lr=False
+  ngram_embeds.b5.weight     dtype=torch.bfloat16 shape=(65536, 128) rows_touched=2024 nonzero=259072 min|nz|=0.00000343 max|nz|=0.25976562 all_equal_lr=False
+  ngram_embeds.t5.weight     dtype=torch.bfloat16 shape=(65536, 128) rows_touched=2016 nonzero=258047 min|nz|=0.00000516 max|nz|=0.25976562 all_equal_lr=False
+
+distribution of |nonzero| / lr (a2m8-impl1, all four tables pooled):
+  ratio in [1.0, 1.0]: 815 (0.079%)
+  ratio in [0.99, 1.0]: 3962 (0.383%)
+  ratio in [0.5, 0.99]: 902316 (87.266%)
+  ratio in [0.0, 0.5]: 129806 (12.554%)
+  ratio in [1.0001, 9]: 0 (0.000%)
+  interpretation: |update| = lr*|g|/(|g|+eps) with eps=1e-10; sub-lr entries are rows whose averaged
+  gradient component is O(1e-10) or smaller (eps-dominated), not a missed or partial step; none exceed lr.

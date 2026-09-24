@@ -1,0 +1,61 @@
+--- a/train.py
++++ b/train.py
+@@ -189,6 +189,7 @@
+ PACK_FACTOR = 4
+ USE_EPOCH_SHUFFLE = False
+ EPOCH_SHUFFLE_SEED = 1234
++NGRAM_VE_FREEZE_EPOCH = 0
+ USE_VE = True
+ VE_GATE_CHANNELS = 32
+ 
+@@ -3363,6 +3364,7 @@
+     return (lr_mult, mom_mult)
+ 
+ def main() -> None:
++    global NGRAM_VE_FREEZE_EPOCH, FRESH_TAIL_FRAC, REQUEUE_IDENTITY
+     global USE_LOCAL_CONV, LRM_QUANTUM, USE_TENSOR_LR_SCALARS, USE_FOREACH_OPTIM
+     global LOCAL_CONV_KERNEL, TRAIN_LOCAL_CONV, USE_NKI_LOCAL_CONV
+     global USE_VE
+@@ -3494,6 +3496,7 @@
+     parser.add_argument('--engram-share-ngram-tables', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_ENGRAM_SHARE_NGRAM_TABLES', '1' if ENGRAM_SHARE_NGRAM_TABLES else '0') != '0', help="read T3.1's ALREADY-GATHERED n-gram rows instead of Engram's own tables. Isolates the MECHANISM (gate + conv + residual write) from the added capacity: no new gather, no new table parameters, no extra gradient all-reduce. Needs an n-gram table at or before --engram-site.")
+     parser.add_argument('--engram-bf16', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_ENGRAM_BF16', '1' if ENGRAM_BF16 else '0') != '0', help="hold Engram's tables in bf16 (halves 67M params of memory and the gather's bandwidth). Same trade as --ngram-ve-bf16.")
+     parser.add_argument('--epoch-shuffle', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_EPOCH_SHUFFLE', '1' if USE_EPOCH_SHUFFLE else '0') != '0', help="reshuffle the row-group order from epoch 2 onward. Epoch 1 keeps prepare's exact order, so this is a no-op for any run that never crosses the epoch boundary. Only matters above ~2195 steps at the locked shape -- see the 2026-09-13 data-wall section of research/trn2-experiment-results.md.")
++    parser.add_argument('--ngram-ve-freeze-epoch', type=int, default=NGRAM_VE_FREEZE_EPOCH, help='IMPL-2: from the first step whose batch comes from loader epoch >= N, stop updating the n-gram tables (their gradients are dropped before the all-reduce; lookups continue). 0 (default) = off, bit-identical. The compiled graph is unchanged, so there is no recompilation.')
+     parser.add_argument('--epoch-shuffle-seed', type=int, default=EPOCH_SHUFFLE_SEED, help='seed base for --epoch-shuffle; epoch e is shuffled with seed+e.')
+     parser.add_argument('--x0-gate', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_X0_GATE', '1' if USE_X0_GATE else '0') != '0', help="Recursive's input-dependent x0 gate: scale each block's x0 skip by 2*sigmoid(s*mean(x)) with one zero-init learned scalar s per layer. Bit-exact no-op at step 0. Mutually exclusive with USE_SELECTIVE_GATE, which owns the same line of Block.forward.")
+     parser.add_argument('--batch-ramp', action=argparse.BooleanOptionalAction, default=os.environ.get('NEURON_COMPETITION_R1_BATCH_RAMP', '1' if BATCH_RAMP else '0') != '0', help='T2.1: ramp the effective batch size across the run by varying grad_accum_steps on wall-clock-fraction boundaries, holding the micro shape (and therefore every compiled graph) fixed. Off by default.')
+@@ -3683,6 +3686,11 @@
+         if ENGRAM_SHARE_NGRAM_TABLES and (not USE_NGRAM_VE):
+             raise ValueError('--engram-share-ngram-tables needs --ngram-ve: there are no gathered n-gram rows to share otherwise.')
+     USE_EPOCH_SHUFFLE = args.epoch_shuffle
++    NGRAM_VE_FREEZE_EPOCH = args.ngram_ve_freeze_epoch
++    if NGRAM_VE_FREEZE_EPOCH < 0:
++        parser.error('--ngram-ve-freeze-epoch must be >= 0 (0 = off)')
++    if NGRAM_VE_FREEZE_EPOCH and args.grad_bucket:
++        parser.error('--ngram-ve-freeze-epoch cannot drop table gradients from a flat --grad-bucket buffer')
+     EPOCH_SHUFFLE_SEED = args.epoch_shuffle_seed
+     USE_PARALLEL_BLOCK = args.parallel_block
+     PARALLEL_BLOCK_COALESCE = args.parallel_block_coalesce
+@@ -3858,7 +3866,9 @@
+     ema_shadows: list[list[torch.Tensor]] | None = None
+     ema_updates = 0
+     ema_lerp_ws = [1.0 - d for d in WEIGHT_EMA_DECAYS]
++    tables_frozen_logged = False
+     while step < args.num_steps:
++        step_epoch = loader_state['epoch']
+         elapsed = time.monotonic() - budget_started
+         ramp_progress = min(1.0, elapsed / max(1e-06, args.max_train_seconds))
+         grad_accum_now, batch_lr_scale = batch_ramp_grad_accum(ramp_progress, grad_accum_steps)
+@@ -3887,6 +3897,12 @@
+             ((loss * inv_gas_dev if BATCH_RAMP else loss / grad_accum_steps) * LOSS_SCALE).backward()
+             debug_numerics(f'micro{micro_index}_backward', step, last_loss, inspect_tensors=micro_index + 1 == grad_accum_now)
+             x, y, loader_state = fetch()
++        if NGRAM_VE_FREEZE_EPOCH and step_epoch >= NGRAM_VE_FREEZE_EPOCH:
++            for p in orig_model.ngram_embeds.parameters():
++                p.grad = None
++            if not tables_frozen_logged:
++                tables_frozen_logged = True
++                print0(f'ngram_ve: tables frozen from step {step} (loader epoch {step_epoch} >= {NGRAM_VE_FREEZE_EPOCH})', flush=True)
+         skip_step = False
+         unscale_with = LOSS_SCALE
+         if LOSS_SCALE_DYNAMIC:

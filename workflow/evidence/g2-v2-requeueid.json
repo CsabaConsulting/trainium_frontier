@@ -1,0 +1,385 @@
+{
+  "appended_argv": [
+    "--device-type",
+    "cpu",
+    "--no-compile",
+    "--num-steps",
+    "1",
+    "--out-dir",
+    "/tmp/g2-i65gf9m4/out"
+  ],
+  "argv": [
+    "--n-embd",
+    "1024",
+    "--no-ngram-ve",
+    "--no-qk-shift",
+    "--compile-sdpa-direct",
+    "--nki-local-conv",
+    "--bf16-norm-output",
+    "--pack-factor",
+    "32",
+    "--clip-after-reduce",
+    "--seq-len",
+    "1024",
+    "--no-eval-public",
+    "--matrix-lr",
+    "0.015",
+    "--requeue-identity"
+  ],
+  "elapsed_s": 71.5,
+  "host": "vm",
+  "micro_batch": [
+    2,
+    256
+  ],
+  "nproc": 4,
+  "plan_sha256": "b89d62227c844eb13706fbe81bddfb9b8b7db5fefcd57b4e7d0ea3213dca5031",
+  "prepare": {
+    "dir": "/home/user/trainium-research-context/workflow/tools/stub_prepare",
+    "sha256": "b2ae4d6f7de54aa1b0f5a9cb2c2629c38c86c30178e6516a7b48b8ac004ca1a2",
+    "stub": true
+  },
+  "python": "3.11.15",
+  "ranks": [
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "1",
+        "--out-dir",
+        "/tmp/g2-i65gf9m4/out"
+      ],
+      "checkpoint_check": {
+        "deterministic": true,
+        "logits_shape": [
+          1,
+          256,
+          8192
+        ],
+        "ok": true,
+        "path_exists": true
+      },
+      "cross_rank_mismatches": [],
+      "final_digests": {
+        "lm_head.weight": "1ce95b23a9059ebe",
+        "transformer.h.0.attn.c_k.weight": "e2f93eb167400c09",
+        "transformer.h.0.attn.c_proj.weight": "de707607d5fd7764",
+        "transformer.h.0.attn.c_q.weight": "244adba5a45d3d12",
+        "transformer.h.0.attn.c_v.weight": "9226fa52b1370f4c",
+        "transformer.h.0.local_conv.weight": "f3ff8892e3205646",
+        "transformer.h.0.mlp.c_fc.weight": "c828ee9f9944a51b",
+        "transformer.h.0.mlp.c_proj.weight": "c77f6819752faa8b",
+        "transformer.h.0.resid_lambda": "0137724bf78468cb",
+        "transformer.h.0.x0_lambda": "cb9d92c704ae4b7e",
+        "transformer.h.1.attn.c_k.weight": "4e78b9484d02d623",
+        "transformer.h.1.attn.c_proj.weight": "387a110ac27183a5",
+        "transformer.h.1.attn.c_q.weight": "580c8c390ead7fbf",
+        "transformer.h.1.attn.c_v.weight": "2719079c81dbce73",
+        "transformer.h.1.attn.ve_gate.weight": "de750f4b6a530e7a",
+        "transformer.h.1.local_conv.weight": "a74919fa4abfe39f",
+        "transformer.h.1.mlp.c_fc.weight": "778f9815d37f7a7c",
+        "transformer.h.1.mlp.c_proj.weight": "dca8a2b1dc138f38",
+        "transformer.h.1.resid_lambda": "64ff73349c974a67",
+        "transformer.h.1.x0_lambda": "570f26631246b083",
+        "transformer.h.2.attn.c_k.weight": "f126422a1db6f548",
+        "transformer.h.2.attn.c_proj.weight": "49b33675825ca17f",
+        "transformer.h.2.attn.c_q.weight": "097cec2fe56d2038",
+        "transformer.h.2.attn.c_v.weight": "f2e32412e0d2dc02",
+        "transformer.h.2.local_conv.weight": "10b3e1ca908d11bf",
+        "transformer.h.2.mlp.c_fc.weight": "0344a2ddd13eae98",
+        "transformer.h.2.mlp.c_proj.weight": "7fb007cd04ff3572",
+        "transformer.h.2.resid_lambda": "55e4a236360f391f",
+        "transformer.h.2.x0_lambda": "bd769090a0e3fb59",
+        "transformer.h.3.attn.c_k.weight": "a442ac7fd3f7cf7b",
+        "transformer.h.3.attn.c_proj.weight": "a705582cf175e8f1",
+        "transformer.h.3.attn.c_q.weight": "6fefa9c59d981e8e",
+        "transformer.h.3.attn.c_v.weight": "6754e306e0623b07",
+        "transformer.h.3.attn.ve_gate.weight": "b3612641c1526517",
+        "transformer.h.3.local_conv.weight": "3c33a37e8c8f16c5",
+        "transformer.h.3.mlp.c_fc.weight": "4c1aa0e2bac9ea8c",
+        "transformer.h.3.mlp.c_proj.weight": "ededd232f8e4ce6d",
+        "transformer.h.3.resid_lambda": "e3860c56cf0dd333",
+        "transformer.h.3.x0_lambda": "7f7bedda9c507501",
+        "transformer.h.4.attn.c_k.weight": "20ef60aa6d590895",
+        "transformer.h.4.attn.c_proj.weight": "d94747d0b50efe00",
+        "transformer.h.4.attn.c_q.weight": "41c5ce7b6afcf922",
+        "transformer.h.4.attn.c_v.weight": "d312b24887599510",
+        "transformer.h.4.local_conv.weight": "a14af54496d52fa5",
+        "transformer.h.4.mlp.c_fc.weight": "a5872b14a5375bc2",
+        "transformer.h.4.mlp.c_proj.weight": "160c7cca4d28a4a0",
+        "transformer.h.4.resid_lambda": "1bfec9eeafa1c5cb",
+        "transformer.h.4.x0_lambda": "6ee17fbb1d634415",
+        "transformer.h.5.attn.c_k.weight": "29493024f5ceba10",
+        "transformer.h.5.attn.c_proj.weight": "98bf5fe8091c3e9c",
+        "transformer.h.5.attn.c_q.weight": "cf0d9d3a46385564",
+        "transformer.h.5.attn.c_v.weight": "de51f238639032ce",
+        "transformer.h.5.attn.ve_gate.weight": "c743abaa6e5c9bdd",
+        "transformer.h.5.local_conv.weight": "c0fc665cf650a29a",
+        "transformer.h.5.mlp.c_fc.weight": "720f2fa743762329",
+        "transformer.h.5.mlp.c_proj.weight": "3d3fbf6493941992",
+        "transformer.h.5.resid_lambda": "afce205fcaf81157",
+        "transformer.h.5.x0_lambda": "5b3111ae4b7f3193",
+        "transformer.wte.weight": "f9b6f645cf1a71bf",
+        "value_embeds.1.weight": "0d1337bc0ac13954",
+        "value_embeds.3.weight": "ac030ec03e2a9032",
+        "value_embeds.5.weight": "ff60556a3119a8f2"
+      },
+      "losses": [
+        9.010494232177734
+      ],
+      "n_changed": 62,
+      "n_params": 62,
+      "plan_sha256": "b89d62227c844eb13706fbe81bddfb9b8b7db5fefcd57b4e7d0ea3213dca5031",
+      "plan_summary": {
+        "elements_by_owner": [
+          27265796,
+          30414851,
+          30412805,
+          29360128
+        ],
+        "estimated_ms_by_owner": [
+          12.947406063447303,
+          12.939731226905751,
+          12.948754427971444,
+          12.947727783333331
+        ],
+        "shard_elements": 30414976,
+        "total_padded_bytes": 486639616
+      },
+      "rank": 0,
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 2x256 tokens"
+      ],
+      "status": "PASS",
+      "tables": [],
+      "torch": "2.14.0+cu130",
+      "unchanged_params": [],
+      "unchanged_tables": []
+    },
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "1",
+        "--out-dir",
+        "/tmp/g2-i65gf9m4/out"
+      ],
+      "cross_rank_mismatches": [],
+      "losses": [
+        9.013444900512695
+      ],
+      "n_changed": 62,
+      "n_params": 62,
+      "plan_sha256": "b89d62227c844eb13706fbe81bddfb9b8b7db5fefcd57b4e7d0ea3213dca5031",
+      "plan_summary": {
+        "elements_by_owner": [
+          27265796,
+          30414851,
+          30412805,
+          29360128
+        ],
+        "estimated_ms_by_owner": [
+          12.947406063447303,
+          12.939731226905751,
+          12.948754427971444,
+          12.947727783333331
+        ],
+        "shard_elements": 30414976,
+        "total_padded_bytes": 486639616
+      },
+      "rank": 1,
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 2x256 tokens"
+      ],
+      "status": "PASS",
+      "tables": [],
+      "torch": "2.14.0+cu130",
+      "unchanged_params": [],
+      "unchanged_tables": []
+    },
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "1",
+        "--out-dir",
+        "/tmp/g2-i65gf9m4/out"
+      ],
+      "cross_rank_mismatches": [],
+      "losses": [
+        9.010927200317383
+      ],
+      "n_changed": 62,
+      "n_params": 62,
+      "plan_sha256": "b89d62227c844eb13706fbe81bddfb9b8b7db5fefcd57b4e7d0ea3213dca5031",
+      "plan_summary": {
+        "elements_by_owner": [
+          27265796,
+          30414851,
+          30412805,
+          29360128
+        ],
+        "estimated_ms_by_owner": [
+          12.947406063447303,
+          12.939731226905751,
+          12.948754427971444,
+          12.947727783333331
+        ],
+        "shard_elements": 30414976,
+        "total_padded_bytes": 486639616
+      },
+      "rank": 2,
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 2x256 tokens"
+      ],
+      "status": "PASS",
+      "tables": [],
+      "torch": "2.14.0+cu130",
+      "unchanged_params": [],
+      "unchanged_tables": []
+    },
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "1",
+        "--out-dir",
+        "/tmp/g2-i65gf9m4/out"
+      ],
+      "cross_rank_mismatches": [],
+      "losses": [
+        9.011689186096191
+      ],
+      "n_changed": 62,
+      "n_params": 62,
+      "plan_sha256": "b89d62227c844eb13706fbe81bddfb9b8b7db5fefcd57b4e7d0ea3213dca5031",
+      "plan_summary": {
+        "elements_by_owner": [
+          27265796,
+          30414851,
+          30412805,
+          29360128
+        ],
+        "estimated_ms_by_owner": [
+          12.947406063447303,
+          12.939731226905751,
+          12.948754427971444,
+          12.947727783333331
+        ],
+        "shard_elements": 30414976,
+        "total_padded_bytes": 486639616
+      },
+      "rank": 3,
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 2x256 tokens"
+      ],
+      "status": "PASS",
+      "tables": [],
+      "torch": "2.14.0+cu130",
+      "unchanged_params": [],
+      "unchanged_tables": []
+    }
+  ],
+  "reason": "all ranks completed the real training loop consistently",
+  "schema": "g2-preflight-v1",
+  "shims": [
+    "compute_dtype_for -> torch.bfloat16",
+    "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+    "module `time` -> deterministic fake clock (1 ms per call)",
+    "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+    "GPT.forward training micro-batch sliced to 2x256 tokens"
+  ],
+  "steps": 1,
+  "timed_out": false,
+  "torch": "2.14.0+cu130",
+  "torchrun_log_tail": [
+    "  \"n_embd\": 1024,",
+    "  \"mlp_ratio\": 4,",
+    "  \"attn_scale\": 0.0,",
+    "  \"n_kv_heads\": 0",
+    "}",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 1, \"elements_by_owner\": [27265796, 30414851, 30412805, 29360128], \"estimated_ms_by_owner\": [12.947406063447303, 12.939731226905751, 12.948754427971444, 12.947727783333331], \"shard_elements\": 30414976, \"total_padded_bytes\": 486639616}",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}",
+    "num_params=117,453,580 flops_per_token=7.298872e+08",
+    "micro_tokens=131,072 grad_accum_steps=1 pack_factor=32",
+    "data order: identity (requeue loader control)",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 3, \"elements_by_owner\": [27265796, 30414851, 30412805, 29360128], \"estimated_ms_by_owner\": [12.947406063447303, 12.939731226905751, 12.948754427971444, 12.947727783333331], \"shard_elements\": 30414976, \"total_padded_bytes\": 486639616}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 2, \"elements_by_owner\": [27265796, 30414851, 30412805, 29360128], \"estimated_ms_by_owner\": [12.947406063447303, 12.939731226905751, 12.948754427971444, 12.947727783333331], \"shard_elements\": 30414976, \"total_padded_bytes\": 486639616}",
+    "SUBMISSION_OPTIMIZER_INTEGRATION {\"owner_partitioning\": true, \"rank\": 0, \"elements_by_owner\": [27265796, 30414851, 30412805, 29360128], \"estimated_ms_by_owner\": [12.947406063447303, 12.939731226905751, 12.948754427971444, 12.947727783333331], \"shard_elements\": 30414976, \"total_padded_bytes\": 486639616}",
+    "muon step: COMPILED body for (3, 8, 32) (tall=False ns_steps=5 red_dim=-2) [specialisations so far: 1]",
+    "muon step: COMPILED body for (6, 1024, 1024) (tall=False ns_steps=5 red_dim=-1) [specialisations so far: 2]",
+    "muon step: COMPILED body for (2, 4096, 1024) (tall=True ns_steps=5 red_dim=-1) [specialisations so far: 3]",
+    "/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/venv/lib/python3.11/site-packages/torch/distributed/c10d_logger.py:83: FutureWarning: `torch.distributed.all_gather_into_tensor` is deprecated. Please use `torch.distributed.all_gather_single` instead.",
+    "  return func(*args, **kwargs)",
+    "/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/venv/lib/python3.11/site-packages/torch/distributed/c10d_logger.py:83: FutureWarning: `torch.distributed.all_gather_into_tensor` is deprecated. Please use `torch.distributed.all_gather_single` instead.",
+    "  return func(*args, **kwargs)",
+    "/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/venv/lib/python3.11/site-packages/torch/distributed/c10d_logger.py:83: FutureWarning: `torch.distributed.all_gather_into_tensor` is deprecated. Please use `torch.distributed.all_gather_single` instead.",
+    "  return func(*args, **kwargs)",
+    "/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/venv/lib/python3.11/site-packages/torch/distributed/c10d_logger.py:83: FutureWarning: `torch.distributed.all_gather_into_tensor` is deprecated. Please use `torch.distributed.all_gather_single` instead.",
+    "  return func(*args, **kwargs)",
+    "step 00000 | loss 9.0105 | lrm 1.000 | dt 0.00s | tok/s 131,072,000 | remaining_steps 0 | remaining_time 1800s | epoch 1",
+    "---",
+    "checkpoint_path:    /tmp/g2-i65gf9m4/out/final.pt",
+    "training_seconds:  0.0",
+    "budget_seconds:    1800",
+    "target_steps:      1",
+    "max_train_seconds: 1800",
+    "startup_allowance_est: 0.0",
+    "charged_seconds_est:   0.0",
+    "over_budget:       False",
+    "total_seconds:     0.0",
+    "compiled:          False",
+    "nki_relu2:         False",
+    "nki_rope_norm:     True",
+    "nki_softcap_ce:    True",
+    "transposed_linear: False",
+    "nki_muon:          False",
+    "compile_muon:      True",
+    "muon_lr_fp32:      False",
+    "ngram_ve:          False tables=0 rows=1048576 dim=128 index_gather=True trigram=True opt=rmsprop flat_lr=True bf16=True rms_fp32_state_math=False nki_rms=False",
+    "out_bigram:        False bf16=True gate_bias=-2.0 lr=0.0",
+    "oneliners:         relu2_tau=0.0 mlp_sandwich=False head_gate=False hg_norm=True hg_ch=32 hg_mul=2.0 hg_bias=0.0 out_pool=False pool_layers=3 qk_shift=False qk_beta=0.0 qk_freeze=True x0_gate=False block_nudge=False nudge_site=qk qkv_norm_cse=False parallel_block=False par_coalesce=none epoch_shuffle=False epoch_shuffle_seed=1234",
+    "engram:            False site=-1 orders=2,3 heads=1 tables=0 mult=32 mem_dim=128 e_dim=0 key_dim=0 conv_k=4 share=False bf16=True",
+    "batch_ramp:        False grad_accum=(2, 4, 8) bounds=(0.35, 0.75) lr_exp=0.5 ref_grad_accum=1 last_grad_accum=1",
+    "weight_ema:        False decays=(0.995,) start_frac=0.75 seeded=False updates=0",
+    "sched_tricks:      demon_b1=False demon_final=0.55 demon_ref=0.8 demon_start=-1.0 muon_b2=0.9 muon_b2_final=0.0 depth_lr=1.0->1.0 depth_mom=0.0->0.0 depth_mom_ref=0.95",
+    "num_steps:         1",
+    "total_tokens_M:    0.1",
+    "world_size:        4",
+    "lnc:               ",
+    "seq_len:           1024",
+    "num_params_M:      117.5",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}"
+  ],
+  "torchrun_rc": 0,
+  "train_py": "/home/user/trainium-research-context/workflow/proposals/research-v2/train.py",
+  "train_py_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
+  "verdict": "PASS"
+}

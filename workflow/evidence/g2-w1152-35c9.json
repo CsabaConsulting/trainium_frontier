@@ -1,0 +1,233 @@
+{
+  "appended_argv": [
+    "--device-type",
+    "cpu",
+    "--no-compile",
+    "--num-steps",
+    "1",
+    "--out-dir",
+    "/tmp/g2-0h_q_0c4/out"
+  ],
+  "argv": [
+    "--n-embd",
+    "1152",
+    "--no-ngram-ve",
+    "--no-qk-shift",
+    "--compile-sdpa-direct",
+    "--nki-local-conv",
+    "--bf16-norm-output",
+    "--pack-factor",
+    "32",
+    "--clip-after-reduce",
+    "--seq-len",
+    "1024",
+    "--no-eval-public",
+    "--matrix-lr",
+    "0.015"
+  ],
+  "elapsed_s": 8.8,
+  "host": "vm",
+  "micro_batch": [
+    2,
+    256
+  ],
+  "nproc": 4,
+  "plan_sha256": null,
+  "prepare": {
+    "dir": "/home/user/trainium-research-context/workflow/tools/stub_prepare",
+    "sha256": "b2ae4d6f7de54aa1b0f5a9cb2c2629c38c86c30178e6516a7b48b8ac004ca1a2",
+    "stub": true
+  },
+  "python": "3.11.15",
+  "ranks": [
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "1",
+        "--out-dir",
+        "/tmp/g2-0h_q_0c4/out"
+      ],
+      "classification": "MLP training adapter SBUF budget assert (width/mlp-ratio too large)",
+      "error": "AssertionError: ",
+      "rank": 0,
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 2x256 tokens"
+      ],
+      "status": "FAIL",
+      "torch": "2.14.0+cu130",
+      "traceback_tail": [
+        "Traceback (most recent call last):\n",
+        "  File \"/home/user/trainium-research-context/workflow/tools/preflight_dryrun.py\", line 352, in worker\n    exec(compile(block, ns.train_py, \"exec\"), mod.__dict__)\n",
+        "  File \"/home/user/trainium-research-context/04-train-research-35c9.py\", line 4779, in <module>\n    main()\n",
+        "  File \"/home/user/trainium-research-context/04-train-research-35c9.py\", line 3759, in main\n    model.init_weights()\n",
+        "  File \"/home/user/trainium-research-context/04-train-research-35c9.py\", line 4760, in initialize\n    _submission_mlp_install(model, 'neuron', module, forward_backend='native')\n",
+        "  File \"/home/user/trainium-research-context/04-train-research-35c9.py\", line 4432, in _submission_mlp_install\n    assert live_bytes + 2 * 1024 ** 2 <= 24 * 1024 ** 2\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+        "AssertionError\n"
+      ],
+      "train_py_frame": {
+        "code": "assert live_bytes + 2 * 1024 ** 2 <= 24 * 1024 ** 2",
+        "function": "_submission_mlp_install",
+        "line": 4432
+      }
+    },
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "1",
+        "--out-dir",
+        "/tmp/g2-0h_q_0c4/out"
+      ],
+      "classification": "MLP training adapter SBUF budget assert (width/mlp-ratio too large)",
+      "error": "AssertionError: ",
+      "rank": 1,
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 2x256 tokens"
+      ],
+      "status": "FAIL",
+      "torch": "2.14.0+cu130",
+      "traceback_tail": [
+        "Traceback (most recent call last):\n",
+        "  File \"/home/user/trainium-research-context/workflow/tools/preflight_dryrun.py\", line 352, in worker\n    exec(compile(block, ns.train_py, \"exec\"), mod.__dict__)\n",
+        "  File \"/home/user/trainium-research-context/04-train-research-35c9.py\", line 4779, in <module>\n    main()\n",
+        "  File \"/home/user/trainium-research-context/04-train-research-35c9.py\", line 3759, in main\n    model.init_weights()\n",
+        "  File \"/home/user/trainium-research-context/04-train-research-35c9.py\", line 4760, in initialize\n    _submission_mlp_install(model, 'neuron', module, forward_backend='native')\n",
+        "  File \"/home/user/trainium-research-context/04-train-research-35c9.py\", line 4432, in _submission_mlp_install\n    assert live_bytes + 2 * 1024 ** 2 <= 24 * 1024 ** 2\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+        "AssertionError\n"
+      ],
+      "train_py_frame": {
+        "code": "assert live_bytes + 2 * 1024 ** 2 <= 24 * 1024 ** 2",
+        "function": "_submission_mlp_install",
+        "line": 4432
+      }
+    },
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "1",
+        "--out-dir",
+        "/tmp/g2-0h_q_0c4/out"
+      ],
+      "classification": "MLP training adapter SBUF budget assert (width/mlp-ratio too large)",
+      "error": "AssertionError: ",
+      "rank": 2,
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 2x256 tokens"
+      ],
+      "status": "FAIL",
+      "torch": "2.14.0+cu130",
+      "traceback_tail": [
+        "Traceback (most recent call last):\n",
+        "  File \"/home/user/trainium-research-context/workflow/tools/preflight_dryrun.py\", line 352, in worker\n    exec(compile(block, ns.train_py, \"exec\"), mod.__dict__)\n",
+        "  File \"/home/user/trainium-research-context/04-train-research-35c9.py\", line 4779, in <module>\n    main()\n",
+        "  File \"/home/user/trainium-research-context/04-train-research-35c9.py\", line 3759, in main\n    model.init_weights()\n",
+        "  File \"/home/user/trainium-research-context/04-train-research-35c9.py\", line 4760, in initialize\n    _submission_mlp_install(model, 'neuron', module, forward_backend='native')\n",
+        "  File \"/home/user/trainium-research-context/04-train-research-35c9.py\", line 4432, in _submission_mlp_install\n    assert live_bytes + 2 * 1024 ** 2 <= 24 * 1024 ** 2\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+        "AssertionError\n"
+      ],
+      "train_py_frame": {
+        "code": "assert live_bytes + 2 * 1024 ** 2 <= 24 * 1024 ** 2",
+        "function": "_submission_mlp_install",
+        "line": 4432
+      }
+    },
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "1",
+        "--out-dir",
+        "/tmp/g2-0h_q_0c4/out"
+      ],
+      "classification": "MLP training adapter SBUF budget assert (width/mlp-ratio too large)",
+      "error": "AssertionError: ",
+      "rank": 3,
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 2x256 tokens"
+      ],
+      "status": "FAIL",
+      "torch": "2.14.0+cu130",
+      "traceback_tail": [
+        "Traceback (most recent call last):\n",
+        "  File \"/home/user/trainium-research-context/workflow/tools/preflight_dryrun.py\", line 352, in worker\n    exec(compile(block, ns.train_py, \"exec\"), mod.__dict__)\n",
+        "  File \"/home/user/trainium-research-context/04-train-research-35c9.py\", line 4779, in <module>\n    main()\n",
+        "  File \"/home/user/trainium-research-context/04-train-research-35c9.py\", line 3759, in main\n    model.init_weights()\n",
+        "  File \"/home/user/trainium-research-context/04-train-research-35c9.py\", line 4760, in initialize\n    _submission_mlp_install(model, 'neuron', module, forward_backend='native')\n",
+        "  File \"/home/user/trainium-research-context/04-train-research-35c9.py\", line 4432, in _submission_mlp_install\n    assert live_bytes + 2 * 1024 ** 2 <= 24 * 1024 ** 2\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+        "AssertionError\n"
+      ],
+      "train_py_frame": {
+        "code": "assert live_bytes + 2 * 1024 ** 2 <= 24 * 1024 ** 2",
+        "function": "_submission_mlp_install",
+        "line": 4432
+      }
+    }
+  ],
+  "reason": "MLP training adapter SBUF budget assert (width/mlp-ratio too large)",
+  "schema": "g2-preflight-v1",
+  "shims": [
+    "compute_dtype_for -> torch.bfloat16",
+    "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+    "module `time` -> deterministic fake clock (1 ms per call)",
+    "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+    "GPT.forward training micro-batch sliced to 2x256 tokens"
+  ],
+  "steps": 1,
+  "timed_out": false,
+  "torch": "2.14.0+cu130",
+  "torchrun_log_tail": [
+    "[W924 11:58:14.255278207 socket.cpp:764] [c10d] The client socket cannot be initialized to connect to [localhost]:42687 (errno: 97 - Address family not supported by protocol).",
+    "[W924 11:58:14.397926918 socket.cpp:764] [c10d] The client socket cannot be initialized to connect to [localhost]:43093 (errno: 97 - Address family not supported by protocol).",
+    "[W924 11:58:18.845275327 socket.cpp:764] [c10d] The client socket cannot be initialized to connect to [localhost]:43093 (errno: 97 - Address family not supported by protocol).",
+    "[W924 11:58:18.850593202 socket.cpp:764] [c10d] The client socket cannot be initialized to connect to [localhost]:43093 (errno: 97 - Address family not supported by protocol).",
+    "[W924 11:58:18.895282082 socket.cpp:764] [c10d] The client socket cannot be initialized to connect to [localhost]:43093 (errno: 97 - Address family not supported by protocol).",
+    "muon step: --compile-muon supersedes --nki-muon (a compiled region cannot contain an nki.jit call); NKI Muon disabled for this run",
+    "[W924 11:58:18.981260546 socket.cpp:764] [c10d] The client socket cannot be initialized to connect to [localhost]:43093 (errno: 97 - Address family not supported by protocol).",
+    "device=cpu dtype=torch.bfloat16 world_size=4",
+    "training target=1 steps max_seconds=1800 official_budget=1800s",
+    "gradient_clip=1 clip_after_reduce=True",
+    "attention: nki_attn=False compile_sdpa_direct=True bf16_sdpa_input=False",
+    "branch_precision: bf16_norm_output=True nki_local_conv=True",
+    "WARNING: --num-steps 1 is below max_train_seconds=1800s and will almost certainly stop training before the time budget (the LR schedule would end without cooldown). For a scored submission leave --num-steps at its default (1000000).",
+    "model_config={",
+    "  \"sequence_len\": 1024,",
+    "  \"vocab_size\": 8192,",
+    "  \"n_layer\": 6,",
+    "  \"n_head\": 9,",
+    "  \"n_embd\": 1152,",
+    "  \"mlp_ratio\": 4,",
+    "  \"attn_scale\": 0.0,",
+    "  \"n_kv_heads\": 0",
+    "}"
+  ],
+  "torchrun_rc": 0,
+  "train_py": "/home/user/trainium-research-context/04-train-research-35c9.py",
+  "train_py_sha256": "35c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2",
+  "verdict": "FAIL"
+}

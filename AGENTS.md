@@ -61,6 +61,19 @@ existing persisted state machine, and identifies `research/agentic/autoloop/sele
 sole advisory screen/confirmation decision engine. It does not create another queue, ledger, or
 source of launch authority.
 
+## Workflow v2 migration (2026-09-25)
+
+The human-approved Phase 0 installation is in `workflow/`; read `workflow/AGENTS.md` and
+`workflow/CODEX_PROMPT.md` before using it. The human now requires fresh-process public-20M selection
+and the exact `workflow/tools/decide.py` decision rules. The earlier
+`research/agentic/autoloop/selection.py` selection/control loop is historical and inactive; never run
+it alongside workflow v2, and never operate dual active launchers.
+
+Installation is not launch authorization. `research/v2/state.json` remains authoritative for the
+workflow-v2 gate state and has `launch_authorized: false` until G1, independent G2 review, native
+gates, and the applicable role/authority checks are complete. All non-negotiable rules and role
+separation in this file remain in force.
+
 ## Definition of done for one experiment
 
 The proposal, commit, exact launch command, environment, box, log, parsed metrics, checkpoint

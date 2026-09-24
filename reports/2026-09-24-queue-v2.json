@@ -1,0 +1,609 @@
+{
+  "schema": "trn-frontier-queue-v2",
+  "written_utc": "2026-09-24T11:35Z",
+  "source_report": "reports/2026-09-24-frontier-research-program.md",
+  "status": "PROPOSED - not launch authorization; every entry still needs its proposal/implementation receipts, the G2 dry-run, and Operator preflight",
+  "base_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015",
+  "base_files": {
+    "35c9": "35c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2",
+    "116188_clean": "116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d",
+    "35c9_plus_IMPL1": "9e5dce344674b8217d8749ca3e2ce8c1961a73a9c10c1c6759f645a62ed66783 (pending Verifier receipt)",
+    "research_v2": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586 (35c9+IMPL-1+IMPL-2+IMPL-3, all default-off; workflow/proposals/research-v2/)",
+    "S0_clean": "ad223cdc9aa339d820b8f66e32ad35e30d3e93437a79d263a1418f7e53e125bb (workflow/candidates/S0/; bare launch)"
+  },
+  "eval": {
+    "fresh_process": true,
+    "seq_len": 1024,
+    "tokens": 20971520,
+    "note": "always 20M for scored runs; 2M only for the one-off calibration job"
+  },
+  "decision_rules": {
+    "version": "v2-2026-09-24",
+    "nominate": {
+      "single_host_delta_max": -0.0006,
+      "step_ratio_window": [
+        0.9,
+        1.1
+      ],
+      "all_correctness_gates": true
+    },
+    "adopt": {
+      "both_hosts_negative": true,
+      "mean_delta_max": -0.001,
+      "max_abs_host_disagreement": 0.0015,
+      "controls": "current pooled same-host, same base bytes",
+      "human_ack_required": true
+    },
+    "discard": {
+      "single_host_delta_min": 0.0005,
+      "two_host_mean_min": -0.0003
+    },
+    "ambiguous_band_replicate_only_for": [
+      "table_arm",
+      "data_order_arm"
+    ],
+    "control_drift_alarm_abs": 0.001,
+    "big_win_hold": {
+      "delta_max": -0.01,
+      "public_20m_below": 0.975
+    },
+    "throughput_arm_gate": {
+      "steps_0_1_bit_identical": true,
+      "first_200_losses_rel_tol": 0.0001,
+      "same_host_step_time_gain_min": 0.02,
+      "then_bpb_run_required": true
+    },
+    "submission_candidate": {
+      "clean_cold_replays": 2,
+      "within_research_mean_abs": 0.0008,
+      "cold_startup_max_s": 840,
+      "independent_audit": true
+    }
+  },
+  "gates_before_hardware": [
+    {
+      "id": "G1",
+      "task": "Read prepare.py: --num-train-shards default, evaluate_bpb seq_len and prefix semantics, startup-cap enforcement; count train shards/row-groups on trn21 and trn22",
+      "blocking": true
+    },
+    {
+      "id": "G2",
+      "task": "4-rank CPU/gloo preflight dry-run of exact argv through _install_submission_training + setup_optimizer + one synthetic step",
+      "blocking": true,
+      "must_reproduce_failures": [
+        "A1/A2 rmsprop+bf16 -> make_plan ValueError",
+        "--relu2-tau 0.5 -> AssertionError",
+        "--n-embd 1152 / --mlp-ratio 5 -> SBUF AssertionError"
+      ],
+      "status": "implemented: workflow/tools/preflight_dryrun.py"
+    },
+    {
+      "id": "IMPL-1",
+      "task": "Table optimizer bypass: OwnedOptimizer over fp32 adamw/muon groups only; rmsprop table groups replicated and stepped after the owned step",
+      "acceptance": [
+        "plan JSON byte-identical with --no-ngram-ve",
+        "50-step lockstep vs 35c9 control, steps 0-1 exact",
+        "gloo: per-rank table sha256 equal after 5 steps and equal to AVG-grad single-process reference",
+        "Neuron 50-step smoke finite with per-rank table hashes equal",
+        "load_for_eval strict load + deterministic logits"
+      ],
+      "status": "drafted+CPU-verified: workflow/proposals/IMPL-1/ (sha256 9e5dce34...); needs Verifier + Neuron smoke"
+    },
+    {
+      "id": "IMPL-2",
+      "task": "Epoch-2 table freeze flag (skip table update and table all-reduce once loader epoch >= 2)",
+      "conditional": true,
+      "status": "implemented in workflow/proposals/research-v2/ (CPU-verified)"
+    },
+    {
+      "id": "IMPL-3",
+      "task": "Fresh-tail data order: per-rank row groups A(1-f), A, B(f); default f=0.25; with identity-order control on the same loader",
+      "acceptance": [
+        "first-N batch hashes of identity order equal prepare.make_dataloader",
+        "no val shard",
+        "token accounting logged"
+      ],
+      "status": "implemented in workflow/proposals/research-v2/ (CPU-verified)"
+    }
+  ],
+  "queue": [
+    {
+      "pri": 1,
+      "id": "A0",
+      "label_template": "20260924-A0-ctrl35c9-{host}-r{n}",
+      "kind": "control",
+      "base": "35c9",
+      "argv_delta": [],
+      "hosts": [
+        "trn21",
+        "trn22"
+      ],
+      "host_hours": 1.0,
+      "notes": ">=2 pooled per host per base; refresh after 8 runs or 12 h"
+    },
+    {
+      "pri": 2,
+      "id": "A2",
+      "label_template": "20260924-A2-ngram-l1m1-m64d128-{host}-r{n}",
+      "kind": "table_arm",
+      "base": "35c9_plus_IMPL1",
+      "argv_delta": {
+        "replace": "--no-ngram-ve",
+        "with": [
+          "--ngram-ve",
+          "--ngram-ve-layers",
+          "1,-1",
+          "--ngram-ve-table-mult",
+          "64",
+          "--ngram-ve-dim",
+          "128",
+          "--ngram-ve-trigram",
+          "--ngram-ve-opt",
+          "rmsprop",
+          "--ngram-ve-flat-lr",
+          "--ngram-ve-bf16",
+          "--ngram-ve-clip-exclude"
+        ]
+      },
+      "screen_host": "trn22",
+      "replicate_host": "trn21",
+      "expected_delta": -0.008,
+      "interval80": [
+        -0.017,
+        0.003
+      ],
+      "p_improve": 0.6,
+      "host_hours": 2.0,
+      "depends": [
+        "IMPL-1",
+        "G2",
+        "A0"
+      ]
+    },
+    {
+      "pri": 3,
+      "id": "A1",
+      "label_template": "20260924-A1-ngram-lm1-m64d128-{host}-r{n}",
+      "kind": "table_arm",
+      "base": "35c9_plus_IMPL1",
+      "argv_delta": {
+        "replace": "--no-ngram-ve",
+        "with": [
+          "--ngram-ve",
+          "--ngram-ve-layers=-1",
+          "--ngram-ve-table-mult",
+          "64",
+          "--ngram-ve-dim",
+          "128",
+          "--ngram-ve-trigram",
+          "--ngram-ve-opt",
+          "rmsprop",
+          "--ngram-ve-flat-lr",
+          "--ngram-ve-bf16",
+          "--ngram-ve-clip-exclude"
+        ]
+      },
+      "screen_host": "trn21",
+      "replicate_host": "trn22",
+      "expected_delta": -0.005,
+      "interval80": [
+        -0.013,
+        0.003
+      ],
+      "p_improve": 0.6,
+      "host_hours": 2.0,
+      "depends": [
+        "IMPL-1",
+        "G2",
+        "A0"
+      ]
+    },
+    {
+      "pri": 4,
+      "id": "D1",
+      "label_template": "20260924-D1-epochvalue-{host}-r1",
+      "kind": "diagnostic",
+      "base": "35c9",
+      "argv_delta": [
+        "--max-train-seconds",
+        "T_e (charged seconds at first 'epoch 2' log line of the same-host control)"
+      ],
+      "host_hours": 0.7,
+      "reads": "BPB(1 epoch) - BPB(1.7 epochs): <0.004 demote throughput/B2-speed; >0.010 promote them"
+    },
+    {
+      "pri": 5,
+      "id": "FT",
+      "label_template": "20260925-FT-freshtail025-{host}-r{n}",
+      "kind": "data_order_arm",
+      "base": "35c9_plus_IMPL3",
+      "argv_delta": [
+        "--fresh-tail-frac",
+        "0.25"
+      ],
+      "control": "identity-order control on the same loader",
+      "expected_delta": -0.002,
+      "interval80": [
+        -0.006,
+        0.002
+      ],
+      "p_improve": 0.45,
+      "host_hours": 3.0,
+      "depends": [
+        "IMPL-3",
+        "G2"
+      ]
+    },
+    {
+      "pri": 6,
+      "id": "A2f",
+      "kind": "table_arm",
+      "base": "35c9_plus_IMPL1_IMPL2",
+      "argv_delta": [
+        "<best table arm flags>",
+        "--ngram-ve-freeze-epoch",
+        "2"
+      ],
+      "expected_delta_vs_unfrozen": -0.002,
+      "interval80": [
+        -0.006,
+        0.003
+      ],
+      "p_improve": 0.45,
+      "host_hours": 2.0,
+      "conditional_on": "table arm result or epoch-boundary train-loss drop"
+    },
+    {
+      "pri": 7,
+      "id": "B2",
+      "kind": "throughput_arm",
+      "base": "adopted table base + touched-row update (static-shape all_gather, catch-up-decay lazy RMSProp)",
+      "gate": "B2-X 200-step exactness vs IMPL-1 dense path on same host, then B2-F full run",
+      "expected_delta": -0.0025,
+      "interval80": [
+        -0.005,
+        0.001
+      ],
+      "p_improve": 0.55,
+      "host_hours": 1.5,
+      "depends": [
+        "table adoption",
+        "native probe receipt"
+      ]
+    },
+    {
+      "pri": 8,
+      "id": "A3",
+      "kind": "table_arm",
+      "argv_delta": [
+        "--ngram-ve-layers",
+        "1,3,5"
+      ],
+      "base": "B2",
+      "expected_delta_vs_base": -0.003,
+      "interval80": [
+        -0.008,
+        0.003
+      ],
+      "p_improve": 0.5,
+      "host_hours": 2.0,
+      "depends": [
+        "B2"
+      ]
+    },
+    {
+      "pri": 9,
+      "id": "A4",
+      "kind": "table_arm",
+      "argv_delta": [
+        "--ngram-ve-table-mult",
+        "128"
+      ],
+      "base": "B2",
+      "expected_delta_vs_base": -0.002,
+      "interval80": [
+        -0.006,
+        0.002
+      ],
+      "p_improve": 0.45,
+      "host_hours": 2.0,
+      "depends": [
+        "B2"
+      ],
+      "abort": "cold startup > 840 s"
+    },
+    {
+      "pri": 9.5,
+      "id": "A-eps",
+      "kind": "table_arm",
+      "base": "adopted table base",
+      "change": "table RMSProp eps 1e-10 -> 1e-15 (one constant behind a flag; needs code)",
+      "trigger": "Neuron smoke shows median |table grad| over touched rows <= ~1e-10 (CPU trace at 2,048 tokens/step: ~6e-10; real 131,072-token steps expected ~64x smaller for rare rows)",
+      "expected_delta": -0.002,
+      "interval80": [
+        -0.006,
+        0.002
+      ],
+      "p_improve": 0.4,
+      "host_hours": 2.0,
+      "depends": [
+        "table adoption",
+        "Neuron smoke grad stats"
+      ]
+    },
+    {
+      "pri": 10,
+      "id": "F1",
+      "kind": "flag_arm",
+      "base": "35c9",
+      "argv_delta": {
+        "replace": "--matrix-lr 0.015",
+        "with": [
+          "--matrix-lr",
+          "0.0175"
+        ]
+      },
+      "expected_delta": -0.0003,
+      "p_improve": 0.35,
+      "host_hours": 1.0
+    },
+    {
+      "pri": 10,
+      "id": "F2",
+      "kind": "flag_arm",
+      "base": "35c9",
+      "argv_delta": {
+        "replace": "--matrix-lr 0.015",
+        "with": [
+          "--matrix-lr",
+          "0.0125"
+        ]
+      },
+      "expected_delta": -0.0003,
+      "p_improve": 0.3,
+      "host_hours": 1.0
+    },
+    {
+      "pri": 11,
+      "id": "F3",
+      "kind": "flag_arm",
+      "base": "35c9",
+      "argv_delta": [
+        "--warmdown-ratio",
+        "0.85"
+      ],
+      "expected_delta": -0.0005,
+      "p_improve": 0.4,
+      "host_hours": 1.0,
+      "follow_up_if_positive": [
+        "--warmdown-ratio",
+        "0.9"
+      ]
+    },
+    {
+      "pri": 12,
+      "id": "F5",
+      "kind": "flag_arm",
+      "base": "35c9",
+      "argv_delta": [
+        "--embedding-lr",
+        "0.45"
+      ],
+      "expected_delta": -0.0004,
+      "p_improve": 0.4,
+      "host_hours": 1.0,
+      "follow_up_if_positive": [
+        "--embedding-lr",
+        "0.6"
+      ]
+    },
+    {
+      "pri": 13,
+      "id": "F6",
+      "kind": "flag_arm",
+      "base": "35c9",
+      "argv_delta": [
+        "--mlp-sandwich-norm"
+      ],
+      "expected_delta": -0.001,
+      "interval80": [
+        -0.004,
+        0.002
+      ],
+      "p_improve": 0.4,
+      "host_hours": 1.0
+    },
+    {
+      "pri": 14,
+      "id": "F7",
+      "kind": "flag_arm",
+      "base": "35c9",
+      "argv_delta": [
+        "--weight-decay",
+        "0.35"
+      ],
+      "expected_delta": -0.0005,
+      "p_improve": 0.35,
+      "host_hours": 1.0
+    },
+    {
+      "pri": 15,
+      "id": "F8",
+      "kind": "flag_arm",
+      "base": "35c9",
+      "argv_delta": [
+        "--final-lr-frac",
+        "0.0"
+      ],
+      "expected_delta": -0.0003,
+      "p_improve": 0.35,
+      "host_hours": 1.0
+    },
+    {
+      "pri": 16,
+      "id": "D2",
+      "kind": "diagnostic",
+      "base": "35c9",
+      "task": "neuron-profile 20 steady-state steps + host fetch()/sync timing",
+      "host_hours": 0.5
+    },
+    {
+      "pri": 17,
+      "id": "F9",
+      "kind": "flag_arm",
+      "base": "35c9",
+      "argv_delta": [
+        "--epoch-shuffle"
+      ],
+      "precondition": "epoch-1 batch identity vs prepare.make_dataloader verified",
+      "expected_delta": 0.0,
+      "p_improve": 0.35,
+      "host_hours": 1.0
+    },
+    {
+      "pri": 18,
+      "id": "F10",
+      "kind": "flag_arm",
+      "base": "35c9",
+      "argv_delta": [
+        "--head-gate",
+        "--head-gate-norm"
+      ],
+      "idle_fill_only": true,
+      "p_improve": 0.2,
+      "host_hours": 1.0
+    },
+    {
+      "pri": 18,
+      "id": "F11",
+      "kind": "flag_arm",
+      "base": "35c9",
+      "argv_delta": [
+        "--x0-gate"
+      ],
+      "idle_fill_only": true,
+      "p_improve": 0.25,
+      "host_hours": 1.0
+    },
+    {
+      "pri": 18,
+      "id": "F12",
+      "kind": "flag_arm",
+      "base": "35c9",
+      "argv_delta": [
+        "--out-pool"
+      ],
+      "idle_fill_only": true,
+      "p_improve": 0.25,
+      "host_hours": 1.0
+    },
+    {
+      "pri": 19,
+      "id": "SC-1",
+      "kind": "stack_confirmation",
+      "declared_interaction": "tables shift optimal capacity toward depth",
+      "argv_delta": [
+        "--depth",
+        "8",
+        "--n-embd",
+        "768",
+        "<adopted table + flag set>"
+      ],
+      "p_improve": 0.35,
+      "host_hours": 2.0,
+      "depends": [
+        "table adoption"
+      ]
+    }
+  ],
+  "submission_track": [
+    {
+      "id": "S0",
+      "content": "R1 = numerics-identical cleanup of 116188 (see report section 7.4)",
+      "gates": [
+        "static JSON identity",
+        "init hash identity",
+        "100-step lockstep",
+        "2 cold replays within +-0.0008 of 0.99195",
+        "cold startup <= 840 s",
+        "independent audit"
+      ],
+      "earliest_ist": "2026-09-25T10:00+05:30",
+      "human_only": true
+    },
+    {
+      "id": "S1",
+      "content": "first adopted table stack, clean-ported",
+      "gates": [
+        "two-host adoption",
+        "2 clean cold replays both <= S0 public - 0.004",
+        "audit"
+      ],
+      "earliest_ist": "2026-09-26T18:00+05:30",
+      "human_only": true
+    },
+    {
+      "id": "S2",
+      "content": "best confirmed stack at freeze",
+      "package_by_ist": "2026-09-28T12:00+05:30",
+      "submit_window_ist": [
+        "2026-09-28T18:00+05:30",
+        "2026-09-29T12:00+05:30"
+      ],
+      "hard_deadline_ist": "2026-10-01T12:29+05:30",
+      "human_only": true,
+      "decide_best_stack_by_ist": "2026-09-27T23:00+05:30",
+      "no_new_mechanisms_after_ist": "2026-09-27T12:00+05:30"
+    }
+  ],
+  "parked": [
+    "B1 LNC1/world8",
+    "FP8 (all forms)",
+    "new NKI kernels without profile",
+    "relu2-tau on 35c9",
+    "width 1152 / mlp-ratio 5 on 35c9",
+    "Recursive WD pulses / Demon / momentum+beta2 ramps / TTTL / whole-model BF16",
+    "2M screening",
+    "300-step or 900-s quality smokes",
+    "old 640-stack arms",
+    "engram, out-bigram, MUDD, DCMHA, RWKV/Mamba, U-Net skips, weight EMA, batch ramp, byte-loss, byte-WTE, SwiGLU, adam-every-n"
+  ],
+  "status_updates": [
+    {
+      "utc": "2026-09-24T12:50Z",
+      "item": "G2",
+      "status": "IMPLEMENTED and exercised: workflow/tools/preflight_dryrun.py; reproduces the A1/A2/relu2/w1152/mlp5 failures on exact 35c9; passes sandwich/head-gate/x0-gate/out-pool/depth8x768/epoch-shuffle/WD-LR arms and the clean 116188 file (receipts in workflow/evidence/)"
+    },
+    {
+      "utc": "2026-09-24T12:50Z",
+      "item": "IMPL-1",
+      "status": "DRAFTED + CPU-VERIFIED: workflow/proposals/IMPL-1/ (patch -> sha256 9e5dce344674b8217d8749ca3e2ce8c1961a73a9c10c1c6759f645a62ed66783); needs Verifier receipt + Neuron smoke"
+    },
+    {
+      "utc": "2026-09-24T12:50Z",
+      "item": "116188 launch argv",
+      "status": "the clean file rejects --matrix-lr (baked 0.015); its launch argv is the base command WITHOUT --matrix-lr"
+    },
+    {
+      "utc": "2026-09-24T12:50Z",
+      "item": "clean-port equivalence",
+      "status": "116188 is bit-identical to 35c9+dense flags over 3 CPU training steps (workflow/evidence/lockstep3-35c9-vs-116188-base.json); NKI/Neuron paths not exercised on CPU"
+    },
+    {
+      "utc": "2026-09-24T15:00Z",
+      "item": "S0",
+      "status": "built + CPU-proven identical to 116188 (training lockstep and eval logits); needs Neuron lockstep, 2 cold replays, audit"
+    },
+    {
+      "utc": "2026-09-24T15:00Z",
+      "item": "IMPL-2, IMPL-3",
+      "status": "implemented in research-v2 (c5c410af...); T1-T5 CPU proofs pass; needs Verifier + Neuron smoke"
+    },
+    {
+      "utc": "2026-09-24T17:00Z",
+      "item": "timeline",
+      "status": "pulled earlier on request: no new mechanisms after Sep 27 12:00 IST, best stack decided Sep 27 23:00, freeze + S2 package Sep 28 12:00, human submission Sep 28 evening; Sep 29-30 buffer"
+    }
+  ],
+  "workflow": "workflow/AGENTS.md (Codex runbook), workflow/START_HERE.md"
+}

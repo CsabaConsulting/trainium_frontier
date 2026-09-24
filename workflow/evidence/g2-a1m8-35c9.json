@@ -1,0 +1,255 @@
+{
+  "appended_argv": [
+    "--device-type",
+    "cpu",
+    "--no-compile",
+    "--num-steps",
+    "1",
+    "--out-dir",
+    "/tmp/g2-_up2b8uc/out"
+  ],
+  "argv": [
+    "--n-embd",
+    "1024",
+    "--no-qk-shift",
+    "--compile-sdpa-direct",
+    "--nki-local-conv",
+    "--bf16-norm-output",
+    "--pack-factor",
+    "32",
+    "--clip-after-reduce",
+    "--seq-len",
+    "1024",
+    "--no-eval-public",
+    "--matrix-lr",
+    "0.015",
+    "--ngram-ve",
+    "--ngram-ve-layers=-1",
+    "--ngram-ve-table-mult",
+    "8",
+    "--ngram-ve-dim",
+    "128",
+    "--ngram-ve-trigram",
+    "--ngram-ve-opt",
+    "rmsprop",
+    "--ngram-ve-flat-lr",
+    "--ngram-ve-bf16",
+    "--ngram-ve-clip-exclude"
+  ],
+  "elapsed_s": 10.0,
+  "host": "vm",
+  "micro_batch": [
+    2,
+    256
+  ],
+  "nproc": 4,
+  "plan_sha256": null,
+  "prepare": {
+    "dir": "/home/user/trainium-research-context/workflow/tools/stub_prepare",
+    "sha256": "b2ae4d6f7de54aa1b0f5a9cb2c2629c38c86c30178e6516a7b48b8ac004ca1a2",
+    "stub": true
+  },
+  "python": "3.11.15",
+  "ranks": [
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "1",
+        "--out-dir",
+        "/tmp/g2-_up2b8uc/out"
+      ],
+      "classification": "OwnedOptimizer.make_plan rejects a non-adamw/muon group (n-gram tables: needs IMPL-1)",
+      "error": "ValueError: ownership probe is restricted to AdamW and Muon",
+      "rank": 0,
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 2x256 tokens"
+      ],
+      "status": "FAIL",
+      "torch": "2.14.0+cu130",
+      "traceback_tail": [
+        "  File \"/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/impl1/a/train.py\", line 4779, in <module>\n    main()\n",
+        "  File \"/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/impl1/a/train.py\", line 3812, in main\n    optimizer = model.setup_optimizer()\n                ^^^^^^^^^^^^^^^^^^^^^^^\n",
+        "  File \"/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/impl1/a/train.py\", line 4772, in setup_optimizer\n    ownership = _submission_optimizer_install(optimizer, module, pad_singleton_muon=True)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+        "  File \"/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/impl1/a/train.py\", line 4553, in _submission_optimizer_install\n    adapter = OwnedOptimizer(optimizer, pad_singleton_muon=pad_singleton_muon)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+        "  File \"/home/user/trainium-research-context/workflow/tools/preflight_dryrun.py\", line 326, in owned_init\n    orig_init(self, *a, **k)\n",
+        "  File \"/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/impl1/a/train.py\", line 4491, in __init__\n    self.entries, self.parameters, self.summary = make_plan(optimizer.param_groups, self.world_size)\n                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+        "  File \"/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/impl1/a/train.py\", line 4460, in make_plan\n    raise ValueError('ownership probe is restricted to AdamW and Muon')\n",
+        "ValueError: ownership probe is restricted to AdamW and Muon\n"
+      ],
+      "train_py_frame": {
+        "code": "raise ValueError('ownership probe is restricted to AdamW and Muon')",
+        "function": "make_plan",
+        "line": 4460
+      }
+    },
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "1",
+        "--out-dir",
+        "/tmp/g2-_up2b8uc/out"
+      ],
+      "classification": "OwnedOptimizer.make_plan rejects a non-adamw/muon group (n-gram tables: needs IMPL-1)",
+      "error": "ValueError: ownership probe is restricted to AdamW and Muon",
+      "rank": 1,
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 2x256 tokens"
+      ],
+      "status": "FAIL",
+      "torch": "2.14.0+cu130",
+      "traceback_tail": [
+        "  File \"/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/impl1/a/train.py\", line 4779, in <module>\n    main()\n",
+        "  File \"/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/impl1/a/train.py\", line 3812, in main\n    optimizer = model.setup_optimizer()\n                ^^^^^^^^^^^^^^^^^^^^^^^\n",
+        "  File \"/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/impl1/a/train.py\", line 4772, in setup_optimizer\n    ownership = _submission_optimizer_install(optimizer, module, pad_singleton_muon=True)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+        "  File \"/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/impl1/a/train.py\", line 4553, in _submission_optimizer_install\n    adapter = OwnedOptimizer(optimizer, pad_singleton_muon=pad_singleton_muon)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+        "  File \"/home/user/trainium-research-context/workflow/tools/preflight_dryrun.py\", line 326, in owned_init\n    orig_init(self, *a, **k)\n",
+        "  File \"/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/impl1/a/train.py\", line 4491, in __init__\n    self.entries, self.parameters, self.summary = make_plan(optimizer.param_groups, self.world_size)\n                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+        "  File \"/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/impl1/a/train.py\", line 4460, in make_plan\n    raise ValueError('ownership probe is restricted to AdamW and Muon')\n",
+        "ValueError: ownership probe is restricted to AdamW and Muon\n"
+      ],
+      "train_py_frame": {
+        "code": "raise ValueError('ownership probe is restricted to AdamW and Muon')",
+        "function": "make_plan",
+        "line": 4460
+      }
+    },
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "1",
+        "--out-dir",
+        "/tmp/g2-_up2b8uc/out"
+      ],
+      "classification": "OwnedOptimizer.make_plan rejects a non-adamw/muon group (n-gram tables: needs IMPL-1)",
+      "error": "ValueError: ownership probe is restricted to AdamW and Muon",
+      "rank": 2,
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 2x256 tokens"
+      ],
+      "status": "FAIL",
+      "torch": "2.14.0+cu130",
+      "traceback_tail": [
+        "  File \"/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/impl1/a/train.py\", line 4779, in <module>\n    main()\n",
+        "  File \"/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/impl1/a/train.py\", line 3812, in main\n    optimizer = model.setup_optimizer()\n                ^^^^^^^^^^^^^^^^^^^^^^^\n",
+        "  File \"/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/impl1/a/train.py\", line 4772, in setup_optimizer\n    ownership = _submission_optimizer_install(optimizer, module, pad_singleton_muon=True)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+        "  File \"/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/impl1/a/train.py\", line 4553, in _submission_optimizer_install\n    adapter = OwnedOptimizer(optimizer, pad_singleton_muon=pad_singleton_muon)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+        "  File \"/home/user/trainium-research-context/workflow/tools/preflight_dryrun.py\", line 326, in owned_init\n    orig_init(self, *a, **k)\n",
+        "  File \"/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/impl1/a/train.py\", line 4491, in __init__\n    self.entries, self.parameters, self.summary = make_plan(optimizer.param_groups, self.world_size)\n                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+        "  File \"/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/impl1/a/train.py\", line 4460, in make_plan\n    raise ValueError('ownership probe is restricted to AdamW and Muon')\n",
+        "ValueError: ownership probe is restricted to AdamW and Muon\n"
+      ],
+      "train_py_frame": {
+        "code": "raise ValueError('ownership probe is restricted to AdamW and Muon')",
+        "function": "make_plan",
+        "line": 4460
+      }
+    },
+    {
+      "appended_argv": [
+        "--device-type",
+        "cpu",
+        "--no-compile",
+        "--num-steps",
+        "1",
+        "--out-dir",
+        "/tmp/g2-_up2b8uc/out"
+      ],
+      "classification": "OwnedOptimizer.make_plan rejects a non-adamw/muon group (n-gram tables: needs IMPL-1)",
+      "error": "ValueError: ownership probe is restricted to AdamW and Muon",
+      "rank": 3,
+      "shims": [
+        "compute_dtype_for -> torch.bfloat16",
+        "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+        "module `time` -> deterministic fake clock (1 ms per call)",
+        "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+        "GPT.forward training micro-batch sliced to 2x256 tokens"
+      ],
+      "status": "FAIL",
+      "torch": "2.14.0+cu130",
+      "traceback_tail": [
+        "  File \"/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/impl1/a/train.py\", line 4779, in <module>\n    main()\n",
+        "  File \"/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/impl1/a/train.py\", line 3812, in main\n    optimizer = model.setup_optimizer()\n                ^^^^^^^^^^^^^^^^^^^^^^^\n",
+        "  File \"/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/impl1/a/train.py\", line 4772, in setup_optimizer\n    ownership = _submission_optimizer_install(optimizer, module, pad_singleton_muon=True)\n                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+        "  File \"/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/impl1/a/train.py\", line 4553, in _submission_optimizer_install\n    adapter = OwnedOptimizer(optimizer, pad_singleton_muon=pad_singleton_muon)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+        "  File \"/home/user/trainium-research-context/workflow/tools/preflight_dryrun.py\", line 326, in owned_init\n    orig_init(self, *a, **k)\n",
+        "  File \"/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/impl1/a/train.py\", line 4491, in __init__\n    self.entries, self.parameters, self.summary = make_plan(optimizer.param_groups, self.world_size)\n                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n",
+        "  File \"/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/impl1/a/train.py\", line 4460, in make_plan\n    raise ValueError('ownership probe is restricted to AdamW and Muon')\n",
+        "ValueError: ownership probe is restricted to AdamW and Muon\n"
+      ],
+      "train_py_frame": {
+        "code": "raise ValueError('ownership probe is restricted to AdamW and Muon')",
+        "function": "make_plan",
+        "line": 4460
+      }
+    }
+  ],
+  "reason": "OwnedOptimizer.make_plan rejects a non-adamw/muon group (n-gram tables: needs IMPL-1)",
+  "schema": "g2-preflight-v1",
+  "shims": [
+    "compute_dtype_for -> torch.bfloat16",
+    "_submission_ce_install -> no-op (NKI CE kernels are Neuron-only)",
+    "module `time` -> deterministic fake clock (1 ms per call)",
+    "synthetic tokenizer + synthetic dataloader (per-rank seeded)",
+    "GPT.forward training micro-batch sliced to 2x256 tokens"
+  ],
+  "steps": 1,
+  "timed_out": false,
+  "torch": "2.14.0+cu130",
+  "torchrun_log_tail": [
+    "[W924 12:19:31.707553883 socket.cpp:764] [c10d] The client socket cannot be initialized to connect to [localhost]:44763 (errno: 97 - Address family not supported by protocol).",
+    "[W924 12:19:31.942368592 socket.cpp:764] [c10d] The client socket cannot be initialized to connect to [localhost]:34085 (errno: 97 - Address family not supported by protocol).",
+    "[W924 12:19:35.022556782 socket.cpp:764] [c10d] The client socket cannot be initialized to connect to [localhost]:34085 (errno: 97 - Address family not supported by protocol).",
+    "muon step: --compile-muon supersedes --nki-muon (a compiled region cannot contain an nki.jit call); NKI Muon disabled for this run",
+    "[W924 12:19:35.029965649 socket.cpp:764] [c10d] The client socket cannot be initialized to connect to [localhost]:34085 (errno: 97 - Address family not supported by protocol).",
+    "[W924 12:19:35.039394756 socket.cpp:764] [c10d] The client socket cannot be initialized to connect to [localhost]:34085 (errno: 97 - Address family not supported by protocol).",
+    "[W924 12:19:35.070636387 socket.cpp:764] [c10d] The client socket cannot be initialized to connect to [localhost]:34085 (errno: 97 - Address family not supported by protocol).",
+    "device=cpu dtype=torch.bfloat16 world_size=4",
+    "training target=1 steps max_seconds=1800 official_budget=1800s",
+    "gradient_clip=1 clip_after_reduce=True",
+    "attention: nki_attn=False compile_sdpa_direct=True bf16_sdpa_input=False",
+    "branch_precision: bf16_norm_output=True nki_local_conv=True",
+    "WARNING: --num-steps 1 is below max_train_seconds=1800s and will almost certainly stop training before the time budget (the LR schedule would end without cooldown). For a scored submission leave --num-steps at its default (1000000).",
+    "model_config={",
+    "  \"sequence_len\": 1024,",
+    "  \"vocab_size\": 8192,",
+    "  \"n_layer\": 6,",
+    "  \"n_head\": 8,",
+    "  \"n_embd\": 1024,",
+    "  \"mlp_ratio\": 4,",
+    "  \"attn_scale\": 0.0,",
+    "  \"n_kv_heads\": 0",
+    "}",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}",
+    "SUBMISSION_TRAIN_INTEGRATION {\"source_commit\": \"1da6c0714c0755fd3b078e972fbb0aefbb43bf6d\", \"native_forward_custom_mlp_backward\": true, \"optimizer_ownership\": true, \"adaptive_nki_ce\": true, \"loader_and_timing_hooks_unchanged\": true}",
+    "num_params=134,493,452 flops_per_token=7.314632e+08",
+    "micro_tokens=131,072 grad_accum_steps=1 pack_factor=32",
+    "ngram_rmsprop: fp32_state_math=False nki=False parameter_gradient_dtypes=['torch.bfloat16'] state_math_dtypes=['torch.bfloat16']"
+  ],
+  "torchrun_rc": 0,
+  "train_py": "/tmp/claude-0/-home-user-trainium-research-context/a0c25116-823c-57fe-8449-e7550abc45ee/scratchpad/impl1/a/train.py",
+  "train_py_sha256": "35c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2",
+  "verdict": "FAIL"
+}

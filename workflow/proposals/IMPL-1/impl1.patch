@@ -1,0 +1,24 @@
+--- a/train.py
++++ b/train.py
+@@ -4456,6 +4456,8 @@
+     muon_ms = {(1024, 1024): 12.54413 / 24, (1024, 4096): 9.76316 / 6, (4096, 1024): 8.98251 / 6, (8, 32): 0.23355 / 3}
+     entries, parameters, seen = ([], [], set())
+     for group_index, group in enumerate(groups):
++        if group['kind'] == 'rmsprop':
++            continue  # IMPL-1: n-gram tables stay replicated; OwnedOptimizer.step updates them on every rank
+         if group['kind'] not in ('adamw', 'muon'):
+             raise ValueError('ownership probe is restricted to AdamW and Muon')
+         if 'depth_mults' in group:
+@@ -4520,6 +4522,12 @@
+     def step(self, update_adamw=True):
+         opt = self.optimizer
+         for source, owned in zip(opt.param_groups, self.groups):
++            if source['kind'] == 'rmsprop':
++                # IMPL-1: replicated table group. Its gradients were all-reduced (AVG) before this
++                # call, so every rank applies the identical update, gated like MuonAdamW.step.
++                if update_adamw:
++                    opt._rmsprop_step(source)
++                continue
+             owned.update({key: value for key, value in source.items() if key != 'params'})
+             if not owned['params']:
+                 continue

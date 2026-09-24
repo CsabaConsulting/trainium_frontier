@@ -1,0 +1,61 @@
+{
+  "schema": "trn-frontier-state-v2",
+  "written_utc": "2026-09-24T20:19:13Z",
+  "installation": {
+    "status": "PHASE0_INSTALLED_PENDING_INDEPENDENT_REVIEW",
+    "target_base_commit": "33774742dc49de7a5d6f5fd539c1530430306763",
+    "upstream_commit": "4bd08d0f199c0917a65a332c416a6577c925520f"
+  },
+  "workflow_mode": "V2_GATES_PENDING",
+  "launch_authorized": false,
+  "active_launcher": null,
+  "controller": {
+    "enabled": false,
+    "lease": null
+  },
+  "selection": {
+    "fresh_process": true,
+    "eval_seq_len": 1024,
+    "eval_tokens": 20971520,
+    "decision_engine": "workflow/tools/decide.py",
+    "decision_rules": "v2-2026-09-24"
+  },
+  "gates": {
+    "G1": {
+      "status": "PENDING_MAIN_WORKING",
+      "blocking": true
+    },
+    "G2": {
+      "status": "PENDING_INDEPENDENT_VERIFIER",
+      "blocking": true
+    },
+    "native": {
+      "status": "PENDING",
+      "blocking": true
+    }
+  },
+  "hosts": {
+    "trn21": {
+      "status": "UNOBSERVED",
+      "launch_allowed": false
+    },
+    "trn22": {
+      "status": "UNOBSERVED",
+      "launch_allowed": false
+    }
+  },
+  "breakers": {
+    "global_correctness": {
+      "tripped": false
+    },
+    "trn21": {
+      "tripped": false
+    },
+    "trn22": {
+      "tripped": false
+    }
+  },
+  "alert_cmd": "${TRAINIUM_ALERT_CMD}",
+  "pending_human_decisions": [],
+  "last_event": "Phase 0 file installation only; no host or launcher action"
+}
