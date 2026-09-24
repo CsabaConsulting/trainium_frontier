@@ -151,6 +151,8 @@ def arm_paths(arm: str) -> dict[str, str]:
         "child_log": f"/home/ubuntu/native-gate-evidence/{label}.child.log",
         "runtime_job": f"/home/ubuntu/native-gate-evidence/{label}.job.json",
         "runtime_result": f"/home/ubuntu/native-gate-evidence/{label}.runtime-result.json",
+        "observation_receipt":
+            f"/home/ubuntu/native-gate-evidence/{label}.tree-observation.json",
         "dispatch": f"/home/ubuntu/native-gate-evidence/{label}.dispatch.json",
         "controller_request": f"/home/ubuntu/native-gate-evidence/{label}.request.json",
     }
@@ -253,6 +255,29 @@ def parse_mountinfo(text: str, target: str) -> dict[str, Any]:
     return matches[0]
 
 
+def read_mountinfo_record(target: str) -> dict[str, Any]:
+    """Capture one live mount record from the current process namespace."""
+    fd = os.open("/proc/self/mountinfo", os.O_RDONLY | os.O_CLOEXEC)
+    try:
+        payload = bytearray()
+        while True:
+            try:
+                chunk = os.read(fd, 64 * 1024)
+            except InterruptedError:
+                continue
+            if not chunk:
+                break
+            payload.extend(chunk)
+            _require(len(payload) <= 4 * 1024 * 1024, "mountinfo unexpectedly large")
+    finally:
+        os.close(fd)
+    try:
+        text = bytes(payload).decode()
+    except UnicodeDecodeError as exc:
+        raise ContractError("mountinfo is not UTF-8") from exc
+    return parse_mountinfo(text, target)
+
+
 SHA_RE = re.compile(r"^[0-9a-f]{64}$")
 MOUNT_KEYS = {"mount_id", "parent_id", "device", "st_dev", "root", "target",
               "mount_options", "optional", "fs_type", "source", "super_options",
@@ -293,6 +318,32 @@ WATCH_RECEIPT_KEYS = {"schema", "status", "arm", "host", "label", "source_sha256
                       "baseline_root_caches_sha256", "sample_count",
                       "first_monotonic_ns", "last_monotonic_ns", "series_sha256",
                       "coverage_sha256", "samples", "coverage", "complete"}
+LOCK_RECEIPT_KEYS = {"schema", "host", "label", "path", "owner_uid", "owner_pid",
+                     "owner_start_ticks", "held", "complete"}
+PROCESS_GROUP_RECEIPT_KEYS = {"schema", "label", "pgid", "term_sent", "kill_sent",
+                              "reaped", "quiescent", "owned_processes",
+                              "remaining_pids", "complete"}
+PROCESS_IDENTITY_KEYS = {"pid", "start_ticks", "command_sha256", "exit_code"}
+DEVICE_POSTFLIGHT_KEYS = {"schema", "host", "hostname", "device", "active_processes",
+                          "unknown_holders", "device_idle", "complete"}
+OBSERVATION_CONTEXT_KEYS = {
+    "schema", "arm", "phase", "host", "hostname", "label", "source_sha256",
+    "request_sha256", "job_sha256", "postflight_sha256", "lock_receipt",
+    "lock_receipt_sha256", "process_group_receipt", "process_group_receipt_sha256",
+    "device_postflight_receipt", "device_postflight_receipt_sha256",
+    "watcher_receipt_sha256", "mount_record_sha256", "mount_root_identity_sha256",
+    "checkpoint_receipt_sha256", "observed_monotonic_ns", "complete",
+}
+TREE_OBSERVATION_RECEIPT_KEYS = {
+    "schema", "statement", "arm", "host", "hostname", "label", "tree_path",
+    "tree_manifest_sha256", "tree_snapshot_sha256", "source_sha256", "request_sha256",
+    "job_sha256", "postflight_sha256", "lock_receipt_sha256",
+    "process_group_receipt_sha256", "device_postflight_receipt_sha256",
+    "watcher_receipt_sha256", "mount_record_sha256", "mount_root_identity_sha256",
+    "checkpoint_receipt_sha256", "observation_context_sha256", "complete",
+}
+LOCK_PATH = "/home/ubuntu/.cache/trainium_freshstart/device0.lock"
+OBSERVATION_STATEMENT = "authenticated-observation-not-perpetual-current-state"
 
 
 def _exact_dict(value: Any, keys: set[str], label: str) -> dict[str, Any]:
@@ -703,39 +754,37 @@ def snapshot_tree(path: Path, *, mount_id: int, expected_device: int,
         walk(root_fd, "", fds[-2] if len(fds) > 1 else None,
              names[-1] if names else None, root_info)
         _revalidate_chain(fds, names, chain_identities, chain_mount_ids)
+        mount_root = _entry(os.fstat(fds[boundary]), "directory")
+        ancestors = [_entry(os.fstat(fd), "directory") for fd in fds]
+        _revalidate_chain(fds, names, chain_identities, chain_mount_ids)
+        # Under the separately authenticated host/run lock and process/device
+        # quiescence contract, require two identical complete observations.
+        # The second observation is the terminal filesystem operation and is
+        # the state from which the returned manifest is derived.  This is an
+        # authenticated observation, not a perpetual-current-state claim;
+        # every downstream consumer must freshly reauthenticate it.
+        resealed = snapshot_tree_revalidate(root_fd, entries, expected_device, mount_id)
+        _require(resealed == entries, "tree changed before final seal")
+        _revalidate_chain(fds, names, chain_identities, chain_mount_ids)
+        observed = snapshot_tree_revalidate(
+            root_fd, entries, expected_device, mount_id)
+        _require(observed == entries, "tree changed during terminal observation")
         snapshot = {
             "schema": "a1-native-five-anchored-tree-v2",
             "path": os.path.abspath(os.fspath(path)),
             "state": "present", "mount_id": mount_id, "mount_device": expected_device,
-            "mount_root_identity_sha256": canonical_sha(
-                _entry(os.fstat(fds[boundary]), "directory")),
-            "ancestors": [_entry(os.fstat(fd), "directory") for fd in fds],
-            "ancestor_mount_ids": list(chain_mount_ids),
-            "entries": entries, "entry_count": len(entries),
-            "logical_bytes": sum(item["size"] for item in entries.values()
+            "mount_root_identity_sha256": canonical_sha(mount_root),
+            "ancestors": ancestors, "ancestor_mount_ids": list(chain_mount_ids),
+            "entries": observed, "entry_count": len(observed),
+            "logical_bytes": sum(item["size"] for item in observed.values()
                                  if item["kind"] == "file"),
-            "allocated_bytes": sum(item["allocated"] for item in entries.values()),
+            "allocated_bytes": sum(item["allocated"] for item in observed.values()),
             "complete": True,
         }
         snapshot["manifest_sha256"] = canonical_sha(_tree_manifest_payload(snapshot))
-        validated = validate_tree_snapshot(
+        return validate_tree_snapshot(
             snapshot, snapshot["path"], mount_id, expected_device,
             snapshot["mount_root_identity_sha256"])
-        _revalidate_chain(fds, names, chain_identities, chain_mount_ids)
-        # The terminal seal is deliberately two complete no-follow walks with
-        # the pinned lexical chain checked after each.  The first walk closes
-        # the capture-to-reseal interval; the post-reseal chain check and the
-        # second walk jointly close a same-inode content write or lexical-root
-        # rebound at that boundary.  No filesystem operation follows the last
-        # chain check before the already-validated receipt is returned.
-        resealed = snapshot_tree_revalidate(root_fd, entries, expected_device, mount_id)
-        _require(resealed == entries, "tree changed before final seal")
-        _revalidate_chain(fds, names, chain_identities, chain_mount_ids)
-        resealed_after_chain = snapshot_tree_revalidate(
-            root_fd, entries, expected_device, mount_id)
-        _require(resealed_after_chain == entries, "tree changed after final reseal")
-        _revalidate_chain(fds, names, chain_identities, chain_mount_ids)
-        return validated
     finally:
         if owns_chain:
             for fd in reversed(fds):
@@ -808,6 +857,329 @@ def snapshot_tree_revalidate(root_fd: int, expected: dict[str, dict[str, Any]],
     walk(root_fd, "")
     _require(set(observed) == set(expected), "reseal membership changed")
     return observed
+
+
+def _validate_observation_context(context: Any, arm: str, phase: str,
+                                  watcher: dict[str, Any], mount: dict[str, Any],
+                                  checkpoint: dict[str, Any]) -> dict[str, Any]:
+    """Authenticate the protocol assumptions for one bounded tree observation."""
+    context = _exact_dict(context, OBSERVATION_CONTEXT_KEYS, "observation context")
+    _require(arm in ARMS and phase in {"observation", "consumer"},
+             "observation arm/phase invalid")
+    _require(context["schema"] == "a1-native-five-tree-observation-context-v1"
+             and context["arm"] == arm and context["phase"] == phase
+             and (context["host"], context["hostname"], context["label"])
+             == (HOST, HOSTNAME, ARMS[arm]["label"])
+             and context["complete"] is True, "observation context identity mismatch")
+    for key in ("source_sha256", "request_sha256", "job_sha256", "postflight_sha256",
+                "lock_receipt_sha256", "process_group_receipt_sha256",
+                "device_postflight_receipt_sha256", "watcher_receipt_sha256",
+                "mount_record_sha256", "mount_root_identity_sha256",
+                "checkpoint_receipt_sha256"):
+        _require(_sha(context[key]), f"observation {key} malformed")
+    _require(context["source_sha256"] == GATE_SOURCE_SHA256[arm],
+             "observation source mismatch")
+    _require(type(context["observed_monotonic_ns"]) is int
+             and context["observed_monotonic_ns"] >= 0,
+             "observation time malformed")
+
+    lock = _exact_dict(context["lock_receipt"], LOCK_RECEIPT_KEYS, "lock receipt")
+    _require(lock["schema"] == "a1-native-five-host-lock-v1"
+             and (lock["host"], lock["label"], lock["path"])
+             == (HOST, ARMS[arm]["label"], LOCK_PATH)
+             and lock["owner_uid"] == os.getuid()
+             and type(lock["owner_pid"]) is int and lock["owner_pid"] > 0
+             and type(lock["owner_start_ticks"]) is int and lock["owner_start_ticks"] > 0
+             and lock["held"] is True and lock["complete"] is True,
+             "host/run lock ownership is not exact and held")
+    _require(context["lock_receipt_sha256"] == canonical_sha(lock),
+             "lock receipt digest mismatch")
+
+    process = _exact_dict(context["process_group_receipt"],
+                          PROCESS_GROUP_RECEIPT_KEYS, "process-group receipt")
+    _require(process["schema"] == "a1-native-five-process-group-postflight-v1"
+             and process["label"] == ARMS[arm]["label"]
+             and type(process["pgid"]) is int and process["pgid"] > 0
+             and type(process["term_sent"]) is bool and type(process["kill_sent"]) is bool
+             and process["reaped"] is True and process["quiescent"] is True
+             and process["remaining_pids"] == [] and process["complete"] is True,
+             "process group is not exactly reaped and quiescent")
+    _require(type(process["owned_processes"]) is list and process["owned_processes"],
+             "owned process birth identities missing")
+    for identity in process["owned_processes"]:
+        identity = _exact_dict(identity, PROCESS_IDENTITY_KEYS, "owned process identity")
+        _require(type(identity["pid"]) is int and identity["pid"] > 0
+                 and type(identity["start_ticks"]) is int and identity["start_ticks"] > 0
+                 and _sha(identity["command_sha256"])
+                 and type(identity["exit_code"]) is int,
+                 "owned process identity malformed")
+    _require(context["process_group_receipt_sha256"] == canonical_sha(process),
+             "process-group receipt digest mismatch")
+
+    device = _exact_dict(context["device_postflight_receipt"],
+                         DEVICE_POSTFLIGHT_KEYS, "device postflight receipt")
+    _require(device["schema"] == "a1-native-five-device-postflight-v1"
+             and (device["host"], device["hostname"], device["device"])
+             == (HOST, HOSTNAME, "/dev/neuron0")
+             and device["active_processes"] == [] and device["unknown_holders"] == []
+             and device["device_idle"] is True and device["complete"] is True,
+             "device/unknown-holder postflight is not quiescent")
+    _require(context["device_postflight_receipt_sha256"] == canonical_sha(device),
+             "device postflight receipt digest mismatch")
+
+    watcher = _exact_dict(watcher, WATCH_RECEIPT_KEYS, "bound watcher receipt")
+    _require(watcher["schema"] == "a1-native-five-watch-receipt-v2"
+             and watcher["status"] == "PASS" and watcher["complete"] is True
+             and (watcher["arm"], watcher["host"], watcher["label"])
+             == (arm, HOST, ARMS[arm]["label"]), "bound watcher receipt identity")
+    _require(type(watcher["samples"]) is list and len(watcher["samples"]) >= 3
+             and watcher["sample_count"] == len(watcher["samples"]),
+             "bound watcher coverage missing")
+    coverage_sha = _validate_coverage(watcher["coverage"], watcher["samples"])
+    _require(watcher["coverage_sha256"] == coverage_sha
+             and watcher["series_sha256"] == canonical_sha(watcher["samples"])
+             and watcher["samples"][-1]["phase"] == "final_seal"
+             and context["observed_monotonic_ns"] >= watcher["last_monotonic_ns"],
+             "watcher does not cover observation")
+    _require((watcher["source_sha256"], watcher["job_sha256"],
+              watcher["postflight_sha256"])
+             == (context["source_sha256"], context["job_sha256"],
+                 context["postflight_sha256"]), "watcher observation binding mismatch")
+    _require(context["watcher_receipt_sha256"] == canonical_sha(watcher),
+             "watcher receipt digest mismatch")
+
+    mount = _validate_mount_record(mount, "/dev/shm")
+    _require(context["mount_record_sha256"] == canonical_sha(mount)
+             and context["mount_root_identity_sha256"]
+             == canonical_sha(mount["target_identity"]),
+             "mount observation binding mismatch")
+    checkpoint = _exact_dict(checkpoint, CHECKPOINT_KEYS, "bound checkpoint receipt")
+    _require(checkpoint["complete"] is True
+             and (checkpoint["source_sha256"], checkpoint["job_sha256"],
+                  checkpoint["postflight_sha256"])
+             == (context["source_sha256"], context["job_sha256"],
+                 context["postflight_sha256"]), "checkpoint observation binding mismatch")
+    _require(context["checkpoint_receipt_sha256"] == canonical_sha(checkpoint),
+             "checkpoint receipt digest mismatch")
+    return context
+
+
+def build_tree_observation_receipt(snapshot: dict[str, Any], context: dict[str, Any],
+                                   watcher: dict[str, Any], mount: dict[str, Any],
+                                   checkpoint: dict[str, Any]) -> dict[str, Any]:
+    """Build the bounded immutable receipt; tree/checkpoint bytes remain on tmpfs."""
+    snapshot = validate_tree_snapshot(
+        snapshot, snapshot["path"], snapshot["mount_id"], snapshot["mount_device"],
+        snapshot["mount_root_identity_sha256"])
+    arm = context.get("arm") if type(context) is dict else None
+    context = _validate_observation_context(
+        context, arm, "observation", watcher, mount, checkpoint)
+    _require(snapshot["state"] == "present"
+             and snapshot["mount_id"] == mount["mount_id"]
+             and snapshot["mount_device"] == mount["st_dev"]
+             and snapshot["mount_root_identity_sha256"]
+             == canonical_sha(mount["target_identity"]),
+             "tree and mount receipt mismatch")
+    return {
+        "schema": "a1-native-five-tree-observation-receipt-v1",
+        "statement": OBSERVATION_STATEMENT,
+        "arm": arm, "host": HOST, "hostname": HOSTNAME,
+        "label": ARMS[arm]["label"], "tree_path": snapshot["path"],
+        "tree_manifest_sha256": snapshot["manifest_sha256"],
+        "tree_snapshot_sha256": canonical_sha(snapshot),
+        "source_sha256": context["source_sha256"],
+        "request_sha256": context["request_sha256"],
+        "job_sha256": context["job_sha256"],
+        "postflight_sha256": context["postflight_sha256"],
+        "lock_receipt_sha256": context["lock_receipt_sha256"],
+        "process_group_receipt_sha256": context["process_group_receipt_sha256"],
+        "device_postflight_receipt_sha256": context["device_postflight_receipt_sha256"],
+        "watcher_receipt_sha256": context["watcher_receipt_sha256"],
+        "mount_record_sha256": context["mount_record_sha256"],
+        "mount_root_identity_sha256": context["mount_root_identity_sha256"],
+        "checkpoint_receipt_sha256": context["checkpoint_receipt_sha256"],
+        "observation_context_sha256": canonical_sha(context), "complete": True,
+    }
+
+
+def _receipt_bytes(receipt: Any) -> bytes:
+    receipt = _exact_dict(receipt, TREE_OBSERVATION_RECEIPT_KEYS,
+                          "tree observation receipt")
+    _require(receipt["schema"] == "a1-native-five-tree-observation-receipt-v1"
+             and receipt["statement"] == OBSERVATION_STATEMENT
+             and receipt["arm"] in ARMS
+             and (receipt["host"], receipt["hostname"], receipt["label"])
+             == (HOST, HOSTNAME, ARMS[receipt["arm"]]["label"])
+             and receipt["complete"] is True, "observation receipt identity mismatch")
+    for key in TREE_OBSERVATION_RECEIPT_KEYS - {
+            "schema", "statement", "arm", "host", "hostname", "label", "tree_path",
+            "complete"}:
+        _require(_sha(receipt[key]), f"observation receipt {key} malformed")
+    _require(type(receipt["tree_path"]) is str and receipt["tree_path"].startswith("/"),
+             "observation tree path malformed")
+    return json.dumps(receipt, sort_keys=True, separators=(",", ":"),
+                      allow_nan=False).encode() + b"\n"
+
+
+def _read_exact_fd(fd: int, size: int) -> bytes:
+    os.lseek(fd, 0, os.SEEK_SET)
+    payload = bytearray()
+    while len(payload) < size:
+        try:
+            chunk = os.read(fd, min(1024 * 1024, size - len(payload)))
+        except InterruptedError:
+            continue
+        _require(bool(chunk), "receipt truncated during same-descriptor readback")
+        payload.extend(chunk)
+    _require(not os.read(fd, 1), "receipt appended during same-descriptor readback")
+    return bytes(payload)
+
+
+def _stable_directory_identity(info: os.stat_result) -> tuple[int, ...]:
+    return (info.st_dev, info.st_ino, info.st_mode, info.st_nlink,
+            info.st_uid, info.st_gid)
+
+
+def _revalidate_publication_chain(fds: list[int], names: list[str],
+                                  identities: list[tuple[int, ...]],
+                                  mount_ids: list[int]) -> None:
+    stable = [_stable_directory_identity(os.fstat(fd)) for fd in fds]
+    _require(len(fds) == len(names) + 1 == len(identities) == len(mount_ids),
+             "publication chain cardinality mismatch")
+    for index, fd in enumerate(fds):
+        _require(_stable_directory_identity(os.fstat(fd)) == stable[index]
+                 and _fd_mount_id(fd) == mount_ids[index],
+                 "publication directory identity changed")
+        if index:
+            named = os.stat(names[index - 1], dir_fd=fds[index - 1],
+                            follow_symlinks=False)
+            _require(_stable_directory_identity(named) == stable[index],
+                     "publication lexical chain changed")
+
+
+def publish_tree_observation_receipt(path: Path, expected_path: str,
+                                     receipt: dict[str, Any]) -> dict[str, Any]:
+    """Publish one small canonical receipt exclusively; never copy tree bytes."""
+    absolute = Path(os.path.abspath(path))
+    _require(os.fspath(absolute) == expected_path and absolute.name not in ("", ".", ".."),
+             "observation receipt path differs from authorized request")
+    data = _receipt_bytes(receipt)
+    _require(len(data) <= 64 * 1024, "observation receipt unexpectedly large")
+    digest = hashlib.sha256(data).hexdigest()
+    fds, names, identities, mount_ids = _open_dir_chain(absolute.parent)
+    parent_fd = fds[-1]
+    write_fd = -1
+    try:
+        try:
+            os.stat(absolute.name, dir_fd=parent_fd, follow_symlinks=False)
+        except FileNotFoundError:
+            pass
+        else:
+            raise ContractError("observation receipt path already exists")
+        flags = os.O_RDWR | os.O_CREAT | os.O_EXCL | os.O_CLOEXEC | os.O_NOFOLLOW
+        write_fd = os.open(absolute.name, flags, 0o600, dir_fd=parent_fd)
+        offset = 0
+        while offset < len(data):
+            try:
+                written = os.write(write_fd, data[offset:])
+            except InterruptedError:
+                continue
+            _require(written > 0, "zero-byte observation receipt write")
+            offset += written
+        os.fsync(write_fd)
+        sealed = os.fstat(write_fd)
+        _require(stat.S_ISREG(sealed.st_mode) and stat.S_IMODE(sealed.st_mode) == 0o600
+                 and sealed.st_uid == os.getuid() and sealed.st_gid == os.getgid()
+                 and sealed.st_nlink == 1 and sealed.st_size == len(data),
+                 "published observation receipt metadata mismatch")
+        _require(_read_exact_fd(write_fd, len(data)) == data,
+                 "published observation receipt readback mismatch")
+        os.fsync(parent_fd)
+        _revalidate_publication_chain(fds, names, identities, mount_ids)
+        named = os.stat(absolute.name, dir_fd=parent_fd, follow_symlinks=False)
+        _require(_identity_tuple(named) == _identity_tuple(sealed)
+                 and _identity_tuple(os.fstat(write_fd)) == _identity_tuple(sealed)
+                 and hashlib.sha256(_read_exact_fd(write_fd, len(data))).hexdigest() == digest,
+                 "published observation receipt final seal mismatch")
+        return {"sha256": digest, "bytes": len(data),
+                "identity": _identity_tuple(sealed), "receipt": receipt}
+    finally:
+        if write_fd >= 0:
+            os.close(write_fd)
+        for fd in reversed(fds):
+            os.close(fd)
+
+
+def read_tree_observation_receipt(path: Path, expected_path: str,
+                                  expected_sha256: str) -> dict[str, Any]:
+    absolute = Path(os.path.abspath(path))
+    _require(os.fspath(absolute) == expected_path and _sha(expected_sha256),
+             "observation receipt read authority mismatch")
+    fds, names, identities, mount_ids = _open_dir_chain(absolute.parent)
+    fd = -1
+    try:
+        fd = os.open(absolute.name, _file_flags(), dir_fd=fds[-1])
+        before = os.fstat(fd)
+        named = os.stat(absolute.name, dir_fd=fds[-1], follow_symlinks=False)
+        _require(_identity_tuple(before) == _identity_tuple(named)
+                 and stat.S_ISREG(before.st_mode) and stat.S_IMODE(before.st_mode) == 0o600
+                 and before.st_uid == os.getuid() and before.st_gid == os.getgid()
+                 and before.st_nlink == 1 and before.st_size <= 64 * 1024,
+                 "observation receipt file identity mismatch")
+        data = _read_exact_fd(fd, before.st_size)
+        _require(hashlib.sha256(data).hexdigest() == expected_sha256
+                 and _identity_tuple(os.fstat(fd)) == _identity_tuple(before),
+                 "observation receipt bytes changed")
+        _revalidate_chain(fds, names, identities, mount_ids)
+        try:
+            receipt = json.loads(data)
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise ContractError("observation receipt JSON invalid") from exc
+        _require(_receipt_bytes(receipt) == data, "observation receipt is not canonical")
+        return receipt
+    finally:
+        if fd >= 0:
+            os.close(fd)
+        for chain_fd in reversed(fds):
+            os.close(chain_fd)
+
+
+def consume_tree_observation_receipt(
+        receipt_path: Path, expected_path: str, expected_receipt_sha256: str,
+        expected_snapshot: dict[str, Any], observation_context: dict[str, Any],
+        consumer_context: dict[str, Any], watcher: dict[str, Any],
+        mount: dict[str, Any], checkpoint: dict[str, Any], checkpoint_reauthenticate) -> dict[str, Any]:
+    """Freshly reauthenticate retained live state before advancement/comparison."""
+    expected_receipt = build_tree_observation_receipt(
+        expected_snapshot, observation_context, watcher, mount, checkpoint)
+    observed_receipt = read_tree_observation_receipt(
+        receipt_path, expected_path, expected_receipt_sha256)
+    _require(observed_receipt == expected_receipt,
+             "immutable observation receipt differs from archived evidence")
+    arm = expected_receipt["arm"]
+    fresh_checkpoint = checkpoint_reauthenticate()
+    _require(type(fresh_checkpoint) is dict and fresh_checkpoint == checkpoint,
+             "fresh checkpoint reauthentication drifted")
+    consumer_context = _validate_observation_context(
+        consumer_context, arm, "consumer", watcher, mount, fresh_checkpoint)
+    for key in ("arm", "host", "hostname", "label", "source_sha256", "request_sha256",
+                "job_sha256", "postflight_sha256", "watcher_receipt_sha256",
+                "mount_record_sha256", "mount_root_identity_sha256",
+                "checkpoint_receipt_sha256"):
+        _require(consumer_context[key] == observation_context[key],
+                 f"consumer context changed {key}")
+    live_mount = read_mountinfo_record(mount["target"])
+    _require(live_mount == mount, "live mount record/root identity drifted")
+    fresh = snapshot_path(Path(expected_snapshot["path"]),
+                          mount_id=mount["mount_id"], expected_device=mount["st_dev"])
+    _require(fresh == expected_snapshot
+             and canonical_sha(fresh) == expected_receipt["tree_snapshot_sha256"],
+             "fresh retained tree reauthentication drifted")
+    return {"schema": "a1-native-five-tree-consumption-v1", "arm": arm,
+            "status": "PASS", "receipt_sha256": expected_receipt_sha256,
+            "tree_manifest_sha256": fresh["manifest_sha256"],
+            "checkpoint_receipt_sha256": canonical_sha(fresh_checkpoint),
+            "lock_held": True, "complete": True}
 
 
 def validate_initial_absence(trusted_root: Path, target: Path) -> dict[str, Any]:
@@ -1099,7 +1471,8 @@ def _validate_absence_receipt(receipt: Any, arm: str) -> None:
     expected = [arm_paths(arm)[key] for key in ("tmpfs_arm", "output", "compile_cache",
                                                 "checkpoint", "remote", "bundle",
                                                 "root_report", "child_log", "runtime_job",
-                                                "runtime_result", "dispatch", "controller_request")]
+                                                "runtime_result", "observation_receipt",
+                                                "dispatch", "controller_request")]
     _require(receipt["schema"] == "a1-native-five-absence-set-v2" and receipt["arm"] == arm
              and receipt["paths"] == expected and _sha(receipt["parent_identity_sha256"])
              and receipt["o_excl_creation_required"] is True
@@ -1148,7 +1521,7 @@ def adjudicate_storage(arm: str, pre: dict[str, Any], post: dict[str, Any]) -> d
         _require(post["root_unallowlisted_growth_bytes"] == 0,
                  "unallowlisted root growth detected")
         return {"schema": "a1-native-five-trn22-storage-verdict-v2", "arm": arm,
-                "status": "PASS", "downstream_unlocked": arm in {"G0", "G1"},
+                "status": "PASS", "downstream_unlocked": False,
                 "cleanup_authorized": False}
     except (ContractError, KeyError, TypeError, ValueError) as exc:
         message = str(exc)

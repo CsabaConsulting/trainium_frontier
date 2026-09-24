@@ -1,0 +1,112 @@
+{
+  "schema": "a1-native-five-trn22-tmpfs-verifier-requirements-clarification-v1",
+  "status": "DURABLE_SCOPE_CORRECTION_NO_EXECUTION_AUTHORITY",
+  "date": "2026-09-25",
+  "reviewed_implementation_commit": "6f5d9f02d91623eb88bbdf055a4fd525183ae751",
+  "r4_fail_commit": "35e35edcce131069a694b3b02e890dbf5849aa82",
+  "r4_fail_receipt_sha256": "80fb3033e79032e907d27171552b7b171a3b5e6dbe592921c7cb311f7c2e2919",
+  "role": "independent-verifier",
+  "scope": {
+    "host_access_performed": false,
+    "hardware_or_training_executed": false,
+    "request_materialized": false,
+    "authorization_or_finalization_changed": false,
+    "implementation_files_edited": false
+  },
+  "ruling": {
+    "atomic_current_filesystem_truth_through_python_return_against_arbitrary_same_uid_writer_required": false,
+    "consistent_authenticated_observation_under_exclusive_run_ownership_and_quiescence_required": true,
+    "immutable_small_receipt_publication_required": true,
+    "fresh_live_state_reauthentication_at_every_consumption_and_advancement_required": true,
+    "repeated_alternating_content_and_name_checks_sufficient_against_arbitrary_writer": false
+  },
+  "feasibility_proof": [
+    "Any finite validation algorithm has a last filesystem observation. An uncooperative writer that retains permission to mutate the tree can act immediately after that observation and before or after the Python return.",
+    "Appending another content pass after a name pass, or another name pass after a content pass, only changes which property has the final observation; it cannot make a mutable POSIX tree atomically immutable.",
+    "Open read-only descriptors, no-follow traversal, link-count checks and directory descriptors authenticate which objects and bytes were observed. They do not prevent another descriptor owned by the same UID from writing or renaming afterward.",
+    "Therefore the R4 second-seal mutation probes demonstrate the boundary of a mutable-tree observation, but cannot be used as an endlessly recursive release requirement once exact run ownership and quiescence are governing preconditions."
+  ],
+  "governing_source_citations": [
+    {
+      "path": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/TRN22_TMPFS_NATIVE_GATE_PROPOSAL_ANALYSIS.md",
+      "lines": "128-144",
+      "requirement": "Literal paths, no symlink/bind/pre-existing child, retained tmpfs artifacts, and durable small metadata/hash records rather than copied heavyweight trees."
+    },
+    {
+      "path": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/TRN22_TMPFS_NATIVE_GATE_PROPOSAL_ANALYSIS.md",
+      "lines": "229-244",
+      "requirement": "Fresh mount, path absence, host lock, process absence, holder, source, storage, inode, swap and memory gates before dispatch; any drift is STOP."
+    },
+    {
+      "path": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/TRN22_TMPFS_NATIVE_GATE_PROPOSAL_ANALYSIS.md",
+      "lines": "248-274",
+      "requirement": "Anchored recursive root-cache observation, exact unchanged comparison, watcher coverage, bounded termination and mandatory postflight rechecking."
+    },
+    {
+      "path": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/TRN22_TMPFS_NATIVE_GATE_PROPOSAL_ANALYSIS.md",
+      "lines": "281-299",
+      "requirement": "After process-group quiescence, authenticate checkpoint bytes through one pinned descriptor, revalidate metadata/path identity, and archive only small digests/metadata/results."
+    },
+    {
+      "path": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/TRN22_TMPFS_NATIVE_GATE_PROPOSAL_ANALYSIS.md",
+      "lines": "314-331",
+      "requirement": "One O_EXCL request after verification, independent G0 adjudication authenticating retained live state, repeated fresh verification before G1/G2, and a final retained-state seal."
+    },
+    {
+      "path": "research/experiment-protocol.md",
+      "lines": "15-24,45-68",
+      "requirement": "Host-wide lock remains held through postflight; one job per host; marked process ownership, bounded cleanup, holder/process health and truthful postflight are mandatory."
+    },
+    {
+      "path": "research/submission-validation/20260925-v2-a1-native5-trn22-tmpfs-r1/RUNBOOK.md",
+      "lines": "64-80",
+      "requirement": "Exact anchored recursive snapshots and two stable seals are required; the text explicitly makes first-reseal mutation a hard failure and separately makes non-quiescence or later drift STOP."
+    }
+  ],
+  "minimum_provable_contract": {
+    "pre_observation": [
+      "Hold the authenticated host/device and run locks through observation, receipt publication and postflight.",
+      "Prove the owned child group has completed bounded TERM/KILL/reap and is quiescent; record exact process birth identities and fail on any unknown process or device holder relevant to the run.",
+      "Keep the live watcher active from before child start through the final observation and bind its complete cadence/coverage receipt."
+    ],
+    "observed_tree": [
+      "Traverse from pinned directory descriptors with no-follow semantics and exact mount-ID/device boundary selection.",
+      "Reject symlinks, hardlinks for files, nonregular entries, nested mounts, lexical rebinding and membership drift.",
+      "For every regular file, hash exact bytes through the opened descriptor and require stable pre/post descriptor metadata and name identity.",
+      "Require repeated complete recursive observations to match while the declared quiescence and lock conditions hold; return the canonical manifest of the observed state."
+    ],
+    "receipt_publication": [
+      "Bind exact source, request/job/postflight, lock, process-quiescence, device-holder, watcher, mount, tree and checkpoint receipt hashes in a closed schema.",
+      "Publish only the bounded canonical JSON/hash receipt using an anchored O_EXCL path, exact mode/owner/link constraints, complete writes, fsync of file and parent, and same-descriptor readback/hash verification.",
+      "Do not copy checkpoint or cache tree bytes to root."
+    ],
+    "consumption": [
+      "Before G1, before G2 and before final comparison or any tmpfs lifecycle action, freshly reopen and reauthenticate the live mount-aware lexical tree, recursive membership/bytes and checkpoint.",
+      "Compare the fresh canonical manifest and checkpoint identities/digests exactly with the prior immutable receipt while the host lock remains held.",
+      "Any writer, process, holder, mount drift or content/membership change observed after publication is a quiescence/ownership or consumer-drift failure and must STOP downstream advancement."
+    ]
+  },
+  "true_freeze_options_outside_current_scope": [
+    "Run writers and verifier under separate UIDs with privileged ownership/permission transition that the writer cannot reverse.",
+    "Use a separately authorized read-only mount or a filesystem with atomic snapshots.",
+    "Copy into an independently sealed immutable store, subject to explicit capacity and artifact-policy authorization."
+  ],
+  "current_scope_limits": [
+    "tmpfs has no in-scope atomic snapshot mechanism in this proposal.",
+    "A global remount, privileged ownership change, cache copy, cleanup or prune is not authorized.",
+    "A digest receipt authenticates bytes observed under the protocol assumptions; it is not a proof of perpetual mutability exclusion."
+  ],
+  "effect_on_r4_finding": {
+    "r4_b1_as_arbitrary_same_uid_post_last_observation_requirement": "WITHDRAWN_AS_OVER_CONSTRAINED",
+    "r4_historical_receipt_retained": true,
+    "r4_automatically_reclassified_pass": false,
+    "next_review_instruction": "Review the implementation against the governing quiescence, stable observation, immutable receipt and consumer reauthentication contract; do not require recursive hypothetical checks after the last observation."
+  },
+  "authority": {
+    "g0_finalizer_authorized": false,
+    "request_materialization_authorized": false,
+    "host_or_hardware_execution_authorized": false,
+    "g1_or_g2_authorized": false,
+    "cleanup_prune_submission_authorized": false
+  }
+}

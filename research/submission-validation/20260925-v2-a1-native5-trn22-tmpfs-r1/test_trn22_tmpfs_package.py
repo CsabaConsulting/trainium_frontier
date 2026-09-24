@@ -208,6 +208,50 @@ def arm_evidence(arm: str, mounts: dict, caches: dict, *, inode: int = 1000) -> 
     }
 
 
+def observation_context(arm: str, watcher: dict, mount_record: dict,
+                        checkpoint: dict, *, phase: str = "observation") -> dict:
+    lock = {
+        "schema": "a1-native-five-host-lock-v1", "host": CONTRACT.HOST,
+        "label": CONTRACT.ARMS[arm]["label"], "path": CONTRACT.LOCK_PATH,
+        "owner_uid": os.getuid(), "owner_pid": 1234, "owner_start_ticks": 5678,
+        "held": True, "complete": True,
+    }
+    process = {
+        "schema": "a1-native-five-process-group-postflight-v1",
+        "label": CONTRACT.ARMS[arm]["label"], "pgid": 1234,
+        "term_sent": False, "kill_sent": False, "reaped": True,
+        "quiescent": True,
+        "owned_processes": [{"pid": 1234, "start_ticks": 5678,
+                             "command_sha256": "8" * 64, "exit_code": 0}],
+        "remaining_pids": [], "complete": True,
+    }
+    device = {
+        "schema": "a1-native-five-device-postflight-v1", "host": CONTRACT.HOST,
+        "hostname": CONTRACT.HOSTNAME, "device": "/dev/neuron0",
+        "active_processes": [], "unknown_holders": [], "device_idle": True,
+        "complete": True,
+    }
+    return {
+        "schema": "a1-native-five-tree-observation-context-v1", "arm": arm,
+        "phase": phase, "host": CONTRACT.HOST, "hostname": CONTRACT.HOSTNAME,
+        "label": CONTRACT.ARMS[arm]["label"],
+        "source_sha256": CONTRACT.GATE_SOURCE_SHA256[arm],
+        "request_sha256": "9" * 64, "job_sha256": watcher["job_sha256"],
+        "postflight_sha256": watcher["postflight_sha256"],
+        "lock_receipt": lock, "lock_receipt_sha256": CONTRACT.canonical_sha(lock),
+        "process_group_receipt": process,
+        "process_group_receipt_sha256": CONTRACT.canonical_sha(process),
+        "device_postflight_receipt": device,
+        "device_postflight_receipt_sha256": CONTRACT.canonical_sha(device),
+        "watcher_receipt_sha256": CONTRACT.canonical_sha(watcher),
+        "mount_record_sha256": CONTRACT.canonical_sha(mount_record),
+        "mount_root_identity_sha256": CONTRACT.canonical_sha(
+            mount_record["target_identity"]),
+        "checkpoint_receipt_sha256": CONTRACT.canonical_sha(checkpoint),
+        "observed_monotonic_ns": watcher["last_monotonic_ns"], "complete": True,
+    }
+
+
 def evidence(arm: str = "G0") -> tuple[dict, dict]:
     mounts = {"root": mount("/", 1, "259:1", "ext4"),
               "tmpfs": mount("/dev/shm", 2, "0:42", "tmpfs")}
@@ -227,7 +271,8 @@ def evidence(arm: str = "G0") -> tuple[dict, dict]:
             "paths": [CONTRACT.arm_paths(arm)[key] for key in
                       ("tmpfs_arm", "output", "compile_cache", "checkpoint", "remote",
                        "bundle", "root_report", "child_log", "runtime_job",
-                       "runtime_result", "dispatch", "controller_request")],
+                       "runtime_result", "observation_receipt", "dispatch",
+                       "controller_request")],
             "parent_identity_sha256": "e" * 64, "o_excl_creation_required": True,
             "authoritative": False, "complete": True,
         },
@@ -378,7 +423,9 @@ class MountAndStorageTests(unittest.TestCase):
 
     def test_positive_storage_verdict(self):
         pre, post = evidence()
-        self.assertEqual(CONTRACT.adjudicate_storage("G0", pre, post)["status"], "PASS")
+        verdict = CONTRACT.adjudicate_storage("G0", pre, post)
+        self.assertEqual(verdict["status"], "PASS")
+        self.assertFalse(verdict["downstream_unlocked"])
 
     def test_closed_schema_rejects_verifier_forged_evidence(self):
         attacks = []
@@ -803,6 +850,173 @@ class MountAndStorageTests(unittest.TestCase):
             self.assertEqual(len(calls), 1)
             self.assertEqual((target / "artifact").read_bytes(), b"replacement")
 
+    def _assert_post_terminal_observation_drift_stops_consumer(self, mutation):
+        with tempfile.TemporaryDirectory(dir="/dev/shm") as live_temp, \
+                tempfile.TemporaryDirectory(dir=HERE) as receipt_temp:
+            target = Path(live_temp) / "retained"
+            target.mkdir()
+            artifact = target / "artifact"
+            artifact.write_bytes(b"AAAA")
+            mount_record = CONTRACT.read_mountinfo_record("/dev/shm")
+            original = CONTRACT.snapshot_tree_revalidate
+            calls = []
+
+            def mutate_after_terminal_observation(fd, expected, device, mount_id):
+                result = original(fd, expected, device, mount_id)
+                calls.append(True)
+                if len(calls) == 2:
+                    mutation(target, artifact)
+                return result
+
+            with mock.patch.object(CONTRACT, "snapshot_tree_revalidate",
+                                   side_effect=mutate_after_terminal_observation):
+                observed = CONTRACT.snapshot_path(
+                    target, mount_id=mount_record["mount_id"],
+                    expected_device=mount_record["st_dev"])
+            self.assertEqual(len(calls), 2)
+
+            _, post = evidence("G0")
+            arm = post["current_arm"]
+            watcher, checkpoint = arm["watcher"], arm["checkpoint"]
+            context = observation_context("G0", watcher, mount_record, checkpoint)
+            receipt = CONTRACT.build_tree_observation_receipt(
+                observed, context, watcher, mount_record, checkpoint)
+            receipt_path = Path(receipt_temp) / "observation.json"
+            publication = CONTRACT.publish_tree_observation_receipt(
+                receipt_path, str(receipt_path), receipt)
+            info = receipt_path.stat()
+            self.assertEqual(stat.S_IMODE(info.st_mode), 0o600)
+            self.assertEqual(info.st_nlink, 1)
+            self.assertLess(info.st_size, 64 * 1024)
+            self.assertNotIn("entries", receipt_path.read_text())
+            with self.assertRaises(CONTRACT.ContractError):
+                CONTRACT.publish_tree_observation_receipt(
+                    receipt_path, str(receipt_path), receipt)
+
+            consumer = observation_context(
+                "G0", watcher, mount_record, checkpoint, phase="consumer")
+            with self.assertRaises(CONTRACT.ContractError):
+                CONTRACT.consume_tree_observation_receipt(
+                    receipt_path, str(receipt_path), publication["sha256"],
+                    observed, context, consumer, watcher, mount_record, checkpoint,
+                    lambda: copy.deepcopy(checkpoint))
+
+    def test_final_observation_same_inode_same_size_writer_is_consumer_drift(self):
+        def mutate(_target, artifact):
+            inode = artifact.stat().st_ino
+            artifact.write_bytes(b"BBBB")
+            self.assertEqual(artifact.stat().st_ino, inode)
+            self.assertEqual(artifact.stat().st_size, 4)
+
+        self._assert_post_terminal_observation_drift_stops_consumer(mutate)
+
+    def test_final_observation_nested_late_insertion_is_consumer_drift(self):
+        def mutate(target, _artifact):
+            nested = target / "nested"
+            nested.mkdir()
+            (nested / "late").write_bytes(b"late")
+
+        self._assert_post_terminal_observation_drift_stops_consumer(mutate)
+
+    def test_observation_context_rejects_lock_process_device_and_checkpoint_forgery(self):
+        _, post = evidence("G0")
+        arm = post["current_arm"]
+        watcher, checkpoint = arm["watcher"], arm["checkpoint"]
+        mount_record = post["mounts"]["tmpfs"]
+        context = observation_context("G0", watcher, mount_record, checkpoint)
+        attacks = []
+        unlocked = copy.deepcopy(context)
+        unlocked["lock_receipt"]["held"] = False
+        unlocked["lock_receipt_sha256"] = CONTRACT.canonical_sha(unlocked["lock_receipt"])
+        attacks.append(unlocked)
+        live_child = copy.deepcopy(context)
+        live_child["process_group_receipt"]["remaining_pids"] = [1234]
+        live_child["process_group_receipt_sha256"] = CONTRACT.canonical_sha(
+            live_child["process_group_receipt"])
+        attacks.append(live_child)
+        holder = copy.deepcopy(context)
+        holder["device_postflight_receipt"]["unknown_holders"] = [4321]
+        holder["device_postflight_receipt_sha256"] = CONTRACT.canonical_sha(
+            holder["device_postflight_receipt"])
+        attacks.append(holder)
+        wrong_checkpoint = copy.deepcopy(context)
+        wrong_checkpoint["checkpoint_receipt_sha256"] = "0" * 64
+        attacks.append(wrong_checkpoint)
+        for index, attacked in enumerate(attacks):
+            with self.subTest(index=index), self.assertRaises(CONTRACT.ContractError):
+                CONTRACT.build_tree_observation_receipt(
+                    arm["output"], attacked, watcher, mount_record, checkpoint)
+
+    def test_immutable_receipt_and_fresh_consumer_positive_checkpoint_drift_negative(self):
+        with tempfile.TemporaryDirectory(dir="/dev/shm") as live_temp, \
+                tempfile.TemporaryDirectory(dir=HERE) as receipt_temp:
+            target = Path(live_temp) / "retained"
+            target.mkdir()
+            (target / "artifact").write_bytes(b"stable-observed-bytes")
+            mount_record = CONTRACT.read_mountinfo_record("/dev/shm")
+            observed = CONTRACT.snapshot_path(
+                target, mount_id=mount_record["mount_id"],
+                expected_device=mount_record["st_dev"])
+            _, post = evidence("G0")
+            arm = post["current_arm"]
+            watcher, checkpoint = arm["watcher"], arm["checkpoint"]
+            context = observation_context("G0", watcher, mount_record, checkpoint)
+            receipt = CONTRACT.build_tree_observation_receipt(
+                observed, context, watcher, mount_record, checkpoint)
+            receipt_path = Path(receipt_temp) / "observation.json"
+
+            original_write = CONTRACT.os.write
+            writes = []
+            def interrupted_short_write(fd, payload):
+                writes.append(len(payload))
+                if len(writes) == 1:
+                    raise InterruptedError
+                return original_write(fd, payload[:7])
+            with mock.patch.object(CONTRACT.os, "write",
+                                   side_effect=interrupted_short_write):
+                publication = CONTRACT.publish_tree_observation_receipt(
+                    receipt_path, str(receipt_path), receipt)
+            self.assertGreater(len(writes), 2)
+            self.assertEqual(hashlib.sha256(receipt_path.read_bytes()).hexdigest(),
+                             publication["sha256"])
+
+            consumer = observation_context(
+                "G0", watcher, mount_record, checkpoint, phase="consumer")
+            result = CONTRACT.consume_tree_observation_receipt(
+                receipt_path, str(receipt_path), publication["sha256"], observed,
+                context, consumer, watcher, mount_record, checkpoint,
+                lambda: copy.deepcopy(checkpoint))
+            self.assertEqual(result["status"], "PASS")
+            drifted_checkpoint = copy.deepcopy(checkpoint)
+            drifted_checkpoint["sha256"] = "f" * 64
+            with self.assertRaises(CONTRACT.ContractError):
+                CONTRACT.consume_tree_observation_receipt(
+                    receipt_path, str(receipt_path), publication["sha256"], observed,
+                    context, consumer, watcher, mount_record, checkpoint,
+                    lambda: drifted_checkpoint)
+
+    def test_receipt_publication_rejects_existing_symlink_and_wrong_authorized_path(self):
+        _, post = evidence("G0")
+        arm = post["current_arm"]
+        watcher, checkpoint = arm["watcher"], arm["checkpoint"]
+        mount_record = post["mounts"]["tmpfs"]
+        context = observation_context("G0", watcher, mount_record, checkpoint)
+        receipt = CONTRACT.build_tree_observation_receipt(
+            arm["output"], context, watcher, mount_record, checkpoint)
+        with tempfile.TemporaryDirectory(dir=HERE) as temp:
+            root = Path(temp)
+            target = root / "observation.json"
+            with self.assertRaises(CONTRACT.ContractError):
+                CONTRACT.publish_tree_observation_receipt(
+                    target, str(root / "different.json"), receipt)
+            outside = root / "outside"
+            outside.write_bytes(b"do-not-touch")
+            target.symlink_to(outside)
+            with self.assertRaises(CONTRACT.ContractError):
+                CONTRACT.publish_tree_observation_receipt(
+                    target, str(target), receipt)
+            self.assertEqual(outside.read_bytes(), b"do-not-touch")
+
 
 class CheckpointGuardTests(unittest.TestCase):
     def setUp(self):
@@ -955,9 +1169,12 @@ class PackageStateTests(unittest.TestCase):
     def test_proposal_has_no_authority(self):
         proposal = json.loads((HERE / "EXPERIMENT_PROPOSAL.json").read_text())
         self.assertEqual(proposal["repair_provenance"]["verifier_fail_commit"],
-                         "7856efa86669c7a0834ade8f3656ba5464fe48ac")
+                         "35e35edcce131069a694b3b02e890dbf5849aa82")
         self.assertEqual(proposal["repair_provenance"]["verifier_receipt_sha256"],
-                         "31651d1b71e08ebc1fc4c45e7881365133e34766575842de871114b4af7761da")
+                         "80fb3033e79032e907d27171552b7b171a3b5e6dbe592921c7cb311f7c2e2919")
+        self.assertEqual(
+            proposal["repair_provenance"]["requirements_clarification_sha256"],
+            "ed316e21af33eca1b2064998d6b124b896da047cb601183b90e57f94f751aec4")
         self.assertFalse(proposal["authority"]["training_authorized"])
         self.assertFalse(proposal["authority"]["host_access_authorized"])
         self.assertFalse(proposal["authority"]["materialization_authorized"])

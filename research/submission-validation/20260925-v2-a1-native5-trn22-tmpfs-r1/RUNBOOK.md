@@ -68,10 +68,23 @@ ID. Traversal starts at a pinned `/` descriptor: every lexical ancestor before t
 mount boundary is identity- and mount-ID-pinned and revalidated, while the exact authenticated
 device/mount-ID pair is mandatory at the boundary and for every descendant. An absence observed
 before that boundary is not evidence about a tmpfs path. Symlinks, parent swaps, same-device bind
-mounts and nested submounts are invalid. Two consecutive exact bottom-up content/membership seals,
-with the complete pinned lexical chain revalidated after each, must match immediately before the
-already-validated receipt is returned. A same-inode same-size write or target-name rebound at the
-first reseal boundary is therefore a hard failure.
+mounts and nested submounts are invalid. While the authenticated host/run lock remains held and the
+owned process group, device and unknown-holder postflight are exactly quiescent, two complete
+recursive observations must match. The terminal canonical manifest is an authenticated observation,
+not a claim that a mutable same-UID tree remains perpetually current.
+
+The later independently authorized runtime must bind exact request/job/postflight, lock ownership,
+process birth/TERM/KILL/reap, device-holder, watcher-coverage, mount/root, tree and checkpoint receipt
+hashes into the bounded canonical observation receipt at the exact request path. It must publish that
+small JSON only with anchored `O_EXCL`, mode `0600`, one link, current ownership, full-write, file and
+parent `fsync`, and same-descriptor readback/hash verification. It must not copy cache or checkpoint
+bytes to root. This package contains no executable finalizer or materializer.
+
+Before G1, G2, final comparison, or any tmpfs lifecycle action, a consumer must retain the lock,
+freshly re-open and reauthenticate the exact live mount-aware tree and checkpoint, and compare their
+canonical identities/digests with the immutable receipt. Any later writer, process, holder, mount,
+content, membership or checkpoint drift is STOP. Privileged freezing, remounting, ownership changes,
+cache copying, cleanup and prune remain outside authority.
 Retained G0/G1 evidence is the full authenticated arm record, never a label or asserted boolean.
 The final checkpoint receipt binds its model/logit/causal digests to the four rank-report hashes,
 frozen source/observer, runtime job, postflight and exact output-parent identity.
