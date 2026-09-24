@@ -1,0 +1,72 @@
+{
+  "schema": "current-base-control-operator-prelaunch-disk-block-v1",
+  "label": "fs-20260924-current-base-control-trn22-r1",
+  "host": "trn22",
+  "hostname": "ip-172-31-32-253",
+  "status": "FAIL_PRELAUNCH_PINNED_LAUNCHER_DISK_GATE",
+  "operator_action": "abort_before_staging_or_launcher",
+  "authorized_branch_head": "232ad8922b57f1a42c8cfbad2819c2b775e04b30",
+  "final_request_repair": "51dc93387e52b22b4b76d917acdb8c3007af1eac",
+  "runtime_core": "b02ea2d8229aa55431cfd0959cf555118e823053",
+  "immutable_checks": {
+    "request_sha256": "355a5dc8ffdff72a9974a591734f020bc444575255bee04ff820153f4b98c3ba",
+    "job_sha256": "b65bf2df06eeb10842ef863dbb655c7fdafd38390e61ad1c74124a7311e9924f",
+    "authorization_sha256": "65f42980bbe3ad2b2035b168cbe3754ecbd9e88ab0d4666db24763218cb10968",
+    "command_authorization_sha256": "65f42980bbe3ad2b2035b168cbe3754ecbd9e88ab0d4666db24763218cb10968",
+    "request_contract_sha256": "a932aac93749674b20dee56b070efc5f400aa414dbb40f9056bc6d6cae2e0f48",
+    "verifier_receipt_sha256": "951ff795358c252972c2abefd70586dda748729afd15bce77bbb36e829fd4495",
+    "static_tests": "PASS_NO_DISPATCH",
+    "request_tests": "PASS_NO_DISPATCH",
+    "runtime_core_fingerprints": "PASS"
+  },
+  "read_only_host_preflight": {
+    "checked_at_utc": "2026-09-24T09:26:42Z",
+    "reachable": true,
+    "hostname_exact": true,
+    "free_bytes": 8039391232,
+    "free_gib": 7.487266540527344,
+    "supervisor_message_minimum_gib": 6.5,
+    "supervisor_message_minimum_pass": true,
+    "free_inodes": 25122893,
+    "memory_available_kib": 128447484,
+    "workload_processes": [],
+    "device_holders": [],
+    "neuron_process_count": 0,
+    "host_lock_holders": [],
+    "experiment_lock_holders": [],
+    "remote_target": "/home/ubuntu/trainium_freshstart_20260924_current_base_control_trn22_r1",
+    "remote_target_exists": false,
+    "label_file_count": 0,
+    "data_cache_exists": true,
+    "native_python_exists": true
+  },
+  "failed_gate": {
+    "pinned_launcher_path": "research/fresh_start_launch.py",
+    "pinned_launcher_sha256": "dc3479c09abe344ef8239f6ce7c06f903dd7213deca5f25fe260c7ce715afab2",
+    "launcher_requirement": "free >= 8 * 1024**3",
+    "launcher_requirement_bytes": 8589934592,
+    "host_preflight_requirement_path": "research/fresh_start_host.py",
+    "host_preflight_requirement": "free >= 8 * 1024**3",
+    "deficit_bytes": 550543360,
+    "verifier_constraint": "fresh memory, disk, inode and clean-source preflight gates; prior and superseding receipts describe the disk gate as 8 GiB",
+    "reason": "The requested 6.5 GiB floor passes, but the exact pinned standard launcher and host preflight both require 8 GiB. The Operator may not bypass or lower those repository gates, and cleanup was expressly out of scope."
+  },
+  "launch": {
+    "executed": false,
+    "pid": null,
+    "remote_staging_performed": false,
+    "label_consumed": false
+  },
+  "actions_not_taken": [
+    "remote staging",
+    "launcher invocation",
+    "training",
+    "evaluation",
+    "cleanup",
+    "gate lowering",
+    "source modification",
+    "environment injection",
+    "instance lifecycle change",
+    "submission"
+  ]
+}
