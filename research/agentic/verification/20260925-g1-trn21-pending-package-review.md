@@ -76,6 +76,8 @@ cache) and inspect the full `NEURON_COMPETITION_R1_*` namespace, including
 tokenizer URL and SHA overrides, rather than relying only on the six explicitly
 listed unset variables. `prepare.py` can refresh an invalid tokenizer cache;
 checking its fixed hashes first avoids an unintended mutation under this
-no-cleanup request. A failed gate or missing cache requires a revised request
-and independent review; the disk gate must be recalculated against fresh free
-space after staging. No automatic scored run follows a successful calibration.
+no-cleanup request. A missing cache or changed identity/environment/argv pin
+requires a revised request and independent review. A failed live preflight
+holds dispatch until fresh evidence passes; the disk gate must be recalculated
+against free space after staging. Any attempted dispatch consumes this label.
+No automatic scored run follows a successful calibration.
