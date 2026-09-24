@@ -1,6 +1,6 @@
 {
   "schema": "trn-frontier-state-v2",
-  "written_utc": "2026-09-24T23:14:00Z",
+  "written_utc": "2026-09-24T23:18:00Z",
   "installation": {
     "status": "INSTALLED_EXACT_COPIES_VERIFIED_RUNTIME_GATES_PENDING",
     "target_base_commit": "33774742dc49de7a5d6f5fd539c1530430306763",
@@ -90,7 +90,7 @@
     "G2": {
       "status": "PASS_EXACT_FOUR_CPU_PROBES_AND_THREE_COMPARISONS",
       "blocking": false,
-      "a0_retry_exact_environment_g2_pending": true,
+      "a0_retry_exact_environment_g2_pending": false,
       "a0_retry_exact_environment_g2_r2": {
         "status": "OPERATOR_INFRA_HOLD_STEP_LOG_PARENT_MISSING_CPU_ONLY",
         "label": "fs-20260925-g2-a0-c5c-exactenv-trn22-r2",
@@ -100,18 +100,20 @@
         "native_or_scored_training_started": false
       },
       "a0_retry_exact_environment_g2_r3": {
-        "status": "OPERATOR_CPU_G2_PASS_INDEPENDENT_NUMERIC_COMPARE_PENDING",
+        "status": "PASS_EXACT_ENV_FOUR_RANK_CPU_G2_INDEPENDENT_COMPARE",
         "label": "fs-20260925-g2-a0-c5c-exactenv-trn22-r3",
         "package": "research/v2/g2-probes/fs-20260925-g2-a0-c5c-exactenv-trn22-r3/GATE_CONTRACT.json",
         "independent_review": "research/agentic/verification/20260925-trn22-c5c-a0-r2-g2-r3-static-safety-review.md",
         "independent_review_sha256": "36a65541e46981e159b121134349fc4176c385bb743a98dd92af101eda581617",
         "operator_receipt": "research/v2/g2-probes/fs-20260925-g2-a0-c5c-exactenv-trn22-r3/operator-receipt.json",
         "operator_receipt_sha256": "c8d73cc447a4fb99c9aba1869f3df47accee550ea2e04d704b9a43cd1bd8e116",
+        "independent_numeric_review": "research/agentic/verification/20260925-trn22-c5c-a0-r2-g2-r3-numeric-review.md",
+        "independent_numeric_review_sha256": "e76654c7882c2ede9e382914aebb672b10841a083fc0eb2271e15b39965a1de4",
         "scope": "One contained CPU-only four-rank G2 after fresh Operator checks; no native/scored run or evaluator authorization"
       },
       "receipt": "research/v2/g2-probes/fs-20260925-v2-g2-baseline-s0-trn22-r1/operator-retrieval-receipt.json",
       "receipt_sha256": "0ac6424a52d03ccfe4a32840462282cf937ac7d6642d4df59fc0f22beec1834f",
-      "scope": "Exact baseline/research-v2 A0 and 116188/bare-S0 bytes and argv only; CPU evidence is not native or BPB evidence. A0 trn22 r2 pins seed/budget in the literal environment, so a new exact-environment G2 is pending."
+      "scope": "Exact baseline/research-v2 A0 and 116188/bare-S0 bytes and argv. A separate trn22 A0 r2 exact-environment four-rank CPU G2 r3 has now passed independent numerical comparison. CPU evidence is not native or BPB evidence."
     },
     "native": {
       "status": "A0_COMPILE_DISK_FLOOR_FAILURE_PRE_STEP_TERMINAL",
@@ -153,7 +155,7 @@
       "host_lock_holders": 0
     },
     "trn22": {
-      "status": "DISK_PASS_BREAKER_REARMED_CPU_G2_R3_OPERATOR_PASS_COMPARE_PENDING_NO_SCORE",
+      "status": "DISK_PASS_BREAKER_REARMED_CPU_G2_R3_INDEPENDENT_PASS_NATIVE_STAGE_PENDING_NO_SCORE",
       "launch_allowed": false,
       "last_observed_utc": "2026-09-24T23:10:44Z",
       "root_disk_bytes": 268435456000,
@@ -219,8 +221,8 @@
       "scope": "Named trn22 workflow-v2 disk breaker only; launch remains disallowed"
     }
   ],
-  "last_event": "trn22 exact-env four-rank CPU G2 r3 passed Operator probe and clean postflight, with independent numerical comparison pending. trn21 G1 r2 exact-retained-source stage passed independent review and awaits a guarded one-label evaluator authorization. No native training, new BPB, launch authorization or ready scored job on either host.",
-  "updated_utc": "2026-09-24T23:14:00Z",
+  "last_event": "trn22 exact-env four-rank CPU G2 r3 passed independent numerical comparison; A0 final request and fresh host preflight are being staged without native launch authority. trn21 G1 r2 exact-retained-source stage passed independent review and awaits a guarded one-label evaluator authorization. A2 native-smoke repair passed static review for staging only. No native training, new BPB, launch authorization or ready scored job on either host.",
+  "updated_utc": "2026-09-24T23:18:00Z",
   "latest_breaker_rearm": {
     "scope": "trn22 workflow-v2 DISK_FLOOR_BREACH_DURING_A0_COMPILE_PRE_STEP only",
     "human_acknowledgement": "research/v2/authorizations/20260925-trn22-disk-breaker-human-ack.md",
@@ -253,21 +255,21 @@
     "remaining": "Exact-environment G2 and rank trace, native smoke, valid same-host c5c A0 control and separate one-label authorization. No scored A2 run or BPB."
   },
   "table_a2_native_smoke_package": {
-    "status": "INDEPENDENT_STATIC_FAIL_NO_HOST_DISPATCH",
+    "status": "INDEPENDENT_R2_STATIC_PASS_FOR_OPERATOR_STAGING_NATIVE_DISPATCH_HOLD",
     "path": "research/submission-validation/20260925-v2-c5c-a2-m64d128-trn22-r1/NATIVE_SMOKE_GATE_CONTRACT.json",
-    "review": "research/agentic/verification/20260925-v2-c5c-a2-native30-static-review.md",
-    "review_sha256": "a802f15a26fadc59e1ab0d5507b065213e14c3121e2cd763c554d3561dd4e3f1",
-    "finding": "Step-log parent existence, trust, writability and isolation outside the clean source checkout were not authenticated; 30 steps does not resolve the older 50-step per-rank-hash criterion.",
+    "review": "research/agentic/verification/20260925-v2-c5c-a2-native30-r2-static-review.md",
+    "review_sha256": "5364720fa66448a500c4d2f78bf474363e94af5c817b3d3456e3496125d40bd9",
+    "finding": "Repaired external step-log parent and guard receipt parent passed static review for staging only. A 30-step smoke does not resolve the older separate 50-step per-rank table/moment hash criterion.",
     "native_or_scored_training_started": false
   },
   "a0_trn22_retry_package": {
-    "status": "STATIC_PASS_SOURCE_STAGED_CPU_G2_R3_OPERATOR_PASS_COMPARE_PENDING_NO_DISPATCH",
+    "status": "STATIC_PASS_SOURCE_STAGED_CPU_G2_R3_INDEPENDENT_PASS_NATIVE_REQUEST_PENDING_NO_DISPATCH",
     "label": "fs-20260925-v2-c5c-a0-control-trn22-r2",
     "path": "research/submission-validation/20260925-v2-c5c-a0-control-trn22-r2",
     "verifier_receipt": "research/agentic/verification/20260925-v2-c5c-a0-trn22-r2-static-review.md",
     "verifier_receipt_sha256": "5034d8ea9a75d20052cdfb24606a5882d20a13b45dc0fb1b1ac4de07aa4da679",
     "required_prelaunch_free_bytes": 10737418240,
-    "remaining": "Source staging passed and new-label exact-env CPU G2 r3 passed its Operator probe; independent numerical comparison, fresh source/cache/host/disk checks, independent final request check, external observer and separate one-shot authorization remain. Disk breaker re-armed under human consent and independent safety review; no launch is authorized."
+    "remaining": "Source staging passed and new-label exact-env CPU G2 r3 passed independent numerical comparison; fresh source/cache/host/disk checks, independent final request check, external observer and separate one-shot authorization remain. Disk breaker re-armed under human consent and independent safety review; no launch is authorized."
   },
   "a0_trn21_control_package": {
     "status": "STATIC_PASS_INDEPENDENT_REVIEW_DISPATCH_HOLD",
