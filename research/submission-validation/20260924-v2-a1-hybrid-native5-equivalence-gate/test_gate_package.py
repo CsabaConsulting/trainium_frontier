@@ -13,6 +13,7 @@ import sys
 import tempfile
 from types import SimpleNamespace
 import unittest
+from unittest import mock
 
 import torch
 
@@ -369,8 +370,54 @@ class G0FinalizationTests(unittest.TestCase):
                 "research/run-logs/label/native-gate/rank-0.jsonl",
             })
             G0_FINALIZATION._revalidate_snapshot(root, identities)
-            G0_FINALIZATION._write_exclusive(root, result, {"complete": True})
+            sealed = G0_FINALIZATION._write_exclusive(root, result, {"complete": True})
+            G0_FINALIZATION._assert_sealed_file(root, result, sealed)
             self.assertEqual(G0_FINALIZATION._load(result, root), {"complete": True})
+
+    def test_realistic_child_artifact_growth_preserves_directory_identity(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "trusted"
+            root.mkdir()
+            cache = root / "cache" / "g0"
+            output = root / "out" / "g0"
+            report = root / "research" / "run-logs" / "g0" / "native-gate"
+            child_log = root / "research" / "run-logs" / "g0.child.log"
+            runtime_result = root / "research" / "run-logs" / "g0.runtime-result.json"
+            for path in (cache, output, report):
+                G0_FINALIZATION._safe_mkdir(root, path)
+            identities = {
+                path: G0_FINALIZATION._directory_identity(root, path)
+                for path in (cache, output, report)
+            }
+
+            # Simulate legitimate child products, including a cache subdirectory that changes
+            # parent link count as well as size/mtime.
+            (cache / "MODULE_1").mkdir()
+            (cache / "MODULE_1" / "graph.neff").write_bytes(b"compiled")
+            (output / "final.pt").write_bytes(b"model-only-checkpoint")
+            for rank in range(4):
+                (report / f"rank-{rank}.jsonl").write_text('{"kind":"complete"}\n')
+            log_seal = G0_FINALIZATION._write_exclusive(root, child_log, {"rc": 0})
+
+            for path, identity in identities.items():
+                G0_FINALIZATION._assert_directory_identity(root, path, identity)
+            G0_FINALIZATION._validate_success_artifact_allowlist(output, report, root)
+            rows, artifact_identities = G0_FINALIZATION._artifact_snapshot(
+                [child_log, output / "final.pt", report], root,
+            )
+            self.assertEqual(set(rows), {
+                "research/run-logs/g0.child.log", "out/g0/final.pt",
+                "research/run-logs/g0/native-gate/rank-0.jsonl",
+                "research/run-logs/g0/native-gate/rank-1.jsonl",
+                "research/run-logs/g0/native-gate/rank-2.jsonl",
+                "research/run-logs/g0/native-gate/rank-3.jsonl",
+            })
+            G0_FINALIZATION._assert_sealed_file(root, child_log, log_seal)
+            G0_FINALIZATION._revalidate_snapshot(root, artifact_identities)
+            result_seal = G0_FINALIZATION._write_exclusive(
+                root, runtime_result, {"complete": True, "artifacts": rows},
+            )
+            G0_FINALIZATION._assert_sealed_file(root, runtime_result, result_seal)
 
     def test_verifier_report_parent_symlink_attack_is_rejected(self):
         label = "fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1"
@@ -433,6 +480,35 @@ class G0FinalizationTests(unittest.TestCase):
             artifact.write_text('{"version": 1}\n')
             with self.assertRaises(G0_FINALIZATION.ContractError):
                 G0_FINALIZATION._assert_file_identity(root, artifact, identity)
+
+    def test_post_close_materialization_and_result_replacements_are_rejected(self):
+        names = (
+            "fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1.request.json",
+            "g0.runtime-result.json",
+        )
+        original_assert = G0_FINALIZATION._assert_sealed_file
+        for name in names:
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp) / "trusted"
+                root.mkdir()
+                path = root / name
+                attacked = False
+
+                def replace_after_close(trusted_root, written_path, sealed):
+                    nonlocal attacked
+                    if not attacked:
+                        attacked = True
+                        written_path.unlink()
+                        written_path.write_bytes(b'{"attacker":true}\n')
+                    return original_assert(trusted_root, written_path, sealed)
+
+                with mock.patch.object(
+                    G0_FINALIZATION, "_assert_sealed_file",
+                    side_effect=replace_after_close,
+                ):
+                    with self.assertRaises(G0_FINALIZATION.ContractError):
+                        G0_FINALIZATION._write_exclusive(root, path, {"authorized": True})
+                self.assertTrue(attacked)
 
 
 class ComparatorTests(unittest.TestCase):

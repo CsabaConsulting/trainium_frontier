@@ -21,6 +21,7 @@ import stat
 import subprocess
 import sys
 import time
+from typing import NamedTuple
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -83,6 +84,16 @@ class ContractError(RuntimeError):
     pass
 
 
+FileIdentity = tuple[int, int, int, int, int, int]
+DirectoryIdentity = tuple[int, int, int]
+
+
+class SealedWrite(NamedTuple):
+    sha256: str
+    identity: FileIdentity
+    bytes: int
+
+
 def _relative_parts(trusted_root: Path, path: Path) -> tuple[Path, Path, tuple[str, ...]]:
     """Return a lexical path below an explicit root without following any component."""
     root = Path(os.path.abspath(os.fspath(trusted_root)))
@@ -100,7 +111,7 @@ def _relative_parts(trusted_root: Path, path: Path) -> tuple[Path, Path, tuple[s
     return root, target, parts
 
 
-def _identity(value: os.stat_result) -> tuple[int, int, int, int, int, int]:
+def _identity(value: os.stat_result) -> FileIdentity:
     return (
         value.st_dev, value.st_ino, value.st_mode, value.st_nlink,
         value.st_size, value.st_mtime_ns,
@@ -234,7 +245,7 @@ def _open_file_no_follow(trusted_root: Path, path: Path) -> tuple[int, os.stat_r
 
 
 def _assert_file_identity(
-    trusted_root: Path, path: Path, expected: tuple[int, int, int, int, int, int]
+    trusted_root: Path, path: Path, expected: FileIdentity,
 ) -> None:
     fd, observed = _open_file_no_follow(trusted_root, path)
     try:
@@ -244,7 +255,7 @@ def _assert_file_identity(
         os.close(fd)
 
 
-def _read_file_no_follow(trusted_root: Path, path: Path) -> tuple[bytes, tuple[int, int, int, int, int, int]]:
+def _read_file_no_follow(trusted_root: Path, path: Path) -> tuple[bytes, FileIdentity]:
     fd, before = _open_file_no_follow(trusted_root, path)
     chunks: list[bytes] = []
     try:
@@ -265,7 +276,7 @@ def _read_file_no_follow(trusted_root: Path, path: Path) -> tuple[bytes, tuple[i
 
 def _sha_with_identity(
     path: Path, trusted_root: Path = ROOT
-) -> tuple[str, tuple[int, int, int, int, int, int]]:
+) -> tuple[str, FileIdentity]:
     data, identity = _read_file_no_follow(trusted_root, path)
     digest = hashlib.sha256(data).hexdigest()
     # The lexical chain and inode are checked once more after hashing, not merely after reading.
@@ -518,14 +529,17 @@ def _safe_mkdir(trusted_root: Path, path: Path) -> None:
 
 def _directory_identity(
     trusted_root: Path, path: Path,
-) -> tuple[int, int, int, int, int, int]:
+) -> DirectoryIdentity:
     _validate_chain(trusted_root, path, "directory")
     fd = _open_directory_chain(trusted_root, path, create=False)
     try:
         observed = os.fstat(fd)
         if not stat.S_ISDIR(observed.st_mode):
             raise ContractError(f"opened terminal is not a directory: {path}")
-        identity = _identity(observed)
+        # Directory size, mtime and link count legitimately change when the child creates
+        # compiler entries, final.pt or rank reports. Device/inode/type remain the stable,
+        # no-follow identity of the exact directory created during preflight.
+        identity = (observed.st_dev, observed.st_ino, stat.S_IFMT(observed.st_mode))
     finally:
         os.close(fd)
     _validate_chain(trusted_root, path, "directory")
@@ -533,7 +547,7 @@ def _directory_identity(
 
 
 def _assert_directory_identity(
-    trusted_root: Path, path: Path, expected: tuple[int, int, int, int, int, int],
+    trusted_root: Path, path: Path, expected: DirectoryIdentity,
 ) -> None:
     if _directory_identity(trusted_root, path) != expected:
         raise ContractError(f"directory identity changed during validation: {path}")
@@ -561,10 +575,19 @@ def _open_exclusive(trusted_root: Path, path: Path) -> int:
     return fd
 
 
-def _write_exclusive(trusted_root: Path, path: Path, payload: dict) -> None:
+def _assert_sealed_file(trusted_root: Path, path: Path, sealed: SealedWrite) -> None:
+    digest, identity = _sha_with_identity(path, trusted_root)
+    if identity != sealed.identity:
+        raise ContractError(f"exclusive output inode changed after creation: {path}")
+    if digest != sealed.sha256 or identity[4] != sealed.bytes:
+        raise ContractError(f"exclusive output content changed after creation: {path}")
+
+
+def _write_exclusive(trusted_root: Path, path: Path, payload: dict) -> SealedWrite:
+    data = json.dumps(payload, sort_keys=True, indent=2, allow_nan=False).encode() + b"\n"
+    expected_digest = hashlib.sha256(data).hexdigest()
     fd = _open_exclusive(trusted_root, path)
     try:
-        data = json.dumps(payload, sort_keys=True, indent=2, allow_nan=False).encode() + b"\n"
         view = memoryview(data)
         while view:
             written = os.write(fd, view)
@@ -572,9 +595,20 @@ def _write_exclusive(trusted_root: Path, path: Path, payload: dict) -> None:
                 raise ContractError(f"short write while creating {path}")
             view = view[written:]
         os.fsync(fd)
+        observed = os.fstat(fd)
+        if not stat.S_ISREG(observed.st_mode) or observed.st_nlink != 1:
+            raise ContractError(f"exclusive output lost its regular single-link inode: {path}")
+        if observed.st_size != len(data):
+            raise ContractError(f"exclusive output has an unexpected size: {path}")
+        sealed = SealedWrite(
+            sha256=expected_digest, identity=_identity(observed), bytes=len(data),
+        )
     finally:
         os.close(fd)
-    _validate_chain(trusted_root, path, "file")
+    # The path must still name the exact inode whose fd was written and fsynced, and those
+    # bytes—not a same-shaped replacement—must remain at that name through successful return.
+    _assert_sealed_file(trusted_root, path, sealed)
+    return sealed
 
 
 def materialize(args: argparse.Namespace) -> int:
@@ -609,9 +643,10 @@ def materialize(args: argparse.Namespace) -> int:
     if _sha(template_path) != args.request_sha256 or _sha(auth_path) != args.authorization_sha256:
         raise ContractError("materialization authority changed before output creation")
     _validate_chain(MATERIALIZATION_ROOT, args.output, "absent")
-    _write_exclusive(MATERIALIZATION_ROOT, args.output, concrete)
+    sealed_output = _write_exclusive(MATERIALIZATION_ROOT, args.output, concrete)
     print(json.dumps({"status": "MATERIALIZED_NOT_LAUNCHED", "output": str(args.output),
-                      "sha256": _sha(args.output, MATERIALIZATION_ROOT)}, sort_keys=True))
+                      "sha256": sealed_output.sha256}, sort_keys=True))
+    _assert_sealed_file(MATERIALIZATION_ROOT, args.output, sealed_output)
     return 0
 
 
@@ -696,9 +731,9 @@ def _directory_files_no_follow(trusted_root: Path, directory: Path) -> list[Path
 
 def _artifact_snapshot(
     paths: list[Path], trusted_root: Path = ROOT,
-) -> tuple[dict[str, dict], dict[Path, tuple[int, int, int, int, int, int]]]:
+) -> tuple[dict[str, dict], dict[Path, FileIdentity]]:
     rows: dict[str, dict] = {}
-    identities: dict[Path, tuple[int, int, int, int, int, int]] = {}
+    identities: dict[Path, FileIdentity] = {}
     for artifact_root in paths:
         root_stat = _validate_chain(trusted_root, artifact_root, "existing")
         if root_stat is not None and stat.S_ISREG(root_stat.st_mode):
@@ -723,10 +758,23 @@ def _artifact_snapshot(
 
 def _revalidate_snapshot(
     trusted_root: Path,
-    identities: dict[Path, tuple[int, int, int, int, int, int]],
+    identities: dict[Path, FileIdentity],
 ) -> None:
     for path, identity in identities.items():
         _assert_file_identity(trusted_root, path, identity)
+
+
+def _validate_success_artifact_allowlist(
+    output: Path, report: Path, trusted_root: Path = ROOT,
+) -> None:
+    output_files = _directory_files_no_follow(trusted_root, output)
+    expected_checkpoint = output / "final.pt"
+    if output_files != [expected_checkpoint]:
+        raise ContractError("G0 output directory artifact allowlist is not exact")
+    report_files = _directory_files_no_follow(trusted_root, report)
+    expected_reports = [report / f"rank-{rank}.jsonl" for rank in range(4)]
+    if report_files != expected_reports:
+        raise ContractError("G0 rank-report artifact allowlist is not exact")
 
 
 def _validate_runtime_job(runtime: dict, concrete: dict, template: dict, auth: dict) -> None:
@@ -871,17 +919,11 @@ def run(args: argparse.Namespace) -> int:
     success = returncode == 0 and not timed_out and not interrupted
     artifact_paths = [log_path]
     if success:
+        _validate_success_artifact_allowlist(rooted["output"], rooted["report"])
         artifact_paths.extend([
             rooted["output"] / "final.pt", rooted["report"],
         ])
     artifacts, artifact_identities = _artifact_snapshot(artifact_paths)
-    report_files = _directory_files_no_follow(ROOT, rooted["report"]) if success else []
-    if success and len(report_files) != 4:
-        raise ContractError("G0 did not emit exactly four rank reports")
-    if success and {path.name for path in report_files} != {
-        "rank-0.jsonl", "rank-1.jsonl", "rank-2.jsonl", "rank-3.jsonl"
-    }:
-        raise ContractError("G0 rank-report names are not exact")
     result = {
         "schema": "a1-native-five-g0-runtime-result-v1", "arm": "G0",
         "status": "PASS" if success else "FAILED", "complete": success,
@@ -907,7 +949,8 @@ def run(args: argparse.Namespace) -> int:
     _assert_directory_identity(ROOT, rooted["output"], directory_identities[rooted["output"]])
     _assert_directory_identity(ROOT, rooted["report"], directory_identities[rooted["report"]])
     _validate_chain(ROOT, rooted["runtime_result"], "absent")
-    _write_exclusive(ROOT, rooted["runtime_result"], result)
+    sealed_result = _write_exclusive(ROOT, rooted["runtime_result"], result)
+    _assert_sealed_file(ROOT, rooted["runtime_result"], sealed_result)
     return 0 if success else 2
 
 
