@@ -1,0 +1,81 @@
+{
+  "schema": "trainium-independent-verifier-receipt-v1",
+  "receipt_date": "2026-09-24",
+  "role": "independent_verifier",
+  "verdict": "PASS_FEASIBILITY_ONLY_NATIVE_PROBE_REQUIRED",
+  "audited_commit": "e2ef0c91adb8660f4274b537e7e0ca7b61bcc226",
+  "control_commit": "c51f6fdc5ca77793a1524148a563cafac0ab22b0",
+  "protected_hashes": {
+    "control_train_py": "35c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2",
+    "prepare_py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb"
+  },
+  "scope": {
+    "candidate_materialized": false,
+    "training_authorized": false,
+    "device_probe_authorized": false,
+    "submission_authorized": false,
+    "decision": "Block a full candidate until a separately approved bounded native component probe establishes the missing SDK and native-numerics contracts."
+  },
+  "oracle_audit": {
+    "tables": ["b1", "t1", "b5", "t5"],
+    "rows_per_table": 1048576,
+    "width": 128,
+    "ranks": 4,
+    "one_joint_rank_local_clip_across_all_tables": true,
+    "four_rank_avg": true,
+    "duplicate_coalescing_deterministic": true,
+    "invalid_bounds_type_and_shape_rejected": true,
+    "global_step_bias_correction": true,
+    "deferred_rmsprop_decay": true,
+    "untouched_physical_rows_unchanged": true,
+    "deterministic_replay": true,
+    "serialize_reload_next_update_exact": true,
+    "bf16_parameter_fp32_state_exact_within_software_oracle": true,
+    "bf16_parameter_bf16_state_exact_within_software_oracle": true,
+    "dense_and_lazy_state_equality_is_bit_exact": true
+  },
+  "claim_boundaries": {
+    "source_invariance_only": true,
+    "synthetic_checkpoint_claim_removed": true,
+    "offline_native_bf16_rounding_claim": false,
+    "offline_real_checkpoint_key_or_logit_claim": false,
+    "native_sparse_backward_supported": false,
+    "native_sparse_collective_supported": false,
+    "native_dynamic_row_update_supported": false
+  },
+  "future_hard_gates": [
+    "Capture the real native dense BF16 occurrence accumulation and collective rounding order.",
+    "Prove supported occurrence-gradient capture without a dense full-table scan or host fallback.",
+    "Prove fixed-shape multi-rank exchange, deterministic joint clipping/coalescing, and indexed parameter/state writes across repeated step boundaries.",
+    "Use one authenticated real checkpoint and strict-load it through control and candidate paths.",
+    "Compare the complete model key set, all four n-gram table bytes, and logits on predeclared inputs exactly.",
+    "Do not materialize or train a full candidate until the separately approved native component probe passes."
+  ],
+  "checks_run": [
+    "proposal and infeasibility-report claim audit",
+    "control train.py and prepare.py SHA-256 verification",
+    "four-table geometry and current joint clipping source audit",
+    "dense gather sparse_grad=false preserved-log audit",
+    "duplicate-heavy and empty-rank adversarial oracle testing",
+    "bounds, dtype and shape rejection audit",
+    "lazy RMSProp decay and bias-correction audit",
+    "untouched physical-state audit",
+    "deterministic replay and serialize/reload/next-update audit",
+    "FP32 and software-defined BF16 dense-versus-lazy exact equality audit",
+    "Python compilation check"
+  ],
+  "constraints": [
+    "This receipt approves only the feasibility conclusion and CPU oracle within its explicit software semantics.",
+    "It does not authorize SSH, a device probe, training, candidate promotion, submission, or cleanup.",
+    "Native BF16 reduction order, SDK operator support, performance, real-checkpoint identity, and logits remain unverified hard gates.",
+    "A component-probe pass may reopen implementation; it is not itself evidence of a whole-step speedup or BPB win."
+  ],
+  "actions_not_taken": [
+    "source modification",
+    "SSH",
+    "device execution",
+    "training",
+    "push",
+    "submission"
+  ]
+}
