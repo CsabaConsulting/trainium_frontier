@@ -12,6 +12,10 @@ from pathlib import Path
 import re
 from typing import Any
 
+ROOT = Path(__file__).resolve().parents[3]
+OWNERSHIP_MANIFEST_PATH = Path(__file__).with_name("a1_ownership_manifest.json")
+OWNERSHIP_MANIFEST_SHA256 = "8119df41c8a9ecbfc3f9e69067c7e6ac162c2d5d8ba0a15635265304dcf865a2"
+OWNERSHIP_MANIFEST_SCHEMA = "a1-native-five-ownership-manifest-v1"
 SCHEMA = "a1-native-five-equivalence-v1"
 TABLES = {"ngram_embeds.b5.weight", "ngram_embeds.t5.weight"}
 ARMS = {
@@ -26,13 +30,76 @@ LABELS = {
 }
 WORLD_SIZE = 4
 EXPECTED_STEPS = 5
-# Exact 35c9 dense ownership plan.  Replicated RMSProp tables are excluded from
-# this plan, so A1 must retain the already-frozen dense exchange stride.
-OWNERSHIP_SHARD_ELEMENTS = 30_414_976
+# Exact A1 ownership contract reconstructed from the pinned source and flags.  The
+# two BF16 RMSProp tables are replicated and excluded; all 66 ordinary FP32
+# AdamW/Muon parameters, including both projections and both n-gram gates, are owned.
+OWNERSHIP_ELEMENTS_BY_OWNER = [27_405_059, 30_540_035, 30_408_963, 29_362_179]
+OWNERSHIP_ESTIMATED_MS_BY_OWNER = [
+    12.991316601116363, 12.99464796558983, 12.984647965589831, 12.988706969361804,
+]
+OWNERSHIP_ENTRY_COUNT = 66
+OWNERSHIP_OWNED_ELEMENTS = 117_716_236
+OWNERSHIP_SHARD_ELEMENTS = 30_540_160
+OWNERSHIP_PADDED_ELEMENTS = 122_160_640
+OWNERSHIP_PADDED_BYTES = 488_642_560
 
 
 class InvalidGate(ValueError):
     pass
+
+
+def _file_sha(path: Path) -> str:
+    if path.is_symlink() or not path.is_file() or path.stat().st_nlink != 1:
+        raise InvalidGate(f"pinned source is not one regular unlinked file: {path}")
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _load_ownership_manifest(*, validate_sources: bool = True) -> dict[str, Any]:
+    if _file_sha(OWNERSHIP_MANIFEST_PATH) != OWNERSHIP_MANIFEST_SHA256:
+        raise InvalidGate("A1 ownership manifest digest mismatch")
+    manifest = json.loads(OWNERSHIP_MANIFEST_PATH.read_bytes())
+    if not isinstance(manifest, dict) or set(manifest) != {
+            "schema", "source_pins", "configuration", "groups", "owned_entries",
+            "replicated_rmsprop_parameters", "summary", "owner_exchange"}:
+        raise InvalidGate("A1 ownership manifest schema mismatch")
+    if manifest["schema"] != OWNERSHIP_MANIFEST_SCHEMA:
+        raise InvalidGate("A1 ownership manifest version mismatch")
+    summary = manifest["summary"]
+    if summary != {
+            "elements_by_owner": OWNERSHIP_ELEMENTS_BY_OWNER,
+            "estimated_ms_by_owner": OWNERSHIP_ESTIMATED_MS_BY_OWNER,
+            "owned_elements": OWNERSHIP_OWNED_ELEMENTS,
+            "owned_entry_count": OWNERSHIP_ENTRY_COUNT,
+            "shard_elements": OWNERSHIP_SHARD_ELEMENTS,
+            "total_padded_bytes": OWNERSHIP_PADDED_BYTES,
+            "total_padded_elements": OWNERSHIP_PADDED_ELEMENTS}:
+        raise InvalidGate("A1 ownership manifest frozen summary mismatch")
+    if (manifest["configuration"].get("world_size") != WORLD_SIZE
+            or manifest["configuration"].get("owned_dtype") != "torch.float32"
+            or len(manifest["owned_entries"]) != OWNERSHIP_ENTRY_COUNT
+            or any(entry.get("dtype") != "torch.float32"
+                   for entry in manifest["owned_entries"])):
+        raise InvalidGate("A1 ownership manifest configuration mismatch")
+    pins = manifest["source_pins"]
+    if (pins.get("accepted_gate_implementation") !=
+            "7528ca8dd9d9915097929217c2a2b0d9cfc17107"
+            or pins.get("analysis_commit") !=
+            "2ee8c5c0283c760683aff3de48f243845a803d0c"
+            or pins.get("evidence_commit") !=
+            "37aa3644e63e20a1427cfa69b44fd6de7e25cd81"
+            or pins.get("failed_verifier_commit") !=
+            "01d3cc04b3d55ed4d453fc1aff0e0eddad581682"):
+        raise InvalidGate("A1 ownership manifest provenance mismatch")
+    if validate_sources:
+        files = pins.get("files")
+        if not isinstance(files, dict) or not files:
+            raise InvalidGate("A1 ownership manifest source pins missing")
+        for relative, expected in files.items():
+            if type(relative) is not str or not _sha(expected):
+                raise InvalidGate("A1 ownership manifest source pin malformed")
+            if _file_sha(ROOT / relative) != expected:
+                raise InvalidGate(f"A1 ownership source pin mismatch: {relative}")
+    return manifest
 
 
 def _finite_tree(value: Any) -> bool:
@@ -205,9 +272,14 @@ def _owned_union(ranks: list[list[dict[str, Any]]], update_index: int) -> list[d
 
 
 def _ownership_shard_elements(records: list[dict[str, Any]], arm: str, rank: int) -> int:
+    manifest = _load_ownership_manifest()
     inventory = _by(records, "inventory")[0]
     if set(inventory) != {"kind", "groups", "ownership", "model_state"}:
         raise InvalidGate(f"{arm} rank {rank}: ownership inventory schema mismatch")
+    if inventory["groups"] != manifest["groups"]:
+        raise InvalidGate(f"{arm} rank {rank}: exact named A1 optimizer groups mismatch")
+    if inventory["model_state"] != manifest["configuration"]["model_state"]:
+        raise InvalidGate(f"{arm} rank {rank}: initial model digest mismatch")
     ownership = inventory["ownership"]
     if not isinstance(ownership, dict) or set(ownership) != {
             "entries", "summary", "replicated_rmsprop_groups"}:
@@ -220,17 +292,18 @@ def _ownership_shard_elements(records: list[dict[str, Any]], arm: str, rank: int
     stride = summary["shard_elements"]
     counts, costs = summary["elements_by_owner"], summary["estimated_ms_by_owner"]
     if (type(stride) is not int or stride != OWNERSHIP_SHARD_ELEMENTS
-            or type(counts) is not list or len(counts) != WORLD_SIZE
-            or any(type(value) is not int or value < 0 or value > stride for value in counts)
+            or counts != OWNERSHIP_ELEMENTS_BY_OWNER
+            or costs != OWNERSHIP_ESTIMATED_MS_BY_OWNER
             or stride != ((max(counts) + 127) // 128) * 128
-            or type(costs) is not list or len(costs) != WORLD_SIZE
-            or any(type(value) is not float or not math.isfinite(value) or value < 0 for value in costs)
-            or summary["total_padded_bytes"] != stride * WORLD_SIZE * 4):
+            or summary["total_padded_bytes"] != OWNERSHIP_PADDED_BYTES
+            or stride * WORLD_SIZE != OWNERSHIP_PADDED_ELEMENTS):
         raise InvalidGate(f"{arm} rank {rank}: frozen ownership summary mismatch")
     entry_keys = {"index", "group", "position", "kind", "shape", "elements",
                   "estimated_ms", "owner", "offset"}
     calculated_counts = [0] * WORLD_SIZE
     intervals = [[] for _ in range(WORLD_SIZE)]
+    named_entries = []
+    groups = inventory["groups"]
     for index, entry in enumerate(entries):
         if not isinstance(entry, dict) or set(entry) != entry_keys:
             raise InvalidGate(f"{arm} rank {rank}: ownership entry schema mismatch")
@@ -248,9 +321,27 @@ def _ownership_shard_elements(records: list[dict[str, Any]], arm: str, rank: int
                 or type(entry["offset"]) is not int or entry["offset"] < 0
                 or entry["offset"] + entry["elements"] > stride):
             raise InvalidGate(f"{arm} rank {rank}: malformed ownership entry")
+        if entry["group"] >= len(groups) or groups[entry["group"]]["index"] != entry["group"]:
+            raise InvalidGate(f"{arm} rank {rank}: ownership group mapping mismatch")
+        names = groups[entry["group"]]["parameter_names"]
+        if entry["position"] >= len(names):
+            raise InvalidGate(f"{arm} rank {rank}: ownership parameter mapping mismatch")
+        named_entries.append({**entry, "name": names[entry["position"]],
+                              "dtype": "torch.float32"})
         calculated_counts[entry["owner"]] += entry["elements"]
         intervals[entry["owner"]].append((entry["offset"], entry["offset"] + entry["elements"]))
-    if calculated_counts != counts or any(
+    if named_entries != manifest["owned_entries"]:
+        raise InvalidGate(f"{arm} rank {rank}: exact named A1 ownership manifest mismatch")
+    actual_summary = {
+        "elements_by_owner": counts,
+        "estimated_ms_by_owner": costs,
+        "owned_elements": sum(entry["elements"] for entry in entries),
+        "owned_entry_count": len(entries),
+        "shard_elements": stride,
+        "total_padded_bytes": summary["total_padded_bytes"],
+        "total_padded_elements": stride * WORLD_SIZE,
+    }
+    if actual_summary != manifest["summary"] or calculated_counts != counts or any(
             any(left[1] > right[0] for left, right in zip(sorted(owner_intervals),
                                                            sorted(owner_intervals)[1:]))
             for owner_intervals in intervals):
@@ -266,6 +357,9 @@ def _ownership_shard_elements(records: list[dict[str, Any]], arm: str, rank: int
             or len(replicated[0]["parameters"]) != len(TABLES)
             or ownership["replicated_rmsprop_groups"] != [replicated[0]["group"]]):
         raise InvalidGate(f"{arm} rank {rank}: replicated RMS ownership mismatch")
+    normalized_replicated = []
+    replicated_group = replicated[0]["group"]
+    replicated_names = groups[replicated_group]["parameter_names"]
     for position, parameter in enumerate(replicated[0]["parameters"]):
         if (not isinstance(parameter, dict) or set(parameter) != parameter_keys
                 or parameter["position"] != position
@@ -274,11 +368,69 @@ def _ownership_shard_elements(records: list[dict[str, Any]], arm: str, rank: int
                 or parameter["dtype"] != "torch.bfloat16"
                 or parameter["contiguous"] is not True
                 or parameter["requires_grad"] is not True
-                or type(parameter["device_type"]) is not str
-                or (parameter["device_index"] is not None
-                    and type(parameter["device_index"]) is not int)):
+                or parameter["device_type"] != "neuron"
+                or parameter["device_index"] != rank):
             raise InvalidGate(f"{arm} rank {rank}: replicated RMS parameter schema mismatch")
+        normalized_replicated.append({
+            **parameter, "group": replicated_group,
+            "name": replicated_names[position], "device_index": "rank",
+        })
+    if normalized_replicated != manifest["replicated_rmsprop_parameters"]:
+        raise InvalidGate(f"{arm} rank {rank}: exact replicated RMS manifest mismatch")
     return stride
+
+
+def _validate_exact_groups(records: list[dict[str, Any]], manifest: dict[str, Any],
+                           arm: str, rank: int) -> None:
+    inventory = _by(records, "inventory")[0]
+    if (inventory.get("groups") != manifest["groups"]
+            or inventory.get("model_state") != manifest["configuration"]["model_state"]):
+        raise InvalidGate(f"{arm} rank {rank}: exact A1 inventory/source identity mismatch")
+
+
+def _validate_owner_exchange_records(records: list[dict[str, Any]], arm: str, rank: int) -> None:
+    contract = _load_ownership_manifest()["owner_exchange"]
+    gathers = [item for item in _by(records, "collectives")[0]["sequence"]
+               if item.get("op") == "all_gather_into_tensor"]
+    expected = {
+        "op": "all_gather_into_tensor",
+        "output_shape": contract["output_shape"],
+        "input_shape": contract["input_shape"],
+        "output_dtype": contract["output_dtype"],
+        "input_dtype": contract["input_dtype"],
+        "output_numel": contract["output_numel"],
+        "input_numel": contract["input_numel"],
+    }
+    if len(gathers) != contract["count_per_rank"] or any(
+            {key: value for key, value in item.items() if key != "index"} != expected
+            for item in gathers):
+        raise InvalidGate(f"{arm} rank {rank}: exact A1 owner exchange mismatch")
+
+
+def validate_immutable_g0(directory: Path) -> dict[str, Any]:
+    """Authenticate the archived G0 reports against source and the exact A1 manifest."""
+    manifest = _load_ownership_manifest()
+    report_pins = manifest["source_pins"].get("immutable_g0_report_sha256")
+    if not isinstance(report_pins, dict) or set(report_pins) != {
+            f"rank-{rank}.jsonl" for rank in range(WORLD_SIZE)}:
+        raise InvalidGate("immutable G0 report pin set mismatch")
+    for rank in range(WORLD_SIZE):
+        name = f"rank-{rank}.jsonl"
+        if _file_sha(directory / name) != report_pins[name]:
+            raise InvalidGate(f"immutable G0 rank {rank} report digest mismatch")
+        records = _load_rank(directory, "G0", rank)
+        _ownership_shard_elements(records, "G0", rank)
+        _validate_owner_exchange_records(records, "G0", rank)
+    return {
+        "schema": "a1-native-five-g0-ownership-validation-v1",
+        "status": "PASS",
+        "manifest_sha256": OWNERSHIP_MANIFEST_SHA256,
+        "owned_entry_count": OWNERSHIP_ENTRY_COUNT,
+        "elements_by_owner": OWNERSHIP_ELEMENTS_BY_OWNER,
+        "shard_elements": OWNERSHIP_SHARD_ELEMENTS,
+        "total_padded_elements": OWNERSHIP_PADDED_ELEMENTS,
+        "owner_exchanges_per_rank": EXPECTED_STEPS,
+    }
 
 
 def _validated_without_owner_exchange(records: list[dict[str, Any]], ordinary: list[dict[str, Any]],
@@ -326,11 +478,16 @@ def _validated_without_owner_exchange(records: list[dict[str, Any]], ordinary: l
 
 
 def compare(g0_dir: Path, g1_dir: Path, g2_dir: Path) -> dict[str, Any]:
+    manifest = _load_ownership_manifest()
     loaded = {arm: [_load_rank(directory, arm, rank) for rank in range(4)]
               for arm, directory in (("G0", g0_dir), ("G1", g1_dir), ("G2", g2_dir))}
     instrumentation_failures: list[str] = []
     rms_failures: list[str] = []
     integrated_failures: list[str] = []
+
+    for arm, ranks in loaded.items():
+        for rank, records in enumerate(ranks):
+            _validate_exact_groups(records, manifest, arm, rank)
 
     ordinary_sequences = [_by(records, "collectives")[0]["sequence"]
                           for records in loaded["G2"]]
@@ -473,13 +630,19 @@ def _write_exclusive(path: Path, payload: dict[str, Any]) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--g0", type=Path, required=True)
-    parser.add_argument("--g1", type=Path, required=True)
-    parser.add_argument("--g2", type=Path, required=True)
+    parser.add_argument("--validate-g0-only", type=Path)
+    parser.add_argument("--g0", type=Path)
+    parser.add_argument("--g1", type=Path)
+    parser.add_argument("--g2", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
+    full = all((args.g0, args.g1, args.g2))
+    partial = any((args.g0, args.g1, args.g2)) and not full
+    if partial or bool(args.validate_g0_only) == full:
+        parser.error("choose exactly --validate-g0-only or the complete --g0/--g1/--g2 set")
     try:
-        payload = compare(args.g0, args.g1, args.g2)
+        payload = (validate_immutable_g0(args.validate_g0_only)
+                   if args.validate_g0_only else compare(args.g0, args.g1, args.g2))
     except Exception as exc:
         payload = {"schema": "a1-native-five-comparison-v1", "status": "INVALID",
                    "error": f"{type(exc).__name__}: {exc}"}

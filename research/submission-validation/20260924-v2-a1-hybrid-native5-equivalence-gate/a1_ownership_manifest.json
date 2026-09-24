@@ -1,0 +1,1312 @@
+{
+  "configuration": {
+    "a1_flags": [
+      "--n-embd",
+      "1024",
+      "--ngram-ve",
+      "--ngram-ve-layers=-1",
+      "--ngram-ve-table-mult",
+      "64",
+      "--ngram-ve-dim",
+      "128",
+      "--ngram-ve-trigram",
+      "--ngram-ve-opt",
+      "rmsprop",
+      "--ngram-ve-flat-lr",
+      "--ngram-ve-bf16",
+      "--ngram-ve-clip-exclude",
+      "--no-qk-shift",
+      "--compile-sdpa-direct",
+      "--nki-local-conv",
+      "--bf16-norm-output",
+      "--pack-factor",
+      "32",
+      "--clip-after-reduce",
+      "--seq-len",
+      "1024",
+      "--no-eval-public",
+      "--matrix-lr",
+      "0.015"
+    ],
+    "model_state": {
+      "sha256": "479f267c9bd24c11e3992640f7e66d36a80a7216fe9e06892550295ff66252eb",
+      "tensor_count": 68
+    },
+    "owned_dtype": "torch.float32",
+    "world_size": 4
+  },
+  "groups": [
+    {
+      "index": 0,
+      "kind": "adamw",
+      "parameter_names": [
+        "transformer.wte.weight"
+      ]
+    },
+    {
+      "index": 1,
+      "kind": "adamw",
+      "parameter_names": [
+        "lm_head.weight"
+      ]
+    },
+    {
+      "index": 2,
+      "kind": "adamw",
+      "parameter_names": [
+        "transformer.h.0.resid_lambda",
+        "transformer.h.0.x0_lambda",
+        "transformer.h.1.resid_lambda",
+        "transformer.h.1.x0_lambda",
+        "transformer.h.2.resid_lambda",
+        "transformer.h.2.x0_lambda",
+        "transformer.h.3.resid_lambda",
+        "transformer.h.3.x0_lambda",
+        "transformer.h.4.resid_lambda",
+        "transformer.h.4.x0_lambda",
+        "transformer.h.5.resid_lambda",
+        "transformer.h.5.x0_lambda"
+      ]
+    },
+    {
+      "index": 3,
+      "kind": "adamw",
+      "parameter_names": [
+        "value_embeds.1.weight",
+        "value_embeds.3.weight",
+        "value_embeds.5.weight"
+      ]
+    },
+    {
+      "index": 4,
+      "kind": "rmsprop",
+      "parameter_names": [
+        "ngram_embeds.b5.weight",
+        "ngram_embeds.t5.weight"
+      ]
+    },
+    {
+      "index": 5,
+      "kind": "adamw",
+      "parameter_names": [
+        "transformer.h.0.local_conv.weight",
+        "transformer.h.1.local_conv.weight",
+        "transformer.h.2.local_conv.weight",
+        "transformer.h.3.local_conv.weight",
+        "transformer.h.4.local_conv.weight",
+        "transformer.h.5.local_conv.weight"
+      ]
+    },
+    {
+      "index": 6,
+      "kind": "muon",
+      "parameter_names": [
+        "transformer.h.1.attn.ve_gate.weight",
+        "transformer.h.3.attn.ve_gate.weight",
+        "transformer.h.5.attn.ve_gate.weight",
+        "transformer.h.5.attn.ve_gate_bi.weight",
+        "transformer.h.5.attn.ve_gate_tri.weight"
+      ]
+    },
+    {
+      "index": 7,
+      "kind": "muon",
+      "parameter_names": [
+        "ngram_proj.b5.weight",
+        "ngram_proj.t5.weight"
+      ]
+    },
+    {
+      "index": 8,
+      "kind": "muon",
+      "parameter_names": [
+        "transformer.h.0.attn.c_q.weight",
+        "transformer.h.0.attn.c_k.weight",
+        "transformer.h.0.attn.c_v.weight",
+        "transformer.h.0.attn.c_proj.weight",
+        "transformer.h.1.attn.c_q.weight",
+        "transformer.h.1.attn.c_k.weight",
+        "transformer.h.1.attn.c_v.weight",
+        "transformer.h.1.attn.c_proj.weight",
+        "transformer.h.2.attn.c_q.weight",
+        "transformer.h.2.attn.c_k.weight",
+        "transformer.h.2.attn.c_v.weight",
+        "transformer.h.2.attn.c_proj.weight",
+        "transformer.h.3.attn.c_q.weight",
+        "transformer.h.3.attn.c_k.weight",
+        "transformer.h.3.attn.c_v.weight",
+        "transformer.h.3.attn.c_proj.weight",
+        "transformer.h.4.attn.c_q.weight",
+        "transformer.h.4.attn.c_k.weight",
+        "transformer.h.4.attn.c_v.weight",
+        "transformer.h.4.attn.c_proj.weight",
+        "transformer.h.5.attn.c_q.weight",
+        "transformer.h.5.attn.c_k.weight",
+        "transformer.h.5.attn.c_v.weight",
+        "transformer.h.5.attn.c_proj.weight"
+      ]
+    },
+    {
+      "index": 9,
+      "kind": "muon",
+      "parameter_names": [
+        "transformer.h.0.mlp.c_proj.weight",
+        "transformer.h.1.mlp.c_proj.weight",
+        "transformer.h.2.mlp.c_proj.weight",
+        "transformer.h.3.mlp.c_proj.weight",
+        "transformer.h.4.mlp.c_proj.weight",
+        "transformer.h.5.mlp.c_proj.weight"
+      ]
+    },
+    {
+      "index": 10,
+      "kind": "muon",
+      "parameter_names": [
+        "transformer.h.0.mlp.c_fc.weight",
+        "transformer.h.1.mlp.c_fc.weight",
+        "transformer.h.2.mlp.c_fc.weight",
+        "transformer.h.3.mlp.c_fc.weight",
+        "transformer.h.4.mlp.c_fc.weight",
+        "transformer.h.5.mlp.c_fc.weight"
+      ]
+    }
+  ],
+  "owned_entries": [
+    {
+      "dtype": "torch.float32",
+      "elements": 8388608,
+      "estimated_ms": 4.01487945,
+      "group": 0,
+      "index": 0,
+      "kind": "adamw",
+      "name": "transformer.wte.weight",
+      "offset": 0,
+      "owner": 0,
+      "position": 0,
+      "shape": [
+        8192,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 8388608,
+      "estimated_ms": 4.01487945,
+      "group": 1,
+      "index": 1,
+      "kind": "adamw",
+      "name": "lm_head.weight",
+      "offset": 0,
+      "owner": 1,
+      "position": 0,
+      "shape": [
+        8192,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1,
+      "estimated_ms": 0.010000477418833972,
+      "group": 2,
+      "index": 2,
+      "kind": "adamw",
+      "name": "transformer.h.0.resid_lambda",
+      "offset": 27273984,
+      "owner": 0,
+      "position": 0,
+      "shape": [
+        1
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1,
+      "estimated_ms": 0.010000477418833972,
+      "group": 2,
+      "index": 3,
+      "kind": "adamw",
+      "name": "transformer.h.0.x0_lambda",
+      "offset": 30408960,
+      "owner": 1,
+      "position": 1,
+      "shape": [
+        1
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1,
+      "estimated_ms": 0.010000477418833972,
+      "group": 2,
+      "index": 4,
+      "kind": "adamw",
+      "name": "transformer.h.1.resid_lambda",
+      "offset": 30408960,
+      "owner": 2,
+      "position": 2,
+      "shape": [
+        1
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1,
+      "estimated_ms": 0.010000477418833972,
+      "group": 2,
+      "index": 5,
+      "kind": "adamw",
+      "name": "transformer.h.1.x0_lambda",
+      "offset": 29362176,
+      "owner": 3,
+      "position": 3,
+      "shape": [
+        1
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1,
+      "estimated_ms": 0.010000477418833972,
+      "group": 2,
+      "index": 6,
+      "kind": "adamw",
+      "name": "transformer.h.2.resid_lambda",
+      "offset": 27273985,
+      "owner": 0,
+      "position": 4,
+      "shape": [
+        1
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1,
+      "estimated_ms": 0.010000477418833972,
+      "group": 2,
+      "index": 7,
+      "kind": "adamw",
+      "name": "transformer.h.2.x0_lambda",
+      "offset": 30408961,
+      "owner": 1,
+      "position": 5,
+      "shape": [
+        1
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1,
+      "estimated_ms": 0.010000477418833972,
+      "group": 2,
+      "index": 8,
+      "kind": "adamw",
+      "name": "transformer.h.3.resid_lambda",
+      "offset": 30408961,
+      "owner": 2,
+      "position": 6,
+      "shape": [
+        1
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1,
+      "estimated_ms": 0.010000477418833972,
+      "group": 2,
+      "index": 9,
+      "kind": "adamw",
+      "name": "transformer.h.3.x0_lambda",
+      "offset": 29362177,
+      "owner": 3,
+      "position": 7,
+      "shape": [
+        1
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1,
+      "estimated_ms": 0.010000477418833972,
+      "group": 2,
+      "index": 10,
+      "kind": "adamw",
+      "name": "transformer.h.4.resid_lambda",
+      "offset": 27273986,
+      "owner": 0,
+      "position": 8,
+      "shape": [
+        1
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1,
+      "estimated_ms": 0.010000477418833972,
+      "group": 2,
+      "index": 11,
+      "kind": "adamw",
+      "name": "transformer.h.4.x0_lambda",
+      "offset": 30408962,
+      "owner": 1,
+      "position": 9,
+      "shape": [
+        1
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1,
+      "estimated_ms": 0.010000477418833972,
+      "group": 2,
+      "index": 12,
+      "kind": "adamw",
+      "name": "transformer.h.5.resid_lambda",
+      "offset": 30408962,
+      "owner": 2,
+      "position": 10,
+      "shape": [
+        1
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1,
+      "estimated_ms": 0.010000477418833972,
+      "group": 2,
+      "index": 13,
+      "kind": "adamw",
+      "name": "transformer.h.5.x0_lambda",
+      "offset": 29362178,
+      "owner": 3,
+      "position": 11,
+      "shape": [
+        1
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 8388608,
+      "estimated_ms": 4.01487945,
+      "group": 3,
+      "index": 14,
+      "kind": "adamw",
+      "name": "value_embeds.1.weight",
+      "offset": 0,
+      "owner": 2,
+      "position": 0,
+      "shape": [
+        8192,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 8388608,
+      "estimated_ms": 4.01487945,
+      "group": 3,
+      "index": 15,
+      "kind": "adamw",
+      "name": "value_embeds.3.weight",
+      "offset": 0,
+      "owner": 3,
+      "position": 1,
+      "shape": [
+        8192,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 8388608,
+      "estimated_ms": 4.01487945,
+      "group": 3,
+      "index": 16,
+      "kind": "adamw",
+      "name": "value_embeds.5.weight",
+      "offset": 8388608,
+      "owner": 0,
+      "position": 2,
+      "shape": [
+        8192,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 2048,
+      "estimated_ms": 0.010977753771972656,
+      "group": 5,
+      "index": 17,
+      "kind": "adamw",
+      "name": "transformer.h.0.local_conv.weight",
+      "offset": 27263744,
+      "owner": 0,
+      "position": 0,
+      "shape": [
+        1024,
+        1,
+        2
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 2048,
+      "estimated_ms": 0.010977753771972656,
+      "group": 5,
+      "index": 18,
+      "kind": "adamw",
+      "name": "transformer.h.1.local_conv.weight",
+      "offset": 27265792,
+      "owner": 0,
+      "position": 1,
+      "shape": [
+        1024,
+        1,
+        2
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 2048,
+      "estimated_ms": 0.010977753771972656,
+      "group": 5,
+      "index": 19,
+      "kind": "adamw",
+      "name": "transformer.h.2.local_conv.weight",
+      "offset": 27267840,
+      "owner": 0,
+      "position": 2,
+      "shape": [
+        1024,
+        1,
+        2
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 2048,
+      "estimated_ms": 0.010977753771972656,
+      "group": 5,
+      "index": 20,
+      "kind": "adamw",
+      "name": "transformer.h.3.local_conv.weight",
+      "offset": 27269888,
+      "owner": 0,
+      "position": 3,
+      "shape": [
+        1024,
+        1,
+        2
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 2048,
+      "estimated_ms": 0.010977753771972656,
+      "group": 5,
+      "index": 21,
+      "kind": "adamw",
+      "name": "transformer.h.4.local_conv.weight",
+      "offset": 27271936,
+      "owner": 0,
+      "position": 4,
+      "shape": [
+        1024,
+        1,
+        2
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 2048,
+      "estimated_ms": 0.010977753771972656,
+      "group": 5,
+      "index": 22,
+      "kind": "adamw",
+      "name": "transformer.h.5.local_conv.weight",
+      "offset": 29360128,
+      "owner": 3,
+      "position": 5,
+      "shape": [
+        1024,
+        1,
+        2
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 256,
+      "estimated_ms": 0.07785,
+      "group": 6,
+      "index": 23,
+      "kind": "muon",
+      "name": "transformer.h.1.attn.ve_gate.weight",
+      "offset": 27262976,
+      "owner": 0,
+      "position": 0,
+      "shape": [
+        8,
+        32
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 256,
+      "estimated_ms": 0.07785,
+      "group": 6,
+      "index": 24,
+      "kind": "muon",
+      "name": "transformer.h.3.attn.ve_gate.weight",
+      "offset": 27263232,
+      "owner": 0,
+      "position": 1,
+      "shape": [
+        8,
+        32
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 256,
+      "estimated_ms": 0.07785,
+      "group": 6,
+      "index": 25,
+      "kind": "muon",
+      "name": "transformer.h.5.attn.ve_gate.weight",
+      "offset": 27263488,
+      "owner": 0,
+      "position": 2,
+      "shape": [
+        8,
+        32
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 256,
+      "estimated_ms": 0.07785,
+      "group": 6,
+      "index": 26,
+      "kind": "muon",
+      "name": "transformer.h.5.attn.ve_gate_bi.weight",
+      "offset": 30408704,
+      "owner": 1,
+      "position": 3,
+      "shape": [
+        8,
+        32
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 256,
+      "estimated_ms": 0.07785,
+      "group": 6,
+      "index": 27,
+      "kind": "muon",
+      "name": "transformer.h.5.attn.ve_gate_tri.weight",
+      "offset": 30408704,
+      "owner": 2,
+      "position": 4,
+      "shape": [
+        8,
+        32
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 131072,
+      "estimated_ms": 0.01,
+      "group": 7,
+      "index": 28,
+      "kind": "muon",
+      "name": "ngram_proj.b5.weight",
+      "offset": 27273987,
+      "owner": 0,
+      "position": 0,
+      "shape": [
+        1024,
+        128
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 131072,
+      "estimated_ms": 0.01,
+      "group": 7,
+      "index": 29,
+      "kind": "muon",
+      "name": "ngram_proj.t5.weight",
+      "offset": 30408963,
+      "owner": 1,
+      "position": 1,
+      "shape": [
+        1024,
+        128
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1048576,
+      "estimated_ms": 0.5226720833333333,
+      "group": 8,
+      "index": 30,
+      "kind": "muon",
+      "name": "transformer.h.0.attn.c_q.weight",
+      "offset": 20971520,
+      "owner": 3,
+      "position": 0,
+      "shape": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1048576,
+      "estimated_ms": 0.5226720833333333,
+      "group": 8,
+      "index": 31,
+      "kind": "muon",
+      "name": "transformer.h.0.attn.c_k.weight",
+      "offset": 22020096,
+      "owner": 3,
+      "position": 1,
+      "shape": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1048576,
+      "estimated_ms": 0.5226720833333333,
+      "group": 8,
+      "index": 32,
+      "kind": "muon",
+      "name": "transformer.h.0.attn.c_v.weight",
+      "offset": 20971520,
+      "owner": 0,
+      "position": 2,
+      "shape": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1048576,
+      "estimated_ms": 0.5226720833333333,
+      "group": 8,
+      "index": 33,
+      "kind": "muon",
+      "name": "transformer.h.0.attn.c_proj.weight",
+      "offset": 23068672,
+      "owner": 3,
+      "position": 3,
+      "shape": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1048576,
+      "estimated_ms": 0.5226720833333333,
+      "group": 8,
+      "index": 34,
+      "kind": "muon",
+      "name": "transformer.h.1.attn.c_q.weight",
+      "offset": 22020096,
+      "owner": 0,
+      "position": 4,
+      "shape": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1048576,
+      "estimated_ms": 0.5226720833333333,
+      "group": 8,
+      "index": 35,
+      "kind": "muon",
+      "name": "transformer.h.1.attn.c_k.weight",
+      "offset": 25165824,
+      "owner": 1,
+      "position": 5,
+      "shape": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1048576,
+      "estimated_ms": 0.5226720833333333,
+      "group": 8,
+      "index": 36,
+      "kind": "muon",
+      "name": "transformer.h.1.attn.c_v.weight",
+      "offset": 25165824,
+      "owner": 2,
+      "position": 6,
+      "shape": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1048576,
+      "estimated_ms": 0.5226720833333333,
+      "group": 8,
+      "index": 37,
+      "kind": "muon",
+      "name": "transformer.h.1.attn.c_proj.weight",
+      "offset": 24117248,
+      "owner": 3,
+      "position": 7,
+      "shape": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1048576,
+      "estimated_ms": 0.5226720833333333,
+      "group": 8,
+      "index": 38,
+      "kind": "muon",
+      "name": "transformer.h.2.attn.c_q.weight",
+      "offset": 23068672,
+      "owner": 0,
+      "position": 8,
+      "shape": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1048576,
+      "estimated_ms": 0.5226720833333333,
+      "group": 8,
+      "index": 39,
+      "kind": "muon",
+      "name": "transformer.h.2.attn.c_k.weight",
+      "offset": 26214400,
+      "owner": 1,
+      "position": 9,
+      "shape": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1048576,
+      "estimated_ms": 0.5226720833333333,
+      "group": 8,
+      "index": 40,
+      "kind": "muon",
+      "name": "transformer.h.2.attn.c_v.weight",
+      "offset": 26214400,
+      "owner": 2,
+      "position": 10,
+      "shape": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1048576,
+      "estimated_ms": 0.5226720833333333,
+      "group": 8,
+      "index": 41,
+      "kind": "muon",
+      "name": "transformer.h.2.attn.c_proj.weight",
+      "offset": 25165824,
+      "owner": 3,
+      "position": 11,
+      "shape": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1048576,
+      "estimated_ms": 0.5226720833333333,
+      "group": 8,
+      "index": 42,
+      "kind": "muon",
+      "name": "transformer.h.3.attn.c_q.weight",
+      "offset": 24117248,
+      "owner": 0,
+      "position": 12,
+      "shape": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1048576,
+      "estimated_ms": 0.5226720833333333,
+      "group": 8,
+      "index": 43,
+      "kind": "muon",
+      "name": "transformer.h.3.attn.c_k.weight",
+      "offset": 27262976,
+      "owner": 1,
+      "position": 13,
+      "shape": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1048576,
+      "estimated_ms": 0.5226720833333333,
+      "group": 8,
+      "index": 44,
+      "kind": "muon",
+      "name": "transformer.h.3.attn.c_v.weight",
+      "offset": 27262976,
+      "owner": 2,
+      "position": 14,
+      "shape": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1048576,
+      "estimated_ms": 0.5226720833333333,
+      "group": 8,
+      "index": 45,
+      "kind": "muon",
+      "name": "transformer.h.3.attn.c_proj.weight",
+      "offset": 26214400,
+      "owner": 3,
+      "position": 15,
+      "shape": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1048576,
+      "estimated_ms": 0.5226720833333333,
+      "group": 8,
+      "index": 46,
+      "kind": "muon",
+      "name": "transformer.h.4.attn.c_q.weight",
+      "offset": 25165824,
+      "owner": 0,
+      "position": 16,
+      "shape": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1048576,
+      "estimated_ms": 0.5226720833333333,
+      "group": 8,
+      "index": 47,
+      "kind": "muon",
+      "name": "transformer.h.4.attn.c_k.weight",
+      "offset": 28311552,
+      "owner": 1,
+      "position": 17,
+      "shape": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1048576,
+      "estimated_ms": 0.5226720833333333,
+      "group": 8,
+      "index": 48,
+      "kind": "muon",
+      "name": "transformer.h.4.attn.c_v.weight",
+      "offset": 28311552,
+      "owner": 2,
+      "position": 18,
+      "shape": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1048576,
+      "estimated_ms": 0.5226720833333333,
+      "group": 8,
+      "index": 49,
+      "kind": "muon",
+      "name": "transformer.h.4.attn.c_proj.weight",
+      "offset": 27262976,
+      "owner": 3,
+      "position": 19,
+      "shape": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1048576,
+      "estimated_ms": 0.5226720833333333,
+      "group": 8,
+      "index": 50,
+      "kind": "muon",
+      "name": "transformer.h.5.attn.c_q.weight",
+      "offset": 26214400,
+      "owner": 0,
+      "position": 20,
+      "shape": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1048576,
+      "estimated_ms": 0.5226720833333333,
+      "group": 8,
+      "index": 51,
+      "kind": "muon",
+      "name": "transformer.h.5.attn.c_k.weight",
+      "offset": 29360128,
+      "owner": 1,
+      "position": 21,
+      "shape": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1048576,
+      "estimated_ms": 0.5226720833333333,
+      "group": 8,
+      "index": 52,
+      "kind": "muon",
+      "name": "transformer.h.5.attn.c_v.weight",
+      "offset": 29360128,
+      "owner": 2,
+      "position": 22,
+      "shape": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 1048576,
+      "estimated_ms": 0.5226720833333333,
+      "group": 8,
+      "index": 53,
+      "kind": "muon",
+      "name": "transformer.h.5.attn.c_proj.weight",
+      "offset": 28311552,
+      "owner": 3,
+      "position": 23,
+      "shape": [
+        1024,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 4194304,
+      "estimated_ms": 1.6271933333333333,
+      "group": 9,
+      "index": 54,
+      "kind": "muon",
+      "name": "transformer.h.0.mlp.c_proj.weight",
+      "offset": 8388608,
+      "owner": 1,
+      "position": 0,
+      "shape": [
+        1024,
+        4096
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 4194304,
+      "estimated_ms": 1.6271933333333333,
+      "group": 9,
+      "index": 55,
+      "kind": "muon",
+      "name": "transformer.h.1.mlp.c_proj.weight",
+      "offset": 8388608,
+      "owner": 2,
+      "position": 1,
+      "shape": [
+        1024,
+        4096
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 4194304,
+      "estimated_ms": 1.6271933333333333,
+      "group": 9,
+      "index": 56,
+      "kind": "muon",
+      "name": "transformer.h.2.mlp.c_proj.weight",
+      "offset": 8388608,
+      "owner": 3,
+      "position": 2,
+      "shape": [
+        1024,
+        4096
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 4194304,
+      "estimated_ms": 1.6271933333333333,
+      "group": 9,
+      "index": 57,
+      "kind": "muon",
+      "name": "transformer.h.3.mlp.c_proj.weight",
+      "offset": 12582912,
+      "owner": 1,
+      "position": 3,
+      "shape": [
+        1024,
+        4096
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 4194304,
+      "estimated_ms": 1.6271933333333333,
+      "group": 9,
+      "index": 58,
+      "kind": "muon",
+      "name": "transformer.h.4.mlp.c_proj.weight",
+      "offset": 12582912,
+      "owner": 2,
+      "position": 4,
+      "shape": [
+        1024,
+        4096
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 4194304,
+      "estimated_ms": 1.6271933333333333,
+      "group": 9,
+      "index": 59,
+      "kind": "muon",
+      "name": "transformer.h.5.mlp.c_proj.weight",
+      "offset": 12582912,
+      "owner": 3,
+      "position": 5,
+      "shape": [
+        1024,
+        4096
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 4194304,
+      "estimated_ms": 1.497085,
+      "group": 10,
+      "index": 60,
+      "kind": "muon",
+      "name": "transformer.h.0.mlp.c_fc.weight",
+      "offset": 16777216,
+      "owner": 1,
+      "position": 0,
+      "shape": [
+        4096,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 4194304,
+      "estimated_ms": 1.497085,
+      "group": 10,
+      "index": 61,
+      "kind": "muon",
+      "name": "transformer.h.1.mlp.c_fc.weight",
+      "offset": 16777216,
+      "owner": 2,
+      "position": 1,
+      "shape": [
+        4096,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 4194304,
+      "estimated_ms": 1.497085,
+      "group": 10,
+      "index": 62,
+      "kind": "muon",
+      "name": "transformer.h.2.mlp.c_fc.weight",
+      "offset": 16777216,
+      "owner": 3,
+      "position": 2,
+      "shape": [
+        4096,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 4194304,
+      "estimated_ms": 1.497085,
+      "group": 10,
+      "index": 63,
+      "kind": "muon",
+      "name": "transformer.h.3.mlp.c_fc.weight",
+      "offset": 16777216,
+      "owner": 0,
+      "position": 3,
+      "shape": [
+        4096,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 4194304,
+      "estimated_ms": 1.497085,
+      "group": 10,
+      "index": 64,
+      "kind": "muon",
+      "name": "transformer.h.4.mlp.c_fc.weight",
+      "offset": 20971520,
+      "owner": 1,
+      "position": 4,
+      "shape": [
+        4096,
+        1024
+      ]
+    },
+    {
+      "dtype": "torch.float32",
+      "elements": 4194304,
+      "estimated_ms": 1.497085,
+      "group": 10,
+      "index": 65,
+      "kind": "muon",
+      "name": "transformer.h.5.mlp.c_fc.weight",
+      "offset": 20971520,
+      "owner": 2,
+      "position": 5,
+      "shape": [
+        4096,
+        1024
+      ]
+    }
+  ],
+  "owner_exchange": {
+    "count_per_rank": 5,
+    "input_dtype": "torch.float32",
+    "input_numel": 30540160,
+    "input_shape": [
+      30540160
+    ],
+    "output_dtype": "torch.float32",
+    "output_numel": 122160640,
+    "output_shape": [
+      122160640
+    ],
+    "sequence_sha256": "ee877c9d7c06123c99a00338694477f27661dda01d7d0abb9e9065adabd88006"
+  },
+  "replicated_rmsprop_parameters": [
+    {
+      "contiguous": true,
+      "device_index": "rank",
+      "device_type": "neuron",
+      "dtype": "torch.bfloat16",
+      "elements": 67108864,
+      "group": 4,
+      "name": "ngram_embeds.b5.weight",
+      "position": 0,
+      "requires_grad": true,
+      "shape": [
+        524288,
+        128
+      ]
+    },
+    {
+      "contiguous": true,
+      "device_index": "rank",
+      "device_type": "neuron",
+      "dtype": "torch.bfloat16",
+      "elements": 67108864,
+      "group": 4,
+      "name": "ngram_embeds.t5.weight",
+      "position": 1,
+      "requires_grad": true,
+      "shape": [
+        524288,
+        128
+      ]
+    }
+  ],
+  "schema": "a1-native-five-ownership-manifest-v1",
+  "source_pins": {
+    "accepted_gate_implementation": "7528ca8dd9d9915097929217c2a2b0d9cfc17107",
+    "analysis_commit": "2ee8c5c0283c760683aff3de48f243845a803d0c",
+    "evidence_commit": "37aa3644e63e20a1427cfa69b44fd6de7e25cd81",
+    "failed_verifier_commit": "01d3cc04b3d55ed4d453fc1aff0e0eddad581682",
+    "files": {
+      "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+      "research/a1_native_gate_observer.py": "89ad30056bf3fe207c43ea61f8c8a94583232f9f21e5158a80fd37cce42d02e7",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/train_gate_hybrid.py": "908431d7e1da8a9110e6e6005de5ecbe3dba13d798bf2f37f2443404dd8d7d94",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/train_gate_ordinary.py": "6ed69d2356c28e0dd8f88f494d988c0b87f7f86426a001945bfd958ed6f8f6d0",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/verify_model_checkpoints.py": "e1ead481f9786ec02a3c60d88e72820f084274200bccd1f7eeb16da108cb6e2e",
+      "submissions/dense6x1024_public0992851/train.py": "9191e85835d8cad50923f32d44ad90c047a9e2d3d4621ce196b11ba66cd66bae"
+    },
+    "immutable_g0_report_sha256": {
+      "rank-0.jsonl": "8aa51461a8cfba1efd1467d97d3ff4788728870b1809b93c2f27c8c8a1054064",
+      "rank-1.jsonl": "bb72db43603c324eb6d8b4a54a7a50d58a6186b9763dec661a1681d7dc88cf63",
+      "rank-2.jsonl": "db6e73e08a1154f4a62b488578cf36565b9accf951eeb40ebe4259e7ca069f7c",
+      "rank-3.jsonl": "897e2fea281755d9ab655670bd56d7d36fae4d90353c98f5e05f29cfb5289aee"
+    }
+  },
+  "summary": {
+    "elements_by_owner": [
+      27405059,
+      30540035,
+      30408963,
+      29362179
+    ],
+    "estimated_ms_by_owner": [
+      12.991316601116363,
+      12.99464796558983,
+      12.984647965589831,
+      12.988706969361804
+    ],
+    "owned_elements": 117716236,
+    "owned_entry_count": 66,
+    "shard_elements": 30540160,
+    "total_padded_bytes": 488642560,
+    "total_padded_elements": 122160640
+  }
+}

@@ -1,20 +1,43 @@
 # A1 native five-step equivalence gate
 
-The package implementation is independently verified by commit
-`aeb85c2cee3481901c827d7a2313b9178906fc84`; its receipt bytes are SHA-256
-`3e2ee9548202d134bc71b9d87b6bf9808857393aa45ec0fd9f6c65ff7fecbacf` and it reviewed
-implementation `7528ca8dd9d9915097929217c2a2b0d9cfc17107`. This later commit prepares only
-G0 finalization and is still non-executable. `g0-request.template.json`,
-`g0-authorization.pending.json`, and `requests.pending.json` deliberately contain
-`PENDING_EXTERNAL_VERIFIER` and `executable=false`. They authorize no SSH, host mutation, cache
-cleanup, native execution, training, full A1, or submission. G1 and G2 remain locked and do not
-have a materializable authorization.
+## Current comparator-correction state
+
+G0 ran once under the exact historical request-bearing head
+`03bfeabf0f4293e30dc86eecf3aa9cce49e9735b`. Its immutable evidence is commit
+`37aa3644e63e20a1427cfa69b44fd6de7e25cd81`; independent evidence verifier commit
+`01d3cc04b3d55ed4d453fc1aff0e0eddad581682` correctly recorded FAIL because the accepted
+comparator froze the dense exchange plan. Analysis commit
+`2ee8c5c0283c760683aff3de48f243845a803d0c` established that the live A1 plan contains 66
+owned FP32 entries, including two `1024 x 128` projections and two `8 x 32` n-gram gates.
+
+The correction binds all 66 named entries, their ordered optimizer groups, shape, element count,
+dtype, estimated cost, owner and offset; the two named BF16 replicated RMSProp tables; exact owner
+counts `[27405059,30540035,30408963,29362179]`; stride `30540160`; padded/output elements
+`122160640`; padded bytes `488642560`; and five FP32 gathers per rank. The exact manifest is
+`a1_ownership_manifest.json`, SHA-256
+`8119df41c8a9ecbfc3f9e69067c7e6ac162c2d5d8ba0a15635265304dcf865a2`. It also pins the
+production/gate source hashes and the four immutable G0 report hashes.
+
+This Implementer correction is not self-verified. The non-executable request
+`g0-ownership-revalidation.pending.json` requires a fresh independent Verifier to reconstruct the
+manifest from the pinned source and flags, run the positive archive check and mutation suite, and
+issue a superseding G0 receipt. G1/G2, host access, training, cleanup, full A1 and submission all
+remain locked.
+
+The local-only immutable G0 check writes a new O_EXCL result and performs no host action:
+
+```text
+python research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/compare_gate_reports.py \
+  --validate-g0-only \
+  research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/operator-evidence/fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1/runtime/research/run-logs/fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1/native-gate \
+  --output <new-local-verifier-owned-output>
+```
 
 The production candidate remains byte-for-byte
 `9191e85835d8cad50923f32d44ad90c047a9e2d3d4621ce196b11ba66cd66bae`; only authenticated
 gate copies import `research/a1_native_gate_observer.py`.
 
-## G0-only external finalization
+## Historical G0-only external finalization (consumed; do not reuse)
 
 `g0_finalization.py` is a fail-closed materializer and runtime, not authority. An independent
 Verifier must create a later `g0-authorization.json` that pins the current template, driver,
@@ -49,10 +72,9 @@ python research/fresh_start_launch.py \
   /tmp/fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1.request.json
 ```
 
-No command in this section is currently authorized or executable because
-`g0-authorization.json` is absent and all external literals remain pending. A descendant commit
-cannot authorize itself: the external HEAD must equal the checkout exactly, and the independent
-Verifier must issue a new literal set after reviewing any changed bytes.
+The commands in this historical section were consumed by the archived G0 run and are not reusable.
+The corrected comparator changes protected package bytes, so the old authorization cannot
+authorize a descendant or any rerun. No rerun is requested by this correction.
 
 ## Fixed order and lifecycle
 

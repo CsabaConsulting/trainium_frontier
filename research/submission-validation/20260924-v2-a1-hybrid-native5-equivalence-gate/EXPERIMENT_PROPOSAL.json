@@ -1,6 +1,6 @@
 {
   "proposal_id": "20260924-v2-a1-hybrid-native5-equivalence-gate",
-  "status": "package-verified-g0-finalization-prepared-pending-external-literals-and-authorization",
+  "status": "g0-evidence-failed-stale-comparator-correction-pending-independent-verification",
   "owner_role": "implementer",
   "hypothesis": "The verified hybrid RMSProp repair is byte-exact to ordinary replicated RMSProp for the A1 tables while the AdamW/Muon ownership exchange is exact for the integrated model.",
   "single_causal_change": "Gate-only observation and optimizer-dispatch selection; production candidate bytes are immutable and no scientific setting changes.",
@@ -22,7 +22,8 @@
       "research/a1_native_gate_observer.py": "89ad30056bf3fe207c43ea61f8c8a94583232f9f21e5158a80fd37cce42d02e7",
       "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/train_gate_hybrid.py": "908431d7e1da8a9110e6e6005de5ecbe3dba13d798bf2f37f2443404dd8d7d94",
       "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/train_gate_ordinary.py": "6ed69d2356c28e0dd8f88f494d988c0b87f7f86426a001945bfd958ed6f8f6d0",
-      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/compare_gate_reports.py": "aa2d7c084ee17c5c639bd5ff7b6bc0cbf6e9575d5f802a056328eb4e387f5ca4",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/compare_gate_reports.py": "28225d289756e4d2ec2aee51f48736cad4d269a9d94586759ef4453a0e005b61",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/a1_ownership_manifest.json": "8119df41c8a9ecbfc3f9e69067c7e6ac162c2d5d8ba0a15635265304dcf865a2",
       "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/verify_model_checkpoints.py": "e1ead481f9786ec02a3c60d88e72820f084274200bccd1f7eeb16da108cb6e2e"
     },
     "production_imports_gate_observer": false
@@ -98,15 +99,27 @@
     "request_template": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g0-request.template.json",
     "pending_authorization_template": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g0-authorization.pending.json",
     "runtime_driver": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g0_finalization.py",
-    "request_bearing_head": "PENDING_EXTERNAL_VERIFIER",
-    "request_sha256": "PENDING_EXTERNAL_VERIFIER",
-    "authorization_sha256": "PENDING_EXTERNAL_VERIFIER",
+    "request_bearing_head": "03bfeabf0f4293e30dc86eecf3aa9cce49e9735b",
+    "request_sha256": "dd9fa11ae2c30c41a52c9f9b2ce0d58c0551786c5a206bb98d1d15a1f475dc29",
+    "authorization_sha256": "c372bd3f0c3909a69f679a74789d3674f5e0139f12788bd15494c0b9700be28e",
     "executable": false,
+    "status": "historical-g0-completed-evidence-archived-do-not-reuse",
     "outer_timeout_seconds": 4200,
     "child_timeout_seconds": 3600,
     "timeout_justification": "3600 seconds covers the 900-second startup allowance plus the immutable 1800-second in-process ceiling, checkpoint and evidence finalization; the 4200-second outer timeout leaves 600 seconds for bounded TERM/KILL/reap and guard postflight.",
     "G1": "locked pending authenticated G0 archive and clean postflight",
     "G2": "locked pending authenticated G1 archive and clean postflight"
+  },
+  "g0_comparator_correction": {
+    "request": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g0-ownership-revalidation.pending.json",
+    "state": "pending-independent-verifier",
+    "executable": false,
+    "evidence_commit": "37aa3644e63e20a1427cfa69b44fd6de7e25cd81",
+    "failed_verifier_commit": "01d3cc04b3d55ed4d453fc1aff0e0eddad581682",
+    "analysis_commit": "2ee8c5c0283c760683aff3de48f243845a803d0c",
+    "ownership_manifest_sha256": "8119df41c8a9ecbfc3f9e69067c7e6ac162c2d5d8ba0a15635265304dcf865a2",
+    "comparator_sha256": "28225d289756e4d2ec2aee51f48736cad4d269a9d94586759ef4453a0e005b61",
+    "g1_remains_locked": true
   },
   "observations": {
     "format": "canonical compact JSONL hashes and scalar metadata only; tensor values are never dumped",
@@ -130,9 +143,10 @@
   "gates": {
     "human_implementation_approval": true,
     "independent_verification": true,
+    "comparator_correction_independent_verification": false,
     "requests_finalized": false,
     "native_execution_authorized": false,
-    "launched": false,
+    "launched": true,
     "full_a1_authorized": false,
     "submission_authorized": false
   },

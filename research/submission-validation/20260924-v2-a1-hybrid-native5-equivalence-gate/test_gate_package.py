@@ -20,6 +20,13 @@ import torch
 
 ROOT = Path(__file__).resolve().parents[3]
 HERE = Path(__file__).resolve().parent
+IMMUTABLE_G0_REPORTS = (
+    HERE / "operator-evidence"
+    / "fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1"
+    / "runtime/research/run-logs"
+    / "fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1"
+    / "native-gate"
+)
 
 
 def load(name: str, path: Path):
@@ -34,6 +41,7 @@ COMPARE = load("a1_gate_compare", HERE / "compare_gate_reports.py")
 MODEL_CHECK = load("a1_gate_model_check", HERE / "verify_model_checkpoints.py")
 OBSERVER = load("a1_gate_observer", ROOT / "research/a1_native_gate_observer.py")
 G0_FINALIZATION = load("a1_gate_g0_finalization", HERE / "g0_finalization.py")
+OWNERSHIP_MANIFEST = COMPARE._load_ownership_manifest()
 
 
 def sha(path: Path) -> str:
@@ -105,32 +113,30 @@ def arm_records(arm: str, rank: int) -> list[dict]:
                 "config": {"clip_after_reduce": True, "matrix_lr": 0.015,
                            "max_train_seconds": 1800, "n_embd": 1024, "num_steps": 5,
                            "pack_factor": 32, "seed": 42, "seq_len": 1024}}]
-    groups = [{"index": 0, "kind": "adamw", "parameter_names": [f"adam.{rank}"]},
-              {"index": 1, "kind": "muon", "parameter_names": [f"muon.{rank}"]},
-              {"index": 2, "kind": "rmsprop",
-               "parameter_names": sorted(COMPARE.TABLES)}]
-    counts = [27_265_796, 30_414_851, 30_412_805, 29_360_128]
-    entries = [{"index": index, "group": index, "position": 0,
-                "kind": "adamw" if index == 0 else "muon", "shape": [elements],
-                "elements": elements, "estimated_ms": float(index + 1),
-                "owner": index, "offset": 0}
-               for index, elements in enumerate(counts)]
-    replicated = [{"group": 2, "parameters": [
-        {"position": position, "shape": [524_288, 128], "elements": 67_108_864,
-         "dtype": "torch.bfloat16", "contiguous": True, "requires_grad": True,
-         "device_type": "privateuseone", "device_index": rank}
-        for position in range(2)]}]
+    groups = copy.deepcopy(OWNERSHIP_MANIFEST["groups"])
+    entries = [{key: value for key, value in entry.items()
+                if key not in ("name", "dtype")}
+               for entry in OWNERSHIP_MANIFEST["owned_entries"]]
+    replicated = [{
+        "group": OWNERSHIP_MANIFEST["replicated_rmsprop_parameters"][0]["group"],
+        "parameters": [
+            {key: (rank if key == "device_index" else value)
+             for key, value in parameter.items() if key not in ("group", "name")}
+            for parameter in OWNERSHIP_MANIFEST["replicated_rmsprop_parameters"]
+        ],
+    }]
     ownership = None if mode == "ordinary" else {
         "entries": entries,
-        "summary": {"elements_by_owner": counts,
-                    "estimated_ms_by_owner": [1.0, 2.0, 3.0, 4.0],
+        "summary": {"elements_by_owner": list(COMPARE.OWNERSHIP_ELEMENTS_BY_OWNER),
+                    "estimated_ms_by_owner": list(COMPARE.OWNERSHIP_ESTIMATED_MS_BY_OWNER),
                     "shard_elements": COMPARE.OWNERSHIP_SHARD_ELEMENTS,
-                    "total_padded_bytes": COMPARE.OWNERSHIP_SHARD_ELEMENTS * 4 * 4,
+                    "total_padded_bytes": COMPARE.OWNERSHIP_PADDED_BYTES,
                     "replicated_rmsprop_groups": replicated},
-        "replicated_rmsprop_groups": [2],
+        "replicated_rmsprop_groups": [replicated[0]["group"]],
     }
     records.append({"kind": "inventory", "groups": groups, "ownership": ownership,
-                    "model_state": model_digest("initial")})
+                    "model_state": copy.deepcopy(
+                        OWNERSHIP_MANIFEST["configuration"]["model_state"])})
     for step in range(5):
         value = float(5.0 - step / 10 + rank / 100)
         records.append({"kind": "loss", "step": step, "value": value,
@@ -209,7 +215,10 @@ class SourceContractTests(unittest.TestCase):
         for key in ("label", "remote", "compile_cache", "output", "report"):
             self.assertEqual(len({arm[key] for arm in arms}), 3)
         self.assertEqual([arm["arm"] for arm in arms], ["G0", "G1", "G2"])
-        self.assertTrue(all(arm["prerequisite"].startswith("PENDING_") for arm in arms))
+        self.assertTrue(arms[0]["prerequisite"].startswith("HISTORICAL_G0_COMPLETED_"))
+        self.assertTrue(all(arm["prerequisite"].startswith("PENDING_") for arm in arms[1:]))
+        self.assertEqual(request["g0_comparator_correction_request"],
+                         "g0-ownership-revalidation.pending.json")
         self.assertIn("--clip-after-reduce", request["common_train_argv"])
         self.assertEqual(request["common_train_argv"].count("--num-steps"), 1)
         self.assertEqual(request["common_train_argv"][:4],
@@ -218,14 +227,32 @@ class SourceContractTests(unittest.TestCase):
     def test_proposal_and_runbook_refuse_authorization(self):
         proposal = json.loads((HERE / "EXPERIMENT_PROPOSAL.json").read_text())
         self.assertTrue(proposal["gates"]["independent_verification"])
+        self.assertFalse(proposal["gates"]["comparator_correction_independent_verification"])
         self.assertFalse(proposal["gates"]["native_execution_authorized"])
-        self.assertFalse(proposal["gates"]["launched"])
+        self.assertTrue(proposal["gates"]["launched"])
+        self.assertTrue(proposal["g0_comparator_correction"]["g1_remains_locked"])
         self.assertEqual(proposal["execution_contract"]["order"], ["G0", "G1", "G2"])
         for relative, expected in proposal["immutable_sources"]["gate_sources"].items():
             self.assertEqual(sha(ROOT / relative), expected, relative)
         runbook = (HERE / "RUNBOOK.md").read_text()
         self.assertIn("RMS_PASS_INTEGRATED_BLOCKED", runbook)
         self.assertIn("STOP; below", runbook)
+
+    def test_comparator_correction_request_is_pinned_and_non_executable(self):
+        request = json.loads((HERE / "g0-ownership-revalidation.pending.json").read_text())
+        self.assertFalse(request["executable"])
+        self.assertFalse(request["native_execution_authorized"])
+        self.assertFalse(request["training_authorized"])
+        self.assertFalse(request["g1_authorized"])
+        self.assertEqual(request["implementation_head"], "PENDING_INDEPENDENT_VERIFIER")
+        self.assertEqual(request["pins"]["ownership_manifest_sha256"],
+                         sha(HERE / "a1_ownership_manifest.json"))
+        self.assertEqual(request["pins"]["comparator_sha256"],
+                         sha(HERE / "compare_gate_reports.py"))
+        self.assertEqual(request["expected_contract"]["elements_by_owner"],
+                         [27_405_059, 30_540_035, 30_408_963, 29_362_179])
+        self.assertEqual(request["expected_contract"]["owner_exchange_output"],
+                         [122_160_640])
 
 
 class G0FinalizationTests(unittest.TestCase):
@@ -258,7 +285,9 @@ class G0FinalizationTests(unittest.TestCase):
         G0_FINALIZATION.validate_template(template)
         request_sha = sha(HERE / "g0-request.template.json")
         auth = self.authorized(template)
-        G0_FINALIZATION.validate_authorization(auth, template, request_sha)
+        with self.assertRaisesRegex(G0_FINALIZATION.ContractError,
+                                    "protected hash mismatch"):
+            G0_FINALIZATION.validate_authorization(auth, template, request_sha)
         concrete = G0_FINALIZATION.build_concrete_request(
             template, head="a" * 40, request_sha=request_sha,
             authorization_sha="b" * 64,
@@ -287,7 +316,10 @@ class G0FinalizationTests(unittest.TestCase):
         by_arm = {arm["arm"]: arm for arm in pending["arms"]}
         self.assertIn("PENDING_AUTHENTICATED_G0", by_arm["G1"]["prerequisite"])
         self.assertIn("PENDING_AUTHENTICATED_G1", by_arm["G2"]["prerequisite"])
-        self.assertFalse((HERE / "g0-authorization.json").exists())
+        historical_g0 = json.loads((HERE / "g0-authorization.json").read_text())
+        self.assertTrue(historical_g0["executable"])
+        self.assertFalse(historical_g0["g1_authorized"])
+        self.assertFalse(historical_g0["g2_authorized"])
         self.assertFalse(any((HERE / name).exists() for name in
                              ("g1-authorization.json", "g2-authorization.json")))
 
@@ -318,13 +350,22 @@ class G0FinalizationTests(unittest.TestCase):
     def test_exact_source_launcher_guard_and_verifier_hashes(self):
         template = self.template()
         for relative, expected in template["source_sha256"].items():
-            self.assertEqual(sha(ROOT / relative), expected, relative)
+            actual = sha(ROOT / relative)
+            if relative.endswith("compare_gate_reports.py"):
+                self.assertEqual(expected,
+                                 "aa2d7c084ee17c5c639bd5ff7b6bc0cbf6e9575d5f802a056328eb4e387f5ca4")
+                self.assertNotEqual(actual, expected)
+            else:
+                self.assertEqual(actual, expected, relative)
         self.assertEqual(template["verified_core_commit"],
                          "7528ca8dd9d9915097929217c2a2b0d9cfc17107")
         self.assertEqual(template["verifier_receipt_commit"],
                          "aeb85c2cee3481901c827d7a2313b9178906fc84")
         self.assertEqual(template["verifier_receipt_sha256"],
                          "3e2ee9548202d134bc71b9d87b6bf9808857393aa45ec0fd9f6c65ff7fecbacf")
+        correction = json.loads((HERE / "g0-ownership-revalidation.pending.json").read_text())
+        self.assertEqual(correction["pins"]["comparator_sha256"],
+                         sha(HERE / "compare_gate_reports.py"))
 
     def test_request_or_environment_mutation_fails_closed(self):
         attacks = []
@@ -620,6 +661,77 @@ class G0FinalizationTests(unittest.TestCase):
 
 
 class ComparatorTests(unittest.TestCase):
+    def test_immutable_g0_reports_match_exact_a1_manifest(self):
+        result = COMPARE.validate_immutable_g0(IMMUTABLE_G0_REPORTS)
+        self.assertEqual(result, {
+            "schema": "a1-native-five-g0-ownership-validation-v1",
+            "status": "PASS",
+            "manifest_sha256": COMPARE.OWNERSHIP_MANIFEST_SHA256,
+            "owned_entry_count": 66,
+            "elements_by_owner": [27_405_059, 30_540_035, 30_408_963, 29_362_179],
+            "shard_elements": 30_540_160,
+            "total_padded_elements": 122_160_640,
+            "owner_exchanges_per_rank": 5,
+        })
+
+    def test_immutable_g0_cli_writes_exclusive_pass(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "g0-validation.json"
+            result = subprocess.run([
+                sys.executable, str(HERE / "compare_gate_reports.py"),
+                "--validate-g0-only", str(IMMUTABLE_G0_REPORTS),
+                "--output", str(output),
+            ], cwd=ROOT, text=True, capture_output=True, check=False)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertEqual(json.loads(output.read_text())["status"], "PASS")
+
+    def test_manifest_binds_named_a1_parameters_tables_and_sources(self):
+        manifest = COMPARE._load_ownership_manifest()
+        entries = {entry["name"]: entry for entry in manifest["owned_entries"]}
+        self.assertEqual(len(entries), 66)
+        self.assertEqual(entries["ngram_proj.b5.weight"]["shape"], [1024, 128])
+        self.assertEqual(entries["ngram_proj.t5.weight"]["elements"], 131_072)
+        self.assertEqual(entries["transformer.h.5.attn.ve_gate_bi.weight"]["shape"], [8, 32])
+        self.assertEqual(entries["transformer.h.5.attn.ve_gate_tri.weight"]["elements"], 256)
+        self.assertTrue(all(entry["dtype"] == "torch.float32" for entry in entries.values()))
+        self.assertTrue(COMPARE.TABLES.isdisjoint(entries))
+        self.assertEqual({entry["name"] for entry in
+                          manifest["replicated_rmsprop_parameters"]}, COMPARE.TABLES)
+        self.assertEqual(manifest["summary"]["owned_elements"], 117_716_236)
+        self.assertEqual(manifest["summary"]["total_padded_bytes"], 488_642_560)
+        for relative, expected in manifest["source_pins"]["files"].items():
+            self.assertEqual(sha(ROOT / relative), expected, relative)
+
+    def test_immutable_report_or_manifest_digest_mutation_is_invalid(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            copied = Path(tmp) / "native-gate"
+            copied.mkdir()
+            for rank in range(4):
+                source = IMMUTABLE_G0_REPORTS / f"rank-{rank}.jsonl"
+                (copied / source.name).write_bytes(source.read_bytes())
+            rank_zero = copied / "rank-0.jsonl"
+            rank_zero.write_bytes(rank_zero.read_bytes() + b" ")
+            with self.assertRaises(COMPARE.InvalidGate):
+                COMPARE.validate_immutable_g0(copied)
+
+            manifest = Path(tmp) / "manifest.json"
+            manifest.write_bytes((HERE / "a1_ownership_manifest.json").read_bytes() + b" ")
+            with mock.patch.object(COMPARE, "OWNERSHIP_MANIFEST_PATH", manifest):
+                with self.assertRaises(COMPARE.InvalidGate):
+                    COMPARE._load_ownership_manifest()
+
+    def test_source_pin_mutation_is_invalid(self):
+        original = COMPARE._file_sha
+
+        def attacked(path):
+            if path == ROOT / "submissions/dense6x1024_public0992851/train.py":
+                return "0" * 64
+            return original(path)
+
+        with mock.patch.object(COMPARE, "_file_sha", side_effect=attacked):
+            with self.assertRaises(COMPARE.InvalidGate):
+                COMPARE._load_ownership_manifest()
+
     def test_exact_fixture_passes(self):
         with tempfile.TemporaryDirectory() as tmp:
             paths = write_fixture(Path(tmp))
@@ -695,6 +807,34 @@ class ComparatorTests(unittest.TestCase):
             with self.assertRaises(COMPARE.InvalidGate):
                 COMPARE.compare(paths["G0"], paths["G1"], paths["G2"])
 
+    def test_stale_dense_owner_contract_is_invalid_for_a1(self):
+        def mutate(records):
+            dense_stride = 30_414_976
+            for arm in ("G0", "G1"):
+                for rank_records in records[arm]:
+                    inventory = next(r for r in rank_records if r["kind"] == "inventory")
+                    inventory["ownership"]["summary"].update({
+                        "elements_by_owner": [27_265_796, 30_414_851, 30_412_805, 29_360_128],
+                        "shard_elements": dense_stride,
+                        "total_padded_bytes": dense_stride * 4 * 4,
+                    })
+                    collective = next(r for r in rank_records if r["kind"] == "collectives")
+                    for item in collective["sequence"]:
+                        if item["op"] == "all_gather_into_tensor":
+                            item.update({
+                                "input_shape": [dense_stride], "input_numel": dense_stride,
+                                "output_shape": [4 * dense_stride],
+                                "output_numel": 4 * dense_stride,
+                            })
+                    raw = json.dumps(collective["sequence"], sort_keys=True,
+                                     separators=(",", ":")).encode()
+                    collective["sequence_sha256"] = hashlib.sha256(raw).hexdigest()
+
+        with tempfile.TemporaryDirectory() as tmp:
+            paths = write_fixture(Path(tmp), mutate)
+            with self.assertRaises(COMPARE.InvalidGate):
+                COMPARE.compare(paths["G0"], paths["G1"], paths["G2"])
+
     def test_owner_all_gather_mutations_are_invalid(self):
         def reseal(record):
             for index, item in enumerate(record["sequence"]):
@@ -733,11 +873,52 @@ class ComparatorTests(unittest.TestCase):
                                 item["input_dtype"] = "torch.bfloat16"
                             elif case == "numel":
                                 item["output_numel"] -= 1
+                            elif case == "output":
+                                item["output_shape"] = [COMPARE.OWNERSHIP_PADDED_ELEMENTS - 1]
                         reseal(record)
             return mutate
 
-        for case in ("missing", "extra", "order", "shape", "dtype", "numel",
+        for case in ("missing", "extra", "order", "shape", "dtype", "numel", "output",
                      "stride", "inventory_extra"):
+            with self.subTest(case=case), tempfile.TemporaryDirectory() as tmp:
+                paths = write_fixture(Path(tmp), mutation(case))
+                with self.assertRaises(COMPARE.InvalidGate):
+                    COMPARE.compare(paths["G0"], paths["G1"], paths["G2"])
+
+    def test_exact_named_a1_manifest_mutations_are_invalid(self):
+        def mutation(case):
+            def mutate(records):
+                targets = [rank_records for arm in ("G0", "G1")
+                           for rank_records in records[arm]]
+                for rank_records in targets:
+                    inventory = next(r for r in rank_records if r["kind"] == "inventory")
+                    ownership = inventory["ownership"]
+                    if case == "drop":
+                        ownership["entries"].pop()
+                    elif case == "rename":
+                        inventory["groups"][7]["parameter_names"][0] = "ngram_proj.attacker.weight"
+                    elif case == "resize":
+                        ownership["entries"][28]["shape"] = [1024, 127]
+                        ownership["entries"][28]["elements"] = 1024 * 127
+                    elif case == "reassign":
+                        ownership["entries"][28]["owner"] = 3
+                    elif case == "group":
+                        ownership["entries"][28]["group"] = 8
+                    elif case == "table_inclusion":
+                        ownership["entries"].append({
+                            "index": 66, "group": 4, "position": 0, "kind": "rmsprop",
+                            "shape": [524288, 128], "elements": 67108864,
+                            "estimated_ms": 1.0, "owner": 0, "offset": 0,
+                        })
+                    elif case == "count":
+                        ownership["summary"]["elements_by_owner"][0] += 1
+                    elif case == "table_dtype":
+                        ownership["summary"]["replicated_rmsprop_groups"][0][
+                            "parameters"][0]["dtype"] = "torch.float32"
+            return mutate
+
+        for case in ("drop", "rename", "resize", "reassign", "group",
+                     "table_inclusion", "count", "table_dtype"):
             with self.subTest(case=case), tempfile.TemporaryDirectory() as tmp:
                 paths = write_fixture(Path(tmp), mutation(case))
                 with self.assertRaises(COMPARE.InvalidGate):

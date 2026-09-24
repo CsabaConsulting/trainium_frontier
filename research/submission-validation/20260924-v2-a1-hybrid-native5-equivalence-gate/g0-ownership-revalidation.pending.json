@@ -1,0 +1,52 @@
+{
+  "schema": "a1-native-five-g0-ownership-revalidation-request-v1",
+  "state": "pending-independent-verifier",
+  "executable": false,
+  "action": "local-only-validate-immutable-g0-ownership",
+  "native_execution_authorized": false,
+  "training_authorized": false,
+  "g1_authorized": false,
+  "g2_authorized": false,
+  "evidence_commit": "37aa3644e63e20a1427cfa69b44fd6de7e25cd81",
+  "failed_verifier_commit": "01d3cc04b3d55ed4d453fc1aff0e0eddad581682",
+  "analysis_commit": "2ee8c5c0283c760683aff3de48f243845a803d0c",
+  "implementation_head": "PENDING_INDEPENDENT_VERIFIER",
+  "pins": {
+    "analysis_sha256": "f8f8e068cf841bdd9673cf254bbeece02a47840993f98f82b36632cc8e1b14da",
+    "failed_verifier_receipt_sha256": "11269947fe9be583671bd5b261d2b79dd651ec264b34a60d64522a7d80f8dcbb",
+    "ownership_manifest_sha256": "8119df41c8a9ecbfc3f9e69067c7e6ac162c2d5d8ba0a15635265304dcf865a2",
+    "comparator_sha256": "28225d289756e4d2ec2aee51f48736cad4d269a9d94586759ef4453a0e005b61",
+    "candidate_sha256": "9191e85835d8cad50923f32d44ad90c047a9e2d3d4621ce196b11ba66cd66bae",
+    "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "observer_sha256": "89ad30056bf3fe207c43ea61f8c8a94583232f9f21e5158a80fd37cce42d02e7",
+    "hybrid_gate_sha256": "908431d7e1da8a9110e6e6005de5ecbe3dba13d798bf2f37f2443404dd8d7d94",
+    "ordinary_gate_sha256": "6ed69d2356c28e0dd8f88f494d988c0b87f7f86426a001945bfd958ed6f8f6d0",
+    "model_checker_sha256": "e1ead481f9786ec02a3c60d88e72820f084274200bccd1f7eeb16da108cb6e2e",
+    "immutable_g0_reports": {
+      "rank-0.jsonl": "8aa51461a8cfba1efd1467d97d3ff4788728870b1809b93c2f27c8c8a1054064",
+      "rank-1.jsonl": "bb72db43603c324eb6d8b4a54a7a50d58a6186b9763dec661a1681d7dc88cf63",
+      "rank-2.jsonl": "db6e73e08a1154f4a62b488578cf36565b9accf951eeb40ebe4259e7ca069f7c",
+      "rank-3.jsonl": "897e2fea281755d9ab655670bd56d7d36fae4d90353c98f5e05f29cfb5289aee"
+    }
+  },
+  "expected_contract": {
+    "owned_entries": 66,
+    "owned_dtype": "torch.float32",
+    "elements_by_owner": [27405059, 30540035, 30408963, 29362179],
+    "shard_elements": 30540160,
+    "total_padded_elements": 122160640,
+    "total_padded_bytes": 488642560,
+    "owner_exchanges_per_rank": 5,
+    "owner_exchange_input": [30540160],
+    "owner_exchange_output": [122160640]
+  },
+  "command_template": [
+    "python",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/compare_gate_reports.py",
+    "--validate-g0-only",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/operator-evidence/fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1/runtime/research/run-logs/fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1/native-gate",
+    "--output",
+    "PENDING_INDEPENDENT_VERIFIER_O_EXCL_OUTPUT"
+  ],
+  "required_verdict": "A fresh independent verifier must review source-derived manifest identity, run all mutation tests, and issue a superseding G0 evidence receipt. This request is not authority."
+}
