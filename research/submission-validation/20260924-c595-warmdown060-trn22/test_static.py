@@ -21,14 +21,18 @@ EVIDENCE = ROOT / "research/submission-validation/20260924-c595-warmdown060-trn2
 R1_LABEL = "fs-20260924-c595-warmdown060-trn22-r1"
 R2_LABEL = "fs-20260924-c595-warmdown060-trn22-r2"
 R3_LABEL = "fs-20260924-c595-warmdown060-trn22-r3"
+R4_LABEL = "fs-20260924-c595-warmdown060-trn22-r4"
 R1_EVIDENCE_COMMIT = "b17fb2d0438e2a8fa7cea51683b88c1c209b2932"
 R2_EVIDENCE_COMMIT = "09cd2689f6974a83eae09478dfa3e9744e3f1634"
+R3_EVIDENCE_COMMIT = "eb674ab73f041afb9ea30172495725873d8519c7"
 R1_RETRIEVED = EVIDENCE / f"retrieved/{R1_LABEL}"
 R2_RETRIEVED = EVIDENCE / f"retrieved/{R2_LABEL}"
+R3_RETRIEVED = EVIDENCE / f"retrieved/{R3_LABEL}"
 RETRIEVED_RUNTIME_JOB = (
     R1_RETRIEVED / "job.json"
 )
 R2_RUNTIME_JOB = R2_RETRIEVED / "job.json"
+R3_RUNTIME_JOB = R3_RETRIEVED / f"{R3_LABEL}.job.json"
 SOURCE_PACKAGE = ROOT / "submissions/dense6x1024_direct_review"
 CANDIDATE_PACKAGE = ROOT / "submissions/dense6x1024_direct_review_warmdown060"
 SOURCE_TRAIN_SHA = "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537"
@@ -152,7 +156,7 @@ class ConfigurationTests(unittest.TestCase):
 
     def test_proposal_pins_control_metric_and_predeclared_decision(self) -> None:
         proposal = load_json(EVIDENCE / "EXPERIMENT_PROPOSAL.json")
-        self.assertEqual(proposal["proposal_id"], "20260924-c595-warmdown060-trn22-r3")
+        self.assertEqual(proposal["proposal_id"], "20260924-c595-warmdown060-trn22-r4")
         self.assertEqual(proposal["status"], "human-approved-pending-independent-verification")
         self.assertEqual(proposal["mechanism_class"], "schedule")
         self.assertIn("not a weight-decay change", proposal["single_causal_change"])
@@ -161,14 +165,16 @@ class ConfigurationTests(unittest.TestCase):
         metric = proposal["control"]["selection_metric"]
         self.assertEqual((metric["seq_len"], metric["num_tokens"], metric["num_bytes"]), (1024, 20971520, 83462186))
         self.assertEqual(proposal["candidate"]["sha256"], CANDIDATE_TRAIN_SHA)
-        self.assertEqual(proposal["candidate"]["run_label"], R3_LABEL)
+        self.assertEqual(proposal["candidate"]["run_label"], R4_LABEL)
         self.assertEqual(
             proposal["candidate"]["remote_checkout"],
-            "/home/ubuntu/trainium_freshstart_20260924_c595_warmdown060_trn22_r3",
+            "/home/ubuntu/trainium_freshstart_20260924_c595_warmdown060_trn22_r4",
         )
-        self.assertEqual(proposal["candidate"]["runtime_job"], f"research/run-logs/{R3_LABEL}.job.json")
-        self.assertEqual(proposal["candidate"]["dispatch_receipt"], f"research/run-logs/{R3_LABEL}.dispatch.json")
-        self.assertEqual(proposal["candidate"]["output_directory"], f"out/{R3_LABEL}")
+        self.assertEqual(proposal["candidate"]["runtime_job"], f"research/run-logs/{R4_LABEL}.job.json")
+        self.assertEqual(proposal["candidate"]["dispatch_receipt"], f"research/run-logs/{R4_LABEL}.dispatch.json")
+        self.assertEqual(proposal["candidate"]["output_directory"], f"out/{R4_LABEL}")
+        self.assertEqual(proposal["candidate"]["training_subprocess_timeout_seconds"], 3000)
+        self.assertEqual(proposal["candidate"]["top_level_guard_timeout_seconds"], 4200)
         self.assertEqual(proposal["candidate"]["launch_command"], LAUNCH)
         self.assertEqual(proposal["candidate"]["seed"], 42)
         self.assertEqual(proposal["candidate"]["max_train_seconds"], 1800)
@@ -181,11 +187,14 @@ class ConfigurationTests(unittest.TestCase):
         self.assertIs(proposal["gates"]["submission_authorized"], False)
         self.assertIsNone(proposal["verdict"])
         retry = proposal["retry_provenance"]
-        self.assertEqual(retry["previous_label"], R2_LABEL)
-        self.assertEqual(retry["evidence_commit"], R2_EVIDENCE_COMMIT)
-        self.assertIs(retry["training_started"], False)
-        self.assertEqual(retry["failure_stage"], "outer_environment_validation_before_training")
-        self.assertIn("/usr/local/lib:/usr/lib", retry["fix"])
+        self.assertEqual(retry["previous_label"], R3_LABEL)
+        self.assertEqual(retry["evidence_commit"], R3_EVIDENCE_COMMIT)
+        self.assertIs(retry["training_started"], True)
+        self.assertEqual(retry["failure_stage"], "bounded_training_process")
+        self.assertEqual(retry["orchestration_delta"]["training_subprocess_timeout_seconds"], {"from": 2400, "to": 3000})
+        self.assertEqual(retry["orchestration_delta"]["top_level_guard_timeout_seconds"], 4200)
+        self.assertIs(retry["orchestration_delta"]["top_level_guard_changed"], False)
+        self.assertIs(retry["orchestration_delta"]["candidate_or_launch_changed"], False)
 
     def test_finalization_files_are_absent_together_or_exact_child_only(self) -> None:
         auth_path = EVIDENCE / "authorization.json"
@@ -218,10 +227,11 @@ class ConfigurationTests(unittest.TestCase):
         self.assertEqual((metrics["num_tokens"], metrics["num_bytes"]), (20971520, 83462186))
         self.assertIs(metrics["eval_over_timeout"], False)
 
-    def test_r1_and_r2_failure_evidence_are_unchanged(self) -> None:
+    def test_r1_r2_and_r3_failure_evidence_are_unchanged(self) -> None:
         for label, retrieved, commit in (
             (R1_LABEL, R1_RETRIEVED, R1_EVIDENCE_COMMIT),
             (R2_LABEL, R2_RETRIEVED, R2_EVIDENCE_COMMIT),
+            (R3_LABEL, R3_RETRIEVED, R3_EVIDENCE_COMMIT),
         ):
             paths = [str(retrieved.relative_to(ROOT)), f"research/run-logs/{label}.dispatch.json"]
             subprocess.run(
@@ -245,24 +255,34 @@ class ConfigurationTests(unittest.TestCase):
             sha256(R2_RUNTIME_JOB),
             "eb17c80431544fd03760b6d939b150a543c578a088030e6aa3696f9d3ec21f31",
         )
+        self.assertEqual(
+            sha256(R3_RETRIEVED / "operator-failure-receipt.json"),
+            "4f6c296e37541fd46cb3367d3894e7d98aa53cf21b728b2e02616c5c68270f29",
+        )
+        self.assertEqual(
+            sha256(R3_RUNTIME_JOB),
+            "de82f06a9da2afdabbfb587fd6e78b4871f2b75db2d4743a0c52d069f99a2519",
+        )
+        root_dispatch = ROOT / f"research/run-logs/{R3_LABEL}.dispatch.json"
+        self.assertEqual(sha256(root_dispatch), sha256(R3_RETRIEVED / "dispatch.json"))
 
-    def test_r3_runtime_namespace_is_unique_and_unused(self) -> None:
+    def test_r4_runtime_namespace_is_unique_and_unused(self) -> None:
         job = load_job()
-        self.assertEqual(job.LABEL, R3_LABEL)
-        self.assertEqual(job.RUNTIME_JOB_REL, f"research/run-logs/{R3_LABEL}.job.json")
-        self.assertEqual(job.DISPATCH_REL, f"research/run-logs/{R3_LABEL}.dispatch.json")
-        self.assertEqual(job.OUTPUT, ROOT / f"out/{R3_LABEL}")
+        self.assertEqual(job.LABEL, R4_LABEL)
+        self.assertEqual(job.RUNTIME_JOB_REL, f"research/run-logs/{R4_LABEL}.job.json")
+        self.assertEqual(job.DISPATCH_REL, f"research/run-logs/{R4_LABEL}.dispatch.json")
+        self.assertEqual(job.OUTPUT, ROOT / f"out/{R4_LABEL}")
         self.assertEqual(
             job.CONCRETE_REQUEST,
-            Path(f"/tmp/{R3_LABEL}.request.json"),
+            Path(f"/tmp/{R4_LABEL}.request.json"),
         )
-        self.assertNotIn(job.LABEL, {R1_LABEL, R2_LABEL})
+        self.assertNotIn(job.LABEL, {R1_LABEL, R2_LABEL, R3_LABEL})
         self.assertFalse(job.OUTPUT.exists())
         self.assertFalse(job.CONCRETE_REQUEST.exists())
         for suffix in ("dispatch.json", "job.json", "launch.json", "log", "preflight.json", "postflight.json", "process.json"):
-            self.assertFalse((ROOT / f"research/run-logs/{R3_LABEL}.{suffix}").exists())
+            self.assertFalse((ROOT / f"research/run-logs/{R4_LABEL}.{suffix}").exists())
 
-    def test_r3_executable_config_has_no_prior_run_identity(self) -> None:
+    def test_r4_executable_config_has_no_prior_run_identity(self) -> None:
         paths = [EVIDENCE / "retune_job.py", EVIDENCE / "launch_adapter.py"]
         for name in ("authorization.json", "final-request.json"):
             path = EVIDENCE / name
@@ -270,14 +290,53 @@ class ConfigurationTests(unittest.TestCase):
                 paths.append(path)
         for path in paths:
             text = path.read_text()
-            for label in (R1_LABEL, R2_LABEL):
+            for label in (R1_LABEL, R2_LABEL, R3_LABEL):
                 self.assertNotIn(label, text, path.name)
-            for suffix in ("r1", "r2"):
+            for suffix in ("r1", "r2", "r3"):
                 self.assertNotIn(
                     f"/home/ubuntu/trainium_freshstart_20260924_c595_warmdown060_trn22_{suffix}",
                     text,
                     path.name,
                 )
+
+    def test_r4_training_timeout_is_sole_driver_delta_from_r3(self) -> None:
+        relative = str((EVIDENCE / "retune_job.py").relative_to(ROOT))
+        r3 = subprocess.check_output(
+            ["git", "show", f"30902dec421a5ad45848da3761fc5ae6dddfb88c:{relative}"],
+            cwd=ROOT,
+            text=True,
+        )
+        expected = r3.replace(R3_LABEL, R4_LABEL)
+        expected = expected.replace(
+            "trainium_freshstart_20260924_c595_warmdown060_trn22_r3",
+            "trainium_freshstart_20260924_c595_warmdown060_trn22_r4",
+        )
+        expected = expected.replace(
+            "run_process(training_argv, env, 2400, evidence, \"training\")",
+            "run_process(training_argv, env, 3000, evidence, \"training\")",
+        )
+        self.assertEqual((EVIDENCE / "retune_job.py").read_text(), expected)
+
+    def test_r3_observed_training_would_not_hit_r4_watchdog(self) -> None:
+        process = json.loads((R3_RETRIEVED / "training-process.json").read_bytes())
+        receipt = json.loads((R3_RETRIEVED / "operator-failure-receipt.json").read_bytes())
+        self.assertEqual(process["timeout_seconds"], 2400)
+        self.assertIs(process["timed_out"], True)
+        self.assertGreater(process["duration_seconds"], 2400)
+        self.assertLess(process["duration_seconds"], 3000)
+        remaining = receipt["training_progress"]["final_periodic_log_remaining_time_seconds"]
+        self.assertEqual(remaining, 242)
+        self.assertLess(process["duration_seconds"] + remaining, 3000)
+        self.assertIs(receipt["training_progress"]["checkpoint_written"], False)
+
+    def test_outer_guard_remains_exactly_4200_seconds(self) -> None:
+        proposal = load_json(EVIDENCE / "EXPERIMENT_PROPOSAL.json")
+        self.assertEqual(proposal["candidate"]["top_level_guard_timeout_seconds"], 4200)
+        self.assertIn("leaving about 1528 seconds", proposal["retry_provenance"]["fix"])
+        request = EVIDENCE / "final-request.json"
+        if request.exists():
+            command = json.loads(request.read_bytes())["command"]
+            self.assertEqual(command[:5], ["timeout", "--foreground", "--signal=TERM", "--kill-after=60s", "4200s"])
 
 
 class SecureEvidenceTests(unittest.TestCase):
@@ -298,6 +357,16 @@ class SecureEvidenceTests(unittest.TestCase):
         for receipt in bad:
             with self.subTest(receipt=receipt), self.assertRaises(SystemExit):
                 self.job.parse_finite_receipt(receipt)
+
+    def test_finite_receipt_tolerates_known_warning_noise(self) -> None:
+        output = (
+            "/opt/aws/neuron/lib: UserWarning: native runtime initialization notice\n"
+            '{"finite": true, "map_location": "cpu", "tensor_count": 62, "weights_only": true}\n'
+            "checkpoint scan complete with weights_only=True\n"
+        )
+        receipt = self.job.parse_finite_receipt(output)
+        self.assertEqual(receipt["tensor_count"], 62)
+        self.assertIs(receipt["finite"], True)
 
     def test_full20m_metric_parser_rejects_nonfinite_and_count_drift(self) -> None:
         total_nats = 57480924.0
@@ -558,11 +627,11 @@ class SecureEvidenceTests(unittest.TestCase):
             self.job.build_concrete_request(request, authorization_sha, request_sha, "not-a-head")
         self.assertEqual(concrete["expected_commit"], final)
 
-    def test_adapter_pins_r3_concrete_path_for_non_dry_run(self) -> None:
+    def test_adapter_pins_r4_concrete_path_for_non_dry_run(self) -> None:
         source = (EVIDENCE / "launch_adapter.py").read_text()
         self.assertIn("concrete_path != driver.CONCRETE_REQUEST", source)
         self.assertIn("non-dry-run concrete request path mismatch", source)
-        self.assertEqual(self.job.CONCRETE_REQUEST, Path(f"/tmp/{R3_LABEL}.request.json"))
+        self.assertEqual(self.job.CONCRETE_REQUEST, Path(f"/tmp/{R4_LABEL}.request.json"))
 
     def validate_retrieved_serialization(self, data: bytes):
         runtime = json.loads(data)
@@ -602,6 +671,20 @@ class SecureEvidenceTests(unittest.TestCase):
             "04ce5d4b6ffdfbf56d2fa32635dd1e0fbd3bd3b6c98e2053577288a78afdd32f",
         )
         self.assertNotIn("LD_LIBRARY_PATH", runtime["environment"])
+
+    def test_retrieved_r3_runtime_fixture_pins_launcher_and_ld_contract(self) -> None:
+        data = R3_RUNTIME_JOB.read_bytes()
+        self.assertEqual(
+            hashlib.sha256(data).hexdigest(),
+            "de82f06a9da2afdabbfb587fd6e78b4871f2b75db2d4743a0c52d069f99a2519",
+        )
+        runtime, concrete_sha = self.validate_retrieved_serialization(data)
+        self.assertEqual(runtime["label"], R3_LABEL)
+        self.assertEqual(
+            concrete_sha,
+            "a1a61469db8373560d4a3fc306d2c0a3e3d46e7b039ee03cbd0797c2841a947f",
+        )
+        self.assertEqual(runtime["environment"]["LD_LIBRARY_PATH"], self.job.PINNED_LD_LIBRARY_PATH)
 
     def test_r2_failure_receipt_pins_observed_environment_and_no_training(self) -> None:
         receipt = json.loads((R2_RETRIEVED / "operator-failure-receipt.json").read_bytes())

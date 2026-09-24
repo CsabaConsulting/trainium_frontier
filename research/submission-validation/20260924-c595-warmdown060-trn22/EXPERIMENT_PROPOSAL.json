@@ -1,5 +1,5 @@
 {
-  "proposal_id": "20260924-c595-warmdown060-trn22-r3",
+  "proposal_id": "20260924-c595-warmdown060-trn22-r4",
   "status": "human-approved-pending-independent-verification",
   "owner_role": "researcher",
   "hypothesis": "On trn22 at seed 42, changing only WARMDOWN_RATIO from 0.75 to 0.60 improves the fresh full20m public BPB by at least 0.0015 versus the same-host c595 control.",
@@ -45,6 +45,7 @@
     "submissions/dense6x1024_direct_review/provenance.json",
     "research/submission-validation/20260924-c595-warmdown060-trn22/retrieved/fs-20260924-c595-warmdown060-trn22-r1/operator-failure-receipt.json",
     "research/submission-validation/20260924-c595-warmdown060-trn22/retrieved/fs-20260924-c595-warmdown060-trn22-r2/operator-failure-receipt.json",
+    "research/submission-validation/20260924-c595-warmdown060-trn22/retrieved/fs-20260924-c595-warmdown060-trn22-r3/operator-failure-receipt.json",
     "research/submission-validation/20260924-c595-warmdown060-trn22/retune_job.py",
     "research/submission-validation/20260924-c595-warmdown060-trn22/launch_adapter.py"
   ],
@@ -80,15 +81,17 @@
       "submissions/dense6x1024_direct_review_warmdown060/train.py"
     ],
     "expected_diff": "Exactly one source-line replacement: WARMDOWN_RATIO = 0.75 becomes WARMDOWN_RATIO = 0.60. WEIGHT_DECAY remains 0.2.",
-    "run_label": "fs-20260924-c595-warmdown060-trn22-r3",
-    "remote_checkout": "/home/ubuntu/trainium_freshstart_20260924_c595_warmdown060_trn22_r3",
-    "concrete_request_path": "/tmp/fs-20260924-c595-warmdown060-trn22-r3.request.json",
-    "dispatch_receipt": "research/run-logs/fs-20260924-c595-warmdown060-trn22-r3.dispatch.json",
-    "runtime_job": "research/run-logs/fs-20260924-c595-warmdown060-trn22-r3.job.json",
-    "output_directory": "out/fs-20260924-c595-warmdown060-trn22-r3",
+    "run_label": "fs-20260924-c595-warmdown060-trn22-r4",
+    "remote_checkout": "/home/ubuntu/trainium_freshstart_20260924_c595_warmdown060_trn22_r4",
+    "concrete_request_path": "/tmp/fs-20260924-c595-warmdown060-trn22-r4.request.json",
+    "dispatch_receipt": "research/run-logs/fs-20260924-c595-warmdown060-trn22-r4.dispatch.json",
+    "runtime_job": "research/run-logs/fs-20260924-c595-warmdown060-trn22-r4.job.json",
+    "output_directory": "out/fs-20260924-c595-warmdown060-trn22-r4",
     "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --no-ngram-ve --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public",
     "seed": 42,
     "max_train_seconds": 1800,
+    "training_subprocess_timeout_seconds": 3000,
+    "top_level_guard_timeout_seconds": 4200,
     "smoke_authorized": false
   },
   "gates": {
@@ -125,15 +128,23 @@
     "external_trust": "The independently verified finalization HEAD remains an external Operator/Verifier choice; an alternate child is not authorized merely because it shares the core parent."
   },
   "retry_provenance": {
-    "previous_label": "fs-20260924-c595-warmdown060-trn22-r2",
-    "evidence_commit": "09cd2689f6974a83eae09478dfa3e9744e3f1634",
-    "failure_receipt_sha256": "476cc4bdd49b5460ccb0dfe128d0cb10db36c4ac55c82057a9bdcb4afaac138b",
-    "runtime_job_sha256": "eb17c80431544fd03760b6d939b150a543c578a088030e6aa3696f9d3ec21f31",
-    "failure_stage": "outer_environment_validation_before_training",
-    "training_started": false,
-    "cause": "The r2 driver rejected the controller-supplied non-secret LD_LIBRARY_PATH before training because it was not yet explicitly pinned.",
-    "fix": "R3 binds the exact observed /usr/local/lib:/usr/lib value and SHA-256 ac04b79dfecb27e2f78a97194a6d6cc7158f45a16ab3544df4c2b0ee5be3d3c0 into the template, concrete request, runtime contract, strict child environment, result, and completion. Absence, altered values, extra or empty path segments, LD_PRELOAD, and every other LD_* key fail closed.",
-    "compatibility_evidence": "The completed same-host c595 control copied the inherited launch environment into both training and evaluation children without removing LD_LIBRARY_PATH and completed 3,637 steps plus both evaluations; r2 observed the controller's exact system-library-only value on the same native-venv host.",
+    "previous_label": "fs-20260924-c595-warmdown060-trn22-r3",
+    "evidence_commit": "eb674ab73f041afb9ea30172495725873d8519c7",
+    "failure_receipt_sha256": "4f6c296e37541fd46cb3367d3894e7d98aa53cf21b728b2e02616c5c68270f29",
+    "runtime_job_sha256": "de82f06a9da2afdabbfb587fd6e78b4871f2b75db2d4743a0c52d069f99a2519",
+    "failure_stage": "bounded_training_process",
+    "training_started": true,
+    "cause": "R3 reached step 3197 but the harness's 2400-second training subprocess watchdog sent SIGTERM at 2430.059 seconds before the trainer's own unchanged 1800-second charged budget could complete and write a checkpoint.",
+    "fix": "R4 changes only the orchestration watchdog from 2400 to exactly 3000 seconds. The unchanged 4200-second outer guard remains pinned: the r3 termination observation plus the final reported 242 seconds remaining projects training completion near 2672 seconds, leaving about 1528 seconds for the finite check and the separately capped 1200-second evaluation.",
+    "orchestration_delta": {
+      "training_subprocess_timeout_seconds": {
+        "from": 2400,
+        "to": 3000
+      },
+      "top_level_guard_timeout_seconds": 4200,
+      "top_level_guard_changed": false,
+      "candidate_or_launch_changed": false
+    },
     "preserved_failures": [
       {
         "label": "fs-20260924-c595-warmdown060-trn22-r1",
@@ -144,9 +155,14 @@
         "label": "fs-20260924-c595-warmdown060-trn22-r2",
         "evidence_commit": "09cd2689f6974a83eae09478dfa3e9744e3f1634",
         "failure_receipt_sha256": "476cc4bdd49b5460ccb0dfe128d0cb10db36c4ac55c82057a9bdcb4afaac138b"
+      },
+      {
+        "label": "fs-20260924-c595-warmdown060-trn22-r3",
+        "evidence_commit": "eb674ab73f041afb9ea30172495725873d8519c7",
+        "failure_receipt_sha256": "4f6c296e37541fd46cb3367d3894e7d98aa53cf21b728b2e02616c5c68270f29"
       }
     ],
-    "evidence_policy": "The tracked r1 and r2 retrieved directories and dispatch receipts remain immutable; r3 uses a distinct label, checkout, runtime job, dispatch receipt, concrete request, output directory, and artifact namespace."
+    "evidence_policy": "The tracked r1, r2, and r3 retrieved evidence and dispatch receipts remain immutable; r4 uses a distinct label, checkout, runtime job, dispatch receipt, concrete request, output directory, and artifact namespace."
   },
   "abort_conditions": [
     "Any candidate source difference beyond the exact WARMDOWN_RATIO replacement",

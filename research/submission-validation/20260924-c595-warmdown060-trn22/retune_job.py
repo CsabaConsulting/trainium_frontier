@@ -20,11 +20,11 @@ import time
 ROOT = Path(__file__).resolve().parents[3]
 HERE = Path(__file__).resolve().parent
 PYTHON = "/home/ubuntu/workspace/native_venv/bin/python"
-LABEL = "fs-20260924-c595-warmdown060-trn22-r3"
+LABEL = "fs-20260924-c595-warmdown060-trn22-r4"
 HOST = "trn22"
 HOSTNAME = "ip-172-31-32-253"
-REMOTE = "/home/ubuntu/trainium_freshstart_20260924_c595_warmdown060_trn22_r3"
-CONCRETE_REQUEST = Path("/tmp/fs-20260924-c595-warmdown060-trn22-r3.request.json")
+REMOTE = "/home/ubuntu/trainium_freshstart_20260924_c595_warmdown060_trn22_r4"
+CONCRETE_REQUEST = Path("/tmp/fs-20260924-c595-warmdown060-trn22-r4.request.json")
 PACKAGE_REL = "submissions/dense6x1024_direct_review_warmdown060"
 SOURCE_REL = "submissions/dense6x1024_direct_review/train.py"
 SOURCE_SHA = "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537"
@@ -752,7 +752,7 @@ def main() -> None:
     eval_box = output / "eval"
 
     training_argv = [PYTHON, str(rehearsal), "--package", str(package), "--sandbox", str(train_box), "--mode", "train", "--fresh-caches"]
-    run_process(training_argv, env, 2400, evidence, "training")
+    run_process(training_argv, env, 3000, evidence, "training")
     checkpoint = train_box / "out/final.pt"
     checkpoint_sha, checkpoint_bytes = _nofollow_identity(checkpoint)
     train_rehearsal = _nofollow_json(train_box / "rehearsal.json")
