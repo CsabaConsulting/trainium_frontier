@@ -1,0 +1,158 @@
+{
+  "schema": "trainium-workflow-v2-g1-facts-v1",
+  "observed_utc": "2026-09-24T20:20:06Z",
+  "status": "PARTIAL_SOURCE_AND_HOST_METADATA_VERIFIED_CALIBRATION_PENDING",
+  "launch_authorized": false,
+  "source": {
+    "path": "prepare.py",
+    "sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "unchanged": true,
+    "verified_local_and_both_retained_host_train_directories": true
+  },
+  "evaluation": {
+    "command_template": [
+      "/home/ubuntu/workspace/native_venv/bin/python",
+      "prepare.py",
+      "eval-public",
+      "--train-py",
+      "<absolute-train.py>",
+      "--checkpoint",
+      "<absolute-final.pt>",
+      "--device",
+      "neuron",
+      "--batch-size",
+      "1",
+      "--seq-len",
+      "1024",
+      "--eval-tokens",
+      "20971520",
+      "--timeout-seconds",
+      "1200"
+    ],
+    "subcommand": "eval-public",
+    "source_lines": [
+      856,
+      894
+    ],
+    "default_tokens": 2097152,
+    "selection_tokens": 20971520,
+    "seq_len": 1024,
+    "batch_size": 1,
+    "output": "Rank 0 prints JSON with val_bpb, num_tokens, num_bytes, total_nats, eval_seconds, eval_timeout, eval_over_timeout.",
+    "prefix_semantics": "Finite document-order stream from public_val. Tokens are counted after each whole batch; the loop breaks at local_tokens >= ceil(max_tokens/world_size). With a single-process batch of 1 and context 1024, 20971520 is exactly divisible by a full batch. This is a prefix, not random sampling. Distributed evaluation partitions the stream and must not be silently substituted.",
+    "eval_bpb_regex": "\"val_bpb\"\\s*:\\s*([0-9]+(?:\\.[0-9]+)?(?:[eE][+-]?[0-9]+)?)",
+    "trusted_metric": "prepare.evaluate_bpb uses trusted CE from model(x), not model(x,y).",
+    "import_layout": "Historical validated runs colocated train.py and unchanged prepare.py. Nested v2 train.py paths need the deployed repository root in PYTHONPATH for direct training; the actual absolute deployment path is not yet assigned.",
+    "eval_args_verified": false
+  },
+  "training_data": {
+    "source_lines": [
+      54,
+      162,
+      165,
+      849
+    ],
+    "public_train_shards": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "setup_default_shards": 5,
+    "setup_source": "setup.add_argument(\"--num-train-shards\", type=int, default=len(PUBLIC_TRAIN_SHARDS))",
+    "ensure_data_source": "n = min(max(num_train_shards, 1), len(PUBLIC_TRAIN_SHARDS)); shard_ids = PUBLIC_TRAIN_SHARDS[:n]",
+    "metadata_only": true,
+    "documents_read": false,
+    "training_tokens": "unknown; not derivable from Parquet row counts without tokenization",
+    "official_private_runtime_inventory": "unknown; inspected organizer-source setup default only",
+    "shards": [
+      {
+        "name": "shard_00000.parquet",
+        "bytes": 92291918,
+        "row_groups": 84,
+        "rows": 86016
+      },
+      {
+        "name": "shard_00001.parquet",
+        "bytes": 92124317,
+        "row_groups": 84,
+        "rows": 86016
+      },
+      {
+        "name": "shard_00002.parquet",
+        "bytes": 91803619,
+        "row_groups": 83,
+        "rows": 84992
+      },
+      {
+        "name": "shard_00003.parquet",
+        "bytes": 91793972,
+        "row_groups": 82,
+        "rows": 83968
+      },
+      {
+        "name": "shard_00004.parquet",
+        "bytes": 91428652,
+        "row_groups": 82,
+        "rows": 83968
+      }
+    ],
+    "hosts": {
+      "trn21": {
+        "all_five_present": true,
+        "total_row_groups": 415,
+        "total_rows": 424960,
+        "metadata_matches_shared_table": true,
+        "mem_available_kib": 128333724
+      },
+      "trn22": {
+        "all_five_present": true,
+        "total_row_groups": 415,
+        "total_rows": 424960,
+        "metadata_matches_shared_table": true,
+        "mem_available_kib": 128452884
+      }
+    }
+  },
+  "budget": {
+    "seconds": 1800,
+    "startup_steps_excluded": 5,
+    "startup_allowance_cap_seconds": 900,
+    "source": "prepare.py:36-40, record_step_boundary:97-114; S0 train.py:1336-1346",
+    "official_contract": "Runner measures arrival of each append-only optimizer-step boundary. Launch through the fifth boundary is the startup allowance, capped at 900s; later work is charged. No five boundaries means not scorable.",
+    "candidate_local_guard": "excess = max(0.0, observed_startup + STARTUP_LAUNCH_MARGIN_SECONDS - TRAIN_STARTUP_ALLOWANCE_CAP_SECONDS), margin 30s; startup is not a blanket exemption from wall-clock enforcement."
+  },
+  "calibration": {
+    "status": "PENDING_FRESH_REEVALUATION",
+    "tolerance_abs": 0.0002,
+    "trn21": {
+      "checkpoint": "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr015_confirm_trn21_r2/out/fs-20260924-c595-matrixlr015-confirm-trn21-r2-work/train/out/final.pt",
+      "exists": true,
+      "expected_checkpoint_sha256": "5c42f143837fc6d6a64dd1101f53887bdf40d984e752ad8a9ed99cc026a758b9",
+      "hash_reauthenticated_now": false,
+      "known_public20m": 0.9918353324459732,
+      "known_num_tokens": 20971520,
+      "known_num_bytes": 83462186,
+      "historical_eval_seconds": 719.2732106900075,
+      "evidence_path": "research/submission-validation/20260924-c595-matrixlr015-trn21/confirmation-r2/retrieved/fs-20260924-c595-matrixlr015-confirm-trn21-r2/artifacts/full20m.metrics.json"
+    },
+    "trn22": {
+      "checkpoint": "/home/ubuntu/trainium_freshstart_20260924_current_base_control_trn22_r1/out/fs-20260924-current-base-control-trn22-r1-work/train/out/final.pt",
+      "exists": true,
+      "train_sha256": "116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d",
+      "known_public20m": 0.992968300659387,
+      "known_num_tokens": 20971520,
+      "known_num_bytes": 83462186,
+      "historical_eval_seconds": 731.733122856007,
+      "evidence_commit": "68ecfeb1",
+      "comparability_note": "Historical run is not a valid advancement control because it failed the postflight disk gate; retained checkpoint/score can be a CLI-calibration reference only."
+    }
+  },
+  "remaining": [
+    "Fresh retained-checkpoint hash and contained calibration eval after host safety checks.",
+    "Actual deployment path and PYTHONPATH in each host profile.",
+    "Independent G1 review; only then set host eval_args_verified true.",
+    "No synthetic self-test rows or historical 2M results enter the new 20M ledger."
+  ]
+}
