@@ -1,0 +1,44 @@
+{
+  "proposal_id": "20260924-track-b2-native-component-probe-r1",
+  "status": "human-approved-harness-only-blocked-pending-authenticated-control-and-candidate",
+  "owner_role": "implementer",
+  "hypothesis": "A bounded native four-rank component probe can establish the missing BF16 ordering and exact checkpoint/evaluation identity gates before any Track B2 training candidate is authorized.",
+  "single_causal_change": "No training or model change. The probe observes one predeclared dense-versus-touched native update and strict-loads one authenticated real 35c9 checkpoint through control and candidate model paths.",
+  "control": {
+    "source_commit": "c51f6fdc5ca77793a1524148a563cafac0ab22b0",
+    "train_py": "submissions/dense6x1024_public0992851/train.py",
+    "train_py_sha256": "35c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2",
+    "checkpoint_receipt": null
+  },
+  "candidate": {
+    "train_py": null,
+    "train_py_sha256": null,
+    "required_export": "track_b2_native_component_probe",
+    "training_authorized": false
+  },
+  "gates": {
+    "authenticated_successful_track_a_receipt": false,
+    "exact_checkpoint_hash_and_size": false,
+    "candidate_implemented_and_independently_verified": false,
+    "strict_load_observed_both_paths": false,
+    "ordered_key_inventory_equal": false,
+    "four_ngram_table_bytes_equal": false,
+    "fixed_input_logits_bit_exact": false,
+    "native_bf16_dense_touched_update_bit_exact": false,
+    "human_device_probe_approval": false,
+    "training_authorized": false
+  },
+  "success_criteria": {
+    "identity": "Both exact pinned modules call load_state_dict(strict=True) on the same authenticated checkpoint; ordered keys, b1/t1/b5/t5 bytes, and logits for the fixed 1x1024 input are bit-exact.",
+    "bf16": "Candidate export returns independently checked dense/touched parameter and logical-state tensors that are bit-exact, proves duplicates and four-rank AVG, and proves untouched parameter/physical-state bytes unchanged.",
+    "evidence": "Runtime, Torch, torch-neuronx, Neuron compiler/runtime, host, LNC, world size, source identities, input hash, tensor hashes, and result are sealed in one non-overwriting receipt."
+  },
+  "abort_conditions": [
+    "Authorization is not fully bound to one successful authenticated exact-35c9 Track A receipt.",
+    "Checkpoint, receipt, control, candidate, core, request, host, or environment identity differs.",
+    "Candidate path equals control path or lacks the required probe export.",
+    "Any strict-load, ordered-key, table-byte, fixed-logit, duplicate, AVG, BF16 ordering, untouched-row, finite, or rank-consensus check fails.",
+    "Any training, checkpoint mutation, prune, cleanup, submission, network access, or source modification is attempted."
+  ],
+  "verdict": "Harness preparation only. Training stays blocked after a component pass and requires a separate proposal, verification, and human approval."
+}
