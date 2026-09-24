@@ -1,0 +1,140 @@
+{
+  "schema": "a1-native-five-g1-r2-authorization-independent-verification-v1",
+  "verdict": "PASS",
+  "review_date_utc": "2026-09-24T18:16:10Z",
+  "review_role": "independent-verifier-state-only-g1-r2-authorization",
+  "reviewed_authorization_commit": "4724f67d9a55781a0dc7ef0864c93e8db2ea0fa0",
+  "reviewed_parent_verifier_pass": "8096e47cf86358527c742b023fc7810d7381da5d",
+  "reviewed_parent_receipt_sha256": "987d103735959d11759c05180369ac87061abd718af0f821bcb81cb7906d2be0",
+  "reviewed_implementation_commit": "a455a207f0f19603b4d3dd52bd7a93fa5a445f39",
+  "reviewed_origin_branch": "origin/experiment/20260924-v2-a1-hybrid-native5-g1-r2-finalization",
+  "scope": {
+    "diff_is_exactly_one_new_file": true,
+    "new_file": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-r2-authorization.json",
+    "arm": "G1",
+    "host": "trn21",
+    "hostname": "ip-172-31-34-85",
+    "label": "fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2",
+    "native_execution_authorized": true,
+    "g1_authorized": true,
+    "g2_authorized": false,
+    "checkpoint_prune_authorized": false,
+    "cache_cleanup_authorized": false,
+    "full_a1_authorized": false,
+    "cleanup_authorized_by_effective_contract": false,
+    "submission_authorized": false
+  },
+  "identities": {
+    "request_bearing_head": "4724f67d9a55781a0dc7ef0864c93e8db2ea0fa0",
+    "exact_symbolic_branch": "experiment/20260924-v2-a1-hybrid-native5-g1-r2-finalization",
+    "request_template_path": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-request.template.json",
+    "request_template_sha256": "a2d1a0a60e8672d816e0ef94ee77d04af771d70b05fc72fb416f3ee252bc7fee",
+    "authorization_path": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/g1-r2-authorization.json",
+    "authorization_sha256": "3d98b81c75c020418c2b61349b8f1b42ff937416b8b605c27542eb097f877771",
+    "repaired_launcher_sha256": "7620fea10bb51c54481b8347ec9e97ebd40ce8f5ee206dc3f203c9483c35ee2f",
+    "verified_core_commit": "994d302b0036c56aaab63797f0561797bc4cf431",
+    "g0_pass_receipt_commit": "8add2585d30b11ac2c50fb2701957657a1a6f30d",
+    "g0_pass_receipt_sha256": "c4da83d6fe19fddab548ef49cb1a2d2eb69146e37bc36f452bcf37b446fc8c68",
+    "g0_replay_sha256": "7198d39b9c21f1eb7e47f84e52398ca85d239ad564a36e6d524674d83355ab4a",
+    "g0_replay_bytes": 326,
+    "r1_failure_commit": "e1550203a61c53cd7c73b0c543ced8a157312612",
+    "r1_failure_receipt_sha256": "e67e153f48f23b684fc3d041cecafbce82125767fd5e7bd25c28e82768907943",
+    "r1_authorization_sha256": "f3cee7fd7b5f3a10eebaf6b457b5f58b13ea5fe9e4a8a9b6f912285d8a67f41e",
+    "r1_concrete_request_sha256": "b1d7d037c34c9ef21b9ad093633e2d710b130c366bc214a912bfb2592a3318f0",
+    "r1_dispatch_sha256": "6bc760190b86ab95f2c6844794063d34d682e2b609679360071d63b98c69fa44"
+  },
+  "checks": {
+    "parent_is_exact_r2_transport_pass": true,
+    "origin_head_matches_reviewed_commit": true,
+    "diff_is_one_added_authorization_file": true,
+    "symbolic_branch_head_and_clean_protected_checkout_validation": true,
+    "authorization_schema_state_and_exact_field_set": true,
+    "authorization_exact_sha256": true,
+    "request_template_exact_sha256": true,
+    "protected_finalization_hashes_verified": 12,
+    "source_and_evidence_hashes_verified": 31,
+    "protected_checkout_paths_verified": 43,
+    "g0_prerequisite_replayed_exactly": true,
+    "r1_failure_pins_exact_and_r1_authority_rejected": true,
+    "repaired_launcher_hash_pinned": true,
+    "authorization_contains_identity_path_key_material_or_key_digest": false,
+    "host_label_remote_bundle_cache_output_report_log_job_dispatch_command_environment_resources_and_locks_exact": true,
+    "in_memory_concrete_request_contract_validated_without_writing": true,
+    "top_level_authorization_mutations_rejected": 24,
+    "nested_authorization_mutations_rejected": 59,
+    "concrete_request_absent": true,
+    "runtime_job_absent": true,
+    "dispatch_absent": true,
+    "runtime_result_absent": true,
+    "g1_output_and_report_absent": true,
+    "host_access_performed": false,
+    "ssh_performed": false,
+    "request_materialization_performed": false,
+    "launch_or_native_execution_performed": false,
+    "cleanup_or_prune_performed": false
+  },
+  "tests": [
+    {
+      "command": "uv run --with torch --with numpy python -m unittest -v research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_gate_package.py",
+      "raw_result": "FAILED_EXPECTED_STATE_TRANSITION_ASSERTION",
+      "tests_run": 60,
+      "tests_passed": 59,
+      "expected_state_transition_failures": 1,
+      "failure": "test_g1_g2_are_locked_and_have_no_authorization asserts that g1-r2-authorization.json is absent; this reviewed one-file state transition deliberately adds that exact G1-r2-only authorization while G2 and downstream authorities remain false."
+    },
+    {
+      "command": "uv run --with torch --with numpy python -m unittest -v research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_g1_package.py",
+      "raw_result": "FAILED_EXPECTED_STATE_TRANSITION_ASSERTION",
+      "tests_run": 10,
+      "tests_passed": 9,
+      "expected_state_transition_failures": 1,
+      "failure": "test_pending_authorization_cannot_materialize asserts that g1-r2-authorization.json is absent; the finalized authorization is the sole intended state transition and no concrete request was materialized."
+    },
+    {
+      "command": "uv run --with torch --with numpy python -m unittest -v research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/test_g1_r2_package.py",
+      "raw_result": "FAILED_EXPECTED_STATE_TRANSITION_ASSERTION",
+      "tests_run": 12,
+      "tests_passed": 11,
+      "expected_state_transition_failures": 1,
+      "failure": "test_template_is_exact_pending_r2_and_science_is_unchanged asserts that g1-r2-authorization.json is absent; every transport, science, pending-template, and downstream-lock assertion passed."
+    },
+    {
+      "command": "uv run --with torch --with numpy python -m unittest -v research/submission-validation/20260924-v2-a1-hybrid-rmsprop-ownership-repair/test_hybrid_ownership.py",
+      "result": "PASS",
+      "tests_run": 13
+    },
+    {
+      "command": "python -m py_compile research/fresh_start_launch.py research/a1_native_gate_observer.py research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/*.py",
+      "result": "PASS"
+    },
+    {
+      "command": "isolated validate_template, validate_authorization, exact symbolic checkout, in-memory concrete-builder contract, and exhaustive top-level/nested authorization mutation matrix",
+      "result": "PASS",
+      "mutations_rejected": 83
+    },
+    {
+      "command": "compare_gate_reports.py --validate-g0-only <immutable-g0-rank-report-dir> --output <fresh-temporary-output>",
+      "result": "PASS",
+      "output_sha256": "7198d39b9c21f1eb7e47f84e52398ca85d239ad564a36e6d524674d83355ab4a",
+      "output_bytes": 326,
+      "output_mode": "0600",
+      "output_links": 1
+    }
+  ],
+  "blockers": [],
+  "authority": {
+    "supervisor_may_materialize_single_exact_g1_r2_request": true,
+    "materialization_must_use_reviewed_authorization_commit_not_this_receipt_descendant": true,
+    "materialization_requires_exact_authorization_branch": "experiment/20260924-v2-a1-hybrid-native5-g1-r2-finalization",
+    "materialization_requires_exact_request_bearing_head": "4724f67d9a55781a0dc7ef0864c93e8db2ea0fa0",
+    "materialization_requires_exact_request_sha256": "a2d1a0a60e8672d816e0ef94ee77d04af771d70b05fc72fb416f3ee252bc7fee",
+    "materialization_requires_exact_authorization_sha256": "3d98b81c75c020418c2b61349b8f1b42ff937416b8b605c27542eb097f877771",
+    "materialization_output": "/tmp/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r2.request.json",
+    "this_receipt_authorizes_host_access_or_launch": false,
+    "this_receipt_authorizes_g2": false,
+    "this_receipt_authorizes_full_a1": false,
+    "this_receipt_authorizes_cleanup_or_prune": false,
+    "this_receipt_authorizes_submission": false,
+    "post_materialization_condition": "The single resulting O_EXCL request must be independently authenticated as the deterministic output of these exact three literals, including its full command, environment, fingerprint set, paths and inode identity, before any separate Operator decision."
+  }
+}
