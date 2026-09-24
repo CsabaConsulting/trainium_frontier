@@ -1,0 +1,129 @@
+{
+  "proposal_id": "20260924-v2-a1-hybrid-native5-equivalence-gate",
+  "status": "human-approved-package-pending-independent-verification-and-authorization",
+  "owner_role": "implementer",
+  "hypothesis": "The verified hybrid RMSProp repair is byte-exact to ordinary replicated RMSProp for the A1 tables while the AdamW/Muon ownership exchange is exact for the integrated model.",
+  "single_causal_change": "Gate-only observation and optimizer-dispatch selection; production candidate bytes are immutable and no scientific setting changes.",
+  "mechanism_class": "throughput",
+  "verified_parent": "c35504bc426d75e416498c1cbb6f086f8d845ca4",
+  "immutable_sources": {
+    "production_candidate_path": "submissions/dense6x1024_public0992851/train.py",
+    "production_candidate_sha256": "9191e85835d8cad50923f32d44ad90c047a9e2d3d4621ce196b11ba66cd66bae",
+    "implementation_commit": "ec93e156",
+    "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "gate_sources": {
+      "research/a1_native_gate_observer.py": "89ad30056bf3fe207c43ea61f8c8a94583232f9f21e5158a80fd37cce42d02e7",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/train_gate_hybrid.py": "908431d7e1da8a9110e6e6005de5ecbe3dba13d798bf2f37f2443404dd8d7d94",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/train_gate_ordinary.py": "6ed69d2356c28e0dd8f88f494d988c0b87f7f86426a001945bfd958ed6f8f6d0",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/compare_gate_reports.py": "965b94f6f62bd5f1ec64ea20193ca4fbab3905c5c8e7f892543b09bb0e5eba7e",
+      "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/verify_model_checkpoints.py": "e1ead481f9786ec02a3c60d88e72820f084274200bccd1f7eeb16da108cb6e2e"
+    },
+    "production_imports_gate_observer": false
+  },
+  "authenticated_control": {
+    "label": "fs-20260924-v2-35c9-lr015-control-trn21-r1",
+    "host": "trn21",
+    "archive_commit": "b0b23cbc2e6d16e8bc8d88be9cb042140494206d",
+    "evidence_directory": "research/submission-validation/20260924-v2-track-a-35c9-controls-a1/operator-evidence/fs-20260924-v2-35c9-lr015-control-trn21-r1/runtime/out/fs-20260924-v2-35c9-lr015-control-trn21-r1",
+    "completion_sha256": "41a27cd7c7a0747a302c0c5e034f9fe6a302d0650efbe91624291ef284d3aacb",
+    "manifest_sha256": "d067f57d83301c27f35a4aea63d508eb230dc0ef9d656839d71e08b2c48af625",
+    "metrics_sha256": "c174d2807efdd401fe336b5bf835a7288acb15d987b630f907dc7bb609d9472b",
+    "result_sha256": "4020d2a9a82ca4e8c05bb158ae0881da2464e3ecad55c9dfef6c8847973645dc",
+    "public_val_bpb": 0.9866973734526626,
+    "steps": 3636,
+    "checkpoint_sha256": "aaa4b7c0ff58c56df564954c21f8abdd786930bfaa1cc447f6fb8e5b0da83535",
+    "checkpoint_bytes": 469834849
+  },
+  "fixed_science": {
+    "host": "trn21",
+    "seed": 42,
+    "world_size": 4,
+    "lnc": 2,
+    "optimizer_updates": 5,
+    "max_train_seconds": 1800,
+    "clip_after_reduce": true,
+    "a1_flags": [
+      "--n-embd", "1024", "--ngram-ve", "--ngram-ve-layers=-1",
+      "--ngram-ve-table-mult", "64", "--ngram-ve-dim", "128",
+      "--ngram-ve-trigram", "--ngram-ve-opt", "rmsprop",
+      "--ngram-ve-flat-lr", "--ngram-ve-bf16", "--ngram-ve-clip-exclude",
+      "--no-qk-shift", "--compile-sdpa-direct", "--nki-local-conv",
+      "--bf16-norm-output", "--pack-factor", "32", "--clip-after-reduce",
+      "--seq-len", "1024", "--no-eval-public", "--matrix-lr", "0.015"
+    ],
+    "table_parameters": ["ngram_embeds.b5.weight", "ngram_embeds.t5.weight"],
+    "timing_is_equality_gate": false
+  },
+  "arms": [
+    {
+      "arm": "G0",
+      "label": "fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1",
+      "optimizer": "hybrid owned AdamW/Muon plus replicated RMSProp",
+      "observation": false
+    },
+    {
+      "arm": "G1",
+      "label": "fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1",
+      "optimizer": "hybrid owned AdamW/Muon plus replicated RMSProp",
+      "observation": true
+    },
+    {
+      "arm": "G2",
+      "label": "fs-20260924-v2-a1-native5-g2-ordinary-observation-on-trn21-r1",
+      "optimizer": "ordinary replicated non-owned optimizer",
+      "observation": true
+    }
+  ],
+  "execution_contract": {
+    "order": ["G0", "G1", "G2"],
+    "separate_processes": true,
+    "separate_unique_compile_caches": true,
+    "one_run_per_host": true,
+    "operational_launch_floor_bytes": 6979321856,
+    "hard_abort_floor_bytes": 5368709120,
+    "insufficient_disk_action": "STOP without cleanup",
+    "lifecycle_basis": "A1 r2 symbolic-branch, no-follow/O_EXCL, immutable evidence and private process-group bounded TERM-to-KILL quiescence protections",
+    "hybrid_optimizer_resume": "unsupported; interruption aborts the arm and requires a new label from step zero",
+    "checkpoint_prune_authorized": false,
+    "cache_cleanup_authorized": false
+  },
+  "observations": {
+    "format": "canonical compact JSONL hashes and scalar metadata only; tensor values are never dumped",
+    "table_gradients": ["local_pre_avg", "post_avg_preclip", "postclip"],
+    "per_update": ["joint clip scalar bytes", "pre/post table params", "exp_avg_sq", "step", "bias2", "RMS call count", "full persistent model state", "logical optimizer state"],
+    "inventory": ["owner plan", "replicated RMS groups", "ordered collective op/shape/dtype/count", "losses"]
+  },
+  "decision_contract": {
+    "exactness": "exact bytes/SHA256 only; no numeric tolerance",
+    "observation_nonperturbation": "G0/G1 exact five losses, every pre/post persistent model and logical optimizer snapshot, final model and collective sequence",
+    "rms_repair": "G1/G2 exact same-rank local/preclip/postclip table gradients, clip scalar bytes, table params/moments/step/bias after every update; post-AVG onward exact across hybrid ranks; tables excluded from owner plan; exactly one RMS call/update; no table collective",
+    "integrated_ownership": "G1/G2 exact per-rank losses and persistent full model after every update/final; union of named hybrid AdamW/Muon state shards exactly equals ordinary state",
+    "outcomes": ["PASS", "RMS_PASS_INTEGRATED_BLOCKED", "RMS_FAIL", "INVALID"],
+    "rms_pass_integrated_blocked": "RMS repair is not blamed or rejected, but full A1 remains unauthorized because a non-table integrated mismatch exists"
+  },
+  "checkpoint_gate": {
+    "schema": "model-only; optimizer key forbidden",
+    "checks": ["weights_only load", "strict model load", "finite persistent state", "exact model-state digest", "exact fixed eval-mode logits", "exact causal prefix identity"],
+    "optimizer_resume": false
+  },
+  "gates": {
+    "human_implementation_approval": true,
+    "independent_verification": false,
+    "requests_finalized": false,
+    "native_execution_authorized": false,
+    "launched": false,
+    "full_a1_authorized": false,
+    "submission_authorized": false
+  },
+  "abort_conditions": [
+    "Production candidate, prepare.py, evaluator, tokenizer or scoring bytes change",
+    "Any arm is not a fresh separately labeled process with its own initially absent output and compile-cache paths",
+    "Host, source, config, seed, world size, LNC, flag or five-update drift",
+    "Disk is below 6.5 GiB before an arm; no cleanup is authorized",
+    "Missing/nonfinite gradient or tensor, rank disagreement, table ownership, duplicate/missed RMS call or unexpected collective",
+    "Checkpoint is not model-only or strict-load/logit/causality identity fails",
+    "Any process-group survivor or mutable/incomplete evidence",
+    "Any native action before independent Verifier finalizes distinct requests"
+  ],
+  "verdict": null
+}

@@ -1,0 +1,68 @@
+{
+  "schema": "a1-native-five-pending-requests-v1",
+  "state": "pending-independent-verifier",
+  "executable": false,
+  "finalization_head": "PENDING_EXTERNAL_VERIFIER",
+  "authorization_sha256": "PENDING_EXTERNAL_VERIFIER",
+  "host": "trn21",
+  "environment": {
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "NEURON_COMPETITION_R1_SEED": "42",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "PYTHONUNBUFFERED": "1"
+  },
+  "common_train_argv": [
+    "--num-steps", "5", "--max-train-seconds", "1800", "--n-embd", "1024",
+    "--ngram-ve", "--ngram-ve-layers=-1", "--ngram-ve-table-mult", "64",
+    "--ngram-ve-dim", "128", "--ngram-ve-trigram", "--ngram-ve-opt", "rmsprop",
+    "--ngram-ve-flat-lr", "--ngram-ve-bf16", "--ngram-ve-clip-exclude",
+    "--no-qk-shift", "--compile-sdpa-direct", "--nki-local-conv",
+    "--bf16-norm-output", "--pack-factor", "32", "--clip-after-reduce",
+    "--seq-len", "1024", "--no-eval-public", "--matrix-lr", "0.015"
+  ],
+  "arms": [
+    {
+      "arm": "G0",
+      "label": "fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1",
+      "source": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/train_gate_hybrid.py",
+      "observation_argv": ["--native-gate-arm", "G0", "--no-native-gate-observation"],
+      "remote": "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g0_hybrid_observation_off_trn21_r1",
+      "compile_cache": "/home/ubuntu/neuron_cache_20260924_v2_a1_native5_g0_trn21_r1",
+      "output": "out/fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1",
+      "report": "research/run-logs/fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1/native-gate",
+      "prerequisite": "PENDING_EXTERNAL_VERIFIER_PACKAGE_PASS_AND_G0_REQUEST"
+    },
+    {
+      "arm": "G1",
+      "label": "fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1",
+      "source": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/train_gate_hybrid.py",
+      "observation_argv": ["--native-gate-arm", "G1", "--native-gate-observation"],
+      "remote": "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g1_hybrid_observation_on_trn21_r1",
+      "compile_cache": "/home/ubuntu/neuron_cache_20260924_v2_a1_native5_g1_trn21_r1",
+      "output": "out/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1",
+      "report": "research/run-logs/fs-20260924-v2-a1-native5-g1-hybrid-observation-on-trn21-r1/native-gate",
+      "prerequisite": "PENDING_AUTHENTICATED_G0_ARCHIVE_IDENTITY_AND_G1_REQUEST"
+    },
+    {
+      "arm": "G2",
+      "label": "fs-20260924-v2-a1-native5-g2-ordinary-observation-on-trn21-r1",
+      "source": "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/train_gate_ordinary.py",
+      "observation_argv": ["--native-gate-arm", "G2", "--native-gate-observation"],
+      "remote": "/home/ubuntu/trainium_freshstart_20260924_v2_a1_native5_g2_ordinary_observation_on_trn21_r1",
+      "compile_cache": "/home/ubuntu/neuron_cache_20260924_v2_a1_native5_g2_trn21_r1",
+      "output": "out/fs-20260924-v2-a1-native5-g2-ordinary-observation-on-trn21-r1",
+      "report": "research/run-logs/fs-20260924-v2-a1-native5-g2-ordinary-observation-on-trn21-r1/native-gate",
+      "prerequisite": "PENDING_AUTHENTICATED_G1_ARCHIVE_IDENTITY_AND_G2_REQUEST"
+    }
+  ],
+  "requirements": {
+    "exact_symbolic_branch": "experiment/20260924-v2-a1-hybrid-native5-equivalence-gate",
+    "min_free_bytes_before_each_arm": 6979321856,
+    "hard_abort_bytes": 5368709120,
+    "sequential": true,
+    "fresh_absent_remote_output_cache_report": true,
+    "one_process_group": true,
+    "bounded_term_then_kill_and_quiescence": true,
+    "operator_cleanup_authorized": false
+  }
+}
