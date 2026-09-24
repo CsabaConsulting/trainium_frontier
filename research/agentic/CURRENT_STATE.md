@@ -53,6 +53,10 @@ This section supersedes earlier Track-A readiness and host-control statements be
   `t04-warmdown-90-900s` run was `+0.000254` BPB worse than its same-code control mean; ratio 0.60
   was also weakly negative, bracketing the 0.75 default. The durable schedule study closed this
   axis, so no 1,800-second repeat was launched.
+- Track-A A9's x0-gate sub-arm was stopped as a decisive prior wall-clock negative. Its paired
+  dense run was about 13% slower, completed 11.2% fewer steps, and lost `+0.008694` BPB; the
+  estimated per-step effect was within noise. The same extra per-block reduction remains outside
+  exact `35c9...` optimized adapters, so no repeat was packaged.
 - The paused A2 scaffold is unauthorized and must not run: it has the same RMSProp/ownership
   blocker. Track B2 sparse touched-row work also remains rejected before hardware. The best
   confirmed submission candidate therefore remains the review-clean MATRIX_LR 0.015 dense file,
