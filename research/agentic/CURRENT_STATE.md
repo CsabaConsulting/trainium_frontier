@@ -1,8 +1,31 @@
 # Current state
 
-Last reconciled: 2026-09-24 22:21 UTC
+Last reconciled: 2026-09-24 22:28 UTC
 
-## Current handoff: both hosts disk-blocked after A0 compile safety stop
+## Current handoff: guest storage fixed; trn21 G1 staging; trn22 breaker held
+
+The human completed both guest root-partition/ext4 expansions. The
+[independent read-only host audit](operations/TRN2_POST_RESIZE_READ_ONLY_AUDIT_2026-09-25_0356.json)
+at 22:26:14 UTC found 250-GiB root disks, grown p1 and ext4 root filesystems,
+and 58,907,762,688 B free on trn21 / 58,454,982,656 B on trn22. Both exceed
+the immutable 6.5-GiB floor and the provisional 10-GiB A0 prelaunch gate.
+No matched train/eval process, Neuron holder, or host-lock holder was found.
+This is a storage/quiescence finding, **not** a full preflight or launch approval.
+
+trn21's next gate is the independently reviewed retained-checkpoint G1
+public20M calibration. An Operator is staging and reauthenticating its pinned
+source, checkpoint, six warm caches, environment and disk; evaluation cannot
+start until a separate Verifier approves a finalized request and the Supervisor
+grants one-label authorization. The static-reviewed trn21 A0 control then needs
+its own exact-environment G2 and live gates. trn22's earlier A0 remains a
+terminal zero-step disk incident with no BPB; its breaker is still tripped and
+requires explicit human acknowledgement/reset after fresh checks. The A2 table
+package failed an initial static review, was repaired, and awaits independent
+re-review. Neither host has a new model result or a submission-ready S0 file.
+Best confirmed public20M remains 0.9918353324 single/0.9919537735 mean.
+This handoff supersedes the pre-resize sections below.
+
+## Historical handoff: both hosts disk-blocked after A0 compile safety stop
 
 The human's Melbourne AWS console screenshot shows both exact root EBS volumes
 at 250 GiB. A [read-only guest audit](operations/TRN2_EBS_GUEST_PENDING_AUDIT_2026-09-25_0351.json)

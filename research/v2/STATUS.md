@@ -1,8 +1,20 @@
 # Workflow installation and incremental launch status
 
-Status: **both hosts disk-blocked; A0 failed safely before step 1; no new BPB result.**
+Status: **both guest disk expansions verified; trn21 G1 staging is next; trn22 remains on a separate safety stop; no new BPB result.**
 
-At 22:21:36 UTC, the human's console screenshot shows both exact root EBS
+At 22:26:14 UTC, a [fresh read-only guest and quiescence audit](../agentic/operations/TRN2_POST_RESIZE_READ_ONLY_AUDIT_2026-09-25_0356.json)
+verified that both root disks, partitions, and ext4 filesystems have grown. Root
+free space is 58,907,762,688 B on trn21 and 58,454,982,656 B on trn22, above
+both the 6.5-GiB operational floor and provisional 10-GiB A0 prelaunch gate.
+Neither host had a matched training/evaluation process, Neuron holder, or host-lock
+holder at audit time. This clears the **storage-only** block. It does not
+authenticate the pinned code, checkpoint, caches, exact environment, or a new
+one-run authorization. trn21's G1 calibration remains pending those checks;
+trn22's reviewed zero-step A0 incident still has `host_clean=false` and its
+controller disk breaker is still tripped. No training or evaluator was launched
+by this audit. The pre-resize snapshots below are historical, not live state.
+
+Historical pre-resize status at 22:21:36 UTC: the human's console screenshot shows both exact root EBS
 volumes at 250 GiB, and a [read-only guest audit](../agentic/operations/TRN2_EBS_GUEST_PENDING_AUDIT_2026-09-25_0351.json)
 confirms both `/dev/nvme0n1` disks now expose 250 GiB. However, each root
 `/dev/nvme0n1p1` ext4 partition/filesystem is still the old size: trn21 free

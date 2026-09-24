@@ -1,6 +1,6 @@
 {
   "schema": "trn-frontier-state-v2",
-  "written_utc": "2026-09-24T22:21:36Z",
+  "written_utc": "2026-09-24T22:28:04Z",
   "installation": {
     "status": "INSTALLED_EXACT_COPIES_VERIFIED_RUNTIME_GATES_PENDING",
     "target_base_commit": "33774742dc49de7a5d6f5fd539c1530430306763",
@@ -71,7 +71,7 @@
         "request_sha256": "b39f3e5573793f5b9eb9d559f0d977c17d1f3f2dde304edf27c806f2222e9a4a",
         "independent_review": "research/agentic/verification/20260925-g1-trn21-pending-package-review.md",
         "independent_review_sha256": "d7e13f80b9d87521666352fc529ff55951aedc5cbd56f728e46381fc8af01a28",
-        "remaining": "Human guest p1/ext4 expansion after visible 250-GiB EBS resize; fresh host source/checkpoint/tokenizer/cache/environment/disk/breaker checks; finalized one-shot request. This is evaluator calibration only, not an advancement control."
+        "remaining": "Guest storage gate passed at 22:26:14 UTC. Fresh staged host source/checkpoint/tokenizer/cache/environment/breaker checks, finalized request, independent review and one-shot authorization remain. This is evaluator calibration only, not an advancement control."
       }
     },
     "G2": {
@@ -104,33 +104,35 @@
       "s0_bare_launch_supported": false,
       "production_switch_authorized": false,
       "timebox_reached_utc": "2026-09-24T21:30:00Z",
-      "timebox_outcome": "Local synthetic safety tests passed; one-host pilot and bare-S0 support remain unverified. Both hosts now disk-blocked, so do not switch production launcher or run pilot before disk/breaker gates clear."
+      "timebox_outcome": "Local synthetic safety tests passed; one-host pilot and bare-S0 support remain unverified. Hosts were disk-blocked at the time; the 22:26:14 UTC storage audit later cleared that gate but not the remaining pilot and breaker checks."
     }
   },
   "hosts": {
     "trn21": {
-      "status": "BLOCKED_GUEST_ROOT_PARTITION_FILESYSTEM_NOT_EXTENDED",
+      "status": "DISK_PASS_G1_AND_LIVE_PREFLIGHT_PENDING",
       "launch_allowed": false,
-      "last_observed_utc": "2026-09-24T22:21:36Z",
-      "free_bytes_read_only_df": 6901698560,
+      "last_observed_utc": "2026-09-24T22:26:14Z",
+      "free_bytes_read_only_df": 58907762688,
       "root_disk_bytes": 268435456000,
-      "root_partition_bytes": 213673557504,
-      "root_ext4_total_bytes": 206900281344,
-      "free_gib": 6.43,
+      "root_partition_bytes": 267360648704,
+      "root_ext4_total_bytes": 258906374144,
+      "free_gib": 54.86,
       "training_processes": 0,
-      "neuron_device_holders": 0
+      "neuron_device_holders": 0,
+      "host_lock_holders": 0
     },
     "trn22": {
-      "status": "BLOCKED_GUEST_ROOT_PARTITION_FILESYSTEM_AND_DISK_BREAKER_A0_TERMINAL_NO_SCORE",
+      "status": "DISK_PASS_BREAKER_TRIPPED_A0_TERMINAL_NO_SCORE",
       "launch_allowed": false,
-      "last_observed_utc": "2026-09-24T22:21:36Z",
+      "last_observed_utc": "2026-09-24T22:26:14Z",
       "root_disk_bytes": 268435456000,
-      "root_partition_bytes": 213673557504,
-      "root_ext4_total_bytes": 206900281344,
+      "root_partition_bytes": 267360648704,
+      "root_ext4_total_bytes": 258906374144,
       "prelaunch_free_bytes": 7950065664,
       "floor_breach_observed_free_bytes": 6449438720,
       "terminal_reported_free_bytes": 6449033216,
-      "latest_checked_free_bytes": 6448898048,
+      "latest_checked_free_bytes": 58454982656,
+      "free_gib": 54.44,
       "preflight_free_bytes": 7949975552,
       "preflight_to_postflight_consumed_bytes": 1500942336,
       "incident_receipt": "research/v2/incidents/fs-20260925-v2-c5c-a0-control-trn22-r1/operator-terminal.json",
@@ -141,6 +143,7 @@
       "guard_pid": null,
       "training_processes": 0,
       "neuron_device_holders": 0,
+      "host_lock_holders": 0,
       "command_returncode": 1,
       "postflight_completed_utc": "2026-09-24T21:28:07.305166Z",
       "observer_status": "COMPLETE_NON_SCORED_0_BOUNDARIES",
@@ -163,22 +166,23 @@
   "alert_cmd": "${TRAINIUM_ALERT_CMD}",
   "pending_human_decisions": [
     {
-      "item": "Human guest root-partition/ext4 expansion on both hosts after the AWS-side 200-to-250-GiB EBS modification",
-      "packet": "research/v2/DISK_DECISION_PACKET_2026-09-25.md",
-      "without_action": "Both guests still have old-size root partitions/filesystems and remain below the free-space floor; controls, tables and cold S0 validation cannot advance",
-      "deletion_targets": []
-    },
-    {
       "item": "Human acknowledgement/reset of trn22 disk safety breaker after guest filesystem expansion and reviewed A0 failure diagnosis",
       "without_action": "No training on trn22; failed label cannot be retried"
     }
   ],
-  "last_event": "Human AWS console screenshot shows both root EBS volumes at 250 GiB; read-only guest audit at 22:21:36 UTC confirms both 250-GiB disks are visible but p1/ext4 remain old size and root free remains below the 6.5-GiB floor. Human guest expansion is next. A0 r1 remains terminal with zero steps/no BPB; trn22 breaker is still recorded as tripped. No agent AWS/guest resize, relaunch, or breaker action.",
-  "updated_utc": "2026-09-24T22:21:36Z",
+  "resolved_human_decisions": [
+    {
+      "item": "Human AWS-side 200-to-250-GiB root EBS expansion and guest p1/ext4 expansion on both hosts",
+      "verified_by": "research/agentic/operations/TRN2_POST_RESIZE_READ_ONLY_AUDIT_2026-09-25_0356.json",
+      "verified_utc": "2026-09-24T22:26:14Z"
+    }
+  ],
+  "last_event": "Human guest p1/ext4 expansion independently verified at 22:26:14 UTC. Both hosts now have about 54 GiB root free and no matched process, Neuron holder or host-lock holder. Storage-only gate passed. trn21 G1 source/checkpoint/cache/env staging is next; trn22 remains breaker-tripped after terminal zero-step A0 incident. No new run, BPB, breaker reset, AWS or guest resize action by agent.",
+  "updated_utc": "2026-09-24T22:28:04Z",
   "latest_disk_audit": {
-    "path": "research/agentic/operations/TRN2_EBS_GUEST_PENDING_AUDIT_2026-09-25_0351.json",
-    "sha256": "e063cf3115a2bdbc5eef732eae6bbff2f7530f2aeaf9060eb4dcc1218eb0b1e7",
-    "scope": "User AWS console screenshot plus read-only guest disk/partition/ext4/df; prior quiescence and breaker evidence not revalidated"
+    "path": "research/agentic/operations/TRN2_POST_RESIZE_READ_ONLY_AUDIT_2026-09-25_0356.json",
+    "sha256": "1aacf82457debedcc657751c2de0f20dada67769834cde9ed12de662f8cafdd5",
+    "scope": "Read-only guest disk/partition/ext4/df, process/device/host-lock quiescence, and prior breaker/postflight snapshot; not full preflight"
   },
   "active_human_brief": "research/v2/CONTROLLER_BRIEF_2026-09-25.md",
   "ready_job_counts": {"trn21": 0, "trn22": 0},
@@ -188,7 +192,7 @@
     "source_sha256": "c5c410afef8269850aaea01f5b986b522dc0bf5f76f9a64953f8daf1288db586",
     "verifier_receipt": "research/submission-validation/20260925-v2-c5c-a1-m64d128-trn21-r1/verifier.json",
     "verifier_receipt_sha256": "05fa1efa929a20b95d7768619fbdbc507ba566848cfd198ddfb93575d8c5985a",
-    "remaining": "Human storage fix; host-specific G1, exact-size G2 rank trace, native smoke, valid same-host c5c A0 control; separate new-label authorization. Effective seed/budget environment must be authenticated."
+    "remaining": "Host-specific G1, exact-size G2 rank trace, native smoke, valid same-host c5c A0 control; separate new-label authorization. Effective seed/budget environment must be authenticated. Storage-only gate passed."
   },
   "a0_trn22_retry_package": {
     "status": "STATIC_PASS_INDEPENDENT_REVIEW_DISPATCH_HOLD",
@@ -197,7 +201,7 @@
     "verifier_receipt": "research/agentic/verification/20260925-v2-c5c-a0-trn22-r2-static-review.md",
     "verifier_receipt_sha256": "5034d8ea9a75d20052cdfb24606a5882d20a13b45dc0fb1b1ac4de07aa4da679",
     "required_prelaunch_free_bytes": 10737418240,
-    "remaining": "Human guest p1/ext4 expansion after visible 250-GiB EBS resize; explicit human trn22 breaker acknowledgement/reset; fresh staging, source/cache/host/disk checks, exact-env G2, independent final request check and separate one-shot authorization. No launch is authorized."
+    "remaining": "Explicit human trn22 breaker acknowledgement/reset; fresh staging, source/cache/host/disk checks, exact-env G2, independent final request check and separate one-shot authorization. Storage-only gate passed; no launch is authorized."
   },
   "a0_trn21_control_package": {
     "status": "STATIC_PASS_INDEPENDENT_REVIEW_DISPATCH_HOLD",
@@ -207,7 +211,7 @@
     "verifier_receipt": "research/agentic/verification/20260925-v2-c5c-a0-trn21-r1-static-review.md",
     "verifier_receipt_sha256": "51c2319793484b61bb1861b32a5ef0e3fa2e726324ca89f036ec710d9ae052c4",
     "required_prelaunch_free_bytes": 10737418240,
-    "remaining": "Human guest p1/ext4 expansion after visible 250-GiB EBS resize; trn21 G1 calibration and independent result review; exact-env G2; fresh host, source/cache/disk/staging checks; one-shot authorization. No launch is authorized."
+    "remaining": "trn21 G1 calibration and independent result review; exact-env G2; fresh host, source/cache/disk/staging checks; one-shot authorization. Storage-only gate passed; no launch is authorized."
   },
   "submission_s0": {
     "status": "STATIC_AUDIT_NO_PROVEN_RULE_VIOLATION_RUNTIME_AND_SUBMISSION_HOLD",
