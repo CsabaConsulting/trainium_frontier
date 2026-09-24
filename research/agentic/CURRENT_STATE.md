@@ -1,6 +1,19 @@
 # Current state
 
-Last reconciled: 2026-09-24 23:05 UTC
+Last reconciled: 2026-09-24 23:14 UTC
+
+## Current handoff: trn22 CPU gate archived; trn21 evaluation stage verified
+
+The corrected exact-environment, four-rank CPU G2 on trn22 [passed its Operator
+probe](../v2/g2-probes/fs-20260925-g2-a0-c5c-exactenv-trn22-r3/operator-receipt.json)
+with clean postflight and unchanged protected artifacts. An independent numerical
+comparison to the prior c5c anchor is still pending; this is not native training
+or a BPB measurement. The trn21 retained-checkpoint G1 r2 clean source stage
+[passed independent review](verification/20260925-g1-trn21-r2-staged-request-review.md),
+but its evaluator has not launched. A separately guarded, one-label authorization
+and fresh preflight are next. Both hosts remain barred from scored training,
+and the best measured public20M BPB remains 0.9918353324 single / 0.9919537735
+two-run mean. The older sections below remain historical context.
 
 ## Current handoff: post-resize staging and CPU preflight, no new score
 

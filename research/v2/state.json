@@ -1,6 +1,6 @@
 {
   "schema": "trn-frontier-state-v2",
-  "written_utc": "2026-09-24T23:05:23Z",
+  "written_utc": "2026-09-24T23:14:00Z",
   "installation": {
     "status": "INSTALLED_EXACT_COPIES_VERIFIED_RUNTIME_GATES_PENDING",
     "target_base_commit": "33774742dc49de7a5d6f5fd539c1530430306763",
@@ -74,7 +74,7 @@
         "remaining": "Guest storage gate passed at 22:26:14 UTC. Fresh staged host source/checkpoint/tokenizer/cache/environment/breaker checks, finalized request, independent review and one-shot authorization remain. This is evaluator calibration only, not an advancement control."
       },
       "trn21_retry_r2": {
-        "status": "OPERATOR_STAGE_PASS_INDEPENDENT_STAGE_REVIEW_PENDING_NO_EVAL",
+        "status": "OPERATOR_STAGE_PASS_INDEPENDENT_STAGE_REVIEW_PASS_NO_EVAL",
         "label": "fs-20260925-g1-public20m-calibration-trn21-r2",
         "package": "research/v2/g1-calibrations/fs-20260925-g1-public20m-calibration-trn21-r2",
         "source_commit": "e7f11c38dc3b5e68b373322e10cfef580f1e8d36",
@@ -82,7 +82,9 @@
         "independent_static_review_sha256": "c9a60d8d762bc1ae7f30bc370a2441513b0046d6442e136d4eea16c98c4fd5e9",
         "stage_receipt": "research/v2/g1-calibrations/fs-20260925-g1-public20m-calibration-trn21-r2/operator-stage-receipt.json",
         "stage_receipt_sha256": "ca417a419557c4891236716cb6d844c607dd1de22d9e1a8c4187a42a63015d52",
-        "remaining": "A different Verifier is assigned live staging/request review. Fresh pre-dispatch host/source/checkpoint/cache/environment/disk checks, one-shot authorization, fresh-process public20M eval and independent result review remain."
+        "independent_stage_review": "research/agentic/verification/20260925-g1-trn21-r2-staged-request-review.md",
+        "independent_stage_review_sha256": "bf3c78a7db65ea7829386129969e7bb06cc700f11c2d4b2f251c448f04878a21",
+        "remaining": "Independent stage review passed. An exact one-label guard and continuous disk monitor, fresh pre-dispatch host/source/checkpoint/cache/environment/disk checks, one-shot authorization, fresh-process public20M eval and independent result review remain."
       }
     },
     "G2": {
@@ -98,11 +100,13 @@
         "native_or_scored_training_started": false
       },
       "a0_retry_exact_environment_g2_r3": {
-        "status": "INDEPENDENT_STATIC_SAFETY_PASS_OPERATOR_CPU_ONLY_ASSIGNED",
+        "status": "OPERATOR_CPU_G2_PASS_INDEPENDENT_NUMERIC_COMPARE_PENDING",
         "label": "fs-20260925-g2-a0-c5c-exactenv-trn22-r3",
         "package": "research/v2/g2-probes/fs-20260925-g2-a0-c5c-exactenv-trn22-r3/GATE_CONTRACT.json",
         "independent_review": "research/agentic/verification/20260925-trn22-c5c-a0-r2-g2-r3-static-safety-review.md",
         "independent_review_sha256": "36a65541e46981e159b121134349fc4176c385bb743a98dd92af101eda581617",
+        "operator_receipt": "research/v2/g2-probes/fs-20260925-g2-a0-c5c-exactenv-trn22-r3/operator-receipt.json",
+        "operator_receipt_sha256": "c8d73cc447a4fb99c9aba1869f3df47accee550ea2e04d704b9a43cd1bd8e116",
         "scope": "One contained CPU-only four-rank G2 after fresh Operator checks; no native/scored run or evaluator authorization"
       },
       "receipt": "research/v2/g2-probes/fs-20260925-v2-g2-baseline-s0-trn22-r1/operator-retrieval-receipt.json",
@@ -136,7 +140,7 @@
   },
   "hosts": {
     "trn21": {
-      "status": "DISK_PASS_G1_R2_SOURCE_STAGED_INDEPENDENT_REVIEW_PENDING",
+      "status": "DISK_PASS_G1_R2_SOURCE_STAGED_INDEPENDENT_REVIEW_PASS_EVAL_PENDING",
       "launch_allowed": false,
       "last_observed_utc": "2026-09-24T23:00:05Z",
       "free_bytes_read_only_df": 58685124608,
@@ -149,16 +153,16 @@
       "host_lock_holders": 0
     },
     "trn22": {
-      "status": "DISK_PASS_BREAKER_REARMED_CPU_G2_INFRA_HOLD_NO_SCORE",
+      "status": "DISK_PASS_BREAKER_REARMED_CPU_G2_R3_OPERATOR_PASS_COMPARE_PENDING_NO_SCORE",
       "launch_allowed": false,
-      "last_observed_utc": "2026-09-24T22:48:11Z",
+      "last_observed_utc": "2026-09-24T23:10:44Z",
       "root_disk_bytes": 268435456000,
       "root_partition_bytes": 267360648704,
       "root_ext4_total_bytes": 258906374144,
       "prelaunch_free_bytes": 7950065664,
       "floor_breach_observed_free_bytes": 6449438720,
       "terminal_reported_free_bytes": 6449033216,
-      "latest_checked_free_bytes": 58452987904,
+      "latest_checked_free_bytes": 58452930560,
       "free_gib": 54.44,
       "preflight_free_bytes": 7949975552,
       "preflight_to_postflight_consumed_bytes": 1500942336,
@@ -215,8 +219,8 @@
       "scope": "Named trn22 workflow-v2 disk breaker only; launch remains disallowed"
     }
   ],
-  "last_event": "trn22 A0 r2 exact-env CPU G2 failed infrastructure-only while recording synthetic step 0 on a missing STEP_LOG parent; its new-label r3 retry passed independent static/safety review, did not trigger a new breaker, and a distinct Operator is assigned the CPU probe only. Science A0 r2 remains unused. trn21 G1 r2 exact-retained-source stage passed Operator checks and awaits independent stage review. A2 native smoke failed static review on the step-log parent and 30-vs-50-step proof gap; repair assigned. No native run, BPB, launch authorization or ready scored job on either host.",
-  "updated_utc": "2026-09-24T23:05:23Z",
+  "last_event": "trn22 exact-env four-rank CPU G2 r3 passed Operator probe and clean postflight, with independent numerical comparison pending. trn21 G1 r2 exact-retained-source stage passed independent review and awaits a guarded one-label evaluator authorization. No native training, new BPB, launch authorization or ready scored job on either host.",
+  "updated_utc": "2026-09-24T23:14:00Z",
   "latest_breaker_rearm": {
     "scope": "trn22 workflow-v2 DISK_FLOOR_BREACH_DURING_A0_COMPILE_PRE_STEP only",
     "human_acknowledgement": "research/v2/authorizations/20260925-trn22-disk-breaker-human-ack.md",
@@ -257,13 +261,13 @@
     "native_or_scored_training_started": false
   },
   "a0_trn22_retry_package": {
-    "status": "STATIC_PASS_SOURCE_STAGED_CPU_G2_INFRA_HOLD_NO_DISPATCH",
+    "status": "STATIC_PASS_SOURCE_STAGED_CPU_G2_R3_OPERATOR_PASS_COMPARE_PENDING_NO_DISPATCH",
     "label": "fs-20260925-v2-c5c-a0-control-trn22-r2",
     "path": "research/submission-validation/20260925-v2-c5c-a0-control-trn22-r2",
     "verifier_receipt": "research/agentic/verification/20260925-v2-c5c-a0-trn22-r2-static-review.md",
     "verifier_receipt_sha256": "5034d8ea9a75d20052cdfb24606a5882d20a13b45dc0fb1b1ac4de07aa4da679",
     "required_prelaunch_free_bytes": 10737418240,
-    "remaining": "Source staging passed but exact-env CPU G2 failed on missing STEP_LOG parent. A reviewed new-label G2 retry and numerical comparison, fresh source/cache/host/disk checks, independent final request check, external observer and separate one-shot authorization remain. Disk breaker re-armed under human consent and independent safety review; no launch is authorized."
+    "remaining": "Source staging passed and new-label exact-env CPU G2 r3 passed its Operator probe; independent numerical comparison, fresh source/cache/host/disk checks, independent final request check, external observer and separate one-shot authorization remain. Disk breaker re-armed under human consent and independent safety review; no launch is authorized."
   },
   "a0_trn21_control_package": {
     "status": "STATIC_PASS_INDEPENDENT_REVIEW_DISPATCH_HOLD",
