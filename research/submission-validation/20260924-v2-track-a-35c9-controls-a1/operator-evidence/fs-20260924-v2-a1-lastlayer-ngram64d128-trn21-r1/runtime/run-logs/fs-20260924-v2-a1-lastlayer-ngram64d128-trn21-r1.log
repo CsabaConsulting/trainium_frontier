@@ -1,0 +1,17 @@
+fatal: ref HEAD is not a symbolic ref
+Traceback (most recent call last):
+  File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_lastlayer_ngram64d128_trn21_r1/research/submission-validation/20260924-v2-track-a-35c9-controls-a1/track_a_job.py", line 458, in <module>
+    main()
+  File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_lastlayer_ngram64d128_trn21_r1/research/submission-validation/20260924-v2-track-a-35c9-controls-a1/track_a_job.py", line 271, in main
+    if socket.gethostname() != spec["hostname"] or git("symbolic-ref", "--short", "HEAD") != c.BRANCH:
+                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_lastlayer_ngram64d128_trn21_r1/research/submission-validation/20260924-v2-track-a-35c9-controls-a1/track_a_job.py", line 31, in git
+    return subprocess.check_output(["git", *args], cwd=ROOT, text=True).strip()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 466, in check_output
+    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['git', 'symbolic-ref', '--short', 'HEAD']' returned non-zero exit status 128.
+EXPERIMENT_POSTFLIGHT {"label": "fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r1", "returncode": 1, "host_clean": true, "cleanup_actions": 0, "postflight": "/home/ubuntu/trainium_freshstart_20260924_v2_a1_lastlayer_ngram64d128_trn21_r1/research/run-logs/fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r1.postflight.json"}
