@@ -57,6 +57,9 @@ This section supersedes earlier Track-A readiness and host-control statements be
   dense run was about 13% slower, completed 11.2% fewer steps, and lost `+0.008694` BPB; the
   estimated per-step effect was within noise. The same extra per-block reduction remains outside
   exact `35c9...` optimized adapters, so no repeat was packaged.
+- A9 out-pool was likewise stopped as a prior dense negative/null. The exact one-factor
+  `t39-outpool-900s` run lost about `+0.0013` BPB at both 1024 and 2048 context while completing
+  1.4% fewer steps; its throughput-adjusted residual was also non-improving. No repeat was made.
 - The paused A2 scaffold is unauthorized and must not run: it has the same RMSProp/ownership
   blocker. Track B2 sparse touched-row work also remains rejected before hardware. The best
   confirmed submission candidate therefore remains the review-clean MATRIX_LR 0.015 dense file,
