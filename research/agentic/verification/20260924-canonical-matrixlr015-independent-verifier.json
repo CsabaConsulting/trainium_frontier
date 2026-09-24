@@ -1,0 +1,126 @@
+{
+  "schema": "trainium-independent-verifier-receipt-v1",
+  "receipt_date": "2026-09-24",
+  "role": "independent_verifier",
+  "verdict": "PASS_AS_PINNED_RESEARCH_BASE",
+  "submission_approved": false,
+  "audited_commit": "e12d0deedea806128c1999f4b0a6340b967a7e64",
+  "audited_parent": "4ed89f36c437ab75b0bf63cea80a3871f547de34",
+  "branch_at_review": "submission/canonical-matrixlr015-20260924",
+  "identities": {
+    "root_train_py_sha256": "116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d",
+    "prepare_py_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "review_clean_base_train_sha256": "c5956187de3302da4a424b17686768c8239606701e0d4c690042944cbf847537",
+    "candidate_source": "28b89bfc6d65be9188f8d8a78accd6187e7627b7:submissions/dense6x1024_direct_review_matrixlr015/train.py",
+    "candidate_byte_comparison": "exact",
+    "candidate_change_from_review_clean_base": "MATRIX_LR = 0.02 -> MATRIX_LR = 0.015 only"
+  },
+  "tree_audit": {
+    "changed_paths_from_parent": [
+      "train.py"
+    ],
+    "prepare_py_unchanged_from_parent": true,
+    "evaluator_tokenizer_and_scoring_paths_changed": false,
+    "note": "The parent root train.py was not the c595 review-clean artifact, so the promotion diff is larger than the candidate's one-line causal diff from the review-clean base. The promoted root bytes nevertheless equal the exact twice-run candidate."
+  },
+  "checks_run_this_review": [
+    {
+      "check": "git commit topology and exact diff-tree path audit",
+      "result": "PASS"
+    },
+    {
+      "check": "SHA-256 of root train.py and prepare.py",
+      "result": "PASS"
+    },
+    {
+      "check": "byte comparison against the candidate stored in evidence commit 28b89bfc6d65be9188f8d8a78accd6187e7627b7",
+      "result": "PASS"
+    },
+    {
+      "check": "in-memory Python compile and AST reviewer-risk scan",
+      "result": "PASS",
+      "details": "Exactly one load_for_eval; the sole torch.load uses map_location='cpu' and weights_only=True; no _submission_, MethodType, setattr, forward replacement, or hook-install marker."
+    },
+    {
+      "check": "initial MATRIX_LR 0.015 exact-diff, proposal, driver and immutable-request suites",
+      "result": "PASS_NO_SSH"
+    },
+    {
+      "check": "confirmation-r2 static, Decimal and immutable-request suites",
+      "result": "PASS_NO_SSH"
+    },
+    {
+      "check": "tracked worktree cleanliness after read-only audit",
+      "result": "PASS"
+    }
+  ],
+  "cpu_and_load_for_eval_evidence": {
+    "status": "PASS_BY_EXACT_BYTE_IDENTITY_AND_PRESERVED_EVIDENCE",
+    "preserved_checks": [
+      "model initialization and RNG identity",
+      "strict checkpoint loading and exact logits",
+      "causality, repeatability, batch independence and permutation independence",
+      "frozen parameters, no hooks, unchanged state and buffers",
+      "fused-MLP output and input/weight gradient equivalence",
+      "two-rank and four-rank optimizer-owner equivalence",
+      "optimizer state/load round trip and fail-closed bad schema",
+      "adaptive cross-entropy AST and lane-selection gates",
+      "launch-flag mismatch rejection"
+    ],
+    "load_for_eval_assessment": "It reconstructs the same GPT, strictly loads the trained model state, freezes it in eval mode, and only extends deterministic nonpersistent rotary buffers for evaluation context length. It does not substitute a different trained model.",
+    "local_rerun_limitation": "The controller's /usr/bin Python lacked torch, so tensor CPU checks were not recomputed during this review. Static suites were rerun, preserved CPU results were inspected, exact candidate-byte identity was proved, and the same bytes subsequently completed two full-chip runs."
+  },
+  "full20m_evidence": [
+    {
+      "evidence_commit": "7fe770b2185f594cfd66fead05aee2051ce1793b",
+      "candidate_sha256_bound_in": [
+        "result",
+        "operator receipt",
+        "runtime job"
+      ],
+      "val_bpb": "0.9920722144854677",
+      "num_tokens": 20971520,
+      "num_bytes": 83462186,
+      "checkpoint_finite": true,
+      "checkpoint_loaded_weights_only": true,
+      "seed": 42,
+      "host": "trn21"
+    },
+    {
+      "evidence_commit": "28b89bfc6d65be9188f8d8a78accd6187e7627b7",
+      "candidate_sha256_bound_in": [
+        "result",
+        "operator receipt",
+        "runtime job"
+      ],
+      "val_bpb": "0.9918353324459732",
+      "num_tokens": 20971520,
+      "num_bytes": 83462186,
+      "checkpoint_finite": true,
+      "checkpoint_loaded_weights_only": true,
+      "seed": 42,
+      "host": "trn21"
+    }
+  ],
+  "control_limitations": {
+    "additional_control_required_only_for_root_promotion": false,
+    "reason": "Moving exact, twice-run bytes to root does not itself require another control.",
+    "requirements_for_new_causal_arms": [
+      "Every new arm still needs a completed proposal and a predeclared comparable control under the experiment protocol.",
+      "The recent trn21 confirmation can serve as the control only for a nearby trn21 comparison with identical relevant source, environment and runtime fingerprints.",
+      "A trn22 arm requires a fresh same-host canonical MATRIX_LR 0.015 control before claiming a win.",
+      "A materially delayed or runtime-changed cohort requires a fresh same-host control.",
+      "Cross-host BPB or step-rate differences must not be treated as causal."
+    ]
+  },
+  "postflight_assessment": "The recorded postflight false state was caused only by less than 8 GiB free disk after successful runs. Device holders and Neuron processes were absent, checkpoints were finite and preserved, evaluations and sealed artifact audits succeeded. This does not invalidate the completed scientific evidence, but a subsequent run must independently pass a fresh preflight disk gate.",
+  "authorized_use": "Pinned research base for future separately proposed and approved experiments.",
+  "actions_not_taken": [
+    "train.py modification",
+    "prepare.py or evaluator modification",
+    "push",
+    "hardware launch",
+    "leaderboard submission",
+    "submission approval"
+  ]
+}
