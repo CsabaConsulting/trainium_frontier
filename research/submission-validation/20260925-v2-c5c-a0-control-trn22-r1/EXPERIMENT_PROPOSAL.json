@@ -36,7 +36,7 @@
   "selection_rationale": "A0 is the cheapest decisive gate for the newly installed research-v2 base and keeps the known working launcher unchanged.",
   "p_improve": 0.5,
   "estimated_host_hours": 1.1,
-  "trainium_feasibility": "Exact c5c source, seed-42 and 1800-second source defaults, LNC2/world4, warm authenticated /tmp/neuron_cache and /tmp/neff_cache, and a 3600-second outer bound. No cold compile-cache creation or deletion is permitted.",
+  "trainium_feasibility": "Exact c5c source, seed-42 and 1800-second source defaults, LNC2/world4, reuse of the six existing trn22 35c9 control train caches under /home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn22_r1/out/fs-20260924-v2-35c9-lr015-control-trn22-r1-work/caches/train, and a 3600-second outer bound. Bounded misses within those caches are acceptable. No cold cache creation, cache clearing, or deletion is permitted.",
   "cheapest_falsifier": "Reject if G1 calibration or G2 is not PASS, training-stdout step 0/1 losses differ from 9.0112/8.7822, the checkpoint is missing/nonfinite, causality fails, or fresh public20M lies outside the separately declared 0.99095-0.99295 reference band.",
   "prior_result_refs": [
     "499f753ca554c5c732c35ab4eab7e96488d5e355: fs-20260924-v2-35c9-lr015-control-trn22-r1",
@@ -89,7 +89,7 @@
     "G1 retained-checkpoint calibration or exact c5c G2 is not independently PASS",
     "The host is not trn22/ip-172-31-32-253, is not clean/idle, or the unique label/remote/output/log path already exists",
     "Pre-launch free space is below 7.1 GiB or the legacy 6.5 GiB operational floor is crossed",
-    "Either warm cache is absent or changed by an unauthorized cleanup/cold-cache action",
+    "Any of the six retained 35c9 train cache paths is absent, redirected, or changed by an unauthorized cleanup/cold-cache action before staging; record anchored before/after cache inventories, allowing bounded compile misses inside the same paths",
     "Timeout 124, crash, NaN/nonfinite value, missing checkpoint, causality failure, budget failure, or source/hash drift",
     "Any attempt to prune/delete artifacts or caches without new human approval"
   ],
