@@ -1,0 +1,119 @@
+{
+  "arm": "G0",
+  "artifacts": {
+    "out/fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1/final.pt": {
+      "bytes": 739322371,
+      "mtime_ns": 1790265421988970477,
+      "sha256": "2d0891c569e6046bd4a3635c62c1ebdb4c6ea6ed0d9788212910a26e61ad3b13"
+    },
+    "research/run-logs/fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1.child.log": {
+      "bytes": 11678,
+      "mtime_ns": 1790265423824967045,
+      "sha256": "f2d8daf1eea1962ff90fc4c4ba0d9da4ee424f341666e1ead2cfbf75c5d9af0f"
+    },
+    "research/run-logs/fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1/native-gate/rank-0.jsonl": {
+      "bytes": 154642,
+      "mtime_ns": 1790265423819967055,
+      "sha256": "8aa51461a8cfba1efd1467d97d3ff4788728870b1809b93c2f27c8c8a1054064"
+    },
+    "research/run-logs/fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1/native-gate/rank-1.jsonl": {
+      "bytes": 129431,
+      "mtime_ns": 1790265423853966993,
+      "sha256": "bb72db43603c324eb6d8b4a54a7a50d58a6186b9763dec661a1681d7dc88cf63"
+    },
+    "research/run-logs/fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1/native-gate/rank-2.jsonl": {
+      "bytes": 125549,
+      "mtime_ns": 1790265423794967102,
+      "sha256": "db6e73e08a1154f4a62b488578cf36565b9accf951eeb40ebe4259e7ca069f7c"
+    },
+    "research/run-logs/fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1/native-gate/rank-3.jsonl": {
+      "bytes": 134233,
+      "mtime_ns": 1790265423853966993,
+      "sha256": "897e2fea281755d9ab655670bd56d7d36fae4d90353c98f5e05f29cfb5289aee"
+    }
+  },
+  "authorization_sha256": "c372bd3f0c3909a69f679a74789d3674f5e0139f12788bd15494c0b9700be28e",
+  "authorized_head": "03bfeabf0f4293e30dc86eecf3aa9cce49e9735b",
+  "cache_cleaned": false,
+  "checkpoint_pruned": false,
+  "command": [
+    "/home/ubuntu/workspace/native_venv/bin/torchrun",
+    "--standalone",
+    "--nproc_per_node=4",
+    "research/submission-validation/20260924-v2-a1-hybrid-native5-equivalence-gate/train_gate_hybrid.py",
+    "--num-steps",
+    "5",
+    "--max-train-seconds",
+    "1800",
+    "--n-embd",
+    "1024",
+    "--ngram-ve",
+    "--ngram-ve-layers=-1",
+    "--ngram-ve-table-mult",
+    "64",
+    "--ngram-ve-dim",
+    "128",
+    "--ngram-ve-trigram",
+    "--ngram-ve-opt",
+    "rmsprop",
+    "--ngram-ve-flat-lr",
+    "--ngram-ve-bf16",
+    "--ngram-ve-clip-exclude",
+    "--no-qk-shift",
+    "--compile-sdpa-direct",
+    "--nki-local-conv",
+    "--bf16-norm-output",
+    "--pack-factor",
+    "32",
+    "--clip-after-reduce",
+    "--seq-len",
+    "1024",
+    "--no-eval-public",
+    "--matrix-lr",
+    "0.015",
+    "--out-dir",
+    "out/fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1",
+    "--native-gate-arm",
+    "G0",
+    "--no-native-gate-observation",
+    "--native-gate-label",
+    "fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1",
+    "--native-gate-host",
+    "trn21",
+    "--native-gate-report-dir",
+    "research/run-logs/fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1/native-gate"
+  ],
+  "compile_cache": {
+    "path": "/home/ubuntu/neuron_cache_20260924_v2_a1_native5_g0_trn21_r1",
+    "preserved": true
+  },
+  "complete": true,
+  "duration_seconds": 1066.486823347048,
+  "environment": {
+    "HOME": "/home/ubuntu",
+    "LANG": "C.UTF-8",
+    "LC_ALL": "C.UTF-8",
+    "LOGNAME": "ubuntu",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "NEURON_COMPETITION_R1_SEED": "42",
+    "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/neuron_cache_20260924_v2_a1_native5_g0_trn21_r1",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "PYTHONUNBUFFERED": "1",
+    "TMPDIR": "/tmp",
+    "TRAINIUM_FRESH_START_RUN_ID": "fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1",
+    "USER": "ubuntu"
+  },
+  "host": "trn21",
+  "interrupted_signals": [],
+  "label": "fs-20260924-v2-a1-native5-g0-hybrid-observation-off-trn21-r1",
+  "process_group_actions": [],
+  "process_group_quiescent": true,
+  "request_sha256": "dd9fa11ae2c30c41a52c9f9b2ce0d58c0551786c5a206bb98d1d15a1f475dc29",
+  "returncode": 0,
+  "runtime_job_sha256": "400b339d4cc913a0bacabc8fd7c657cf3795f07bbd56b44ffde48d8a1e8c3d1a",
+  "schema": "a1-native-five-g0-runtime-result-v1",
+  "status": "PASS",
+  "timed_out": false
+}
