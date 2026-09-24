@@ -11,12 +11,14 @@ instance.
 2. Restore disk headroom first through Operator-owned, archived cleanup. The final-week operational
    gate is 6.5 GiB, retaining 1.5 GiB above the hard 5 GiB protocol floor; never lower the hard
    validator or delete an artifact whose proposal says pruning is unauthorized.
-3. Establish one current-base 20M control on each host. Existing LR0.015 results are useful trn21
-   evidence, but do not replace a trn22 control.
-4. Run constant-only arms first: matrix LR 0.0125 and embedding LR 0.20 in parallel, followed by
-   embedding LR 0.45, unembedding LR 0.004/0.009, the 1080-second epoch diagnostic, and warmdown
-   0.85. Each arm needs its own proposal, implementation commit, independent receipt, unique label,
-   and fresh preflight.
+3. Establish one current-base 2M+20M control on `trn22`. Do not spend another training slot on a
+   third `trn21` base run: fresh-process evaluate the two retained exact-base `trn21` checkpoints at
+   2M and use the predeclared mean as the host-local screening baseline.
+4. Run constant-only arms first: matrix LR 0.0125 and then the adjacent 0.0175 bracket on `trn21`;
+   embedding LR 0.45 and then 0.20 on `trn22`; then warmdown 0.85. Existing evidence puts
+   unembedding, scalar LR, softcap, and the 1080-second diagnostic below this critical path. Each arm
+   still needs its own proposal, implementation commit, independent receipt, unique label, and
+   fresh preflight.
 5. Use a 2M fresh-process public evaluation only for nomination. A nominated arm is re-evaluated or
    replicated with the exact 20M population before any KEEP/adoption verdict.
 
@@ -24,6 +26,9 @@ instance.
 
 - Do not wait for an autonomous Researcher before executing the approved constant queue. Researcher
   output fills the queue only after the measured arms and controls are staged.
+- Use retained checkpoints for evaluator-only calibration when the exact bytes, hash, size, host,
+  and training evidence are already durable. Repeating training merely to obtain a 2M baseline
+  wastes a host-hour and adds training noise.
 - Do not bake ten launch flags into the only confirmed file before preserving it. A bare-launch
   variant is a separate implementation and must prove identical training configuration and clean
   fresh-process loading; it must not block research on the confirmed bytes.

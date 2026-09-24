@@ -36,6 +36,11 @@ This section supersedes the older score, base, queue, and host statements below.
   screen an arm, but cannot establish a KEEP. Promotion requires a fresh 20,971,520-token evaluation;
   adoption requires two negative 20M deltas with mean at most `-0.0008` against current-base,
   same-host controls. Submission and instance lifecycle actions remain human-only.
+- The next host work is deliberately asymmetric: `trn22` needs a fresh current-base 2M+20M control;
+  `trn21` first receives evaluator-only 2M calibration of its two retained exact-base checkpoints,
+  then MATRIX_LR 0.0125. This replaces a redundant third `trn21` control training run. The next
+  bracket is MATRIX_LR 0.0175; embedding 0.45 ranks ahead of 0.20. The 1080-second diagnostic,
+  unembedding, scalar LR, and softcap are outside the immediate critical path.
 
 ## Human-authorized fixed-queue override — pending independent verification
 
