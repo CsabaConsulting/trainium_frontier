@@ -1,0 +1,142 @@
+{
+  "schema": "trn2-disk-decision-packet-v1",
+  "captured_utc": {
+    "trn21": "2026-09-24T20:33:45Z",
+    "trn22": "2026-09-24T20:33:50Z"
+  },
+  "authority_and_scope": {
+    "source": "Human request for a read-only disk decision packet; no deletion or AWS mutation is authorized.",
+    "operations_performed": [
+      "read-only hostname, lsblk, findmnt, df, stat, find, du, Git metadata, checkpoint stat, and checkpoint SHA-256 checks"
+    ],
+    "operations_not_performed": [
+      "deletion",
+      "cleanup",
+      "AWS volume mutation",
+      "filesystem resize",
+      "training",
+      "evaluation"
+    ]
+  },
+  "remote_commands": {
+    "disk_inventory": "hostname; lsblk -J -b -o NAME,PATH,TYPE,SIZE,FSTYPE,MOUNTPOINTS,PKNAME,SERIAL /dev/nvme0n1; findmnt -J -T / -o TARGET,SOURCE,FSTYPE,OPTIONS,SIZE,USED,AVAIL; df -B1 /",
+    "controller_worktree_inventory": "stat -Lc '%F\\t%a\\t%u\\t%g\\t%n' /home/ubuntu/workspace/autoloop_runs; find /home/ubuntu/workspace/autoloop_runs -mindepth 1 -maxdepth 1 -type d -printf '%f\\n' | sort; du -sb /home/ubuntu/workspace/autoloop_runs",
+    "checkpoint_identity": "find the three exact LR0.015 run roots for final.pt, then sha256sum the two extant exact paths"
+  },
+  "hosts": {
+    "trn21": {
+      "hostname": "ip-172-31-34-85",
+      "root_disk": {
+        "name": "nvme0n1",
+        "path": "/dev/nvme0n1",
+        "type": "disk",
+        "size_bytes": 214748364800,
+        "serial": "vol09b9c7946aeaa8c57"
+      },
+      "root_partition": {
+        "name": "nvme0n1p1",
+        "path": "/dev/nvme0n1p1",
+        "parent": "nvme0n1",
+        "type": "part",
+        "size_bytes": 213673557504,
+        "fstype": "ext4",
+        "mountpoint": "/",
+        "findmnt_options": "rw,relatime,discard,errors=remount-ro,commit=30"
+      },
+      "root_filesystem": {
+        "df_total_bytes": 206900281344,
+        "df_used_bytes": 199981645824,
+        "df_available_bytes": 6901858304,
+        "df_use_percent": 97
+      },
+      "required_tools": {
+        "growpart": "/usr/bin/growpart",
+        "resize2fs": "/usr/sbin/resize2fs"
+      }
+    },
+    "trn22": {
+      "hostname": "ip-172-31-32-253",
+      "root_disk": {
+        "name": "nvme0n1",
+        "path": "/dev/nvme0n1",
+        "type": "disk",
+        "size_bytes": 214748364800,
+        "serial": "vol0d64a9cafbb4912e8"
+      },
+      "root_partition": {
+        "name": "nvme0n1p1",
+        "path": "/dev/nvme0n1p1",
+        "parent": "nvme0n1",
+        "type": "part",
+        "size_bytes": 213673557504,
+        "fstype": "ext4",
+        "mountpoint": "/",
+        "findmnt_options": "rw,relatime,discard,errors=remount-ro,commit=30"
+      },
+      "root_filesystem": {
+        "df_total_bytes": 206900281344,
+        "df_used_bytes": 198872891392,
+        "df_available_bytes": 8010612736,
+        "df_use_percent": 97
+      },
+      "required_tools": {
+        "growpart": "/usr/bin/growpart",
+        "resize2fs": "/usr/sbin/resize2fs"
+      }
+    }
+  },
+  "trn21_old_controller_worktrees": {
+    "expected_root": "/home/ubuntu/workspace/autoloop_runs",
+    "root_identity": {
+      "file_type": "directory",
+      "mode": "0775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    "current_immediate_directory_entries": [],
+    "current_du_apparent_bytes": 0,
+    "current_du_directory_entry_bytes": 4096,
+    "finding": "The approximately 3,893,264,384-byte controller-worktree attribution is historical, not current. There are no present worktrees at this exact controller root, so there is no truthful deletion list or current archived-copy proof to supply.",
+    "historical_source": "research/agentic/operations/TRN21_UNET_FULL_DISK_BLOCK_2026-09-23.md",
+    "historical_cleanup_receipts": [
+      "research/agentic/operations/TRN21_ARCHIVED_WORKTREE_CLEANUP_2026-09-23.md",
+      "research/agentic/operations/TRN21_ARCHIVED_WORKTREE_CLEANUP_2026-09-23_R2.md",
+      "research/agentic/operations/TRN21_ARCHIVED_WORKTREE_CLEANUP_2026-09-23_R3.md",
+      "research/agentic/operations/TRN21_ARCHIVED_WORKTREE_CLEANUP_2026-09-23_R4.md",
+      "research/agentic/operations/TRN21_ARCHIVED_WORKTREE_CLEANUP_2026-09-23_R5.md",
+      "research/agentic/operations/TRN21_ARCHIVED_WORKTREE_CLEANUP_2026-09-23_R6.md",
+      "research/agentic/operations/TRN21_ARCHIVED_WORKTREE_CLEANUP_2026-09-23_R7.md"
+    ],
+    "recommendation": "Do not invent a replacement target set and do not delete anything under this request."
+  },
+  "preserved_lr015_checkpoints": [
+    {
+      "description": "c595 MATRIX_LR=0.015 confirmation checkpoint",
+      "path": "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr015_confirm_trn21_r2/out/fs-20260924-c595-matrixlr015-confirm-trn21-r2-work/train/out/final.pt",
+      "size_bytes": 469831009,
+      "sha256": "5c42f143837fc6d6a64dd1101f53887bdf40d984e752ad8a9ed99cc026a758b9"
+    },
+    {
+      "description": "35c9 MATRIX_LR=0.015 control checkpoint",
+      "path": "/home/ubuntu/trainium_freshstart_20260924_v2_35c9_lr015_control_trn21_r1/out/fs-20260924-v2-35c9-lr015-control-trn21-r1-work/sandbox/out/final.pt",
+      "size_bytes": 469834849,
+      "sha256": "aaa4b7c0ff58c56df564954c21f8abdd786930bfaa1cc447f6fb8e5b0da83535"
+    }
+  ],
+  "ebs_resize_recommendation": {
+    "recommendation": "Increase each exact root EBS volume from 200 GiB to 250 GiB (+50 GiB) through the human-controlled AWS operation, then grow partition 1 and its ext4 filesystem on each host.",
+    "volumes": {
+      "trn21": "vol09b9c7946aeaa8c57",
+      "trn22": "vol0d64a9cafbb4912e8"
+    },
+    "post_aws_commands_per_host": [
+      "sudo /usr/bin/growpart /dev/nvme0n1 1",
+      "sudo /usr/sbin/resize2fs /dev/nvme0n1p1"
+    ],
+    "post_resize_verification_per_host": [
+      "lsblk -b -o NAME,PATH,TYPE,SIZE,FSTYPE,MOUNTPOINTS,PKNAME,SERIAL /dev/nvme0n1",
+      "findmnt -T / -o TARGET,SOURCE,FSTYPE,OPTIONS,SIZE,USED,AVAIL",
+      "df -B1 /"
+    ]
+  }
+}
