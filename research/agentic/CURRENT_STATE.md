@@ -1,6 +1,42 @@
 # Current state
 
-Last reconciled: 2026-09-24 11:44 UTC
+Last reconciled: 2026-09-24 13:24 UTC
+
+## Track-A controls valid; A1 blocked before step 1 by ownership adapter
+
+This section supersedes earlier Track-A readiness and host-control statements below.
+
+- Exact `35c9ef79...` plus MATRIX_LR 0.015 controls are valid on both hosts. The `trn21`
+  control completed 3,636 steps and measured fresh-process public2M BPB
+  `0.9866973734526626`; its evidence is pushed at `b0b23cbc`. The `trn22` control completed
+  3,634 steps and measured `0.9873495157460374`; its evidence is pushed at `499f753c`.
+  Their descriptive difference is `+0.0006521422933748` for trn22, so candidates must use the
+  control from the same host. The screen nomination thresholds are `<=0.9856973734526626` on
+  trn21 and `<=0.9863495157460374` on trn22. This screen cannot establish a KEEP.
+- A1 (last-layer bigram+trigram tables, multiplier 64, dimension 128, RMSProp) has no BPB result.
+  Retry r2 passed staging and source-integrity checks, then failed on all four ranks before step 1
+  at the immutable ownership adapter with
+  `ValueError: ownership probe is restricted to AdamW and Muon`. There was no checkpoint or
+  evaluation. The exact failure, traceback, empty step ledger, and clean postflight are pushed on
+  `evidence/20260924-v2-track-a-a1-trn21-r2` at `9d92ff82`; trn21 ended idle with
+  9,867,505,664 free bytes. Do not interpret this as evidence for or against tables.
+- Read-only source analysis found that the adapter wraps all optimizer groups, although its plan
+  supports only FP32 AdamW and Muon. A1 adds a BF16 RMSProp group. The selected repair is to retain
+  owner partitioning for FP32 AdamW/Muon while excluding the known RMSProp group from owner
+  planning and stepping that original full group identically on every rank. Unknown kinds still
+  fail. This is an infrastructure repair proposal, not a model change or run authorization; it is
+  now in separate implementation and independent-verification gates.
+- A flags-only AdamW substitution is rejected as a repair: it changes the table optimizer, still
+  conflicts with the adapter's FP32 requirement for BF16 tables, and historical paired evidence
+  found worse per-step quality and throughput. Disabling ownership globally is also not selected
+  because ownership previously improved dense whole-step time by about 5.06%.
+- Track-A A4 (`--mlp-sandwich-norm`) was not scheduled because it is a prior dense duplicate.
+  The full 1,800-second `t39-sandwich-1800s` run regressed context-1024 BPB by `+0.006100`
+  (`1.040276` versus `1.034176`) and was already discarded. No new branch, edit, or run was made.
+- The paused A2 scaffold is unauthorized and must not run: it has the same RMSProp/ownership
+  blocker. Track B2 sparse touched-row work also remains rejected before hardware. The best
+  confirmed submission candidate therefore remains the review-clean MATRIX_LR 0.015 dense file,
+  best single public20M BPB `0.9918353324459732`, two-run mean `0.99195377346572045`.
 
 ## Standing mission v2 — table-first first-place campaign
 
