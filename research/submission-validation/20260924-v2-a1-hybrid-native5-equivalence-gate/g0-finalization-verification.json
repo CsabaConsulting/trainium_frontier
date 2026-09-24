@@ -1,0 +1,51 @@
+{
+  "reviewed_commit": "695cd3c7e0aea2d701f2b6c81fd40dc795298a46",
+  "reviewed_parent": "aeb85c2cee3481901c827d7a2313b9178906fc84",
+  "role": "independent_verifier_g0_finalization",
+  "status": "FAIL",
+  "summary": "The external-literal, G0-only, command, environment, source-hash and lifecycle contracts are otherwise coherent, but fixed runtime artifact paths do not reject symlinked ancestors. A redirected report can be created and later hashed under its expected lexical repository name, defeating the exact-path/no-follow evidence gate.",
+  "checks": {
+    "clean_detached_verifier_worktree": "/tmp/trainium-verifier-native5-g0.HbeKSm",
+    "reviewed_commit_exact": true,
+    "reviewed_parent_is_package_pass": true,
+    "py_compile_passed": true,
+    "complete_gate_tests_passed": 21,
+    "accepted_optimizer_regression_tests_passed": 13,
+    "external_checkout_head_positive_and_negative_checks_passed": true,
+    "template_authorization_runtime_mutation_matrix_rejected": true,
+    "only_g0_materializable": true,
+    "g1_g2_locked": true,
+    "candidate_sha256": "9191e85835d8cad50923f32d44ad90c047a9e2d3d4621ce196b11ba66cd66bae",
+    "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "launcher_sha256": "872c29d6703be64e3bcfdae4deff99acb459eca804f5a7bb574ac6d788e4a80c",
+    "guard_sha256": "ac6f7d23dbe998b1d9c8ae14e209c6ffc21fac5d927895b1b92b15dc493f6de6",
+    "verifier_receipt_sha256": "3e2ee9548202d134bc71b9d87b6bf9808857393aa45ec0fd9f6c65ff7fecbacf",
+    "g0_finalization_sha256": "1f857a81b3b42c9dfac18258398444861abd5bf70d9686afef78be0753c37951",
+    "g0_request_template_sha256": "dd9fa11ae2c30c41a52c9f9b2ce0d58c0551786c5a206bb98d1d15a1f475dc29",
+    "g0_pending_authorization_sha256": "1e27bd384dd346d4218bdfb8666902cb0037315434be6dedd2164189959ffa3b",
+    "timeouts": {
+      "outer_seconds": 4200,
+      "child_seconds": 3600,
+      "term_grace_seconds": 60,
+      "kill_grace_seconds": 60
+    },
+    "private_process_group_and_term_kill_reap_quiescence_present": true,
+    "checkpoint_and_cache_cleanup_authorized": false,
+    "ancestor_symlink_attack_rejected": false
+  },
+  "blockers": [
+    {
+      "id": "B1_ARTIFACT_ANCESTOR_SYMLINK_ALIAS",
+      "evidence": "With research/run-logs/<G0-label> precreated as a directory symlink, the exact report terminal research/run-logs/<G0-label>/native-gate reports exists=false and is_symlink=false. NativeGateObserver.mkdir/open then writes rank-0.jsonl through the alias. g0_finalization._artifact_snapshot accepts and hashes that outside file under the expected lexical research/run-logs/<G0-label>/native-gate/rank-0.jsonl key.",
+      "impact": "A run can execute and emit a PASS runtime result whose supposedly exact immutable evidence was redirected outside the checkout. Terminal O_EXCL/O_NOFOLLOW does not protect symlinked ancestors, and neither the checkout protected set nor fresh-start preflight rejects this ignored runtime-path alias.",
+      "required_fix": "Before creating the cache, log, output or report and before Popen, lstat every existing path component from an explicitly trusted root; reject every symlink, non-directory ancestor, path escape and pre-existing terminal. Apply equivalent no-follow checks to materialization output and runtime-result creation. Revalidate the same lexical component chain immediately before and after artifact hashing and before the top result write. Prefer dirfd/openat-style no-follow creation where practical to close check/use races. Add positive tests plus report-parent, output-root, cache-parent and materialization-output-parent symlink attacks."
+    }
+  ],
+  "authorization_conditions": [
+    "Do not finalize g0-authorization.json, materialize a concrete request, SSH, or execute native G0 while B1 is unresolved.",
+    "After correction, independently rerun all external-head/request/auth/source/path/argv/environment/G1/G2 mutations, the complete package and optimizer suites, and the ancestor-symlink matrix.",
+    "G1 and G2 must remain locked; no cleanup, cache deletion, checkpoint pruning, full A1 adoption or submission is authorized."
+  ],
+  "hardware_authorized": false,
+  "g0_request_may_be_finalized": false
+}
