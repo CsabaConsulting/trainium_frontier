@@ -1,0 +1,101 @@
+{
+  "schema": "a1-consumed-staging-cleanup-independent-verification-v2",
+  "verdict": "FAIL",
+  "reviewed_implementation_commit": "fb0e1a03ec18bab699893d2ba6d79b1a88ee765c",
+  "repair_parent_verifier_commit": "e1152cb26c78dbdc68b5c57f5b0749760dcade82",
+  "repair_parent_receipt_sha256": "c874891cbc754943eb4ca2d1f5f37b9f7a994200cd87c563a81133edd5867051",
+  "reviewed_origin_ref": "origin/implement/20260925-v2-a1-consumed-staging-cleanup-trn21-r2",
+  "origin_ref_exact_at_review": true,
+  "host_access_performed": false,
+  "deletion_performed_outside_temporary_test_directories": false,
+  "authorization_or_materialization_performed": false,
+  "implementation_edited": false,
+  "scope": {
+    "implementation_diff_from_fail_parent": [
+      "research/submission-validation/20260925-v2-a1-consumed-staging-cleanup-trn21/EXPERIMENT_PROPOSAL.json",
+      "research/submission-validation/20260925-v2-a1-consumed-staging-cleanup-trn21/RUNBOOK.md",
+      "research/submission-validation/20260925-v2-a1-consumed-staging-cleanup-trn21/cleanup-authorization.pending.json",
+      "research/submission-validation/20260925-v2-a1-consumed-staging-cleanup-trn21/cleanup-request.pending.json",
+      "research/submission-validation/20260925-v2-a1-consumed-staging-cleanup-trn21/cleanup_contract.py",
+      "research/submission-validation/20260925-v2-a1-consumed-staging-cleanup-trn21/test_cleanup_contract.py"
+    ],
+    "cleanup_contract_sha256": "aa6bb30431612bf9acff08cde8f959e40883546caf1ef3716e226880f3de4640",
+    "test_cleanup_contract_sha256": "cdeea08fc48f824d7e5ccb8e470e526735cd4d40a80ec7b8cfef00f53a7c0829",
+    "pending_request_sha256": "e97439be3807f23f6b73fe1f2ae323b3e3522f7619033e8f35713f54f9247287",
+    "pending_authorization_sha256": "9b284b70b10c7e627e601d7d7775798d0154b205c556f57a9141ec35ceea5c45",
+    "train_py_sha256": "bc1d0b75e9964c2cccf27865d22ef287f7032984be4b10a8f8490b95e2ed1e7c",
+    "prepare_py_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "protected_science_unchanged_from_83e53354": true,
+    "secret_pattern_scan": "PASS"
+  },
+  "accepted_findings": [
+    "The implementation is an exact descendant of the prior independent FAIL and changes only the six cleanup-package implementation, test, request, authorization, proposal, and runbook files.",
+    "The exact five targets and their checkout heads, bundle sizes, full SHA-256 values, and evidence commits match the archived r1, r2, and r3 records.",
+    "The r2 checkout and eight runtime hashes, G0 checkpoint, caches, logs, results, evidence, unknown paths, and all other worktrees remain outside the authorized target list.",
+    "The checked-in request remains cleanup=false with a pending head; the checked-in authorization remains executable=false, cleanup=false, human_authorization=false, and target-empty.",
+    "The frozen post-cleanup threshold remains 7286616064 bytes and target inventory requires the same parent device and mount.",
+    "The repair rejects the three original verifier attacks at its explicit checked boundaries and creates an O_EXCL intent journal before the first quarantine rename."
+  ],
+  "commands_and_results": [
+    {
+      "command": "python -m py_compile cleanup_contract.py test_cleanup_contract.py",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m unittest -v research/submission-validation/20260925-v2-a1-consumed-staging-cleanup-trn21/test_cleanup_contract.py",
+      "result": "PASS: 28/28"
+    },
+    {
+      "command": "independent final-unlink quarantine-name replacement attack on an exact bundle",
+      "result": "FAIL: returned PASS/PASS_READY; the unknown replacement was unlinked while the authenticated bundle survived under a different hidden name"
+    },
+    {
+      "command": "independent hardlink injection immediately inside final bundle unlink",
+      "result": "FAIL: returned PASS while a one-link hidden alias retained the authenticated bundle bytes"
+    },
+    {
+      "command": "independent same-inode write immediately after the final hash and before unlink",
+      "result": "FAIL: returned PASS after deleting bytes that no longer matched the final authenticated hash"
+    },
+    {
+      "command": "independent interruption immediately after a successful nested unlink",
+      "result": "FAIL: returned PARTIAL_FAILURE but cleanup_performed=false and destructive_started=false although the restored checkout manifest SHA changed"
+    },
+    {
+      "command": "independent partial journal-write injection",
+      "result": "FAIL: returned PARTIAL_FAILURE with a sealed, SHA-matching journal containing an invalid JSONL record"
+    }
+  ],
+  "blockers": [
+    {
+      "id": "R2-B1",
+      "title": "The final name-to-inode check and unlink are not atomic",
+      "evidence": "Both target-bundle and nested-file paths validate and hash an open fd, assert that the quarantine name identifies it, then unlink that name in a separate syscall. Swapping the name inside the unlink boundary caused the code to delete an unknown replacement and return PASS while the authenticated bundle survived under another name. Adding a hardlink at the same boundary also returned PASS with the bundle bytes preserved. A same-inode write after the last hash returned PASS as well.",
+      "required_correction": "Make the destructive primitive operate on, and prove destruction of, the authenticated inode without deleting any replacement name. It must fail closed under replacement, hardlink, and open-handle mutation at the actual unlink/rmdir syscall boundary, and it must prove the authorized inode has no surviving link and the removed name was never rebound. Add deterministic syscall-wrapper regressions for bundles and every recursive entry type."
+    },
+    {
+      "id": "R2-B2",
+      "title": "Interruption immediately after a destructive syscall is accounted as non-destructive",
+      "evidence": "When nested os.unlink successfully removed an authenticated entry and then raised before entry_deleted/destructive_started assignment, the outer restore moved the now-incomplete checkout back to its original name. The receipt reported cleanup_performed=false and destructive_started=false, while a fresh authenticated tree manifest differed from the authorized inventory.",
+      "required_correction": "Journal intent for each destructive syscall before invoking it, then adjudicate its outcome from inode/name/complete-manifest postflight even if the syscall raises after taking effect. Never restore a partially modified checkout as an intact original. The PARTIAL_FAILURE receipt must truthfully identify every removed or drifted member."
+    },
+    {
+      "id": "R2-B3",
+      "title": "A short journal write can produce a sealed but unparsable evidence stream",
+      "evidence": "A partial second journal write followed by an error left half a JSON record. The failure handler appended PARTIAL_FAILURE, seal succeeded, the reported SHA matched the bytes, but the middle JSONL line raised JSONDecodeError.",
+      "required_correction": "Use independently durable/framed events or otherwise make partial writes recoverably parseable. Seal must reread and validate the complete journal schema, framing, sequence, event order, and terminal event before its hash can be placed in a receipt. Add short-write, zero-write, EINTR, fsync, truncation, append, and replacement tests for every journal event."
+    },
+    {
+      "id": "R2-B4",
+      "title": "The checked-in race suite stops at hooks before or after destructive syscalls",
+      "evidence": "All 28 tests pass, but the interruption test uses named hooks after state assignment or before deletion. It does not inject replacement, mutation, hardlink creation, or an exception inside a successful unlink/rmdir/rename syscall, and it does not validate journal JSONL after a partial append.",
+      "required_correction": "Extend the matrix to every destructive syscall and every state/journal transition, including parent/target/quarantine substitutions, root and nested entries, symlink/hardlink/FIFO/mount cases, and receipt/journal publication failures."
+    }
+  ],
+  "authorization_decision": {
+    "state_only_finalization_safe": false,
+    "operator_cleanup_safe": false,
+    "r4_staging_authorized": false,
+    "required_next_step": "Keep request and authorization pending. Correct R2-B1 through R2-B4 and obtain a fresh independent review."
+  }
+}
