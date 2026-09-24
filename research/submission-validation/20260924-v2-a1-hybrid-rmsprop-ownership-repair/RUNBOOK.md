@@ -6,7 +6,7 @@ A1 r2 request. That request pins the old `35c9…` train bytes and must fail aga
 
 The only candidate edit is inside `make_plan` / `OwnedOptimizer` in
 `submissions/dense6x1024_public0992851/train.py`. Candidate SHA256 is
-`e613708baade1b3b9468f71104368c847d3f5eeed334a6207ec094c6836a57b5`; unchanged `prepare.py` is
+`ba50528d0d08f1630cc84010187c1830f9ef8ba47da8f96d19a60403414cae7b`; unchanged `prepare.py` is
 `5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb`.
 
 Before any native action, an independent Verifier must review this commit and finalize a new exact

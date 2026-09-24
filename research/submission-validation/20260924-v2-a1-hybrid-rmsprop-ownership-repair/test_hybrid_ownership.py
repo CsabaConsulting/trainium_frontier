@@ -159,12 +159,18 @@ class ToyOptimizer:
 
     @torch.no_grad()
     def _muon_step(self, group):
-        for parameter in group["params"]:
-            grad = torch.zeros_like(parameter) if parameter.grad is None else parameter.grad
-            state = self._state(parameter, "momentum_buffer")
-            state["step"] += 1
-            state["momentum_buffer"].lerp_(grad.float(), 1 - group["momentum"])
-            parameter.add_(state["momentum_buffer"].to(parameter.dtype), alpha=-group["lr"])
+        if not group["params"]:
+            return
+        parameter = group["params"][0]
+        state = self.state.setdefault(parameter, {})
+        count = len(group["params"])
+        if not state:
+            state["momentum_buffer"] = torch.zeros(count, *parameter.shape, dtype=parameter.dtype)
+            state["second_momentum_buffer"] = torch.zeros(count, parameter.shape[-2], 1)
+        for index, item in enumerate(group["params"]):
+            grad = torch.zeros_like(item) if item.grad is None else item.grad
+            state["momentum_buffer"][index].lerp_(grad, 1 - group["momentum"])
+            item.add_(state["momentum_buffer"][index], alpha=-group["lr"])
 
     @torch.no_grad()
     def _rmsprop_step(self, group):
@@ -174,11 +180,14 @@ class ToyOptimizer:
         for parameter in group["params"]:
             if parameter.grad is None:
                 continue
-            state = self._state(parameter, "exp_avg_sq")
+            state = self.state.setdefault(parameter, {})
+            if not state:
+                state["step"] = 0
+                state["exp_avg_sq"] = torch.zeros_like(parameter)
             state["step"] += 1
             grad = parameter.grad.float()
-            state["exp_avg_sq"].lerp_(grad.square(), 1 - beta2)
-            update = grad / ((state["exp_avg_sq"] / (1 - beta2 ** state["step"])).sqrt() + group["eps"])
+            state["exp_avg_sq"].lerp_(grad.to(parameter.dtype).square(), 1 - beta2)
+            update = grad / ((state["exp_avg_sq"].float() / (1 - beta2 ** state["step"])).sqrt() + group["eps"])
             parameter.sub_((update * group["lr"]).to(parameter.dtype))
 
     def step(self, update_adamw=True):
@@ -519,12 +528,61 @@ class WorldOneEquivalence(unittest.TestCase):
                 restored_adapter.raw_load_state_dict = recorded_raw_loader
                 before_parameters = [parameter.detach().clone() for parameter in restored_parameters]
                 before_state = clone_value(restored.state)
+                before_groups = clone_value(restored.state_dict()["param_groups"])
+                before_calls = (restored_adapter.calls, restored_adapter.replicated_rmsprop_calls,
+                                DIST.collective_calls)
                 with self.assertRaisesRegex(ValueError, "schema mismatch"):
                     restored_adapter.load_state_dict(attacked)
                 self.assertEqual(raw_calls, [])
                 assert_tree_equal(self, restored.state, before_state)
+                assert_tree_equal(self, restored.state_dict()["param_groups"], before_groups)
                 for actual, expected in zip(restored_parameters, before_parameters):
                     self.assertTrue(torch.equal(actual, expected))
+                self.assertEqual((restored_adapter.calls,
+                                  restored_adapter.replicated_rmsprop_calls,
+                                  DIST.collective_calls), before_calls)
+
+    def test_pristine_state_is_an_explicit_distinct_phase(self):
+        _parameters, optimizer = make_toy(self.initial)
+        adapter = OwnedOptimizer(optimizer)
+        payload = clone_value(adapter.state_dict())
+        self.assertEqual(payload["state_phase"], "pristine")
+        self.assertEqual(payload["optimizer_calls"], 0)
+        self.assertEqual(payload["replicated_rmsprop_calls"], 0)
+        self.assertEqual(payload["state_manifest"], [])
+        self.assertEqual(payload["optimizer"]["state"], {})
+        _restored_parameters, restored = make_toy(self.initial)
+        restored_adapter = OwnedOptimizer(restored)
+        restored_adapter.load_state_dict(payload)
+        self.assertEqual(restored.state, {})
+        self.assertEqual((restored_adapter.calls, restored_adapter.replicated_rmsprop_calls),
+                         (0, 0))
+        for field, value in (("state_phase", "initialized"), ("optimizer_calls", 1),
+                             ("replicated_rmsprop_calls", 1)):
+            with self.subTest(field=field):
+                attacked = clone_value(payload)
+                attacked[field] = value
+                raw_calls = []
+                restored_adapter.raw_load_state_dict = lambda _state: raw_calls.append(True)
+                with self.assertRaisesRegex(ValueError, "schema mismatch"):
+                    restored_adapter.load_state_dict(attacked)
+                self.assertEqual(raw_calls, [])
+
+    def test_initialized_manifest_preserves_legitimate_lazy_parameter_state(self):
+        parameters, optimizer = make_toy(self.initial)
+        adapter = OwnedOptimizer(optimizer)
+        parameters[0].grad = torch.ones_like(parameters[0])
+        adapter.step()
+        payload = clone_value(adapter.state_dict())
+        self.assertEqual(payload["state_phase"], "initialized")
+        self.assertEqual(payload["state_manifest"], [0, 2])
+        restored_parameters, restored = make_toy(self.initial)
+        restored_adapter = OwnedOptimizer(restored)
+        restored_adapter.load_state_dict(payload)
+        self.assertEqual(set(restored.state_dict()["state"]), {0, 2})
+        set_grads(restored_parameters, 1)
+        restored_adapter.step()
+        self.assertEqual(set(restored.state_dict()["state"]), {0, 1, 2, 3})
 
     def test_post_plan_kind_drift_rejects_before_updates_or_collective(self):
         parameters, optimizer = make_toy(self.initial)
