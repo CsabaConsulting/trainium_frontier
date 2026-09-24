@@ -5,7 +5,7 @@ Status: **Phase 0 installed; independent review and all runtime gates pending.**
 - `launch_authorized` is `false`; no controller or launcher is active.
 - The seeded queue is an exact copy of `reports/2026-09-24-queue-v2.json` and remains proposal-only.
 - `ledger.jsonl` is empty.
-- G1 remains in the main working context and is not claimed by this installation branch.
+- G1 source and paired-host metadata are recorded in `g1.json`; fresh checkpoint calibration remains pending.
 - Independent G2 review and all native/Neuron gates remain pending.
 - The old `research/agentic/autoloop/selection.py` selection/control loop is historical and inactive.
   Workflow v2 must not be run concurrently with it.
@@ -25,3 +25,20 @@ Status: **Phase 0 installed; independent review and all runtime gates pending.**
 
 The imported CPU receipts and end-to-end transcript are upstream evidence. This installation did not
 independently verify them and makes no native-hardware claim. See `UPSTREAM_PROVENANCE.json`.
+
+## Current handoff (2026-09-24 20:27 UTC)
+
+- Phase 0 exact-copy installation is integrated at `8b9fc841`; G1 facts at `d6629b61`.
+- Main reran the upstream synthetic E2E successfully, but independent negative tests found real runner bugs:
+  repeat failed labels could launch, effective environment/untracked source were not checked, and evaluation
+  population was copied from config instead of verified from evaluator JSON. Reviewed repairs are in progress.
+- Both hosts have the default five shards, 415 row groups and 424,960 documents. This is not a token count.
+- Both retained organizer files match unchanged `prepare.py` SHA `5807c46e...`; retained calibration checkpoints
+  exist. Fresh calibration has not run. Historical 20M evaluations took about 12 minutes each.
+- Last live inventory: trn21 idle at 6.43 GiB free (below floor); trn22 idle at 7.46 GiB.
+- The legacy local service was found auto-restarting and explicitly stopped (inactive/dead, PID 0). Its old
+  breaker record was not reset. No instance or running training job was stopped.
+- S0 and research-v2 passed independent static review at `0412d21f`; CPU/G2 and native checks are still required.
+  The assigned Operator is preparing four baseline/S0 CPU checks, not a scored experiment.
+- Best confirmed public20M remains single 0.9918353324, two-run mean 0.9919537735 on the older clean 116188 file.
+  Installed S0 `ad223cdc...` is unscored and not ready to upload.

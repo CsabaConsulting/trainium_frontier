@@ -1,6 +1,29 @@
 # Current state
 
-Last reconciled: 2026-09-24 13:24 UTC
+Last reconciled: 2026-09-24 20:27 UTC
+
+## Requested workflow v2 installed; runtime gates still pending
+
+This section supersedes the older 2M selection and legacy native5 critical-path statements below.
+The user explicitly requires the workflow on `claude/trainium-frontier-research-nkp5zd`; exact upstream
+`4bd08d0f` was installed at `8b9fc841`, with no changes to `decide.py` or its thresholds. The deployed
+research-v2 source is `c5c410af...`; S0 is `ad223cdc...`. Neither has a new native score.
+
+Current state and next actions are in `research/v2/STATUS.md`, `research/v2/state.json`, and
+`research/v2/g1.json`. The new ledger is empty; historical 2M scores are not relabeled as 20M controls.
+G1 source/host metadata are verified, but fresh calibration, independent CPU/G2 execution and native gates
+remain pending. Independent synthetic tests found runner correctness defects; fixes must pass separate
+review before any scored launch. The older custom tmpfs R5 work is preserved as unverified WIP at
+`4b8cb008`, not a prerequisite for the upstream workflow or launch authority.
+
+Both hosts were idle at the last inventory; trn21 had 6.43 GiB free, below its 6.5-GiB floor. The local
+legacy `trainium-autoloop.service` was auto-restarting and has been stopped to prevent dual dispatch.
+No EC2 action or training interruption occurred, and no historical breaker was reset.
+
+The best confirmed public20M score is unchanged: 0.9918353324 single run, 0.9919537735 two-run mean.
+Bedrock panel source reconciliation at `0b1d9dcf`/`a47af039` rejected two already-implemented suggestions;
+it did not produce an experiment-ready new improvement. See
+`research/agentic/BEDROCK_PANEL_SOURCE_RECONCILIATION_2026-09-25.md`.
 
 ## Track-A controls valid; A1 blocked before step 1 by ownership adapter
 

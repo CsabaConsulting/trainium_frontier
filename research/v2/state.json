@@ -2,7 +2,7 @@
   "schema": "trn-frontier-state-v2",
   "written_utc": "2026-09-24T20:19:13Z",
   "installation": {
-    "status": "PHASE0_INSTALLED_PENDING_INDEPENDENT_REVIEW",
+    "status": "INSTALLED_EXACT_COPIES_VERIFIED_RUNTIME_GATES_PENDING",
     "target_base_commit": "33774742dc49de7a5d6f5fd539c1530430306763",
     "upstream_commit": "4bd08d0f199c0917a65a332c416a6577c925520f"
   },
@@ -22,8 +22,9 @@
   },
   "gates": {
     "G1": {
-      "status": "PENDING_MAIN_WORKING",
-      "blocking": true
+      "status": "SOURCE_AND_PAIRED_HOST_METADATA_VERIFIED_CALIBRATION_PENDING",
+      "blocking": true,
+      "receipt": "research/v2/g1.json"
     },
     "G2": {
       "status": "PENDING_INDEPENDENT_VERIFIER",
@@ -32,16 +33,35 @@
     "native": {
       "status": "PENDING",
       "blocking": true
+    },
+    "runner": {
+      "status": "NEEDS_REVIEWED_FIXES",
+      "blocking": true,
+      "findings": [
+        "launch-once and shared host lock",
+        "effective environment and complete source cleanliness",
+        "measured evaluator JSON instead of config-derived metric claims",
+        "causality/checkpoint/archive evidence before selection"
+      ],
+      "real_scored_run_affected": false
     }
   },
   "hosts": {
     "trn21": {
-      "status": "UNOBSERVED",
-      "launch_allowed": false
+      "status": "BLOCKED_DISK",
+      "launch_allowed": false,
+      "last_observed_utc": "2026-09-24T20:16:29Z",
+      "free_gib": 6.43,
+      "training_processes": 0,
+      "neuron_device_holders": 0
     },
     "trn22": {
-      "status": "UNOBSERVED",
-      "launch_allowed": false
+      "status": "GATES_PENDING_CPU_VALIDATION_PREPARING",
+      "launch_allowed": false,
+      "last_observed_utc": "2026-09-24T20:16:29Z",
+      "free_gib": 7.46,
+      "training_processes": 0,
+      "neuron_device_holders": 0
     }
   },
   "breakers": {
@@ -57,5 +77,26 @@
   },
   "alert_cmd": "${TRAINIUM_ALERT_CMD}",
   "pending_human_decisions": [],
-  "last_event": "Phase 0 file installation only; no host or launcher action"
+  "last_event": "Exact workflow installed; source/data G1 facts committed; legacy local controller stopped; independent runner repair and model CPU gates in progress.",
+  "updated_utc": "2026-09-24T20:27:00Z",
+  "legacy_controller": {
+    "service": "trainium-autoloop.service",
+    "prior_state": "activating/auto-restart",
+    "restart_count": 20,
+    "action": "local service stopped to prevent concurrent legacy/v2 dispatch",
+    "confirmed_state": "inactive/dead",
+    "main_pid": 0,
+    "aws_instance_action": false,
+    "training_stopped": false,
+    "legacy_breaker_preserved": {
+      "reason": "box repeatedly not clean/idle",
+      "at": "2026-09-23T16:32:26Z",
+      "box": "trn21"
+    },
+    "source_breaker_reset": false
+  },
+  "validation_only": {
+    "cpu_g2": "Four baseline/S0 exact-argv synthetic CPU/gloo checks assigned to a separate Operator; fresh host preflight, retained shared device lock, scoped tmpfs, and contained stop/quiescence required.",
+    "native_or_scored_training_authorized": false
+  }
 }
