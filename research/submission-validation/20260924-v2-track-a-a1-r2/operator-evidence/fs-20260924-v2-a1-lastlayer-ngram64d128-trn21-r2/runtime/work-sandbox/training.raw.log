@@ -1,0 +1,190 @@
+[W924 13:19:27.336335093 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+W0924 13:19:27.898000 2796665 torch/distributed/run.py:851] 
+W0924 13:19:27.898000 2796665 torch/distributed/run.py:851] *****************************************
+W0924 13:19:27.898000 2796665 torch/distributed/run.py:851] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0924 13:19:27.898000 2796665 torch/distributed/run.py:851] *****************************************
+[W924 13:19:30.684278546 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W924 13:19:30.684485609 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W924 13:19:30.685924411 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+[W924 13:19:30.689174529 OperatorEntry.cpp:208] Warning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::gather.out(Tensor self, int dim, Tensor index, *, bool sparse_grad=False, Tensor(a!) out) -> Tensor(a!)
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: PrivateUse1
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:7637
+       new kernel: registered at NeuronDispatcher.cpp:0 (function operator())
+muon step: --compile-muon supersedes --nki-muon (a compiled region cannot contain an nki.jit call); NKI Muon disabled for this run
+/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/c10d_logger.py:83: UserWarning: barrier(): using the device under current context. You can specify `device_id` in `init_process_group` to mute this warning.
+  return func(*args, **kwargs)
+device=neuron dtype=torch.bfloat16 world_size=4
+training target=1000000 steps max_seconds=1800 official_budget=1800s
+gradient_clip=1 clip_after_reduce=True
+attention: nki_attn=False compile_sdpa_direct=True bf16_sdpa_input=False
+branch_precision: bf16_norm_output=True nki_local_conv=True
+model_config={
+  "sequence_len": 1024,
+  "vocab_size": 8192,
+  "n_layer": 6,
+  "n_head": 8,
+  "n_embd": 1024,
+  "mlp_ratio": 4,
+  "attn_scale": 0.0,
+  "n_kv_heads": 0
+}
+SUBMISSION_TRAIN_INTEGRATION {"source_commit": "1da6c0714c0755fd3b078e972fbb0aefbb43bf6d", "native_forward_custom_mlp_backward": true, "optimizer_ownership": true, "adaptive_nki_ce": true, "loader_and_timing_hooks_unchanged": true}
+SUBMISSION_TRAIN_INTEGRATION {"source_commit": "1da6c0714c0755fd3b078e972fbb0aefbb43bf6d", "native_forward_custom_mlp_backward": true, "optimizer_ownership": true, "adaptive_nki_ce": true, "loader_and_timing_hooks_unchanged": true}
+SUBMISSION_TRAIN_INTEGRATION {"source_commit": "1da6c0714c0755fd3b078e972fbb0aefbb43bf6d", "native_forward_custom_mlp_backward": true, "optimizer_ownership": true, "adaptive_nki_ce": true, "loader_and_timing_hooks_unchanged": true}
+SUBMISSION_TRAIN_INTEGRATION {"source_commit": "1da6c0714c0755fd3b078e972fbb0aefbb43bf6d", "native_forward_custom_mlp_backward": true, "optimizer_ownership": true, "adaptive_nki_ce": true, "loader_and_timing_hooks_unchanged": true}
+num_params=251,933,964 flops_per_token=7.314632e+08
+torch.compile enabled (backend=neuron)
+micro_tokens=131,072 grad_accum_steps=1 pack_factor=32
+[rank3]: Traceback (most recent call last):
+[rank3]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_lastlayer_ngram64d128_trn21_r2/out/fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r2-work/sandbox/train.py", line 4779, in <module>
+[rank3]:     main()
+[rank3]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_lastlayer_ngram64d128_trn21_r2/out/fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r2-work/sandbox/train.py", line 3812, in main
+[rank3]:     optimizer = model.setup_optimizer()
+[rank3]:                 ^^^^^^^^^^^^^^^^^^^^^^^
+[rank3]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_lastlayer_ngram64d128_trn21_r2/out/fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r2-work/sandbox/train.py", line 4772, in setup_optimizer
+[rank3]:     ownership = _submission_optimizer_install(optimizer, module, pad_singleton_muon=True)
+[rank3]:                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank3]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_lastlayer_ngram64d128_trn21_r2/out/fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r2-work/sandbox/train.py", line 4553, in _submission_optimizer_install
+[rank3]:     adapter = OwnedOptimizer(optimizer, pad_singleton_muon=pad_singleton_muon)
+[rank3]:               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank3]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_lastlayer_ngram64d128_trn21_r2/out/fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r2-work/sandbox/train.py", line 4491, in __init__
+[rank3]:     self.entries, self.parameters, self.summary = make_plan(optimizer.param_groups, self.world_size)
+[rank3]:                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank3]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_lastlayer_ngram64d128_trn21_r2/out/fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r2-work/sandbox/train.py", line 4460, in make_plan
+[rank3]:     raise ValueError('ownership probe is restricted to AdamW and Muon')
+[rank3]: ValueError: ownership probe is restricted to AdamW and Muon
+ngram_rmsprop: fp32_state_math=False nki=False parameter_gradient_dtypes=['torch.bfloat16'] state_math_dtypes=['torch.bfloat16']
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_lastlayer_ngram64d128_trn21_r2/out/fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r2-work/sandbox/train.py", line 4779, in <module>
+[rank0]:     main()
+[rank0]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_lastlayer_ngram64d128_trn21_r2/out/fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r2-work/sandbox/train.py", line 3812, in main
+[rank0]:     optimizer = model.setup_optimizer()
+[rank0]:                 ^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_lastlayer_ngram64d128_trn21_r2/out/fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r2-work/sandbox/train.py", line 4772, in setup_optimizer
+[rank0]:     ownership = _submission_optimizer_install(optimizer, module, pad_singleton_muon=True)
+[rank0]:                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_lastlayer_ngram64d128_trn21_r2/out/fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r2-work/sandbox/train.py", line 4553, in _submission_optimizer_install
+[rank0]:     adapter = OwnedOptimizer(optimizer, pad_singleton_muon=pad_singleton_muon)
+[rank0]:               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_lastlayer_ngram64d128_trn21_r2/out/fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r2-work/sandbox/train.py", line 4491, in __init__
+[rank0]:     self.entries, self.parameters, self.summary = make_plan(optimizer.param_groups, self.world_size)
+[rank0]:                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_lastlayer_ngram64d128_trn21_r2/out/fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r2-work/sandbox/train.py", line 4460, in make_plan
+[rank0]:     raise ValueError('ownership probe is restricted to AdamW and Muon')
+[rank0]: ValueError: ownership probe is restricted to AdamW and Muon
+[rank2]: Traceback (most recent call last):
+[rank2]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_lastlayer_ngram64d128_trn21_r2/out/fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r2-work/sandbox/train.py", line 4779, in <module>
+[rank2]:     main()
+[rank2]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_lastlayer_ngram64d128_trn21_r2/out/fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r2-work/sandbox/train.py", line 3812, in main
+[rank2]:     optimizer = model.setup_optimizer()
+[rank2]:                 ^^^^^^^^^^^^^^^^^^^^^^^
+[rank2]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_lastlayer_ngram64d128_trn21_r2/out/fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r2-work/sandbox/train.py", line 4772, in setup_optimizer
+[rank2]:     ownership = _submission_optimizer_install(optimizer, module, pad_singleton_muon=True)
+[rank2]:                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank2]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_lastlayer_ngram64d128_trn21_r2/out/fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r2-work/sandbox/train.py", line 4553, in _submission_optimizer_install
+[rank2]:     adapter = OwnedOptimizer(optimizer, pad_singleton_muon=pad_singleton_muon)
+[rank2]:               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank2]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_lastlayer_ngram64d128_trn21_r2/out/fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r2-work/sandbox/train.py", line 4491, in __init__
+[rank2]:     self.entries, self.parameters, self.summary = make_plan(optimizer.param_groups, self.world_size)
+[rank2]:                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank2]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_lastlayer_ngram64d128_trn21_r2/out/fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r2-work/sandbox/train.py", line 4460, in make_plan
+[rank2]:     raise ValueError('ownership probe is restricted to AdamW and Muon')
+[rank2]: ValueError: ownership probe is restricted to AdamW and Muon
+[rank1]: Traceback (most recent call last):
+[rank1]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_lastlayer_ngram64d128_trn21_r2/out/fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r2-work/sandbox/train.py", line 4779, in <module>
+[rank1]:     main()
+[rank1]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_lastlayer_ngram64d128_trn21_r2/out/fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r2-work/sandbox/train.py", line 3812, in main
+[rank1]:     optimizer = model.setup_optimizer()
+[rank1]:                 ^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_lastlayer_ngram64d128_trn21_r2/out/fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r2-work/sandbox/train.py", line 4772, in setup_optimizer
+[rank1]:     ownership = _submission_optimizer_install(optimizer, module, pad_singleton_muon=True)
+[rank1]:                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_lastlayer_ngram64d128_trn21_r2/out/fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r2-work/sandbox/train.py", line 4553, in _submission_optimizer_install
+[rank1]:     adapter = OwnedOptimizer(optimizer, pad_singleton_muon=pad_singleton_muon)
+[rank1]:               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_lastlayer_ngram64d128_trn21_r2/out/fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r2-work/sandbox/train.py", line 4491, in __init__
+[rank1]:     self.entries, self.parameters, self.summary = make_plan(optimizer.param_groups, self.world_size)
+[rank1]:                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/ubuntu/trainium_freshstart_20260924_v2_a1_lastlayer_ngram64d128_trn21_r2/out/fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r2-work/sandbox/train.py", line 4460, in make_plan
+[rank1]:     raise ValueError('ownership probe is restricted to AdamW and Muon')
+[rank1]: ValueError: ownership probe is restricted to AdamW and Muon
+E0924 13:19:52.279000 2796665 torch/distributed/elastic/multiprocessing/api.py:986] failed (exitcode: 1) local_rank: 0 (pid: 2796680) of binary: /home/ubuntu/workspace/native_venv/bin/python3
+Traceback (most recent call last):
+  File "/home/ubuntu/workspace/native_venv/bin/torchrun", line 10, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 362, in wrapper
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/run.py", line 990, in main
+    run(args)
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/run.py", line 981, in run
+    elastic_launch(
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 170, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workspace/native_venv/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 317, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+============================================================
+train.py FAILED
+------------------------------------------------------------
+Failures:
+[1]:
+  time      : 2026-09-24_13:19:52
+  host      : ip-172-31-34-85.ap-southeast-4.compute.internal
+  rank      : 1 (local_rank: 1)
+  exitcode  : 1 (pid: 2796681)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+[2]:
+  time      : 2026-09-24_13:19:52
+  host      : ip-172-31-34-85.ap-southeast-4.compute.internal
+  rank      : 2 (local_rank: 2)
+  exitcode  : 1 (pid: 2796682)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+[3]:
+  time      : 2026-09-24_13:19:52
+  host      : ip-172-31-34-85.ap-southeast-4.compute.internal
+  rank      : 3 (local_rank: 3)
+  exitcode  : 1 (pid: 2796683)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+------------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2026-09-24_13:19:52
+  host      : ip-172-31-34-85.ap-southeast-4.compute.internal
+  rank      : 0 (local_rank: 0)
+  exitcode  : 1 (pid: 2796680)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+============================================================

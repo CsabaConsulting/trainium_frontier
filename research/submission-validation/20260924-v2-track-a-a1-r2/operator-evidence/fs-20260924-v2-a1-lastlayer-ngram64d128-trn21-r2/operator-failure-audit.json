@@ -1,0 +1,87 @@
+{
+  "schema": "track-a-a1-r2-operator-failure-audit-v1",
+  "label": "fs-20260924-v2-a1-lastlayer-ngram64d128-trn21-r2",
+  "host": "trn21",
+  "hostname": "ip-172-31-34-85",
+  "finalization": {
+    "branch": "experiment/20260924-v2-a1-lastlayer-ngram64d128-trn21-r2",
+    "head": "6cb04c550d497e09b2e0ffa530b5ec4488c229b4",
+    "verified_core": "8472d09ffbbfbf0b42eb4cddeeec8e4fd4669da8",
+    "symbolic_branch_verified": true,
+    "stage_contract_passed": true,
+    "protected_path_count": 17,
+    "source_sha256": "35c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2"
+  },
+  "staging": {
+    "bundle_sha256": "1491736b0841ae2026d633e27c2c858d0ea940d27f8bfaba4fa41864cdd59259",
+    "bundle_bytes": 46366190,
+    "bundle_complete_history": true,
+    "bundle_refs": {
+      "experiment/20260924-v2-a1-lastlayer-ngram64d128-trn21-r2": "6cb04c550d497e09b2e0ffa530b5ec4488c229b4",
+      "origin/evidence/20260924-v2-track-a-a1-trn21-r1": "65d70f5956ad2c68c37560604c8f322cbbecf338",
+      "origin/evidence/20260924-v2-track-a-35c9-control-trn21-r1": "eb25e66faa38dbce2028e27b5a7d48708e41bd6d"
+    },
+    "pre_stage_free_bytes": 10057867264,
+    "post_stage_free_bytes": 9868312576
+  },
+  "prestage_cleanup": {
+    "receipt_sha256": "2ae1f2d9270f8465a8583185d3d4d09e8689291002b7c457e360748f0cd4be84",
+    "evidence_commit": "0b74f911a2529b0155364b055c34d74c5e6c957e",
+    "pre_free_bytes": 9073942528,
+    "post_free_bytes": 10057883648,
+    "observed_freed_bytes": 983941120
+  },
+  "evidence_bindings": {
+    "control_archive_commit": "b0b23cbc2e6d16e8bc8d88be9cb042140494206d",
+    "r1_failure_archive_commit": "65d70f5956ad2c68c37560604c8f322cbbecf338",
+    "control_blobs_verified": true,
+    "r1_failure_blobs_verified": true
+  },
+  "dispatch": {
+    "started_at": "2026-09-24T13:19:23.201103+00:00",
+    "guard_pid": 2796559,
+    "child_pid": 2796560,
+    "torchrun_pgid": 2796665,
+    "authorization_sha256": "43c9119d3dd1efe74433c6d06b75a152fad2aa061301e793d496854aa158b476",
+    "template_request_sha256": "6162d4eb8565418b8a517ad62560d25bdd6fb42927360bf43926e7533591f06f",
+    "concrete_request_sha256": "f2bca97af80386e9d3976c6aa475ea5a7c38e35e8c26448038adb7a6e1000356",
+    "dispatch_receipt_sha256": "7b41340ded577a7c76f55362ba02450ead93c08778d71047b5ab151795a0256c",
+    "runtime_job_sha256": "f484a6cef04e9c5289404351608f80995516ed6827679d34d0b6bb018a89da2c"
+  },
+  "failure": {
+    "classification": "pre_step_optimizer_ownership_gate_failure",
+    "command_returncode": 1,
+    "leader_returncode": 1,
+    "process_wall_seconds": 26.85702029906679,
+    "source_path": "submissions/dense6x1024_public0992851/train.py",
+    "source_line": 4460,
+    "exception": "ValueError: ownership probe is restricted to AdamW and Muon",
+    "call_chain": "setup_optimizer -> _submission_optimizer_install -> OwnedOptimizer -> make_plan",
+    "triggering_group": "A1 ngram RMSprop optimizer group",
+    "rank_count_observed": 4,
+    "training_steps": 0,
+    "training_steps_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "training_log_sha256": "2c1d07b3f171f3b50d66e3542a8b00a35d671e3c04e60246deccfb7ada57611a",
+    "training_process_sha256": "d408fddda21e516116b17a5695fbc627e1a9da0518cc4ecd4bff98cb3c552b4b",
+    "checkpoint_created": false,
+    "evaluation_started": false,
+    "ready_receipt_created": false,
+    "retry_performed": false
+  },
+  "retrieval": {
+    "remote_local_runtime_hash_maps_match": true,
+    "run_log_sha256": "da1c419bce232610160d599f7d3b0bc5f179db8ed376357d872bbe02e72648eb",
+    "preflight_sha256": "4d3d18d3d94fd49638442598e0a89df16633ffdd49547fc21538f8988ccde10f",
+    "process_sha256": "0e3ec5690c985d0eaa2809bc54f1b2e889087b090a7121a8f1c1709009069951",
+    "postflight_sha256": "1ab1a5cb7e374f39a39a92a7e367072a9e7a6b34881b75801965fa897d5e57bf"
+  },
+  "postflight": {
+    "completed_at": "2026-09-24T13:19:57.976797+00:00",
+    "host_clean": true,
+    "process_group_quiescent": true,
+    "remaining_processes": [],
+    "device_holders": false,
+    "free_bytes": 9867505664
+  },
+  "audit_result": "FAILED_GATE_PRESERVED"
+}
