@@ -1,0 +1,97 @@
+{
+  "proposal_id": "20260925-s0-warm-native-trn22-r1",
+  "status": "human-prioritized-pending-independent-verification-and-operator-authorization",
+  "owner_role": "researcher",
+  "hypothesis": "The immutable review-clean S0 bytes can train on trn22 with the bare LNC2/world4 command, produce a finite model-only checkpoint, and load through the trusted fresh-process public20M evaluator without a Neuron-only regression.",
+  "single_causal_change": "No science change: this is the first warm native validation of the already prepared S0 candidate, not an optimization arm. Root train.py is a byte-for-byte copy of submissions/candidates/S0/train.py.",
+  "mechanism_class": "submission_safety_validation",
+  "predicted_bpb_delta": 0.0,
+  "predicted_bpb_interval": [-0.002, 0.002],
+  "candidate_shortlist": [
+    {
+      "idea": "Warm native S0 validation on trn22 using an authenticated retained train cache",
+      "mechanism_class": "submission_safety_validation",
+      "predicted_bpb_delta": 0.0,
+      "why_ranked": "S0 is the submission safety floor; CPU/G2 exact-argv equivalence is archived, but Neuron training and its own checkpoint loading are not yet proven. This bounded run can expose those failures without being mislabelled a cold replay."
+    },
+    {
+      "idea": "Cold S0 replay",
+      "mechanism_class": "submission_safety_validation",
+      "predicted_bpb_delta": 0.0,
+      "why_ranked": "Required later for submission; not interchangeable with this warm-cache job and blocked while the unknown cold footprint lacks safe disk margin."
+    },
+    {
+      "idea": "Research-v2 A0 control",
+      "mechanism_class": "per_step_quality",
+      "predicted_bpb_delta": 0.0,
+      "why_ranked": "Separate first research control, staged under another unique label; cannot overlap this S0 job on trn22."
+    },
+    {
+      "idea": "Table A1/A2 research arms",
+      "mechanism_class": "capacity",
+      "predicted_bpb_delta": -0.001,
+      "why_ranked": "Potential quality upside but dependent on their own native gates and same-host controls; they cannot validate S0."
+    }
+  ],
+  "selection_rationale": "A warm S0 native run is the smallest full-chip training and checkpoint-load test of the actual bare-command submission bytes. It is a prerequisite to cold S0 replay, not a substitute for it.",
+  "p_improve": 0.0,
+  "estimated_host_hours": 1.0,
+  "trainium_feasibility": "LNC2/world4, seed 42, 1800-second in-file budget, exact bare train.py argv, known legacy guard, and the six historically authenticated trn22 116188 training-cache paths. The six paths require new read-only live existence and anchored-inventory checks; cache hits are not guaranteed for S0. Require 8,833,482,752 free bytes before dispatch: the unchanged 6.5-GiB operational floor plus the historical 1,854,160,896-byte dense cold-footprint loss. The current host may be below this threshold; no gate may be lowered.",
+  "cheapest_falsifier": "Reject before dispatch if the exact S0/prepare/launcher hashes, G1 trn22, S0 bare G2, cache identities, clean unique checkout, host quiescence, or 8,833,482,752-byte free-space projection fails. On native run, reject a crash, nonfinite loss/checkpoint, missing five step boundaries, failed timing/host postflight, over-budget summary, causality failure, or fresh-process evaluation failure.",
+  "prior_result_refs": [
+    "research/v2/g2-probes/fs-20260925-v2-g2-baseline-s0-trn22-r1/operator-retrieval-receipt.json",
+    "research/v2/g1-calibrations/fs-20260925-g1-public20m-calibration-trn22-r1/operator-receipt.json",
+    "evidence/20260924-current-base-control-trn22-r1-run: fs-20260924-current-base-control-trn22-r1 (historical cache path and step-0/1 anchor; invalid advancement control because postflight disk was below the operational floor)"
+  ],
+  "evidence": [
+    "submissions/candidates/S0/train.py SHA256 ad223cdc9aa339d820b8f66e32ad35e30d3e93437a79d263a1418f7e53e125bb",
+    "prepare.py SHA256 5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "workflow/candidates/S0/EVIDENCE.md (remaining native and cold gates)",
+    "research/v2/g1.json (trn22-only exact public20M CLI calibration)",
+    "research/v2/DISK_DECISION_PACKET_2026-09-25.md (root volume expansion request; no action yet)"
+  ],
+  "duplicate_search_terms": ["S0", "ad223cdc", "bare launch", "warm native", "cold replay", "116188", "trn22"],
+  "control": {
+    "git_commit": "c025d216c2c07210449651099a982fe5656169fd",
+    "run_label": "fs-20260924-current-base-control-trn22-r1",
+    "public_val_bpb": null,
+    "steps": 3631,
+    "box_constraint": "trn22 only. This historical 116188 run supplies only same-host step-0/1 training-loss and cache-footprint context; its 0.992968300659387 public20M evaluation is not a valid advancement control because the run failed the postflight disk gate."
+  },
+  "external_quality_reference": {
+    "prior_trn22_public20m": 0.992968300659387,
+    "prior_trn21_s0_parent_two_run_mean_public20m": 0.9919537734657205,
+    "meaning": "Descriptive numerical context only; neither is a new same-host valid S0 control or a score from this job. No BPB win or submission readiness follows from proximity."
+  },
+  "candidate": {
+    "branch": "experiment/20260925-s0-warm-native-trn22-r1",
+    "files_allowed": ["train.py"],
+    "expected_diff": "Root train.py is the immutable S0 byte copy; prepare.py and all legacy launcher files are unchanged from their individually authenticated versions.",
+    "run_label": "fs-20260925-s0-warm-native-trn22-r1",
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py (no flags after train.py); the guarded bounded environment is frozen separately in request-template.json."
+  },
+  "gates": {
+    "rules_review": true,
+    "diff_review": false,
+    "cpu_or_static_checks": true,
+    "numerical_equivalence": false,
+    "causality": false,
+    "smoke_run": false,
+    "human_run_approval": true
+  },
+  "success_criteria": {
+    "quality": "Report the exact fresh-process public20M/context1024 score as a warm native S0 observation only; do not compare it as a research win or claim a cold replay. A discrepant first two training losses relative to the trn22 116188 9.0112/8.7822 anchor is a correctness escalation.",
+    "throughput": "Informational only; warm-cache startup or steps cannot satisfy the later cold startup gate.",
+    "correctness": "Exact hashes and G1/G2, preflight disk/host/cache, full-chip finite training, at least five consecutive optimizer-step boundaries, bounded guarded rc0, timing proof and clean postflight, finite model-only checkpoint, separate causality/batch-independence and fresh public20M eval on S0's own checkpoint."
+  },
+  "abort_conditions": [
+    "G1 trn22 or exact S0 bare-argv G2 is missing, fails, or has changed bytes",
+    "Any other live host workload, occupied device/lock, dirty or wrong checkout, or reused label/output/log path",
+    "Available root bytes below 8,833,482,752 before dispatch or below the immutable 6.5-GiB floor at postflight",
+    "Any historical warm-cache path is absent, redirected, or not independently re-inventoried immediately before dispatch",
+    "Timeout 124, crash, missing/duplicate boundary, NaN, nonfinite or missing checkpoint, failed fresh evaluation, causality failure, over-budget, or non-clean postflight",
+    "Any attempt to delete checkpoints, caches, logs, or worktrees without new human approval"
+  ],
+  "human_approved_by": "Human controller brief dated 2026-09-25 prioritizes S0 safety floor and warm dense native work; this is not final dispatch authorization.",
+  "verdict": null
+}
