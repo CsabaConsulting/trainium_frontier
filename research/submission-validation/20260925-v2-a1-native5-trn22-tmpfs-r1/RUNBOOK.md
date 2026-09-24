@@ -68,8 +68,10 @@ ID. Traversal starts at a pinned `/` descriptor: every lexical ancestor before t
 mount boundary is identity- and mount-ID-pinned and revalidated, while the exact authenticated
 device/mount-ID pair is mandatory at the boundary and for every descendant. An absence observed
 before that boundary is not evidence about a tmpfs path. Symlinks, parent swaps, same-device bind
-mounts and nested submounts are invalid. A complete second bottom-up seal must match immediately
-before adjudication.
+mounts and nested submounts are invalid. Two consecutive exact bottom-up content/membership seals,
+with the complete pinned lexical chain revalidated after each, must match immediately before the
+already-validated receipt is returned. A same-inode same-size write or target-name rebound at the
+first reseal boundary is therefore a hard failure.
 Retained G0/G1 evidence is the full authenticated arm record, never a label or asserted boolean.
 The final checkpoint receipt binds its model/logit/causal digests to the four rank-report hashes,
 frozen source/observer, runtime job, postflight and exact output-parent identity.

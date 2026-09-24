@@ -718,15 +718,24 @@ def snapshot_tree(path: Path, *, mount_id: int, expected_device: int,
             "complete": True,
         }
         snapshot["manifest_sha256"] = canonical_sha(_tree_manifest_payload(snapshot))
-        _revalidate_chain(fds, names, chain_identities, chain_mount_ids)
-        # A complete second no-follow walk is the final tree operation.  It
-        # catches late nested membership, metadata, and same-size byte writes
-        # that happened after the first bottom-up capture.
-        resealed = snapshot_tree_revalidate(root_fd, entries, expected_device, mount_id)
-        _require(resealed == entries, "tree changed before final seal")
-        return validate_tree_snapshot(
+        validated = validate_tree_snapshot(
             snapshot, snapshot["path"], mount_id, expected_device,
             snapshot["mount_root_identity_sha256"])
+        _revalidate_chain(fds, names, chain_identities, chain_mount_ids)
+        # The terminal seal is deliberately two complete no-follow walks with
+        # the pinned lexical chain checked after each.  The first walk closes
+        # the capture-to-reseal interval; the post-reseal chain check and the
+        # second walk jointly close a same-inode content write or lexical-root
+        # rebound at that boundary.  No filesystem operation follows the last
+        # chain check before the already-validated receipt is returned.
+        resealed = snapshot_tree_revalidate(root_fd, entries, expected_device, mount_id)
+        _require(resealed == entries, "tree changed before final seal")
+        _revalidate_chain(fds, names, chain_identities, chain_mount_ids)
+        resealed_after_chain = snapshot_tree_revalidate(
+            root_fd, entries, expected_device, mount_id)
+        _require(resealed_after_chain == entries, "tree changed after final reseal")
+        _revalidate_chain(fds, names, chain_identities, chain_mount_ids)
+        return validated
     finally:
         if owns_chain:
             for fd in reversed(fds):

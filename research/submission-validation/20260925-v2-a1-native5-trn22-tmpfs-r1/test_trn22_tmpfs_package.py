@@ -618,7 +618,9 @@ class MountAndStorageTests(unittest.TestCase):
     def test_absent_cache_snapshot_is_exact_and_anchored(self):
         with tempfile.TemporaryDirectory(dir=HERE) as temp:
             target = Path(temp) / "missing" / "cache"
-            device = Path("/").stat().st_dev
+            # A verifier may place its clean worktree on a mount distinct from
+            # /.  Both values must describe the fixture's actual parent mount.
+            device = Path(temp).stat().st_dev
             snapshot = CONTRACT.snapshot_path(
                 target, mount_id=fd_mount_id(CONTRACT, Path(temp)), expected_device=device)
             self.assertEqual(snapshot["state"], "absent")
@@ -744,6 +746,62 @@ class MountAndStorageTests(unittest.TestCase):
                     CONTRACT.snapshot_path(
                         target, mount_id=mount_id, expected_device=device)
             self.assertTrue(swapped)
+
+    def test_post_reseal_same_inode_same_size_content_mutation_fails(self):
+        with tempfile.TemporaryDirectory(dir=HERE) as temp:
+            target = Path(temp) / "target"
+            target.mkdir()
+            artifact = target / "artifact"
+            artifact.write_bytes(b"AAAA")
+            original_inode = artifact.stat().st_ino
+            original = CONTRACT.snapshot_tree_revalidate
+            calls = []
+
+            def mutate_after_reseal(fd, expected, device, mount_id):
+                result = original(fd, expected, device, mount_id)
+                calls.append(True)
+                if len(calls) == 1:
+                    artifact.write_bytes(b"BBBB")
+                    self.assertEqual(artifact.stat().st_ino, original_inode)
+                    self.assertEqual(artifact.stat().st_size, 4)
+                return result
+
+            with mock.patch.object(CONTRACT, "snapshot_tree_revalidate",
+                                   side_effect=mutate_after_reseal):
+                with self.assertRaises(CONTRACT.ContractError):
+                    CONTRACT.snapshot_path(
+                        target, mount_id=fd_mount_id(CONTRACT, target),
+                        expected_device=target.stat().st_dev)
+            self.assertGreaterEqual(len(calls), 2)
+            self.assertEqual(artifact.read_bytes(), b"BBBB")
+
+    def test_post_reseal_target_directory_rebound_fails(self):
+        with tempfile.TemporaryDirectory(dir=HERE) as temp:
+            base = Path(temp)
+            target = base / "target"
+            target.mkdir()
+            (target / "artifact").write_bytes(b"original")
+            mount_id = fd_mount_id(CONTRACT, target)
+            device = target.stat().st_dev
+            original = CONTRACT.snapshot_tree_revalidate
+            calls = []
+
+            def rebound_after_reseal(fd, expected, expected_device, expected_mount_id):
+                result = original(fd, expected, expected_device, expected_mount_id)
+                calls.append(True)
+                if len(calls) == 1:
+                    target.rename(base / "target.displaced")
+                    target.mkdir()
+                    (target / "artifact").write_bytes(b"replacement")
+                return result
+
+            with mock.patch.object(CONTRACT, "snapshot_tree_revalidate",
+                                   side_effect=rebound_after_reseal):
+                with self.assertRaises(CONTRACT.ContractError):
+                    CONTRACT.snapshot_path(
+                        target, mount_id=mount_id, expected_device=device)
+            self.assertEqual(len(calls), 1)
+            self.assertEqual((target / "artifact").read_bytes(), b"replacement")
 
 
 class CheckpointGuardTests(unittest.TestCase):
@@ -897,9 +955,9 @@ class PackageStateTests(unittest.TestCase):
     def test_proposal_has_no_authority(self):
         proposal = json.loads((HERE / "EXPERIMENT_PROPOSAL.json").read_text())
         self.assertEqual(proposal["repair_provenance"]["verifier_fail_commit"],
-                         "ad4cea44a3648926185f0e94a5ebf7fcc2f38295")
+                         "7856efa86669c7a0834ade8f3656ba5464fe48ac")
         self.assertEqual(proposal["repair_provenance"]["verifier_receipt_sha256"],
-                         "9c8757c7b3a5c93e217f8f821ba6c031c870f2d88f8a067b5f8f165ff6540e0d")
+                         "31651d1b71e08ebc1fc4c45e7881365133e34766575842de871114b4af7761da")
         self.assertFalse(proposal["authority"]["training_authorized"])
         self.assertFalse(proposal["authority"]["host_access_authorized"])
         self.assertFalse(proposal["authority"]["materialization_authorized"])
