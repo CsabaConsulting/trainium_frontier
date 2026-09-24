@@ -1,0 +1,130 @@
+{
+  "schema": "trainium-g1-pending-calibration-request-v1",
+  "status": "PENDING_NOT_DISPATCHABLE",
+  "launch_authorized": false,
+  "host": "trn21",
+  "expected_hostname": "ip-172-31-34-85",
+  "label": "fs-20260925-g1-public20m-calibration-trn21-r1",
+  "purpose": "Fresh-process public-20M evaluator calibration of the retained, previously scored 116188 checkpoint only; no training, new checkpoint, advancement control, or model result",
+  "source": {
+    "planned_clean_checkout": "/home/ubuntu/trainium_freshstart_20260925_g1_public20m_calibration_trn21_r1",
+    "pinned_source_commit": "347f81a8572d6af8876067cd7c777a341e019929",
+    "staged_checkout_commit": null,
+    "train_relpath": "submissions/dense6x1024_direct_review_matrixlr015/train.py",
+    "prepare_relpath": "prepare.py",
+    "host_staged_hashes_verified": false
+  },
+  "fingerprint_paths": [
+    "submissions/dense6x1024_direct_review_matrixlr015/train.py",
+    "prepare.py"
+  ],
+  "expected_sha256": {
+    "submissions/dense6x1024_direct_review_matrixlr015/train.py": "116188cfb1b9b52ee9bb7222a683c899a32cb26ec7c1e13f1f20b2496229534d",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb"
+  },
+  "checkpoint": {
+    "path": "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr015_confirm_trn21_r2/out/fs-20260924-c595-matrixlr015-confirm-trn21-r2-work/train/out/final.pt",
+    "expected_bytes": 469831009,
+    "expected_sha256": "5c42f143837fc6d6a64dd1101f53887bdf40d984e752ad8a9ed99cc026a758b9",
+    "host_hash_reauthenticated_for_this_request": false,
+    "preserve": true,
+    "prune_authorized": false,
+    "reference_public20m_bpb": 0.9918353324459732,
+    "reference_num_tokens": 20971520,
+    "reference_num_bytes": 83462186,
+    "reference_total_nats": 57379240.0,
+    "reference_evidence": "research/submission-validation/20260924-c595-matrixlr015-trn21/confirmation-r2/retrieved/fs-20260924-c595-matrixlr015-confirm-trn21-r2/artifacts/full20m.metrics.json"
+  },
+  "remote": "/home/ubuntu/trainium_freshstart_20260925_g1_public20m_calibration_trn21_r1",
+  "expected_commit": null,
+  "non_overwrite": true,
+  "runner_owns_manifest": false,
+  "command": [
+    "timeout",
+    "--foreground",
+    "--signal=TERM",
+    "--kill-after=60s",
+    "1800s",
+    "/home/ubuntu/workspace/native_venv/bin/python",
+    "/home/ubuntu/trainium_freshstart_20260925_g1_public20m_calibration_trn21_r1/prepare.py",
+    "eval-public",
+    "--train-py",
+    "/home/ubuntu/trainium_freshstart_20260925_g1_public20m_calibration_trn21_r1/submissions/dense6x1024_direct_review_matrixlr015/train.py",
+    "--checkpoint",
+    "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr015_confirm_trn21_r2/out/fs-20260924-c595-matrixlr015-confirm-trn21-r2-work/train/out/final.pt",
+    "--device",
+    "neuron",
+    "--batch-size",
+    "1",
+    "--seq-len",
+    "1024",
+    "--eval-tokens",
+    "20971520",
+    "--timeout-seconds",
+    "1200"
+  ],
+  "environment": {
+    "PATH": "/home/ubuntu/workspace/native_venv/bin:/usr/local/bin:/usr/bin:/bin:/opt/aws/neuron/bin",
+    "NEURON_CC_FLAGS": "--optlevel=1 --auto-cast matmult --auto-cast-type bf16",
+    "NEURON_LOGICAL_NC_CONFIG": "2",
+    "NKI_VENV_PATH": "/home/ubuntu/workspace/native_venv",
+    "PYTHONUNBUFFERED": "1",
+    "PYTHONPATH": "/home/ubuntu/trainium_freshstart_20260925_g1_public20m_calibration_trn21_r1",
+    "TORCH_NEURONX_NEFF_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr015_confirm_trn21_r2/out/fs-20260924-c595-matrixlr015-confirm-trn21-r2-work/eval/caches/neff",
+    "TORCH_NEURONX_NEFF_LOCAL_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr015_confirm_trn21_r2/out/fs-20260924-c595-matrixlr015-confirm-trn21-r2-work/eval/caches/local",
+    "TORCH_NEURONX_HLO_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr015_confirm_trn21_r2/out/fs-20260924-c595-matrixlr015-confirm-trn21-r2-work/eval/caches/hlo",
+    "TORCHINDUCTOR_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr015_confirm_trn21_r2/out/fs-20260924-c595-matrixlr015-confirm-trn21-r2-work/eval/caches/inductor",
+    "NEURON_COMPILE_CACHE_DIR": "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr015_confirm_trn21_r2/out/fs-20260924-c595-matrixlr015-confirm-trn21-r2-work/eval/caches/compiler",
+    "TORCH_NEURONX_DEBUG_DIR": "/home/ubuntu/trainium_freshstart_20260924_c595_matrixlr015_confirm_trn21_r2/out/fs-20260924-c595-matrixlr015-confirm-trn21-r2-work/eval/caches/debug"
+  },
+  "environment_must_be_unset": [
+    "RANK",
+    "LOCAL_RANK",
+    "WORLD_SIZE",
+    "NEURON_COMPETITION_R1_STEP_LOG",
+    "NEURON_COMPETITION_R1_CACHE_DIR",
+    "NEURON_COMPETITION_R1_TOKENIZER_PATH"
+  ],
+  "eval_settings": {
+    "single_process": true,
+    "device": "neuron",
+    "batch_size": 1,
+    "context_length": 1024,
+    "num_tokens": 20971520,
+    "timeout_seconds": 1200,
+    "eval_bpb_regex": "\"val_bpb\"\\s*:\\s*([0-9]+(?:\\.[0-9]+)?(?:[eE][+-]?[0-9]+)?)",
+    "reference_tolerance_abs": 0.0002,
+    "not_a_new_model_result": true,
+    "not_an_advancement_control": true
+  },
+  "disk_gate": {
+    "operational_floor_bytes": 6979321856,
+    "reserved_eval_headroom_bytes": 2147483648,
+    "pre_launch_required_free_bytes": 9126805504,
+    "continuous_floor_monitor_required": true,
+    "last_archived_trn21_free_bytes": 6901800960,
+    "last_archived_status": "BLOCKED_DISK",
+    "resize_dependency": "Human expands existing root EBS volume; guest filesystem growth and fresh df evidence follow. This package performs neither."
+  },
+  "pre_dispatch_gates": [
+    "Human AWS volume decision complete and guest root free at least 9126805504 bytes after staging; no threshold reduction.",
+    "Independent Verifier and Supervisor approve a finalized request; this pending file is not launch authority.",
+    "Clean newly staged checkout at the pinned source commit, actual staged commit filled, and exact train.py/prepare.py SHA-256s reauthenticated.",
+    "Retained checkpoint exists as a regular file, is unheld, has the exact expected byte length and SHA-256, and is not copied, overwritten, or pruned.",
+    "All six historical eval cache paths exist as directories; absent paths or proposed cold-cache substitution require a fresh plan/review.",
+    "Effective process environment has no rank/distributed or alternate data/tokenizer/step-log overrides; capture it without secrets.",
+    "Host identity matches ip-172-31-34-85; no other training, evaluation, CPU G2, Neuron job, torchrun, or device holder is active.",
+    "Host-specific and global breakers are closed; exact label absent on host and in controller dispatch/run logs.",
+    "One guarded fresh evaluator process, continuous disk monitoring, and postflight quiescence with stable source/checkpoint/log hashes."
+  ],
+  "success_criteria": [
+    "Return code zero, clean quiescent postflight, no cleanup or deletion, checkpoint/source hashes unchanged.",
+    "Parser records full JSON, finite val_bpb and total_nats, exactly 20971520 tokens and 83462186 bytes, eval_over_timeout false.",
+    "BPB recomputed from total_nats/(num_bytes*ln(2)) and within 0.0002 of 0.9918353324459732.",
+    "Archive an Operator receipt and independent review; update G1 for trn21 only. Do not append this evaluator calibration to the model-result ledger."
+  ],
+  "forbidden_actions": [
+    "No training, submission, AWS change, cleanup, cache deletion, checkpoint pruning, protected artifact mutation, breaker reset, or automatic next scored run.",
+    "Do not dispatch this pending request or reuse the label if any attempted dispatch occurs."
+  ]
+}
