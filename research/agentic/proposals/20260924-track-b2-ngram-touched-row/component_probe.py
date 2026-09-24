@@ -106,11 +106,13 @@ def validate_candidate_schema(value):
     return value
 
 def validate_rank_evidence(items):
-    keys={"rank","rank_contribution_sha256","param_sha256","logical_moment_sha256","untouched_state_sha256"}
+    keys={"rank","local_contribution_sha256","global_gradient_sha256","param_sha256","logical_moment_sha256","untouched_state_sha256"}
     if type(items) is not list or len(items)!=4 or any(type(item) is not dict or set(item)!=keys for item in items) or [item["rank"] for item in items]!=list(range(4)):raise SystemExit("rank evidence consensus mismatch")
     for item in items:
         if any(type(item[key]) is not str or not HEX64.fullmatch(item[key]) for key in keys-{"rank"}):raise SystemExit("rank evidence digest mismatch")
-    if len({item["rank_contribution_sha256"] for item in items})!=4:raise SystemExit("rank contributions missing or duplicated")
+    if len({item["local_contribution_sha256"] for item in items})!=4:raise SystemExit("rank contributions missing or duplicated")
+    for key in ("global_gradient_sha256","param_sha256","logical_moment_sha256"):
+        if len({item[key] for item in items})!=1:raise SystemExit("global rank consensus mismatch: "+key)
     return items
 
 def secure_write_new_tree(root,output,data):
@@ -137,6 +139,13 @@ def tensor_bytes(tensor):
     if str(value.dtype)=="torch.bfloat16":value=value.view(__import__("torch").uint16)
     return value.numpy().tobytes()
 
+def reduce_clipped_with_evidence(clipped,dist,bytes_fn,world_size=4):
+    local_sha=sha(b"".join(bytes_fn(value) for value in clipped))
+    for value in clipped:
+        dist.all_reduce(value,op=dist.ReduceOp.SUM);value.div_(world_size)
+    global_sha=sha(b"".join(bytes_fn(value) for value in clipped))
+    return local_sha,global_sha
+
 def native_fixture_and_control(torch,dist,rank,device):
     rows,dim,step,beta2,lr,eps=257,128,7,0.91,0.03,1e-10;raw={};dense=[]
     for table in range(4):
@@ -148,14 +157,13 @@ def native_fixture_and_control(torch,dist,rank,device):
     for param,value in zip(params,dense):param.grad=value
     torch.nn.utils.clip_grad_norm_(params,2.0,foreach=True)
     clipped=[param.grad.detach().clone() for param in params]
-    for value in clipped:dist.all_reduce(value,op=dist.ReduceOp.SUM);value.div_(4)
+    local_contribution_sha,global_gradient_sha=reduce_clipped_with_evidence(clipped,dist,tensor_bytes)
     initial_param=[];initial_moment=[];expected_param=[];expected_moment=[]
     for table,grad in enumerate(clipped):
         p=(((torch.arange(rows*dim,dtype=torch.float32).reshape(rows,dim)+table*13)%97)-48).mul_(1/128).to(torch.bfloat16).to(device)
         v=(((torch.arange(rows*dim,dtype=torch.float32).reshape(rows,dim)+table*7)%43)+1).mul_(1/4096).to(torch.bfloat16).to(device)
         initial_param.append(p.clone());initial_moment.append(v.clone());next_v=v.clone();next_v.lerp_(grad.square(),1-beta2);update=grad/((next_v/(1-beta2**step)).sqrt()+eps);next_p=p.clone();next_p.add_(update,alpha=-lr);expected_param.append(next_p);expected_moment.append(next_v)
-    contribution_sha=sha(b"".join(tensor_bytes(value) for value in clipped))
-    return {"rows":rows,"dim":dim,"step":step,"beta2":beta2,"lr":lr,"eps":eps,"max_norm":2.0,"tables":raw,"initial_param":initial_param,"initial_moment":initial_moment},torch.stack(expected_param),torch.stack(expected_moment),contribution_sha
+    return {"rows":rows,"dim":dim,"step":step,"beta2":beta2,"lr":lr,"eps":eps,"max_norm":2.0,"tables":raw,"initial_param":initial_param,"initial_moment":initial_moment},torch.stack(expected_param),torch.stack(expected_moment),local_contribution_sha,global_gradient_sha
 
 def load_observed(module,checkpoint,device,torch):
     calls=[];original=torch.nn.Module.load_state_dict
@@ -202,11 +210,11 @@ def main():
     if not torch.equal(a,b):raise SystemExit("fixed-input logits mismatch")
     export=getattr(candidate,"track_b2_native_component_probe",None)
     if not callable(export):raise SystemExit("candidate component export missing")
-    rank=dist.get_rank();fixture,expected_param,expected_moment,contribution_sha=native_fixture_and_control(torch,dist,rank,device)
+    rank=dist.get_rank();fixture,expected_param,expected_moment,local_contribution_sha,global_gradient_sha=native_fixture_and_control(torch,dist,rank,device)
     evidence=validate_candidate_schema(export(fixture=fixture,device=device,rank=rank,world_size=4))
     if not torch.equal(evidence["param"],expected_param) or not torch.equal(evidence["logical_moment"],expected_moment):raise SystemExit("candidate differs from harness-owned dense control")
     if not torch.equal(evidence["physical_untouched_before"],evidence["physical_untouched_after"]):raise SystemExit("candidate mutated untouched physical state")
-    local_evidence={"rank":rank,"rank_contribution_sha256":contribution_sha,"param_sha256":sha(tensor_bytes(evidence["param"])),"logical_moment_sha256":sha(tensor_bytes(evidence["logical_moment"])),"untouched_state_sha256":sha(tensor_bytes(evidence["physical_untouched_after"]))}
+    local_evidence={"rank":rank,"local_contribution_sha256":local_contribution_sha,"global_gradient_sha256":global_gradient_sha,"param_sha256":sha(tensor_bytes(evidence["param"])),"logical_moment_sha256":sha(tensor_bytes(evidence["logical_moment"])),"untouched_state_sha256":sha(tensor_bytes(evidence["physical_untouched_after"]))}
     rank_evidence=[None]*4;dist.all_gather_object(rank_evidence,local_evidence)
     validate_rank_evidence(rank_evidence)
     versions={"python":sys.version,"torch":torch.__version__,"torch_neuronx":getattr(torch_neuronx,"__version__",None),"neuron_cc":subprocess.run(["neuronx-cc","--version"],text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=30).stdout.strip()}
