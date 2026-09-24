@@ -1,0 +1,97 @@
+{
+  "proposal_id": "20260924-v2-a1-hybrid-rmsprop-ownership-repair",
+  "status": "human-approved-implementation-pending-independent-verification",
+  "owner_role": "researcher",
+  "hypothesis": "The A1 science is blocked before step 0 only because the inline ownership adapter rejects the already-supported RMSProp table group. Keeping AdamW/Muon owner-sharded while running the original complete RMSProp table group identically on every rank restores the intended A1 optimizer without changing its mathematics.",
+  "single_causal_change": "Ownership dispatch only: recognize kind=rmsprop as a replicated group excluded from owner planning/exchange, and call the existing full-group _rmsprop_step on every rank whenever update_adamw is true.",
+  "mechanism_class": "throughput",
+  "researcher_evidence": {
+    "failure_stage": "before training step 0",
+    "failure": "OwnedOptimizer.make_plan accepted only AdamW/Muon while exact A1 creates a BF16 kind=rmsprop n-gram group",
+    "native_optimizer_support": "MuonAdamW._rmsprop_step already owns the complete RMSProp semantics, state precision, NKI/eager selection, bias correction, hyperparameters and update_adamw gating",
+    "repair_boundary": "RMSProp is replicated; only contiguous FP32 AdamW/Muon parameters enter ownership entries, shards or all-gather",
+    "unknown_group_policy": "fail closed",
+    "bf16_owner_policy": "BF16 AdamW/Muon remains rejected"
+  },
+  "verified_parent": "6cb04c550d497e09b2e0ffa530b5ec4488c229b4",
+  "immutable_base": {
+    "introduction_commit": "c51f6fdc5ca77793a1524148a563cafac0ab22b0",
+    "path": "submissions/dense6x1024_public0992851/train.py",
+    "sha256_before": "35c9ef799fa983bc65eabaacb2b7c4918c9838b7d41c7c1cdd338a93e19be3c2",
+    "sha256_after_implementation": "3a89332327e4fd9b003b3b39495c8289ad9e06148beb62ec228699aadc032aaa",
+    "prepare_sha256": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb",
+    "candidate_change_scope": "make_plan and OwnedOptimizer inline ownership adapter only"
+  },
+  "a1_science": {
+    "host": "trn21",
+    "seed": 42,
+    "world_size": 4,
+    "lnc": 2,
+    "max_train_seconds": 1800,
+    "smoke_authorized": false,
+    "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --ngram-ve --ngram-ve-layers=-1 --ngram-ve-table-mult 64 --ngram-ve-dim 128 --ngram-ve-trigram --ngram-ve-opt rmsprop --ngram-ve-flat-lr --ngram-ve-bf16 --ngram-ve-clip-exclude --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015",
+    "architecture_changed": false,
+    "model_math_changed": false,
+    "optimizer_math_changed": false,
+    "evaluation_changed": false
+  },
+  "authenticated_control": {
+    "label": "fs-20260924-v2-35c9-lr015-control-trn21-r1",
+    "host": "trn21",
+    "archive_commit": "b0b23cbc2e6d16e8bc8d88be9cb042140494206d",
+    "public_val_bpb": 0.9866973734526626,
+    "steps": 3636,
+    "checkpoint_sha256": "aaa4b7c0ff58c56df564954c21f8abdd786930bfaa1cc447f6fb8e5b0da83535",
+    "checkpoint_bytes": 469834849
+  },
+  "validation_sequence": [
+    {
+      "stage": "local_static_cpu_fake_world",
+      "authorization": "human implementation authorization only",
+      "required": "partition/unknown/BF16 gates; world1 ordinary-vs-hybrid multi-step and state resume exactness; fake-world4 replicated RMSProp parameter/state hashes; update_adamw=false"
+    },
+    {
+      "stage": "native_5_step_gate",
+      "label": "fs-20260924-v2-a1-hybrid-rmsprop-native5-trn21-r1",
+      "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --num-steps 5 --n-embd 1024 --ngram-ve --ngram-ve-layers=-1 --ngram-ve-table-mult 64 --ngram-ve-dim 128 --ngram-ve-trigram --ngram-ve-opt rmsprop --ngram-ve-flat-lr --ngram-ve-bf16 --ngram-ve-clip-exclude --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015",
+      "authorization": "pending independent verification and a distinct finalized request",
+      "pass": "five completed finite-loss steps, finite checkpoint/state, exact hybrid ownership receipt, clean quiescent lifecycle"
+    },
+    {
+      "stage": "full_a1",
+      "label": "fs-20260924-v2-a1-hybrid-rmsprop-full-trn21-r1",
+      "launch_command": "NEURON_LOGICAL_NC_CONFIG=2 torchrun --standalone --nproc_per_node=4 train.py --n-embd 1024 --ngram-ve --ngram-ve-layers=-1 --ngram-ve-table-mult 64 --ngram-ve-dim 128 --ngram-ve-trigram --ngram-ve-opt rmsprop --ngram-ve-flat-lr --ngram-ve-bf16 --ngram-ve-clip-exclude --no-qk-shift --compile-sdpa-direct --nki-local-conv --bf16-norm-output --pack-factor 32 --clip-after-reduce --seq-len 1024 --no-eval-public --matrix-lr 0.015",
+      "authorization": "pending independent verification, native-5 PASS evidence and a separate finalized request",
+      "selection": "fresh2M screening may nominate only; no KEEP or adoption"
+    }
+  ],
+  "lifecycle_contract": {
+    "basis": "verified A1 r2 stage, fresh-start launcher/guard, private process-group TERM-to-KILL quiescence, immutable artifacts and no-follow/O_EXCL paths",
+    "required_symbolic_branch": "experiment/20260924-v2-a1-hybrid-rmsprop-ownership-repair",
+    "operational_launch_floor_bytes": 6979321856,
+    "hard_abort_floor_bytes": 5368709120,
+    "one_run_per_host": true,
+    "checkpoint_prune_authorized": false,
+    "cache_cleanup_authorized": false,
+    "requests_created": false
+  },
+  "gates": {
+    "human_implementation_approval": true,
+    "independent_verification": false,
+    "native_5_step_authorized": false,
+    "native_5_step_passed": false,
+    "full_a1_authorized": false,
+    "launched": false,
+    "submission_authorized": false
+  },
+  "abort_conditions": [
+    "Any source change outside the inline ownership adapter",
+    "Any prepare/evaluator/tokenizer/scoring/model/architecture/launch change",
+    "Any RMSProp hyperparameter, state, precision, arithmetic or update cadence difference",
+    "Unknown optimizer kind accepted or BF16 AdamW/Muon owner-planned",
+    "Any rank disagreement, nonfinite value, checkpoint mismatch or process-group survivor",
+    "Native gate attempted before independent verification and distinct authorization",
+    "Full A1 attempted before archived native-5 PASS and separate authorization"
+  ],
+  "verdict": null
+}

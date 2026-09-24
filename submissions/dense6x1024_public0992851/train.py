@@ -4453,13 +4453,25 @@ import torch
 import torch.distributed as dist
 
 def make_plan(groups, world_size):
+    if type(world_size) is not int or world_size < 1:
+        raise ValueError('ownership world_size must be a positive integer')
     muon_ms = {(1024, 1024): 12.54413 / 24, (1024, 4096): 9.76316 / 6, (4096, 1024): 8.98251 / 6, (8, 32): 0.23355 / 3}
-    entries, parameters, seen = ([], [], set())
+    entries, parameters, seen, replicated_rmsprop = ([], [], set(), [])
     for group_index, group in enumerate(groups):
-        if group['kind'] not in ('adamw', 'muon'):
-            raise ValueError('ownership probe is restricted to AdamW and Muon')
+        kind = group.get('kind')
+        if kind not in ('adamw', 'muon', 'rmsprop'):
+            raise ValueError('ownership recognizes only owned AdamW/Muon and replicated RMSProp')
         if 'depth_mults' in group:
             raise ValueError('per-depth optimizer multipliers require a separate ownership gate')
+        if kind == 'rmsprop':
+            positions = []
+            for position, p in enumerate(group['params']):
+                if id(p) in seen:
+                    raise ValueError('ownership requires unique Parameters across owned and replicated groups')
+                seen.add(id(p))
+                positions.append(dict(position=position, shape=list(p.shape), elements=p.numel(), dtype=str(p.dtype)))
+            replicated_rmsprop.append(dict(group=group_index, parameters=positions))
+            continue
         for position, p in enumerate(group['params']):
             if id(p) in seen or p.dtype != torch.float32 or (not p.is_contiguous()):
                 raise ValueError('ownership requires unique contiguous FP32 Parameters')
@@ -4476,7 +4488,7 @@ def make_plan(groups, world_size):
         counts[owner] += entry['elements']
         costs[owner] += entry['estimated_ms']
     stride = (max(counts) + 127) // 128 * 128
-    return (entries, parameters, dict(elements_by_owner=counts, estimated_ms_by_owner=costs, shard_elements=stride, total_padded_bytes=stride * world_size * 4))
+    return (entries, parameters, dict(elements_by_owner=counts, estimated_ms_by_owner=costs, shard_elements=stride, total_padded_bytes=stride * world_size * 4, replicated_rmsprop_groups=replicated_rmsprop))
 
 class OwnedOptimizer:
 
@@ -4490,6 +4502,12 @@ class OwnedOptimizer:
         self.rank, self.world_size = (dist.get_rank(), dist.get_world_size())
         self.entries, self.parameters, self.summary = make_plan(optimizer.param_groups, self.world_size)
         self.parameter_ids = [id(p) for p in self.parameters]
+        self.replicated_rmsprop_groups = [item['group'] for item in self.summary['replicated_rmsprop_groups']]
+        self.replicated_rmsprop_parameters = [p for index in self.replicated_rmsprop_groups for p in optimizer.param_groups[index]['params']]
+        all_parameters = [p for group in optimizer.param_groups for p in group['params']]
+        if (len({id(p) for p in all_parameters}) != len(all_parameters)
+                or {id(p) for p in all_parameters} != {id(p) for p in self.parameters + self.replicated_rmsprop_parameters}):
+            raise ValueError('optimizer partition is not exactly owned AdamW/Muon plus replicated RMSProp')
         self.groups, self.positions, self.padding = ([], [], {})
         for group_index, source in enumerate(optimizer.param_groups):
             positions = [e['position'] for e in self.entries if e['group'] == group_index and e['owner'] == self.rank]
@@ -4501,7 +4519,7 @@ class OwnedOptimizer:
                 self.groups[-1]['params'].append(dummy)
                 self.padding[group_index] = dummy
         device = self.parameters[0].device
-        if any((p.device != device for p in self.parameters)):
+        if any((p.device != device for p in all_parameters)):
             raise ValueError('all Parameters must share a device')
         stride = self.summary['shard_elements']
         self.send = torch.zeros(stride, dtype=torch.float32, device=device)
@@ -4515,19 +4533,27 @@ class OwnedOptimizer:
         self.raw_state_dict = optimizer.state_dict
         self.raw_load_state_dict = optimizer.load_state_dict
         self.calls = 0
+        self.replicated_rmsprop_calls = 0
 
     @torch.no_grad()
     def step(self, update_adamw=True):
         opt = self.optimizer
         for source, owned in zip(opt.param_groups, self.groups):
+            if source['kind'] == 'rmsprop':
+                if update_adamw:
+                    opt._rmsprop_step(source)
+                    self.replicated_rmsprop_calls += 1
+                continue
             owned.update({key: value for key, value in source.items() if key != 'params'})
             if not owned['params']:
                 continue
             if owned['kind'] == 'adamw':
                 if update_adamw:
                     opt._adamw_step_foreach(owned)
-            else:
+            elif owned['kind'] == 'muon':
                 opt._muon_step(owned)
+            else:
+                raise ValueError('owned optimizer group kind changed after planning')
         if self.owned:
             torch._foreach_copy_(self.send_views, self.owned)
         dist.all_gather_into_tensor(self.received, self.send)
@@ -4537,10 +4563,10 @@ class OwnedOptimizer:
     def state_dict(self):
         state = self.raw_state_dict()
         state['state'] = {key: {name: value for name, value in fields.items() if name not in ('stacked_params', 'stacked_grads')} for key, fields in state['state'].items()}
-        return dict(schema='fresh-start-owned-optimizer-v1', rank=self.rank, world_size=self.world_size, entries=self.entries, pad_singleton_muon=self.pad_singleton_muon, adamw_math_mode=getattr(self.optimizer, '_fresh_start_adamw_math_mode', None), optimizer=state)
+        return dict(schema='fresh-start-owned-optimizer-v1', rank=self.rank, world_size=self.world_size, entries=self.entries, replicated_rmsprop_groups=self.summary['replicated_rmsprop_groups'], pad_singleton_muon=self.pad_singleton_muon, adamw_math_mode=getattr(self.optimizer, '_fresh_start_adamw_math_mode', None), optimizer=state)
 
     def load_state_dict(self, payload):
-        if payload.get('schema') != 'fresh-start-owned-optimizer-v1' or payload.get('rank') != self.rank or payload.get('world_size') != self.world_size or (payload.get('pad_singleton_muon') != self.pad_singleton_muon) or (payload.get('adamw_math_mode') != getattr(self.optimizer, '_fresh_start_adamw_math_mode', None)) or (payload.get('entries') != self.entries):
+        if payload.get('schema') != 'fresh-start-owned-optimizer-v1' or payload.get('rank') != self.rank or payload.get('world_size') != self.world_size or (payload.get('pad_singleton_muon') != self.pad_singleton_muon) or (payload.get('adamw_math_mode') != getattr(self.optimizer, '_fresh_start_adamw_math_mode', None)) or (payload.get('entries') != self.entries) or (payload.get('replicated_rmsprop_groups') != self.summary['replicated_rmsprop_groups']):
             raise ValueError('optimizer checkpoint ownership/schema mismatch')
         self.raw_load_state_dict(payload['optimizer'])
         self.optimizer._scalar_cache.clear()
