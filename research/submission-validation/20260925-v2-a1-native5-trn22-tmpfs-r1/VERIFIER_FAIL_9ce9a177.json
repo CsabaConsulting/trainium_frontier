@@ -1,0 +1,85 @@
+{
+  "schema": "a1-native-five-trn22-tmpfs-independent-verification-v3",
+  "verdict": "FAIL",
+  "reviewed_commit": "9ce9a177bf9ced926a7680f04ab5ec33a5f4cdfc",
+  "reviewed_branch": "implement/20260925-v2-a1-native5-trn22-tmpfs-r3",
+  "review_parent": "ad4cea44a3648926185f0e94a5ebf7fcc2f38295",
+  "prior_fail_receipt_sha256": "9c8757c7b3a5c93e217f8f821ba6c031c870f2d88f8a067b5f8f165ff6540e0d",
+  "verifier_branch": "verify/20260925-v2-a1-native5-trn22-tmpfs-r3-9ce9",
+  "date": "2026-09-25",
+  "role": "independent-verifier",
+  "scope": {
+    "host_access_performed": false,
+    "hardware_or_training_executed": false,
+    "request_materialized": false,
+    "authorization_or_finalization_changed": false,
+    "cleanup_or_prune_performed": false,
+    "implementation_files_edited": false
+  },
+  "ancestry_and_diff": {
+    "origin_head_exact": true,
+    "prior_fail_is_exact_parent": true,
+    "changed_paths": [
+      "research/submission-validation/20260925-v2-a1-native5-trn22-tmpfs-r1/EXPERIMENT_PROPOSAL.json",
+      "research/submission-validation/20260925-v2-a1-native5-trn22-tmpfs-r1/RUNBOOK.md",
+      "research/submission-validation/20260925-v2-a1-native5-trn22-tmpfs-r1/protected-hashes.json",
+      "research/submission-validation/20260925-v2-a1-native5-trn22-tmpfs-r1/storage_contract.py",
+      "research/submission-validation/20260925-v2-a1-native5-trn22-tmpfs-r1/test_trn22_tmpfs_package.py"
+    ],
+    "frozen_candidate_prepare_observer_gate_wrappers_launcher_guard_checkpoint_comparator_unchanged": true,
+    "protected_manifest_file_count": 23,
+    "protected_manifest_exact": true,
+    "protected_manifest_non_self_referential": true,
+    "secret_scan_clean": true
+  },
+  "tests": {
+    "py_compile": "PASS",
+    "json_parse": "PASS (7 package JSON files)",
+    "focused_default": "FAIL: 39 run, 38 pass, 1 error",
+    "focused_torch": "FAIL: 39 run, 38 pass, 1 error",
+    "ownership_torch": "PASS: 13/13",
+    "migration_native_gate_torch": "PASS: 60/60",
+    "aggregate": "151 run, 149 pass, 2 errors",
+    "failing_test": "MountAndStorageTests.test_absent_cache_snapshot_is_exact_and_anchored",
+    "error": "ContractError: target mount boundary was not reached"
+  },
+  "verified_repairs": [
+    "The original R2 cross-mount defect is corrected for correctly specified paths: independent present and absent probes passed on root-backed /tmp and /dev/shm tmpfs.",
+    "Wrong target mount ID and wrong device were rejected on both filesystems.",
+    "The authenticated boundary selects the first exact device+mount-ID match and requires every descendant to remain on that mount.",
+    "Checked-in pre-boundary identity substitution, symlink, simulated nested bind, late mount-ID rebound and parent replacement attacks reject.",
+    "The exact schemas, resource and inode floors, watcher requirements, checkpoint guard, pending authority, frozen hashes and downstream G1/G2 locks from R2 remain intact."
+  ],
+  "release_blockers": [
+    {
+      "id": "R3-B1",
+      "severity": "RELEASE_BLOCKING",
+      "finding": "The focused checked-in suite is not green in either interpreter. The legacy absent-cache test creates its path under the verifier worktree but supplies Path('/').st_dev instead of the actual target filesystem device; when the clean worktree is on a separate mount, the authenticated boundary correctly cannot be reached.",
+      "evidence": [
+        "test_trn22_tmpfs_package.py:618-625 errors in default and Torch runs.",
+        "Both runs report ContractError: target mount boundary was not reached."
+      ],
+      "impact": "The required full focused regression suite is not portable or releasable from a clean verifier worktree.",
+      "minimal_repair": "Make the root-backed fixture derive both expected device and mount ID from its actual chosen parent, while keeping the explicit /dev/shm cross-mount cases. Require all checked-in suites to pass from a clean detached worktree."
+    },
+    {
+      "id": "R3-B2",
+      "severity": "SECURITY_AND_CORRECTNESS_BLOCKING",
+      "finding": "snapshot_tree performs its final lexical chain validation before snapshot_tree_revalidate, but does not revalidate the chain or returned manifest after that reseal call. Mutation or rebinding at the final reseal-return boundary therefore produces a stale PASS receipt.",
+      "evidence": [
+        "Independent same-inode attack changed a sealed 4-byte file from AAAA to BBBB after snapshot_tree_revalidate completed; snapshot_path returned PASS with the old SHA-256 while the live file held BBBB.",
+        "Independent rebound attack renamed the sealed target directory and created a replacement with attacker bytes after snapshot_tree_revalidate completed; snapshot_path returned PASS describing the displaced old directory while the authorized lexical target pointed to the replacement.",
+        "storage_contract.py:705 performs the last chain check, lines 725-729 reseal then return without a post-reseal chain/name/manifest validation."
+      ],
+      "impact": "Root-cache or tmpfs output/cache evidence can authenticate bytes and inode identities no longer present at the authorized lexical path, allowing a late cache write or target replacement to false-pass adjudication.",
+      "minimal_repair": "Make the terminal seal jointly bind the pinned chain, lexical names, exact recursive membership and same-descriptor bytes through return. At minimum revalidate the full mount-aware chain after the recursive reseal and ensure no intervening unvalidated boundary remains; add deterministic same-inode same-size post-reseal mutation and target-directory rebound tests at every final-seal boundary."
+    }
+  ],
+  "authorization": {
+    "separate_g0_finalizer_implementation_permitted": false,
+    "request_materialization_permitted": false,
+    "hardware_execution_permitted": false,
+    "g1_or_g2_permitted": false,
+    "cleanup_prune_submission_permitted": false
+  }
+}
