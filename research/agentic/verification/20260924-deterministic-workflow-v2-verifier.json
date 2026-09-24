@@ -1,0 +1,80 @@
+{
+  "schema": "trainium-independent-verifier-receipt-v1",
+  "receipt_date": "2026-09-24",
+  "role": "independent_verifier",
+  "verdict": "PASS_CONTROL_PLANE_INTEGRATION_ONLY",
+  "audited_commit": "6af1a92a4778536f77e1a8ccafa6c94f7b8bc197",
+  "direct_parent": "9ecf4cd580012f213daab994cf8b760b1e1126d0",
+  "scope_audit": {
+    "root_contract_additive_only": true,
+    "foreign_runtime_tools_imported": false,
+    "foreign_queue_or_ledger_imported": false,
+    "foreign_evidence_or_candidate_patch_imported": false,
+    "selection_engine_unchanged": true,
+    "configuration_unchanged": true,
+    "current_state_unchanged": true,
+    "decision_log_unchanged": true,
+    "canonical_queue_unchanged": true,
+    "canonical_ledger_unchanged": true,
+    "root_train_py_unchanged": true,
+    "prepare_py_unchanged": true
+  },
+  "unchanged_sha256": {
+    "research/agentic/autoloop/selection.py": "bfb2477386a2f7a40ae53d3f58aecbfe11e505db2d9b95a6d2f160f35d08396b",
+    "research/agentic/autoloop/config.py": "26ba8c7bb929e616386bfd60dae554d95270d598abf2064a9c9b5f30343846fa",
+    "research/agentic/CURRENT_STATE.md": "f9c370a890aebeca0c48d0bd634775235892f7878142beee8c0bb3cb24bdcc61",
+    "research/agentic/DECISION_LOG.md": "e5434e4608c5daa5480ecf5435e764312e67219100623be12d2961477544c4ca",
+    "research/agentic/frontier-full-only-queue.json": "e9048d2dd378026c8fdf1b974bd670fc87d2a05cae2182b8c60e28175a36098d",
+    "research/experiment-log.jsonl": "e7d9554d9e89b49b40fea356e82c5361851f0d5a1290c04cc2109202de0d47bc",
+    "train.py": "52ac9e6560a40592255e3499f4d42ac6e7073ea82da1b428e03dc984e6d4baa8",
+    "prepare.py": "5807c46e08ce3c4ac1394405377e57ea79acd5db18c8d7be8d853460a2bd3bbb"
+  },
+  "proposal_metadata_audit": {
+    "fields": [
+      "p_improve",
+      "estimated_host_hours",
+      "trainium_feasibility",
+      "cheapest_falsifier",
+      "prior_result_refs"
+    ],
+    "historical_loads_remain_backward_compatible": true,
+    "fresh_controller_proposals_require_metadata": true,
+    "probability_is_finite_non_boolean_and_inclusive_zero_to_one": true,
+    "host_hours_are_positive_finite_and_non_boolean": true,
+    "feasibility_and_falsifier_require_concrete_strings": true,
+    "prior_references_require_nonempty_unique_strings": true,
+    "metadata_does_not_change_thresholds_queue_state_or_authority": true
+  },
+  "workflow_audit": {
+    "persisted_stage_description_matches_existing_controller": true,
+    "selection_py_remains_sole_advisory_screen_confirmation_engine": true,
+    "screen_cannot_adopt": true,
+    "confirmation_still_requires_existing_matched_full20m_policy": true,
+    "porter_is_mapped_to_existing_implementer_verifier_operator_supervisor_roles": true,
+    "porter_has_no_independent_selection_verification_launch_or_submission_authority": true,
+    "audit_records_source_commit_and_per_file_sha256_provenance": true,
+    "audit_treats_external_material_as_untrusted_evidence": true
+  },
+  "checks_run": [
+    "reviewed complete commit diff and direct-parent relationship",
+    "verified changed-path allowlist and absence of imported tools, queue, ledger, state, evidence, receipts, or candidate patch",
+    "recomputed hashes of unchanged selection, configuration, state, decision, queue, ledger, train, and prepare files",
+    "ran focused deterministic-workflow and autoloop unit tests: 58 passed",
+    "ran complete research/agentic/tests unittest discovery with canonical .agent-venv: 88 passed",
+    "ran Python compilation checks for changed Python modules and tests",
+    "validated EXPERIMENT_PROPOSAL.json syntax",
+    "ran git diff --check and confirmed clean pre-receipt worktree"
+  ],
+  "limitations": [
+    "This receipt verifies the local integration and the audit's pinned provenance record; it does not trust or execute the external workflow.",
+    "No external source checkout, remote host, AWS service, training process, or experimental result was accessed during this local-only verification.",
+    "The new ranking metadata is advisory and provides no launch, lifecycle, submission, or threshold-changing authority."
+  ],
+  "actions_not_taken": [
+    "host or AWS access",
+    "training",
+    "candidate implementation",
+    "push",
+    "submission"
+  ]
+}
