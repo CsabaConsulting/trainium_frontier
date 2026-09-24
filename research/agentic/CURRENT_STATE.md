@@ -33,6 +33,11 @@ This section supersedes earlier Track-A readiness and host-control statements be
 - Track-A A4 (`--mlp-sandwich-norm`) was not scheduled because it is a prior dense duplicate.
   The full 1,800-second `t39-sandwich-1800s` run regressed context-1024 BPB by `+0.006100`
   (`1.040276` versus `1.034176`) and was already discarded. No new branch, edit, or run was made.
+- Track-A A5 (`--relu2-tau 0.5`) was also stopped before packaging. The same shifted-ReLU
+  mechanism already lost about `+0.002903` observed BPB in paired 900-second dense runs, and exact
+  `35c9...` cannot run it as a flags-only arm because its fused training MLP hard-requires
+  `RELU2_TAU == 0.0`. A valid retest would be a separately researched kernel implementation, not
+  the requested one-factor flag experiment.
 - The paused A2 scaffold is unauthorized and must not run: it has the same RMSProp/ownership
   blocker. Track B2 sparse touched-row work also remains rejected before hardware. The best
   confirmed submission candidate therefore remains the review-clean MATRIX_LR 0.015 dense file,
