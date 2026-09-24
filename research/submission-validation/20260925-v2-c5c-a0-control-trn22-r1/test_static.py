@@ -29,6 +29,14 @@ assert proposal["status"] == "human-approved-pending-independent-verification"
 assert proposal["candidate"]["run_label"] == LABEL
 assert proposal["gates"]["human_run_approval"] is True
 assert proposal["verdict"] is None
+assert proposal["control"]["public_val_bpb"] is None
+assert proposal["control"]["public20m_status"].startswith("unknown")
+assert proposal["external_quality_reference"] == {
+    "public20m_bpb": 0.99195,
+    "absolute_tolerance": 0.001,
+    "acceptable_interval": [0.99095, 0.99295],
+    "meaning": "A separately declared global numerical-equivalence reference band, not a result attributed to the 499f753c control and not evidence of a quality win",
+}
 
 assert request["state"] == "PENDING_INDEPENDENT_VERIFICATION_AND_OPERATOR_AUTHORIZATION"
 assert request["dispatch_authorized"] is False
@@ -69,8 +77,15 @@ assert "MAX_TRAIN_SECONDS = TRAIN_TIME_BUDGET_SECONDS" in source
 prepare = (ROOT / "prepare.py").read_text()
 assert "TRAIN_TIME_BUDGET_SECONDS = 30 * 60" in prepare
 assert 'STEP_LOG_PATH = os.environ.get("NEURON_COMPETITION_R1_STEP_LOG", "")' in prepare
+assert 'fh.write(f"{int(step)}\\n")' in prepare
+
+runbook = (PKG / "RUNBOOK.md").read_text()
+assert "contains no loss or timestamp" in runbook
+assert "Use the training stdout log" in runbook
+assert "external" in runbook and "runtime observer's boundary-arrival timestamps" in runbook
+assert "first c5c baseline cannot be called a" in runbook
 
 for token in ("rm -", "rm -r", "unlink", "rmtree", "cache_cleanup_authorized\": true", "checkpoint_prune_authorized\": true"):
-    assert token not in (PKG / "RUNBOOK.md").read_text()
+    assert token not in runbook
 
 print("PASS warm-c5c-a0 static contract (pending/non-executable)")

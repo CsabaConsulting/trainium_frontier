@@ -33,14 +33,20 @@ and a separate Operator authorization decision are required before use.
 5. Dispatch the finalized request once through the unchanged generic `fresh_start_launch.py`. Its
    child command is bounded at 3600 seconds; return code 124 is failure. No cleanup or deletion is
    authorized.
-6. After quiescence, retrieve and hash the launch/job/process/log/postflight files, the chronological
-   step-boundary JSONL, and `out/.../final.pt`. The step log must be finite, strictly chronological,
-   within the declared run, and contain exactly one step 0 and one step 1. Their losses must equal
-   `9.0112` and `8.7822`; later warm/cold timing-dependent losses are not an equality gate.
+6. After quiescence, retrieve and hash the launch/job/process/log/postflight files, the step-boundary
+   file, and `out/.../final.pt`. The boundary file is **not JSONL** and contains no loss or timestamp:
+   `prepare.record_step_boundary` appends one fsynced decimal integer line after each completed
+   optimizer step. Require a nonempty consecutive monotonic sequence beginning at 0, no duplicate
+   lines, and at least five boundaries. Use the training stdout log—not the boundary file—to compare
+   step-0/1 losses exactly with `9.0112` and `8.7822`. Later warm/cold timing-dependent losses are not
+   an equality gate. Validate the printed training budget summary together with the external
+   runtime observer's boundary-arrival timestamps; neither evidence source is sufficient alone.
 7. Seal a parsed checkpoint receipt (weights-only load, finite tensors, tensor count and exact
    SHA/bytes), then run causality and a fresh public20M evaluation in separate later-authorized,
-   bounded guarded jobs. Public20M must be within absolute `0.0010` of `0.99195`; otherwise open a
-   breaker and alert the human.
+   bounded guarded jobs. The historical 499f753c control has no authenticated public20M value; its
+   only quality metric is a 2M screen. Compare the new public20M result with the separately declared
+   global numerical-equivalence band `[0.99095, 0.99295]`. This first c5c baseline cannot be called a
+   quality win. A value outside the band opens a breaker and requires a human alert.
 8. Archive all evidence before any verdict. Preserve the checkpoint, caches, checkout, and logs.
    There is no prune, cache cleanup, cold run, deletion, submission, or leaderboard authority here.
 

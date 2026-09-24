@@ -37,7 +37,7 @@
   "p_improve": 0.5,
   "estimated_host_hours": 1.1,
   "trainium_feasibility": "Exact c5c source, seed-42 and 1800-second source defaults, LNC2/world4, warm authenticated /tmp/neuron_cache and /tmp/neff_cache, and a 3600-second outer bound. No cold compile-cache creation or deletion is permitted.",
-  "cheapest_falsifier": "Reject if G1 calibration or G2 is not PASS, step 0/1 differ from 9.0112/8.7822, the checkpoint is missing/nonfinite, causality fails, or fresh public20M differs from 0.99195 by more than 0.0010.",
+  "cheapest_falsifier": "Reject if G1 calibration or G2 is not PASS, training-stdout step 0/1 losses differ from 9.0112/8.7822, the checkpoint is missing/nonfinite, causality fails, or fresh public20M lies outside the separately declared 0.99095-0.99295 reference band.",
   "prior_result_refs": [
     "499f753ca554c5c732c35ab4eab7e96488d5e355: fs-20260924-v2-35c9-lr015-control-trn22-r1",
     "68ecfeb168ddd095ed14f1908fee7c0284dbc97f: authenticated trn22 warm-cache/disk evidence",
@@ -53,9 +53,16 @@
   "control": {
     "git_commit": "499f753ca554c5c732c35ab4eab7e96488d5e355",
     "run_label": "fs-20260924-v2-35c9-lr015-control-trn22-r1",
-    "public_val_bpb": 0.99195,
+    "public_val_bpb": null,
+    "public20m_status": "unknown; the authenticated run supplies the same-host step-0/1 anchor and a 2M result only",
     "steps": 3634,
-    "box_constraint": "trn22 only; use the same-host control solely for the exact step-0/1 and public20M equivalence gates"
+    "box_constraint": "trn22 only; use this run solely for the exact training-stdout step-0/1 loss anchor"
+  },
+  "external_quality_reference": {
+    "public20m_bpb": 0.99195,
+    "absolute_tolerance": 0.001,
+    "acceptable_interval": [0.99095, 0.99295],
+    "meaning": "A separately declared global numerical-equivalence reference band, not a result attributed to the 499f753c control and not evidence of a quality win"
   },
   "candidate": {
     "branch": "experiment/20260925-v2-c5c-a0-control-trn22-r1",
@@ -74,9 +81,9 @@
     "human_run_approval": true
   },
   "success_criteria": {
-    "quality": "Exact logged step-0/1 losses 9.0112 and 8.7822; fresh public20M BPB within absolute 0.0010 of 0.99195.",
+    "quality": "Exact training-stdout step-0/1 losses 9.0112 and 8.7822; fresh public20M BPB within the separately declared [0.99095, 0.99295] numerical-equivalence band. This establishes the first c5c baseline and is not a quality win.",
     "throughput": "Informational only; warm/cold timing differences are not an equality or selection gate.",
-    "correctness": "G1 and G2 pass first; finite chronological step log; rc not 124; finite hashed model-only checkpoint; causality passes; fresh public20M completes within its separate bounded job."
+    "correctness": "G1 and G2 pass first; boundary file has exact monotonic integer step lines; training stdout and external runtime observation support the budget summary; rc not 124; finite hashed model-only checkpoint; causality passes; fresh public20M completes within its separate bounded job."
   },
   "abort_conditions": [
     "G1 retained-checkpoint calibration or exact c5c G2 is not independently PASS",
